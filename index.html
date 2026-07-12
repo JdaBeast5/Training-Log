@@ -1,0 +1,2214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Training Log — Jason</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Training Log">
+<meta name="theme-color" content="#14171A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14171A;
+    --surface:#1D2227;
+    --surface2:#262C33;
+    --line:#333A42;
+    --text:#ECEDEE;
+    --text-muted:#8B939B;
+    --plate-red:#E8433F;
+    --plate-blue:#2D6CDF;
+    --plate-yellow:#F2C94C;
+    --plate-green:#3DAA57;
+    --plate-white:#D8DCE1;
+    --plate-off:#4A5057;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    padding-bottom:60px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:640px; margin:0 auto; padding:20px 16px 0;}
+  header{padding:8px 0 18px;}
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--text-muted);
+    text-transform:uppercase;
+  }
+  h1{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:30px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    margin-top:4px;
+  }
+  .sub{color:var(--text-muted); font-size:13px; margin-top:4px;}
+
+  .tabs-header{display:flex; align-items:center; justify-content:space-between; padding-top:14px;}
+  .tabs-header .hint{font-size:11px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:0.5px;}
+  .reorder-btn{
+    background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:600;
+    padding:7px 12px; border-radius:20px; cursor:pointer;
+  }
+  .reorder-btn.active{background:var(--plate-blue); border-color:var(--plate-blue); color:#fff;}
+
+  .tabs{
+    display:flex; gap:10px; overflow-x:auto; padding:14px 2px 18px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .tab{
+    flex:0 0 auto;
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+    cursor:pointer; opacity:0.55; transition:opacity .15s ease, transform .15s ease;
+    background:none; border:none; color:inherit; font-family:inherit;
+    position:relative;
+  }
+  .tab.active{opacity:1;}
+  .tab:active{transform:scale(0.96);}
+  .plate{
+    width:46px; height:46px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:12px;
+    border:3px solid rgba(0,0,0,0.25);
+    color:#14171A;
+  }
+  .plate-off{color:var(--text-muted); font-size:10px;}
+  .plate-label{font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap;}
+  .tab.active .plate-label{color:var(--text);}
+
+  .p-red{background:var(--plate-red);}
+  .p-blue{background:var(--plate-blue);}
+  .p-yellow{background:var(--plate-yellow);}
+  .p-green{background:var(--plate-green);}
+  .p-white{background:var(--plate-white);}
+  .p-off{background:var(--surface2); border-color:var(--line);}
+
+  .reorder-arrows{
+    display:flex; gap:2px; margin-top:2px;
+  }
+  .reorder-arrows button{
+    width:20px; height:18px; border-radius:4px; border:1px solid var(--line);
+    background:var(--surface2); color:var(--text); font-size:10px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; padding:0;
+  }
+  .reorder-arrows button:disabled{opacity:0.25;}
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:14px;
+  }
+  .card-title{
+    font-family:'Oswald',sans-serif;
+    font-size:18px;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    display:flex; align-items:center; gap:8px;
+    margin-bottom:4px;
+  }
+  .day-plate-inline{width:20px; height:20px; border-radius:50%; flex:0 0 auto; border:2px solid rgba(0,0,0,0.25);}
+  .duration-tag{
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--text-muted);
+    margin-bottom:14px; margin-top:2px;
+  }
+
+  .exercise{
+    display:flex; align-items:center; gap:12px;
+    padding:11px 0 4px;
+  }
+  .exercise-block{
+    padding:7px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .exercise-block:last-child{border-bottom:none;}
+  .exercise input[type=checkbox]{
+    width:22px; height:22px; flex:0 0 auto;
+    accent-color:var(--plate-blue);
+  }
+  .ex-thumb{
+    flex:0 0 auto; width:30px; height:30px; color:var(--text-muted); opacity:0.9;
+    background:var(--surface2); border-radius:8px; padding:3px; border:1px solid var(--line);
+  }
+  .ex-thumb svg{width:100%; height:100%;}
+  .ex-name-wrap{min-width:0; flex:1;}
+  .ex-name{font-weight:500; font-size:14.5px;}
+  .ex-name .super-tag{font-size:10.5px; color:var(--plate-yellow); display:block; font-family:'IBM Plex Mono',monospace; margin-top:1px;}
+  .ex-name.done{color:var(--text-muted); text-decoration:line-through;}
+  .ex-name.done .super-tag{color:var(--text-muted);}
+  .ex-sets{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--text-muted);
+    margin-left:auto;
+    white-space:nowrap;
+    text-align:right;
+  }
+
+  .ex-track-row{
+    display:flex; align-items:center; gap:6px; padding:2px 0 4px 76px;
+  }
+  .ex-input{
+    width:56px; background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    border-radius:7px; padding:6px 4px; font-family:'IBM Plex Mono',monospace; font-size:13px; text-align:center;
+  }
+  .ex-input::placeholder{color:#5A6169;}
+  .ex-x{color:var(--text-muted); font-size:12px;}
+  .ex-input-label{color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.3px;}
+  .progress-hint{
+    padding:2px 0 2px 76px; font-size:11.5px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace;
+  }
+  .progress-badge{
+    margin:4px 0 2px 76px; padding:7px 10px; background:rgba(242,201,76,0.12); border:1px solid rgba(242,201,76,0.35);
+    border-radius:8px; font-size:12px; color:var(--plate-yellow); line-height:1.4;
+  }
+
+  .ex-details{margin:6px 0 2px 76px;}
+  .ex-details summary{
+    list-style:none; cursor:pointer; display:flex; align-items:center; gap:5px;
+    font-size:11.5px; color:var(--plate-blue); font-weight:600; text-transform:uppercase; letter-spacing:0.3px;
+    padding:2px 0;
+  }
+  .ex-details summary::-webkit-details-marker{display:none;}
+  .ex-details summary::before{
+    content:'▸'; font-size:10px; transition:transform .15s ease; display:inline-block;
+  }
+  .ex-details[open] summary::before{transform:rotate(90deg);}
+  .ex-detail-body{
+    display:flex; gap:12px; margin-top:8px; padding:12px; background:var(--surface2);
+    border-radius:10px; border:1px solid var(--line);
+  }
+  .ex-icon{
+    flex:0 0 auto; width:32px; height:32px; color:var(--plate-blue); opacity:0.85;
+  }
+  .ex-icon svg{width:100%; height:100%;}
+  .ex-detail-content{flex:1; min-width:0;}
+  .ex-cues{list-style:none; display:flex; flex-direction:column; gap:6px;}
+  .ex-cues li{
+    font-size:12.5px; line-height:1.45; color:var(--text); padding-left:14px; position:relative;
+  }
+  .ex-cues li::before{
+    content:'—'; position:absolute; left:0; color:var(--text-muted);
+  }
+  .ex-video-link{
+    display:inline-block; margin-top:10px; font-size:12px; color:var(--plate-blue);
+    text-decoration:none; font-weight:600;
+  }
+  .ex-video-link:active{opacity:0.7;}
+
+  .rest-note{color:var(--text-muted); font-size:14px; line-height:1.5;}
+
+  .macro-row{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
+  .macro-row:last-child{margin-bottom:0;}
+  .macro-label{width:64px; font-size:12.5px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace;}
+  .macro-bar-track{flex:1; height:9px; background:var(--surface2); border-radius:5px; overflow:hidden;}
+  .macro-bar-fill{height:100%; border-radius:5px; transition:width .3s ease;}
+  .macro-val{
+    width:78px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--text);
+  }
+  .macro-input-row{display:flex; gap:8px; margin-top:14px;}
+  .macro-input-row input{
+    width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    border-radius:8px; padding:9px 6px; font-family:'IBM Plex Mono',monospace; font-size:13px; text-align:center;
+  }
+  .macro-input-labels{display:flex; gap:8px; margin-top:6px;}
+  .macro-input-labels span{width:100%; text-align:center; font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;}
+  .save-btn{
+    width:100%; margin-top:14px; padding:11px; border:none; border-radius:8px;
+    background:var(--plate-blue); color:#fff; font-weight:600; font-size:14px;
+    font-family:'Inter',sans-serif; cursor:pointer;
+  }
+  .save-btn:active{opacity:0.8;}
+
+  .weight-input-row{display:flex; gap:8px;}
+  .weight-input-row input{
+    flex:1; background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    border-radius:8px; padding:10px; font-family:'IBM Plex Mono',monospace; font-size:14px;
+  }
+  .weight-input-row button{
+    padding:10px 16px; border:none; border-radius:8px; background:var(--plate-green);
+    color:#fff; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; font-size:13px;
+  }
+  .weight-list{margin-top:12px; display:flex; flex-direction:column; gap:6px;}
+  .weight-item{
+    display:flex; justify-content:space-between; font-size:13px;
+    padding:6px 0; border-bottom:1px solid var(--line); color:var(--text-muted);
+  }
+  .weight-item span:last-child{color:var(--text); font-family:'IBM Plex Mono',monospace;}
+
+  .tip{display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); font-size:13.5px; line-height:1.45;}
+  .tip:last-child{border-bottom:none;}
+  .tip-icon{flex:0 0 auto; width:6px; height:6px; border-radius:50%; background:var(--plate-yellow); margin-top:7px;}
+  .tip b{color:var(--text);}
+  .tip{color:var(--text-muted);}
+
+  .targets-strip{
+    display:flex; justify-content:space-between; text-align:center;
+    background:var(--surface2); border-radius:10px; padding:12px 6px; margin-bottom:14px;
+  }
+  .targets-strip div{flex:1;}
+  .targets-strip .t-val{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:15px;}
+  .targets-strip .t-label{font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;}
+
+  .status-msg{font-size:12px; color:var(--plate-green); height:16px; margin-top:6px; text-align:center;}
+  .empty-note{color:var(--text-muted); font-size:13px; text-align:center; padding:6px 0;}
+
+  .nav-pills{display:flex; gap:8px; margin-top:6px; margin-bottom:4px;}
+  .nav-pill{
+    flex:1; background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
+    font-family:'Oswald',sans-serif; font-size:13px; letter-spacing:0.5px; text-transform:uppercase;
+    padding:10px; border-radius:10px; cursor:pointer; font-weight:600;
+  }
+  .nav-pill.active{background:var(--plate-blue); border-color:var(--plate-blue); color:#fff;}
+
+  .program-select-wrap{position:relative; margin-bottom:6px;}
+  .program-select{
+    width:100%; appearance:none; -webkit-appearance:none;
+    background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    border-radius:10px; padding:12px 36px 12px 14px;
+    font-family:'Oswald',sans-serif; font-size:14.5px; text-transform:uppercase; letter-spacing:0.3px;
+    cursor:pointer;
+  }
+  .program-select:focus{outline:none; border-color:var(--plate-blue);}
+  .program-select-wrap::after{
+    content:'▾'; position:absolute; right:14px; top:50%; transform:translateY(-50%);
+    color:var(--plate-blue); font-size:14px; pointer-events:none;
+  }
+  .program-select-desc{
+    font-size:12px; color:var(--text-muted); margin:6px 0 16px; line-height:1.4;
+  }
+
+  .week-row{
+    display:flex; align-items:center; gap:8px; padding:12px 0; border-bottom:1px solid var(--line);
+  }
+  .week-row:last-child{border-bottom:none;}
+  .week-col{flex:1; text-align:center;}
+  .week-col.label{flex:1.4; text-align:left;}
+  .week-col .w-val{font-family:'IBM Plex Mono',monospace; font-size:13.5px; font-weight:600;}
+  .week-col .w-label{font-size:9.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.4px; margin-top:2px;}
+  .week-col .w-date{font-size:12.5px; font-weight:600; font-family:'Inter',sans-serif;}
+  .w-up{color:var(--plate-red);}
+  .w-down{color:var(--plate-green);}
+  .w-flat{color:var(--text-muted);}
+
+  .sparkline{width:100%; height:70px; display:block;}
+
+  .prog-row{padding:10px 0; border-bottom:1px solid var(--line);}
+  .prog-row:last-child{border-bottom:none;}
+  .prog-top{display:flex; justify-content:space-between; align-items:baseline;}
+  .prog-name{font-size:13.5px; font-weight:600;}
+  .prog-day{font-size:10.5px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; text-transform:uppercase;}
+  .prog-stats{display:flex; justify-content:space-between; margin-top:4px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text-muted);}
+  .prog-current{color:var(--text); font-weight:600;}
+  .prog-ready{color:var(--plate-yellow); font-size:11.5px; margin-top:3px; font-family:'Inter',sans-serif;}
+
+  .food-log-list{margin-bottom:14px;}
+  .food-log-item{
+    display:flex; align-items:center; gap:10px; padding:8px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .food-log-item .fl-name{font-size:13.5px; font-weight:500; flex:1;}
+  .food-log-item .fl-macro{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--text-muted); white-space:nowrap;}
+  .food-log-item .fl-remove{
+    background:none; border:none; color:var(--text-muted); font-size:16px; cursor:pointer; padding:0 2px; line-height:1;
+  }
+  .food-cats{display:flex; gap:8px; overflow-x:auto; padding-bottom:10px; -webkit-overflow-scrolling:touch;}
+  .food-cat-btn{
+    flex:0 0 auto; background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
+    font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; padding:7px 13px; border-radius:20px; cursor:pointer;
+  }
+  .food-cat-btn.active{background:var(--plate-blue); border-color:var(--plate-blue); color:#fff;}
+  .food-items{display:flex; flex-direction:column; gap:6px; margin-bottom:12px;}
+  .food-item-btn{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:var(--surface2); border:1px solid var(--line); border-radius:10px;
+    padding:10px 12px; cursor:pointer; text-align:left;
+  }
+  .food-item-btn:active{opacity:0.75;}
+  .food-item-btn .fi-name{font-size:13.5px; font-weight:500;}
+  .food-item-btn .fi-macro{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-muted); margin-top:2px;}
+  .food-item-btn .fi-plus{
+    flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--plate-green);
+    color:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:600;
+  }
+  .custom-toggle{
+    width:100%; background:none; border:1px dashed var(--line); color:var(--text-muted);
+    padding:10px; border-radius:8px; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif;
+    margin-bottom:4px;
+  }
+  .custom-form{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+  .custom-form input[type=text]{
+    background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    border-radius:8px; padding:10px; font-family:'Inter',sans-serif; font-size:13.5px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">JV · Recomp Program</div>
+    <h1>Training Log</h1>
+    <div class="sub">7-day split · 6'2" · 247 lb · lean out + build · 45-60 min sessions</div>
+  </header>
+
+  <div class="nav-pills">
+    <button class="nav-pill active" id="navToday">Today</button>
+    <button class="nav-pill" id="navAnalysis">Analysis</button>
+  </div>
+
+  <div id="todayView">
+  <div class="card-title" style="margin-bottom:8px;">🏋️ Training Style</div>
+  <div class="program-select-wrap">
+    <select class="program-select" id="programSelector"></select>
+  </div>
+  <div class="program-select-desc" id="programSelectDesc"></div>
+
+  <div class="tabs-header">
+    <div class="hint">Tap a day to view it</div>
+    <button class="reorder-btn" id="reorderToggle">Reorder days</button>
+  </div>
+  <div class="tabs" id="tabs"></div>
+
+  <div id="workoutCard" class="card">
+    <div class="card-title"><span id="dayPlateIcon" class="day-plate-inline"></span><span id="dayTitle"></span></div>
+    <div class="duration-tag" id="dayDuration"></div>
+    <div id="exerciseList"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🎯 Today's Nutrition</div>
+    <div class="targets-strip">
+      <div><div class="t-val">2650</div><div class="t-label">Cal Target</div></div>
+      <div><div class="t-val">240g</div><div class="t-label">Protein</div></div>
+      <div><div class="t-val">75g</div><div class="t-label">Fat</div></div>
+      <div><div class="t-val">250g</div><div class="t-label">Carbs</div></div>
+    </div>
+    <div class="macro-row">
+      <div class="macro-label">CALORIES</div>
+      <div class="macro-bar-track"><div class="macro-bar-fill" id="barCal" style="background:var(--plate-white);width:0%"></div></div>
+      <div class="macro-val" id="valCal">0 / 2650</div>
+    </div>
+    <div class="macro-row">
+      <div class="macro-label">PROTEIN</div>
+      <div class="macro-bar-track"><div class="macro-bar-fill" id="barPro" style="background:var(--plate-red);width:0%"></div></div>
+      <div class="macro-val" id="valPro">0 / 240</div>
+    </div>
+    <div class="macro-row">
+      <div class="macro-label">FAT</div>
+      <div class="macro-bar-track"><div class="macro-bar-fill" id="barFat" style="background:var(--plate-yellow);width:0%"></div></div>
+      <div class="macro-val" id="valFat">0 / 75</div>
+    </div>
+    <div class="macro-row">
+      <div class="macro-label">CARBS</div>
+      <div class="macro-bar-track"><div class="macro-bar-fill" id="barCarb" style="background:var(--plate-blue);width:0%"></div></div>
+      <div class="macro-val" id="valCarb">0 / 250</div>
+    </div>
+
+    <div class="food-log-list" id="foodLogList"></div>
+
+    <div class="food-cats" id="foodCats"></div>
+    <div class="food-items" id="foodItems"></div>
+
+    <button class="custom-toggle" id="customToggle">+ Add custom item</button>
+    <div class="custom-form" id="customForm" style="display:none">
+      <input type="text" id="cName" placeholder="Item name">
+      <div class="macro-input-row">
+        <input type="number" inputmode="numeric" id="cCal" placeholder="Cal">
+        <input type="number" inputmode="numeric" id="cPro" placeholder="Pro">
+        <input type="number" inputmode="numeric" id="cFat" placeholder="Fat">
+        <input type="number" inputmode="numeric" id="cCarb" placeholder="Carb">
+      </div>
+      <button class="save-btn" id="addCustom">Add Item</button>
+    </div>
+    <div class="status-msg" id="nutritionStatus"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">⚖️ Bodyweight</div>
+    <div class="weight-input-row">
+      <input type="number" step="0.1" inputmode="decimal" id="weightInput" placeholder="Weight today (lb)">
+      <button id="saveWeight">Log</button>
+    </div>
+    <div class="weight-list" id="weightList"><div class="empty-note">No entries yet — log your first weigh-in.</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">💡 Keep In Mind</div>
+    <div class="tip"><div class="tip-icon"></div><div><b>Protein first.</b> Hit 230-250g before worrying about anything else — this is what protects muscle in the deficit.</div></div>
+    <div class="tip"><div class="tip-icon" style="background:var(--plate-blue)"></div><div><b>Zone 2 cardio, 2-3x/week.</b> 20-30 min incline walk or bike. Don't turn it into HIIT — that eats into lifting recovery.</div></div>
+    <div class="tip"><div class="tip-icon" style="background:var(--plate-green)"></div><div><b>8-10k steps/day.</b> Your biggest fat-loss lever that doesn't cost you strength.</div></div>
+    <div class="tip"><div class="tip-icon" style="background:var(--plate-red)"></div><div><b>Progressive overload.</b> Hit the top of a rep range on all sets → add weight next session.</div></div>
+    <div class="tip"><div class="tip-icon" style="background:var(--plate-yellow)"></div><div><b>Sleep 7-9 hrs.</b> Non-negotiable for recomp — this is when muscle actually rebuilds.</div></div>
+    <div class="tip"><div class="tip-icon" style="background:var(--plate-white)"></div><div><b>Weigh in weekly, not daily.</b> Track the trend over 2-3 weeks, not day-to-day noise.</div></div>
+    <div class="tip"><div class="tip-icon" style="background:var(--plate-off)"></div><div><b>Order doesn't matter, consistency does.</b> Shift days around your week freely — just try to land on a rest day after 2 straight lifting days when you can.</div></div>
+  </div>
+  </div>
+
+  <div id="analysisView" style="display:none">
+    <div class="card">
+      <div class="card-title">📈 Weight Trend</div>
+      <div id="weightChart"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🗓️ Week Over Week</div>
+      <div id="weeklyTable"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💪 Exercise Progress</div>
+      <div id="exerciseProgress"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.storage = (function(){
+  // Standalone version: saves directly to this device's browser storage.
+  // No Claude account, no publishing, no internet connection required after first load.
+  const PREFIX = 'trainingLog_';
+  let mem = {}; // in-memory fallback if localStorage is ever unavailable (e.g. private browsing)
+  let useLocalStorage = true;
+  try{
+    const testKey = PREFIX + '__test__';
+    localStorage.setItem(testKey, '1');
+    localStorage.removeItem(testKey);
+  }catch(e){
+    useLocalStorage = false;
+  }
+  return {
+    get: async (k)=>{
+      if(useLocalStorage){
+        const raw = localStorage.getItem(PREFIX + k);
+        if(raw === null) throw new Error('not found');
+        return {key:k, value: raw};
+      }
+      if(!(k in mem)) throw new Error('not found');
+      return {key:k, value: mem[k]};
+    },
+    set: async (k,v)=>{
+      if(useLocalStorage){
+        localStorage.setItem(PREFIX + k, v);
+        return {key:k, value:v};
+      }
+      mem[k]=v; return {key:k, value:v};
+    },
+    list: async (prefix)=>{
+      if(useLocalStorage){
+        const keys = [];
+        for(let i=0;i<localStorage.length;i++){
+          const fullKey = localStorage.key(i);
+          if(fullKey && fullKey.startsWith(PREFIX)){
+            const k = fullKey.slice(PREFIX.length);
+            if(!prefix || k.startsWith(prefix)) keys.push(k);
+          }
+        }
+        return {keys, prefix};
+      }
+      const keys = Object.keys(mem).filter(k=> !prefix || k.startsWith(prefix));
+      return {keys, prefix};
+    },
+  };
+})();
+
+const programs = {
+  strength: {
+    label: 'Strength & Size', short: 'Upper/lower strength + hypertrophy',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Upper · Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
+        exercises:[
+          {name:'Bench Press', sets:'4×6-8'},
+          {name:'Barbell Row', sets:'4×6-8'},
+          {name:'Overhead Press', sets:'3×8-10'},
+          {name:'Lat Pulldown', sets:'3×10-12'},
+          {name:'DB Curl', sets:'3×10-12', superTag:'Superset with next'},
+          {name:'Triceps Pushdown', sets:'3×10-12'},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Lower · Strength', plate:'p-blue', plateNum:'20', duration:'~55 min',
+        exercises:[
+          {name:'Squat', sets:'4×6-8'},
+          {name:'Romanian Deadlift', sets:'3×8-10'},
+          {name:'Leg Press', sets:'3×10-12'},
+          {name:'Leg Curl', sets:'3×10-12'},
+          {name:'Calf Raise', sets:'3×12-15'},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'20-30 min zone 2 cardio (incline walk / bike). Keep it conversational pace — this is recovery, not a second workout.'
+      },
+      d4: {
+        label:'Day 4', sub:'Upper · Hypertrophy', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+        exercises:[
+          {name:'Incline DB Press', sets:'4×10-12'},
+          {name:'Cable Row', sets:'4×10-12'},
+          {name:'DB Shoulder Press', sets:'3×10-12'},
+          {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+          {name:'Lateral Raise', sets:'3×12-15', superTag:'Superset with next'},
+          {name:'Face Pull', sets:'3×15'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Lower · Hypertrophy', plate:'p-green', plateNum:'10', duration:'~55 min',
+        exercises:[
+          {name:'Deadlift', sets:'3×5-6'},
+          {name:'Bulgarian Split Squat', sets:'3×10-12/leg'},
+          {name:'Leg Extension', sets:'3×12-15'},
+          {name:'Hip Thrust', sets:'3×10-12'},
+          {name:'Standing Calf Raise', sets:'3×12-15'},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Active Recovery', plate:'p-off', plateNum:'5', duration:'~35 min',
+        exercises:[
+          {name:'Incline Walk', sets:'20 min', noWeight:true},
+          {name:'Plank', sets:'3×45s', noWeight:true},
+          {name:'Cable Crunch', sets:'3×12-15'},
+          {name:'Hanging Leg Raise', sets:'3×10-12'},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+      },
+    }
+  },
+
+  bodybuilding: {
+    label: 'Bodybuilding', short: 'Body-part split, higher volume & isolation',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Chest & Triceps', plate:'p-red', plateNum:'25', duration:'~55 min',
+        exercises:[
+          {name:'Flat Bench Press', sets:'4×8-10'},
+          {name:'Incline DB Press', sets:'3×10-12'},
+          {name:'Cable Fly', sets:'3×12-15'},
+          {name:'Overhead Triceps Extension', sets:'3×10-12', superTag:'Superset with next'},
+          {name:'Triceps Pushdown', sets:'3×12-15'},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Back & Biceps', plate:'p-blue', plateNum:'20', duration:'~55 min',
+        exercises:[
+          {name:'Lat Pulldown', sets:'4×8-10'},
+          {name:'Barbell Row', sets:'4×8-10'},
+          {name:'Seated Cable Row', sets:'3×10-12'},
+          {name:'DB Curl', sets:'3×10-12', superTag:'Superset with next'},
+          {name:'Hammer Curl', sets:'3×10-12'},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'20-30 min zone 2 cardio (incline walk / bike). Keep it conversational pace — this is recovery, not a second workout.'
+      },
+      d4: {
+        label:'Day 4', sub:'Shoulders & Abs', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+        exercises:[
+          {name:'Overhead Press', sets:'4×8-10'},
+          {name:'Lateral Raise', sets:'4×12-15'},
+          {name:'Rear Delt Fly', sets:'3×12-15'},
+          {name:'Cable Crunch', sets:'3×15', superTag:'Superset with next'},
+          {name:'Hanging Leg Raise', sets:'3×12'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Legs', plate:'p-green', plateNum:'10', duration:'~60 min',
+        exercises:[
+          {name:'Squat', sets:'4×8-10'},
+          {name:'Romanian Deadlift', sets:'3×10-12'},
+          {name:'Leg Press', sets:'3×12-15'},
+          {name:'Leg Extension', sets:'3×12-15', superTag:'Superset with next'},
+          {name:'Leg Curl', sets:'3×12-15'},
+          {name:'Calf Raise', sets:'4×15'},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Arms & Conditioning', plate:'p-off', plateNum:'5', duration:'~40 min',
+        exercises:[
+          {name:'EZ Bar Curl', sets:'3×10-12'},
+          {name:'Skull Crushers', sets:'3×10-12'},
+          {name:'Cable Curl', sets:'3×12-15', superTag:'Superset with next'},
+          {name:'Rope Pushdown', sets:'3×12-15'},
+          {name:'Incline Walk', sets:'20 min', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+      },
+    }
+  },
+
+  oly: {
+    label: 'Olympic Lifting', short: 'Snatch, clean & jerk technique + strength',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Snatch + Pull Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
+        exercises:[
+          {name:'Snatch', sets:'5×3'},
+          {name:'Snatch Pull', sets:'4×3'},
+          {name:'Overhead Squat', sets:'3×5'},
+          {name:'Front Squat', sets:'3×5'},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Clean & Jerk Technique', plate:'p-blue', plateNum:'20', duration:'~55 min',
+        exercises:[
+          {name:'Clean & Jerk', sets:'5×3'},
+          {name:'Clean Pull', sets:'4×3'},
+          {name:'Front Squat', sets:'3×5'},
+          {name:'Jerk Dip Squat', sets:'3×5'},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Shoulder, hip, and ankle mobility work, 20-30 min. Oly lifting is technical and taxes the CNS hard — respect this rest day.'
+      },
+      d4: {
+        label:'Day 4', sub:'Snatch Variations', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+        exercises:[
+          {name:'Power Snatch', sets:'5×3'},
+          {name:'Snatch Balance', sets:'4×3'},
+          {name:'Back Squat', sets:'3×6-8'},
+          {name:'Barbell Row', sets:'3×8-10'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Clean & Jerk Variations', plate:'p-green', plateNum:'10', duration:'~55 min',
+        exercises:[
+          {name:'Power Clean', sets:'5×3'},
+          {name:'Push Press', sets:'4×5'},
+          {name:'Back Squat', sets:'3×6-8'},
+          {name:'Weighted Sit-up', sets:'3×12'},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Technique Primer + Core', plate:'p-off', plateNum:'5', duration:'~40 min',
+        exercises:[
+          {name:'Snatch Pull', sets:'3×3'},
+          {name:'Clean Pull', sets:'3×3'},
+          {name:'Hanging Leg Raise', sets:'3×12'},
+          {name:'Plank', sets:'3×45s', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+      },
+    }
+  },
+
+  athletic: {
+    label: 'Athletic / Plyo', short: 'Explosive power, plyometrics & conditioning',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Lower Power', plate:'p-red', plateNum:'25', duration:'~55 min',
+        exercises:[
+          {name:'Trap Bar Jump Squat', sets:'4×3'},
+          {name:'Box Jump', sets:'4×5'},
+          {name:'Squat', sets:'4×5'},
+          {name:'Broad Jump', sets:'3×5'},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Upper Power', plate:'p-blue', plateNum:'20', duration:'~55 min',
+        exercises:[
+          {name:'Med Ball Chest Pass', sets:'4×5'},
+          {name:'Plyo Push-up', sets:'3×8'},
+          {name:'Bench Press', sets:'4×6-8'},
+          {name:'Barbell Row', sets:'3×8-10'},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Mobility and light movement, 20-30 min. Explosive training is high-impact — this rest day protects your joints and CNS.'
+      },
+      d4: {
+        label:'Day 4', sub:'Lower Power 2', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+        exercises:[
+          {name:'Depth Jump', sets:'4×5'},
+          {name:'Single-Leg Bound', sets:'3×6/leg'},
+          {name:'Deadlift', sets:'4×5'},
+          {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Upper Power 2 + Core', plate:'p-green', plateNum:'10', duration:'~50 min',
+        exercises:[
+          {name:'Med Ball Rotational Throw', sets:'3×6/side'},
+          {name:'Overhead Press', sets:'4×6-8'},
+          {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+          {name:'Cable Woodchopper', sets:'3×12/side'},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Conditioning & Agility', plate:'p-off', plateNum:'5', duration:'~35 min',
+        exercises:[
+          {name:'Sprint Intervals', sets:'6×40yd', noWeight:true},
+          {name:'Agility Ladder', sets:'15 min', noWeight:true},
+          {name:'Sled Push', sets:'4×20yd'},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+      },
+    }
+  },
+
+  combat: {
+    label: 'Boxing / Kickboxing', short: 'Heavy bag rounds + strength, camp-style periodization',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Boxing · Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
+        exercises:[
+          {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+          {name:'Heavy Bag — Jab-Cross Combos', sets:'6×2min rounds', noWeight:true},
+          {name:'Heavy Bag — Power Hooks & Uppercuts', sets:'4×2min rounds', noWeight:true},
+          {name:'Bench Press', sets:'3×6-8'},
+          {name:'Barbell Row', sets:'3×6-8'},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Kickboxing · Kicks & Core', plate:'p-blue', plateNum:'20', duration:'~55 min',
+        exercises:[
+          {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+          {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'6×2min rounds', noWeight:true},
+          {name:'Heavy Bag — Teep + Knee Combos', sets:'4×2min rounds', noWeight:true},
+          {name:'Squat', sets:'3×6-8'},
+          {name:'Hanging Leg Raise', sets:'3×12'},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Hip and shoulder mobility, 20-30 min. Kicking and heavy bag power both live and die on hip/shoulder range of motion — don\'t skip this.'
+      },
+      d4: {
+        label:'Day 4', sub:'Boxing · Speed & Output', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+        exercises:[
+          {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+          {name:'Heavy Bag — Speed Combos (light power, high output)', sets:'8×1.5min rounds', noWeight:true},
+          {name:'Shadowboxing w/ Footwork', sets:'4×2min rounds', noWeight:true},
+          {name:'Overhead Press', sets:'3×8-10'},
+          {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Kickboxing · Power Kicks', plate:'p-green', plateNum:'10', duration:'~55 min',
+        exercises:[
+          {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+          {name:'Heavy Bag — Power Round Kicks', sets:'6×2min rounds', noWeight:true},
+          {name:'Heavy Bag — Punch-Kick Combos', sets:'4×2min rounds', noWeight:true},
+          {name:'Deadlift', sets:'3×5-6'},
+          {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Conditioning Finisher', plate:'p-off', plateNum:'5', duration:'~40 min',
+        exercises:[
+          {name:'Heavy Bag — Freestyle Flow (punches + kicks)', sets:'4×3min rounds', noWeight:true},
+          {name:'Burpees', sets:'4×30s', noWeight:true},
+          {name:'Plank', sets:'3×45s', noWeight:true},
+          {name:'Weighted Sit-up', sets:'3×12'},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+      },
+    }
+  },
+
+  core: {
+    label: 'Core & Stability', short: 'Abs, obliques & lower-back stabilizers',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
+        exercises:[
+          {name:'McGill Curl-up', sets:'3×8-10'},
+          {name:'Bird Dog', sets:'3×8/side'},
+          {name:'Side Plank', sets:'3×30-45s/side'},
+          {name:'Dead Bug', sets:'3×10/side'},
+          {name:'Ab Wheel Rollout', sets:'3×8-10'},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Rotational Power & Obliques', plate:'p-blue', plateNum:'20', duration:'~45 min',
+        exercises:[
+          {name:'Cable Woodchopper', sets:'3×10/side'},
+          {name:'Landmine Rotation', sets:'3×8/side'},
+          {name:'Pallof Press', sets:'3×10/side'},
+          {name:'Russian Twist (weighted)', sets:'3×15/side'},
+          {name:'Hanging Leg Raise', sets:'3×10-12'},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'20-30 min zone 2 cardio (incline walk / bike). Core stabilizers recover fast but still need a break from direct loading.'
+      },
+      d4: {
+        label:'Day 4', sub:'Loaded Carries & Anti-Lateral Flexion', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+        exercises:[
+          {name:'Farmer\'s Carry', sets:'4×30yd'},
+          {name:'Suitcase Carry', sets:'3×20yd/side'},
+          {name:'Plank', sets:'3×45-60s', noWeight:true},
+          {name:'Weighted Sit-up', sets:'3×12'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Hanging & Dynamic Core', plate:'p-green', plateNum:'10', duration:'~40 min',
+        exercises:[
+          {name:'Hanging Leg Raise', sets:'4×10-12'},
+          {name:'Toes-to-Bar', sets:'3×AMRAP'},
+          {name:'Cable Crunch', sets:'3×15'},
+          {name:'Pallof Press', sets:'3×10/side'},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Lower-Back Stabilizers & Mobility', plate:'p-off', plateNum:'5', duration:'~30 min',
+        exercises:[
+          {name:'Bird Dog', sets:'3×10/side'},
+          {name:'Side Plank', sets:'3×30-45s/side'},
+          {name:'Superman Hold', sets:'3×20-30s', noWeight:true},
+          {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+      },
+    }
+  },
+
+  bodyweight: {
+    label: 'Bodyweight', short: 'No gym needed — anywhere, minimal equipment',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~35 min',
+        exercises:[
+          {name:'Push-up', sets:'4×AMRAP'},
+          {name:'Pike Push-up', sets:'3×10-12'},
+          {name:'Decline Push-up', sets:'3×12-15'},
+          {name:'Triceps Dip', sets:'3×12-15'},
+          {name:'Plank', sets:'3×45s', noWeight:true},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Pull', plate:'p-blue', plateNum:'20', duration:'~35 min',
+        exercises:[
+          {name:'Pull-ups (or assisted)', sets:'4×AMRAP'},
+          {name:'Chin-up', sets:'3×AMRAP'},
+          {name:'Inverted Row', sets:'3×12-15'},
+          {name:'Superman Hold', sets:'3×20-30s', noWeight:true},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'20-30 min zone 2 cardio — a brisk outdoor walk or bike works great here, no gym required.'
+      },
+      d4: {
+        label:'Day 4', sub:'Legs', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+        exercises:[
+          {name:'Bodyweight Squat', sets:'4×20-25'},
+          {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
+          {name:'Glute Bridge', sets:'3×15-20'},
+          {name:'Calf Raise', sets:'3×20-25'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Full Body Conditioning', plate:'p-green', plateNum:'10', duration:'~35 min',
+        exercises:[
+          {name:'Burpees', sets:'4×30-45s', noWeight:true},
+          {name:'Mountain Climbers', sets:'4×30s', noWeight:true},
+          {name:'Jump Squat', sets:'3×12-15'},
+          {name:'Push-up to Plank', sets:'3×10'},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Core & Mobility', plate:'p-off', plateNum:'5', duration:'~30 min',
+        exercises:[
+          {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+          {name:'Plank', sets:'3×45-60s', noWeight:true},
+          {name:'Bicycle Crunch', sets:'3×15/side'},
+          {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+      },
+    }
+  },
+
+  jumprope: {
+    label: 'Jump Rope', short: 'Rope conditioning — fast, portable, no gym',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Basic Endurance', plate:'p-red', plateNum:'25', duration:'~35 min',
+        exercises:[
+          {name:'Jump Rope — Basic Bounce', sets:'8×2min rounds', noWeight:true},
+          {name:'Jump Rope — Alternate Foot Step', sets:'4×1min', noWeight:true},
+          {name:'Push-up', sets:'3×15'},
+          {name:'Bodyweight Squat', sets:'3×20'},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Speed & Footwork', plate:'p-blue', plateNum:'20', duration:'~35 min',
+        exercises:[
+          {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
+          {name:'Jump Rope — Boxer Skip', sets:'4×1min', noWeight:true},
+          {name:'Jump Rope — Criss-Cross', sets:'4×1min', noWeight:true},
+          {name:'Bodyweight Squat', sets:'3×20'},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Ankle and calf mobility, 20-30 min. Rope work is high-impact on the lower legs — this rest day matters.'
+      },
+      d4: {
+        label:'Day 4', sub:'Double Unders & Power', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+        exercises:[
+          {name:'Jump Rope — Double Unders', sets:'6×30-45s', noWeight:true},
+          {name:'Jump Rope — High Knees', sets:'4×1min', noWeight:true},
+          {name:'Push-up', sets:'3×15'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'HIIT Intervals', plate:'p-green', plateNum:'10', duration:'~30 min',
+        exercises:[
+          {name:'Jump Rope — Tabata Intervals', sets:'8 rounds', noWeight:true},
+          {name:'Jump Rope — Freestyle Flow', sets:'4×2min', noWeight:true},
+          {name:'Plank', sets:'3×45s', noWeight:true},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Endurance Test + Core', plate:'p-off', plateNum:'5', duration:'~30 min',
+        exercises:[
+          {name:'Jump Rope — Continuous Bounce', sets:'3×5min', noWeight:true},
+          {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+      },
+    }
+  },
+
+  mobility: {
+    label: 'Mobility & Flexibility', short: 'Joint prep, range of motion & recovery',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Hips & Ankles', plate:'p-red', plateNum:'25', duration:'~30 min',
+        exercises:[
+          {name:'90/90 Hip Switch', sets:'3×8/side', noWeight:true},
+          {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+          {name:'Ankle Dorsiflexion Stretch', sets:'3×30s/side', noWeight:true},
+          {name:'Pigeon Pose', sets:'2×45s/side', noWeight:true},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Shoulders & T-Spine', plate:'p-blue', plateNum:'20', duration:'~30 min',
+        exercises:[
+          {name:'Shoulder CARs', sets:'2×5/side', noWeight:true},
+          {name:'Thoracic Spine Rotation (Open Book)', sets:'3×8/side', noWeight:true},
+          {name:'Wall Slides', sets:'3×10', noWeight:true},
+          {name:'Band Dislocates', sets:'3×12', noWeight:true},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'20-30 min zone 2 cardio (incline walk / bike). Easy movement while your joints get a break from direct mobility loading.'
+      },
+      d4: {
+        label:'Day 4', sub:'Posterior Chain & Hamstrings', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+        exercises:[
+          {name:'PNF Hamstring Stretch', sets:'3×20-30s/side', noWeight:true},
+          {name:'World\'s Greatest Stretch', sets:'2×5/side', noWeight:true},
+          {name:'Nordic Curl', sets:'3×5-8'},
+          {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Full Body Flow', plate:'p-green', plateNum:'10', duration:'~30 min',
+        exercises:[
+          {name:'Sun Salutation Flow', sets:'3 rounds', noWeight:true},
+          {name:'Deep Squat Hold', sets:'3×30-45s', noWeight:true},
+          {name:'Couch Stretch', sets:'2×45s/side', noWeight:true},
+          {name:'Spinal Wave', sets:'2×8', noWeight:true},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Active Recovery Flow', plate:'p-off', plateNum:'5', duration:'~25 min',
+        exercises:[
+          {name:'Foam Rolling Full Body', sets:'10 min', noWeight:true},
+          {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+          {name:'Child\'s Pose Breathing', sets:'3×60s', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+      },
+    }
+  },
+
+  running: {
+    label: 'Running / Endurance', short: 'Jack Daniels-style paced running progression',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Easy Run + Strides', plate:'p-red', plateNum:'25', duration:'~35 min',
+        exercises:[
+          {name:'Easy Run', sets:'25-30 min', noWeight:true},
+          {name:'Strides', sets:'4×20s', noWeight:true},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Tempo Run', plate:'p-blue', plateNum:'20', duration:'~40 min',
+        exercises:[
+          {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+          {name:'Tempo Run', sets:'20 min', noWeight:true},
+          {name:'Cool-down Jog', sets:'5-10 min', noWeight:true},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Hip and ankle mobility, 20-30 min. Running volume adds up fast on joints — don\'t skip recovery.'
+      },
+      d4: {
+        label:'Day 4', sub:'Interval Training', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+        exercises:[
+          {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+          {name:'400m Repeats', sets:'6×400m', noWeight:true},
+          {name:'Cool-down Jog', sets:'10 min', noWeight:true},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Long Run', plate:'p-green', plateNum:'10', duration:'~55 min',
+        exercises:[
+          {name:'Long Run', sets:'45-60 min', noWeight:true},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Recovery Run + Strength', plate:'p-off', plateNum:'5', duration:'~35 min',
+        exercises:[
+          {name:'Recovery Jog', sets:'20 min', noWeight:true},
+          {name:'Bodyweight Squat', sets:'3×15'},
+          {name:'Push-up', sets:'3×15'},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+      },
+    }
+  },
+
+  calisthenics: {
+    label: 'Calisthenics / Gymnastics', short: 'Skill work — muscle-ups, levers, handstands, L-sits',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Push Skills', plate:'p-red', plateNum:'25', duration:'~40 min',
+        exercises:[
+          {name:'Handstand Hold (wall)', sets:'4×20-30s', noWeight:true},
+          {name:'Pike Push-up', sets:'3×8-10'},
+          {name:'Dip (Bar/Ring)', sets:'4×8-12'},
+          {name:'Planche Lean', sets:'3×15-20s', noWeight:true},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Pull Skills', plate:'p-blue', plateNum:'20', duration:'~40 min',
+        exercises:[
+          {name:'Muscle-up', sets:'4×3-5'},
+          {name:'Front Lever Hold', sets:'4×10-15s', noWeight:true},
+          {name:'Pull-ups (or assisted)', sets:'4×8-10'},
+          {name:'Inverted Row', sets:'3×12'},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Shoulder and wrist mobility, 20-30 min. Skill work like handstands and levers demands healthy joints — protect them here.'
+      },
+      d4: {
+        label:'Day 4', sub:'Core & L-Sit Progressions', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+        exercises:[
+          {name:'L-sit Hold', sets:'4×10-20s', noWeight:true},
+          {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+          {name:'Dragon Flag', sets:'3×5-8', noWeight:true},
+          {name:'Hanging Leg Raise', sets:'3×10-12'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Legs & Explosive', plate:'p-green', plateNum:'10', duration:'~40 min',
+        exercises:[
+          {name:'Pistol Squat', sets:'3×5-8/leg'},
+          {name:'Jump Squat', sets:'3×12-15'},
+          {name:'Nordic Curl', sets:'3×5-8'},
+          {name:'Calf Raise', sets:'3×20-25'},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Skill Practice & Mobility', plate:'p-off', plateNum:'5', duration:'~30 min',
+        exercises:[
+          {name:'Handstand Hold (wall)', sets:'4×30-60s attempts', noWeight:true},
+          {name:'Bridge Hold', sets:'3×20-30s', noWeight:true},
+          {name:'Band Dislocates', sets:'3×12', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+      },
+    }
+  },
+
+  powerlifting: {
+    label: 'Powerlifting', short: 'Max-strength squat, bench & deadlift cycle',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Squat Focus', plate:'p-red', plateNum:'25', duration:'~55 min',
+        exercises:[
+          {name:'Squat', sets:'5×5'},
+          {name:'Pause Squat', sets:'3×3'},
+          {name:'Leg Press', sets:'3×8-10'},
+          {name:'Weighted Sit-up', sets:'3×12'},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Bench Focus', plate:'p-blue', plateNum:'20', duration:'~55 min',
+        exercises:[
+          {name:'Bench Press', sets:'5×5'},
+          {name:'Close-Grip Bench Press', sets:'3×5'},
+          {name:'Barbell Row', sets:'4×6-8'},
+          {name:'Triceps Pushdown', sets:'3×10-12'},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Hip and shoulder mobility, 20-30 min. Heavy low-rep work is taxing on the CNS — respect this rest day.'
+      },
+      d4: {
+        label:'Day 4', sub:'Deadlift Focus', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+        exercises:[
+          {name:'Deadlift', sets:'5×3'},
+          {name:'Deficit Deadlift', sets:'3×3'},
+          {name:'Romanian Deadlift', sets:'3×8'},
+          {name:'Hanging Leg Raise', sets:'3×10-12'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Bench Accessory + Volume', plate:'p-green', plateNum:'10', duration:'~50 min',
+        exercises:[
+          {name:'Bench Press', sets:'4×8'},
+          {name:'Overhead Press', sets:'3×8-10'},
+          {name:'Lat Pulldown', sets:'3×10-12'},
+          {name:'DB Curl', sets:'3×10-12'},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Squat/Deadlift Accessory', plate:'p-off', plateNum:'5', duration:'~45 min',
+        exercises:[
+          {name:'Front Squat', sets:'3×5'},
+          {name:'Good Morning', sets:'3×8'},
+          {name:'Leg Curl', sets:'3×10-12'},
+          {name:'Plank', sets:'3×45s', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+      },
+    }
+  },
+};
+
+let activeProgram = 'strength';
+
+const CATEGORY_ICONS = {
+  barbell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="4" cy="12" r="2.2"/><circle cx="20" cy="12" r="2.2"/><line x1="6.2" y1="12" x2="17.8" y2="12"/><line x1="8" y1="9" x2="8" y2="15"/><line x1="16" y1="9" x2="16" y2="15"/></svg>',
+  core: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 7 L12 14"/><path d="M8 10 L16 10"/><path d="M12 14 L8 20"/><path d="M12 14 L16 20"/></svg>',
+  bolt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M13 2 L5 14 H11 L9 22 L20 9 H14 Z"/></svg>',
+  fist: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="9" width="12" height="9" rx="2.5"/><line x1="9" y1="9" x2="9" y2="18"/><line x1="12" y1="9" x2="12" y2="18"/><line x1="15" y1="9" x2="15" y2="18"/><path d="M6 12 L3 12 L3 15 L6 15"/></svg>',
+  kick: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="4" r="2"/><path d="M8 6 L8 12 L14 15"/><path d="M8 12 L18 10"/></svg>',
+  pulse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12 H7 L9 6 L13 18 L15 12 H22"/></svg>',
+};
+
+const CAT_TO_ICON = {
+  push:'barbell', pull:'barbell', squat:'barbell', hinge:'barbell', lunge:'barbell',
+  shoulder:'barbell', arms:'barbell', core:'core', jump:'bolt', oly:'bolt', throw:'bolt',
+  punch:'fist', kick:'kick', cardio:'pulse',
+};
+
+const MOVEMENT_ICONS = {
+  horizontalPress: '<svg viewBox="0 0 40 40"><line x1="6" y1="26" x2="24" y2="26" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="9" cy="26" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="24" y1="26" x2="30" y2="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="30" y1="20" x2="27" y2="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="26" x2="16" y2="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="26" x2="20" y2="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="12" x2="26" y2="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="10" cy="12" r="2.2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="26" cy="12" r="2.2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  overheadPress: '<svg viewBox="0 0 40 40"><circle cx="20" cy="7" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="10" x2="20" y2="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="24" x2="15" y2="36" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="24" x2="25" y2="36" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="12" x2="14" y2="4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="12" x2="26" y2="4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="4" x2="30" y2="4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="10" cy="4" r="2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="30" cy="4" r="2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  row: '<svg viewBox="0 0 40 40"><circle cx="30" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="28" y1="15" x2="16" y2="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="24" x2="10" y2="34" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="24" x2="20" y2="35" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="24" y1="18" x2="14" y2="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="22" x2="6" y2="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="6" cy="20" r="2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  pulldownPullup: '<svg viewBox="0 0 40 40"><line x1="6" y1="6" x2="34" y2="6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="20" cy="12" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="15" x2="20" y2="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="6" x2="13" y2="15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="6" x2="27" y2="15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="24" x2="15" y2="34" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="24" x2="25" y2="34" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  squat: '<svg viewBox="0 0 40 40"><circle cx="20" cy="8" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="11" x2="20" y2="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="13" y2="27" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="13" y1="27" x2="14" y2="35" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="27" y2="27" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="27" y1="27" x2="26" y2="35" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="13" y1="12" x2="27" y2="12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="13" cy="12" r="2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="27" cy="12" r="2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  hinge: '<svg viewBox="0 0 40 40"><circle cx="10" cy="14" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="12" y1="16" x2="22" y2="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="22" x2="21" y2="35" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="22" x2="27" y2="34" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="18" x2="10" y2="30" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="6" y1="30" x2="14" y2="30" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="6" cy="30" r="2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="14" cy="30" r="2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  lunge: '<svg viewBox="0 0 40 40"><circle cx="18" cy="7" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="10" x2="19" y2="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="19" y1="22" x2="12" y2="26" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="12" y1="26" x2="12" y2="35" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="19" y1="22" x2="27" y2="30" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="27" y1="30" x2="27" y2="35" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="13" x2="12" y2="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="13" x2="24" y2="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  curl: '<svg viewBox="0 0 40 40"><circle cx="20" cy="7" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="10" x2="20" y2="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="24" x2="16" y2="36" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="24" x2="24" y2="36" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="13" x2="27" y2="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="27" y1="18" x2="24" y2="10" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="24" cy="10" r="2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="13" x2="13" y2="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  tricepsExt: '<svg viewBox="0 0 40 40"><circle cx="20" cy="7" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="10" x2="20" y2="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="24" x2="16" y2="36" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="24" x2="24" y2="36" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="12" x2="27" y2="8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="27" y1="8" x2="22" y2="4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="22" cy="4" r="2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="13" x2="13" y2="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  lateralRaise: '<svg viewBox="0 0 40 40"><circle cx="20" cy="7" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="10" x2="20" y2="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="24" x2="16" y2="36" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="24" x2="24" y2="36" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="13" x2="32" y2="13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="8" cy="13" r="2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="32" cy="13" r="2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  corePlank: '<svg viewBox="0 0 40 40"><circle cx="8" cy="24" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="11" y1="24" x2="30" y2="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="30" y1="20" x2="34" y2="26" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="25" x2="10" y2="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="32" x2="16" y2="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  coreCrunch: '<svg viewBox="0 0 40 40"><line x1="6" y1="30" x2="34" y2="30" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="14" cy="20" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="22" x2="22" y2="28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="28" x2="20" y2="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="28" x2="28" y2="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="24" x2="8" y2="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  carry: '<svg viewBox="0 0 40 40"><circle cx="20" cy="7" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="10" x2="20" y2="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="24" x2="14" y2="36" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="24" x2="26" y2="34" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="13" x2="12" y2="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="13" x2="28" y2="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="24" x2="14" y2="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="26" y1="24" x2="30" y2="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  punch: '<svg viewBox="0 0 40 40"><circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="13" y1="13" x2="16" y2="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="24" x2="12" y2="36" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="24" x2="22" y2="34" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="15" x2="9" y2="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="15" x2="32" y2="15" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="32" cy="15" r="2.3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  kick: '<svg viewBox="0 0 40 40"><circle cx="10" cy="8" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="11" y1="11" x2="14" y2="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="22" x2="10" y2="34" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="22" x2="30" y2="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="12" y1="13" x2="6" y2="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="12" y1="13" x2="18" y2="8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  jump: '<svg viewBox="0 0 40 40"><circle cx="20" cy="10" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="13" x2="20" y2="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="14" y2="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="26" y2="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="15" x2="12" y2="10" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="15" x2="28" y2="10" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="6" y1="34" x2="34" y2="34" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2,3"/></svg>',
+  throw: '<svg viewBox="0 0 40 40"><circle cx="14" cy="10" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="15" y1="13" x2="18" y2="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="24" x2="13" y2="36" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="24" x2="24" y2="34" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="15" x2="30" y2="10" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="30" cy="10" r="2.3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="16" x2="10" y2="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  cardio: '<svg viewBox="0 0 40 40"><circle cx="14" cy="8" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="15" y1="11" x2="19" y2="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="19" y1="22" x2="28" y2="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="19" y1="22" x2="14" y2="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="13" x2="10" y2="8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="13" x2="24" y2="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  mobility: '<svg viewBox="0 0 40 40"><circle cx="10" cy="24" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M13 24 Q22 16 30 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="12" y1="26" x2="10" y2="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="28" y1="26" x2="30" y2="32" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+
+const EXERCISE_MOVE = {
+  '90/90 Hip Switch':'mobility', 'Hip CARs':'mobility', 'Ankle Dorsiflexion Stretch':'mobility', 'Pigeon Pose':'mobility',
+  'Shoulder CARs':'mobility', 'Thoracic Spine Rotation (Open Book)':'mobility', 'Wall Slides':'mobility', 'Band Dislocates':'mobility',
+  'PNF Hamstring Stretch':'mobility', 'World\'s Greatest Stretch':'mobility', 'Nordic Curl':'hinge',
+  'Sun Salutation Flow':'mobility', 'Deep Squat Hold':'squat', 'Couch Stretch':'mobility', 'Spinal Wave':'mobility',
+  'Foam Rolling Full Body':'mobility', 'Child\'s Pose Breathing':'mobility',
+  'Warm-up Jog':'cardio', 'Easy Run':'cardio', 'Strides':'cardio', 'Tempo Run':'cardio', 'Cool-down Jog':'cardio',
+  '400m Repeats':'cardio', 'Long Run':'cardio', 'Recovery Jog':'cardio',
+  'Dip (Bar/Ring)':'tricepsExt', 'Planche Lean':'horizontalPress', 'Muscle-up':'pulldownPullup', 'Front Lever Hold':'pulldownPullup',
+  'L-sit Hold':'corePlank', 'Dragon Flag':'corePlank', 'Pistol Squat':'lunge', 'Bridge Hold':'mobility',
+  'Handstand Hold (wall)':'overheadPress',
+  'Pause Squat':'squat', 'Close-Grip Bench Press':'horizontalPress', 'Deficit Deadlift':'hinge', 'Good Morning':'hinge',
+  'Push-up':'horizontalPress', 'Decline Push-up':'horizontalPress', 'Push-up to Plank':'corePlank',
+  'Pike Push-up':'overheadPress',
+  'Triceps Dip':'tricepsExt',
+  'Chin-up':'pulldownPullup', 'Inverted Row':'row',
+  'Bodyweight Squat':'squat', 'Jump Squat':'jump',
+  'Glute Bridge':'hinge',
+  'Mountain Climbers':'corePlank', 'Hollow Body Hold':'corePlank', 'Bicycle Crunch':'coreCrunch',
+  'Jump Rope — Basic Bounce':'cardio', 'Jump Rope — Alternate Foot Step':'cardio', 'Jump Rope — Speed Singles':'cardio',
+  'Jump Rope — Boxer Skip':'cardio', 'Jump Rope — Criss-Cross':'cardio', 'Jump Rope — Double Unders':'cardio',
+  'Jump Rope — High Knees':'cardio', 'Jump Rope — Tabata Intervals':'cardio', 'Jump Rope — Freestyle Flow':'cardio',
+  'Jump Rope — Continuous Bounce':'cardio',
+  'Bench Press':'horizontalPress', 'Flat Bench Press':'horizontalPress', 'Incline DB Press':'horizontalPress',
+  'Cable Fly':'horizontalPress', 'Plyo Push-up':'horizontalPress', 'Med Ball Chest Pass':'horizontalPress',
+  'Overhead Press':'overheadPress', 'DB Shoulder Press':'overheadPress', 'Push Press':'overheadPress',
+  'Barbell Row':'row', 'Cable Row':'row', 'Seated Cable Row':'row',
+  'Lat Pulldown':'pulldownPullup', 'Pull-ups (or assisted)':'pulldownPullup', 'Toes-to-Bar':'pulldownPullup', 'Hanging Leg Raise':'pulldownPullup',
+  'Squat':'squat', 'Back Squat':'squat', 'Front Squat':'squat', 'Overhead Squat':'squat', 'Leg Press':'squat',
+  'Leg Extension':'squat', 'Leg Curl':'squat', 'Calf Raise':'squat', 'Standing Calf Raise':'squat', 'Jerk Dip Squat':'squat',
+  'Deadlift':'hinge', 'Romanian Deadlift':'hinge', 'Hip Thrust':'hinge', 'Snatch Pull':'hinge', 'Clean Pull':'hinge',
+  'Power Clean':'hinge', 'Power Snatch':'hinge', 'Snatch':'hinge', 'Snatch Balance':'hinge', 'Clean & Jerk':'hinge', 'Sled Push':'hinge',
+  'Bulgarian Split Squat':'lunge', 'Single-Leg Bound':'lunge',
+  'DB Curl':'curl', 'Hammer Curl':'curl', 'Cable Curl':'curl', 'EZ Bar Curl':'curl',
+  'Triceps Pushdown':'tricepsExt', 'Rope Pushdown':'tricepsExt', 'Overhead Triceps Extension':'tricepsExt', 'Skull Crushers':'tricepsExt',
+  'Lateral Raise':'lateralRaise', 'Rear Delt Fly':'lateralRaise', 'Face Pull':'lateralRaise', 'Pallof Press':'lateralRaise',
+  'Plank':'corePlank', 'Side Plank':'corePlank', 'Bird Dog':'corePlank', 'Superman Hold':'corePlank', 'McGill Curl-up':'corePlank', 'Dead Bug':'corePlank',
+  'Cable Crunch':'coreCrunch', 'Weighted Sit-up':'coreCrunch', 'Cable Woodchopper':'coreCrunch', 'Russian Twist (weighted)':'coreCrunch',
+  'Ab Wheel Rollout':'coreCrunch', 'Landmine Rotation':'coreCrunch',
+  'Farmer\'s Carry':'carry', 'Suitcase Carry':'carry',
+  'Heavy Bag — Jab-Cross Combos':'punch', 'Heavy Bag — Power Hooks & Uppercuts':'punch', 'Heavy Bag — Speed Combos (light power, high output)':'punch',
+  'Heavy Bag — Freestyle Flow (punches + kicks)':'punch', 'Shadowboxing w/ Footwork':'punch', 'Heavy Bag — Punch-Kick Combos':'punch',
+  'Heavy Bag — Roundhouse Kicks (both legs)':'kick', 'Heavy Bag — Power Round Kicks':'kick', 'Heavy Bag — Teep + Knee Combos':'kick',
+  'Box Jump':'jump', 'Broad Jump':'jump', 'Depth Jump':'jump', 'Trap Bar Jump Squat':'jump', 'Burpees':'jump',
+  'Med Ball Rotational Throw':'throw',
+  'Sprint Intervals':'cardio', 'Agility Ladder':'cardio', 'Incline Walk':'cardio', 'Jump Rope (warm-up)':'cardio',
+  'Cat-Cow Mobility':'mobility',
+};
+
+const exerciseInfo = {
+  '90/90 Hip Switch': {category:'core', cues:['Sit with both legs bent at 90°, one in front, one out to the side.','Rotate your knees together from one side to the other without using your hands.','Keep your torso upright — this builds the internal/external hip rotation critical for squatting and kicking.']},
+  'Hip CARs': {category:'core', videoQuery:'hip CARs controlled articular rotations', cues:['Stand tall, lift one knee up, then rotate it out, back, and around in a full circle.','Move as slowly as possible, keeping your torso still — the hip should do all the work.','Popularized by Dr. Andreo Spina\'s Functional Range Conditioning to build usable range of motion, not just flexibility.']},
+  'Ankle Dorsiflexion Stretch': {category:'core', cues:['Kneel in a half-lunge, drive your front knee forward over your toes.','Keep your heel flat on the ground the whole stretch.','This directly improves squat depth and running mechanics.']},
+  'Pigeon Pose': {category:'core', cues:['Front shin angled across your body, back leg extended straight behind you.','Square your hips toward the floor as much as comfortable.','Breathe deeply and hold — targets the hip external rotators that get tight from sitting and squatting.']},
+  'Shoulder CARs': {category:'shoulder', videoQuery:'shoulder CARs controlled articular rotations', cues:['Raise one arm out to the side, then circle it through the fullest range you can control.','Keep your ribs down and torso stable — isolate the movement to the shoulder joint.','Move slowly through any "stuck" points rather than rushing past them.']},
+  'Thoracic Spine Rotation (Open Book)': {category:'core', cues:['Lie on your side, knees stacked and bent, arms extended in front.','Rotate your top arm across your body toward the floor behind you, following it with your eyes.','Keep your knees pinned together — the rotation should come from your upper back, not your hips.']},
+  'Wall Slides': {category:'shoulder', cues:['Back flat against a wall, arms in a goalpost position touching the wall.','Slide your arms overhead while keeping contact with the wall the whole time.','If your lower back arches off the wall, that\'s your current range limit — stop there.']},
+  'Band Dislocates': {category:'shoulder', cues:['Hold a light band or PVC pipe with a wide, straight-arm grip.','Raise the band overhead and back behind you without bending your elbows.','Narrow your grip over time as shoulder mobility improves — a classic warm-up staple for pressing.']},
+  'PNF Hamstring Stretch': {category:'core', videoQuery:'PNF hamstring stretch technique', cues:['Get into a passive hamstring stretch, then contract the hamstring against resistance for 5-6 seconds.','Relax and immediately deepen the stretch — the contract-relax cycle unlocks more range than static stretching alone.','This proprioceptive neuromuscular facilitation method is a physical-therapy staple for fast flexibility gains.']},
+  'World\'s Greatest Stretch': {category:'core', cues:['Step into a deep lunge, drop your back knee down, plant both hands inside your front foot.','Rotate your torso and reach one arm toward the ceiling, following it with your eyes.','One of the most efficient single movements for hips, hamstrings, and thoracic spine together.']},
+  'Nordic Curl': {category:'hinge', videoQuery:'nordic hamstring curl technique', cues:['Anchor your ankles, kneel tall, and lower your torso forward as slowly as you can control.','Use your hands to catch yourself at the bottom, don\'t just collapse.','One of the best hamstring-injury-prevention exercises in sports science — brutal but effective.']},
+  'Sun Salutation Flow': {category:'core', videoQuery:'sun salutation yoga flow', cues:['Move through the sequence in sync with your breath, not against it.','Keep transitions controlled, not rushed — this is about quality movement, not speed.','A classic yoga flow that doubles as a full-body warm-up and mobility routine.']},
+  'Deep Squat Hold': {category:'squat', cues:['Sink into the bottom of a squat, heels flat, chest up.','Use your elbows to gently press your knees out if needed.','Hold and breathe — this builds the ankle, hip, and thoracic mobility your working squats depend on.']},
+  'Couch Stretch': {category:'core', cues:['Back knee against a wall or couch, shin vertical, front foot planted forward.','Squeeze your glute on the stretched side and keep your torso upright.','One of the most effective stretches for hip flexors tightened by a desk job.']},
+  'Spinal Wave': {category:'core', cues:['Standing or on all fours, move your spine in a slow wave from tailbone to head.','Focus on articulating one vertebra at a time rather than moving as one rigid block.','Builds spinal segmentation and control, not just flexibility.']},
+  'Foam Rolling Full Body': {category:'core', cues:['Roll slowly, pausing on tender spots for 20-30 seconds rather than rushing over them.','Breathe deeply into any tight areas — tension often releases with breath, not just pressure.','Use this to prep tissue before training or aid recovery afterward.']},
+  'Child\'s Pose Breathing': {category:'core', cues:['Sit back onto your heels, arms extended forward, forehead down.','Breathe deeply into your lower back and sides, not just your chest.','A simple down-regulation drill to close out a session and shift into recovery mode.']},
+  'Warm-up Jog': {category:'cardio', cues:['Keep the pace easy — you should be able to hold a conversation.','Use this to raise your heart rate and prep your joints before harder efforts.','Don\'t skip this even on short runs — cold muscles are where injuries happen.']},
+  'Easy Run': {category:'cardio', videoQuery:'easy run pace training', cues:['Conversational pace — if you can\'t talk in full sentences, slow down.','This should feel almost too easy; that\'s the point of true easy running.','Most of elite runners\' mileage (per Jack Daniels\' training model) is run at this intensity, not race pace.']},
+  'Strides': {category:'cardio', videoQuery:'running strides technique', cues:['Accelerate smoothly to about 85-90% effort over 20 seconds, then ease back down.','Focus on relaxed, tall posture and quick turnover, not maximum speed.','These prime your neuromuscular system for speed without the fatigue of a full sprint session.']},
+  'Tempo Run': {category:'cardio', videoQuery:'tempo run pace training', cues:['Run at a "comfortably hard" pace — sustainable for the set time, but not easy.','This should feel like you could hold it for about an hour if you had to.','Tempo runs build your lactate threshold — the pace you can sustain before you start slowing down hard.']},
+  'Cool-down Jog': {category:'cardio', cues:['Slow, easy pace to bring your heart rate down gradually.','Use this time to relax your shoulders and breathing before you stop.','Skipping the cool-down doesn\'t hurt performance, but it makes recovery less pleasant.']},
+  '400m Repeats': {category:'cardio', videoQuery:'400m interval repeats training', cues:['Run each rep at a hard, controlled pace — faster than tempo, slower than an all-out sprint.','Keep your recovery jog or walk consistent between reps so effort stays even across the set.','Interval work like this — a Jack Daniels training staple — is what raises your VO2 max over time.']},
+  'Long Run': {category:'cardio', cues:['Keep the pace conversational for the entire distance — this is about time on feet, not speed.','Fuel and hydrate beforehand if you\'re going past 60 minutes.','This builds the aerobic base and mental durability that shorter runs can\'t.']},
+  'Recovery Jog': {category:'cardio', cues:['Deliberately slow — slower than your easy run pace.','The goal is blood flow and light movement, not fitness gain.','Skip this if you\'re feeling beat up; a walk works just as well.']},
+  'Dip (Bar/Ring)': {category:'arms', videoQuery:'dips proper form bar rings', cues:['Support yourself on parallel bars or rings, lower until your shoulders dip below your elbows.','Keep a slight forward lean to bias the chest, or stay upright to bias triceps.','Control the descent — one of the most effective upper-body pushing exercises there is.']},
+  'Planche Lean': {category:'push', videoQuery:'planche lean progression gymnastics', cues:['Hands on the floor, lean your shoulders forward past your wrists while keeping arms straight.','Keep your body in a rigid line, shoulders protracted (pushed forward/down).','A foundational drill in gymnastics strength training for building the planche.']},
+  'Muscle-up': {category:'pull', videoQuery:'muscle up transition technique', cues:['Pull explosively and high, transitioning your chest over the bar before you press out.','Keep the bar close to your body through the transition — most muscle-up failures happen here.','If you\'re not there yet, practice the transition on low rings or with a resistance band.']},
+  'Front Lever Hold': {category:'pull', videoQuery:'front lever progression technique', cues:['Hang from the bar, pull your body to a horizontal line, arms straight.','Keep your hips slightly tucked if the full version is too hard — this is a progression skill.','A hallmark gymnastics strength move popularized by coaches like Christopher Sommer for building total-body tension.']},
+  'L-sit Hold': {category:'core', videoQuery:'l-sit hold progression technique', cues:['Support yourself on parallettes or the floor, legs extended straight out in front at hip height.','Push down hard through your shoulders, keep your lower back from rounding.','One of the best pure ab and hip-flexor strength tests in bodyweight training.']},
+  'Dragon Flag': {category:'core', videoQuery:'dragon flag proper form', cues:['Lie on a bench, anchor your shoulders, lift your entire body into a straight line off the bench.','Lower as slowly as you can control, keeping your body rigid the whole way.','A Bruce Lee signature move — one of the most demanding core exercises in calisthenics.']},
+  'Pistol Squat': {category:'lunge', videoQuery:'pistol squat proper form', cues:['Extend one leg straight out in front, squat down on the other leg as low as you can control.','Keep your heel down and chest up — use a doorframe or TRX for balance assistance if needed.','A serious single-leg strength and balance test that exposes weaknesses standard squats can hide.']},
+  'Bridge Hold': {category:'core', videoQuery:'bridge pose gymnastics backbend', cues:['Push through your hands and feet to lift your hips and chest into a full backbend.','Keep pushing the floor away to open your shoulders and hips further.','A classic gymnastics and yoga staple for spinal extension and shoulder flexibility.']},
+  'Handstand Hold (wall)': {category:'shoulder', videoQuery:'wall handstand hold technique', cues:['Kick up to the wall with hands about a foot away, stack shoulders directly over wrists.','Squeeze your whole body tight — glutes, abs, and legs — like a plank turned upside down.','Breathe steadily; the tendency to hold your breath upside down works against you.']},
+  'Pause Squat': {category:'squat', cues:['Squat down and pause motionless for a full 2-3 seconds at the bottom before standing.','No bouncing out of the hole — this builds strength exactly where most lifters are weakest.','A staple accessory in powerlifting programs for eliminating the stretch-reflex crutch.']},
+  'Close-Grip Bench Press': {category:'push', cues:['Grip just inside shoulder-width, keep elbows tucked closer to your body than a standard bench.','Lower to your lower chest/upper abdomen, drive back up through your triceps.','Builds lockout strength for your regular bench and directly targets the triceps.']},
+  'Deficit Deadlift': {category:'hinge', cues:['Stand on a small platform (1-2 inches) to increase the pull\'s range of motion.','Keep the same setup as a regular deadlift — flat back, bar over mid-foot.','Builds strength off the floor, usually the hardest part of the pull for most lifters.']},
+  'Good Morning': {category:'hinge', videoQuery:'good morning exercise technique', cues:['Bar on your back like a squat, hinge forward at the hips with a soft knee bend.','Keep your back flat and the bar path close to your body as you hinge.','Go light here — this builds posterior chain strength that carries directly into your squat and deadlift.']},
+  'Push-up': {category:'push', cues:['Hands slightly wider than shoulders, body in a straight line head to heels.','Lower until your chest nearly touches the floor, elbows at about 45° from your torso.','Push the floor away explosively, keep your core braced the whole rep.']},
+  'Pike Push-up': {category:'shoulder', cues:['Hips high in an inverted-V position, hands shoulder-width apart.','Lower your head toward the floor between your hands, elbows tracking back.','Press back up through your shoulders — your bodyweight substitute for an overhead press.']},
+  'Decline Push-up': {category:'push', cues:['Feet elevated on a chair or bench, hands on the floor shoulder-width apart.','Lower with control, chest toward the floor, elbows at roughly 45°.','The elevation shifts more load to your upper chest and shoulders than a standard push-up.']},
+  'Triceps Dip': {category:'arms', cues:['Hands on a bench or sturdy chair behind you, legs extended for more difficulty.','Lower until your elbows hit about 90°, keep shoulders down away from your ears.','Press back up through your palms — don\'t let your shoulders roll forward.']},
+  'Chin-up': {category:'pull', videoQuery:'chin up proper form', cues:['Supinated grip (palms facing you), slightly narrower than shoulder-width.','Pull your chin over the bar, driving your elbows down and back.','Control the descent — chin-ups bias the biceps more than a standard pull-up.']},
+  'Inverted Row': {category:'pull', videoQuery:'inverted row bodyweight technique', cues:['Set a bar or sturdy table at waist height, hang underneath with your body straight.','Pull your chest to the bar, squeezing your shoulder blades together.','The more horizontal your body, the harder the row — adjust difficulty with foot position.']},
+  'Bodyweight Squat': {category:'squat', cues:['Feet shoulder-width, sit your hips back and down like sitting into a chair.','Keep your chest up, knees tracking over your toes.','Drive through your whole foot to stand, squeeze your glutes at the top.']},
+  'Glute Bridge': {category:'hinge', cues:['Feet flat, knees bent, lie on your back.','Drive through your heels, squeeze your glutes hard at the top.','Avoid arching your lower back — the lift should come from your hips, not your spine.']},
+  'Mountain Climbers': {category:'core', cues:['Start in a strong plank position, hands under your shoulders.','Drive your knees toward your chest quickly while keeping your hips low and stable.','Keep your core braced — don\'t let your hips pike up as you speed up.']},
+  'Jump Squat': {category:'jump', cues:['Squat down to about parallel, then explode straight up as high as you can.','Land soft with bent knees, absorb the impact before the next rep.','Reset your position each rep for max power — don\'t just bounce.']},
+  'Push-up to Plank': {category:'core', cues:['Start in a push-up (high plank) position on your hands.','Lower one arm at a time to your forearms, then push back up one at a time.','Keep your hips level throughout — don\'t let them rock side to side.']},
+  'Hollow Body Hold': {category:'core', videoQuery:'hollow body hold technique', cues:['Lie on your back, press your lower back into the floor, lift shoulders and legs slightly.','Arms extended overhead or at your sides, body forms a slight "banana" shape.','A gymnastics staple used by elite strength coaches to build full-body tension and true core control.']},
+  'Bicycle Crunch': {category:'core', cues:['Hands lightly behind your head, knees bent to 90°.','Rotate elbow to opposite knee while extending the other leg out.','Move with control — this is about rotation quality, not speed.']},
+  'Jump Rope — Basic Bounce': {category:'cardio', videoQuery:'jump rope basic bounce technique', cues:['Small, quick wrist turns, not big arm swings.','Stay light on the balls of your feet, minimal jump height.','Find a consistent rhythm before trying to go faster.']},
+  'Jump Rope — Alternate Foot Step': {category:'cardio', videoQuery:'jump rope alternate foot step technique', cues:['Shift your weight foot to foot like a light jog in place.','Keep the rope turning at a steady, consistent tempo.','A lower-impact way to build rope timing and footwork.']},
+  'Jump Rope — Speed Singles': {category:'cardio', videoQuery:'jump rope speed singles technique', cues:['Turn the rope as fast as you can with minimal jump height.','Keep your wrists doing the work, not big arm movements.','Prioritize unbroken reps over pure speed if you\'re newer to fast singles.']},
+  'Jump Rope — Boxer Skip': {category:'cardio', videoQuery:'jump rope boxer skip technique', cues:['Alternate a light step-touch between feet, staying on the balls of your feet.','Keep your core braced and shoulders relaxed.','The classic boxer\'s conditioning skip — smooth and rhythmic, not jerky.']},
+  'Jump Rope — Criss-Cross': {category:'cardio', videoQuery:'jump rope criss cross technique', cues:['Cross your arms in front of your body as the rope passes under your feet.','Keep the crossing motion small and controlled at the wrists.','Uncross smoothly back to a basic bounce as needed between attempts.']},
+  'Jump Rope — Double Unders': {category:'cardio', videoQuery:'jump rope double unders technique', cues:['Jump slightly higher than a single bounce and spin the rope twice per jump.','Speed comes from your wrists snapping the rope, not from jumping higher.','An advanced skill — expect some missed reps while you build timing.']},
+  'Jump Rope — High Knees': {category:'cardio', videoQuery:'jump rope high knees technique', cues:['Drive your knees up toward hip height with each jump.','Keep your chest up and land light on the balls of your feet.','Adds a conditioning and hip-flexor component on top of the rope skill.']},
+  'Jump Rope — Tabata Intervals': {category:'cardio', videoQuery:'jump rope tabata interval training', cues:['Go all-out for 20 seconds, then rest completely for 10 — no in-between pace.','Reset your rhythm quickly at the start of each work interval.','One of the most efficient formats for building conditioning in a short session.']},
+  'Jump Rope — Freestyle Flow': {category:'cardio', videoQuery:'jump rope freestyle tricks flow', cues:['Mix basic bounces, criss-crosses, and foot changes freely.','Focus on staying relaxed and rhythmic rather than perfect execution.','Builds rope IQ and coordination beyond fixed drills.']},
+  'Jump Rope — Continuous Bounce': {category:'cardio', videoQuery:'jump rope endurance technique', cues:['Hold a single, sustainable rhythm for the entire round.','Breathe steadily, relax your shoulders — tension burns you out fast.','A pure aerobic endurance test — pace yourself, don\'t sprint the first minute.']},
+  'Agility Ladder': {category:'cardio', cues:['Stay light and quick on the balls of your feet.','Keep your knees up and eyes forward, not down at the ladder.','Prioritize precise footwork over raw speed — speed comes with clean patterns.']},
+  'Ab Wheel Rollout': {category:'core', cues:['Start on your knees, brace hard before you roll out.','Roll out only as far as you can control without your lower back sagging.','Pull back in using your abs, not your hip flexors — one of the toughest anti-extension moves there is.']},
+  'Bird Dog': {category:'core', videoQuery:'bird dog exercise McGill core', cues:['On all fours, extend opposite arm and leg at the same time, keep hips level.','Brace your core so your lower back doesn\'t sag or rotate.','Move slow and controlled — this is one of spine researcher Dr. Stuart McGill\'s "Big 3" for building stability without loading the spine.']},
+  'Cat-Cow Mobility': {category:'core', cues:['Move slowly between rounding your spine up and arching it down.','Coordinate the movement with your breath — exhale as you round, inhale as you arch.','Use this to open up spinal mobility before loading the spine with heavier core work.']},
+  'Dead Bug': {category:'core', cues:['Lie on your back, arms reaching to the ceiling, knees bent at 90°.','Press your lower back into the floor, extend opposite arm and leg slowly without letting your back arch.','Move as slowly as you can control — speed is the enemy of this exercise.']},
+  'Farmer\'s Carry': {category:'core', videoQuery:'farmers carry technique', cues:['Grip heavy dumbbells or a trap bar, stand tall with shoulders back and down.','Brace your core like you\'re about to be hit, walk with short controlled steps.','Don\'t let your torso lean or shoulders round forward — a loaded-carry staple popularized by strength coach Dan John for building total-body bracing.']},
+  'Landmine Rotation': {category:'core', cues:['Hold the end of the barbell at chest height, arms extended.','Rotate the bar from hip to hip using your core and hips, not just your arms.','Keep a slight bend in the knees and pivot your back foot as you rotate.']},
+  'McGill Curl-up': {category:'core', videoQuery:'McGill curl up technique', cues:['Hands under your lower back to preserve its natural arch, one knee bent, one leg straight.','Lift your head and shoulders slightly off the floor — this is a brace, not a sit-up.','Hold with control while breathing; developed by spine biomechanist Dr. Stuart McGill to build core stiffness without spinal flexion under load.']},
+  'Pallof Press': {category:'core', videoQuery:'pallof press anti rotation technique', cues:['Stand side-on to the cable, press the handle straight out from your chest.','Resist the cable\'s pull to rotate you — that resistance is the whole point of the exercise.','Keep hips and shoulders square throughout; a favorite of top strength and rehab coaches for training true anti-rotation core strength.']},
+  'Russian Twist (weighted)': {category:'core', cues:['Lean back to about 45°, feet lifted for more difficulty or grounded to start.','Rotate through your torso, tapping the weight down on each side.','Keep your chest up — don\'t round your lower back just to get more rotation.']},
+  'Side Plank': {category:'core', videoQuery:'side plank proper form', cues:['Stack your feet, prop up on your forearm, lift your hips to a straight line.','Keep your top hip stacked directly over the bottom hip — don\'t let it roll forward or back.','Breathe steadily throughout the hold; another of Dr. Stuart McGill\'s "Big 3" for training the obliques and lateral spine stabilizers.']},
+  'Suitcase Carry': {category:'core', videoQuery:'suitcase carry technique', cues:['Carry a single heavy weight in one hand, walk tall without leaning toward or away from the load.','Brace your obliques hard on the loaded side to resist tipping sideways.','Switch sides evenly — one of the best anti-lateral-flexion drills for the obliques and lower back.']},
+  'Superman Hold': {category:'core', cues:['Lie face down, extend arms and legs, lift chest and legs off the floor together.','Squeeze your glutes and lower back at the top, don\'t yank your neck up.','Hold with control — this builds the posterior chain stabilizers that protect your spine under load.']},
+  'Toes-to-Bar': {category:'core', videoQuery:'toes to bar technique', cues:['Hang from the bar with an active shoulder position, not a dead hang.','Drive your toes up to the bar using your abs, not by swinging or kipping excessively.','Control the descent — don\'t just let your legs drop.']},
+  'Back Squat': {category:'squat', cues:['Bar sits across the upper traps, brace hard before descending.','Sit hips back and down, knees track over your toes.','Drive up through mid-foot, chest stays up the whole rep.']},
+  'Barbell Row': {category:'pull', cues:['Hinge to about 45°, flat back, brace your core before you pull.','Pull the bar to your lower ribs, squeeze shoulder blades together.','Control the bar down — don\'t let it drop.']},
+  'Bench Press': {category:'push', cues:['Pin your shoulder blades to the bench before unracking.','Lower to mid-chest with elbows around 45° from your torso.','Drive through your feet and press back up and slightly back.']},
+  'Flat Bench Press': {category:'push', cues:['Pin your shoulder blades to the bench before unracking.','Lower to mid-chest with elbows around 45° from your torso.','Keep glutes on the bench and feet planted for a stable base.']},
+  'Box Jump': {category:'jump', cues:['Swing your arms and load the hips before jumping.','Land soft with knees bent, fully on top of the box.','Step down — don\'t jump down — to protect your knees.']},
+  'Broad Jump': {category:'jump', cues:['Load into a quarter squat and swing your arms hard.','Land balanced with bent knees, absorb through the hips.','Reset fully between reps — this is about max distance.']},
+  'Bulgarian Split Squat': {category:'lunge', cues:['Rear foot up on a bench, most of your weight in the front heel.','Drop straight down, front knee tracks over the foot.','Push through the front heel to stand — don\'t push off the back foot.']},
+  'Burpees': {category:'cardio', cues:['Chest touches the floor on the way down, full lockout on the jump.','Fast but controlled — pace yourself across the whole round.','Land soft on the jump to protect your knees.']},
+  'Cable Crunch': {category:'core', cues:['Kneel with hips stacked over knees, don\'t pull with your arms.','Flex your spine to crunch down — this isn\'t a hip movement.','Exhale hard on the way down to engage the abs fully.']},
+  'Cable Curl': {category:'arms', cues:['Elbows pinned to your sides for the whole set.','Full range of motion, squeeze hard at the top.','Avoid swinging your torso to move the weight.']},
+  'Cable Fly': {category:'push', cues:['Keep a slight, fixed bend in your elbows throughout.','Lead with your chest, bring hands together like hugging a barrel.','Feel the stretch at the bottom, don\'t let your arms drift too far back.']},
+  'Cable Row': {category:'pull', cues:['Sit tall, brace your core, don\'t rock the torso to move the weight.','Pull to your lower abdomen, squeeze shoulder blades at the end.','Control the stretch forward without rounding your lower back.']},
+  'Cable Woodchopper': {category:'core', cues:['Rotate through the torso and hips together, not just the arms.','Pivot your back foot as you rotate through the movement.','Control the return — don\'t let the cable snap you back.']},
+  'Calf Raise': {category:'arms', cues:['Full range: deep stretch at the bottom, full extension at the top.','Pause briefly at the top squeeze, avoid bouncing.','Keep knees soft — don\'t lock them out hard each rep.']},
+  'Clean & Jerk': {category:'oly', cues:['Clean: pull the bar close, extend violently through the hips, receive fast in a front squat.','Jerk: dip straight down, drive vertically, punch under the bar overhead.','Keep the whole lift close to your body — the bar path should be nearly vertical.']},
+  'Clean Pull': {category:'oly', cues:['Same start and pull as the clean, without receiving the bar.','Focus on an aggressive hip extension and shrug at the top.','Keep the bar close to your body the entire pull.']},
+  'DB Curl': {category:'arms', cues:['Elbows stay close to your torso — no swinging the dumbbells up.','Full range of motion, squeeze the biceps at the top.','Control the lowering phase — that\'s where most of the growth happens.']},
+  'DB Shoulder Press': {category:'shoulder', cues:['Start dumbbells at shoulder height, palms facing forward.','Press straight overhead without excessive lower back arch.','Lower under control to the same starting position each rep.']},
+  'Deadlift': {category:'hinge', cues:['Bar over mid-foot, shins close to the bar, flat back before you pull.','Drive through the floor with your legs first, then extend the hips.','Keep the bar in contact with your legs the entire way up.']},
+  'Depth Jump': {category:'jump', cues:['Step off the box — don\'t jump off — then explode upward on landing.','Minimize ground contact time, this is a reactive power drill.','Land soft with bent knees; this is an advanced, high-impact movement.']},
+  'EZ Bar Curl': {category:'arms', cues:['Grip the angled part of the bar to reduce wrist strain.','Keep elbows fixed at your sides, curl with control.','Avoid leaning back to swing the weight up.']},
+  'Face Pull': {category:'shoulder', cues:['Pull the rope to eye level, elbows high, squeeze rear delts and upper back.','Externally rotate at the end range — thumbs point back.','Keep it slow and controlled, this is a technique-focused movement.']},
+  'Front Squat': {category:'squat', cues:['Bar rests on front delts, elbows up and pointed forward.','Stay upright — front squats punish forward lean.','Sit straight down between your hips, drive up through mid-foot.']},
+  'Hammer Curl': {category:'arms', cues:['Neutral grip (palms facing each other) throughout.','Elbows pinned to sides, curl with control, no swinging.','Keep the tempo slower than a standard curl — targets the forearm too.']},
+  'Hanging Leg Raise': {category:'core', cues:['Hang with control, avoid excessive swinging.','Raise your legs by curling the pelvis, not just swinging them.','Lower slowly — the eccentric is where the core works hardest.']},
+  'Heavy Bag — Freestyle Flow (punches + kicks)': {category:'punch', videoQuery:'kickboxing freestyle combo flow', cues:['Mix punches and kicks freely — keep hands up, chin tucked between strikes.','Move your feet constantly, never plant flat for more than a beat.','Breathe out sharply on each strike, stay relaxed between combos.']},
+  'Heavy Bag — Jab-Cross Combos': {category:'punch', videoQuery:'jab cross combo boxing technique', cues:['Snap the jab out and back fast, rotate hips/shoulders into the cross.','Keep your non-punching hand up guarding your chin at all times.','Exhale sharply on contact, reset your stance between combos.']},
+  'Heavy Bag — Power Hooks & Uppercuts': {category:'punch', videoQuery:'boxing hook uppercut power technique', cues:['Rotate through the hips and core to generate hook power, not just the arm.','Elbow bent ~90° on the hook, drive uppercuts from the legs up.','Stay balanced — don\'t lunge into the bag and lose your base.']},
+  'Heavy Bag — Power Round Kicks': {category:'kick', videoQuery:'power roundhouse kick technique', cues:['Pivot the standing foot as you kick — hips fully open on contact.','Strike with the shin, not the foot, and drive through the target.','Chamber your knee first, then extend — don\'t swing a straight leg.']},
+  'Heavy Bag — Punch-Kick Combos': {category:'kick', videoQuery:'kickboxing punch kick combo technique', cues:['Land punches before kicks in a combo — kicks take longer to recover from.','Reset your base after every kick before the next strike.','Keep hands up during kicks, don\'t drop your guard.']},
+  'Heavy Bag — Roundhouse Kicks (both legs)': {category:'kick', videoQuery:'roundhouse kick technique heavy bag', cues:['Rotate the hip fully through the kick, chamber the knee before extending.','Strike with the shin, keep your guard hand up on the same side.','Alternate legs evenly — don\'t neglect your weaker side.']},
+  'Heavy Bag — Speed Combos (light power, high output)': {category:'punch', videoQuery:'boxing speed combo drills', cues:['Prioritize hand speed and output over power this round.','Keep punches tight and technical even as fatigue sets in.','Stay light on your feet, keep moving between combos.']},
+  'Heavy Bag — Teep + Knee Combos': {category:'kick', videoQuery:'muay thai teep push kick knee technique', cues:['Teep: drive through the ball of the foot, extend the hip.','Knee strikes: pull the target into the knee, drive your hips forward.','Keep hands up to guard your face during close-range knee work.']},
+  'Hip Thrust': {category:'hinge', cues:['Shoulder blades on the bench, chin tucked, drive through your heels.','Squeeze glutes hard at the top, avoid hyperextending your lower back.','Full lockout at the top, pause briefly before lowering.']},
+  'Incline DB Press': {category:'push', cues:['Bench at 30-45°, press dumbbells up and slightly inward.','Lower with control to a stretch at chest level.','Keep shoulder blades retracted throughout.']},
+  'Incline Walk': {category:'cardio', cues:['Keep the pace conversational — this is zone 2, not a sprint.','Maintain upright posture, avoid holding onto the rails.','Consistent incline and pace beats intensity for this session.']},
+  'Jerk Dip Squat': {category:'oly', cues:['Small, fast dip straight down — not a full squat — then drive up.','Keep your torso vertical through the dip, no forward lean.','This builds the leg drive that powers the jerk.']},
+  'Jump Rope (warm-up)': {category:'cardio', videoQuery:'boxing jump rope technique', cues:['Small, quick wrist turns — not big arm swings.','Stay light on the balls of your feet, minimal jump height.','Use this to raise heart rate and prime footwork, not to fatigue yourself.']},
+  'Lat Pulldown': {category:'pull', cues:['Lead with your elbows, pull the bar to your upper chest.','Squeeze shoulder blades together at the bottom of the movement.','Avoid leaning back excessively to move more weight.']},
+  'Lateral Raise': {category:'shoulder', cues:['Slight bend in the elbows, raise to shoulder height, lead with your elbows.','Control the lowering — don\'t let momentum do the work.','Keep reps strict, this is a light-weight, high-control exercise.']},
+  'Leg Curl': {category:'hinge', cues:['Full range of motion, squeeze the hamstrings at the top.','Control the eccentric, don\'t let the weight stack slam down.','Keep your hips pressed into the pad throughout.']},
+  'Leg Extension': {category:'squat', cues:['Full extension at the top, squeeze the quads briefly.','Control the lowering, avoid using momentum.','Adjust the pad so it sits on your shin, not your ankle.']},
+  'Leg Press': {category:'squat', cues:['Feet shoulder-width on the platform, lower back stays flat on the pad.','Lower until knees reach about 90°, don\'t let your lower back round off.','Drive through the whole foot, don\'t lock your knees out hard at the top.']},
+  'Med Ball Chest Pass': {category:'throw', cues:['Explosive push from the chest, full extension through the arms.','Load with a slight step back or squat, then explode forward.','Reset fully between reps — this is a power drill, not a burnout set.']},
+  'Med Ball Rotational Throw': {category:'throw', cues:['Rotate through the hips and core, not just the arms.','Step and pivot your back foot to generate torque.','Full extension and release, follow through with the rotation.']},
+  'Overhead Press': {category:'push', cues:['Brace your core hard, glutes squeezed to protect your lower back.','Press the bar in a straight line, moving your head back slightly to clear it.','Lock out fully overhead with your biceps by your ears.']},
+  'Overhead Squat': {category:'oly', cues:['Bar locked out overhead with a wide grip, active shoulders.','Sit down between your hips keeping the bar stacked over mid-foot.','Go light here — this is a mobility and stability drill as much as strength.']},
+  'Overhead Triceps Extension': {category:'arms', cues:['Elbows stay close to your head, pointed forward.','Lower the weight behind your head with control, full stretch on the triceps.','Extend fully at the top without flaring your elbows out.']},
+  'Plank': {category:'core', cues:['Straight line from shoulders to ankles, don\'t let hips sag or pike.','Squeeze glutes and brace your abs like you\'re about to be punched.','Breathe steadily — don\'t hold your breath through the hold.']},
+  'Plyo Push-up': {category:'push', cues:['Explode up hard enough that your hands leave the ground.','Land softly with bent elbows to absorb the impact.','Keep your torso rigid throughout — this is a full-body power move.']},
+  'Power Clean': {category:'oly', cues:['Aggressive hip extension, shrug and pull under the bar fast.','Catch in a quarter-squat position — don\'t ride it all the way down.','Keep the bar close to your body through the entire pull.']},
+  'Power Snatch': {category:'oly', cues:['Same aggressive pull as the snatch, catch in a partial squat overhead.','Keep the bar path close and vertical, punch under it fast.','Active shoulders in the catch — don\'t let the bar crash down.']},
+  'Pull-ups (or assisted)': {category:'pull', videoQuery:'pull up proper form', cues:['Full hang at the bottom, pull your chin over the bar at the top.','Drive elbows down and back, avoid excessive kipping or swinging.','Control the descent — the negative matters as much as the pull.']},
+  'Push Press': {category:'push', videoQuery:'push press technique', cues:['Small leg dip and drive to help launch the bar overhead.','Use hip and leg drive to add power, not just your shoulders.','Lock out fully overhead at the top of each rep.']},
+  'Rear Delt Fly': {category:'shoulder', cues:['Hinge forward, slight bend in your elbows, raise arms out to the sides.','Squeeze shoulder blades together at the top of the movement.','Keep the weight light — strict form matters more than load here.']},
+  'Romanian Deadlift': {category:'hinge', cues:['Soft knee bend, push your hips back while keeping the bar close to your legs.','Feel a stretch in the hamstrings, stop when your back starts to round.','Drive your hips forward to stand, squeeze glutes at the top.']},
+  'Rope Pushdown': {category:'arms', cues:['Elbows pinned at your sides, split the rope apart at the bottom.','Full extension without locking out aggressively.','Control the return — don\'t let the weight stack slam.']},
+  'Seated Cable Row': {category:'pull', cues:['Sit tall, initiate the pull by driving your elbows back, not just your hands.','Squeeze shoulder blades together at the end of the row.','Avoid rocking your torso to generate momentum.']},
+  'Shadowboxing w/ Footwork': {category:'punch', videoQuery:'shadowboxing footwork technique', cues:['Move constantly, throw combos with intent as if a bag were in front of you.','Focus on footwork and head movement between combos.','Keep your guard up between strikes, breathe with your punches.']},
+  'Single-Leg Bound': {category:'jump', cues:['Push off one leg, land on the opposite leg with control.','Absorb the landing through the hip and knee, stay balanced.','Focus on distance and control, not just speed.']},
+  'Skull Crushers': {category:'arms', cues:['Elbows stay fixed and pointed at the ceiling throughout.','Lower the bar to just above your forehead, extend back to lockout.','Keep your upper arms still — only the forearms move.']},
+  'Sled Push': {category:'cardio', cues:['Stay low with a forward lean, drive through the legs with short powerful steps.','Keep arms extended and core braced throughout the push.','Push in a straight line, maintain consistent effort across the distance.']},
+  'Snatch': {category:'oly', cues:['Wide grip, pull the bar close, extend violently through the hips.','Receive the bar overhead in a full squat with active, locked shoulders.','Keep the bar path vertical and close to your body throughout.']},
+  'Snatch Balance': {category:'oly', cues:['Dip and drive the bar up from the back of the shoulders, drop under it fast.','Catch in a stable overhead squat position.','This builds speed and confidence receiving the snatch overhead.']},
+  'Snatch Pull': {category:'oly', cues:['Same setup and pull as the snatch, without receiving the bar.','Focus on an aggressive, fast triple extension — ankles, knees, hips.','Keep the bar close to your body the whole pull.']},
+  'Sprint Intervals': {category:'cardio', cues:['Full effort on the sprint, complete recovery between reps.','Focus on quick ground contact and driving your knees.','Warm up thoroughly before going all-out — sprints are high-injury-risk cold.']},
+  'Squat': {category:'squat', cues:['Bar on your back, brace hard, sit your hips back and down.','Knees track in line with your toes, chest stays up.','Drive through mid-foot to stand — don\'t let your knees cave in.']},
+  'Standing Calf Raise': {category:'arms', cues:['Full range: deep stretch at the bottom, full squeeze at the top.','Slight pause at the top, control the descent.','Keep knees soft, avoid bouncing through the reps.']},
+  'Trap Bar Jump Squat': {category:'jump', cues:['Load the trap bar, dip into a quarter squat, and jump explosively.','Land soft with bent knees, reset fully between reps.','Focus on speed off the ground, not just jump height.']},
+  'Triceps Pushdown': {category:'arms', cues:['Elbows pinned at your sides, only the forearms move.','Full extension at the bottom without locking out aggressively.','Control the return — don\'t let the weight stack slam.']},
+  'Weighted Sit-up': {category:'core', cues:['Hold the weight at your chest, curl up vertebra by vertebra.','Keep your feet anchored, exhale as you come up.','Control the descent — don\'t just flop back down.']},
+};
+let dayDefs = programs[activeProgram].days;
+
+let dayOrder = Object.keys(dayDefs);
+let activeDay = 'd1';
+let reorderMode = false;
+const todayKey = new Date().toISOString().slice(0,10);
+
+async function loadActiveProgram(){
+  try{
+    const res = await window.storage.get('active-program');
+    if(res && res.value && programs[res.value]) activeProgram = res.value;
+  }catch(e){}
+  dayDefs = programs[activeProgram].days;
+}
+
+async function saveActiveProgram(){
+  try{ await window.storage.set('active-program', activeProgram); }catch(e){}
+}
+
+function renderProgramSelector(){
+  const el = document.getElementById('programSelector');
+  const descEl = document.getElementById('programSelectDesc');
+  el.innerHTML = Object.keys(programs).map(key=>
+    `<option value="${key}" ${key===activeProgram?'selected':''}>${programs[key].label}</option>`
+  ).join('');
+  descEl.textContent = programs[activeProgram].short;
+
+  el.onchange = async ()=>{
+    const key = el.value;
+    if(key === activeProgram) return;
+    activeProgram = key;
+    dayDefs = programs[activeProgram].days;
+    activeDay = 'd1';
+    descEl.textContent = programs[activeProgram].short;
+    await saveActiveProgram();
+    await loadDayOrder();
+    renderTabs();
+    renderWorkout();
+  };
+}
+
+async function loadDayOrder(){
+  dayOrder = Object.keys(dayDefs);
+  try{
+    const res = await window.storage.get(`day-order:${activeProgram}`);
+    if(res && res.value){
+      const saved = JSON.parse(res.value);
+      if(Array.isArray(saved) && saved.length === Object.keys(dayDefs).length){
+        dayOrder = saved;
+      }
+    }
+  }catch(e){}
+}
+
+async function saveDayOrder(){
+  try{ await window.storage.set(`day-order:${activeProgram}`, JSON.stringify(dayOrder)); }catch(e){}
+}
+
+function renderTabs(){
+  const tabs = document.getElementById('tabs');
+  tabs.innerHTML = '';
+  dayOrder.forEach((id, idx)=>{
+    const d = dayDefs[id];
+    const tab = document.createElement('div');
+    tab.className = 'tab' + (id===activeDay ? ' active' : '');
+    tab.innerHTML = `<div class="plate ${d.plate}${d.plateNum==='OFF'?' plate-off':''}">${d.plateNum}</div><div class="plate-label">${d.label}</div>`;
+    tab.onclick = ()=>{
+      if(reorderMode) return;
+      activeDay = id; renderTabs(); renderWorkout();
+    };
+    if(reorderMode){
+      const arrows = document.createElement('div');
+      arrows.className = 'reorder-arrows';
+      const left = document.createElement('button');
+      left.textContent = '◀';
+      left.disabled = idx===0;
+      left.onclick = (e)=>{ e.stopPropagation(); moveDay(idx,-1); };
+      const right = document.createElement('button');
+      right.textContent = '▶';
+      right.disabled = idx===dayOrder.length-1;
+      right.onclick = (e)=>{ e.stopPropagation(); moveDay(idx,1); };
+      arrows.appendChild(left); arrows.appendChild(right);
+      tab.appendChild(arrows);
+    }
+    tabs.appendChild(tab);
+  });
+}
+
+function moveDay(idx, dir){
+  const newIdx = idx + dir;
+  if(newIdx < 0 || newIdx >= dayOrder.length) return;
+  [dayOrder[idx], dayOrder[newIdx]] = [dayOrder[newIdx], dayOrder[idx]];
+  saveDayOrder();
+  renderTabs();
+}
+
+document.getElementById('reorderToggle').addEventListener('click', ()=>{
+  reorderMode = !reorderMode;
+  document.getElementById('reorderToggle').classList.toggle('active', reorderMode);
+  document.getElementById('reorderToggle').textContent = reorderMode ? 'Done' : 'Reorder days';
+  renderTabs();
+});
+
+function parseTopRep(setsStr){
+  const range = setsStr.match(/(\d+)\s*-\s*(\d+)/);
+  if(range) return Number(range[2]);
+  const single = setsStr.match(/×\s*(\d+)\s*$/);
+  if(single) return Number(single[1]);
+  return null;
+}
+
+function exKey(program, dayId, idx){ return `ex:${program}:${dayId}:${idx}`; }
+
+async function getExLog(dayId, idx){
+  try{
+    const res = await window.storage.get(exKey(activeProgram, dayId, idx));
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){}
+  return [];
+}
+
+async function saveExEntry(dayId, idx, weight, reps){
+  const log = await getExLog(dayId, idx);
+  const existing = log.findIndex(e=>e.date===todayKey);
+  const entry = {date: todayKey, weight: weight===''?null:Number(weight), reps: reps===''?null:Number(reps)};
+  if(existing>=0) log[existing] = entry; else log.push(entry);
+  log.sort((a,b)=> new Date(a.date)-new Date(b.date));
+  try{ await window.storage.set(exKey(activeProgram, dayId, idx), JSON.stringify(log)); }catch(e){}
+}
+
+function getExerciseIcon(exName, category){
+  const moveKey = EXERCISE_MOVE[exName];
+  if(moveKey && MOVEMENT_ICONS[moveKey]) return MOVEMENT_ICONS[moveKey];
+  const catIconKey = CAT_TO_ICON[category] || 'barbell';
+  return CATEGORY_ICONS[catIconKey];
+}
+
+function buildDetailsHtml(ex){
+  const info = exerciseInfo[ex.name];
+  if(!info) return '';
+  const iconSvg = getExerciseIcon(ex.name, info.category);
+  const query = encodeURIComponent(info.videoQuery || `${ex.name} proper form`);
+  const cuesHtml = info.cues.map(c=>`<li>${c}</li>`).join('');
+  return `
+    <details class="ex-details">
+      <summary>Technique & focus</summary>
+      <div class="ex-detail-body">
+        <div class="ex-icon">${iconSvg}</div>
+        <div class="ex-detail-content">
+          <ul class="ex-cues">${cuesHtml}</ul>
+          <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
+        </div>
+      </div>
+    </details>
+  `;
+}
+
+async function renderWorkout(){
+  const day = dayDefs[activeDay];
+  document.getElementById('dayTitle').textContent = `${day.label} — ${day.sub}`;
+  document.getElementById('dayDuration').textContent = day.duration;
+  const iconEl = document.getElementById('dayPlateIcon');
+  iconEl.className = 'day-plate-inline ' + day.plate;
+  const list = document.getElementById('exerciseList');
+  list.innerHTML = '';
+
+  if(day.rest){
+    list.innerHTML = `<div class="rest-note">${day.note}</div>`;
+    return;
+  }
+
+  let completed = {};
+  try{
+    const res = await window.storage.get(`workout:${todayKey}:${activeProgram}:${activeDay}`);
+    if(res && res.value) completed = JSON.parse(res.value);
+  }catch(e){ completed = {}; }
+
+  const logs = await Promise.all(day.exercises.map((ex,i)=> ex.noWeight ? Promise.resolve([]) : getExLog(activeDay, i)));
+
+  day.exercises.forEach((ex,i)=>{
+    const row = document.createElement('div');
+    row.className = 'exercise-block';
+    const checked = completed[i] ? 'checked' : '';
+    const superHtml = ex.superTag ? `<span class="super-tag">${ex.superTag}</span>` : '';
+
+    let trackingHtml = '';
+    if(!ex.noWeight){
+      const log = logs[i];
+      const prior = [...log].filter(e=>e.date!==todayKey).sort((a,b)=> new Date(b.date)-new Date(a.date))[0];
+      const todayEntry = log.find(e=>e.date===todayKey);
+      const topRep = parseTopRep(ex.sets);
+      let badge = '';
+      if(prior && prior.reps!=null && topRep!=null && prior.reps >= topRep){
+        badge = `<div class="progress-badge">⬆ Hit ${prior.reps} reps last time at ${prior.weight ?? '?'} lb — try adding weight today</div>`;
+      } else if(prior && prior.weight!=null){
+        badge = `<div class="progress-hint">Last: ${prior.weight} lb × ${prior.reps ?? '?'} reps</div>`;
+      }
+      trackingHtml = `
+        <div class="ex-track-row">
+          <input type="number" inputmode="decimal" class="ex-input ex-weight" placeholder="${prior && prior.weight!=null ? prior.weight : 'lb'}" value="${todayEntry && todayEntry.weight!=null ? todayEntry.weight : ''}">
+          <span class="ex-x">×</span>
+          <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="${prior && prior.reps!=null ? prior.reps : 'reps'}" value="${todayEntry && todayEntry.reps!=null ? todayEntry.reps : ''}">
+          <span class="ex-input-label">reps</span>
+        </div>
+        ${badge}
+      `;
+    }
+
+    const info = exerciseInfo[ex.name];
+    const thumbSvg = info ? getExerciseIcon(ex.name, info.category) : '';
+    const thumbHtml = thumbSvg ? `<div class="ex-thumb">${thumbSvg}</div>` : '';
+
+    row.innerHTML = `
+      <div class="exercise">
+        <input type="checkbox" data-idx="${i}" ${checked}>
+        ${thumbHtml}
+        <div class="ex-name-wrap">
+          <div class="ex-name ${completed[i]?'done':''}">${ex.name}${superHtml}</div>
+        </div>
+        <div class="ex-sets">${ex.sets}</div>
+      </div>
+      ${trackingHtml}
+      ${buildDetailsHtml(ex)}
+    `;
+    const cb = row.querySelector('input[type=checkbox]');
+    cb.addEventListener('change', async ()=>{
+      completed[i] = cb.checked;
+      row.querySelector('.ex-name').classList.toggle('done', cb.checked);
+      try{
+        await window.storage.set(`workout:${todayKey}:${activeProgram}:${activeDay}`, JSON.stringify(completed));
+      }catch(e){}
+    });
+
+    if(!ex.noWeight){
+      const wInput = row.querySelector('.ex-weight');
+      const rInput = row.querySelector('.ex-reps');
+      const save = ()=> saveExEntry(activeDay, i, wInput.value, rInput.value);
+      wInput.addEventListener('change', save);
+      rInput.addEventListener('change', save);
+    }
+
+    list.appendChild(row);
+  });
+}
+
+const targets = {cal:2650, pro:240, fat:75, carb:250};
+
+const foodLibrary = {
+  Protein: [
+    {name:'Chicken Breast (6oz)', cal:280, pro:53, fat:6, carb:0},
+    {name:'Eggs (2 large)', cal:140, pro:12, fat:10, carb:1},
+    {name:'Greek Yogurt (1 cup)', cal:150, pro:25, fat:0, carb:9},
+    {name:'Protein Shake (1 scoop)', cal:120, pro:25, fat:1, carb:3},
+    {name:'Salmon (6oz)', cal:350, pro:40, fat:20, carb:0},
+    {name:'Ground Beef 90/10 (6oz)', cal:340, pro:42, fat:18, carb:0},
+    {name:'Turkey Breast (6oz)', cal:250, pro:50, fat:4, carb:0},
+    {name:'Canned Tuna (1 can)', cal:120, pro:26, fat:1, carb:0},
+    {name:'Cottage Cheese (1 cup)', cal:220, pro:25, fat:9, carb:8},
+  ],
+  Carbs: [
+    {name:'White Rice (1 cup)', cal:205, pro:4, fat:0, carb:45},
+    {name:'Sweet Potato (1 medium)', cal:115, pro:2, fat:0, carb:27},
+    {name:'Oatmeal (1 cup)', cal:150, pro:5, fat:3, carb:27},
+    {name:'Bread (2 slices)', cal:140, pro:6, fat:2, carb:26},
+    {name:'Banana (1 medium)', cal:105, pro:1, fat:0, carb:27},
+    {name:'Pasta (1 cup)', cal:220, pro:8, fat:1, carb:43},
+    {name:'Tortilla (1 large)', cal:150, pro:4, fat:4, carb:24},
+  ],
+  Fats: [
+    {name:'Avocado (1/2)', cal:120, pro:1, fat:11, carb:6},
+    {name:'Almonds (1oz)', cal:165, pro:6, fat:14, carb:6},
+    {name:'Peanut Butter (2 tbsp)', cal:190, pro:7, fat:16, carb:7},
+    {name:'Olive Oil (1 tbsp)', cal:120, pro:0, fat:14, carb:0},
+    {name:'Cheese (1oz)', cal:110, pro:7, fat:9, carb:1},
+  ],
+  Drinks: [
+    {name:'Black Coffee', cal:5, pro:0, fat:0, carb:0},
+    {name:'Whole Milk (1 cup)', cal:150, pro:8, fat:8, carb:12},
+    {name:'Beer (12oz)', cal:150, pro:1, fat:0, carb:13},
+    {name:'Gatorade (20oz)', cal:140, pro:0, fat:0, carb:36},
+    {name:'Soda (12oz)', cal:150, pro:0, fat:0, carb:39},
+    {name:'Whiskey (1.5oz)', cal:105, pro:0, fat:0, carb:0},
+  ],
+  Meals: [
+    {name:'Chipotle Chicken Bowl', cal:650, pro:45, fat:20, carb:65},
+    {name:'Protein Bar', cal:200, pro:20, fat:7, carb:22},
+    {name:'Chick-fil-A Sandwich', cal:440, pro:28, fat:19, carb:40},
+    {name:'Burger + Fries', cal:900, pro:35, fat:45, carb:85},
+  ],
+};
+
+let activeCat = 'Protein';
+let todaysFoodLog = [];
+
+function renderFoodCats(){
+  const catsEl = document.getElementById('foodCats');
+  catsEl.innerHTML = '';
+  Object.keys(foodLibrary).forEach(cat=>{
+    const btn = document.createElement('button');
+    btn.className = 'food-cat-btn' + (cat===activeCat ? ' active' : '');
+    btn.textContent = cat;
+    btn.onclick = ()=>{ activeCat = cat; renderFoodCats(); renderFoodItems(); };
+    catsEl.appendChild(btn);
+  });
+}
+
+function renderFoodItems(){
+  const itemsEl = document.getElementById('foodItems');
+  itemsEl.innerHTML = '';
+  foodLibrary[activeCat].forEach(item=>{
+    const btn = document.createElement('div');
+    btn.className = 'food-item-btn';
+    btn.innerHTML = `
+      <div>
+        <div class="fi-name">${item.name}</div>
+        <div class="fi-macro">${item.cal} cal · ${item.pro}p / ${item.fat}f / ${item.carb}c</div>
+      </div>
+      <div class="fi-plus">+</div>
+    `;
+    btn.onclick = ()=> addFoodToLog(item);
+    itemsEl.appendChild(btn);
+  });
+}
+
+async function addFoodToLog(item){
+  todaysFoodLog.push({...item});
+  await saveFoodLog();
+  renderFoodLog();
+}
+
+async function removeFoodFromLog(idx){
+  todaysFoodLog.splice(idx,1);
+  await saveFoodLog();
+  renderFoodLog();
+}
+
+async function saveFoodLog(){
+  try{ await window.storage.set(`foodlog:${todayKey}`, JSON.stringify(todaysFoodLog)); }catch(e){}
+}
+
+async function loadFoodLog(){
+  try{
+    const res = await window.storage.get(`foodlog:${todayKey}`);
+    if(res && res.value) todaysFoodLog = JSON.parse(res.value);
+  }catch(e){ todaysFoodLog = []; }
+  renderFoodLog();
+}
+
+function renderFoodLog(){
+  const listEl = document.getElementById('foodLogList');
+  if(todaysFoodLog.length === 0){
+    listEl.innerHTML = '<div class="empty-note">Nothing logged yet today — tap an item below to add it.</div>';
+  } else {
+    listEl.innerHTML = todaysFoodLog.map((item, idx)=>`
+      <div class="food-log-item">
+        <div class="fl-name">${item.name}</div>
+        <div class="fl-macro">${item.cal} cal</div>
+        <button class="fl-remove" data-idx="${idx}">×</button>
+      </div>
+    `).join('');
+    listEl.querySelectorAll('.fl-remove').forEach(btn=>{
+      btn.addEventListener('click', ()=> removeFoodFromLog(Number(btn.dataset.idx)));
+    });
+  }
+  const totals = todaysFoodLog.reduce((acc,i)=>({
+    cal: acc.cal + Number(i.cal||0),
+    pro: acc.pro + Number(i.pro||0),
+    fat: acc.fat + Number(i.fat||0),
+    carb: acc.carb + Number(i.carb||0),
+  }), {cal:0,pro:0,fat:0,carb:0});
+  updateBars(totals);
+}
+
+function updateBars(v){
+  const cal = Number(v.cal)||0, pro=Number(v.pro)||0, fat=Number(v.fat)||0, carb=Number(v.carb)||0;
+  document.getElementById('barCal').style.width = Math.min(100,(cal/targets.cal)*100)+'%';
+  document.getElementById('barPro').style.width = Math.min(100,(pro/targets.pro)*100)+'%';
+  document.getElementById('barFat').style.width = Math.min(100,(fat/targets.fat)*100)+'%';
+  document.getElementById('barCarb').style.width = Math.min(100,(carb/targets.carb)*100)+'%';
+  document.getElementById('valCal').textContent = `${cal} / ${targets.cal}`;
+  document.getElementById('valPro').textContent = `${pro} / ${targets.pro}`;
+  document.getElementById('valFat').textContent = `${fat} / ${targets.fat}`;
+  document.getElementById('valCarb').textContent = `${carb} / ${targets.carb}`;
+}
+
+document.getElementById('customToggle').addEventListener('click', ()=>{
+  const form = document.getElementById('customForm');
+  form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+});
+
+document.getElementById('addCustom').addEventListener('click', async ()=>{
+  const name = document.getElementById('cName').value.trim();
+  const cal = Number(document.getElementById('cCal').value)||0;
+  const pro = Number(document.getElementById('cPro').value)||0;
+  const fat = Number(document.getElementById('cFat').value)||0;
+  const carb = Number(document.getElementById('cCarb').value)||0;
+  const status = document.getElementById('nutritionStatus');
+  if(!name || cal===0){
+    status.textContent = 'Add a name and calories';
+    setTimeout(()=>status.textContent='',1500);
+    return;
+  }
+  await addFoodToLog({name, cal, pro, fat, carb});
+  document.getElementById('cName').value='';
+  document.getElementById('cCal').value='';
+  document.getElementById('cPro').value='';
+  document.getElementById('cFat').value='';
+  document.getElementById('cCarb').value='';
+  document.getElementById('customForm').style.display = 'none';
+  status.textContent = 'Added';
+  setTimeout(()=>status.textContent='',1200);
+});
+
+async function loadWeights(){
+  const listEl = document.getElementById('weightList');
+  try{
+    const res = await window.storage.get('weight-log');
+    let entries = [];
+    if(res && res.value) entries = JSON.parse(res.value);
+    if(entries.length===0){
+      listEl.innerHTML = '<div class="empty-note">No entries yet — log your first weigh-in.</div>';
+      return;
+    }
+    entries.sort((a,b)=> new Date(b.date) - new Date(a.date));
+    listEl.innerHTML = entries.slice(0,8).map(e=>`
+      <div class="weight-item"><span>${new Date(e.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${e.weight} lb</span></div>
+    `).join('');
+  }catch(e){
+    listEl.innerHTML = '<div class="empty-note">No entries yet — log your first weigh-in.</div>';
+  }
+}
+
+document.getElementById('saveWeight').addEventListener('click', async ()=>{
+  const input = document.getElementById('weightInput');
+  const w = parseFloat(input.value);
+  if(!w) return;
+  try{
+    let entries = [];
+    try{
+      const res = await window.storage.get('weight-log');
+      if(res && res.value) entries = JSON.parse(res.value);
+    }catch(e){ entries = []; }
+    entries.push({date: todayKey, weight: w});
+    await window.storage.set('weight-log', JSON.stringify(entries));
+    input.value = '';
+    loadWeights();
+  }catch(e){}
+});
+
+document.getElementById('navToday').addEventListener('click', ()=>{
+  document.getElementById('navToday').classList.add('active');
+  document.getElementById('navAnalysis').classList.remove('active');
+  document.getElementById('todayView').style.display = '';
+  document.getElementById('analysisView').style.display = 'none';
+});
+
+document.getElementById('navAnalysis').addEventListener('click', ()=>{
+  document.getElementById('navAnalysis').classList.add('active');
+  document.getElementById('navToday').classList.remove('active');
+  document.getElementById('todayView').style.display = 'none';
+  document.getElementById('analysisView').style.display = '';
+  renderAnalysis();
+});
+
+function mondayOf(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  const day = d.getDay();
+  const diff = (day===0 ? -6 : 1-day);
+  d.setDate(d.getDate()+diff);
+  return d.toISOString().slice(0,10);
+}
+
+function fmtWeekLabel(mondayStr){
+  const start = new Date(mondayStr+'T00:00:00');
+  const end = new Date(start); end.setDate(end.getDate()+6);
+  const opts = {month:'short', day:'numeric'};
+  return `${start.toLocaleDateString('en-US',opts)} – ${end.toLocaleDateString('en-US',opts)}`;
+}
+
+async function fetchAllWeightEntries(){
+  try{
+    const res = await window.storage.get('weight-log');
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){}
+  return [];
+}
+
+async function fetchWorkoutDates(){
+  const dates = new Set();
+  try{
+    const res = await window.storage.list('workout:');
+    if(res && res.keys){
+      for(const key of res.keys){
+        const parts = key.split(':'); // workout, YYYY-MM-DD, dX
+        if(parts.length < 3) continue;
+        const date = parts[1];
+        try{
+          const item = await window.storage.get(key);
+          if(item && item.value){
+            const completed = JSON.parse(item.value);
+            const anyDone = Object.values(completed).some(v=>v===true);
+            if(anyDone) dates.add(date);
+          }
+        }catch(e){}
+      }
+    }
+  }catch(e){}
+  return dates;
+}
+
+async function fetchFoodDays(){
+  const dayTotals = {}; // date -> {cal,pro,fat,carb}
+  try{
+    const res = await window.storage.list('foodlog:');
+    if(res && res.keys){
+      for(const key of res.keys){
+        const date = key.split(':')[1];
+        try{
+          const item = await window.storage.get(key);
+          if(item && item.value){
+            const log = JSON.parse(item.value);
+            const totals = log.reduce((acc,i)=>({
+              cal: acc.cal + Number(i.cal||0),
+              pro: acc.pro + Number(i.pro||0),
+              fat: acc.fat + Number(i.fat||0),
+              carb: acc.carb + Number(i.carb||0),
+            }), {cal:0,pro:0,fat:0,carb:0});
+            if(log.length>0) dayTotals[date] = totals;
+          }
+        }catch(e){}
+      }
+    }
+  }catch(e){}
+  return dayTotals;
+}
+
+function renderSparkline(entries){
+  const el = document.getElementById('weightChart');
+  if(entries.length < 2){
+    el.innerHTML = '<div class="empty-note">Log at least two weigh-ins to see your trend.</div>';
+    return;
+  }
+  const sorted = [...entries].sort((a,b)=> new Date(a.date)-new Date(b.date)).slice(-16);
+  const weights = sorted.map(e=>e.weight);
+  const min = Math.min(...weights), max = Math.max(...weights);
+  const range = (max-min) || 1;
+  const w = 600, h = 70, pad = 8;
+  const pts = sorted.map((e,i)=>{
+    const x = pad + (i/(sorted.length-1)) * (w-2*pad);
+    const y = h - pad - ((e.weight-min)/range) * (h-2*pad);
+    return `${x},${y}`;
+  }).join(' ');
+  const first = sorted[0].weight, last = sorted[sorted.length-1].weight;
+  const delta = (last-first).toFixed(1);
+  const deltaClass = delta > 0 ? 'w-up' : delta < 0 ? 'w-down' : 'w-flat';
+  const deltaSign = delta > 0 ? '+' : '';
+  el.innerHTML = `
+    <svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <polyline fill="none" stroke="#2D6CDF" stroke-width="2.5" points="${pts}"/>
+    </svg>
+    <div style="display:flex; justify-content:space-between; margin-top:8px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text-muted);">
+      <span>${sorted[0].weight} lb</span>
+      <span class="${deltaClass}">${deltaSign}${delta} lb over ${sorted.length} entries</span>
+      <span>${sorted[sorted.length-1].weight} lb</span>
+    </div>
+  `;
+}
+
+async function renderExerciseProgress(){
+  const el = document.getElementById('exerciseProgress');
+  el.innerHTML = '<div class="empty-note">Loading…</div>';
+
+  let keys = [];
+  try{
+    const res = await window.storage.list('ex:');
+    if(res && res.keys) keys = res.keys;
+  }catch(e){}
+
+  if(keys.length === 0){
+    el.innerHTML = '<div class="empty-note">Log a weight and rep count on an exercise to start tracking progress.</div>';
+    return;
+  }
+
+  const rows = [];
+  for(const key of keys){
+    const parts = key.split(':'); // ex, program, dayId, idx
+    if(parts.length < 4) continue;
+    const program = parts[1], dayId = parts[2], idx = Number(parts[3]);
+    const progDef = programs[program];
+    const dayDef = progDef && progDef.days[dayId];
+    if(!dayDef || !dayDef.exercises || !dayDef.exercises[idx]) continue;
+    const exDef = dayDef.exercises[idx];
+
+    let log = [];
+    try{
+      const item = await window.storage.get(key);
+      if(item && item.value) log = JSON.parse(item.value);
+    }catch(e){}
+    log = log.filter(e=> e.weight!=null || e.reps!=null);
+    if(log.length === 0) continue;
+    log.sort((a,b)=> new Date(a.date)-new Date(b.date));
+
+    const first = log[0], latest = log[log.length-1];
+    const topRep = parseTopRep(exDef.sets);
+    const readyToProgress = latest.reps!=null && topRep!=null && latest.reps >= topRep;
+
+    rows.push({
+      name: exDef.name, dayLabel: `${progDef.label} · ${dayDef.label}`,
+      first, latest, sessionCount: log.length, readyToProgress
+    });
+  }
+
+  if(rows.length === 0){
+    el.innerHTML = '<div class="empty-note">Log a weight and rep count on an exercise to start tracking progress.</div>';
+    return;
+  }
+
+  rows.sort((a,b)=> a.dayLabel.localeCompare(b.dayLabel) || a.name.localeCompare(b.name));
+
+  el.innerHTML = rows.map(r=>{
+    const deltaW = (r.first.weight!=null && r.latest.weight!=null) ? (r.latest.weight - r.first.weight) : null;
+    const deltaHtml = deltaW==null ? '' :
+      `<span class="${deltaW>0?'w-up':deltaW<0?'w-down':'w-flat'}">${deltaW>0?'+':''}${deltaW} lb since first log</span>`;
+    const readyHtml = r.readyToProgress ? `<div class="prog-ready">⬆ Ready to move up in weight next session</div>` : '';
+    return `
+      <div class="prog-row">
+        <div class="prog-top">
+          <div class="prog-name">${r.name}</div>
+          <div class="prog-day">${r.dayLabel}</div>
+        </div>
+        <div class="prog-stats">
+          <span>${r.sessionCount} session${r.sessionCount===1?'':'s'} logged</span>
+          <span class="prog-current">${r.latest.weight ?? '—'} lb × ${r.latest.reps ?? '—'}</span>
+        </div>
+        ${deltaHtml ? `<div class="prog-stats"><span></span>${deltaHtml}</div>` : ''}
+        ${readyHtml}
+      </div>
+    `;
+  }).join('');
+}
+
+async function renderAnalysis(){
+  const tableEl = document.getElementById('weeklyTable');
+  tableEl.innerHTML = '<div class="empty-note">Loading…</div>';
+
+  const [weightEntries, workoutDates, foodDays] = await Promise.all([
+    fetchAllWeightEntries(), fetchWorkoutDates(), fetchFoodDays()
+  ]);
+
+  renderSparkline(weightEntries);
+  renderExerciseProgress();
+
+  // Build last 6 week buckets (most recent first)
+  const todayMonday = mondayOf(todayKey);
+  const weeks = [];
+  for(let i=0;i<6;i++){
+    const d = new Date(todayMonday+'T00:00:00');
+    d.setDate(d.getDate() - 7*i);
+    weeks.push(d.toISOString().slice(0,10));
+  }
+
+  function inWeek(dateStr, monday){
+    const start = new Date(monday+'T00:00:00');
+    const end = new Date(start); end.setDate(end.getDate()+7);
+    const d = new Date(dateStr+'T00:00:00');
+    return d >= start && d < end;
+  }
+
+  const rows = weeks.map(monday=>{
+    const wEntries = weightEntries.filter(e=>inWeek(e.date, monday));
+    const avgWeight = wEntries.length ? (wEntries.reduce((s,e)=>s+Number(e.weight),0)/wEntries.length) : null;
+
+    const workoutsInWeek = [...workoutDates].filter(d=>inWeek(d, monday)).length;
+
+    const foodDatesInWeek = Object.keys(foodDays).filter(d=>inWeek(d, monday));
+    const avgCal = foodDatesInWeek.length ? Math.round(foodDatesInWeek.reduce((s,d)=>s+foodDays[d].cal,0)/foodDatesInWeek.length) : null;
+    const avgPro = foodDatesInWeek.length ? Math.round(foodDatesInWeek.reduce((s,d)=>s+foodDays[d].pro,0)/foodDatesInWeek.length) : null;
+
+    return {monday, avgWeight, workoutsInWeek, avgCal, avgPro, hasData: wEntries.length>0 || workoutsInWeek>0 || foodDatesInWeek.length>0};
+  });
+
+  const activeRows = rows.filter(r=>r.hasData);
+  if(activeRows.length === 0){
+    tableEl.innerHTML = '<div class="empty-note">No data yet — log a workout, meal, or weigh-in and check back here.</div>';
+    return;
+  }
+
+  tableEl.innerHTML = rows.map((r, idx)=>{
+    if(!r.hasData) return '';
+    const prevWeek = rows[idx+1];
+    let deltaHtml = '<span class="w-flat">—</span>';
+    if(r.avgWeight !== null && prevWeek && prevWeek.avgWeight !== null){
+      const d = (r.avgWeight - prevWeek.avgWeight).toFixed(1);
+      const cls = d > 0 ? 'w-up' : d < 0 ? 'w-down' : 'w-flat';
+      const sign = d > 0 ? '+' : '';
+      deltaHtml = `<span class="${cls}">${sign}${d}</span>`;
+    }
+    return `
+      <div class="week-row">
+        <div class="week-col label">
+          <div class="w-date">${fmtWeekLabel(r.monday)}</div>
+        </div>
+        <div class="week-col">
+          <div class="w-val">${r.workoutsInWeek}</div>
+          <div class="w-label">Workouts</div>
+        </div>
+        <div class="week-col">
+          <div class="w-val">${r.avgCal ?? '—'}</div>
+          <div class="w-label">Avg Cal</div>
+        </div>
+        <div class="week-col">
+          <div class="w-val">${r.avgPro ?? '—'}g</div>
+          <div class="w-label">Avg Pro</div>
+        </div>
+        <div class="week-col">
+          <div class="w-val">${r.avgWeight ? r.avgWeight.toFixed(1) : '—'}</div>
+          <div class="w-label">Weight</div>
+        </div>
+        <div class="week-col">
+          <div class="w-val">${deltaHtml}</div>
+          <div class="w-label">vs Prior Wk</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+(async function init(){
+  await loadActiveProgram();
+  renderProgramSelector();
+  await loadDayOrder();
+  renderTabs();
+  renderWorkout();
+  renderFoodCats();
+  renderFoodItems();
+  loadFoodLog();
+  loadWeights();
+})();
+</script>
+</body>
+</html>
