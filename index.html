@@ -1476,7 +1476,13 @@ let dayDefs = programs[activeProgram].days;
 let dayOrder = Object.keys(dayDefs);
 let activeDay = 'd1';
 let reorderMode = false;
-const todayKey = new Date().toISOString().slice(0,10);
+function getTodayKey(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
 
 async function loadActiveProgram(){
   try{
@@ -1594,8 +1600,8 @@ async function getExLog(dayId, idx){
 
 async function saveExEntry(dayId, idx, weight, reps){
   const log = await getExLog(dayId, idx);
-  const existing = log.findIndex(e=>e.date===todayKey);
-  const entry = {date: todayKey, weight: weight===''?null:Number(weight), reps: reps===''?null:Number(reps)};
+  const existing = log.findIndex(e=>e.date===getTodayKey());
+  const entry = {date: getTodayKey(), weight: weight===''?null:Number(weight), reps: reps===''?null:Number(reps)};
   if(existing>=0) log[existing] = entry; else log.push(entry);
   log.sort((a,b)=> new Date(a.date)-new Date(b.date));
   try{ await window.storage.set(exKey(activeProgram, dayId, idx), JSON.stringify(log)); }catch(e){}
@@ -1644,7 +1650,7 @@ async function renderWorkout(){
 
   let completed = {};
   try{
-    const res = await window.storage.get(`workout:${todayKey}:${activeProgram}:${activeDay}`);
+    const res = await window.storage.get(`workout:${getTodayKey()}:${activeProgram}:${activeDay}`);
     if(res && res.value) completed = JSON.parse(res.value);
   }catch(e){ completed = {}; }
 
@@ -1659,8 +1665,8 @@ async function renderWorkout(){
     let trackingHtml = '';
     if(!ex.noWeight){
       const log = logs[i];
-      const prior = [...log].filter(e=>e.date!==todayKey).sort((a,b)=> new Date(b.date)-new Date(a.date))[0];
-      const todayEntry = log.find(e=>e.date===todayKey);
+      const prior = [...log].filter(e=>e.date!==getTodayKey()).sort((a,b)=> new Date(b.date)-new Date(a.date))[0];
+      const todayEntry = log.find(e=>e.date===getTodayKey());
       const topRep = parseTopRep(ex.sets);
       let badge = '';
       if(prior && prior.reps!=null && topRep!=null && prior.reps >= topRep){
@@ -1700,7 +1706,7 @@ async function renderWorkout(){
       completed[i] = cb.checked;
       row.querySelector('.ex-name').classList.toggle('done', cb.checked);
       try{
-        await window.storage.set(`workout:${todayKey}:${activeProgram}:${activeDay}`, JSON.stringify(completed));
+        await window.storage.set(`workout:${getTodayKey()}:${activeProgram}:${activeDay}`, JSON.stringify(completed));
       }catch(e){}
     });
 
@@ -1808,12 +1814,12 @@ async function removeFoodFromLog(idx){
 }
 
 async function saveFoodLog(){
-  try{ await window.storage.set(`foodlog:${todayKey}`, JSON.stringify(todaysFoodLog)); }catch(e){}
+  try{ await window.storage.set(`foodlog:${getTodayKey()}`, JSON.stringify(todaysFoodLog)); }catch(e){}
 }
 
 async function loadFoodLog(){
   try{
-    const res = await window.storage.get(`foodlog:${todayKey}`);
+    const res = await window.storage.get(`foodlog:${getTodayKey()}`);
     if(res && res.value) todaysFoodLog = JSON.parse(res.value);
   }catch(e){ todaysFoodLog = []; }
   renderFoodLog();
@@ -1896,7 +1902,7 @@ async function loadWeights(){
     }
     entries.sort((a,b)=> new Date(b.date) - new Date(a.date));
     listEl.innerHTML = entries.slice(0,8).map(e=>`
-      <div class="weight-item"><span>${new Date(e.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${e.weight} lb</span></div>
+      <div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${e.weight} lb</span></div>
     `).join('');
   }catch(e){
     listEl.innerHTML = '<div class="empty-note">No entries yet — log your first weigh-in.</div>';
@@ -1913,7 +1919,7 @@ document.getElementById('saveWeight').addEventListener('click', async ()=>{
       const res = await window.storage.get('weight-log');
       if(res && res.value) entries = JSON.parse(res.value);
     }catch(e){ entries = []; }
-    entries.push({date: todayKey, weight: w});
+    entries.push({date: getTodayKey(), weight: w});
     await window.storage.set('weight-log', JSON.stringify(entries));
     input.value = '';
     loadWeights();
@@ -2124,7 +2130,7 @@ async function renderAnalysis(){
   renderExerciseProgress();
 
   // Build last 6 week buckets (most recent first)
-  const todayMonday = mondayOf(todayKey);
+  const todayMonday = mondayOf(getTodayKey());
   const weeks = [];
   for(let i=0;i<6;i++){
     const d = new Date(todayMonday+'T00:00:00');
