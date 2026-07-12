@@ -191,6 +191,7 @@
   .ex-name-wrap{min-width:0; flex:1;}
   .ex-name{font-weight:500; font-size:14.5px;}
   .ex-name .super-tag{font-size:10.5px; color:var(--plate-yellow); display:block; font-family:'IBM Plex Mono',monospace; margin-top:1px;}
+  .ex-name .focus-tag{color:var(--plate-green);}
   .ex-name.done{color:var(--text-muted); text-decoration:line-through;}
   .ex-name.done .super-tag{color:var(--text-muted);}
   .ex-sets{
@@ -428,6 +429,20 @@
     padding:8px; border-radius:8px; font-size:12.5px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
   }
   .sleep-avg{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--plate-blue); margin:8px 0; font-weight:600;}
+
+  .cycle-current-banner{
+    margin-top:14px; padding:14px; background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.3);
+    border-radius:12px;
+  }
+  .cycle-current-title{font-family:'Oswald',sans-serif; font-size:16px; text-transform:uppercase; letter-spacing:0.3px; color:var(--plate-blue); margin-bottom:4px;}
+  .cycle-current-day{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text-muted); margin-bottom:10px;}
+  .cycle-phase-card{
+    margin-top:10px; padding:12px 14px; background:var(--surface2); border:1px solid var(--line); border-radius:10px;
+  }
+  .cycle-phase-title{font-weight:700; font-size:13.5px; margin-bottom:6px; display:flex; align-items:center; gap:8px;}
+  .cycle-phase-days{font-size:10.5px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; font-weight:500;}
+  .cycle-phase-section{font-size:12.5px; line-height:1.5; color:var(--text-muted); margin-top:6px;}
+  .cycle-phase-section b{color:var(--text);}
   .vol-row{padding:10px 0; border-bottom:1px solid var(--line);}
   .vol-row:last-child{border-bottom:none;}
   .vol-row-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:13px; font-weight:600;}
@@ -950,6 +965,30 @@
     </div></div>
   </div>
 
+  <div class="card" id="cycleCard" style="display:none">
+    <div class="card-title nutrition-header" id="cycleHeader">
+      <span>🌙 Cycle Tracking</span>
+      <span class="ex-chevron" id="cycleChevron">›</span>
+    </div>
+    <div class="nutrition-summary" id="cycleSummary">Optional — tap to set up and see what to expect this phase</div>
+    <div class="expand-wrap" id="cycleExpandWrap"><div>
+      <div class="care-disclaimer" style="margin-bottom:12px;">
+        Entirely optional and private — this data never leaves your device. What follows is general, population-level information from exercise physiology research (notably Dr. Stacy Sims' work, author of <i>ROAR</i>, the leading research on training around the menstrual cycle) — not a diagnosis or a guarantee of how <b>your</b> body will respond. Individual variation is significant; if something feels off or concerning, talk to a doctor.
+      </div>
+      <label class="care-label">First day of your last period</label>
+      <input type="date" id="cycleLastPeriod" class="care-input">
+      <label class="care-label">Average cycle length (days)</label>
+      <input type="number" id="cycleLength" class="care-input" placeholder="28" min="21" max="40">
+      <button class="save-btn" id="saveCycle">Save</button>
+      <div class="status-msg" id="cycleStatus"></div>
+
+      <div id="cycleCurrentPhase"></div>
+
+      <div class="history-hint" style="margin-top:16px;">The four phases, generally:</div>
+      <div id="cyclePhaseGuide"></div>
+    </div></div>
+  </div>
+
   <div class="card">
     <div class="card-title">💡 Keep In Mind</div>
     <div id="tipsAlways"></div>
@@ -1139,6 +1178,7 @@
      measurements-log                    -> [{date,waist,chest,arms,thighs,hips,neck}, ...]
      week-archive                        -> [{weekStart,program,avgWeight,workoutsCount,avgCal,avgSleep}, ...]
      martial-art-style                   -> "kickboxing" | "boxing" | "muayThai" | "mma"
+     cycle-data                          -> {lastPeriod, cycleLength} (optional, female gender only)
      day-order:{program}                 -> [dayId, dayId, ...]
      active-program                      -> "strength" | "bodybuilding" | ...
      injury-log                          -> [{date,exercise,sensation,region,pain,note}, ...]
@@ -2802,13 +2842,13 @@ const exerciseInfo = {
   'Heavy Bag — Roundhouse Kicks (both legs)': {category:'kick', videoQuery:'roundhouse kick technique heavy bag', cues:['Rotate the hip fully through the kick, chamber the knee before extending.','Strike with the shin, keep your guard hand up on the same side.','Alternate legs evenly — don\'t neglect your weaker side.']},
   'Heavy Bag — Speed Combos (light power, high output)': {category:'punch', videoQuery:'boxing speed combo drills', cues:['Prioritize hand speed and output over power this round.','Keep punches tight and technical even as fatigue sets in.','Stay light on your feet, keep moving between combos.']},
   'Heavy Bag — Teep + Knee Combos': {category:'kick', videoQuery:'muay thai teep push kick knee technique', cues:['Teep: drive through the ball of the foot, extend the hip.','Knee strikes: pull the target into the knee, drive your hips forward.','Keep hands up to guard your face during close-range knee work.']},
-  'Hip Thrust': {category:'hinge', cues:['Shoulder blades on the bench, chin tucked, drive through your heels.','Squeeze glutes hard at the top, avoid hyperextending your lower back.','Full lockout at the top, pause briefly before lowering.']},
+  'Hip Thrust': {category:'hinge', videoQuery:'hip thrust proper form Bret Contreras', cues:['Shoulder blades on the bench, chin tucked, drive through your heels.','Squeeze glutes hard at the top, avoid hyperextending your lower back.','Full lockout at the top, pause briefly before lowering — Dr. Bret Contreras\' EMG research established this as the single most effective exercise for direct glute activation, more than squats or deadlifts alone.']},
   'Incline DB Press': {category:'push', cues:['Bench at 30-45°, press dumbbells up and slightly inward.','Lower with control to a stretch at chest level.','Keep shoulder blades retracted throughout.']},
   'Incline Walk': {category:'cardio', cues:['Keep the pace conversational — this is zone 2, not a sprint.','Maintain upright posture, avoid holding onto the rails.','Consistent incline and pace beats intensity for this session.']},
   'Jerk Dip Squat': {category:'oly', cues:['Small, fast dip straight down — not a full squat — then drive up.','Keep your torso vertical through the dip, no forward lean.','This builds the leg drive that powers the jerk.']},
   'Jump Rope (warm-up)': {category:'cardio', videoQuery:'boxing jump rope technique', cues:['Small, quick wrist turns — not big arm swings.','Stay light on the balls of your feet, minimal jump height.','Use this to raise heart rate and prime footwork, not to fatigue yourself.']},
   'Lat Pulldown': {category:'pull', cues:['Lead with your elbows, pull the bar to your upper chest.','Squeeze shoulder blades together at the bottom of the movement.','Avoid leaning back excessively to move more weight.']},
-  'Lateral Raise': {category:'shoulder', cues:['Slight bend in the elbows, raise to shoulder height, lead with your elbows.','Control the lowering — don\'t let momentum do the work.','Keep reps strict, this is a light-weight, high-control exercise.']},
+  'Lateral Raise': {category:'shoulder', cues:['Slight bend in the elbows, raise to shoulder height, lead with your elbows.','Control the lowering — don\'t let momentum do the work.','Keep reps strict; this is exactly the kind of targeted shoulder work three-time Mr. Olympia Frank Zane used to build the wide-shoulder, small-waist "V-taper" that remains the aesthetic benchmark for classic physique training.']},
   'Leg Curl': {category:'hinge', cues:['Full range of motion, squeeze the hamstrings at the top.','Control the eccentric, don\'t let the weight stack slam down.','Keep your hips pressed into the pad throughout.']},
   'Leg Extension': {category:'squat', cues:['Full extension at the top, squeeze the quads briefly.','Control the lowering, avoid using momentum.','Adjust the pad so it sits on your shin, not your ankle.']},
   'Leg Press': {category:'squat', cues:['Feet shoulder-width on the platform, lower back stays flat on the pad.','Lower until knees reach about 90°, don\'t let your lower back round off.','Drive through the whole foot, don\'t lock your knees out hard at the top.']},
@@ -3249,7 +3289,7 @@ const DEFAULT_INSIGHTS_BY_PROGRAM = {
   athletic: '🏃 <b>Conditioning insight:</b> Agility and footwork drills sharpen fastest with full attention, not fatigue — do them early in a session if precision matters more than conditioning that day.',
   core: '🎯 <b>Stability insight:</b> Anti-rotation and anti-extension work (resisting movement) builds more real-world core strength than crunches alone — bracing under load is the actual skill being trained.',
   mobility: '🧘 <b>Range insight:</b> Consistent short sessions beat occasional long ones for building real, usable range of motion — a few focused minutes daily compounds faster than one long weekly stretch.',
-  bodybuilding: '💪 <b>Hypertrophy insight:</b> Muscle responds to the tension it experiences, not just the weight lifted — slow the eccentric down on isolation work if you want more growth stimulus from the same load.',
+  bodybuilding: '💪 <b>Hypertrophy insight:</b> Muscle responds to mechanical tension and total volume more than raw weight lifted — this is the core finding across Dr. Brad Schoenfeld\'s hypertrophy research (the most published scientist in this specific field). Slow the eccentric down on isolation work if you want more growth stimulus from the same load.',
 };
 
 function renderDayInsight(day){
@@ -3287,14 +3327,18 @@ async function renderWorkout(){
     if(res && res.value) completed = JSON.parse(res.value);
   }catch(e){ completed = {}; }
 
-  const logs = await Promise.all(day.exercises.map((ex,i)=> ex.noWeight ? Promise.resolve([]) : getExLog(activeDay, i)));
+  const focusExercise = getBodyGoalFocusExercise(userProfile.bodyGoal, activeProgram, day);
+  const renderExercises = focusExercise ? [...day.exercises, focusExercise] : day.exercises;
+
+  const logs = await Promise.all(renderExercises.map((ex,i)=> ex.noWeight ? Promise.resolve([]) : getExLog(activeDay, i)));
   const restingRegions = await getRestingRegions();
 
-  day.exercises.forEach((ex,i)=>{
+  renderExercises.forEach((ex,i)=>{
     const row = document.createElement('div');
     row.className = 'exercise-block';
     const checked = completed[i] ? 'checked' : '';
     const superHtml = ex.superTag ? `<span class="super-tag">${ex.superTag}</span>` : '';
+    const focusHtml = ex.isBodyGoalFocus ? `<span class="super-tag focus-tag">🎯 ${ex.focusLabel} — added for your body goal</span>` : '';
 
     let trackingHtml = '';
     if(!ex.noWeight){
@@ -3365,7 +3409,7 @@ async function renderWorkout(){
         <input type="checkbox" data-idx="${i}" ${checked}>
         ${thumbHtml}
         <div class="ex-name-wrap">
-          <div class="ex-name ${completed[i]?'done':''}">${ex.name}${superHtml}</div>
+          <div class="ex-name ${completed[i]?'done':''}">${ex.name}${superHtml}${focusHtml}</div>
         </div>
         <div class="ex-sets">${ex.sets}<div class="ex-cal-tag">~${exCalories} cal</div></div>
         <span class="ex-chevron">›</span>
@@ -3559,6 +3603,34 @@ const GOAL_LABELS = {
   maintain: 'Maintenance', performance: 'Performance',
 };
 
+// Adds ONE clearly-labeled bonus exercise to a session based on the specific
+// body-goal text you picked — never based on gender directly. A man and a
+// woman who both pick "Maximum Size" get the same mass-focused addition; a
+// man and a woman who both pick a glute-focused goal get the same glute work.
+// This only ADDS to a program's core content — it never removes or replaces
+// anything, so the 14 built-in programs stay intact underneath it.
+const BODY_GOAL_FOCUS = [
+  {pattern:/hourglass|curvy/i, label:'Glute & Hip Focus (Bret Contreras method)', exercise:{name:'Hip Thrust', sets:'3×12-15'}},
+  {pattern:/classic muscular|lean & athletic/i, label:'V-Taper Focus (Frank Zane style)', exercise:{name:'Lateral Raise', sets:'3×15'}},
+  {pattern:/maximum size|muscular & strong|maximum muscle/i, label:'Extra Mass Focus (Schoenfeld volume principle)', exercise:{name:'DB Curl', sets:'3×10-12'}},
+  {pattern:/athletic figure|athletic performance|athletic build/i, label:'Athletic Conditioning Focus', exercise:{name:'Plank', sets:'3×45s', noWeight:true}},
+  {pattern:/toned & lean|lean & toned/i, label:'Toning Focus', exercise:{name:'Bodyweight Squat', sets:'3×20'}},
+];
+
+// Only applies to strength/hypertrophy-oriented programs where an accessory
+// exercise makes sense — not to Yoga, Running, Rehab, Combat, etc.
+const FOCUS_ELIGIBLE_PROGRAMS = ['strength','bodybuilding','powerlifting','athletic','calisthenics','bodyweight','oly'];
+
+function getBodyGoalFocusExercise(bodyGoal, program, day){
+  if(!bodyGoal || day.rest) return null;
+  if(!FOCUS_ELIGIBLE_PROGRAMS.includes(program)) return null;
+  const match = BODY_GOAL_FOCUS.find(f=>f.pattern.test(bodyGoal));
+  if(!match) return null;
+  // Skip if this exact exercise is already programmed today, so we don't duplicate it
+  if(day.exercises.some(ex=>ex.name === match.exercise.name)) return null;
+  return {...match.exercise, isBodyGoalFocus:true, focusLabel: match.label};
+}
+
 let userProfile = {
   name:'', age:30, gender:'other', heightFt:5, heightIn:8, weight:160,
   activity:1.375, goal:'maintain', bodyGoal:'',
@@ -3590,9 +3662,28 @@ function computeTargets(p){
   const calAdjust = {lose:-500, gain:250, recomp:-300, maintain:0, performance:0};
   const proFactor = {lose:1.0, gain:0.9, recomp:1.0, maintain:0.8, performance:0.9};
 
-  const cal = Math.round(tdee + (calAdjust[p.goal] ?? 0));
-  const pro = Math.round((Number(p.weight)||150) * (proFactor[p.goal] ?? 0.9));
-  const fat = Math.round((cal * 0.27) / 9);
+  let cal = tdee + (calAdjust[p.goal] ?? 0);
+  let proPerLb = proFactor[p.goal] ?? 0.9;
+  let fatPct = 0.27;
+  const bodyGoal = p.bodyGoal || '';
+
+  // Body-goal nutrition nudges — small, defensible adjustments driven by the
+  // specific aesthetic goal you picked, not by gender directly. A man and a
+  // woman who both select "Maximum Size" get the same protein bump; a man and
+  // a woman who both select a leaner physique goal get the same tighter deficit.
+  if(/physique|classic|muscular|maximum/i.test(bodyGoal)){
+    proPerLb += 0.1; // muscle-maximizing goals: a bit more protein supports that directly
+  }
+  if(/toned|lean|bikini/i.test(bodyGoal) && p.goal !== 'gain'){
+    cal -= 100; // leaner-look goals: slightly tighter deficit, without going extreme
+  }
+  if(/hourglass|curvy|glute/i.test(bodyGoal)){
+    fatPct = 0.24; // a few extra carbs to support the higher glute/leg training volume this goal implies
+  }
+
+  cal = Math.round(cal);
+  const pro = Math.round((Number(p.weight)||150) * proPerLb);
+  const fat = Math.round((cal * fatPct) / 9);
   const carb = Math.max(0, Math.round((cal - pro*4 - fat*9) / 4));
 
   return {cal, pro, fat, carb};
@@ -3896,6 +3987,7 @@ document.getElementById('profileHeader').addEventListener('click', ()=>{
 document.getElementById('pfGender').addEventListener('change', (e)=>{
   userProfile.gender = e.target.value;
   updateBodyGoalOptions();
+  toggleCycleCard();
 });
 
 document.getElementById('pfSave').addEventListener('click', async ()=>{
@@ -3917,7 +4009,9 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
   renderProfileSummary();
   renderProgramRec();
   renderProgramSelector();
+  renderWorkout();
   renderWater();
+  renderCycleTracking();
   loadFoodLog(); // refresh macro bars against new targets
 
   // Keep this device's profile picker label in sync with the name just saved
@@ -4651,6 +4745,137 @@ document.getElementById('saveSleep').addEventListener('click', async ()=>{
 document.getElementById('measureHeader').addEventListener('click', ()=>{
   document.getElementById('measureHeader').classList.toggle('open');
   document.getElementById('measureExpandWrap').classList.toggle('open');
+});
+
+// --- Cycle Tracking (optional, shown when gender is female) ---------------
+// General, population-level patterns from exercise physiology research —
+// primarily Dr. Stacy Sims' work (ROAR) on training around the menstrual
+// cycle — presented as educational context, never as a diagnosis or an
+// automatic workout/nutrition modifier. Individual variation is significant.
+const CYCLE_PHASES = [
+  {
+    key:'menstrual', name:'Menstrual Phase', icon:'🩸',
+    hormones:'Estrogen and progesterone are both at their lowest point.',
+    physical:'Many people notice cramping, fatigue, or lower energy in the first day or two, often easing as the phase goes on. Blood loss means iron-rich foods (red meat, spinach, lentils) are worth prioritizing.',
+    mental:'Mood dips are common right at the start for some, often lifting by day 3-4 — but this varies a lot person to person.',
+    training:'Older advice to automatically scale back training here isn\'t well supported — go by how you actually feel that day. Light movement often eases cramping more than rest does.',
+    nutrition:'No major macro shift needed — just make sure iron and overall calorie intake stay adequate.',
+  },
+  {
+    key:'follicular', name:'Follicular Phase', icon:'🌱',
+    hormones:'Estrogen rises steadily through this phase while progesterone stays low.',
+    physical:'Often the best window for recovery and tissue repair — many report their best strength, endurance, and energy here.',
+    mental:'Often elevated mood, motivation, and confidence as estrogen climbs.',
+    training:'A strong window for progressive overload, higher-intensity work, and learning new skills. Dr. Stacy Sims highlights this phase as frequently the most favorable for building strength and adapting to hard training.',
+    nutrition:'Standard training nutrition applies well — the body handles carbohydrates efficiently here.',
+  },
+  {
+    key:'ovulation', name:'Ovulation', icon:'☀️',
+    hormones:'Estrogen peaks and LH surges, with a small testosterone bump — a brief 1-2 day window.',
+    physical:'Often peak strength and power output for many — but research also shows a small, real increase in ligament laxity (notably ACL) around this window.',
+    mental:'Often peak confidence and sociability for many people.',
+    training:'A good window to test a heavy lift or push intensity — just prioritize a thorough warm-up and clean joint mechanics given the laxity research.',
+    nutrition:'No major shift needed — normal fueling and hydration.',
+  },
+  {
+    key:'luteal', name:'Luteal Phase', icon:'🌙',
+    hormones:'Progesterone rises then falls; estrogen has a smaller secondary rise before both drop ahead of the next period.',
+    physical:'Resting body temperature rises slightly, which can make heat and endurance work feel harder. Recovery may take a bit longer, and increased appetite is common — driven by progesterone, not a lack of willpower.',
+    mental:'PMS-type symptoms (irritability, low mood, anxiety) are common for many in the last several days of this phase, though far from universal.',
+    training:'Sims and others suggest leaning toward technique work and moderate intensity over max-effort testing, especially late in this phase — though plenty of people train hard through it with no issue at all.',
+    nutrition:'Slightly higher calorie needs are common here due to a real uptick in metabolic rate — increased hunger is physiological, not a lapse in discipline.',
+  },
+];
+
+function computeCyclePhase(lastPeriodStr, cycleLength){
+  const last = new Date(lastPeriodStr+'T00:00:00');
+  const today = new Date(getTodayKey()+'T00:00:00');
+  const daysSince = Math.floor((today - last) / 86400000);
+  const dayInCycle = ((daysSince % cycleLength) + cycleLength) % cycleLength + 1; // 1-indexed, handles dates before "last period" too
+
+  const ovulationDay = Math.max(10, cycleLength - 14); // luteal phase is ~14 days regardless of total cycle length
+  let phaseKey, dayRangeLabel;
+  if(dayInCycle <= 5){ phaseKey='menstrual'; dayRangeLabel=`Days 1-5`; }
+  else if(dayInCycle < ovulationDay){ phaseKey='follicular'; dayRangeLabel=`Days 6-${ovulationDay-1}`; }
+  else if(dayInCycle <= ovulationDay+1){ phaseKey='ovulation'; dayRangeLabel=`Days ${ovulationDay}-${ovulationDay+1}`; }
+  else{ phaseKey='luteal'; dayRangeLabel=`Days ${ovulationDay+2}-${cycleLength}`; }
+
+  return {dayInCycle, phase: CYCLE_PHASES.find(p=>p.key===phaseKey), dayRangeLabel};
+}
+
+function buildPhaseCardHtml(phase, isCurrent){
+  return `
+    <div class="cycle-phase-card">
+      <div class="cycle-phase-title">${phase.icon} ${phase.name} ${isCurrent ? '<span style="color:var(--plate-blue); font-size:11px;">— you are here</span>' : ''}</div>
+      <div class="cycle-phase-section"><b>Hormones:</b> ${phase.hormones}</div>
+      <div class="cycle-phase-section"><b>Physical:</b> ${phase.physical}</div>
+      <div class="cycle-phase-section"><b>Mental:</b> ${phase.mental}</div>
+      <div class="cycle-phase-section"><b>Training:</b> ${phase.training}</div>
+      <div class="cycle-phase-section"><b>Nutrition:</b> ${phase.nutrition}</div>
+    </div>
+  `;
+}
+
+function toggleCycleCard(){
+  const card = document.getElementById('cycleCard');
+  card.style.display = (userProfile.gender === 'female') ? '' : 'none';
+}
+
+async function loadCycleData(){
+  try{
+    const res = await window.storage.get('cycle-data');
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){}
+  return null;
+}
+
+async function renderCycleTracking(){
+  toggleCycleCard();
+  if(userProfile.gender !== 'female') return;
+
+  const data = await loadCycleData();
+  const guideEl = document.getElementById('cyclePhaseGuide');
+  const currentEl = document.getElementById('cycleCurrentPhase');
+  const summaryEl = document.getElementById('cycleSummary');
+
+  if(data && data.lastPeriod){
+    document.getElementById('cycleLastPeriod').value = data.lastPeriod;
+    document.getElementById('cycleLength').value = data.cycleLength;
+    const {dayInCycle, phase, dayRangeLabel} = computeCyclePhase(data.lastPeriod, data.cycleLength);
+    summaryEl.innerHTML = `<b>Day ${dayInCycle}</b> · ${phase.icon} ${phase.name}`;
+    currentEl.innerHTML = `
+      <div class="cycle-current-banner">
+        <div class="cycle-current-title">${phase.icon} ${phase.name} — Day ${dayInCycle}</div>
+        <div class="cycle-current-day">${dayRangeLabel} of an estimated ${data.cycleLength}-day cycle</div>
+        ${buildPhaseCardHtml(phase, false)}
+      </div>
+    `;
+    guideEl.innerHTML = CYCLE_PHASES.filter(p=>p.key!==phase.key).map(p=>buildPhaseCardHtml(p, false)).join('');
+  } else {
+    summaryEl.textContent = 'Optional — tap to set up and see what to expect this phase';
+    currentEl.innerHTML = '';
+    guideEl.innerHTML = CYCLE_PHASES.map(p=>buildPhaseCardHtml(p, false)).join('');
+  }
+}
+
+document.getElementById('cycleHeader').addEventListener('click', ()=>{
+  document.getElementById('cycleHeader').classList.toggle('open');
+  document.getElementById('cycleExpandWrap').classList.toggle('open');
+});
+
+document.getElementById('saveCycle').addEventListener('click', async ()=>{
+  const lastPeriod = document.getElementById('cycleLastPeriod').value;
+  const cycleLength = Number(document.getElementById('cycleLength').value) || 28;
+  const status = document.getElementById('cycleStatus');
+  if(!lastPeriod){ status.textContent = 'Enter a date first'; return; }
+  try{
+    await window.storage.set('cycle-data', JSON.stringify({lastPeriod, cycleLength}));
+    status.textContent = 'Saved ✓';
+    setTimeout(()=> status.textContent = '', 2000);
+    renderCycleTracking();
+  }catch(e){
+    status.textContent = 'Could not save — try again';
+  }
 });
 
 async function loadMeasurements(){
@@ -5882,6 +6107,7 @@ if(activeUserId){
     loadSleep();
     loadMeasurements();
     renderWater();
+    renderCycleTracking();
   })();
 }
 </script>
