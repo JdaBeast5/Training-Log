@@ -42,7 +42,29 @@
     animation:appFadeIn 0.5s var(--ease-smooth);
   }
   @keyframes appFadeIn{ from{opacity:0;} to{opacity:1;} }
+
+  .pull-refresh-indicator{
+    position:fixed; top:0; left:0; right:0; height:70px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    transform:translateY(-70px);
+    transition:transform 0.25s var(--ease-smooth);
+    z-index:500; pointer-events:none;
+    background:var(--bg);
+  }
+  .pull-refresh-indicator.dragging{ transition:none; }
+  .pull-refresh-spinner{
+    font-size:20px; color:var(--plate-blue); transition:transform 0.2s var(--ease-smooth);
+  }
+  .pull-refresh-spinner.past-threshold{ transform:rotate(180deg); }
+  .pull-refresh-spinner.spinning{ animation:pullRefreshSpin 0.7s linear infinite; }
+  @keyframes pullRefreshSpin{ from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
+  .pull-refresh-label{ font-size:11px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; }
   button, input, select, textarea{ font-family:inherit; }
+  /* iOS Safari auto-zooms the whole page when a focused input's font-size is
+     under 16px, and doesn't zoom back out on blur — this is what was causing
+     the app to "zoom in" on typing. Forcing 16px on every form field (even
+     ones styled smaller elsewhere) prevents that entirely. */
+  input, select, textarea{ font-size:16px !important; }
   button{ transition:transform 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth), background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth); }
   button:active{ transform:scale(0.96); }
   input, select, textarea{ transition:border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth); }
@@ -217,8 +239,8 @@
     width:16px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-muted); flex:0 0 auto;
   }
   .ex-input{
-    width:56px; background:var(--surface2); border:1px solid var(--line); color:var(--text);
-    border-radius:7px; padding:6px 4px; font-family:'IBM Plex Mono',monospace; font-size:13px; text-align:center;
+    width:62px; background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    border-radius:7px; padding:6px 2px; font-family:'IBM Plex Mono',monospace; font-size:13px; text-align:center;
   }
   .ex-input::placeholder{color:#5A6169;}
   .ex-x{color:var(--text-muted); font-size:12px;}
@@ -711,6 +733,13 @@
     background:var(--surface2); border:1px solid var(--line); color:var(--text);
     border-radius:8px; padding:10px; font-family:'Inter',sans-serif; font-size:13.5px;
   }
+  .save-to-library-label{
+    display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-muted); padding:4px 0;
+  }
+  .save-to-library-label input[type=checkbox]{width:16px; height:16px; accent-color:var(--plate-green); flex:0 0 auto;}
+  .fi-duplicate{
+    background:none; border:none; font-size:15px; cursor:pointer; padding:2px; color:var(--text-muted); line-height:1;
+  }
 </style>
 </head>
 <body>
@@ -725,6 +754,11 @@
     <button class="save-btn" id="newUserCreateBtn">+ Create My Profile</button>
     <button class="user-picker-cancel" id="userPickerCancelBtn">Cancel</button>
   </div>
+</div>
+
+<div class="pull-refresh-indicator" id="pullRefreshIndicator">
+  <div class="pull-refresh-spinner" id="pullRefreshSpinner">↓</div>
+  <div class="pull-refresh-label" id="pullRefreshLabel">Pull to refresh</div>
 </div>
 
 <div class="wrap">
@@ -897,8 +931,8 @@
 
       <div class="food-log-list" id="foodLogList"></div>
 
-      <button class="photo-log-btn" id="photoLogBtn">📷 Snap a Meal</button>
-      <input type="file" id="photoLogInput" accept="image/*" capture="environment" style="display:none">
+      <button class="photo-log-btn" id="photoLogBtn">📷 Snap or Upload a Meal Photo</button>
+      <input type="file" id="photoLogInput" accept="image/*" style="display:none">
       <div id="photoLogResult"></div>
 
       <input type="text" id="foodSearchInput" class="food-search-input" placeholder="🔍 Search any food or restaurant...">
@@ -908,6 +942,9 @@
 
       <button class="custom-toggle" id="customToggle">+ Add custom item</button>
       <div class="custom-form" id="customForm" style="display:none">
+        <button class="photo-log-btn" id="scanLabelBtn" style="margin:0 0 4px;">📷 Scan or Upload a Label Photo</button>
+        <input type="file" id="scanLabelInput" accept="image/*" style="display:none">
+        <div class="status-msg" id="scanLabelStatus"></div>
         <input type="text" id="cName" placeholder="Item name">
         <div class="macro-input-row">
           <input type="number" inputmode="numeric" id="cCal" placeholder="Cal">
@@ -915,6 +952,10 @@
           <input type="number" inputmode="numeric" id="cFat" placeholder="Fat">
           <input type="number" inputmode="numeric" id="cCarb" placeholder="Carb">
         </div>
+        <label class="save-to-library-label">
+          <input type="checkbox" id="cSaveToLibrary" checked>
+          <span>💾 Save to My Foods, so I can find it again next time</span>
+        </label>
         <button class="save-btn" id="addCustom">Add Item</button>
       </div>
       <div class="status-msg" id="nutritionStatus"></div>
@@ -1179,6 +1220,7 @@
      week-archive                        -> [{weekStart,program,avgWeight,workoutsCount,avgCal,avgSleep}, ...]
      martial-art-style                   -> "kickboxing" | "boxing" | "muayThai" | "mma"
      cycle-data                          -> {lastPeriod, cycleLength} (optional, female gender only)
+     custom-foods                        -> [{name,cal,pro,fat,carb}, ...] (personal "My Foods" library)
      day-order:{program}                 -> [dayId, dayId, ...]
      active-program                      -> "strength" | "bodybuilding" | ...
      injury-log                          -> [{date,exercise,sensation,region,pain,note}, ...]
@@ -3546,6 +3588,49 @@ function wireSetsBlock(row, exIdx, ex){
     };
     wInput.addEventListener('change', save);
     rInput.addEventListener('change', save);
+
+    // Confirming a field — via a hardware Enter key, or the checkmark/"Done"
+    // button on a mobile number pad — should move to the next field. Mobile
+    // numeric keypads have no literal Enter key at all, so tapping their
+    // checkmark only ever fires 'blur', never a real Enter keydown. Routing
+    // both paths through blur means both work identically.
+    function advanceFrom(input, isWeight){
+      setTimeout(()=>{
+        const active = document.activeElement;
+        // If the person already tapped directly into a different set's field
+        // themselves in the meantime, respect that instead of yanking focus.
+        const activeIsAnotherSetField = active && active !== input &&
+          (active.classList.contains('ex-weight') || active.classList.contains('ex-reps'));
+        if(activeIsAnotherSetField) return;
+
+        if(isWeight){
+          rInput.focus();
+        } else {
+          const allRows = [...block.querySelectorAll('.set-row')];
+          const currentIndex = allRows.indexOf(setRow);
+          const nextRow = allRows[currentIndex + 1];
+          if(nextRow){
+            const nextWeightInput = nextRow.querySelector('.ex-weight');
+            if(nextWeightInput) nextWeightInput.focus();
+          } else {
+            // Last set — confirming it adds a new one and jumps straight to it
+            const addBtn = block.querySelector('.add-set-btn');
+            if(addBtn) addBtn.click();
+            setTimeout(()=>{
+              const rows = block.querySelectorAll('.set-row');
+              const lastRow = rows[rows.length - 1];
+              const w = lastRow && lastRow.querySelector('.ex-weight');
+              if(w) w.focus();
+            }, 30);
+          }
+        }
+      }, 60);
+    }
+
+    wInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); wInput.blur(); } });
+    rInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); rInput.blur(); } });
+    wInput.addEventListener('blur', ()=> advanceFrom(wInput, true));
+    rInput.addEventListener('blur', ()=> advanceFrom(rInput, false));
   }
 
   block.querySelectorAll('.set-row').forEach(wireSetRow);
@@ -4025,7 +4110,11 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
   }
 
   document.getElementById('pfStatus').textContent = 'Saved ✓';
-  setTimeout(()=> document.getElementById('pfStatus').textContent = '', 2000);
+  setTimeout(()=>{
+    document.getElementById('pfStatus').textContent = '';
+    document.getElementById('profileHeader').classList.remove('open');
+    document.getElementById('profileExpandWrap').classList.remove('open');
+  }, 900);
 });
 
 document.getElementById('switchProfileBtn').addEventListener('click', ()=> showUserPicker());
@@ -4149,6 +4238,13 @@ const foodLibrary = {
     {name:'Firm Tofu (6oz)', cal:220, pro:24, fat:13, carb:5},
     {name:'Tempeh (4oz)', cal:220, pro:21, fat:13, carb:9},
     {name:'Edamame (1 cup)', cal:190, pro:18, fat:8, carb:15},
+    {name:'Halibut (6oz)', cal:220, pro:42, fat:4, carb:0},
+    {name:'Mahi Mahi (6oz)', cal:200, pro:44, fat:2, carb:0},
+    {name:'Scallops (6oz)', cal:200, pro:38, fat:2, carb:4},
+    {name:'Crab Meat (6oz)', cal:170, pro:36, fat:2, carb:0},
+    {name:'Lobster Tail (6oz)', cal:180, pro:38, fat:1.5, carb:1},
+    {name:'Venison (6oz)', cal:250, pro:46, fat:5, carb:0},
+    {name:'Salmon Sashimi (6 pieces)', cal:150, pro:24, fat:6, carb:0},
   ],
   Carbs: [
     {name:'White Rice (1 cup)', cal:205, pro:4, fat:0, carb:45},
@@ -4169,6 +4265,13 @@ const foodLibrary = {
     {name:'Black Beans (1 cup)', cal:225, pro:15, fat:1, carb:40},
     {name:'Chickpeas (1 cup)', cal:270, pro:15, fat:4, carb:45},
     {name:'Lentils (1 cup)', cal:230, pro:18, fat:1, carb:40},
+    {name:'Whole Wheat Pasta (1 cup)', cal:210, pro:8, fat:1, carb:40},
+    {name:'Barley (1 cup)', cal:190, pro:4, fat:0.7, carb:44},
+    {name:'Rice Noodles (1 cup)', cal:190, pro:3, fat:0.3, carb:44},
+    {name:'Pita Bread (1)', cal:165, pro:5, fat:1, carb:33},
+    {name:'Grits (1 cup)', cal:150, pro:4, fat:1, carb:32},
+    {name:'Basmati Rice (1 cup)', cal:210, pro:4, fat:0.5, carb:45},
+    {name:'Naan Bread (1 piece)', cal:260, pro:7, fat:5, carb:45},
   ],
   Fats: [
     {name:'Avocado (1/2)', cal:120, pro:1, fat:11, carb:6},
@@ -4183,6 +4286,10 @@ const foodLibrary = {
     {name:'Butter (1 tbsp)', cal:100, pro:0, fat:11, carb:0},
     {name:'Mayonnaise (1 tbsp)', cal:90, pro:0, fat:10, carb:0},
     {name:'Cheese (1oz)', cal:110, pro:7, fat:9, carb:1},
+    {name:'Pistachios (1oz)', cal:160, pro:6, fat:13, carb:8},
+    {name:'Pecans (1oz)', cal:195, pro:3, fat:20, carb:4},
+    {name:'Sesame Oil (1 tbsp)', cal:120, pro:0, fat:14, carb:0},
+    {name:'Tahini (1 tbsp)', cal:90, pro:3, fat:8, carb:3},
   ],
   Drinks: [
     {name:'Black Coffee', cal:5, pro:0, fat:0, carb:0},
@@ -4197,6 +4304,11 @@ const foodLibrary = {
     {name:'Gatorade (20oz)', cal:140, pro:0, fat:0, carb:36},
     {name:'Soda (12oz)', cal:150, pro:0, fat:0, carb:39},
     {name:'Whiskey (1.5oz)', cal:105, pro:0, fat:0, carb:0},
+    {name:'Chocolate Milk (1 cup)', cal:190, pro:8, fat:2.5, carb:30},
+    {name:'Iced Tea, Unsweetened (16oz)', cal:0, pro:0, fat:0, carb:0},
+    {name:'Sparkling Water (12oz)', cal:0, pro:0, fat:0, carb:0},
+    {name:'Green Tea (8oz)', cal:0, pro:0, fat:0, carb:0},
+    {name:'Protein Iced Coffee (RTD, 12oz)', cal:150, pro:20, fat:4, carb:10},
   ],
   Meals: [
     {name:'Protein Bar', cal:200, pro:20, fat:7, carb:22},
@@ -4205,6 +4317,14 @@ const foodLibrary = {
     {name:'Turkey Chili (1 bowl)', cal:380, pro:30, fat:14, carb:35},
     {name:'Chicken & Veggie Stir Fry', cal:450, pro:35, fat:15, carb:45},
     {name:'Protein Pasta Bowl', cal:520, pro:40, fat:10, carb:65},
+    {name:'Shrimp Tacos (2)', cal:380, pro:26, fat:14, carb:38},
+    {name:'Beef Burrito Bowl (homemade)', cal:600, pro:40, fat:20, carb:60},
+    {name:'Veggie Stir Fry (no meat)', cal:320, pro:10, fat:12, carb:45},
+    {name:'Chicken Caesar Salad (homemade)', cal:450, pro:35, fat:28, carb:15},
+    {name:'Beef Tacos (3, homemade)', cal:480, pro:28, fat:24, carb:40},
+    {name:'Shepherd\'s Pie (1 bowl)', cal:480, pro:25, fat:22, carb:45},
+    {name:'Salmon & Roasted Veggies', cal:500, pro:38, fat:24, carb:25},
+    {name:'Meal Prep Chicken, Rice & Broccoli', cal:520, pro:42, fat:10, carb:60},
   ],
   Vegetables: [
     {name:'Broccoli (1 cup)', cal:55, pro:4, fat:0.5, carb:11},
@@ -4219,6 +4339,11 @@ const foodLibrary = {
     {name:'Side Salad w/ Dressing', cal:150, pro:2, fat:11, carb:10},
     {name:'Green Beans (1 cup)', cal:35, pro:2, fat:0, carb:8},
     {name:'Roasted Brussels Sprouts (1 cup)', cal:100, pro:4, fat:4, carb:14},
+    {name:'Tomato (1 cup)', cal:32, pro:1.6, fat:0.4, carb:7},
+    {name:'Onion (1 cup)', cal:64, pro:1.8, fat:0.2, carb:15},
+    {name:'Mushrooms (1 cup)', cal:15, pro:2, fat:0.2, carb:2},
+    {name:'Carrots (1 cup)', cal:50, pro:1, fat:0.3, carb:12},
+    {name:'Eggplant (1 cup)', cal:20, pro:1, fat:0.2, carb:5},
   ],
   Snacks: [
     {name:'Rice Cakes (2)', cal:70, pro:1, fat:0, carb:15},
@@ -4232,6 +4357,10 @@ const foodLibrary = {
     {name:'Dark Chocolate, 70% (1oz)', cal:170, pro:2, fat:12, carb:13},
     {name:'Apple with Peanut Butter', cal:240, pro:5, fat:16, carb:25},
     {name:'Protein Chips', cal:140, pro:13, fat:5, carb:12},
+    {name:'Granola Bar', cal:140, pro:3, fat:5, carb:22},
+    {name:'Fruit Cup', cal:80, pro:1, fat:0, carb:20},
+    {name:'Pretzels (1oz)', cal:110, pro:3, fat:1, carb:22},
+    {name:'Deviled Eggs (2)', cal:140, pro:7, fat:11, carb:1},
   ],
   Breakfast: [
     {name:'Pancakes (3, plain)', cal:260, pro:7, fat:6, carb:44},
@@ -4246,6 +4375,9 @@ const foodLibrary = {
     {name:'French Toast (2 slices)', cal:350, pro:12, fat:14, carb:45},
     {name:'Avocado Toast', cal:280, pro:8, fat:16, carb:28},
     {name:'Turkey Bacon (3 slices)', cal:150, pro:12, fat:10, carb:1},
+    {name:'Waffles (2)', cal:220, pro:5, fat:8, carb:32},
+    {name:'Breakfast Sandwich (egg, cheese, English muffin)', cal:300, pro:15, fat:12, carb:32},
+    {name:'Overnight Oats', cal:350, pro:15, fat:10, carb:50},
   ],
   Restaurants: {
     'Subway': [
@@ -4291,17 +4423,24 @@ const foodLibrary = {
       {name:'Bean Burrito', cal:350, pro:13, fat:9, carb:54},
       {name:'Chicken Quesadilla', cal:510, pro:26, fat:26, carb:39},
       {name:'Crunchwrap Supreme', cal:530, pro:16, fat:21, carb:71},
+      {name:'Cheesy Gordita Crunch', cal:500, pro:21, fat:29, carb:41},
+      {name:'Nacho Fries (regular)', cal:320, pro:5, fat:19, carb:33},
     ],
     'Panera': [
       {name:'Chicken Caesar Salad (full)', cal:470, pro:34, fat:30, carb:15},
       {name:'Broccoli Cheddar (bread bowl)', cal:720, pro:20, fat:32, carb:90},
       {name:'Turkey Sandwich (whole)', cal:490, pro:27, fat:15, carb:62},
+      {name:'Mediterranean Veggie Sandwich', cal:450, pro:15, fat:16, carb:65},
+      {name:'Chicken Noodle Soup (bowl)', cal:220, pro:16, fat:6, carb:26},
+      {name:'Greek Salad (full)', cal:380, pro:11, fat:30, carb:16},
     ],
     'Panda Express': [
       {name:'Orange Chicken', cal:490, pro:25, fat:23, carb:51},
       {name:'Chow Mein', cal:400, pro:10, fat:15, carb:58},
       {name:'Fried Rice', cal:520, pro:11, fat:16, carb:85},
       {name:'Beijing Beef', cal:480, pro:15, fat:25, carb:51},
+      {name:'Kung Pao Chicken', cal:290, pro:16, fat:19, carb:14},
+      {name:'Broccoli Beef', cal:150, pro:9, fat:7, carb:13},
     ],
     'Wendy\'s': [
       {name:'Dave\'s Single', cal:590, pro:29, fat:34, carb:41},
@@ -4309,24 +4448,95 @@ const foodLibrary = {
       {name:'4pc Spicy Nuggets', cal:190, pro:9, fat:12, carb:12},
       {name:'Medium Fries', cal:420, pro:5, fat:19, carb:56},
       {name:'Grilled Chicken Sandwich', cal:370, pro:35, fat:8, carb:37},
+      {name:'Baked Potato, Plain', cal:270, pro:7, fat:0, carb:61},
+      {name:'Chili (small)', cal:220, pro:19, fat:6, carb:22},
     ],
     'Five Guys': [
       {name:'Little Hamburger', cal:480, pro:22, fat:28, carb:39},
       {name:'Cheeseburger', cal:840, pro:47, fat:54, carb:39},
       {name:'Regular Fries', cal:950, pro:14, fat:41, carb:131},
       {name:'Bacon Dog', cal:620, pro:22, fat:41, carb:39},
+      {name:'Grilled Cheese', cal:440, pro:14, fat:24, carb:41},
+      {name:'Little Bacon Burger', cal:560, pro:26, fat:34, carb:39},
     ],
     'Domino\'s': [
       {name:'Cheese Pizza (2 slices, medium)', cal:380, pro:16, fat:14, carb:48},
       {name:'Pepperoni Pizza (2 slices, medium)', cal:420, pro:18, fat:18, carb:48},
       {name:'Chicken Wings (2pc)', cal:220, pro:19, fat:15, carb:2},
       {name:'Garlic Bread (2 pieces)', cal:150, pro:3, fat:7, carb:18},
+      {name:'Pasta Primavera (1 bowl)', cal:480, pro:16, fat:18, carb:62},
+      {name:'Philly Cheese Steak Sandwich', cal:520, pro:24, fat:24, carb:52},
     ],
     'In-N-Out': [
       {name:'Hamburger', cal:390, pro:16, fat:19, carb:39},
       {name:'Cheeseburger', cal:480, pro:22, fat:27, carb:39},
       {name:'Double-Double', cal:670, pro:37, fat:41, carb:39},
       {name:'Fries', cal:395, pro:7, fat:18, carb:54},
+      {name:'Protein Style Burger (no bun)', cal:240, pro:18, fat:17, carb:11},
+    ],
+    'Tropical Smoothie Cafe': [
+      {name:'Island Green Smoothie', cal:220, pro:4, fat:1, carb:51},
+      {name:'Peanut Paradise Smoothie', cal:480, pro:20, fat:14, carb:74},
+      {name:'Detox Island Green (protein add)', cal:280, pro:20, fat:2, carb:48},
+      {name:'Acai Berry Boost Smoothie', cal:350, pro:5, fat:5, carb:70},
+      {name:'Turkey Bacon Ranch Wrap', cal:720, pro:40, fat:38, carb:55},
+    ],
+    'Indian Cuisine': [
+      {name:'Chicken Tikka Masala (1 cup)', cal:440, pro:30, fat:28, carb:15},
+      {name:'Butter Chicken (1 cup)', cal:490, pro:28, fat:34, carb:12},
+      {name:'Chana Masala (1 cup)', cal:280, pro:12, fat:8, carb:42},
+      {name:'Saag Paneer (1 cup)', cal:320, pro:14, fat:24, carb:14},
+      {name:'Chicken Biryani (1 cup)', cal:350, pro:20, fat:10, carb:45},
+      {name:'Samosa (1 piece)', cal:260, pro:5, fat:14, carb:28},
+      {name:'Basmati Rice (1 cup)', cal:210, pro:4, fat:0.5, carb:45},
+      {name:'Naan (1 piece)', cal:260, pro:7, fat:5, carb:45},
+    ],
+    'Mediterranean': [
+      {name:'Chicken Shawarma Plate', cal:550, pro:40, fat:20, carb:50},
+      {name:'Falafel (4 pieces)', cal:330, pro:13, fat:18, carb:32},
+      {name:'Hummus (1/2 cup)', cal:200, pro:8, fat:12, carb:18},
+      {name:'Greek Salad', cal:220, pro:6, fat:16, carb:15},
+      {name:'Gyro Sandwich', cal:500, pro:28, fat:25, carb:40},
+      {name:'Tzatziki (2 tbsp)', cal:30, pro:1, fat:2, carb:2},
+      {name:'Stuffed Grape Leaves (4 pieces)', cal:200, pro:4, fat:8, carb:28},
+    ],
+    'Chinese Takeout': [
+      {name:'General Tso\'s Chicken (1 cup)', cal:480, pro:22, fat:24, carb:45},
+      {name:'Kung Pao Chicken (1 cup)', cal:400, pro:26, fat:22, carb:24},
+      {name:'Lo Mein (1 cup)', cal:300, pro:10, fat:8, carb:48},
+      {name:'Egg Roll (1)', cal:200, pro:6, fat:10, carb:22},
+      {name:'Pork Dumplings (6 pieces)', cal:360, pro:14, fat:16, carb:40},
+      {name:'Beef & Broccoli (1 cup)', cal:350, pro:26, fat:18, carb:20},
+      {name:'Hot & Sour Soup (1 cup)', cal:90, pro:5, fat:3, carb:10},
+    ],
+    'Sushi': [
+      {name:'California Roll (8 pieces)', cal:260, pro:9, fat:7, carb:38},
+      {name:'Spicy Tuna Roll (8 pieces)', cal:290, pro:12, fat:11, carb:36},
+      {name:'Salmon Nigiri (2 pieces)', cal:90, pro:8, fat:2, carb:9},
+      {name:'Miso Soup (1 cup)', cal:40, pro:3, fat:1, carb:5},
+      {name:'Dragon Roll (8 pieces)', cal:350, pro:12, fat:10, carb:50},
+      {name:'Tempura Shrimp (5 pieces)', cal:300, pro:12, fat:18, carb:24},
+      {name:'Chicken Katsu (6oz)', cal:450, pro:35, fat:20, carb:30},
+      {name:'Poke Bowl (2 cups)', cal:500, pro:35, fat:15, carb:55},
+      {name:'Gyoza (6 pieces)', cal:300, pro:12, fat:14, carb:30},
+    ],
+    'Thai': [
+      {name:'Pad Thai (1.5 cups)', cal:550, pro:20, fat:20, carb:70},
+      {name:'Green Curry Chicken (1.5 cups)', cal:480, pro:28, fat:30, carb:22},
+      {name:'Tom Yum Soup (1 cup)', cal:100, pro:10, fat:3, carb:10},
+      {name:'Panang Curry (1.5 cups)', cal:520, pro:26, fat:34, carb:24},
+      {name:'Thai Basil Chicken (1.5 cups)', cal:450, pro:32, fat:20, carb:30},
+      {name:'Spring Rolls (2 pieces)', cal:150, pro:4, fat:6, carb:20},
+      {name:'Mango Sticky Rice', cal:400, pro:5, fat:10, carb:75},
+    ],
+    'Mexican Cantina': [
+      {name:'Carne Asada Street Tacos (3)', cal:420, pro:30, fat:18, carb:36},
+      {name:'Enchiladas (2, cheese)', cal:520, pro:22, fat:28, carb:45},
+      {name:'Chile Relleno', cal:400, pro:15, fat:28, carb:22},
+      {name:'Carnitas Burrito', cal:750, pro:38, fat:32, carb:80},
+      {name:'Elote (Mexican Street Corn)', cal:250, pro:6, fat:15, carb:25},
+      {name:'Chips & Salsa (basket)', cal:300, pro:4, fat:14, carb:40},
+      {name:'Fish Tacos (2)', cal:380, pro:24, fat:16, carb:38},
     ],
   },
 };
@@ -4361,6 +4571,33 @@ async function toggleFavorite(item){
   await saveFavorites();
 }
 
+// --- My Foods: a permanent, personal library for anything you've added by
+// hand or scanned, so it's searchable and reusable next time instead of
+// being retyped from scratch every time.
+let customFoods = [];
+
+async function loadCustomFoods(){
+  try{
+    const res = await window.storage.get('custom-foods');
+    if(res && res.value) customFoods = JSON.parse(res.value);
+  }catch(e){ customFoods = []; }
+}
+
+async function saveCustomFoods(){
+  try{ await window.storage.set('custom-foods', JSON.stringify(customFoods)); }catch(e){}
+}
+
+async function addToCustomFoods(item){
+  if(customFoods.some(f=>f.name===item.name)) return; // avoid exact-name duplicates
+  customFoods.push(item);
+  await saveCustomFoods();
+}
+
+async function removeFromCustomFoods(name){
+  customFoods = customFoods.filter(f=>f.name!==name);
+  await saveCustomFoods();
+}
+
 function allFoodsFlat(){
   const flat = [];
   Object.keys(foodLibrary).forEach(cat=>{
@@ -4372,13 +4609,14 @@ function allFoodsFlat(){
       foodLibrary[cat].forEach(item=> flat.push({...item, category: cat}));
     }
   });
+  customFoods.forEach(item=> flat.push({...item, category:'My Foods'}));
   return flat;
 }
 
 function renderFoodCats(){
   const catsEl = document.getElementById('foodCats');
   catsEl.innerHTML = '';
-  const cats = ['★ Favorites', ...Object.keys(foodLibrary)];
+  const cats = ['★ Favorites', '📁 My Foods', ...Object.keys(foodLibrary)];
   cats.forEach(cat=>{
     const btn = document.createElement('button');
     btn.className = 'food-cat-btn' + (cat===activeCat ? ' active' : '');
@@ -4388,11 +4626,25 @@ function renderFoodCats(){
   });
 }
 
+// Prefills the custom-add form with an existing item's macros so you can
+// tweak a close match instead of typing everything from zero.
+function duplicateToCustomForm(item){
+  document.getElementById('customForm').style.display = 'flex';
+  document.getElementById('cName').value = `${item.name} (copy)`;
+  document.getElementById('cCal').value = item.cal;
+  document.getElementById('cPro').value = item.pro;
+  document.getElementById('cFat').value = item.fat;
+  document.getElementById('cCarb').value = item.carb;
+  document.getElementById('cName').scrollIntoView({behavior:'smooth', block:'center'});
+  document.getElementById('cName').focus();
+}
+
 function buildFoodItemBtn(item, showCategory){
   const btn = document.createElement('div');
   btn.className = 'food-item-btn';
   const favorited = isFavorited(item.name);
   const catHtml = showCategory && item.category ? `<div class="fi-cat">${item.category}</div>` : '';
+  const isCustom = item.category === 'My Foods' || activeCat === '📁 My Foods';
   btn.innerHTML = `
     <div>
       <div class="fi-name">${item.name}</div>
@@ -4400,12 +4652,18 @@ function buildFoodItemBtn(item, showCategory){
       <div class="fi-macro">${item.cal} cal · ${item.pro}p / ${item.fat}f / ${item.carb}c</div>
     </div>
     <div class="fi-actions">
+      <button class="fi-duplicate" type="button" title="Duplicate & edit">✏️</button>
       <button class="fi-star ${favorited?'favorited':''}" type="button">${favorited?'★':'☆'}</button>
+      ${isCustom ? `<button class="fi-star" type="button" title="Remove from My Foods">🗑️</button>` : ''}
       <div class="fi-plus">+</div>
     </div>
   `;
   btn.querySelector('.fi-plus').addEventListener('click', ()=> addFoodToLog(item));
   btn.querySelector('.fi-name').addEventListener('click', ()=> addFoodToLog(item));
+  btn.querySelector('.fi-duplicate').addEventListener('click', (e)=>{
+    e.stopPropagation();
+    duplicateToCustomForm(item);
+  });
   const starBtn = btn.querySelector('.fi-star');
   starBtn.addEventListener('click', async (e)=>{
     e.stopPropagation();
@@ -4414,6 +4672,16 @@ function buildFoodItemBtn(item, showCategory){
     starBtn.classList.toggle('favorited', isFavorited(item.name));
     if(activeCat === '★ Favorites') renderFoodItems();
   });
+  if(isCustom){
+    const delBtn = btn.querySelectorAll('.fi-star')[1];
+    if(delBtn){
+      delBtn.addEventListener('click', async (e)=>{
+        e.stopPropagation();
+        await removeFromCustomFoods(item.name);
+        renderFoodItems();
+      });
+    }
+  }
   return btn;
 }
 
@@ -4432,6 +4700,36 @@ function buildRestaurantBtn(brand){
   return btn;
 }
 
+// Appends pre-built food-item DOM nodes, showing only the first `visibleCount`
+// with a "Show N more" expand toggle for the rest — so long lists (an entire
+// category, a big restaurant menu, a broad search) don't turn into endless
+// scrolling on a phone.
+function appendItemsCollapsible(container, itemNodes, visibleCount){
+  if(itemNodes.length <= visibleCount){
+    itemNodes.forEach(node=> container.appendChild(node));
+    return;
+  }
+  itemNodes.slice(0, visibleCount).forEach(node=> container.appendChild(node));
+
+  const wrap = document.createElement('div');
+  wrap.className = 'expand-wrap';
+  const inner = document.createElement('div');
+  itemNodes.slice(visibleCount).forEach(node=> inner.appendChild(node));
+  wrap.appendChild(inner);
+  container.appendChild(wrap);
+
+  const remaining = itemNodes.length - visibleCount;
+  const btn = document.createElement('button');
+  btn.className = 'show-more-btn';
+  btn.textContent = `Show ${remaining} more`;
+  btn.addEventListener('click', ()=>{
+    const isOpen = wrap.classList.toggle('open');
+    btn.classList.toggle('expanded', isOpen);
+    btn.textContent = isOpen ? 'Show less' : `Show ${remaining} more`;
+  });
+  container.appendChild(btn);
+}
+
 function renderFoodItems(){
   const itemsEl = document.getElementById('foodItems');
   itemsEl.innerHTML = '';
@@ -4443,7 +4741,7 @@ function renderFoodItems(){
       itemsEl.innerHTML = '<div class="empty-note">No matches — try a different search, or add it as a custom item below.</div>';
       return;
     }
-    matches.forEach(item=> itemsEl.appendChild(buildFoodItemBtn(item, true)));
+    appendItemsCollapsible(itemsEl, matches.map(item=>buildFoodItemBtn(item, true)), 5);
     return;
   }
 
@@ -4454,19 +4752,25 @@ function renderFoodItems(){
       backBtn.innerHTML = `‹ All Restaurants`;
       backBtn.addEventListener('click', ()=>{ activeRestaurant = null; renderFoodItems(); });
       itemsEl.appendChild(backBtn);
-      sortByUsage(foodLibrary.Restaurants[activeRestaurant]).forEach(item=> itemsEl.appendChild(buildFoodItemBtn(item, false)));
+      const menuItems = sortByUsage(foodLibrary.Restaurants[activeRestaurant]).map(item=>buildFoodItemBtn(item, false));
+      appendItemsCollapsible(itemsEl, menuItems, 5);
     } else {
       Object.keys(foodLibrary.Restaurants).forEach(brand=> itemsEl.appendChild(buildRestaurantBtn(brand)));
     }
     return;
   }
 
-  const items = activeCat === '★ Favorites' ? favoriteFoods : sortByUsage(foodLibrary[activeCat] || []);
+  const items = activeCat === '★ Favorites' ? favoriteFoods
+    : activeCat === '📁 My Foods' ? customFoods
+    : sortByUsage(foodLibrary[activeCat] || []);
   if(!items || items.length === 0){
-    itemsEl.innerHTML = '<div class="empty-note">No favorites yet — tap the ☆ on any food to save it here for quick access.</div>';
+    const emptyMsg = activeCat === '📁 My Foods'
+      ? 'Nothing here yet — anything you add as a custom item (with "Save to My Foods" checked) or scan from a label shows up here for reuse.'
+      : 'No favorites yet — tap the ☆ on any food to save it here for quick access.';
+    itemsEl.innerHTML = `<div class="empty-note">${emptyMsg}</div>`;
     return;
   }
-  items.forEach(item=> itemsEl.appendChild(buildFoodItemBtn(item, false)));
+  appendItemsCollapsible(itemsEl, items.map(item=>buildFoodItemBtn(item, false)), 5);
 }
 
 document.getElementById('foodSearchInput').addEventListener('input', (e)=>{
@@ -4590,26 +4894,137 @@ document.getElementById('addCustom').addEventListener('click', async ()=>{
   const pro = Number(document.getElementById('cPro').value)||0;
   const fat = Number(document.getElementById('cFat').value)||0;
   const carb = Number(document.getElementById('cCarb').value)||0;
+  const saveToLibrary = document.getElementById('cSaveToLibrary').checked;
   const status = document.getElementById('nutritionStatus');
   if(!name || cal===0){
     status.textContent = 'Add a name and calories';
     setTimeout(()=>status.textContent='',1500);
     return;
   }
-  await addFoodToLog({name, cal, pro, fat, carb});
+  const item = {name, cal, pro, fat, carb};
+  await addFoodToLog(item);
+  if(saveToLibrary){
+    await addToCustomFoods(item);
+  }
   document.getElementById('cName').value='';
   document.getElementById('cCal').value='';
   document.getElementById('cPro').value='';
   document.getElementById('cFat').value='';
   document.getElementById('cCarb').value='';
   document.getElementById('customForm').style.display = 'none';
-  status.textContent = 'Added';
-  setTimeout(()=>status.textContent='',1200);
+  status.textContent = saveToLibrary ? 'Added & saved to My Foods ✓' : 'Added';
+  setTimeout(()=>status.textContent='',2000);
+});
+
+document.getElementById('scanLabelBtn').addEventListener('click', ()=> document.getElementById('scanLabelInput').click());
+
+document.getElementById('scanLabelInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const status = document.getElementById('scanLabelStatus');
+  const apiKey = await getApiKey();
+
+  if(!apiKey){
+    status.textContent = 'Add your Anthropic API key in "AI Features Setup" on Today first.';
+    return;
+  }
+
+  status.textContent = 'Reading label…';
+  try{
+    const base64 = await fileToBase64(file);
+    const prompt = `This is a photo of a nutrition facts label. Read it carefully and respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"name":"string (product name if visible, else a short generic description)","cal":number,"pro":number,"fat":number,"carb":number}. Use the values for ONE serving as defined on the label. If you can't read the label clearly, respond with {"name":"","cal":0,"pro":0,"fat":0,"carb":0}.`;
+    const raw = await callClaudeVision(apiKey, [base64], prompt, 500);
+    const cleaned = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+
+    if(!parsed.name || parsed.cal === 0){
+      status.textContent = 'Couldn\'t read that label clearly — try a closer, well-lit photo, or enter it manually.';
+      return;
+    }
+
+    document.getElementById('cName').value = parsed.name;
+    document.getElementById('cCal').value = parsed.cal;
+    document.getElementById('cPro').value = parsed.pro;
+    document.getElementById('cFat').value = parsed.fat;
+    document.getElementById('cCarb').value = parsed.carb;
+    status.textContent = 'Filled in from label — check it over, then tap Add Item ✓';
+  }catch(err){
+    status.textContent = `Couldn't read that label: ${err.message}. Try again or enter it manually.`;
+  }
 });
 
 // [WEIGHT] ---------------------------------------------------------------
 // Bodyweight logging.
 // --- Reusable swipe-to-delete: works with touch and mouse via Pointer Events ---
+// --- Pull-to-refresh: drag down from the very top of the page to reload the
+// latest deployed version. Uses a cache-busting query string so the browser
+// fetches fresh HTML/CSS/JS from GitHub Pages rather than any cached copy —
+// this never touches localStorage, which is scoped to the origin only, so
+// nobody's logged data is affected by pulling to refresh or by any update
+// pushed to the underlying file.
+(function(){
+  const indicator = document.getElementById('pullRefreshIndicator');
+  const spinner = document.getElementById('pullRefreshSpinner');
+  const label = document.getElementById('pullRefreshLabel');
+  const THRESHOLD = 70;
+  const MAX_PULL = 100;
+  let startY = 0, dragging = false, currentPull = 0;
+
+  function getScrollTop(){
+    return window.scrollY || document.documentElement.scrollTop || 0;
+  }
+
+  document.addEventListener('pointerdown', (e)=>{
+    if(e.target && e.target.closest && e.target.closest('.swipe-content')) return; // don't fight with swipe-to-delete
+    if(getScrollTop() > 0) return;
+    startY = e.clientY;
+    dragging = true;
+    currentPull = 0;
+  });
+
+  document.addEventListener('pointermove', (e)=>{
+    if(!dragging) return;
+    if(getScrollTop() > 0){ dragging = false; return; }
+    const deltaY = e.clientY - startY;
+    if(deltaY <= 0){
+      currentPull = 0;
+      indicator.classList.add('dragging');
+      indicator.style.transform = 'translateY(-70px)';
+      return;
+    }
+    currentPull = Math.min(MAX_PULL, deltaY * 0.5); // resistance, not 1:1 drag
+    indicator.classList.add('dragging');
+    indicator.style.transform = `translateY(${currentPull - 70}px)`;
+    const pastThreshold = currentPull >= THRESHOLD;
+    spinner.classList.toggle('past-threshold', pastThreshold);
+    label.textContent = pastThreshold ? 'Release to refresh' : 'Pull to refresh';
+  });
+
+  function endPull(){
+    if(!dragging) return;
+    dragging = false;
+    indicator.classList.remove('dragging');
+    if(currentPull >= THRESHOLD){
+      indicator.style.transform = 'translateY(0px)';
+      spinner.classList.remove('past-threshold');
+      spinner.classList.add('spinning');
+      spinner.textContent = '↻';
+      label.textContent = 'Refreshing…';
+      setTimeout(()=>{
+        window.location.href = window.location.pathname + '?_r=' + Date.now();
+      }, 400);
+    } else {
+      indicator.style.transform = 'translateY(-70px)';
+      spinner.classList.remove('past-threshold');
+      label.textContent = 'Pull to refresh';
+    }
+    currentPull = 0;
+  }
+
+  document.addEventListener('pointerup', endPull);
+  document.addEventListener('pointercancel', endPull);
+})();
+
 function makeSwipeable(itemEl, onDelete){
   const content = itemEl.querySelector('.swipe-content');
   const deleteBg = itemEl.querySelector('.swipe-delete-bg');
@@ -6094,6 +6509,7 @@ if(activeUserId){
     renderTabs();
     renderWorkout();
     await loadFavorites();
+    await loadCustomFoods();
     await loadUsageCounts();
     const savedKey = await getApiKey();
     if(savedKey){
