@@ -233,7 +233,10 @@
     display:flex; flex-direction:column; gap:6px; padding:4px 0 4px 76px;
   }
   .set-row{
-    display:flex; align-items:center; gap:6px;
+    overflow:hidden; border-radius:7px;
+  }
+  .set-row-content{
+    display:flex; align-items:center; gap:6px; padding:2px 0;
   }
   .set-num{
     width:16px; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-muted); flex:0 0 auto;
@@ -3402,12 +3405,15 @@ async function renderWorkout(){
         const savedSet = todayEntry && todayEntry.sets[setIdx] ? todayEntry.sets[setIdx] : null;
         const placeholderSet = prior && prior.sets[setIdx] ? prior.sets[setIdx] : null;
         return `
-          <div class="set-row" data-set-idx="${setIdx}">
-            <span class="set-num">${setIdx+1}</span>
-            <input type="number" inputmode="decimal" class="ex-input ex-weight" placeholder="${placeholderSet && placeholderSet.weight!=null ? placeholderSet.weight : 'lb'}" value="${savedSet && savedSet.weight!=null ? savedSet.weight : ''}">
-            <span class="ex-x">×</span>
-            <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="${placeholderSet && placeholderSet.reps!=null ? placeholderSet.reps : 'reps'}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
-            <span class="set-status"></span>
+          <div class="set-row swipe-item" data-set-idx="${setIdx}">
+            <div class="swipe-delete-bg">🗑️</div>
+            <div class="swipe-content set-row-content">
+              <span class="set-num">${setIdx+1}</span>
+              <input type="number" inputmode="decimal" class="ex-input ex-weight" placeholder="${placeholderSet && placeholderSet.weight!=null ? placeholderSet.weight : 'lb'}" value="${savedSet && savedSet.weight!=null ? savedSet.weight : ''}">
+              <span class="ex-x">×</span>
+              <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="${placeholderSet && placeholderSet.reps!=null ? placeholderSet.reps : 'reps'}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
+              <span class="set-status"></span>
+            </div>
           </div>
         `;
       }).join('');
@@ -3565,13 +3571,50 @@ async function refreshSessionSummary(row, exIdx, ex){
 function wireSetsBlock(row, exIdx, ex){
   const block = row.querySelector('.sets-block');
 
-  function wireSetRow(setRow){
+  function renumberRows(){
+    [...block.querySelectorAll('.set-row')].forEach((r, newIdx)=>{
+      r.dataset.setIdx = newIdx;
+      r.querySelector('.set-num').textContent = newIdx + 1;
+    });
+  }
+
+  async function deleteSet(setRow){
     const setIdx = Number(setRow.dataset.setIdx);
+    try{
+      const key = exKey(activeProgram, activeDay, exIdx);
+      let log = [];
+      try{
+        const item = await window.storage.get(key);
+        if(item && item.value) log = JSON.parse(item.value);
+      }catch(e){ log = []; }
+      const todayIdx = log.findIndex(e=>e.date===getTodayKey());
+      if(todayIdx !== -1){
+        const entry = normalizeExEntry(log[todayIdx]);
+        entry.sets.splice(setIdx, 1);
+        if(entry.sets.length === 0){
+          log.splice(todayIdx, 1);
+        } else {
+          log[todayIdx] = entry;
+        }
+        await window.storage.set(key, JSON.stringify(log));
+      }
+    }catch(e){}
+
+    setRow.remove();
+    renumberRows();
+    await refreshSessionSummary(row, exIdx, ex);
+  }
+
+  function wireSetRow(setRow){
     const wInput = setRow.querySelector('.ex-weight');
     const rInput = setRow.querySelector('.ex-reps');
     const statusEl = setRow.querySelector('.set-status');
 
+    // Read the set's index fresh at save time, not once up front — after a
+    // delete, remaining rows get renumbered, and this makes sure a save
+    // always targets the row's current position, not a stale one.
     const save = async ()=>{
+      const setIdx = Number(setRow.dataset.setIdx);
       const result = await saveExSet(activeDay, exIdx, setIdx, wInput.value, rInput.value);
       if(wInput.value === '' && rInput.value === ''){ statusEl.textContent = ''; statusEl.className='set-status'; return; }
       if(result.isPR){
@@ -3589,48 +3632,7 @@ function wireSetsBlock(row, exIdx, ex){
     wInput.addEventListener('change', save);
     rInput.addEventListener('change', save);
 
-    // Confirming a field — via a hardware Enter key, or the checkmark/"Done"
-    // button on a mobile number pad — should move to the next field. Mobile
-    // numeric keypads have no literal Enter key at all, so tapping their
-    // checkmark only ever fires 'blur', never a real Enter keydown. Routing
-    // both paths through blur means both work identically.
-    function advanceFrom(input, isWeight){
-      setTimeout(()=>{
-        const active = document.activeElement;
-        // If the person already tapped directly into a different set's field
-        // themselves in the meantime, respect that instead of yanking focus.
-        const activeIsAnotherSetField = active && active !== input &&
-          (active.classList.contains('ex-weight') || active.classList.contains('ex-reps'));
-        if(activeIsAnotherSetField) return;
-
-        if(isWeight){
-          rInput.focus();
-        } else {
-          const allRows = [...block.querySelectorAll('.set-row')];
-          const currentIndex = allRows.indexOf(setRow);
-          const nextRow = allRows[currentIndex + 1];
-          if(nextRow){
-            const nextWeightInput = nextRow.querySelector('.ex-weight');
-            if(nextWeightInput) nextWeightInput.focus();
-          } else {
-            // Last set — confirming it adds a new one and jumps straight to it
-            const addBtn = block.querySelector('.add-set-btn');
-            if(addBtn) addBtn.click();
-            setTimeout(()=>{
-              const rows = block.querySelectorAll('.set-row');
-              const lastRow = rows[rows.length - 1];
-              const w = lastRow && lastRow.querySelector('.ex-weight');
-              if(w) w.focus();
-            }, 30);
-          }
-        }
-      }, 60);
-    }
-
-    wInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); wInput.blur(); } });
-    rInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); rInput.blur(); } });
-    wInput.addEventListener('blur', ()=> advanceFrom(wInput, true));
-    rInput.addEventListener('blur', ()=> advanceFrom(rInput, false));
+    makeSwipeable(setRow, ()=> deleteSet(setRow));
   }
 
   block.querySelectorAll('.set-row').forEach(wireSetRow);
@@ -3639,14 +3641,17 @@ function wireSetsBlock(row, exIdx, ex){
     const existingRows = block.querySelectorAll('.set-row');
     const newIdx = existingRows.length;
     const div = document.createElement('div');
-    div.className = 'set-row';
+    div.className = 'set-row swipe-item';
     div.dataset.setIdx = newIdx;
     div.innerHTML = `
-      <span class="set-num">${newIdx+1}</span>
-      <input type="number" inputmode="decimal" class="ex-input ex-weight" placeholder="lb" value="">
-      <span class="ex-x">×</span>
-      <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="reps" value="">
-      <span class="set-status"></span>
+      <div class="swipe-delete-bg">🗑️</div>
+      <div class="swipe-content set-row-content">
+        <span class="set-num">${newIdx+1}</span>
+        <input type="number" inputmode="decimal" class="ex-input ex-weight" placeholder="lb" value="">
+        <span class="ex-x">×</span>
+        <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="reps" value="">
+        <span class="set-status"></span>
+      </div>
     `;
     block.insertBefore(div, block.querySelector('.add-set-btn'));
     wireSetRow(div);
