@@ -5010,9 +5010,20 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
       spinner.classList.add('spinning');
       spinner.textContent = '↻';
       label.textContent = 'Refreshing…';
+
+      // If a field is mid-edit (e.g. a weight typed but not yet confirmed),
+      // blur it first so its 'change' handler fires and the value actually
+      // saves to storage before we navigate away — otherwise that one
+      // keystroke could be lost. Everything already saved (all workouts,
+      // weights, food logs, profile) is untouched either way, since that
+      // lives in localStorage, which a page reload never clears.
+      if(document.activeElement && typeof document.activeElement.blur === 'function'){
+        document.activeElement.blur();
+      }
+
       setTimeout(()=>{
         window.location.href = window.location.pathname + '?_r=' + Date.now();
-      }, 400);
+      }, 500); // slightly longer than before, so the just-triggered save has time to finish first
     } else {
       indicator.style.transform = 'translateY(-70px)';
       spinner.classList.remove('past-threshold');
