@@ -90,6 +90,13 @@
     margin-top:4px;
   }
   .sub{color:var(--text-muted); font-size:13px; margin-top:4px;}
+  .streak-badge{
+    display:inline-flex; align-items:center; gap:5px; margin-top:8px;
+    background:rgba(242,201,76,0.1); border:1px solid rgba(242,201,76,0.3);
+    border-radius:20px; padding:4px 11px; font-family:'IBM Plex Mono',monospace;
+    font-size:12px; color:var(--plate-yellow); font-weight:600;
+  }
+  .streak-badge.zero{background:var(--surface2); border-color:var(--line); color:var(--text-muted); font-weight:500;}
 
   .tabs-header{display:flex; align-items:center; justify-content:space-between; padding-top:14px;}
   .tabs-header .hint{font-size:11px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; text-transform:uppercase; letter-spacing:0.5px;}
@@ -270,6 +277,38 @@
     margin:4px 0 2px 76px; padding:7px 10px; background:rgba(242,201,76,0.12); border:1px solid rgba(242,201,76,0.35);
     border-radius:8px; font-size:12px; color:var(--plate-yellow); line-height:1.4;
   }
+  .progress-badge-decrease{
+    margin:4px 0 2px 76px; padding:7px 10px; background:rgba(230,126,34,0.12); border:1px solid rgba(230,126,34,0.35);
+    border-radius:8px; font-size:12px; color:#E67E22; line-height:1.4;
+  }
+  .progress-badge-deload{
+    margin:4px 0 2px 76px; padding:7px 10px; background:rgba(224,80,80,0.12); border:1px solid rgba(224,80,80,0.35);
+    border-radius:8px; font-size:12px; color:var(--plate-red); line-height:1.4;
+  }
+
+  .ex-rpe{width:46px;}
+  .ex-input-tiny-label{font-size:9.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.3px; flex:0 0 auto;}
+  .plate-btn{
+    flex:0 0 auto; width:26px; height:26px; border-radius:7px; border:1px solid var(--line);
+    background:var(--surface2); color:var(--text-muted); font-size:13px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; padding:0;
+  }
+  .plate-btn.active{border-color:var(--plate-blue); color:var(--plate-blue);}
+  .plate-result{
+    flex-basis:100%; margin:2px 0 0 22px; padding:6px 10px; background:var(--surface2);
+    border:1px solid var(--line); border-radius:7px; font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px; color:var(--text); line-height:1.5; display:none;
+  }
+  .plate-result.open{display:block;}
+  .set-row-content{flex-wrap:wrap;}
+
+  .warmup-box{
+    margin:4px 0 2px 76px; padding:9px 11px; background:rgba(79,195,247,0.08); border:1px solid rgba(79,195,247,0.25);
+    border-radius:8px; font-size:12px; color:var(--text); line-height:1.6;
+  }
+  .warmup-box .warmup-title{color:#4FC3F7; font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:3px;}
+  .warmup-box .warmup-row{display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:12px;}
+  .warmup-box .warmup-row span:last-child{color:var(--text-muted);}
 
   .rest-timer{
     position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
@@ -319,6 +358,32 @@
   .ex-video-link:active{opacity:0.7;}
 
   .rest-note{color:var(--text-muted); font-size:14px; line-height:1.5;}
+  .pr-row{
+    display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line);
+  }
+  .pr-row:last-child{border-bottom:none;}
+  .pr-date{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-muted); flex:0 0 66px;
+  }
+  .pr-body{flex:1; min-width:0;}
+  .pr-ex-name{font-weight:600; font-size:13.5px;}
+  .pr-day-label{font-size:11px; color:var(--text-muted); margin-top:1px;}
+  .pr-stat{
+    font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--plate-yellow); font-weight:700; flex:0 0 auto; text-align:right;
+  }
+  .rpe-trend-labels{
+    display:flex; justify-content:space-between; margin-top:8px; font-family:'IBM Plex Mono',monospace;
+    font-size:12px; color:var(--text-muted);
+  }
+  .care-details{margin:0 0 10px 0;}
+  .care-details summary{display:flex; align-items:center; gap:8px;}
+  .care-type-tag{
+    font-size:9.5px; text-transform:uppercase; letter-spacing:0.4px; font-weight:700;
+    padding:2px 7px; border-radius:10px; flex:0 0 auto;
+  }
+  .care-type-tag.stretch{background:rgba(79,195,247,0.15); color:#4FC3F7;}
+  .care-type-tag.strengthen{background:rgba(224,163,80,0.15); color:var(--plate-yellow);}
+  .care-type-tag.mobility{background:rgba(126,211,140,0.15); color:var(--plate-green);}
 
   .macro-row{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
   .macro-row:last-child{margin-bottom:0;}
@@ -412,6 +477,7 @@
   .pose-detail li{margin-bottom:5px;}
   .nutrition-header .ex-chevron{transition:transform 0.28s ease;}
   .nutrition-header.open .ex-chevron{transform:rotate(90deg);}
+  #nutritionHeader.open + #nutritionSummary{display:none;}
   .nutrition-summary{
     font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--text-muted); margin:8px 0 4px;
     display:flex; flex-direction:column; gap:6px;
@@ -769,6 +835,7 @@
     <div class="eyebrow" id="headerEyebrow">Training Log</div>
     <h1>Training Log</h1>
     <div class="sub" id="headerSub">Set up your profile below to personalize this</div>
+    <div class="streak-badge" id="streakBadge" style="display:none"></div>
   </header>
 
   <div class="nav-pills">
@@ -1081,9 +1148,21 @@
       <div class="card-title">💪 Exercise Progress</div>
       <div id="exerciseProgress"></div>
     </div>
+
+    <div class="card">
+      <div class="card-title">📊 Average RPE Trend</div>
+      <div class="history-hint">Weekly average effort level across every logged set. A steady climb with no rest is the earliest warning sign of overreaching — well before performance actually drops.</div>
+      <div id="rpeTrend"></div>
+    </div>
   </div>
 
   <div id="historyView" style="display:none">
+    <div class="card">
+      <div class="card-title">🏆 Personal Records Timeline</div>
+      <div class="history-hint">Every all-time PR you've ever hit, across every exercise and program, newest first.</div>
+      <div id="prTimeline"></div>
+    </div>
+
     <div class="card">
       <div class="card-title">🏁 Saved Weeks</div>
       <div class="history-hint">Snapshots you've manually saved at the end of a training week.</div>
@@ -1126,11 +1205,18 @@
           <option value="">Select a region</option>
           <option>Shoulder</option>
           <option>Elbow/Wrist</option>
+          <option>Upper Back</option>
+          <option>Chest</option>
           <option>Lower Back</option>
           <option>Hip</option>
+          <option>IT Band/Outer Thigh</option>
           <option>Knee</option>
+          <option>Shins</option>
           <option>Ankle/Foot</option>
           <option>Neck</option>
+          <option>Headache/Tension</option>
+          <option>Jaw/TMJ</option>
+          <option>Hands/Fingers</option>
           <option>Other</option>
         </select>
 
@@ -1148,6 +1234,13 @@
     <div class="card">
       <div class="card-title">😴 Currently Resting</div>
       <div id="restingRegions"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🧘 Stretches & Strengthening by Area</div>
+      <div class="history-hint">Research-informed starting points for common problem areas — not a treatment plan, but a well-supported place to begin. Tap a move for cues and a form video.</div>
+      <div class="program-select-wrap"><select class="program-select" id="careLibrarySelector"></select></div>
+      <div id="careLibraryList"></div>
     </div>
 
     <div class="card">
@@ -1228,6 +1321,7 @@
      active-program                      -> "strength" | "bodybuilding" | ...
      injury-log                          -> [{date,exercise,sensation,region,pain,note}, ...]
      resting-regions                     -> [region, region, ...]
+     activity-dates                      -> ["YYYY-MM-DD", ...] (deduped, sorted — any day a set was logged)
      meta:schemaVersion                  -> number
 
    FILE SECTIONS (search for these banner comments to jump around):
@@ -2690,6 +2784,14 @@ const EXERCISE_MOVE = {
   'Terminal Knee Extension':'mobility', 'Step-Up (controlled)':'lunge', 'Clamshell':'mobility',
   'Ankle Circles':'mobility', 'Single-Leg Balance':'mobility', 'Walking':'cardio', 'Diaphragmatic Breathing':'mobility',
   'Wrist Flexor Stretch':'mobility', 'Wrist Extensor Stretch':'mobility', 'Chin Tucks':'mobility', 'Neck Rotation Stretch':'mobility',
+  'Upper Trap Stretch':'mobility', 'Levator Scapulae Stretch':'mobility', 'Eccentric Wrist Extension':'mobility',
+  'Grip Strengthening':'mobility', 'Calf Stretch':'mobility', 'Hamstring Stretch':'mobility',
+  'Thoracic Extension Over Foam Roller':'mobility', 'Prone Y-T-W Raises':'mobility', 'Doorway Pec Stretch':'mobility',
+  'Foam Roller Chest Opener':'mobility', 'Band Pull-Apart':'mobility', 'Jaw Relaxation/Rest Position':'mobility',
+  'TMJ Self-Massage (Masseter Release)':'mobility', 'Controlled Jaw Opening (Goldfish Exercise)':'mobility',
+  'Suboccipital Release':'mobility', 'Median Nerve Glide':'mobility', 'Tendon Glides':'mobility',
+  'Foam Rolling IT Band':'mobility', 'Standing IT Band Stretch':'mobility', 'Side-Lying Hip Abduction':'mobility',
+  'Tibialis Raise':'mobility',
   '90/90 Hip Switch':'mobility', 'Hip CARs':'mobility', 'Ankle Dorsiflexion Stretch':'mobility', 'Pigeon Pose':'mobility',
   'Shoulder CARs':'mobility', 'Thoracic Spine Rotation (Open Book)':'mobility', 'Wall Slides':'mobility', 'Band Dislocates':'mobility',
   'PNF Hamstring Stretch':'mobility', 'World\'s Greatest Stretch':'mobility', 'Nordic Curl':'hinge',
@@ -2794,7 +2896,28 @@ const exerciseInfo = {
   'Deep Squat Hold': {category:'squat', cues:['Sink into the bottom of a squat, heels flat, chest up.','Use your elbows to gently press your knees out if needed.','Hold and breathe — this builds the ankle, hip, and thoracic mobility your working squats depend on.']},
   'Couch Stretch': {category:'core', cues:['Back knee against a wall or couch, shin vertical, front foot planted forward.','Squeeze your glute on the stretched side and keep your torso upright.','One of the most effective stretches for hip flexors tightened by a desk job.']},
   'Spinal Wave': {category:'core', cues:['Standing or on all fours, move your spine in a slow wave from tailbone to head.','Focus on articulating one vertebra at a time rather than moving as one rigid block.','Builds spinal segmentation and control, not just flexibility.']},
+  'Upper Trap Stretch': {category:'core', videoQuery:'upper trapezius stretch neck', cues:['Sit tall, gently tilt your ear toward your shoulder, use your hand for light overpressure if needed.','Keep the opposite shoulder pulled down and relaxed rather than shrugged.','Targets the upper trap — the muscle most commonly tight from desk posture and a very common first stretch given for tension-type neck pain.']},
+  'Levator Scapulae Stretch': {category:'core', videoQuery:'levator scapulae stretch technique', cues:['Turn your head about 45° toward one armpit, then gently pull it down and forward with the same-side hand.','Keep the stretch gentle — this muscle responds better to a light, sustained pull than force.','Specifically targets a muscle frequently implicated in one-sided neck stiffness that a straight side-bend stretch tends to miss.']},
+  'Eccentric Wrist Extension': {category:'core', videoQuery:'eccentric wrist extension tendinopathy', cues:['Hold a light dumbbell, palm down, and lower it slowly over 3-4 seconds by bending your wrist downward.','Use your other hand to reset the weight back up — the lowering phase is the whole point.','Eccentric loading protocols like this one are among the best-researched interventions for tendon pain, including lateral epicondylitis ("tennis elbow").']},
+  'Grip Strengthening': {category:'core', videoQuery:'grip strengthening exercise forearm', cues:['Squeeze a stress ball or gripper hard, hold 3-5 seconds, release with control.','Work through a full range — some reps with a firm squeeze, some with a slower controlled release.','Builds the forearm and tendon resilience that\'s frequently under-trained relative to how much grip work daily life and lifting both demand.']},
+  'Calf Stretch': {category:'core', videoQuery:'calf stretch gastrocnemius soleus', cues:['Hands on a wall, back leg straight, heel pressed flat into the floor, lean forward from the ankle.','Keep your back knee bent for a second round to reach the deeper soleus muscle underneath.','Tightness here is linked to both Achilles pain and plantar fasciitis, so it\'s worth stretching both the straight- and bent-knee versions.']},
+  'Hamstring Stretch': {category:'core', cues:['Seated or lying down, loop a strap or towel around your foot, gently pull the straight leg toward you.','Keep a slight bend in the knee if a fully straight leg pulls at your lower back instead.','Hamstring tightness is a common, often-overlooked contributor to altered knee mechanics and anterior knee pain.']},
   'Foam Rolling Full Body': {category:'core', cues:['Roll slowly, pausing on tender spots for 20-30 seconds rather than rushing over them.','Breathe deeply into any tight areas — tension often releases with breath, not just pressure.','Use this to prep tissue before training or aid recovery afterward.']},
+  'Thoracic Extension Over Foam Roller': {category:'core', videoQuery:'thoracic extension foam roller mobility', cues:['Position a roller under your shoulder blades, hands behind your head or crossed over your chest, and extend gently backward over it.','Move slow and only as far as feels controlled — never force it into pain.','A widely used self-mobilization to counteract the rounded "desk posture" upper back that limits overhead shoulder range.']},
+  'Prone Y-T-W Raises': {category:'core', videoQuery:'prone Y T W raises scapular exercise', cues:['Lying face down, raise your arms overhead in a Y, then out to the sides in a T, then bent at 90° in a W, squeezing your shoulder blades each time.','Light weight or none at all is enough — this is about control, not load.','A staple scapular-stabilizer protocol used throughout posture and shoulder-health rehab programs.']},
+  'Doorway Pec Stretch': {category:'core', videoQuery:'doorway pec stretch chest', cues:['Place your forearm against a door frame and step through until you feel a stretch across your chest.','Try a couple of different arm heights — this shifts the stretch between the upper and lower chest fibers.','One of the most common first-line stretches for chest tightness from desk work or heavy pressing.']},
+  'Foam Roller Chest Opener': {category:'core', videoQuery:'foam roller chest opener stretch', cues:['Lie lengthwise along a foam roller with your head and tailbone supported, then let your arms fall open out to the sides.','Let gravity do the work rather than actively pulling your arms down.','A gentler alternative to the doorway stretch for opening a rounded chest and shoulders.']},
+  'Band Pull-Apart': {category:'core', videoQuery:'band pull apart exercise technique', cues:['Hold a light resistance band with both arms extended in front of you, then pull it apart by squeezing your shoulder blades together.','Keep your arms mostly straight — the movement should come from your upper back, not your elbows.','Tight chest and weak upper back tend to occur together, so this is commonly paired with the pec stretches above rather than done alone.']},
+  'Jaw Relaxation/Rest Position': {category:'core', videoQuery:'jaw rest position TMJ exercise', cues:['Rest your tongue on the roof of your mouth just behind your front teeth, let your teeth come apart slightly, and keep your lips gently closed.','Practice returning to this position throughout the day, especially when you notice yourself clenching.','The standard first-line self-management position taught in TMJ (jaw joint) physical therapy to break a clenching habit.']},
+  'TMJ Self-Massage (Masseter Release)': {category:'core', videoQuery:'masseter release jaw massage TMJ', cues:['Find the muscle bulge at your jaw hinge when you clench your teeth, then apply gentle sustained circular pressure there with your fingers.','Work slowly — a minute or two per side is plenty, more isn\'t necessarily better.','Targets the masseter, the primary muscle involved in jaw clenching and tension-related TMJ pain.']},
+  'Controlled Jaw Opening (Goldfish Exercise)': {category:'core', videoQuery:'goldfish exercise TMJ jaw', cues:['Tongue on the roof of your mouth, one finger on your chin and one just in front of your ear, then open your jaw partway against light resistance from the chin finger.','Keep the motion straight and symmetrical rather than letting your jaw drift to one side.','Known in jaw-rehab literature as the "goldfish exercise," used to retrain controlled, even jaw opening.']},
+  'Suboccipital Release': {category:'core', videoQuery:'suboccipital release self massage', cues:['Lying on your back, place two fingers or a small ball at the base of your skull, just to either side of your spine.','Let the weight of your head sink into gentle, sustained pressure rather than pressing upward into it.','The suboccipital muscles are frequently tight in both hunched-posture neck pain and tension-type headaches.']},
+  'Median Nerve Glide': {category:'core', videoQuery:'median nerve glide exercise hand', cues:['Extend your arm, wrist, and fingers straight while tilting your head away from that arm, then relax back to neutral, repeating gently.','This should feel like mild tension moving through the arm, never sharp pain, numbness, or tingling.','A nerve "flossing" technique used in hand therapy for carpal-tunnel-type symptoms — meant to glide the nerve, not stretch it hard.']},
+  'Tendon Glides': {category:'core', videoQuery:'tendon glide exercises hand therapy', cues:['Move your fingers slowly through straight, hook, full fist, and flat tabletop positions in sequence.','Do the full sequence rather than skipping to just a fist or just straight fingers.','A standard hand-therapy protocol used to maintain full tendon movement after repetitive strain or immobilization.']},
+  'Foam Rolling IT Band': {category:'core', videoQuery:'foam rolling IT band technique', cues:['Lying on your side with the roller under your outer thigh, roll slowly from hip to just above the knee.','Pause on tender spots rather than rolling quickly over them.','Research on whether this actually lengthens the IT band itself is mixed — it\'s widely used for short-term relief, but pair it with hip strengthening below for the more evidence-supported long-term fix.']},
+  'Standing IT Band Stretch': {category:'core', videoQuery:'standing IT band stretch technique', cues:['Cross the sore leg behind the other, then lean your hip away from that side.','Keep both feet flat and the stretch gentle rather than bouncing into it.','A simple standing option when foam rolling isn\'t practical, though like rolling, it targets symptoms more than the underlying cause.']},
+  'Side-Lying Hip Abduction': {category:'core', videoQuery:'side lying hip abduction exercise', cues:['Lying on your side, top leg straight, lift it toward the ceiling without letting your hip roll forward.','Keep the movement slow and controlled — a small, correct range beats a big, sloppy one.','Targets the glute medius, since current sports-medicine consensus points to hip weakness — not IT band tightness itself — as the more likely root cause of IT band pain in runners.']},
+  'Tibialis Raise': {category:'core', videoQuery:'tibialis raise shin exercise', cues:['Stand with your heels against a wall for support, lift your toes and forefoot up off the ground as high as you can, then lower with control.','Keep your knees straight and let the front of your shin do the work.','An increasingly used strengthening move for shin-splint prevention in runners, complementing calf stretching rather than replacing it.']},
   'Child\'s Pose Breathing': {category:'core', cues:['Sit back onto your heels, arms extended forward, forehead down.','Breathe deeply into your lower back and sides, not just your chest.','A simple down-regulation drill to close out a session and shift into recovery mode.']},
   'Warm-up Jog': {category:'cardio', cues:['Keep the pace easy — you should be able to hold a conversation.','Use this to raise your heart rate and prep your joints before harder efforts.','Don\'t skip this even on short runs — cold muscles are where injuries happen.']},
   'Easy Run': {category:'cardio', videoQuery:'easy run pace training', cues:['Conversational pace — if you can\'t talk in full sentences, slow down.','This should feel almost too easy; that\'s the point of true easy running.','Most of elite runners\' mileage (per Jack Daniels\' training model) is run at this intensity, not race pace.']},
@@ -2937,6 +3060,64 @@ function getTodayKey(){
   const m = String(d.getMonth()+1).padStart(2,'0');
   const day = String(d.getDate()).padStart(2,'0');
   return `${y}-${m}-${day}`;
+}
+
+function dateKeyMinusDays(key, n){
+  const d = new Date(key+'T00:00:00');
+  d.setDate(d.getDate()-n);
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+// --- Streak tracking: a day counts toward the streak the moment any set is
+// logged that day (see recordActivity, called from saveExSet). Today not yet
+// having a logged set doesn't break the streak until the day is actually over —
+// same "still alive until midnight" logic used by Duolingo/Strong-style streaks —
+// so opening the app in the morning doesn't show a false reset.
+async function recordActivity(dateKey){
+  try{
+    const res = await window.storage.get('activity-dates');
+    let dates = res && res.value ? JSON.parse(res.value) : [];
+    if(!dates.includes(dateKey)){
+      dates.push(dateKey);
+      dates.sort();
+      await window.storage.set('activity-dates', JSON.stringify(dates));
+    }
+  }catch(e){}
+}
+
+async function computeStreak(){
+  let dates = [];
+  try{
+    const res = await window.storage.get('activity-dates');
+    dates = res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){ return 0; }
+  if(!dates.length) return 0;
+  const dateSet = new Set(dates);
+  const today = getTodayKey();
+  let cursor = dateSet.has(today) ? today : dateKeyMinusDays(today, 1);
+  if(!dateSet.has(cursor)) return 0; // neither today nor yesterday trained — streak is broken
+  let streak = 0;
+  while(dateSet.has(cursor)){
+    streak++;
+    cursor = dateKeyMinusDays(cursor, 1);
+  }
+  return streak;
+}
+
+async function renderStreak(){
+  const el = document.getElementById('streakBadge');
+  if(!el) return;
+  const streak = await computeStreak();
+  if(streak <= 0){
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = 'inline-flex';
+  el.classList.remove('zero');
+  el.textContent = `🔥 ${streak} day${streak===1?'':'s'} streak`;
 }
 
 async function loadActiveProgram(){
@@ -3148,6 +3329,14 @@ function parseTopRep(setsStr){
   return null;
 }
 
+// Bottom of the prescribed rep range (e.g. "3×10-12" -> 10). For a fixed rep
+// scheme like "3×15" the bottom and top are the same number by design.
+function parseBottomRep(setsStr){
+  const range = setsStr.match(/(\d+)\s*-\s*(\d+)/);
+  if(range) return Number(range[1]);
+  return parseTopRep(setsStr);
+}
+
 function parseSetCount(setsStr){
   const m = setsStr.match(/^(\d+)\s*×/);
   return m ? Number(m[1]) : 3;
@@ -3240,12 +3429,132 @@ function maxWeightEver(log, excludeDate){
   return max;
 }
 
-async function saveExSet(dayId, idx, setIdx, weight, reps){
+// --- Progressive-overload / autoregulation signal ---------------------------
+// Grounded in two well-established hypertrophy training principles:
+//   1. Double progression (Schoenfeld, Helms, et al.): once every set hits the
+//      TOP of the prescribed rep range for 2 straight sessions at the same
+//      weight, that's the standard trigger to add load — the rep range was
+//      "outgrown," and the whole point of a rep range is to know when to add
+//      weight rather than guessing.
+//   2. RPE-based autoregulation (Tuchscherer's RPE/RIR scale, used throughout
+//      Mike Israetel/Renaissance Periodization programming): reps sliding
+//      backward at the same weight, especially alongside RPE sitting at 9-10
+//      for multiple sessions in a row, signals accumulated fatigue outpacing
+//      recovery — the evidence-based response is to reduce load or deload,
+//      not grind through it, since training at chronic RPE 10 adds fatigue
+//      without a corresponding hypertrophy benefit over RPE 7-9 work.
+// Load-increment sizing follows the standard convention of larger jumps for
+// big compound/multi-joint lifts and smaller jumps for isolation work, since
+// a 10 lb jump that's trivial on a squat can be a huge jump on a lateral raise.
+const CATEGORY_LOAD_INCREMENT = {
+  squat:10, hinge:10, oly:10, lunge:5, push:5, pull:5,
+  shoulder:2.5, arms:2.5, core:2.5, throw:5, punch:2.5, kick:2.5, jump:5, cardio:0,
+};
+
+function getLoadIncrement(category){
+  return CATEGORY_LOAD_INCREMENT[category] ?? 5;
+}
+
+// Returns {type:'increase'|'decrease'|'deload', message} or null if there
+// isn't yet enough history (or no clear signal) to make a confident call.
+// Only ever looks at PAST sessions (today's date is always excluded by the
+// caller passing a log already filtered/sorted) so it never reacts to a set
+// you're mid-way through logging right now.
+function analyzeProgressionSignal(pastSessions, ex, category){
+  if(!pastSessions || pastSessions.length < 2) return null;
+  const topRepTarget = parseTopRep(ex.sets);
+  const bottomRepTarget = parseBottomRep(ex.sets);
+  if(topRepTarget==null) return null;
+
+  const [s0, s1, s2] = pastSessions; // s0 = most recent
+
+  // Signal 1: deload — sustained near-max effort with no payoff, checked first
+  // since it should override a plain "increase" reading from noisy data.
+  if(pastSessions.length >= 3){
+    const last3 = [s0, s1, s2];
+    const allHighRpe = last3.every(s=> s.avgRpe!=null && s.avgRpe >= 9);
+    const noProgress = s0.reps <= s2.reps && s0.weight <= s2.weight;
+    if(allHighRpe && noProgress){
+      return {
+        type: 'deload',
+        message: `🔻 RPE has run 9+ for 3 straight sessions with no rep or weight gain — a 10-20% deload this week likely does more for growth than pushing through (sustained near-max effort without progress signals fatigue outpacing recovery).`
+      };
+    }
+  }
+
+  // Signal 2: decrease — reps dropped below the bottom of the rep range at
+  // the same (or heavier) weight, i.e. the load has outpaced current recovery.
+  const sameOrHeavier = s0.weight!=null && s1.weight!=null && s0.weight >= s1.weight;
+  const repsFellBelowFloor = s0.reps!=null && bottomRepTarget!=null && s0.reps < bottomRepTarget && s1.reps >= bottomRepTarget;
+  if(sameOrHeavier && repsFellBelowFloor){
+    const dropAmt = Math.max(getLoadIncrement(category), Math.round(s0.weight*0.075/2.5)*2.5);
+    return {
+      type: 'decrease',
+      message: `⬇ Reps dropped to ${s0.reps} last time (below your ${bottomRepTarget}-rep floor) at ${s0.weight} lb — drop to ~${s0.weight-dropAmt} lb next session to rebuild clean volume in range.`
+    };
+  }
+
+  // Signal 3: increase — double progression achieved. Top of the range hit
+  // for 2 sessions straight at the same weight, without needing near-max
+  // effort to get there.
+  const sameWeight = s0.weight!=null && s1.weight!=null && s0.weight === s1.weight;
+  const metTopBoth = s0.reps!=null && s1.reps!=null && s0.reps >= topRepTarget && s1.reps >= topRepTarget;
+  const rpeRoomToSpare = (s0.avgRpe==null || s0.avgRpe <= 8.5) && (s1.avgRpe==null || s1.avgRpe <= 8.5);
+  if(sameWeight && metTopBoth && rpeRoomToSpare){
+    const bump = getLoadIncrement(category);
+    return {
+      type: 'increase',
+      message: `⬆ Hit ${topRepTarget}+ reps at ${s0.weight} lb for 2 sessions straight — add ${bump} lb next time (double-progression: you've outgrown this rep range at this weight).`
+    };
+  }
+
+  return null;
+}
+
+// Builds the last 3 past sessions for an exercise in the {weight, reps, avgRpe}
+// shape analyzeProgressionSignal expects, most-recent first.
+function buildPastSessions(log){
+  return [...log]
+    .filter(e=> e.date !== getTodayKey())
+    .sort((a,b)=> new Date(b.date+'T00:00:00') - new Date(a.date+'T00:00:00'))
+    .slice(0, 3)
+    .map(e=>{
+      const top = topSetOf(e);
+      if(!top) return null;
+      const rpeSets = (e.sets||[]).filter(s=> s.rpe!=null);
+      const avgRpe = rpeSets.length ? rpeSets.reduce((sum,s)=> sum+s.rpe, 0) / rpeSets.length : null;
+      return {date: e.date, weight: top.weight, reps: top.reps, avgRpe};
+    })
+    .filter(Boolean);
+}
+
+// --- Warm-up ramp: a classic percentage-based ramp (bar / ~40% / ~60% / ~80%
+// of the working weight) — the same structure used throughout powerlifting
+// and strength programming (e.g. Rippetoe's Starting Strength, Wendler's
+// 5/3/1) to prime the nervous system and grease the groove without adding
+// fatigue before the real work sets. Only shown for barbell-style compound
+// categories and only once we actually know a working weight from last time —
+// guessing a ramp for an unknown or very light load isn't useful.
+const WARMUP_ELIGIBLE_CATEGORIES = ['squat','hinge','push','pull','oly'];
+const WARMUP_MIN_WORKING_WEIGHT = 95; // below this, a formal ramp adds more clutter than value
+
+function roundTo5(n){ return Math.round(n/5)*5; }
+
+function buildWarmupRamp(workingWeight){
+  return [
+    {label:'Bar only', weight: BAR_WEIGHT, reps:'8-10'},
+    {label:'~40%', weight: roundTo5(workingWeight*0.4), reps:5},
+    {label:'~60%', weight: roundTo5(workingWeight*0.6), reps:3},
+    {label:'~80%', weight: roundTo5(workingWeight*0.8), reps:2},
+  ];
+}
+
+async function saveExSet(dayId, idx, setIdx, weight, reps, rpe){
   const log = await getExLog(dayId, idx);
 
   let entry = log.find(e=>e.date===getTodayKey());
   if(!entry){ entry = {date: getTodayKey(), sets: []}; log.push(entry); }
-  while(entry.sets.length <= setIdx) entry.sets.push({weight:null, reps:null});
+  while(entry.sets.length <= setIdx) entry.sets.push({weight:null, reps:null, rpe:null});
 
   // Best weight across every set ever logged EXCEPT the specific set we're about to overwrite,
   // so a later set today can still beat an earlier set from today.
@@ -3259,10 +3568,15 @@ async function saveExSet(dayId, idx, setIdx, weight, reps){
 
   const w = weight===''? null : Number(weight);
   const r = reps===''? null : Number(reps);
-  entry.sets[setIdx] = {weight:w, reps:r};
+  const rpeVal = (rpe===undefined || rpe==='') ? null : Number(rpe);
+  entry.sets[setIdx] = {weight:w, reps:r, rpe:rpeVal};
 
   log.sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
   try{ await window.storage.set(exKey(activeProgram, dayId, idx), JSON.stringify(log)); }catch(e){}
+
+  // A set with an actual weight or rep count logged counts as training activity today,
+  // regardless of which exercise/program it was — this is what streaks track.
+  if(w!=null || r!=null) recordActivity(getTodayKey()).then(renderStreak);
 
   const isPR = (w!=null && priorMax!=null && w>priorMax);
   return {isPR, priorMax, entry};
@@ -3394,11 +3708,25 @@ async function renderWorkout(){
       const topRep = parseTopRep(ex.sets);
       const setCount = Math.max(parseSetCount(ex.sets), todayEntry ? todayEntry.sets.length : 0);
 
+      const exCategory = (exerciseInfo[ex.name] || {}).category;
+      const pastSessions = buildPastSessions(log);
+      const signal = analyzeProgressionSignal(pastSessions, ex, exCategory);
+
       let badge = '';
-      if(priorTop && priorTop.reps!=null && topRep!=null && priorTop.reps >= topRep){
+      if(signal){
+        const badgeClass = signal.type==='increase' ? 'progress-badge' : signal.type==='decrease' ? 'progress-badge-decrease' : 'progress-badge-deload';
+        badge = `<div class="${badgeClass}">${signal.message}</div>`;
+      } else if(priorTop && priorTop.reps!=null && topRep!=null && priorTop.reps >= topRep){
         badge = `<div class="progress-badge">⬆ Hit ${priorTop.reps} reps last time at ${priorTop.weight ?? '?'} lb — try adding weight today</div>`;
       } else if(priorTop && priorTop.weight!=null){
         badge = `<div class="progress-hint">Last top set: ${priorTop.weight} lb × ${priorTop.reps ?? '?'} reps</div>`;
+      }
+
+      let warmupHtml = '';
+      if(WARMUP_ELIGIBLE_CATEGORIES.includes(exCategory) && priorTop && priorTop.weight >= WARMUP_MIN_WORKING_WEIGHT){
+        const ramp = buildWarmupRamp(priorTop.weight);
+        const rampRows = ramp.map(step=> `<div class="warmup-row"><span>${step.label} — ${step.weight} lb × ${step.reps}</span><span>${formatPlateResult(calcPlatesPerSide(step.weight))}</span></div>`).join('');
+        warmupHtml = `<div class="warmup-box"><div class="warmup-title">🔥 Suggested warm-up ramp</div>${rampRows}</div>`;
       }
 
       const setRowsHtml = Array.from({length: setCount}).map((_,setIdx)=>{
@@ -3412,7 +3740,10 @@ async function renderWorkout(){
               <input type="number" inputmode="decimal" class="ex-input ex-weight" placeholder="${placeholderSet && placeholderSet.weight!=null ? placeholderSet.weight : 'lb'}" value="${savedSet && savedSet.weight!=null ? savedSet.weight : ''}">
               <span class="ex-x">×</span>
               <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="${placeholderSet && placeholderSet.reps!=null ? placeholderSet.reps : 'reps'}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
+              <input type="number" inputmode="decimal" step="0.5" min="5" max="10" class="ex-input ex-rpe" placeholder="RPE" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
+              <button type="button" class="plate-btn" title="Plate calculator">🏋️</button>
               <span class="set-status"></span>
+              <div class="plate-result"></div>
             </div>
           </div>
         `;
@@ -3429,6 +3760,7 @@ async function renderWorkout(){
       ` : '';
 
       trackingHtml = `
+        ${warmupHtml}
         <div class="sets-block" data-day="${activeDay}" data-idx="${i}">
           ${setRowsHtml}
           <button class="add-set-btn" type="button">+ Add Set</button>
@@ -3568,6 +3900,46 @@ async function refreshSessionSummary(row, exIdx, ex){
   }
 }
 
+// --- Plate calculator: standard Olympic plate set, one bar (45 lb), math
+// per side. Greedy fill from largest plate down — the same approach every
+// gym whiteboard and plate-loading app uses, since bars only take discrete
+// plate sizes rather than exact fractional loads.
+const STANDARD_PLATES = [45, 35, 25, 10, 5, 2.5];
+const BAR_WEIGHT = 45;
+
+function calcPlatesPerSide(totalWeight, barWeight){
+  const bar = barWeight ?? BAR_WEIGHT;
+  if(totalWeight == null || isNaN(totalWeight)) return null;
+  if(totalWeight < bar){
+    return {tooLight:true, bar};
+  }
+  let perSide = (totalWeight - bar) / 2;
+  const breakdown = [];
+  let remaining = perSide;
+  STANDARD_PLATES.forEach(p=>{
+    const count = Math.floor((remaining + 0.001) / p); // small epsilon guards against float rounding
+    if(count > 0){
+      breakdown.push({plate:p, count});
+      remaining -= count * p;
+    }
+  });
+  const leftover = Math.round(remaining * 100) / 100;
+  return {bar, perSide, breakdown, leftover};
+}
+
+function formatPlateResult(result){
+  if(!result) return 'Enter a weight first.';
+  if(result.tooLight){
+    return `At or below the ${result.bar} lb bar — likely a dumbbell, machine stack, or bodyweight movement rather than a barbell load.`;
+  }
+  if(!result.breakdown.length){
+    return `${result.bar} lb bar only, no plates needed per side.`;
+  }
+  const parts = result.breakdown.map(b=> `${b.count}×${b.plate}`).join(' + ');
+  const leftoverNote = result.leftover > 0 ? ` (${result.leftover} lb short of exact — round to nearest plate available)` : '';
+  return `${result.bar} lb bar + ${parts} per side${leftoverNote}`;
+}
+
 function wireSetsBlock(row, exIdx, ex){
   const block = row.querySelector('.sets-block');
 
@@ -3608,14 +3980,17 @@ function wireSetsBlock(row, exIdx, ex){
   function wireSetRow(setRow){
     const wInput = setRow.querySelector('.ex-weight');
     const rInput = setRow.querySelector('.ex-reps');
+    const rpeInput = setRow.querySelector('.ex-rpe');
     const statusEl = setRow.querySelector('.set-status');
+    const plateBtn = setRow.querySelector('.plate-btn');
+    const plateResult = setRow.querySelector('.plate-result');
 
     // Read the set's index fresh at save time, not once up front — after a
     // delete, remaining rows get renumbered, and this makes sure a save
     // always targets the row's current position, not a stale one.
     const save = async ()=>{
       const setIdx = Number(setRow.dataset.setIdx);
-      const result = await saveExSet(activeDay, exIdx, setIdx, wInput.value, rInput.value);
+      const result = await saveExSet(activeDay, exIdx, setIdx, wInput.value, rInput.value, rpeInput.value);
       if(wInput.value === '' && rInput.value === ''){ statusEl.textContent = ''; statusEl.className='set-status'; return; }
       if(result.isPR){
         statusEl.textContent = '🏆 PR';
@@ -3631,6 +4006,24 @@ function wireSetsBlock(row, exIdx, ex){
     };
     wInput.addEventListener('change', save);
     rInput.addEventListener('change', save);
+    rpeInput.addEventListener('change', save);
+
+    if(plateBtn){
+      plateBtn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const isOpen = plateResult.classList.contains('open');
+        if(isOpen){
+          plateResult.classList.remove('open');
+          plateBtn.classList.remove('active');
+          return;
+        }
+        const w = wInput.value === '' ? null : Number(wInput.value);
+        const result = calcPlatesPerSide(w);
+        plateResult.textContent = formatPlateResult(result);
+        plateResult.classList.add('open');
+        plateBtn.classList.add('active');
+      });
+    }
 
     makeSwipeable(setRow, ()=> deleteSet(setRow));
   }
@@ -3650,7 +4043,10 @@ function wireSetsBlock(row, exIdx, ex){
         <input type="number" inputmode="decimal" class="ex-input ex-weight" placeholder="lb" value="">
         <span class="ex-x">×</span>
         <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="reps" value="">
+        <input type="number" inputmode="decimal" step="0.5" min="5" max="10" class="ex-input ex-rpe" placeholder="RPE" value="">
+        <button type="button" class="plate-btn" title="Plate calculator">🏋️</button>
         <span class="set-status"></span>
+        <div class="plate-result"></div>
       </div>
     `;
     block.insertBefore(div, block.querySelector('.add-set-btn'));
@@ -4971,8 +5367,9 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
   const indicator = document.getElementById('pullRefreshIndicator');
   const spinner = document.getElementById('pullRefreshSpinner');
   const label = document.getElementById('pullRefreshLabel');
-  const THRESHOLD = 70;
+  const THRESHOLD = 45;
   const MAX_PULL = 100;
+  const SCROLL_TOLERANCE = 5; // allow refresh even if not pixel-perfect at the top (rubber-band bounce, etc.)
   let startY = 0, dragging = false, currentPull = 0;
 
   function getScrollTop(){
@@ -4981,7 +5378,7 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
 
   document.addEventListener('pointerdown', (e)=>{
     if(e.target && e.target.closest && e.target.closest('.swipe-content')) return; // don't fight with swipe-to-delete
-    if(getScrollTop() > 0) return;
+    if(getScrollTop() > SCROLL_TOLERANCE) return;
     startY = e.clientY;
     dragging = true;
     currentPull = 0;
@@ -4989,7 +5386,7 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
 
   document.addEventListener('pointermove', (e)=>{
     if(!dragging) return;
-    if(getScrollTop() > 0){ dragging = false; return; }
+    if(getScrollTop() > SCROLL_TOLERANCE){ dragging = false; return; }
     const deltaY = e.clientY - startY;
     if(deltaY <= 0){
       currentPull = 0;
@@ -4997,7 +5394,7 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
       indicator.style.transform = 'translateY(-70px)';
       return;
     }
-    currentPull = Math.min(MAX_PULL, deltaY * 0.5); // resistance, not 1:1 drag
+    currentPull = Math.min(MAX_PULL, deltaY * 0.85); // lighter resistance — a shorter, easier drag now reaches threshold
     indicator.classList.add('dragging');
     indicator.style.transform = `translateY(${currentPull - 70}px)`;
     const pastThreshold = currentPull >= THRESHOLD;
@@ -5411,11 +5808,13 @@ document.getElementById('navHistory').addEventListener('click', ()=>{
   switchView('history');
   renderHistory();
   renderSavedWeeks();
+  renderPrTimeline();
 });
 
 document.getElementById('navCare').addEventListener('click', ()=>{
   switchView('care');
   renderCare();
+  populateCareLibrarySelector();
 });
 
 document.getElementById('navCoach').addEventListener('click', ()=>{
@@ -5661,6 +6060,77 @@ async function renderExerciseProgress(){
   });
 
   renderCollapsibleList(el, rowHtmls, 4, 'exercises');
+}
+
+// --- PR Timeline: reconstructed from existing exercise logs, not a separate
+// stored list — a PR already only exists as "today's top set beat every prior
+// set ever logged" (see the isPR check in saveExSet). Walking each exercise's
+// log in date order and tracking a running max reconstructs every PR moment
+// that ever happened, using data that's already there. No new storage key,
+// no risk of it ever drifting out of sync with the live PR badge logic.
+async function reconstructAllPRs(){
+  let keys = [];
+  try{
+    const res = await window.storage.list('ex:');
+    if(res && res.keys) keys = res.keys;
+  }catch(e){}
+
+  const events = [];
+  for(const key of keys){
+    const parsed = parseExKey(key);
+    if(!parsed) continue;
+    const exDef = parsed.exDef;
+
+    let log = [];
+    try{
+      const item = await window.storage.get(key);
+      if(item && item.value) log = JSON.parse(item.value).map(normalizeExEntry);
+    }catch(e){}
+    log = log.filter(e=> (e.sets||[]).some(s=> s.weight!=null));
+    if(log.length === 0) continue;
+    log.sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
+
+    let runningMax = null;
+    log.forEach(entry=>{
+      const top = topSetOf(entry);
+      if(!top || top.weight == null) return;
+      if(runningMax === null || top.weight > runningMax){
+        events.push({date: entry.date, name: exDef.name, dayLabel: parsed.dayLabel, weight: top.weight, reps: top.reps});
+        runningMax = top.weight;
+      }
+    });
+  }
+
+  events.sort((a,b)=> new Date(b.date+'T00:00:00') - new Date(a.date+'T00:00:00'));
+  return events;
+}
+
+async function renderPrTimeline(){
+  const el = document.getElementById('prTimeline');
+  el.innerHTML = '<div class="empty-note">Loading…</div>';
+
+  const events = await reconstructAllPRs();
+  if(events.length === 0){
+    el.innerHTML = '<div class="empty-note">No PRs yet — the very first weight you log for any exercise counts as your first one.</div>';
+    return;
+  }
+
+  const rowHtmls = events.map(ev=>{
+    const d = new Date(ev.date+'T00:00:00');
+    const dateLabel = d.toLocaleDateString('en-US',{month:'short', day:'numeric'});
+    return `
+      <div class="pr-row">
+        <div class="pr-date">${dateLabel}</div>
+        <div class="pr-body">
+          <div class="pr-ex-name">🏆 ${ev.name}</div>
+          <div class="pr-day-label">${ev.dayLabel}</div>
+        </div>
+        <div class="pr-stat">${ev.weight} lb${ev.reps!=null ? ` × ${ev.reps}` : ''}</div>
+      </div>
+    `;
+  });
+
+  renderCollapsibleList(el, rowHtmls, 8, 'PRs');
 }
 
 function fmtMonthLabel(monthKey){
@@ -5939,12 +6409,12 @@ document.getElementById('coachVideoInput').addEventListener('change', async (e)=
 // exercises that load it.
 
 const CATEGORY_TO_REGIONS = {
-  push:['Shoulder','Elbow/Wrist'], pull:['Shoulder','Elbow/Wrist'],
-  squat:['Knee','Hip'], hinge:['Lower Back','Hip'], lunge:['Knee','Hip'],
-  shoulder:['Shoulder'], arms:['Elbow/Wrist'], core:['Lower Back'],
-  jump:['Knee','Ankle/Foot'], oly:['Shoulder','Lower Back','Knee'],
+  push:['Shoulder','Elbow/Wrist','Chest'], pull:['Shoulder','Elbow/Wrist','Upper Back'],
+  squat:['Knee','Hip'], hinge:['Lower Back','Hip'], lunge:['Knee','Hip','IT Band/Outer Thigh'],
+  shoulder:['Shoulder'], arms:['Elbow/Wrist','Hands/Fingers'], core:['Lower Back'],
+  jump:['Knee','Ankle/Foot','Shins'], oly:['Shoulder','Lower Back','Knee'],
   throw:['Shoulder'], punch:['Shoulder','Elbow/Wrist'], kick:['Hip','Knee','Ankle/Foot'],
-  cardio:['Ankle/Foot','Knee'],
+  cardio:['Ankle/Foot','Knee','Shins','IT Band/Outer Thigh'],
 };
 
 const SENSATION_LABELS = {
@@ -5959,12 +6429,19 @@ const RED_FLAG_SENSATIONS = ['sharp','pop','numb'];
 // hurts" caveat in the UI.
 const REGION_RELIEF = {
   'Shoulder': ['Pendulum Swings','Isometric Shoulder Hold','Band External Rotation','Scapular Retraction'],
-  'Elbow/Wrist': ['Wrist Flexor Stretch','Wrist Extensor Stretch'],
+  'Elbow/Wrist': ['Wrist Flexor Stretch','Wrist Extensor Stretch','Eccentric Wrist Extension','Grip Strengthening'],
+  'Upper Back': ['Thoracic Extension Over Foam Roller','Thoracic Spine Rotation (Open Book)','Prone Y-T-W Raises','Scapular Retraction'],
+  'Chest': ['Doorway Pec Stretch','Foam Roller Chest Opener','Band Pull-Apart','Wall Slides'],
   'Lower Back': ['Pelvic Tilt','Cat-Cow Mobility','Bird Dog','Child\'s Pose Breathing'],
   'Hip': ['Clamshell','Glute Bridge','Pigeon Pose','World\'s Greatest Stretch'],
-  'Knee': ['Quad Set','Straight Leg Raise','Terminal Knee Extension'],
-  'Ankle/Foot': ['Ankle Circles','Ankle Dorsiflexion Stretch','Single-Leg Balance'],
-  'Neck': ['Chin Tucks','Neck Rotation Stretch'],
+  'IT Band/Outer Thigh': ['Foam Rolling IT Band','Standing IT Band Stretch','Clamshell','Side-Lying Hip Abduction'],
+  'Knee': ['Quad Set','Straight Leg Raise','Terminal Knee Extension','Hamstring Stretch'],
+  'Shins': ['Calf Stretch','Tibialis Raise','Ankle Dorsiflexion Stretch','Ankle Circles'],
+  'Ankle/Foot': ['Ankle Circles','Ankle Dorsiflexion Stretch','Single-Leg Balance','Calf Stretch'],
+  'Neck': ['Chin Tucks','Neck Rotation Stretch','Upper Trap Stretch','Levator Scapulae Stretch'],
+  'Headache/Tension': ['Upper Trap Stretch','Suboccipital Release','Chin Tucks','Diaphragmatic Breathing'],
+  'Jaw/TMJ': ['Jaw Relaxation/Rest Position','TMJ Self-Massage (Masseter Release)','Controlled Jaw Opening (Goldfish Exercise)','Chin Tucks'],
+  'Hands/Fingers': ['Median Nerve Glide','Tendon Glides','Wrist Flexor Stretch','Grip Strengthening'],
   'Other': ['Diaphragmatic Breathing','Walking','Foam Rolling Full Body'],
 };
 
@@ -6021,6 +6498,77 @@ function buildReliefHtml(region){
       <div class="care-relief-note">Stop immediately if any of these reproduce sharp pain — these are general, low-risk suggestions, not a treatment plan. Full routines for this area live in the Recovery & Rehab training style.</div>
     </div>
   `;
+}
+
+// Hand-assigned rather than keyword-guessed — this bounded list only ever
+// needs to cover the items referenced in REGION_RELIEF, so precision matters
+// more here than a regex heuristic would reliably deliver (e.g. "Band
+// External Rotation" is a strengthening move despite "rotation" in the name).
+const CARE_TYPE_TAG = {
+  'Pendulum Swings':'mobility', 'Isometric Shoulder Hold':'strengthen', 'Band External Rotation':'strengthen', 'Scapular Retraction':'strengthen',
+  'Wrist Flexor Stretch':'stretch', 'Wrist Extensor Stretch':'stretch', 'Eccentric Wrist Extension':'strengthen', 'Grip Strengthening':'strengthen',
+  'Pelvic Tilt':'mobility', 'Cat-Cow Mobility':'mobility', 'Bird Dog':'strengthen', 'Child\'s Pose Breathing':'mobility',
+  'Clamshell':'strengthen', 'Glute Bridge':'strengthen', 'Pigeon Pose':'stretch', 'World\'s Greatest Stretch':'mobility',
+  'Quad Set':'strengthen', 'Straight Leg Raise':'strengthen', 'Terminal Knee Extension':'strengthen', 'Hamstring Stretch':'stretch',
+  'Ankle Circles':'mobility', 'Ankle Dorsiflexion Stretch':'stretch', 'Single-Leg Balance':'strengthen', 'Calf Stretch':'stretch',
+  'Chin Tucks':'strengthen', 'Neck Rotation Stretch':'stretch', 'Upper Trap Stretch':'stretch', 'Levator Scapulae Stretch':'stretch',
+  'Diaphragmatic Breathing':'mobility', 'Walking':'mobility', 'Foam Rolling Full Body':'mobility',
+  'Thoracic Extension Over Foam Roller':'mobility', 'Prone Y-T-W Raises':'strengthen', 'Doorway Pec Stretch':'stretch',
+  'Foam Roller Chest Opener':'stretch', 'Band Pull-Apart':'strengthen', 'Jaw Relaxation/Rest Position':'mobility',
+  'TMJ Self-Massage (Masseter Release)':'mobility', 'Controlled Jaw Opening (Goldfish Exercise)':'mobility',
+  'Suboccipital Release':'mobility', 'Median Nerve Glide':'mobility', 'Tendon Glides':'mobility',
+  'Foam Rolling IT Band':'mobility', 'Standing IT Band Stretch':'stretch', 'Side-Lying Hip Abduction':'strengthen',
+  'Tibialis Raise':'strengthen', 'Thoracic Spine Rotation (Open Book)':'mobility', 'Wall Slides':'mobility',
+};
+
+// Reuses the exact same accordion pattern as buildDetailsHtml (cues + video
+// link) so this reads as one consistent design language across the whole
+// app, rather than a separate "Care tab" visual style.
+function buildCareItemHtml(name){
+  const info = exerciseInfo[name];
+  if(!info) return '';
+  const type = CARE_TYPE_TAG[name] || 'mobility';
+  const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+  const query = encodeURIComponent(info.videoQuery || `${name} proper form`);
+  const cuesHtml = info.cues.map(c=>`<li>${c}</li>`).join('');
+  return `
+    <details class="ex-details care-details">
+      <summary><span class="care-type-tag ${type}">${typeLabel}</span> ${name}</summary>
+      <div class="ex-detail-body">
+        <div class="ex-detail-content">
+          <ul class="ex-cues">${cuesHtml}</ul>
+          <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
+        </div>
+      </div>
+    </details>
+  `;
+}
+
+function renderCareLibrary(region){
+  const el = document.getElementById('careLibraryList');
+  const list = REGION_RELIEF[region] || REGION_RELIEF['Other'];
+  const itemsHtml = list.map(buildCareItemHtml).join('');
+  el.innerHTML = itemsHtml || '<div class="empty-note">No entries yet for this area.</div>';
+}
+
+async function populateCareLibrarySelector(){
+  const sel = document.getElementById('careLibrarySelector');
+  if(sel.options.length === 0){
+    Object.keys(REGION_RELIEF).forEach(region=>{
+      const opt = document.createElement('option');
+      opt.value = region;
+      opt.textContent = region;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', ()=> renderCareLibrary(sel.value));
+  }
+  // Default to a currently-resting region if there is one — that's almost
+  // certainly what someone opening this card actually wants to see first.
+  const resting = await getRestingRegions();
+  if(resting.length > 0 && Object.keys(REGION_RELIEF).includes(resting[0])){
+    sel.value = resting[0];
+  }
+  renderCareLibrary(sel.value);
 }
 
 function buildCareResultHtml(sensation, region, pain){
@@ -6416,6 +6964,96 @@ async function renderVolumeTrend(){
   }).join('');
 }
 
+// --- RPE Trend: weekly average RPE across every logged set, all exercises
+// combined. This is the earliest-available fatigue signal in the whole app —
+// RPE creeping upward while weight/reps stay flat is the textbook precursor
+// to the "reps fall / deload" signal already built into the progression
+// engine (Israetel/Renaissance Periodization autoregulation model), visible
+// here weeks before it would show up as an actual performance drop.
+async function computeWeeklyRpeAvg(numWeeks){
+  let keys = [];
+  try{
+    const res = await window.storage.list('ex:');
+    if(res && res.keys) keys = res.keys;
+  }catch(e){}
+
+  const todayMonday = mondayOf(getTodayKey());
+  const weekStarts = [];
+  for(let i=numWeeks-1; i>=0; i--){
+    const d = new Date(todayMonday+'T00:00:00');
+    d.setDate(d.getDate() - 7*i);
+    weekStarts.push(d.toISOString().slice(0,10));
+  }
+
+  const buckets = {}; // weekStart -> {sum, count}
+  weekStarts.forEach(w=> buckets[w] = {sum:0, count:0});
+
+  for(const key of keys){
+    let log = [];
+    try{
+      const item = await window.storage.get(key);
+      if(item && item.value) log = JSON.parse(item.value).map(normalizeExEntry);
+    }catch(e){ continue; }
+
+    log.forEach(entry=>{
+      const wk = mondayOf(entry.date);
+      if(!(wk in buckets)) return;
+      (entry.sets||[]).forEach(s=>{
+        if(s.rpe != null){
+          buckets[wk].sum += s.rpe;
+          buckets[wk].count += 1;
+        }
+      });
+    });
+  }
+
+  return weekStarts.map(w=> ({
+    week: w,
+    avg: buckets[w].count > 0 ? buckets[w].sum / buckets[w].count : null,
+  }));
+}
+
+async function renderRpeTrend(){
+  const el = document.getElementById('rpeTrend');
+  el.innerHTML = '<div class="empty-note">Loading…</div>';
+
+  const weeklyData = await computeWeeklyRpeAvg(10);
+  const withData = weeklyData.filter(w=> w.avg != null);
+  if(withData.length < 2){
+    el.innerHTML = '<div class="empty-note">Log RPE on a few sets across at least two different weeks to see this trend.</div>';
+    return;
+  }
+
+  const w = 600, h = 70, pad = 8;
+  const min = Math.min(...withData.map(d=>d.avg));
+  const max = Math.max(...withData.map(d=>d.avg));
+  const range = (max-min) || 1;
+
+  // Build points only across weeks that actually have data, evenly spaced,
+  // so a gap week doesn't compress or distort the line.
+  const pts = withData.map((d,i)=>{
+    const x = pad + (i/(withData.length-1 || 1)) * (w-2*pad);
+    const y = h - pad - ((d.avg-min)/range) * (h-2*pad);
+    return `${x},${y}`;
+  }).join(' ');
+
+  const first = withData[0].avg, last = withData[withData.length-1].avg;
+  const delta = +(last-first).toFixed(1);
+  const deltaClass = delta > 0.3 ? 'w-up' : delta < -0.3 ? 'w-down' : 'w-flat';
+  const deltaSign = delta > 0 ? '+' : '';
+
+  el.innerHTML = `
+    <svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <polyline fill="none" stroke="#4FC3F7" stroke-width="2.5" points="${pts}"/>
+    </svg>
+    <div class="rpe-trend-labels">
+      <span>RPE ${withData[0].avg.toFixed(1)}</span>
+      <span class="${deltaClass}">${deltaSign}${delta} over ${withData.length} weeks</span>
+      <span>RPE ${withData[withData.length-1].avg.toFixed(1)}</span>
+    </div>
+  `;
+}
+
 async function renderAnalysis(){
   const tableEl = document.getElementById('weeklyTable');
   tableEl.innerHTML = '<div class="empty-note">Loading…</div>';
@@ -6427,6 +7065,7 @@ async function renderAnalysis(){
   renderSparkline(weightEntries);
   renderVolumeTrend();
   renderExerciseProgress();
+  renderRpeTrend();
 
   // Build last 6 week buckets (most recent first)
   const todayMonday = mondayOf(getTodayKey());
@@ -6517,6 +7156,7 @@ if(activeUserId){
     renderHeader();
     renderProfileSummary();
     renderProgramRec();
+    renderStreak();
 
     await loadMartialArtStyle();
     await loadActiveProgram();
