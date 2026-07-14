@@ -183,6 +183,23 @@
     padding:10px 12px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.25);
     border-radius:10px; font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
   }
+  .today-insight-row{
+    padding:10px 12px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.25);
+    border-radius:10px; font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:8px;
+  }
+  .today-insight-row:last-child{margin-bottom:0;}
+  .goal-feedback-good{
+    padding:10px 12px; background:rgba(61,170,87,0.1); border:1px solid rgba(61,170,87,0.3);
+    border-radius:8px; font-size:12.5px; line-height:1.5; color:var(--plate-green);
+  }
+  .goal-feedback-neutral{
+    padding:10px 12px; background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.25);
+    border-radius:8px; font-size:12.5px; line-height:1.5; color:var(--text);
+  }
+  .goal-feedback-warn{
+    padding:10px 12px; background:rgba(242,201,76,0.12); border:1px solid rgba(242,201,76,0.35);
+    border-radius:8px; font-size:12.5px; line-height:1.5; color:var(--plate-yellow);
+  }
 
   /* Smooth expand/collapse without JS height calculation — height + fade together */
   .expand-wrap{
@@ -540,6 +557,10 @@
   .vol-bar-track{height:8px; background:var(--surface2); border-radius:4px; overflow:hidden;}
   .vol-bar-fill{height:100%; background:var(--plate-blue); border-radius:4px; transition:width 0.5s var(--ease-smooth);}
   .vol-bar-labels{display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-muted); margin-top:4px; font-family:'IBM Plex Mono',monospace;}
+  .vol-landmark{font-size:11px; margin-top:6px; font-family:'IBM Plex Mono',monospace;}
+  .vol-landmark-within{color:var(--plate-green);}
+  .vol-landmark-below{color:var(--plate-yellow);}
+  .vol-landmark-above{color:#4FC3F7;}
 
   /* Reusable swipe-to-delete for list entries — pointer events work for both touch and mouse */
   .swipe-item{position:relative; overflow:hidden; border-radius:8px; margin-bottom:2px;}
@@ -847,6 +868,10 @@
   </div>
 
   <div id="todayView">
+  <div class="card" id="todayInsightsCard" style="display:none">
+    <div class="card-title">🧭 Today's Priorities</div>
+    <div id="todayInsightsList"></div>
+  </div>
   <div class="card">
     <div class="card-title nutrition-header" id="profileHeader">
       <span>👤 Your Profile</span>
@@ -1153,6 +1178,12 @@
       <div class="card-title">📊 Average RPE Trend</div>
       <div class="history-hint">Weekly average effort level across every logged set. A steady climb with no rest is the earliest warning sign of overreaching — well before performance actually drops.</div>
       <div id="rpeTrend"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎯 Goal Progress Check</div>
+      <div class="history-hint">Whether your actual weight/measurement trend lines up with your stated goal — not just a log of numbers.</div>
+      <div id="goalFeedback"></div>
     </div>
   </div>
 
@@ -3120,16 +3151,131 @@ async function renderStreak(){
   el.textContent = `🔥 ${streak} day${streak===1?'':'s'} streak`;
 }
 
+// --- Sleep-aware recovery nudge: purely informational, same spirit as the
+// per-exercise progression signals — it surfaces a pattern, it never edits
+// the workout for you. Only looks at last night's entry (or today's, if
+// logged early) so it can't go stale and nag about sleep from days ago.
+const POOR_SLEEP_THRESHOLD = 6;
+async function getSleepInsight(){
+  let entries = [];
+  try{
+    const res = await window.storage.get('sleep-log');
+    if(res && res.value) entries = JSON.parse(res.value);
+  }catch(e){ return null; }
+  if(!entries.length) return null;
+
+  const today = getTodayKey();
+  const yesterday = dateKeyMinusDays(today, 1);
+  const recent = entries.find(e=> e.date===today) || entries.find(e=> e.date===yesterday);
+  if(!recent) return null;
+
+  const hrs = Number(recent.hours);
+  if(hrs >= POOR_SLEEP_THRESHOLD) return null;
+
+  return `😴 <b>Recovery note:</b> Only ${hrs} hrs logged last night — strength, reaction time, and injury risk all take a real hit under ${POOR_SLEEP_THRESHOLD} hours. Consider trimming today's session to your top sets, or swapping in something lighter.`;
+}
+
+// --- Cycle-phase insight: deliberately just surfaces the SAME educational
+// training guidance already written for the Care tab's phase cards — this
+// does not calculate a different recommendation and never touches the
+// program itself. Consistent with the existing design choice (see the Care
+// tab cycle-tracking comment) to treat this as context, not an automatic
+// modifier — individual variation is significant, and only the person
+// training knows how they actually feel that day.
+async function getCycleInsight(){
+  if(userProfile.gender !== 'female') return null;
+  let data = null;
+  try{
+    const res = await window.storage.get('cycle-data');
+    if(res && res.value) data = JSON.parse(res.value);
+  }catch(e){ return null; }
+  if(!data || !data.lastPeriod || !data.cycleLength) return null;
+
+  const {phase} = computeCyclePhase(data.lastPeriod, data.cycleLength);
+  return `${phase.icon} <b>${phase.name}:</b> ${phase.training}`;
+}
+
+// --- Deload week banner: scheduled/proactive, complementing the reactive
+// per-exercise deload signal already in the progression engine.
+async function getDeloadInsight(){
+  const isDeload = await isDeloadWeek();
+  if(!isDeload) return null;
+  const week = await getMesocycleWeek();
+  return `🔻 <b>Deload week (week ${week}):</b> A planned lighter week — drop working weights ~10-20% and stop sets a couple reps short of failure. This is what lets the last month of hard training actually turn into progress instead of just fatigue.`;
+}
+
+// --- Unified Today Insights card: the single "what matters today" summary,
+// pulling together whichever of the above actually apply right now rather
+// than requiring a trip to Analysis/Care to piece it together. Hides itself
+// completely when nothing is currently relevant, rather than showing an
+// empty card.
+async function renderTodayInsights(){
+  const card = document.getElementById('todayInsightsCard');
+  const el = document.getElementById('todayInsightsList');
+  if(!card || !el) return;
+
+  const [deload, sleep, cycle] = await Promise.all([
+    getDeloadInsight(), getSleepInsight(), getCycleInsight()
+  ]);
+
+  const items = [deload, sleep, cycle].filter(Boolean);
+  if(items.length === 0){
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = '';
+  el.innerHTML = items.map(text=> `<div class="today-insight-row">${text}</div>`).join('');
+}
+
 async function loadActiveProgram(){
   try{
     const res = await window.storage.get('active-program');
     if(res && res.value && programs[res.value]) activeProgram = res.value;
   }catch(e){}
   dayDefs = programs[activeProgram].days;
+
+  // Establish a mesocycle start date the first time the app runs a version
+  // with deload-week tracking, so existing users get a baseline immediately
+  // rather than deload detection silently doing nothing until they happen
+  // to switch programs.
+  try{
+    const res = await window.storage.get('program-cycle-start');
+    if(!res || !res.value){
+      await window.storage.set('program-cycle-start', getTodayKey());
+    }
+  }catch(e){}
 }
 
 async function saveActiveProgram(){
-  try{ await window.storage.set('active-program', activeProgram); }catch(e){}
+  try{
+    await window.storage.set('active-program', activeProgram);
+    // Switching training styles is a natural mesocycle boundary — reset the
+    // deload-week clock so it counts from the new program, not the old one.
+    await window.storage.set('program-cycle-start', getTodayKey());
+  }catch(e){}
+}
+
+// --- Deload week detection: standard block-periodization structure (e.g.
+// the 4-weeks-progressive + 1-week-deload pattern used throughout
+// Helms/Renaissance Periodization programming) applied at the whole-program
+// level, complementing the per-exercise reactive deload signal already in
+// the progression engine. This one is proactive/scheduled rather than
+// reactive to performance — the two catch different situations.
+const DELOAD_CYCLE_WEEKS = 5; // every 5th week (weeks 5, 10, 15…) is a deload week
+async function getMesocycleWeek(){
+  let startDate = getTodayKey();
+  try{
+    const res = await window.storage.get('program-cycle-start');
+    if(res && res.value) startDate = res.value;
+  }catch(e){}
+  const start = new Date(startDate+'T00:00:00');
+  const today = new Date(getTodayKey()+'T00:00:00');
+  const daysSince = Math.max(0, Math.floor((today-start)/86400000));
+  return Math.floor(daysSince/7) + 1; // 1-indexed week number
+}
+async function isDeloadWeek(){
+  const week = await getMesocycleWeek();
+  return week % DELOAD_CYCLE_WEEKS === 0;
 }
 
 function renderProgramSelector(){
@@ -3412,6 +3558,10 @@ function topSetOf(entry){
 
 function volumeOf(entry){
   return (entry.sets||[]).reduce((sum,s)=> sum + (s.weight!=null && s.reps!=null ? s.weight*s.reps : 0), 0);
+}
+
+function setCountOf(entry){
+  return (entry.sets||[]).filter(s=> s.weight!=null && s.reps!=null).length;
 }
 
 function estimated1RM(weight, reps){
@@ -3780,7 +3930,9 @@ async function renderWorkout(){
       const exRegions = CATEGORY_TO_REGIONS[info.category] || [];
       const hitRegions = exRegions.filter(r=> restingRegions.includes(r));
       if(hitRegions.length){
-        cautionHtml = `<div class="ex-caution">⚠️ You marked ${hitRegions.join(' & ')} as resting — consider skipping or lightening this one. Clear it in Care when you're ready.</div>`;
+        const sub = suggestSubstitute(info.category, ex.name);
+        const swapHtml = sub ? ` Try <b>${sub.name}</b> instead — ${sub.why}.` : '';
+        cautionHtml = `<div class="ex-caution">⚠️ You marked ${hitRegions.join(' & ')} as resting — consider skipping or lightening this one.${swapHtml} Clear it in Care when you're ready.</div>`;
       }
     }
 
@@ -4498,6 +4650,7 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
   renderWorkout();
   renderWater();
   renderCycleTracking();
+  renderTodayInsights();
   loadFoodLog(); // refresh macro bars against new targets
 
   // Keep this device's profile picker label in sync with the name just saved
@@ -5566,6 +5719,7 @@ document.getElementById('saveSleep').addEventListener('click', async ()=>{
     await window.storage.set('sleep-log', JSON.stringify(entries));
     input.value = '';
     loadSleep();
+    renderTodayInsights();
   }catch(e){}
 });
 
@@ -5701,6 +5855,7 @@ document.getElementById('saveCycle').addEventListener('click', async ()=>{
     status.textContent = 'Saved ✓';
     setTimeout(()=> status.textContent = '', 2000);
     renderCycleTracking();
+    renderTodayInsights();
   }catch(e){
     status.textContent = 'Could not save — try again';
   }
@@ -5840,6 +5995,14 @@ function fmtWeekLabel(mondayStr){
 async function fetchAllWeightEntries(){
   try{
     const res = await window.storage.get('weight-log');
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){}
+  return [];
+}
+
+async function fetchAllMeasurements(){
+  try{
+    const res = await window.storage.get('measurements-log');
     if(res && res.value) return JSON.parse(res.value);
   }catch(e){}
   return [];
@@ -6417,6 +6580,38 @@ const CATEGORY_TO_REGIONS = {
   cardio:['Ankle/Foot','Knee','Shins','IT Band/Outer Thigh'],
 };
 
+// --- Injury-aware substitution: turns the resting-region caution from a
+// passive warning into an actual suggestion. Kept at the category level
+// (rather than a per-exercise map, which would need hundreds of entries
+// across 14 programs) since the joint/tissue stressed is driven mainly by
+// the movement pattern itself. Each alternative deliberately reduces load,
+// range, or impact on the affected area rather than just being "a different
+// exercise" — e.g. isometric holds avoid joint movement entirely, which is
+// the standard early-stage-rehab approach for a still-sensitive area.
+const SUBSTITUTION_MAP = {
+  push: {alts:['Push-up (partial range)','Machine Chest Press','Landmine Press'], why:'reduces end-range shoulder loading'},
+  pull: {alts:['Chest-Supported Row','Band Pull-Apart','Scapular Retraction'], why:'removes the lower-back and grip strain of heavier pulling'},
+  squat: {alts:['Wall Sit','Leg Press (light, partial depth)','Quad Set'], why:'reduces knee shear force and spinal loading'},
+  hinge: {alts:['Glute Bridge','Bird Dog','Pelvic Tilt'], why:'keeps the posterior chain moving without heavy spinal loading'},
+  lunge: {alts:['Step-Up (low box)','Glute Bridge','Terminal Knee Extension'], why:'reduces single-leg knee stress'},
+  shoulder: {alts:['Isometric Shoulder Hold','Pendulum Swings','Band External Rotation'], why:'keeps the joint moving without loading it'},
+  arms: {alts:['Wrist Flexor Stretch','Grip Strengthening (light)','Isometric Shoulder Hold'], why:'lighter loading for a sensitive elbow or wrist'},
+  core: {alts:['Bird Dog','Pelvic Tilt','Cat-Cow Mobility'], why:'trains stability without spinal flexion load'},
+  jump: {alts:['Step-Up (low box)','Ankle Circles','Calf Stretch'], why:'removes impact loading on a sensitive joint'},
+  oly: {alts:['Bird Dog','Glute Bridge','Band External Rotation'], why:'removes the high technical and loading demand'},
+  throw: {alts:['Isometric Shoulder Hold','Pendulum Swings'], why:'removes ballistic shoulder loading'},
+  punch: {alts:['Shadowboxing (no resistance)','Isometric Shoulder Hold'], why:'keeps technique sharp without impact loading'},
+  kick: {alts:['Hip CARs','Pigeon Pose','Ankle Circles'], why:'keeps hip mobility without impact loading'},
+  cardio: {alts:['Walking','Calf Stretch'], why:'keeps you moving at low impact'},
+};
+
+function suggestSubstitute(category, currentExName){
+  const sub = SUBSTITUTION_MAP[category];
+  if(!sub) return null;
+  const pick = sub.alts.find(a=> a !== currentExName) || sub.alts[0];
+  return {name: pick, why: sub.why};
+}
+
 const SENSATION_LABELS = {
   sharp:'Sharp or sudden pain', pop:'Felt a pop or snap', numb:'Tingling or numbness',
   ache:'Gradual ache that built up', tight:'Tightness or cramping', other:'Something else',
@@ -6837,6 +7032,33 @@ const MUSCLE_GROUP_MAP = {
   cardio:'Cardio',
 };
 
+// Weekly direct+indirect set-count ranges commonly cited in hypertrophy
+// research (Schoenfeld's volume meta-analyses, and the MEV-MAV-MRV framework
+// used throughout Israetel/Renaissance Periodization programming) as a
+// starting point for "enough volume to grow" per muscle group per week.
+// These are set-COUNT ranges, not lb-volume — total lb lifted isn't
+// comparable across people or loads, so this deliberately tracks a separate
+// number from the existing thisWeek/lastWeek lb totals below. Only applied
+// to groups these landmarks actually describe; combat/cardio/power work
+// isn't a hypertrophy-volume question, so no landmark is invented for them.
+const VOLUME_LANDMARKS = {
+  'Chest & Shoulders': [10, 20],
+  'Back': [10, 20],
+  'Arms': [8, 16],
+  'Legs (Quads)': [10, 20],
+  'Posterior Chain': [8, 16],
+  'Core': [6, 15],
+};
+
+function volumeLandmarkLabel(group, sets){
+  const range = VOLUME_LANDMARKS[group];
+  if(!range) return null;
+  const [lo, hi] = range;
+  if(sets < lo) return {status:'below', text:`${sets} sets/wk — below the typical ${lo}-${hi} range for growth`};
+  if(sets > hi) return {status:'above', text:`${sets} sets/wk — above the typical ${lo}-${hi} range (fine if recovery keeps up)`};
+  return {status:'within', text:`${sets} sets/wk — within the typical ${lo}-${hi} range`};
+}
+
 async function getWeekArchive(){
   try{
     const res = await window.storage.get('week-archive');
@@ -6924,10 +7146,12 @@ async function renderVolumeTrend(){
     log.forEach(entry=>{
       const entryDate = new Date(entry.date+'T00:00:00');
       const vol = volumeOf(entry);
-      if(vol <= 0) return;
-      if(!groupVolumes[group]) groupVolumes[group] = {thisWeek:0, lastWeek:0};
+      const sets = setCountOf(entry);
+      if(vol <= 0 && sets <= 0) return;
+      if(!groupVolumes[group]) groupVolumes[group] = {thisWeek:0, lastWeek:0, setsThisWeek:0};
       if(entryDate >= thisWeekStart){
         groupVolumes[group].thisWeek += vol;
+        groupVolumes[group].setsThisWeek += sets;
       } else if(entryDate >= lastWeekStart && entryDate < lastWeekEnd){
         groupVolumes[group].lastWeek += vol;
       }
@@ -6943,11 +7167,13 @@ async function renderVolumeTrend(){
   groups.sort((a,b)=> groupVolumes[b].thisWeek - groupVolumes[a].thisWeek);
 
   el.innerHTML = groups.map(g=>{
-    const {thisWeek, lastWeek} = groupVolumes[g];
+    const {thisWeek, lastWeek, setsThisWeek} = groupVolumes[g];
     const delta = lastWeek>0 ? Math.round(((thisWeek-lastWeek)/lastWeek)*100) : null;
     const deltaHtml = delta===null ? '<span class="delta-flat">new</span>' :
       `<span class="${delta>=0?'delta-up':'delta-down'}">${delta>=0?'+':''}${delta}%</span>`;
     const maxVal = Math.max(thisWeek, lastWeek, 1);
+    const landmark = volumeLandmarkLabel(g, setsThisWeek);
+    const landmarkHtml = landmark ? `<div class="vol-landmark vol-landmark-${landmark.status}">${landmark.text}</div>` : '';
     return `
       <div class="vol-row">
         <div class="vol-row-top">
@@ -6959,6 +7185,7 @@ async function renderVolumeTrend(){
           <span>This week: ${thisWeek.toLocaleString()} lb</span>
           <span>Last week: ${lastWeek.toLocaleString()} lb</span>
         </div>
+        ${landmarkHtml}
       </div>
     `;
   }).join('');
@@ -7054,6 +7281,88 @@ async function renderRpeTrend(){
   `;
 }
 
+// --- Body measurement <-> goal feedback loop: closes the loop between the
+// stated profile goal and what the actual numbers show, rather than leaving
+// weight/measurement logging as a passive record with no interpretation.
+// Requires at least ~2 weeks of spread-out data before saying anything —
+// a single pair of entries a day apart isn't a trend, it's noise.
+const GOAL_FEEDBACK_LOOKBACK_DAYS = 42;
+const GOAL_FEEDBACK_MIN_SPAN_DAYS = 14;
+
+function computeGoalFeedback(profile, weightEntries, measureEntries){
+  const goal = profile.goal;
+  if(!goal || goal === 'performance') return null; // not a body-composition goal — nothing meaningful to compare here
+
+  const cutoff = new Date(getTodayKey()+'T00:00:00');
+  cutoff.setDate(cutoff.getDate() - GOAL_FEEDBACK_LOOKBACK_DAYS);
+
+  const wSorted = weightEntries
+    .filter(e=> new Date(e.date+'T00:00:00') >= cutoff)
+    .sort((a,b)=> new Date(a.date)-new Date(b.date));
+  const mSorted = measureEntries
+    .filter(e=> new Date(e.date+'T00:00:00') >= cutoff)
+    .sort((a,b)=> new Date(a.date)-new Date(b.date));
+
+  const spanDays = arr => arr.length>=2 ? Math.round((new Date(arr[arr.length-1].date)-new Date(arr[0].date))/86400000) : 0;
+  const wSpan = spanDays(wSorted);
+  const withWaist = mSorted.filter(e=>e.waist);
+  const withArms = mSorted.filter(e=>e.arms);
+  const mSpan = Math.max(spanDays(withWaist), spanDays(withArms));
+
+  if(wSpan < GOAL_FEEDBACK_MIN_SPAN_DAYS && mSpan < GOAL_FEEDBACK_MIN_SPAN_DAYS) return null;
+
+  const weightDelta = wSpan >= GOAL_FEEDBACK_MIN_SPAN_DAYS ? +(wSorted[wSorted.length-1].weight - wSorted[0].weight).toFixed(1) : null;
+  const waistDelta = spanDays(withWaist) >= GOAL_FEEDBACK_MIN_SPAN_DAYS ? +(Number(withWaist[withWaist.length-1].waist) - Number(withWaist[0].waist)).toFixed(1) : null;
+  const armsDelta = spanDays(withArms) >= GOAL_FEEDBACK_MIN_SPAN_DAYS ? +(Number(withArms[withArms.length-1].arms) - Number(withArms[0].arms)).toFixed(1) : null;
+
+  if(weightDelta==null && waistDelta==null && armsDelta==null) return null;
+
+  const weeks = Math.max(1, Math.round(Math.max(wSpan, mSpan)/7));
+
+  if(goal === 'lose'){
+    if(weightDelta!=null && weightDelta <= -1) return {status:'on-track', text:`⬇ Weight down ${Math.abs(weightDelta)} lb over ~${weeks} weeks — tracking well against your fat-loss goal.`};
+    if(waistDelta!=null && waistDelta <= -0.5) return {status:'on-track', text:`⬇ Waist down ${Math.abs(waistDelta)}" over ~${weeks} weeks, even if the scale hasn't moved much — a good sign for fat loss specifically.`};
+    if(weightDelta!=null) return {status:'stalled', text:`Weight has barely moved (${weightDelta>=0?'+':''}${weightDelta} lb) over ~${weeks} weeks despite a fat-loss goal — worth auditing calorie intake or activity level.`};
+    return null;
+  }
+  if(goal === 'gain'){
+    if(weightDelta!=null && weightDelta >= 1) return {status:'on-track', text:`⬆ Weight up ${weightDelta} lb over ~${weeks} weeks — solid progress toward your muscle-gain goal.`};
+    if(armsDelta!=null && armsDelta >= 0.25) return {status:'on-track', text:`⬆ Arms up ${armsDelta}" over ~${weeks} weeks — real growth, even if the scale hasn't moved much yet.`};
+    if(weightDelta!=null) return {status:'stalled', text:`Weight has barely moved (${weightDelta>=0?'+':''}${weightDelta} lb) over ~${weeks} weeks despite a muscle-gain goal — you may need a larger calorie surplus.`};
+    return null;
+  }
+  if(goal === 'recomp'){
+    if(waistDelta!=null && waistDelta<-0.25 && armsDelta!=null && armsDelta>0.1){
+      return {status:'on-track', text:`🎯 Waist down ${Math.abs(waistDelta)}" and arms up ${armsDelta}" over ~${weeks} weeks — that's the recomp signature (down in the middle, up in the muscle), even with the scale barely moving.`};
+    }
+    if(weightDelta!=null && Math.abs(weightDelta)<=2 && waistDelta==null && armsDelta==null){
+      return {status:'neutral', text:`Weight is fairly stable over ~${weeks} weeks — log a waist and arm measurement too, since recomp progress is exactly what the scale alone can't show.`};
+    }
+    return null;
+  }
+  if(goal === 'maintain'){
+    if(weightDelta!=null){
+      if(Math.abs(weightDelta) <= 2) return {status:'on-track', text:`Weight has stayed within ${Math.abs(weightDelta)} lb over ~${weeks} weeks — right where a maintenance goal wants it.`};
+      return {status:'drifting', text:`Weight has drifted ${weightDelta>0?'up':'down'} ${Math.abs(weightDelta)} lb over ~${weeks} weeks despite a maintenance goal — worth a small calorie adjustment.`};
+    }
+    return null;
+  }
+  return null;
+}
+
+async function renderGoalFeedback(){
+  const el = document.getElementById('goalFeedback');
+  if(!el) return;
+  const [weightEntries, measureEntries] = await Promise.all([fetchAllWeightEntries(), fetchAllMeasurements()]);
+  const feedback = computeGoalFeedback(userProfile, weightEntries, measureEntries);
+  if(!feedback){
+    el.innerHTML = '<div class="empty-note">Log weight and/or measurements across at least two weeks to see how they line up with your goal.</div>';
+    return;
+  }
+  const cls = feedback.status==='on-track' ? 'goal-feedback-good' : feedback.status==='neutral' ? 'goal-feedback-neutral' : 'goal-feedback-warn';
+  el.innerHTML = `<div class="${cls}">${feedback.text}</div>`;
+}
+
 async function renderAnalysis(){
   const tableEl = document.getElementById('weeklyTable');
   tableEl.innerHTML = '<div class="empty-note">Loading…</div>';
@@ -7066,6 +7375,7 @@ async function renderAnalysis(){
   renderVolumeTrend();
   renderExerciseProgress();
   renderRpeTrend();
+  renderGoalFeedback();
 
   // Build last 6 week buckets (most recent first)
   const todayMonday = mondayOf(getTodayKey());
@@ -7157,6 +7467,7 @@ if(activeUserId){
     renderProfileSummary();
     renderProgramRec();
     renderStreak();
+    renderTodayInsights();
 
     await loadMartialArtStyle();
     await loadActiveProgram();
