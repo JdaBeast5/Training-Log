@@ -573,6 +573,28 @@
   }
   .photo-result-title{font-size:12.5px; font-weight:600; color:var(--plate-green); margin-bottom:8px;}
   .photo-result-item{display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--line); font-size:12.5px;}
+
+  .photo-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:10px;}
+  .photo-thumb-wrap{position:relative; aspect-ratio:3/4; border-radius:8px; overflow:hidden; background:var(--surface2); cursor:pointer;}
+  .photo-thumb-wrap img{width:100%; height:100%; object-fit:cover; display:block;}
+  .photo-thumb-date{
+    position:absolute; bottom:0; left:0; right:0; padding:4px 6px; font-size:10px; color:#fff;
+    background:linear-gradient(transparent, rgba(0,0,0,0.75)); text-align:center;
+  }
+  .photo-lightbox{
+    position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:80; display:none;
+    align-items:center; justify-content:center; flex-direction:column; padding:20px;
+  }
+  .photo-lightbox.active{display:flex;}
+  .photo-lightbox img{max-width:100%; max-height:75vh; border-radius:10px; object-fit:contain;}
+  .photo-lightbox-date{color:var(--text-muted); font-size:13px; margin-top:12px;}
+  .photo-lightbox-actions{display:flex; gap:12px; margin-top:16px;}
+  .photo-lightbox-actions button{
+    padding:10px 20px; border-radius:8px; font-weight:600; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; border:none;
+  }
+  .photo-lightbox-close{background:var(--surface2); color:var(--text);}
+  .photo-lightbox-delete{background:rgba(232,67,63,0.15); color:var(--plate-red);}
+
   .photo-result-item:last-child{border-bottom:none;}
   .photo-add-all-btn{
     width:100%; margin-top:10px; padding:10px; background:var(--plate-green); color:#fff; border:none;
@@ -1085,6 +1107,11 @@
         <div class="macro-val" id="valCarb">0 / 250</div>
       </div>
 
+      <div class="meal-suggest-card">
+        <div class="meal-suggest-title">🍽️ What to Eat Next</div>
+        <div id="mealSuggestContent"></div>
+      </div>
+
       <div class="water-tracker">
         <div class="water-header">
           <span>💧 Water</span>
@@ -1100,6 +1127,9 @@
       </div>
 
       <div class="food-log-list" id="foodLogList"></div>
+
+      <button class="photo-log-btn" id="suggestMealBtn">💡 Suggest Something to Eat</button>
+      <div id="mealSuggestions"></div>
 
       <button class="photo-log-btn" id="photoLogBtn">📷 Snap or Upload a Meal Photo</button>
       <input type="file" id="photoLogInput" accept="image/*" style="display:none">
@@ -1173,6 +1203,20 @@
       <button class="save-btn" id="saveMeasurements">Log Measurements</button>
       <div class="status-msg" id="measureStatus"></div>
       <div class="weight-list" id="measureList"></div>
+    </div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title nutrition-header" id="photosHeader">
+      <span>📸 Progress Photos</span>
+      <span class="ex-chevron" id="photosChevron">›</span>
+    </div>
+    <div class="nutrition-summary" id="photosSummary">Tap to log — a visual record the scale and tape measure can't show</div>
+    <div class="expand-wrap" id="photosExpandWrap"><div>
+      <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none">
+      <button class="photo-log-btn" id="photoAddBtn">📸 Add Progress Photo</button>
+      <div class="status-msg" id="photoStatus"></div>
+      <div class="photo-grid" id="photoGrid"></div>
     </div></div>
   </div>
 
@@ -1430,6 +1474,15 @@
 <div class="undo-toast" id="undoToast">
   <span id="undoToastText"></span>
   <button id="undoToastBtn">Undo</button>
+</div>
+
+<div class="photo-lightbox" id="photoLightbox">
+  <img id="photoLightboxImg" src="" alt="Progress photo">
+  <div class="photo-lightbox-date" id="photoLightboxDate"></div>
+  <div class="photo-lightbox-actions">
+    <button class="photo-lightbox-close" id="photoLightboxClose">Close</button>
+    <button class="photo-lightbox-delete" id="photoLightboxDelete">Delete</button>
+  </div>
 </div>
 
 <script>
@@ -2876,6 +2929,137 @@ const programs = {
         label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
         note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.'
       },
+    }
+  },
+
+  hyrox: {
+    label: 'Hyrox', short: 'Functional fitness racing — running paired with 8 race-specific stations',
+    days: {
+      d1: { label:'Day 1', sub:'Running Base + Engine Work', plate:'p-red', plateNum:'25', duration:'~45 min',
+        exercises:[
+          {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+          {name:'Tempo Run', sets:'20 min', noWeight:true},
+          {name:'Rowing Machine Intervals', sets:'6×500m', noWeight:true},
+          {name:'Cool-down Jog', sets:'5-10 min', noWeight:true},
+        ]},
+      d2: { label:'Day 2', sub:'Sled Work + Lower Body Strength', plate:'p-blue', plateNum:'20', duration:'~45 min',
+        exercises:[
+          {name:'Back Squat', sets:'4×6'},
+          {name:'Sled Push', sets:'5×20m'},
+          {name:'Sled Pull', sets:'5×20m', noWeight:true},
+          {name:'Romanian Deadlift', sets:'3×8'},
+        ]},
+      d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Hip, ankle, and shoulder mobility, 20-25 min. Between running volume and sled/carry work, this program loads the whole body hard — recovery isn\'t optional here.' },
+      d4: { label:'Day 4', sub:'Station Skills', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+        exercises:[
+          {name:'Wall Balls', sets:'5×15', noWeight:true},
+          {name:'Burpee Broad Jumps', sets:'4×10', noWeight:true},
+          {name:'Sandbag Lunges', sets:'4×20'},
+          {name:'SkiErg Intervals', sets:'6×250m', noWeight:true},
+        ]},
+      d5: { label:'Day 5', sub:'Compromised Running (Brick Intervals)', plate:'p-green', plateNum:'10', duration:'~45 min',
+        exercises:[
+          {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+          {name:'400m Repeats', sets:'4×400m', noWeight:true},
+          {name:'Wall Balls', sets:'4×15', noWeight:true},
+          {name:'Burpee Broad Jumps', sets:'3×10', noWeight:true},
+        ]},
+      d6: { label:'Day 6', sub:'Full Simulation Finisher', plate:'p-off', plateNum:'5', duration:'~45 min',
+        exercises:[
+          {name:'Farmers Carry (Heavy)', sets:'4×40m'},
+          {name:'Sandbag Lunges', sets:'3×20'},
+          {name:'Rowing Machine Intervals', sets:'4×500m', noWeight:true},
+          {name:'Wall Balls', sets:'3×20', noWeight:true},
+        ]},
+      d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+    }
+  },
+
+  grappling: {
+    label: 'BJJ / Grappling', short: 'Positional control, submissions, and takedowns — gi or no-gi',
+    days: {
+      d1: { label:'Day 1', sub:'Guard Fundamentals & Escapes', plate:'p-red', plateNum:'25', duration:'~40 min',
+        exercises:[
+          {name:'Hip Escape (Shrimping)', sets:'4×8/side', noWeight:true},
+          {name:'Bridge & Roll (Upa Escape)', sets:'4×5/side', noWeight:true},
+          {name:'Technical Stand-up', sets:'3×6/side', noWeight:true},
+          {name:'Guard Retention Drill', sets:'4×2min rounds', noWeight:true},
+        ]},
+      d2: { label:'Day 2', sub:'Guard Passing & Pressure', plate:'p-blue', plateNum:'20', duration:'~45 min',
+        exercises:[
+          {name:'Knee Slice Pass', sets:'5×5/side', noWeight:true},
+          {name:'Torreando Pass', sets:'5×5', noWeight:true},
+          {name:'Combat Base Drill', sets:'4×30-45s', noWeight:true},
+        ]},
+      d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Neck, hip, and shoulder mobility, 20-25 min. Grappling loads the neck and hips in ways few other sports do — don\'t skip this.' },
+      d4: { label:'Day 4', sub:'Takedowns & Clinch', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+        exercises:[
+          {name:'Double Leg Takedown', sets:'5×5', noWeight:true},
+          {name:'Single Leg Takedown', sets:'5×5/side', noWeight:true},
+          {name:'Sprawl Drills', sets:'5×2min rounds', noWeight:true},
+        ]},
+      d5: { label:'Day 5', sub:'Submissions & Control', plate:'p-green', plateNum:'10', duration:'~45 min',
+        exercises:[
+          {name:'Rear Naked Choke Drill', sets:'5×5/side', noWeight:true},
+          {name:'Armbar from Guard Drill', sets:'5×5/side', noWeight:true},
+          {name:'Mount Control & Maintenance', sets:'4×1min/side', noWeight:true},
+        ]},
+      d6: { label:'Day 6', sub:'Live Rolling & Conditioning', plate:'p-off', plateNum:'5', duration:'~45 min',
+        exercises:[
+          {name:'Positional Sparring (Guard Retention)', sets:'6×3min rounds', noWeight:true},
+          {name:'Neck Bridges', sets:'3×8', noWeight:true},
+          {name:'Farmers Carry (Heavy)', sets:'3×30m'},
+        ]},
+      d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+    }
+  },
+
+  pilates: {
+    label: 'Pilates', short: 'Classical mat work — powerhouse control, spinal articulation, breath-timed movement',
+    days: {
+      d1: { label:'Day 1', sub:'Foundations & Powerhouse Activation', plate:'p-red', plateNum:'25', duration:'~35 min',
+        exercises:[
+          {name:'The Hundred', sets:'1×100 pumps', noWeight:true},
+          {name:'Roll-Up', sets:'5-8 reps', noWeight:true},
+          {name:'Glute Bridge', sets:'2×12', noWeight:true},
+          {name:'Dead Bug', sets:'2×10/side', noWeight:true},
+        ]},
+      d2: { label:'Day 2', sub:'Abdominal Series I', plate:'p-blue', plateNum:'20', duration:'~35 min',
+        exercises:[
+          {name:'Single Leg Stretch', sets:'2×10/side', noWeight:true},
+          {name:'Double Leg Stretch', sets:'2×8-10', noWeight:true},
+          {name:'Criss-Cross', sets:'2×10/side', noWeight:true},
+          {name:'Spine Stretch Forward', sets:'2×6-8', noWeight:true},
+        ]},
+      d3: { label:'Day 3', sub:'Rest / Gentle Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+        note:'Gentle spinal mobility and breath work, 15-20 min. Precise control is the whole point of this method — real rest protects that quality for the next session.' },
+      d4: { label:'Day 4', sub:'Abdominal Series II & Control', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+        exercises:[
+          {name:'Rolling Like a Ball', sets:'2×8-10', noWeight:true},
+          {name:'Single Leg Circles', sets:'2×6/direction/side', noWeight:true},
+          {name:'Saw', sets:'2×5/side', noWeight:true},
+          {name:'Plank', sets:'2×30-45s', noWeight:true},
+        ]},
+      d5: { label:'Day 5', sub:'Back Extension & Posture', plate:'p-green', plateNum:'10', duration:'~35 min',
+        exercises:[
+          {name:'Swan', sets:'2×6-8', noWeight:true},
+          {name:'Bird Dog', sets:'2×8/side', noWeight:true},
+          {name:'Side Plank', sets:'2×20-30s/side', noWeight:true},
+          {name:'Side Kick Series', sets:'2×10/side', noWeight:true},
+        ]},
+      d6: { label:'Day 6', sub:'Full Flow & Teaser Work', plate:'p-off', plateNum:'5', duration:'~40 min',
+        exercises:[
+          {name:'The Hundred', sets:'1×100 pumps', noWeight:true},
+          {name:'Roll-Up', sets:'6-8 reps', noWeight:true},
+          {name:'Teaser (Prep)', sets:'3×5', noWeight:true},
+          {name:'Spine Stretch Forward', sets:'2×6-8', noWeight:true},
+        ]},
+      d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
     }
   },
 };
@@ -4790,6 +4974,64 @@ const exerciseInfo = {
   'Bow Stance Transitions (Gong Bu)': {category:'lunge', videoQuery:'tai chi bow stance gong bu transition tutorial', cues:['Shift smoothly between a front bow stance (front knee bent over the toes, back leg straight) and a back-weighted stance, keeping the transition slow and perfectly controlled rather than a quick step.','Keep the torso upright throughout the shift — leaning forward or back to help the transition is a sign the legs aren\'t yet doing the actual work of the weight shift.','Nearly every forward-stepping posture in the form (Single Whip, Brush Knee, and others) depends on this exact transition being clean and controlled.']},
   'Golden Rooster Stands on One Leg': {category:'core', videoQuery:'tai chi golden rooster stands on one leg tutorial', cues:['Rise onto one leg while the other knee lifts to hip height, the same-side hand rising in a coordinated upward palm as the opposite hand presses gently downward at the hip.','Fix your gaze on a still point ahead and keep breathing slowly — holding the breath is a common, self-defeating reaction to the balance challenge here.','A genuine balance test woven directly into the form rather than a separate drill, and one of the clearest single-posture indicators of whether rooting and weight control are actually solid.']},
   'Short Form Flow (Full Run-Through)': {category:'core', videoQuery:'tai chi short form full sequence flow tutorial', cues:['Link every posture practiced this week into one continuous, unbroken sequence, moving at a slow, even pace from start to finish without pausing to think between postures.','Prioritize smoothness and continuous weight transfer over getting any single posture "perfect" in isolation — the form is one connected movement, not a series of individual poses stopped and started.','Running the full sequence regularly is what actually integrates everything trained in isolation earlier in the week — this is the tai chi equivalent of full-speed sparring after drilling individual techniques.']},
+
+  // Hyrox (functional fitness racing) — the 8-station format (SkiErg, sled
+  // push/pull, burpee broad jumps, rowing, farmers carry, sandbag lunges,
+  // wall balls, each preceded by a 1km run) demands training that's
+  // different from either pure strength or pure endurance work: stations
+  // performed on already-fatigued legs from repeated running, which is why
+  // "compromised running" — running intervals deliberately paired with
+  // station work rather than run separately — is the sport's signature
+  // training method, not just a race-day format.
+  'SkiErg Intervals': {category:'cardio', videoQuery:'skierg technique intervals hyrox tutorial', cues:['Drive the pull from the hips and lats, hinging forward at the hip as the handles come down, rather than pulling with the arms alone.','Reset with control at the top of the stroke, arms extended and reaching tall, so each stroke starts from full length rather than a shortened, arm-only range.','Pace evenly across the set — starting too hard on the SkiErg specifically is a common way Hyrox athletes blow up their legs before the run that follows it.']},
+  'Rowing Machine Intervals': {category:'cardio', videoQuery:'rowing machine technique intervals tutorial', cues:['Sequence every stroke the same way: legs drive first, then the hips and back open, then the arms finish the pull — reversing that order (pulling with the arms early) is the most common technical error on an erg.','Keep the return controlled and unhurried — roughly twice as long as the drive — rather than rushing back to the catch position.','A higher damper setting does not automatically mean a harder or better workout; matching the damper to the stroke rate you can actually sustain matters more than chasing a high number.']},
+  'Sled Pull': {category:'cardio', videoQuery:'sled pull technique tutorial', cues:['Using a rope or strap attached to the sled, walk backward with controlled, deliberate steps, keeping tension on the rope the entire time rather than letting it go slack between pulls.','Keep the chest up and core braced throughout — a rounded, collapsed posture while pulling backward is both weaker and harder on the lower back.','Short, choppy steps generally beat long, overreaching ones for maintaining constant tension and control on the sled.']},
+  'Wall Balls': {category:'cardio', videoQuery:'wall ball technique tutorial', cues:['Squat to at least parallel depth before driving up, using the leg drive (not just the arms) to send the ball up toward the target.','Catch the ball at the same height each rep and absorb it smoothly into the next squat, turning the catch directly into the next rep\'s descent rather than stopping and resetting.','Pacing matters more than raw speed here — a fast start that falls apart into short, arm-only push-presses by the end of the set is slower overall than one held at a sustainable rhythm throughout.']},
+  'Burpee Broad Jumps': {category:'cardio', videoQuery:'burpee broad jump technique hyrox tutorial', cues:['Complete a full burpee (chest to the floor, full stand or jump up) and immediately convert that standing position into a two-foot broad jump forward.','Land the broad jump with soft, bent knees and stick the landing for a beat before dropping into the next burpee, rather than stumbling straight into it off balance.','This movement rewards a steady, repeatable rhythm far more than any single explosive rep — going all-out on the first few reps and fading badly by the end is the most common pacing mistake.']},
+  'Sandbag Lunges': {category:'lunge', videoQuery:'sandbag lunge technique hyrox tutorial', cues:['Hold the sandbag secured across the front of the shoulders (front-rack) or on one shoulder, bracing the core hard against the load\'s tendency to shift and pull you off balance.','Step through with control, back knee tapping lightly to the ground, front knee tracking over the foot rather than caving inward under the awkward, shifting load.','A sandbag\'s filling shifts unpredictably with every step, unlike a fixed barbell load — this is exactly the point, and it\'s why sandbag work builds a kind of stability and core control that a barbell lunge doesn\'t.']},
+  'Farmers Carry (Heavy)': {category:'core', videoQuery:'heavy farmers carry technique tutorial', cues:['Grip the handles or heavy dumbbells hard, stand fully tall with shoulders pulled back and down, and brace the core as if about to take a punch to the stomach.','Walk with short, controlled, deliberate steps — a wide, waddling gait usually means the core isn\'t bracing hard enough to keep the torso stable under load.','Grip typically fails before the legs or lungs do on a heavy carry — grinding out the last few steps with a failing grip is normal and is exactly what this exercise is training.']},
+
+  // Brazilian Jiu-Jitsu / Grappling — ground-based positional control and
+  // submission grappling. Vocabulary here (hip escape, guard retention,
+  // combat base, systematic drilling of positions before live rolling) is
+  // standard across BJJ curricula and reflects the widely-adopted modern
+  // emphasis — popularized in instructional systems like John Danaher's —
+  // on treating position and control as the foundation submissions are
+  // built on, rather than chasing submissions in isolation.
+  'Hip Escape (Shrimping)': {category:'core', videoQuery:'bjj hip escape shrimping technique tutorial', cues:['Lying on your back, post on one hand and the opposite foot, then push to shoot your hips backward and away, creating space on that side.','Recover the near knee back in toward your frame immediately after each shrimp, closing the space you just created before the next rep opens it on the other side.','This single movement — creating space with the hips, then recovering — underlies almost every guard retention and escape in the sport; it\'s drilled in isolation for exactly that reason.']},
+  'Bridge & Roll (Upa Escape)': {category:'core', videoQuery:'bjj upa bridge roll mount escape tutorial', cues:['From bottom mount, trap one of the top person\'s arms and same-side leg, plant the same-side foot close to your hip, then bridge explosively up and over that shoulder.','Drive the bridge with the hips and the trapped-side leg together, timing the roll to the very top of the bridge rather than trying to muscle it from flat on the back.','This is the fundamental mount escape taught in essentially every BJJ curriculum, precisely because bottom mount is one of the most disadvantageous positions in the sport and needs a reliable answer.']},
+  'Technical Stand-up': {category:'core', videoQuery:'bjj technical stand up tutorial', cues:['From the ground, post one hand behind you and bring the opposite foot underneath your hips, keeping the other leg extended out in front for base.','Stand up through the posted hand and planted foot without ever fully turning your back to the training partner in front of you.','This is the standard safe way to return to standing from the ground while still facing (and defending against) an opponent, rather than turning away blind.']},
+  'Guard Retention Drill': {category:'core', videoQuery:'bjj guard retention drill tutorial', cues:['As a partner works to pass, use hip escapes and frames (arms braced against their hips or legs) to constantly re-center your hips between you and them.','Prioritize re-establishing distance and frames the instant your guard is challenged, rather than waiting until it\'s already fully passed to react.','Guard retention is trained here as its own standalone skill, separate from any specific guard style, since the underlying hip movement and framing are shared across nearly all of them.']},
+  'Knee Slice Pass': {category:'core', videoQuery:'bjj knee slice pass technique tutorial', cues:['Drive one knee through the center line past the opponent\'s hip and thigh while controlling their far-side hip or leg with your hands to prevent them re-guarding.','Keep your posture heavy and your weight pressing down through the sliding knee, rather than passing with your base light and easily re-framed against.','This is one of the most fundamental modern guard passes specifically because it combines pressure and a small target area, making it hard to frame against even for an experienced training partner.']},
+  'Torreando Pass': {category:'core', videoQuery:'bjj torreando bullfighter pass technique tutorial', cues:['Control both of the opponent\'s ankles or lower legs, then step them to one side while moving your own hips to the opposite side, like a matador redirecting a bull.','Move decisively and immediately drop your weight onto a hip or side-control position the instant their legs clear — a slow torreando gives them time to recover guard.','Named for the bullfighting-style redirection at its core, this is typically taught as the first guard pass most beginners learn, precisely because the mechanic (redirect the legs, attack the space that opens) is so clear.']},
+  'Combat Base Drill': {category:'core', videoQuery:'bjj combat base passing posture tutorial', cues:['From a kneeling or crouched passing position, keep one knee up and one knee down, hips low and weight centered directly over your base.','Practice being pushed and pulled off balance by a partner while resetting back into this same base immediately, rather than standing tall or squaring your hips.','A stable combat base is what every guard pass in the sport is actually built on top of — without it, even a technically correct passing sequence falls apart under a strong, active guard.']},
+  'Double Leg Takedown': {category:'core', videoQuery:'double leg takedown technique tutorial', cues:['Level change by bending the knees (not just the waist) to drop your hips before shooting in, driving through the opponent\'s legs with your head up and back flat.','Drive through with your legs, not your arms — the arms secure the grip around both legs, but the actual power comes from your legs driving forward and up.','Finish by running through the opponent\'s base, turning the corner, or lifting, rather than stalling with the shot itself half-finished and no clear follow-through.']},
+  'Single Leg Takedown': {category:'core', videoQuery:'single leg takedown technique tutorial', cues:['Level change and shoot for one leg specifically, securing it high near the knee or thigh rather than settling for an ankle grip.','Keep your head on the outside of the captured leg and your hips driving forward into the opponent, using your shoulder to off-balance them backward.','Several finishes exist from here (running the pike, a trip, or a lift) — the shot and secure are only half the technique; committing to a finish is what actually completes the takedown.']},
+  'Rear Naked Choke Drill': {category:'core', videoQuery:'bjj rear naked choke drill tutorial', cues:['From back control with hooks or a body triangle in, thread one arm under the chin and the other hand grips behind the opponent\'s head or your own bicep, forming a figure-four.','Squeeze by pulling the choking arm\'s elbow in tight and expanding your chest, rather than trying to crank the neck side to side.','Back control itself — not the choke — is usually the harder part; drilling the choke\'s mechanics repeatedly from an already-secured back position builds the finish so it\'s automatic once the position is won.']},
+  'Armbar from Guard Drill': {category:'core', videoQuery:'bjj armbar from guard drill tutorial', cues:['From closed guard, control one of the opponent\'s wrists and swivel your hips to bring a leg over their head, trapping the arm tightly between your thighs.','Keep the captured arm\'s thumb pointed up throughout the finish and extend your hips upward while pulling the wrist down, rather than yanking on the arm with your hands alone.','This drill isolates the hip movement and arm control that make the armbar work — most failed armbars in live rolling come from skipping straight to the finish without first controlling the arm and hips correctly.']},
+  'Mount Control & Maintenance': {category:'core', videoQuery:'bjj mount control maintenance tutorial', cues:['Keep your hips heavy and low on the opponent\'s torso, with your knees tucked in tight rather than floating high and light where a bridge can dislodge you.','As they bridge or try to shift you, ride the movement by posting a hand or foot and resettling your weight, instead of getting launched off with a single strong bridge.','Mount is treated in this drill as its own position to hold and maintain under resistance — before submissions are ever added on top, being genuinely hard to unseat from mount is the actual skill.']},
+  'Positional Sparring (Guard Retention)': {category:'core', videoQuery:'bjj positional sparring guard retention rolling', cues:['Start from guard with a partner and roll live, but reset back to the same starting position every time the guard is passed or a submission finishes, rather than rolling free-form.','Focus entirely on the position\'s specific goals (retaining guard, or passing it) rather than chasing a submission — the position is the point of this round, not the finish.','Positional sparring is how the isolated drills earlier in the week (hip escapes, framing, passing) actually get pressure-tested against real, resisting movement.']},
+  'Neck Bridges': {category:'core', videoQuery:'wrestling neck bridge exercise tutorial', cues:['From lying on your back, plant your feet and bridge up onto the top of your head and feet only, keeping the hips driven up high rather than sagging.','Move slowly and only as far as feels stable and pain-free — this is a conditioning exercise for the neck\'s supporting muscles, not a test of how far the neck itself can bend.','Grappling repeatedly puts the neck in compromised positions under an opponent\'s weight; this builds the surrounding strength that makes those moments safer to handle.']},
+
+  // Classical mat Pilates — Joseph Pilates' original "Contrology" method,
+  // still the basis of nearly every modern mat curriculum. Two ideas run
+  // through every exercise below and are worth naming once here rather
+  // than repeating in each entry: the "powerhouse" (deep abdominals, low
+  // back, hips, and glutes working together as the actual origin of every
+  // movement, not the limbs), and breath deliberately timed to deepen or
+  // initiate each movement rather than just accompanying it incidentally.
+  'The Hundred': {category:'core', videoQuery:'pilates the hundred exercise tutorial', cues:['Lift the head, neck, and shoulders off the mat with legs extended at a controlled angle, arms pumping straight up and down at your sides just above the mat.','Inhale for five pumps, exhale for five pumps, keeping the powerhouse (deep abdominals) engaged and the low back pressed into the mat throughout.','This is the classical opening exercise of the entire mat repertoire specifically because it establishes the breath pattern and powerhouse engagement every exercise afterward depends on.']},
+  'Roll-Up': {category:'core', videoQuery:'pilates roll up exercise tutorial', cues:['Starting flat on your back with arms extended overhead, exhale as you curl the head, neck, and shoulders up first, then continue rolling up one vertebra at a time toward the toes.','Keep the movement smooth and continuous rather than a single hinge at the hips — the goal is articulating the spine bone by bone, not just sitting up.','Reverse the same controlled, segmented motion on the way back down, resisting the pull of gravity rather than simply dropping backward.']},
+  'Single Leg Circles': {category:'core', videoQuery:'pilates single leg circles exercise tutorial', cues:['Lying on your back with one leg extended toward the ceiling, trace small, controlled circles with that leg while the rest of the body — especially the hips — stays completely still.','Keep the powerhouse engaged throughout so the circling leg\'s momentum doesn\'t rock the pelvis side to side.','Small, controlled circles from a stable center are the actual goal — bigger, looser circles that shift the hips are working against the exercise\'s point, not enhancing it.']},
+  'Rolling Like a Ball': {category:'core', videoQuery:'pilates rolling like a ball exercise tutorial', cues:['Balance on your sit bones with knees drawn to the chest and feet off the mat, holding a compact, curved "ball" shape.','Inhale to roll back to the shoulders (never onto the neck) and exhale to roll back up to the exact same balanced starting position.','Control the momentum in both directions equally — rolling back and up with the same smooth speed is the actual skill, rather than flopping back and yanking up.']},
+  'Single Leg Stretch': {category:'core', videoQuery:'pilates single leg stretch exercise tutorial', cues:['With head and shoulders lifted, pull one knee to the chest while the other leg extends straight out low, then switch, hands changing position to gently guide the pulled-in knee.','Keep the low back pressed into the mat and the torso still throughout — the legs and hands do the switching, not the spine rocking side to side.','Match one full breath cycle to a set number of switches rather than rushing — this exercise rewards controlled pacing far more than speed.']},
+  'Double Leg Stretch': {category:'core', videoQuery:'pilates double leg stretch exercise tutorial', cues:['From a curled position with knees to chest, extend both arms overhead and both legs out simultaneously, then circle the arms back around to hug the knees back in.','Keep the head and shoulders lifted and the low back anchored into the mat throughout the full extension, resisting the urge to let the back arch as the limbs extend.','The bigger the extension of arms and legs, the harder the powerhouse has to work to keep the low back stable — scale the extension to whatever range keeps that control intact.']},
+  'Spine Stretch Forward': {category:'core', videoQuery:'pilates spine stretch forward exercise tutorial', cues:['Sitting tall with legs extended slightly wider than hip-width and flexed feet, inhale to grow taller through the spine, then exhale to round forward one vertebra at a time, reaching toward the toes.','Imagine the spine curving up and over a large ball rather than simply folding forward at the hips — the articulation through the upper back is the actual point.','Reverse the segmented movement to return to sitting tall, stacking the spine back up rather than just lifting the chest straight up.']},
+  'Saw': {category:'core', videoQuery:'pilates saw exercise tutorial', cues:['Sitting tall with legs extended wide and arms out to the sides, rotate the torso to face one leg, then exhale as you reach the opposite hand toward that foot, as if sawing the pinky edge of the hand across the little toe.','Keep both sit bones grounded and the hips squared forward throughout the rotation — the twist comes from the waist, not from the hips shifting.','Return to tall and centered with control between sides, rather than swinging loosely from one rotation directly into the next.']},
+  'Swan': {category:'core', videoQuery:'pilates swan exercise tutorial', cues:['Lying face down with hands under the shoulders, press up and back to lift the chest, using the back muscles to initiate the lift rather than pushing hard through the arms.','Keep the lift long through the crown of the head rather than cranking the neck back, and keep the low back long rather than crunching hard into extension.','This is a controlled extension exercise, not a maximum-range backbend — a smaller, well-controlled lift that keeps the low back comfortable beats a larger one that doesn\'t.']},
+  'Teaser (Prep)': {category:'core', videoQuery:'pilates teaser prep exercise tutorial', cues:['Starting with knees bent and feet on the mat, roll back slightly then curl up to balance on the sit bones with arms reaching parallel to the shins, holding a controlled V shape.','Keep the low back and powerhouse engaged throughout the balance rather than gripping with the hip flexors and neck.','This "prep" version (knees bent, feet down) builds the balance and powerhouse control the full straight-leg Teaser depends on — there\'s no need to rush to the full version before this feels controlled.']},
+  'Side Kick Series': {category:'core', videoQuery:'pilates side kick series exercise tutorial', cues:['Lying on your side in a long line from head to heels, with hips stacked directly on top of each other, lift the top leg to hip height and kick it forward and back with control.','Keep the hips stacked and still throughout — the leg should move independently of the pelvis, not swing the hips forward and back with it.','A smaller, controlled range that keeps the hips perfectly stacked is more valuable here than a bigger kick that rocks the pelvis out of line.']},
+  'Criss-Cross': {category:'core', videoQuery:'pilates criss cross exercise tutorial', cues:['With hands laced behind the head and knees drawn in, rotate the torso to bring one elbow toward the opposite knee while the other leg extends long and low.','Initiate the rotation from the waist and ribs, not by yanking on the neck with the laced hands — the hands simply support the head\'s weight.','Switch sides with a smooth, continuous rhythm rather than a jerky twist, keeping the low back anchored into the mat throughout.']},
 };
 let dayDefs = programs[activeProgram].days;
 
@@ -6026,6 +6268,7 @@ async function renderWorkout(){
 
   const logs = await Promise.all(renderExercises.map((ex,i)=> getExLog(activeDay, i)));
   const restingRegions = await getRestingRegions();
+  const inDeloadWeek = await isDeloadWeek();
 
   renderExercises.forEach((ex,i)=>{
     const row = document.createElement('div');
@@ -6063,8 +6306,14 @@ async function renderWorkout(){
       // bodyweight work, but the reps/RPE inputs below are unaffected either way.
       let badge = '';
       if(signal){
-        const badgeClass = signal.type==='increase' ? 'progress-badge' : signal.type==='decrease' ? 'progress-badge-decrease' : 'progress-badge-deload';
-        badge = `<div class="${badgeClass}">${signal.message}</div>`;
+        if(inDeloadWeek && signal.type==='increase'){
+          badge = `<div class="progress-badge-deload">🔻 Deload week — hold at a reduced load here rather than chasing the jump this would normally suggest.</div>`;
+        } else {
+          const badgeClass = signal.type==='increase' ? 'progress-badge' : signal.type==='decrease' ? 'progress-badge-decrease' : 'progress-badge-deload';
+          badge = `<div class="${badgeClass}">${signal.message}</div>`;
+        }
+      } else if(inDeloadWeek && priorTop && priorTop.weight!=null){
+        badge = `<div class="progress-hint">🔻 Deload week — last top set was ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'} reps; aim for roughly 10-20% lighter today.</div>`;
       } else if(priorTop && priorTop.reps!=null && topRep!=null && priorTop.reps >= topRep){
         badge = `<div class="progress-badge">⬆ Hit ${priorTop.reps} reps last time at ${priorTop.weight!=null ? fmtWeight(priorTop.weight) : '?'} — try adding weight today</div>`;
       } else if(priorTop && priorTop.weight!=null){
@@ -6897,6 +7146,30 @@ const TIPS_BY_PROGRAM = {
     "<b>Progress here often means less discomfort, not more reps.</b> A day with less neck tension or lower back stiffness is the program working, even if the exercises themselves feel unchanged.",
     "<b>This pairs well with any other program you're running.</b> These corrective patterns matter regardless of what else you're training — desk posture doesn't undo itself just because you also lift or run.",
   ],
+  hyrox: [
+    "<b>Pacing beats raw effort on every station.</b> A wall ball or SkiErg set that starts too hard and falls apart is slower overall than one held at a sustainable rhythm — race and train at a pace you can actually hold.",
+    "<b>Compromised running is the whole sport.</b> Running on legs already fatigued from sled work or lunges is what separates this from either pure running or pure strength training — don't skip the brick sessions for easier isolated work.",
+    "<b>Grip and legs fail before your lungs do.</b> Farmers carries and sled work are usually limited by grip and leg fatigue, not cardio capacity — train those specifically rather than assuming more running fixes everything.",
+    "<b>Technique on the sled and wall balls saves real energy.</b> A low, efficient sled push posture and a full-depth wall ball squat cost noticeably less energy over 8 rounds than a sloppy version of either.",
+    "<b>Recovery matters more here than in most single-discipline sports.</b> Running volume plus loaded carries plus lunges hits the whole body hard — respect the rest day rather than adding extra conditioning on top of it.",
+    "<b>Train the transition, not just the pieces.</b> Practice running immediately into a station (and back out of it) regularly — the transition itself is a skill, not just an inconvenience between the \"real\" parts of training.",
+  ],
+  grappling: [
+    "<b>Position before submission, every time.</b> A secured, stable position that isn't finished yet beats a rushed submission attempt from bad position — this is the organizing principle of the whole week's structure.",
+    "<b>Hip movement is the actual foundation.</b> Hip escapes and guard retention aren't beginner-only drills — they're the movement everything else in this sport is built on top of, worth revisiting even as skill grows.",
+    "<b>Tap early, tap often.</b> There's no reason to ride out a fully secured submission in training — protecting your joints over dozens of training sessions matters more than one round's pride.",
+    "<b>Drilling and live rolling are different skills.</b> Isolated drilling builds the technique; positional sparring and live rolling are what pressure-test it against real resistance — this program includes both deliberately.",
+    "<b>Neck and grip conditioning matter more than they seem to.</b> Grappling loads the neck and hands in ways few other sports do — the dedicated neck bridge and grip work on rest/conditioning days isn't filler.",
+    "<b>Rest days protect your joints specifically.</b> The wear from live rolling accumulates in the neck, fingers, and knees more than most people expect — respect the recovery days on this program.",
+  ],
+  pilates: [
+    "<b>The powerhouse initiates every movement.</b> Deep abdominals, low back, hips, and glutes working together should start each exercise — if a movement feels like it's coming from the arms or legs alone, it's usually not engaged.",
+    "<b>Breath is timed to the movement, not incidental to it.</b> Exhaling to deepen or initiate a movement (rather than just breathing however feels natural) is a real technical element here, not a minor detail.",
+    "<b>Quality and control matter far more than range of motion.</b> A smaller, precisely controlled Roll-Up or Teaser is doing its job better than a bigger, looser version that loses control halfway through.",
+    "<b>Spinal articulation means one vertebra at a time.</b> Rolling up or down through the spine slowly and segmentally is the actual skill in half of this repertoire — rushing turns it into a simple sit-up.",
+    "<b>Consistency compounds here more than almost anywhere else.</b> The control this method builds shows up gradually over weeks of regular practice, not from occasional longer sessions.",
+    "<b>This pairs well with heavier strength or high-impact training.</b> The core control and hip/shoulder stability built here transfers directly into better bracing and joint control under a barbell or on a run.",
+  ],
 };
 
 // Combat gets its tips from the selected martial art style, not one generic
@@ -7021,11 +7294,11 @@ function renderTips(){
 }
 
 const PROGRAM_FIT_SCORES = {
-  lose:        {jumprope:95, running:90, combat:85, bodyweight:80, swimming:80, cycling:85, boxingsc:80, athletic:70, climbing:55, mobility:60, yoga:65, core:55, calisthenics:55, strength:50, powerbuilding:45, senior:50, desk:45, bodybuilding:45, oly:40, powerlifting:35, prenatal:20, rehab:20},
-  gain:        {bodybuilding:95, powerbuilding:92, strength:90, powerlifting:85, calisthenics:75, oly:70, athletic:60, combat:55, boxingsc:55, bodyweight:50, climbing:40, senior:45, core:40, yoga:35, mobility:30, running:25, swimming:35, cycling:30, jumprope:25, desk:25, prenatal:15, rehab:20},
-  recomp:      {strength:95, powerbuilding:90, bodybuilding:85, combat:80, boxingsc:75, athletic:75, calisthenics:70, bodyweight:65, powerlifting:65, climbing:65, cycling:60, swimming:60, jumprope:60, oly:60, core:55, senior:55, running:55, yoga:50, mobility:45, desk:35, prenatal:20, rehab:20},
-  maintain:    {strength:80, senior:85, athletic:70, bodybuilding:70, bodyweight:70, powerbuilding:78, yoga:65, swimming:65, cycling:65, boxingsc:65, calisthenics:60, core:60, combat:60, climbing:60, mobility:55, running:55, jumprope:55, oly:50, powerlifting:50, desk:60, prenatal:35, rehab:30},
-  performance: {athletic:95, climbing:85, oly:85, combat:80, swimming:80, cycling:80, boxingsc:85, calisthenics:75, powerlifting:70, running:65, strength:65, powerbuilding:60, jumprope:60, bodyweight:55, bodybuilding:50, senior:35, core:50, mobility:45, yoga:40, desk:30, prenatal:15, rehab:20},
+  lose:        {jumprope:95, running:90, combat:85, hyrox:88, bodyweight:80, swimming:80, cycling:85, boxingsc:80, grappling:75, athletic:70, climbing:55, mobility:60, yoga:65, core:55, calisthenics:55, pilates:50, strength:50, powerbuilding:45, senior:50, desk:45, bodybuilding:45, oly:40, powerlifting:35, prenatal:20, rehab:20},
+  gain:        {bodybuilding:95, powerbuilding:92, strength:90, powerlifting:85, calisthenics:75, oly:70, athletic:60, combat:55, boxingsc:55, grappling:45, bodyweight:50, hyrox:35, climbing:40, senior:45, core:40, yoga:35, mobility:30, running:25, swimming:35, cycling:30, jumprope:25, pilates:20, desk:25, prenatal:15, rehab:20},
+  recomp:      {strength:95, powerbuilding:90, bodybuilding:85, combat:80, boxingsc:75, athletic:75, calisthenics:70, hyrox:70, grappling:70, bodyweight:65, powerlifting:65, climbing:65, cycling:60, swimming:60, jumprope:60, oly:60, core:55, senior:55, running:55, pilates:45, yoga:50, mobility:45, desk:35, prenatal:20, rehab:20},
+  maintain:    {strength:80, senior:85, athletic:70, bodybuilding:70, bodyweight:70, powerbuilding:78, pilates:70, yoga:65, swimming:65, cycling:65, boxingsc:65, calisthenics:60, core:60, combat:60, climbing:60, hyrox:60, grappling:60, mobility:55, running:55, jumprope:55, oly:50, powerlifting:50, desk:60, prenatal:35, rehab:30},
+  performance: {athletic:95, hyrox:90, climbing:85, oly:85, combat:80, grappling:80, swimming:80, cycling:80, boxingsc:85, calisthenics:75, powerlifting:70, running:65, strength:65, powerbuilding:60, jumprope:60, bodyweight:55, bodybuilding:50, pilates:45, senior:35, core:50, mobility:45, yoga:40, desk:30, prenatal:15, rehab:20},
 };
 
 // Buckets used only for the trend-aware nudge below — not a claim that one
@@ -7033,7 +7306,7 @@ const PROGRAM_FIT_SCORES = {
 // defensible split between higher-intensity/higher-fatigue-cost programs and
 // recovery-friendly ones, for the specific purpose of nudging in one
 // direction or the other based on a real, current performance signal.
-const HIGH_INTENSITY_PROGRAMS = ['powerlifting','oly','athletic','combat','boxingsc','climbing','powerbuilding'];
+const HIGH_INTENSITY_PROGRAMS = ['powerlifting','oly','athletic','combat','boxingsc','climbing','powerbuilding','hyrox','grappling'];
 const RECOVERY_FRIENDLY_PROGRAMS = ['rehab','mobility','yoga','core','desk'];
 const TREND_INTENSITY_BOOST = 8;
 const TREND_INTENSITY_CUT = 10;
@@ -7979,6 +8252,118 @@ async function addFoodToLog(item){
   renderFoodItems();
 }
 
+// --- Meal suggestions: "what should I eat to hit today's remaining
+// macros" — closes the loop between tracking (which this app already did
+// well) and actually deciding what to eat next. Pulls only from foods
+// already in the library/custom foods (never invents a food or a
+// nutrition number), and biases toward protein-efficient picks first,
+// since protein is usually the harder target to hit versus calories/carbs.
+function computeRemainingMacros(){
+  const totals = todaysFoodLog.reduce((acc,i)=>({
+    cal: acc.cal + Number(i.cal||0), pro: acc.pro + Number(i.pro||0),
+    fat: acc.fat + Number(i.fat||0), carb: acc.carb + Number(i.carb||0),
+  }), {cal:0,pro:0,fat:0,carb:0});
+  return {
+    cal: Math.max(0, targets.cal - totals.cal),
+    pro: Math.max(0, targets.pro - totals.pro),
+    fat: Math.max(0, targets.fat - totals.fat),
+    carb: Math.max(0, targets.carb - totals.carb),
+  };
+}
+
+function buildMealSuggestions(){
+  const remaining = computeRemainingMacros();
+  if(remaining.cal < 100){
+    return {done:true, remaining};
+  }
+  const pool = allFoodsFlat().filter(f=> f.cal > 0);
+  const tolerance = 1.15; // allow a modest overage so "close enough" options aren't excluded
+
+  // Single-item picks: fit within remaining calories (with tolerance),
+  // ranked by protein-per-calorie so the most protein-efficient options
+  // surface first — this is deliberately not just "highest protein food,"
+  // since a 900-calorie option isn't a realistic single suggestion.
+  const singles = pool
+    .filter(f=> f.cal <= remaining.cal * tolerance)
+    .sort((a,b)=> (b.pro/b.cal) - (a.pro/a.cal))
+    .slice(0, 3);
+
+  // Two-item combos: pair a protein-forward anchor with a lighter
+  // complementary item, only kept if the COMBINED total still fits.
+  const proteinAnchors = pool.filter(f=> f.pro >= 15).sort((a,b)=> (b.pro/b.cal)-(a.pro/a.cal)).slice(0, 8);
+  const lightSides = pool.filter(f=> f.cal <= 250).sort((a,b)=> a.cal-b.cal);
+  const combos = [];
+  for(const anchor of proteinAnchors){
+    for(const side of lightSides){
+      if(anchor.name === side.name) continue;
+      const combinedCal = anchor.cal + side.cal;
+      if(combinedCal <= remaining.cal * tolerance && combinedCal >= remaining.cal * 0.4){
+        combos.push([anchor, side]);
+        break; // one side per anchor is enough
+      }
+    }
+    if(combos.length >= 2) break;
+  }
+
+  return {done:false, remaining, singles, combos};
+}
+
+function renderMealSuggestions(){
+  const el = document.getElementById('mealSuggestions');
+  const result = buildMealSuggestions();
+
+  if(result.done){
+    el.innerHTML = `<div class="photo-result-card"><div class="photo-result-title">✅ Right around your targets</div><div class="photo-result-item"><span>Only ${Math.round(result.remaining.cal)} cal of room left today — no real need to force in more food.</span></div></div>`;
+    return;
+  }
+
+  const { remaining, singles, combos } = result;
+  const itemRow = (item)=> `
+    <div class="photo-result-item">
+      <span>${escapeHtml(item.name)} — ${item.cal} cal, ${item.pro}g protein</span>
+      <button class="fl-remove" style="color:var(--plate-green); font-size:18px;" data-add="${escapeHtml(item.name)}">+</button>
+    </div>
+  `;
+
+  const singlesHtml = singles.length ? `
+    <div class="photo-result-card">
+      <div class="photo-result-title">🎯 Protein-efficient picks</div>
+      ${singles.map(itemRow).join('')}
+    </div>
+  ` : '';
+
+  const combosHtml = combos.map((pair, i)=> `
+    <div class="photo-result-card">
+      <div class="photo-result-title">🍽️ Combo ${i+1}</div>
+      ${pair.map(itemRow).join('')}
+    </div>
+  `).join('');
+
+  const noneHtml = (!singles.length && !combos.length) ? `
+    <div class="photo-result-card"><div class="photo-result-title">Nothing in your library fits neatly</div><div class="photo-result-item"><span>You've got ~${Math.round(remaining.cal)} cal and ~${Math.round(remaining.pro)}g protein left — search or add a custom food that's close to that.</span></div></div>
+  ` : '';
+
+  el.innerHTML = `
+    <div class="history-hint" style="margin:8px 0;">~${Math.round(remaining.cal)} cal, ${Math.round(remaining.pro)}g protein, ${Math.round(remaining.carb)}g carb, ${Math.round(remaining.fat)}g fat left today</div>
+    ${singlesHtml}${combosHtml}${noneHtml}
+  `;
+
+  // Look up the matching pool item by name (rather than trying to
+  // serialize the whole object into a data attribute) and log it exactly
+  // as it exists in the library/custom foods.
+  el.querySelectorAll('[data-add]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const pool = allFoodsFlat();
+      const item = pool.find(f=> f.name === btn.dataset.add);
+      if(!item) return;
+      await addFoodToLog(item);
+      renderMealSuggestions(); // remaining macros just changed — refresh
+    });
+  });
+}
+
+document.getElementById('suggestMealBtn').addEventListener('click', renderMealSuggestions);
+
 async function removeFoodFromLog(idx){
   todaysFoodLog.splice(idx,1);
   await saveFoodLog();
@@ -8354,6 +8739,146 @@ document.getElementById('saveSleep').addEventListener('click', async ()=>{
 document.getElementById('measureHeader').addEventListener('click', ()=>{
   document.getElementById('measureHeader').classList.toggle('open');
   document.getElementById('measureExpandWrap').classList.toggle('open');
+});
+
+document.getElementById('photosHeader').addEventListener('click', ()=>{
+  document.getElementById('photosHeader').classList.toggle('open');
+  document.getElementById('photosExpandWrap').classList.toggle('open');
+});
+
+// --- Progress Photos --------------------------------------------------
+// Each photo is stored under its OWN key (progress-photo:{id}) rather than
+// one big array, since window.storage caps a single key at 5MB and a
+// handful of full-resolution photos would blow past that fast. A small,
+// separate index key just tracks {id, date} pairs for listing — this is
+// the same "many small keys, one lightweight index" pattern that keeps
+// this scalable regardless of how many photos accumulate over time.
+// Images are downscaled + JPEG-compressed client-side before ever being
+// stored, both to stay well under the size cap and to keep the list fast.
+const PROGRESS_PHOTO_MAX_DIM = 900;
+const PROGRESS_PHOTO_QUALITY = 0.72;
+
+function compressImageFile(file, maxDim, quality){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = ()=>{ img.src = reader.result; };
+    reader.onerror = reject;
+    img.onload = ()=>{
+      let {width, height} = img;
+      if(width > maxDim || height > maxDim){
+        const scale = maxDim / Math.max(width, height);
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function getPhotoIndex(){
+  try{
+    const res = await window.storage.get('progress-photo-index');
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){}
+  return [];
+}
+async function setPhotoIndex(index){
+  try{ await window.storage.set('progress-photo-index', JSON.stringify(index)); }catch(e){}
+}
+
+async function loadProgressPhotos(){
+  const grid = document.getElementById('photoGrid');
+  const index = await getPhotoIndex();
+  if(index.length === 0){
+    grid.innerHTML = '<div class="empty-note">No photos yet — add your first progress photo.</div>';
+    return;
+  }
+  const sorted = [...index].sort((a,b)=> new Date(b.date)-new Date(a.date));
+  const entries = await Promise.all(sorted.map(async (entry)=>{
+    try{
+      const res = await window.storage.get('progress-photo:'+entry.id);
+      return {...entry, data: res && res.value ? res.value : null};
+    }catch(e){ return {...entry, data:null}; }
+  }));
+  grid.innerHTML = entries.filter(e=>e.data).map(e=>{
+    const label = new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    return `<div class="photo-thumb-wrap" data-id="${e.id}" data-date="${e.date}"><img src="${e.data}" loading="lazy"><div class="photo-thumb-date">${label}</div></div>`;
+  }).join('');
+  grid.querySelectorAll('.photo-thumb-wrap').forEach(el=>{
+    el.addEventListener('click', ()=> openPhotoLightbox(el.dataset.id, el.dataset.date));
+  });
+}
+
+function openPhotoLightbox(id, date){
+  const lightbox = document.getElementById('photoLightbox');
+  const img = document.getElementById('photoLightboxImg');
+  const dateEl = document.getElementById('photoLightboxDate');
+  const thumb = document.querySelector(`.photo-thumb-wrap[data-id="${id}"] img`);
+  img.src = thumb ? thumb.src : '';
+  dateEl.textContent = new Date(date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long', month:'long', day:'numeric', year:'numeric'});
+  lightbox.dataset.activeId = id;
+  lightbox.dataset.activeDate = date;
+  lightbox.classList.add('active');
+}
+
+document.getElementById('photoLightboxClose').addEventListener('click', ()=>{
+  document.getElementById('photoLightbox').classList.remove('active');
+});
+
+document.getElementById('photoLightboxDelete').addEventListener('click', async ()=>{
+  const lightbox = document.getElementById('photoLightbox');
+  const id = lightbox.dataset.activeId;
+  const date = lightbox.dataset.activeDate;
+  lightbox.classList.remove('active');
+
+  const indexBefore = await getPhotoIndex();
+  let dataBefore = null;
+  try{
+    const res = await window.storage.get('progress-photo:'+id);
+    dataBefore = res && res.value ? res.value : null;
+  }catch(e){}
+
+  const newIndex = indexBefore.filter(e=>e.id !== id);
+  await setPhotoIndex(newIndex);
+  try{ await window.storage.delete('progress-photo:'+id); }catch(e){}
+  loadProgressPhotos();
+
+  showUndoToast('Photo deleted', async ()=>{
+    await setPhotoIndex(indexBefore);
+    if(dataBefore){ try{ await window.storage.set('progress-photo:'+id, dataBefore); }catch(e){} }
+    loadProgressPhotos();
+  });
+});
+
+document.getElementById('photoAddBtn').addEventListener('click', ()=> document.getElementById('photoInput').click());
+
+document.getElementById('photoInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('photoStatus');
+  statusEl.textContent = 'Processing photo…';
+  try{
+    const dataUrl = await compressImageFile(file, PROGRESS_PHOTO_MAX_DIM, PROGRESS_PHOTO_QUALITY);
+    const id = String(Date.now());
+    const date = getTodayKey();
+    await window.storage.set('progress-photo:'+id, dataUrl);
+    const index = await getPhotoIndex();
+    index.push({id, date});
+    await setPhotoIndex(index);
+    statusEl.textContent = 'Saved ✓';
+    setTimeout(()=>{ statusEl.textContent = ''; }, 1500);
+    loadProgressPhotos();
+  }catch(err){
+    statusEl.textContent = "Couldn't process that photo — try a different one.";
+  }
+  e.target.value = '';
 });
 
 // --- Cycle Tracking (optional, shown when gender is female) ---------------
@@ -9100,6 +9625,9 @@ const COACH_PERSONAS = {
   prenatal: 'a prenatal/postpartum fitness specialist focused on safe alignment, pelvic floor coordination, and appropriate intensity for pregnancy or postpartum recovery — you do NOT diagnose or give medical advice, only comment on movement quality and safety cues, and you flag anything that looks like it needs provider clearance',
   boxingsc: 'a boxing strength & conditioning coach focused on rotational power mechanics, single-leg stability, and round-based conditioning — the physical base underneath punching power, not the punches themselves',
   desk: 'a posture and corrective-exercise coach focused on countering desk-posture patterns — scapular positioning, hip flexor length, and thoracic mobility',
+  hyrox: 'a functional fitness racing coach focused on pacing and technical efficiency under fatigue — sled posture, wall ball depth and rhythm, and the run-to-station transition specifically',
+  grappling: 'a Brazilian Jiu-Jitsu coach focused on positional control, hip movement (escapes, guard retention), and base/posture during passing or takedowns — not on submissions in isolation',
+  pilates: 'a classical Pilates instructor focused on powerhouse engagement, breath-timed movement, and precise spinal articulation — control and precision matter more here than range of motion',
 };
 
 // Combat is a single activeProgram covering several genuinely different
@@ -10239,6 +10767,7 @@ if(activeUserId){
     loadWeights();
     loadSleep();
     loadMeasurements();
+    loadProgressPhotos();
     renderWater();
     renderCycleTracking();
   })();
