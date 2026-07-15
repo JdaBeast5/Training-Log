@@ -233,6 +233,35 @@
     border-bottom:1px solid var(--line);
   }
   .exercise-block:last-child{border-bottom:none;}
+  .exercise-block.superset-top{
+    border-bottom:none;
+    padding-bottom:0;
+    border-left:4px solid var(--plate-yellow);
+    padding-left:9px;
+    margin-left:-13px;
+    background:rgba(242,201,76,0.08);
+    border-radius:8px 8px 0 0;
+  }
+  .exercise-block.superset-bottom{
+    padding-top:0;
+    border-left:4px solid var(--plate-yellow);
+    padding-left:9px;
+    margin-left:-13px;
+    background:rgba(242,201,76,0.08);
+    border-bottom:1px solid var(--line);
+    border-radius:0 0 8px 8px;
+    margin-bottom:2px;
+  }
+  .exercise-block.superset-bottom:last-child{border-bottom:none;}
+  .superset-connector{
+    display:flex; align-items:center; gap:6px;
+    margin-left:-13px; padding:4px 10px 4px 13px;
+    border-left:4px solid var(--plate-yellow);
+    background:rgba(242,201,76,0.14);
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:600;
+    color:var(--plate-yellow); text-transform:uppercase; letter-spacing:0.3px;
+  }
+  .superset-connector::before{content:'⚡';}
   .exercise input[type=checkbox]{
     width:22px; height:22px; flex:0 0 auto;
     accent-color:var(--plate-blue);
@@ -956,6 +985,20 @@
   </div>
   <div class="program-select-desc" id="programSelectDesc"></div>
 
+  <div class="card" id="martialArtCard" style="display:none">
+    <div class="card-title">🥋 Martial Art Style</div>
+    <div class="history-hint">Match your training to what you already know, or pick one to start learning.</div>
+    <select class="program-select" id="martialArtSelector"></select>
+    <div class="program-select-desc" id="martialArtDesc"></div>
+  </div>
+
+  <div class="card" id="cyclingCard" style="display:none">
+    <div class="card-title">🚴 Cycling Discipline</div>
+    <div class="history-hint">Road and Mountain share a training backbone but differ in emphasis — pick the one that matches how you actually ride.</div>
+    <select class="program-select" id="cyclingSelector"></select>
+    <div class="program-select-desc" id="cyclingDesc"></div>
+  </div>
+
   <div class="tabs-header">
     <div class="hint">Tap a day to view it</div>
     <button class="reorder-btn" id="reorderToggle">Reorder days</button>
@@ -979,18 +1022,16 @@
     <div id="posingClassList"></div>
   </div>
 
-  <div class="card" id="martialArtCard" style="display:none">
-    <div class="card-title">🥋 Martial Art Style</div>
-    <div class="history-hint">Match your training to what you already know, or pick one to start learning.</div>
-    <select class="program-select" id="martialArtSelector"></select>
-    <div class="program-select-desc" id="martialArtDesc"></div>
+  <div class="card" id="swimStylesCard" style="display:none">
+    <div class="card-title">🏊 Swimming Styles</div>
+    <div class="history-hint">Water confidence fundamentals plus a full technical breakdown of all four competitive strokes — tap a stroke to expand, tap a drill for a masterclass-level walkthrough.</div>
+    <div id="swimStylesList"></div>
   </div>
 
-  <div class="card" id="cyclingCard" style="display:none">
-    <div class="card-title">🚴 Cycling Discipline</div>
-    <div class="history-hint">Road and Mountain share a training backbone but differ in emphasis — pick the one that matches how you actually ride.</div>
-    <select class="program-select" id="cyclingSelector"></select>
-    <div class="program-select-desc" id="cyclingDesc"></div>
+  <div class="card" id="climbTechniquesCard" style="display:none">
+    <div class="card-title">🧗 Climbing Techniques</div>
+    <div class="history-hint">Movement fundamentals, every major hand grip, footwork, and advanced body positioning — tap a group to expand, tap a technique for a masterclass-level walkthrough.</div>
+    <div id="climbTechniquesList"></div>
   </div>
 
   <div class="card" id="prenatalCard" style="display:none">
@@ -3292,91 +3333,91 @@ const MOVEMENT_ICONS = {
 // [POSING] ---------------------------------------------------------------
 // Bodybuilding posing reference, shown only when the Bodybuilding program is active.
 const POSE_DETAILS = {
-  'Front Double Biceps': {icon:'frontDoubleBiceps', points:[
+  'Front Double Biceps': {icon:'frontDoubleBiceps', video:'front double biceps bodybuilding pose tutorial', points:[
     'Setup: feet shoulder-width, one foot slightly forward and turned out slightly to add a visual taper down to the ankle — never stand perfectly square, it flattens your physique.',
     'Execution: raise both arms to just above shoulder height, rotate your wrists inward as you flex to peak the biceps at their highest point, not just tense them.',
     'Whole-body integration: this isn\'t an arm pose — flex your abs and quads hard simultaneously, and spread your lats slightly to widen your entire upper body silhouette, not just your arms.',
     'Common mistake: shrugging the shoulders up toward the ears. This shortens your neck and swallows your delts — keep the traps down and the neck long so the shoulder-to-neck line stays sharp.',
     'Judging insight: judges scan symmetry left-to-right first. Practice in a mirror until both sides peak at the exact same height and thickness — a lopsided flex costs more than a slightly smaller peak.',
   ]},
-  'Front Lat Spread': {icon:'frontDoubleBiceps', points:[
+  'Front Lat Spread': {icon:'frontDoubleBiceps', video:'front lat spread bodybuilding pose tutorial', points:[
     'Setup: grip your waist or lower lats with fingers pointing forward, elbows driving forward and slightly down.',
     'Execution: flare your lats outward by driving your elbows toward each other in front of your body — the spread comes from the lats pulling wide, not from the arms alone.',
     'Whole-body integration: keep your chest lifted and abs braced hard — this pose lives or dies on your V-taper, so a collapsed chest kills the illusion of width no matter how wide your lats spread.',
     'Common mistake: rounding the shoulders forward to try to force more spread. That reads as a slouch on stage, not width — the width has to come from underneath the arms, not from posture collapse.',
     'Judging insight: the widest visual point should be your lats, not your elbows. Practice finding the exact elbow angle in a mirror that maximizes lat width without your elbows becoming the widest part of the pose.',
   ]},
-  'Side Chest': {icon:'sideChest', points:[
+  'Side Chest': {icon:'sideChest', video:'side chest bodybuilding pose tutorial', points:[
     'Setup: turn to your strongest side (usually determined by which bicep peaks higher or which pec has better shape), grip your near wrist with your far hand.',
     'Execution: drive your chest up and out by pressing your gripped arms downward, which forces the chest to expand and separate from the shoulder.',
     'Whole-body integration: this is a full-body pose — flex your near-side bicep, quad, and calf all at the same time for a fully "locked-in" look; a flexed chest with a soft leg reads as an unfinished pose.',
     'Common mistake: turning the rear foot straight rather than out toward the judges — a flat rear foot hides your calf entirely, which is a wasted opportunity in a pose built around leg conditioning too.',
     'Judging insight: the pec-to-shoulder separation is what judges are actually scoring here, not raw chest size. A well-defined line between chest and delt beats a bigger but blended-looking chest every time.',
   ]},
-  'Back Double Biceps': {icon:'backDoubleBiceps', points:[
+  'Back Double Biceps': {icon:'backDoubleBiceps', video:'back double biceps bodybuilding pose tutorial', points:[
     'Setup: same arm position as front double biceps, but your back is now on display — stand with feet slightly narrower to keep the lower body from distracting from the back width.',
     'Execution: flare your lats hard while arching your lower back very slightly to create thickness through the middle back, not just width at the top.',
     'Whole-body integration: come up slightly onto one foot to flex that calf and show separation — alternating which foot you rise on between practice reps helps you find your better calf.',
     'Common mistake: dropping the head to look down at the floor. This kills the trap-to-back line completely — keep your chin level or very slightly up so the traps show their full development.',
     'Judging insight: back width vs. back thickness are graded somewhat separately in judges\' minds — if your width is your strength, hold the flare a beat longer before adding the arch; if thickness is your strength, add the arch earlier.',
   ]},
-  'Back Lat Spread': {icon:'backDoubleBiceps', points:[
+  'Back Lat Spread': {icon:'backDoubleBiceps', video:'back lat spread bodybuilding pose tutorial', points:[
     'Setup: grip your waist from behind, elbows driving out and slightly back rather than just out to the sides.',
     'Execution: spread your lats as wide as physically possible while actively keeping your lower back tight and braced, not just relaxed.',
     'Whole-body integration: flex your glutes and hamstrings along with your back — a back double lat spread with soft legs looks incomplete next to a competitor who\'s flexed head to toe.',
     'Common mistake: pulling the elbows purely out to the sides instead of back. Elbows-back recruits more lat fiber and creates a deeper V than elbows-out, which mostly just moves the arms.',
     'Judging insight: this is one of the few poses where a smaller person with better lat insertions can visually out-width a bigger competitor — work the mind-muscle connection on lat spread specifically, not just general back training.',
   ]},
-  'Side Triceps': {icon:'sideTriceps', points:[
+  'Side Triceps': {icon:'sideTriceps', video:'side triceps bodybuilding pose tutorial', points:[
     'Setup: turn to your side, extend your near arm down and back, gripping your wrist with your far hand behind your back.',
     'Execution: flex the triceps hard through full extension — a bent elbow here looks soft; full lockout is what actually shows the horseshoe shape.',
     'Whole-body integration: pull your near shoulder back so you don\'t look hunched, and flex through your whole rear leg (calf and hamstring), not just the arm — this is a full side-profile pose, not just a triceps shot.',
     'Common mistake: letting the chest cave forward while focusing on the arm. A collapsed chest undermines the whole silhouette even if the triceps flex is perfect.',
     'Judging insight: the horseshoe (the three heads of the triceps separating) is what separates a good side triceps from a great one — this responds specifically to close-grip pressing and overhead extension work, not just general arm volume.',
   ]},
-  'Abdominal & Thigh': {icon:'abdominalThigh', points:[
+  'Abdominal & Thigh': {icon:'abdominalThigh', video:'abdominal and thigh bodybuilding pose tutorial', points:[
     'Setup: hands laced behind your head, one leg extended forward on the ball of the foot, weight mostly on your standing leg.',
     'Execution: crunch your torso forward and down sharply while flexing your extended leg\'s quad hard — the crunch and the quad flex should hit at the exact same instant.',
     'Whole-body integration: exhale sharply and completely as you hit the pose — a held breath keeps your abdominal wall pushed out, which flattens the very separation you\'re trying to show.',
     'Common mistake: locking the extended knee out hard. A slightly soft knee actually shows more of the quad sweep (the teardrop muscle) than a fully locked, tensed leg does.',
     'Judging insight: this pose rewards low body fat more than almost any other — the muscle detail matters, but stage conditioning on the day is what actually makes or breaks this specific pose versus others where muscle shape can compensate.',
   ]},
-  'Most Muscular': {icon:'mostMuscular', points:[
+  'Most Muscular': {icon:'mostMuscular', video:'most muscular bodybuilding pose tutorial', points:[
     'Setup: choose your variation ahead of time and drill it specifically — crab (arms down and in, knuckles down) or hands-clasped (fingers interlocked at waist height) are both accepted, but each recruits slightly different muscles.',
     'Execution: crunch your entire upper body inward at once — traps up, chest driving down and in, arms pressing toward center — this is a whole-torso contraction, not an arm flex.',
     'Whole-body integration: drive your shoulders forward and slightly down while keeping your chin tucked — this maximizes the trap-to-chest crunch that defines the pose.',
     'Common mistake: only flexing the arms and forgetting the chest and traps. A most muscular that\'s all forearms and biceps misses the point of the pose entirely.',
     'Judging insight: this is the pose where raw density and hardness show most clearly — it\'s often used as a tiebreaker between similarly-sized competitors, so it rewards whoever has done more peak-week conditioning work, not just more mass.',
   ]},
-  'Quarter Turn': {icon:'quarterTurn', points:[
+  'Quarter Turn': {icon:'quarterTurn', video:'bodybuilding quarter turns posing tutorial', points:[
     'Setup: stand tall and relaxed, weight slightly on your back foot, front foot turned out about 30-45°.',
     'Execution: shoulders back and down, chest lifted, core gently engaged — this is presentation and poise, not maximal muscular flexing.',
     'Whole-body integration: keep the same posture and energy through all four angles (front, side, back, side) — a competitor who "checks out" between turns loses points versus one who holds presence the entire time.',
     'Common mistake: over-flexing in an attempt to look more athletic. Judges in these divisions are specifically scoring a relaxed, confident look — visible straining reads as trying too hard, not as fitness.',
     'Judging insight: practice the turn itself, not just the poses — a crisp, confident quarter turn on the judges\' call is part of what\'s being scored, independent of how good your physique looks standing still.',
   ]},
-  'Side Profile Pose': {icon:'quarterTurn', points:[
+  'Side Profile Pose': {icon:'quarterTurn', video:'bikini side profile pose tutorial', points:[
     'Setup: turn fully to your best side, weight on your back leg, front leg extended slightly forward with a soft knee.',
     'Execution: lift your ribcage and lengthen through your whole side body — think tall and long, not flexed or braced.',
     'Whole-body integration: keep your glutes and hamstrings gently engaged (not flexed hard) to maintain a clean line from shoulder to heel.',
     'Common mistake: collapsing at the waist or letting the hip drop — this breaks the long, clean silhouette that this pose is built to show off.',
     'Judging insight: this pose is about the waist-to-hip ratio and overall shape, not muscle detail — practice finding the exact hip angle that makes your waist look smallest relative to your shoulders and hips.',
   ]},
-  'Front Relaxed Pose': {icon:'quarterTurn', points:[
+  'Front Relaxed Pose': {icon:'quarterTurn', video:'figure front relaxed pose tutorial', points:[
     'Setup: stand facing forward, feet hip-width, weight evenly balanced, arms relaxed at your sides or lightly resting on your hips.',
     'Execution: engage a light, controlled full-body tone — noticeably more present than Bikini\'s fully relaxed look, but well short of a hard flex.',
     'Whole-body integration: keep shoulders open and down, ribcage lifted, and a slight, natural engagement through the abdomen and legs.',
     'Common mistake: either going too soft (looking under-conditioned) or too hard (flexing like a bodybuilding pose) — the sweet spot is controlled athletic tone.',
     'Judging insight: symmetry and proportion are being judged here as much as conditioning — a straight-on stance makes any left-right asymmetry obvious, so this is the pose to rehearse most in a mirror.',
   ]},
-  'Rear Pose (Glute Emphasis)': {icon:'quarterTurn', points:[
+  'Rear Pose (Glute Emphasis)': {icon:'quarterTurn', video:'wellness division rear pose tutorial', points:[
     'Setup: turn your back to the judges, feet hip-width, weight balanced, one heel gently lifted for a subtle calf and glute line.',
     'Execution: engage your glutes and hamstrings with a light, controlled squeeze rather than a hard flex.',
     'Whole-body integration: keep your lower back neutral and shoulders relaxed but open — the whole point of this pose is to draw the eye to glute shape and leg lines, not the upper body.',
     'Common mistake: over-arching the lower back to try to push the glutes out further — this creates a strained look and can visually shorten the leg line instead of lengthening it.',
     'Judging insight: glute-hamstring tie-in (where the glute meets the top of the hamstring) is specifically what\'s being evaluated here — this responds directly to hip thrusts and Romanian deadlifts in training, more than squats alone.',
   ]},
-  'Back Pose with Flex': {icon:'backDoubleBiceps', points:[
+  'Back Pose with Flex': {icon:'backDoubleBiceps', video:'wellness division back pose tutorial', points:[
     'Setup: back to the judges, feet shoulder-width, a light back-double-biceps-style arm position but without the muscular bodybuilding is intent.',
     'Execution: add a controlled, moderate flex through the back and glutes — noticeably more engaged than a fully relaxed quarter turn, but stopping well short of a maximal bodybuilding flex.',
     'Whole-body integration: keep the flex smooth and controlled rather than shaking or straining into it — composure is part of what\'s being judged.',
@@ -3411,7 +3452,7 @@ const POSING_CLASSES = {
     note:'Quarter turns with a slight, controlled flex — more muscle tone expected than Bikini, less than Physique.',
   },
   'Wellness': {
-    poses:['Quarter Turn','Rear Pose (Glute Emphasis)','Side Profile Pose'],
+    poses:['Quarter Turn','Rear Pose (Glute Emphasis)','Side Profile Pose','Back Pose with Flex'],
     note:'Quarter turns emphasizing glute/leg development paired with a fit, proportional upper body.',
   },
   'Bikini': {
@@ -3420,6 +3461,584 @@ const POSING_CLASSES = {
   },
 };
 
+
+// [SWIMMING STYLES] --------------------------------------------------------
+// Stroke-technique reference, shown only when the Swimming program is active.
+// Built on the same "class → expandable drill rows with icon + cues" pattern
+// as the bodybuilding Posing Practice card (POSE_ICONS/POSE_DETAILS/
+// POSING_CLASSES below) — same CSS classes reused (.posing-class,
+// .pose-detail-wrap, .pose-row, .pose-icon, .pose-name, .pose-detail) so it's
+// visually consistent with zero new styling. Technique breakdowns follow the
+// technical model taught throughout USA Swimming/ASCA-style coaching —
+// horizontal body position and streamlining (the throughline of Terry
+// Laughlin's Total Immersion method), the high-elbow/early-vertical-forearm
+// catch popularized for age-group and masters swimmers by Sheila Taormina's
+// "Swim Speed Secrets", and the modern wave-based full-body undulation used
+// in breaststroke and butterfly by elite technicians today. Fundamentals are
+// listed first and deliberately non-stroke-specific, since a nervous or
+// tense new swimmer needs water confidence before stroke mechanics matter.
+const SWIM_ICONS = {
+  bobbing: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="15" cy="16" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="15" y1="19" x2="15" y2="28" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="15" y1="22" x2="10" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="15" y1="22" x2="20" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M25 14 Q28 10 31 14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M30 20 Q33 17 36 20" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="32" x2="40" y2="32" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  streamlineFront: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="7" cy="22" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="22" x2="34" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="34" y1="22" x2="40" y2="19" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="34" y1="22" x2="40" y2="25" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="7" y1="20" x2="2" y2="17" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="32" x2="40" y2="32" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  streamlineBack: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="7" cy="22" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="22" x2="34" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="34" y1="22" x2="40" y2="19" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="34" y1="22" x2="40" y2="25" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M2 14 Q7 11 12 14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="32" x2="40" y2="32" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  flutterKick: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="7" cy="20" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="20" x2="28" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="28" y1="20" x2="38" y2="14" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="28" y1="20" x2="38" y2="27" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="32" x2="40" y2="32" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  armPullFreestyle: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="7" cy="16" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="16" x2="30" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="30" y1="20" x2="36" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M16 8 Q22 20 18 32" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="36" x2="40" y2="36" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  armRecoveryHighElbow: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="7" cy="20" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="20" x2="28" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="28" y1="20" x2="38" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M16 14 Q24 4 32 12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="32" x2="40" y2="32" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  breathingSide: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="9" cy="18" r="3.4" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="12" y1="20" x2="32" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="32" y1="24" x2="38" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M2 30 Q6 26 10 30" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="36" x2="40" y2="36" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  rotationTiming: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="7" cy="18" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="18" x2="30" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="30" y1="22" x2="38" y2="18" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M14 8 A10 10 0 0 1 22 26" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="32" x2="40" y2="32" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  backPull: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="7" cy="22" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="22" x2="30" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="30" y1="22" x2="38" y2="25" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M18 8 Q24 18 20 30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="36" x2="40" y2="36" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  backRecovery: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="7" cy="22" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="22" x2="30" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="30" y1="22" x2="38" y2="25" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="4" x2="18" y2="18" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="32" x2="40" y2="32" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  breastPull: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="7" cy="18" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="18" x2="26" y2="18" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M16 10 Q6 16 15 24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M16 10 Q26 16 17 24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="32" x2="40" y2="32" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  whipKick: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="7" cy="20" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="20" x2="24" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M24 20 Q22 28 30 30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M24 20 Q26 28 18 30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="34" x2="40" y2="34" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  breastBreathing: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="20" cy="14" r="3.4" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="17" x2="20" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="20" x2="10" y2="18" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="20" x2="30" y2="18" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="30" x2="40" y2="30" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  undulationWave: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="6" cy="20" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M9 20 Q16 28 22 20 T35 20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="35" y1="20" x2="40" y2="17" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="35" y1="20" x2="40" y2="23" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="34" x2="40" y2="34" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  dolphinKick: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="7" cy="20" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="20" x2="26" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M26 20 Q32 12 38 20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M26 20 Q32 28 38 20" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/> <line x1="4" y1="30" x2="40" y2="30" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  flyPull: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="7" cy="16" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="16" x2="26" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M18 8 Q10 18 18 28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M18 8 Q26 18 18 28" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="34" x2="40" y2="34" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  flyRecovery: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="20" cy="16" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="19" x2="20" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M20 20 Q10 14 4 20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M20 20 Q30 14 36 20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="32" x2="40" y2="32" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  flyBreathing: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="20" cy="15" r="3.4" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="18" x2="20" y2="25" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="21" x2="9" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="21" x2="31" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="29" x2="40" y2="29" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+};
+
+const SWIM_STROKE_DETAILS = {
+  'Breath Control & Rhythmic Bobbing': {icon:'bobbing', video:'swimming breath control bobbing drill for beginners', points:[
+    'Setup: stand in chest-deep water, take a full breath, then submerge completely by bending the knees — this is the single most important skill in swimming, since almost every technique problem downstream traces back to a swimmer holding their breath and panicking.',
+    'Execution: exhale slowly and fully through your nose and mouth while under water, then push off the bottom and inhale quickly through your mouth the instant your face clears the surface.',
+    'Whole-body integration: keep the exhale continuous rather than holding air and blasting it out at the last second — a steady trickle of bubbles the entire time you\'re under is the actual skill, not the bob itself.',
+    'Common mistake: holding the breath underwater and only exhaling right at the surface. This is the root cause of "breathless panic" in almost every anxious adult swimmer — fix this before touching any stroke technique.',
+    'Coaching insight: repeat this 10-15 times per session until it\'s automatic and boring. Every stroke below assumes this rhythm already exists — trying to learn stroke timing while still holding your breath is trying to build on sand.',
+  ]},
+  'Front Float (Streamline Position)': {icon:'streamlineFront', video:'front float streamline position swimming tutorial', points:[
+    'Setup: push off the wall or floor face-down with arms extended straight over head, one hand stacked on top of the other, biceps pressed against your ears.',
+    'Execution: let your face drop into the water looking straight down (not forward), and let your hips and legs float up toward the surface — you\'re aiming to become as long, narrow, and flat as possible.',
+    'Whole-body integration: this exact shape — the "streamline" — is the lowest-drag position the human body can hold in water, and it\'s the position you return to after every wall push-off, every stroke recovery, and every breath, for the rest of your swimming life.',
+    'Common mistake: lifting the head to look forward. This single habit drops the hips and legs down into the water like an anchor, turning a nearly effortless float into a constant uphill fight — "swim downhill," as Total Immersion\'s Terry Laughlin put it, starts with where the head points.',
+    'Coaching insight: practice holding this float for 5-10 seconds completely relaxed before adding any kick or pull — if you can\'t float here calmly, no amount of arm strength will fix the drag problem underneath it.',
+  ]},
+  'Back Float': {icon:'streamlineBack', video:'back float swimming tutorial beginners', points:[
+    'Setup: lie back into the water with ears submerged, chin slightly tucked (not lifted), and arms resting at your sides or extended overhead.',
+    'Execution: let your chest and hips rise while your lower legs stay relaxed and near the surface — pushing your belly button up toward the sky helps the hips float rather than sink.',
+    'Whole-body integration: keep breathing normally and steadily; unlike the front float, your face is already clear of the water, so there\'s no breath-holding component here — this drill is purely about trusting buoyancy.',
+    'Common mistake: lifting the head to check your position. Lifting the head drops the hips immediately, which is the exact opposite problem of front-float head position — in both floats, the head leads and the hips follow.',
+    'Coaching insight: this is the foundation every backstroke swimmer returns to — if the back float feels unstable, backstroke will always feel like a fight against sinking hips rather than a smooth glide.',
+  ]},
+  'Flutter Kick on the Wall': {icon:'flutterKick', video:'flutter kick drill kickboard swimming tutorial', points:[
+    'Setup: hold the wall or a kickboard with arms extended, body flat and horizontal, face in the water looking down.',
+    'Execution: kick from the hip, not the knee — think of your legs as two long whips, with a small, quick flick at the ankle as the final snap, not a big bent-knee bicycle pedal.',
+    'Whole-body integration: keep ankles loose and slightly pointed (plantarflexed); stiff, flexed ankles act like brakes and can cut kick propulsion by half even with identical leg effort.',
+    'Common mistake: kicking from a bent knee like riding a bicycle. This is the most common flaw in beginners and wastes enormous energy for almost no forward propulsion — the power comes from the hip driving a mostly straight leg, with only a slight, natural knee bend.',
+    'Coaching insight: a 6-beat kick (six kicks per full arm-stroke cycle) is the standard taught in competitive freestyle, but for a beginner just learning the motion, focus on ankle looseness and hip-driven rhythm long before worrying about counting beats.',
+  ]},
+
+  'Body Position & Streamline': {icon:'streamlineFront', video:'freestyle swimming body position technique', points:[
+    'Setup: begin from the front float position — long, flat, face down, streamlined off the wall.',
+    'Execution: keep your body as close to horizontal as possible with a slight natural downward slope from head to feet — a small amount of tilt is normal, but the goal is to minimize how much of your body is "plowing" through the water.',
+    'Whole-body integration: the head is the rudder for the whole body — looking down (not forward) keeps the hips and legs riding high, which is the entire basis of Total Immersion\'s "swim downhill" cue for reducing drag.',
+    'Common mistake: swimming with the head up to see forward. This is by far the most common cause of "sinking legs" in adult-learned freestyle — the fix is almost never a stronger kick, it\'s dropping the head.',
+    'Coaching insight: before adding a single arm stroke, drill pure kicking in this position with a snorkel or by turning to breathe only occasionally — most technique flaws in freestyle are actually body-position flaws in disguise.',
+  ]},
+  'Flutter Kick': {icon:'flutterKick', video:'freestyle flutter kick technique tutorial', points:[
+    'Setup: same hip-driven, straight-leg, loose-ankle kick as the fundamentals drill above, now performed continuously while swimming rather than holding a wall.',
+    'Execution: keep the kick narrow — a kick that\'s too wide (more than roughly shoulder-width in amplitude) creates drag instead of propulsion, since it pushes water sideways instead of back.',
+    'Whole-body integration: the kick\'s main job in freestyle is stabilizing body rotation and balance, not generating most of your speed — the majority of freestyle propulsion comes from the pull, so don\'t over-invest energy in a huge kick.',
+    'Common mistake: kicking too hard and too early in a swim, burning out the legs in the first 50m and having nothing left for the pull. Reserve maximum kick effort for sprinting; distance swimming uses a light, efficient 2-beat or 6-beat kick.',
+    'Coaching insight: a small, tight, fast kick from the hip beats a big, slow, bent-knee kick every time — this is exactly the same efficiency principle as a smaller, tighter boxing jab beating a big looping one.',
+  ]},
+  'Catch & Early Vertical Forearm': {icon:'armPullFreestyle', video:'freestyle high elbow catch early vertical forearm tutorial', points:[
+    'Setup: as your hand enters the water in front of your shoulder (not crossing the midline), let it sink slightly before beginning any backward pull.',
+    'Execution: bend at the elbow and rotate the forearm downward so it becomes vertical (pointing at the pool floor) while the elbow stays high — this "early vertical forearm" (EVF) lets your forearm and hand act as a paddle against still water instead of just pulling through water you\'ve already disturbed.',
+    'Whole-body integration: this catch position — high elbow, vertical forearm, relaxed wrist — is the single technical element most responsible for the difference between an efficient swimmer and a splashy, tired one; it\'s the centerpiece of Sheila Taormina\'s technical coaching for age-group and masters swimmers in "Swim Speed Secrets".',
+    'Common mistake: dropping the elbow so the whole arm sweeps straight back like an oar. This "dropped elbow" catch pulls mostly downward instead of backward, wasting the majority of the stroke\'s force on lifting the body instead of propelling it forward.',
+    'Coaching insight: practice this slowly with a "catch-up drill" (one arm stays extended forward while the other completes a full stroke cycle) — slowing the stroke down is the only way to actually feel the difference between a high-elbow catch and a straight-arm pull.',
+  ]},
+  'Pull-Through & Finish (S-Pull)': {icon:'armPullFreestyle', video:'freestyle swimming s-pull finish technique tutorial', points:[
+    'Setup: from the vertical-forearm catch, begin pulling your hand back along a gently curving path — in toward the body\'s midline, then back out and past the hip.',
+    'Execution: accelerate the hand throughout the pull, finishing fastest right as it exits near the hip and thigh — a stroke that starts fast and fades is far less effective than one that builds speed to the finish.',
+    'Whole-body integration: the S-shaped path (in, then back, then out) lets the hand and forearm stay pressed against "clean," undisturbed water for longer than a straight-line pull would, which is the actual mechanical reason it\'s faster despite covering a curved rather than direct path.',
+    'Common mistake: pulling straight back in a rigid line and stopping the hand at the hip instead of finishing the push all the way through. A stroke that stops short leaves real propulsion on the table every single cycle.',
+    'Coaching insight: think "push the pool behind you," not "pull yourself forward" — this subtle mental cue changes where swimmers apply force and consistently produces a stronger, more complete finish in coaching sessions.',
+  ]},
+  'High-Elbow Recovery': {icon:'armRecoveryHighElbow', video:'freestyle high elbow arm recovery technique', points:[
+    'Setup: once your pull finishes near the hip, lift the elbow first, letting the forearm and hand hang relaxed and trail behind it as it swings forward over the water.',
+    'Execution: keep the elbow noticeably higher than the hand throughout the recovery, with the fingertips grazing close to the water\'s surface rather than looping wide and high.',
+    'Whole-body integration: a relaxed, high-elbow recovery lets the arm swing forward using momentum rather than muscular effort — this is where efficient swimmers actually "rest" mid-stroke, since the recovery arm should feel almost weightless.',
+    'Common mistake: a straight, stiff-armed recovery that swings wide out to the side. Besides wasting energy, a wide, straight-arm recovery also throws off body rotation and balance, since the arm\'s weight is now off to the side instead of tracking straight over the shoulder.',
+    'Coaching insight: a floppy, relaxed hand and wrist during recovery is a genuine skill, not laziness — tension anywhere in the recovery arm bleeds energy you\'ll want for the next catch and pull.',
+  ]},
+  'Bilateral (Rotary) Breathing': {icon:'breathingSide', video:'bilateral breathing freestyle swimming tutorial', points:[
+    'Setup: rather than always breathing to the same side, rotate your whole body (not just your head) so your mouth clears the water in the trough created by that rotation.',
+    'Execution: turn to breathe on a consistent rhythm — commonly every 3rd stroke, alternating sides — rather than every 2nd stroke to the same side every time.',
+    'Whole-body integration: the breath should ride the natural body rotation already happening from the stroke, not require an independent head-lift — if you have to lift your head up and forward to breathe, the rotation underneath it isn\'t doing its job yet.',
+    'Common mistake: lifting the head straight up to breathe instead of rotating to the side. A lifted head drops the hips and legs (the same "swim downhill" problem from body position) and breaks the stroke\'s rhythm every single breath.',
+    'Coaching insight: bilateral breathing isn\'t just about symmetry — it forces even rotation to both sides, which is often what actually fixes a crooked, zig-zagging swim path more than any amount of "swim straight" cueing ever will.',
+  ]},
+  'Stroke Timing & Body Rotation': {icon:'rotationTiming', video:'freestyle body rotation timing swimming technique', points:[
+    'Setup: as one arm catches and pulls, let your hips and shoulders rotate toward that side — freestyle is swum on your sides, alternating left and right, not flat on your stomach.',
+    'Execution: rotation should originate from the core/hips, not just the shoulders twisting independently — the whole body rolls as a unit, roughly 30-45° to each side at a moderate pace.',
+    'Whole-body integration: rotation does three jobs at once — it lets the recovery arm swing forward with less shoulder strain, it extends your reach on the catch for a longer, more powerful pull, and it\'s what makes bilateral breathing possible without lifting the head.',
+    'Common mistake: swimming flat, with the shoulders and hips staying square to the bottom of the pool throughout. Flat freestyle looks like "windmilling" the arms and is both slower and far more shoulder-strain-prone than rotational freestyle.',
+    'Coaching insight: this is genuinely the last piece to click for most self-taught swimmers — kick, catch, and recovery can all be individually correct and still look labored until rotation ties them together into one continuous, connected motion.',
+  ]},
+
+  'Back Float & Body Position': {icon:'streamlineBack', video:'backstroke body position technique tutorial', points:[
+    'Setup: begin from the back float — ears submerged, hips up, chin slightly tucked rather than lifted.',
+    'Execution: maintain a nearly flat, horizontal line from shoulders to ankles; a common reference cue is imagining a broomstick laid along your spine from head to tailbone.',
+    'Whole-body integration: because your face is already out of the water, backstroke body position is purely about hip height — sinking hips is the single most common technical flaw and it\'s almost always caused by a lifted or overly tucked head or chin.',
+    'Common mistake: lifting the head to see where you\'re going. This is even more costly in backstroke than freestyle, since it has no counterbalancing benefit (you can\'t see forward regardless) — it only drops the hips.',
+    'Coaching insight: many swimmers benefit from picking a fixed point on the ceiling or gutter behind them and holding their gaze there — a still head is a stable head, and a stable head keeps the hips up.',
+  ]},
+  'Backstroke Flutter Kick': {icon:'flutterKick', video:'backstroke kick technique tutorial', points:[
+    'Setup: same hip-driven, loose-ankle mechanics as freestyle flutter kick, now performed face-up with toes just barely breaking the surface on the upkick.',
+    'Execution: the upkick (toes toward the sky) is the power phase in backstroke, the reverse emphasis from freestyle where the downkick generates more force — a common cue is "kick like you\'re squashing a bug on the surface with your big toe."',
+    'Whole-body integration: a small, splashy fountain of white water just above the surface from the toes is actually a good sign in backstroke kick — it means the upkick is shallow and fast rather than deep and slow.',
+    'Common mistake: a deep, exaggerated kick that pushes the knees above the surface. Knees breaking the surface create massive drag and usually means the kick is coming from the knee (a "bicycle kick") instead of the hip.',
+    'Coaching insight: kickboard-on-the-chest backstroke kick drills, done regularly, build the ankle flexibility and hip-driven habit that most new backstrokers are missing entirely.',
+  ]},
+  'Catch & Pull': {icon:'backPull', video:'backstroke catch and pull technique tutorial', points:[
+    'Setup: the recovering arm enters the water directly in line with the shoulder, pinky finger first, fingertips leading the entry with minimal splash.',
+    'Execution: once submerged, bend the elbow to find a vertical-forearm catch (the same underlying principle as freestyle\'s EVF catch) and pull in a gently curving path down toward the hip, finishing with a small downward push of the palm at the very end.',
+    'Whole-body integration: the pull\'s power comes from the shoulder and back rotating the body, not just the arm muscling water backward — this is why body rotation (below) and the pull are really one connected motion, not two separate skills.',
+    'Common mistake: a straight-arm "windmill" pull with no elbow bend at all. Without the elbow bend and vertical forearm, the pulling surface is much smaller and the propulsion drops significantly, even though the motion looks similarly big and effortful.',
+    'Coaching insight: because backstroke is the only competitive stroke swum without any visual reference to the catch, many swimmers develop a straight-arm pull simply because they can\'t see the mistake — drilling with a coach\'s feedback or underwater video is disproportionately valuable here.',
+  ]},
+  'Recovery Arm (Straight-Arm Exit & Entry)': {icon:'backRecovery', video:'backstroke arm recovery technique tutorial', points:[
+    'Setup: as the pulling arm finishes near the hip, exit the water thumb-first with a fully straight arm.',
+    'Execution: swing the straight arm in a continuous arc up and over to a position directly above the shoulder, then rotate the hand so it enters pinky-first, directly in line with that shoulder — not crossing over the head or drifting wide to the side.',
+    'Whole-body integration: the straight-arm recovery (unlike freestyle\'s bent-elbow recovery) works because it\'s happening entirely above the water, where drag doesn\'t matter — trying to bend the elbow here just adds unnecessary muscular effort.',
+    'Common mistake: entering the water directly overhead (in line with the ear) instead of the shoulder. An overhead entry twists the shoulder and torso awkwardly and usually throws off the whole-body rotation the stroke depends on.',
+    'Coaching insight: picture a clock face lying flat with your head at 12 — the recovering arm should travel from roughly 6 (hip) to 12 (overhead) staying on that same vertical plane the entire way, never drifting toward 1 or 11.',
+  ]},
+  'Body Rotation & Timing': {icon:'rotationTiming', video:'backstroke body rotation timing technique', points:[
+    'Setup: as one arm pulls and the other recovers, the whole body (hips and shoulders together) rotates toward the pulling-arm side, the same continuous-rotation principle as freestyle.',
+    'Execution: backstroke uses a continuous alternating-arm timing — as one arm finishes its pull, the other should just be entering the water — with no pause or hitch between strokes.',
+    'Whole-body integration: rotation in backstroke serves the same purposes as in freestyle — it lengthens the reach of the catching arm, helps clear the recovering arm from the water efficiently, and connects the kick, pull, and shoulders into one continuous system instead of separate parts.',
+    'Common mistake: "flat" backstroke with no rotation, arms just windmilling over a rigid torso. This dramatically shortens stroke length and is a common habit among swimmers who learned backstroke last and never transferred the freestyle rotation feel over.',
+    'Coaching insight: because there are always two arms in motion in backstroke (one pulling while the other recovers), timing errors are usually more obvious here than in freestyle — a coach watching from the side can immediately see if the entry and exit aren\'t synced.',
+  ]},
+  'Breathing Rhythm': {icon:'breathingSide', video:'backstroke breathing rhythm technique tutorial', points:[
+    'Setup: since the face is already above water throughout backstroke, breathing isn\'t timed to surfacing the way it is in freestyle or breaststroke — it\'s purely about not accidentally holding your breath.',
+    'Execution: establish a simple, fixed pattern — for example, inhale as one arm recovers, exhale as the other pulls — so breathing becomes automatic rather than an afterthought.',
+    'Whole-body integration: a steady breathing rhythm keeps the whole stroke relaxed; holding the breath (a very common unconscious habit in backstroke specifically, since nothing forces an exhale) builds tension through the shoulders and neck that leaks into the pull and recovery.',
+    'Common mistake: unconsciously holding the breath for several stroke cycles at a time, since there\'s no water forcing an exhale like in face-down strokes. This is uniquely a backstroke problem and worth deliberately checking for.',
+    'Coaching insight: some coaches have swimmers count strokes out loud (quietly) during easy backstroke sets specifically to force a natural breathing pattern — an odd-sounding drill that reliably works.',
+  ]},
+
+  'Body Position & Streamline Glide': {icon:'streamlineFront', video:'breaststroke streamline glide technique tutorial', points:[
+    'Setup: after each pull-kick cycle, breaststroke returns to a full front-float streamline — arms extended forward, legs together and straight, face down.',
+    'Execution: hold this streamlined glide position longer than feels natural at first — breaststroke is unique among the four competitive strokes in having a genuine full-body pause built into its rhythm.',
+    'Whole-body integration: this glide is where nearly all of breaststroke\'s efficiency comes from — a swimmer who rushes through the glide to start the next pull immediately is giving up the stroke\'s single biggest advantage over the other strokes.',
+    'Common mistake: cutting the glide short out of impatience or anxiety. Beginners in particular tend to treat breaststroke like continuous paddling instead of a pull-breathe-kick-GLIDE cycle with a real pause at the end.',
+    'Coaching insight: count "one-Mississippi" silently during the glide in early practice — most learners are shocked at how much longer the "correct" glide feels compared to what they were doing instinctively.',
+  ]},
+  'Breaststroke Pull (Out-Sweep, In-Sweep, Recovery)': {icon:'breastPull', video:'breaststroke pull technique tutorial', points:[
+    'Setup: from the streamline, sweep both hands outward and slightly downward together in a shallow "Y" shape, palms angled to press against the water.',
+    'Execution: once the hands reach roughly shoulder-width past the body, sweep them back inward and slightly down, tracing a heart-shaped or keyhole-shaped path that finishes with the hands coming together in front of the chest.',
+    'Whole-body integration: this in-sweep is also what lifts the head and shoulders for the breath — the pull and the breath are one connected motion in breaststroke, not two separate actions happening to overlap.',
+    'Common mistake: pulling too wide or too far back, past the shoulder line and toward the hips like a freestyle pull. A breaststroke pull that goes too far back kills the glide that should immediately follow it and adds drag instead of propulsion.',
+    'Coaching insight: think "small and quick" for the pull, "long and slow" for the glide — this pull-glide contrast is the core rhythm every breaststroke swimmer needs to internalize, and most technical corrections in this stroke trace back to that ratio being off.',
+  ]},
+  'Whip Kick (Breaststroke Kick)': {icon:'whipKick', video:'breaststroke whip kick technique tutorial', points:[
+    'Setup: from the streamlined glide, draw both heels up toward the glutes by bending the knees, keeping the knees roughly hip-width apart (narrower than they feel natural to beginners).',
+    'Execution: rotate the feet outward (dorsiflex and turn out) at the ankles, then whip them out and around in a circular path before snapping them back together and straight, finishing in the streamline.',
+    'Whole-body integration: the "whip" or "snap" at the very end — feet accelerating together and squeezing shut — is where nearly all the kick\'s propulsion actually comes from, similar to how a whip\'s cracking sound comes from the tip\'s final acceleration, not the handle\'s motion.',
+    'Common mistake: the "bicycle kick" or "scissor kick," where the knees drop too wide and the legs kick in an up-and-down or scissoring motion instead of a circular whip. This is the single most common breaststroke error and is frequently disqualified in competitive swimming for exactly this reason.',
+    'Coaching insight: practice this kick on your back initially so you can watch your own knees and feet — most swimmers are genuinely unaware their kick has drifted into a bicycle pattern until they can see it directly.',
+  ]},
+  'Timing: Pull-Breathe-Kick-Glide': {icon:'rotationTiming', video:'breaststroke timing pull breathe kick glide tutorial', points:[
+    'Setup: the full breaststroke cycle follows a specific, non-overlapping sequence: pull, breathe, kick, then glide — often taught with the verbal cue "pull, breathe, kick, glide" said out loud in rhythm.',
+    'Execution: the pull and breath happen together (as covered above), then as the arms recover forward into streamline, the kick fires — critically, the kick happens after the arms are already moving forward, not at the same time as the pull.',
+    'Whole-body integration: this sequencing means at every point in the stroke, either the arms or the legs are providing propulsion, never neither and rarely both — a well-timed breaststroke has almost no "dead spots" despite having an obvious pause built into the glide.',
+    'Common mistake: pulling and kicking at the same time (often from rushing or anxiety about the breath). This "flat" timing loses the sequential propulsion that makes breaststroke efficient and usually shows up as a choppy, tiring stroke.',
+    'Coaching insight: slow-motion, exaggerated practice reps — counting each phase out loud — fixes timing errors faster than swimming at race pace ever will, since race pace hides timing flaws that show up clearly in slow motion.',
+  ]},
+  'Breathing & Head Position': {icon:'breastBreathing', video:'breaststroke breathing head position technique', points:[
+    'Setup: the head lifts to breathe as a direct result of the in-sweep pull described above, not as an independent motion.',
+    'Execution: lift only enough to clear the mouth and chin — the goal is the smallest possible head lift that still allows a breath, then the head drops back down as the arms extend forward into the glide.',
+    'Whole-body integration: because the breath rides the pull\'s natural lift rather than requiring a separate motion, a well-timed breaststroke breath costs almost nothing in terms of extra drag or rhythm disruption.',
+    'Common mistake: lifting the head early, before the pull\'s in-sweep has actually raised the shoulders and chest. An early head lift disconnects the breath from the stroke\'s natural rhythm and often drags the hips down as a result.',
+    'Coaching insight: if you find yourself gasping or feeling rushed for air, the fix is almost always timing (breathing later, closer to when the pull naturally lifts you), not lifting the head higher or holding the breath longer.',
+  ]},
+  'Body Undulation (Modern Wave Breaststroke)': {icon:'undulationWave', video:'wave breaststroke undulation technique tutorial', points:[
+    'Setup: once the fundamental pull-kick-glide timing above feels automatic, add a subtle forward-and-down press of the chest during the glide phase, the "wave" that defines modern elite breaststroke.',
+    'Execution: as the arms extend forward into streamline, press the chest slightly downward and let the hips follow in a small, controlled wave, rather than staying perfectly flat and rigid.',
+    'Whole-body integration: this undulation, refined by elite technicians in recent years, reduces the "stop-and-start" feel of classic flat breaststroke by keeping a small amount of continuous body motion even during the traditionally still glide phase.',
+    'Common mistake: attempting this before the basic timing and kick are solid. Undulation added on top of a bicycle kick or mistimed pull just adds a new source of drag rather than the intended efficiency gain — this is genuinely an advanced refinement, not a beginner priority.',
+    'Coaching insight: this is deliberately the last drill in the breaststroke progression here — a swimmer without the fundamentals in place should focus entirely on pull-breathe-kick-glide timing and a clean whip kick before ever adding a wave to the stroke.',
+  ]},
+
+  'Body Undulation (The Wave)': {icon:'undulationWave', video:'butterfly stroke body undulation wave technique', points:[
+    'Setup: from a front streamline, initiate a wave-like motion starting at the chest — press the chest down and slightly forward, which sends a ripple of motion down through the hips and into the legs.',
+    'Execution: the wave should travel through the body in sequence — chest, then hips, then legs — like a whip cracking, rather than the whole body moving as one rigid, stiff unit.',
+    'Whole-body integration: this undulation is the actual engine of butterfly — nearly every other element (the kick, the pull, the breathing) times itself around this wave rather than the wave being an add-on to an otherwise normal stroke.',
+    'Common mistake: trying to "muscle" butterfly using only the arms, with a stiff, flat torso. This is exhausting and looks and feels nothing like real butterfly — the stroke has a reputation for being brutally hard largely because it\'s so often taught (or self-taught) without this wave foundation.',
+    'Coaching insight: practice this undulation with a kickboard held at arm\'s length, or even just floating and "worming" through the water with no kick or pull at all — feeling the wave in isolation is the fastest path to a butterfly that doesn\'t feel like fighting the water.',
+  ]},
+  'Two-Beat Dolphin Kick': {icon:'dolphinKick', video:'butterfly dolphin kick technique tutorial', points:[
+    'Setup: legs together, moving as a single unit (not alternating like flutter kick) — think of a mermaid\'s tail or a dolphin\'s fluke, not two independent legs.',
+    'Execution: two kicks occur per arm-stroke cycle — one small kick as the hands enter the water and press down at the start of the pull, and one larger kick as the hands finish the pull and push down at the hips.',
+    'Whole-body integration: the kick isn\'t a separate action layered on top of the undulation — it\'s the same wave motion continuing down through the legs, timed specifically to reinforce the two key power moments of the arm stroke.',
+    'Common mistake: kicking from the knees only, in a stiff, choppy motion disconnected from the body wave. A dolphin kick powered purely by the knees looks and feels completely different from one that starts as a wave through the torso and simply continues into the legs.',
+    'Coaching insight: many coaches teach dolphin kick on the swimmer\'s back first (face-up, watching your own legs) before combining it with the pull, exactly the same logic as the on-the-back breaststroke kick drill — seeing the motion accelerates learning it.',
+  ]},
+  'Butterfly Pull (Keyhole Pattern)': {icon:'flyPull', video:'butterfly stroke keyhole pull technique tutorial', points:[
+    'Setup: both hands enter the water together in front of the shoulders (not crossing past the body\'s midline), then press outward and down slightly, similar in principle to breaststroke\'s early out-sweep.',
+    'Execution: from that outward press, both hands sweep back inward toward the body\'s centerline, then curve back outward again toward the hips — tracing a shape that looks like a keyhole or hourglass viewed from below.',
+    'Whole-body integration: this is fundamentally the same high-elbow, vertical-forearm catch principle used in freestyle, just performed symmetrically with both arms at once instead of alternating.',
+    'Common mistake: pulling in a straight line front-to-back instead of the curving keyhole path. A straight pull loses the mechanical advantage of pressing against undisturbed water at each phase, the same underlying issue as a dropped-elbow freestyle catch.',
+    'Coaching insight: because both arms move symmetrically and simultaneously, any pull-timing error in butterfly is immediately doubled compared to an alternating stroke — small technical flaws here are unusually costly to overall efficiency.',
+  ]},
+  'Butterfly Recovery': {icon:'flyRecovery', video:'butterfly stroke arm recovery technique tutorial', points:[
+    'Setup: as the pull finishes near the hips, both arms sweep out and around low over the water\'s surface simultaneously, elbows only slightly bent.',
+    'Execution: keep the arms relaxed and let momentum, not muscular effort, carry them forward in a wide arc back to the entry point in front of the shoulders.',
+    'Whole-body integration: a relaxed recovery is where efficient butterfly swimmers actually recover energy mid-stroke, exactly as in freestyle — tension in the recovery arms is one of the fastest ways to turn butterfly into the exhausting stroke of its reputation.',
+    'Common mistake: muscling the arms high and stiff over the water, or rushing the recovery to "catch up" to the kick timing. Both waste energy that should be saved for the pull and kick, which are what actually move the swimmer forward.',
+    'Coaching insight: a common cue is "throw your arms, don\'t lift them" — the image of tossing both arms forward rather than hoisting them tends to produce the relaxed, momentum-driven recovery that\'s actually correct.',
+  ]},
+  'Breathing (Chin-Skim Technique)': {icon:'flyBreathing', video:'butterfly stroke breathing technique tutorial', points:[
+    'Setup: breathing is timed to the second, larger dolphin kick and the finish of the pull, when the body\'s natural wave already lifts the chest and head slightly.',
+    'Execution: lift only enough for the chin to skim the water\'s surface — an image many coaches use directly — rather than lifting the whole head and shoulders high out of the water.',
+    'Whole-body integration: because the breath rides the same wave that\'s already lifting the body at that point in the cycle, a well-timed breath adds very little extra drag or effort, similar in principle to breaststroke\'s pull-timed breath.',
+    'Common mistake: lifting the head too high, too early, or on every single stroke cycle. Over-lifting stalls the forward wave motion and is a major reason butterfly feels unsustainable for swimmers who haven\'t yet timed the breath to the stroke\'s natural rhythm.',
+    'Coaching insight: many competitive swimmers breathe only every second stroke cycle rather than every single one, specifically to preserve the wave\'s momentum — breathing less often, at the right moment, often feels easier than breathing every stroke at the wrong moment.',
+  ]},
+  'Timing & Rhythm': {icon:'rotationTiming', video:'butterfly stroke timing rhythm technique tutorial', points:[
+    'Setup: butterfly\'s full cycle is: kick 1 as hands enter and press down, pull through the keyhole pattern, kick 2 as the pull finishes near the hips, then the relaxed recovery back to entry.',
+    'Execution: the entire stroke should feel like one continuous wave passing through the body from head to toe, not four separate, disconnected actions performed back-to-back.',
+    'Whole-body integration: this is the stroke where "less is more" is most true of all four strokes — swimmers who try to power through butterfly with raw strength alone almost always tire within a lap or two, while swimmers who find the timing can sustain it far longer with noticeably less effort.',
+    'Common mistake: over-kicking, over-pulling, or rushing the recovery in an attempt to "muscle" the stroke, especially under fatigue. This is almost always a timing problem being misdiagnosed as a strength problem.',
+    'Coaching insight: if butterfly consistently feels exhausting after only a few strokes, the fix is virtually never "get stronger" — it\'s almost always "slow down and find the wave," since a poorly timed stroke wastes far more energy fighting itself than a well-timed one spends moving forward.',
+  ]},
+};
+
+const SWIM_STROKES = {
+  'Water Confidence & Fundamentals': {
+    poses:['Breath Control & Rhythmic Bobbing','Front Float (Streamline Position)','Back Float','Flutter Kick on the Wall'],
+    note:'Start here if swimming still feels effortful or anxious — every stroke below assumes these are already comfortable and automatic.',
+  },
+  'Freestyle (Front Crawl)': {
+    poses:['Body Position & Streamline','Flutter Kick','Catch & Early Vertical Forearm','Pull-Through & Finish (S-Pull)','High-Elbow Recovery','Bilateral (Rotary) Breathing','Stroke Timing & Body Rotation'],
+    note:'The fastest and most efficient of the four competitive strokes — also the one most self-taught swimmers have the most fixable flaws in.',
+  },
+  'Backstroke': {
+    poses:['Back Float & Body Position','Backstroke Flutter Kick','Catch & Pull','Recovery Arm (Straight-Arm Exit & Entry)','Body Rotation & Timing','Breathing Rhythm'],
+    note:'The only stroke swum face-up — technically similar to freestyle underwater, but with no visual feedback on your own catch, so it rewards feel and coaching over self-correction.',
+  },
+  'Breaststroke': {
+    poses:['Body Position & Streamline Glide','Breaststroke Pull (Out-Sweep, In-Sweep, Recovery)','Whip Kick (Breaststroke Kick)','Timing: Pull-Breathe-Kick-Glide','Breathing & Head Position','Body Undulation (Modern Wave Breaststroke)'],
+    note:'The only stroke with a genuine full-body pause built in — most technical problems here come from rushing through the glide rather than any single body part.',
+  },
+  'Butterfly': {
+    poses:['Body Undulation (The Wave)','Two-Beat Dolphin Kick','Butterfly Pull (Keyhole Pattern)','Butterfly Recovery','Breathing (Chin-Skim Technique)','Timing & Rhythm'],
+    note:'Widely considered the hardest stroke to learn, almost always because it\'s taught as an arm stroke rather than a whole-body wave — get the undulation right first and the rest becomes far more manageable.',
+  },
+};
+
+function renderSwimStyles(){
+  const listEl = document.getElementById('swimStylesList');
+  if(!listEl) return;
+  listEl.innerHTML = Object.keys(SWIM_STROKES).map((strokeName)=>{
+    const cls = SWIM_STROKES[strokeName];
+    const drillRows = cls.poses.map((drillName)=>{
+      const detail = SWIM_STROKE_DETAILS[drillName];
+      const iconSvg = detail ? SWIM_ICONS[detail.icon] : '';
+      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
+      const query = encodeURIComponent(detail && detail.video ? detail.video : `${drillName} swimming technique tutorial`);
+      return `
+        <details class="pose-detail-wrap">
+          <summary class="pose-row">
+            <div class="pose-icon">${iconSvg}</div>
+            <div class="pose-name">${drillName}</div>
+            <span class="ex-chevron">›</span>
+          </summary>
+          <div class="pose-detail">
+            <ul>${pointsHtml}</ul>
+            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
+          </div>
+        </details>
+      `;
+    }).join('');
+    return `
+      <details class="posing-class">
+        <summary>${strokeName} <span class="month-count">${cls.poses.length} drill${cls.poses.length===1?'':'s'}</span></summary>
+        <div class="posing-class-note">${cls.note}</div>
+        ${drillRows}
+      </details>
+    `;
+  }).join('');
+}
+
+function toggleSwimStylesCard(){
+  const card = document.getElementById('swimStylesCard');
+  if(!card) return;
+  if(activeProgram === 'swimming'){
+    card.style.display = '';
+    renderSwimStyles();
+  } else {
+    card.style.display = 'none';
+  }
+}
+
+// [CLIMBING TECHNIQUES] ----------------------------------------------------
+// Grip and movement-technique reference, shown only when the Rock Climbing
+// program is active. Same "group → expandable technique rows with icon +
+// cues + video" pattern as Posing Practice and Swimming Styles above (same
+// CSS classes: .posing-class, .pose-detail-wrap, .pose-row, .pose-icon,
+// .pose-name, .pose-detail). The climbing program itself is dryland/gym
+// strength conditioning (hangboard, pulling, core tension) — this card is
+// the on-the-wall technique layer that complements it. Grounded in widely
+// taught, real climbing-coaching sources: the movement-first philosophy of
+// Dave MacLeod's "9 Out of 10 Climbers Make the Same Mistakes", the
+// structured strength/technique split popularized by Eric Hörst ("Training
+// for Climbing", "Learn to Climb 5.12"), and the finger-injury awareness
+// documented in climbing-medicine literature associated with sports
+// physicians like Dr. Volker Schöffl, whose work is why full-crimp loading
+// gets an explicit caution below rather than being taught as a default.
+const CLIMB_ICONS = {
+  threePoints: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="8" y1="6" x2="8" y2="38" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/> <line x1="36" y1="6" x2="36" y2="38" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/> <circle cx="8" cy="12" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="12" cy="30" r="2.6" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="32" cy="24" r="2.6" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="14" x2="13" y2="28" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="14" x2="31" y2="23" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="14" x2="24" y2="10" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3"/> </svg>',
+  straightArmHang: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="4" y1="6" x2="40" y2="6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="22" cy="12" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="15" x2="20" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="15" x2="15" y2="6" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="24" y1="15" x2="29" y2="6" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="26" x2="16" y2="38" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="26" x2="24" y2="38" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  hipPosition: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="38" y1="4" x2="38" y2="40" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/> <circle cx="20" cy="10" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="13" x2="28" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="28" y1="22" x2="36" y2="16" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="28" y1="22" x2="34" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="28" y1="22" x2="16" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="30" x2="10" y2="38" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  quietFeet: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="30" cy="30" r="2.2" stroke="currentColor" stroke-width="2.2" fill="currentColor" stroke-linecap="round" stroke-linejoin="round"/> <path d="M18 34 Q24 32 30 30" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M14 40 Q18 36 18 34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="14" cy="10" r="3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> <line x1="14" y1="13" x2="16" y2="30" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> </svg>',
+  crimpGrip: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="6" y1="20" x2="38" y2="20" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M12 20 Q12 30 8 30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M18 20 Q18 32 14 32" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M24 20 Q24 32 20 32" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M30 20 Q30 30 26 30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  openHandGrip: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="6" y1="20" x2="38" y2="20" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M12 20 Q13 26 11 30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M18 20 Q19 27 17 32" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M24 20 Q25 27 23 32" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M30 20 Q31 26 29 30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  pinchGrip: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <rect x="16" y="10" width="10" height="24" rx="2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M16 16 Q6 18 8 26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M26 16 Q36 18 34 26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  sloperGrip: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <path d="M4 26 Q22 8 40 26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M12 22 Q22 30 32 22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="30" x2="22" y2="38" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> </svg>',
+  pocketGrip: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="6" y1="22" x2="38" y2="22" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="22" cy="26" r="4" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="22" x2="22" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M20 22 L20 26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M24 22 L24 26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  gastonGrip: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="22" y1="6" x2="22" y2="36" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M22 14 Q30 14 32 20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M22 20 Q34 18 36 24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M32 20 L38 16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  underclingGrip: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="6" y1="14" x2="38" y2="14" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M12 14 Q12 6 8 6" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M20 14 Q20 4 16 4" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="18" x2="20" y2="34" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> </svg>',
+  sidepullGrip: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="30" y1="4" x2="30" y2="36" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M22 14 Q28 14 30 18" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M22 20 Q28 22 30 26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="16" x2="8" y2="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> </svg>',
+  edgingFoot: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="4" y1="30" x2="40" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M20 30 Q26 28 30 24" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M20 30 L18 36 L28 34 L30 24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="30" cy="24" r="1.8" stroke="currentColor" stroke-width="1.8" fill="currentColor"/> </svg>',
+  smearingFoot: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="6" y1="8" x2="30" y2="38" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M18 20 Q26 24 22 32" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M18 20 L12 26 L18 34 L22 32" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  dropKnee: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="36" y1="4" x2="36" y2="40" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/> <circle cx="18" cy="8" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="11" x2="24" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="24" y1="20" x2="34" y2="14" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="24" y1="20" x2="14" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="26" x2="20" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="24" y1="20" x2="30" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="30" y1="30" x2="34" y2="38" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  flagging: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="8" y1="4" x2="8" y2="40" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/> <circle cx="16" cy="10" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="13" x2="18" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="8" x2="16" y2="13" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="22" x2="12" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="22" x2="32" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  heelHook: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="38" y1="4" x2="38" y2="40" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/> <circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="13" x2="16" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="24" x2="12" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M16 24 Q30 22 34 30" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="34" cy="30" r="1.8" stroke="currentColor" stroke-width="1.8" fill="currentColor"/> </svg>',
+  toeHook: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="6" y1="6" x2="6" y2="40" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/> <circle cx="30" cy="10" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="30" y1="13" x2="24" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="24" y1="24" x2="28" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M24 24 Q10 26 8 16" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="8" cy="16" r="1.8" stroke="currentColor" stroke-width="1.8" fill="currentColor"/> </svg>',
+  mantling: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="4" y1="20" x2="40" y2="20" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="16" cy="10" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="13" x2="16" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="16" x2="26" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="20" x2="20" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="30" x2="14" y2="38" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  stemming: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="6" y1="4" x2="6" y2="40" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> <line x1="38" y1="4" x2="38" y2="40" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> <circle cx="22" cy="10" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="13" x2="22" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="16" x2="8" y2="10" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="16" x2="36" y2="10" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="22" x2="9" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="22" x2="35" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  dyno: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="20" cy="8" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="11" x2="18" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="13" x2="30" y2="6" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="20" x2="10" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="20" x2="26" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="6" y1="36" x2="34" y2="36" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5" opacity="0.5"/> </svg>',
+  rockover: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="6" y1="4" x2="6" y2="40" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/> <circle cx="26" cy="8" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="26" y1="11" x2="20" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="10" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="26" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="10" cy="26" r="1.8" stroke="currentColor" stroke-width="1.8" fill="currentColor"/> </svg>',
+};
+
+const CLIMB_TECHNIQUE_DETAILS = {
+  'Three Points of Contact': {icon:'threePoints', video:'climbing three points of contact technique beginners', points:[
+    'Setup: before moving any single hand or foot, check that the other three limbs are already solidly placed — this is the default state you return to between every individual move.',
+    'Execution: move only one limb at a time, keeping the remaining three in stable contact with the wall while that limb repositions to its next hold.',
+    'Whole-body integration: this isn\'t a rigid rule for absolute beginners only — even elite climbers are constantly cycling through three-point stability between dynamic moves; the difference is speed and confidence, not skipping the principle.',
+    'Common mistake: reaching for the next hold while already off-balance on only one or two points of contact, then grabbing and pulling to "catch" the balance rather than moving from a stable base.',
+    'Coaching insight: new climbers often think climbing is about arm strength because they\'re gripping too hard while off-balance — a huge amount of perceived "grip fatigue" in beginners is actually a balance and stability problem being compensated for with the hands.',
+  ]},
+  'Straight-Arm Resting (Skeletal Hang)': {icon:'straightArmHang', video:'climbing straight arm technique resting skeleton', points:[
+    'Setup: whenever holds allow it, hang from a straight (fully extended) arm rather than a bent one, letting your skeleton — not your bicep and forearm muscles — bear the load.',
+    'Execution: actively relax the bent-arm muscles once the arm is extended; a straight elbow transfers tension into the bone and connective tissue, which doesn\'t fatigue the way muscle does.',
+    'Whole-body integration: this is the single biggest lever new climbers have for endurance — climbers who keep both arms bent throughout a route pump out dramatically faster than those who straighten and shake out whenever possible.',
+    'Common mistake: keeping the arms chronically bent "just in case," out of a fear of falling. This is almost always a confidence problem rather than a strength problem, and it\'s the most common reason new climbers gas out on routes well within their physical capability.',
+    'Coaching insight: consciously look for a bent elbow anywhere it isn\'t needed and straighten it — this single habit, repeated on every climb, does more for endurance than months of extra pull-up training.',
+  ]},
+  'Hip Positioning & Wall Awareness': {icon:'hipPosition', video:'climbing hip positioning technique wall awareness', points:[
+    'Setup: rather than facing the wall square-on, rotate your hip toward the wall on the same side as the hand or foot you\'re reaching with.',
+    'Execution: turning the hip in brings your center of gravity closer to the wall and extends your reach significantly further than a flat, square-on position ever could.',
+    'Whole-body integration: this hip rotation is the foundation underneath several named techniques below (flagging, backstepping, drop-knees) — they\'re really all variations on the same core idea of turning the hips to change your reach and balance.',
+    'Common mistake: staying square to the wall on steep or technical terrain, which shortens your effective reach and forces the arms to compensate for what should be a hip and footwork problem.',
+    'Coaching insight: Dave MacLeod\'s widely read coaching book "9 Out of 10 Climbers Make the Same Mistakes" makes exactly this point — most plateaued climbers have a technique and body-positioning gap, not a strength gap, and hip awareness is usually the first thing to fix.',
+  ]},
+  'Quiet Feet & Precision Footwork': {icon:'quietFeet', video:'climbing quiet feet precision footwork drill', points:[
+    'Setup: look at the foothold before moving your foot there, and place your foot exactly where you looked — no searching or scraping around once it\'s near the hold.',
+    'Execution: place the foot down with control and stop it there; a foot that lands and immediately settles without shifting or re-adjusting is the actual goal, not just "getting it on the hold eventually."',
+    'Whole-body integration: precise footwork directly reduces grip fatigue, since sloppy feet force the arms to compensate for lost balance — this is one of the clearest examples of how climbing technique and endurance are the same skill viewed from different angles.',
+    'Common mistake: "feeling around" for a foothold with the toe after placing it, or stepping loudly and imprecisely. A loud, scrabbling foot placement is a reliable sign the eyes didn\'t do the work before the foot moved.',
+    'Coaching insight: a classic coaching drill is climbing an easy, familiar route while trying to place each foot completely silently — it\'s a deceptively hard drill that exposes footwork sloppiness fast, even for climbers who feel technically solid.',
+  ]},
+
+  'Crimp Grip (Full & Half Crimp)': {icon:'crimpGrip', video:'climbing crimp grip technique full half crimp', points:[
+    'Setup: fingers bent sharply at the middle knuckle, gripping a small edge with the fingertips and first pad — in a "full crimp," the thumb locks down over the top of the index finger for extra support; in a "half crimp," the thumb stays off to the side.',
+    'Execution: keep the wrist relatively straight and let the fingers, not the wrist, do the gripping work; full crimp adds real strength on very small edges but concentrates far more force through the finger joints and the A2 pulley tendon specifically.',
+    'Whole-body integration: crimping is a finger-and-forearm-intensive grip, so pair it with good body positioning (hips in, straight arms elsewhere) so the fingers aren\'t also compensating for poor balance on top of an already demanding grip.',
+    'Common mistake: defaulting to a full crimp on every small edge out of habit, even when an open-hand grip (below) would work almost as well with far less joint stress. Climbing medicine specialists, including sports physicians like Dr. Volker Schöffl who has published extensively on climbing finger injuries, specifically flag full-crimp loading — especially under dynamic or high-load movement — as a major risk factor for A2 pulley strains and tears.',
+    'Coaching insight: build half-crimp and open-hand strength as your default, and treat full crimp as a specific tool for genuinely tiny edges rather than an automatic habit — this single adjustment is one of the most effective ways climbers reduce finger injury risk over a long career.',
+  ]},
+  'Open Hand (Drag) Grip': {icon:'openHandGrip', video:'climbing open hand drag grip technique', points:[
+    'Setup: fingers curve over the hold in a shallow, relaxed arc without sharply bending at the middle knuckle — the hand looks almost like it\'s gently dragging across the hold rather than clawing it.',
+    'Execution: let the hold\'s shape and friction do more of the work than the fingers\' flexor tension; this grip relies more on the skin and larger finger pads than on maximal joint torque.',
+    'Whole-body integration: open hand is generally considered the safer default grip for the finger joints and pulley tendons, since it distributes load more evenly and avoids concentrating force at the sharply bent middle joint the way a full crimp does.',
+    'Common mistake: assuming open hand is simply "weaker" and avoiding it in favor of crimping everything. On many hold shapes, especially rounded or incut edges, a well-trained open-hand grip is nearly as strong as a crimp while carrying meaningfully less injury risk.',
+    'Coaching insight: many structured climbing training plans, including Eric Hörst\'s widely used "Training for Climbing" progressions, deliberately build open-hand strength early and specifically, precisely because it\'s the grip most climbers under-train relative to how often it\'s actually useful on real routes.',
+  ]},
+  'Pinch Grip': {icon:'pinchGrip', video:'climbing pinch grip technique tutorial', points:[
+    'Setup: thumb pressing directly against the fingers on the opposite side of a hold, squeezing the hold between them like gripping a brick or a block.',
+    'Execution: generate force by actively squeezing the thumb and fingers toward each other, rather than just hanging passively on the hold the way you might on a crimp or jug.',
+    'Whole-body integration: pinch strength comes disproportionately from the thumb and the muscles at the base of it, which most other grips barely use — this is why pinch-specific training (block pinches, pinch blocks on a hangboard) is usually a separate line item in structured climbing training.',
+    'Common mistake: relying purely on finger strength and forgetting to actively engage the thumb, which turns a pinch into a much weaker, harder-to-control version of an open-hand grip.',
+    'Coaching insight: pinch holds often show up on volumes and comp-style features as much as on outdoor rock, and are a common weak point for climbers who\'ve trained mostly on crimpy, edge-heavy terrain — worth deliberately seeking out if your local gym has pinch-heavy problems.',
+  ]},
+  'Sloper': {icon:'sloperGrip', video:'climbing sloper technique friction grip', points:[
+    'Setup: place as much of the palm and fingers in full, flat contact with the rounded hold as possible — there\'s no edge to hook onto, so surface area and friction are the entire game.',
+    'Execution: keep the wrist low and the elbow slightly bent to maximize downward pressure into the hold, and keep body weight low and centered directly under the hold rather than reaching up and out from it.',
+    'Whole-body integration: slopers reward good body positioning more than almost any other hold type — a climber with poor hip and weight positioning will slide right off a sloper that a well-positioned climber holds easily with the same forearm strength.',
+    'Common mistake: gripping too hard with the fingers, which actually reduces palm contact and friction. Slopers respond better to a relaxed, broad palm press than to a tense, clawing grip.',
+    'Coaching insight: chalk, skin temperature, and rock/hold temperature all matter disproportionately on slopers compared to edges or crimps — this is a grip type where external conditions can change difficulty almost as much as technique does.',
+  ]},
+  'Pocket Grip': {icon:'pocketGrip', video:'climbing pocket grip technique two finger mono', points:[
+    'Setup: insert one, two, or three fingers into a hole or shallow pocket in the rock or wall, choosing the finger combination the pocket\'s shape and spacing actually supports.',
+    'Execution: keep the inserted fingers in a relatively natural, only slightly curled position rather than jamming them in and cranking at a sharp angle, which concentrates enormous stress on individual finger joints.',
+    'Whole-body integration: pockets — especially two-finger and mono (one-finger) pockets — carry meaningfully higher injury risk per unit of force than open-hand or even crimp grips, because the load concentrates on so few tendons and joints at once.',
+    'Common mistake: cranking hard on a mono or two-finger pocket cold, without a proper warm-up, or using pockets as a primary strength-training tool too early in a climbing career. This is one of the more common ways climbers develop serious finger tendon injuries.',
+    'Coaching insight: build general finger strength on jugs, edges, and open-hand grips first, and treat pocket-specific training as an advanced addition once a solid strength base and a few years of healthy tendon loading are already in place — this is standard, widely repeated advice across structured climbing training programs precisely because pocket injuries are so common in climbers who skip that progression.',
+  ]},
+  'Gaston': {icon:'gastonGrip', video:'climbing gaston technique tutorial', points:[
+    'Setup: grip a vertical-ish edge or feature with the thumb pointing down and the elbow out to the side, then push (rather than pull) outward and away from your body.',
+    'Execution: think of the motion as prying a door open from the inside — the shoulder and upper back drive the outward press, with the arm mostly transmitting force rather than generating it independently.',
+    'Whole-body integration: a gaston is fundamentally a shoulder-and-back move, not a hand-strength move; poor shoulder positioning or a collapsed chest makes a gaston feel far harder than the hold itself would otherwise justify.',
+    'Common mistake: trying to muscle a gaston with the arm and hand alone, elbow tucked in close to the body. Tucking the elbow removes the mechanical leverage that makes a gaston work in the first place.',
+    'Coaching insight: gastons are one of the more shoulder-intensive techniques in climbing — the antagonist and shoulder-health work already built into the Rock Climbing program\'s dryland training (band external rotation, scapular retraction, face pulls) directly supports safer, stronger gaston technique on the wall.',
+  ]},
+  'Undercling': {icon:'underclingGrip', video:'climbing undercling technique tutorial', points:[
+    'Setup: grip a hold from underneath, palm facing up, fingers curling over the underside of the feature rather than over the top of it.',
+    'Execution: keep your body weight low and your feet positioned relatively high and close to your hands, since underclings work by pulling up and in against the hold rather than down on top of it.',
+    'Whole-body integration: underclings depend heavily on foot position — if the feet are too low or too far from the wall, the body\'s center of gravity ends up in the wrong place relative to the pull direction, and the hold feels far worse than its actual quality.',
+    'Common mistake: keeping the feet low and reaching upward from an extended, straight-leg position. This pulls the hips away from the wall exactly when they need to stay close, and turns a manageable undercling into a strength battle.',
+    'Coaching insight: a common cue is "high feet, low hips" for underclings — get the feet up first, then commit to the pull, rather than committing to the pull and hoping the feet catch up.',
+  ]},
+  'Side Pull': {icon:'sidepullGrip', video:'climbing side pull technique tutorial', points:[
+    'Setup: grip a hold oriented vertically (or near-vertically), with the pulling force directed sideways, back toward your own body, rather than straight down.',
+    'Execution: this grip almost always needs to be paired with opposing footwork — flagging a leg out to the opposite side, or pressing a foot out wide — to create the counter-tension that keeps the body from simply swinging off the wall.',
+    'Whole-body integration: a side pull in isolation, without the right foot counter-pressure, tends to spin the climber\'s body away from the wall — the hold and the footwork are really one combined technique, not two separate decisions.',
+    'Common mistake: grabbing a side pull and pulling straight in toward the body without setting up the opposing foot or flag first, which usually results in a barn-door swing off the wall.',
+    'Coaching insight: side pulls are a great example of why "the fix is often in the feet, not the hands" — if a side pull feels impossible to hold, look at what the feet and hips are doing before assuming the grip itself is the problem.',
+  ]},
+
+  'Edging': {icon:'edgingFoot', video:'climbing edging footwork technique tutorial', points:[
+    'Setup: place the inside or outside edge of the climbing shoe precisely on a small foothold, using the stiffer, more precise edge of the shoe rather than the flatter sole.',
+    'Execution: apply weight straight down through that precise contact point and trust it fully once placed, rather than shifting or testing the foot repeatedly after it\'s down.',
+    'Whole-body integration: edging rewards the same precision and confidence covered in "Quiet Feet" above — a foot that\'s placed with real commitment holds far better than the same foot placed tentatively on the exact same hold.',
+    'Common mistake: placing the foot too low on the shoe (near the arch) instead of on the precise point of the big toe or the shoe\'s edge, which reduces both precision and the leverage available to push off the hold.',
+    'Coaching insight: shoe choice matters here more than almost any other technique — a stiffer-soled shoe makes edging noticeably easier for less-experienced climbers, while very soft, aggressive shoes demand more foot strength and precision to edge well.',
+  ]},
+  'Smearing': {icon:'smearingFoot', video:'climbing smearing footwork technique tutorial', points:[
+    'Setup: press as much of the shoe\'s rubber sole flat against a feature-less or low-angle section of rock or wall as possible, rather than looking for a distinct edge that isn\'t there.',
+    'Execution: keep the heel low (often below the level of the toes) to maximize the amount of rubber in contact with the surface, and trust friction rather than a mechanical edge to hold the foot in place.',
+    'Whole-body integration: smearing depends heavily on keeping body weight directly over the foot — leaning away from a smear, the same mistake that ruins slopers, breaks the friction contact and the foot slides immediately.',
+    'Common mistake: raising the heel and trying to stand on the toe like an edge, when the surface genuinely has no edge to use. This reduces the contact patch exactly when maximum surface area is what\'s needed.',
+    'Coaching insight: smearing is often the technique climbers trust least and therefore practice least, since it feels precarious compared to a solid edge — deliberately seeking out low-angle, featureless terrain to practice on is the fastest way to build genuine trust in the technique.',
+  ]},
+  'Backstep & Drop Knee': {icon:'dropKnee', video:'climbing backstep drop knee technique tutorial', points:[
+    'Setup: turn one hip into the wall and place the outside edge of that same-side foot on a hold, rather than the usual inside edge — this is the "backstep."',
+    'Execution: from a backstep, dropping that same knee downward and in toward the wall (the "drop knee") rotates the hip even further into the wall, extending the opposite-side reach significantly.',
+    'Whole-body integration: this is one of the clearest applications of the hip-positioning principle covered above — the backstep and drop-knee exist specifically to change hip orientation and extend reach on steep or technical terrain.',
+    'Common mistake: attempting a drop-knee with the standing leg\'s hip still square to the wall, which limits the knee\'s rotation and often creates uncomfortable, ineffective torque at the hip joint instead of the intended reach extension.',
+    'Coaching insight: this technique is genuinely more about hip mobility and rotation than raw leg strength — climbers who struggle with drop-knees often benefit as much from hip mobility work as from any climbing-specific drilling.',
+  ]},
+  'Flagging': {icon:'flagging', video:'climbing flagging technique tutorial', points:[
+    'Setup: extend one leg out to the side (or occasionally behind the other leg) without placing it on any hold at all, using it purely as a counterbalance.',
+    'Execution: the flagged leg\'s job is to shift your center of gravity back over your base of support, specifically to prevent the "barn door" swing that happens when reaching to one side with only one foot on the wall.',
+    'Whole-body integration: flagging is often the missing piece that makes an otherwise-impossible-feeling reach suddenly manageable — it\'s frequently paired with side pulls and gastons for exactly this counterbalancing reason.',
+    'Common mistake: not flagging at all when reaching across the body to one side, and instead trying to muscle through the resulting instability with a harder grip. A well-timed flag often does more for a hard reach than any amount of extra hand strength.',
+    'Coaching insight: try the same reach with and without a flag on an easy route — the difference is usually dramatic and immediate, which is why flagging is one of the first "aha" moments in most climbers\' technical development.',
+  ]},
+
+  'Heel Hook': {icon:'heelHook', video:'climbing heel hook technique tutorial', points:[
+    'Setup: hook the heel of the shoe over a hold or feature — commonly above waist height, on steep terrain, or on features like arêtes and roofs — rather than standing on it with the toe.',
+    'Execution: actively pull with the hooked heel by contracting the hamstring, as if trying to drag the heel back toward your glutes; a passive heel hook that isn\'t actively engaged provides far less stability than one being actively pulled.',
+    'Whole-body integration: a well-executed heel hook effectively adds a "third arm" to the body\'s points of contact, taking significant load off the hands on steep terrain — this is why heel hooking is disproportionately important on overhanging routes.',
+    'Common mistake: placing the heel passively without engaging the hamstring to actively pull, which leaves the foot vulnerable to popping off the hold under load exactly when it\'s needed most.',
+    'Coaching insight: heel hooking uses the hamstring and hip in a way most other lower-body training doesn\'t address — climbers who heel hook frequently often benefit from specific hamstring and hip-flexor conditioning alongside their regular pulling and finger training.',
+  ]},
+  'Toe Hook': {icon:'toeHook', video:'climbing toe hook technique tutorial', points:[
+    'Setup: hook the top of the foot/toe (rather than the sole) underneath a hold, feature, or roof lip, typically to prevent the body from swinging outward away from the wall.',
+    'Execution: actively pull the hooked toe upward and back toward the shin, engaging the muscles on the top of the foot and shin rather than leaving the foot passively caught under the feature.',
+    'Whole-body integration: toe hooks are most common on roofs and steep, technical terrain where they work as a counter-tension anchor against a reaching hand move, similar in principle to how a heel hook opposes a pulling hand.',
+    'Common mistake: relying on the toe hook passively "catching" the body rather than actively engaging it, which tends to fail exactly at the moment of a dynamic reach when the tension is highest.',
+    'Coaching insight: toe hooks are less commonly drilled deliberately than heel hooks, simply because they come up less often — but on steep, roof-heavy terrain specifically, they\'re frequently the difference between a move being possible or not, so it\'s worth seeking out roof problems to build comfort with them.',
+  ]},
+  'Mantling': {icon:'mantling', video:'climbing mantle technique tutorial', points:[
+    'Setup: from a hold or ledge at roughly chest-to-shoulder height, press down on it with one or both hands, similar to the motion of pushing yourself up and out of a swimming pool.',
+    'Execution: as the arms straighten and push the body upward, get a foot up onto the same ledge or a nearby foothold as early as possible, transferring weight from the arms to the leg as soon as it\'s viable.',
+    'Whole-body integration: mantling briefly resembles a pressing movement (like a dip or push-up) more than the pulling motion most of climbing relies on — it\'s a genuinely different muscular pattern and often catches climbers with strong pulling strength but underdeveloped pressing strength off guard.',
+    'Common mistake: trying to press all the way up on the arms alone without getting a foot up early, which demands far more shoulder and triceps strength than necessary and often stalls out at the hardest point of the press.',
+    'Coaching insight: because mantling is a pressing pattern, general upper-body pressing work (push-ups, dips, shoulder press) — even though it isn\'t part of the typical pulling-dominant climbing training split — pays real dividends specifically for mantle-heavy routes and boulder problems.',
+  ]},
+  'Stemming': {icon:'stemming', video:'climbing stemming technique tutorial', points:[
+    'Setup: push the hands and/or feet outward against two opposing surfaces at the same time — most commonly the two walls of a corner (dihedral) or a wide chimney.',
+    'Execution: generate stability by actively pushing the limbs apart and outward into both surfaces simultaneously, rather than relying on any single hold — the tension between the two opposing pushes is what creates the stability.',
+    'Whole-body integration: stemming can be remarkably rest-friendly once set up correctly, since the legs (not the arms) do most of the load-bearing work — many climbers find genuine, low-effort rests in a stem position mid-route.',
+    'Common mistake: standing too upright and square in a stem, rather than actively pushing the feet outward and apart. A passive, narrow stance in a corner provides far less stability than a wide, actively-pushed one.',
+    'Coaching insight: because stemming relies so heavily on hip mobility and the ability to spread the legs wide while maintaining control, general hip and adductor mobility work translates directly and noticeably into more comfortable, secure stemming on the wall.',
+  ]},
+  'Dynamic Movement (Dyno)': {icon:'dyno', video:'climbing dyno technique tutorial', points:[
+    'Setup: identify a target hold that\'s out of static reach even with good hip positioning and flagging, confirming a dynamic (jumping) move is genuinely necessary rather than a technique gap.',
+    'Execution: generate momentum from a coordinated push through the legs and a pull through the arms simultaneously, timing the release and catch of the target hold at the peak of that generated momentum.',
+    'Whole-body integration: a controlled dyno is a full-body power movement, much closer in character to a vertical jump or an Olympic lift than to controlled climbing — the legs, not the arms, generate the majority of the upward force even though the hands do the final catching.',
+    'Common mistake: trying to muscle a "dyno" purely with the arms while barely engaging the legs, or attempting dynamic moves before static, controlled movement and body positioning are actually solid — dynamic technique amplifies whatever positioning is already present, good or bad.',
+    'Coaching insight: because a dyno demands snappy hip and leg drive, it\'s a technique that benefits directly from general explosive-power training — this is part of why structured climbing programs (including the Rock Climbing program\'s own pulling-strength and core-tension days) build a general strength base before dynamic-movement-specific practice.',
+  ]},
+  'Rock-over': {icon:'rockover', video:'climbing rockover technique tutorial', points:[
+    'Setup: with one foot placed relatively high on a foothold, shift your body weight directly over that foot rather than pulling upward primarily with the arms.',
+    'Execution: let the hips lead the movement, rotating and rolling over the high foot until your center of gravity is stacked above it, then stand up through that leg to gain height.',
+    'Whole-body integration: a clean rock-over is fundamentally a hip-driven, leg-powered movement — climbers who instead try to pull themselves up and over with the arms are doing what should be a leg-strength move as an arm-strength move, which is both less efficient and more fatiguing.',
+    'Common mistake: leaning away from the high foot instead of committing weight directly over it, which keeps the center of gravity in the wrong place and makes the move feel far more strenuous than it needs to.',
+    'Coaching insight: rock-overs are one of the clearest illustrations of climbing\'s core efficiency principle — using big, strong muscle groups (the legs) to do work that tired, smaller muscles (the fingers and forearms) would otherwise be asked to do instead.',
+  ]},
+};
+
+const CLIMB_TECHNIQUE_GROUPS = {
+  'Movement Fundamentals for New Climbers': {
+    poses:['Three Points of Contact','Straight-Arm Resting (Skeletal Hang)','Hip Positioning & Wall Awareness','Quiet Feet & Precision Footwork'],
+    note:'Start here — these four habits underlie every grip and technique below, and most plateaued climbers are missing one of these rather than lacking raw strength.',
+  },
+  'Hand Grips': {
+    poses:['Crimp Grip (Full & Half Crimp)','Open Hand (Drag) Grip','Pinch Grip','Sloper','Pocket Grip','Gaston','Undercling','Side Pull'],
+    note:'Every hold on the wall asks for one of these grip families — matching the grip to the hold shape, not defaulting to the same grip on everything, is a core technical skill in itself.',
+  },
+  'Footwork Techniques': {
+    poses:['Edging','Smearing','Backstep & Drop Knee','Flagging'],
+    note:'Footwork is where most of the sport\'s actual efficiency lives — strong footwork routinely lets weaker-fingered climbers outperform stronger-fingered ones who move sloppily.',
+  },
+  'Advanced Movement & Body Positioning': {
+    poses:['Heel Hook','Toe Hook','Mantling','Stemming','Dynamic Movement (Dyno)','Rock-over'],
+    note:'Techniques for specific terrain — roofs, corners, ledges, and reaches beyond static range — layered on top of the fundamentals and grips above.',
+  },
+};
+
+function renderClimbTechniques(){
+  const listEl = document.getElementById('climbTechniquesList');
+  if(!listEl) return;
+  listEl.innerHTML = Object.keys(CLIMB_TECHNIQUE_GROUPS).map((groupName)=>{
+    const grp = CLIMB_TECHNIQUE_GROUPS[groupName];
+    const techRows = grp.poses.map((techName)=>{
+      const detail = CLIMB_TECHNIQUE_DETAILS[techName];
+      const iconSvg = detail ? CLIMB_ICONS[detail.icon] : '';
+      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
+      const query = encodeURIComponent(detail && detail.video ? detail.video : `${techName} rock climbing technique tutorial`);
+      return `
+        <details class="pose-detail-wrap">
+          <summary class="pose-row">
+            <div class="pose-icon">${iconSvg}</div>
+            <div class="pose-name">${techName}</div>
+            <span class="ex-chevron">›</span>
+          </summary>
+          <div class="pose-detail">
+            <ul>${pointsHtml}</ul>
+            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
+          </div>
+        </details>
+      `;
+    }).join('');
+    return `
+      <details class="posing-class">
+        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
+        <div class="posing-class-note">${grp.note}</div>
+        ${techRows}
+      </details>
+    `;
+  }).join('');
+}
+
+function toggleClimbTechniquesCard(){
+  const card = document.getElementById('climbTechniquesCard');
+  if(!card) return;
+  if(activeProgram === 'climbing'){
+    card.style.display = '';
+    renderClimbTechniques();
+  } else {
+    card.style.display = 'none';
+  }
+}
 
 const EXERCISE_MOVE = {
   'Slip & Counter Drills':'punch', 'Head Movement Drills':'punch', 'Clinch Knee Drills':'kick',
@@ -4093,6 +4712,8 @@ async function renderProgramSelector(trendStatus){
   toggleMartialArtCard();
   toggleCyclingCard();
   togglePrenatalCard();
+  toggleSwimStylesCard();
+  toggleClimbTechniquesCard();
   renderTips();
 
   el.onchange = async ()=>{
@@ -4110,6 +4731,8 @@ async function renderProgramSelector(trendStatus){
     toggleMartialArtCard();
     toggleCyclingCard();
     togglePrenatalCard();
+    toggleSwimStylesCard();
+    toggleClimbTechniquesCard();
     renderTips();
   };
 }
@@ -4276,6 +4899,7 @@ function renderPosingClasses(){
       const detail = POSE_DETAILS[poseName];
       const iconSvg = detail ? POSE_ICONS[detail.icon] : '';
       const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
+      const query = encodeURIComponent(detail && detail.video ? detail.video : `${poseName} bodybuilding pose tutorial`);
       return `
         <details class="pose-detail-wrap">
           <summary class="pose-row">
@@ -4283,7 +4907,10 @@ function renderPosingClasses(){
             <div class="pose-name">${poseName}</div>
             <span class="ex-chevron">›</span>
           </summary>
-          <div class="pose-detail"><ul>${pointsHtml}</ul></div>
+          <div class="pose-detail">
+            <ul>${pointsHtml}</ul>
+            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
+          </div>
         </details>
       `;
     }).join('');
@@ -4975,9 +5602,10 @@ async function renderWorkout(){
 
   renderExercises.forEach((ex,i)=>{
     const row = document.createElement('div');
-    row.className = 'exercise-block';
+    const isSupersetTop = !!ex.superTag;
+    const isSupersetBottom = i > 0 && !!renderExercises[i-1].superTag;
+    row.className = 'exercise-block' + (isSupersetTop ? ' superset-top' : '') + (isSupersetBottom ? ' superset-bottom' : '');
     const checked = completed[i] ? 'checked' : '';
-    const superHtml = ex.superTag ? `<span class="super-tag">${ex.superTag}</span>` : '';
     const focusHtml = ex.isBodyGoalFocus ? `<span class="super-tag focus-tag">🎯 ${ex.focusLabel} — added for your body goal</span>` : '';
 
     let trackingHtml = '';
@@ -5072,7 +5700,7 @@ async function renderWorkout(){
         <input type="checkbox" data-idx="${i}" ${checked}>
         ${thumbHtml}
         <div class="ex-name-wrap">
-          <div class="ex-name ${completed[i]?'done':''}">${ex.name}${superHtml}${focusHtml}</div>
+          <div class="ex-name ${completed[i]?'done':''}">${ex.name}${focusHtml}</div>
         </div>
         <div class="ex-sets">${ex.sets}<div class="ex-cal-tag">~${exCalories} cal</div></div>
         <span class="ex-chevron">›</span>
@@ -5107,6 +5735,17 @@ async function renderWorkout(){
     }
 
     list.appendChild(row);
+
+    // A dedicated connector band between the pair, rather than a small tag
+    // that only lives on the first exercise's name — this is what actually
+    // makes the pairing visually unmistakable, touching both blocks with no
+    // gap so the two exercises read as one continuous unit.
+    if(isSupersetTop){
+      const connector = document.createElement('div');
+      connector.className = 'superset-connector';
+      connector.textContent = 'SUPERSET — straight into the next exercise, no rest between';
+      list.appendChild(connector);
+    }
   });
 
   updateSessionCalorieTotal(renderExercises, completed);
