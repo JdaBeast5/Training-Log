@@ -172,6 +172,14 @@
     font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--text-muted);
     margin-bottom:4px; margin-top:2px;
   }
+  .duration-row{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+  .duration-row .duration-tag{margin-bottom:0;}
+  .session-length-select{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; background:var(--surface2);
+    border:1px solid var(--line); color:var(--text-muted); border-radius:7px;
+    padding:3px 8px; appearance:none; -webkit-appearance:none; cursor:pointer;
+  }
+  .session-length-select:focus{outline:none; border-color:var(--plate-blue);}
   .session-cal-total{
     font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--plate-yellow);
     margin-bottom:14px; font-weight:600;
@@ -956,7 +964,10 @@
 
   <div id="workoutCard" class="card">
     <div class="card-title"><span id="dayPlateIcon" class="day-plate-inline"></span><span id="dayTitle"></span></div>
-    <div class="duration-tag" id="dayDuration"></div>
+    <div class="duration-row">
+      <div class="duration-tag" id="dayDuration"></div>
+      <select class="session-length-select" id="sessionLengthSelector"></select>
+    </div>
     <div class="session-cal-total" id="sessionCalTotal"></div>
     <div class="day-insight" id="dayInsight"></div>
     <div id="exerciseList"></div>
@@ -975,7 +986,22 @@
     <div class="program-select-desc" id="martialArtDesc"></div>
   </div>
 
+  <div class="card" id="cyclingCard" style="display:none">
+    <div class="card-title">🚴 Cycling Discipline</div>
+    <div class="history-hint">Road and Mountain share a training backbone but differ in emphasis — pick the one that matches how you actually ride.</div>
+    <select class="program-select" id="cyclingSelector"></select>
+    <div class="program-select-desc" id="cyclingDesc"></div>
+  </div>
+
+  <div class="card" id="prenatalCard" style="display:none">
+    <div class="card-title">🤰 Stage</div>
+    <div class="history-hint">Prenatal and Postpartum have genuinely different needs — pick whichever applies right now. <b>Please get clearance from your OB, midwife, or a pelvic floor physical therapist before starting</b>, and stop anything that doesn't feel right for your body.</div>
+    <select class="program-select" id="prenatalSelector"></select>
+    <div class="program-select-desc" id="prenatalDesc"></div>
+  </div>
+
   <div class="card">
+
     <div class="card-title nutrition-header" id="nutritionHeader">
       <span>🎯 Today's Nutrition</span>
       <span class="ex-chevron" id="nutritionChevron">›</span>
@@ -1184,6 +1210,12 @@
       <div class="card-title">🎯 Goal Progress Check</div>
       <div class="history-hint">Whether your actual weight/measurement trend lines up with your stated goal — not just a log of numbers.</div>
       <div id="goalFeedback"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🧭 Program Fit Check</div>
+      <div class="history-hint">Looks across every tracked exercise in your current program for a program-wide pattern — an ongoing, data-driven read on whether this program still fits, not just a one-time quiz answer.</div>
+      <div id="programFitCheck"></div>
     </div>
   </div>
 
@@ -1556,7 +1588,7 @@ function showUserPicker(){
   if(users.length === 0){
     listEl.innerHTML = '<div class="empty-note">No profiles on this device yet — create the first one below.</div>';
   }else{
-    listEl.innerHTML = users.map(u=>`<button class="user-pick-btn" data-id="${u.id}">${u.name}</button>`).join('');
+    listEl.innerHTML = users.map(u=>`<button class="user-pick-btn" data-id="${escapeHtml(u.id)}">${escapeHtml(u.name)}</button>`).join('');
     listEl.querySelectorAll('.user-pick-btn').forEach(btn=>{
       btn.addEventListener('click', ()=> switchToUser(btn.dataset.id));
     });
@@ -1840,6 +1872,11 @@ const programs = {
   combat: {
     label: 'Boxing / Kickboxing', short: 'Pick your martial art style below — bag rounds + strength',
     days: {} // populated at runtime from COMBAT_STYLES based on the selected martial art
+  },
+
+  cycling: {
+    label: 'Cycling', short: 'Pick Road or Mountain below — polarized ride training + strength',
+    days: {} // populated at runtime from CYCLING_STYLES based on the selected discipline
   },
 
   core: {
@@ -2369,6 +2406,497 @@ const programs = {
       },
     }
   },
+
+  powerbuilding: {
+    label: 'Powerbuilding', short: 'Heavy top lift + bodybuilding accessories, every session',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Squat + Legs', plate:'p-red', plateNum:'25', duration:'~55 min',
+        exercises:[
+          {name:'Squat', sets:'5×5'},
+          {name:'Bulgarian Split Squat', sets:'3×10-12/leg'},
+          {name:'Leg Extension', sets:'3×12-15'},
+          {name:'Leg Curl', sets:'3×12-15'},
+          {name:'Standing Calf Raise', sets:'3×12-15'},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Bench + Chest/Triceps', plate:'p-blue', plateNum:'20', duration:'~55 min',
+        exercises:[
+          {name:'Bench Press', sets:'5×5'},
+          {name:'Incline DB Press', sets:'3×10-12'},
+          {name:'Cable Fly', sets:'3×12-15'},
+          {name:'Triceps Pushdown', sets:'3×12-15'},
+          {name:'Skull Crushers', sets:'3×10-12'},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'20-30 min zone 2 cardio (incline walk / bike). The heavy top sets this week add up on the joints and CNS — recovery isn\'t optional here.'
+      },
+      d4: {
+        label:'Day 4', sub:'Deadlift + Back/Biceps', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+        exercises:[
+          {name:'Deadlift', sets:'4×5'},
+          {name:'Barbell Row', sets:'4×8-10'},
+          {name:'Lat Pulldown', sets:'3×10-12'},
+          {name:'Face Pull', sets:'3×15'},
+          {name:'EZ Bar Curl', sets:'3×10-12'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Overhead Press + Shoulders', plate:'p-green', plateNum:'10', duration:'~50 min',
+        exercises:[
+          {name:'Overhead Press', sets:'5×5'},
+          {name:'DB Shoulder Press', sets:'3×10-12'},
+          {name:'Lateral Raise', sets:'3×12-15', superTag:'Superset with next'},
+          {name:'Rear Delt Fly', sets:'3×15'},
+          {name:'Cable Curl', sets:'3×10-12'},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Accessory Pump Day', plate:'p-off', plateNum:'5', duration:'~40 min',
+        exercises:[
+          {name:'Leg Press', sets:'3×12-15'},
+          {name:'Cable Row', sets:'3×12-15'},
+          {name:'Rope Pushdown', sets:'3×12-15'},
+          {name:'Cable Crunch', sets:'3×15'},
+          {name:'Hanging Leg Raise', sets:'3×12-15'},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+      },
+    }
+  },
+
+  senior: {
+    label: 'Senior Strength & Balance', short: 'Joint-friendly strength + fall-prevention balance training',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Lower Body Strength', plate:'p-red', plateNum:'25', duration:'~35 min',
+        exercises:[
+          {name:'Sit-to-Stand', sets:'3×8-10', noWeight:true},
+          {name:'Bodyweight Squat', sets:'2×10-12', noWeight:true},
+          {name:'Glute Bridge', sets:'3×10-12', noWeight:true},
+          {name:'Calf Raise', sets:'2×12-15'},
+          {name:'Straight Leg Raise', sets:'2×10-12', noWeight:true},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Balance & Stability', plate:'p-blue', plateNum:'20', duration:'~30 min',
+        exercises:[
+          {name:'Single-Leg Balance', sets:'3×20-30s/side', noWeight:true},
+          {name:'Heel-to-Toe Walk', sets:'3×10 steps', noWeight:true},
+          {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
+          {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+          {name:'Ankle Circles', sets:'2×10/direction', noWeight:true},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Easy Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+        note:'A relaxed 15-20 min walk if you feel like it — otherwise full rest. This isn\'t a day to push anything.'
+      },
+      d4: {
+        label:'Day 4', sub:'Upper Body Strength', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+        exercises:[
+          {name:'Wall Push-up', sets:'3×8-12', noWeight:true},
+          {name:'Seated Cable Row', sets:'3×10-12'},
+          {name:'Wall Slides', sets:'2×10-12', noWeight:true},
+          {name:'Chin Tucks', sets:'2×10', noWeight:true},
+          {name:'Farmer\'s Carry', sets:'2×20-30s'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Functional Full-Body', plate:'p-green', plateNum:'10', duration:'~35 min',
+        exercises:[
+          {name:'Sit-to-Stand', sets:'3×8-10', noWeight:true},
+          {name:'Step-Up (controlled)', sets:'2×8-10/leg', noWeight:true},
+          {name:'Dead Bug', sets:'2×8-10/side', noWeight:true},
+          {name:'Terminal Knee Extension', sets:'2×12-15', noWeight:true},
+          {name:'Tibialis Raise', sets:'2×12-15', noWeight:true},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Balance & Mobility', plate:'p-off', plateNum:'5', duration:'~25 min',
+        exercises:[
+          {name:'Heel-to-Toe Walk', sets:'2×10 steps', noWeight:true},
+          {name:'Cat-Cow Mobility', sets:'2×8-10', noWeight:true},
+          {name:'Hip CARs', sets:'2×5/direction', noWeight:true},
+          {name:'Marching in Place', sets:'2×30-45s', noWeight:true},
+          {name:'Plank', sets:'2×15-20s', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. Gentle movement — walking to the mailbox counts — is welcome, but nothing structured is needed today.'
+      },
+    }
+  },
+
+  swimming: {
+    label: 'Swimming', short: 'Polarized pool training — easy aerobic base, threshold, and speed work',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Aerobic Base Swim', plate:'p-red', plateNum:'25', duration:'~35 min',
+        exercises:[
+          {name:'Warm-up Swim', sets:'5-10 min', noWeight:true},
+          {name:'Easy Swim (Freestyle)', sets:'20-30 min', noWeight:true},
+          {name:'Cool-down Swim', sets:'5 min', noWeight:true},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Technique + Kick/Pull', plate:'p-blue', plateNum:'20', duration:'~40 min',
+        exercises:[
+          {name:'Warm-up Swim', sets:'5-10 min', noWeight:true},
+          {name:'Drill Set (technique)', sets:'6×50m', noWeight:true},
+          {name:'Kick Set (board)', sets:'6×50m', noWeight:true},
+          {name:'Pull Set (buoy)', sets:'6×50m', noWeight:true},
+          {name:'Cool-down Swim', sets:'5 min', noWeight:true},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Shoulder and thoracic mobility, 20-25 min. The overhead repetition in swimming makes shoulder recovery non-negotiable — don\'t skip this.'
+      },
+      d4: {
+        label:'Day 4', sub:'Threshold Swim', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+        exercises:[
+          {name:'Warm-up Swim', sets:'10 min', noWeight:true},
+          {name:'Threshold Swim Set', sets:'4×200m', noWeight:true},
+          {name:'Cool-down Swim', sets:'5-10 min', noWeight:true},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Speed Intervals', plate:'p-green', plateNum:'10', duration:'~40 min',
+        exercises:[
+          {name:'Warm-up Swim', sets:'10 min', noWeight:true},
+          {name:'Swim Intervals (100s)', sets:'8×100m', noWeight:true},
+          {name:'Cool-down Swim', sets:'10 min', noWeight:true},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Long Swim + Dryland Shoulders', plate:'p-off', plateNum:'5', duration:'~50 min',
+        exercises:[
+          {name:'Long Swim (continuous)', sets:'30-45 min', noWeight:true},
+          {name:'Band External Rotation', sets:'3×15'},
+          {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+          {name:'Face Pull', sets:'3×15'},
+          {name:'Plank', sets:'3×30-45s', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+      },
+    }
+  },
+
+  climbing: {
+    label: 'Rock Climbing', short: 'Finger strength, pulling power, core tension, and shoulder health for climbers',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Finger Strength', plate:'p-red', plateNum:'25', duration:'~45 min',
+        exercises:[
+          {name:'Hangboard Max Hang', sets:'6×10s', noWeight:true},
+          {name:'Hangboard Repeaters', sets:'3×6', noWeight:true},
+          {name:'Pull-ups (or assisted)', sets:'4×6-8'},
+          {name:'Farmer\'s Carry', sets:'3×30s'},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Pulling Strength + Core Tension', plate:'p-blue', plateNum:'20', duration:'~50 min',
+        exercises:[
+          {name:'Chin-up', sets:'4×6-8'},
+          {name:'Inverted Row', sets:'3×10-12'},
+          {name:'Front Lever Hold', sets:'3×10-15s', noWeight:true},
+          {name:'Toes-to-Bar', sets:'3×8-10'},
+          {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Hip and shoulder mobility, 20-25 min. Fingers and pulling muscles recover slowly — this rest day is what lets the next hangboard session actually be productive.'
+      },
+      d4: {
+        label:'Day 4', sub:'Antagonist & Shoulder Health', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+        exercises:[
+          {name:'Band External Rotation', sets:'3×15'},
+          {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+          {name:'Face Pull', sets:'3×15'},
+          {name:'Rear Delt Fly', sets:'3×12-15'},
+          {name:'Push-up', sets:'3×12-15'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Lock-offs & Core Tension', plate:'p-green', plateNum:'10', duration:'~45 min',
+        exercises:[
+          {name:'Lock-off Hold', sets:'3×10-15s/arm', noWeight:true},
+          {name:'L-sit Hold', sets:'3×10-20s', noWeight:true},
+          {name:'Dead Bug', sets:'3×8-10/side', noWeight:true},
+          {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+          {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Hip Mobility & Grip Endurance', plate:'p-off', plateNum:'5', duration:'~30 min',
+        exercises:[
+          {name:'90/90 Hip Switch', sets:'3×8/side', noWeight:true},
+          {name:'Pigeon Pose', sets:'2×30-45s/side', noWeight:true},
+          {name:'Couch Stretch', sets:'2×30-45s/side', noWeight:true},
+          {name:'Hangboard Repeaters', sets:'2×6', noWeight:true},
+          {name:'Wrist Flexor Stretch', sets:'2×20-30s', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. Fingers and connective tissue need this — climbing on tired tendons is one of the more common ways climbers get hurt.'
+      },
+    }
+  },
+
+  prenatal: {
+    label: 'Prenatal & Postpartum', short: 'Pick Prenatal or Postpartum below — please get clearance from your OB/midwife first',
+    days: {} // populated at runtime from PRENATAL_STYLES based on the selected stage
+  },
+
+  boxingsc: {
+    label: 'Boxing Strength & Conditioning', short: 'Rotational power, single-leg strength, and round-based conditioning — the physical base under the skill work',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Rotational Power', plate:'p-red', plateNum:'25', duration:'~40 min',
+        exercises:[
+          {name:'Med Ball Rotational Throw', sets:'4×6/side'},
+          {name:'Landmine Rotation', sets:'3×10/side'},
+          {name:'Cable Woodchopper', sets:'3×12/side'},
+          {name:'Pallof Press', sets:'3×10/side'},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Lower Body Power & Single-Leg Strength', plate:'p-blue', plateNum:'20', duration:'~50 min',
+        exercises:[
+          {name:'Power Clean', sets:'5×3'},
+          {name:'Bulgarian Split Squat', sets:'3×8-10/leg'},
+          {name:'Box Jump', sets:'4×5'},
+          {name:'Single-Leg Bound', sets:'3×5/leg'},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Hip and thoracic mobility, 20-25 min. The rotational demands of this program load the spine and hips in ways pure bag work doesn\'t — don\'t skip this.'
+      },
+      d4: {
+        label:'Day 4', sub:'Upper Body Power & Punching Chain', plate:'p-yellow', plateNum:'15', duration:'~45 min',
+        exercises:[
+          {name:'Med Ball Chest Pass', sets:'4×6'},
+          {name:'Bench Press', sets:'4×6-8'},
+          {name:'Cable Row', sets:'3×10-12'},
+          {name:'Face Pull', sets:'3×15'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Anaerobic Round Conditioning', plate:'p-green', plateNum:'10', duration:'~35 min',
+        exercises:[
+          {name:'Jump Rope — Freestyle Flow', sets:'5×3 min', noWeight:true},
+          {name:'Sled Push', sets:'5×20m'},
+          {name:'Sprint Intervals', sets:'8×20s', noWeight:true},
+          {name:'Russian Twist (weighted)', sets:'3×15/side'},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Core & Conditioning Circuit', plate:'p-off', plateNum:'5', duration:'~35 min',
+        exercises:[
+          {name:'Burpees', sets:'4×10', noWeight:true},
+          {name:'Mountain Climbers', sets:'3×20', noWeight:true},
+          {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+          {name:'Farmer\'s Carry', sets:'3×30s'},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+      },
+    }
+  },
+
+  // Grounded in Vladimir Janda's "upper crossed" and "lower crossed syndrome"
+  // framework — the classic, widely cited model for exactly the postural
+  // pattern prolonged sitting produces: tight pecs/upper traps/hip flexors
+  // paired with weak deep neck flexors, lower traps, glutes, and abs. Each
+  // day either stretches the tight side or strengthens the weak side of one
+  // of those pairs, rather than being generic "posture exercises." Entirely
+  // built from the existing library — this is a targeted remix of mobility
+  // and corrective work already in the app, not a new modality.
+  desk: {
+    label: 'Desk Worker / Posture', short: 'Corrective training for upper/lower crossed syndrome — the postural pattern prolonged sitting produces',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Upper Body Posture Reset', plate:'p-red', plateNum:'25', duration:'~25 min',
+        exercises:[
+          {name:'Chin Tucks', sets:'3×10', noWeight:true},
+          {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+          {name:'Face Pull', sets:'3×15'},
+          {name:'Doorway Pec Stretch', sets:'2×30s/side', noWeight:true},
+          {name:'Upper Trap Stretch', sets:'2×30s/side', noWeight:true},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Hip & Lower Body Reset', plate:'p-blue', plateNum:'20', duration:'~25 min',
+        exercises:[
+          {name:'Couch Stretch', sets:'2×30-45s/side', noWeight:true},
+          {name:'Glute Bridge', sets:'3×12-15', noWeight:true},
+          {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
+          {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+          {name:'Pelvic Tilt', sets:'2×10-12', noWeight:true},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
+        note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.'
+      },
+      d4: {
+        label:'Day 4', sub:'Thoracic Mobility & Upper Strength', plate:'p-yellow', plateNum:'15', duration:'~25 min',
+        exercises:[
+          {name:'Thoracic Spine Rotation (Open Book)', sets:'2×8-10/side', noWeight:true},
+          {name:'Thoracic Extension Over Foam Roller', sets:'2×10', noWeight:true},
+          {name:'Wall Slides', sets:'3×10-12', noWeight:true},
+          {name:'Band Pull-Apart', sets:'3×12-15'},
+          {name:'Wall Push-up', sets:'2×10-12', noWeight:true},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Full-Body Strength', plate:'p-green', plateNum:'10', duration:'~30 min',
+        exercises:[
+          {name:'Bodyweight Squat', sets:'3×12-15', noWeight:true},
+          {name:'Step-Up (controlled)', sets:'2×8-10/leg', noWeight:true},
+          {name:'Inverted Row', sets:'3×10-12', noWeight:true},
+          {name:'Dead Bug', sets:'2×8-10/side', noWeight:true},
+          {name:'Standing Pelvic Tilt', sets:'2×10', noWeight:true},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Movement & Mobility Flow', plate:'p-off', plateNum:'5', duration:'~25 min',
+        exercises:[
+          {name:'Walking', sets:'15-20 min', noWeight:true},
+          {name:'Cat-Cow Mobility', sets:'2×8-10', noWeight:true},
+          {name:'World\'s Greatest Stretch', sets:'2×5/side', noWeight:true},
+          {name:'Pigeon Pose', sets:'2×30-45s/side', noWeight:true},
+          {name:'Levator Scapulae Stretch', sets:'2×20-30s/side', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.'
+      },
+    }
+  },
+};
+
+// Stage variants for the Prenatal & Postpartum program — selecting Prenatal
+// or Postpartum swaps programs.prenatal.days, mirroring exactly how
+// CYCLING_STYLES and COMBAT_STYLES work. These two stages have genuinely
+// different physiology and risk profiles, so they're kept as separate full
+// day-plans rather than one plan with inline caveats.
+//
+// Grounding: ACOG's 2020 guidance on physical activity during pregnancy
+// (moderate exercise is safe and beneficial for most uncomplicated
+// pregnancies; avoid prolonged supine positioning after the first trimester;
+// avoid high fall-risk/contact activity; use perceived exertion rather than
+// heart rate zones, since normal heart rate response itself shifts during
+// pregnancy) shapes every Prenatal exercise choice below. Postpartum follows
+// the phased-return approach used in the widely cited 2019 "Returning to
+// Running Postnatal" guidelines (Goom, Donnelly, Brockwell) — pelvic floor
+// and breath-connected core work comes first, with diastasis-aware
+// progressions (no traditional crunches) before reintroducing load.
+const PRENATAL_STYLES = {
+  prenatal: {
+    label: 'Prenatal', short: 'Moderate, fall-risk-aware training for pregnancy — always cleared by your OB first',
+    days: {
+      d1: { label:'Day 1', sub:'Gentle Full-Body Strength', plate:'p-red', plateNum:'25', duration:'~30 min',
+        exercises:[
+          {name:'Bodyweight Squat', sets:'2×10-12', noWeight:true},
+          {name:'Wall Push-up', sets:'2×10-12', noWeight:true},
+          {name:'Seated Cable Row', sets:'2×10-12'},
+          {name:'Standing Pelvic Tilt', sets:'2×10', noWeight:true},
+        ]},
+      d2: { label:'Day 2', sub:'Cardio + Balance', plate:'p-blue', plateNum:'20', duration:'~30 min',
+        exercises:[
+          {name:'Walking', sets:'20-30 min', noWeight:true},
+          {name:'Single-Leg Balance', sets:'2×15-20s/side', noWeight:true},
+          {name:'Side-Lying Leg Lift', sets:'2×12-15/side', noWeight:true},
+          {name:'Ankle Circles', sets:'2×10/direction', noWeight:true},
+        ]},
+      d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+        note:'Gentle stretching or a relaxed walk if you feel like it. Fatigue in pregnancy is real and physiological — rest when your body asks for it, not just on schedule.' },
+      d4: { label:'Day 4', sub:'Upper Body + Posture', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+        exercises:[
+          {name:'Incline DB Press', sets:'2×10-12'},
+          {name:'Wall Slides', sets:'2×10-12', noWeight:true},
+          {name:'Scapular Retraction', sets:'2×12-15', noWeight:true},
+          {name:'Chin Tucks', sets:'2×10', noWeight:true},
+        ]},
+      d5: { label:'Day 5', sub:'Functional Strength', plate:'p-green', plateNum:'10', duration:'~30 min',
+        exercises:[
+          {name:'Sit-to-Stand', sets:'2×8-10', noWeight:true},
+          {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+          {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
+          {name:'Pelvic Floor Connection Breath', sets:'3×10', noWeight:true},
+        ]},
+      d6: { label:'Day 6', sub:'Gentle Cardio + Stretch', plate:'p-off', plateNum:'5', duration:'~30 min',
+        exercises:[
+          {name:'Walking', sets:'20-30 min', noWeight:true},
+          {name:'Cat-Cow Mobility', sets:'2×8-10', noWeight:true},
+          {name:'Butterfly Pose', sets:'1×60-90s', noWeight:true},
+          {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+        ]},
+      d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. Listen to your body first, this plan second — both fatigue and energy levels swing a lot during pregnancy, and that\'s normal.' },
+    }
+  },
+  postpartum: {
+    label: 'Postpartum', short: 'Diastasis-aware, pelvic-floor-first return to training — always cleared by your provider first',
+    days: {
+      d1: { label:'Day 1', sub:'Foundational Core & Breath', plate:'p-red', plateNum:'25', duration:'~25 min',
+        exercises:[
+          {name:'Diaphragmatic Breathing', sets:'3×10 breaths', noWeight:true},
+          {name:'Pelvic Floor Connection Breath', sets:'3×10', noWeight:true},
+          {name:'Pelvic Tilt', sets:'2×10-12', noWeight:true},
+          {name:'Bird Dog', sets:'2×6-8/side', noWeight:true},
+          {name:'Dead Bug', sets:'2×6-8/side', noWeight:true},
+        ]},
+      d2: { label:'Day 2', sub:'Gentle Cardio Progression', plate:'p-blue', plateNum:'20', duration:'~30 min',
+        exercises:[
+          {name:'Walking', sets:'20-30 min', noWeight:true},
+          {name:'Ankle Circles', sets:'2×10/direction', noWeight:true},
+          {name:'Calf Raise', sets:'2×12-15', noWeight:true},
+        ]},
+      d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+        note:'Gentle mobility if you feel up to it. Healing timelines vary a lot person to person — a slower return isn\'t a setback, it\'s appropriate.' },
+      d4: { label:'Day 4', sub:'Upper Body Rebuild', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+        exercises:[
+          {name:'Wall Push-up', sets:'2×10-12', noWeight:true},
+          {name:'Seated Cable Row', sets:'2×10-12'},
+          {name:'Scapular Retraction', sets:'2×12-15', noWeight:true},
+          {name:'Band External Rotation', sets:'2×12-15'},
+        ]},
+      d5: { label:'Day 5', sub:'Lower Body + Core Progression', plate:'p-green', plateNum:'10', duration:'~30 min',
+        exercises:[
+          {name:'Sit-to-Stand', sets:'2×10-12', noWeight:true},
+          {name:'Glute Bridge', sets:'2×12-15', noWeight:true},
+          {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
+          {name:'McGill Curl-up', sets:'2×6-8', noWeight:true},
+        ]},
+      d6: { label:'Day 6', sub:'Full-Body Functional + Light Cardio', plate:'p-off', plateNum:'5', duration:'~35 min',
+        exercises:[
+          {name:'Bodyweight Squat', sets:'2×10-12', noWeight:true},
+          {name:'Step-Up (controlled)', sets:'2×8-10/leg', noWeight:true},
+          {name:'Farmer\'s Carry', sets:'2×20-30s'},
+        ]},
+      d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. This program deliberately avoids traditional crunches/sit-ups throughout — if you have (or suspect) diastasis recti, a pelvic floor PT can check and guide the return to fuller core loading.' },
+    }
+  },
 };
 
 // Martial art style variants for the Combat program — selecting a style swaps
@@ -2618,6 +3146,98 @@ const COMBAT_STYLES = {
   },
 };
 
+// Discipline variants for the Cycling program — selecting Road or Mountain
+// swaps programs.cycling.days, mirroring exactly how COMBAT_STYLES works for
+// martial art selection. Both share a polarized-training backbone (mostly
+// easy riding, targeted hard efforts) but differ in emphasis: Road leans on
+// structured power-based intervals (FTP, seated climbing), while Mountain
+// adds technical handling work and the standing, punchy power output
+// technical trail climbs demand.
+const CYCLING_STYLES = {
+  road: {
+    label: 'Road', short: 'Structured power-based intervals — FTP, hill repeats, sprints',
+    days: {
+      d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
+        exercises:[
+          {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+          {name:'Endurance Ride (Zone 2)', sets:'45-60 min', noWeight:true},
+          {name:'Cool-down Spin', sets:'5-10 min', noWeight:true},
+        ]},
+      d2: { label:'Day 2', sub:'FTP / Threshold Intervals', plate:'p-blue', plateNum:'20', duration:'~50 min',
+        exercises:[
+          {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+          {name:'FTP Intervals', sets:'3×10 min', noWeight:true},
+          {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+        ]},
+      d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Hip flexor and lower-back mobility, 20-25 min. The fixed, hunched riding position makes this recovery non-negotiable, not optional.' },
+      d4: { label:'Day 4', sub:'Hill Repeats', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+        exercises:[
+          {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+          {name:'Hill Repeats (seated climbing)', sets:'6×5 min', noWeight:true},
+          {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+        ]},
+      d5: { label:'Day 5', sub:'Sprint & Cadence Work', plate:'p-green', plateNum:'10', duration:'~50 min',
+        exercises:[
+          {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+          {name:'Sprint Intervals (Bike)', sets:'8×30s', noWeight:true},
+          {name:'Cadence Drills', sets:'4×3 min', noWeight:true},
+          {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+        ]},
+      d6: { label:'Day 6', sub:'Long Ride + Core/Strength', plate:'p-off', plateNum:'5', duration:'~2 hr',
+        exercises:[
+          {name:'Long Ride (Zone 2)', sets:'90-120 min', noWeight:true},
+          {name:'Squat', sets:'3×10-12'},
+          {name:'Plank', sets:'3×30-45s', noWeight:true},
+          {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+        ]},
+      d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+    }
+  },
+  mountain: {
+    label: 'Mountain', short: 'Technical trail skills + punchy climbing power + grip endurance',
+    days: {
+      d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
+        exercises:[
+          {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+          {name:'Endurance Ride (Zone 2)', sets:'45-60 min', noWeight:true},
+          {name:'Cool-down Spin', sets:'5-10 min', noWeight:true},
+        ]},
+      d2: { label:'Day 2', sub:'Technical Trail Skills', plate:'p-blue', plateNum:'20', duration:'~55 min',
+        exercises:[
+          {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+          {name:'Technical Trail Ride', sets:'45-60 min', noWeight:true},
+          {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+        ]},
+      d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Hip, shoulder, and wrist mobility, 20-25 min. Technical terrain loads the upper body and grip far more than road riding — give it real recovery.' },
+      d4: { label:'Day 4', sub:'Standing Climb Power', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+        exercises:[
+          {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+          {name:'Standing Climb Repeats', sets:'6×3 min', noWeight:true},
+          {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+        ]},
+      d5: { label:'Day 5', sub:'Power & Technical Intervals', plate:'p-green', plateNum:'10', duration:'~50 min',
+        exercises:[
+          {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+          {name:'Sprint Intervals (Bike)', sets:'8×20s', noWeight:true},
+          {name:'Cadence Drills', sets:'4×3 min', noWeight:true},
+          {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+        ]},
+      d6: { label:'Day 6', sub:'Long Ride + Grip/Core', plate:'p-off', plateNum:'5', duration:'~2.5 hr',
+        exercises:[
+          {name:'Long Ride (Zone 2)', sets:'90-150 min', noWeight:true},
+          {name:'Farmer\'s Carry', sets:'3×30s'},
+          {name:'Plank', sets:'3×30-45s', noWeight:true},
+          {name:'Dead Bug', sets:'2×8-10/side', noWeight:true},
+        ]},
+      d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+    }
+  },
+};
+
 let activeProgram = 'strength';
 
 // [EXERCISE-DB] ---------------------------------------------------------------
@@ -2823,6 +3443,18 @@ const EXERCISE_MOVE = {
   'Suboccipital Release':'mobility', 'Median Nerve Glide':'mobility', 'Tendon Glides':'mobility',
   'Foam Rolling IT Band':'mobility', 'Standing IT Band Stretch':'mobility', 'Side-Lying Hip Abduction':'mobility',
   'Tibialis Raise':'mobility',
+  'Sit-to-Stand':'squat', 'Heel-to-Toe Walk':'mobility', 'Wall Push-up':'horizontalPress', 'Marching in Place':'mobility',
+  'Warm-up Swim':'cardio', 'Easy Swim (Freestyle)':'cardio', 'Cool-down Swim':'cardio',
+  'Drill Set (technique)':'cardio', 'Kick Set (board)':'cardio', 'Pull Set (buoy)':'cardio',
+  'Threshold Swim Set':'cardio', 'Swim Intervals (100s)':'cardio', 'Long Swim (continuous)':'cardio',
+  'Hangboard Max Hang':'corePlank', 'Hangboard Repeaters':'corePlank', 'Lock-off Hold':'pulldownPullup',
+  'Standing Pelvic Tilt':'mobility', 'Side-Lying Leg Lift':'mobility', 'Pelvic Floor Connection Breath':'mobility',
+  'Warm-up Ride (easy spin)':'cardio', 'Endurance Ride (Zone 2)':'cardio', 'Cool-down Spin':'cardio',
+  'FTP Intervals':'cardio', 'Hill Repeats (seated climbing)':'cardio', 'Sprint Intervals (Bike)':'cardio',
+  'Cadence Drills':'cardio', 'Long Ride (Zone 2)':'cardio', 'Technical Trail Ride':'cardio', 'Standing Climb Repeats':'cardio',
+  'Warm-up Spin':'cardio', 'Easy Ride (Zone 2)':'cardio', 'Cool-down Spin':'cardio', 'Cadence Drills':'cardio',
+  'Threshold Intervals':'cardio', 'Hill Repeats':'cardio', 'Long Ride':'cardio',
+  'Technical Descent Drills':'cardio', 'Sprint Intervals (Bike)':'cardio',
   '90/90 Hip Switch':'mobility', 'Hip CARs':'mobility', 'Ankle Dorsiflexion Stretch':'mobility', 'Pigeon Pose':'mobility',
   'Shoulder CARs':'mobility', 'Thoracic Spine Rotation (Open Book)':'mobility', 'Wall Slides':'mobility', 'Band Dislocates':'mobility',
   'PNF Hamstring Stretch':'mobility', 'World\'s Greatest Stretch':'mobility', 'Nordic Curl':'hinge',
@@ -2949,6 +3581,44 @@ const exerciseInfo = {
   'Standing IT Band Stretch': {category:'core', videoQuery:'standing IT band stretch technique', cues:['Cross the sore leg behind the other, then lean your hip away from that side.','Keep both feet flat and the stretch gentle rather than bouncing into it.','A simple standing option when foam rolling isn\'t practical, though like rolling, it targets symptoms more than the underlying cause.']},
   'Side-Lying Hip Abduction': {category:'core', videoQuery:'side lying hip abduction exercise', cues:['Lying on your side, top leg straight, lift it toward the ceiling without letting your hip roll forward.','Keep the movement slow and controlled — a small, correct range beats a big, sloppy one.','Targets the glute medius, since current sports-medicine consensus points to hip weakness — not IT band tightness itself — as the more likely root cause of IT band pain in runners.']},
   'Tibialis Raise': {category:'core', videoQuery:'tibialis raise shin exercise', cues:['Stand with your heels against a wall for support, lift your toes and forefoot up off the ground as high as you can, then lower with control.','Keep your knees straight and let the front of your shin do the work.','An increasingly used strengthening move for shin-splint prevention in runners, complementing calf stretching rather than replacing it.']},
+  'Sit-to-Stand': {category:'squat', videoQuery:'sit to stand exercise seniors', cues:['Sit tall in a sturdy chair, feet flat, then stand up fully without using your hands if possible, then sit back down with control.','Use armrests or a higher chair to start if needed, then progress toward a lower seat and no hands over time.','This is the same movement used in the 30-second chair-stand test that geriatric-exercise research (including Dr. Maria Fiatarone Singh\'s work on resistance training in older adults) uses to track functional leg strength and fall risk.']},
+  'Heel-to-Toe Walk': {category:'core', videoQuery:'tandem walk balance exercise', cues:['Walk in a straight line placing the heel of one foot directly in front of the toes of the other, like walking a tightrope.','Stay near a wall or counter you can touch for support until this feels stable.','This "tandem walk" pattern is a staple of the balance-training protocols shown in fall-prevention research (e.g. Dr. Teresa Liu-Ambrose\'s work) to meaningfully cut fall risk in older adults.']},
+  'Wall Push-up': {category:'push', videoQuery:'wall push up technique', cues:['Stand arm\'s length from a wall, hands flat against it at shoulder height, then bend your elbows to bring your chest toward the wall and press back.','Keep your body in a straight line from head to heels rather than letting your hips sag.','A joint-friendly way to build real pressing strength before progressing to an incline or floor push-up.']},
+  'Marching in Place': {category:'core', videoQuery:'marching in place exercise seniors', cues:['Lift your knees toward hip height one at a time at a steady, controlled pace, using a chair or counter for balance if needed.','Focus on a tall posture rather than speed.','A low-impact way to build hip flexor strength, coordination, and circulation without the joint stress of higher-impact cardio.']},
+  'Warm-up Swim': {category:'cardio', cues:['Easy, relaxed freestyle or your preferred stroke — this is about raising body temperature and rehearsing technique, not effort.','Focus on long, smooth strokes rather than speed.','Skipping the warm-up is one of the more common ways swimmers aggravate the shoulder, given how much overhead repetition the stroke involves.']},
+  'Easy Swim (Freestyle)': {category:'cardio', videoQuery:'freestyle swim technique', cues:['A pace you could hold a conversation at if you had to — this should feel noticeably easier than your race or interval pace.','Keep stroke count consistent rather than rushing; smooth technique matters more than speed here.','Mirrors the "easy" end of the polarized training model (roughly 80% easy, 20% hard) that endurance-sport research — including Stephen Seiler\'s widely cited work — consistently finds outperforms an all-moderate-intensity approach.']},
+  'Cool-down Swim': {category:'cardio', cues:['Very easy, relaxed swimming to bring your heart rate down gradually.','A good time to focus purely on smooth technique with zero emphasis on speed.','Helps clear the fatigue built up during the harder portions of the session before you get out of the pool.']},
+  'Drill Set (technique)': {category:'cardio', videoQuery:'swim technique drills catch up drill', cues:['Use technique drills like the catch-up drill or fingertip drag to isolate and improve one part of your stroke at a time.','Go slower than normal swimming — drills are about precision, not speed.','Technique work like this is what most competitive swim programs use to make every stroke at race pace more efficient, rather than just swimming more yardage.']},
+  'Kick Set (board)': {category:'cardio', videoQuery:'kickboard swim technique', cues:['Hold a kickboard out in front and kick from the hips with a relatively straight leg and relaxed ankles.','Keep kicks compact — big, bent-knee kicks waste energy and slow you down.','Isolates leg drive and ankle flexibility, both of which quietly contribute more to swim speed than most swimmers assume.']},
+  'Pull Set (buoy)': {category:'cardio', videoQuery:'pull buoy swim technique', cues:['Place a pull buoy between your thighs to float your legs, and swim using only your arms and core.','Focus on a strong, complete pull all the way through to your hip.','Isolates upper-body pulling power and stroke mechanics without your legs compensating for a weak pull.']},
+  'Threshold Swim Set': {category:'cardio', cues:['Swim at a "comfortably hard" pace you could sustain for the full set — challenging but controlled, not all-out.','Break the set into shorter repeats with brief rest if holding the full distance unbroken isn\'t realistic yet.','Targets your lactate threshold — the pace research consistently shows drives the biggest gains in sustained swim speed.']},
+  'Swim Intervals (100s)': {category:'cardio', cues:['Swim each 100m at a hard, controlled pace, then rest roughly 15-30 seconds before the next one.','Aim for consistent times across all reps rather than fading — that consistency is the actual training effect.','Repeated high-quality efforts like this build the top-end speed and pacing control that steady swimming alone doesn\'t develop.']},
+  'Long Swim (continuous)': {category:'cardio', cues:['One continuous swim at an easy, sustainable pace for the full duration.','Break it up mentally into laps or landmarks rather than thinking about the whole distance at once.','Builds the aerobic base that every faster pace above it is ultimately built on top of.']},
+  'Hangboard Max Hang': {category:'pull', videoQuery:'hangboard max hang finger strength training', cues:['Hang from a hangboard edge sized so you can hold for the full time with real tension — shoulders engaged, not just dead-hanging from the joints.','Add weight or move to a smaller edge only once bodyweight hangs feel genuinely solid.','This "max hang" protocol, researched extensively by climbing scientists like Dr. Eva López, is one of the most direct ways to build the finger strength that limits climbing performance more than almost any other single trait.']},
+  'Hangboard Repeaters': {category:'pull', videoQuery:'hangboard repeaters protocol climbing', cues:['Hang for about 7 seconds, rest 3 seconds, and repeat for the prescribed number of reps on a comfortably challenging edge.','Keep your shoulders active and engaged throughout rather than hanging passively from the joints.','This on/off "repeaters" rhythm trains the finger endurance climbers rely on mid-route, complementing the pure strength built by max hangs.']},
+  'Lock-off Hold': {category:'pull', videoQuery:'lock off hold climbing training', cues:['From a pull-up bar or hold, pull to a bent-arm position (elbow around 90°) and hold completely still.','Keep your shoulder engaged and pulled down rather than shrugged toward your ear.','Trains the static bent-arm strength climbers need to pause and reach for the next hold mid-move, rather than just the dynamic strength of a full pull-up.']},
+  'Standing Pelvic Tilt': {category:'core', cues:['Standing with a soft bend in your knees, gently tuck your pelvis under and back, then release to neutral.','Small and controlled — this is about pelvis awareness and gentle core engagement, not range of motion.','A standing alternative to the floor version, avoiding the prolonged supine (on-your-back) positioning most guidelines (including ACOG\'s) suggest limiting after the first trimester.']},
+  'Side-Lying Leg Lift': {category:'core', videoQuery:'side lying leg lift prenatal exercise', cues:['Lying on your side, hips stacked, lift your top leg straight up without rotating your hip forward or back.','Keep the movement slow and controlled rather than swinging the leg.','A hip-strengthening option that avoids both supine positioning and any fall risk, making it a common go-to throughout pregnancy.']},
+  'Pelvic Floor Connection Breath': {category:'core', videoQuery:'pelvic floor breathing exercise prenatal postpartum', cues:['Inhale and let your pelvic floor and belly soften and expand; as you exhale, gently draw the pelvic floor up and in, like stopping a stream of urine.','Just as important: fully release and relax the pelvic floor between reps — modern pelvic-floor rehab treats over-tensing as its own problem, not just weakness.','Coordinating this with breath (rather than holding it separately) is the foundation both pregnancy and postpartum pelvic-floor programs build everything else on top of.']},
+  'Warm-up Ride (easy spin)': {category:'cardio', cues:['Very easy spin, low resistance, high cadence — just getting blood flowing and joints warm before real effort.','Keep it conversational; this shouldn\'t create any fatigue before the main set.','Skipping this is one of the more common ways cyclists go into a hard interval set undercooked and underperform on the first rep.']},
+  'Endurance Ride (Zone 2)': {category:'cardio', cues:['Steady, conversational-pace riding — you should be able to hold a conversation the whole time.','Keep cadence comfortable (roughly 80-90rpm) rather than grinding a big gear.','This is the foundation of the polarized training model (Stephen Seiler\'s research, developed largely in cycling and rowing) — most of your weekly volume should live here, not at moderate-hard efforts.']},
+  'Cool-down Spin': {category:'cardio', cues:['Very easy spinning to bring your heart rate down gradually after the harder portion of the ride.','Shift to an easy gear and let cadence stay light.','Helps clear metabolic byproducts from the harder effort before you\'re off the bike.']},
+  'FTP Intervals': {category:'cardio', videoQuery:'FTP intervals cycling training', cues:['Ride at your Functional Threshold Power (FTP) — the hardest pace you could sustain for about an hour — for each interval, with easy spinning between reps.','No power meter? Use perceived effort: "comfortably hard," where conversation is only a few words at a time.','FTP is the central metric in modern structured cycling (popularized by Andrew Coggan\'s power-based training zones), since almost every other training zone is defined as a percentage of it.']},
+  'Hill Repeats (seated climbing)': {category:'cardio', cues:['Find a moderate climb and ride it seated at a strong, sustainable effort, then recover on the way back down.','Keep cadence a bit lower than flat-road riding and focus on smooth, even pedal strokes rather than mashing.','Repeated climbing efforts like this build both the muscular and aerobic capacity that pays off on race-day climbs.']},
+  'Sprint Intervals (Bike)': {category:'cardio', cues:['Short, all-out efforts from a rolling start, focusing on quickly building to max power and holding form.','Take full recovery between reps — these are about peak power, not endurance, so don\'t shortchange the rest.','Builds the anaerobic power and neuromuscular recruitment that steady endurance riding alone doesn\'t develop.']},
+  'Cadence Drills': {category:'cardio', cues:['Spin at a higher-than-normal cadence (100+ rpm) in a light gear, focusing on smooth, quiet pedal strokes rather than bouncing in the saddle.','This is a skill-building drill, not a fitness one — effort should stay easy to moderate.','Improves pedaling efficiency, which matters just as much as raw fitness for sustained speed.']},
+  'Long Ride (Zone 2)': {category:'cardio', cues:['One long, continuous ride at an easy, sustainable pace.','Fuel and hydrate throughout rather than waiting until you feel depleted.','Builds the aerobic base and fat-oxidation capacity that every harder effort above it is ultimately built on top of.']},
+  'Technical Trail Ride': {category:'cardio', cues:['Ride varied technical terrain — roots, rocks, drops, berms — at a pace that lets you focus on line choice and bike handling rather than just pushing power.','Look ahead to where you want to go, not directly at the obstacle you\'re trying to avoid.','Skill development on technical terrain reduces crash risk and is often the actual limiting factor on trail speed, more than raw fitness.']},
+  'Standing Climb Repeats': {category:'cardio', cues:['Find a steep pitch and climb it standing out of the saddle, driving the bike side to side with each pedal stroke.','Keep the effort controlled rather than all-out — this is about technique under load as much as raw power.','Builds the short, punchy power output technical climbs demand, a different stimulus than steady seated climbing.']},
+  'Warm-up Spin': {category:'cardio', cues:['Easy, relaxed pedaling at low resistance to raise your heart rate and body temperature gradually.','Keep cadence moderate (80-90 rpm) rather than grinding a hard gear cold.','A rushed warm-up is a common way riders go into hard efforts with tight, underprepared legs.']},
+  'Easy Ride (Zone 2)': {category:'cardio', videoQuery:'zone 2 cycling training', cues:['A pace you could hold a conversation at — noticeably easier than your race or interval pace.','Resist the urge to push the pace; the whole point of this ride is that it doesn\'t feel like training.','Mirrors the "easy" end of the polarized training model (roughly 80% easy, 20% hard) that endurance research — including Stephen Seiler\'s widely cited work — consistently finds outperforms constant moderate-effort riding.']},
+  'Cool-down Spin': {category:'cardio', cues:['Very easy, low-resistance pedaling to bring your heart rate down gradually.','Good time to shake out your legs and unclip mentally from the harder effort before it.','Helps clear fatigue built up during the ride\'s harder portions.']},
+  'Cadence Drills': {category:'cardio', videoQuery:'high cadence cycling drill technique', cues:['Spin at a high cadence (95-110+ rpm) in an easy gear, focusing on a smooth, circular pedal stroke rather than mashing down.','Keep your upper body relaxed — tension in the shoulders and grip usually means you\'re overgeared or forcing the effort.','Higher-cadence pedaling shifts load from muscles to the cardiovascular system, a well-established way to delay leg fatigue on long rides.']},
+  'Threshold Intervals': {category:'cardio', videoQuery:'FTP threshold interval cycling training', cues:['Ride at a "comfortably hard" effort you could sustain for the full interval — hard, but controlled, not all-out.','Hold a steady effort rather than starting too hot and fading.','Targets your functional threshold power (FTP) — the effort level structured cycling training (per Dr. Andrew Coggan\'s widely used power-training zones) is built around, since it\'s the strongest predictor of sustained race-pace performance.']},
+  'Hill Repeats': {category:'cardio', videoQuery:'hill repeat cycling training', cues:['Climb at a hard, controlled effort, then recover on the descent or flat before the next repeat.','Stay seated for most of the climb, standing only in short bursts, to build sustainable climbing power rather than just muscling it.','Repeated climbing efforts like this build both the power and the pacing discipline that steady flat riding alone doesn\'t develop.']},
+  'Long Ride': {category:'cardio', cues:['One continuous ride at an easy, sustainable pace for the full duration.','Practice fueling on the bike — this is exactly when you\'d rehearse race-day nutrition.','Builds the aerobic base every faster effort above it is ultimately built on top of.']},
+  'Technical Descent Drills': {category:'cardio', videoQuery:'mountain bike technical descending skills', cues:['Practice descending technical terrain at a controlled, sub-maximal pace, focusing on body position (weight back, elbows out, eyes ahead) over speed.','Look where you want to go, not at the obstacle you\'re trying to avoid — target fixation is one of the most common causes of avoidable crashes.','Skills-first practice like this is standard in mountain bike coaching, since most trail injuries come from a technique gap, not a fitness gap.']},
+  'Sprint Intervals (Bike)': {category:'cardio', videoQuery:'sprint interval cycling training', cues:['All-out effort for the prescribed time, then full recovery before the next rep — this is about maximum power, not pacing.','Start in a gear you can accelerate from, not one so heavy it stalls your cadence.','Builds the explosive power mountain biking\'s punchy climbs and technical sections demand, which steady-state riding alone doesn\'t train.']},
   'Child\'s Pose Breathing': {category:'core', cues:['Sit back onto your heels, arms extended forward, forehead down.','Breathe deeply into your lower back and sides, not just your chest.','A simple down-regulation drill to close out a session and shift into recovery mode.']},
   'Warm-up Jog': {category:'cardio', cues:['Keep the pace easy — you should be able to hold a conversation.','Use this to raise your heart rate and prep your joints before harder efforts.','Don\'t skip this even on short runs — cold muscles are where injuries happen.']},
   'Easy Run': {category:'cardio', videoQuery:'easy run pace training', cues:['Conversational pace — if you can\'t talk in full sentences, slow down.','This should feel almost too easy; that\'s the point of true easy running.','Most of elite runners\' mileage (per Jack Daniels\' training model) is run at this intensity, not race pace.']},
@@ -3085,6 +3755,23 @@ let dayDefs = programs[activeProgram].days;
 let dayOrder = Object.keys(dayDefs);
 let activeDay = 'd1';
 let reorderMode = false;
+// Escapes free-text input before it's interpolated into an innerHTML template.
+// Applied anywhere a person-typed value (name, note, custom food, exercise
+// typed into Care/Coach, etc.) gets rendered back — without this, a stray
+// "<" or "&" typed innocently in a note can mangle the layout it's rendered
+// into, and something like "<img src=x onerror=...>" would actually execute.
+// This is a single-device, no-backend app, so there's no other user to
+// attack — but it's still the correct default rather than relying on that.
+function escapeHtml(str){
+  if(str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function getTodayKey(){
   const d = new Date();
   const y = d.getFullYear();
@@ -3107,6 +3794,8 @@ function dateKeyMinusDays(key, n){
 // having a logged set doesn't break the streak until the day is actually over —
 // same "still alive until midnight" logic used by Duolingo/Strong-style streaks —
 // so opening the app in the morning doesn't show a false reset.
+const ACTIVITY_DATES_RETENTION_DAYS = 730; // ~2 years — streaks only ever need to look back a handful of days, this is deliberately generous headroom, not a tight cap
+
 async function recordActivity(dateKey){
   try{
     const res = await window.storage.get('activity-dates');
@@ -3114,6 +3803,12 @@ async function recordActivity(dateKey){
     if(!dates.includes(dateKey)){
       dates.push(dateKey);
       dates.sort();
+      // Prune anything older than the retention window so this array doesn't
+      // grow forever across years of daily use — pure storage hygiene, has
+      // no effect on streak correctness since streaks only ever look at the
+      // last few consecutive days anyway.
+      const cutoff = dateKeyMinusDays(getTodayKey(), ACTIVITY_DATES_RETENTION_DAYS);
+      dates = dates.filter(d => d >= cutoff);
       await window.storage.set('activity-dates', JSON.stringify(dates));
     }
   }catch(e){}
@@ -3204,6 +3899,102 @@ async function getDeloadInsight(){
   return `🔻 <b>Deload week (week ${week}):</b> A planned lighter week — drop working weights ~10-20% and stop sets a couple reps short of failure. This is what lets the last month of hard training actually turn into progress instead of just fatigue.`;
 }
 
+// --- Stale resting-region check-in: Care lets you mark a region as resting,
+// but nothing ever prompted you back to it — it could sit there indefinitely
+// with no follow-up. This closes that loop. Only fires for regions that have
+// a tracked start date (see addRestingRegion) — a region resting from before
+// this feature existed has no date to compare against, so it's silently
+// skipped rather than guessed at.
+const STALE_RESTING_DAYS = 10;
+async function getStaleRestingRegionInsight(){
+  const regions = await getRestingRegions();
+  if(!regions.length) return null;
+
+  let since = {};
+  try{
+    const res = await window.storage.get('resting-regions-since');
+    if(res && res.value) since = JSON.parse(res.value);
+  }catch(e){ return null; }
+
+  const today = new Date(getTodayKey()+'T00:00:00');
+  const stale = regions.filter(r=>{
+    if(!since[r]) return false;
+    const days = Math.floor((today - new Date(since[r]+'T00:00:00'))/86400000);
+    return days >= STALE_RESTING_DAYS;
+  });
+  if(!stale.length) return null;
+
+  return `🩹 <b>Check-in reminder:</b> ${stale.join(' & ')} ${stale.length===1?'has':'have'} been marked resting for ${STALE_RESTING_DAYS}+ days — a quick check-in in Care tells you whether it's actually improving or needs more attention.`;
+}
+
+// --- Weigh-in reminder: only fires for someone who has logged weight
+// before — silence for a brand-new profile that's never touched weight
+// tracking respects that some people deliberately don't use the scale.
+const STALE_WEIGHIN_DAYS = 10;
+async function getWeighInReminderInsight(){
+  const entries = await fetchAllWeightEntries();
+  if(!entries.length) return null;
+  const sorted = [...entries].sort((a,b)=> new Date(b.date+'T00:00:00') - new Date(a.date+'T00:00:00'));
+  const daysSince = Math.floor((new Date(getTodayKey()+'T00:00:00') - new Date(sorted[0].date+'T00:00:00'))/86400000);
+  if(daysSince < STALE_WEIGHIN_DAYS) return null;
+  return `⚖️ <b>Weigh-in reminder:</b> It's been ${daysSince} days since your last weight log — logging one keeps your Goal Progress Check accurate.`;
+}
+
+// --- Water pace check: compares today's intake against a rough expected
+// pace through a typical 7am-10pm waking window, rather than a naive 24-hour
+// average (which would falsely flag you as "behind" at 8am). Only checks
+// during a reasonable mid-day-to-evening window so it isn't nagging first
+// thing in the morning or after a day is basically over.
+async function getWaterPaceInsight(){
+  const hour = new Date().getHours();
+  if(hour < 10 || hour > 21) return null;
+
+  const target = computeWaterTarget(userProfile);
+  const current = await getWaterIntake();
+  const wakingStart = 7, wakingEnd = 22;
+  const frac = Math.min(1, Math.max(0, (hour-wakingStart)/(wakingEnd-wakingStart)));
+  const expected = frac * target;
+  if(expected <= 0 || current >= expected * 0.5) return null;
+
+  return `💧 <b>Hydration check:</b> ${current}/${target} oz so far today — behind pace for this time of day.`;
+}
+
+// --- Session heads-up rollup: a one-line count of how many exercises in
+// TODAY's session already carry a flag (a resting-region caution, or a
+// decrease/deload progression signal), surfaced before scrolling through the
+// whole list one exercise at a time. Reuses the exact same checks the
+// per-exercise caution/badge logic already runs, so the count can never
+// disagree with what's actually shown below.
+async function getSessionHeadsUpInsight(){
+  const day = dayDefs[activeDay];
+  if(!day || day.rest || !day.exercises || !day.exercises.length) return null;
+
+  const restingRegions = await getRestingRegions();
+  let flaggedCount = 0;
+
+  for(let idx=0; idx<day.exercises.length; idx++){
+    const ex = day.exercises[idx];
+    const info = exerciseInfo[ex.name];
+    if(!info) continue;
+
+    let flagged = false;
+    if(restingRegions.length){
+      const exRegions = CATEGORY_TO_REGIONS[info.category] || [];
+      if(exRegions.some(r=> restingRegions.includes(r))) flagged = true;
+    }
+    if(!flagged){
+      const log = await getExLog(activeDay, idx);
+      const pastSessions = buildPastSessions(log);
+      const signal = analyzeProgressionSignal(pastSessions, ex, info.category);
+      if(signal && (signal.type==='decrease' || signal.type==='deload')) flagged = true;
+    }
+    if(flagged) flaggedCount++;
+  }
+
+  if(flaggedCount === 0) return null;
+  return `📋 <b>Session heads-up:</b> ${flaggedCount} exercise${flaggedCount===1?'':'s'} in today's ${day.sub || 'session'} ${flaggedCount===1?'is':'are'} flagged below — a resting-region caution or a fatigue/deload signal. Worth a scroll-through before you start.`;
+}
+
 // --- Unified Today Insights card: the single "what matters today" summary,
 // pulling together whichever of the above actually apply right now rather
 // than requiring a trip to Analysis/Care to piece it together. Hides itself
@@ -3214,11 +4005,12 @@ async function renderTodayInsights(){
   const el = document.getElementById('todayInsightsList');
   if(!card || !el) return;
 
-  const [deload, sleep, cycle] = await Promise.all([
-    getDeloadInsight(), getSleepInsight(), getCycleInsight()
+  const [deload, sleep, cycle, staleRegion, weighIn, waterPace, sessionHeadsUp] = await Promise.all([
+    getDeloadInsight(), getSleepInsight(), getCycleInsight(),
+    getStaleRestingRegionInsight(), getWeighInReminderInsight(), getWaterPaceInsight(), getSessionHeadsUpInsight(),
   ]);
 
-  const items = [deload, sleep, cycle].filter(Boolean);
+  const items = [sessionHeadsUp, deload, sleep, cycle, staleRegion, weighIn, waterPace].filter(Boolean);
   if(items.length === 0){
     card.style.display = 'none';
     return;
@@ -3278,11 +4070,11 @@ async function isDeloadWeek(){
   return week % DELOAD_CYCLE_WEEKS === 0;
 }
 
-function renderProgramSelector(){
+async function renderProgramSelector(trendStatus){
   const el = document.getElementById('programSelector');
   const descEl = document.getElementById('programSelectDesc');
 
-  const scores = scoreAllPrograms(userProfile);
+  const scores = await scoreAllPrograms(userProfile, trendStatus);
   const sortedKeys = Object.keys(programs).sort((a,b)=> scores[b]-scores[a]);
   const topKeys = sortedKeys.slice(0, 5);
   const restKeys = sortedKeys.slice(5);
@@ -3299,6 +4091,8 @@ function renderProgramSelector(){
   descEl.textContent = programs[activeProgram].short;
   togglePosingCard();
   toggleMartialArtCard();
+  toggleCyclingCard();
+  togglePrenatalCard();
   renderTips();
 
   el.onchange = async ()=>{
@@ -3314,6 +4108,8 @@ function renderProgramSelector(){
     renderWorkout();
     togglePosingCard();
     toggleMartialArtCard();
+    toggleCyclingCard();
+    togglePrenatalCard();
     renderTips();
   };
 }
@@ -3371,6 +4167,102 @@ function toggleMartialArtCard(){
   if(activeProgram === 'combat'){
     card.style.display = '';
     renderMartialArtSelector();
+  } else {
+    card.style.display = 'none';
+  }
+}
+
+let activeCyclingStyle = 'road';
+
+async function loadCyclingStyle(){
+  try{
+    const res = await window.storage.get('cycling-style');
+    if(res && res.value && CYCLING_STYLES[res.value]) activeCyclingStyle = res.value;
+  }catch(e){}
+  programs.cycling.days = CYCLING_STYLES[activeCyclingStyle].days;
+}
+
+async function saveCyclingStyle(){
+  try{ await window.storage.set('cycling-style', activeCyclingStyle); }catch(e){}
+}
+
+function renderCyclingSelector(){
+  const el = document.getElementById('cyclingSelector');
+  const descEl = document.getElementById('cyclingDesc');
+  el.innerHTML = Object.keys(CYCLING_STYLES).map(key=>
+    `<option value="${key}" ${key===activeCyclingStyle?'selected':''}>${CYCLING_STYLES[key].label}</option>`
+  ).join('');
+  descEl.textContent = CYCLING_STYLES[activeCyclingStyle].short;
+
+  el.onchange = async ()=>{
+    activeCyclingStyle = el.value;
+    programs.cycling.days = CYCLING_STYLES[activeCyclingStyle].days;
+    descEl.textContent = CYCLING_STYLES[activeCyclingStyle].short;
+    await saveCyclingStyle();
+    if(activeProgram === 'cycling'){
+      dayDefs = programs.cycling.days;
+      activeDay = 'd1';
+      await loadDayOrder();
+      renderTabs();
+      renderWorkout();
+      renderTips();
+    }
+  };
+}
+
+function toggleCyclingCard(){
+  const card = document.getElementById('cyclingCard');
+  if(activeProgram === 'cycling'){
+    card.style.display = '';
+    renderCyclingSelector();
+  } else {
+    card.style.display = 'none';
+  }
+}
+
+let activePrenatalStyle = 'prenatal';
+
+async function loadPrenatalStyle(){
+  try{
+    const res = await window.storage.get('prenatal-style');
+    if(res && res.value && PRENATAL_STYLES[res.value]) activePrenatalStyle = res.value;
+  }catch(e){}
+  programs.prenatal.days = PRENATAL_STYLES[activePrenatalStyle].days;
+}
+
+async function savePrenatalStyle(){
+  try{ await window.storage.set('prenatal-style', activePrenatalStyle); }catch(e){}
+}
+
+function renderPrenatalSelector(){
+  const el = document.getElementById('prenatalSelector');
+  const descEl = document.getElementById('prenatalDesc');
+  el.innerHTML = Object.keys(PRENATAL_STYLES).map(key=>
+    `<option value="${key}" ${key===activePrenatalStyle?'selected':''}>${PRENATAL_STYLES[key].label}</option>`
+  ).join('');
+  descEl.textContent = PRENATAL_STYLES[activePrenatalStyle].short;
+
+  el.onchange = async ()=>{
+    activePrenatalStyle = el.value;
+    programs.prenatal.days = PRENATAL_STYLES[activePrenatalStyle].days;
+    descEl.textContent = PRENATAL_STYLES[activePrenatalStyle].short;
+    await savePrenatalStyle();
+    if(activeProgram === 'prenatal'){
+      dayDefs = programs.prenatal.days;
+      activeDay = 'd1';
+      await loadDayOrder();
+      renderTabs();
+      renderWorkout();
+      renderTips();
+    }
+  };
+}
+
+function togglePrenatalCard(){
+  const card = document.getElementById('prenatalCard');
+  if(activeProgram === 'prenatal'){
+    card.style.display = '';
+    renderPrenatalSelector();
   } else {
     card.style.display = 'none';
   }
@@ -3519,13 +4411,142 @@ function estimateExerciseCalories(ex, weightLb){
   return Math.round(met * weightKg * (minutes/60));
 }
 
+// --- Session length adjustment ----------------------------------------------
+// The goal here is "the same day, compressed" — never "a different, worse
+// day." Every program is already authored with the most important work
+// first (main lift, then accessories in descending priority) and supersets
+// marked explicitly, so a single, universal set of rules can safely shorten
+// ANY of the 22 programs without needing per-program tuning:
+//   1. The first exercise (the day's main lift) is NEVER trimmed or dropped.
+//   2. Everything after it gets its SET COUNT trimmed first (floor of 2
+//      sets) — this preserves the day's full movement balance (you still
+//      hit every muscle group/pattern the day was built around), just with
+//      less volume per movement, before anything is cut outright.
+//   3. Only if trimming sets still isn't enough does a whole exercise get
+//      dropped — from the END of the list first, since that's already the
+//      lowest-priority accessory work by the program's own authoring order.
+//   4. Superset pairs (superTag) are always trimmed/dropped as one unit,
+//      never split apart.
+const SESSION_LENGTH_OPTIONS = [
+  {key:'full', label:'Full session', minutes:null},
+  {key:'45', label:'~45 min', minutes:45},
+  {key:'30', label:'~30 min', minutes:30},
+  {key:'20', label:'~20 min', minutes:20},
+];
+const SESSION_LENGTH_SET_FLOOR = 2;
+
+function hasNumericSetPrefix(setsStr){
+  return /^\d+\s*×/.test(setsStr);
+}
+
+function replaceSetCount(setsStr, newCount){
+  return setsStr.replace(/^\d+(\s*×)/, `${newCount}$1`);
+}
+
+// Fuses a superTag exercise with the one immediately after it into a single
+// unit, since supersets must move (trim or drop) together.
+function groupIntoUnits(exercises){
+  const units = [];
+  for(let i=0; i<exercises.length; i++){
+    if(exercises[i].superTag && i+1 < exercises.length){
+      units.push([exercises[i], exercises[i+1]]);
+      i++; // the paired exercise is already consumed into this unit
+    } else {
+      units.push([exercises[i]]);
+    }
+  }
+  return units;
+}
+
+function unitMinutes(unit){
+  return unit.reduce((sum,ex)=> sum + parseEstimatedMinutes(ex.sets, parseSetCount(ex.sets)), 0);
+}
+
+function totalMinutesForUnits(units){
+  return units.reduce((sum,u)=> sum + unitMinutes(u), 0);
+}
+
+// Returns {exercises, estimatedMinutes} — exercises is a NEW array (originals
+// are never mutated, so switching back to "Full session" always restores the
+// exact program as authored). If targetMinutes is null ('full'), returns the
+// list completely unchanged.
+function applySessionLengthLimit(exercises, targetMinutes){
+  if(targetMinutes == null || exercises.length === 0){
+    return {exercises, estimatedMinutes: exercises.reduce((s,ex)=> s + parseEstimatedMinutes(ex.sets, parseSetCount(ex.sets)), 0)};
+  }
+
+  let units = groupIntoUnits(exercises).map(u=> u.map(ex=> ({...ex}))); // deep-ish clone, never mutate originals
+
+  // Pass 1: trim sets one at a time on every unit EXCEPT the first (the main
+  // lift), skipping anything without a real "N×" count (pure time/distance
+  // cardio entries like "20-30 min" aren't trimmable this way).
+  let safety = 0;
+  while(totalMinutesForUnits(units) > targetMinutes && safety < 60){
+    let trimmedSomething = false;
+    for(let ui=1; ui<units.length; ui++){
+      for(const ex of units[ui]){
+        if(!hasNumericSetPrefix(ex.sets)) continue;
+        const current = parseSetCount(ex.sets);
+        if(current > SESSION_LENGTH_SET_FLOOR){
+          ex.sets = replaceSetCount(ex.sets, current-1);
+          trimmedSomething = true;
+          break; // re-check total before trimming further
+        }
+      }
+      if(totalMinutesForUnits(units) <= targetMinutes) break;
+    }
+    if(!trimmedSomething) break; // nothing left to trim — move to dropping whole units
+    safety++;
+  }
+
+  // Pass 2: if still over budget, drop whole units from the end — but the
+  // first unit (main lift) is always protected, so at least one remains.
+  safety = 0;
+  while(totalMinutesForUnits(units) > targetMinutes && units.length > 1 && safety < 30){
+    units.pop();
+    safety++;
+  }
+
+  const finalExercises = units.flat();
+  return {exercises: finalExercises, estimatedMinutes: totalMinutesForUnits(units)};
+}
+
+let sessionLengthPref = 'full';
+
+async function loadSessionLengthPref(){
+  try{
+    const res = await window.storage.get('session-length-pref');
+    if(res && res.value && SESSION_LENGTH_OPTIONS.some(o=>o.key===res.value)) sessionLengthPref = res.value;
+  }catch(e){}
+}
+
+async function saveSessionLengthPref(){
+  try{ await window.storage.set('session-length-pref', sessionLengthPref); }catch(e){}
+}
+
+function initSessionLengthSelector(){
+  const el = document.getElementById('sessionLengthSelector');
+  if(!el) return;
+  el.innerHTML = SESSION_LENGTH_OPTIONS.map(o=> `<option value="${o.key}">${o.label}</option>`).join('');
+  el.value = sessionLengthPref;
+  el.onchange = async ()=>{
+    sessionLengthPref = el.value;
+    await saveSessionLengthPref();
+    renderWorkout();
+  };
+}
+
 function exKey(program, dayId, idx){
   if(program === 'combat') return `ex:${program}:${activeMartialArt}:${dayId}:${idx}`;
+  if(program === 'cycling') return `ex:${program}:${activeCyclingStyle}:${dayId}:${idx}`;
+  if(program === 'prenatal') return `ex:${program}:${activePrenatalStyle}:${dayId}:${idx}`;
   return `ex:${program}:${dayId}:${idx}`;
 }
 
 function workoutKey(date, program, dayId){
   if(program === 'combat') return `workout:${date}:${program}:${activeMartialArt}:${dayId}`;
+  if(program === 'cycling') return `workout:${date}:${program}:${activeCyclingStyle}:${dayId}`;
+  if(program === 'prenatal') return `workout:${date}:${program}:${activePrenatalStyle}:${dayId}`;
   return `workout:${date}:${program}:${dayId}`;
 }
 
@@ -3678,6 +4699,100 @@ function buildPastSessions(log){
     .filter(Boolean);
 }
 
+// --- Program Fit Check: the progression engine's biggest under-used lever.
+// Per-exercise progression signals already exist (see analyzeProgressionSignal
+// above) and are genuinely research-grounded — double progression (Schoenfeld,
+// Helms) for the increase signal, RPE-based autoregulation (Tuchscherer's
+// RPE/RIR scale, Israetel/Renaissance Periodization's fatigue-management
+// model) for decrease/deload. What was missing was ever looking at those
+// signals IN AGGREGATE, across a whole program, to answer a bigger question
+// than "is this one lift ready to progress?" — namely, "is this PROGRAM
+// still the right fit for where this person actually is right now?" That's
+// a genuinely adaptive, ongoing form of personalization, driven by actual
+// performance data rather than a one-time goal/bodyGoal quiz answer — a
+// stronger signal than anything decided on day one could be.
+async function computeProgramFitTrend(){
+  const prog = programs[activeProgram];
+  if(!prog || !prog.days) return null;
+
+  let increase=0, decrease=0, deload=0, hold=0, total=0;
+
+  for(const dayId of Object.keys(prog.days)){
+    const day = prog.days[dayId];
+    if(day.rest || !day.exercises) continue;
+    for(let idx=0; idx<day.exercises.length; idx++){
+      const ex = day.exercises[idx];
+      if(ex.noWeight) continue; // no meaningful weight-based progression signal for bodyweight/time-based entries
+      const info = exerciseInfo[ex.name];
+      if(!info) continue;
+      const log = await getExLog(dayId, idx);
+      const pastSessions = buildPastSessions(log);
+      if(pastSessions.length < 2) continue; // same minimum-data bar the per-exercise signal itself requires
+      total++;
+      const signal = analyzeProgressionSignal(pastSessions, ex, info.category);
+      if(signal && signal.type==='increase') increase++;
+      else if(signal && signal.type==='decrease') decrease++;
+      else if(signal && signal.type==='deload') deload++;
+      else hold++;
+    }
+  }
+
+  return {increase, decrease, deload, hold, total};
+}
+
+const PROGRAM_FIT_MIN_SAMPLE = 4; // need signal from a real slice of the program, not just 1-2 lifts, before drawing a program-wide conclusion
+
+function buildProgramFitInsight(trend){
+  if(!trend || trend.total < PROGRAM_FIT_MIN_SAMPLE) return null;
+
+  const troubleCount = trend.decrease + trend.deload;
+  const troubleRatio = troubleCount / trend.total;
+  const increaseRatio = trend.increase / trend.total;
+
+  if(troubleRatio >= 0.4){
+    return {status:'overreaching', text:
+      `⚠️ ${troubleCount} of ${trend.total} tracked exercises in this program are currently showing fatigue or decline signals. When that many lifts trend this way at once, it's usually the program's overall volume or intensity outpacing recovery right now — not one bad lift. Worth a deliberate lighter week, or considering a program with a different volume profile, before pushing further (the same fatigue-management logic behind RP-style autoregulation, just applied program-wide instead of lift-by-lift).`
+    };
+  }
+  if(increaseRatio >= 0.5 && troubleRatio < 0.15){
+    return {status:'thriving', text:
+      `💪 ${trend.increase} of ${trend.total} tracked exercises are hitting clean double-progression signals right now, with very little fatigue showing up elsewhere. That's a strong, program-wide sign the current volume and intensity are a good match for you — and a real signal (not just a hunch) that you may be ready for more challenge, whether that's more volume here or stepping up to a harder program.`
+    };
+  }
+  return null; // mixed picture, no confident program-wide verdict — better to stay quiet than force one
+}
+
+async function renderProgramFitCheck(){
+  const el = document.getElementById('programFitCheck');
+  if(!el) return;
+  const trend = await computeProgramFitTrend();
+  const insight = buildProgramFitInsight(trend);
+  if(!insight){
+    const reason = !trend || trend.total < PROGRAM_FIT_MIN_SAMPLE
+      ? 'Keep logging weight and reps across a few weeks — this needs signal from several exercises in your current program before it can say anything meaningful.'
+      : 'No strong program-wide pattern right now — a mix of signals across your lifts, which is completely normal.';
+    el.innerHTML = `<div class="empty-note">${reason}</div>`;
+    return;
+  }
+  const cls = insight.status === 'thriving' ? 'goal-feedback-good' : 'goal-feedback-warn';
+  el.innerHTML = `<div class="${cls}">${insight.text}</div>`;
+}
+
+// Single shared entry point for "what's the current trend status" —
+// scoreAllPrograms, recommendProgram, renderProgramRec, and
+// renderProgramSelector all need this, but computeProgramFitTrend() walks
+// every exercise across every day of the active program with its own async
+// storage read per exercise. Computing it once per render cycle and passing
+// the result down avoids doing that same walk 3 times over on something as
+// routine as a single profile save.
+async function getCurrentTrendStatus(){
+  try{
+    const trend = await computeProgramFitTrend();
+    const insight = buildProgramFitInsight(trend);
+    return insight ? insight.status : null; // 'thriving' | 'overreaching' | null
+  }catch(e){ return null; }
+}
+
 // --- Warm-up ramp: a classic percentage-based ramp (bar / ~40% / ~60% / ~80%
 // of the working weight) — the same structure used throughout powerlifting
 // and strength programming (e.g. Rippetoe's Starting Strength, Wendler's
@@ -3762,11 +4877,11 @@ function buildDetailsHtml(ex){
 // [WORKOUT] ---------------------------------------------------------------
 // Today's workout logging: exercise rows, per-set inputs, PR detection,
 // volume/1RM, rest timer.
-function updateSessionCalorieTotal(day, completed){
+function updateSessionCalorieTotal(exercises, completed){
   const el = document.getElementById('sessionCalTotal');
-  if(!el || day.rest) { if(el) el.textContent = ''; return; }
+  if(!el) return;
   let total = 0;
-  day.exercises.forEach((ex,i)=>{
+  exercises.forEach((ex,i)=>{
     if(completed[i]) total += estimateExerciseCalories(ex, userProfile.weight);
   });
   el.textContent = total > 0 ? `🔥 ~${total} cal burned so far this session` : '';
@@ -3812,8 +4927,8 @@ function renderDayInsight(day){
 
 async function renderWorkout(){
   const day = dayDefs[activeDay];
+  renderTodayInsights(); // fire-and-forget — session heads-up depends on activeDay/activeProgram, both already updated by now
   document.getElementById('dayTitle').textContent = `${day.label} — ${day.sub}`;
-  document.getElementById('dayDuration').textContent = day.duration;
   const iconEl = document.getElementById('dayPlateIcon');
   iconEl.className = 'day-plate-inline ' + day.plate;
   const list = document.getElementById('exerciseList');
@@ -3821,6 +4936,7 @@ async function renderWorkout(){
   renderDayInsight(day);
 
   if(day.rest){
+    document.getElementById('dayDuration').textContent = day.duration;
     const archiveBtnHtml = activeDay === 'd7' ? `<button class="save-btn" id="archiveWeekBtn" style="margin-top:14px;">🏁 Save This Week & Start Fresh</button><div class="status-msg" id="archiveWeekStatus"></div>` : '';
     list.innerHTML = `<div class="rest-note">${day.note}</div>${archiveBtnHtml}`;
     if(activeDay === 'd7'){
@@ -3836,8 +4952,23 @@ async function renderWorkout(){
     if(res && res.value) completed = JSON.parse(res.value);
   }catch(e){ completed = {}; }
 
-  const focusExercise = getBodyGoalFocusExercise(userProfile.bodyGoal, activeProgram, day);
-  const renderExercises = focusExercise ? [...day.exercises, focusExercise] : day.exercises;
+  const focusExercises = getBodyGoalFocusExercises(userProfile.bodyGoal, activeProgram, day);
+  const fullExercises = focusExercises.length ? [...day.exercises, ...focusExercises] : day.exercises;
+
+  // Apply the session-length preference here, in one place, before anything
+  // downstream (rendering, logging, calorie total) ever sees the list — that
+  // way every part of the UI stays automatically in sync with whatever gets
+  // trimmed, rather than needing separate handling in each spot.
+  const targetMinutes = (SESSION_LENGTH_OPTIONS.find(o=>o.key===sessionLengthPref) || SESSION_LENGTH_OPTIONS[0]).minutes;
+  const {exercises: renderExercises, estimatedMinutes} = applySessionLengthLimit(fullExercises, targetMinutes);
+
+  const durationEl = document.getElementById('dayDuration');
+  if(targetMinutes == null){
+    durationEl.textContent = day.duration;
+  } else {
+    const wasShortened = renderExercises.length < fullExercises.length || renderExercises.some((ex,i)=> ex.sets !== fullExercises[i]?.sets);
+    durationEl.textContent = `~${Math.round(estimatedMinutes)} min${wasShortened ? ' (shortened)' : ''}`;
+  }
 
   const logs = await Promise.all(renderExercises.map((ex,i)=> ex.noWeight ? Promise.resolve([]) : getExLog(activeDay, i)));
   const restingRegions = await getRestingRegions();
@@ -3962,7 +5093,7 @@ async function renderWorkout(){
       try{
         await window.storage.set(workoutKey(getTodayKey(), activeProgram, activeDay), JSON.stringify(completed));
       }catch(e){}
-      updateSessionCalorieTotal(day, completed);
+      updateSessionCalorieTotal(renderExercises, completed);
     });
 
     const exerciseHeader = row.querySelector('.exercise');
@@ -3978,7 +5109,7 @@ async function renderWorkout(){
     list.appendChild(row);
   });
 
-  updateSessionCalorieTotal(day, completed);
+  updateSessionCalorieTotal(renderExercises, completed);
 }
 
 // --- Rest timer: auto-starts after logging a set, like Strong/Hevy's auto rest timer ---
@@ -4247,26 +5378,67 @@ const GOAL_LABELS = {
 // man and a woman who both pick a glute-focused goal get the same glute work.
 // This only ADDS to a program's core content — it never removes or replaces
 // anything, so the 14 built-in programs stay intact underneath it.
+// Each body goal maps to 1-2 focus exercises — a second exercise is only
+// added when the aesthetic goal genuinely spans two distinct muscle groups
+// or qualities, each grounded in an established training principle rather
+// than padding for its own sake:
+//   - Hourglass/Curvy: hip extension (Hip Thrust) + hip abduction (Clamshell)
+//     — mirrors Bret Contreras' own "glute trinity" framework, which treats
+//     complete glute development as extension + abduction + external
+//     rotation work together, not a single exercise.
+//   - Classic Muscular/Lean & Athletic (V-Taper): shoulder width (Lateral
+//     Raise) + lat width (Lat Pulldown) — the V-taper look Frank Zane built
+//     his physique around is literally the visual combination of both.
+//   - Maximum Size goals: arms (DB Curl) + calves (Standing Calf Raise) —
+//     calves are widely noted in bodybuilding coaching as the muscle group
+//     most often under-trained relative to how visually important they are
+//     to a complete "maximum size" look.
+//   - Athletic goals: core stability (Plank) + explosive power (Box Jump) —
+//     athletic conditioning needs both control and power expression, not
+//     just one.
+//   - Toned/Lean goals: lower body (Bodyweight Squat) + upper body
+//     (Push-up) — a balanced toning approach rather than a lower-body-only
+//     bias.
 const BODY_GOAL_FOCUS = [
-  {pattern:/hourglass|curvy/i, label:'Glute & Hip Focus (Bret Contreras method)', exercise:{name:'Hip Thrust', sets:'3×12-15'}},
-  {pattern:/classic muscular|lean & athletic/i, label:'V-Taper Focus (Frank Zane style)', exercise:{name:'Lateral Raise', sets:'3×15'}},
-  {pattern:/maximum size|muscular & strong|maximum muscle/i, label:'Extra Mass Focus (Schoenfeld volume principle)', exercise:{name:'DB Curl', sets:'3×10-12'}},
-  {pattern:/athletic figure|athletic performance|athletic build/i, label:'Athletic Conditioning Focus', exercise:{name:'Plank', sets:'3×45s', noWeight:true}},
-  {pattern:/toned & lean|lean & toned/i, label:'Toning Focus', exercise:{name:'Bodyweight Squat', sets:'3×20'}},
+  {pattern:/hourglass|curvy/i, label:'Glute & Hip Focus (Bret Contreras\' "glute trinity" method)', exercises:[
+    {name:'Hip Thrust', sets:'3×12-15'},
+    {name:'Clamshell', sets:'2×15-20/side'},
+  ]},
+  {pattern:/classic muscular|lean & athletic/i, label:'V-Taper Focus (Frank Zane style)', exercises:[
+    {name:'Lateral Raise', sets:'3×15'},
+    {name:'Lat Pulldown', sets:'3×10-12'},
+  ]},
+  {pattern:/maximum size|muscular & strong|maximum muscle/i, label:'Extra Mass Focus (Schoenfeld volume principle)', exercises:[
+    {name:'DB Curl', sets:'3×10-12'},
+    {name:'Standing Calf Raise', sets:'3×15-20'},
+  ]},
+  {pattern:/athletic figure|athletic performance|athletic build/i, label:'Athletic Conditioning Focus', exercises:[
+    {name:'Plank', sets:'3×45s', noWeight:true},
+    {name:'Box Jump', sets:'3×5'},
+  ]},
+  {pattern:/toned & lean|lean & toned/i, label:'Toning Focus', exercises:[
+    {name:'Bodyweight Squat', sets:'3×20'},
+    {name:'Push-up', sets:'3×12-15', noWeight:true},
+  ]},
 ];
 
-// Only applies to strength/hypertrophy-oriented programs where an accessory
-// exercise makes sense — not to Yoga, Running, Rehab, Combat, etc.
-const FOCUS_ELIGIBLE_PROGRAMS = ['strength','bodybuilding','powerlifting','athletic','calisthenics','bodyweight','oly'];
+// Only applies to strength/hypertrophy-oriented programs where accessory
+// exercises make sense — not to Yoga, Running, Rehab, Combat, Senior,
+// Prenatal, Desk, or the other performance/population-specific programs,
+// where an aesthetic add-on would dilute what the program is actually for.
+// Powerbuilding is included since it's explicitly a strength+physique
+// hybrid — an aesthetic focus exercise fits its stated purpose directly.
+const FOCUS_ELIGIBLE_PROGRAMS = ['strength','bodybuilding','powerlifting','athletic','calisthenics','bodyweight','oly','powerbuilding'];
 
-function getBodyGoalFocusExercise(bodyGoal, program, day){
-  if(!bodyGoal || day.rest) return null;
-  if(!FOCUS_ELIGIBLE_PROGRAMS.includes(program)) return null;
+function getBodyGoalFocusExercises(bodyGoal, program, day){
+  if(!bodyGoal || day.rest) return [];
+  if(!FOCUS_ELIGIBLE_PROGRAMS.includes(program)) return [];
   const match = BODY_GOAL_FOCUS.find(f=>f.pattern.test(bodyGoal));
-  if(!match) return null;
-  // Skip if this exact exercise is already programmed today, so we don't duplicate it
-  if(day.exercises.some(ex=>ex.name === match.exercise.name)) return null;
-  return {...match.exercise, isBodyGoalFocus:true, focusLabel: match.label};
+  if(!match) return [];
+  // Skip any focus exercise that's already programmed today, so we never duplicate one
+  return match.exercises
+    .filter(ex=> !day.exercises.some(dayEx=>dayEx.name === ex.name))
+    .map(ex=> ({...ex, isBodyGoalFocus:true, focusLabel: match.label}));
 }
 
 let userProfile = {
@@ -4452,6 +5624,60 @@ const TIPS_BY_PROGRAM = {
     "<b>Hydrate,</b> especially before Power Yoga or a heated practice.",
     "<b>It's still training.</b> Yoga contributes real recovery and mobility value alongside your other programs.",
   ],
+  powerbuilding: [
+    "<b>The top lift comes first, always.</b> Squat/bench/deadlift/OHP when you're freshest — accessories are there to support it, not compete with it.",
+    "<b>5×5 isn't magic, consistency is.</b> Add weight only once all 5 sets of 5 feel genuinely solid, not just the first couple.",
+    "<b>Accessories chase the pump on purpose.</b> 10-15 reps to a real burn — this is the volume that builds the \"size\" half of the equation.",
+    "<b>Recovery scales with load.</b> Heavy top sets are more taxing on joints and CNS than pure hypertrophy work — don't skip the rest days.",
+    "<b>Track your top-set weight over time.</b> That number, not the accessories, is the clearest signal this hybrid approach is working.",
+    "<b>Deload every 5th week.</b> The app already flags this for you — heavy compound work compounds fatigue faster than isolation work does.",
+    "<b>Don't chase two goals in one set.</b> The top lift is for strength, the accessories are for size — trying to make one set do both usually does neither well.",
+  ],
+  senior: [
+    "<b>Get medical clearance first if you're new to exercise.</b> This program is a strong starting point, not a substitute for your doctor's input on your specific situation.",
+    "<b>Sit-to-Stand is the single best exercise here.</b> It's literally what geriatric-exercise researchers use to measure functional leg strength and fall risk — it earns its repeated spot across the week.",
+    "<b>Balance work is not optional filler.</b> Fall-prevention research consistently shows dedicated balance training, not just strength work, is what actually reduces fall risk.",
+    "<b>A wall or sturdy chair is a tool, not a crutch.</b> Use support freely, especially early on — the goal is safe, consistent reps, not fewer reps unsupported.",
+    "<b>Muscle loss accelerates with age without resistance training.</b> This is one of the best-supported findings in exercise science — consistent resistance work is one of the few things shown to reliably slow it.",
+    "<b>Progress is often about reps and balance, not added weight.</b> Holding a single-leg stance 5 seconds longer than last month is real progress here.",
+    "<b>Every session here still counts as your \"activity\" for the day.</b> Don't feel like you need to add more on top.",
+  ],
+  swimming: [
+    "<b>Most of your yardage should feel easy.</b> The polarized model (roughly 80% easy, 20% hard) consistently outperforms constant moderate-effort swimming in endurance research.",
+    "<b>Technique work isn't a warm-up formality.</b> A cleaner stroke makes every pace faster for the same effort — drill sets are real training, not filler.",
+    "<b>Shoulders take the brunt of this sport.</b> Don't skip the dryland shoulder-health work on Day 6 — overhead repetition volume in swimming is exactly what that work is meant to offset.",
+    "<b>Consistent pacing beats a fast start.</b> On interval sets, aim for the same time on rep 8 as rep 1 — fading badly means the early reps were too fast.",
+    "<b>Breathing pattern is technique too.</b> Bilateral breathing (both sides) builds a more balanced stroke, even if unilateral feels more natural at first.",
+    "<b>Recovery matters here just as much as on land.</b> Swim fatigue is real fatigue — respect the rest day even though the water feels gentle on the joints.",
+    "<b>Log your long swim time regularly.</b> It's the clearest single signal that your aerobic base is actually improving.",
+  ],
+  climbing: [
+    "<b>Fingers recover slower than muscles.</b> Never hangboard on consecutive days — this is the single most common way climbers overuse and injure a pulley.",
+    "<b>Shoulder health is not optional accessory work.</b> Climbing is pulling-dominant by nature; skipping antagonist/external-rotation work is how shoulder impingement shows up months later.",
+    "<b>Max hangs build strength, repeaters build endurance.</b> You need both — don't drop one because the other feels more productive.",
+    "<b>Core tension shows up on the wall, not just in training.</b> Front levers and L-sits aren't showing off — that's the same tension that keeps your feet on small holds.",
+    "<b>Hip mobility is an underrated climbing skill.</b> High steps and flags are a mobility problem as often as a strength problem.",
+    "<b>Warm up your fingers before ever touching a hangboard.</b> Cold-finger max hangs are a well-known way to tweak a pulley.",
+    "<b>Skip campus board work until you're well established.</b> This program deliberately leaves it out — it's high-injury-risk and only appropriate once finger strength is already well built.",
+  ],
+  boxingsc: [
+    "<b>Power comes from the ground up, not the arm.</b> Every rotational and lower-body exercise here trains the kinetic chain that actually generates punching power — the arm just delivers it.",
+    "<b>This complements Combat, it doesn't replace it.</b> Skill and technique still need to come from bag work, pad work, or sparring — this program builds the physical base underneath that.",
+    "<b>Anti-rotation core work matters as much as rotational power.</b> Pallof Press trains the ability to resist an opponent's force, not just generate your own.",
+    "<b>Round-based conditioning should mirror real work:rest ratios.</b> Steady-state cardio alone doesn't prepare you for the repeated hard efforts a round actually demands.",
+    "<b>Single-leg strength directly reflects boxing's stance.</b> You rarely punch from two evenly-loaded feet — Bulgarian split squats and single-leg bounds train the stance you actually fight from.",
+    "<b>Recovery matters more here than it looks like it should.</b> Rotational and explosive work loads the spine and connective tissue in ways that accumulate quietly.",
+    "<b>Track power output over time, not just weight.</b> Bar speed on Power Cleans and distance on Med Ball Throws are often better progress signals here than added load alone.",
+  ],
+  desk: [
+    "<b>Movement breaks matter as much as the workouts.</b> 2-3 minutes up and moving every 30-60 minutes during the workday is genuinely as important as the 6 structured days — don't skip that habit on Day 3.",
+    "<b>Strengthen the weak side, stretch the tight side.</b> Sitting tightens your pecs, upper traps, and hip flexors while weakening your deep neck flexors, lower traps, and glutes — this program deliberately targets both halves of each pair, not just one.",
+    "<b>Consistency beats intensity here.</b> Short, frequent corrective work reliably outperforms occasional long sessions for postural patterns that built up over years of daily sitting.",
+    "<b>A standing or walking break during calls counts.</b> This doesn't have to look like formal exercise to still be undoing hours of static sitting posture.",
+    "<b>Desk setup matters alongside training.</b> Monitor height, chair support, and keyboard position can undo or reinforce everything this program is working on.",
+    "<b>Progress here often means less discomfort, not more reps.</b> A day with less neck tension or lower back stiffness is the program working, even if the exercises themselves feel unchanged.",
+    "<b>This pairs well with any other program you're running.</b> These corrective patterns matter regardless of what else you're training — desk posture doesn't undo itself just because you also lift or run.",
+  ],
 };
 
 // Combat gets its tips from the selected martial art style, not one generic
@@ -4505,8 +5731,59 @@ const TIPS_BY_MARTIAL_ART = {
   ],
 };
 
+const TIPS_BY_CYCLING_STYLE = {
+  road: [
+    "<b>Most of your riding should feel easy.</b> The polarized model (roughly 80% easy, 20% hard) — research Stephen Seiler developed largely in cycling — consistently beats an all-moderate-effort approach.",
+    "<b>FTP is your reference point, not a fixed ceiling.</b> Retest every 6-8 weeks; every training zone is a percentage of it, so a stale number throws off every interval.",
+    "<b>Cadence matters as much as power.</b> Grinding a big gear at low cadence loads the knees more than spinning a smaller gear faster for the same power output.",
+    "<b>Pace even efforts, don't start too hot.</b> A threshold interval that fades badly by the end was started too hard, not \"toughed out.\"",
+    "<b>Fuel long rides, don't wait until you're depleted.</b> Bonking is a fueling failure, not a fitness one.",
+    "<b>Bike fit issues show up as pain, not just slowness.</b> Persistent knee, back, or neck pain on the bike is usually a position problem worth actually addressing.",
+    "<b>Rest days matter even though impact is low.</b> Cycling fatigue is metabolic and muscular, not just joint-related — respect the recovery days.",
+  ],
+  mountain: [
+    "<b>Skill reduces crash risk more than fitness does.</b> Time spent on technical trail skills often pays off in speed and safety more than another interval session would.",
+    "<b>Look where you want to go, not at the obstacle.</b> Target fixation is one of the most common causes of avoidable crashes on technical terrain.",
+    "<b>Grip and upper-body endurance are real limiters.</b> Technical trails fatigue your forearms and shoulders in a way road riding never does — don't skip that work.",
+    "<b>Standing climbs are a different skill than seated ones.</b> Practice driving the bike side to side rather than just muscling straight up.",
+    "<b>Tire pressure changes everything.</b> Before blaming fitness or skill for a rough ride, check whether pressure was actually appropriate for the terrain.",
+    "<b>Fuel and hydrate on long technical rides.</b> The mental focus technical terrain demands drains just as fast as the physical effort.",
+    "<b>Rest days matter even though impact is low.</b> The grip, core, and shoulder demands of technical terrain need real recovery, same as any other training stress.",
+  ],
+};
+
+const TIPS_BY_PRENATAL_STYLE = {
+  prenatal: [
+    "<b>Get your OB/midwife's clearance first.</b> This program is a strong starting point, not a substitute for guidance on your specific pregnancy.",
+    "<b>Use perceived exertion, not heart rate zones.</b> Your normal heart-rate response itself shifts during pregnancy (per ACOG guidance), so a \"talk test\" — can you hold a conversation? — is a more reliable effort gauge than a target number.",
+    "<b>Avoid lying flat on your back for long periods after the first trimester.</b> This is standard OB guidance; the standing and side-lying alternatives throughout this program exist specifically for that reason.",
+    "<b>Fall-risk activities are the main thing to avoid,</b> not exercise itself — moderate training is genuinely encouraged for most uncomplicated pregnancies.",
+    "<b>Stay cool and hydrated.</b> Avoiding overheating (especially in the first trimester) is one of the more consistent pieces of prenatal exercise guidance.",
+    "<b>Energy will vary a lot day to day.</b> Some days call for the full session, some call for a walk — both are the program working as intended, not a failure to keep up.",
+    "<b>Stop and check in with your provider for any warning signs</b> — bleeding, dizziness, chest pain, contractions, or fluid leakage — during or after exercise.",
+  ],
+  postpartum: [
+    "<b>Get clearance before returning to structured training.</b> This is typically discussed at your postpartum check-up, but a pelvic floor PT can offer a more detailed assessment.",
+    "<b>Pelvic floor and breath work comes before load,</b> not after — this program deliberately front-loads it rather than treating it as an afterthought.",
+    "<b>Skip traditional crunches and sit-ups for now.</b> If you have (or suspect) diastasis recti, spinal flexion under load can make it worse — the McGill Curl-up and Dead Bug in this program are the safer alternative.",
+    "<b>Leaking, heaviness, or doming during an exercise are signals to regress,</b> not push through — these are common signs a movement is currently too advanced for where you are.",
+    "<b>Healing timelines vary enormously.</b> Delivery method, birth complexity, and individual recovery all matter — comparing your timeline to anyone else's isn't useful here.",
+    "<b>Sleep deprivation affects recovery capacity, not just mood.</b> Be honest with yourself about session intensity on genuinely hard nights.",
+    "<b>Gradual reload, not a race back to where you were.</b> A phased return (mirroring guidelines like the postnatal return-to-running framework) consistently outperforms rushing back to pre-pregnancy training.",
+  ],
+};
+
+// Shared by both tip-rendering call sites so the combat/cycling special-casing
+// only has to live in one place rather than being duplicated at each call site.
+function getActiveTips(){
+  if(activeProgram === 'combat') return TIPS_BY_MARTIAL_ART[activeMartialArt] || TIPS_BY_PROGRAM.strength;
+  if(activeProgram === 'cycling') return TIPS_BY_CYCLING_STYLE[activeCyclingStyle] || TIPS_BY_PROGRAM.strength;
+  if(activeProgram === 'prenatal') return TIPS_BY_PRENATAL_STYLE[activePrenatalStyle] || TIPS_BY_PROGRAM.strength;
+  return TIPS_BY_PROGRAM[activeProgram] || TIPS_BY_PROGRAM.strength;
+}
+
 function renderTips(){
-  const tips = (activeProgram === 'combat' ? TIPS_BY_MARTIAL_ART[activeMartialArt] : TIPS_BY_PROGRAM[activeProgram]) || TIPS_BY_PROGRAM.strength;
+  const tips = getActiveTips();
   const buildTip = (html, idx) => `<div class="tip"><div class="tip-icon" style="background:${TIP_COLORS[idx % TIP_COLORS.length] || 'var(--plate-yellow)'}"></div><div>${html}</div></div>`;
   document.getElementById('tipsAlways').innerHTML = tips.slice(0,3).map(buildTip).join('');
   document.getElementById('tipsMore').innerHTML = tips.slice(3).map((html,i)=>buildTip(html, i+3)).join('');
@@ -4516,28 +5793,79 @@ function renderTips(){
 }
 
 const PROGRAM_FIT_SCORES = {
-  lose:        {jumprope:95, running:90, combat:85, bodyweight:80, athletic:70, mobility:60, yoga:65, core:55, calisthenics:55, strength:50, bodybuilding:45, oly:40, powerlifting:35, rehab:20},
-  gain:        {bodybuilding:95, strength:90, powerlifting:85, calisthenics:75, oly:70, athletic:60, combat:55, bodyweight:50, core:40, yoga:35, mobility:30, running:25, jumprope:25, rehab:20},
-  recomp:      {strength:95, bodybuilding:85, combat:80, athletic:75, calisthenics:70, bodyweight:65, powerlifting:65, jumprope:60, oly:60, core:55, running:55, yoga:50, mobility:45, rehab:20},
-  maintain:    {strength:80, athletic:70, bodybuilding:70, bodyweight:70, yoga:65, calisthenics:60, core:60, combat:60, mobility:55, running:55, jumprope:55, oly:50, powerlifting:50, rehab:30},
-  performance: {athletic:95, oly:85, combat:80, calisthenics:75, powerlifting:70, running:65, strength:65, jumprope:60, bodyweight:55, bodybuilding:50, core:50, mobility:45, yoga:40, rehab:20},
+  lose:        {jumprope:95, running:90, combat:85, bodyweight:80, swimming:80, cycling:85, boxingsc:80, athletic:70, climbing:55, mobility:60, yoga:65, core:55, calisthenics:55, strength:50, powerbuilding:45, senior:50, desk:45, bodybuilding:45, oly:40, powerlifting:35, prenatal:20, rehab:20},
+  gain:        {bodybuilding:95, powerbuilding:92, strength:90, powerlifting:85, calisthenics:75, oly:70, athletic:60, combat:55, boxingsc:55, bodyweight:50, climbing:40, senior:45, core:40, yoga:35, mobility:30, running:25, swimming:35, cycling:30, jumprope:25, desk:25, prenatal:15, rehab:20},
+  recomp:      {strength:95, powerbuilding:90, bodybuilding:85, combat:80, boxingsc:75, athletic:75, calisthenics:70, bodyweight:65, powerlifting:65, climbing:65, cycling:60, swimming:60, jumprope:60, oly:60, core:55, senior:55, running:55, yoga:50, mobility:45, desk:35, prenatal:20, rehab:20},
+  maintain:    {strength:80, senior:85, athletic:70, bodybuilding:70, bodyweight:70, powerbuilding:78, yoga:65, swimming:65, cycling:65, boxingsc:65, calisthenics:60, core:60, combat:60, climbing:60, mobility:55, running:55, jumprope:55, oly:50, powerlifting:50, desk:60, prenatal:35, rehab:30},
+  performance: {athletic:95, climbing:85, oly:85, combat:80, swimming:80, cycling:80, boxingsc:85, calisthenics:75, powerlifting:70, running:65, strength:65, powerbuilding:60, jumprope:60, bodyweight:55, bodybuilding:50, senior:35, core:50, mobility:45, yoga:40, desk:30, prenatal:15, rehab:20},
 };
 
-function scoreAllPrograms(p){
+// Buckets used only for the trend-aware nudge below — not a claim that one
+// program is objectively "harder" than another in general, just a rough,
+// defensible split between higher-intensity/higher-fatigue-cost programs and
+// recovery-friendly ones, for the specific purpose of nudging in one
+// direction or the other based on a real, current performance signal.
+const HIGH_INTENSITY_PROGRAMS = ['powerlifting','oly','athletic','combat','boxingsc','climbing','powerbuilding'];
+const RECOVERY_FRIENDLY_PROGRAMS = ['rehab','mobility','yoga','core','desk'];
+const TREND_INTENSITY_BOOST = 8;
+const TREND_INTENSITY_CUT = 10;
+const TREND_RECOVERY_BOOST = 8;
+const CURRENT_PROGRAM_TREND_BOOST = 6;
+
+async function scoreAllPrograms(p, trendStatus){
   const base = PROGRAM_FIT_SCORES[p.goal] || PROGRAM_FIT_SCORES.maintain;
   const scores = {};
+  const age = Number(p.age) || 30;
+
+  // Trend-aware adjustment: pulls in the Program Fit Check's aggregate signal
+  // (real, recent performance data — double progression / RPE autoregulation
+  // across your current program) rather than only ever reflecting the
+  // goal/bodyGoal answered once at setup. Silently a no-op until there's a
+  // real sample to read (see PROGRAM_FIT_MIN_SAMPLE) — scoring behaves
+  // exactly as before until then. Callers that already have a trendStatus
+  // (from getCurrentTrendStatus, computed once per render cycle) should pass
+  // it in directly — this only falls back to computing its own if one
+  // genuinely wasn't provided, so nothing breaks if a future caller forgets.
+  if(trendStatus === undefined) trendStatus = await getCurrentTrendStatus();
+
   Object.keys(programs).forEach(key=>{
     let score = base[key] ?? 40;
-    if(/physique|classic|muscular|maximum size/i.test(p.bodyGoal) && (key==='bodybuilding' || key==='powerlifting')) score += 8;
+    if(/physique|classic|muscular|maximum size/i.test(p.bodyGoal) && (key==='bodybuilding' || key==='powerlifting' || key==='powerbuilding')) score += 8;
     if(/hourglass|curvy/i.test(p.bodyGoal) && (key==='strength' || key==='bodybuilding')) score += 5;
     if(/athletic|figure/i.test(p.bodyGoal) && key==='athletic') score += 5;
-    scores[key] = Math.min(100, score);
+    // Senior Strength & Balance is written for older adults specifically (sarcopenia
+    // prevention, fall-risk-focused balance work) — its baseline score assumes that
+    // audience. Without an age check it would outrank everything for ANY "maintain"
+    // goal profile regardless of age, which isn't an appropriate recommendation for
+    // someone in their 20s-30s. Scale it down smoothly below 55 instead of a hard
+    // cutoff, since there's no sharp line where this stops being relevant.
+    if(key==='senior' && age < 55){
+      const factor = Math.max(0.3, (age-18)/(55-18)); // ages 18-55 scale from 0.3x to 1x
+      score = score * factor;
+    }
+
+    // Deliberate stacking, not an oversight: if your CURRENT program is
+    // itself high-intensity and you're thriving in it, it gets both boosts
+    // (current-program +6 AND high-intensity-bucket +8). That's meant to be
+    // the strongest possible combined signal — "this specific demanding
+    // program is working for you" — not double-counted noise. A high-
+    // intensity program you're NOT currently doing only gets the +8.
+    if(trendStatus === 'thriving'){
+      if(key === activeProgram) score += CURRENT_PROGRAM_TREND_BOOST;
+      if(HIGH_INTENSITY_PROGRAMS.includes(key)) score += TREND_INTENSITY_BOOST;
+    } else if(trendStatus === 'overreaching'){
+      if(HIGH_INTENSITY_PROGRAMS.includes(key)) score -= TREND_INTENSITY_CUT;
+      if(RECOVERY_FRIENDLY_PROGRAMS.includes(key)) score += TREND_RECOVERY_BOOST;
+    }
+
+    scores[key] = Math.max(0, Math.min(100, score));
   });
   return scores;
 }
 
-function recommendProgram(p){
-  const scores = scoreAllPrograms(p);
+async function recommendProgram(p, trendStatus){
+  if(trendStatus === undefined) trendStatus = await getCurrentTrendStatus();
+  const scores = await scoreAllPrograms(p, trendStatus);
   const topKey = Object.keys(scores).sort((a,b)=> scores[b]-scores[a])[0];
   const whyMap = {
     jumprope: 'Fat loss responds best to a conditioning-forward approach — Jump Rope keeps you in a calorie deficit while still building some strength.',
@@ -4549,8 +5877,31 @@ function recommendProgram(p){
     combat: 'Boxing/kickboxing burns serious calories while still building strength and coordination.',
     powerlifting: 'A dedicated squat/bench/deadlift cycle is the most direct route to maximum strength.',
     calisthenics: 'Skill-based bodyweight training builds impressive relative strength and a lean look at the same time.',
+    powerbuilding: `Powerbuilding pairs a heavy top lift with bodybuilding-style accessory volume every session — built for chasing strength and size at the same time, which fits a "${p.bodyGoal}" goal well.`,
+    senior: 'Senior Strength & Balance keeps you strong and steady for the long run — exactly what a maintenance-focused goal is protecting.',
+    swimming: 'Structured pool training builds serious conditioning while staying easy on the joints — a strong fit for a performance or fat-loss goal.',
+    climbing: 'Rock Climbing builds the finger strength, pulling power, and core tension that a performance-focused goal is chasing, in a genuinely different way than barbell training.',
+    cycling: 'Structured, mostly-easy ride training builds serious aerobic conditioning while staying easy on the joints — pick Road or Mountain based on how you actually ride.',
+    boxingsc: 'Boxing Strength & Conditioning builds the rotational power, single-leg strength, and round-based conditioning that actually drives punching power — the physical base underneath the skill work in Combat.',
+    prenatal: 'Prenatal & Postpartum training prioritizes what\'s safe and appropriate for where you are right now, with your provider\'s clearance — not a body-composition goal the way other programs are.',
+    desk: 'Desk Worker / Posture directly targets the tight-here, weak-there pattern (Janda\'s "upper/lower crossed syndrome") that hours of sitting produces — a good fit alongside whatever other training you\'re doing.',
   };
-  return {key:topKey, why: whyMap[topKey] || `${programs[topKey].label} is the best match for your current goal.`};
+
+  let why = whyMap[topKey] || `${programs[topKey].label} is the best match for your current goal.`;
+
+  // Say explicitly when recent performance trend influenced this pick — the
+  // whole point of making the recommendation trend-aware is that it should
+  // be transparent about WHY, especially when the reason is "what your
+  // actual training has been showing lately" rather than the goal typed in
+  // once at setup. Reuses the same trendStatus already computed above —
+  // no second lookup needed.
+  if(trendStatus === 'thriving' && HIGH_INTENSITY_PROGRAMS.includes(topKey)){
+    why += ` You've also been hitting clean progression across most of your current program lately — a real sign you're ready for more.`;
+  } else if(trendStatus === 'overreaching' && RECOVERY_FRIENDLY_PROGRAMS.includes(topKey)){
+    why += ` Several lifts in your current program are also showing fatigue signals right now — this is a good time to dial back intensity for a bit.`;
+  }
+
+  return {key:topKey, why};
 }
 
 function updateBodyGoalOptions(){
@@ -4575,14 +5926,14 @@ function renderProfileSummary(){
   const p = userProfile;
   const summaryEl = document.getElementById('profileSummary');
   if(p.name){
-    summaryEl.innerHTML = `<b>${p.name}</b> · ${p.heightFt}'${p.heightIn}" · ${p.weight} lb · ${GOAL_LABELS[p.goal]}`;
+    summaryEl.innerHTML = `<b>${escapeHtml(p.name)}</b> · ${p.heightFt}'${p.heightIn}" · ${p.weight} lb · ${GOAL_LABELS[p.goal]}`;
   } else {
     summaryEl.textContent = 'Tap to set up — personalizes your nutrition targets and program recommendation';
   }
 }
 
-function renderProgramRec(){
-  const rec = recommendProgram(userProfile);
+async function renderProgramRec(trendStatus){
+  const rec = await recommendProgram(userProfile, trendStatus);
   const el = document.getElementById('programRecommendation');
   const progLabel = programs[rec.key].label;
   el.innerHTML = `
@@ -4645,8 +5996,9 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
   applyTargetsToUI();
   renderHeader();
   renderProfileSummary();
-  renderProgramRec();
-  renderProgramSelector();
+  const trendStatusForRec = await getCurrentTrendStatus();
+  await renderProgramRec(trendStatusForRec);
+  await renderProgramSelector(trendStatusForRec);
   renderWorkout();
   renderWater();
   renderCycleTracking();
@@ -4753,12 +6105,14 @@ document.querySelectorAll('.water-btn[data-oz]').forEach(btn=>{
     const current = await getWaterIntake();
     await saveWaterIntake(current + Number(btn.dataset.oz));
     renderWater();
+    renderTodayInsights();
   });
 });
 
 document.getElementById('waterReset').addEventListener('click', async ()=>{
   await saveWaterIntake(0);
   renderWater();
+  renderTodayInsights();
 });
 
 const foodLibrary = {
@@ -5201,7 +6555,7 @@ function buildFoodItemBtn(item, showCategory){
   const isCustom = item.category === 'My Foods' || activeCat === '📁 My Foods';
   btn.innerHTML = `
     <div>
-      <div class="fi-name">${item.name}</div>
+      <div class="fi-name">${escapeHtml(item.name)}</div>
       ${catHtml}
       <div class="fi-macro">${item.cal} cal · ${item.pro}p / ${item.fat}f / ${item.carb}c</div>
     </div>
@@ -5385,7 +6739,7 @@ function renderFoodLog(){
   } else {
     listEl.innerHTML = todaysFoodLog.map((item, idx)=>`
       <div class="food-log-item">
-        <div class="fl-name">${item.name}</div>
+        <div class="fl-name">${escapeHtml(item.name)}</div>
         <div class="fl-macro">${item.cal} cal</div>
         <button class="fl-remove" data-idx="${idx}">×</button>
       </div>
@@ -5668,6 +7022,7 @@ document.getElementById('saveWeight').addEventListener('click', async ()=>{
     await window.storage.set('weight-log', JSON.stringify(entries));
     input.value = '';
     loadWeights();
+    renderTodayInsights();
   }catch(e){}
 });
 
@@ -5947,7 +7302,7 @@ document.getElementById('tipsToggle').addEventListener('click', ()=>{
   const btn = document.getElementById('tipsToggle');
   const isOpen = wrap.classList.toggle('open');
   btn.classList.toggle('expanded', isOpen);
-  const activeTips = (activeProgram === 'combat' ? TIPS_BY_MARTIAL_ART[activeMartialArt] : TIPS_BY_PROGRAM[activeProgram]) || TIPS_BY_PROGRAM.strength;
+  const activeTips = getActiveTips();
   const remaining = activeTips.length - 3;
   btn.textContent = isOpen ? 'Show less' : `Show ${remaining} more`;
 });
@@ -6131,6 +7486,17 @@ function parseExKey(key){
       program, dayId, idx,
       exDef: dayDef.exercises[idx],
       dayLabel: `${programs.combat.label} (${styleDef.label}) · ${dayDef.label}`,
+    };
+  }
+  if(program === 'cycling' && parts.length >= 5){
+    const style = parts[2], dayId = parts[3], idx = Number(parts[4]);
+    const styleDef = CYCLING_STYLES[style];
+    const dayDef = styleDef && styleDef.days[dayId];
+    if(!dayDef || !dayDef.exercises || !dayDef.exercises[idx]) return null;
+    return {
+      program, dayId, idx,
+      exDef: dayDef.exercises[idx],
+      dayLabel: `${programs.cycling.label} (${styleDef.label}) · ${dayDef.label}`,
     };
   }
   const dayId = parts[2], idx = Number(parts[3]);
@@ -6408,7 +7774,7 @@ document.getElementById('photoLogInput').addEventListener('change', async (e)=>{
 
     const itemsHtml = photoLogParsedItems.map((it,i)=>`
       <div class="photo-result-item">
-        <span>${it.name} — ${it.cal} cal</span>
+        <span>${escapeHtml(it.name)} — ${it.cal} cal</span>
       </div>
     `).join('');
     resultEl.innerHTML = `
@@ -6516,8 +7882,8 @@ async function renderCoach(){
     const itemHtmls = sorted.map(e=>`
       <div class="care-log-item">
         <div class="care-log-date">${fmtDayLabel(e.date)} <span class="prog-day">${e.program}</span></div>
-        <div class="care-log-detail"><b style="color:var(--text)">${e.exercise}</b></div>
-        <div class="care-log-detail">${e.feedback}</div>
+        <div class="care-log-detail"><b style="color:var(--text)">${escapeHtml(e.exercise)}</b></div>
+        <div class="care-log-detail">${escapeHtml(e.feedback)}</div>
       </div>
     `);
     renderCollapsibleList(listEl, itemHtmls, 3, 'reviews');
@@ -6543,7 +7909,7 @@ document.getElementById('coachVideoInput').addEventListener('change', async (e)=
 
   try{
     const frames = await extractVideoFrames(file, 4);
-    resultEl.innerHTML = `<div class="empty-note">Analyzing your ${exercise}…</div>`;
+    resultEl.innerHTML = `<div class="empty-note">Analyzing your ${escapeHtml(exercise)}…</div>`;
 
     const persona = COACH_PERSONAS[activeProgram] || COACH_PERSONAS.strength;
     const prompt = `You are ${persona}. These ${frames.length} frames are sequential stills from a video of someone performing "${exercise}". ${focus ? `They specifically want you to check: ${focus}.` : ''} Give direct, specific feedback on their form based only on what's visible across these frames: what looks correct, what to fix, and one clear cue to focus on next attempt. Keep it to 4-6 short sentences, no headers or markdown, plain conversational coaching tone. If the frames don't clearly show the movement, say so plainly instead of guessing.`;
@@ -6552,8 +7918,8 @@ document.getElementById('coachVideoInput').addEventListener('change', async (e)=
 
     resultEl.innerHTML = `
       <div class="photo-result-card">
-        <div class="photo-result-title">Feedback on your ${exercise}</div>
-        <div class="care-log-detail" style="font-size:13px; line-height:1.5;">${feedback}</div>
+        <div class="photo-result-title">Feedback on your ${escapeHtml(exercise)}</div>
+        <div class="care-log-detail" style="font-size:13px; line-height:1.5;">${escapeHtml(feedback)}</div>
       </div>
     `;
 
@@ -6672,11 +8038,23 @@ async function addRestingRegion(region){
     regions.push(region);
     await setRestingRegions(regions);
   }
+  try{
+    const res = await window.storage.get('resting-regions-since');
+    const since = res && res.value ? JSON.parse(res.value) : {};
+    if(!since[region]) since[region] = getTodayKey(); // don't overwrite an existing start date
+    await window.storage.set('resting-regions-since', JSON.stringify(since));
+  }catch(e){}
 }
 
 async function removeRestingRegion(region){
   const regions = (await getRestingRegions()).filter(r=>r!==region);
   await setRestingRegions(regions);
+  try{
+    const res = await window.storage.get('resting-regions-since');
+    const since = res && res.value ? JSON.parse(res.value) : {};
+    delete since[region];
+    await window.storage.set('resting-regions-since', JSON.stringify(since));
+  }catch(e){}
 }
 
 function buildReliefHtml(region){
@@ -6811,6 +8189,7 @@ async function renderCare(){
       btn.addEventListener('click', async ()=>{
         await removeRestingRegion(btn.dataset.region);
         renderCare();
+        renderTodayInsights();
       });
     });
   }
@@ -6823,8 +8202,8 @@ async function renderCare(){
     const itemHtmls = sorted.map(e=>`
       <div class="care-log-item">
         <div class="care-log-date">${fmtDayLabel(e.date)} <span class="care-log-pain">${e.pain}/10</span></div>
-        <div class="care-log-detail">${e.exercise ? `During: ${e.exercise} · ` : ''}${SENSATION_LABELS[e.sensation] || ''} ${e.region ? `· ${e.region}` : ''}</div>
-        ${e.note ? `<div class="care-log-detail">${e.note}</div>` : ''}
+        <div class="care-log-detail">${e.exercise ? `During: ${escapeHtml(e.exercise)} · ` : ''}${SENSATION_LABELS[e.sensation] || ''} ${e.region ? `· ${escapeHtml(e.region)}` : ''}</div>
+        ${e.note ? `<div class="care-log-detail">${escapeHtml(e.note)}</div>` : ''}
       </div>
     `);
     renderCollapsibleList(listEl, itemHtmls, 3, 'check-ins');
@@ -6855,6 +8234,7 @@ document.getElementById('careSubmit').addEventListener('click', async ()=>{
     markBtn.addEventListener('click', async ()=>{
       if(region) await addRestingRegion(region);
       renderCare();
+      renderTodayInsights();
       markBtn.textContent = 'Marked as resting ✓';
       markBtn.disabled = true;
     });
@@ -7376,6 +8756,7 @@ async function renderAnalysis(){
   renderExerciseProgress();
   renderRpeTrend();
   renderGoalFeedback();
+  renderProgramFitCheck();
 
   // Build last 6 week buckets (most recent first)
   const todayMonday = mondayOf(getTodayKey());
@@ -7465,13 +8846,22 @@ if(activeUserId){
     applyTargetsToUI();
     renderHeader();
     renderProfileSummary();
-    renderProgramRec();
     renderStreak();
     renderTodayInsights();
 
     await loadMartialArtStyle();
+    await loadCyclingStyle();
+    await loadPrenatalStyle();
+    await loadSessionLengthPref();
+    initSessionLengthSelector();
     await loadActiveProgram();
-    renderProgramSelector();
+    // Computed once, after activeProgram is actually loaded, and shared by both
+    // calls below — this both avoids redundant computation and fixes a prior
+    // accuracy gap where renderProgramRec ran before loadActiveProgram and so
+    // could never see the real current program's trend on first page load.
+    const trendStatusForInit = await getCurrentTrendStatus();
+    await renderProgramRec(trendStatusForInit);
+    await renderProgramSelector(trendStatusForInit);
     await loadDayOrder();
     renderTabs();
     renderWorkout();
