@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Training Log">
 <meta name="theme-color" content="#14171A">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
@@ -362,7 +365,6 @@
   }
   .warmup-box .warmup-title{color:#4FC3F7; font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:3px;}
   .warmup-box .warmup-row{display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:12px;}
-  .warmup-box .warmup-row span:last-child{color:var(--text-muted);}
 
   .rest-timer{
     position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
@@ -377,6 +379,21 @@
   }
   .rest-timer .rt-add{color:var(--plate-green); font-weight:600;}
   .rest-timer .rt-close{color:var(--plate-red); font-weight:600; font-size:15px;}
+
+  .undo-toast{
+    position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(80px);
+    background:var(--surface2); border:1px solid var(--line); border-radius:30px;
+    padding:10px 10px 10px 18px; display:flex; align-items:center; gap:14px; z-index:60;
+    box-shadow:0 6px 20px rgba(0,0,0,0.4); opacity:0; pointer-events:none;
+    transition:transform 0.25s var(--ease-spring), opacity 0.2s var(--ease-smooth);
+    max-width:calc(100vw - 32px);
+  }
+  .undo-toast.active{transform:translateX(-50%) translateY(0); opacity:1; pointer-events:auto;}
+  .undo-toast span{font-size:13px; color:var(--text);}
+  .undo-toast button{
+    background:none; border:none; color:var(--plate-blue); font-weight:700; font-size:13px;
+    cursor:pointer; font-family:'Inter',sans-serif; padding:6px 4px; white-space:nowrap;
+  }
 
   .ex-details{margin:6px 0 2px 76px;}
   .ex-details summary{
@@ -500,10 +517,12 @@
     border-radius:10px; font-size:13px; line-height:1.5;
   }
   .program-rec-banner b{color:var(--plate-green);}
+  .program-rec-actions{display:flex; gap:8px; margin-top:10px;}
   .program-rec-btn{
-    margin-top:10px; width:100%; padding:9px; background:var(--plate-green); color:#fff; border:none;
+    flex:1; padding:9px; background:var(--plate-green); color:#fff; border:none;
     border-radius:8px; font-weight:600; font-size:12.5px; cursor:pointer; font-family:'Inter',sans-serif;
   }
+  .program-rec-btn-secondary{background:transparent; color:var(--text-muted); border:1px solid var(--line);}
   .posing-class{margin-bottom:4px;}
   .posing-class summary{
     list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between;
@@ -902,6 +921,7 @@
     <button class="nav-pill" id="navHistory">History</button>
     <button class="nav-pill" id="navCare">Care</button>
     <button class="nav-pill" id="navCoach">Coach</button>
+    <button class="nav-pill" id="navLearn">Learn</button>
   </div>
 
   <div id="todayView">
@@ -945,8 +965,14 @@
           </div>
         </div>
         <div>
-          <label class="care-label">Weight (lb)</label>
-          <input type="number" step="0.1" id="pfWeight" class="care-input" placeholder="160">
+          <label class="care-label">Weight (<span id="pfWeightUnitLabel">lb</span>)</label>
+          <div style="display:flex; gap:6px;">
+            <input type="number" step="0.1" id="pfWeight" class="care-input" placeholder="160" style="flex:1;">
+            <select id="weightUnitSelect" class="care-input" style="flex:0 0 68px; padding-left:8px;">
+              <option value="lb">lb</option>
+              <option value="kg">kg</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -973,11 +999,11 @@
       <button class="save-btn" id="pfSave">Save Profile</button>
       <div class="status-msg" id="pfStatus"></div>
 
-      <div id="programRecommendation"></div>
       <button class="switch-profile-btn" id="switchProfileBtn">🔄 Switch Profile (for a shared device)</button>
       <button class="switch-profile-btn" id="exportDataBtn">⬇️ Export My Data (backup as JSON)</button>
     </div></div>
   </div>
+  <div id="programRecommendation"></div>
 
   <div class="card-title" style="margin-bottom:8px;">🏋️ Training Style</div>
   <div class="program-select-wrap">
@@ -999,6 +1025,13 @@
     <div class="program-select-desc" id="cyclingDesc"></div>
   </div>
 
+  <div class="card" id="prenatalCard" style="display:none">
+    <div class="card-title">🤰 Stage</div>
+    <div class="history-hint">Prenatal and Postpartum have genuinely different needs — pick whichever applies right now. <b>Please get clearance from your OB, midwife, or a pelvic floor physical therapist before starting</b>, and stop anything that doesn't feel right for your body.</div>
+    <select class="program-select" id="prenatalSelector"></select>
+    <div class="program-select-desc" id="prenatalDesc"></div>
+  </div>
+
   <div class="tabs-header">
     <div class="hint">Tap a day to view it</div>
     <button class="reorder-btn" id="reorderToggle">Reorder days</button>
@@ -1014,31 +1047,6 @@
     <div class="session-cal-total" id="sessionCalTotal"></div>
     <div class="day-insight" id="dayInsight"></div>
     <div id="exerciseList"></div>
-  </div>
-
-  <div class="card" id="posingCard" style="display:none">
-    <div class="card-title">🏆 Posing Practice</div>
-    <div class="history-hint">Physique classes and their mandatory poses — tap a class to expand, tap a pose for key points and tips.</div>
-    <div id="posingClassList"></div>
-  </div>
-
-  <div class="card" id="swimStylesCard" style="display:none">
-    <div class="card-title">🏊 Swimming Styles</div>
-    <div class="history-hint">Water confidence fundamentals plus a full technical breakdown of all four competitive strokes — tap a stroke to expand, tap a drill for a masterclass-level walkthrough.</div>
-    <div id="swimStylesList"></div>
-  </div>
-
-  <div class="card" id="climbTechniquesCard" style="display:none">
-    <div class="card-title">🧗 Climbing Techniques</div>
-    <div class="history-hint">Movement fundamentals, every major hand grip, footwork, and advanced body positioning — tap a group to expand, tap a technique for a masterclass-level walkthrough.</div>
-    <div id="climbTechniquesList"></div>
-  </div>
-
-  <div class="card" id="prenatalCard" style="display:none">
-    <div class="card-title">🤰 Stage</div>
-    <div class="history-hint">Prenatal and Postpartum have genuinely different needs — pick whichever applies right now. <b>Please get clearance from your OB, midwife, or a pelvic floor physical therapist before starting</b>, and stop anything that doesn't feel right for your body.</div>
-    <select class="program-select" id="prenatalSelector"></select>
-    <div class="program-select-desc" id="prenatalDesc"></div>
   </div>
 
   <div class="card">
@@ -1377,6 +1385,39 @@
     </div>
   </div>
 
+  <div id="learnView" style="display:none">
+    <div class="card">
+      <div class="card-title">🔍 Exercise Library</div>
+      <div class="history-hint">Search all 256 exercises by name — technique cues and a form-video link for anything in the library, regardless of which program it's normally used in.</div>
+      <input type="text" id="exerciseSearchInput" class="care-input" placeholder="Search exercises… e.g. squat, plank, jab">
+      <div id="exerciseSearchResults"></div>
+    </div>
+
+    <div class="card" id="posingCard" style="display:none">
+      <div class="card-title">🏆 Posing Practice</div>
+      <div class="history-hint">Physique classes and their mandatory poses — tap a class to expand, tap a pose for key points and tips.</div>
+      <div id="posingClassList"></div>
+    </div>
+
+    <div class="card" id="swimStylesCard" style="display:none">
+      <div class="card-title">🏊 Swimming Styles</div>
+      <div class="history-hint">Water confidence fundamentals plus a full technical breakdown of all four competitive strokes — tap a stroke to expand, tap a drill for a masterclass-level walkthrough.</div>
+      <div id="swimStylesList"></div>
+    </div>
+
+    <div class="card" id="climbTechniquesCard" style="display:none">
+      <div class="card-title">🧗 Climbing Techniques</div>
+      <div class="history-hint">Movement fundamentals, every major hand grip, footwork, and advanced body positioning — tap a group to expand, tap a technique for a masterclass-level walkthrough.</div>
+      <div id="climbTechniquesList"></div>
+    </div>
+
+    <div class="card" id="combatTechniquesCard" style="display:none">
+      <div class="card-title">🥊 Combat Techniques</div>
+      <div class="history-hint">Every discipline in this program, broken down technique by technique — tap a style to expand, tap a technique for a masterclass-level walkthrough.</div>
+      <div id="combatTechniquesList"></div>
+    </div>
+  </div>
+
   <div class="app-footer" id="appFooter"></div>
 </div>
 
@@ -1384,6 +1425,11 @@
   <span class="rest-timer-time" id="restTimerTime">1:30</span>
   <button class="rt-add" id="restTimerAdd">+15s</button>
   <button class="rt-close" id="restTimerClose">✕</button>
+</div>
+
+<div class="undo-toast" id="undoToast">
+  <span id="undoToastText"></span>
+  <button id="undoToastBtn">Undo</button>
 </div>
 
 <script>
@@ -3185,6 +3231,51 @@ const COMBAT_STYLES = {
         note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
     }
   },
+
+  taiChi: {
+    label: 'Tai Chi', short: 'Internal art — standing meditation, form work, push hands, and stance strength',
+    days: {
+      d1: { label:'Day 1', sub:'Standing Meditation & Rooting', plate:'p-red', plateNum:'25', duration:'~40 min',
+        exercises:[
+          {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+          {name:'Zhan Zhuang (Standing Post)', sets:'4×2-3 min', noWeight:true},
+          {name:'Silk Reeling Qigong (Chan Si Gong)', sets:'3×3 min', noWeight:true},
+          {name:'Tai Chi Form — Opening & Ward Off (Peng)', sets:'5 reps ×3', noWeight:true},
+          {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+        ]},
+      d2: { label:'Day 2', sub:'Form Practice · Cardinal Techniques', plate:'p-blue', plateNum:'20', duration:'~45 min',
+        exercises:[
+          {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+          {name:'Tai Chi Form — Grasp the Sparrow\'s Tail', sets:'6 reps ×3', noWeight:true},
+          {name:'Tai Chi Form — Single Whip', sets:'6 reps ×3', noWeight:true},
+          {name:'Tai Chi Form — Cloud Hands (Yun Shou)', sets:'8 reps/side ×2', noWeight:true},
+        ]},
+      d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term.' },
+      d4: { label:'Day 4', sub:'Push Hands & Sensitivity', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+        exercises:[
+          {name:'Zhan Zhuang (Standing Post)', sets:'2×2 min', noWeight:true},
+          {name:'Push Hands — Fixed Step (Tui Shou)', sets:'6×2min rounds', noWeight:true},
+          {name:'Push Hands — Rollback & Press (Lu & Ji)', sets:'4×2min rounds', noWeight:true},
+          {name:'Silk Reeling Qigong (Chan Si Gong)', sets:'2×3 min', noWeight:true},
+        ]},
+      d5: { label:'Day 5', sub:'Stance & Leg Strength', plate:'p-green', plateNum:'10', duration:'~35 min',
+        exercises:[
+          {name:'Horse Stance Hold (Mabu)', sets:'4×45-60s', noWeight:true},
+          {name:'Bow Stance Transitions (Gong Bu)', sets:'3×8/side', noWeight:true},
+          {name:'Golden Rooster Stands on One Leg', sets:'3×20-30s/side', noWeight:true},
+        ]},
+      d6: { label:'Day 6', sub:'Full Form Flow', plate:'p-off', plateNum:'5', duration:'~45 min',
+        exercises:[
+          {name:'Tai Chi Form — Repulse Monkey (Retreating)', sets:'6 reps ×2', noWeight:true},
+          {name:'Tai Chi Form — Brush Knee & Twist Step', sets:'6 reps ×2', noWeight:true},
+          {name:'Short Form Flow (Full Run-Through)', sets:'3-5 min ×3', noWeight:true},
+          {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+        ]},
+      d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+    }
+  },
 };
 
 // Discipline variants for the Cycling program — selecting Road or Mountain
@@ -4040,6 +4131,315 @@ function toggleClimbTechniquesCard(){
   }
 }
 
+// [COMBAT TECHNIQUES] -------------------------------------------------------
+// Technique reference for the Combat program, grouped by martial art style
+// (mirrors COMBAT_STYLES exactly) — same "group → expandable technique rows
+// with icon + cues + video" pattern as Posing/Swimming/Climbing above (same
+// CSS classes: .posing-class, .pose-detail-wrap, .pose-row, .pose-icon,
+// .pose-name, .pose-detail). This goes deeper than the terse 3-cue
+// exerciseInfo entries used inline during a workout — it's the standalone
+// technique masterclass layer, the same relationship Swimming Styles and
+// Climbing Techniques have to their own programs. Shown regardless of which
+// specific martial art is currently selected, since a Combat trainee
+// benefits from seeing the full cross-style technique picture, not just
+// their current pick.
+const COMBAT_ICONS = {
+  jabPunch: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="13" x2="12" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="12" y1="24" x2="8" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="12" y1="24" x2="18" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="12" y1="18" x2="36" y2="18" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="36" cy="18" r="2.4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="12" y1="18" x2="18" y2="8" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> </svg>',
+  crossPunch: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="13" x2="14" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="24" x2="9" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="24" x2="20" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="16" x2="38" y2="20" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="38" cy="20" r="2.4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M14 24 A8 8 0 0 0 20 18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> </svg>',
+  hookPunch: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="13" x2="14" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="24" x2="9" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="24" x2="20" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M14 16 Q30 8 34 22" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="34" cy="22" r="2.4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  uppercutPunch: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="10" cy="10" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="13" x2="14" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="24" x2="9" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="24" x2="20" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M14 30 Q20 34 28 14" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="28" cy="14" r="2.4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  guardStance: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="22" cy="8" r="3.4" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="11" x2="22" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="15" x2="14" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="20" x2="16" y2="12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="15" x2="30" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="30" y1="20" x2="28" y2="12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="24" x2="16" y2="38" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="24" x2="28" y2="38" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  headMovementSlip: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="14" cy="14" r="3.4" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/> <circle cx="24" cy="18" r="3.4" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M14 14 Q19 17 24 18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3"/> <line x1="24" y1="21" x2="24" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="24" y1="30" x2="18" y2="38" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="24" y1="30" x2="30" y2="38" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="24" x2="16" y2="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="34" y1="20" x2="32" y2="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  roundhouseKick: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="10" cy="8" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="11" x2="14" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="14" x2="20" y2="10" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="22" x2="8" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="22" x2="34" y2="16" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M14 22 A16 16 0 0 1 30 10" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3" opacity="0.5"/> </svg>',
+  teepKick: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="10" cy="8" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="11" x2="14" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="14" x2="20" y2="10" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="22" x2="8" y2="32" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="22" x2="38" y2="22" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="34" y1="18" x2="38" y2="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="34" y1="26" x2="38" y2="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  switchKick: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="20" cy="8" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="11" x2="20" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="12" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/> <line x1="20" y1="22" x2="34" y2="16" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M8 34 Q14 38 20 34" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M6 30 L8 34 L4 36" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  comboTiming: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="8" cy="10" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="13" x2="30" y2="16" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="30" cy="16" r="2.2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="13" x2="8" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="8" y1="26" x2="4" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/> <line x1="8" y1="26" x2="26" y2="34" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  clinchControl: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="22" cy="8" r="3.4" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="11" x2="22" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M22 13 Q10 13 10 22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M22 13 Q34 13 34 22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="20" x2="16" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="20" x2="28" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  kneeStrike: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="14" cy="6" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="9" x2="18" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M14 12 Q30 14 32 22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="20" x2="26" y2="26" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="26" y1="26" x2="24" y2="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> <line x1="18" y1="20" x2="12" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  elbowStrike: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="12" y1="11" x2="16" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="22" x2="10" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="22" x2="20" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M16 14 L34 20" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M30 14 L34 20 L28 24" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  checkBlock: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="14" cy="6" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="9" x2="16" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M14 12 Q26 14 30 24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="20" x2="12" y2="30" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M32 26 L36 30 L30 34" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="30 " y1="30" x2="34" y2="30" stroke="currentColor" stroke-width="1.6" fill="none" opacity="0.01"/> </svg>',
+  sideKick: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="10" cy="8" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="11" x2="12" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="14" x2="18" y2="12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="12" y1="22" x2="8" y2="32" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="12" y1="22" x2="38" y2="18" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M34 15 L38 18 L34 21" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  axeKick: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="14" cy="6" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="9" x2="14" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="12" x2="6" y2="16" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="20" x2="10" y2="32" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M14 20 Q28 4 32 10" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M14 20 L26 30" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3" opacity="0.5"/> </svg>',
+  spinningBackKick: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="20" cy="8" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="11" x2="20" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="12" y2="32" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/> <line x1="20" y1="22" x2="6" y2="18" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M28 6 A14 14 0 0 1 34 20" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3"/> <path d="M30 18 L34 20 L31 24" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  sprawl: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="16" cy="10" r="3.4" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="13" x2="24" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="24" y1="20" x2="36" y2="16" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="24" y1="20" x2="10" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="24" y1="20" x2="30" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="24" y1="20" x2="14" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  groundPound: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="4" y1="30" x2="40" y2="30" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/> <circle cx="18" cy="16" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="19" x2="16" y2="28" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="28" x2="8" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="28" x2="26" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="21" x2="34" y2="12" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="34" cy="12" r="2.2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  cageControl: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="36" y1="4" x2="36" y2="40" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> <circle cx="16" cy="12" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="15" x2="20" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="18" x2="34" y2="18" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="24" x2="14" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="24" x2="26" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  wardOff: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="22" cy="8" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="11" x2="22" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M22 14 Q34 16 32 26" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="24" x2="16" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="24" x2="28" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  rollback: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="22" cy="8" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="11" x2="20" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M34 14 Q20 16 18 26" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="24" x2="14" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="24" x2="26" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  pressPush: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="10" cy="20" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="13" y1="20" x2="24" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="16" x2="38" y2="16" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="24" x2="38" y2="24" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M34 12 L38 16 L34 20" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M34 20 L38 24 L34 28" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="23" x2="6" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="23" x2="14" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  listeningEnergy: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="10" cy="10" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> <circle cx="34" cy="10" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> <line x1="10" y1="13" x2="20" y2="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> <line x1="34" y1="13" x2="24" y2="22" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> <circle cx="22" cy="24" r="2.6" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="27" x2="16" y2="36" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> <line x1="22" y1="27" x2="28" y2="36" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> </svg>',
+  rooting: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="22" cy="8" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="11" x2="22" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="16" x2="12" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="16" x2="32" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="26" x2="14" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="26" x2="30" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M14 34 Q10 38 6 40" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> <path d="M30 34 Q34 38 38 40" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> </svg>',
+};
+
+const COMBAT_TECHNIQUE_DETAILS = {
+  'Jab': {icon:'jabPunch', video:'boxing jab technique tutorial', points:[
+    'Setup: from a balanced guard, the lead hand extends straight toward the target while the lead shoulder rotates slightly to add reach and a small measure of protection to the chin.',
+    'Execution: snap the fist out and back quickly along the most direct line to the target, rotating the fist palm-down just before impact, then retract immediately to guard position.',
+    'Whole-body integration: even though it\'s the least powerful punch in the arsenal, a good jab still starts with a small push from the lead foot — a jab thrown purely from the shoulder and arm is slower and telegraphs earlier than one with even a small amount of leg drive behind it.',
+    'Common mistake: dropping the rear hand away from the chin while the jab is out, or pulling the jab straight back in a wide arc instead of retracting it along the same line it went out on.',
+    'Coaching insight: the jab is the single most repeated punch in boxing for good reason — it sets range, disrupts an opponent\'s rhythm, and sets up nearly every combination that follows it, which is why so much of a beginner\'s early training is jab repetition before anything else.',
+  ]},
+  'Cross (Straight Right)': {icon:'crossPunch', video:'boxing cross straight right technique tutorial', points:[
+    'Setup: from guard, the rear hip and shoulder are cocked slightly behind the lead side, loading the rotation the punch is about to release.',
+    'Execution: drive off the rear foot, rotating the hip and shoulder together as the rear hand travels in a straight line to the target, rotating the fist palm-down at full extension.',
+    'Whole-body integration: this is the clearest example in boxing of power originating from the ground up — the rear foot\'s pivot and the hip\'s rotation happen first, with the arm essentially just transmitting that rotational force to the target rather than generating its own.',
+    'Common mistake: throwing the cross as an arm punch, with little or no hip and rear-foot rotation. This is a common habit precisely because the arm-only version still lands and still feels like "a punch" — it just carries a fraction of the available power.',
+    'Coaching insight: many boxing coaches teach the cross by having a student throw it in slow motion and feel exactly where the power sequence starts (the rear foot pivoting) — rushing straight to full speed often locks in the arm-only habit before the correct sequence is ever felt.',
+  ]},
+  'Hook': {icon:'hookPunch', video:'boxing hook punch technique tutorial', points:[
+    'Setup: from guard, the striking arm bends to roughly 90 degrees at the elbow, staying at that same bent angle throughout the entire punch rather than starting straight and bending.',
+    'Execution: rotate the hip, torso, and (on the lead-hand version) the lead foot together, sweeping the bent arm around in a horizontal arc that finishes with the fist and forearm parallel to the ground at impact.',
+    'Whole-body integration: the hook\'s power comes almost entirely from hip and torso rotation, not the arm swinging on its own — a hook thrown with the feet flat and the hips still is a much weaker, more "armsy" version of the same technique.',
+    'Common mistake: winding up visibly before throwing the hook, which telegraphs the punch well before it arrives, or straightening the arm during the swing instead of keeping the fixed elbow bend throughout.',
+    'Coaching insight: the lead-hook off a slight pivot of the front foot is one of boxing\'s most efficient power punches specifically because that small foot pivot amplifies hip rotation without requiring the large, visible wind-up that makes the punch easy to see coming.',
+  ]},
+  'Uppercut': {icon:'uppercutPunch', video:'boxing uppercut technique tutorial', points:[
+    'Setup: bend the knees slightly to drop the striking hand below the intended target level, keeping the elbow tucked in close to the body rather than flared wide.',
+    'Execution: drive upward by extending the legs and rotating the hip and shoulder, traveling the fist in a short, vertical line up through the center, finishing with the palm facing back toward you at full extension.',
+    'Whole-body integration: like the cross, the uppercut\'s power is generated by the legs extending and the hips rotating upward and forward — the arm mostly just carries that force along its short vertical path.',
+    'Common mistake: dropping the hand too low and too far out in front before throwing, which both telegraphs the punch and leaves the head unprotected on that side for the moment the punch travels.',
+    'Coaching insight: the uppercut is most effective at close range, precisely because its short, compact travel distance is what keeps it fast and hard to see at range where a hook or cross would have more room (and more warning) to develop.',
+  ]},
+  'Guard & Head Movement': {icon:'headMovementSlip', video:'boxing guard position head movement technique', points:[
+    'Setup: hands held high enough to protect the chin and cheekbones, elbows tucked to protect the ribs, chin slightly tucked down and toward the chest rather than held up and exposed.',
+    'Execution: slip incoming punches by moving the head just off the centerline — to either side for a straight punch, or by bending the knees to duck under a hook — always returning to guard immediately after.',
+    'Whole-body integration: head movement should come from bending at the knees and rotating the torso, not just tilting the neck — a head-only slip is small, slow, and leaves the body still square and exposed to a follow-up.',
+    'Common mistake: dropping the hands to move the head, on the theory that the movement itself provides enough defense. Head movement and hand guard are meant to work together, not substitute for each other.',
+    'Coaching insight: elite defensive boxers are often studied specifically for how little unnecessary movement they use — small, precise head movement paired with a solid guard beats large, dramatic dodges that take longer to recover from and reset out of position.',
+  ]},
+
+  'Roundhouse Kick (Kickboxing)': {icon:'roundhouseKick', video:'kickboxing roundhouse kick technique tutorial', points:[
+    'Setup: chamber the kicking leg\'s knee up and to the side, pivoting the standing foot roughly 90 degrees to allow full hip rotation into the kick.',
+    'Execution: snap the shin and foot (or instep, depending on target and range) through the target in a fast, whipping arc, driven by the hip rotating fully through rather than the leg swinging on its own.',
+    'Whole-body integration: kickboxing\'s roundhouse tends to emphasize speed and snap over the deeper, more committed hip drive of a Muay Thai roundhouse (below) — both are valid, but they\'re genuinely different technical emphases, not the same kick performed identically across styles.',
+    'Common mistake: kicking with the leg alone and a standing foot that never pivots. Without the pivot, hip rotation is mechanically capped, and the kick\'s power comes almost entirely from the leg swinging, which is both weaker and slower to recover from.',
+    'Coaching insight: because kickboxing rulesets typically reward speed and volume, many kickboxing gyms drill the roundhouse for rapid re-chambering (snapping the leg back to a ready position immediately after impact) as much as for the kick itself.',
+  ]},
+  'Teep (Push Kick)': {icon:'teepKick', video:'muay thai kickboxing teep push kick technique', points:[
+    'Setup: chamber the knee straight up toward the chest, keeping the kicking leg\'s hip aligned toward the target rather than turned to the side.',
+    'Execution: extend the leg straight out, driving through the ball or heel of the foot into the target — think of it as pushing a door open rather than snapping a strike.',
+    'Whole-body integration: the teep is fundamentally a range-management and off-balancing tool rather than a primary damage-dealing strike — its main job is interrupting an opponent\'s rhythm and creating or maintaining distance, not knocking someone down.',
+    'Common mistake: treating the teep like a front kick meant to snap back quickly. A teep that\'s pulled back before fully extending loses most of its pushing, off-balancing effect against an advancing opponent.',
+    'Coaching insight: the teep is one of the most underrated tools for a fighter who wants to control range against a more aggressive, forward-moving opponent — used well, it keeps distance without requiring retreating footwork on every exchange.',
+  ]},
+  'Switch Kick': {icon:'switchKick', video:'kickboxing switch kick technique tutorial', points:[
+    'Setup: from an orthodox or southpaw stance, quickly swap the front and back foot positions with a small hop, effectively switching stance for a split second.',
+    'Execution: as the feet switch, immediately drive the new rear leg into a roundhouse kick, using the momentum of the stance switch to add extra rotational speed to the kick.',
+    'Whole-body integration: the switch and the kick should feel like one continuous motion, not two separate steps — a pause between the switch and the kick telegraphs the technique and gives away the timing advantage the switch is meant to create.',
+    'Common mistake: switching stance clearly and pausing before committing to the kick, which removes the element of surprise and the extra rotational momentum the switch is supposed to generate.',
+    'Coaching insight: the switch kick is a favorite specifically because it lets a fighter attack with their (often more powerful) rear leg without the opponent seeing a traditional stance change coming first — practicing the switch itself in isolation, without the kick, builds the speed the technique depends on.',
+  ]},
+  'Punch-Kick Combination Timing': {icon:'comboTiming', video:'kickboxing punch kick combination timing tutorial', points:[
+    'Setup: begin combinations with hand strikes to close range and draw a reaction, since punches are generally faster to throw and retract than kicks.',
+    'Execution: land the kick either immediately after the opponent\'s guard has been drawn out of position by the hands, or as the finishing strike of the combination once range and rhythm are established.',
+    'Whole-body integration: transitioning cleanly from a punching stance to a kicking stance mid-combination is its own skill — weight needs to shift and rebalance between the two without an obvious pause that gives away the transition.',
+    'Common mistake: throwing hands and kicks as two disconnected sequences rather than one flowing combination, often visible as a distinct pause or reset between the punching portion and the kicking portion.',
+    'Coaching insight: shadowboxing combinations that deliberately link punches into kicks (and back again) is the most direct way to build this timing, since it\'s much harder to feel the disconnect in isolated bag rounds than when actively flowing between the two.',
+  ]},
+
+  'Muay Thai Roundhouse Kick': {icon:'roundhouseKick', video:'muay thai roundhouse kick technique tutorial', points:[
+    'Setup: chamber the kicking leg with a bigger, more committed hip turn than the kickboxing version, pivoting the standing foot fully around so the hips can rotate through completely.',
+    'Execution: strike with the shin (not the foot or instep) driving through the target, with the entire hip and torso rotating through the kick rather than just snapping the leg.',
+    'Whole-body integration: this deeper hip commitment is exactly what makes the Muay Thai roundhouse a heavier, more powerful strike than its kickboxing counterpart — it trades some speed and recovery time for significantly more force transferred into the target.',
+    'Common mistake: striking with the foot or instep instead of the shin, which is both weaker for the kicker and more likely to injure the foot against a solid target like a shin, forearm, or dense muscle.',
+    'Coaching insight: shin conditioning through regular, progressive bag work is a genuine and necessary part of training this kick — the shin needs to gradually adapt to repeated impact, which is why Muay Thai training programs specifically build in dedicated shin-conditioning kick volume over time.',
+  ]},
+  'Clinch Control & Off-Balancing': {icon:'clinchControl', video:'muay thai clinch control technique tutorial', points:[
+    'Setup: secure control of the opponent\'s head and/or arms at close range, hands linked behind their neck or gripping behind an arm, elbows in tight rather than flared wide.',
+    'Execution: use the arms and upper body to off-balance the opponent — pulling their head down and forward, or turning their posture — creating openings for knees and short strikes while denying them the same control.',
+    'Whole-body integration: posture is everything in the clinch — staying tall with a straight spine gives significantly more leverage over an opponent than a hunched, collapsed posture, regardless of raw arm strength.',
+    'Common mistake: letting the head and posture drop while fighting for grip, which surrenders the exact leverage advantage clinch control depends on. A taller, better-postured fighter with a weaker grip often controls a stronger, hunched-over opponent.',
+    'Coaching insight: clinch work is disproportionately about accumulated hours of practice rather than raw strength — the sport has a long tradition of dedicated clinch sparring sessions separate from striking rounds specifically because the skill is so distinct from open-range fighting.',
+  ]},
+  'Straight Knee Strike': {icon:'kneeStrike', video:'muay thai straight knee strike technique tutorial', points:[
+    'Setup: from the clinch or at close range, chamber the knee up and slightly forward, hips already squared toward the target.',
+    'Execution: drive the hips forward explosively, extending through the knee to strike with the point of the kneecap, then retract quickly to reset the stance.',
+    'Whole-body integration: in the clinch specifically, the knee strike is often set up by first off-balancing the opponent forward or downward with the arms, since a knee lands with far more force against an opponent who\'s already been pulled slightly off their base.',
+    'Common mistake: throwing the knee purely with the leg while the hips stay back, which produces a strike with a fraction of the force a full hip-driven knee delivers.',
+    'Coaching insight: the straight knee is one of the most efficient close-range strikes in the sport precisely because it requires so little travel distance or wind-up compared to a punch or kick — hip drive, not distance, is where its power comes from.',
+  ]},
+  'Elbow Strike (Horizontal & Diagonal)': {icon:'elbowStrike', video:'muay thai elbow strike technique tutorial', points:[
+    'Setup: keep the elbow close to the body at the start, with the striking arm bent tightly rather than extended.',
+    'Execution: rotate the hip and shoulder to whip the point of the elbow through a short, sharp arc — horizontally across the body for a horizontal elbow, or on an upward diagonal line for a diagonal (rising) elbow.',
+    'Whole-body integration: like the hook in boxing, elbow power comes from hip and shoulder rotation, not the arm swinging independently — a wide, arm-only elbow both telegraphs earlier and lands with less force.',
+    'Common mistake: using elbows at a range better suited to punches or knees. Elbows are genuinely close-range weapons; throwing one at a distance that requires stepping in first removes the surprise and structural tightness that make them effective.',
+    'Coaching insight: because elbows carry real cutting risk in live sparring, most gyms drill elbow mechanics extensively on pads and bags before ever adding them to live partner work, and even then, control and protective gear matter far more here than with most other strikes.',
+  ]},
+  'Checking a Low Kick': {icon:'checkBlock', video:'muay thai checking low kick technique tutorial', points:[
+    'Setup: as an opponent\'s low kick is thrown at the leg, lift the same-side knee up and slightly across the body, turning the shin to meet the incoming kick.',
+    'Execution: absorb the impact on the shin bone (the hardest, most conditioned part of the check) rather than the softer thigh muscle, keeping balance on the standing leg throughout.',
+    'Whole-body integration: a well-timed check does double duty — it defends the kick and, because it meets shin-to-shin, is frequently more painful for the kicker than for the checker, which discourages repeated low kicks over the course of a fight.',
+    'Common mistake: checking late, after the kick has already begun connecting with the thigh, or lifting the knee straight up without turning the shin into the kick\'s path — both significantly reduce the technique\'s protective value.',
+    'Coaching insight: like the roundhouse kick itself, the shin used for checking benefits from the same progressive conditioning work — an under-conditioned shin used to check hard kicks is a common way inexperienced fighters injure themselves defensively rather than offensively.',
+  ]},
+
+  'Sprawl (Takedown Defense)': {icon:'sprawl', video:'mma sprawl takedown defense technique tutorial', points:[
+    'Setup: as an opponent shoots in for a takedown, react immediately by driving the hips back and down rather than backing away or standing tall.',
+    'Execution: thrust the legs back explosively, dropping the hips and chest weight down onto the opponent\'s shoulders and upper back, while keeping the head up and posture forward rather than collapsing downward.',
+    'Whole-body integration: a good sprawl is a whole-body, plyometric-style movement — hips driving back, legs extending explosively, and upper body weight dropping down onto the opponent all happen together, not as separate sequential steps.',
+    'Common mistake: sprawling with the head down and chest collapsed forward. This loses the defensive positioning the sprawl is meant to create and can leave a fighter more vulnerable to being driven through or struck on the way down.',
+    'Coaching insight: because a takedown attempt often arrives with very little warning mid-exchange, the sprawl is one of the clearest examples in MMA of a technique that needs to become a reflex through repetition — thinking through the steps in real time is generally too slow.',
+  ]},
+  'Ground & Pound Positioning': {icon:'groundPound', video:'mma ground and pound positioning technique tutorial', points:[
+    'Setup: from a dominant top position, establish a stable base — weight distributed to prevent being easily rolled or reversed, rather than posting all the weight forward onto the hands.',
+    'Execution: throw short, controlled strikes that don\'t compromise that base position; this is a shorter, more compact striking motion than standing punches, since over-extending risks losing the position entirely.',
+    'Whole-body integration: positional control comes first and strikes come second — a fighter who abandons good base and posture to throw a bigger strike is frequently reversed or swept mid-strike, losing far more than the strike itself gained.',
+    'Common mistake: throwing full-extension, standing-style punches from top position, which compromises balance and base far more than the shorter, controlled strikes the position actually calls for.',
+    'Coaching insight: elite ground-and-pound specialists are often praised specifically for how much they prioritize position over damage in the moment — a slightly less powerful strike from a fully secured position is generally a better trade than a bigger strike that risks the position itself.',
+  ]},
+  'Striking-to-Clinch Transition': {icon:'clinchControl', video:'mma striking to clinch transition technique tutorial', points:[
+    'Setup: close distance behind a strike or combination (rather than walking straight in unprotected), using the strike itself to cover the entry into clinch range.',
+    'Execution: secure a control position — collar tie, underhooks, or a double-collar tie — the instant contact is made, rather than pausing to reassess once already in range.',
+    'Whole-body integration: this transition is where striking, clinch, and grappling skill sets genuinely overlap — a fighter strong in each individual area but slow in the transition between them still concedes a real tactical advantage to an opponent comfortable moving fluidly between ranges.',
+    'Common mistake: closing distance with no strike or feint covering the entry, walking straight into range where an alert opponent can strike, counter, or sprawl before any control is established.',
+    'Coaching insight: this is a major reason mixed martial arts training differs structurally from single-discipline striking gyms — round-based sparring that deliberately mixes striking distance with clinch entries builds a transition skill that pure striking or pure grappling training never isolates on its own.',
+  ]},
+  'Cage/Wall Control': {icon:'cageControl', video:'mma cage wall control technique tutorial', points:[
+    'Setup: once an opponent is pressed against the cage or wall, establish upper-body control (an underhook, overhook, or collar tie) that limits their ability to circle away or strike freely.',
+    'Execution: use hip pressure into the opponent to pin them against the structure, freeing the hands to work strikes, takedowns, or further positional control while their movement options stay limited.',
+    'Whole-body integration: the cage itself functions almost like an additional grappling partner — a fighter skilled at this uses the structure to remove an opponent\'s ability to retreat or circle, options that would otherwise be available in open space.',
+    'Common mistake: pressing an opponent to the cage without securing real upper-body control first, which lets a savvy opponent simply circle off the structure and reset in open space.',
+    'Coaching insight: cage or wall control is one of the more specialized skills in the sport precisely because it doesn\'t exist at all in most other combat sports — wrestlers and grapplers with strong fence-based systems often bring an entirely separate toolkit here compared to fighters trained purely in open-space striking or grappling.',
+  ]},
+
+  'Roundhouse Kick (Taekwondo)': {icon:'roundhouseKick', video:'taekwondo roundhouse kick technique tutorial', points:[
+    'Setup: chamber the knee high and to the side, pivoting the standing foot fully to allow maximum hip rotation and reach.',
+    'Execution: snap the kick through with the ball of the foot or instep, prioritizing speed and a fast, whip-like extension over the deeper, heavier hip drive of a Muay Thai roundhouse.',
+    'Whole-body integration: modern Olympic-style taekwondo\'s electronic scoring systems reward speed and clean, visible impact over raw power, which is part of why the sport\'s roundhouse technique has evolved to emphasize snap and re-chamber speed specifically.',
+    'Common mistake: sacrificing the chamber height and pivot for a slightly faster but shallower kick — a rushed, under-rotated roundhouse both scores less reliably and telegraphs less effectively than a properly chambered one.',
+    'Coaching insight: because taekwondo sparring rewards rapid combinations and re-chambering nearly as much as any single kick\'s power, drilling the kick\'s recovery back to a ready stance is trained with almost as much focus as the kick itself.',
+  ]},
+  'Side Kick': {icon:'sideKick', video:'taekwondo side kick technique tutorial', points:[
+    'Setup: chamber the knee to the chest with the kicking leg\'s hip and knee pointing toward the target, rather than to the side as in a roundhouse chamber.',
+    'Execution: pivot the standing foot and extend the kick directly sideways, striking with the heel or the blade (outer edge) of the foot, driving through the target in a straight line rather than an arc.',
+    'Whole-body integration: this is a linear, driving strike, and the power comes from extending the hip and leg directly through the target — leaning backward to "reach" for extra distance actually reduces power by pulling the hips out of the line of the strike.',
+    'Common mistake: leaning the upper body back and away from the target to gain height or distance. This over-extends the lower back and removes hip drive from the kick exactly when it\'s needed most.',
+    'Coaching insight: the side kick is prized in taekwondo both for its raw power (more linear force transfer than a roundhouse) and its usefulness as a long-range check to control an opponent\'s distance, similar in strategic role to the Muay Thai teep despite the different mechanics.',
+  ]},
+  'Axe Kick': {icon:'axeKick', video:'taekwondo axe kick technique tutorial', points:[
+    'Setup: raise the kicking leg high, keeping it relatively straight, well above the intended target\'s height.',
+    'Execution: bring the leg down in a controlled, mostly straight-legged chopping motion, striking with the heel as the leg descends onto the target.',
+    'Whole-body integration: unlike most kicks, the axe kick\'s power comes from controlled gravity-assisted descent combined with hip and core control, rather than from hip rotation or leg extension — this makes flexibility, not raw leg strength, the primary limiting factor.',
+    'Common mistake: forcing kick height before the hips, hamstrings, and lower back are genuinely ready for it, which both limits how controlled the descent can be and raises injury risk in the lower back and hamstring.',
+    'Coaching insight: because this kick depends so heavily on flexibility, dedicated mobility and active flexibility training (not just static stretching) is typically a bigger driver of axe kick improvement over time than strength training is.',
+  ]},
+  'Spinning Back Kick': {icon:'spinningBackKick', video:'taekwondo spinning back kick technique tutorial', points:[
+    'Setup: begin by turning the head to spot the target over the shoulder before committing any part of the body to the spin — this visual confirmation happens first, not as an afterthought mid-spin.',
+    'Execution: pivot on the standing foot, rotating the body around to face away from the target briefly, then extend the kicking leg straight back to strike with the heel.',
+    'Whole-body integration: this is one of the more technically demanding kicks in the discipline precisely because it briefly removes visual contact with the opponent — spotting the target early and keeping the spin tight and controlled is what keeps the technique safe and accurate rather than wild.',
+    'Common mistake: skipping or rushing the initial head turn to spot the target, which is the single most common reason this kick misses badly or leaves a fighter badly out of position afterward.',
+    'Coaching insight: this kick is deliberately taught and drilled slowly at first, well before any speed is added — the spotting habit and tight spin radius need to be automatic before the technique is safe to throw at full speed in live sparring.',
+  ]},
+
+  'Ward-Off (Peng) as Structural Defense': {icon:'wardOff', video:'tai chi peng ward off application tutorial', points:[
+    'Setup: present a rounded, springy forearm shape toward an incoming force, structured by the legs and waist rather than tensed arm muscle alone.',
+    'Execution: as pressure arrives, absorb and redirect it upward and outward through the whole-body structure — legs, waist, and spine all contributing — rather than blocking rigidly with the arm in isolation.',
+    'Whole-body integration: peng is considered the root energy underlying all other tai chi techniques — the other three cardinal techniques (rollback, press, push) are typically taught as variations layered on top of a peng structure that never fully disappears.',
+    'Common mistake: substituting arm tension for structural support, which creates a stiff, easily-collapsed block rather than the springy, whole-body resilience peng is meant to represent.',
+    'Coaching insight: this is why so much solo-form practice (standing meditation, silk reeling, the form itself) exists before push hands is introduced — peng structure has to be built into the body first, since it can\'t be faked with arm strength alone under real pressure.',
+  ]},
+  'Rollback (Lu) as Yielding': {icon:'rollback', video:'tai chi lu rollback application tutorial', points:[
+    'Setup: as an opponent\'s force arrives, rather than meeting it directly, rotate the waist to redirect that incoming energy along a curved path past your own body.',
+    'Execution: let the incoming force continue past you rather than stopping it, using the rotation of hips and waist to lead it off its original line — the opponent\'s own momentum does most of the work.',
+    'Whole-body integration: rollback is the clearest practical expression of tai chi\'s broader "four ounces moves a thousand pounds" principle — a small, correctly-timed rotation can redirect a much larger force, provided the timing and structure are right.',
+    'Common mistake: pulling back with the arms alone in an attempt to yield, rather than rotating the whole body from the waist. An arm-only rollback disconnects from the legs and torso and loses most of its redirecting effect.',
+    'Coaching insight: rollback only works with correct timing — done too early, there\'s no force yet to redirect; done too late, the incoming force has already landed. This timing sensitivity is exactly what push hands training (below) is designed to develop.',
+  ]},
+  'Press (Ji) & Push (An) as Issuing Power': {icon:'pressPush', video:'tai chi ji an press push application tutorial', points:[
+    'Setup: having redirected or neutralized an opponent\'s force (often via ward-off or rollback), gather your own structure — weight sunk, spine long, waist loaded — before issuing power back.',
+    'Execution: press (ji) typically drives forward through both hands or forearms together in a short, compact release; push (an) extends further, driving through the palms with the legs and waist providing the actual force, the arms transmitting it.',
+    'Whole-body integration: like every cardinal technique here, the power is issued from the ground up — the rear leg extends, the waist rotates and drives forward, and the arms deliver that force at the very end of the chain rather than generating it independently.',
+    'Common mistake: pushing with the arms and shoulders while the legs and hips stay passive, which produces a shove rather than the connected, whole-body issuing of force these techniques are meant to train.',
+    'Coaching insight: press and push are usually taught as a pair because in live push hands they often flow directly into one another — press to disrupt an opponent\'s structure, immediately followed by push once that structure gives way.',
+  ]},
+  'Push Hands Listening Energy (Ting Jin)': {icon:'listeningEnergy', video:'tai chi ting jin listening energy push hands tutorial', points:[
+    'Setup: maintain only the lightest possible forearm contact with a partner — enough to sense pressure and direction, not enough to actively push or resist.',
+    'Execution: continuously sense (rather than anticipate or guess) the direction, timing, and amount of your partner\'s force, adjusting your own structure in response only to what\'s actually being felt in the moment.',
+    'Whole-body integration: this "listening" is considered the foundational sensitivity skill underlying every other push hands technique — without it, rollback, ward-off, and the other cardinal techniques are all just being guessed at rather than genuinely responded to.',
+    'Common mistake: gripping or pressing too hard during contact, which numbs the very sensitivity the drill is meant to develop — tension in the arms and shoulders is the most common way beginners accidentally defeat their own listening ability.',
+    'Coaching insight: this concept, often translated as "listening energy" (ting jin) in tai chi literature including the writing of prolific internal-arts author Dr. Yang Jwing-Ming, is considered a genuinely trainable skill rather than an innate talent — regular, patient push hands practice measurably improves it over time.',
+  ]},
+  'Rooting & Whole-Body Weight Transfer': {icon:'rooting', video:'tai chi rooting weight transfer application tutorial', points:[
+    'Setup: distribute weight fully and deliberately into one leg at a time during stances and transitions, rather than splitting weight evenly between both legs at every moment.',
+    'Execution: shift weight smoothly and completely from one leg to the other during every step and technique, keeping the torso upright and stable throughout the transfer rather than bobbing or swaying.',
+    'Whole-body integration: a genuinely "rooted" stance resists being pushed or unbalanced not because of muscular bracing, but because the weight is fully settled into a stable base — this is the structural foundation every cardinal technique above ultimately depends on.',
+    'Common mistake: keeping weight vaguely split between both legs at all times, which feels safer to beginners but actually removes the clear, committed weight transfer that makes rooting and redirection possible in the first place.',
+    'Coaching insight: this is precisely why so much of tai chi\'s solo practice (standing meditation, slow form work) exists — clean, complete weight transfer has to become second nature in a slow, uncontested setting before it can hold up under the real pressure of push hands or self-defense application.',
+  ]},
+};
+
+const COMBAT_TECHNIQUE_GROUPS = {
+  'Boxing': {
+    poses:['Jab','Cross (Straight Right)','Hook','Uppercut','Guard & Head Movement'],
+    note:'Hands-only fundamentals — every combat style in this program builds on these punching mechanics in some form.',
+  },
+  'Kickboxing': {
+    poses:['Roundhouse Kick (Kickboxing)','Teep (Push Kick)','Switch Kick','Punch-Kick Combination Timing'],
+    note:'Adds kicks to the boxing foundation above, with an emphasis on speed and clean punch-to-kick combinations.',
+  },
+  'Muay Thai': {
+    poses:['Muay Thai Roundhouse Kick','Clinch Control & Off-Balancing','Straight Knee Strike','Elbow Strike (Horizontal & Diagonal)','Checking a Low Kick'],
+    note:'The full 8-limb toolkit — heavier, more committed strikes plus the clinch range no other style here trains directly.',
+  },
+  'MMA': {
+    poses:['Sprawl (Takedown Defense)','Ground & Pound Positioning','Striking-to-Clinch Transition','Cage/Wall Control'],
+    note:'The connective tissue between standup striking and grappling — these transitions are what a single-discipline background usually misses.',
+  },
+  'Taekwondo': {
+    poses:['Roundhouse Kick (Taekwondo)','Side Kick','Axe Kick','Spinning Back Kick'],
+    note:'Kick-dominant technique built around speed, height, and precise chambering rather than the heavier hip drive of Muay Thai kicks.',
+  },
+  'Tai Chi': {
+    poses:['Ward-Off (Peng) as Structural Defense','Rollback (Lu) as Yielding','Press (Ji) & Push (An) as Issuing Power','Push Hands Listening Energy (Ting Jin)','Rooting & Whole-Body Weight Transfer'],
+    note:'The internal art\'s martial application layer — how the form and standing work above actually function as self-defense, not just moving meditation.',
+  },
+};
+
+function renderCombatTechniques(){
+  const listEl = document.getElementById('combatTechniquesList');
+  if(!listEl) return;
+  listEl.innerHTML = Object.keys(COMBAT_TECHNIQUE_GROUPS).map((groupName)=>{
+    const grp = COMBAT_TECHNIQUE_GROUPS[groupName];
+    const techRows = grp.poses.map((techName)=>{
+      const detail = COMBAT_TECHNIQUE_DETAILS[techName];
+      const iconSvg = detail ? COMBAT_ICONS[detail.icon] : '';
+      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
+      const query = encodeURIComponent(detail && detail.video ? detail.video : `${techName} martial arts technique tutorial`);
+      return `
+        <details class="pose-detail-wrap">
+          <summary class="pose-row">
+            <div class="pose-icon">${iconSvg}</div>
+            <div class="pose-name">${techName}</div>
+            <span class="ex-chevron">›</span>
+          </summary>
+          <div class="pose-detail">
+            <ul>${pointsHtml}</ul>
+            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
+          </div>
+        </details>
+      `;
+    }).join('');
+    return `
+      <details class="posing-class">
+        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
+        <div class="posing-class-note">${grp.note}</div>
+        ${techRows}
+      </details>
+    `;
+  }).join('');
+}
+
+function toggleCombatTechniquesCard(){
+  const card = document.getElementById('combatTechniquesCard');
+  if(!card) return;
+  if(activeProgram === 'combat'){
+    card.style.display = '';
+    renderCombatTechniques();
+  } else {
+    card.style.display = 'none';
+  }
+}
+
 const EXERCISE_MOVE = {
   'Slip & Counter Drills':'punch', 'Head Movement Drills':'punch', 'Clinch Knee Drills':'kick',
   'Elbow Strike Drills':'punch', 'Sprawl Drills':'hinge', 'Ground & Pound Drills':'punch',
@@ -4368,6 +4768,28 @@ const exerciseInfo = {
   'Trap Bar Jump Squat': {category:'jump', cues:['Load the trap bar, dip into a quarter squat, and jump explosively.','Land soft with bent knees, reset fully between reps.','Focus on speed off the ground, not just jump height.']},
   'Triceps Pushdown': {category:'arms', cues:['Elbows pinned at your sides, only the forearms move.','Full extension at the bottom without locking out aggressively.','Control the return — don\'t let the weight stack slam.']},
   'Weighted Sit-up': {category:'core', cues:['Hold the weight at your chest, curl up vertebra by vertebra.','Keep your feet anchored, exhale as you come up.','Control the descent — don\'t just flop back down.']},
+
+  // Tai Chi (internal martial art) — Yang-style short-form vocabulary, standing
+  // meditation, silk-reeling qigong, and fixed-step push hands. Grounded in
+  // widely taught, real internal-arts terminology: zhan zhuang ("standing
+  // post/stake") training is documented across multiple Chinese martial arts
+  // and covered extensively by author-practitioners like Dr. Yang Jwing-Ming;
+  // peng/lu/ji/an (ward-off, rollback, press, push) are the four cardinal
+  // techniques taught in essentially every style of tai chi.
+  'Zhan Zhuang (Standing Post)': {category:'core', videoQuery:'zhan zhuang standing post qigong tutorial', cues:['Stand with knees softly bent as if hugging a large tree, spine long, tailbone slightly tucked, weight sinking evenly through both feet.','Hold the shape motionless for the full duration, breathing slowly and low into the belly rather than the chest.','This isometric hold is the foundation every tai chi movement is built on — if the legs shake at first, that\'s normal; it fades quickly with consistent practice.']},
+  'Silk Reeling Qigong (Chan Si Gong)': {category:'core', videoQuery:'silk reeling qigong chan si jin tutorial', cues:['Trace slow, continuous spiral paths with the arms and torso, initiating each movement from the waist rather than the shoulders or hands.','Keep the motion unbroken — there should be no pause or "corner" anywhere in the circle, only a smooth, continuous spiral.','This is the source of tai chi\'s characteristic soft, connected power (often called "silk-reeling energy," or chán sī jìn) — the hands are simply where the waist\'s rotation ends up expressing itself.']},
+  'Tai Chi Form — Opening & Ward Off (Peng)': {category:'core', videoQuery:'tai chi opening ward off peng technique tutorial', cues:['From standing, let the arms float up as if resting on the surface of water, then shift weight and turn to present one forearm rounded outward — the "ward-off."','Keep the supporting leg\'s knee tracking over the toes and the torso upright; power comes from the legs and waist turning together, not the arm pushing on its own.','Ward-off is the first of the four cardinal techniques (peng, lu, ji, an) and the foundational shape nearly every other tai chi movement returns to.']},
+  'Tai Chi Form — Grasp the Sparrow\'s Tail': {category:'core', videoQuery:'tai chi grasp sparrows tail tutorial', cues:['A flowing sequence linking all four cardinal techniques together: ward-off, rollback, press, and push, each transition driven by a weight shift between the legs.','Keep the movement continuous and unhurried — this sequence is often used to teach beginners how the whole body\'s weight, waist, and hands move as one connected unit.','Because it strings together all four core techniques in one place, this is usually the single most-practiced sequence in the entire form.']},
+  'Tai Chi Form — Single Whip': {category:'core', videoQuery:'tai chi single whip technique tutorial', cues:['One hand forms a "hook" (fingertips drawn together, wrist relaxed) while the other extends in a wide, open palm as the body turns and the stance widens into a bow stance.','Let the extension come from turning the waist and shifting weight forward, not from reaching further with the arm alone.','This is one of the most recognizable and frequently repeated postures across nearly every style of tai chi, and a good visual check on whether the waist is actually driving the arms.']},
+  'Tai Chi Form — Cloud Hands (Yun Shou)': {category:'core', videoQuery:'tai chi cloud hands yun shou tutorial', cues:['Stepping sideways, the hands trace alternating circular paths in front of the body — one rising and rotating outward as the other sinks and rotates inward — timed to a steady side-to-side weight shift.','Keep the hands moving at the same unhurried pace as the feet; rushing the hands ahead of the weight shift is the most common way this posture becomes disconnected and choppy.','Cloud Hands is prized specifically for training coordinated whole-body movement and weight transfer while traveling sideways, a skill few other postures in the form isolate as clearly.']},
+  'Tai Chi Form — Repulse Monkey (Retreating)': {category:'core', videoQuery:'tai chi repulse monkey retreat tutorial', cues:['Stepping backward, one hand draws back and down past the hip while the other extends forward and down, the whole motion timed precisely to the weight shifting onto the retreating leg.','Keep the retreating step light and controlled, placing the foot down toe-first before rolling onto the full foot, rather than dropping the weight down heavily.','This is the form\'s primary retreating (yielding) posture, balancing out the many forward and stationary postures elsewhere in the sequence.']},
+  'Tai Chi Form — Brush Knee & Twist Step': {category:'core', videoQuery:'tai chi brush knee twist step tutorial', cues:['As you step forward into a bow stance, one hand sweeps down and across past the same-side knee while the other pushes forward past the ear.','Time the forward push to land exactly as the front foot settles and the weight fully commits onto it — the push and the step finish together, not one before the other.','A classic example of tai chi\'s "upper and lower body arrive together" principle — nearly every posture in the form shares this same timing requirement in some form.']},
+  'Push Hands — Fixed Step (Tui Shou)': {category:'core', videoQuery:'tai chi push hands tui shou fixed step drill', cues:['With a partner, maintain light forearm contact while both feet stay planted, taking turns yielding to and redirecting the other person\'s incoming pressure rather than resisting it head-on.','Stay relaxed through the shoulders and arms — tensing up and shoving back is the single most common beginner habit, and it\'s the opposite of what this drill is meant to train.','This is tai chi\'s primary two-person sensitivity training and the practical bridge between the solo form and genuine martial application.']},
+  'Push Hands — Rollback & Press (Lu & Ji)': {category:'core', videoQuery:'tai chi rollback press lu ji push hands drill', cues:['When a partner presses in, rotate the waist to redirect (roll back) their force past your body rather than blocking it, then counter with a press driven by your legs and waist together.','Keep the redirection smooth and circular — a rollback that stops and starts abruptly loses the "neutralize, then return" quality the technique depends on.','Rollback and press are two of the four cardinal techniques and are trained here specifically as a responsive pair, since in practice they\'re rarely used in isolation from one another.']},
+  'Horse Stance Hold (Mabu)': {category:'squat', videoQuery:'tai chi horse stance mabu hold tutorial', cues:['Feet roughly double shoulder-width, toes forward, sink the hips down and back as if sitting on a tall stool, knees tracking directly over the toes.','Keep the spine upright rather than leaning forward, and breathe steadily and low into the belly throughout the hold rather than holding the breath.','This isometric stance builds the leg endurance and structural stability every other tai chi posture depends on — it\'s genuinely one of the more demanding strength elements in a practice that looks entirely soft from the outside.']},
+  'Bow Stance Transitions (Gong Bu)': {category:'lunge', videoQuery:'tai chi bow stance gong bu transition tutorial', cues:['Shift smoothly between a front bow stance (front knee bent over the toes, back leg straight) and a back-weighted stance, keeping the transition slow and perfectly controlled rather than a quick step.','Keep the torso upright throughout the shift — leaning forward or back to help the transition is a sign the legs aren\'t yet doing the actual work of the weight shift.','Nearly every forward-stepping posture in the form (Single Whip, Brush Knee, and others) depends on this exact transition being clean and controlled.']},
+  'Golden Rooster Stands on One Leg': {category:'core', videoQuery:'tai chi golden rooster stands on one leg tutorial', cues:['Rise onto one leg while the other knee lifts to hip height, the same-side hand rising in a coordinated upward palm as the opposite hand presses gently downward at the hip.','Fix your gaze on a still point ahead and keep breathing slowly — holding the breath is a common, self-defeating reaction to the balance challenge here.','A genuine balance test woven directly into the form rather than a separate drill, and one of the clearest single-posture indicators of whether rooting and weight control are actually solid.']},
+  'Short Form Flow (Full Run-Through)': {category:'core', videoQuery:'tai chi short form full sequence flow tutorial', cues:['Link every posture practiced this week into one continuous, unbroken sequence, moving at a slow, even pace from start to finish without pausing to think between postures.','Prioritize smoothness and continuous weight transfer over getting any single posture "perfect" in isolation — the form is one connected movement, not a series of individual poses stopped and started.','Running the full sequence regularly is what actually integrates everything trained in isolation earlier in the week — this is the tai chi equivalent of full-speed sparring after drilling individual techniques.']},
 };
 let dayDefs = programs[activeProgram].days;
 
@@ -4714,6 +5136,7 @@ async function renderProgramSelector(trendStatus){
   togglePrenatalCard();
   toggleSwimStylesCard();
   toggleClimbTechniquesCard();
+  toggleCombatTechniquesCard();
   renderTips();
 
   el.onchange = async ()=>{
@@ -4733,6 +5156,7 @@ async function renderProgramSelector(trendStatus){
     togglePrenatalCard();
     toggleSwimStylesCard();
     toggleClimbTechniquesCard();
+    toggleCombatTechniquesCard();
     renderTips();
   };
 }
@@ -5288,7 +5712,7 @@ function analyzeProgressionSignal(pastSessions, ex, category){
     const dropAmt = Math.max(getLoadIncrement(category), Math.round(s0.weight*0.075/2.5)*2.5);
     return {
       type: 'decrease',
-      message: `⬇ Reps dropped to ${s0.reps} last time (below your ${bottomRepTarget}-rep floor) at ${s0.weight} lb — drop to ~${s0.weight-dropAmt} lb next session to rebuild clean volume in range.`
+      message: `⬇ Reps dropped to ${s0.reps} last time (below your ${bottomRepTarget}-rep floor) at ${fmtWeight(s0.weight)} — drop to ~${fmtWeight(s0.weight-dropAmt)} next session to rebuild clean volume in range.`
     };
   }
 
@@ -5302,7 +5726,7 @@ function analyzeProgressionSignal(pastSessions, ex, category){
     const bump = getLoadIncrement(category);
     return {
       type: 'increase',
-      message: `⬆ Hit ${topRepTarget}+ reps at ${s0.weight} lb for 2 sessions straight — add ${bump} lb next time (double-progression: you've outgrown this rep range at this weight).`
+      message: `⬆ Hit ${topRepTarget}+ reps at ${fmtWeight(s0.weight)} for 2 sessions straight — add ${fmtWeight(bump)} next time (double-progression: you've outgrown this rep range at this weight).`
     };
   }
 
@@ -5430,14 +5854,17 @@ async function getCurrentTrendStatus(){
 const WARMUP_ELIGIBLE_CATEGORIES = ['squat','hinge','push','pull','oly'];
 const WARMUP_MIN_WORKING_WEIGHT = 95; // below this, a formal ramp adds more clutter than value
 
-function roundTo5(n){ return Math.round(n/5)*5; }
+function roundToIncrement(n, increment){ return Math.round(n/increment)*increment; }
 
-function buildWarmupRamp(workingWeight){
+function buildWarmupRamp(workingWeightLb){
+  const displayWorking = toDisplayWeight(workingWeightLb);
+  const standard = BARBELL_STANDARDS[weightUnit];
+  const increment = weightUnit === 'kg' ? 2.5 : 5;
   return [
-    {label:'Bar only', weight: BAR_WEIGHT, reps:'8-10'},
-    {label:'~40%', weight: roundTo5(workingWeight*0.4), reps:5},
-    {label:'~60%', weight: roundTo5(workingWeight*0.6), reps:3},
-    {label:'~80%', weight: roundTo5(workingWeight*0.8), reps:2},
+    {label:'Bar only', weight: standard.bar, reps:'8-10'},
+    {label:'~40%', weight: roundToIncrement(displayWorking*0.4, increment), reps:5},
+    {label:'~60%', weight: roundToIncrement(displayWorking*0.6, increment), reps:3},
+    {label:'~80%', weight: roundToIncrement(displayWorking*0.8, increment), reps:2},
   ];
 }
 
@@ -5597,7 +6024,7 @@ async function renderWorkout(){
     durationEl.textContent = `~${Math.round(estimatedMinutes)} min${wasShortened ? ' (shortened)' : ''}`;
   }
 
-  const logs = await Promise.all(renderExercises.map((ex,i)=> ex.noWeight ? Promise.resolve([]) : getExLog(activeDay, i)));
+  const logs = await Promise.all(renderExercises.map((ex,i)=> getExLog(activeDay, i)));
   const restingRegions = await getRestingRegions();
 
   renderExercises.forEach((ex,i)=>{
@@ -5608,8 +6035,15 @@ async function renderWorkout(){
     const checked = completed[i] ? 'checked' : '';
     const focusHtml = ex.isBodyGoalFocus ? `<span class="super-tag focus-tag">🎯 ${ex.focusLabel} — added for your body goal</span>` : '';
 
+    // Every exercise gets reps + sets + RPE tracking, full stop — noWeight
+    // only ever means "skip the lb field" (bodyweight/duration/hold work),
+    // never "skip tracking entirely." Previously this whole block was
+    // skipped for noWeight exercises, which meant Plank, Push-up variants,
+    // yoga poses, jump rope drills, and dozens of others had no way to log
+    // reps or RPE at all — just a bare checkbox.
+    const showWeight = !ex.noWeight;
     let trackingHtml = '';
-    if(!ex.noWeight){
+    {
       const log = logs[i];
       const prior = [...log].filter(e=>e.date!==getTodayKey()).sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'))[0];
       const priorTop = prior ? topSetOf(prior) : null;
@@ -5621,23 +6055,30 @@ async function renderWorkout(){
       const pastSessions = buildPastSessions(log);
       const signal = analyzeProgressionSignal(pastSessions, ex, exCategory);
 
+      // Progression badges, the warm-up ramp, and the volume/1RM summary are
+      // all inherently weight-based (topSetOf only ever considers sets with
+      // a logged weight) — for bodyweight exercises priorTop/todayTop simply
+      // stay null and these sections quietly produce nothing, which is
+      // correct: there's no double-progression or 1RM concept for reps-only
+      // bodyweight work, but the reps/RPE inputs below are unaffected either way.
       let badge = '';
       if(signal){
         const badgeClass = signal.type==='increase' ? 'progress-badge' : signal.type==='decrease' ? 'progress-badge-decrease' : 'progress-badge-deload';
         badge = `<div class="${badgeClass}">${signal.message}</div>`;
       } else if(priorTop && priorTop.reps!=null && topRep!=null && priorTop.reps >= topRep){
-        badge = `<div class="progress-badge">⬆ Hit ${priorTop.reps} reps last time at ${priorTop.weight ?? '?'} lb — try adding weight today</div>`;
+        badge = `<div class="progress-badge">⬆ Hit ${priorTop.reps} reps last time at ${priorTop.weight!=null ? fmtWeight(priorTop.weight) : '?'} — try adding weight today</div>`;
       } else if(priorTop && priorTop.weight!=null){
-        badge = `<div class="progress-hint">Last top set: ${priorTop.weight} lb × ${priorTop.reps ?? '?'} reps</div>`;
+        badge = `<div class="progress-hint">Last top set: ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'} reps</div>`;
       }
 
       let warmupHtml = '';
-      if(WARMUP_ELIGIBLE_CATEGORIES.includes(exCategory) && priorTop && priorTop.weight >= WARMUP_MIN_WORKING_WEIGHT){
+      if(showWeight && isBarbellExercise(ex.name) && WARMUP_ELIGIBLE_CATEGORIES.includes(exCategory) && priorTop && priorTop.weight >= WARMUP_MIN_WORKING_WEIGHT){
         const ramp = buildWarmupRamp(priorTop.weight);
-        const rampRows = ramp.map(step=> `<div class="warmup-row"><span>${step.label} — ${step.weight} lb × ${step.reps}</span><span>${formatPlateResult(calcPlatesPerSide(step.weight))}</span></div>`).join('');
+        const rampRows = ramp.map(step=> `<div class="warmup-row"><span>${step.label} — ${step.weight} ${weightUnit} × ${step.reps}</span></div>`).join('');
         warmupHtml = `<div class="warmup-box"><div class="warmup-title">🔥 Suggested warm-up ramp</div>${rampRows}</div>`;
       }
 
+      const showPlateCalc = showWeight && isBarbellExercise(ex.name);
       const setRowsHtml = Array.from({length: setCount}).map((_,setIdx)=>{
         const savedSet = todayEntry && todayEntry.sets[setIdx] ? todayEntry.sets[setIdx] : null;
         const placeholderSet = prior && prior.sets[setIdx] ? prior.sets[setIdx] : null;
@@ -5646,13 +6087,13 @@ async function renderWorkout(){
             <div class="swipe-delete-bg">🗑️</div>
             <div class="swipe-content set-row-content">
               <span class="set-num">${setIdx+1}</span>
-              <input type="number" inputmode="decimal" class="ex-input ex-weight" placeholder="${placeholderSet && placeholderSet.weight!=null ? placeholderSet.weight : 'lb'}" value="${savedSet && savedSet.weight!=null ? savedSet.weight : ''}">
-              <span class="ex-x">×</span>
+              ${showWeight ? `<input type="number" inputmode="decimal" class="ex-input ex-weight" placeholder="${placeholderSet && placeholderSet.weight!=null ? trimUnitNum(toDisplayWeight(placeholderSet.weight)) : weightUnit}" value="${savedSet && savedSet.weight!=null ? trimUnitNum(toDisplayWeight(savedSet.weight)) : ''}">
+              <span class="ex-x">×</span>` : ''}
               <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="${placeholderSet && placeholderSet.reps!=null ? placeholderSet.reps : 'reps'}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
               <input type="number" inputmode="decimal" step="0.5" min="5" max="10" class="ex-input ex-rpe" placeholder="RPE" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
-              <button type="button" class="plate-btn" title="Plate calculator">🏋️</button>
+              ${showPlateCalc ? '<button type="button" class="plate-btn" title="Plate calculator">🏋️</button>' : ''}
               <span class="set-status"></span>
-              <div class="plate-result"></div>
+              ${showPlateCalc ? '<div class="plate-result"></div>' : ''}
             </div>
           </div>
         `;
@@ -5663,8 +6104,8 @@ async function renderWorkout(){
       const oneRM = todayTop ? estimated1RM(todayTop.weight, todayTop.reps) : null;
       const summaryHtml = (todayVolume>0) ? `
         <div class="session-summary">
-          <span>Volume: <b>${todayVolume.toLocaleString()} lb</b></span>
-          ${oneRM ? `<span>Est. 1RM: <b>~${oneRM} lb</b></span>` : ''}
+          <span>Volume: <b>${toDisplayWeight(todayVolume).toLocaleString()} ${weightUnit}</b></span>
+          ${oneRM ? `<span>Est. 1RM: <b>~${toDisplayWeight(oneRM)} ${weightUnit}</b></span>` : ''}
         </div>
       ` : '';
 
@@ -5730,9 +6171,7 @@ async function renderWorkout(){
       row.querySelector('.expand-wrap').classList.toggle('open');
     });
 
-    if(!ex.noWeight){
-      wireSetsBlock(row, i, ex);
-    }
+    wireSetsBlock(row, i, ex);
 
     list.appendChild(row);
 
@@ -5749,6 +6188,37 @@ async function renderWorkout(){
   });
 
   updateSessionCalorieTotal(renderExercises, completed);
+}
+
+// --- Undo toast: generic, reusable — any destructive action (currently
+// just set deletion) can call showUndoToast(message, undoFn) to give the
+// person a few seconds to reverse it. Only one toast is ever shown at a
+// time; triggering a new one cancels whatever undo window was still open
+// for the previous one, since only the most recent action is undoable.
+let undoToastTimeout = null;
+function showUndoToast(message, undoFn){
+  const toast = document.getElementById('undoToast');
+  const textEl = document.getElementById('undoToastText');
+  const btn = document.getElementById('undoToastBtn');
+
+  if(undoToastTimeout) clearTimeout(undoToastTimeout);
+  textEl.textContent = message;
+  toast.classList.add('active');
+
+  const hide = ()=> toast.classList.remove('active');
+  const onClick = async ()=>{
+    hide();
+    if(undoToastTimeout) clearTimeout(undoToastTimeout);
+    btn.removeEventListener('click', onClick);
+    await undoFn();
+  };
+  // Clone-and-replace to guarantee exactly one listener, even if a previous
+  // toast's handler never fired (e.g. it was superseded by a new toast).
+  const freshBtn = btn.cloneNode(true);
+  btn.parentNode.replaceChild(freshBtn, btn);
+  freshBtn.addEventListener('click', onClick);
+
+  undoToastTimeout = setTimeout(hide, 5000);
 }
 
 // --- Rest timer: auto-starts after logging a set, like Strong/Hevy's auto rest timer ---
@@ -5808,8 +6278,8 @@ async function refreshSessionSummary(row, exIdx, ex){
   let summaryEl = row.querySelector('.session-summary');
   if(todayVolume > 0){
     const html = `
-      <span>Volume: <b>${todayVolume.toLocaleString()} lb</b></span>
-      ${oneRM ? `<span>Est. 1RM: <b>~${oneRM} lb</b></span>` : ''}
+      <span>Volume: <b>${toDisplayWeight(todayVolume).toLocaleString()} ${weightUnit}</b></span>
+      ${oneRM ? `<span>Est. 1RM: <b>~${toDisplayWeight(oneRM)} ${weightUnit}</b></span>` : ''}
     `;
     if(!summaryEl){
       summaryEl = document.createElement('div');
@@ -5826,11 +6296,25 @@ async function refreshSessionSummary(row, exIdx, ex){
 // per side. Greedy fill from largest plate down — the same approach every
 // gym whiteboard and plate-loading app uses, since bars only take discrete
 // plate sizes rather than exact fractional loads.
-const STANDARD_PLATES = [45, 35, 25, 10, 5, 2.5];
-const BAR_WEIGHT = 45;
+//
+// Only shown for genuine barbell (or fixed-bar, e.g. EZ bar/trap bar) lifts —
+// a "plates per side" breakdown is meaningless for dumbbells, cables,
+// machines, carries, or bodyweight-plus-added-weight movements, so those are
+// deliberately left off this list rather than defaulting to "show it
+// everywhere."
+const BARBELL_EXERCISES = new Set([
+  'Back Squat','Barbell Row','Bench Press','Clean & Jerk','Clean Pull','Close-Grip Bench Press',
+  'Deadlift','Deficit Deadlift','EZ Bar Curl','Flat Bench Press','Front Squat','Good Morning',
+  'Hip Thrust','Jerk Dip Squat','Overhead Press','Overhead Squat','Pause Squat','Power Clean',
+  'Power Snatch','Push Press','Romanian Deadlift','Skull Crushers','Snatch','Snatch Balance',
+  'Snatch Pull','Squat','Trap Bar Jump Squat',
+]);
+function isBarbellExercise(name){ return BARBELL_EXERCISES.has(name); }
 
-function calcPlatesPerSide(totalWeight, barWeight){
-  const bar = barWeight ?? BAR_WEIGHT;
+function calcPlatesPerSide(totalWeight, barWeight, plateSet){
+  const standard = BARBELL_STANDARDS[weightUnit];
+  const bar = barWeight ?? standard.bar;
+  const plates = plateSet ?? standard.plates;
   if(totalWeight == null || isNaN(totalWeight)) return null;
   if(totalWeight < bar){
     return {tooLight:true, bar};
@@ -5838,7 +6322,7 @@ function calcPlatesPerSide(totalWeight, barWeight){
   let perSide = (totalWeight - bar) / 2;
   const breakdown = [];
   let remaining = perSide;
-  STANDARD_PLATES.forEach(p=>{
+  plates.forEach(p=>{
     const count = Math.floor((remaining + 0.001) / p); // small epsilon guards against float rounding
     if(count > 0){
       breakdown.push({plate:p, count});
@@ -5851,15 +6335,16 @@ function calcPlatesPerSide(totalWeight, barWeight){
 
 function formatPlateResult(result){
   if(!result) return 'Enter a weight first.';
+  const unit = weightUnit;
   if(result.tooLight){
-    return `At or below the ${result.bar} lb bar — likely a dumbbell, machine stack, or bodyweight movement rather than a barbell load.`;
+    return `At or below the ${result.bar} ${unit} bar — likely a dumbbell, machine stack, or bodyweight movement rather than a barbell load.`;
   }
   if(!result.breakdown.length){
-    return `${result.bar} lb bar only, no plates needed per side.`;
+    return `${result.bar} ${unit} bar only, no plates needed per side.`;
   }
   const parts = result.breakdown.map(b=> `${b.count}×${b.plate}`).join(' + ');
-  const leftoverNote = result.leftover > 0 ? ` (${result.leftover} lb short of exact — round to nearest plate available)` : '';
-  return `${result.bar} lb bar + ${parts} per side${leftoverNote}`;
+  const leftoverNote = result.leftover > 0 ? ` (${result.leftover} ${unit} short of exact — round to nearest plate available)` : '';
+  return `${result.bar} ${unit} bar + ${parts} per side${leftoverNote}`;
 }
 
 function wireSetsBlock(row, exIdx, ex){
@@ -5874,13 +6359,15 @@ function wireSetsBlock(row, exIdx, ex){
 
   async function deleteSet(setRow){
     const setIdx = Number(setRow.dataset.setIdx);
+    const key = exKey(activeProgram, activeDay, exIdx);
+    let log = [];
     try{
-      const key = exKey(activeProgram, activeDay, exIdx);
-      let log = [];
-      try{
-        const item = await window.storage.get(key);
-        if(item && item.value) log = JSON.parse(item.value);
-      }catch(e){ log = []; }
+      const item = await window.storage.get(key);
+      if(item && item.value) log = JSON.parse(item.value);
+    }catch(e){ log = []; }
+    const preDeleteSnapshot = JSON.stringify(log); // full pre-delete state, for undo
+
+    try{
       const todayIdx = log.findIndex(e=>e.date===getTodayKey());
       if(todayIdx !== -1){
         const entry = normalizeExEntry(log[todayIdx]);
@@ -5897,6 +6384,11 @@ function wireSetsBlock(row, exIdx, ex){
     setRow.remove();
     renumberRows();
     await refreshSessionSummary(row, exIdx, ex);
+
+    showUndoToast('Set deleted', async ()=>{
+      try{ await window.storage.set(key, preDeleteSnapshot); }catch(e){}
+      renderWorkout();
+    });
   }
 
   function wireSetRow(setRow){
@@ -5912,8 +6404,10 @@ function wireSetsBlock(row, exIdx, ex){
     // always targets the row's current position, not a stale one.
     const save = async ()=>{
       const setIdx = Number(setRow.dataset.setIdx);
-      const result = await saveExSet(activeDay, exIdx, setIdx, wInput.value, rInput.value, rpeInput.value);
-      if(wInput.value === '' && rInput.value === ''){ statusEl.textContent = ''; statusEl.className='set-status'; return; }
+      const weightValRaw = wInput ? wInput.value : '';
+      const weightValLb = weightValRaw === '' ? '' : toCanonicalLb(weightValRaw);
+      const result = await saveExSet(activeDay, exIdx, setIdx, weightValLb, rInput.value, rpeInput.value);
+      if(weightValRaw === '' && rInput.value === ''){ statusEl.textContent = ''; statusEl.className='set-status'; return; }
       if(result.isPR){
         statusEl.textContent = '🏆 PR';
         statusEl.className = 'set-status set-status-pr';
@@ -5926,7 +6420,7 @@ function wireSetsBlock(row, exIdx, ex){
       await refreshSessionSummary(row, exIdx, ex);
       startRestTimer();
     };
-    wInput.addEventListener('change', save);
+    if(wInput) wInput.addEventListener('change', save);
     rInput.addEventListener('change', save);
     rpeInput.addEventListener('change', save);
 
@@ -5939,7 +6433,7 @@ function wireSetsBlock(row, exIdx, ex){
           plateBtn.classList.remove('active');
           return;
         }
-        const w = wInput.value === '' ? null : Number(wInput.value);
+        const w = (wInput && wInput.value !== '') ? Number(wInput.value) : null;
         const result = calcPlatesPerSide(w);
         plateResult.textContent = formatPlateResult(result);
         plateResult.classList.add('open');
@@ -5958,17 +6452,19 @@ function wireSetsBlock(row, exIdx, ex){
     const div = document.createElement('div');
     div.className = 'set-row swipe-item';
     div.dataset.setIdx = newIdx;
+    const showWeight = !ex.noWeight;
+    const showPlateCalc = showWeight && isBarbellExercise(ex.name);
     div.innerHTML = `
       <div class="swipe-delete-bg">🗑️</div>
       <div class="swipe-content set-row-content">
         <span class="set-num">${newIdx+1}</span>
-        <input type="number" inputmode="decimal" class="ex-input ex-weight" placeholder="lb" value="">
-        <span class="ex-x">×</span>
+        ${showWeight ? `<input type="number" inputmode="decimal" class="ex-input ex-weight" placeholder="${weightUnit}" value="">
+        <span class="ex-x">×</span>` : ''}
         <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="reps" value="">
         <input type="number" inputmode="decimal" step="0.5" min="5" max="10" class="ex-input ex-rpe" placeholder="RPE" value="">
-        <button type="button" class="plate-btn" title="Plate calculator">🏋️</button>
+        ${showPlateCalc ? '<button type="button" class="plate-btn" title="Plate calculator">🏋️</button>' : ''}
         <span class="set-status"></span>
-        <div class="plate-result"></div>
+        ${showPlateCalc ? '<div class="plate-result"></div>' : ''}
       </div>
     `;
     block.insertBefore(div, block.querySelector('.add-set-btn'));
@@ -6095,6 +6591,90 @@ async function loadProfile(){
 async function saveProfile(){
   try{ await window.storage.set('user-profile', JSON.stringify(userProfile)); }catch(e){}
 }
+
+// --- Weight unit preference (lb/kg) ----------------------------------------
+// Every weight is stored canonically in lb everywhere in this app (profile
+// weight, weight-log entries, exercise set weights) — this is deliberate and
+// unconditional, so there's zero data-migration risk and history/PRs/trends
+// keep working exactly as before regardless of display preference. This
+// section is purely a display/input conversion layer: numbers convert to the
+// user's preferred unit only at the moment they're shown, and user-typed
+// values convert back to lb only at the moment they're saved.
+let weightUnit = 'lb';
+const LB_PER_KG = 0.453592;
+
+async function loadWeightUnit(){
+  try{
+    const res = await window.storage.get('weight-unit-pref');
+    if(res && res.value === 'kg') weightUnit = 'kg';
+  }catch(e){}
+}
+async function saveWeightUnit(unit){
+  weightUnit = (unit === 'kg') ? 'kg' : 'lb';
+  try{ await window.storage.set('weight-unit-pref', weightUnit); }catch(e){}
+}
+
+// Canonical lb -> whatever unit is currently selected, for display.
+function toDisplayWeight(lb){
+  if(lb == null || isNaN(lb)) return null;
+  const v = weightUnit === 'kg' ? lb * LB_PER_KG : lb;
+  return Math.round(v * 10) / 10;
+}
+// User-typed value (already in the currently-selected unit) -> canonical lb, for storage.
+function toCanonicalLb(displayVal){
+  if(displayVal == null || displayVal === '' || isNaN(displayVal)) return null;
+  const n = Number(displayVal);
+  return weightUnit === 'kg' ? n / LB_PER_KG : n;
+}
+// Trims a trailing ".0" so "185.0 lb" reads as "185 lb" but "84.5 kg" stays as-is.
+function trimUnitNum(n){
+  if(n == null) return '';
+  return (Math.round(n*10)/10).toString();
+}
+// Convenience for inline display text: converts + labels in one call.
+function fmtWeight(lb){
+  if(lb == null) return null;
+  return `${trimUnitNum(toDisplayWeight(lb))} ${weightUnit}`;
+}
+
+// Plate math is genuinely different by unit, not just a converted number —
+// a 20kg Olympic bar with kg plates isn't "a 45lb bar's numbers translated,"
+// it's a different standard bar and a different standard plate set.
+const BARBELL_STANDARDS = {
+  lb: {bar: 45, plates: [45, 35, 25, 10, 5, 2.5]},
+  kg: {bar: 20, plates: [25, 20, 15, 10, 5, 2.5, 1.25]},
+};
+
+// Syncs the handful of static labels/placeholders that show the unit itself
+// (as opposed to a converted number, which every render function already
+// handles on its own). Call once at init and again whenever the unit changes.
+function applyWeightUnitToUI(){
+  const select = document.getElementById('weightUnitSelect');
+  if(select) select.value = weightUnit;
+  const label = document.getElementById('pfWeightUnitLabel');
+  if(label) label.textContent = weightUnit;
+  const weightInputEl = document.getElementById('weightInput');
+  if(weightInputEl) weightInputEl.placeholder = `Weight today (${weightUnit})`;
+}
+
+document.getElementById('weightUnitSelect').addEventListener('change', async (e)=>{
+  await saveWeightUnit(e.target.value);
+  applyWeightUnitToUI();
+  // Refresh every view that shows a weight number so the switch takes effect
+  // immediately, not just on next reload.
+  populateProfileForm();
+  renderHeader();
+  renderProfileSummary();
+  loadWeights();
+  renderWorkout();
+  renderTodayInsights();
+  if(document.getElementById('analysisView') && document.getElementById('analysisView').style.display !== 'none'){
+    renderAnalysis();
+  }
+  if(document.getElementById('historyView') && document.getElementById('historyView').style.display !== 'none'){
+    renderHistory();
+  }
+});
 
 function computeTargets(p){
   const heightCm = ((Number(p.heightFt)||0)*12 + (Number(p.heightIn)||0)) * 2.54;
@@ -6368,6 +6948,15 @@ const TIPS_BY_MARTIAL_ART = {
     "<b>Core strength drives kick power.</b> A braced core transmits hip rotation into the kick instead of leaking power out.",
     "<b>Rest days protect your hips and lower back.</b> Kick-dominant training loads these areas heavily — respect the recovery days.",
   ],
+  taiChi: [
+    "<b>The waist leads, the hands follow.</b> If a posture feels effortful in the arms, the movement usually isn't originating from the waist and legs yet.",
+    "<b>Sink, don't collapse.</b> Bending the knees to lower your stance should feel like rooting down, not like your posture caving in — keep the spine long throughout.",
+    "<b>Slow is the point, not a limitation.</b> Moving slowly is what lets you actually feel and correct weight distribution errors that fast movement would hide.",
+    "<b>Breathe low and continuously.</b> Holding the breath during standing postures or transitions is the most common way tension creeps back into the shoulders and arms.",
+    "<b>Push hands rewards yielding, not resisting.</b> Meeting force with force defeats the entire purpose of the sensitivity training — soften and redirect instead.",
+    "<b>Consistency beats intensity here.</b> Short, daily standing and form practice builds the internal skills of this art far faster than occasional long sessions.",
+    "<b>Rest days protect the knees.</b> Low stances held incorrectly stress the knees over time — respect the recovery days and keep knees tracking over the toes in every stance.",
+  ],
 };
 
 const TIPS_BY_CYCLING_STYLE = {
@@ -6554,7 +7143,7 @@ function renderHeader(){
   const p = userProfile;
   if(p.name){
     document.getElementById('headerEyebrow').textContent = `${p.name.toUpperCase()} · ${GOAL_LABELS[p.goal] || ''} Program`;
-    document.getElementById('headerSub').textContent = `7-day split · ${p.heightFt}'${p.heightIn}" · ${p.weight} lb · ${(GOAL_LABELS[p.goal]||'').toLowerCase()} · 45-60 min sessions`;
+    document.getElementById('headerSub').textContent = `7-day split · ${p.heightFt}'${p.heightIn}" · ${fmtWeight(p.weight)} · ${(GOAL_LABELS[p.goal]||'').toLowerCase()} · 45-60 min sessions`;
   } else {
     document.getElementById('headerEyebrow').textContent = 'Training Log';
     document.getElementById('headerSub').textContent = 'Set up your profile below to personalize this';
@@ -6565,25 +7154,62 @@ function renderProfileSummary(){
   const p = userProfile;
   const summaryEl = document.getElementById('profileSummary');
   if(p.name){
-    summaryEl.innerHTML = `<b>${escapeHtml(p.name)}</b> · ${p.heightFt}'${p.heightIn}" · ${p.weight} lb · ${GOAL_LABELS[p.goal]}`;
+    summaryEl.innerHTML = `<b>${escapeHtml(p.name)}</b> · ${p.heightFt}'${p.heightIn}" · ${fmtWeight(p.weight)} · ${GOAL_LABELS[p.goal]}`;
   } else {
     summaryEl.textContent = 'Tap to set up — personalizes your nutrition targets and program recommendation';
   }
 }
 
+// A user who declines the recommendation shouldn't see the same banner every
+// time they open the app — but they SHOULD see it again the moment the
+// recommendation actually changes to something new, e.g. after editing their
+// profile. Keying the dismissal by which program was recommended (rather
+// than a plain boolean) gets both behaviors for free: re-rendering compares
+// today's fresh recommendation against whatever was dismissed, and only
+// suppresses the banner if they're still the same program. A new key
+// ('program-rec-dismissed-key') rather than repurposing the old boolean flag,
+// per the "add new keys over restructuring existing ones" convention.
+// archiveCurrentWeek() also explicitly clears it on Day 7, so a new training
+// week always gets a fresh chance at the banner even if the recommendation
+// happens to be unchanged.
+async function getDismissedRecKey(){
+  try{
+    const res = await window.storage.get('program-rec-dismissed-key');
+    return (res && res.value) ? res.value : null;
+  }catch(e){ return null; }
+}
+async function dismissProgramRec(recKey){
+  try{ await window.storage.set('program-rec-dismissed-key', recKey); }catch(e){}
+}
+async function clearProgramRecDismissal(){
+  try{ await window.storage.delete('program-rec-dismissed-key'); }catch(e){}
+}
+
 async function renderProgramRec(trendStatus){
-  const rec = await recommendProgram(userProfile, trendStatus);
   const el = document.getElementById('programRecommendation');
+  const rec = await recommendProgram(userProfile, trendStatus);
+  const dismissedKey = await getDismissedRecKey();
+  if(dismissedKey === rec.key){
+    el.innerHTML = '';
+    return;
+  }
   const progLabel = programs[rec.key].label;
   el.innerHTML = `
     <div class="program-rec-banner">
       💡 Recommended for your goal: <b>${progLabel}</b><br>${rec.why}
-      <button class="program-rec-btn" id="switchToRecBtn">Switch to ${progLabel}</button>
+      <div class="program-rec-actions">
+        <button class="program-rec-btn" id="switchToRecBtn">Switch to ${progLabel}</button>
+        <button class="program-rec-btn program-rec-btn-secondary" id="stickWithCurrentBtn">Stick with current</button>
+      </div>
     </div>
   `;
   document.getElementById('switchToRecBtn').addEventListener('click', async ()=>{
     document.getElementById('programSelector').value = rec.key;
     document.getElementById('programSelector').dispatchEvent(new Event('change'));
+  });
+  document.getElementById('stickWithCurrentBtn').addEventListener('click', async ()=>{
+    await dismissProgramRec(rec.key);
+    el.innerHTML = '';
   });
 }
 
@@ -6601,7 +7227,7 @@ function populateProfileForm(){
   document.getElementById('pfGender').value = p.gender;
   document.getElementById('pfHeightFt').value = p.heightFt || '';
   document.getElementById('pfHeightIn').value = p.heightIn || '';
-  document.getElementById('pfWeight').value = p.weight || '';
+  document.getElementById('pfWeight').value = p.weight ? trimUnitNum(toDisplayWeight(p.weight)) : '';
   document.getElementById('pfActivity').value = p.activity;
   document.getElementById('pfGoal').value = p.goal;
   updateBodyGoalOptions();
@@ -6625,7 +7251,7 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
     gender: document.getElementById('pfGender').value,
     heightFt: Number(document.getElementById('pfHeightFt').value) || userProfile.heightFt,
     heightIn: Number(document.getElementById('pfHeightIn').value) || 0,
-    weight: Number(document.getElementById('pfWeight').value) || userProfile.weight,
+    weight: (document.getElementById('pfWeight').value ? toCanonicalLb(document.getElementById('pfWeight').value) : null) || userProfile.weight,
     activity: Number(document.getElementById('pfActivity').value),
     goal: document.getElementById('pfGoal').value,
     bodyGoal: document.getElementById('pfBodyGoal').value,
@@ -7633,13 +8259,19 @@ async function loadWeights(){
     entries.sort((a,b)=> new Date(b.date) - new Date(a.date));
     const sorted = entries.slice(0,8);
     listEl.innerHTML = sorted.map(e=> buildSwipeItem(
-      `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${e.weight} lb</span></div>`
+      `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${fmtWeight(e.weight)}</span></div>`
     )).join('');
     listEl.querySelectorAll('.swipe-item').forEach((itemEl, i)=>{
       makeSwipeable(itemEl, async ()=>{
+        const preDeleteSnapshot = JSON.stringify(entries);
         const all = entries.filter(e2=> !(e2.date===sorted[i].date && e2.weight===sorted[i].weight));
         await window.storage.set('weight-log', JSON.stringify(all));
         loadWeights();
+        showUndoToast('Weigh-in deleted', async ()=>{
+          try{ await window.storage.set('weight-log', preDeleteSnapshot); }catch(e){}
+          loadWeights();
+          renderTodayInsights();
+        });
       });
     });
   }catch(e){
@@ -7649,8 +8281,9 @@ async function loadWeights(){
 
 document.getElementById('saveWeight').addEventListener('click', async ()=>{
   const input = document.getElementById('weightInput');
-  const w = parseFloat(input.value);
-  if(!w) return;
+  const wDisplay = parseFloat(input.value);
+  if(!wDisplay) return;
+  const w = toCanonicalLb(wDisplay);
   try{
     let entries = [];
     try{
@@ -7920,8 +8553,8 @@ document.getElementById('saveMeasurements').addEventListener('click', async ()=>
 });
 
 function switchView(active){
-  const views = {today:'todayView', analysis:'analysisView', history:'historyView', care:'careView', coach:'coachView'};
-  const pills = {today:'navToday', analysis:'navAnalysis', history:'navHistory', care:'navCare', coach:'navCoach'};
+  const views = {today:'todayView', analysis:'analysisView', history:'historyView', care:'careView', coach:'coachView', learn:'learnView'};
+  const pills = {today:'navToday', analysis:'navAnalysis', history:'navHistory', care:'navCare', coach:'navCoach', learn:'navLearn'};
   Object.keys(views).forEach(key=>{
     const viewEl = document.getElementById(views[key]);
     if(key === active){
@@ -7969,6 +8602,10 @@ document.getElementById('navCare').addEventListener('click', ()=>{
 document.getElementById('navCoach').addEventListener('click', ()=>{
   switchView('coach');
   renderCoach();
+});
+
+document.getElementById('navLearn').addEventListener('click', ()=>{
+  switchView('learn');
 });
 
 function mondayOf(dateStr){
@@ -8068,17 +8705,18 @@ function renderSparkline(entries){
     return `${x},${y}`;
   }).join(' ');
   const first = sorted[0].weight, last = sorted[sorted.length-1].weight;
-  const delta = (last-first).toFixed(1);
-  const deltaClass = delta > 0 ? 'w-up' : delta < 0 ? 'w-down' : 'w-flat';
-  const deltaSign = delta > 0 ? '+' : '';
+  const deltaLb = last - first;
+  const deltaClass = deltaLb > 0 ? 'w-up' : deltaLb < 0 ? 'w-down' : 'w-flat';
+  const deltaSign = deltaLb > 0 ? '+' : '';
+  const deltaDisplay = trimUnitNum(toDisplayWeight(deltaLb));
   el.innerHTML = `
     <svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
       <polyline fill="none" stroke="#2D6CDF" stroke-width="2.5" points="${pts}"/>
     </svg>
     <div style="display:flex; justify-content:space-between; margin-top:8px; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--text-muted);">
-      <span>${sorted[0].weight} lb</span>
-      <span class="${deltaClass}">${deltaSign}${delta} lb over ${sorted.length} entries</span>
-      <span>${sorted[sorted.length-1].weight} lb</span>
+      <span>${fmtWeight(sorted[0].weight)}</span>
+      <span class="${deltaClass}">${deltaSign}${deltaDisplay} ${weightUnit} over ${sorted.length} entries</span>
+      <span>${fmtWeight(sorted[sorted.length-1].weight)}</span>
     </div>
   `;
 }
@@ -8202,11 +8840,11 @@ async function renderExerciseProgress(){
   rows.sort((a,b)=> a.dayLabel.localeCompare(b.dayLabel) || a.name.localeCompare(b.name));
 
   const rowHtmls = rows.map(r=>{
-    const deltaW = (r.first && r.latest && r.first.weight!=null && r.latest.weight!=null) ? +(r.latest.weight - r.first.weight).toFixed(1) : null;
-    const deltaHtml = deltaW==null ? '' :
-      `<span class="${deltaW>0?'w-up':deltaW<0?'w-down':'w-flat'}">${deltaW>0?'+':''}${deltaW} lb since first log</span>`;
+    const deltaWLb = (r.first && r.latest && r.first.weight!=null && r.latest.weight!=null) ? (r.latest.weight - r.first.weight) : null;
+    const deltaHtml = deltaWLb==null ? '' :
+      `<span class="${deltaWLb>0?'w-up':deltaWLb<0?'w-down':'w-flat'}">${deltaWLb>0?'+':''}${trimUnitNum(toDisplayWeight(deltaWLb))} ${weightUnit} since first log</span>`;
     const readyHtml = r.readyToProgress ? `<div class="prog-ready">⬆ Ready to move up in weight next session</div>` : '';
-    const bestHtml = r.bestEver!=null ? `<span class="prog-best">🏆 Best: ${r.bestEver} lb</span>` : '';
+    const bestHtml = r.bestEver!=null ? `<span class="prog-best">🏆 Best: ${fmtWeight(r.bestEver)}</span>` : '';
     return `
       <div class="prog-row">
         <div class="prog-top">
@@ -8215,10 +8853,10 @@ async function renderExerciseProgress(){
         </div>
         <div class="prog-stats">
           <span>${r.sessionCount} session${r.sessionCount===1?'':'s'} logged</span>
-          <span class="prog-current">${r.latest ? r.latest.weight ?? '—' : '—'} lb × ${r.latest ? r.latest.reps ?? '—' : '—'}</span>
+          <span class="prog-current">${r.latest && r.latest.weight!=null ? trimUnitNum(toDisplayWeight(r.latest.weight)) : '—'} ${weightUnit} × ${r.latest ? r.latest.reps ?? '—' : '—'}</span>
         </div>
         <div class="prog-stats">
-          <span>Vol ${r.latestVolume.toLocaleString()} lb${r.latest1RM ? ` · Est. 1RM ~${r.latest1RM} lb` : ''}</span>
+          <span>Vol ${toDisplayWeight(r.latestVolume).toLocaleString()} ${weightUnit}${r.latest1RM ? ` · Est. 1RM ~${toDisplayWeight(r.latest1RM)} ${weightUnit}` : ''}</span>
           ${bestHtml}
         </div>
         ${deltaHtml ? `<div class="prog-stats"><span></span>${deltaHtml}</div>` : ''}
@@ -8293,7 +8931,7 @@ async function renderPrTimeline(){
           <div class="pr-ex-name">🏆 ${ev.name}</div>
           <div class="pr-day-label">${ev.dayLabel}</div>
         </div>
-        <div class="pr-stat">${ev.weight} lb${ev.reps!=null ? ` × ${ev.reps}` : ''}</div>
+        <div class="pr-stat">${fmtWeight(ev.weight)}${ev.reps!=null ? ` × ${ev.reps}` : ''}</div>
       </div>
     `;
   });
@@ -8453,7 +9091,35 @@ const COACH_PERSONAS = {
   calisthenics: 'a gymnastics strength coach focused on joint alignment, hollow-body tension, and skill progression mechanics for levers, planches, and handstands',
   powerlifting: 'a powerlifting coach focused on maximizing mechanical leverage and bar path efficiency on squat, bench, and deadlift',
   rehab: 'a movement-quality coach helping ensure gentle rehab exercises are performed with correct alignment and controlled tempo — you do NOT diagnose injuries or estimate healing timelines, only comment on movement quality and technique',
+  yoga: 'a yoga instructor focused on postural alignment, breath-to-movement timing, and joint-safe range of motion across poses — not on how deep a stretch looks',
+  powerbuilding: 'a hybrid strength/bodybuilding coach evaluating both heavy compound bar path on the main lift and muscle-activation/tempo quality on the accessory work that follows it',
+  senior: 'a senior fitness specialist focused on balance, controlled tempo, and joint-safe range of motion for fall-risk reduction and functional strength — not on load or speed',
+  swimming: 'a swim stroke coach focused on body position, catch mechanics, kick timing, and body rotation across freestyle, backstroke, breaststroke, and butterfly',
+  climbing: 'a climbing movement coach focused on body positioning relative to the wall, footwork precision, grip selection for the hold shown, and hip/weight transfer',
+  cycling: 'a cycling coach focused on pedal stroke efficiency, cadence, and riding position/posture on the bike',
+  prenatal: 'a prenatal/postpartum fitness specialist focused on safe alignment, pelvic floor coordination, and appropriate intensity for pregnancy or postpartum recovery — you do NOT diagnose or give medical advice, only comment on movement quality and safety cues, and you flag anything that looks like it needs provider clearance',
+  boxingsc: 'a boxing strength & conditioning coach focused on rotational power mechanics, single-leg stability, and round-based conditioning — the physical base underneath punching power, not the punches themselves',
+  desk: 'a posture and corrective-exercise coach focused on countering desk-posture patterns — scapular positioning, hip flexor length, and thoracic mobility',
 };
+
+// Combat is a single activeProgram covering several genuinely different
+// martial arts (see COMBAT_STYLES) — a boxing-focused coach persona would
+// give actively wrong feedback criteria on a Tai Chi or Taekwondo video, so
+// this looks up by the active style, mirroring the same special-case
+// pattern getActiveTips() already uses for combat/cycling/prenatal.
+const COACH_PERSONAS_BY_MARTIAL_ART = {
+  kickboxing: 'a kickboxing coach focused on stance, guard position, hip rotation for punching and kicking power, footwork, and strike mechanics',
+  boxing: 'a boxing coach focused on stance, guard position, head movement, hip-driven punching power, and footwork',
+  muayThai: 'a Muay Thai coach focused on clinch posture, knee and elbow mechanics, hip-driven kicks, and shin conditioning technique',
+  mma: 'an MMA coach focused on standup striking mechanics alongside sprawl positioning and the transitions between striking range and the clinch/ground',
+  taekwondo: 'a taekwondo coach focused on kick chamber, hip rotation, standing-leg balance, and stance reset after each kick',
+  taiChi: 'an internal martial arts (tai chi) coach focused on waist-led movement, rooted weight transfer, relaxed shoulders, continuous unbroken motion, and structural alignment in stances — you evaluate softness and connectedness of movement, not power or speed',
+};
+
+function getCoachPersona(){
+  if(activeProgram === 'combat') return COACH_PERSONAS_BY_MARTIAL_ART[activeMartialArt] || COACH_PERSONAS.combat;
+  return COACH_PERSONAS[activeProgram] || COACH_PERSONAS.strength;
+}
 
 function extractVideoFrames(file, frameCount){
   return new Promise((resolve, reject)=>{
@@ -8509,7 +9175,7 @@ async function saveCoachEntry(entry){
 }
 
 async function renderCoach(){
-  const persona = programs[activeProgram].label;
+  const persona = activeProgram === 'combat' ? COMBAT_STYLES[activeMartialArt].label : programs[activeProgram].label;
   document.getElementById('coachPersonaLabel').textContent = persona;
 
   const log = await getCoachLog();
@@ -8550,7 +9216,7 @@ document.getElementById('coachVideoInput').addEventListener('change', async (e)=
     const frames = await extractVideoFrames(file, 4);
     resultEl.innerHTML = `<div class="empty-note">Analyzing your ${escapeHtml(exercise)}…</div>`;
 
-    const persona = COACH_PERSONAS[activeProgram] || COACH_PERSONAS.strength;
+    const persona = getCoachPersona();
     const prompt = `You are ${persona}. These ${frames.length} frames are sequential stills from a video of someone performing "${exercise}". ${focus ? `They specifically want you to check: ${focus}.` : ''} Give direct, specific feedback on their form based only on what's visible across these frames: what looks correct, what to fix, and one clear cue to focus on next attempt. Keep it to 4-6 short sentences, no headers or markdown, plain conversational coaching tone. If the frames don't clearly show the movement, say so plainly instead of guessing.`;
 
     const feedback = await callClaudeVision(apiKey, frames, prompt, 500);
@@ -8755,6 +9421,52 @@ function buildCareItemHtml(name){
     </details>
   `;
 }
+
+// Exercise Library search (Learn tab) — flat search across all 256
+// exerciseInfo entries regardless of which program(s) actually use them.
+// Reuses the exact same card markup/CSS as the Care library items above,
+// just with the exercise's own category shown as the tag instead of a
+// Care-specific stretch/strengthen/mobility label.
+function buildExerciseSearchResultHtml(name){
+  const info = exerciseInfo[name];
+  if(!info) return '';
+  const iconSvg = getExerciseIcon(name, info.category);
+  const query = encodeURIComponent(info.videoQuery || `${name} proper form`);
+  const cuesHtml = info.cues.map(c=>`<li>${c}</li>`).join('');
+  return `
+    <details class="ex-details care-details">
+      <summary><span class="care-type-tag mobility">${escapeHtml(info.category)}</span> ${name}</summary>
+      <div class="ex-detail-body">
+        <div class="ex-icon">${iconSvg}</div>
+        <div class="ex-detail-content">
+          <ul class="ex-cues">${cuesHtml}</ul>
+          <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
+        </div>
+      </div>
+    </details>
+  `;
+}
+
+const EXERCISE_SEARCH_RESULT_LIMIT = 40;
+function renderExerciseSearchResults(query){
+  const el = document.getElementById('exerciseSearchResults');
+  const q = query.trim().toLowerCase();
+  if(!q){ el.innerHTML = ''; return; }
+  const matches = Object.keys(exerciseInfo)
+    .filter(name=> name.toLowerCase().includes(q))
+    .sort((a,b)=> a.localeCompare(b));
+  if(matches.length === 0){
+    el.innerHTML = '<div class="empty-note">No exercises match that search.</div>';
+    return;
+  }
+  const shown = matches.slice(0, EXERCISE_SEARCH_RESULT_LIMIT);
+  const moreNote = matches.length > EXERCISE_SEARCH_RESULT_LIMIT
+    ? `<div class="history-hint">Showing first ${EXERCISE_SEARCH_RESULT_LIMIT} of ${matches.length} matches — try a more specific search.</div>` : '';
+  el.innerHTML = shown.map(buildExerciseSearchResultHtml).join('') + moreNote;
+}
+document.getElementById('exerciseSearchInput').addEventListener('input', (e)=>{
+  renderExerciseSearchResults(e.target.value);
+});
 
 function renderCareLibrary(region){
   const el = document.getElementById('careLibraryList');
@@ -8962,7 +9674,7 @@ async function renderSavedWeeks(){
     <div class="day-card">
       <div class="day-card-date">Week of ${fmtDayLabel(w.weekStart)} · ${w.program}</div>
       <div class="day-ex-row"><span>${w.workoutsCount} workout${w.workoutsCount===1?'':'s'}</span>
-      <span>${w.avgWeight!=null?`Avg weight: ${w.avgWeight} lb`:''}</span>
+      <span>${w.avgWeight!=null?`Avg weight: ${fmtWeight(w.avgWeight)}`:''}</span>
       <span>${w.avgCal!=null?`Avg cal: ${w.avgCal}`:''}</span>
       <span>${w.avgSleep!=null?`Avg sleep: ${w.avgSleep}hr`:''}</span></div>
     </div>
@@ -9003,13 +9715,13 @@ async function renderHistory(){
     const dayCardsHtml = daysInMonth.map(date=>{
       const day = dayMap[date];
       const weightRow = day.weight != null
-        ? `<div class="day-weight-row">⚖️ ${day.weight} lb ${deltaSpan(day.weightDelta, ' lb', 'down')}</div>`
+        ? `<div class="day-weight-row">⚖️ ${fmtWeight(day.weight)} ${deltaSpan(toDisplayWeight(day.weightDelta), ' '+weightUnit, 'down')}</div>`
         : '';
       const exRows = day.exercises.map(ex=>{
-        const weightDeltaHtml = deltaSpan(ex.deltaWeight, ' lb', 'up');
+        const weightDeltaHtml = deltaSpan(toDisplayWeight(ex.deltaWeight), ' '+weightUnit, 'up');
         const repsDeltaHtml = deltaSpan(ex.deltaReps, ' reps', 'up');
         const setsStr = (ex.sets||[]).filter(s=>s.weight!=null||s.reps!=null)
-          .map(s=> `${s.weight ?? '—'}×${s.reps ?? '—'}`).join(', ');
+          .map(s=> `${s.weight!=null ? trimUnitNum(toDisplayWeight(s.weight)) : '—'}×${s.reps ?? '—'}`).join(', ');
         return `
           <div class="day-ex-row">
             <span class="day-ex-name">${ex.name}</span>
@@ -9122,12 +9834,15 @@ async function archiveCurrentWeek(){
     avgWeight, workoutsCount, avgCal, avgSleep,
   });
   await window.storage.set('week-archive', JSON.stringify(archive));
+  await clearProgramRecDismissal();
 
   status.textContent = 'Week saved — back to Day 1 for a fresh start ✓';
-  setTimeout(()=>{
+  setTimeout(async ()=>{
     activeDay = 'd1';
     renderTabs();
     renderWorkout();
+    const trendStatusForRec = await getCurrentTrendStatus();
+    await renderProgramRec(trendStatusForRec);
   }, 1400);
 }
 
@@ -9201,8 +9916,8 @@ async function renderVolumeTrend(){
         </div>
         <div class="vol-bar-track"><div class="vol-bar-fill" style="width:${Math.min(100,(thisWeek/maxVal)*100)}%"></div></div>
         <div class="vol-bar-labels">
-          <span>This week: ${thisWeek.toLocaleString()} lb</span>
-          <span>Last week: ${lastWeek.toLocaleString()} lb</span>
+          <span>This week: ${toDisplayWeight(thisWeek).toLocaleString()} ${weightUnit}</span>
+          <span>Last week: ${toDisplayWeight(lastWeek).toLocaleString()} ${weightUnit}</span>
         </div>
         ${landmarkHtml}
       </div>
@@ -9337,17 +10052,21 @@ function computeGoalFeedback(profile, weightEntries, measureEntries){
   if(weightDelta==null && waistDelta==null && armsDelta==null) return null;
 
   const weeks = Math.max(1, Math.round(Math.max(wSpan, mSpan)/7));
+  // Comparisons below stay in canonical lb (the thresholds like -1/1/2 are
+  // meaningful lb amounts) — only the DISPLAY text converts to the current unit.
+  const weightDeltaDisp = weightDelta!=null ? trimUnitNum(toDisplayWeight(weightDelta)) : null;
+  const weightDeltaAbsDisp = weightDelta!=null ? trimUnitNum(Math.abs(toDisplayWeight(weightDelta))) : null;
 
   if(goal === 'lose'){
-    if(weightDelta!=null && weightDelta <= -1) return {status:'on-track', text:`⬇ Weight down ${Math.abs(weightDelta)} lb over ~${weeks} weeks — tracking well against your fat-loss goal.`};
+    if(weightDelta!=null && weightDelta <= -1) return {status:'on-track', text:`⬇ Weight down ${weightDeltaAbsDisp} ${weightUnit} over ~${weeks} weeks — tracking well against your fat-loss goal.`};
     if(waistDelta!=null && waistDelta <= -0.5) return {status:'on-track', text:`⬇ Waist down ${Math.abs(waistDelta)}" over ~${weeks} weeks, even if the scale hasn't moved much — a good sign for fat loss specifically.`};
-    if(weightDelta!=null) return {status:'stalled', text:`Weight has barely moved (${weightDelta>=0?'+':''}${weightDelta} lb) over ~${weeks} weeks despite a fat-loss goal — worth auditing calorie intake or activity level.`};
+    if(weightDelta!=null) return {status:'stalled', text:`Weight has barely moved (${weightDelta>=0?'+':''}${weightDeltaDisp} ${weightUnit}) over ~${weeks} weeks despite a fat-loss goal — worth auditing calorie intake or activity level.`};
     return null;
   }
   if(goal === 'gain'){
-    if(weightDelta!=null && weightDelta >= 1) return {status:'on-track', text:`⬆ Weight up ${weightDelta} lb over ~${weeks} weeks — solid progress toward your muscle-gain goal.`};
+    if(weightDelta!=null && weightDelta >= 1) return {status:'on-track', text:`⬆ Weight up ${weightDeltaDisp} ${weightUnit} over ~${weeks} weeks — solid progress toward your muscle-gain goal.`};
     if(armsDelta!=null && armsDelta >= 0.25) return {status:'on-track', text:`⬆ Arms up ${armsDelta}" over ~${weeks} weeks — real growth, even if the scale hasn't moved much yet.`};
-    if(weightDelta!=null) return {status:'stalled', text:`Weight has barely moved (${weightDelta>=0?'+':''}${weightDelta} lb) over ~${weeks} weeks despite a muscle-gain goal — you may need a larger calorie surplus.`};
+    if(weightDelta!=null) return {status:'stalled', text:`Weight has barely moved (${weightDelta>=0?'+':''}${weightDeltaDisp} ${weightUnit}) over ~${weeks} weeks despite a muscle-gain goal — you may need a larger calorie surplus.`};
     return null;
   }
   if(goal === 'recomp'){
@@ -9361,8 +10080,8 @@ function computeGoalFeedback(profile, weightEntries, measureEntries){
   }
   if(goal === 'maintain'){
     if(weightDelta!=null){
-      if(Math.abs(weightDelta) <= 2) return {status:'on-track', text:`Weight has stayed within ${Math.abs(weightDelta)} lb over ~${weeks} weeks — right where a maintenance goal wants it.`};
-      return {status:'drifting', text:`Weight has drifted ${weightDelta>0?'up':'down'} ${Math.abs(weightDelta)} lb over ~${weeks} weeks despite a maintenance goal — worth a small calorie adjustment.`};
+      if(Math.abs(weightDelta) <= 2) return {status:'on-track', text:`Weight has stayed within ${weightDeltaAbsDisp} ${weightUnit} over ~${weeks} weeks — right where a maintenance goal wants it.`};
+      return {status:'drifting', text:`Weight has drifted ${weightDelta>0?'up':'down'} ${weightDeltaAbsDisp} ${weightUnit} over ~${weeks} weeks despite a maintenance goal — worth a small calorie adjustment.`};
     }
     return null;
   }
@@ -9479,6 +10198,8 @@ if(activeUserId){
     await runMigrations();
     document.getElementById('appFooter').textContent = `Training Log v${APP_VERSION} · schema v${SCHEMA_VERSION}`;
 
+    await loadWeightUnit();
+    applyWeightUnitToUI();
     await loadProfile();
     targets = computeTargets(userProfile);
     populateProfileForm();
@@ -9522,6 +10243,17 @@ if(activeUserId){
     renderCycleTracking();
   })();
 }
+</script>
+<script>
+  // Registered separately from the main app script so a failure here (e.g.
+  // browsers/contexts without service worker support) can never affect the
+  // app itself — this only ever adds offline capability and installability
+  // on top of an app that already works fully without it.
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    });
+  }
 </script>
 </body>
 </html>
