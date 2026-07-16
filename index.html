@@ -618,6 +618,18 @@
     transition:border-color 0.2s var(--ease-smooth), background 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .show-more-btn:active{transform:scale(0.98); border-color:var(--line-bright);}
+  .usda-search-btn{
+    width:100%; margin-top:10px; padding:10px; background:var(--surface2); border:1px solid rgba(47,184,196,0.4);
+    border-radius:var(--radius-md); color:var(--plate-teal); font-size:12.5px; font-weight:600; cursor:pointer;
+    font-family:'Inter',sans-serif; letter-spacing:-0.005em; text-align:center;
+    transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
+  }
+  .usda-search-btn:active{transform:scale(0.98);}
+  .usda-key-upgrade{margin-top:10px;}
+  .usda-key-upgrade-toggle{
+    background:none; border:none; color:var(--text-muted); font-size:11.5px; text-decoration:underline;
+    cursor:pointer; font-family:'Inter',sans-serif; padding:0; width:100%; text-align:left; white-space:normal; line-height:1.4;
+  }
   .show-more-btn::after{content:'⌄'; font-size:12px; transition:transform 0.28s ease;}
   .show-more-btn.expanded::after{transform:rotate(180deg);}
 
@@ -669,18 +681,11 @@
   .pose-detail li{margin-bottom:5px;}
   .nutrition-header .ex-chevron{transition:transform 0.28s ease;}
   .nutrition-header.open .ex-chevron{transform:rotate(90deg);}
-  #nutritionHeader.open + #nutritionSummary{display:none;}
   .nutrition-summary{
     font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12.5px; color:var(--text-muted); margin:8px 0 4px;
     display:flex; flex-direction:column; gap:6px;
   }
   .nutrition-summary b{color:var(--text);}
-  .mini-bar-row{display:flex; align-items:center; gap:8px;}
-  .mini-bar-label{width:28px; font-size:10.5px; text-transform:uppercase; letter-spacing:0.3px; flex:0 0 auto;}
-  .mini-bar-track{flex:1; height:6px; background:var(--surface2); border-radius:4px; overflow:hidden;}
-  .mini-bar-fill{position:relative; height:100%; border-radius:4px; transition:width 0.5s var(--ease-smooth);}
-  .mini-bar-fill::after{content:''; position:absolute; inset:0; border-radius:4px; background:linear-gradient(180deg, rgba(255,255,255,0.32), rgba(255,255,255,0) 55%);}
-  .mini-bar-val{width:64px; text-align:right; font-size:10.5px; flex:0 0 auto;}
 
   .photo-log-btn{
     width:100%; margin:12px 0; padding:12px; background:var(--surface2); border:1px dashed var(--plate-blue);
@@ -779,7 +784,7 @@
 
   .targets-strip{
     display:flex; justify-content:space-between; text-align:center;
-    background:var(--surface2); border-radius:var(--radius-md); padding:12px 6px; margin-bottom:14px;
+    background:var(--surface2); border-radius:var(--radius-md); padding:12px 6px; margin:8px 0 14px;
   }
   .targets-strip div{flex:1;}
   .targets-strip .t-val{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-weight:700; font-size:16.5px; letter-spacing:-0.01em;}
@@ -879,6 +884,7 @@
     font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12.5px; font-weight:600; color:var(--text);
     margin-bottom:6px;
   }
+  .day-card-program{font-weight:500; color:var(--text-muted); font-size:11px;}
   .day-weight-row{
     display:flex; align-items:center; gap:8px; font-size:13px; margin-bottom:6px; color:var(--text);
   }
@@ -939,6 +945,15 @@
 
   .care-form{display:flex; flex-direction:column; gap:10px;}
   .care-label{font-size:11.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.3px; margin-top:4px;}
+  .ai-key-connected{
+    display:flex; align-items:center; gap:8px; padding:10px 12px; background:var(--surface2);
+    border:1px solid var(--line); border-radius:var(--radius-sm); font-size:13px; color:var(--text);
+  }
+  .ai-key-connected-dot{width:8px; height:8px; border-radius:50%; background:var(--plate-green); flex:0 0 auto; box-shadow:0 0 6px rgba(50,215,75,0.6);}
+  .ai-key-change-btn{
+    margin-left:auto; background:none; border:none; color:var(--plate-blue); font-size:12.5px; font-weight:600;
+    cursor:pointer; font-family:'Inter',sans-serif; padding:0;
+  }
   .care-input{
     width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--text);
     border-radius:var(--radius-sm); padding:10px; font-family:'Inter',sans-serif; font-size:13.5px;
@@ -1052,6 +1067,7 @@
   .food-item-btn:active{transform:scale(0.98); border-color:var(--plate-blue);}
   .food-item-btn .fi-name{font-size:13.5px; font-weight:500;}
   .food-item-btn .fi-cat{font-size:10px; color:var(--plate-blue); text-transform:uppercase; letter-spacing:0.3px; margin-top:1px;}
+  .food-item-btn .fi-source{font-size:10px; color:var(--plate-teal); margin-top:1px;}
   .food-item-btn .fi-macro{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted); margin-top:2px;}
   .food-item-btn .fi-actions{display:flex; align-items:center; gap:8px; flex:0 0 auto;}
   .fi-star{
@@ -1281,37 +1297,36 @@
       <span><span class="card-icon" style="margin-right:7px"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg></span>Today's Nutrition</span>
       <span class="ex-chevron" id="nutritionChevron">›</span>
     </div>
-    <div class="nutrition-summary" id="nutritionSummary"></div>
+
+    <div class="targets-strip">
+      <div><div class="t-val" id="tvCal">2650</div><div class="t-label">Cal Target</div></div>
+      <div><div class="t-val" id="tvPro">240g</div><div class="t-label">Protein</div></div>
+      <div><div class="t-val" id="tvFat">75g</div><div class="t-label">Fat</div></div>
+      <div><div class="t-val" id="tvCarb">250g</div><div class="t-label">Carbs</div></div>
+    </div>
+    <div class="macro-row">
+      <div class="macro-label">CALORIES</div>
+      <div class="macro-bar-track"><div class="macro-bar-fill" id="barCal" style="background:var(--plate-white);width:0%"></div></div>
+      <div class="macro-val" id="valCal">0 / 2650</div>
+    </div>
+    <div class="macro-row">
+      <div class="macro-label">PROTEIN</div>
+      <div class="macro-bar-track"><div class="macro-bar-fill" id="barPro" style="background:var(--plate-red);width:0%"></div></div>
+      <div class="macro-val" id="valPro">0 / 240</div>
+    </div>
+    <div class="macro-row">
+      <div class="macro-label">FAT</div>
+      <div class="macro-bar-track"><div class="macro-bar-fill" id="barFat" style="background:var(--plate-yellow);width:0%"></div></div>
+      <div class="macro-val" id="valFat">0 / 75</div>
+    </div>
+    <div class="macro-row">
+      <div class="macro-label">CARBS</div>
+      <div class="macro-bar-track"><div class="macro-bar-fill" id="barCarb" style="background:var(--plate-blue);width:0%"></div></div>
+      <div class="macro-val" id="valCarb">0 / 250</div>
+    </div>
 
     <div class="expand-wrap" id="nutritionExpandWrap"><div>
-      <div class="targets-strip">
-        <div><div class="t-val" id="tvCal">2650</div><div class="t-label">Cal Target</div></div>
-        <div><div class="t-val" id="tvPro">240g</div><div class="t-label">Protein</div></div>
-        <div><div class="t-val" id="tvFat">75g</div><div class="t-label">Fat</div></div>
-        <div><div class="t-val" id="tvCarb">250g</div><div class="t-label">Carbs</div></div>
-      </div>
-      <div class="macro-row">
-        <div class="macro-label">CALORIES</div>
-        <div class="macro-bar-track"><div class="macro-bar-fill" id="barCal" style="background:var(--plate-white);width:0%"></div></div>
-        <div class="macro-val" id="valCal">0 / 2650</div>
-      </div>
-      <div class="macro-row">
-        <div class="macro-label">PROTEIN</div>
-        <div class="macro-bar-track"><div class="macro-bar-fill" id="barPro" style="background:var(--plate-red);width:0%"></div></div>
-        <div class="macro-val" id="valPro">0 / 240</div>
-      </div>
-      <div class="macro-row">
-        <div class="macro-label">FAT</div>
-        <div class="macro-bar-track"><div class="macro-bar-fill" id="barFat" style="background:var(--plate-yellow);width:0%"></div></div>
-        <div class="macro-val" id="valFat">0 / 75</div>
-      </div>
-      <div class="macro-row">
-        <div class="macro-label">CARBS</div>
-        <div class="macro-bar-track"><div class="macro-bar-fill" id="barCarb" style="background:var(--plate-blue);width:0%"></div></div>
-        <div class="macro-val" id="valCarb">0 / 250</div>
-      </div>
-
-      <div class="meal-suggest-card">
+      <div class="meal-suggest-card" style="margin-top:14px">
         <div class="meal-suggest-title">🍽️ What to Eat Next</div>
         <div id="mealSuggestContent"></div>
       </div>
@@ -1340,6 +1355,7 @@
       <div id="photoLogResult"></div>
 
       <input type="text" id="foodSearchInput" class="food-search-input" placeholder="🔍 Search any food or restaurant...">
+      <div id="usdaKeySettingsSlot"></div>
 
       <div class="food-cats" id="foodCats"></div>
       <div class="food-items" id="foodItems"></div>
@@ -1458,8 +1474,15 @@
         Photo meal logging and video form coaching call Anthropic's API directly from your phone using your own key — nothing routes through me. Get a free key at <b>console.anthropic.com</b>, paste it below. It's stored only on this device. Each photo/video review costs a small amount on your own Anthropic account (a few cents at most).
       </div>
       <label class="care-label">Your Anthropic API Key</label>
-      <input type="password" id="aiApiKeyInput" class="care-input" placeholder="sk-ant-...">
-      <button class="save-btn" id="aiApiKeySave">Save Key</button>
+      <div id="aiKeySetupState">
+        <input type="password" id="aiApiKeyInput" class="care-input" placeholder="sk-ant-...">
+        <button class="save-btn" id="aiApiKeySave">Save Key</button>
+      </div>
+      <div id="aiKeyConnectedState" class="ai-key-connected" style="display:none">
+        <span class="ai-key-connected-dot"></span>
+        <span>Connected — AI features ready</span>
+        <button class="ai-key-change-btn" id="aiApiKeyChange" type="button">Change key</button>
+      </div>
       <div class="status-msg" id="aiApiKeyStatus"></div>
     </div></div>
   </div>
@@ -7079,7 +7102,7 @@ async function renderProgramFitCheck(){
     const reason = !trend || trend.total < PROGRAM_FIT_MIN_SAMPLE
       ? 'Keep logging weight and reps across a few weeks — this needs signal from several exercises in your current program before it can say anything meaningful.'
       : 'No strong program-wide pattern right now — a mix of signals across your lifts, which is completely normal.';
-    el.innerHTML = `<div class="empty-note">🧭 ${reason}</div>`;
+    el.innerHTML = `<div class="empty-note">${reason}</div>`;
     return;
   }
   const cls = insight.status === 'thriving' ? 'goal-feedback-good' : 'goal-feedback-warn';
@@ -9163,6 +9186,111 @@ async function removeFromCustomFoods(name){
   await saveCustomFoods();
 }
 
+// --- USDA FoodData Central: free, public-domain nutrition database (600K+
+// foods), used as the automatic fallback whenever a search doesn't match
+// anything in the local food library. Works with zero setup via USDA's
+// public DEMO_KEY (rate-limited to 30 requests/hour); if that gets tight,
+// a personal free key from fdc.nal.usda.gov/api-key-signup raises that to
+// 1,000/hour and can be saved the same way as the Anthropic key below.
+// Every result found here gets cached into "My Foods" the moment it's
+// added to the log, so any given food is only ever looked up once.
+const USDA_API_BASE = 'https://api.nal.usda.gov/fdc/v1';
+
+async function getUsdaApiKey(){
+  try{
+    const res = await window.storage.get('usda-api-key');
+    if(res && res.value) return res.value;
+  }catch(e){}
+  return 'DEMO_KEY';
+}
+
+// USDA's Branded Foods (packaged/consumer items) usually carry
+// labelNutrients — the exact numbers printed on the actual package,
+// already per-serving. That's strongly preferred over the generic
+// foodNutrients array, which for whole/raw foods (Foundation, SR Legacy,
+// Survey) is standardized per 100g rather than per a realistic serving.
+// Mixing these up would silently produce wrong macro numbers, so the
+// serving basis is always returned alongside the values, never assumed.
+function extractUsdaNutrition(food){
+  if(food.labelNutrients){
+    const ln = food.labelNutrients;
+    const servingDesc = food.householdServingFullText
+      || (food.servingSize ? `${food.servingSize}${food.servingSizeUnit || 'g'}` : 'labeled serving');
+    return {
+      cal: Math.round(ln.calories?.value ?? 0),
+      pro: Math.round(ln.protein?.value ?? 0),
+      fat: Math.round(ln.fat?.value ?? 0),
+      carb: Math.round(ln.carbohydrates?.value ?? 0),
+      servingDesc,
+    };
+  }
+  const nutrients = food.foodNutrients || [];
+  const findVal = (id, nameHint) => {
+    const hit = nutrients.find(n =>
+      n.nutrientId === id || (n.nutrientName && n.nutrientName.toLowerCase().includes(nameHint))
+    );
+    return hit ? Number(hit.value) || 0 : 0;
+  };
+  return {
+    cal: Math.round(findVal(1008, 'energy')),
+    pro: Math.round(findVal(1003, 'protein')),
+    fat: Math.round(findVal(1004, 'total lipid')),
+    carb: Math.round(findVal(1005, 'carbohydrate')),
+    servingDesc: 'per 100g',
+  };
+}
+
+// Only ever shown after the shared DEMO_KEY's rate limit is actually hit —
+// no reason to ask for a personal key upfront when the free shared one is
+// plenty for normal, occasional use.
+function buildUsdaKeyUpgradePrompt(){
+  const wrap = document.createElement('div');
+  wrap.className = 'usda-key-upgrade';
+  wrap.innerHTML = `
+    <button class="usda-key-upgrade-toggle" type="button">USDA food search: on, using the shared free key · Add a personal key</button>
+    <div class="usda-key-upgrade-form" style="display:none">
+      <div class="care-disclaimer" style="margin-top:8px;">Search already works with zero setup. A personal key just raises the limit from 30/hour to 1,000/hour if you ever hit it. Get one free, instantly, at <b>fdc.nal.usda.gov/api-key-signup</b> — no approval wait, no billing, no account needed beyond an email. Stored only on this device.</div>
+      <input type="text" class="care-input usda-key-input" placeholder="Paste your USDA API key">
+      <button class="save-btn usda-key-save">Save Key</button>
+    </div>
+  `;
+  wrap.querySelector('.usda-key-upgrade-toggle').addEventListener('click', (e)=>{
+    wrap.querySelector('.usda-key-upgrade-form').style.display = '';
+    e.target.style.display = 'none';
+  });
+  wrap.querySelector('.usda-key-save').addEventListener('click', async ()=>{
+    const input = wrap.querySelector('.usda-key-input');
+    const key = input.value.trim();
+    if(!key) return;
+    try{ await window.storage.set('usda-api-key', key); }catch(e){}
+    input.value = '';
+    wrap.innerHTML = '<div class="empty-note">Personal key saved — try searching again.</div>';
+  });
+  return wrap;
+}
+
+async function searchUsdaFoods(query){
+  const apiKey = await getUsdaApiKey();
+  const url = `${USDA_API_BASE}/foods/search?query=${encodeURIComponent(query)}&pageSize=8&api_key=${encodeURIComponent(apiKey)}`;
+  const response = await fetch(url);
+  if(response.status === 429){
+    throw new Error('USDA rate limit hit — try again in a bit, or add a free personal key for a much higher limit.');
+  }
+  if(!response.ok){
+    throw new Error(`USDA lookup failed (${response.status})`);
+  }
+  const data = await response.json();
+  const foods = data.foods || [];
+  return foods.map(food=>{
+    const nutrition = extractUsdaNutrition(food);
+    return {
+      name: food.brandOwner ? `${food.description} (${food.brandOwner})` : food.description,
+      ...nutrition,
+      source: 'USDA',
+    };
+  }).filter(f=> f.cal > 0 || f.pro > 0 || f.fat > 0 || f.carb > 0); // drop entries USDA has no usable macro data for
+}
+
 function allFoodsFlat(){
   const flat = [];
   Object.keys(foodLibrary).forEach(cat=>{
@@ -9209,11 +9337,13 @@ function buildFoodItemBtn(item, showCategory){
   btn.className = 'food-item-btn';
   const favorited = isFavorited(item.name);
   const catHtml = showCategory && item.category ? `<div class="fi-cat">${item.category}</div>` : '';
+  const sourceHtml = item.source ? `<div class="fi-source">via ${item.source}${item.servingDesc ? ` · ${item.servingDesc}` : ''}</div>` : '';
   const isCustom = item.category === 'My Foods' || activeCat === '📁 My Foods';
   btn.innerHTML = `
     <div>
       <div class="fi-name">${escapeHtml(item.name)}</div>
       ${catHtml}
+      ${sourceHtml}
       <div class="fi-macro">${item.cal} cal · ${item.pro}p / ${item.fat}f / ${item.carb}c</div>
     </div>
     <div class="fi-actions">
@@ -9295,18 +9425,84 @@ function appendItemsCollapsible(container, itemNodes, visibleCount){
   container.appendChild(btn);
 }
 
+let usdaResults = [];
+let usdaSearchedTerm = null; // the term we've completed an attempt for, success OR failure
+let usdaSearchLoading = false;
+let usdaSearchError = null;
+
+async function runUsdaSearch(term){
+  usdaSearchLoading = true;
+  usdaSearchError = null;
+  renderFoodItems();
+  try{
+    usdaResults = await searchUsdaFoods(term);
+    usdaSearchError = null;
+  }catch(e){
+    usdaSearchError = e.message || 'USDA lookup failed — check your connection and try again.';
+    usdaResults = [];
+  }
+  usdaSearchedTerm = term; // mark attempted regardless of outcome, so retry/search-button logic is unambiguous
+  usdaSearchLoading = false;
+  renderFoodItems();
+}
+
 function renderFoodItems(){
   const itemsEl = document.getElementById('foodItems');
   itemsEl.innerHTML = '';
 
   if(currentSearchTerm){
     const term = currentSearchTerm.toLowerCase();
-    const matches = sortByUsage(allFoodsFlat().filter(item=> item.name.toLowerCase().includes(term)));
-    if(matches.length === 0){
-      itemsEl.innerHTML = '<div class="empty-note">🔍 No matches — try a different search, or add it as a custom item below.</div>';
-      return;
+    const localMatches = sortByUsage(allFoodsFlat().filter(item=> item.name.toLowerCase().includes(term)));
+    const localNames = new Set(localMatches.map(m=>m.name));
+
+    localMatches.forEach(item=> itemsEl.appendChild(buildFoodItemBtn(item, true)));
+
+    if(localMatches.length === 0 && !usdaSearchLoading){
+      const emptyDiv = document.createElement('div');
+      emptyDiv.className = 'empty-note';
+      emptyDiv.textContent = 'No matches in your food list.';
+      itemsEl.appendChild(emptyDiv);
     }
-    appendItemsCollapsible(itemsEl, matches.map(item=>buildFoodItemBtn(item, true)), 5);
+
+    // USDA state only ever applies to the exact term it was fetched for —
+    // if the search box has since changed, treat it as not-yet-searched
+    // rather than showing a stale result or error from a different query.
+    const usdaIsCurrent = usdaSearchedTerm === currentSearchTerm;
+    const usdaToShow = usdaIsCurrent ? usdaResults.filter(r=> !localNames.has(r.name)) : [];
+
+    if(usdaSearchLoading){
+      const loadingDiv = document.createElement('div');
+      loadingDiv.className = 'skeleton-wrap';
+      loadingDiv.innerHTML = '<div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div>';
+      itemsEl.appendChild(loadingDiv);
+    } else if(usdaIsCurrent && usdaSearchError){
+      const errDiv = document.createElement('div');
+      errDiv.className = 'empty-note';
+      errDiv.textContent = usdaSearchError;
+      itemsEl.appendChild(errDiv);
+      const retryBtn = document.createElement('button');
+      retryBtn.className = 'usda-search-btn';
+      retryBtn.textContent = 'Try again';
+      retryBtn.addEventListener('click', ()=> runUsdaSearch(currentSearchTerm));
+      itemsEl.appendChild(retryBtn);
+      if(/rate limit/i.test(usdaSearchError)){
+        itemsEl.appendChild(buildUsdaKeyUpgradePrompt());
+      }
+    } else if(usdaIsCurrent && usdaToShow.length > 0){
+      usdaToShow.forEach(item=> itemsEl.appendChild(buildFoodItemBtn(item, false)));
+    } else if(!usdaIsCurrent){
+      const searchBtn = document.createElement('button');
+      searchBtn.className = 'usda-search-btn';
+      searchBtn.innerHTML = `🔍 Search USDA database for "${escapeHtml(currentSearchTerm)}"`;
+      searchBtn.addEventListener('click', ()=> runUsdaSearch(currentSearchTerm));
+      itemsEl.appendChild(searchBtn);
+    } else if(localMatches.length === 0){
+      // usdaIsCurrent, no error, but zero usable results even from USDA
+      const noneDiv = document.createElement('div');
+      noneDiv.className = 'empty-note';
+      noneDiv.textContent = 'USDA search found nothing usable either — try a simpler or more generic term (e.g. "chicken breast" instead of a specific brand/dish name).';
+      itemsEl.appendChild(noneDiv);
+    }
     return;
   }
 
@@ -9367,6 +9563,14 @@ async function addFoodToLog(item){
   todaysFoodLog.push({...item});
   await saveFoodLog();
   await bumpUsageCount(item.name);
+  // Anything found via an online lookup (USDA, etc.) gets cached into My
+  // Foods the first time it's actually used — so it's local and instant
+  // for every search after this one, and the lookup never has to happen
+  // twice for the same food.
+  if(item.source){
+    const { source, servingDesc, category, ...cacheable } = item;
+    await addToCustomFoods(cacheable);
+  }
   renderFoodLog();
   renderFoodItems();
 }
@@ -9536,23 +9740,6 @@ function updateBars(v){
   document.getElementById('valPro').textContent = `${pro} / ${targets.pro}`;
   document.getElementById('valFat').textContent = `${fat} / ${targets.fat}`;
   document.getElementById('valCarb').textContent = `${carb} / ${targets.carb}`;
-
-  const mini = (label, val, target, color)=>{
-    const pct = Math.min(100, (val/target)*100);
-    return `
-      <div class="mini-bar-row">
-        <span class="mini-bar-label">${label}</span>
-        <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${pct}%; background:${color}"></div></div>
-        <span class="mini-bar-val">${val}/${target}${label==='Cal'?'':'g'}</span>
-      </div>
-    `;
-  };
-  document.getElementById('nutritionSummary').innerHTML = `
-    ${mini('Cal', cal, targets.cal, 'var(--plate-white)')}
-    ${mini('Pro', pro, targets.pro, 'var(--plate-red)')}
-    ${mini('Fat', fat, targets.fat, 'var(--plate-yellow)')}
-    ${mini('Carb', carb, targets.carb, 'var(--plate-blue)')}
-  `;
 }
 
 document.getElementById('nutritionHeader').addEventListener('click', ()=>{
@@ -10359,7 +10546,7 @@ async function fetchFoodDays(){
 function renderSparkline(entries){
   const el = document.getElementById('weightChart');
   if(entries.length < 2){
-    el.innerHTML = '<div class="empty-note">📈 Log at least two weigh-ins to see your trend.</div>';
+    el.innerHTML = '<div class="empty-note">Log at least two weigh-ins to see your trend.</div>';
     return;
   }
   const sorted = [...entries].sort((a,b)=> new Date(a.date)-new Date(b.date)).slice(-16);
@@ -10473,7 +10660,7 @@ async function renderExerciseProgress(){
   }catch(e){}
 
   if(keys.length === 0){
-    el.innerHTML = '<div class="empty-note">💪 Log a weight and rep count on an exercise to start tracking progress.</div>';
+    el.innerHTML = '<div class="empty-note">Log a weight and rep count on an exercise to start tracking progress.</div>';
     return;
   }
 
@@ -10508,14 +10695,14 @@ async function renderExerciseProgress(){
   }
 
   if(rows.length === 0){
-    el.innerHTML = '<div class="empty-note">💪 Log a weight and rep count on an exercise to start tracking progress.</div>';
+    el.innerHTML = '<div class="empty-note">Log a weight and rep count on an exercise to start tracking progress.</div>';
     return;
   }
 
   rows.sort((a,b)=> a.dayLabel.localeCompare(b.dayLabel) || a.name.localeCompare(b.name));
 
   const rowHtmls = rows.map(r=>{
-    const deltaWLb = (r.first && r.latest && r.first.weight!=null && r.latest.weight!=null) ? (r.latest.weight - r.first.weight) : null;
+    const deltaWLb = (r.sessionCount > 1 && r.first && r.latest && r.first.weight!=null && r.latest.weight!=null) ? (r.latest.weight - r.first.weight) : null;
     const deltaHtml = deltaWLb==null ? '' :
       `<span class="${deltaWLb>0?'w-up':deltaWLb<0?'w-down':'w-flat'}">${deltaWLb>0?'+':''}${trimUnitNum(toDisplayWeight(deltaWLb))} ${weightUnit} since first log</span>`;
     const readyHtml = r.readyToProgress ? `<div class="prog-ready">⬆ Ready to move up in weight next session</div>` : '';
@@ -10592,7 +10779,7 @@ async function renderPrTimeline(){
 
   const events = await reconstructAllPRs();
   if(events.length === 0){
-    el.innerHTML = '<div class="empty-note">🏆 No PRs yet — the very first weight you log for any exercise counts as your first one.</div>';
+    el.innerHTML = '<div class="empty-note">No PRs yet — the very first weight you log for any exercise counts as your first one.</div>';
     return;
   }
 
@@ -10639,6 +10826,22 @@ async function getApiKey(){
 
 async function saveApiKey(key){
   try{ await window.storage.set('ai-api-key', key); }catch(e){}
+}
+
+// Once a key is saved there's no reason for it to sit in a visible input
+// field indefinitely — that's both visual clutter and an unnecessary
+// lingering display of a credential. Show a simple "connected" state
+// instead, with a "Change key" escape hatch for whenever it actually
+// needs to change.
+function showApiKeyConnected(){
+  document.getElementById('aiKeySetupState').style.display = 'none';
+  document.getElementById('aiKeyConnectedState').style.display = 'flex';
+  document.getElementById('aiSettingsSummary').textContent = 'Key saved — AI features ready';
+}
+function showApiKeySetup(){
+  document.getElementById('aiKeySetupState').style.display = '';
+  document.getElementById('aiKeyConnectedState').style.display = 'none';
+  document.getElementById('aiSettingsSummary').textContent = 'Powers Snap a Meal + Coaching video review';
 }
 
 async function callClaudeVision(apiKey, imageBase64List, promptText, maxTokens){
@@ -10689,9 +10892,13 @@ document.getElementById('aiApiKeySave').addEventListener('click', async ()=>{
   const status = document.getElementById('aiApiKeyStatus');
   if(!key){ status.textContent = 'Enter a key first'; return; }
   await saveApiKey(key);
-  status.textContent = 'Saved ✓';
-  document.getElementById('aiSettingsSummary').textContent = 'Key saved — AI features ready';
-  setTimeout(()=> status.textContent = '', 2000);
+  document.getElementById('aiApiKeyInput').value = '';
+  showApiKeyConnected();
+});
+
+document.getElementById('aiApiKeyChange').addEventListener('click', ()=>{
+  showApiKeySetup();
+  document.getElementById('aiApiKeyInput').focus();
 });
 
 let photoLogParsedItems = [];
@@ -11226,7 +11433,7 @@ async function renderCare(){
 
   // Past check-ins
   if(log.length === 0){
-    listEl.innerHTML = '<div class="empty-note">📋 No check-ins logged yet — log how you\'re feeling above to start tracking patterns.</div>';
+    listEl.innerHTML = '<div class="empty-note">No check-ins logged yet — log how you\'re feeling above to start tracking patterns.</div>';
   }else{
     const sorted = [...log].sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'));
     const itemHtmls = sorted.map(e=>`
@@ -11345,7 +11552,7 @@ async function renderSavedWeeks(){
   const el = document.getElementById('savedWeeksList');
   const archive = await getWeekArchive();
   if(archive.length === 0){
-    el.innerHTML = '<div class="empty-note">🏁 No saved weeks yet — tap "Save This Week & Start Fresh" on Day 7 when you finish a training week.</div>';
+    el.innerHTML = '<div class="empty-note">No saved weeks yet — tap "Save This Week & Start Fresh" on Day 7 when you finish a training week.</div>';
     return;
   }
   const sorted = [...archive].sort((a,b)=> new Date(b.weekStart+'T00:00:00')-new Date(a.weekStart+'T00:00:00'));
@@ -11376,7 +11583,7 @@ async function renderHistory(){
   const dates = Object.keys(dayMap).sort((a,b)=> new Date(b+'T00:00:00')-new Date(a+'T00:00:00'));
 
   if(dates.length === 0){
-    listEl.innerHTML = '<div class="empty-note">🗂️ Nothing logged yet — once you start tracking workouts and weigh-ins, they\'ll show up here month by month.</div>';
+    listEl.innerHTML = '<div class="empty-note">Nothing logged yet — once you start tracking workouts and weigh-ins, they\'ll show up here month by month.</div>';
     return;
   }
 
@@ -11396,15 +11603,25 @@ async function renderHistory(){
       const weightRow = day.weight != null
         ? `<div class="day-weight-row">⚖️ ${fmtWeight(day.weight)} ${deltaSpan(toDisplayWeight(day.weightDelta), ' '+weightUnit, 'down')}</div>`
         : '';
+      const dayLabelSet = new Set(day.exercises.map(ex=>ex.dayLabel));
+      const uniformDayLabel = dayLabelSet.size === 1 ? day.exercises[0].dayLabel : null;
+      const showDayLabel = !uniformDayLabel;
       const exRows = day.exercises.map(ex=>{
         const weightDeltaHtml = deltaSpan(toDisplayWeight(ex.deltaWeight), ' '+weightUnit, 'up');
         const repsDeltaHtml = deltaSpan(ex.deltaReps, ' reps', 'up');
         const setsStr = (ex.sets||[]).filter(s=>s.weight!=null||s.reps!=null)
           .map(s=> `${s.weight!=null ? trimUnitNum(toDisplayWeight(s.weight)) : '—'}×${s.reps ?? '—'}`).join(', ');
+        // The day-label ("Strength & Size · Day 2") is shown once at the
+        // day-card level below (when every exercise that day shares it,
+        // which is virtually always true) rather than repeated on every
+        // single row — that repetition was the single biggest source of
+        // visual bulk in this list. showDayLabel falls back to per-row
+        // display only in the rare case a day mixes labels.
+        const dayLabelHtml = showDayLabel ? `<span class="day-ex-day">${ex.dayLabel}</span>` : '';
         return `
           <div class="day-ex-row">
             <span class="day-ex-name">${ex.name}</span>
-            <span class="day-ex-day">${ex.dayLabel}</span>
+            ${dayLabelHtml}
             <span>${setsStr}</span>
             <span class="day-ex-vol">Vol ${ex.volume.toLocaleString()}</span>
             ${weightDeltaHtml} ${repsDeltaHtml}
@@ -11413,7 +11630,7 @@ async function renderHistory(){
       }).join('');
       return `
         <div class="day-card">
-          <div class="day-card-date">${fmtDayLabel(date)}</div>
+          <div class="day-card-date">${fmtDayLabel(date)}${uniformDayLabel ? ` <span class="day-card-program">· ${uniformDayLabel}</span>` : ''}</div>
           ${weightRow}
           ${exRows}
         </div>
@@ -11573,7 +11790,7 @@ async function renderVolumeTrend(){
 
   const groups = Object.keys(groupVolumes).filter(g=> groupVolumes[g].thisWeek>0 || groupVolumes[g].lastWeek>0);
   if(groups.length === 0){
-    el.innerHTML = '<div class="empty-note">🏋️ Log some sets with weight and reps to see your weekly volume trend by muscle group.</div>';
+    el.innerHTML = '<div class="empty-note">Log some sets with weight and reps to see your weekly volume trend by muscle group.</div>';
     return;
   }
 
@@ -11660,7 +11877,7 @@ async function renderRpeTrend(){
   const weeklyData = await computeWeeklyRpeAvg(10);
   const withData = weeklyData.filter(w=> w.avg != null);
   if(withData.length < 2){
-    el.innerHTML = '<div class="empty-note">📊 Log RPE on a few sets across at least two different weeks to see this trend.</div>';
+    el.innerHTML = '<div class="empty-note">Log RPE on a few sets across at least two different weeks to see this trend.</div>';
     return;
   }
 
@@ -11780,7 +11997,7 @@ async function renderGoalFeedback(){
   const [weightEntries, measureEntries] = await Promise.all([fetchAllWeightEntries(), fetchAllMeasurements()]);
   const feedback = computeGoalFeedback(userProfile, weightEntries, measureEntries);
   if(!feedback){
-    el.innerHTML = '<div class="empty-note">🎯 Log weight and/or measurements across at least two weeks to see how they line up with your goal.</div>';
+    el.innerHTML = '<div class="empty-note">Log weight and/or measurements across at least two weeks to see how they line up with your goal.</div>';
     return;
   }
   const cls = feedback.status==='on-track' ? 'goal-feedback-good' : feedback.status==='neutral' ? 'goal-feedback-neutral' : 'goal-feedback-warn';
@@ -11918,11 +12135,11 @@ if(activeUserId){
     await loadUsageCounts();
     const savedKey = await getApiKey();
     if(savedKey){
-      document.getElementById('aiApiKeyInput').value = savedKey;
-      document.getElementById('aiSettingsSummary').textContent = 'Key saved — AI features ready';
+      showApiKeyConnected();
     }
     renderFoodCats();
     renderFoodItems();
+    document.getElementById('usdaKeySettingsSlot').appendChild(buildUsdaKeyUpgradePrompt());
     loadFoodLog();
     loadWeights();
     loadSleep();
