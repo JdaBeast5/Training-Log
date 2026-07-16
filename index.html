@@ -123,22 +123,6 @@
   .streak-badge.zero{background:var(--surface2); border-color:var(--line); color:var(--text-muted); font-weight:500; box-shadow:none;}
   .streak-badge.streak-pulse{ animation:streakPulse 0.7s var(--ease-spring); }
   @keyframes streakPulse{ 0%{transform:scale(1);} 35%{transform:scale(1.18);} 60%{transform:scale(0.94);} 100%{transform:scale(1);} }
-  .glare-toggle-btn{
-    display:inline-flex; align-items:center; gap:6px; margin-top:10px; margin-left:8px;
-    background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
-    border-radius:var(--radius-pill); padding:4px 12px 4px 11px; font-family:'Inter',sans-serif;
-    font-size:12px; font-weight:600; cursor:pointer;
-    transition:border-color 0.2s var(--ease-smooth), color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
-  }
-  .glare-toggle-btn:active{transform:scale(0.96);}
-  .glare-toggle-btn.on{border-color:var(--plate-blue); color:var(--plate-blue);}
-  .glare-overlay{
-    position:fixed; top:-60%; left:-60%; width:220%; height:220%;
-    background:radial-gradient(circle at 50% 50%, rgba(255,255,255,0.16), rgba(255,255,255,0.05) 35%, transparent 62%);
-    mix-blend-mode:overlay; pointer-events:none; z-index:9000;
-    transform:translate3d(0,0,0); will-change:transform; display:none;
-  }
-  .glare-overlay.active{display:block;}
 
   .tabs-header{display:flex; align-items:center; justify-content:space-between; padding-top:14px;}
   .tabs-header .hint{font-size:11px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; text-transform:uppercase; letter-spacing:0.5px;}
@@ -334,9 +318,23 @@
     color:var(--plate-yellow); text-transform:uppercase; letter-spacing:0.3px;
   }
   .superset-connector::before{content:'⚡';}
+  input[type=checkbox]{
+    -webkit-appearance:none; appearance:none; margin:0;
+    background:var(--surface2); border:1.5px solid var(--line-bright);
+    border-radius:6px; cursor:pointer; position:relative; flex:0 0 auto;
+    transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
+  }
+  input[type=checkbox]:active{transform:scale(0.9);}
+  input[type=checkbox]:checked::after{
+    content:''; position:absolute; left:50%; top:46%; width:28%; height:52%;
+    border:solid #fff; border-width:0 2px 2px 0; transform:translate(-50%,-58%) rotate(45deg);
+  }
   .exercise input[type=checkbox]{
-    width:22px; height:22px; flex:0 0 auto;
-    accent-color:var(--plate-blue);
+    width:22px; height:22px;
+  }
+  .exercise input[type=checkbox]:checked{
+    background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%); border-color:var(--plate-blue);
+    box-shadow:0 1px 0 rgba(255,255,255,0.25) inset;
   }
   .ex-thumb{
     flex:0 0 auto; width:30px; height:30px; color:var(--text-muted); opacity:0.9;
@@ -629,8 +627,8 @@
   .height-inputs{display:flex; align-items:center; gap:6px;}
   .height-unit{font-size:12px; color:var(--text-muted);}
   .program-rec-banner{
-    margin-top:14px; padding:12px 14px; background:rgba(50,215,75,0.12); border:1px solid rgba(50,215,75,0.35);
-    border-radius:var(--radius-md); font-size:13px; line-height:1.5;
+    margin:0 0 18px; padding:14px 16px; background:rgba(50,215,75,0.12); border:1px solid rgba(50,215,75,0.35);
+    border-radius:var(--radius-lg); font-size:13px; line-height:1.5;
   }
   .program-rec-banner b{color:var(--plate-green);}
   .program-rec-actions{display:flex; gap:8px; margin-top:10px;}
@@ -830,6 +828,13 @@
   .program-select-desc{
     font-size:12px; color:var(--text-muted); margin:6px 0 16px; line-height:1.4;
   }
+  .masterclass-link-btn{
+    width:100%; margin:2px 0 4px; padding:10px; background:var(--surface2); border:1px solid var(--line);
+    border-radius:var(--radius-md); color:var(--plate-blue); font-size:12.5px; font-weight:600; cursor:pointer;
+    font-family:'Inter',sans-serif; letter-spacing:-0.005em; display:flex; align-items:center; justify-content:center; gap:6px;
+    transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
+  }
+  .masterclass-link-btn:active{transform:scale(0.98); border-color:var(--line-bright);}
 
   .week-row{
     display:flex; align-items:center; gap:8px; padding:12px 0; border-bottom:1px solid var(--line-soft);
@@ -1078,7 +1083,12 @@
   .save-to-library-label{
     display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-muted); padding:4px 0;
   }
-  .save-to-library-label input[type=checkbox]{width:16px; height:16px; accent-color:var(--plate-green); flex:0 0 auto;}
+  .save-to-library-label input[type=checkbox]{
+    width:16px; height:16px;
+  }
+  .save-to-library-label input[type=checkbox]:checked{
+    background:linear-gradient(160deg, #4FE168, var(--plate-green) 60%); border-color:var(--plate-green);
+  }
   .fi-duplicate{
     background:none; border:none; font-size:15px; cursor:pointer; padding:2px; color:var(--text-muted); line-height:1;
   }
@@ -1112,7 +1122,6 @@
     <h1>Training Log</h1>
     <div class="sub" id="headerSub">Set up your profile below to personalize this</div>
     <div class="streak-badge" id="streakBadge" style="display:none"></div>
-    <button class="glare-toggle-btn" id="glareToggleBtn" style="display:none">✨ Enable Motion Glare</button>
   </header>
 
   <div class="nav-pills">
@@ -1206,11 +1215,14 @@
   </div>
   <div id="programRecommendation"></div>
 
-  <div class="card-title" style="margin-bottom:8px;"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg></span>Training Style</div>
-  <div class="program-select-wrap">
-    <select class="program-select" id="programSelector"></select>
+  <div class="card">
+    <div class="card-title" style="margin-bottom:8px;"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg></span>Training Style</div>
+    <div class="program-select-wrap">
+      <select class="program-select" id="programSelector"></select>
+    </div>
+    <div class="program-select-desc" id="programSelectDesc"></div>
+    <button class="masterclass-link-btn" id="viewMasterclassBtn" style="display:none"></button>
   </div>
-  <div class="program-select-desc" id="programSelectDesc"></div>
 
   <div class="card" id="martialArtCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.2 16.5 4.8V10c0 4-2.7 6.8-6.5 7.8-3.8-1-6.5-3.8-6.5-7.8V4.8Z"/></svg></span>Martial Art Style</div>
@@ -1648,12 +1660,16 @@
       <div class="history-hint">Fundamentals, guard passing, dominant positions, submissions, and takedowns — tap a group to expand, tap a technique for a masterclass-level walkthrough.</div>
       <div id="grappleTechniquesList"></div>
     </div>
+
+    <div class="card" id="olyTechniquesCard" style="display:none">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="10" x2="18" y2="10"/><rect x="1" y="8" width="2" height="4" rx="0.5"/><rect x="17" y="8" width="2" height="4" rx="0.5"/><circle cx="10" cy="4" r="2"/><line x1="10" y1="6" x2="10" y2="10"/></svg></span>Olympic Lifting Technique</div>
+      <div class="history-hint">The snatch and clean & jerk broken into their teachable phases, plus the pulls and positional strength work that build them — tap a group to expand, tap a technique for a masterclass-level walkthrough.</div>
+      <div id="olyTechniquesList"></div>
+    </div>
   </div>
 
   <div class="app-footer" id="appFooter"></div>
 </div>
-
-<div class="glare-overlay" id="glareOverlay"></div>
 
 <div class="sticky-day-header" id="stickyDayHeader">
   <span id="stickyDayPlateIcon" class="day-plate-inline"></span>
@@ -4753,6 +4769,211 @@ function toggleGrappleTechniquesCard(){
   }
 }
 
+// [OLYMPIC LIFTING TECHNIQUES] -----------------------------------------------
+// Technique reference for the Olympic Lifting program — same "group ->
+// expandable technique rows with icon + cues + video" pattern as Posing/
+// Swimming/Climbing/Combat/Grappling above (same CSS classes: .posing-class,
+// .pose-detail-wrap, .pose-row, .pose-icon, .pose-name, .pose-detail). This
+// goes deeper than the terse 3-cue exerciseInfo entries used inline during a
+// workout — it's the standalone technique masterclass layer, same
+// relationship those other programs' masterclasses have to their programs.
+const OLY_ICONS = {
+  snatchSetup: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="4" y1="30" x2="40" y2="30" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="16" cy="10" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="13" x2="20" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="22" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="12" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="30" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  snatchSecondPull: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="4" y1="14" x2="40" y2="14" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/> <circle cx="20" cy="8" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="11" x2="20" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="14" x2="16" y2="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/> <line x1="20" y1="20" x2="14" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="20" x2="26" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="36" x2="30" y2="36" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/> </svg>',
+  snatchTurnover: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="8" y1="6" x2="36" y2="6" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="22" cy="12" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="15" x2="22" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="16" x2="12" y2="8" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="16" x2="32" y2="8" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="26" x2="16" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="26" x2="28" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  overheadStability: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="8" y1="6" x2="36" y2="6" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="22" cy="12" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="15" x2="22" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="16" x2="12" y2="8" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="16" x2="32" y2="8" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="24" x2="12" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="12" y1="26" x2="10" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="24" x2="32" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="32" y1="26" x2="34" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  cleanSetup: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="4" y1="30" x2="40" y2="30" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="16" cy="10" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="16" y1="13" x2="20" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="20" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/> <line x1="20" y1="22" x2="12" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="30" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  cleanSecondPull: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <circle cx="20" cy="8" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="11" x2="20" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="18" x2="30" y2="18" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/> <line x1="20" y1="20" x2="14" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="20" x2="26" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="36" x2="30" y2="36" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/> </svg>',
+  frontRack: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="10" y1="14" x2="34" y2="14" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="22" cy="8" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="11" x2="22" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="14" x2="14" y2="10" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="14" x2="30" y2="10" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="24" x2="16" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="24" x2="28" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  jerkSequence: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="8" y1="4" x2="36" y2="4" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="22" cy="10" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="13" x2="22" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="14" x2="12" y2="6" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="14" x2="32" y2="6" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="22" x2="12" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="12" y1="26" x2="8" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="22" x2="30" y2="28" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="30" y1="28" x2="34" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  snatchPull: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="10" y1="20" x2="34" y2="20" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/> <circle cx="18" cy="8" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="11" x2="20" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="20" x2="14" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="20" x2="26" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="8" y1="36" x2="30" y2="36" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/> </svg>',
+  cleanPull: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="12" y1="20" x2="32" y2="20" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/> <circle cx="20" cy="8" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="11" x2="20" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="20" x2="14" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="20" x2="26" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="8" y1="36" x2="32" y2="36" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/> </svg>',
+  snatchBalance: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="8" y1="8" x2="36" y2="8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="22" cy="14" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="17" x2="22" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="18" x2="12" y2="10" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="18" x2="32" y2="10" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="26" x2="10" y2="28" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="10" y1="28" x2="8" y2="38" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="26" x2="34" y2="28" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="34" y1="28" x2="36" y2="38" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  powerSnatch: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="8" y1="10" x2="36" y2="10" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="22" cy="16" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="19" x2="22" y2="28" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="20" x2="12" y2="12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="20" x2="32" y2="12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="28" x2="16" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="28" x2="28" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  powerClean: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="10" y1="16" x2="34" y2="16" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="22" cy="10" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="13" x2="22" y2="26" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="16" x2="14" y2="12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="16" x2="30" y2="12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="26" x2="16" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="26" x2="28" y2="36" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  pushPress: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="8" y1="6" x2="36" y2="6" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="22" cy="12" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="15" x2="22" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="16" x2="14" y2="9" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="16" x2="30" y2="9" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="24" x2="16" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/> <line x1="16" y1="30" x2="18" y2="38" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/> <line x1="22" y1="24" x2="28" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/> <line x1="28" y1="30" x2="26" y2="38" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/> </svg>',
+  jerkDipSquat: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <line x1="10" y1="14" x2="34" y2="14" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="22" cy="8" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="11" x2="22" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="14" x2="14" y2="10" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="14" x2="30" y2="10" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="24" x2="14" y2="28" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="14" y1="28" x2="14" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="24" x2="30" y2="28" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="30" y1="28" x2="30" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+};
+
+const OLY_TECHNIQUE_DETAILS = {
+  'Snatch: Setup & First Pull': {icon:'snatchSetup', video:'olympic weightlifting snatch first pull technique tutorial', points:[
+    'Setup: hips higher than the knees but lower than the shoulders, a wide grip, lats braced tight, and the bar held close over the base of the foot before the pull ever begins.',
+    'Execution: the first pull — floor to knee height — is deliberately slow and controlled compared to what follows, keeping the back angle constant and the bar traveling in a straight vertical line against the shins and thighs.',
+    'Whole-body integration: the first pull\'s entire job is to arrive at a strong, balanced position at the knee for the explosive second pull — it isn\'t meant to be fast, and rushing it usually wrecks the position the second pull depends on.',
+    'Common mistake: yanking the bar off the floor early with the arms and shoulders, which lifts the hips too fast relative to the shoulders and pulls the bar away from the body instead of keeping it close.',
+    'Coaching insight: USA Weightlifting\'s coaching curriculum specifically teaches the first pull as a "patient" phase — most technical breakdowns later in the lift can be traced back to speed or position problems that started right here.',
+  ]},
+  'Snatch: Second Pull (Extension)': {icon:'snatchSecondPull', video:'olympic weightlifting snatch second pull extension technique', points:[
+    'Setup: bar at the knee, back angle set, ready to accelerate hard from this point rather than continuing at the first pull\'s controlled pace.',
+    'Execution: extend the hips, knees, and ankles explosively in one connected motion — the "triple extension" — finishing tall on the toes with the bar accelerating straight up close to the body.',
+    'Whole-body integration: this is the actual power-generating phase of the lift; the first pull and setup exist purely to put the body in a position where this extension can be as explosive as possible.',
+    'Common mistake: extending the hips before the knees and ankles ("early hip extension" or looping the bar away from the body), which redirects force forward instead of vertically and throws the bar\'s path off line.',
+    'Coaching insight: coaches like Glenn Pendlay built entire programming philosophies around maximizing this single explosive extension, since it\'s the phase most directly responsible for how much weight ultimately gets overhead.',
+  ]},
+  'Snatch: Turnover & Receiving Position': {icon:'snatchTurnover', video:'olympic weightlifting snatch turnover receiving position', points:[
+    'Setup: immediately after full extension, pull the body down and under the bar aggressively rather than continuing to pull the bar upward with the arms.',
+    'Execution: rotate the arms and rotate under into a locked-out overhead squat position, receiving the bar with straight arms and the bar balanced directly over the base of the neck and mid-foot.',
+    'Whole-body integration: the turnover happens fast and low — an athlete who can extend powerfully but turns over slowly still misses lifts, since the bar and the body have to arrive at the same place at the same instant.',
+    'Common mistake: pressing the bar out at the top with the arms instead of dropping the body underneath it — this is a strength-oriented compensation for what should be a speed-and-timing skill.',
+    'Coaching insight: this turnover speed, more than raw pulling strength, is usually what separates lifters who can handle heavier weight in competition than their strength numbers alone would suggest.',
+  ]},
+  'Overhead Squat Stability': {icon:'overheadStability', video:'overhead squat stability olympic weightlifting technique', points:[
+    'Setup: bar locked out directly overhead with a wide grip, active shoulders (pushing up into the bar, not just holding it), and a tight, braced torso before descending.',
+    'Execution: squat to full depth while keeping the bar stacked directly over the mid-foot throughout — the torso stays more upright than a back squat, since any forward lean shifts the bar off balance overhead.',
+    'Whole-body integration: this is both an accessory strength exercise and the exact receiving position the snatch finishes in — building overhead squat stability directly builds a lifter\'s ability to actually stand up from a heavy snatch.',
+    'Common mistake: letting the bar drift forward of the mid-foot as fatigue sets in, which is usually a thoracic mobility or shoulder stability limitation rather than a leg-strength one.',
+    'Coaching insight: many lifters who "muscle out" missed snatches are actually failing an overhead squat stability test in real time — this drill is often prescribed specifically to fix that gap rather than adding more snatch volume.',
+  ]},
+  'Clean: Setup & First Pull': {icon:'cleanSetup', video:'olympic weightlifting clean first pull setup technique', points:[
+    'Setup: a hip-width grip (narrower than the snatch), hips higher than the knees, shoulders slightly ahead of the bar, and the same braced-lat, close-bar starting position.',
+    'Execution: the first pull off the floor stays slow and controlled exactly like the snatch\'s, maintaining the back angle until the bar clears the knee.',
+    'Whole-body integration: because the clean\'s grip is narrower, the bar path and shoulder position differ subtly from the snatch even though the pulling mechanics are otherwise nearly identical — this is why the two lifts are trained together so often.',
+    'Common mistake: standing the hips up faster than the shoulders rise during this phase, which is the same "early extension" fault as in the snatch and just as costly here.',
+    'Coaching insight: because the clean\'s catch position (front rack) is far less forgiving of a bar drifting forward than the snatch\'s overhead catch is, a clean first pull\'s bar path errors tend to show up as missed lifts more often, not just less powerful ones.',
+  ]},
+  'Clean: Second Pull & Turnover': {icon:'cleanSecondPull', video:'olympic weightlifting clean second pull turnover technique', points:[
+    'Setup: bar at the knee, ready for the same triple-extension explosion used in the snatch, just with the narrower grip.',
+    'Execution: extend hips, knees, and ankles explosively, then pull the body down aggressively under the bar into a front rack catch rather than continuing to pull upward with the arms.',
+    'Whole-body integration: the clean\'s turnover is shorter in distance than the snatch\'s (the bar only needs to reach the shoulders, not overhead), which is part of why cleans are typically loaded heavier than snatches for the same lifter.',
+    'Common mistake: "reverse-curling" the bar into the front rack with the biceps at the top, instead of dropping the elbows through and around the bar as the body turns over.',
+    'Coaching insight: a fast, aggressive turnover under a clean is usually a bigger performance lever than raw pulling strength — this is why lifters with modest deadlift numbers can still clean impressive weights relative to their strength.',
+  ]},
+  'Front Rack Receiving Position': {icon:'frontRack', video:'front rack position clean olympic weightlifting technique', points:[
+    'Setup: elbows driven up and forward so the upper arms are close to parallel with the floor, with the bar resting across the front deltoids and collarbones rather than gripped tightly by the fingers.',
+    'Execution: keep the wrists relaxed and let the shoulders and collarbones support the bar\'s weight, using just enough fingers on the bar for control rather than a white-knuckle grip.',
+    'Whole-body integration: a high, stable front rack lets the torso stay upright through the following front squat, which is exactly the demand the clean\'s catch position places on a lifter.',
+    'Common mistake: gripping the bar tightly with a full fist and flexed wrists, which restricts the elbows from lifting as high and drops the front rack lower and less stable than it should be.',
+    'Coaching insight: limited wrist and shoulder mobility is one of the most common technical ceilings in the clean specifically because of this position — many lifters spend dedicated mobility work on the front rack alone before their clean technique can improve further.',
+  ]},
+  'The Jerk (Dip, Drive & Receive)': {icon:'jerkSequence', video:'olympic weightlifting jerk dip drive split technique', points:[
+    'Setup: from a stable front rack, stand fully upright with the bar settled before beginning any dip — a jerk started from an unstable rack rarely ends well.',
+    'Execution: dip straight down a short distance with an upright torso, then drive vertically and aggressively, using that drive to help send the bar upward while the feet split (or the body drops into a squat) to receive it overhead with locked arms.',
+    'Whole-body integration: the legs — not the arms — do almost all of the actual work of getting the bar overhead; the arms\' job is mainly to redirect and receive the bar, not press it.',
+    'Common mistake: dipping too deep or leaning forward during the dip, which sends the bar\'s drive off a vertical line and makes a clean overhead lockout far harder to receive.',
+    'Coaching insight: the dip depth is deliberately short (a few inches) in most modern coaching systems — a shallow, fast dip converts more efficiently into upward bar speed than a deeper one, which just costs time and consistency.',
+  ]},
+  'Snatch Pull': {icon:'snatchPull', video:'snatch pull technique tutorial olympic weightlifting', points:[
+    'Setup: identical starting position to the competition snatch — wide grip, hips set, bar close — since this drill exists specifically to reinforce that exact pulling pattern.',
+    'Execution: perform the full first and second pull through triple extension, finishing tall on the toes, but without the turnover or catch — the bar is allowed to come back down under control rather than being caught overhead.',
+    'Whole-body integration: pulls let a lifter train the pulling mechanics and strength of the snatch with heavier loads than could actually be caught overhead, since there\'s no turnover or receiving position to limit the weight.',
+    'Common mistake: skipping the controlled first-pull tempo just because there\'s no catch to worry about — sloppy pull mechanics here reinforce the same faults they\'re meant to fix in the full lift.',
+    'Coaching insight: pulls are one of the most heavily programmed accessory lifts in weightlifting precisely because they isolate the strength-and-speed component of the lift from the technical turnover skill, letting each be trained somewhat independently.',
+  ]},
+  'Clean Pull': {icon:'cleanPull', video:'clean pull technique tutorial olympic weightlifting', points:[
+    'Setup: identical starting position to the competition clean — hip-width grip, hips set, shoulders slightly ahead of the bar.',
+    'Execution: perform the full first and second pull through triple extension, finishing tall, without turning over into a front rack catch.',
+    'Whole-body integration: like the snatch pull, this allows heavier-than-competition loading on the pulling pattern specifically, building the strength and speed the second pull depends on.',
+    'Common mistake: using clean pulls as a generic heavy-deadlift substitute rather than maintaining the same explosive, tall-finishing extension the actual lift requires — the point is the pattern, not just the load.',
+    'Coaching insight: because the clean\'s turnover is shorter than the snatch\'s, clean pulls are often loaded even heavier relative to a lifter\'s competition clean than snatch pulls are relative to their snatch.',
+  ]},
+  'Snatch Balance': {icon:'snatchBalance', video:'snatch balance drill technique olympic weightlifting', points:[
+    'Setup: bar in the same overhead-lockout starting position as an overhead squat, resting behind the neck at shoulder level to start rather than lifted from the floor.',
+    'Execution: dip the knees slightly, then drive the bar up and aggressively drop the body down underneath it into a full overhead squat receiving position, catching it with locked arms.',
+    'Whole-body integration: this drill isolates the turnover and receiving speed of the snatch — the fast drop underneath the bar — without the fatigue or technical demand of the pull from the floor.',
+    'Common mistake: pressing the bar up with the arms during the "drive" phase instead of using the legs to drive and then dropping underneath — this defeats the entire purpose of the drill.',
+    'Coaching insight: snatch balance is a staple drill for lifters who can pull well but turn over slowly or unstably — it\'s often prescribed as a direct fix for exactly that gap, isolated from the pulling strength that isn\'t the actual problem.',
+  ]},
+  'Power Snatch': {icon:'powerSnatch', video:'power snatch technique tutorial olympic weightlifting', points:[
+    'Setup: identical snatch grip and pulling setup, but with the intent to catch the bar in a higher, only partially-squatted position rather than a full overhead squat depth.',
+    'Execution: pull and turn over exactly as in the full snatch, but receive the bar with the hips well above parallel — this demands more raw power and speed since there\'s less time and depth to get under the bar.',
+    'Whole-body integration: because the catch is higher, a power snatch generally has to be lighter than a full snatch for the same lifter, but it builds the pulling speed and overhead stability at a higher, more athletic position.',
+    'Common mistake: quarter-squatting under a weight that actually needed a deeper catch, which shows up as the bar being caught but immediately lost forward or backward from an unstable high position.',
+    'Coaching insight: power variations are frequently used by coaches specifically to test and expose turnover speed and overhead stability weaknesses that a full-depth catch can otherwise "hide" by giving a lifter more time and range to recover into position.',
+  ]},
+  'Power Clean': {icon:'powerClean', video:'power clean technique tutorial olympic weightlifting', points:[
+    'Setup: identical clean grip and pulling setup, but with the intent to catch the bar in a front rack well above a full front squat depth.',
+    'Execution: pull and turn over exactly as in the full clean, receiving the bar in the front rack with the hips above parallel, which demands a fast, aggressive turnover since there\'s less time to get under the bar.',
+    'Whole-body integration: power cleans are extremely common outside dedicated weightlifting programs specifically because the higher catch reduces the front-squat depth and mobility demand while still training the same explosive pulling pattern.',
+    'Common mistake: letting the elbows drop or catching the bar too far forward on the fingers when the catch is rushed at a high position — the front rack fundamentals don\'t change just because the catch is higher.',
+    'Coaching insight: because the catch position is less demanding technically than a full clean, power cleans are a common entry point for athletes from other sports learning Olympic lifting movements for the first time.',
+  ]},
+  'Push Press': {icon:'pushPress', video:'push press technique tutorial olympic weightlifting', points:[
+    'Setup: bar in the front rack or behind-the-neck position, feet roughly hip-width, torso upright and braced.',
+    'Execution: dip straight down a short distance with the torso staying vertical, then drive up through the legs and use that upward momentum to help press the bar to full overhead lockout, finishing with the arms straight and the bar balanced over the base of the neck.',
+    'Whole-body integration: the push press is essentially the jerk\'s dip-and-drive without the receiving split or squat — it trains the leg-driven overhead pressing pattern the jerk depends on, at a slightly more controlled pace.',
+    'Common mistake: leaning back excessively during the drive to help the bar clear the face, which redirects force backward instead of vertically and puts unwanted stress on the lower back.',
+    'Coaching insight: push press numbers are often used as a rough diagnostic for jerk potential — a lifter who push-presses significantly more than they can jerk usually has a turnover or receiving-position limitation, not a strength one.',
+  ]},
+  'Jerk Dip Squat': {icon:'jerkDipSquat', video:'jerk dip squat technique tutorial olympic weightlifting', points:[
+    'Setup: bar in the front rack, standing tall with the same posture used to start an actual jerk.',
+    'Execution: perform a short, controlled dip — just a few inches — keeping the torso vertical and the weight balanced over mid-foot, then stand back up without any drive or upward bar movement; this is purely about grooving the dip\'s depth and posture.',
+    'Whole-body integration: because the jerk\'s dip is fast and shallow in real lifts, this slower, exaggerated-tempo version exists specifically to let a lifter feel and correct dip depth and torso angle without the speed of a real jerk masking technical errors.',
+    'Common mistake: dipping too deep or letting the torso lean forward, exactly the faults that ruin a real jerk\'s drive — since there\'s no time pressure here, these errors are much easier to feel and fix in this drill than in the full lift.',
+    'Coaching insight: lifters who consistently miss jerks forward often have a dip-depth or torso-angle problem that shows up clearly once slowed down in this drill, even if it\'s invisible at full jerk speed.',
+  ]},
+  'Front Squat (Clean Recovery Strength)': {icon:'frontRack', video:'front squat technique tutorial olympic weightlifting', points:[
+    'Setup: bar in the same high front rack used to catch the clean, feet roughly shoulder-width, torso as upright as the rack position allows.',
+    'Execution: squat to full depth while keeping the elbows lifted and the torso vertical throughout — any forward lean here directly mirrors (and reinforces) the same fault that would dump a real clean forward.',
+    'Whole-body integration: front squats build the exact strength and stability a lifter needs to actually stand up from a heavy clean\'s catch position, the same relationship overhead squats have to the snatch.',
+    'Common mistake: letting the elbows drop as the squat gets heavy or fatiguing, which collapses the front rack and shifts load onto the wrists and lower back instead of the legs and upper back.',
+    'Coaching insight: a lifter who can clean more weight than they can front squat for a single rep almost always has a technical, not strength-based, explanation — the clean\'s momentum from the pull is masking a real strength gap the front squat exposes directly.',
+  ]},
+};
+
+const OLY_TECHNIQUE_GROUPS = {
+  'The Snatch — Full Lift Breakdown': {
+    poses:['Snatch: Setup & First Pull','Snatch: Second Pull (Extension)','Snatch: Turnover & Receiving Position','Overhead Squat Stability'],
+    note:'The snatch in one continuous motion, broken into its four teachable phases — most missed lifts trace back to one of these specific points, not a general lack of strength.',
+  },
+  'The Clean & Jerk — Full Lift Breakdown': {
+    poses:['Clean: Setup & First Pull','Clean: Second Pull & Turnover','Front Rack Receiving Position','The Jerk (Dip, Drive & Receive)'],
+    note:'Two lifts trained as one — a clean that sets up a strong front rack, followed by a jerk that\'s almost entirely leg-driven rather than pressed.',
+  },
+  'Pulls & Positional Strength': {
+    poses:['Snatch Pull','Clean Pull','Snatch Balance','Front Squat (Clean Recovery Strength)'],
+    note:'Isolating the pulling strength and the receiving stability separately from the full competition lifts — the two components that, combined, actually make a lift successful.',
+  },
+  'Power Variations & Pressing Accessories': {
+    poses:['Power Snatch','Power Clean','Push Press','Jerk Dip Squat'],
+    note:'Higher-catch and slower-tempo variations that isolate specific pieces of the full lifts — often the fastest way to diagnose exactly where a technical limitation actually lives.',
+  },
+};
+
+function renderOlyTechniques(){
+  const listEl = document.getElementById('olyTechniquesList');
+  if(!listEl) return;
+  listEl.innerHTML = Object.keys(OLY_TECHNIQUE_GROUPS).map((groupName)=>{
+    const grp = OLY_TECHNIQUE_GROUPS[groupName];
+    const techRows = grp.poses.map((techName)=>{
+      const detail = OLY_TECHNIQUE_DETAILS[techName];
+      const iconSvg = detail ? OLY_ICONS[detail.icon] : '';
+      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
+      const query = encodeURIComponent(detail && detail.video ? detail.video : `${techName} olympic weightlifting technique tutorial`);
+      return `
+        <details class="pose-detail-wrap">
+          <summary class="pose-row">
+            <div class="pose-icon">${iconSvg}</div>
+            <div class="pose-name">${techName}</div>
+            <span class="ex-chevron">›</span>
+          </summary>
+          <div class="pose-detail">
+            <ul>${pointsHtml}</ul>
+            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
+          </div>
+        </details>
+      `;
+    }).join('');
+    return `
+      <details class="posing-class">
+        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
+        <div class="posing-class-note">${grp.note}</div>
+        ${techRows}
+      </details>
+    `;
+  }).join('');
+}
+
+function toggleOlyTechniquesCard(){
+  const card = document.getElementById('olyTechniquesCard');
+  if(!card) return;
+  if(activeProgram === 'oly'){
+    card.style.display = '';
+    renderOlyTechniques();
+  } else {
+    card.style.display = 'none';
+  }
+}
+
 
 // [COMBAT TECHNIQUES] -------------------------------------------------------
 // Technique reference for the Combat program, grouped by martial art style
@@ -6037,6 +6258,43 @@ async function isDeloadWeek(){
   return week % DELOAD_CYCLE_WEEKS === 0;
 }
 
+// Maps a program to its Learn-tab masterclass card, so a button can be shown
+// right where you're already looking at that program — otherwise there's no
+// way to know a masterclass exists at all short of manually checking Learn.
+const PROGRAM_MASTERCLASS = {
+  bodybuilding: {cardId:'posingCard', label:'Posing Practice'},
+  swimming:     {cardId:'swimStylesCard', label:'Swimming Styles'},
+  climbing:     {cardId:'climbTechniquesCard', label:'Climbing Techniques'},
+  combat:       {cardId:'combatTechniquesCard', label:'Combat Techniques'},
+  grappling:    {cardId:'grappleTechniquesCard', label:'Grappling Positions'},
+  oly:          {cardId:'olyTechniquesCard', label:'Olympic Lifting Technique'},
+};
+
+function updateMasterclassLinkBtn(){
+  const btn = document.getElementById('viewMasterclassBtn');
+  if(!btn) return;
+  const mc = PROGRAM_MASTERCLASS[activeProgram];
+  if(!mc){
+    btn.style.display = 'none';
+    btn.onclick = null;
+    return;
+  }
+  btn.style.display = '';
+  btn.innerHTML = `View "${mc.label}" in Learn <span class="ex-chevron">›</span>`;
+  btn.onclick = ()=>{
+    switchView('learn');
+    // switchView triggers the staggered card-entrance animation synchronously,
+    // but layout needs a frame to settle before scrollIntoView measures
+    // positions correctly — double rAF is the standard safe wait for that.
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        const card = document.getElementById(mc.cardId);
+        if(card) card.scrollIntoView({behavior:'smooth', block:'start'});
+      });
+    });
+  };
+}
+
 async function renderProgramSelector(trendStatus){
   const el = document.getElementById('programSelector');
   const descEl = document.getElementById('programSelectDesc');
@@ -6064,7 +6322,9 @@ async function renderProgramSelector(trendStatus){
   toggleClimbTechniquesCard();
   toggleCombatTechniquesCard();
   toggleGrappleTechniquesCard();
+  toggleOlyTechniquesCard();
   renderTips();
+  updateMasterclassLinkBtn();
 
   el.onchange = async ()=>{
     const key = el.value;
@@ -6085,7 +6345,9 @@ async function renderProgramSelector(trendStatus){
     toggleClimbTechniquesCard();
     toggleCombatTechniquesCard();
     toggleGrappleTechniquesCard();
+    toggleOlyTechniquesCard();
     renderTips();
+    updateMasterclassLinkBtn();
   };
 }
 
@@ -11615,101 +11877,6 @@ async function renderAnalysis(){
   }).join('');
 }
 
-// [MOTION GLARE] --------------------------------------------------------
-// A subtle light-catching sheen that tracks the phone's tilt via
-// DeviceOrientation, echoing the same "forged metal" sheen already used on
-// cards and buttons — but responsive to actually moving the device. Off by
-// default: requires an explicit tap (iOS requires this for permission
-// anyway), and the toggle itself is never even shown if the device has no
-// orientation sensor, or the user prefers reduced motion.
-let glareEnabled = false;
-let glareBaseBeta = null, glareBaseGamma = null;
-let glareRAF = null;
-let glareLatestEvent = null;
-
-function clampGlare(v, min, max){ return Math.max(min, Math.min(max, v)); }
-
-function applyGlareTransform(){
-  glareRAF = null;
-  if(!glareLatestEvent) return;
-  const beta = glareLatestEvent.beta, gamma = glareLatestEvent.gamma;
-  if(beta === null || gamma === null) return;
-  // Calibrate against however the phone happened to be held when enabled,
-  // rather than assuming a flat-on-table resting angle — this is a phone
-  // app used while held up, not lying flat.
-  if(glareBaseBeta === null){ glareBaseBeta = beta; glareBaseGamma = gamma; }
-  const deltaBeta = clampGlare(beta - glareBaseBeta, -30, 30);
-  const deltaGamma = clampGlare(gamma - glareBaseGamma, -30, 30);
-  const x = (deltaGamma / 30) * 45;
-  const y = (deltaBeta / 30) * 45;
-  const overlay = document.getElementById('glareOverlay');
-  if(overlay) overlay.style.transform = `translate3d(${x}%, ${y}%, 0)`;
-}
-
-function handleGlareOrientation(e){
-  glareLatestEvent = e;
-  if(glareRAF === null) glareRAF = requestAnimationFrame(applyGlareTransform);
-}
-
-async function setGlareEnabled(on){
-  glareEnabled = on;
-  try{ await window.storage.set('motion-glare-enabled', on ? '1' : '0'); }catch(err){}
-  const overlay = document.getElementById('glareOverlay');
-  const btn = document.getElementById('glareToggleBtn');
-  if(on){
-    glareBaseBeta = null; glareBaseGamma = null;
-    window.addEventListener('deviceorientation', handleGlareOrientation);
-    if(overlay) overlay.classList.add('active');
-    if(btn){ btn.textContent = '🌙 Disable Motion Glare'; btn.classList.add('on'); }
-  } else {
-    window.removeEventListener('deviceorientation', handleGlareOrientation);
-    if(overlay){ overlay.classList.remove('active'); overlay.style.transform = 'translate3d(0,0,0)'; }
-    if(btn){ btn.textContent = '✨ Enable Motion Glare'; btn.classList.remove('on'); }
-  }
-}
-
-async function requestGlarePermissionAndEnable(){
-  // iOS 13+ Safari requires this to be called directly from a user gesture
-  // and requires an explicit permission grant before any orientation
-  // events will fire at all — silently does nothing without it.
-  if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function'){
-    try{
-      const result = await DeviceOrientationEvent.requestPermission();
-      if(result !== 'granted') return;
-    }catch(err){ return; }
-  }
-  await setGlareEnabled(true);
-}
-
-async function initMotionGlare(){
-  const btn = document.getElementById('glareToggleBtn');
-  if(!btn) return;
-  const supported = typeof window !== 'undefined' && 'DeviceOrientationEvent' in window;
-  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(!supported || reduceMotion) return; // never show the toggle at all in these cases
-
-  btn.style.display = '';
-  let savedOn = false;
-  try{
-    const res = await window.storage.get('motion-glare-enabled');
-    savedOn = !!(res && res.value === '1');
-  }catch(err){}
-
-  btn.onclick = ()=>{
-    if(glareEnabled){ setGlareEnabled(false); }
-    else{ requestGlarePermissionAndEnable(); }
-  };
-
-  // Only auto-resume without a tap if this platform doesn't require a fresh
-  // permission prompt (iOS always needs the tap; Android generally doesn't).
-  const needsPrompt = typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function';
-  if(savedOn && !needsPrompt){
-    setGlareEnabled(true);
-  } else if(savedOn && needsPrompt){
-    btn.textContent = '✨ Resume Motion Glare';
-  }
-}
-
 // [INIT] ---------------------------------------------------------------
 // App startup sequence. Add new startup calls here, not scattered elsewhere.
 if(activeUserId){
@@ -11763,7 +11930,6 @@ if(activeUserId){
     loadProgressPhotos();
     renderWater();
     renderCycleTracking();
-    initMotionGlare();
   })();
 }
 </script>
