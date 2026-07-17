@@ -451,6 +451,8 @@
     -webkit-tap-highlight-color:transparent; touch-action:manipulation;
   }
   .voice-log-btn.listening, .plate-btn.listening{border-color:var(--plate-red); color:var(--plate-red); animation:voiceListenPulse 1s ease-in-out infinite;}
+  .voice-log-btn.processing, .plate-btn.processing{border-color:var(--plate-yellow); color:var(--plate-yellow); animation:voiceProcessingFade 0.6s ease-in-out infinite alternate;}
+  @keyframes voiceProcessingFade{ from{opacity:0.55;} to{opacity:1;} }
   @keyframes voiceListenPulse{ 0%,100%{opacity:1;} 50%{opacity:0.5;} }
   .plate-result{
     flex-basis:100%; margin:2px 0 0 22px; padding:6px 10px; background:var(--surface2);
@@ -574,6 +576,15 @@
   .ex-video-link:active{opacity:0.7;}
 
   .rest-note{color:var(--text-muted); font-size:14px; line-height:1.5;}
+  .rest-done-row{
+    display:flex; align-items:center; gap:10px; margin-top:14px; padding:12px;
+    background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
+    font-size:13.5px; cursor:pointer;
+  }
+  .rest-done-row input[type=checkbox]{width:22px; height:22px;}
+  .rest-done-row input[type=checkbox]:checked{
+    background:linear-gradient(160deg, #4FE168, var(--plate-green) 60%); border-color:var(--plate-green);
+  }
   .pr-row{
     display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line-soft);
   }
@@ -1630,7 +1641,7 @@
 
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.2 6.2a1 1 0 0 1 1-1h3.8l1.4 1.8h8.4a1 1 0 0 1 1 1v7.8a1 1 0 0 1-1 1H3.2a1 1 0 0 1-1-1Z"/></svg></span>Day-by-Day Log</div>
-      <div class="history-hint">Every logged day, grouped by month. Tap a month to expand it. Green = progress, red = down from last time.</div>
+      <div class="history-hint">Every logged day, grouped by month — workouts, weigh-ins, and rest days you marked as followed. Tap a month to expand it. Green = progress, red = down from last time.</div>
       <div id="historyList"></div>
     </div>
   </div>
@@ -6077,21 +6088,27 @@ function dateKeyMinusDays(key, n){
 const ACTIVITY_DATES_RETENTION_DAYS = 730; // ~2 years — streaks only ever need to look back a handful of days, this is deliberately generous headroom, not a tight cap
 
 async function recordActivity(dateKey){
+  // Read and write are deliberately in separate try/catch blocks. A single
+  // try around both meant that on literally the first activity ever
+  // recorded — when 'activity-dates' doesn't exist yet and the read
+  // legitimately throws — the whole function aborted before it ever
+  // reached the write, so the key could never actually get created.
+  let dates = [];
   try{
     const res = await window.storage.get('activity-dates');
-    let dates = res && res.value ? JSON.parse(res.value) : [];
-    if(!dates.includes(dateKey)){
-      dates.push(dateKey);
-      dates.sort();
-      // Prune anything older than the retention window so this array doesn't
-      // grow forever across years of daily use — pure storage hygiene, has
-      // no effect on streak correctness since streaks only ever look at the
-      // last few consecutive days anyway.
-      const cutoff = dateKeyMinusDays(getTodayKey(), ACTIVITY_DATES_RETENTION_DAYS);
-      dates = dates.filter(d => d >= cutoff);
-      await window.storage.set('activity-dates', JSON.stringify(dates));
-    }
-  }catch(e){}
+    if(res && res.value) dates = JSON.parse(res.value);
+  }catch(e){} // expected on the very first call ever — dates correctly stays []
+  if(!dates.includes(dateKey)){
+    dates.push(dateKey);
+    dates.sort();
+    // Prune anything older than the retention window so this array doesn't
+    // grow forever across years of daily use — pure storage hygiene, has
+    // no effect on streak correctness since streaks only ever look at the
+    // last few consecutive days anyway.
+    const cutoff = dateKeyMinusDays(getTodayKey(), ACTIVITY_DATES_RETENTION_DAYS);
+    dates = dates.filter(d => d >= cutoff);
+    try{ await window.storage.set('activity-dates', JSON.stringify(dates)); }catch(e){}
+  }
 }
 
 async function computeStreak(){
@@ -7407,8 +7424,34 @@ async function renderWorkout(){
 
   if(day.rest){
     document.getElementById('dayDuration').textContent = day.duration;
+    // Deliberately a separate key prefix from workout: — that one feeds
+    // the "X workouts this week" stat directly (fetchWorkoutDates sums it),
+    // and a rest day being followed isn't a workout. It still counts toward
+    // the activity streak below, since resting on schedule is exactly as
+    // much "following the program" as training is, and the streak already
+    // treats any real activity that way.
+    const restKey = `rest-log:${getTodayKey()}:${activeProgram}:${activeDay}`;
+    let restDone = false;
+    try{
+      const res = await window.storage.get(restKey);
+      if(res && res.value) restDone = JSON.parse(res.value).done === true;
+    }catch(e){}
+
     const archiveBtnHtml = activeDay === 'd7' ? `<button class="save-btn" id="archiveWeekBtn" style="margin-top:14px;">🏁 Save This Week & Start Fresh</button><div class="status-msg" id="archiveWeekStatus"></div>` : '';
-    list.innerHTML = `<div class="rest-note">${day.note}</div>${archiveBtnHtml}`;
+    list.innerHTML = `
+      <div class="rest-note">${day.note}</div>
+      <label class="rest-done-row">
+        <input type="checkbox" id="restDoneCheckbox" ${restDone ? 'checked' : ''}>
+        <span id="restDoneLabel">${restDone ? 'Marked as done for today ✓' : "Mark today's rest day as done"}</span>
+      </label>
+      ${archiveBtnHtml}
+    `;
+    document.getElementById('restDoneCheckbox').addEventListener('change', async (e)=>{
+      const done = e.target.checked;
+      try{ await window.storage.set(restKey, JSON.stringify({done})); }catch(err){}
+      if(done) recordActivity(getTodayKey()).then(renderStreak);
+      document.getElementById('restDoneLabel').textContent = done ? 'Marked as done for today ✓' : "Mark today's rest day as done";
+    });
     if(activeDay === 'd7'){
       document.getElementById('archiveWeekBtn').addEventListener('click', archiveCurrentWeek);
     }
@@ -7923,15 +7966,49 @@ function wireSetsBlock(row, exIdx, ex){
     // has to compete with the plate calculator for its own row-width slot,
     // and never requires opening a panel just to reach a second button.
     function startVoiceRecognition(btn){
-      if(btn.classList.contains('listening')) return; // already listening, ignore a repeat trigger
+      if(btn.classList.contains('listening') || btn.classList.contains('processing')) return; // already mid-flow, ignore a repeat trigger
+      voiceFeedback.classList.remove('open'); // clear any stale message from a previous attempt before this one starts
       const recognition = new SpeechRecognitionCtor();
       recognition.lang = 'en-US';
+      recognition.continuous = false;
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
       btn.classList.add('listening');
       const originalTitle = btn.title;
+      let settled = false;
+
+      // Without this, recognition waits on the engine's own internal
+      // silence timeout to decide you're done talking — which varies by
+      // browser and can drag on well after you've actually finished a
+      // sentence. Stopping the instant speech itself ends (not just
+      // waiting for a longer overall timeout) is what makes this feel
+      // snappy and predictable instead of hanging.
+      recognition.onspeechend = ()=>{
+        if(settled) return;
+        btn.classList.remove('listening');
+        btn.classList.add('processing');
+        try{ recognition.stop(); }catch(e){}
+      };
+
+      // A hard ceiling in case the engine never fires onspeechend/onresult/
+      // onerror for some reason (rare, but leaves the button stuck
+      // "listening" forever otherwise) — belt-and-suspenders, not the
+      // normal path.
+      const safetyTimer = setTimeout(()=>{
+        if(settled) return;
+        settled = true;
+        try{ recognition.abort(); }catch(e){}
+        btn.classList.remove('listening', 'processing');
+      }, 8000);
+
+      const finish = ()=>{
+        settled = true;
+        clearTimeout(safetyTimer);
+        btn.classList.remove('listening', 'processing');
+      };
 
       recognition.onresult = (event)=>{
+        finish();
         const rawTranscript = event.results[0][0].transcript;
         // Pull out an explicit "RPE 8" (or "8.5") mention first, and remove
         // it from the transcript before scanning for weight/reps numbers —
@@ -7969,18 +8046,28 @@ function wireSetsBlock(row, exIdx, ex){
         save();
       };
       recognition.onerror = (event)=>{
+        finish();
         if(event.error === 'not-allowed'){
           btn.title = 'Microphone access denied — allow it in your browser/phone settings to use voice log.';
           voiceFeedback.textContent = 'Microphone access denied — check your browser/phone settings to allow it.';
           voiceFeedback.classList.add('open');
           setTimeout(()=> voiceFeedback.classList.remove('open'), 4000);
+        } else if(event.error === 'no-speech'){
+          voiceFeedback.textContent = `Didn't hear anything — tap and try again.`;
+          voiceFeedback.classList.add('open');
+          setTimeout(()=> voiceFeedback.classList.remove('open'), 2500);
+          btn.title = originalTitle;
+        } else if(event.error !== 'aborted'){
+          // 'aborted' just means the safety timer or a repeat tap cancelled it deliberately — nothing to report
+          voiceFeedback.textContent = `Voice log had a hiccup — tap and try again.`;
+          voiceFeedback.classList.add('open');
+          setTimeout(()=> voiceFeedback.classList.remove('open'), 2500);
+          btn.title = originalTitle;
         } else {
           btn.title = originalTitle;
         }
       };
-      recognition.onend = ()=>{
-        btn.classList.remove('listening');
-      };
+      recognition.onend = ()=> finish();
       recognition.start();
     }
 
@@ -12067,6 +12154,37 @@ async function buildDayLog(){
     });
   }
 
+  // Rest days followed on schedule get surfaced here too, the same way a
+  // logged workout does — otherwise "mark today's rest day as done" was a
+  // checkbox with no memory: once the day passed, there was no trace it
+  // ever happened. Only days actually marked done show up; an unchecked
+  // or never-touched rest day just shows nothing, same as a workout you
+  // never logged.
+  let restKeys = [];
+  try{
+    const res = await window.storage.list('rest-log:');
+    if(res && res.keys) restKeys = res.keys;
+  }catch(e){}
+
+  for(const key of restKeys){
+    const parts = key.split(':');
+    if(parts.length < 4) continue;
+    const [, date, program, dayId] = parts;
+    let done = false;
+    try{
+      const item = await window.storage.get(key);
+      if(item && item.value) done = JSON.parse(item.value).done === true;
+    }catch(e){ continue; }
+    if(!done) continue;
+
+    const prog = programs[program];
+    const dayDef = prog && prog.days && prog.days[dayId];
+    const dayLabel = dayDef ? `${prog.label} · ${dayDef.label}` : (prog ? prog.label : program);
+    const day = ensureDay(date);
+    day.restFollowed = true;
+    day.restDayLabel = dayLabel;
+  }
+
   return dayMap;
 }
 
@@ -12134,8 +12252,13 @@ async function renderHistory(){
       const weightRow = day.weight != null
         ? `<div class="day-weight-row">⚖️ ${fmtWeight(day.weight)} ${deltaSpan(toDisplayWeight(day.weightDelta), ' '+weightUnit, 'down')}</div>`
         : '';
+      const restRow = day.restFollowed
+        ? `<div class="day-weight-row">😌 Rest day — followed as planned</div>`
+        : '';
       const dayLabelSet = new Set(day.exercises.map(ex=>ex.dayLabel));
-      const uniformDayLabel = dayLabelSet.size === 1 ? day.exercises[0].dayLabel : null;
+      const uniformDayLabel = dayLabelSet.size === 1 ? day.exercises[0].dayLabel
+        : (day.exercises.length === 0 && day.restDayLabel) ? day.restDayLabel
+        : null;
       const showDayLabel = !uniformDayLabel;
       const exRows = day.exercises.map(ex=>{
         const weightDeltaHtml = deltaSpan(toDisplayWeight(ex.deltaWeight), ' '+weightUnit, 'up');
@@ -12163,6 +12286,7 @@ async function renderHistory(){
         <div class="day-card">
           <div class="day-card-date">${fmtDayLabel(date)}${uniformDayLabel ? ` <span class="day-card-program">· ${uniformDayLabel}</span>` : ''}</div>
           ${weightRow}
+          ${restRow}
           ${exRows}
         </div>
       `;
