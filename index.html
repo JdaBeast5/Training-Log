@@ -85,6 +85,9 @@
   button{ transition:transform 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth), background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth); }
   button:active{ transform:scale(0.96); }
   input, select, textarea{ transition:border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth); }
+  input[type=number]{ -moz-appearance:textfield; }
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
   input:focus, select:focus, textarea:focus{
     outline:none; border-color:var(--plate-blue); box-shadow:0 0 0 3px rgba(91,124,255,0.15);
   }
@@ -243,6 +246,27 @@
     padding:10px 12px; background:rgba(91,124,255,0.08); border:1px solid rgba(91,124,255,0.25);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
   }
+  .voice-hint-banner{
+    display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(91,124,255,0.08);
+    border:1px solid rgba(91,124,255,0.25); border-radius:var(--radius-md); font-size:12.5px; line-height:1.4;
+    color:var(--text); margin-bottom:14px;
+  }
+  .voice-hint-banner span:first-of-type{flex:1;}
+  .voice-hint-dismiss{
+    flex:0 0 auto; background:none; border:none; color:var(--text-muted); font-size:18px; line-height:1;
+    cursor:pointer; padding:2px;
+  }
+  .onboarding-row{
+    display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px;
+  }
+  .onboarding-row:last-child{border-bottom:none;}
+  .onboarding-row .onboarding-check{
+    width:20px; height:20px; border-radius:50%; border:1.5px solid var(--line-bright);
+    display:flex; align-items:center; justify-content:center; font-size:12px; color:transparent; flex:0 0 auto;
+    transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth);
+  }
+  .onboarding-row.done .onboarding-check{background:var(--plate-green); border-color:var(--plate-green); color:#fff;}
+  .onboarding-row.done span:last-child{color:var(--text-muted);}
   .today-insight-row{
     padding:10px 12px; background:rgba(91,124,255,0.08); border:1px solid rgba(91,124,255,0.25);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:8px;
@@ -414,14 +438,32 @@
     flex:0 0 auto; width:34px; height:34px; border-radius:var(--radius-sm); border:1px solid var(--line);
     background:var(--surface2); color:var(--text-muted); font-size:14px; cursor:pointer;
     display:flex; align-items:center; justify-content:center; padding:0;
+    -webkit-touch-callout:none; -webkit-user-select:none; user-select:none;
+    -webkit-tap-highlight-color:transparent; touch-action:manipulation;
   }
   .plate-btn.active{border-color:var(--plate-blue); color:var(--plate-blue);}
+  .voice-log-btn{
+    flex:0 0 auto; width:34px; height:34px; border-radius:var(--radius-sm); border:1px solid var(--line);
+    background:var(--surface2); color:var(--text-muted); font-size:14px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; padding:0;
+    transition:border-color 0.2s var(--ease-smooth), color 0.2s var(--ease-smooth);
+    -webkit-touch-callout:none; -webkit-user-select:none; user-select:none;
+    -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+  }
+  .voice-log-btn.listening, .plate-btn.listening{border-color:var(--plate-red); color:var(--plate-red); animation:voiceListenPulse 1s ease-in-out infinite;}
+  @keyframes voiceListenPulse{ 0%,100%{opacity:1;} 50%{opacity:0.5;} }
   .plate-result{
     flex-basis:100%; margin:2px 0 0 22px; padding:6px 10px; background:var(--surface2);
     border:1px solid var(--line); border-radius:var(--radius-sm); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
     font-size:11.5px; color:var(--text); line-height:1.5; display:none;
   }
   .plate-result.open{display:block;}
+  .voice-feedback{
+    flex-basis:100%; margin:2px 0 0 22px; padding:6px 10px; background:rgba(255,69,58,0.1);
+    border:1px solid rgba(255,69,58,0.3); border-radius:var(--radius-sm); font-size:11.5px;
+    color:var(--text); line-height:1.4; display:none;
+  }
+  .voice-feedback.open{display:block;}
   .set-row-content{flex-wrap:wrap;}
 
   .warmup-box{
@@ -693,6 +735,20 @@
     font-family:'Inter',sans-serif;
   }
   .photo-preview{width:100%; max-width:200px; border-radius:var(--radius-md); margin:10px 0; display:block;}
+  .section-label{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--text-muted); margin:2px 0 8px;
+  }
+  .section-divider{height:1px; background:var(--line-soft); margin:18px 0 14px;}
+  .quick-add-row{display:flex; gap:8px; margin-bottom:14px;}
+  .quick-add-btn{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+    background:var(--surface2); border:1px dashed var(--plate-blue); border-radius:var(--radius-md);
+    padding:10px 6px; color:var(--plate-blue); font-weight:600; font-size:11.5px; cursor:pointer;
+    font-family:'Inter',sans-serif; transition:transform 0.15s var(--ease-smooth);
+  }
+  .quick-add-btn:active{transform:scale(0.96);}
+  .quick-add-icon{font-size:18px;}
   .photo-result-card{
     margin-top:10px; padding:12px 14px; background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
   }
@@ -719,6 +775,26 @@
   .photo-lightbox img{position:relative; z-index:1; max-width:100%; max-height:75vh; border-radius:var(--radius-md); object-fit:contain; box-shadow:0 20px 50px -10px rgba(0,0,0,0.7);}
   .photo-lightbox-date{position:relative; z-index:1; color:var(--text-muted); font-size:13px; margin-top:12px;}
   .photo-lightbox-actions{position:relative; z-index:1; display:flex; gap:12px; margin-top:16px;}
+  .barcode-scanner-overlay{
+    position:fixed; inset:0; background:#000; z-index:85; display:none;
+    align-items:center; justify-content:center; flex-direction:column;
+  }
+  .barcode-scanner-overlay.active{display:flex;}
+  .barcode-scanner-overlay video{width:100%; height:100%; object-fit:cover; position:absolute; inset:0;}
+  .barcode-viewfinder{
+    position:relative; z-index:1; width:78%; max-width:320px; height:140px;
+    border:2px solid var(--plate-teal); border-radius:var(--radius-md);
+    box-shadow:0 0 0 2000px rgba(0,0,0,0.45);
+  }
+  .barcode-status{
+    position:relative; z-index:1; margin-top:18px; color:#fff; font-size:13.5px; font-family:'Inter',sans-serif;
+    background:rgba(0,0,0,0.5); padding:8px 16px; border-radius:var(--radius-pill);
+  }
+  .barcode-close-btn{
+    position:absolute; bottom:40px; z-index:1; background:var(--surface2); border:1px solid var(--line);
+    color:var(--text); font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px;
+    padding:12px 28px; border-radius:var(--radius-pill); cursor:pointer;
+  }
   .photo-lightbox-actions button{
     padding:10px 20px; border-radius:var(--radius-sm); font-weight:600; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; border:none;
   }
@@ -1046,7 +1122,7 @@
   }
   .food-search-input::placeholder{color:var(--text-muted);}
   .food-cats{
-    display:flex; gap:8px; overflow-x:auto; padding-bottom:10px; -webkit-overflow-scrolling:touch;
+    display:flex; gap:8px; overflow-x:auto; padding-bottom:10px; margin-top:12px; -webkit-overflow-scrolling:touch;
     scrollbar-width:thin; scrollbar-color:var(--line-bright) transparent;
   }
   .food-cats::-webkit-scrollbar{height:4px;}
@@ -1151,6 +1227,11 @@
   </div>
 
   <div id="todayView">
+  <div class="card" id="onboardingCard" style="display:none">
+    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5c2 2 3 5.5 3 8 0 2.2-1.2 4.2-3 6-1.8-1.8-3-3.8-3-6 0-2.5 1-6 3-8Z"/><circle cx="10" cy="8.5" r="1.3"/><path d="M7.3 13.5 5.5 17M12.7 13.5 14.5 17"/></svg></span>Getting Started</div>
+    <div id="onboardingRows"></div>
+    <button class="usda-key-upgrade-toggle" id="onboardingDismiss" style="margin-top:6px;">Hide this</button>
+  </div>
   <div class="card" id="todayInsightsCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M12.5 7.5 11 11l-3.5 1.5L9 9z"/></svg></span>Today's Priorities</div>
     <div id="todayInsightsList"></div>
@@ -1227,6 +1308,9 @@
 
       <button class="switch-profile-btn" id="switchProfileBtn">🔄 Switch Profile (for a shared device)</button>
       <button class="switch-profile-btn" id="exportDataBtn">⬇️ Export My Data (backup as JSON)</button>
+      <button class="switch-profile-btn" id="importDataBtn">⬆️ Import Backup (restore from JSON)</button>
+      <input type="file" id="importDataInput" accept="application/json,.json" style="display:none">
+      <div class="status-msg" id="importDataStatus"></div>
     </div></div>
   </div>
   <div id="programRecommendation"></div>
@@ -1275,6 +1359,7 @@
     </div>
     <div class="session-cal-total" id="sessionCalTotal"></div>
     <div class="day-insight" id="dayInsight"></div>
+    <div id="voiceHintBanner" style="display:none"></div>
     <div id="exerciseList"></div>
   </div>
 
@@ -1326,36 +1411,19 @@
     </div>
 
     <div class="expand-wrap" id="nutritionExpandWrap"><div>
-      <div class="meal-suggest-card" style="margin-top:14px">
-        <div class="meal-suggest-title">🍽️ What to Eat Next</div>
-        <div id="mealSuggestContent"></div>
-      </div>
-
-      <div class="water-tracker">
-        <div class="water-header">
-          <span>💧 Water</span>
-          <span id="waterValText">0 / 128 oz</span>
-        </div>
-        <div class="macro-bar-track"><div class="macro-bar-fill" id="barWater" style="background:#4FC3F7;width:0%"></div></div>
-        <div class="water-btn-row">
-          <button class="water-btn" data-oz="8">+8oz</button>
-          <button class="water-btn" data-oz="16">+16oz</button>
-          <button class="water-btn" data-oz="24">+24oz</button>
-          <button class="water-btn water-reset" id="waterReset">Reset</button>
-        </div>
-      </div>
-
-      <div class="food-log-list" id="foodLogList"></div>
-
-      <button class="photo-log-btn" id="suggestMealBtn">💡 Suggest Something to Eat</button>
-      <div id="mealSuggestions"></div>
-
-      <button class="photo-log-btn" id="photoLogBtn">📷 Snap or Upload a Meal Photo</button>
-      <input type="file" id="photoLogInput" accept="image/*" style="display:none">
-      <div id="photoLogResult"></div>
-
+      <div class="section-label">Add a Food</div>
       <input type="text" id="foodSearchInput" class="food-search-input" placeholder="🔍 Search any food or restaurant...">
       <div id="usdaKeySettingsSlot"></div>
+
+      <div class="quick-add-row">
+        <button class="quick-add-btn" id="photoLogBtn"><span class="quick-add-icon">📷</span>Photo</button>
+        <button class="quick-add-btn" id="barcodeScanBtn"><span class="quick-add-icon">▦</span>Barcode</button>
+        <button class="quick-add-btn" id="suggestMealBtn"><span class="quick-add-icon">💡</span>Suggest</button>
+      </div>
+      <input type="file" id="photoLogInput" accept="image/*" style="display:none">
+      <div id="photoLogResult"></div>
+      <div id="mealSuggestions"></div>
+      <div id="barcodeResult"></div>
 
       <div class="food-cats" id="foodCats"></div>
       <div class="food-items" id="foodItems"></div>
@@ -1379,6 +1447,24 @@
         <button class="save-btn" id="addCustom">Add Item</button>
       </div>
       <div class="status-msg" id="nutritionStatus"></div>
+
+      <div class="section-divider"></div>
+      <div class="section-label">Today</div>
+      <div class="food-log-list" id="foodLogList"></div>
+
+      <div class="water-tracker">
+        <div class="water-header">
+          <span>💧 Water</span>
+          <span id="waterValText">0 / 128 oz</span>
+        </div>
+        <div class="macro-bar-track"><div class="macro-bar-fill" id="barWater" style="background:#4FC3F7;width:0%"></div></div>
+        <div class="water-btn-row">
+          <button class="water-btn" data-oz="8">+8oz</button>
+          <button class="water-btn" data-oz="16">+16oz</button>
+          <button class="water-btn" data-oz="24">+24oz</button>
+          <button class="water-btn water-reset" id="waterReset">Reset</button>
+        </div>
+      </div>
     </div></div>
   </div>
 
@@ -1433,8 +1519,8 @@
     </div>
     <div class="nutrition-summary" id="photosSummary">Tap to log — a visual record the scale and tape measure can't show</div>
     <div class="expand-wrap" id="photosExpandWrap"><div>
-      <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none">
-      <button class="photo-log-btn" id="photoAddBtn">📸 Add Progress Photo</button>
+      <input type="file" id="photoInput" accept="image/*" style="display:none">
+      <button class="photo-log-btn" id="photoAddBtn">📸 Snap or Upload a Progress Photo</button>
       <div class="status-msg" id="photoStatus"></div>
       <div class="photo-grid" id="photoGrid"></div>
     </div></div>
@@ -1631,7 +1717,7 @@
 
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5.2" width="10.8" height="9.6" rx="1.5"/><path d="M12.8 8.4 17.8 6v8l-5-2.4Z"/></svg></span>Get Form Feedback</div>
-      <input type="file" id="coachVideoInput" accept="video/*" capture="environment" style="display:none">
+      <input type="file" id="coachVideoInput" accept="video/*" style="display:none">
       <button class="photo-log-btn" id="coachVideoBtn">🎥 Upload or Record a Clip</button>
       <label class="care-label">What exercise/movement is this?</label>
       <input type="text" id="coachExerciseInput" class="care-input" placeholder="e.g. Back Squat, Jab-Cross Combo, Front Double Biceps">
@@ -1724,6 +1810,13 @@
     <button class="photo-lightbox-close" id="photoLightboxClose">Close</button>
     <button class="photo-lightbox-delete" id="photoLightboxDelete">Delete</button>
   </div>
+</div>
+
+<div class="barcode-scanner-overlay" id="barcodeScannerOverlay">
+  <video id="barcodeVideo" playsinline autoplay muted></video>
+  <div class="barcode-viewfinder"></div>
+  <div class="barcode-status" id="barcodeStatus">Point your camera at a barcode</div>
+  <button class="barcode-close-btn" id="barcodeCloseBtn">Cancel</button>
 </div>
 
 <script>
@@ -6371,6 +6464,12 @@ async function renderProgramSelector(trendStatus){
     toggleOlyTechniquesCard();
     renderTips();
     updateMasterclassLinkBtn();
+    // The banner needs to react to a manual program switch too, not just
+    // its own "Switch to X" button — otherwise switching manually to the
+    // recommended program left a stale "switch to X" banner still showing
+    // for a program you're already on, and switching away from it never
+    // brought the banner back for the program you're now on.
+    await renderProgramRec(await getCurrentTrendStatus());
   };
 }
 
@@ -7131,6 +7230,12 @@ async function getCurrentTrendStatus(){
 // fatigue before the real work sets. Only shown for barbell-style compound
 // categories and only once we actually know a working weight from last time —
 // guessing a ramp for an unknown or very light load isn't useful.
+// Voice logging: browser-native, free, no library or API key. Feature-detected
+// once here — the mic button only ever renders into the set-row template at
+// all on browsers that actually support it (mainly Safari/Chrome; Firefox
+// doesn't as of this writing), rather than showing a button that fails.
+const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+
 const WARMUP_ELIGIBLE_CATEGORIES = ['squat','hinge','push','pull','oly'];
 const WARMUP_MIN_WORKING_WEIGHT = 95; // below this, a formal ramp adds more clutter than value
 
@@ -7175,7 +7280,10 @@ async function saveExSet(dayId, idx, setIdx, weight, reps, rpe){
 
   // A set with an actual weight or rep count logged counts as training activity today,
   // regardless of which exercise/program it was — this is what streaks track.
-  if(w!=null || r!=null) recordActivity(getTodayKey()).then(renderStreak);
+  if(w!=null || r!=null){
+    recordActivity(getTodayKey()).then(renderStreak);
+    markMilestone('has-logged-first-set');
+  }
 
   const isPR = (w!=null && priorMax!=null && w>priorMax);
   return {isPR, priorMax, entry};
@@ -7259,6 +7367,29 @@ function renderDayInsight(day){
   el.innerHTML = DEFAULT_INSIGHTS_BY_PROGRAM[activeProgram] || '💡 <b>Insight:</b> Consistency compounds — showing up for a moderate session beats skipping in search of a "perfect" one.';
 }
 
+async function renderVoiceHint(){
+  const banner = document.getElementById('voiceHintBanner');
+  if(!banner) return;
+  if(!SpeechRecognitionCtor){ banner.style.display = 'none'; return; }
+  let dismissed = false;
+  try{
+    const res = await window.storage.get('voice-hint-dismissed');
+    dismissed = !!(res && res.value === '1');
+  }catch(e){}
+  if(dismissed){ banner.style.display = 'none'; return; }
+
+  banner.className = 'voice-hint-banner';
+  banner.innerHTML = `
+    <span>💡 <b>Tip:</b> hold the plate-calculator button (🏋️) — or tap 🎤 on other exercises — to voice log a set. Try "225 for 5" or "180 for 12 at a 6".</span>
+    <button class="voice-hint-dismiss" id="voiceHintDismissBtn" title="Dismiss">✕</button>
+  `;
+  banner.style.display = 'flex';
+  document.getElementById('voiceHintDismissBtn').addEventListener('click', async ()=>{
+    banner.style.display = 'none';
+    try{ await window.storage.set('voice-hint-dismissed', '1'); }catch(e){}
+  });
+}
+
 async function renderWorkout(){
   const day = dayDefs[activeDay];
   renderTodayInsights(); // fire-and-forget — session heads-up depends on activeDay/activeProgram, both already updated by now
@@ -7272,6 +7403,7 @@ async function renderWorkout(){
   const list = document.getElementById('exerciseList');
   list.innerHTML = '';
   renderDayInsight(day);
+  renderVoiceHint();
 
   if(day.rest){
     document.getElementById('dayDuration').textContent = day.duration;
@@ -7383,8 +7515,10 @@ async function renderWorkout(){
               <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="${placeholderSet && placeholderSet.reps!=null ? placeholderSet.reps : 'reps'}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
               <input type="number" inputmode="decimal" step="0.5" min="5" max="10" class="ex-input ex-rpe" placeholder="RPE" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
               ${showPlateCalc ? '<button type="button" class="plate-btn" title="Plate calculator">🏋️</button>' : ''}
+              ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" title="Voice log">🎤</button>' : ''}
               <span class="set-status"></span>
               ${showPlateCalc ? '<div class="plate-result"></div>' : ''}
+              ${SpeechRecognitionCtor ? '<div class="voice-feedback"></div>' : ''}
             </div>
           </div>
         `;
@@ -7755,6 +7889,8 @@ function wireSetsBlock(row, exIdx, ex){
     const statusEl = setRow.querySelector('.set-status');
     const plateBtn = setRow.querySelector('.plate-btn');
     const plateResult = setRow.querySelector('.plate-result');
+    const voiceBtn = setRow.querySelector('.voice-log-btn');
+    const voiceFeedback = setRow.querySelector('.voice-feedback');
 
     // Read the set's index fresh at save time, not once up front — after a
     // delete, remaining rows get renumbered, and this makes sure a save
@@ -7781,9 +7917,107 @@ function wireSetsBlock(row, exIdx, ex){
     rInput.addEventListener('change', save);
     rpeInput.addEventListener('change', save);
 
+    // Shared listening logic — triggered either by a direct click (standalone
+    // mic button, non-barbell rows) or a long-press (the plate-calc button,
+    // barbell rows). One implementation, two ways in, so voice logging never
+    // has to compete with the plate calculator for its own row-width slot,
+    // and never requires opening a panel just to reach a second button.
+    function startVoiceRecognition(btn){
+      if(btn.classList.contains('listening')) return; // already listening, ignore a repeat trigger
+      const recognition = new SpeechRecognitionCtor();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      btn.classList.add('listening');
+      const originalTitle = btn.title;
+
+      recognition.onresult = (event)=>{
+        const rawTranscript = event.results[0][0].transcript;
+        // Pull out an explicit "RPE 8" (or "8.5") mention first, and remove
+        // it from the transcript before scanning for weight/reps numbers —
+        // otherwise the RPE number could get mistaken for a rep count.
+        // Requiring the actual word "RPE" to be said keeps this unambiguous;
+        // guessing that "some third number" must be RPE would misfire too
+        // easily on a stray number that wasn't meant as one.
+        // "RPE 8" is checked first since it's the most explicit and
+        // unambiguous phrasing. "at a 6" / "at an 8" / "at 9" is how most
+        // lifters actually say it out loud though, so it's supported as a
+        // fallback pattern too — "at" is specific enough in this context
+        // (calling out a completed set) that it isn't likely to collide
+        // with anything else someone would say here.
+        const rpeMatch = rawTranscript.match(/rpe\s*(\d+(\.\d+)?)/i)
+          || rawTranscript.match(/\bat\s+(?:an?\s+)?(\d+(\.\d+)?)\b/i);
+        const rpeValue = rpeMatch ? rpeMatch[1] : null;
+        const remainingTranscript = rpeMatch ? rawTranscript.replace(rpeMatch[0], '') : rawTranscript;
+        const numbers = remainingTranscript.match(/\d+(\.\d+)?/g);
+
+        if((!numbers || numbers.length === 0) && rpeValue === null){
+          voiceFeedback.textContent = `Didn't catch a number — try "225 for 5" or "180 for 12 at a 6"`;
+          voiceFeedback.classList.add('open');
+          setTimeout(()=> voiceFeedback.classList.remove('open'), 3000);
+          return;
+        }
+        if(numbers && numbers.length){
+          if(wInput && numbers.length >= 2){
+            wInput.value = numbers[0];
+            rInput.value = Math.round(Number(numbers[1]));
+          } else {
+            rInput.value = Math.round(Number(numbers[numbers.length-1]));
+          }
+        }
+        if(rpeValue !== null) rpeInput.value = rpeValue;
+        save();
+      };
+      recognition.onerror = (event)=>{
+        if(event.error === 'not-allowed'){
+          btn.title = 'Microphone access denied — allow it in your browser/phone settings to use voice log.';
+          voiceFeedback.textContent = 'Microphone access denied — check your browser/phone settings to allow it.';
+          voiceFeedback.classList.add('open');
+          setTimeout(()=> voiceFeedback.classList.remove('open'), 4000);
+        } else {
+          btn.title = originalTitle;
+        }
+      };
+      recognition.onend = ()=>{
+        btn.classList.remove('listening');
+      };
+      recognition.start();
+    }
+
+    if(voiceBtn){
+      voiceBtn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        startVoiceRecognition(voiceBtn);
+      });
+    }
+
     if(plateBtn){
+      // Tap opens/closes the plate breakdown, exactly as before. Holding it
+      // down (~400ms) starts voice recognition directly on the same button
+      // instead — no second tap, no sub-menu, and the row never grows.
+      let holdTimer = null;
+      let heldLongEnough = false;
+      const LONG_PRESS_MS = 400;
+
+      const cancelHold = ()=> clearTimeout(holdTimer);
+
+      plateBtn.addEventListener('pointerdown', (e)=>{
+        e.preventDefault(); // stop the browser's own long-press (text selection/callout) from competing with ours
+        heldLongEnough = false;
+        if(!SpeechRecognitionCtor) return;
+        holdTimer = setTimeout(()=>{
+          heldLongEnough = true;
+          startVoiceRecognition(plateBtn);
+        }, LONG_PRESS_MS);
+      });
+      plateBtn.addEventListener('pointerup', cancelHold);
+      plateBtn.addEventListener('pointerleave', cancelHold);
+      plateBtn.addEventListener('pointercancel', cancelHold);
+      plateBtn.addEventListener('contextmenu', (e)=> e.preventDefault());
+
       plateBtn.addEventListener('click', (e)=>{
         e.stopPropagation();
+        if(heldLongEnough){ heldLongEnough = false; return; } // the click that follows a long-press shouldn't also toggle the panel
         const isOpen = plateResult.classList.contains('open');
         if(isOpen){
           plateResult.classList.remove('open');
@@ -7796,6 +8030,8 @@ function wireSetsBlock(row, exIdx, ex){
         plateResult.classList.add('open');
         plateBtn.classList.add('active');
       });
+
+      if(SpeechRecognitionCtor) plateBtn.title = 'Tap: plate calculator · Hold: voice log';
     }
 
     makeSwipeable(setRow, ()=> deleteSet(setRow));
@@ -7820,8 +8056,10 @@ function wireSetsBlock(row, exIdx, ex){
         <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="reps" value="">
         <input type="number" inputmode="decimal" step="0.5" min="5" max="10" class="ex-input ex-rpe" placeholder="RPE" value="">
         ${showPlateCalc ? '<button type="button" class="plate-btn" title="Plate calculator">🏋️</button>' : ''}
+        ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" title="Voice log">🎤</button>' : ''}
         <span class="set-status"></span>
         ${showPlateCalc ? '<div class="plate-result"></div>' : ''}
+        ${SpeechRecognitionCtor ? '<div class="voice-feedback"></div>' : ''}
       </div>
     `;
     block.insertBefore(div, block.querySelector('.add-set-btn'));
@@ -8523,6 +8761,14 @@ async function recommendProgram(p, trendStatus){
     boxingsc: 'Boxing Strength & Conditioning builds the rotational power, single-leg strength, and round-based conditioning that actually drives punching power — the physical base underneath the skill work in Combat.',
     prenatal: 'Prenatal & Postpartum training prioritizes what\'s safe and appropriate for where you are right now, with your provider\'s clearance — not a body-composition goal the way other programs are.',
     desk: 'Desk Worker / Posture directly targets the tight-here, weak-there pattern (Janda\'s "upper/lower crossed syndrome") that hours of sitting produces — a good fit alongside whatever other training you\'re doing.',
+    hyrox: 'HYROX pairs functional-fitness stations with running intervals — a demanding, race-tested way to build the engine and full-body strength this goal calls for.',
+    grappling: 'BJJ/Grappling burns real calories through constant positional work while building a wiry, functional kind of strength combat sports are known for.',
+    bodyweight: 'Bodyweight training builds real, joint-friendly strength using progressions you can do nearly anywhere, no equipment required.',
+    core: 'Core & Stability training builds the trunk stability that protects your back and carries over into everything else you do.',
+    mobility: 'A dedicated mobility practice improves the range of motion and joint health that everything else you train depends on.',
+    yoga: 'Yoga builds flexibility, balance, and body control while staying easy on the joints — genuinely calming besides.',
+    pilates: 'Pilates builds core control, posture, and lean full-body strength with minimal joint stress.',
+    rehab: 'Recovery & Rehab is built around recovering from and building resilience against a specific injury pattern — not a body-composition goal the way other programs are.',
   };
 
   let why = whyMap[topKey] || `${programs[topKey].label} is the best match for your current goal.`;
@@ -8593,6 +8839,57 @@ async function dismissProgramRec(recKey){
 }
 async function clearProgramRecDismissal(){
   try{ await window.storage.delete('program-rec-dismissed-key'); }catch(e){}
+}
+
+// --- Getting Started checklist: entirely derived from real usage, not a
+// separate onboarding flow to maintain — "done" just means the milestone
+// flag below has actually been set by the real action happening once
+// (first set logged, first meal logged), and the whole card disappears on
+// its own once every step is genuinely true. No dismissal bookkeeping
+// needed for the happy path; "Hide this" only exists for someone who
+// simply doesn't want to see a checklist at all.
+async function markMilestone(key){
+  try{
+    const res = await window.storage.get(key);
+    if(res && res.value === '1') return; // already marked — skip the render on every subsequent set/meal
+  }catch(e){}
+  try{ await window.storage.set(key, '1'); }catch(e){}
+  renderOnboardingCard();
+}
+
+async function getMilestone(key){
+  try{
+    const res = await window.storage.get(key);
+    return !!(res && res.value === '1');
+  }catch(e){ return false; }
+}
+
+async function renderOnboardingCard(){
+  const card = document.getElementById('onboardingCard');
+  if(!card) return;
+
+  let dismissed = false;
+  try{
+    const res = await window.storage.get('onboarding-dismissed');
+    dismissed = !!(res && res.value === '1');
+  }catch(e){}
+  if(dismissed){ card.style.display = 'none'; return; }
+
+  const steps = [
+    {label: 'Set up your profile', done: !!(userProfile && userProfile.name)},
+    {label: 'Log your first set', done: await getMilestone('has-logged-first-set')},
+    {label: 'Log your first meal', done: await getMilestone('has-logged-first-meal')},
+  ];
+
+  if(steps.every(s=>s.done)){ card.style.display = 'none'; return; }
+
+  document.getElementById('onboardingRows').innerHTML = steps.map(s=>`
+    <div class="onboarding-row ${s.done ? 'done' : ''}">
+      <span class="onboarding-check">${s.done ? '✓' : ''}</span>
+      <span>${s.label}</span>
+    </div>
+  `).join('');
+  card.style.display = '';
 }
 
 async function renderProgramRec(trendStatus){
@@ -8676,6 +8973,7 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
   applyTargetsToUI();
   renderHeader();
   renderProfileSummary();
+  renderOnboardingCard();
   const trendStatusForRec = await getCurrentTrendStatus();
   await renderProgramRec(trendStatusForRec);
   await renderProgramSelector(trendStatusForRec);
@@ -8704,6 +9002,11 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
 });
 
 document.getElementById('switchProfileBtn').addEventListener('click', ()=> showUserPicker());
+
+document.getElementById('onboardingDismiss').addEventListener('click', async ()=>{
+  document.getElementById('onboardingCard').style.display = 'none';
+  try{ await window.storage.set('onboarding-dismissed', '1'); }catch(e){}
+});
 
 document.getElementById('exportDataBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('exportDataBtn');
@@ -8748,6 +9051,71 @@ document.getElementById('exportDataBtn').addEventListener('click', async ()=>{
     btn.textContent = 'Export failed — try again';
     setTimeout(()=> btn.textContent = originalText, 2000);
   }
+});
+
+document.getElementById('importDataBtn').addEventListener('click', ()=>{
+  document.getElementById('importDataInput').click();
+});
+
+document.getElementById('importDataInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  e.target.value = ''; // allow re-selecting the same file again later
+  if(!file) return;
+  const statusEl = document.getElementById('importDataStatus');
+  statusEl.textContent = 'Reading backup file…';
+
+  let parsed;
+  try{
+    const text = await file.text();
+    parsed = JSON.parse(text);
+  }catch(err){
+    statusEl.textContent = 'That file isn\'t valid JSON — make sure you picked the right backup file.';
+    return;
+  }
+
+  if(!parsed || typeof parsed.data !== 'object' || parsed.data === null){
+    statusEl.textContent = 'That doesn\'t look like a Training Log backup file (missing expected data).';
+    return;
+  }
+
+  const keyCount = Object.keys(parsed.data).length;
+  if(keyCount === 0){
+    statusEl.textContent = 'That backup file has no data in it — nothing to restore.';
+    return;
+  }
+
+  // A schema mismatch doesn't necessarily mean the restore will fail, but
+  // it's exactly the kind of thing worth surfacing before overwriting
+  // everything currently on this device — better to ask than to silently
+  // restore data shaped for a different version of the app.
+  const schemaNote = (parsed.schemaVersion !== undefined && parsed.schemaVersion !== SCHEMA_VERSION)
+    ? `\n\nNote: this backup is from schema v${parsed.schemaVersion}, and this app is on v${SCHEMA_VERSION}. It'll likely still work, but double-check your data afterward.`
+    : '';
+  const profileNote = parsed.profileName ? ` for "${parsed.profileName}"` : '';
+  const confirmed = confirm(
+    `Restore backup${profileNote} (${keyCount} item${keyCount===1?'':'s'}, exported ${parsed.exportedAt ? new Date(parsed.exportedAt).toLocaleDateString() : 'unknown date'})?\n\n`+
+    `This REPLACES everything currently stored on this device for this profile — training log, nutrition, measurements, everything. This can't be undone.${schemaNote}`
+  );
+  if(!confirmed) return;
+
+  statusEl.textContent = 'Restoring…';
+  let restored = 0, failed = 0;
+  for(const [key, value] of Object.entries(parsed.data)){
+    try{
+      await window.storage.set(key, value);
+      restored++;
+    }catch(err){
+      failed++;
+    }
+  }
+
+  if(failed > 0){
+    statusEl.textContent = `Restored ${restored} item${restored===1?'':'s'}, but ${failed} failed — you may want to try again.`;
+    return;
+  }
+
+  statusEl.textContent = `Restored ${restored} item${restored===1?'':'s'} — reloading…`;
+  setTimeout(()=> location.reload(), 900);
 });
 
 // [NUTRITION] ---------------------------------------------------------------
@@ -9291,6 +9659,153 @@ async function searchUsdaFoods(query){
   }).filter(f=> f.cal > 0 || f.pro > 0 || f.fat > 0 || f.carb > 0); // drop entries USDA has no usable macro data for
 }
 
+// --- Open Food Facts: free, public, no-key barcode database (3M+ packaged
+// products worldwide) — the barcode-scan companion to USDA's text search.
+// Same caching behavior: whatever gets logged from a scan is saved into My
+// Foods immediately, so that exact product is instant and local from then on.
+async function lookupBarcode(barcode){
+  const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json`;
+  const response = await fetch(url);
+  if(!response.ok){
+    throw new Error(`Barcode lookup failed (${response.status})`);
+  }
+  const data = await response.json();
+  // Open Food Facts returns HTTP 200 even for a barcode it doesn't recognize
+  // — status must be checked explicitly, a 200 alone doesn't mean a hit.
+  if(data.status !== 1 || !data.product){
+    return null;
+  }
+  const p = data.product;
+  const n = p.nutriments || {};
+  const name = p.brands ? `${p.product_name || 'Unknown product'} (${p.brands})` : (p.product_name || 'Unknown product');
+  // Prefer the actual per-serving numbers (what's really printed on the
+  // label) over the generic per-100g figures, exactly like the USDA
+  // labelNutrients preference — matches what a person expects to log.
+  const hasServing = n['energy-kcal_serving'] != null || n['proteins_serving'] != null;
+  if(hasServing){
+    return {
+      name,
+      cal: Math.round(n['energy-kcal_serving'] ?? 0),
+      pro: Math.round(n['proteins_serving'] ?? 0),
+      fat: Math.round(n['fat_serving'] ?? 0),
+      carb: Math.round(n['carbohydrates_serving'] ?? 0),
+      servingDesc: p.serving_size || 'labeled serving',
+      source: 'Open Food Facts',
+    };
+  }
+  return {
+    name,
+    cal: Math.round(n['energy-kcal_100g'] ?? 0),
+    pro: Math.round(n['proteins_100g'] ?? 0),
+    fat: Math.round(n['fat_100g'] ?? 0),
+    carb: Math.round(n['carbohydrates_100g'] ?? 0),
+    servingDesc: 'per 100g',
+    source: 'Open Food Facts',
+  };
+}
+
+// ZXing is only loaded the first time someone actually taps "Scan Barcode"
+// — no reason to pull in a camera/barcode library on every page load for
+// a feature most sessions won't touch.
+let zxingLoadPromise = null;
+function loadZXing(){
+  if(window.ZXingBrowser) return Promise.resolve();
+  if(zxingLoadPromise) return zxingLoadPromise;
+  zxingLoadPromise = new Promise((resolve, reject)=>{
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js';
+    script.onload = resolve;
+    script.onerror = ()=> reject(new Error('Could not load the barcode scanner library — check your connection.'));
+    document.head.appendChild(script);
+  });
+  return zxingLoadPromise;
+}
+
+let barcodeScanControls = null;
+
+async function closeBarcodeScanner(){
+  if(barcodeScanControls){
+    try{ barcodeScanControls.stop(); }catch(e){}
+    barcodeScanControls = null;
+  }
+  const video = document.getElementById('barcodeVideo');
+  if(video && video.srcObject){
+    video.srcObject.getTracks().forEach(t=>t.stop());
+    video.srcObject = null;
+  }
+  document.getElementById('barcodeScannerOverlay').classList.remove('active');
+}
+
+async function openBarcodeScanner(){
+  const overlay = document.getElementById('barcodeScannerOverlay');
+  const statusEl = document.getElementById('barcodeStatus');
+  overlay.classList.add('active');
+  statusEl.textContent = 'Loading scanner…';
+  clearOtherQuickAddResults('barcodeResult');
+  document.getElementById('barcodeResult').innerHTML = '';
+
+  try{
+    await loadZXing();
+  }catch(e){
+    statusEl.textContent = e.message;
+    return;
+  }
+
+  statusEl.textContent = 'Point your camera at a barcode';
+  try{
+    const codeReader = new window.ZXingBrowser.BrowserMultiFormatReader();
+    const video = document.getElementById('barcodeVideo');
+    barcodeScanControls = await codeReader.decodeFromConstraints(
+      { video: { facingMode: 'environment' } },
+      video,
+      async (result, err, controls)=>{
+        if(result){
+          controls.stop();
+          barcodeScanControls = null;
+          const barcode = result.getText();
+          await closeBarcodeScanner();
+          await handleBarcodeFound(barcode);
+        }
+        // err fires continuously between frames with no code found — expected, not a real error, ignored.
+      }
+    );
+  }catch(e){
+    statusEl.textContent = e.name === 'NotAllowedError'
+      ? 'Camera access denied — allow camera access in your browser/phone settings to scan.'
+      : 'Could not start the camera. Try again, or add the item manually below.';
+  }
+}
+
+async function handleBarcodeFound(barcode){
+  const resultEl = document.getElementById('barcodeResult');
+  resultEl.innerHTML = `<div class="empty-note">Looking up barcode ${escapeHtml(barcode)}…</div>`;
+  try{
+    const item = await lookupBarcode(barcode);
+    if(!item){
+      resultEl.innerHTML = `<div class="empty-note">No product found for that barcode — try search instead, or add it as a custom item below.</div>`;
+      return;
+    }
+    resultEl.innerHTML = `
+      <div class="photo-result-card">
+        <div class="photo-result-title">📦 Found it</div>
+        <div class="photo-result-item">
+          <span>${escapeHtml(item.name)} — ${item.cal} cal, ${item.pro}p/${item.fat}f/${item.carb}c (${escapeHtml(item.servingDesc)})</span>
+          <button class="fl-remove" style="color:var(--plate-green); font-size:18px;" id="barcodeAddBtn">+</button>
+        </div>
+      </div>
+    `;
+    document.getElementById('barcodeAddBtn').addEventListener('click', async ()=>{
+      await addFoodToLog(item);
+      resultEl.innerHTML = `<div class="empty-note">Added — and saved to My Foods for next time.</div>`;
+    });
+  }catch(e){
+    resultEl.innerHTML = `<div class="empty-note">${escapeHtml(e.message || 'Lookup failed — check your connection and try again.')}</div>`;
+  }
+}
+
+document.getElementById('barcodeScanBtn').addEventListener('click', openBarcodeScanner);
+document.getElementById('barcodeCloseBtn').addEventListener('click', closeBarcodeScanner);
+
 function allFoodsFlat(){
   const flat = [];
   Object.keys(foodLibrary).forEach(cat=>{
@@ -9573,6 +10088,7 @@ async function addFoodToLog(item){
   }
   renderFoodLog();
   renderFoodItems();
+  markMilestone('has-logged-first-meal');
 }
 
 // --- Meal suggestions: "what should I eat to hit today's remaining
@@ -9685,7 +10201,21 @@ function renderMealSuggestions(){
   });
 }
 
-document.getElementById('suggestMealBtn').addEventListener('click', renderMealSuggestions);
+// The three "Add a Food" quick actions (Suggest/Photo/Barcode) each render
+// into their own result area — but only one is ever relevant at a time.
+// Without this, using one after another left all three stacked and visible
+// at once, which was both cluttered and confusing about which result was
+// actually current.
+function clearOtherQuickAddResults(exceptId){
+  ['mealSuggestions', 'photoLogResult', 'barcodeResult'].forEach(id=>{
+    if(id !== exceptId) document.getElementById(id).innerHTML = '';
+  });
+}
+
+document.getElementById('suggestMealBtn').addEventListener('click', ()=>{
+  clearOtherQuickAddResults('mealSuggestions');
+  renderMealSuggestions();
+});
 
 async function removeFoodFromLog(idx){
   todaysFoodLog.splice(idx,1);
@@ -10908,6 +11438,7 @@ document.getElementById('photoLogBtn').addEventListener('click', ()=> document.g
 document.getElementById('photoLogInput').addEventListener('change', async (e)=>{
   const file = e.target.files[0];
   if(!file) return;
+  clearOtherQuickAddResults('photoLogResult');
   const resultEl = document.getElementById('photoLogResult');
   const apiKey = await getApiKey();
 
@@ -12126,6 +12657,7 @@ if(activeUserId){
     const trendStatusForInit = await getCurrentTrendStatus();
     await renderProgramRec(trendStatusForInit);
     await renderProgramSelector(trendStatusForInit);
+    await renderOnboardingCard();
     await loadDayOrder();
     renderTabs();
     renderWorkout();
