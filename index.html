@@ -242,6 +242,10 @@
   .ex-cal-tag{
     font-size:10px; color:var(--plate-yellow); text-align:right; margin-top:2px; font-weight:600;
   }
+  .privacy-note{
+    padding:10px 12px; background:rgba(50,215,75,0.08); border:1px solid rgba(50,215,75,0.25);
+    border-radius:var(--radius-md); font-size:12px; line-height:1.5; color:var(--text-muted); margin-bottom:14px;
+  }
   .day-insight{
     padding:10px 12px; background:rgba(91,124,255,0.08); border:1px solid rgba(91,124,255,0.25);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
@@ -760,6 +764,9 @@
   }
   .quick-add-btn:active{transform:scale(0.96);}
   .quick-add-icon{font-size:18px;}
+  .describe-food-form{margin-bottom:10px;}
+  .describe-food-input-row{display:flex; gap:8px; align-items:center;}
+  .describe-food-input-row input{flex:1;}
   .photo-result-card{
     margin-top:10px; padding:12px 14px; background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
   }
@@ -880,6 +887,18 @@
   .status-msg{font-size:12px; color:var(--plate-green); height:16px; margin-top:6px; text-align:center;}
   .empty-note{color:var(--text-muted); font-size:13px; text-align:center; padding:6px 0;}
   .skeleton-wrap{display:flex; flex-direction:column; gap:9px; padding:6px 0;}
+  .coach-progress{padding:16px 0;}
+  .coach-progress-bar{height:6px; background:var(--surface2); border-radius:4px; overflow:hidden; margin-bottom:10px;}
+  .coach-progress-fill{
+    height:100%; background:linear-gradient(90deg, var(--plate-blue), #7C97FF); border-radius:4px;
+    transition:width 0.4s var(--ease-smooth); position:relative; overflow:hidden;
+  }
+  .coach-progress-fill::after{
+    content:''; position:absolute; inset:0; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation:coachProgressShimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes coachProgressShimmer{ 0%{transform:translateX(-100%);} 100%{transform:translateX(100%);} }
+  .coach-progress-label{font-size:12.5px; color:var(--text-muted); text-align:center;}
   .skeleton-line{
     height:11px; border-radius:5px;
     background:linear-gradient(100deg, var(--surface2) 20%, var(--line-bright) 42%, var(--surface2) 64%);
@@ -1029,6 +1048,19 @@
   .care-disclaimer-card{border-color:var(--plate-yellow);}
   .care-disclaimer{font-size:13px; line-height:1.5; color:var(--text-muted);}
   .care-disclaimer b{color:var(--plate-yellow);}
+
+  .coach-chat-log{
+    display:flex; flex-direction:column; gap:10px; max-height:360px; overflow-y:auto;
+    margin:12px 0; padding-right:2px;
+  }
+  .coach-chat-empty{color:var(--text-muted); font-size:12.5px; text-align:center; padding:20px 10px;}
+  .coach-chat-bubble{max-width:85%; padding:10px 13px; border-radius:var(--radius-md); font-size:13px; line-height:1.5;}
+  .coach-chat-bubble.user{align-self:flex-end; background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%); color:#fff; border-bottom-right-radius:4px;}
+  .coach-chat-bubble.assistant{align-self:flex-start; background:var(--surface2); border:1px solid var(--line); border-bottom-left-radius:4px;}
+  .coach-chat-bubble.thinking{color:var(--text-muted); font-style:italic;}
+  .coach-chat-input-row{display:flex; gap:8px;}
+  .coach-chat-input-row .care-input{flex:1; margin:0;}
+  .coach-chat-send-btn{width:auto; margin:0; padding:11px 18px; white-space:nowrap;}
 
   .care-form{display:flex; flex-direction:column; gap:10px;}
   .care-label{font-size:11.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.3px; margin-top:4px;}
@@ -1322,6 +1354,8 @@
       <button class="switch-profile-btn" id="importDataBtn">⬆️ Import Backup (restore from JSON)</button>
       <input type="file" id="importDataInput" accept="application/json,.json" style="display:none">
       <div class="status-msg" id="importDataStatus"></div>
+      <button class="switch-profile-btn" id="deleteAllDataBtn" style="color:var(--plate-red); border-color:rgba(255,69,58,0.3);">🗑️ Delete All My Data (this profile, permanently)</button>
+      <div class="status-msg" id="deleteAllDataStatus"></div>
     </div></div>
   </div>
   <div id="programRecommendation"></div>
@@ -1429,12 +1463,21 @@
       <div class="quick-add-row">
         <button class="quick-add-btn" id="photoLogBtn"><span class="quick-add-icon">📷</span>Photo</button>
         <button class="quick-add-btn" id="barcodeScanBtn"><span class="quick-add-icon">▦</span>Barcode</button>
+        <button class="quick-add-btn" id="describeFoodBtn"><span class="quick-add-icon">📝</span>Describe</button>
         <button class="quick-add-btn" id="suggestMealBtn"><span class="quick-add-icon">💡</span>Suggest</button>
+      </div>
+      <div id="describeFoodForm" class="describe-food-form" style="display:none">
+        <div class="describe-food-input-row">
+          <input type="text" id="describeFoodInput" class="care-input" placeholder="e.g. chicken burrito bowl with rice, beans, and guac">
+          <span id="describeFoodVoiceSlot"></span>
+        </div>
+        <button class="save-btn" id="describeFoodSubmit">Estimate Nutrition</button>
       </div>
       <input type="file" id="photoLogInput" accept="image/*" style="display:none">
       <div id="photoLogResult"></div>
       <div id="mealSuggestions"></div>
       <div id="barcodeResult"></div>
+      <div id="describeFoodResult"></div>
 
       <div class="food-cats" id="foodCats"></div>
       <div class="food-items" id="foodItems"></div>
@@ -1530,6 +1573,7 @@
     </div>
     <div class="nutrition-summary" id="photosSummary">Tap to log — a visual record the scale and tape measure can't show</div>
     <div class="expand-wrap" id="photosExpandWrap"><div>
+      <div class="privacy-note">🔒 Stored only on this device, never uploaded anywhere — not even to Anthropic if you use AI features elsewhere in the app. Deleting a photo removes it completely; "Delete All My Data" in your profile wipes these too.</div>
       <input type="file" id="photoInput" accept="image/*" style="display:none">
       <button class="photo-log-btn" id="photoAddBtn">📸 Snap or Upload a Progress Photo</button>
       <div class="status-msg" id="photoStatus"></div>
@@ -1722,12 +1766,25 @@
   <div id="coachView" style="display:none">
     <div class="card care-disclaimer-card">
       <div class="care-disclaimer">
-        Uses your saved Anthropic API key (set it up in "AI Features Setup" on the Today tab — same key powers Snap a Meal). Feedback is based only on what's visible on camera; it can't replace an in-person coach and isn't medical advice. Right now it's coaching from the <b id="coachPersonaLabel">Strength & Size</b> knowledge base, since that's your active training style.
+        Uses your saved Anthropic API key (set it up in "AI Features Setup" on the Today tab — same key powers Snap a Meal, Get Form Feedback, and the chat below). Not medical advice, and not a substitute for an in-person coach or doctor.
       </div>
     </div>
 
     <div class="card">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 5.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8l-4 3v-3H4.5a2 2 0 0 1-2-2Z"/></svg></span>Ask Your Coach</div>
+      <div class="history-hint">Chat about your training, nutrition, or recovery — your goal and active program are already part of the conversation.</div>
+      <div id="coachChatLog" class="coach-chat-log"></div>
+      <div class="coach-chat-input-row">
+        <input type="text" id="coachChatInput" class="care-input" placeholder="Ask something…">
+        <button class="save-btn coach-chat-send-btn" id="coachChatSend">Send</button>
+      </div>
+      <button class="usda-key-upgrade-toggle" id="coachChatClear" style="margin-top:8px;">Clear conversation</button>
+    </div>
+
+    <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5.2" width="10.8" height="9.6" rx="1.5"/><path d="M12.8 8.4 17.8 6v8l-5-2.4Z"/></svg></span>Get Form Feedback</div>
+      <div class="history-hint">Coaching from the <b id="coachPersonaLabel">Strength & Size</b> knowledge base, since that's your active training style.</div>
+      <div class="privacy-note">🔒 Your clip goes directly from this device to Anthropic using your own API key — never through any other server. Only the written feedback below gets saved; the video itself is never stored, here or anywhere else.</div>
       <input type="file" id="coachVideoInput" accept="video/*" style="display:none">
       <button class="photo-log-btn" id="coachVideoBtn">🎥 Upload or Record a Clip</button>
       <label class="care-label">What exercise/movement is this?</label>
@@ -5411,227 +5468,6 @@ function toggleCombatTechniquesCard(){
   }
 }
 
-// [GRAPPLING TECHNIQUES] ----------------------------------------------------
-// Same masterclass pattern as Combat/Swimming/Climbing: a browsable, curated
-// technique library independent of any specific workout day. BJJ's technical
-// vocabulary (guards, passes, submissions, escapes) is exactly the kind of
-// thing worth being able to look up outside of a session, which is the gap
-// this closes — the per-exercise cues elsewhere are shorter and tied to a
-// specific drill, this is the fuller reference.
-const GRAPPLING_ICONS = {
-  kneeSlice: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="15" r="2"/><line x1="6" y1="15" x2="11" y2="15"/><line x1="11" y1="15" x2="15" y2="10"/><line x1="11" y1="15" x2="15" y2="18"/><circle cx="14" cy="6" r="2"/><line x1="14" y1="8" x2="13" y2="12"/><line x1="13" y1="12" x2="18" y2="16"/></svg>',
-  torreando: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><line x1="6" y1="8" x2="6" y2="12"/><path d="M6 12 12 15"/><path d="M6 12 3 17"/><path d="M14 4c1.5 2 1.5 5 0 8" stroke-dasharray="1,3"/></svg>',
-  longStep: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="6" r="2"/><line x1="4" y1="8" x2="4" y2="12"/><path d="M4 12 8 16"/><path d="M4 12 2 17"/><path d="M6 9c4-2 8 2 10 7" stroke-dasharray="1,3"/></svg>',
-  stackPass: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="16" x2="17" y2="16"/><line x1="3" y1="12" x2="14" y2="12"/><path d="M10 4v5"/><path d="M8 7l2 2 2-2"/></svg>',
-  hipEscape: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="12" r="2"/><path d="M6 12h5"/><path d="M11 12l3-3"/><path d="M11 12l4 2"/><path d="M14 4c-2 1-2 3 0 5" stroke-dasharray="1,3"/></svg>',
-  bridgeRoll: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14c3-6 11-6 14 0"/><path d="M14 4a7 7 0 0 1 3 5" stroke-dasharray="1,3"/></svg>',
-  guardRetention: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 16.5 4.8V10c0 4-2.7 6.8-6.5 7.8-3.8-1-6.5-3.8-6.5-7.8V4.8Z"/></svg>',
-  standUp: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l5-6 5 6"/><line x1="10" y1="7" x2="10" y2="18"/></svg>',
-  rearNakedChoke: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="10" r="4"/><circle cx="13" cy="10" r="4"/><path d="M9 7c2 0 3 1 3 3"/></svg>',
-  armbarGuard: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="14" x2="10" y2="8"/><line x1="10" y1="8" x2="17" y2="12"/><path d="M6 5l3 3-3 3"/></svg>',
-  triangleChoke: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3 17 16H3Z"/></svg>',
-  kimura: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16l4-8 5 2 4-7"/></svg>',
-  guillotine: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="7" r="3"/><path d="M5 10c0 5 4 7 9 6"/></svg>',
-  doubleLeg: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l6 10M16 4l-6 10"/><path d="M10 14v4"/></svg>',
-  singleLeg: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l8 12"/><path d="M12 16h4v-4"/></svg>',
-  mountControl2: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="15" x2="17" y2="15"/><circle cx="10" cy="9" r="3"/><line x1="10" y1="12" x2="10" y2="15"/></svg>',
-  backControl: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="10" r="4"/><circle cx="13" cy="10" r="4"/><line x1="10" y1="14" x2="8" y2="17"/><line x1="10" y1="14" x2="12" y2="17"/></svg>',
-  sideControl: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="14" x2="17" y2="14"/><line x1="8" y1="6" x2="8" y2="14"/><line x1="8" y1="6" x2="14" y2="9"/></svg>',
-};
-
-const GRAPPLING_TECHNIQUE_DETAILS = {
-  'Knee Slice Pass': {icon:'kneeSlice', video:'bjj knee slice pass technique tutorial', points:[
-    'Setup: control one of the opponent\'s legs at the knee or shin while establishing a strong cross-face or head control on the same side, flattening their hips before advancing.',
-    'Execution: slide one knee through the centerline past their hip and thigh, keeping weight heavy and pressing down through the sliding leg rather than a light, easily-reframed base.',
-    'Whole-body integration: the cross-face and the sliding knee work together — the upper-body control prevents them turning back into you while the knee physically clears the guard, so both halves move as one connected pressure, not sequential steps.',
-    'Common mistake: passing with the base too light or too far back, which gives an alert opponent room to recover a frame or re-establish guard before the pass is finished.',
-    'Coaching insight: this is usually the first modern pass taught specifically because it rewards patience and pressure over speed — a slow, heavy knee slice beats a fast, light one almost every time.',
-  ]},
-  'Torreando Pass': {icon:'torreando', video:'bjj torreando bullfighter pass technique tutorial', points:[
-    'Setup: grip both of the opponent\'s ankles or lower legs from a standing or kneeling base, keeping your own posture upright and hips back out of leg-lock range.',
-    'Execution: step their legs sharply to one side while circling your own hips to the opposite side, then drop weight onto a hip or side-control position the instant their legs clear.',
-    'Whole-body integration: the redirection only works if the hands, hips, and feet move together — pulling the legs with the arms alone while the feet stay planted just resets the guard instead of clearing it.',
-    'Common mistake: hesitating after the initial redirect, which gives a flexible or fast opponent enough time to swing their hips back underneath and recover guard.',
-    'Coaching insight: named for the matador\'s redirection of a bull, this is usually the first pass most white belts learn because the underlying idea — redirect the legs, attack the space that opens — is so visually and physically clear.',
-  ]},
-  'Long Step Pass': {icon:'longStep', video:'bjj long step pass technique tutorial', points:[
-    'Setup: from inside an open guard, control both of the opponent\'s legs or hips while standing or on one knee, keeping your base wide and stable.',
-    'Execution: step one leg all the way over and around the opponent\'s hip to the far side, planting it well past their body before bringing your weight down into side control.',
-    'Whole-body integration: the long step only clears the guard cleanly if the hip and shoulder rotate together with the stepping leg — a step not matched by hip rotation leaves you stretched out and easy to re-guard.',
-    'Common mistake: stepping too short and landing the foot still within range of the opponent\'s legs, giving them an easy re-hook back into guard.',
-    'Coaching insight: this pass trades a little more exposure mid-pass for a very stable finishing position, which is why it\'s commonly paired with strong initial leg control up front to cover that exposed moment.',
-  ]},
-  'Stack Pass (Folding Pass)': {icon:'stackPass', video:'bjj stack pass folding pass technique tutorial', points:[
-    'Setup: from inside the opponent\'s guard, control both ankles or feet and drive forward, folding their hips up and back toward their own head.',
-    'Execution: keep constant forward pressure through the shoulders and chest while walking around the folded, stacked position toward side control or knee-on-belly.',
-    'Whole-body integration: the stack only holds if the pressure is continuous — any gap between the forward drive and the walk-around gives a flexible opponent room to swivel back to guard before the pass completes.',
-    'Common mistake: stacking without enough forward pressure, which lets an opponent with good hip mobility roll or swivel back underneath before you\'ve walked around.',
-    'Coaching insight: this pass is especially effective against less hip-mobile opponents, since the folded position itself becomes uncomfortable and limits their ability to recover before you finish walking around.',
-  ]},
-  'Hip Escape (Shrimping)': {icon:'hipEscape', video:'bjj hip escape shrimping technique tutorial', points:[
-    'Setup: lying on your back, post on one hand and the opposite foot, keeping the other knee bent and tucked in close.',
-    'Execution: push through the posted foot to shoot your hips backward and away, then immediately recover the near knee back in toward your frame before repeating to the other side.',
-    'Whole-body integration: the push and the recovery are one continuous movement, not two separate steps — creating space with the hips only matters if the knee comes back in fast enough to actually use it.',
-    'Common mistake: shrimping without recovering the knee afterward, which creates space but leaves it open for the top person to simply follow and close the gap right back down.',
-    'Coaching insight: this single movement underlies nearly every guard retention and escape in the sport, which is exactly why it\'s drilled in isolation long before it\'s ever tested live.',
-  ]},
-  'Bridge & Roll (Upa Escape)': {icon:'bridgeRoll', video:'bjj upa bridge roll mount escape tutorial', points:[
-    'Setup: from bottom mount, trap one of the top person\'s arms and the same-side leg, then plant the same-side foot close to your own hip.',
-    'Execution: bridge explosively up and over that trapped shoulder, timing the roll to the very top of the bridge rather than trying to muscle it through from flat on the back.',
-    'Whole-body integration: the trap, the plant, and the bridge all happen together — a strong bridge with no arm or leg trapped just launches the top person straight up and back down into the same position.',
-    'Common mistake: bridging too early or too late relative to the trap, which either fails to generate enough height to roll them or wastes the momentum once it\'s already built.',
-    'Coaching insight: bottom mount is one of the most disadvantageous positions in the sport, which is exactly why this escape is taught as a fundamental — everyone ends up there eventually and needs a reliable way out.',
-  ]},
-  'Guard Retention & Framing': {icon:'guardRetention', video:'bjj guard retention framing tutorial', points:[
-    'Setup: as a partner works to pass, establish frames — forearms or hands braced against their hips, knees, or biceps — rather than gripping cloth or limbs directly.',
-    'Execution: use hip escapes and the frames together to constantly re-center your hips between yourself and the passer, resetting the instant your guard is challenged rather than waiting until it\'s already passed.',
-    'Whole-body integration: frames create the space and hip movement uses it — a frame with no hip movement behind it just delays the pass briefly, while hip movement with no frame gets crushed immediately.',
-    'Common mistake: waiting to react until the guard is already mostly passed, instead of retaining continuously throughout the exchange as pressure shifts.',
-    'Coaching insight: guard retention is trained here as its own standalone skill, deliberately separate from any specific guard style, because the underlying hip movement and framing are shared across nearly every guard that exists.',
-  ]},
-  'Technical Stand-up': {icon:'standUp', video:'bjj technical stand up tutorial', points:[
-    'Setup: from the ground, post one hand behind you and bring the opposite foot underneath your hips, keeping the other leg extended out in front for base.',
-    'Execution: stand up through the posted hand and planted foot without turning your back to whoever is in front of you.',
-    'Whole-body integration: the posted hand and the tucked foot support the weight together as you rise — leaning on just one of the two makes the stand-up slow and easy to disrupt.',
-    'Common mistake: turning away from the opponent to get to your feet faster, which briefly takes your eyes off them and opens the back to attack.',
-    'Coaching insight: this is the standard safe way to return to standing while still facing (and defending against) whoever\'s in front of you, rather than scrambling up blind.',
-  ]},
-  'Rear Naked Choke': {icon:'rearNakedChoke', video:'bjj rear naked choke tutorial', points:[
-    'Setup: from back control with hooks or a body triangle in, thread one arm under the opponent\'s chin while the other hand grips behind their head or your own bicep.',
-    'Execution: squeeze by pulling the choking arm\'s elbow in tight and expanding your own chest, rather than trying to crank the neck from side to side.',
-    'Whole-body integration: back control is what makes the choke possible in the first place — the choke itself is a small, precise finishing motion layered on top of a position that has to already be secure.',
-    'Common mistake: rushing to lock the choke in before back control is fully secured, which often costs the position entirely if the opponent escapes mid-attempt.',
-    'Coaching insight: back control, not the choke, is usually the harder skill — once it\'s genuinely secured, the finish itself is one of the most mechanically reliable submissions in the sport.',
-  ]},
-  'Armbar from Guard': {icon:'armbarGuard', video:'bjj armbar from guard technique tutorial', points:[
-    'Setup: from closed guard, control one of the opponent\'s wrists and swivel your hips to bring a leg over their head, trapping the arm tightly between your thighs.',
-    'Execution: keep the captured arm\'s thumb pointed up and extend your hips upward while pulling the wrist down, rather than yanking on the arm with your hands alone.',
-    'Whole-body integration: the hip swivel, the leg-over, and the wrist control all set up together before the finish — skipping straight to pulling on the arm is why most armbars from guard fail in live rolling.',
-    'Common mistake: finishing with the arm bent or the hips too far from the shoulder, both of which reduce leverage and let a strong opponent power out.',
-    'Coaching insight: most failed armbars come from rushing the finish before the hip and wrist control are actually locked in — the setup, not the final pull, is where this submission is usually won or lost.',
-  ]},
-  'Triangle Choke': {icon:'triangleChoke', video:'bjj triangle choke tutorial', points:[
-    'Setup: from guard, control one of the opponent\'s arms and angle your hips off to that side while bringing one leg up and over their shoulder.',
-    'Execution: lock the triangle by trapping their head and one arm between your legs, then pull down on their head while squeezing your knees together to finish.',
-    'Whole-body integration: the hip angle you take before locking the triangle determines almost everything about how tight the finish is — a triangle locked square-on with no angle is far easier to posture out of.',
-    'Common mistake: locking the triangle without first getting the hip angle and a shin-behind-the-knee lock, leaving the position loose enough for a strong opponent to stack or posture out.',
-    'Coaching insight: the triangle is often taught alongside the armbar from guard specifically because they share the same initial arm control and hip movement, just finished in different directions.',
-  ]},
-  'Kimura': {icon:'kimura', video:'bjj kimura technique tutorial', points:[
-    'Setup: secure a figure-four grip on one of the opponent\'s wrists and same-side forearm, from guard, side control, or north-south.',
-    'Execution: rotate the trapped arm behind their back using the figure-four leverage, keeping your own elbows tight rather than letting the grip float away from your body.',
-    'Whole-body integration: the rotation comes from turning your hips and shoulders together with the grip, not from the arms alone — an arm-only kimura attempt is both slower and far easier to defend.',
-    'Common mistake: attempting the submission with the grip loose or far from the body, giving the opponent room to straighten the arm back out or rotate the shoulder to relieve pressure.',
-    'Coaching insight: because the kimura grip is useful from so many positions, it\'s often taught as a genuinely transitional attack — a failed attempt can frequently be converted directly into a sweep or a different submission.',
-  ]},
-  'Guillotine Choke': {icon:'guillotine', video:'bjj guillotine choke tutorial', points:[
-    'Setup: as an opponent shoots in or their head is exposed in front of you, wrap one arm under their chin and around the back of the neck.',
-    'Execution: lock the grip with your other hand and finish by lifting through your chest and pulling your elbows in, rather than pulling straight back with the arms alone.',
-    'Whole-body integration: closing the guard around the opponent\'s body (or hooking a leg over) while finishing is what stops them simply stepping back out of the choke mid-attempt.',
-    'Common mistake: finishing with the choking arm\'s elbow flared out to the side, which loosens the seal around the neck and makes the choke far easier to defend or slip.',
-    'Coaching insight: this is one of the most commonly attempted submissions specifically because it\'s available the instant an opponent\'s head is exposed — reacting quickly matters more here than finishing mechanics.',
-  ]},
-  'Double Leg Takedown': {icon:'doubleLeg', video:'wrestling double leg takedown tutorial', points:[
-    'Setup: change levels by bending the knees rather than the waist, closing distance while keeping your head up and back straight.',
-    'Execution: drive through both of the opponent\'s legs, wrapping them behind the knees while driving your shoulder into their hips, then finish by lifting and turning them to the mat.',
-    'Whole-body integration: the level change, the shoulder drive, and the leg wrap all happen as one continuous entry — a level change with no follow-through drive just telegraphs the attempt without closing distance.',
-    'Common mistake: bending at the waist to shoot instead of the knees, which drops the head down and makes it far easier for the opponent to sprawl and stop the takedown.',
-    'Coaching insight: a strong double leg is built on the level change happening well before contact — reacting late and shooting from too far away is one of the most common reasons this takedown gets stuffed.',
-  ]},
-  'Single Leg Takedown': {icon:'singleLeg', video:'wrestling single leg takedown tutorial', points:[
-    'Setup: change levels similarly to the double leg, but target and secure just one of the opponent\'s legs, wrapping it tightly at the knee or ankle.',
-    'Execution: drive forward off your back leg while controlling the captured leg high and tight against your chest, then finish by running the angle to trip or lift them off their base.',
-    'Whole-body integration: controlling the captured leg tightly against your own body is what lets the rest of the takedown work — a loosely held leg gives room to hop, sprawl, or kick free before the finish.',
-    'Common mistake: finishing straight ahead into the opponent\'s remaining base rather than running an angle around it, which is both slower and easier for them to counter.',
-    'Coaching insight: the single leg trades some of the double leg\'s raw power for more finishing options once the leg is secured — most specialists develop several different finishes off the same entry.',
-  ]},
-  'Mount Control & Maintenance': {icon:'mountControl2', video:'bjj mount control maintenance tutorial', points:[
-    'Setup: from top mount, keep your hips heavy and low on the opponent\'s torso, with your knees tucked in tight rather than floating high and light.',
-    'Execution: as they bridge or try to shift you, ride the movement by posting a hand or foot and resettling your weight, instead of getting launched off by a single strong bridge.',
-    'Whole-body integration: staying heavy through the hips and reactive through the hands and feet together is what makes mount genuinely hard to escape — either quality alone is far easier to unseat.',
-    'Common mistake: posturing up too high too early, which raises your center of gravity and makes you significantly easier to bridge and roll off of.',
-    'Coaching insight: mount is trained here as its own position to hold under resistance, before any submissions are layered on top — being genuinely hard to unseat is the actual skill everything else is built on.',
-  ]},
-  'Back Control & Hooks': {icon:'backControl', video:'bjj back control hooks tutorial', points:[
-    'Setup: from behind the opponent, establish both hooks (feet hooked inside their thighs) or a body triangle, along with an over-under or seatbelt grip on their upper body.',
-    'Execution: stay glued to their back through their movement, adjusting your hooks and grip as they turn or try to face you, rather than reacting only once they\'ve already turned around.',
-    'Whole-body integration: the hooks control the hips and the grip controls the upper body — losing either one independently is usually enough for a skilled opponent to turn in and escape.',
-    'Common mistake: focusing entirely on the choke or upper-body grip while letting the hooks slip, one of the most common ways back control is lost even when the finish looked close.',
-    'Coaching insight: back control is widely considered one of the most dominant positions in the sport specifically because it\'s so hard to see and defend against in real time — most of the skill is in maintaining it, not finishing from it.',
-  ]},
-  'Side Control Pressure': {icon:'sideControl', video:'bjj side control pressure tutorial', points:[
-    'Setup: from side control, keep your chest heavy on the opponent\'s chest, with your hips low and weight driving down through your sternum rather than resting lightly on top.',
-    'Execution: as they try to create space or shrimp away, follow their hips with your own rather than staying square and static, keeping the pressure connected throughout.',
-    'Whole-body integration: chest pressure and hip-following work together — heavy pressure with no hip tracking lets them shrimp out to the side, while hip tracking with no pressure just lets them frame and create space.',
-    'Common mistake: basing out on the hands or posting up too high, which lightens the pressure the position depends on and gives the opponent room to recover guard.',
-    'Coaching insight: side control is often treated as a transitional position, but time spent making the pressure itself heavier is what actually sets up the mount and submission attempts that come from it.',
-  ]},
-};
-
-const GRAPPLING_TECHNIQUE_GROUPS = {
-  'Guard Passing': {
-    poses:['Knee Slice Pass','Torreando Pass','Long Step Pass','Stack Pass (Folding Pass)'],
-    note:'The core ways to advance past an opponent\'s guard toward a dominant position — every top-game strategy in the sport builds on these.',
-  },
-  'Guard & Escapes': {
-    poses:['Hip Escape (Shrimping)','Bridge & Roll (Upa Escape)','Guard Retention & Framing','Technical Stand-up'],
-    note:'The defensive foundation of the sport — creating space, escaping bad positions, and getting back to a neutral stance.',
-  },
-  'Submissions': {
-    poses:['Rear Naked Choke','Armbar from Guard','Triangle Choke','Kimura','Guillotine Choke'],
-    note:'Finishing mechanics for the sport\'s most common submissions, each built on a position that has to be secured first.',
-  },
-  'Takedowns & Top Control': {
-    poses:['Double Leg Takedown','Single Leg Takedown','Mount Control & Maintenance','Back Control & Hooks','Side Control Pressure'],
-    note:'Getting the fight to the ground on your terms, and holding the dominant positions once you\'re there.',
-  },
-};
-
-function renderGrapplingTechniques(){
-  const listEl = document.getElementById('grapplingTechniquesList');
-  if(!listEl) return;
-  listEl.innerHTML = Object.keys(GRAPPLING_TECHNIQUE_GROUPS).map((groupName)=>{
-    const grp = GRAPPLING_TECHNIQUE_GROUPS[groupName];
-    const techRows = grp.poses.map((techName)=>{
-      const detail = GRAPPLING_TECHNIQUE_DETAILS[techName];
-      const iconSvg = detail ? GRAPPLING_ICONS[detail.icon] : '';
-      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
-      const query = encodeURIComponent(detail && detail.video ? detail.video : `${techName} bjj grappling technique tutorial`);
-      return `
-        <details class="pose-detail-wrap">
-          <summary class="pose-row">
-            <div class="pose-icon">${iconSvg}</div>
-            <div class="pose-name">${techName}</div>
-            <span class="ex-chevron">›</span>
-          </summary>
-          <div class="pose-detail">
-            <ul>${pointsHtml}</ul>
-            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
-          </div>
-        </details>
-      `;
-    }).join('');
-    return `
-      <details class="posing-class">
-        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
-        <div class="posing-class-note">${grp.note}</div>
-        ${techRows}
-      </details>
-    `;
-  }).join('');
-}
-
-function toggleGrapplingTechniquesCard(){
-  const card = document.getElementById('grapplingTechniquesCard');
-  if(!card) return;
-  if(activeProgram === 'grappling'){
-    card.style.display = '';
-    renderGrapplingTechniques();
-  } else {
-    card.style.display = 'none';
-  }
-}
-
 const EXERCISE_MOVE = {
   'Slip & Counter Drills':'punch', 'Head Movement Drills':'punch', 'Clinch Knee Drills':'kick',
   'Elbow Strike Drills':'punch', 'Sprawl Drills':'hinge', 'Ground & Pound Drills':'punch',
@@ -9205,6 +9041,51 @@ document.getElementById('importDataInput').addEventListener('change', async (e)=
   setTimeout(()=> location.reload(), 900);
 });
 
+document.getElementById('deleteAllDataBtn').addEventListener('click', async ()=>{
+  const statusEl = document.getElementById('deleteAllDataStatus');
+  let keys = [];
+  try{
+    const res = await window.storage.list('');
+    keys = (res && res.keys) || [];
+  }catch(e){}
+
+  if(keys.length === 0){
+    statusEl.textContent = 'Nothing stored for this profile yet — there\'s nothing to delete.';
+    return;
+  }
+
+  // Deliberately a two-step confirmation, not one — this deletes progress
+  // photos, coach videos' saved feedback, every workout ever logged, all of
+  // it, for this profile, with no undo. A single confirm() is what the
+  // import restore uses (also irreversible, but replacing with a known
+  // backup is a lower-stakes action than erasing outright), so this gets
+  // an extra step specifically because there's no way back from this one.
+  const firstConfirm = confirm(
+    `Delete everything stored for this profile? (${keys.length} item${keys.length===1?'':'s'} — every workout, progress photo, saved coach review, measurement, everything.)\n\n`+
+    `This cannot be undone, and there is no backup unless you've exported one yourself. Consider tapping "Export My Data" first if you're not sure.`
+  );
+  if(!firstConfirm) return;
+
+  const secondConfirm = confirm(`Really delete all ${keys.length} items permanently? This is the last confirmation — tap OK only if you're certain.`);
+  if(!secondConfirm) return;
+
+  statusEl.textContent = 'Deleting…';
+  let deleted = 0, failed = 0;
+  for(const key of keys){
+    try{
+      await window.storage.delete(key);
+      deleted++;
+    }catch(e){
+      failed++;
+    }
+  }
+
+  statusEl.textContent = failed > 0
+    ? `Deleted ${deleted} of ${keys.length} items — ${failed} failed, you may want to try again.`
+    : `Deleted all ${deleted} items — reloading…`;
+  if(failed === 0) setTimeout(()=> location.reload(), 900);
+});
+
 // [NUTRITION] ---------------------------------------------------------------
 // Food picker + today's macro log.
 let targets = {cal:2650, pro:240, fat:75, carb:250};
@@ -9893,6 +9774,130 @@ async function handleBarcodeFound(barcode){
 document.getElementById('barcodeScanBtn').addEventListener('click', openBarcodeScanner);
 document.getElementById('barcodeCloseBtn').addEventListener('click', closeBarcodeScanner);
 
+// [DESCRIBE-IT FOOD LOGGING] -------------------------------------------------
+// The fourth way to log a food, alongside search/USDA, barcode, and Snap a
+// Meal — for when there's no photo and it's not sitting in any database
+// (a homemade dish, a restaurant order with modifications, etc.). Same
+// AI-estimate framing and "Add All" pattern as Snap a Meal, and deliberately
+// does NOT cache results into My Foods the same way Snap a Meal doesn't —
+// a one-off text estimate shouldn't quietly become a "trusted" shortcut for
+// future searches the way a real USDA/barcode lookup earns being cached.
+let describeFoodParsedItems = [];
+
+document.getElementById('describeFoodBtn').addEventListener('click', ()=>{
+  const form = document.getElementById('describeFoodForm');
+  const isOpen = form.style.display !== 'none';
+  if(isOpen){
+    form.style.display = 'none';
+  } else {
+    clearOtherQuickAddResults('describeFoodResult');
+    form.style.display = '';
+    document.getElementById('describeFoodInput').focus();
+  }
+});
+
+async function submitFoodDescription(){
+  const input = document.getElementById('describeFoodInput');
+  const description = input.value.trim();
+  if(!description) return;
+  clearOtherQuickAddResults('describeFoodResult');
+  const resultEl = document.getElementById('describeFoodResult');
+  const apiKey = await getApiKey();
+
+  if(!apiKey){
+    resultEl.innerHTML = `<div class="care-banner care-banner-caution">Add your Anthropic API key in the "AI Features Setup" card below to use Describe It.</div>`;
+    return;
+  }
+
+  resultEl.innerHTML = `<div class="empty-note">Estimating nutrition…</div>`;
+
+  try{
+    const systemPrompt = `You estimate nutrition from a plain-language food description for a training log app. Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"items":[{"name":"string","cal":number,"pro":number,"fat":number,"carb":number}]}. Break a described meal into its distinct components when it genuinely has more than one — use your judgment on whether that's more useful than one combined entry. Base estimates on typical restaurant/home portion sizes for what's described. If nothing edible is described, respond with {"items":[]}.`;
+    const raw = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content: description}], 700);
+    const cleaned = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    describeFoodParsedItems = parsed.items || [];
+
+    if(describeFoodParsedItems.length === 0){
+      resultEl.innerHTML = `<div class="empty-note">🤷 Couldn't identify any food in that description — try rephrasing, or add it manually below.</div>`;
+      return;
+    }
+
+    const itemsHtml = describeFoodParsedItems.map(it=>`
+      <div class="photo-result-item">
+        <span>${escapeHtml(it.name)} — ${it.cal} cal</span>
+      </div>
+    `).join('');
+    resultEl.innerHTML = `
+      <div class="photo-result-card">
+        <div class="photo-result-title">Found ${describeFoodParsedItems.length} item${describeFoodParsedItems.length===1?'':'s'} — estimates, not exact</div>
+        ${itemsHtml}
+        <button class="photo-add-all-btn" id="describeFoodAddAllBtn">Add All to Today's Log</button>
+      </div>
+    `;
+    document.getElementById('describeFoodAddAllBtn').addEventListener('click', async ()=>{
+      for(const it of describeFoodParsedItems){
+        await addFoodToLog(it);
+      }
+      resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added ✓</div>`;
+      input.value = '';
+      document.getElementById('describeFoodForm').style.display = 'none';
+    });
+  }catch(err){
+    resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't estimate that: ${err.message}. Check your API key or try again.</div>`;
+  }
+}
+
+document.getElementById('describeFoodSubmit').addEventListener('click', submitFoodDescription);
+document.getElementById('describeFoodInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){ e.preventDefault(); submitFoodDescription(); }
+});
+
+// A lighter-weight voice button than the set-logging one — this just
+// transcribes into the text field for editing before submit, no number
+// parsing involved, so it doesn't need the full state machine, just the
+// same speak-then-auto-stop behavior for consistency.
+function initDescribeFoodVoice(){
+  const slot = document.getElementById('describeFoodVoiceSlot');
+  if(!slot || !SpeechRecognitionCtor) return;
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'voice-log-btn';
+  btn.title = 'Speak your description';
+  btn.textContent = '🎤';
+  slot.appendChild(btn);
+
+  btn.addEventListener('click', ()=>{
+    if(btn.classList.contains('listening') || btn.classList.contains('processing')) return;
+    const recognition = new SpeechRecognitionCtor();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    btn.classList.add('listening');
+    let settled = false;
+    recognition.onspeechend = ()=>{
+      if(settled) return;
+      btn.classList.remove('listening');
+      btn.classList.add('processing');
+      try{ recognition.stop(); }catch(e){}
+    };
+    const safetyTimer = setTimeout(()=>{
+      if(settled) return;
+      settled = true;
+      try{ recognition.abort(); }catch(e){}
+      btn.classList.remove('listening', 'processing');
+    }, 8000);
+    const finish = ()=>{ settled = true; clearTimeout(safetyTimer); btn.classList.remove('listening', 'processing'); };
+    recognition.onresult = (event)=>{
+      finish();
+      document.getElementById('describeFoodInput').value = event.results[0][0].transcript;
+    };
+    recognition.onerror = ()=> finish();
+    recognition.onend = ()=> finish();
+    recognition.start();
+  });
+}
+
 function allFoodsFlat(){
   const flat = [];
   Object.keys(foodLibrary).forEach(cat=>{
@@ -10294,14 +10299,20 @@ function renderMealSuggestions(){
 // at once, which was both cluttered and confusing about which result was
 // actually current.
 function clearOtherQuickAddResults(exceptId){
-  ['mealSuggestions', 'photoLogResult', 'barcodeResult'].forEach(id=>{
+  ['mealSuggestions', 'photoLogResult', 'barcodeResult', 'describeFoodResult'].forEach(id=>{
     if(id !== exceptId) document.getElementById(id).innerHTML = '';
   });
 }
 
 document.getElementById('suggestMealBtn').addEventListener('click', ()=>{
-  clearOtherQuickAddResults('mealSuggestions');
-  renderMealSuggestions();
+  const el = document.getElementById('mealSuggestions');
+  const isOpen = el.innerHTML.trim() !== '';
+  if(isOpen){
+    el.innerHTML = '';
+  } else {
+    clearOtherQuickAddResults('mealSuggestions');
+    renderMealSuggestions();
+  }
 });
 
 async function removeFoodFromLog(idx){
@@ -11466,20 +11477,31 @@ async function callClaudeVision(apiKey, imageBase64List, promptText, maxTokens){
     ...imageBase64List.map(b64=>({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data: b64 } })),
     { type:'text', text: promptText },
   ];
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: maxTokens || 1024,
-      messages: [{ role:'user', content }],
-    }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(()=> controller.abort(), 60000);
+  let response;
+  try{
+    response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: maxTokens || 1024,
+        messages: [{ role:'user', content }],
+      }),
+      signal: controller.signal,
+    });
+  }catch(err){
+    if(err.name === 'AbortError') throw new Error('That took too long to respond — try again, or use a shorter clip.');
+    throw err;
+  }finally{
+    clearTimeout(timeoutId);
+  }
   if(!response.ok){
     const errBody = await response.json().catch(()=>({}));
     throw new Error(errBody?.error?.message || `API error (${response.status})`);
@@ -11620,22 +11642,195 @@ const COACH_PERSONAS_BY_MARTIAL_ART = {
   taiChi: 'an internal martial arts (tai chi) coach focused on waist-led movement, rooted weight transfer, relaxed shoulders, continuous unbroken motion, and structural alignment in stances — you evaluate softness and connectedness of movement, not power or speed',
 };
 
+async function callClaudeChat(apiKey, systemPrompt, messages, maxTokens){
+  const controller = new AbortController();
+  const timeoutId = setTimeout(()=> controller.abort(), 45000);
+  let response;
+  try{
+    response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: maxTokens || 700,
+        system: systemPrompt,
+        messages: messages,
+      }),
+      signal: controller.signal,
+    });
+  }catch(err){
+    if(err.name === 'AbortError') throw new Error('That took too long to respond — try again.');
+    throw err;
+  }finally{
+    clearTimeout(timeoutId);
+  }
+  if(!response.ok){
+    const errBody = await response.json().catch(()=>({}));
+    throw new Error(errBody?.error?.message || `API error (${response.status})`);
+  }
+  const data = await response.json();
+  const textBlock = data.content.find(b=>b.type==='text');
+  return textBlock ? textBlock.text : '';
+}
+
+// A light, honest context snapshot — not a full data dump of every set
+// ever logged (that would balloon token cost and latency for not much
+// gain). If a question needs specifics beyond this, the person just says
+// them in the message, same as talking to a human coach who doesn't have
+// your logbook open in front of them.
+async function buildCoachChatContext(){
+  const persona = getCoachPersona();
+  const streak = await computeStreak();
+  const goalLabel = GOAL_LABELS[userProfile?.goal] || userProfile?.goal || 'not set';
+  const programLabel = programs[activeProgram].label;
+
+  let weightLine = '';
+  try{
+    const entries = await fetchAllWeightEntries();
+    if(entries.length >= 2){
+      const sorted = [...entries].sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
+      const first = sorted[0], last = sorted[sorted.length-1];
+      const delta = +(last.weight - first.weight).toFixed(1);
+      weightLine = `Bodyweight trend: ${trimUnitNum(toDisplayWeight(first.weight))} → ${trimUnitNum(toDisplayWeight(last.weight))} ${weightUnit} across ${sorted.length} logged entries (${delta>=0?'+':''}${trimUnitNum(toDisplayWeight(delta))} ${weightUnit}).`;
+    }
+  }catch(e){}
+
+  return `You are ${persona}
+
+You're chatting inside someone's personal training log app, in a short back-and-forth conversation, not writing a report. They can see all their own logged data elsewhere in the app — you only have the summary below and whatever they tell you directly in this conversation, so ask a quick clarifying question if you genuinely need a number you don't have, rather than guessing at it.
+
+Current context:
+- Goal: ${goalLabel}
+- Active program: ${programLabel}
+- Current streak: ${streak} day${streak===1?'':'s'}
+${weightLine ? '- '+weightLine : ''}
+
+Give direct, practical, conversational coaching advice grounded in real exercise science and nutrition — not generic platitudes. Keep responses focused, typically 3-6 sentences, longer only if the question genuinely needs it. No headers, no markdown formatting, just plain conversational text. You are not a doctor — for injuries or medical symptoms, say so plainly and suggest an in-person professional rather than diagnosing.`;
+}
+
+let coachChatHistory = [];
+
+async function loadCoachChatHistory(){
+  try{
+    const res = await window.storage.get('coach-chat-history');
+    if(res && res.value) coachChatHistory = JSON.parse(res.value);
+  }catch(e){ coachChatHistory = []; }
+}
+
+async function saveCoachChatHistory(){
+  try{ await window.storage.set('coach-chat-history', JSON.stringify(coachChatHistory)); }catch(e){}
+}
+
+function renderCoachChatLog(){
+  const log = document.getElementById('coachChatLog');
+  if(!log) return;
+  if(coachChatHistory.length === 0){
+    log.innerHTML = '<div class="coach-chat-empty">Ask something about your training, nutrition, or recovery — your goal and active program are already part of the conversation.</div>';
+    return;
+  }
+  log.innerHTML = coachChatHistory.map(m=>
+    `<div class="coach-chat-bubble ${m.role==='user' ? 'user' : 'assistant'}">${escapeHtml(m.content)}</div>`
+  ).join('');
+  log.scrollTop = log.scrollHeight;
+}
+
+async function sendCoachChatMessage(){
+  const input = document.getElementById('coachChatInput');
+  const text = input.value.trim();
+  if(!text) return;
+  const apiKey = await getApiKey();
+  if(!apiKey){
+    coachChatHistory.push({role:'assistant', content:'Add your Anthropic API key in "AI Features Setup" on the Today tab first, then come back and ask away.'});
+    renderCoachChatLog();
+    return;
+  }
+
+  input.value = '';
+  coachChatHistory.push({role:'user', content:text});
+  renderCoachChatLog();
+
+  const log = document.getElementById('coachChatLog');
+  const thinkingEl = document.createElement('div');
+  thinkingEl.className = 'coach-chat-bubble assistant thinking';
+  thinkingEl.textContent = 'Thinking…';
+  log.appendChild(thinkingEl);
+  log.scrollTop = log.scrollHeight;
+
+  try{
+    const systemPrompt = await buildCoachChatContext();
+    // Only the last few exchanges are actually sent as context — a long
+    // conversation staying in the UI forever but only recent turns going
+    // to the API keeps token cost and latency from creeping up over a
+    // long-running chat, without losing the visible history.
+    const recentMessages = coachChatHistory.slice(-10).map(m=>({role: m.role, content: m.content}));
+    const reply = await callClaudeChat(apiKey, systemPrompt, recentMessages, 700);
+    coachChatHistory.push({role:'assistant', content: reply.trim()});
+  }catch(err){
+    coachChatHistory.push({role:'assistant', content: `Couldn't reach the coach: ${err.message}. Check your API key and connection, then try again.`});
+  }
+  await saveCoachChatHistory();
+  renderCoachChatLog();
+}
+
 function getCoachPersona(){
   if(activeProgram === 'combat') return COACH_PERSONAS_BY_MARTIAL_ART[activeMartialArt] || COACH_PERSONAS.combat;
   return COACH_PERSONAS[activeProgram] || COACH_PERSONAS.strength;
 }
 
-function extractVideoFrames(file, frameCount){
+// Detached (never-added-to-DOM) <video> elements are unreliable for
+// seeking/frame-capture on iOS Safari specifically — metadata can load fine
+// but 'seeked' then just never fires, and without a timeout anywhere in the
+// original version, that hung forever with no error and no visible sign
+// anything was still happening. Fixed by: actually attaching the video
+// (invisibly) to the page, a timeout at every stage so nothing can hang
+// silently, and a progress callback so the caller can show real progress
+// instead of one static "reading video" message.
+function extractVideoFrames(file, frameCount, onProgress){
   return new Promise((resolve, reject)=>{
     const video = document.createElement('video');
     video.preload = 'auto';
     video.muted = true;
     video.playsInline = true;
+    video.style.cssText = 'position:fixed; top:0; left:0; width:2px; height:2px; opacity:0.01; pointer-events:none; z-index:-1;';
+    document.body.appendChild(video);
     const url = URL.createObjectURL(file);
     video.src = url;
     const frames = [];
+    let settled = false;
+
+    const cleanup = ()=>{
+      URL.revokeObjectURL(url);
+      if(video.parentNode) video.parentNode.removeChild(video);
+    };
+    const fail = (err)=>{
+      if(settled) return;
+      settled = true;
+      cleanup();
+      reject(err);
+    };
+    const succeed = (result)=>{
+      if(settled) return;
+      settled = true;
+      cleanup();
+      resolve(result);
+    };
+
+    const metadataTimeout = setTimeout(()=>{
+      fail(new Error('That video took too long to load — try a shorter clip or a different format.'));
+    }, 10000);
+
+    video.onerror = ()=>{
+      clearTimeout(metadataTimeout);
+      fail(new Error('Could not read that video file — try a different format or a shorter clip.'));
+    };
 
     video.onloadedmetadata = async ()=>{
+      clearTimeout(metadataTimeout);
       try{
         const duration = video.duration;
         const canvas = document.createElement('canvas');
@@ -11644,23 +11839,28 @@ function extractVideoFrames(file, frameCount){
         const ctx = canvas.getContext('2d');
         const times = Array.from({length:frameCount}, (_,i)=> (duration*(i+1))/(frameCount+1));
 
-        for(const t of times){
-          await new Promise((res)=>{
+        for(let i=0; i<times.length; i++){
+          if(settled) return; // a previous iteration already failed/timed out
+          await new Promise((res, rej)=>{
+            const seekTimeout = setTimeout(()=>{
+              video.removeEventListener('seeked', onSeeked);
+              rej(new Error(`Got stuck reading frame ${i+1} of ${times.length} — try a different clip.`));
+            }, 6000);
             const onSeeked = ()=>{
+              clearTimeout(seekTimeout);
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
               frames.push(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
               video.removeEventListener('seeked', onSeeked);
+              if(onProgress) onProgress(i+1, times.length);
               res();
             };
             video.addEventListener('seeked', onSeeked);
-            video.currentTime = t;
+            video.currentTime = times[i];
           });
         }
-        URL.revokeObjectURL(url);
-        resolve(frames);
-      }catch(err){ reject(err); }
+        succeed(frames);
+      }catch(err){ fail(err); }
     };
-    video.onerror = ()=> reject(new Error('Could not read that video file'));
   });
 }
 
@@ -11682,6 +11882,9 @@ async function renderCoach(){
   const persona = activeProgram === 'combat' ? COMBAT_STYLES[activeMartialArt].label : programs[activeProgram].label;
   document.getElementById('coachPersonaLabel').textContent = persona;
 
+  await loadCoachChatHistory();
+  renderCoachChatLog();
+
   const log = await getCoachLog();
   const listEl = document.getElementById('coachHistoryList');
   if(log.length === 0){
@@ -11699,6 +11902,16 @@ async function renderCoach(){
   }
 }
 
+document.getElementById('coachChatSend').addEventListener('click', sendCoachChatMessage);
+document.getElementById('coachChatInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){ e.preventDefault(); sendCoachChatMessage(); }
+});
+document.getElementById('coachChatClear').addEventListener('click', async ()=>{
+  coachChatHistory = [];
+  await saveCoachChatHistory();
+  renderCoachChatLog();
+});
+
 document.getElementById('coachVideoBtn').addEventListener('click', ()=> document.getElementById('coachVideoInput').click());
 
 document.getElementById('coachVideoInput').addEventListener('change', async (e)=>{
@@ -11714,16 +11927,48 @@ document.getElementById('coachVideoInput').addEventListener('change', async (e)=
     return;
   }
 
-  resultEl.innerHTML = `<div class="empty-note">Reading video frames…</div>`;
+  resultEl.innerHTML = `
+    <div class="coach-progress">
+      <div class="coach-progress-bar"><div class="coach-progress-fill" id="coachProgressFill" style="width:4%"></div></div>
+      <div class="coach-progress-label" id="coachProgressLabel">Reading video frames…</div>
+    </div>
+  `;
 
+  let tickInterval = null;
   try{
-    const frames = await extractVideoFrames(file, 4);
-    resultEl.innerHTML = `<div class="empty-note">Analyzing your ${escapeHtml(exercise)}…</div>`;
+    const frames = await extractVideoFrames(file, 4, (done, total)=>{
+      const fill = document.getElementById('coachProgressFill');
+      const label = document.getElementById('coachProgressLabel');
+      if(!fill || !label) return;
+      fill.style.width = Math.round((done/total)*50) + '%';
+      label.textContent = `Reading frame ${done} of ${total}…`;
+    });
+
+    const fillEl = document.getElementById('coachProgressFill');
+    const labelEl = document.getElementById('coachProgressLabel');
+    if(fillEl) fillEl.style.width = '55%';
+    if(labelEl) labelEl.textContent = `Sending to your coach…`;
+
+    // There's no way to know real progress once the request is actually
+    // sent — a static message here is exactly what looked "stuck" before,
+    // even though it was really still working. A visibly moving bar plus
+    // an elapsed-time counter makes it obvious it's still thinking rather
+    // than dead, without pretending to know something it doesn't.
+    let elapsed = 0;
+    tickInterval = setInterval(()=>{
+      elapsed += 3;
+      const fill = document.getElementById('coachProgressFill');
+      const label = document.getElementById('coachProgressLabel');
+      if(!fill || !label){ clearInterval(tickInterval); return; }
+      fill.style.width = Math.min(95, 55 + elapsed) + '%';
+      label.textContent = `Analyzing your ${escapeHtml(exercise)}… (${elapsed}s — video review can take up to a minute)`;
+    }, 3000);
 
     const persona = getCoachPersona();
     const prompt = `You are ${persona}. These ${frames.length} frames are sequential stills from a video of someone performing "${exercise}". ${focus ? `They specifically want you to check: ${focus}.` : ''} Give direct, specific feedback on their form based only on what's visible across these frames: what looks correct, what to fix, and one clear cue to focus on next attempt. Keep it to 4-6 short sentences, no headers or markdown, plain conversational coaching tone. If the frames don't clearly show the movement, say so plainly instead of guessing.`;
 
     const feedback = await callClaudeVision(apiKey, frames, prompt, 500);
+    clearInterval(tickInterval);
 
     resultEl.innerHTML = `
       <div class="photo-result-card">
@@ -11735,6 +11980,7 @@ document.getElementById('coachVideoInput').addEventListener('change', async (e)=
     await saveCoachEntry({date: getTodayKey(), program: programs[activeProgram].label, exercise, feedback});
     renderCoach();
   }catch(err){
+    if(tickInterval) clearInterval(tickInterval);
     resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't analyze that video: ${err.message}. Check your API key, try a shorter clip, or try again.</div>`;
   }
 });
@@ -12349,6 +12595,34 @@ async function getWeekArchive(){
   return [];
 }
 
+// A short, personalized reflection on the week just finished — reuses the
+// same persona already built for form-feedback coaching, and only ever
+// runs on real computed numbers (never invents a stat that wasn't
+// actually logged). Entirely optional: no API key just means no recap,
+// the week still archives normally either way.
+async function generateWeeklyRecap(stats){
+  const apiKey = await getApiKey();
+  if(!apiKey) return null;
+
+  const persona = getCoachPersona();
+  const goalLabel = GOAL_LABELS[userProfile?.goal] || userProfile?.goal || 'not set';
+  const parts = [];
+  parts.push(`Program: ${stats.program}`);
+  parts.push(`Goal: ${goalLabel}`);
+  parts.push(`Workouts logged this week: ${stats.workoutsCount}`);
+  if(stats.avgWeight != null) parts.push(`Average bodyweight this week: ${trimUnitNum(toDisplayWeight(stats.avgWeight))} ${weightUnit}`);
+  if(stats.avgCal != null) parts.push(`Average daily calories logged: ${stats.avgCal}`);
+  if(stats.avgSleep != null) parts.push(`Average sleep: ${stats.avgSleep} hrs/night`);
+
+  const prompt = `You are ${persona}\n\nSomeone just finished a training week and is about to start a fresh one. Here's what was actually logged this week:\n${parts.join('\n')}\n\nWrite a short, honest weekly check-in — 2-4 sentences, conversational, no headers or markdown. Acknowledge what actually happened (don't invent anything not listed above), and give exactly one specific, practical thing to focus on for the coming week. If a stat is missing from the list, don't comment on it — it just wasn't logged, not necessarily skipped.`;
+
+  try{
+    return (await callClaudeChat(apiKey, prompt, [{role:'user', content:'Give me my weekly check-in.'}], 300)).trim();
+  }catch(e){
+    return null; // a failed recap should never block saving the week itself
+  }
+}
+
 async function archiveCurrentWeek(){
   const btn = document.getElementById('archiveWeekBtn');
   const status = document.getElementById('archiveWeekStatus');
@@ -12380,21 +12654,27 @@ async function archiveCurrentWeek(){
   const avgSleep = weekSleep.length ? +(weekSleep.reduce((s,e)=>s+Number(e.hours),0)/weekSleep.length).toFixed(1) : null;
 
   const archive = await getWeekArchive();
-  archive.push({
+  status.textContent = 'Saving your week…';
+  const weekStats = {
     weekStart: todayMonday, program: programs[activeProgram].label,
     avgWeight, workoutsCount, avgCal, avgSleep,
-  });
+  };
+  const aiRecap = await generateWeeklyRecap(weekStats);
+  if(aiRecap) weekStats.aiRecap = aiRecap;
+  archive.push(weekStats);
   await window.storage.set('week-archive', JSON.stringify(archive));
   await clearProgramRecDismissal();
 
-  status.textContent = 'Week saved — back to Day 1 for a fresh start ✓';
+  status.innerHTML = aiRecap
+    ? `<div class="day-insight" style="margin:10px 0;">${escapeHtml(aiRecap)}</div>Week saved — back to Day 1 for a fresh start ✓`
+    : 'Week saved — back to Day 1 for a fresh start ✓';
   setTimeout(async ()=>{
     activeDay = 'd1';
     renderTabs();
     renderWorkout();
     const trendStatusForRec = await getCurrentTrendStatus();
     await renderProgramRec(trendStatusForRec);
-  }, 1400);
+  }, aiRecap ? 3500 : 1400);
 }
 
 async function renderVolumeTrend(){
@@ -12796,6 +13076,7 @@ if(activeUserId){
     renderFoodCats();
     renderFoodItems();
     document.getElementById('usdaKeySettingsSlot').appendChild(buildUsdaKeyUpgradePrompt());
+    initDescribeFoodVoice();
     loadFoodLog();
     loadWeights();
     loadSleep();
