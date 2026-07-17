@@ -6530,6 +6530,23 @@ async function saveDayOrder(){
   try{ await window.storage.set(`day-order:${activeProgram}`, JSON.stringify(dayOrder)); }catch(e){}
 }
 
+// Which day you were last looking at, per program — restored only on the
+// initial page load (a refresh), never during a live in-session program
+// switch, since switching programs deliberately resets to Day 1 (a
+// different program's days aren't the same days you were just on).
+async function saveActiveDay(){
+  try{ await window.storage.set(`active-day:${activeProgram}`, activeDay); }catch(e){}
+}
+
+async function loadActiveDayForCurrentProgram(){
+  try{
+    const res = await window.storage.get(`active-day:${activeProgram}`);
+    if(res && res.value && dayOrder.includes(res.value)){
+      activeDay = res.value;
+    }
+  }catch(e){}
+}
+
 // Each day's plate used to just show an arbitrary "weight" number (25/20/15/10/5)
 // that didn't correspond to anything real. Now it shows a small glyph that
 // reflects that day's actual focus, derived from its `sub` label — so the
@@ -6608,6 +6625,7 @@ function renderTabs(){
     tab.onclick = ()=>{
       if(reorderMode) return;
       activeDay = id; renderTabs(); renderWorkout();
+      saveActiveDay();
     };
     if(reorderMode){
       const arrows = document.createElement('div');
@@ -7467,6 +7485,15 @@ async function renderWorkout(){
         await window.storage.set(workoutKey(getTodayKey(), activeProgram, activeDay), JSON.stringify(completed));
       }catch(e){}
       updateSessionCalorieTotal(renderExercises, completed);
+
+      // Collapse the exercise back up the moment it's checked off complete
+      // — no reason to keep looking at its sets once you're done with it.
+      // Only triggers on actually checking it, not unchecking, so fixing a
+      // mistaken tick doesn't yank the view shut on you.
+      if(cb.checked && row.classList.contains('open')){
+        row.classList.remove('open');
+        row.querySelector('.expand-wrap').classList.remove('open');
+      }
 
       // Only fires on the actual completing click — checking the box that
       // was already the last one unticked, not on every render of an
@@ -9674,17 +9701,37 @@ async function lookupBarcode(barcode){
 
 // ZXing is only loaded the first time someone actually taps "Scan Barcode"
 // — no reason to pull in a camera/barcode library on every page load for
-// a feature most sessions won't touch.
+// a feature most sessions won't touch. Two CDNs are tried in sequence
+// (jsDelivr then unpkg) since either can occasionally be unreachable on a
+// given network, and the library's own global is checked after a script
+// actually loads — a successful HTTP response doesn't guarantee the
+// expected object showed up, so that gets verified explicitly rather than
+// assumed.
 let zxingLoadPromise = null;
 function loadZXing(){
   if(window.ZXingBrowser) return Promise.resolve();
   if(zxingLoadPromise) return zxingLoadPromise;
+  const urls = [
+    'https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5',
+    'https://unpkg.com/@zxing/browser@0.1.5',
+  ];
   zxingLoadPromise = new Promise((resolve, reject)=>{
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js';
-    script.onload = resolve;
-    script.onerror = ()=> reject(new Error('Could not load the barcode scanner library — check your connection.'));
-    document.head.appendChild(script);
+    let attempt = 0;
+    const tryNext = ()=>{
+      if(attempt >= urls.length){
+        reject(new Error('Could not load the barcode scanner — check your connection and try again.'));
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = urls[attempt];
+      script.onload = ()=>{
+        if(window.ZXingBrowser){ resolve(); }
+        else { attempt++; tryNext(); } // loaded, but didn't set up what we expect — try the next source
+      };
+      script.onerror = ()=>{ attempt++; tryNext(); };
+      document.head.appendChild(script);
+    };
+    tryNext();
   });
   return zxingLoadPromise;
 }
@@ -11790,6 +11837,14 @@ function getCoachPersona(){
 // (invisibly) to the page, a timeout at every stage so nothing can hang
 // silently, and a progress callback so the caller can show real progress
 // instead of one static "reading video" message.
+// Progress photos already get capped to a sane resolution before encoding
+// (see PROGRESS_PHOTO_MAX_DIM) — video frames were never getting the same
+// treatment, so a phone recording at 1080p or 4K sent four full-resolution
+// frames in a single request: much larger and slower than any other image
+// feature in the app, and a very plausible reason video review specifically
+// could fail or stall where photo-based features didn't.
+const VIDEO_FRAME_MAX_DIM = 900;
+
 function extractVideoFrames(file, frameCount, onProgress){
   return new Promise((resolve, reject)=>{
     const video = document.createElement('video');
@@ -11832,10 +11887,38 @@ function extractVideoFrames(file, frameCount, onProgress){
     video.onloadedmetadata = async ()=>{
       clearTimeout(metadataTimeout);
       try{
-        const duration = video.duration;
+        let duration = video.duration;
+        // A well-documented quirk (not a theoretical edge case) affecting
+        // certain video container/encoding combinations, including some
+        // phone-recorded clips: duration reports as Infinity or NaN until
+        // the video is force-seeked once. Without this, every seek time
+        // below computes as Infinity/NaN and frame extraction silently
+        // breaks — this is checked for and worked around before anything
+        // else runs.
+        if(!isFinite(duration) || isNaN(duration)){
+          await new Promise((res)=>{
+            const onTimeUpdate = ()=>{
+              video.removeEventListener('timeupdate', onTimeUpdate);
+              video.currentTime = 0;
+              res();
+            };
+            video.addEventListener('timeupdate', onTimeUpdate);
+            video.currentTime = 1e101;
+          });
+          duration = video.duration;
+          if(!isFinite(duration) || isNaN(duration)){
+            throw new Error("Could not determine that video's length — try re-exporting or trimming the clip.");
+          }
+        }
+        let width = video.videoWidth, height = video.videoHeight;
+        if(width > VIDEO_FRAME_MAX_DIM || height > VIDEO_FRAME_MAX_DIM){
+          const scale = VIDEO_FRAME_MAX_DIM / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
         const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
+        canvas.width = width;
+        canvas.height = height;
         const ctx = canvas.getContext('2d');
         const times = Array.from({length:frameCount}, (_,i)=> (duration*(i+1))/(frameCount+1));
 
@@ -13063,6 +13146,7 @@ if(activeUserId){
     await renderProgramSelector(trendStatusForInit);
     await renderOnboardingCard();
     await loadDayOrder();
+    await loadActiveDayForCurrentProgram();
     renderTabs();
     renderWorkout();
     setupStickyDayHeaderObserver();
