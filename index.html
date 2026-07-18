@@ -183,6 +183,37 @@
   .p-white{background:var(--plate-white);}
   .p-off{background:var(--surface2); border-color:var(--line);}
 
+  .workout-hero{display:flex; align-items:center; gap:16px; margin-bottom:16px;}
+  .workout-hero-plate-wrap{position:relative; flex:0 0 auto;}
+  .workout-hero-glow{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    width:130px; height:130px; border-radius:50%; filter:blur(30px); opacity:0.4;
+    pointer-events:none; z-index:0;
+  }
+  .day-hero-plate{
+    position:relative; overflow:hidden; z-index:1;
+    width:68px; height:68px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    border:3px solid rgba(0,0,0,0.25);
+    box-shadow:0 10px 28px -8px rgba(0,0,0,0.55);
+  }
+  .day-hero-plate::before{
+    content:''; position:absolute; top:-40%; left:-10%; width:120%; height:70%;
+    background:radial-gradient(ellipse at center, rgba(255,255,255,0.4), transparent 70%);
+    pointer-events:none;
+  }
+  .day-hero-plate svg{position:relative; z-index:1; width:32px; height:32px; color:#14171A;}
+  .day-hero-plate.plate-off svg{color:var(--text-muted);}
+  .workout-hero-text{position:relative; z-index:1; min-width:0;}
+  .workout-hero-eyebrow{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+    color:var(--text-muted); margin-bottom:2px;
+  }
+  .workout-hero-title{
+    font-family:'Inter',sans-serif; font-weight:800; font-size:24px; letter-spacing:-0.02em; line-height:1.2;
+    color:var(--text);
+  }
+
   .reorder-arrows{
     display:flex; gap:2px; margin-top:2px;
   }
@@ -196,11 +227,11 @@
   .card{
     position:relative;
     background:var(--surface);
-    border:1px solid var(--line);
+    border:1px solid rgba(255,255,255,0.07);
     border-radius:var(--radius-lg);
     padding:22px 22px 23px;
     margin-bottom:18px;
-    box-shadow:0 1px 0 rgba(255,255,255,0.03) inset, 0 14px 32px -12px rgba(0,0,0,0.55);
+    box-shadow:0 1px 0 rgba(255,255,255,0.03) inset, 0 14px 32px -12px rgba(0,0,0,0.55), 0 24px 60px -30px rgba(91,124,255,0.16);
     transition:box-shadow 0.3s var(--ease-smooth), border-color 0.3s var(--ease-smooth), transform 0.2s var(--ease-smooth);
   }
   .card::before{
@@ -260,6 +291,8 @@
     flex:0 0 auto; background:none; border:none; color:var(--text-muted); font-size:18px; line-height:1;
     cursor:pointer; padding:2px;
   }
+  .fade-out-dismiss{transition:opacity 0.3s var(--ease-smooth), transform 0.3s var(--ease-smooth);}
+  .fade-out-dismiss.fading{opacity:0; transform:translateY(-8px);}
   .onboarding-row{
     display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px;
   }
@@ -296,6 +329,12 @@
   }
   .expand-wrap.open{grid-template-rows:1fr; opacity:1;}
   .expand-wrap > div{overflow:hidden;}
+  .smooth-toggle{
+    display:grid; grid-template-rows:0fr; opacity:0;
+    transition:grid-template-rows 0.32s var(--ease-smooth), opacity 0.24s var(--ease-smooth);
+  }
+  .smooth-toggle.open{grid-template-rows:1fr; opacity:1;}
+  .smooth-toggle > div{overflow:hidden;}
 
   .view-enter{ animation:viewFadeIn 0.32s var(--ease-smooth); }
   @keyframes viewFadeIn{
@@ -373,6 +412,11 @@
   .ex-name{font-weight:500; font-size:14.5px;}
   .ex-name .super-tag{font-size:10.5px; color:var(--plate-yellow); display:block; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; margin-top:1px;}
   .ex-name .focus-tag{color:var(--plate-green);}
+  .ex-name .custom-tag{color:var(--plate-blue);}
+  .ex-delete-custom-btn{
+    flex:0 0 auto; background:none; border:none; color:var(--text-muted); font-size:15px;
+    cursor:pointer; padding:4px; margin-right:2px;
+  }
   .ex-name.done{color:var(--text-muted); text-decoration:line-through;}
   .ex-name.done .super-tag{color:var(--text-muted);}
   .ex-sets{
@@ -404,7 +448,7 @@
     width:62px; background:var(--surface2); border:1px solid var(--line); color:var(--text);
     border-radius:var(--radius-sm); padding:6px 2px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:13px; text-align:center;
   }
-  .ex-input::placeholder{color:#5A6169;}
+  .ex-input::placeholder{color:var(--text-muted); opacity:1;}
   .ex-x{color:var(--text-muted); font-size:12px;}
   .set-status{
     width:36px; flex:0 0 auto; font-size:12px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; text-align:center;
@@ -417,6 +461,12 @@
     font-size:11.5px; padding:5px 10px; border-radius:var(--radius-sm); cursor:pointer; font-family:'Inter',sans-serif;
     margin-top:2px;
   }
+  .same-as-last-btn{
+    width:100%; margin-bottom:10px; padding:9px; background:var(--surface2); border:1px solid rgba(91,124,255,0.3);
+    border-radius:var(--radius-md); color:var(--plate-blue); font-size:12.5px; font-weight:600; cursor:pointer;
+    font-family:'Inter',sans-serif; transition:transform 0.15s var(--ease-smooth);
+  }
+  .same-as-last-btn:active{transform:scale(0.98);}
   .session-summary{
     display:flex; gap:14px; padding:4px 0 2px 76px; font-size:11.5px; color:var(--text-muted);
   }
@@ -501,6 +551,12 @@
     max-width:calc(100vw - 48px);
   }
   .celebrate-banner.active{transform:translate(-50%,-50%) scale(1); opacity:1;}
+  .celebrate-banner.big{
+    padding:32px 42px;
+    box-shadow:0 20px 50px -10px rgba(0,0,0,0.6), 0 0 90px -8px rgba(245,197,24,0.4);
+  }
+  .celebrate-banner.big .celebrate-icon{font-size:56px;}
+  .celebrate-banner.big .celebrate-text{font-size:27px;}
   .celebrate-icon{font-size:40px; line-height:1; margin-bottom:8px; animation:celebrate-icon-pop 0.5s var(--ease-spring);}
   .celebrate-text{font-family:'Inter',sans-serif; font-size:20px; font-weight:800; letter-spacing:-0.02em; color:var(--text);}
   .celebrate-sub{font-size:13px; color:var(--text-muted); margin-top:4px;}
@@ -639,13 +695,14 @@
     letter-spacing:-0.005em;
     font-family:'Inter',sans-serif; cursor:pointer;
     box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 16px -6px rgba(91,124,255,0.55);
+    transition:transform 0.15s var(--ease-smooth), box-shadow 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
   }
   .save-btn::after{
     content:''; position:absolute; top:0; left:-30%; width:30%; height:100%;
     background:linear-gradient(100deg, transparent, rgba(255,255,255,0.16), transparent);
     transform:skewX(-20deg);
   }
-  .save-btn:active{opacity:0.85; transform:scale(0.99);}
+  .save-btn:active{opacity:0.88; transform:scale(0.96); box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 3px 8px -4px rgba(91,124,255,0.55);}
 
   .weight-input-row{display:flex; gap:8px;}
   .weight-input-row input{
@@ -834,6 +891,9 @@
   }
   .water-header span:last-child{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-weight:500; color:var(--text-muted); font-size:12px;}
   .water-btn-row{display:flex; gap:8px; margin-top:10px;}
+  .water-tips-list{margin:8px 0 0; padding-left:18px; font-size:12px; line-height:1.6; color:var(--text-muted);}
+  .water-tips-list li{margin-bottom:6px;}
+  .water-tips-list li:last-child{margin-bottom:0;}
   .water-btn{
     flex:1; background:var(--surface); border:1px solid var(--line); color:#4FC3F7;
     padding:8px; border-radius:var(--radius-sm); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
@@ -1279,7 +1339,88 @@
     <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M12.5 7.5 11 11l-3.5 1.5L9 9z"/></svg></span>Today's Priorities</div>
     <div id="todayInsightsList"></div>
   </div>
+  <div id="profileCardTopSlot"></div>
+
+  <div id="programRecommendation"></div>
+
   <div class="card">
+    <div class="card-title" style="margin-bottom:8px;"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg></span>Training Style</div>
+    <div class="program-select-wrap">
+      <select class="program-select" id="programSelector"></select>
+    </div>
+    <div class="program-select-desc" id="programSelectDesc"></div>
+    <button class="masterclass-link-btn" id="viewMasterclassBtn" style="display:none"></button>
+  </div>
+
+  <div class="card" id="martialArtCard" style="display:none">
+    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.2 16.5 4.8V10c0 4-2.7 6.8-6.5 7.8-3.8-1-6.5-3.8-6.5-7.8V4.8Z"/></svg></span>Martial Art Style</div>
+    <div class="history-hint">Match your training to what you already know, or pick one to start learning.</div>
+    <select class="program-select" id="martialArtSelector"></select>
+    <div class="program-select-desc" id="martialArtDesc"></div>
+  </div>
+
+  <div class="card" id="cyclingCard" style="display:none">
+    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="15" r="2.8"/><circle cx="15" cy="15" r="2.8"/><path d="M5 15 9 7h4M9 7l3 8M12 15h3M9 7 7 4"/></svg></span>Cycling Discipline</div>
+    <div class="history-hint">Road and Mountain share a training backbone but differ in emphasis — pick the one that matches how you actually ride.</div>
+    <select class="program-select" id="cyclingSelector"></select>
+    <div class="program-select-desc" id="cyclingDesc"></div>
+  </div>
+
+  <div class="card" id="prenatalCard" style="display:none">
+    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16h4v-4h4v-4h4V4h4"/></svg></span>Stage</div>
+    <div class="history-hint">Prenatal and Postpartum have genuinely different needs — pick whichever applies right now. <b>Please get clearance from your OB, midwife, or a pelvic floor physical therapist before starting</b>, and stop anything that doesn't feel right for your body.</div>
+    <select class="program-select" id="prenatalSelector"></select>
+    <div class="program-select-desc" id="prenatalDesc"></div>
+  </div>
+
+  <div class="tabs-header">
+    <div class="hint">Tap a day to view it</div>
+    <button class="reorder-btn" id="reorderToggle">Reorder days</button>
+  </div>
+  <div class="tabs" id="tabs"></div>
+
+  <div id="workoutCard" class="card">
+    <div class="workout-hero">
+      <div class="workout-hero-plate-wrap">
+        <div class="workout-hero-glow" id="dayHeroGlow"></div>
+        <span id="dayPlateIcon" class="day-hero-plate"></span>
+      </div>
+      <div class="workout-hero-text">
+        <div class="workout-hero-eyebrow" id="dayHeroEyebrow"></div>
+        <div class="workout-hero-title" id="dayTitle"></div>
+      </div>
+    </div>
+    <div class="duration-row">
+      <div class="duration-tag" id="dayDuration"></div>
+      <select class="session-length-select" id="sessionLengthSelector"></select>
+    </div>
+    <div class="session-cal-total" id="sessionCalTotal"></div>
+    <div class="day-insight" id="dayInsight"></div>
+    <div id="voiceHintBanner" style="display:none"></div>
+    <div id="exerciseList"></div>
+    <button class="custom-toggle" id="addCustomExerciseBtn">+ Add custom exercise</button>
+    <div id="customExerciseForm" class="smooth-toggle"><div>
+      <input type="text" id="customExName" class="care-input" placeholder="Exercise name">
+      <input type="text" id="customExSets" class="care-input" placeholder="Sets × reps (e.g. 3x10)" style="margin-top:8px;">
+      <label class="save-to-library-label">
+        <input type="checkbox" id="customExNoWeight">
+        <span>No weight (bodyweight, duration, or hold)</span>
+      </label>
+      <button class="save-btn" id="addCustomExerciseSubmit">Add to This Day</button>
+      <div class="status-msg" id="customExStatus"></div>
+    </div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a5.3 5.3 0 0 0-2.8 9.8V14h5.6v-1.7A5.3 5.3 0 0 0 10 2.5Z"/><line x1="8" y1="16.5" x2="12" y2="16.5"/><line x1="8.6" y1="18.3" x2="11.4" y2="18.3"/></svg></span>Keep In Mind</div>
+    <div id="tipsAlways"></div>
+    <div class="expand-wrap" id="tipsExpandWrap">
+      <div id="tipsMore"></div>
+    </div>
+    <button class="show-more-btn" id="tipsToggle">Show 4 more</button>
+  </div>
+
+  <div class="card" id="profileCard">
     <div class="card-title nutrition-header" id="profileHeader">
       <span><span class="card-icon" style="margin-right:7px"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.5" r="3.3"/><path d="M3.5 17c0-3.8 2.9-6.2 6.5-6.2s6.5 2.4 6.5 6.2"/></svg></span>Your Profile</span>
       <span class="ex-chevron" id="profileChevron">›</span>
@@ -1358,65 +1499,7 @@
       <div class="status-msg" id="deleteAllDataStatus"></div>
     </div></div>
   </div>
-  <div id="programRecommendation"></div>
-
-  <div class="card">
-    <div class="card-title" style="margin-bottom:8px;"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg></span>Training Style</div>
-    <div class="program-select-wrap">
-      <select class="program-select" id="programSelector"></select>
-    </div>
-    <div class="program-select-desc" id="programSelectDesc"></div>
-    <button class="masterclass-link-btn" id="viewMasterclassBtn" style="display:none"></button>
-  </div>
-
-  <div class="card" id="martialArtCard" style="display:none">
-    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.2 16.5 4.8V10c0 4-2.7 6.8-6.5 7.8-3.8-1-6.5-3.8-6.5-7.8V4.8Z"/></svg></span>Martial Art Style</div>
-    <div class="history-hint">Match your training to what you already know, or pick one to start learning.</div>
-    <select class="program-select" id="martialArtSelector"></select>
-    <div class="program-select-desc" id="martialArtDesc"></div>
-  </div>
-
-  <div class="card" id="cyclingCard" style="display:none">
-    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="15" r="2.8"/><circle cx="15" cy="15" r="2.8"/><path d="M5 15 9 7h4M9 7l3 8M12 15h3M9 7 7 4"/></svg></span>Cycling Discipline</div>
-    <div class="history-hint">Road and Mountain share a training backbone but differ in emphasis — pick the one that matches how you actually ride.</div>
-    <select class="program-select" id="cyclingSelector"></select>
-    <div class="program-select-desc" id="cyclingDesc"></div>
-  </div>
-
-  <div class="card" id="prenatalCard" style="display:none">
-    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16h4v-4h4v-4h4V4h4"/></svg></span>Stage</div>
-    <div class="history-hint">Prenatal and Postpartum have genuinely different needs — pick whichever applies right now. <b>Please get clearance from your OB, midwife, or a pelvic floor physical therapist before starting</b>, and stop anything that doesn't feel right for your body.</div>
-    <select class="program-select" id="prenatalSelector"></select>
-    <div class="program-select-desc" id="prenatalDesc"></div>
-  </div>
-
-  <div class="tabs-header">
-    <div class="hint">Tap a day to view it</div>
-    <button class="reorder-btn" id="reorderToggle">Reorder days</button>
-  </div>
-  <div class="tabs" id="tabs"></div>
-
-  <div id="workoutCard" class="card">
-    <div class="card-title"><span id="dayPlateIcon" class="day-plate-inline"></span><span id="dayTitle"></span></div>
-    <div class="duration-row">
-      <div class="duration-tag" id="dayDuration"></div>
-      <select class="session-length-select" id="sessionLengthSelector"></select>
-    </div>
-    <div class="session-cal-total" id="sessionCalTotal"></div>
-    <div class="day-insight" id="dayInsight"></div>
-    <div id="voiceHintBanner" style="display:none"></div>
-    <div id="exerciseList"></div>
-  </div>
-
-
-  <div class="card">
-    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a5.3 5.3 0 0 0-2.8 9.8V14h5.6v-1.7A5.3 5.3 0 0 0 10 2.5Z"/><line x1="8" y1="16.5" x2="12" y2="16.5"/><line x1="8.6" y1="18.3" x2="11.4" y2="18.3"/></svg></span>Keep In Mind</div>
-    <div id="tipsAlways"></div>
-    <div class="expand-wrap" id="tipsExpandWrap">
-      <div id="tipsMore"></div>
-    </div>
-    <button class="show-more-btn" id="tipsToggle">Show 4 more</button>
-  </div>
+  <div id="profileCardPermanentSlot"></div>
 
   </div>
 
@@ -1466,13 +1549,13 @@
         <button class="quick-add-btn" id="describeFoodBtn"><span class="quick-add-icon">📝</span>Describe</button>
         <button class="quick-add-btn" id="suggestMealBtn"><span class="quick-add-icon">💡</span>Suggest</button>
       </div>
-      <div id="describeFoodForm" class="describe-food-form" style="display:none">
+      <div id="describeFoodForm" class="describe-food-form smooth-toggle"><div>
         <div class="describe-food-input-row">
           <input type="text" id="describeFoodInput" class="care-input" placeholder="e.g. chicken burrito bowl with rice, beans, and guac">
           <span id="describeFoodVoiceSlot"></span>
         </div>
         <button class="save-btn" id="describeFoodSubmit">Estimate Nutrition</button>
-      </div>
+      </div></div>
       <input type="file" id="photoLogInput" accept="image/*" style="display:none">
       <div id="photoLogResult"></div>
       <div id="mealSuggestions"></div>
@@ -1483,7 +1566,7 @@
       <div class="food-items" id="foodItems"></div>
 
       <button class="custom-toggle" id="customToggle">+ Add custom item</button>
-      <div class="custom-form" id="customForm" style="display:none">
+      <div id="customForm" class="smooth-toggle"><div class="custom-form">
         <button class="photo-log-btn" id="scanLabelBtn" style="margin:0 0 4px;">📷 Scan or Upload a Label Photo</button>
         <input type="file" id="scanLabelInput" accept="image/*" style="display:none">
         <div class="status-msg" id="scanLabelStatus"></div>
@@ -1499,7 +1582,7 @@
           <span>💾 Save to My Foods, so I can find it again next time</span>
         </label>
         <button class="save-btn" id="addCustom">Add Item</button>
-      </div>
+      </div></div>
       <div class="status-msg" id="nutritionStatus"></div>
 
       <div class="section-divider"></div>
@@ -1518,6 +1601,17 @@
           <button class="water-btn" data-oz="24">+24oz</button>
           <button class="water-btn water-reset" id="waterReset">Reset</button>
         </div>
+        <button class="usda-key-upgrade-toggle" id="waterTipsToggle" style="margin-top:8px;">💡 Water tips & benefits</button>
+        <div class="smooth-toggle" id="waterTipsContent"><div>
+          <ul class="water-tips-list">
+            <li>Even mild dehydration (around 2% of body weight in fluid loss) can measurably reduce strength, endurance, and focus mid-session.</li>
+            <li>Thirst lags behind actual need, especially during hard training — drinking on a rough schedule works better than waiting to feel thirsty.</li>
+            <li>Pale yellow urine is a simple, reliable sign of good hydration; noticeably dark yellow usually means it's time to drink more.</li>
+            <li>Water helps regulate body temperature and lubricate joints during exercise — both directly affect how a session actually feels.</li>
+            <li>Replacing fluids after a hard or hot session helps kick off recovery — sweat losses add up fast in heat or humidity.</li>
+            <li>Coffee and alcohol don't reliably count toward hydration for everyone — for some people they have a mild diuretic effect.</li>
+          </ul>
+        </div></div>
       </div>
     </div></div>
   </div>
@@ -1631,8 +1725,30 @@
 
   <div id="analysisView" style="display:none">
     <div class="card">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg></span>Goal Progress Check</div>
+      <div class="history-hint">Whether your actual weight/measurement trend lines up with your stated goal — not just a log of numbers.</div>
+      <div id="goalFeedback"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M12.5 7.5 11 11l-3.5 1.5L9 9z"/></svg></span>Program Fit Check</div>
+      <div class="history-hint">Looks across every tracked exercise in your current program for a program-wide pattern — an ongoing, data-driven read on whether this program still fits, not just a one-time quiz answer.</div>
+      <div id="programFitCheck"></div>
+    </div>
+
+    <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,14 7,9.3 10.8,12 18,4.5"/><circle cx="18" cy="4.5" r="1.3" fill="currentColor"/></svg></span>Weight Trend</div>
       <div id="weightChart"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 5.5v5l3.5 2"/></svg></span>Nutrition Trend</div>
+      <div id="nutritionChart"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5c2.5 3.5 5.5 7.2 5.5 10.5a5.5 5.5 0 0 1-11 0c0-3.3 3-7 5.5-10.5Z"/></svg></span>Water Trend</div>
+      <div id="waterChart"></div>
     </div>
 
     <div class="card">
@@ -1655,18 +1771,6 @@
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="16" x2="4" y2="10"/><line x1="10" y1="16" x2="10" y2="6"/><line x1="16" y1="16" x2="16" y2="12"/></svg></span>Average RPE Trend</div>
       <div class="history-hint">Weekly average effort level across every logged set. A steady climb with no rest is the earliest warning sign of overreaching — well before performance actually drops.</div>
       <div id="rpeTrend"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg></span>Goal Progress Check</div>
-      <div class="history-hint">Whether your actual weight/measurement trend lines up with your stated goal — not just a log of numbers.</div>
-      <div id="goalFeedback"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M12.5 7.5 11 11l-3.5 1.5L9 9z"/></svg></span>Program Fit Check</div>
-      <div class="history-hint">Looks across every tracked exercise in your current program for a program-wide pattern — an ongoing, data-driven read on whether this program still fits, not just a one-time quiz answer.</div>
-      <div id="programFitCheck"></div>
     </div>
   </div>
 
@@ -1748,6 +1852,12 @@
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.2 10.6A6 6 0 1 1 9.4 3 5 5 0 0 0 14.2 10.6Z"/></svg></span>Currently Resting</div>
       <div id="restingRegions"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,14 7,9.3 10.8,12 18,4.5"/><circle cx="18" cy="4.5" r="1.3" fill="currentColor"/></svg></span>Pain Trend</div>
+      <div class="history-hint">Worst reported pain per day, from your check-ins — whether it's actually trending down, not just a list of entries.</div>
+      <div id="painChart"></div>
     </div>
 
     <div class="card">
@@ -5989,6 +6099,27 @@ async function checkStreakMilestone(streak){
   triggerCelebration('🔥', `${streak}-day streak!`, 'Consistency is what actually builds results — nice work.');
 }
 
+// Animates a number counting up/down to its new value instead of snapping
+// instantly — used sparingly, only for numbers that update in front of you
+// while you're already looking at them (streak, session totals), not for
+// every number in the app. Reads the currently-displayed value as the
+// starting point, so it always animates from wherever it actually was.
+function animateNumberTo(el, newValue, opts = {}){
+  const duration = opts.duration || 500;
+  const decimals = opts.decimals ?? 0;
+  const from = parseFloat((el.textContent || '').replace(/,/g, '')) || 0;
+  if(from === newValue){ el.textContent = newValue.toFixed(decimals); return; }
+  const startTime = performance.now();
+  function tick(now){
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    const current = from + (newValue - from) * eased;
+    el.textContent = current.toFixed(decimals);
+    if(progress < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
 async function renderStreak(){
   const el = document.getElementById('streakBadge');
   if(!el) return;
@@ -5999,7 +6130,14 @@ async function renderStreak(){
   }
   el.style.display = 'inline-flex';
   el.classList.remove('zero');
-  el.textContent = `🔥 ${streak} day${streak===1?'':'s'} streak`;
+  const numEl = el.querySelector('#streakNum');
+  if(!numEl){
+    // First render this session — just show it, nothing to animate from yet.
+    el.innerHTML = `🔥 <span id="streakNum">${streak}</span> <span id="streakNumLabel">day${streak===1?'':'s'} streak</span>`;
+  } else {
+    animateNumberTo(numEl, streak, {duration: 600});
+    el.querySelector('#streakNumLabel').textContent = `day${streak===1?'':'s'} streak`;
+  }
   checkStreakMilestone(streak);
 }
 
@@ -7197,7 +7335,13 @@ function updateSessionCalorieTotal(exercises, completed){
   exercises.forEach((ex,i)=>{
     if(completed[i]) total += estimateExerciseCalories(ex, userProfile.weight);
   });
-  el.textContent = total > 0 ? `🔥 ~${total} cal burned so far this session` : '';
+  if(total <= 0){ el.textContent = ''; return; }
+  const numEl = el.querySelector('#sessionCalNum');
+  if(!numEl){
+    el.innerHTML = `🔥 ~<span id="sessionCalNum">${total}</span> cal burned so far this session`;
+  } else {
+    animateNumberTo(numEl, total, {duration: 500});
+  }
 }
 
 // Contextual health insight, matched against the day's focus label so it's
@@ -7256,7 +7400,8 @@ async function renderVoiceHint(){
   `;
   banner.style.display = 'flex';
   document.getElementById('voiceHintDismissBtn').addEventListener('click', async ()=>{
-    banner.style.display = 'none';
+    banner.classList.add('fade-out-dismiss', 'fading');
+    setTimeout(()=>{ banner.style.display = 'none'; banner.classList.remove('fading'); }, 300);
     try{ await window.storage.set('voice-hint-dismissed', '1'); }catch(e){}
   });
 }
@@ -7264,9 +7409,13 @@ async function renderVoiceHint(){
 async function renderWorkout(){
   const day = dayDefs[activeDay];
   renderTodayInsights(); // fire-and-forget — session heads-up depends on activeDay/activeProgram, both already updated by now
-  document.getElementById('dayTitle').textContent = `${day.label} — ${day.sub}`;
+  document.getElementById('dayHeroEyebrow').textContent = day.label;
+  document.getElementById('dayTitle').textContent = day.sub;
+  const dayPlateClass = getDayPlateClass(activeDay) + (day.plateNum==='OFF' ? ' plate-off' : '');
   const iconEl = document.getElementById('dayPlateIcon');
-  iconEl.className = 'day-plate-inline ' + getDayPlateClass(activeDay);
+  iconEl.className = 'day-hero-plate ' + dayPlateClass;
+  iconEl.innerHTML = dayGlyphSvg(day.sub);
+  document.getElementById('dayHeroGlow').className = 'workout-hero-glow ' + dayPlateClass;
   // Mirrors the main title so the sticky header reads correctly whenever it
   // becomes visible, without needing its own render pass.
   document.getElementById('stickyDayTitle').textContent = `${day.label} — ${day.sub}`;
@@ -7320,7 +7469,8 @@ async function renderWorkout(){
   }catch(e){ completed = {}; }
 
   const focusExercises = getBodyGoalFocusExercises(userProfile.bodyGoal, activeProgram, day);
-  const fullExercises = focusExercises.length ? [...day.exercises, ...focusExercises] : day.exercises;
+  const customExercises = (await getCustomExercises(activeProgram, activeDay)).map(ex=>({...ex, isCustom:true}));
+  const fullExercises = [...day.exercises, ...focusExercises, ...customExercises];
 
   // Apply the session-length preference here, in one place, before anything
   // downstream (rendering, logging, calorie total) ever sees the list — that
@@ -7399,6 +7549,7 @@ async function renderWorkout(){
       }
 
       const showPlateCalc = showWeight && isBarbellExercise(ex.name);
+      const sameAsLastHtml = prior ? `<button type="button" class="same-as-last-btn" data-idx="${i}">↻ Same as Last Time</button>` : '';
       const setRowsHtml = Array.from({length: setCount}).map((_,setIdx)=>{
         const savedSet = todayEntry && todayEntry.sets[setIdx] ? todayEntry.sets[setIdx] : null;
         const placeholderSet = prior && prior.sets[setIdx] ? prior.sets[setIdx] : null;
@@ -7410,7 +7561,7 @@ async function renderWorkout(){
               ${showWeight ? `<input type="number" inputmode="decimal" class="ex-input ex-weight" placeholder="${placeholderSet && placeholderSet.weight!=null ? trimUnitNum(toDisplayWeight(placeholderSet.weight)) : weightUnit}" value="${savedSet && savedSet.weight!=null ? trimUnitNum(toDisplayWeight(savedSet.weight)) : ''}">
               <span class="ex-x">×</span>` : ''}
               <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="${placeholderSet && placeholderSet.reps!=null ? placeholderSet.reps : 'reps'}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
-              <input type="number" inputmode="decimal" step="0.5" min="5" max="10" class="ex-input ex-rpe" placeholder="RPE" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
+              <input type="number" inputmode="decimal" step="0.5" min="5" max="10" class="ex-input ex-rpe" placeholder="${placeholderSet && placeholderSet.rpe!=null ? placeholderSet.rpe : 'RPE'}" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
               ${showPlateCalc ? '<button type="button" class="plate-btn" title="Plate calculator">🏋️</button>' : ''}
               ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" title="Voice log">🎤</button>' : ''}
               <span class="set-status"></span>
@@ -7434,6 +7585,7 @@ async function renderWorkout(){
       trackingHtml = `
         ${warmupHtml}
         <div class="sets-block" data-day="${activeDay}" data-idx="${i}">
+          ${sameAsLastHtml}
           ${setRowsHtml}
           <button class="add-set-btn" type="button">+ Add Set</button>
         </div>
@@ -7463,9 +7615,10 @@ async function renderWorkout(){
         <input type="checkbox" data-idx="${i}" ${checked}>
         ${thumbHtml}
         <div class="ex-name-wrap">
-          <div class="ex-name ${completed[i]?'done':''}">${ex.name}${focusHtml}</div>
+          <div class="ex-name ${completed[i]?'done':''}">${ex.name}${focusHtml}${ex.isCustom ? '<span class="super-tag custom-tag">✏️ Custom</span>' : ''}</div>
         </div>
         <div class="ex-sets">${ex.sets}<div class="ex-cal-tag">~${exCalories} cal</div></div>
+        ${ex.isCustom ? `<button class="ex-delete-custom-btn" title="Remove this custom exercise">🗑️</button>` : ''}
         <span class="ex-chevron">›</span>
       </div>
       <div class="expand-wrap">
@@ -7505,6 +7658,16 @@ async function renderWorkout(){
     });
 
     const exerciseHeader = row.querySelector('.exercise');
+    const deleteCustomBtn = row.querySelector('.ex-delete-custom-btn');
+    if(deleteCustomBtn){
+      deleteCustomBtn.addEventListener('click', async (e)=>{
+        e.stopPropagation();
+        const list = await getCustomExercises(activeProgram, activeDay);
+        await saveCustomExercises(activeProgram, activeDay, list.filter(c=>c.name !== ex.name));
+        renderWorkout();
+      });
+    }
+
     exerciseHeader.addEventListener('click', ()=>{
       row.classList.toggle('open');
       row.querySelector('.expand-wrap').classList.toggle('open');
@@ -7585,16 +7748,17 @@ function spawnConfetti(count){
   setTimeout(()=> pieces.forEach(p=> p.remove()), 2200);
 }
 
-function triggerCelebration(icon, text, sub){
+function triggerCelebration(icon, text, sub, big){
   const banner = document.getElementById('celebrateBanner');
   document.getElementById('celebrateIcon').textContent = icon;
   document.getElementById('celebrateText').textContent = text;
   document.getElementById('celebrateSub').textContent = sub || '';
 
   if(celebrateTimeout) clearTimeout(celebrateTimeout);
+  banner.classList.toggle('big', !!big);
   banner.classList.add('active');
-  spawnConfetti();
-  celebrateTimeout = setTimeout(()=> banner.classList.remove('active'), 2200);
+  spawnConfetti(big ? 42 : undefined);
+  celebrateTimeout = setTimeout(()=> banner.classList.remove('active'), big ? 2800 : 2200);
 }
 
 // --- Sticky day header: shows a condensed version of the day title once
@@ -7747,11 +7911,59 @@ function formatPlateResult(result){
 function wireSetsBlock(row, exIdx, ex){
   const block = row.querySelector('.sets-block');
 
+  const sameAsLastBtn = block.querySelector('.same-as-last-btn');
+  if(sameAsLastBtn){
+    sameAsLastBtn.addEventListener('click', async ()=>{
+      const key = exKey(activeProgram, activeDay, exIdx);
+      let log = [];
+      try{
+        const item = await window.storage.get(key);
+        if(item && item.value) log = JSON.parse(item.value);
+      }catch(e){ log = []; }
+      const prior = [...log].filter(e=>e.date!==getTodayKey()).sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'))[0];
+      if(!prior) return;
+      for(let setIdx=0; setIdx<prior.sets.length; setIdx++){
+        const s = prior.sets[setIdx];
+        if(s.weight==null && s.reps==null) continue; // nothing meaningful to copy for this set
+        await saveExSet(activeDay, exIdx, setIdx, s.weight ?? '', s.reps ?? '', s.rpe ?? '');
+      }
+      renderWorkout();
+    });
+  }
+
   function renumberRows(){
     [...block.querySelectorAll('.set-row')].forEach((r, newIdx)=>{
       r.dataset.setIdx = newIdx;
       r.querySelector('.set-num').textContent = newIdx + 1;
     });
+  }
+
+  // Checks whether every set in this exercise now has weight (when the
+  // exercise has a weight field at all), reps, and RPE filled in — reading
+  // straight from the live inputs, not storage, so it's always checking
+  // exactly what's on screen right now. If so, and the exercise isn't
+  // already checked off, this checks it programmatically by dispatching a
+  // real 'change' event — reusing the checkbox's own completion logic
+  // (persist, auto-collapse, session-complete check) instead of duplicating
+  // any of it here.
+  function checkAllSetsCompleteAndAutoCheck(){
+    const setRows = [...block.querySelectorAll('.set-row')];
+    if(setRows.length === 0) return;
+    const requiresWeight = !!block.querySelector('.ex-weight');
+    const allComplete = setRows.every(r=>{
+      const w = r.querySelector('.ex-weight');
+      const reps = r.querySelector('.ex-reps');
+      const rpe = r.querySelector('.ex-rpe');
+      if(requiresWeight && (!w || w.value === '')) return false;
+      if(!reps || reps.value === '') return false;
+      if(!rpe || rpe.value === '') return false;
+      return true;
+    });
+    if(!allComplete) return;
+    const cb = row.querySelector('input[type=checkbox]');
+    if(!cb || cb.checked) return;
+    cb.checked = true;
+    cb.dispatchEvent(new Event('change'));
   }
 
   async function deleteSet(setRow){
@@ -7810,6 +8022,7 @@ function wireSetsBlock(row, exIdx, ex){
       if(result.isPR){
         statusEl.textContent = '🏆 PR';
         statusEl.className = 'set-status set-status-pr';
+        triggerCelebration('🏆', 'New PR!', `${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`, true);
       } else {
         statusEl.textContent = '✓';
         statusEl.className = 'set-status set-status-saved';
@@ -7818,6 +8031,7 @@ function wireSetsBlock(row, exIdx, ex){
       // Update volume/1RM/prior-session hint in place, without wiping the checkmark we just set
       await refreshSessionSummary(row, exIdx, ex);
       startRestTimer();
+      checkAllSetsCompleteAndAutoCheck();
     };
     if(wInput) wInput.addEventListener('change', save);
     rInput.addEventListener('change', save);
@@ -7876,23 +8090,31 @@ function wireSetsBlock(row, exIdx, ex){
         // Pull out an explicit "RPE 8" (or "8.5") mention first, and remove
         // it from the transcript before scanning for weight/reps numbers —
         // otherwise the RPE number could get mistaken for a rep count.
-        // Requiring the actual word "RPE" to be said keeps this unambiguous;
-        // guessing that "some third number" must be RPE would misfire too
-        // easily on a stray number that wasn't meant as one.
         // "RPE 8" is checked first since it's the most explicit and
         // unambiguous phrasing. "at a 6" / "at an 8" / "at 9" is how most
         // lifters actually say it out loud though, so it's supported as a
-        // fallback pattern too — "at" is specific enough in this context
-        // (calling out a completed set) that it isn't likely to collide
-        // with anything else someone would say here.
+        // fallback pattern too.
+        //
+        // If neither of those is said at all, position is used instead:
+        // whenever three or more numbers show up in the sentence, the
+        // first is always weight, the second is always reps, and the
+        // third is always RPE — no keyword required. This covers "225,
+        // 5, 8" just as reliably as "225 for 5, RPE 8" does. Only kicks
+        // in without an explicit keyword so it never double-counts a
+        // number that keyword-matching already claimed as RPE.
         const rpeMatch = rawTranscript.match(/rpe\s*(\d+(\.\d+)?)/i)
           || rawTranscript.match(/\bat\s+(?:an?\s+)?(\d+(\.\d+)?)\b/i);
-        const rpeValue = rpeMatch ? rpeMatch[1] : null;
+        let rpeValue = rpeMatch ? rpeMatch[1] : null;
         const remainingTranscript = rpeMatch ? rawTranscript.replace(rpeMatch[0], '') : rawTranscript;
-        const numbers = remainingTranscript.match(/\d+(\.\d+)?/g);
+        let numbers = remainingTranscript.match(/\d+(\.\d+)?/g);
+
+        if(rpeValue === null && numbers && numbers.length >= 3){
+          rpeValue = numbers[2];
+          numbers = numbers.slice(0, 2);
+        }
 
         if((!numbers || numbers.length === 0) && rpeValue === null){
-          voiceFeedback.textContent = `Didn't catch a number — try "225 for 5" or "180 for 12 at a 6"`;
+          voiceFeedback.textContent = `Didn't catch a number — try "225 for 5" or "225 for 5, 8"`;
           voiceFeedback.classList.add('open');
           setTimeout(()=> voiceFeedback.classList.remove('open'), 3000);
           return;
@@ -8109,6 +8331,20 @@ const BODY_GOAL_FOCUS = [
 // Powerbuilding is included since it's explicitly a strength+physique
 // hybrid — an aesthetic focus exercise fits its stated purpose directly.
 const FOCUS_ELIGIBLE_PROGRAMS = ['strength','bodybuilding','powerlifting','athletic','calisthenics','bodyweight','oly','powerbuilding'];
+
+// Custom exercises are scoped per program+day, same as the built-in list
+// they sit alongside — a custom exercise added to Push Day only shows up
+// on Push Day, not every day in the program.
+async function getCustomExercises(program, dayId){
+  try{
+    const res = await window.storage.get(`custom-ex:${program}:${dayId}`);
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){}
+  return [];
+}
+async function saveCustomExercises(program, dayId, list){
+  try{ await window.storage.set(`custom-ex:${program}:${dayId}`, JSON.stringify(list)); }catch(e){}
+}
 
 function getBodyGoalFocusExercises(bodyGoal, program, day){
   if(!bodyGoal || day.rest) return [];
@@ -8764,6 +9000,24 @@ function renderProfileSummary(){
   } else {
     summaryEl.textContent = 'Tap to set up — personalizes your nutrition targets and program recommendation';
   }
+  positionProfileCard();
+}
+
+// Before a name is set, the profile card sits right at the top of Today —
+// it's the one thing genuinely worth interrupting the daily flow for, since
+// nutrition targets and the program recommendation both depend on it and
+// silently do the wrong thing without it. The moment it's filled in, this
+// moves it back down to its normal spot below the workout, where it belongs
+// alongside the other set-once settings instead of competing with the
+// actual daily task every time the app opens.
+function positionProfileCard(){
+  const card = document.getElementById('profileCard');
+  const topSlot = document.getElementById('profileCardTopSlot');
+  const permSlot = document.getElementById('profileCardPermanentSlot');
+  if(!card || !topSlot || !permSlot) return;
+  const isComplete = !!(userProfile && userProfile.name);
+  const targetSlot = isComplete ? permSlot : topSlot;
+  targetSlot.parentNode.insertBefore(card, targetSlot.nextSibling);
 }
 
 // A user who declines the recommendation shouldn't see the same banner every
@@ -8831,7 +9085,13 @@ async function renderOnboardingCard(){
     {label: 'Log your first meal', done: await getMilestone('has-logged-first-meal')},
   ];
 
-  if(steps.every(s=>s.done)){ card.style.display = 'none'; return; }
+  if(steps.every(s=>s.done)){
+    if(card.style.display !== 'none'){
+      card.classList.add('fade-out-dismiss', 'fading');
+      setTimeout(()=>{ card.style.display = 'none'; card.classList.remove('fading'); }, 300);
+    }
+    return;
+  }
 
   document.getElementById('onboardingRows').innerHTML = steps.map(s=>`
     <div class="onboarding-row ${s.done ? 'done' : ''}">
@@ -8954,7 +9214,9 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
 document.getElementById('switchProfileBtn').addEventListener('click', ()=> showUserPicker());
 
 document.getElementById('onboardingDismiss').addEventListener('click', async ()=>{
-  document.getElementById('onboardingCard').style.display = 'none';
+  const card = document.getElementById('onboardingCard');
+  card.classList.add('fade-out-dismiss', 'fading');
+  setTimeout(()=>{ card.style.display = 'none'; card.classList.remove('fading'); }, 300);
   try{ await window.storage.set('onboarding-dismissed', '1'); }catch(e){}
 });
 
@@ -9156,6 +9418,10 @@ document.getElementById('waterReset').addEventListener('click', async ()=>{
   await saveWaterIntake(0);
   renderWater();
   renderTodayInsights();
+});
+
+document.getElementById('waterTipsToggle').addEventListener('click', ()=>{
+  document.getElementById('waterTipsContent').classList.toggle('open');
 });
 
 const foodLibrary = {
@@ -9611,14 +9877,14 @@ function buildUsdaKeyUpgradePrompt(){
   wrap.className = 'usda-key-upgrade';
   wrap.innerHTML = `
     <button class="usda-key-upgrade-toggle" type="button">USDA food search: on, using the shared free key · Add a personal key</button>
-    <div class="usda-key-upgrade-form" style="display:none">
+    <div class="usda-key-upgrade-form smooth-toggle"><div>
       <div class="care-disclaimer" style="margin-top:8px;">Search already works with zero setup. A personal key just raises the limit from 30/hour to 1,000/hour if you ever hit it. Get one free, instantly, at <b>fdc.nal.usda.gov/api-key-signup</b> — no approval wait, no billing, no account needed beyond an email. Stored only on this device.</div>
       <input type="text" class="care-input usda-key-input" placeholder="Paste your USDA API key">
       <button class="save-btn usda-key-save">Save Key</button>
-    </div>
+    </div></div>
   `;
   wrap.querySelector('.usda-key-upgrade-toggle').addEventListener('click', (e)=>{
-    wrap.querySelector('.usda-key-upgrade-form').style.display = '';
+    wrap.querySelector('.usda-key-upgrade-form').classList.add('open');
     e.target.style.display = 'none';
   });
   wrap.querySelector('.usda-key-save').addEventListener('click', async ()=>{
@@ -9833,12 +10099,12 @@ let describeFoodParsedItems = [];
 
 document.getElementById('describeFoodBtn').addEventListener('click', ()=>{
   const form = document.getElementById('describeFoodForm');
-  const isOpen = form.style.display !== 'none';
+  const isOpen = form.classList.contains('open');
   if(isOpen){
-    form.style.display = 'none';
+    form.classList.remove('open');
   } else {
     clearOtherQuickAddResults('describeFoodResult');
-    form.style.display = '';
+    form.classList.add('open');
     document.getElementById('describeFoodInput').focus();
   }
 });
@@ -9888,7 +10154,7 @@ async function submitFoodDescription(){
       }
       resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added ✓</div>`;
       input.value = '';
-      document.getElementById('describeFoodForm').style.display = 'none';
+      document.getElementById('describeFoodForm').classList.remove('open');
     });
   }catch(err){
     resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't estimate that: ${err.message}. Check your API key or try again.</div>`;
@@ -9976,7 +10242,7 @@ function renderFoodCats(){
 // Prefills the custom-add form with an existing item's macros so you can
 // tweak a close match instead of typing everything from zero.
 function duplicateToCustomForm(item){
-  document.getElementById('customForm').style.display = 'flex';
+  document.getElementById('customForm').classList.add('open');
   document.getElementById('cName').value = `${item.name} (copy)`;
   document.getElementById('cCal').value = item.cal;
   document.getElementById('cPro').value = item.pro;
@@ -10424,8 +10690,40 @@ document.getElementById('nutritionHeader').addEventListener('click', ()=>{
 });
 
 document.getElementById('customToggle').addEventListener('click', ()=>{
-  const form = document.getElementById('customForm');
-  form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+  document.getElementById('customForm').classList.toggle('open');
+});
+
+document.getElementById('addCustomExerciseBtn').addEventListener('click', ()=>{
+  document.getElementById('customExerciseForm').classList.toggle('open');
+});
+
+document.getElementById('addCustomExerciseSubmit').addEventListener('click', async ()=>{
+  const nameInput = document.getElementById('customExName');
+  const setsInput = document.getElementById('customExSets');
+  const noWeight = document.getElementById('customExNoWeight').checked;
+  const statusEl = document.getElementById('customExStatus');
+  const name = nameInput.value.trim();
+  const sets = setsInput.value.trim();
+
+  if(!name){
+    statusEl.textContent = 'Give it a name first.';
+    return;
+  }
+  if(dayDefs[activeDay].exercises.some(ex=>ex.name===name) || (await getCustomExercises(activeProgram, activeDay)).some(ex=>ex.name===name)){
+    statusEl.textContent = 'Already on this day — pick a different name, or edit the existing one.';
+    return;
+  }
+
+  const list = await getCustomExercises(activeProgram, activeDay);
+  list.push({name, sets: sets || '3×10', noWeight});
+  await saveCustomExercises(activeProgram, activeDay, list);
+
+  nameInput.value = '';
+  setsInput.value = '';
+  document.getElementById('customExNoWeight').checked = false;
+  document.getElementById('customExerciseForm').classList.remove('open');
+  statusEl.textContent = '';
+  renderWorkout();
 });
 
 document.getElementById('addCustom').addEventListener('click', async ()=>{
@@ -10451,7 +10749,7 @@ document.getElementById('addCustom').addEventListener('click', async ()=>{
   document.getElementById('cPro').value='';
   document.getElementById('cFat').value='';
   document.getElementById('cCarb').value='';
-  document.getElementById('customForm').style.display = 'none';
+  document.getElementById('customForm').classList.remove('open');
   status.textContent = saveToLibrary ? 'Added & saved to My Foods ✓' : 'Added';
   setTimeout(()=>status.textContent='',2000);
 });
@@ -10624,10 +10922,11 @@ async function loadWeights(){
       return;
     }
     entries.sort((a,b)=> new Date(b.date) - new Date(a.date));
-    const sorted = entries.slice(0,8);
-    listEl.innerHTML = sorted.map(e=> buildSwipeItem(
+    const sorted = entries;
+    const itemHtmls = sorted.map(e=> buildSwipeItem(
       `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${fmtWeight(e.weight)}</span></div>`
-    )).join('');
+    ));
+    renderCollapsibleList(listEl, itemHtmls, 3, 'weigh-ins');
     listEl.querySelectorAll('.swipe-item').forEach((itemEl, i)=>{
       makeSwipeable(itemEl, async ()=>{
         const preDeleteSnapshot = JSON.stringify(entries);
@@ -10682,10 +10981,11 @@ async function loadSleep(){
     const last7 = entries.slice(0,7);
     const avg = (last7.reduce((s,e)=>s+Number(e.hours),0) / last7.length).toFixed(1);
     avgEl.textContent = `7-day avg: ${avg} hrs/night`;
-    const sorted = entries.slice(0,8);
-    listEl.innerHTML = sorted.map(e=> buildSwipeItem(
+    const sorted = entries;
+    const itemHtmls = sorted.map(e=> buildSwipeItem(
       `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${e.hours} hrs</span></div>`
-    )).join('');
+    ));
+    renderCollapsibleList(listEl, itemHtmls, 3, 'nights');
     listEl.querySelectorAll('.swipe-item').forEach((itemEl, i)=>{
       makeSwipeable(itemEl, async ()=>{
         const all = entries.filter(e2=> !(e2.date===sorted[i].date && e2.hours===sorted[i].hours));
@@ -11019,10 +11319,11 @@ async function loadMeasurements(){
     if(latest.chest) parts.push(`Chest ${latest.chest}"`);
     if(latest.arms) parts.push(`Arms ${latest.arms}"`);
     summaryEl.textContent = parts.length ? `Latest: ${parts.join(' · ')}` : 'Tap to log your measurements';
-    const sorted = entries.slice(0,6);
-    listEl.innerHTML = sorted.map(e=> buildSwipeItem(
+    const sorted = entries;
+    const itemHtmls = sorted.map(e=> buildSwipeItem(
       `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${[e.waist&&`W:${e.waist}`, e.chest&&`C:${e.chest}`, e.arms&&`A:${e.arms}`].filter(Boolean).join(' ')}"</span></div>`
-    )).join('');
+    ));
+    renderCollapsibleList(listEl, itemHtmls, 3, 'entries');
     listEl.querySelectorAll('.swipe-item').forEach((itemEl, i)=>{
       makeSwipeable(itemEl, async ()=>{
         const all = entries.filter(e2=> e2.date!==sorted[i].date);
@@ -11192,6 +11493,27 @@ async function fetchWorkoutDates(){
   return dates;
 }
 
+async function fetchWaterDays(){
+  const dayTotals = {}; // date -> oz
+  try{
+    const res = await window.storage.list('water:');
+    if(res && res.keys){
+      for(const key of res.keys){
+        const date = key.split(':')[1];
+        if(!date) continue;
+        try{
+          const item = await window.storage.get(key);
+          if(item && item.value){
+            const oz = Number(item.value);
+            if(oz > 0) dayTotals[date] = oz;
+          }
+        }catch(e){}
+      }
+    }
+  }catch(e){}
+  return dayTotals;
+}
+
 async function fetchFoodDays(){
   const dayTotals = {}; // date -> {cal,pro,fat,carb}
   try{
@@ -11216,6 +11538,64 @@ async function fetchFoodDays(){
     }
   }catch(e){}
   return dayTotals;
+}
+
+// Generic version of the weight sparkline for any date -> single-number
+// series — used by both nutrition and water trends below so they look and
+// behave consistently with each other and with Weight Trend, rather than
+// being three subtly different implementations of the same idea.
+function renderDayValueTrend(elId, dayTotals, opts){
+  const el = document.getElementById(elId);
+  const dates = Object.keys(dayTotals).sort();
+  if(dates.length < 2){
+    el.innerHTML = `<div class="empty-note">Log at least two days to see your ${opts.label} trend.</div>`;
+    return;
+  }
+  const recent = dates.slice(-16);
+  const values = recent.map(d=> dayTotals[d]);
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = (max-min) || 1;
+  const w = 600, h = 70, pad = 8;
+  const pts = recent.map((d,i)=>{
+    const x = pad + (i/(recent.length-1)) * (w-2*pad);
+    const y = h - pad - ((values[i]-min)/range) * (h-2*pad);
+    return `${x},${y}`;
+  }).join(' ');
+  const avg = Math.round(values.reduce((a,b)=>a+b,0)/values.length);
+  const targetNote = opts.target ? ` (target ${opts.formatValue(opts.target)})` : '';
+  el.innerHTML = `
+    <svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="grad-${elId}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${opts.color}" stop-opacity="0.32"/>
+          <stop offset="100%" stop-color="${opts.color}" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#grad-${elId})"/>
+      <polyline fill="none" stroke="${opts.color}" stroke-width="2.5" points="${pts}"/>
+    </svg>
+    <div style="display:flex; justify-content:space-between; margin-top:8px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);">
+      <span>${opts.formatValue(values[0])}</span>
+      <span>Avg: ${opts.formatValue(avg)}${targetNote} over ${recent.length} days</span>
+      <span>${opts.formatValue(values[values.length-1])}</span>
+    </div>
+  `;
+}
+
+function renderNutritionTrend(foodDays){
+  const dayTotals = {};
+  Object.keys(foodDays).forEach(date=> dayTotals[date] = foodDays[date].cal);
+  renderDayValueTrend('nutritionChart', dayTotals, {
+    label: 'calorie', color: 'var(--plate-orange)', target: targets.cal,
+    formatValue: v=> `${Math.round(v)} cal`,
+  });
+}
+
+function renderWaterTrend(waterDays){
+  renderDayValueTrend('waterChart', waterDays, {
+    label: 'water', color: '#4FC3F7', target: 128,
+    formatValue: v=> `${Math.round(v)} oz`,
+  });
 }
 
 function renderSparkline(entries){
@@ -11402,7 +11782,7 @@ async function renderExerciseProgress(){
     `;
   });
 
-  renderCollapsibleList(el, rowHtmls, 4, 'exercises');
+  renderCollapsibleList(el, rowHtmls, 3, 'exercises');
 }
 
 // --- PR Timeline: reconstructed from existing exercise logs, not a separate
@@ -11473,7 +11853,7 @@ async function renderPrTimeline(){
     `;
   });
 
-  renderCollapsibleList(el, rowHtmls, 8, 'PRs');
+  renderCollapsibleList(el, rowHtmls, 3, 'PRs');
 }
 
 function fmtMonthLabel(monthKey){
@@ -12144,6 +12524,27 @@ const REGION_RELIEF = {
   'Other': ['Diaphragmatic Breathing','Walking','Foam Rolling Full Body'],
 };
 
+// Multiple check-ins on the same day are collapsed to that day's worst
+// reported pain, not an average — "how bad did it get today" is more
+// useful to see trending down than a smoothed-out number would be.
+async function fetchPainDays(){
+  const log = await getInjuryLog();
+  const dayTotals = {};
+  log.forEach(entry=>{
+    if(entry.pain == null || !entry.date) return;
+    const pain = Number(entry.pain);
+    if(dayTotals[entry.date] == null || pain > dayTotals[entry.date]) dayTotals[entry.date] = pain;
+  });
+  return dayTotals;
+}
+
+function renderPainTrend(painDays){
+  renderDayValueTrend('painChart', painDays, {
+    label: 'pain', color: 'var(--plate-red)',
+    formatValue: v=> `${v}/10`,
+  });
+}
+
 async function getInjuryLog(){
   try{
     const res = await window.storage.get('injury-log');
@@ -12361,6 +12762,7 @@ async function renderCare(){
   const restEl = document.getElementById('restingRegions');
 
   const [log, resting] = await Promise.all([getInjuryLog(), getRestingRegions()]);
+  renderPainTrend(await fetchPainDays());
 
   // Resting regions
   if(resting.length === 0){
@@ -12543,7 +12945,7 @@ async function renderSavedWeeks(){
       <span>${w.avgSleep!=null?`Avg sleep: ${w.avgSleep}hr`:''}</span></div>
     </div>
   `));
-  el.innerHTML = itemHtmls.join('');
+  renderCollapsibleList(el, itemHtmls, 3, 'weeks');
   el.querySelectorAll('.swipe-item').forEach((itemEl, i)=>{
     makeSwipeable(itemEl, async ()=>{
       const all = archive.filter(a=> a.weekStart !== sorted[i].weekStart);
@@ -13026,11 +13428,13 @@ async function renderAnalysis(){
   const tableEl = document.getElementById('weeklyTable');
   tableEl.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div><div class="skeleton-line" style="width:58%"></div></div>';
 
-  const [weightEntries, workoutDates, foodDays] = await Promise.all([
-    fetchAllWeightEntries(), fetchWorkoutDates(), fetchFoodDays()
+  const [weightEntries, workoutDates, foodDays, waterDays] = await Promise.all([
+    fetchAllWeightEntries(), fetchWorkoutDates(), fetchFoodDays(), fetchWaterDays()
   ]);
 
   renderSparkline(weightEntries);
+  renderNutritionTrend(foodDays);
+  renderWaterTrend(waterDays);
   renderVolumeTrend();
   renderExerciseProgress();
   renderRpeTrend();
