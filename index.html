@@ -277,8 +277,9 @@
     font-size:10px; color:var(--plate-yellow); text-align:right; margin-top:2px; font-weight:600;
   }
   .today-standout-banner{
-    padding:10px 12px; background:rgba(245,197,24,0.1); border:1px solid rgba(245,197,24,0.35);
+    padding:10px 12px; background:rgba(245,197,24,0.1); border:1px solid rgba(245,197,24,0.38);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -8px rgba(245,197,24,0.35);
   }
   .describe-similar-note{font-size:11.5px; color:var(--text-muted); margin-top:12px; padding-top:10px; border-top:1px solid var(--line-soft);}
   .describe-similar-list{display:flex; flex-direction:column; gap:6px; margin-top:8px;}
@@ -288,16 +289,19 @@
   }
   .describe-similar-btn:active{transform:scale(0.98);}
   .privacy-note{
-    padding:10px 12px; background:rgba(50,215,75,0.08); border:1px solid rgba(50,215,75,0.25);
+    padding:10px 12px; background:rgba(50,215,75,0.08); border:1px solid rgba(50,215,75,0.28);
     border-radius:var(--radius-md); font-size:12px; line-height:1.5; color:var(--text-muted); margin-bottom:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -8px rgba(50,215,75,0.28);
   }
   .day-insight{
-    padding:10px 12px; background:rgba(91,124,255,0.08); border:1px solid rgba(91,124,255,0.25);
+    padding:10px 12px; background:rgba(91,124,255,0.08); border:1px solid rgba(91,124,255,0.28);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -8px rgba(91,124,255,0.35);
   }
   .voice-hint-banner{
     display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(91,124,255,0.08);
-    border:1px solid rgba(91,124,255,0.25); border-radius:var(--radius-md); font-size:12.5px; line-height:1.4;
+    border:1px solid rgba(91,124,255,0.28); border-radius:var(--radius-md); font-size:12.5px; line-height:1.4;
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -8px rgba(91,124,255,0.35);
     color:var(--text); margin-bottom:14px;
   }
   .voice-hint-banner span:first-of-type{flex:1;}
@@ -319,21 +323,25 @@
   .onboarding-row.done .onboarding-check{background:var(--plate-green); border-color:var(--plate-green); color:#fff;}
   .onboarding-row.done span:last-child{color:var(--text-muted);}
   .today-insight-row{
-    padding:10px 12px; background:rgba(91,124,255,0.08); border:1px solid rgba(91,124,255,0.25);
+    padding:10px 12px; background:rgba(91,124,255,0.08); border:1px solid rgba(91,124,255,0.28);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:8px;
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -8px rgba(91,124,255,0.35);
   }
   .today-insight-row:last-child{margin-bottom:0;}
   .goal-feedback-good{
-    padding:10px 12px; background:rgba(50,215,75,0.1); border:1px solid rgba(50,215,75,0.3);
+    padding:10px 12px; background:rgba(50,215,75,0.1); border:1px solid rgba(50,215,75,0.32);
     border-radius:var(--radius-sm); font-size:12.5px; line-height:1.5; color:var(--plate-green);
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -8px rgba(50,215,75,0.35);
   }
   .goal-feedback-neutral{
-    padding:10px 12px; background:rgba(91,124,255,0.08); border:1px solid rgba(91,124,255,0.25);
+    padding:10px 12px; background:rgba(91,124,255,0.08); border:1px solid rgba(91,124,255,0.28);
     border-radius:var(--radius-sm); font-size:12.5px; line-height:1.5; color:var(--text);
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -8px rgba(91,124,255,0.35);
   }
   .goal-feedback-warn{
-    padding:10px 12px; background:rgba(245,197,24,0.12); border:1px solid rgba(245,197,24,0.35);
+    padding:10px 12px; background:rgba(245,197,24,0.12); border:1px solid rgba(245,197,24,0.38);
     border-radius:var(--radius-sm); font-size:12.5px; line-height:1.5; color:var(--plate-yellow);
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -8px rgba(245,197,24,0.35);
   }
 
   /* Smooth expand/collapse without JS height calculation — height + fade together */
@@ -492,16 +500,19 @@
     padding:2px 0 2px 76px; font-size:11.5px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
   }
   .progress-badge{
-    margin:4px 0 2px 76px; padding:7px 10px; background:rgba(245,197,24,0.12); border:1px solid rgba(245,197,24,0.35);
+    margin:4px 0 2px 76px; padding:7px 10px; background:rgba(245,197,24,0.12); border:1px solid rgba(245,197,24,0.38);
     border-radius:var(--radius-sm); font-size:12px; color:var(--plate-yellow); line-height:1.4;
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 12px -7px rgba(245,197,24,0.35);
   }
   .progress-badge-decrease{
-    margin:4px 0 2px 76px; padding:7px 10px; background:rgba(230,126,34,0.12); border:1px solid rgba(230,126,34,0.35);
+    margin:4px 0 2px 76px; padding:7px 10px; background:rgba(230,126,34,0.12); border:1px solid rgba(230,126,34,0.38);
     border-radius:var(--radius-sm); font-size:12px; color:#E67E22; line-height:1.4;
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 12px -7px rgba(230,126,34,0.35);
   }
   .progress-badge-deload{
-    margin:4px 0 2px 76px; padding:7px 10px; background:rgba(224,80,80,0.12); border:1px solid rgba(224,80,80,0.35);
+    margin:4px 0 2px 76px; padding:7px 10px; background:rgba(224,80,80,0.12); border:1px solid rgba(224,80,80,0.38);
     border-radius:var(--radius-sm); font-size:12px; color:var(--plate-red); line-height:1.4;
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 12px -7px rgba(224,80,80,0.35);
   }
 
   .ex-rpe{width:46px;}
@@ -540,8 +551,9 @@
   .set-row-content{flex-wrap:wrap;}
 
   .warmup-box{
-    margin:4px 0 2px 76px; padding:9px 11px; background:rgba(79,195,247,0.08); border:1px solid rgba(79,195,247,0.25);
+    margin:4px 0 2px 76px; padding:9px 11px; background:rgba(79,195,247,0.08); border:1px solid rgba(79,195,247,0.28);
     border-radius:var(--radius-sm); font-size:12px; color:var(--text); line-height:1.6;
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 12px -7px rgba(79,195,247,0.3);
   }
   .warmup-box .warmup-title{color:#4FC3F7; font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:3px;}
   .warmup-box .warmup-row{display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px;}
@@ -771,8 +783,9 @@
   .height-inputs{display:flex; align-items:center; gap:6px;}
   .height-unit{font-size:12px; color:var(--text-muted);}
   .program-rec-banner{
-    margin:0 0 18px; padding:14px 16px; background:rgba(50,215,75,0.12); border:1px solid rgba(50,215,75,0.35);
+    margin:0 0 18px; padding:14px 16px; background:rgba(50,215,75,0.12); border:1px solid rgba(50,215,75,0.38);
     border-radius:var(--radius-lg); font-size:13px; line-height:1.5;
+    box-shadow:0 1px 0 rgba(255,255,255,0.06) inset, 0 8px 22px -12px rgba(50,215,75,0.4);
   }
   .program-rec-banner b{color:var(--plate-green);}
   .program-rec-actions{display:flex; gap:8px; margin-top:10px;}
@@ -969,8 +982,9 @@
   .sleep-avg{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px; color:var(--plate-blue); margin:8px 0; font-weight:600;}
 
   .cycle-current-banner{
-    margin-top:14px; padding:14px; background:rgba(91,124,255,0.1); border:1px solid rgba(91,124,255,0.3);
+    margin-top:14px; padding:14px; background:rgba(91,124,255,0.1); border:1px solid rgba(91,124,255,0.32);
     border-radius:var(--radius-md);
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 6px 16px -9px rgba(91,124,255,0.35);
   }
   .cycle-current-title{font-family:'Inter',sans-serif; font-size:16px; font-weight:700; letter-spacing:-0.01em; color:var(--plate-blue); margin-bottom:4px;}
   .cycle-current-day{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted); margin-bottom:10px;}
@@ -1242,10 +1256,11 @@
 
   .care-banner{
     margin-top:14px; padding:12px 14px; border-radius:var(--radius-md); font-size:13px; line-height:1.5;
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 6px 16px -9px rgba(0,0,0,0.4);
   }
-  .care-banner-urgent{background:rgba(255,69,58,0.12); border:1px solid rgba(255,69,58,0.4); color:var(--text);}
+  .care-banner-urgent{background:rgba(255,69,58,0.12); border:1px solid rgba(255,69,58,0.42); color:var(--text); box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 6px 16px -9px rgba(255,69,58,0.4);}
   .care-banner-urgent b{color:var(--plate-red);}
-  .care-banner-caution{background:rgba(245,197,24,0.1); border:1px solid rgba(245,197,24,0.35); color:var(--text);}
+  .care-banner-caution{background:rgba(245,197,24,0.1); border:1px solid rgba(245,197,24,0.38); color:var(--text); box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 6px 16px -9px rgba(245,197,24,0.35);}
   .care-banner-caution b{color:var(--plate-yellow);}
   .care-banner ul{margin:8px 0 0 18px; padding:0;}
   .care-banner li{margin-bottom:4px;}
@@ -1278,8 +1293,9 @@
   .care-log-pain{color:var(--plate-red); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11px;}
 
   .ex-caution{
-    margin-top:4px; padding:6px 10px; background:rgba(255,69,58,0.1); border:1px solid rgba(255,69,58,0.3);
+    margin-top:4px; padding:6px 10px; background:rgba(255,69,58,0.1); border:1px solid rgba(255,69,58,0.32);
     border-radius:var(--radius-sm); font-size:11.5px; color:var(--plate-red); margin-left:76px;
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 12px -7px rgba(255,69,58,0.32);
   }
 
   .food-log-list{margin-bottom:14px;}
@@ -1553,7 +1569,8 @@
       <select id="pfGoal" class="care-input">
         <option value="lose">Lose Weight</option>
         <option value="gain">Gain Muscle</option>
-        <option value="recomp">Lean Bulk / Recomp (lose fat + gain muscle)</option>
+        <option value="leanbulk">Lean Bulk (gain muscle, minimize fat gain)</option>
+        <option value="recomp">Recomp (lose fat + gain muscle at once)</option>
         <option value="maintain">Maintain</option>
         <option value="performance">Improve Performance</option>
       </select>
@@ -1707,6 +1724,17 @@
     </div>
     <div class="sleep-avg" id="sleepAvg"></div>
     <div class="weight-list" id="sleepList"><div class="empty-note">😴 No entries yet — log last night's sleep.</div></div>
+    <button class="usda-key-upgrade-toggle" id="sleepTipsToggle" style="margin-top:8px;">💡 Sleep tips & facts</button>
+    <div class="smooth-toggle" id="sleepTipsContent"><div>
+      <ul class="water-tips-list">
+        <li>Adults generally need 7-9 hours a night (National Sleep Foundation / AASM); people training hard regularly often do better toward the top of that range, and some research on athletes points to 8-10 hours as the more accurate target during heavy training blocks.</li>
+        <li>Growth hormone release and muscle protein synthesis both ramp up during deep sleep — cutting sleep short doesn't just make you tired, it directly blunts the recovery you trained for.</li>
+        <li>Chronic short sleep (5-6 hours a night for several nights running) has been shown to reduce muscle protein synthesis by close to 20% — a bigger hit than most people expect from "just" losing sleep.</li>
+        <li>A full sleep cycle runs about 90 minutes; 5 cycles (~7.5 hrs) is a common target for waking up between cycles instead of mid-cycle, which often feels less groggy than the raw hour count alone would suggest.</li>
+        <li>Short sleep is linked to measurably higher injury risk during training, not just worse performance — this isn't only a recovery-quality issue.</li>
+        <li>A cool, dark room and cutting caffeine well before bed are the two most consistently supported sleep-hygiene habits — simple, unglamorous, and well-evidenced.</li>
+      </ul>
+    </div></div>
   </div>
 
   <div class="card">
@@ -1799,6 +1827,13 @@
 
   <div id="analysisView" style="display:none">
     <div class="card">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5 12 7.5l5.5.5-4 3.8 1.2 5.4L10 14.5l-4.7 2.7 1.2-5.4-4-3.8 5.5-.5Z"/></svg></span>AI Cross-Metric Insights</div>
+      <div class="history-hint">Every card above and below looks at one metric at a time. This looks at how they're actually affecting each other — sleep vs. training load, protein vs. volume, water vs. sessions that felt harder than they should have — and what to actually adjust.</div>
+      <button class="save-btn" id="genCrossInsightsBtn" style="margin-top:10px;">✨ Generate Insights</button>
+      <div id="crossInsightsResult" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg></span>Goal Progress Check</div>
       <div class="history-hint">Whether your actual weight/measurement trend lines up with your stated goal — not just a log of numbers.</div>
       <div id="goalFeedback"></div>
@@ -1818,6 +1853,11 @@
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 5.5v5l3.5 2"/></svg></span>Nutrition Trend</div>
       <div id="nutritionChart"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.2 10.6A6 6 0 1 1 9.4 3 5 5 0 0 0 14.2 10.6Z"/></svg></span>Sleep Trend</div>
+      <div id="sleepChart"></div>
     </div>
 
     <div class="card">
@@ -6282,7 +6322,7 @@ async function getDeloadInsight(){
   const isDeload = await isDeloadWeek();
   if(!isDeload) return null;
   const week = await getMesocycleWeek();
-  return `🔻 <b>Deload week (week ${week}):</b> A planned lighter week — drop working weights ~10-20% and stop sets a couple reps short of failure. This is what lets the last month of hard training actually turn into progress instead of just fatigue.`;
+  return `🔻 <b>Deload week (week ${week}):</b> A planned lighter week — sets are already trimmed below (roughly 40-50% less volume), and working weights should come down another ~10-20% on top of that. This combination is what actually lets the last month of hard training turn into progress instead of just accumulated fatigue — cutting weight alone while keeping full volume is one of the most common ways a deload fails to do its job.`;
 }
 
 // --- Stale resting-region check-in: Care lets you mark a region as resting,
@@ -7082,6 +7122,29 @@ function isWarmupOrCooldownUnit(unit){
 // are never mutated, so switching back to "Full session" always restores the
 // exact program as authored). If targetMinutes is null ('full'), returns the
 // list completely unchanged.
+// A deload week was previously only ever suggesting a lighter working
+// weight (~10-20%) while leaving the actual number of sets completely
+// untouched — someone would still do all 4 sets of bench, just a bit
+// lighter. Research on deloading (a formal cross-sectional survey of
+// competitive strength/physique athletes, and NSCA-adjacent practical
+// guidance) consistently identifies volume reduction — fewer sets per
+// exercise, not just lighter load — as the primary, most commonly applied
+// lever, and specifically flags "reducing weight but keeping the same
+// number of hard sets" as the most common deload mistake, since it
+// addresses load fatigue while ignoring volume fatigue entirely. This
+// keeps exercise selection and frequency completely unchanged (per the
+// same research) and only reduces each exercise's own set count, roughly
+// in the well-supported 40-50% volume-reduction range.
+function applyDeloadVolumeReduction(exercises){
+  return exercises.map(ex=>{
+    if(!hasNumericSetPrefix(ex.sets)) return ex;
+    const current = parseSetCount(ex.sets);
+    const reduced = Math.max(1, Math.round(current * 0.55));
+    if(reduced >= current) return ex;
+    return {...ex, sets: replaceSetCount(ex.sets, reduced)};
+  });
+}
+
 function applySessionLengthLimit(exercises, targetMinutes){
   if(targetMinutes == null || exercises.length === 0){
     return {exercises, estimatedMinutes: totalMinutesForUnits(groupIntoUnits(exercises))};
@@ -7711,7 +7774,15 @@ async function renderWorkout(){
 
   const focusExercises = getBodyGoalFocusExercises(userProfile.bodyGoal, activeProgram, day);
   const customExercises = (await getCustomExercises(activeProgram, activeDay)).map(ex=>({...ex, isCustom:true}));
-  const fullExercises = [...day.exercises, ...focusExercises, ...customExercises];
+  let fullExercises = [...day.exercises, ...focusExercises, ...customExercises];
+
+  // Deload weeks reduce actual set volume, not just suggest a lighter
+  // weight — applied here, before session-length trimming, so a deload
+  // week's already-reduced set counts are what session-length trimming
+  // (if the person also picked a shorter session) works from, rather than
+  // the two reductions fighting over the same baseline independently.
+  const inDeloadWeek = await isDeloadWeek();
+  if(inDeloadWeek) fullExercises = applyDeloadVolumeReduction(fullExercises);
 
   // Apply the session-length preference here, in one place, before anything
   // downstream (rendering, logging, calorie total) ever sees the list — that
@@ -7721,16 +7792,16 @@ async function renderWorkout(){
   const {exercises: renderExercises, estimatedMinutes} = applySessionLengthLimit(fullExercises, targetMinutes);
 
   const durationEl = document.getElementById('dayDuration');
-  if(targetMinutes == null){
+  if(targetMinutes == null && !inDeloadWeek){
     durationEl.textContent = day.duration;
   } else {
-    const wasShortened = renderExercises.length < fullExercises.length || renderExercises.some((ex,i)=> ex.sets !== fullExercises[i]?.sets);
-    durationEl.textContent = `~${Math.round(estimatedMinutes)} min${wasShortened ? ' (shortened)' : ''}`;
+    const wasShortened = targetMinutes != null && (renderExercises.length < fullExercises.length || renderExercises.some((ex,i)=> ex.sets !== fullExercises[i]?.sets));
+    const suffix = wasShortened ? ' (shortened)' : inDeloadWeek ? ' (deload)' : '';
+    durationEl.textContent = `~${Math.round(estimatedMinutes)} min${suffix}`;
   }
 
   const logs = await Promise.all(renderExercises.map((ex,i)=> getExLog(activeDay, i)));
   const restingRegions = await getRestingRegions();
-  const inDeloadWeek = await isDeloadWeek();
 
   renderExercises.forEach((ex,i)=>{
     const row = document.createElement('div');
@@ -7769,13 +7840,13 @@ async function renderWorkout(){
       let badge = '';
       if(signal){
         if(inDeloadWeek && signal.type==='increase'){
-          badge = `<div class="progress-badge-deload">🔻 Deload week — hold at a reduced load here rather than chasing the jump this would normally suggest.</div>`;
+          badge = `<div class="progress-badge-deload">🔻 Deload week — sets are already reduced below; hold at a reduced load here too rather than chasing the jump this would normally suggest.</div>`;
         } else {
           const badgeClass = signal.type==='increase' ? 'progress-badge' : signal.type==='decrease' ? 'progress-badge-decrease' : 'progress-badge-deload';
           badge = `<div class="${badgeClass}">${signal.message}</div>`;
         }
       } else if(inDeloadWeek && priorTop && priorTop.weight!=null){
-        badge = `<div class="progress-hint">🔻 Deload week — last top set was ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'} reps; aim for roughly 10-20% lighter today.</div>`;
+        badge = `<div class="progress-hint">🔻 Deload week — sets are already reduced below; last top set was ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'} reps, aim for roughly 10-20% lighter today.</div>`;
       } else if(priorTop && priorTop.reps!=null && topRep!=null && priorTop.reps >= topRep){
         badge = `<div class="progress-badge">⬆ Hit ${priorTop.reps} reps last time at ${priorTop.weight!=null ? fmtWeight(priorTop.weight) : '?'} — try adding weight today</div>`;
       } else if(priorTop && priorTop.weight!=null){
@@ -8499,8 +8570,9 @@ const BODY_GOALS = {
   female: [
     'Toned & Lean (Bikini style)',
     'Athletic Figure (Figure style)',
-    'Hourglass / Curvy',
+    'Hourglass / Curvy (Wellness style)',
     'Muscular & Strong (Women\'s Physique style)',
+    'Strong & Athletic (Fit Model style)',
     'General Fitness',
   ],
   other: [
@@ -8512,7 +8584,7 @@ const BODY_GOALS = {
 };
 
 const GOAL_LABELS = {
-  lose: 'Fat Loss', gain: 'Muscle Gain', recomp: 'Lean Bulk / Recomp',
+  lose: 'Fat Loss', gain: 'Muscle Gain', leanbulk: 'Lean Bulk', recomp: 'Recomp',
   maintain: 'Maintenance', performance: 'Performance',
 };
 
@@ -8740,8 +8812,26 @@ function computeTargets(p){
 
   const tdee = bmr * (Number(p.activity) || 1.375);
 
-  const calAdjust = {lose:-500, gain:250, recomp:-300, maintain:0, performance:0};
-  const proFactor = {lose:1.0, gain:0.9, recomp:1.0, maintain:0.8, performance:0.9};
+  // Calorie adjustments grounded in current body-recomposition and lean-bulk
+  // research rather than one blended number for two genuinely different
+  // strategies: a lean bulk needs a real (if modest) surplus to prioritize
+  // muscle over fat, while recomp relies on a small deficit or maintenance,
+  // leaning almost entirely on high protein + training stimulus instead of
+  // surplus calories. Iraki, Fitschen, Espinar & Helms (2019) — cited
+  // specifically for off-season natural lifters — converges on a 200-300
+  // kcal/day surplus for a lean bulk; multiple independent recomp sources
+  // converge on subtracting roughly 200-300 kcal from maintenance as the
+  // "sweet spot" (large deficits past ~400-500 kcal are consistently shown
+  // to shut down muscle growth entirely). "Muscle Gain" is nudged up
+  // slightly from lean bulk's number so the two remain genuinely distinct
+  // choices rather than nearly identical surpluses under different names.
+  const calAdjust = {lose:-500, gain:350, leanbulk:200, recomp:-250, maintain:0, performance:0};
+  // Protein per lb bodyweight: recomp research consistently converges on
+  // 1.0-1.2 g/lb as the range that best protects/builds lean mass while in
+  // a deficit; lean bulk research converges on ~1 g/lb (BodySpec) / 2.0-2.2
+  // g/kg (Micron ≈ 0.9-1.0 g/lb) — protein matters more, not less, than in
+  // a bigger bulk, since there's less surplus energy doing the work for you.
+  const proFactor = {lose:1.0, gain:0.9, leanbulk:1.0, recomp:1.1, maintain:0.8, performance:0.9};
 
   let cal = tdee + (calAdjust[p.goal] ?? 0);
   let proPerLb = proFactor[p.goal] ?? 0.9;
@@ -9100,6 +9190,7 @@ const PROGRAM_FIT_SCORES = {
   lose:        {jumprope:95, running:90, combat:85, hyrox:88, bodyweight:80, swimming:80, cycling:85, boxingsc:80, grappling:75, athletic:70, climbing:55, mobility:60, yoga:65, core:55, calisthenics:55, pilates:50, strength:50, powerbuilding:45, senior:50, desk:45, bodybuilding:45, oly:40, powerlifting:35, prenatal:20, rehab:20},
   gain:        {bodybuilding:95, powerbuilding:92, strength:90, powerlifting:85, calisthenics:75, oly:70, athletic:60, combat:55, boxingsc:55, grappling:45, bodyweight:50, hyrox:35, climbing:40, senior:45, core:40, yoga:35, mobility:30, running:25, swimming:35, cycling:30, jumprope:25, pilates:20, desk:25, prenatal:15, rehab:20},
   recomp:      {strength:95, powerbuilding:90, bodybuilding:85, combat:80, boxingsc:75, athletic:75, calisthenics:70, hyrox:70, grappling:70, bodyweight:65, powerlifting:65, climbing:65, cycling:60, swimming:60, jumprope:60, oly:60, core:55, senior:55, running:55, pilates:45, yoga:50, mobility:45, desk:35, prenatal:20, rehab:20},
+  leanbulk:    {strength:95, powerbuilding:90, bodybuilding:85, combat:80, boxingsc:75, athletic:75, calisthenics:70, hyrox:70, grappling:70, bodyweight:65, powerlifting:65, climbing:65, cycling:60, swimming:60, jumprope:60, oly:60, core:55, senior:55, running:55, pilates:45, yoga:50, mobility:45, desk:35, prenatal:20, rehab:20},
   maintain:    {strength:80, senior:85, athletic:70, bodybuilding:70, bodyweight:70, powerbuilding:78, pilates:70, yoga:65, swimming:65, cycling:65, boxingsc:65, calisthenics:60, core:60, combat:60, climbing:60, hyrox:60, grappling:60, mobility:55, running:55, jumprope:55, oly:50, powerlifting:50, desk:60, prenatal:35, rehab:30},
   performance: {athletic:95, hyrox:90, climbing:85, oly:85, combat:80, grappling:80, swimming:80, cycling:80, boxingsc:85, calisthenics:75, powerlifting:70, running:65, strength:65, powerbuilding:60, jumprope:60, bodyweight:55, bodybuilding:50, pilates:45, senior:35, core:50, mobility:45, yoga:40, desk:30, prenatal:15, rehab:20},
 };
@@ -9176,7 +9267,7 @@ async function recommendProgram(p, trendStatus){
     running: 'A structured running progression is one of the most efficient tools for a fat-loss goal.',
     athletic: 'Athletic / Plyo builds the explosive power and speed that a performance goal is usually chasing.',
     bodybuilding: `Bodybuilding's higher-volume, isolation-focused split matches a "${p.bodyGoal}" look better than a pure strength program.`,
-    strength: p.goal==='recomp' ? 'Strength & Size is built for exactly this — losing fat while building/keeping muscle at the same time.' : 'Strength & Size blends compound lifts with hypertrophy accessory work — a solid default.',
+    strength: p.goal==='recomp' ? 'Strength & Size is built for exactly this — losing fat while building/keeping muscle at the same time.' : p.goal==='leanbulk' ? 'Strength & Size is built for exactly this — a compound-lift strength focus with real hypertrophy volume, so the surplus goes toward muscle rather than just the scale.' : 'Strength & Size blends compound lifts with hypertrophy accessory work — a solid default.',
     oly: 'Olympic lifting develops the explosive, technical power that a performance goal calls for.',
     combat: 'Boxing/kickboxing burns serious calories while still building strength and coordination.',
     powerlifting: 'A dedicated squat/bench/deadlift cycle is the most direct route to maximum strength.',
@@ -9664,6 +9755,10 @@ document.getElementById('waterReset').addEventListener('click', async ()=>{
 
 document.getElementById('waterTipsToggle').addEventListener('click', ()=>{
   document.getElementById('waterTipsContent').classList.toggle('open');
+});
+
+document.getElementById('sleepTipsToggle').addEventListener('click', ()=>{
+  document.getElementById('sleepTipsContent').classList.toggle('open');
 });
 
 const foodLibrary = {
@@ -11803,6 +11898,14 @@ async function fetchWorkoutDates(){
   return dates;
 }
 
+async function fetchSleepEntries(){
+  try{
+    const res = await window.storage.get('sleep-log');
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){}
+  return [];
+}
+
 async function fetchWaterDays(){
   const dayTotals = {}; // date -> oz
   try{
@@ -11851,9 +11954,13 @@ async function fetchFoodDays(){
 }
 
 // Generic version of the weight sparkline for any date -> single-number
-// series — used by both nutrition and water trends below so they look and
+// series — used by nutrition, sleep, and water trends below so they look and
 // behave consistently with each other and with Weight Trend, rather than
-// being three subtly different implementations of the same idea.
+// being separate, subtly different implementations of the same idea.
+// opts.insight, if provided, is (values, avg, target) => {status, text} | null
+// — status is 'good'|'neutral'|'warn', rendered the same way Goal Progress
+// Check already renders its verdict, so every trend card gives an actual
+// read on the data instead of just a shape to look at.
 function renderDayValueTrend(elId, dayTotals, opts){
   const el = document.getElementById(elId);
   const dates = Object.keys(dayTotals).sort();
@@ -11871,8 +11978,10 @@ function renderDayValueTrend(elId, dayTotals, opts){
     const y = h - pad - ((values[i]-min)/range) * (h-2*pad);
     return `${x},${y}`;
   }).join(' ');
-  const avg = Math.round(values.reduce((a,b)=>a+b,0)/values.length);
+  const avg = values.reduce((a,b)=>a+b,0)/values.length;
   const targetNote = opts.target ? ` (target ${opts.formatValue(opts.target)})` : '';
+  const insight = opts.insight ? opts.insight(values, avg, opts.target) : null;
+  const insightHtml = insight ? `<div class="${insight.status==='good'?'goal-feedback-good':insight.status==='warn'?'goal-feedback-warn':'goal-feedback-neutral'}" style="margin-top:10px;">${insight.text}</div>` : '';
   el.innerHTML = `
     <svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
       <defs>
@@ -11889,6 +11998,7 @@ function renderDayValueTrend(elId, dayTotals, opts){
       <span>Avg: ${opts.formatValue(avg)}${targetNote} over ${recent.length} days</span>
       <span>${opts.formatValue(values[values.length-1])}</span>
     </div>
+    ${insightHtml}
   `;
 }
 
@@ -11898,6 +12008,13 @@ function renderNutritionTrend(foodDays){
   renderDayValueTrend('nutritionChart', dayTotals, {
     label: 'calorie', color: 'var(--plate-orange)', target: targets.cal,
     formatValue: v=> `${Math.round(v)} cal`,
+    insight: (values, avg, target)=>{
+      if(!target) return null;
+      const pctOff = ((avg - target) / target) * 100;
+      if(Math.abs(pctOff) <= 10) return {status:'good', text:`✅ Averaging within 10% of your ${Math.round(target)} cal target — that's the consistency that actually drives steady progress toward your goal.`};
+      if(pctOff > 10) return {status:'warn', text:`⚠ Averaging about ${Math.round(pctOff)}% above target — worth checking if that's intentional, since it can quietly work against a fat-loss or lean-bulk goal.`};
+      return {status:'warn', text:`⚠ Averaging about ${Math.round(Math.abs(pctOff))}% below target — consistent under-eating can undercut recovery and muscle retention, not just the number on the scale.`};
+    },
   });
 }
 
@@ -11905,6 +12022,28 @@ function renderWaterTrend(waterDays){
   renderDayValueTrend('waterChart', waterDays, {
     label: 'water', color: '#4FC3F7', target: 128,
     formatValue: v=> `${Math.round(v)} oz`,
+    insight: (values, avg, target)=>{
+      const pct = (avg/target)*100;
+      if(pct >= 90) return {status:'good', text:`✅ Averaging ${Math.round(pct)}% of your hydration target — consistently in a good range.`};
+      if(pct >= 70) return {status:'neutral', text:`Averaging ${Math.round(pct)}% of your hydration target — close, with some room to close the gap on harder training days.`};
+      return {status:'warn', text:`⚠ Averaging only ${Math.round(pct)}% of your hydration target — even mild dehydration can measurably reduce strength and endurance mid-session.`};
+    },
+  });
+}
+
+function renderSleepTrend(sleepEntries){
+  const dayTotals = {};
+  sleepEntries.forEach(e=>{ if(e.date && e.hours!=null) dayTotals[e.date] = Number(e.hours); });
+  renderDayValueTrend('sleepChart', dayTotals, {
+    label: 'sleep', color: '#B39DDB', target: 8,
+    formatValue: v=> `${v.toFixed(1)} hrs`,
+    insight: (values, avg)=>{
+      const variance = values.reduce((s,v)=> s+Math.pow(v-avg,2), 0) / values.length;
+      const stdDev = Math.sqrt(variance);
+      if(avg < 7) return {status:'warn', text:`⚠ Averaging ${avg.toFixed(1)} hrs — below the 7-9 hr range generally recommended for adults, which directly affects recovery and muscle protein synthesis, not just how you feel.`};
+      if(stdDev > 1.5) return {status:'warn', text:`⚠ Averaging ${avg.toFixed(1)} hrs, but night-to-night swings are large (±${stdDev.toFixed(1)} hrs) — consistent sleep timing matters almost as much as the total hours.`};
+      return {status:'good', text:`✅ Averaging ${avg.toFixed(1)} hrs with fairly consistent timing — a solid foundation for recovery.`};
+    },
   });
 }
 
@@ -11929,6 +12068,19 @@ function renderSparkline(entries){
   const deltaClass = deltaLb > 0 ? 'w-up' : deltaLb < 0 ? 'w-down' : 'w-flat';
   const deltaSign = deltaLb > 0 ? '+' : '';
   const deltaDisplay = trimUnitNum(toDisplayWeight(deltaLb));
+  const daySpan = Math.max(1, Math.round((new Date(sorted[sorted.length-1].date)-new Date(sorted[0].date))/86400000));
+  const perWeek = (deltaLb / daySpan) * 7;
+  const perWeekDisplay = trimUnitNum(toDisplayWeight(Math.abs(perWeek)));
+  let insightHtml = '';
+  if(sorted.length >= 4){
+    let text, status;
+    if(Math.abs(perWeek) < 0.15){
+      status = 'neutral'; text = `Roughly flat — averaging under ${perWeekDisplay || '0.1'} ${weightUnit}/week of change over this window. (Goal Progress Check above reads whether that's expected for your goal.)`;
+    } else {
+      status = 'neutral'; text = `Averaging about ${perWeekDisplay} ${weightUnit}/week ${perWeek>0?'gain':'loss'} over this window. (Goal Progress Check above reads whether that pace fits your goal.)`;
+    }
+    insightHtml = `<div class="${status==='good'?'goal-feedback-good':status==='warn'?'goal-feedback-warn':'goal-feedback-neutral'}" style="margin-top:10px;">${text}</div>`;
+  }
   el.innerHTML = `
     <svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
       <defs>
@@ -11945,6 +12097,7 @@ function renderSparkline(entries){
       <span class="${deltaClass}">${deltaSign}${deltaDisplay} ${weightUnit} over ${sorted.length} entries</span>
       <span>${fmtWeight(sorted[sorted.length-1].weight)}</span>
     </div>
+    ${insightHtml}
   `;
 }
 
@@ -12092,7 +12245,29 @@ async function renderExerciseProgress(){
     `;
   });
 
-  renderCollapsibleList(el, rowHtmls, 3, 'exercises');
+  // Roll-up insight: which exercises are genuinely progressing (real weight
+  // gain since first log, with enough sessions for that to mean something)
+  // vs. stalling (3+ sessions with flat or dropping top weight) — a
+  // quick read on the whole list rather than needing to scroll every row.
+  const withEnoughData = rows.filter(r=> r.sessionCount >= 3 && r.first && r.latest && r.first.weight!=null && r.latest.weight!=null);
+  const progressing = withEnoughData.filter(r=> r.latest.weight > r.first.weight);
+  const stalling = withEnoughData.filter(r=> r.latest.weight <= r.first.weight);
+  let summaryHtml = '';
+  if(withEnoughData.length >= 2){
+    if(stalling.length === 0){
+      summaryHtml = `<div class="goal-feedback-good" style="margin-bottom:12px;">✅ All ${progressing.length} exercises with enough history are trending up in weight — progressive overload is genuinely happening, not just volume for its own sake.</div>`;
+    } else if(stalling.length > progressing.length){
+      const names = stalling.slice(0,3).map(r=>r.name).join(', ');
+      summaryHtml = `<div class="goal-feedback-warn" style="margin-bottom:12px;">⚠ ${stalling.length} of ${withEnoughData.length} exercises with enough history are flat or down since first log (${names}${stalling.length>3?', …':''}) — worth checking recovery, technique, or whether it's time to change rep ranges on these.</div>`;
+    } else {
+      summaryHtml = `<div class="goal-feedback-neutral" style="margin-bottom:12px;">${progressing.length} of ${withEnoughData.length} exercises with enough history are trending up; ${stalling.length} are flat or down — normal mix, worth keeping an eye on the ones that haven't moved.</div>`;
+    }
+  }
+
+  el.innerHTML = summaryHtml;
+  const listEl = document.createElement('div');
+  el.appendChild(listEl);
+  renderCollapsibleList(listEl, rowHtmls, 3, 'exercises');
 }
 
 // --- PR Timeline: reconstructed from existing exercise logs, not a separate
@@ -12420,6 +12595,122 @@ async function callClaudeChat(apiKey, systemPrompt, messages, maxTokens, model){
 // gain). If a question needs specifics beyond this, the person just says
 // them in the message, same as talking to a human coach who doesn't have
 // your logbook open in front of them.
+// --- AI Cross-Metric Insights: every card in Analysis looks at one signal
+// at a time (sleep alone, nutrition alone, RPE alone). This is the one
+// place that hands ALL of them to Claude together and asks specifically
+// for the interactions between them — sleep debt showing up as rising RPE,
+// low protein colliding with rising volume, water intake lagging on the
+// days sessions felt hardest — rather than restating each metric in
+// isolation the way the rule-based cards already do.
+async function buildCrossMetricInsightsContext(){
+  const goalLabel = GOAL_LABELS[userProfile?.goal] || userProfile?.goal || 'not set';
+  const programLabel = programs[activeProgram].label;
+  const lines = [];
+
+  try{
+    const entries = await fetchAllWeightEntries();
+    const sorted = [...entries].sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00')).slice(-16);
+    if(sorted.length >= 2){
+      const delta = +(sorted[sorted.length-1].weight - sorted[0].weight).toFixed(1);
+      lines.push(`Bodyweight: ${trimUnitNum(toDisplayWeight(sorted[0].weight))} → ${trimUnitNum(toDisplayWeight(sorted[sorted.length-1].weight))} ${weightUnit} over ${sorted.length} entries (${delta>=0?'+':''}${trimUnitNum(toDisplayWeight(delta))} ${weightUnit}).`);
+    }
+  }catch(e){}
+
+  try{
+    const foodDays = await fetchFoodDays();
+    const recentDates = Object.keys(foodDays).sort().slice(-10);
+    if(recentDates.length >= 3){
+      const avgCal = Math.round(recentDates.reduce((s,d)=>s+foodDays[d].cal,0)/recentDates.length);
+      const avgPro = Math.round(recentDates.reduce((s,d)=>s+foodDays[d].pro,0)/recentDates.length);
+      lines.push(`Nutrition (last ${recentDates.length} logged days): ${avgCal} cal/day avg (target ${targets?.cal ?? '—'}), ${avgPro}g protein/day avg (target ${targets?.pro ?? '—'}).`);
+      lines.push(`Daily calorie/protein log, oldest to newest: ${recentDates.map(d=>`${d}: ${Math.round(foodDays[d].cal)}cal/${Math.round(foodDays[d].pro)}g`).join('; ')}`);
+    }
+  }catch(e){}
+
+  try{
+    const sleepEntries = await fetchSleepEntries();
+    const sorted = [...sleepEntries].sort((a,b)=> new Date(a.date)-new Date(b.date)).slice(-10);
+    if(sorted.length >= 3){
+      const avg = +(sorted.reduce((s,e)=>s+Number(e.hours),0)/sorted.length).toFixed(1);
+      lines.push(`Sleep (last ${sorted.length} logged nights): ${avg} hrs/night avg.`);
+      lines.push(`Nightly sleep log, oldest to newest: ${sorted.map(e=>`${e.date}: ${e.hours}hrs`).join('; ')}`);
+    }
+  }catch(e){}
+
+  try{
+    const waterDays = await fetchWaterDays();
+    const recentDates = Object.keys(waterDays).sort().slice(-10);
+    if(recentDates.length >= 3){
+      const avgOz = Math.round(recentDates.reduce((s,d)=>s+waterDays[d],0)/recentDates.length);
+      lines.push(`Water: ${avgOz} oz/day avg over ${recentDates.length} logged days (target ${computeWaterTarget(userProfile)} oz).`);
+    }
+  }catch(e){}
+
+  try{
+    const weeklyRpe = await computeWeeklyRpeAvg(6);
+    const withData = weeklyRpe.filter(w=>w.avg!=null);
+    if(withData.length >= 2){
+      lines.push(`Weekly avg RPE, oldest to newest: ${withData.map(w=>w.avg.toFixed(1)).join(' → ')}.`);
+    }
+  }catch(e){}
+
+  try{
+    const painDays = await fetchPainDays();
+    const recentPainDates = Object.keys(painDays).sort().slice(-10);
+    if(recentPainDates.length){
+      lines.push(`Pain check-ins logged on: ${recentPainDates.map(d=>`${d} (${painDays[d]}/10)`).join(', ')}.`);
+    }
+  }catch(e){}
+
+  try{
+    const prs = await reconstructAllPRs();
+    if(prs.length){
+      const recent = prs.slice(0,5).map(p=> `${p.name} ${fmtWeight(p.weight)}${p.reps!=null?`×${p.reps}`:''} (${p.date})`).join(', ');
+      lines.push(`Recent PRs: ${recent}.`);
+    }
+  }catch(e){}
+
+  return `Goal: ${goalLabel}. Active program: ${programLabel}.\n\n${lines.join('\n')}`;
+}
+
+async function generateCrossMetricInsights(){
+  const btn = document.getElementById('genCrossInsightsBtn');
+  const resultEl = document.getElementById('crossInsightsResult');
+  const apiKey = await getApiKey();
+  if(!apiKey){
+    resultEl.innerHTML = `<div class="care-banner care-banner-caution">Add your Anthropic API key in "AI Features Setup" on the Today tab first.</div>`;
+    return;
+  }
+
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Analyzing…';
+  resultEl.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:80%"></div><div class="skeleton-line" style="width:60%"></div><div class="skeleton-line" style="width:70%"></div></div>';
+
+  try{
+    const persona = getCoachPersona();
+    const dataContext = await buildCrossMetricInsightsContext();
+    const systemPrompt = `You are ${persona}, looking at someone's full training-log data across multiple tracked metrics at once — bodyweight, nutrition, sleep, water, RPE, pain check-ins, and recent PRs.
+
+Your specific job here is different from a normal check-in: find the ACTUAL INTERACTIONS between these metrics, not a list of separate observations. For example: does a low-sleep stretch line up with rising RPE the same week? Does protein intake dropping coincide with volume or intensity increasing (a real recovery-risk combination)? Does water intake lag specifically on days that led into harder sessions? Does a pain check-in cluster around a period of rising RPE or falling sleep? Only point out a connection if the data genuinely supports it — don't force a correlation that isn't there, and say so plainly if the data doesn't show a clear interaction yet (that's a valid, honest answer, not a failure to find something).
+
+Data:
+${dataContext}
+
+Write 2-4 short paragraphs, no headers or markdown. Lead with the single most useful interaction you can actually support with the numbers above. End with 1-2 specific, concrete adjustments — not generic advice like "sleep more," but tied directly to what you found (e.g., "the two lowest-sleep nights both preceded your highest RPE sessions this week — worth protecting sleep specifically before your hardest training days, not just in general"). If nothing meaningfully correlates yet, say that honestly and note what's still missing (e.g., not enough sleep data logged yet to compare against training load).`;
+
+    const reply = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content:'Analyze how my tracked metrics are affecting each other and tell me what to adjust.'}], 600);
+    resultEl.innerHTML = `<div class="goal-feedback-neutral">${escapeHtml(reply.trim()).replace(/\n\n/g,'</div><div class="goal-feedback-neutral" style="margin-top:10px;">')}</div>`;
+  }catch(e){
+    resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't generate insights right now — ${escapeHtml(e.message || 'try again in a moment.')}</div>`;
+  }finally{
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+}
+
+document.getElementById('genCrossInsightsBtn').addEventListener('click', generateCrossMetricInsights);
+
 async function buildCoachChatContext(){
   const persona = getCoachPersona();
   const streak = await computeStreak();
@@ -12451,14 +12742,68 @@ async function buildCoachChatContext(){
 
   let nutritionLine = '';
   try{
-    if(targets?.cal){
-      const foodDays = await fetchFoodDays();
-      const recentDates = Object.keys(foodDays).sort().slice(-7);
-      if(recentDates.length >= 3){
-        const avgCal = Math.round(recentDates.reduce((s,d)=>s+foodDays[d].cal,0)/recentDates.length);
-        nutritionLine = `Recent average calories (last ${recentDates.length} logged days): ${avgCal} vs a target of ${targets.cal}.`;
-      }
+    const foodDays = await fetchFoodDays();
+    const recentDates = Object.keys(foodDays).sort().slice(-7);
+    if(recentDates.length >= 3){
+      const avgCal = Math.round(recentDates.reduce((s,d)=>s+foodDays[d].cal,0)/recentDates.length);
+      const avgPro = Math.round(recentDates.reduce((s,d)=>s+foodDays[d].pro,0)/recentDates.length);
+      const avgFat = Math.round(recentDates.reduce((s,d)=>s+foodDays[d].fat,0)/recentDates.length);
+      const avgCarb = Math.round(recentDates.reduce((s,d)=>s+foodDays[d].carb,0)/recentDates.length);
+      const calTarget = targets?.cal ? ` vs a target of ${targets.cal}` : '';
+      const proTarget = targets?.pro ? ` (target ${targets.pro}g)` : '';
+      nutritionLine = `Recent average intake (last ${recentDates.length} logged days): ${avgCal} cal${calTarget}, ${avgPro}g protein${proTarget}, ${avgFat}g fat, ${avgCarb}g carbs.`;
     }
+  }catch(e){}
+
+  let sleepLine = '';
+  try{
+    const sleepEntries = await fetchSleepEntries();
+    const sorted = [...sleepEntries].sort((a,b)=> new Date(b.date)-new Date(a.date));
+    const last7 = sorted.slice(0, 7);
+    if(last7.length >= 3){
+      const avg = +(last7.reduce((s,e)=>s+Number(e.hours),0) / last7.length).toFixed(1);
+      const note = avg < 7 ? ' — below the 7-9 hr range generally recommended for adults, worth factoring into recovery/energy advice' : '';
+      sleepLine = `Recent average sleep (last ${last7.length} logged nights): ${avg} hrs/night${note}.`;
+    }
+  }catch(e){}
+
+  let waterLine = '';
+  try{
+    const waterDays = await fetchWaterDays();
+    const recentDates = Object.keys(waterDays).sort().slice(-7);
+    if(recentDates.length >= 3){
+      const avgOz = Math.round(recentDates.reduce((s,d)=>s+waterDays[d],0)/recentDates.length);
+      waterLine = `Recent average water intake (last ${recentDates.length} logged days): ${avgOz} oz/day.`;
+    }
+  }catch(e){}
+
+  let todayWorkoutLine = '';
+  try{
+    const day = programs[activeProgram]?.days?.[activeDay];
+    if(day && !day.rest && day.exercises?.length){
+      const exList = day.exercises.map(ex=> `${ex.name} (${ex.sets})`).join(', ');
+      todayWorkoutLine = `Today's session (${day.label}${day.sub ? ' — '+day.sub : ''}): ${exList}.`;
+    } else if(day?.rest){
+      todayWorkoutLine = `Today is a scheduled rest day (${day.label}).`;
+    }
+  }catch(e){}
+
+  let measureLine = '';
+  try{
+    const measureEntries = await fetchAllMeasurements();
+    const sorted = [...measureEntries].sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
+    const withWaist = sorted.filter(e=>e.waist);
+    const withArms = sorted.filter(e=>e.arms);
+    const parts = [];
+    if(withWaist.length >= 2){
+      const delta = +(Number(withWaist[withWaist.length-1].waist) - Number(withWaist[0].waist)).toFixed(1);
+      parts.push(`waist ${withWaist[0].waist}" → ${withWaist[withWaist.length-1].waist}" (${delta>=0?'+':''}${delta}")`);
+    }
+    if(withArms.length >= 2){
+      const delta = +(Number(withArms[withArms.length-1].arms) - Number(withArms[0].arms)).toFixed(1);
+      parts.push(`arms ${withArms[0].arms}" → ${withArms[withArms.length-1].arms}" (${delta>=0?'+':''}${delta}")`);
+    }
+    if(parts.length) measureLine = `Body measurement trend: ${parts.join(', ')}.`;
   }catch(e){}
 
   let painLine = '';
@@ -12490,10 +12835,14 @@ Current context:
 - Active program: ${programLabel}
 - Current streak: ${streak} day${streak===1?'':'s'}
 ${weightLine ? '- '+weightLine : ''}
+${measureLine ? '- '+measureLine : ''}
 ${trendLine ? '- '+trendLine : ''}
 ${nutritionLine ? '- '+nutritionLine : ''}
+${sleepLine ? '- '+sleepLine : ''}
+${waterLine ? '- '+waterLine : ''}
 ${painLine ? '- '+painLine : ''}
 ${prLine ? '- '+prLine : ''}
+${todayWorkoutLine ? '- '+todayWorkoutLine : ''}
 
 Give direct, practical, conversational coaching advice grounded in real exercise science and nutrition — not generic platitudes. Keep responses focused, typically 3-6 sentences, longer only if the question genuinely needs it. No headers, no markdown formatting, just plain conversational text. You are not a doctor — for injuries or medical symptoms, say so plainly and suggest an in-person professional rather than diagnosing.`;
 }
@@ -13750,6 +14099,15 @@ async function renderRpeTrend(){
   const deltaClass = delta > 0.3 ? 'w-up' : delta < -0.3 ? 'w-down' : 'w-flat';
   const deltaSign = delta > 0 ? '+' : '';
 
+  let insightHtml = '';
+  if(delta > 0.5){
+    insightHtml = `<div class="goal-feedback-warn" style="margin-top:10px;">⚠ Average RPE has climbed ${deltaSign}${delta} over this window — sessions are feeling harder for the same work. If weights/reps haven't climbed to match, that's a fatigue signal worth a lighter week rather than pushing through.</div>`;
+  } else if(delta < -0.5){
+    insightHtml = `<div class="goal-feedback-good" style="margin-top:10px;">✅ Average RPE has dropped ${deltaSign}${delta} — sessions are feeling easier for the same work, a good sign of real recovery and adaptation.</div>`;
+  } else {
+    insightHtml = `<div class="goal-feedback-neutral" style="margin-top:10px;">RPE has stayed fairly steady (${deltaSign}${delta}) — effort is tracking consistently with output, no fatigue flag here.</div>`;
+  }
+
   el.innerHTML = `
     <svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
       <defs>
@@ -13766,6 +14124,7 @@ async function renderRpeTrend(){
       <span class="${deltaClass}">${deltaSign}${delta} over ${withData.length} weeks</span>
       <span>RPE ${withData[withData.length-1].avg.toFixed(1)}</span>
     </div>
+    ${insightHtml}
   `;
 }
 
@@ -13823,6 +14182,18 @@ function computeGoalFeedback(profile, weightEntries, measureEntries){
     if(weightDelta!=null) return {status:'stalled', text:`Weight has barely moved (${weightDelta>=0?'+':''}${weightDeltaDisp} ${weightUnit}) over ~${weeks} weeks despite a muscle-gain goal — you may need a larger calorie surplus.`};
     return null;
   }
+  if(goal === 'leanbulk'){
+    if(weightDelta!=null && weightDelta >= 0.5 && (waistDelta==null || waistDelta <= 0.5)){
+      return {status:'on-track', text:`⬆ Weight up ${weightDeltaDisp} ${weightUnit} over ~${weeks} weeks with your waist staying about where it was — that's the lean-bulk signature (the surplus is going toward muscle, not just padding).`};
+    }
+    if(weightDelta!=null && waistDelta!=null && waistDelta > 0.5 && weightDelta > 0){
+      return {status:'caution', text:`Waist is up ${waistDelta}" alongside the weight gain over ~${weeks} weeks — a bigger jump than a lean bulk usually wants. Worth trimming the surplus back down a bit.`};
+    }
+    if(weightDelta!=null && Math.abs(weightDelta) < 0.5){
+      return {status:'stalled', text:`Weight has barely moved (${weightDelta>=0?'+':''}${weightDeltaDisp} ${weightUnit}) over ~${weeks} weeks despite a lean-bulk surplus — may need a slightly bigger surplus if this holds for another week or two.`};
+    }
+    return null;
+  }
   if(goal === 'recomp'){
     if(waistDelta!=null && waistDelta<-0.25 && armsDelta!=null && armsDelta>0.1){
       return {status:'on-track', text:`🎯 Waist down ${Math.abs(waistDelta)}" and arms up ${armsDelta}" over ~${weeks} weeks — that's the recomp signature (down in the middle, up in the muscle), even with the scale barely moving.`};
@@ -13859,12 +14230,13 @@ async function renderAnalysis(){
   const tableEl = document.getElementById('weeklyTable');
   tableEl.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div><div class="skeleton-line" style="width:58%"></div></div>';
 
-  const [weightEntries, workoutDates, foodDays, waterDays] = await Promise.all([
-    fetchAllWeightEntries(), fetchWorkoutDates(), fetchFoodDays(), fetchWaterDays()
+  const [weightEntries, workoutDates, foodDays, waterDays, sleepEntries] = await Promise.all([
+    fetchAllWeightEntries(), fetchWorkoutDates(), fetchFoodDays(), fetchWaterDays(), fetchSleepEntries()
   ]);
 
   renderSparkline(weightEntries);
   renderNutritionTrend(foodDays);
+  renderSleepTrend(sleepEntries);
   renderWaterTrend(waterDays);
   renderVolumeTrend();
   renderExerciseProgress();
