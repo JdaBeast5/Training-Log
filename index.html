@@ -187,15 +187,18 @@
   .workout-hero-plate-wrap{position:relative; flex:0 0 auto;}
   .workout-hero-glow{
     position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    width:130px; height:130px; border-radius:50%; filter:blur(30px); opacity:0.4;
+    width:92px; height:92px; border-radius:50%; filter:blur(18px); opacity:0.28;
     pointer-events:none; z-index:0;
   }
   .day-hero-plate{
     position:relative; overflow:hidden; z-index:1;
     width:68px; height:68px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
-    border:3px solid rgba(0,0,0,0.25);
-    box-shadow:0 10px 28px -8px rgba(0,0,0,0.55);
+    border:1.5px solid rgba(255,255,255,0.4);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.35) inset,
+      0 4px 10px -4px rgba(0,0,0,0.5),
+      0 18px 34px -12px rgba(0,0,0,0.55);
   }
   .day-hero-plate::before{
     content:''; position:absolute; top:-40%; left:-10%; width:120%; height:70%;
@@ -273,6 +276,17 @@
   .ex-cal-tag{
     font-size:10px; color:var(--plate-yellow); text-align:right; margin-top:2px; font-weight:600;
   }
+  .today-standout-banner{
+    padding:10px 12px; background:rgba(245,197,24,0.1); border:1px solid rgba(245,197,24,0.35);
+    border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
+  }
+  .describe-similar-note{font-size:11.5px; color:var(--text-muted); margin-top:12px; padding-top:10px; border-top:1px solid var(--line-soft);}
+  .describe-similar-list{display:flex; flex-direction:column; gap:6px; margin-top:8px;}
+  .describe-similar-btn{
+    text-align:left; padding:8px 10px; background:var(--surface2); border:1px solid var(--line);
+    border-radius:var(--radius-sm); color:var(--text); font-size:12px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .describe-similar-btn:active{transform:scale(0.98);}
   .privacy-note{
     padding:10px 12px; background:rgba(50,215,75,0.08); border:1px solid rgba(50,215,75,0.25);
     border-radius:var(--radius-md); font-size:12px; line-height:1.5; color:var(--text-muted); margin-bottom:14px;
@@ -447,7 +461,10 @@
   .ex-input{
     width:62px; background:var(--surface2); border:1px solid var(--line); color:var(--text);
     border-radius:var(--radius-sm); padding:6px 2px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:13px; text-align:center;
+    box-shadow:0 1px 3px rgba(0,0,0,0.25) inset;
+    transition:border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
+  .ex-input:focus{outline:none; border-color:var(--plate-blue); box-shadow:0 1px 3px rgba(0,0,0,0.25) inset, 0 0 0 3px rgba(91,124,255,0.15);}
   .ex-input::placeholder{color:var(--text-muted); opacity:1;}
   .ex-x{color:var(--text-muted); font-size:12px;}
   .set-status{
@@ -729,9 +746,10 @@
     width:100%; margin-top:10px; padding:10px; background:var(--surface2); border:1px solid var(--line);
     border-radius:var(--radius-md); color:var(--plate-blue); font-size:12.5px; font-weight:600; cursor:pointer;
     font-family:'Inter',sans-serif; letter-spacing:-0.005em; display:flex; align-items:center; justify-content:center; gap:6px;
-    transition:border-color 0.2s var(--ease-smooth), background 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
+    transition:border-color 0.2s var(--ease-smooth), background 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
+    box-shadow:0 1px 0 rgba(255,255,255,0.04) inset, 0 6px 16px -10px rgba(0,0,0,0.5);
   }
-  .show-more-btn:active{transform:scale(0.98); border-color:var(--line-bright);}
+  .show-more-btn:active{transform:scale(0.98); border-color:var(--line-bright); box-shadow:0 1px 0 rgba(255,255,255,0.04) inset;}
   .usda-search-btn{
     width:100%; margin-top:10px; padding:10px; background:var(--surface2); border:1px solid rgba(47,184,196,0.4);
     border-radius:var(--radius-md); color:var(--plate-teal); font-size:12.5px; font-weight:600; cursor:pointer;
@@ -814,11 +832,18 @@
   .section-divider{height:1px; background:var(--line-soft); margin:18px 0 14px;}
   .quick-add-row{display:flex; gap:8px; margin-bottom:14px;}
   .quick-add-btn{
+    position:relative; overflow:hidden;
     flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
     background:var(--surface2); border:1px dashed var(--plate-blue); border-radius:var(--radius-md);
     padding:10px 6px; color:var(--plate-blue); font-weight:600; font-size:11.5px; cursor:pointer;
     font-family:'Inter',sans-serif; transition:transform 0.15s var(--ease-smooth);
+    box-shadow:0 6px 16px -10px rgba(91,124,255,0.4);
   }
+  .quick-add-btn::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:50%; z-index:0;
+    background:linear-gradient(180deg, rgba(91,124,255,0.1), transparent); pointer-events:none;
+  }
+  .quick-add-btn span, .quick-add-btn .quick-add-icon{position:relative; z-index:1;}
   .quick-add-btn:active{transform:scale(0.96);}
   .quick-add-icon{font-size:18px;}
   .describe-food-form{margin-bottom:10px;}
@@ -870,6 +895,49 @@
     color:var(--text); font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px;
     padding:12px 28px; border-radius:var(--radius-pill); cursor:pointer;
   }
+  .coach-fab{
+    position:fixed; bottom:22px; right:18px; z-index:70; overflow:hidden;
+    width:58px; height:58px; border-radius:50%; border:1px solid rgba(255,255,255,0.28);
+    background:linear-gradient(160deg, #7C97FF, var(--plate-blue) 55%); color:#fff; font-size:24px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    box-shadow:0 1px 0 rgba(255,255,255,0.35) inset, 0 14px 34px -8px rgba(91,124,255,0.65), 0 0 50px -14px rgba(91,124,255,0.55);
+    transition:transform 0.18s var(--ease-smooth), box-shadow 0.18s var(--ease-smooth);
+  }
+  .coach-fab::before{
+    content:''; position:absolute; top:-30%; left:-10%; width:120%; height:65%;
+    background:radial-gradient(ellipse at center, rgba(255,255,255,0.45), transparent 70%);
+    pointer-events:none;
+  }
+  .coach-fab span{position:relative; z-index:1;}
+  .coach-fab:active{transform:scale(0.9); box-shadow:0 1px 0 rgba(255,255,255,0.35) inset, 0 8px 20px -8px rgba(91,124,255,0.5);}
+  .coach-fab-modal{
+    position:fixed; inset:0; z-index:80;
+    display:flex; align-items:flex-end; justify-content:flex-end;
+    opacity:0; pointer-events:none;
+    transition:opacity 0.25s var(--ease-smooth);
+  }
+  .coach-fab-modal.active{opacity:1; pointer-events:auto;}
+  .coach-fab-backdrop{
+    position:absolute; inset:0; background:rgba(0,0,0,0.28);
+  }
+  .coach-fab-panel{
+    position:relative; z-index:1; margin:0 18px 90px 0;
+    width:min(380px, calc(100vw - 36px)); max-height:min(64vh, 560px);
+    display:flex; flex-direction:column;
+    background:rgba(23,25,29,0.76); backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
+    border:1px solid rgba(255,255,255,0.1); border-radius:22px;
+    padding:16px;
+    box-shadow:0 30px 70px -18px rgba(0,0,0,0.7), 0 1px 0 rgba(255,255,255,0.08) inset;
+    transform:translateY(18px) scale(0.94); transform-origin:bottom right;
+    transition:transform 0.3s var(--ease-smooth);
+  }
+  .coach-fab-modal.active .coach-fab-panel{transform:translateY(0) scale(1);}
+  .coach-fab-header{
+    display:flex; align-items:center; justify-content:space-between; font-weight:700; font-size:15px;
+    margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid var(--line-soft);
+  }
+  .coach-fab-close{background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer; padding:4px;}
+  .coach-fab-panel .coach-chat-log{flex:1; max-height:none;}
   .photo-lightbox-actions button{
     padding:10px 20px; border-radius:var(--radius-sm); font-weight:600; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; border:none;
   }
@@ -978,7 +1046,8 @@
     background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
     font-family:'Inter',sans-serif; font-size:13px; letter-spacing:-0.01em;
     padding:10px 16px; border-radius:var(--radius-md); cursor:pointer; font-weight:600;
-    transition:background 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth), color 0.25s var(--ease-smooth), transform 0.15s var(--ease-smooth);
+    box-shadow:0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 12px -8px rgba(0,0,0,0.5);
+    transition:background 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth), color 0.25s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.25s var(--ease-smooth);
   }
   .nav-pill:active{transform:scale(0.95);}
   .nav-pill.active{background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%); border-color:var(--plate-blue); color:#fff; box-shadow:0 1px 0 rgba(255,255,255,0.2) inset, 0 3px 12px rgba(91,124,255,0.4);}
@@ -1102,9 +1171,10 @@
   .switch-profile-btn{
     width:100%; margin-top:12px; padding:10px; background:var(--surface2); border:1px solid var(--line);
     border-radius:var(--radius-md); color:var(--text-muted); font-size:12.5px; font-weight:600; cursor:pointer;
-    font-family:'Inter',sans-serif; transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
+    font-family:'Inter',sans-serif; transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
+    box-shadow:0 1px 0 rgba(255,255,255,0.04) inset, 0 6px 16px -10px rgba(0,0,0,0.5);
   }
-  .switch-profile-btn:active{transform:scale(0.98); border-color:var(--line-bright);}
+  .switch-profile-btn:active{transform:scale(0.98); border-color:var(--line-bright); box-shadow:0 1px 0 rgba(255,255,255,0.04) inset;}
   .care-disclaimer-card{border-color:var(--plate-yellow);}
   .care-disclaimer{font-size:13px; line-height:1.5; color:var(--text-muted);}
   .care-disclaimer b{color:var(--plate-yellow);}
@@ -1136,7 +1206,10 @@
   .care-input{
     width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--text);
     border-radius:var(--radius-sm); padding:10px; font-family:'Inter',sans-serif; font-size:13.5px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.25) inset;
+    transition:border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
+  .care-input:focus{outline:none; border-color:var(--plate-blue); box-shadow:0 1px 3px rgba(0,0,0,0.25) inset, 0 0 0 3px rgba(91,124,255,0.15);}
   .care-textarea{min-height:60px; resize:vertical; font-family:'Inter',sans-serif;}
   .care-slider{
     width:100%; -webkit-appearance:none; appearance:none; background:transparent; height:22px; margin:6px 0;
@@ -1396,6 +1469,7 @@
     </div>
     <div class="session-cal-total" id="sessionCalTotal"></div>
     <div class="day-insight" id="dayInsight"></div>
+    <div class="today-standout-banner" id="todayStandoutBanner" style="display:none"></div>
     <div id="voiceHintBanner" style="display:none"></div>
     <div id="exerciseList"></div>
     <button class="custom-toggle" id="addCustomExerciseBtn">+ Add custom exercise</button>
@@ -1995,6 +2069,23 @@
   <div class="barcode-viewfinder"></div>
   <div class="barcode-status" id="barcodeStatus">Point your camera at a barcode</div>
   <button class="barcode-close-btn" id="barcodeCloseBtn">Cancel</button>
+</div>
+
+<button class="coach-fab" id="coachFab" title="Ask your coach"><span>💬</span></button>
+
+<div class="coach-fab-modal" id="coachFabModal">
+  <div class="coach-fab-backdrop" id="coachFabBackdrop"></div>
+  <div class="coach-fab-panel" id="coachFabPanel">
+    <div class="coach-fab-header">
+      <span>💬 Ask Your Coach</span>
+      <button class="coach-fab-close" id="coachFabClose">✕</button>
+    </div>
+    <div class="coach-chat-log" id="floatingChatLog"></div>
+    <div class="coach-chat-input-row">
+      <input type="text" id="floatingChatInput" class="care-input" placeholder="Ask something…">
+      <button class="save-btn coach-chat-send-btn" id="floatingChatSend">Send</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -6752,6 +6843,42 @@ function getDayPlateClass(id){
   return VIVID_PLATE_CLASSES[(idx < 0 ? 0 : idx) % VIVID_PLATE_CLASSES.length];
 }
 
+// A proactive nudge, not a summary — this only ever fires for the one
+// specific signal most worth catching right when it's actionable
+// (finishing today's session), not a recap of everything. It reuses the
+// exact same overreaching/thriving signal Program Fit Check already
+// computes, since most people won't proactively go check Analysis after
+// every session — this surfaces it right when it matters instead of
+// waiting to be found.
+async function maybeShowTodayStandout(){
+  const banner = document.getElementById('todayStandoutBanner');
+  if(!banner) return;
+
+  const flagKey = `standout-checked:${getTodayKey()}`;
+  try{
+    const res = await window.storage.get(flagKey);
+    if(res && res.value) return; // already checked today, regardless of outcome
+  }catch(e){}
+  try{ await window.storage.set(flagKey, '1'); }catch(e){}
+
+  const apiKey = await getApiKey();
+  if(!apiKey) return; // a silent skip, not an error -- this is a bonus, not a core feature
+
+  let trendStatus = null;
+  try{ trendStatus = await getCurrentTrendStatus(); }catch(e){}
+  if(trendStatus !== 'overreaching') return;
+
+  try{
+    const persona = getCoachPersona();
+    const prompt = `You are ${persona}. Their training-load trend is showing signs of overreaching right after finishing today's session — rising effort with no real rest lately. Write exactly one short, direct sentence flagging this and suggesting the specific next step (e.g. a lighter day or extra rest). No greeting, no markdown, just the one sentence.`;
+    const note = (await callClaudeChat(apiKey, prompt, [{role:'user', content:'Anything stand out from today?'}], 100, 'claude-haiku-4-5-20251001')).trim();
+    if(note){
+      banner.textContent = `⚠️ ${note}`;
+      banner.style.display = '';
+    }
+  }catch(e){} // a failed nudge should never be visible as an error — it just doesn't show
+}
+
 function renderTabs(){
   const tabs = document.getElementById('tabs');
   tabs.innerHTML = '';
@@ -7654,6 +7781,7 @@ async function renderWorkout(){
       // checkbox 'change' event, so this can't replay on its own).
       if(cb.checked && renderExercises.every((ex,idx)=> !!completed[idx])){
         triggerCelebration('💪', 'Session complete!', `${day.label} — ${day.sub}`);
+        maybeShowTodayStandout();
       }
     });
 
@@ -10109,6 +10237,29 @@ document.getElementById('describeFoodBtn').addEventListener('click', ()=>{
   }
 });
 
+// Matches on the meaningful words in a food name (skipping short/common
+// words) against everything already in the food library — a proven,
+// previously-used entry is worth surfacing as an alternative to a brand
+// new AI guess, not just silently ignored in favor of it.
+function findSimilarLibraryFoods(itemName, maxResults){
+  const words = itemName.toLowerCase().split(/[^a-z]+/).filter(w=> w.length >= 4);
+  if(words.length === 0) return [];
+  // Word-boundary matching, not plain substring — "made" as a substring
+  // would falsely match "homemade" or "premade", which isn't a genuine
+  // match on the word someone actually said.
+  const patterns = words.map(w=> new RegExp(`\\b${w}\\b`, 'i'));
+  const seen = new Set();
+  return allFoodsFlat()
+    .filter(f=> patterns.some(p=> p.test(f.name)))
+    .sort((a,b)=> (a.category==='My Foods'?0:1) - (b.category==='My Foods'?0:1)) // your own logged foods first — more likely to actually be what you eat than a generic database entry
+    .filter(f=>{
+      if(seen.has(f.name)) return false;
+      seen.add(f.name);
+      return true;
+    })
+    .slice(0, maxResults || 3);
+}
+
 async function submitFoodDescription(){
   const input = document.getElementById('describeFoodInput');
   const description = input.value.trim();
@@ -10126,7 +10277,7 @@ async function submitFoodDescription(){
 
   try{
     const systemPrompt = `You estimate nutrition from a plain-language food description for a training log app. Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"items":[{"name":"string","cal":number,"pro":number,"fat":number,"carb":number}]}. Break a described meal into its distinct components when it genuinely has more than one — use your judgment on whether that's more useful than one combined entry. Base estimates on typical restaurant/home portion sizes for what's described. If nothing edible is described, respond with {"items":[]}.`;
-    const raw = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content: description}], 700);
+    const raw = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content: description}], 700, 'claude-haiku-4-5-20251001');
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
     describeFoodParsedItems = parsed.items || [];
@@ -10141,11 +10292,23 @@ async function submitFoodDescription(){
         <span>${escapeHtml(it.name)} — ${it.cal} cal</span>
       </div>
     `).join('');
+
+    // Only checked against the FIRST item — usually the closest match to
+    // what was actually typed, and keeping this to one lookup avoids
+    // cluttering the result with alternates for every component of a
+    // multi-item meal.
+    const similar = findSimilarLibraryFoods(describeFoodParsedItems[0].name, 3);
+    const similarHtml = similar.length ? `
+      <div class="describe-similar-note">Already in your foods — might be more accurate than a fresh estimate:</div>
+      <div class="describe-similar-list">${similar.map(f=>`<button type="button" class="describe-similar-btn" data-name="${escapeHtml(f.name)}">${escapeHtml(f.name)} · ${f.cal} cal</button>`).join('')}</div>
+    ` : '';
+
     resultEl.innerHTML = `
       <div class="photo-result-card">
         <div class="photo-result-title">Found ${describeFoodParsedItems.length} item${describeFoodParsedItems.length===1?'':'s'} — estimates, not exact</div>
         ${itemsHtml}
         <button class="photo-add-all-btn" id="describeFoodAddAllBtn">Add All to Today's Log</button>
+        ${similarHtml}
       </div>
     `;
     document.getElementById('describeFoodAddAllBtn').addEventListener('click', async ()=>{
@@ -10155,6 +10318,16 @@ async function submitFoodDescription(){
       resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added ✓</div>`;
       input.value = '';
       document.getElementById('describeFoodForm').classList.remove('open');
+    });
+    resultEl.querySelectorAll('.describe-similar-btn').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const match = similar.find(f=> f.name === btn.dataset.name);
+        if(!match) return;
+        await addFoodToLog(match);
+        resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added ✓</div>`;
+        input.value = '';
+        document.getElementById('describeFoodForm').classList.remove('open');
+      });
     });
   }catch(err){
     resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't estimate that: ${err.message}. Check your API key or try again.</div>`;
@@ -10771,7 +10944,7 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
   try{
     const base64 = await fileToBase64(file);
     const prompt = `This is a photo of a nutrition facts label. Read it carefully and respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"name":"string (product name if visible, else a short generic description)","cal":number,"pro":number,"fat":number,"carb":number}. Use the values for ONE serving as defined on the label. If you can't read the label clearly, respond with {"name":"","cal":0,"pro":0,"fat":0,"carb":0}.`;
-    const raw = await callClaudeVision(apiKey, [base64], prompt, 500);
+    const raw = await callClaudeVision(apiKey, [base64], prompt, 500, 'claude-haiku-4-5-20251001');
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
 
@@ -11366,6 +11539,7 @@ document.getElementById('saveMeasurements').addEventListener('click', async ()=>
 });
 
 function switchView(active){
+  try{ window.storage.set('active-view', active); }catch(e){}
   const views = {today:'todayView', log:'logView', analysis:'analysisView', history:'historyView', care:'careView', coach:'coachView', learn:'learnView'};
   const pills = {today:'navToday', log:'navLog', analysis:'navAnalysis', history:'navHistory', care:'navCare', coach:'navCoach', learn:'navLearn'};
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -11396,6 +11570,28 @@ function switchView(active){
   if(active !== 'today'){
     document.getElementById('stickyDayHeader').classList.remove('visible');
   }
+}
+
+// A page refresh used to always land back on Today, no matter which tab
+// you'd actually been using — jarring specifically because pull-to-refresh
+// is a gesture people use to get a fresh look at whatever they're already
+// looking at, not a reason to be sent somewhere else. This restores both
+// the visual tab AND the content it needs, since most tabs only render
+// their content lazily on first visit, not proactively at page load.
+async function restoreActiveView(){
+  let savedView = 'today';
+  try{
+    const res = await window.storage.get('active-view');
+    if(res && res.value && ['today','log','analysis','history','care','coach','learn'].includes(res.value)){
+      savedView = res.value;
+    }
+  }catch(e){}
+
+  switchView(savedView);
+  if(savedView === 'analysis') renderAnalysis();
+  if(savedView === 'history'){ renderHistory(); renderSavedWeeks(); renderPrTimeline(); }
+  if(savedView === 'care'){ renderCare(); populateCareLibrarySelector(); }
+  if(savedView === 'coach') renderCoach();
 }
 
 document.getElementById('tipsToggle').addEventListener('click', ()=>{
@@ -11899,7 +12095,7 @@ function showApiKeySetup(){
   document.getElementById('aiSettingsSummary').textContent = 'Powers Snap a Meal + Coaching video review';
 }
 
-async function callClaudeVision(apiKey, imageBase64List, promptText, maxTokens){
+async function callClaudeVision(apiKey, imageBase64List, promptText, maxTokens, model){
   const content = [
     ...imageBase64List.map(b64=>({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data: b64 } })),
     { type:'text', text: promptText },
@@ -11917,7 +12113,7 @@ async function callClaudeVision(apiKey, imageBase64List, promptText, maxTokens){
         'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: model || 'claude-sonnet-5',
         max_tokens: maxTokens || 1024,
         messages: [{ role:'user', content }],
       }),
@@ -11989,7 +12185,7 @@ document.getElementById('photoLogInput').addEventListener('change', async (e)=>{
   try{
     const base64 = await fileToBase64(file);
     const prompt = `Identify each distinct food item visible in this photo and estimate its nutrition. Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"items":[{"name":"string","cal":number,"pro":number,"fat":number,"carb":number}]}. Base estimates on typical restaurant/home portion sizes for what's visible. If you can't identify anything edible, respond with {"items":[]}.`;
-    const raw = await callClaudeVision(apiKey, [base64], prompt, 1024);
+    const raw = await callClaudeVision(apiKey, [base64], prompt, 1024, 'claude-haiku-4-5-20251001');
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
     photoLogParsedItems = parsed.items || [];
@@ -12069,7 +12265,7 @@ const COACH_PERSONAS_BY_MARTIAL_ART = {
   taiChi: 'an internal martial arts (tai chi) coach focused on waist-led movement, rooted weight transfer, relaxed shoulders, continuous unbroken motion, and structural alignment in stances — you evaluate softness and connectedness of movement, not power or speed',
 };
 
-async function callClaudeChat(apiKey, systemPrompt, messages, maxTokens){
+async function callClaudeChat(apiKey, systemPrompt, messages, maxTokens, model){
   const controller = new AbortController();
   const timeoutId = setTimeout(()=> controller.abort(), 45000);
   let response;
@@ -12083,7 +12279,7 @@ async function callClaudeChat(apiKey, systemPrompt, messages, maxTokens){
         'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: model || 'claude-sonnet-5',
         max_tokens: maxTokens || 700,
         system: systemPrompt,
         messages: messages,
@@ -12127,6 +12323,41 @@ async function buildCoachChatContext(){
     }
   }catch(e){}
 
+  // These three lines turn "generic coach who only knows your goal" into
+  // "coach who actually knows what's been happening" — all three are
+  // signals the app already computes elsewhere (Program Fit Check,
+  // Nutrition Trend, Pain Trend), just not previously passed into the
+  // chat's own context.
+  let trendLine = '';
+  try{
+    const trendStatus = await getCurrentTrendStatus();
+    if(trendStatus === 'overreaching') trendLine = `Training load signal: showing signs of overreaching lately (rising effort with no real rest) — worth weighing in if relevant.`;
+    else if(trendStatus === 'thriving') trendLine = `Training load signal: recovering and progressing well right now.`;
+  }catch(e){}
+
+  let nutritionLine = '';
+  try{
+    if(targets?.cal){
+      const foodDays = await fetchFoodDays();
+      const recentDates = Object.keys(foodDays).sort().slice(-7);
+      if(recentDates.length >= 3){
+        const avgCal = Math.round(recentDates.reduce((s,d)=>s+foodDays[d].cal,0)/recentDates.length);
+        nutritionLine = `Recent average calories (last ${recentDates.length} logged days): ${avgCal} vs a target of ${targets.cal}.`;
+      }
+    }
+  }catch(e){}
+
+  let painLine = '';
+  try{
+    const painDays = await fetchPainDays();
+    const recentPainDates = Object.keys(painDays).sort().slice(-7);
+    if(recentPainDates.length){
+      const mostRecent = recentPainDates[recentPainDates.length-1];
+      const worstRecent = Math.max(...recentPainDates.map(d=>painDays[d]));
+      if(worstRecent >= 4) painLine = `Recent Care check-ins mention pain — most recent logged on ${mostRecent}, worst reported level in the last week was ${worstRecent}/10. Don't assume it's still an issue by the time this conversation happens; ask before advising around it.`;
+    }
+  }catch(e){}
+
   return `You are ${persona}
 
 You're chatting inside someone's personal training log app, in a short back-and-forth conversation, not writing a report. They can see all their own logged data elsewhere in the app — you only have the summary below and whatever they tell you directly in this conversation, so ask a quick clarifying question if you genuinely need a number you don't have, rather than guessing at it.
@@ -12136,6 +12367,9 @@ Current context:
 - Active program: ${programLabel}
 - Current streak: ${streak} day${streak===1?'':'s'}
 ${weightLine ? '- '+weightLine : ''}
+${trendLine ? '- '+trendLine : ''}
+${nutritionLine ? '- '+nutritionLine : ''}
+${painLine ? '- '+painLine : ''}
 
 Give direct, practical, conversational coaching advice grounded in real exercise science and nutrition — not generic platitudes. Keep responses focused, typically 3-6 sentences, longer only if the question genuinely needs it. No headers, no markdown formatting, just plain conversational text. You are not a doctor — for injuries or medical symptoms, say so plainly and suggest an in-person professional rather than diagnosing.`;
 }
@@ -12153,21 +12387,27 @@ async function saveCoachChatHistory(){
   try{ await window.storage.set('coach-chat-history', JSON.stringify(coachChatHistory)); }catch(e){}
 }
 
+// Updates whichever chat surfaces actually exist right now — the inline
+// card on the Coach tab and the floating modal both read from the exact
+// same coachChatHistory, so a message sent from either one shows up
+// correctly in both, rather than them drifting out of sync.
 function renderCoachChatLog(){
-  const log = document.getElementById('coachChatLog');
-  if(!log) return;
-  if(coachChatHistory.length === 0){
-    log.innerHTML = '<div class="coach-chat-empty">Ask something about your training, nutrition, or recovery — your goal and active program are already part of the conversation.</div>';
-    return;
-  }
-  log.innerHTML = coachChatHistory.map(m=>
-    `<div class="coach-chat-bubble ${m.role==='user' ? 'user' : 'assistant'}">${escapeHtml(m.content)}</div>`
-  ).join('');
-  log.scrollTop = log.scrollHeight;
+  ['coachChatLog', 'floatingChatLog'].forEach(id=>{
+    const log = document.getElementById(id);
+    if(!log) return;
+    if(coachChatHistory.length === 0){
+      log.innerHTML = '<div class="coach-chat-empty">Ask something about your training, nutrition, or recovery — your goal and active program are already part of the conversation.</div>';
+      return;
+    }
+    log.innerHTML = coachChatHistory.map(m=>
+      `<div class="coach-chat-bubble ${m.role==='user' ? 'user' : 'assistant'}">${escapeHtml(m.content)}</div>`
+    ).join('');
+    log.scrollTop = log.scrollHeight;
+  });
 }
 
-async function sendCoachChatMessage(){
-  const input = document.getElementById('coachChatInput');
+async function sendCoachChatMessage(inputId){
+  const input = document.getElementById(inputId || 'coachChatInput');
   const text = input.value.trim();
   if(!text) return;
   const apiKey = await getApiKey();
@@ -12181,12 +12421,15 @@ async function sendCoachChatMessage(){
   coachChatHistory.push({role:'user', content:text});
   renderCoachChatLog();
 
-  const log = document.getElementById('coachChatLog');
-  const thinkingEl = document.createElement('div');
-  thinkingEl.className = 'coach-chat-bubble assistant thinking';
-  thinkingEl.textContent = 'Thinking…';
-  log.appendChild(thinkingEl);
-  log.scrollTop = log.scrollHeight;
+  ['coachChatLog', 'floatingChatLog'].forEach(id=>{
+    const log = document.getElementById(id);
+    if(!log) return;
+    const thinkingEl = document.createElement('div');
+    thinkingEl.className = 'coach-chat-bubble assistant thinking';
+    thinkingEl.textContent = 'Thinking…';
+    log.appendChild(thinkingEl);
+    log.scrollTop = log.scrollHeight;
+  });
 
   try{
     const systemPrompt = await buildCoachChatContext();
@@ -12223,7 +12466,7 @@ function getCoachPersona(){
 // frames in a single request: much larger and slower than any other image
 // feature in the app, and a very plausible reason video review specifically
 // could fail or stall where photo-based features didn't.
-const VIDEO_FRAME_MAX_DIM = 900;
+const VIDEO_FRAME_MAX_DIM = 640;
 
 function extractVideoFrames(file, frameCount, onProgress){
   return new Promise((resolve, reject)=>{
@@ -12312,7 +12555,7 @@ function extractVideoFrames(file, frameCount, onProgress){
             const onSeeked = ()=>{
               clearTimeout(seekTimeout);
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-              frames.push(canvas.toDataURL('image/jpeg', 0.7).split(',')[1]);
+              frames.push(canvas.toDataURL('image/jpeg', 0.55).split(',')[1]);
               video.removeEventListener('seeked', onSeeked);
               if(onProgress) onProgress(i+1, times.length);
               res();
@@ -12365,14 +12608,62 @@ async function renderCoach(){
   }
 }
 
-document.getElementById('coachChatSend').addEventListener('click', sendCoachChatMessage);
+document.getElementById('coachChatSend').addEventListener('click', ()=> sendCoachChatMessage('coachChatInput'));
 document.getElementById('coachChatInput').addEventListener('keydown', (e)=>{
-  if(e.key === 'Enter'){ e.preventDefault(); sendCoachChatMessage(); }
+  if(e.key === 'Enter'){ e.preventDefault(); sendCoachChatMessage('coachChatInput'); }
 });
 document.getElementById('coachChatClear').addEventListener('click', async ()=>{
   coachChatHistory = [];
   await saveCoachChatHistory();
   renderCoachChatLog();
+});
+
+// The floating bubble is the same conversation, everywhere in the app —
+// not a separate chat. Opening it just renders whatever's already in
+// coachChatHistory; sending from here uses the exact same logic as the
+// Coach tab's own input.
+document.getElementById('coachFab').addEventListener('click', ()=>{
+  const modal = document.getElementById('coachFabModal');
+  const isOpen = modal.classList.contains('active');
+  if(isOpen){
+    modal.classList.remove('active');
+    return;
+  }
+  renderCoachChatLog();
+  modal.classList.add('active');
+  // Focusing the input immediately, while the panel is still mid-animation,
+  // is exactly what caused the keyboard to open in the middle of that
+  // transition and end up landing in the wrong spot — waiting for the
+  // panel's own 0.3s slide-in to actually finish first avoids that race
+  // entirely, rather than fighting it.
+  setTimeout(()=> document.getElementById('floatingChatInput').focus(), 320);
+});
+
+// A second, independent layer of defense against the keyboard covering the
+// panel — visualViewport reports the actual visible area once the keyboard
+// is up, so the panel's position is driven by real, current keyboard
+// height rather than trusting any one browser to always get fixed-position
+// + keyboard interaction right on its own.
+if(window.visualViewport){
+  const adjustFabPanelForKeyboard = ()=>{
+    const panel = document.getElementById('coachFabPanel');
+    if(!panel) return;
+    const vv = window.visualViewport;
+    const keyboardHeight = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    panel.style.marginBottom = keyboardHeight > 60 ? `${keyboardHeight + 14}px` : '90px';
+  };
+  window.visualViewport.addEventListener('resize', adjustFabPanelForKeyboard);
+  window.visualViewport.addEventListener('scroll', adjustFabPanelForKeyboard);
+}
+document.getElementById('coachFabClose').addEventListener('click', ()=>{
+  document.getElementById('coachFabModal').classList.remove('active');
+});
+document.getElementById('coachFabBackdrop').addEventListener('click', ()=>{
+  document.getElementById('coachFabModal').classList.remove('active');
+});
+document.getElementById('floatingChatSend').addEventListener('click', ()=> sendCoachChatMessage('floatingChatInput'));
+document.getElementById('floatingChatInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter'){ e.preventDefault(); sendCoachChatMessage('floatingChatInput'); }
 });
 
 document.getElementById('coachVideoBtn').addEventListener('click', ()=> document.getElementById('coachVideoInput').click());
@@ -12399,7 +12690,7 @@ document.getElementById('coachVideoInput').addEventListener('change', async (e)=
 
   let tickInterval = null;
   try{
-    const frames = await extractVideoFrames(file, 4, (done, total)=>{
+    const frames = await extractVideoFrames(file, 3, (done, total)=>{
       const fill = document.getElementById('coachProgressFill');
       const label = document.getElementById('coachProgressLabel');
       if(!fill || !label) return;
@@ -12428,7 +12719,18 @@ document.getElementById('coachVideoInput').addEventListener('change', async (e)=
     }, 3000);
 
     const persona = getCoachPersona();
-    const prompt = `You are ${persona}. These ${frames.length} frames are sequential stills from a video of someone performing "${exercise}". ${focus ? `They specifically want you to check: ${focus}.` : ''} Give direct, specific feedback on their form based only on what's visible across these frames: what looks correct, what to fix, and one clear cue to focus on next attempt. Keep it to 4-6 short sentences, no headers or markdown, plain conversational coaching tone. If the frames don't clearly show the movement, say so plainly instead of guessing.`;
+    // If this exact exercise has been reviewed before, the coach gets to
+    // see what it said last time — turning every review after the first
+    // into "here's what's changed" instead of a disconnected one-off
+    // snapshot each time. Matched by exercise name (case-insensitive)
+    // since that's free text, not a fixed list.
+    let priorReviewLine = '';
+    try{
+      const log = await getCoachLog();
+      const priorReview = [...log].reverse().find(r=> r.exercise.trim().toLowerCase() === exercise.trim().toLowerCase());
+      if(priorReview) priorReviewLine = ` Your own last review of their "${exercise}" (${priorReview.date}) said: "${priorReview.feedback}" — note in your new feedback what looks different now, better or worse, rather than repeating the same points from scratch.`;
+    }catch(e){}
+    const prompt = `You are ${persona}. These ${frames.length} frames are sequential stills from a video of someone performing "${exercise}". ${focus ? `They specifically want you to check: ${focus}.` : ''}${priorReviewLine} Give direct, specific feedback on their form based only on what's visible across these frames: what looks correct, what to fix, and one clear cue to focus on next attempt. Keep it to 4-6 short sentences, no headers or markdown, plain conversational coaching tone. If the frames don't clearly show the movement, say so plainly instead of guessing.`;
 
     const feedback = await callClaudeVision(apiKey, frames, prompt, 500);
     clearInterval(tickInterval);
@@ -13096,8 +13398,13 @@ async function generateWeeklyRecap(stats){
   parts.push(`Goal: ${goalLabel}`);
   parts.push(`Workouts logged this week: ${stats.workoutsCount}`);
   if(stats.avgWeight != null) parts.push(`Average bodyweight this week: ${trimUnitNum(toDisplayWeight(stats.avgWeight))} ${weightUnit}`);
-  if(stats.avgCal != null) parts.push(`Average daily calories logged: ${stats.avgCal}`);
+  if(stats.avgCal != null){
+    const target = targets?.cal;
+    parts.push(`Average daily calories logged: ${stats.avgCal}${target ? ` (target is ${target})` : ''}`);
+  }
   if(stats.avgSleep != null) parts.push(`Average sleep: ${stats.avgSleep} hrs/night`);
+  if(stats.trendStatus === 'overreaching') parts.push(`Training load signal: showing signs of overreaching this week (rising effort with no real rest) — worth factoring into next week's advice.`);
+  if(stats.trendStatus === 'thriving') parts.push(`Training load signal: recovering and progressing well — a good week to consider pushing a little.`);
 
   const prompt = `You are ${persona}\n\nSomeone just finished a training week and is about to start a fresh one. Here's what was actually logged this week:\n${parts.join('\n')}\n\nWrite a short, honest weekly check-in — 2-4 sentences, conversational, no headers or markdown. Acknowledge what actually happened (don't invent anything not listed above), and give exactly one specific, practical thing to focus on for the coming week. If a stat is missing from the list, don't comment on it — it just wasn't logged, not necessarily skipped.`;
 
@@ -13120,8 +13427,8 @@ async function archiveCurrentWeek(){
     return d >= new Date(todayMonday+'T00:00:00') && d < weekEnd;
   };
 
-  const [weightEntries, workoutDates, foodDays] = await Promise.all([
-    fetchAllWeightEntries(), fetchWorkoutDates(), fetchFoodDays()
+  const [weightEntries, workoutDates, foodDays, trendStatus] = await Promise.all([
+    fetchAllWeightEntries(), fetchWorkoutDates(), fetchFoodDays(), getCurrentTrendStatus()
   ]);
 
   const weekWeights = weightEntries.filter(e=>inThisWeek(e.date));
@@ -13142,7 +13449,7 @@ async function archiveCurrentWeek(){
   status.textContent = 'Saving your week…';
   const weekStats = {
     weekStart: todayMonday, program: programs[activeProgram].label,
-    avgWeight, workoutsCount, avgCal, avgSleep,
+    avgWeight, workoutsCount, avgCal, avgSleep, trendStatus,
   };
   const aiRecap = await generateWeeklyRecap(weekStats);
   if(aiRecap) weekStats.aiRecap = aiRecap;
@@ -13572,6 +13879,8 @@ if(activeUserId){
     loadProgressPhotos();
     renderWater();
     renderCycleTracking();
+    await loadCoachChatHistory();
+    await restoreActiveView();
   })();
 }
 </script>
