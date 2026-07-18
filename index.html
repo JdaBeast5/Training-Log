@@ -6955,7 +6955,23 @@ const CATEGORY_MET = {
   core:4, jump:8, oly:6.5, throw:5, punch:7.5, kick:8, cardio:7,
 };
 
-function parseEstimatedMinutes(setsStr, setCount){
+// Per-set time (work + rest) depends heavily on what kind of exercise it
+// is — treating every set the same, regardless of type, was the actual
+// root cause of a real bug: full-session time estimates were coming out
+// low enough that some programs' full session already fit inside a
+// "shortened" target, so selecting a shorter session did nothing because
+// there was genuinely nothing left to trim.
+//
+// Grounded in actual rest-period research (ACSM guidance, Schoenfeld et al.
+// 2016, and consistent findings across multiple independent reviews):
+// compound/multi-joint lifts (squat, hinge, push, pull, olympic lifts)
+// warrant roughly 2-3 minutes of rest for hypertrophy-range work, while
+// isolation/single-joint accessory work is well-served by 1-2 minutes.
+// Reuses the exact same compound-lift categorization already established
+// for warm-up-ramp eligibility (WARMUP_ELIGIBLE_CATEGORIES), rather than
+// inventing a second classification of the same thing.
+function parseEstimatedMinutes(ex, setCount){
+  const setsStr = typeof ex === 'string' ? ex : ex.sets;
   const timeMatch = setsStr.match(/(\d+(?:\.\d+)?)\s*-?\s*(\d+(?:\.\d+)?)?\s*min/);
   if(timeMatch){
     const lo = Number(timeMatch[1]);
@@ -6964,15 +6980,22 @@ function parseEstimatedMinutes(setsStr, setCount){
   }
   const roundsMatch = setsStr.match(/(\d+)\s*×\s*(\d+(?:\.\d+)?)\s*min/);
   if(roundsMatch) return Number(roundsMatch[1]) * Number(roundsMatch[2]);
-  // Default: ~1.5 min per set (work + rest) for standard strength/rep-based work
-  return (setCount || parseSetCount(setsStr)) * 1.5;
+
+  const count = setCount || parseSetCount(setsStr);
+  const info = typeof ex === 'object' ? exerciseInfo[ex.name] : null;
+  const isCompound = info && WARMUP_ELIGIBLE_CATEGORIES.includes(info.category);
+  // ~2.5 min/set for compound lifts (execution + rest, within the
+  // research-backed 2-3 min hypertrophy-range rest window for multi-joint
+  // movements); ~1.5 min/set for isolation/accessory work (within the
+  // 1-2 min window that's well-supported for single-joint exercises).
+  return count * (isCompound ? 2.5 : 1.5);
 }
 
 function estimateExerciseCalories(ex, weightLb){
   const info = exerciseInfo[ex.name];
   if(!info) return 0;
   const met = CATEGORY_MET[info.category] ?? 4.5;
-  const minutes = parseEstimatedMinutes(ex.sets, parseSetCount(ex.sets));
+  const minutes = parseEstimatedMinutes(ex, parseSetCount(ex.sets));
   const weightKg = (weightLb || 180) * 0.453592;
   return Math.round(met * weightKg * (minutes/60));
 }
@@ -7024,12 +7047,35 @@ function groupIntoUnits(exercises){
   return units;
 }
 
+// Real total gym time is more than just sets × per-set time — walking to a
+// new station, changing equipment/plates, and generally transitioning
+// between exercises takes real time too. A detailed first-person account
+// (aworkoutroutine.com) doing the actual math — 5 exercises, 3 sets, 2 min
+// rest between sets (30 min in rest alone) — reported an ACTUAL total of
+// about 45 minutes once real equipment setup/teardown was included, which
+// is roughly 1 extra minute per exercise beyond the pure rest-and-execution
+// math. Applied once per unit rather than per exercise, since a superset
+// pair is done back-to-back by design with no separate setup between the
+// two paired movements — the transition cost is between UNITS, not within one.
+const EXERCISE_TRANSITION_MINUTES = 1;
+
 function unitMinutes(unit){
-  return unit.reduce((sum,ex)=> sum + parseEstimatedMinutes(ex.sets, parseSetCount(ex.sets)), 0);
+  return unit.reduce((sum,ex)=> sum + parseEstimatedMinutes(ex, parseSetCount(ex.sets)), 0) + EXERCISE_TRANSITION_MINUTES;
 }
 
 function totalMinutesForUnits(units){
   return units.reduce((sum,u)=> sum + unitMinutes(u), 0);
+}
+
+// Warm-up and cool-down entries share the exact same generic category
+// ("cardio") as real training content in exerciseInfo — there's no
+// structural signal distinguishing them, only the name itself. Detected
+// here so they can be treated as the LOWEST priority to protect, not
+// treated as "the main lift" just because a program is authored in
+// chronological order (warm-up → main set → cool-down) rather than
+// priority order the way a lifting day is.
+function isWarmupOrCooldownUnit(unit){
+  return unit.some(ex=> /warm.?up|cool.?down/i.test(ex.name));
 }
 
 // Returns {exercises, estimatedMinutes} — exercises is a NEW array (originals
@@ -7038,18 +7084,27 @@ function totalMinutesForUnits(units){
 // list completely unchanged.
 function applySessionLengthLimit(exercises, targetMinutes){
   if(targetMinutes == null || exercises.length === 0){
-    return {exercises, estimatedMinutes: exercises.reduce((s,ex)=> s + parseEstimatedMinutes(ex.sets, parseSetCount(ex.sets)), 0)};
+    return {exercises, estimatedMinutes: totalMinutesForUnits(groupIntoUnits(exercises))};
   }
 
   let units = groupIntoUnits(exercises).map(u=> u.map(ex=> ({...ex}))); // deep-ish clone, never mutate originals
 
-  // Pass 1: trim sets one at a time on every unit EXCEPT the first (the main
-  // lift), skipping anything without a real "N×" count (pure time/distance
+  // The protected "main" unit is the first one that ISN'T a warm-up/cool-down
+  // — usually that's still just unit 0, but on a day authored chronologically
+  // (a swim/run session with its own warm-up entry first), the real main
+  // training content is the one worth protecting, not whatever's literally
+  // listed first.
+  let mainUnitIndex = units.findIndex(u=> !isWarmupOrCooldownUnit(u));
+  if(mainUnitIndex === -1) mainUnitIndex = 0; // edge case: every unit reads as warm-up/cool-down — fall back rather than protect nothing
+
+  // Pass 1: trim sets one at a time on every unit except the protected main
+  // one, skipping anything without a real "N×" count (pure time/distance
   // cardio entries like "20-30 min" aren't trimmable this way).
   let safety = 0;
   while(totalMinutesForUnits(units) > targetMinutes && safety < 60){
     let trimmedSomething = false;
-    for(let ui=1; ui<units.length; ui++){
+    for(let ui=0; ui<units.length; ui++){
+      if(ui === mainUnitIndex) continue;
       for(const ex of units[ui]){
         if(!hasNumericSetPrefix(ex.sets)) continue;
         const current = parseSetCount(ex.sets);
@@ -7065,12 +7120,56 @@ function applySessionLengthLimit(exercises, targetMinutes){
     safety++;
   }
 
-  // Pass 2: if still over budget, drop whole units from the end — but the
-  // first unit (main lift) is always protected, so at least one remains.
+  // Pass 2: if still over budget, drop whole units — warm-up/cool-down units
+  // first (regardless of position), then remaining accessory units from the
+  // end, but the main unit is always protected so at least one unit remains.
   safety = 0;
   while(totalMinutesForUnits(units) > targetMinutes && units.length > 1 && safety < 30){
-    units.pop();
+    let dropIndex = -1;
+    for(let ui=units.length-1; ui>=0; ui--){
+      if(ui === mainUnitIndex) continue;
+      if(isWarmupOrCooldownUnit(units[ui])){ dropIndex = ui; break; }
+    }
+    if(dropIndex === -1){
+      for(let ui=units.length-1; ui>=0; ui--){
+        if(ui !== mainUnitIndex){ dropIndex = ui; break; }
+      }
+    }
+    if(dropIndex === -1) break; // only the protected main unit is left
+    units.splice(dropIndex, 1);
+    if(dropIndex < mainUnitIndex) mainUnitIndex--; // keep tracking the same unit after a splice shifts indices
     safety++;
+  }
+
+  // Pass 3: a pure-duration entry (e.g. "Long Run: 45-60 min") has no
+  // discrete sets for Pass 1 to trim, and if it's the day's only exercise,
+  // Pass 2 can't drop it either since at least one unit always has to
+  // remain. Warm-up/cool-down duration gets scaled down first; only if
+  // that alone isn't enough does the main unit's own duration flex too —
+  // unlike a lifting day, a single continuous-effort day has no separate
+  // "accessory work" to protect the main activity from indefinitely.
+  const scaleDurationIn = (unitList)=>{
+    for(const unit of unitList){
+      for(const ex of unit){
+        if(totalMinutesForUnits(units) <= targetMinutes) return;
+        const timeMatch = ex.sets.match(/^(\d+(?:\.\d+)?)\s*(?:-\s*(\d+(?:\.\d+)?))?\s*min$/);
+        if(!timeMatch) continue;
+        const lo = Number(timeMatch[1]);
+        const hi = timeMatch[2] ? Number(timeMatch[2]) : lo;
+        const currentAvg = (lo+hi)/2;
+        const overBy = totalMinutesForUnits(units) - targetMinutes;
+        const newAvg = Math.max(10, currentAvg - overBy); // never scale continuous-effort work below 10 min — under that isn't a meaningful session
+        if(newAvg >= currentAvg) continue;
+        const scale = newAvg / currentAvg;
+        const newLo = Math.max(5, Math.round(lo * scale));
+        const newHi = timeMatch[2] ? Math.max(newLo + 5, Math.round(hi * scale)) : newLo;
+        ex.sets = timeMatch[2] ? `${newLo}-${newHi} min` : `${newLo} min`;
+      }
+    }
+  };
+  if(totalMinutesForUnits(units) > targetMinutes){
+    scaleDurationIn(units.filter(isWarmupOrCooldownUnit));
+    if(totalMinutesForUnits(units) > targetMinutes) scaleDurationIn(units);
   }
 
   const finalExercises = units.flat();
@@ -7374,6 +7473,21 @@ const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRec
 
 const WARMUP_ELIGIBLE_CATEGORIES = ['squat','hinge','push','pull','oly'];
 const WARMUP_MIN_WORKING_WEIGHT = 95; // below this, a formal ramp adds more clutter than value
+
+// The live rest timer (started right after logging a set) was always
+// falling back to a flat 90 seconds regardless of what was just performed
+// — the same "one number for every exercise" gap as the session-length
+// duration formula, but arguably more consequential since this is the
+// number a person is actually counting down live between sets. Grounded
+// in the same rest-period research used for the duration formula: 2-3 min
+// for compound/multi-joint hypertrophy work, 1-2 min for isolation —
+// midpoints of 150s and 90s respectively, reusing the established
+// compound-lift categorization rather than a second classification of it.
+function getDefaultRestSeconds(ex){
+  const info = ex && exerciseInfo[ex.name];
+  const isCompound = info && WARMUP_ELIGIBLE_CATEGORIES.includes(info.category);
+  return isCompound ? 150 : 90;
+}
 
 function roundToIncrement(n, increment){ return Math.round(n/increment)*increment; }
 
@@ -8158,7 +8272,7 @@ function wireSetsBlock(row, exIdx, ex){
       }
       // Update volume/1RM/prior-session hint in place, without wiping the checkmark we just set
       await refreshSessionSummary(row, exIdx, ex);
-      startRestTimer();
+      startRestTimer(getDefaultRestSeconds(ex));
       checkAllSetsCompleteAndAutoCheck();
     };
     if(wInput) wInput.addEventListener('change', save);
@@ -12358,6 +12472,15 @@ async function buildCoachChatContext(){
     }
   }catch(e){}
 
+  let prLine = '';
+  try{
+    const prs = await reconstructAllPRs();
+    if(prs.length){
+      const recent = prs.slice(0, 3).map(p=> `${p.name} ${fmtWeight(p.weight)}${p.reps!=null?`×${p.reps}`:''} (${p.date})`).join(', ');
+      prLine = `Most recent PRs: ${recent}.`;
+    }
+  }catch(e){}
+
   return `You are ${persona}
 
 You're chatting inside someone's personal training log app, in a short back-and-forth conversation, not writing a report. They can see all their own logged data elsewhere in the app — you only have the summary below and whatever they tell you directly in this conversation, so ask a quick clarifying question if you genuinely need a number you don't have, rather than guessing at it.
@@ -12370,6 +12493,7 @@ ${weightLine ? '- '+weightLine : ''}
 ${trendLine ? '- '+trendLine : ''}
 ${nutritionLine ? '- '+nutritionLine : ''}
 ${painLine ? '- '+painLine : ''}
+${prLine ? '- '+prLine : ''}
 
 Give direct, practical, conversational coaching advice grounded in real exercise science and nutrition — not generic platitudes. Keep responses focused, typically 3-6 sentences, longer only if the question genuinely needs it. No headers, no markdown formatting, just plain conversational text. You are not a doctor — for injuries or medical symptoms, say so plainly and suggest an in-person professional rather than diagnosing.`;
 }
