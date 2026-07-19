@@ -10037,8 +10037,13 @@ async function getCurrentTrendStatus(){
 // doesn't as of this writing), rather than showing a button that fails.
 const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-const WARMUP_ELIGIBLE_CATEGORIES = ['squat','hinge','push','pull','oly'];
+const WARMUP_ELIGIBLE_CATEGORIES = ['squat','hinge','push','pull','oly','shoulder','lunge'];
 const WARMUP_MIN_WORKING_WEIGHT = 95; // below this, a formal ramp adds more clutter than value
+// Dumbbell/machine/cable compounds never reach barbell-scale working weights the
+// same way (there's no 45lb bar floor to begin with), so they need their own,
+// much lower cutoff — otherwise the generic ramp below would almost never
+// actually fire for exactly the exercises it exists to cover.
+const WARMUP_MIN_WORKING_WEIGHT_GENERIC = 30;
 
 // Rest-period research (NSCA position stand, Schoenfeld et al. 2016 RCT,
 // and multiple converging reviews) treats REP RANGE as the primary driver
@@ -10099,6 +10104,20 @@ function buildWarmupRamp(workingWeightLb){
     {label:'~40%', weight: roundToIncrement(displayWorking*0.4, increment), reps:5},
     {label:'~60%', weight: roundToIncrement(displayWorking*0.6, increment), reps:3},
     {label:'~80%', weight: roundToIncrement(displayWorking*0.8, increment), reps:2},
+  ];
+}
+
+// Same ramping principle as buildWarmupRamp, for dumbbell/machine/cable
+// compounds — no "bar only" rung since there's no empty implement to start
+// from, so it opens a bit higher (~30%) and steps up in three jumps instead
+// of four.
+function buildGenericWarmupRamp(workingWeightLb){
+  const displayWorking = toDisplayWeight(workingWeightLb);
+  const increment = weightUnit === 'kg' ? 2.5 : 5;
+  return [
+    {label:'~30%', weight: roundToIncrement(displayWorking*0.3, increment), reps:8},
+    {label:'~55%', weight: roundToIncrement(displayWorking*0.55, increment), reps:5},
+    {label:'~75%', weight: roundToIncrement(displayWorking*0.75, increment), reps:3},
   ];
 }
 
@@ -10395,10 +10414,32 @@ async function renderWorkout(){
 
       let warmupHtml = '';
       const warmupEligiblePosition = i === 0 || (i === 1 && exCategory !== firstExCategory);
-      if(warmupEligiblePosition && showWeight && isBarbellExercise(ex.name) && WARMUP_ELIGIBLE_CATEGORIES.includes(exCategory) && priorTop && priorTop.weight >= WARMUP_MIN_WORKING_WEIGHT){
-        const ramp = buildWarmupRamp(priorTop.weight);
-        const rampRows = ramp.map(step=> `<div class="warmup-row"><span>${step.label} — ${step.weight} ${weightUnit} × ${step.reps}</span></div>`).join('');
-        warmupHtml = `<div class="warmup-box"><div class="warmup-title">🔥 Suggested warm-up ramp</div>${rampRows}</div>`;
+      // A heavy top set (8 reps or fewer target) warrants its own ramp
+      // regardless of where it falls in the day — general "warmth" from an
+      // earlier exercise isn't the same as being loaded up to a specific
+      // heavy weight on this particular lift, especially past the first
+      // couple exercises where this rule alone wouldn't otherwise trigger.
+      const isHeavySet = topRep != null && topRep <= 8;
+      const warmupEligible = warmupEligiblePosition || isHeavySet;
+      const isEligibleCategory = WARMUP_ELIGIBLE_CATEGORIES.includes(exCategory);
+      if(warmupEligible && isEligibleCategory && showWeight){
+        // Barbell lifts get the full bar-only-then-% ramp; any other loaded
+        // compound (dumbbell, cable, machine) gets the generic % ramp —
+        // previously only an exact-name barbell list qualified at all, which
+        // silently skipped things like Cable Row, Lat Pulldown, Leg Press,
+        // and DB Shoulder Press even in the first slot of the day.
+        const isBarbell = isBarbellExercise(ex.name);
+        const minWeight = isBarbell ? WARMUP_MIN_WORKING_WEIGHT : WARMUP_MIN_WORKING_WEIGHT_GENERIC;
+        if(priorTop && priorTop.weight >= minWeight){
+          const ramp = isBarbell ? buildWarmupRamp(priorTop.weight) : buildGenericWarmupRamp(priorTop.weight);
+          const rampRows = ramp.map(step=> `<div class="warmup-row"><span>${step.label} — ${step.weight} ${weightUnit} × ${step.reps}</span></div>`).join('');
+          warmupHtml = `<div class="warmup-box"><div class="warmup-title">🔥 Suggested warm-up ramp</div>${rampRows}</div>`;
+        }
+      } else if(warmupEligible && isEligibleCategory && !showWeight){
+        // No external load to build a numeric ramp off of (push-ups, pull-ups,
+        // bodyweight squats, etc.), but the same "don't go in cold" principle
+        // still applies — a short text nudge instead of a weight table.
+        warmupHtml = `<div class="warmup-box"><div class="warmup-title">🔥 Warm up first</div><div class="warmup-row"><span>A few easier reps — knee push-ups, band-assisted pulls, a lighter-tempo set, whatever gets the same joints moving — before your first real set.</span></div></div>`;
       }
 
       const showPlateCalc = showWeight && isBarbellExercise(ex.name);
