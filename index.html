@@ -1550,13 +1550,6 @@
     <div class="program-select-desc" id="cyclingDesc"></div>
   </div>
 
-  <div class="card" id="prenatalCard" style="display:none">
-    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16h4v-4h4v-4h4V4h4"/></svg></span>Stage</div>
-    <div class="history-hint">Prenatal and Postpartum have genuinely different needs — pick whichever applies right now. <b>Please get clearance from your OB, midwife, or a pelvic floor physical therapist before starting</b>, and stop anything that doesn't feel right for your body.</div>
-    <select class="program-select" id="prenatalSelector"></select>
-    <div class="program-select-desc" id="prenatalDesc"></div>
-  </div>
-
   <div class="card" id="yogaCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="4" r="1.8"/><path d="M10 6.5 L10 12"/><path d="M6 9 L14 9"/><path d="M10 12 L6.5 17"/><path d="M10 12 L13.5 17"/></svg></span>Style</div>
     <div class="history-hint">Vinyasa &amp; Flow, Hot Yoga, or Partner Yoga — pick whichever fits today. <b>Hot Yoga:</b> get your doctor's clearance first if you have any cardiovascular, respiratory, or heat-related condition.</div>
@@ -1564,18 +1557,11 @@
     <div class="program-select-desc" id="yogaDesc"></div>
   </div>
 
-  <div class="card" id="bariatricCard" style="display:none">
-    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16h4v-4h4v-4h4V4h4"/></svg></span>Phase</div>
-    <div class="history-hint">Early Recovery and Rebuilding have genuinely different needs. <b>Please follow your surgical/bariatric team's actual clearance at every stage</b> — this app has no way to know your real healing timeline, so treat these as a framework to apply alongside their guidance, not a replacement for it.</div>
-    <select class="program-select" id="bariatricSelector"></select>
-    <div class="program-select-desc" id="bariatricDesc"></div>
-  </div>
-
-  <div class="card" id="rehabCard" style="display:none">
-    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="4.5" r="1.8"/><path d="M10 7 L10 13"/><path d="M10 13 L6.5 17"/><path d="M10 13 L13.5 17"/><path d="M6 9.5 L14 9.5"/></svg></span>Focus Area</div>
-    <div class="history-hint">Shoulder, ACL, Achilles, Lower Back, or General — pick whichever matches your actual situation. <b>⚠️ This is a framework to use alongside a doctor or PT's real diagnosis and clearance, not a replacement for one</b> — especially for ACL and rotator cuff work, where returning too early carries genuine re-injury risk.</div>
-    <select class="program-select" id="rehabSelector"></select>
-    <div class="program-select-desc" id="rehabDesc"></div>
+  <div class="card" id="medicalCard" style="display:none">
+    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v6M10 11v6M3 10h6M11 10h6"/></svg></span>Condition / Stage</div>
+    <div class="history-hint">Pick whichever matches your actual situation. <b>⚠️ Every option here is a framework to use alongside your own doctor, surgical team, PT, or OB/midwife's real diagnosis and clearance</b>, not a replacement for one — this app has no way to know your specific medical history or healing timeline.</div>
+    <select class="program-select" id="medicalSelector"></select>
+    <div class="program-select-desc" id="medicalDesc"></div>
   </div>
 
   <div class="tabs-header">
@@ -2360,6 +2346,7 @@
      measurements-log                    -> [{date,waist,chest,arms,thighs,hips,neck}, ...]
      week-archive                        -> [{weekStart,program,avgWeight,workoutsCount,avgCal,avgSleep}, ...]
      martial-art-style                   -> "kickboxing" | "boxing" | "muayThai" | "mma"
+     medical-style                       -> one of the 13 MEDICAL_STYLES keys (e.g. "obesity", "bariatricEarly", "rehabAcl")
      cycle-data                          -> {lastPeriod, cycleLength} (optional, female gender only)
      custom-foods                        -> [{name,cal,pro,fat,carb}, ...] (personal "My Foods" library)
      day-order:{program}                 -> [dayId, dayId, ...]
@@ -2388,7 +2375,7 @@
 
 // [STORAGE] ------------------------------------------------------------------
 const APP_VERSION = '1.5';
-const SCHEMA_VERSION = 3; // bump + add a block below whenever a stored SHAPE changes
+const SCHEMA_VERSION = 4; // bump + add a block below whenever a stored SHAPE changes
 
 async function runMigrations(){
   let version = 0;
@@ -2439,6 +2426,131 @@ async function runMigrations(){
             }
           }catch(e){}
         }
+      }
+    }catch(e){}
+  }
+
+  // v4: Obesity, Osteoporosis, Hypertension, Diabetes, Bariatric Recovery,
+  // Prenatal & Postpartum, and Recovery & Rehab were each their own
+  // top-level program (some single-structure, some multi-style) and are now
+  // one consolidated "Medically Modified" program with a single style picker
+  // (see MEDICAL_STYLES). This block remaps anyone's active program/style
+  // selection and rewrites their historical ex:/workout:/day-order:/
+  // active-day: keys onto the new 'medical' program + namespaced style key,
+  // so nobody's logged history under the old program keys goes silently
+  // orphaned. Old style sub-keys ('bariatric-style', 'prenatal-style',
+  // 'rehab-style') are read for the best-guess sub-style; obesity/
+  // osteoporosis/hypertension/diabetes map 1:1 since they had no sub-style.
+  if(version < 4){
+    const LEGACY_MEDICAL_PROGRAMS = ['obesity','osteoporosis','hypertension','diabetes','bariatric','prenatal','rehab'];
+
+    // Resolve each legacy program key to its new namespaced MEDICAL_STYLES key.
+    const resolveNewStyle = async (oldProgram) => {
+      if(['obesity','osteoporosis','hypertension','diabetes'].includes(oldProgram)) return oldProgram;
+      if(oldProgram === 'bariatric'){
+        try{
+          const res = await window.storage.get('bariatric-style');
+          if(res && res.value === 'rebuilding') return 'bariatricRebuilding';
+        }catch(e){}
+        return 'bariatricEarly';
+      }
+      if(oldProgram === 'prenatal'){
+        try{
+          const res = await window.storage.get('prenatal-style');
+          if(res && res.value === 'postpartum') return 'postpartum';
+        }catch(e){}
+        return 'prenatal';
+      }
+      if(oldProgram === 'rehab'){
+        try{
+          const res = await window.storage.get('rehab-style');
+          const map = {general:'rehabGeneral', shoulder:'rehabShoulder', acl:'rehabAcl', achilles:'rehabAchilles', lowerback:'rehabLowerback'};
+          if(res && res.value && map[res.value]) return map[res.value];
+        }catch(e){}
+        return 'rehabGeneral';
+      }
+      return null;
+    };
+
+    // Rewrite one legacy program's ex:/workout: keys onto 'medical', inserting
+    // the resolved style segment. Prenatal already carried its own style
+    // segment in the key (see exKey's pre-consolidation special case), so
+    // that one just needs its program segment renamed, not a style inserted.
+    const migrateProgramKeys = async (oldProgram, newStyle) => {
+      try{
+        const exRes = await window.storage.list(`ex:${oldProgram}:`);
+        if(exRes && exRes.keys){
+          for(const key of exRes.keys){
+            const parts = key.split(':');
+            try{
+              const item = await window.storage.get(key);
+              if(!item || !item.value) continue;
+              let newKey;
+              if(oldProgram === 'prenatal' && parts.length === 5){
+                // ex, prenatal, {prenatal|postpartum}, dayId, idx — already style-tagged
+                const [, , style, dayId, idx] = parts;
+                newKey = `ex:medical:${style}:${dayId}:${idx}`;
+              } else if(parts.length === 4){
+                // ex, oldProgram, dayId, idx — no style segment yet
+                const [, , dayId, idx] = parts;
+                newKey = `ex:medical:${newStyle}:${dayId}:${idx}`;
+              } else continue; // already migrated / unrecognized shape
+              await window.storage.set(newKey, item.value);
+              await window.storage.delete(key);
+            }catch(e){}
+          }
+        }
+      }catch(e){}
+      try{
+        const wRes = await window.storage.list(`workout:`);
+        if(wRes && wRes.keys){
+          for(const key of wRes.keys){
+            const parts = key.split(':');
+            if(parts[2] !== oldProgram) continue;
+            try{
+              const item = await window.storage.get(key);
+              if(!item || !item.value) continue;
+              let newKey;
+              if(oldProgram === 'prenatal' && parts.length === 5){
+                const [, date, , style, dayId] = parts;
+                newKey = `workout:${date}:medical:${style}:${dayId}`;
+              } else if(parts.length === 4){
+                const [, date, , dayId] = parts;
+                newKey = `workout:${date}:medical:${newStyle}:${dayId}`;
+              } else continue;
+              await window.storage.set(newKey, item.value);
+              await window.storage.delete(key);
+            }catch(e){}
+          }
+        }
+      }catch(e){}
+      // day-order/active-day were per-program only (no style segment) —
+      // just rename the program segment. If more than one legacy program
+      // had a saved order/day, last one processed wins; loadDayOrder()'s
+      // length-guard means a mismatched leftover is silently ignored anyway.
+      for(const prefix of ['day-order', 'active-day']){
+        try{
+          const res = await window.storage.get(`${prefix}:${oldProgram}`);
+          if(res && res.value){
+            await window.storage.set(`${prefix}:medical`, res.value);
+            await window.storage.delete(`${prefix}:${oldProgram}`);
+          }
+        }catch(e){}
+      }
+    };
+
+    let resolvedActiveStyle = null;
+    try{
+      const activeRes = await window.storage.get('active-program');
+      const oldActiveProgram = activeRes && activeRes.value;
+      for(const oldProgram of LEGACY_MEDICAL_PROGRAMS){
+        const newStyle = await resolveNewStyle(oldProgram);
+        await migrateProgramKeys(oldProgram, newStyle);
+        if(oldProgram === oldActiveProgram) resolvedActiveStyle = newStyle;
+      }
+      if(resolvedActiveStyle){
+        await window.storage.set('medical-style', resolvedActiveStyle);
+        await window.storage.set('active-program', 'medical');
       }
     }catch(e){}
   }
@@ -3263,70 +3375,15 @@ const programs = {
     }
   },
 
-  rehab: {
-    label: 'Recovery & Rehab', short: 'Pick the area that matches your situation below — ⚠️ general guidance only, see a doctor/PT for an actual diagnosis and clearance',
-    days: {} // populated at runtime from REHAB_STYLES based on the selected focus
+  medical: {
+    label: 'Medically Modified', short: 'Pick your specific condition or recovery stage below \u2014 grounded in real clinical/exercise-science guidance, always deferring to your own care team\u2019s clearance.',
+    days: {} // populated at runtime from MEDICAL_STYLES based on the selected condition/style
   },
 
-  obesity: {
-    label: 'Obesity-Modified', short: 'Low-impact, joint-friendly entry point grounded in ACSM exercise prescription guidance — start low, go slow, and progress from here whenever you\'re ready.',
-    days: {
-      d1: {
-        label:'Day 1', sub:'Low-Impact Cardio + Upper Body', plate:'p-red', plateNum:'25', duration:'~30 min',
-        note:'Pace cardio using the "talk test" — you should be able to hold a conversation but not comfortably sing. That\'s the safe, sustainable moderate intensity this whole program is built around, not a specific heart rate number.',
-        exercises:[
-          {name:'Walking', sets:'15-20 min (talk-test pace)', noWeight:true},
-          {name:'Wall Push-up', sets:'2×10', noWeight:true},
-          {name:'Seated Cable Row', sets:'2×12'},
-        ]
-      },
-      d2: {
-        label:'Day 2', sub:'Lower Body Strength (Joint-Friendly)', plate:'p-blue', plateNum:'20', duration:'~25 min',
-        note:'Form and control matter far more here than how much resistance is used — full range of motion isn\'t required from day one. A comfortable, controlled partial range is a completely legitimate starting point.',
-        exercises:[
-          {name:'Bodyweight Squat', sets:'2×10 (comfortable depth)', noWeight:true},
-          {name:'Glute Bridge', sets:'2×12', noWeight:true},
-          {name:'Standing Calf Raise', sets:'2×15', noWeight:true},
-        ]
-      },
-      d3: {
-        label:'Day 3', sub:'Rest / Gentle Mobility', plate:'p-white', plateNum:'—', duration:'~15 min', rest:true,
-        note:'A real rest day. Weight gain happens gradually over a long time, and sustainable loss works the same way — consistency over months matters far more than any single session.'
-      },
-      d4: {
-        label:'Day 4', sub:'Low-Impact Cardio + Core', plate:'p-yellow', plateNum:'15', duration:'~30 min',
-        note:'Curl-ups engage the abdominal muscles effectively with meaningfully less strain on the lower back than a traditional crunch — that\'s specifically why this program uses that version, not a lesser substitute for it.',
-        exercises:[
-          {name:'Walking', sets:'15-20 min (talk-test pace)', noWeight:true},
-          {name:'McGill Curl-up', sets:'2×8', noWeight:true},
-          {name:'Bird Dog', sets:'2×6/side', noWeight:true},
-        ]
-      },
-      d5: {
-        label:'Day 5', sub:'Full-Body Circuit', plate:'p-green', plateNum:'10', duration:'~30 min',
-        note:'Progression rule: once a movement feels genuinely easy for the full set of reps below, add resistance gradually — a commonly cited guide is roughly 5% more once you can complete 15 reps on a lower-body movement or 12 on an upper-body one with good form.',
-        exercises:[
-          {name:'Bodyweight Squat', sets:'2×12', noWeight:true},
-          {name:'Wall Push-up', sets:'2×12', noWeight:true},
-          {name:'Seated Cable Row', sets:'2×12'},
-          {name:'Glute Bridge', sets:'2×12', noWeight:true},
-        ]
-      },
-      d6: {
-        label:'Day 6', sub:'Active Recovery / Flexibility', plate:'p-off', plateNum:'5', duration:'~20 min',
-        note:'Stretch after you\'re already warm, not cold — a short walk first is a good way to get there. Regular flexibility work isn\'t just about range of motion here, it genuinely helps reduce the joint and muscle discomfort that can come with carrying extra load through daily movement.',
-        exercises:[
-          {name:'Walking', sets:'10 min (easy pace)', noWeight:true},
-          {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
-          {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
-        ]
-      },
-      d7: {
-        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-        note:'Full rest day. The overall target most days end up building toward is 150-300 minutes of activity a week, combining cardio and resistance work — but getting there gradually, without forcing it early, is what actually makes it sustainable long-term.'
-      },
-    }
-  },
+
+
+
+
 
   yoga: {
     label: 'Yoga', short: 'Vinyasa & Flow, Hot Yoga, or Partner Yoga — pick your style',
@@ -3582,15 +3639,7 @@ const programs = {
     }
   },
 
-  prenatal: {
-    label: 'Prenatal & Postpartum', short: 'Pick Prenatal or Postpartum below — please get clearance from your OB/midwife first',
-    days: {} // populated at runtime from PRENATAL_STYLES based on the selected stage
-  },
 
-  bariatric: {
-    label: 'Bariatric Recovery', short: 'Pick Early Recovery or Rebuilding below — please follow your surgical/bariatric team\'s clearance at every stage',
-    days: {} // populated at runtime from BARIATRIC_STYLES based on the selected phase
-  },
 
   boxingsc: {
     label: 'Boxing Strength & Conditioning', short: 'Rotational power, single-leg strength, and round-based conditioning — the physical base under the skill work',
@@ -3855,11 +3904,12 @@ const programs = {
   },
 };
 
-// Stage variants for the Prenatal & Postpartum program — selecting Prenatal
-// or Postpartum swaps programs.prenatal.days, mirroring exactly how
-// CYCLING_STYLES and COMBAT_STYLES work. These two stages have genuinely
-// different physiology and risk profiles, so they're kept as separate full
-// day-plans rather than one plan with inline caveats.
+// Stage variants within the consolidated Medically Modified program (see
+// MEDICAL_STYLES below) — selecting Prenatal or Postpartum swaps
+// programs.medical.days, mirroring exactly how CYCLING_STYLES and
+// COMBAT_STYLES work. These two stages have genuinely different physiology
+// and risk profiles, so they're kept as separate full day-plans rather than
+// one plan with inline caveats.
 //
 // Grounding: ACOG's 2020 guidance on physical activity during pregnancy
 // (moderate exercise is safe and beneficial for most uncomplicated
@@ -3871,115 +3921,245 @@ const programs = {
 // Running Postnatal" guidelines (Goom, Donnelly, Brockwell) — pelvic floor
 // and breath-connected core work comes first, with diastasis-aware
 // progressions (no traditional crunches) before reintroducing load.
-const PRENATAL_STYLES = {
-  prenatal: {
-    label: 'Prenatal', short: 'Moderate, fall-risk-aware training for pregnancy — always cleared by your OB first',
+// Consolidated "Medically Modified" program — mirrors the Combat/Cycling/
+// Prenatal swappable-style architecture (see COMBAT_STYLES). Every condition-
+// or injury-specific variant that used to be its own top-level program or its
+// own separate multi-style program (Obesity, Osteoporosis, Hypertension,
+// Diabetes, Bariatric Recovery, Prenatal & Postpartum, Recovery & Rehab) now
+// lives here as one style picker, grouped by category in the selector via
+// the `group` field on each entry. None of the day/exercise content changed
+// in this consolidation — only how it's organized and switched between.
+const MEDICAL_STYLES = {
+  obesity: {
+    group: 'Metabolic & Cardiac',
+    label: 'Obesity-Modified', short: 'Low-impact, joint-friendly entry point grounded in ACSM exercise prescription guidance — start low, go slow, and progress from here whenever you\'re ready.',
     days: {
-      d1: { label:'Day 1', sub:'Gentle Full-Body Strength', plate:'p-red', plateNum:'25', duration:'~30 min',
+      d1: {
+        label:'Day 1', sub:'Low-Impact Cardio + Upper Body', plate:'p-red', plateNum:'25', duration:'~30 min',
+        note:'Pace cardio using the "talk test" — you should be able to hold a conversation but not comfortably sing. That\'s the safe, sustainable moderate intensity this whole program is built around, not a specific heart rate number.',
         exercises:[
-          {name:'Bodyweight Squat', sets:'2×10-12', noWeight:true},
-          {name:'Wall Push-up', sets:'2×10-12', noWeight:true},
-          {name:'Seated Cable Row', sets:'2×10-12'},
-          {name:'Standing Pelvic Tilt', sets:'2×10', noWeight:true},
-        ]},
-      d2: { label:'Day 2', sub:'Cardio + Balance', plate:'p-blue', plateNum:'20', duration:'~30 min',
+          {name:'Walking', sets:'15-20 min (talk-test pace)', noWeight:true},
+          {name:'Wall Push-up', sets:'2×10', noWeight:true},
+          {name:'Seated Cable Row', sets:'2×12'},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Lower Body Strength (Joint-Friendly)', plate:'p-blue', plateNum:'20', duration:'~25 min',
+        note:'Form and control matter far more here than how much resistance is used — full range of motion isn\'t required from day one. A comfortable, controlled partial range is a completely legitimate starting point.',
         exercises:[
-          {name:'Walking', sets:'20-30 min', noWeight:true},
-          {name:'Single-Leg Balance', sets:'2×15-20s/side', noWeight:true},
-          {name:'Side-Lying Leg Lift', sets:'2×12-15/side', noWeight:true},
-          {name:'Ankle Circles', sets:'2×10/direction', noWeight:true},
-        ]},
-      d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
-        note:'Gentle stretching or a relaxed walk if you feel like it. Fatigue in pregnancy is real and physiological — rest when your body asks for it, not just on schedule.' },
-      d4: { label:'Day 4', sub:'Upper Body + Posture', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+          {name:'Bodyweight Squat', sets:'2×10 (comfortable depth)', noWeight:true},
+          {name:'Glute Bridge', sets:'2×12', noWeight:true},
+          {name:'Standing Calf Raise', sets:'2×15', noWeight:true},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Gentle Mobility', plate:'p-white', plateNum:'—', duration:'~15 min', rest:true,
+        note:'A real rest day. Weight gain happens gradually over a long time, and sustainable loss works the same way — consistency over months matters far more than any single session.'
+      },
+      d4: {
+        label:'Day 4', sub:'Low-Impact Cardio + Core', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+        note:'Curl-ups engage the abdominal muscles effectively with meaningfully less strain on the lower back than a traditional crunch — that\'s specifically why this program uses that version, not a lesser substitute for it.',
         exercises:[
-          {name:'Incline DB Press', sets:'2×10-12'},
-          {name:'Wall Slides', sets:'2×10-12', noWeight:true},
-          {name:'Scapular Retraction', sets:'2×12-15', noWeight:true},
-          {name:'Chin Tucks', sets:'2×10', noWeight:true},
-        ]},
-      d5: { label:'Day 5', sub:'Functional Strength', plate:'p-green', plateNum:'10', duration:'~30 min',
+          {name:'Walking', sets:'15-20 min (talk-test pace)', noWeight:true},
+          {name:'McGill Curl-up', sets:'2×8', noWeight:true},
+          {name:'Bird Dog', sets:'2×6/side', noWeight:true},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Full-Body Circuit', plate:'p-green', plateNum:'10', duration:'~30 min',
+        note:'Progression rule: once a movement feels genuinely easy for the full set of reps below, add resistance gradually — a commonly cited guide is roughly 5% more once you can complete 15 reps on a lower-body movement or 12 on an upper-body one with good form.',
         exercises:[
-          {name:'Sit-to-Stand', sets:'2×8-10', noWeight:true},
-          {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
-          {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
-          {name:'Pelvic Floor Connection Breath', sets:'3×10', noWeight:true},
-        ]},
-      d6: { label:'Day 6', sub:'Gentle Cardio + Stretch', plate:'p-off', plateNum:'5', duration:'~30 min',
+          {name:'Bodyweight Squat', sets:'2×12', noWeight:true},
+          {name:'Wall Push-up', sets:'2×12', noWeight:true},
+          {name:'Seated Cable Row', sets:'2×12'},
+          {name:'Glute Bridge', sets:'2×12', noWeight:true},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Active Recovery / Flexibility', plate:'p-off', plateNum:'5', duration:'~20 min',
+        note:'Stretch after you\'re already warm, not cold — a short walk first is a good way to get there. Regular flexibility work isn\'t just about range of motion here, it genuinely helps reduce the joint and muscle discomfort that can come with carrying extra load through daily movement.',
         exercises:[
-          {name:'Walking', sets:'20-30 min', noWeight:true},
-          {name:'Cat-Cow Mobility', sets:'2×8-10', noWeight:true},
-          {name:'Butterfly Pose', sets:'1×60-90s', noWeight:true},
+          {name:'Walking', sets:'10 min (easy pace)', noWeight:true},
+          {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
           {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
-        ]},
-      d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-        note:'Full rest day. Listen to your body first, this plan second — both fatigue and energy levels swing a lot during pregnancy, and that\'s normal.' },
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. The overall target most days end up building toward is 150-300 minutes of activity a week, combining cardio and resistance work — but getting there gradually, without forcing it early, is what actually makes it sustainable long-term.'
+      },
     }
   },
-  postpartum: {
-    label: 'Postpartum', short: 'Diastasis-aware, pelvic-floor-first return to training — always cleared by your provider first',
+  hypertension: {
+    group: 'Metabolic & Cardiac',
+    label: 'Hypertension / Cardiac-Modified', short: 'Moderate, steady effort with careful breathing technique — never hold your breath under load. ⚠️ Get clearance from your doctor first, especially if you\'re on blood pressure medication or have any cardiac history.',
     days: {
-      d1: { label:'Day 1', sub:'Foundational Core & Breath', plate:'p-red', plateNum:'25', duration:'~25 min',
+      d1: {
+        label:'Day 1', sub:'Moderate Aerobic', plate:'p-red', plateNum:'25', duration:'~30 min',
+        note:'Use the talk test — able to talk, not able to sing comfortably. Warm up and cool down for a genuine 5 minutes each; easing your heart rate up and back down gradually matters here, not just the middle of the session.',
         exercises:[
-          {name:'Diaphragmatic Breathing', sets:'3×10 breaths', noWeight:true},
-          {name:'Pelvic Floor Connection Breath', sets:'3×10', noWeight:true},
-          {name:'Pelvic Tilt', sets:'2×10-12', noWeight:true},
-          {name:'Bird Dog', sets:'2×6-8/side', noWeight:true},
-          {name:'Dead Bug', sets:'2×6-8/side', noWeight:true},
-        ]},
-      d2: { label:'Day 2', sub:'Gentle Cardio Progression', plate:'p-blue', plateNum:'20', duration:'~30 min',
+          {name:'Walking', sets:'20-25 min (talk-test pace)', noWeight:true},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Resistance — Full Body A', plate:'p-blue', plateNum:'20', duration:'~30 min',
+        note:'The single most important rule in this whole program: exhale as you lift, inhale as you lower, and never hold your breath against a closed airway — that breath-hold (the Valsalva maneuver) is what causes dangerous blood pressure spikes during resistance work, far more than the weight itself. Keep a loose, relaxed grip too — gripping hard adds an isometric spike you don\'t need.',
         exercises:[
-          {name:'Walking', sets:'20-30 min', noWeight:true},
-          {name:'Ankle Circles', sets:'2×10/direction', noWeight:true},
-          {name:'Calf Raise', sets:'2×12-15', noWeight:true},
-        ]},
-      d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
-        note:'Gentle mobility if you feel up to it. Healing timelines vary a lot person to person — a slower return isn\'t a setback, it\'s appropriate.' },
-      d4: { label:'Day 4', sub:'Upper Body Rebuild', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+          {name:'Bodyweight Squat', sets:'2×12 (moderate pace, controlled)', noWeight:true},
+          {name:'Wall Push-up', sets:'2×10', noWeight:true},
+          {name:'Seated Cable Row', sets:'2×12'},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
+        note:'A real rest day. If you\'re on blood pressure medication, ask your doctor whether timing your workouts around your dose makes sense — some medications have a window where exercise response is more predictable.'
+      },
+      d4: {
+        label:'Day 4', sub:'Moderate Aerobic', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+        note:'Small, frequent sessions genuinely count here — research specifically supports short 10-minute bouts spread through the day as a legitimate alternative to one continuous session if that fits your schedule better.',
         exercises:[
-          {name:'Wall Push-up', sets:'2×10-12', noWeight:true},
-          {name:'Seated Cable Row', sets:'2×10-12'},
-          {name:'Scapular Retraction', sets:'2×12-15', noWeight:true},
-          {name:'Band External Rotation', sets:'2×12-15'},
-        ]},
-      d5: { label:'Day 5', sub:'Lower Body + Core Progression', plate:'p-green', plateNum:'10', duration:'~30 min',
+          {name:'Walking', sets:'20-25 min (talk-test pace)', noWeight:true},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Resistance — Full Body B', plate:'p-green', plateNum:'10', duration:'~30 min',
+        note:'Rest a genuine 60-90 seconds between sets — longer than you might default to. That extra recovery time specifically helps prevent blood pressure from stacking up across a session, not just muscle fatigue.',
         exercises:[
-          {name:'Sit-to-Stand', sets:'2×10-12', noWeight:true},
-          {name:'Glute Bridge', sets:'2×12-15', noWeight:true},
-          {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
-          {name:'McGill Curl-up', sets:'2×6-8', noWeight:true},
-        ]},
-      d6: { label:'Day 6', sub:'Full-Body Functional + Light Cardio', plate:'p-off', plateNum:'5', duration:'~35 min',
+          {name:'Glute Bridge', sets:'2×12', noWeight:true},
+          {name:'Band External Rotation', sets:'2×12', noWeight:true},
+          {name:'Standing Calf Raise', sets:'2×15', noWeight:true},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Active Recovery / Stretching', plate:'p-off', plateNum:'5', duration:'~20 min',
         exercises:[
-          {name:'Bodyweight Squat', sets:'2×10-12', noWeight:true},
-          {name:'Step-Up (controlled)', sets:'2×8-10/leg', noWeight:true},
-          {name:'Farmer\'s Carry', sets:'2×20-30s'},
-        ]},
-      d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-        note:'Full rest day. This program deliberately avoids traditional crunches/sit-ups throughout — if you have (or suspect) diastasis recti, a pelvic floor PT can check and guide the return to fuller core loading.' },
+          {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+          {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. Avoid maximal or near-maximal effort lifts entirely — moderate, controlled loads produce real blood pressure benefits without the spike risk that heavy near-max lifting carries for this specific population.'
+      },
     }
   },
-};
-
-// [BARIATRIC RECOVERY STYLES] --------------------------------------------
-// Two phases, same swappable-style pattern as Prenatal. Grounded directly
-// in published post-metabolic/bariatric-surgery physical activity
-// guidelines (12 expert-based recommendations from a 2024 systematic
-// review, cross-checked against clinical timelines from multiple bariatric
-// programs): short walks from day of surgery if not contraindicated,
-// gradual ADL increase through month 1, water exercise delayed to ~4 weeks
-// (wound healing), full-body resistance training at 4-6 weeks starting
-// light (8-12 rep range) on 2 nonconsecutive days/week, high-intensity
-// activity AND abdominal-specific exercise both delayed to 8-12 weeks, and
-// a genuine strength routine expected to be established by month 3.
-// Deliberately does NOT hard-code which week someone is in -- actual
-// clearance is individual and belongs to the surgical/bariatric team, not
-// a calendar the app can verify. Early Recovery is written to stay
-// appropriate across roughly that whole first-3-months window; the
-// resistance elements are explicitly labeled as "once cleared" rather than
-// implied as immediately appropriate.
-const BARIATRIC_STYLES = {
-  early: {
+  diabetes: {
+    group: 'Metabolic & Cardiac',
+    label: 'Type 2 Diabetes-Modified', short: 'Combined aerobic and resistance training, with activity timed after meals specifically — that timing measurably helps blood glucose, not just general fitness. ⚠️ Talk to your care team about hypoglycemia risk if you use insulin or other glucose-lowering medication.',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Post-Meal Walk + Upper Body', plate:'p-red', plateNum:'25', duration:'~30 min',
+        note:'Being active after a meal specifically blunts the blood sugar rise that follows eating — this isn\'t just "exercise is good," it\'s a real, time-specific effect worth building your schedule around when you can.',
+        exercises:[
+          {name:'Walking', sets:'15-20 min (ideally after a meal)', noWeight:true},
+          {name:'Wall Push-up', sets:'2×10', noWeight:true},
+          {name:'Seated Cable Row', sets:'2×12'},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Resistance — Lower Body', plate:'p-blue', plateNum:'20', duration:'~25 min',
+        note:'If you use insulin or a medication that can cause low blood sugar, check your glucose before starting and know your care team\'s plan for it — a snack or an insulin adjustment beforehand is a completely normal part of exercising safely with diabetes, not a sign something\'s wrong.',
+        exercises:[
+          {name:'Bodyweight Squat', sets:'2×12', noWeight:true},
+          {name:'Glute Bridge', sets:'2×12', noWeight:true},
+          {name:'Standing Calf Raise', sets:'2×15', noWeight:true},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Movement Breaks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
+        note:'A real rest day — but if you\'re sitting for long stretches today, a genuinely useful habit is standing or moving for about 3 minutes every 30 minutes. That alone has real, measured benefits for blood sugar, separate from a structured workout.'
+      },
+      d4: {
+        label:'Day 4', sub:'Post-Meal Walk + Core', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+        exercises:[
+          {name:'Walking', sets:'15-20 min (ideally after a meal)', noWeight:true},
+          {name:'McGill Curl-up', sets:'2×8', noWeight:true},
+          {name:'Bird Dog', sets:'2×6/side', noWeight:true},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Combined Full-Body Circuit', plate:'p-green', plateNum:'10', duration:'~30 min',
+        note:'Combining aerobic and resistance work in the same program consistently outperforms either alone for blood sugar management — that\'s exactly why this week mixes both rather than picking one.',
+        exercises:[
+          {name:'Bodyweight Squat', sets:'2×12', noWeight:true},
+          {name:'Wall Push-up', sets:'2×12', noWeight:true},
+          {name:'Seated Cable Row', sets:'2×12'},
+          {name:'Walking', sets:'10 min', noWeight:true},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Active Recovery / Flexibility', plate:'p-off', plateNum:'5', duration:'~20 min',
+        exercises:[
+          {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+          {name:'Single-Leg Balance', sets:'2×20s/side', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. The overall weekly target is generally 150 minutes of moderate aerobic activity plus resistance work on 2 or more days — check hydration and avoid exercising in peak heat, since both matter more with blood sugar management involved.'
+      },
+    }
+  },
+  osteoporosis: {
+    group: 'Bone Health',
+    label: 'Osteoporosis / Low Bone Density', short: 'Weight-bearing and resistance work to build bone strength, built around one key rule: no spinal flexion under load. ⚠️ Confirm with your doctor which activities fit your specific bone density and fracture history.',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Weight-Bearing Cardio + Posture', plate:'p-red', plateNum:'25', duration:'~25 min',
+        note:'Weight-bearing cardio (on your feet, bones supporting your weight) is what actually targets bone density here — it\'s not interchangeable with swimming or cycling for this specific purpose, even though those are great for other things.',
+        exercises:[
+          {name:'Walking', sets:'15-20 min', noWeight:true},
+          {name:'Swan', sets:'2×8 (gentle extension, not flexion)', noWeight:true},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Resistance — Lower Body', plate:'p-blue', plateNum:'20', duration:'~25 min',
+        note:'Any forward reaching happens by hinging at the hips, never by rounding the spine — the same hip-hinge principle used throughout this app\'s strength content, just applied here for a specifically different reason: protecting vertebrae, not just performance.',
+        exercises:[
+          {name:'Sit-to-Stand', sets:'3×10', noWeight:true},
+          {name:'Glute Bridge', sets:'3×12', noWeight:true},
+          {name:'Standing Calf Raise', sets:'2×15', noWeight:true},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Gentle Mobility', plate:'p-white', plateNum:'—', duration:'~15 min', rest:true,
+        note:'A real rest day. If you\'ve had a vertebral compression fracture, current guidance generally limits impact to about a brisk-walk level until you and your doctor decide otherwise — this isn\'t a day to push past that.'
+      },
+      d4: {
+        label:'Day 4', sub:'Resistance — Upper Body', plate:'p-yellow', plateNum:'15', duration:'~25 min',
+        note:'Never hold your breath while lifting — exhale through the effort. Building back and shoulder strength specifically supports the posture that helps protect the spine day to day, not just during workouts.',
+        exercises:[
+          {name:'Wall Push-up', sets:'3×10', noWeight:true},
+          {name:'Seated Cable Row', sets:'3×12'},
+          {name:'Band External Rotation', sets:'2×12', noWeight:true},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Balance & Fall Prevention', plate:'p-green', plateNum:'10', duration:'~20 min',
+        note:'This day matters as much as the strength days — a fracture almost always starts with a fall, so reducing fall risk is directly protecting bone health, not a separate afterthought.',
+        exercises:[
+          {name:'Single-Leg Balance', sets:'3×20-30s/side', noWeight:true},
+          {name:'Heel-to-Toe Walk', sets:'2×10 steps', noWeight:true},
+          {name:'Marching in Place', sets:'2×60s', noWeight:true},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Posture & Gentle Extension', plate:'p-off', plateNum:'5', duration:'~20 min',
+        note:'Everything here stays neutral-to-extension — nothing that curls the spine forward. Avoid toe touches, sit-ups, and any stretch that rounds the back, even ones that feel harmless.',
+        exercises:[
+          {name:'Bird Dog', sets:'2×8/side', noWeight:true},
+          {name:'Swan', sets:'2×10', noWeight:true},
+          {name:'Cat-Cow Mobility', sets:'2×8 (gentle, pain-free range only)', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. Light resistance bands are a fine starting point, but building real bone density typically needs genuine progressive loading over time — talk to your doctor or a PT experienced with osteoporosis about when and how to add load safely.'
+      },
+    }
+  },
+  bariatricEarly: {
+    group: 'Bariatric Surgery Recovery',
     label: 'Early Recovery', short: 'Roughly the first ~12 weeks — walking-first, no core work, no heavy lifting. Please confirm every stage with your surgical/bariatric team before advancing; this app has no way to know your actual clearance.',
     days: {
       d1: {
@@ -4037,7 +4217,8 @@ const BARIATRIC_STYLES = {
       },
     }
   },
-  rebuilding: {
+  bariatricRebuilding: {
+    group: 'Bariatric Surgery Recovery',
     label: 'Rebuilding Phase', short: 'From roughly month 3 onward, once your team has cleared full activity — real resistance training with protein and bone-loading kept front and center. There\'s no fixed end date to this phase: whenever you and your team feel ready, moving to any standard program in this app (Strength & Size and general fitness programs are both reasonable) is completely fine — there\'s nothing bariatric-specific left to need once you\'re here consistently.',
     days: {
       d1: {
@@ -4093,28 +4274,97 @@ const BARIATRIC_STYLES = {
       },
     }
   },
-};
-
-// [REHAB RECOVERY STYLES] -------------------------------------------------
-// Five focus areas, same swappable-style pattern as Bariatric/Prenatal.
-// Shoulder, ACL, and Achilles content grounded directly in published
-// rehab protocols (verified, not assumed): shoulder impingement's
-// standard 3-phase structure (calm tissue + gentle ROM -> rotator
-// cuff/scapular strengthening -> overhead/functional), ACL reconstruction's
-// criterion-based 9-12 month timeline with quad-symmetry and hop-test
-// return-to-sport benchmarks, and Achilles tendinopathy's Alfredson
-// protocol (eccentric heel drops, 3x15 straight-knee + 3x15 bent-knee,
-// twice daily, 12-week progressive loading, "exercise into discomfort but
-// not sharp pain" -- a genuinely different principle than typical injury
-// advice, and worth being explicit about rather than leaving implicit).
-// "General / Multiple Areas" preserves the app's original rehab content
-// unchanged, for anyone without one specific complaint. Every track leads
-// with the same message: this is a framework to use ALONGSIDE a doctor or
-// PT's actual diagnosis and clearance, not a replacement for one -- ACL
-// and rotator cuff re-injury/re-tear risk from premature progression is
-// real and well-documented, not a formality to skip past.
-const REHAB_STYLES = {
-  general: {
+  prenatal: {
+    group: 'Pregnancy & Postpartum',
+    label: 'Prenatal', short: 'Moderate, fall-risk-aware training for pregnancy — always cleared by your OB first',
+    days: {
+      d1: { label:'Day 1', sub:'Gentle Full-Body Strength', plate:'p-red', plateNum:'25', duration:'~30 min',
+        exercises:[
+          {name:'Bodyweight Squat', sets:'2×10-12', noWeight:true},
+          {name:'Wall Push-up', sets:'2×10-12', noWeight:true},
+          {name:'Seated Cable Row', sets:'2×10-12'},
+          {name:'Standing Pelvic Tilt', sets:'2×10', noWeight:true},
+        ]},
+      d2: { label:'Day 2', sub:'Cardio + Balance', plate:'p-blue', plateNum:'20', duration:'~30 min',
+        exercises:[
+          {name:'Walking', sets:'20-30 min', noWeight:true},
+          {name:'Single-Leg Balance', sets:'2×15-20s/side', noWeight:true},
+          {name:'Side-Lying Leg Lift', sets:'2×12-15/side', noWeight:true},
+          {name:'Ankle Circles', sets:'2×10/direction', noWeight:true},
+        ]},
+      d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+        note:'Gentle stretching or a relaxed walk if you feel like it. Fatigue in pregnancy is real and physiological — rest when your body asks for it, not just on schedule.' },
+      d4: { label:'Day 4', sub:'Upper Body + Posture', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+        exercises:[
+          {name:'Incline DB Press', sets:'2×10-12'},
+          {name:'Wall Slides', sets:'2×10-12', noWeight:true},
+          {name:'Scapular Retraction', sets:'2×12-15', noWeight:true},
+          {name:'Chin Tucks', sets:'2×10', noWeight:true},
+        ]},
+      d5: { label:'Day 5', sub:'Functional Strength', plate:'p-green', plateNum:'10', duration:'~30 min',
+        exercises:[
+          {name:'Sit-to-Stand', sets:'2×8-10', noWeight:true},
+          {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+          {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
+          {name:'Pelvic Floor Connection Breath', sets:'3×10', noWeight:true},
+        ]},
+      d6: { label:'Day 6', sub:'Gentle Cardio + Stretch', plate:'p-off', plateNum:'5', duration:'~30 min',
+        exercises:[
+          {name:'Walking', sets:'20-30 min', noWeight:true},
+          {name:'Cat-Cow Mobility', sets:'2×8-10', noWeight:true},
+          {name:'Butterfly Pose', sets:'1×60-90s', noWeight:true},
+          {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+        ]},
+      d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. Listen to your body first, this plan second — both fatigue and energy levels swing a lot during pregnancy, and that\'s normal.' },
+    }
+  },
+  postpartum: {
+    group: 'Pregnancy & Postpartum',
+    label: 'Postpartum', short: 'Diastasis-aware, pelvic-floor-first return to training — always cleared by your provider first',
+    days: {
+      d1: { label:'Day 1', sub:'Foundational Core & Breath', plate:'p-red', plateNum:'25', duration:'~25 min',
+        exercises:[
+          {name:'Diaphragmatic Breathing', sets:'3×10 breaths', noWeight:true},
+          {name:'Pelvic Floor Connection Breath', sets:'3×10', noWeight:true},
+          {name:'Pelvic Tilt', sets:'2×10-12', noWeight:true},
+          {name:'Bird Dog', sets:'2×6-8/side', noWeight:true},
+          {name:'Dead Bug', sets:'2×6-8/side', noWeight:true},
+        ]},
+      d2: { label:'Day 2', sub:'Gentle Cardio Progression', plate:'p-blue', plateNum:'20', duration:'~30 min',
+        exercises:[
+          {name:'Walking', sets:'20-30 min', noWeight:true},
+          {name:'Ankle Circles', sets:'2×10/direction', noWeight:true},
+          {name:'Calf Raise', sets:'2×12-15', noWeight:true},
+        ]},
+      d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+        note:'Gentle mobility if you feel up to it. Healing timelines vary a lot person to person — a slower return isn\'t a setback, it\'s appropriate.' },
+      d4: { label:'Day 4', sub:'Upper Body Rebuild', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+        exercises:[
+          {name:'Wall Push-up', sets:'2×10-12', noWeight:true},
+          {name:'Seated Cable Row', sets:'2×10-12'},
+          {name:'Scapular Retraction', sets:'2×12-15', noWeight:true},
+          {name:'Band External Rotation', sets:'2×12-15'},
+        ]},
+      d5: { label:'Day 5', sub:'Lower Body + Core Progression', plate:'p-green', plateNum:'10', duration:'~30 min',
+        exercises:[
+          {name:'Sit-to-Stand', sets:'2×10-12', noWeight:true},
+          {name:'Glute Bridge', sets:'2×12-15', noWeight:true},
+          {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
+          {name:'McGill Curl-up', sets:'2×6-8', noWeight:true},
+        ]},
+      d6: { label:'Day 6', sub:'Full-Body Functional + Light Cardio', plate:'p-off', plateNum:'5', duration:'~35 min',
+        exercises:[
+          {name:'Bodyweight Squat', sets:'2×10-12', noWeight:true},
+          {name:'Step-Up (controlled)', sets:'2×8-10/leg', noWeight:true},
+          {name:'Farmer\'s Carry', sets:'2×20-30s'},
+        ]},
+      d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. This program deliberately avoids traditional crunches/sit-ups throughout — if you have (or suspect) diastasis recti, a pelvic floor PT can check and guide the return to fuller core loading.' },
+    }
+  },
+  rehabGeneral: {
+    group: 'Injury Rehab',
     label: 'General / Multiple Areas', short: 'A broad week touching shoulder, back, knee, hip, and ankle — a reasonable default if you don\'t have one specific injury in mind. ⚠️ General guidance only — see a doctor/PT for an actual diagnosis.',
     days: {
       d1: {
@@ -4176,7 +4426,8 @@ const REHAB_STYLES = {
       },
     }
   },
-  shoulder: {
+  rehabShoulder: {
+    group: 'Injury Rehab',
     label: 'Shoulder (Rotator Cuff / Impingement)', short: 'The standard 3-phase structure — calm the tissue first, then rebuild rotator cuff and scapular strength, then reintroduce overhead work. ⚠️ Overhead/loaded progression should be cleared by a doctor or PT, not self-timed.',
     days: {
       d1: {
@@ -4230,7 +4481,8 @@ const REHAB_STYLES = {
       },
     }
   },
-  acl: {
+  rehabAcl: {
+    group: 'Injury Rehab',
     label: 'ACL (Post-Surgical or Non-Surgical)', short: 'A real recovery here runs 9-12 months and is criterion-based, not calendar-based — this is a framework to use alongside your surgeon and physical therapist, not instead of them. Re-injury risk from returning too early is real and well-documented.',
     days: {
       d1: {
@@ -4284,7 +4536,8 @@ const REHAB_STYLES = {
       },
     }
   },
-  achilles: {
+  rehabAchilles: {
+    group: 'Injury Rehab',
     label: 'Achilles Tendon', short: 'Grounded in the Alfredson eccentric-loading protocol, the most studied conservative approach for Achilles tendinopathy — a 12-week progressive program. ⚠️ Confirm with a doctor/PT whether this fits your specific situation (tendinopathy vs. rupture are very different).',
     days: {
       d1: {
@@ -4336,7 +4589,8 @@ const REHAB_STYLES = {
       },
     }
   },
-  lowerback: {
+  rehabLowerback: {
+    group: 'Injury Rehab',
     label: 'Lower Back', short: 'Core stabilization first, built on the same principle used elsewhere in this app for spine safety — control through a stable, neutral spine rather than pushing range of motion under load.',
     days: {
       d1: {
@@ -4391,9 +4645,6 @@ const REHAB_STYLES = {
   },
 };
 
-// Martial art style variants for the Combat program — selecting a style swaps
-// programs.combat.days to match it, so training reflects the art you actually
-// know (or want to learn) rather than one generic "boxing/kickboxing" mix.
 const COMBAT_STYLES = {
   kickboxing: {
     label: 'Kickboxing', short: 'Punches + kicks, no clinch — the balanced default',
@@ -8274,6 +8525,28 @@ async function recordActivity(dateKey){
   }
 }
 
+// PR badges/celebrations are gated behind a minimum tracking window — in the
+// first couple weeks, most exercises only have one or two prior sets logged
+// (or none), so almost anything lifted trivially "beats" that sparse
+// history and every set would fire a PR notification, which makes the
+// signal meaningless right when someone's still just getting oriented.
+// This only gates the live badge/celebration in wireSetRow's save() — the
+// PR Timeline (Analysis tab) is a historical reconstruction and stays
+// accurate for every real PR from day one, early ones included.
+const PR_NOTIFICATION_MIN_DAYS = 14; // "a few weeks" of tracking before PR notifications turn on
+
+async function isPastPrNotificationWindow(){
+  let dates = [];
+  try{
+    const res = await window.storage.get('activity-dates');
+    dates = res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){ return false; }
+  if(!dates.length) return false; // no tracking history yet — definitely too early
+  const earliest = dates[0]; // activity-dates is kept sorted ascending (see recordActivity)
+  const cutoff = dateKeyMinusDays(getTodayKey(), PR_NOTIFICATION_MIN_DAYS);
+  return earliest <= cutoff;
+}
+
 async function computeStreak(){
   let dates = [];
   try{
@@ -8592,6 +8865,16 @@ const PROGRAM_MASTERCLASS = {
   combat:       {cardId:'combatTechniquesCard', label:'Combat Techniques'},
   grappling:    {cardId:'grappleTechniquesCard', label:'Grappling Positions'},
   oly:          {cardId:'olyTechniquesCard', label:'Olympic Lifting Technique'},
+  strength:     {cardId:'strengthTechniquesCard', label:'Strength Training Fundamentals'},
+  powerlifting: {cardId:'strengthTechniquesCard', label:'Strength Training Fundamentals'},
+  powerbuilding:{cardId:'strengthTechniquesCard', label:'Strength Training Fundamentals'},
+  running:      {cardId:'runningTechniquesCard', label:'Running Form Fundamentals'},
+  hyrox:        {cardId:'hyroxTechniquesCard', label:'Hyrox Fundamentals'},
+  pilates:      {cardId:'pilatesTechniquesCard', label:'Pilates Fundamentals'},
+  yoga:         {cardId:'yogaTechniquesCard', label:'Yoga Pose Fundamentals'},
+  calisthenics: {cardId:'calisthenicsTechniquesCard', label:'Calisthenics & Bodyweight Fundamentals'},
+  bodyweight:   {cardId:'calisthenicsTechniquesCard', label:'Calisthenics & Bodyweight Fundamentals'},
+  cycling:      {cardId:'cyclingTechniquesCard', label:'Cycling Fundamentals'},
 };
 
 function updateMasterclassLinkBtn(){
@@ -8641,10 +8924,8 @@ async function renderProgramSelector(trendStatus){
   togglePosingCard();
   toggleMartialArtCard();
   toggleCyclingCard();
-  togglePrenatalCard();
+  toggleMedicalCard();
   toggleYogaCard();
-  toggleBariatricCard();
-  toggleRehabCard();
   toggleSwimStylesCard();
   toggleClimbTechniquesCard();
   toggleCombatTechniquesCard();
@@ -8663,8 +8944,8 @@ async function renderProgramSelector(trendStatus){
   el.onchange = async ()=>{
     const key = el.value;
     if(key === activeProgram) return;
-    const wasGraduatingBariatric = activeProgram === 'bariatric' && activeBariatricStyle === 'rebuilding' && key !== 'bariatric';
-    const wasLeavingRehab = activeProgram === 'rehab' && key !== 'rehab';
+    const wasGraduatingBariatric = activeProgram === 'medical' && activeMedicalStyle === 'bariatricRebuilding' && key !== 'medical';
+    const wasLeavingRehab = activeProgram === 'medical' && activeMedicalStyle.startsWith('rehab') && key !== 'medical';
     activeProgram = key;
     dayDefs = programs[activeProgram].days;
     activeDay = 'd1';
@@ -8676,10 +8957,8 @@ async function renderProgramSelector(trendStatus){
     togglePosingCard();
     toggleMartialArtCard();
     toggleCyclingCard();
-    togglePrenatalCard();
+    toggleMedicalCard();
     toggleYogaCard();
-    toggleBariatricCard();
-    toggleRehabCard();
     toggleSwimStylesCard();
     toggleClimbTechniquesCard();
     toggleCombatTechniquesCard();
@@ -8814,58 +9093,6 @@ function toggleCyclingCard(){
   }
 }
 
-let activePrenatalStyle = 'prenatal';
-
-async function loadPrenatalStyle(){
-  try{
-    const res = await window.storage.get('prenatal-style');
-    if(res && res.value && PRENATAL_STYLES[res.value]) activePrenatalStyle = res.value;
-  }catch(e){}
-  programs.prenatal.days = PRENATAL_STYLES[activePrenatalStyle].days;
-}
-
-async function savePrenatalStyle(){
-  try{ await window.storage.set('prenatal-style', activePrenatalStyle); }catch(e){}
-}
-
-function renderPrenatalSelector(){
-  const el = document.getElementById('prenatalSelector');
-  const descEl = document.getElementById('prenatalDesc');
-  el.innerHTML = Object.keys(PRENATAL_STYLES).map(key=>
-    `<option value="${key}" ${key===activePrenatalStyle?'selected':''}>${PRENATAL_STYLES[key].label}</option>`
-  ).join('');
-  descEl.textContent = PRENATAL_STYLES[activePrenatalStyle].short;
-
-  el.onchange = async ()=>{
-    const wasWelcomingBaby = activePrenatalStyle === 'prenatal' && el.value === 'postpartum';
-    activePrenatalStyle = el.value;
-    programs.prenatal.days = PRENATAL_STYLES[activePrenatalStyle].days;
-    descEl.textContent = PRENATAL_STYLES[activePrenatalStyle].short;
-    await savePrenatalStyle();
-    if(activeProgram === 'prenatal'){
-      dayDefs = programs.prenatal.days;
-      activeDay = 'd1';
-      await loadDayOrder();
-      renderTabs();
-      renderWorkout();
-      renderTips();
-    }
-    if(wasWelcomingBaby){
-      triggerCelebration('👶', 'Congratulations!', "Take this at whatever pace your body and your OB or midwife's clearance actually support — there's no rush back.", true);
-    }
-  };
-}
-
-function togglePrenatalCard(){
-  const card = document.getElementById('prenatalCard');
-  if(activeProgram === 'prenatal'){
-    card.style.display = '';
-    renderPrenatalSelector();
-  } else {
-    card.style.display = 'none';
-  }
-}
-
 let activeYogaStyle = 'flow';
 
 async function loadYogaStyle(){
@@ -8915,103 +9142,78 @@ function toggleYogaCard(){
   }
 }
 
-let activeBariatricStyle = 'early';
+let activeMedicalStyle = 'obesity';
 
-async function loadBariatricStyle(){
+async function loadMedicalStyle(){
   try{
-    const res = await window.storage.get('bariatric-style');
-    if(res && res.value && BARIATRIC_STYLES[res.value]) activeBariatricStyle = res.value;
+    const res = await window.storage.get('medical-style');
+    if(res && res.value && MEDICAL_STYLES[res.value]) activeMedicalStyle = res.value;
   }catch(e){}
-  programs.bariatric.days = BARIATRIC_STYLES[activeBariatricStyle].days;
+  programs.medical.days = MEDICAL_STYLES[activeMedicalStyle].days;
 }
 
-async function saveBariatricStyle(){
-  try{ await window.storage.set('bariatric-style', activeBariatricStyle); }catch(e){}
+async function saveMedicalStyle(){
+  try{ await window.storage.set('medical-style', activeMedicalStyle); }catch(e){}
 }
 
-function renderBariatricSelector(){
-  const el = document.getElementById('bariatricSelector');
-  const descEl = document.getElementById('bariatricDesc');
-  el.innerHTML = Object.keys(BARIATRIC_STYLES).map(key=>
-    `<option value="${key}" ${key===activeBariatricStyle?'selected':''}>${BARIATRIC_STYLES[key].label}</option>`
+// Grouped by category (Metabolic & Cardiac, Bone Health, Bariatric Surgery
+// Recovery, Pregnancy & Postpartum, Injury Rehab) via <optgroup> so a list of
+// 13 genuinely different conditions/stages stays scannable in one dropdown,
+// mirroring the flat Combat style picker but organized since these styles
+// aren't variations on one activity the way martial arts are.
+function renderMedicalSelector(){
+  const el = document.getElementById('medicalSelector');
+  const descEl = document.getElementById('medicalDesc');
+  const groups = [];
+  Object.keys(MEDICAL_STYLES).forEach(key=>{
+    const g = MEDICAL_STYLES[key].group;
+    let entry = groups.find(x=> x.label === g);
+    if(!entry){ entry = {label:g, keys:[]}; groups.push(entry); }
+    entry.keys.push(key);
+  });
+  el.innerHTML = groups.map(g=>
+    `<optgroup label="${g.label}">${g.keys.map(key=>
+      `<option value="${key}" ${key===activeMedicalStyle?'selected':''}>${MEDICAL_STYLES[key].label}</option>`
+    ).join('')}</optgroup>`
   ).join('');
-  descEl.textContent = BARIATRIC_STYLES[activeBariatricStyle].short;
+  descEl.textContent = MEDICAL_STYLES[activeMedicalStyle].short;
 
   el.onchange = async ()=>{
-    const wasEarlyAdvancingToRebuilding = activeBariatricStyle === 'early' && el.value === 'rebuilding';
-    activeBariatricStyle = el.value;
-    programs.bariatric.days = BARIATRIC_STYLES[activeBariatricStyle].days;
-    descEl.textContent = BARIATRIC_STYLES[activeBariatricStyle].short;
-    await saveBariatricStyle();
-    if(activeProgram === 'bariatric'){
-      dayDefs = programs.bariatric.days;
+    const prev = activeMedicalStyle;
+    activeMedicalStyle = el.value;
+    programs.medical.days = MEDICAL_STYLES[activeMedicalStyle].days;
+    descEl.textContent = MEDICAL_STYLES[activeMedicalStyle].short;
+    await saveMedicalStyle();
+    if(activeProgram === 'medical'){
+      dayDefs = programs.medical.days;
       activeDay = 'd1';
       await loadDayOrder();
       renderTabs();
       renderWorkout();
       renderTips();
     }
-    if(wasEarlyAdvancingToRebuilding){
+    // Same milestone moments the separate Bariatric/Prenatal/Rehab programs
+    // used to fire, now keyed off style transitions within one dropdown
+    // instead of a program switch — see the matching "leaving via the
+    // program picker" cases in renderProgramSelector()'s onchange.
+    if(prev === 'bariatricEarly' && activeMedicalStyle === 'bariatricRebuilding'){
       triggerCelebration('💪', 'Rebuilding Phase!', "A real milestone — keep leaning on your team's clearance as you build back up.", true);
+    } else if(prev === 'bariatricRebuilding' && activeMedicalStyle !== 'bariatricRebuilding' && activeMedicalStyle !== 'bariatricEarly'){
+      triggerCelebration('🎓', "You've graduated!", "Everything you built in Rebuilding goes with you from here.", true);
+    } else if(prev === 'prenatal' && activeMedicalStyle === 'postpartum'){
+      triggerCelebration('👶', 'Congratulations!', "Take this at whatever pace your body and your OB or midwife's clearance actually support — there's no rush back.", true);
+    } else if(prev.startsWith('rehab') && !activeMedicalStyle.startsWith('rehab')){
+      triggerCelebration('✅', 'Welcome back!', 'Nice work getting back to full training.', true);
     }
   };
 }
 
-function toggleBariatricCard(){
-  const card = document.getElementById('bariatricCard');
+function toggleMedicalCard(){
+  const card = document.getElementById('medicalCard');
   if(!card) return;
-  if(activeProgram === 'bariatric'){
+  if(activeProgram === 'medical'){
     card.style.display = '';
-    renderBariatricSelector();
-  } else {
-    card.style.display = 'none';
-  }
-}
-
-let activeRehabStyle = 'general';
-
-async function loadRehabStyle(){
-  try{
-    const res = await window.storage.get('rehab-style');
-    if(res && res.value && REHAB_STYLES[res.value]) activeRehabStyle = res.value;
-  }catch(e){}
-  programs.rehab.days = REHAB_STYLES[activeRehabStyle].days;
-}
-
-async function saveRehabStyle(){
-  try{ await window.storage.set('rehab-style', activeRehabStyle); }catch(e){}
-}
-
-function renderRehabSelector(){
-  const el = document.getElementById('rehabSelector');
-  const descEl = document.getElementById('rehabDesc');
-  el.innerHTML = Object.keys(REHAB_STYLES).map(key=>
-    `<option value="${key}" ${key===activeRehabStyle?'selected':''}>${REHAB_STYLES[key].label}</option>`
-  ).join('');
-  descEl.textContent = REHAB_STYLES[activeRehabStyle].short;
-
-  el.onchange = async ()=>{
-    activeRehabStyle = el.value;
-    programs.rehab.days = REHAB_STYLES[activeRehabStyle].days;
-    descEl.textContent = REHAB_STYLES[activeRehabStyle].short;
-    await saveRehabStyle();
-    if(activeProgram === 'rehab'){
-      dayDefs = programs.rehab.days;
-      activeDay = 'd1';
-      await loadDayOrder();
-      renderTabs();
-      renderWorkout();
-      renderTips();
-    }
-  };
-}
-
-function toggleRehabCard(){
-  const card = document.getElementById('rehabCard');
-  if(!card) return;
-  if(activeProgram === 'rehab'){
-    card.style.display = '';
-    renderRehabSelector();
+    renderMedicalSelector();
   } else {
     card.style.display = 'none';
   }
@@ -9563,14 +9765,14 @@ function initSessionLengthSelector(){
 function exKey(program, dayId, idx){
   if(program === 'combat') return `ex:${program}:${activeMartialArt}:${dayId}:${idx}`;
   if(program === 'cycling') return `ex:${program}:${activeCyclingStyle}:${dayId}:${idx}`;
-  if(program === 'prenatal') return `ex:${program}:${activePrenatalStyle}:${dayId}:${idx}`;
+  if(program === 'medical') return `ex:${program}:${activeMedicalStyle}:${dayId}:${idx}`;
   return `ex:${program}:${dayId}:${idx}`;
 }
 
 function workoutKey(date, program, dayId){
   if(program === 'combat') return `workout:${date}:${program}:${activeMartialArt}:${dayId}`;
   if(program === 'cycling') return `workout:${date}:${program}:${activeCyclingStyle}:${dayId}`;
-  if(program === 'prenatal') return `workout:${date}:${program}:${activePrenatalStyle}:${dayId}`;
+  if(program === 'medical') return `workout:${date}:${program}:${activeMedicalStyle}:${dayId}`;
   return `workout:${date}:${program}:${dayId}`;
 }
 
@@ -10128,6 +10330,14 @@ async function renderWorkout(){
   const logs = await Promise.all(renderExercises.map((ex,i)=> getExLog(activeDay, i)));
   const restingRegions = await getRestingRegions();
 
+  // Warm-up ramps are scoped to the first exercise of the day, plus the
+  // second exercise only if it trains a genuinely different muscle group
+  // (category) than the first — real warm-up sets prep a specific movement
+  // pattern, so re-ramping for every single compound lift in a session is
+  // unrealistic. Once the second working muscle group of the day has been
+  // warmed, later exercises (position 2+) never show a ramp.
+  const firstExCategory = (exerciseInfo[renderExercises[0]?.name] || {}).category;
+
   renderExercises.forEach((ex,i)=>{
     const row = document.createElement('div');
     const isSupersetTop = !!ex.superTag;
@@ -10179,7 +10389,8 @@ async function renderWorkout(){
       }
 
       let warmupHtml = '';
-      if(showWeight && isBarbellExercise(ex.name) && WARMUP_ELIGIBLE_CATEGORIES.includes(exCategory) && priorTop && priorTop.weight >= WARMUP_MIN_WORKING_WEIGHT){
+      const warmupEligiblePosition = i === 0 || (i === 1 && exCategory !== firstExCategory);
+      if(warmupEligiblePosition && showWeight && isBarbellExercise(ex.name) && WARMUP_ELIGIBLE_CATEGORIES.includes(exCategory) && priorTop && priorTop.weight >= WARMUP_MIN_WORKING_WEIGHT){
         const ramp = buildWarmupRamp(priorTop.weight);
         const rampRows = ramp.map(step=> `<div class="warmup-row"><span>${step.label} — ${step.weight} ${weightUnit} × ${step.reps}</span></div>`).join('');
         warmupHtml = `<div class="warmup-box"><div class="warmup-title">🔥 Suggested warm-up ramp</div>${rampRows}</div>`;
@@ -10285,6 +10496,20 @@ async function renderWorkout(){
       if(cb.checked && row.classList.contains('open')){
         row.classList.remove('open');
         row.querySelector('.expand-wrap').classList.remove('open');
+
+        // Keep the flow moving forward instead of leaving the person to tap
+        // open the next exercise themselves — rows are appended to the list
+        // in the same order as renderExercises, so the next sibling element
+        // is always the next exercise as currently displayed (already
+        // accounting for reordering, session-length trimming, etc). Skipped
+        // if there's no next exercise, or the next one is already checked
+        // off (nothing useful to show — it's already done).
+        const nextRow = row.nextElementSibling;
+        if(nextRow && nextRow.classList.contains('exercise-block') && !completed[i+1]){
+          nextRow.classList.add('open');
+          const nextExpandWrap = nextRow.querySelector('.expand-wrap');
+          if(nextExpandWrap) nextExpandWrap.classList.add('open');
+        }
       }
 
       // Only fires on the actual completing click — checking the box that
@@ -10801,7 +11026,7 @@ function wireSetsBlock(row, exIdx, ex){
       const weightValLb = weightValRaw === '' ? '' : toCanonicalLb(weightValRaw);
       const result = await saveExSet(activeDay, exIdx, setIdx, weightValLb, rInput.value, rpeInput.value);
       if(weightValRaw === '' && rInput.value === ''){ statusEl.textContent = ''; statusEl.className='set-status'; return; }
-      if(result.isPR){
+      if(result.isPR && await isPastPrNotificationWindow()){
         statusEl.textContent = '🏆 PR';
         statusEl.className = 'set-status set-status-pr';
         triggerCelebration('🏆', 'New PR!', `${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`, true);
@@ -11436,15 +11661,6 @@ const TIPS_BY_PROGRAM = {
     "<b>Protein + adequate carbs.</b> Carbs fuel the CNS output heavy singles/doubles/triples demand.",
     "<b>Track your estimated 1RM.</b> Use the Analysis tab's trend to see real strength progress, not just weight moved.",
   ],
-  rehab: [
-    "<b>Pain-free range only.</b> Any exercise reproducing sharp pain should stop immediately, no exceptions.",
-    "<b>Consistency over intensity.</b> Frequent gentle sessions rebuild tissue tolerance faster than occasional aggressive ones.",
-    "<b>Isometrics first, then dynamic.</b> This progression is standard physical therapy sequencing for a reason.",
-    "<b>This complements a real professional.</b> Use it alongside, not instead of, an actual PT or doctor's guidance.",
-    "<b>Sleep and nutrition still matter.</b> Tissue healing is a metabolic process that depends on both.",
-    "<b>Progress is not linear.</b> Some days feel better than others — that's normal in healing, not a setback.",
-    "<b>Log your Care check-ins.</b> The more detail you capture, the more useful it is if you see a professional.",
-  ],
   yoga: [
     "<b>Breath leads movement.</b> If you're holding your breath, you're forcing the pose — back off until it flows again.",
     "<b>Never force a stretch.</b> Range of motion should feel like an edge, not a fight — forcing risks injury.",
@@ -11615,7 +11831,66 @@ const TIPS_BY_CYCLING_STYLE = {
   ],
 };
 
-const TIPS_BY_PRENATAL_STYLE = {
+// Medically Modified gets its tips from the selected condition/stage, not
+// one generic set — the safety-critical rule genuinely differs by condition
+// (no breath-holding for Hypertension, no spinal flexion for Osteoporosis,
+// post-meal timing for Diabetes, etc.), mirroring the same per-style tip
+// pattern used for Combat/Cycling above. Previously Obesity, Osteoporosis,
+// Hypertension, Diabetes, and Bariatric had no dedicated tips at all and
+// silently fell back to generic Strength tips — folding them in here as part
+// of this consolidation fixes that along the way. The five Rehab focus areas
+// share one tip set (their pain-free-range-first principles are the same
+// regardless of body part), matching how Rehab's tips already worked before
+// this program existed as a separate multi-style program.
+const TIPS_BY_MEDICAL_STYLE = {
+  obesity: [
+    "<b>Pace by the talk test, not a heart rate number.</b> You should be able to hold a conversation but not comfortably sing — that's the moderate intensity this whole program is built around.",
+    "<b>Low-impact isn't lower-value.</b> Walking and joint-friendly cardio genuinely build real aerobic fitness — this is a starting point grounded in ACSM guidance, not a lesser version of \"real\" training.",
+    "<b>Progress by about 5% at a time.</b> Small, steady increases in duration or load beat big jumps that risk a setback or injury early on.",
+    "<b>The weekly target is 150-300 minutes,</b> combining cardio and resistance work — but getting there gradually is what actually makes it stick long-term.",
+    "<b>Curl-ups instead of crunches</b> are used deliberately throughout — they build core strength with meaningfully less spinal load.",
+    "<b>Sleep and hydration still count as training.</b> Recovery fundamentals apply here exactly as they do in every other program.",
+  ],
+  osteoporosis: [
+    "<b>No spinal flexion under load, ever.</b> Skip sit-ups, crunches, and toe-touches — this one rule shapes every exercise choice in this program.",
+    "<b>Reach by hinging at the hips, not rounding your back.</b> The same hip-hinge principle used in this app's strength content, applied here specifically to protect your vertebrae.",
+    "<b>Weight-bearing cardio is doing a specific job here.</b> It's not interchangeable with swimming or cycling for building bone density, even though those are great for other things.",
+    "<b>Never hold your breath while lifting.</b> Exhale through the effort — building back and shoulder strength also supports the posture that protects your spine day to day.",
+    "<b>Balance and fall-prevention work matters as much as the strength days.</b> A fracture almost always starts with a fall, so reducing fall risk directly protects bone health.",
+    "<b>Confirm with your doctor which activities fit your specific bone density and fracture history</b> before progressing load — this is a framework, not a personalized prescription.",
+  ],
+  hypertension: [
+    "<b>Never hold your breath under load.</b> Exhale as you lift, inhale as you lower — a held breath (the Valsalva maneuver) causes dangerous blood pressure spikes far more than the weight itself.",
+    "<b>Keep a loose, relaxed grip.</b> Gripping hard adds an isometric spike you don't need on top of the lift itself.",
+    "<b>Rest a genuine 60-90 seconds between sets.</b> That extra recovery time specifically helps prevent blood pressure from stacking up across a session.",
+    "<b>Warm up and cool down for a real 5 minutes each.</b> Easing your heart rate up and back down gradually matters here, not just the middle of the session.",
+    "<b>Avoid maximal or near-maximal effort lifts entirely.</b> Moderate, controlled loads produce real blood pressure benefits without the spike risk heavy near-max lifting carries.",
+    "<b>Get clearance from your doctor first,</b> especially if you're on blood pressure medication or have any cardiac history — ask whether timing workouts around your dose makes sense.",
+  ],
+  diabetes: [
+    "<b>Exercise timed after a meal specifically blunts the blood sugar rise that follows eating.</b> This isn't just \"exercise is good\" — it's a real, time-specific effect worth building your schedule around when you can.",
+    "<b>Combined aerobic and resistance work outperforms either alone</b> for blood sugar management — that's why sessions mix both rather than picking one.",
+    "<b>Movement breaks count.</b> Standing or moving for about 3 minutes every 30 minutes of sitting has real, measured blood sugar benefits, separate from a structured workout.",
+    "<b>If you use insulin or a glucose-lowering medication, check your levels before starting</b> and know your care team's plan for it — a snack or dose adjustment beforehand is a normal part of exercising safely, not a sign something's wrong.",
+    "<b>The weekly target is generally 150 minutes of moderate aerobic activity</b> plus resistance work on 2+ days.",
+    "<b>Watch hydration and avoid peak heat.</b> Both matter more with blood sugar management involved.",
+  ],
+  bariatricEarly: [
+    "<b>Short, frequent walks beat one long one</b> in the first couple weeks — several 5-10 minute walks spread through the day is completely legitimate.",
+    "<b>Nothing should pull on the abdominal wall yet.</b> No twisting, no crunching, no plank-like holds — ab-specific work is typically delayed until 8-12 weeks.",
+    "<b>Resistance work generally starts around 4-6 weeks post-op,</b> once your team has actually cleared it — not from day one.",
+    "<b>Hydration deserves real attention.</b> Reduced stomach capacity makes it easy to under-drink without noticing — sip steadily through the day rather than trying to drink a lot at once.",
+    "<b>Follow your surgical/bariatric team's actual clearance at every stage.</b> This app has no way to know your real healing timeline — treat it as a framework to use alongside their guidance, not instead of it.",
+    "<b>Recovery time is doing real work.</b> Rest days here aren't something to make up for later.",
+  ],
+  bariatricRebuilding: [
+    "<b>Start lighter than you think you need to.</b> Rebuilding strength after significant weight loss and time away from loaded training is its own process, even once you're fully cleared.",
+    "<b>Weight-bearing and resistance work is doing double duty here</b> — building strength back, and specifically helping protect bone density, which research shows keeps declining for years after surgery.",
+    "<b>Ab-specific work becomes appropriate in this phase</b> — genuinely new content versus Early Recovery, not just a repeat at higher intensity.",
+    "<b>Protein intake matters on rest days too.</b> The muscle you're rebuilding is protected on the days you're not training it as much as the days you are.",
+    "<b>Feeling consistent and sustainable is the real signal</b> that switching to a standard program is a reasonable next step — not a specific week number. Your team's clearance is still the final word on timing.",
+    "<b>Your surgical/bariatric team's guidance always outranks this app.</b> Use this as a framework alongside their actual clearance, not a replacement for it.",
+  ],
   prenatal: [
     "<b>Get your OB/midwife's clearance first.</b> This program is a strong starting point, not a substitute for guidance on your specific pregnancy.",
     "<b>Use perceived exertion, not heart rate zones.</b> Your normal heart-rate response itself shifts during pregnancy (per ACOG guidance), so a \"talk test\" — can you hold a conversation? — is a more reliable effort gauge than a target number.",
@@ -11635,14 +11910,28 @@ const TIPS_BY_PRENATAL_STYLE = {
     "<b>Gradual reload, not a race back to where you were.</b> A phased return (mirroring guidelines like the postnatal return-to-running framework) consistently outperforms rushing back to pre-pregnancy training.",
   ],
 };
+TIPS_BY_MEDICAL_STYLE.rehabGeneral = [
+  "<b>Pain-free range only.</b> Any exercise reproducing sharp pain should stop immediately, no exceptions.",
+  "<b>Consistency over intensity.</b> Frequent gentle sessions rebuild tissue tolerance faster than occasional aggressive ones.",
+  "<b>Isometrics first, then dynamic.</b> This progression is standard physical therapy sequencing for a reason.",
+  "<b>This complements a real professional.</b> Use it alongside, not instead of, an actual PT or doctor's guidance.",
+  "<b>Sleep and nutrition still matter.</b> Tissue healing is a metabolic process that depends on both.",
+  "<b>Progress is not linear.</b> Some days feel better than others — that's normal in healing, not a setback.",
+  "<b>Log your Care check-ins.</b> The more detail you capture, the more useful it is if you see a professional.",
+];
+TIPS_BY_MEDICAL_STYLE.rehabShoulder = TIPS_BY_MEDICAL_STYLE.rehabGeneral;
+TIPS_BY_MEDICAL_STYLE.rehabAcl = TIPS_BY_MEDICAL_STYLE.rehabGeneral;
+TIPS_BY_MEDICAL_STYLE.rehabAchilles = TIPS_BY_MEDICAL_STYLE.rehabGeneral;
+TIPS_BY_MEDICAL_STYLE.rehabLowerback = TIPS_BY_MEDICAL_STYLE.rehabGeneral;
 
 // Shared by both tip-rendering call sites so the combat/cycling special-casing
 // only has to live in one place rather than being duplicated at each call site.
 function getActiveTips(){
   if(activeProgram === 'combat') return TIPS_BY_MARTIAL_ART[activeMartialArt] || TIPS_BY_PROGRAM.strength;
   if(activeProgram === 'cycling') return TIPS_BY_CYCLING_STYLE[activeCyclingStyle] || TIPS_BY_PROGRAM.strength;
-  if(activeProgram === 'prenatal') return TIPS_BY_PRENATAL_STYLE[activePrenatalStyle] || TIPS_BY_PROGRAM.strength;
+  if(activeProgram === 'medical') return TIPS_BY_MEDICAL_STYLE[activeMedicalStyle] || TIPS_BY_PROGRAM.strength;
   return TIPS_BY_PROGRAM[activeProgram] || TIPS_BY_PROGRAM.strength;
+
 }
 
 function renderTips(){
@@ -11656,12 +11945,12 @@ function renderTips(){
 }
 
 const PROGRAM_FIT_SCORES = {
-  lose:        {jumprope:95, running:90, combat:85, hyrox:88, bodyweight:80, swimming:80, cycling:85, boxingsc:80, grappling:75, athletic:70, climbing:55, mobility:60, yoga:65, core:55, calisthenics:55, pilates:50, strength:50, powerbuilding:45, senior:50, desk:45, bodybuilding:45, oly:40, powerlifting:35, prenatal:20, rehab:20, bariatric:20, obesity:20},
-  gain:        {bodybuilding:95, powerbuilding:92, strength:90, powerlifting:85, calisthenics:75, oly:70, athletic:60, combat:55, boxingsc:55, grappling:45, bodyweight:50, hyrox:35, climbing:40, senior:45, core:40, yoga:35, mobility:30, running:25, swimming:35, cycling:30, jumprope:25, pilates:20, desk:25, prenatal:15, rehab:20, bariatric:20, obesity:15},
-  recomp:      {strength:95, powerbuilding:90, bodybuilding:85, combat:80, boxingsc:75, athletic:75, calisthenics:70, hyrox:70, grappling:70, bodyweight:65, powerlifting:65, climbing:65, cycling:60, swimming:60, jumprope:60, oly:60, core:55, senior:55, running:55, pilates:45, yoga:50, mobility:45, desk:35, prenatal:20, rehab:20, bariatric:20, obesity:20},
-  leanbulk:    {strength:95, powerbuilding:90, bodybuilding:85, combat:80, boxingsc:75, athletic:75, calisthenics:70, hyrox:70, grappling:70, bodyweight:65, powerlifting:65, climbing:65, cycling:60, swimming:60, jumprope:60, oly:60, core:55, senior:55, running:55, pilates:45, yoga:50, mobility:45, desk:35, prenatal:20, rehab:20, bariatric:20, obesity:20},
-  maintain:    {strength:80, senior:85, athletic:70, bodybuilding:70, bodyweight:70, powerbuilding:78, pilates:70, yoga:65, swimming:65, cycling:65, boxingsc:65, calisthenics:60, core:60, combat:60, climbing:60, hyrox:60, grappling:60, mobility:55, running:55, jumprope:55, oly:50, powerlifting:50, desk:60, prenatal:35, rehab:30, bariatric:35, obesity:30},
-  performance: {athletic:95, hyrox:90, climbing:85, oly:85, combat:80, grappling:80, swimming:80, cycling:80, boxingsc:85, calisthenics:75, powerlifting:70, running:65, strength:65, powerbuilding:60, jumprope:60, bodyweight:55, bodybuilding:50, pilates:45, senior:35, core:50, mobility:45, yoga:40, desk:30, prenatal:15, rehab:20, bariatric:15, obesity:15},
+  lose:        {jumprope:95, running:90, combat:85, hyrox:88, bodyweight:80, swimming:80, cycling:85, boxingsc:80, grappling:75, athletic:70, climbing:55, mobility:60, yoga:65, core:55, calisthenics:55, pilates:50, strength:50, powerbuilding:45, senior:50, desk:45, bodybuilding:45, oly:40, powerlifting:35, medical:20},
+  gain:        {bodybuilding:95, powerbuilding:92, strength:90, powerlifting:85, calisthenics:75, oly:70, athletic:60, combat:55, boxingsc:55, grappling:45, bodyweight:50, hyrox:35, climbing:40, senior:45, core:40, yoga:35, mobility:30, running:25, swimming:35, cycling:30, jumprope:25, pilates:20, desk:25, medical:15},
+  recomp:      {strength:95, powerbuilding:90, bodybuilding:85, combat:80, boxingsc:75, athletic:75, calisthenics:70, hyrox:70, grappling:70, bodyweight:65, powerlifting:65, climbing:65, cycling:60, swimming:60, jumprope:60, oly:60, core:55, senior:55, running:55, pilates:45, yoga:50, mobility:45, desk:35, medical:20},
+  leanbulk:    {strength:95, powerbuilding:90, bodybuilding:85, combat:80, boxingsc:75, athletic:75, calisthenics:70, hyrox:70, grappling:70, bodyweight:65, powerlifting:65, climbing:65, cycling:60, swimming:60, jumprope:60, oly:60, core:55, senior:55, running:55, pilates:45, yoga:50, mobility:45, desk:35, medical:20},
+  maintain:    {strength:80, senior:85, athletic:70, bodybuilding:70, bodyweight:70, powerbuilding:78, pilates:70, yoga:65, swimming:65, cycling:65, boxingsc:65, calisthenics:60, core:60, combat:60, climbing:60, hyrox:60, grappling:60, mobility:55, running:55, jumprope:55, oly:50, powerlifting:50, desk:60, medical:33},
+  performance: {athletic:95, hyrox:90, climbing:85, oly:85, combat:80, grappling:80, swimming:80, cycling:80, boxingsc:85, calisthenics:75, powerlifting:70, running:65, strength:65, powerbuilding:60, jumprope:60, bodyweight:55, bodybuilding:50, pilates:45, senior:35, core:50, mobility:45, yoga:40, desk:30, medical:15},
 };
 
 // Buckets used only for the trend-aware nudge below — not a claim that one
@@ -11670,7 +11959,7 @@ const PROGRAM_FIT_SCORES = {
 // recovery-friendly ones, for the specific purpose of nudging in one
 // direction or the other based on a real, current performance signal.
 const HIGH_INTENSITY_PROGRAMS = ['powerlifting','oly','athletic','combat','boxingsc','climbing','powerbuilding','hyrox','grappling'];
-const RECOVERY_FRIENDLY_PROGRAMS = ['rehab','mobility','yoga','core','desk'];
+const RECOVERY_FRIENDLY_PROGRAMS = ['medical','mobility','yoga','core','desk'];
 const TREND_INTENSITY_BOOST = 8;
 const TREND_INTENSITY_CUT = 10;
 const TREND_RECOVERY_BOOST = 8;
@@ -11747,7 +12036,7 @@ async function recommendProgram(p, trendStatus){
     climbing: 'Rock Climbing builds the finger strength, pulling power, and core tension that a performance-focused goal is chasing, in a genuinely different way than barbell training.',
     cycling: 'Structured, mostly-easy ride training builds serious aerobic conditioning while staying easy on the joints — pick Road or Mountain based on how you actually ride.',
     boxingsc: 'Boxing Strength & Conditioning builds the rotational power, single-leg strength, and round-based conditioning that actually drives punching power — the physical base underneath the skill work in Combat.',
-    prenatal: 'Prenatal & Postpartum training prioritizes what\'s safe and appropriate for where you are right now, with your provider\'s clearance — not a body-composition goal the way other programs are.',
+    medical: 'Medically Modified prioritizes what\'s safe and appropriate for your specific condition or recovery stage, with your care team\'s clearance — not a body-composition goal the way other programs are.',
     desk: 'Desk Worker / Posture directly targets the tight-here, weak-there pattern (Janda\'s "upper/lower crossed syndrome") that hours of sitting produces — a good fit alongside whatever other training you\'re doing.',
     hyrox: 'HYROX pairs functional-fitness stations with running intervals — a demanding, race-tested way to build the engine and full-body strength this goal calls for.',
     grappling: 'BJJ/Grappling burns real calories through constant positional work while building a wiry, functional kind of strength combat sports are known for.',
@@ -11756,7 +12045,6 @@ async function recommendProgram(p, trendStatus){
     mobility: 'A dedicated mobility practice improves the range of motion and joint health that everything else you train depends on.',
     yoga: 'Yoga builds flexibility, balance, and body control while staying easy on the joints — genuinely calming besides.',
     pilates: 'Pilates builds core control, posture, and lean full-body strength with minimal joint stress.',
-    rehab: 'Recovery & Rehab is built around recovering from and building resilience against a specific injury pattern — not a body-composition goal the way other programs are.',
   };
 
   let why = whyMap[topKey] || `${programs[topKey].label} is the best match for your current goal.`;
@@ -15044,14 +15332,13 @@ const COACH_PERSONAS = {
   running: 'a running form coach focused on cadence, foot strike, posture, and arm swing efficiency',
   calisthenics: 'a gymnastics strength coach focused on joint alignment, hollow-body tension, and skill progression mechanics for levers, planches, and handstands',
   powerlifting: 'a powerlifting coach focused on maximizing mechanical leverage and bar path efficiency on squat, bench, and deadlift',
-  rehab: 'a movement-quality coach helping ensure gentle rehab exercises are performed with correct alignment and controlled tempo — you do NOT diagnose injuries or estimate healing timelines, only comment on movement quality and technique',
+  medical: 'a movement-quality coach helping ensure exercises for a medical condition, injury, or recovery stage are performed with correct alignment, controlled tempo, and appropriate intensity — you do NOT diagnose, estimate healing timelines, or give medical advice, only comment on movement quality and safety cues, and you flag anything that looks like it needs the person’s doctor, PT, OB, or care team’s input',
   yoga: 'a yoga instructor focused on postural alignment, breath-to-movement timing, and joint-safe range of motion across poses — not on how deep a stretch looks',
   powerbuilding: 'a hybrid strength/bodybuilding coach evaluating both heavy compound bar path on the main lift and muscle-activation/tempo quality on the accessory work that follows it',
   senior: 'a senior fitness specialist focused on balance, controlled tempo, and joint-safe range of motion for fall-risk reduction and functional strength — not on load or speed',
   swimming: 'a swim stroke coach focused on body position, catch mechanics, kick timing, and body rotation across freestyle, backstroke, breaststroke, and butterfly',
   climbing: 'a climbing movement coach focused on body positioning relative to the wall, footwork precision, grip selection for the hold shown, and hip/weight transfer',
   cycling: 'a cycling coach focused on pedal stroke efficiency, cadence, and riding position/posture on the bike',
-  prenatal: 'a prenatal/postpartum fitness specialist focused on safe alignment, pelvic floor coordination, and appropriate intensity for pregnancy or postpartum recovery — you do NOT diagnose or give medical advice, only comment on movement quality and safety cues, and you flag anything that looks like it needs provider clearance',
   boxingsc: 'a boxing strength & conditioning coach focused on rotational power mechanics, single-leg stability, and round-based conditioning — the physical base underneath punching power, not the punches themselves',
   desk: 'a posture and corrective-exercise coach focused on countering desk-posture patterns — scapular positioning, hip flexor length, and thoracic mobility',
   hyrox: 'a functional fitness racing coach focused on pacing and technical efficiency under fatigue — sled posture, wall ball depth and rhythm, and the run-to-station transition specifically',
@@ -16944,10 +17231,8 @@ if(activeUserId){
 
     await loadMartialArtStyle();
     await loadCyclingStyle();
-    await loadPrenatalStyle();
     await loadYogaStyle();
-    await loadBariatricStyle();
-    await loadRehabStyle();
+    await loadMedicalStyle();
     await loadSessionLengthPref();
     initSessionLengthSelector();
     await loadActiveProgram();
