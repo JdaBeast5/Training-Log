@@ -601,17 +601,90 @@
   }
 
   .rest-timer{
-    position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
-    background:rgba(31,34,38,0.75); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
-    border:1px solid rgba(91,124,255,0.5); border-radius:var(--radius-pill-lg);
-    padding:10px 18px; display:none; align-items:center; gap:12px; z-index:50;
-    box-shadow:0 10px 30px -8px rgba(0,0,0,0.5);
+    position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(16px) scale(0.92);
+    width:var(--rest-timer-collapsed-w, 208px); max-width:calc(100vw - 32px);
+    background:linear-gradient(160deg, rgba(45,49,55,0.86), rgba(26,29,33,0.86));
+    backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
+    border:1px solid rgba(91,124,255,0.5); border-radius:36px;
+    padding:10px 18px; z-index:50; overflow:hidden;
+    box-shadow:0 1px 0 rgba(255,255,255,0.08) inset, 0 14px 34px -10px rgba(0,0,0,0.55), 0 10px 30px -8px rgba(91,124,255,0.4);
+    opacity:0; pointer-events:none;
+    transition:opacity 0.32s var(--ease-smooth), transform 0.36s var(--ease-smooth),
+               box-shadow 0.3s var(--ease-smooth), border-color 0.3s var(--ease-smooth),
+               border-radius 0.34s var(--ease-smooth) 0.08s, width 0.34s var(--ease-smooth) 0.08s;
   }
-  .rest-timer.active{display:flex;}
-  .rest-timer-time{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-weight:700; font-size:16px; color:var(--plate-blue); min-width:44px; text-align:center;}
+  .rest-timer.expanded{
+    width:min(320px, calc(100vw - 32px)); border-radius:28px;
+    transition:opacity 0.32s var(--ease-smooth), transform 0.36s var(--ease-smooth),
+               box-shadow 0.3s var(--ease-smooth), border-color 0.3s var(--ease-smooth),
+               border-radius 0.34s var(--ease-smooth), width 0.34s var(--ease-smooth);
+  }
+  .rest-timer::before{
+    content:''; position:absolute; top:0; left:18px; right:18px; height:1px;
+    background:linear-gradient(90deg, transparent, var(--sheen-strong) 40%, var(--sheen-strong) 60%, transparent);
+    border-radius:1px; pointer-events:none;
+  }
+  .rest-timer.active{opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0) scale(1);}
+  .rest-timer.urgent{border-color:rgba(255,69,58,0.6); box-shadow:0 1px 0 rgba(255,255,255,0.08) inset, 0 14px 34px -10px rgba(0,0,0,0.55), 0 10px 34px -6px rgba(255,69,58,0.5); animation:restTimerPulse 1s var(--ease-smooth) infinite;}
+  @keyframes restTimerPulse{
+    0%, 100%{transform:translateX(-50%) translateY(0) scale(1);}
+    50%{transform:translateX(-50%) translateY(0) scale(1.035);}
+  }
+  .rest-timer-row{display:flex; align-items:center; gap:12px;}
+  .rest-timer-ring-wrap{
+    position:relative; width:56px; height:56px; flex:0 0 auto;
+    background:none; border:none; padding:0; cursor:pointer;
+    transition:transform 0.34s var(--ease-smooth);
+  }
+  .rest-timer-ring-wrap:active{transform:scale(0.94);}
+  .rest-timer.expanded .rest-timer-ring-wrap{transform:scale(1.18);}
+  .rest-timer.expanded .rest-timer-ring-wrap:active{transform:scale(1.1);}
+  .rest-timer-ring{position:absolute; inset:0; width:56px; height:56px; transform:rotate(-90deg);}
+  .rest-timer-ring-track{fill:none; stroke:rgba(255,255,255,0.09); stroke-width:3.5;}
+  .rest-timer-ring-progress{
+    fill:none; stroke:url(#restRingGradHypertrophy); stroke-width:3.5; stroke-linecap:round;
+    stroke-dasharray:150.8; stroke-dashoffset:0;
+    filter:drop-shadow(0 0 4px rgba(91,124,255,0.7));
+    transition:stroke-dashoffset 1s linear, stroke 0.4s var(--ease-smooth), filter 0.4s var(--ease-smooth);
+  }
+  .rest-timer.tier-strength .rest-timer-ring-progress{stroke:url(#restRingGradStrength); filter:drop-shadow(0 0 4px rgba(178,107,255,0.7));}
+  .rest-timer.tier-strength{border-color:rgba(178,107,255,0.5);}
+  .rest-timer.tier-endurance .rest-timer-ring-progress{stroke:url(#restRingGradEndurance); filter:drop-shadow(0 0 4px rgba(47,184,196,0.7));}
+  .rest-timer.tier-endurance{border-color:rgba(47,184,196,0.5);}
+  .rest-timer.urgent .rest-timer-ring-progress{stroke:var(--plate-red); filter:drop-shadow(0 0 5px rgba(255,69,58,0.75));}
+  .rest-timer-expand{
+    max-height:0; opacity:0; overflow:hidden;
+    transition:max-height 0.3s var(--ease-smooth), opacity 0.2s var(--ease-smooth);
+  }
+  .rest-timer.expanded .rest-timer-expand{
+    max-height:var(--rest-timer-expand-h, 220px); opacity:1;
+    transition:max-height 0.26s var(--ease-smooth) 0.08s, opacity 0.2s var(--ease-smooth) 0.08s;
+  }
+  .rest-timer-expand > div{overflow:hidden;}
+  .rest-timer-panel-tier{
+    padding:18px 2px 0; font-family:'Inter',sans-serif; font-weight:700; font-size:13px; color:var(--plate-blue); text-align:center;
+  }
+  .rest-timer-panel-tip{
+    padding:6px 4px 14px; font-size:12px; line-height:1.5; color:var(--text-muted); text-align:center;
+  }
+  .rest-timer-panel-adjust{
+    display:flex; flex-wrap:wrap; gap:6px; padding:0 2px 4px;
+  }
+  .rt-adjust{
+    flex:1; min-width:50px; padding:8px 6px; background:rgba(91,124,255,0.1); border:1px solid rgba(91,124,255,0.3);
+    border-radius:var(--radius-sm); color:var(--text); font-size:12px; font-weight:600; cursor:pointer; font-family:'IBM Plex Mono',monospace;
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset; transition:transform 0.15s var(--ease-smooth), background 0.15s var(--ease-smooth);
+  }
+  .rt-adjust:active{transform:scale(0.94); background:rgba(91,124,255,0.2);}
+  .rest-timer-main{
+    position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  }
+  .rest-timer-time{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-weight:700; font-size:15px; color:var(--text); text-align:center; letter-spacing:-0.02em;}
   .rest-timer button{
     background:none; border:none; color:var(--text-muted); font-size:13px; cursor:pointer; font-family:'Inter',sans-serif;
+    transition:transform 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
   }
+  .rest-timer button:active{transform:scale(0.92);}
   .rest-timer .rt-add{color:var(--plate-green); font-weight:600;}
   .rest-timer .rt-close{color:var(--plate-red); font-weight:600; font-size:15px; padding:8px 4px;}
 
@@ -683,6 +756,10 @@
   }
   .pr-body{flex:1; min-width:0;}
   .pr-ex-name{font-weight:600; font-size:13.5px;}
+  .pr-type-tag{
+    font-size:9.5px; font-weight:700; color:var(--plate-purple); background:rgba(178,107,255,0.12);
+    border:1px solid rgba(178,107,255,0.3); border-radius:var(--radius-pill); padding:1px 7px; margin-left:4px; vertical-align:1px;
+  }
   .pr-day-label{font-size:11px; color:var(--text-muted); margin-top:1px;}
   .pr-stat{
     font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:15px; letter-spacing:-0.01em; color:var(--plate-yellow); font-weight:700; flex:0 0 auto; text-align:right;
@@ -914,8 +991,9 @@
     background:linear-gradient(160deg, #7C97FF, var(--plate-blue) 55%); color:#fff; font-size:24px;
     display:flex; align-items:center; justify-content:center; cursor:pointer;
     box-shadow:0 1px 0 rgba(255,255,255,0.35) inset, 0 14px 34px -8px rgba(91,124,255,0.65), 0 0 50px -14px rgba(91,124,255,0.55);
-    transition:transform 0.18s var(--ease-smooth), box-shadow 0.18s var(--ease-smooth);
+    transition:transform 0.18s var(--ease-smooth), box-shadow 0.18s var(--ease-smooth), opacity 0.26s var(--ease-smooth);
   }
+  .coach-fab.tucked{opacity:0; transform:scale(0.3); pointer-events:none; transition:transform 0.3s var(--ease-smooth), opacity 0.22s var(--ease-smooth);}
   .coach-fab::before{
     content:''; position:absolute; top:-30%; left:-10%; width:120%; height:65%;
     background:radial-gradient(ellipse at center, rgba(255,255,255,0.45), transparent 70%);
@@ -941,10 +1019,12 @@
     border:1px solid rgba(255,255,255,0.1); border-radius:22px;
     padding:16px;
     box-shadow:0 30px 70px -18px rgba(0,0,0,0.7), 0 1px 0 rgba(255,255,255,0.08) inset;
-    transform:translateY(18px) scale(0.94); transform-origin:bottom right;
-    transition:transform 0.3s var(--ease-smooth);
+    transform:translateY(18px) scale(0.9); transform-origin:bottom right;
+    transition:transform 0.34s var(--ease-smooth);
   }
   .coach-fab-modal.active .coach-fab-panel{transform:translateY(0) scale(1);}
+  .coach-fab-panel > *{opacity:0; transition:opacity 0.2s var(--ease-smooth);}
+  .coach-fab-modal.active .coach-fab-panel > *{opacity:1; transition:opacity 0.26s var(--ease-smooth) 0.14s;}
   .coach-fab-header{
     display:flex; align-items:center; justify-content:space-between; font-weight:700; font-size:15px;
     margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid var(--line-soft);
@@ -1297,6 +1377,11 @@
     border-radius:var(--radius-sm); font-size:11.5px; color:var(--plate-red); margin-left:76px;
     box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 12px -7px rgba(255,69,58,0.32);
   }
+  .ex-ai-tailor-btn{
+    display:block; margin-top:6px; background:none; border:none; color:var(--plate-blue); font-size:11px; font-weight:600;
+    text-decoration:underline; cursor:pointer; padding:0; font-family:'Inter',sans-serif;
+  }
+  .ex-ai-tailor-btn:disabled{opacity:0.6;}
 
   .food-log-list{margin-bottom:14px;}
   .food-log-item{
@@ -1359,6 +1444,14 @@
     margin-bottom:4px; transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .custom-toggle:active{transform:scale(0.98); border-color:var(--line-bright);}
+  .adapt-workout-toggle{
+    width:100%; background:linear-gradient(160deg, rgba(91,124,255,0.14), rgba(91,124,255,0.06));
+    border:1px solid rgba(91,124,255,0.35); color:var(--text);
+    padding:11px; border-radius:var(--radius-sm); font-size:13px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
+    margin-bottom:10px; box-shadow:0 1px 0 rgba(255,255,255,0.06) inset, 0 4px 14px -8px rgba(91,124,255,0.35);
+    transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
+  }
+  .adapt-workout-toggle:active{transform:scale(0.98); border-color:rgba(91,124,255,0.55);}
   .custom-form{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
   .custom-form input[type=text]{
     background:var(--surface2); border:1px solid var(--line); color:var(--text);
@@ -1487,6 +1580,12 @@
     <div class="day-insight" id="dayInsight"></div>
     <div class="today-standout-banner" id="todayStandoutBanner" style="display:none"></div>
     <div id="voiceHintBanner" style="display:none"></div>
+    <button class="adapt-workout-toggle" id="adaptWorkoutBtn">🔄 Only have limited equipment/time today? Adapt this session</button>
+    <div id="adaptWorkoutPanel" class="smooth-toggle"><div>
+      <input type="text" id="adaptWorkoutInput" class="care-input" placeholder="e.g. only dumbbells, no equipment at all, 20 minutes, traveling with just resistance bands">
+      <button class="save-btn" id="adaptWorkoutSubmit">Get adapted session</button>
+      <div id="adaptWorkoutResult"></div>
+    </div></div>
     <div id="exerciseList"></div>
     <button class="custom-toggle" id="addCustomExerciseBtn">+ Add custom exercise</button>
     <div id="customExerciseForm" class="smooth-toggle"><div>
@@ -2007,7 +2106,7 @@
 
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5.2" width="10.8" height="9.6" rx="1.5"/><path d="M12.8 8.4 17.8 6v8l-5-2.4Z"/></svg></span>Get Form Feedback</div>
-      <div class="history-hint">Coaching from the <b id="coachPersonaLabel">Strength & Size</b> knowledge base, since that's your active training style.</div>
+      <div class="history-hint">Coaching from the <b id="coachPersonaLabel">Strength & Size</b> knowledge base, since that's your active training style. Record a full working set, up to 60 seconds, from the side or a 3/4 angle — the coach reads frames across the whole set and can tell you whether your form holds up or breaks down as it goes, not just a single moment. Longer or larger clips are exactly where video reading tends to fail on iPhone, so 60 seconds is a real ceiling, not a suggestion.</div>
       <div class="privacy-note">🔒 Your clip goes directly from this device to Anthropic using your own API key — never through any other server. Only the written feedback below gets saved; the video itself is never stored, here or anywhere else.</div>
       <input type="file" id="coachVideoInput" accept="video/*" style="display:none">
       <button class="photo-log-btn" id="coachVideoBtn">🎥 Upload or Record a Clip</button>
@@ -2030,6 +2129,12 @@
       <div class="history-hint">Search all 256 exercises by name — technique cues and a form-video link for anything in the library, regardless of which program it's normally used in.</div>
       <input type="text" id="exerciseSearchInput" class="care-input" placeholder="Search exercises… e.g. squat, plank, jab">
       <div id="exerciseSearchResults"></div>
+    </div>
+
+    <div class="card" id="strengthTechniquesCard" style="display:none">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="10" r="1.8"/><circle cx="16" cy="10" r="1.8"/><line x1="5.8" y1="10" x2="14.2" y2="10"/><line x1="7" y1="8" x2="7" y2="12"/><line x1="13" y1="8" x2="13" y2="12"/></svg></span>Strength Training Fundamentals</div>
+      <div class="history-hint">The squat, hinge, press, and pull broken into their teachable phases — tap a group to expand, tap a technique for a masterclass-level walkthrough.</div>
+      <div id="strengthTechniquesList"></div>
     </div>
 
     <div class="card" id="posingCard" style="display:none">
@@ -2084,9 +2189,44 @@
 </div>
 
 <div class="rest-timer" id="restTimer">
-  <span class="rest-timer-time" id="restTimerTime">1:30</span>
-  <button class="rt-add" id="restTimerAdd">+15s</button>
-  <button class="rt-close" id="restTimerClose">✕</button>
+  <div class="rest-timer-row">
+    <button class="rest-timer-ring-wrap" id="restTimerToggle" aria-label="Show rest details">
+      <svg class="rest-timer-ring" viewBox="0 0 56 56">
+        <defs>
+          <linearGradient id="restRingGradHypertrophy" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#6E8AFF"/>
+            <stop offset="100%" stop-color="var(--plate-blue)"/>
+          </linearGradient>
+          <linearGradient id="restRingGradStrength" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#C98CFF"/>
+            <stop offset="100%" stop-color="var(--plate-purple)"/>
+          </linearGradient>
+          <linearGradient id="restRingGradEndurance" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#5DD8E2"/>
+            <stop offset="100%" stop-color="var(--plate-teal)"/>
+          </linearGradient>
+        </defs>
+        <circle class="rest-timer-ring-track" cx="28" cy="28" r="24"/>
+        <circle class="rest-timer-ring-progress" id="restTimerRing" cx="28" cy="28" r="24"/>
+      </svg>
+      <div class="rest-timer-main">
+        <span class="rest-timer-time" id="restTimerTime">1:30</span>
+      </div>
+    </button>
+    <button class="rt-add" id="restTimerAdd">+15s</button>
+    <button class="rt-close" id="restTimerClose">✕</button>
+  </div>
+  <div class="rest-timer-expand" id="restTimerPanel"><div>
+    <div class="rest-timer-panel-tier" id="restTimerPanelTier"></div>
+    <div class="rest-timer-panel-tip" id="restTimerPanelTip"></div>
+    <div class="rest-timer-panel-adjust">
+      <button class="rt-adjust" data-delta="-30">-30s</button>
+      <button class="rt-adjust" data-delta="-15">-15s</button>
+      <button class="rt-adjust" data-delta="15">+15s</button>
+      <button class="rt-adjust" data-delta="30">+30s</button>
+      <button class="rt-adjust" data-delta="60">+60s</button>
+    </div>
+  </div></div>
 </div>
 
 <div class="undo-toast" id="undoToast">
@@ -5400,6 +5540,200 @@ function toggleOlyTechniquesCard(){
 }
 
 
+// [STRENGTH FUNDAMENTALS] ----------------------------------------------
+// The specialized programs (Oly, Combat, Grappling, Climbing, Swimming) all
+// have a dedicated, browsable, masterclass-depth technique library — but
+// the actual most-used programs (Strength & Size, Bodybuilding,
+// Powerlifting, Powerbuilding) had nothing equivalent for the squat/hinge/
+// push/pull fundamentals underneath almost everything in them, only
+// per-exercise search results in the general Exercise Library. Same
+// group -> expandable-technique pattern as Oly, same 5-point structure per
+// technique (Setup, Execution, Whole-body integration, Common mistake,
+// Coaching insight from a named source where one applies).
+const STRENGTH_TECHNIQUE_GROUPS = {
+  'The Squat — Full Movement Breakdown': {
+    poses:['Squat: Bracing & Setup','Squat: The Descent (Hip-Knee Sequencing)','Squat: Bottom Position & Depth','Squat: Drive Out of the Hole'],
+    note:'The squat broken into its four teachable phases — most technical breakdowns trace back to one specific point in this sequence, not a general lack of strength or mobility.',
+  },
+  'The Hinge — Full Movement Breakdown': {
+    poses:['Deadlift: Setup & Bar Position','Deadlift: The Pull (Floor to Lockout)','Romanian Deadlift (Eccentric Control)','Hip Hinge Pattern (General)'],
+    note:'The deadlift and its close relatives, built on one underlying skill — loading the hips and hamstrings while keeping the spine in a stable, neutral position throughout.',
+  },
+  'Pressing Fundamentals': {
+    poses:['Bench Press: Setup & Arch','Bench Press: Bar Path & Elbow Position','Overhead Press: Bracing & Leg Drive','Scapular Control in Pressing'],
+    note:'The pushing patterns underneath most upper-body strength work — a stable base and a controlled bar path matter more to both performance and shoulder health than raw pressing strength alone.',
+  },
+  'Pulling Fundamentals': {
+    poses:['Barbell Row: Setup & Torso Angle','Lat Engagement (The Pulldown/Pull-up Feel)','Pull-up/Chin-up: Full Range of Motion','Grip & Forearm Considerations in Pulling'],
+    note:'The pulling patterns that balance out every pressing movement in a program — the single best insurance policy against the shoulder imbalances that heavy pressing-dominant training can create over time.',
+  },
+};
+
+const STRENGTH_TECHNIQUE_DETAILS = {
+  'Squat: Bracing & Setup': {points:[
+    'Setup: bar positioned either high-bar (resting on the traps) or low-bar (across the rear delts) depending on the variation, feet roughly shoulder-width with toes turned out slightly, and the bar unracked with a tight, deliberate walkout of two or three steps at most.',
+    'Execution: take a large breath into the belly and sides (not the chest), brace the core as though bracing for a punch, and hold that brace through the entire rep rather than releasing air partway down.',
+    'Whole-body integration: this brace is what actually transfers force between the upper and lower body and keeps the spine rigid under load — a loose brace is one of the most common reasons a lift that "should" be easy grinds or breaks down in the middle.',
+    'Common mistake: taking a shallow chest breath instead of bracing the deep core, which lets the torso collapse forward as the weight gets heavy.',
+    'Coaching insight: this bracing pattern — sometimes taught as the Valsalva maneuver in the strength literature — is standard technique at every level of competitive powerlifting specifically because it measurably stabilizes the spine under heavy axial load.',
+  ]},
+  'Squat: The Descent (Hip-Knee Sequencing)': {points:[
+    'Setup: standing tall with the brace already set, feet planted, ready to initiate the movement with intent rather than just letting gravity take over.',
+    'Execution: hips and knees bend together in a connected motion — not "sit back" alone and not "knees forward" alone — keeping the torso angle fairly constant as the whole body lowers as one unit.',
+    'Whole-body integration: how the descent is sequenced sets up the bottom position entirely; a good descent makes the bottom position almost automatic, while a poor one usually forces a technical fix at the worst possible point in the lift.',
+    'Common mistake: the knees caving inward (valgus collapse) as the weight increases — usually a hip stability and glute activation issue more than a mobility one, and worth flagging early since it\'s linked to knee strain over time.',
+    'Coaching insight: the old "knees should never go past the toes" cue has been walked back by most modern strength coaches — some forward knee travel is completely normal and necessary depending on limb length and squat depth; the actual concern is inward knee collapse, not forward travel.',
+  ]},
+  'Squat: Bottom Position & Depth': {points:[
+    'Setup: descending under control, brace still fully intact, approaching the bottom of the rep with the same tightness as the top.',
+    'Execution: reach at least the point where the hip crease drops below the top of the knee (the standard depth benchmark) while keeping the lower back neutral — not rounded and not excessively arched.',
+    'Whole-body integration: full depth trains the muscles through their complete range of motion and is directly tied to the mobility work most squat-heavy programs already build in around the hips and ankles.',
+    'Common mistake: the lower back rounding at the bottom ("butt wink") as depth increases past what current hip and ankle mobility actually allows — a mobility limitation showing up as a technique fault, not a technique fault on its own.',
+    'Coaching insight: research on spine loading (including work associated with Dr. Stuart McGill) generally treats a small, symmetrical amount of end-range rounding as low-risk for most lifters, but a large or asymmetrical wink under heavy load is worth addressing through mobility work rather than just pushing through it.',
+  ]},
+  'Squat: Drive Out of the Hole': {points:[
+    'Setup: fully braced at the bottom position, ready to reverse direction with control rather than bouncing uncontrolled off the bottom.',
+    'Execution: drive up by pushing the floor away through the whole foot — not just the toes or just the heels — with the hips and shoulders rising at roughly the same rate rather than the hips shooting up first.',
+    'Whole-body integration: this is the payoff phase for everything set up in the descent — a good brace and good bottom position make this drive dramatically more efficient, which is why fixing earlier phases often fixes a stalling ascent without ever training the drive itself directly.',
+    'Common mistake: the hips shooting up faster than the chest ("good morning squat"), which turns a squat into something closer to a stiff-leg deadlift under the bar and puts much more strain on the lower back than the lift was meant to.',
+    'Coaching insight: Mark Rippetoe\'s Starting Strength method specifically drills "hips and shoulders rise together" as one of the first things corrected in new lifters, since it\'s one of the most common and most fixable technical breakdowns in the entire lift.',
+  ]},
+  'Deadlift: Setup & Bar Position': {points:[
+    'Setup: bar over the middle of the foot (roughly over the shoelaces), shins close to the bar, hips set lower than the shoulders but higher than in a squat, and a tight brace taken before the bar ever leaves the floor.',
+    'Execution: grip the bar just outside the legs, pull the slack out of the bar (a slight take-up of tension) before actually initiating the pull, so the first movement is the bar leaving the floor, not slack leaving the bar.',
+    'Whole-body integration: bar position over mid-foot is what keeps the bar path vertical for the entire lift — start it too far forward and the whole rep becomes a fight to keep the bar close for its entire trip up.',
+    'Common mistake: setting up with the bar too far from the shins, which forces the bar forward and away from the body throughout the whole pull and turns a straightforward lift into a lower-back-dominant grind.',
+    'Coaching insight: the "pull the slack out" cue — sometimes described as getting the bar to make a small audible click as it takes tension — is widely taught in powerlifting circles specifically to prevent a jerky, uncontrolled start to the pull.',
+  ]},
+  'Deadlift: The Pull (Floor to Lockout)': {points:[
+    'Setup: tension already taken out of the bar, brace set, torso angle fixed and ready to hold through the entire pull.',
+    'Execution: drive the floor away through the legs first, keeping the bar in contact with (or very close to) the shins and thighs the entire way up, finishing with the hips fully extended and shoulders back — not by leaning back excessively at the top.',
+    'Whole-body integration: keeping the bar close is the single biggest lever on how much lower-back strain a given weight creates — the further the bar drifts from the body, the more leverage disadvantage the spine has to fight against.',
+    'Common mistake: hips rising much faster than the chest right off the floor, which converts the pull into a stiff-leg deadlift pattern and shifts a large amount of load onto the lower back specifically.',
+    'Coaching insight: elite powerlifting coaching (Westside Barbell\'s Louie Simmons among others) has long emphasized keeping the bar in constant contact with the legs through the pull — the resulting shin scrapes are considered a normal sign of correct technique, not a mistake to avoid.',
+  ]},
+  'Romanian Deadlift (Eccentric Control)': {points:[
+    'Setup: starting from a standing position holding the bar (not from the floor), knees with a slight, fixed bend that doesn\'t change throughout the movement.',
+    'Execution: push the hips straight back while lowering the bar close along the thighs, keeping the spine neutral, stopping once a strong stretch is felt in the hamstrings — typically around mid-shin to just below the knee, not necessarily all the way to the floor.',
+    'Whole-body integration: this movement isolates the hip-hinge pattern and hamstring loading specifically, without the added complexity of pulling from a dead stop on the floor — it\'s often used to teach or reinforce the hinge pattern that the full deadlift depends on.',
+    'Common mistake: bending the knees more as the bar descends (turning it into a squat-like movement) instead of hinging at the hips, which takes tension off the hamstrings, which is the entire point of the exercise.',
+    'Coaching insight: how far the bar descends should be dictated by hamstring flexibility and maintaining a neutral spine, not by a fixed range-of-motion target — going lower than current hamstring flexibility allows is what causes the lower back to round, not a lack of effort.',
+  ]},
+  'Hip Hinge Pattern (General)': {points:[
+    'Setup: standing tall, a light dowel or bar held along the spine (touching the back of the head, mid-back, and tailbone) is a common way to learn this pattern before ever adding weight.',
+    'Execution: push the hips backward while keeping the knees mostly still and the spine neutral, allowing the torso to tip forward as a natural consequence of the hips moving back — not by bending forward at the waist.',
+    'Whole-body integration: this single pattern underlies the deadlift, the Romanian deadlift, kettlebell swings, and good mornings — learning it in isolation, without a weight to worry about, is one of the fastest ways to fix hinge-related faults across all of those movements at once.',
+    'Common mistake: squatting the hips straight down instead of pushing them back, or rounding through the lower back to reach further forward than current hip mobility allows.',
+    'Coaching insight: physical therapists and strength coaches alike frequently use the dowel-on-the-spine drill specifically because it gives instant, unambiguous feedback — losing contact at any of the three points means the pattern has broken down, which is much harder to self-assess without it.',
+  ]},
+  'Bench Press: Setup & Arch': {points:[
+    'Setup: shoulder blades pulled back and down and pinned to the bench, a natural arch in the upper-to-mid back (not the neck), feet planted flat and driving into the floor.',
+    'Execution: grip the bar slightly wider than shoulder width, unrack it over the shoulders (not the face or the belt line), and hold the shoulder-blade position throughout the entire set rather than letting it soften between reps.',
+    'Whole-body integration: the arch and retracted shoulder blades create a shorter, more stable, more powerful range of motion and are a large part of what protects the shoulder joint under heavy load — this isn\'t just a powerlifting-specific trick, it\'s relevant to anyone bench pressing seriously.',
+    'Common mistake: letting the shoulders roll forward and up toward the ears during the setup, which flattens the natural arch and puts the shoulder joint in a less stable, more exposed position for the entire set.',
+    'Coaching insight: this setup is standard technique across raw and equipped powerlifting alike specifically because it\'s been shown, over decades of competitive use, to reduce shoulder strain while also improving the amount of weight that can be moved.',
+  ]},
+  'Bench Press: Bar Path & Elbow Position': {points:[
+    'Setup: bar locked out over the shoulders at the top, brace and arch already set, ready to lower under control rather than dropping the weight.',
+    'Execution: lower the bar to a point on the torso roughly in line with the lower chest or upper abdomen (not straight down to the same spot on the chest every time), with the elbows tucked to something closer to a 45-75 degree angle from the torso rather than flared straight out to the sides.',
+    'Whole-body integration: this bar path keeps the shoulder joint in a mechanically stronger, safer position through the full range of the lift — a straight up-and-down bar path over the same point on the chest, with flared elbows, is a common recipe for shoulder impingement over time.',
+    'Common mistake: flaring the elbows out to 90 degrees from the torso, which shortens the useful range for the chest and shoulders to work through and adds unnecessary stress directly to the front of the shoulder joint.',
+    'Coaching insight: the shift toward a slight diagonal bar path with tucked elbows has become close to universal in modern powerlifting technique coaching, replacing the older "flare the elbows for a bigger chest contraction" cue that\'s now understood to carry more shoulder risk than benefit.',
+  ]},
+  'Overhead Press: Bracing & Leg Drive': {points:[
+    'Setup: bar racked at the front of the shoulders, grip just outside shoulder width, feet roughly hip-width, core and glutes braced tight before the bar ever moves.',
+    'Execution: press the bar in a path that starts close to the face, with the head moving slightly back and then through once the bar clears it, finishing with the bar directly over the crown of the head and the whole body in one straight line.',
+    'Whole-body integration: a tight brace through the core and glutes is what keeps the lower back from arching excessively as the weight moves overhead — without it, the lift turns into a lower-back exercise disguised as a shoulder press.',
+    'Common mistake: excessive lower-back arching (lumbar hyperextension) to help the bar clear the head, instead of actually moving the head back and through — this trades shoulder mobility for lower-back strain.',
+    'Coaching insight: NSCA guidance on overhead pressing consistently emphasizes full-body bracing as the technique element most responsible for keeping the lift safe as load increases, ahead of shoulder strength or mobility alone.',
+  ]},
+  'Scapular Control in Pressing': {points:[
+    'Setup: whichever pressing movement is being performed, the shoulder blades start in a retracted, "pinned" position against the bench or torso, established before the first rep and reinforced between every subsequent rep.',
+    'Execution: maintain that retracted position throughout the set rather than letting the shoulder blades protract (spread apart and roll forward) as fatigue sets in, particularly on the last few reps of a hard set.',
+    'Whole-body integration: this single element of technique is one of the biggest differentiators between pressing that stays shoulder-healthy over years of training and pressing that gradually grinds the shoulder joint down — it matters more to long-term shoulder health than almost any other single pressing cue.',
+    'Common mistake: the shoulder blades gradually losing their set position as a set gets hard, which isn\'t usually a conscious choice — it\'s a sign that either the weight is too heavy for the current level of scapular control, or that direct upper-back and rear-delt work is missing from the program.',
+    'Coaching insight: physical therapists commonly point to a pressing-heavy program with little to no direct rowing or rear-delt work as one of the most common, entirely preventable causes of shoulder impingement in recreational lifters — which is the exact imbalance the Pulling Fundamentals group below exists to correct.',
+  ]},
+  'Barbell Row: Setup & Torso Angle': {points:[
+    'Setup: hips hinged so the torso is roughly parallel to the floor (or at least a consistent, fixed angle well below vertical), knees softly bent, spine neutral, bar hanging with arms fully extended.',
+    'Execution: pull the bar toward the lower ribs or upper abdomen by driving the elbows back and pinching the shoulder blades together at the top, then lower under control back to a full stretch rather than letting the bar drop.',
+    'Whole-body integration: the fixed torso angle is what isolates the back muscles doing the actual work — if the torso angle changes rep to rep (standing up more with each pull), momentum starts doing the work that the lats and upper back were supposed to be doing.',
+    'Common mistake: standing progressively more upright as the set gets harder ("torso creep"), using body English and momentum to move the weight instead of the back muscles the exercise is meant to target.',
+    'Coaching insight: keeping a truly fixed torso angle throughout a rowing set is one of the most commonly cited differences between an experienced lifter\'s rows and a beginner\'s — it\'s a subtle thing to self-monitor, and one of the most valuable things a training partner or mirror can catch.',
+  ]},
+  'Lat Engagement (The Pulldown/Pull-up Feel)': {points:[
+    'Setup: whether on a pulldown machine, a pull-up bar, or a row, hands set at a comfortable width, shoulder blades starting from a slightly depressed (pulled-down) position rather than shrugged up toward the ears.',
+    'Execution: initiate the pull by driving the elbows down and back — "elbows to back pockets" is a common cue — rather than initiating with the hands and arms, which is what actually recruits the lats as the prime mover instead of the biceps and forearms.',
+    'Whole-body integration: this initiation order is the difference between a pulling exercise that trains the back and one that quietly turns into a biceps exercise — the movement can look nearly identical from the outside while training completely different muscles depending on which part of the body starts the pull.',
+    'Common mistake: shrugging the shoulders up toward the ears at the start of the pull, which puts the traps and neck in charge of initiating the movement instead of the lats.',
+    'Coaching insight: many lifters never feel their lats working at all until they\'re specifically taught to depress the shoulder blades before pulling — it\'s frequently described as the single biggest "lightbulb moment" cue in back training, and worth deliberately practicing with light weight before adding load.',
+  ]},
+  'Pull-up/Chin-up: Full Range of Motion': {points:[
+    'Setup: hanging from a bar with arms fully extended (a "dead hang") and shoulder blades already slightly engaged rather than completely loose, grip just outside shoulder width for a pull-up or shoulder-width with palms facing in for a chin-up.',
+    'Execution: pull up until the chin clears the bar, driving the elbows down and back the same way as in a pulldown, then lower back under control to a genuinely full arm extension at the bottom rather than stopping partway.',
+    'Whole-body integration: the bottom portion of the range of motion — the last few inches into a full hang — is where a large share of the lat\'s stretch-based growth stimulus actually happens; consistently cutting it short trades away a meaningful part of the exercise\'s value.',
+    'Common mistake: kipping or using momentum from the hips and legs to help the body up when strict pull-ups are the actual goal, or consistently stopping a few inches short of full extension at the bottom of every rep.',
+    'Coaching insight: the difference between a "chin-up" (palms facing the body, more biceps involvement) and a "pull-up" (palms facing away, more back-dominant) is a genuinely useful piece of programming knowledge — both are legitimate, but they aren\'t interchangeable for someone specifically trying to build back width and strength.',
+  ]},
+  'Grip & Forearm Considerations in Pulling': {points:[
+    'Setup: for any heavy pulling movement, decide on grip approach before the set starts — double overhand, mixed (one hand over, one under), or using lifting straps — rather than defaulting to whatever grip happens to feel natural in the moment.',
+    'Execution: whichever grip is chosen, keep it consistent throughout the set, and be honest about whether grip strength or back strength is actually the limiting factor on a given exercise before assuming the back muscles have hit their true limit.',
+    'Whole-body integration: on heavy pulling movements like deadlifts and rows, grip strength very commonly becomes the limiting factor well before the back and legs are actually maxed out — using straps on back-focused accessory work (not necessarily on the competition deadlift itself) lets the target muscles keep training past where grip alone would otherwise cap the set.',
+    'Common mistake: assuming a set ended because the back gave out, when the real limiter was the hands losing their grip on the bar — this leads to underestimating true back strength and can stall progress in back-focused training specifically.',
+    'Coaching insight: many well-regarded programs deliberately use straps for back-isolation pulling work (rows, pulldowns, shrugs) while leaving grip fully unassisted on the competition lifts themselves — treating grip and back strength as two separate qualities to train, not one combined limiter.',
+  ]},
+};
+
+function renderStrengthTechniques(){
+  const listEl = document.getElementById('strengthTechniquesList');
+  if(!listEl) return;
+  listEl.innerHTML = Object.keys(STRENGTH_TECHNIQUE_GROUPS).map((groupName)=>{
+    const grp = STRENGTH_TECHNIQUE_GROUPS[groupName];
+    const techRows = grp.poses.map((techName)=>{
+      const detail = STRENGTH_TECHNIQUE_DETAILS[techName];
+      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
+      const query = encodeURIComponent(`${techName} proper technique tutorial`);
+      return `
+        <details class="pose-detail-wrap">
+          <summary class="pose-row">
+            <div class="pose-icon">${CATEGORY_ICONS.barbell}</div>
+            <div class="pose-name">${techName}</div>
+            <span class="ex-chevron">›</span>
+          </summary>
+          <div class="pose-detail">
+            <ul>${pointsHtml}</ul>
+            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
+          </div>
+        </details>
+      `;
+    }).join('');
+    return `
+      <details class="posing-class">
+        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
+        <div class="posing-class-note">${grp.note}</div>
+        ${techRows}
+      </details>
+    `;
+  }).join('');
+}
+
+// Shown for the programs actually built on these fundamentals — the ones
+// this gap most directly affected — rather than every program, which would
+// dilute it into generic filler shown everywhere instead of the deep,
+// specific reference it's meant to be.
+const STRENGTH_FUNDAMENTALS_PROGRAMS = ['strength','bodybuilding','powerlifting','powerbuilding'];
+function toggleStrengthTechniquesCard(){
+  const card = document.getElementById('strengthTechniquesCard');
+  if(!card) return;
+  if(STRENGTH_FUNDAMENTALS_PROGRAMS.includes(activeProgram)){
+    card.style.display = '';
+    renderStrengthTechniques();
+  } else {
+    card.style.display = 'none';
+  }
+}
+
+
 // [COMBAT TECHNIQUES] -------------------------------------------------------
 // Technique reference for the Combat program, grouped by martial art style
 // (mirrors COMBAT_STYLES exactly) — same "group → expandable technique rows
@@ -6561,6 +6895,7 @@ async function renderProgramSelector(trendStatus){
   toggleCombatTechniquesCard();
   toggleGrappleTechniquesCard();
   toggleOlyTechniquesCard();
+  toggleStrengthTechniquesCard();
   renderTips();
   updateMasterclassLinkBtn();
 
@@ -6584,6 +6919,7 @@ async function renderProgramSelector(trendStatus){
     toggleCombatTechniquesCard();
     toggleGrappleTechniquesCard();
     toggleOlyTechniquesCard();
+    toggleStrengthTechniquesCard();
     renderTips();
     updateMasterclassLinkBtn();
     // The banner needs to react to a manual program switch too, not just
@@ -6995,40 +7331,68 @@ const CATEGORY_MET = {
   core:4, jump:8, oly:6.5, throw:5, punch:7.5, kick:8, cardio:7,
 };
 
-// Per-set time (work + rest) depends heavily on what kind of exercise it
-// is — treating every set the same, regardless of type, was the actual
-// root cause of a real bug: full-session time estimates were coming out
-// low enough that some programs' full session already fit inside a
-// "shortened" target, so selecting a shorter session did nothing because
-// there was genuinely nothing left to trim.
-//
-// Grounded in actual rest-period research (ACSM guidance, Schoenfeld et al.
-// 2016, and consistent findings across multiple independent reviews):
-// compound/multi-joint lifts (squat, hinge, push, pull, olympic lifts)
-// warrant roughly 2-3 minutes of rest for hypertrophy-range work, while
-// isolation/single-joint accessory work is well-served by 1-2 minutes.
-// Reuses the exact same compound-lift categorization already established
-// for warm-up-ramp eligibility (WARMUP_ELIGIBLE_CATEGORIES), rather than
-// inventing a second classification of the same thing.
+// Per-set time is derived directly from getDefaultRestSeconds — the exact
+// same function driving the live rest timer — rather than a separate,
+// independently-maintained number. This guarantees the "Full session"
+// estimate and the actual rest periods can never drift apart: if you rest
+// the full recommended time on every set, the estimate already reflects
+// that, tier for tier (strength/hypertrophy/endurance), not just a flat
+// compound/isolation guess. Previously the duration formula only knew
+// about compound vs. isolation, so a low-rep strength day's estimate
+// didn't account for the longer 4-minute rest that low-rep work actually
+// needs — a real gap between what the timer would make you do and what
+// the estimate promised.
 function parseEstimatedMinutes(ex, setCount){
   const setsStr = typeof ex === 'string' ? ex : ex.sets;
+  // Round-count format ("8×2min rounds", "4×1min") is checked FIRST and
+  // must be, since the generic duration regex below is unanchored and
+  // will otherwise greedily match just the trailing "2min" portion of a
+  // string like "8×2min rounds" — silently discarding the ×8 round count
+  // entirely and returning a single round's duration as if that were the
+  // whole exercise. That was a real bug: any round-based entry (jump
+  // rope, combat conditioning, interval work) was being estimated as a
+  // small fraction of its actual work time.
+  const roundsMatch = setsStr.match(/(\d+)\s*×\s*(\d+(?:\.\d+)?)\s*min/);
+  if(roundsMatch){
+    const rounds = Number(roundsMatch[1]), roundMin = Number(roundsMatch[2]);
+    // 1 minute rest between rounds is the extremely well-established,
+    // universal convention across boxing, MMA, and general round-based
+    // conditioning, regardless of round length — confirmed consistently
+    // across independent sources, not just a single estimate. Only
+    // (rounds-1) rest periods apply; the transition-overhead constant
+    // elsewhere already accounts for moving on after the final round.
+    return rounds*roundMin + Math.max(0, rounds-1)*1;
+  }
   const timeMatch = setsStr.match(/(\d+(?:\.\d+)?)\s*-?\s*(\d+(?:\.\d+)?)?\s*min/);
   if(timeMatch){
     const lo = Number(timeMatch[1]);
     const hi = timeMatch[2] ? Number(timeMatch[2]) : lo;
     return (lo+hi)/2;
   }
-  const roundsMatch = setsStr.match(/(\d+)\s*×\s*(\d+(?:\.\d+)?)\s*min/);
-  if(roundsMatch) return Number(roundsMatch[1]) * Number(roundsMatch[2]);
+
+  // Seconds-based holds ("3×20-30s/side", "3×45-60s") — common for yoga
+  // poses, planks, and isometric carries. Previously unrecognized (only
+  // "min" was parsed), so these silently fell through to the generic
+  // per-set rest fallback, ignoring the actual hold duration entirely and
+  // undercounting real held-position time, especially for bilateral
+  // ("/side") holds performed on both sides per set. Rest between holds
+  // is deliberately short — isometric/stretch holds don't carry the same
+  // systemic fatigue as a loaded lifting set, so a long lifting-style rest
+  // doesn't apply here.
+  const secMatch = setsStr.match(/(\d+)\s*×\s*(\d+(?:\.\d+)?)\s*-?\s*(\d+(?:\.\d+)?)?\s*s(?:ec)?\b/i);
+  if(secMatch){
+    const count = Number(secMatch[1]);
+    const lo = Number(secMatch[2]);
+    const hi = secMatch[3] ? Number(secMatch[3]) : lo;
+    const sides = /\/\s*side/i.test(setsStr) ? 2 : 1;
+    const workMin = count * ((lo+hi)/2) * sides / 60;
+    const restMin = Math.max(0, count-1) * 0.75; // ~45 sec between hold-based sets
+    return workMin + restMin;
+  }
 
   const count = setCount || parseSetCount(setsStr);
-  const info = typeof ex === 'object' ? exerciseInfo[ex.name] : null;
-  const isCompound = info && WARMUP_ELIGIBLE_CATEGORIES.includes(info.category);
-  // ~2.5 min/set for compound lifts (execution + rest, within the
-  // research-backed 2-3 min hypertrophy-range rest window for multi-joint
-  // movements); ~1.5 min/set for isolation/accessory work (within the
-  // 1-2 min window that's well-supported for single-joint exercises).
-  return count * (isCompound ? 2.5 : 1.5);
+  const exObj = typeof ex === 'object' ? ex : null;
+  return count * (getDefaultRestSeconds(exObj) / 60);
 }
 
 function estimateExerciseCalories(ex, weightLb){
@@ -7537,19 +7901,52 @@ const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRec
 const WARMUP_ELIGIBLE_CATEGORIES = ['squat','hinge','push','pull','oly'];
 const WARMUP_MIN_WORKING_WEIGHT = 95; // below this, a formal ramp adds more clutter than value
 
-// The live rest timer (started right after logging a set) was always
-// falling back to a flat 90 seconds regardless of what was just performed
-// — the same "one number for every exercise" gap as the session-length
-// duration formula, but arguably more consequential since this is the
-// number a person is actually counting down live between sets. Grounded
-// in the same rest-period research used for the duration formula: 2-3 min
-// for compound/multi-joint hypertrophy work, 1-2 min for isolation —
-// midpoints of 150s and 90s respectively, reusing the established
-// compound-lift categorization rather than a second classification of it.
+// Rest-period research (NSCA position stand, Schoenfeld et al. 2016 RCT,
+// and multiple converging reviews) treats REP RANGE as the primary driver
+// of how much rest a set needs, not just movement pattern:
+//   - Strength work (~1-5 reps): 3-5 min — near-complete phosphocreatine
+//     recovery is needed for near-maximal force output, regardless of
+//     whether the movement itself is a compound or isolation lift.
+//   - Hypertrophy work (~6-12 reps): this is the one range where compound
+//     vs. isolation genuinely diverges in the research — 2-3 min for
+//     compound/multi-joint work, 1-2 min for isolation/single-joint work.
+//   - Endurance/high-rep work (13+ reps): 30-90 sec — lactate clearance
+//     and deliberate fatigue accumulation is the point, not full recovery.
+// Falls back to the hypertrophy-range compound/isolation split for AMRAP,
+// time-based, or otherwise unparseable rep targets, since that's the most
+// common training style when a straight rep count isn't given.
+function getRepRangeTier(setsStr){
+  const m = (setsStr||'').match(/×\s*(\d+)\s*(?:-\s*(\d+))?/);
+  if(!m) return null;
+  const lo = Number(m[1]);
+  const hi = m[2] ? Number(m[2]) : lo;
+  const avg = (lo+hi)/2;
+  if(avg <= 5) return 'strength';
+  if(avg <= 12) return 'hypertrophy';
+  return 'endurance';
+}
+
 function getDefaultRestSeconds(ex){
   const info = ex && exerciseInfo[ex.name];
   const isCompound = info && WARMUP_ELIGIBLE_CATEGORIES.includes(info.category);
-  return isCompound ? 150 : 90;
+  const tier = getRepRangeTier(ex && ex.sets);
+  if(tier === 'strength') return 240; // 3-5 min range, using the midpoint
+  if(tier === 'endurance') return 60; // 30-90 sec range, using the midpoint
+  return isCompound ? 150 : 90; // hypertrophy range, or unparseable (AMRAP/time-based) — compound/isolation split applies
+}
+
+// Short, human label explaining the rest duration above — the timer
+// previously showed a bare countdown with no indication of why that
+// number was chosen, which made an actually research-grounded duration
+// look arbitrary. Mirrors getDefaultRestSeconds' own logic exactly so the
+// label always matches the number it's explaining.
+function getRestReasonLabel(ex){
+  const info = ex && exerciseInfo[ex.name];
+  const isCompound = info && WARMUP_ELIGIBLE_CATEGORIES.includes(info.category);
+  const tier = getRepRangeTier(ex && ex.sets);
+  if(tier === 'strength') return 'Strength range · low reps';
+  if(tier === 'endurance') return 'Endurance range · high reps';
+  return isCompound ? 'Hypertrophy · compound' : 'Hypertrophy · isolation';
 }
 
 function roundToIncrement(n, increment){ return Math.round(n/increment)*increment; }
@@ -7792,13 +8189,9 @@ async function renderWorkout(){
   const {exercises: renderExercises, estimatedMinutes} = applySessionLengthLimit(fullExercises, targetMinutes);
 
   const durationEl = document.getElementById('dayDuration');
-  if(targetMinutes == null && !inDeloadWeek){
-    durationEl.textContent = day.duration;
-  } else {
-    const wasShortened = targetMinutes != null && (renderExercises.length < fullExercises.length || renderExercises.some((ex,i)=> ex.sets !== fullExercises[i]?.sets));
-    const suffix = wasShortened ? ' (shortened)' : inDeloadWeek ? ' (deload)' : '';
-    durationEl.textContent = `~${Math.round(estimatedMinutes)} min${suffix}`;
-  }
+  const wasShortened = targetMinutes != null && (renderExercises.length < fullExercises.length || renderExercises.some((ex,i)=> ex.sets !== fullExercises[i]?.sets));
+  const suffix = wasShortened ? ' (shortened)' : inDeloadWeek ? ' (deload)' : '';
+  durationEl.textContent = `~${Math.round(estimatedMinutes)} min${suffix}`;
 
   const logs = await Promise.all(renderExercises.map((ex,i)=> getExLog(activeDay, i)));
   const restingRegions = await getRestingRegions();
@@ -7912,13 +8305,15 @@ async function renderWorkout(){
     const exCalories = estimateExerciseCalories(ex, userProfile.weight);
 
     let cautionHtml = '';
+    let hitRegionsForRow = [];
     if(info && restingRegions.length){
       const exRegions = CATEGORY_TO_REGIONS[info.category] || [];
       const hitRegions = exRegions.filter(r=> restingRegions.includes(r));
       if(hitRegions.length){
+        hitRegionsForRow = hitRegions;
         const sub = suggestSubstitute(info.category, ex.name);
         const swapHtml = sub ? ` Try <b>${sub.name}</b> instead — ${sub.why}.` : '';
-        cautionHtml = `<div class="ex-caution">⚠️ You marked ${hitRegions.join(' & ')} as resting — consider skipping or lightening this one.${swapHtml} Clear it in Care when you're ready.</div>`;
+        cautionHtml = `<div class="ex-caution">⚠️ You marked ${hitRegions.join(' & ')} as resting — consider skipping or lightening this one.${swapHtml} Clear it in Care when you're ready. <button type="button" class="ex-ai-tailor-btn">✨ Tailor to what I logged</button></div>`;
       }
     }
 
@@ -7978,6 +8373,36 @@ async function renderWorkout(){
         const list = await getCustomExercises(activeProgram, activeDay);
         await saveCustomExercises(activeProgram, activeDay, list.filter(c=>c.name !== ex.name));
         renderWorkout();
+      });
+    }
+
+    const aiTailorBtn = row.querySelector('.ex-ai-tailor-btn');
+    if(aiTailorBtn){
+      aiTailorBtn.addEventListener('click', async (e)=>{
+        e.stopPropagation();
+        const apiKey = await getApiKey();
+        if(!apiKey){
+          aiTailorBtn.insertAdjacentHTML('afterend', `<div class="care-banner care-banner-caution" style="margin-top:8px;">Add your Anthropic API key in "AI Features Setup" on the Today tab first.</div>`);
+          return;
+        }
+        aiTailorBtn.disabled = true;
+        aiTailorBtn.textContent = 'Thinking…';
+        try{
+          const injuryLog = await getInjuryLog();
+          const relevant = [...injuryLog].reverse().find(entry=> hitRegionsForRow.includes(entry.region));
+          const symptomLine = relevant
+            ? `They logged: ${relevant.pain}/10 pain in ${relevant.region}${relevant.exercise ? `, noted during/after "${relevant.exercise}"` : ''}${relevant.sensation ? `, described as ${relevant.sensation}` : ''}${relevant.note ? `. Their own note: "${relevant.note}"` : ''}.`
+            : `They've marked ${hitRegionsForRow.join(' & ')} as currently resting, but no specific symptom detail is on file.`;
+          const persona = getCoachPersona();
+          const sub = suggestSubstitute(info.category, ex.name);
+          const prompt = `You are ${persona}. Someone is looking at "${ex.name}" in today's workout, which loads a region they've marked as resting. ${symptomLine} The app's default suggestion is "${sub ? sub.name : 'no direct substitute on file'}". Give a short, specific take (2-3 sentences, no headers or markdown) on whether that default substitute actually makes sense given what they described, or whether something else would be more appropriate — tied to the actual symptom, not generic category advice. You are not a doctor — if what they described sounds like it needs an in-person evaluation (sharp pain, numbness, a pop/snap, or anything not clearly improving), say so plainly rather than just suggesting an exercise swap.`;
+          const reply = await callClaudeChat(apiKey, prompt, [{role:'user', content:'What do you think, given what I logged?'}], 250);
+          aiTailorBtn.outerHTML = `<div class="goal-feedback-neutral" style="margin-top:8px;">${escapeHtml(reply.trim())}</div>`;
+        }catch(err){
+          aiTailorBtn.disabled = false;
+          aiTailorBtn.textContent = '✨ Tailor to what I logged';
+          aiTailorBtn.insertAdjacentHTML('afterend', `<div class="care-banner care-banner-caution" style="margin-top:8px;">Couldn't get tailored advice right now — try again in a moment.</div>`);
+        }
       });
     }
 
@@ -8098,6 +8523,17 @@ function setupStickyDayHeaderObserver(){
 // --- Rest timer: auto-starts after logging a set, like Strong/Hevy's auto rest timer ---
 let restTimerInterval = null;
 let restTimerSeconds = 90;
+let restTimerTotal = 90;
+const REST_TIMER_RING_CIRCUMFERENCE = 150.8; // 2 * π * r(24), matches the SVG circle's radius
+
+// Short, real, tier-specific context for the expand panel — not filler
+// copy, each tied to the actual research behind that tier's duration.
+const REST_TIER_TIPS = {
+  'Strength range · low reps': 'Near-complete phosphocreatine recovery takes roughly 3-5 minutes at this intensity — cutting it short mainly costs you force output on the next set, not just "feeling less recovered."',
+  'Hypertrophy · compound': "Schoenfeld's 2016 trial found 3-minute rests produced more muscle and strength than 1-minute rests on the same compound lifts — the extra rest isn't wasted time.",
+  'Hypertrophy · isolation': 'Isolation work recovers faster than compound lifts — 1-2 minutes is well-supported here, so there\u2019s little benefit to resting as long as you would on a squat or bench.',
+  'Endurance range · high reps': 'Short rest here is intentional — deliberate fatigue accumulation is the actual training stimulus at this rep range, not something to avoid.',
+};
 
 function formatTimer(s){
   const m = Math.floor(s/60);
@@ -8105,18 +8541,94 @@ function formatTimer(s){
   return `${m}:${String(sec).padStart(2,'0')}`;
 }
 
-function startRestTimer(seconds){
+function updateRestTimerRing(){
+  const ring = document.getElementById('restTimerRing');
+  const fraction = Math.max(0, restTimerSeconds / restTimerTotal);
+  ring.style.strokeDashoffset = REST_TIMER_RING_CIRCUMFERENCE * (1 - fraction);
+}
+
+// The collapsed pill's width was previously a guessed pixel value, which
+// left visible slack because real button padding/font rendering doesn't
+// match a hand-estimated number exactly. Measured here instead: each
+// child's own offsetWidth reflects its true rendered size regardless of
+// the flex row around it (which itself stretches to fill the parent and
+// so can't be measured directly without a circular dependency on the very
+// width being calculated). Computed once and cached, since the content
+// (ring + two buttons) never changes.
+let restTimerCollapsedWidth = null;
+function applyRestTimerCollapsedWidth(){
+  if(restTimerCollapsedWidth == null){
+    const ring = document.querySelector('#restTimer .rest-timer-ring-wrap');
+    const add = document.getElementById('restTimerAdd');
+    const close = document.getElementById('restTimerClose');
+    if(ring && add && close){
+      const gap = 12, containerPadding = 36; // 18px each side, matches .rest-timer's own padding
+      restTimerCollapsedWidth = Math.ceil(ring.offsetWidth + gap + add.offsetWidth + gap + close.offsetWidth + containerPadding);
+    }
+  }
+  if(restTimerCollapsedWidth){
+    document.getElementById('restTimer').style.setProperty('--rest-timer-collapsed-w', restTimerCollapsedWidth+'px');
+  }
+}
+
+// Same problem, same fix, for the expand panel's height: animating
+// max-height toward an oversized generic ceiling (320px) meant the actual
+// content stopped growing well before the eased transition's nominal end,
+// so the motion looked like it hit a wall rather than easing to a natural
+// stop. scrollHeight reports the true content height regardless of the
+// max-height clipping currently applied, so this is safe to measure even
+// while collapsed. Text content is static per tier, but re-measures each
+// time in case a longer tip pushes the real height up slightly.
+function applyRestTimerExpandHeight(){
+  const el = document.getElementById('restTimer');
+  const inner = document.querySelector('#restTimerPanel > div');
+  if(!inner) return;
+  // Text (especially the tip) wraps differently depending on available
+  // width — measuring at the collapsed pill's narrow width produces a
+  // taller height than the content actually needs once expanded, since
+  // more text wraps onto more lines at that width. Forcing the real
+  // target width just for this synchronous measurement, then reverting
+  // before the browser ever paints, gives the true height without any
+  // visible flash.
+  const targetWidth = Math.min(320, window.innerWidth - 32);
+  const prevWidth = el.style.width;
+  const prevTransition = el.style.transition;
+  el.style.transition = 'none';
+  el.style.width = targetWidth + 'px';
+  const h = Math.ceil(inner.scrollHeight);
+  el.style.width = prevWidth;
+  el.style.transition = prevTransition;
+  if(h > 0) el.style.setProperty('--rest-timer-expand-h', h+'px');
+}
+
+function startRestTimer(seconds, label){
   restTimerSeconds = seconds || 90;
+  restTimerTotal = restTimerSeconds;
   const el = document.getElementById('restTimer');
   const timeEl = document.getElementById('restTimerTime');
   el.classList.add('active');
+  el.classList.remove('urgent');
+  applyRestTimerCollapsedWidth();
+  // Ring color signals the rest tier at a glance instead of cramming
+  // illegible text into a 56px circle — purple for strength-range work,
+  // teal for endurance-range, and the default blue for hypertrophy range
+  // (the most common case, so it doesn't need its own class).
+  el.classList.remove('tier-strength', 'tier-endurance');
+  if(label === 'Strength range · low reps') el.classList.add('tier-strength');
+  else if(label === 'Endurance range · high reps') el.classList.add('tier-endurance');
   timeEl.textContent = formatTimer(restTimerSeconds);
+  document.getElementById('restTimerPanelTier').textContent = label || '';
+  document.getElementById('restTimerPanelTip').textContent = REST_TIER_TIPS[label] || '';
+  applyRestTimerExpandHeight();
+  el.classList.remove('expanded'); // fresh set, fresh timer — don't carry over an expanded state from the last one
+  updateRestTimerRing();
   if(restTimerInterval) clearInterval(restTimerInterval);
   restTimerInterval = setInterval(()=>{
     restTimerSeconds--;
     if(restTimerSeconds <= 0){
       clearInterval(restTimerInterval);
       timeEl.textContent = "Time's up!";
+      updateRestTimerRing();
       try{
         // simple audio beep to signal rest is over
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -8126,20 +8638,45 @@ function startRestTimer(seconds){
         osc.start();
         setTimeout(()=>{ osc.stop(); ctx.close(); }, 300);
       }catch(e){}
-      setTimeout(()=> el.classList.remove('active'), 2500);
+      setTimeout(()=>{ el.classList.remove('active'); el.classList.remove('urgent'); el.classList.remove('expanded'); }, 2500);
       return;
     }
     timeEl.textContent = formatTimer(restTimerSeconds);
+    updateRestTimerRing();
+    // Urgency pulse in the closing seconds — a glance at the corner of your
+    // eye is enough to know rest is nearly over, without staring at the clock.
+    el.classList.toggle('urgent', restTimerSeconds <= 5);
   }, 1000);
 }
 
+document.getElementById('restTimerToggle').addEventListener('click', ()=>{
+  document.getElementById('restTimer').classList.toggle('expanded');
+});
+
+document.querySelectorAll('.rt-adjust[data-delta]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const delta = Number(btn.dataset.delta);
+    restTimerSeconds = Math.max(0, restTimerSeconds + delta);
+    restTimerTotal = Math.max(1, restTimerTotal + delta);
+    document.getElementById('restTimerTime').textContent = formatTimer(restTimerSeconds);
+    updateRestTimerRing();
+    if(restTimerSeconds > 5) document.getElementById('restTimer').classList.remove('urgent');
+  });
+});
+
 document.getElementById('restTimerAdd').addEventListener('click', ()=>{
   restTimerSeconds += 15;
+  restTimerTotal += 15;
   document.getElementById('restTimerTime').textContent = formatTimer(restTimerSeconds);
+  updateRestTimerRing();
+  document.getElementById('restTimer').classList.remove('urgent');
 });
 document.getElementById('restTimerClose').addEventListener('click', ()=>{
   if(restTimerInterval) clearInterval(restTimerInterval);
-  document.getElementById('restTimer').classList.remove('active');
+  const el = document.getElementById('restTimer');
+  el.classList.remove('active');
+  el.classList.remove('expanded');
+  el.classList.remove('urgent');
 });
 
 async function refreshSessionSummary(row, exIdx, ex){
@@ -8343,7 +8880,7 @@ function wireSetsBlock(row, exIdx, ex){
       }
       // Update volume/1RM/prior-session hint in place, without wiping the checkmark we just set
       await refreshSessionSummary(row, exIdx, ex);
-      startRestTimer(getDefaultRestSeconds(ex));
+      startRestTimer(getDefaultRestSeconds(ex), getRestReasonLabel(ex));
       checkAllSetsCompleteAndAutoCheck();
     };
     if(wInput) wInput.addEventListener('change', save);
@@ -11079,6 +11616,43 @@ document.getElementById('addCustomExerciseBtn').addEventListener('click', ()=>{
   document.getElementById('customExerciseForm').classList.toggle('open');
 });
 
+document.getElementById('adaptWorkoutBtn').addEventListener('click', ()=>{
+  document.getElementById('adaptWorkoutPanel').classList.toggle('open');
+});
+
+document.getElementById('adaptWorkoutSubmit').addEventListener('click', async ()=>{
+  const input = document.getElementById('adaptWorkoutInput');
+  const resultEl = document.getElementById('adaptWorkoutResult');
+  const constraint = input.value.trim();
+  if(!constraint){
+    resultEl.innerHTML = `<div class="care-banner care-banner-caution">Say what you're working with — e.g. "only dumbbells" or "20 minutes."</div>`;
+    return;
+  }
+  const apiKey = await getApiKey();
+  if(!apiKey){
+    resultEl.innerHTML = `<div class="care-banner care-banner-caution">Add your Anthropic API key in "AI Features Setup" on the Today tab first.</div>`;
+    return;
+  }
+  const btn = document.getElementById('adaptWorkoutSubmit');
+  btn.disabled = true;
+  const originalLabel = btn.textContent;
+  btn.textContent = 'Adapting…';
+  resultEl.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:80%"></div><div class="skeleton-line" style="width:60%"></div></div>';
+  try{
+    const persona = getCoachPersona();
+    const day = programs[activeProgram].days[activeDay];
+    const exList = (day.exercises || []).map(ex=> `${ex.name} (${ex.sets})`).join(', ');
+    const prompt = `You are ${persona}. Today's planned session (${day.label}${day.sub ? ' — '+day.sub : ''}) is: ${exList || 'a rest day with no exercises listed'}. The person says: "${constraint}". Rebuild today's session around that real constraint — same general muscle groups and rep ranges where you reasonably can, swapping in exercises that actually work with what they described (limited equipment, time, or space). List the adapted exercises with sets/reps as a short list, then 1-2 sentences on what you changed and why. No headers, no long preamble — get straight to the adapted list. If the constraint genuinely guts the day's purpose (e.g. a squat-focused day with zero legal lower-body option), say so plainly rather than forcing a bad substitute.`;
+    const reply = await callClaudeChat(apiKey, prompt, [{role:'user', content:'Adapt today\'s workout to what I actually have.'}], 500);
+    resultEl.innerHTML = `<div class="goal-feedback-neutral" style="margin-top:10px;">${escapeHtml(reply.trim()).replace(/\n/g,'<br>')}</div>`;
+  }catch(err){
+    resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't adapt the session right now — ${escapeHtml(err.message || 'try again in a moment.')}</div>`;
+  }finally{
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+});
+
 document.getElementById('addCustomExerciseSubmit').addEventListener('click', async ()=>{
   const nameInput = document.getElementById('customExName');
   const setsInput = document.getElementById('customExSets');
@@ -12298,14 +12872,26 @@ async function reconstructAllPRs(){
     if(log.length === 0) continue;
     log.sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
 
-    let runningMax = null;
+    let runningMaxWeight = null, runningMaxE1RM = null;
     log.forEach(entry=>{
       const top = topSetOf(entry);
       if(!top || top.weight == null) return;
-      if(runningMax === null || top.weight > runningMax){
-        events.push({date: entry.date, name: exDef.name, dayLabel: parsed.dayLabel, weight: top.weight, reps: top.reps});
-        runningMax = top.weight;
+      const isWeightPR = runningMaxWeight === null || top.weight > runningMaxWeight;
+      const e1rm = estimated1RM(top.weight, top.reps);
+      const isE1RMPR = e1rm != null && (runningMaxE1RM === null || e1rm > runningMaxE1RM);
+      // A weight PR and a strength (est. 1RM) PR can happen on the same
+      // session — that's one meaningful moment, not two, so only one event
+      // is ever pushed per session. But a strength PR can ALSO happen on
+      // its own, at a lower absolute weight than a past top set, when more
+      // reps at that lighter weight add up to a higher estimated 1RM —
+      // that's genuine progress this tracker was previously blind to
+      // entirely, since it only ever checked whether raw top-set weight
+      // itself had increased.
+      if(isWeightPR || isE1RMPR){
+        events.push({date: entry.date, name: exDef.name, dayLabel: parsed.dayLabel, weight: top.weight, reps: top.reps, type: isWeightPR ? 'weight' : 'strength', e1rm});
       }
+      if(isWeightPR) runningMaxWeight = top.weight;
+      if(isE1RMPR) runningMaxE1RM = e1rm;
     });
   }
 
@@ -12326,12 +12912,13 @@ async function renderPrTimeline(){
   const rowHtmls = events.map(ev=>{
     const d = new Date(ev.date+'T00:00:00');
     const dateLabel = d.toLocaleDateString('en-US',{month:'short', day:'numeric'});
+    const isStrength = ev.type === 'strength';
     return `
       <div class="pr-row">
         <div class="pr-date">${dateLabel}</div>
         <div class="pr-body">
-          <div class="pr-ex-name">🏆 ${ev.name}</div>
-          <div class="pr-day-label">${ev.dayLabel}</div>
+          <div class="pr-ex-name">${isStrength ? '💪' : '🏆'} ${ev.name}${isStrength ? ' <span class="pr-type-tag">strength PR</span>' : ''}</div>
+          <div class="pr-day-label">${ev.dayLabel}${isStrength && ev.e1rm ? ` · Est. 1RM ~${fmtWeight(ev.e1rm)}` : ''}</div>
         </div>
         <div class="pr-stat">${fmtWeight(ev.weight)}${ev.reps!=null ? ` × ${ev.reps}` : ''}</div>
       </div>
@@ -12655,10 +13242,35 @@ async function buildCrossMetricInsightsContext(){
   }catch(e){}
 
   try{
-    const painDays = await fetchPainDays();
-    const recentPainDates = Object.keys(painDays).sort().slice(-10);
-    if(recentPainDates.length){
-      lines.push(`Pain check-ins logged on: ${recentPainDates.map(d=>`${d} (${painDays[d]}/10)`).join(', ')}.`);
+    const res = await window.storage.list('workout:');
+    if(res && res.keys){
+      const trainedDays = [];
+      for(const key of res.keys){
+        const parts = key.split(':'); // workout, YYYY-MM-DD, dX
+        if(parts.length < 3) continue;
+        const [, date, dayId] = parts;
+        try{
+          const item = await window.storage.get(key);
+          if(item && item.value){
+            const completed = JSON.parse(item.value);
+            if(Object.values(completed).some(v=>v===true)){
+              const dayDef = programs[activeProgram]?.days?.[dayId];
+              trainedDays.push({date, label: dayDef ? `${dayDef.label}${dayDef.sub ? ' — '+dayDef.sub : ''}` : dayId});
+            }
+          }
+        }catch(e){}
+      }
+      trainedDays.sort((a,b)=> new Date(a.date)-new Date(b.date));
+      const recentTrained = trainedDays.slice(-14);
+      if(recentTrained.length) lines.push(`Recent training days, oldest to newest: ${recentTrained.map(d=>`${d.date}: ${d.label}`).join('; ')}.`);
+    }
+  }catch(e){}
+
+  try{
+    const injuryLog = await getInjuryLog();
+    const recent = [...injuryLog].sort((a,b)=> new Date(a.date)-new Date(b.date)).slice(-10);
+    if(recent.length){
+      lines.push(`Pain/injury check-ins, oldest to newest, with what was actually logged about each: ${recent.map(e=> `${e.date}: ${e.pain}/10 in ${e.region || 'unspecified region'}${e.exercise ? ` (noted during/after "${e.exercise}")` : ''}${e.sensation ? `, described as ${e.sensation}` : ''}`).join('; ')}.`);
     }
   }catch(e){}
 
@@ -12692,15 +13304,27 @@ async function generateCrossMetricInsights(){
     const dataContext = await buildCrossMetricInsightsContext();
     const systemPrompt = `You are ${persona}, looking at someone's full training-log data across multiple tracked metrics at once — bodyweight, nutrition, sleep, water, RPE, pain check-ins, and recent PRs.
 
-Your specific job here is different from a normal check-in: find the ACTUAL INTERACTIONS between these metrics, not a list of separate observations. For example: does a low-sleep stretch line up with rising RPE the same week? Does protein intake dropping coincide with volume or intensity increasing (a real recovery-risk combination)? Does water intake lag specifically on days that led into harder sessions? Does a pain check-in cluster around a period of rising RPE or falling sleep? Only point out a connection if the data genuinely supports it — don't force a correlation that isn't there, and say so plainly if the data doesn't show a clear interaction yet (that's a valid, honest answer, not a failure to find something).
+Your specific job here is different from a normal check-in: find the ACTUAL INTERACTIONS between these metrics, not a list of separate observations. For example: does a low-sleep stretch line up with rising RPE the same week? Does protein intake dropping coincide with volume or intensity increasing (a real recovery-risk combination)? Does water intake lag specifically on days that led into harder sessions? Does a pain check-in cluster around a period of rising RPE or falling sleep? Do pain check-ins tend to show up on or right after specific kinds of training days (e.g. a pattern of knee pain following squat-heavy sessions specifically, not just pain in general)? Only point out a connection if the data genuinely supports it — don't force a correlation that isn't there, and say so plainly if the data doesn't show a clear interaction yet (that's a valid, honest answer, not a failure to find something).
 
 Data:
 ${dataContext}
 
-Write 2-4 short paragraphs, no headers or markdown. Lead with the single most useful interaction you can actually support with the numbers above. End with 1-2 specific, concrete adjustments — not generic advice like "sleep more," but tied directly to what you found (e.g., "the two lowest-sleep nights both preceded your highest RPE sessions this week — worth protecting sleep specifically before your hardest training days, not just in general"). If nothing meaningfully correlates yet, say that honestly and note what's still missing (e.g., not enough sleep data logged yet to compare against training load).`;
+Respond in exactly this format. First line only the word PUSH, MAINTAIN, or DELOAD (a genuine recommendation for the next several sessions, based on the actual pattern in the data — not a default; pick DELOAD if RPE is climbing with falling sleep or stalling PRs, PUSH if recovery signals are all genuinely solid and performance is trending up, MAINTAIN if the picture is mixed or there isn't enough data yet to justify either extreme). Then a blank line. Then 2-4 short paragraphs, no headers or markdown: lead with the single most useful interaction you can actually support with the numbers above, and end with 1-2 specific, concrete adjustments tied directly to what you found — not generic advice like "sleep more." If nothing meaningfully correlates yet, say that honestly and note what's still missing, and let that honesty be reflected in a MAINTAIN recommendation rather than guessing.`;
 
-    const reply = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content:'Analyze how my tracked metrics are affecting each other and tell me what to adjust.'}], 600);
-    resultEl.innerHTML = `<div class="goal-feedback-neutral">${escapeHtml(reply.trim()).replace(/\n\n/g,'</div><div class="goal-feedback-neutral" style="margin-top:10px;">')}</div>`;
+    const reply = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content:'Analyze how my tracked metrics are affecting each other, give me a clear push/maintain/deload call, and tell me what to adjust.'}], 650);
+    const trimmed = reply.trim();
+    const recMatch = trimmed.match(/^(PUSH|MAINTAIN|DELOAD)\s*\n+([\s\S]*)$/i);
+    let recHtml = '';
+    let narrative = trimmed;
+    if(recMatch){
+      const rec = recMatch[1].toUpperCase();
+      narrative = recMatch[2].trim();
+      const recStyle = rec === 'PUSH' ? {cls:'goal-feedback-good', icon:'💪', label:'Push — recovery signals support training harder'}
+        : rec === 'DELOAD' ? {cls:'goal-feedback-warn', icon:'🔻', label:'Deload — the data supports backing off, not pushing through'}
+        : {cls:'goal-feedback-neutral', icon:'➡', label:'Maintain — mixed or insufficient signal to justify a change'};
+      recHtml = `<div class="${recStyle.cls}" style="font-weight:700; margin-bottom:10px;">${recStyle.icon} ${recStyle.label}</div>`;
+    }
+    resultEl.innerHTML = recHtml + `<div class="goal-feedback-neutral">${escapeHtml(narrative).replace(/\n\n/g,'</div><div class="goal-feedback-neutral" style="margin-top:10px;">')}</div>`;
   }catch(e){
     resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't generate insights right now — ${escapeHtml(e.message || 'try again in a moment.')}</div>`;
   }finally{
@@ -13006,6 +13630,20 @@ function extractVideoFrames(file, frameCount, onProgress){
             throw new Error("Could not determine that video's length — try re-exporting or trimming the clip.");
           }
         }
+        // Duration is checked separately from file size — a long, low-
+        // bitrate clip can be small in MB but still push seeking into the
+        // same unreliable territory on iOS Safari. A form check only ever
+        // needs a few seconds of one rep, so this is a genuine usability
+        // guard, not just a technical workaround.
+        // Raised from 45s to fit a genuine full set (most working sets of
+        // 5-10 reps at a controlled tempo run 20-50s), not just one rep —
+        // but this is a real tradeoff, not a free upgrade: longer clips are
+        // measurably where iOS Safari's video seeking becomes unreliable
+        // (see extractVideoFrames' own notes above), so 60s is deliberately
+        // not pushed any higher than what a full set actually needs.
+        if(duration > 60){
+          throw new Error(`That clip is ${Math.round(duration)}s long — trim it to under 60 seconds (one full working set) and try again. Longer clips are where video reading most often stalls on iPhone.`);
+        }
         let width = video.videoWidth, height = video.videoHeight;
         if(width > VIDEO_FRAME_MAX_DIM || height > VIDEO_FRAME_MAX_DIM){
           const scale = VIDEO_FRAME_MAX_DIM / Math.max(width, height);
@@ -13097,19 +13735,22 @@ document.getElementById('coachChatClear').addEventListener('click', async ()=>{
 // Coach tab's own input.
 document.getElementById('coachFab').addEventListener('click', ()=>{
   const modal = document.getElementById('coachFabModal');
+  const fab = document.getElementById('coachFab');
   const isOpen = modal.classList.contains('active');
   if(isOpen){
     modal.classList.remove('active');
+    fab.classList.remove('tucked');
     return;
   }
   renderCoachChatLog();
   modal.classList.add('active');
+  fab.classList.add('tucked');
   // Focusing the input immediately, while the panel is still mid-animation,
   // is exactly what caused the keyboard to open in the middle of that
   // transition and end up landing in the wrong spot — waiting for the
-  // panel's own 0.3s slide-in to actually finish first avoids that race
+  // panel's own slide-in to actually finish first avoids that race
   // entirely, rather than fighting it.
-  setTimeout(()=> document.getElementById('floatingChatInput').focus(), 320);
+  setTimeout(()=> document.getElementById('floatingChatInput').focus(), 360);
 });
 
 // A second, independent layer of defense against the keyboard covering the
@@ -13130,9 +13771,11 @@ if(window.visualViewport){
 }
 document.getElementById('coachFabClose').addEventListener('click', ()=>{
   document.getElementById('coachFabModal').classList.remove('active');
+  document.getElementById('coachFab').classList.remove('tucked');
 });
 document.getElementById('coachFabBackdrop').addEventListener('click', ()=>{
   document.getElementById('coachFabModal').classList.remove('active');
+  document.getElementById('coachFab').classList.remove('tucked');
 });
 document.getElementById('floatingChatSend').addEventListener('click', ()=> sendCoachChatMessage('floatingChatInput'));
 document.getElementById('floatingChatInput').addEventListener('keydown', (e)=>{
@@ -13147,6 +13790,22 @@ document.getElementById('coachVideoInput').addEventListener('change', async (e)=
   const resultEl = document.getElementById('coachResult');
   const exercise = document.getElementById('coachExerciseInput').value.trim() || 'this movement';
   const focus = document.getElementById('coachFocusInput').value.trim();
+
+  // iOS Safari's handling of video blobs (which is what a local file input
+  // produces) is well-documented to become unreliable as file size grows —
+  // seeking stalls, memory pressure increases, and playback can simply
+  // never fire the events frame extraction depends on. There's no hard
+  // technical ceiling to point to, but rejecting clearly oversized files
+  // upfront, with a specific size to aim for, is far more useful than
+  // letting the same file silently attempt extraction and fail a minute
+  // later with a much less specific "got stuck reading frame" error.
+  const MAX_VIDEO_MB = 80;
+  if(file.size > MAX_VIDEO_MB * 1024 * 1024){
+    resultEl.innerHTML = `<div class="care-banner care-banner-caution">That clip is ${(file.size/1024/1024).toFixed(0)}MB — large video files are unreliable in Safari specifically, not just slow. Trim it to under 60 seconds (usually well under ${MAX_VIDEO_MB}MB) and try again.</div>`;
+    e.target.value = '';
+    return;
+  }
+
   const apiKey = await getApiKey();
 
   if(!apiKey){
@@ -13163,7 +13822,7 @@ document.getElementById('coachVideoInput').addEventListener('change', async (e)=
 
   let tickInterval = null;
   try{
-    const frames = await extractVideoFrames(file, 3, (done, total)=>{
+    const frames = await extractVideoFrames(file, 8, (done, total)=>{
       const fill = document.getElementById('coachProgressFill');
       const label = document.getElementById('coachProgressLabel');
       if(!fill || !label) return;
@@ -13188,7 +13847,7 @@ document.getElementById('coachVideoInput').addEventListener('change', async (e)=
       const label = document.getElementById('coachProgressLabel');
       if(!fill || !label){ clearInterval(tickInterval); return; }
       fill.style.width = Math.min(95, 55 + elapsed) + '%';
-      label.textContent = `Analyzing your ${escapeHtml(exercise)}… (${elapsed}s — video review can take up to a minute)`;
+      label.textContent = `Analyzing your ${escapeHtml(exercise)}… (${elapsed}s — a full-set review reads more frames than a single rep, so this can take a bit longer)`;
     }, 3000);
 
     const persona = getCoachPersona();
@@ -13203,9 +13862,14 @@ document.getElementById('coachVideoInput').addEventListener('change', async (e)=
       const priorReview = [...log].reverse().find(r=> r.exercise.trim().toLowerCase() === exercise.trim().toLowerCase());
       if(priorReview) priorReviewLine = ` Your own last review of their "${exercise}" (${priorReview.date}) said: "${priorReview.feedback}" — note in your new feedback what looks different now, better or worse, rather than repeating the same points from scratch.`;
     }catch(e){}
-    const prompt = `You are ${persona}. These ${frames.length} frames are sequential stills from a video of someone performing "${exercise}". ${focus ? `They specifically want you to check: ${focus}.` : ''}${priorReviewLine} Give direct, specific feedback on their form based only on what's visible across these frames: what looks correct, what to fix, and one clear cue to focus on next attempt. Keep it to 4-6 short sentences, no headers or markdown, plain conversational coaching tone. If the frames don't clearly show the movement, say so plainly instead of guessing.`;
+    let restingRegionLine = '';
+    try{
+      const resting = await getRestingRegions();
+      if(resting.length) restingRegionLine = ` They've currently marked ${resting.join(', ')} as resting/recovering in their injury log — if you see anything in the frames that looks like it could be a compensation pattern connected to that, mention it, but don't assume it's related if the frames don't actually show anything relevant.`;
+    }catch(e){}
+    const prompt = `You are ${persona}. These ${frames.length} frames are sequential stills spread evenly across a video of someone performing a full set of "${exercise}" — early frames show the start of the set, later frames show how it progressed, likely across multiple reps. ${focus ? `They specifically want you to check: ${focus}.` : ''}${priorReviewLine}${restingRegionLine} Give direct, specific feedback on their form based only on what's visible across these frames. Since these frames span the whole set, specifically address whether form holds up consistently from the early frames to the later ones or breaks down as the set goes on (a common sign of fatigue or the weight being too heavy for that rep range) — don't just describe one moment as if it were the whole set. Cover what looks correct, what to fix, whether it's consistent or degrading rep to rep, and one clear cue to focus on next time. Keep it to 5-8 short sentences, no headers or markdown, plain conversational coaching tone. If the frames don't clearly show the movement, say so plainly instead of guessing.`;
 
-    const feedback = await callClaudeVision(apiKey, frames, prompt, 500);
+    const feedback = await callClaudeVision(apiKey, frames, prompt, 700);
     clearInterval(tickInterval);
 
     resultEl.innerHTML = `
@@ -13317,6 +13981,14 @@ function renderPainTrend(painDays){
   renderDayValueTrend('painChart', painDays, {
     label: 'pain', color: 'var(--plate-red)',
     formatValue: v=> `${v}/10`,
+    insight: (values, avg)=>{
+      const recentAvg = values.slice(-3).reduce((a,b)=>a+b,0) / Math.min(3, values.length);
+      const trend = values[values.length-1] - values[0];
+      if(recentAvg >= 6) return {status:'warn', text:`⚠ Recent check-ins are averaging ${recentAvg.toFixed(1)}/10 — pain at this level during training is worth a conversation with a doctor or physical therapist, not just modifying the exercise around it.`};
+      if(trend >= 2) return {status:'warn', text:`⚠ Trending upward over this window — worth backing off the aggravating movement or region now, before it becomes a bigger issue.`};
+      if(trend <= -2) return {status:'good', text:`✅ Trending down — whatever you're doing (rest, modified training, etc.) appears to be working.`};
+      return {status:'neutral', text:`Averaging ${avg.toFixed(1)}/10 and fairly steady — keep monitoring, especially if it's changing how you move through key lifts.`};
+    },
   });
 }
 
