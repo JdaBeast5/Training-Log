@@ -9596,9 +9596,41 @@ function parseBottomRep(setsStr){
   return parseTopRep(setsStr);
 }
 
+// What the middle numeric field in a set row actually represents. "reps"
+// is correct for the large majority of exercises, but duration-prescribed
+// cardio (minutes), isometric holds (seconds), and breath- or round-counted
+// mobility/conditioning work genuinely aren't reps — a 20-minute incline
+// walk or a 45-second plank showing a "reps" placeholder was actively
+// misleading about what to type there. Checked in this order because a
+// prescription can contain more than one time-like word (e.g. an hour-long
+// ride broken into minute intervals), so the most specific/first-mentioned
+// unit wins.
+function getSetFieldUnit(setsStr){
+  if(/\bbreaths?\b/i.test(setsStr)) return 'breaths';
+  if(/\brounds?\b/i.test(setsStr) && !/\breps?\b/i.test(setsStr)) return 'rounds';
+  // Matches the same "45s" / "20-30s" hold-duration format already
+  // established in parseEstimatedMinutes above, not just the full word "sec".
+  if(/\d\s*s(?:ec)?\b/i.test(setsStr) && !/\breps?\b/i.test(setsStr)) return 'sec';
+  if(/\b(min|hour|hr)\b/i.test(setsStr) && !/\breps?\b/i.test(setsStr)) return 'min';
+  return 'reps';
+}
+
 function parseSetCount(setsStr){
-  const m = setsStr.match(/^(\d+)\s*×/);
-  return m ? Number(m[1]) : 3;
+  const leading = setsStr.match(/^(\d+)\s*×/);
+  if(leading) return Number(leading[1]);
+  // Some prescriptions put the multiplier at the END instead of the start
+  // ("5 reps ×3", "3-5 min ×3", "8 breaths/side ×2") rather than leading
+  // with it — check for that before falling back further.
+  const trailing = setsStr.match(/×\s*(\d+)\s*$/);
+  if(trailing) return Number(trailing[1]);
+  // A duration with no explicit set/round count ("20 min", "45-60 min")
+  // describes one continuous block of time, not multiple repeated sets —
+  // a 20-minute incline walk is one thing you do, not three "sets" of it.
+  if(/^\s*\d+(\.\d+)?\s*(-\s*\d+(\.\d+)?\s*)?(min|sec|hr|hour)\b/i.test(setsStr)) return 1;
+  // "N rounds" with no ×-multiplier either direction (e.g. "8 rounds").
+  const roundsOnly = setsStr.match(/^(\d+)\s*rounds?\b/i);
+  if(roundsOnly) return Number(roundsOnly[1]);
+  return 3;
 }
 
 // --- Calories burned, estimated via MET (Metabolic Equivalent of Task) formula ---
@@ -10693,7 +10725,7 @@ async function renderWorkout(){
               <span class="set-num">${setIdx+1}</span>
               ${showWeight ? `<input type="number" inputmode="decimal" class="ex-input ex-weight" placeholder="${placeholderSet && placeholderSet.weight!=null ? trimUnitNum(toDisplayWeight(placeholderSet.weight)) : weightUnit}" value="${savedSet && savedSet.weight!=null ? trimUnitNum(toDisplayWeight(savedSet.weight)) : ''}">
               <span class="ex-x">×</span>` : ''}
-              <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="${placeholderSet && placeholderSet.reps!=null ? placeholderSet.reps : 'reps'}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
+              <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="${placeholderSet && placeholderSet.reps!=null ? placeholderSet.reps : getSetFieldUnit(ex.sets)}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
               <input type="number" inputmode="decimal" step="0.5" min="5" max="10" class="ex-input ex-rpe" placeholder="${placeholderSet && placeholderSet.rpe!=null ? placeholderSet.rpe : 'RPE'}" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
               ${showPlateCalc ? '<button type="button" class="plate-btn" title="Plate calculator">🏋️</button>' : ''}
               ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" title="Voice log">🎤</button>' : ''}
@@ -11534,7 +11566,7 @@ function wireSetsBlock(row, exIdx, ex){
         <span class="set-num">${newIdx+1}</span>
         ${showWeight ? `<input type="number" inputmode="decimal" class="ex-input ex-weight" placeholder="${weightUnit}" value="">
         <span class="ex-x">×</span>` : ''}
-        <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="reps" value="">
+        <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="${getSetFieldUnit(ex.sets)}" value="">
         <input type="number" inputmode="decimal" step="0.5" min="5" max="10" class="ex-input ex-rpe" placeholder="RPE" value="">
         ${showPlateCalc ? '<button type="button" class="plate-btn" title="Plate calculator">🏋️</button>' : ''}
         ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" title="Voice log">🎤</button>' : ''}
