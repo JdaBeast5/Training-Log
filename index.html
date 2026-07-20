@@ -170,6 +170,16 @@
   .plate svg{position:relative; z-index:1; width:22px; height:22px;}
   .tab.active .plate{box-shadow:0 0 0 3px rgba(255,255,255,0.08), 0 4px 14px rgba(0,0,0,0.35);}
   .plate-off{color:var(--text-muted);}
+  .plate-wrap{position:relative; display:inline-flex;}
+  .day-done-badge{
+    position:absolute; top:-2px; right:-2px; width:18px; height:18px; border-radius:50%;
+    background:linear-gradient(160deg, #4FE168, var(--plate-green) 55%);
+    border:2px solid var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:10px; font-weight:700; line-height:1;
+    box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 2px 6px -2px rgba(50,215,75,0.5);
+    z-index:2;
+  }
   .plate-label{font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap;}
   .tab.active .plate-label{color:var(--text);}
 
@@ -9039,6 +9049,7 @@ async function renderProgramSelector(trendStatus){
     descEl.textContent = programs[activeProgram].short;
     await saveActiveProgram();
     await loadDayOrder();
+    await loadWeekProgress();
     renderTabs();
     renderWorkout();
     togglePosingCard();
@@ -9117,6 +9128,7 @@ function renderMartialArtSelector(){
       dayDefs = programs.combat.days;
       activeDay = 'd1';
       await loadDayOrder();
+      await loadWeekProgress();
       renderTabs();
       renderWorkout();
       renderTips();
@@ -9165,6 +9177,7 @@ function renderCyclingSelector(){
       dayDefs = programs.cycling.days;
       activeDay = 'd1';
       await loadDayOrder();
+      await loadWeekProgress();
       renderTabs();
       renderWorkout();
       renderTips();
@@ -9213,6 +9226,7 @@ function renderYogaSelector(){
       dayDefs = programs.yoga.days;
       activeDay = 'd1';
       await loadDayOrder();
+      await loadWeekProgress();
       renderTabs();
       renderWorkout();
       renderTips();
@@ -9277,6 +9291,7 @@ function renderMedicalSelector(){
       dayDefs = programs.medical.days;
       activeDay = 'd1';
       await loadDayOrder();
+      await loadWeekProgress();
       renderTabs();
       renderWorkout();
       renderTips();
@@ -9358,6 +9373,44 @@ async function loadDayOrder(){
 
 async function saveDayOrder(){
   try{ await window.storage.set(`day-order:${activeProgram}`, JSON.stringify(dayOrder)); }catch(e){}
+}
+
+// Week-scoped completion state — separate from the calendar-date-keyed
+// workout:{date}:{program}:{day} system used for streaks, PRs, and
+// progression history (that keeps working exactly as before, untouched).
+// This is purely about what shows checked in the UI: a day completed on
+// Tuesday should still show checked when you look at it Thursday, rather
+// than resetting the moment the calendar date changes. It only clears when
+// "Clear the Week" is pressed (see archiveCurrentWeek), not automatically
+// at midnight.
+let weekProgress = {}; // dayId -> true once every exercise in that day has been checked off this week
+
+async function loadWeekProgress(){
+  weekProgress = {};
+  try{
+    const res = await window.storage.get(`week-progress:${activeProgram}`);
+    if(res && res.value) weekProgress = JSON.parse(res.value);
+  }catch(e){}
+}
+
+async function saveWeekProgress(){
+  try{ await window.storage.set(`week-progress:${activeProgram}`, JSON.stringify(weekProgress)); }catch(e){}
+}
+
+function weekCheckedKey(program, dayId){
+  return `week-checked:${program}:${dayId}`;
+}
+
+// Wipes both the day-complete badges and the per-exercise checked state for
+// every day in the given program — called only from "Clear the Week", never
+// automatically. The real dated workout:/ex: history that streaks, PRs, and
+// progression are built from is completely untouched by this.
+async function clearWeekProgress(program, dayIds){
+  try{ await window.storage.delete(`week-progress:${program}`); }catch(e){}
+  weekProgress = {};
+  for(const dayId of dayIds){
+    try{ await window.storage.delete(weekCheckedKey(program, dayId)); }catch(e){}
+  }
 }
 
 // Which day you were last looking at, per program — restored only on the
@@ -9487,7 +9540,8 @@ function renderTabs(){
     const d = dayDefs[id];
     const tab = document.createElement('div');
     tab.className = 'tab' + (id===activeDay ? ' active' : '');
-    tab.innerHTML = `<div class="plate ${getDayPlateClass(id)}${d.plateNum==='OFF'?' plate-off':''}">${dayGlyphSvg(d.sub)}</div><div class="plate-label">${d.label}</div>`;
+    const doneBadge = (!d.rest && weekProgress[id]) ? `<div class="day-done-badge">✓</div>` : '';
+    tab.innerHTML = `<div class="plate-wrap"><div class="plate ${getDayPlateClass(id)}${d.plateNum==='OFF'?' plate-off':''}">${dayGlyphSvg(d.sub)}</div>${doneBadge}</div><div class="plate-label">${d.label}</div>`;
     tab.onclick = ()=>{
       if(reorderMode) return;
       activeDay = id; renderTabs(); renderWorkout();
@@ -10474,9 +10528,14 @@ async function renderWorkout(){
     return;
   }
 
+  // Read from the week-persistent key, not today's specific date — a day
+  // completed on Tuesday should still show checked when you look at it
+  // Thursday, not reset just because the calendar date changed. The dated
+  // workout: key (written alongside this on every checkbox toggle, below)
+  // is what streaks/history/PRs actually key off of, untouched by this.
   let completed = {};
   try{
-    const res = await window.storage.get(workoutKey(getTodayKey(), activeProgram, activeDay));
+    const res = await window.storage.get(weekCheckedKey(activeProgram, activeDay));
     if(res && res.value) completed = JSON.parse(res.value);
   }catch(e){ completed = {}; }
 
@@ -10711,9 +10770,26 @@ async function renderWorkout(){
       completed[i] = cb.checked;
       row.querySelector('.ex-name').classList.toggle('done', cb.checked);
       try{
+        // Dated key: unchanged, this is what streaks/PRs/progression history
+        // actually read from — always tagged with the real date it happened.
         await window.storage.set(workoutKey(getTodayKey(), activeProgram, activeDay), JSON.stringify(completed));
+        // Week-persistent key: what the checkboxes themselves read from on
+        // render, so the day stays visually checked all week regardless of
+        // which calendar date you're looking at it from.
+        await window.storage.set(weekCheckedKey(activeProgram, activeDay), JSON.stringify(completed));
       }catch(e){}
       updateSessionCalorieTotal(renderExercises, completed);
+
+      // Keep the day-tab badge in sync with the actual per-exercise state —
+      // recomputed on every toggle (not just the completing click) so
+      // unchecking something to fix a mistake correctly un-marks the day
+      // too, rather than leaving a stale "done" badge behind.
+      const dayNowComplete = renderExercises.every((ex,idx)=> !!completed[idx]);
+      if(weekProgress[activeDay] !== dayNowComplete){
+        weekProgress[activeDay] = dayNowComplete;
+        saveWeekProgress();
+        renderTabs();
+      }
 
       // Collapse the exercise back up the moment it's checked off complete
       // — no reason to keep looking at its sets once you're done with it.
@@ -10742,7 +10818,7 @@ async function renderWorkout(){
       // was already the last one unticked, not on every render of an
       // already-finished day (a plain page load/re-render never fires a
       // checkbox 'change' event, so this can't replay on its own).
-      if(cb.checked && renderExercises.every((ex,idx)=> !!completed[idx])){
+      if(cb.checked && dayNowComplete){
         triggerCelebration('💪', 'Session complete!', `${day.label} — ${day.sub}`);
         maybeShowTodayStandout();
       }
@@ -17552,6 +17628,11 @@ async function archiveCurrentWeek(){
   archive.push(weekStats);
   await window.storage.set('week-archive', JSON.stringify(archive));
   await clearProgramRecDismissal();
+  // Everything that shows checked off — the day-tab badges and each day's
+  // exercise checkboxes — resets here, ready for a new week. Real logged
+  // history (weights, reps, PRs, streaks) is untouched; this only clears
+  // the week-persistent display state.
+  await clearWeekProgress(activeProgram, Object.keys(dayDefs));
 
   status.innerHTML = aiRecap
     ? `<div class="day-insight" style="margin:10px 0;">${escapeHtml(aiRecap)}</div>Week saved — back to Day 1 for a fresh start ✓`
@@ -17977,6 +18058,7 @@ if(activeUserId){
     await renderProgramSelector(trendStatusForInit);
     await renderOnboardingCard();
     await loadDayOrder();
+    await loadWeekProgress();
     await loadActiveDayForCurrentProgram();
     renderTabs();
     renderWorkout();
