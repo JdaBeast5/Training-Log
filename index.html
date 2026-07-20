@@ -493,12 +493,57 @@
   .ex-name .super-tag{font-size:10.5px; color:var(--plate-yellow); display:block; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; margin-top:1px;}
   .ex-name .focus-tag{color:var(--plate-green);}
   .ex-name .custom-tag{color:var(--plate-blue);}
+  .ex-name .sub-tag{color:var(--plate-purple);}
+  .ex-name.ex-name-swappable{cursor:pointer;}
+  .ex-swap-icon{font-size:12px; color:var(--plate-blue); opacity:0.75; margin-left:2px;}
   .ex-delete-custom-btn{
     flex:0 0 auto; background:none; border:none; color:var(--text-muted); font-size:15px;
     cursor:pointer; padding:4px; margin-right:2px;
   }
   .ex-name.done{color:var(--text-muted); text-decoration:line-through;}
   .ex-name.done .super-tag{color:var(--text-muted);}
+
+  /* --- Exercise substitution picker: a bottom-sheet overlay, the closest
+     thing to a true modal this app uses anywhere — modeled directly on the
+     photo-lightbox overlay's fixed/blur/z-index treatment so it doesn't
+     introduce a visually distinct new pattern. */
+  .sub-modal-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.6);
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    z-index:120; display:none; align-items:flex-end; justify-content:center;
+    opacity:0; transition:opacity 0.25s var(--ease-smooth);
+  }
+  .sub-modal-overlay.active{display:flex; opacity:1;}
+  .sub-modal-sheet{
+    width:100%; max-width:520px; background:var(--surface);
+    border:1px solid rgba(255,255,255,0.07); border-bottom:none;
+    border-top-left-radius:var(--radius-lg); border-top-right-radius:var(--radius-lg);
+    padding:20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+    box-shadow:0 1px 0 rgba(255,255,255,0.03) inset, 0 -20px 50px -20px rgba(0,0,0,0.6);
+    transform:translateY(100%); transition:transform 0.32s var(--ease-spring);
+    max-height:80vh; overflow-y:auto;
+  }
+  .sub-modal-overlay.active .sub-modal-sheet{transform:translateY(0);}
+  .sub-modal-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:2px;}
+  .sub-modal-title{font-family:'Inter',sans-serif; font-weight:700; font-size:16.5px; letter-spacing:-0.01em; color:var(--text);}
+  .sub-modal-close{
+    flex:0 0 auto; background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
+    width:28px; height:28px; border-radius:50%; font-size:14px; cursor:pointer; line-height:1;
+  }
+  .sub-modal-hint{font-size:12px; color:var(--text-muted); margin:6px 0 14px; line-height:1.5;}
+  .sub-option{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:12px 14px; margin-bottom:8px; border-radius:var(--radius-md);
+    background:var(--surface2); border:1px solid var(--line); cursor:pointer;
+    transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
+  }
+  .sub-option:active{transform:scale(0.98);}
+  .sub-option.selected{background:linear-gradient(160deg, rgba(91,124,255,0.18), rgba(91,124,255,0.08)); border-color:var(--plate-blue);}
+  .sub-option-text{min-width:0;}
+  .sub-option-name{font-family:'Inter',sans-serif; font-weight:600; font-size:14px; color:var(--text);}
+  .sub-option-default-tag{font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.4px; font-weight:700; margin-left:6px;}
+  .sub-option-history{font-size:11.5px; color:var(--text-muted); margin-top:2px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
+  .sub-option-check{color:var(--plate-blue); font-size:17px; flex:0 0 auto; font-weight:700;}
   .ex-sets{
     font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
     font-size:12.5px;
@@ -2516,6 +2561,17 @@
   <button id="undoToastBtn">Undo</button>
 </div>
 
+<div class="sub-modal-overlay" id="subModalOverlay">
+  <div class="sub-modal-sheet">
+    <div class="sub-modal-header">
+      <div class="sub-modal-title" id="subModalTitle">Swap exercise</div>
+      <button class="sub-modal-close" id="subModalClose">✕</button>
+    </div>
+    <div class="sub-modal-hint">Pick an alternative that hits the same muscles — matched for equipment or preference. Each option keeps its own separate weight/reps/RPE history at this slot.</div>
+    <div id="subModalOptions"></div>
+  </div>
+</div>
+
 <div class="photo-lightbox" id="photoLightbox">
   <div class="photo-lightbox-bg" id="photoLightboxBg"></div>
   <img id="photoLightboxImg" src="" alt="Progress photo">
@@ -2605,6 +2661,11 @@
      workout-time:{date}                 -> {first, last} ("HH:MM" clock times of first/last set logged that day) [session 3]
                                              — a parallel display key like week-progress, never read by PRs/streaks/history,
                                              currently only consumed by the Diabetes meal-timing insight
+     exercise-sub:{program}:{dayId}:{idx} -> substitute exercise name (string), or key absent = using the default
+                                             exercise for that slot [session 4] — see EXERCISE_SUBS. Deleted (not set
+                                             to '') when reverting to default. ex:/workout: keys for a substituted
+                                             slot get a `:sub:{slug}` suffix (see exKey) so each substitute keeps its
+                                             own separate weight/reps/RPE history at that slot.
      usda-api-key                        -> string (optional, for USDA FoodData Central lookups)
      coach-chat-history                  -> [{role, content}, ...]
      program-cycle-start                 -> "YYYY-MM-DD"
@@ -8721,7 +8782,140 @@ const exerciseInfo = {
   'Teaser (Prep)': {category:'core', videoQuery:'pilates teaser prep exercise tutorial', cues:['Starting with knees bent and feet on the mat, roll back slightly then curl up to balance on the sit bones with arms reaching parallel to the shins, holding a controlled V shape.','Keep the low back and powerhouse engaged throughout the balance rather than gripping with the hip flexors and neck.','This "prep" version (knees bent, feet down) builds the balance and powerhouse control the full straight-leg Teaser depends on — there\'s no need to rush to the full version before this feels controlled.']},
   'Side Kick Series': {category:'core', videoQuery:'pilates side kick series exercise tutorial', cues:['Lying on your side in a long line from head to heels, with hips stacked directly on top of each other, lift the top leg to hip height and kick it forward and back with control.','Keep the hips stacked and still throughout — the leg should move independently of the pelvis, not swing the hips forward and back with it.','A smaller, controlled range that keeps the hips perfectly stacked is more valuable here than a bigger kick that rocks the pelvis out of line.']},
   'Criss-Cross': {category:'core', videoQuery:'pilates criss cross exercise tutorial', cues:['With hands laced behind the head and knees drawn in, rotate the torso to bring one elbow toward the opposite knee while the other leg extends long and low.','Initiate the rotation from the waist and ribs, not by yanking on the neck with the laced hands — the hands simply support the head\'s weight.','Switch sides with a smooth, continuous rhythm rather than a jerky twist, keeping the low back anchored into the mat throughout.']},
+  // Added for the exercise-substitution system below — a common Cable Crunch/
+  // Weighted Sit-up alternative that wasn't otherwise in the library.
+  'V-Up': {category:'core', videoQuery:'v-up exercise tutorial', cues:['Lying flat, simultaneously lift straight legs and straight arms to meet in a V shape over the hips, touching hands to feet (or shins if flexibility is limiting).','Lead with the lower abs curling the pelvis, not by yanking the neck or momentum-swinging the arms up.','Lower under control back to the start rather than dropping — the eccentric is where a lot of the actual work happens.']},
 };
+
+// --- Exercise substitution system ------------------------------------------
+// EXERCISE_SUBS: exerciseName -> [alt1, alt2]. Scope is deliberately limited
+// to genuinely weighted/loaded resistance exercises (squat, hinge, push,
+// pull, lunge, shoulder, arms, oly, plus a curated set of loaded core work) —
+// not yoga poses, cardio, or combat drills, which need a different kind of
+// substitute logic entirely and aren't covered here.
+//
+// Substitutes are chosen to match the ORIGINAL exercise's primary mover
+// muscle group, joint action, and movement pattern — e.g. a hip-hinge
+// posterior-chain lift only ever substitutes for another hip-hinge posterior-
+// chain lift, never a knee-dominant squat pattern. This is the same logic
+// real strength coaches use for exercise selection (matching prime mover +
+// joint action so the same muscles and movement quality get trained) — it is
+// NOT a claim that any specific pair has its own individual research study;
+// no such per-pair literature exists for the vast majority of exercise
+// substitutions, and claiming otherwise would be fabricating a citation.
+// Where equipment/loading also matters (e.g. suggesting a barbell alternative
+// for another barbell lift where reasonable) that's reflected too, but
+// muscle group + movement pattern always take priority over equipment match.
+const EXERCISE_SUBS = {
+  // squat pattern (knee-dominant)
+  'Back Squat': ['Front Squat', 'Leg Press'],
+  'Bodyweight Squat': ['Sit-to-Stand', 'Squat'],
+  'Front Squat': ['Back Squat', 'Leg Press'],
+  'Leg Extension': ['Leg Press', 'Squat'],
+  'Leg Press': ['Squat', 'Leg Extension'],
+  'Pause Squat': ['Back Squat', 'Front Squat'],
+  'Sit-to-Stand': ['Bodyweight Squat', 'Squat'],
+  'Squat': ['Bodyweight Squat', 'Leg Press'],
+
+  // hinge pattern (hip-dominant, posterior chain)
+  'Deadlift': ['Romanian Deadlift', 'Good Morning'],
+  'Deficit Deadlift': ['Deadlift', 'Romanian Deadlift'],
+  'Glute Bridge': ['Hip Thrust', 'Romanian Deadlift'],
+  'Good Morning': ['Romanian Deadlift', 'Nordic Curl'],
+  'Hip Thrust': ['Glute Bridge', 'Romanian Deadlift'],
+  'Leg Curl': ['Nordic Curl', 'Romanian Deadlift'],
+  'Nordic Curl': ['Leg Curl', 'Romanian Deadlift'],
+  'Romanian Deadlift': ['Good Morning', 'Hip Thrust'],
+
+  // push pattern (horizontal/vertical press, chest/triceps/anterior delt)
+  'Bench Press': ['Incline DB Press', 'Push-up'],
+  'Cable Fly': ['Incline DB Press', 'Push-up'],
+  'Close-Grip Bench Press': ['Dip (Bar/Ring)', 'Bench Press'],
+  'Decline Push-up': ['Push-up', 'Bench Press'],
+  'Flat Bench Press': ['Incline DB Press', 'Push-up'],
+  'Incline DB Press': ['Bench Press', 'Push-up'],
+  'Overhead Press': ['DB Shoulder Press', 'Push Press'],
+  'Plyo Push-up': ['Push-up', 'Push Press'],
+  'Push Press': ['Overhead Press', 'DB Shoulder Press'],
+  'Push-up': ['Bench Press', 'Decline Push-up'],
+  'Wall Push-up': ['Push-up', 'DB Shoulder Press'],
+
+  // pull pattern (row/vertical pull, back/biceps)
+  'Barbell Row': ['Cable Row', 'Inverted Row'],
+  'Cable Row': ['Seated Cable Row', 'Barbell Row'],
+  'Chin-up': ['Pull-ups (or assisted)', 'Lat Pulldown'],
+  'Hangboard Repeaters': ['Pull-ups (or assisted)', 'Lat Pulldown'],
+  'Inverted Row': ['Cable Row', 'Barbell Row'],
+  'Lat Pulldown': ['Pull-ups (or assisted)', 'Chin-up'],
+  'Muscle-up': ['Pull-ups (or assisted)', 'Chin-up'],
+  'Pull-ups (or assisted)': ['Chin-up', 'Lat Pulldown'],
+  'Seated Cable Row': ['Cable Row', 'Barbell Row'],
+
+  // lunge pattern (single-leg knee/hip-dominant)
+  'Bulgarian Split Squat': ['Step-Up (controlled)', 'Sandbag Lunges'],
+  'Pistol Squat': ['Bulgarian Split Squat', 'Step-Up (controlled)'],
+  'Sandbag Lunges': ['Bulgarian Split Squat', 'Step-Up (controlled)'],
+  'Step-Up (controlled)': ['Bulgarian Split Squat', 'Sandbag Lunges'],
+
+  // shoulder isolation / stability
+  'Band Dislocates': ['Face Pull', 'Wall Slides'],
+  'DB Shoulder Press': ['Overhead Press', 'Push Press'],
+  'Face Pull': ['Rear Delt Fly', 'Band Dislocates'],
+  'Lateral Raise': ['Face Pull', 'Pike Push-up'],
+  'Pike Push-up': ['DB Shoulder Press', 'Overhead Press'],
+  'Rear Delt Fly': ['Face Pull', 'Band Dislocates'],
+  'Shoulder CARs': ['Wall Slides', 'Band Dislocates'],
+  'Wall Slides': ['Band Dislocates', 'Shoulder CARs'],
+
+  // arms isolation (biceps/triceps/calves)
+  'Cable Curl': ['DB Curl', 'EZ Bar Curl'],
+  'Calf Raise': ['Standing Calf Raise', 'Leg Press'],
+  'DB Curl': ['Cable Curl', 'Hammer Curl'],
+  'Dip (Bar/Ring)': ['Triceps Dip', 'Close-Grip Bench Press'],
+  'EZ Bar Curl': ['Cable Curl', 'DB Curl'],
+  'Hammer Curl': ['DB Curl', 'Cable Curl'],
+  'Overhead Triceps Extension': ['Skull Crushers', 'Rope Pushdown'],
+  'Rope Pushdown': ['Triceps Pushdown', 'Overhead Triceps Extension'],
+  'Skull Crushers': ['Overhead Triceps Extension', 'Close-Grip Bench Press'],
+  'Standing Calf Raise': ['Calf Raise', 'Leg Press'],
+  'Triceps Dip': ['Dip (Bar/Ring)', 'Triceps Pushdown'],
+  'Triceps Pushdown': ['Rope Pushdown', 'Overhead Triceps Extension'],
+
+  // olympic lifts / weightlifting-derivative movements
+  'Clean & Jerk': ['Power Clean', 'Push Press'],
+  'Clean Pull': ['Power Clean', 'Deadlift'],
+  'Jerk Dip Squat': ['Push Press', 'Front Squat'],
+  'Overhead Squat': ['Front Squat', 'Snatch Balance'],
+  'Power Clean': ['Clean Pull', 'Front Squat'],
+  'Power Snatch': ['Snatch Pull', 'Snatch Balance'],
+  'Snatch': ['Power Snatch', 'Snatch Pull'],
+  'Snatch Balance': ['Overhead Squat', 'Snatch Pull'],
+  'Snatch Pull': ['Deadlift', 'Power Snatch'],
+
+  // loaded/weighted core work (curated — excludes mobility, CARs, breathing,
+  // and grappling-technique drills that happen to share the 'core' category
+  // tag but aren't resistance exercises in the same sense)
+  'Ab Wheel Rollout': ['Dragon Flag', 'Pallof Press'],
+  'Bicycle Crunch': ['Russian Twist (weighted)', 'Mountain Climbers'],
+  'Cable Crunch': ['V-Up', 'Hanging Leg Raise'],
+  'Cable Woodchopper': ['Pallof Press', 'Russian Twist (weighted)'],
+  'Dead Bug': ['Mountain Climbers', 'McGill Curl-up'],
+  'Dragon Flag': ['Toes-to-Bar', 'Hanging Leg Raise'],
+  'Farmers Carry (Heavy)': ['Suitcase Carry', 'Sandbag Lunges'],
+  'Hanging Leg Raise': ['Toes-to-Bar', 'Cable Crunch'],
+  'Landmine Rotation': ['Cable Woodchopper', 'Pallof Press'],
+  'McGill Curl-up': ['Dead Bug', 'Roll-Up'],
+  'Mountain Climbers': ['Bicycle Crunch', 'Dead Bug'],
+  'Pallof Press': ['Cable Woodchopper', 'Ab Wheel Rollout'],
+  'Roll-Up': ['McGill Curl-up', 'The Hundred'],
+  'Russian Twist (weighted)': ['Cable Woodchopper', 'Bicycle Crunch'],
+  'Suitcase Carry': ['Farmers Carry (Heavy)', 'Pallof Press'],
+  'The Hundred': ['Roll-Up', 'Weighted Sit-up'],
+  'Tibialis Raise': ['Standing Calf Raise', 'Calf Raise'],
+  'Toes-to-Bar': ['Hanging Leg Raise', 'Dragon Flag'],
+  'Weighted Sit-up': ['V-Up', 'The Hundred'],
+};
+
 let dayDefs = programs[activeProgram].days;
 
 let dayOrder = Object.keys(dayDefs);
@@ -9079,8 +9273,15 @@ async function getSessionHeadsUpInsight(){
   const restingRegions = await getRestingRegions();
   let flaggedCount = 0;
 
-  for(let idx=0; idx<day.exercises.length; idx++){
-    const ex = day.exercises[idx];
+  // Resolve any active substitutions first, so this check is scoped to
+  // whichever exercise is actually in play for each slot today — otherwise
+  // a swapped-out exercise's own history/flags would silently get checked
+  // instead of the substitute actually being trained.
+  const exercisesForCheck = day.exercises.map(ex=>({...ex}));
+  await applyExerciseSubs(exercisesForCheck, activeProgram, activeDay);
+
+  for(let idx=0; idx<exercisesForCheck.length; idx++){
+    const ex = exercisesForCheck[idx];
     const info = exerciseInfo[ex.name];
     if(!info) continue;
 
@@ -9090,7 +9291,7 @@ async function getSessionHeadsUpInsight(){
       if(exRegions.some(r=> restingRegions.includes(r))) flagged = true;
     }
     if(!flagged){
-      const log = await getExLog(activeDay, idx);
+      const log = await getExLog(activeDay, idx, subVariantOf(ex));
       const pastSessions = buildPastSessions(log);
       const signal = analyzeProgressionSignal(pastSessions, ex, info.category);
       if(signal && (signal.type==='decrease' || signal.type==='deload')) flagged = true;
@@ -10164,11 +10365,65 @@ function initSessionLengthSelector(){
   };
 }
 
-function exKey(program, dayId, idx){
-  if(program === 'combat') return `ex:${program}:${activeMartialArt}:${dayId}:${idx}`;
-  if(program === 'cycling') return `ex:${program}:${activeCyclingStyle}:${dayId}:${idx}`;
-  if(program === 'medical') return `ex:${program}:${activeMedicalStyle}:${dayId}:${idx}`;
-  return `ex:${program}:${dayId}:${idx}`;
+// Turns a substitute exercise name into a safe, stable storage-key fragment
+// (lowercase, non-alphanumerics collapsed to single dashes, trimmed). Used
+// only for the ex: key suffix below — never displayed.
+function slugifyExerciseName(name){
+  return String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
+// subVariant is the active substitute exercise's name, or falsy for "no
+// substitute active" — in which case this returns byte-for-byte the same key
+// it always has, so existing logged history for the ORIGINAL exercise is
+// completely untouched by this feature shipping. Only when a substitute is
+// actively selected for a slot does a distinct `:sub:{slug}` key get used —
+// giving each substitute option its own separate weight/reps/RPE history at
+// that slot, exactly like switching back to the original exercise resumes
+// its own separate history rather than inheriting whatever the substitute
+// logged.
+function exKey(program, dayId, idx, subVariant){
+  const suffix = subVariant ? `:sub:${slugifyExerciseName(subVariant)}` : '';
+  if(program === 'combat') return `ex:${program}:${activeMartialArt}:${dayId}:${idx}${suffix}`;
+  if(program === 'cycling') return `ex:${program}:${activeCyclingStyle}:${dayId}:${idx}${suffix}`;
+  if(program === 'medical') return `ex:${program}:${activeMedicalStyle}:${dayId}:${idx}${suffix}`;
+  return `ex:${program}:${dayId}:${idx}${suffix}`;
+}
+
+// Storage key for which substitute (if any) is currently selected for one
+// exact program/day/slot — namespaced the same way as exKey so medical
+// styles don't collide with each other.
+function subSelectionKey(program, dayId, idx){
+  if(program === 'medical') return `exercise-sub:${program}:${activeMedicalStyle}:${dayId}:${idx}`;
+  return `exercise-sub:${program}:${dayId}:${idx}`;
+}
+
+// True whenever `ex` is the result of an active substitution swap — the
+// single flag every downstream reader (history keys, save handlers) checks
+// to decide whether to use the plain slot key or the variant-suffixed one.
+function subVariantOf(ex){
+  return (ex && ex.__isSubbed) ? ex.name : undefined;
+}
+
+// Applies any stored substitute selections to a day's exercise list, in
+// place, BEFORE anything downstream (cues, video, category-driven warm-up
+// eligibility, PR badges, plate calculator) ever reads ex.name — so none of
+// that logic needs its own substitution-awareness, it just sees whichever
+// exercise is actually active for that slot. Only ever touches slots whose
+// ORIGINAL exercise is in EXERCISE_SUBS (so custom exercises and body-goal
+// focus additions, which are never in that map, are always left alone).
+async function applyExerciseSubs(exercises, program, dayId){
+  await Promise.all(exercises.map(async (ex, i)=>{
+    if(!ex || ex.isCustom || ex.isBodyGoalFocus) return;
+    if(!EXERCISE_SUBS[ex.name]) return;
+    let subName = null;
+    try{
+      const res = await window.storage.get(subSelectionKey(program, dayId, i));
+      if(res && res.value) subName = res.value;
+    }catch(e){}
+    if(subName && subName !== ex.name){
+      exercises[i] = {...ex, name: subName, __originalName: ex.name, __isSubbed: true};
+    }
+  }));
 }
 
 function workoutKey(date, program, dayId){
@@ -10251,9 +10506,9 @@ function normalizeExEntry(e){
   return {date: e.date, sets: [{weight: e.weight ?? null, reps: e.reps ?? null}]};
 }
 
-async function getExLog(dayId, idx){
+async function getExLog(dayId, idx, subVariant){
   try{
-    const res = await window.storage.get(exKey(activeProgram, dayId, idx));
+    const res = await window.storage.get(exKey(activeProgram, dayId, idx, subVariant));
     if(res && res.value){
       const raw = JSON.parse(res.value);
       return raw.map(normalizeExEntry);
@@ -10275,6 +10530,92 @@ function topSetOf(entry){
 function volumeOf(entry){
   return (entry.sets||[]).reduce((sum,s)=> sum + (s.weight!=null && s.reps!=null ? s.weight*s.reps : 0), 0);
 }
+
+// --- Exercise substitution modal --------------------------------------------
+// A bottom-sheet picker: current exercise plus its 2 alternatives from
+// EXERCISE_SUBS, each showing its own last-logged set at this exact slot (or
+// "Not logged yet") so the choice is informed, not blind. Selecting an option
+// writes (or clears) the per-slot subSelectionKey and re-renders the whole
+// workout view, which is what actually applies the swap everywhere else.
+let subModalCurrentIdx = null;
+
+// Most recent logged entry for a slot's variant, formatted as a short plain
+// summary — used only for the modal's option rows, nowhere else.
+function formatLastLoggedSummary(log){
+  const sorted = [...log].sort((a,b)=> new Date(b.date+'T00:00:00') - new Date(a.date+'T00:00:00'));
+  const entry = sorted[0];
+  if(!entry) return 'Not logged yet';
+  const top = topSetOf(entry) || entry.sets.find(s=> s.reps!=null);
+  if(!top) return 'Not logged yet';
+  const dateLabel = new Date(entry.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const weightPart = top.weight!=null ? `${fmtWeight(top.weight)} × ` : '';
+  const repsPart = top.reps!=null ? `${top.reps} reps` : '';
+  const rpePart = top.rpe!=null ? ` @RPE ${top.rpe}` : '';
+  return `Last: ${weightPart}${repsPart}${rpePart} — ${dateLabel}`;
+}
+
+async function openExerciseSubModal(idx, ex){
+  const baseName = ex.__originalName || ex.name;
+  const alts = EXERCISE_SUBS[baseName];
+  if(!alts) return; // shouldn't happen — the swap control is only ever shown when alts exist
+  subModalCurrentIdx = idx;
+
+  const overlay = document.getElementById('subModalOverlay');
+  const optionsEl = document.getElementById('subModalOptions');
+  document.getElementById('subModalTitle').textContent = `Swap ${baseName}`;
+  optionsEl.innerHTML = '<div class="empty-note">Loading history…</div>';
+  overlay.classList.add('active');
+
+  const options = [baseName, ...alts];
+  const rows = await Promise.all(options.map(async (name)=>{
+    const variant = (name === baseName) ? undefined : name;
+    const log = await getExLog(activeDay, idx, variant);
+    return {name, isDefault: name === baseName, summary: formatLastLoggedSummary(log)};
+  }));
+
+  optionsEl.innerHTML = rows.map(r=>{
+    const isSelected = r.name === ex.name;
+    return `
+      <div class="sub-option ${isSelected ? 'selected' : ''}" data-name="${escapeHtml(r.name)}">
+        <div class="sub-option-text">
+          <div class="sub-option-name">${escapeHtml(r.name)}${r.isDefault ? '<span class="sub-option-default-tag">Default</span>' : ''}</div>
+          <div class="sub-option-history">${r.summary}</div>
+        </div>
+        ${isSelected ? '<span class="sub-option-check">✓</span>' : ''}
+      </div>
+    `;
+  }).join('');
+
+  optionsEl.querySelectorAll('.sub-option').forEach(el=>{
+    el.addEventListener('click', async ()=>{
+      const chosenName = el.dataset.name;
+      if(chosenName === ex.name){ closeExerciseSubModal(); return; } // already active — nothing to change
+      try{
+        if(chosenName === baseName){
+          // Reverting to the default exercise — clear the selection entirely
+          // rather than storing the default's own name, so a future
+          // EXERCISE_SUBS edit can't strand an old explicit "default" value.
+          await window.storage.delete(subSelectionKey(activeProgram, activeDay, idx));
+        } else {
+          await window.storage.set(subSelectionKey(activeProgram, activeDay, idx), chosenName);
+        }
+      }catch(e){}
+      closeExerciseSubModal();
+      renderWorkout();
+    });
+  });
+}
+
+function closeExerciseSubModal(){
+  document.getElementById('subModalOverlay').classList.remove('active');
+  subModalCurrentIdx = null;
+}
+
+document.getElementById('subModalClose').addEventListener('click', closeExerciseSubModal);
+document.getElementById('subModalOverlay').addEventListener('click', (e)=>{
+  // Only the backdrop itself closes it — clicks inside the sheet shouldn't bubble here anyway since sub-option rows have their own handlers, but this guards against clicks on the sheet's own padding.
+  if(e.target.id === 'subModalOverlay') closeExerciseSubModal();
+});
 
 function setCountOf(entry){
   return (entry.sets||[]).filter(s=> s.weight!=null && s.reps!=null).length;
@@ -10415,12 +10756,14 @@ async function computeProgramFitTrend(){
   for(const dayId of Object.keys(prog.days)){
     const day = prog.days[dayId];
     if(day.rest || !day.exercises) continue;
-    for(let idx=0; idx<day.exercises.length; idx++){
-      const ex = day.exercises[idx];
+    const exercisesForCheck = day.exercises.map(ex=>({...ex}));
+    await applyExerciseSubs(exercisesForCheck, activeProgram, dayId);
+    for(let idx=0; idx<exercisesForCheck.length; idx++){
+      const ex = exercisesForCheck[idx];
       if(ex.noWeight) continue; // no meaningful weight-based progression signal for bodyweight/time-based entries
       const info = exerciseInfo[ex.name];
       if(!info) continue;
-      const log = await getExLog(dayId, idx);
+      const log = await getExLog(dayId, idx, subVariantOf(ex));
       const pastSessions = buildPastSessions(log);
       if(pastSessions.length < 2) continue; // same minimum-data bar the per-exercise signal itself requires
       total++;
@@ -10585,8 +10928,8 @@ function buildGenericWarmupRamp(workingWeightLb){
   ];
 }
 
-async function saveExSet(dayId, idx, setIdx, weight, reps, rpe){
-  const log = await getExLog(dayId, idx);
+async function saveExSet(dayId, idx, setIdx, weight, reps, rpe, subVariant){
+  const log = await getExLog(dayId, idx, subVariant);
 
   let entry = log.find(e=>e.date===getTodayKey());
   if(!entry){ entry = {date: getTodayKey(), sets: []}; log.push(entry); }
@@ -10608,7 +10951,7 @@ async function saveExSet(dayId, idx, setIdx, weight, reps, rpe){
   entry.sets[setIdx] = {weight:w, reps:r, rpe:rpeVal};
 
   log.sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
-  try{ await window.storage.set(exKey(activeProgram, dayId, idx), JSON.stringify(log)); }catch(e){}
+  try{ await window.storage.set(exKey(activeProgram, dayId, idx, subVariant), JSON.stringify(log)); }catch(e){}
 
   // A set with an actual weight or rep count logged counts as training activity today,
   // regardless of which exercise/program it was — this is what streaks track.
@@ -10821,7 +11164,14 @@ async function renderWorkout(){
   const suffix = wasShortened ? ' (shortened)' : inDeloadWeek ? ' (deload)' : '';
   durationEl.textContent = `~${Math.round(estimatedMinutes)} min${suffix}`;
 
-  const logs = await Promise.all(renderExercises.map((ex,i)=> getExLog(activeDay, i)));
+  // Resolve any active exercise substitutions before anything else reads
+  // ex.name — cues, category-driven warm-up eligibility, PR badges, plate
+  // calculator, and history all then automatically follow whichever
+  // exercise is actually active for each slot, with no special-casing
+  // needed anywhere else in this function.
+  await applyExerciseSubs(renderExercises, activeProgram, activeDay);
+
+  const logs = await Promise.all(renderExercises.map((ex,i)=> getExLog(activeDay, i, subVariantOf(ex))));
   const restingRegions = await getRestingRegions();
 
   // Warm-up ramps are scoped to the first exercise of the day, plus the
@@ -10848,7 +11198,7 @@ async function renderWorkout(){
     const warmupEligiblePosition = i === 0 || (i === 1 && cat !== firstExCategory);
     const isHeavySet = topRep != null && topRep <= 8;
     if(!(warmupEligiblePosition || isHeavySet)) return null;
-    return await getFallbackPriorTopSet(ex.name, exKey(activeProgram, activeDay, i));
+    return await getFallbackPriorTopSet(ex.name, exKey(activeProgram, activeDay, i, subVariantOf(ex)));
   }));
 
   renderExercises.forEach((ex,i)=>{
@@ -11003,12 +11353,17 @@ async function renderWorkout(){
       }
     }
 
+    const subBaseName = ex.__originalName || ex.name;
+    const hasSubs = !!EXERCISE_SUBS[subBaseName];
+    const subTagHtml = ex.__isSubbed ? `<span class="super-tag sub-tag">⇄ Swapped from ${escapeHtml(ex.__originalName)}</span>` : '';
+    const swapIconHtml = hasSubs ? ' <span class="ex-swap-icon">⇄</span>' : '';
+
     row.innerHTML = `
       <div class="exercise">
         <input type="checkbox" data-idx="${i}" ${checked}>
         ${thumbHtml}
         <div class="ex-name-wrap">
-          <div class="ex-name ${completed[i]?'done':''}">${ex.name}${focusHtml}${ex.isCustom ? '<span class="super-tag custom-tag">✏️ Custom</span>' : ''}</div>
+          <div class="ex-name ${completed[i]?'done':''} ${hasSubs ? 'ex-name-swappable' : ''}">${ex.name}${swapIconHtml}${focusHtml}${subTagHtml}${ex.isCustom ? '<span class="super-tag custom-tag">✏️ Custom</span>' : ''}</div>
         </div>
         <div class="ex-sets">${ex.sets}<div class="ex-cal-tag">~${exCalories} cal</div></div>
         ${ex.isCustom ? `<button class="ex-delete-custom-btn" title="Remove this custom exercise">🗑️</button>` : ''}
@@ -11127,6 +11482,14 @@ async function renderWorkout(){
       row.classList.toggle('open');
       row.querySelector('.expand-wrap').classList.toggle('open');
     });
+
+    const nameEl = row.querySelector('.ex-name');
+    if(hasSubs){
+      nameEl.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        openExerciseSubModal(i, ex);
+      });
+    }
 
     wireSetsBlock(row, i, ex);
 
@@ -11397,7 +11760,7 @@ document.getElementById('restTimerClose').addEventListener('click', ()=>{
 });
 
 async function refreshSessionSummary(row, exIdx, ex){
-  const log = await getExLog(activeDay, exIdx);
+  const log = await getExLog(activeDay, exIdx, subVariantOf(ex));
   const todayEntry = log.find(e=>e.date===getTodayKey());
   const todayVolume = todayEntry ? volumeOf(todayEntry) : 0;
   const todayTop = todayEntry ? topSetOf(todayEntry) : null;
@@ -11477,11 +11840,12 @@ function formatPlateResult(result){
 
 function wireSetsBlock(row, exIdx, ex){
   const block = row.querySelector('.sets-block');
+  const subVariant = subVariantOf(ex); // undefined when this slot isn't currently substituted
 
   const sameAsLastBtn = block.querySelector('.same-as-last-btn');
   if(sameAsLastBtn){
     sameAsLastBtn.addEventListener('click', async ()=>{
-      const key = exKey(activeProgram, activeDay, exIdx);
+      const key = exKey(activeProgram, activeDay, exIdx, subVariant);
       let log = [];
       try{
         const item = await window.storage.get(key);
@@ -11492,7 +11856,7 @@ function wireSetsBlock(row, exIdx, ex){
       for(let setIdx=0; setIdx<prior.sets.length; setIdx++){
         const s = prior.sets[setIdx];
         if(s.weight==null && s.reps==null) continue; // nothing meaningful to copy for this set
-        await saveExSet(activeDay, exIdx, setIdx, s.weight ?? '', s.reps ?? '', s.rpe ?? '');
+        await saveExSet(activeDay, exIdx, setIdx, s.weight ?? '', s.reps ?? '', s.rpe ?? '', subVariant);
       }
       renderWorkout();
     });
@@ -11535,7 +11899,7 @@ function wireSetsBlock(row, exIdx, ex){
 
   async function deleteSet(setRow){
     const setIdx = Number(setRow.dataset.setIdx);
-    const key = exKey(activeProgram, activeDay, exIdx);
+    const key = exKey(activeProgram, activeDay, exIdx, subVariant);
     let log = [];
     try{
       const item = await window.storage.get(key);
@@ -11584,7 +11948,7 @@ function wireSetsBlock(row, exIdx, ex){
       const setIdx = Number(setRow.dataset.setIdx);
       const weightValRaw = wInput ? wInput.value : '';
       const weightValLb = weightValRaw === '' ? '' : toCanonicalLb(weightValRaw);
-      const result = await saveExSet(activeDay, exIdx, setIdx, weightValLb, rInput.value, rpeInput.value);
+      const result = await saveExSet(activeDay, exIdx, setIdx, weightValLb, rInput.value, rpeInput.value, subVariant);
       if(weightValRaw === '' && rInput.value === ''){ statusEl.textContent = ''; statusEl.className='set-status'; return; }
       if(result.isPR && await isPastPrNotificationWindow()){
         statusEl.textContent = '🏆 PR';
