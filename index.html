@@ -126,6 +126,14 @@
   .streak-badge.zero{background:var(--surface2); border-color:var(--line); color:var(--text-muted); font-weight:500; box-shadow:none;}
   .streak-badge.streak-pulse{ animation:streakPulse 0.7s var(--ease-spring); }
   @keyframes streakPulse{ 0%{transform:scale(1);} 35%{transform:scale(1.18);} 60%{transform:scale(0.94);} 100%{transform:scale(1);} }
+  .supplement-streak{
+    display:inline-flex; align-items:center; margin-bottom:10px;
+    background:linear-gradient(160deg, rgba(50,215,75,0.14), rgba(50,215,75,0.05));
+    border:1px solid rgba(50,215,75,0.32);
+    border-radius:var(--radius-pill); padding:4px 12px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-size:12px; color:var(--plate-green); font-weight:600;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 12px -7px rgba(50,215,75,0.35);
+  }
 
   .tabs-header{display:flex; align-items:center; justify-content:space-between; padding-top:14px;}
   .tabs-header .hint{font-size:11px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; text-transform:uppercase; letter-spacing:0.5px;}
@@ -133,7 +141,9 @@
     background:var(--surface2); border:1px solid var(--line); color:var(--text);
     font-family:'Inter',sans-serif; font-size:12px; font-weight:600;
     padding:7px 12px; border-radius:var(--radius-pill); cursor:pointer;
+    transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
+  .reorder-btn:active{transform:scale(0.96);}
   .reorder-btn.active{background:var(--plate-blue); border-color:var(--plate-blue); color:#fff;}
 
   .tabs{
@@ -348,6 +358,28 @@
   }
   .supplement-row.done span:last-child{color:var(--text-muted); text-decoration:line-through; text-decoration-color:var(--line-bright);}
   .supplement-row:active .supplement-check{transform:scale(0.88);}
+  .grocery-item{
+    display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px;
+    cursor:pointer; user-select:none;
+  }
+  .grocery-item:last-child{border-bottom:none;}
+  .grocery-item-text{flex:1;}
+  .grocery-item .grocery-check{
+    width:20px; height:20px; border-radius:50%; border:1.5px solid var(--line-bright);
+    display:flex; align-items:center; justify-content:center; font-size:12px; color:transparent; flex:0 0 auto;
+    transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
+  }
+  .grocery-item.done .grocery-check{
+    background:linear-gradient(160deg, #4FE168, var(--plate-green) 55%); border-color:var(--plate-green); color:#fff;
+    box-shadow:0 1px 0 rgba(255,255,255,0.25) inset;
+  }
+  .grocery-item.done .grocery-item-text{color:var(--text-muted); text-decoration:line-through; text-decoration-color:var(--line-bright);}
+  .grocery-item:active .grocery-check{transform:scale(0.88);}
+  .grocery-remove{
+    background:none; border:none; color:var(--text-muted); font-size:18px; line-height:1; padding:0 4px; cursor:pointer;
+    transition:color 0.2s var(--ease-smooth);
+  }
+  .grocery-remove:hover{color:var(--plate-red);}
   .today-insight-row{
     padding:10px 12px; background:rgba(91,124,255,0.08); border:1px solid rgba(91,124,255,0.28);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:8px;
@@ -1086,6 +1118,24 @@
     width:100%; margin-top:10px; padding:10px; background:var(--plate-green); color:#fff; border:none;
     border-radius:var(--radius-sm); font-weight:600; font-size:12.5px; cursor:pointer; font-family:'Inter',sans-serif;
   }
+  .recipe-card-actions{display:flex; gap:8px; margin-top:10px;}
+  .recipe-link-btn{
+    flex:1; text-align:center; padding:9px 10px; border-radius:var(--radius-sm);
+    background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:600; text-decoration:none;
+    display:flex; align-items:center; justify-content:center;
+    transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
+  }
+  .recipe-link-btn:active{transform:scale(0.96);}
+  .recipe-log-btn{
+    flex:1; padding:9px 10px; border:none; border-radius:var(--radius-sm);
+    background:linear-gradient(160deg, #4FE168, var(--plate-green) 55%); color:#fff;
+    font-family:'Inter',sans-serif; font-size:12px; font-weight:600; cursor:pointer;
+    box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 4px 12px -6px rgba(50,215,75,0.45);
+    transition:transform 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
+  }
+  .recipe-log-btn:active{transform:scale(0.96);}
+  .recipe-log-btn:disabled{opacity:0.6; cursor:default;}
 
   .water-tracker{
     background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
@@ -1245,6 +1295,8 @@
   .history-hint{font-size:12px; color:var(--text-muted); margin-bottom:14px; line-height:1.4;}
   .history-hint.nutrient-inline-note{margin-top:-6px; margin-bottom:12px;}
   .history-hint.subtle{opacity:0.75;}
+  .history-hint.recipe-desc{margin:2px 0 8px;}
+  .history-hint.field-note{margin-top:4px;}
   .month-group{margin-bottom:4px;}
   .month-group summary{
     list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between;
@@ -1470,6 +1522,7 @@
   .food-item-btn .fi-name{font-size:13.5px; font-weight:500;}
   .food-item-btn .fi-cat{font-size:10px; color:var(--plate-blue); text-transform:uppercase; letter-spacing:0.3px; margin-top:1px;}
   .food-item-btn .fi-source{font-size:10px; color:var(--plate-teal); margin-top:1px;}
+  .food-item-btn .fi-avoid-flag{font-size:10.5px; color:var(--plate-red); font-weight:600; margin-top:2px;}
   .food-item-btn .fi-macro{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted); margin-top:2px;}
   .food-item-btn .fi-actions{display:flex; align-items:center; gap:8px; flex:0 0 auto;}
   .fi-star{
@@ -1733,6 +1786,26 @@
       <label class="care-label">Body Goal</label>
       <select id="pfBodyGoal" class="care-input"></select>
 
+      <label class="care-label">Dietary Preference</label>
+      <select id="pfDietaryPreference" class="care-input">
+        <option value="">No restriction</option>
+        <option value="pescatarian">Pescatarian (fish/seafood, no other meat)</option>
+        <option value="vegetarian">Vegetarian (no meat, fish, or seafood)</option>
+        <option value="vegan">Vegan (no animal products at all)</option>
+      </select>
+
+      <label class="care-label">Also Avoid (optional, stacks with the above)</label>
+      <label class="save-to-library-label"><input type="checkbox" id="pfGlutenFree"><span>Gluten-free</span></label>
+      <label class="save-to-library-label"><input type="checkbox" id="pfDairyFree"><span>Dairy-free</span></label>
+      <label class="save-to-library-label"><input type="checkbox" id="pfNutFree"><span>Nut-free (tree nuts + peanuts)</span></label>
+      <label class="save-to-library-label"><input type="checkbox" id="pfHalal"><span>Halal</span></label>
+      <label class="save-to-library-label"><input type="checkbox" id="pfKosher"><span>Kosher</span></label>
+      <div class="history-hint field-note">Halal and Kosher here only ever catch obvious ingredient conflicts — no pork, no shellfish (Kosher), no alcohol (Halal), no meat-and-dairy combination (Kosher). Real compliance also depends on how something was slaughtered and prepared, which no app can verify from a name — treat this as a helpful filter, not a certification.</div>
+
+      <label class="care-label">Avoid</label>
+      <input type="text" id="pfAvoidFoods" class="care-input" placeholder="e.g. peanuts, shellfish, pork, cilantro">
+      <div class="history-hint field-note">Allergies, intolerances, religious restrictions, or just foods you don't want suggested — comma-separated. Matches whole words in a food's name, so "egg" won't flag "eggplant." Broad categories like "nuts" only catch foods actually named that — list specific ones (almonds, cashews, walnuts) for full coverage.</div>
+
       <button class="save-btn" id="pfSave">Save Profile</button>
       <div class="status-msg" id="pfStatus"></div>
 
@@ -1796,6 +1869,7 @@
         <button class="quick-add-btn" id="barcodeScanBtn"><span class="quick-add-icon">▦</span>Barcode</button>
         <button class="quick-add-btn" id="describeFoodBtn"><span class="quick-add-icon">📝</span>Describe</button>
         <button class="quick-add-btn" id="suggestMealBtn"><span class="quick-add-icon">💡</span>Suggest</button>
+        <button class="quick-add-btn" id="recipeFinderBtn"><span class="quick-add-icon">🍳</span>Recipes</button>
       </div>
       <div id="describeFoodForm" class="describe-food-form smooth-toggle"><div>
         <div class="describe-food-input-row">
@@ -1804,12 +1878,30 @@
         </div>
         <button class="save-btn" id="describeFoodSubmit">Estimate Nutrition</button>
       </div></div>
+      <div id="recipeFinderForm" class="describe-food-form smooth-toggle"><div>
+        <div class="describe-food-input-row">
+          <input type="text" id="recipeFinderInput" class="care-input" placeholder="e.g. sesame chicken, overnight oats, turkey chili">
+        </div>
+        <button class="save-btn" id="recipeFinderSubmit">Find Recipes</button>
+        <div class="history-hint" style="margin-top:8px;">A few different takes on what you're craving — with estimated macros per serving, and a link to the actual recipe. Respects your dietary preference and avoid list. Nothing's shown in-app beyond the estimate; tap through to cook it, or log it straight from the estimate if you already know what you're making.</div>
+      </div></div>
       <input type="file" id="photoLogInput" accept="image/*" style="display:none">
       <div id="photoLogResult"></div>
       <div id="mealSuggestions"></div>
       <div id="barcodeResult"></div>
       <div id="describeFoodResult"></div>
+      <div id="recipeFinderResult"></div>
 
+      <div class="section-divider"></div>
+      <div class="section-label">🛒 Grocery List</div>
+      <div class="weight-input-row">
+        <input type="text" id="groceryAddInput" class="care-input" placeholder="Add an item">
+        <button id="groceryAddBtn">Add</button>
+      </div>
+      <div id="groceryListItems"></div>
+      <button type="button" class="reorder-btn" id="groceryClearCheckedBtn" style="display:none; margin-top:8px;">Clear checked items</button>
+
+      <button class="reorder-btn" id="hideAvoidedToggle" style="display:none; margin-bottom:10px;">🙈 Hide foods that don't fit</button>
       <div class="food-cats" id="foodCats"></div>
       <div class="food-items" id="foodItems"></div>
 
@@ -1848,6 +1940,7 @@
 
       <div class="section-divider"></div>
       <div class="section-label">Today</div>
+      <button class="reorder-btn" id="repeatYesterdayBtn" style="display:none; margin-bottom:10px;">🔁 Repeat Yesterday</button>
       <div class="food-log-list" id="foodLogList"></div>
 
       <div class="water-tracker">
@@ -2068,6 +2161,18 @@
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5c2.5 3.5 5.5 7.2 5.5 10.5a5.5 5.5 0 0 1-11 0c0-3.3 3-7 5.5-10.5Z"/></svg></span>Water Trend</div>
       <div id="waterChart"></div>
+    </div>
+
+    <div class="card" id="bpTrendCard" style="display:none">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v4M10 13v4M3 10h4M13 10h4"/><circle cx="10" cy="10" r="3"/></svg></span>Blood Pressure Trend</div>
+      <div class="history-hint">Systolic (top number) charted below — the AHA categories weigh whichever of the two numbers is higher, so a normal-looking systolic trend doesn't rule out a diastolic issue on its own.</div>
+      <div id="bpChart"></div>
+    </div>
+
+    <div class="card" id="glucoseTrendCard" style="display:none">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 L15 11 A5.5 5.5 0 1 1 5 11 Z"/></svg></span>Blood Glucose Trend</div>
+      <div class="history-hint">Daily average across however many readings you logged that day, fasting and post-meal mixed together — a rough overall trend, not a substitute for reading each entry against its own context.</div>
+      <div id="glucoseChart"></div>
     </div>
 
     <div class="card">
@@ -11701,7 +11806,8 @@ function getBodyGoalFocusExercises(bodyGoal, program, day){
 
 let userProfile = {
   name:'', age:30, gender:'other', heightFt:5, heightIn:8, weight:160,
-  activity:1.375, goal:'maintain', bodyGoal:'',
+  activity:1.375, goal:'maintain', bodyGoal:'', dietaryPreference:'', avoidFoods:'',
+  dietaryFlags:{glutenFree:false, dairyFree:false, nutFree:false, halal:false, kosher:false},
 };
 
 async function loadProfile(){
@@ -12617,6 +12723,14 @@ function populateProfileForm(){
   document.getElementById('pfWeight').value = p.weight ? trimUnitNum(toDisplayWeight(p.weight)) : '';
   document.getElementById('pfActivity').value = p.activity;
   document.getElementById('pfGoal').value = p.goal;
+  document.getElementById('pfDietaryPreference').value = p.dietaryPreference || '';
+  const flags = p.dietaryFlags || {};
+  document.getElementById('pfGlutenFree').checked = !!flags.glutenFree;
+  document.getElementById('pfDairyFree').checked = !!flags.dairyFree;
+  document.getElementById('pfNutFree').checked = !!flags.nutFree;
+  document.getElementById('pfHalal').checked = !!flags.halal;
+  document.getElementById('pfKosher').checked = !!flags.kosher;
+  document.getElementById('pfAvoidFoods').value = p.avoidFoods || '';
   updateBodyGoalOptions();
 }
 
@@ -12642,6 +12756,15 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
     activity: Number(document.getElementById('pfActivity').value),
     goal: document.getElementById('pfGoal').value,
     bodyGoal: document.getElementById('pfBodyGoal').value,
+    dietaryPreference: document.getElementById('pfDietaryPreference').value,
+    dietaryFlags: {
+      glutenFree: document.getElementById('pfGlutenFree').checked,
+      dairyFree: document.getElementById('pfDairyFree').checked,
+      nutFree: document.getElementById('pfNutFree').checked,
+      halal: document.getElementById('pfHalal').checked,
+      kosher: document.getElementById('pfKosher').checked,
+    },
+    avoidFoods: document.getElementById('pfAvoidFoods').value.trim(),
   };
   await saveProfile();
   targets = computeTargets(userProfile);
@@ -12657,6 +12780,8 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
   renderCycleTracking();
   renderTodayInsights();
   loadFoodLog(); // refresh macro bars against new targets
+  updateHideAvoidedToggleVisibility();
+  renderFoodItems(); // avoid list may have just changed — re-filter/re-flag immediately
 
   // Keep this device's profile picker label in sync with the name just saved
   if(activeUserId && userProfile.name){
@@ -13670,6 +13795,217 @@ document.getElementById('describeFoodBtn').addEventListener('click', ()=>{
   }
 });
 
+// --- Recipe Finder -----------------------------------------------------
+// Different from Describe It / Snap a Meal, which estimate nutrition for
+// something already eaten — this proactively SUGGESTS recipes, so it needs
+// to actually respect dietary preference and the avoid list rather than
+// just log whatever's real. Handed to the model directly in the prompt
+// rather than filtered afterward with the static keyword classifier used
+// elsewhere: Claude's own real-world culinary knowledge already knows a
+// BLT contains bacon and bacon is pork, which is a stronger guarantee here
+// than trying to hand-maintain every possible hidden-ingredient dish name.
+let recipeFinderResults = [];
+
+document.getElementById('recipeFinderBtn').addEventListener('click', ()=>{
+  const form = document.getElementById('recipeFinderForm');
+  const isOpen = form.classList.contains('open');
+  if(isOpen){
+    form.classList.remove('open');
+  } else {
+    clearOtherQuickAddResults('recipeFinderResult');
+    form.classList.add('open');
+    document.getElementById('recipeFinderInput').focus();
+  }
+});
+
+function buildRecipeSearchUrl(name){
+  // A search link, not a specific recipe URL — the model can suggest a
+  // great recipe idea but has no way to guarantee any single URL it names
+  // still resolves, so this always works instead of risking a dead or
+  // hallucinated link.
+  return `https://www.google.com/search?q=${encodeURIComponent(name + ' recipe')}`;
+}
+
+async function submitRecipeSearch(){
+  const input = document.getElementById('recipeFinderInput');
+  const query = input.value.trim();
+  if(!query) return;
+  clearOtherQuickAddResults('recipeFinderResult');
+  const resultEl = document.getElementById('recipeFinderResult');
+  const apiKey = await getApiKey();
+
+  if(!apiKey){
+    resultEl.innerHTML = `<div class="care-banner care-banner-caution">Add your Anthropic API key in the "AI Features Setup" card below to use Recipe Finder.</div>`;
+    return;
+  }
+
+  resultEl.innerHTML = `<div class="skeleton-wrap"><div class="skeleton-line" style="width:75%"></div><div class="skeleton-line" style="width:55%"></div><div class="skeleton-line" style="width:65%"></div></div>`;
+
+  try{
+    const DIET_PREF_LABELS = {pescatarian:'Pescatarian', vegetarian:'Vegetarian', vegan:'Vegan'};
+    const dietLine = userProfile?.dietaryPreference && DIET_PREF_LABELS[userProfile.dietaryPreference]
+      ? `They are ${DIET_PREF_LABELS[userProfile.dietaryPreference]}. Every recipe must genuinely fit this — no exceptions, and think through hidden ingredients (e.g. fish sauce, gelatin, chicken stock, lard, anchovy in Caesar dressing) that would violate it even if not obvious from a dish's usual name.`
+      : '';
+    const flagsDesc = describeDietaryFlags(userProfile?.dietaryFlags);
+    const flagsLine = flagsDesc ? `They also need: ${flagsDesc}.` : '';
+    const avoidLine = userProfile?.avoidFoods
+      ? `They avoid: ${userProfile.avoidFoods} (allergy, intolerance, religious reason, or just dislike — treat all the same, no exceptions). NEVER include an avoided ingredient in any recipe, even disguised under a different name or hidden in a component someone might not immediately connect (avoiding pork also rules out bacon, ham, prosciutto, chorizo, pepperoni, salami, and lard; avoiding shellfish also rules out fish sauce and oyster sauce; use your real knowledge of what's actually in a dish, not just whether the avoided word literally appears in its name).`
+      : '';
+    const remaining = computeRemainingMacros();
+    const macroLine = `They have roughly ${Math.round(remaining.cal)} cal, ${Math.round(remaining.pro)}g protein, ${Math.round(remaining.carb)}g carbs, and ${Math.round(remaining.fat)}g fat left in today's targets — use this as helpful context for portioning, not a hard ceiling.`;
+
+    const systemPrompt = `You suggest home-cookable recipe ideas for a fitness nutrition tracking app, matched to what someone's actually in the mood for. Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"recipes":[{"name":"string","description":"string, one sentence on what makes this particular version different (prep style, protein level, lighter/heartier, etc)","cal":number,"pro":number,"fat":number,"carb":number,"ingredients":["string", "..."]}]}. The ingredients array should be a short, realistic shopping list for that specific recipe (5-10 items, plain names like "boneless chicken thighs" or "toasted sesame oil" — no quantities needed).
+
+Suggest exactly 3-4 genuinely different takes on what's asked for — different cooking methods or macro profiles, not minor variations of the same recipe. Give realistic per-serving macro estimates for a typical home-cooked portion.
+
+${dietLine}
+${flagsLine}
+${avoidLine}
+${macroLine}
+
+If what they're in the mood for is fundamentally incompatible with their dietary preference, additional needs, or avoid list (e.g. asking for a bacon dish while avoiding pork), respond with {"recipes":[]} rather than forcing a workaround they didn't ask for.`;
+
+    const raw = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content: `I'm in the mood for: ${query}`}], 900);
+    const cleaned = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    recipeFinderResults = parsed.recipes || [];
+
+    if(recipeFinderResults.length === 0){
+      resultEl.innerHTML = `<div class="empty-note">🤷 Nothing fits — that request may conflict with your dietary preference or avoid list, or the model just didn't find a good match. Try rephrasing.</div>`;
+      return;
+    }
+
+    const cardsHtml = recipeFinderResults.map((r,i)=> `
+      <div class="photo-result-card">
+        <div class="photo-result-title">🍳 ${escapeHtml(r.name)}</div>
+        <div class="history-hint recipe-desc">${escapeHtml(r.description || '')}</div>
+        <div class="photo-result-item"><span>${r.cal} cal · ${r.pro}g protein · ${r.fat}g fat · ${r.carb}g carbs (per serving, estimated)</span></div>
+        <div class="recipe-card-actions">
+          <a class="recipe-link-btn" href="${buildRecipeSearchUrl(r.name)}" target="_blank" rel="noopener">🔗 Find this recipe</a>
+          <button type="button" class="recipe-log-btn" data-idx="${i}">+ Log this</button>
+        </div>
+        ${(r.ingredients && r.ingredients.length) ? `<button type="button" class="recipe-grocery-btn" data-idx="${i}">🛒 Add ${r.ingredients.length} ingredients to grocery list</button>` : ''}
+      </div>
+    `).join('');
+
+    resultEl.innerHTML = `
+      <div class="history-hint">Estimates, not exact — actual macros depend on the specific recipe and portion you end up cooking.</div>
+      ${cardsHtml}
+    `;
+    resultEl.querySelectorAll('.recipe-log-btn').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const recipe = recipeFinderResults[Number(btn.dataset.idx)];
+        if(!recipe) return;
+        await addFoodToLog({name: recipe.name, cal: recipe.cal, pro: recipe.pro, fat: recipe.fat, carb: recipe.carb});
+        btn.textContent = 'Logged ✓';
+        btn.disabled = true;
+      });
+    });
+    resultEl.querySelectorAll('.recipe-grocery-btn').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const recipe = recipeFinderResults[Number(btn.dataset.idx)];
+        if(!recipe || !recipe.ingredients) return;
+        await addGroceryItems(recipe.ingredients);
+        btn.textContent = '✓ Added to grocery list';
+        btn.disabled = true;
+      });
+    });
+  }catch(err){
+    resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't find recipes: ${err.message}. Try again.</div>`;
+  }
+}
+
+document.getElementById('recipeFinderSubmit').addEventListener('click', submitRecipeSearch);
+document.getElementById('recipeFinderInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') submitRecipeSearch();
+});
+
+// --- Grocery List --------------------------------------------------------
+// Standalone — usable on its own via manual entry, not exclusively tied to
+// Recipe Finder results, though "Add ingredients to grocery list" on a
+// recipe card is the main way it gets populated in practice.
+async function loadGroceryList(){
+  try{
+    const res = await window.storage.get('grocery-list');
+    return res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){ return []; }
+}
+
+async function saveGroceryList(list){
+  try{ await window.storage.set('grocery-list', JSON.stringify(list)); }catch(e){}
+}
+
+async function addGroceryItems(items){
+  const list = await loadGroceryList();
+  const existing = new Set(list.map(i=> i.text.toLowerCase()));
+  items.forEach(raw=>{
+    const text = String(raw).trim();
+    if(text && !existing.has(text.toLowerCase())){
+      list.push({text, checked:false});
+      existing.add(text.toLowerCase());
+    }
+  });
+  await saveGroceryList(list);
+  await renderGroceryList();
+}
+
+async function renderGroceryList(){
+  const el = document.getElementById('groceryListItems');
+  if(!el) return;
+  const list = await loadGroceryList();
+  const clearBtn = document.getElementById('groceryClearCheckedBtn');
+  if(list.length === 0){
+    el.innerHTML = '<div class="empty-note">🛒 Nothing here yet — add items below, or tap "Add ingredients" on a Recipe Finder result.</div>';
+    if(clearBtn) clearBtn.style.display = 'none';
+    return;
+  }
+  const itemHtmls = list.map(item=> buildSwipeItem(
+    `<div class="grocery-item ${item.checked ? 'done' : ''}"><span class="grocery-check">${item.checked ? '✓' : ''}</span><span class="grocery-item-text">${escapeHtml(item.text)}</span></div>`
+  ));
+  el.innerHTML = itemHtmls.join('');
+  if(clearBtn) clearBtn.style.display = list.some(i=>i.checked) ? '' : 'none';
+
+  el.querySelectorAll('.swipe-item').forEach((swipeEl, idx)=>{
+    swipeEl.querySelector('.grocery-item').addEventListener('click', async ()=>{
+      const current = await loadGroceryList();
+      if(!current[idx]) return;
+      current[idx].checked = !current[idx].checked;
+      await saveGroceryList(current);
+      await renderGroceryList();
+    });
+    makeSwipeable(swipeEl, async ()=>{
+      const current = await loadGroceryList();
+      const removed = current[idx];
+      const preDeleteSnapshot = JSON.stringify(current);
+      current.splice(idx, 1);
+      await saveGroceryList(current);
+      await renderGroceryList();
+      if(removed){
+        showUndoToast(`${removed.text} removed`, async ()=>{
+          try{ await saveGroceryList(JSON.parse(preDeleteSnapshot)); }catch(e){}
+          await renderGroceryList();
+        });
+      }
+    });
+  });
+}
+
+document.getElementById('groceryAddBtn').addEventListener('click', async ()=>{
+  const input = document.getElementById('groceryAddInput');
+  const text = input.value.trim();
+  if(!text) return;
+  await addGroceryItems([text]);
+  input.value = '';
+});
+document.getElementById('groceryAddInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') document.getElementById('groceryAddBtn').click();
+});
+document.getElementById('groceryClearCheckedBtn').addEventListener('click', async ()=>{
+  const current = await loadGroceryList();
+  await saveGroceryList(current.filter(i=> !i.checked));
+  await renderGroceryList();
+});
+
 // Matches on the meaningful words in a food name (skipping short/common
 // words) against everything already in the food library — a proven,
 // previously-used entry is worth surfacing as an alternative to a brand
@@ -13817,6 +14153,294 @@ function initDescribeFoodVoice(){
   });
 }
 
+// --- Dietary preference / avoid-list filtering -----------------------------
+// There's no ingredient database backing the food library, USDA search
+// results, or custom-logged foods — this infers dietary category from the
+// food's NAME. Reliable for the large majority of clearly-named items
+// (Chicken Breast, Salmon, Firm Tofu); the manually-curated override list
+// below covers real dishes already in this app whose names don't literally
+// spell out the ingredient that matters (Big Mac, Miso Soup, Gyro Sandwich,
+// McChicken). This is a best-effort filter, not a guarantee of safety for
+// a genuine allergy — the profile form says as much.
+const MEAT_KEYWORDS = ['beef','steak','pork','ham','bacon','lamb','veal','bison','venison','sausage','chorizo','brisket','carnitas','carne','barbacoa','prosciutto','salami','pepperoni','meatball','ribeye','sirloin','goat','burger'];
+const POULTRY_KEYWORDS = ['chicken','turkey','duck','quail','nugget'];
+const FISH_KEYWORDS = ['salmon','tuna','tilapia','cod','halibut','mahi','trout','bass','snapper','sardine','anchovy','herring','catfish','sashimi','nigiri','fish'];
+const SHELLFISH_KEYWORDS = ['shrimp','crab','lobster','scallop','oyster','clam','mussel','calamari','squid','prawn'];
+const DAIRY_KEYWORDS = ['cheese','milk','yogurt','butter','cream','whey','paneer','gouda','mozzarella','cheddar','parmesan','ghee'];
+
+const FOOD_NAME_OVERRIDES = [
+  {match:/shepherd.s pie/i, tags:['meat']},
+  {match:/dave.s/i, tags:['meat']},
+  {match:/big mac/i, tags:['meat']},
+  {match:/quarter pounder/i, tags:['meat']},
+  {match:/mcchicken/i, tags:['poultry']},
+  {match:/italian bmt/i, tags:['meat']},
+  {match:/gyro sandwich/i, tags:['meat']},
+  {match:/egg roll/i, tags:['meat','egg']},
+  {match:/\bgyoza\b/i, tags:['meat']},
+  {match:/hot & sour soup/i, tags:['meat','egg']},
+  {match:/miso soup/i, tags:['fish']},
+  {match:/fried rice/i, tags:['egg']},
+  {match:/poke bowl/i, tags:['fish']},
+  {match:/california roll/i, tags:['shellfish']},
+  {match:/dragon roll/i, tags:['fish']},
+  {match:/tzatziki/i, tags:['dairy']},
+  {match:/saag paneer/i, tags:['dairy']},
+  {match:/\belote\b/i, tags:['dairy']},
+  {match:/chile relleno/i, tags:['dairy','egg']},
+  {match:/\bnaan\b/i, tags:['dairy']},
+  // Found during a full-library review: dairy that isn't spelled out by name.
+  {match:/\blatte\b/i, tags:['dairy']},
+  {match:/macchiato/i, tags:['dairy']},
+  {match:/garlic bread/i, tags:['dairy']},
+  // Real default recipes with meat/cheese the name alone doesn't say.
+  {match:/protein style burger/i, tags:['meat']}, // In-N-Out beef patty, lettuce-wrapped instead of bunned — still beef
+  {match:/crunchy taco/i, tags:['meat','dairy']},
+  {match:/bean burrito/i, tags:['dairy']}, // Taco Bell's actual recipe includes cheese
+  {match:/crunchwrap supreme/i, tags:['meat','dairy']},
+  {match:/cheesy gordita crunch/i, tags:['meat','dairy']},
+  {match:/nacho fries/i, tags:['dairy']},
+  {match:/^chili \(/i, tags:['meat']}, // Wendy's chili is beef-based despite the generic name
+  // Traditional preparations with a near-universal hidden ingredient —
+  // real exceptions exist (a vegetarian pad thai, a veg tom yum), but the
+  // standard/default version of each contains what's flagged here.
+  {match:/pad thai/i, tags:['egg']},
+  {match:/tom yum soup/i, tags:['shellfish']},
+  {match:/panang curry/i, tags:['meat']},
+  {match:/^chow mein/i, tags:['poultry']},
+  {match:/^lo mein/i, tags:['poultry']},
+  {match:/double-double/i, tags:['meat','dairy']}, // In-N-Out's double cheeseburger — the menu name alone gives no hint
+  // Standard batter-based recipes — real egg-free/dairy-free versions exist,
+  // but the default preparation implied by these names contains both.
+  // Waffle Fries are excluded on purpose — potato, not batter, despite
+  // sharing the word "waffle".
+  {match:/pancake/i, tags:['egg','dairy']},
+  {match:/\bwaffles?\b(?!\s*fries)/i, tags:['egg','dairy']},
+  {match:/french toast/i, tags:['egg','dairy']},
+  {match:/caesar/i, tags:['dairy']}, // parmesan in traditional Caesar dressing — matters for the kosher meat+dairy check
+];
+
+// Specific ingredient/product names mapped to the broader ingredient a
+// person is more likely to type when avoiding something — so avoiding
+// "pork" also catches "bacon", "ham", "pepperoni", etc, even though none of
+// those words contain "pork" itself. Without this, someone avoiding pork
+// for an allergy or religious reason could easily miss a food where the
+// pork is disguised under a product name (a BLT famously never says "pork"
+// anywhere, despite being built on bacon).
+const INGREDIENT_ALIASES = {
+  pork: ['bacon','ham','prosciutto','pepperoni','salami','chorizo','carnitas','pancetta','sausage','pork'],
+  beef: ['beef','steak','carne','barbacoa','brisket','ribeye','sirloin','burger','meatball'],
+  chicken: ['chicken','nugget','mcchicken'],
+  shellfish: ['shrimp','crab','lobster','scallop','oyster','clam','mussel','calamari','squid','prawn'],
+  fish: ['salmon','tuna','tilapia','cod','halibut','mahi','trout','bass','snapper','sardine','anchovy','herring','catfish','sashimi'],
+  dairy: ['cheese','milk','yogurt','butter','cream','whey','paneer','gouda','mozzarella','cheddar','parmesan','ghee','latte','macchiato'],
+  egg: ['egg','eggs'],
+};
+
+// Dishes whose name never spells out a specific ingredient at all — used
+// only for avoid-list matching (kept separate from FOOD_NAME_OVERRIDES
+// above, which only tags broad categories for the Dietary Preference
+// filter, not specific product words the alias map above needs to match
+// against).
+const HIDDEN_INGREDIENT_NAMES = [
+  {match:/\bblt\b/i, ingredients:['bacon']},
+  {match:/club sandwich/i, ingredients:['bacon','turkey']},
+  {match:/carbonara/i, ingredients:['bacon']},
+  {match:/cobb salad/i, ingredients:['bacon','chicken']},
+  {match:/caesar/i, ingredients:['anchovy']}, // traditional Caesar dressing — easy to miss even for pescatarians avoiding a specific fish
+];
+
+// Persisted "hide avoided foods from search" preference — off by default
+// (avoid-list matches still show, just flagged with ⚠️, since search is
+// mainly for logging what you actually ate). When turned on, this filters
+// them out of search, restaurant menus, and category browsing entirely.
+let hideAvoidedFoods = false;
+
+async function loadHideAvoidedPref(){
+  try{
+    const res = await window.storage.get('hide-avoided-foods');
+    hideAvoidedFoods = !!(res && res.value === '1');
+  }catch(e){ hideAvoidedFoods = false; }
+}
+
+async function saveHideAvoidedPref(){
+  try{ await window.storage.set('hide-avoided-foods', hideAvoidedFoods ? '1' : '0'); }catch(e){}
+}
+
+// Checked in both the hide toggle (gated behind hideAvoidedFoods) and the
+// search-result flag below (shown regardless of toggle state) — kept as
+// one function so the two can't drift out of sync with each other.
+function itemViolatesPreferences(name){
+  if(matchesAvoidList(name, parseAvoidTerms(userProfile.avoidFoods))) return 'avoid';
+  if(!matchesDietaryPreference(name, userProfile.dietaryPreference)) return 'preference';
+  if(!matchesDietaryFlags(name, userProfile.dietaryFlags)) return 'flags';
+  return null;
+}
+
+function shouldHideItem(name){
+  if(!hideAvoidedFoods) return false;
+  return !!itemViolatesPreferences(name);
+}
+
+function foodDietTags(name){
+  const tags = new Set();
+  const lower = name.toLowerCase();
+  FOOD_NAME_OVERRIDES.forEach(o=>{ if(o.match.test(name)) o.tags.forEach(t=>tags.add(t)); });
+  if(MEAT_KEYWORDS.some(k=> lower.includes(k))) tags.add('meat');
+  if(POULTRY_KEYWORDS.some(k=> lower.includes(k))) tags.add('poultry');
+  if(FISH_KEYWORDS.some(k=> lower.includes(k))) tags.add('fish');
+  if(SHELLFISH_KEYWORDS.some(k=> lower.includes(k))) tags.add('shellfish');
+  if(/\beggs?\b/i.test(name)) tags.add('egg');
+  if(DAIRY_KEYWORDS.some(k=> lower.includes(k))) tags.add('dairy');
+  return tags;
+}
+
+// Gluten — checked separately from the meat/dairy/egg category tags above
+// since it cuts across all of them. Rice Noodles and corn-based items are
+// explicitly excluded from the generic "noodle"/"tortilla" keywords since
+// those are naturally gluten-free; oats are left off entirely since plain
+// oats are naturally gluten-free (cross-contamination is a real but
+// separate concern this can't detect either way).
+const GLUTEN_KEYWORDS = ['wheat','bread','pasta','flour','pita','naan','pretzel','barley','rye','couscous','cracker','cereal','bagel','biscuit','waffle','pancake','cake','cookie','dumpling','wonton','dough','muffin','croissant','baguette','pizza','farro','stuffing','breaded','breading','battered'];
+const NUT_KEYWORDS = ['almond','cashew','walnut','pecan','pistachio','macadamia','hazelnut','peanut','pine nut','praline','nut'];
+const ALCOHOL_KEYWORDS = ['beer','wine','whiskey','vodka','rum','tequila','gin','liquor','cocktail','champagne','sake'];
+
+const GLUTEN_OVERRIDES = [
+  {match:/\bnoodle\b/i, positive:false}, // Rice Noodles specifically — noodle alone isn't a reliable gluten signal in this library
+  {match:/rice noodle/i, positive:false},
+  {match:/tortilla/i, positive:true}, // generic "Tortilla" in this library is flour-based by default
+  {match:/protein style burger/i, positive:false}, // explicitly no bun
+  {match:/veggie delite/i, positive:false},
+  {match:/bean burrito|carnitas burrito|steak burrito|beef burrito bowl|chicken bowl|barbacoa bowl|sofritas bowl|poke bowl/i, positive:false}, // bowls, not wrapped
+  // Traditional soy sauce contains wheat — a genuinely hidden gluten source
+  // in a wide range of Asian dishes that never mention "wheat" or "bread".
+  {match:/teriyaki|orange chicken|kung pao|general tso|beef & broccoli|broccoli beef|lo mein|chow mein|fried rice|hot & sour soup|egg roll|gyoza|dumplings/i, positive:true},
+  {match:/^chili \(/i, positive:false}, // Wendy's chili — no wheat component
+  {match:/big mac|quarter pounder|mcchicken|double-double|hamburger|cheeseburger/i, positive:true}, // buns the name doesn't spell out
+];
+
+function containsGluten(name){
+  for(const o of GLUTEN_OVERRIDES){ if(o.match.test(name)) return o.positive; }
+  return GLUTEN_KEYWORDS.some(k => name.toLowerCase().includes(k)) || /\bbuns?\b/i.test(name);
+}
+
+const NUT_OVERRIDES = [
+  // Traditional peanut-based dishes that never spell out "peanut" or "nut".
+  {match:/pad thai/i, positive:true},
+  {match:/kung pao/i, positive:true},
+  {match:/trail mix/i, positive:true},
+];
+
+function containsNuts(name){
+  for(const o of NUT_OVERRIDES){ if(o.match.test(name)) return o.positive; }
+  const lower = name.toLowerCase();
+  // The generic "nut" keyword needs word-boundary matching (like the avoid
+  // list does) so it doesn't false-positive on "Coconut Oil" — the more
+  // specific named nuts below are safe as plain substrings.
+  if(wordMatch(name, 'nut')) return true;
+  return NUT_KEYWORDS.filter(k=>k!=='nut').some(k => lower.includes(k));
+}
+
+function containsAlcohol(name){
+  return ALCOHOL_KEYWORDS.some(k => name.toLowerCase().includes(k));
+}
+
+// Halal and Kosher are handled differently from everything else here on
+// purpose: this can only ever catch obvious ingredient conflicts (pork,
+// shellfish, alcohol, a meat-and-dairy combination). Genuine compliance for
+// both depends on how an animal was slaughtered and how food was prepared
+// or certified — nothing an app can verify from a name. The profile form
+// and the AI prompts both say this plainly; this is a helpful filter, not
+// a certification.
+function matchesDietaryFlags(name, flags){
+  if(!flags) return true;
+  const tags = foodDietTags(name);
+  if(flags.glutenFree && containsGluten(name)) return false;
+  if(flags.dairyFree && tags.has('dairy')) return false;
+  if(flags.nutFree && containsNuts(name)) return false;
+  if(flags.halal){
+    if(foodContainsTerm(name, 'pork')) return false;
+    if(containsAlcohol(name)) return false;
+  }
+  if(flags.kosher){
+    if(foodContainsTerm(name, 'pork')) return false;
+    if(tags.has('shellfish')) return false;
+    if((tags.has('meat') || tags.has('poultry')) && tags.has('dairy')) return false;
+  }
+  return true;
+}
+
+// Plain-text description of whichever flags are actually on, for AI prompt
+// context (Coach Chat, Recipe Finder). Halal/Kosher get their own caveat
+// spelled out every time they're mentioned, since a model reasoning about
+// "kosher" needs the same "ingredient-conflict-only" boundary the profile
+// form itself states, not just a bare label.
+function describeDietaryFlags(flags){
+  if(!flags) return '';
+  const parts = [];
+  if(flags.glutenFree) parts.push('gluten-free');
+  if(flags.dairyFree) parts.push('dairy-free');
+  if(flags.nutFree) parts.push('nut-free (tree nuts and peanuts)');
+  if(flags.halal) parts.push('halal (no pork, no alcohol — note: true halal also depends on slaughter method, which can\'t be verified here, so treat this as avoiding obvious conflicts, not certifying compliance)');
+  if(flags.kosher) parts.push('kosher (no pork, no shellfish, no meat-and-dairy combination — note: true kosher also depends on slaughter method and preparation, which can\'t be verified here, so treat this as avoiding obvious conflicts, not certifying compliance)');
+  return parts.join('; ');
+}
+
+function matchesDietaryPreference(name, preference){
+  if(!preference) return true;
+  const tags = foodDietTags(name);
+  if(preference === 'pescatarian') return !tags.has('meat') && !tags.has('poultry');
+  if(preference === 'vegetarian') return !tags.has('meat') && !tags.has('poultry') && !tags.has('fish') && !tags.has('shellfish');
+  if(preference === 'vegan') return !tags.has('meat') && !tags.has('poultry') && !tags.has('fish') && !tags.has('shellfish') && !tags.has('egg') && !tags.has('dairy');
+  return true;
+}
+
+function parseAvoidTerms(avoidFoodsStr){
+  if(!avoidFoodsStr) return [];
+  return avoidFoodsStr.split(',').map(s=>s.trim().toLowerCase()).filter(Boolean);
+}
+
+// Multi-word terms ("peanut butter") match as a plain substring; single
+// words use a word-boundary match so avoiding "egg" doesn't silently hide
+// "Eggplant", and avoiding "nut" doesn't hide "Coconut Oil". Beyond the
+// literal name, this also checks: (1) specific ingredients hidden behind a
+// dish name that never spells them out (a BLT never says "bacon"), and
+// (2) whether the term is a parent category (avoiding "pork" should also
+// catch "bacon", "ham", etc — not just the literal word "pork"). Shared by
+// avoid-list matching and the dietary preference flags below, so both stay
+// consistent rather than maintaining two separate matching implementations.
+function getHiddenIngredients(name){
+  const hidden = [];
+  HIDDEN_INGREDIENT_NAMES.forEach(o=>{ if(o.match.test(name)) hidden.push(...o.ingredients); });
+  return hidden;
+}
+
+function wordMatch(name, word){
+  return new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}s?\\b`, 'i').test(name);
+}
+
+function foodContainsTerm(name, term){
+  if(!term) return false;
+  const lower = name.toLowerCase();
+  const hiddenIngredients = getHiddenIngredients(name);
+  const base = term.replace(/s$/i, '');
+  const directMatch = term.includes(' ') ? lower.includes(term) : wordMatch(name, base);
+  if(directMatch) return true;
+  if(hiddenIngredients.some(ing => ing === base)) return true;
+  const aliasWords = INGREDIENT_ALIASES[base];
+  if(aliasWords){
+    if(aliasWords.some(w => wordMatch(name, w))) return true;
+    if(aliasWords.some(w => hiddenIngredients.includes(w))) return true;
+  }
+  return false;
+}
+
+function matchesAvoidList(name, avoidTerms){
+  if(!avoidTerms || !avoidTerms.length) return false;
+  return avoidTerms.some(term => foodContainsTerm(name, term));
+}
+
+
 function allFoodsFlat(){
   const flat = [];
   Object.keys(foodLibrary).forEach(cat=>{
@@ -13874,11 +14498,19 @@ function buildFoodItemBtn(item, showCategory){
   const catHtml = showCategory && item.category ? `<div class="fi-cat">${item.category}</div>` : '';
   const sourceHtml = item.source ? `<div class="fi-source">via ${item.source}${item.servingDesc ? ` · ${item.servingDesc}` : ''}</div>` : '';
   const isCustom = item.category === 'My Foods' || activeCat === '📁 My Foods';
+  // A flag, not a filter — search is for logging what you actually ate, so
+  // a conflict still needs to be findable, just clearly marked. Covers the
+  // free-text avoid list, the Vegan/Vegetarian/Pescatarian preference, and
+  // the Gluten-Free/Dairy-Free/Nut-Free/Halal/Kosher flags alike.
+  const violation = itemViolatesPreferences(item.name);
+  const avoidFlagLabel = violation === 'avoid' ? 'On your avoid list' : violation ? "Doesn't fit your dietary preference" : null;
+  const avoidHtml = avoidFlagLabel ? `<div class="fi-avoid-flag">⚠️ ${avoidFlagLabel}</div>` : '';
   btn.innerHTML = `
     <div>
       <div class="fi-name">${escapeHtml(item.name)}</div>
       ${catHtml}
       ${sourceHtml}
+      ${avoidHtml}
       <div class="fi-macro">${item.cal} cal · ${item.pro}p / ${item.fat}f / ${item.carb}c</div>
     </div>
     <div class="fi-actions">
@@ -13987,7 +14619,7 @@ function renderFoodItems(){
 
   if(currentSearchTerm){
     const term = currentSearchTerm.toLowerCase();
-    const localMatches = sortByUsage(allFoodsFlat().filter(item=> item.name.toLowerCase().includes(term)));
+    const localMatches = sortByUsage(allFoodsFlat().filter(item=> item.name.toLowerCase().includes(term) && !shouldHideItem(item.name)));
     const localNames = new Set(localMatches.map(m=>m.name));
 
     localMatches.forEach(item=> itemsEl.appendChild(buildFoodItemBtn(item, true)));
@@ -14003,7 +14635,7 @@ function renderFoodItems(){
     // if the search box has since changed, treat it as not-yet-searched
     // rather than showing a stale result or error from a different query.
     const usdaIsCurrent = usdaSearchedTerm === currentSearchTerm;
-    const usdaToShow = usdaIsCurrent ? usdaResults.filter(r=> !localNames.has(r.name)) : [];
+    const usdaToShow = usdaIsCurrent ? usdaResults.filter(r=> !localNames.has(r.name) && !shouldHideItem(r.name)) : [];
 
     if(usdaSearchLoading){
       const loadingDiv = document.createElement('div');
@@ -14048,7 +14680,7 @@ function renderFoodItems(){
       backBtn.innerHTML = `‹ All Restaurants`;
       backBtn.addEventListener('click', ()=>{ activeRestaurant = null; renderFoodItems(); });
       itemsEl.appendChild(backBtn);
-      const menuItems = sortByUsage(foodLibrary.Restaurants[activeRestaurant]).map(item=>buildFoodItemBtn(item, false));
+      const menuItems = sortByUsage(foodLibrary.Restaurants[activeRestaurant]).filter(item=> !shouldHideItem(item.name)).map(item=>buildFoodItemBtn(item, false));
       appendItemsCollapsible(itemsEl, menuItems, 5);
     } else {
       Object.keys(foodLibrary.Restaurants).forEach(brand=> itemsEl.appendChild(buildRestaurantBtn(brand)));
@@ -14059,15 +14691,40 @@ function renderFoodItems(){
   const items = activeCat === '★ Favorites' ? favoriteFoods
     : activeCat === '📁 My Foods' ? customFoods
     : sortByUsage(foodLibrary[activeCat] || []);
-  if(!items || items.length === 0){
+  const visibleItems = (items || []).filter(item=> !shouldHideItem(item.name));
+  if(!visibleItems || visibleItems.length === 0){
     const emptyMsg = activeCat === '📁 My Foods'
       ? 'Nothing here yet — anything you add as a custom item (with "Save to My Foods" checked) or scan from a label shows up here for reuse.'
-      : 'No favorites yet — tap the ☆ on any food to save it here for quick access.';
+      : items && items.length > 0
+        ? 'Everything here is on your avoid list — turn off "Hide avoided foods" above to see it.'
+        : 'No favorites yet — tap the ☆ on any food to save it here for quick access.';
     itemsEl.innerHTML = `<div class="empty-note">⭐ ${emptyMsg}</div>`;
     return;
   }
-  appendItemsCollapsible(itemsEl, items.map(item=>buildFoodItemBtn(item, false)), 5);
+  appendItemsCollapsible(itemsEl, visibleItems.map(item=>buildFoodItemBtn(item, false)), 5);
 }
+
+// Only shown at all when there's actually something to hide — no point
+// cluttering the Nutrition tab with this for someone who never set an
+// avoid list in their profile.
+function updateHideAvoidedToggleVisibility(){
+  const btn = document.getElementById('hideAvoidedToggle');
+  if(!btn) return;
+  const flags = userProfile.dietaryFlags || {};
+  const hasAnyRestriction = !!(userProfile.avoidFoods && userProfile.avoidFoods.trim())
+    || !!userProfile.dietaryPreference
+    || Object.values(flags).some(Boolean);
+  btn.style.display = hasAnyRestriction ? '' : 'none';
+  btn.classList.toggle('active', hideAvoidedFoods);
+  btn.textContent = hideAvoidedFoods ? '🙈 Hiding foods that don\'t fit' : '🙈 Hide foods that don\'t fit';
+}
+
+document.getElementById('hideAvoidedToggle').addEventListener('click', async ()=>{
+  hideAvoidedFoods = !hideAvoidedFoods;
+  await saveHideAvoidedPref();
+  updateHideAvoidedToggleVisibility();
+  renderFoodItems();
+});
 
 document.getElementById('foodSearchInput').addEventListener('input', (e)=>{
   currentSearchTerm = e.target.value.trim();
@@ -14135,7 +14792,12 @@ function buildMealSuggestions(){
   if(remaining.cal < 100){
     return {done:true, remaining};
   }
-  const pool = allFoodsFlat().filter(f=> f.cal > 0);
+  const avoidTerms = parseAvoidTerms(userProfile.avoidFoods);
+  const pool = allFoodsFlat().filter(f=> f.cal > 0
+    && matchesDietaryPreference(f.name, userProfile.dietaryPreference)
+    && matchesDietaryFlags(f.name, userProfile.dietaryFlags)
+    && !matchesAvoidList(f.name, avoidTerms)
+  );
   const tolerance = 1.15; // allow a modest overage so "close enough" options aren't excluded
 
   // Single-item picks: fit within remaining calories (with tolerance),
@@ -14221,13 +14883,12 @@ function renderMealSuggestions(){
   });
 }
 
-// The three "Add a Food" quick actions (Suggest/Photo/Barcode) each render
-// into their own result area — but only one is ever relevant at a time.
-// Without this, using one after another left all three stacked and visible
-// at once, which was both cluttered and confusing about which result was
-// actually current.
+// The "Add a Food" quick actions each render into their own result area —
+// but only one is ever relevant at a time. Without this, using one after
+// another left all of them stacked and visible at once, both cluttered and
+// confusing about which result was actually current.
 function clearOtherQuickAddResults(exceptId){
-  ['mealSuggestions', 'photoLogResult', 'barcodeResult', 'describeFoodResult'].forEach(id=>{
+  ['mealSuggestions', 'photoLogResult', 'barcodeResult', 'describeFoodResult', 'recipeFinderResult'].forEach(id=>{
     if(id !== exceptId) document.getElementById(id).innerHTML = '';
   });
 }
@@ -14244,9 +14905,17 @@ document.getElementById('suggestMealBtn').addEventListener('click', ()=>{
 });
 
 async function removeFoodFromLog(idx){
+  const removed = todaysFoodLog[idx];
+  const preDeleteSnapshot = JSON.stringify(todaysFoodLog);
   todaysFoodLog.splice(idx,1);
   await saveFoodLog();
   renderFoodLog();
+  if(removed){
+    showUndoToast(`${removed.name} removed`, async ()=>{
+      try{ todaysFoodLog = JSON.parse(preDeleteSnapshot); await saveFoodLog(); }catch(e){}
+      renderFoodLog();
+    });
+  }
 }
 
 async function saveFoodLog(){
@@ -14260,6 +14929,44 @@ async function loadFoodLog(){
   }catch(e){ todaysFoodLog = []; }
   renderFoodLog();
 }
+
+// Only shown when today's log is genuinely empty (no point once you've
+// already started logging something different today) and yesterday
+// actually has entries worth copying.
+async function updateRepeatYesterdayVisibility(){
+  const btn = document.getElementById('repeatYesterdayBtn');
+  if(!btn) return;
+  if(todaysFoodLog.length > 0){
+    btn.style.display = 'none';
+    return;
+  }
+  try{
+    const yesterday = dateKeyMinusDays(getTodayKey(), 1);
+    const res = await window.storage.get(`foodlog:${yesterday}`);
+    const yesterdayLog = res && res.value ? JSON.parse(res.value) : [];
+    btn.style.display = yesterdayLog.length > 0 ? '' : 'none';
+  }catch(e){
+    btn.style.display = 'none';
+  }
+}
+
+document.getElementById('repeatYesterdayBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('repeatYesterdayBtn');
+  try{
+    const yesterday = dateKeyMinusDays(getTodayKey(), 1);
+    const res = await window.storage.get(`foodlog:${yesterday}`);
+    const yesterdayLog = res && res.value ? JSON.parse(res.value) : [];
+    if(yesterdayLog.length === 0) return;
+    // Copy the items, not a reference — today's log needs to be freely
+    // editable/removable from here without ever touching yesterday's
+    // actual saved record.
+    todaysFoodLog = yesterdayLog.map(item=> ({...item}));
+    await saveFoodLog();
+    renderFoodLog();
+    btn.style.display = 'none';
+    renderTodayInsights();
+  }catch(e){}
+});
 
 function computeTodaysFoodTotals(){
   return todaysFoodLog.reduce((acc,i)=>({
@@ -14281,20 +14988,18 @@ function renderFoodLog(){
   if(todaysFoodLog.length === 0){
     listEl.innerHTML = '<div class="empty-note">🍽️ Nothing logged yet today — tap an item below to add it.</div>';
   } else {
-    listEl.innerHTML = todaysFoodLog.map((item, idx)=>`
-      <div class="food-log-item">
-        <div class="fl-name">${escapeHtml(item.name)}</div>
-        <div class="fl-macro">${item.cal} cal</div>
-        <button class="fl-remove" data-idx="${idx}">×</button>
-      </div>
-    `).join('');
-    listEl.querySelectorAll('.fl-remove').forEach(btn=>{
-      btn.addEventListener('click', ()=> removeFoodFromLog(Number(btn.dataset.idx)));
+    const itemHtmls = todaysFoodLog.map(item=> buildSwipeItem(
+      `<div class="food-log-item"><div class="fl-name">${escapeHtml(item.name)}</div><div class="fl-macro">${item.cal} cal</div></div>`
+    ));
+    listEl.innerHTML = itemHtmls.join('');
+    listEl.querySelectorAll('.swipe-item').forEach((itemEl, idx)=>{
+      makeSwipeable(itemEl, ()=> removeFoodFromLog(idx));
     });
   }
   const totals = computeTodaysFoodTotals();
   updateBars(totals);
   renderMedicalNutrientBars(totals);
+  updateRepeatYesterdayVisibility();
 }
 
 // Only builds/shows anything when Medically Modified is the active program
@@ -14881,6 +15586,24 @@ const SUPPLEMENT_ITEMS = [
   {key:'b12', label:'B12 (sublingual or injection, per your prescribed form)'},
 ];
 
+// How many of the last N days (today included) had every supplement
+// checked off — a daily checklist alone has no memory, and for something
+// where the whole point is consistency, that's the more useful number.
+async function computeSupplementStreak(days){
+  let fullDays = 0;
+  for(let i=0; i<days; i++){
+    const date = dateKeyMinusDays(getTodayKey(), i);
+    try{
+      const res = await window.storage.get(`supplement-log:${date}`);
+      if(res && res.value){
+        const state = JSON.parse(res.value);
+        if(SUPPLEMENT_ITEMS.every(item => state[item.key])) fullDays++;
+      }
+    }catch(e){}
+  }
+  return fullDays;
+}
+
 async function loadSupplements(){
   const wrap = document.getElementById('supplementRows');
   if(!wrap) return;
@@ -14890,7 +15613,10 @@ async function loadSupplements(){
     if(res && res.value) state = JSON.parse(res.value);
   }catch(e){ state = {}; }
 
-  wrap.innerHTML = SUPPLEMENT_ITEMS.map(item=>{
+  const streakDays = await computeSupplementStreak(7);
+  const streakHtml = `<div class="supplement-streak">${streakDays}/7 days fully taken this week</div>`;
+
+  wrap.innerHTML = streakHtml + SUPPLEMENT_ITEMS.map(item=>{
     const done = !!state[item.key];
     return `<div class="supplement-row ${done ? 'done' : ''}" data-key="${item.key}">
       <span class="supplement-check">${done ? '✓' : ''}</span>
@@ -15460,6 +16186,22 @@ async function fetchAllWeightEntries(){
   return [];
 }
 
+async function fetchBPEntries(){
+  try{
+    const res = await window.storage.get('bp-log');
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){}
+  return [];
+}
+
+async function fetchGlucoseEntries(){
+  try{
+    const res = await window.storage.get('glucose-log');
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){}
+  return [];
+}
+
 async function fetchAllMeasurements(){
   try{
     const res = await window.storage.get('measurements-log');
@@ -15636,6 +16378,62 @@ function renderSleepTrend(sleepEntries){
       if(avg < 7) return {status:'warn', text:`⚠ Averaging ${avg.toFixed(1)} hrs — below the 7-9 hr range generally recommended for adults, which directly affects recovery and muscle protein synthesis, not just how you feel.`};
       if(stdDev > 1.5) return {status:'warn', text:`⚠ Averaging ${avg.toFixed(1)} hrs, but night-to-night swings are large (±${stdDev.toFixed(1)} hrs) — consistent sleep timing matters almost as much as the total hours.`};
       return {status:'good', text:`✅ Averaging ${avg.toFixed(1)} hrs with fairly consistent timing — a solid foundation for recovery.`};
+    },
+  });
+}
+
+// One reading per day just uses that reading; multiple same-day readings
+// (e.g. logging both AM and PM) are averaged, since blood pressure/glucose
+// don't sum the way calories do — an average is the more meaningful daily
+// number for a trend line.
+function averageByDay(entries, valueFn){
+  const byDay = {};
+  entries.forEach(e=>{
+    if(!byDay[e.date]) byDay[e.date] = [];
+    byDay[e.date].push(valueFn(e));
+  });
+  const dayTotals = {};
+  Object.keys(byDay).forEach(date=>{
+    const vals = byDay[date];
+    dayTotals[date] = vals.reduce((a,b)=>a+b,0) / vals.length;
+  });
+  return dayTotals;
+}
+
+function renderBPTrend(entries){
+  const el = document.getElementById('bpChart');
+  if(!entries || entries.length === 0){
+    el.innerHTML = '<div class="empty-note">Log at least two readings to see your trend.</div>';
+    return;
+  }
+  const dayTotals = averageByDay(entries, e=> e.systolic);
+  const diastolicByDay = averageByDay(entries, e=> e.diastolic);
+  renderDayValueTrend('bpChart', dayTotals, {
+    label: 'blood pressure', color: 'var(--plate-orange)',
+    formatValue: v=> `${Math.round(v)}`,
+    insight: (values, avg)=>{
+      const diastolicAvg = Object.values(diastolicByDay).reduce((a,b)=>a+b,0) / Object.values(diastolicByDay).length;
+      const cat = categorizeBP(Math.round(avg), Math.round(diastolicAvg));
+      const statusMap = {'Normal':'good', 'Elevated':'neutral', 'Stage 1':'warn', 'Stage 2':'warn', 'Hypertensive Crisis':'warn'};
+      return {status: statusMap[cat.label] || 'neutral', text: `Averaging ${Math.round(avg)}/${Math.round(diastolicAvg)} — ${cat.label} range. A single average doesn't replace your doctor's actual reading of the trend, especially near a category boundary.`};
+    },
+  });
+}
+
+function renderGlucoseTrend(entries){
+  const el = document.getElementById('glucoseChart');
+  if(!entries || entries.length === 0){
+    el.innerHTML = '<div class="empty-note">Log at least two readings to see your trend.</div>';
+    return;
+  }
+  const dayTotals = averageByDay(entries, e=> e.value);
+  renderDayValueTrend('glucoseChart', dayTotals, {
+    label: 'glucose', color: '#4FC3F7',
+    formatValue: v=> `${Math.round(v)} mg/dL`,
+    insight: (values, avg)=>{
+      if(avg <= 70) return {status:'warn', text:`⚠ Averaging ${Math.round(avg)} mg/dL — at or below the hypoglycemia alert threshold. If readings are consistently this low, that's worth flagging to your care team regardless of what caused any single one.`};
+      if(avg > 140) return {status:'warn', text:`⚠ Averaging ${Math.round(avg)} mg/dL across fasting and post-meal readings mixed together — worth a closer look at which specific times of day are running high.`};
+      return {status:'good', text:`✅ Averaging ${Math.round(avg)} mg/dL — a reasonable range, though check individual entries against their own fasting/post-meal context for the fuller picture.`};
     },
   });
 }
@@ -16437,6 +17235,19 @@ async function buildCoachChatContext(){
       nutritionLine = `Recent average intake (last ${recentDates.length} logged days): ${avgCal} cal${calTarget}, ${avgPro}g protein${proTarget}, ${avgFat}g fat, ${avgCarb}g carbs.`;
     }
   }catch(e){}
+
+  let dietLine = '';
+  const DIET_PREF_LABELS = {pescatarian:'Pescatarian', vegetarian:'Vegetarian', vegan:'Vegan'};
+  if(userProfile?.dietaryPreference && DIET_PREF_LABELS[userProfile.dietaryPreference]){
+    dietLine += `Dietary preference: ${DIET_PREF_LABELS[userProfile.dietaryPreference]} — never suggest or assume food outside this.`;
+  }
+  const flagsDesc = describeDietaryFlags(userProfile?.dietaryFlags);
+  if(flagsDesc){
+    dietLine += `${dietLine ? ' ' : ''}Also needs: ${flagsDesc}.`;
+  }
+  if(userProfile?.avoidFoods){
+    dietLine += `${dietLine ? ' ' : ''}Avoids (allergy/intolerance/religious/preference, treat all the same — don't suggest or ask why): ${userProfile.avoidFoods}.`;
+  }
 
   let sleepLine = '';
   try{
@@ -17291,14 +18102,27 @@ async function renderCare(){
     listEl.innerHTML = '<div class="empty-note">No check-ins logged yet — log how you\'re feeling above to start tracking patterns.</div>';
   }else{
     const sorted = [...log].sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'));
-    const itemHtmls = sorted.map(e=>`
+    const itemHtmls = sorted.map(e=> buildSwipeItem(`
       <div class="care-log-item">
         <div class="care-log-date">${fmtDayLabel(e.date)} <span class="care-log-pain">${e.pain}/10</span></div>
         <div class="care-log-detail">${e.exercise ? `During: ${escapeHtml(e.exercise)} · ` : ''}${SENSATION_LABELS[e.sensation] || ''} ${e.region ? `· ${escapeHtml(e.region)}` : ''}</div>
         ${e.note ? `<div class="care-log-detail">${escapeHtml(e.note)}</div>` : ''}
       </div>
-    `);
+    `));
     renderCollapsibleList(listEl, itemHtmls, 3, 'check-ins');
+    listEl.querySelectorAll('.swipe-item').forEach((itemEl, i)=>{
+      makeSwipeable(itemEl, async ()=>{
+        const preDeleteSnapshot = JSON.stringify(log);
+        const target = sorted[i];
+        const all = log.filter(e2=> !(e2.date===target.date && e2.exercise===target.exercise && e2.sensation===target.sensation && e2.region===target.region && e2.pain===target.pain && e2.note===target.note));
+        try{ await window.storage.set('injury-log', JSON.stringify(all)); }catch(e){}
+        renderCare();
+        showUndoToast('Check-in deleted', async ()=>{
+          try{ await window.storage.set('injury-log', preDeleteSnapshot); }catch(e){}
+          renderCare();
+        });
+      });
+    });
   }
 }
 
@@ -17480,7 +18304,6 @@ async function renderHistory(){
     months[monthKey].push(d);
   });
   const monthKeys = Object.keys(months).sort().reverse();
-  const currentMonthKey = getTodayKey().slice(0,7);
 
   listEl.innerHTML = monthKeys.map(monthKey=>{
     const daysInMonth = months[monthKey];
@@ -17530,7 +18353,7 @@ async function renderHistory(){
     }).join('');
 
     return `
-      <details class="month-group" ${monthKey===currentMonthKey ? 'open' : ''}>
+      <details class="month-group">
         <summary>${fmtMonthLabel(monthKey)} <span class="month-count">${daysInMonth.length} day${daysInMonth.length===1?'':'s'}</span></summary>
         ${dayCardsHtml}
       </details>
@@ -17966,14 +18789,29 @@ async function renderAnalysis(){
   const tableEl = document.getElementById('weeklyTable');
   tableEl.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div><div class="skeleton-line" style="width:58%"></div></div>';
 
-  const [weightEntries, workoutDates, foodDays, waterDays, sleepEntries] = await Promise.all([
-    fetchAllWeightEntries(), fetchWorkoutDates(), fetchFoodDays(), fetchWaterDays(), fetchSleepEntries()
+  const [weightEntries, workoutDates, foodDays, waterDays, sleepEntries, bpEntries, glucoseEntries] = await Promise.all([
+    fetchAllWeightEntries(), fetchWorkoutDates(), fetchFoodDays(), fetchWaterDays(), fetchSleepEntries(), fetchBPEntries(), fetchGlucoseEntries()
   ]);
 
   renderSparkline(weightEntries);
   renderNutritionTrend(foodDays);
   renderSleepTrend(sleepEntries);
   renderWaterTrend(waterDays);
+
+  const isMedical = activeProgram === 'medical';
+  const bpTrendCard = document.getElementById('bpTrendCard');
+  const glucoseTrendCard = document.getElementById('glucoseTrendCard');
+  if(bpTrendCard){
+    const showBP = isMedical && activeMedicalStyle === 'hypertension';
+    bpTrendCard.style.display = showBP ? '' : 'none';
+    if(showBP) renderBPTrend(bpEntries);
+  }
+  if(glucoseTrendCard){
+    const showGlucose = isMedical && activeMedicalStyle === 'diabetes';
+    glucoseTrendCard.style.display = showGlucose ? '' : 'none';
+    if(showGlucose) renderGlucoseTrend(glucoseEntries);
+  }
+
   renderVolumeTrend();
   renderExerciseProgress();
   renderRpeTrend();
@@ -18098,15 +18936,18 @@ if(activeUserId){
     await loadFavorites();
     await loadCustomFoods();
     await loadUsageCounts();
+    await loadHideAvoidedPref();
     const savedKey = await getApiKey();
     if(savedKey){
       showApiKeyConnected();
     }
+    updateHideAvoidedToggleVisibility();
     renderFoodCats();
     renderFoodItems();
     document.getElementById('usdaKeySettingsSlot').appendChild(buildUsdaKeyUpgradePrompt());
     initDescribeFoodVoice();
     loadFoodLog();
+    await renderGroceryList();
     loadWeights();
     toggleConditionTrackerCards();
     loadSleep();
