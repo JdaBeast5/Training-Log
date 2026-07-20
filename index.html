@@ -1449,6 +1449,24 @@
     margin-top:12px; background:var(--plate-blue); color:#fff; border:none; padding:9px 14px;
     border-radius:var(--radius-sm); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
   }
+  .photo-compare-row{display:flex; gap:8px; margin-top:8px;}
+  .photo-compare-row select{flex:1;}
+  .compare-consent-actions{display:flex; gap:8px; margin-top:10px;}
+  .compare-confirm-btn{
+    flex:1; padding:9px 10px; border:none; border-radius:var(--radius-sm);
+    background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 55%); color:#fff;
+    font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; cursor:pointer;
+    box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 4px 12px -6px rgba(91,124,255,0.5);
+    transition:transform 0.15s var(--ease-smooth);
+  }
+  .compare-confirm-btn:active{transform:scale(0.96);}
+  .compare-cancel-btn{
+    flex:1; padding:9px 10px; border-radius:var(--radius-sm);
+    background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; cursor:pointer;
+    transition:transform 0.15s var(--ease-smooth);
+  }
+  .compare-cancel-btn:active{transform:scale(0.96);}
   .care-relief{
     margin-top:12px; padding:12px 14px; background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
   }
@@ -2067,11 +2085,22 @@
     </div>
     <div class="nutrition-summary" id="photosSummary">Tap to log — a visual record the scale and tape measure can't show</div>
     <div class="expand-wrap" id="photosExpandWrap"><div>
-      <div class="privacy-note">🔒 Stored only on this device, never uploaded anywhere — not even to Anthropic if you use AI features elsewhere in the app. Deleting a photo removes it completely; "Delete All My Data" in your profile wipes these too.</div>
+      <div class="privacy-note">🔒 Stored only on this device by default, never uploaded anywhere on their own. The one exception is the separate "Compare with AI" tool below — it only sends the exact two photos you pick, and only after you explicitly confirm each time. Deleting a photo removes it completely; "Delete All My Data" in your profile wipes these too.</div>
       <input type="file" id="photoInput" accept="image/*" style="display:none">
       <button class="photo-log-btn" id="photoAddBtn">📸 Snap or Upload a Progress Photo</button>
       <div class="status-msg" id="photoStatus"></div>
       <div class="photo-grid" id="photoGrid"></div>
+
+      <div class="section-divider"></div>
+      <div class="section-label">🤖 Compare with AI (optional)</div>
+      <div class="history-hint">Separate from everything above — this is the only thing in Progress Photos that ever leaves this device, and only the exact two photos you pick here, only when you tap confirm below.</div>
+      <div class="photo-compare-row">
+        <select id="comparePhotoBefore" class="care-input"><option value="">Earlier photo…</option></select>
+        <select id="comparePhotoAfter" class="care-input"><option value="">Later photo…</option></select>
+      </div>
+      <button class="save-btn" id="comparePhotosBtn">Compare with AI</button>
+      <div id="compareConsentBanner"></div>
+      <div id="comparePhotosResult"></div>
     </div></div>
   </div>
 
@@ -15783,6 +15812,7 @@ async function loadProgressPhotos(){
   const index = await getPhotoIndex();
   if(index.length === 0){
     grid.innerHTML = '<div class="empty-note">📸 No photos yet — add your first progress photo.</div>';
+    populateComparePhotoSelects([]);
     return;
   }
   const sorted = [...index].sort((a,b)=> new Date(b.date)-new Date(a.date));
@@ -15799,6 +15829,79 @@ async function loadProgressPhotos(){
   grid.querySelectorAll('.photo-thumb-wrap').forEach(el=>{
     el.addEventListener('click', ()=> openPhotoLightbox(el.dataset.id, el.dataset.date));
   });
+  populateComparePhotoSelects(sorted);
+}
+
+// Oldest-first in the dropdowns (unlike the newest-first grid above) since
+// "earlier" and "later" read more naturally top-to-bottom that way.
+function populateComparePhotoSelects(sortedNewestFirst){
+  const beforeSel = document.getElementById('comparePhotoBefore');
+  const afterSel = document.getElementById('comparePhotoAfter');
+  if(!beforeSel || !afterSel) return;
+  const oldestFirst = [...sortedNewestFirst].reverse();
+  const optionsHtml = oldestFirst.map(e=>{
+    const label = new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short', day:'numeric', year:'numeric'});
+    return `<option value="${e.id}">${label}</option>`;
+  }).join('');
+  const placeholder = oldestFirst.length >= 2 ? '' : '<option value="">Need at least 2 photos</option>';
+  beforeSel.innerHTML = `<option value="">Earlier photo…</option>${placeholder}${optionsHtml}`;
+  afterSel.innerHTML = `<option value="">Later photo…</option>${placeholder}${optionsHtml}`;
+}
+
+document.getElementById('comparePhotosBtn').addEventListener('click', ()=>{
+  const beforeId = document.getElementById('comparePhotoBefore').value;
+  const afterId = document.getElementById('comparePhotoAfter').value;
+  const banner = document.getElementById('compareConsentBanner');
+  const resultEl = document.getElementById('comparePhotosResult');
+  resultEl.innerHTML = '';
+  if(!beforeId || !afterId){
+    banner.innerHTML = `<div class="care-banner care-banner-caution">Pick an earlier and a later photo first.</div>`;
+    return;
+  }
+  if(beforeId === afterId){
+    banner.innerHTML = `<div class="care-banner care-banner-caution">Pick two different photos to compare.</div>`;
+    return;
+  }
+  // Deliberately a separate confirm step, not a single tap — this is the
+  // one thing in this whole card that leaves the device, so it gets its
+  // own explicit "yes, do this" moment every time, not just a one-time
+  // settings toggle buried somewhere.
+  banner.innerHTML = `
+    <div class="care-banner care-banner-caution">
+      ⚠️ This sends these two specific photos to Anthropic's API to generate the comparison — nothing else about how your photos are stored changes.
+      <div class="compare-consent-actions">
+        <button type="button" class="compare-confirm-btn" id="compareConfirmBtn">Yes, send these 2 photos</button>
+        <button type="button" class="compare-cancel-btn" id="compareCancelBtn">Cancel</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('compareCancelBtn').addEventListener('click', ()=>{ banner.innerHTML = ''; });
+  document.getElementById('compareConfirmBtn').addEventListener('click', ()=> runPhotoComparison(beforeId, afterId));
+});
+
+async function runPhotoComparison(beforeId, afterId){
+  const banner = document.getElementById('compareConsentBanner');
+  const resultEl = document.getElementById('comparePhotosResult');
+  const apiKey = await getApiKey();
+  if(!apiKey){
+    banner.innerHTML = `<div class="care-banner care-banner-caution">Add your Anthropic API key in the "AI Features Setup" card to use this.</div>`;
+    return;
+  }
+  banner.innerHTML = '';
+  resultEl.innerHTML = `<div class="skeleton-wrap"><div class="skeleton-line" style="width:80%"></div><div class="skeleton-line" style="width:60%"></div><div class="skeleton-line" style="width:70%"></div></div>`;
+  try{
+    const [beforeRes, afterRes] = await Promise.all([
+      window.storage.get('progress-photo:'+beforeId),
+      window.storage.get('progress-photo:'+afterId),
+    ]);
+    const beforeB64 = beforeRes.value.split(',')[1];
+    const afterB64 = afterRes.value.split(',')[1];
+    const prompt = `These are two progress photos of the same person, taken at different times, for a fitness tracking app. Describe ONLY genuinely visible, objective physical changes relevant to training — muscle definition, visible body composition shifts, posture, or muscular development in specific areas. Do not estimate weight or body fat percentage (photos alone can't support that), do not make attractiveness judgments, and don't lean flattering or critical — stay descriptive and neutral, the way a coach noting training-relevant changes would. If the angle, lighting, or pose make it hard to say anything meaningful, say that plainly instead of guessing. End with a brief reminder that a two-photo comparison is one data point — lighting and pose affect how visible changes look, and the weight/measurement trends already tracked in this app are a more reliable read on actual progress over time. Keep the whole response to about 4-6 sentences.`;
+    const raw = await callClaudeVision(apiKey, [beforeB64, afterB64], prompt, 400);
+    resultEl.innerHTML = `<div class="photo-result-card"><div class="photo-result-title">🤖 AI Comparison</div><div class="care-log-detail">${escapeHtml(raw.trim())}</div></div>`;
+  }catch(err){
+    resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't run that comparison: ${err.message}. Try again.</div>`;
+  }
 }
 
 function openPhotoLightbox(id, date){
