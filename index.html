@@ -322,6 +322,22 @@
   }
   .onboarding-row.done .onboarding-check{background:var(--plate-green); border-color:var(--plate-green); color:#fff;}
   .onboarding-row.done span:last-child{color:var(--text-muted);}
+  .supplement-row{
+    display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px;
+    cursor:pointer; user-select:none;
+  }
+  .supplement-row:last-child{border-bottom:none;}
+  .supplement-row .supplement-check{
+    width:22px; height:22px; border-radius:50%; border:1.5px solid var(--line-bright);
+    display:flex; align-items:center; justify-content:center; font-size:13px; color:transparent; flex:0 0 auto;
+    transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
+  }
+  .supplement-row.done .supplement-check{
+    background:linear-gradient(160deg, #4FE168, var(--plate-green) 55%); border-color:var(--plate-green); color:#fff;
+    box-shadow:0 1px 0 rgba(255,255,255,0.25) inset;
+  }
+  .supplement-row.done span:last-child{color:var(--text-muted); text-decoration:line-through; text-decoration-color:var(--line-bright);}
+  .supplement-row:active .supplement-check{transform:scale(0.88);}
   .today-insight-row{
     padding:10px 12px; background:rgba(91,124,255,0.08); border:1px solid rgba(91,124,255,0.28);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:8px;
@@ -1043,6 +1059,19 @@
   .photo-lightbox-delete{background:rgba(255,69,58,0.15); color:var(--plate-red);}
 
   .photo-result-item:last-child{border-bottom:none;}
+  .photo-result-item-editable{
+    display:flex; flex-direction:column; gap:8px;
+    padding:12px 0; border-bottom:1px solid var(--line-soft);
+  }
+  .photo-result-item-editable:last-of-type{border-bottom:none;}
+  .photo-result-item-editable .macro-input-row{margin-top:0;}
+  .photo-item-name-input{font-weight:600;}
+  .photo-item-remove-btn{
+    align-self:flex-end;
+    background:none; border:none; color:var(--text-muted); font-size:12px;
+    padding:2px 6px; cursor:pointer; transition:color 0.2s var(--ease-smooth);
+  }
+  .photo-item-remove-btn:hover{color:var(--plate-red);}
   .photo-add-all-btn{
     width:100%; margin-top:10px; padding:10px; background:var(--plate-green); color:#fff; border:none;
     border-radius:var(--radius-sm); font-weight:600; font-size:12.5px; cursor:pointer; font-family:'Inter',sans-serif;
@@ -1112,6 +1141,7 @@
   .targets-strip .t-label{font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;}
 
   .status-msg{font-size:12px; color:var(--plate-green); height:16px; margin-top:6px; text-align:center;}
+  .status-msg.warn{color:var(--plate-red);}
   .empty-note{color:var(--text-muted); font-size:13px; text-align:center; padding:6px 0;}
   .skeleton-wrap{display:flex; flex-direction:column; gap:9px; padding:6px 0;}
   .coach-progress{padding:16px 0;}
@@ -1203,6 +1233,8 @@
   .prog-ready{color:var(--plate-yellow); font-size:11.5px; margin-top:3px; font-family:'Inter',sans-serif;}
 
   .history-hint{font-size:12px; color:var(--text-muted); margin-bottom:14px; line-height:1.4;}
+  .history-hint.nutrient-inline-note{margin-top:-6px; margin-bottom:12px;}
+  .history-hint.subtle{opacity:0.75;}
   .month-group{margin-bottom:4px;}
   .month-group summary{
     list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between;
@@ -1721,6 +1753,7 @@
       <div><div class="t-val" id="tvFat">75g</div><div class="t-label">Fat</div></div>
       <div><div class="t-val" id="tvCarb">250g</div><div class="t-label">Carbs</div></div>
     </div>
+    <div class="history-hint" id="calorieFloorNote" style="display:none"></div>
     <div class="macro-row">
       <div class="macro-label">CALORIES</div>
       <div class="macro-bar-track"><div class="macro-bar-fill" id="barCal" style="background:var(--plate-white);width:0%"></div></div>
@@ -1741,6 +1774,7 @@
       <div class="macro-bar-track"><div class="macro-bar-fill" id="barCarb" style="background:var(--plate-blue);width:0%"></div></div>
       <div class="macro-val" id="valCarb">0 / 250</div>
     </div>
+    <div id="medicalNutrientBars" style="display:none"></div>
 
     <div class="expand-wrap" id="nutritionExpandWrap"><div>
       <div class="section-label">Add a Food</div>
@@ -1781,6 +1815,19 @@
           <input type="number" inputmode="numeric" id="cFat" placeholder="Fat">
           <input type="number" inputmode="numeric" id="cCarb" placeholder="Carb">
         </div>
+        <button type="button" class="custom-toggle" id="moreNutrientsToggle" style="margin-top:8px;">+ Sodium, fiber, calcium, iron, potassium, folate</button>
+        <div id="moreNutrientsForm" class="smooth-toggle"><div>
+          <div class="macro-input-row">
+            <input type="number" inputmode="numeric" id="cSodium" placeholder="Sodium mg">
+            <input type="number" inputmode="numeric" id="cFiber" placeholder="Fiber g">
+            <input type="number" inputmode="numeric" id="cCalcium" placeholder="Calcium mg">
+          </div>
+          <div class="macro-input-row">
+            <input type="number" inputmode="numeric" step="0.1" id="cIron" placeholder="Iron mg">
+            <input type="number" inputmode="numeric" id="cPotassium" placeholder="Potassium mg">
+            <input type="number" inputmode="numeric" id="cFolate" placeholder="Folate mcg">
+          </div>
+        </div></div>
         <label class="save-to-library-label">
           <input type="checkbox" id="cSaveToLibrary" checked>
           <span>💾 Save to My Foods, so I can find it again next time</span>
@@ -1826,7 +1873,42 @@
       <input type="number" step="0.1" inputmode="decimal" id="weightInput" placeholder="Weight today (lb)">
       <button id="saveWeight">Log</button>
     </div>
+    <div class="status-msg" id="weightSaveStatus"></div>
     <div class="weight-list" id="weightList"><div class="empty-note">⚖️ No entries yet — log your first weigh-in.</div></div>
+  </div>
+
+  <div class="card" id="bpCard" style="display:none">
+    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v4M10 13v4M3 10h4M13 10h4"/><circle cx="10" cy="10" r="3"/></svg></span>Blood Pressure</div>
+    <div class="history-hint">Only shown while Hypertension is your active condition. A single reading is just a snapshot — the trend over days matters far more than any one number, and this is never a substitute for your doctor's monitoring or your prescribed medication.</div>
+    <div class="weight-input-row">
+      <input type="number" inputmode="numeric" id="bpSystolicInput" placeholder="Systolic" style="max-width:90px;">
+      <span style="align-self:center; color:var(--text-muted);">/</span>
+      <input type="number" inputmode="numeric" id="bpDiastolicInput" placeholder="Diastolic" style="max-width:90px;">
+      <button id="saveBP">Log</button>
+    </div>
+    <div class="status-msg" id="bpSaveStatus"></div>
+    <div class="weight-list" id="bpList"><div class="empty-note">🩺 No readings yet — log your first one.</div></div>
+  </div>
+
+  <div class="card" id="glucoseCard" style="display:none">
+    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 L15 11 A5.5 5.5 0 1 1 5 11 Z"/></svg></span>Blood Glucose</div>
+    <div class="history-hint">Only shown while Diabetes is your active condition. Tag each reading so it's compared against the right target — fasting/before-meal and after-meal have different normal ranges. Never a substitute for your prescribed monitoring routine or your care team's guidance.</div>
+    <div class="weight-input-row">
+      <input type="number" inputmode="numeric" id="glucoseInput" placeholder="mg/dL">
+      <select id="glucoseContext" class="care-input" style="flex:0 0 auto; width:auto;">
+        <option value="fasting">Fasting / before meal</option>
+        <option value="postmeal">After meal</option>
+      </select>
+      <button id="saveGlucose">Log</button>
+    </div>
+    <div class="status-msg" id="glucoseSaveStatus"></div>
+    <div class="weight-list" id="glucoseList"><div class="empty-note">🩸 No readings yet — log your first one.</div></div>
+  </div>
+
+  <div class="card" id="supplementCard" style="display:none">
+    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="6" height="16" rx="3"/><line x1="7" y1="9" x2="13" y2="9"/></svg></span>Today's Supplements</div>
+    <div class="history-hint">Only shown during Bariatric Recovery. Research consistently found food alone rarely covers post-op needs — these four are the ones most commonly prescribed. Doses, exact brands, and whether you need all four are entirely up to your surgical/bariatric team, not this app — this is just a daily reminder checklist, not a substitute for their guidance or your scheduled bloodwork.</div>
+    <div id="supplementRows"></div>
   </div>
 
   <div class="card">
@@ -8978,6 +9060,8 @@ async function renderProgramSelector(trendStatus){
     toggleCyclingTechniquesCard();
     renderTips();
     updateMasterclassLinkBtn();
+    renderMedicalNutrientBars(computeTodaysFoodTotals());
+    toggleConditionTrackerCards();
     if(wasGraduatingBariatric){
       triggerCelebration('🎓', "You've graduated!", `Welcome to ${programs[activeProgram].label} — everything you built in Rebuilding goes with you from here.`, true);
     } else if(wasLeavingRehab){
@@ -9196,6 +9280,8 @@ function renderMedicalSelector(){
       renderTabs();
       renderWorkout();
       renderTips();
+      renderMedicalNutrientBars(computeTodaysFoodTotals());
+      toggleConditionTrackerCards();
     }
     // Same milestone moments the separate Bariatric/Prenatal/Rehab programs
     // used to fire, now keyed off style transitions within one dropdown
@@ -9781,6 +9867,73 @@ function workoutKey(date, program, dayId){
   return `workout:${date}:${program}:${dayId}`;
 }
 
+// Exercise history is deliberately scoped to one exact (program, day, slot)
+// everywhere else in the app — badges, PRs, and "last time" all need to stay
+// tied to that specific slot or they'd be misleading. But that strict scoping
+// means a brand-new slot for a lift you've genuinely done before (a new
+// program, a reordered day, a program restart) has nothing to build a warm-up
+// ramp from — which is exactly the moment a preplanned ramp matters most.
+// This index + lookup exist only to source a fallback basis for the ramp
+// itself; they're never used for badges, PR detection, or history views.
+let exerciseLocationIndex = null;
+function getExerciseLocationIndex(){
+  if(exerciseLocationIndex) return exerciseLocationIndex;
+  const index = {};
+  const addDays = (progKey, days, style) => {
+    Object.entries(days || {}).forEach(([dayId, day]) => {
+      (day.exercises || []).forEach((ex, idx) => {
+        if(!ex || !ex.name) return;
+        if(!index[ex.name]) index[ex.name] = [];
+        index[ex.name].push({program: progKey, dayId, idx, style});
+      });
+    });
+  };
+  Object.entries(programs).forEach(([progKey, prog]) => {
+    // medical/combat/cycling/yoga are placeholders here (days:{}) — their
+    // real content lives in the *_STYLES consts, added below instead.
+    if(['medical','combat','cycling','yoga'].includes(progKey)) return;
+    addDays(progKey, prog.days, null);
+  });
+  Object.entries(MEDICAL_STYLES).forEach(([styleKey, style]) => addDays('medical', style.days, styleKey));
+  Object.entries(COMBAT_STYLES).forEach(([styleKey, style]) => addDays('combat', style.days, styleKey));
+  Object.entries(CYCLING_STYLES).forEach(([styleKey, style]) => addDays('cycling', style.days, styleKey));
+  Object.entries(YOGA_STYLES).forEach(([styleKey, style]) => addDays('yoga', style.days, null)); // yoga styles share one storage key regardless of style — see exKey
+  exerciseLocationIndex = index;
+  return index;
+}
+
+function exKeyForLocation(loc){
+  if(loc.program === 'combat') return `ex:combat:${loc.style}:${loc.dayId}:${loc.idx}`;
+  if(loc.program === 'cycling') return `ex:cycling:${loc.style}:${loc.dayId}:${loc.idx}`;
+  if(loc.program === 'medical') return `ex:medical:${loc.style}:${loc.dayId}:${loc.idx}`;
+  return `ex:${loc.program}:${loc.dayId}:${loc.idx}`;
+}
+
+// Most recent logged top set for this exact exercise name, searched across
+// every program/day it appears in (excluding the current slot, which is
+// checked separately by the caller before ever reaching this). Returns null
+// if it's genuinely never been logged anywhere.
+async function getFallbackPriorTopSet(exerciseName, excludeKey){
+  const locations = getExerciseLocationIndex()[exerciseName] || [];
+  let best = null;
+  for(const loc of locations){
+    const key = exKeyForLocation(loc);
+    if(key === excludeKey) continue;
+    try{
+      const res = await window.storage.get(key);
+      if(!res || !res.value) continue;
+      const log = JSON.parse(res.value).map(normalizeExEntry);
+      log.filter(e=> e.date !== getTodayKey()).forEach(e=>{
+        const top = topSetOf(e);
+        if(top && top.weight!=null && (!best || new Date(e.date+'T00:00:00') > new Date(best.date+'T00:00:00'))){
+          best = {...top, date: e.date};
+        }
+      });
+    }catch(err){}
+  }
+  return best;
+}
+
 // Normalizes legacy single weight/reps entries into the sets[] format so old data keeps working.
 function normalizeExEntry(e){
   if(e.sets) return e;
@@ -10362,6 +10515,25 @@ async function renderWorkout(){
   // warmed, later exercises (position 2+) never show a ramp.
   const firstExCategory = (exerciseInfo[renderExercises[0]?.name] || {}).category;
 
+  // For any slot that's warmup-eligible (by position or by being a heavy
+  // set) but has no history of its own yet, pre-fetch a fallback from
+  // anywhere else that same exercise name has been logged — see
+  // getFallbackPriorTopSet. Done up front, alongside `logs` above, since the
+  // per-exercise render loop below builds each row synchronously.
+  const fallbackTopSets = await Promise.all(renderExercises.map(async (ex, i) => {
+    if(!ex || !ex.name || ex.noWeight) return null;
+    const cat = (exerciseInfo[ex.name] || {}).category;
+    if(!WARMUP_ELIGIBLE_CATEGORIES.includes(cat)) return null;
+    const log = logs[i];
+    const hasOwnPrior = log.some(e=> e.date !== getTodayKey() && topSetOf(e));
+    if(hasOwnPrior) return null; // has its own history — no fallback needed
+    const topRep = parseTopRep(ex.sets);
+    const warmupEligiblePosition = i === 0 || (i === 1 && cat !== firstExCategory);
+    const isHeavySet = topRep != null && topRep <= 8;
+    if(!(warmupEligiblePosition || isHeavySet)) return null;
+    return await getFallbackPriorTopSet(ex.name, exKey(activeProgram, activeDay, i));
+  }));
+
   renderExercises.forEach((ex,i)=>{
     const row = document.createElement('div');
     const isSupersetTop = !!ex.superTag;
@@ -10430,10 +10602,18 @@ async function renderWorkout(){
         // and DB Shoulder Press even in the first slot of the day.
         const isBarbell = isBarbellExercise(ex.name);
         const minWeight = isBarbell ? WARMUP_MIN_WORKING_WEIGHT : WARMUP_MIN_WORKING_WEIGHT_GENERIC;
-        if(priorTop && priorTop.weight >= minWeight){
-          const ramp = isBarbell ? buildWarmupRamp(priorTop.weight) : buildGenericWarmupRamp(priorTop.weight);
+        // Falls back to the same lift's history from anywhere else in the
+        // app when this exact slot has nothing logged yet — a brand-new day
+        // for a familiar lift shouldn't lose its ramp just because this
+        // particular slot has no history of its own. Never affects the
+        // badges above, which stay correctly scoped to this exact slot.
+        const isFallback = !priorTop && !!fallbackTopSets[i];
+        const rampSource = priorTop || fallbackTopSets[i];
+        if(rampSource && rampSource.weight >= minWeight){
+          const ramp = isBarbell ? buildWarmupRamp(rampSource.weight) : buildGenericWarmupRamp(rampSource.weight);
           const rampRows = ramp.map(step=> `<div class="warmup-row"><span>${step.label} — ${step.weight} ${weightUnit} × ${step.reps}</span></div>`).join('');
-          warmupHtml = `<div class="warmup-box"><div class="warmup-title">🔥 Suggested warm-up ramp</div>${rampRows}</div>`;
+          const rampTitle = isFallback ? `🔥 Suggested warm-up ramp <span style="font-weight:400; text-transform:none; letter-spacing:0; opacity:0.75;">(based on your last logged ${ex.name}, elsewhere)</span>` : '🔥 Suggested warm-up ramp';
+          warmupHtml = `<div class="warmup-box"><div class="warmup-title">${rampTitle}</div>${rampRows}</div>`;
         }
       } else if(warmupEligible && isEligibleCategory && !showWeight){
         // No external load to build a numeric ramp off of (push-ups, pull-ups,
@@ -11368,7 +11548,7 @@ const BODY_GOAL_FOCUS = [
     {name:'DB Curl', sets:'3×10-12'},
     {name:'Standing Calf Raise', sets:'3×15-20'},
   ]},
-  {pattern:/athletic figure|athletic performance|athletic build/i, label:'Athletic Conditioning Focus', exercises:[
+  {pattern:/athletic figure|athletic performance|athletic build|strong & athletic/i, label:'Athletic Conditioning Focus', exercises:[
     {name:'Plank', sets:'3×45s', noWeight:true},
     {name:'Box Jump', sets:'3×5'},
   ]},
@@ -11565,7 +11745,24 @@ function computeTargets(p){
   // to shut down muscle growth entirely). "Muscle Gain" is nudged up
   // slightly from lean bulk's number so the two remain genuinely distinct
   // choices rather than nearly identical surpluses under different names.
-  const calAdjust = {lose:-500, gain:350, leanbulk:200, recomp:-250, maintain:0, performance:0};
+  //
+  // The flat -500/-250 numbers below are capped as a % of TDEE (25%/15%)
+  // rather than applied outright — a flat 500 kcal cut is standard for an
+  // average-to-higher TDEE, but current guidance (e.g. a percentage-based
+  // deficit scaled to body size) flags that same flat number as a
+  // disproportionately large cut for someone with a lower TDEE to begin
+  // with, which is exactly the scenario most likely to under-eat without
+  // the app ever surfacing it. This changes nothing for anyone with a
+  // typical-to-high TDEE; it only softens the deficit for smaller/lighter
+  // people where a flat number would otherwise exceed ~25%/~15% of maintenance.
+  const calAdjust = {
+    lose: -Math.min(500, tdee * 0.25),
+    gain: 350,
+    leanbulk: 200,
+    recomp: -Math.min(250, tdee * 0.15),
+    maintain: 0,
+    performance: 0,
+  };
   // Protein per lb bodyweight: recomp research consistently converges on
   // 1.0-1.2 g/lb as the range that best protects/builds lean mass while in
   // a deficit; lean bulk research converges on ~1 g/lb (BodySpec) / 2.0-2.2
@@ -11582,7 +11779,11 @@ function computeTargets(p){
   // specific aesthetic goal you picked, not by gender directly. A man and a
   // woman who both select "Maximum Size" get the same protein bump; a man and
   // a woman who both select a leaner physique goal get the same tighter deficit.
-  if(/physique|classic|muscular|maximum/i.test(bodyGoal)){
+  // "Figure" (NPC/IFBB Figure division) is grouped with the muscle-focused
+  // goals below rather than the leaner ones — it's a moderate-to-high muscle
+  // aesthetic (more shoulder/back development than Bikini), closer in intent
+  // to Classic Physique/Women's Physique than to a pure lean-look goal.
+  if(/physique|classic|muscular|maximum|figure/i.test(bodyGoal)){
     proPerLb += 0.1; // muscle-maximizing goals: a bit more protein supports that directly
   }
   if(/toned|lean|bikini/i.test(bodyGoal) && p.goal !== 'gain'){
@@ -11592,12 +11793,25 @@ function computeTargets(p){
     fatPct = 0.24; // a few extra carbs to support the higher glute/leg training volume this goal implies
   }
 
+  // Hard safety floor, applied last, regardless of how the math above
+  // works out — never recommend eating below the widely-cited safe minimums
+  // (1,200 kcal/day for women, 1,500 for men, per the 2013 AHA/ACC/TOS
+  // Obesity Guidelines and consistent with current clinical sources): going
+  // below this without medical supervision risks nutrient inadequacy,
+  // metabolic slowdown, and muscle loss — the opposite of what a deficit is
+  // supposed to protect against. This is a true floor, not a target: it
+  // only ever raises an unsafely low computed number, never lowers one.
+  const calorieFloor = p.gender === 'male' ? 1500 : p.gender === 'female' ? 1200 : 1350;
+  const preFloorCal = cal;
+  cal = Math.max(cal, calorieFloor);
+
   cal = Math.round(cal);
   const pro = Math.round((Number(p.weight)||150) * proPerLb);
   const fat = Math.round((cal * fatPct) / 9);
   const carb = Math.max(0, Math.round((cal - pro*4 - fat*9) / 4));
+  const isFloored = preFloorCal < calorieFloor;
 
-  return {cal, pro, fat, carb};
+  return {cal, pro, fat, carb, isFloored};
 }
 
 // Scores every program 0-100 for a given goal. Used to sort the program
@@ -11609,7 +11823,7 @@ const TIP_COLORS = ['', 'var(--plate-red)', 'var(--plate-yellow)', 'var(--plate-
 
 const TIPS_BY_PROGRAM = {
   strength: [
-    "<b>Protein first.</b> Hit 230-250g before worrying about anything else — this is what protects muscle in the deficit.",
+    "<b>Protein first.</b> Hit __PROTEIN_TARGET__g before worrying about anything else — this is what protects muscle in the deficit.",
     "<b>Progressive overload.</b> Hit the top of a rep range on all sets → add weight next session.",
     "<b>Sleep 7-9 hrs.</b> Non-negotiable for recomp — this is when muscle actually rebuilds.",
     "<b>Zone 2 cardio, 2-3x/week.</b> 20-30 min incline walk or bike. Don't turn it into HIIT — that eats into lifting recovery.",
@@ -11981,7 +12195,7 @@ function getActiveTips(){
 }
 
 function renderTips(){
-  const tips = getActiveTips();
+  const tips = getActiveTips().map(html=> html.replace('__PROTEIN_TARGET__', targets.pro));
   const buildTip = (html, idx) => `<div class="tip"><div class="tip-icon" style="background:${TIP_COLORS[idx % TIP_COLORS.length] || 'var(--plate-yellow)'}"></div><div>${html}</div></div>`;
   document.getElementById('tipsAlways').innerHTML = tips.slice(0,3).map(buildTip).join('');
   document.getElementById('tipsMore').innerHTML = tips.slice(3).map((html,i)=>buildTip(html, i+3)).join('');
@@ -12276,6 +12490,13 @@ function applyTargetsToUI(){
   document.getElementById('tvPro').textContent = targets.pro + 'g';
   document.getElementById('tvFat').textContent = targets.fat + 'g';
   document.getElementById('tvCarb').textContent = targets.carb + 'g';
+  const floorNote = document.getElementById('calorieFloorNote');
+  if(targets.isFloored){
+    floorNote.style.display = '';
+    floorNote.textContent = "⚠️ Your calculated deficit would've gone below a safe minimum, so this target is held at a safer floor instead — a bigger deficit than this really should involve a doctor or dietitian.";
+  } else {
+    floorNote.style.display = 'none';
+  }
 }
 
 function populateProfileForm(){
@@ -12520,6 +12741,80 @@ function computeWaterTarget(p){
   const base = (Number(p.weight)||150) * 0.6; // oz, standard bodyweight-based hydration guideline
   const activityBump = (Number(p.activity)||1.2) >= 1.55 ? 20 : 0;
   return Math.round(base + activityBump);
+}
+
+// Condition-specific nutrient targets — only ever surfaces when Medically
+// Modified is the active program AND the matching condition/stage is
+// selected (see renderMedicalNutrientTargets); everyone else's Nutrition
+// tab is completely unaffected. Deliberately selective, not "track
+// everything for everyone": each entry here is a nutrient with a real,
+// specific, well-established connection to that exact condition, not a
+// blanket micronutrient panel bolted onto every program.
+//
+// type:'max' = a ceiling to stay under (lower is better, like sodium).
+// type:'min' = a floor to hit (higher is better, like fiber/calcium/iron/folate).
+// A null `value` means it's computed per-person in computeMicronutrientTargets
+// below (fiber scales with calorie target; iron depends on gender).
+//
+// Deliberately excluded: sodium for Bariatric (post-op research shows
+// under-eating sodium is the more common real-world issue there, not
+// over-eating it — a restriction target would be actively wrong); fiber for
+// Bariatric Early Recovery (high-fiber/raw foods are typically poorly
+// tolerated on a newly reduced stomach — that's a texture/tolerance
+// guideline already covered in the program's day notes, not a numeric
+// target); Vitamin D/B12 anywhere (these are near-universally supplemented
+// post-surgery/for deficiency, and food-based tracking of them is close to
+// meaningless for that reason — the app defers to supplementation +
+// bloodwork guidance instead, consistent with how the Bariatric program
+// already treats clearance/timing decisions).
+const MEDICAL_NUTRIENT_TARGETS = {
+  hypertension: {
+    sodium: {type:'max', value:1500, unit:'mg', label:'Sodium', note:"AHA's ideal ceiling specifically for hypertension — 2,300mg/day is the general population max, 1,500mg is the tighter target once blood pressure is actually a factor."},
+    potassium: {type:'min', value:null, unit:'mg', label:'Potassium', note:"DASH guidance isn't just \"cut sodium\" — potassium directly blunts sodium's effect on blood pressure, and most people fall well short of this. ⚠️ Important: talk to your doctor before targeting this if kidney function is a factor at all — excess potassium is genuinely dangerous with impaired kidney function, and hypertension and kidney issues are commonly linked."},
+  },
+  osteoporosis: {
+    sodium: {type:'max', value:2300, unit:'mg', label:'Sodium', note:'Excess sodium measurably increases urinary calcium loss — a real mechanism, not just general health advice.'},
+    calcium: {type:'min', value:1200, unit:'mg', label:'Calcium', note:"Standard osteoporosis target (International Osteoporosis Foundation / National Osteoporosis Foundation) — pairs with the vitamin D and weight-bearing guidance already in this program's day notes."},
+  },
+  obesity: {
+    sodium: {type:'max', value:2300, unit:'mg', label:'Sodium', note:'General Dietary Guidelines ceiling — worth watching given the elevated comorbid hypertension risk with obesity.'},
+    fiber: {type:'min', value:null, unit:'g', label:'Fiber', note:'14g of fiber per 1,000 calories (Dietary Guidelines for Americans) — scales with your calorie target below.'},
+  },
+  diabetes: {
+    fiber: {type:'min', value:null, unit:'g', label:'Fiber', note:'14g per 1,000 calories (current ADA Standards of Care) — higher fiber intake is linked to better glycemic control and lower post-meal glucose spikes.'},
+  },
+  bariatricEarly: {
+    calcium: {type:'min', value:1200, unit:'mg', label:'Calcium', note:"Food alone rarely covers this after surgery — this tracks food intake specifically, on top of (never instead of) your prescribed calcium citrate."},
+    iron: {type:'min', value:null, unit:'mg', label:'Iron', note:'Reduced stomach acid and lower red meat tolerance make iron deficiency common post-op — a food-intake floor, not a substitute for your prescribed supplement or scheduled bloodwork.'},
+  },
+  bariatricRebuilding: {
+    calcium: {type:'min', value:1200, unit:'mg', label:'Calcium', note:'Same ongoing need as Early Recovery — bone density risk continues for years after surgery, well past the point food variety normalizes.'},
+    iron: {type:'min', value:null, unit:'mg', label:'Iron', note:"Ongoing risk, especially if menstruating — keep up with bloodwork on your team's schedule regardless of how this number looks."},
+  },
+  prenatal: {
+    iron: {type:'min', value:27, unit:'mg', label:'Iron', note:'Elevated for pregnancy (vs. ~18mg typical) to support the real increase in blood volume.'},
+    folate: {type:'min', value:600, unit:'mcg DFE', label:'Folate', note:'The single most evidence-backed prenatal nutrient — adequate folate specifically reduces neural tube defect risk. Most of this should come from your prenatal vitamin; this tracks food on top of that.'},
+  },
+  postpartum: {
+    iron: {type:'min', value:18, unit:'mg', label:'Iron', note:'Still elevated if breastfeeding or recovering from delivery-related blood loss.'},
+    folate: {type:'min', value:500, unit:'mcg DFE', label:'Folate', note:'Still elevated while breastfeeding.'},
+  },
+};
+
+function computeMicronutrientTargets(p, medicalStyle, calorieTarget){
+  const config = MEDICAL_NUTRIENT_TARGETS[medicalStyle];
+  if(!config) return {};
+  const result = {};
+  for(const [nutrient, spec] of Object.entries(config)){
+    let value = spec.value;
+    if(value == null){
+      if(nutrient === 'fiber') value = Math.round(((Number(calorieTarget)||2000) / 1000) * 14);
+      else if(nutrient === 'iron') value = p.gender === 'male' ? 8 : 18; // standard adult RDA, food-intake floor
+      else if(nutrient === 'potassium') value = p.gender === 'male' ? 3400 : 2600; // AHA daily target
+    }
+    result[nutrient] = {...spec, value};
+  }
+  return result;
 }
 
 async function getWaterIntake(){
@@ -12990,6 +13285,17 @@ function extractUsdaNutrition(food){
       pro: Math.round(ln.protein?.value ?? 0),
       fat: Math.round(ln.fat?.value ?? 0),
       carb: Math.round(ln.carbohydrates?.value ?? 0),
+      // Sodium/calcium/iron/potassium are standard Nutrition Facts fields,
+      // reliably present (potassium became mandatory on labels in the 2016
+      // FDA update). Fiber usually is too. Folate isn't a required label
+      // field post-2016 and is rarely present here — stays null for branded
+      // foods far more often than the other five, which is expected, not a bug.
+      sodium: ln.sodium?.value != null ? Math.round(ln.sodium.value) : null,
+      fiber: ln.fiber?.value != null ? Math.round(ln.fiber.value) : null,
+      calcium: ln.calcium?.value != null ? Math.round(ln.calcium.value) : null,
+      iron: ln.iron?.value != null ? +ln.iron.value.toFixed(1) : null,
+      potassium: ln.potassium?.value != null ? Math.round(ln.potassium.value) : null,
+      folate: null,
       servingDesc,
     };
   }
@@ -12998,13 +13304,20 @@ function extractUsdaNutrition(food){
     const hit = nutrients.find(n =>
       n.nutrientId === id || (n.nutrientName && n.nutrientName.toLowerCase().includes(nameHint))
     );
-    return hit ? Number(hit.value) || 0 : 0;
+    return hit ? Number(hit.value) : null;
   };
   return {
-    cal: Math.round(findVal(1008, 'energy')),
-    pro: Math.round(findVal(1003, 'protein')),
-    fat: Math.round(findVal(1004, 'total lipid')),
-    carb: Math.round(findVal(1005, 'carbohydrate')),
+    cal: Math.round(findVal(1008, 'energy') ?? 0),
+    pro: Math.round(findVal(1003, 'protein') ?? 0),
+    fat: Math.round(findVal(1004, 'total lipid') ?? 0),
+    carb: Math.round(findVal(1005, 'carbohydrate') ?? 0),
+    sodium: findVal(1093, 'sodium') != null ? Math.round(findVal(1093, 'sodium')) : null,
+    fiber: findVal(1079, 'fiber') != null ? Math.round(findVal(1079, 'fiber')) : null,
+    calcium: findVal(1087, 'calcium') != null ? Math.round(findVal(1087, 'calcium')) : null,
+    iron: findVal(1089, 'iron') != null ? +findVal(1089, 'iron').toFixed(1) : null,
+    potassium: findVal(1092, 'potassium') != null ? Math.round(findVal(1092, 'potassium')) : null,
+    folate: (findVal(1190, 'folate, dfe') ?? findVal(1177, 'folate, total')) != null
+      ? Math.round(findVal(1190, 'folate, dfe') ?? findVal(1177, 'folate, total')) : null,
     servingDesc: 'per 100g',
   };
 }
@@ -13433,6 +13746,15 @@ function duplicateToCustomForm(item){
   document.getElementById('cPro').value = item.pro;
   document.getElementById('cFat').value = item.fat;
   document.getElementById('cCarb').value = item.carb;
+  document.getElementById('cSodium').value = item.sodium ?? '';
+  document.getElementById('cFiber').value = item.fiber ?? '';
+  document.getElementById('cCalcium').value = item.calcium ?? '';
+  document.getElementById('cIron').value = item.iron ?? '';
+  document.getElementById('cPotassium').value = item.potassium ?? '';
+  document.getElementById('cFolate').value = item.folate ?? '';
+  if([item.sodium, item.fiber, item.calcium, item.iron, item.potassium, item.folate].some(v=> v != null)){
+    document.getElementById('moreNutrientsForm').classList.add('open');
+  }
   document.getElementById('cName').scrollIntoView({behavior:'smooth', block:'center'});
   document.getElementById('cName').focus();
 }
@@ -13831,6 +14153,21 @@ async function loadFoodLog(){
   renderFoodLog();
 }
 
+function computeTodaysFoodTotals(){
+  return todaysFoodLog.reduce((acc,i)=>({
+    cal: acc.cal + Number(i.cal||0),
+    pro: acc.pro + Number(i.pro||0),
+    fat: acc.fat + Number(i.fat||0),
+    carb: acc.carb + Number(i.carb||0),
+    sodium: acc.sodium + Number(i.sodium||0),
+    fiber: acc.fiber + Number(i.fiber||0),
+    calcium: acc.calcium + Number(i.calcium||0),
+    iron: acc.iron + Number(i.iron||0),
+    folate: acc.folate + Number(i.folate||0),
+    potassium: acc.potassium + Number(i.potassium||0),
+  }), {cal:0,pro:0,fat:0,carb:0,sodium:0,fiber:0,calcium:0,iron:0,folate:0,potassium:0});
+}
+
 function renderFoodLog(){
   const listEl = document.getElementById('foodLogList');
   if(todaysFoodLog.length === 0){
@@ -13847,13 +14184,44 @@ function renderFoodLog(){
       btn.addEventListener('click', ()=> removeFoodFromLog(Number(btn.dataset.idx)));
     });
   }
-  const totals = todaysFoodLog.reduce((acc,i)=>({
-    cal: acc.cal + Number(i.cal||0),
-    pro: acc.pro + Number(i.pro||0),
-    fat: acc.fat + Number(i.fat||0),
-    carb: acc.carb + Number(i.carb||0),
-  }), {cal:0,pro:0,fat:0,carb:0});
+  const totals = computeTodaysFoodTotals();
   updateBars(totals);
+  renderMedicalNutrientBars(totals);
+}
+
+// Only builds/shows anything when Medically Modified is the active program
+// AND the current condition/stage has entries in MEDICAL_NUTRIENT_TARGETS —
+// otherwise the container stays hidden and nobody's Nutrition tab changes
+// at all. Colors are fixed per nutrient (not per condition) so switching
+// between conditions that share a nutrient (e.g. Sodium in both
+// Hypertension and Osteoporosis) doesn't visually flicker to a different color.
+const NUTRIENT_BAR_COLOR = {sodium:'var(--plate-orange)', fiber:'var(--plate-green)', calcium:'var(--plate-teal)', iron:'var(--plate-purple)', folate:'var(--plate-off)', potassium:'var(--plate-blue)'};
+
+function renderMedicalNutrientBars(totals){
+  const wrap = document.getElementById('medicalNutrientBars');
+  if(!wrap) return;
+  if(activeProgram !== 'medical'){ wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+  const nutrientTargets = computeMicronutrientTargets(userProfile, activeMedicalStyle, targets.cal);
+  const entries = Object.entries(nutrientTargets);
+  if(entries.length === 0){ wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+
+  wrap.style.display = '';
+  wrap.innerHTML = entries.map(([nutrient, spec])=>{
+    const current = Math.round(Number(totals[nutrient]) || 0);
+    const pct = spec.type === 'max'
+      ? Math.min(100, (current / spec.value) * 100)
+      : Math.min(100, (current / spec.value) * 100);
+    const overMax = spec.type === 'max' && current > spec.value;
+    const label = spec.type === 'max' ? `${spec.label} (stay under)` : `${spec.label} (aim for)`;
+    return `
+      <div class="macro-row">
+        <div class="macro-label">${label.toUpperCase()}</div>
+        <div class="macro-bar-track"><div class="macro-bar-fill" style="background:${overMax ? 'var(--plate-red)' : NUTRIENT_BAR_COLOR[nutrient]};width:${pct}%"></div></div>
+        <div class="macro-val">${current} / ${spec.value} ${spec.unit}</div>
+      </div>
+      <div class="history-hint nutrient-inline-note">${spec.note}</div>
+    `;
+  }).join('') + `<div class="history-hint subtle">⚠️ These numbers are only as good as what's entered — packaged foods (Scan Label) are usually accurate, but AI photo estimates and whole/home-cooked foods are much rougher for these specific nutrients than for calories. Treat this as a rough guide, not a precise reading, and never as a replacement for bloodwork your care team orders.</div>`;
 }
 
 function updateBars(v){
@@ -13876,6 +14244,10 @@ document.getElementById('nutritionHeader').addEventListener('click', ()=>{
 
 document.getElementById('customToggle').addEventListener('click', ()=>{
   document.getElementById('customForm').classList.toggle('open');
+});
+
+document.getElementById('moreNutrientsToggle').addEventListener('click', ()=>{
+  document.getElementById('moreNutrientsForm').classList.toggle('open');
 });
 
 document.getElementById('addCustomExerciseBtn').addEventListener('click', ()=>{
@@ -13954,6 +14326,15 @@ document.getElementById('addCustom').addEventListener('click', async ()=>{
   const pro = Number(document.getElementById('cPro').value)||0;
   const fat = Number(document.getElementById('cFat').value)||0;
   const carb = Number(document.getElementById('cCarb').value)||0;
+  // Optional — only carried into the log when actually entered (via Scan
+  // Label or manually), never defaulted to 0 in a way that would misreport
+  // "0mg sodium" for a food that just wasn't measured for it.
+  const sodium = document.getElementById('cSodium').value ? Number(document.getElementById('cSodium').value) : undefined;
+  const fiber = document.getElementById('cFiber').value ? Number(document.getElementById('cFiber').value) : undefined;
+  const calcium = document.getElementById('cCalcium').value ? Number(document.getElementById('cCalcium').value) : undefined;
+  const iron = document.getElementById('cIron').value ? Number(document.getElementById('cIron').value) : undefined;
+  const potassium = document.getElementById('cPotassium').value ? Number(document.getElementById('cPotassium').value) : undefined;
+  const folate = document.getElementById('cFolate').value ? Number(document.getElementById('cFolate').value) : undefined;
   const saveToLibrary = document.getElementById('cSaveToLibrary').checked;
   const status = document.getElementById('nutritionStatus');
   if(!name || cal===0){
@@ -13961,7 +14342,7 @@ document.getElementById('addCustom').addEventListener('click', async ()=>{
     setTimeout(()=>status.textContent='',1500);
     return;
   }
-  const item = {name, cal, pro, fat, carb};
+  const item = {name, cal, pro, fat, carb, sodium, fiber, calcium, iron, potassium, folate};
   await addFoodToLog(item);
   if(saveToLibrary){
     await addToCustomFoods(item);
@@ -13971,7 +14352,14 @@ document.getElementById('addCustom').addEventListener('click', async ()=>{
   document.getElementById('cPro').value='';
   document.getElementById('cFat').value='';
   document.getElementById('cCarb').value='';
+  document.getElementById('cSodium').value='';
+  document.getElementById('cFiber').value='';
+  document.getElementById('cCalcium').value='';
+  document.getElementById('cIron').value='';
+  document.getElementById('cPotassium').value='';
+  document.getElementById('cFolate').value='';
   document.getElementById('customForm').classList.remove('open');
+  document.getElementById('moreNutrientsForm').classList.remove('open');
   status.textContent = saveToLibrary ? 'Added & saved to My Foods ✓' : 'Added';
   setTimeout(()=>status.textContent='',2000);
 });
@@ -13992,7 +14380,7 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
   status.textContent = 'Reading label…';
   try{
     const base64 = await fileToBase64(file);
-    const prompt = `This is a photo of a nutrition facts label. Read it carefully and respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"name":"string (product name if visible, else a short generic description)","cal":number,"pro":number,"fat":number,"carb":number}. Use the values for ONE serving as defined on the label. If you can't read the label clearly, respond with {"name":"","cal":0,"pro":0,"fat":0,"carb":0}.`;
+    const prompt = `This is a photo of a nutrition facts label. Read it carefully and respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"name":"string (product name if visible, else a short generic description)","cal":number,"pro":number,"fat":number,"carb":number,"sodium":number|null,"fiber":number|null,"calcium":number|null,"iron":number|null,"potassium":number|null,"folate":number|null}. Use the values for ONE serving as defined on the label. Sodium/potassium are in mg, fiber in g, calcium in mg, iron in mg, folate in mcg — use null (not 0) for any of these six that aren't printed on this specific label, since a real 0 and "not listed" mean different things. If you can't read the label clearly, respond with {"name":"","cal":0,"pro":0,"fat":0,"carb":0,"sodium":null,"fiber":null,"calcium":null,"iron":null,"potassium":null,"folate":null}.`;
     const raw = await callClaudeVision(apiKey, [base64], prompt, 500, 'claude-haiku-4-5-20251001');
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
@@ -14007,6 +14395,18 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
     document.getElementById('cPro').value = parsed.pro;
     document.getElementById('cFat').value = parsed.fat;
     document.getElementById('cCarb').value = parsed.carb;
+    document.getElementById('cSodium').value = parsed.sodium ?? '';
+    document.getElementById('cFiber').value = parsed.fiber ?? '';
+    document.getElementById('cCalcium').value = parsed.calcium ?? '';
+    document.getElementById('cIron').value = parsed.iron ?? '';
+    document.getElementById('cPotassium').value = parsed.potassium ?? '';
+    document.getElementById('cFolate').value = parsed.folate ?? '';
+    // Auto-expand the extra fields whenever the label actually had any of
+    // them, so a scan that found sodium/fiber/etc. doesn't hide it behind
+    // a collapsed toggle the person has to know to open.
+    if([parsed.sodium, parsed.fiber, parsed.calcium, parsed.iron, parsed.potassium, parsed.folate].some(v=> v != null)){
+      document.getElementById('moreNutrientsForm').classList.add('open');
+    }
     status.textContent = 'Filled in from label — check it over, then tap Add Item ✓';
   }catch(err){
     status.textContent = `Couldn't read that label: ${err.message}. Try again or enter it manually.`;
@@ -14172,6 +14572,7 @@ document.getElementById('saveWeight').addEventListener('click', async ()=>{
   const wDisplay = parseFloat(input.value);
   if(!wDisplay) return;
   const w = toCanonicalLb(wDisplay);
+  const statusEl = document.getElementById('weightSaveStatus');
   try{
     let entries = [];
     try{
@@ -14183,10 +14584,254 @@ document.getElementById('saveWeight').addEventListener('click', async ()=>{
     input.value = '';
     loadWeights();
     renderTodayInsights();
+
+    // Calorie/protein targets are computed from userProfile.weight, which
+    // otherwise only changes if someone manually reopens the profile form
+    // and retypes it — meaning targets can silently drift out of sync with
+    // real, meaningful weight change for weeks or months, understating or
+    // overstating both the deficit/surplus and the protein target the whole
+    // time. A fresh weigh-in is the most current, most accurate weight
+    // available, so it becomes the new basis immediately.
+    const oldWeight = userProfile.weight;
+    userProfile.weight = w;
+    await saveProfile();
+    targets = computeTargets(userProfile);
+    applyTargetsToUI();
+    renderProfileSummary();
+    renderWater(); // water target is weight-based too (see computeWaterTarget)
+    loadFoodLog(); // refresh macro bars against the new targets
+    const changedMeaningfully = oldWeight && Math.abs(w - oldWeight) >= toCanonicalLb(1);
+    statusEl.textContent = changedMeaningfully
+      ? `Logged ✓ — nutrition & water targets updated for your new weight (${fmtWeight(w)})`
+      : 'Logged ✓';
+    setTimeout(()=>{ statusEl.textContent = ''; }, 3000);
   }catch(e){}
 });
 
-// --- Sleep log ---
+// --- Blood Pressure log (Hypertension only) --------------------------------
+// Categories per the 2025 ACC/AHA high blood pressure guideline (unchanged
+// from 2017): Normal <120/<80, Elevated 120-129/<80, Stage 1 130-139 OR
+// 80-89, Stage 2 ≥140 OR ≥90, Crisis >180 and/or >120 (seek immediate care).
+// The higher of the two numbers' categories always wins, since either one
+// alone can put a reading in a more serious bucket.
+function categorizeBP(systolic, diastolic){
+  if(systolic > 180 || diastolic > 120) return {label:'Hypertensive Crisis', color:'var(--plate-red)', urgent:true};
+  if(systolic >= 140 || diastolic >= 90) return {label:'Stage 2', color:'var(--plate-red)'};
+  if(systolic >= 130 || diastolic >= 80) return {label:'Stage 1', color:'var(--plate-orange)'};
+  if(systolic >= 120) return {label:'Elevated', color:'var(--plate-yellow)'};
+  return {label:'Normal', color:'var(--plate-green)'};
+}
+
+async function loadBP(){
+  const listEl = document.getElementById('bpList');
+  try{
+    const res = await window.storage.get('bp-log');
+    let entries = [];
+    if(res && res.value) entries = JSON.parse(res.value);
+    if(entries.length===0){
+      listEl.innerHTML = '<div class="empty-note">🩺 No readings yet — log your first one.</div>';
+      return;
+    }
+    entries.sort((a,b)=> new Date(b.date) - new Date(a.date));
+    const sorted = entries;
+    const itemHtmls = sorted.map(e=>{
+      const cat = categorizeBP(e.systolic, e.diastolic);
+      return buildSwipeItem(
+        `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${e.systolic}/${e.diastolic} <span style="color:${cat.color}; font-size:11px; font-weight:600; font-family:'Inter',sans-serif;">${cat.label}</span></span></div>`
+      );
+    });
+    renderCollapsibleList(listEl, itemHtmls, 3, 'readings');
+    listEl.querySelectorAll('.swipe-item').forEach((itemEl, i)=>{
+      makeSwipeable(itemEl, async ()=>{
+        const preDeleteSnapshot = JSON.stringify(entries);
+        const all = entries.filter(e2=> !(e2.date===sorted[i].date && e2.systolic===sorted[i].systolic && e2.diastolic===sorted[i].diastolic));
+        await window.storage.set('bp-log', JSON.stringify(all));
+        loadBP();
+        showUndoToast('Reading deleted', async ()=>{
+          try{ await window.storage.set('bp-log', preDeleteSnapshot); }catch(e){}
+          loadBP();
+        });
+      });
+    });
+  }catch(e){
+    listEl.innerHTML = '<div class="empty-note">🩺 No readings yet — log your first one.</div>';
+  }
+}
+
+document.getElementById('saveBP').addEventListener('click', async ()=>{
+  const sysInput = document.getElementById('bpSystolicInput');
+  const diaInput = document.getElementById('bpDiastolicInput');
+  const systolic = Math.round(parseFloat(sysInput.value));
+  const diastolic = Math.round(parseFloat(diaInput.value));
+  if(!systolic || !diastolic) return;
+  const statusEl = document.getElementById('bpSaveStatus');
+  try{
+    let entries = [];
+    try{
+      const res = await window.storage.get('bp-log');
+      if(res && res.value) entries = JSON.parse(res.value);
+    }catch(e){ entries = []; }
+    entries.push({date: getTodayKey(), systolic, diastolic});
+    await window.storage.set('bp-log', JSON.stringify(entries));
+    sysInput.value = ''; diaInput.value = '';
+    loadBP();
+    const cat = categorizeBP(systolic, diastolic);
+    statusEl.textContent = cat.urgent
+      ? `Logged — ${systolic}/${diastolic} is in crisis range. Please seek medical attention if this is accurate and you haven't already.`
+      : `Logged ✓ — ${cat.label}`;
+    statusEl.classList.toggle('warn', cat.urgent);
+    setTimeout(()=>{ statusEl.textContent = ''; statusEl.classList.remove('warn'); }, cat.urgent ? 8000 : 3000);
+  }catch(e){}
+});
+
+// --- Blood Glucose log (Diabetes only) --------------------------------------
+// Targets per the ADA Standards of Care (2026): fasting/before-meal 80-130
+// mg/dL, under 180 mg/dL 1-2hrs after a meal, hypoglycemia alert at ≤70
+// mg/dL regardless of context (treat with fast-acting carbs). Context tag
+// matters here — 150 mg/dL is high fasting but a fine post-meal reading.
+function categorizeGlucose(value, context){
+  if(value <= 70) return {label:'Low', color:'var(--plate-red)', urgent:true, hint:'Hypoglycemia alert threshold — if this is accurate, treat with fast-acting carbs per your care plan.'};
+  if(context === 'postmeal'){
+    if(value >= 180) return {label:'High', color:'var(--plate-red)'};
+    return {label:'In range', color:'var(--plate-green)'};
+  }
+  if(value > 130) return {label:'High', color:'var(--plate-orange)'};
+  return {label:'In range', color:'var(--plate-green)'};
+}
+
+async function loadGlucose(){
+  const listEl = document.getElementById('glucoseList');
+  try{
+    const res = await window.storage.get('glucose-log');
+    let entries = [];
+    if(res && res.value) entries = JSON.parse(res.value);
+    if(entries.length===0){
+      listEl.innerHTML = '<div class="empty-note">🩸 No readings yet — log your first one.</div>';
+      return;
+    }
+    entries.sort((a,b)=> new Date(b.date) - new Date(a.date));
+    const sorted = entries;
+    const contextLabel = {fasting:'fasting', postmeal:'post-meal'};
+    const itemHtmls = sorted.map(e=>{
+      const cat = categorizeGlucose(e.value, e.context);
+      return buildSwipeItem(
+        `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${contextLabel[e.context]||'fasting'}</span><span>${e.value} mg/dL <span style="color:${cat.color}; font-size:11px; font-weight:600; font-family:'Inter',sans-serif;">${cat.label}</span></span></div>`
+      );
+    });
+    renderCollapsibleList(listEl, itemHtmls, 3, 'readings');
+    listEl.querySelectorAll('.swipe-item').forEach((itemEl, i)=>{
+      makeSwipeable(itemEl, async ()=>{
+        const preDeleteSnapshot = JSON.stringify(entries);
+        const all = entries.filter(e2=> !(e2.date===sorted[i].date && e2.value===sorted[i].value && e2.context===sorted[i].context));
+        await window.storage.set('glucose-log', JSON.stringify(all));
+        loadGlucose();
+        showUndoToast('Reading deleted', async ()=>{
+          try{ await window.storage.set('glucose-log', preDeleteSnapshot); }catch(e){}
+          loadGlucose();
+        });
+      });
+    });
+  }catch(e){
+    listEl.innerHTML = '<div class="empty-note">🩸 No readings yet — log your first one.</div>';
+  }
+}
+
+document.getElementById('saveGlucose').addEventListener('click', async ()=>{
+  const input = document.getElementById('glucoseInput');
+  const value = Math.round(parseFloat(input.value));
+  const context = document.getElementById('glucoseContext').value;
+  if(!value) return;
+  const statusEl = document.getElementById('glucoseSaveStatus');
+  try{
+    let entries = [];
+    try{
+      const res = await window.storage.get('glucose-log');
+      if(res && res.value) entries = JSON.parse(res.value);
+    }catch(e){ entries = []; }
+    entries.push({date: getTodayKey(), value, context});
+    await window.storage.set('glucose-log', JSON.stringify(entries));
+    input.value = '';
+    loadGlucose();
+    const cat = categorizeGlucose(value, context);
+    statusEl.textContent = cat.urgent ? `Logged — ${cat.hint}` : `Logged ✓ — ${cat.label}`;
+    statusEl.classList.toggle('warn', cat.urgent);
+    setTimeout(()=>{ statusEl.textContent = ''; statusEl.classList.remove('warn'); }, cat.urgent ? 8000 : 3000);
+  }catch(e){}
+});
+
+// --- Supplement adherence checklist (Bariatric only) ------------------------
+// The single most consistent finding across bariatric nutrition research:
+// food alone rarely covers post-op needs, and adherence to a prescribed
+// supplement regimen matters as much as (often more than) diet itself. These
+// four are the ones nearly universally prescribed across sources — exact
+// doses/brands/whether all four apply is entirely a surgical team decision,
+// this is just a daily reminder, not a prescription.
+const SUPPLEMENT_ITEMS = [
+  {key:'multivitamin', label:'Multivitamin (chewable/crushed per your team\'s instructions)'},
+  {key:'calcium', label:'Calcium citrate (take separate from iron/multivitamin by a couple hours — they compete for absorption)'},
+  {key:'vitaminD', label:'Vitamin D'},
+  {key:'b12', label:'B12 (sublingual or injection, per your prescribed form)'},
+];
+
+async function loadSupplements(){
+  const wrap = document.getElementById('supplementRows');
+  if(!wrap) return;
+  let state = {};
+  try{
+    const res = await window.storage.get(`supplement-log:${getTodayKey()}`);
+    if(res && res.value) state = JSON.parse(res.value);
+  }catch(e){ state = {}; }
+
+  wrap.innerHTML = SUPPLEMENT_ITEMS.map(item=>{
+    const done = !!state[item.key];
+    return `<div class="supplement-row ${done ? 'done' : ''}" data-key="${item.key}">
+      <span class="supplement-check">${done ? '✓' : ''}</span>
+      <span>${item.label}</span>
+    </div>`;
+  }).join('');
+
+  wrap.querySelectorAll('.supplement-row').forEach(row=>{
+    row.addEventListener('click', async ()=>{
+      const key = row.dataset.key;
+      let current = {};
+      try{
+        const res = await window.storage.get(`supplement-log:${getTodayKey()}`);
+        if(res && res.value) current = JSON.parse(res.value);
+      }catch(e){ current = {}; }
+      current[key] = !current[key];
+      await window.storage.set(`supplement-log:${getTodayKey()}`, JSON.stringify(current));
+      loadSupplements();
+    });
+  });
+}
+
+// Shows the Blood Pressure card only while Hypertension is the active
+// condition, and Blood Glucose only while Diabetes is — same "invisible
+// unless relevant" principle as the medical nutrient bars. Called at init
+// and everywhere the active program/medical style can change.
+function toggleConditionTrackerCards(){
+  const bpCard = document.getElementById('bpCard');
+  const glucoseCard = document.getElementById('glucoseCard');
+  const supplementCard = document.getElementById('supplementCard');
+  const isMedical = activeProgram === 'medical';
+  if(bpCard){
+    const show = isMedical && activeMedicalStyle === 'hypertension';
+    bpCard.style.display = show ? '' : 'none';
+    if(show) loadBP();
+  }
+  if(glucoseCard){
+    const show = isMedical && activeMedicalStyle === 'diabetes';
+    glucoseCard.style.display = show ? '' : 'none';
+    if(show) loadGlucose();
+  }
+  if(supplementCard){
+    const show = isMedical && (activeMedicalStyle === 'bariatricEarly' || activeMedicalStyle === 'bariatricRebuilding');
+    supplementCard.style.display = show ? '' : 'none';
+    if(show) loadSupplements();
+  }
+}
+
+
 async function loadSleep(){
   const listEl = document.getElementById('sleepList');
   const avgEl = document.getElementById('sleepAvg');
@@ -14860,7 +15505,7 @@ function renderNutritionTrend(foodDays){
 
 function renderWaterTrend(waterDays){
   renderDayValueTrend('waterChart', waterDays, {
-    label: 'water', color: '#4FC3F7', target: 128,
+    label: 'water', color: '#4FC3F7', target: computeWaterTarget(userProfile),
     formatValue: v=> `${Math.round(v)} oz`,
     insight: (values, avg, target)=>{
       const pct = (avg/target)*100;
@@ -15309,6 +15954,59 @@ let photoLogParsedItems = [];
 
 document.getElementById('photoLogBtn').addEventListener('click', ()=> document.getElementById('photoLogInput').click());
 
+// Renders Snap a Meal's detected items as editable rows rather than plain
+// text — misidentification (e.g. mushrooms vs. roasted potatoes) or an
+// off portion-size estimate used to mean deleting the photo and trying
+// again from scratch. Now every name/macro is just a normal editable field,
+// and a wrong item can be removed outright rather than forcing a re-shoot.
+// Re-called after every edit/removal so indices in the data-idx attributes
+// always line up with the live photoLogParsedItems array.
+function renderPhotoLogResult(resultEl, previewUrl){
+  const itemsHtml = photoLogParsedItems.map((it,i)=>`
+    <div class="photo-result-item-editable">
+      <input type="text" class="care-input photo-item-name-input" value="${escapeHtml(it.name)}" data-idx="${i}" data-field="name" placeholder="Item name">
+      <div class="macro-input-row">
+        <input type="number" inputmode="numeric" class="care-input" value="${it.cal ?? ''}" data-idx="${i}" data-field="cal" placeholder="Cal">
+        <input type="number" inputmode="numeric" class="care-input" value="${it.pro ?? ''}" data-idx="${i}" data-field="pro" placeholder="Pro">
+        <input type="number" inputmode="numeric" class="care-input" value="${it.fat ?? ''}" data-idx="${i}" data-field="fat" placeholder="Fat">
+        <input type="number" inputmode="numeric" class="care-input" value="${it.carb ?? ''}" data-idx="${i}" data-field="carb" placeholder="Carb">
+      </div>
+      <button type="button" class="photo-item-remove-btn" data-idx="${i}">✕ Remove</button>
+    </div>
+  `).join('');
+  resultEl.innerHTML = `
+    <img src="${previewUrl}" class="photo-preview">
+    <div class="photo-result-card">
+      <div class="photo-result-title">Found ${photoLogParsedItems.length} item${photoLogParsedItems.length===1?'':'s'} — estimates, edit anything that's off before adding</div>
+      ${itemsHtml || '<div class="empty-note">Everything removed — nothing left to add.</div>'}
+      <button class="photo-add-all-btn" id="photoAddAllBtn" ${photoLogParsedItems.length===0?'disabled':''}>Add All to Today's Log</button>
+    </div>
+  `;
+
+  resultEl.querySelectorAll('[data-field]').forEach(input=>{
+    input.addEventListener('input', ()=>{
+      const idx = Number(input.dataset.idx);
+      const field = input.dataset.field;
+      photoLogParsedItems[idx][field] = field === 'name' ? input.value : (input.value === '' ? 0 : Number(input.value));
+    });
+  });
+  resultEl.querySelectorAll('.photo-item-remove-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      photoLogParsedItems.splice(Number(btn.dataset.idx), 1);
+      renderPhotoLogResult(resultEl, previewUrl);
+    });
+  });
+  const addAllBtn = document.getElementById('photoAddAllBtn');
+  if(addAllBtn){
+    addAllBtn.addEventListener('click', async ()=>{
+      for(const it of photoLogParsedItems){
+        await addFoodToLog(it);
+      }
+      resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added ✓</div>`;
+    });
+  }
+}
+
 document.getElementById('photoLogInput').addEventListener('change', async (e)=>{
   const file = e.target.files[0];
   if(!file) return;
@@ -15326,7 +16024,13 @@ document.getElementById('photoLogInput').addEventListener('change', async (e)=>{
 
   try{
     const base64 = await fileToBase64(file);
-    const prompt = `Identify each distinct food item visible in this photo and estimate its nutrition. Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"items":[{"name":"string","cal":number,"pro":number,"fat":number,"carb":number}]}. Base estimates on typical restaurant/home portion sizes for what's visible. If you can't identify anything edible, respond with {"items":[]}.`;
+    const prompt = `Identify each distinct food item visible in this photo and estimate its nutrition.
+
+Pay close attention to actual portion size, not a generic "typical serving." Use visual cues — how much of the plate or container is covered, the apparent depth/height of the food, how it's piled or spread, and any reference objects in frame (utensils, hands, packaging) — to judge real quantity. A fuller plate should scale the estimate up accordingly; a small side portion should scale down. Don't default to a textbook single serving if the photo clearly shows more or less than that.
+
+Look closely at color, texture, and shape before naming each item, and use the rest of the plate as context — visually similar foods are easy to mix up (e.g. roasted potato chunks vs. mushrooms, ground beef vs. lentils, cauliflower vs. rice) — so weigh what's more likely given what else is on the plate before committing to a name.
+
+Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"items":[{"name":"string","cal":number,"pro":number,"fat":number,"carb":number}]}. If you can't identify anything edible, respond with {"items":[]}.`;
     const raw = await callClaudeVision(apiKey, [base64], prompt, 1024, 'claude-haiku-4-5-20251001');
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
@@ -15337,25 +16041,7 @@ document.getElementById('photoLogInput').addEventListener('change', async (e)=>{
       return;
     }
 
-    const itemsHtml = photoLogParsedItems.map((it,i)=>`
-      <div class="photo-result-item">
-        <span>${escapeHtml(it.name)} — ${it.cal} cal</span>
-      </div>
-    `).join('');
-    resultEl.innerHTML = `
-      <img src="${previewUrl}" class="photo-preview">
-      <div class="photo-result-card">
-        <div class="photo-result-title">Found ${photoLogParsedItems.length} item${photoLogParsedItems.length===1?'':'s'} — estimates, not exact</div>
-        ${itemsHtml}
-        <button class="photo-add-all-btn" id="photoAddAllBtn">Add All to Today's Log</button>
-      </div>
-    `;
-    document.getElementById('photoAddAllBtn').addEventListener('click', async ()=>{
-      for(const it of photoLogParsedItems){
-        await addFoodToLog(it);
-      }
-      resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added ✓</div>`;
-    });
+    renderPhotoLogResult(resultEl, previewUrl);
   }catch(err){
     resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't analyze that photo: ${err.message}. Check your API key or try again.</div>`;
   }
@@ -17308,6 +17994,7 @@ if(activeUserId){
     initDescribeFoodVoice();
     loadFoodLog();
     loadWeights();
+    toggleConditionTrackerCards();
     loadSleep();
     loadMeasurements();
     loadProgressPhotos();
