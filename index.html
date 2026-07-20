@@ -2204,6 +2204,12 @@
       <div id="glucoseChart"></div>
     </div>
 
+    <div class="card" id="mealTimingCard" style="display:none">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 6v4l3 2"/></svg></span>Meal Timing</div>
+      <div class="history-hint">Looks at days where you logged a meal shortly after training and a post-meal glucose reading after that — purely a readout of what you actually logged, not a claim about cause and effect. Needs meal times and post-meal glucose logged on the same days to show anything.</div>
+      <div id="mealTimingContent"></div>
+    </div>
+
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="14" rx="2"/><line x1="2" y1="8" x2="18" y2="8"/><line x1="6" y1="2" x2="6" y2="5.5"/><line x1="14" y1="2" x2="14" y2="5.5"/></svg></span>Week Over Week</div>
       <div id="weeklyTable"></div>
@@ -2566,26 +2572,56 @@
      weight-log                          -> [{date, weight}, ...]
      workout:{date}:{program}:{dayId}    -> {exerciseIdx: true/false, ...}
      ex:{program}:{dayId}:{idx}          -> [{date, sets:[{weight,reps},...]}, ...]
-     foodlog:{date}                      -> [{name,cal,pro,fat,carb}, ...]
+     foodlog:{date}                      -> [{name,cal,pro,fat,carb,time?}, ...] (time is "HH:MM", added [session 3])
      food-favorites                      -> [{name,cal,pro,fat,carb}, ...]
      food-usage-counts                   -> {foodName: count, ...}
      ai-api-key                          -> string (user's own Anthropic API key, optional)
      coach-log                           -> [{date,program,exercise,feedback}, ...]
-     user-profile                        -> {name,age,gender,heightFt,heightIn,weight,activity,goal,bodyGoal}
+     user-profile                        -> {name,age,gender,heightFt,heightIn,weight,activity,goal,bodyGoal,
+                                             dietaryPreference,avoidFoods,dietaryFlags:{glutenFree,dairyFree,nutFree,halal,kosher}}
      water:{date}                        -> number (oz consumed that day)
      sleep-log                           -> [{date, hours}, ...]
      measurements-log                    -> [{date,waist,chest,arms,thighs,hips,neck}, ...]
-     week-archive                        -> [{weekStart,program,avgWeight,workoutsCount,avgCal,avgSleep}, ...]
+     week-archive                        -> [{weekStart,program,avgWeight,workoutsCount,avgCal,avgSleep,trendStatus,
+                                             aiRecap?,aiNutritionDigest?}, ...] (aiNutritionDigest added [session 3])
      martial-art-style                   -> "kickboxing" | "boxing" | "muayThai" | "mma"
      medical-style                       -> one of the 13 MEDICAL_STYLES keys (e.g. "obesity", "bariatricEarly", "rehabAcl")
      cycle-data                          -> {lastPeriod, cycleLength} (optional, female gender only)
      custom-foods                        -> [{name,cal,pro,fat,carb}, ...] (personal "My Foods" library)
      day-order:{program}                 -> [dayId, dayId, ...]
-     active-program                      -> "strength" | "bodybuilding" | ...
+     active-program                      -> "strength" | "bodybuilding" | ... | "medical" (see medical-style above)
      injury-log                          -> [{date,exercise,sensation,region,pain,note}, ...]
      resting-regions                     -> [region, region, ...]
+     resting-regions-since               -> {region: dateFirstMarkedResting, ...}
      activity-dates                      -> ["YYYY-MM-DD", ...] (deduped, sorted — any day a set was logged)
      meta:schemaVersion                  -> number
+     bp-log                              -> [{date, systolic, diastolic}, ...]
+     glucose-log                         -> [{date, value, context: "fasting"|"postmeal", time?}, ...] (time added [session 3])
+     supplement-log:{date}               -> {multivitamin, calcium, vitaminD, b12} (booleans, Bariatric only)
+     week-progress:{program}             -> {dayId: boolean, ...} (whole-day-complete flags, resets weekly)
+     week-checked:{program}:{dayId}      -> {exerciseIdx: boolean, ...} (per-exercise, resets weekly)
+     grocery-list                        -> [{text, checked}, ...]
+     hide-avoided-foods                  -> "1" | "0"
+     workout-time:{date}                 -> {first, last} ("HH:MM" clock times of first/last set logged that day) [session 3]
+                                             — a parallel display key like week-progress, never read by PRs/streaks/history,
+                                             currently only consumed by the Diabetes meal-timing insight
+     usda-api-key                        -> string (optional, for USDA FoodData Central lookups)
+     coach-chat-history                  -> [{role, content}, ...]
+     program-cycle-start                 -> "YYYY-MM-DD"
+     program-rec-dismissed-key           -> string (which recommendation was last dismissed)
+     onboarding-dismissed                -> "1" | "0"
+     voice-hint-dismissed                -> "1" | "0"
+     streak-last-celebrated              -> number (streak length last celebrated, avoids re-firing)
+     active-view                         -> string (which top-level tab was last open)
+     card-open:{cardId}                  -> "1" | "0" (collapsible card open/closed state)
+     active-day:{program}                -> dayId
+     cycling-style                       -> one of CYCLING_STYLES keys
+     session-length-pref                 -> number (minutes)
+     weight-unit-pref                    -> "lb" | "kg"
+
+     [Superseded/removed by the medical consolidation migration — read once by
+      migration v4 to resolve into medical-style, then left in place unread]
+     bariatric-style, prenatal-style, rehab-style
 
    FILE SECTIONS (search for these banner comments to jump around):
      [STORAGE]      storage backend + schema migrations
@@ -8725,6 +8761,28 @@ function dateKeyMinusDays(key, n){
   return `${y}-${m}-${day}`;
 }
 
+// A same-day clock reading ("14:32"), used to tag WHEN something was logged
+// (not just what day) — feeds the Diabetes meal-timing insight below. Deliberately
+// local wall-clock time, not a full timestamp: every comparison this feeds is
+// same-day, so date + separate time-of-day is simpler to reason about than
+// parsing back out of an ISO string everywhere it's read.
+function nowTimeKey(){
+  const d = new Date();
+  const h = String(d.getHours()).padStart(2,'0');
+  const m = String(d.getMinutes()).padStart(2,'0');
+  return `${h}:${m}`;
+}
+
+// Minutes from t1 to t2, both "HH:MM" same-day clock readings. Positive means
+// t2 is later than t1. Returns null for missing/malformed input rather than
+// throwing, since callers iterate over historical data that may predate this feature.
+function minutesBetweenTimeKeys(t1, t2){
+  if(!t1 || !t2) return null;
+  const p1 = t1.split(':').map(Number), p2 = t2.split(':').map(Number);
+  if(p1.length!==2 || p2.length!==2 || p1.some(isNaN) || p2.some(isNaN)) return null;
+  return (p2[0]*60+p2[1]) - (p1[0]*60+p1[1]);
+}
+
 // --- Streak tracking: a day counts toward the streak the moment any set is
 // logged that day (see recordActivity, called from saveExSet). Today not yet
 // having a logged set doesn't break the streak until the day is actually over —
@@ -8754,6 +8812,39 @@ async function recordActivity(dateKey){
     dates = dates.filter(d => d >= cutoff);
     try{ await window.storage.set('activity-dates', JSON.stringify(dates)); }catch(e){}
   }
+}
+
+// A lightweight, separate-from-history time record: the earliest and latest
+// clock time a set was actually logged today. Deliberately a second, parallel
+// key (workout-time:{date}) rather than adding a time field to every set in
+// the real ex: log — same reasoning as week-progress in §16 of the handoff:
+// this only ever feeds a same-day display insight, never anything that reads
+// back into PRs, progression, or history, so it doesn't need to live inside
+// the data those depend on. Currently only consumed by the Diabetes
+// meal-timing insight below, but written unconditionally (cheap, and useful
+// if a future feature wants "what time do I usually train" for any program.
+async function recordWorkoutTime(dateKey){
+  const t = nowTimeKey();
+  const key = `workout-time:${dateKey}`;
+  let window_ = null;
+  try{
+    const res = await window.storage.get(key);
+    if(res && res.value) window_ = JSON.parse(res.value);
+  }catch(e){}
+  if(!window_) window_ = {first: t, last: t};
+  else{
+    if(t < window_.first) window_.first = t;
+    if(t > window_.last) window_.last = t;
+  }
+  try{ await window.storage.set(key, JSON.stringify(window_)); }catch(e){}
+}
+
+async function getWorkoutTimeWindow(dateKey){
+  try{
+    const res = await window.storage.get(`workout-time:${dateKey}`);
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){}
+  return null;
 }
 
 // PR badges/celebrations are gated behind a minimum tracking window — in the
@@ -10524,6 +10615,7 @@ async function saveExSet(dayId, idx, setIdx, weight, reps, rpe){
   if(w!=null || r!=null){
     recordActivity(getTodayKey()).then(renderStreak);
     markMilestone('has-logged-first-set');
+    recordWorkoutTime(getTodayKey());
   }
 
   const isPR = (w!=null && priorMax!=null && w>priorMax);
@@ -14781,7 +14873,12 @@ function sortByUsage(items){
 }
 
 async function addFoodToLog(item){
-  todaysFoodLog.push({...item});
+  // Time-of-day is stamped here, once, for every entry point (search results,
+  // recipes, USDA lookups, Snap-a-Meal, custom foods) — see nowTimeKey(). Only
+  // read today; historical entries logged before this feature shipped simply
+  // won't have it, which downstream readers (the Diabetes meal-timing insight)
+  // already treat as "not enough data for this day," not an error.
+  todaysFoodLog.push({...item, time: nowTimeKey()});
   await saveFoodLog();
   await bumpUsageCount(item.name);
   // Anything found via an online lookup (USDA, etc.) gets cached into My
@@ -15590,7 +15687,7 @@ document.getElementById('saveGlucose').addEventListener('click', async ()=>{
       const res = await window.storage.get('glucose-log');
       if(res && res.value) entries = JSON.parse(res.value);
     }catch(e){ entries = []; }
-    entries.push({date: getTodayKey(), value, context});
+    entries.push({date: getTodayKey(), value, context, time: nowTimeKey()});
     await window.storage.set('glucose-log', JSON.stringify(entries));
     input.value = '';
     loadGlucose();
@@ -16391,6 +16488,18 @@ async function fetchFoodDays(){
   return dayTotals;
 }
 
+// Unlike fetchFoodDays (which only returns per-day macro totals), this
+// returns the actual logged items for one date, including each item's
+// time-of-day where present — needed by the Diabetes meal-timing insight,
+// nothing else currently reads individual items back out across dates.
+async function fetchFoodLogForDate(date){
+  try{
+    const res = await window.storage.get(`foodlog:${date}`);
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){}
+  return [];
+}
+
 // Generic version of the weight sparkline for any date -> single-number
 // series — used by nutrition, sleep, and water trends below so they look and
 // behave consistently with each other and with Weight Trend, rather than
@@ -16539,6 +16648,100 @@ function renderGlucoseTrend(entries){
       return {status:'good', text:`✅ Averaging ${Math.round(avg)} mg/dL — a reasonable range, though check individual entries against their own fasting/post-meal context for the fuller picture.`};
     },
   });
+}
+
+// --- Meal timing insight (Diabetes only) -------------------------------
+// Purely descriptive, purely computed from what was actually logged — no AI
+// call, nothing inferred. Looks back over MEAL_TIMING_LOOKBACK_DAYS for days
+// that have all three of: a workout-time window, a food item logged within
+// MEAL_TIMING_WORKOUT_WINDOW_MIN minutes after the last set of that workout,
+// and a post-meal glucose reading logged within MEAL_TIMING_GLUCOSE_WINDOW_MIN
+// minutes after that meal. Each match becomes one plain-fact observation row.
+// A comparison-of-averages line only ever appears once there are at least
+// MEAL_TIMING_MIN_SAMPLE observations on each side — below that, two or three
+// data points don't support even a purely descriptive average without
+// implying more confidence than the data has.
+const MEAL_TIMING_LOOKBACK_DAYS = 30;
+const MEAL_TIMING_WORKOUT_WINDOW_MIN = 120;   // meal must be logged within 2hrs after the workout's last set
+const MEAL_TIMING_GLUCOSE_WINDOW_MIN = 180;   // post-meal reading must be logged within 3hrs after that meal
+const MEAL_TIMING_MIN_SAMPLE = 3;
+
+async function computeMealTimingInsight(){
+  let glucoseAll = [];
+  try{
+    const res = await window.storage.get('glucose-log');
+    if(res && res.value) glucoseAll = JSON.parse(res.value);
+  }catch(e){}
+  const postMealAll = glucoseAll.filter(e=> e.context === 'postmeal' && e.time);
+
+  const observations = [];      // workout-adjacent meal -> matched glucose reading
+  const matchedGlucoseKeys = new Set(); // date+time+value, so the baseline below never double-counts a matched reading
+
+  for(let i=0; i<MEAL_TIMING_LOOKBACK_DAYS; i++){
+    const date = dateKeyMinusDays(getTodayKey(), i);
+    const workoutWindow = await getWorkoutTimeWindow(date);
+    if(!workoutWindow) continue;
+
+    const foodItems = await fetchFoodLogForDate(date);
+    const dayGlucose = postMealAll.filter(e=> e.date === date);
+    if(foodItems.length === 0 || dayGlucose.length === 0) continue;
+
+    for(const item of foodItems){
+      if(!item.time) continue;
+      const minsAfterWorkout = minutesBetweenTimeKeys(workoutWindow.last, item.time);
+      if(minsAfterWorkout == null || minsAfterWorkout < 0 || minsAfterWorkout > MEAL_TIMING_WORKOUT_WINDOW_MIN) continue;
+
+      // First post-meal reading logged after this specific meal, within the window
+      const match = dayGlucose
+        .map(g=> ({...g, minsAfterMeal: minutesBetweenTimeKeys(item.time, g.time)}))
+        .filter(g=> g.minsAfterMeal != null && g.minsAfterMeal >= 0 && g.minsAfterMeal <= MEAL_TIMING_GLUCOSE_WINDOW_MIN)
+        .sort((a,b)=> a.minsAfterMeal - b.minsAfterMeal)[0];
+      if(!match) continue;
+
+      observations.push({
+        date, mealName: item.name, minsAfterWorkout,
+        glucoseValue: match.value, minsAfterMeal: match.minsAfterMeal,
+      });
+      matchedGlucoseKeys.add(`${match.date}|${match.time}|${match.value}`);
+      break; // one observation per day is plenty — avoids one day's data dominating the list
+    }
+  }
+
+  const lookbackCutoff = dateKeyMinusDays(getTodayKey(), MEAL_TIMING_LOOKBACK_DAYS);
+  const otherPostMeal = postMealAll.filter(e=>
+    e.date >= lookbackCutoff && !matchedGlucoseKeys.has(`${e.date}|${e.time}|${e.value}`)
+  );
+
+  observations.sort((a,b)=> b.date.localeCompare(a.date));
+  return {observations, otherPostMeal};
+}
+
+async function renderMealTimingInsight(){
+  const el = document.getElementById('mealTimingContent');
+  if(!el) return;
+  el.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div></div>';
+
+  const {observations, otherPostMeal} = await computeMealTimingInsight();
+
+  if(observations.length === 0){
+    el.innerHTML = '<div class="empty-note">No matches yet — this needs a meal logged shortly after a workout, and a post-meal glucose reading logged after that meal, on the same day.</div>';
+    return;
+  }
+
+  const rows = observations.slice(0, 5).map(o=>{
+    const dateLabel = new Date(o.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const cat = categorizeGlucose(o.glucoseValue, 'postmeal');
+    return `<div class="history-hint">${dateLabel} — ${escapeHtml(o.mealName)} logged ~${o.minsAfterWorkout} min after training; a post-meal reading of ${o.glucoseValue} mg/dL (<span style="color:${cat.color}">${cat.label}</span>) followed ~${o.minsAfterMeal} min later.</div>`;
+  }).join('');
+
+  let comparisonHtml = '';
+  if(observations.length >= MEAL_TIMING_MIN_SAMPLE && otherPostMeal.length >= MEAL_TIMING_MIN_SAMPLE){
+    const avgAdjacent = Math.round(observations.reduce((s,o)=>s+o.glucoseValue,0)/observations.length);
+    const avgOther = Math.round(otherPostMeal.reduce((s,e)=>s+Number(e.value),0)/otherPostMeal.length);
+    comparisonHtml = `<div class="day-insight" style="margin-top:10px;">Across what's logged: post-meal readings after a workout-adjacent meal averaged ${avgAdjacent} mg/dL (${observations.length} readings), versus ${avgOther} mg/dL for other post-meal readings (${otherPostMeal.length} readings). This is a pattern in your own logged data, not a medical conclusion — plenty of things besides workout timing affect a glucose reading. Bring anything that looks meaningfully different to your care team rather than acting on it alone.</div>`;
+  }
+
+  el.innerHTML = rows + comparisonHtml;
 }
 
 function renderSparkline(entries){
@@ -18545,6 +18748,46 @@ async function generateWeeklyRecap(stats){
   }
 }
 
+// The nutrition counterpart to generateWeeklyRecap — same persona, same
+// "never invent a number not actually logged" rule, same fully-optional
+// behavior (no API key just means no digest, the week still archives either
+// way). Kept as a separate function/prompt rather than folded into the
+// training recap because the two cover genuinely different data (macros/
+// hydration/diet-adherence vs. workouts/load/bodyweight) and mixing both
+// into one prompt tends to produce a generic response that shortchanges both.
+async function generateWeeklyNutritionDigest(stats){
+  const apiKey = await getApiKey();
+  if(!apiKey) return null;
+
+  const persona = getCoachPersona();
+  const parts = [];
+  parts.push(`Goal: ${GOAL_LABELS[userProfile?.goal] || userProfile?.goal || 'not set'}`);
+  if(userProfile?.dietaryPreference || (userProfile?.dietaryFlags && Object.values(userProfile.dietaryFlags).some(Boolean))){
+    const approachParts = [];
+    if(userProfile.dietaryPreference) approachParts.push(userProfile.dietaryPreference);
+    const flagsDesc = describeDietaryFlags(userProfile.dietaryFlags);
+    if(flagsDesc) approachParts.push(flagsDesc);
+    parts.push(`Dietary approach: ${approachParts.join('; ')}`);
+  }
+  parts.push(`Days with food logged this week: ${stats.daysLogged}/7`);
+  if(stats.avgCal != null) parts.push(`Average daily calories logged: ${stats.avgCal}${targets?.cal ? ` (target is ${targets.cal})` : ''}`);
+  if(stats.avgPro != null) parts.push(`Average daily protein logged: ${stats.avgPro}g${targets?.pro ? ` (target is ${targets.pro}g)` : ''}`);
+  if(stats.avgFat != null) parts.push(`Average daily fat logged: ${stats.avgFat}g${targets?.fat ? ` (target is ${targets.fat}g)` : ''}`);
+  if(stats.avgCarb != null) parts.push(`Average daily carbs logged: ${stats.avgCarb}g${targets?.carb ? ` (target is ${targets.carb}g)` : ''}`);
+  if(stats.avgWater != null){
+    const waterTarget = computeWaterTarget(userProfile);
+    parts.push(`Average daily water logged: ${stats.avgWater}oz${waterTarget ? ` (target is ${waterTarget}oz)` : ''}`);
+  }
+
+  const prompt = `You are ${persona}\n\nSomeone just finished a training week and is about to start a fresh one. Here's what was actually logged for nutrition this week:\n${parts.join('\n')}\n\nWrite a short, honest weekly nutrition check-in — 2-4 sentences, conversational, no headers or markdown. Acknowledge what actually happened (don't invent anything not listed above, and don't repeat every number back — pick what's actually worth commenting on), and give exactly one specific, practical thing to focus on for the coming week. If logging was sparse (few days logged), that itself is worth a gentle, non-judgmental mention rather than commenting on averages built from very little data. If a stat is missing from the list, don't comment on it — it just wasn't logged, not necessarily skipped.`;
+
+  try{
+    return (await callClaudeChat(apiKey, prompt, [{role:'user', content:'Give me my weekly nutrition check-in.'}], 300)).trim();
+  }catch(e){
+    return null; // a failed digest should never block saving the week itself
+  }
+}
+
 async function archiveCurrentWeek(){
   const btn = document.getElementById('archiveWeekBtn');
   const status = document.getElementById('archiveWeekStatus');
@@ -18557,15 +18800,21 @@ async function archiveCurrentWeek(){
     return d >= new Date(todayMonday+'T00:00:00') && d < weekEnd;
   };
 
-  const [weightEntries, workoutDates, foodDays, trendStatus] = await Promise.all([
-    fetchAllWeightEntries(), fetchWorkoutDates(), fetchFoodDays(), getCurrentTrendStatus()
+  const [weightEntries, workoutDates, foodDays, waterDays, trendStatus] = await Promise.all([
+    fetchAllWeightEntries(), fetchWorkoutDates(), fetchFoodDays(), fetchWaterDays(), getCurrentTrendStatus()
   ]);
 
   const weekWeights = weightEntries.filter(e=>inThisWeek(e.date));
   const avgWeight = weekWeights.length ? +(weekWeights.reduce((s,e)=>s+Number(e.weight),0)/weekWeights.length).toFixed(1) : null;
   const workoutsCount = [...workoutDates].filter(inThisWeek).length;
   const foodDatesInWeek = Object.keys(foodDays).filter(inThisWeek);
-  const avgCal = foodDatesInWeek.length ? Math.round(foodDatesInWeek.reduce((s,d)=>s+foodDays[d].cal,0)/foodDatesInWeek.length) : null;
+  const daysLogged = foodDatesInWeek.length;
+  const avgCal = daysLogged ? Math.round(foodDatesInWeek.reduce((s,d)=>s+foodDays[d].cal,0)/daysLogged) : null;
+  const avgPro = daysLogged ? Math.round(foodDatesInWeek.reduce((s,d)=>s+foodDays[d].pro,0)/daysLogged) : null;
+  const avgFat = daysLogged ? Math.round(foodDatesInWeek.reduce((s,d)=>s+foodDays[d].fat,0)/daysLogged) : null;
+  const avgCarb = daysLogged ? Math.round(foodDatesInWeek.reduce((s,d)=>s+foodDays[d].carb,0)/daysLogged) : null;
+  const waterDatesInWeek = Object.keys(waterDays).filter(inThisWeek);
+  const avgWater = waterDatesInWeek.length ? Math.round(waterDatesInWeek.reduce((s,d)=>s+waterDays[d],0)/waterDatesInWeek.length) : null;
 
   let sleepEntries = [];
   try{
@@ -18581,8 +18830,15 @@ async function archiveCurrentWeek(){
     weekStart: todayMonday, program: programs[activeProgram].label,
     avgWeight, workoutsCount, avgCal, avgSleep, trendStatus,
   };
-  const aiRecap = await generateWeeklyRecap(weekStats);
+  const nutritionStats = {daysLogged, avgCal, avgPro, avgFat, avgCarb, avgWater};
+  // Independent, both optional, run together rather than sequentially since
+  // neither depends on the other's result.
+  const [aiRecap, aiNutritionDigest] = await Promise.all([
+    generateWeeklyRecap(weekStats),
+    generateWeeklyNutritionDigest(nutritionStats),
+  ]);
   if(aiRecap) weekStats.aiRecap = aiRecap;
+  if(aiNutritionDigest) weekStats.aiNutritionDigest = aiNutritionDigest;
   archive.push(weekStats);
   await window.storage.set('week-archive', JSON.stringify(archive));
   await clearProgramRecDismissal();
@@ -18592,8 +18848,10 @@ async function archiveCurrentWeek(){
   // the week-persistent display state.
   await clearWeekProgress(activeProgram, Object.keys(dayDefs));
 
-  status.innerHTML = aiRecap
-    ? `<div class="day-insight" style="margin:10px 0;">${escapeHtml(aiRecap)}</div>Week saved — back to Day 1 for a fresh start ✓`
+  const digestBlocks = [aiRecap, aiNutritionDigest].filter(Boolean)
+    .map(text=> `<div class="day-insight" style="margin:10px 0;">${escapeHtml(text)}</div>`).join('');
+  status.innerHTML = digestBlocks
+    ? `${digestBlocks}Week saved — back to Day 1 for a fresh start ✓`
     : 'Week saved — back to Day 1 for a fresh start ✓';
   setTimeout(async ()=>{
     activeDay = 'd1';
@@ -18601,7 +18859,7 @@ async function archiveCurrentWeek(){
     renderWorkout();
     const trendStatusForRec = await getCurrentTrendStatus();
     await renderProgramRec(trendStatusForRec);
-  }, aiRecap ? 3500 : 1400);
+  }, digestBlocks ? 4500 : 1400);
 }
 
 async function renderVolumeTrend(){
@@ -18913,6 +19171,12 @@ async function renderAnalysis(){
     const showGlucose = isMedical && activeMedicalStyle === 'diabetes';
     glucoseTrendCard.style.display = showGlucose ? '' : 'none';
     if(showGlucose) renderGlucoseTrend(glucoseEntries);
+  }
+  const mealTimingCard = document.getElementById('mealTimingCard');
+  if(mealTimingCard){
+    const showMealTiming = isMedical && activeMedicalStyle === 'diabetes';
+    mealTimingCard.style.display = showMealTiming ? '' : 'none';
+    if(showMealTiming) renderMealTimingInsight();
   }
 
   renderVolumeTrend();
