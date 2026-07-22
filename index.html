@@ -515,30 +515,41 @@
   }
   .sub-modal-overlay.active{display:flex; opacity:1;}
   .sub-modal-sheet{
+    position:relative;
     width:100%; max-width:520px; background:var(--surface);
     border:1px solid rgba(255,255,255,0.07); border-bottom:none;
     border-top-left-radius:var(--radius-lg); border-top-right-radius:var(--radius-lg);
     padding:20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
-    box-shadow:0 1px 0 rgba(255,255,255,0.03) inset, 0 -20px 50px -20px rgba(0,0,0,0.6);
+    box-shadow:0 1px 0 rgba(255,255,255,0.03) inset, 0 -20px 50px -20px rgba(0,0,0,0.6), 0 -24px 60px -30px rgba(91,124,255,0.18);
     transform:translateY(100%); transition:transform 0.32s var(--ease-spring);
     max-height:80vh; overflow-y:auto;
+  }
+  .sub-modal-sheet::before{
+    content:''; position:absolute; top:0; left:14px; right:14px; height:1px;
+    background:linear-gradient(90deg, transparent, var(--sheen-strong) 40%, var(--sheen-strong) 60%, transparent);
+    border-radius:1px; pointer-events:none;
   }
   .sub-modal-overlay.active .sub-modal-sheet{transform:translateY(0);}
   .sub-modal-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:2px;}
   .sub-modal-title{font-family:'Inter',sans-serif; font-weight:700; font-size:16.5px; letter-spacing:-0.01em; color:var(--text);}
   .sub-modal-close{
-    flex:0 0 auto; background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
+    flex:0 0 auto; background:var(--surface2); border:1px solid rgba(255,255,255,0.07); color:var(--text-muted);
     width:28px; height:28px; border-radius:50%; font-size:14px; cursor:pointer; line-height:1;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);
   }
   .sub-modal-hint{font-size:12px; color:var(--text-muted); margin:6px 0 14px; line-height:1.5;}
   .sub-option{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     padding:12px 14px; margin-bottom:8px; border-radius:var(--radius-md);
-    background:var(--surface2); border:1px solid var(--line); cursor:pointer;
-    transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
+    background:var(--surface2); border:1px solid rgba(255,255,255,0.07); cursor:pointer;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
+    transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .sub-option:active{transform:scale(0.98);}
-  .sub-option.selected{background:linear-gradient(160deg, rgba(91,124,255,0.18), rgba(91,124,255,0.08)); border-color:var(--plate-blue);}
+  .sub-option.selected{
+    background:linear-gradient(160deg, rgba(91,124,255,0.18), rgba(91,124,255,0.08)); border-color:rgba(91,124,255,0.45);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 20px -12px rgba(91,124,255,0.4);
+  }
   .sub-option-text{min-width:0;}
   .sub-option-name{font-family:'Inter',sans-serif; font-weight:600; font-size:14px; color:var(--text);}
   .sub-option-default-tag{font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.4px; font-weight:700; margin-left:6px;}
@@ -1109,6 +1120,30 @@
   }
   .coach-fab span{position:relative; z-index:1;}
   .coach-fab:active{transform:scale(0.9); box-shadow:0 1px 0 rgba(255,255,255,0.35) inset, 0 8px 20px -8px rgba(91,124,255,0.5);}
+
+  /* --- Global "Today" quick-access — bottom-left mirror of the coach FAB,
+     but only ever visible while backdating is active anywhere in the app
+     (see updateTodayFab). A pill rather than a plain circle so the label is
+     legible at a glance without needing to tap it first to find out what it
+     does — this is a jump-to-safety control, not a decorative icon. */
+  .today-fab{
+    position:fixed; bottom:22px; left:18px; z-index:70; overflow:hidden;
+    display:flex; align-items:center; gap:6px; height:44px; padding:0 16px 0 14px;
+    border-radius:var(--radius-pill); border:1px solid rgba(255,255,255,0.28);
+    background:linear-gradient(160deg, #FFC978, var(--plate-yellow) 60%); color:#1a1a1a;
+    font-family:'Inter',sans-serif; font-weight:700; font-size:13.5px; cursor:pointer;
+    box-shadow:0 1px 0 rgba(255,255,255,0.35) inset, 0 14px 34px -8px rgba(255,184,92,0.6), 0 0 50px -14px rgba(255,184,92,0.5);
+    transition:transform 0.18s var(--ease-smooth), box-shadow 0.18s var(--ease-smooth), opacity 0.22s var(--ease-smooth);
+  }
+  .today-fab::before{
+    content:''; position:absolute; top:-30%; left:-10%; width:120%; height:65%;
+    background:radial-gradient(ellipse at center, rgba(255,255,255,0.5), transparent 70%);
+    pointer-events:none;
+  }
+  .today-fab-icon, .today-fab-label{position:relative; z-index:1;}
+  .today-fab-icon{font-size:16px;}
+  .today-fab:active{transform:scale(0.92); box-shadow:0 1px 0 rgba(255,255,255,0.35) inset, 0 8px 20px -8px rgba(255,184,92,0.5);}
+
   .coach-fab-modal{
     position:fixed; inset:0; z-index:80;
     display:flex; align-items:flex-end; justify-content:flex-end;
@@ -1285,6 +1320,119 @@
   }
   .nav-pill:active{transform:scale(0.95);}
   .nav-pill.active{background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%); border-color:var(--plate-blue); color:#fff; box-shadow:0 1px 0 rgba(255,255,255,0.2) inset, 0 3px 12px rgba(91,124,255,0.4);}
+
+  /* --- Log date selector: lets Today/Log tab actions apply to a past date
+     instead of the real current day. Uses the same translucent-gradient +
+     inset-sheen + colored-ambient-glow formula as the streak badge and
+     other tinted surfaces throughout the app, not a flat fill — a warm
+     amber tint the moment it's not on today, a persistent, hard-to-miss
+     reminder that new entries are being backdated, not logged for right now. */
+  .log-date-bar{
+    position:relative; display:flex; align-items:center; gap:8px; padding:9px 12px; margin-bottom:12px;
+    border-radius:var(--radius-md); background:var(--surface2); border:1px solid rgba(255,255,255,0.07);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 20px -14px rgba(0,0,0,0.5);
+    transition:background 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth), box-shadow 0.25s var(--ease-smooth);
+  }
+  .log-date-bar.backdating{
+    background:linear-gradient(160deg, rgba(245,197,24,0.14), rgba(245,197,24,0.05));
+    border-color:rgba(245,197,24,0.32);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 24px -14px rgba(245,197,24,0.35);
+  }
+  .log-date-nav{
+    flex:0 0 auto; width:28px; height:28px; border-radius:50%; border:1px solid rgba(255,255,255,0.07);
+    background:var(--surface); color:var(--text); font-size:15px; cursor:pointer; line-height:1;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);
+    display:flex; align-items:center; justify-content:center; transition:transform 0.15s var(--ease-smooth);
+  }
+  .log-date-nav:active{transform:scale(0.9);}
+  .log-date-nav:disabled{opacity:0.35; cursor:default;}
+  .log-date-label-wrap{
+    flex:1; text-align:center; cursor:pointer; background:none; border:none; padding:4px 0;
+  }
+  .log-date-label-text{font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px; color:var(--text);}
+  .log-date-bar.backdating .log-date-label-text{color:var(--plate-yellow);}
+  .log-date-bar::before{
+    content:''; position:absolute; top:0; left:12px; right:12px; height:1px;
+    background:linear-gradient(90deg, transparent, var(--sheen-strong) 40%, var(--sheen-strong) 60%, transparent);
+    border-radius:1px; pointer-events:none;
+  }
+  .log-date-today-btn{
+    flex:0 0 auto; background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%); color:#fff; border:none; border-radius:var(--radius-pill);
+    font-size:11px; font-weight:700; padding:6px 11px; cursor:pointer;
+    box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 4px 12px -6px rgba(91,124,255,0.55);
+  }
+
+  /* --- Calendar picker: same bottom-sheet-overlay convention as the
+     exercise-substitution modal, so a proper month grid (correct weekday
+     alignment, today highlighted, future dates disabled) replaces relying
+     solely on the OS's native date picker. */
+  .calendar-modal-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.6);
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+    z-index:120; display:none; align-items:flex-end; justify-content:center;
+    opacity:0; transition:opacity 0.25s var(--ease-smooth);
+  }
+  .calendar-modal-overlay.active{display:flex; opacity:1;}
+  .calendar-modal-sheet{
+    position:relative;
+    width:100%; max-width:420px; background:var(--surface);
+    border:1px solid rgba(255,255,255,0.07); border-bottom:none;
+    border-top-left-radius:var(--radius-lg); border-top-right-radius:var(--radius-lg);
+    padding:18px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+    box-shadow:0 1px 0 rgba(255,255,255,0.03) inset, 0 -20px 50px -20px rgba(0,0,0,0.6), 0 -24px 60px -30px rgba(91,124,255,0.18);
+    transform:translateY(100%); transition:transform 0.32s var(--ease-spring);
+  }
+  .calendar-modal-sheet::before{
+    content:''; position:absolute; top:0; left:14px; right:14px; height:1px;
+    background:linear-gradient(90deg, transparent, var(--sheen-strong) 40%, var(--sheen-strong) 60%, transparent);
+    border-radius:1px; pointer-events:none;
+  }
+  .calendar-modal-overlay.active .calendar-modal-sheet{transform:translateY(0);}
+  .calendar-modal-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .calendar-modal-title{font-family:'Inter',sans-serif; font-weight:700; font-size:15px; letter-spacing:-0.01em; color:var(--text);}
+  .calendar-nav-btn{
+    flex:0 0 auto; width:30px; height:30px; border-radius:50%; border:1px solid rgba(255,255,255,0.07);
+    background:var(--surface2); color:var(--text); font-size:16px; cursor:pointer; line-height:1;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);
+    display:flex; align-items:center; justify-content:center; transition:transform 0.15s var(--ease-smooth);
+  }
+  .calendar-nav-btn:active{transform:scale(0.9);}
+  .calendar-nav-btn:disabled{opacity:0.3; cursor:default;}
+  .calendar-weekday-row{
+    display:grid; grid-template-columns:repeat(7, 1fr); text-align:center; margin-bottom:4px;
+  }
+  .calendar-weekday-row span{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:600; color:var(--text-muted); text-transform:uppercase;
+  }
+  .calendar-grid{display:grid; grid-template-columns:repeat(7, 1fr); gap:2px; margin-bottom:14px;}
+  .calendar-cell{
+    aspect-ratio:1; display:flex; align-items:center; justify-content:center; position:relative;
+    background:none; border:none; border-radius:50%; color:var(--text); font-size:13.5px;
+    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; cursor:pointer;
+    transition:background 0.15s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.15s var(--ease-smooth);
+  }
+  .calendar-cell-dot{
+    position:absolute; bottom:3px; left:50%; transform:translateX(-50%);
+    width:4px; height:4px; border-radius:50%; background:var(--plate-green);
+  }
+  .calendar-cell.selected .calendar-cell-dot{background:#fff;}
+  .calendar-cell:active{transform:scale(0.85);}
+  .calendar-cell.empty{cursor:default; pointer-events:none;}
+  .calendar-cell.today{
+    background:linear-gradient(160deg, rgba(91,124,255,0.16), rgba(91,124,255,0.05));
+    border:1px solid rgba(91,124,255,0.4); color:var(--plate-blue); font-weight:700;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);
+  }
+  .calendar-cell.selected{
+    background:linear-gradient(160deg, #7C97FF, var(--plate-blue) 55%); color:#fff; font-weight:700;
+    box-shadow:0 1px 0 rgba(255,255,255,0.3) inset, 0 6px 16px -8px rgba(91,124,255,0.6);
+  }
+  .calendar-cell.future-disabled{opacity:0.25; cursor:default; pointer-events:none;}
+  .calendar-close-btn{
+    width:100%; background:var(--surface2); border:1px solid rgba(255,255,255,0.07); color:var(--text);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);
+    font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px; padding:12px; border-radius:var(--radius-md); cursor:pointer;
+  }
 
   .program-select-wrap{position:relative; margin-bottom:6px;}
   .program-select{
@@ -1674,6 +1822,30 @@
     <button class="nav-pill" id="navCare">Care</button>
     <button class="nav-pill" id="navCoach">Coach</button>
     <button class="nav-pill" id="navLearn">Learn</button>
+  </div>
+
+  <div class="log-date-bar" id="logDateBar" style="display:none">
+    <button class="log-date-nav" id="logDatePrev" aria-label="Previous day">‹</button>
+    <button class="log-date-label-wrap" id="logDateLabelBtn">
+      <span class="log-date-label-text" id="logDateLabelText">Today</span>
+    </button>
+    <button class="log-date-nav" id="logDateNext" aria-label="Next day">›</button>
+    <button class="log-date-today-btn" id="logDateToday" style="display:none;">Today</button>
+  </div>
+
+  <div class="calendar-modal-overlay" id="calendarModalOverlay">
+    <div class="calendar-modal-sheet">
+      <div class="calendar-modal-header">
+        <button class="calendar-nav-btn" id="calendarPrevMonth" aria-label="Previous month">‹</button>
+        <div class="calendar-modal-title" id="calendarMonthLabel"></div>
+        <button class="calendar-nav-btn" id="calendarNextMonth" aria-label="Next month">›</button>
+      </div>
+      <div class="calendar-weekday-row">
+        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+      <button class="calendar-close-btn" id="calendarModalClose">Close</button>
+    </div>
   </div>
 
   <div id="todayView">
@@ -2590,6 +2762,11 @@
 </div>
 
 <button class="coach-fab" id="coachFab" title="Ask your coach"><span>💬</span></button>
+
+<button class="today-fab" id="todayFab" style="display:none;" title="Jump back to today">
+  <span class="today-fab-icon">📅</span>
+  <span class="today-fab-label">Today</span>
+</button>
 
 <div class="coach-fab-modal" id="coachFabModal">
   <div class="coach-fab-backdrop" id="coachFabBackdrop"></div>
@@ -8946,6 +9123,16 @@ function getTodayKey(){
   return `${y}-${m}-${day}`;
 }
 
+// The date currently being viewed/edited in the Today (workout) and
+// Nutrition tabs — defaults to the real current day on every load and is
+// never persisted to storage, so backdating is always a deliberate,
+// temporary choice for the current session rather than a mode you could
+// accidentally leave on across visits. See renderLogDateBar/setLogDate for
+// the UI and isBackdating() below for the one-line check every save handler
+// that writes date-keyed data uses to decide whether it's "today" or not.
+let selectedLogDate = getTodayKey();
+function isBackdating(){ return selectedLogDate !== getTodayKey(); }
+
 function dateKeyMinusDays(key, n){
   const d = new Date(key+'T00:00:00');
   d.setDate(d.getDate()-n);
@@ -9300,7 +9487,8 @@ async function getSessionHeadsUpInsight(){
   }
 
   if(flaggedCount === 0) return null;
-  return `📋 <b>Session heads-up:</b> ${flaggedCount} exercise${flaggedCount===1?'':'s'} in today's ${day.sub || 'session'} ${flaggedCount===1?'is':'are'} flagged below — a resting-region caution or a fatigue/deload signal. Worth a scroll-through before you start.`;
+  const dayRefText = isBackdating() ? `${formatLogDateLabel(selectedLogDate)}'s` : "today's";
+  return `📋 <b>Session heads-up:</b> ${flaggedCount} exercise${flaggedCount===1?'':'s'} in ${dayRefText} ${day.sub || 'session'} ${flaggedCount===1?'is':'are'} flagged below — a resting-region caution or a fatigue/deload signal. Worth a scroll-through before you start.`;
 }
 
 // --- Unified Today Insights card: the single "what matters today" summary,
@@ -10489,7 +10677,7 @@ async function getFallbackPriorTopSet(exerciseName, excludeKey){
       const res = await window.storage.get(key);
       if(!res || !res.value) continue;
       const log = JSON.parse(res.value).map(normalizeExEntry);
-      log.filter(e=> e.date !== getTodayKey()).forEach(e=>{
+      log.filter(e=> e.date !== selectedLogDate).forEach(e=>{
         const top = topSetOf(e);
         if(top && top.weight!=null && (!best || new Date(e.date+'T00:00:00') > new Date(best.date+'T00:00:00'))){
           best = {...top, date: e.date};
@@ -10722,7 +10910,7 @@ function analyzeProgressionSignal(pastSessions, ex, category){
 // shape analyzeProgressionSignal expects, most-recent first.
 function buildPastSessions(log){
   return [...log]
-    .filter(e=> e.date !== getTodayKey())
+    .filter(e=> e.date !== selectedLogDate)
     .sort((a,b)=> new Date(b.date+'T00:00:00') - new Date(a.date+'T00:00:00'))
     .slice(0, 3)
     .map(e=>{
@@ -10931,8 +11119,8 @@ function buildGenericWarmupRamp(workingWeightLb){
 async function saveExSet(dayId, idx, setIdx, weight, reps, rpe, subVariant){
   const log = await getExLog(dayId, idx, subVariant);
 
-  let entry = log.find(e=>e.date===getTodayKey());
-  if(!entry){ entry = {date: getTodayKey(), sets: []}; log.push(entry); }
+  let entry = log.find(e=>e.date===selectedLogDate);
+  if(!entry){ entry = {date: selectedLogDate, sets: []}; log.push(entry); }
   while(entry.sets.length <= setIdx) entry.sets.push({weight:null, reps:null, rpe:null});
 
   // Best weight across every set ever logged EXCEPT the specific set we're about to overwrite,
@@ -10953,12 +11141,17 @@ async function saveExSet(dayId, idx, setIdx, weight, reps, rpe, subVariant){
   log.sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
   try{ await window.storage.set(exKey(activeProgram, dayId, idx, subVariant), JSON.stringify(log)); }catch(e){}
 
-  // A set with an actual weight or rep count logged counts as training activity today,
-  // regardless of which exercise/program it was — this is what streaks track.
+  // A set with an actual weight or rep count logged counts as training activity
+  // for whichever date it was actually logged for — regardless of which
+  // exercise/program it was, this is what streaks track. Backdating correctly
+  // fills in a missed day's streak credit this way. Clock time, though, is
+  // only meaningful for something logged in real time — recording "right now"
+  // as the time for a set actually done days ago would just corrupt the
+  // meal-timing insight, so that part is skipped while backdating.
   if(w!=null || r!=null){
-    recordActivity(getTodayKey()).then(renderStreak);
+    recordActivity(selectedLogDate).then(renderStreak);
     markMilestone('has-logged-first-set');
-    recordWorkoutTime(getTodayKey());
+    if(!isBackdating()) recordWorkoutTime(selectedLogDate);
   }
 
   const isPR = (w!=null && priorMax!=null && w>priorMax);
@@ -11099,28 +11292,30 @@ async function renderWorkout(){
     // and a rest day being followed isn't a workout. It still counts toward
     // the activity streak below, since resting on schedule is exactly as
     // much "following the program" as training is, and the streak already
-    // treats any real activity that way.
-    const restKey = `rest-log:${getTodayKey()}:${activeProgram}:${activeDay}`;
+    // treats any real activity that way. Keyed off selectedLogDate so a
+    // forgotten rest day from a few days back can be marked done retroactively.
+    const restKey = `rest-log:${selectedLogDate}:${activeProgram}:${activeDay}`;
     let restDone = false;
     try{
       const res = await window.storage.get(restKey);
       if(res && res.value) restDone = JSON.parse(res.value).done === true;
     }catch(e){}
 
+    const dateLabel = formatLogDateLabel(selectedLogDate).toLowerCase();
     const archiveBtnHtml = activeDay === 'd7' ? `<button class="save-btn" id="archiveWeekBtn" style="margin-top:14px;">🏁 Save This Week & Start Fresh</button><div class="status-msg" id="archiveWeekStatus"></div>` : '';
     list.innerHTML = `
       <div class="rest-note">${day.note}</div>
       <label class="rest-done-row">
         <input type="checkbox" id="restDoneCheckbox" ${restDone ? 'checked' : ''}>
-        <span id="restDoneLabel">${restDone ? 'Marked as done for today ✓' : "Mark today's rest day as done"}</span>
+        <span id="restDoneLabel">${restDone ? `Marked as done for ${dateLabel} ✓` : `Mark ${dateLabel}'s rest day as done`}</span>
       </label>
       ${archiveBtnHtml}
     `;
     document.getElementById('restDoneCheckbox').addEventListener('change', async (e)=>{
       const done = e.target.checked;
       try{ await window.storage.set(restKey, JSON.stringify({done})); }catch(err){}
-      if(done) recordActivity(getTodayKey()).then(renderStreak);
-      document.getElementById('restDoneLabel').textContent = done ? 'Marked as done for today ✓' : "Mark today's rest day as done";
+      if(done) recordActivity(selectedLogDate).then(renderStreak);
+      document.getElementById('restDoneLabel').textContent = done ? `Marked as done for ${dateLabel} ✓` : `Mark ${dateLabel}'s rest day as done`;
     });
     if(activeDay === 'd7'){
       document.getElementById('archiveWeekBtn').addEventListener('click', archiveCurrentWeek);
@@ -11192,7 +11387,7 @@ async function renderWorkout(){
     const cat = (exerciseInfo[ex.name] || {}).category;
     if(!WARMUP_ELIGIBLE_CATEGORIES.includes(cat)) return null;
     const log = logs[i];
-    const hasOwnPrior = log.some(e=> e.date !== getTodayKey() && topSetOf(e));
+    const hasOwnPrior = log.some(e=> e.date !== selectedLogDate && topSetOf(e));
     if(hasOwnPrior) return null; // has its own history — no fallback needed
     const topRep = parseTopRep(ex.sets);
     const warmupEligiblePosition = i === 0 || (i === 1 && cat !== firstExCategory);
@@ -11219,9 +11414,9 @@ async function renderWorkout(){
     let trackingHtml = '';
     {
       const log = logs[i];
-      const prior = [...log].filter(e=>e.date!==getTodayKey()).sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'))[0];
+      const prior = [...log].filter(e=>e.date!==selectedLogDate).sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'))[0];
       const priorTop = prior ? topSetOf(prior) : null;
-      const todayEntry = log.find(e=>e.date===getTodayKey());
+      const todayEntry = log.find(e=>e.date===selectedLogDate);
       const topRep = parseTopRep(ex.sets);
       const setCount = Math.max(parseSetCount(ex.sets), todayEntry ? todayEntry.sets.length : 0);
 
@@ -11382,26 +11577,38 @@ async function renderWorkout(){
     cb.addEventListener('change', async ()=>{
       completed[i] = cb.checked;
       row.querySelector('.ex-name').classList.toggle('done', cb.checked);
+      const affectsCurrentWeekDisplay = isInCurrentCalendarWeek(selectedLogDate);
       try{
         // Dated key: unchanged, this is what streaks/PRs/progression history
-        // actually read from — always tagged with the real date it happened.
-        await window.storage.set(workoutKey(getTodayKey(), activeProgram, activeDay), JSON.stringify(completed));
+        // actually read from — tagged with whichever date is currently
+        // selected (today, unless backdating), not necessarily the real
+        // calendar date.
+        await window.storage.set(workoutKey(selectedLogDate, activeProgram, activeDay), JSON.stringify(completed));
         // Week-persistent key: what the checkboxes themselves read from on
         // render, so the day stays visually checked all week regardless of
-        // which calendar date you're looking at it from.
-        await window.storage.set(weekCheckedKey(activeProgram, activeDay), JSON.stringify(completed));
+        // which calendar date you're looking at it from. Only written when
+        // the date being toggled is actually within THIS calendar week —
+        // backdating to fix something from an older week still correctly
+        // saves to the dated key above, but must not overwrite this week's
+        // own checkbox state with an old week's data.
+        if(affectsCurrentWeekDisplay){
+          await window.storage.set(weekCheckedKey(activeProgram, activeDay), JSON.stringify(completed));
+        }
       }catch(e){}
       updateSessionCalorieTotal(renderExercises, completed);
 
       // Keep the day-tab badge in sync with the actual per-exercise state —
       // recomputed on every toggle (not just the completing click) so
       // unchecking something to fix a mistake correctly un-marks the day
-      // too, rather than leaving a stale "done" badge behind.
-      const dayNowComplete = renderExercises.every((ex,idx)=> !!completed[idx]);
-      if(weekProgress[activeDay] !== dayNowComplete){
-        weekProgress[activeDay] = dayNowComplete;
-        saveWeekProgress();
-        renderTabs();
+      // too, rather than leaving a stale "done" badge behind. Same
+      // current-week gate as above, for the same reason.
+      if(affectsCurrentWeekDisplay){
+        const dayNowComplete = renderExercises.every((ex,idx)=> !!completed[idx]);
+        if(weekProgress[activeDay] !== dayNowComplete){
+          weekProgress[activeDay] = dayNowComplete;
+          saveWeekProgress();
+          renderTabs();
+        }
       }
 
       // Collapse the exercise back up the moment it's checked off complete
@@ -11761,7 +11968,7 @@ document.getElementById('restTimerClose').addEventListener('click', ()=>{
 
 async function refreshSessionSummary(row, exIdx, ex){
   const log = await getExLog(activeDay, exIdx, subVariantOf(ex));
-  const todayEntry = log.find(e=>e.date===getTodayKey());
+  const todayEntry = log.find(e=>e.date===selectedLogDate);
   const todayVolume = todayEntry ? volumeOf(todayEntry) : 0;
   const todayTop = todayEntry ? topSetOf(todayEntry) : null;
   const oneRM = todayTop ? estimated1RM(todayTop.weight, todayTop.reps) : null;
@@ -11851,7 +12058,7 @@ function wireSetsBlock(row, exIdx, ex){
         const item = await window.storage.get(key);
         if(item && item.value) log = JSON.parse(item.value);
       }catch(e){ log = []; }
-      const prior = [...log].filter(e=>e.date!==getTodayKey()).sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'))[0];
+      const prior = [...log].filter(e=>e.date!==selectedLogDate).sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'))[0];
       if(!prior) return;
       for(let setIdx=0; setIdx<prior.sets.length; setIdx++){
         const s = prior.sets[setIdx];
@@ -11908,7 +12115,7 @@ function wireSetsBlock(row, exIdx, ex){
     const preDeleteSnapshot = JSON.stringify(log); // full pre-delete state, for undo
 
     try{
-      const todayIdx = log.findIndex(e=>e.date===getTodayKey());
+      const todayIdx = log.findIndex(e=>e.date===selectedLogDate);
       if(todayIdx !== -1){
         const entry = normalizeExEntry(log[todayIdx]);
         entry.sets.splice(setIdx, 1);
@@ -13537,14 +13744,14 @@ function computeMicronutrientTargets(p, medicalStyle, calorieTarget){
 
 async function getWaterIntake(){
   try{
-    const res = await window.storage.get(`water:${getTodayKey()}`);
+    const res = await window.storage.get(`water:${selectedLogDate}`);
     if(res && res.value) return Number(res.value);
   }catch(e){}
   return 0;
 }
 
 async function saveWaterIntake(oz){
-  try{ await window.storage.set(`water:${getTodayKey()}`, String(oz)); }catch(e){}
+  try{ await window.storage.set(`water:${selectedLogDate}`, String(oz)); }catch(e){}
 }
 
 async function renderWater(){
@@ -14561,7 +14768,7 @@ async function submitFoodDescription(){
       <div class="photo-result-card">
         <div class="photo-result-title">Found ${describeFoodParsedItems.length} item${describeFoodParsedItems.length===1?'':'s'} — estimates, not exact</div>
         ${itemsHtml}
-        <button class="photo-add-all-btn" id="describeFoodAddAllBtn">Add All to Today's Log</button>
+        <button class="photo-add-all-btn" id="describeFoodAddAllBtn">Add All to ${isBackdating() ? formatLogDateLabel(selectedLogDate) + "'s" : "Today's"} Log</button>
         ${similarHtml}
       </div>
     `;
@@ -15239,10 +15446,12 @@ function sortByUsage(items){
 async function addFoodToLog(item){
   // Time-of-day is stamped here, once, for every entry point (search results,
   // recipes, USDA lookups, Snap-a-Meal, custom foods) — see nowTimeKey(). Only
-  // read today; historical entries logged before this feature shipped simply
-  // won't have it, which downstream readers (the Diabetes meal-timing insight)
-  // already treat as "not enough data for this day," not an error.
-  todaysFoodLog.push({...item, time: nowTimeKey()});
+  // stamped when logging for the real current day — a backdated entry (see
+  // selectedLogDate/isBackdating) has no way to know what time it was
+  // actually eaten, and stamping "right now" would just be wrong, corrupting
+  // the Diabetes meal-timing insight with a fabricated time. Missing time is
+  // already treated as "not enough data for this day" there, not an error.
+  todaysFoodLog.push({...item, time: isBackdating() ? undefined : nowTimeKey()});
   await saveFoodLog();
   await bumpUsageCount(item.name);
   // Anything found via an online lookup (USDA, etc.) gets cached into My
@@ -15395,6 +15604,12 @@ document.getElementById('suggestMealBtn').addEventListener('click', ()=>{
 });
 
 async function removeFoodFromLog(idx){
+  // Captured now, not read again inside the undo callback below — otherwise
+  // navigating to a different date via the date selector before tapping
+  // Undo would restore this deleted item's data into whatever date happens
+  // to be selected LATER, silently overwriting that day's real food log
+  // instead of the day the deletion actually happened on.
+  const dateAtDelete = selectedLogDate;
   const removed = todaysFoodLog[idx];
   const preDeleteSnapshot = JSON.stringify(todaysFoodLog);
   todaysFoodLog.splice(idx,1);
@@ -15402,27 +15617,38 @@ async function removeFoodFromLog(idx){
   renderFoodLog();
   if(removed){
     showUndoToast(`${removed.name} removed`, async ()=>{
-      try{ todaysFoodLog = JSON.parse(preDeleteSnapshot); await saveFoodLog(); }catch(e){}
-      renderFoodLog();
+      try{ await window.storage.set(`foodlog:${dateAtDelete}`, preDeleteSnapshot); }catch(e){}
+      // Only touch the live in-memory/rendered log if still looking at the
+      // same date the deletion happened on — the restore above is already
+      // safely back in storage either way, but shouldn't yank the view away
+      // from whatever date is currently open if it's since changed.
+      if(selectedLogDate === dateAtDelete){
+        todaysFoodLog = JSON.parse(preDeleteSnapshot);
+        renderFoodLog();
+      }
     });
   }
 }
 
 async function saveFoodLog(){
-  try{ await window.storage.set(`foodlog:${getTodayKey()}`, JSON.stringify(todaysFoodLog)); }catch(e){}
+  try{ await window.storage.set(`foodlog:${selectedLogDate}`, JSON.stringify(todaysFoodLog)); }catch(e){}
 }
 
 async function loadFoodLog(){
   try{
-    const res = await window.storage.get(`foodlog:${getTodayKey()}`);
+    const res = await window.storage.get(`foodlog:${selectedLogDate}`);
     if(res && res.value) todaysFoodLog = JSON.parse(res.value);
+    else todaysFoodLog = [];
   }catch(e){ todaysFoodLog = []; }
   renderFoodLog();
+  updateRepeatYesterdayVisibility();
 }
 
-// Only shown when today's log is genuinely empty (no point once you've
-// already started logging something different today) and yesterday
-// actually has entries worth copying.
+// Only shown when the currently-viewed date's log is genuinely empty (no
+// point once you've already started logging something different for that
+// day) and the day before it actually has entries worth copying. "Yesterday"
+// here means "the day before whichever date is selected" — so this still
+// works sensibly while backdating, not just for the real current day.
 async function updateRepeatYesterdayVisibility(){
   const btn = document.getElementById('repeatYesterdayBtn');
   if(!btn) return;
@@ -15431,10 +15657,11 @@ async function updateRepeatYesterdayVisibility(){
     return;
   }
   try{
-    const yesterday = dateKeyMinusDays(getTodayKey(), 1);
-    const res = await window.storage.get(`foodlog:${yesterday}`);
-    const yesterdayLog = res && res.value ? JSON.parse(res.value) : [];
-    btn.style.display = yesterdayLog.length > 0 ? '' : 'none';
+    const priorDay = dateKeyMinusDays(selectedLogDate, 1);
+    const res = await window.storage.get(`foodlog:${priorDay}`);
+    const priorLog = res && res.value ? JSON.parse(res.value) : [];
+    btn.textContent = isBackdating() ? `🔁 Repeat ${formatLogDateLabel(priorDay)}` : '🔁 Repeat Yesterday';
+    btn.style.display = priorLog.length > 0 ? '' : 'none';
   }catch(e){
     btn.style.display = 'none';
   }
@@ -15443,14 +15670,14 @@ async function updateRepeatYesterdayVisibility(){
 document.getElementById('repeatYesterdayBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('repeatYesterdayBtn');
   try{
-    const yesterday = dateKeyMinusDays(getTodayKey(), 1);
-    const res = await window.storage.get(`foodlog:${yesterday}`);
-    const yesterdayLog = res && res.value ? JSON.parse(res.value) : [];
-    if(yesterdayLog.length === 0) return;
-    // Copy the items, not a reference — today's log needs to be freely
-    // editable/removable from here without ever touching yesterday's
-    // actual saved record.
-    todaysFoodLog = yesterdayLog.map(item=> ({...item}));
+    const priorDay = dateKeyMinusDays(selectedLogDate, 1);
+    const res = await window.storage.get(`foodlog:${priorDay}`);
+    const priorLog = res && res.value ? JSON.parse(res.value) : [];
+    if(priorLog.length === 0) return;
+    // Copy the items, not a reference — the viewed day's log needs to be
+    // freely editable/removable from here without ever touching the prior
+    // day's actual saved record.
+    todaysFoodLog = priorLog.map(item=> ({...item}));
     await saveFoodLog();
     renderFoodLog();
     btn.style.display = 'none';
@@ -15882,7 +16109,7 @@ document.getElementById('saveWeight').addEventListener('click', async ()=>{
       const res = await window.storage.get('weight-log');
       if(res && res.value) entries = JSON.parse(res.value);
     }catch(e){ entries = []; }
-    entries.push({date: getTodayKey(), weight: w});
+    entries.push({date: selectedLogDate, weight: w});
     await window.storage.set('weight-log', JSON.stringify(entries));
     input.value = '';
     loadWeights();
@@ -15894,19 +16121,30 @@ document.getElementById('saveWeight').addEventListener('click', async ()=>{
     // real, meaningful weight change for weeks or months, understating or
     // overstating both the deficit/surplus and the protein target the whole
     // time. A fresh weigh-in is the most current, most accurate weight
-    // available, so it becomes the new basis immediately.
-    const oldWeight = userProfile.weight;
-    userProfile.weight = w;
-    await saveProfile();
-    targets = computeTargets(userProfile);
-    applyTargetsToUI();
-    renderProfileSummary();
-    renderWater(); // water target is weight-based too (see computeWaterTarget)
-    loadFoodLog(); // refresh macro bars against the new targets
-    const changedMeaningfully = oldWeight && Math.abs(w - oldWeight) >= toCanonicalLb(1);
-    statusEl.textContent = changedMeaningfully
-      ? `Logged ✓ — nutrition & water targets updated for your new weight (${fmtWeight(w)})`
-      : 'Logged ✓';
+    // available, so it becomes the new basis immediately — EXCEPT when
+    // backfilling an old missed weigh-in that isn't actually the most recent
+    // entry anymore (a more recent one was already logged); overwriting the
+    // profile with an old backdated number would wrongly regress the
+    // targets, so that sync only fires when this entry is genuinely the
+    // latest one on record.
+    const latestDate = entries.reduce((max, e)=> e.date > max ? e.date : max, entries[0].date);
+    const isLatestEntry = selectedLogDate >= latestDate;
+    if(isLatestEntry){
+      const oldWeight = userProfile.weight;
+      userProfile.weight = w;
+      await saveProfile();
+      targets = computeTargets(userProfile);
+      applyTargetsToUI();
+      renderProfileSummary();
+      renderWater(); // water target is weight-based too (see computeWaterTarget)
+      loadFoodLog(); // refresh macro bars against the new targets
+      const changedMeaningfully = oldWeight && Math.abs(w - oldWeight) >= toCanonicalLb(1);
+      statusEl.textContent = changedMeaningfully
+        ? `Logged ✓ — nutrition & water targets updated for your new weight (${fmtWeight(w)})`
+        : 'Logged ✓';
+    } else {
+      statusEl.textContent = `Logged for ${formatLogDateLabel(selectedLogDate)} ✓ — a more recent weigh-in is already on record, so today's targets are unchanged`;
+    }
     setTimeout(()=>{ statusEl.textContent = ''; }, 3000);
   }catch(e){}
 });
@@ -15974,7 +16212,7 @@ document.getElementById('saveBP').addEventListener('click', async ()=>{
       const res = await window.storage.get('bp-log');
       if(res && res.value) entries = JSON.parse(res.value);
     }catch(e){ entries = []; }
-    entries.push({date: getTodayKey(), systolic, diastolic});
+    entries.push({date: selectedLogDate, systolic, diastolic});
     await window.storage.set('bp-log', JSON.stringify(entries));
     sysInput.value = ''; diaInput.value = '';
     loadBP();
@@ -16051,7 +16289,7 @@ document.getElementById('saveGlucose').addEventListener('click', async ()=>{
       const res = await window.storage.get('glucose-log');
       if(res && res.value) entries = JSON.parse(res.value);
     }catch(e){ entries = []; }
-    entries.push({date: getTodayKey(), value, context, time: nowTimeKey()});
+    entries.push({date: selectedLogDate, value, context, time: isBackdating() ? undefined : nowTimeKey()});
     await window.storage.set('glucose-log', JSON.stringify(entries));
     input.value = '';
     loadGlucose();
@@ -16099,7 +16337,7 @@ async function loadSupplements(){
   if(!wrap) return;
   let state = {};
   try{
-    const res = await window.storage.get(`supplement-log:${getTodayKey()}`);
+    const res = await window.storage.get(`supplement-log:${selectedLogDate}`);
     if(res && res.value) state = JSON.parse(res.value);
   }catch(e){ state = {}; }
 
@@ -16119,11 +16357,11 @@ async function loadSupplements(){
       const key = row.dataset.key;
       let current = {};
       try{
-        const res = await window.storage.get(`supplement-log:${getTodayKey()}`);
+        const res = await window.storage.get(`supplement-log:${selectedLogDate}`);
         if(res && res.value) current = JSON.parse(res.value);
       }catch(e){ current = {}; }
       current[key] = !current[key];
-      await window.storage.set(`supplement-log:${getTodayKey()}`, JSON.stringify(current));
+      await window.storage.set(`supplement-log:${selectedLogDate}`, JSON.stringify(current));
       loadSupplements();
     });
   });
@@ -16200,7 +16438,7 @@ document.getElementById('saveSleep').addEventListener('click', async ()=>{
       const res = await window.storage.get('sleep-log');
       if(res && res.value) entries = JSON.parse(res.value);
     }catch(e){ entries = []; }
-    entries.push({date: getTodayKey(), hours: hrs});
+    entries.push({date: selectedLogDate, hours: hrs});
     await window.storage.set('sleep-log', JSON.stringify(entries));
     input.value = '';
     loadSleep();
@@ -16603,7 +16841,7 @@ async function loadMeasurements(){
 
 document.getElementById('saveMeasurements').addEventListener('click', async ()=>{
   const entry = {
-    date: getTodayKey(),
+    date: selectedLogDate,
     waist: document.getElementById('mWaist').value || null,
     chest: document.getElementById('mChest').value || null,
     arms: document.getElementById('mArms').value || null,
@@ -16662,7 +16900,184 @@ function switchView(active){
   if(active !== 'today'){
     document.getElementById('stickyDayHeader').classList.remove('visible');
   }
+
+  // The date selector only makes sense on the two tabs with date-keyed
+  // logging (workouts, food/weight/vitals) — hidden everywhere else so it
+  // doesn't imply Analysis/History/Care/Coach/Learn are date-scoped too.
+  const dateBar = document.getElementById('logDateBar');
+  if(dateBar){
+    dateBar.style.display = (active === 'today' || active === 'log') ? 'flex' : 'none';
+    if(active === 'today' || active === 'log') renderLogDateBar();
+  }
 }
+
+// --- Log date selector (backdating) -----------------------------------
+// Lets the Today and Nutrition tabs apply to a past date instead of the
+// real current day — for logging a workout you forgot to record, or a meal
+// from a couple days ago. One shared selectedLogDate drives both tabs at
+// once, since backfilling a day usually means both what you ate and what
+// you trained that day, not just one or the other.
+function formatLogDateLabel(dateKey){
+  const today = getTodayKey();
+  if(dateKey === today) return 'Today';
+  if(dateKey === dateKeyMinusDays(today, 1)) return 'Yesterday';
+  return new Date(dateKey+'T00:00:00').toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+}
+
+function renderLogDateBar(){
+  const bar = document.getElementById('logDateBar');
+  if(!bar) return;
+  const today = getTodayKey();
+  document.getElementById('logDateLabelText').textContent = formatLogDateLabel(selectedLogDate);
+  document.getElementById('logDateNext').disabled = (selectedLogDate === today);
+  document.getElementById('logDateToday').style.display = (selectedLogDate === today) ? 'none' : '';
+  bar.classList.toggle('backdating', selectedLogDate !== today);
+  updateTodayFab();
+}
+
+// The global quick-jump: visible from ANY tab (not just Today/Log, where
+// the in-context "Today" button in the date bar already lives) the moment
+// backdating is active anywhere in the app, so there's always a one-tap way
+// back to the current day no matter where you wandered off to. Hidden
+// entirely while already on today — nothing to jump back from.
+function updateTodayFab(){
+  const fab = document.getElementById('todayFab');
+  if(!fab) return;
+  fab.style.display = isBackdating() ? 'flex' : 'none';
+}
+
+document.getElementById('todayFab').addEventListener('click', ()=>{
+  setLogDate(getTodayKey());
+  switchView('today');
+});
+
+// Re-renders whichever of Today/Log is actually visible right now for the
+// newly-selected date. The other one isn't touched immediately — every one
+// of its render functions reads selectedLogDate fresh when it's next
+// opened, not a value captured earlier, so there's nothing stale to fix.
+async function refreshForLogDate(){
+  if(document.getElementById('todayView').style.display !== 'none'){
+    renderWorkout();
+  }
+  if(document.getElementById('logView').style.display !== 'none'){
+    await loadFoodLog();
+    loadWeights();
+    renderWater();
+    loadSleep();
+    loadMeasurements();
+    loadBP();
+    loadGlucose();
+    loadSupplements();
+  }
+}
+
+function setLogDate(newDate){
+  const today = getTodayKey();
+  if(newDate > today) newDate = today; // never allow logging for the future
+  selectedLogDate = newDate;
+  renderLogDateBar();
+  refreshForLogDate();
+}
+
+document.getElementById('logDatePrev').addEventListener('click', ()=>{
+  setLogDate(dateKeyMinusDays(selectedLogDate, 1));
+});
+document.getElementById('logDateNext').addEventListener('click', ()=>{
+  if(selectedLogDate === getTodayKey()) return;
+  setLogDate(dateKeyMinusDays(selectedLogDate, -1));
+});
+document.getElementById('logDateToday').addEventListener('click', ()=>{
+  setLogDate(getTodayKey());
+});
+
+// --- Calendar picker ---------------------------------------------------
+// A real month grid rather than leaning entirely on the OS's native date
+// input — weekday alignment (Sun first, per the header row) is computed
+// straight from `new Date(year, month, 1).getDay()`, the same JS Date
+// machinery every other date calculation in this app already relies on, so
+// there's exactly one source of truth for "what day of the week is this"
+// rather than a second hand-rolled one that could quietly drift out of sync.
+const CALENDAR_MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+let calendarViewYear = null, calendarViewMonth = null; // month is 0-indexed, matching Date's own convention
+let calendarActiveDates = null; // Set of "YYYY-MM-DD" with any logged workout or food — see openCalendarModal
+
+async function openCalendarModal(){
+  const base = new Date(selectedLogDate+'T00:00:00');
+  calendarViewYear = base.getFullYear();
+  calendarViewMonth = base.getMonth();
+
+  // Fetched once per open (not per month-navigation click, and definitely
+  // not per day cell) — this is what puts a small dot under any day that
+  // already has a workout or a meal logged, so a gap in the dots is the
+  // actual visual cue for "this is the day I probably missed," which is the
+  // whole point of being able to jump back to a date in the first place.
+  try{
+    const [workoutDates, foodDays] = await Promise.all([fetchWorkoutDates(), fetchFoodDays()]);
+    calendarActiveDates = new Set([...workoutDates, ...Object.keys(foodDays)]);
+  }catch(e){
+    calendarActiveDates = new Set();
+  }
+
+  renderCalendarGrid();
+  document.getElementById('calendarModalOverlay').classList.add('active');
+}
+
+function closeCalendarModal(){
+  document.getElementById('calendarModalOverlay').classList.remove('active');
+}
+
+function renderCalendarGrid(){
+  const today = getTodayKey();
+  const todayDate = new Date(today+'T00:00:00');
+  document.getElementById('calendarMonthLabel').textContent = `${CALENDAR_MONTH_NAMES[calendarViewMonth]} ${calendarViewYear}`;
+
+  const startWeekday = new Date(calendarViewYear, calendarViewMonth, 1).getDay(); // 0 = Sunday, matching the Sun-first header row
+  const daysInMonth = new Date(calendarViewYear, calendarViewMonth + 1, 0).getDate();
+
+  let cellsHtml = '';
+  for(let i=0; i<startWeekday; i++) cellsHtml += `<div class="calendar-cell empty"></div>`;
+  for(let day=1; day<=daysInMonth; day++){
+    const y = calendarViewYear, m = String(calendarViewMonth+1).padStart(2,'0'), d = String(day).padStart(2,'0');
+    const dateKey = `${y}-${m}-${d}`;
+    const isToday = dateKey === today;
+    const isSelected = dateKey === selectedLogDate;
+    const isFuture = dateKey > today;
+    const hasActivity = calendarActiveDates && calendarActiveDates.has(dateKey);
+    const dotHtml = (hasActivity && !isFuture) ? '<span class="calendar-cell-dot"></span>' : '';
+    cellsHtml += `<button type="button" class="calendar-cell ${isToday?'today':''} ${isSelected?'selected':''} ${isFuture?'future-disabled':''}" data-date="${dateKey}" ${isFuture?'disabled':''}>${day}${dotHtml}</button>`;
+  }
+  document.getElementById('calendarGrid').innerHTML = cellsHtml;
+
+  document.getElementById('calendarGrid').querySelectorAll('.calendar-cell:not(.empty):not(.future-disabled)').forEach(cell=>{
+    cell.addEventListener('click', ()=>{
+      setLogDate(cell.dataset.date);
+      closeCalendarModal();
+    });
+  });
+
+  // Can't navigate forward past the month that contains today — every day
+  // beyond that is disabled anyway, so there'd be nothing selectable there.
+  const isCurrentOrLaterMonth = (calendarViewYear > todayDate.getFullYear())
+    || (calendarViewYear === todayDate.getFullYear() && calendarViewMonth >= todayDate.getMonth());
+  document.getElementById('calendarNextMonth').disabled = isCurrentOrLaterMonth;
+}
+
+document.getElementById('logDateLabelBtn').addEventListener('click', openCalendarModal);
+document.getElementById('calendarModalClose').addEventListener('click', closeCalendarModal);
+document.getElementById('calendarModalOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'calendarModalOverlay') closeCalendarModal();
+});
+document.getElementById('calendarPrevMonth').addEventListener('click', ()=>{
+  calendarViewMonth--;
+  if(calendarViewMonth < 0){ calendarViewMonth = 11; calendarViewYear--; }
+  renderCalendarGrid();
+});
+document.getElementById('calendarNextMonth').addEventListener('click', ()=>{
+  if(document.getElementById('calendarNextMonth').disabled) return;
+  calendarViewMonth++;
+  if(calendarViewMonth > 11){ calendarViewMonth = 0; calendarViewYear++; }
+  renderCalendarGrid();
+});
 
 // A page refresh used to always land back on Today, no matter which tab
 // you'd actually been using — jarring specifically because pull-to-refresh
@@ -16733,6 +17148,22 @@ function mondayOf(dateStr){
   const diff = (day===0 ? -6 : 1-day);
   d.setDate(d.getDate()+diff);
   return d.toISOString().slice(0,10);
+}
+
+// True when dateKey falls in the same Monday–Sunday calendar week as the
+// real current day — the same boundary "Save This Week & Start Fresh"
+// already uses to decide what counts as "this week" for the archive stats.
+// Reused here to gate the week-persistent checkbox/badge state (see the
+// exercise-checkbox handler): backdating within the current week should
+// update this week's display normally, but backdating to fix something from
+// an OLDER week must not bleed into the current week's checkmarks — the
+// real dated history is still saved correctly either way, this only
+// protects what the day-tab badge and checkbox display show for right now.
+function isInCurrentCalendarWeek(dateKey){
+  const monday = mondayOf(getTodayKey());
+  const weekEnd = new Date(monday+'T00:00:00'); weekEnd.setDate(weekEnd.getDate()+7);
+  const d = new Date(dateKey+'T00:00:00');
+  return d >= new Date(monday+'T00:00:00') && d < weekEnd;
 }
 
 function fmtWeekLabel(mondayStr){
@@ -17555,7 +17986,7 @@ function renderPhotoLogResult(resultEl, previewUrl){
     <div class="photo-result-card">
       <div class="photo-result-title">Found ${photoLogParsedItems.length} item${photoLogParsedItems.length===1?'':'s'} — estimates, edit anything that's off before adding</div>
       ${itemsHtml || '<div class="empty-note">Everything removed — nothing left to add.</div>'}
-      <button class="photo-add-all-btn" id="photoAddAllBtn" ${photoLogParsedItems.length===0?'disabled':''}>Add All to Today's Log</button>
+      <button class="photo-add-all-btn" id="photoAddAllBtn" ${photoLogParsedItems.length===0?'disabled':''}>Add All to ${isBackdating() ? formatLogDateLabel(selectedLogDate) + "'s" : "Today's"} Log</button>
     </div>
   `;
 
@@ -19689,6 +20120,36 @@ if(activeUserId){
     await loadCoachChatHistory();
     await restoreActiveView();
   })();
+
+  // --- Resume / day-rollover refresh -------------------------------------
+  // Everything above only runs once, when the script first loads. As a PWA,
+  // this app is often backgrounded rather than actually closed (phone home
+  // screen, switching apps) — left that way across midnight, nothing keyed
+  // off getTodayKey() ever re-checks itself, so the streak badge in
+  // particular could keep showing a stale number computed before real
+  // calendar days (with no logged workout or marked rest day) passed.
+  // Re-checks the date whenever the app regains focus/visibility; if the
+  // date actually moved forward, does a fuller refresh of the day-dependent
+  // view, not just the streak, since the active day's rest-checkbox state,
+  // warm-up ramps, and today's-log state are all stale too at that point.
+  let lastKnownDateKey = getTodayKey();
+  async function refreshOnResume(){
+    const nowKey = getTodayKey();
+    if(nowKey === lastKnownDateKey){
+      // Same day — still worth a quick streak refresh in case a rest day
+      // got marked done or a set got logged from another tab/device.
+      renderStreak();
+      return;
+    }
+    lastKnownDateKey = nowKey;
+    renderStreak();
+    renderWorkout();
+    renderTodayInsights();
+  }
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState === 'visible') refreshOnResume();
+  });
+  window.addEventListener('focus', refreshOnResume);
 }
 </script>
 <script>
