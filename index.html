@@ -1280,6 +1280,14 @@
   .targets-strip .t-label{font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;}
 
   .status-msg{font-size:12px; color:var(--plate-green); height:16px; margin-top:6px; text-align:center;}
+  /* archiveWeekStatus reuses .status-msg for its plain "Week saved ✓" case,
+     but also sometimes holds the full AI weekly recap + nutrition digest —
+     several sentences of text in .day-insight blocks. The shared fixed
+     16px height clipped the box in document flow while the actual content
+     rendered taller than that, so it visually spilled out and overlapped
+     whatever card came next on the page. This lets it grow to fit instead,
+     and left-aligns since centered multi-sentence prose reads poorly. */
+  #archiveWeekStatus{height:auto; min-height:16px; text-align:left;}
   .status-msg.warn{color:var(--plate-red);}
   .empty-note{color:var(--text-muted); font-size:13px; text-align:center; padding:6px 0;}
   .skeleton-wrap{display:flex; flex-direction:column; gap:9px; padding:6px 0;}
@@ -10686,6 +10694,41 @@ async function getFallbackPriorTopSet(exerciseName, excludeKey){
   return best;
 }
 
+// The full most-recent logged entry (every set, not just the top one) for
+// this exact exercise name, searched across every OTHER program/day it
+// appears in. This is what makes the SAME lift trained under a DIFFERENT
+// program still show its real history instead of looking brand new the
+// moment you switch programs — the placeholder ghost text for every set,
+// "Same as Last Time", and the "Last top set" hint all fall back to this
+// when the current slot has no history of its own. Returns null if this
+// exercise genuinely has never been logged anywhere.
+async function getFallbackPriorEntry(exerciseName, excludeKey){
+  const locations = getExerciseLocationIndex()[exerciseName] || [];
+  let best = null, bestProgram = null;
+  for(const loc of locations){
+    const key = exKeyForLocation(loc);
+    if(key === excludeKey) continue;
+    try{
+      const res = await window.storage.get(key);
+      if(!res || !res.value) continue;
+      const log = JSON.parse(res.value).map(normalizeExEntry);
+      log.filter(e=> e.date !== selectedLogDate).forEach(e=>{
+        if(!best || new Date(e.date+'T00:00:00') > new Date(best.date+'T00:00:00')){
+          best = e; bestProgram = loc.program;
+        }
+      });
+    }catch(err){}
+  }
+  return best ? {...best, sourceProgram: bestProgram} : null;
+}
+
+// Human-readable label for a program key, for the small "(Strength & Size)"
+// style note next to a cross-program fallback value — falls back to the raw
+// key itself if a label genuinely isn't defined, rather than showing nothing.
+function programLabelFor(progKey){
+  return (programs[progKey] && programs[progKey].label) || progKey;
+}
+
 // Normalizes legacy single weight/reps entries into the sets[] format so old data keeps working.
 function normalizeExEntry(e){
   if(e.sets) return e;
@@ -11375,23 +11418,21 @@ async function renderWorkout(){
   // warmed, later exercises (position 2+) never show a ramp.
   const firstExCategory = (exerciseInfo[renderExercises[0]?.name] || {}).category;
 
-  // For any slot that's warmup-eligible (by position or by being a heavy
-  // set) but has no history of its own yet, pre-fetch a fallback from
-  // anywhere else that same exercise name has been logged — see
-  // getFallbackPriorTopSet. Done up front, alongside `logs` above, since the
-  // per-exercise render loop below builds each row synchronously.
-  const fallbackTopSets = await Promise.all(renderExercises.map(async (ex, i) => {
-    if(!ex || !ex.name || ex.noWeight) return null;
-    const cat = (exerciseInfo[ex.name] || {}).category;
-    if(!WARMUP_ELIGIBLE_CATEGORIES.includes(cat)) return null;
+  // For any slot with no history of its own yet, pre-fetch the most recent
+  // full session logged for this same exercise name anywhere else in the
+  // app — most commonly a different program (switch from Strength & Size to
+  // Powerbuilding, and Back Squat's real history should still show up, not
+  // look brand new just because the program changed). Powers the
+  // placeholder ghost text, "Same as Last Time", and the "Last top set"
+  // hint below for every exercise, plus (via topSetOf, where warmup
+  // eligibility criteria also hold) the warm-up ramp fallback that used to
+  // be computed as a separate, narrower fetch.
+  const fallbackPriorEntries = await Promise.all(renderExercises.map(async (ex, i) => {
+    if(!ex || !ex.name) return null;
     const log = logs[i];
-    const hasOwnPrior = log.some(e=> e.date !== selectedLogDate && topSetOf(e));
-    if(hasOwnPrior) return null; // has its own history — no fallback needed
-    const topRep = parseTopRep(ex.sets);
-    const warmupEligiblePosition = i === 0 || (i === 1 && cat !== firstExCategory);
-    const isHeavySet = topRep != null && topRep <= 8;
-    if(!(warmupEligiblePosition || isHeavySet)) return null;
-    return await getFallbackPriorTopSet(ex.name, exKey(activeProgram, activeDay, i, subVariantOf(ex)));
+    const hasOwnPrior = log.some(e=> e.date !== selectedLogDate);
+    if(hasOwnPrior) return null; // has its own history at this exact slot — no fallback needed
+    return await getFallbackPriorEntry(ex.name, exKey(activeProgram, activeDay, i, subVariantOf(ex)));
   }));
 
   renderExercises.forEach((ex,i)=>{
@@ -11412,15 +11453,33 @@ async function renderWorkout(){
     let trackingHtml = '';
     {
       const log = logs[i];
-      const prior = [...log].filter(e=>e.date!==selectedLogDate).sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'))[0];
+      // Own-slot history first; if there's genuinely none, fall back to the
+      // same exercise's most recent session from anywhere else in the app
+      // (pre-fetched above) — most commonly a different program. This is
+      // what makes Back Squat's real numbers still show up the moment you
+      // switch from Strength & Size to Powerbuilding, instead of every
+      // placeholder, badge, and "Same as Last Time" going blank just
+      // because this particular program has never logged this slot before.
+      const ownPrior = [...log].filter(e=>e.date!==selectedLogDate).sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'))[0];
+      const priorIsCrossProgram = !ownPrior && !!fallbackPriorEntries[i];
+      const prior = ownPrior || fallbackPriorEntries[i] || null;
+      const priorSourceProgram = priorIsCrossProgram ? fallbackPriorEntries[i].sourceProgram : null;
       const priorTop = prior ? topSetOf(prior) : null;
       const todayEntry = log.find(e=>e.date===selectedLogDate);
       const topRep = parseTopRep(ex.sets);
       const setCount = Math.max(parseSetCount(ex.sets), todayEntry ? todayEntry.sets.length : 0);
 
       const exCategory = (exerciseInfo[ex.name] || {}).category;
+      // Progression trend (increase/decrease/deload signal) is deliberately
+      // scoped to THIS slot's own sessions only, never the cross-program
+      // fallback — a trend needs multiple sessions of the same slot to mean
+      // anything, and mixing in another program's numbers would produce a
+      // misleading trend, not a real one. It simply has nothing to say yet
+      // for a slot with no own history, and falls through to the plain
+      // "last time" hint below instead, same as always.
       const pastSessions = buildPastSessions(log);
       const signal = analyzeProgressionSignal(pastSessions, ex, exCategory);
+      const sourceNote = priorIsCrossProgram ? ` <span style="opacity:0.7; font-weight:400;">— ${escapeHtml(programLabelFor(priorSourceProgram))}</span>` : '';
 
       // Progression badges, the warm-up ramp, and the volume/1RM summary are
       // all inherently weight-based (topSetOf only ever considers sets with
@@ -11437,11 +11496,11 @@ async function renderWorkout(){
           badge = `<div class="${badgeClass}">${signal.message}</div>`;
         }
       } else if(inDeloadWeek && priorTop && priorTop.weight!=null){
-        badge = `<div class="progress-hint">🔻 Deload week — sets are already reduced below; last top set was ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'} reps, aim for roughly 10-20% lighter today.</div>`;
+        badge = `<div class="progress-hint">🔻 Deload week — sets are already reduced below; last top set was ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'} reps${sourceNote}, aim for roughly 10-20% lighter today.</div>`;
       } else if(priorTop && priorTop.reps!=null && topRep!=null && priorTop.reps >= topRep){
-        badge = `<div class="progress-badge">⬆ Hit ${priorTop.reps} reps last time at ${priorTop.weight!=null ? fmtWeight(priorTop.weight) : '?'} — try adding weight today</div>`;
+        badge = `<div class="progress-badge">⬆ Hit ${priorTop.reps} reps last time at ${priorTop.weight!=null ? fmtWeight(priorTop.weight) : '?'}${sourceNote} — try adding weight today</div>`;
       } else if(priorTop && priorTop.weight!=null){
-        badge = `<div class="progress-hint">Last top set: ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'} reps</div>`;
+        badge = `<div class="progress-hint">Last top set: ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'} reps${sourceNote}</div>`;
       }
 
       let warmupHtml = '';
@@ -11462,17 +11521,17 @@ async function renderWorkout(){
         // and DB Shoulder Press even in the first slot of the day.
         const isBarbell = isBarbellExercise(ex.name);
         const minWeight = isBarbell ? WARMUP_MIN_WORKING_WEIGHT : WARMUP_MIN_WORKING_WEIGHT_GENERIC;
-        // Falls back to the same lift's history from anywhere else in the
-        // app when this exact slot has nothing logged yet — a brand-new day
-        // for a familiar lift shouldn't lose its ramp just because this
-        // particular slot has no history of its own. Never affects the
-        // badges above, which stay correctly scoped to this exact slot.
-        const isFallback = !priorTop && !!fallbackTopSets[i];
-        const rampSource = priorTop || fallbackTopSets[i];
+        // priorTop already includes the cross-program fallback above, so the
+        // ramp naturally benefits from the same "the same lift trained under
+        // a different program still counts" logic — no separate fetch
+        // needed here anymore. Never affects the progression badges above,
+        // which stay correctly scoped to this exact slot's own trend.
+        const isFallback = priorIsCrossProgram;
+        const rampSource = priorTop;
         if(rampSource && rampSource.weight >= minWeight){
           const ramp = isBarbell ? buildWarmupRamp(rampSource.weight) : buildGenericWarmupRamp(rampSource.weight);
           const rampRows = ramp.map(step=> `<div class="warmup-row"><span>${step.label} — ${step.weight} ${weightUnit} × ${step.reps}</span></div>`).join('');
-          const rampTitle = isFallback ? `🔥 Suggested warm-up ramp <span style="font-weight:400; text-transform:none; letter-spacing:0; opacity:0.75;">(based on your last logged ${ex.name}, elsewhere)</span>` : '🔥 Suggested warm-up ramp';
+          const rampTitle = isFallback ? `🔥 Suggested warm-up ramp <span style="font-weight:400; text-transform:none; letter-spacing:0; opacity:0.75;">(based on your last logged ${ex.name}, ${programLabelFor(priorSourceProgram)})</span>` : '🔥 Suggested warm-up ramp';
           warmupHtml = `<div class="warmup-box"><div class="warmup-title">${rampTitle}</div>${rampRows}</div>`;
         }
       } else if(warmupEligible && isEligibleCategory && !showWeight){
@@ -11483,7 +11542,7 @@ async function renderWorkout(){
       }
 
       const showPlateCalc = showWeight && isBarbellExercise(ex.name);
-      const sameAsLastHtml = prior ? `<button type="button" class="same-as-last-btn" data-idx="${i}">↻ Same as Last Time</button>` : '';
+      const sameAsLastHtml = prior ? `<button type="button" class="same-as-last-btn" data-idx="${i}">↻ Same as Last Time${priorIsCrossProgram ? ` (${escapeHtml(programLabelFor(priorSourceProgram))})` : ''}</button>` : '';
       const setRowsHtml = Array.from({length: setCount}).map((_,setIdx)=>{
         const savedSet = todayEntry && todayEntry.sets[setIdx] ? todayEntry.sets[setIdx] : null;
         const placeholderSet = prior && prior.sets[setIdx] ? prior.sets[setIdx] : null;
@@ -12056,7 +12115,14 @@ function wireSetsBlock(row, exIdx, ex){
         const item = await window.storage.get(key);
         if(item && item.value) log = JSON.parse(item.value);
       }catch(e){ log = []; }
-      const prior = [...log].filter(e=>e.date!==selectedLogDate).sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'))[0];
+      let prior = [...log].filter(e=>e.date!==selectedLogDate).sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'))[0];
+      if(!prior){
+        // Nothing logged at this exact slot — fall back to the same lift's
+        // most recent session anywhere else in the app (typically a
+        // different program), exactly like the button's own label and the
+        // placeholder ghost text above already reflect.
+        prior = await getFallbackPriorEntry(ex.name, key);
+      }
       if(!prior) return;
       for(let setIdx=0; setIdx<prior.sets.length; setIdx++){
         const s = prior.sets[setIdx];
