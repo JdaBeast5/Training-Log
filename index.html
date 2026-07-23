@@ -1128,7 +1128,7 @@
      does — this is a jump-to-safety control, not a decorative icon. */
   .today-fab{
     position:fixed; bottom:22px; left:18px; z-index:70; overflow:hidden;
-    display:flex; align-items:center; gap:6px; height:44px; padding:0 16px 0 14px;
+    display:flex; align-items:center; height:44px; padding:0 18px;
     border-radius:var(--radius-pill); border:1px solid rgba(255,255,255,0.28);
     background:linear-gradient(160deg, #FFC978, var(--plate-yellow) 60%); color:#1a1a1a;
     font-family:'Inter',sans-serif; font-weight:700; font-size:13.5px; cursor:pointer;
@@ -1140,8 +1140,7 @@
     background:radial-gradient(ellipse at center, rgba(255,255,255,0.5), transparent 70%);
     pointer-events:none;
   }
-  .today-fab-icon, .today-fab-label{position:relative; z-index:1;}
-  .today-fab-icon{font-size:16px;}
+  .today-fab-label{position:relative; z-index:1;}
   .today-fab:active{transform:scale(0.92); box-shadow:0 1px 0 rgba(255,255,255,0.35) inset, 0 8px 20px -8px rgba(255,184,92,0.5);}
 
   .coach-fab-modal{
@@ -2764,7 +2763,6 @@
 <button class="coach-fab" id="coachFab" title="Ask your coach"><span>💬</span></button>
 
 <button class="today-fab" id="todayFab" style="display:none;" title="Jump back to today">
-  <span class="today-fab-icon">📅</span>
   <span class="today-fab-label">Today</span>
 </button>
 
