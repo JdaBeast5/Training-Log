@@ -1837,6 +1837,37 @@
     background:none; border:none; font-size:15px; cursor:pointer; padding:2px; color:var(--text-muted); line-height:1;
   }
 
+  /* Masterclass index rows. Secondary/navigational, so they follow the
+     .reorder-btn side of the two-tier hierarchy in HANDOFF §9 — flat with a
+     border, no glow. The one matching the active program is the exception
+     and gets the translucent-tint treatment (gradient + tinted border +
+     inset sheen + colored ambient glow) so it reads as "yours" without
+     being promoted to a primary action. */
+  .masterclass-index-btn{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    width:100%; text-align:left; cursor:pointer;
+    padding:12px 14px; margin-bottom:8px; border-radius:var(--radius-md);
+    background:var(--surface2); border:1px solid rgba(255,255,255,0.07);
+    color:var(--text); font-family:'Inter',sans-serif; font-size:13.5px; font-weight:600;
+    letter-spacing:-0.005em;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.04);
+    transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth),
+               box-shadow 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
+  }
+  .masterclass-index-btn:active{ transform:scale(0.98); }
+  .masterclass-index-btn.current{
+    background:linear-gradient(160deg, rgba(91,124,255,0.14), rgba(91,124,255,0.05));
+    border-color:rgba(91,124,255,0.32);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 20px -14px rgba(91,124,255,0.45);
+  }
+  .masterclass-index-btn .mc-index-meta{
+    display:inline-flex; align-items:center; gap:6px; flex:0 0 auto;
+    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.4px;
+    color:var(--text-muted);
+  }
+  .masterclass-index-btn.current .mc-index-meta{ color:var(--plate-blue); }
+
   /* ==================================================================
      POLISH LAYER
      Appended last on purpose: everything here is meant to win the cascade
@@ -2815,9 +2846,19 @@
   </div>
 
   <div id="learnView" style="display:none">
+    <!-- Masterclass index. Every masterclass card below is gated on the
+         active program, which meant 12 of the 13 were unreachable without
+         switching programs — the richest content in the app, effectively
+         hidden. This card is the door to all of them. -->
+    <div class="card">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 A2 2 0 0 1 5 3 H9.5 V17 H5 A2 2 0 0 0 3 18.5 Z"/><path d="M17 4.5 A2 2 0 0 0 15 3 H10.5 V17 H15 A2 2 0 0 1 17 18.5 Z"/></svg></span>All Masterclasses</div>
+      <div class="history-hint">Every discipline's deep-dive, not just the one matching your current program. Tap any to open it.</div>
+      <div id="masterclassIndex"></div>
+    </div>
+
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.6" cy="8.6" r="6"/><line x1="13" y1="13" x2="17.8" y2="17.8"/></svg></span>Exercise Library</div>
-      <div class="history-hint">Search all 256 exercises by name — technique cues and a form-video link for anything in the library, regardless of which program it's normally used in.</div>
+      <div class="history-hint" id="exerciseLibraryHint">Search the exercise library by name — technique cues and a form-video link for anything in the library, regardless of which program it's normally used in.</div>
       <input type="text" id="exerciseSearchInput" class="care-input" placeholder="Search exercises… e.g. squat, plank, jab">
       <div id="exerciseSearchResults"></div>
     </div>
@@ -3454,13 +3495,42 @@ if(!activeUserId){
 // exercise needs a matching entry in exerciseInfo + EXERCISE_MOVE below (or it
 // just won't show a technique panel/icon — not a crash).
 const programs = {
+  // VERIFIED against concurrent strength+hypertrophy literature, and one real
+  // mismatch was found and fixed.
+  //
+  // As originally written, every exercise in this program — including on the
+  // two days labelled "Strength" — fell in the hypertrophy or endurance rep
+  // tier. Nothing was prescribed in the strength range at all, so a program
+  // named "Strength & Size" delivered size twice.
+  //
+  // That had a concrete downstream effect specific to this app:
+  // getDefaultRestSeconds() derives rest from getRepRangeTier(), so the main
+  // compound on a "Strength" day was being given 150s rest rather than the
+  // 240s the strength tier assigns. The prescription and the rest timer were
+  // both quietly wrong in the same direction.
+  //
+  // Fixed by moving only the FIRST compound of each strength day into the
+  // strength range. ACSM 2026 (Currier et al.) puts the strength
+  // prescription at >=80% 1RM for 2-3 sets with key lifts placed early in
+  // the session; 4-6 reps sits around 85% 1RM where 6-8 sits nearer 75%.
+  // Everything after it stays in the hypertrophy range on purpose — that
+  // contrast between one heavy compound and higher-rep accessory work is
+  // what makes this a concurrent program rather than two hypertrophy days
+  // with a different label.
+  //
+  // Deliberately NOT changed: the accessory rep ranges. Klemp & Zourdos
+  // (J Strength Cond Res, volume-equated DUP study) found high- and low-rep
+  // schemes produced similar strength and hypertrophy when volume was
+  // matched, so re-tiering accessories would add churn without evidence
+  // behind it. Volume is the driver; the rep range on the main lift is here
+  // for specificity and for the rest prescription it triggers.
   strength: {
     label: 'Strength & Size', short: 'Upper/lower strength + hypertrophy',
     days: {
       d1: {
         label:'Day 1', sub:'Upper · Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
         exercises:[
-          {name:'Bench Press', sets:'4×6-8'},
+          {name:'Bench Press', sets:'4×4-6'},
           {name:'Barbell Row', sets:'4×6-8'},
           {name:'Overhead Press', sets:'3×8-10'},
           {name:'Lat Pulldown', sets:'3×10-12'},
@@ -3471,7 +3541,7 @@ const programs = {
       d2: {
         label:'Day 2', sub:'Lower · Strength', plate:'p-blue', plateNum:'20', duration:'~55 min',
         exercises:[
-          {name:'Squat', sets:'4×6-8'},
+          {name:'Squat', sets:'4×4-6'},
           {name:'Romanian Deadlift', sets:'3×8-10'},
           {name:'Leg Press', sets:'3×10-12'},
           {name:'Leg Curl', sets:'3×10-12'},
@@ -3567,12 +3637,30 @@ const programs = {
           {name:'Calf Raise', sets:'4×15'},
         ]
       },
+      // Day 6 restructured against the ACSM 2026 Position Stand (Currier et
+      // al., Med Sci Sports Exerc) — the first update to this guidance in 17
+      // years, pooling 137 systematic reviews over 30,000+ adults. Its
+      // clearest practical finding is that training each major muscle group
+      // at least twice a week matters more than any refinement of the split.
+      //
+      // As originally written this was a classic once-per-week bro split:
+      // back, legs and posterior chain each got a single weekly session,
+      // while arms were hit across four days for ~28 weekly sets — well
+      // above the 8-16 landmark this app already uses, and far above what
+      // back (11) or posterior chain (6, below its own 8-set floor) received.
+      //
+      // Two of the four redundant arm isolations are swapped for one back
+      // and one hamstring exposure. This is deliberately volume-neutral: it
+      // does not lengthen the session, it moves sets from the group that had
+      // a surplus to the two that were short, and it takes back and
+      // posterior chain from 1x to 2x weekly frequency. Curls and pushdowns
+      // remain, so the day is still recognisably an arm day.
       d6: {
-        label:'Day 6', sub:'Arms & Conditioning', plate:'p-off', plateNum:'5', duration:'~40 min',
+        label:'Day 6', sub:'Arms, Back Detail & Conditioning', plate:'p-off', plateNum:'5', duration:'~40 min',
         exercises:[
+          {name:'Cable Row', sets:'3×10-12'},
+          {name:'Romanian Deadlift', sets:'3×10-12'},
           {name:'EZ Bar Curl', sets:'3×10-12'},
-          {name:'Skull Crushers', sets:'3×10-12'},
-          {name:'Cable Curl', sets:'3×12-15', superTag:'Superset with next'},
           {name:'Rope Pushdown', sets:'3×12-15'},
           {name:'Incline Walk', sets:'20 min', noWeight:true},
         ]
@@ -3945,6 +4033,15 @@ const programs = {
     }
   },
 
+  // VERIFIED against endurance-specific literature. Polarized training
+  // intensity distribution (Seiler; systematic review PMC11679080) converges
+  // on ~75-80% low-intensity, 0-5% threshold, 15-20% high-intensity as the
+  // distribution that best improves VO2max and work economy, holding for
+  // recreational through elite athletes.
+  // Measured, this program runs 78% low / 11% moderate / 11% high across its
+  // cardio sessions — textbook polarized, and consistent with the Daniels
+  // approach it is named for. Do not add tempo/threshold volume to "fill it
+  // out": the small threshold share is the design, not a gap.
   running: {
     label: 'Running / Endurance', short: 'Jack Daniels-style paced running progression',
     days: {
@@ -4054,6 +4151,31 @@ const programs = {
     }
   },
 
+  // VERIFIED against powerlifting-specific literature rather than the
+  // general-population ACSM stand, because the standards genuinely differ:
+  // powerlifting is driven by specificity and intensity on three competition
+  // lifts, not by weekly hypertrophy volume per muscle group.
+  //
+  // Androulakis-Korakakis et al. (2021, Front Sports Act Living 3:713655)
+  // on minimum effective dose: loads above 80% 1RM at RPE 7.5-9.5, with a
+  // 2-3-1 squat/bench/deadlift weekly frequency, and 1-3 accessories per
+  // powerlift in the ~6-10 rep range at RPE 7-9.
+  // Amdi, Spence, Helms & McGuigan (2026, J Strength Cond Res 40(1):76-89),
+  // a survey of 548 powerlifters, found actual practice averaging 4.25
+  // sessions/week with competition-style squat/bench/deadlift performed
+  // 1.64 / 2.48 / 1.37 times per week at 1-7 reps.
+  //
+  // This program as written sits at squat 2x, bench 2x, deadlift 1x, which
+  // matches both sources on squat and deadlift. Bench is the one variance:
+  // both point toward ~3x. It is left at 2x deliberately — d2 also carries
+  // Close-Grip Bench Press, so bench-pattern exposure is effectively 3x, and
+  // adding a third full competition-bench session would push a 5-day split
+  // past what the accessory work can recover from. Do not "fix" the bench
+  // frequency to 3 without also rebalancing d5.
+  //
+  // Deliberately NOT judged by the >=10-sets-per-muscle hypertrophy target
+  // the bodybuilding program is held to; applying that here would misread
+  // a correctly specific program as under-dosed.
   powerlifting: {
     label: 'Powerlifting', short: 'Max-strength squat, bench & deadlift cycle',
     days: {
@@ -4192,6 +4314,28 @@ const programs = {
     }
   },
 
+  // VERIFIED against older-adult / sarcopenia literature rather than the
+  // general hypertrophy target, which would badly misjudge this program.
+  // Applicable guidance is 2-3 sets of 1-2 MULTIJOINT exercises per major
+  // muscle group at 70-85% 1RM, 2-3x/week, power work optional at 40-60%
+  // (see also Front Physiol 16:1564988, a Bayesian network meta-analysis
+  // putting the effective range at 2-5 sessions/week, 2-8 sets, 10-24 reps —
+  // far wider and lighter than any hypertrophy target).
+  //
+  // By that standard the volume here is appropriate and the twice-weekly
+  // balance work is exactly the right emphasis for fall prevention. One real
+  // gap was found: d5 is labelled "Functional Full-Body" but contained no
+  // upper-body movement at all, leaving upper body trained once per week
+  // against a 2-3x recommendation. Terminal Knee Extension — a single-joint
+  // knee isolation on a day already carrying two lower-body compounds — was
+  // swapped for a Seated Cable Row. Volume-neutral, and it makes the day
+  // match its own label.
+  //
+  // Note for future audits: this program reads as "Core 34 sets/5x" in a
+  // muscle-group volume audit. That is a classification artifact — Bird Dog,
+  // Dead Bug, Cat-Cow, Chin Tucks and Ankle Circles all map to the 'core'
+  // category but are balance and mobility work, not core volume. Do not
+  // "rebalance" on that number.
   senior: {
     label: 'Senior Strength & Balance', short: 'Joint-friendly strength + fall-prevention balance training',
     days: {
@@ -4235,7 +4379,7 @@ const programs = {
           {name:'Sit-to-Stand', sets:'3×8-10', noWeight:true},
           {name:'Step-Up (controlled)', sets:'2×8-10/leg', noWeight:true},
           {name:'Dead Bug', sets:'2×8-10/side', noWeight:true},
-          {name:'Terminal Knee Extension', sets:'2×12-15', noWeight:true},
+          {name:'Seated Cable Row', sets:'2×10-12'},
           {name:'Tibialis Raise', sets:'2×12-15', noWeight:true},
         ]
       },
@@ -4256,6 +4400,11 @@ const programs = {
     }
   },
 
+  // VERIFIED: 83% low / 0% threshold / 17% high intensity, inside the
+  // polarized target band. Note the literature (Front Physiol 2025.1657892)
+  // observes that swimming and cycling in practice often run pyramidal
+  // rather than strictly polarized, so a low-heavy distribution here is
+  // expected rather than a shortfall.
   swimming: {
     label: 'Swimming', short: 'Polarized pool training — easy aerobic base, threshold, and speed work',
     days: {
@@ -4510,6 +4659,17 @@ const programs = {
     }
   },
 
+  // DELIBERATELY NOT polarized, and this will look wrong to any audit that
+  // applies endurance-training distribution to it. Measured, this program is
+  // ~33% low / 22% moderate / 44% high intensity, well outside the 75-80/20
+  // polarized target that running, swimming and cycling are correctly held to.
+  //
+  // That is because Hyrox is a hybrid race format, not an aerobic endurance
+  // sport: the event itself is eight high-intensity functional stations
+  // separated by 1 km runs, so the defining quality is running under
+  // accumulated fatigue rather than aerobic economy at low intensity.
+  // Training it polarized would train the wrong thing. Same category of
+  // mistake as judging the powerlifting program by hypertrophy set volume.
   hyrox: {
     label: 'Hyrox', short: 'Functional fitness racing — running paired with 8 race-specific stations',
     days: {
@@ -8889,21 +9049,58 @@ const exerciseInfo = {
   'Seated Forward Fold': {category:'core', videoQuery:'seated forward fold yoga', cues:['Hinge from your hips, not your lower back — lead with your chest, not your head.','Keep a soft bend in your knees if your hamstrings are tight rather than forcing straight legs.','Let gravity deepen the stretch over time; don\'t bounce or force the fold.']},
   'Butterfly Pose': {category:'core', videoQuery:'butterfly pose yoga stretch', cues:['Soles of your feet together, let your knees drop open and relax toward the floor.','Hinge forward from your hips only as far as feels like a gentle stretch, not strain.','This is a long-hold pose (Yin style) — settle in and breathe rather than actively pulling deeper.']},
   'Sphinx Pose': {category:'core', videoQuery:'sphinx pose yoga backbend', cues:['Forearms flat on the floor, elbows under your shoulders, gently lift your chest.','Keep your lower back relaxed — this is a gentle backbend, not a deep one like cobra.','Hold long and easy; this pose is about opening the chest and spine slowly over time.']},
+  // Programmed twice in Bariatric Rebuilding but had no entry, so it showed
+  // no cues. Framed for post-op rebuilding specifically: the goal at this
+  // stage is sustainable aerobic volume, not intensity.
+  'Brisk Walk / Easy Cardio': {category:'cardio', videoQuery:'brisk walking form technique posture', cues:['Walk at a pace where you could hold a conversation but would rather not sing \u2014 that is the aerobic zone this block is built around.','Stand tall with relaxed shoulders and let the arms swing naturally from the shoulder rather than pumping them.','Build duration before pace. At this stage of rebuilding, consistent easy volume does more than pushing intensity, and it is far kinder to energy levels and joints.']},
+
+  // --- Couples Yoga -----------------------------------------------------
+  // This style shipped with 0 of its 20 poses carrying technique cues,
+  // while Flow and Hot both had 24/24 — so tapping any pose in Couples Yoga
+  // showed nothing at all. Written to the same three-cue shape as the rest
+  // of the library.
+  //
+  // One principle runs through every assisted pose below, and it is the
+  // real safety issue in partner work: the person BEING stretched sets the
+  // depth, never the person assisting. A partner cannot feel where your end
+  // range is, and passive over-pressure is how assisted stretching produces
+  // strains that solo stretching does not. Every cue that involves one
+  // person pressing on another says so explicitly rather than assuming it.
+  'Seated Back-to-Back Breathing': {category:'core', videoQuery:'partner back to back breathing yoga', cues:['Sit cross-legged, spines touching, and let your backs support each other without either of you leaning heavily.','Breathe out of sync at first — feel your partner inhale as you exhale — then gradually let the rhythms meet.','This is the settling-in pose: it synchronises the two of you before anything physical, which is what makes the rest of the session work.']},
+  'Partner Seated Forward Fold (Row)': {category:'core', videoQuery:'partner seated forward fold row yoga', cues:['Sit facing each other, legs wide, soles touching, and take hold of each other\u2019s forearms rather than hands for a more secure grip.','Take turns: one folds forward while the other leans back gently, then reverse. The one folding says when to stop.','Keep the spine long rather than rounding to reach further \u2014 depth is not the goal, a lengthened hamstring and back line is.']},
+  'Double Tree Pose (Hands Joined)': {category:'core', videoQuery:'partner double tree pose yoga', cues:['Stand side by side, hips a forearm apart, and press your inner palms together at chest height for a shared balance point.','Place the outside foot on the inner calf or thigh \u2014 never on the side of the knee joint itself.','Expect to wobble together; the shared hand contact means one person\u2019s correction becomes the other\u2019s, which is the whole point of the pose.']},
+  'Partner Twist (Seated, Facing)': {category:'core', videoQuery:'partner seated spinal twist yoga', cues:['Sit cross-legged back to back, inhale to lengthen upward, then twist in opposite directions and take hold of each other\u2019s opposite knee.','Let the twist come from the mid-back rather than yanking with the arms \u2014 the hands are a reference point, not a lever.','Unwind slowly and repeat the other way so both sides get equal time.']},
+  'Partner Boat Pose (Feet-to-Feet)': {category:'core', videoQuery:'partner boat pose yoga couples', cues:['Sit facing each other, knees bent, and press the soles of your feet together before lifting anything.','Take each other\u2019s hands on the outside of your legs, then walk the feet up together until the legs straighten as far as both of you can hold.','Keep the chest lifted and the spine long; if either back starts rounding, bend the knees rather than fighting for straight legs.']},
+  'Partner Plank (Facing, Hand-to-Wrist)': {category:'core', videoQuery:'partner plank hand to wrist yoga', cues:['Set up in forearm plank facing each other, close enough to clasp wrist-to-wrist rather than hand-to-hand.','Brace the ribs down and glutes on \u2014 the shared grip means any sag in one of you pulls on the other.','Come down together on an agreed count rather than one person quitting first and dropping the other\u2019s support.']},
+  'Partner Chair Pose (Back-to-Back)': {category:'core', videoQuery:'partner chair pose back to back yoga', cues:['Stand back to back, press your upper backs together, and walk the feet forward as you slide down into a seated shape.','Push evenly into each other \u2014 this pose only holds if the pressure is mutual, which is what lets you sit lower than you could alone.','Keep the knees tracking over the toes and stop before they pass the toes; come up on a shared count.']},
+  'Standing Counterbalance Lean': {category:'core', videoQuery:'partner counterbalance lean yoga', cues:['Face each other, toes almost touching, grip forearm to forearm, then lean back slowly with straight arms until your weight is genuinely shared.','Keep the whole body in one line and the hips underneath you rather than piking at the waist.','Trust builds gradually here \u2014 start with a shallow lean and only go further once both of you feel the counterweight holding.']},
+  'Assisted Seated Forward Fold': {category:'core', videoQuery:'assisted seated forward fold partner yoga', cues:['One partner sits with legs extended and folds forward; the other kneels behind and rests their hands flat on the upper back, not the neck or lower back.','The person assisting applies gentle, steady pressure only \u2014 no bouncing, no pushing through resistance, and they release the instant they are asked to.','The person folding controls the depth and says when to stop. A partner cannot feel where your end range is, so it has to be spoken.']},
+  'Assisted Pigeon Pose (Gentle Press)': {category:'core', videoQuery:'assisted pigeon pose partner yoga', cues:['Set up in pigeon with the front shin angled comfortably and hips square; the assisting partner places light hands on the sacrum and the same-side shoulder.','Pressure stays gentle and downward into the hip, never twisting \u2014 and it comes off immediately on request.','This is one of the easiest poses to overdo with a partner. Sharp or pinching sensation in the front knee or groin means come out, not breathe through it.']},
+  'Partner Spinal Twist (Assisted)': {category:'core', videoQuery:'assisted supine spinal twist partner yoga', cues:['Lie on your back, draw one knee across the body, and let the assisting partner rest one hand on the outer knee and one on the opposite shoulder.','The hands hold the position rather than deepen it \u2014 the person being twisted controls the depth and says when to stop, and the partner releases the moment they are asked.','Keep both shoulders heading toward the floor; if the far shoulder lifts, the twist is already deep enough.']},
+  'Assisted Shoulder Opener': {category:'core', videoQuery:'assisted shoulder opener partner stretch yoga', cues:['Sit cross-legged with hands interlaced behind the head; the partner stands behind and takes hold of the elbows, drawing them gently outward and back.','Open only to mild stretch across the chest and front shoulder \u2014 shoulders take badly to being levered past their range by someone else.','Any tingling, numbness or nerve-like sensation down the arm means stop straight away rather than easing off slightly.']},
+  'Double Downward Dog (Stacked)': {category:'core', videoQuery:'double downward dog partner yoga acro', cues:['The base sets a solid downward dog first; the top partner places their hands well forward and walks their feet up onto the base\u2019s hips \u2014 hips, not the lower back.','The base pushes the floor away and keeps the spine long throughout; if their back starts to round, the top comes down.','Come out one foot at a time under control rather than jumping off, and agree who calls the exit before you start.']},
+  'Partner Warrior II Flow (Mirrored)': {category:'core', videoQuery:'partner warrior two mirrored yoga', cues:['Stand facing each other in Warrior II with front feet nearly touching and front-hand palms lightly connected.','Front knee tracks over the ankle, back foot stays grounded on its outer edge, and both of you move on the same breath count.','Mirroring is the point \u2014 watching your partner\u2019s alignment tends to correct your own faster than watching yourself.']},
+  'Partner Tree Pose (Hand-Assisted)': {category:'core', videoQuery:'partner tree pose hand assisted yoga', cues:['Face each other about an arm\u2019s length apart and join palms overhead or at chest height as a light steadying point.','Foot goes to the inner calf or inner thigh, never against the knee, and the standing leg stays active rather than locked out.','Use the shared hands for balance feedback, not to hold each other up \u2014 the contact should be light enough that either of you could let go.']},
+  'Synchronized Sun Salutation': {category:'core', videoQuery:'partner synchronized sun salutation yoga', cues:['Set up on mats side by side and agree one breath count for the round before you begin.','Move on the breath, not on the pose \u2014 whoever is faster slows to the shared pace rather than the slower one rushing.','Four rounds is enough to build real warmth; treat the first as a rehearsal for the timing and let the rest flow from it.']},
+  'Synchronized Breathing (Seated)': {category:'core', videoQuery:'synchronized partner breathing meditation', cues:['Sit facing each other or back to back, close the eyes, and simply notice your own breath for the first thirty seconds.','Gradually match your partner\u2019s rhythm \u2014 whoever is breathing more slowly sets the pace, since chasing a faster rhythm defeats the purpose.','Aim for a longer exhale than inhale; that ratio is what actually shifts the nervous system toward recovery.']},
+  'Partner Supported Child\'s Pose': {category:'core', videoQuery:'supported childs pose partner yoga restorative', cues:['One partner settles into child\u2019s pose with knees wide and forehead down; the other rests gently back-to-back on top, weight spread rather than concentrated.','The person underneath says how much weight is welcome, and the one on top comes off immediately when asked.','Swap after the set so both of you get the supported version \u2014 it is the more restorative of the two roles.']},
+  'Legs-Up-The-Wall (Side-by-Side)': {category:'core', videoQuery:'legs up the wall partner restorative yoga', cues:['Lie side by side with hips close to the wall and legs extended up it, close enough that hands can rest together if you want.','Let the legs be completely passive \u2014 this is drainage and downshifting, not a hamstring stretch.','Five to ten minutes is where the recovery effect actually lands; cutting it to one or two mostly wastes the pose.']},
+  'Partner Savasana (Hand Connection)': {category:'core', videoQuery:'partner savasana hand connection yoga', cues:['Lie flat side by side, palms up, with just the backs of the hands or fingertips touching.','Let every deliberate effort go, including the effort of staying synchronised \u2014 breathing apart here is fine.','Give it the full five to ten minutes. Savasana is where the session consolidates, and it is the pose most often cut short.']},
   'Legs-Up-The-Wall': {category:'core', videoQuery:'legs up the wall yoga restorative', cues:['Scoot your hips close to a wall, extend your legs straight up it, arms relaxed at your sides.','Close your eyes and breathe slowly — this is a passive recovery pose, not an active stretch.','Great for tired legs and calming the nervous system after a hard training day.']},
   'Corpse Pose (Savasana)': {category:'core', videoQuery:'savasana relaxation technique', cues:['Lie flat, arms slightly away from your body, palms up, legs relaxed and slightly apart.','Let every muscle go — this is the pose where the actual physiological benefit of your practice consolidates.','Stay for at least a few minutes; resist the urge to skip this one, it matters as much as the poses before it.']},
   'Pendulum Swings': {category:'core', videoQuery:'pendulum swing shoulder rehab exercise', cues:['Lean forward, let your arm hang loosely, use your body — not the arm — to create a small swinging or circular motion.','Keep the shoulder completely relaxed; this is passive motion, not an active exercise.','A classic early-stage rehab drill used to maintain shoulder motion without loading an irritated joint.']},
-  'Isometric Shoulder Hold': {category:'core', cues:['Press your arm gently into a wall or your other hand in a pain-free direction, hold without moving.','Use light, submaximal effort — this should never reproduce sharp pain.','Isometric holds are typically the safest way to keep a joint loaded early in a rehab timeline.']},
+  'Isometric Shoulder Hold': {category:'core', videoQuery:'isometric shoulder hold rehab exercise', cues:['Press your arm gently into a wall or your other hand in a pain-free direction, hold without moving.','Use light, submaximal effort — this should never reproduce sharp pain.','Isometric holds are typically the safest way to keep a joint loaded early in a rehab timeline.']},
   'Band External Rotation': {category:'core', videoQuery:'band external rotation rehab technique', cues:['Elbow tucked at your side and bent 90°, rotate your forearm outward against light band resistance.','Keep the movement slow and controlled through a pain-free range only.','Targets the rotator cuff — one of the most common areas needing rehab after a shoulder injury.']},
-  'Scapular Retraction': {category:'core', cues:['Squeeze your shoulder blades together and slightly down, hold briefly, then release.','Keep your neck and upper traps relaxed — the movement should come from your mid-back.','Rebuilds the scapular stability that often gets lost after a shoulder injury.']},
-  'Pelvic Tilt': {category:'core', cues:['Lie on your back, knees bent, gently flatten your lower back into the floor by tilting your pelvis.','Small, controlled movement — this is about awareness and control, not range of motion.','One of the gentlest possible ways to reintroduce safe lower back movement.']},
+  'Scapular Retraction': {category:'core', videoQuery:'scapular retraction squeeze exercise form', cues:['Squeeze your shoulder blades together and slightly down, hold briefly, then release.','Keep your neck and upper traps relaxed — the movement should come from your mid-back.','Rebuilds the scapular stability that often gets lost after a shoulder injury.']},
+  'Pelvic Tilt': {category:'core', videoQuery:'posterior pelvic tilt exercise technique', cues:['Lie on your back, knees bent, gently flatten your lower back into the floor by tilting your pelvis.','Small, controlled movement — this is about awareness and control, not range of motion.','One of the gentlest possible ways to reintroduce safe lower back movement.']},
   'Quad Set': {category:'core', videoQuery:'quad set exercise knee rehab', cues:['Sit or lie with your leg straight, tighten your thigh muscle to press the back of your knee down.','Hold a few seconds, relax, repeat — no joint movement required.','Often one of the very first exercises given after a knee injury, since it rebuilds quad activation without stressing the joint.']},
-  'Straight Leg Raise': {category:'core', cues:['Lying down, tighten your quad, lift the leg straight up to about hip height with the knee locked.','Keep your lower back flat on the floor — don\'t arch to compensate.','A standard next step after quad sets, building strength without bending the injured knee.']},
+  'Straight Leg Raise': {category:'core', videoQuery:'straight leg raise rehab exercise form', cues:['Lying down, tighten your quad, lift the leg straight up to about hip height with the knee locked.','Keep your lower back flat on the floor — don\'t arch to compensate.','A standard next step after quad sets, building strength without bending the injured knee.']},
   'Terminal Knee Extension': {category:'core', videoQuery:'terminal knee extension band technique', cues:['Loop a band around something stable at knee height, step back to create tension, slight bend in the knee.','Straighten the knee fully against the band\'s resistance, then return with control.','Focuses on the last few degrees of knee extension, often the weakest range after injury.']},
-  'Step-Up (controlled)': {category:'lunge', cues:['Use a low, stable step — much lower than a normal training step-up.','Move slowly and with total control in both directions, focusing on stability, not speed or height.','Rebuilds functional single-leg strength gradually as the knee tolerates load.']},
+  'Step-Up (controlled)': {category:'lunge', videoQuery:'controlled step up exercise technique', cues:['Use a low, stable step — much lower than a normal training step-up.','Move slowly and with total control in both directions, focusing on stability, not speed or height.','Rebuilds functional single-leg strength gradually as the knee tolerates load.']},
   'Clamshell': {category:'core', videoQuery:'clamshell exercise hip rehab', cues:['Lie on your side, knees bent, feet together, open your top knee like a clamshell while keeping feet touching.','Keep your hips stacked and stable — don\'t let your pelvis roll back.','Targets the hip stabilizers that are often weak and linked to knee and lower back issues.']},
-  'Ankle Circles': {category:'core', cues:['Slowly rotate your ankle through its full comfortable range in each direction.','Keep the motion slow and controlled, well within a pain-free range.','A simple, low-load way to maintain ankle mobility during recovery.']},
-  'Single-Leg Balance': {category:'core', cues:['Stand on one leg, use a wall or chair for support if needed.','Keep a soft knee and engage your core for stability.','Rebuilds the proprioception (joint position sense) that\'s often lost after an ankle or knee injury.']},
-  'Walking': {category:'cardio', cues:['Keep a pace that feels easy and pain-free the whole time.','Stop or shorten the walk if you notice pain increasing rather than easing.','One of the most underrated rehab tools — low-impact movement that supports healing without overloading the area.']},
+  'Ankle Circles': {category:'core', videoQuery:'ankle circles mobility exercise', cues:['Slowly rotate your ankle through its full comfortable range in each direction.','Keep the motion slow and controlled, well within a pain-free range.','A simple, low-load way to maintain ankle mobility during recovery.']},
+  'Single-Leg Balance': {category:'core', videoQuery:'single leg balance exercise progression', cues:['Stand on one leg, use a wall or chair for support if needed.','Keep a soft knee and engage your core for stability.','Rebuilds the proprioception (joint position sense) that\'s often lost after an ankle or knee injury.']},
+  'Walking': {category:'cardio', videoQuery:'walking gait posture technique', cues:['Keep a pace that feels easy and pain-free the whole time.','Stop or shorten the walk if you notice pain increasing rather than easing.','One of the most underrated rehab tools — low-impact movement that supports healing without overloading the area.']},
   'Diaphragmatic Breathing': {category:'core', videoQuery:'diaphragmatic breathing technique', cues:['Lie down, one hand on your chest, one on your belly, breathe so your belly rises more than your chest.','Slow, controlled breaths — inhale through the nose, exhale slowly through the mouth.','Helps downregulate the nervous system, which supports pain management and recovery.']},
   'Wrist Flexor Stretch': {category:'core', cues:['Extend your arm with palm facing up, gently pull your fingers back with your other hand.','You should feel a mild stretch along the inside of your forearm, not pain.','Hold gently and release slowly — don\'t force the range.']},
   'Wrist Extensor Stretch': {category:'core', cues:['Extend your arm with palm facing down, gently pull your hand down and back with your other hand.','You should feel a mild stretch along the top of your forearm.','Hold gently for a slow count, breathe normally throughout.']},
@@ -9903,6 +10100,78 @@ async function isDeloadWeek(){
 // Maps a program to its Learn-tab masterclass card, so a button can be shown
 // right where you're already looking at that program — otherwise there's no
 // way to know a masterclass exists at all short of manually checking Learn.
+// Every masterclass card, keyed by its DOM id. PROGRAM_MASTERCLASS maps
+// 16 program keys onto these, but several programs share a card
+// (strength/powerlifting/powerbuilding all use the strength fundamentals;
+// calisthenics/bodyweight share one), so there are 13 distinct
+// masterclasses, not 16.
+//
+// This exists because each card's own toggle*Card() function is gated on
+// the active program — correct for the automatic behaviour, but it left
+// every other masterclass unreachable. The index below opens any of them
+// on demand without touching that gating.
+const MASTERCLASS_LIBRARY = {
+  posingCard:               {label:'Posing Practice',                        render:()=>renderPosingClasses()},
+  swimStylesCard:           {label:'Swimming Styles',                        render:()=>renderSwimStyles()},
+  climbTechniquesCard:      {label:'Climbing Techniques',                    render:()=>renderClimbTechniques()},
+  combatTechniquesCard:     {label:'Combat Techniques',                      render:()=>renderCombatTechniques()},
+  grappleTechniquesCard:    {label:'Grappling Positions',                    render:()=>renderGrappleTechniques()},
+  olyTechniquesCard:        {label:'Olympic Lifting Technique',              render:()=>renderOlyTechniques()},
+  strengthTechniquesCard:   {label:'Strength Training Fundamentals',         render:()=>renderStrengthTechniques()},
+  runningTechniquesCard:    {label:'Running Form Fundamentals',              render:()=>renderRunningTechniques()},
+  hyroxTechniquesCard:      {label:'Hyrox Fundamentals',                     render:()=>renderHyroxTechniques()},
+  pilatesTechniquesCard:    {label:'Pilates Fundamentals',                   render:()=>renderPilatesTechniques()},
+  yogaTechniquesCard:       {label:'Yoga Pose Fundamentals',                 render:()=>renderYogaTechniques()},
+  calisthenicsTechniquesCard:{label:'Calisthenics & Bodyweight Fundamentals',render:()=>renderCalisthenicsTechniques()},
+  cyclingTechniquesCard:    {label:'Cycling Fundamentals',                   render:()=>renderCyclingTechniques()},
+};
+
+// Opens a masterclass regardless of which program is active. Deliberately
+// only ever reveals — it never hides a card the program gating has shown,
+// so browsing can't take away what the active program legitimately put there.
+function openMasterclass(cardId){
+  const entry = MASTERCLASS_LIBRARY[cardId];
+  const card = document.getElementById(cardId);
+  if(!entry || !card) return;
+  card.style.display = '';
+  try{ entry.render(); }catch(e){}
+  // Two frames so the newly-shown card has been laid out before we measure
+  // where to scroll — same pattern the "View in Learn" deep link uses.
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=> card.scrollIntoView({behavior:'smooth', block:'start'}));
+  });
+}
+
+function renderMasterclassIndex(){
+  const el = document.getElementById('masterclassIndex');
+  if(!el) return;
+  // Which card the current program already surfaces, so it can be marked
+  // rather than duplicated — the person shouldn't have to work out which of
+  // thirteen entries is the one they're already training.
+  const mine = (PROGRAM_MASTERCLASS[activeProgram] || {}).cardId;
+  el.innerHTML = Object.keys(MASTERCLASS_LIBRARY).map(cardId=>{
+    const isMine = cardId === mine;
+    return `<button class="masterclass-index-btn${isMine ? ' current' : ''}" data-card="${cardId}">
+      <span>${escapeHtml(MASTERCLASS_LIBRARY[cardId].label)}</span>
+      <span class="mc-index-meta">${isMine ? 'In your program' : ''}<span class="ex-chevron">\u203a</span></span>
+    </button>`;
+  }).join('');
+  el.querySelectorAll('.masterclass-index-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> openMasterclass(btn.dataset.card));
+  });
+}
+
+// The library count was hardcoded as "256 exercises" in the Learn tab's
+// copy while exerciseInfo had grown past that — the same silent drift the
+// handoff flags for masterclass counts. Derived at runtime so it can't
+// go stale again.
+function renderExerciseLibraryHint(){
+  const el = document.getElementById('exerciseLibraryHint');
+  if(!el) return;
+  const n = Object.keys(exerciseInfo).length;
+  el.textContent = `Search all ${n} exercises by name — technique cues and a form-video link for anything in the library, regardless of which program it's normally used in.`;
+}
+
 const PROGRAM_MASTERCLASS = {
   bodybuilding: {cardId:'posingCard', label:'Posing Practice'},
   swimming:     {cardId:'swimStylesCard', label:'Swimming Styles'},
@@ -17713,6 +17982,9 @@ async function restoreActiveView(){
   if(savedView === 'history'){ renderHistory(); renderSavedWeeks(); renderPrTimeline(); }
   if(savedView === 'care'){ renderCare(); populateCareLibrarySelector(); }
   if(savedView === 'coach') renderCoach();
+  // Learn was absent from this list, so reopening the app on that tab left
+  // the masterclass index empty until the person navigated away and back.
+  if(savedView === 'learn'){ renderMasterclassIndex(); renderExerciseLibraryHint(); }
 }
 
 document.getElementById('tipsToggle').addEventListener('click', ()=>{
@@ -17725,9 +17997,29 @@ document.getElementById('tipsToggle').addEventListener('click', ()=>{
   btn.textContent = isOpen ? 'Show less' : `Show ${remaining} more`;
 });
 
-document.getElementById('navToday').addEventListener('click', ()=> switchView('today'));
+// Analysis/History/Care/Coach all re-render on switch; Today and Log were
+// the two that didn't, and they are the two whose contents most often go
+// stale from activity on the *other* tab. Logging a meal on the Nutrition
+// tab calls renderFoodLog()/renderFoodItems() but never touched Today's
+// aggregates, so the hydration nudge, the deficit warning and the streak
+// could all still be showing figures computed before the meal existed.
+//
+// Only the cross-domain aggregates are refreshed here, not renderWorkout()
+// — the session itself doesn't change because you logged food, and
+// rebuilding it on every tap would drop expanded-card and scroll state for
+// no benefit.
+document.getElementById('navToday').addEventListener('click', ()=>{
+  switchView('today');
+  renderStreak();
+  renderTodayInsights();
+});
 
-document.getElementById('navLog').addEventListener('click', ()=> switchView('log'));
+document.getElementById('navLog').addEventListener('click', ()=>{
+  switchView('log');
+  // Re-reads the day's food log so macro bars reflect anything logged from
+  // elsewhere (Snap a Meal, Describe It, the coach's suggestions).
+  loadFoodLog();
+});
 
 document.getElementById('navAnalysis').addEventListener('click', ()=>{
   switchView('analysis');
@@ -17753,6 +18045,10 @@ document.getElementById('navCoach').addEventListener('click', ()=>{
 });
 
 document.getElementById('navLearn').addEventListener('click', ()=>{
+  // Learn was the one tab with no refresh at all. The index has to re-render
+  // on entry so the "In your program" marker follows a program switch.
+  renderMasterclassIndex();
+  renderExerciseLibraryHint();
   switchView('learn');
 });
 
@@ -18508,44 +18804,173 @@ function showApiKeySetup(){
   document.getElementById('aiSettingsSummary').textContent = 'Powers Snap a Meal + Coaching video review';
 }
 
+// --- Shared Anthropic transport ----------------------------------------
+// callClaudeVision and callClaudeChat previously carried their own
+// near-identical copies of the fetch/timeout/error-extraction dance, which
+// meant any fix to one silently didn't apply to the other. Both now route
+// through here.
+//
+// Retry exists because the two most common real-world failures on this API
+// are transient and were previously fatal: 429 (rate limited) and 529
+// (temporarily overloaded). Before this, hitting either lost the user's
+// request entirely — the meal they photographed, the form video they
+// recorded — with a raw API error where a second attempt would usually
+// have succeeded.
+//
+// Deliberately NOT retried: 400/401/403/404. A malformed request or a bad
+// API key fails identically every time; retrying only makes the user wait
+// longer for the same answer. The timeout abort is also not retried — that
+// is the user's own deadline, and silently doubling it is not ours to do.
+// --- AI result cache ----------------------------------------------------
+// The cheapest API call is the one that never happens. Several AI features
+// here are re-runnable buttons over slow-moving data: tapping "Analyze"
+// twice in a row, or once today and again an hour later having logged
+// nothing new, previously sent an identical request and billed for an
+// identical answer.
+//
+// This caches a result against a fingerprint of the exact inputs that
+// produced it. Same inputs, same prompt version -> the stored answer is
+// returned and no request is made at all.
+//
+// Why not prompt caching (cache_control) instead? It was measured rather
+// than assumed: Anthropic's minimum cacheable block is 1024 tokens, and the
+// stable, non-volatile portion of this app's largest system prompt (the
+// coach's) is roughly 244 tokens. A cache_control marker on a block that
+// small is silently ignored — cache_creation and cache_read both come back
+// zero — so it would have been a placebo. Worse, if a prefix that *does*
+// meet the threshold changes between calls, the 1.25x write premium is paid
+// every time with no read ever landing, which costs more than not caching.
+// Result caching has neither problem: it is exact, local, and free.
+//
+// PROMPT_VERSION is bumped by hand whenever a prompt's wording changes, so
+// edits to a prompt invalidate every answer produced by the older wording
+// rather than serving a stale reply that the current prompt would not give.
+const AI_PROMPT_VERSION = 1;
+
+// A small, stable, order-independent fingerprint. Not cryptographic — it
+// only needs to change reliably when the inputs change.
+function aiFingerprint(parts){
+  const str = AI_PROMPT_VERSION + '|' + parts.filter(Boolean).join('|');
+  let h1 = 0x811c9dc5, h2 = 0x01000193;
+  for(let i = 0; i < str.length; i++){
+    const c = str.charCodeAt(i);
+    h1 = ((h1 ^ c) * 16777619) >>> 0;
+    h2 = ((h2 + c) * 2654435761) >>> 0;
+  }
+  return h1.toString(36) + h2.toString(36) + '-' + str.length;
+}
+
+// maxAgeMs guards against an answer outliving its usefulness even when the
+// inputs happen to be byte-identical — a week-old "push harder" read is
+// worth re-deriving. Default 12h.
+async function aiCachedCall(feature, fingerprint, fn, maxAgeMs){
+  const key = 'ai-cache:' + feature;
+  const maxAge = maxAgeMs || 12 * 60 * 60 * 1000;
+  try{
+    const res = await window.storage.get(key);
+    if(res && res.value){
+      const hit = JSON.parse(res.value);
+      if(hit.fp === fingerprint && (Date.now() - hit.at) < maxAge){
+        return {result: hit.result, cached: true};
+      }
+    }
+  }catch(e){}
+
+  const result = await fn();
+  try{
+    await window.storage.set(key, JSON.stringify({fp: fingerprint, result, at: Date.now()}));
+  }catch(e){}   // a full quota must never break the feature itself
+  return {result, cached: false};
+}
+
+const AI_RETRY_STATUSES = [429, 529];
+const AI_MAX_ATTEMPTS = 3;
+
+function aiSleep(ms){ return new Promise(r=> setTimeout(r, ms)); }
+
+async function anthropicRequest(apiKey, payload, timeoutMs){
+  let lastErr = null;
+
+  for(let attempt = 1; attempt <= AI_MAX_ATTEMPTS; attempt++){
+    const controller = new AbortController();
+    const timeoutId = setTimeout(()=> controller.abort(), timeoutMs);
+    let response;
+    try{
+      response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      });
+    }catch(err){
+      clearTimeout(timeoutId);
+      // The user's own timeout — surface it, never retry behind their back.
+      if(err.name === 'AbortError'){
+        throw new Error('That took too long to respond — try again.');
+      }
+      // A genuine network blip is worth one more go.
+      lastErr = err;
+      if(attempt < AI_MAX_ATTEMPTS){ await aiSleep(600 * attempt); continue; }
+      throw err;
+    }
+    clearTimeout(timeoutId);
+
+    if(response.ok){
+      const data = await response.json();
+      const textBlock = (data.content || []).find(b=> b.type === 'text');
+      return textBlock ? textBlock.text : '';
+    }
+
+    if(AI_RETRY_STATUSES.includes(response.status) && attempt < AI_MAX_ATTEMPTS){
+      // Honour the server's own backoff instruction when it sends one,
+      // rather than guessing over the top of it.
+      const retryAfter = Number(response.headers.get('retry-after'));
+      const waitMs = Number.isFinite(retryAfter) && retryAfter > 0
+        ? Math.min(retryAfter * 1000, 10000)
+        : 700 * Math.pow(2, attempt - 1);
+      await aiSleep(waitMs);
+      continue;
+    }
+
+    const errBody = await response.json().catch(()=>({}));
+    const apiMsg = errBody && errBody.error && errBody.error.message;
+    // Friendlier phrasing for the handful of statuses a user can actually
+    // do something about; anything else falls through to the API's own text.
+    if(response.status === 401 || response.status === 403){
+      throw new Error('That API key was rejected — check it in "AI Features Setup" on the Today tab.');
+    }
+    if(response.status === 429){
+      throw new Error('Rate limited by the API, and retries didn\'t clear it — give it a minute and try again.');
+    }
+    if(response.status === 529 || response.status >= 500){
+      throw new Error('The API is having trouble right now — try again shortly.');
+    }
+    throw new Error(apiMsg || `API error (${response.status})`);
+  }
+
+  throw lastErr || new Error('Request failed.');
+}
+
 async function callClaudeVision(apiKey, imageBase64List, promptText, maxTokens, model){
   const content = [
     ...imageBase64List.map(b64=>({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data: b64 } })),
     { type:'text', text: promptText },
   ];
-  const controller = new AbortController();
-  const timeoutId = setTimeout(()=> controller.abort(), 60000);
-  let response;
-  try{
-    response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: model || 'claude-sonnet-5',
-        max_tokens: maxTokens || 1024,
-        messages: [{ role:'user', content }],
-      }),
-      signal: controller.signal,
-    });
-  }catch(err){
-    if(err.name === 'AbortError') throw new Error('That took too long to respond — try again, or use a shorter clip.');
-    throw err;
-  }finally{
-    clearTimeout(timeoutId);
-  }
-  if(!response.ok){
-    const errBody = await response.json().catch(()=>({}));
-    throw new Error(errBody?.error?.message || `API error (${response.status})`);
-  }
-  const data = await response.json();
-  const textBlock = data.content.find(b=>b.type==='text');
-  return textBlock ? textBlock.text : '';
+  // 60s rather than the chat path's 45s: vision payloads carry image data
+  // and legitimately take longer, especially the multi-frame form-feedback
+  // and before/after photo-comparison calls.
+  return anthropicRequest(apiKey, {
+    model: model || 'claude-sonnet-5',
+    max_tokens: maxTokens || 1024,
+    messages: [{ role:'user', content }],
+  }, 60000);
 }
+
 
 function fileToBase64(file){
   return new Promise((resolve, reject)=>{
@@ -18719,40 +19144,14 @@ const COACH_PERSONAS_BY_MARTIAL_ART = {
 };
 
 async function callClaudeChat(apiKey, systemPrompt, messages, maxTokens, model){
-  const controller = new AbortController();
-  const timeoutId = setTimeout(()=> controller.abort(), 45000);
-  let response;
-  try{
-    response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: model || 'claude-sonnet-5',
-        max_tokens: maxTokens || 700,
-        system: systemPrompt,
-        messages: messages,
-      }),
-      signal: controller.signal,
-    });
-  }catch(err){
-    if(err.name === 'AbortError') throw new Error('That took too long to respond — try again.');
-    throw err;
-  }finally{
-    clearTimeout(timeoutId);
-  }
-  if(!response.ok){
-    const errBody = await response.json().catch(()=>({}));
-    throw new Error(errBody?.error?.message || `API error (${response.status})`);
-  }
-  const data = await response.json();
-  const textBlock = data.content.find(b=>b.type==='text');
-  return textBlock ? textBlock.text : '';
+  return anthropicRequest(apiKey, {
+    model: model || 'claude-sonnet-5',
+    max_tokens: maxTokens || 700,
+    system: systemPrompt,
+    messages: messages,
+  }, 45000);
 }
+
 
 // A light, honest context snapshot — not a full data dump of every set
 // ever logged (that would balloon token cost and latency for not much
@@ -18767,12 +19166,29 @@ async function callClaudeChat(apiKey, systemPrompt, messages, maxTokens, model){
 // days sessions felt hardest — rather than restating each metric in
 // isolation the way the rule-based cards already do.
 async function buildCrossMetricInsightsContext(){
+
+  // Same concurrency fix as buildCoachChatContext: these sources are
+  // independent of one another and were being scanned one at a time before
+  // the Cross-Metric Insights request could be sent. Started together,
+  // awaited individually. Each carries its own .catch so a single failing
+  // source resolves to null and the surrounding try/catch omits that line,
+  // exactly as it did when the await was inline.
+  // The workout:* key walk is deliberately left inline below — it is a
+  // dependent sequence (list the keys, then read each one), not an
+  // independent source, so there is nothing to overlap.
+  const pcWeights = fetchAllWeightEntries().catch(()=>null);
+  const pcFood    = fetchFoodDays().catch(()=>null);
+  const pcSleep   = fetchSleepEntries().catch(()=>null);
+  const pcWater   = fetchWaterDays().catch(()=>null);
+  const pcRpe     = computeWeeklyRpeAvg(6).catch(()=>null);
+  const pcInjury  = getInjuryLog().catch(()=>null);
+  const pcPRs     = reconstructAllPRs().catch(()=>null);
   const goalLabel = GOAL_LABELS[userProfile?.goal] || userProfile?.goal || 'not set';
   const programLabel = programs[activeProgram].label;
   const lines = [];
 
   try{
-    const entries = await fetchAllWeightEntries();
+    const entries = await pcWeights;
     const sorted = [...entries].sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00')).slice(-16);
     if(sorted.length >= 2){
       const delta = +(sorted[sorted.length-1].weight - sorted[0].weight).toFixed(1);
@@ -18781,7 +19197,7 @@ async function buildCrossMetricInsightsContext(){
   }catch(e){}
 
   try{
-    const foodDays = await fetchFoodDays();
+    const foodDays = await pcFood;
     const recentDates = Object.keys(foodDays).sort().slice(-10);
     if(recentDates.length >= 3){
       const avgCal = Math.round(recentDates.reduce((s,d)=>s+foodDays[d].cal,0)/recentDates.length);
@@ -18792,7 +19208,7 @@ async function buildCrossMetricInsightsContext(){
   }catch(e){}
 
   try{
-    const sleepEntries = await fetchSleepEntries();
+    const sleepEntries = await pcSleep;
     const sorted = [...sleepEntries].sort((a,b)=> new Date(a.date)-new Date(b.date)).slice(-10);
     if(sorted.length >= 3){
       const avg = +(sorted.reduce((s,e)=>s+Number(e.hours),0)/sorted.length).toFixed(1);
@@ -18802,7 +19218,7 @@ async function buildCrossMetricInsightsContext(){
   }catch(e){}
 
   try{
-    const waterDays = await fetchWaterDays();
+    const waterDays = await pcWater;
     const recentDates = Object.keys(waterDays).sort().slice(-10);
     if(recentDates.length >= 3){
       const avgOz = Math.round(recentDates.reduce((s,d)=>s+waterDays[d],0)/recentDates.length);
@@ -18811,7 +19227,7 @@ async function buildCrossMetricInsightsContext(){
   }catch(e){}
 
   try{
-    const weeklyRpe = await computeWeeklyRpeAvg(6);
+    const weeklyRpe = await pcRpe;
     const withData = weeklyRpe.filter(w=>w.avg!=null);
     if(withData.length >= 2){
       lines.push(`Weekly avg RPE, oldest to newest: ${withData.map(w=>w.avg.toFixed(1)).join(' → ')}.`);
@@ -18844,7 +19260,7 @@ async function buildCrossMetricInsightsContext(){
   }catch(e){}
 
   try{
-    const injuryLog = await getInjuryLog();
+    const injuryLog = await pcInjury;
     const recent = [...injuryLog].sort((a,b)=> new Date(a.date)-new Date(b.date)).slice(-10);
     if(recent.length){
       lines.push(`Pain/injury check-ins, oldest to newest, with what was actually logged about each: ${recent.map(e=> `${e.date}: ${e.pain}/10 in ${e.region || 'unspecified region'}${e.exercise ? ` (noted during/after "${e.exercise}")` : ''}${e.sensation ? `, described as ${e.sensation}` : ''}`).join('; ')}.`);
@@ -18852,7 +19268,7 @@ async function buildCrossMetricInsightsContext(){
   }catch(e){}
 
   try{
-    const prs = await reconstructAllPRs();
+    const prs = await pcPRs;
     if(prs.length){
       const recent = prs.slice(0,5).map(p=> `${p.name} ${fmtWeight(p.weight)}${p.reps!=null?`×${p.reps}`:''} (${p.date})`).join(', ');
       lines.push(`Recent PRs: ${recent}.`);
@@ -18879,6 +19295,32 @@ async function generateCrossMetricInsights(){
   try{
     const persona = getCoachPersona();
     const dataContext = await buildCrossMetricInsightsContext();
+
+    // Cross-Metric Insights is, by definition, about interactions BETWEEN
+    // tracked metrics — so with only one or two logged it has nothing to
+    // relate to anything. Previously the button fired the API call anyway:
+    // on an empty log it sent a ~50-character context and billed the
+    // person for a response that could only ever be "MAINTAIN, not enough
+    // data yet". That answer is free, instant, and more useful when the app
+    // gives it directly and names what's actually missing.
+    //
+    // The first line is always the goal/program header, so data lines are
+    // counted from the second onward. Three is the floor: two metrics can
+    // only produce a single pairing, which isn't a "cross-metric" read.
+    const dataLines = dataContext.split('\n').map(l=>l.trim()).filter(Boolean).slice(1);
+    if(dataLines.length < 3){
+      const tracked = {
+        'bodyweight': /bodyweight|weight/i, 'nutrition': /intake|protein|cal/i,
+        'sleep': /sleep/i, 'water': /water/i, 'training effort (RPE)': /rpe|effort/i,
+        'pain check-ins': /pain/i, 'PRs': /pr\b|personal record/i,
+      };
+      const missing = Object.keys(tracked).filter(k=> !tracked[k].test(dataContext));
+      resultEl.innerHTML = `<div class="care-banner care-banner-caution">This one compares your metrics <i>against each other</i>, so it needs a few logged before it can find anything real. Keep logging ${missing.slice(0,3).join(', ')} for a week or so and it'll have something to work with.</div>`;
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+      return;
+    }
+
     const systemPrompt = `You are ${persona}, looking at someone's full training-log data across multiple tracked metrics at once — bodyweight, nutrition, sleep, water, RPE, pain check-ins, and recent PRs.
 
 Your specific job here is different from a normal check-in: find the ACTUAL INTERACTIONS between these metrics, not a list of separate observations. For example: does a low-sleep stretch line up with rising RPE the same week? Does protein intake dropping coincide with volume or intensity increasing (a real recovery-risk combination)? Does water intake lag specifically on days that led into harder sessions? Does a pain check-in cluster around a period of rising RPE or falling sleep? Do pain check-ins tend to show up on or right after specific kinds of training days (e.g. a pattern of knee pain following squat-heavy sessions specifically, not just pain in general)? Only point out a connection if the data genuinely supports it — don't force a correlation that isn't there, and say so plainly if the data doesn't show a clear interaction yet (that's a valid, honest answer, not a failure to find something).
@@ -18888,7 +19330,16 @@ ${dataContext}
 
 Respond in exactly this format. First line only the word PUSH, MAINTAIN, or DELOAD (a genuine recommendation for the next several sessions, based on the actual pattern in the data — not a default; pick DELOAD if RPE is climbing with falling sleep or stalling PRs, PUSH if recovery signals are all genuinely solid and performance is trending up, MAINTAIN if the picture is mixed or there isn't enough data yet to justify either extreme). Then a blank line. Then 2-4 short paragraphs, no headers or markdown: lead with the single most useful interaction you can actually support with the numbers above, and end with 1-2 specific, concrete adjustments tied directly to what you found — not generic advice like "sleep more." If nothing meaningfully correlates yet, say that honestly and note what's still missing, and let that honesty be reflected in a MAINTAIN recommendation rather than guessing.`;
 
-    const reply = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content:'Analyze how my tracked metrics are affecting each other, give me a clear push/maintain/deload call, and tell me what to adjust.'}], 650);
+    // Cross-Metric Insights is the most expensive call in the app (largest
+    // input context, 650 output tokens) over the slowest-moving data. If
+    // nothing has been logged since the last run, the answer cannot
+    // meaningfully differ — so the fingerprint covers the whole data
+    // context and the stored answer is reused instead of re-billed.
+    const {result: reply, cached} = await aiCachedCall(
+      'cross-metric',
+      aiFingerprint([dataContext, persona]),
+      ()=> callClaudeChat(apiKey, systemPrompt, [{role:'user', content:'Analyze how my tracked metrics are affecting each other, give me a clear push/maintain/deload call, and tell me what to adjust.'}], 650)
+    );
     const trimmed = reply.trim();
     const recMatch = trimmed.match(/^(PUSH|MAINTAIN|DELOAD)\s*\n+([\s\S]*)$/i);
     let recHtml = '';
@@ -18901,7 +19352,14 @@ Respond in exactly this format. First line only the word PUSH, MAINTAIN, or DELO
         : {cls:'goal-feedback-neutral', icon:'➡', label:'Maintain — mixed or insufficient signal to justify a change'};
       recHtml = `<div class="${recStyle.cls}" style="font-weight:700; margin-bottom:10px;">${recStyle.icon} ${recStyle.label}</div>`;
     }
-    resultEl.innerHTML = recHtml + `<div class="goal-feedback-neutral">${escapeHtml(narrative).replace(/\n\n/g,'</div><div class="goal-feedback-neutral" style="margin-top:10px;">')}</div>`;
+    // Say so when the answer came from cache. Silently re-showing an
+    // identical analysis reads as the button not working; naming it as
+    // unchanged data is both honest and more informative than a fresh-looking
+    // duplicate would be.
+    const cachedNote = cached
+      ? `<div class="today-insight-row" style="margin-top:10px; opacity:0.75;">Unchanged since the last analysis — nothing new logged, so this is the same read rather than a repeated API call.</div>`
+      : '';
+    resultEl.innerHTML = recHtml + `<div class="goal-feedback-neutral">${escapeHtml(narrative).replace(/\n\n/g,'</div><div class="goal-feedback-neutral" style="margin-top:10px;">')}</div>` + cachedNote;
   }catch(e){
     resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't generate insights right now — ${escapeHtml(e.message || 'try again in a moment.')}</div>`;
   }finally{
@@ -18914,13 +19372,38 @@ document.getElementById('genCrossInsightsBtn').addEventListener('click', generat
 
 async function buildCoachChatContext(){
   const persona = getCoachPersona();
-  const streak = await computeStreak();
+
+  // Every data source below is independent of every other one, but they used
+  // to be awaited one after another — ten full storage scans in series
+  // (weights, food, sleep, water, measurements, pain, PRs, trend status,
+  // streak, deficit check) before the API request could even be sent. On the
+  // most-used AI feature in the app, that is pure dead time the person spends
+  // watching "Thinking…".
+  //
+  // They are all kicked off together here and awaited individually below, so
+  // the wall-clock cost becomes the slowest single scan rather than the sum
+  // of all ten. Each promise carries its own .catch so one failing source
+  // can't reject the whole batch — a rejected fetch resolves to null and the
+  // existing try/catch around each block then simply omits that line, which
+  // is exactly what happened before. Line-building logic is untouched.
+  const pStreak    = computeStreak().catch(()=>0);
+  const pWeights   = fetchAllWeightEntries().catch(()=>null);
+  const pTrend     = getCurrentTrendStatus().catch(()=>null);
+  const pFood      = fetchFoodDays().catch(()=>null);
+  const pSleep     = fetchSleepEntries().catch(()=>null);
+  const pWater     = fetchWaterDays().catch(()=>null);
+  const pMeasure   = fetchAllMeasurements().catch(()=>null);
+  const pPain      = fetchPainDays().catch(()=>null);
+  const pPRs       = reconstructAllPRs().catch(()=>null);
+  const pDeficit   = getDeficitGuardrailInsight().catch(()=>null);
+
+  const streak = await pStreak;
   const goalLabel = GOAL_LABELS[userProfile?.goal] || userProfile?.goal || 'not set';
   const programLabel = programs[activeProgram].label;
 
   let weightLine = '';
   try{
-    const entries = await fetchAllWeightEntries();
+    const entries = await pWeights;
     if(entries.length >= 2){
       const sorted = [...entries].sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
       const first = sorted[0], last = sorted[sorted.length-1];
@@ -18936,14 +19419,14 @@ async function buildCoachChatContext(){
   // chat's own context.
   let trendLine = '';
   try{
-    const trendStatus = await getCurrentTrendStatus();
+    const trendStatus = await pTrend;
     if(trendStatus === 'overreaching') trendLine = `Training load signal: showing signs of overreaching lately (rising effort with no real rest) — worth weighing in if relevant.`;
     else if(trendStatus === 'thriving') trendLine = `Training load signal: recovering and progressing well right now.`;
   }catch(e){}
 
   let nutritionLine = '';
   try{
-    const foodDays = await fetchFoodDays();
+    const foodDays = await pFood;
     const recentDates = Object.keys(foodDays).sort().slice(-7);
     if(recentDates.length >= 3){
       const avgCal = Math.round(recentDates.reduce((s,d)=>s+foodDays[d].cal,0)/recentDates.length);
@@ -18971,7 +19454,7 @@ async function buildCoachChatContext(){
 
   let sleepLine = '';
   try{
-    const sleepEntries = await fetchSleepEntries();
+    const sleepEntries = await pSleep;
     const sorted = [...sleepEntries].sort((a,b)=> new Date(b.date)-new Date(a.date));
     const last7 = sorted.slice(0, 7);
     if(last7.length >= 3){
@@ -18983,7 +19466,7 @@ async function buildCoachChatContext(){
 
   let waterLine = '';
   try{
-    const waterDays = await fetchWaterDays();
+    const waterDays = await pWater;
     const recentDates = Object.keys(waterDays).sort().slice(-7);
     if(recentDates.length >= 3){
       const avgOz = Math.round(recentDates.reduce((s,d)=>s+waterDays[d],0)/recentDates.length);
@@ -19004,7 +19487,7 @@ async function buildCoachChatContext(){
 
   let measureLine = '';
   try{
-    const measureEntries = await fetchAllMeasurements();
+    const measureEntries = await pMeasure;
     const sorted = [...measureEntries].sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
     const withWaist = sorted.filter(e=>e.waist);
     const withArms = sorted.filter(e=>e.arms);
@@ -19022,7 +19505,7 @@ async function buildCoachChatContext(){
 
   let painLine = '';
   try{
-    const painDays = await fetchPainDays();
+    const painDays = await pPain;
     const recentPainDates = Object.keys(painDays).sort().slice(-7);
     if(recentPainDates.length){
       const mostRecent = recentPainDates[recentPainDates.length-1];
@@ -19033,10 +19516,36 @@ async function buildCoachChatContext(){
 
   let prLine = '';
   try{
-    const prs = await reconstructAllPRs();
+    const prs = await pPRs;
     if(prs.length){
       const recent = prs.slice(0, 3).map(p=> `${p.name} ${fmtWeight(p.weight)}${p.reps!=null?`×${p.reps}`:''} (${p.date})`).join(', ');
       prLine = `Most recent PRs: ${recent}.`;
+    }
+  }catch(e){}
+
+  // The two signals the app itself acts on, which the coach previously
+  // could not see. Without these it has the raw numbers but not the app's
+  // own read of them, so it could contradict a warning the person is
+  // looking at on the Today tab in the same moment.
+  let volumeLine = '';
+  try{
+    const adj = goalVolumeAdjustment(userProfile?.goal);
+    if(adj && adj.kind === 'hypertrophy'){
+      volumeLine = `Training volume: the app is adding one set per exercise to their sessions because their goal is muscle gain (ACSM 2026 guidance — hypertrophy is driven mainly by weekly volume, ~10+ sets per muscle group). Factor that in rather than suggesting they add more volume on top without reason.`;
+    } else if(adj && adj.kind === 'strength'){
+      volumeLine = `Training volume: the app is capping compound lifts at 3 working sets because their goal is performance/strength (ACSM 2026 guidance — strength is the heavier, lower-volume prescription at >=80% 1RM). Accessory work is untouched.`;
+    } else if(userProfile?.goal === 'lose' || userProfile?.goal === 'recomp'){
+      volumeLine = `Training volume: deliberately left unchanged despite the deficit. Cutting training volume while eating less is the common instinct and the evidence points the other way — maintaining the stimulus is what protects lean mass. Don't advise reducing volume just because they're cutting.`;
+    }
+  }catch(e){}
+
+  let deficitLine = '';
+  try{
+    const warn = await pDeficit;
+    if(warn){
+      // Stripped of HTML — the coach gets the substance, not the markup
+      // the Today tab renders.
+      deficitLine = `The app is currently showing them this warning on their Today tab: "${warn.replace(/<[^>]+>/g, '')}" — they may well be about to ask about it, and your advice shouldn't contradict it.`;
     }
   }catch(e){}
 
@@ -19052,6 +19561,9 @@ ${weightLine ? '- '+weightLine : ''}
 ${measureLine ? '- '+measureLine : ''}
 ${trendLine ? '- '+trendLine : ''}
 ${nutritionLine ? '- '+nutritionLine : ''}
+${dietLine ? '- '+dietLine : ''}
+${deficitLine ? '- '+deficitLine : ''}
+${volumeLine ? '- '+volumeLine : ''}
 ${sleepLine ? '- '+sleepLine : ''}
 ${waterLine ? '- '+waterLine : ''}
 ${painLine ? '- '+painLine : ''}
@@ -19556,8 +20068,13 @@ const REGION_RELIEF = {
 // Multiple check-ins on the same day are collapsed to that day's worst
 // reported pain, not an average — "how bad did it get today" is more
 // useful to see trending down than a smoothed-out number would be.
-async function fetchPainDays(){
-  const log = await getInjuryLog();
+// preloadedLog lets a caller that has already read the injury log pass it in
+// rather than triggering a second read of the same key. renderCare was doing
+// exactly that: fetching the log for its check-in list, then calling this,
+// which fetched the identical key again — two storage reads and two
+// sequential round trips for one piece of data.
+async function fetchPainDays(preloadedLog){
+  const log = preloadedLog || await getInjuryLog();
   const dayTotals = {};
   log.forEach(entry=>{
     if(entry.pain == null || !entry.date) return;
@@ -19799,7 +20316,8 @@ async function renderCare(){
   const restEl = document.getElementById('restingRegions');
 
   const [log, resting] = await Promise.all([getInjuryLog(), getRestingRegions()]);
-  renderPainTrend(await fetchPainDays());
+  // Reuses the log just fetched above instead of re-reading the same key.
+  renderPainTrend(await fetchPainDays(log));
 
   // Resting regions
   if(resting.length === 0){
@@ -20156,7 +20674,22 @@ async function generateWeeklyRecap(stats){
   const prompt = `You are ${persona}\n\nSomeone just finished a training week and is about to start a fresh one. Here's what was actually logged this week:\n${parts.join('\n')}\n\nWrite a short, honest weekly check-in — 2-4 sentences, conversational, no headers or markdown. Acknowledge what actually happened (don't invent anything not listed above), and give exactly one specific, practical thing to focus on for the coming week. If a stat is missing from the list, don't comment on it — it just wasn't logged, not necessarily skipped.`;
 
   try{
-    return (await callClaudeChat(apiKey, prompt, [{role:'user', content:'Give me my weekly check-in.'}], 300)).trim();
+    // Cached on the week's own stats: archiving the same week twice (a
+    // double-tap, a retry after a failed save) previously billed twice for
+    // an identical recap.
+    //
+    // Haiku rather than Sonnet here, deliberately and narrowly. This call
+    // summarises figures the app has already computed — it is not being
+    // asked to reason about them, diagnose anything, or reconcile competing
+    // signals. That is the one shape of request where the cheaper model is a
+    // genuine like-for-like swap rather than a quality trade.
+    const {result} = await aiCachedCall(
+      'weekly-recap',
+      aiFingerprint([JSON.stringify(stats), prompt]),
+      ()=> callClaudeChat(apiKey, prompt, [{role:'user', content:'Give me my weekly check-in.'}], 300, 'claude-haiku-4-5-20251001'),
+      8 * 24 * 60 * 60 * 1000   // a week's recap shouldn't outlive the week
+    );
+    return (result || '').trim();
   }catch(e){
     return null; // a failed recap should never block saving the week itself
   }
@@ -20196,7 +20729,16 @@ async function generateWeeklyNutritionDigest(stats){
   const prompt = `You are ${persona}\n\nSomeone just finished a training week and is about to start a fresh one. Here's what was actually logged for nutrition this week:\n${parts.join('\n')}\n\nWrite a short, honest weekly nutrition check-in — 2-4 sentences, conversational, no headers or markdown. Acknowledge what actually happened (don't invent anything not listed above, and don't repeat every number back — pick what's actually worth commenting on), and give exactly one specific, practical thing to focus on for the coming week. If logging was sparse (few days logged), that itself is worth a gentle, non-judgmental mention rather than commenting on averages built from very little data. If a stat is missing from the list, don't comment on it — it just wasn't logged, not necessarily skipped.`;
 
   try{
-    return (await callClaudeChat(apiKey, prompt, [{role:'user', content:'Give me my weekly nutrition check-in.'}], 300)).trim();
+    // Same reasoning as generateWeeklyRecap above: a summary of
+    // already-computed averages, cached on the week's stats and served by
+    // the cheaper model.
+    const {result} = await aiCachedCall(
+      'weekly-nutrition-digest',
+      aiFingerprint([JSON.stringify(stats), prompt]),
+      ()=> callClaudeChat(apiKey, prompt, [{role:'user', content:'Give me my weekly nutrition check-in.'}], 300, 'claude-haiku-4-5-20251001'),
+      8 * 24 * 60 * 60 * 1000
+    );
+    return (result || '').trim();
   }catch(e){
     return null; // a failed digest should never block saving the week itself
   }
