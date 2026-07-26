@@ -36,6 +36,22 @@
     --sheen-strong:rgba(255,255,255,0.12);
     --ease-smooth:cubic-bezier(0.4,0,0.2,1);
     --ease-spring:cubic-bezier(0.34,1.4,0.64,1);
+    /* --ease-loop exists so the symmetric easing used by infinite
+       breathing/shimmer/pulse animations is a deliberate, named choice
+       rather than looking like a stray hand-written value. --ease-smooth is
+       intentionally asymmetric (fast out, slow in), which reads as a stutter
+       when it loops; a symmetric curve is correct for anything that repeats
+       forever. Non-looping motion still uses --ease-smooth/--ease-spring. */
+    --ease-loop:cubic-bezier(0.45,0,0.55,1);
+    /* Single source of truth for the keyboard focus ring. An outline colour
+       rather than a box-shadow: many buttons in this app already carry a
+       box-shadow glow as their whole identity (.save-btn, the nav pills, the
+       FABs), and a box-shadow focus ring would replace that glow rather than
+       sit alongside it — the control would visibly lose its depth the moment
+       it was focused. outline composes cleanly, and modern engines trace it
+       around border-radius, so it stays circular on the plate discs and
+       pill-shaped on the nav pills without restating any radius. */
+    --focus-ring-color:rgba(120,150,255,0.95);
     --radius-xs:6px;
     --radius-sm:9px;
     --radius-md:12px;
@@ -44,7 +60,18 @@
     --radius-pill-lg:30px;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
-  html{scroll-behavior:smooth;}
+  html{
+    scroll-behavior:smooth;
+    /* iOS inflates text on rotation into landscape unless this is pinned,
+       which silently breaks every carefully-set font size in the app. */
+    -webkit-text-size-adjust:100%; text-size-adjust:100%;
+    /* Stops a scroll that reaches the end of the page from chaining into the
+       browser's own overscroll/native pull-to-refresh, which was competing
+       with this app's custom pull-to-refresh gesture. */
+    overscroll-behavior-y:contain;
+  }
+  ::selection{ background:rgba(91,124,255,0.32); color:var(--text); }
+  ::-moz-selection{ background:rgba(91,124,255,0.32); color:var(--text); }
   body{
     background:
       radial-gradient(circle at 12% -4%, rgba(91,124,255,0.07), transparent 42%),
@@ -82,8 +109,28 @@
      the app to "zoom in" on typing. Forcing 16px on every form field (even
      ones styled smaller elsewhere) prevents that entirely. */
   input, select, textarea{ font-size:16px !important; }
+  /* Two things every tappable surface in the app needs, previously set on
+     only a couple of elements individually:
+     - tap-highlight-color:transparent removes the grey rectangle mobile
+       Safari/Chrome flash over a tapped control. The app already gives
+       richer feedback via the :active scale, so the flash was pure noise
+       fighting the glass/gradient surfaces underneath it.
+     - touch-action:manipulation drops the ~300ms delay the browser holds
+       waiting to see if a tap is really a double-tap-to-zoom. This is the
+       single biggest perceived-responsiveness win available here; every
+       button in the app was paying that delay. */
+  button, .tab, [role="button"], summary, label, select{
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+  }
+  /* Brand the controls the OS draws for us so they stop rendering in the
+     system's default blue, which clashes with the plate palette. */
+  input[type=checkbox], input[type=radio], input[type=range], progress{ accent-color:var(--plate-blue); }
+  input, textarea{ caret-color:var(--plate-blue); }
   button{ transition:transform 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth), background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth); }
   button:active{ transform:scale(0.96); }
+  button:disabled, button[disabled]{ cursor:default; }
+  button:disabled:active, button[disabled]:active{ transform:none; }
   input, select, textarea{ transition:border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth); }
   input[type=number]{ -moz-appearance:textfield; }
   input[type=number]::-webkit-outer-spin-button,
@@ -598,7 +645,7 @@
     width:36px; flex:0 0 auto; font-size:12px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; text-align:center;
   }
   .set-status-saved{color:var(--plate-green);}
-  .set-status-pr{color:var(--plate-yellow); font-weight:700; animation:pr-pop .4s ease;}
+  .set-status-pr{color:var(--plate-yellow); font-weight:700; animation:pr-pop .4s var(--ease-spring);}
   @keyframes pr-pop{ 0%{transform:scale(0.6);} 60%{transform:scale(1.25);} 100%{transform:scale(1);} }
   .add-set-btn{
     align-self:flex-start; background:none; border:1px dashed var(--line); color:var(--text-muted);
@@ -651,8 +698,8 @@
     -webkit-touch-callout:none; -webkit-user-select:none; user-select:none;
     -webkit-tap-highlight-color:transparent; touch-action:manipulation;
   }
-  .voice-log-btn.listening, .plate-btn.listening{border-color:var(--plate-red); color:var(--plate-red); animation:voiceListenPulse 1s ease-in-out infinite;}
-  .voice-log-btn.processing, .plate-btn.processing{border-color:var(--plate-yellow); color:var(--plate-yellow); animation:voiceProcessingFade 0.6s ease-in-out infinite alternate;}
+  .voice-log-btn.listening, .plate-btn.listening{border-color:var(--plate-red); color:var(--plate-red); animation:voiceListenPulse 1s var(--ease-loop) infinite;}
+  .voice-log-btn.processing, .plate-btn.processing{border-color:var(--plate-yellow); color:var(--plate-yellow); animation:voiceProcessingFade 0.6s var(--ease-loop) infinite alternate;}
   @keyframes voiceProcessingFade{ from{opacity:0.55;} to{opacity:1;} }
   @keyframes voiceListenPulse{ 0%,100%{opacity:1;} 50%{opacity:0.5;} }
   .plate-result{
@@ -1299,7 +1346,7 @@
   }
   .coach-progress-fill::after{
     content:''; position:absolute; inset:0; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    animation:coachProgressShimmer 1.4s ease-in-out infinite;
+    animation:coachProgressShimmer 1.4s var(--ease-loop) infinite;
   }
   @keyframes coachProgressShimmer{ 0%{transform:translateX(-100%);} 100%{transform:translateX(100%);} }
   .coach-progress-label{font-size:12.5px; color:var(--text-muted); text-align:center;}
@@ -1307,7 +1354,7 @@
     height:11px; border-radius:5px;
     background:linear-gradient(100deg, var(--surface2) 20%, var(--line-bright) 42%, var(--surface2) 64%);
     background-size:200% 100%;
-    animation:skeleton-shimmer 1.4s ease-in-out infinite;
+    animation:skeleton-shimmer 1.4s var(--ease-loop) infinite;
   }
   @keyframes skeleton-shimmer{ 0%{background-position:120% 0;} 100%{background-position:-20% 0;} }
 
@@ -1788,6 +1835,180 @@
   }
   .fi-duplicate{
     background:none; border:none; font-size:15px; cursor:pointer; padding:2px; color:var(--text-muted); line-height:1;
+  }
+
+  /* ==================================================================
+     POLISH LAYER
+     Appended last on purpose: everything here is meant to win the cascade
+     over the component rules above without needing inflated selectors.
+     Nothing in this block changes a colour, gradient, shadow, radius or
+     size that is visible on screen — it only fixes how the app *behaves*
+     under a finger, a keyboard, and a reduced-motion setting.
+     ================================================================== */
+
+  /* --- 1. Touch targets ------------------------------------------------
+     A set of controls in this app are drawn small on purpose (18–34px) so
+     they sit correctly inside dense rows — the date-bar arrows, the sheet
+     close buttons, the calendar month arrows, the food-row actions, the
+     day-reorder chevrons. Drawn small is fine; *tappable* only at that size
+     is not: the practical floor for a reliable finger tap is ~44px, and
+     below that mis-taps climb sharply. These rules leave every one of those
+     controls looking exactly as it does now and instead float an invisible,
+     centred hit area over each one.
+
+     The controls fall into two groups, and the difference matters. Sizing
+     them all to a flat 44px square is wrong and was the first thing tried
+     here: several of them sit shoulder-to-shoulder in a flex row with only
+     an 8px (or 2px) gap, so 44px boxes would overlap each other and the
+     later sibling — painting on top — would swallow taps meant for its
+     neighbour. Concretely, .fi-duplicate and .fi-plus sit 8px either side
+     of .fi-star; at 44px each, their hit areas would cover the star
+     entirely and it would become untappable.
+
+     So: isolated controls get the full 44px, and controls in a dense row
+     expand only by their own gap and take the rest of the gain vertically,
+     where nothing is competing for the space.
+
+     `position:relative` is asserted on all of them because several are
+     otherwise statically positioned, which would let the ::after escape to
+     the nearest positioned ancestor and land somewhere unrelated. */
+
+  /* Group A — isolated. Each of these sits in a space-between header or is
+     flanked by at least 8px of gap and then a wide flexible element, so a
+     full 44px box reaches at most the edge of the neighbouring gap and
+     never past it. */
+  .sub-modal-close, .log-date-nav, .calendar-nav-btn{ position:relative; }
+  .sub-modal-close::after, .log-date-nav::after, .calendar-nav-btn::after{
+    content:''; position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:44px; height:44px;
+    /* Keeps the hit area from ever ending up *smaller* than the control it
+       belongs to, should one of these be restyled larger than 44px later. */
+    min-width:100%; min-height:100%;
+  }
+
+  /* Group B — dense rows. Percentages on an absolutely-positioned child
+     resolve against its containing block, which is the control itself here,
+     so calc(100% + Npx) means "my own width plus N" regardless of what the
+     emoji glyph inside actually measures. N is the flex gap: expanding by
+     the full gap means two adjacent hit areas meet exactly at the midpoint
+     between them and never overlap. */
+  .food-item-btn .fi-plus, .fi-duplicate, .fi-star,
+  .reorder-arrows button{ position:relative; }
+  .food-item-btn .fi-plus::after, .fi-duplicate::after, .fi-star::after{
+    content:''; position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    /* .fi-actions has gap:8px. */
+    width:calc(100% + 8px); height:44px;
+  }
+  /* .reorder-arrows has gap:2px, so there is almost no horizontal room to
+     claim — these two chevrons are genuinely too small and too close for a
+     hit area alone to bring to standard. The vertical gain is real (18px to
+     36px) and safe: the arrows are the last child of a column-flex .tab, the
+     label above them is not interactive, and the tabs strip has 18px of
+     padding below. Making the chevrons themselves larger is the actual fix
+     and is a visual change, so it is left as a decision rather than made
+     silently here. */
+  .reorder-arrows button::after{
+    content:''; position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:calc(100% + 2px); height:36px;
+  }
+
+  /* --- 2. Visible keyboard focus --------------------------------------
+     Text inputs already show a blue ring when focused; buttons, tabs and
+     nav pills showed nothing at all, which makes the app impossible to
+     navigate by keyboard or by iOS/Android switch control. :focus-visible
+     is used rather than :focus so this ring appears only for keyboard and
+     assistive-tech navigation and never flashes on a normal finger tap.
+     outline-offset lifts the ring clear of the control's own border so it
+     reads as a ring rather than a thickened edge. */
+  button:focus-visible, .tab:focus-visible, .nav-pill:focus-visible,
+  a:focus-visible, [tabindex]:focus-visible, summary:focus-visible,
+  input:focus-visible, select:focus-visible, textarea:focus-visible{
+    outline:2px solid var(--focus-ring-color);
+    outline-offset:2px;
+  }
+  /* The tab's own outline would trace its invisible bounding box (the plate
+     plus its label), so the ring is moved onto the plate disc that the eye
+     actually reads as the control. */
+  .tab:focus-visible{ outline:none; }
+  .tab:focus-visible .plate{
+    outline:2px solid var(--focus-ring-color);
+    outline-offset:2px;
+  }
+  /* A focused control inside a scrolling sheet should never end up tucked
+     under the sheet's own header. */
+  button, input, select, textarea, .card{ scroll-margin-top:80px; scroll-margin-bottom:80px; }
+
+  /* --- 3. Compositing hints -------------------------------------------
+     The fixed, transform-animated surfaces (bottom sheets, the rest timer,
+     the sticky day header, the celebrate banner) were repainting on the
+     main thread each frame as they slid. Promoting just these — not
+     everything, which would waste memory — keeps their slide on the
+     compositor. `backface-visibility` suppresses the sub-pixel shimmer
+     mobile WebKit shows on a translucent layer mid-transform, which was
+     visible on the blurred sheet backgrounds specifically. */
+  .sub-modal-sheet, .calendar-modal-sheet, .rest-timer,
+  .sticky-day-header, .celebrate-banner, .pull-refresh-indicator{
+    will-change:transform;
+    backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  }
+  /* Overlays fade rather than move, so opacity is the honest hint here. */
+  .sub-modal-overlay, .calendar-modal-overlay{ will-change:opacity; }
+
+  /* --- 4. Scrollable regions ------------------------------------------
+     Any independently-scrolling region gets scroll containment so reaching
+     its end doesn't hand the gesture to the page behind it — the specific
+     symptom being that flicking a long substitution sheet used to scroll
+     the whole app underneath once the sheet bottomed out. Momentum
+     scrolling and a hairline scrollbar match the rest of the app. */
+  .sub-modal-sheet, .calendar-modal-sheet, .coach-chat-log, .fab-panel-body{
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin; scrollbar-color:var(--line-bright) transparent;
+  }
+  .sub-modal-sheet::-webkit-scrollbar, .calendar-modal-sheet::-webkit-scrollbar,
+  .coach-chat-log::-webkit-scrollbar, .fab-panel-body::-webkit-scrollbar{ width:4px; }
+  .sub-modal-sheet::-webkit-scrollbar-thumb, .calendar-modal-sheet::-webkit-scrollbar-thumb,
+  .coach-chat-log::-webkit-scrollbar-thumb, .fab-panel-body::-webkit-scrollbar-thumb{
+    background:var(--line-bright); border-radius:4px;
+  }
+  /* The calendar sheet was the one bottom sheet with no height ceiling — on
+     a short screen a five-row month could push its own footer off-screen
+     with no way to reach it. Matches the substitution sheet's cap. */
+  .calendar-modal-sheet{ max-height:85vh; overflow-y:auto; }
+
+  /* --- 5. Background scroll lock --------------------------------------
+     Applied by lockBodyScroll() while any overlay is open. position:fixed
+     (rather than overflow:hidden, which iOS ignores on body) is the only
+     approach that reliably stops the page scrolling behind an open sheet;
+     the JS side captures and restores the scroll offset so nothing jumps. */
+  body.scroll-locked{
+    position:fixed; left:0; right:0; width:100%;
+    overflow:hidden;
+  }
+
+  /* --- 6. Reduced motion ----------------------------------------------
+     The app already checked prefers-reduced-motion in one place in JS (the
+     card-stagger in switchView) but nowhere in CSS, so a user who had asked
+     the OS for less motion still got every sheet spring, confetti burst,
+     celebrate pop and shimmer loop. Durations are collapsed rather than set
+     to `none`, which keeps `forwards` animations landing on their final
+     keyframe and keeps transitionend handlers firing. transform is
+     deliberately NOT reset — several elements rely on it for positioning
+     (translate(-50%,-50%) centring, the off-screen sheet start position),
+     and blanking it would break layout rather than calm it. */
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *, *::before, *::after{
+      animation-duration:0.01ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:0.01ms !important;
+      scroll-behavior:auto !important;
+    }
+    /* Purely decorative and impossible to make calm — remove outright. */
+    .confetti-piece{ display:none !important; }
   }
 </style>
 </head>
@@ -2735,7 +2956,13 @@
   </div></div>
 </div>
 
-<div class="undo-toast" id="undoToast">
+<!-- role/aria-live: the toast is the only confirmation that a delete
+     happened and the only route to reversing it. Without a live region a
+     screen-reader user gets silence, and the 5s undo window expires before
+     they have any way of knowing there was something to undo. "polite"
+     rather than "assertive" so it waits for a natural pause instead of
+     cutting off whatever is mid-announcement. -->
+<div class="undo-toast" id="undoToast" role="status" aria-live="polite">
   <span id="undoToastText"></span>
   <button id="undoToastBtn">Undo</button>
 </div>
@@ -8557,6 +8784,8 @@ function toggleCombatTechniquesCard(){
   }
 }
 
+// [EXERCISE-MOVEMENT MAP] -------------------------------------------------------
+// Maps each exercise to a movement pattern/icon.
 const EXERCISE_MOVE = {
   'Slip & Counter Drills':'punch', 'Head Movement Drills':'punch', 'Clinch Knee Drills':'kick',
   'Elbow Strike Drills':'punch', 'Sprawl Drills':'hinge', 'Ground & Pound Drills':'punch',
@@ -8989,6 +9218,9 @@ const exerciseInfo = {
 // Where equipment/loading also matters (e.g. suggesting a barbell alternative
 // for another barbell lift where reasonable) that's reflected too, but
 // muscle group + movement pattern always take priority over equipment match.
+// [EXERCISE SUBSTITUTIONS] ------------------------------------------------------
+// 88 weighted lifts -> 2 alternates each, matched on primary mover + joint
+// action + movement pattern. See HANDOFF §6.3.
 const EXERCISE_SUBS = {
   // squat pattern (knee-dominant)
   'Back Squat': ['Front Squat', 'Leg Press'],
@@ -9111,6 +9343,8 @@ let reorderMode = false;
 // into, and something like "<img src=x onerror=...>" would actually execute.
 // This is a single-device, no-backend app, so there's no other user to
 // attack — but it's still the correct default rather than relying on that.
+// [CORE UTILITIES] --------------------------------------------------------------
+// Date keys, escaping, time helpers. Used everywhere; change with care.
 function escapeHtml(str){
   if(str == null) return '';
   return String(str)
@@ -9177,6 +9411,8 @@ function minutesBetweenTimeKeys(t1, t2){
 // so opening the app in the morning doesn't show a false reset.
 const ACTIVITY_DATES_RETENTION_DAYS = 730; // ~2 years — streaks only ever need to look back a handful of days, this is deliberately generous headroom, not a tight cap
 
+// [STREAK & TODAY'S INSIGHTS] ---------------------------------------------------
+// Activity recording, streak math, and every insight card on the Today tab.
 async function recordActivity(dateKey){
   // Read and write are deliberately in separate try/catch blocks. A single
   // try around both meant that on literally the first activity ever
@@ -9453,6 +9689,91 @@ async function getWaterPaceInsight(){
   return `💧 <b>Hydration check:</b> ${current}/${target} oz so far today — behind pace for this time of day.`;
 }
 
+// --- Deficit guard rail ------------------------------------------------
+// The app has always computed a *target* with a research-capped deficit
+// (see computeTargets: capped at 25%/15% of TDEE precisely so a flat 500
+// kcal cut can't become a disproportionate one for a smaller person). What
+// it never did was check what's actually being eaten. Someone can hit a
+// sensible target on paper and still average hundreds of calories under it.
+//
+// Grounding, and the limits of it: Xie et al. (2025, Front. Nutr.
+// 12:1579024 — network meta-analysis, 62 RCTs, 4,429 participants) found
+// moderate-to-low-intensity resistance training the most effective modality
+// for minimising lean-mass loss during caloric restriction. That supports
+// the *direction* of this warning — a deficit costs lean mass, and training
+// mitigates but does not erase that.
+//
+// Deliberately NOT used: a widely-repeated secondary claim that a deficit
+// beyond ~500 kcal/day "neutralises" resistance training's protective
+// effect entirely. That number could not be traced to the primary paper,
+// only to blog write-ups of it, so it is not encoded here as a threshold.
+// Instead this compares against the app's own already-research-capped
+// target, which needs no new number to be invented.
+//
+// Thresholds below are framed as "meaningfully under your own target",
+// not as a claim about a specific physiological cliff.
+function computeDeficitGuardrail(avgIntake, targetCal, tdee, goal){
+  if(!avgIntake || !targetCal || !tdee) return null;
+  // Only meaningful for goals that involve eating below maintenance.
+  if(!['lose','recomp'].includes(goal)) return null;
+
+  const underTarget = targetCal - avgIntake;
+  if(underTarget <= 0) return null;                 // at or above target
+
+  const totalDeficit = tdee - avgIntake;
+  const pctOfTdee = totalDeficit / tdee;
+
+  // Two separate things worth saying, in order of seriousness.
+  if(pctOfTdee >= 0.30){
+    return {
+      level: 'high',
+      text: `⚠️ <b>Deficit is running steep:</b> averaging ${Math.round(avgIntake)} cal against an estimated ${tdee} maintenance — about ${Math.round(pctOfTdee*100)}% below. Cuts this size make lean mass harder to hold onto even with training. Eating closer to your ${targetCal} target would keep the fat loss without the same cost.`
+    };
+  }
+  if(underTarget >= 250){
+    return {
+      level: 'moderate',
+      text: `🍽️ <b>Under target:</b> averaging ${Math.round(avgIntake)} cal against your ${targetCal} target — about ${Math.round(underTarget)} short per day. Your target already has the deficit built in, so eating under it stacks a second one on top.`
+    };
+  }
+  return null;
+}
+
+// Async wrapper that feeds computeDeficitGuardrail real logged data.
+// Uses the last 7 days and requires at least 4 of them logged — averaging
+// two sparse days would produce a confident-looking number built on
+// almost nothing, which is exactly how a nutrition warning earns being
+// ignored. Reads real calendar days via getTodayKey(), never
+// selectedLogDate: this is a statement about how you have actually been
+// eating lately, not about whichever date the Log tab happens to be
+// showing (see HANDOFF §6.5 for the same distinction elsewhere).
+async function getDeficitGuardrailInsight(){
+  if(!targets || !targets.tdee) return null;
+  if(!['lose','recomp'].includes(userProfile.goal)) return null;
+
+  const today = getTodayKey();
+  const wanted = [];
+  for(let i=0; i<7; i++) wanted.push(dateKeyMinusDays(today, i));
+
+  let sum = 0, days = 0;
+  for(const dk of wanted){
+    try{
+      const res = await window.storage.get('foodlog:'+dk);
+      if(res && res.value){
+        const log = JSON.parse(res.value);
+        const cal = log.reduce((a,i)=> a + Number(i.cal||0), 0);
+        // A day with a trivial total is an abandoned log, not a fast —
+        // counting it would drag the average down and fire a false warning.
+        if(cal >= 500){ sum += cal; days++; }
+      }
+    }catch(e){}
+  }
+  if(days < 4) return null;
+
+  const res = computeDeficitGuardrail(sum/days, targets.cal, targets.tdee, userProfile.goal);
+  return res ? res.text : null;
+}
+
 // --- Session heads-up rollup: a one-line count of how many exercises in
 // TODAY's session already carry a flag (a resting-region caution, or a
 // decrease/deload progression signal), surfaced before scrolling through the
@@ -9507,12 +9828,16 @@ async function renderTodayInsights(){
   const el = document.getElementById('todayInsightsList');
   if(!card || !el) return;
 
-  const [deload, sleep, cycle, staleRegion, weighIn, waterPace, sessionHeadsUp] = await Promise.all([
+  const [deload, sleep, cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit] = await Promise.all([
     getDeloadInsight(), getSleepInsight(), getCycleInsight(),
     getStaleRestingRegionInsight(), getWeighInReminderInsight(), getWaterPaceInsight(), getSessionHeadsUpInsight(),
+    getDeficitGuardrailInsight(),
   ]);
 
-  const items = [sessionHeadsUp, deload, sleep, cycle, staleRegion, weighIn, waterPace].filter(Boolean);
+  // deficit sits second: under the session heads-up (which is about the next
+  // hour) but above the rest, because chronic under-eating quietly undermines
+  // everything below it on this list.
+  const items = [sessionHeadsUp, deficit, deload, sleep, cycle, staleRegion, weighIn, waterPace].filter(Boolean);
   if(items.length === 0){
     card.style.display = 'none';
     return;
@@ -9521,6 +9846,9 @@ async function renderTodayInsights(){
   el.innerHTML = items.map(text=> `<div class="today-insight-row">${text}</div>`).join('');
 }
 
+// [PROGRAM SELECTION & MESOCYCLE] -----------------------------------------------
+// Active program persistence, deload/mesocycle week math, program
+// recommendation.
 async function loadActiveProgram(){
   try{
     const res = await window.storage.get('active-program');
@@ -9606,7 +9934,9 @@ function updateMasterclassLinkBtn(){
   btn.style.display = '';
   btn.innerHTML = `View "${mc.label}" in Learn <span class="ex-chevron">›</span>`;
   btn.onclick = ()=>{
-    switchView('learn');
+    // scrollTop:false — this link owns where the page lands (the specific
+    // masterclass card, below), so switchView must not also send it to the top.
+    switchView('learn', {scrollTop:false});
     // switchView triggers the staggered card-entrance animation synchronously,
     // but layout needs a frame to settle before scrollIntoView measures
     // positions correctly — double rAF is the standard safe wait for that.
@@ -9719,6 +10049,9 @@ function togglePosingCard(){
 
 let activeMartialArt = 'kickboxing';
 
+// [STYLE SELECTORS] -------------------------------------------------------------
+// The four multi-style programs (combat/cycling/yoga/medical). See HANDOFF
+// §3.
 async function loadMartialArtStyle(){
   try{
     const res = await window.storage.get('martial-art-style');
@@ -9978,6 +10311,8 @@ function renderPosingClasses(){
   }).join('');
 }
 
+// [DAY ORDER, TABS & WEEK PROGRESS] ---------------------------------------------
+// Day reordering, the plate tab strip, per-week completion badges.
 async function loadDayOrder(){
   dayOrder = Object.keys(dayDefs);
   try{
@@ -10200,6 +10535,9 @@ document.getElementById('reorderToggle').addEventListener('click', ()=>{
   renderTabs();
 });
 
+// [SET-STRING PARSING & SESSION LENGTH] -----------------------------------------
+// Parses the 868 hardcoded `sets:` strings, estimates duration/calories,
+// applies deload and session-length trimming.
 function parseTopRep(setsStr){
   const range = setsStr.match(/(\d+)\s*-\s*(\d+)/);
   if(range) return Number(range[2]);
@@ -10430,6 +10768,92 @@ function isWarmupOrCooldownUnit(unit){
 // keeps exercise selection and frequency completely unchanged (per the
 // same research) and only reduces each exercise's own set count, roughly
 // in the well-supported 40-50% volume-reduction range.
+// --- Goal-aware training volume -----------------------------------------
+// Until now the primary goal moved calories and protein but had no effect
+// whatsoever on training: someone cutting and someone lean-bulking on the
+// same program received byte-identical sets, reps and rest. This closes
+// that gap, deliberately narrowly.
+//
+// Grounded in the ACSM 2026 Position Stand — "Resistance Training
+// Prescription for Muscle Function, Hypertrophy, and Physical Performance
+// in Healthy Adults: An Overview of Reviews" (Currier BS, D'Souza AC,
+// Singh MAF, et al., Medicine & Science in Sports & Exercise, 2026). It is
+// the ACSM's first update to this guidance in 17 years and pools 137
+// systematic reviews covering 30,000+ adults, which makes it the most
+// accredited synthesis available rather than any single lab's position.
+//
+// The two prescriptions it separates most cleanly:
+//   - Hypertrophy is driven primarily by total weekly volume, with roughly
+//     10+ sets per muscle group per week as the target. Load matters far
+//     less than the stand's 2009 predecessor implied — growth occurs
+//     across a wide loading range provided sets are taken near failure.
+//   - Strength is the lower-volume, heavier prescription: ~2-3 sets per
+//     exercise at >=80% 1RM, key lifts placed early in the session.
+//
+// Applied conservatively, and here is what is deliberately NOT done:
+//   - Volume is never cut for a fat-loss or recomp goal. That is the single
+//     most important choice in this function and it is an active decision,
+//     not an oversight. Reducing training volume in a deficit is the common
+//     instinct and the evidence points the other way: maintaining the
+//     training stimulus is what protects lean mass while calories are low
+//     (Roth, Schoenfeld & Behringer 2022 found programs holding >=10 weekly
+//     sets per muscle group showed little to no lean-mass loss under
+//     caloric restriction). The deficit is doing the fat-loss work; the
+//     training's job is to defend muscle. So these goals are a no-op.
+//   - Reps, loads and rest are untouched. Those come from each program's
+//     own design and from getDefaultRestSeconds, which already tiers rest
+//     off the rep range. Set count is the one lever the ACSM stand
+//     separates cleanly enough by goal to act on.
+//   - Nothing here rewrites the 868 hardcoded `sets:` strings. This is a
+//     render-time transform over the same replaceSetCount() helper the
+//     deload reduction already uses, so it is fully reversible and cannot
+//     corrupt stored program data.
+function goalVolumeAdjustment(goal){
+  // Returns null for any goal where the evidence does not support a
+  // distinct set-count prescription.
+  if(goal === 'gain' || goal === 'leanbulk'){
+    return {kind:'hypertrophy', label:'Hypertrophy volume (ACSM 2026)'};
+  }
+  if(goal === 'performance'){
+    return {kind:'strength', label:'Strength volume (ACSM 2026)'};
+  }
+  return null;  // lose / recomp / maintain — see the note above
+}
+
+function applyGoalVolume(exercises, goal){
+  const adj = goalVolumeAdjustment(goal);
+  if(!adj) return exercises;
+
+  return exercises.map(ex=>{
+    if(!hasNumericSetPrefix(ex.sets)) return ex;
+    const current = parseSetCount(ex.sets);
+    if(!current) return ex;
+
+    if(adj.kind === 'hypertrophy'){
+      // One added set per exercise, which is what actually moves weekly
+      // volume toward the 10-sets-per-muscle target without restructuring
+      // anyone's session. Capped at 5: past that, per-exercise returns
+      // flatten and session length becomes the real constraint.
+      // Single-set entries are left alone — those are almost always a
+      // carry/hold/stretch where "one more set" is not the same idea.
+      if(current < 2 || current >= 5) return ex;
+      return {...ex, sets: replaceSetCount(ex.sets, current + 1),
+              volumeNote: adj.label};
+    }
+
+    // Strength: the ACSM prescription is 2-3 working sets per exercise at a
+    // heavy load. Only compounds are capped — those are where strength is
+    // actually expressed, and they are also what the stand means by "key
+    // lifts early in the session". Isolation and accessory work is left
+    // exactly as the program wrote it, since trimming that would quietly
+    // strip a session down rather than sharpen it.
+    const info = exerciseInfo[ex.name];
+    const isCompound = info && WARMUP_ELIGIBLE_CATEGORIES.includes(info.category);
+    if(!isCompound || current <= 3) return ex;
+    return {...ex, sets: replaceSetCount(ex.sets, 3), volumeNote: adj.label};
+  });
+}
+
 function applyDeloadVolumeReduction(exercises){
   return exercises.map(ex=>{
     if(!hasNumericSetPrefix(ex.sets)) return ex;
@@ -10562,6 +10986,9 @@ function initSessionLengthSelector(){
 // Turns a substitute exercise name into a safe, stable storage-key fragment
 // (lowercase, non-alphanumerics collapsed to single dashes, trimmed). Used
 // only for the ex: key suffix below — never displayed.
+// [EXERCISE KEYS, SUBSTITUTION & HISTORY] ---------------------------------------
+// Storage-key construction, substitution mechanism, cross-program history
+// fallback. See HANDOFF §6.3/§6.6.
 function slugifyExerciseName(name){
   return String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
@@ -11095,6 +11522,9 @@ const WARMUP_MIN_WORKING_WEIGHT_GENERIC = 30;
 // Falls back to the hypertrophy-range compound/isolation split for AMRAP,
 // time-based, or otherwise unparseable rep targets, since that's the most
 // common training style when a straight rep count isn't given.
+// [PROGRESSION, REST & WARM-UP] -------------------------------------------------
+// Rep-range tiering, rest prescription, warm-up ramps, PR/1RM math,
+// progression signal.
 function getRepRangeTier(setsStr){
   const m = (setsStr||'').match(/×\s*(\d+)\s*(?:-\s*(\d+))?/);
   if(!m) return null;
@@ -11380,6 +11810,12 @@ async function renderWorkout(){
   const customExercises = (await getCustomExercises(activeProgram, activeDay)).map(ex=>({...ex, isCustom:true}));
   let fullExercises = [...day.exercises, ...focusExercises, ...customExercises];
 
+  // Goal-aware volume runs first so everything after it works from the
+  // adjusted baseline: a deload week reduces whatever the goal called for,
+  // and session-length trimming caps the result. Ordering it last instead
+  // would let a hypertrophy bump silently undo a deload.
+  fullExercises = applyGoalVolume(fullExercises, userProfile.goal);
+
   // Deload weeks reduce actual set volume, not just suggest a lighter
   // weight — applied here, before session-length trimming, so a deload
   // week's already-reduced set counts are what session-length trimming
@@ -11397,7 +11833,17 @@ async function renderWorkout(){
 
   const durationEl = document.getElementById('dayDuration');
   const wasShortened = targetMinutes != null && (renderExercises.length < fullExercises.length || renderExercises.some((ex,i)=> ex.sets !== fullExercises[i]?.sets));
-  const suffix = wasShortened ? ' (shortened)' : inDeloadWeek ? ' (deload)' : '';
+  // A changed set count with no explanation reads as a bug, so the duration
+  // label carries the reason. Priority is most-consequential-first: a
+  // shortened session and a deload week both override the goal note, since
+  // either one explains the difference more completely than "your goal did
+  // this" would.
+  const goalVolKind = (goalVolumeAdjustment(userProfile.goal) || {}).kind;
+  const goalVolApplied = !!goalVolKind && renderExercises.some(ex=> ex.volumeNote);
+  const suffix = wasShortened ? ' (shortened)'
+    : inDeloadWeek ? ' (deload)'
+    : goalVolApplied ? (goalVolKind === 'hypertrophy' ? ' (+1 set · muscle-gain goal)' : ' (strength goal)')
+    : '';
   durationEl.textContent = `~${Math.round(estimatedMinutes)} min${suffix}`;
 
   // Resolve any active exercise substitutions before anything else reads
@@ -12781,7 +13227,10 @@ function computeTargets(p){
   const carb = Math.max(0, Math.round((cal - pro*4 - fat*9) / 4));
   const isFloored = preFloorCal < calorieFloor;
 
-  return {cal, pro, fat, carb, isFloored};
+  // tdee is returned so callers can compare *actual logged intake* against
+  // maintenance, not just against the adjusted target. Nothing downstream
+  // needs to change — this is an added key on an existing object.
+  return {cal, pro, fat, carb, isFloored, tdee: Math.round(tdee)};
 }
 
 // Scores every program 0-100 for a given goal. Used to sort the program
@@ -14574,6 +15023,7 @@ document.getElementById('recipeFinderBtn').addEventListener('click', ()=>{
   }
 });
 
+// [RECIPE FINDER] ---------------------------------------------------------------
 function buildRecipeSearchUrl(name){
   // A search link, not a specific recipe URL — the model can suggest a
   // great recipe idea but has no way to guarantee any single URL it names
@@ -14680,6 +15130,7 @@ document.getElementById('recipeFinderInput').addEventListener('keydown', (e)=>{
 // Standalone — usable on its own via manual entry, not exclusively tied to
 // Recipe Finder results, though "Add ingredients to grocery list" on a
 // recipe card is the main way it gets populated in practice.
+// [GROCERY LIST] ----------------------------------------------------------------
 async function loadGroceryList(){
   try{
     const res = await window.storage.get('grocery-list');
@@ -15012,6 +15463,9 @@ const HIDDEN_INGREDIENT_NAMES = [
 // them out of search, restaurant menus, and category browsing entirely.
 let hideAvoidedFoods = false;
 
+// [DIETARY CLASSIFIER] ----------------------------------------------------------
+// Preference/restriction matching. All consumer surfaces route through
+// foodContainsTerm(). See HANDOFF §3/§8.
 async function loadHideAvoidedPref(){
   try{
     const res = await window.storage.get('hide-avoided-foods');
@@ -15197,6 +15651,7 @@ function matchesAvoidList(name, avoidTerms){
 }
 
 
+// [FOOD BROWSING & SEARCH] ------------------------------------------------------
 function allFoodsFlat(){
   const flat = [];
   Object.keys(foodLibrary).forEach(cat=>{
@@ -15491,6 +15946,7 @@ document.getElementById('foodSearchInput').addEventListener('input', (e)=>{
 
 let usageCounts = {};
 
+// [FOOD LOGGING & MEAL SUGGESTIONS] ---------------------------------------------
 async function loadUsageCounts(){
   try{
     const res = await window.storage.get('food-usage-counts');
@@ -16091,6 +16547,9 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
   document.addEventListener('pointercancel', endPull);
 })();
 
+// [SWIPE-TO-DELETE] -------------------------------------------------------------
+// Shared gesture used by every deletable list in the app. Reuse this, don't
+// rebuild it.
 function makeSwipeable(itemEl, onDelete){
   const content = itemEl.querySelector('.swipe-content');
   const deleteBg = itemEl.querySelector('.swipe-delete-bg');
@@ -16127,6 +16586,7 @@ function buildSwipeItem(innerHtml){
   `;
 }
 
+// [WEIGHT LOG] ------------------------------------------------------------------
 async function loadWeights(){
   const listEl = document.getElementById('weightList');
   try{
@@ -16219,6 +16679,9 @@ document.getElementById('saveWeight').addEventListener('click', async ()=>{
 // 80-89, Stage 2 ≥140 OR ≥90, Crisis >180 and/or >120 (seek immediate care).
 // The higher of the two numbers' categories always wins, since either one
 // alone can put a reading in a more serious bucket.
+// [CONDITION TRACKERS] ----------------------------------------------------------
+// BP / glucose / supplements. Visible only when the matching Medically
+// Modified condition is active.
 function categorizeBP(systolic, diastolic){
   if(systolic > 180 || diastolic > 120) return {label:'Hypertensive Crisis', color:'var(--plate-red)', urgent:true};
   if(systolic >= 140 || diastolic >= 90) return {label:'Stage 2', color:'var(--plate-red)'};
@@ -16458,6 +16921,7 @@ function toggleConditionTrackerCards(){
 }
 
 
+// [SLEEP LOG] -------------------------------------------------------------------
 async function loadSleep(){
   const listEl = document.getElementById('sleepList');
   const avgEl = document.getElementById('sleepAvg');
@@ -16535,6 +16999,7 @@ document.getElementById('photosHeader').addEventListener('click', ()=>{
 const PROGRESS_PHOTO_MAX_DIM = 900;
 const PROGRESS_PHOTO_QUALITY = 0.72;
 
+// [PROGRESS PHOTOS] -------------------------------------------------------------
 function compressImageFile(file, maxDim, quality){
   return new Promise((resolve, reject)=>{
     const img = new Image();
@@ -16774,6 +17239,7 @@ const CYCLE_PHASES = [
   },
 ];
 
+// [CYCLE TRACKING] --------------------------------------------------------------
 function computeCyclePhase(lastPeriodStr, cycleLength){
   const last = new Date(lastPeriodStr+'T00:00:00');
   const today = new Date(getTodayKey()+'T00:00:00');
@@ -16867,6 +17333,7 @@ document.getElementById('saveCycle').addEventListener('click', async ()=>{
   }
 });
 
+// [BODY MEASUREMENTS] -----------------------------------------------------------
 async function loadMeasurements(){
   const listEl = document.getElementById('measureList');
   const summaryEl = document.getElementById('measureSummary');
@@ -16932,7 +17399,17 @@ document.getElementById('saveMeasurements').addEventListener('click', async ()=>
   }catch(e){}
 });
 
-function switchView(active){
+// opts.scrollTop — defaults to true. Switching tabs while scrolled halfway
+// down one used to drop you at that same offset in the next tab, which on
+// the long tabs (Learn, Analysis) meant landing in the middle of a card with
+// no idea what was above you. Every tab now opens at its top, the way the
+// tab bar implies it will. The one caller that passes false is the
+// "View in Learn" deep link, which scrolls to a specific card immediately
+// afterwards and would otherwise fight itself.
+// [VIEW ROUTING & SCROLL LOCK] --------------------------------------------------
+// Tab switching and the overlay background-scroll lock.
+function switchView(active, opts){
+  const scrollToTop = !opts || opts.scrollTop !== false;
   try{ window.storage.set('active-view', active); }catch(e){}
   const views = {today:'todayView', log:'logView', analysis:'analysisView', history:'historyView', care:'careView', coach:'coachView', learn:'learnView'};
   const pills = {today:'navToday', log:'navLog', analysis:'navAnalysis', history:'navHistory', care:'navCare', coach:'navCoach', learn:'navLearn'};
@@ -16973,6 +17450,77 @@ function switchView(active){
     dateBar.style.display = (active === 'today' || active === 'log') ? 'flex' : 'none';
     if(active === 'today' || active === 'log') renderLogDateBar();
   }
+
+  // Instant, not smooth: html{scroll-behavior:smooth} would otherwise
+  // animate this, and watching the page glide up through several thousand
+  // pixels of the tab you just left is slower and more disorienting than
+  // simply arriving. 'instant' is explicit because 'auto' resolves to the
+  // inherited smooth behaviour rather than overriding it.
+  if(scrollToTop){
+    try{ window.scrollTo({top:0, left:0, behavior:'instant'}); }
+    catch(e){ window.scrollTo(0,0); }
+  }
+}
+
+// --- Background scroll lock -------------------------------------------
+// Every overlay in this app is a fixed layer over a still-scrollable page,
+// so a drag that started on the overlay's backdrop — or a flick that ran
+// past the end of a sheet's own scroll — moved the app behind it. You would
+// close the sheet and find yourself somewhere else entirely.
+//
+// position:fixed on <body> is used rather than overflow:hidden because iOS
+// Safari ignores overflow:hidden on body outright. The cost of position:fixed
+// is that the page instantly jumps to offset 0, so the current scroll
+// position is captured on lock and written back on unlock.
+//
+// Rather than editing the ~13 separate places that add/remove .active on an
+// overlay, a MutationObserver watches those elements' class attributes. One
+// place to reason about, and an overlay added later is covered by adding its
+// id to the list below rather than by remembering to call a lock function.
+const SCROLL_LOCK_OVERLAYS = [
+  'subModalOverlay', 'calendarModalOverlay', 'photoLightbox',
+  'barcodeScannerOverlay', 'coachFabModal', 'userPickerOverlay'
+];
+let scrollLockY = 0;
+let scrollLockActive = false;
+
+function anyOverlayOpen(){
+  return SCROLL_LOCK_OVERLAYS.some(id=>{
+    const el = document.getElementById(id);
+    if(!el) return false;
+    // Overlays signal "open" one of two ways in this app: an .active class,
+    // or an inline display flip. Both are checked so neither leaks through.
+    if(el.classList.contains('active')) return true;
+    return el.style.display !== '' && el.style.display !== 'none';
+  });
+}
+
+function syncScrollLock(){
+  const shouldLock = anyOverlayOpen();
+  if(shouldLock === scrollLockActive) return;   // nothing changed, don't thrash
+  scrollLockActive = shouldLock;
+  const body = document.body;
+  if(shouldLock){
+    scrollLockY = window.scrollY || window.pageYOffset || 0;
+    body.style.top = (-scrollLockY) + 'px';
+    body.classList.add('scroll-locked');
+  } else {
+    body.classList.remove('scroll-locked');
+    body.style.top = '';
+    // Restore instantly for the same reason switchView does — the user never
+    // asked to travel, they just closed a sheet.
+    try{ window.scrollTo({top:scrollLockY, left:0, behavior:'instant'}); }
+    catch(e){ window.scrollTo(0, scrollLockY); }
+  }
+}
+
+function initScrollLock(){
+  const observer = new MutationObserver(syncScrollLock);
+  SCROLL_LOCK_OVERLAYS.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) observer.observe(el, {attributes:true, attributeFilter:['class','style']});
+  });
+  syncScrollLock();   // in case something is already open at init
 }
 
 // --- Log date selector (backdating) -----------------------------------
@@ -16981,6 +17529,8 @@ function switchView(active){
 // from a couple days ago. One shared selectedLogDate drives both tabs at
 // once, since backfilling a day usually means both what you ate and what
 // you trained that day, not just one or the other.
+// [DATE SELECTOR & CALENDAR] ----------------------------------------------------
+// Backdating. See HANDOFF §6.5 for what is and isn't date-aware.
 function formatLogDateLabel(dateKey){
   const today = getTodayKey();
   if(dateKey === today) return 'Today';
@@ -17206,6 +17756,7 @@ document.getElementById('navLearn').addEventListener('click', ()=>{
   switchView('learn');
 });
 
+// [WEEK BOUNDARIES] -------------------------------------------------------------
 function mondayOf(dateStr){
   const d = new Date(dateStr+'T00:00:00');
   const day = d.getDay();
@@ -17237,6 +17788,8 @@ function fmtWeekLabel(mondayStr){
   return `${start.toLocaleDateString('en-US',opts)} – ${end.toLocaleDateString('en-US',opts)}`;
 }
 
+// [DATA ACCESS (fetch*)] --------------------------------------------------------
+// Every bulk read used by Analysis/History. Add new bulk reads here.
 async function fetchAllWeightEntries(){
   try{
     const res = await window.storage.get('weight-log');
@@ -17367,6 +17920,7 @@ async function fetchFoodLogForDate(date){
 // — status is 'good'|'neutral'|'warn', rendered the same way Goal Progress
 // Check already renders its verdict, so every trend card gives an actual
 // read on the data instead of just a shape to look at.
+// [TREND & SPARKLINE RENDERERS] -------------------------------------------------
 function renderDayValueTrend(elId, dayTotals, opts){
   const el = document.getElementById(elId);
   const dates = Object.keys(dayTotals).sort();
@@ -17686,6 +18240,7 @@ function renderCollapsibleList(container, itemHtmls, visibleCount, noun){
 // segment (ex:combat:{style}:{dayId}:{idx}) so different martial art styles
 // never collide when they happen to share an exercise index — everything
 // else uses the plain ex:{program}:{dayId}:{idx} format.
+// [EXERCISE PROGRESS & PR TIMELINE] ---------------------------------------------
 function parseExKey(key){
   const parts = key.split(':');
   if(parts.length < 4) return null;
@@ -20215,6 +20770,22 @@ if(activeUserId){
   });
   window.addEventListener('focus', refreshOnResume);
 }
+
+// Outside the activeUserId gate on purpose, and outside init()'s async chain.
+// Two separate reasons, both found by testing rather than by reading:
+//   1. Everything above only runs once a user profile is active. The user
+//      picker, however, is shown precisely when one is *not* — so gating the
+//      scroll lock behind activeUserId meant the one overlay that appears on
+//      a cold first launch was the one overlay it could never protect.
+//   2. Sitting at the end of init() made it the last link in a chain of ~40
+//      sequential awaits (migrations, storage reads, profile loading). Any one
+//      of those hanging or rejecting — corrupted IndexedDB, private-browsing
+//      storage restrictions, a quota error — would silently take the scroll
+//      lock down with it, and sheets would start scrolling the page behind
+//      them again with no visible cause.
+// It depends on nothing but the overlay elements existing, which is
+// guaranteed: this script is the last thing in the body.
+initScrollLock();
 </script>
 <script>
   // Registered separately from the main app script so a failure here (e.g.
