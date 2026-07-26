@@ -144,7 +144,10 @@
   input:focus, select:focus, textarea:focus{
     outline:none; border-color:var(--plate-blue); box-shadow:0 0 0 3px rgba(91,124,255,0.15);
   }
-  .wrap{max-width:640px; margin:0 auto; padding:22px 18px 0;}
+  /* 18px sides gives every card the same inset. The bottom was 0, so the
+     last card ended 18px from the page edge against 22px above the first;
+     4px here makes the first and last card sit the same distance in. */
+  .wrap{max-width:640px; margin:0 auto; padding:22px 18px 4px;}
   header{padding:8px 0 18px;}
   .eyebrow-row{display:flex; align-items:center; gap:7px;}
   .brand-mark{
@@ -305,7 +308,9 @@
     background:var(--surface);
     border:1px solid rgba(255,255,255,0.07);
     border-radius:var(--radius-lg);
-    padding:22px 22px 23px;
+    /* Even on all four sides. This read 22px 22px 23px, which put one more
+       pixel under the content than above it on all 62 cards. */
+    padding:22px;
     margin-bottom:18px;
     box-shadow:0 1px 0 rgba(255,255,255,0.03) inset, 0 14px 32px -12px rgba(0,0,0,0.55), 0 24px 60px -30px rgba(91,124,255,0.16);
     transition:box-shadow 0.3s var(--ease-smooth), border-color 0.3s var(--ease-smooth), transform 0.2s var(--ease-smooth);
@@ -1028,7 +1033,52 @@
   .show-more-btn::after{content:'⌄'; font-size:12px; transition:transform 0.28s var(--ease-smooth);}
   .show-more-btn.expanded::after{transform:rotate(180deg);}
 
-  .nutrition-header{cursor:pointer; justify-content:space-between; margin-bottom:0; transition:opacity 0.15s var(--ease-smooth);}
+  /* Collapsible card header.
+     .card-title lays out with `gap`, which separates the icon from the label
+     only while both are direct children. These headers wrap icon+label in a
+     span so the chevron can be pushed to the far edge — which silently kills
+     that gap. Six headers each carried an inline margin-right to patch it;
+     this is the same fix, stated once.
+
+     Vertical padding rather than a fixed height: these are now real buttons
+     (role, tabindex, Enter/Space), so they are held to the same 44px touch
+     target as everything else in the app, and the padding doubles as the
+     breathing room between the title and whatever sits under it. */
+  .nutrition-header{
+    cursor:pointer; justify-content:space-between; margin-bottom:0;
+    position:relative;
+    transition:opacity 0.15s var(--ease-smooth);
+  }
+  /* Group A treatment. min-height:44px was tried first and is wrong here: it
+     made the seven collapsible cards' title blocks 44px tall against 24px on
+     the other fifty-five, so their content started ~20px lower and the cards
+     no longer shared a vertical rhythm. The header draws at its natural
+     height and floats the touch target instead. Full-width row, so there is
+     no horizontal neighbour for the hit area to steal from. */
+  .nutrition-header::after{
+    content:''; position:absolute; top:50%; left:0; right:0;
+    transform:translateY(-50%);
+    height:44px; min-height:100%;
+  }
+  .nutrition-header .card-icon{ margin-right:7px; }
+  /* The label group must not shove the chevron off the edge on narrow screens. */
+  .nutrition-header > span:first-child{ min-width:0; display:flex; align-items:center; }
+  .nutrition-header .ex-chevron{ margin-left:10px; }
+
+  /* Training Style, expanded. Same hairline device as the provenance panel's
+     eyebrow, so the card and the panel inside it read as one idea rather than
+     two. Collapsed, none of this shows: a title row and a select, nothing else.
+
+     The rule hangs off the SELECT rather than the expanding region. .expand-wrap
+     animates grid-template-rows from 0fr and clips its child's overflow — but a
+     margin or border on that child sits outside the clipped box and would leak
+     a stray 1px line while collapsed. Anchoring to the select keeps the divider
+     in normal flow, where it simply is not there until the header opens. */
+  #programHeader.open + .program-select-wrap{
+    padding-bottom:14px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  #programExpandWrap > div{ padding-top:14px; }
   .nutrition-header:active{opacity:0.65;}
   .profile-row-2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   .height-inputs{display:flex; align-items:center; gap:6px;}
@@ -1500,7 +1550,15 @@
     font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px; padding:12px; border-radius:var(--radius-md); cursor:pointer;
   }
 
-  .program-select-wrap{position:relative; margin-bottom:6px;}
+  /* Sits between the header and the collapsible body, so it owns the gap on
+     both sides rather than leaving the two to negotiate margins. */
+  /* z-index is load-bearing, not decoration. .nutrition-header floats a 44px
+     hit area centred on a ~24px row, so it reaches ~10px below itself — about
+     2px into this select past the 8px gap. Paint order already favours the
+     select (positioned, later sibling), but that is an accident of the
+     current markup; this makes it explicit so a reorder cannot silently turn
+     taps on the select's top edge into card collapses. */
+  .program-select-wrap{position:relative; z-index:1; margin:8px 0 0;}
   .program-select{
     width:100%; appearance:none; -webkit-appearance:none;
     background:linear-gradient(160deg, var(--surface2), rgba(255,255,255,0.02)); border:1px solid var(--line); color:var(--text);
@@ -1516,7 +1574,7 @@
     color:var(--plate-blue); font-size:14px; pointer-events:none;
   }
   .program-select-desc{
-    font-size:12px; color:var(--text-muted); margin:6px 0 16px; line-height:1.4;
+    font-size:12px; color:var(--text-muted); margin:0 0 12px; line-height:1.45;
   }
   .masterclass-link-btn{
     width:100%; margin:2px 0 4px; padding:10px; background:var(--surface2); border:1px solid var(--line);
@@ -2250,13 +2308,18 @@
   <div id="programRecommendation"></div>
 
   <div class="card">
-    <div class="card-title" style="margin-bottom:8px;"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg></span>Training Style</div>
+    <div class="card-title nutrition-header" id="programHeader">
+      <span><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg></span>Training Style</span>
+      <span class="ex-chevron" id="programChevron">›</span>
+    </div>
     <div class="program-select-wrap">
       <select class="program-select" id="programSelector" aria-label="Training program"></select>
     </div>
-    <div class="program-select-desc" id="programSelectDesc"></div>
-    <button class="masterclass-link-btn" id="viewMasterclassBtn" style="display:none"></button>
-    <div id="programSourceNote"></div>
+    <div class="expand-wrap" id="programExpandWrap"><div>
+      <div class="program-select-desc" id="programSelectDesc"></div>
+      <button class="masterclass-link-btn" id="viewMasterclassBtn" style="display:none"></button>
+      <div id="programSourceNote"></div>
+    </div></div>
   </div>
 
   <div class="card" id="martialArtCard" style="display:none">
@@ -2343,7 +2406,7 @@
 
   <div class="card" id="profileCard">
     <div class="card-title nutrition-header" id="profileHeader">
-      <span><span class="card-icon" style="margin-right:7px"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.5" r="3.3"/><path d="M3.5 17c0-3.8 2.9-6.2 6.5-6.2s6.5 2.4 6.5 6.2"/></svg></span>Your Profile</span>
+      <span><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.5" r="3.3"/><path d="M3.5 17c0-3.8 2.9-6.2 6.5-6.2s6.5 2.4 6.5 6.2"/></svg></span>Your Profile</span>
       <span class="ex-chevron" id="profileChevron">›</span>
     </div>
     <div class="nutrition-summary" id="profileSummary">Tap to set up — personalizes your nutrition targets and program recommendation</div>
@@ -2449,7 +2512,7 @@
   <div class="card">
 
     <div class="card-title nutrition-header" id="nutritionHeader">
-      <span><span class="card-icon" style="margin-right:7px"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg></span>Today's Nutrition</span>
+      <span><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg></span>Today's Nutrition</span>
       <span class="ex-chevron" id="nutritionChevron">›</span>
     </div>
 
@@ -2660,7 +2723,7 @@
 
   <div class="card">
     <div class="card-title nutrition-header" id="measureHeader">
-      <span><span class="card-icon" style="margin-right:7px"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7.5" width="16" height="5.5" rx="1"/><line x1="6" y1="7.5" x2="6" y2="10.2"/><line x1="10" y1="7.5" x2="10" y2="10.2"/><line x1="14" y1="7.5" x2="14" y2="10.2"/></svg></span>Body Measurements</span>
+      <span><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7.5" width="16" height="5.5" rx="1"/><line x1="6" y1="7.5" x2="6" y2="10.2"/><line x1="10" y1="7.5" x2="10" y2="10.2"/><line x1="14" y1="7.5" x2="14" y2="10.2"/></svg></span>Body Measurements</span>
       <span class="ex-chevron" id="measureChevron">›</span>
     </div>
     <div class="nutrition-summary" id="measureSummary">Tap to log — track waist, chest, arms, and more over time</div>
@@ -2685,7 +2748,7 @@
 
   <div class="card">
     <div class="card-title nutrition-header" id="photosHeader">
-      <span><span class="card-icon" style="margin-right:7px"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="16" height="10.5" rx="2"/><path d="M7 6 8.4 3.6h3.2L14 6"/><circle cx="10" cy="11.2" r="3.2"/></svg></span>Progress Photos</span>
+      <span><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="16" height="10.5" rx="2"/><path d="M7 6 8.4 3.6h3.2L14 6"/><circle cx="10" cy="11.2" r="3.2"/></svg></span>Progress Photos</span>
       <span class="ex-chevron" id="photosChevron">›</span>
     </div>
     <div class="nutrition-summary" id="photosSummary">Tap to log — a visual record the scale and tape measure can't show</div>
@@ -2711,7 +2774,7 @@
 
   <div class="card" id="cycleCard" style="display:none">
     <div class="card-title nutrition-header" id="cycleHeader">
-      <span><span class="card-icon" style="margin-right:7px"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.2 10.6A6 6 0 1 1 9.4 3 5 5 0 0 0 14.2 10.6Z"/></svg></span>Cycle Tracking</span>
+      <span><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.2 10.6A6 6 0 1 1 9.4 3 5 5 0 0 0 14.2 10.6Z"/></svg></span>Cycle Tracking</span>
       <span class="ex-chevron" id="cycleChevron">›</span>
     </div>
     <div class="nutrition-summary" id="cycleSummary">Optional — tap to set up and see what to expect this phase</div>
@@ -2734,7 +2797,7 @@
   </div>
   <div class="card">
     <div class="card-title nutrition-header" id="aiSettingsHeader">
-      <span><span class="card-icon" style="margin-right:7px"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="8" height="8" rx="1"/><line x1="10" y1="1.6" x2="10" y2="6"/><line x1="10" y1="14" x2="10" y2="18.4"/><line x1="1.6" y1="10" x2="6" y2="10"/><line x1="14" y1="10" x2="18.4" y2="10"/></svg></span>AI Features Setup</span>
+      <span><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="8" height="8" rx="1"/><line x1="10" y1="1.6" x2="10" y2="6"/><line x1="10" y1="14" x2="10" y2="18.4"/><line x1="1.6" y1="10" x2="6" y2="10"/><line x1="14" y1="10" x2="18.4" y2="10"/></svg></span>AI Features Setup</span>
       <span class="ex-chevron" id="aiSettingsChevron">›</span>
     </div>
     <div class="nutrition-summary" id="aiSettingsSummary">Powers Snap a Meal + Coaching video review</div>
@@ -14194,7 +14257,7 @@ async function saveWeightUnit(unit){
 // survives reloads. Deliberately NOT applied to the Profile card, which
 // already has its own considered auto-collapse-after-save behavior that
 // blind persistence would fight with.
-const PERSISTENT_CARDS = ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings'];
+const PERSISTENT_CARDS = ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings', 'program'];
 async function getCardOpenState(key){
   try{
     const res = await window.storage.get('card-open:'+key);
@@ -14204,6 +14267,46 @@ async function getCardOpenState(key){
 async function setCardOpenState(key, isOpen){
   try{ await window.storage.set('card-open:'+key, isOpen ? 'true' : 'false'); }catch(e){}
 }
+// The six original collapsible card headers were <div>s with a click
+// listener: operable by pointer only, and announced as nothing. This wires
+// them all — including the Training Style header added alongside it — rather
+// than adding a seventh inaccessible one.
+//
+// Must run AFTER restoreCardOpenStates(), which adds .open from storage;
+// wiring first would leave aria-expanded describing the pre-restore state.
+function wireCollapsibleHeaders(){
+  document.querySelectorAll('.nutrition-header').forEach(h=>{
+    if(!h.id) return;
+    h.setAttribute('role','button');
+    h.tabIndex = 0;
+    const wrap = document.getElementById(h.id.replace(/Header$/,'') + 'ExpandWrap');
+    if(wrap && wrap.id) h.setAttribute('aria-controls', wrap.id);
+    h.setAttribute('aria-expanded', h.classList.contains('open') ? 'true' : 'false');
+  });
+}
+
+// Delegated, so it covers every header with one listener and survives any
+// re-render. Both run on bubble, after each header's own click handler has
+// already toggled .open — so reading the class here gives the new state.
+// Called at parse time as well as after restore. Accessibility attributes
+// should not depend on an async boot sequence completing — if init throws
+// halfway, the headers must still be operable. The function is idempotent.
+wireCollapsibleHeaders();
+
+document.addEventListener('keydown', (e)=>{
+  const h = e.target.closest && e.target.closest('.nutrition-header');
+  if(!h) return;
+  if(e.key === 'Enter' || e.key === ' '){
+    e.preventDefault();   // Space would otherwise scroll the page
+    h.click();
+  }
+});
+document.addEventListener('click', (e)=>{
+  const h = e.target.closest && e.target.closest('.nutrition-header');
+  if(!h) return;
+  h.setAttribute('aria-expanded', h.classList.contains('open') ? 'true' : 'false');
+});
+
 async function restoreCardOpenStates(){
   for(const key of PERSISTENT_CARDS){
     const isOpen = await getCardOpenState(key);
@@ -18457,6 +18560,12 @@ async function renderCycleTracking(){
   }
 }
 
+document.getElementById('programHeader').addEventListener('click', ()=>{
+  const isOpen = document.getElementById('programHeader').classList.toggle('open');
+  document.getElementById('programExpandWrap').classList.toggle('open');
+  setCardOpenState('program', isOpen);
+});
+
 document.getElementById('cycleHeader').addEventListener('click', ()=>{
   const isOpen = document.getElementById('cycleHeader').classList.toggle('open');
   document.getElementById('cycleExpandWrap').classList.toggle('open');
@@ -22103,6 +22212,7 @@ if(activeUserId){
     await loadWeightUnit();
     applyWeightUnitToUI();
     await restoreCardOpenStates();
+    wireCollapsibleHeaders();   // after restore, so aria-expanded matches reality
     await loadProfile();
     targets = computeTargets(userProfile);
     populateProfileForm();
