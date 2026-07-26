@@ -1988,6 +1988,21 @@
   /* Overlays fade rather than move, so opacity is the honest hint here. */
   .sub-modal-overlay, .calendar-modal-overlay{ will-change:opacity; }
 
+  /* Program provenance: the intro always visible, the sourcing one tap away. */
+  .program-intro{
+    font-size:13px; line-height:1.5; color:var(--text-muted);
+    margin-top:10px; padding-top:10px;
+    border-top:1px solid rgba(255,255,255,0.06);
+  }
+  .program-source{ margin-top:8px; }
+  .program-source summary{
+    font-size:11.5px; text-transform:uppercase; letter-spacing:0.5px;
+    color:var(--text-muted); cursor:pointer; list-style:none;
+    display:flex; align-items:center; gap:6px; padding:4px 0;
+  }
+  .program-source summary::-webkit-details-marker{ display:none; }
+  .program-source[open] summary{ margin-bottom:2px; }
+
   /* --- 4. Scrollable regions ------------------------------------------
      Any independently-scrolling region gets scroll containment so reaching
      its end doesn't hand the gesture to the page behind it — the specific
@@ -2044,13 +2059,13 @@
 </style>
 </head>
 <body>
-<div class="user-picker-overlay" id="userPickerOverlay" style="display:none">
+<div class="user-picker-overlay" id="userPickerOverlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="userPickerTitle">
   <div class="user-picker-box">
     <div class="eyebrow">Training Log</div>
-    <h2 class="user-picker-title">Who's training?</h2>
+    <h2 class="user-picker-title" id="userPickerTitle">Who's training?</h2>
     <div id="userPickerList" class="user-picker-list"></div>
     <div class="user-picker-divider">— or —</div>
-    <label class="care-label">Create a new profile</label>
+    <label class="care-label" for="newUserNameInput">Create a new profile</label>
     <input type="text" id="newUserNameInput" class="care-input" placeholder="Your name">
     <button class="save-btn" id="newUserCreateBtn">+ Create My Profile</button>
     <button class="user-picker-cancel" id="userPickerCancelBtn">Cancel</button>
@@ -2092,7 +2107,7 @@
     <button class="log-date-today-btn" id="logDateToday" style="display:none;">Today</button>
   </div>
 
-  <div class="calendar-modal-overlay" id="calendarModalOverlay">
+  <div class="calendar-modal-overlay" id="calendarModalOverlay" role="dialog" aria-modal="true" aria-labelledby="calendarMonthLabel">
     <div class="calendar-modal-sheet">
       <div class="calendar-modal-header">
         <button class="calendar-nav-btn" id="calendarPrevMonth" aria-label="Previous month">‹</button>
@@ -2124,37 +2139,38 @@
   <div class="card">
     <div class="card-title" style="margin-bottom:8px;"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg></span>Training Style</div>
     <div class="program-select-wrap">
-      <select class="program-select" id="programSelector"></select>
+      <select class="program-select" id="programSelector" aria-label="Training program"></select>
     </div>
     <div class="program-select-desc" id="programSelectDesc"></div>
     <button class="masterclass-link-btn" id="viewMasterclassBtn" style="display:none"></button>
+    <div id="programSourceNote"></div>
   </div>
 
   <div class="card" id="martialArtCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.2 16.5 4.8V10c0 4-2.7 6.8-6.5 7.8-3.8-1-6.5-3.8-6.5-7.8V4.8Z"/></svg></span>Martial Art Style</div>
     <div class="history-hint">Match your training to what you already know, or pick one to start learning.</div>
-    <select class="program-select" id="martialArtSelector"></select>
+    <select class="program-select" id="martialArtSelector" aria-label="Martial art style"></select>
     <div class="program-select-desc" id="martialArtDesc"></div>
   </div>
 
   <div class="card" id="cyclingCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="15" r="2.8"/><circle cx="15" cy="15" r="2.8"/><path d="M5 15 9 7h4M9 7l3 8M12 15h3M9 7 7 4"/></svg></span>Cycling Discipline</div>
     <div class="history-hint">Road and Mountain share a training backbone but differ in emphasis — pick the one that matches how you actually ride.</div>
-    <select class="program-select" id="cyclingSelector"></select>
+    <select class="program-select" id="cyclingSelector" aria-label="Cycling style"></select>
     <div class="program-select-desc" id="cyclingDesc"></div>
   </div>
 
   <div class="card" id="yogaCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="4" r="1.8"/><path d="M10 6.5 L10 12"/><path d="M6 9 L14 9"/><path d="M10 12 L6.5 17"/><path d="M10 12 L13.5 17"/></svg></span>Style</div>
     <div class="history-hint">Vinyasa &amp; Flow, Hot Yoga, or Partner Yoga — pick whichever fits today. <b>Hot Yoga:</b> get your doctor's clearance first if you have any cardiovascular, respiratory, or heat-related condition.</div>
-    <select class="program-select" id="yogaSelector"></select>
+    <select class="program-select" id="yogaSelector" aria-label="Yoga style"></select>
     <div class="program-select-desc" id="yogaDesc"></div>
   </div>
 
   <div class="card" id="medicalCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v6M10 11v6M3 10h6M11 10h6"/></svg></span>Condition / Stage</div>
     <div class="history-hint">Pick whichever matches your actual situation. <b>⚠️ Every option here is a framework to use alongside your own doctor, surgical team, PT, or OB/midwife's real diagnosis and clearance</b>, not a replacement for one — this app has no way to know your specific medical history or healing timeline.</div>
-    <select class="program-select" id="medicalSelector"></select>
+    <select class="program-select" id="medicalSelector" aria-label="Medical program"></select>
     <div class="program-select-desc" id="medicalDesc"></div>
   </div>
 
@@ -2162,9 +2178,9 @@
     <div class="hint">Tap a day to view it</div>
     <button class="reorder-btn" id="reorderToggle">Reorder days</button>
   </div>
-  <div class="tabs" id="tabs"></div>
+  <div class="tabs" id="tabs" role="tablist" aria-label="Training day"></div>
 
-  <div id="workoutCard" class="card">
+  <div id="workoutCard" class="card" role="tabpanel" aria-label="Selected day's workout">
     <div class="workout-hero">
       <div class="workout-hero-plate-wrap">
         <div class="workout-hero-glow" id="dayHeroGlow"></div>
@@ -2177,7 +2193,7 @@
     </div>
     <div class="duration-row">
       <div class="duration-tag" id="dayDuration"></div>
-      <select class="session-length-select" id="sessionLengthSelector"></select>
+      <select class="session-length-select" id="sessionLengthSelector" aria-label="Session length"></select>
     </div>
     <div class="session-cal-total" id="sessionCalTotal"></div>
     <div class="day-insight" id="dayInsight"></div>
@@ -2185,15 +2201,15 @@
     <div id="voiceHintBanner" style="display:none"></div>
     <button class="adapt-workout-toggle" id="adaptWorkoutBtn">🔄 Only have limited equipment/time today? Adapt this session</button>
     <div id="adaptWorkoutPanel" class="smooth-toggle"><div>
-      <input type="text" id="adaptWorkoutInput" class="care-input" placeholder="e.g. only dumbbells, no equipment at all, 20 minutes, traveling with just resistance bands">
+      <input type="text" id="adaptWorkoutInput" class="care-input" placeholder="e.g. only dumbbells, no equipment at all, 20 minutes, traveling with just resistance bands" aria-label="What you have available today">
       <button class="save-btn" id="adaptWorkoutSubmit">Get adapted session</button>
       <div id="adaptWorkoutResult"></div>
     </div></div>
     <div id="exerciseList"></div>
     <button class="custom-toggle" id="addCustomExerciseBtn">+ Add custom exercise</button>
     <div id="customExerciseForm" class="smooth-toggle"><div>
-      <input type="text" id="customExName" class="care-input" placeholder="Exercise name">
-      <input type="text" id="customExSets" class="care-input" placeholder="Sets × reps (e.g. 3x10)" style="margin-top:8px;">
+      <input type="text" id="customExName" class="care-input" placeholder="Exercise name" aria-label="Exercise name">
+      <input type="text" id="customExSets" class="care-input" placeholder="Sets × reps (e.g. 3x10)" style="margin-top:8px;" aria-label="Sets × reps (e.g. 3x10)">
       <label class="save-to-library-label">
         <input type="checkbox" id="customExNoWeight">
         <span>No weight (bodyweight, duration, or hold)</span>
@@ -2219,16 +2235,16 @@
     </div>
     <div class="nutrition-summary" id="profileSummary">Tap to set up — personalizes your nutrition targets and program recommendation</div>
     <div class="expand-wrap" id="profileExpandWrap"><div>
-      <label class="care-label">Name</label>
+      <label class="care-label" for="pfName">Name</label>
       <input type="text" id="pfName" class="care-input" placeholder="Your name">
 
       <div class="profile-row-2">
         <div>
-          <label class="care-label">Age</label>
+          <label class="care-label" for="pfAge">Age</label>
           <input type="number" id="pfAge" class="care-input" placeholder="30">
         </div>
         <div>
-          <label class="care-label">Gender</label>
+          <label class="care-label" for="pfGender">Gender</label>
           <select id="pfGender" class="care-input">
             <option value="male">Male</option>
             <option value="female">Female</option>
@@ -2241,17 +2257,17 @@
         <div>
           <label class="care-label">Height</label>
           <div class="height-inputs">
-            <input type="number" id="pfHeightFt" class="care-input" placeholder="5" style="width:70px;">
+            <input type="number" id="pfHeightFt" class="care-input" placeholder="5" style="width:70px;" aria-label="Height, feet">
             <span class="height-unit">ft</span>
-            <input type="number" id="pfHeightIn" class="care-input" placeholder="8" style="width:70px;">
+            <input type="number" id="pfHeightIn" class="care-input" placeholder="8" style="width:70px;" aria-label="Height, inches">
             <span class="height-unit">in</span>
           </div>
         </div>
         <div>
           <label class="care-label">Weight (<span id="pfWeightUnitLabel">lb</span>)</label>
           <div style="display:flex; gap:6px;">
-            <input type="number" step="0.1" id="pfWeight" class="care-input" placeholder="160" style="flex:1;">
-            <select id="weightUnitSelect" class="care-input" style="flex:0 0 68px; padding-left:8px;">
+            <input type="number" step="0.1" id="pfWeight" class="care-input" placeholder="160" style="flex:1;" aria-label="Body weight">
+            <select id="weightUnitSelect" class="care-input" style="flex:0 0 68px; padding-left:8px;" aria-label="Weight unit">
               <option value="lb">lb</option>
               <option value="kg">kg</option>
             </select>
@@ -2259,7 +2275,7 @@
         </div>
       </div>
 
-      <label class="care-label">Daily Activity (outside of training)</label>
+      <label class="care-label" for="pfActivity">Daily Activity (outside of training)</label>
       <select id="pfActivity" class="care-input">
         <option value="1.2">Mostly sedentary (desk job)</option>
         <option value="1.375">Lightly active</option>
@@ -2267,7 +2283,7 @@
         <option value="1.725">Very active / physical job</option>
       </select>
 
-      <label class="care-label">Primary Goal</label>
+      <label class="care-label" for="pfGoal">Primary Goal</label>
       <select id="pfGoal" class="care-input">
         <option value="lose">Lose Weight</option>
         <option value="gain">Gain Muscle</option>
@@ -2277,10 +2293,10 @@
         <option value="performance">Improve Performance</option>
       </select>
 
-      <label class="care-label">Body Goal</label>
+      <label class="care-label" for="pfBodyGoal">Body Goal</label>
       <select id="pfBodyGoal" class="care-input"></select>
 
-      <label class="care-label">Dietary Preference</label>
+      <label class="care-label" for="pfDietaryPreference">Dietary Preference</label>
       <select id="pfDietaryPreference" class="care-input">
         <option value="">No restriction</option>
         <option value="pescatarian">Pescatarian (fish/seafood, no other meat)</option>
@@ -2296,7 +2312,7 @@
       <label class="save-to-library-label"><input type="checkbox" id="pfKosher"><span>Kosher</span></label>
       <div class="history-hint field-note">Halal and Kosher here only ever catch obvious ingredient conflicts — no pork, no shellfish (Kosher), no alcohol (Halal), no meat-and-dairy combination (Kosher). Real compliance also depends on how something was slaughtered and prepared, which no app can verify from a name — treat this as a helpful filter, not a certification.</div>
 
-      <label class="care-label">Avoid</label>
+      <label class="care-label" for="pfAvoidFoods">Avoid</label>
       <input type="text" id="pfAvoidFoods" class="care-input" placeholder="e.g. peanuts, shellfish, pork, cilantro">
       <div class="history-hint field-note">Allergies, intolerances, religious restrictions, or just foods you don't want suggested — comma-separated. Matches whole words in a food's name, so "egg" won't flag "eggplant." Broad categories like "nuts" only catch foods actually named that — list specific ones (almonds, cashews, walnuts) for full coverage.</div>
 
@@ -2306,7 +2322,7 @@
       <button class="switch-profile-btn" id="switchProfileBtn">🔄 Switch Profile (for a shared device)</button>
       <button class="switch-profile-btn" id="exportDataBtn">⬇️ Export My Data (backup as JSON)</button>
       <button class="switch-profile-btn" id="importDataBtn">⬆️ Import Backup (restore from JSON)</button>
-      <input type="file" id="importDataInput" accept="application/json,.json" style="display:none">
+      <input type="file" id="importDataInput" accept="application/json,.json" style="display:none" aria-label="Choose a backup file to import">
       <div class="status-msg" id="importDataStatus"></div>
       <button class="switch-profile-btn" id="deleteAllDataBtn" style="color:var(--plate-red); border-color:rgba(255,69,58,0.3);">🗑️ Delete All My Data (this profile, permanently)</button>
       <div class="status-msg" id="deleteAllDataStatus"></div>
@@ -2355,7 +2371,7 @@
 
     <div class="expand-wrap" id="nutritionExpandWrap"><div>
       <div class="section-label">Add a Food</div>
-      <input type="text" id="foodSearchInput" class="food-search-input" placeholder="🔍 Search any food or restaurant...">
+      <input type="text" id="foodSearchInput" class="food-search-input" placeholder="🔍 Search any food or restaurant..." aria-label="Search any food or restaurant">
       <div id="usdaKeySettingsSlot"></div>
 
       <div class="quick-add-row">
@@ -2367,19 +2383,19 @@
       </div>
       <div id="describeFoodForm" class="describe-food-form smooth-toggle"><div>
         <div class="describe-food-input-row">
-          <input type="text" id="describeFoodInput" class="care-input" placeholder="e.g. chicken burrito bowl with rice, beans, and guac">
+          <input type="text" id="describeFoodInput" class="care-input" placeholder="e.g. chicken burrito bowl with rice, beans, and guac" aria-label="Describe what you ate">
           <span id="describeFoodVoiceSlot"></span>
         </div>
         <button class="save-btn" id="describeFoodSubmit">Estimate Nutrition</button>
       </div></div>
       <div id="recipeFinderForm" class="describe-food-form smooth-toggle"><div>
         <div class="describe-food-input-row">
-          <input type="text" id="recipeFinderInput" class="care-input" placeholder="e.g. sesame chicken, overnight oats, turkey chili">
+          <input type="text" id="recipeFinderInput" class="care-input" placeholder="e.g. sesame chicken, overnight oats, turkey chili" aria-label="What you feel like eating">
         </div>
         <button class="save-btn" id="recipeFinderSubmit">Find Recipes</button>
         <div class="history-hint" style="margin-top:8px;">A few different takes on what you're craving — with estimated macros per serving, and a link to the actual recipe. Respects your dietary preference and avoid list. Nothing's shown in-app beyond the estimate; tap through to cook it, or log it straight from the estimate if you already know what you're making.</div>
       </div></div>
-      <input type="file" id="photoLogInput" accept="image/*" style="display:none">
+      <input type="file" id="photoLogInput" accept="image/*" style="display:none" aria-label="Photo of your meal">
       <div id="photoLogResult"></div>
       <div id="mealSuggestions"></div>
       <div id="barcodeResult"></div>
@@ -2389,7 +2405,7 @@
       <div class="section-divider"></div>
       <div class="section-label">🛒 Grocery List</div>
       <div class="weight-input-row">
-        <input type="text" id="groceryAddInput" class="care-input" placeholder="Add an item">
+        <input type="text" id="groceryAddInput" class="care-input" placeholder="Add an item" aria-label="Add an item">
         <button id="groceryAddBtn">Add</button>
       </div>
       <div id="groceryListItems"></div>
@@ -2402,26 +2418,26 @@
       <button class="custom-toggle" id="customToggle">+ Add custom item</button>
       <div id="customForm" class="smooth-toggle"><div class="custom-form">
         <button class="photo-log-btn" id="scanLabelBtn" style="margin:0 0 4px;">📷 Scan or Upload a Label Photo</button>
-        <input type="file" id="scanLabelInput" accept="image/*" style="display:none">
+        <input type="file" id="scanLabelInput" accept="image/*" style="display:none" aria-label="Photo of a nutrition label">
         <div class="status-msg" id="scanLabelStatus"></div>
-        <input type="text" id="cName" placeholder="Item name">
+        <input type="text" id="cName" placeholder="Item name" aria-label="Custom food name">
         <div class="macro-input-row">
-          <input type="number" inputmode="numeric" id="cCal" placeholder="Cal">
-          <input type="number" inputmode="numeric" id="cPro" placeholder="Pro">
-          <input type="number" inputmode="numeric" id="cFat" placeholder="Fat">
-          <input type="number" inputmode="numeric" id="cCarb" placeholder="Carb">
+          <input type="number" inputmode="numeric" id="cCal" placeholder="Cal" aria-label="Calories">
+          <input type="number" inputmode="numeric" id="cPro" placeholder="Pro" aria-label="Protein in grams">
+          <input type="number" inputmode="numeric" id="cFat" placeholder="Fat" aria-label="Fat in grams">
+          <input type="number" inputmode="numeric" id="cCarb" placeholder="Carb" aria-label="Carbs in grams">
         </div>
         <button type="button" class="custom-toggle" id="moreNutrientsToggle" style="margin-top:8px;">+ Sodium, fiber, calcium, iron, potassium, folate</button>
         <div id="moreNutrientsForm" class="smooth-toggle"><div>
           <div class="macro-input-row">
-            <input type="number" inputmode="numeric" id="cSodium" placeholder="Sodium mg">
-            <input type="number" inputmode="numeric" id="cFiber" placeholder="Fiber g">
-            <input type="number" inputmode="numeric" id="cCalcium" placeholder="Calcium mg">
+            <input type="number" inputmode="numeric" id="cSodium" placeholder="Sodium mg" aria-label="Sodium in milligrams">
+            <input type="number" inputmode="numeric" id="cFiber" placeholder="Fiber g" aria-label="Fibre in grams">
+            <input type="number" inputmode="numeric" id="cCalcium" placeholder="Calcium mg" aria-label="Calcium in milligrams">
           </div>
           <div class="macro-input-row">
-            <input type="number" inputmode="numeric" step="0.1" id="cIron" placeholder="Iron mg">
-            <input type="number" inputmode="numeric" id="cPotassium" placeholder="Potassium mg">
-            <input type="number" inputmode="numeric" id="cFolate" placeholder="Folate mcg">
+            <input type="number" inputmode="numeric" step="0.1" id="cIron" placeholder="Iron mg" aria-label="Iron in milligrams">
+            <input type="number" inputmode="numeric" id="cPotassium" placeholder="Potassium mg" aria-label="Potassium in milligrams">
+            <input type="number" inputmode="numeric" id="cFolate" placeholder="Folate mcg" aria-label="Folate in micrograms">
           </div>
         </div></div>
         <label class="save-to-library-label">
@@ -2467,7 +2483,7 @@
   <div class="card">
     <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 14a6.5 6.5 0 0 1 13 0"/><line x1="10" y1="14" x2="12.6" y2="9.3"/><circle cx="10" cy="14" r="1" fill="currentColor"/></svg></span>Bodyweight</div>
     <div class="weight-input-row">
-      <input type="number" step="0.1" inputmode="decimal" id="weightInput" placeholder="Weight today (lb)">
+      <input type="number" step="0.1" inputmode="decimal" id="weightInput" placeholder="Weight today (lb)" aria-label="Weight today (lb)">
       <button id="saveWeight">Log</button>
     </div>
     <div class="status-msg" id="weightSaveStatus"></div>
@@ -2478,9 +2494,9 @@
     <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v4M10 13v4M3 10h4M13 10h4"/><circle cx="10" cy="10" r="3"/></svg></span>Blood Pressure</div>
     <div class="history-hint">Only shown while Hypertension is your active condition. A single reading is just a snapshot — the trend over days matters far more than any one number, and this is never a substitute for your doctor's monitoring or your prescribed medication.</div>
     <div class="weight-input-row">
-      <input type="number" inputmode="numeric" id="bpSystolicInput" placeholder="Systolic" style="max-width:90px;">
+      <input type="number" inputmode="numeric" id="bpSystolicInput" placeholder="Systolic" style="max-width:90px;" aria-label="Systolic blood pressure">
       <span style="align-self:center; color:var(--text-muted);">/</span>
-      <input type="number" inputmode="numeric" id="bpDiastolicInput" placeholder="Diastolic" style="max-width:90px;">
+      <input type="number" inputmode="numeric" id="bpDiastolicInput" placeholder="Diastolic" style="max-width:90px;" aria-label="Diastolic blood pressure">
       <button id="saveBP">Log</button>
     </div>
     <div class="status-msg" id="bpSaveStatus"></div>
@@ -2491,8 +2507,8 @@
     <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 L15 11 A5.5 5.5 0 1 1 5 11 Z"/></svg></span>Blood Glucose</div>
     <div class="history-hint">Only shown while Diabetes is your active condition. Tag each reading so it's compared against the right target — fasting/before-meal and after-meal have different normal ranges. Never a substitute for your prescribed monitoring routine or your care team's guidance.</div>
     <div class="weight-input-row">
-      <input type="number" inputmode="numeric" id="glucoseInput" placeholder="mg/dL">
-      <select id="glucoseContext" class="care-input" style="flex:0 0 auto; width:auto;">
+      <input type="number" inputmode="numeric" id="glucoseInput" placeholder="mg/dL" aria-label="Blood glucose in mg/dL">
+      <select id="glucoseContext" class="care-input" style="flex:0 0 auto; width:auto;" aria-label="When this glucose reading was taken">
         <option value="fasting">Fasting / before meal</option>
         <option value="postmeal">After meal</option>
       </select>
@@ -2511,7 +2527,7 @@
   <div class="card">
     <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.2 10.6A6 6 0 1 1 9.4 3 5 5 0 0 0 14.2 10.6Z"/></svg></span>Sleep</div>
     <div class="weight-input-row">
-      <input type="number" step="0.25" inputmode="decimal" id="sleepInput" placeholder="Hours slept last night">
+      <input type="number" step="0.25" inputmode="decimal" id="sleepInput" placeholder="Hours slept last night" aria-label="Hours slept last night">
       <button id="saveSleep">Log</button>
     </div>
     <div class="sleep-avg" id="sleepAvg"></div>
@@ -2537,16 +2553,16 @@
     <div class="nutrition-summary" id="measureSummary">Tap to log — track waist, chest, arms, and more over time</div>
     <div class="expand-wrap" id="measureExpandWrap"><div>
       <div class="profile-row-2">
-        <div><label class="care-label">Waist (in)</label><input type="number" step="0.1" id="mWaist" class="care-input"></div>
-        <div><label class="care-label">Chest (in)</label><input type="number" step="0.1" id="mChest" class="care-input"></div>
+        <div><label class="care-label" for="mWaist">Waist (in)</label><input type="number" step="0.1" id="mWaist" class="care-input"></div>
+        <div><label class="care-label" for="mChest">Chest (in)</label><input type="number" step="0.1" id="mChest" class="care-input"></div>
       </div>
       <div class="profile-row-2">
-        <div><label class="care-label">Arms (in)</label><input type="number" step="0.1" id="mArms" class="care-input"></div>
-        <div><label class="care-label">Thighs (in)</label><input type="number" step="0.1" id="mThighs" class="care-input"></div>
+        <div><label class="care-label" for="mArms">Arms (in)</label><input type="number" step="0.1" id="mArms" class="care-input"></div>
+        <div><label class="care-label" for="mThighs">Thighs (in)</label><input type="number" step="0.1" id="mThighs" class="care-input"></div>
       </div>
       <div class="profile-row-2">
-        <div><label class="care-label">Hips (in)</label><input type="number" step="0.1" id="mHips" class="care-input"></div>
-        <div><label class="care-label">Neck (in)</label><input type="number" step="0.1" id="mNeck" class="care-input"></div>
+        <div><label class="care-label" for="mHips">Hips (in)</label><input type="number" step="0.1" id="mHips" class="care-input"></div>
+        <div><label class="care-label" for="mNeck">Neck (in)</label><input type="number" step="0.1" id="mNeck" class="care-input"></div>
       </div>
       <button class="save-btn" id="saveMeasurements">Log Measurements</button>
       <div class="status-msg" id="measureStatus"></div>
@@ -2562,7 +2578,7 @@
     <div class="nutrition-summary" id="photosSummary">Tap to log — a visual record the scale and tape measure can't show</div>
     <div class="expand-wrap" id="photosExpandWrap"><div>
       <div class="privacy-note">🔒 Stored only on this device by default, never uploaded anywhere on their own. The one exception is the separate "Compare with AI" tool below — it only sends the exact two photos you pick, and only after you explicitly confirm each time. Deleting a photo removes it completely; "Delete All My Data" in your profile wipes these too.</div>
-      <input type="file" id="photoInput" accept="image/*" style="display:none">
+      <input type="file" id="photoInput" accept="image/*" style="display:none" aria-label="Progress photo">
       <button class="photo-log-btn" id="photoAddBtn">📸 Snap or Upload a Progress Photo</button>
       <div class="status-msg" id="photoStatus"></div>
       <div class="photo-grid" id="photoGrid"></div>
@@ -2571,8 +2587,8 @@
       <div class="section-label">🤖 Compare with AI (optional)</div>
       <div class="history-hint">Separate from everything above — this is the only thing in Progress Photos that ever leaves this device, and only the exact two photos you pick here, only when you tap confirm below.</div>
       <div class="photo-compare-row">
-        <select id="comparePhotoBefore" class="care-input"><option value="">Earlier photo…</option></select>
-        <select id="comparePhotoAfter" class="care-input"><option value="">Later photo…</option></select>
+        <select id="comparePhotoBefore" class="care-input" aria-label="Before photo"><option value="">Earlier photo…</option></select>
+        <select id="comparePhotoAfter" class="care-input" aria-label="After photo"><option value="">Later photo…</option></select>
       </div>
       <button class="save-btn" id="comparePhotosBtn">Compare with AI</button>
       <div id="compareConsentBanner"></div>
@@ -2590,9 +2606,9 @@
       <div class="care-disclaimer" style="margin-bottom:12px;">
         Entirely optional and private — this data never leaves your device. What follows is general, population-level information from exercise physiology research (notably Dr. Stacy Sims' work, author of <i>ROAR</i>, the leading research on training around the menstrual cycle) — not a diagnosis or a guarantee of how <b>your</b> body will respond. Individual variation is significant; if something feels off or concerning, talk to a doctor.
       </div>
-      <label class="care-label">First day of your last period</label>
+      <label class="care-label" for="cycleLastPeriod">First day of your last period</label>
       <input type="date" id="cycleLastPeriod" class="care-input">
-      <label class="care-label">Average cycle length (days)</label>
+      <label class="care-label" for="cycleLength">Average cycle length (days)</label>
       <input type="number" id="cycleLength" class="care-input" placeholder="28" min="21" max="40">
       <button class="save-btn" id="saveCycle">Save</button>
       <div class="status-msg" id="cycleStatus"></div>
@@ -2615,7 +2631,7 @@
       </div>
       <label class="care-label">Your Anthropic API Key</label>
       <div id="aiKeySetupState">
-        <input type="password" id="aiApiKeyInput" class="care-input" placeholder="sk-ant-...">
+        <input type="password" id="aiApiKeyInput" class="care-input" placeholder="sk-ant-..." aria-label="Anthropic API key">
         <button class="save-btn" id="aiApiKeySave">Save Key</button>
       </div>
       <div id="aiKeyConnectedState" class="ai-key-connected" style="display:none">
@@ -2739,10 +2755,10 @@
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.6"/><line x1="10" y1="6.4" x2="10" y2="13.6"/><line x1="6.4" y1="10" x2="13.6" y2="10"/></svg></span>Log How You're Feeling</div>
       <div class="care-form">
-        <label class="care-label">What were you doing?</label>
+        <label class="care-label" for="careExercise">What were you doing?</label>
         <input type="text" id="careExercise" class="care-input" placeholder="e.g. Bench Press, set 3">
 
-        <label class="care-label">What did it feel like in the moment?</label>
+        <label class="care-label" for="careSensation">What did it feel like in the moment?</label>
         <select id="careSensation" class="care-input">
           <option value="">Select one</option>
           <option value="sharp">Sharp or sudden pain</option>
@@ -2753,7 +2769,7 @@
           <option value="other">Something else</option>
         </select>
 
-        <label class="care-label">Where is it now?</label>
+        <label class="care-label" for="careRegion">Where is it now?</label>
         <select id="careRegion" class="care-input">
           <option value="">Select a region</option>
           <option>Shoulder</option>
@@ -2773,10 +2789,10 @@
           <option>Other</option>
         </select>
 
-        <label class="care-label">Pain level right now: <span id="carePainVal">3</span>/10</label>
+        <label class="care-label" for="carePain">Pain level right now: <span id="carePainVal">3</span>/10</label>
         <input type="range" min="0" max="10" value="3" id="carePain" class="care-slider">
 
-        <label class="care-label">Anything else worth noting?</label>
+        <label class="care-label" for="careNote">Anything else worth noting?</label>
         <textarea id="careNote" class="care-input care-textarea" placeholder="Optional — swelling, when it started, what makes it worse/better..."></textarea>
 
         <button class="save-btn" id="careSubmit">Log & Check</button>
@@ -2798,7 +2814,7 @@
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,10.5 5.8,10.5 7.6,4.5 11.6,15.5 13.4,10.5 18,10.5"/></svg></span>Stretches & Strengthening by Area</div>
       <div class="history-hint">Research-informed starting points for common problem areas — not a treatment plan, but a well-supported place to begin. Tap a move for cues and a form video.</div>
-      <div class="program-select-wrap"><select class="program-select" id="careLibrarySelector"></select></div>
+      <div class="program-select-wrap"><select class="program-select" id="careLibrarySelector" aria-label="Stretch and mobility category"></select></div>
       <div id="careLibraryList"></div>
     </div>
 
@@ -2820,7 +2836,7 @@
       <div class="history-hint">Chat about your training, nutrition, or recovery — your goal and active program are already part of the conversation.</div>
       <div id="coachChatLog" class="coach-chat-log"></div>
       <div class="coach-chat-input-row">
-        <input type="text" id="coachChatInput" class="care-input" placeholder="Ask something…">
+        <input type="text" id="coachChatInput" class="care-input" placeholder="Ask something…" aria-label="Message your coach">
         <button class="save-btn coach-chat-send-btn" id="coachChatSend">Send</button>
       </div>
       <button class="usda-key-upgrade-toggle" id="coachChatClear" style="margin-top:8px;">Clear conversation</button>
@@ -2830,11 +2846,11 @@
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5.2" width="10.8" height="9.6" rx="1.5"/><path d="M12.8 8.4 17.8 6v8l-5-2.4Z"/></svg></span>Get Form Feedback</div>
       <div class="history-hint">Coaching from the <b id="coachPersonaLabel">Strength & Size</b> knowledge base, since that's your active training style. Record a full working set, up to 60 seconds, from the side or a 3/4 angle — the coach reads frames across the whole set and can tell you whether your form holds up or breaks down as it goes, not just a single moment. Longer or larger clips are exactly where video reading tends to fail on iPhone, so 60 seconds is a real ceiling, not a suggestion.</div>
       <div class="privacy-note">🔒 Your clip goes directly from this device to Anthropic using your own API key — never through any other server. Only the written feedback below gets saved; the video itself is never stored, here or anywhere else.</div>
-      <input type="file" id="coachVideoInput" accept="video/*" style="display:none">
+      <input type="file" id="coachVideoInput" accept="video/*" style="display:none" aria-label="Video of your set">
       <button class="photo-log-btn" id="coachVideoBtn">🎥 Upload or Record a Clip</button>
-      <label class="care-label">What exercise/movement is this?</label>
+      <label class="care-label" for="coachExerciseInput">What exercise/movement is this?</label>
       <input type="text" id="coachExerciseInput" class="care-input" placeholder="e.g. Back Squat, Jab-Cross Combo, Front Double Biceps">
-      <label class="care-label">Anything specific you want checked? (optional)</label>
+      <label class="care-label" for="coachFocusInput">Anything specific you want checked? (optional)</label>
       <input type="text" id="coachFocusInput" class="care-input" placeholder="e.g. my knee caving in, bar path">
       <div id="coachResult"></div>
     </div>
@@ -2859,7 +2875,7 @@
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.6" cy="8.6" r="6"/><line x1="13" y1="13" x2="17.8" y2="17.8"/></svg></span>Exercise Library</div>
       <div class="history-hint" id="exerciseLibraryHint">Search the exercise library by name — technique cues and a form-video link for anything in the library, regardless of which program it's normally used in.</div>
-      <input type="text" id="exerciseSearchInput" class="care-input" placeholder="Search exercises… e.g. squat, plank, jab">
+      <input type="text" id="exerciseSearchInput" class="care-input" placeholder="Search exercises… e.g. squat, plank, jab" aria-label="Search exercises">
       <div id="exerciseSearchResults"></div>
     </div>
 
@@ -2982,7 +2998,7 @@
       </div>
     </button>
     <button class="rt-add" id="restTimerAdd">+15s</button>
-    <button class="rt-close" id="restTimerClose">✕</button>
+    <button class="rt-close" id="restTimerClose" aria-label="Close rest timer">✕</button>
   </div>
   <div class="rest-timer-expand" id="restTimerPanel"><div>
     <div class="rest-timer-panel-tier" id="restTimerPanelTier"></div>
@@ -3008,11 +3024,11 @@
   <button id="undoToastBtn">Undo</button>
 </div>
 
-<div class="sub-modal-overlay" id="subModalOverlay">
+<div class="sub-modal-overlay" id="subModalOverlay" role="dialog" aria-modal="true" aria-labelledby="subModalTitle">
   <div class="sub-modal-sheet">
     <div class="sub-modal-header">
       <div class="sub-modal-title" id="subModalTitle">Swap exercise</div>
-      <button class="sub-modal-close" id="subModalClose">✕</button>
+      <button class="sub-modal-close" id="subModalClose" aria-label="Close exercise swap">✕</button>
     </div>
     <div class="sub-modal-hint">Pick an alternative that hits the same muscles — matched for equipment or preference. Each option keeps its own separate weight/reps/RPE history at this slot.</div>
     <div id="subModalOptions"></div>
@@ -3029,14 +3045,14 @@
   </div>
 </div>
 
-<div class="barcode-scanner-overlay" id="barcodeScannerOverlay">
+<div class="barcode-scanner-overlay" id="barcodeScannerOverlay" role="dialog" aria-modal="true" aria-label="Barcode scanner">
   <video id="barcodeVideo" playsinline autoplay muted></video>
   <div class="barcode-viewfinder"></div>
   <div class="barcode-status" id="barcodeStatus">Point your camera at a barcode</div>
   <button class="barcode-close-btn" id="barcodeCloseBtn">Cancel</button>
 </div>
 
-<button class="coach-fab" id="coachFab" title="Ask your coach"><span>💬</span></button>
+<button class="coach-fab" id="coachFab" aria-label="Ask your coach"><span aria-hidden="true">💬</span></button>
 
 <button class="today-fab" id="todayFab" style="display:none;" title="Jump back to today">
   <span class="today-fab-label">Today</span>
@@ -3044,14 +3060,14 @@
 
 <div class="coach-fab-modal" id="coachFabModal">
   <div class="coach-fab-backdrop" id="coachFabBackdrop"></div>
-  <div class="coach-fab-panel" id="coachFabPanel">
+  <div class="coach-fab-panel" id="coachFabPanel" role="dialog" aria-modal="true" aria-label="Ask your coach">
     <div class="coach-fab-header">
-      <span>💬 Ask Your Coach</span>
-      <button class="coach-fab-close" id="coachFabClose">✕</button>
+      <span><span aria-hidden="true">💬</span> Ask Your Coach</span>
+      <button class="coach-fab-close" id="coachFabClose" aria-label="Close coach chat">✕</button>
     </div>
     <div class="coach-chat-log" id="floatingChatLog"></div>
     <div class="coach-chat-input-row">
-      <input type="text" id="floatingChatInput" class="care-input" placeholder="Ask something…">
+      <input type="text" id="floatingChatInput" class="care-input" placeholder="Ask something…" aria-label="Message your coach">
       <button class="save-btn coach-chat-send-btn" id="floatingChatSend">Send</button>
     </div>
   </div>
@@ -3565,6 +3581,17 @@ const programs = {
       },
       d5: {
         label:'Day 5', sub:'Lower · Hypertrophy', plate:'p-green', plateNum:'10', duration:'~55 min',
+        // Deadlift stays at 5-6 reps on a day labelled Hypertrophy, and this
+        // is deliberate — it is NOT the defect that was fixed on d1/d2 (where
+        // "Strength" days were prescribing hypertrophy-tier reps).
+        // ACSM 2026 (Currier et al.) found loads from 30% to 100% of 1RM
+        // produce comparable hypertrophy once volume is equated and effort is
+        // sufficient, so there is no growth penalty for training the deadlift
+        // heavy here. Meanwhile a 10-12 rep deadlift degrades position under
+        // fatigue and costs far more recovery than it returns.
+        // Deliberate side effect: getDefaultRestSeconds reads the rep tier, so
+        // this correctly gets strength-tier rest (~240s) rather than 120s.
+        // Do not "correct" this to match the day label.
         exercises:[
           {name:'Deadlift', sets:'3×5-6'},
           {name:'Bulgarian Split Squat', sets:'3×10-12/leg'},
@@ -3677,8 +3704,19 @@ const programs = {
     days: {
       d1: {
         label:'Day 1', sub:'Snatch + Pull Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
+        // Doubles, not triples, on the two competition lifts. This is the
+        // near-universal convention in weightlifting coaching (Bulgarian and
+        // Russian lineages, and modern USAW practice alike): a triple on a
+        // full snatch or clean & jerk forces a lighter bar, and the third rep
+        // arrives already fatigued, so the lifter rehearses a slower, less
+        // precise pull — the opposite of what the set is for. A double still
+        // lets you feel the first rep and correct timing on the second.
+        // NOTE ON EVIDENCE QUALITY: this is coaching-school consensus, not
+        // RCT evidence. Weightlifting rep-scheme prescription has no
+        // equivalent to ACSM's position stand. Labelled as such deliberately —
+        // see PROGRAM_SOURCES.oly.
         exercises:[
-          {name:'Snatch', sets:'5×3'},
+          {name:'Snatch', sets:'5×2'},
           {name:'Snatch Pull', sets:'4×3'},
           {name:'Overhead Squat', sets:'3×5'},
           {name:'Front Squat', sets:'3×5'},
@@ -3686,8 +3724,19 @@ const programs = {
       },
       d2: {
         label:'Day 2', sub:'Clean & Jerk Technique', plate:'p-blue', plateNum:'20', duration:'~55 min',
+        // Doubles, not triples, on the two competition lifts. This is the
+        // near-universal convention in weightlifting coaching (Bulgarian and
+        // Russian lineages, and modern USAW practice alike): a triple on a
+        // full snatch or clean & jerk forces a lighter bar, and the third rep
+        // arrives already fatigued, so the lifter rehearses a slower, less
+        // precise pull — the opposite of what the set is for. A double still
+        // lets you feel the first rep and correct timing on the second.
+        // NOTE ON EVIDENCE QUALITY: this is coaching-school consensus, not
+        // RCT evidence. Weightlifting rep-scheme prescription has no
+        // equivalent to ACSM's position stand. Labelled as such deliberately —
+        // see PROGRAM_SOURCES.oly.
         exercises:[
-          {name:'Clean & Jerk', sets:'5×3'},
+          {name:'Clean & Jerk', sets:'5×2'},
           {name:'Clean Pull', sets:'4×3'},
           {name:'Front Squat', sets:'3×5'},
           {name:'Jerk Dip Squat', sets:'3×5'},
@@ -3888,10 +3937,26 @@ const programs = {
       },
       d4: {
         label:'Day 4', sub:'Legs', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+        // Verified against bodyweight-specific literature. Bodyweight
+        // training matches free weights for hypertrophy provided sets reach
+        // or approach failure in roughly the 6-35 rep range, so the lack of
+        // external load is not itself the limitation. Lower body is the one
+        // documented exception: hamstring activation differs between hip
+        // extension and leg curl patterns, and there is no bodyweight hip
+        // extension that recruits the hamstrings well. Covering both
+        // patterns therefore needs a curl, for which the Nordic is the
+        // bodyweight option.
+        //
+        // This day had Glute Bridge (hip extension) and no curl pattern, so
+        // hamstring work was one-sided. Nordic Curl added — the same
+        // solution the calisthenics program already uses on its leg day.
+        // Glute Bridge stays: both patterns are needed, one does not replace
+        // the other.
         exercises:[
           {name:'Bodyweight Squat', sets:'4×20-25'},
           {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
           {name:'Glute Bridge', sets:'3×15-20'},
+          {name:'Nordic Curl', sets:'3×5-8'},
           {name:'Calf Raise', sets:'3×20-25'},
         ]
       },
@@ -3975,6 +4040,33 @@ const programs = {
     }
   },
 
+  // VERIFIED against flexibility-specific literature, and the headline
+  // finding is that most of this file's other audit lenses DO NOT APPLY here.
+  //
+  // Konrad et al. (systematic review with meta-analysis, J Sport Health Sci
+  // 2023) found that neither volume, intensity, nor weekly frequency of
+  // stretching significantly moderated range-of-motion gains. That is the
+  // opposite of the dose-response relationship that governs every strength
+  // program in this app. Auditing this program — or the yoga styles, or
+  // pilates — for "enough weekly sets" is measuring the wrong thing entirely,
+  // and any conclusion drawn that way should be discarded.
+  //
+  // What the evidence says DOES matter:
+  //   - Technique type. Static and PNF stretching beat ballistic/dynamic for
+  //     long-term ROM. Checked programmatically: zero ballistic movements
+  //     across mobility, pilates, core and all three yoga styles, and the
+  //     yoga styles are 92-100% time-held rather than rep-counted. Correct.
+  //   - Consistency and maintenance. ROM gains emerge in roughly 3-6 weeks
+  //     and REGRESS once stretching stops, so ongoing lower-frequency
+  //     maintenance is the point rather than a big block of it.
+  //   - Reassurance worth keeping: long-term stretching does not impair
+  //     strength, and static stretching sustained 8+ weeks may slightly
+  //     improve it, so this program does not need to be defended against
+  //     the concurrent-training concern that applies elsewhere.
+  //
+  // Also relevant (Alizadeh et al., Sports Med): resistance training through
+  // a full range improves ROM on its own, which is why the strength programs
+  // in this app do not need bolted-on stretching to be complete.
   mobility: {
     label: 'Mobility & Flexibility', short: 'Joint prep, range of motion & recovery',
     days: {
@@ -4079,10 +4171,23 @@ const programs = {
         ]
       },
       d6: {
-        label:'Day 6', sub:'Recovery Run + Strength', plate:'p-off', plateNum:'5', duration:'~35 min',
+        label:'Day 6', sub:'Recovery Run + Strength', plate:'p-off', plateNum:'5', duration:'~40 min',
+        // Heavy resistance, not a bodyweight circuit. Eihara et al. 2022
+        // (Sports Med Open 8:138) compared the two adjuncts head-to-head in
+        // long-distance runners: heavy resistance moved running economy
+        // (g=-0.32) roughly 2.5x more than plyometric (g=-0.13, trivial),
+        // with the same direction on time-trial performance. High-rep
+        // bodyweight squats are neither — they sit below the load needed for
+        // the neuromuscular adaptation that drives economy.
+        // Placed the day AFTER the long run and the day BEFORE full rest on
+        // purpose: heavy lifting belongs on an already-hard day, so the easy
+        // days stay genuinely easy. One plyometric is kept because the same
+        // review found plyometric work still positive, just smaller.
         exercises:[
           {name:'Recovery Jog', sets:'20 min', noWeight:true},
-          {name:'Bodyweight Squat', sets:'3×15'},
+          {name:'Back Squat', sets:'3×5'},
+          {name:'Romanian Deadlift', sets:'3×6'},
+          {name:'Single-Leg Bound', sets:'3×6'},
           {name:'Push-up', sets:'3×15'},
         ]
       },
@@ -4298,9 +4403,21 @@ const programs = {
         ]
       },
       d6: {
-        label:'Day 6', sub:'Accessory Pump Day', plate:'p-off', plateNum:'5', duration:'~40 min',
+        label:'Day 6', sub:'Accessory Pump Day', plate:'p-off', plateNum:'5', duration:'~45 min',
+        // Posterior chain was the one real hole in this program. Weekly sets
+        // ran arms 18, push 16, shoulders 12, quads 11 — and hamstrings 7,
+        // from a single Leg Curl on d1 plus the d4 deadlift. Against ACSM
+        // 2026's >=10 weekly sets per muscle group for hypertrophy (Currier
+        // et al. 2026), everything else in the "building" half cleared the
+        // bar and hamstrings did not. RDL rather than a second Leg Curl:
+        // it adds a hip-hinge pattern on a day that otherwise has none, and
+        // trains the hamstring at long muscle length.
+        // Takes hinge to 10 sets across 3 exposures. NOT a general licence to
+        // top up any category reading under 10 — see the note in
+        // PROGRAM_SOURCES.powerbuilding about which readings are artifacts.
         exercises:[
           {name:'Leg Press', sets:'3×12-15'},
+          {name:'Romanian Deadlift', sets:'3×10-12'},
           {name:'Cable Row', sets:'3×12-15'},
           {name:'Rope Pushdown', sets:'3×12-15'},
           {name:'Cable Crunch', sets:'3×15'},
@@ -4469,7 +4586,7 @@ const programs = {
       d1: {
         label:'Day 1', sub:'Finger Strength', plate:'p-red', plateNum:'25', duration:'~45 min',
         exercises:[
-          {name:'Hangboard Max Hang', sets:'6×10s', noWeight:true},
+          {name:'Hangboard Max Hang', sets:'6×10s'},
           {name:'Hangboard Repeaters', sets:'3×6', noWeight:true},
           {name:'Pull-ups (or assisted)', sets:'4×6-8'},
           {name:'Farmer\'s Carry', sets:'3×30s'},
@@ -4827,6 +4944,438 @@ const programs = {
 // lives here as one style picker, grouped by category in the selector via
 // the `group` field on each entry. None of the day/exercise content changed
 // in this consolidation — only how it's organized and switched between.
+// [PROGRAM PROVENANCE] ----------------------------------------------------
+// What each program is actually built on, and — the part that matters more —
+// what that source does NOT license. §4 of HANDOFF v4 found that the most
+// valuable output of a program review was the record of which general rules
+// do not apply where. An unqualified citation is exactly how a correct
+// program gets "fixed" later by someone who read the source and not the
+// intent, so `doesNotLicense` is a required field, not a footnote.
+//
+// EVIDENCE TIERS, stated honestly rather than flattened:
+//   'stand'    — a body's position stand or clinical guideline
+//   'meta'     — systematic review / meta-analysis
+//   'school'   — coaching-school consensus with no RCT-grade equivalent.
+//                Real, but not evidence in the same sense. Never dressed up.
+//
+// A program with no entry here has NOT been sourced yet. That is deliberate:
+// an empty slot is honest, a placeholder citation is not.
+const PROGRAM_SOURCES = {
+  senior: {
+    intro: 'Strength, balance and the ability to get out of a chair quickly — built around the everyday tasks that decide whether someone stays independent, with the pace of the movement treated as part of the prescription.',
+    tier: 'stand',
+    school: 'Geriatric resistance training with an explicit power emphasis: train the concentric fast, lower slowly, and progress by reducing assistance rather than adding load.',
+    primary: 'Currier BS, DSouza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897 (>=2 sessions/week, all major groups, 2-3 sets, 60-80% effort, stopping 2-3 reps short). Power emphasis: Araujo CGS, Kunutsor SK, Eijsvogels TMH, et al. Muscle Power Versus Strength as a Predictor of Mortality in Middle-Aged and Older Men and Women. Mayo Clin Proc. 2025;100(8):1319-1331. doi:10.1016/j.mayocp.2025.02.015 — 3,889 adults aged 46-75, median 10.8y follow-up: lowest vs highest relative POWER carried hazard ratios of 5.88 (men) and 6.90 (women), while the same comparison for relative STRENGTH gave 1.62 and 1.71 and did not reach significance after adjustment.',
+    doesNotLicense: 'Power here means moving your own bodyweight quickly on the concentric — standing up fast from a chair — NOT plyometrics, jumping, or added load moved explosively. Araujo et al. is an observational cohort: it establishes power as a stronger PREDICTOR, not that training power causes the survival difference. It is a reason to include speed of movement, not a reason to make this program harder. The eccentric stays slow and controlled. Also: this program reads as "core 34 sets across 5 days" — Bird Dog, Dead Bug, Cat-Cow and Ankle Circles all map to `core` but are balance and mobility work (HANDOFF v4 §4).',
+  },
+
+  desk: {
+    intro: 'Undoes what sitting does — thoracic and hip mobility, postural endurance for the upper back, and enough full-body strength to matter, in sessions short enough to actually do on a workday.',
+    tier: 'stand',
+    school: 'Postural and mobility work paired with general resistance training, structured around the specific restrictions of prolonged sitting.',
+    primary: 'Currier BS, DSouza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897 — supports the general resistance component. The specific postural-correction rationale is NOT YET SOURCED.',
+    doesNotLicense: 'The evidence that specific stretches correct posture is much weaker than the evidence that resistance training builds strength — do not let the ACSM citation imply the postural half is equally well grounded. It is included because it is low-risk and people report it helps, not because it is proven to change alignment.',
+  },
+
+  combat: {
+    intro: 'A container for six martial-art styles — pick the one you train, and the program becomes that art\'s conditioning and drill work rather than a generic striking template.',
+    tier: 'school',
+    school: 'Style-specific combat conditioning; the actual program comes from COMBAT_STYLES, not from this entry.',
+    primary: 'NOT YET SOURCED. Each of the six styles needs its own provenance — they share very little literature, and a single citation here would misrepresent all six.',
+    doesNotLicense: 'Do not treat one source as covering all six styles. Boxing, Muay Thai, BJJ, wrestling and the rest have genuinely different demands and different injury profiles.',
+  },
+
+  cycling: {
+    intro: 'A container for two cycling styles — road endurance and indoor/interval work — each with its own intensity structure rather than one blended plan.',
+    tier: 'school',
+    school: 'Endurance cycling programming; the actual sessions come from CYCLING_STYLES.',
+    primary: 'NOT YET SOURCED at the style level.',
+    doesNotLicense: 'Verified as correct against polarized-distribution auditing in HANDOFF v4 §4, but that is a structural check, not a citation.',
+  },
+
+  yoga: {
+    intro: 'A container for three yoga styles — Flow, Hot and Couples — each sequenced as its own practice rather than a shared pose list.',
+    tier: 'school',
+    school: 'Static-hold asana practice, sequenced by style.',
+    primary: 'NOT YET SOURCED for the sequencing. The dose-independence finding it relies on IS sourced (Konrad et al., via HANDOFF v4 §4).',
+    doesNotLicense: 'Do not dose-audit for "enough sets" — flexibility is not dose-dependent that way. Verified as 92-100% static holds with zero ballistic movement; keep it that way. In Couples Yoga specifically, every assisted pose states that the person being stretched sets the depth, never the partner — that is enforced by test and must not be softened.',
+  },
+
+  medical: {
+    intro: 'A container for thirteen medically modified programs — bariatric recovery, prenatal and postpartum, five rehab tracks, and condition-specific plans — selected by what you are actually working around.',
+    tier: 'school',
+    school: 'Condition-specific modified training. The actual program comes from MEDICAL_STYLES.',
+    primary: 'PARTIALLY SOURCED, and deliberately not summarised here. Only bariatricEarly and bariatricRebuilding are grounded (expert-based physical activity guidelines for metabolic and bariatric surgery patients, systematic review of RCTs, Surg Obes Relat Dis 2024). The other eleven styles carry no citation. Per-style provenance is the outstanding work and needs its own session.',
+    doesNotLicense: 'THIS IS THE HIGHEST-CONSEQUENCE CONTENT IN THE APP AND THE LEAST GROUNDED. Do not let one entry at the container level imply the thirteen styles beneath it are sourced. Two specific traps already documented: (1) "Strength" in a clinical context means resistance training, NOT the 1-5 rep tier — prescribing 4-6 reps in prenatal or early post-op would be wrong and possibly unsafe. (2) Bariatric programs have no planks or sit-ups because abdominal work is delayed 8-12 weeks post-op; do not "complete" them with core work. Also: the diabetes Post-Meal Walk is timed for post-prandial glucose control — that timing IS the intervention, and reordering it to satisfy strength-before-conditioning would destroy its purpose.',
+  },
+
+  strength: {
+    intro: 'Four lifting days on an upper/lower split, with the first half of the week heavy and low-rep and the second half lighter and higher-rep — so you train strength and size as two separate jobs instead of splitting the difference on both.',
+    tier: 'stand',
+    school: 'Upper/lower split with the week divided into a strength emphasis and a hypertrophy emphasis — the mainstream intermediate model for training both qualities concurrently.',
+    primary: 'Currier BS, D\'Souza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897 — strength: >=80% 1RM, key lifts early, >=2 sessions/week; hypertrophy: >=10 sets per muscle group per week, loads 30-100% 1RM comparably effective when effort is sufficient.',
+    doesNotLicense: 'The >=10 weekly sets figure is per MUSCLE GROUP, not per category label in this app. Shoulders read as 9 sets only because Overhead Press maps to `push`; real delt volume is 12. `lunge` (3) is quad work counted separately from `squat` (10). Neither is a shortfall — do not top them up. ACSM 2026 also says nothing about the d5 deadlift rep choice; that rests on its load-range finding plus fatigue cost, documented at the exercise.',
+  },
+
+  powerbuilding: {
+    intro: 'Every session opens with one heavy barbell lift at 5x5, then fills the rest of the hour with bodybuilding accessory work — built for people who want a real total and real size, and refuse to pick one.',
+    tier: 'stand',
+    school: 'Powerbuilding: a heavy compound at the front of each session where you are freshest, followed by higher-rep accessory volume.',
+    primary: 'Currier BS, D\'Souza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897',
+    doesNotLicense: 'ACSM 2026 found periodization and failure training were not consistently necessary FOR GENERAL HEALTHY ADULTS — not a reason to strip structure from someone training for a total. The >=10 sets target legitimately caught the hamstring gap here (fixed on d6); the `lunge` reading of 3 is a category artifact, not a shortfall. Arms at 18 sets is a deliberate priority of the style, not an error to normalise.',
+  },
+
+  bodybuilding: {
+    intro: 'A body-part split with high accessory volume and dedicated arm and delt work, rebalanced so nothing sits at once a week — the classic physique approach without the bro-split blind spots.',
+    tier: 'stand',
+    school: 'Body-part split with high accessory volume, rebalanced away from once-per-week frequency so each region is trained at least twice.',
+    primary: 'Currier BS, D\'Souza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897',
+    doesNotLicense: 'Shoulders read as 7 weekly sets only because Overhead Press maps to `push`; actual delt volume is 11. Hinge reads 9 against a target of 10 — inside the noise of a pooled-review figure, and the d6 rebalance that produced it was deliberately volume-neutral (HANDOFF v4 §4). Do not add sets to "fix" either number.',
+  },
+
+  powerlifting: {
+    intro: 'Squat, bench and deadlift trained on their own days at competition rep ranges, with accessories chosen only for what they carry over to the three lifts — judged by your total, not by how much work you did.',
+    tier: 'school',
+    school: 'Competitive powerlifting practice in the block-periodization lineage (Issurin). Frequency- and specificity-driven, judged by competition total rather than weekly set volume.',
+    primary: 'Currier BS, D\'Souza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897',
+    doesNotLicense: 'ACSM 2026 covers HEALTHY GENERAL ADULTS. Its findings that periodization is optional and failure training unnecessary apply to general trainees — not a verdict on competitive lifters. It equally does not license elite meet-prep volumes here: those templates assume an athlete whose day is training, eating and sleeping. Do not audit against hypertrophy set-volume targets; the 2-3-1 squat/bench/deadlift weekly frequency is the yardstick, and bench sits at 2x deliberately because d2 also carries Close-Grip Bench.',
+  },
+
+  oly: {
+    intro: 'The snatch and clean & jerk trained as skills under low fatigue — doubles, not grinding sets — with squats, pulls and power variations carrying the strength work around them.',
+    tier: 'school',
+    school: 'Weightlifting coaching consensus (Bulgarian and Russian lineages, modern USAW practice): competition lifts as skill under low fatigue; volume carried by pulls, squats and power variations.',
+    primary: 'No position stand exists for weightlifting rep-scheme prescription. Closest peer-reviewed support for treating lifts as differently fatiguing: Ferreira et al. Comparison between Olympic Weightlifting Lifts and Derivatives for External Load and Fatigue Monitoring. Int J Environ Res Public Health. 2022. PMC9777922',
+    doesNotLicense: 'Coaching consensus, NOT trial evidence — do not cite it as though it were. It says nothing about loading percentages, which are individual and phase-dependent, and are deliberately not prescribed here. Also: this program reads as having no posterior-chain work under a category audit. That is an artifact — 11 of 20 lifts map to `oly` -> Full Body / Power. Do not "fix" it by adding hinges.',
+  },
+
+  running: {
+    intro: 'Most of the week is easy running with two genuinely hard sessions and one long run, plus a heavy lifting day — the polarized model, with strength work that is actually heavy enough to change your running economy.',
+    tier: 'meta',
+    school: 'Polarized endurance distribution with a heavy-resistance strength adjunct.',
+    primary: 'Eihara Y, Takao K, Sugiyama T, et al. Heavy Resistance Training Versus Plyometric Training for Improving Running Economy and Running Time Trial Performance: A Systematic Review and Meta-analysis. Sports Med Open. 2022;8:138. doi:10.1186/s40798-022-00511-1',
+    doesNotLicense: 'Compares ADJUNCTS to running training; does not license replacing running volume with lifting. Effect sizes were small (g=-0.32 heavy resistance, g=-0.13 plyometric) — real but not transformative, so the strength day stays one day and stays after the long run. It also does not support adding plyometric volume: plyometric was the weaker arm.',
+  },
+
+  climbing: {
+    intro: 'Finger and pulling strength on their own days, balanced by a full session of antagonist and shoulder work — because the tissue that limits climbers is also the tissue that breaks, and it adapts over years rather than weeks.',
+    tier: 'meta',
+    school: 'Climbing-specific strength practice: hangboard protocols for finger strength, with a dedicated antagonist/shoulder-health day as overuse prophylaxis.',
+    primary: 'Zielinski J, Grygorowicz M, Lewandowski J. Epidemiology of Musculoskeletal Injuries Among Climbers - A Systematic Review. J Funct Morphol Kinesiol. 2026;11(1):19 — overuse injuries, particularly fingers AND SHOULDERS, are consistently more prevalent than acute injuries. Also: Larsson R, Nordeman L, Blomdahl C. To tape or not to tape: annular ligament (pulley) injuries in rock climbers - a systematic review. BMC Sports Sci Med Rehabil. 2022;14(1):148. doi:10.1186/s13102-022-00539-6',
+    doesNotLicense: 'The shoulder finding is why d4 exists as a full session — it is not filler, and it is not optional. Do not read d4 as "push:3": Band External Rotation and Scapular Retraction map to `core`, so the real antagonist volume there is 15 sets, not 3. The epidemiology also does NOT establish safe hangboard dosing — that review found risk factors inconclusive and contradictory, so the program prescribes structure, not intensity.',
+  },
+
+  grappling: {
+    intro: 'Drills the actual positions of BJJ — escapes, passes, takedowns, submissions — in structured reps, then finishes the week with live positional rounds. A skill program, not a strength program.',
+    tier: 'school',
+    school: 'Positional drilling followed by live positional sparring — standard BJJ pedagogy.',
+    primary: 'NOT YET SOURCED. Grappling skill acquisition has no position stand and the drilling-vs-live-training literature is thin; nothing verified is attached here yet.',
+    doesNotLicense: 'DO NOT VOLUME-AUDIT THIS PROGRAM. It reads as 65 `core` sets and 5 `hinge` because every technique — Knee Slice Pass, Double Leg Takedown, Rear Naked Choke Drill — falls through to `core` in a category system built for resistance exercises. Those numbers describe the classifier, not the program. The same logic as HANDOFF v4 §4 on flexibility: measuring sets here measures the wrong thing.',
+  },
+
+  hyrox: {
+    intro: 'Alternates running with the sled, carry and burpee work that sits between the runs on race day — built around the one quality that actually decides a Hyrox result: running while already tired.',
+    tier: 'school',
+    school: 'Hybrid-race preparation: compromised running under accumulated fatigue, with race-specific stations.',
+    primary: 'NOT YET SOURCED. Hyrox is recent enough that sport-specific programming literature is limited; no verified citation attached yet.',
+    doesNotLicense: 'Do not audit this against a polarized 80/20 intensity distribution. It measures 33/22/44 and that is CORRECT for the format — the defining demand is running under fatigue, not aerobic base development in isolation (HANDOFF v4 §4).',
+  },
+
+  calisthenics: {
+    intro: 'Builds toward the gymnastic strength holds — levers, planches, handstands — through progressions, with straight-arm and bent-arm strength trained as genuinely different qualities.',
+    tier: 'school',
+    school: 'Gymnastic strength progressions: static holds and lever progressions trained separately from dynamic pulling and pressing.',
+    primary: 'NOT YET SOURCED. Gymnastic strength progressions are well established in coaching practice but the peer-reviewed literature on straight-arm vs bent-arm progression is thin; nothing verified is attached yet.',
+    doesNotLicense: 'Static-hold work does not translate to weekly set-volume targets — a 3x15s front lever hold is not comparable to 3 sets of a dynamic exercise, and the audit treats them as equal. Do not add volume on that basis.',
+  },
+
+  bodyweight: {
+    intro: 'A full-body strength program that needs no equipment at all, using leverage and single-limb variations instead of load to keep progressing.',
+    tier: 'stand',
+    school: 'Equipment-free resistance training using progression by leverage rather than external load.',
+    primary: 'Currier BS, D\'Souza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897 — bodyweight and band resistance count; loads from 30% of 1RM upward produce comparable hypertrophy when effort is sufficient.',
+    doesNotLicense: 'The load-range finding depends on sets being taken close to failure. It is not a licence to prescribe endless easy reps. Also note the Nordic Curl added to leg day exists because there is no bodyweight hip-extension that recruits hamstrings well — do not swap it for a glute bridge.',
+  },
+
+  athletic: {
+    intro: 'Jumps, throws and sprints trained for power output rather than fatigue — short sets, full recovery, quality over accumulation.',
+    tier: 'school',
+    school: 'Power and plyometric development: low-volume, high-quality efforts with full recovery between sets.',
+    primary: 'NOT YET SOURCED. Plyometric and power dosing has a substantial literature (contact counts, recovery intervals) but none of it has been checked against these actual prescriptions yet.',
+    doesNotLicense: 'Power work is deliberately low-volume. A set-volume audit will read this program as under-dosed; that is the point. Adding sets to hit a hypertrophy target would convert power training into conditioning.',
+  },
+
+  boxingsc: {
+    intro: 'The strength and conditioning that sits behind boxing — rotational power, repeat-effort conditioning and neck work — rather than the boxing itself.',
+    tier: 'school',
+    school: 'Combat-sport S&C: rotational power development and repeat-effort conditioning matched to round structure.',
+    primary: 'NOT YET SOURCED. Combat-sport S&C literature exists for repeat-effort conditioning and rotational power, but has not been verified against these specific sessions.',
+    doesNotLicense: 'This is the S&C program, not skill training. It does not attempt to teach boxing, and should not be extended toward technique work — the Combat styles cover that.',
+  },
+
+  jumprope: {
+    intro: 'Rope skill and conditioning built as a progression, from basic bounce through double-unders, with the footwork patterns treated as skills to learn rather than just cardio.',
+    tier: 'school',
+    school: 'Skill-progression conditioning: rope patterns sequenced by coordination demand.',
+    primary: 'NOT YET SOURCED. The skill progression reflects standard rope coaching order; no citation attached.',
+    doesNotLicense: 'Reads as almost entirely `cardio` by category. That is accurate here and needs no correction.',
+  },
+
+  core: {
+    intro: 'Trains the trunk for what it actually does — resisting movement rather than producing it — through anti-extension, anti-rotation and anti-lateral-flexion work.',
+    tier: 'school',
+    school: 'Anti-movement trunk training: bracing and stability emphasis over spinal flexion volume.',
+    primary: 'NOT YET SOURCED. The anti-movement framing traces to the McGill spine-stability literature, but that attribution has not been verified against a primary source here — and doing so matters, since it is frequently over-stated online.',
+    doesNotLicense: 'Reads as 67 `core` sets, which is unavoidable and not a red flag. Do not rebalance toward other categories — this is a specialisation program by design.',
+  },
+
+  pilates: {
+    intro: 'Mat Pilates focused on controlled, precise movement and breath, building trunk endurance and positional control rather than load tolerance.',
+    tier: 'school',
+    school: 'Classical mat Pilates: control and precision over load or range.',
+    primary: 'NOT YET SOURCED for the Pilates method itself. The dose-independence note below IS sourced (Konrad et al., via HANDOFF v4 §4).',
+    doesNotLicense: 'Do not dose-audit this. Konrad et al. found neither volume, intensity nor frequency significantly moderated ROM gains — auditing Pilates or mobility for "enough sets" measures the wrong thing (HANDOFF v4 §4). What matters is technique type, and this program is verified as containing zero ballistic movement.',
+  },
+
+  mobility: {
+    intro: 'Static and controlled range-of-motion work across the joints that limit most people, held long enough to actually change tissue rather than just feel loosened.',
+    tier: 'school',
+    school: 'Static-hold flexibility practice.',
+    primary: 'NOT YET SOURCED for the specific stretch selection. The dose-independence finding it relies on IS sourced (Konrad et al., via HANDOFF v4 §4).',
+    doesNotLicense: 'Flexibility is not dose-dependent in the way strength is — see the Pilates note. Do not add sets, and do not introduce ballistic stretching to "progress" it.',
+  },
+
+  swimming: {
+    intro: 'Aerobic base, technique drills and threshold work in the water, with a dryland session for the posterior shoulder — the tissue that takes the load in an overhead-repetitive sport.',
+    tier: 'school',
+    school: 'Aerobic-base-dominant swim programming with technique/drill work and dryland posterior-shoulder prehab.',
+    primary: 'NOT YET SOURCED. The dryland shoulder work reflects standard swimmer prehab practice but has no citation attached yet.',
+    doesNotLicense: 'Treat the prehab selection as unverified until a source is attached. Do not remove it because it is unsourced — a documentation gap is not evidence the work is wrong.',
+  },
+};
+
+// [STYLE PROVENANCE] ------------------------------------------------------
+// Four programs are containers — combat, cycling, yoga and medical — whose
+// actual sessions come from a style object. A source at the container level
+// says nothing useful about the style you are running, so each style carries
+// its own entry here, keyed by the same id as its *_STYLES object.
+//
+// Same contract as PROGRAM_SOURCES: intro, tier, school, primary,
+// doesNotLicense. Same honesty rule: no entry gets a citation it has not
+// earned, and 'NOT YET SOURCED' is a legitimate value.
+//
+// The thirteen medical styles are the highest-consequence content in the app.
+// Their entries deliberately lead with what the program will NOT do, because
+// the failure mode here is someone reading a plausible-sounding program as
+// clinical advice.
+const STYLE_SOURCES = {
+  // --- Combat -----------------------------------------------------------
+  kickboxing: {
+    intro: 'Punches and kicks without clinch work — the balanced default if you want striking conditioning and are not committed to one art yet.',
+    tier: 'school', school: 'General striking conditioning drawn from kickboxing practice.',
+    primary: 'NOT YET SOURCED. Striking-conditioning literature exists for repeat-effort work but has not been checked against these sessions.',
+    doesNotLicense: 'This is conditioning and drill work, not instruction. It cannot teach you to spar safely and does not replace a coach.',
+  },
+  boxing: {
+    intro: 'Hands only — combinations, defensive movement and footwork, with the conditioning that supports round-based work.',
+    tier: 'school', school: 'Boxing drill and conditioning practice.',
+    primary: 'NOT YET SOURCED. Boxing S&C and head-impact literature are both substantial; neither has been attached here yet.',
+    doesNotLicense: 'Head-contact risk is the defining safety issue in boxing and nothing here addresses it. Drilling alone does not prepare you to be hit.',
+  },
+  muayThai: {
+    intro: 'The full eight-limb arsenal — punches, kicks, knees, elbows and clinch — with the conditioning Thai boxing demands.',
+    tier: 'school', school: 'Muay Thai drill and conditioning practice.',
+    primary: 'NOT YET SOURCED. Clinch and low-kick conditioning practice is well established in coaching but is not cited here.',
+    doesNotLicense: 'Clinch and elbow work carry real injury risk and are not learnable from cue text. Treat this as supplementary to coached training.',
+  },
+  mma: {
+    intro: 'Mixed standup with sprawl and ground conditioning — built for the transitions between striking and grappling rather than either alone.',
+    tier: 'school', school: 'MMA conditioning across striking and grappling ranges.',
+    primary: 'NOT YET SOURCED. Mixed-modality conditioning research exists; none has been verified against these sessions.',
+    doesNotLicense: 'Covers conditioning across ranges, not the technical skill of transitioning between them.',
+  },
+  taekwondo: {
+    intro: 'Kick-dominant training — roundhouse, side, axe and spinning kicks — with the hip mobility and balance that makes them possible.',
+    tier: 'school', school: 'Taekwondo kicking practice with supporting mobility work.',
+    primary: 'NOT YET SOURCED. Kicking mechanics and hip-mobility requirements are well documented in coaching practice but uncited here.',
+    doesNotLicense: 'Spinning and jumping kicks demand a mobility and landing base this program builds toward rather than assumes. Do not skip ahead.',
+  },
+  taiChi: {
+    intro: 'An internal art — standing meditation, slow form work and push hands. Trained for balance, control and breath rather than for output.',
+    tier: 'school', school: 'Traditional Tai Chi practice: form, stance and controlled weight transfer.',
+    primary: 'NOT YET SOURCED. Tai Chi has a substantial falls-prevention literature in older adults that has NOT been checked against this program.',
+    doesNotLicense: 'Do not audit this for intensity or volume — low output is the method, not a shortfall. Equally, do not claim the falls-prevention benefit until the literature is actually attached.',
+  },
+
+  // --- Cycling ----------------------------------------------------------
+  road: {
+    intro: 'Structured power-based work — FTP intervals, hill repeats and endurance rides — with the week built around a small number of genuinely hard efforts.',
+    tier: 'school', school: 'Power-based endurance cycling with a polarized intensity distribution.',
+    primary: 'NOT YET SOURCED for the specific interval prescriptions.',
+    doesNotLicense: 'Verified structurally against polarized-distribution auditing (HANDOFF v4 §4) — that is a structural check, not evidence for the specific interval durations.',
+  },
+  mountain: {
+    intro: 'Technical trail skill, punchy climbing power and the grip and upper-body endurance that rough descending actually demands.',
+    tier: 'school', school: 'Off-road cycling: repeated short power efforts plus handling and upper-body endurance.',
+    primary: 'NOT YET SOURCED. Off-road cycling has a repeated-sprint and handling literature that has not been checked against this program.',
+    doesNotLicense: 'Technical descending skill is not trainable from text and is the main injury exposure in this discipline.',
+  },
+
+  // --- Yoga -------------------------------------------------------------
+  flow: {
+    intro: 'Five flow styles from Vinyasa through Restorative, sequenced as continuous practice linking breath to movement.',
+    tier: 'school', school: 'Vinyasa-lineage sequencing: continuous transitions, breath-led pacing.',
+    primary: 'NOT YET SOURCED for sequencing. Dose-independence of flexibility gains IS sourced (Konrad et al., via HANDOFF v4 §4).',
+    doesNotLicense: 'Do not audit for "enough sets". Verified as 92-100% static holds with zero ballistic movement — keep it that way.',
+  },
+  hot: {
+    intro: 'Heated-room flow. The heat changes what the practice demands of you — hydration, pacing and knowing when to stop matter more here than in any other style in the app.',
+    tier: 'school', school: 'Heated-room asana practice.',
+    primary: 'NOT YET SOURCED for the practice itself. The heat caution below IS sourced: ACOG Committee Opinion 804, Physical Activity and Exercise During Pregnancy and the Postpartum Period. Obstet Gynecol. April 2020 — advises avoiding high heat and humidity, particularly in the first trimester.',
+    doesNotLicense: 'IMPORTANT INTERACTION: this style is not appropriate during pregnancy, and especially not in the first trimester, per ACOG 804. It is selectable independently of the Prenatal program, so nothing in the app prevents that combination — the caution has to live here. Also unsuitable without clearance for anyone with a cardiovascular condition or heat intolerance.',
+  },
+  couples: {
+    intro: 'A shared practice for two people — assisted poses and paired balances where the point is communication as much as the stretch.',
+    tier: 'school', school: 'Partner-assisted asana.',
+    primary: 'NOT YET SOURCED for the sequencing. The partner-consent rule below is a safety decision, not a research finding, and does not depend on a citation.',
+    doesNotLicense: 'NON-NEGOTIABLE: in every assisted pose, the person BEING stretched sets the depth, never the partner. This is enforced by test across all 20 poses and must never be softened or dropped for brevity. Partner-applied force is the entire injury mechanism in this style.',
+  },
+
+  // --- Medical ----------------------------------------------------------
+  obesity: {
+    intro: 'A low-impact, joint-friendly entry point that prioritises being able to repeat the session over how hard any one session is.',
+    tier: 'stand', school: 'General resistance and aerobic training with impact reduced and progression driven by consistency.',
+    primary: 'Currier BS, DSouza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897 — for clinical populations the single most important variable across 137 reviews was participation itself: 2 sessions/week, all major groups, 2-3 sets, 60-80% effort.',
+    doesNotLicense: 'ACSM 2026 is a healthy-adult document with clinical-population commentary, not a guideline for managing obesity. It does not address medication, bariatric surgery, or comorbidities.',
+  },
+  hypertension: {
+    intro: 'Moderate, steady effort with attention to breathing — built to avoid the pressure spikes that breath-holding under load produces.',
+    tier: 'school', school: 'Moderate-intensity aerobic and resistance work with explicit avoidance of the Valsalva manoeuvre.',
+    primary: 'NOT YET SOURCED. Requires a hypertension-specific exercise guideline; ACSM 2026 does not cover blood-pressure management.',
+    doesNotLicense: 'Does not replace medication or monitoring, and cannot tell you whether your blood pressure is controlled enough to train. Get clearance first.',
+  },
+  diabetes: {
+    intro: 'Combined aerobic and resistance work, with a short walk deliberately placed after meals rather than wherever it fits the training logic.',
+    tier: 'school', school: 'Combined training with post-prandial activity timing.',
+    primary: 'NOT YET SOURCED. Needs a diabetes-specific exercise guideline.',
+    doesNotLicense: 'The Post-Meal Walk timing IS the intervention — it targets post-prandial glucose. Do NOT reorder it to satisfy the strength-before-conditioning principle; that would destroy its purpose (HANDOFF v4 §4). Nothing here addresses hypoglycaemia risk during exercise, which is the main acute danger and needs clinical input.',
+  },
+  osteoporosis: {
+    intro: 'Weight-bearing and resistance work chosen because bone responds to load — with the movements that are contraindicated left out rather than regressed.',
+    tier: 'school', school: 'Loading-based bone-density practice.',
+    primary: 'NOT YET SOURCED. Needs an osteoporosis-specific exercise guideline.',
+    doesNotLicense: 'Spinal flexion under load and end-range twisting are contraindicated in low bone density and their absence here is deliberate — do not add them. This program cannot assess your fracture risk; that requires a DEXA and a clinician.',
+  },
+  bariatricEarly: {
+    intro: 'Roughly the first three months after surgery — walking-first, deliberately unambitious, and with no abdominal work at all.',
+    tier: 'stand', school: 'Post-operative bariatric rehabilitation, early phase.',
+    primary: 'Expert-based physical activity guidelines for metabolic and bariatric surgery patients — systematic review of RCTs, Surg Obes Relat Dis 2024: full-body resistance training from 4-6 weeks post-op, 2 non-continuous days per week, 8-12 reps, abdominal exercises delayed 8-12 weeks.',
+    doesNotLicense: 'The absence of planks and sit-ups is the guideline, not an oversight — do NOT "complete" this program with core work. It also cannot tell you where you are in recovery or whether your team has cleared you; the timelines are typical, not personal.',
+  },
+  bariatricRebuilding: {
+    intro: 'From roughly month three, once your surgical team has cleared you — the phase where real resistance training starts and abdominal work becomes appropriate again.',
+    tier: 'stand', school: 'Post-operative bariatric rehabilitation, rebuilding phase.',
+    primary: 'Expert-based physical activity guidelines for metabolic and bariatric surgery patients — systematic review of RCTs, Surg Obes Relat Dis 2024.',
+    doesNotLicense: 'Entry into this phase is a clinical decision, not a calendar one. The graduation prompt in the app is a convenience, not clearance.',
+  },
+  prenatal: {
+    intro: 'Moderate, fall-risk-aware training through pregnancy — built on the position that staying active is the recommended default, not the exception.',
+    tier: 'stand', school: 'Prenatal exercise per obstetric guidance: moderate aerobic and strength work, modified for balance and positional changes.',
+    primary: 'ACOG Committee Opinion 804: Physical Activity and Exercise During Pregnancy and the Postpartum Period. Obstet Gynecol. April 2020 (replaces CO 650) — 150 minutes/week moderate aerobic activity; aerobic AND strength conditioning encouraged before, during and after pregnancy; those already active in vigorous exercise may generally continue in discussion with their provider; avoid high heat and humidity, particularly the first trimester; activity restriction/bedrest should NOT be prescribed to prevent preterm birth.',
+    doesNotLicense: 'ACOG 804 states clearly that clinical evaluation should precede an exercise program — this app cannot perform one and cannot identify a contraindication. "Strength" here means resistance training, NOT the 1-5 rep tier; prescribing 4-6 reps in pregnancy would be wrong and possibly unsafe (HANDOFF v4 §4). The guideline also lists warning signs that mean stopping and calling your provider; none of them are detected here. Separately: the Hot Yoga style conflicts with the heat guidance above and is selectable independently.',
+  },
+  postpartum: {
+    intro: 'A diastasis-aware, pelvic-floor-first return to training — sequenced so the tissue that took the load recovers before it gets loaded again.',
+    tier: 'stand', school: 'Postpartum return-to-exercise: pelvic floor and deep abdominal work before progressive loading.',
+    primary: 'ACOG Committee Opinion 804: Physical Activity and Exercise During Pregnancy and the Postpartum Period. Obstet Gynecol. April 2020 — light activity including pelvic floor work is generally permissible soon after birth if medically safe; gradual resumption typically from around 4-6 weeks after uncomplicated vaginal delivery, later after caesarean.',
+    doesNotLicense: 'Those timelines are typical, NOT a clearance, and they differ meaningfully after caesarean or a complicated delivery. This program cannot assess diastasis recti or pelvic floor function — both need in-person assessment, and pelvic floor symptoms (leaking, heaviness, pain) warrant referral rather than progression.',
+  },
+  rehabGeneral: {
+    intro: 'A broad week touching shoulder, back, knee, hip and ankle — for when more than one area needs attention, or you are not sure which one is the problem.',
+    tier: 'school', school: 'General musculoskeletal rehabilitation across multiple regions.',
+    primary: 'NOT YET SOURCED, and harder to source than the specific tracks: a deliberately broad program has no single protocol to cite.',
+    doesNotLicense: 'Breadth is the trade-off: nothing here is dosed for a specific diagnosis. If one area is genuinely the problem, the specific track will serve you better — and an undiagnosed problem needs diagnosing, not training around.',
+  },
+  rehabShoulder: {
+    intro: 'The standard three-phase structure — calm the tissue, restore range, then load it — rather than jumping straight to strengthening.',
+    tier: 'school', school: 'Phased rotator-cuff and impingement rehabilitation.',
+    primary: 'NOT YET SOURCED. The three-phase structure is standard physiotherapy practice but no specific protocol is cited here yet.',
+    doesNotLicense: 'Cannot distinguish impingement from a tear, instability, or referred neck pain — and those need different treatment. Progression between phases is criterion-based and needs someone assessing you.',
+  },
+  rehabAcl: {
+    intro: 'A long, criterion-based track — real ACL recovery runs nine to twelve months and progresses on what you can do, not on how many weeks have passed.',
+    tier: 'school', school: 'Criterion-based ACL rehabilitation.',
+    primary: 'NOT YET SOURCED. Return-to-sport criteria after ACL reconstruction have a substantial literature (hop-test batteries, limb symmetry indices, reinjury rates by timeline) that has NOT been attached here.',
+    doesNotLicense: 'The criteria that gate each phase are exactly what this app cannot measure. Timeline-based progression is associated with higher reinjury risk than criterion-based progression — which makes an uncited criterion-based program a structure, not a protocol. Follow your surgeon and physiotherapist over this.',
+  },
+  rehabAchilles: {
+    intro: 'Eccentric heel drops in both knee positions, three days a week — the Alfredson loading pattern at a volume you can actually sustain, rather than the 180 reps a day the original protocol asks for.',
+    tier: 'meta', school: 'Eccentric loading for mid-portion Achilles tendinopathy (Alfredson protocol), at reduced repetition volume.',
+    primary: 'Alfredson H, et al. (1998) — eccentric heel drops, 3x15 straight-knee and 3x15 bent-knee, TWICE DAILY for 12 weeks (180 reps/day), continuing into discomfort but not severe pain, progressing by adding load. Reduced volume here is supported by: Stevens M, Tan CW. Effectiveness of the Alfredson Protocol Compared With a Lower Repetition-Volume Protocol for Midportion Achilles Tendinopathy: A Randomized Controlled Trial. J Orthop Sports Phys Ther. 2014. doi:10.2519/jospt.2014.4720 — a do-as-tolerated protocol achieved comparable VISA-A outcomes to the full 180/day.',
+    doesNotLicense: 'THIS PROGRAM IS NOT THE ALFREDSON PROTOCOL AND SHOULD NOT BE DESCRIBED AS IT. It runs ~270 eccentric reps per week against the protocol\'s 1,260 — about 21%. Stevens & Tan supports lower volume; it does not validate this specific dose, which sits below what their do-as-tolerated group actually self-selected. If a PT has you on the real protocol, follow them, not this. Both citations apply ONLY to MID-PORTION tendinopathy — insertional cases often do worse with full-range heel drops below the step, and neither study covers them. Neither applies to an acute rupture, which is a surgical question.',
+  },
+
+  rehabLowerback: {
+    intro: 'Stabilisation before movement — building the trunk control to tolerate load, rather than stretching into the area that hurts.',
+    tier: 'school', school: 'Motor-control and stabilisation-first lower back rehabilitation.',
+    primary: 'NOT YET SOURCED. The stabilisation-first framing traces to the McGill spine literature; that attribution has not been verified here, and it is frequently over-stated online.',
+    doesNotLicense: 'Cannot identify the red flags that make back pain a medical emergency — bowel or bladder changes, saddle numbness, progressive leg weakness, unexplained weight loss. Any of those means stop and seek care, not modify the program.',
+  },
+};
+
+// Which state variable selects the style, per container program.
+const STYLE_KEY_FOR_PROGRAM = {
+  combat:  ()=> typeof activeMartialArt   !== 'undefined' ? activeMartialArt   : null,
+  cycling: ()=> typeof activeCyclingStyle !== 'undefined' ? activeCyclingStyle : null,
+  yoga:    ()=> typeof activeYogaStyle    !== 'undefined' ? activeYogaStyle    : null,
+  medical: ()=> typeof activeMedicalStyle !== 'undefined' ? activeMedicalStyle : null,
+};
+
+
+// For the four container programs, the style you actually selected is what
+// you are training — so its provenance is appended below the container's.
+// Returns '' for everything else.
+function buildStyleSourceHtml(){
+  const getKey = STYLE_KEY_FOR_PROGRAM[activeProgram];
+  if(!getKey) return '';
+  const styleKey = getKey();
+  const t = styleKey && STYLE_SOURCES[styleKey];
+  if(!t) return '';
+  const tierLabel = {stand:'Position stand', meta:'Meta-analysis', school:'Coaching consensus'}[t.tier] || t.tier;
+  const unsourced = /NOT YET SOURCED/.test(t.primary);
+  return `
+    <div class="program-intro">${escapeHtml(t.intro)}</div>
+    <details class="program-source">
+      <summary><span class="care-type-tag ${unsourced ? 'caution' : 'mobility'}">${escapeHtml(unsourced ? 'Not yet sourced' : tierLabel)}</span> What this style is built on</summary>
+      <div class="care-log-detail" style="margin-top:8px;"><b>Approach:</b> ${escapeHtml(t.school)}</div>
+      <div class="care-log-detail" style="margin-top:6px;"><b>Source:</b> ${escapeHtml(t.primary)}</div>
+      <div class="care-log-detail" style="margin-top:6px;"><b>What this does not justify:</b> ${escapeHtml(t.doesNotLicense)}</div>
+    </details>`;
+}
+
+// Renders provenance under the program selector. Deliberately shows the
+// "does not license" text too: hiding it would recreate the exact failure
+// mode the field exists to prevent.
+function renderProgramSource(){
+  const el = document.getElementById('programSourceNote');
+  if(!el) return;
+  const s = PROGRAM_SOURCES[activeProgram];
+  if(!s){
+    el.innerHTML = '<div class="history-hint">No source recorded for this program yet.</div>';
+    return;
+  }
+  const tierLabel = {stand:'Position stand', meta:'Meta-analysis', school:'Coaching consensus'}[s.tier] || s.tier;
+  const unsourced = /NOT YET SOURCED/.test(s.primary);
+  el.innerHTML = `
+    <div class="program-intro">${escapeHtml(s.intro)}</div>
+    <details class="program-source">
+      <summary><span class="care-type-tag ${unsourced ? 'caution' : 'mobility'}">${escapeHtml(unsourced ? 'Not yet sourced' : tierLabel)}</span> What this program is built on</summary>
+      <div class="care-log-detail" style="margin-top:8px;"><b>Approach:</b> ${escapeHtml(s.school)}</div>
+      <div class="care-log-detail" style="margin-top:6px;"><b>Source:</b> ${escapeHtml(s.primary)}</div>
+      <div class="care-log-detail" style="margin-top:6px;"><b>What this does not justify:</b> ${escapeHtml(s.doesNotLicense)}</div>
+    </details>${buildStyleSourceHtml()}`;
+}
+
 const MEDICAL_STYLES = {
   obesity: {
     group: 'Metabolic & Cardiac',
@@ -4949,7 +5498,7 @@ const MEDICAL_STYLES = {
         label:'Day 1', sub:'Post-Meal Walk + Upper Body', plate:'p-red', plateNum:'25', duration:'~30 min',
         note:'Being active after a meal specifically blunts the blood sugar rise that follows eating — this isn\'t just "exercise is good," it\'s a real, time-specific effect worth building your schedule around when you can.',
         exercises:[
-          {name:'Walking', sets:'15-20 min (ideally after a meal)', noWeight:true},
+          {name:'Post-Meal Walk', sets:'15-20 min (start within ~30 min of eating)', noWeight:true},
           {name:'Wall Push-up', sets:'2×10', noWeight:true},
           {name:'Seated Cable Row', sets:'2×12'},
         ]
@@ -4970,7 +5519,7 @@ const MEDICAL_STYLES = {
       d4: {
         label:'Day 4', sub:'Post-Meal Walk + Core', plate:'p-yellow', plateNum:'15', duration:'~30 min',
         exercises:[
-          {name:'Walking', sets:'15-20 min (ideally after a meal)', noWeight:true},
+          {name:'Post-Meal Walk', sets:'15-20 min (start within ~30 min of eating)', noWeight:true},
           {name:'McGill Curl-up', sets:'2×8', noWeight:true},
           {name:'Bird Dog', sets:'2×6/side', noWeight:true},
         ]
@@ -5104,6 +5653,20 @@ const MEDICAL_STYLES = {
         label:'Day 6', sub:'Active Recovery / Gentle Stretching', plate:'p-off', plateNum:'5', duration:'~20 min',
         note:'Gentle stretching only — nothing that pulls or twists through the abdomen. If anything here feels like it\'s straining an incision, stop and check with your team before continuing.',
         exercises:[
+          // FLAGGED FOR CLINICAL REVIEW — do not resolve this from a desk.
+          // The bariatric guideline delays "abdominal exercises" 8-12 weeks
+          // post-op, and this style covers roughly that window. Bird Dog and
+          // Dead Bug are here on the reading that the restriction targets
+          // planks and sit-ups — direct abdominal-wall loading near the
+          // incision sites — rather than low-load stability drills, which are
+          // commonly prescribed early precisely because they are gentle.
+          // Both are deliberately regressed ("slow, no rush", "small range
+          // only") and there are no planks or sit-ups anywhere in the style.
+          // That reading may well be right. It has NOT been confirmed against
+          // the guideline text or with a bariatric clinician, and until it is,
+          // this comment is the only thing distinguishing a considered choice
+          // from an oversight. Do not remove either exercise on audit
+          // evidence alone, and do not add planks or sit-ups on any evidence.
           {name:'Bird Dog', sets:'2×6/side (slow, no rush)', noWeight:true},
           {name:'Dead Bug', sets:'2×6/side (small range only)', noWeight:true},
           {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
@@ -5144,10 +5707,32 @@ const MEDICAL_STYLES = {
       d4: {
         label:'Day 4', sub:'Full-Body Strength B', plate:'p-yellow', plateNum:'15', duration:'~35 min',
         note:'Weight-bearing and resistance work here is doing double duty — building strength back, and specifically helping protect bone density, which research shows keeps declining for years after surgery. This isn\'t optional extra credit.',
+        // Verified against bariatric-specific clinical guidance rather than
+        // general training literature. Expert-based physical activity
+        // guidelines for metabolic and bariatric surgery patients
+        // (systematic review of RCTs, Surg Obes Relat Dis 2024): begin FULL
+        // BODY resistance training 4-6 weeks post-surgery on 2
+        // non-continuous days per week, at a load permitting 8-12 reps,
+        // progressing volume before intensity — and delay high-intensity
+        // work and abdominal exercises for 8-12 weeks.
+        //
+        // d1 and d4 are those two non-continuous days. d1 was already
+        // complete (squat / band pull-apart / wall push-up) but this day had
+        // no pressing movement at all, so a session labelled "Full-Body
+        // Strength B" trained lower body twice and upper body barely.
+        // Wall Push-up added to mirror d1: no abdominal wall loading,
+        // scalable by foot distance, and already this program's press.
+        //
+        // Deliberately NOT added: planks, sit-ups, weighted core or heavy
+        // compound loading. The guidance is explicit that abdominal
+        // exercises are delayed 8-12 weeks post-op, and the bariatricEarly
+        // style covers the window before this one. Do not "complete" this
+        // day with core work on the grounds that other programs have it.
         exercises:[
           {name:'Glute Bridge', sets:'3×12', noWeight:true},
           {name:'Scapular Retraction', sets:'3×12'},
           {name:'Bodyweight Squat', sets:'3×12', noWeight:true},
+          {name:'Wall Push-up', sets:'3×10', noWeight:true},
         ]
       },
       d5: {
@@ -5442,8 +6027,8 @@ const MEDICAL_STYLES = {
         label:'Day 1', sub:'Eccentric Loading A', plate:'p-red', plateNum:'25', duration:'~15 min',
         note:'The Alfredson protocol: 3×15 straight-knee heel drops, then 3×15 bent-knee heel drops. Rise up on both legs, shift weight to the affected side, then lower SLOWLY (about 3 seconds) until the heel dips just below the step. A degree of discomfort during the exercise is expected and considered part of the protocol — the line is sharp or worsening pain, not manageable discomfort.',
         exercises:[
-          {name:'Standing Calf Raise', sets:'3×15 (straight-knee, 3s eccentric lower)', noWeight:true},
-          {name:'Standing Calf Raise', sets:'3×15 (bent-knee, 3s eccentric lower)', noWeight:true},
+          {name:'Eccentric Heel Drop', sets:'3×15 (straight-knee, 3s eccentric lower)', noWeight:true},
+          {name:'Eccentric Heel Drop', sets:'3×15 (bent-knee, 3s eccentric lower)', noWeight:true},
         ]
       },
       d2: {
@@ -5462,15 +6047,20 @@ const MEDICAL_STYLES = {
         label:'Day 4', sub:'Eccentric Loading B', plate:'p-yellow', plateNum:'15', duration:'~15 min',
         note:'Same protocol as Day 1. Consistency matters more than intensity here — this is a 12-week program, and the tendon adapts to repeated, patient loading over that time, not a big single effort.',
         exercises:[
-          {name:'Standing Calf Raise', sets:'3×15 (straight-knee, 3s eccentric lower)', noWeight:true},
-          {name:'Standing Calf Raise', sets:'3×15 (bent-knee, 3s eccentric lower)', noWeight:true},
+          {name:'Eccentric Heel Drop', sets:'3×15 (straight-knee, 3s eccentric lower)', noWeight:true},
+          {name:'Eccentric Heel Drop', sets:'3×15 (bent-knee, 3s eccentric lower)', noWeight:true},
         ]
       },
       d5: {
         label:'Day 5', sub:'Progressive Loading + Balance', plate:'p-green', plateNum:'10', duration:'~20 min',
         note:'As the weeks progress and pain allows, this is typically where added resistance (a weighted backpack, a plate held at the chest) gets layered onto the same heel-drop pattern — only once your PT has confirmed you\'re ready for it.',
         exercises:[
-          {name:'Standing Calf Raise', sets:'3×15 (straight-knee, 3s eccentric lower)', noWeight:true},
+          {name:'Eccentric Heel Drop', sets:'3×15 (straight-knee, 3s eccentric lower)', noWeight:true},
+          // d5 was missing the bent-knee variation that d1 and d4 both carry.
+          // The two positions are not interchangeable: straight-knee loads
+          // gastrocnemius, bent-knee loads soleus, and Alfredson prescribes
+          // both every session precisely because they are different tissue.
+          {name:'Eccentric Heel Drop', sets:'3×15 (bent-knee, 3s eccentric lower)', noWeight:true},
           {name:'Single-Leg Balance', sets:'2×20-30s/side', noWeight:true},
         ]
       },
@@ -9143,7 +9733,7 @@ const exerciseInfo = {
   'Standing IT Band Stretch': {category:'core', videoQuery:'standing IT band stretch technique', cues:['Cross the sore leg behind the other, then lean your hip away from that side.','Keep both feet flat and the stretch gentle rather than bouncing into it.','A simple standing option when foam rolling isn\'t practical, though like rolling, it targets symptoms more than the underlying cause.']},
   'Side-Lying Hip Abduction': {category:'core', videoQuery:'side lying hip abduction exercise', cues:['Lying on your side, top leg straight, lift it toward the ceiling without letting your hip roll forward.','Keep the movement slow and controlled — a small, correct range beats a big, sloppy one.','Targets the glute medius, since current sports-medicine consensus points to hip weakness — not IT band tightness itself — as the more likely root cause of IT band pain in runners.']},
   'Tibialis Raise': {category:'core', videoQuery:'tibialis raise shin exercise', cues:['Stand with your heels against a wall for support, lift your toes and forefoot up off the ground as high as you can, then lower with control.','Keep your knees straight and let the front of your shin do the work.','An increasingly used strengthening move for shin-splint prevention in runners, complementing calf stretching rather than replacing it.']},
-  'Sit-to-Stand': {category:'squat', videoQuery:'sit to stand exercise seniors', cues:['Sit tall in a sturdy chair, feet flat, then stand up fully without using your hands if possible, then sit back down with control.','Use armrests or a higher chair to start if needed, then progress toward a lower seat and no hands over time.','This is the same movement used in the 30-second chair-stand test that geriatric-exercise research (including Dr. Maria Fiatarone Singh\'s work on resistance training in older adults) uses to track functional leg strength and fall risk.']},
+  'Sit-to-Stand': {category:'squat', videoQuery:'sit to stand exercise seniors', cues:['Sit tall in a sturdy chair, feet flat, then stand up as quickly as you safely can — moving fast on the way up is the point, not a bonus — and lower yourself back down slowly and with control.','Use armrests or a higher chair to start if needed, then progress toward a lower seat and no hands over time.','This is the same movement used in the 30-second chair-stand test that geriatric-exercise research (including Dr. Maria Fiatarone Singh\'s work on resistance training in older adults) uses to track functional leg strength and fall risk.']},
   'Heel-to-Toe Walk': {category:'core', videoQuery:'tandem walk balance exercise', cues:['Walk in a straight line placing the heel of one foot directly in front of the toes of the other, like walking a tightrope.','Stay near a wall or counter you can touch for support until this feels stable.','This "tandem walk" pattern is a staple of the balance-training protocols shown in fall-prevention research (e.g. Dr. Teresa Liu-Ambrose\'s work) to meaningfully cut fall risk in older adults.']},
   'Wall Push-up': {category:'push', videoQuery:'wall push up technique', cues:['Stand arm\'s length from a wall, hands flat against it at shoulder height, then bend your elbows to bring your chest toward the wall and press back.','Keep your body in a straight line from head to heels rather than letting your hips sag.','A joint-friendly way to build real pressing strength before progressing to an incline or floor push-up.']},
   'Marching in Place': {category:'core', videoQuery:'marching in place exercise seniors', cues:['Lift your knees toward hip height one at a time at a steady, controlled pace, using a chair or counter for balance if needed.','Focus on a tall posture rather than speed.','A low-impact way to build hip flexor strength, coordination, and circulation without the joint stress of higher-impact cardio.']},
@@ -9156,7 +9746,7 @@ const exerciseInfo = {
   'Threshold Swim Set': {category:'cardio', cues:['Swim at a "comfortably hard" pace you could sustain for the full set — challenging but controlled, not all-out.','Break the set into shorter repeats with brief rest if holding the full distance unbroken isn\'t realistic yet.','Targets your lactate threshold — the pace research consistently shows drives the biggest gains in sustained swim speed.']},
   'Swim Intervals (100s)': {category:'cardio', cues:['Swim each 100m at a hard, controlled pace, then rest roughly 15-30 seconds before the next one.','Aim for consistent times across all reps rather than fading — that consistency is the actual training effect.','Repeated high-quality efforts like this build the top-end speed and pacing control that steady swimming alone doesn\'t develop.']},
   'Long Swim (continuous)': {category:'cardio', cues:['One continuous swim at an easy, sustainable pace for the full duration.','Break it up mentally into laps or landmarks rather than thinking about the whole distance at once.','Builds the aerobic base that every faster pace above it is ultimately built on top of.']},
-  'Hangboard Max Hang': {category:'pull', videoQuery:'hangboard max hang finger strength training', cues:['Hang from a hangboard edge sized so you can hold for the full time with real tension — shoulders engaged, not just dead-hanging from the joints.','Add weight or move to a smaller edge only once bodyweight hangs feel genuinely solid.','This "max hang" protocol, researched extensively by climbing scientists like Dr. Eva López, is one of the most direct ways to build the finger strength that limits climbing performance more than almost any other single trait.']},
+  'Hangboard Max Hang': {category:'pull', videoQuery:'hangboard max hang finger strength training', cues:['Hang from a hangboard edge sized so you can hold for the full time with real tension — shoulders engaged, not just dead-hanging from the joints.','Add weight or move to a smaller edge only once bodyweight hangs feel genuinely solid. Roughly 60% of climbing injuries involve the hand and fingers, and pulley injuries alone account for up to a fifth of them — almost always from loading the fingers faster than the connective tissue has adapted.','Tendons and pulleys adapt over years where muscle adapts in weeks, so if you have under a year of consistent climbing behind you, build the base with feet-on or large-edge hangs before max work. Sharp or pinching pain at the base or middle of a finger means stop, not push through.']},
   'Hangboard Repeaters': {category:'pull', videoQuery:'hangboard repeaters protocol climbing', cues:['Hang for about 7 seconds, rest 3 seconds, and repeat for the prescribed number of reps on a comfortably challenging edge.','Keep your shoulders active and engaged throughout rather than hanging passively from the joints.','This on/off "repeaters" rhythm trains the finger endurance climbers rely on mid-route, complementing the pure strength built by max hangs.']},
   'Lock-off Hold': {category:'pull', videoQuery:'lock off hold climbing training', cues:['From a pull-up bar or hold, pull to a bent-arm position (elbow around 90°) and hold completely still.','Keep your shoulder engaged and pulled down rather than shrugged toward your ear.','Trains the static bent-arm strength climbers need to pause and reach for the next hold mid-move, rather than just the dynamic strength of a full pull-up.']},
   'Standing Pelvic Tilt': {category:'core', cues:['Standing with a soft bend in your knees, gently tuck your pelvis under and back, then release to neutral.','Small and controlled — this is about pelvis awareness and gentle core engagement, not range of motion.','A standing alternative to the floor version, avoiding the prolonged supine (on-your-back) positioning most guidelines (including ACOG\'s) suggest limiting after the first trimester.']},
@@ -9307,6 +9897,8 @@ const exerciseInfo = {
   'Snatch Pull': {category:'oly', cues:['Same setup and pull as the snatch, without receiving the bar.','Focus on an aggressive, fast triple extension — ankles, knees, hips.','Keep the bar close to your body the whole pull.']},
   'Sprint Intervals': {category:'cardio', cues:['Full effort on the sprint, complete recovery between reps.','Focus on quick ground contact and driving your knees.','Warm up thoroughly before going all-out — sprints are high-injury-risk cold.']},
   'Squat': {category:'squat', cues:['Bar on your back, brace hard, sit your hips back and down.','Knees track in line with your toes, chest stays up.','Drive through mid-foot to stand — don\'t let your knees cave in.']},
+  'Post-Meal Walk': {category:'cardio', videoQuery:'post meal walk blood glucose type 2 diabetes', cues:['Start walking within roughly 30 minutes of finishing your meal — the timing is the whole point here, not a detail. Blood glucose peaks in the window after eating, and walking through that window is what blunts the peak.','Easy, conversational pace. This is not a training session, and going harder does not make it work better; being consistent about the timing does.','If you take insulin or a medication that can cause low blood sugar, talk to your care team about how activity after meals fits with your dosing before you make this a habit.']},
+  'Eccentric Heel Drop': {category:'arms', videoQuery:'Alfredson eccentric heel drop technique achilles', cues:['Stand with the balls of both feet on a step, heels hanging free. Rise up onto your toes using BOTH legs, then shift your weight onto the injured leg only and lower that heel slowly below the step over about 3 seconds.','Use the good leg to get back up every rep — the lowering is the whole exercise, and doing the raise on the injured side defeats the point.','Straight-knee sets load the gastrocnemius; bent-knee sets load the soleus underneath it. They are not interchangeable, which is why both appear every session.','Alfredson\'s protocol expects some discomfort during the exercise, but not sharp or worsening pain. Progress by adding load in a backpack, not by rushing the lower.']},
   'Standing Calf Raise': {category:'arms', cues:['Full range: deep stretch at the bottom, full squeeze at the top.','Slight pause at the top, control the descent.','Keep knees soft, avoid bouncing through the reps.']},
   'Trap Bar Jump Squat': {category:'jump', cues:['Load the trap bar, dip into a quarter squat, and jump explosively.','Land soft with bent knees, reset fully between reps.','Focus on speed off the ground, not just jump height.']},
   'Triceps Pushdown': {category:'arms', cues:['Elbows pinned at your sides, only the forearms move.','Full extension at the bottom without locking out aggressively.','Control the return — don\'t let the weight stack slam.']},
@@ -10221,6 +10813,7 @@ function updateMasterclassLinkBtn(){
 async function renderProgramSelector(trendStatus){
   const el = document.getElementById('programSelector');
   const descEl = document.getElementById('programSelectDesc');
+  renderProgramSource();   // provenance follows whichever program is active
 
   const scores = await scoreAllPrograms(userProfile, trendStatus);
   const sortedKeys = Object.keys(programs).sort((a,b)=> scores[b]-scores[a]);
@@ -10266,6 +10859,10 @@ async function renderProgramSelector(trendStatus){
     dayDefs = programs[activeProgram].days;
     activeDay = 'd1';
     descEl.textContent = programs[activeProgram].short;
+    renderProgramSource();   // onchange updates the description in place and
+                             // never re-runs renderProgramSelector(), so the
+                             // provenance note has to be refreshed here too
+                             // or it keeps describing the previous program.
     await saveActiveProgram();
     await loadDayOrder();
     await loadWeekProgress();
@@ -10343,6 +10940,7 @@ function renderMartialArtSelector(){
 
   el.onchange = async ()=>{
     activeMartialArt = el.value;
+    renderProgramSource();   // style provenance must follow the style, not just the program
     programs.combat.days = COMBAT_STYLES[activeMartialArt].days;
     descEl.textContent = COMBAT_STYLES[activeMartialArt].short;
     await saveMartialArtStyle();
@@ -10392,6 +10990,7 @@ function renderCyclingSelector(){
 
   el.onchange = async ()=>{
     activeCyclingStyle = el.value;
+    renderProgramSource();   // style provenance must follow the style, not just the program
     programs.cycling.days = CYCLING_STYLES[activeCyclingStyle].days;
     descEl.textContent = CYCLING_STYLES[activeCyclingStyle].short;
     await saveCyclingStyle();
@@ -10441,6 +11040,7 @@ function renderYogaSelector(){
 
   el.onchange = async ()=>{
     activeYogaStyle = el.value;
+    renderProgramSource();   // style provenance must follow the style, not just the program
     programs.yoga.days = YOGA_STYLES[activeYogaStyle].days;
     descEl.textContent = YOGA_STYLES[activeYogaStyle].short;
     await saveYogaStyle();
@@ -10506,6 +11106,7 @@ function renderMedicalSelector(){
   el.onchange = async ()=>{
     const prev = activeMedicalStyle;
     activeMedicalStyle = el.value;
+    renderProgramSource();   // style provenance must follow the style, not just the program
     programs.medical.days = MEDICAL_STYLES[activeMedicalStyle].days;
     descEl.textContent = MEDICAL_STYLES[activeMedicalStyle].short;
     await saveMedicalStyle();
@@ -10764,6 +11365,19 @@ function renderTabs(){
     const d = dayDefs[id];
     const tab = document.createElement('div');
     tab.className = 'tab' + (id===activeDay ? ' active' : '');
+    // The primary day navigation was a bare <div>: clickable, but invisible to
+    // keyboards, switch control and screen readers. Kept as a div rather than
+    // promoted to <button> because it nests the reorder <button>s in reorder
+    // mode, and a button inside a button is invalid and collapses in Safari.
+    // role + tabindex + key handling gives the same semantics without that.
+    tab.setAttribute('role', 'tab');
+    tab.setAttribute('aria-controls', 'workoutCard');
+    tab.setAttribute('aria-selected', id===activeDay ? 'true' : 'false');
+    tab.setAttribute('aria-label', `${d.label}${d.sub ? ' — ' + d.sub : ''}${(!d.rest && weekProgress[id]) ? ', completed' : ''}`);
+    // Only the active tab is in the tab order; arrow keys move between them.
+    // This is the standard roving-tabindex pattern — seven days in the tab
+    // sequence would otherwise sit between the header and the workout itself.
+    tab.tabIndex = (id===activeDay) ? 0 : -1;
     const doneBadge = (!d.rest && weekProgress[id]) ? `<div class="day-done-badge">✓</div>` : '';
     tab.innerHTML = `<div class="plate-wrap"><div class="plate ${getDayPlateClass(id)}${d.plateNum==='OFF'?' plate-off':''}">${dayGlyphSvg(d.sub)}</div>${doneBadge}</div><div class="plate-label">${d.label}</div>`;
     tab.onclick = ()=>{
@@ -10771,15 +11385,29 @@ function renderTabs(){
       activeDay = id; renderTabs(); renderWorkout();
       saveActiveDay();
     };
+    tab.onkeydown = (e)=>{
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();       // Space would otherwise scroll the page
+        tab.onclick();
+        return;
+      }
+      const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if(!step) return;
+      e.preventDefault();
+      const next = tabs.children[(idx + step + dayOrder.length) % dayOrder.length];
+      if(next) next.focus();      // move focus only; activation stays explicit
+    };
     if(reorderMode){
       const arrows = document.createElement('div');
       arrows.className = 'reorder-arrows';
       const left = document.createElement('button');
       left.textContent = '◀';
+      left.setAttribute('aria-label', `Move ${d.label} earlier`);
       left.disabled = idx===0;
       left.onclick = (e)=>{ e.stopPropagation(); moveDay(idx,-1); };
       const right = document.createElement('button');
       right.textContent = '▶';
+      right.setAttribute('aria-label', `Move ${d.label} later`);
       right.disabled = idx===dayOrder.length-1;
       right.onclick = (e)=>{ e.stopPropagation(); moveDay(idx,1); };
       arrows.appendChild(left); arrows.appendChild(right);
@@ -11996,7 +12624,7 @@ async function renderVoiceHint(){
   banner.className = 'voice-hint-banner';
   banner.innerHTML = `
     <span>💡 <b>Tip:</b> hold the plate-calculator button (🏋️) — or tap 🎤 on other exercises — to voice log a set. Try "225 for 5" or "180 for 12 at a 6".</span>
-    <button class="voice-hint-dismiss" id="voiceHintDismissBtn" title="Dismiss">✕</button>
+    <button class="voice-hint-dismiss" id="voiceHintDismissBtn" aria-label="Dismiss voice logging tip">✕</button>
   `;
   banner.style.display = 'flex';
   document.getElementById('voiceHintDismissBtn').addEventListener('click', async ()=>{
@@ -12246,7 +12874,7 @@ async function renderWorkout(){
         if(rampSource && rampSource.weight >= minWeight){
           const ramp = isBarbell ? buildWarmupRamp(rampSource.weight) : buildGenericWarmupRamp(rampSource.weight);
           const rampRows = ramp.map(step=> `<div class="warmup-row"><span>${step.label} — ${step.weight} ${weightUnit} × ${step.reps}</span></div>`).join('');
-          const rampTitle = isFallback ? `🔥 Suggested warm-up ramp <span style="font-weight:400; text-transform:none; letter-spacing:0; opacity:0.75;">(based on your last logged ${ex.name}, ${programLabelFor(priorSourceProgram)})</span>` : '🔥 Suggested warm-up ramp';
+          const rampTitle = isFallback ? `🔥 Suggested warm-up ramp <span style="font-weight:400; text-transform:none; letter-spacing:0; opacity:0.75;">(based on your last logged ${escapeHtml(ex.name)}, ${programLabelFor(priorSourceProgram)})</span>` : '🔥 Suggested warm-up ramp';
           warmupHtml = `<div class="warmup-box"><div class="warmup-title">${rampTitle}</div>${rampRows}</div>`;
         }
       } else if(warmupEligible && isEligibleCategory && !showWeight){
@@ -12266,12 +12894,12 @@ async function renderWorkout(){
             <div class="swipe-delete-bg">🗑️</div>
             <div class="swipe-content set-row-content">
               <span class="set-num">${setIdx+1}</span>
-              ${showWeight ? `<input type="number" inputmode="decimal" class="ex-input ex-weight" placeholder="${placeholderSet && placeholderSet.weight!=null ? trimUnitNum(toDisplayWeight(placeholderSet.weight)) : weightUnit}" value="${savedSet && savedSet.weight!=null ? trimUnitNum(toDisplayWeight(savedSet.weight)) : ''}">
+              ${showWeight ? `<input type="number" inputmode="decimal" class="ex-input ex-weight" aria-label="Set ${setIdx+1} weight in ${weightUnit}" placeholder="${placeholderSet && placeholderSet.weight!=null ? trimUnitNum(toDisplayWeight(placeholderSet.weight)) : weightUnit}" value="${savedSet && savedSet.weight!=null ? trimUnitNum(toDisplayWeight(savedSet.weight)) : ''}">
               <span class="ex-x">×</span>` : ''}
-              <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="${placeholderSet && placeholderSet.reps!=null ? placeholderSet.reps : getSetFieldUnit(ex.sets)}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
-              <input type="number" inputmode="decimal" step="0.5" min="5" max="10" class="ex-input ex-rpe" placeholder="${placeholderSet && placeholderSet.rpe!=null ? placeholderSet.rpe : 'RPE'}" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
-              ${showPlateCalc ? '<button type="button" class="plate-btn" title="Plate calculator">🏋️</button>' : ''}
-              ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" title="Voice log">🎤</button>' : ''}
+              <input type="number" inputmode="numeric" class="ex-input ex-reps" aria-label="Set ${setIdx+1} reps" placeholder="${placeholderSet && placeholderSet.reps!=null ? placeholderSet.reps : getSetFieldUnit(ex.sets)}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
+              <input type="number" inputmode="decimal" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${setIdx+1} RPE, 5 to 10" placeholder="${placeholderSet && placeholderSet.rpe!=null ? placeholderSet.rpe : 'RPE'}" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
+              ${showPlateCalc ? '<button type="button" class="plate-btn" aria-label="Open plate calculator">🏋️</button>' : ''}
+              ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" aria-label="Log this set by voice">🎤</button>' : ''}
               <span class="set-status"></span>
               ${showPlateCalc ? '<div class="plate-result"></div>' : ''}
               ${SpeechRecognitionCtor ? '<div class="voice-feedback"></div>' : ''}
@@ -12327,13 +12955,13 @@ async function renderWorkout(){
 
     row.innerHTML = `
       <div class="exercise">
-        <input type="checkbox" data-idx="${i}" ${checked}>
+        <input type="checkbox" data-idx="${i}" ${checked} aria-label="Mark ${escapeHtml(ex.name)} complete">
         ${thumbHtml}
         <div class="ex-name-wrap">
-          <div class="ex-name ${completed[i]?'done':''} ${hasSubs ? 'ex-name-swappable' : ''}">${ex.name}${swapIconHtml}${focusHtml}${subTagHtml}${ex.isCustom ? '<span class="super-tag custom-tag">✏️ Custom</span>' : ''}</div>
+          <div class="ex-name ${completed[i]?'done':''} ${hasSubs ? 'ex-name-swappable' : ''}">${escapeHtml(ex.name)}${swapIconHtml}${focusHtml}${subTagHtml}${ex.isCustom ? '<span class="super-tag custom-tag">✏️ Custom</span>' : ''}</div>
         </div>
-        <div class="ex-sets">${ex.sets}<div class="ex-cal-tag">~${exCalories} cal</div></div>
-        ${ex.isCustom ? `<button class="ex-delete-custom-btn" title="Remove this custom exercise">🗑️</button>` : ''}
+        <div class="ex-sets">${escapeHtml(ex.sets)}<div class="ex-cal-tag">~${exCalories} cal</div></div>
+        ${ex.isCustom ? `<button class="ex-delete-custom-btn" aria-label="Remove custom exercise ${escapeHtml(ex.name)}">🗑️</button>` : ''}
         <span class="ex-chevron">›</span>
       </div>
       <div class="expand-wrap">
@@ -13140,12 +13768,12 @@ function wireSetsBlock(row, exIdx, ex){
       <div class="swipe-delete-bg">🗑️</div>
       <div class="swipe-content set-row-content">
         <span class="set-num">${newIdx+1}</span>
-        ${showWeight ? `<input type="number" inputmode="decimal" class="ex-input ex-weight" placeholder="${weightUnit}" value="">
+        ${showWeight ? `<input type="number" inputmode="decimal" class="ex-input ex-weight" aria-label="Set ${newIdx+1} weight in ${weightUnit}" placeholder="${weightUnit}" value="">
         <span class="ex-x">×</span>` : ''}
-        <input type="number" inputmode="numeric" class="ex-input ex-reps" placeholder="${getSetFieldUnit(ex.sets)}" value="">
-        <input type="number" inputmode="decimal" step="0.5" min="5" max="10" class="ex-input ex-rpe" placeholder="RPE" value="">
-        ${showPlateCalc ? '<button type="button" class="plate-btn" title="Plate calculator">🏋️</button>' : ''}
-        ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" title="Voice log">🎤</button>' : ''}
+        <input type="number" inputmode="numeric" class="ex-input ex-reps" aria-label="Set ${newIdx+1} reps" placeholder="${getSetFieldUnit(ex.sets)}" value="">
+        <input type="number" inputmode="decimal" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${newIdx+1} RPE, 5 to 10" placeholder="RPE" value="">
+        ${showPlateCalc ? '<button type="button" class="plate-btn" aria-label="Open plate calculator">🏋️</button>' : ''}
+        ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" aria-label="Log this set by voice">🎤</button>' : ''}
         <span class="set-status"></span>
         ${showPlateCalc ? '<div class="plate-result"></div>' : ''}
         ${SpeechRecognitionCtor ? '<div class="voice-feedback"></div>' : ''}
@@ -13383,7 +14011,12 @@ function applyWeightUnitToUI(){
   const label = document.getElementById('pfWeightUnitLabel');
   if(label) label.textContent = weightUnit;
   const weightInputEl = document.getElementById('weightInput');
-  if(weightInputEl) weightInputEl.placeholder = `Weight today (${weightUnit})`;
+  // aria-label overrides the placeholder for assistive tech, so it has to move
+  // with the unit too — otherwise a kg user is told "lb".
+  if(weightInputEl){
+    weightInputEl.placeholder = `Weight today (${weightUnit})`;
+    weightInputEl.setAttribute('aria-label', `Weight today in ${weightUnit}`);
+  }
 }
 
 document.getElementById('weightUnitSelect').addEventListener('change', async (e)=>{
@@ -15039,7 +15672,7 @@ function buildUsdaKeyUpgradePrompt(){
     <button class="usda-key-upgrade-toggle" type="button">USDA food search: on, using the shared free key · Add a personal key</button>
     <div class="usda-key-upgrade-form smooth-toggle"><div>
       <div class="care-disclaimer" style="margin-top:8px;">Search already works with zero setup. A personal key just raises the limit from 30/hour to 1,000/hour if you ever hit it. Get one free, instantly, at <b>fdc.nal.usda.gov/api-key-signup</b> — no approval wait, no billing, no account needed beyond an email. Stored only on this device.</div>
-      <input type="text" class="care-input usda-key-input" placeholder="Paste your USDA API key">
+      <input type="text" class="care-input usda-key-input" placeholder="Paste your USDA API key" aria-label="USDA API key">
       <button class="save-btn usda-key-save">Save Key</button>
     </div></div>
   `;
@@ -15994,9 +16627,9 @@ function buildFoodItemBtn(item, showCategory){
       <div class="fi-macro">${item.cal} cal · ${item.pro}p / ${item.fat}f / ${item.carb}c</div>
     </div>
     <div class="fi-actions">
-      <button class="fi-duplicate" type="button" title="Duplicate & edit">✏️</button>
-      <button class="fi-star ${favorited?'favorited':''}" type="button">${favorited?'★':'☆'}</button>
-      ${isCustom ? `<button class="fi-star" type="button" title="Remove from My Foods">🗑️</button>` : ''}
+      <button class="fi-duplicate" type="button" aria-label="Duplicate and edit ${escapeHtml(item.name)}">✏️</button>
+      <button class="fi-star ${favorited?'favorited':''}" type="button" aria-pressed="${favorited?'true':'false'}" aria-label="${favorited?'Remove':'Add'} ${escapeHtml(item.name)} ${favorited?'from':'to'} favourites">${favorited?'★':'☆'}</button>
+      ${isCustom ? `<button class="fi-star" type="button" aria-label="Remove ${escapeHtml(item.name)} from My Foods">🗑️</button>` : ''}
       <div class="fi-plus">+</div>
     </div>
   `;
@@ -19015,12 +19648,12 @@ document.getElementById('photoLogBtn').addEventListener('click', ()=> document.g
 function renderPhotoLogResult(resultEl, previewUrl){
   const itemsHtml = photoLogParsedItems.map((it,i)=>`
     <div class="photo-result-item-editable">
-      <input type="text" class="care-input photo-item-name-input" value="${escapeHtml(it.name)}" data-idx="${i}" data-field="name" placeholder="Item name">
+      <input type="text" class="care-input photo-item-name-input" value="${escapeHtml(it.name)}" data-idx="${i}" data-field="name" placeholder="Item name" aria-label="Item ${i+1} name">
       <div class="macro-input-row">
-        <input type="number" inputmode="numeric" class="care-input" value="${it.cal ?? ''}" data-idx="${i}" data-field="cal" placeholder="Cal">
-        <input type="number" inputmode="numeric" class="care-input" value="${it.pro ?? ''}" data-idx="${i}" data-field="pro" placeholder="Pro">
-        <input type="number" inputmode="numeric" class="care-input" value="${it.fat ?? ''}" data-idx="${i}" data-field="fat" placeholder="Fat">
-        <input type="number" inputmode="numeric" class="care-input" value="${it.carb ?? ''}" data-idx="${i}" data-field="carb" placeholder="Carb">
+        <input type="number" inputmode="numeric" class="care-input" value="${it.cal ?? ''}" data-idx="${i}" data-field="cal" placeholder="Cal" aria-label="Item ${i+1} calories">
+        <input type="number" inputmode="numeric" class="care-input" value="${it.pro ?? ''}" data-idx="${i}" data-field="pro" placeholder="Pro" aria-label="Item ${i+1} protein in grams">
+        <input type="number" inputmode="numeric" class="care-input" value="${it.fat ?? ''}" data-idx="${i}" data-field="fat" placeholder="Fat" aria-label="Item ${i+1} fat in grams">
+        <input type="number" inputmode="numeric" class="care-input" value="${it.carb ?? ''}" data-idx="${i}" data-field="carb" placeholder="Carb" aria-label="Item ${i+1} carbs in grams">
       </div>
       <button type="button" class="photo-item-remove-btn" data-idx="${i}">✕ Remove</button>
     </div>
@@ -20324,7 +20957,7 @@ async function renderCare(){
     restEl.innerHTML = '<div class="empty-note">✅ Nothing marked as resting — you\'re clear to train everything.</div>';
   }else{
     restEl.innerHTML = resting.map(r=>`
-      <span class="resting-chip">${r} <button data-region="${r}" class="clear-resting">✕</button></span>
+      <span class="resting-chip">${r} <button data-region="${r}" class="clear-resting" aria-label="Stop resting ${escapeHtml(r)}">✕</button></span>
     `).join('') + `<div class="history-hint" style="margin-top:10px;">Exercises loading these regions will show a caution flag in Today\'s workout until you clear them here.</div>`;
     restEl.querySelectorAll('.clear-resting').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
@@ -20572,7 +21205,7 @@ async function renderHistory(){
         const dayLabelHtml = showDayLabel ? `<span class="day-ex-day">${ex.dayLabel}</span>` : '';
         return `
           <div class="day-ex-row">
-            <span class="day-ex-name">${ex.name}</span>
+            <span class="day-ex-name">${escapeHtml(ex.name)}</span>
             ${dayLabelHtml}
             <span>${setsStr}</span>
             <span class="day-ex-vol">Vol ${ex.volume.toLocaleString()}</span>
