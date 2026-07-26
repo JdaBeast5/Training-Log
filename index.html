@@ -93,7 +93,13 @@
     transform:translateY(-70px);
     transition:transform 0.25s var(--ease-smooth);
     z-index:500; pointer-events:none;
-    background:var(--bg);
+    /* Floats over the page during a pull, so it takes the same treatment as
+       every other floating layer instead of sitting flat on --bg. Modest
+       blur: this animates under an active gesture, and 18px over a 70px
+       strip is cheap where 26px over a full sheet would not be. */
+    background:rgba(23,25,29,0.72);
+    backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 8px 22px -14px rgba(0,0,0,0.7);
   }
   .pull-refresh-indicator.dragging{ transition:none; }
   .pull-refresh-spinner{
@@ -563,7 +569,9 @@
   .sub-modal-overlay.active{display:flex; opacity:1;}
   .sub-modal-sheet{
     position:relative;
-    width:100%; max-width:520px; background:var(--surface);
+    width:100%; max-width:520px;
+    background:rgba(23,25,29,0.86);
+    backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
     border:1px solid rgba(255,255,255,0.07); border-bottom:none;
     border-top-left-radius:var(--radius-lg); border-top-right-radius:var(--radius-lg);
     padding:20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
@@ -732,13 +740,13 @@
     display:flex; align-items:center; gap:8px;
     transform:translateY(-100%); transition:transform 0.25s var(--ease-smooth);
     font-family:'Inter',sans-serif; font-size:14.5px; font-weight:700; letter-spacing:-0.01em; color:var(--text);
-    box-shadow:0 4px 14px rgba(0,0,0,0.3);
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px rgba(0,0,0,0.3);
   }
   .sticky-day-header.visible{transform:translateY(0);}
 
   .celebrate-banner{
     position:fixed; top:50%; left:50%; z-index:150;
-    background:rgba(31,34,38,0.78); backdrop-filter:blur(24px) saturate(170%); -webkit-backdrop-filter:blur(24px) saturate(170%);
+    background:rgba(31,34,38,0.78); box-shadow:0 1px 0 rgba(255,255,255,0.05) inset; backdrop-filter:blur(24px) saturate(170%); -webkit-backdrop-filter:blur(24px) saturate(170%);
     border:1px solid var(--plate-yellow); border-radius:var(--radius-lg);
     padding:24px 32px; text-align:center; box-shadow:0 20px 50px -10px rgba(0,0,0,0.6);
     transform:translate(-50%,-50%) scale(0.7); opacity:0; pointer-events:none;
@@ -856,7 +864,7 @@
 
   .undo-toast{
     position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(80px);
-    background:rgba(31,34,38,0.75); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
+    background:rgba(31,34,38,0.75); box-shadow:0 1px 0 rgba(255,255,255,0.05) inset; backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border:1px solid var(--line-bright); border-radius:var(--radius-pill-lg);
     padding:10px 10px 10px 18px; display:flex; align-items:center; gap:14px; z-index:60;
     box-shadow:0 10px 30px -8px rgba(0,0,0,0.5); opacity:0; pointer-events:none;
@@ -1119,7 +1127,8 @@
     background:linear-gradient(transparent, rgba(0,0,0,0.75)); text-align:center;
   }
   .photo-lightbox{
-    position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:80; display:none;
+    position:fixed; inset:0; background:rgba(0,0,0,0.92);
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:80; display:none;
     align-items:center; justify-content:center; flex-direction:column; padding:20px;
     overflow:hidden;
   }
@@ -1199,6 +1208,7 @@
   .coach-fab-modal.active{opacity:1; pointer-events:auto;}
   .coach-fab-backdrop{
     position:absolute; inset:0; background:rgba(0,0,0,0.28);
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
   }
   .coach-fab-panel{
     position:relative; z-index:1; margin:0 18px 90px 0;
@@ -1429,7 +1439,9 @@
   .calendar-modal-overlay.active{display:flex; opacity:1;}
   .calendar-modal-sheet{
     position:relative;
-    width:100%; max-width:420px; background:var(--surface);
+    width:100%; max-width:420px;
+    background:rgba(23,25,29,0.86);
+    backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
     border:1px solid rgba(255,255,255,0.07); border-bottom:none;
     border-top-left-radius:var(--radius-lg); border-top-right-radius:var(--radius-lg);
     padding:18px 18px calc(18px + env(safe-area-inset-bottom, 0px));
@@ -1589,7 +1601,8 @@
   }
   .user-picker-box{
     width:100%; max-width:360px; background:rgba(23,25,29,0.9); border:1px solid var(--line);
-    border-radius:var(--radius-lg); padding:28px 22px; box-shadow:0 20px 50px -10px rgba(0,0,0,0.6);
+    border-radius:var(--radius-lg); padding:28px 22px; backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 20px 50px -10px rgba(0,0,0,0.6);
   }
   .user-picker-title{
     font-family:'Inter',sans-serif; font-weight:800; font-size:25px; letter-spacing:-0.02em;
@@ -1994,6 +2007,106 @@
     margin-top:10px; padding-top:10px;
     border-top:1px solid rgba(255,255,255,0.06);
   }
+  /* --- No-backdrop-filter fallback ----------------------------------
+     Twelve surfaces in this app are translucent *because* a blur sits behind
+     them. Where backdrop-filter is unsupported — older Android WebViews, and
+     Firefox on Android until relatively recently — that blur silently does
+     not happen and the translucency remains, so page content reads straight
+     through modal text. Opacity is raised to compensate; nothing else about
+     the design changes, and browsers with support never see this block. */
+  @supports not (backdrop-filter: blur(1px)){
+  @supports not (-webkit-backdrop-filter: blur(1px)){
+    .user-picker-overlay{ background:rgba(10,11,13,0.97); }
+    .calendar-modal-overlay, .sub-modal-overlay{ background:rgba(0,0,0,0.82); }
+    .coach-fab-backdrop{ background:rgba(0,0,0,0.55); }
+    .user-picker-box, .calendar-modal-sheet, .sub-modal-sheet, .coach-fab-panel{
+      background:var(--surface);
+    }
+    .sticky-day-header, .undo-toast, .celebrate-banner, .pull-refresh-indicator{
+      background:var(--surface2);
+    }
+    .photo-lightbox{ background:rgba(0,0,0,0.97); }
+    .rest-timer{ background:linear-gradient(160deg, #2D3137, #1A1D21); }
+  }}
+
+  /* --- Program provenance panel -------------------------------------
+     Reads as the spec plate on a piece of equipment: what it is, what it is
+     rated for, what standard it was built to. Grounded in the app's existing
+     language (plate palette, mono utility face, tinted-block pattern shared
+     with .day-insight and .care-banner) rather than a new visual identity.
+
+     One accent, spent on `limits`. That is the only part that changes what
+     someone does before training, and for the clinical programs it is the
+     most important text on the screen. Everything else stays quiet.
+
+     Amber deliberately, not red: red is already this app's urgent register
+     (.care-banner-urgent) and firing it on "needs a rack" would blunt it
+     where it actually matters. Amber matches .care-banner-caution exactly. */
+  .program-panel{
+    margin-top:12px; padding:13px 14px 12px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 60%), var(--surface2);
+    border:1px solid var(--line);
+    border-radius:var(--radius-md);
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 8px 20px -14px rgba(0,0,0,0.6);
+  }
+  .program-panel-eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:9.5px; letter-spacing:1.6px; text-transform:uppercase;
+    color:var(--text-muted); margin-bottom:7px;
+    display:flex; align-items:center; gap:7px;
+  }
+  /* Hairline that runs out from the label to the panel edge — the only
+     decoration, and it earns its place by making the label read as a section
+     marker rather than floating text. */
+  .program-panel-eyebrow::after{
+    content:''; flex:1 1 auto; height:1px;
+    background:linear-gradient(90deg, var(--line-bright), transparent);
+  }
+  .program-intro{
+    font-size:13px; line-height:1.55; color:var(--text);
+    margin:0;
+  }
+  .program-limits{
+    margin-top:11px; padding:9px 11px 9px 12px;
+    background:rgba(245,197,24,0.1);
+    border:1px solid rgba(245,197,24,0.38);
+    border-left-width:3px;
+    border-radius:var(--radius-sm);
+    font-size:12.5px; line-height:1.5; color:var(--text);
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -9px rgba(245,197,24,0.3);
+  }
+  .program-limits-label{
+    display:block; font-family:'IBM Plex Mono',monospace;
+    font-size:9.5px; letter-spacing:1.2px; text-transform:uppercase;
+    color:var(--plate-yellow); font-weight:600; margin-bottom:4px;
+  }
+  /* Basis collapses; limits never do. Provenance is worth having and worth
+     nobody reading before a session. */
+  .program-basis-toggle{
+    /* min-height, not padding: keeps the label optically tight against the
+       block above while still clearing the 44px touch target the rest of the
+       app is held to. */
+    width:100%; margin-top:5px; padding:4px 2px; min-height:44px;
+    background:none; border:none; cursor:pointer; text-align:left;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px; letter-spacing:1.1px; text-transform:uppercase;
+    color:var(--text-muted);
+    display:flex; align-items:center; gap:6px;
+    transition:color 0.18s var(--ease-smooth);
+  }
+  .program-basis-toggle:active{color:var(--text);}
+  .program-basis-toggle .chev{
+    transition:transform 0.28s var(--ease-smooth); display:inline-block; font-size:11px;
+  }
+  .program-basis-toggle[aria-expanded="true"] .chev{transform:rotate(90deg);}
+  .program-basis{
+    font-size:11.5px; line-height:1.55; color:var(--text-muted);
+    padding:2px 0 4px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .program-basis-toggle .chev{transition:none;}
+  }
+
   .program-source{ margin-top:8px; }
   .program-source summary{
     font-size:11.5px; text-transform:uppercase; letter-spacing:0.5px;
@@ -4966,7 +5079,7 @@ const PROGRAM_SOURCES = {
     tier: 'stand',
     school: 'Geriatric resistance training with an explicit power emphasis: train the concentric fast, lower slowly, and progress by reducing assistance rather than adding load.',
     primary: 'Currier BS, DSouza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897 (>=2 sessions/week, all major groups, 2-3 sets, 60-80% effort, stopping 2-3 reps short). Power emphasis: Araujo CGS, Kunutsor SK, Eijsvogels TMH, et al. Muscle Power Versus Strength as a Predictor of Mortality in Middle-Aged and Older Men and Women. Mayo Clin Proc. 2025;100(8):1319-1331. doi:10.1016/j.mayocp.2025.02.015 — 3,889 adults aged 46-75, median 10.8y follow-up: lowest vs highest relative POWER carried hazard ratios of 5.88 (men) and 6.90 (women), while the same comparison for relative STRENGTH gave 1.62 and 1.71 and did not reach significance after adjustment.',
-    doesNotLicense: 'Power here means moving your own bodyweight quickly on the concentric — standing up fast from a chair — NOT plyometrics, jumping, or added load moved explosively. Araujo et al. is an observational cohort: it establishes power as a stronger PREDICTOR, not that training power causes the survival difference. It is a reason to include speed of movement, not a reason to make this program harder. The eccentric stays slow and controlled. Also: this program reads as "core 34 sets across 5 days" — Bird Dog, Dead Bug, Cat-Cow and Ankle Circles all map to `core` but are balance and mobility work (HANDOFF v4 §4).',
+    editorNote: 'Power here means moving your own bodyweight quickly on the concentric — standing up fast from a chair — NOT plyometrics, jumping, or added load moved explosively. Araujo et al. is an observational cohort: it establishes power as a stronger PREDICTOR, not that training power causes the survival difference. It is a reason to include speed of movement, not a reason to make this program harder. The eccentric stays slow and controlled. Also: this program reads as "core 34 sets across 5 days" — Bird Dog, Dead Bug, Cat-Cow and Ankle Circles all map to `core` but are balance and mobility work (HANDOFF v4 §4).',
   },
 
   desk: {
@@ -4974,7 +5087,7 @@ const PROGRAM_SOURCES = {
     tier: 'stand',
     school: 'Postural and mobility work paired with general resistance training, structured around the specific restrictions of prolonged sitting.',
     primary: 'Currier BS, DSouza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897 — supports the general resistance component. The specific postural-correction rationale is NOT YET SOURCED.',
-    doesNotLicense: 'The evidence that specific stretches correct posture is much weaker than the evidence that resistance training builds strength — do not let the ACSM citation imply the postural half is equally well grounded. It is included because it is low-risk and people report it helps, not because it is proven to change alignment.',
+    editorNote: 'The evidence that specific stretches correct posture is much weaker than the evidence that resistance training builds strength — do not let the ACSM citation imply the postural half is equally well grounded. It is included because it is low-risk and people report it helps, not because it is proven to change alignment.',
   },
 
   combat: {
@@ -4982,7 +5095,7 @@ const PROGRAM_SOURCES = {
     tier: 'school',
     school: 'Style-specific combat conditioning; the actual program comes from COMBAT_STYLES, not from this entry.',
     primary: 'NOT YET SOURCED. Each of the six styles needs its own provenance — they share very little literature, and a single citation here would misrepresent all six.',
-    doesNotLicense: 'Do not treat one source as covering all six styles. Boxing, Muay Thai, BJJ, wrestling and the rest have genuinely different demands and different injury profiles.',
+    editorNote: 'Do not treat one source as covering all six styles. Boxing, Muay Thai, BJJ, wrestling and the rest have genuinely different demands and different injury profiles.',
   },
 
   cycling: {
@@ -4990,7 +5103,7 @@ const PROGRAM_SOURCES = {
     tier: 'school',
     school: 'Endurance cycling programming; the actual sessions come from CYCLING_STYLES.',
     primary: 'NOT YET SOURCED at the style level.',
-    doesNotLicense: 'Verified as correct against polarized-distribution auditing in HANDOFF v4 §4, but that is a structural check, not a citation.',
+    editorNote: 'Verified as correct against polarized-distribution auditing in HANDOFF v4 §4, but that is a structural check, not a citation.',
   },
 
   yoga: {
@@ -4998,7 +5111,7 @@ const PROGRAM_SOURCES = {
     tier: 'school',
     school: 'Static-hold asana practice, sequenced by style.',
     primary: 'NOT YET SOURCED for the sequencing. The dose-independence finding it relies on IS sourced (Konrad et al., via HANDOFF v4 §4).',
-    doesNotLicense: 'Do not dose-audit for "enough sets" — flexibility is not dose-dependent that way. Verified as 92-100% static holds with zero ballistic movement; keep it that way. In Couples Yoga specifically, every assisted pose states that the person being stretched sets the depth, never the partner — that is enforced by test and must not be softened.',
+    editorNote: 'Do not dose-audit for "enough sets" — flexibility is not dose-dependent that way. Verified as 92-100% static holds with zero ballistic movement; keep it that way. In Couples Yoga specifically, every assisted pose states that the person being stretched sets the depth, never the partner — that is enforced by test and must not be softened.',
   },
 
   medical: {
@@ -5006,7 +5119,7 @@ const PROGRAM_SOURCES = {
     tier: 'school',
     school: 'Condition-specific modified training. The actual program comes from MEDICAL_STYLES.',
     primary: 'PARTIALLY SOURCED, and deliberately not summarised here. Only bariatricEarly and bariatricRebuilding are grounded (expert-based physical activity guidelines for metabolic and bariatric surgery patients, systematic review of RCTs, Surg Obes Relat Dis 2024). The other eleven styles carry no citation. Per-style provenance is the outstanding work and needs its own session.',
-    doesNotLicense: 'THIS IS THE HIGHEST-CONSEQUENCE CONTENT IN THE APP AND THE LEAST GROUNDED. Do not let one entry at the container level imply the thirteen styles beneath it are sourced. Two specific traps already documented: (1) "Strength" in a clinical context means resistance training, NOT the 1-5 rep tier — prescribing 4-6 reps in prenatal or early post-op would be wrong and possibly unsafe. (2) Bariatric programs have no planks or sit-ups because abdominal work is delayed 8-12 weeks post-op; do not "complete" them with core work. Also: the diabetes Post-Meal Walk is timed for post-prandial glucose control — that timing IS the intervention, and reordering it to satisfy strength-before-conditioning would destroy its purpose.',
+    editorNote: 'THIS IS THE HIGHEST-CONSEQUENCE CONTENT IN THE APP AND THE LEAST GROUNDED. Do not let one entry at the container level imply the thirteen styles beneath it are sourced. Two specific traps already documented: (1) "Strength" in a clinical context means resistance training, NOT the 1-5 rep tier — prescribing 4-6 reps in prenatal or early post-op would be wrong and possibly unsafe. (2) Bariatric programs have no planks or sit-ups because abdominal work is delayed 8-12 weeks post-op; do not "complete" them with core work. Also: the diabetes Post-Meal Walk is timed for post-prandial glucose control — that timing IS the intervention, and reordering it to satisfy strength-before-conditioning would destroy its purpose.',
   },
 
   strength: {
@@ -5014,7 +5127,7 @@ const PROGRAM_SOURCES = {
     tier: 'stand',
     school: 'Upper/lower split with the week divided into a strength emphasis and a hypertrophy emphasis — the mainstream intermediate model for training both qualities concurrently.',
     primary: 'Currier BS, D\'Souza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897 — strength: >=80% 1RM, key lifts early, >=2 sessions/week; hypertrophy: >=10 sets per muscle group per week, loads 30-100% 1RM comparably effective when effort is sufficient.',
-    doesNotLicense: 'The >=10 weekly sets figure is per MUSCLE GROUP, not per category label in this app. Shoulders read as 9 sets only because Overhead Press maps to `push`; real delt volume is 12. `lunge` (3) is quad work counted separately from `squat` (10). Neither is a shortfall — do not top them up. ACSM 2026 also says nothing about the d5 deadlift rep choice; that rests on its load-range finding plus fatigue cost, documented at the exercise.',
+    editorNote: 'The >=10 weekly sets figure is per MUSCLE GROUP, not per category label in this app. Shoulders read as 9 sets only because Overhead Press maps to `push`; real delt volume is 12. `lunge` (3) is quad work counted separately from `squat` (10). Neither is a shortfall — do not top them up. ACSM 2026 also says nothing about the d5 deadlift rep choice; that rests on its load-range finding plus fatigue cost, documented at the exercise.',
   },
 
   powerbuilding: {
@@ -5022,7 +5135,7 @@ const PROGRAM_SOURCES = {
     tier: 'stand',
     school: 'Powerbuilding: a heavy compound at the front of each session where you are freshest, followed by higher-rep accessory volume.',
     primary: 'Currier BS, D\'Souza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897',
-    doesNotLicense: 'ACSM 2026 found periodization and failure training were not consistently necessary FOR GENERAL HEALTHY ADULTS — not a reason to strip structure from someone training for a total. The >=10 sets target legitimately caught the hamstring gap here (fixed on d6); the `lunge` reading of 3 is a category artifact, not a shortfall. Arms at 18 sets is a deliberate priority of the style, not an error to normalise.',
+    editorNote: 'ACSM 2026 found periodization and failure training were not consistently necessary FOR GENERAL HEALTHY ADULTS — not a reason to strip structure from someone training for a total. The >=10 sets target legitimately caught the hamstring gap here (fixed on d6); the `lunge` reading of 3 is a category artifact, not a shortfall. Arms at 18 sets is a deliberate priority of the style, not an error to normalise.',
   },
 
   bodybuilding: {
@@ -5030,7 +5143,7 @@ const PROGRAM_SOURCES = {
     tier: 'stand',
     school: 'Body-part split with high accessory volume, rebalanced away from once-per-week frequency so each region is trained at least twice.',
     primary: 'Currier BS, D\'Souza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897',
-    doesNotLicense: 'Shoulders read as 7 weekly sets only because Overhead Press maps to `push`; actual delt volume is 11. Hinge reads 9 against a target of 10 — inside the noise of a pooled-review figure, and the d6 rebalance that produced it was deliberately volume-neutral (HANDOFF v4 §4). Do not add sets to "fix" either number.',
+    editorNote: 'Shoulders read as 7 weekly sets only because Overhead Press maps to `push`; actual delt volume is 11. Hinge reads 9 against a target of 10 — inside the noise of a pooled-review figure, and the d6 rebalance that produced it was deliberately volume-neutral (HANDOFF v4 §4). Do not add sets to "fix" either number.',
   },
 
   powerlifting: {
@@ -5038,7 +5151,7 @@ const PROGRAM_SOURCES = {
     tier: 'school',
     school: 'Competitive powerlifting practice in the block-periodization lineage (Issurin). Frequency- and specificity-driven, judged by competition total rather than weekly set volume.',
     primary: 'Currier BS, D\'Souza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897',
-    doesNotLicense: 'ACSM 2026 covers HEALTHY GENERAL ADULTS. Its findings that periodization is optional and failure training unnecessary apply to general trainees — not a verdict on competitive lifters. It equally does not license elite meet-prep volumes here: those templates assume an athlete whose day is training, eating and sleeping. Do not audit against hypertrophy set-volume targets; the 2-3-1 squat/bench/deadlift weekly frequency is the yardstick, and bench sits at 2x deliberately because d2 also carries Close-Grip Bench.',
+    editorNote: 'ACSM 2026 covers HEALTHY GENERAL ADULTS. Its findings that periodization is optional and failure training unnecessary apply to general trainees — not a verdict on competitive lifters. It equally does not license elite meet-prep volumes here: those templates assume an athlete whose day is training, eating and sleeping. Do not audit against hypertrophy set-volume targets; the 2-3-1 squat/bench/deadlift weekly frequency is the yardstick, and bench sits at 2x deliberately because d2 also carries Close-Grip Bench.',
   },
 
   oly: {
@@ -5046,7 +5159,7 @@ const PROGRAM_SOURCES = {
     tier: 'school',
     school: 'Weightlifting coaching consensus (Bulgarian and Russian lineages, modern USAW practice): competition lifts as skill under low fatigue; volume carried by pulls, squats and power variations.',
     primary: 'No position stand exists for weightlifting rep-scheme prescription. Closest peer-reviewed support for treating lifts as differently fatiguing: Ferreira et al. Comparison between Olympic Weightlifting Lifts and Derivatives for External Load and Fatigue Monitoring. Int J Environ Res Public Health. 2022. PMC9777922',
-    doesNotLicense: 'Coaching consensus, NOT trial evidence — do not cite it as though it were. It says nothing about loading percentages, which are individual and phase-dependent, and are deliberately not prescribed here. Also: this program reads as having no posterior-chain work under a category audit. That is an artifact — 11 of 20 lifts map to `oly` -> Full Body / Power. Do not "fix" it by adding hinges.',
+    editorNote: 'Coaching consensus, NOT trial evidence — do not cite it as though it were. It says nothing about loading percentages, which are individual and phase-dependent, and are deliberately not prescribed here. Also: this program reads as having no posterior-chain work under a category audit. That is an artifact — 11 of 20 lifts map to `oly` -> Full Body / Power. Do not "fix" it by adding hinges.',
   },
 
   running: {
@@ -5054,7 +5167,7 @@ const PROGRAM_SOURCES = {
     tier: 'meta',
     school: 'Polarized endurance distribution with a heavy-resistance strength adjunct.',
     primary: 'Eihara Y, Takao K, Sugiyama T, et al. Heavy Resistance Training Versus Plyometric Training for Improving Running Economy and Running Time Trial Performance: A Systematic Review and Meta-analysis. Sports Med Open. 2022;8:138. doi:10.1186/s40798-022-00511-1',
-    doesNotLicense: 'Compares ADJUNCTS to running training; does not license replacing running volume with lifting. Effect sizes were small (g=-0.32 heavy resistance, g=-0.13 plyometric) — real but not transformative, so the strength day stays one day and stays after the long run. It also does not support adding plyometric volume: plyometric was the weaker arm.',
+    editorNote: 'Compares ADJUNCTS to running training; does not license replacing running volume with lifting. Effect sizes were small (g=-0.32 heavy resistance, g=-0.13 plyometric) — real but not transformative, so the strength day stays one day and stays after the long run. It also does not support adding plyometric volume: plyometric was the weaker arm.',
   },
 
   climbing: {
@@ -5062,7 +5175,7 @@ const PROGRAM_SOURCES = {
     tier: 'meta',
     school: 'Climbing-specific strength practice: hangboard protocols for finger strength, with a dedicated antagonist/shoulder-health day as overuse prophylaxis.',
     primary: 'Zielinski J, Grygorowicz M, Lewandowski J. Epidemiology of Musculoskeletal Injuries Among Climbers - A Systematic Review. J Funct Morphol Kinesiol. 2026;11(1):19 — overuse injuries, particularly fingers AND SHOULDERS, are consistently more prevalent than acute injuries. Also: Larsson R, Nordeman L, Blomdahl C. To tape or not to tape: annular ligament (pulley) injuries in rock climbers - a systematic review. BMC Sports Sci Med Rehabil. 2022;14(1):148. doi:10.1186/s13102-022-00539-6',
-    doesNotLicense: 'The shoulder finding is why d4 exists as a full session — it is not filler, and it is not optional. Do not read d4 as "push:3": Band External Rotation and Scapular Retraction map to `core`, so the real antagonist volume there is 15 sets, not 3. The epidemiology also does NOT establish safe hangboard dosing — that review found risk factors inconclusive and contradictory, so the program prescribes structure, not intensity.',
+    editorNote: 'The shoulder finding is why d4 exists as a full session — it is not filler, and it is not optional. Do not read d4 as "push:3": Band External Rotation and Scapular Retraction map to `core`, so the real antagonist volume there is 15 sets, not 3. The epidemiology also does NOT establish safe hangboard dosing — that review found risk factors inconclusive and contradictory, so the program prescribes structure, not intensity.',
   },
 
   grappling: {
@@ -5070,7 +5183,7 @@ const PROGRAM_SOURCES = {
     tier: 'school',
     school: 'Positional drilling followed by live positional sparring — standard BJJ pedagogy.',
     primary: 'NOT YET SOURCED. Grappling skill acquisition has no position stand and the drilling-vs-live-training literature is thin; nothing verified is attached here yet.',
-    doesNotLicense: 'DO NOT VOLUME-AUDIT THIS PROGRAM. It reads as 65 `core` sets and 5 `hinge` because every technique — Knee Slice Pass, Double Leg Takedown, Rear Naked Choke Drill — falls through to `core` in a category system built for resistance exercises. Those numbers describe the classifier, not the program. The same logic as HANDOFF v4 §4 on flexibility: measuring sets here measures the wrong thing.',
+    editorNote: 'DO NOT VOLUME-AUDIT THIS PROGRAM. It reads as 65 `core` sets and 5 `hinge` because every technique — Knee Slice Pass, Double Leg Takedown, Rear Naked Choke Drill — falls through to `core` in a category system built for resistance exercises. Those numbers describe the classifier, not the program. The same logic as HANDOFF v4 §4 on flexibility: measuring sets here measures the wrong thing.',
   },
 
   hyrox: {
@@ -5078,7 +5191,7 @@ const PROGRAM_SOURCES = {
     tier: 'school',
     school: 'Hybrid-race preparation: compromised running under accumulated fatigue, with race-specific stations.',
     primary: 'NOT YET SOURCED. Hyrox is recent enough that sport-specific programming literature is limited; no verified citation attached yet.',
-    doesNotLicense: 'Do not audit this against a polarized 80/20 intensity distribution. It measures 33/22/44 and that is CORRECT for the format — the defining demand is running under fatigue, not aerobic base development in isolation (HANDOFF v4 §4).',
+    editorNote: 'Do not audit this against a polarized 80/20 intensity distribution. It measures 33/22/44 and that is CORRECT for the format — the defining demand is running under fatigue, not aerobic base development in isolation (HANDOFF v4 §4).',
   },
 
   calisthenics: {
@@ -5086,7 +5199,7 @@ const PROGRAM_SOURCES = {
     tier: 'school',
     school: 'Gymnastic strength progressions: static holds and lever progressions trained separately from dynamic pulling and pressing.',
     primary: 'NOT YET SOURCED. Gymnastic strength progressions are well established in coaching practice but the peer-reviewed literature on straight-arm vs bent-arm progression is thin; nothing verified is attached yet.',
-    doesNotLicense: 'Static-hold work does not translate to weekly set-volume targets — a 3x15s front lever hold is not comparable to 3 sets of a dynamic exercise, and the audit treats them as equal. Do not add volume on that basis.',
+    editorNote: 'Static-hold work does not translate to weekly set-volume targets — a 3x15s front lever hold is not comparable to 3 sets of a dynamic exercise, and the audit treats them as equal. Do not add volume on that basis.',
   },
 
   bodyweight: {
@@ -5094,7 +5207,7 @@ const PROGRAM_SOURCES = {
     tier: 'stand',
     school: 'Equipment-free resistance training using progression by leverage rather than external load.',
     primary: 'Currier BS, D\'Souza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897 — bodyweight and band resistance count; loads from 30% of 1RM upward produce comparable hypertrophy when effort is sufficient.',
-    doesNotLicense: 'The load-range finding depends on sets being taken close to failure. It is not a licence to prescribe endless easy reps. Also note the Nordic Curl added to leg day exists because there is no bodyweight hip-extension that recruits hamstrings well — do not swap it for a glute bridge.',
+    editorNote: 'The load-range finding depends on sets being taken close to failure. It is not a licence to prescribe endless easy reps. Also note the Nordic Curl added to leg day exists because there is no bodyweight hip-extension that recruits hamstrings well — do not swap it for a glute bridge.',
   },
 
   athletic: {
@@ -5102,7 +5215,7 @@ const PROGRAM_SOURCES = {
     tier: 'school',
     school: 'Power and plyometric development: low-volume, high-quality efforts with full recovery between sets.',
     primary: 'NOT YET SOURCED. Plyometric and power dosing has a substantial literature (contact counts, recovery intervals) but none of it has been checked against these actual prescriptions yet.',
-    doesNotLicense: 'Power work is deliberately low-volume. A set-volume audit will read this program as under-dosed; that is the point. Adding sets to hit a hypertrophy target would convert power training into conditioning.',
+    editorNote: 'Power work is deliberately low-volume. A set-volume audit will read this program as under-dosed; that is the point. Adding sets to hit a hypertrophy target would convert power training into conditioning.',
   },
 
   boxingsc: {
@@ -5110,7 +5223,7 @@ const PROGRAM_SOURCES = {
     tier: 'school',
     school: 'Combat-sport S&C: rotational power development and repeat-effort conditioning matched to round structure.',
     primary: 'NOT YET SOURCED. Combat-sport S&C literature exists for repeat-effort conditioning and rotational power, but has not been verified against these specific sessions.',
-    doesNotLicense: 'This is the S&C program, not skill training. It does not attempt to teach boxing, and should not be extended toward technique work — the Combat styles cover that.',
+    editorNote: 'This is the S&C program, not skill training. It does not attempt to teach boxing, and should not be extended toward technique work — the Combat styles cover that.',
   },
 
   jumprope: {
@@ -5118,7 +5231,7 @@ const PROGRAM_SOURCES = {
     tier: 'school',
     school: 'Skill-progression conditioning: rope patterns sequenced by coordination demand.',
     primary: 'NOT YET SOURCED. The skill progression reflects standard rope coaching order; no citation attached.',
-    doesNotLicense: 'Reads as almost entirely `cardio` by category. That is accurate here and needs no correction.',
+    editorNote: 'Reads as almost entirely `cardio` by category. That is accurate here and needs no correction.',
   },
 
   core: {
@@ -5126,7 +5239,7 @@ const PROGRAM_SOURCES = {
     tier: 'school',
     school: 'Anti-movement trunk training: bracing and stability emphasis over spinal flexion volume.',
     primary: 'NOT YET SOURCED. The anti-movement framing traces to the McGill spine-stability literature, but that attribution has not been verified against a primary source here — and doing so matters, since it is frequently over-stated online.',
-    doesNotLicense: 'Reads as 67 `core` sets, which is unavoidable and not a red flag. Do not rebalance toward other categories — this is a specialisation program by design.',
+    editorNote: 'Reads as 67 `core` sets, which is unavoidable and not a red flag. Do not rebalance toward other categories — this is a specialisation program by design.',
   },
 
   pilates: {
@@ -5134,7 +5247,7 @@ const PROGRAM_SOURCES = {
     tier: 'school',
     school: 'Classical mat Pilates: control and precision over load or range.',
     primary: 'NOT YET SOURCED for the Pilates method itself. The dose-independence note below IS sourced (Konrad et al., via HANDOFF v4 §4).',
-    doesNotLicense: 'Do not dose-audit this. Konrad et al. found neither volume, intensity nor frequency significantly moderated ROM gains — auditing Pilates or mobility for "enough sets" measures the wrong thing (HANDOFF v4 §4). What matters is technique type, and this program is verified as containing zero ballistic movement.',
+    editorNote: 'Do not dose-audit this. Konrad et al. found neither volume, intensity nor frequency significantly moderated ROM gains — auditing Pilates or mobility for "enough sets" measures the wrong thing (HANDOFF v4 §4). What matters is technique type, and this program is verified as containing zero ballistic movement.',
   },
 
   mobility: {
@@ -5142,7 +5255,7 @@ const PROGRAM_SOURCES = {
     tier: 'school',
     school: 'Static-hold flexibility practice.',
     primary: 'NOT YET SOURCED for the specific stretch selection. The dose-independence finding it relies on IS sourced (Konrad et al., via HANDOFF v4 §4).',
-    doesNotLicense: 'Flexibility is not dose-dependent in the way strength is — see the Pilates note. Do not add sets, and do not introduce ballistic stretching to "progress" it.',
+    editorNote: 'Flexibility is not dose-dependent in the way strength is — see the Pilates note. Do not add sets, and do not introduce ballistic stretching to "progress" it.',
   },
 
   swimming: {
@@ -5150,7 +5263,7 @@ const PROGRAM_SOURCES = {
     tier: 'school',
     school: 'Aerobic-base-dominant swim programming with technique/drill work and dryland posterior-shoulder prehab.',
     primary: 'NOT YET SOURCED. The dryland shoulder work reflects standard swimmer prehab practice but has no citation attached yet.',
-    doesNotLicense: 'Treat the prehab selection as unverified until a source is attached. Do not remove it because it is unsourced — a documentation gap is not evidence the work is wrong.',
+    editorNote: 'Treat the prehab selection as unverified until a source is attached. Do not remove it because it is unsourced — a documentation gap is not evidence the work is wrong.',
   },
 };
 
@@ -5174,37 +5287,37 @@ const STYLE_SOURCES = {
     intro: 'Punches and kicks without clinch work — the balanced default if you want striking conditioning and are not committed to one art yet.',
     tier: 'school', school: 'General striking conditioning drawn from kickboxing practice.',
     primary: 'NOT YET SOURCED. Striking-conditioning literature exists for repeat-effort work but has not been checked against these sessions.',
-    doesNotLicense: 'This is conditioning and drill work, not instruction. It cannot teach you to spar safely and does not replace a coach.',
+    editorNote: 'This is conditioning and drill work, not instruction. It cannot teach you to spar safely and does not replace a coach.',
   },
   boxing: {
     intro: 'Hands only — combinations, defensive movement and footwork, with the conditioning that supports round-based work.',
     tier: 'school', school: 'Boxing drill and conditioning practice.',
     primary: 'NOT YET SOURCED. Boxing S&C and head-impact literature are both substantial; neither has been attached here yet.',
-    doesNotLicense: 'Head-contact risk is the defining safety issue in boxing and nothing here addresses it. Drilling alone does not prepare you to be hit.',
+    editorNote: 'Head-contact risk is the defining safety issue in boxing and nothing here addresses it. Drilling alone does not prepare you to be hit.',
   },
   muayThai: {
     intro: 'The full eight-limb arsenal — punches, kicks, knees, elbows and clinch — with the conditioning Thai boxing demands.',
     tier: 'school', school: 'Muay Thai drill and conditioning practice.',
     primary: 'NOT YET SOURCED. Clinch and low-kick conditioning practice is well established in coaching but is not cited here.',
-    doesNotLicense: 'Clinch and elbow work carry real injury risk and are not learnable from cue text. Treat this as supplementary to coached training.',
+    editorNote: 'Clinch and elbow work carry real injury risk and are not learnable from cue text. Treat this as supplementary to coached training.',
   },
   mma: {
     intro: 'Mixed standup with sprawl and ground conditioning — built for the transitions between striking and grappling rather than either alone.',
     tier: 'school', school: 'MMA conditioning across striking and grappling ranges.',
     primary: 'NOT YET SOURCED. Mixed-modality conditioning research exists; none has been verified against these sessions.',
-    doesNotLicense: 'Covers conditioning across ranges, not the technical skill of transitioning between them.',
+    editorNote: 'Covers conditioning across ranges, not the technical skill of transitioning between them.',
   },
   taekwondo: {
     intro: 'Kick-dominant training — roundhouse, side, axe and spinning kicks — with the hip mobility and balance that makes them possible.',
     tier: 'school', school: 'Taekwondo kicking practice with supporting mobility work.',
     primary: 'NOT YET SOURCED. Kicking mechanics and hip-mobility requirements are well documented in coaching practice but uncited here.',
-    doesNotLicense: 'Spinning and jumping kicks demand a mobility and landing base this program builds toward rather than assumes. Do not skip ahead.',
+    editorNote: 'Spinning and jumping kicks demand a mobility and landing base this program builds toward rather than assumes. Do not skip ahead.',
   },
   taiChi: {
     intro: 'An internal art — standing meditation, slow form work and push hands. Trained for balance, control and breath rather than for output.',
     tier: 'school', school: 'Traditional Tai Chi practice: form, stance and controlled weight transfer.',
     primary: 'NOT YET SOURCED. Tai Chi has a substantial falls-prevention literature in older adults that has NOT been checked against this program.',
-    doesNotLicense: 'Do not audit this for intensity or volume — low output is the method, not a shortfall. Equally, do not claim the falls-prevention benefit until the literature is actually attached.',
+    editorNote: 'Do not audit this for intensity or volume — low output is the method, not a shortfall. Equally, do not claim the falls-prevention benefit until the literature is actually attached.',
   },
 
   // --- Cycling ----------------------------------------------------------
@@ -5212,13 +5325,13 @@ const STYLE_SOURCES = {
     intro: 'Structured power-based work — FTP intervals, hill repeats and endurance rides — with the week built around a small number of genuinely hard efforts.',
     tier: 'school', school: 'Power-based endurance cycling with a polarized intensity distribution.',
     primary: 'NOT YET SOURCED for the specific interval prescriptions.',
-    doesNotLicense: 'Verified structurally against polarized-distribution auditing (HANDOFF v4 §4) — that is a structural check, not evidence for the specific interval durations.',
+    editorNote: 'Verified structurally against polarized-distribution auditing (HANDOFF v4 §4) — that is a structural check, not evidence for the specific interval durations.',
   },
   mountain: {
     intro: 'Technical trail skill, punchy climbing power and the grip and upper-body endurance that rough descending actually demands.',
     tier: 'school', school: 'Off-road cycling: repeated short power efforts plus handling and upper-body endurance.',
     primary: 'NOT YET SOURCED. Off-road cycling has a repeated-sprint and handling literature that has not been checked against this program.',
-    doesNotLicense: 'Technical descending skill is not trainable from text and is the main injury exposure in this discipline.',
+    editorNote: 'Technical descending skill is not trainable from text and is the main injury exposure in this discipline.',
   },
 
   // --- Yoga -------------------------------------------------------------
@@ -5226,19 +5339,19 @@ const STYLE_SOURCES = {
     intro: 'Five flow styles from Vinyasa through Restorative, sequenced as continuous practice linking breath to movement.',
     tier: 'school', school: 'Vinyasa-lineage sequencing: continuous transitions, breath-led pacing.',
     primary: 'NOT YET SOURCED for sequencing. Dose-independence of flexibility gains IS sourced (Konrad et al., via HANDOFF v4 §4).',
-    doesNotLicense: 'Do not audit for "enough sets". Verified as 92-100% static holds with zero ballistic movement — keep it that way.',
+    editorNote: 'Do not audit for "enough sets". Verified as 92-100% static holds with zero ballistic movement — keep it that way.',
   },
   hot: {
     intro: 'Heated-room flow. The heat changes what the practice demands of you — hydration, pacing and knowing when to stop matter more here than in any other style in the app.',
     tier: 'school', school: 'Heated-room asana practice.',
     primary: 'NOT YET SOURCED for the practice itself. The heat caution below IS sourced: ACOG Committee Opinion 804, Physical Activity and Exercise During Pregnancy and the Postpartum Period. Obstet Gynecol. April 2020 — advises avoiding high heat and humidity, particularly in the first trimester.',
-    doesNotLicense: 'IMPORTANT INTERACTION: this style is not appropriate during pregnancy, and especially not in the first trimester, per ACOG 804. It is selectable independently of the Prenatal program, so nothing in the app prevents that combination — the caution has to live here. Also unsuitable without clearance for anyone with a cardiovascular condition or heat intolerance.',
+    editorNote: 'IMPORTANT INTERACTION: this style is not appropriate during pregnancy, and especially not in the first trimester, per ACOG 804. It is selectable independently of the Prenatal program, so nothing in the app prevents that combination — the caution has to live here. Also unsuitable without clearance for anyone with a cardiovascular condition or heat intolerance.',
   },
   couples: {
     intro: 'A shared practice for two people — assisted poses and paired balances where the point is communication as much as the stretch.',
     tier: 'school', school: 'Partner-assisted asana.',
     primary: 'NOT YET SOURCED for the sequencing. The partner-consent rule below is a safety decision, not a research finding, and does not depend on a citation.',
-    doesNotLicense: 'NON-NEGOTIABLE: in every assisted pose, the person BEING stretched sets the depth, never the partner. This is enforced by test across all 20 poses and must never be softened or dropped for brevity. Partner-applied force is the entire injury mechanism in this style.',
+    editorNote: 'NON-NEGOTIABLE: in every assisted pose, the person BEING stretched sets the depth, never the partner. This is enforced by test across all 20 poses and must never be softened or dropped for brevity. Partner-applied force is the entire injury mechanism in this style.',
   },
 
   // --- Medical ----------------------------------------------------------
@@ -5246,80 +5359,80 @@ const STYLE_SOURCES = {
     intro: 'A low-impact, joint-friendly entry point that prioritises being able to repeat the session over how hard any one session is.',
     tier: 'stand', school: 'General resistance and aerobic training with impact reduced and progression driven by consistency.',
     primary: 'Currier BS, DSouza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897 — for clinical populations the single most important variable across 137 reviews was participation itself: 2 sessions/week, all major groups, 2-3 sets, 60-80% effort.',
-    doesNotLicense: 'ACSM 2026 is a healthy-adult document with clinical-population commentary, not a guideline for managing obesity. It does not address medication, bariatric surgery, or comorbidities.',
+    editorNote: 'ACSM 2026 is a healthy-adult document with clinical-population commentary, not a guideline for managing obesity. It does not address medication, bariatric surgery, or comorbidities.',
   },
   hypertension: {
     intro: 'Moderate, steady effort with attention to breathing — built to avoid the pressure spikes that breath-holding under load produces.',
     tier: 'school', school: 'Moderate-intensity aerobic and resistance work with explicit avoidance of the Valsalva manoeuvre.',
     primary: 'NOT YET SOURCED. Requires a hypertension-specific exercise guideline; ACSM 2026 does not cover blood-pressure management.',
-    doesNotLicense: 'Does not replace medication or monitoring, and cannot tell you whether your blood pressure is controlled enough to train. Get clearance first.',
+    editorNote: 'Does not replace medication or monitoring, and cannot tell you whether your blood pressure is controlled enough to train. Get clearance first.',
   },
   diabetes: {
     intro: 'Combined aerobic and resistance work, with a short walk deliberately placed after meals rather than wherever it fits the training logic.',
     tier: 'school', school: 'Combined training with post-prandial activity timing.',
     primary: 'NOT YET SOURCED. Needs a diabetes-specific exercise guideline.',
-    doesNotLicense: 'The Post-Meal Walk timing IS the intervention — it targets post-prandial glucose. Do NOT reorder it to satisfy the strength-before-conditioning principle; that would destroy its purpose (HANDOFF v4 §4). Nothing here addresses hypoglycaemia risk during exercise, which is the main acute danger and needs clinical input.',
+    editorNote: 'The Post-Meal Walk timing IS the intervention — it targets post-prandial glucose. Do NOT reorder it to satisfy the strength-before-conditioning principle; that would destroy its purpose (HANDOFF v4 §4). Nothing here addresses hypoglycaemia risk during exercise, which is the main acute danger and needs clinical input.',
   },
   osteoporosis: {
     intro: 'Weight-bearing and resistance work chosen because bone responds to load — with the movements that are contraindicated left out rather than regressed.',
     tier: 'school', school: 'Loading-based bone-density practice.',
     primary: 'NOT YET SOURCED. Needs an osteoporosis-specific exercise guideline.',
-    doesNotLicense: 'Spinal flexion under load and end-range twisting are contraindicated in low bone density and their absence here is deliberate — do not add them. This program cannot assess your fracture risk; that requires a DEXA and a clinician.',
+    editorNote: 'Spinal flexion under load and end-range twisting are contraindicated in low bone density and their absence here is deliberate — do not add them. This program cannot assess your fracture risk; that requires a DEXA and a clinician.',
   },
   bariatricEarly: {
     intro: 'Roughly the first three months after surgery — walking-first, deliberately unambitious, and with no abdominal work at all.',
     tier: 'stand', school: 'Post-operative bariatric rehabilitation, early phase.',
     primary: 'Expert-based physical activity guidelines for metabolic and bariatric surgery patients — systematic review of RCTs, Surg Obes Relat Dis 2024: full-body resistance training from 4-6 weeks post-op, 2 non-continuous days per week, 8-12 reps, abdominal exercises delayed 8-12 weeks.',
-    doesNotLicense: 'The absence of planks and sit-ups is the guideline, not an oversight — do NOT "complete" this program with core work. It also cannot tell you where you are in recovery or whether your team has cleared you; the timelines are typical, not personal.',
+    editorNote: 'The absence of planks and sit-ups is the guideline, not an oversight — do NOT "complete" this program with core work. It also cannot tell you where you are in recovery or whether your team has cleared you; the timelines are typical, not personal.',
   },
   bariatricRebuilding: {
     intro: 'From roughly month three, once your surgical team has cleared you — the phase where real resistance training starts and abdominal work becomes appropriate again.',
     tier: 'stand', school: 'Post-operative bariatric rehabilitation, rebuilding phase.',
     primary: 'Expert-based physical activity guidelines for metabolic and bariatric surgery patients — systematic review of RCTs, Surg Obes Relat Dis 2024.',
-    doesNotLicense: 'Entry into this phase is a clinical decision, not a calendar one. The graduation prompt in the app is a convenience, not clearance.',
+    editorNote: 'Entry into this phase is a clinical decision, not a calendar one. The graduation prompt in the app is a convenience, not clearance.',
   },
   prenatal: {
     intro: 'Moderate, fall-risk-aware training through pregnancy — built on the position that staying active is the recommended default, not the exception.',
     tier: 'stand', school: 'Prenatal exercise per obstetric guidance: moderate aerobic and strength work, modified for balance and positional changes.',
     primary: 'ACOG Committee Opinion 804: Physical Activity and Exercise During Pregnancy and the Postpartum Period. Obstet Gynecol. April 2020 (replaces CO 650) — 150 minutes/week moderate aerobic activity; aerobic AND strength conditioning encouraged before, during and after pregnancy; those already active in vigorous exercise may generally continue in discussion with their provider; avoid high heat and humidity, particularly the first trimester; activity restriction/bedrest should NOT be prescribed to prevent preterm birth.',
-    doesNotLicense: 'ACOG 804 states clearly that clinical evaluation should precede an exercise program — this app cannot perform one and cannot identify a contraindication. "Strength" here means resistance training, NOT the 1-5 rep tier; prescribing 4-6 reps in pregnancy would be wrong and possibly unsafe (HANDOFF v4 §4). The guideline also lists warning signs that mean stopping and calling your provider; none of them are detected here. Separately: the Hot Yoga style conflicts with the heat guidance above and is selectable independently.',
+    editorNote: 'ACOG 804 states clearly that clinical evaluation should precede an exercise program — this app cannot perform one and cannot identify a contraindication. "Strength" here means resistance training, NOT the 1-5 rep tier; prescribing 4-6 reps in pregnancy would be wrong and possibly unsafe (HANDOFF v4 §4). The guideline also lists warning signs that mean stopping and calling your provider; none of them are detected here. Separately: the Hot Yoga style conflicts with the heat guidance above and is selectable independently.',
   },
   postpartum: {
     intro: 'A diastasis-aware, pelvic-floor-first return to training — sequenced so the tissue that took the load recovers before it gets loaded again.',
     tier: 'stand', school: 'Postpartum return-to-exercise: pelvic floor and deep abdominal work before progressive loading.',
     primary: 'ACOG Committee Opinion 804: Physical Activity and Exercise During Pregnancy and the Postpartum Period. Obstet Gynecol. April 2020 — light activity including pelvic floor work is generally permissible soon after birth if medically safe; gradual resumption typically from around 4-6 weeks after uncomplicated vaginal delivery, later after caesarean.',
-    doesNotLicense: 'Those timelines are typical, NOT a clearance, and they differ meaningfully after caesarean or a complicated delivery. This program cannot assess diastasis recti or pelvic floor function — both need in-person assessment, and pelvic floor symptoms (leaking, heaviness, pain) warrant referral rather than progression.',
+    editorNote: 'Those timelines are typical, NOT a clearance, and they differ meaningfully after caesarean or a complicated delivery. This program cannot assess diastasis recti or pelvic floor function — both need in-person assessment, and pelvic floor symptoms (leaking, heaviness, pain) warrant referral rather than progression.',
   },
   rehabGeneral: {
     intro: 'A broad week touching shoulder, back, knee, hip and ankle — for when more than one area needs attention, or you are not sure which one is the problem.',
     tier: 'school', school: 'General musculoskeletal rehabilitation across multiple regions.',
     primary: 'NOT YET SOURCED, and harder to source than the specific tracks: a deliberately broad program has no single protocol to cite.',
-    doesNotLicense: 'Breadth is the trade-off: nothing here is dosed for a specific diagnosis. If one area is genuinely the problem, the specific track will serve you better — and an undiagnosed problem needs diagnosing, not training around.',
+    editorNote: 'Breadth is the trade-off: nothing here is dosed for a specific diagnosis. If one area is genuinely the problem, the specific track will serve you better — and an undiagnosed problem needs diagnosing, not training around.',
   },
   rehabShoulder: {
     intro: 'The standard three-phase structure — calm the tissue, restore range, then load it — rather than jumping straight to strengthening.',
     tier: 'school', school: 'Phased rotator-cuff and impingement rehabilitation.',
     primary: 'NOT YET SOURCED. The three-phase structure is standard physiotherapy practice but no specific protocol is cited here yet.',
-    doesNotLicense: 'Cannot distinguish impingement from a tear, instability, or referred neck pain — and those need different treatment. Progression between phases is criterion-based and needs someone assessing you.',
+    editorNote: 'Cannot distinguish impingement from a tear, instability, or referred neck pain — and those need different treatment. Progression between phases is criterion-based and needs someone assessing you.',
   },
   rehabAcl: {
     intro: 'A long, criterion-based track — real ACL recovery runs nine to twelve months and progresses on what you can do, not on how many weeks have passed.',
     tier: 'school', school: 'Criterion-based ACL rehabilitation.',
     primary: 'NOT YET SOURCED. Return-to-sport criteria after ACL reconstruction have a substantial literature (hop-test batteries, limb symmetry indices, reinjury rates by timeline) that has NOT been attached here.',
-    doesNotLicense: 'The criteria that gate each phase are exactly what this app cannot measure. Timeline-based progression is associated with higher reinjury risk than criterion-based progression — which makes an uncited criterion-based program a structure, not a protocol. Follow your surgeon and physiotherapist over this.',
+    editorNote: 'The criteria that gate each phase are exactly what this app cannot measure. Timeline-based progression is associated with higher reinjury risk than criterion-based progression — which makes an uncited criterion-based program a structure, not a protocol. Follow your surgeon and physiotherapist over this.',
   },
   rehabAchilles: {
     intro: 'Eccentric heel drops in both knee positions, three days a week — the Alfredson loading pattern at a volume you can actually sustain, rather than the 180 reps a day the original protocol asks for.',
     tier: 'meta', school: 'Eccentric loading for mid-portion Achilles tendinopathy (Alfredson protocol), at reduced repetition volume.',
     primary: 'Alfredson H, et al. (1998) — eccentric heel drops, 3x15 straight-knee and 3x15 bent-knee, TWICE DAILY for 12 weeks (180 reps/day), continuing into discomfort but not severe pain, progressing by adding load. Reduced volume here is supported by: Stevens M, Tan CW. Effectiveness of the Alfredson Protocol Compared With a Lower Repetition-Volume Protocol for Midportion Achilles Tendinopathy: A Randomized Controlled Trial. J Orthop Sports Phys Ther. 2014. doi:10.2519/jospt.2014.4720 — a do-as-tolerated protocol achieved comparable VISA-A outcomes to the full 180/day.',
-    doesNotLicense: 'THIS PROGRAM IS NOT THE ALFREDSON PROTOCOL AND SHOULD NOT BE DESCRIBED AS IT. It runs ~270 eccentric reps per week against the protocol\'s 1,260 — about 21%. Stevens & Tan supports lower volume; it does not validate this specific dose, which sits below what their do-as-tolerated group actually self-selected. If a PT has you on the real protocol, follow them, not this. Both citations apply ONLY to MID-PORTION tendinopathy — insertional cases often do worse with full-range heel drops below the step, and neither study covers them. Neither applies to an acute rupture, which is a surgical question.',
+    editorNote: 'THIS PROGRAM IS NOT THE ALFREDSON PROTOCOL AND SHOULD NOT BE DESCRIBED AS IT. It runs ~270 eccentric reps per week against the protocol\'s 1,260 — about 21%. Stevens & Tan supports lower volume; it does not validate this specific dose, which sits below what their do-as-tolerated group actually self-selected. If a PT has you on the real protocol, follow them, not this. Both citations apply ONLY to MID-PORTION tendinopathy — insertional cases often do worse with full-range heel drops below the step, and neither study covers them. Neither applies to an acute rupture, which is a surgical question.',
   },
 
   rehabLowerback: {
     intro: 'Stabilisation before movement — building the trunk control to tolerate load, rather than stretching into the area that hurts.',
     tier: 'school', school: 'Motor-control and stabilisation-first lower back rehabilitation.',
     primary: 'NOT YET SOURCED. The stabilisation-first framing traces to the McGill spine literature; that attribution has not been verified here, and it is frequently over-stated online.',
-    doesNotLicense: 'Cannot identify the red flags that make back pain a medical emergency — bowel or bladder changes, saddle numbness, progressive leg weakness, unexplained weight loss. Any of those means stop and seek care, not modify the program.',
+    editorNote: 'Cannot identify the red flags that make back pain a medical emergency — bowel or bladder changes, saddle numbness, progressive leg weakness, unexplained weight loss. Any of those means stop and seek care, not modify the program.',
   },
 };
 
@@ -5332,6 +5445,112 @@ const STYLE_KEY_FOR_PROGRAM = {
 };
 
 
+// User-facing text for each program and style, kept deliberately separate
+// from `editorNote` above. Two different audiences:
+//
+//   basis / limits  -> rendered. Written for someone about to train.
+//   editorNote      -> never rendered. Written for whoever edits this file,
+//                      and full of "do not fix this" reasoning that is
+//                      meaningless and slightly alarming to a user.
+//
+// `limits` is not a disclaimer slot. It answers one question: what does this
+// program not do for me, and when should I talk to someone instead? For the
+// medical styles that is the most important text on the screen, so it stays
+// concrete — "pelvic floor symptoms need assessing" beats "consult your
+// physician".
+const USER_TEXT = {
+  // --- Programs ---------------------------------------------------------
+  strength:      { basis:"ACSM's 2026 resistance training guidelines.",
+                   limits:"Assumes you can already perform the barbell lifts safely. If a movement hurts, swap it rather than working around it." },
+  powerbuilding: { basis:"ACSM's 2026 resistance training guidelines.",
+                   limits:"Heavy top sets every session. Needs a rack, and ideally somewhere you can fail a lift safely." },
+  bodybuilding:  { basis:"ACSM's 2026 resistance training guidelines.",
+                   limits:"High accessory volume — expect 60-75 minute sessions. Built for a gym, not a home setup." },
+  powerlifting:  { basis:"Competitive powerlifting practice, plus ACSM's 2026 guidelines for the general strength recommendations.",
+                   limits:"Doesn't prescribe percentages or a meet peak — those are individual. It won't teach you the lifts either." },
+  oly:           { basis:"Standard weightlifting coaching practice. No formal guideline exists for this sport.",
+                   limits:"The snatch and clean & jerk are technical lifts that genuinely need a coach. This gives you the structure, not the technique." },
+  running:       { basis:"A 2022 review comparing strength approaches for runners, which found heavy lifting improved running economy more than plyometrics.",
+                   limits:"Distances are a starting point, not a plan for a specific race. Build weekly mileage gradually — most running injuries come from doing too much too soon." },
+  swimming:      { basis:"Standard swim training structure. Not yet matched to a specific source.",
+                   limits:"Assumes you're comfortable swimming continuously. Technique work is much more valuable with a coach watching." },
+  climbing:      { basis:"Climbing injury research showing overuse injuries to fingers and shoulders are the most common problem.",
+                   limits:"Hangboarding is where climbers get hurt. If you've been climbing under a year, build a base first — finger tendons take years to adapt, not weeks." },
+  grappling:     { basis:"Standard BJJ drilling structure. Not yet matched to a specific source.",
+                   limits:"Drilling only. It can't teach you to roll safely, and there's no substitute for a coach and training partners." },
+  hyrox:         { basis:"Hyrox race structure. The sport is new enough that there's little published research yet.",
+                   limits:"Built around running while already tired, which is what the race actually demands. You'll need access to the stations to train them properly." },
+  calisthenics:  { basis:"Gymnastic strength progressions from coaching practice.",
+                   limits:"Skip ahead in the progressions and you'll find out why they exist — levers and planches load connective tissue hard." },
+  bodyweight:    { basis:"ACSM's 2026 guidelines, which found bodyweight and bands count as resistance training.",
+                   limits:"Needs no equipment, but progress depends on sets being genuinely hard. Easy reps won't do much." },
+  athletic:      { basis:"Standard power and plyometric training practice.",
+                   limits:"Low volume on purpose — quality beats accumulation here. Needs a surface with some give, and a proper warm-up." },
+  boxingsc:      { basis:"Combat-sport strength and conditioning practice. Established coaching practice rather than a specific study.",
+                   limits:"This is the conditioning behind boxing, not boxing. It won't prepare you to spar." },
+  jumprope:      { basis:"Standard rope skill progression. Established coaching practice rather than a specific study.",
+                   limits:"High-repetition impact through the calves and feet. Build up gradually if you're new to it." },
+  core:          { basis:"Anti-movement trunk training practice. Established coaching practice rather than a specific study.",
+                   limits:"A specialisation program — pair it with something else rather than using it as your whole week." },
+  pilates:       { basis:"Classical mat Pilates. Research shows flexibility gains don't depend much on how much you do. Established coaching practice rather than a specific study.",
+                   limits:"Control and precision matter more than range. Pushing deeper isn't progress here." },
+  mobility:      { basis:"Static-hold flexibility practice. Established coaching practice rather than a specific study.",
+                   limits:"Stretch to mild tension, not pain. If something is persistently tight on one side only, that's worth looking into rather than stretching harder." },
+  senior:        { basis:"ACSM's 2026 guidelines, plus a 2025 study of nearly 3,900 adults finding that how quickly you can move predicts health outcomes better than how strong you are.",
+                   limits:"Stand up quickly, sit down slowly — the speed is deliberate. Keep a chair or counter within reach for the balance work. If you've had a fall or feel unsteady, get assessed before starting." },
+  desk:          { basis:"ACSM's 2026 guidelines for the strength work. The posture-specific parts are common practice rather than proven.",
+                   limits:"Helps you feel better and move more; won't correct structural alignment. Persistent numbness or tingling needs a doctor, not a stretch." },
+  combat:        { basis:"Pick a style below — each has its own approach.",
+                   limits:"Conditioning and drills, not instruction." },
+  cycling:       { basis:"Pick a style below — road and mountain train differently.",
+                   limits:"Assumes a bike that fits you. Persistent knee or back pain on the bike is usually a fit problem." },
+  yoga:          { basis:"Pick a style below.",
+                   limits:"Work to sensation, not pain. Come out of anything sharp." },
+  medical:       { basis:"Pick the program matching what you're working around. Each lists its own basis.",
+                   limits:"These are modified training plans, not treatment. None of them replace advice from the people treating you — and where they disagree, follow your team." },
+
+  // --- Styles -----------------------------------------------------------
+  kickboxing:  { basis:"Kickboxing conditioning practice. Established coaching practice rather than a specific study.", limits:"Drills and conditioning, not instruction. You'll need a coach to spar safely." },
+  boxing:      { basis:"Boxing conditioning practice. Established coaching practice rather than a specific study.",     limits:"Nothing here prepares you for being hit. That part needs a gym and a coach." },
+  muayThai:    { basis:"Muay Thai conditioning practice. Established coaching practice rather than a specific study.",  limits:"Clinch and elbow work carry real injury risk and can't be learned from text." },
+  mma:         { basis:"Mixed-range conditioning practice. Established coaching practice rather than a specific study.", limits:"Covers conditioning across ranges, not the skill of moving between them." },
+  taekwondo:   { basis:"Taekwondo kicking practice. Established coaching practice rather than a specific study.",       limits:"Spinning and jumping kicks need a mobility base first. Build toward them." },
+  taiChi:      { basis:"Traditional Tai Chi form practice. Established coaching practice rather than a specific study.", limits:"Low intensity is the method, not a shortfall. Good for balance and control." },
+  road:        { basis:"Power-based endurance cycling. Established coaching practice rather than a specific study.",    limits:"Interval targets assume you know roughly what your sustainable effort is." },
+  mountain:    { basis:"Off-road cycling practice. Established coaching practice rather than a specific study.",        limits:"Technical descending is the main injury risk and can't be trained from text." },
+  flow:        { basis:"Vinyasa-lineage sequencing. Established coaching practice rather than a specific study.",       limits:"Work to sensation, not pain." },
+  hot:         { basis:"Heated-room practice. Heat guidance follows obstetric recommendations. Established coaching practice rather than a specific study.",
+                 limits:"NOT suitable during pregnancy, especially the first trimester — guidance advises avoiding high heat. Also needs clearance if you have a heart condition or don't tolerate heat well. Hydrate properly and stop if you feel faint." },
+  couples:     { basis:"Partner-assisted practice. Established coaching practice rather than a specific study.",
+                 limits:"The person being stretched sets the depth — always, in every pose. Never push a partner further than they ask for." },
+  obesity:     { basis:"ACSM's 2026 guidelines, which found that for clinical populations, turning up consistently matters more than any training variable.",
+                 limits:"Low-impact by design. Doesn't address medication or other conditions — worth a conversation with your doctor first." },
+  hypertension:{ basis:"Standard practice for training with high blood pressure. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
+                 limits:"Don't hold your breath under load — that spikes blood pressure. Get clearance before starting, and this doesn't replace medication or monitoring." },
+  diabetes:    { basis:"Combined aerobic and resistance training, with walks timed after meals. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
+                 limits:"The post-meal walk timing is the point — it targets the glucose rise after eating. If you take insulin or medication that can cause low blood sugar, talk to your team about how exercise fits your dosing." },
+  osteoporosis:{ basis:"Loading-based practice for bone density. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
+                 limits:"Bending and twisting the spine under load is left out deliberately — don't add it back. This can't assess your fracture risk; that needs a scan and a doctor." },
+  bariatricEarly:{ basis:"Physical activity guidelines for bariatric surgery patients (2024 review of trials).",
+                 limits:"There's no ab work here on purpose — the guideline delays it for 8-12 weeks after surgery. Timelines are typical, not personal: follow your surgical team." },
+  bariatricRebuilding:{ basis:"Physical activity guidelines for bariatric surgery patients (2024 review of trials).",
+                 limits:"Moving into this phase is your team's call, not a date on a calendar." },
+  prenatal:    { basis:"ACOG's guidance on exercise in pregnancy — which recommends staying active, around 150 minutes a week.",
+                 limits:"Get checked by your provider before starting; some conditions change what's safe. Avoid high heat, especially early on. Stop and call your provider for bleeding, leaking fluid, contractions, chest pain, dizziness or calf pain — this app can't detect any of them." },
+  postpartum:  { basis:"ACOG's guidance on returning to exercise after birth.",
+                 limits:"Timelines differ after a caesarean or a difficult birth — yours come from your provider. This can't assess ab separation or pelvic floor function. Leaking, heaviness or pain means get assessed rather than push on." },
+  rehabGeneral:{ basis:"General rehabilitation practice across several areas. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
+                 limits:"Deliberately broad, so nothing here is dosed for a specific diagnosis. If one area is the problem, use its own program — and if you don't know what's wrong, get it looked at." },
+  rehabShoulder:{ basis:"The standard three-phase shoulder rehab structure. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
+                 limits:"Can't tell a rotator cuff problem from instability or a neck issue — and they need different treatment. Move between phases on how the shoulder responds, not the calendar." },
+  rehabAcl:    { basis:"Criterion-based ACL rehabilitation practice. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
+                 limits:"Real recovery runs 9-12 months and progresses on what you can do, not weeks elapsed. Returning early raises the risk of doing it again. Your surgeon and physio outrank this program." },
+  rehabAchilles:{ basis:"Eccentric heel-drop loading (the Alfredson approach), at a lower daily volume than the original protocol — supported by a trial finding reduced volume worked comparably.",
+                 limits:"For mid-portion Achilles pain — pain right at the heel bone often responds badly to full heel drops, so get it checked. Some discomfort during the exercise is expected; sharp or worsening pain isn't. Doesn't apply to a suspected rupture, which is urgent." },
+  rehabLowerback:{ basis:"Stabilisation-first practice for lower back pain. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
+                 limits:"Seek care rather than training through it if you have numbness in the saddle area, changes in bladder or bowel control, weakness in a leg that's getting worse, or unexplained weight loss." },
+};
+
 // For the four container programs, the style you actually selected is what
 // you are training — so its provenance is appended below the container's.
 // Returns '' for everything else.
@@ -5340,17 +5559,10 @@ function buildStyleSourceHtml(){
   if(!getKey) return '';
   const styleKey = getKey();
   const t = styleKey && STYLE_SOURCES[styleKey];
-  if(!t) return '';
-  const tierLabel = {stand:'Position stand', meta:'Meta-analysis', school:'Coaching consensus'}[t.tier] || t.tier;
-  const unsourced = /NOT YET SOURCED/.test(t.primary);
+  const u = styleKey && USER_TEXT[styleKey];
+  if(!t || !u) return '';
   return `
-    <div class="program-intro">${escapeHtml(t.intro)}</div>
-    <details class="program-source">
-      <summary><span class="care-type-tag ${unsourced ? 'caution' : 'mobility'}">${escapeHtml(unsourced ? 'Not yet sourced' : tierLabel)}</span> What this style is built on</summary>
-      <div class="care-log-detail" style="margin-top:8px;"><b>Approach:</b> ${escapeHtml(t.school)}</div>
-      <div class="care-log-detail" style="margin-top:6px;"><b>Source:</b> ${escapeHtml(t.primary)}</div>
-      <div class="care-log-detail" style="margin-top:6px;"><b>What this does not justify:</b> ${escapeHtml(t.doesNotLicense)}</div>
-    </details>`;
+    ${buildBasisHtml(u, t.intro, 'About this style')}`;
 }
 
 // Renders provenance under the program selector. Deliberately shows the
@@ -5360,21 +5572,53 @@ function renderProgramSource(){
   const el = document.getElementById('programSourceNote');
   if(!el) return;
   const s = PROGRAM_SOURCES[activeProgram];
-  if(!s){
-    el.innerHTML = '<div class="history-hint">No source recorded for this program yet.</div>';
-    return;
-  }
-  const tierLabel = {stand:'Position stand', meta:'Meta-analysis', school:'Coaching consensus'}[s.tier] || s.tier;
-  const unsourced = /NOT YET SOURCED/.test(s.primary);
+  const u = USER_TEXT[activeProgram];
+  if(!s || !u){ el.innerHTML = ''; return; }
   el.innerHTML = `
-    <div class="program-intro">${escapeHtml(s.intro)}</div>
-    <details class="program-source">
-      <summary><span class="care-type-tag ${unsourced ? 'caution' : 'mobility'}">${escapeHtml(unsourced ? 'Not yet sourced' : tierLabel)}</span> What this program is built on</summary>
-      <div class="care-log-detail" style="margin-top:8px;"><b>Approach:</b> ${escapeHtml(s.school)}</div>
-      <div class="care-log-detail" style="margin-top:6px;"><b>Source:</b> ${escapeHtml(s.primary)}</div>
-      <div class="care-log-detail" style="margin-top:6px;"><b>What this does not justify:</b> ${escapeHtml(s.doesNotLicense)}</div>
-    </details>${buildStyleSourceHtml()}`;
+    ${buildBasisHtml(u, s.intro, 'About this program')}
+    ${buildStyleSourceHtml()}`;
 }
+
+// One shared template for program and style panels.
+//
+// Order is deliberate and is a safety decision, not a layout one: intro, then
+// limits, then basis. `limits` is never collapsed — the longest ones in the
+// app are prenatal (262 chars), Achilles (254) and hot yoga (225), which are
+// exactly the entries where hiding text behind a tap would be worst. Only
+// `basis` collapses.
+let programPanelSeq = 0;
+function buildBasisHtml(u, intro, eyebrow){
+  const id = 'progBasis' + (++programPanelSeq);
+  return `
+    <div class="program-panel">
+      <div class="program-panel-eyebrow">${escapeHtml(eyebrow)}</div>
+      <p class="program-intro">${escapeHtml(intro)}</p>
+      <div class="program-limits">
+        <span class="program-limits-label">Before you start</span>
+        ${escapeHtml(u.limits)}
+      </div>
+      <button type="button" class="program-basis-toggle" aria-expanded="false" aria-controls="${id}">
+        <span class="chev" aria-hidden="true">›</span> What this is based on
+      </button>
+      <div class="smooth-toggle" id="${id}"><div>
+        <div class="program-basis">${escapeHtml(u.basis)}</div>
+      </div></div>
+    </div>`;
+}
+
+// Delegated once, at document level, so it survives every re-render of the
+// panel without re-binding. Panels are rebuilt whenever the program or style
+// changes, so a listener attached per render would accumulate.
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest && e.target.closest('.program-basis-toggle');
+  if(!btn) return;
+  const panel = document.getElementById(btn.getAttribute('aria-controls'));
+  if(!panel) return;
+  const open = btn.getAttribute('aria-expanded') === 'true';
+  btn.setAttribute('aria-expanded', open ? 'false' : 'true');
+  panel.classList.toggle('open', !open);
+});
+
 
 const MEDICAL_STYLES = {
   obesity: {
