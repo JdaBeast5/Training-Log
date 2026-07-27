@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Training Log — Jason</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -147,7 +147,12 @@
   /* 18px sides gives every card the same inset. The bottom was 0, so the
      last card ended 18px from the page edge against 22px above the first;
      4px here makes the first and last card sit the same distance in. */
-  .wrap{max-width:640px; margin:0 auto; padding:22px 18px 4px;}
+  /* The top inset matters here specifically: apple-mobile-web-app-status-bar-style
+     is black-translucent, so iOS draws the clock and battery OVER the page. On a
+     real phone that printed "13:20" across the Body Measurements title. Requires
+     viewport-fit=cover on the viewport meta, or env() resolves to 0 — which is
+     why the three safe-area rules already in this file were doing nothing. */
+  .wrap{max-width:640px; margin:0 auto; padding:calc(22px + env(safe-area-inset-top, 0px)) 18px 4px;}
   header{padding:8px 0 18px;}
   .eyebrow-row{display:flex; align-items:center; gap:7px;}
   .brand-mark{
@@ -3697,7 +3702,7 @@
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '2.9';
+const APP_VERSION = '3.0';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -25011,7 +25016,14 @@ async function checkBuildFreshness(){
     // cache:'reload' bypasses both the HTTP cache and the service worker's
     // cached copy, so this genuinely reaches the server. Without it the fetch
     // could be answered from the very cache being tested.
-    const res = await fetch('./index.html', {cache:'reload'});
+    // The ?__diag marker tells the service worker to pass this straight through
+    // and NOT cache the response. Without it, every health check was fetching
+    // 1.8MB, having the worker intercept it as a shell request, and writing it
+    // back into the cache — origin storage went 3.7MB -> 10.7MB across two
+    // checks on a real device. The diagnostic was inflating the number it
+    // reports. cache:'reload' additionally bypasses the HTTP cache, so this
+    // genuinely reaches the server.
+    const res = await fetch('./index.html?__diag=' + Date.now(), {cache:'reload'});
     if(!res || !res.ok) return {ok:false, reason:`Server returned ${res ? res.status : 'no response'}`};
     const text = await res.text();
     const m = text.match(/const APP_VERSION = '([^']+)'/);
@@ -25024,7 +25036,7 @@ async function checkBuildFreshness(){
 
 async function checkManifest(){
   try{
-    const res = await fetch('./manifest.json', {cache:'reload'});
+    const res = await fetch('./manifest.json?__diag=' + Date.now(), {cache:'reload'});
     if(!res || !res.ok) return {ok:false, reason:`Not found (HTTP ${res ? res.status : '?'}) — deploy manifest.json next to index.html. The app still works without it; it just can't be installed to the home screen properly.`};
     const json = await res.json();
     const icons = Array.isArray(json.icons) ? json.icons.length : 0;
@@ -25042,14 +25054,31 @@ async function checkServiceWorker(){
     const reg = await navigator.serviceWorker.getRegistration();
     if(!reg) return {ok:false, reason:'Not registered — check that sw.js is deployed next to index.html and that the page is served over HTTPS'};
     const state = reg.active ? 'active' : reg.installing ? 'installing' : reg.waiting ? 'waiting' : 'unknown';
-    let cacheName = null;
+
+    // Reported explicitly rather than omitted. The first device run showed a
+    // bare "active" with no cache name and there was no way to tell whether the
+    // lookup had failed, found nothing, or found something unexpected — a
+    // silently absent detail is the least useful kind of diagnostic output.
+    let cacheDetail;
     try{
       const names = await caches.keys();
-      cacheName = names.find(n=> n.startsWith('training-log-v')) || null;
-    }catch(e){}
+      const mine = names.filter(n=> n.startsWith('training-log-v'));
+      if(mine.length === 0){
+        cacheDetail = names.length
+          ? `no app cache (found: ${names.slice(0,3).join(', ')})`
+          : 'no caches at all — the worker is active but has not stored the app';
+      } else if(mine.length > 1){
+        // activate() is supposed to delete every cache but the current one.
+        cacheDetail = `${mine.length} caches, expected 1: ${mine.map(n=> n.replace('training-log-','')).join(', ')}`;
+      } else {
+        cacheDetail = `cache ${mine[0].replace('training-log-','')}`;
+      }
+    }catch(e){
+      cacheDetail = 'cache list unavailable in this browser';
+    }
     return {
       ok: !!reg.active,
-      detail: `${state}${cacheName ? ` · cache ${cacheName.replace('training-log-','')}` : ''}`,
+      detail: `${state} · ${cacheDetail}`,
       waiting: !!reg.waiting,
     };
   }catch(e){ return {ok:false, reason:'Could not read registration'}; }

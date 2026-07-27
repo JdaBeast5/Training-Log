@@ -1,94 +1,152 @@
-// Training Log service worker.
+// sw.js — Training Log
 //
-// The whole app is a single index.html with all CSS/JS inline — there's no
-// separate bundle to manage, which makes the offline story simple: cache
-// that one file (plus the manifest and icons) and this app works fully
-// offline after the first successful load. All actual data (profile,
-// workouts, logs) already lives in localStorage via the app's own storage
-// layer, completely independent of this service worker — this only ever
-// affects whether the PAGE ITSELF can load without a network connection.
+// THE ONE RULE: `VERSION` below must match `APP_VERSION` in index.html.
+// The cache name is derived from it, so bumping APP_VERSION and forgetting to
+// bump this leaves every returning user on the old build with no way to escape
+// short of uninstalling the PWA. That failure is silent from the server side —
+// the deploy looks fine and simply never arrives.
 //
-// Bump CACHE_NAME whenever you want to force everyone onto a fresh copy of
-// the shell (e.g. after a significant index.html update) — the activate
-// handler below cleans up the old cache automatically.
-const CACHE_NAME = 'training-log-shell-v1';
-const SHELL_FILES = [
+// HANDOFF v6 §6 flagged that APP_VERSION had not moved in five sessions and
+// that nobody knew whether sw.js keyed off it. It does now.
+const VERSION = '3.0';
+const CACHE = 'training-log-v' + VERSION;
+
+// index.html is the entire app; the rest is shell metadata. Everything else the
+// app uses (fonts, the Anthropic API, USDA, ZXing) is deliberately NOT
+// precached — see the fetch handler.
+// SPLIT INTO ESSENTIAL AND OPTIONAL, and this distinction is the whole point.
+//
+// cache.addAll() is atomic: one 404 rejects the entire promise, the install
+// fails, the old worker stays active and NOTHING new caches. That made
+// manifest.json — a file that contributes nothing to the app running — able to
+// silently block every release. It is exactly the kind of dependency that
+// should not be able to fail the thing it decorates.
+//
+// Essential entries still use addAll, because if index.html can't be fetched
+// the install genuinely should fail. Optional entries are fetched individually
+// and their failures swallowed.
+const PRECACHE_ESSENTIAL = [
   './',
   './index.html',
-  './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/icon-512-maskable.png',
-  './icons/apple-touch-icon.png',
 ];
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(SHELL_FILES))
-      .then(() => self.skipWaiting())
-      // If precaching fails (e.g. first install with no network at all),
-      // don't hard-fail the install — the fetch handler's cache-first
-      // fallback still works once anything does get cached.
-      .catch(() => {})
-  );
+const PRECACHE_OPTIONAL = [
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  './icon-512-maskable.png',
+];
+
+self.addEventListener('install', (event)=>{
+  event.waitUntil((async ()=>{
+    const cache = await caches.open(CACHE);
+    // Essential: atomic. If the app shell can't be fetched, failing the install
+    // and leaving the old worker in place IS the correct outcome for a broken
+    // deploy. cache:'reload' so the install can't populate the new cache from
+    // the HTTP cache's copy of the OLD build.
+    await cache.addAll(PRECACHE_ESSENTIAL.map(u=> new Request(u, {cache:'reload'})));
+
+    // Optional: best-effort, one at a time, failures ignored. A missing icon or
+    // manifest degrades installability — it does not stop the app working, and
+    // it must not stop the app UPDATING.
+    await Promise.all(PRECACHE_OPTIONAL.map(async (u)=>{
+      try{
+        const res = await fetch(new Request(u, {cache:'reload'}));
+        if(res && res.ok) await cache.put(u, res);
+      }catch(e){ /* deliberately swallowed — see above */ }
+    }));
+  })());
+  // NOT self.skipWaiting() here. The new worker waits until the page asks for
+  // it (see the message handler), so an update can never swap the app out from
+  // under someone mid-set with numbers typed into an input.
 });
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((names) =>
-      Promise.all(
-        names
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
-      )
-    ).then(() => self.clients.claim())
-  );
+self.addEventListener('activate', (event)=>{
+  event.waitUntil((async ()=>{
+    const names = await caches.keys();
+    await Promise.all(
+      names.filter(n=> n.startsWith('training-log-v') && n !== CACHE)
+           .map(n=> caches.delete(n))
+    );
+    // Take over open pages immediately once activated. Paired with the
+    // controllerchange listener in index.html, which does the reload.
+    await self.clients.claim();
+  })());
 });
 
-self.addEventListener('fetch', (event) => {
+self.addEventListener('message', (event)=>{
+  if(event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
+self.addEventListener('fetch', (event)=>{
   const req = event.request;
-  if (req.method !== 'GET') return; // never intercept writes
+  if(req.method !== 'GET') return;
 
   const url = new URL(req.url);
-  const isSameOrigin = url.origin === self.location.origin;
 
-  if (isSameOrigin) {
-    // App shell (index.html, manifest, icons): cache-first for instant,
-    // offline-capable loads, refreshing the cache in the background
-    // whenever the network is actually available (stale-while-revalidate).
-    event.respondWith(
-      caches.match(req).then((cached) => {
-        const network = fetch(req)
-          .then((res) => {
-            if (res && res.ok) {
-              const copy = res.clone();
-              caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-            }
-            return res;
-          })
-          .catch(() => null);
-        // Navigation requests specifically should fall back to the cached
-        // index.html if the exact URL isn't cached (e.g. a deep link) —
-        // this is what actually lets the app open at all while offline.
-        if (cached) return cached;
-        return network.then((res) => res || caches.match('./index.html'));
-      })
-    );
-  } else {
-    // Cross-origin (Google Fonts CSS + font files): prefer the network so
-    // font updates aren't stuck on a stale cache, but fall back to
-    // whatever's cached if the network is unavailable.
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          if (res && res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-          }
-          return res;
-        })
-        .catch(() => caches.match(req))
-    );
+  // Diagnostic probes. The App Health Check fetches index.html to compare the
+  // served version against the running one; if that response were cached like
+  // any other shell request, the check would write 1.8MB back into the cache
+  // every time it ran. Measured on a real device: origin storage climbed from
+  // 3.7MB to 10.7MB across two checks. A tool that measures storage must not
+  // consume it.
+  if(url.searchParams.has('__diag')) return;
+
+  // Cross-origin is passed straight through and never cached. The API calls
+  // (api.anthropic.com), USDA lookups, barcode library and web fonts all live
+  // here, and caching any of them would be wrong in a different way each time:
+  // stale API responses, a stale food database, and a cache that grows without
+  // bound against the same origin quota the photos and localStorage share.
+  if(url.origin !== self.location.origin) return;
+
+  // NETWORK-FIRST for the app shell — this is the important decision in this
+  // file. A cache-first worker serves the old index.html forever and is exactly
+  // the trap that motivated this rewrite. Network-first means an online user
+  // always gets the current build on a reload, and the cache exists purely so
+  // the app still opens on a plane or a subway.
+  const isShell = req.mode === 'navigate' ||
+                  url.pathname.endsWith('/') ||
+                  url.pathname.endsWith('/index.html');
+
+  if(isShell){
+    event.respondWith((async ()=>{
+      try{
+        const fresh = await fetch(req);
+        // Only successful, non-opaque responses are worth storing.
+        if(fresh && fresh.ok){
+          const cache = await caches.open(CACHE);
+          cache.put('./index.html', fresh.clone());
+        }
+        return fresh;
+      }catch(e){
+        const cached = await caches.match('./index.html', {ignoreSearch:true});
+        // The literal last resort — offline AND nothing cached. Plain text
+        // rather than styled HTML, because if the shell isn't cached then no
+        // stylesheet is either and a half-rendered page reads as a crash.
+        return cached || new Response(
+          'Training Log is offline and no cached copy is available yet. Reconnect once and it will work offline from then on.',
+          {status:503, headers:{'Content-Type':'text/plain; charset=utf-8'}}
+        );
+      }
+    })());
+    return;
   }
+
+  // CACHE-FIRST for same-origin static assets (icons, manifest). These are
+  // versioned by the cache name, so a stale one can only survive as long as the
+  // build it shipped with.
+  event.respondWith((async ()=>{
+    const cached = await caches.match(req);
+    if(cached) return cached;
+    try{
+      const fresh = await fetch(req);
+      if(fresh && fresh.ok && fresh.type === 'basic'){
+        const cache = await caches.open(CACHE);
+        cache.put(req, fresh.clone());
+      }
+      return fresh;
+    }catch(e){
+      return new Response('', {status:504});
+    }
+  })());
 });
