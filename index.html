@@ -677,6 +677,14 @@
      a step up or down from last time), and sharing a colour would imply a
      relationship to last session's weight that this number doesn't have. */
   .ex-suggested-rpe::placeholder{color:var(--plate-teal);}
+  /* Matches .ex-suggested-rpe, so the badge and the field it explains read as
+     one statement — the same pairing the other three badge colours already
+     have with their placeholders. */
+  .progress-badge-rpe{
+    background:rgba(0,191,165,0.12); border:1px solid rgba(0,191,165,0.4); color:var(--text);
+    padding:8px 11px; border-radius:var(--radius-sm); font-size:12px; line-height:1.5; margin:6px 0 2px;
+  }
+  .progress-badge-rpe b{color:var(--plate-teal); font-weight:600;}
   /* Once focused the tint is dropped — at that point the person is typing their
      own number and the ghost is about to disappear anyway; keeping it coloured
      under a live caret reads as the field being in an error state. */
@@ -1899,6 +1907,29 @@
   }
   .ex-history-btn:active{transform:scale(0.95);}
   .ex-history-btn:hover{border-color:var(--line-bright); color:var(--text);}
+  .ex-edit-btn{
+    background:var(--surface2); color:var(--text-muted); border:1px solid var(--line);
+    border-radius:var(--radius-sm); padding:6px 11px; font-size:11.5px; font-weight:600;
+    font-family:'Inter',sans-serif; cursor:pointer; margin-left:6px;
+    transition:border-color 0.18s var(--ease-smooth), color 0.18s var(--ease-smooth), transform 0.18s var(--ease-spring);
+  }
+  .ex-edit-btn:active{transform:scale(0.95);}
+  .ex-edit-btn:hover{border-color:var(--line-bright); color:var(--text);}
+  /* Marks a prescription the person has changed, so an edited day is visibly
+     theirs rather than looking like the program shipped that way. */
+  .ex-sets-overridden{color:var(--plate-yellow); font-weight:600;}
+  .diag-row{
+    display:flex; gap:9px; align-items:flex-start; padding:9px 0; border-bottom:1px solid var(--line);
+    font-size:12.5px; line-height:1.5;
+  }
+  .diag-row:last-of-type{border-bottom:none;}
+  .diag-icon{flex:0 0 auto; font-size:13px;}
+  .diag-detail{display:block; color:var(--text-muted); font-size:11.5px; margin-top:2px;}
+  .diag-bad b{color:var(--plate-red);}
+  .diag-warn b{color:var(--plate-yellow);}
+  .exedit-error{color:var(--plate-red); font-size:12px; margin-top:6px; min-height:0;}
+  .exedit-actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
+  .exedit-section{margin-top:18px; padding-top:14px; border-top:1px solid var(--line);}
   .exh-stats{
     display:flex; gap:10px; margin-bottom:14px;
   }
@@ -3033,6 +3064,32 @@
     </div></div>
   </div>
   <div class="card">
+    <div class="card-title nutrition-header" id="diagHeader">
+      <span><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a7.5 7.5 0 1 0 7.5 7.5"/><path d="M10 6v4l2.5 2.5"/></svg></span>App Health Check</span>
+      <span class="ex-chevron" id="diagChevron">›</span>
+    </div>
+    <div class="expand-wrap" id="diagExpandWrap">
+      <div class="history-hint">Checks whether this device is running the newest version, whether offline support is working, and whether storage is healthy. Run it after publishing an update if the app looks unchanged.</div>
+      <button class="switch-profile-btn" id="diagRunBtn">🩺 Run check</button>
+      <div id="diagResults"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title nutrition-header" id="healthImportHeader">
+      <span><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3l2-5 3 8 2-4h4"/></svg></span>Import Health Data</span>
+      <span class="ex-chevron" id="healthImportChevron">›</span>
+    </div>
+    <div class="expand-wrap" id="healthImportExpandWrap">
+      <div class="history-hint">Bring in steps, resting heart rate and HRV from Apple Health, Garmin, Fitbit, Oura or Whoop. Export a CSV from that app, then pick it here. Resting heart rate is what the readiness check on Today leans on most.</div>
+      <input type="file" id="healthImportInput" accept=".csv,text/csv" style="display:none">
+      <button class="switch-profile-btn" id="healthImportBtn">📥 Choose a CSV file</button>
+      <div id="healthImportStatus" class="history-hint"></div>
+      <div id="healthImportSummary"></div>
+    </div>
+  </div>
+
+  <div class="card">
     <div class="card-title nutrition-header" id="aiSettingsHeader">
       <span><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="8" height="8" rx="1"/><line x1="10" y1="1.6" x2="10" y2="6"/><line x1="10" y1="14" x2="10" y2="18.4"/><line x1="1.6" y1="10" x2="6" y2="10"/><line x1="14" y1="10" x2="18.4" y2="10"/></svg></span>AI Features Setup</span>
       <span class="ex-chevron" id="aiSettingsChevron">›</span>
@@ -3467,6 +3524,16 @@
   </div>
 </div>
 
+<div class="sub-modal-overlay" id="exEditOverlay" role="dialog" aria-modal="true" aria-labelledby="exEditTitle">
+  <div class="sub-modal-sheet">
+    <div class="sub-modal-header">
+      <div class="sub-modal-title" id="exEditTitle">Edit exercise</div>
+      <button class="sub-modal-close" id="exEditClose" aria-label="Close editor">✕</button>
+    </div>
+    <div id="exEditBody"></div>
+  </div>
+</div>
+
 <div class="sub-modal-overlay" id="exHistoryOverlay" role="dialog" aria-modal="true" aria-labelledby="exHistoryTitle">
   <div class="sub-modal-sheet">
     <div class="sub-modal-header">
@@ -3618,7 +3685,7 @@
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '2.3';
+const APP_VERSION = '2.8';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -11612,15 +11679,50 @@ async function getSessionHeadsUpInsight(){
 // than requiring a trip to Analysis/Care to piece it together. Hides itself
 // completely when nothing is currently relevant, rather than showing an
 // empty card.
+// Gathers the five inputs and returns the formatted line, or null when there
+// isn't enough logged to say anything. Kept separate from computeReadiness so
+// the judgement itself stays a pure function and can be tested without storage.
+async function getReadinessInsight(){
+  const todayKey = getTodayKey();
+  const [sleepEntries, workoutDates, painRegions, rhrEntries, rpeWeeks] = await Promise.all([
+    fetchSleepEntries(), fetchWorkoutDates(), getRestingRegions(),
+    fetchHealthLog('rhr'), computeWeeklyRpeAvg(1),
+  ]);
+
+  // Last night's sleep is the entry logged for today (you record it on waking),
+  // falling back to nothing rather than to an older night.
+  const sleepToday = (sleepEntries || []).find(e=> e.date === todayKey);
+  const rhrToday = (rhrEntries || []).find(e=> e.date === todayKey);
+
+  const r = computeReadiness({
+    sleepHours: sleepToday ? Number(sleepToday.hours) : null,
+    weeklyRpe: (rpeWeeks && rpeWeeks.length && rpeWeeks[rpeWeeks.length-1].avg != null)
+      ? rpeWeeks[rpeWeeks.length-1].avg : null,
+    daysSinceRest: await computeDaysSinceRest(workoutDates, todayKey),
+    painRegions: painRegions || [],
+    rhrToday: rhrToday ? rhrToday.value : null,
+    rhrBaseline: rhrBaselineFrom(rhrEntries, todayKey),
+  });
+
+  const f = formatReadiness(r);
+  if(!f) return null;
+  // The "all clear" case is deliberately not surfaced. Today's Priorities is a
+  // list of things worth acting on, and a row saying "nothing to report" is
+  // noise that makes the rows that DO matter harder to notice.
+  if(r.level === 'good') return null;
+  return `${f.icon} <b>Readiness:</b> ${f.text}`;
+}
+
 async function renderTodayInsights(){
   const card = document.getElementById('todayInsightsCard');
   const el = document.getElementById('todayInsightsList');
   if(!card || !el) return;
 
-  const [deload, sleep, cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup] = await Promise.all([
+  const [deload, sleep, cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness] = await Promise.all([
     getDeloadInsight(), getSleepInsight(), getCycleInsight(),
     getStaleRestingRegionInsight(), getWeighInReminderInsight(), getWaterPaceInsight(), getSessionHeadsUpInsight(),
     getDeficitGuardrailInsight(), getPregnancyHeatInsight(), getBackupReminderInsight(),
+    getReadinessInsight(),
   ]);
 
   // deficit sits second: under the session heads-up (which is about the next
@@ -11634,7 +11736,12 @@ async function renderTodayInsights(){
   // ignored for long enough, but it is also the least urgent on any given day —
   // nothing about today's training changes because of it, and putting it above
   // advice about the next hour would be reading "important" as "first".
-  const items = [pregnancyHeat, sessionHeadsUp, deficit, deload, sleep, cycle, staleRegion, weighIn, waterPace, backup].filter(Boolean);
+  // readiness sits directly under the safety item and above the session heads-up.
+  // It is the one row that answers "should I train hard today", which is the
+  // question the heads-up and everything below it are all downstream of — and
+  // it synthesises the sleep and deload rows further down, so reading it first
+  // makes those two land as detail rather than as new information.
+  const items = [pregnancyHeat, readiness, sessionHeadsUp, deficit, deload, sleep, cycle, staleRegion, weighIn, waterPace, backup].filter(Boolean);
   if(items.length === 0){
     card.style.display = 'none';
     return;
@@ -13251,6 +13358,11 @@ document.getElementById('historySearch').addEventListener('input', (e)=>{
   }, 220);
 });
 
+document.getElementById('exEditClose').addEventListener('click', closeExerciseEditor);
+document.getElementById('exEditOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'exEditOverlay') closeExerciseEditor();
+});
+
 document.getElementById('exHistoryClose').addEventListener('click', closeExerciseHistory);
 // Backdrop dismiss, same test the swap sheet uses: only when the click landed
 // on the overlay itself, never on the sheet sitting on top of it.
@@ -13639,6 +13751,57 @@ function getRestReasonLabel(ex){
 // exactly. If the two ever diverge, the app tells you one thing in prose and a
 // different thing in the field you're about to type into — which is worse than
 // having neither. test-suggested-load.js asserts they agree on every case.
+// Builds the progression badge shown above an exercise's set rows.
+//
+// Extracted from renderWorkout so it can be tested. It was inline, and that is
+// precisely why the v2.5 bug survived: the badge and the placeholder are two
+// halves of one statement to the user, but only the placeholder half lived in a
+// function a test could call. The suite asserted the half it could reach and a
+// direct contradiction shipped underneath it.
+//
+// Returns {html, direction} where direction is 'up' | 'down' | 'flat' | null.
+// The direction is what makes the invariant checkable: whatever this says must
+// agree with the way computeSuggestedSet moves the number, and a test can now
+// assert that across every combination instead of reading the code.
+function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx, sourceNote}){
+  const note = sourceNote || '';
+
+  // RPE mode owns the badge as well as the placeholder — see computeSuggestedSet.
+  const rpeTargetRpe = inDeloadWeek ? RPE_BY_CYCLE_WEEK[DELOAD_CYCLE_WEEKS] : (rpeCtx ? targetRpeForWeek(rpeCtx.week) : null);
+  const rpeBadgeTarget = (loadSuggestionMode === 'rpe' && rpeCtx && rpeCtx.e1rm != null)
+    ? loadForRpeTarget(rpeCtx.e1rm, parseBottomRep(ex.sets), rpeTargetRpe)
+    : null;
+
+  if(rpeBadgeTarget != null){
+    const rir = rirFromRpe(rpeTargetRpe);
+    const shown = snapToLoadable(toDisplayWeight(rpeBadgeTarget), ex.name, 'down');
+    return {
+      direction: 'rpe',
+      html: `<div class="progress-badge-rpe">🎯 ${inDeloadWeek ? 'Deload week' : `Week ${cycleWeekOf(rpeCtx.week)}`} target: <b>RPE ${rpeTargetRpe}</b> — about ${rir} rep${rir===1?'':'s'} left at the end. From your recent best that's around <b>${trimUnitNum(shown)} ${weightUnit}</b>${note}.</div>`,
+    };
+  }
+  if(signal){
+    if(inDeloadWeek && signal.type==='increase'){
+      return {direction:'down', html:`<div class="progress-badge-deload">🔻 Deload week — sets are already reduced below; hold at a reduced load here too rather than chasing the jump this would normally suggest.</div>`};
+    }
+    const badgeClass = signal.type==='increase' ? 'progress-badge' : signal.type==='decrease' ? 'progress-badge-decrease' : 'progress-badge-deload';
+    return {
+      direction: signal.type === 'increase' ? 'up' : 'down',
+      html: `<div class="${badgeClass}">${signal.message}</div>`,
+    };
+  }
+  if(inDeloadWeek && priorTop && priorTop.weight!=null){
+    return {direction:'down', html:`<div class="progress-hint">🔻 Deload week — sets are already reduced below; last top set was ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'} reps${note}, aim for roughly 10-20% lighter today.</div>`};
+  }
+  if(priorTop && priorTop.reps!=null && topRep!=null && priorTop.reps >= topRep){
+    return {direction:'up', html:`<div class="progress-badge">⬆ Hit ${priorTop.reps} reps last time at ${priorTop.weight!=null ? fmtWeight(priorTop.weight) : '?'}${note} — try adding weight today</div>`};
+  }
+  if(priorTop && priorTop.weight!=null){
+    return {direction:'flat', html:`<div class="progress-hint">Last top set: ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'} reps${note}</div>`};
+  }
+  return {direction:null, html:''};
+}
+
 function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, priorTop, rpeCtx){
   if(!priorSet || priorSet.weight == null) return null;
 
@@ -13999,7 +14162,13 @@ async function renderWorkout(){
 
   const focusExercises = getBodyGoalFocusExercises(userProfile.bodyGoal, activeProgram, day);
   const customExercises = (await getCustomExercises(activeProgram, activeDay)).map(ex=>({...ex, isCustom:true}));
-  let fullExercises = [...day.exercises, ...focusExercises, ...customExercises];
+  // Tagged with their position in the AUTHORED list before anything transforms
+  // it. Overrides are keyed by that index, and by the time a row renders,
+  // removals, reordering, accumulation and session-length trimming have all
+  // moved things around — so the render index is not a usable key. Every
+  // transform below spreads {...ex}, so this rides along untouched.
+  let fullExercises = [...day.exercises, ...focusExercises, ...customExercises]
+    .map((ex, idx)=> ({...ex, __srcIndex: idx}));
 
   // Goal-aware volume runs first so everything after it works from the
   // adjusted baseline: a deload week reduces whatever the goal called for,
@@ -14012,6 +14181,13 @@ async function renderWorkout(){
   // week's already-reduced set counts are what session-length trimming
   // (if the person also picked a shorter session) works from, rather than
   // the two reductions fighting over the same baseline independently.
+  // Overrides are applied BEFORE the deload/accumulation modifiers, so those
+  // operate on the prescription the person actually intends to run. Applying
+  // them after would mean an accumulation set was added to a template
+  // prescription the user had already replaced.
+  const exOverrides = await getExOverrides(activeProgram, activeDay);
+  fullExercises = applyExOverrides(fullExercises, exOverrides);
+
   const inDeloadWeek = await isDeloadWeek();
   const mesoWeek = await getMesocycleWeek();
   if(inDeloadWeek){
@@ -14149,21 +14325,8 @@ async function renderWorkout(){
       // stay null and these sections quietly produce nothing, which is
       // correct: there's no double-progression or 1RM concept for reps-only
       // bodyweight work, but the reps/RPE inputs below are unaffected either way.
-      let badge = '';
-      if(signal){
-        if(inDeloadWeek && signal.type==='increase'){
-          badge = `<div class="progress-badge-deload">🔻 Deload week — sets are already reduced below; hold at a reduced load here too rather than chasing the jump this would normally suggest.</div>`;
-        } else {
-          const badgeClass = signal.type==='increase' ? 'progress-badge' : signal.type==='decrease' ? 'progress-badge-decrease' : 'progress-badge-deload';
-          badge = `<div class="${badgeClass}">${signal.message}</div>`;
-        }
-      } else if(inDeloadWeek && priorTop && priorTop.weight!=null){
-        badge = `<div class="progress-hint">🔻 Deload week — sets are already reduced below; last top set was ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'} reps${sourceNote}, aim for roughly 10-20% lighter today.</div>`;
-      } else if(priorTop && priorTop.reps!=null && topRep!=null && priorTop.reps >= topRep){
-        badge = `<div class="progress-badge">⬆ Hit ${priorTop.reps} reps last time at ${priorTop.weight!=null ? fmtWeight(priorTop.weight) : '?'}${sourceNote} — try adding weight today</div>`;
-      } else if(priorTop && priorTop.weight!=null){
-        badge = `<div class="progress-hint">Last top set: ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'} reps${sourceNote}</div>`;
-      }
+      const badgeInfo = buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx, sourceNote});
+      const badge = badgeInfo.html;
 
       let warmupHtml = '';
       const warmupEligiblePosition = i === 0 || (i === 1 && exCategory !== firstExCategory);
@@ -14208,7 +14371,8 @@ async function renderWorkout(){
       // before" — one applies it, the other lets you look. Placed in the sets
       // block rather than on the exercise name, which is already the swap
       // trigger for any exercise with alternatives.
-      const historyBtnHtml = `<button type="button" class="ex-history-btn" data-idx="${i}" aria-label="See all history for ${escapeHtml(ex.name)}">📈 History</button>`;
+      const historyBtnHtml = `<button type="button" class="ex-history-btn" data-idx="${i}" aria-label="See all history for ${escapeHtml(ex.name)}">📈 History</button>`
+        + `<button type="button" class="ex-edit-btn" data-idx="${i}" aria-label="Edit the prescription for ${escapeHtml(ex.name)}">✏️ Edit</button>`;
       const sameAsLastHtml = (prior ? `<button type="button" class="same-as-last-btn" data-idx="${i}">↻ Same as Last Time${priorIsCrossProgram ? ` (${escapeHtml(programLabelFor(priorSourceProgram))})` : ''}</button>` : '') + historyBtnHtml;
       const setRowsHtml = Array.from({length: setCount}).map((_,setIdx)=>{
         const savedSet = todayEntry && todayEntry.sets[setIdx] ? todayEntry.sets[setIdx] : null;
@@ -14327,7 +14491,7 @@ async function renderWorkout(){
         <div class="ex-name-wrap">
           <div class="ex-name ${completed[i]?'done':''} ${hasSubs ? 'ex-name-swappable' : ''}">${escapeHtml(ex.name)}${swapIconHtml}${focusHtml}${subTagHtml}${ex.isCustom ? '<span class="super-tag custom-tag">✏️ Custom</span>' : ''}</div>
         </div>
-        <div class="ex-sets">${escapeHtml(ex.sets)}<div class="ex-cal-tag">~${exCalories} cal</div></div>
+        <div class="ex-sets"><span class="${ex.__overridden ? 'ex-sets-overridden' : ''}" ${ex.__overridden ? 'title="You changed this from the program default"' : ''}>${escapeHtml(ex.sets)}</span><div class="ex-cal-tag">~${exCalories} cal</div></div>
         ${ex.isCustom ? `<button class="ex-delete-custom-btn" aria-label="Remove custom exercise ${escapeHtml(ex.name)}">🗑️</button>` : ''}
         <span class="ex-chevron">›</span>
       </div>
@@ -14464,6 +14628,15 @@ async function renderWorkout(){
         openExerciseSubModal(i, ex);
       });
     }
+
+    const editBtn = row.querySelector('.ex-edit-btn');
+    if(editBtn) editBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      // The ORIGINAL index is what the override is keyed by, and it is not the
+      // render position — accumulation, removals and reordering all sit between
+      // the two. renderExercises carries __srcIndex for exactly this.
+      openExerciseEditor(ex, ex.__srcIndex);
+    });
 
     const histBtn = row.querySelector('.ex-history-btn');
     if(histBtn) histBtn.addEventListener('click', (e)=>{
@@ -15649,7 +15822,7 @@ function isDistanceExercise(exName){
 // survives reloads. Deliberately NOT applied to the Profile card, which
 // already has its own considered auto-collapse-after-save behavior that
 // blind persistence would fight with.
-const PERSISTENT_CARDS = ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings', 'program'];
+const PERSISTENT_CARDS = ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings', 'program', 'healthImport', 'diag'];
 async function getCardOpenState(key){
   try{
     const res = await window.storage.get('card-open:'+key);
@@ -20213,6 +20386,73 @@ document.getElementById('measureHeader').addEventListener('click', ()=>{
   setCardOpenState('measure', isOpen);
 });
 
+document.getElementById('diagHeader').addEventListener('click', ()=>{
+  const isOpen = document.getElementById('diagHeader').classList.toggle('open');
+  document.getElementById('diagExpandWrap').classList.toggle('open', isOpen);
+  document.getElementById('diagChevron').classList.toggle('open', isOpen);
+  setCardOpenState('diag', isOpen);
+});
+document.getElementById('diagRunBtn').addEventListener('click', runDiagnostics);
+
+document.getElementById('healthImportHeader').addEventListener('click', ()=>{
+  const isOpen = document.getElementById('healthImportHeader').classList.toggle('open');
+  document.getElementById('healthImportExpandWrap').classList.toggle('open', isOpen);
+  document.getElementById('healthImportChevron').classList.toggle('open', isOpen);
+  setCardOpenState('healthImport', isOpen);
+});
+
+document.getElementById('healthImportBtn').addEventListener('click', ()=>{
+  document.getElementById('healthImportInput').click();
+});
+
+document.getElementById('healthImportInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  e.target.value = ''; // allow re-picking the same file after a correction
+  if(!file) return;
+  const statusEl = document.getElementById('healthImportStatus');
+  const summaryEl = document.getElementById('healthImportSummary');
+  summaryEl.innerHTML = '';
+  statusEl.textContent = 'Reading…';
+
+  let text;
+  try{ text = await file.text(); }
+  catch(err){ statusEl.textContent = "Couldn't read that file."; return; }
+
+  const parsed = parseHealthCsv(text);
+  if(parsed.error){ statusEl.textContent = parsed.error; return; }
+
+  const results = [];
+  for(const id of parsed.found){
+    const spec = HEALTH_METRICS[id];
+    if(!parsed.rows[id].length) continue;
+    try{
+      const r = await mergeHealthLog(spec.key, parsed.rows[id]);
+      results.push({label: spec.label, ...r});
+    }catch(err){
+      results.push({label: spec.label, failed:true});
+    }
+  }
+
+  if(results.length === 0){
+    statusEl.textContent = 'That file had recognised columns but no usable rows in them.';
+    return;
+  }
+
+  statusEl.textContent = '';
+  summaryEl.innerHTML = `
+    <div class="care-banner" style="margin-top:10px;">
+      <b>Imported</b>
+      <ul>${results.map(r=> r.failed
+        ? `<li>${escapeHtml(r.label)} — couldn't be saved</li>`
+        : `<li>${escapeHtml(r.label)}: ${r.added} new${r.updated ? `, ${r.updated} updated` : ''} · ${r.total} days on file</li>`
+      ).join('')}</ul>
+      ${parsed.skipped ? `<div style="margin-top:6px; color:var(--text-muted); font-size:12px;">${parsed.skipped} row${parsed.skipped===1?'':'s'} skipped — unreadable dates or values outside a plausible range.</div>` : ''}
+    </div>
+  `;
+  renderStorageUsage();
+  renderTodayInsights();
+});
+
 document.getElementById('photosHeader').addEventListener('click', ()=>{
   const isOpen = document.getElementById('photosHeader').classList.toggle('open');
   document.getElementById('photosExpandWrap').classList.toggle('open');
@@ -20773,7 +21013,7 @@ function switchView(active, opts){
 const SCROLL_LOCK_OVERLAYS = [
   'subModalOverlay', 'calendarModalOverlay', 'photoLightbox',
   'barcodeScannerOverlay', 'coachFabModal', 'userPickerOverlay',
-  'exHistoryOverlay'
+  'exHistoryOverlay', 'exEditOverlay'
 ];
 let scrollLockY = 0;
 let scrollLockActive = false;
@@ -20826,6 +21066,7 @@ const OVERLAY_CLOSERS = {
   photoLightbox:        ()=> { const b = document.getElementById('photoLightboxClose'); if(b) b.click(); },
   coachFabModal:        ()=> document.getElementById('coachFabModal').classList.remove('active'),
   exHistoryOverlay:     ()=> closeExerciseHistory(),
+  exEditOverlay:        ()=> closeExerciseEditor(),
   // userPickerOverlay is deliberately absent. It is the "who is using this
   // device" gate, and there is nothing behind it to go back to — dismissing it
   // would leave the app with no active profile.
@@ -24742,6 +24983,659 @@ document.addEventListener('click', (e)=>{
     if(key) setTimeout(()=> key.focus(), 320);
   }, 60);
 });
+
+// [DIAGNOSTICS] ----------------------------------------------------------------
+// Answers, on the actual device, the questions that cannot be answered from a
+// development machine — and one in particular that has been open for a dozen
+// releases: is the build I am looking at the build that was deployed?
+//
+// A cache-first service worker can serve a stale index.html indefinitely, and
+// from the outside everything looks fine: the deploy succeeded, the file on the
+// server is current, and the phone quietly runs code from three weeks ago. The
+// only way to know is to ask the device to compare what it is RUNNING against
+// what the server is SERVING, which is what checkBuildFreshness does.
+async function checkBuildFreshness(){
+  try{
+    // cache:'reload' bypasses both the HTTP cache and the service worker's
+    // cached copy, so this genuinely reaches the server. Without it the fetch
+    // could be answered from the very cache being tested.
+    const res = await fetch('./index.html', {cache:'reload'});
+    if(!res || !res.ok) return {ok:false, reason:`Server returned ${res ? res.status : 'no response'}`};
+    const text = await res.text();
+    const m = text.match(/const APP_VERSION = '([^']+)'/);
+    if(!m) return {ok:false, reason:'Could not read a version from the served file'};
+    return {ok:true, served: m[1], running: APP_VERSION, stale: m[1] !== APP_VERSION};
+  }catch(e){
+    return {ok:false, reason:'Offline — reconnect and try again'};
+  }
+}
+
+async function checkManifest(){
+  try{
+    const res = await fetch('./manifest.json', {cache:'reload'});
+    if(!res || !res.ok) return {ok:false, reason:`Not found (HTTP ${res ? res.status : '?'})`};
+    const json = await res.json();
+    const icons = Array.isArray(json.icons) ? json.icons.length : 0;
+    if(!json.name || !json.start_url) return {ok:false, reason:'Present but missing name or start_url'};
+    if(icons === 0) return {ok:true, warn:'No icons declared — it will install without a proper home-screen icon'};
+    return {ok:true, detail:`${json.name} · ${icons} icon${icons===1?'':'s'}`};
+  }catch(e){
+    return {ok:false, reason:'Present but not valid JSON'};
+  }
+}
+
+async function checkServiceWorker(){
+  if(!('serviceWorker' in navigator)) return {ok:false, reason:'Not supported in this browser'};
+  try{
+    const reg = await navigator.serviceWorker.getRegistration();
+    if(!reg) return {ok:false, reason:'Not registered — the app will not work offline'};
+    const state = reg.active ? 'active' : reg.installing ? 'installing' : reg.waiting ? 'waiting' : 'unknown';
+    let cacheName = null;
+    try{
+      const names = await caches.keys();
+      cacheName = names.find(n=> n.startsWith('training-log-v')) || null;
+    }catch(e){}
+    return {
+      ok: !!reg.active,
+      detail: `${state}${cacheName ? ` · cache ${cacheName.replace('training-log-','')}` : ''}`,
+      waiting: !!reg.waiting,
+    };
+  }catch(e){ return {ok:false, reason:'Could not read registration'}; }
+}
+
+async function checkStorageHealth(){
+  const parts = [];
+  let ok = true;
+  try{
+    localStorage.setItem('__diag__','1'); localStorage.removeItem('__diag__');
+    parts.push('localStorage OK');
+  }catch(e){ ok = false; parts.push('localStorage BLOCKED'); }
+
+  try{
+    await photoDb();
+    parts.push('IndexedDB OK');
+  }catch(e){ ok = false; parts.push('IndexedDB unavailable — photos will not save'); }
+
+  const est = await getStorageUsage();
+  if(est) parts.push(`${fmtBytes(est.usage)} used (${est.pct}%)`);
+
+  try{
+    if(navigator.storage && navigator.storage.persisted){
+      parts.push((await navigator.storage.persisted()) ? 'eviction-protected' : 'not eviction-protected');
+    }
+  }catch(e){}
+
+  if(storageHealth.degraded){ ok = false; parts.push(`${storageHealth.spilled.size} unsaved change(s) in memory only`); }
+  return {ok, detail: parts.join(' · ')};
+}
+
+function diagRow(label, result){
+  const state = result.ok ? (result.warn ? 'warn' : 'good') : 'bad';
+  const icon = state === 'good' ? '✅' : state === 'warn' ? '⚠️' : '❌';
+  const detail = result.reason || result.warn || result.detail || '';
+  return `<div class="diag-row diag-${state}"><span class="diag-icon">${icon}</span><span><b>${escapeHtml(label)}</b>${detail ? `<span class="diag-detail">${escapeHtml(detail)}</span>` : ''}</span></div>`;
+}
+
+async function runDiagnostics(){
+  const el = document.getElementById('diagResults');
+  if(!el) return;
+  el.innerHTML = '<div class="history-hint">Checking…</div>';
+
+  const [build, manifest, sw, storage] = await Promise.all([
+    checkBuildFreshness(), checkManifest(), checkServiceWorker(), checkStorageHealth(),
+  ]);
+
+  let buildRow;
+  if(!build.ok){
+    buildRow = diagRow('Build freshness', {ok:false, reason:build.reason});
+  } else if(build.stale){
+    // The failure this whole panel exists to surface.
+    buildRow = diagRow('Build freshness', {ok:false,
+      reason:`STALE — running v${build.running}, server has v${build.served}. Tap "Force refresh" below.`});
+  } else {
+    buildRow = diagRow('Build freshness', {ok:true, detail:`Up to date (v${build.running})`});
+  }
+
+  el.innerHTML = buildRow
+    + diagRow('Service worker', sw)
+    + diagRow('Manifest', manifest)
+    + diagRow('Storage', storage)
+    + `<div class="history-hint field-note">App v${APP_VERSION} · schema v${SCHEMA_VERSION}. "Force refresh" clears the cached copy of the app and reloads from the server. It does not touch any of your logged data.</div>`
+    + `<div class="app-banner-actions"><button type="button" class="app-banner-btn app-banner-btn-danger" id="diagForceRefresh">Force refresh</button></div>`;
+
+  const btn = document.getElementById('diagForceRefresh');
+  if(btn) btn.addEventListener('click', async ()=>{
+    btn.textContent = 'Clearing…';
+    // Caches and the worker only. Deliberately NOT localStorage or IndexedDB —
+    // this is a "get the newest code" button, and someone reaching for it
+    // because the app looks wrong must not lose their training history to it.
+    try{
+      const names = await caches.keys();
+      await Promise.all(names.map(n=> caches.delete(n)));
+    }catch(e){}
+    try{
+      const reg = await navigator.serviceWorker.getRegistration();
+      if(reg) await reg.unregister();
+    }catch(e){}
+    location.reload();
+  });
+}
+
+// [PROGRAM BUILDER] ------------------------------------------------------------
+// Until now you could ADD a custom exercise to a day, swap one for a listed
+// alternative, and reorder days — but you could not change the prescription of
+// an exercise the program ships with, remove one, or reorder within a day. For
+// anyone following a coach's plan, or who simply knows they need 5×3 rather
+// than the 4×6-8 the template asks for, that was a hard ceiling.
+//
+// Implemented as an OVERRIDE LAYER, not by editing the program objects. Every
+// other per-user modification in this app already works this way —
+// substitutions, custom exercises, day order, session-length trimming — and the
+// reasons hold here too: the 30 authored programs stay the single source of
+// truth, an override can be cleared to get the original back, and a program
+// updated in a future release doesn't silently discard someone's edits.
+//
+// Keyed by index, but each override stores the exercise NAME it was created
+// against. If a future edit to a program changes what sits at that index, the
+// name no longer matches and the override is dropped rather than silently
+// applied to a different lift — which would be the worst outcome here, quietly
+// prescribing 5×3 of something you never chose.
+function exOverrideKey(program, dayId){ return `ex-override:${program}:${dayId}`; }
+
+async function getExOverrides(program, dayId){
+  try{
+    const res = await window.storage.get(exOverrideKey(program, dayId));
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){}
+  return {};
+}
+
+async function saveExOverrides(program, dayId, overrides){
+  try{
+    // An empty object is deleted rather than stored, so "reset everything"
+    // leaves no trace and the key count doesn't grow with days you once
+    // touched and then reverted.
+    if(!overrides || Object.keys(overrides).length === 0){
+      await window.storage.delete(exOverrideKey(program, dayId));
+    } else {
+      await window.storage.set(exOverrideKey(program, dayId), JSON.stringify(overrides));
+    }
+  }catch(e){}
+}
+
+// Applies overrides to a day's exercise list. Returns a NEW array — removals
+// mean the result can be shorter, so callers must use the return value rather
+// than assuming in-place mutation like applyExerciseSubs does.
+function applyExOverrides(exercises, overrides){
+  if(!overrides || Object.keys(overrides).length === 0) return exercises;
+
+  // Each survivor carries its ORIGINAL index. An earlier version tried to
+  // recover that with indexOf() after building the new objects, which can never
+  // work — an overridden exercise is a fresh object and is not in the source
+  // array at all.
+  const survivors = [];
+  exercises.forEach((ex, i)=>{
+    const ov = overrides[String(i)];
+    // Stale override: the program no longer has this exercise at this index.
+    // Dropped silently — the alternative is applying someone's 5×3 to whatever
+    // lift moved into the slot.
+    if(!ov || ov.name !== ex.name){ survivors.push({ex, i, pos:null}); return; }
+    if(ov.removed) return;
+    const next = {...ex, __overridden: true};
+    if(ov.sets) next.sets = ov.sets;
+    survivors.push({ex: next, i, pos: (typeof ov.order === 'number') ? ov.order : null});
+  });
+
+  // Explicit positions are applied AFTER removals, so they refer to what
+  // actually survived. Anything without one keeps its relative order, behind
+  // those that have one.
+  if(survivors.some(w=> w.pos !== null)){
+    survivors.sort((a,b)=>{
+      if(a.pos === null && b.pos === null) return a.i - b.i;
+      if(a.pos === null) return 1;
+      if(b.pos === null) return -1;
+      if(a.pos !== b.pos) return a.pos - b.pos;
+      return a.i - b.i;   // stable for equal positions
+    });
+  }
+  return survivors.map(w=> w.ex);
+}
+
+// Validates a user-typed prescription before it is stored. The string is parsed
+// downstream by parseSetCount, parseTopRep, getSetFieldUnit and the warm-up
+// ramp; a shape none of them recognise would not error, it would just quietly
+// stop those features working for that exercise.
+function validateSetsString(raw){
+  const s = String(raw || '').trim();
+  if(!s) return {ok:false, error:'Enter something like 4×6-8, 3x10, or 20 min.'};
+  if(s.length > 24) return {ok:false, error:'Too long — keep it short, like 4×6-8.'};
+  // Accepts the shapes the rest of the app can actually read:
+  //   4×6-8   4x10   5×5   3×45s   20 min   4×8 each side
+  const setsReps = /^\d{1,2}\s*[×x]\s*\d{1,3}(\s*-\s*\d{1,3})?\s*(s|sec|secs)?(\s+.{1,12})?$/i;
+  const timeOnly = /^\d{1,3}\s*(min|mins|minutes|sec|secs|s)$/i;
+  const rounds   = /^\d{1,2}\s*(rounds?|sets?)$/i;
+  if(setsReps.test(s) || timeOnly.test(s) || rounds.test(s)) return {ok:true, value:s.replace(/x/i,'×')};
+  return {ok:false, error:"Couldn't read that. Try 4×6-8, 3x10, 30 min, or 3×45s."};
+}
+
+// --- Editor sheet ----------------------------------------------------------
+let exEditContext = null; // {ex, srcIndex}
+
+async function openExerciseEditor(ex, srcIndex){
+  const overlay = document.getElementById('exEditOverlay');
+  const body = document.getElementById('exEditBody');
+  const title = document.getElementById('exEditTitle');
+  if(!overlay || !body || srcIndex == null) return;
+
+  exEditContext = {ex, srcIndex};
+  title.textContent = ex.name;
+
+  const overrides = await getExOverrides(activeProgram, activeDay);
+  const ov = overrides[String(srcIndex)];
+  const isOverridden = !!(ov && ov.name === ex.name);
+  // The authored prescription, recovered from the program rather than from the
+  // rendered row — the row may already show an accumulation set added on top.
+  const day = dayDefs[activeDay];
+  const authored = (day && day.exercises && day.exercises[srcIndex]) ? day.exercises[srcIndex].sets : ex.sets;
+
+  body.innerHTML = `
+    <div class="history-hint">Changes apply to this exercise on this day, every week. The program itself isn't touched — reset at any time to get the original back.</div>
+
+    <label class="equip-sublabel" for="exEditSets" style="margin-top:12px;">Sets and reps</label>
+    <input type="text" id="exEditSets" class="care-input" value="${escapeHtml(ov && ov.sets ? ov.sets : ex.sets)}" maxlength="24" autocomplete="off" aria-describedby="exEditSetsHelp">
+    <div class="history-hint field-note" id="exEditSetsHelp">Written as <b>4×6-8</b>, <b>5×5</b>, <b>3×45s</b> or <b>20 min</b>. Program default: <b>${escapeHtml(authored)}</b>.</div>
+    <div id="exEditError" class="exedit-error"></div>
+
+    <div class="exedit-actions">
+      <button type="button" class="app-banner-btn app-banner-btn-primary" id="exEditSave">Save</button>
+      ${isOverridden ? '<button type="button" class="app-banner-btn" id="exEditReset">Reset to program default</button>' : ''}
+    </div>
+
+    <div class="exedit-section">
+      <div class="equip-sublabel">Position in the day</div>
+      <div class="exedit-actions">
+        <button type="button" class="app-banner-btn" id="exEditUp">↑ Move earlier</button>
+        <button type="button" class="app-banner-btn" id="exEditDown">↓ Move later</button>
+      </div>
+      <div class="history-hint field-note">Order matters — the first compounds of a day are the ones accumulation adds sets to.</div>
+    </div>
+
+    <div class="exedit-section">
+      <button type="button" class="app-banner-btn app-banner-btn-danger" id="exEditRemove">Remove from this day</button>
+      <div class="history-hint field-note">Hides it from this day only. Nothing you've already logged for it is deleted, and you can bring it back by resetting.</div>
+    </div>
+  `;
+
+  overlay.classList.add('active');
+
+  const setsInput = document.getElementById('exEditSets');
+  const errEl = document.getElementById('exEditError');
+
+  const save = async ()=>{
+    const check = validateSetsString(setsInput.value);
+    if(!check.ok){
+      // Rejected in the editor rather than stored and left to fail silently
+      // downstream — parseSetCount, the warm-up ramp and getSetFieldUnit all
+      // read this string, and an unreadable one just quietly stops them working.
+      errEl.textContent = check.error;
+      setsInput.focus();
+      return;
+    }
+    errEl.textContent = '';
+    const next = await getExOverrides(activeProgram, activeDay);
+    const existing = next[String(srcIndex)] || {};
+    // Storing the name alongside is what lets a stale override be detected if a
+    // future release changes what sits at this index.
+    next[String(srcIndex)] = {...existing, name: ex.name, sets: check.value};
+    await saveExOverrides(activeProgram, activeDay, next);
+    closeExerciseEditor();
+    renderWorkout();
+  };
+
+  document.getElementById('exEditSave').addEventListener('click', save);
+  setsInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter'){ e.preventDefault(); save(); } });
+
+  const resetBtn = document.getElementById('exEditReset');
+  if(resetBtn) resetBtn.addEventListener('click', async ()=>{
+    const next = await getExOverrides(activeProgram, activeDay);
+    delete next[String(srcIndex)];
+    await saveExOverrides(activeProgram, activeDay, next);
+    closeExerciseEditor();
+    renderWorkout();
+  });
+
+  document.getElementById('exEditRemove').addEventListener('click', async ()=>{
+    const next = await getExOverrides(activeProgram, activeDay);
+    next[String(srcIndex)] = {...(next[String(srcIndex)]||{}), name: ex.name, removed: true};
+    await saveExOverrides(activeProgram, activeDay, next);
+    closeExerciseEditor();
+    renderWorkout();
+    showUndoToast(`${ex.name} removed from this day`, async ()=>{
+      const back = await getExOverrides(activeProgram, activeDay);
+      if(back[String(srcIndex)]){
+        delete back[String(srcIndex)].removed;
+        // An entry holding nothing but a name is indistinguishable from no
+        // override at all, and leaving it would keep the "Reset" button
+        // showing for an exercise that is already at its default.
+        if(Object.keys(back[String(srcIndex)]).length <= 1) delete back[String(srcIndex)];
+      }
+      await saveExOverrides(activeProgram, activeDay, back);
+      renderWorkout();
+    });
+  });
+
+  const move = async (delta)=>{
+    const next = await getExOverrides(activeProgram, activeDay);
+    const current = (next[String(srcIndex)] && typeof next[String(srcIndex)].order === 'number')
+      ? next[String(srcIndex)].order : srcIndex;
+    next[String(srcIndex)] = {...(next[String(srcIndex)]||{}), name: ex.name, order: Math.max(0, current + delta)};
+    await saveExOverrides(activeProgram, activeDay, next);
+    closeExerciseEditor();
+    renderWorkout();
+  };
+  document.getElementById('exEditUp').addEventListener('click', ()=> move(-1.5));
+  document.getElementById('exEditDown').addEventListener('click', ()=> move(1.5));
+}
+
+function closeExerciseEditor(){
+  document.getElementById('exEditOverlay').classList.remove('active');
+  exEditContext = null;
+}
+
+// [READINESS] ------------------------------------------------------------------
+// Sleep, RPE trend, days since a rest day, active pain regions and — once a
+// health export has been imported — resting heart rate are all already logged,
+// and each is already rendered somewhere. What the app never did was JOIN them
+// into an answer to the only question anyone actually asks before training:
+// should I go hard today?
+//
+// Deliberately NOT a score. A number out of 100 is a thing people optimise, and
+// an app that grades you every morning teaches you to chase the grade — you
+// start going to bed early to move a number rather than because you're tired.
+// It also implies a precision none of these inputs support. So this states the
+// inputs in words and lets you draw the conclusion:
+//
+//   "Slept 5h and RPE has run 9 all week — worth treating today as easy."
+//
+// The verdict is one of three coarse buckets, and reaching the cautious one
+// requires more than a single mediocre input, because one bad night is not a
+// reason to skip training and an app that says otherwise gets ignored.
+const READINESS_SLEEP_LOW = 6;      // hours below which sleep is flagged
+const READINESS_RPE_HIGH = 8.5;     // weekly average above which fatigue is flagged
+const READINESS_DAYS_NO_REST = 6;   // consecutive training days before it counts
+
+// A resting-HR rise of ~5bpm over baseline is the threshold most consumer
+// wearables and the endurance literature converge on as meaningful. Below that
+// it is within normal day-to-day variation and flagging it would be noise.
+const READINESS_RHR_RISE = 5;
+
+function computeReadiness({sleepHours, weeklyRpe, daysSinceRest, painRegions, rhrToday, rhrBaseline}){
+  const flags = [];
+
+  if(sleepHours != null && sleepHours < READINESS_SLEEP_LOW){
+    flags.push({kind:'sleep', text:`slept ${trimUnitNum(sleepHours)}h`});
+  }
+  if(weeklyRpe != null && weeklyRpe >= READINESS_RPE_HIGH){
+    flags.push({kind:'rpe', text:`RPE has averaged ${weeklyRpe.toFixed(1)} this week`});
+  }
+  if(daysSinceRest != null && daysSinceRest >= READINESS_DAYS_NO_REST){
+    flags.push({kind:'rest', text:`${daysSinceRest} days without a rest day`});
+  }
+  if(painRegions && painRegions.length){
+    flags.push({kind:'pain', text:`${painRegions.length === 1 ? painRegions[0] : `${painRegions.length} areas`} still resting`});
+  }
+  if(rhrToday != null && rhrBaseline != null && (rhrToday - rhrBaseline) >= READINESS_RHR_RISE){
+    flags.push({kind:'rhr', text:`resting HR is ${Math.round(rhrToday - rhrBaseline)}bpm above your usual`});
+  }
+
+  // Nothing known at all is different from everything being fine — saying
+  // "you're good to go" on the basis of no data would be a claim the app
+  // cannot support.
+  //
+  // daysSinceRest is deliberately excluded from this test unless it has already
+  // become a flag. computeDaysSinceRest always returns a number, so counting it
+  // as knowledge made `known` unconditionally true and this guard dead code —
+  // a brand-new profile with nothing logged would have been told it was good to
+  // go on the strength of having rested yesterday.
+  const known = [sleepHours, weeklyRpe, rhrToday].some(v=> v != null)
+    || (painRegions||[]).length > 0
+    || flags.some(f=> f.kind === 'rest');
+  if(!known) return null;
+
+  // Two or more flags, or an active pain region on its own, is the bar for
+  // advising caution. One flag is a note, not a verdict.
+  const level = (flags.length >= 2 || flags.some(f=> f.kind === 'pain'))
+    ? 'caution'
+    : flags.length === 1 ? 'note' : 'good';
+
+  return {level, flags};
+}
+
+function formatReadiness(r){
+  if(!r) return null;
+  if(r.level === 'good'){
+    return {icon:'✅', text:'Nothing in your logs suggests holding back today.'};
+  }
+  const list = r.flags.map(f=> f.text);
+  const joined = list.length === 1 ? list[0]
+    : list.slice(0,-1).join(', ') + ' and ' + list[list.length-1];
+  if(r.level === 'note'){
+    return {icon:'•', text:`${joined.charAt(0).toUpperCase()}${joined.slice(1)} — worth keeping an eye on, but not a reason to change the plan on its own.`};
+  }
+  return {icon:'⚠️', text:`${joined.charAt(0).toUpperCase()}${joined.slice(1)}. Worth treating today as an easier session, or taking the rest day.`};
+}
+
+// Baseline is the median of the last 30 days EXCLUDING today, so today's value
+// can't drag the thing it's being compared against. Median rather than mean
+// because a single illness spike would pull a mean up and then mask the next
+// one.
+function rhrBaselineFrom(entries, todayKey){
+  if(!entries || entries.length < 7) return null; // too little to have a "usual"
+  const cutoff = dateKeyMinusDays(todayKey, 30);
+  const vals = entries
+    .filter(e=> e.date < todayKey && e.date >= cutoff && e.value != null)
+    .map(e=> e.value)
+    .sort((a,b)=> a-b);
+  if(vals.length < 7) return null;
+  const mid = Math.floor(vals.length/2);
+  return vals.length % 2 ? vals[mid] : (vals[mid-1] + vals[mid]) / 2;
+}
+
+async function computeDaysSinceRest(workoutDates, todayKey){
+  // Counts back from yesterday: today is still in progress and hasn't earned
+  // its way into the streak yet.
+  let n = 0;
+  for(let i = 1; i <= 21; i++){
+    const d = dateKeyMinusDays(todayKey, i);
+    if(workoutDates.has(d)) n++;
+    else break;
+  }
+  return n;
+}
+
+// [HEALTH IMPORT] --------------------------------------------------------------
+// A PWA cannot read HealthKit — there is no browser API for it, and there is no
+// amount of cleverness that changes that. What every one of those apps CAN do is
+// export, so this imports the export.
+//
+// Deliberately format-agnostic rather than targeting one vendor. Apple Health,
+// Garmin Connect, Fitbit, Oura and Whoop all export CSV with a date column and
+// named metric columns, but they agree on almost nothing else — column order,
+// header wording, date format and units all differ. So instead of a parser per
+// vendor (five things to maintain, each breaking silently when a vendor renames
+// a column), this finds columns by matching against a list of known aliases and
+// ignores everything it doesn't recognise.
+//
+// Only three metrics are read, because only three of them earn their place:
+// steps, resting heart rate, and HRV. RHR in particular is the best objective
+// input the readiness line has.
+const HEALTH_METRICS = {
+  steps: {
+    key: 'steps-log',
+    label: 'Steps',
+    aliases: ['steps', 'step count', 'stepcount', 'total steps', 'daily steps'],
+    // Sanity bounds. A parse that silently misreads a column is worse than one
+    // that rejects the row, because the wrong number ends up in a trend chart
+    // looking exactly as authoritative as a right one.
+    min: 0, max: 100000, integer: true,
+  },
+  rhr: {
+    key: 'rhr-log',
+    label: 'Resting heart rate',
+    aliases: ['resting heart rate', 'resting hr', 'rhr', 'restingheartrate', 'resting_heart_rate'],
+    min: 25, max: 120, integer: true,
+  },
+  hrv: {
+    key: 'hrv-log',
+    label: 'HRV',
+    aliases: ['hrv', 'heart rate variability', 'heart_rate_variability', 'rmssd', 'hrv (ms)', 'sdnn'],
+    min: 1, max: 300, integer: false,
+  },
+};
+
+const DATE_ALIASES = ['date', 'day', 'start', 'start date', 'timestamp', 'datetime', 'date/time'];
+
+// Minimal CSV row splitter: handles quoted fields and escaped quotes, which is
+// all any of these exports actually produce. Not a general CSV library — it
+// does not handle embedded newlines inside quotes, and a health export has no
+// reason to contain one.
+function splitCsvLine(line){
+  const out = [];
+  let cur = '', inQuotes = false;
+  for(let i = 0; i < line.length; i++){
+    const c = line[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(line[i+1] === '"'){ cur += '"'; i++; }   // escaped quote
+        else inQuotes = false;
+      } else cur += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === ',') { out.push(cur); cur = ''; }
+      else cur += c;
+    }
+  }
+  out.push(cur);
+  return out.map(v=> v.trim());
+}
+
+// Normalises the many date formats these exports use to the app's YYYY-MM-DD.
+// Returns null rather than a guess for anything ambiguous — an off-by-one-month
+// date silently attaches today's resting HR to a day in March.
+function normaliseImportDate(raw){
+  if(!raw) return null;
+  const s = String(raw).trim();
+  // Plausible-year bound, applied to EVERY path rather than only the
+  // Date-parsing fallback. An ISO-shaped epoch-zero row ("1970-01-01") used to
+  // match the regex and return before the check was ever reached — and Apple
+  // Health exports do contain those.
+  const inRange = (y)=> y >= 2000 && y <= 2100;
+  // Already ISO, possibly with a time component attached.
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return inRange(Number(m[1])) ? `${m[1]}-${m[2]}-${m[3]}` : null;
+  // YYYY/MM/DD
+  m = s.match(/^(\d{4})\/(\d{2})\/(\d{2})/);
+  if(m) return inRange(Number(m[1])) ? `${m[1]}-${m[2]}-${m[3]}` : null;
+  // Anything of the form A/B/YYYY is genuinely ambiguous — 03/04/2026 is
+  // March 4th in the US and April 3rd almost everywhere else, and the file
+  // rarely says which. Rejected rather than guessed.
+  if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) return null;
+  // Fall back to the engine for named-month formats ("5 Jan 2026").
+  const d = new Date(s);
+  if(isNaN(d.getTime())) return null;
+  const y = d.getFullYear();
+  if(!inRange(y)) return null;
+  return `${y}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function matchColumn(headers, aliases){
+  const norm = headers.map(h=> String(h).toLowerCase().trim().replace(/\s+/g,' '));
+  // Exact match first — "steps" should never lose to "steps goal" just because
+  // the latter appeared earlier in the file.
+  for(const a of aliases){
+    const i = norm.indexOf(a);
+    if(i !== -1) return i;
+  }
+  for(let i = 0; i < norm.length; i++){
+    if(aliases.some(a=> norm[i].includes(a))) return i;
+  }
+  return -1;
+}
+
+// Returns {rows: {metricId: [{date, value}]}, skipped, dateCol, found}
+function parseHealthCsv(text){
+  const lines = String(text).split(/\r?\n/).filter(l=> l.trim() !== '');
+  if(lines.length < 2) return {rows:{}, skipped:0, found:[], error:'That file has no data rows in it.'};
+
+  const headers = splitCsvLine(lines[0]);
+  const dateCol = matchColumn(headers, DATE_ALIASES);
+  if(dateCol === -1) return {rows:{}, skipped:0, found:[], error:"Couldn't find a date column. The first row needs a header naming one (e.g. \"Date\")."};
+
+  const cols = {};
+  Object.keys(HEALTH_METRICS).forEach(id=>{
+    const i = matchColumn(headers, HEALTH_METRICS[id].aliases);
+    if(i !== -1 && i !== dateCol) cols[id] = i;
+  });
+  const found = Object.keys(cols);
+  if(found.length === 0){
+    return {rows:{}, skipped:0, found:[], error:'No steps, resting heart rate or HRV column found. Those are the three this reads; anything else in the file is ignored.'};
+  }
+
+  const rows = {};
+  found.forEach(id=> rows[id] = []);
+  let skipped = 0;
+
+  for(let i = 1; i < lines.length; i++){
+    const cells = splitCsvLine(lines[i]);
+    const date = normaliseImportDate(cells[dateCol]);
+    if(!date){ skipped++; continue; }
+    found.forEach(id=>{
+      const spec = HEALTH_METRICS[id];
+      const raw = cells[cols[id]];
+      if(raw === undefined || raw === '') return;
+      // Strips thousands separators and any unit suffix the export tacked on.
+      const n = Number(String(raw).replace(/,/g,'').replace(/[^\d.\-]/g,''));
+      if(isNaN(n) || n < spec.min || n > spec.max){ skipped++; return; }
+      rows[id].push({date, value: spec.integer ? Math.round(n) : Math.round(n*10)/10});
+    });
+  }
+  return {rows, skipped, found};
+}
+
+// Merges into the existing log rather than replacing it. Re-importing an
+// overlapping export is the normal case — you export the last 90 days each
+// month — so a same-date entry is overwritten by the newer file and everything
+// else is left alone. Replacing wholesale would silently delete history that
+// only existed in an older export.
+async function mergeHealthLog(storageKey, entries){
+  let existing = [];
+  try{
+    const res = await window.storage.get(storageKey);
+    if(res && res.value) existing = JSON.parse(res.value);
+  }catch(e){ existing = []; }
+  const byDate = {};
+  existing.forEach(e=>{ if(e && e.date) byDate[e.date] = e; });
+  let added = 0, updated = 0;
+  entries.forEach(e=>{
+    if(byDate[e.date] !== undefined){
+      if(byDate[e.date].value !== e.value) updated++;
+    } else added++;
+    byDate[e.date] = e;
+  });
+  const merged = Object.values(byDate).sort((a,b)=> a.date.localeCompare(b.date));
+  await window.storage.set(storageKey, JSON.stringify(merged));
+  return {added, updated, total: merged.length};
+}
+
+async function fetchHealthLog(metricId){
+  const spec = HEALTH_METRICS[metricId];
+  if(!spec) return [];
+  try{
+    const res = await window.storage.get(spec.key);
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){}
+  return [];
+}
 
 // [ANALYSIS EMPTY-STATE PASS] --------------------------------------------------
 // Analysis carries 16 cards. Three of them (BP, Glucose, Meal Timing) already
