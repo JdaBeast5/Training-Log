@@ -8,7 +8,7 @@
 //
 // HANDOFF v6 §6 flagged that APP_VERSION had not moved in five sessions and
 // that nobody knew whether sw.js keyed off it. It does now.
-const VERSION = '3.1';
+const VERSION = '3.4';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the
@@ -79,6 +79,20 @@ self.addEventListener('activate', (event)=>{
 
 self.addEventListener('message', (event)=>{
   if(event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
+});
+
+// Tapping the "rest is over" notification should put you back in the app, not
+// open a second copy of it in a new window. matchAll with includeUncontrolled
+// because a notification can outlive the client that scheduled it.
+self.addEventListener('notificationclick', (event)=>{
+  event.notification.close();
+  event.waitUntil((async ()=>{
+    const all = await self.clients.matchAll({type:'window', includeUncontrolled:true});
+    for(const c of all){
+      if('focus' in c) return c.focus();
+    }
+    if(self.clients.openWindow) return self.clients.openWindow('./');
+  })());
 });
 
 self.addEventListener('fetch', (event)=>{

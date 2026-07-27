@@ -904,6 +904,11 @@
   .rest-timer-panel-adjust{
     display:flex; flex-wrap:wrap; gap:6px; padding:0 2px 4px;
   }
+  .rest-timer-panel-notify{display:flex; padding:0 2px 6px;}
+  .rest-timer-panel-notify[hidden]{display:none;}
+  .rest-timer-panel-note{padding:0 4px 8px; font-size:11px; line-height:1.45; color:var(--text-muted); text-align:center;}
+  .rest-timer-panel-note[hidden]{display:none;}
+  .rt-notify{flex:1; font-family:'Inter',sans-serif; font-size:12px;}
   .rt-adjust{
     flex:1; min-width:50px; padding:8px 6px; background:rgba(91,124,255,0.1); border:1px solid rgba(91,124,255,0.3);
     border-radius:var(--radius-sm); color:var(--text); font-size:12px; font-weight:600; cursor:pointer; font-family:'IBM Plex Mono',monospace;
@@ -2707,6 +2712,12 @@
         </div>
 
         <div>
+          <label class="care-label">During a workout</label>
+          <label class="save-to-library-label"><input type="checkbox" id="wakeLockToggle" checked><span>Keep the screen awake</span></label>
+          <div class="history-hint field-note" id="wakeLockNote">Stops the phone sleeping between sets while you are logging. It releases itself when you switch apps, and after 15 minutes with nothing logged, so it cannot sit draining the battery once you have finished. Pressing the power button still locks the phone as normal.</div>
+        </div>
+
+        <div>
           <label class="care-label">My equipment</label>
           <div class="history-hint field-note" style="margin-top:0;">Suggested weights get rounded to something you can actually load, and the plate calculator only lists plates you own. Leave it alone if you train at a commercial gym.</div>
           <div class="equip-grid">
@@ -3517,6 +3528,14 @@
   <div class="rest-timer-expand" id="restTimerPanel"><div>
     <div class="rest-timer-panel-tier" id="restTimerPanelTier"></div>
     <div class="rest-timer-panel-tip" id="restTimerPanelTip"></div>
+    <!-- Only ever visible when notifications are supported AND permission is
+         still 'default'. An OS permission dialog is the most interruptive thing
+         this app can cause, so it is put behind a deliberate tap rather than
+         fired from the timer starting — see requestRestNotifications(). -->
+    <div class="rest-timer-panel-notify" id="restTimerNotifyRow" hidden>
+      <button class="rt-adjust rt-notify" id="restTimerNotifyBtn" type="button">🔔 Tell me when rest is over</button>
+    </div>
+    <div class="rest-timer-panel-note" id="restTimerNotifyNote" hidden></div>
     <div class="rest-timer-panel-adjust">
       <button class="rt-adjust" data-delta="-30">-30s</button>
       <button class="rt-adjust" data-delta="-15">-15s</button>
@@ -3710,7 +3729,7 @@
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.1';
+const APP_VERSION = '3.4';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -14859,9 +14878,187 @@ function applyRestTimerExpandHeight(){
   if(h > 0) el.style.setProperty('--rest-timer-expand-h', h+'px');
 }
 
+// [REST OVER NOTIFICATIONS] ----------------------------------------------------
+// The timer previously decremented a counter once per second and trusted it.
+// That is wrong twice over on a phone: setInterval is throttled hard in a
+// backgrounded tab and suspended outright when the screen locks, so the
+// remaining time drifted low and, after a real backgrounding, came back showing
+// minutes of rest that had already elapsed. Everything below hangs off a
+// wall-clock deadline instead, which is also the only thing a notification can
+// honestly be scheduled against.
+let restTimerEndsAt = null;
+const REST_NOTIFICATION_TAG = 'rest-timer';
+
+function restNotificationsSupported(){
+  return typeof Notification !== 'undefined' && 'serviceWorker' in navigator;
+}
+
+// `new Notification()` is not the API to use here. iOS supports notifications
+// from an installed PWA only via the service worker registration, and Chrome on
+// Android refuses the constructor outright. Both go through showNotification().
+async function swReg(){
+  try{ return await navigator.serviceWorker.ready; }catch(e){ return null; }
+}
+
+function refreshRestNotifyControls(){
+  const row = document.getElementById('restTimerNotifyRow');
+  const note = document.getElementById('restTimerNotifyNote');
+  if(!row || !note) return;
+  if(!restNotificationsSupported()){ row.hidden = true; note.hidden = true; return; }
+  const perm = Notification.permission;
+  row.hidden = perm !== 'default';
+  if(perm === 'denied'){
+    // Worth saying once. A silent missing button reads as a missing feature,
+    // and the permission cannot be re-requested from script once denied —
+    // only the OS settings can undo it.
+    note.hidden = false;
+    note.textContent = 'Notifications are blocked for this app. Turn them back on in your device settings if you want an alert when rest is over.';
+  } else {
+    note.hidden = true;
+    note.textContent = '';
+  }
+}
+
+async function requestRestNotifications(){
+  if(!restNotificationsSupported()) return;
+  try{
+    // Called straight from a click handler on purpose: iOS requires user
+    // activation for this, and the set-save path that starts the timer is a
+    // chain of awaits that may well have spent its activation by the time it
+    // gets here.
+    await Notification.requestPermission();
+  }catch(e){}
+  refreshRestNotifyControls();
+  // A timer is almost certainly already running — that is why the button was
+  // on screen — so honour the permission immediately rather than from the
+  // next set.
+  if(restTimerEndsAt) await scheduleRestNotification();
+}
+
+// Two delivery paths, and they are not equivalent:
+//
+//   * Notification Triggers (TimestampTrigger) hands the deadline to the
+//     browser, which fires it whether or not this page is alive. This is the
+//     only path that genuinely survives a locked screen. Chromium only.
+//   * Everywhere else — including every iPhone — the fallback fires from
+//     completeRestTimer(), which means it lands when the timer completes if
+//     the app is still running, and on resume if the OS suspended us. On a
+//     locked iPhone that is later than "when rest ended", and there is no
+//     web API today that does better.
+async function scheduleRestNotification(){
+  if(!restNotificationsSupported() || Notification.permission !== 'granted') return;
+  if(!restTimerEndsAt) return;
+  const reg = await swReg();
+  if(!reg || !reg.showNotification) return;
+  await cancelRestNotification();
+  if('showTrigger' in Notification.prototype && typeof TimestampTrigger !== 'undefined'){
+    try{
+      await reg.showNotification('Rest is over', {
+        body: 'Time for your next set.',
+        tag: REST_NOTIFICATION_TAG,
+        showTrigger: new TimestampTrigger(restTimerEndsAt),
+      });
+    }catch(e){}
+  }
+}
+
+async function cancelRestNotification(){
+  if(!restNotificationsSupported()) return;
+  const reg = await swReg();
+  if(!reg || !reg.getNotifications) return;
+  try{
+    // includeTriggered picks up scheduled-but-not-yet-fired notifications.
+    // Without it, adjusting or closing the timer would leave the original
+    // deadline armed and fire an alert for a rest period that no longer exists.
+    const list = await reg.getNotifications({tag: REST_NOTIFICATION_TAG, includeTriggered: true});
+    list.forEach(n=> n.close());
+  }catch(e){
+    try{
+      const list = await reg.getNotifications({tag: REST_NOTIFICATION_TAG});
+      list.forEach(n=> n.close());
+    }catch(e2){}
+  }
+}
+
+async function fireRestNotificationNow(){
+  if(!restNotificationsSupported() || Notification.permission !== 'granted') return;
+  // No notification when the app is in front of you. The pill already says
+  // "Time's up!", it beeps, and a banner over the top of it is pure noise.
+  if(document.visibilityState === 'visible') return;
+  const reg = await swReg();
+  if(!reg || !reg.showNotification) return;
+  try{
+    await reg.showNotification('Rest is over', {
+      body: 'Time for your next set.',
+      tag: REST_NOTIFICATION_TAG,
+    });
+  }catch(e){}
+}
+
+// Extracted from inside the interval so the resume resync can reach it. A
+// timer that expired while the phone was locked has to complete on return,
+// not carry on counting down from where it was suspended.
+function completeRestTimer(opts){
+  const silent = !!(opts && opts.silent);
+  const el = document.getElementById('restTimer');
+  const timeEl = document.getElementById('restTimerTime');
+  if(restTimerInterval){ clearInterval(restTimerInterval); restTimerInterval = null; }
+  restTimerEndsAt = null;
+  restTimerSeconds = 0;
+  timeEl.textContent = "Time's up!";
+  updateRestTimerRing();
+  if(!silent){
+    try{
+      // simple audio beep to signal rest is over
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      osc.frequency.value = 880;
+      osc.connect(ctx.destination);
+      osc.start();
+      setTimeout(()=>{ osc.stop(); ctx.close(); }, 300);
+    }catch(e){}
+    fireRestNotificationNow();
+  }
+  setTimeout(()=>{ el.classList.remove('active'); el.classList.remove('urgent'); el.classList.remove('expanded'); }, 2500);
+}
+
+// Single source of truth for "how much rest is left", derived from the
+// deadline rather than from a counter that a suspended tab stops decrementing.
+function restRemainingSeconds(){
+  if(!restTimerEndsAt) return 0;
+  return Math.max(0, Math.round((restTimerEndsAt - Date.now()) / 1000));
+}
+
+function tickRestTimer(){
+  const el = document.getElementById('restTimer');
+  const timeEl = document.getElementById('restTimerTime');
+  restTimerSeconds = restRemainingSeconds();
+  if(restTimerSeconds <= 0){ completeRestTimer(); return; }
+  timeEl.textContent = formatTimer(restTimerSeconds);
+  updateRestTimerRing();
+  // Urgency pulse in the closing seconds — a glance at the corner of your
+  // eye is enough to know rest is nearly over, without staring at the clock.
+  el.classList.toggle('urgent', restTimerSeconds <= 5);
+}
+
+// Resume handling. Registered at parse time, like the wake lock's, so it does
+// not depend on init() completing.
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState !== 'visible') return;
+  refreshRestNotifyControls();
+  if(!restTimerEndsAt) return;
+  // Came back to a timer that had already run out: complete it silently. The
+  // beep would be announcing something that happened minutes ago, and any
+  // notification for it has already been delivered or is moot now the app is
+  // in front of you.
+  if(restRemainingSeconds() <= 0){ completeRestTimer({silent:true}); cancelRestNotification(); }
+  else tickRestTimer();
+});
+
 function startRestTimer(seconds, label){
   restTimerSeconds = seconds || 90;
   restTimerTotal = restTimerSeconds;
+  restTimerEndsAt = Date.now() + restTimerSeconds * 1000;
   const el = document.getElementById('restTimer');
   const timeEl = document.getElementById('restTimerTime');
   el.classList.add('active');
@@ -14877,64 +15074,164 @@ function startRestTimer(seconds, label){
   timeEl.textContent = formatTimer(restTimerSeconds);
   document.getElementById('restTimerPanelTier').textContent = label || '';
   document.getElementById('restTimerPanelTip').textContent = REST_TIER_TIPS[label] || '';
+  // Before the height measurement, not after: the notify row is part of the
+  // panel's content, and measuring without it renders a panel too short to
+  // show the button it was measured to contain.
+  refreshRestNotifyControls();
   applyRestTimerExpandHeight();
   el.classList.remove('expanded'); // fresh set, fresh timer — don't carry over an expanded state from the last one
   updateRestTimerRing();
   if(restTimerInterval) clearInterval(restTimerInterval);
-  restTimerInterval = setInterval(()=>{
-    restTimerSeconds--;
-    if(restTimerSeconds <= 0){
-      clearInterval(restTimerInterval);
-      timeEl.textContent = "Time's up!";
-      updateRestTimerRing();
-      try{
-        // simple audio beep to signal rest is over
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        osc.frequency.value = 880;
-        osc.connect(ctx.destination);
-        osc.start();
-        setTimeout(()=>{ osc.stop(); ctx.close(); }, 300);
-      }catch(e){}
-      setTimeout(()=>{ el.classList.remove('active'); el.classList.remove('urgent'); el.classList.remove('expanded'); }, 2500);
-      return;
-    }
-    timeEl.textContent = formatTimer(restTimerSeconds);
-    updateRestTimerRing();
-    // Urgency pulse in the closing seconds — a glance at the corner of your
-    // eye is enough to know rest is nearly over, without staring at the clock.
-    el.classList.toggle('urgent', restTimerSeconds <= 5);
-  }, 1000);
+  restTimerInterval = setInterval(tickRestTimer, 1000);
+  scheduleRestNotification();
 }
 
 document.getElementById('restTimerToggle').addEventListener('click', ()=>{
   document.getElementById('restTimer').classList.toggle('expanded');
 });
 
+document.getElementById('restTimerNotifyBtn').addEventListener('click', requestRestNotifications);
+
+// Every adjustment moves the deadline, not just the displayed number — and a
+// moved deadline has to re-arm the notification, or the alert still fires at
+// the old time for a rest period that was extended.
+function adjustRestTimer(delta){
+  restTimerSeconds = Math.max(0, restRemainingSeconds() + delta);
+  restTimerTotal = Math.max(1, restTimerTotal + delta);
+  restTimerEndsAt = Date.now() + restTimerSeconds * 1000;
+  document.getElementById('restTimerTime').textContent = formatTimer(restTimerSeconds);
+  updateRestTimerRing();
+  if(restTimerSeconds > 5) document.getElementById('restTimer').classList.remove('urgent');
+  scheduleRestNotification();
+}
+
 document.querySelectorAll('.rt-adjust[data-delta]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    const delta = Number(btn.dataset.delta);
-    restTimerSeconds = Math.max(0, restTimerSeconds + delta);
-    restTimerTotal = Math.max(1, restTimerTotal + delta);
-    document.getElementById('restTimerTime').textContent = formatTimer(restTimerSeconds);
-    updateRestTimerRing();
-    if(restTimerSeconds > 5) document.getElementById('restTimer').classList.remove('urgent');
+    adjustRestTimer(Number(btn.dataset.delta));
   });
 });
 
 document.getElementById('restTimerAdd').addEventListener('click', ()=>{
-  restTimerSeconds += 15;
-  restTimerTotal += 15;
-  document.getElementById('restTimerTime').textContent = formatTimer(restTimerSeconds);
-  updateRestTimerRing();
-  document.getElementById('restTimer').classList.remove('urgent');
+  adjustRestTimer(15);
 });
 document.getElementById('restTimerClose').addEventListener('click', ()=>{
-  if(restTimerInterval) clearInterval(restTimerInterval);
+  if(restTimerInterval){ clearInterval(restTimerInterval); restTimerInterval = null; }
+  // Dismissing the timer must disarm the alert too. Otherwise closing it and
+  // walking out of the gym still buzzes your pocket two minutes later.
+  restTimerEndsAt = null;
+  cancelRestNotification();
   const el = document.getElementById('restTimer');
   el.classList.remove('active');
   el.classList.remove('expanded');
   el.classList.remove('urgent');
+});
+
+// [SCREEN WAKE LOCK] -----------------------------------------------------------
+// The phone sleeping between sets, and having to be unlocked with chalky hands
+// mid-workout, was the most-felt gap once this became a daily-use installed app.
+//
+// The shape of this is dictated by how the API actually behaves rather than by
+// how it reads:
+//
+//   * `request('screen')` REJECTS when the document is hidden. It is not a
+//     no-op — an unguarded call from a background timer throws, so every
+//     acquisition is gated on visibilityState and caught.
+//   * The OS drops the lock on its own whenever the page is hidden, and does
+//     NOT hand it back on return. Without the visibilitychange re-acquisition
+//     below, glancing at a text message would silently end wake lock for the
+//     rest of the session, which is worse than not having it: it would work
+//     right up until the first moment you tested it.
+//   * The sentinel fires 'release' for both our own release and the OS's, so
+//     that handler is the single place the reference is cleared. Anything else
+//     leaks a dead sentinel and makes `wakeLockSentinel` a lie.
+//
+// `wakeLockWanted` is the intent and the sentinel is the current mechanical
+// state; they are deliberately separate, because between backgrounding and
+// returning we still want the lock while not holding one.
+let wakeLockSentinel = null;
+let wakeLockWanted = false;
+let wakeLockEnabled = true;      // user preference; defaults on
+let wakeLockIdleTimer = null;
+
+// Long enough to clear any real rest period — 3-5 minutes is a normal rest on
+// heavy work, and walking to another station adds more — and short enough that
+// a phone left face-up on the bench after the last set isn't lit for an hour.
+const WAKE_LOCK_IDLE_MS = 15 * 60 * 1000;
+
+function wakeLockSupported(){
+  return !!(navigator.wakeLock && typeof navigator.wakeLock.request === 'function');
+}
+
+async function acquireWakeLock(){
+  if(!wakeLockEnabled || !wakeLockSupported()) return;
+  if(wakeLockSentinel) return;
+  if(document.visibilityState !== 'visible') return;   // would reject; see above
+  try{
+    wakeLockSentinel = await navigator.wakeLock.request('screen');
+    wakeLockSentinel.addEventListener('release', ()=>{ wakeLockSentinel = null; });
+  }catch(e){
+    // Battery saver, an unsupported engine, or a permissions policy. The app
+    // works exactly as it did before; there is nothing useful to say.
+    wakeLockSentinel = null;
+  }
+}
+
+function releaseWakeLock(){
+  wakeLockWanted = false;
+  if(wakeLockIdleTimer){ clearTimeout(wakeLockIdleTimer); wakeLockIdleTimer = null; }
+  // The 'release' listener nulls the reference; releasing here and also
+  // nulling would double-handle it and hide a genuine failure to release.
+  if(wakeLockSentinel){ try{ wakeLockSentinel.release(); }catch(e){ wakeLockSentinel = null; } }
+}
+
+// Called wherever the user demonstrates they are mid-workout. Logging a set is
+// currently the only such signal, and it is a good one: it is unambiguous,
+// it already exists, and it cannot fire from a background tab.
+function noteWorkoutActivity(){
+  if(!wakeLockEnabled) return;
+  wakeLockWanted = true;
+  if(wakeLockIdleTimer) clearTimeout(wakeLockIdleTimer);
+  wakeLockIdleTimer = setTimeout(releaseWakeLock, WAKE_LOCK_IDLE_MS);
+  acquireWakeLock();
+}
+
+// Registered at parse time rather than from init(), for the same reason
+// initScrollLock() is: init is a chain of ~40 sequential awaits and any one of
+// them hanging would take this down with it. This depends on nothing.
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible'){
+    if(wakeLockWanted) acquireWakeLock();
+  }
+  // No release on hide: the OS has already done it, and calling release() on a
+  // sentinel the platform has taken back throws in some engines.
+});
+
+async function loadWakeLockPref(){
+  try{
+    const res = await window.storage.get('wake-lock-pref');
+    if(res && res.value === '0') wakeLockEnabled = false;
+  }catch(e){}
+}
+
+function applyWakeLockPrefToUI(){
+  const toggle = document.getElementById('wakeLockToggle');
+  const note = document.getElementById('wakeLockNote');
+  if(!toggle) return;
+  toggle.checked = wakeLockEnabled;
+  if(!wakeLockSupported()){
+    // Shown rather than hidden. A missing control reads as a missing feature
+    // and invites a bug report; an explained one does not.
+    toggle.checked = false;
+    toggle.disabled = true;
+    if(note) note.textContent = 'This browser does not support the screen wake lock, so the phone will sleep between sets as it always has. On iPhone this needs iOS 16.4 or later.';
+  }
+}
+
+document.addEventListener('change', (e)=>{
+  if(!e.target || e.target.id !== 'wakeLockToggle') return;
+  wakeLockEnabled = !!e.target.checked;
+  try{ window.storage.set('wake-lock-pref', wakeLockEnabled ? '1' : '0'); }catch(e){}
+  if(!wakeLockEnabled) releaseWakeLock();
 });
 
 // Total distance logged in an entry, in metres. Sets without a distance
@@ -15327,6 +15624,9 @@ function wireSetsBlock(row, exIdx, ex){
       // Update volume/1RM/prior-session hint in place, without wiping the checkmark we just set
       await refreshSessionSummary(row, exIdx, ex);
       startRestTimer(getDefaultRestSeconds(ex), getRestReasonLabel(ex));
+      // Same signal, two consumers: a logged set both starts the rest clock and
+      // means the phone should stay awake for the next one.
+      noteWorkoutActivity();
       checkAllSetsCompleteAndAutoCheck();
     };
     if(wInput) wInput.addEventListener('change', save);
@@ -21417,11 +21717,42 @@ document.getElementById('calendarNextMonth').addEventListener('click', ()=>{
 // looking at, not a reason to be sent somewhere else. This restores both
 // the visual tab AND the content it needs, since most tabs only render
 // their content lazily on first visit, not proactively at page load.
+// The one list. It was previously inline in the stored-value check, and a
+// deep link validating against a second copy is exactly how a new tab ends up
+// reachable from one route and not the other.
+const VIEW_KEYS = ['today','log','analysis','history','care','coach','learn'];
+
+// Manifest `shortcuts` entries are just URLs, so a shortcut can only land
+// somewhere useful if the app reads where it was asked to go. `?view=log`
+// opens on the weight/food tab, `?view=today` on the workout.
+//
+// Validated against VIEW_KEYS rather than trusted: the value goes straight
+// into switchView, which would leave every tab hidden if handed a key it
+// doesn't know, and the URL is the one input here that anything can set.
+function launchViewFromUrl(){
+  try{
+    const params = new URLSearchParams(window.location.search);
+    const requested = params.get('view');
+    if(!requested || !VIEW_KEYS.includes(requested)) return null;
+    // Strip it once consumed. Left in place it would outrank the stored tab on
+    // every subsequent reload — a shortcut would stop being a way to open one
+    // tab and become a way to pin the app to it, and pull-to-refresh from
+    // anywhere else would bounce you back.
+    params.delete('view');
+    const qs = params.toString();
+    history.replaceState(null, '', window.location.pathname + (qs ? '?' + qs : '') + window.location.hash);
+    return requested;
+  }catch(e){ return null; }
+}
+
 async function restoreActiveView(){
   let savedView = 'today';
-  try{
+  const requested = launchViewFromUrl();
+  if(requested){
+    savedView = requested;
+  } else try{
     const res = await window.storage.get('active-view');
-    if(res && res.value && ['today','log','analysis','history','care','coach','learn'].includes(res.value)){
+    if(res && res.value && VIEW_KEYS.includes(res.value)){
       savedView = res.value;
     }
   }catch(e){}
@@ -25881,10 +26212,12 @@ if(activeUserId){
 
     await loadWeightUnit();
     await loadDistanceUnit();
+    await loadWakeLockPref();
     await loadEquipmentProfile();
     await loadSuggestionModePref();
     getMesocycleWeek().then(w=> renderLoadModeNote(w)).catch(()=>{});
     applyWeightUnitToUI();
+    applyWakeLockPrefToUI();
     renderEquipmentPicker();
     wireEquipmentPicker();
     await restoreCardOpenStates();
