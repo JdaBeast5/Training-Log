@@ -473,6 +473,12 @@
     display:grid; grid-template-rows:0fr; opacity:0;
     transition:grid-template-rows 0.38s var(--ease-smooth), opacity 0.28s var(--ease-smooth);
   }
+  /* The 0fr collapse defines exactly ONE row. Extra direct children land in
+     implicit auto rows that never collapse, which is how the Import Health Data
+     card ended up with a block of empty space under its title on a real phone.
+     Every card is supposed to wrap its contents in a single child; this makes a
+     card that forgets fail as "clipped" rather than "permanently half open". */
+  .expand-wrap > *{min-height:0; overflow:hidden;}
   .expand-wrap.open{grid-template-rows:1fr; opacity:1;}
   .expand-wrap > div{overflow:hidden;}
   .smooth-toggle{
@@ -3068,10 +3074,13 @@
       <span><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a7.5 7.5 0 1 0 7.5 7.5"/><path d="M10 6v4l2.5 2.5"/></svg></span>App Health Check</span>
       <span class="ex-chevron" id="diagChevron">›</span>
     </div>
+    <div class="nutrition-summary" id="diagSummaryLine">Version, offline support and storage</div>
     <div class="expand-wrap" id="diagExpandWrap">
-      <div class="history-hint">Checks whether this device is running the newest version, whether offline support is working, and whether storage is healthy. Run it after publishing an update if the app looks unchanged.</div>
-      <button class="switch-profile-btn" id="diagRunBtn">🩺 Run check</button>
-      <div id="diagResults"></div>
+      <div>
+        <div class="history-hint">Checks whether this device is running the newest version, whether offline support is working, and whether storage is healthy. Run it after publishing an update if the app looks unchanged.</div>
+        <button class="switch-profile-btn" id="diagRunBtn">🩺 Run check</button>
+        <div id="diagResults"></div>
+      </div>
     </div>
   </div>
 
@@ -3080,12 +3089,15 @@
       <span><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3l2-5 3 8 2-4h4"/></svg></span>Import Health Data</span>
       <span class="ex-chevron" id="healthImportChevron">›</span>
     </div>
+    <div class="nutrition-summary" id="healthImportSummaryLine">Steps, resting HR and HRV from a CSV export</div>
     <div class="expand-wrap" id="healthImportExpandWrap">
-      <div class="history-hint">Bring in steps, resting heart rate and HRV from Apple Health, Garmin, Fitbit, Oura or Whoop. Export a CSV from that app, then pick it here. Resting heart rate is what the readiness check on Today leans on most.</div>
-      <input type="file" id="healthImportInput" accept=".csv,text/csv" style="display:none">
-      <button class="switch-profile-btn" id="healthImportBtn">📥 Choose a CSV file</button>
-      <div id="healthImportStatus" class="history-hint"></div>
-      <div id="healthImportSummary"></div>
+      <div>
+        <div class="history-hint">Bring in steps, resting heart rate and HRV from Apple Health, Garmin, Fitbit, Oura or Whoop. Export a CSV from that app, then pick it here. Resting heart rate is what the readiness check on Today leans on most.</div>
+        <input type="file" id="healthImportInput" accept=".csv,text/csv" style="display:none">
+        <button class="switch-profile-btn" id="healthImportBtn">📥 Choose a CSV file</button>
+        <div id="healthImportStatus" class="history-hint"></div>
+        <div id="healthImportSummary"></div>
+      </div>
     </div>
   </div>
 
@@ -3685,7 +3697,7 @@
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '2.8';
+const APP_VERSION = '2.9';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -25013,7 +25025,7 @@ async function checkBuildFreshness(){
 async function checkManifest(){
   try{
     const res = await fetch('./manifest.json', {cache:'reload'});
-    if(!res || !res.ok) return {ok:false, reason:`Not found (HTTP ${res ? res.status : '?'})`};
+    if(!res || !res.ok) return {ok:false, reason:`Not found (HTTP ${res ? res.status : '?'}) — deploy manifest.json next to index.html. The app still works without it; it just can't be installed to the home screen properly.`};
     const json = await res.json();
     const icons = Array.isArray(json.icons) ? json.icons.length : 0;
     if(!json.name || !json.start_url) return {ok:false, reason:'Present but missing name or start_url'};
@@ -25028,7 +25040,7 @@ async function checkServiceWorker(){
   if(!('serviceWorker' in navigator)) return {ok:false, reason:'Not supported in this browser'};
   try{
     const reg = await navigator.serviceWorker.getRegistration();
-    if(!reg) return {ok:false, reason:'Not registered — the app will not work offline'};
+    if(!reg) return {ok:false, reason:'Not registered — check that sw.js is deployed next to index.html and that the page is served over HTTPS'};
     const state = reg.active ? 'active' : reg.installing ? 'installing' : reg.waiting ? 'waiting' : 'unknown';
     let cacheName = null;
     try{
@@ -25092,6 +25104,16 @@ async function runDiagnostics(){
     // The failure this whole panel exists to surface.
     buildRow = diagRow('Build freshness', {ok:false,
       reason:`STALE — running v${build.running}, server has v${build.served}. Tap "Force refresh" below.`});
+  } else if(!sw.ok){
+    // Green here is trivially true when nothing is cached: with no service
+    // worker every load comes straight from the server, so running and served
+    // versions ALWAYS match. Reporting a plain tick would imply the update path
+    // works when it has not been exercised at all. Seen on a real device — the
+    // first run of this panel showed "Up to date" directly above "Service
+    // worker: not registered", which reads as two unrelated facts rather than
+    // one explaining the other.
+    buildRow = diagRow('Build freshness', {ok:true, warn:
+      `v${build.running} matches the server — but with no service worker nothing is cached, so this will always match. It becomes a real check once offline support is working.`});
   } else {
     buildRow = diagRow('Build freshness', {ok:true, detail:`Up to date (v${build.running})`});
   }
