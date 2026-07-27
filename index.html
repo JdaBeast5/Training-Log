@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Training Log — Jason</title>
+<!-- iOS ignores the manifest icons for a home-screen bookmark and reads ONLY
+     apple-touch-icon. Without these, Safari falls back to a screenshot or the
+     first letter of the title — which is why the saved app showed a bare "T". -->
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="167x167" href="./apple-touch-icon-167.png">
+<link rel="apple-touch-icon" sizes="152x152" href="./apple-touch-icon-152.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Training Log">
@@ -3702,7 +3710,7 @@
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.0';
+const APP_VERSION = '3.1';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------

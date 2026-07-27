@@ -8,7 +8,7 @@
 //
 // HANDOFF v6 §6 flagged that APP_VERSION had not moved in five sessions and
 // that nobody knew whether sw.js keyed off it. It does now.
-const VERSION = '3.0';
+const VERSION = '3.1';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the
@@ -35,6 +35,9 @@ const PRECACHE_OPTIONAL = [
   './icon-192.png',
   './icon-512.png',
   './icon-512-maskable.png',
+  './apple-touch-icon.png',
+  './apple-touch-icon-167.png',
+  './apple-touch-icon-152.png',
 ];
 
 self.addEventListener('install', (event)=>{
