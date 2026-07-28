@@ -104,7 +104,7 @@
     background-attachment:fixed;
     color:var(--text);
     font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
-    padding-bottom:60px;
+    padding-bottom:96px;
     -webkit-font-smoothing:antialiased;
     letter-spacing:-0.01em;
     animation:appFadeIn 0.5s var(--ease-smooth);
@@ -933,21 +933,108 @@
   .rest-timer-panel-adjust{
     display:flex; flex-wrap:wrap; gap:6px; padding:0 2px 4px;
   }
-  .custom-program-box{margin-top:14px; padding-top:12px; border-top:1px solid var(--line-bright);}
+  .custom-program-box{
+    margin-top:14px; padding:14px; border-radius:var(--radius-md);
+    background:var(--surface2); border:1px solid var(--line-bright);
+    box-shadow:var(--elev-1);
+  }
+  .custom-program-box .care-input{box-shadow:var(--rim);}
   .custom-program-row{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     padding:8px 2px; font-size:13px; color:var(--text);
   }
   .custom-program-row + .custom-program-row{border-top:1px solid var(--line-bright);}
   .custom-program-del{
-    background:none; border:1px solid rgba(255,69,58,0.3); border-radius:var(--radius-sm);
+    background:var(--surface); box-shadow:var(--elev-1);
+    border:1px solid rgba(255,69,58,0.3); border-radius:var(--radius-sm);
     color:var(--plate-red); font-size:12px; padding:5px 9px; cursor:pointer; font-family:'Inter',sans-serif;
   }
+  .settings-cog{
+    position:absolute; top:0; right:0; z-index:5;
+    width:40px; height:40px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--surface2); border:1px solid var(--line-bright); color:var(--text-muted);
+    box-shadow:var(--elev-1); cursor:pointer;
+    transition:color 0.2s var(--ease-smooth), transform 0.3s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
+  }
+  .settings-cog svg{width:19px; height:19px;}
+  .settings-cog:hover{color:var(--text);}
+  .settings-cog:active{transform:rotate(35deg); box-shadow:var(--elev-2);}
+  header{position:relative;}
+  /* Same construction as the coach panel: a blurred backdrop, and a panel that
+     scales out of the corner its button lives in. transform-origin top right
+     rather than bottom right — the settings panel grows from the cog, the coach
+     panel grows from the FAB, and each should look like it came from the thing
+     that opened it. */
+  .settings-modal{
+    position:fixed; inset:0; z-index:120;
+    display:flex; align-items:flex-start; justify-content:flex-end;
+    opacity:0; pointer-events:none;
+    transition:opacity 0.25s var(--ease-smooth);
+  }
+  .settings-modal.active{opacity:1; pointer-events:auto;}
+  .settings-backdrop{
+    position:absolute; inset:0; background:rgba(0,0,0,0.34);
+    backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  }
+  .settings-panel{
+    position:relative; z-index:1; margin:64px 14px 0 0;
+    width:min(400px, calc(100vw - 28px));
+    max-height:min(78vh, 720px);
+    display:flex; flex-direction:column;
+    background:rgba(23,25,29,0.78);
+    backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
+    border:1px solid rgba(255,255,255,0.1); border-radius:22px;
+    padding:16px;
+    box-shadow:0 30px 70px -18px rgba(0,0,0,0.7), var(--rim);
+    transform:translateY(-14px) scale(0.9); transform-origin:top right;
+    transition:transform 0.34s var(--ease-smooth);
+  }
+  .settings-modal.active .settings-panel{transform:translateY(0) scale(1);}
+  .settings-panel > *{opacity:0; transition:opacity 0.2s var(--ease-smooth);}
+  .settings-modal.active .settings-panel > *{opacity:1; transition:opacity 0.26s var(--ease-smooth) 0.14s;}
+  .settings-panel-header{
+    display:flex; align-items:center; justify-content:space-between;
+    font-weight:700; font-size:15px;
+    margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid var(--line-soft);
+  }
+  .settings-panel-close{background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer; padding:4px;}
+  /* The scroll lives on the body, not the panel, so the header stays put and
+     the rounded corners never clip a mid-scroll row. */
+  .settings-panel-body{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-right:2px;}
+  .settings-panel-body .card{margin-bottom:0; box-shadow:var(--elev-1); background:var(--surface2);}
+  .settings-panel-body select, .settings-panel-body input{box-shadow:var(--rim);}
+  .calendar-legend{
+    display:flex; flex-wrap:wrap; gap:14px; justify-content:center;
+    margin-top:12px; padding-top:10px; border-top:1px solid var(--line-bright);
+    font-size:11px; color:var(--text-muted);
+  }
+  .calendar-legend span{display:inline-flex; align-items:center; gap:6px;}
+  .calendar-legend i{position:static; transform:none; width:7px; height:7px; flex:0 0 7px;}
+  /* Filled for what happened, hollow for what didn't — so a missed day reads
+     as an absence at a glance rather than as another kind of mark. */
+  .calendar-cell-dot.mark-trained{background:var(--plate-green); box-shadow:0 0 6px -1px rgba(50,215,75,0.65);}
+  .calendar-cell-dot.mark-rest{background:var(--plate-blue); opacity:0.75;}
+  .calendar-cell-dot.mark-off{background:transparent; border:1px solid var(--text-muted); opacity:0.6;}
+  .settings-section{margin-bottom:20px;}
+  .settings-section > .care-label:first-child{
+    display:block; margin-bottom:8px; padding-bottom:6px;
+    border-bottom:1px solid var(--line-bright);
+    text-transform:uppercase; letter-spacing:0.6px; font-size:10px; color:var(--text-muted);
+  }
+  .settings-section > div + div{margin-top:14px;}
+  .settings-jump{
+    display:flex; align-items:center; justify-content:space-between; width:100%;
+    background:var(--surface2); border:1px solid var(--line-bright); border-radius:var(--radius-sm);
+    color:var(--text); font-family:'Inter',sans-serif; font-size:13px;
+    padding:12px 14px; margin-top:8px; cursor:pointer; box-shadow:var(--elev-1);
+  }
+  .settings-jump span:last-child{color:var(--text-muted);}
   .rest-timer-panel-notify{display:flex; padding:0 2px 6px;}
   .rest-timer-panel-notify[hidden]{display:none;}
   .rest-timer-panel-note{padding:0 4px 8px; font-size:11px; line-height:1.45; color:var(--text-muted); text-align:center;}
   .rest-timer-panel-note[hidden]{display:none;}
-  .rt-notify{flex:1; font-family:'Inter',sans-serif; font-size:12px;}
+  .rt-notify{flex:1; font-family:'Inter',sans-serif; font-size:12px; box-shadow:var(--elev-1);}
   .rt-adjust{
     flex:1; min-width:50px; padding:8px 6px; background:rgba(91,124,255,0.1); border:1px solid rgba(91,124,255,0.3);
     border-radius:var(--radius-sm); color:var(--text); font-size:12px; font-weight:600; cursor:pointer; font-family:'IBM Plex Mono',monospace;
@@ -2529,6 +2616,12 @@
     <h1>Training Log</h1>
     <div class="sub" id="headerSub">Set up your profile below to personalize this</div>
     <div class="streak-badge" id="streakBadge" style="display:none"></div>
+    <button class="settings-cog" id="settingsCog" aria-label="Settings">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M7.68 4.41 L8.10 2.08 L11.90 2.08 L12.32 4.41 L12.32 4.41 L14.26 3.05 L16.95 5.74 L15.59 7.68 L15.59 7.68 L17.92 8.10 L17.92 11.90 L15.59 12.32 L15.59 12.32 L16.95 14.26 L14.26 16.95 L12.32 15.59 L12.32 15.59 L11.90 17.92 L8.10 17.92 L7.68 15.59 L7.68 15.59 L5.74 16.95 L3.05 14.26 L4.41 12.32 L4.41 12.32 L2.08 11.90 L2.08 8.10 L4.41 7.68 L4.41 7.68 L3.05 5.74 L5.74 3.05 L7.68 4.41 Z" stroke-linejoin="round"/>
+        <circle cx="10" cy="10" r="2.75"/>
+      </svg>
+    </button>
   </header>
 
   <!-- App-level banner rail. Sits above the nav pills rather than inside any
@@ -2571,6 +2664,11 @@
         <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
       </div>
       <div class="calendar-grid" id="calendarGrid"></div>
+      <div class="calendar-legend">
+        <span><i class="calendar-cell-dot mark-trained"></i>Trained</span>
+        <span><i class="calendar-cell-dot mark-rest"></i>Rest day</span>
+        <span><i class="calendar-cell-dot mark-off"></i>No training</span>
+      </div>
       <button class="calendar-close-btn" id="calendarModalClose">Close</button>
     </div>
   </div>
@@ -2710,7 +2808,7 @@
       <div class="profile-row-2">
         <div>
           <label class="care-label" for="pfAge">Age</label>
-          <input type="number" id="pfAge" class="care-input" placeholder="30">
+          <input type="number" inputmode="decimal" id="pfAge" class="care-input" placeholder="30">
         </div>
         <div>
           <label class="care-label" for="pfGender">Gender</label>
@@ -2726,16 +2824,16 @@
         <div>
           <label class="care-label">Height</label>
           <div class="height-inputs">
-            <input type="number" id="pfHeightFt" class="care-input" placeholder="5" style="width:70px;" aria-label="Height, feet">
+            <input type="number" inputmode="decimal" id="pfHeightFt" class="care-input" placeholder="5" style="width:70px;" aria-label="Height, feet">
             <span class="height-unit">ft</span>
-            <input type="number" id="pfHeightIn" class="care-input" placeholder="8" style="width:70px;" aria-label="Height, inches">
+            <input type="number" inputmode="decimal" id="pfHeightIn" class="care-input" placeholder="8" style="width:70px;" aria-label="Height, inches">
             <span class="height-unit">in</span>
           </div>
         </div>
         <div>
           <label class="care-label">Weight (<span id="pfWeightUnitLabel">lb</span>)</label>
           <div style="display:flex; gap:6px;">
-            <input type="number" step="0.1" id="pfWeight" class="care-input" placeholder="160" style="flex:1;" aria-label="Body weight">
+            <input type="number" inputmode="decimal" step="0.1" id="pfWeight" class="care-input" placeholder="160" style="flex:1;" aria-label="Body weight">
             <select id="weightUnitSelect" class="care-input" style="flex:0 0 68px; padding-left:8px;" aria-label="Weight unit">
               <option value="lb">lb</option>
               <option value="kg">kg</option>
@@ -2743,7 +2841,7 @@
           </div>
         </div>
 
-        <div>
+        <div id="prefDistanceUnit">
           <label class="care-label">Distance unit</label>
           <select id="distanceUnitSelect" class="care-input" aria-label="Distance unit for cardio logging">
             <option value="mi">Miles (mi)</option>
@@ -2752,7 +2850,7 @@
           <div class="history-hint field-note">Used for cardio distance and pace. Kept separate from the weight unit on purpose — plenty of people lift in pounds and run in kilometres.</div>
         </div>
 
-        <div>
+        <div id="prefLoadMode">
           <label class="care-label">Load suggestions</label>
           <select id="loadModeSelect" class="care-input" aria-label="How suggested weights are calculated">
             <option value="progression">Double progression (default)</option>
@@ -2761,8 +2859,8 @@
           <div class="history-hint field-note" id="loadModeNote"></div>
         </div>
 
-        <div>
-          <label class="care-label">During a workout</label>
+        <div id="prefWakeLock">
+          <label class="care-label">Screen</label>
           <label class="save-to-library-label"><input type="checkbox" id="wakeLockToggle" checked><span>Keep the screen awake</span></label>
           <div class="history-hint field-note" id="wakeLockNote">Stops the phone sleeping between sets while you are logging. It releases itself when you switch apps, and after 15 minutes with nothing logged, so it cannot sit draining the battery once you have finished. Pressing the power button still locks the phone as normal.</div>
         </div>
@@ -2773,11 +2871,11 @@
           <div class="equip-grid">
             <div>
               <label class="equip-sublabel" for="equipBar">Bar weight (<span class="equip-unit">lb</span>)</label>
-              <input type="number" step="0.5" min="0" id="equipBar" class="care-input" aria-label="Barbell weight">
+              <input type="number" inputmode="decimal" step="0.5" min="0" id="equipBar" class="care-input" aria-label="Barbell weight">
             </div>
             <div>
               <label class="equip-sublabel" for="equipDb">Dumbbell step (<span class="equip-unit">lb</span>)</label>
-              <input type="number" step="0.5" min="0.5" id="equipDb" class="care-input" aria-label="Smallest dumbbell increment">
+              <input type="number" inputmode="decimal" step="0.5" min="0.5" id="equipDb" class="care-input" aria-label="Smallest dumbbell increment">
             </div>
           </div>
           <div class="equip-sublabel" style="margin-top:10px;">Plates I own (pairs)</div>
@@ -3081,16 +3179,16 @@
     <div class="nutrition-summary" id="measureSummary">Tap to log — track waist, chest, arms, and more over time</div>
     <div class="expand-wrap" id="measureExpandWrap"><div>
       <div class="profile-row-2">
-        <div><label class="care-label" for="mWaist">Waist (in)</label><input type="number" step="0.1" id="mWaist" class="care-input"></div>
-        <div><label class="care-label" for="mChest">Chest (in)</label><input type="number" step="0.1" id="mChest" class="care-input"></div>
+        <div><label class="care-label" for="mWaist">Waist (in)</label><input type="number" inputmode="decimal" step="0.1" id="mWaist" class="care-input"></div>
+        <div><label class="care-label" for="mChest">Chest (in)</label><input type="number" inputmode="decimal" step="0.1" id="mChest" class="care-input"></div>
       </div>
       <div class="profile-row-2">
-        <div><label class="care-label" for="mArms">Arms (in)</label><input type="number" step="0.1" id="mArms" class="care-input"></div>
-        <div><label class="care-label" for="mThighs">Thighs (in)</label><input type="number" step="0.1" id="mThighs" class="care-input"></div>
+        <div><label class="care-label" for="mArms">Arms (in)</label><input type="number" inputmode="decimal" step="0.1" id="mArms" class="care-input"></div>
+        <div><label class="care-label" for="mThighs">Thighs (in)</label><input type="number" inputmode="decimal" step="0.1" id="mThighs" class="care-input"></div>
       </div>
       <div class="profile-row-2">
-        <div><label class="care-label" for="mHips">Hips (in)</label><input type="number" step="0.1" id="mHips" class="care-input"></div>
-        <div><label class="care-label" for="mNeck">Neck (in)</label><input type="number" step="0.1" id="mNeck" class="care-input"></div>
+        <div><label class="care-label" for="mHips">Hips (in)</label><input type="number" inputmode="decimal" step="0.1" id="mHips" class="care-input"></div>
+        <div><label class="care-label" for="mNeck">Neck (in)</label><input type="number" inputmode="decimal" step="0.1" id="mNeck" class="care-input"></div>
       </div>
       <button class="save-btn" id="saveMeasurements">Log Measurements</button>
       <div class="status-msg" id="measureStatus"></div>
@@ -3137,7 +3235,7 @@
       <label class="care-label" for="cycleLastPeriod">First day of your last period</label>
       <input type="date" id="cycleLastPeriod" class="care-input">
       <label class="care-label" for="cycleLength">Average cycle length (days)</label>
-      <input type="number" id="cycleLength" class="care-input" placeholder="28" min="21" max="40">
+      <input type="number" inputmode="decimal" id="cycleLength" class="care-input" placeholder="28" min="21" max="40">
       <button class="save-btn" id="saveCycle">Save</button>
       <div class="status-msg" id="cycleStatus"></div>
 
@@ -3179,7 +3277,7 @@
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="aiSettingsCard">
     <div class="card-title nutrition-header" id="aiSettingsHeader">
       <span><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="8" height="8" rx="1"/><line x1="10" y1="1.6" x2="10" y2="6"/><line x1="10" y1="14" x2="10" y2="18.4"/><line x1="1.6" y1="10" x2="6" y2="10"/><line x1="14" y1="10" x2="18.4" y2="10"/></svg></span>AI Features Setup</span>
       <span class="ex-chevron" id="aiSettingsChevron">›</span>
@@ -3227,18 +3325,6 @@
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7.5" width="16" height="5.5" rx="1"/><line x1="6" y1="7.5" x2="6" y2="10.2"/><line x1="10" y1="7.5" x2="10" y2="10.2"/><line x1="14" y1="7.5" x2="14" y2="10.2"/></svg></span>Measurement Context</div>
       <div class="history-hint">What your tape-measure numbers mean for health, and where your body has actually been changing. Appears once you've logged measurements.</div>
       <div id="bodyMetricsContent"></div>
-    </div>
-
-    <div class="card" data-autohide>
-      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l2.5 1.5"/></svg></span>Rest Between Sets</div>
-      <div class="history-hint">What rest you actually took, session by session — the variable that drifts without anyone deciding to change it. Appears once a few sessions have been logged with the timer running.</div>
-      <div id="restTrendContent"></div>
-    </div>
-
-    <div class="card" data-autohide>
-      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h2M15 10h2"/><rect x="5" y="7" width="2.5" height="6" rx="0.8"/><rect x="12.5" y="7" width="2.5" height="6" rx="0.8"/><line x1="7.5" y1="10" x2="12.5" y2="10"/></svg></span>Strength Context</div>
-      <div class="history-hint">Your estimated maxes as a multiple of your own bodyweight, and how your lifts sit relative to each other. Appears once you've logged enough on the main barbell lifts.</div>
-      <div id="strengthContextContent"></div>
     </div>
 
     <div class="card" data-autohide>
@@ -3294,6 +3380,18 @@
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg></span>Weekly Volume by Muscle Group</div>
       <div class="history-hint">Total weight × reps lifted this week vs. last, grouped by what it trains.</div>
       <div id="volumeTrend"></div>
+    </div>
+
+    <div class="card" data-autohide>
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l2.5 1.5"/></svg></span>Rest Between Sets</div>
+      <div class="history-hint">What rest you actually took, session by session — the variable that drifts without anyone deciding to change it. Appears once a few sessions have been logged with the timer running.</div>
+      <div id="restTrendContent"></div>
+    </div>
+
+    <div class="card" data-autohide>
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h2M15 10h2"/><rect x="5" y="7" width="2.5" height="6" rx="0.8"/><rect x="12.5" y="7" width="2.5" height="6" rx="0.8"/><line x1="7.5" y1="10" x2="12.5" y2="10"/></svg></span>Strength Context</div>
+      <div class="history-hint">Your estimated maxes as a multiple of your own bodyweight, and how your lifts sit relative to each other. Appears once you've logged enough on the main barbell lifts.</div>
+      <div id="strengthContextContent"></div>
     </div>
 
     <div class="card" data-autohide>
@@ -3623,6 +3721,64 @@
   <button id="undoToastBtn">Undo</button>
 </div>
 
+<!-- SETTINGS. The sections below are filled by MOVING the existing controls in
+     at startup, not by re-creating them. Every id, every wired handler and every
+     render function that targets them keeps working untouched, because a moved
+     node keeps its listeners — whereas a second copy of #wakeLockToggle would
+     mean two checkboxes disagreeing about one setting, and every applyXToUI()
+     silently updating whichever one it found first. -->
+<div class="settings-modal" id="settingsOverlay" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+  <div class="settings-backdrop" id="settingsBackdrop"></div>
+  <div class="settings-panel">
+    <div class="settings-panel-header">
+      <div class="settings-panel-title" id="settingsTitle">Settings</div>
+      <button class="settings-panel-close" id="settingsClose" aria-label="Close settings">✕</button>
+    </div>
+    <div class="settings-panel-body">
+
+    <!-- Ordered by why you opened this panel, not by how the code is grouped.
+         The gym-floor toggles are first because reaching them is time-sensitive
+         and everything else is not. Then how numbers read, then who you are.
+         The optional integration and the maintenance tools are last: both are
+         set-up-once, and one of them contains the destructive actions. -->
+
+    <div class="settings-section">
+      <label class="care-label">During a workout</label>
+      <div id="settingsWorkoutSlot"></div>
+      <div id="settingsNotifyRow">
+        <label class="care-label">Rest alerts</label>
+        <button type="button" class="switch-profile-btn" id="settingsNotifyBtn">🔔 Allow notifications when rest is over</button>
+        <div class="history-hint field-note" id="settingsNotifyNote"></div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <label class="care-label">Units &amp; suggestions</label>
+      <div id="settingsUnitsSlot"></div>
+    </div>
+
+    <div class="settings-section">
+      <label class="care-label">You</label>
+      <div class="history-hint field-note">Your profile carries the weight unit, dietary restrictions, equipment and health conditions with it, so it lives here in full.</div>
+      <div id="settingsProfileSlot"></div>
+    </div>
+
+    <div class="settings-section">
+      <label class="care-label">AI features</label>
+      <div id="settingsAiSlot"></div>
+    </div>
+
+    <div class="settings-section">
+      <label class="care-label">Data &amp; maintenance</label>
+      <div class="history-hint field-note">Your data lives in this browser and nowhere else. The export is the only copy that is not in it.</div>
+      <button type="button" class="settings-jump" data-jump-to="exportDataBtn"><span>Backup &amp; restore your data</span><span>›</span></button>
+      <button type="button" class="settings-jump" data-jump-to="diagHeader"><span>App health check</span><span>›</span></button>
+    </div>
+</div>
+    </div>
+  </div>
+</div>
+
 <div class="sub-modal-overlay" id="subModalOverlay" role="dialog" aria-modal="true" aria-labelledby="subModalTitle">
   <div class="sub-modal-sheet">
     <div class="sub-modal-header">
@@ -3816,7 +3972,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.12';
+const APP_VERSION = '3.23';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -14022,6 +14178,148 @@ async function getCurrentTrendStatus(){
 // doesn't as of this writing), rather than showing a button that fails.
 const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+// [VOICE SET ENTRY] ------------------------------------------------------------
+// The old parser only ever looked for /\d+/. That is not what a speech engine
+// returns. "70 for 5 at a 6" comes back as some mix of digits and words that
+// varies by utterance and by engine — commonly "70 for 5 at a six", and the
+// trailing RPE is the MOST likely of the three to arrive as a word because it
+// is short, unstressed and at the end of the sentence. So the RPE was the one
+// that never landed. Nothing was wrong with the regex; it was reading the
+// wrong alphabet.
+//
+// Three other things a real transcript does that a digit scan cannot survive:
+//
+//   * "for" is transcribed as "4" constantly. "70 for 5" becomes "70 4 5",
+//     and a positional parser then reads 70x4 at RPE 5. This is why a set
+//     sometimes came out with reps it was never told.
+//   * Lifters say weights as compounds — "two twenty five", "one thirty five".
+//     Three number words, one number.
+//   * "at a 6" and "at an 8" put an article between the keyword and the value.
+//
+// So: normalise words to digits, THEN resolve connectives, THEN read the
+// grammar. Split out as a pure function because the interesting part of voice
+// input is the string handling, and none of it needs a microphone to test.
+const VOICE_UNITS = {zero:0, one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9,
+  ten:10, eleven:11, twelve:12, thirteen:13, fourteen:14, fifteen:15, sixteen:16, seventeen:17,
+  eighteen:18, nineteen:19};
+const VOICE_TENS = {twenty:20, thirty:30, forty:40, fourty:40, fifty:50, sixty:60, seventy:70, eighty:80, ninety:90};
+
+// "two twenty five" -> 225. A leading single digit followed by a tens word is
+// a hundreds compound, which is how every weight over 100 gets said out loud.
+// "one thirty five" -> 135. "three fifteen" -> 315 (a teen closes it too).
+// Runs BEFORE number words become digits, deliberately. The hundreds part can
+// arrive either way — "two twenty five" or "2 twenty five" — but the tens and
+// units parts must still be WORDS to count. Otherwise "225 15" (a weight then
+// a rep count) would collapse into 315, and a plain pair of numbers is far
+// more common than a spoken compound.
+function voiceCollapseNumbers(tokens){
+  const val = t=>{
+    if(t == null) return null;
+    if(/^\d+$/.test(t)) return Number(t);
+    return VOICE_UNITS[t] != null ? VOICE_UNITS[t] : null;
+  };
+  const out = [];
+  for(let i = 0; i < tokens.length; i++){
+    const a = tokens[i], b = tokens[i+1], c = tokens[i+2];
+    const av = val(a);
+    if(av != null && av >= 1 && av <= 9){
+      if(b != null && VOICE_TENS[b] != null){
+        const cu = (c != null && VOICE_UNITS[c] != null && VOICE_UNITS[c] < 10) ? VOICE_UNITS[c] : 0;
+        out.push(String(av * 100 + VOICE_TENS[b] + cu));
+        i += cu ? 2 : 1;
+        continue;
+      }
+      if(b != null && VOICE_UNITS[b] != null && VOICE_UNITS[b] >= 10){
+        out.push(String(av * 100 + VOICE_UNITS[b]));
+        i += 1;
+        continue;
+      }
+      // "four oh five" — hundreds with an empty tens column. Without this the
+      // sentence parses as three separate numbers and produces a set that
+      // looks entirely reasonable and is completely wrong, which is worse
+      // than failing to understand it.
+      if((b === 'oh' || b === 'o' || b === 'zero' || b === '0')){
+        const cv = val(c);
+        if(cv != null && cv >= 1 && cv <= 9){ out.push(String(av * 100 + cv)); i += 2; continue; }
+      }
+    }
+    out.push(a);
+  }
+  return out;
+}
+
+function voiceNormalise(transcript){
+  let t = String(transcript || '').toLowerCase();
+  // Punctuation out first, so "225, 5, 8" and "225 5 8" are the same sentence —
+  // but a period BETWEEN digits is a decimal point, and RPE is the one field
+  // that is routinely spoken with one. Stripping it turned 9.5 into 9 and 5.
+  t = t.replace(/[,!?;:]+/g, ' ');
+  t = t.replace(/\.(?!\d)/g, ' ');
+  let tokens = t.split(/\s+/).filter(Boolean);
+
+  // Collapse first, while the number words are still words.
+  tokens = voiceCollapseNumbers(tokens);
+  tokens = tokens.map(w=>{
+    if(VOICE_TENS[w] != null) return String(VOICE_TENS[w]);
+    if(VOICE_UNITS[w] != null) return String(VOICE_UNITS[w]);
+    return w;
+  });
+  return tokens;
+}
+
+// Returns {weight, reps, rpe} — each a number or null. Never throws, never
+// guesses past what was actually said.
+function parseVoiceSet(transcript){
+  const tokens = voiceNormalise(transcript);
+  const REP_SEP = new Set(['for', 'by', 'x', 'times']);
+  const RPE_SEP = new Set(['rpe', 'at', '@', 'rate', 'effort']);
+  const SKIP = new Set(['a', 'an', 'the', 'reps', 'rep', 'lb', 'lbs', 'kg', 'kgs', 'pounds', 'pound', 'kilos', 'and']);
+
+  const isNum = t=> /^\d+(\.\d+)?$/.test(t);
+  let weight = null, reps = null, rpe = null;
+  let seen = [];            // numbers in order, for the positional fallback
+  let pending = null;       // which field the last keyword pointed at
+
+  for(let i = 0; i < tokens.length; i++){
+    const t = tokens[i];
+    if(SKIP.has(t)) continue;
+
+    // "for" arriving as "4" is the single most common corruption here. It is
+    // only treated as a separator when it sits between two numbers and reps
+    // are not yet known — "70 4 5" is 70 for 5, but "4 5" on its own is a
+    // number followed by a number and must stay that way.
+    if(isNum(t) && t === '4' && pending === null && weight !== null && reps === null
+       && tokens[i+1] != null && isNum(tokens[i+1])){
+      pending = 'reps';
+      continue;
+    }
+    if(REP_SEP.has(t)){ pending = 'reps'; continue; }
+    if(RPE_SEP.has(t)){ pending = 'rpe'; continue; }
+    if(!isNum(t)){ pending = null; continue; }
+
+    const value = Number(t);
+    seen.push(value);
+    if(pending === 'rpe' && rpe === null){ rpe = value; pending = null; continue; }
+    if(pending === 'reps' && reps === null){ reps = value; pending = null; continue; }
+    pending = null;
+    if(weight === null) weight = value;
+    else if(reps === null) reps = value;
+    else if(rpe === null) rpe = value;
+  }
+
+  // A bare "8" with no keyword and nothing else is a rep count, not a weight —
+  // it is what you say on a bodyweight movement. Bounded by size, because
+  // "one thirty five" is also a single number and nobody does 135 reps. 30 is
+  // the ceiling: above it the number is a load, below it either reading is
+  // plausible and reps is the one you get from saying nothing else.
+  if(weight !== null && reps === null && rpe === null && seen.length === 1 && weight <= 30){
+    return {weight: null, reps: weight, rpe: null};
+  }
+  // An RPE above 10 was misheard; the scale only goes to 10.
+  if(rpe !== null && rpe > 10) rpe = null;
+  return {weight, reps, rpe};
+}
+
 const WARMUP_ELIGIBLE_CATEGORIES = ['squat','hinge','push','pull','oly','shoulder','lunge'];
 const WARMUP_MIN_WORKING_WEIGHT = 95; // below this, a formal ramp adds more clutter than value
 // Dumbbell/machine/cable compounds never reach barbell-scale working weights the
@@ -14284,6 +14582,15 @@ function buildGenericWarmupRamp(workingWeightLb){
 // can work out itself is how signatures rot.
 const restLogClock = {};   // slot key -> {at, setIdx}
 
+// What the app SUGGESTED for this slot, recorded when the timer starts. The
+// two halves of "rest" lived in different places and never met: the timer knew
+// the target and threw it away, the set record knew the outcome and had
+// nothing to compare it against. Captured at the call site because that is
+// where the exercise is in scope — saveExSet has a day and an index, not a
+// resolved exercise, and re-deriving one there would duplicate the render
+// pipeline to recover something already computed a second earlier.
+const restTargetBySlot = {};
+
 // A ceiling and a floor, both there to keep noise out of a number that is only
 // useful if it means one thing. Above 30 minutes it isn't rest, it's an
 // interruption — a phone call, the end of the session, coming back the next
@@ -14349,8 +14656,14 @@ async function saveExSet(dayId, idx, setIdx, weight, reps, rpe, subVariant, dist
   // between two entries typed on Sunday for a workout done on Thursday is a
   // measurement of typing speed.
   if(!isBackdating()){
-    const restAchieved = noteRestAchieved(exKey(activeProgram, dayId, idx, subVariant), setIdx);
-    if(restAchieved != null) set.rest = restAchieved;
+    const slotKey = exKey(activeProgram, dayId, idx, subVariant);
+    const restAchieved = noteRestAchieved(slotKey, setIdx);
+    if(restAchieved != null){
+      set.rest = restAchieved;
+      // Additive, same rule: written only when both halves are known.
+      const target = restTargetBySlot[slotKey];
+      if(target != null) set.restTarget = target;
+    }
   }
   entry.sets[setIdx] = set;
 
@@ -15246,6 +15559,44 @@ function applyRestTimerExpandHeight(){
 // honestly be scheduled against.
 let restTimerEndsAt = null;
 const REST_NOTIFICATION_TAG = 'rest-timer';
+const REST_TIMER_STATE_KEY = 'rest-timer-state';
+
+// The deadline lived in memory only. iOS discards a backgrounded web app
+// aggressively, so a phone call mid-workout took the timer with it — the
+// wall-clock rewrite made the timer CORRECT while the page was alive, and this
+// is what makes it survive the page not being.
+//
+// Only the deadline and the total are stored, not the interval or the DOM
+// state: everything else is reconstructed. And it is cleared on completion and
+// on dismissal, so a stale deadline can never resurrect a timer for a set
+// finished yesterday.
+function persistRestTimer(){
+  try{
+    if(restTimerEndsAt) window.storage.set(REST_TIMER_STATE_KEY, JSON.stringify({endsAt: restTimerEndsAt, total: restTimerTotal}));
+    else window.storage.delete(REST_TIMER_STATE_KEY);
+  }catch(e){}
+}
+
+async function restoreRestTimer(){
+  try{
+    const res = await window.storage.get(REST_TIMER_STATE_KEY);
+    if(!res || !res.value) return;
+    const st = JSON.parse(res.value);
+    if(!st || !st.endsAt) return;
+    const remaining = Math.round((st.endsAt - Date.now()) / 1000);
+    // Expired while the app was gone. Nothing to announce — the rest is long
+    // over and a beep now would be about a set from another era.
+    if(remaining <= 0){ try{ window.storage.delete(REST_TIMER_STATE_KEY); }catch(e){} return; }
+    restTimerTotal = st.total || remaining;
+    restTimerEndsAt = st.endsAt;
+    restTimerSeconds = remaining;
+    const el = document.getElementById('restTimer');
+    if(el) el.classList.add('active');
+    if(restTimerInterval) clearInterval(restTimerInterval);
+    restTimerInterval = setInterval(tickRestTimer, 1000);
+    tickRestTimer();
+  }catch(e){}
+}
 
 function restNotificationsSupported(){
   return typeof Notification !== 'undefined' && 'serviceWorker' in navigator;
@@ -15270,7 +15621,7 @@ function refreshRestNotifyControls(){
     // and the permission cannot be re-requested from script once denied —
     // only the OS settings can undo it.
     note.hidden = false;
-    note.textContent = 'Notifications are blocked for this app. Turn them back on in your device settings if you want an alert when rest is over.';
+    note.textContent = 'Notifications are blocked for this app. Turn them back on in your device settings if you want an alert when rest is over. Until then, "Keep the screen awake" in Settings is what stops you losing track between sets.';
   } else {
     note.hidden = true;
     note.textContent = '';
@@ -15362,6 +15713,7 @@ function completeRestTimer(opts){
   const timeEl = document.getElementById('restTimerTime');
   if(restTimerInterval){ clearInterval(restTimerInterval); restTimerInterval = null; }
   restTimerEndsAt = null;
+  persistRestTimer();
   restTimerSeconds = 0;
   timeEl.textContent = "Time's up!";
   updateRestTimerRing();
@@ -15441,6 +15793,7 @@ function startRestTimer(seconds, label){
   updateRestTimerRing();
   if(restTimerInterval) clearInterval(restTimerInterval);
   restTimerInterval = setInterval(tickRestTimer, 1000);
+  persistRestTimer();
   scheduleRestNotification();
 }
 
@@ -15457,6 +15810,7 @@ function adjustRestTimer(delta){
   restTimerSeconds = Math.max(0, restRemainingSeconds() + delta);
   restTimerTotal = Math.max(1, restTimerTotal + delta);
   restTimerEndsAt = Date.now() + restTimerSeconds * 1000;
+  persistRestTimer();
   document.getElementById('restTimerTime').textContent = formatTimer(restTimerSeconds);
   updateRestTimerRing();
   if(restTimerSeconds > 5) document.getElementById('restTimer').classList.remove('urgent');
@@ -15477,6 +15831,7 @@ document.getElementById('restTimerClose').addEventListener('click', ()=>{
   // Dismissing the timer must disarm the alert too. Otherwise closing it and
   // walking out of the gym still buzzes your pocket two minutes later.
   restTimerEndsAt = null;
+  persistRestTimer();
   cancelRestNotification();
   const el = document.getElementById('restTimer');
   el.classList.remove('active');
@@ -15581,7 +15936,7 @@ function applyWakeLockPrefToUI(){
     // and invites a bug report; an explained one does not.
     toggle.checked = false;
     toggle.disabled = true;
-    if(note) note.textContent = 'This browser does not support the screen wake lock, so the phone will sleep between sets as it always has. On iPhone this needs iOS 16.4 or later.';
+    if(note) note.textContent = 'This browser does not support the screen wake lock, so the phone will sleep between sets as it always has. On iPhone this needs iOS 16.4 or later. Rest alerts, in Settings, are the alternative.';
   }
 }
 
@@ -15981,7 +16336,9 @@ function wireSetsBlock(row, exIdx, ex){
       }
       // Update volume/1RM/prior-session hint in place, without wiping the checkmark we just set
       await refreshSessionSummary(row, exIdx, ex);
-      startRestTimer(getDefaultRestSeconds(ex), getRestReasonLabel(ex));
+      const restTarget = getDefaultRestSeconds(ex);
+      restTargetBySlot[exKey(activeProgram, activeDay, exIdx, subVariant)] = restTarget;
+      startRestTimer(restTarget, getRestReasonLabel(ex));
       // Same signal, two consumers: a logged set both starts the rest clock and
       // means the phone should stay awake for the next one.
       noteWorkoutActivity();
@@ -16018,11 +16375,22 @@ function wireSetsBlock(row, exIdx, ex){
     function startVoiceRecognition(btn){
       if(btn.classList.contains('listening') || btn.classList.contains('processing')) return; // already mid-flow, ignore a repeat trigger
       voiceFeedback.classList.remove('open'); // clear any stale message from a previous attempt before this one starts
-      const recognition = new SpeechRecognitionCtor();
-      recognition.lang = 'en-US';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
+      // ONE instance for the whole app, created on first use and reused.
+      // Constructing a new SpeechRecognition per tap is what made the
+      // permission prompt reappear every single time: each object negotiates
+      // its own microphone access, and on iOS that surfaces as a fresh ask.
+      // Reusing one keeps the grant alive for the session.
+      if(!window.__voiceRecognition){
+        window.__voiceRecognition = new SpeechRecognitionCtor();
+        window.__voiceRecognition.lang = 'en-US';
+        window.__voiceRecognition.continuous = false;
+        window.__voiceRecognition.interimResults = false;
+      }
+      const recognition = window.__voiceRecognition;
+      // Several alternatives, because the top transcript is frequently the one
+      // that turned "for" into "4". The first that parses into a usable set
+      // wins — see below.
+      recognition.maxAlternatives = 4;
       btn.classList.add('listening');
       const originalTitle = btn.title;
       let settled = false;
@@ -16059,49 +16427,52 @@ function wireSetsBlock(row, exIdx, ex){
 
       recognition.onresult = (event)=>{
         finish();
-        const rawTranscript = event.results[0][0].transcript;
-        // Pull out an explicit "RPE 8" (or "8.5") mention first, and remove
-        // it from the transcript before scanning for weight/reps numbers —
-        // otherwise the RPE number could get mistaken for a rep count.
-        // "RPE 8" is checked first since it's the most explicit and
-        // unambiguous phrasing. "at a 6" / "at an 8" / "at 9" is how most
-        // lifters actually say it out loud though, so it's supported as a
-        // fallback pattern too.
-        //
-        // If neither of those is said at all, position is used instead:
-        // whenever three or more numbers show up in the sentence, the
-        // first is always weight, the second is always reps, and the
-        // third is always RPE — no keyword required. This covers "225,
-        // 5, 8" just as reliably as "225 for 5, RPE 8" does. Only kicks
-        // in without an explicit keyword so it never double-counts a
-        // number that keyword-matching already claimed as RPE.
-        const rpeMatch = rawTranscript.match(/rpe\s*(\d+(\.\d+)?)/i)
-          || rawTranscript.match(/\bat\s+(?:an?\s+)?(\d+(\.\d+)?)\b/i);
-        let rpeValue = rpeMatch ? rpeMatch[1] : null;
-        const remainingTranscript = rpeMatch ? rawTranscript.replace(rpeMatch[0], '') : rawTranscript;
-        let numbers = remainingTranscript.match(/\d+(\.\d+)?/g);
+        const alternatives = [];
+        for(let i = 0; i < event.results[0].length; i++) alternatives.push(event.results[0][i].transcript);
+        const rawTranscript = alternatives[0] || '';
 
-        if(rpeValue === null && numbers && numbers.length >= 3){
-          rpeValue = numbers[2];
-          numbers = numbers.slice(0, 2);
-        }
+        // Score each alternative by how complete a set it yields and take the
+        // best. A transcript that gives weight AND reps AND RPE is worth more
+        // than one that gives a single number, and the engine's own confidence
+        // ranking does not know that.
+        let best = null, bestScore = -1;
+        alternatives.forEach(text=>{
+          const p = parseVoiceSet(text);
+          const score = (p.weight != null ? 1 : 0) + (p.reps != null ? 1 : 0) + (p.rpe != null ? 2 : 0);
+          if(score > bestScore){ bestScore = score; best = p; }
+        });
 
-        if((!numbers || numbers.length === 0) && rpeValue === null){
-          voiceFeedback.textContent = `Didn't catch a number — try "225 for 5" or "225 for 5, 8"`;
+        if(best && (best.weight != null || best.reps != null || best.rpe != null)){
+          if(best.weight != null && wInput) wInput.value = best.weight;
+          if(best.reps != null) rInput.value = Math.round(best.reps);
+          if(best.rpe != null) rpeInput.value = best.rpe;
+          // Say what was understood, not just that something happened. When it
+          // mishears, seeing "heard: 70 x 4 @ 5" is the difference between
+          // knowing to repeat yourself and thinking the feature is broken.
+          const parts = [];
+          if(best.weight != null) parts.push(String(best.weight));
+          if(best.reps != null) parts.push('× ' + Math.round(best.reps));
+          if(best.rpe != null) parts.push('@ RPE ' + best.rpe);
+          voiceFeedback.textContent = 'Heard: ' + parts.join(' ');
           voiceFeedback.classList.add('open');
-          setTimeout(()=> voiceFeedback.classList.remove('open'), 3000);
+          setTimeout(()=> voiceFeedback.classList.remove('open'), 2600);
+          save();
+          // Move to the next set rather than leaving you on the one just
+          // filled. Focus only — NOT another recognition start: re-opening the
+          // microphone unasked would listen to the gym rather than to you, and
+          // the whole point of the button is that listening is something you
+          // choose.
+          const nextRow = setRow.nextElementSibling;
+          if(nextRow && nextRow.classList && nextRow.classList.contains('set-row')){
+            const nextInput = nextRow.querySelector('input');
+            if(nextInput){ nextInput.focus({preventScroll:true}); nextRow.scrollIntoView({block:'nearest'}); }
+          }
           return;
         }
-        if(numbers && numbers.length){
-          if(wInput && numbers.length >= 2){
-            wInput.value = numbers[0];
-            rInput.value = Math.round(Number(numbers[1]));
-          } else {
-            rInput.value = Math.round(Number(numbers[numbers.length-1]));
-          }
-        }
-        if(rpeValue !== null) rpeInput.value = rpeValue;
-        save();
+
+        voiceFeedback.textContent = `Heard "${rawTranscript}" — try "225 for 5 at RPE 8"`;
+        voiceFeedback.classList.add('open');
+        setTimeout(()=> voiceFeedback.classList.remove('open'), 3600);
       };
       recognition.onerror = (event)=>{
         finish();
@@ -17612,6 +17983,16 @@ function positionProfileCard(){
   const permSlot = document.getElementById('profileCardPermanentSlot');
   if(!card || !topSlot || !permSlot) return;
   const isComplete = !!(userProfile && userProfile.name);
+
+  // Three destinations now. An UNFINISHED profile still goes to the top of
+  // Today — that was the point of this function and burying the setup prompt
+  // behind a cog would undo it. A finished one moves into Settings rather than
+  // back down the Today tab, because at that point it is a set-once panel of
+  // units, dietary restrictions, equipment and conditions, which is exactly
+  // what the cog is for.
+  const settingsSlot = document.getElementById('settingsProfileSlot');
+  if(isComplete && settingsSlot){ settingsSlot.appendChild(card); return; }
+
   const targetSlot = isComplete ? permSlot : topSlot;
   targetSlot.parentNode.insertBefore(card, targetSlot.nextSibling);
 }
@@ -21750,6 +22131,7 @@ const OVERLAY_CLOSERS = {
   coachFabModal:        ()=> document.getElementById('coachFabModal').classList.remove('active'),
   exHistoryOverlay:     ()=> closeExerciseHistory(),
   exEditOverlay:        ()=> closeExerciseEditor(),
+  settingsOverlay:      ()=> { const b = document.getElementById('settingsClose'); if(b) b.click(); },
   // userPickerOverlay is deliberately absent. It is the "who is using this
   // device" gate, and there is nothing behind it to go back to — dismissing it
   // would leave the app with no active profile.
@@ -21990,6 +22372,50 @@ document.getElementById('logDateToday').addEventListener('click', ()=>{
 const CALENDAR_MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 let calendarViewYear = null, calendarViewMonth = null; // month is 0-indexed, matching Date's own convention
 let calendarActiveDates = null; // Set of "YYYY-MM-DD" with any logged workout or food — see openCalendarModal
+let calendarDayStatus = null;   // Map of "YYYY-MM-DD" -> 'trained' | 'rest' | 'off'
+
+// A single dot meaning "something happened" could not answer the question that
+// actually gets asked of this calendar, which is "did I miss that one, or was
+// it supposed to be a day off?". Three states, all read from data rather than
+// inferred:
+//
+//   trained — sets were logged
+//   rest    — the program day open on that date was a REST day, so not
+//             training was the plan working, not a lapse
+//   off     — the day was opened and nothing was logged, and it was not a
+//             rest day
+//
+// A date with no record at all stays blank. The app cannot tell the difference
+// between a deliberate day off and one where the phone never came out, and
+// drawing "missed" over the first would be inventing a fact.
+//
+// KNOWN LIMIT: `workout:` keys are `workout:DATE:dayId` with no program in
+// them, so a historical record is read against the CURRENT program's day
+// definitions. If you switch to a program whose d5 is a rest day where the old
+// one's d5 was legs, old d5s start reading as rest. Fixing it properly means
+// putting the program in the key, which is a migration.
+async function fetchDayStatuses(){
+  const out = new Map();
+  try{
+    const res = await window.storage.list('workout:');
+    if(!res || !res.keys) return out;
+    for(const key of res.keys){
+      const parts = key.split(':');
+      if(parts.length < 3) continue;
+      const date = parts[1], dayId = parts[2];
+      let anyDone = false;
+      try{
+        const item = await window.storage.get(key);
+        if(item && item.value) anyDone = Object.values(JSON.parse(item.value)).some(v=> v === true);
+      }catch(e){}
+      if(anyDone){ out.set(date, 'trained'); continue; }
+      if(out.get(date) === 'trained') continue;   // another day id that date did have work
+      const def = dayDefs && dayDefs[dayId];
+      out.set(date, (def && def.rest) ? 'rest' : 'off');
+    }
+  }catch(e){}
+  return out;
+}
 
 async function openCalendarModal(){
   const base = new Date(selectedLogDate+'T00:00:00');
@@ -22002,10 +22428,14 @@ async function openCalendarModal(){
   // actual visual cue for "this is the day I probably missed," which is the
   // whole point of being able to jump back to a date in the first place.
   try{
-    const [workoutDates, foodDays] = await Promise.all([fetchWorkoutDates(), fetchFoodDays()]);
+    const [workoutDates, foodDays, statuses] = await Promise.all([
+      fetchWorkoutDates(), fetchFoodDays(), fetchDayStatuses(),
+    ]);
     calendarActiveDates = new Set([...workoutDates, ...Object.keys(foodDays)]);
+    calendarDayStatus = statuses;
   }catch(e){
     calendarActiveDates = new Set();
+    calendarDayStatus = new Map();
   }
 
   renderCalendarGrid();
@@ -22033,8 +22463,14 @@ function renderCalendarGrid(){
     const isSelected = dateKey === selectedLogDate;
     const isFuture = dateKey > today;
     const hasActivity = calendarActiveDates && calendarActiveDates.has(dateKey);
-    const dotHtml = (hasActivity && !isFuture) ? '<span class="calendar-cell-dot"></span>' : '';
-    cellsHtml += `<button type="button" class="calendar-cell ${isToday?'today':''} ${isSelected?'selected':''} ${isFuture?'future-disabled':''}" data-date="${dateKey}" ${isFuture?'disabled':''}>${day}${dotHtml}</button>`;
+    const status = (!isFuture && calendarDayStatus) ? calendarDayStatus.get(dateKey) : null;
+    // Food or weight logged with no workout record still earns the plain dot —
+    // it is evidence the day was used, just not evidence about training.
+    const mark = status
+      ? `<span class="calendar-cell-dot mark-${status}"></span>`
+      : ((hasActivity && !isFuture) ? '<span class="calendar-cell-dot"></span>' : '');
+    const label = status === 'trained' ? ' (trained)' : status === 'rest' ? ' (rest day)' : status === 'off' ? ' (no training logged)' : '';
+    cellsHtml += `<button type="button" class="calendar-cell ${isToday?'today':''} ${isSelected?'selected':''} ${isFuture?'future-disabled':''}" data-date="${dateKey}" ${isFuture?'disabled':''} aria-label="${dateKey}${label}">${day}${mark}</button>`;
   }
   document.getElementById('calendarGrid').innerHTML = cellsHtml;
 
@@ -22734,7 +23170,7 @@ const REST_TREND_SESSIONS = 8;
 const REST_TREND_MIN_SETS = 3;
 
 function computeRestTrend(sessionsByDate){
-  const dates = Object.keys(sessionsByDate || {}).sort();
+  const dates = Object.keys(sessionsByDate || {}).filter(k=> !k.startsWith('__')).sort();
   const rows = dates.map(date=>{
     const rests = sessionsByDate[date] || [];
     return {date, count: rests.length, median: median(rests)};
@@ -22762,6 +23198,7 @@ function fmtRest(seconds){
 
 async function collectRestBySession(){
   const out = {};
+  const targets = [];
   let keys = [];
   try{
     const res = await window.storage.list('ex:');
@@ -22778,17 +23215,21 @@ async function collectRestBySession(){
       (entry.sets || []).forEach(s=>{
         if(s && s.rest != null){
           (out[entry.date] = out[entry.date] || []).push(s.rest);
+          if(s.restTarget != null) targets.push(s.restTarget);
         }
       });
     });
   }
+  out.__targets = targets;
   return out;
 }
 
 async function renderRestTrend(){
   const el = document.getElementById('restTrendContent');
   if(!el) return;
-  const {rows, usual} = computeRestTrend(await collectRestBySession());
+  const sessions = await collectRestBySession();
+  const suggested = median(sessions.__targets || []);
+  const {rows, usual} = computeRestTrend(sessions);
   if(rows.length === 0){
     el.innerHTML = '<div class="empty-note">Once you have logged a few sessions with the rest timer running, your actual rest between sets shows up here.</div>';
     return;
@@ -22799,8 +23240,15 @@ async function renderRestTrend(){
     + `${fmtRest(r.median)} typical rest across ${r.count} set${r.count === 1 ? '' : 's'}`
     + (r.short ? ` — shorter than your usual ${fmtRest(usual)}.` : '')
     + `</span></span></div>`).join('');
+  // Stated, not judged. The suggestion is a default the app chose; someone
+  // running dense supersets on purpose is not doing it wrong, and the earlier
+  // decision to flag sessions against their OWN usual rather than against this
+  // number stands.
+  const versus = suggested != null
+    ? `Your usual is ${escapeHtml(fmtRest(usual))} between sets, against ${escapeHtml(fmtRest(suggested))} suggested. `
+    : `Your usual is ${escapeHtml(fmtRest(usual))} between sets. `;
   el.innerHTML = body
-    + `<div class="history-hint field-note" style="margin-top:10px;">Your usual is ${escapeHtml(fmtRest(usual))} between sets. `
+    + `<div class="history-hint field-note" style="margin-top:10px;">${versus}`
     + 'Shorter sessions are flagged against that, not against what the timer suggested — dense sessions are a valid choice. '
     + 'This is worth checking when a session felt unusually hard: rest is the variable that changes without anyone deciding to change it.'
     + '</div>';
@@ -22985,7 +23433,11 @@ async function renderStrengthContext(){
     + 'Sitting outside a typical range is common and is often just limb length, which no amount of training changes. '
     + (bw ? '' : 'Add your bodyweight in your profile to see the multiples. ')
     + 'If you want population data, Latella et al. (J Sci Med Sport, 2024) published percentiles from around 810,000 drug-tested powerlifting results — bearing in mind that is a competitive population, not a general one.'
-    + '</div>';
+    + '</div>'
+    // Both of these are about e1RM and neither knew the other existed. The
+    // multiple above is a number; the PR timeline is the session it came out
+    // of, which is the part worth looking at.
+    + '<button type="button" class="settings-jump" data-jump-to="prTimeline"><span>See the sessions these came from</span><span>›</span></button>';
 }
 
 async function renderExerciseProgress(){
@@ -27083,6 +27535,7 @@ if(activeUserId){
     renderStorageUsage();
     renderStorageBanner();
     await restoreActiveView();
+    restoreRestTimer();
     bootMark('initEnd');
   })();
 
@@ -27133,6 +27586,109 @@ if(activeUserId){
 // guaranteed: this script is the last thing in the body.
 initScrollLock();
 wireCustomProgramUI();
+
+(function wireSettings(){
+  const overlay = document.getElementById('settingsOverlay');
+  const cog = document.getElementById('settingsCog');
+  if(!overlay || !cog) return;
+
+  // Reparent. Each of these keeps its id and its handlers; only its position in
+  // the document changes. Guarded individually so a future edit that removes one
+  // of them leaves the rest of the sheet intact instead of throwing on open.
+  const move = (id, slotId)=>{
+    const node = document.getElementById(id);
+    const slot = document.getElementById(slotId);
+    if(node && slot) slot.appendChild(node);
+  };
+  move('prefWakeLock', 'settingsWorkoutSlot');
+  move('prefDistanceUnit', 'settingsUnitsSlot');
+  move('prefLoadMode', 'settingsUnitsSlot');
+  move('aiSettingsCard', 'settingsAiSlot');
+
+  // The rest-alert permission is OS state, so a second control for it is not a
+  // second copy of a setting — both surfaces read Notification.permission and
+  // neither owns it. The one in the rest timer panel stays, because being asked
+  // at the moment the timer starts is when it makes sense.
+  const notifyBtn = document.getElementById('settingsNotifyBtn');
+  const notifyNote = document.getElementById('settingsNotifyNote');
+  function refreshSettingsNotify(){
+    if(!notifyBtn || !notifyNote) return;
+    if(typeof restNotificationsSupported !== 'function' || !restNotificationsSupported()){
+      notifyBtn.style.display = 'none';
+      notifyNote.textContent = 'This browser cannot send notifications, so nothing will alert you when rest is over. Keeping the screen awake, above, is the alternative.';
+      return;
+    }
+    const perm = Notification.permission;
+    notifyBtn.style.display = perm === 'default' ? '' : 'none';
+    notifyNote.textContent = perm === 'granted'
+      ? 'On. If rest finishes while you are in another app, you will get a banner.'
+      : perm === 'denied'
+        ? 'Blocked for this app — turn it back on in your device settings. Until then, keeping the screen awake is what stops you losing track between sets.'
+        : 'Off. Without it, nothing tells you rest is over while you are in another app.';
+  }
+  if(notifyBtn) notifyBtn.addEventListener('click', async ()=>{
+    if(typeof requestRestNotifications === 'function') await requestRestNotifications();
+    refreshSettingsNotify();
+  });
+
+  // .active, not .open — .open is the collapsible-card class. Using the wrong
+  // one here fails silently as a cog that does nothing.
+  function open(){ refreshSettingsNotify(); overlay.classList.add('active'); }
+  function close(){ overlay.classList.remove('active'); }
+  cog.addEventListener('click', open);
+  document.getElementById('settingsClose').addEventListener('click', close);
+  // The backdrop is now a real element covering the overlay, so e.target is
+  // never the overlay itself any more. Checking both keeps tap-outside working
+  // whichever way the panel is laid out later.
+  overlay.addEventListener('click', (e)=>{
+    if(e.target === overlay || e.target.id === 'settingsBackdrop') close();
+  });
+
+  overlay.addEventListener('click', (e)=>{
+    const jump = e.target.closest('[data-jump-to]');
+    if(!jump) return;
+    close();
+    jumpToSetting(jump.dataset.jumpTo);
+  });
+
+  // Resolve the view from the element rather than naming it. positionProfileCard
+  // moves the profile card between two slots depending on whether the profile is
+  // filled in, and hardcoding "it is on the Care tab" was wrong the moment it
+  // was written — it is on Today. Asking the element where it is cannot go
+  // stale the way a hardcoded answer does.
+  function jumpToSetting(id){
+    const el = document.getElementById(id);
+    if(!el) return;
+    const view = el.closest('[id$="View"]');
+    if(view && typeof switchView === 'function') switchView(view.id.replace(/View$/, ''));
+    // After the switch: several tabs render their contents lazily on first
+    // visit, so the element can move between the switch and the scroll.
+    setTimeout(()=>{
+      const target = document.getElementById(id);
+      if(!target) return;
+      const header = target.classList.contains('nutrition-header')
+        ? target
+        : (target.closest('.card') || target).querySelector('.nutrition-header');
+      if(header && !header.classList.contains('open')) header.click();
+      target.scrollIntoView({behavior:'smooth', block:'center'});
+    }, 80);
+  }
+})();
+
+(function wireCoachFabTuck(){
+  const fab = document.getElementById('coachFab');
+  if(!fab) return;
+  let idle = null;
+  window.addEventListener('scroll', ()=>{
+    // Never tuck it out from under an open panel — the class sets
+    // pointer-events:none, and a button that stops responding mid-tap is worse
+    // than one that sits over a paragraph.
+    if(document.body.classList.contains('coach-open')) return;
+    fab.classList.add('tucked');
+    if(idle) clearTimeout(idle);
+    idle = setTimeout(()=> fab.classList.remove('tucked'), 650);
+  }, {passive:true});
+})();
 
 (function wireBackupVerify(){
   const btn = document.getElementById('verifyBackupBtn');
