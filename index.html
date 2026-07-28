@@ -40,6 +40,22 @@
     --plate-teal:#2FB8C4;
     --plate-white:#E4E7EB;
     --plate-off:#4A5057;
+    /* ELEVATION. There were 92 box-shadow declarations here holding 73
+       distinct values, only 13 of which appeared more than once — every
+       component carrying its own hand-tuned depth. Individually fine;
+       collectively slightly noisy, and consistency is most of what reads as
+       expensive. Three steps, one rim, one lift. A component that seems to
+       need a fourth step almost certainly wants a different component.
+
+       --rim is the hairline where light catches a top edge. --lift is the
+       coloured bloom beneath a raised surface, in --plate-blue rather than
+       neutral grey so the depth belongs to this palette instead of being
+       borrowed from a generic dark theme. */
+    --rim:var(--rim);
+    --lift:0 24px 60px -30px rgba(91,124,255,0.16);
+    --elev-1:var(--rim), 0 2px 6px -2px rgba(0,0,0,0.40);
+    --elev-2:var(--rim), 0 14px 32px -12px rgba(0,0,0,0.55);
+    --elev-3:var(--rim), 0 24px 48px -16px rgba(0,0,0,0.70);
     --sheen:rgba(255,255,255,0.06);
     --sheen-strong:rgba(255,255,255,0.12);
     --ease-smooth:cubic-bezier(0.4,0,0.2,1);
@@ -107,7 +123,7 @@
        strip is cheap where 26px over a full sheet would not be. */
     background:rgba(23,25,29,0.72);
     backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 8px 22px -14px rgba(0,0,0,0.7);
+    box-shadow:var(--rim), 0 8px 22px -14px rgba(0,0,0,0.7);
   }
   .pull-refresh-indicator.dragging{ transition:none; }
   .pull-refresh-spinner{
@@ -239,6 +255,13 @@
     font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-weight:600; font-size:12px;
     border:3px solid rgba(0,0,0,0.25);
     color:#14171A;
+    /* Top rim bright, bottom falling away, disc sitting on the surface —
+       the three things that make a circle read as an object rather than a
+       swatch. */
+    box-shadow:
+      inset 0 2px 1px -1px rgba(255,255,255,0.45),
+      inset 0 -3px 6px -2px rgba(0,0,0,0.35),
+      0 2px 6px -2px rgba(0,0,0,0.45);
     transition:box-shadow 0.25s var(--ease-smooth);
   }
   .plate::before{
@@ -247,7 +270,13 @@
     pointer-events:none;
   }
   .plate svg{position:relative; z-index:1; width:22px; height:22px;}
-  .tab.active .plate{box-shadow:0 0 0 3px rgba(255,255,255,0.08), 0 4px 14px rgba(0,0,0,0.35);}
+  .tab.active .plate{
+    box-shadow:
+      inset 0 2px 1px -1px rgba(255,255,255,0.55),
+      inset 0 -3px 6px -2px rgba(0,0,0,0.35),
+      0 0 0 3px rgba(255,255,255,0.08),
+      0 6px 18px -5px rgba(0,0,0,0.5);
+  }
   .plate-off{color:var(--text-muted);}
   .plate-wrap{position:relative; display:inline-flex;}
   .day-done-badge{
@@ -325,7 +354,7 @@
        pixel under the content than above it on all 62 cards. */
     padding:22px;
     margin-bottom:18px;
-    box-shadow:0 1px 0 rgba(255,255,255,0.03) inset, 0 14px 32px -12px rgba(0,0,0,0.55), 0 24px 60px -30px rgba(91,124,255,0.16);
+    box-shadow:var(--elev-2), var(--lift);
     transition:box-shadow 0.3s var(--ease-smooth), border-color 0.3s var(--ease-smooth), transform 0.2s var(--ease-smooth);
   }
   .card::before{
@@ -370,7 +399,7 @@
   .today-standout-banner{
     padding:10px 12px; background:rgba(245,197,24,0.1); border:1px solid rgba(245,197,24,0.38);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -8px rgba(245,197,24,0.35);
+    box-shadow:var(--rim), 0 4px 14px -8px rgba(245,197,24,0.35);
   }
   .describe-similar-note{font-size:11.5px; color:var(--text-muted); margin-top:12px; padding-top:10px; border-top:1px solid var(--line-soft);}
   .describe-similar-list{display:flex; flex-direction:column; gap:6px; margin-top:8px;}
@@ -382,17 +411,17 @@
   .privacy-note{
     padding:10px 12px; background:rgba(50,215,75,0.08); border:1px solid rgba(50,215,75,0.28);
     border-radius:var(--radius-md); font-size:12px; line-height:1.5; color:var(--text-muted); margin-bottom:14px;
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -8px rgba(50,215,75,0.28);
+    box-shadow:var(--rim), 0 4px 14px -8px rgba(50,215,75,0.28);
   }
   .day-insight{
     padding:10px 12px; background:rgba(91,124,255,0.08); border:1px solid rgba(91,124,255,0.28);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -8px rgba(91,124,255,0.35);
+    box-shadow:var(--rim), 0 4px 14px -8px rgba(91,124,255,0.35);
   }
   .voice-hint-banner{
     display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(91,124,255,0.08);
     border:1px solid rgba(91,124,255,0.28); border-radius:var(--radius-md); font-size:12.5px; line-height:1.4;
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -8px rgba(91,124,255,0.35);
+    box-shadow:var(--rim), 0 4px 14px -8px rgba(91,124,255,0.35);
     color:var(--text); margin-bottom:14px;
   }
   .voice-hint-banner span:first-of-type{flex:1;}
@@ -454,7 +483,7 @@
   .today-insight-row{
     padding:10px 12px; background:rgba(91,124,255,0.08); border:1px solid rgba(91,124,255,0.28);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:8px;
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -8px rgba(91,124,255,0.35);
+    box-shadow:var(--rim), 0 4px 14px -8px rgba(91,124,255,0.35);
   }
   .today-insight-row:last-child{margin-bottom:0;}
   .pf-conditions{ border:1px solid var(--line); border-radius:var(--radius-md); padding:12px; margin-bottom:12px; }
@@ -468,17 +497,17 @@
   .goal-feedback-good{
     padding:10px 12px; background:rgba(50,215,75,0.1); border:1px solid rgba(50,215,75,0.32);
     border-radius:var(--radius-sm); font-size:12.5px; line-height:1.5; color:var(--plate-green);
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -8px rgba(50,215,75,0.35);
+    box-shadow:var(--rim), 0 4px 14px -8px rgba(50,215,75,0.35);
   }
   .goal-feedback-neutral{
     padding:10px 12px; background:rgba(91,124,255,0.08); border:1px solid rgba(91,124,255,0.28);
     border-radius:var(--radius-sm); font-size:12.5px; line-height:1.5; color:var(--text);
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -8px rgba(91,124,255,0.35);
+    box-shadow:var(--rim), 0 4px 14px -8px rgba(91,124,255,0.35);
   }
   .goal-feedback-warn{
     padding:10px 12px; background:rgba(245,197,24,0.12); border:1px solid rgba(245,197,24,0.38);
     border-radius:var(--radius-sm); font-size:12.5px; line-height:1.5; color:var(--plate-yellow);
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -8px rgba(245,197,24,0.35);
+    box-shadow:var(--rim), 0 4px 14px -8px rgba(245,197,24,0.35);
   }
 
   /* Smooth expand/collapse without JS height calculation — height + fade together */
@@ -622,7 +651,7 @@
   .sub-modal-close{
     flex:0 0 auto; background:var(--surface2); border:1px solid rgba(255,255,255,0.07); color:var(--text-muted);
     width:28px; height:28px; border-radius:50%; font-size:14px; cursor:pointer; line-height:1;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);
+    box-shadow:var(--rim);
   }
   .sub-modal-hint{font-size:12px; color:var(--text-muted); margin:6px 0 14px; line-height:1.5;}
   .sub-option{
@@ -736,17 +765,17 @@
   .progress-badge{
     margin:4px 0 2px 76px; padding:7px 10px; background:rgba(245,197,24,0.12); border:1px solid rgba(245,197,24,0.38);
     border-radius:var(--radius-sm); font-size:12px; color:var(--plate-yellow); line-height:1.4;
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 12px -7px rgba(245,197,24,0.35);
+    box-shadow:var(--rim), 0 4px 12px -7px rgba(245,197,24,0.35);
   }
   .progress-badge-decrease{
     margin:4px 0 2px 76px; padding:7px 10px; background:rgba(230,126,34,0.12); border:1px solid rgba(230,126,34,0.38);
     border-radius:var(--radius-sm); font-size:12px; color:#E67E22; line-height:1.4;
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 12px -7px rgba(230,126,34,0.35);
+    box-shadow:var(--rim), 0 4px 12px -7px rgba(230,126,34,0.35);
   }
   .progress-badge-deload{
     margin:4px 0 2px 76px; padding:7px 10px; background:rgba(224,80,80,0.12); border:1px solid rgba(224,80,80,0.38);
     border-radius:var(--radius-sm); font-size:12px; color:var(--plate-red); line-height:1.4;
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 12px -7px rgba(224,80,80,0.35);
+    box-shadow:var(--rim), 0 4px 12px -7px rgba(224,80,80,0.35);
   }
 
   .ex-rpe{width:46px;}
@@ -787,7 +816,7 @@
   .warmup-box{
     margin:4px 0 2px 76px; padding:9px 11px; background:rgba(79,195,247,0.08); border:1px solid rgba(79,195,247,0.28);
     border-radius:var(--radius-sm); font-size:12px; color:var(--text); line-height:1.6;
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 12px -7px rgba(79,195,247,0.3);
+    box-shadow:var(--rim), 0 4px 12px -7px rgba(79,195,247,0.3);
   }
   .warmup-box .warmup-title{color:#4FC3F7; font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:3px;}
   .warmup-box .warmup-row{display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px;}
@@ -800,13 +829,13 @@
     display:flex; align-items:center; gap:8px;
     transform:translateY(-100%); transition:transform 0.25s var(--ease-smooth);
     font-family:'Inter',sans-serif; font-size:14.5px; font-weight:700; letter-spacing:-0.01em; color:var(--text);
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px rgba(0,0,0,0.3);
+    box-shadow:var(--rim), 0 4px 14px rgba(0,0,0,0.3);
   }
   .sticky-day-header.visible{transform:translateY(0);}
 
   .celebrate-banner{
     position:fixed; top:50%; left:50%; z-index:150;
-    background:rgba(31,34,38,0.78); box-shadow:0 1px 0 rgba(255,255,255,0.05) inset; backdrop-filter:blur(24px) saturate(170%); -webkit-backdrop-filter:blur(24px) saturate(170%);
+    background:rgba(31,34,38,0.78); box-shadow:var(--rim); backdrop-filter:blur(24px) saturate(170%); -webkit-backdrop-filter:blur(24px) saturate(170%);
     border:1px solid var(--plate-yellow); border-radius:var(--radius-lg);
     padding:24px 32px; text-align:center; box-shadow:0 20px 50px -10px rgba(0,0,0,0.6);
     transform:translate(-50%,-50%) scale(0.7); opacity:0; pointer-events:none;
@@ -922,7 +951,7 @@
   .rt-adjust{
     flex:1; min-width:50px; padding:8px 6px; background:rgba(91,124,255,0.1); border:1px solid rgba(91,124,255,0.3);
     border-radius:var(--radius-sm); color:var(--text); font-size:12px; font-weight:600; cursor:pointer; font-family:'IBM Plex Mono',monospace;
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset; transition:transform 0.15s var(--ease-smooth), background 0.15s var(--ease-smooth);
+    box-shadow:var(--rim); transition:transform 0.15s var(--ease-smooth), background 0.15s var(--ease-smooth);
   }
   .rt-adjust:active{transform:scale(0.94); background:rgba(91,124,255,0.2);}
   .rest-timer-main{
@@ -939,7 +968,7 @@
 
   .undo-toast{
     position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(80px);
-    background:rgba(31,34,38,0.75); box-shadow:0 1px 0 rgba(255,255,255,0.05) inset; backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
+    background:rgba(31,34,38,0.75); box-shadow:var(--rim); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border:1px solid var(--line-bright); border-radius:var(--radius-pill-lg);
     padding:10px 10px 10px 18px; display:flex; align-items:center; gap:14px; z-index:60;
     box-shadow:0 10px 30px -8px rgba(0,0,0,0.5); opacity:0; pointer-events:none;
@@ -1414,7 +1443,7 @@
   .cycle-current-banner{
     margin-top:14px; padding:14px; background:rgba(91,124,255,0.1); border:1px solid rgba(91,124,255,0.32);
     border-radius:var(--radius-md);
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 6px 16px -9px rgba(91,124,255,0.35);
+    box-shadow:var(--rim), 0 6px 16px -9px rgba(91,124,255,0.35);
   }
   .cycle-current-title{font-family:'Inter',sans-serif; font-size:16px; font-weight:700; letter-spacing:-0.01em; color:var(--plate-blue); margin-bottom:4px;}
   .cycle-current-day{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted); margin-bottom:10px;}
@@ -1514,7 +1543,7 @@
   .log-date-bar{
     position:relative; display:flex; align-items:center; gap:8px; padding:9px 12px; margin-bottom:12px;
     border-radius:var(--radius-md); background:var(--surface2); border:1px solid rgba(255,255,255,0.07);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 20px -14px rgba(0,0,0,0.5);
+    box-shadow:var(--rim), 0 8px 20px -14px rgba(0,0,0,0.5);
     transition:background 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth), box-shadow 0.25s var(--ease-smooth);
   }
   .log-date-bar.backdating{
@@ -1525,7 +1554,7 @@
   .log-date-nav{
     flex:0 0 auto; width:28px; height:28px; border-radius:50%; border:1px solid rgba(255,255,255,0.07);
     background:var(--surface); color:var(--text); font-size:15px; cursor:pointer; line-height:1;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);
+    box-shadow:var(--rim);
     display:flex; align-items:center; justify-content:center; transition:transform 0.15s var(--ease-smooth);
   }
   .log-date-nav:active{transform:scale(0.9);}
@@ -1579,7 +1608,7 @@
   .calendar-nav-btn{
     flex:0 0 auto; width:30px; height:30px; border-radius:50%; border:1px solid rgba(255,255,255,0.07);
     background:var(--surface2); color:var(--text); font-size:16px; cursor:pointer; line-height:1;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);
+    box-shadow:var(--rim);
     display:flex; align-items:center; justify-content:center; transition:transform 0.15s var(--ease-smooth);
   }
   .calendar-nav-btn:active{transform:scale(0.9);}
@@ -1616,7 +1645,7 @@
   .calendar-cell.future-disabled{opacity:0.25; cursor:default; pointer-events:none;}
   .calendar-close-btn{
     width:100%; background:var(--surface2); border:1px solid rgba(255,255,255,0.07); color:var(--text);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);
+    box-shadow:var(--rim);
     font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px; padding:12px; border-radius:var(--radius-md); cursor:pointer;
   }
 
@@ -1730,7 +1759,7 @@
   .user-picker-box{
     width:100%; max-width:360px; background:rgba(23,25,29,0.9); border:1px solid var(--line);
     border-radius:var(--radius-lg); padding:28px 22px; backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 20px 50px -10px rgba(0,0,0,0.6);
+    box-shadow:var(--rim), 0 20px 50px -10px rgba(0,0,0,0.6);
   }
   .user-picker-title{
     font-family:'Inter',sans-serif; font-weight:800; font-size:25px; letter-spacing:-0.02em;
@@ -1825,11 +1854,11 @@
 
   .care-banner{
     margin-top:14px; padding:12px 14px; border-radius:var(--radius-md); font-size:13px; line-height:1.5;
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 6px 16px -9px rgba(0,0,0,0.4);
+    box-shadow:var(--rim), 0 6px 16px -9px rgba(0,0,0,0.4);
   }
-  .care-banner-urgent{background:rgba(255,69,58,0.12); border:1px solid rgba(255,69,58,0.42); color:var(--text); box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 6px 16px -9px rgba(255,69,58,0.4);}
+  .care-banner-urgent{background:rgba(255,69,58,0.12); border:1px solid rgba(255,69,58,0.42); color:var(--text); box-shadow:var(--rim), 0 6px 16px -9px rgba(255,69,58,0.4);}
   .care-banner-urgent b{color:var(--plate-red);}
-  .care-banner-caution{background:rgba(245,197,24,0.1); border:1px solid rgba(245,197,24,0.38); color:var(--text); box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 6px 16px -9px rgba(245,197,24,0.35);}
+  .care-banner-caution{background:rgba(245,197,24,0.1); border:1px solid rgba(245,197,24,0.38); color:var(--text); box-shadow:var(--rim), 0 6px 16px -9px rgba(245,197,24,0.35);}
   .care-banner-caution b{color:var(--plate-yellow);}
   .care-banner ul{margin:8px 0 0 18px; padding:0;}
   .care-banner li{margin-bottom:4px;}
@@ -1842,7 +1871,7 @@
   .app-banner-rail{display:flex; flex-direction:column; gap:8px; margin-top:14px;}
   .app-banner{
     padding:12px 14px; border-radius:var(--radius-md); font-size:13px; line-height:1.5; color:var(--text);
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 6px 16px -9px rgba(0,0,0,0.45);
+    box-shadow:var(--rim), 0 6px 16px -9px rgba(0,0,0,0.45);
     /* cardRise has no `from` — it reads the element's own computed style as the
        start state, which is why .card-stagger sets these two properties itself.
        Without them here the banner would "animate" from its final state to its
@@ -1855,9 +1884,9 @@
     font-weight:600; margin-bottom:4px; display:flex; align-items:center; gap:6px;
   }
   .app-banner-body{color:var(--text-muted); font-size:12.5px; line-height:1.55;}
-  .app-banner-urgent{background:rgba(255,69,58,0.12); border:1px solid rgba(255,69,58,0.42); box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 6px 16px -9px rgba(255,69,58,0.45);}
+  .app-banner-urgent{background:rgba(255,69,58,0.12); border:1px solid rgba(255,69,58,0.42); box-shadow:var(--rim), 0 6px 16px -9px rgba(255,69,58,0.45);}
   .app-banner-urgent .app-banner-title{color:var(--plate-red);}
-  .app-banner-info{background:rgba(91,124,255,0.12); border:1px solid rgba(91,124,255,0.42); box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 6px 16px -9px rgba(91,124,255,0.45);}
+  .app-banner-info{background:rgba(91,124,255,0.12); border:1px solid rgba(91,124,255,0.42); box-shadow:var(--rim), 0 6px 16px -9px rgba(91,124,255,0.45);}
   .app-banner-info .app-banner-title{color:var(--plate-blue);}
   .app-banner-actions{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;}
   .app-banner-btn{
@@ -2055,7 +2084,7 @@
   .ex-caution{
     margin-top:4px; padding:6px 10px; background:rgba(255,69,58,0.1); border:1px solid rgba(255,69,58,0.32);
     border-radius:var(--radius-sm); font-size:11.5px; color:var(--plate-red); margin-left:76px;
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 12px -7px rgba(255,69,58,0.32);
+    box-shadow:var(--rim), 0 4px 12px -7px rgba(255,69,58,0.32);
   }
   .ex-ai-tailor-btn{
     display:block; margin-top:6px; background:none; border:none; color:var(--plate-blue); font-size:11px; font-weight:600;
@@ -2348,7 +2377,7 @@
     background:linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 60%), var(--surface2);
     border:1px solid var(--line);
     border-radius:var(--radius-md);
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 8px 20px -14px rgba(0,0,0,0.6);
+    box-shadow:var(--rim), 0 8px 20px -14px rgba(0,0,0,0.6);
   }
   .program-panel-eyebrow{
     font-family:'IBM Plex Mono',monospace;
@@ -2374,7 +2403,7 @@
     border-left-width:3px;
     border-radius:var(--radius-sm);
     font-size:12.5px; line-height:1.5; color:var(--text);
-    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset, 0 4px 14px -9px rgba(245,197,24,0.3);
+    box-shadow:var(--rim), 0 4px 14px -9px rgba(245,197,24,0.3);
   }
   .program-limits-label{
     display:block; font-family:'IBM Plex Mono',monospace;
@@ -2570,7 +2599,7 @@
     </div>
     <div class="expand-wrap" id="programExpandWrap"><div>
       <div class="program-select-desc" id="programSelectDesc"></div>
-      <button class="masterclass-link-btn" id="viewMasterclassBtn" style="display:none"></button>
+      <button class="masterclass-link-btn" id="viewMasterclassBtn" style="display:none">View masterclass</button>
       <div id="programSourceNote"></div>
 
       <div class="custom-program-box">
@@ -3142,7 +3171,7 @@
     <div class="expand-wrap" id="healthImportExpandWrap">
       <div>
         <div class="history-hint">Bring in steps, resting heart rate and HRV from Apple Health, Garmin, Fitbit, Oura or Whoop. Export a CSV from that app, then pick it here. Resting heart rate is what the readiness check on Today leans on most.</div>
-        <input type="file" id="healthImportInput" accept=".csv,text/csv" style="display:none">
+        <input type="file" id="healthImportInput" aria-label="Choose a health data CSV file to import" accept=".csv,text/csv" style="display:none">
         <button class="switch-profile-btn" id="healthImportBtn">📥 Choose a CSV file</button>
         <div id="healthImportStatus" class="history-hint"></div>
         <div id="healthImportSummary"></div>
@@ -3787,7 +3816,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.10';
+const APP_VERSION = '3.12';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
