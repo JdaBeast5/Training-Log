@@ -1356,6 +1356,82 @@
   .quick-add-btn:active{transform:scale(0.96);}
   .quick-add-icon{font-size:18px;}
   .describe-food-form{margin-bottom:10px;}
+
+  /* ── A described item: portions and reuse ─────────────────────────────────
+     Two rows rather than one. Name and calories on top, controls underneath —
+     a stepper, a count and a save button do not fit beside a food name on a
+     phone without one of them becoming a target too small to hit.
+
+     The calorie figure is the FEEDBACK for the stepper, not decoration: it is
+     what tells you that pressing + actually counted the thing twice, which is
+     the whole point of the control. */
+  .describe-item{
+    padding:9px 0; border-bottom:1px solid var(--line-soft);
+  }
+  .describe-item:last-of-type{border-bottom:none;}
+  .describe-item-head{
+    display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+    font-size:12.5px;
+  }
+  .describe-item-name{color:var(--text); min-width:0;}
+  .describe-item-macro{
+    flex:0 0 auto; font-family:'IBM Plex Mono',monospace;
+    font-variant-numeric:tabular-nums; color:var(--text-muted);
+    transition:color 0.2s var(--ease-smooth);
+  }
+  /* Any portion above one is a deliberate choice, so the number stops being
+     muted and starts being a value. */
+  .describe-item.multiplied .describe-item-macro{color:var(--plate-blue);}
+  .describe-item-controls{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; margin-top:7px;
+  }
+  .qty-stepper{
+    display:flex; align-items:center;
+    background:var(--surface2); border:1px solid var(--line);
+    border-radius:var(--radius-pill); box-shadow:var(--rim);
+  }
+  .qty-btn{
+    /* 40px, not the 26px the .fi-plus circle uses. That one is a single tap on
+       a row you are already reading; this is a control you press repeatedly to
+       count something out. */
+    width:40px; height:40px; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+    background:none; border:none; color:var(--text);
+    font-family:'Inter',sans-serif; font-size:19px; font-weight:600;
+    cursor:pointer; border-radius:var(--radius-pill);
+    transition:transform 0.15s var(--ease-smooth), background 0.15s var(--ease-smooth);
+  }
+  .qty-btn:active{transform:scale(0.9); background:rgba(255,255,255,0.07);}
+  .qty-btn:disabled{opacity:0.3; cursor:default;}
+  .qty-btn:disabled:active{transform:none; background:none;}
+  .qty-count{
+    min-width:34px; text-align:center;
+    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-size:13.5px; font-weight:600; color:var(--text);
+  }
+  .describe-save-btn{
+    flex:0 0 auto; min-height:40px; padding:0 16px;
+    background:var(--surface2); color:var(--text);
+    border:1px solid var(--line); border-radius:var(--radius-pill);
+    box-shadow:var(--rim);
+    font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600;
+    cursor:pointer;
+    transition:transform 0.15s var(--ease-smooth), border-color 0.2s var(--ease-smooth);
+  }
+  .describe-save-btn:active{transform:scale(0.96);}
+  .describe-save-btn[disabled]{
+    /* Saved is a STATE, not a dead button — it stays legible rather than
+       fading out, because "is this already in My Foods" is the question the
+       button is answering once it has been pressed. */
+    color:var(--plate-green); border-color:rgba(50,215,75,0.4);
+    cursor:default; opacity:1;
+  }
+  .describe-save-btn[disabled]:active{transform:none;}
+
+  @media (prefers-reduced-motion: reduce){
+    .qty-btn:active, .describe-save-btn:active{transform:none;}
+  }
   .describe-food-input-row{display:flex; gap:8px; align-items:center;}
   .describe-food-input-row input{flex:1;}
   .photo-result-card{
@@ -4609,7 +4685,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.28';
+const APP_VERSION = '3.29';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -20492,6 +20568,10 @@ document.getElementById('barcodeCloseBtn').addEventListener('click', closeBarcod
 // a one-off text estimate shouldn't quietly become a "trusted" shortcut for
 // future searches the way a real USDA/barcode lookup earns being cached.
 let describeFoodParsedItems = [];
+// Parallel to describeFoodParsedItems, one entry per item, reset on every
+// estimate. Kept beside the items rather than on them so the parsed response
+// stays exactly what the model returned.
+let describeFoodQtys = [];
 
 document.getElementById('describeFoodBtn').addEventListener('click', ()=>{
   const form = document.getElementById('describeFoodForm');
@@ -20741,6 +20821,80 @@ function findSimilarLibraryFoods(itemName, maxResults){
     .slice(0, maxResults || 3);
 }
 
+// Split out of submitFoodDescription so the markup can be asserted on directly
+// rather than only through a live API call. `qtys` is read from
+// describeFoodQtys at call time; a re-estimate resets it, so this always
+// renders at 1x.
+// Split out of submitFoodDescription for the same reason as
+// buildDescribeItemsHtml: this is the behaviour people actually press, and
+// it should be assertable without a live API call standing in front of it.
+function wireDescribeItemControls(root){
+  // The stepper. Only the two figures that changed are rewritten rather than
+  // re-rendering the card, because a re-render would drop focus off the
+  // button mid-press — and this is a control built to be pressed repeatedly.
+  root.querySelectorAll('.qty-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const idx = Number(btn.dataset.idx);
+      const it = describeFoodParsedItems[idx];
+      if(!it) return;
+      const q = Math.max(1, Math.min(FOOD_QTY_MAX,
+        (describeFoodQtys[idx] || 1) + Number(btn.dataset.step)));
+      describeFoodQtys[idx] = q;
+
+      const row = root.querySelector(`.describe-item[data-idx="${idx}"]`);
+      row.querySelector(`[data-count="${idx}"]`).textContent = q + '\u00D7';
+      row.querySelector(`[data-macro="${idx}"]`).textContent =
+        Math.round((Number(it.cal) || 0) * q) + ' cal';
+      row.classList.toggle('multiplied', q > 1);
+      // Disabled at the ends rather than silently ignoring the tap — a
+      // button that looks live and does nothing reads as a broken button.
+      row.querySelectorAll('.qty-btn').forEach(b=>{
+        const step = Number(b.dataset.step);
+        b.disabled = (step < 0 && q <= 1) || (step > 0 && q >= FOOD_QTY_MAX);
+      });
+    });
+  });
+
+  // Save to My Foods. Stores ONE portion — the multiplier is a fact about
+  // this meal, not about what the food is.
+  root.querySelectorAll('.describe-save-btn').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const it = describeFoodParsedItems[Number(btn.dataset.save)];
+      if(!it || btn.disabled) return;
+      await addToCustomFoods({name: it.name, cal: it.cal, pro: it.pro, fat: it.fat, carb: it.carb});
+      btn.textContent = 'In My Foods';
+      btn.disabled = true;
+      btn.setAttribute('aria-label', it.name + ' is already in My Foods');
+      renderFoodItems();
+    });
+  });
+}
+
+function buildDescribeItemsHtml(items){
+  return items.map((it, idx)=>{
+    const saved = customFoods.some(f=> f.name === it.name);
+    return `
+    <div class="describe-item" data-idx="${idx}">
+        <div class="describe-item-head">
+          <span class="describe-item-name">${escapeHtml(it.name)}</span>
+          <span class="describe-item-macro" data-macro="${idx}">${it.cal} cal</span>
+        </div>
+        <div class="describe-item-controls">
+          <div class="qty-stepper">
+            <button type="button" class="qty-btn" data-step="-1" data-idx="${idx}" disabled
+              aria-label="One less portion of ${escapeHtml(it.name)}">\u2212</button>
+            <span class="qty-count" data-count="${idx}" aria-live="polite" aria-atomic="true">1\u00D7</span>
+            <button type="button" class="qty-btn" data-step="1" data-idx="${idx}"
+              aria-label="One more portion of ${escapeHtml(it.name)}">+</button>
+          </div>
+          <button type="button" class="describe-save-btn" data-save="${idx}"${saved ? ' disabled' : ''}
+            aria-label="${saved ? escapeHtml(it.name) + ' is already in My Foods' : 'Save ' + escapeHtml(it.name) + ' to My Foods'}"
+            >${saved ? 'In My Foods' : 'Save'}</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
 async function submitFoodDescription(){
   const input = document.getElementById('describeFoodInput');
   const description = input.value.trim();
@@ -20762,17 +20916,14 @@ async function submitFoodDescription(){
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
     describeFoodParsedItems = parsed.items || [];
+    describeFoodQtys = describeFoodParsedItems.map(()=> 1);
 
     if(describeFoodParsedItems.length === 0){
       resultEl.innerHTML = `<div class="empty-note">🤷 Couldn't identify any food in that description — try rephrasing, or add it manually below.</div>`;
       return;
     }
 
-    const itemsHtml = describeFoodParsedItems.map(it=>`
-      <div class="photo-result-item">
-        <span>${escapeHtml(it.name)} — ${it.cal} cal</span>
-      </div>
-    `).join('');
+    const itemsHtml = buildDescribeItemsHtml(describeFoodParsedItems);
 
     // Only checked against the FIRST item — usually the closest match to
     // what was actually typed, and keeping this to one lookup avoids
@@ -20792,9 +20943,11 @@ async function submitFoodDescription(){
         ${similarHtml}
       </div>
     `;
+    wireDescribeItemControls(resultEl);
+
     document.getElementById('describeFoodAddAllBtn').addEventListener('click', async ()=>{
-      for(const it of describeFoodParsedItems){
-        await addFoodToLog(it);
+      for(let i = 0; i < describeFoodParsedItems.length; i++){
+        await addFoodToLog(describeFoodParsedItems[i], describeFoodQtys[i] || 1);
       }
       resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added ✓</div>`;
       input.value = '';
@@ -21561,7 +21714,37 @@ function sortByUsage(items){
   return [...items].sort((a,b)=> (usageCounts[b.name]||0) - (usageCounts[a.name]||0));
 }
 
-async function addFoodToLog(item){
+// ── Portions ────────────────────────────────────────────────────────────────
+// A food in the library, in a USDA result or in an AI estimate is ONE portion.
+// `qty` is how many of them were actually eaten.
+//
+// 20 is not a nutrition limit, it is a fat-finger limit: past about that point
+// a repeated tap is far more likely to be an accident than a meal.
+const FOOD_QTY_MAX = 20;
+
+// Returns a NEW item; never mutates the library entry it was given. The name
+// carries the multiplier because the food log is a flat list of lines and
+// "Bagel" appearing once at 560 cal would otherwise be indistinguishable from
+// a a single 560-calorie bagel when read back a week later.
+function scaleFoodItem(item, qty){
+  const q = Math.max(1, Math.min(FOOD_QTY_MAX, Math.round(Number(qty) || 1)));
+  if(q === 1) return {...item};
+  // Calories to the nearest whole number, macros to one decimal. Multiplying
+  // an already-rounded estimate and then rounding again is not more accurate
+  // than the estimate was, but it does keep the log's arithmetic self-consistent
+  // — the totals row adds up to what the lines say.
+  const g = (v)=> Math.round((Number(v) || 0) * q * 10) / 10;
+  return {
+    ...item,
+    name: `${item.name} ×${q}`,
+    cal: Math.round((Number(item.cal) || 0) * q),
+    pro: g(item.pro), fat: g(item.fat), carb: g(item.carb),
+    qty: q,
+    baseName: item.name,
+  };
+}
+
+async function addFoodToLog(item, qty){
   // Time-of-day is stamped here, once, for every entry point (search results,
   // recipes, USDA lookups, Snap-a-Meal, custom foods) — see nowTimeKey(). Only
   // stamped when logging for the real current day — a backdated entry (see
@@ -21569,14 +21752,21 @@ async function addFoodToLog(item){
   // actually eaten, and stamping "right now" would just be wrong, corrupting
   // the Diabetes meal-timing insight with a fabricated time. Missing time is
   // already treated as "not enough data for this day" there, not an error.
-  todaysFoodLog.push({...item, time: isBackdating() ? undefined : nowTimeKey()});
+  todaysFoodLog.push({...scaleFoodItem(item, qty), time: isBackdating() ? undefined : nowTimeKey()});
   await saveFoodLog();
+  // The BASE name, deliberately. Usage counts drive search ranking and the
+  // "Bagel ×3" spelling is not a food anyone will ever search for — counting it
+  // separately would split one food's history across every portion size it was
+  // ever eaten at and rank all of them badly.
   await bumpUsageCount(item.name);
   // Anything found via an online lookup (USDA, etc.) gets cached into My
   // Foods the first time it's actually used — so it's local and instant
   // for every search after this one, and the lookup never has to happen
   // twice for the same food.
   if(item.source){
+    // `item`, NOT the scaled copy: My Foods stores one portion of a food, so
+    // that logging three of something does not permanently redefine what one
+    // of it is.
     const { source, servingDesc, category, ...cacheable } = item;
     await addToCustomFoods(cacheable);
   }
