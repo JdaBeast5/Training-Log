@@ -904,6 +904,16 @@
   .rest-timer-panel-adjust{
     display:flex; flex-wrap:wrap; gap:6px; padding:0 2px 4px;
   }
+  .custom-program-box{margin-top:14px; padding-top:12px; border-top:1px solid var(--line-bright);}
+  .custom-program-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:8px 2px; font-size:13px; color:var(--text);
+  }
+  .custom-program-row + .custom-program-row{border-top:1px solid var(--line-bright);}
+  .custom-program-del{
+    background:none; border:1px solid rgba(255,69,58,0.3); border-radius:var(--radius-sm);
+    color:var(--plate-red); font-size:12px; padding:5px 9px; cursor:pointer; font-family:'Inter',sans-serif;
+  }
   .rest-timer-panel-notify{display:flex; padding:0 2px 6px;}
   .rest-timer-panel-notify[hidden]{display:none;}
   .rest-timer-panel-note{padding:0 4px 8px; font-size:11px; line-height:1.45; color:var(--text-muted); text-align:center;}
@@ -2562,6 +2572,17 @@
       <div class="program-select-desc" id="programSelectDesc"></div>
       <button class="masterclass-link-btn" id="viewMasterclassBtn" style="display:none"></button>
       <div id="programSourceNote"></div>
+
+      <div class="custom-program-box">
+        <label class="care-label" for="customProgName">Your own program</label>
+        <div class="history-hint field-note">Start an empty program with as many days as you want, then add exercises to each day the same way you would to any other program. It sits alongside the built-in ones and can be deleted at any time.</div>
+        <input type="text" id="customProgName" class="care-input" placeholder="e.g. Off-season block" maxlength="40" autocomplete="off">
+        <label class="equip-sublabel" for="customProgDays">Training days per week</label>
+        <input type="number" id="customProgDays" class="care-input" value="4" min="1" max="7" inputmode="numeric">
+        <div id="customProgError" class="exedit-error"></div>
+        <button type="button" class="switch-profile-btn" id="customProgCreate">➕ Create program</button>
+        <div id="customProgList"></div>
+      </div>
     </div></div>
   </div>
 
@@ -2797,6 +2818,10 @@
       <button class="switch-profile-btn" id="importDataBtn">⬆️ Import Backup (restore from JSON)</button>
       <input type="file" id="importDataInput" accept="application/json,.json" style="display:none" aria-label="Choose a backup file to import">
       <div class="status-msg" id="importDataStatus"></div>
+      <button class="switch-profile-btn" id="verifyBackupBtn">🔍 Check a Backup File (reads it, changes nothing)</button>
+      <input type="file" id="verifyBackupInput" accept="application/json,.json" style="display:none" aria-label="Choose a backup file to check">
+      <div class="status-msg" id="verifyBackupStatus"></div>
+      <div id="verifyBackupReport"></div>
       <button class="switch-profile-btn" id="deleteAllDataBtn" style="color:var(--plate-red); border-color:rgba(255,69,58,0.3);">🗑️ Delete All My Data (this profile, permanently)</button>
       <div class="status-msg" id="deleteAllDataStatus"></div>
     </div></div>
@@ -3173,6 +3198,18 @@
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7.5" width="16" height="5.5" rx="1"/><line x1="6" y1="7.5" x2="6" y2="10.2"/><line x1="10" y1="7.5" x2="10" y2="10.2"/><line x1="14" y1="7.5" x2="14" y2="10.2"/></svg></span>Measurement Context</div>
       <div class="history-hint">What your tape-measure numbers mean for health, and where your body has actually been changing. Appears once you've logged measurements.</div>
       <div id="bodyMetricsContent"></div>
+    </div>
+
+    <div class="card" data-autohide>
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l2.5 1.5"/></svg></span>Rest Between Sets</div>
+      <div class="history-hint">What rest you actually took, session by session — the variable that drifts without anyone deciding to change it. Appears once a few sessions have been logged with the timer running.</div>
+      <div id="restTrendContent"></div>
+    </div>
+
+    <div class="card" data-autohide>
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h2M15 10h2"/><rect x="5" y="7" width="2.5" height="6" rx="0.8"/><rect x="12.5" y="7" width="2.5" height="6" rx="0.8"/><line x1="7.5" y1="10" x2="12.5" y2="10"/></svg></span>Strength Context</div>
+      <div class="history-hint">Your estimated maxes as a multiple of your own bodyweight, and how your lifts sit relative to each other. Appears once you've logged enough on the main barbell lifts.</div>
+      <div id="strengthContextContent"></div>
     </div>
 
     <div class="card" data-autohide>
@@ -3627,6 +3664,27 @@
 </div>
 
 <script>
+// [BOOT PROFILE] ---------------------------------------------------------------
+// Deliberately the first executed statement in the file. Cold-start cost has
+// been deferred twice for lack of a device profile, and it cannot be measured
+// from a laptop: the number that matters is how long an iPhone takes to parse
+// and execute 1.8 MB, which depends on the phone.
+//
+// performance.now() is measured from navigation start, so `scriptStart` is not
+// a stopwatch reading — it is already the answer to "how long before any of
+// this app's own code ran", covering network, HTML parse and CSS.
+//
+// Nothing here is conditional on a setting: it is four number assignments, and
+// making it opt-in would mean the profile is never there on the launch someone
+// actually noticed was slow.
+const BOOT_MARKS = {
+  scriptStart: (typeof performance !== 'undefined' && performance.now) ? performance.now() : null,
+  scriptEnd: null, initStart: null, initEnd: null,
+};
+function bootMark(name){
+  try{ if(performance && performance.now) BOOT_MARKS[name] = performance.now(); }catch(e){}
+}
+
 /* ============================================================================
    TRAINING LOG — ARCHITECTURE & UPDATE CONTRACT
    ============================================================================
@@ -3729,7 +3787,7 @@
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.4';
+const APP_VERSION = '3.10';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -11797,6 +11855,160 @@ async function renderTodayInsights(){
 // [PROGRAM SELECTION & MESOCYCLE] -----------------------------------------------
 // Active program persistence, deload/mesocycle week math, program
 // recommendation.
+// [CUSTOM PROGRAMS] ------------------------------------------------------------
+// The 30 authored programs are the single source of truth and per-user changes
+// to them are override layers. A program the user WROTE is a different thing:
+// it is not an override of anything, it is new source data that they own.
+//
+// It is therefore stored separately, in its own key, and merged into the
+// `programs` lookup at load time. That merge is what lets ~40 existing call
+// sites — programs[activeProgram].days, .label, .short, the scorer, every
+// toggleXCard — keep working unchanged. The alternative was a resolver
+// function threaded through all of them, which is a large diff whose only
+// purpose is to express a distinction the key prefix already expresses.
+//
+// TWO RULES MAKE THE MERGE SAFE:
+//   1. Every custom key carries a prefix containing ':', which no authored key
+//      does. They cannot collide by construction.
+//   2. The install refuses to write a key that already exists, so it is
+//      idempotent: re-running it never replaces a definition already in the
+//      lookup with a second object parsed from storage. Note that rule 1 is
+//      what actually keeps authored programs safe — an unprefixed key never
+//      reaches this check at all. Rule 2 guards the custom ones against
+//      themselves, which matters because install runs on every create as well
+//      as at launch.
+const CUSTOM_PROGRAM_PREFIX = 'custom:';
+const CUSTOM_PROGRAM_MAX = 12;
+const CUSTOM_PROGRAM_MAX_DAYS = 7;
+const CUSTOM_PROGRAM_KEY = 'custom-programs';
+
+// Reused from the authored programs so a custom day looks like any other day
+// in the day strip rather than announcing itself as second-class.
+const CUSTOM_PLATES = [
+  {plate:'p-red',    plateNum:'25'},
+  {plate:'p-blue',   plateNum:'20'},
+  {plate:'p-yellow', plateNum:'15'},
+  {plate:'p-green',  plateNum:'10'},
+];
+
+function isCustomProgramKey(key){
+  return String(key || '').startsWith(CUSTOM_PROGRAM_PREFIX);
+}
+
+function newCustomProgramKey(){
+  return CUSTOM_PROGRAM_PREFIX + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+// Shape-identical to an authored program. Anything less would mean every
+// consumer needs to know which kind it is holding.
+function makeCustomProgram(name, dayCount){
+  const label = String(name || '').trim().slice(0, 40);
+  const n = Math.max(1, Math.min(CUSTOM_PROGRAM_MAX_DAYS, Number(dayCount) || 0));
+  const days = {};
+  for(let i = 1; i <= n; i++){
+    const plate = CUSTOM_PLATES[(i - 1) % CUSTOM_PLATES.length];
+    days['d' + i] = {
+      label: 'Day ' + i, sub: 'Your session', plate: plate.plate, plateNum: plate.plateNum,
+      duration: '', exercises: [],
+    };
+  }
+  return {label, short: 'Your own program · ' + n + ' day' + (n === 1 ? '' : 's'), days, custom: true};
+}
+
+function validateCustomProgramName(name, existingLabels){
+  const s = String(name || '').trim();
+  if(!s) return {ok:false, error:'Give the program a name.'};
+  if(s.length > 40) return {ok:false, error:'Keep the name under 40 characters.'};
+  // Against the labels actually in use, authored ones included. Two entries
+  // reading "Strength & Size" in the same dropdown is not a collision the app
+  // can resolve for you.
+  if((existingLabels || []).some(l=> String(l).trim().toLowerCase() === s.toLowerCase())){
+    return {ok:false, error:'A program with that name already exists.'};
+  }
+  return {ok:true, value:s};
+}
+
+async function readCustomPrograms(){
+  try{
+    const res = await window.storage.get(CUSTOM_PROGRAM_KEY);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      if(parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+    }
+  }catch(e){}
+  return {};
+}
+
+async function writeCustomPrograms(map){
+  try{ await window.storage.set(CUSTOM_PROGRAM_KEY, JSON.stringify(map)); }catch(e){}
+}
+
+function installCustomPrograms(map){
+  let installed = 0;
+  Object.keys(map || {}).forEach(key=>{
+    if(!isCustomProgramKey(key)) return;           // rule 1
+    if(programs[key]) return;                      // rule 2
+    const def = map[key];
+    if(!def || !def.days || Object.keys(def.days).length === 0) return;
+    programs[key] = def;
+    installed++;
+  });
+  return installed;
+}
+
+// Must run BEFORE loadActiveProgram. That function guards with
+// `programs[res.value]` and silently falls back to the default when the key is
+// unknown — so with the order reversed, a custom program would be quietly
+// forgotten on every launch and the app would open on Strength & Size instead,
+// with nothing on screen to explain why.
+async function loadAndInstallCustomPrograms(){
+  installCustomPrograms(await readCustomPrograms());
+}
+
+async function createCustomProgram(name, dayCount){
+  const map = await readCustomPrograms();
+  if(Object.keys(map).length >= CUSTOM_PROGRAM_MAX){
+    return {ok:false, error:'You already have ' + CUSTOM_PROGRAM_MAX + ' of your own programs. Delete one to add another.'};
+  }
+  const labels = Object.keys(programs).map(k=> programs[k].label);
+  const check = validateCustomProgramName(name, labels);
+  if(!check.ok) return check;
+
+  const key = newCustomProgramKey();
+  const def = makeCustomProgram(check.value, dayCount);
+  map[key] = def;
+  await writeCustomPrograms(map);
+  installCustomPrograms(map);
+  return {ok:true, key, def};
+}
+
+async function deleteCustomProgram(key){
+  if(!isCustomProgramKey(key)) return {ok:false, error:'Only your own programs can be deleted.'};
+  const map = await readCustomPrograms();
+  const def = map[key];
+  delete map[key];
+  await writeCustomPrograms(map);
+  delete programs[key];
+
+  // Its per-day data goes with it. Left behind, these are orphans nothing can
+  // ever read again, sitting in the same ~5 MB origin quota as everything else.
+  try{
+    const res = await window.storage.list('custom-ex:' + key + ':');
+    if(res && res.keys) for(const k of res.keys) await window.storage.delete(k);
+  }catch(e){}
+
+  // Deleting the program you are standing in would otherwise leave
+  // activeProgram pointing at a key that no longer exists, and the next
+  // programs[activeProgram].days would throw.
+  if(activeProgram === key){
+    activeProgram = 'strength';
+    dayDefs = programs[activeProgram].days;
+    activeDay = 'd1';
+    await saveActiveProgram();
+  }
+  return {ok:true, removed: def ? def.label : null};
+}
+
 async function loadActiveProgram(){
   try{
     const res = await window.storage.get('active-program');
@@ -11969,13 +12181,69 @@ function updateMasterclassLinkBtn(){
   };
 }
 
+function renderCustomProgramList(){
+  const el = document.getElementById('customProgList');
+  if(!el) return;
+  const keys = Object.keys(programs).filter(isCustomProgramKey);
+  if(keys.length === 0){ el.innerHTML = ''; return; }
+  el.innerHTML = keys.map(k=>
+    `<div class="custom-program-row"><span>${escapeHtml(programs[k].label)} · ${Object.keys(programs[k].days).length} day${Object.keys(programs[k].days).length === 1 ? '' : 's'}</span>`
+    + `<button type="button" class="custom-program-del" data-prog-key="${escapeHtml(k)}">Delete</button></div>`
+  ).join('');
+}
+
+function wireCustomProgramUI(){
+  const createBtn = document.getElementById('customProgCreate');
+  const nameEl = document.getElementById('customProgName');
+  const daysEl = document.getElementById('customProgDays');
+  const errEl = document.getElementById('customProgError');
+  const listEl = document.getElementById('customProgList');
+  if(!createBtn || !nameEl || !daysEl || !errEl || !listEl) return;
+
+  createBtn.addEventListener('click', async ()=>{
+    errEl.textContent = '';
+    const res = await createCustomProgram(nameEl.value, daysEl.value);
+    if(!res.ok){ errEl.textContent = res.error; return; }
+    nameEl.value = '';
+    // Switch straight into it. Creating a program and then having to find it
+    // in a dropdown is a step with no purpose.
+    activeProgram = res.key;
+    dayDefs = programs[activeProgram].days;
+    activeDay = 'd1';
+    await saveActiveProgram();
+    await renderProgramSelector();
+    renderWorkout();
+    triggerCelebration('✏️', 'Program created', res.def.label + ' — add exercises to each day to fill it in.', false);
+  });
+
+  // Delegated: the rows are re-rendered whenever the selector is, so a handler
+  // bound to a button would be bound to a button that no longer exists.
+  listEl.addEventListener('click', async (e)=>{
+    const btn = e.target.closest('.custom-program-del');
+    if(!btn) return;
+    const key = btn.dataset.progKey;
+    const label = programs[key] ? programs[key].label : 'this program';
+    if(!confirm(`Delete "${label}"? Any exercises you added to its days go with it. Sets you have already logged are not deleted.`)) return;
+    await deleteCustomProgram(key);
+    await renderProgramSelector();
+    renderWorkout();
+  });
+}
+
 async function renderProgramSelector(trendStatus){
   const el = document.getElementById('programSelector');
   const descEl = document.getElementById('programSelectDesc');
   renderProgramSource();   // provenance follows whichever program is active
 
   const scores = await scoreAllPrograms(userProfile, trendStatus);
-  const sortedKeys = Object.keys(programs).sort((a,b)=> scores[b]-scores[a]);
+  // Custom programs are pulled out of the ranking entirely. The scorer exists
+  // to suggest which of the authored programs fits a stated goal; ranking
+  // something the user wrote themselves against that scale would be the app
+  // grading their homework, and a default score of 40 would bury it in the
+  // middle of a list of thirty for no reason it could explain.
+  const customKeys = Object.keys(programs).filter(isCustomProgramKey);
+  const authoredKeys = Object.keys(programs).filter(k=> !isCustomProgramKey(k));
+  const sortedKeys = authoredKeys.sort((a,b)=> scores[b]-scores[a]);
   const topKeys = sortedKeys.slice(0, 5);
   const restKeys = sortedKeys.slice(5);
 
@@ -11983,11 +12251,18 @@ async function renderProgramSelector(trendStatus){
   // rather than hiding your own selection behind "show more" unexpectedly.
   const optionHtml = key => `<option value="${key}" ${key===activeProgram?'selected':''}>${programs[key].label}</option>`;
 
-  let html = `<optgroup label="🎯 Best fit for your goal">${topKeys.map(optionHtml).join('')}</optgroup>`;
+  let html = '';
+  // First, because it is theirs and they should not have to scroll past thirty
+  // of ours to find it.
+  if(customKeys.length){
+    html += `<optgroup label="✏️ Your programs">${customKeys.map(optionHtml).join('')}</optgroup>`;
+  }
+  html += `<optgroup label="🎯 Best fit for your goal">${topKeys.map(optionHtml).join('')}</optgroup>`;
   if(restKeys.length){
     html += `<optgroup label="Show more programs">${restKeys.map(optionHtml).join('')}</optgroup>`;
   }
   el.innerHTML = html;
+  renderCustomProgramList();
   descEl.textContent = programs[activeProgram].short;
   togglePosingCard();
   toggleMartialArtCard();
@@ -13968,6 +14243,44 @@ function buildGenericWarmupRamp(workingWeightLb){
 // natural place next to weight/reps, so the two existing call sites keep
 // working unchanged and no positional argument silently shifts meaning. It is
 // in metres (canonical); the caller converts.
+// [REST ACHIEVED] --------------------------------------------------------------
+// The rest timer has always shown what rest was PRESCRIBED. What actually
+// happened was never recorded, so a session that felt terrible could not be
+// explained by "you took 70 seconds between sets instead of your usual three
+// minutes" — the data to notice that simply wasn't there.
+//
+// Captured inside saveExSet rather than passed in from the row handler: this
+// function already knows the day, exercise slot, set index and variant, and
+// threading a tenth parameter through the call site to tell it something it
+// can work out itself is how signatures rot.
+const restLogClock = {};   // slot key -> {at, setIdx}
+
+// A ceiling and a floor, both there to keep noise out of a number that is only
+// useful if it means one thing. Above 30 minutes it isn't rest, it's an
+// interruption — a phone call, the end of the session, coming back the next
+// morning to a workout left open. Below 5 seconds nothing physical happened.
+const REST_ACHIEVED_MAX_S = 1800;
+const REST_ACHIEVED_MIN_S = 5;
+
+function noteRestAchieved(slotKey, setIdx){
+  const now = Date.now();
+  const prev = restLogClock[slotKey];
+
+  // A CORRECTION IS NOT A SET. Re-saving the same set index — fixing a typo in
+  // the weight, adding an RPE afterwards — must not restart the clock, or the
+  // next set records the gap since the correction rather than since the set
+  // was actually performed. Only a change of set index moves it.
+  if(prev && prev.setIdx === setIdx) return null;
+
+  restLogClock[slotKey] = {at: now, setIdx};
+  if(!prev) return null;                       // first set of this exercise: nothing to measure from
+  if(setIdx < prev.setIdx) return null;        // jumped backwards to fill a gap; the interval is meaningless
+
+  const secs = Math.round((now - prev.at) / 1000);
+  if(secs < REST_ACHIEVED_MIN_S || secs > REST_ACHIEVED_MAX_S) return null;
+  return secs;
+}
+
 async function saveExSet(dayId, idx, setIdx, weight, reps, rpe, subVariant, distance, note){
   const log = await getExLog(dayId, idx, subVariant);
 
@@ -14001,6 +14314,15 @@ async function saveExSet(dayId, idx, setIdx, weight, reps, rpe, subVariant, dist
   // at length.
   const noteVal = (note == null) ? '' : String(note).trim().slice(0, 200);
   if(noteVal) set.note = noteVal;
+  // Same additive rule as distance and note — written only when measured, so a
+  // set logged without it stores byte-identically to how it always has and no
+  // migration is needed. Never recorded while backdating: the elapsed time
+  // between two entries typed on Sunday for a workout done on Thursday is a
+  // measurement of typing speed.
+  if(!isBackdating()){
+    const restAchieved = noteRestAchieved(exKey(activeProgram, dayId, idx, subVariant), setIdx);
+    if(restAchieved != null) set.rest = restAchieved;
+  }
   entry.sets[setIdx] = set;
 
   log.sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
@@ -14577,8 +14899,15 @@ async function renderWorkout(){
       // unchecking something to fix a mistake correctly un-marks the day
       // too, rather than leaving a stale "done" badge behind. Same
       // current-week gate as above, for the same reason.
+      // Computed OUTSIDE the affectsCurrentWeekDisplay gate. It used to be
+      // declared inside it, while the completion celebration below reads it
+      // from the handler scope — so that read hit an undeclared name and threw
+      // a ReferenceError on every completing tick, killing the celebration and
+      // everything after it in this listener. Short-circuiting on `cb.checked`
+      // is why it only fired when ticking rather than unticking, and why it
+      // never showed up as an obviously broken feature.
+      const dayNowComplete = renderExercises.every((ex,idx)=> !!completed[idx]);
       if(affectsCurrentWeekDisplay){
-        const dayNowComplete = renderExercises.every((ex,idx)=> !!completed[idx]);
         if(weekProgress[activeDay] !== dayNowComplete){
           weekProgress[activeDay] = dayNowComplete;
           saveWeekProgress();
@@ -22354,6 +22683,282 @@ function parseExKey(key){
   };
 }
 
+// [REST TREND] -----------------------------------------------------------------
+// Per-session medians, not per-set. A single 40-second gap means nothing — a
+// belt went on crooked, someone asked to work in. What explains a session is
+// the whole session running short, and a median is the summary that survives
+// one outlier without smoothing away a real change.
+function median(nums){
+  const xs = (nums || []).filter(n=> n != null && !isNaN(n)).sort((a,b)=> a-b);
+  if(xs.length === 0) return null;
+  const mid = Math.floor(xs.length / 2);
+  return xs.length % 2 ? xs[mid] : (xs[mid-1] + xs[mid]) / 2;
+}
+
+// A session is called short when its median falls below three quarters of the
+// person's own usual rest. It is a comparison to themselves, never to a
+// prescription: the prescribed rest is a default the app chose, and someone
+// deliberately running dense supersets should not be told they are doing it
+// wrong every time they open the tab.
+const REST_SHORT_FRACTION = 0.75;
+const REST_TREND_SESSIONS = 8;
+const REST_TREND_MIN_SETS = 3;
+
+function computeRestTrend(sessionsByDate){
+  const dates = Object.keys(sessionsByDate || {}).sort();
+  const rows = dates.map(date=>{
+    const rests = sessionsByDate[date] || [];
+    return {date, count: rests.length, median: median(rests)};
+  }).filter(r=> r.median != null && r.count >= REST_TREND_MIN_SETS);
+  if(rows.length === 0) return {rows: [], usual: null};
+
+  const recent = rows.slice(-REST_TREND_SESSIONS);
+  // The baseline is every session on record, not just the ones shown. A
+  // baseline computed from the same eight rows it is used to judge would drift
+  // with them, and a month of steadily shorter rests would never register as
+  // anything other than normal.
+  const usual = median(rows.map(r=> r.median));
+  recent.forEach(r=>{ r.short = usual != null && r.median < usual * REST_SHORT_FRACTION; });
+  return {rows: recent, usual};
+}
+
+function fmtRest(seconds){
+  if(seconds == null) return '—';
+  const s = Math.round(seconds);
+  if(s < 60) return s + 's';
+  const m = Math.floor(s / 60);
+  const rem = s % 60;
+  return rem === 0 ? m + 'm' : m + 'm ' + String(rem).padStart(2, '0') + 's';
+}
+
+async function collectRestBySession(){
+  const out = {};
+  let keys = [];
+  try{
+    const res = await window.storage.list('ex:');
+    if(res && res.keys) keys = res.keys;
+  }catch(e){}
+  for(const key of keys){
+    let log = [];
+    try{
+      const item = await window.storage.get(key);
+      if(item && item.value) log = JSON.parse(item.value).map(normalizeExEntry);
+    }catch(e){}
+    log.forEach(entry=>{
+      if(!entry || !entry.date) return;
+      (entry.sets || []).forEach(s=>{
+        if(s && s.rest != null){
+          (out[entry.date] = out[entry.date] || []).push(s.rest);
+        }
+      });
+    });
+  }
+  return out;
+}
+
+async function renderRestTrend(){
+  const el = document.getElementById('restTrendContent');
+  if(!el) return;
+  const {rows, usual} = computeRestTrend(await collectRestBySession());
+  if(rows.length === 0){
+    el.innerHTML = '<div class="empty-note">Once you have logged a few sessions with the rest timer running, your actual rest between sets shows up here.</div>';
+    return;
+  }
+  const body = rows.slice().reverse().map(r=>
+    `<div class="diag-row${r.short ? '' : ' diag-good'}"><span class="diag-icon">${r.short ? 'ℹ️' : '•'}</span>`
+    + `<span><b>${new Date(r.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</b><span class="diag-detail">`
+    + `${fmtRest(r.median)} typical rest across ${r.count} set${r.count === 1 ? '' : 's'}`
+    + (r.short ? ` — shorter than your usual ${fmtRest(usual)}.` : '')
+    + `</span></span></div>`).join('');
+  el.innerHTML = body
+    + `<div class="history-hint field-note" style="margin-top:10px;">Your usual is ${escapeHtml(fmtRest(usual))} between sets. `
+    + 'Shorter sessions are flagged against that, not against what the timer suggested — dense sessions are a valid choice. '
+    + 'This is worth checking when a session felt unusually hard: rest is the variable that changes without anyone deciding to change it.'
+    + '</div>';
+}
+
+// [STRENGTH CONTEXT] -----------------------------------------------------------
+// HANDOFF v8 Tier 2 §5 asked for strength standards and attached a condition:
+// "this is the same category of judgement the Measurement Context card
+// deliberately avoids, so it should inform, not rank." That condition decides
+// the whole design, so the reasoning is recorded here the way it is there.
+//
+// WHAT THIS DOES NOT DO, AND MUST NOT LATER ACQUIRE:
+//
+// 1. NO TIERS. No Beginner/Novice/Intermediate/Advanced/Elite label is
+//    assigned to a person or a lift. Those labels are the entire product of
+//    the sites that publish strength standards, and they convert a training
+//    measurement into a statement about the person's worth at the gym.
+// 2. NO PERCENTILE PLACEMENT. Good normative data does exist — Latella et al.
+//    (J Sci Med Sport, 2024) computed 10th-90th percentiles from ~810,000
+//    drug-tested unequipped powerlifting results by sex, age and weight class.
+//    It is deliberately not used to place anyone, because that sample is
+//    COMPETITIVE POWERLIFTERS: a recreational lifter's percentile against it
+//    is not the fact it sounds like, and reporting it would be ranking someone
+//    against a population they never entered. It is named in the card's note
+//    so anyone who wants population data knows where to find it.
+// 3. NO SEX-BASED TARGET. The profile stores gender, and every published
+//    standard is sex-split. Using it would mean the app tells a woman her
+//    bench "should" be a lower number than a man's — which is a statement
+//    about her, derived from a population average, presented as a target.
+//    Bodyweight multiples and inter-lift ratios need no such split.
+// 4. NO WARN REGISTER. Same rule as the Measurement Context card: the amber
+//    state exists for correctable training decisions, not for pointing at
+//    someone's strength.
+//
+// WHAT IT DOES: reports the person's own numbers back to them in two forms
+// that are self-referential rather than comparative — strength relative to
+// their own bodyweight, and their lifts relative to each other. The second is
+// genuinely actionable, because a lagging press is a programming observation,
+// not a verdict.
+
+// Exact names only. A fuzzy match is the obvious shortcut and it is wrong
+// here: counting a Romanian deadlift as a deadlift, or a front squat as a
+// back squat, silently shifts a ratio that the whole card is built on, and
+// the person has no way to see that it happened.
+const BALANCE_LIFTS = [
+  {key:'squat',    label:'Back squat',     names:['Back Squat', 'Squat']},
+  {key:'bench',    label:'Bench press',    names:['Bench Press', 'Flat Bench Press']},
+  {key:'deadlift', label:'Deadlift',       names:['Deadlift']},
+  {key:'ohp',      label:'Overhead press', names:['Overhead Press']},
+];
+
+function liftKeyForExercise(name){
+  const n = String(name || '').trim().toLowerCase();
+  const hit = BALANCE_LIFTS.find(l=> l.names.some(x=> x.toLowerCase() === n));
+  return hit ? hit.key : null;
+}
+
+// FLAGGED FOR REVIEW — these ranges are coaching heuristics, widely repeated
+// in strength literature, not values taken from a single citable dataset. They
+// are used ONLY to decide whether to say "typical" or "further apart than
+// typical", never to score anything. If a better source turns up, the ranges
+// move and nothing else in this file has to.
+//
+// The width of each range is doing real work. Limb length materially changes
+// these ratios — long arms favour the deadlift and penalise the bench, a long
+// femur penalises the squat — and two people with identical training and
+// muscle mass can sit at opposite ends of a range for reasons no amount of
+// training changes. Ranges narrow enough to be "precise" would therefore be
+// wrong about a large minority of people.
+const LIFT_RATIOS = [
+  {num:'bench', den:'squat',    low:0.60, high:0.85, label:'Bench vs squat',
+   below:'Your bench is further behind your squat than is typical — often just what happens when lower-body work has had more attention, or a sign upper-body pressing volume is worth a look.',
+   above:'Your bench is closer to your squat than is typical. Commonly means lower-body work has had less attention lately rather than anything wrong with the bench.'},
+  {num:'squat', den:'deadlift', low:0.75, high:0.95, label:'Squat vs deadlift',
+   below:'Your squat sits further below your deadlift than is typical. Long femurs alone can do this and never change; so can a squat that has had less practice.',
+   above:'Your squat is close to or above your deadlift, which is less common. Often leverages, sometimes a deadlift that has simply had less time spent on it.'},
+  {num:'ohp',   den:'bench',    low:0.55, high:0.75, label:'Overhead press vs bench',
+   below:'Your overhead press is further behind your bench than is typical. The press responds slowly and is the lift most often left out — worth checking it has a regular slot.',
+   above:'Your overhead press is strong relative to your bench. Nothing to fix; usually means pressing has had consistent attention.'},
+];
+
+// Recent, not all-time. Same reasoning as recentBestE1RM: a best from eighteen
+// months ago describes someone who no longer exists, and a ratio built from a
+// squat set last week against a bench from two years ago is comparing two
+// different people.
+const STRENGTH_CONTEXT_WINDOW_DAYS = 120;
+
+function computeLiftBalance(e1rms){
+  const out = [];
+  LIFT_RATIOS.forEach(r=>{
+    const a = e1rms[r.num], b = e1rms[r.den];
+    if(a == null || b == null || b <= 0) return;
+    const ratio = a / b;
+    const inRange = ratio >= r.low && ratio <= r.high;
+    out.push({
+      label: r.label,
+      ratio,
+      low: r.low, high: r.high,
+      inRange,
+      note: inRange ? 'In the range most lifters sit in.' : (ratio < r.low ? r.below : r.above),
+    });
+  });
+  return out;
+}
+
+function bodyweightMultiple(e1rmLb, bodyweightLb){
+  if(e1rmLb == null || !bodyweightLb || bodyweightLb <= 0) return null;
+  return e1rmLb / bodyweightLb;
+}
+
+async function collectLiftE1RMs(){
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - STRENGTH_CONTEXT_WINDOW_DAYS);
+  const best = {};
+  let keys = [];
+  try{
+    const res = await window.storage.list('ex:');
+    if(res && res.keys) keys = res.keys;
+  }catch(e){}
+  for(const key of keys){
+    const parsed = parseExKey(key);
+    if(!parsed) continue;
+    const liftKey = liftKeyForExercise(parsed.exDef && parsed.exDef.name);
+    if(!liftKey) continue;
+    let log = [];
+    try{
+      const item = await window.storage.get(key);
+      if(item && item.value) log = JSON.parse(item.value).map(normalizeExEntry);
+    }catch(e){}
+    log.forEach(entry=>{
+      if(!entry || !entry.date) return;
+      if(new Date(entry.date+'T00:00:00') < cutoff) return;
+      (entry.sets || []).forEach(s=>{
+        const e = estimated1RM(s.weight, s.reps);
+        if(e != null && (best[liftKey] == null || e > best[liftKey])) best[liftKey] = e;
+      });
+    });
+  }
+  return best;
+}
+
+async function renderStrengthContext(){
+  const el = document.getElementById('strengthContextContent');
+  if(!el) return;
+  const e1rms = await collectLiftE1RMs();
+  const found = BALANCE_LIFTS.filter(l=> e1rms[l.key] != null);
+  if(found.length === 0){
+    el.innerHTML = '<div class="empty-note">Log weight and reps on a back squat, bench press, deadlift or overhead press and this fills in.</div>';
+    return;
+  }
+
+  const bw = Number(userProfile.weight) || null;
+  const unit = weightUnit;
+
+  const lifts = found.map(l=>{
+    const e = e1rms[l.key];
+    const mult = bodyweightMultiple(e, bw);
+    return `<div class="diag-row diag-good"><span class="diag-icon">•</span><span><b>${escapeHtml(l.label)}</b>`
+      + `<span class="diag-detail">Estimated max ${trimUnitNum(toDisplayWeight(e))} ${escapeHtml(unit)}`
+      + (mult != null ? ` · ${mult.toFixed(2)}× bodyweight` : '')
+      + `</span></span></div>`;
+  }).join('');
+
+  // In-range gets the good register; out-of-range gets NO register at all,
+  // not the amber one. Measurement Context rule 3: the warn colour is for
+  // correctable training decisions, and a ratio driven by femur length is not
+  // one. An out-of-range row is an observation, and it is styled like one.
+  const balance = computeLiftBalance(e1rms);
+  const balanceHtml = balance.length === 0 ? '' :
+    '<div class="history-hint field-note" style="margin-top:10px;"><b>How your lifts sit relative to each other</b></div>'
+    + balance.map(b=>
+        `<div class="diag-row${b.inRange ? ' diag-good' : ''}"><span class="diag-icon">${b.inRange ? '✅' : 'ℹ️'}</span>`
+        + `<span><b>${escapeHtml(b.label)}</b><span class="diag-detail">`
+        + `${b.ratio.toFixed(2)} — typical range ${b.low.toFixed(2)}–${b.high.toFixed(2)}. ${escapeHtml(b.note)}`
+        + `</span></span></div>`).join('');
+
+  // The closing note is not boilerplate. Without it the ratios read as targets,
+  // which is the exact failure this card is shaped to avoid.
+  el.innerHTML = lifts + balanceHtml
+    + '<div class="history-hint field-note" style="margin-top:10px;">'
+    + 'These are your own numbers compared to your own bodyweight and to each other — not to anyone else. '
+    + 'Sitting outside a typical range is common and is often just limb length, which no amount of training changes. '
+    + (bw ? '' : 'Add your bodyweight in your profile to see the multiples. ')
+    + 'If you want population data, Latella et al. (J Sci Med Sport, 2024) published percentiles from around 810,000 drug-tested powerlifting results — bearing in mind that is a competitive population, not a general one.'
+    + '</div>';
+}
+
 async function renderExerciseProgress(){
   const el = document.getElementById('exerciseProgress');
   el.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div><div class="skeleton-line" style="width:58%"></div></div>';
@@ -25423,6 +26028,108 @@ async function checkServiceWorker(){
   }catch(e){ return {ok:false, reason:'Could not read registration'}; }
 }
 
+// [BACKUP VERIFICATION] --------------------------------------------------------
+// Everything lives in one browser on one device and the export is the only copy
+// that isn't in it. A backup nobody has ever opened is a hypothesis, and the
+// moment you find out it was empty, truncated or from the wrong profile is
+// exactly the moment the original is gone.
+//
+// This reads a file and describes it. It writes NOTHING — not storage, not
+// IndexedDB, not even last-backup — because the one thing worse than an
+// unverified backup is a verification step that can damage the thing it was
+// asked to check, or that moves the reminder date and suppresses the nudge to
+// take a real backup.
+function verifyBackupFile(text){
+  const warnings = [];
+  let parsed;
+  try{
+    parsed = JSON.parse(text);
+  }catch(e){
+    return {ok:false, error:'This file is not valid JSON, so it is not a usable backup.'};
+  }
+  if(!parsed || typeof parsed !== 'object' || Array.isArray(parsed)){
+    return {ok:false, error:"This file is JSON but not a backup — the top level isn't an object."};
+  }
+  if(!parsed.data || typeof parsed.data !== 'object'){
+    return {ok:false, error:"No `data` section. This is not a Training Log backup, or it was truncated before it finished writing."};
+  }
+
+  const keys = Object.keys(parsed.data);
+  const exKeys = keys.filter(k=> k.startsWith('ex:'));
+  const photoCount = parsed.photos ? Object.keys(parsed.photos).length : 0;
+
+  // Sessions, not keys, is the number that means something to a person: "412
+  // items" is unreadable, "94 logged sessions" is checkable against memory.
+  const dates = new Set();
+  exKeys.forEach(k=>{
+    try{
+      const log = JSON.parse(parsed.data[k]);
+      if(Array.isArray(log)) log.forEach(e=>{ if(e && e.date) dates.add(e.date); });
+    }catch(e){ warnings.push('One exercise log could not be read: ' + k); }
+  });
+
+  if(keys.length === 0) warnings.push('The data section is empty — this backup contains nothing to restore.');
+  if(exKeys.length === 0) warnings.push('No exercise logs in this file. Weight, food and settings may still be here, but no training history is.');
+  if(parsed.schemaVersion == null) warnings.push('No schema version recorded, so this came from a build older than the one that started stamping it.');
+  else if(parsed.schemaVersion > SCHEMA_VERSION) warnings.push('This backup is from a NEWER version of the app (schema v' + parsed.schemaVersion + ' against this build\'s v' + SCHEMA_VERSION + '). Importing it here may lose whatever that version added.');
+  if(parsed.photos && photoCount === 0) warnings.push('A photos section is present but empty.');
+
+  return {
+    ok: true,
+    exportedAt: parsed.exportedAt || null,
+    appVersion: parsed.appVersion || null,
+    schemaVersion: parsed.schemaVersion != null ? parsed.schemaVersion : null,
+    profileName: parsed.profileName || null,
+    keyCount: keys.length,
+    exerciseLogCount: exKeys.length,
+    sessionCount: dates.size,
+    photoCount,
+    warnings,
+  };
+}
+
+function renderBackupReport(report){
+  const el = document.getElementById('verifyBackupReport');
+  if(!el) return;
+  if(!report){ el.innerHTML = ''; return; }
+  if(!report.ok){
+    el.innerHTML = diagRow('Backup file', {ok:false, reason:report.error});
+    return;
+  }
+  const when = report.exportedAt ? new Date(report.exportedAt).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) : 'an unrecorded date';
+  const detail = `${report.sessionCount} session${report.sessionCount===1?'':'s'} across ${report.exerciseLogCount} exercise log${report.exerciseLogCount===1?'':'s'}`
+    + ` · ${report.keyCount} stored item${report.keyCount===1?'':'s'}`
+    + ` · ${report.photoCount} photo${report.photoCount===1?'':'s'}`
+    + ` · ${report.profileName ? 'profile "' + report.profileName + '"' : 'no profile name'}`
+    + ` · exported ${when}${report.appVersion ? ' from v' + report.appVersion : ''}`;
+  el.innerHTML = diagRow('Backup file', report.warnings.length ? {ok:true, warn:detail} : {ok:true, detail})
+    + report.warnings.map(w=> diagRow('Note', {ok:true, warn:w})).join('')
+    + '<div class="history-hint field-note">Nothing was imported and nothing on this device was changed. If these numbers look like your training history, this file is a usable backup.</div>';
+}
+
+// Age of the last backup, for the health check. Sessions-since is already on
+// Today; this is the question you ask when you are worried rather than the
+// nudge you get while training.
+function describeBackupAge(lastBackupKey, todayKey){
+  if(!lastBackupKey) return {ok:false, reason:'No backup has ever been taken on this device. Everything is in this browser and nowhere else.'};
+  const then = new Date(lastBackupKey + 'T00:00:00');
+  const now = new Date(todayKey + 'T00:00:00');
+  const days = Math.round((now - then) / 86400000);
+  if(isNaN(days)) return {ok:false, reason:'The recorded backup date could not be read.'};
+  const label = days <= 0 ? 'today' : days === 1 ? 'yesterday' : days + ' days ago';
+  if(days > 30) return {ok:true, warn:'Last backup ' + label + '. Worth taking a fresh one.'};
+  return {ok:true, detail:'Last backup ' + label + '.'};
+}
+
+async function checkBackupAge(){
+  let last = null;
+  try{
+    const res = await window.storage.get('last-backup');
+    if(res && res.value) last = res.value;
+  }catch(e){}
+  return describeBackupAge(last, getTodayKey());
+}
+
 async function checkStorageHealth(){
   const parts = [];
   let ok = true;
@@ -25449,6 +26156,64 @@ async function checkStorageHealth(){
   return {ok, detail: parts.join(' · ')};
 }
 
+// Turns the marks plus the Navigation Timing entry into the numbers a decision
+// about splitting this file would actually rest on. Every field is optional:
+// Navigation Timing level 2 is widely supported but the entry is absent in
+// some embedded webviews, and a missing profile must degrade to "couldn't
+// measure" rather than throwing inside the health check.
+function collectBootProfile(){
+  const out = {};
+  try{
+    const nav = (performance.getEntriesByType && performance.getEntriesByType('navigation')[0]) || null;
+    if(nav){
+      // decodedBodySize, not transferSize: a service-worker or cache hit
+      // reports transferSize 0, and reading that as "the file is free" is
+      // exactly backwards — the bytes still have to be parsed.
+      out.bytes = nav.decodedBodySize || null;
+      out.fromCache = (nav.transferSize === 0 && !!nav.decodedBodySize);
+      if(nav.responseEnd && nav.domInteractive) out.parseExecute = nav.domInteractive - nav.responseEnd;
+      if(nav.responseEnd) out.network = nav.responseEnd;
+      if(nav.domContentLoadedEventEnd) out.domReady = nav.domContentLoadedEventEnd;
+    }
+  }catch(e){}
+  const m = BOOT_MARKS;
+  if(m.scriptStart != null) out.beforeScript = m.scriptStart;
+  if(m.scriptStart != null && m.scriptEnd != null) out.scriptExecute = m.scriptEnd - m.scriptStart;
+  if(m.initStart != null && m.initEnd != null) out.init = m.initEnd - m.initStart;
+  if(m.initEnd != null) out.toInteractive = m.initEnd;
+  return out;
+}
+
+function fmtMs(v){
+  if(v == null || isNaN(v)) return '—';
+  return v >= 1000 ? (v/1000).toFixed(2) + ' s' : Math.round(v) + ' ms';
+}
+
+// The threshold is stated rather than hidden, because the only purpose of this
+// row is to answer one deferred question — is cold start actually a problem on
+// this device, or does it just sound like one because the file is large?
+//
+// 1 second to interactive is the line: below it a launch feels immediate and
+// splitting the file would be work spent on a number nobody feels; above it,
+// the parse cost is worth attacking and the 48% that is inert data is where
+// to attack it.
+function checkBootPerformance(){
+  const p = collectBootProfile();
+  if(p.toInteractive == null && p.parseExecute == null){
+    return {ok:true, warn:'Could not measure — this browser did not report boot timings.'};
+  }
+  const parts = [];
+  if(p.beforeScript != null) parts.push('before app code: ' + fmtMs(p.beforeScript));
+  if(p.scriptExecute != null) parts.push('script execute: ' + fmtMs(p.scriptExecute));
+  if(p.init != null) parts.push('init: ' + fmtMs(p.init));
+  if(p.bytes) parts.push('shell: ' + (p.bytes/1048576).toFixed(2) + ' MB' + (p.fromCache ? ' (from cache)' : ''));
+  const detail = fmtMs(p.toInteractive) + ' to interactive · ' + parts.join(' · ');
+  if(p.toInteractive != null && p.toInteractive > 1000){
+    return {ok:true, warn:detail + ' — over 1s. Worth splitting the inert data out of the shell.'};
+  }
+  return {ok:true, detail:detail + (p.toInteractive != null ? ' — under 1s, no action needed.' : '')};
+}
+
 function diagRow(label, result){
   const state = result.ok ? (result.warn ? 'warn' : 'good') : 'bad';
   const icon = state === 'good' ? '✅' : state === 'warn' ? '⚠️' : '❌';
@@ -25461,8 +26226,8 @@ async function runDiagnostics(){
   if(!el) return;
   el.innerHTML = '<div class="history-hint">Checking…</div>';
 
-  const [build, manifest, sw, storage] = await Promise.all([
-    checkBuildFreshness(), checkManifest(), checkServiceWorker(), checkStorageHealth(),
+  const [build, manifest, sw, storage, backup] = await Promise.all([
+    checkBuildFreshness(), checkManifest(), checkServiceWorker(), checkStorageHealth(), checkBackupAge(),
   ]);
 
   let buildRow;
@@ -25490,6 +26255,8 @@ async function runDiagnostics(){
     + diagRow('Service worker', sw)
     + diagRow('Manifest', manifest)
     + diagRow('Storage', storage)
+    + diagRow('Backup', backup)
+    + diagRow('Cold start', checkBootPerformance())
     + `<div class="history-hint field-note">App v${APP_VERSION} · schema v${SCHEMA_VERSION}. "Force refresh" clears the cached copy of the app and reloads from the server. It does not touch any of your logged data.</div>`
     + `<div class="app-banner-actions"><button type="button" class="app-banner-btn app-banner-btn-danger" id="diagForceRefresh">Force refresh</button></div>`;
 
@@ -26114,6 +26881,8 @@ async function renderAnalysis(){
   await Promise.all([
     renderVolumeTrend(),
     renderExerciseProgress(),
+    renderStrengthContext(),
+    renderRestTrend(),
     renderRpeTrend(),
     renderCardioTrend(),
     renderGoalFeedback(),
@@ -26207,6 +26976,7 @@ async function renderAnalysis(){
 // App startup sequence. Add new startup calls here, not scattered elsewhere.
 if(activeUserId){
   (async function init(){
+    bootMark('initStart');
     await runMigrations();
     document.getElementById('appFooter').textContent = `Training Log v${APP_VERSION} · schema v${SCHEMA_VERSION}`;
 
@@ -26237,6 +27007,9 @@ if(activeUserId){
     await loadMedicalStyle();
     await loadSessionLengthPref();
     initSessionLengthSelector();
+    // Before loadActiveProgram, which silently falls back to the default for a
+    // key it does not recognise.
+    await loadAndInstallCustomPrograms();
     await loadActiveProgram();
     // Computed once, after activeProgram is actually loaded, and shared by both
     // calls below — this both avoids redundant computation and fixes a prior
@@ -26281,6 +27054,7 @@ if(activeUserId){
     renderStorageUsage();
     renderStorageBanner();
     await restoreActiveView();
+    bootMark('initEnd');
   })();
 
   // --- Resume / day-rollover refresh -------------------------------------
@@ -26329,6 +27103,36 @@ if(activeUserId){
 // It depends on nothing but the overlay elements existing, which is
 // guaranteed: this script is the last thing in the body.
 initScrollLock();
+wireCustomProgramUI();
+
+(function wireBackupVerify(){
+  const btn = document.getElementById('verifyBackupBtn');
+  const input = document.getElementById('verifyBackupInput');
+  const status = document.getElementById('verifyBackupStatus');
+  if(!btn || !input || !status) return;
+  btn.addEventListener('click', ()=> input.click());
+  input.addEventListener('change', async ()=>{
+    const file = input.files && input.files[0];
+    if(!file) return;
+    status.textContent = 'Reading…';
+    renderBackupReport(null);
+    try{
+      const text = await file.text();
+      renderBackupReport(verifyBackupFile(text));
+      status.textContent = '';
+    }catch(e){
+      status.textContent = 'That file could not be read.';
+    }
+    // Cleared so choosing the same file twice fires change again.
+    input.value = '';
+  });
+})();
+
+// Last statement in the script. scriptEnd - scriptStart is the cost of building
+// every top-level structure in the file — which is where the weight is: 48% of
+// the bytes are top-level data literals, and they are all constructed here,
+// on every launch, whether or not the tab that needs them is ever opened.
+bootMark('scriptEnd');
 </script>
 <script>
   // Registered separately from the main app script so a failure here (e.g.
