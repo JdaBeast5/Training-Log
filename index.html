@@ -2586,6 +2586,457 @@
     /* Purely decorative and impossible to make calm — remove outright. */
     .confetti-piece{ display:none !important; }
   }
+
+  /* ── GYM MODE ─────────────────────────────────────────────────────────────
+     Not a view. A body class that strips the Today tab in place, over exactly
+     the same set rows renderWorkout already built.
+
+     Rebuilding would have been worse than stripping. A second render path for a
+     set row is a second place for the suggested load, the swipe handler, the
+     plate calculator and the voice button to disagree with the first — the same
+     argument HANDOFF v10 §4 makes about Settings reparenting rather than
+     duplicating `#wakeLockToggle`. Same nodes, same listeners, less around them.
+
+     THE RULE for what survives: everything INSIDE `.set-row` stays, and the
+     chrome around it goes. Warm-up tables, session summaries, progression
+     badges and the technique accordion are things you read BETWEEN sessions,
+     not things you touch between sets.
+
+     THREE THINGS THAT MUST NEVER BE ADDED TO THE HIDE LIST:
+
+       `.expand-wrap` — the first draft of this block hid it. It is the
+       collapsible body of an exercise and it CONTAINS THE SET ROWS, so hiding
+       it made gym mode a screen with nothing on it. No jsdom test caught this
+       because jsdom does not evaluate CSS. `.ex-details` is the accordion that
+       was actually meant.
+
+       `.ex-caution` — the "you marked this region as resting" warning. Short,
+       safety relevant, and the moment it matters is the moment someone is about
+       to load a bar. Stripping chrome does not extend to stripping warnings.
+
+       `.warmup-box` — the suggested warm-up ramp. This was on the hide list
+       for two versions on the reasoning that a table is something you read
+       rather than something you touch. That was simply wrong: the ramp is what
+       you DO at the start of an exercise, it is only ever shown for the
+       exercise you are about to start, and gym mode is exactly when you need
+       it. It lives inside `.expand-wrap`, so it appears for the open exercise
+       and nothing else.
+
+       `.rest-timer` — half the reason the mode exists.
+
+     `!important` on the hide rules, and not casually: most of what gets hidden
+     has its `display` written as an inline style by JS, and an inline style
+     beats a stylesheet rule. */
+
+  body.gym-mode header,
+  body.gym-mode .app-banner-rail,
+  body.gym-mode .nav-pills,
+  body.gym-mode .log-date-bar,
+  body.gym-mode .coach-fab,
+  body.gym-mode .tabs-header,
+  body.gym-mode #tabs,
+  body.gym-mode #profileCardTopSlot,
+  body.gym-mode #profileCardPermanentSlot,
+  body.gym-mode #programRecommendation,
+  body.gym-mode #todayView > .card:not(#workoutCard){
+    display:none !important;
+  }
+
+  body.gym-mode #workoutCard .workout-hero,
+  body.gym-mode #workoutCard .duration-row,
+  body.gym-mode #workoutCard .session-cal-total,
+  body.gym-mode #workoutCard .day-insight,
+  body.gym-mode #workoutCard #todayStandoutBanner,
+  body.gym-mode #workoutCard #voiceHintBanner,
+  body.gym-mode #workoutCard #adaptWorkoutBtn,
+  body.gym-mode #workoutCard #adaptWorkoutPanel,
+  body.gym-mode #workoutCard #addCustomExerciseBtn,
+  body.gym-mode #workoutCard #customExerciseForm,
+  body.gym-mode #gymEnterBtn{
+    display:none !important;
+  }
+
+  body.gym-mode .session-summary,
+  body.gym-mode .progress-badge,
+  body.gym-mode .ex-history-btn,
+  body.gym-mode .ex-edit-btn,
+  body.gym-mode .ex-thumb,
+  body.gym-mode .ex-details,
+  body.gym-mode .ex-cal-tag{
+    display:none !important;
+  }
+
+  /* ── Ground ───────────────────────────────────────────────────────────────
+     True black, not --bg. On an OLED phone the unlit pixels genuinely go dark,
+     which is both less light thrown back at you in a dim gym and the highest
+     contrast available for a number read at arm's length with the phone flat
+     on a bench. The card stops being a card: in gym mode the list IS the
+     screen. */
+  body.gym-mode{background:#000;}
+  body.gym-mode #workoutCard{
+    background:transparent; border:none; box-shadow:none; padding:0; margin:0;
+  }
+  body.gym-mode #workoutCard::before{display:none;}
+  body.gym-mode .wrap{
+    padding-top:calc(12px + env(safe-area-inset-top, 0px));
+    padding-left:10px; padding-right:10px;
+    /* Clears the floating dock AND the rest timer sitting above it. */
+    padding-bottom:calc(208px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* ── The quiet list ───────────────────────────────────────────────────────
+     Everything that is not the current exercise is a single line: no card, no
+     rule beneath it, no background. The first render of this mode kept the
+     normal list borders and the result was a stack of boxes on black competing
+     with the one box that mattered. */
+  body.gym-mode .exercise-block{
+    opacity:0.26; border-bottom:none; padding:1px 4px;
+    transition:opacity 0.28s var(--ease-smooth);
+  }
+  body.gym-mode .exercise-block .exercise{padding:11px 2px; min-height:48px;}
+  body.gym-mode .exercise-block .ex-name{font-size:17px; font-weight:600;}
+  body.gym-mode .exercise-block .ex-sets{font-size:14px;}
+  /* The superset band carries its colour with negative margins tuned for the
+     normal card. Inside a pop-out panel those margins pull it out through the
+     panel edge, so it is re-seated rather than hidden — "no rest between these
+     two" is training information, not decoration. */
+  body.gym-mode .exercise-block.superset-top,
+  body.gym-mode .superset-connector{
+    margin-left:0; border-left:none; border-radius:12px;
+    padding-left:12px; padding-right:12px;
+  }
+  body.gym-mode .superset-connector{
+    /* 0.26 to match `.exercise-block`. It is a SIBLING of the blocks rather
+       than a child, so the focus dim never reached it and it sat brighter than
+       everything around it — the loudest thing on a screen built to have one
+       loud thing. */
+    opacity:0.26; font-size:10px; margin:2px 0; padding-top:6px; padding-bottom:6px;
+  }
+
+  /* ── The current exercise: a pop-out ──────────────────────────────────────
+     Same material as the app's other floating surfaces — the settings panel,
+     the rest timer, the celebration card: a translucent gradient over blur,
+     one hairline border, one generous radius. Gym mode was the only surface in
+     the app that did not speak this language, which is what made it read as a
+     different app rather than a mode of this one.
+
+     Shadows are written literally rather than via `var(--elev-*)`. Those tokens
+     are currently INERT: `--rim` is defined as `--rim:var(--rim)` at the top of
+     this stylesheet, which is a dependency cycle, so every `--elev-*` that
+     references it is invalid at computed-value time and every declaration using
+     one computes to `none`. Until that one line is fixed, using the tokens here
+     would silently produce a flat panel. */
+  body.gym-mode .exercise-block.open{
+    opacity:1;
+    position:relative;
+    margin:14px 0;
+    padding:4px 12px 12px;
+    /* Elevation on a black ground has to be carried by LIGHTNESS AND A RIM,
+       not by blur and shadow. The first attempt used the settings panel's
+       recipe verbatim — a translucent fill over backdrop-filter, plus a dark
+       drop shadow — and read as completely flat, because both of those
+       techniques need something behind them to work on. The settings panel
+       floats over a page full of content; this floats over #000, where a blur
+       has nothing to sample and a black shadow is invisible.
+
+       So: an opaque fill clearly lighter than the page, a brighter hairline,
+       and a coloured bloom rather than a dark one. The blur is kept only for
+       the moment the rest timer passes underneath. */
+    background:linear-gradient(168deg, #23272E 0%, #171A1F 62%, #14161A 100%);
+    backdrop-filter:blur(26px) saturate(170%);
+    -webkit-backdrop-filter:blur(26px) saturate(170%);
+    border:1px solid rgba(255,255,255,0.15);
+    border-radius:24px;
+    box-shadow:0 1px 0 rgba(255,255,255,0.10) inset,
+               0 0 0 1px rgba(91,124,255,0.10),
+               0 20px 54px -14px rgba(91,124,255,0.22),
+               0 30px 70px -30px rgba(0,0,0,0.9);
+  }
+  /* The sheen the app puts on every raised surface. Unused on this element
+     until now, so there is nothing to collide with. */
+  body.gym-mode .exercise-block.open::before{
+    content:''; position:absolute; top:0; left:22px; right:22px; height:1px;
+    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.22) 40%, rgba(255,255,255,0.22) 60%, transparent);
+    pointer-events:none;
+  }
+  body.gym-mode .exercise-block.open .exercise{padding:14px 2px; min-height:56px;}
+  body.gym-mode .exercise-block.open .ex-name{
+    font-size:21px; font-weight:700; letter-spacing:-0.015em;
+  }
+  body.gym-mode .exercise-block.open .ex-sets{font-size:15px;}
+  body.gym-mode .exercise input[type=checkbox]{width:30px; height:30px; flex:0 0 auto;}
+
+  /* ── The set row: one control, not six ───────────────────────────────────
+     Each row was a box holding five more boxes, every one with its own border
+     and its own radius, on top of a sixth box for the exercise. The fields are
+     now cells of a single grouped control separated by hairlines, which is the
+     same relationship the plate calculator and the number pads already use.
+     `overflow` is deliberately NOT hidden: `.plate-result`, `.voice-feedback`
+     and `.set-note-wrap` are children of this flex container with
+     `flex-basis:100%` and they expand BELOW the row, so clipping it would hide
+     the plate breakdown and the note field. */
+  /* The clip radius MUST match `.set-row-content`'s radius. `.set-row` is
+     `overflow:hidden; border-radius:var(--radius-sm)` (9px) and that clip is
+     what contains `.swipe-delete-bg`; with a 16px radius on the content, each
+     corner left a crescent of red visible between the two curves. */
+  body.gym-mode .set-row{margin:7px 0; border-radius:16px;}
+  body.gym-mode .swipe-delete-bg{border-radius:16px;}
+  /* THIS BACKGROUND MUST STAY OPAQUE, and the reason is not cosmetic.
+     `.swipe-delete-bg` is `position:absolute; inset:0; background:var(--plate-red)`
+     and sits directly BEHIND this element — the swipe gesture reveals it by
+     translating this layer aside. A previous revision set this to
+     `transparent` to stop the rows reading as stacked tiles, and every set row
+     in gym mode turned solid red with a visible bin icon, permanently.
+     Translucency does not work here either: any alpha below ~1 tints the row
+     pink. If this needs to change, change the COLOUR, never the opacity. */
+  body.gym-mode .set-row-content{
+    gap:0; padding:0;
+    background:#0C0E11;
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:16px;
+  }
+  body.gym-mode .set-num{
+    width:40px; min-height:56px; display:flex; align-items:center; justify-content:center;
+    font-size:15px; font-weight:600; color:var(--text-muted);
+    border-right:1px solid rgba(255,255,255,0.07); flex:0 0 auto;
+  }
+  body.gym-mode .ex-input{
+    width:auto; flex:1 1 0; min-width:0; min-height:56px;
+    background:transparent; border:none; border-radius:0;
+    border-right:1px solid rgba(255,255,255,0.07);
+    box-shadow:none;
+    font-size:23px; font-weight:600; padding:0 2px;
+  }
+  body.gym-mode .ex-input:focus{
+    outline:none; background:rgba(91,124,255,0.14); box-shadow:none;
+  }
+  body.gym-mode .ex-input::placeholder{font-size:15px; font-weight:500;}
+  /* The × and @ separators. A hairline divider already says "these are
+     different fields", so the glyph is one more thing to read for nothing. */
+  body.gym-mode .ex-x{display:none;}
+  /* Buttons become the last cells of the same control rather than competing
+     tiles. Ghost by default; the app's own colour states (.has-note,
+     .listening, .processing) still win because they set border-color and
+     colour, which these rules leave alone. */
+  body.gym-mode .plate-btn,
+  body.gym-mode .voice-log-btn,
+  body.gym-mode .set-note-btn{
+    min-width:54px; min-height:56px; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+    background:transparent; border:none; border-radius:0;
+    border-left:1px solid rgba(255,255,255,0.07);
+    font-size:18px; color:var(--text-muted);
+  }
+  /* The plate and voice buttons ship as the emoji \u{1F3CB} and \u{1F3A4}, which
+     are the one place in this interface where a vendor's artwork sits inside
+     our own control — full-colour, differently weighted on every OS, and
+     visibly foreign next to a row of tabular numerals.
+     `font-size:0` collapses the glyph without touching the markup, which
+     matters because these buttons are rendered by the shared set-row template
+     and changing it would alter the normal view too. The replacement is a
+     MASK rather than a background image, so `currentColor` still drives it and
+     the existing `.active` / `.listening` / `.processing` colour states keep
+     working untouched.
+     The plate icon is the header brand mark's own barbell geometry, reused
+     verbatim — the button is now made of the app rather than dropped into it. */
+  body.gym-mode .plate-btn,
+  body.gym-mode .voice-log-btn{font-size:0;}
+  body.gym-mode .plate-btn::after,
+  body.gym-mode .voice-log-btn::after{
+    content:''; display:block; width:24px; height:24px;
+    background:currentColor;
+    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+    -webkit-mask-position:center; mask-position:center;
+    -webkit-mask-size:contain; mask-size:contain;
+  }
+  body.gym-mode .plate-btn::after{
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%271.2%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Crect%20x%3D%2716.4%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Cline%20x1%3D%274%27%20y1%3D%2710%27%20x2%3D%2716%27%20y2%3D%2710%27%2F%3E%3Crect%20x%3D%274.6%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3Crect%20x%3D%2713.4%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3C%2Fsvg%3E"); mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%271.2%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Crect%20x%3D%2716.4%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Cline%20x1%3D%274%27%20y1%3D%2710%27%20x2%3D%2716%27%20y2%3D%2710%27%2F%3E%3Crect%20x%3D%274.6%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3Crect%20x%3D%2713.4%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3C%2Fsvg%3E");
+  }
+  body.gym-mode .voice-log-btn::after{
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%277.5%27%20y%3D%272.4%27%20width%3D%275%27%20height%3D%279%27%20rx%3D%272.5%27%2F%3E%3Cpath%20d%3D%27M4.6%209.6a5.4%205.4%200%200%200%2010.8%200%27%2F%3E%3Cline%20x1%3D%2710%27%20y1%3D%2715%27%20x2%3D%2710%27%20y2%3D%2717.6%27%2F%3E%3C%2Fsvg%3E"); mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%277.5%27%20y%3D%272.4%27%20width%3D%275%27%20height%3D%279%27%20rx%3D%272.5%27%2F%3E%3Cpath%20d%3D%27M4.6%209.6a5.4%205.4%200%200%200%2010.8%200%27%2F%3E%3Cline%20x1%3D%2710%27%20y1%3D%2715%27%20x2%3D%2710%27%20y2%3D%2717.6%27%2F%3E%3C%2Fsvg%3E");
+  }
+  body.gym-mode .plate-btn.active{color:var(--plate-blue);}
+  body.gym-mode .set-note-btn{font-size:20px; font-weight:400;}
+  body.gym-mode .plate-btn:active,
+  body.gym-mode .voice-log-btn:active,
+  body.gym-mode .set-note-btn:active{background:rgba(255,255,255,0.06); opacity:1;}
+  body.gym-mode .set-status{
+    position:absolute; right:8px; top:6px; font-size:13px;
+  }
+  body.gym-mode .set-row-content{position:relative;}
+  body.gym-mode .set-note-input{min-height:48px; font-size:15px;}
+
+  /* The ramp, restyled for the panel: a recessed block in the same well
+     colour as the set rows, so it reads as part of the exercise rather than as
+     a leftover card. Big enough to read at arm's length, which is the whole
+     point of having it here. */
+  body.gym-mode .warmup-box{
+    background:#0C0E11; border:1px solid rgba(255,255,255,0.07);
+    border-radius:16px; padding:12px 14px; margin:2px 0 10px;
+  }
+  body.gym-mode .warmup-title{font-size:11px; letter-spacing:0.04em; opacity:0.75; margin-bottom:6px;}
+  body.gym-mode .warmup-row{font-size:16px; padding:5px 0; line-height:1.35;}
+
+  body.gym-mode .sets-block{padding-left:0; padding-right:0;}
+  body.gym-mode .same-as-last-btn,
+  body.gym-mode .add-set-btn{
+    min-height:52px; font-size:15px; width:100%;
+    border-radius:14px; margin-top:8px;
+  }
+  body.gym-mode .exercise-block, body.gym-mode .sets-block{box-shadow:none;}
+  body.gym-mode .exercise-block:not(.open){background:transparent;}
+
+  /* ── The dock ─────────────────────────────────────────────────────────────
+     At the BOTTOM, and this is the whole one-handed argument. A status bar
+     pinned to the top of a modern phone is not reachable with the hand that is
+     holding it, so anything up there is a two-handed reach or a shuffle of the
+     grip. Everything gym mode needs — how long you have been at it, how much is
+     left, and the way out — is in the thumb arc, and there is no top bar at all.
+
+     Floating and inset rather than a full-bleed bar, so it reads as the same
+     kind of object as the rest timer hovering just above it instead of as
+     system chrome.
+
+     z-index 55: above .rest-timer at 50, which it must never be covered by, and
+     below the 60+ band the overlays use, which must always be able to cover it. */
+  .gym-dock{
+    position:fixed; left:10px; right:10px; bottom:10px; z-index:55;
+    display:flex; align-items:center; gap:14px;
+    padding:12px 12px 12px 20px;
+    margin-bottom:env(safe-area-inset-bottom, 0px);
+    background:linear-gradient(165deg, rgba(38,42,49,0.86), rgba(20,22,26,0.86));
+    backdrop-filter:blur(26px) saturate(170%);
+    -webkit-backdrop-filter:blur(26px) saturate(170%);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:26px;
+    box-shadow:0 1px 0 rgba(255,255,255,0.07) inset,
+               0 22px 50px -20px rgba(0,0,0,0.85);
+  }
+  /* Hidden by opacity and transform rather than `display`, because
+     `display` does not transition. position:fixed means it costs no layout
+     while hidden, and pointer-events:none keeps it from swallowing taps meant
+     for the page behind it. */
+  .gym-dock{
+    opacity:0; transform:translateY(160%); pointer-events:none;
+    transition:opacity 0.26s var(--ease-smooth), transform 0.4s var(--ease-spring);
+  }
+  body.gym-mode .gym-dock{opacity:1; transform:translateY(0); pointer-events:auto;}
+  /* Ordered AFTER the rule above: `.gym-leaving` is applied while `.gym-mode`
+     is still present, so it has to win on source order. */
+  body.gym-leaving .gym-dock{
+    opacity:0; transform:translateY(160%); pointer-events:none;
+    transition:opacity 0.2s var(--ease-smooth), transform 0.26s var(--ease-smooth);
+  }
+  .gym-clock{
+    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-size:28px; font-weight:600; color:var(--text);
+    letter-spacing:-0.02em; line-height:1;
+  }
+  .gym-dock-meta{flex:1 1 auto; min-width:0;}
+  .gym-progress{
+    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-size:11.5px; color:var(--text-muted); margin-top:4px; letter-spacing:0.02em;
+  }
+  .gym-exit-btn{
+    flex:0 0 auto; min-height:48px; padding:0 22px;
+    background:rgba(255,255,255,0.07); color:var(--text);
+    border:1px solid rgba(255,255,255,0.12); border-radius:24px;
+    font-family:'Inter',sans-serif; font-size:15px; font-weight:600;
+    cursor:pointer; transition:transform 0.2s var(--ease-smooth);
+  }
+  .gym-exit-btn:active{transform:scale(0.94); background:rgba(255,255,255,0.12);}
+
+  /* Raised clear of the dock rather than floating over it. */
+  body.gym-mode .rest-timer{bottom:calc(96px + env(safe-area-inset-bottom, 0px));}
+
+  /* ── Enter button ─────────────────────────────────────────────────────────
+     In the workout card directly above the exercise list, because that is the
+     thing it changes. */
+  .gym-enter-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; min-height:50px; margin:2px 0 14px;
+    background:linear-gradient(180deg, rgba(91,124,255,0.18), rgba(91,124,255,0.08));
+    color:var(--text); border:1px solid rgba(91,124,255,0.45);
+    border-radius:var(--radius-md);
+    font-family:'Inter',sans-serif; font-size:15px; font-weight:600;
+    cursor:pointer; transition:transform 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth);
+  }
+  .gym-enter-btn:active{transform:scale(0.985); border-color:rgba(91,124,255,0.7);}
+
+  /* ── The offer ────────────────────────────────────────────────────────────
+     Shown once, on the first logged set, and never again in either direction —
+     the answer becomes the standing preference. Deliberately NOT a modal: it
+     appears while someone is mid-set with a number just typed, and a dialog
+     that traps focus and eats Escape is the wrong shape for something you are
+     allowed to ignore.
+
+     bottom:110px, not 18px. The rest timer is fixed at bottom:18px and is about
+     76px tall, and the save that triggers this offer is the same save that
+     starts that timer — so the two appear together, every time. At 18px this
+     sat directly on top of it. */
+  .gym-offer{
+    position:fixed; left:50%; bottom:110px; z-index:60;
+    transform:translateX(-50%) translateY(12px);
+    width:min(380px, calc(100vw - 28px));
+    background:linear-gradient(165deg, rgba(38,42,49,0.94), rgba(20,22,26,0.94));
+    backdrop-filter:blur(26px) saturate(170%);
+    -webkit-backdrop-filter:blur(26px) saturate(170%);
+    border:1px solid rgba(255,255,255,0.1); border-radius:22px;
+    padding:16px 18px;
+    box-shadow:0 1px 0 rgba(255,255,255,0.07) inset,
+               0 26px 60px -22px rgba(0,0,0,0.85);
+    opacity:0; pointer-events:none;
+    transition:opacity 0.3s var(--ease-smooth), transform 0.34s var(--ease-smooth);
+  }
+  .gym-offer.active{opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0);}
+  .gym-offer-title{font-size:15px; font-weight:650; color:var(--text); margin-bottom:4px;}
+  .gym-offer-body{font-size:13px; color:var(--text-muted); line-height:1.45; margin-bottom:12px;}
+  .gym-offer-actions{display:flex; gap:8px;}
+  .gym-offer-actions button{
+    flex:1 1 0; min-height:48px; border-radius:14px;
+    font-family:'Inter',sans-serif; font-size:15px; font-weight:600; cursor:pointer;
+    transition:transform 0.2s var(--ease-smooth);
+  }
+  .gym-offer-actions button:active{transform:scale(0.96);}
+  .gym-offer-no{background:rgba(255,255,255,0.06); color:var(--text-muted); border:1px solid rgba(255,255,255,0.1);}
+  .gym-offer-yes{background:var(--plate-blue); color:#fff; border:1px solid var(--plate-blue);}
+
+  /* The list rises in on entry and drops out on exit. The animation is on
+     `#exerciseList`, not on the exercise blocks: the container survives every
+     re-render, so this plays exactly once per entry, whereas an animation on
+     the blocks would replay every time renderWorkout rebuilt them. */
+  @keyframes gymListIn{
+    from{opacity:0; transform:translateY(14px) scale(0.988);}
+    to{opacity:1; transform:none;}
+  }
+  @keyframes gymListOut{
+    from{opacity:1; transform:none;}
+    to{opacity:0; transform:translateY(10px) scale(0.992);}
+  }
+  body.gym-mode #exerciseList{animation:gymListIn 0.38s var(--ease-smooth) both;}
+  body.gym-leaving #exerciseList{animation:gymListOut 0.24s var(--ease-smooth) both;}
+  /* The panel itself eases between its two states for the properties that can
+     be interpolated. Padding and margin are included deliberately: they are
+     what makes the block grow into a card, and the reflow is a single one-off
+     rather than anything that happens during scrolling. */
+  body.gym-mode .exercise-block{
+    transition:opacity 0.28s var(--ease-smooth),
+               background 0.3s var(--ease-smooth),
+               border-color 0.3s var(--ease-smooth),
+               box-shadow 0.3s var(--ease-smooth),
+               border-radius 0.3s var(--ease-smooth),
+               padding 0.3s var(--ease-smooth),
+               margin 0.3s var(--ease-smooth);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .gym-offer{transition:opacity 0.01ms;}
+    .gym-dock, body.gym-leaving .gym-dock{transition:none;}
+    body.gym-mode #exerciseList, body.gym-leaving #exerciseList{animation:none;}
+    body.gym-mode .exercise-block{transition:none;}
+    .gym-exit-btn:active, .gym-enter-btn:active, .gym-offer-actions button:active{transform:none;}
+  }
+
 </style>
 </head>
 <body>
@@ -2772,6 +3223,9 @@
       <button class="save-btn" id="adaptWorkoutSubmit">Get adapted session</button>
       <div id="adaptWorkoutResult"></div>
     </div></div>
+    <button type="button" class="gym-enter-btn" id="gymEnterBtn">
+      <span aria-hidden="true">🏋</span> Gym mode
+    </button>
     <div id="exerciseList"></div>
     <button class="custom-toggle" id="addCustomExerciseBtn">+ Add custom exercise</button>
     <div id="customExerciseForm" class="smooth-toggle"><div>
@@ -3661,6 +4115,32 @@
   <div class="celebrate-sub" id="celebrateSub"></div>
 </div>
 
+<!-- Gym mode chrome. Both elements exist at all times and are shown by
+     class, so nothing has to be constructed at the moment someone is mid-set. -->
+<div class="gym-dock" id="gymDock">
+  <div class="gym-dock-meta">
+    <!-- aria-live is off. The clock updates every second and a live region
+         would make a screen reader announce the time continuously, which is
+         the opposite of the point. It is read on demand like any other text. -->
+    <div class="gym-clock" id="gymClock" aria-label="Time in gym mode">00:00</div>
+    <div class="gym-progress" id="gymProgress"></div>
+  </div>
+  <button type="button" class="gym-exit-btn" id="gymExitBtn" aria-label="Exit gym mode">Exit</button>
+</div>
+
+<!-- role="status" rather than "dialog": this is an offer you are allowed to
+     ignore while you finish your set, not something that should trap focus.
+     aria-live is off by default on status only when hidden, so it announces
+     once when it appears and not again. -->
+<div class="gym-offer" id="gymOffer" role="status" aria-live="polite">
+  <div class="gym-offer-title">Switch to gym mode?</div>
+  <div class="gym-offer-body">Strips the screen to your sets and the rest timer. You can turn it on any time from the button on Today.</div>
+  <div class="gym-offer-actions">
+    <button type="button" class="gym-offer-no" id="gymOfferNo">No thanks</button>
+    <button type="button" class="gym-offer-yes" id="gymOfferYes">Use gym mode</button>
+  </div>
+</div>
+
 <div class="rest-timer" id="restTimer">
   <div class="rest-timer-row">
     <button class="rest-timer-ring-wrap" id="restTimerToggle" aria-label="Show rest details">
@@ -3972,7 +4452,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.23';
+const APP_VERSION = '3.27';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -15284,9 +15764,17 @@ async function renderWorkout(){
       // was already the last one unticked, not on every render of an
       // already-finished day (a plain page load/re-render never fires a
       // checkbox 'change' event, so this can't replay on its own).
+      refreshGymDock();
+
       if(cb.checked && dayNowComplete){
         triggerCelebration('💪', 'Session complete!', `${day.label} — ${day.sub}`);
         maybeShowTodayStandout();
+        // The second way out of gym mode. This branch is already gated to the
+        // actual completing click — a re-render never fires a checkbox 'change'
+        // — so it cannot fire again on a day that was already finished. Ordered
+        // after the celebration so the confetti plays over the stripped screen
+        // that earned it, then the app comes back.
+        if(gymModeActive) exitGymMode();
       }
     });
 
@@ -15376,6 +15864,9 @@ async function renderWorkout(){
   });
 
   updateSessionCalorieTotal(renderExercises, completed);
+  // The gym bar counts checkboxes in the rendered list, so it can only be
+  // correct after that list exists. No-ops when gym mode is off.
+  refreshGymDock();
 }
 
 // --- Undo toast: generic, reusable — any destructive action (currently
@@ -15947,6 +16438,323 @@ document.addEventListener('change', (e)=>{
   if(!wakeLockEnabled) releaseWakeLock();
 });
 
+// ── GYM MODE ────────────────────────────────────────────────────────────────
+// A MODE, not a view. It strips the Today tab in place rather than replacing
+// it, over the same set rows renderWorkout already built. See the CSS block for
+// the rule about what survives and the three things that must never be hidden.
+//
+// The consequence worth stating up front: 'gym' must never reach switchView.
+// That function iterates a fixed `views` map and hides every key that isn't the
+// active one — hand it a key the map doesn't contain and it hides ALL of them,
+// leaving a blank app with a working nav bar. It must never be written to
+// 'active-view' either, for the same reason one reload later. `VIEW_KEYS` stays
+// exactly what its comment says it is: the one list of VIEWS.
+
+let gymModeActive = false;
+
+// The remembered answer to the offer. null = never asked, '1' = auto-enter,
+// '0' = never auto-enter. Loaded once at boot.
+let gymAutoPref = null;
+
+// Guards both the auto-enter and the offer against firing again within the same
+// day. Without it, exiting gym mode and logging one more set would drop you
+// straight back in, which reads as the Exit button being broken rather than as
+// a feature working as designed.
+let gymAutoHandledDate = null;
+
+// ── The session clock ───────────────────────────────────────────────────────
+// WALL CLOCK, never a tick count. Same discipline the rest timer was rewritten
+// onto in v3.3, and for a sharper reason here: setInterval does not run while
+// the app is backgrounded, and the whole point of this number is to cover a
+// session in which the screen is off for most of every rest period. A clock
+// that counted its own ticks would undercount by exactly the time it is meant
+// to be measuring.
+//
+// Two fields rather than one, so leaving gym mode to look something up in
+// Analysis and coming back adds to the session instead of restarting it:
+// `gymAccumMs` is the stretches already finished, `gymStretchStart` is the
+// timestamp the current one began (0 when not in gym mode).
+let gymAccumMs = 0;
+let gymStretchStart = 0;
+let gymClockHandle = null;
+// The date the accumulator belongs to. An app left open across midnight must
+// not carry yesterday's minutes into today's session.
+let gymClockDate = null;
+
+const GYM_AUTO_KEY = 'gym-auto';
+const GYM_SESSION_KEY = 'gym-session';
+// A gym session longer than this is an app left open, not a workout. Restoring
+// one would drop someone back into gym mode with 9:42:15 on the clock, which is
+// worse than not restoring at all.
+const GYM_SESSION_MAX_MS = 6 * 60 * 60 * 1000;
+
+// How long the leave animation is given before the mode class comes off. Must
+// stay >= the longest transition in the `.gym-leaving` rules, or the dock is
+// cut off mid-slide.
+const GYM_TRANSITION_MS = 280;
+let gymLeaveTimer = null;
+
+// Motion is read at call time rather than cached, because the setting can be
+// changed while the app is open. Zero means the class comes off synchronously,
+// which is also what every test wants.
+function gymLeaveDuration(){
+  try{
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return 0;
+  }catch(e){}
+  return GYM_TRANSITION_MS;
+}
+
+// Shared by enterGymMode (cancelling a leave already in flight) and by the end
+// of the leave itself.
+function finishGymLeave(){
+  if(gymLeaveTimer){ clearTimeout(gymLeaveTimer); gymLeaveTimer = null; }
+  document.body.classList.remove('gym-mode', 'gym-leaving');
+}
+
+async function loadGymPrefs(){
+  try{
+    const res = await window.storage.get(GYM_AUTO_KEY);
+    if(res && (res.value === '1' || res.value === '0')) gymAutoPref = res.value;
+  }catch(e){}
+}
+
+function gymElapsedMs(){
+  return gymAccumMs + (gymStretchStart ? Date.now() - gymStretchStart : 0);
+}
+
+// mm:ss under an hour, h:mm:ss over it. No leading hour on a 40-minute session:
+// "00:41:12" spends three characters telling you something you already know.
+function fmtGymClock(ms){
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const pad = (n)=> String(n).padStart(2, '0');
+  return h ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+}
+
+function paintGymClock(){
+  const el = document.getElementById('gymClock');
+  if(el) el.textContent = fmtGymClock(gymElapsedMs());
+}
+
+function startGymClock(){
+  stopGymClock();
+  paintGymClock();
+  gymClockHandle = setInterval(paintGymClock, 1000);
+}
+
+function stopGymClock(){
+  if(gymClockHandle){ clearInterval(gymClockHandle); gymClockHandle = null; }
+}
+
+// Scoped to a date, not a boolean. The rest timer already survives an app kill
+// (v3.23), so an app killed mid-session should reopen in gym mode — but opening
+// it the next morning should not, and a bare `true` here would mean gym mode
+// became permanent the first time someone force-quit during a workout.
+async function persistGymSession(){
+  try{
+    await window.storage.set(GYM_SESSION_KEY, JSON.stringify({
+      date: getTodayKey(), accumMs: gymAccumMs, startedAt: gymStretchStart
+    }));
+  }catch(e){}
+}
+
+async function clearGymSession(){
+  try{ await window.storage.set(GYM_SESSION_KEY, ''); }catch(e){}
+}
+
+async function restoreGymMode(){
+  try{
+    const res = await window.storage.get(GYM_SESSION_KEY);
+    if(!res || !res.value) return;
+    const saved = JSON.parse(res.value);
+    if(!saved || saved.date !== getTodayKey()){ await clearGymSession(); return; }
+    const accum = Number(saved.accumMs) || 0;
+    const started = Number(saved.startedAt) || 0;
+    // Computed from the SAVED timestamp, so the clock correctly includes the
+    // time the app spent killed — that time was still spent in the gym.
+    const elapsed = accum + (started ? Date.now() - started : 0);
+    if(elapsed < 0 || elapsed > GYM_SESSION_MAX_MS){ await clearGymSession(); return; }
+    gymAccumMs = accum;
+    gymStretchStart = started || Date.now();
+    gymClockDate = saved.date;
+    enterGymMode({scroll:false, persist:false});
+  }catch(e){ /* a malformed value is not a reason to fail boot */ }
+}
+
+function refreshGymDock(){
+  if(!gymModeActive) return;
+  paintGymClock();
+  const progEl = document.getElementById('gymProgress');
+  if(!progEl) return;
+  // Counted off the checkboxes in the DOM rather than off the `completed` map,
+  // which is scoped inside renderWorkout and reflects the full day — the list on
+  // screen may be shorter after session-length trimming, and a dock reading
+  // "4 of 8" over five visible exercises would be counting something the person
+  // cannot see.
+  const boxes = [...document.querySelectorAll('#exerciseList .exercise-block input[type=checkbox]')];
+  const done = boxes.filter(b=> b.checked).length;
+  progEl.textContent = boxes.length ? `${done}/${boxes.length} exercises` : '';
+}
+
+// Navigation, removed rather than simplified. Entering gym mode with everything
+// collapsed would mean the first thing you do one-handed is hunt for your place
+// in a list where every row is dimmed to 26%. The app already opens the next
+// exercise when you check one off, so this just applies the same rule at the
+// only other moment it matters.
+function openFirstIncompleteExercise(){
+  const blocks = [...document.querySelectorAll('#exerciseList .exercise-block')];
+  if(!blocks.length) return;
+  // Something is already open — that is where they were, and moving it would be
+  // worse than doing nothing.
+  if(blocks.some(b=> b.classList.contains('open'))) return;
+  const target = blocks.find(b=>{
+    const cb = b.querySelector('input[type=checkbox]');
+    return cb && !cb.checked;
+  });
+  if(!target) return;
+  target.classList.add('open');
+  const wrap = target.querySelector('.expand-wrap');
+  if(wrap) wrap.classList.add('open');
+}
+
+function enterGymMode(opts){
+  const o = opts || {};
+  if(gymModeActive) return;
+  gymModeActive = true;
+  gymAutoHandledDate = selectedLogDate;
+  hideGymOffer();
+  // Re-entering during the leave animation cancels it. Without this the
+  // pending timeout fires a moment later and strips the class off a mode that
+  // is now active again — gym mode would appear, then silently vanish.
+  finishGymLeave();
+  document.body.classList.add('gym-mode');
+
+  // A new day starts a new clock even if the app was never closed.
+  const today = getTodayKey();
+  if(gymClockDate !== today){ gymAccumMs = 0; gymStretchStart = 0; gymClockDate = today; }
+  if(!gymStretchStart) gymStretchStart = Date.now();
+  startGymClock();
+
+  // Gym mode strips Today specifically. Entering it from Analysis would show a
+  // stripped version of a tab it was never designed against, so the view is
+  // forced. scrollTop is suppressed because this function makes its own
+  // scrolling decision below.
+  switchView('today', {scrollTop:false});
+  openFirstIncompleteExercise();
+  refreshGymDock();
+
+  // The wake lock, one signal earlier than before. `noteWorkoutActivity` still
+  // owns the mechanism, the 15-minute idle release and — importantly — the
+  // `wakeLockEnabled` check: someone who turned the screen lock OFF in Settings
+  // has that honoured here too. Overriding an explicit off-switch would leave a
+  // control in Settings that visibly does nothing, with no way to discover why.
+  noteWorkoutActivity();
+
+  // Only on a deliberate press. Auto-entering scrolls nowhere, because the
+  // person is looking at a set they just logged and yanking the page to the top
+  // underneath them is worse than any amount of chrome.
+  if(o.scroll){
+    try{ window.scrollTo({top:0, left:0, behavior:'instant'}); }
+    catch(e){ window.scrollTo(0,0); }
+  }
+
+  if(o.persist !== false) persistGymSession();
+}
+
+function exitGymMode(){
+  if(!gymModeActive) return;
+  // The FLAG flips immediately and the CLASS lags. Nothing may keep behaving as
+  // though gym mode is on during the animation — `maybeOfferGymMode`, the
+  // clock and the completion hook all read `gymModeActive`, and leaving them
+  // true for 280ms would let a set logged in that window re-enter the mode
+  // being left.
+  gymModeActive = false;
+  const leaveMs = gymLeaveDuration();
+  if(leaveMs === 0){
+    finishGymLeave();
+  } else {
+    document.body.classList.add('gym-leaving');
+    if(gymLeaveTimer) clearTimeout(gymLeaveTimer);
+    gymLeaveTimer = setTimeout(finishGymLeave, leaveMs);
+  }
+  // Bank the stretch before stopping, so re-entering today resumes the session
+  // rather than restarting it.
+  if(gymStretchStart){ gymAccumMs += Date.now() - gymStretchStart; gymStretchStart = 0; }
+  stopGymClock();
+  clearGymSession();
+  // The wake lock is deliberately NOT released. Leaving gym mode to check a
+  // number in Analysis mid-workout is a normal thing to do, and the 15-minute
+  // idle timer already handles the case where someone has genuinely finished.
+  // Releasing here would drop the screen the moment you stepped out to look
+  // something up.
+  const enterBtn = document.getElementById('gymEnterBtn');
+  if(enterBtn) enterBtn.focus();
+}
+
+function showGymOffer(){
+  const el = document.getElementById('gymOffer');
+  if(el) el.classList.add('active');
+}
+
+function hideGymOffer(){
+  const el = document.getElementById('gymOffer');
+  if(el) el.classList.remove('active');
+}
+
+// Called from the set-save path, on the same signal that starts the rest clock
+// and holds the wake lock.
+function maybeOfferGymMode(){
+  if(gymModeActive) return;
+  // Backdating is not training. Typing in Tuesday's session on Thursday should
+  // never strip the screen for a workout that is already over — the same
+  // position `rest achieved` takes, and for the same reason.
+  if(selectedLogDate !== getTodayKey()) return;
+  if(gymAutoHandledDate === selectedLogDate) return;
+  gymAutoHandledDate = selectedLogDate;
+
+  if(gymAutoPref === '1'){ enterGymMode({scroll:false}); return; }
+  if(gymAutoPref === '0') return;
+  showGymOffer();
+}
+
+async function answerGymOffer(useIt){
+  gymAutoPref = useIt ? '1' : '0';
+  try{ await window.storage.set(GYM_AUTO_KEY, gymAutoPref); }catch(e){}
+  hideGymOffer();
+  if(useIt) enterGymMode({scroll:false});
+}
+
+function wireGymMode(){
+  const enterBtn = document.getElementById('gymEnterBtn');
+  if(enterBtn) enterBtn.addEventListener('click', ()=> enterGymMode({scroll:true}));
+  const exitBtn = document.getElementById('gymExitBtn');
+  if(exitBtn) exitBtn.addEventListener('click', ()=> exitGymMode());
+  const yes = document.getElementById('gymOfferYes');
+  if(yes) yes.addEventListener('click', ()=> answerGymOffer(true));
+  const no = document.getElementById('gymOfferNo');
+  if(no) no.addEventListener('click', ()=> answerGymOffer(false));
+
+  // Repaint the moment the app comes back rather than up to a second later.
+  // The interval did not run while backgrounded, so without this the clock
+  // shows a stale time for exactly as long as someone is looking at it.
+  document.addEventListener('visibilitychange', ()=>{
+    if(!document.hidden && gymModeActive) paintGymClock();
+  });
+
+  // Escape leaves gym mode. It is NOT registered in OVERLAY_CLOSERS, which is
+  // for modal overlays and is checked against whichever overlay is currently
+  // open — gym mode is neither modal nor an overlay, and adding it there would
+  // mean Escape left gym mode INSTEAD of closing a dialog opened on top of it.
+  // Guarded on an open overlay for exactly that reason: the dialog wins.
+  document.addEventListener('keydown', (e)=>{
+    if(e.key !== 'Escape' || !gymModeActive) return;
+    if(typeof openOverlayEl === 'function' && openOverlayEl()) return;
+    exitGymMode();
+  });
+}
+
 // Total distance logged in an entry, in metres. Sets without a distance
 // contribute nothing rather than breaking the sum.
 function distanceOf(entry){
@@ -16342,6 +17150,10 @@ function wireSetsBlock(row, exIdx, ex){
       // Same signal, two consumers: a logged set both starts the rest clock and
       // means the phone should stay awake for the next one.
       noteWorkoutActivity();
+      // Third consumer of the same signal: the first logged set of the day is
+      // also the moment to offer gym mode, or to enter it if that has already
+      // been answered yes.
+      maybeOfferGymMode();
       checkAllSetsCompleteAndAutoCheck();
     };
     if(wInput) wInput.addEventListener('change', save);
@@ -22523,11 +23335,22 @@ const VIEW_KEYS = ['today','log','analysis','history','care','coach','learn'];
 // Validated against VIEW_KEYS rather than trusted: the value goes straight
 // into switchView, which would leave every tab hidden if handed a key it
 // doesn't know, and the URL is the one input here that anything can set.
+// `?view=gym` is an ALIAS, not an eighth entry in VIEW_KEYS. Gym mode strips the
+// Today tab rather than replacing it, so the route resolves to a real view plus
+// a flag. Adding 'gym' to VIEW_KEYS would let it reach switchView — which
+// iterates a fixed `views` map and hides every key that isn't active, so an
+// unrecognised key hides ALL of them — and would let it be written to
+// 'active-view', reproducing that blank screen on every subsequent launch.
+let pendingGymMode = false;
+
 function launchViewFromUrl(){
   try{
     const params = new URLSearchParams(window.location.search);
-    const requested = params.get('view');
+    const raw = params.get('view');
+    const wantsGym = raw === 'gym';
+    const requested = wantsGym ? 'today' : raw;
     if(!requested || !VIEW_KEYS.includes(requested)) return null;
+    if(wantsGym) pendingGymMode = true;
     // Strip it once consumed. Left in place it would outrank the stored tab on
     // every subsequent reload — a shortcut would stop being a way to open one
     // tab and become a way to pin the app to it, and pull-to-refresh from
@@ -22559,6 +23382,8 @@ async function restoreActiveView(){
   // Learn was absent from this list, so reopening the app on that tab left
   // the masterclass index empty until the person navigated away and back.
   if(savedView === 'learn'){ renderMasterclassIndex(); renderExerciseLibraryHint(); }
+  // Last, so the class lands on a Today tab that has actually been built.
+  if(pendingGymMode){ pendingGymMode = false; enterGymMode({scroll:false}); }
 }
 
 document.getElementById('tipsToggle').addEventListener('click', ()=>{
@@ -27464,6 +28289,7 @@ if(activeUserId){
     await loadWeightUnit();
     await loadDistanceUnit();
     await loadWakeLockPref();
+    await loadGymPrefs();
     await loadEquipmentProfile();
     await loadSuggestionModePref();
     getMesocycleWeek().then(w=> renderLoadModeNote(w)).catch(()=>{});
@@ -27535,6 +28361,7 @@ if(activeUserId){
     renderStorageUsage();
     renderStorageBanner();
     await restoreActiveView();
+    await restoreGymMode();
     restoreRestTimer();
     bootMark('initEnd');
   })();
@@ -27585,6 +28412,7 @@ if(activeUserId){
 // It depends on nothing but the overlay elements existing, which is
 // guaranteed: this script is the last thing in the body.
 initScrollLock();
+wireGymMode();
 wireCustomProgramUI();
 
 (function wireSettings(){
