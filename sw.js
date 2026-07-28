@@ -8,7 +8,7 @@
 //
 // HANDOFF v6 §6 flagged that APP_VERSION had not moved in five sessions and
 // that nobody knew whether sw.js keyed off it. It does now.
-const VERSION = '3.27';
+const VERSION = '3.28';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the

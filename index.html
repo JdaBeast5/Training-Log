@@ -51,7 +51,16 @@
        coloured bloom beneath a raised surface, in --plate-blue rather than
        neutral grey so the depth belongs to this palette instead of being
        borrowed from a generic dark theme. */
-    --rim:var(--rim);
+    /* Was `--rim:var(--rim)` — a dependency cycle. Per the CSS variables spec
+       a custom property in a cycle computes to the guaranteed-invalid value,
+       so every `var(--rim)` without a fallback made its whole declaration
+       invalid at computed-value time. All three --elev-* tokens reference it,
+       and `.card` is `box-shadow:var(--elev-2), var(--lift)` — one invalid
+       var() poisons the entire declaration, so --lift died with it and every
+       card in the app computed to `box-shadow:none`. 40 var(--rim) uses and 8
+       var(--elev-*) uses were inert. --sheen already holds the hairline colour
+       this was always meant to be. */
+    --rim:0 1px 0 var(--sheen) inset;
     --lift:0 24px 60px -30px rgba(91,124,255,0.16);
     --elev-1:var(--rim), 0 2px 6px -2px rgba(0,0,0,0.40);
     --elev-2:var(--rim), 0 14px 32px -12px rgba(0,0,0,0.55);
@@ -2672,7 +2681,22 @@
      contrast available for a number read at arm's length with the phone flat
      on a bench. The card stops being a card: in gym mode the list IS the
      screen. */
-  body.gym-mode{background:#000;}
+  body.gym-mode{
+    background:#000;
+    /* v3.28. True black is still the ground — these two washes are 13% and 9%
+       blue at their centres and reach nothing at the edges, so the corners of
+       an OLED panel stay genuinely unlit. The reason they exist is stated in
+       the pop-out comment below: `backdrop-filter` has nothing to sample and a
+       drop shadow has nothing to fall on when the page is a void, which is
+       exactly why the first version of this mode read as flat. Give the panel
+       something to be raised above and the app's own material comes back.
+       `fixed` so the wash belongs to the screen and does not slide under a
+       scrolling list, which would read as a moving light source. */
+    background-image:
+      radial-gradient(115% 55% at 50% -8%, rgba(91,124,255,0.13), transparent 62%),
+      radial-gradient(95% 45% at 50% 106%, rgba(91,124,255,0.085), transparent 58%);
+    background-attachment:fixed;
+  }
   body.gym-mode #workoutCard{
     background:transparent; border:none; box-shadow:none; padding:0; margin:0;
   }
@@ -2690,7 +2714,11 @@
      normal list borders and the result was a stack of boxes on black competing
      with the one box that mattered. */
   body.gym-mode .exercise-block{
-    opacity:0.26; border-bottom:none; padding:1px 4px;
+    /* 0.26 -> 0.34 in v3.28. At 0.26 the only thing being dimmed was text on a
+       transparent row; now that the row has a fill and a hairline, 0.26
+       multiplies those to nothing as well and the list goes back to looking
+       like a void. 0.34 still leaves exactly one bright thing on screen. */
+    opacity:0.34; border-bottom:none; padding:1px 4px;
     transition:opacity 0.28s var(--ease-smooth);
   }
   body.gym-mode .exercise-block .exercise{padding:11px 2px; min-height:48px;}
@@ -2710,7 +2738,7 @@
        than a child, so the focus dim never reached it and it sat brighter than
        everything around it — the loudest thing on a screen built to have one
        loud thing. */
-    opacity:0.26; font-size:10px; margin:2px 0; padding-top:6px; padding-bottom:6px;
+    opacity:0.34; font-size:10px; margin:2px 0; padding-top:6px; padding-bottom:6px;
   }
 
   /* ── The current exercise: a pop-out ──────────────────────────────────────
@@ -2742,15 +2770,20 @@
        So: an opaque fill clearly lighter than the page, a brighter hairline,
        and a coloured bloom rather than a dark one. The blur is kept only for
        the moment the rest timer passes underneath. */
-    background:linear-gradient(168deg, #23272E 0%, #171A1F 62%, #14161A 100%);
+    background:linear-gradient(168deg, #272C34 0%, #191D23 58%, #14171C 100%);
     backdrop-filter:blur(26px) saturate(170%);
     -webkit-backdrop-filter:blur(26px) saturate(170%);
-    border:1px solid rgba(255,255,255,0.15);
+    border:1px solid rgba(255,255,255,0.19);
     border-radius:24px;
-    box-shadow:0 1px 0 rgba(255,255,255,0.10) inset,
-               0 0 0 1px rgba(91,124,255,0.10),
-               0 20px 54px -14px rgba(91,124,255,0.22),
-               0 30px 70px -30px rgba(0,0,0,0.9);
+    /* v3.28: the bloom carries the elevation, so it was raised rather than
+       widened. Now that the ground has a wash the shadow finally has somewhere
+       to land, and the top of the gradient is two steps lighter so the panel
+       separates from the list by LIGHTNESS as well as by glow. */
+    box-shadow:0 1px 0 rgba(255,255,255,0.14) inset,
+               0 0 0 1px rgba(91,124,255,0.16),
+               0 26px 64px -12px rgba(91,124,255,0.34),
+               0 10px 28px -14px rgba(91,124,255,0.20),
+               0 34px 80px -28px rgba(0,0,0,0.95);
   }
   /* The sheen the app puts on every raised surface. Unused on this element
      until now, so there is nothing to collide with. */
@@ -2791,9 +2824,16 @@
      pink. If this needs to change, change the COLOUR, never the opacity. */
   body.gym-mode .set-row-content{
     gap:0; padding:0;
-    background:#0C0E11;
-    border:1px solid rgba(255,255,255,0.07);
+    /* v3.28: was the flat colour #0C0E11. This is a gradient between two FULLY
+       OPAQUE colours — that is not translucency and it does not reintroduce
+       the pink-tint bug the comment above describes, because no alpha below 1
+       is involved anywhere. The inset hairline is the same sheen every other
+       raised surface in the app carries. */
+    background:linear-gradient(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%);
+    border:1px solid rgba(255,255,255,0.10);
     border-radius:16px;
+    box-shadow:0 1px 0 rgba(255,255,255,0.055) inset,
+               0 6px 18px -12px rgba(0,0,0,0.9);
   }
   body.gym-mode .set-num{
     width:40px; min-height:56px; display:flex; align-items:center; justify-content:center;
@@ -2871,7 +2911,9 @@
      a leftover card. Big enough to read at arm's length, which is the whole
      point of having it here. */
   body.gym-mode .warmup-box{
-    background:#0C0E11; border:1px solid rgba(255,255,255,0.07);
+    background:linear-gradient(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%);
+    border:1px solid rgba(255,255,255,0.10);
+    box-shadow:0 1px 0 rgba(255,255,255,0.055) inset;
     border-radius:16px; padding:12px 14px; margin:2px 0 10px;
   }
   body.gym-mode .warmup-title{font-size:11px; letter-spacing:0.04em; opacity:0.75; margin-bottom:6px;}
@@ -2884,7 +2926,22 @@
     border-radius:14px; margin-top:8px;
   }
   body.gym-mode .exercise-block, body.gym-mode .sets-block{box-shadow:none;}
-  body.gym-mode .exercise-block:not(.open){background:transparent;}
+  /* v3.28. These were `background:transparent` — no fill, no border, no
+     shadow — so everything that was not the current exercise was text floating
+     on a void, and the mode read as a different and cheaper app than the one
+     around it. They are meant to be QUIET, not ABSENT. Each is now a real
+     surface in the app's own material, just a very faint one: the same
+     gradient-over-hairline recipe as `.card`, at roughly a fifth of the
+     amplitude. The dim below does the receding; the surface does the belonging. */
+  body.gym-mode .exercise-block:not(.open){
+    background:linear-gradient(168deg, rgba(255,255,255,0.05), rgba(255,255,255,0.014));
+    border:1px solid rgba(255,255,255,0.07);
+    border-radius:16px;
+    padding:10px 13px;
+    margin:7px 0;
+    box-shadow:0 1px 0 rgba(255,255,255,0.05) inset,
+               0 10px 24px -18px rgba(0,0,0,0.9);
+  }
 
   /* ── The dock ─────────────────────────────────────────────────────────────
      At the BOTTOM, and this is the whole one-handed argument. A status bar
@@ -2920,7 +2977,15 @@
     opacity:0; transform:translateY(160%); pointer-events:none;
     transition:opacity 0.26s var(--ease-smooth), transform 0.4s var(--ease-spring);
   }
-  body.gym-mode .gym-dock{opacity:1; transform:translateY(0); pointer-events:auto;}
+  body.gym-mode .gym-dock{
+    opacity:1; transform:translateY(0); pointer-events:auto;
+    /* Delayed 0.16s so the dock lands AFTER the list has settled. The two
+       arriving together read as one redraw; staged, it reads as the room
+       being set up. The delay is only on the way in — leaving should feel
+       immediate, and `body.gym-leaving` below carries no delay. */
+    transition:opacity 0.3s var(--ease-smooth) 0.16s,
+               transform 0.52s var(--ease-spring) 0.16s;
+  }
   /* Ordered AFTER the rule above: `.gym-leaving` is applied while `.gym-mode`
      is still present, so it has to win on source order. */
   body.gym-leaving .gym-dock{
@@ -3005,16 +3070,52 @@
      `#exerciseList`, not on the exercise blocks: the container survives every
      re-render, so this plays exactly once per entry, whereas an animation on
      the blocks would replay every time renderWorkout rebuilt them. */
+  /* v3.28. Was 14px and scale(0.988) on --ease-smooth, which is a nudge rather
+     than a transition — the complaint that entering gym mode barely reads as
+     happening was accurate. The list now drops in from 44px on --ease-spring,
+     so it overshoots slightly and settles. Transform and opacity only: both are
+     compositor properties, and this animates a container holding every set row
+     on the screen, so anything that forced layout or paint here would jank on
+     exactly the mid-range phone this mode is for. */
   @keyframes gymListIn{
-    from{opacity:0; transform:translateY(14px) scale(0.988);}
+    from{opacity:0; transform:translateY(44px) scale(0.93);}
     to{opacity:1; transform:none;}
   }
   @keyframes gymListOut{
     from{opacity:1; transform:none;}
     to{opacity:0; transform:translateY(10px) scale(0.992);}
   }
-  body.gym-mode #exerciseList{animation:gymListIn 0.38s var(--ease-smooth) both;}
+  body.gym-mode #exerciseList{animation:gymListIn 0.54s var(--ease-spring) both;}
   body.gym-leaving #exerciseList{animation:gymListOut 0.24s var(--ease-smooth) both;}
+
+  /* The entry flash. One blue bloom that opens out of the middle of the screen
+     and is gone in under a second — the moment that says a mode changed rather
+     than a list re-rendered. It is a pseudo-element on BODY so it needs no
+     markup and cannot be caught by a re-render.
+
+     z-index 1: above the page, and far below the .rest-timer/.gym-dock/.gym-offer
+     band at 50/55/60, which must never be washed over. pointer-events:none
+     because it covers the whole viewport for the duration.
+
+     `both` holds the final keyframe, so once it has played the element is
+     opacity:0 and stays there for the rest of the session. */
+  body.gym-mode::after{
+    content:''; position:fixed; inset:0; z-index:1; pointer-events:none;
+    background:radial-gradient(circle at 50% 58%,
+      rgba(91,124,255,0.30), rgba(91,124,255,0.09) 42%, transparent 70%);
+    animation:gymEnterWash 0.85s var(--ease-smooth) both;
+  }
+  /* `visibility:hidden` on the final keyframe, held by `both`, so once the
+     flash has played this stops being painted and hit-tested for the rest of
+     the session. opacity:0 alone leaves a viewport-sized fixed layer in the
+     compositor for an hour of gym mode. Both keyframes set visibility
+     explicitly because the finishing wash below REPLACES this animation
+     wholesale, and an unset property would fall back to the base rule. */
+  @keyframes gymEnterWash{
+    0%{opacity:0; visibility:visible; transform:scale(0.55);}
+    30%{opacity:1;}
+    100%{opacity:0; visibility:hidden; transform:scale(1.4);}
+  }
   /* The panel itself eases between its two states for the properties that can
      be interpolated. Padding and margin are included deliberately: they are
      what makes the block grow into a card, and the reflow is a single one-off
@@ -3029,11 +3130,67 @@
                margin 0.3s var(--ease-smooth);
   }
 
+  /* ── Finishing ────────────────────────────────────────────────────────────
+     The last set of the last exercise. Previously this called exitGymMode()
+     on the same tick as the celebration, so the screen that earned the
+     confetti was already dismantling itself underneath it.
+
+     `body.gym-finishing` holds gym mode open for a beat and gives it an
+     ending: the panel warms from blue to gold, the whole list swells once and
+     then lifts away, and the dock drops out under it. Gold rather than the
+     app's blue on purpose — blue is the working colour, worn by the rest
+     timer, the suggested load and the pop-out's own bloom. An ending should
+     not be the same colour as the work.
+
+     Ordered AFTER `body.gym-mode::after`: both are ::after on body and both
+     match while finishing, so this one wins on source order. */
+  body.gym-finishing::after{
+    content:''; position:fixed; inset:0; z-index:1; pointer-events:none;
+    background:radial-gradient(circle at 50% 52%,
+      rgba(245,197,24,0.26), rgba(245,197,24,0.08) 45%, transparent 72%);
+    animation:gymFinishWash 1.2s var(--ease-smooth) both;
+  }
+  @keyframes gymFinishWash{
+    0%{opacity:0; visibility:visible; transform:scale(0.7);}
+    28%{opacity:1;}
+    100%{opacity:0; visibility:hidden; transform:scale(1.5);}
+  }
+  @keyframes gymFinishOut{
+    0%{opacity:1; transform:none;}
+    26%{opacity:1; transform:scale(1.02);}
+    100%{opacity:0; transform:translateY(-34px) scale(0.95);}
+  }
+  body.gym-finishing #exerciseList{animation:gymFinishOut 1.2s var(--ease-smooth) both;}
+  /* The panel that held the final set goes gold on the way out. */
+  body.gym-finishing .exercise-block.open{
+    border-color:rgba(245,197,24,0.55);
+    box-shadow:0 1px 0 rgba(255,255,255,0.18) inset,
+               0 0 0 1px rgba(245,197,24,0.26),
+               0 26px 70px -12px rgba(245,197,24,0.42),
+               0 10px 30px -14px rgba(245,197,24,0.26),
+               0 34px 80px -28px rgba(0,0,0,0.95);
+    transition:box-shadow 0.5s var(--ease-smooth), border-color 0.5s var(--ease-smooth);
+  }
+  body.gym-finishing .gym-dock{
+    opacity:0; transform:translateY(160%);
+    transition:opacity 0.34s var(--ease-smooth) 0.5s,
+               transform 0.5s var(--ease-smooth) 0.5s;
+  }
+
   @media (prefers-reduced-motion: reduce){
     .gym-offer{transition:opacity 0.01ms;}
     .gym-dock, body.gym-leaving .gym-dock{transition:none;}
     body.gym-mode #exerciseList, body.gym-leaving #exerciseList{animation:none;}
     body.gym-mode .exercise-block{transition:none;}
+    /* The wash and the whole finishing sequence are pure decoration with no
+       information in them, so they are removed outright rather than shortened
+       — the same call the confetti rule makes further up. finishGymWorkout()
+       also checks the media query itself and exits immediately, so nothing
+       here is holding the mode open with the animation switched off. */
+    body.gym-mode::after, body.gym-finishing::after{display:none;}
+    body.gym-finishing #exerciseList{animation:none;}
+    body.gym-finishing .exercise-block.open{transition:none;}
+    body.gym-finishing .gym-dock{transition:none;}
     .gym-exit-btn:active, .gym-enter-btn:active, .gym-offer-actions button:active{transform:none;}
   }
 
@@ -4452,7 +4609,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.27';
+const APP_VERSION = '3.28';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -15599,12 +15756,12 @@ async function renderWorkout(){
             <div class="swipe-delete-bg">🗑️</div>
             <div class="swipe-content set-row-content">
               <span class="set-num">${setIdx+1}</span>
-              ${showDistance ? `<input type="number" inputmode="decimal" step="0.01" min="0" class="ex-input ex-distance" aria-label="Set ${setIdx+1} distance in ${distanceUnit}" placeholder="${placeholderSet && placeholderSet.distance!=null ? trimUnitNum(toDisplayDistance(placeholderSet.distance)) : distanceUnit}" value="${savedSet && savedSet.distance!=null ? trimUnitNum(toDisplayDistance(savedSet.distance)) : ''}">
+              ${showDistance ? `<input type="number" inputmode="decimal" enterkeyhint="next" step="0.01" min="0" class="ex-input ex-distance" aria-label="Set ${setIdx+1} distance in ${distanceUnit}" placeholder="${placeholderSet && placeholderSet.distance!=null ? trimUnitNum(toDisplayDistance(placeholderSet.distance)) : distanceUnit}" value="${savedSet && savedSet.distance!=null ? trimUnitNum(toDisplayDistance(savedSet.distance)) : ''}">
               <span class="ex-x">@</span>` : ''}
-              ${showWeight ? `<input type="number" inputmode="decimal" class="ex-input ex-weight${sugClass}" aria-label="Set ${setIdx+1} weight in ${weightUnit}${sugAria}" placeholder="${weightPlaceholder}" value="${savedSet && savedSet.weight!=null ? trimUnitNum(toDisplayWeight(savedSet.weight)) : ''}">
+              ${showWeight ? `<input type="number" inputmode="decimal" enterkeyhint="next" class="ex-input ex-weight${sugClass}" aria-label="Set ${setIdx+1} weight in ${weightUnit}${sugAria}" placeholder="${weightPlaceholder}" value="${savedSet && savedSet.weight!=null ? trimUnitNum(toDisplayWeight(savedSet.weight)) : ''}">
               <span class="ex-x">×</span>` : ''}
-              <input type="number" inputmode="numeric" class="ex-input ex-reps${sugClass}" aria-label="Set ${setIdx+1} reps" placeholder="${repsPlaceholder}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
-              <input type="number" inputmode="decimal" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${setIdx+1} RPE, 5 to 10" placeholder="${placeholderSet && placeholderSet.rpe!=null ? placeholderSet.rpe : 'RPE'}" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
+              <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input ex-reps${sugClass}" aria-label="Set ${setIdx+1} reps" placeholder="${repsPlaceholder}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
+              <input type="number" inputmode="decimal" enterkeyhint="next" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${setIdx+1} RPE, 5 to 10" placeholder="${placeholderSet && placeholderSet.rpe!=null ? placeholderSet.rpe : 'RPE'}" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
               ${showPlateCalc ? '<button type="button" class="plate-btn" aria-label="Open plate calculator">🏋️</button>' : ''}
               ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" aria-label="Log this set by voice">🎤</button>' : ''}
               <button type="button" class="set-note-btn${savedSet && savedSet.note ? ' has-note' : ''}" aria-label="${savedSet && savedSet.note ? 'Edit note on set '+(setIdx+1) : 'Add a note to set '+(setIdx+1)}" aria-expanded="false">${savedSet && savedSet.note ? '\u{1F4DD}' : '\u002B'}</button>
@@ -15767,14 +15924,22 @@ async function renderWorkout(){
       refreshGymDock();
 
       if(cb.checked && dayNowComplete){
-        triggerCelebration('💪', 'Session complete!', `${day.label} — ${day.sub}`);
+        // `big` when finishing in gym mode: the larger banner and the heavier
+        // confetti burst are already built, and the one moment in the app that
+        // has genuinely earned them is the last set of a session logged on a
+        // screen stripped down to nothing but the work.
+        triggerCelebration('💪', 'Session complete!', `${day.label} — ${day.sub}`, gymModeActive);
         maybeShowTodayStandout();
         // The second way out of gym mode. This branch is already gated to the
         // actual completing click — a re-render never fires a checkbox 'change'
         // — so it cannot fire again on a day that was already finished. Ordered
         // after the celebration so the confetti plays over the stripped screen
         // that earned it, then the app comes back.
-        if(gymModeActive) exitGymMode();
+        // Was exitGymMode() on this tick, which dismantled the screen out from
+        // under the celebration. finishGymWorkout() plays the ending first and
+        // exits at the end of it; it falls straight through to exitGymMode()
+        // under reduced motion.
+        if(gymModeActive) finishGymWorkout();
       }
     });
 
@@ -16619,6 +16784,152 @@ function openFirstIncompleteExercise(){
   if(wrap) wrap.classList.add('open');
 }
 
+// ── Advancing through the fields ────────────────────────────────────────────
+// The forward key on the keyboard walks weight -> reps -> RPE -> the next set's
+// weight, and off the END of an exercise into the next one.
+//
+// That last jump is the part that needed writing. The browser's own next-field
+// navigation can only reach something focusable, and the next exercise's sets
+// live inside a COLLAPSED `.expand-wrap` — so from the RPE of the last set
+// there was simply nowhere for it to go and the key did nothing, which is
+// exactly where a person is when they have just finished an exercise.
+//
+// Deliberately NOT gated on gym mode. Enter does nothing at all in a bare
+// number input, so this takes no behaviour away anywhere, and a key that
+// advanced the field in one mode and not the other would be a worse rule than
+// either alternative.
+
+function focusSetField(el){
+  if(!el) return;
+  // preventScroll because the smooth scroll below is the one that should win —
+  // letting focus() jump first produces a jump followed by a glide.
+  try{ el.focus({preventScroll:true}); }catch(e){ el.focus(); }
+  // Select rather than place a caret. Every one of these fields holds a whole
+  // number that is either right or being replaced; landing with the value
+  // selected means the next keypress overwrites it, which is what someone
+  // correcting a set actually wants.
+  try{ if(el.select) el.select(); }catch(e){}
+  const row = (el.closest && el.closest('.set-row')) || el;
+  if(row.scrollIntoView){
+    try{ row.scrollIntoView({block:'center', behavior:'smooth'}); }
+    catch(e){ row.scrollIntoView(); }
+  }
+}
+
+// Sibling walk rather than an index into renderExercises: rows are appended in
+// render order, so the next `.exercise-block` sibling is always the next
+// exercise AS DISPLAYED — already accounting for reordering and session-length
+// trimming. `.superset-connector` sits between blocks as a sibling, which is
+// why this skips non-blocks rather than reading nextElementSibling once.
+function nextExerciseBlock(block){
+  let cand = block.nextElementSibling;
+  while(cand){
+    if(cand.classList && cand.classList.contains('exercise-block')) return cand;
+    cand = cand.nextElementSibling;
+  }
+  return null;
+}
+
+// Hands over from one exercise to the next: collapses the one being left and
+// opens the one being entered. Exactly one exercise open is the invariant the
+// whole mode is built on — the focus dim assumes it, and two pop-outs at once
+// puts two bright things on a screen designed to have one.
+//
+// The checkbox is deliberately NOT ticked. Running out of fields means the
+// last set has a number in it, not that the person has decided the exercise is
+// done, and marking work complete on their behalf is not a thing a text field
+// should be able to do.
+function advanceToNextExercise(block){
+  let cand = nextExerciseBlock(block);
+  // Skip anything already checked off — there is nothing to log in it.
+  while(cand){
+    const cb = cand.querySelector('input[type=checkbox]');
+    if(cb && !cb.checked) break;
+    cand = nextExerciseBlock(cand);
+  }
+  if(!cand) return false;
+
+  block.classList.remove('open');
+  const leaving = block.querySelector('.expand-wrap');
+  if(leaving) leaving.classList.remove('open');
+
+  cand.classList.add('open');
+  const entering = cand.querySelector('.expand-wrap');
+  if(entering) entering.classList.add('open');
+
+  const first = cand.querySelector('.ex-input');
+  if(first){ focusSetField(first); return true; }
+  // An exercise with no loggable fields still deserves to be scrolled to —
+  // the handover happened, there is just nothing to type into.
+  try{ cand.scrollIntoView({block:'center', behavior:'smooth'}); }catch(e){}
+  return true;
+}
+
+function advanceSetField(input){
+  const block = input.closest && input.closest('.exercise-block');
+  if(!block) return false;
+  // Scoped to this block's own fields and read fresh: renderWorkout rebuilds
+  // these nodes, so any cached list would go stale on the first re-render.
+  const fields = [...block.querySelectorAll('.ex-input')];
+  const i = fields.indexOf(input);
+  if(i === -1) return false;
+  const next = fields[i + 1];
+  if(next){ focusSetField(next); return true; }
+  return advanceToNextExercise(block);
+}
+
+// Delegated at the document, so it survives every renderWorkout without
+// needing to be re-bound. Arrow keys are deliberately untouched: ArrowUp and
+// ArrowDown already step the value of a number input, and taking that away
+// from a hardware keyboard to reuse the key for navigation would break
+// something that works to fix something that does not.
+document.addEventListener('keydown', (e)=>{
+  if(e.key !== 'Enter') return;
+  const t = e.target;
+  if(!t || !t.classList || !t.classList.contains('ex-input')) return;
+  if(!t.closest || !t.closest('#exerciseList')) return;
+  if(advanceSetField(t)) e.preventDefault();
+});
+
+// ── Finishing the workout ───────────────────────────────────────────────────
+// Holds gym mode open for a beat after the last box is ticked so the ending
+// has somewhere to happen. Before this, exitGymMode() ran on the same tick as
+// the celebration and the screen was already dismantling itself under the
+// confetti it had just earned.
+//
+// `gymModeActive` stays TRUE for the duration, and that is correct rather than
+// an oversight: the mode genuinely is still on screen. The rule in HANDOFF v11
+// §4 is about the LEAVING window, where the visuals lag a flag that has
+// already flipped; here nothing has flipped yet. exitGymMode() is still what
+// finally flips it, and it does so with its own leave animation after this.
+const GYM_FINISH_MS = 1250;
+let gymFinishTimer = null;
+
+// Shared by enterGymMode and exitGymMode, and the reason is the same race
+// finishGymLeave() exists for: a pending timeout that fires after the state it
+// was scheduled against has been replaced will strip the class off a mode that
+// is active again, or exit a mode that was already exited.
+function cancelGymFinish(){
+  if(gymFinishTimer){ clearTimeout(gymFinishTimer); gymFinishTimer = null; }
+  document.body.classList.remove('gym-finishing');
+}
+
+function finishGymWorkout(){
+  if(!gymModeActive) return;
+  // Reduced motion takes the direct route. The sequence is decoration with no
+  // information in it, and holding someone in a stripped screen for an extra
+  // 1.25s to play an animation their OS has asked not to see is the wrong
+  // trade in both directions.
+  if(gymLeaveDuration() === 0){ exitGymMode(); return; }
+  cancelGymFinish();
+  document.body.classList.add('gym-finishing');
+  gymFinishTimer = setTimeout(()=>{
+    gymFinishTimer = null;
+    document.body.classList.remove('gym-finishing');
+    exitGymMode();
+  }, GYM_FINISH_MS);
+}
+
 function enterGymMode(opts){
   const o = opts || {};
   if(gymModeActive) return;
@@ -16629,6 +16940,10 @@ function enterGymMode(opts){
   // pending timeout fires a moment later and strips the class off a mode that
   // is now active again — gym mode would appear, then silently vanish.
   finishGymLeave();
+  // Same race, one stage earlier: entering while the finish sequence is still
+  // running would otherwise leave a timeout in flight that exits the mode
+  // about a second after it was deliberately re-entered.
+  cancelGymFinish();
   document.body.classList.add('gym-mode');
 
   // A new day starts a new clock even if the app was never closed.
@@ -16665,6 +16980,10 @@ function enterGymMode(opts){
 
 function exitGymMode(){
   if(!gymModeActive) return;
+  // Covers Exit or Escape pressed DURING the finish sequence: the pending
+  // timeout would call this again a moment later, and the class would outlive
+  // the mode it decorates.
+  cancelGymFinish();
   // The FLAG flips immediately and the CLASS lags. Nothing may keep behaving as
   // though gym mode is on during the animation — `maybeOfferGymMode`, the
   // clock and the completion hook all read `gymModeActive`, and leaving them
@@ -17385,12 +17704,12 @@ function wireSetsBlock(row, exIdx, ex){
       <div class="swipe-delete-bg">🗑️</div>
       <div class="swipe-content set-row-content">
         <span class="set-num">${newIdx+1}</span>
-        ${showDistance ? `<input type="number" inputmode="decimal" step="0.01" min="0" class="ex-input ex-distance" aria-label="Set ${newIdx+1} distance in ${distanceUnit}" placeholder="${distanceUnit}" value="">
+        ${showDistance ? `<input type="number" inputmode="decimal" enterkeyhint="next" step="0.01" min="0" class="ex-input ex-distance" aria-label="Set ${newIdx+1} distance in ${distanceUnit}" placeholder="${distanceUnit}" value="">
         <span class="ex-x">@</span>` : ''}
-        ${showWeight ? `<input type="number" inputmode="decimal" class="ex-input ex-weight" aria-label="Set ${newIdx+1} weight in ${weightUnit}" placeholder="${weightUnit}" value="">
+        ${showWeight ? `<input type="number" inputmode="decimal" enterkeyhint="next" class="ex-input ex-weight" aria-label="Set ${newIdx+1} weight in ${weightUnit}" placeholder="${weightUnit}" value="">
         <span class="ex-x">×</span>` : ''}
-        <input type="number" inputmode="numeric" class="ex-input ex-reps" aria-label="Set ${newIdx+1} reps" placeholder="${getSetFieldUnit(ex.sets)}" value="">
-        <input type="number" inputmode="decimal" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${newIdx+1} RPE, 5 to 10" placeholder="RPE" value="">
+        <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input ex-reps" aria-label="Set ${newIdx+1} reps" placeholder="${getSetFieldUnit(ex.sets)}" value="">
+        <input type="number" inputmode="decimal" enterkeyhint="next" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${newIdx+1} RPE, 5 to 10" placeholder="RPE" value="">
         ${showPlateCalc ? '<button type="button" class="plate-btn" aria-label="Open plate calculator">🏋️</button>' : ''}
         ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" aria-label="Log this set by voice">🎤</button>' : ''}
         <button type="button" class="set-note-btn" aria-label="Add a note to set ${newIdx+1}" aria-expanded="false">+</button>
