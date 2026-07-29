@@ -2257,7 +2257,29 @@
   .care-log-item:last-child{border-bottom:none;}
   .care-log-date{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-weight:600; font-size:11.5px; color:var(--text);}
   .care-log-detail{color:var(--text-muted); margin-top:3px; line-height:1.4;}
+  .care-pattern-title{
+    font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.3px;
+    color:var(--text-muted); margin-bottom:2px;
+  }
+  .care-pattern-row{ padding:8px 0; border-bottom:1px solid var(--line); }
+  .care-pattern-row:last-child{ border-bottom:none; }
+  .care-pattern-name{ font-size:13px; font-weight:600; color:var(--text); }
   .care-log-pain{color:var(--plate-red); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11px;}
+  /* Edit is deliberately a quiet text affordance rather than a second solid
+     button: the row's primary gesture is still swipe-to-delete, and two
+     competing buttons on a 12.5px row is how a list stops being scannable. */
+  .care-log-edit{
+    background:none; border:none; color:var(--plate-blue); font-size:11.5px; font-weight:600;
+    font-family:'Inter',sans-serif; padding:4px 0 0; cursor:pointer; text-decoration:underline;
+  }
+  /* Only ever visible while backdating, so it is allowed to be loud. Silence
+     here is the failure mode — a check-in filed to the wrong day reads as
+     correct until someone tries to explain the timeline at an appointment. */
+  .care-log-day-note{
+    margin-top:12px; padding:9px 11px; border-radius:var(--radius-sm);
+    background:rgba(224,122,95,0.10); border:1px solid rgba(224,122,95,0.32);
+    color:var(--text); font-size:12px; line-height:1.45;
+  }
 
   .ex-caution{
     margin-top:4px; padding:6px 10px; background:rgba(255,69,58,0.1); border:1px solid rgba(255,69,58,0.32);
@@ -2376,6 +2398,61 @@
                box-shadow 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .masterclass-index-btn:active{ transform:scale(0.98); }
+  .masterclass-index-btn.opened{ border-color:rgba(255,255,255,0.16); }
+  .masterclass-index-btn.opened .ex-chevron{ transform:rotate(90deg); display:inline-block; }
+  .masterclass-close-btn{
+    width:100%; margin-top:14px; padding:10px; background:var(--surface2);
+    border:1px solid var(--line); border-radius:var(--radius-md);
+    color:var(--text-muted); font-size:12.5px; font-weight:600; cursor:pointer;
+    font-family:'Inter',sans-serif; letter-spacing:-0.005em;
+  }
+  .masterclass-close-btn:active{ transform:scale(0.98); }
+  /* Sits directly under its input, so it reads as belonging to it rather than
+     as a list of results. Capped and scrollable: eight 38px rows is already
+     most of a phone's visible form. */
+  .ex-suggest{
+    margin:-4px 0 10px; max-height:190px; overflow-y:auto;
+    border:1px solid var(--line); border-radius:var(--radius-md);
+    background:var(--surface2); box-shadow:0 10px 24px -14px rgba(0,0,0,0.6);
+  }
+  .ex-suggest-option{
+    display:block; width:100%; text-align:left; cursor:pointer;
+    padding:10px 12px; background:none; border:none; border-bottom:1px solid var(--line);
+    color:var(--text); font-family:'Inter',sans-serif; font-size:13px; letter-spacing:-0.005em;
+  }
+  .ex-suggest-option:last-child{ border-bottom:none; }
+  .ex-suggest-option:active{ background:var(--surface); }
+  /* Laid out like a set row so the eye reads them as the same kind of thing,
+     but deliberately quieter — these are the reps that do not count. */
+  /* A warm-up row now has the same shape as a working set — inputs, a plate
+     button, a tap target — so it needs to be unmistakable at a glance. It
+     carries the SAME BLUE the warm-up box has always used (#4FC3F7), not a new
+     colour: the ramp already had an identity and this is it, applied to a
+     control instead of a table. Working sets stay the app's default surface. */
+  .warmup-set-row{
+    display:flex; align-items:center; gap:8px; padding:5px 6px 5px 8px;
+    /* .plate-result is flex-basis:100%, so it needs somewhere to wrap to. */
+    flex-wrap:wrap;
+    border-left:3px solid rgba(79,195,247,0.55);
+    border-radius:var(--radius-sm);
+    background:rgba(79,195,247,0.06);
+    margin-bottom:4px;
+    transition:opacity 0.2s var(--ease-smooth);
+  }
+  .warmup-set-row .ex-input{
+    border-color:rgba(79,195,247,0.30);
+  }
+  .warmup-set-row.done{ opacity:0.5; }
+  .warmup-done-label{ display:flex; align-items:center; }
+  .warmup-done{ width:20px; height:20px; }
+  .warmup-step-label{
+    min-width:66px; font-size:11.5px; color:#4FC3F7;
+    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+  }
+  .warmup-set-row .ex-input{ flex:1; min-width:0; }
+  .warmup-foot{
+    margin-top:8px; font-size:11px; color:var(--text-muted); line-height:1.4;
+  }
   .masterclass-index-btn.current{
     background:linear-gradient(160deg, rgba(91,124,255,0.14), rgba(91,124,255,0.05));
     border-color:rgba(91,124,255,0.32);
@@ -3001,6 +3078,57 @@
   body.gym-mode .warmup-title{font-size:11px; letter-spacing:0.04em; opacity:0.75; margin-bottom:6px;}
   body.gym-mode .warmup-row{font-size:16px; padding:5px 0; line-height:1.35;}
 
+  /* Gym mode: the same arm's-length treatment the working set rows get, since
+     a ramp row is now a thing you TOUCH between sets rather than a table you
+     read. Sized to match `.set-row-content` exactly — 56px controls, one well
+     per row — and then tinted, so the difference between "this counts" and
+     "this is the warm-up" survives being read from three feet away.
+
+     THE BACKGROUND IS FULLY OPAQUE. Blue-shifted versions of the same three
+     stops `.set-row-content` uses, not the neutral gradient with alpha over
+     it. See the pink-tint rule: an alpha below 1 in a row well is exactly the
+     bug that cost two versions. The border and the inset sheen may be
+     translucent; the background may not. */
+  body.gym-mode .warmup-set-row{
+    gap:0; padding:0; margin:7px 0;
+    background:linear-gradient(170deg, #16202A 0%, #0E161D 62%, #0A1116 100%);
+    border:1px solid rgba(79,195,247,0.34);
+    border-left:3px solid rgba(79,195,247,0.75);
+    border-radius:16px;
+    box-shadow:0 1px 0 rgba(255,255,255,0.055) inset,
+               0 6px 18px -12px rgba(0,0,0,0.9);
+  }
+  body.gym-mode .warmup-set-row .ex-input{
+    width:auto; flex:1 1 0; min-width:0; min-height:56px;
+    background:transparent; border:none; border-radius:0;
+    border-right:1px solid rgba(79,195,247,0.18);
+    box-shadow:none;
+    font-size:23px; font-weight:600; padding:0 2px;
+  }
+  body.gym-mode .warmup-set-row .ex-input:focus{
+    outline:none; background:rgba(79,195,247,0.16); box-shadow:none;
+  }
+  body.gym-mode .warmup-step-label{
+    min-width:0; width:74px; min-height:56px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px; font-weight:600;
+    border-right:1px solid rgba(79,195,247,0.18); flex:0 0 auto;
+  }
+  body.gym-mode .warmup-done-label{
+    min-width:54px; min-height:56px; justify-content:center; flex:0 0 auto;
+    border-right:1px solid rgba(79,195,247,0.18);
+  }
+  body.gym-mode .warmup-done{ width:26px; height:26px; }
+  body.gym-mode .warmup-set-row .plate-btn{
+    min-width:54px; min-height:56px; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+    background:transparent; border:none; border-radius:0;
+    border-left:1px solid rgba(79,195,247,0.18);
+    font-size:18px; color:var(--text-muted);
+  }
+  body.gym-mode .warmup-set-row .ex-x{ display:none; }
+  body.gym-mode .warmup-foot{ font-size:12px; padding:0 4px; }
+
   body.gym-mode .sets-block{padding-left:0; padding-right:0;}
   body.gym-mode .same-as-last-btn,
   body.gym-mode .add-set-btn{
@@ -3550,6 +3678,12 @@
             <option value="rpe">RPE targets</option>
           </select>
           <div class="history-hint field-note" id="loadModeNote"></div>
+        </div>
+
+        <div id="prefWarmupSets">
+          <label class="care-label">Warm-up ramp</label>
+          <label class="save-to-library-label"><input type="checkbox" id="warmupSetsToggle"><span>Build the ramp in as sets I can log</span></label>
+          <div class="history-hint field-note">The suggested ramp becomes real rows above your working sets, with the weights and reps already filled in, so you can tick them off instead of adding sets and typing the numbers. Warm-up rows never count toward your volume, estimated 1RM, PRs or progression &mdash; they are recorded separately.</div>
         </div>
 
         <div id="prefWakeLock">
@@ -4138,7 +4272,8 @@
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.6"/><line x1="10" y1="6.4" x2="10" y2="13.6"/><line x1="6.4" y1="10" x2="13.6" y2="10"/></svg></span>Log How You're Feeling</div>
       <div class="care-form">
         <label class="care-label" for="careExercise">What were you doing?</label>
-        <input type="text" id="careExercise" class="care-input" placeholder="e.g. Bench Press, set 3">
+        <input type="text" id="careExercise" class="care-input" placeholder="e.g. Bench Press, set 3" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="careExerciseSuggest">
+        <div id="careExerciseSuggest" class="ex-suggest" role="listbox" aria-label="Matching exercises" style="display:none"></div>
 
         <label class="care-label" for="careSensation">What did it feel like in the moment?</label>
         <select id="careSensation" class="care-input">
@@ -4177,7 +4312,9 @@
         <label class="care-label" for="careNote">Anything else worth noting?</label>
         <textarea id="careNote" class="care-input care-textarea" placeholder="Optional — swelling, when it started, what makes it worse/better..."></textarea>
 
-        <button class="save-btn" id="careSubmit">Log & Check</button>
+        <div id="careLogDayNote" class="care-log-day-note" style="display:none"></div>
+        <button class="save-btn" id="careSubmit">Log &amp; Check</button>
+        <button class="usda-key-upgrade-toggle" id="careCancelEdit" style="display:none; text-align:center; margin-top:8px;">Cancel edit</button>
       </div>
       <div id="careResult"></div>
     </div>
@@ -4202,7 +4339,10 @@
 
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.6" width="12" height="14.8" rx="1.5"/><rect x="7" y="2" width="6" height="3" rx="1"/><line x1="7" y1="9" x2="13" y2="9"/><line x1="7" y1="12.3" x2="13" y2="12.3"/><line x1="7" y1="15.6" x2="11" y2="15.6"/></svg></span>Check-In History</div>
+      <div id="carePatternList"></div>
       <div id="careLogList"></div>
+      <button class="care-rest-btn" id="careExport" style="display:none; width:100%; margin-top:14px;">Save a summary for an appointment</button>
+      <div id="careExportNote" class="history-hint" style="display:none; margin-top:8px;">Plain text — your check-ins, worst and most recent pain per area, and what you're currently resting. Saved to your device; nothing is sent anywhere.</div>
     </div>
   </div>
 
@@ -4231,7 +4371,8 @@
       <input type="file" id="coachVideoInput" accept="video/*" style="display:none" aria-label="Video of your set">
       <button class="photo-log-btn" id="coachVideoBtn">🎥 Upload or Record a Clip</button>
       <label class="care-label" for="coachExerciseInput">What exercise/movement is this?</label>
-      <input type="text" id="coachExerciseInput" class="care-input" placeholder="e.g. Back Squat, Jab-Cross Combo, Front Double Biceps">
+      <input type="text" id="coachExerciseInput" class="care-input" placeholder="e.g. Back Squat, Jab-Cross Combo, Front Double Biceps" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="coachExerciseSuggest">
+      <div id="coachExerciseSuggest" class="ex-suggest" role="listbox" aria-label="Matching exercises" style="display:none"></div>
       <label class="care-label" for="coachFocusInput">Anything specific you want checked? (optional)</label>
       <input type="text" id="coachFocusInput" class="care-input" placeholder="e.g. my knee caving in, bar path">
       <div id="coachResult"></div>
@@ -4691,7 +4832,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.31';
+const APP_VERSION = '3.37';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -13001,15 +13142,53 @@ const MASTERCLASS_LIBRARY = {
   cyclingTechniquesCard:    {label:'Cycling Fundamentals',                   render:()=>renderCyclingTechniques()},
 };
 
-// Opens a masterclass regardless of which program is active. Deliberately
-// only ever reveals — it never hides a card the program gating has shown,
-// so browsing can't take away what the active program legitimately put there.
+// A card the ACTIVE PROGRAM put on screen is not the browser's to remove —
+// that was the original "only ever reveals" rule and it still holds. What it
+// never covered was the cards you opened yourself: nothing re-hid them, not
+// switchView, not anything, so opening all thirteen turned Learn into an
+// enormous scroll with the index buried at the top and no way back short of
+// reloading the app.
+function isProgramOwnedMasterclass(cardId){
+  return (PROGRAM_MASTERCLASS[activeProgram] || {}).cardId === cardId;
+}
+
+function isMasterclassOpen(cardId){
+  const card = document.getElementById(cardId);
+  return !!card && card.style.display !== 'none';
+}
+
+function closeMasterclass(cardId){
+  if(isProgramOwnedMasterclass(cardId)) return;   // not ours to take away
+  const card = document.getElementById(cardId);
+  if(!card) return;
+  card.style.display = 'none';
+  renderMasterclassIndex();
+  const index = document.getElementById('masterclassIndex');
+  if(index) index.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function toggleMasterclass(cardId){
+  if(isMasterclassOpen(cardId) && !isProgramOwnedMasterclass(cardId)) closeMasterclass(cardId);
+  else openMasterclass(cardId);
+}
+
+// Opens a masterclass regardless of which program is active.
 function openMasterclass(cardId){
   const entry = MASTERCLASS_LIBRARY[cardId];
   const card = document.getElementById(cardId);
   if(!entry || !card) return;
   card.style.display = '';
   try{ entry.render(); }catch(e){}
+  // A close control on the card itself, not only in the index — by the time
+  // you have read one you are at the bottom of it, and the index is thousands
+  // of pixels back up. Injected once, and never onto the program's own card.
+  if(!isProgramOwnedMasterclass(cardId) && !card.querySelector('.masterclass-close-btn')){
+    const close = document.createElement('button');
+    close.className = 'masterclass-close-btn';
+    close.textContent = 'Close this masterclass';
+    close.addEventListener('click', ()=> closeMasterclass(cardId));
+    card.appendChild(close);
+  }
   // Two frames so the newly-shown card has been laid out before we measure
   // where to scroll — same pattern the "View in Learn" deep link uses.
   requestAnimationFrame(()=>{
@@ -13026,13 +13205,18 @@ function renderMasterclassIndex(){
   const mine = (PROGRAM_MASTERCLASS[activeProgram] || {}).cardId;
   el.innerHTML = Object.keys(MASTERCLASS_LIBRARY).map(cardId=>{
     const isMine = cardId === mine;
-    return `<button class="masterclass-index-btn${isMine ? ' current' : ''}" data-card="${cardId}">
+    const open = isMasterclassOpen(cardId);
+    // Three states, not two: your program's (always there, never closable),
+    // one you have opened (closable from here as well as from the card), and
+    // one you have not.
+    const meta = isMine ? 'In your program' : (open ? 'Open · tap to close' : '');
+    return `<button class="masterclass-index-btn${isMine ? ' current' : ''}${open && !isMine ? ' opened' : ''}" data-card="${cardId}" aria-expanded="${open ? 'true' : 'false'}">
       <span>${escapeHtml(MASTERCLASS_LIBRARY[cardId].label)}</span>
-      <span class="mc-index-meta">${isMine ? 'In your program' : ''}<span class="ex-chevron">\u203a</span></span>
+      <span class="mc-index-meta">${meta}<span class="ex-chevron">\u203a</span></span>
     </button>`;
   }).join('');
   el.querySelectorAll('.masterclass-index-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=> openMasterclass(btn.dataset.card));
+    btn.addEventListener('click', ()=> toggleMasterclass(btn.dataset.card));
   });
 }
 
@@ -15267,6 +15451,96 @@ function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, prior
 
 function roundToIncrement(n, increment){ return Math.round(n/increment)*increment; }
 
+// The ramp's `reps` is sometimes a range ('8-10'). That is fine to read and is
+// not a number an input can hold, so the field takes the first number of the
+// range while the label keeps showing the range.
+function warmupRepsValue(reps){
+  return String(reps).split('-')[0].trim();
+}
+
+// Pulled out of renderWorkout so it can be tested. The rule worth protecting is
+// in the two ternaries: a SAVED value always beats the computed one. A warm-up
+// you actually did is a fact; the ramp number is a suggestion until you touch
+// it, and a render that recomputed over the top of a logged value would quietly
+// undo an edit every time the tab was reopened.
+// The plate button's behaviour, lifted out of wireSetRow so a warm-up row can
+// have it without a second copy.
+//
+// `withVoice` is the only difference between the two call sites. A working set
+// row supports hold-to-talk because its fields are empty and dictating
+// "225 for 5 at RPE 8" beats typing it. A warm-up row arrives with its weight
+// and reps already filled in, so there is nothing to dictate — and a
+// long-press that quietly starts the microphone on a row nobody asked to
+// dictate is worse than not offering it.
+function wirePlateButton(plateBtn, plateResult, wInput, withVoice){
+  if(!plateBtn || !plateResult) return;
+
+  // Tap opens/closes the breakdown. Holding it down (~400ms) starts voice
+  // recognition on the same button instead — no second tap, no sub-menu, and
+  // the row never grows.
+  let holdTimer = null;
+  let heldLongEnough = false;
+  const LONG_PRESS_MS = 400;
+  const canVoice = withVoice && !!SpeechRecognitionCtor;
+  const cancelHold = ()=> clearTimeout(holdTimer);
+
+  plateBtn.addEventListener('pointerdown', (e)=>{
+    e.preventDefault(); // stop the browser's own long-press (text selection/callout) from competing with ours
+    heldLongEnough = false;
+    if(!canVoice) return;
+    holdTimer = setTimeout(()=>{
+      heldLongEnough = true;
+      startVoiceRecognition(plateBtn);
+    }, LONG_PRESS_MS);
+  });
+  plateBtn.addEventListener('pointerup', cancelHold);
+  plateBtn.addEventListener('pointerleave', cancelHold);
+  plateBtn.addEventListener('pointercancel', cancelHold);
+  plateBtn.addEventListener('contextmenu', (e)=> e.preventDefault());
+
+  plateBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    if(heldLongEnough){ heldLongEnough = false; return; } // the click that follows a long-press shouldn't also toggle the panel
+    const isOpen = plateResult.classList.contains('open');
+    if(isOpen){
+      plateResult.classList.remove('open');
+      plateBtn.classList.remove('active');
+      return;
+    }
+    const w = (wInput && wInput.value !== '') ? Number(wInput.value) : null;
+    // Uses the person's own bar and plates rather than the commercial-gym
+    // default, so a home-gym breakdown doesn't list plates they don't own.
+    const eq = getEquipment();
+    const result = calcPlatesPerSide(w, eq.bar, eq.plates);
+    plateResult.textContent = formatPlateResult(result);
+    plateResult.classList.add('open');
+    plateBtn.classList.add('active');
+  });
+
+  plateBtn.title = canVoice ? 'Tap: plate calculator · Hold: voice log' : 'Plate calculator';
+}
+
+function buildWarmupRampRowsHtml(ramp, saved, showPlateCalc){
+  const savedRows = Array.isArray(saved) ? saved : [];
+  return ramp.map((step, si)=>{
+    const s = savedRows[si] || {};
+    const wVal = s.weight != null ? trimUnitNum(toDisplayWeight(s.weight)) : step.weight;
+    const rVal = s.reps != null ? s.reps : warmupRepsValue(step.reps);
+    return `
+      <div class="warmup-set-row${s.done ? ' done' : ''}" data-step-idx="${si}">
+        <label class="warmup-done-label">
+          <input type="checkbox" class="warmup-done" ${s.done ? 'checked' : ''} aria-label="Mark warm-up ${escapeHtml(step.label)} as done">
+        </label>
+        <span class="warmup-step-label">${escapeHtml(step.label)}</span>
+        <input type="number" inputmode="decimal" enterkeyhint="next" class="ex-input warmup-weight" aria-label="Warm-up ${escapeHtml(step.label)} weight in ${weightUnit}" value="${escapeHtml(String(wVal))}">
+        <span class="ex-x">×</span>
+        <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input warmup-reps" aria-label="Warm-up ${escapeHtml(step.label)} reps" value="${escapeHtml(String(rVal))}">
+        ${showPlateCalc ? `<button type="button" class="plate-btn" aria-label="Plate calculator for warm-up ${escapeHtml(step.label)}">🏋️</button>` : ''}
+        ${showPlateCalc ? '<div class="plate-result"></div>' : ''}
+      </div>`;
+  }).join('');
+}
+
 function buildWarmupRamp(workingWeightLb){
   const displayWorking = toDisplayWeight(workingWeightLb);
   const standard = BARBELL_STANDARDS[weightUnit];
@@ -15342,6 +15616,46 @@ function noteRestAchieved(slotKey, setIdx){
   const secs = Math.round((now - prev.at) / 1000);
   if(secs < REST_ACHIEVED_MIN_S || secs > REST_ACHIEVED_MAX_S) return null;
   return secs;
+}
+
+// Warm-up sets are stored in their OWN array on the day entry, deliberately
+// not appended to `entry.sets`.
+//
+// Putting them in `sets` would be the obvious thing and it would be wrong in
+// four places at once: `volumeOf` would count a bar-only set as training
+// volume, `topSetOf` and `estimated1RM` would have to learn to skip rows,
+// `saveExSet`'s priorMax scan would compare working weights against ramp
+// weights, and every set would be renumbered so that "set 1" in a record from
+// last month and "set 1" in one from today meant different things. The
+// progression signal reads all of those.
+//
+// A separate key costs one more save path and changes NOTHING about the
+// numbers the app already computes — `entry.warmups` is simply absent on every
+// entry ever written before this, which reads correctly as "no warm-up logged".
+// No migration, no schema bump.
+async function saveExWarmupSet(dayId, idx, stepIdx, weight, reps, done, subVariant){
+  const log = await getExLog(dayId, idx, subVariant);
+  let entry = log.find(e=>e.date===selectedLogDate);
+  if(!entry){ entry = {date: selectedLogDate, sets: []}; log.push(entry); }
+  if(!Array.isArray(entry.warmups)) entry.warmups = [];
+  while(entry.warmups.length <= stepIdx) entry.warmups.push({});
+
+  const w = weight === '' ? null : Number(weight);
+  const r = reps === '' ? null : Number(reps);
+  const step = {};
+  if(w != null && !isNaN(w)) step.weight = w;
+  if(r != null && !isNaN(r)) step.reps = r;
+  if(done) step.done = true;
+  entry.warmups[stepIdx] = step;
+
+  // An entry that only ever held warm-ups is still worth keeping — you warmed
+  // up, then the gym closed. It carries `sets: []`, which every reader already
+  // handles.
+  // Same key and the same write saveExSet uses. `normalizeExEntry` passes any
+  // entry with a `sets` array straight through, so the extra key round-trips
+  // untouched.
+  try{ await window.storage.set(exKey(activeProgram, dayId, idx, subVariant), JSON.stringify(log)); }catch(e){}
+  return entry.warmups[stepIdx];
 }
 
 async function saveExSet(dayId, idx, setIdx, weight, reps, rpe, subVariant, distance, note){
@@ -15425,12 +15739,16 @@ function getExerciseIcon(exName, category){
   return CATEGORY_ICONS[catIconKey];
 }
 
+// The THIRD builder of this same block — the one on Today's workout rows.
+// The escaping pass found the two in Care and Learn; this one was only found
+// because the assertion counted rather than checking the two it knew about.
+// Same treatment: cues are text, iconSvg is markup, query is already encoded.
 function buildDetailsHtml(ex){
   const info = exerciseInfo[ex.name];
   if(!info) return '';
   const iconSvg = getExerciseIcon(ex.name, info.category);
   const query = encodeURIComponent(info.videoQuery || `${ex.name} proper form`);
-  const cuesHtml = info.cues.map(c=>`<li>${c}</li>`).join('');
+  const cuesHtml = info.cues.map(c=>`<li>${escapeHtml(c)}</li>`).join('');
   return `
     <details class="ex-details">
       <summary>Technique & focus</summary>
@@ -15787,12 +16105,55 @@ async function renderWorkout(){
         // needed here anymore. Never affects the progression badges above,
         // which stay correctly scoped to this exact slot's own trend.
         const isFallback = priorIsCrossProgram;
-        const rampSource = priorTop;
-        if(rampSource && rampSource.weight >= minWeight){
-          const ramp = isBarbell ? buildWarmupRamp(rampSource.weight) : buildGenericWarmupRamp(rampSource.weight);
-          const rampRows = ramp.map(step=> `<div class="warmup-row"><span>${step.label} — ${step.weight} ${weightUnit} × ${step.reps}</span></div>`).join('');
-          const rampTitle = isFallback ? `🔥 Suggested warm-up ramp <span style="font-weight:400; text-transform:none; letter-spacing:0; opacity:0.75;">(based on your last logged ${escapeHtml(ex.name)}, ${programLabelFor(priorSourceProgram)})</span>` : '🔥 Suggested warm-up ramp';
-          warmupHtml = `<div class="warmup-box"><div class="warmup-title">${rampTitle}</div>${rampRows}</div>`;
+        // WHAT THE RAMP IS BUILT FROM.
+        //
+        // It used to be `priorTop` — the heaviest set you logged LAST time.
+        // That is the wrong basis on any session where the weight is meant to
+        // move: on a day the app is telling you to add 10 lb, the ramp was
+        // still walking you up to last week's lift, and on a deload it was
+        // ramping you past the weight you were about to do.
+        //
+        // Order of preference, most-known first:
+        //   1. what you have ALREADY logged on set 1 today — you are mid
+        //      session and that is not a prediction, it is a fact;
+        //   2. the load the progression engine is suggesting for set 1 today,
+        //      which is what the empty field is ghosting anyway;
+        //   3. last session's top set, exactly as before.
+        //
+        // computeSuggestedSet returns DISPLAY units because it feeds a
+        // placeholder; the ramp builders take lb. toCanonicalLb is the inverse
+        // and skipping it silently ramps a kg user off a number 2.2x too big.
+        const todayFirstSet = todayEntry && todayEntry.sets && todayEntry.sets[0];
+        const suggestedFirst = computeSuggestedSet(
+          (prior && prior.sets[0]) ? prior.sets[0] : null,
+          signal, inDeloadWeek, exCategory, ex, priorTop, rpeCtx);
+        const rampBasis = (todayFirstSet && todayFirstSet.weight != null)
+          ? {weight: todayFirstSet.weight, from: 'logged'}
+          : (suggestedFirst && suggestedFirst.weight != null)
+            ? {weight: toCanonicalLb(suggestedFirst.weight), from: 'target'}
+            : (priorTop ? {weight: priorTop.weight, from: 'last'} : null);
+        if(rampBasis && rampBasis.weight >= minWeight){
+          const ramp = isBarbell ? buildWarmupRamp(rampBasis.weight) : buildGenericWarmupRamp(rampBasis.weight);
+          // The ramp's `reps` is sometimes a range ('8-10'), which is fine to
+          // read and not a number you can log. The first number of the range is
+          // what goes in the field; the label still shows the range.
+          const saved = (todayEntry && Array.isArray(todayEntry.warmups)) ? todayEntry.warmups : [];
+          const rampRows = warmupSetsEnabled
+            ? buildWarmupRampRowsHtml(ramp, saved, isBarbell)
+            : ramp.map(step=> `<div class="warmup-row"><span>${step.label} — ${step.weight} ${weightUnit} × ${step.reps}</span></div>`).join('');
+          // Says what it was built from. A ramp that silently changed basis
+          // between sessions would look like the app forgetting your numbers.
+          const basisNote = rampBasis.from === 'logged'
+            ? "(built from today's logged working weight)"
+            : rampBasis.from === 'target'
+              ? "(built from today's target working weight)"
+              : isFallback
+                ? `(based on your last logged ${escapeHtml(ex.name)}, ${escapeHtml(programLabelFor(priorSourceProgram))})`
+                : '(based on your last session)';
+          const rampTitle = `🔥 Suggested warm-up ramp <span style="font-weight:400; text-transform:none; letter-spacing:0; opacity:0.75;">${basisNote}</span>`;
+          const rampNote = warmupSetsEnabled
+            ? '<div class="warmup-foot">Not counted in your volume, 1RM or PRs.</div>' : '';
+          warmupHtml = `<div class="warmup-box"><div class="warmup-title">${rampTitle}</div>${rampRows}${rampNote}</div>`;
         }
       } else if(warmupEligible && isEligibleCategory && !showWeight){
         // No external load to build a numeric ramp off of (push-ups, pull-ups,
@@ -16663,6 +17024,32 @@ document.addEventListener('visibilitychange', ()=>{
   }
   // No release on hide: the OS has already done it, and calling release() on a
   // sentinel the platform has taken back throws in some engines.
+});
+
+// Off by default. The ramp has always been advice you read; turning it into
+// rows you have to tick is a real change to what a workout screen looks like,
+// and it should be asked for rather than arrive in an update.
+let warmupSetsEnabled = false;
+
+async function loadWarmupSetsPref(){
+  try{
+    const res = await window.storage.get('warmup-sets-pref');
+    if(res && res.value === '1') warmupSetsEnabled = true;
+  }catch(e){}
+}
+
+function applyWarmupSetsPrefToUI(){
+  const toggle = document.getElementById('warmupSetsToggle');
+  if(toggle) toggle.checked = warmupSetsEnabled;
+}
+
+document.addEventListener('change', (e)=>{
+  if(!e.target || e.target.id !== 'warmupSetsToggle') return;
+  warmupSetsEnabled = !!e.target.checked;
+  try{ window.storage.set('warmup-sets-pref', warmupSetsEnabled ? '1' : '0'); }catch(e){}
+  // Repaint immediately: the whole point of the toggle is the rows appearing,
+  // and a setting that needs a tab switch to take effect reads as broken.
+  renderWorkout();
 });
 
 async function loadWakeLockPref(){
@@ -17728,56 +18115,40 @@ function wireSetsBlock(row, exIdx, ex){
       });
     }
 
-    if(plateBtn){
-      // Tap opens/closes the plate breakdown, exactly as before. Holding it
-      // down (~400ms) starts voice recognition directly on the same button
-      // instead — no second tap, no sub-menu, and the row never grows.
-      let holdTimer = null;
-      let heldLongEnough = false;
-      const LONG_PRESS_MS = 400;
-
-      const cancelHold = ()=> clearTimeout(holdTimer);
-
-      plateBtn.addEventListener('pointerdown', (e)=>{
-        e.preventDefault(); // stop the browser's own long-press (text selection/callout) from competing with ours
-        heldLongEnough = false;
-        if(!SpeechRecognitionCtor) return;
-        holdTimer = setTimeout(()=>{
-          heldLongEnough = true;
-          startVoiceRecognition(plateBtn);
-        }, LONG_PRESS_MS);
-      });
-      plateBtn.addEventListener('pointerup', cancelHold);
-      plateBtn.addEventListener('pointerleave', cancelHold);
-      plateBtn.addEventListener('pointercancel', cancelHold);
-      plateBtn.addEventListener('contextmenu', (e)=> e.preventDefault());
-
-      plateBtn.addEventListener('click', (e)=>{
-        e.stopPropagation();
-        if(heldLongEnough){ heldLongEnough = false; return; } // the click that follows a long-press shouldn't also toggle the panel
-        const isOpen = plateResult.classList.contains('open');
-        if(isOpen){
-          plateResult.classList.remove('open');
-          plateBtn.classList.remove('active');
-          return;
-        }
-        const w = (wInput && wInput.value !== '') ? Number(wInput.value) : null;
-        // Uses the person's own bar and plates rather than the commercial-gym
-        // default, so a home-gym breakdown doesn't list plates they don't own.
-        const eq = getEquipment();
-        const result = calcPlatesPerSide(w, eq.bar, eq.plates);
-        plateResult.textContent = formatPlateResult(result);
-        plateResult.classList.add('open');
-        plateBtn.classList.add('active');
-      });
-
-      if(SpeechRecognitionCtor) plateBtn.title = 'Tap: plate calculator · Hold: voice log';
-    }
+    // Voice belongs on a working set, whose fields are empty. See wirePlateButton.
+    wirePlateButton(plateBtn, plateResult, wInput, true);
 
     makeSwipeable(setRow, ()=> deleteSet(setRow));
   }
 
   block.querySelectorAll('.set-row').forEach(wireSetRow);
+
+  // Deliberately NOT `.set-row`. Two places renumber `.set-row` by its position
+  // in the block (the delete path and the add-set path); a warm-up row wearing
+  // that class would be swept into the numbering and start overwriting working
+  // sets. The class is the isolation.
+  block.querySelectorAll('.warmup-set-row').forEach(row=>{
+    const wInput = row.querySelector('.warmup-weight');
+    const rInput = row.querySelector('.warmup-reps');
+    const doneInput = row.querySelector('.warmup-done');
+    const save = async ()=>{
+      const stepIdx = Number(row.dataset.stepIdx);
+      const wRaw = wInput ? wInput.value : '';
+      const wLb = wRaw === '' ? '' : toCanonicalLb(wRaw);
+      await saveExWarmupSet(activeDay, exIdx, stepIdx, wLb, rInput ? rInput.value : '', doneInput && doneInput.checked, subVariant);
+    };
+    [wInput, rInput].forEach(el=>{ if(el) el.addEventListener('change', save); });
+    // The ramp is exactly when you are loading and unloading the bar, so this
+    // is arguably the row that needs it most. No hold-to-talk: the numbers are
+    // already in the fields.
+    wirePlateButton(row.querySelector('.plate-btn'), row.querySelector('.plate-result'), wInput, false);
+    if(doneInput){
+      doneInput.addEventListener('change', ()=>{
+        row.classList.toggle('done', doneInput.checked);
+        save();
+      });
+    }
+  });
 
   block.querySelector('.add-set-btn').addEventListener('click', ()=>{
     const existingRows = block.querySelectorAll('.set-row');
@@ -23820,6 +24191,12 @@ async function refreshForLogDate(){
   if(document.getElementById('todayView').style.display !== 'none'){
     renderWorkout();
   }
+  // Care has no date bar of its own — it reads the app-wide selectedLogDate,
+  // so the note telling you which day a check-in will be filed under has to be
+  // repainted when that changes rather than only on view switch.
+  if(document.getElementById('careView').style.display !== 'none'){
+    renderCareLogDayNote();
+  }
   if(document.getElementById('logView').style.display !== 'none'){
     await loadFoodLog();
     loadWeights();
@@ -25936,6 +26313,35 @@ Give direct, practical, conversational coaching advice grounded in real exercise
 
 let coachChatHistory = [];
 
+// Nothing disabled the send button while a request was in flight, so a second
+// tap started a SECOND call against the person's own API key and both replies
+// pushed into the same array — two answers to two questions, interleaved in
+// whatever order the network returned them. The guard is a module flag rather
+// than only a disabled attribute because there are two send buttons (the Coach
+// tab and the floating bubble) plus an Enter handler on each input, and four
+// entry points into one conversation is four chances to miss one.
+let coachChatBusy = false;
+
+// Every control that can start or destroy a conversation, so none of them can
+// be reached while a reply is still on its way back.
+const COACH_CHAT_CONTROLS = ['coachChatSend', 'floatingChatSend', 'coachChatClear'];
+function setCoachChatBusy(busy){
+  coachChatBusy = busy;
+  COACH_CHAT_CONTROLS.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.disabled = busy;
+  });
+}
+
+// The stored conversation was unbounded. The API context is capped at the last
+// ten messages — deliberate, and commented at the site — but that cap only
+// limits what is SENT. The array itself grew forever and is written whole on
+// every turn, against the same origin quota the photos and every log share.
+// When that quota goes, the storage layer spills to memory and the spilled
+// value is gone on reload, so an unbounded chat does not fail loudly on its
+// own account: it pushes something else off the device.
+const COACH_CHAT_MAX_STORED = 100;
+
 async function loadCoachChatHistory(){
   try{
     const res = await window.storage.get('coach-chat-history');
@@ -25943,7 +26349,14 @@ async function loadCoachChatHistory(){
   }catch(e){ coachChatHistory = []; }
 }
 
+// Trims the LIVE array as well as the stored one, so what is on screen is what
+// survives a reload. Trimming only on write would leave the tab showing turns
+// that quietly vanish the next time the app opens, which is worse than the
+// trim being visible.
 async function saveCoachChatHistory(){
+  if(coachChatHistory.length > COACH_CHAT_MAX_STORED){
+    coachChatHistory = coachChatHistory.slice(-COACH_CHAT_MAX_STORED);
+  }
   try{ await window.storage.set('coach-chat-history', JSON.stringify(coachChatHistory)); }catch(e){}
 }
 
@@ -25967,13 +26380,17 @@ function renderCoachChatLog(){
 }
 
 async function sendCoachChatMessage(inputId){
+  if(coachChatBusy) return;
   const input = document.getElementById(inputId || 'coachChatInput');
   const text = input.value.trim();
   if(!text) return;
+  setCoachChatBusy(true);
+
   const apiKey = await getApiKey();
   if(!apiKey){
     coachChatHistory.push({role:'assistant', content:'Add your Anthropic API key in "AI Features Setup" on the Log tab first, then come back and ask away.'});
     renderCoachChatLog();
+    setCoachChatBusy(false);
     return;
   }
 
@@ -26004,6 +26421,7 @@ async function sendCoachChatMessage(inputId){
     coachChatHistory.push({role:'assistant', content: `Couldn't reach the coach: ${err.message}. Check your API key and connection, then try again.`});
   }
   await saveCoachChatHistory();
+  setCoachChatBusy(false);
   renderCoachChatLog();
 }
 
@@ -26171,14 +26589,28 @@ async function renderCoach(){
     listEl.innerHTML = '<div class="empty-note">🎥 No reviews yet — record a set above to get feedback on your form.</div>';
   }else{
     const sorted = [...log].sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'));
-    const itemHtmls = sorted.map(e=>`
+    // `e.program` was the one interpolation on this line left unescaped while
+    // its two neighbours were escaped — the same split fixed in the Care
+    // resting chip. Program labels are a fixed set, so this is the rule
+    // holding rather than a live hole.
+    const itemHtmls = sorted.map(e=> buildSwipeItem(`
       <div class="care-log-item">
-        <div class="care-log-date">${fmtDayLabel(e.date)} <span class="prog-day">${e.program}</span></div>
+        <div class="care-log-date">${fmtDayLabel(e.date)} <span class="prog-day">${escapeHtml(e.program)}</span></div>
         <div class="care-log-detail"><b style="color:var(--text)">${escapeHtml(e.exercise)}</b></div>
         <div class="care-log-detail">${escapeHtml(e.feedback)}</div>
       </div>
-    `);
+    `));
     renderCollapsibleList(listEl, itemHtmls, 3, 'reviews');
+    // Past Reviews was the ONLY list in the app that could not be pruned. It
+    // holds machine-written commentary about the person's body and it grew
+    // without limit and without a way out. Wired through the shared component
+    // rather than hand-rolled, so it inherits identity-matched deletion and an
+    // undo instead of becoming a tenth thing that half-works.
+    wireSwipeDeleteList(listEl, sorted, log, {
+      label: 'Review deleted',
+      commit: arr=> window.storage.set('coach-log', JSON.stringify(arr)),
+      rerender: ()=> renderCoach(),
+    });
   }
 }
 
@@ -26187,9 +26619,20 @@ document.getElementById('coachChatInput').addEventListener('keydown', (e)=>{
   if(e.key === 'Enter'){ e.preventDefault(); sendCoachChatMessage('coachChatInput'); }
 });
 document.getElementById('coachChatClear').addEventListener('click', async ()=>{
+  // Instant and permanent, in an app where everything else destructive is
+  // undoable. Guarded by the busy flag too: clearing while a reply is in
+  // flight used to empty the array and then let the reply land in it, leaving
+  // a conversation consisting of one answer to a question that is gone.
+  if(coachChatBusy || coachChatHistory.length === 0) return;
+  const preClearSnapshot = JSON.stringify(coachChatHistory);
   coachChatHistory = [];
   await saveCoachChatHistory();
   renderCoachChatLog();
+  showUndoToast('Conversation cleared', async ()=>{
+    try{ coachChatHistory = JSON.parse(preClearSnapshot); }catch(e){ return; }
+    await saveCoachChatHistory();
+    renderCoachChatLog();
+  });
 });
 
 // The floating bubble is the same conversation, everywhere in the app —
@@ -26251,7 +26694,7 @@ document.getElementById('coachVideoInput').addEventListener('change', async (e)=
   const file = e.target.files[0];
   if(!file) return;
   const resultEl = document.getElementById('coachResult');
-  const exercise = document.getElementById('coachExerciseInput').value.trim() || 'this movement';
+  const exercise = canonicalExerciseName(document.getElementById('coachExerciseInput').value) || 'this movement';
   const focus = document.getElementById('coachFocusInput').value.trim();
 
   // iOS Safari's handling of video blobs (which is what a local file input
@@ -26397,6 +26840,20 @@ function suggestSubstitute(category, currentExName){
   const pick = sub.alts.find(a=> a !== currentExName) || sub.alts[0];
   return {name: pick, why: sub.why};
 }
+
+// --- Care edit mode -------------------------------------------------------
+// `careEditTarget` is the entry OBJECT being edited, not an index and not an
+// id. The same identity assumption `wireSwipeDeleteList` relies on: the array
+// `renderCare` rendered is held here, and `indexOf` resolves the target
+// exactly. Nothing else in the app writes `injury-log`, and every Care write
+// re-renders, so the held array cannot go stale underneath an edit.
+//
+// If it ever does — the row is deleted by swipe while its edit is open, which
+// is reachable in about two seconds — `indexOf` returns -1 and the save is
+// ABANDONED with a message rather than appending a duplicate. Same rule as the
+// delete guard: refusing to guess is the whole point.
+let careEditTarget = null;
+let careRenderedLog = [];
 
 const SENSATION_LABELS = {
   sharp:'Sharp or sudden pain', pop:'Felt a pop or snap', numb:'Tingling or numbness',
@@ -26556,11 +27013,13 @@ function buildCareItemHtml(name){
   if(!info) return '';
   const type = CARE_TYPE_TAG[name] || 'mobility';
   const typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
+  // `query` is already encodeURIComponent'd and `iconSvg` (below, in the
+  // search variant) is deliberately raw markup. Everything else is text.
   const query = encodeURIComponent(info.videoQuery || `${name} proper form`);
-  const cuesHtml = info.cues.map(c=>`<li>${c}</li>`).join('');
+  const cuesHtml = info.cues.map(c=>`<li>${escapeHtml(c)}</li>`).join('');
   return `
     <details class="ex-details care-details">
-      <summary><span class="care-type-tag ${type}">${typeLabel}</span> ${name}</summary>
+      <summary><span class="care-type-tag ${type}">${escapeHtml(typeLabel)}</span> ${escapeHtml(name)}</summary>
       <div class="ex-detail-body">
         <div class="ex-detail-content">
           <ul class="ex-cues">${cuesHtml}</ul>
@@ -26581,10 +27040,10 @@ function buildExerciseSearchResultHtml(name){
   if(!info) return '';
   const iconSvg = getExerciseIcon(name, info.category);
   const query = encodeURIComponent(info.videoQuery || `${name} proper form`);
-  const cuesHtml = info.cues.map(c=>`<li>${c}</li>`).join('');
+  const cuesHtml = info.cues.map(c=>`<li>${escapeHtml(c)}</li>`).join('');
   return `
     <details class="ex-details care-details">
-      <summary><span class="care-type-tag mobility">${escapeHtml(info.category)}</span> ${name}</summary>
+      <summary><span class="care-type-tag mobility">${escapeHtml(info.category)}</span> ${escapeHtml(name)}</summary>
       <div class="ex-detail-body">
         <div class="ex-icon">${iconSvg}</div>
         <div class="ex-detail-content">
@@ -26594,6 +27053,130 @@ function buildExerciseSearchResultHtml(name){
       </div>
     </details>
   `;
+}
+
+// [EXERCISE NAMING] --------------------------------------------------------
+// Three fields in this app ask what exercise you were doing. Learn's searches
+// the 311-entry library and returns real matches. Care's ("What were you
+// doing?") and Coach's ("What exercise/movement is this?") were plain text
+// boxes with a placeholder, so `bench press`, `Bench Press` and `bench, set 3`
+// produced three records nothing could ever join. The pain trend can say what
+// hurt on a given day and can never say WHAT YOU WERE DOING when it hurt,
+// which is the question the field was put there to answer.
+//
+// SUGGEST, DO NOT CONSTRAIN. A <select> over the library would be the tidy fix
+// and the wrong one: Coach's own placeholder offers "Jab-Cross Combo" and
+// "Front Double Biceps", and Care's honest answers include "carrying the
+// shopping". Free text stays valid everywhere. The suggestions exist so that
+// when you DO mean a library exercise, you land on its canonical spelling.
+//
+// Not a <datalist>: support for it on iOS Safari has been patchy for years,
+// and this is an app whose every other decision assumes an iPhone.
+
+// Lowercase -> canonical spelling, built once. 311 entries rebuilt per
+// keystroke would be the food-search mistake again.
+let _exNameIndex = null;
+function exerciseNameIndex(){
+  if(!_exNameIndex){
+    _exNameIndex = new Map();
+    Object.keys(exerciseInfo).forEach(name=> _exNameIndex.set(name.toLowerCase(), name));
+  }
+  return _exNameIndex;
+}
+
+// The half that actually makes records joinable. Applied on SAVE rather than
+// on blur, so it cannot fight someone mid-word, and it only ever rewrites an
+// exact case-insensitive match — "bench press" becomes "Bench Press" and
+// "bench, set 3" is left exactly as typed.
+function canonicalExerciseName(text){
+  const t = String(text || '').trim();
+  if(!t) return '';
+  return exerciseNameIndex().get(t.toLowerCase()) || t;
+}
+
+const EXERCISE_SUGGEST_LIMIT = 8;
+// One character matches most of a 311-entry library and is never what someone
+// meant. The rule lives HERE and is enforced in exactly one place: it was
+// briefly duplicated between the input handler and the renderer, and sabotage
+// showed the consequence immediately — changing the renderer's copy did
+// nothing, because the handler's copy still short-circuited first. Two spellings
+// of one rule is the same defect this whole session has been removing from the
+// app; it does not get an exemption for being three lines apart.
+const EXERCISE_SUGGEST_MIN_CHARS = 2;
+
+function closeExerciseSuggest(panelId){
+  const panel = document.getElementById(panelId);
+  if(!panel) return;
+  panel.innerHTML = '';
+  panel.style.display = 'none';
+  const input = panel.previousElementSibling;
+  if(input && input.tagName === 'INPUT') input.setAttribute('aria-expanded', 'false');
+}
+
+// Same debounce interval as the Learn search, because it is the same
+// interaction and it should not behave differently.
+function wireExerciseSuggest(inputId, panelId){
+  const input = document.getElementById(inputId);
+  const panel = document.getElementById(panelId);
+  if(!input || !panel) return;
+  let timer = null;
+
+  function render(q){
+    const query = q.trim().toLowerCase();
+    if(query.length < EXERCISE_SUGGEST_MIN_CHARS){ closeExerciseSuggest(panelId); return; }
+    const matches = Object.keys(exerciseInfo)
+      .filter(name=> name.toLowerCase().includes(query))
+      .sort((a,b)=>{
+        // A name that STARTS with what you typed is almost always the one you
+        // meant; plain alphabetical buries "Squat" under "Bulgarian Split Squat".
+        const as = a.toLowerCase().startsWith(query), bs = b.toLowerCase().startsWith(query);
+        if(as !== bs) return as ? -1 : 1;
+        return a.localeCompare(b);
+      })
+      .slice(0, EXERCISE_SUGGEST_LIMIT);
+    // An exact match needs no menu — showing one option identical to what is
+    // already typed is noise in front of the Save button.
+    if(matches.length === 0 || (matches.length === 1 && matches[0].toLowerCase() === query)){
+      closeExerciseSuggest(panelId);
+      return;
+    }
+    panel.innerHTML = matches.map(name=>
+      `<button type="button" class="ex-suggest-option" role="option" data-name="${escapeHtml(name)}">${escapeHtml(name)}</button>`
+    ).join('');
+    panel.style.display = '';
+    input.setAttribute('aria-expanded', 'true');
+  }
+
+  input.addEventListener('input', ()=>{
+    const v = input.value;
+    clearTimeout(timer);
+    // Only the EMPTY case is handled here, and only so that clearing the field
+    // closes the panel on that keystroke rather than 90ms later — the same
+    // reason the Learn search renders an empty query immediately. The
+    // minimum-length rule itself belongs to render(), once.
+    if(!v.trim()){ closeExerciseSuggest(panelId); return; }
+    timer = setTimeout(()=> render(v), 90);
+  });
+
+  input.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape'){ closeExerciseSuggest(panelId); }
+  });
+
+  // mousedown, not click: the input's blur fires first otherwise and a panel
+  // that closes on blur eats the tap that was choosing an option. preventDefault
+  // keeps focus on the input so the keyboard does not flicker shut and open.
+  panel.addEventListener('mousedown', (e)=>{
+    const btn = e.target.closest('.ex-suggest-option');
+    if(!btn) return;
+    e.preventDefault();
+    input.value = btn.dataset.name;
+    closeExerciseSuggest(panelId);
+  });
+
+  input.addEventListener('blur', ()=>{
+    // Long enough for a tap to land, short enough not to hang around.
+    setTimeout(()=> closeExerciseSuggest(panelId), 150);
+  });
 }
 
 const EXERCISE_SEARCH_RESULT_LIMIT = 40;
@@ -26620,6 +27203,9 @@ function renderExerciseSearchResults(query){
 // differently. Clearing renders immediately so the results vanish on the
 // keystroke that empties the field rather than a beat later.
 let _exSearchTimer = null;
+wireExerciseSuggest('careExercise', 'careExerciseSuggest');
+wireExerciseSuggest('coachExerciseInput', 'coachExerciseSuggest');
+
 document.getElementById('exerciseSearchInput').addEventListener('input', (e)=>{
   const value = e.target.value;
   clearTimeout(_exSearchTimer);
@@ -26682,11 +27268,230 @@ function buildCareResultHtml(sensation, region, pain){
   `;
 }
 
+// Care writes to `selectedLogDate` like every other date-keyed log in the app,
+// and SAYS SO when that isn't today. v14 §3.7 fixed exactly this silence for
+// barcode and Recipe Finder: honouring a backdate without mentioning it is the
+// kind of thing noticed a week later in the wrong day's totals. A symptom log
+// is worse — the whole value of it is the timeline.
+function renderCareLogDayNote(){
+  const el = document.getElementById('careLogDayNote');
+  if(!el) return;
+  if(careEditTarget){
+    el.style.display = '';
+    el.innerHTML = `Editing your check-in from <b>${escapeHtml(formatLogDateLabel(careEditTarget.date))}</b>. Saving keeps that date — it will not move to today.`;
+    return;
+  }
+  if(!isBackdating()){ el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.style.display = '';
+  el.innerHTML = `This will be logged to <b>${escapeHtml(formatLogDateLabel(selectedLogDate))}</b>, not today.`;
+}
+
+function beginCareEdit(entry){
+  careEditTarget = entry;
+  closeExerciseSuggest('careExerciseSuggest');
+  document.getElementById('careExercise').value = entry.exercise || '';
+  document.getElementById('careSensation').value = entry.sensation || '';
+  document.getElementById('careRegion').value = entry.region || '';
+  document.getElementById('carePain').value = String(entry.pain ?? 3);
+  document.getElementById('carePainVal').textContent = String(entry.pain ?? 3);
+  document.getElementById('careNote').value = entry.note || '';
+  document.getElementById('careSubmit').textContent = 'Update check-in';
+  document.getElementById('careCancelEdit').style.display = '';
+  document.getElementById('careResult').innerHTML = '';
+  renderCareLogDayNote();
+  document.getElementById('careExercise').scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+// Clears the FORM as well as the mode. A new check-in deliberately leaves its
+// values in place — you often log two similar ones — but finishing an edit is
+// finishing, and leaving the edited text sitting in the form reads as though
+// it hasn't saved.
+function cancelCareEdit(){
+  careEditTarget = null;
+  closeExerciseSuggest('careExerciseSuggest');
+  document.getElementById('careExercise').value = '';
+  document.getElementById('careSensation').value = '';
+  document.getElementById('careRegion').value = '';
+  document.getElementById('carePain').value = '3';
+  document.getElementById('carePainVal').textContent = '3';
+  document.getElementById('careNote').value = '';
+  document.getElementById('careSubmit').textContent = 'Log & Check';
+  document.getElementById('careCancelEdit').style.display = 'none';
+  renderCareLogDayNote();
+}
+
+// Plain text, not JSON and not CSV. The reader is a person with a few minutes
+// between patients, and the app's existing export — the full backup — is a
+// machine artefact that is useless for this. Deliberately says what it is and
+// what it is not in its first three lines, because the disclaimer card that
+// justifies this feature does not travel with the file.
+// What the free-text field was always for. Until v3.34 `bench press` and
+// `Bench Press` were two different exercises, so this could not have been
+// written; now it can.
+//
+// Only exercises with MORE THAN ONE check-in are reported. One check-in
+// mentioning an exercise is a coincidence, and presenting it as a pattern —
+// "Bench Press: 1 check-in" — invites reading a pattern into a single bad day.
+// That is the wrong thing for a tool that says on its own front page it cannot
+// examine you.
+const CARE_PATTERN_MIN_CHECKINS = 2;
+
+function summarisePainByExercise(log){
+  const byEx = new Map();
+  for(const e of log){
+    const name = (e.exercise || '').trim();
+    if(!name) continue;
+    if(!byEx.has(name)) byEx.set(name, []);
+    byEx.get(name).push(e);
+  }
+  const out = [];
+  for(const [name, entries] of byEx){
+    if(entries.length < CARE_PATTERN_MIN_CHECKINS) continue;
+    const sorted = [...entries].sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'));
+    // `Number(null)` is 0 and `isNaN(0)` is false, so filtering only on NaN
+    // turned a missing pain score into a perfectly valid "0/10" — and 0 is a
+    // real answer on this scale, so nothing downstream could tell the two
+    // apart. The null check has to come first.
+    const pains = sorted
+      .filter(e=> e.pain != null && e.pain !== '')
+      .map(e=> Number(e.pain))
+      .filter(p=> !isNaN(p));
+    // Regions, most common first — "Shoulder on 4 of 5" is the useful shape,
+    // not a list of every area ever mentioned alongside this lift.
+    const regionCounts = new Map();
+    for(const e of sorted){
+      const r = (e.region || '').trim();
+      if(!r) continue;
+      regionCounts.set(r, (regionCounts.get(r) || 0) + 1);
+    }
+    const topRegion = [...regionCounts.entries()].sort((a,b)=> b[1]-a[1])[0] || null;
+    out.push({
+      exercise: name,
+      count: sorted.length,
+      worst: pains.length ? Math.max(...pains) : null,
+      latest: pains.length ? pains[0] : null,
+      latestDate: sorted[0].date,
+      firstDate: sorted[sorted.length-1].date,
+      region: topRegion ? topRegion[0] : null,
+      regionCount: topRegion ? topRegion[1] : 0,
+    });
+  }
+  // Worst first — the thing worth looking at is the thing that hurt most.
+  return out.sort((a,b)=> (b.worst||0)-(a.worst||0) || b.count-a.count);
+}
+
+function buildCareSummaryText(log, resting, since, profileName){
+  const L = [];
+  const dl = k=>{ try{ return new Date(k+'T00:00:00').toLocaleDateString('en-US',{year:'numeric', month:'short', day:'numeric'}); }catch(e){ return k; } };
+  const sorted = [...log].sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'));
+
+  L.push('SYMPTOM CHECK-IN SUMMARY');
+  if(profileName) L.push(`For: ${profileName}`);
+  L.push(`Generated: ${dl(getTodayKey())}`);
+  L.push('');
+  // Hard-wrapped for a fixed-width reader, but never ACROSS the load-bearing
+  // phrases: "not a diagnosis" split over a line break still reads fine to a
+  // person and is invisible to anything checking the document says it.
+  L.push('Self-reported notes kept in a training app. These are the person\'s own');
+  L.push('descriptions recorded at the time. This is not a diagnosis, and it has');
+  L.push('not been reviewed by a clinician.');
+  L.push('');
+
+  if(sorted.length){
+    const oldest = sorted[sorted.length-1].date, newest = sorted[0].date;
+    L.push(`Period covered: ${dl(oldest)} to ${dl(newest)}  (${sorted.length} check-in${sorted.length===1?'':'s'})`);
+  }
+  if(resting && resting.length){
+    L.push('Currently avoiding: ' + resting.map(r=> since && since[r] ? `${r} (since ${dl(since[r])})` : r).join(', '));
+  }
+  L.push('');
+
+  // By area, worst-first — the thing a clinician scans for.
+  const byRegion = {};
+  for(const e of sorted){
+    const key = e.region || 'Unspecified';
+    if(!byRegion[key]) byRegion[key] = [];
+    byRegion[key].push(e);
+  }
+  const regions = Object.keys(byRegion).sort((a,b)=>
+    Math.max(...byRegion[b].map(e=>Number(e.pain)||0)) - Math.max(...byRegion[a].map(e=>Number(e.pain)||0)));
+  if(regions.length){
+    L.push('BY AREA');
+    for(const r of regions){
+      const es = byRegion[r];
+      const worst = Math.max(...es.map(e=>Number(e.pain)||0));
+      const latest = es[0];
+      L.push(`  ${r}`);
+      L.push(`    ${es.length} check-in${es.length===1?'':'s'}, first ${dl(es[es.length-1].date)}, most recent ${dl(latest.date)}`);
+      L.push(`    worst reported ${worst}/10, most recent ${latest.pain}/10`);
+    }
+    L.push('');
+  }
+
+  const byExercise = summarisePainByExercise(sorted);
+  if(byExercise.length){
+    L.push('BY EXERCISE (self-reported, 2 or more check-ins)');
+    for(const x of byExercise){
+      L.push(`  ${x.exercise}`);
+      L.push(`    ${x.count} check-ins, ${dl(x.firstDate)} to ${dl(x.latestDate)}`);
+      L.push(`    worst reported ${x.worst}/10, most recent ${x.latest}/10`);
+      if(x.region) L.push(`    ${x.region} on ${x.regionCount} of ${x.count}`);
+    }
+    L.push('');
+  }
+
+  L.push('ALL CHECK-INS (most recent first)');
+  for(const e of sorted){
+    L.push(`  ${dl(e.date)}  ${e.region || 'Unspecified'}  ${e.pain}/10`);
+    const s = SENSATION_LABELS[e.sensation] || e.sensation || '';
+    if(s) L.push(`    Felt like: ${s}`);
+    if(e.exercise) L.push(`    During: ${e.exercise}`);
+    if(e.note) L.push(`    Note: ${e.note}`);
+  }
+  L.push('');
+  L.push('--- end of summary ---');
+  return L.join('\n');
+}
+
+// Same Blob + anchor idiom as the full backup. One way of getting data out of
+// this app, not two — a second mechanism is a second thing to keep working.
+async function downloadCareSummary(){
+  const btn = document.getElementById('careExport');
+  const original = btn ? btn.textContent : '';
+  try{
+    const [log, resting] = await Promise.all([getInjuryLog(), getRestingRegions()]);
+    if(log.length === 0) return;
+    let since = {};
+    try{
+      const res = await window.storage.get('resting-regions-since');
+      if(res && res.value) since = JSON.parse(res.value);
+    }catch(e){}
+    const text = buildCareSummaryText(log, resting, since, (userProfile && userProfile.name) || '');
+    const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `symptom-summary-${((userProfile && userProfile.name) || 'me').toLowerCase().replace(/\s+/g,'-')}-${getTodayKey()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    if(btn){ btn.textContent = '✓ Saved'; setTimeout(()=>{ btn.textContent = original; }, 2000); }
+  }catch(e){
+    if(btn){ btn.textContent = 'Could not save — try again'; setTimeout(()=>{ btn.textContent = original; }, 2500); }
+  }
+}
+
 async function renderCare(){
   const listEl = document.getElementById('careLogList');
   const restEl = document.getElementById('restingRegions');
 
   const [log, resting] = await Promise.all([getInjuryLog(), getRestingRegions()]);
+  // Held for the edit path — see the comment on careEditTarget. This is the
+  // same array `wireSwipeDeleteList` is handed as `source`, so both features
+  // resolve their target against exactly the same object references.
+  careRenderedLog = log;
+  renderCareLogDayNote();
   // Reuses the log just fetched above instead of re-reading the same key.
   renderPainTrend(await fetchPainDays(log));
 
@@ -26707,6 +27512,28 @@ async function renderCare(){
   }
 
   // Past check-ins
+  // The pattern block sits ABOVE the raw list: "this keeps happening on Bench
+  // Press" is what someone opens this card to find out, and the chronological
+  // list is where they go to check it.
+  const patternEl = document.getElementById('carePatternList');
+  if(patternEl){
+    const patterns = summarisePainByExercise(log);
+    patternEl.innerHTML = patterns.length ? `
+      <div class="care-pattern-title">What you were doing</div>
+      <div class="history-hint" style="margin-top:0;">Exercises named in two or more check-ins. Your own notes, not a finding &mdash; a pattern here is a thing to mention, not a diagnosis.</div>
+      ${patterns.map(x=> `
+        <div class="care-pattern-row">
+          <div class="care-pattern-name">${escapeHtml(x.exercise)} <span class="care-log-pain">worst ${x.worst}/10</span></div>
+          <div class="care-log-detail">${x.count} check-ins${x.region ? ` &middot; ${escapeHtml(x.region)} on ${x.regionCount} of ${x.count}` : ''} &middot; most recent ${x.latest}/10 on ${escapeHtml(fmtDayLabel(x.latestDate))}</div>
+        </div>`).join('')}
+    ` : '';
+  }
+
+  const exportBtn = document.getElementById('careExport');
+  const exportNote = document.getElementById('careExportNote');
+  if(exportBtn) exportBtn.style.display = log.length ? '' : 'none';
+  if(exportNote) exportNote.style.display = log.length ? '' : 'none';
+
   if(log.length === 0){
     listEl.innerHTML = '<div class="empty-note">No check-ins logged yet — log how you\'re feeling above to start tracking patterns.</div>';
   }else{
@@ -26716,6 +27543,7 @@ async function renderCare(){
         <div class="care-log-date">${fmtDayLabel(e.date)} <span class="care-log-pain">${e.pain}/10</span></div>
         <div class="care-log-detail">${e.exercise ? `During: ${escapeHtml(e.exercise)} · ` : ''}${SENSATION_LABELS[e.sensation] || ''} ${e.region ? `· ${escapeHtml(e.region)}` : ''}</div>
         ${e.note ? `<div class="care-log-detail">${escapeHtml(e.note)}</div>` : ''}
+        <button class="care-log-edit" aria-label="Edit check-in from ${escapeHtml(fmtDayLabel(e.date))}">Edit</button>
       </div>
     `));
     renderCollapsibleList(listEl, itemHtmls, 3, 'check-ins');
@@ -26727,6 +27555,15 @@ async function renderCare(){
       commit: async arr=>{ try{ await window.storage.set('injury-log', JSON.stringify(arr)); }catch(e){} },
       rerender: ()=> renderCare(),
     });
+    // Same row order the delete wiring depends on, for the same reason:
+    // renderCollapsibleList emits items in `sorted` order. stopPropagation so
+    // tapping Edit cannot be read as the start of a swipe.
+    listEl.querySelectorAll('.care-log-edit').forEach((btn, i)=>{
+      btn.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
+        beginCareEdit(sorted[i]);
+      });
+    });
   }
 }
 
@@ -26734,8 +27571,16 @@ document.getElementById('carePain').addEventListener('input', (e)=>{
   document.getElementById('carePainVal').textContent = e.target.value;
 });
 
+document.getElementById('careCancelEdit').addEventListener('click', ()=>{
+  cancelCareEdit();
+  document.getElementById('careResult').innerHTML = '';
+});
+
+document.getElementById('careExport').addEventListener('click', downloadCareSummary);
+
 document.getElementById('careSubmit').addEventListener('click', async ()=>{
-  const exercise = document.getElementById('careExercise').value.trim();
+  // Canonicalised on save so two spellings of one exercise become one record.
+  const exercise = canonicalExerciseName(document.getElementById('careExercise').value);
   const sensation = document.getElementById('careSensation').value;
   const region = document.getElementById('careRegion').value;
   const pain = Number(document.getElementById('carePain').value);
@@ -26746,12 +27591,32 @@ document.getElementById('careSubmit').addEventListener('click', async ()=>{
     return;
   }
 
-  await saveInjuryEntry({date: getTodayKey(), exercise, sensation, region, pain, note});
+  if(careEditTarget){
+    // The date is taken from the ENTRY, never from selectedLogDate. Editing a
+    // check-in from last Tuesday must not silently move it to whatever day is
+    // selected now — that would corrupt the one thing the log is for.
+    const idx = careRenderedLog.indexOf(careEditTarget);
+    if(idx === -1){
+      document.getElementById('careResult').innerHTML = '<div class="care-banner care-banner-caution">That check-in was deleted while you were editing it, so there was nothing to update. Nothing was saved — log it again if you still need it.</div>';
+      cancelCareEdit();
+      renderCare();
+      return;
+    }
+    const next = careRenderedLog.slice();
+    next[idx] = {...careEditTarget, exercise, sensation, region, pain, note};
+    try{ await window.storage.set('injury-log', JSON.stringify(next)); }catch(e){}
+    cancelCareEdit();
+  }else{
+    await saveInjuryEntry({date: selectedLogDate, exercise, sensation, region, pain, note});
+  }
   document.getElementById('careResult').innerHTML = buildCareResultHtml(sensation, region, pain);
 
   const markBtn = document.getElementById('careMarkResting');
   if(markBtn){
     markBtn.addEventListener('click', async ()=>{
+      // addRestingRegion stamps today even when the check-in was backdated:
+      // "I am resting this" is a statement about the present, not about the
+      // day the symptom happened.
       if(region) await addRestingRegion(region);
       renderCare();
       renderTodayInsights();
@@ -28954,12 +29819,14 @@ if(activeUserId){
     await loadWeightUnit();
     await loadDistanceUnit();
     await loadWakeLockPref();
+    await loadWarmupSetsPref();
     await loadGymPrefs();
     await loadEquipmentProfile();
     await loadSuggestionModePref();
     getMesocycleWeek().then(w=> renderLoadModeNote(w)).catch(()=>{});
     applyWeightUnitToUI();
     applyWakeLockPrefToUI();
+    applyWarmupSetsPrefToUI();
     renderEquipmentPicker();
     wireEquipmentPicker();
     await restoreCardOpenStates();
@@ -29093,6 +29960,7 @@ wireCustomProgramUI();
     const slot = document.getElementById(slotId);
     if(node && slot) slot.appendChild(node);
   };
+  move('prefWarmupSets', 'settingsWorkoutSlot');
   move('prefWakeLock', 'settingsWorkoutSlot');
   move('prefDistanceUnit', 'settingsUnitsSlot');
   move('prefLoadMode', 'settingsUnitsSlot');
