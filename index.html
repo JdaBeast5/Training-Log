@@ -1365,27 +1365,41 @@
      The calorie figure is the FEEDBACK for the stepper, not decoration: it is
      what tells you that pressing + actually counted the thing twice, which is
      the whole point of the control. */
-  .describe-item{
+  /* Renamed from .describe-item* in v3.30: Describe, Snap-a-Meal and Recipe
+     Finder all render this row now, so a name that claimed one of them was
+     misleading. */
+  .food-result-row{
     padding:9px 0; border-bottom:1px solid var(--line-soft);
   }
-  .describe-item:last-of-type{border-bottom:none;}
-  .describe-item-head{
+  .food-result-row:last-of-type{border-bottom:none;}
+  .frr-head{
     display:flex; justify-content:space-between; align-items:baseline; gap:10px;
     font-size:12.5px;
   }
-  .describe-item-name{color:var(--text); min-width:0;}
-  .describe-item-macro{
+  .frr-name{color:var(--text); min-width:0;}
+  .frr-name-input{flex:1; min-width:0;}
+  .frr-total{
     flex:0 0 auto; font-family:'IBM Plex Mono',monospace;
     font-variant-numeric:tabular-nums; color:var(--text-muted);
     transition:color 0.2s var(--ease-smooth);
   }
   /* Any portion above one is a deliberate choice, so the number stops being
      muted and starts being a value. */
-  .describe-item.multiplied .describe-item-macro{color:var(--plate-blue);}
-  .describe-item-controls{
+  .food-result-row.multiplied .frr-total{color:var(--plate-blue);}
+  .frr-controls{
     display:flex; align-items:center; justify-content:space-between;
     gap:10px; margin-top:7px;
   }
+  /* Destructive, so it is last in the row and reads as an icon rather than
+     competing with Save for attention. */
+  .frr-remove-btn{
+    flex:0 0 auto; width:40px; height:40px;
+    display:flex; align-items:center; justify-content:center;
+    background:none; border:none; border-radius:var(--radius-pill);
+    color:var(--text-muted); font-size:15px; cursor:pointer;
+    transition:color 0.15s var(--ease-smooth), background 0.15s var(--ease-smooth);
+  }
+  .frr-remove-btn:active{color:var(--plate-red); background:rgba(255,69,58,0.1);}
   .qty-stepper{
     display:flex; align-items:center;
     background:var(--surface2); border:1px solid var(--line);
@@ -1431,6 +1445,7 @@
 
   @media (prefers-reduced-motion: reduce){
     .qty-btn:active, .describe-save-btn:active{transform:none;}
+    .frr-remove-btn:active{background:none;}
   }
   .describe-food-input-row{display:flex; gap:8px; align-items:center;}
   .describe-food-input-row input{flex:1;}
@@ -1558,19 +1573,10 @@
   .photo-lightbox-delete{background:rgba(255,69,58,0.15); color:var(--plate-red);}
 
   .photo-result-item:last-child{border-bottom:none;}
-  .photo-result-item-editable{
-    display:flex; flex-direction:column; gap:8px;
-    padding:12px 0; border-bottom:1px solid var(--line-soft);
-  }
-  .photo-result-item-editable:last-of-type{border-bottom:none;}
-  .photo-result-item-editable .macro-input-row{margin-top:0;}
-  .photo-item-name-input{font-weight:600;}
-  .photo-item-remove-btn{
-    align-self:flex-end;
-    background:none; border:none; color:var(--text-muted); font-size:12px;
-    padding:2px 6px; cursor:pointer; transition:color 0.2s var(--ease-smooth);
-  }
-  .photo-item-remove-btn:hover{color:var(--plate-red);}
+  /* .photo-result-item-editable, .photo-item-name-input and
+     .photo-item-remove-btn removed in v3.30 — Snap-a-Meal renders
+     .food-result-row like every other estimate card now. */
+  .food-result-row .macro-input-row{margin-top:7px;}
   .photo-add-all-btn{
     width:100%; margin-top:10px; padding:10px; background:var(--plate-green); color:#fff; border:none;
     border-radius:var(--radius-sm); font-weight:600; font-size:12.5px; cursor:pointer; font-family:'Inter',sans-serif;
@@ -4685,7 +4691,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.29';
+const APP_VERSION = '3.31';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -12064,6 +12070,14 @@ function getTodayKey(){
 // that writes date-keyed data uses to decide whether it's "today" or not.
 let selectedLogDate = getTodayKey();
 function isBackdating(){ return selectedLogDate !== getTodayKey(); }
+
+// "Today's" or "Tuesday's". Every control that writes to the food log says which
+// day it is writing to — Describe and Snap-a-Meal already did, barcode and
+// Recipe Finder logged to a backdated day without saying so, which is the kind
+// of silence that gets noticed a week later in the wrong day's totals.
+function logDayLabel(){
+  return isBackdating() ? formatLogDateLabel(selectedLogDate) + "'s" : "Today's";
+}
 
 function dateKeyMinusDays(key, n){
   const d = new Date(key+'T00:00:00');
@@ -20549,7 +20563,7 @@ async function handleBarcodeFound(barcode){
     `;
     document.getElementById('barcodeAddBtn').addEventListener('click', async ()=>{
       await addFoodToLog(item);
-      resultEl.innerHTML = `<div class="empty-note">Added — and saved to My Foods for next time.</div>`;
+      resultEl.innerHTML = `<div class="empty-note">Added to ${logDayLabel()} log — and saved to My Foods for next time.</div>`;
     });
   }catch(e){
     resultEl.innerHTML = `<div class="empty-note">${escapeHtml(e.message || 'Lookup failed — check your connection and try again.')}</div>`;
@@ -20595,6 +20609,9 @@ document.getElementById('describeFoodBtn').addEventListener('click', ()=>{
 // BLT contains bacon and bacon is pork, which is a stronger guarantee here
 // than trying to hand-maintain every possible hidden-ingredient dish name.
 let recipeFinderResults = [];
+// Servings, parallel to recipeFinderResults. The macro line on a recipe card is
+// per serving, so a portion count means the same thing here as anywhere else.
+let recipeFinderQtys = [];
 
 document.getElementById('recipeFinderBtn').addEventListener('click', ()=>{
   const form = document.getElementById('recipeFinderForm');
@@ -20660,6 +20677,7 @@ If what they're in the mood for is fundamentally incompatible with their dietary
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
     recipeFinderResults = parsed.recipes || [];
+    recipeFinderQtys = recipeFinderResults.map(()=> 1);
 
     if(recipeFinderResults.length === 0){
       resultEl.innerHTML = `<div class="empty-note">🤷 Nothing fits — that request may conflict with your dietary preference or avoid list, or the model just didn't find a good match. Try rephrasing.</div>`;
@@ -20671,9 +20689,10 @@ If what they're in the mood for is fundamentally incompatible with their dietary
         <div class="photo-result-title">🍳 ${escapeHtml(r.name)}</div>
         <div class="history-hint recipe-desc">${escapeHtml(r.description || '')}</div>
         <div class="photo-result-item"><span>${r.cal} cal · ${r.pro}g protein · ${r.fat}g fat · ${r.carb}g carbs (per serving, estimated)</span></div>
+        ${buildFoodResultRow(r, i, recipeFinderQtys, {})}
         <div class="recipe-card-actions">
           <a class="recipe-link-btn" href="${buildRecipeSearchUrl(r.name)}" target="_blank" rel="noopener">🔗 Find this recipe</a>
-          <button type="button" class="recipe-log-btn" data-idx="${i}">+ Log this</button>
+          <button type="button" class="recipe-log-btn" data-idx="${i}">+ Log to ${logDayLabel()}</button>
         </div>
         ${(r.ingredients && r.ingredients.length) ? `<button type="button" class="recipe-grocery-btn" data-idx="${i}">🛒 Add ${r.ingredients.length} ingredients to grocery list</button>` : ''}
       </div>
@@ -20683,11 +20702,15 @@ If what they're in the mood for is fundamentally incompatible with their dietary
       <div class="history-hint">Estimates, not exact — actual macros depend on the specific recipe and portion you end up cooking.</div>
       ${cardsHtml}
     `;
+    // Portions here are SERVINGS: the macro line above says "per serving", so
+    // two of a recipe is the same claim two of a described food is.
+    wireFoodResultRows(resultEl, recipeFinderResults, recipeFinderQtys, {});
     resultEl.querySelectorAll('.recipe-log-btn').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
-        const recipe = recipeFinderResults[Number(btn.dataset.idx)];
+        const idx = Number(btn.dataset.idx);
+        const recipe = recipeFinderResults[idx];
         if(!recipe) return;
-        await addFoodToLog({name: recipe.name, cal: recipe.cal, pro: recipe.pro, fat: recipe.fat, carb: recipe.carb});
+        await addFoodToLog({name: recipe.name, cal: recipe.cal, pro: recipe.pro, fat: recipe.fat, carb: recipe.carb}, recipeFinderQtys[idx] || 1);
         btn.textContent = 'Logged ✓';
         btn.disabled = true;
       });
@@ -20825,42 +20848,144 @@ function findSimilarLibraryFoods(itemName, maxResults){
 // rather than only through a live API call. `qtys` is read from
 // describeFoodQtys at call time; a re-estimate resets it, so this always
 // renders at 1x.
-// Split out of submitFoodDescription for the same reason as
-// buildDescribeItemsHtml: this is the behaviour people actually press, and
-// it should be assertable without a live API call standing in front of it.
-function wireDescribeItemControls(root){
-  // The stepper. Only the two figures that changed are rewritten rather than
-  // re-rendering the card, because a re-render would drop focus off the
-  // button mid-press — and this is a control built to be pressed repeatedly.
+// ── Shared result rows for AI-estimated food ────────────────────────────────
+// Describe and Snap-a-Meal both turn a model response into a list of estimated
+// food items over an "Add All" button. They were built separately and had
+// drifted into two different feature sets: Describe could set portions and save
+// to My Foods but not edit or remove; Snap-a-Meal could edit and remove but not
+// set portions or save. Neither difference was a decision — there is no reason
+// a photographed meal should be less reusable than a described one.
+//
+// One component now builds and wires both. Recipe Finder keeps its own card
+// because a recipe is genuinely a different object (description, source link,
+// ingredients for the grocery list), but it uses the same stepper and the same
+// save rule.
+//
+// `items` and `qtys` are PARALLEL ARRAYS OWNED BY THE CALLER, mutated in place.
+// The callers already held their items at module scope — photoLogParsedItems is
+// spliced by the remove button and mutated by the macro inputs — and handing
+// that ownership to this component would have meant rewriting both call sites
+// around a new state object for no gain.
+
+const FOOD_MACRO_FIELDS = [
+  {key:'cal',  label:'Cal',  aria:'calories'},
+  {key:'pro',  label:'Pro',  aria:'protein in grams'},
+  {key:'fat',  label:'Fat',  aria:'fat in grams'},
+  {key:'carb', label:'Carb', aria:'carbs in grams'},
+];
+
+// What will actually be logged: the per-portion calories times the portion
+// count. On an editable row this tracks the calorie INPUT, so correcting an
+// estimate updates the total under it immediately.
+function foodRowTotalText(item, qty){
+  return Math.round((Number(item.cal) || 0) * Math.max(1, Number(qty) || 1)) + ' cal';
+}
+
+// opts: {editable, removable}
+function buildFoodResultRows(items, qtys, opts){
+  return items.map((it, idx)=> buildFoodResultRow(it, idx, qtys, opts)).join('');
+}
+
+// One row, addressed by its index into the caller's arrays. Split out so Recipe
+// Finder can place a row inside its own card — its results are one recipe per
+// card rather than a flat list, but the stepper and the save rule are the same.
+function buildFoodResultRow(it, idx, qtys, opts){
+  {
+    const o = opts || {};
+    const q = Math.max(1, Number(qtys[idx]) || 1);
+    const saved = customFoods.some(f=> f.name === it.name);
+    const nameHtml = o.editable
+      ? `<input type="text" class="care-input frr-name-input" value="${escapeHtml(it.name)}"
+           data-idx="${idx}" data-field="name" placeholder="Item name"
+           aria-label="Item ${idx+1} name">`
+      : `<span class="frr-name">${escapeHtml(it.name)}</span>`;
+    const macroInputs = o.editable ? `
+        <div class="macro-input-row">
+          ${FOOD_MACRO_FIELDS.map(f=> `<input type="number" inputmode="numeric" class="care-input"
+            value="${it[f.key] ?? ''}" data-idx="${idx}" data-field="${f.key}"
+            placeholder="${f.label}" aria-label="Item ${idx+1} ${f.aria}">`).join('')}
+        </div>` : '';
+    return `
+      <div class="food-result-row${q > 1 ? ' multiplied' : ''}" data-idx="${idx}">
+        <div class="frr-head">
+          ${nameHtml}
+          <span class="frr-total" data-total="${idx}">${foodRowTotalText(it, q)}</span>
+        </div>${macroInputs}
+        <div class="frr-controls">
+          <div class="qty-stepper">
+            <button type="button" class="qty-btn" data-step="-1" data-idx="${idx}"${q <= 1 ? ' disabled' : ''}
+              aria-label="One less portion of ${escapeHtml(it.name)}">\u2212</button>
+            <span class="qty-count" data-count="${idx}" aria-live="polite" aria-atomic="true">${q}\u00D7</span>
+            <button type="button" class="qty-btn" data-step="1" data-idx="${idx}"${q >= FOOD_QTY_MAX ? ' disabled' : ''}
+              aria-label="One more portion of ${escapeHtml(it.name)}">+</button>
+          </div>
+          <button type="button" class="describe-save-btn" data-save="${idx}"${saved ? ' disabled' : ''}
+            aria-label="${saved ? escapeHtml(it.name) + ' is already in My Foods' : 'Save ' + escapeHtml(it.name) + ' to My Foods'}"
+            >${saved ? 'In My Foods' : 'Save'}</button>
+          ${o.removable ? `<button type="button" class="frr-remove-btn" data-remove="${idx}"
+            aria-label="Remove ${escapeHtml(it.name)} from this list">\u2715</button>` : ''}
+        </div>
+      </div>`;
+  }
+}
+
+// opts: {editable, removable, onRerender}
+// onRerender is required when removable, because splicing shifts every index
+// after the removed one and the data-idx attributes would then all be wrong.
+function wireFoodResultRows(root, items, qtys, opts){
+  const o = opts || {};
+
+  const repaint = (idx)=>{
+    const row = root.querySelector(`.food-result-row[data-idx="${idx}"]`);
+    if(!row) return;
+    const q = Math.max(1, Number(qtys[idx]) || 1);
+    row.querySelector(`[data-total="${idx}"]`).textContent = foodRowTotalText(items[idx], q);
+    row.querySelector(`[data-count="${idx}"]`).textContent = q + '\u00D7';
+    row.classList.toggle('multiplied', q > 1);
+    // Disabled at the ends rather than silently ignoring the tap — a button
+    // that looks live and does nothing reads as a broken button.
+    row.querySelectorAll('.qty-btn').forEach(b=>{
+      const step = Number(b.dataset.step);
+      b.disabled = (step < 0 && q <= 1) || (step > 0 && q >= FOOD_QTY_MAX);
+    });
+  };
+
+  if(o.editable){
+    root.querySelectorAll('[data-field]').forEach(input=>{
+      input.addEventListener('input', ()=>{
+        const idx = Number(input.dataset.idx);
+        const field = input.dataset.field;
+        if(!items[idx]) return;
+        items[idx][field] = field === 'name'
+          ? input.value
+          : (input.value === '' ? 0 : Number(input.value));
+        // Editing calories has to move the total under it, or the number the
+        // person is correcting and the number that will be logged disagree.
+        if(field === 'cal') repaint(idx);
+      });
+    });
+  }
+
   root.querySelectorAll('.qty-btn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       const idx = Number(btn.dataset.idx);
-      const it = describeFoodParsedItems[idx];
-      if(!it) return;
-      const q = Math.max(1, Math.min(FOOD_QTY_MAX,
-        (describeFoodQtys[idx] || 1) + Number(btn.dataset.step)));
-      describeFoodQtys[idx] = q;
-
-      const row = root.querySelector(`.describe-item[data-idx="${idx}"]`);
-      row.querySelector(`[data-count="${idx}"]`).textContent = q + '\u00D7';
-      row.querySelector(`[data-macro="${idx}"]`).textContent =
-        Math.round((Number(it.cal) || 0) * q) + ' cal';
-      row.classList.toggle('multiplied', q > 1);
-      // Disabled at the ends rather than silently ignoring the tap — a
-      // button that looks live and does nothing reads as a broken button.
-      row.querySelectorAll('.qty-btn').forEach(b=>{
-        const step = Number(b.dataset.step);
-        b.disabled = (step < 0 && q <= 1) || (step > 0 && q >= FOOD_QTY_MAX);
-      });
+      if(!items[idx]) return;
+      qtys[idx] = Math.max(1, Math.min(FOOD_QTY_MAX,
+        (Number(qtys[idx]) || 1) + Number(btn.dataset.step)));
+      // Only the figures that changed, never a re-render: this is a control
+      // built to be pressed repeatedly and a re-render drops focus mid-press.
+      repaint(idx);
     });
   });
 
-  // Save to My Foods. Stores ONE portion — the multiplier is a fact about
-  // this meal, not about what the food is.
   root.querySelectorAll('.describe-save-btn').forEach(btn=>{
     btn.addEventListener('click', async ()=>{
-      const it = describeFoodParsedItems[Number(btn.dataset.save)];
+      const idx = Number(btn.dataset.save);
+      const it = items[idx];
       if(!it || btn.disabled) return;
+      // ONE portion, and the CURRENT values — an edited estimate is the better
+      // number, and the multiplier is a fact about this meal rather than about
+      // what the food is.
       await addToCustomFoods({name: it.name, cal: it.cal, pro: it.pro, fat: it.fat, carb: it.carb});
       btn.textContent = 'In My Foods';
       btn.disabled = true;
@@ -20868,31 +20993,74 @@ function wireDescribeItemControls(root){
       renderFoodItems();
     });
   });
+
+  if(o.removable){
+    root.querySelectorAll('[data-remove]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const idx = Number(btn.dataset.remove);
+        if(!items[idx]) return;
+        // Both arrays, together. Splicing items alone would leave every
+        // quantity after this point attached to the wrong food.
+        items.splice(idx, 1);
+        qtys.splice(idx, 1);
+        if(o.onRerender) o.onRerender();
+      });
+    });
+  }
 }
 
-function buildDescribeItemsHtml(items){
-  return items.map((it, idx)=>{
-    const saved = customFoods.some(f=> f.name === it.name);
-    return `
-    <div class="describe-item" data-idx="${idx}">
-        <div class="describe-item-head">
-          <span class="describe-item-name">${escapeHtml(it.name)}</span>
-          <span class="describe-item-macro" data-macro="${idx}">${it.cal} cal</span>
-        </div>
-        <div class="describe-item-controls">
-          <div class="qty-stepper">
-            <button type="button" class="qty-btn" data-step="-1" data-idx="${idx}" disabled
-              aria-label="One less portion of ${escapeHtml(it.name)}">\u2212</button>
-            <span class="qty-count" data-count="${idx}" aria-live="polite" aria-atomic="true">1\u00D7</span>
-            <button type="button" class="qty-btn" data-step="1" data-idx="${idx}"
-              aria-label="One more portion of ${escapeHtml(it.name)}">+</button>
-          </div>
-          <button type="button" class="describe-save-btn" data-save="${idx}"${saved ? ' disabled' : ''}
-            aria-label="${saved ? escapeHtml(it.name) + ' is already in My Foods' : 'Save ' + escapeHtml(it.name) + ' to My Foods'}"
-            >${saved ? 'In My Foods' : 'Save'}</button>
-        </div>
-      </div>`;
-  }).join('');
+// Re-entrant: called once when the estimate arrives and again after any row is
+// removed. Everything it needs lives at module scope, so it takes only the two
+// DOM handles it cannot derive.
+function renderDescribeResult(resultEl, input){
+  if(describeFoodParsedItems.length === 0){
+    resultEl.innerHTML = `<div class="empty-note">Everything removed — nothing left to add.</div>`;
+    return;
+  }
+  const rowsHtml = buildFoodResultRows(describeFoodParsedItems, describeFoodQtys,
+                                       {editable:true, removable:true});
+
+  // Only checked against the FIRST item — usually the closest match to
+  // what was actually typed, and keeping this to one lookup avoids
+  // cluttering the result with alternates for every component of a
+  // multi-item meal.
+  const similar = findSimilarLibraryFoods(describeFoodParsedItems[0].name, 3);
+  const similarHtml = similar.length ? `
+    <div class="describe-similar-note">Already in your foods — might be more accurate than a fresh estimate:</div>
+    <div class="describe-similar-list">${similar.map(f=>`<button type="button" class="describe-similar-btn" data-name="${escapeHtml(f.name)}">${escapeHtml(f.name)} · ${f.cal} cal</button>`).join('')}</div>
+  ` : '';
+
+  resultEl.innerHTML = `
+    <div class="photo-result-card">
+      <div class="photo-result-title">Found ${describeFoodParsedItems.length} item${describeFoodParsedItems.length===1?'':'s'} — estimates, edit anything that's off before adding</div>
+      ${rowsHtml}
+      <button class="photo-add-all-btn" id="describeFoodAddAllBtn">Add All to ${logDayLabel()} Log</button>
+      ${similarHtml}
+    </div>
+  `;
+  wireFoodResultRows(resultEl, describeFoodParsedItems, describeFoodQtys, {
+    editable:true, removable:true,
+    onRerender: ()=> renderDescribeResult(resultEl, input),
+  });
+
+  document.getElementById('describeFoodAddAllBtn').addEventListener('click', async ()=>{
+    for(let i = 0; i < describeFoodParsedItems.length; i++){
+      await addFoodToLog(describeFoodParsedItems[i], describeFoodQtys[i] || 1);
+    }
+    resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added ✓</div>`;
+    input.value = '';
+    document.getElementById('describeFoodForm').classList.remove('open');
+  });
+  resultEl.querySelectorAll('.describe-similar-btn').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const match = similar.find(f=> f.name === btn.dataset.name);
+      if(!match) return;
+      await addFoodToLog(match);
+      resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added ✓</div>`;
+      input.value = '';
+      document.getElementById('describeFoodForm').classList.remove('open');
+    });
+  });
 }
 
 async function submitFoodDescription(){
@@ -20923,46 +21091,7 @@ async function submitFoodDescription(){
       return;
     }
 
-    const itemsHtml = buildDescribeItemsHtml(describeFoodParsedItems);
-
-    // Only checked against the FIRST item — usually the closest match to
-    // what was actually typed, and keeping this to one lookup avoids
-    // cluttering the result with alternates for every component of a
-    // multi-item meal.
-    const similar = findSimilarLibraryFoods(describeFoodParsedItems[0].name, 3);
-    const similarHtml = similar.length ? `
-      <div class="describe-similar-note">Already in your foods — might be more accurate than a fresh estimate:</div>
-      <div class="describe-similar-list">${similar.map(f=>`<button type="button" class="describe-similar-btn" data-name="${escapeHtml(f.name)}">${escapeHtml(f.name)} · ${f.cal} cal</button>`).join('')}</div>
-    ` : '';
-
-    resultEl.innerHTML = `
-      <div class="photo-result-card">
-        <div class="photo-result-title">Found ${describeFoodParsedItems.length} item${describeFoodParsedItems.length===1?'':'s'} — estimates, not exact</div>
-        ${itemsHtml}
-        <button class="photo-add-all-btn" id="describeFoodAddAllBtn">Add All to ${isBackdating() ? formatLogDateLabel(selectedLogDate) + "'s" : "Today's"} Log</button>
-        ${similarHtml}
-      </div>
-    `;
-    wireDescribeItemControls(resultEl);
-
-    document.getElementById('describeFoodAddAllBtn').addEventListener('click', async ()=>{
-      for(let i = 0; i < describeFoodParsedItems.length; i++){
-        await addFoodToLog(describeFoodParsedItems[i], describeFoodQtys[i] || 1);
-      }
-      resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added ✓</div>`;
-      input.value = '';
-      document.getElementById('describeFoodForm').classList.remove('open');
-    });
-    resultEl.querySelectorAll('.describe-similar-btn').forEach(btn=>{
-      btn.addEventListener('click', async ()=>{
-        const match = similar.find(f=> f.name === btn.dataset.name);
-        if(!match) return;
-        await addFoodToLog(match);
-        resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added ✓</div>`;
-        input.value = '';
-        document.getElementById('describeFoodForm').classList.remove('open');
-      });
-    });
+    renderDescribeResult(resultEl, input);
   }catch(err){
     resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't estimate that: ${err.message}. Check your API key or try again.</div>`;
   }
@@ -22365,6 +22494,62 @@ function makeSwipeable(itemEl, onDelete){
   deleteBg.addEventListener('click', onDelete);
 }
 
+// One wiring for every swipe-to-delete list backed by a stored array.
+//
+// Nine such lists grew independently and drifted in two ways, both of which
+// lose data that was never asked to be deleted:
+//
+//  1. SEVEN DELETED BY VALUE-MATCH RATHER THAN BY IDENTITY. The shape was
+//     `entries.filter(e2=> !(e2.date===sorted[i].date && e2.hours===sorted[i].hours))`
+//     — which removes EVERY entry that happens to look like the one swiped, not
+//     the one swiped. No save path in this app dedupes by date; every one of
+//     them is a plain `push`. Two matching entries on a day is therefore
+//     ordinary rather than an edge case: two identical BP readings, a nap
+//     logged next to a night, the same weight twice. Measurements was worse
+//     again — it matched on `date` ALONE, so deleting one entry destroyed every
+//     other measurement taken that day and needed no duplicate at all to do it.
+//
+//  2. THREE HAD NO UNDO. Sleep, measurements and saved weeks deleted
+//     permanently while the other six all offered one. A saved week is the most
+//     expensive object in the app to lose — a manual archive snapshot that
+//     cannot be recomputed from anything still on the device.
+//
+// `sorted` and `source` HOLD THE SAME OBJECT REFERENCES. Every caller builds
+// `sorted` with `.sort()` or `[...arr].sort()`, and neither clones elements. So
+// `source.indexOf(sorted[i])` is exact and no value comparison is needed at
+// all — the value comparison was never solving a problem, it was standing in
+// for an identity the callers already had.
+//
+// If a caller ever passes a mapped or cloned array, indexOf returns -1 and this
+// deletes NOTHING rather than guessing. A no-op is a visible bug; a wrong
+// deletion is a silent one.
+//
+// `removeFoodFromLog` was already correct on both counts and is the model this
+// follows. It is deliberately NOT converted: it deletes by index out of a
+// module-scope array, and it carries a third concern none of these share — it
+// captures `selectedLogDate` at delete time so an Undo tapped after changing
+// date cannot restore into the wrong day. The grocery list stays separate for
+// the same reason (index into a freshly re-read array, with its own undo).
+function wireSwipeDeleteList(container, sorted, source, opts){
+  container.querySelectorAll('.swipe-item').forEach((itemEl, i)=>{
+    makeSwipeable(itemEl, async ()=>{
+      const target = sorted[i];
+      const idx = source.indexOf(target);
+      if(idx === -1) return;
+      // Snapshot BEFORE the splice, and of `source` rather than of `remaining`,
+      // so undo restores the list exactly as it was rather than as it is.
+      const preDeleteSnapshot = JSON.stringify(source);
+      const remaining = source.slice(0, idx).concat(source.slice(idx+1));
+      await opts.commit(remaining);
+      await opts.rerender();
+      showUndoToast(opts.label, async ()=>{
+        try{ await opts.commit(JSON.parse(preDeleteSnapshot)); }catch(e){}
+        await opts.rerender();
+      });
+    });
+  });
+}
+
 function buildSwipeItem(innerHtml){
   return `
     <div class="swipe-item">
@@ -22391,18 +22576,13 @@ async function loadWeights(){
       `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${fmtWeight(e.weight)}</span></div>`
     ));
     renderCollapsibleList(listEl, itemHtmls, 3, 'weigh-ins');
-    listEl.querySelectorAll('.swipe-item').forEach((itemEl, i)=>{
-      makeSwipeable(itemEl, async ()=>{
-        const preDeleteSnapshot = JSON.stringify(entries);
-        const all = entries.filter(e2=> !(e2.date===sorted[i].date && e2.weight===sorted[i].weight));
-        await window.storage.set('weight-log', JSON.stringify(all));
-        loadWeights();
-        showUndoToast('Weigh-in deleted', async ()=>{
-          try{ await window.storage.set('weight-log', preDeleteSnapshot); }catch(e){}
-          loadWeights();
-          renderTodayInsights();
-        });
-      });
+    // renderTodayInsights now runs on the delete as well as on the undo. It
+    // reads the weight log, so leaving it off the delete meant Today kept
+    // quoting a weigh-in that had just been removed.
+    wireSwipeDeleteList(listEl, sorted, entries, {
+      label: 'Weigh-in deleted',
+      commit: arr=> window.storage.set('weight-log', JSON.stringify(arr)),
+      rerender: ()=>{ loadWeights(); renderTodayInsights(); },
     });
   }catch(e){
     listEl.innerHTML = '<div class="empty-note">⚖️ No entries yet — log your first weigh-in.</div>';
@@ -22497,17 +22677,10 @@ async function loadBP(){
       );
     });
     renderCollapsibleList(listEl, itemHtmls, 3, 'readings');
-    listEl.querySelectorAll('.swipe-item').forEach((itemEl, i)=>{
-      makeSwipeable(itemEl, async ()=>{
-        const preDeleteSnapshot = JSON.stringify(entries);
-        const all = entries.filter(e2=> !(e2.date===sorted[i].date && e2.systolic===sorted[i].systolic && e2.diastolic===sorted[i].diastolic));
-        await window.storage.set('bp-log', JSON.stringify(all));
-        loadBP();
-        showUndoToast('Reading deleted', async ()=>{
-          try{ await window.storage.set('bp-log', preDeleteSnapshot); }catch(e){}
-          loadBP();
-        });
-      });
+    wireSwipeDeleteList(listEl, sorted, entries, {
+      label: 'Reading deleted',
+      commit: arr=> window.storage.set('bp-log', JSON.stringify(arr)),
+      rerender: ()=> loadBP(),
     });
   }catch(e){
     listEl.innerHTML = '<div class="empty-note">🩺 No readings yet — log your first one.</div>';
@@ -22575,17 +22748,13 @@ async function loadGlucose(){
       );
     });
     renderCollapsibleList(listEl, itemHtmls, 3, 'readings');
-    listEl.querySelectorAll('.swipe-item').forEach((itemEl, i)=>{
-      makeSwipeable(itemEl, async ()=>{
-        const preDeleteSnapshot = JSON.stringify(entries);
-        const all = entries.filter(e2=> !(e2.date===sorted[i].date && e2.value===sorted[i].value && e2.context===sorted[i].context));
-        await window.storage.set('glucose-log', JSON.stringify(all));
-        loadGlucose();
-        showUndoToast('Reading deleted', async ()=>{
-          try{ await window.storage.set('glucose-log', preDeleteSnapshot); }catch(e){}
-          loadGlucose();
-        });
-      });
+    // The old filter compared date/value/context and ignored `time`, so two
+    // readings of the same number in the same context on one day — the exact
+    // thing someone with diabetes logs — deleted as a pair.
+    wireSwipeDeleteList(listEl, sorted, entries, {
+      label: 'Reading deleted',
+      commit: arr=> window.storage.set('glucose-log', JSON.stringify(arr)),
+      rerender: ()=> loadGlucose(),
     });
   }catch(e){
     listEl.innerHTML = '<div class="empty-note">🩸 No readings yet — log your first one.</div>';
@@ -22733,12 +22902,11 @@ async function loadSleep(){
       `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${e.hours} hrs</span></div>`
     ));
     renderCollapsibleList(listEl, itemHtmls, 3, 'nights');
-    listEl.querySelectorAll('.swipe-item').forEach((itemEl, i)=>{
-      makeSwipeable(itemEl, async ()=>{
-        const all = entries.filter(e2=> !(e2.date===sorted[i].date && e2.hours===sorted[i].hours));
-        await window.storage.set('sleep-log', JSON.stringify(all));
-        loadSleep();
-      });
+    // Gains an undo it never had.
+    wireSwipeDeleteList(listEl, sorted, entries, {
+      label: 'Sleep entry deleted',
+      commit: arr=> window.storage.set('sleep-log', JSON.stringify(arr)),
+      rerender: ()=>{ loadSleep(); renderTodayInsights(); },
     });
   }catch(e){
     listEl.innerHTML = '<div class="empty-note">😴 No entries yet — log last night\'s sleep.</div>';
@@ -23265,12 +23433,12 @@ async function loadMeasurements(){
       `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${[e.waist&&`W:${e.waist}`, e.chest&&`C:${e.chest}`, e.arms&&`A:${e.arms}`].filter(Boolean).join(' ')}"</span></div>`
     ));
     renderCollapsibleList(listEl, itemHtmls, 3, 'entries');
-    listEl.querySelectorAll('.swipe-item').forEach((itemEl, i)=>{
-      makeSwipeable(itemEl, async ()=>{
-        const all = entries.filter(e2=> e2.date!==sorted[i].date);
-        await window.storage.set('measurements-log', JSON.stringify(all));
-        loadMeasurements();
-      });
+    // The sharpest of the seven: matching on `date` alone deleted every
+    // measurement logged that day, not the one swiped, and did it with no undo.
+    wireSwipeDeleteList(listEl, sorted, entries, {
+      label: 'Measurements deleted',
+      commit: arr=> window.storage.set('measurements-log', JSON.stringify(arr)),
+      rerender: ()=> loadMeasurements(),
     });
   }catch(e){
     listEl.innerHTML = '';
@@ -25202,6 +25370,10 @@ document.getElementById('aiApiKeyChange').addEventListener('click', ()=>{
 });
 
 let photoLogParsedItems = [];
+// Parallel to photoLogParsedItems and spliced alongside it by the shared remove
+// handler. Reset on every new photo, so a second meal never inherits the first
+// one's portion counts.
+let photoLogQtys = [];
 
 document.getElementById('photoLogBtn').addEventListener('click', ()=> document.getElementById('photoLogInput').click());
 
@@ -25213,45 +25385,33 @@ document.getElementById('photoLogBtn').addEventListener('click', ()=> document.g
 // Re-called after every edit/removal so indices in the data-idx attributes
 // always line up with the live photoLogParsedItems array.
 function renderPhotoLogResult(resultEl, previewUrl){
-  const itemsHtml = photoLogParsedItems.map((it,i)=>`
-    <div class="photo-result-item-editable">
-      <input type="text" class="care-input photo-item-name-input" value="${escapeHtml(it.name)}" data-idx="${i}" data-field="name" placeholder="Item name" aria-label="Item ${i+1} name">
-      <div class="macro-input-row">
-        <input type="number" inputmode="numeric" class="care-input" value="${it.cal ?? ''}" data-idx="${i}" data-field="cal" placeholder="Cal" aria-label="Item ${i+1} calories">
-        <input type="number" inputmode="numeric" class="care-input" value="${it.pro ?? ''}" data-idx="${i}" data-field="pro" placeholder="Pro" aria-label="Item ${i+1} protein in grams">
-        <input type="number" inputmode="numeric" class="care-input" value="${it.fat ?? ''}" data-idx="${i}" data-field="fat" placeholder="Fat" aria-label="Item ${i+1} fat in grams">
-        <input type="number" inputmode="numeric" class="care-input" value="${it.carb ?? ''}" data-idx="${i}" data-field="carb" placeholder="Carb" aria-label="Item ${i+1} carbs in grams">
-      </div>
-      <button type="button" class="photo-item-remove-btn" data-idx="${i}">✕ Remove</button>
-    </div>
-  `).join('');
+  // Was a bespoke row with its own editing, its own remove button, no portion
+  // control and no way to save. It is the same object Describe produces, so it
+  // is now the same component — which is where the portions and the Save button
+  // come from.
+  const itemsHtml = buildFoodResultRows(photoLogParsedItems, photoLogQtys,
+                                        {editable:true, removable:true});
   resultEl.innerHTML = `
     <img src="${previewUrl}" class="photo-preview">
     <div class="photo-result-card">
       <div class="photo-result-title">Found ${photoLogParsedItems.length} item${photoLogParsedItems.length===1?'':'s'} — estimates, edit anything that's off before adding</div>
       ${itemsHtml || '<div class="empty-note">Everything removed — nothing left to add.</div>'}
-      <button class="photo-add-all-btn" id="photoAddAllBtn" ${photoLogParsedItems.length===0?'disabled':''}>Add All to ${isBackdating() ? formatLogDateLabel(selectedLogDate) + "'s" : "Today's"} Log</button>
+      <button class="photo-add-all-btn" id="photoAddAllBtn" ${photoLogParsedItems.length===0?'disabled':''}>Add All to ${logDayLabel()} Log</button>
     </div>
   `;
 
-  resultEl.querySelectorAll('[data-field]').forEach(input=>{
-    input.addEventListener('input', ()=>{
-      const idx = Number(input.dataset.idx);
-      const field = input.dataset.field;
-      photoLogParsedItems[idx][field] = field === 'name' ? input.value : (input.value === '' ? 0 : Number(input.value));
-    });
-  });
-  resultEl.querySelectorAll('.photo-item-remove-btn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      photoLogParsedItems.splice(Number(btn.dataset.idx), 1);
-      renderPhotoLogResult(resultEl, previewUrl);
-    });
+  // The editing, removing, portions and saving all come from the shared
+  // component now. The bespoke versions of the first two lived here and had no
+  // equivalent in Describe, which is half of the inconsistency this closes.
+  wireFoodResultRows(resultEl, photoLogParsedItems, photoLogQtys, {
+    editable:true, removable:true,
+    onRerender: ()=> renderPhotoLogResult(resultEl, previewUrl),
   });
   const addAllBtn = document.getElementById('photoAddAllBtn');
   if(addAllBtn){
     addAllBtn.addEventListener('click', async ()=>{
-      for(const it of photoLogParsedItems){
-        await addFoodToLog(it);
+      for(let i = 0; i < photoLogParsedItems.length; i++){
+        await addFoodToLog(photoLogParsedItems[i], photoLogQtys[i] || 1);
       }
       resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added ✓</div>`;
     });
@@ -25286,6 +25446,7 @@ Respond with ONLY valid JSON, no other text, no markdown fences, in this exact s
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
     photoLogParsedItems = parsed.items || [];
+    photoLogQtys = photoLogParsedItems.map(()=> 1);
 
     if(photoLogParsedItems.length === 0){
       resultEl.innerHTML = `<img src="${previewUrl}" class="photo-preview"><div class="empty-note">🤷 Couldn't identify any food in that photo — try again or add it manually below.</div>`;
@@ -26507,7 +26668,7 @@ function buildCareResultHtml(sensation, region, pain){
           <li>Pain that wakes you up at night or keeps getting worse, not better</li>
         </ul>
         <div style="margin-top:8px;">Hold off on training this area until it's been checked — no exercise suggestions for this one, on purpose.</div>
-        <button class="care-rest-btn" id="careMarkResting" data-region="${region}">Mark ${region || 'this area'} as resting</button>
+        <button class="care-rest-btn" id="careMarkResting" data-region="${escapeHtml(region)}">Mark ${escapeHtml(region || 'this area')} as resting</button>
       </div>
     `;
   }
@@ -26515,7 +26676,7 @@ function buildCareResultHtml(sensation, region, pain){
   return `
     <div class="care-banner care-banner-caution">
       <b>Logged.</b> This sounds like it could be normal training soreness, but I genuinely can't tell from a description — I can't examine you. General self-care for mild issues: rest the area, avoid movements that reproduce the pain, and consider gentle ice/compression for the first day or two. If it isn't clearly improving within a week, or gets worse, please see a doctor or physical therapist rather than pushing through it.
-      <button class="care-rest-btn" id="careMarkResting" data-region="${region}">Mark ${region || 'this area'} as resting</button>
+      <button class="care-rest-btn" id="careMarkResting" data-region="${escapeHtml(region)}">Mark ${escapeHtml(region || 'this area')} as resting</button>
     </div>
     ${buildReliefHtml(region)}
   `;
@@ -26534,7 +26695,7 @@ async function renderCare(){
     restEl.innerHTML = '<div class="empty-note">✅ Nothing marked as resting — you\'re clear to train everything.</div>';
   }else{
     restEl.innerHTML = resting.map(r=>`
-      <span class="resting-chip">${r} <button data-region="${r}" class="clear-resting" aria-label="Stop resting ${escapeHtml(r)}">✕</button></span>
+      <span class="resting-chip">${escapeHtml(r)} <button data-region="${escapeHtml(r)}" class="clear-resting" aria-label="Stop resting ${escapeHtml(r)}">✕</button></span>
     `).join('') + `<div class="history-hint" style="margin-top:10px;">Exercises loading these regions will show a caution flag in Today\'s workout until you clear them here.</div>`;
     restEl.querySelectorAll('.clear-resting').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
@@ -26558,18 +26719,13 @@ async function renderCare(){
       </div>
     `));
     renderCollapsibleList(listEl, itemHtmls, 3, 'check-ins');
-    listEl.querySelectorAll('.swipe-item').forEach((itemEl, i)=>{
-      makeSwipeable(itemEl, async ()=>{
-        const preDeleteSnapshot = JSON.stringify(log);
-        const target = sorted[i];
-        const all = log.filter(e2=> !(e2.date===target.date && e2.exercise===target.exercise && e2.sensation===target.sensation && e2.region===target.region && e2.pain===target.pain && e2.note===target.note));
-        try{ await window.storage.set('injury-log', JSON.stringify(all)); }catch(e){}
-        renderCare();
-        showUndoToast('Check-in deleted', async ()=>{
-          try{ await window.storage.set('injury-log', preDeleteSnapshot); }catch(e){}
-          renderCare();
-        });
-      });
+    // Six fields compared and it still could not tell two check-ins apart:
+    // logging the same region, sensation and pain twice in one session — which
+    // is what checking in twice in one session looks like — deleted both.
+    wireSwipeDeleteList(listEl, sorted, log, {
+      label: 'Check-in deleted',
+      commit: async arr=>{ try{ await window.storage.set('injury-log', JSON.stringify(arr)); }catch(e){} },
+      rerender: ()=> renderCare(),
     });
   }
 }
@@ -26724,12 +26880,12 @@ async function renderSavedWeeks(){
     </div>
   `));
   renderCollapsibleList(el, itemHtmls, 3, 'weeks');
-  el.querySelectorAll('.swipe-item').forEach((itemEl, i)=>{
-    makeSwipeable(itemEl, async ()=>{
-      const all = archive.filter(a=> a.weekStart !== sorted[i].weekStart);
-      await window.storage.set('week-archive', JSON.stringify(all));
-      renderSavedWeeks();
-    });
+  // A saved week cannot be recomputed from anything left on the device, and
+  // until now deleting one was instant and final.
+  wireSwipeDeleteList(el, sorted, archive, {
+    label: 'Saved week deleted',
+    commit: arr=> window.storage.set('week-archive', JSON.stringify(arr)),
+    rerender: ()=> renderSavedWeeks(),
   });
 }
 
