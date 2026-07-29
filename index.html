@@ -4832,7 +4832,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.37';
+const APP_VERSION = '3.38';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -15454,6 +15454,43 @@ function roundToIncrement(n, increment){ return Math.round(n/increment)*incremen
 // The ramp's `reps` is sometimes a range ('8-10'). That is fine to read and is
 // not a number an input can hold, so the field takes the first number of the
 // range while the label keeps showing the range.
+// WHAT THE RAMP IS BUILT FROM. Extracted from renderWorkout so it can be
+// tested against the real progression engine rather than asserted as a string.
+//
+// It used to be `priorTop` — the heaviest set you logged LAST time. That is the
+// wrong basis on any session where the weight is meant to move, because the
+// ramp is a set of PERCENTAGES and it was taking them of the wrong number.
+//
+// The top step is meant to be ~80% of the working weight. Ramping 225 when you
+// are about to lift a 191 deload puts the last warm-up at 180 — 94% of the
+// work set, which is not a warm-up. Ramping 225 when you are about to lift 235
+// puts it at 77%, under-preparing the heaviest session of the block. (An
+// earlier draft of this comment claimed the deload case ramped you PAST the
+// working weight. It does not — 180 < 191 — and the test written to prove it
+// failed, correctly. The defect is the calibration, not an overshoot.)
+//
+// Order of preference, most-known first:
+//   1. what you have ALREADY logged on set 1 today — you are mid session and
+//      that is not a prediction, it is a fact;
+//   2. the load the progression engine is suggesting for set 1 today, which is
+//      what the empty field is ghosting anyway;
+//   3. last session's top set, exactly as before.
+//
+// RETURNS LB. computeSuggestedSet returns DISPLAY units because it feeds a
+// placeholder, and the ramp builders take lb — toCanonicalLb is the inverse,
+// and skipping it silently ramps a kg user off a number 2.2x too big. Stored
+// set weights are already lb and must NOT be converted again.
+function chooseRampBasis(todayFirstSet, suggestedFirst, priorTop){
+  if(todayFirstSet && todayFirstSet.weight != null){
+    return {weight: todayFirstSet.weight, from: 'logged'};
+  }
+  if(suggestedFirst && suggestedFirst.weight != null){
+    return {weight: toCanonicalLb(suggestedFirst.weight), from: 'target'};
+  }
+  if(priorTop && priorTop.weight != null) return {weight: priorTop.weight, from: 'last'};
+  return null;
+}
+
 function warmupRepsValue(reps){
   return String(reps).split('-')[0].trim();
 }
@@ -16127,11 +16164,7 @@ async function renderWorkout(){
         const suggestedFirst = computeSuggestedSet(
           (prior && prior.sets[0]) ? prior.sets[0] : null,
           signal, inDeloadWeek, exCategory, ex, priorTop, rpeCtx);
-        const rampBasis = (todayFirstSet && todayFirstSet.weight != null)
-          ? {weight: todayFirstSet.weight, from: 'logged'}
-          : (suggestedFirst && suggestedFirst.weight != null)
-            ? {weight: toCanonicalLb(suggestedFirst.weight), from: 'target'}
-            : (priorTop ? {weight: priorTop.weight, from: 'last'} : null);
+        const rampBasis = chooseRampBasis(todayFirstSet, suggestedFirst, priorTop);
         if(rampBasis && rampBasis.weight >= minWeight){
           const ramp = isBarbell ? buildWarmupRamp(rampBasis.weight) : buildGenericWarmupRamp(rampBasis.weight);
           // The ramp's `reps` is sometimes a range ('8-10'), which is fine to
