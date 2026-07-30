@@ -823,11 +823,22 @@
   .set-row-content{flex-wrap:wrap;}
 
   .warmup-box{
-    margin:4px 0 2px 76px; padding:9px 11px; background:rgba(79,195,247,0.08); border:1px solid rgba(79,195,247,0.28);
+    margin:4px 0 2px 76px; padding:9px 11px; background:rgba(255,122,51,0.08); border:1px solid rgba(255,122,51,0.28);
     border-radius:var(--radius-sm); font-size:12px; color:var(--text); line-height:1.6;
-    box-shadow:var(--rim), 0 4px 12px -7px rgba(79,195,247,0.3);
+    box-shadow:var(--rim), 0 4px 12px -7px rgba(255,122,51,0.3);
   }
-  .warmup-box .warmup-title{color:#4FC3F7; font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:3px;}
+  .warmup-box .warmup-title{color:var(--plate-orange); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:3px;}
+  /* THE STRIP, used instead of the box once the ramp is real rows.
+     A 4-set exercise with a 3-step ramp should read as SEVEN set lines — three
+     orange, four plain — not as a bordered table sitting on top of four rows.
+     So the strip has no border and no background of its own: it is the same
+     76px column the sets block uses, and the only thing marking its rows out
+     is the colour on each one. */
+  .warmup-strip{ margin:4px 0 2px 76px; display:flex; flex-direction:column; gap:6px; }
+  .warmup-strip .warmup-title{
+    color:var(--plate-orange); font-weight:600; font-size:11.5px;
+    text-transform:uppercase; letter-spacing:0.3px;
+  }
   .warmup-box .warmup-row{display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px;}
 
   .sticky-day-header{
@@ -2424,34 +2435,72 @@
   .ex-suggest-option:active{ background:var(--surface); }
   /* Laid out like a set row so the eye reads them as the same kind of thing,
      but deliberately quieter — these are the reps that do not count. */
-  /* A warm-up row now has the same shape as a working set — inputs, a plate
-     button, a tap target — so it needs to be unmistakable at a glance. It
-     carries the SAME BLUE the warm-up box has always used (#4FC3F7), not a new
-     colour: the ramp already had an identity and this is it, applied to a
-     control instead of a table. Working sets stay the app's default surface. */
+  /* SET-TYPE COLOUR LANGUAGE. One colour per kind of set, so which is which is
+     answerable at a glance without reading a word:
+
+       superset   yellow  --plate-yellow   .exercise-block.superset-*
+       warm-up    ORANGE  --plate-orange   .warmup-set-row
+
+     v3.35 through v3.39 used #4FC3F7 here on the reasoning that the warm-up BOX
+     had always been that colour and reusing an existing identity beats
+     inventing one. That argument was wrong twice over. #4FC3F7 was never a
+     warm-up identity — it is also the Care stretch tag and the volume-landmark
+     colour — and more importantly `--plate-blue` is this app's INTERACTION
+     colour: focus rings, carets, checkbox accents, the active plate button and
+     the gym-mode input focus tint. A blue-accented row on a screen where blue
+     means "this is the control you are touching" is the one colour that could
+     not carry a second meaning. Orange was free.
+
+     The shape deliberately copies `.exercise-block.superset-top` — 4px left
+     border plus an 8% tint of the same hue — because a consistent SHAPE is what
+     makes a colour legible as a category rather than as decoration. */
   .warmup-set-row{
     display:flex; align-items:center; gap:8px; padding:5px 6px 5px 8px;
     /* .plate-result is flex-basis:100%, so it needs somewhere to wrap to. */
     flex-wrap:wrap;
-    border-left:3px solid rgba(79,195,247,0.55);
+    border-left:4px solid var(--plate-orange);
     border-radius:var(--radius-sm);
-    background:rgba(79,195,247,0.06);
-    margin-bottom:4px;
+    background:rgba(255,122,51,0.08);
     transition:opacity 0.2s var(--ease-smooth);
   }
   .warmup-set-row .ex-input{
-    border-color:rgba(79,195,247,0.30);
+    border-color:rgba(255,122,51,0.30);
   }
   .warmup-set-row.done{ opacity:0.5; }
   .warmup-done-label{ display:flex; align-items:center; }
   .warmup-done{ width:20px; height:20px; }
+  /* SET-TYPE COLOUR LANGUAGE, third entry. See .warmup-set-row for the rule.
+     Teal rather than the blue this was described as: --plate-blue is the
+     INTERACTION colour (focus rings, carets, checkbox accents, the active plate
+     button) and no set type may take it. --plate-teal is the nearest free hue
+     and is unused anywhere in the set language. */
+  .set-drop-wrap{ flex-basis:100%; display:none; flex-direction:column; gap:4px; margin-top:4px; }
+  .set-drop-wrap.open{ display:flex; }
+  .drop-set-row{
+    display:flex; align-items:center; gap:8px; padding:4px 6px 4px 8px;
+    border-left:4px solid var(--plate-teal);
+    border-radius:var(--radius-sm);
+    background:rgba(47,184,196,0.08);
+  }
+  .drop-set-row .ex-input{ border-color:rgba(47,184,196,0.30); }
+  .drop-step-label{
+    min-width:52px; font-size:11px; color:var(--plate-teal);
+    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+  }
+  .set-drop-btn{
+    flex:0 0 auto; width:28px; height:28px; border-radius:var(--radius-sm);
+    border:1px solid var(--line); background:var(--surface2); color:var(--text-muted);
+    font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;
+    -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+  }
+  .set-drop-btn.has-drops{ color:var(--plate-teal); border-color:rgba(47,184,196,0.45); }
   .warmup-step-label{
-    min-width:66px; font-size:11.5px; color:#4FC3F7;
+    min-width:66px; font-size:11.5px; color:var(--plate-orange);
     font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
   }
   .warmup-set-row .ex-input{ flex:1; min-width:0; }
   .warmup-foot{
-    margin-top:8px; font-size:11px; color:var(--text-muted); line-height:1.4;
+    margin-top:2px; font-size:11px; color:var(--text-muted); line-height:1.4;
   }
   .masterclass-index-btn.current{
     background:linear-gradient(160deg, rgba(91,124,255,0.14), rgba(91,124,255,0.05));
@@ -3077,6 +3126,40 @@
   }
   body.gym-mode .warmup-title{font-size:11px; letter-spacing:0.04em; opacity:0.75; margin-bottom:6px;}
   body.gym-mode .warmup-row{font-size:16px; padding:5px 0; line-height:1.35;}
+  /* The strip has no chrome of its own in gym mode either — the wells do the
+     work, exactly as they do for the working set rows below them. */
+  /* Gym mode: the drop rows get the same arm's-length treatment as every other
+     row, in teal. Background is a FULLY OPAQUE teal-shifted gradient — the
+     pink-tint rule applies to every row well, not just the ones that existed
+     when it was written. */
+  body.gym-mode .drop-set-row{
+    gap:0; padding:0; margin:6px 0;
+    background:linear-gradient(170deg, #132123 0%, #0D1719 62%, #0A1214 100%);
+    border:1px solid rgba(47,184,196,0.30);
+    border-left:4px solid var(--plate-teal);
+    border-radius:14px;
+  }
+  body.gym-mode .drop-set-row .ex-input{
+    width:auto; flex:1 1 0; min-width:0; min-height:48px;
+    background:transparent; border:none; border-radius:0;
+    border-right:1px solid rgba(47,184,196,0.18);
+    box-shadow:none; font-size:20px; font-weight:600; padding:0 2px;
+  }
+  body.gym-mode .drop-step-label{
+    min-width:0; width:64px; min-height:48px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:600; flex:0 0 auto;
+    border-right:1px solid rgba(47,184,196,0.18);
+  }
+  body.gym-mode .drop-set-row .ex-x{ display:none; }
+  body.gym-mode .set-drop-btn{
+    min-width:54px; min-height:56px; width:auto; height:auto; flex:0 0 auto;
+    background:transparent; border:none; border-radius:0;
+    border-left:1px solid rgba(255,255,255,0.07);
+    font-size:18px;
+  }
+  body.gym-mode .warmup-strip{margin-left:0;}
+  body.gym-mode .warmup-strip .warmup-title{font-size:11px; letter-spacing:0.04em; opacity:0.75;}
 
   /* Gym mode: the same arm's-length treatment the working set rows get, since
      a ramp row is now a thing you TOUCH between sets rather than a table you
@@ -3091,9 +3174,12 @@
      translucent; the background may not. */
   body.gym-mode .warmup-set-row{
     gap:0; padding:0; margin:7px 0;
-    background:linear-gradient(170deg, #16202A 0%, #0E161D 62%, #0A1116 100%);
-    border:1px solid rgba(79,195,247,0.34);
-    border-left:3px solid rgba(79,195,247,0.75);
+    /* Orange-shifted versions of the same three FULLY OPAQUE stops
+       `.set-row-content` uses. See the pink-tint rule — the background of a row
+       well may not carry alpha; the border and the inset sheen may. */
+    background:linear-gradient(170deg, #241A13 0%, #17110C 62%, #110C08 100%);
+    border:1px solid rgba(255,122,51,0.34);
+    border-left:4px solid var(--plate-orange);
     border-radius:16px;
     box-shadow:0 1px 0 rgba(255,255,255,0.055) inset,
                0 6px 18px -12px rgba(0,0,0,0.9);
@@ -3101,29 +3187,29 @@
   body.gym-mode .warmup-set-row .ex-input{
     width:auto; flex:1 1 0; min-width:0; min-height:56px;
     background:transparent; border:none; border-radius:0;
-    border-right:1px solid rgba(79,195,247,0.18);
+    border-right:1px solid rgba(255,122,51,0.18);
     box-shadow:none;
     font-size:23px; font-weight:600; padding:0 2px;
   }
   body.gym-mode .warmup-set-row .ex-input:focus{
-    outline:none; background:rgba(79,195,247,0.16); box-shadow:none;
+    outline:none; background:rgba(255,122,51,0.16); box-shadow:none;
   }
   body.gym-mode .warmup-step-label{
     min-width:0; width:74px; min-height:56px;
     display:flex; align-items:center; justify-content:center;
     font-size:13px; font-weight:600;
-    border-right:1px solid rgba(79,195,247,0.18); flex:0 0 auto;
+    border-right:1px solid rgba(255,122,51,0.18); flex:0 0 auto;
   }
   body.gym-mode .warmup-done-label{
     min-width:54px; min-height:56px; justify-content:center; flex:0 0 auto;
-    border-right:1px solid rgba(79,195,247,0.18);
+    border-right:1px solid rgba(255,122,51,0.18);
   }
   body.gym-mode .warmup-done{ width:26px; height:26px; }
   body.gym-mode .warmup-set-row .plate-btn{
     min-width:54px; min-height:56px; flex:0 0 auto;
     display:flex; align-items:center; justify-content:center;
     background:transparent; border:none; border-radius:0;
-    border-left:1px solid rgba(79,195,247,0.18);
+    border-left:1px solid rgba(255,122,51,0.18);
     font-size:18px; color:var(--text-muted);
   }
   body.gym-mode .warmup-set-row .ex-x{ display:none; }
@@ -4832,7 +4918,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.38';
+const APP_VERSION = '3.41';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -13968,6 +14054,11 @@ document.getElementById('reorderToggle').addEventListener('click', ()=>{
 function parseTopRep(setsStr){
   const range = setsStr.match(/(\d+)\s*-\s*(\d+)/);
   if(range) return Number(range[2]);
+  // The whole "NxM" form, anchored at both ends. Checked BEFORE the loose
+  // trailing pattern below and deliberately requiring leading digits: a bare
+  // /[×xX]\s*(\d+)$/ would read "Max 5" as five reps.
+  const nByM = setsStr.match(/^\s*\d+\s*[×xX]\s*(\d+)\s*$/);
+  if(nByM) return Number(nByM[1]);
   const single = setsStr.match(/×\s*(\d+)\s*$/);
   if(single) return Number(single[1]);
   return null;
@@ -14001,7 +14092,9 @@ function getSetFieldUnit(setsStr){
 }
 
 function parseSetCount(setsStr){
-  const leading = setsStr.match(/^(\d+)\s*×/);
+  // [×xX] everywhere a multiplier is read. Anchored at the start and requiring
+  // digits before it, so a word ending in "x" can never be mistaken for one.
+  const leading = setsStr.match(/^(\d+)\s*[×xX]/);
   if(leading) return Number(leading[1]);
   // Some prescriptions put the multiplier at the END instead of the start
   // ("5 reps ×3", "3-5 min ×3", "8 breaths/side ×2") rather than leading
@@ -14674,8 +14767,17 @@ function topSetOf(entry){
   return best;
 }
 
+// Drops count. A drop set is work performed at a lower load, not a warm-up —
+// excluding it would under-report a technique whose entire point is extra
+// volume past failure. Warm-ups are still invisible here: they live in
+// `entry.warmups`, which this function has never read.
+function dropVolumeOf(set){
+  return (set.drops||[]).reduce((sum,d)=> sum + (d.weight!=null && d.reps!=null ? d.weight*d.reps : 0), 0);
+}
+
 function volumeOf(entry){
-  return (entry.sets||[]).reduce((sum,s)=> sum + (s.weight!=null && s.reps!=null ? s.weight*s.reps : 0), 0);
+  return (entry.sets||[]).reduce((sum,s)=>
+    sum + (s.weight!=null && s.reps!=null ? s.weight*s.reps : 0) + dropVolumeOf(s), 0);
 }
 
 // --- Exercise substitution modal --------------------------------------------
@@ -15491,6 +15593,31 @@ function chooseRampBasis(todayFirstSet, suggestedFirst, priorTop){
   return null;
 }
 
+// One nudge, three reasons. An eligible exercise that cannot get a numeric
+// ramp says WHY rather than rendering nothing — a feature that silently skips
+// an exercise is indistinguishable from a feature that is broken.
+function buildWarmupNudgeHtml(reason){
+  const body = reason === 'bodyweight'
+    ? 'A few easier reps — knee push-ups, band-assisted pulls, a lighter-tempo set, whatever gets the same joints moving — before your first real set.'
+    : reason === 'light'
+      ? 'Light enough that a formal ramp is more clutter than help. One easy set to groove the movement is plenty.'
+      : 'No logged history for this lift yet, so there is no working weight to ramp to. Work up in a few easy sets today; from your next session the ramp builds itself.';
+  return `<div class="warmup-box"><div class="warmup-title">🔥 Warm up first</div><div class="warmup-row"><span>${body}</span></div></div>`;
+}
+
+// Named, so it can be tested rather than asserted as a substring — the same
+// reason buildWarmupRampRowsHtml and chooseRampBasis are named.
+function buildDropRowsHtml(drops, setIdx, showWeight){
+  const list = Array.isArray(drops) ? drops : [];
+  return list.map((d, di)=> `
+    <div class="drop-set-row" data-drop-idx="${di}">
+      <span class="drop-step-label">drop ${di+1}</span>
+      ${showWeight ? `<input type="number" inputmode="decimal" enterkeyhint="next" class="ex-input drop-weight" aria-label="Set ${setIdx+1} drop ${di+1} weight in ${weightUnit}" value="${d.weight != null ? escapeHtml(String(trimUnitNum(toDisplayWeight(d.weight)))) : ''}">
+      <span class="ex-x">×</span>` : ''}
+      <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input drop-reps" aria-label="Set ${setIdx+1} drop ${di+1} reps" value="${d.reps != null ? escapeHtml(String(d.reps)) : ''}">
+    </div>`).join('');
+}
+
 function warmupRepsValue(reps){
   return String(reps).split('-')[0].trim();
 }
@@ -15670,6 +15797,36 @@ function noteRestAchieved(slotKey, setIdx){
 // numbers the app already computes — `entry.warmups` is simply absent on every
 // entry ever written before this, which reads correctly as "no warm-up logged".
 // No migration, no schema bump.
+async function saveExDropSet(dayId, idx, setIdx, dropIdx, weight, reps, subVariant){
+  const log = await getExLog(dayId, idx, subVariant);
+  let entry = log.find(e=>e.date===selectedLogDate);
+  if(!entry){ entry = {date: selectedLogDate, sets: []}; log.push(entry); }
+  // Same padding rule saveExSet uses — a drop can be typed before its parent
+  // set is filled in, and the parent must exist for the drop to hang off.
+  while(entry.sets.length <= setIdx) entry.sets.push({weight:null, reps:null, rpe:null});
+  const parent = entry.sets[setIdx];
+  if(!Array.isArray(parent.drops)) parent.drops = [];
+  while(parent.drops.length <= dropIdx) parent.drops.push({});
+
+  const w = weight === '' ? null : Number(weight);
+  const r = reps === '' ? null : Number(reps);
+  const drop = {};
+  if(w != null && !isNaN(w)) drop.weight = w;
+  if(r != null && !isNaN(r)) drop.reps = r;
+  parent.drops[dropIdx] = drop;
+
+  // A drop cleared to empty at the END of the list is a removal, not a blank
+  // row to keep forever. Trailing empties are trimmed; a blank in the MIDDLE
+  // stays, because removing it would renumber the ones after it.
+  while(parent.drops.length && Object.keys(parent.drops[parent.drops.length-1]).length === 0){
+    parent.drops.pop();
+  }
+  if(parent.drops.length === 0) delete parent.drops;
+
+  try{ await window.storage.set(exKey(activeProgram, dayId, idx, subVariant), JSON.stringify(log)); }catch(e){}
+  return entry.sets[setIdx].drops || [];
+}
+
 async function saveExWarmupSet(dayId, idx, stepIdx, weight, reps, done, subVariant){
   const log = await getExLog(dayId, idx, subVariant);
   let entry = log.find(e=>e.date===selectedLogDate);
@@ -16036,7 +16193,6 @@ async function renderWorkout(){
   // pattern, so re-ramping for every single compound lift in a session is
   // unrealistic. Once the second working muscle group of the day has been
   // warmed, later exercises (position 2+) never show a ramp.
-  const firstExCategory = (exerciseInfo[renderExercises[0]?.name] || {}).category;
 
   // For any slot with no history of its own yet, pre-fetch the most recent
   // full session logged for this same exercise name anywhere else in the
@@ -16119,7 +16275,26 @@ async function renderWorkout(){
       const badge = badgeInfo.html;
 
       let warmupHtml = '';
-      const warmupEligiblePosition = i === 0 || (i === 1 && exCategory !== firstExCategory);
+      // THE FIRST TWO EXERCISES OF THE DAY, unconditionally.
+      //
+      // The second exercise used to qualify only if it trained a DIFFERENT
+      // movement pattern from the first — on the reasoning that after heavy
+      // squats you are
+      // already warm for another squat-pattern lift. (The old condition is
+      // deliberately NOT quoted here: a comment containing the code it
+      // replaced makes "that code is gone" unassertable, which is exactly how
+      // this comment failed its own static check on the first run.)
+      //
+      // That reasoning is physiologically arguable and it is not what the day
+      // looks like from inside: Back Squat
+      // then Front Squat showed a ramp on one and nothing on the other, with no
+      // visible reason for the difference. Being warm is not the same as being
+      // loaded up to a specific weight on a specific bar.
+      //
+      // The other gates below still apply, so "first two" does not mean
+      // "always" — a core or carry slot, a bodyweight movement, or a lift too
+      // light to bother ramping is still handled on its own terms.
+      const warmupEligiblePosition = i <= 1;
       // A heavy top set (8 reps or fewer target) warrants its own ramp
       // regardless of where it falls in the day — general "warmth" from an
       // earlier exercise isn't the same as being loaded up to a specific
@@ -16129,6 +16304,8 @@ async function renderWorkout(){
       const warmupEligible = warmupEligiblePosition || isHeavySet;
       const isEligibleCategory = WARMUP_ELIGIBLE_CATEGORIES.includes(exCategory);
       if(warmupEligible && isEligibleCategory && showWeight){
+        // Below: either a numeric ramp, or the nudge saying why not. Never
+        // neither.
         // Barbell lifts get the full bar-only-then-% ramp; any other loaded
         // compound (dumbbell, cable, machine) gets the generic % ramp —
         // previously only an exact-name barbell list qualified at all, which
@@ -16186,13 +16363,23 @@ async function renderWorkout(){
           const rampTitle = `🔥 Suggested warm-up ramp <span style="font-weight:400; text-transform:none; letter-spacing:0; opacity:0.75;">${basisNote}</span>`;
           const rampNote = warmupSetsEnabled
             ? '<div class="warmup-foot">Not counted in your volume, 1RM or PRs.</div>' : '';
-          warmupHtml = `<div class="warmup-box"><div class="warmup-title">${rampTitle}</div>${rampRows}${rampNote}</div>`;
+          // The box is for the READ-ONLY ramp. Once the ramp is loggable rows,
+          // the box chrome is what stops it reading as part of the set list.
+          warmupHtml = warmupSetsEnabled
+            ? `<div class="warmup-strip"><div class="warmup-title">${rampTitle}</div>${rampRows}${rampNote}</div>`
+            : `<div class="warmup-box"><div class="warmup-title">${rampTitle}</div>${rampRows}${rampNote}</div>`;
+        } else {
+          // Eligible, loaded, and still no numbers. Two ways to get here and
+          // they are not the same message: a lift with no history at all has
+          // nothing to ramp TO, while a lift under the threshold has a weight
+          // that simply is not worth four steps.
+          warmupHtml = buildWarmupNudgeHtml(rampBasis ? 'light' : 'no-history');
         }
       } else if(warmupEligible && isEligibleCategory && !showWeight){
         // No external load to build a numeric ramp off of (push-ups, pull-ups,
         // bodyweight squats, etc.), but the same "don't go in cold" principle
         // still applies — a short text nudge instead of a weight table.
-        warmupHtml = `<div class="warmup-box"><div class="warmup-title">🔥 Warm up first</div><div class="warmup-row"><span>A few easier reps — knee push-ups, band-assisted pulls, a lighter-tempo set, whatever gets the same joints moving — before your first real set.</span></div></div>`;
+        warmupHtml = buildWarmupNudgeHtml('bodyweight');
       }
 
       const showPlateCalc = showWeight && isBarbellExercise(ex.name);
@@ -16248,10 +16435,12 @@ async function renderWorkout(){
               <input type="number" inputmode="decimal" enterkeyhint="next" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${setIdx+1} RPE, 5 to 10" placeholder="${placeholderSet && placeholderSet.rpe!=null ? placeholderSet.rpe : 'RPE'}" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
               ${showPlateCalc ? '<button type="button" class="plate-btn" aria-label="Open plate calculator">🏋️</button>' : ''}
               ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" aria-label="Log this set by voice">🎤</button>' : ''}
+              <button type="button" class="set-drop-btn${savedSet && savedSet.drops && savedSet.drops.length ? ' has-drops' : ''}" aria-label="Add a drop set under set ${setIdx+1}">\u2935</button>
               <button type="button" class="set-note-btn${savedSet && savedSet.note ? ' has-note' : ''}" aria-label="${savedSet && savedSet.note ? 'Edit note on set '+(setIdx+1) : 'Add a note to set '+(setIdx+1)}" aria-expanded="false">${savedSet && savedSet.note ? '\u{1F4DD}' : '\u002B'}</button>
               <span class="set-status"></span>
               ${showPlateCalc ? '<div class="plate-result"></div>' : ''}
               ${SpeechRecognitionCtor ? '<div class="voice-feedback"></div>' : ''}
+              <div class="set-drop-wrap${savedSet && savedSet.drops && savedSet.drops.length ? ' open' : ''}">${buildDropRowsHtml(savedSet && savedSet.drops, setIdx, showWeight)}</div>
               <div class="set-note-wrap${savedSet && savedSet.note ? ' open' : ''}">
                 <input type="text" class="set-note-input" maxlength="200" placeholder="e.g. left shoulder pinched" aria-label="Note for set ${setIdx+1}" value="${savedSet && savedSet.note ? escapeHtml(savedSet.note) : ''}">
               </div>
@@ -18150,6 +18339,40 @@ function wireSetsBlock(row, exIdx, ex){
 
     // Voice belongs on a working set, whose fields are empty. See wirePlateButton.
     wirePlateButton(plateBtn, plateResult, wInput, true);
+
+    const dropBtn = setRow.querySelector('.set-drop-btn');
+    const dropWrap = setRow.querySelector('.set-drop-wrap');
+    if(dropBtn && dropWrap){
+      const setIdx = Number(setRow.dataset.setIdx);
+      const saveDrop = async (rowEl)=>{
+        const di = Number(rowEl.dataset.dropIdx);
+        const dw = rowEl.querySelector('.drop-weight');
+        const dr = rowEl.querySelector('.drop-reps');
+        const wLb = (dw && dw.value !== '') ? toCanonicalLb(dw.value) : '';
+        await saveExDropSet(activeDay, exIdx, setIdx, di, wLb, dr ? dr.value : '', subVariant);
+        dropBtn.classList.toggle('has-drops', dropWrap.querySelectorAll('.drop-set-row').length > 0);
+      };
+      const wireDropRow = (rowEl)=>{
+        rowEl.querySelectorAll('.ex-input').forEach(el=>
+          el.addEventListener('change', ()=> saveDrop(rowEl)));
+      };
+      dropWrap.querySelectorAll('.drop-set-row').forEach(wireDropRow);
+
+      dropBtn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        // Appends rather than toggling. The wrap is only ever hidden when there
+        // are no drops, so a toggle would give the button two meanings
+        // depending on state — "show me" and "add one" — with no way to tell
+        // which you were about to get.
+        const nextIdx = dropWrap.querySelectorAll('.drop-set-row').length;
+        dropWrap.insertAdjacentHTML('beforeend', buildDropRowsHtml([{}], setIdx, showWeight).replace('data-drop-idx="0"', `data-drop-idx="${nextIdx}"`));
+        dropWrap.classList.add('open');
+        const added = dropWrap.lastElementChild;
+        wireDropRow(added);
+        const firstField = added.querySelector('.ex-input');
+        if(firstField) firstField.focus();
+      });
+    }
 
     makeSwipeable(setRow, ()=> deleteSet(setRow));
   }
