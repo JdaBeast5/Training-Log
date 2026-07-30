@@ -40,6 +40,16 @@
     --plate-teal:#2FB8C4;
     --plate-white:#E4E7EB;
     --plate-off:#4A5057;
+    /* The left column every row in a sets block opens with: the set number on
+       a working set, the done-checkbox on a warm-up step. It is a token and
+       not a literal in two rules because the weight/reps columns only line up
+       between the two row types if both gutters are the same width, and two
+       literals are a thing that drifts. */
+    --set-gutter:22px;
+    /* The column after reps. A working set spends it on RPE; a warm-up step
+       and a drop spend it on saying which kind of row they are. One token,
+       because the whole point is that the three land in the same place. */
+    --set-meta-col:46px;
     /* ELEVATION. There were 92 box-shadow declarations here holding 73
        distinct values, only 13 of which appeared more than once — every
        component carrying its own hand-tuned depth. Individually fine;
@@ -704,11 +714,22 @@
   .set-row{
     overflow:hidden; border-radius:var(--radius-sm);
   }
+  /* GEOMETRY SHARED WITH `.warmup-set-row`: same gap, same cell widths, same
+     `--set-gutter`. A ramp step and a working set are the same kind of row and
+     the colour is meant to be the only difference between them; before this the
+     ramp row carried 8px of gap, its own padding and inputs stretched to fill,
+     so the two read as unrelated widgets that happened to be near each other.
+     This rule deliberately does NOT grow to meet the warm-up row's tint and
+     accent — the row has ~237px on the phone this is built for and is already
+     within about a dozen of it. The warm-up row hangs its accent in the left
+     margin instead. Changing the gap here without changing it there is what
+     puts the columns back out of line. */
   .set-row-content{
     display:flex; align-items:center; gap:6px; padding:2px 0;
+    min-height:34px;
   }
   .set-num{
-    width:16px; text-align:center; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted); flex:0 0 auto;
+    width:var(--set-gutter); text-align:center; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted); flex:0 0 auto;
   }
   .ex-input{
     width:62px; background:var(--surface2); border:1px solid var(--line); color:var(--text);
@@ -758,6 +779,16 @@
     font-size:11.5px; padding:5px 10px; border-radius:var(--radius-sm); cursor:pointer; font-family:'Inter',sans-serif;
     margin-top:2px;
   }
+  /* Same as Last Time, History and Edit are one wrapping row, not three
+     stacked bars. `.sets-block` is a column flex container, so as direct
+     children these stretched to full width and `.ex-history-btn`'s margin-left
+     never got the chance to put History beside Same as Last Time the way its
+     own comment says it should — three full-width buttons then sat between the
+     warm-up ramp and the sets they belong to. */
+  .set-actions{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
+  .set-actions .same-as-last-btn{ width:auto; flex:1 1 150px; margin-bottom:0; padding:7px 10px; }
+  .set-actions .ex-history-btn,
+  .set-actions .ex-edit-btn{ margin-left:0; flex:0 0 auto; }
   .same-as-last-btn{
     width:100%; margin-bottom:10px; padding:9px; background:var(--surface2); border:1px solid rgba(91,124,255,0.3);
     border-radius:var(--radius-md); color:var(--plate-blue); font-size:12.5px; font-weight:600; cursor:pointer;
@@ -787,7 +818,7 @@
     box-shadow:var(--rim), 0 4px 12px -7px rgba(224,80,80,0.35);
   }
 
-  .ex-rpe{width:46px;}
+  .ex-rpe{width:var(--set-meta-col);}
   .plate-btn{
     flex:0 0 auto; width:34px; height:34px; border-radius:var(--radius-sm); border:1px solid var(--line);
     background:var(--surface2); color:var(--text-muted); font-size:14px; cursor:pointer;
@@ -822,8 +853,10 @@
   .voice-feedback.open{display:block;}
   .set-row-content{flex-wrap:wrap;}
 
+  /* No left margin any more: both of these now render INSIDE `.sets-block`,
+     which already carries the 76px column. */
   .warmup-box{
-    margin:4px 0 2px 76px; padding:9px 11px; background:rgba(255,122,51,0.08); border:1px solid rgba(255,122,51,0.28);
+    margin:4px 0 8px; padding:9px 11px; background:rgba(255,122,51,0.08); border:1px solid rgba(255,122,51,0.28);
     border-radius:var(--radius-sm); font-size:12px; color:var(--text); line-height:1.6;
     box-shadow:var(--rim), 0 4px 12px -7px rgba(255,122,51,0.3);
   }
@@ -834,7 +867,7 @@
      So the strip has no border and no background of its own: it is the same
      76px column the sets block uses, and the only thing marking its rows out
      is the colour on each one. */
-  .warmup-strip{ margin:4px 0 2px 76px; display:flex; flex-direction:column; gap:6px; }
+  .warmup-strip{ margin:0; display:flex; flex-direction:column; gap:6px; }
   .warmup-strip .warmup-title{
     color:var(--plate-orange); font-weight:600; font-size:11.5px;
     text-transform:uppercase; letter-spacing:0.3px;
@@ -2455,7 +2488,15 @@
      border plus an 8% tint of the same hue — because a consistent SHAPE is what
      makes a colour legible as a category rather than as decoration. */
   .warmup-set-row{
-    display:flex; align-items:center; gap:8px; padding:5px 6px 5px 8px;
+    /* Gap is `.set-row-content`'s, deliberately — see the note there.
+       The negative margin is how the accent and the tint get their room WITHOUT
+       taking any from the row: -10px out, then 4px of border and 6px of padding
+       back in, so the first cell begins at exactly the x a set row's set number
+       begins at and the two rows wrap at exactly the same point. The 4px left
+       border and the 8% tint are the set-type colour language and stay. */
+    display:flex; align-items:center; gap:6px;
+    margin-left:-10px; padding:2px 4px 2px 6px;
+    min-height:34px;
     /* .plate-result is flex-basis:100%, so it needs somewhere to wrap to. */
     flex-wrap:wrap;
     border-left:4px solid var(--plate-orange);
@@ -2467,24 +2508,54 @@
     border-color:rgba(255,122,51,0.30);
   }
   .warmup-set-row.done{ opacity:0.5; }
-  .warmup-done-label{ display:flex; align-items:center; }
-  .warmup-done{ width:20px; height:20px; }
+  /* Sits in the gutter, where a working set puts its number. Same width, so
+     the weight field starts at the same x on both kinds of row. */
+  .warmup-done-label{
+    display:flex; align-items:center; justify-content:center;
+    width:var(--set-gutter); flex:0 0 auto;
+    position:relative; min-height:34px;
+  }
+  /* Group B of the touch-target layer: drawn at 18px so it sits correctly in a
+     dense row, tappable well past that. Expands by the row's own 6px gap, which
+     puts its edge exactly at the midpoint before the weight field and never
+     over it, and takes the rest of the gain vertically. */
+  .warmup-done-label::after{
+    content:''; position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:calc(100% + 6px); height:44px;
+  }
+  .warmup-done{ width:18px; height:18px; margin:0; }
   /* SET-TYPE COLOUR LANGUAGE, third entry. See .warmup-set-row for the rule.
      Teal rather than the blue this was described as: --plate-blue is the
      INTERACTION colour (focus rings, carets, checkbox accents, the active plate
      button) and no set type may take it. --plate-teal is the nearest free hue
      and is unused anywhere in the set language. */
-  .set-drop-wrap{ flex-basis:100%; display:none; flex-direction:column; gap:4px; margin-top:4px; }
+  /* 6px, matching `.sets-block`. A drop is one more line in the same list; the
+     teal is what says it belongs to the set above, not a tighter gap. */
+  .set-drop-wrap{ flex-basis:100%; display:none; flex-direction:column; gap:6px; margin-top:6px; }
   .set-drop-wrap.open{ display:flex; }
+  /* Same grid as `.set-row-content` and `.warmup-set-row`, and the accent is
+     paid for the same way: -10px out, 4px of border and 6px of padding back in,
+     so the row costs no width and its first cell starts where theirs do. */
   .drop-set-row{
-    display:flex; align-items:center; gap:8px; padding:4px 6px 4px 8px;
+    display:flex; align-items:center; gap:6px;
+    margin-left:-10px; padding:2px 4px 2px 6px;
+    min-height:34px;
     border-left:4px solid var(--plate-teal);
     border-radius:var(--radius-sm);
     background:rgba(47,184,196,0.08);
   }
   .drop-set-row .ex-input{ border-color:rgba(47,184,196,0.30); }
+  /* The gutter, where a working set puts its number and a ramp step puts its
+     checkbox. A drop has neither — what it has is a parent, so it points at it.
+     aria-hidden: every input on the row already says "Set 3 drop 1" in full. */
+  .drop-hang{
+    width:var(--set-gutter); flex:0 0 auto; text-align:center;
+    font-size:12px; color:var(--plate-teal); line-height:1;
+  }
   .drop-step-label{
-    min-width:52px; font-size:11px; color:var(--plate-teal);
+    width:var(--set-meta-col); flex:0 0 auto; text-align:center;
+    font-size:11px; color:var(--plate-teal);
     font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
   }
   .set-drop-btn{
@@ -2494,13 +2565,23 @@
     -webkit-tap-highlight-color:transparent; touch-action:manipulation;
   }
   .set-drop-btn.has-drops{ color:var(--plate-teal); border-color:rgba(47,184,196,0.45); }
+  /* 46px is `.ex-rpe`'s width, and that is the point: the step label occupies
+     the column a working set gives to RPE, so the plate button lands in the
+     same place on both. A warm-up has no RPE — the field it would sit in is
+     the one thing on the row that has something else to say. */
   .warmup-step-label{
-    min-width:66px; font-size:11.5px; color:var(--plate-orange);
+    width:var(--set-meta-col); flex:0 0 auto; text-align:center;
+    font-size:11px; color:var(--plate-orange);
     font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
   }
-  .warmup-set-row .ex-input{ flex:1; min-width:0; }
+  /* Deliberately NOT `flex:1`. Stretching the inputs to fill the row is what
+     made a ramp step twice the width of the set below it. */
+  /* Renders directly under the title and ABOVE the rows now. It explains the
+     orange rows either way, and sitting under them it was a line of prose
+     between the ramp and the working sets — the one place nothing should be
+     if the whole block is meant to read as one list of set lines. */
   .warmup-foot{
-    margin-top:2px; font-size:11px; color:var(--text-muted); line-height:1.4;
+    margin:0 0 2px; font-size:10.5px; color:var(--text-muted); line-height:1.4;
   }
   .masterclass-index-btn.current{
     background:linear-gradient(160deg, rgba(91,124,255,0.14), rgba(91,124,255,0.05));
@@ -3145,10 +3226,18 @@
     border-right:1px solid rgba(47,184,196,0.18);
     box-shadow:none; font-size:20px; font-weight:600; padding:0 2px;
   }
+  /* Mirrors the warm-up label above, for the same two reasons: it is no longer
+     the first cell, and a fixed width cannot land on a flexed column. */
   body.gym-mode .drop-step-label{
-    min-width:0; width:64px; min-height:48px;
+    min-width:0; flex:1 1 0; min-height:48px;
     display:flex; align-items:center; justify-content:center;
-    font-size:12px; font-weight:600; flex:0 0 auto;
+    font-size:12px; font-weight:600;
+    border-right:none;
+  }
+  body.gym-mode .drop-hang{
+    min-width:40px; width:40px; min-height:48px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; flex:0 0 auto;
     border-right:1px solid rgba(47,184,196,0.18);
   }
   body.gym-mode .drop-set-row .ex-x{ display:none; }
@@ -3159,6 +3248,9 @@
     font-size:18px;
   }
   body.gym-mode .warmup-strip{margin-left:0;}
+  /* Gym mode keeps the stacked full-width buttons — at arm's length a row of
+     three is three targets too small to hit. */
+  body.gym-mode .set-actions{display:block;}
   body.gym-mode .warmup-strip .warmup-title{font-size:11px; letter-spacing:0.04em; opacity:0.75;}
 
   /* Gym mode: the same arm's-length treatment the working set rows get, since
@@ -3194,14 +3286,26 @@
   body.gym-mode .warmup-set-row .ex-input:focus{
     outline:none; background:rgba(255,122,51,0.16); box-shadow:none;
   }
+  /* The label is no longer the first cell — it sits between the reps field and
+     the plate button, both of which already draw a divider on the side facing
+     it, so it must not draw a third.
+     `flex:1 1 0` and not a fixed width: in gym mode every `.ex-input` flexes,
+     so a working row splits the space between the 40px gutter and the 54px
+     plate button into three equal shares. The label takes the third share —
+     the one the RPE field takes on a working set — and the two rows line up
+     exactly. A fixed 74px could only line up at one screen width. */
   body.gym-mode .warmup-step-label{
-    min-width:0; width:74px; min-height:56px;
+    min-width:0; flex:1 1 0; min-height:56px;
     display:flex; align-items:center; justify-content:center;
     font-size:13px; font-weight:600;
-    border-right:1px solid rgba(255,122,51,0.18); flex:0 0 auto;
+    border-right:none;
   }
+  /* 40px, which is `body.gym-mode .set-num`. Was 54px — so the ramp row's
+     weight field started 14px right of the weight field on the set below it,
+     in the mode whose whole justification is being readable at arm's length.
+     A 40x56 cell is well past any tap-target floor. */
   body.gym-mode .warmup-done-label{
-    min-width:54px; min-height:56px; justify-content:center; flex:0 0 auto;
+    min-width:40px; width:40px; min-height:56px; justify-content:center; flex:0 0 auto;
     border-right:1px solid rgba(255,122,51,0.18);
   }
   body.gym-mode .warmup-done{ width:26px; height:26px; }
@@ -4918,7 +5022,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.41';
+const APP_VERSION = '3.43';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -15607,14 +15711,20 @@ function buildWarmupNudgeHtml(reason){
 
 // Named, so it can be tested rather than asserted as a substring — the same
 // reason buildWarmupRampRowsHtml and chooseRampBasis are named.
+//
+// COLUMN ORDER MATCHES `.set-row-content`, for the reason spelled out on
+// buildWarmupRampRowsHtml: gutter, weight, ×, reps, then the 46px column the
+// working set spends on RPE. The label used to sit in FRONT of the weight
+// field, which put a drop's numbers ~40px right of the set they hang off.
 function buildDropRowsHtml(drops, setIdx, showWeight){
   const list = Array.isArray(drops) ? drops : [];
   return list.map((d, di)=> `
     <div class="drop-set-row" data-drop-idx="${di}">
-      <span class="drop-step-label">drop ${di+1}</span>
+      <span class="drop-hang" aria-hidden="true">↳</span>
       ${showWeight ? `<input type="number" inputmode="decimal" enterkeyhint="next" class="ex-input drop-weight" aria-label="Set ${setIdx+1} drop ${di+1} weight in ${weightUnit}" value="${d.weight != null ? escapeHtml(String(trimUnitNum(toDisplayWeight(d.weight)))) : ''}">
       <span class="ex-x">×</span>` : ''}
       <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input drop-reps" aria-label="Set ${setIdx+1} drop ${di+1} reps" value="${d.reps != null ? escapeHtml(String(d.reps)) : ''}">
+      <span class="drop-step-label">drop ${di+1}</span>
     </div>`).join('');
 }
 
@@ -15622,6 +15732,17 @@ function warmupRepsValue(reps){
   return String(reps).split('-')[0].trim();
 }
 
+// COLUMN ORDER MATCHES `.set-row-content` AND THAT IS THE POINT.
+//   gutter  — set number on a working set, done-checkbox here
+//   weight  ×  reps  — identical fields, identical widths
+//   46px    — RPE on a working set, the step label here
+//   plate button
+// Before this the checkbox and a 66px label both sat in front of the weight
+// field, so a ramp step's numbers started ~50px right of the numbers on the set
+// directly below it and its inputs were stretched to fill what was left. Same
+// row, different colour, is the whole design; it does not survive the columns
+// not lining up.
+//
 // Pulled out of renderWorkout so it can be tested. The rule worth protecting is
 // in the two ternaries: a SAVED value always beats the computed one. A warm-up
 // you actually did is a fact; the ramp number is a suggestion until you touch
@@ -15695,40 +15816,95 @@ function buildWarmupRampRowsHtml(ramp, saved, showPlateCalc){
         <label class="warmup-done-label">
           <input type="checkbox" class="warmup-done" ${s.done ? 'checked' : ''} aria-label="Mark warm-up ${escapeHtml(step.label)} as done">
         </label>
-        <span class="warmup-step-label">${escapeHtml(step.label)}</span>
         <input type="number" inputmode="decimal" enterkeyhint="next" class="ex-input warmup-weight" aria-label="Warm-up ${escapeHtml(step.label)} weight in ${weightUnit}" value="${escapeHtml(String(wVal))}">
         <span class="ex-x">×</span>
         <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input warmup-reps" aria-label="Warm-up ${escapeHtml(step.label)} reps" value="${escapeHtml(String(rVal))}">
+        <span class="warmup-step-label">${escapeHtml(String(step.short || step.label))}</span>
         ${showPlateCalc ? `<button type="button" class="plate-btn" aria-label="Plate calculator for warm-up ${escapeHtml(step.label)}">🏋️</button>` : ''}
         ${showPlateCalc ? '<div class="plate-result"></div>' : ''}
       </div>`;
   }).join('');
 }
 
-function buildWarmupRamp(workingWeightLb){
+// ONE ROUNDING RULE FOR THE RAMP, and it is the one the working-set suggestion
+// already uses. The ramp rounded to a flat 5 lb / 2.5 kg, which is correct for
+// the commercial-gym default and wrong for anyone who has opened the equipment
+// picker: a home gym whose smallest plate is 5 lb loads the bar in 10 lb steps,
+// so "~60% — 80 lb" is a weight that cannot be built. snapToLoadable's own
+// comment says a suggestion you can't load is worse than no suggestion, because
+// it costs a moment of trying before you realise — that applied to the ramp
+// exactly as much as to the working set, and the ramp was not using it.
+//
+// snapToLoadable deliberately returns machines, cables and plate-loaded kit
+// UNCHANGED, because the app has no model of their increments. A ramp step
+// still has to be a number you can dial in, so those keep the flat increment.
+// That is a fallback for the case the equipment model does not cover, not a
+// second rounding rule for the case it does — the branch here mirrors
+// snapToLoadable's own so the two cannot disagree about which case is which.
+function snapRampWeight(displayWeight, exName){
+  if(isBarbellExercise(exName) || isDumbbellExercise(exName)){
+    return snapToLoadable(displayWeight, exName, 'nearest');
+  }
+  return roundToIncrement(displayWeight, weightUnit === 'kg' ? 2.5 : 5);
+}
+
+// A ramp has to ASCEND, and it has to stay under the weight it is ramping to.
+// Rounding breaks both at the bottom of the eligible range, which is where the
+// people who most need a ramp actually are:
+//
+//   working 95 lb  — the lowest weight that gets a barbell ramp at all —
+//                    ~40% lands at 40, UNDER the 45 lb bar. The second step
+//                    asked you to take weight off an empty bar.
+//   working 115 lb — ~40% lands on exactly the bar, so the ramp showed 45 lb
+//                    twice and called the second one 40%.
+//
+// The step is DROPPED rather than nudged up to the next loadable weight: two
+// rungs 5 lb apart is not a warm-up step, it is a rounding artefact wearing
+// one. A three-step ramp is a correct ramp; a four-step ramp with a fake rung
+// is not.
+function pruneRampSteps(steps, workingDisplayWeight){
+  const out = [];
+  for(const step of steps){
+    const prev = out.length ? out[out.length - 1].weight : null;
+    if(prev != null && step.weight <= prev) continue;
+    if(workingDisplayWeight != null && step.weight >= workingDisplayWeight) continue;
+    out.push(step);
+  }
+  return out;
+}
+
+// `short` is what the ROW shows and `label` is what the read-only box, the
+// aria-labels and the plate-calculator tooltip say. The row's label column is
+// the same 46px as the RPE field it lines up with and "Bar only" does not fit
+// in 46px — but "Bar only — 45 lb × 8-10" is the right phrasing in a sentence,
+// so both exist rather than one being truncated into the other's job.
+function buildWarmupRamp(workingWeightLb, exName){
   const displayWorking = toDisplayWeight(workingWeightLb);
-  const standard = BARBELL_STANDARDS[weightUnit];
-  const increment = weightUnit === 'kg' ? 2.5 : 5;
-  return [
-    {label:'Bar only', weight: standard.bar, reps:'8-10'},
-    {label:'~40%', weight: roundToIncrement(displayWorking*0.4, increment), reps:5},
-    {label:'~60%', weight: roundToIncrement(displayWorking*0.6, increment), reps:3},
-    {label:'~80%', weight: roundToIncrement(displayWorking*0.8, increment), reps:2},
-  ];
+  // The person's OWN bar, not the commercial-gym standard. Someone who told
+  // the equipment picker they train on a 35 lb bar was still being told
+  // "Bar only — 45", by a feature whose first step is the bar.
+  const bar = getEquipment().bar;
+  const snap = (w)=> snapRampWeight(w, exName);
+  return pruneRampSteps([
+    {label:'Bar only', short:'Bar', weight: bar, reps:'8-10'},
+    {label:'~40%', short:'40%', weight: snap(displayWorking*0.4), reps:5},
+    {label:'~60%', short:'60%', weight: snap(displayWorking*0.6), reps:3},
+    {label:'~80%', short:'80%', weight: snap(displayWorking*0.8), reps:2},
+  ], displayWorking);
 }
 
 // Same ramping principle as buildWarmupRamp, for dumbbell/machine/cable
 // compounds — no "bar only" rung since there's no empty implement to start
 // from, so it opens a bit higher (~30%) and steps up in three jumps instead
 // of four.
-function buildGenericWarmupRamp(workingWeightLb){
+function buildGenericWarmupRamp(workingWeightLb, exName){
   const displayWorking = toDisplayWeight(workingWeightLb);
-  const increment = weightUnit === 'kg' ? 2.5 : 5;
-  return [
-    {label:'~30%', weight: roundToIncrement(displayWorking*0.3, increment), reps:8},
-    {label:'~55%', weight: roundToIncrement(displayWorking*0.55, increment), reps:5},
-    {label:'~75%', weight: roundToIncrement(displayWorking*0.75, increment), reps:3},
-  ];
+  const snap = (w)=> snapRampWeight(w, exName);
+  return pruneRampSteps([
+    {label:'~30%', short:'30%', weight: snap(displayWorking*0.3), reps:8},
+    {label:'~55%', short:'55%', weight: snap(displayWorking*0.55), reps:5},
+    {label:'~75%', short:'75%', weight: snap(displayWorking*0.75), reps:3},
+  ], displayWorking);
 }
 
 // `distance` is appended to the parameter list rather than inserted in its
@@ -16343,7 +16519,9 @@ async function renderWorkout(){
           signal, inDeloadWeek, exCategory, ex, priorTop, rpeCtx);
         const rampBasis = chooseRampBasis(todayFirstSet, suggestedFirst, priorTop);
         if(rampBasis && rampBasis.weight >= minWeight){
-          const ramp = isBarbell ? buildWarmupRamp(rampBasis.weight) : buildGenericWarmupRamp(rampBasis.weight);
+          // The name goes in so the steps can be snapped to what this person can
+          // actually load, the same way the working-set suggestion already is.
+          const ramp = isBarbell ? buildWarmupRamp(rampBasis.weight, ex.name) : buildGenericWarmupRamp(rampBasis.weight, ex.name);
           // The ramp's `reps` is sometimes a range ('8-10'), which is fine to
           // read and not a number you can log. The first number of the range is
           // what goes in the field; the label still shows the range.
@@ -16365,9 +16543,21 @@ async function renderWorkout(){
             ? '<div class="warmup-foot">Not counted in your volume, 1RM or PRs.</div>' : '';
           // The box is for the READ-ONLY ramp. Once the ramp is loggable rows,
           // the box chrome is what stops it reading as part of the set list.
-          warmupHtml = warmupSetsEnabled
-            ? `<div class="warmup-strip"><div class="warmup-title">${rampTitle}</div>${rampRows}${rampNote}</div>`
-            : `<div class="warmup-box"><div class="warmup-title">${rampTitle}</div>${rampRows}${rampNote}</div>`;
+          //
+          // The note comes BEFORE the rows. It explains the orange rows from
+          // either side, and underneath them it was a line of prose sitting
+          // between the ramp and the working sets — the one gap that has to be
+          // empty if three orange rows and four plain ones are going to read as
+          // seven set lines.
+          //
+          // Every step can be pruned away on a weight where the percentages all
+          // collapse onto the bar. A title over nothing is the silent-skip bug
+          // §3.12 closed, so it takes the same nudge an under-threshold lift gets.
+          warmupHtml = !ramp.length
+            ? buildWarmupNudgeHtml('light')
+            : warmupSetsEnabled
+              ? `<div class="warmup-strip"><div class="warmup-title">${rampTitle}</div>${rampNote}${rampRows}</div>`
+              : `<div class="warmup-box"><div class="warmup-title">${rampTitle}</div>${rampNote}${rampRows}</div>`;
         } else {
           // Eligible, loaded, and still no numbers. Two ways to get here and
           // they are not the same message: a lift with no history at all has
@@ -16467,10 +16657,23 @@ async function renderWorkout(){
         </div>
       ` : '';
 
+      // THE RAMP RENDERS INSIDE THE SETS BLOCK, and this is a bug fix as much as
+      // a layout change. `wireSetsBlock` does
+      // `block = row.querySelector('.sets-block')` and then
+      // `block.querySelectorAll('.warmup-set-row')` — but the strip was emitted
+      // as a SIBLING of that block, so the selector matched nothing and every
+      // ramp row shipped unwired: typing a weight into one saved nothing,
+      // ticking one off persisted nothing and did not grey the row, and the
+      // plate button on a ramp row did nothing at all. The jsdom suite passes
+      // because its fixture builds the rows inside the block; the app did not.
+      //
+      // Order below is the reading order: the three actions once, then the ramp
+      // steps, then the working sets, then Add Set. Nothing between the orange
+      // rows and the plain ones.
       trackingHtml = `
-        ${warmupHtml}
         <div class="sets-block" data-day="${activeDay}" data-idx="${i}">
-          ${sameAsLastHtml}
+          <div class="set-actions">${sameAsLastHtml}</div>
+          ${warmupHtml}
           ${setRowsHtml}
           <button class="add-set-btn" type="button">+ Add Set</button>
         </div>
