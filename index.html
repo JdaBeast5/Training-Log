@@ -764,6 +764,29 @@
     font-family:'Inter',sans-serif; transition:transform 0.15s var(--ease-smooth);
   }
   .same-as-last-btn:active{transform:scale(0.98);}
+  /* ONE ROW, ABOVE THE RAMP. These three were direct children of .sets-block,
+     which is a flex COLUMN, so each was stretched to full width and stacked —
+     three slabs standing between the last warm-up row and set 1. Their own
+     styling had always assumed a row (the small two each carry a left margin
+     for sitting beside something), so this is the layout they were written for
+     and never got. The junction is now last-ramp-row straight into set 1. */
+  .ex-actions{
+    display:flex; align-items:center; gap:6px; padding:0 0 8px 76px;
+  }
+  .ex-actions .same-as-last-btn{ width:auto; flex:1 1 auto; margin-bottom:0; }
+  .ex-actions .ex-history-btn,
+  .ex-actions .ex-edit-btn{ margin-left:0; flex:0 0 auto; }
+  /* A LINE, NOT A PANEL — see buildWarmupNudgeHtml. One sentence of advice had
+     been wearing the same bordered, tinted box the four-row ramp table wears. */
+  .warmup-note{
+    display:flex; align-items:flex-start; gap:7px;
+    margin:2px 0 6px 76px; padding:0 2px;
+    font-size:12px; line-height:1.45; color:var(--text-muted);
+  }
+  .warmup-note-icon{ flex:0 0 auto; opacity:0.85; }
+  /* Inside the strip the flex gap already spaces it; its own top margin would
+     double up now that it sits under the title rather than under the rows. */
+  .warmup-strip .warmup-foot{ margin-top:0; }
   .session-summary{
     display:flex; gap:14px; padding:4px 0 2px 76px; font-size:11.5px; color:var(--text-muted);
   }
@@ -3216,6 +3239,8 @@
   body.gym-mode .warmup-foot{ font-size:12px; padding:0 4px; }
 
   body.gym-mode .sets-block{padding-left:0; padding-right:0;}
+  body.gym-mode .ex-actions{ padding-left:0; padding-bottom:0; }
+  body.gym-mode .warmup-note{ margin-left:0; font-size:13px; }
   body.gym-mode .same-as-last-btn,
   body.gym-mode .add-set-btn{
     min-height:52px; font-size:15px; width:100%;
@@ -4918,7 +4943,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.41';
+const APP_VERSION = '3.43';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -15571,24 +15596,42 @@ function roundToIncrement(n, increment){ return Math.round(n/increment)*incremen
 // working weight. It does not — 180 < 191 — and the test written to prove it
 // failed, correctly. The defect is the calibration, not an overshoot.)
 //
+// ALL THREE BRANCHES MEASURE THE TOP WORKING SET, and they did not always.
+// Two of them read the exercise's FIRST set while the third read its heaviest,
+// so the three were not comparable quantities at all. Anyone who ramps up
+// inside their own set rows — which is what you do whenever the loggable ramp
+// is switched off — has a bar-only warm-up sitting in row one, and the ramp
+// was therefore being computed from a warm-up.
+//
+// Observed on a real screen: a squat carrying a 225 lb top set and an "add
+// weight today" badge rendered the "light enough that a formal ramp is more
+// clutter than help" nudge, because row one held the empty bar at 45, the
+// engine suggested 55 off it, and 55 is under the 95 lb threshold. The badge
+// and the ramp contradicted each other nine lines apart. Worse, the exercise
+// with the STRONGEST progression signal was the only kind that could lose its
+// ramp this way, because a signal is what makes branch 2 reachable at all —
+// every lift without one fell through to branch 3 and looked fine.
+//
 // Order of preference, most-known first:
-//   1. what you have ALREADY logged on set 1 today — you are mid session and
-//      that is not a prediction, it is a fact;
-//   2. the load the progression engine is suggesting for set 1 today, which is
-//      what the empty field is ghosting anyway;
-//   3. last session's top set, exactly as before.
+//   1. today's heaviest logged set, but ONLY once it has reached today's
+//      target — mid session it has not, and a basis that starts light and
+//      climbs makes the ramp shrink while you are still using it;
+//   2. the load the progression engine is suggesting for today's TOP set;
+//   3. last session's top set.
 //
 // RETURNS LB. computeSuggestedSet returns DISPLAY units because it feeds a
 // placeholder, and the ramp builders take lb — toCanonicalLb is the inverse,
 // and skipping it silently ramps a kg user off a number 2.2x too big. Stored
 // set weights are already lb and must NOT be converted again.
-function chooseRampBasis(todayFirstSet, suggestedFirst, priorTop){
-  if(todayFirstSet && todayFirstSet.weight != null){
-    return {weight: todayFirstSet.weight, from: 'logged'};
+function chooseRampBasis(todayTop, suggestedTop, priorTop){
+  const targetLb = (suggestedTop && suggestedTop.weight != null) ? toCanonicalLb(suggestedTop.weight) : null;
+  const loggedLb = (todayTop && todayTop.weight != null) ? todayTop.weight : null;
+  // `>=` and not `>`: on the set where the two agree, what you actually put on
+  // the bar is the fact and the suggestion is the prediction of it.
+  if(loggedLb != null && (targetLb == null || loggedLb >= targetLb)){
+    return {weight: loggedLb, from: 'logged'};
   }
-  if(suggestedFirst && suggestedFirst.weight != null){
-    return {weight: toCanonicalLb(suggestedFirst.weight), from: 'target'};
-  }
+  if(targetLb != null) return {weight: targetLb, from: 'target'};
   if(priorTop && priorTop.weight != null) return {weight: priorTop.weight, from: 'last'};
   return null;
 }
@@ -15601,8 +15644,15 @@ function buildWarmupNudgeHtml(reason){
     ? 'A few easier reps — knee push-ups, band-assisted pulls, a lighter-tempo set, whatever gets the same joints moving — before your first real set.'
     : reason === 'light'
       ? 'Light enough that a formal ramp is more clutter than help. One easy set to groove the movement is plenty.'
+      : reason === 'not-ramped'
+      ? 'Not a movement a percentage ramp fits, so there is no ramp here. A couple of lighter sets of this same exercise is the warm-up.'
       : 'No logged history for this lift yet, so there is no working weight to ramp to. Work up in a few easy sets today; from your next session the ramp builds itself.';
-  return `<div class="warmup-box"><div class="warmup-title">🔥 Warm up first</div><div class="warmup-row"><span>${body}</span></div></div>`;
+  // A LINE, NOT A PANEL. This used to carry the same bordered, tinted box the
+  // read-only ramp uses. That box is right for a four-row table of numbers and
+  // disproportionate for one sentence of advice — and it is drawn most often
+  // on exactly the exercises that have the least to say. Same orange, same 76px
+  // column, no chrome.
+  return `<div class="warmup-note"><span class="warmup-note-icon">🔥</span><span>${body}</span></div>`;
 }
 
 // Named, so it can be tested rather than asserted as a substring — the same
@@ -16246,6 +16296,15 @@ async function renderWorkout(){
       const priorSourceProgram = priorIsCrossProgram ? fallbackPriorEntries[i].sourceProgram : null;
       const priorTop = prior ? topSetOf(prior) : null;
       const todayEntry = log.find(e=>e.date===selectedLogDate);
+      // Declared here rather than beside the session summary below because the
+      // warm-up ramp needs it too. Computing today's top set twice under two
+      // names is the alias hole v24 recorded: sabotage rewrites one copy and
+      // every assertion about the other stays green. One name, one call.
+      // (The call is deliberately NOT written out in this comment — the static
+      // suite counts occurrences of it, and a comment quoting the thing it
+      // documents defeats the assertion. That is the fifth time in this
+      // project's history; it caught this very line on the first run.)
+      const todayTop = todayEntry ? topSetOf(todayEntry) : null;
       const topRep = parseTopRep(ex.sets);
       const setCount = Math.max(parseSetCount(ex.sets), todayEntry ? todayEntry.sets.length : 0);
 
@@ -16319,29 +16378,17 @@ async function renderWorkout(){
         // needed here anymore. Never affects the progression badges above,
         // which stay correctly scoped to this exact slot's own trend.
         const isFallback = priorIsCrossProgram;
-        // WHAT THE RAMP IS BUILT FROM.
+        // WHAT THE RAMP IS BUILT FROM — the rule and the reasoning live on
+        // chooseRampBasis, in one copy. Do not restate them here.
         //
-        // It used to be `priorTop` — the heaviest set you logged LAST time.
-        // That is the wrong basis on any session where the weight is meant to
-        // move: on a day the app is telling you to add 10 lb, the ramp was
-        // still walking you up to last week's lift, and on a deload it was
-        // ramping you past the weight you were about to do.
-        //
-        // Order of preference, most-known first:
-        //   1. what you have ALREADY logged on set 1 today — you are mid
-        //      session and that is not a prediction, it is a fact;
-        //   2. the load the progression engine is suggesting for set 1 today,
-        //      which is what the empty field is ghosting anyway;
-        //   3. last session's top set, exactly as before.
-        //
-        // computeSuggestedSet returns DISPLAY units because it feeds a
-        // placeholder; the ramp builders take lb. toCanonicalLb is the inverse
-        // and skipping it silently ramps a kg user off a number 2.2x too big.
-        const todayFirstSet = todayEntry && todayEntry.sets && todayEntry.sets[0];
-        const suggestedFirst = computeSuggestedSet(
-          (prior && prior.sets[0]) ? prior.sets[0] : null,
-          signal, inDeloadWeek, exCategory, ex, priorTop, rpeCtx);
-        const rampBasis = chooseRampBasis(todayFirstSet, suggestedFirst, priorTop);
+        // priorTop is passed as the engine's starting point on purpose: the
+        // question being asked is what today's TOP set should weigh, because
+        // that is the number the ramp takes its percentages of. The per-row
+        // placeholders further down still ask per row, which is right there —
+        // each row ghosts its own counterpart from last session.
+        const suggestedTop = computeSuggestedSet(
+          priorTop, signal, inDeloadWeek, exCategory, ex, priorTop, rpeCtx);
+        const rampBasis = chooseRampBasis(todayTop, suggestedTop, priorTop);
         if(rampBasis && rampBasis.weight >= minWeight){
           const ramp = isBarbell ? buildWarmupRamp(rampBasis.weight) : buildGenericWarmupRamp(rampBasis.weight);
           // The ramp's `reps` is sometimes a range ('8-10'), which is fine to
@@ -16354,7 +16401,7 @@ async function renderWorkout(){
           // Says what it was built from. A ramp that silently changed basis
           // between sessions would look like the app forgetting your numbers.
           const basisNote = rampBasis.from === 'logged'
-            ? "(built from today's logged working weight)"
+            ? "(built from today's heaviest logged set)"
             : rampBasis.from === 'target'
               ? "(built from today's target working weight)"
               : isFallback
@@ -16363,10 +16410,13 @@ async function renderWorkout(){
           const rampTitle = `🔥 Suggested warm-up ramp <span style="font-weight:400; text-transform:none; letter-spacing:0; opacity:0.75;">${basisNote}</span>`;
           const rampNote = warmupSetsEnabled
             ? '<div class="warmup-foot">Not counted in your volume, 1RM or PRs.</div>' : '';
+          // Under the TITLE, not under the last row. Below the rows it was the
+          // second thing standing between the ramp and set 1; above them it
+          // reads as part of the heading it qualifies.
           // The box is for the READ-ONLY ramp. Once the ramp is loggable rows,
           // the box chrome is what stops it reading as part of the set list.
           warmupHtml = warmupSetsEnabled
-            ? `<div class="warmup-strip"><div class="warmup-title">${rampTitle}</div>${rampRows}${rampNote}</div>`
+            ? `<div class="warmup-strip"><div class="warmup-title">${rampTitle}</div>${rampNote}${rampRows}</div>`
             : `<div class="warmup-box"><div class="warmup-title">${rampTitle}</div>${rampRows}${rampNote}</div>`;
         } else {
           // Eligible, loaded, and still no numbers. Two ways to get here and
@@ -16380,16 +16430,47 @@ async function renderWorkout(){
         // bodyweight squats, etc.), but the same "don't go in cold" principle
         // still applies — a short text nudge instead of a weight table.
         warmupHtml = buildWarmupNudgeHtml('bodyweight');
+      } else if(warmupEligible && showWeight){
+        // THE FOURTH WAY TO REACH "no ramp here", and the one v3.39 missed
+        // when it closed the other three. The category gate rejects anything
+        // outside the ramp-shaped movement patterns, and until now it did so
+        // by rendering nothing whatsoever — which from outside is
+        // indistinguishable from the feature being broken, the exact reasoning
+        // that motivated the other three sentences.
+        //
+        // It also catches every exercise with NO library entry at all, because
+        // the category is read by exact name and a program-builder lift is
+        // typed by hand. Those are the slots most likely to look broken: a
+        // program you wrote yourself would show a ramp on nothing.
+        //
+        // Gated on showWeight ON PURPOSE. Ninety of the hundred and fifteen
+        // first-and-second slots this branch could reach across the built-in
+        // programs are bodyweight — planks, hollow holds, box jumps — and a
+        // warm-up note under a plank is the clutter this app keeps having to
+        // remove. A LOADED movement with no ramp is a question worth
+        // answering; an unloaded one is not.
+        warmupHtml = buildWarmupNudgeHtml('not-ramped');
       }
 
       const showPlateCalc = showWeight && isBarbellExercise(ex.name);
       // Sits next to Same as Last Time because both answer "what did I do
-      // before" — one applies it, the other lets you look. Placed in the sets
-      // block rather than on the exercise name, which is already the swap
-      // trigger for any exercise with alternatives.
+      // before" — one applies it, the other lets you look.
+      //
+      // THESE USED TO BE THE FIRST CHILDREN OF .sets-block, and that is where
+      // they went wrong. .sets-block is a flex COLUMN, so three controls whose
+      // own CSS was written to sit side by side (they carry a left margin for
+      // exactly that) were stretched into three stacked full-width slabs —
+      // wedged between the last warm-up row and set 1. The ramp is supposed to
+      // read as extra set lines continuous with the working sets; a stack of
+      // buttons through the middle is the one thing that stops it.
+      //
+      // They are now one compact row ABOVE the ramp: still above the fields
+      // Same as Last Time fills, and out of the junction entirely.
       const historyBtnHtml = `<button type="button" class="ex-history-btn" data-idx="${i}" aria-label="See all history for ${escapeHtml(ex.name)}">📈 History</button>`
         + `<button type="button" class="ex-edit-btn" data-idx="${i}" aria-label="Edit the prescription for ${escapeHtml(ex.name)}">✏️ Edit</button>`;
-      const sameAsLastHtml = (prior ? `<button type="button" class="same-as-last-btn" data-idx="${i}">↻ Same as Last Time${priorIsCrossProgram ? ` (${escapeHtml(programLabelFor(priorSourceProgram))})` : ''}</button>` : '') + historyBtnHtml;
+      const exActionsHtml = `<div class="ex-actions">`
+        + (prior ? `<button type="button" class="same-as-last-btn" data-idx="${i}">↻ Same as Last Time${priorIsCrossProgram ? ` (${escapeHtml(programLabelFor(priorSourceProgram))})` : ''}</button>` : '')
+        + historyBtnHtml + `</div>`;
       const setRowsHtml = Array.from({length: setCount}).map((_,setIdx)=>{
         const savedSet = todayEntry && todayEntry.sets[setIdx] ? todayEntry.sets[setIdx] : null;
         const placeholderSet = prior && prior.sets[setIdx] ? prior.sets[setIdx] : null;
@@ -16450,7 +16531,6 @@ async function renderWorkout(){
       }).join('');
 
       const todayVolume = todayEntry ? volumeOf(todayEntry) : 0;
-      const todayTop = todayEntry ? topSetOf(todayEntry) : null;
       const oneRM = todayTop ? estimated1RM(todayTop.weight, todayTop.reps) : null;
       // Kept in step with refreshSessionSummary — this builds the summary on
       // first render, that one rebuilds it after each save, and the two must
@@ -16468,9 +16548,9 @@ async function renderWorkout(){
       ` : '';
 
       trackingHtml = `
+        ${exActionsHtml}
         ${warmupHtml}
         <div class="sets-block" data-day="${activeDay}" data-idx="${i}">
-          ${sameAsLastHtml}
           ${setRowsHtml}
           <button class="add-set-btn" type="button">+ Add Set</button>
         </div>
@@ -18016,7 +18096,12 @@ function wireSetsBlock(row, exIdx, ex){
   const block = row.querySelector('.sets-block');
   const subVariant = subVariantOf(ex); // undefined when this slot isn't currently substituted
 
-  const sameAsLastBtn = block.querySelector('.same-as-last-btn');
+  // Scoped to `row`, not `block`. The button used to live inside .sets-block
+  // and now lives in the action row above the ramp, which is a SIBLING of it —
+  // a lookup left scoped to the sets block returns null and the button silently
+  // does nothing. Nothing in the markup complains; the control simply stops
+  // working. Moving an element between containers is a wiring change.
+  const sameAsLastBtn = row.querySelector('.same-as-last-btn');
   if(sameAsLastBtn){
     sameAsLastBtn.addEventListener('click', async ()=>{
       const key = exKey(activeProgram, activeDay, exIdx, subVariant);
