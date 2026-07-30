@@ -5022,7 +5022,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.43';
+const APP_VERSION = '3.44';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -18219,6 +18219,14 @@ function wireSetsBlock(row, exIdx, ex){
   const block = row.querySelector('.sets-block');
   const subVariant = subVariantOf(ex); // undefined when this slot isn't currently substituted
 
+  // WHAT SHAPE A ROW IN THIS BLOCK HAS. Derived once, here, because more than
+  // one thing in this function builds a row: the add-set button builds a whole
+  // one and the drop button builds a sub-row. These must match the shape
+  // renderWorkout emitted or the two disagree about what a set row is.
+  const showWeight = !ex.noWeight;
+  const showDistance = isDistanceExercise(ex.name);
+  const showPlateCalc = showWeight && isBarbellExercise(ex.name);
+
   const sameAsLastBtn = block.querySelector('.same-as-last-btn');
   if(sameAsLastBtn){
     sameAsLastBtn.addEventListener('click', async ()=>{
@@ -18615,11 +18623,9 @@ function wireSetsBlock(row, exIdx, ex){
     const div = document.createElement('div');
     div.className = 'set-row swipe-item';
     div.dataset.setIdx = newIdx;
-    const showWeight = !ex.noWeight;
-    // Must match the row shape built in renderWorkout, or an added set on a
-    // cardio exercise would silently have nowhere to put a distance.
-    const showDistance = isDistanceExercise(ex.name);
-    const showPlateCalc = showWeight && isBarbellExercise(ex.name);
+    // showWeight / showDistance / showPlateCalc come from the top of
+    // wireSetsBlock. They used to be re-derived here, which is how the drop
+    // button's handler came to reference a binding that did not reach it.
     div.innerHTML = `
       <div class="swipe-delete-bg">🗑️</div>
       <div class="swipe-content set-row-content">
@@ -18632,10 +18638,12 @@ function wireSetsBlock(row, exIdx, ex){
         <input type="number" inputmode="decimal" enterkeyhint="next" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${newIdx+1} RPE, 5 to 10" placeholder="RPE" value="">
         ${showPlateCalc ? '<button type="button" class="plate-btn" aria-label="Open plate calculator">🏋️</button>' : ''}
         ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" aria-label="Log this set by voice">🎤</button>' : ''}
+        <button type="button" class="set-drop-btn" aria-label="Add a drop set under set ${newIdx+1}">\u2935</button>
         <button type="button" class="set-note-btn" aria-label="Add a note to set ${newIdx+1}" aria-expanded="false">+</button>
         <span class="set-status"></span>
         ${showPlateCalc ? '<div class="plate-result"></div>' : ''}
         ${SpeechRecognitionCtor ? '<div class="voice-feedback"></div>' : ''}
+        <div class="set-drop-wrap"></div>
         <div class="set-note-wrap">
           <input type="text" class="set-note-input" maxlength="200" placeholder="e.g. left shoulder pinched" aria-label="Note for set ${newIdx+1}" value="">
         </div>
