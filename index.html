@@ -2487,22 +2487,37 @@
      The shape deliberately copies `.exercise-block.superset-top` — 4px left
      border plus an 8% tint of the same hue — because a consistent SHAPE is what
      makes a colour legible as a category rather than as decoration. */
+  /* SWIPE OUTER, mirroring `.set-row`. Everything you can SEE is the swipe
+     content and slides with it — accent, tint, grid. Anything left up here
+     would sit still while the row moved and read as the row tearing in half.
+     `margin-bottom:0` overrides `.swipe-item`'s 2px: the strip already spaces
+     its rows with the same 6px gap the sets block uses, and 2px on top of that
+     is the one row in the list sitting lower than the rest. */
   .warmup-set-row{
-    /* Gap is `.set-row-content`'s, deliberately — see the note there.
-       The negative margin is how the accent and the tint get their room WITHOUT
-       taking any from the row: -10px out, then 4px of border and 6px of padding
-       back in, so the first cell begins at exactly the x a set row's set number
-       begins at and the two rows wrap at exactly the same point. The 4px left
-       border and the 8% tint are the set-type colour language and stay. */
+    position:relative; overflow:hidden;
+    border-radius:var(--radius-sm);
+    margin-left:-10px; margin-bottom:0;
+    transition:opacity 0.2s var(--ease-smooth);
+  }
+  /* Gap is `.set-row-content`'s, deliberately — see the note there. The accent
+     still pays for itself: -10px on the outer, then 4px of border and 6px of
+     padding back in here. The three sum to zero exactly as before; they just
+     live on two elements now because only one of them may move. */
+  .warmup-set-row-content{
     display:flex; align-items:center; gap:6px;
-    margin-left:-10px; padding:2px 4px 2px 6px;
+    padding:2px 4px 2px 6px;
     min-height:34px;
     /* .plate-result is flex-basis:100%, so it needs somewhere to wrap to. */
     flex-wrap:wrap;
     border-left:4px solid var(--plate-orange);
     border-radius:var(--radius-sm);
-    background:rgba(255,122,51,0.08);
-    transition:opacity 0.2s var(--ease-smooth);
+    /* THE PINK-TINT RULE, and this is the row that made it apply here. A
+       `.swipe-content` is the only thing hiding the red delete panel behind it,
+       so its background may not carry alpha — 8% orange over red is a pink row
+       mid-swipe. Layered as two identical gradient stops over an opaque
+       --surface instead of flattened to a hex, so the tint stays written as 8%
+       orange and cannot drift the day --surface moves. */
+    background:linear-gradient(rgba(255,122,51,0.08), rgba(255,122,51,0.08)), var(--surface);
   }
   .warmup-set-row .ex-input{
     border-color:rgba(255,122,51,0.30);
@@ -2576,6 +2591,13 @@
   }
   /* Deliberately NOT `flex:1`. Stretching the inputs to fill the row is what
      made a ramp step twice the width of the set below it. */
+  .warmup-restore-btn{
+    align-self:flex-start; margin-top:2px; padding:5px 9px;
+    background:transparent; border:1px dashed rgba(255,122,51,0.35);
+    border-radius:var(--radius-sm); color:var(--plate-orange);
+    font-size:11.5px; font-family:inherit; cursor:pointer;
+    -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+  }
   /* Renders directly under the title and ABOVE the rows now. It explains the
      orange rows either way, and sitting under them it was a line of prose
      between the ramp and the working sets — the one place nothing should be
@@ -3248,6 +3270,7 @@
     font-size:18px;
   }
   body.gym-mode .warmup-strip{margin-left:0;}
+  body.gym-mode .warmup-restore-btn{ min-height:44px; font-size:13px; padding:8px 14px; }
   /* Gym mode keeps the stacked full-width buttons — at arm's length a row of
      three is three targets too small to hit. */
   body.gym-mode .set-actions{display:block;}
@@ -3264,8 +3287,16 @@
      it. See the pink-tint rule: an alpha below 1 in a row well is exactly the
      bug that cost two versions. The border and the inset sheen may be
      translucent; the background may not. */
+  /* The well moved to the content half with the split — same reason as normal
+     mode: it is the half that slides. The outer keeps only the clip and the
+     spacing. `margin-left:0` because gym mode zeroes `.sets-block`'s left
+     column, so the -10px accent inset has nothing to hang in and would push the
+     row off the edge of the screen. */
   body.gym-mode .warmup-set-row{
-    gap:0; padding:0; margin:7px 0;
+    margin:7px 0; border-radius:16px;
+  }
+  body.gym-mode .warmup-set-row-content{
+    gap:0; padding:0;
     /* Orange-shifted versions of the same three FULLY OPAQUE stops
        `.set-row-content` uses. See the pink-tint rule — the background of a row
        well may not carry alpha; the border and the inset sheen may. */
@@ -5022,7 +5053,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.44';
+const APP_VERSION = '3.45';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -15807,12 +15838,19 @@ function wirePlateButton(plateBtn, plateResult, wInput, withVoice){
 
 function buildWarmupRampRowsHtml(ramp, saved, showPlateCalc){
   const savedRows = Array.isArray(saved) ? saved : [];
-  return ramp.map((step, si)=>{
+  // `step.idx`, not the map index. The steps arriving here have already had
+  // hidden ones filtered out, so their position in THIS array is not their
+  // position in storage. Falling back to the map index would reintroduce
+  // exactly the drift indexRampSteps exists to prevent, so it does not.
+  return ramp.map((step)=>{
+    const si = step.idx;
     const s = savedRows[si] || {};
     const wVal = s.weight != null ? trimUnitNum(toDisplayWeight(s.weight)) : step.weight;
     const rVal = s.reps != null ? s.reps : warmupRepsValue(step.reps);
     return `
-      <div class="warmup-set-row${s.done ? ' done' : ''}" data-step-idx="${si}">
+      <div class="warmup-set-row swipe-item${s.done ? ' done' : ''}" data-step-idx="${si}" data-step-label="${escapeHtml(String(step.label))}">
+        <div class="swipe-delete-bg">🗑️</div>
+        <div class="swipe-content warmup-set-row-content">
         <label class="warmup-done-label">
           <input type="checkbox" class="warmup-done" ${s.done ? 'checked' : ''} aria-label="Mark warm-up ${escapeHtml(step.label)} as done">
         </label>
@@ -15822,6 +15860,7 @@ function buildWarmupRampRowsHtml(ramp, saved, showPlateCalc){
         <span class="warmup-step-label">${escapeHtml(String(step.short || step.label))}</span>
         ${showPlateCalc ? `<button type="button" class="plate-btn" aria-label="Plate calculator for warm-up ${escapeHtml(step.label)}">🏋️</button>` : ''}
         ${showPlateCalc ? '<div class="plate-result"></div>' : ''}
+        </div>
       </div>`;
   }).join('');
 }
@@ -15871,6 +15910,32 @@ function pruneRampSteps(steps, workingDisplayWeight){
     out.push(step);
   }
   return out;
+}
+
+// A ramp step's position in the COMPUTED ramp, fixed once here and carried on
+// the step from then on. Saved warm-up values live at `entry.warmups[idx]`, so
+// the moment a step can be HIDDEN the rendered position stops being the storage
+// position: hide ~40% and, without this, ~60%'s logged weight slides onto
+// ~40%'s row. Same principle saveExDropSet already states in its own words —
+// a blank in the middle stays, because removing it would renumber the ones
+// after it.
+function indexRampSteps(ramp){
+  return ramp.map((step, i)=> Object.assign({}, step, {idx: i}));
+}
+
+// Hiding is keyed by LABEL, not by index, and the difference matters. "I don't
+// need the 40% rung today" is a statement about the rung's ROLE, and the role
+// survives a change of basis while the position does not: log set 1 heavier and
+// pruneRampSteps can return a different number of steps, at which point index 1
+// is a different rung and an index-keyed hide would silently remove the wrong
+// one.
+//
+// Deliberately NOT stored as "the ramp I want" — that would freeze the numbers
+// and the ramp would stop tracking the working weight it exists to be a
+// fraction of.
+function visibleRampSteps(indexed, skipped){
+  const hide = new Set(Array.isArray(skipped) ? skipped : []);
+  return indexed.filter(s=> !hide.has(s.label));
 }
 
 // `short` is what the ROW shows and `label` is what the read-only box, the
@@ -16026,6 +16091,28 @@ async function saveExWarmupSet(dayId, idx, stepIdx, weight, reps, done, subVaria
   // untouched.
   try{ await window.storage.set(exKey(activeProgram, dayId, idx, subVariant), JSON.stringify(log)); }catch(e){}
   return entry.warmups[stepIdx];
+}
+
+// Which ramp rungs have been swiped away for THIS day, by label. Lives on the
+// same entry as `warmups` and rides the same write, so it round-trips through
+// normalizeExEntry untouched for the same reason that does.
+//
+// Per-day and not per-exercise-forever, deliberately. "I'm already warm, the
+// squats did it" is a fact about this session; a single swipe should not quietly
+// remove a rung from every future workout, and tomorrow's ramp comes back whole.
+async function saveExWarmupSkipped(dayId, idx, labels, subVariant){
+  const log = await getExLog(dayId, idx, subVariant);
+  let entry = log.find(e=>e.date===selectedLogDate);
+  if(!entry){ entry = {date: selectedLogDate, sets: []}; log.push(entry); }
+
+  const clean = Array.from(new Set((labels || []).map(String)));
+  // An empty list is the ABSENCE of the key, not a stored empty array. Restore
+  // should leave an entry indistinguishable from one that was never swiped.
+  if(clean.length) entry.warmupsSkipped = clean;
+  else delete entry.warmupsSkipped;
+
+  try{ await window.storage.set(exKey(activeProgram, dayId, idx, subVariant), JSON.stringify(log)); }catch(e){}
+  return entry.warmupsSkipped || [];
 }
 
 async function saveExSet(dayId, idx, setIdx, weight, reps, rpe, subVariant, distance, note){
@@ -16526,9 +16613,22 @@ async function renderWorkout(){
           // read and not a number you can log. The first number of the range is
           // what goes in the field; the label still shows the range.
           const saved = (todayEntry && Array.isArray(todayEntry.warmups)) ? todayEntry.warmups : [];
+          // Index against the FULL ramp first, then drop the hidden ones. The
+          // surviving steps keep the index their saved values are stored under.
+          const skipped = (todayEntry && Array.isArray(todayEntry.warmupsSkipped)) ? todayEntry.warmupsSkipped : [];
+          const visibleSteps = visibleRampSteps(indexRampSteps(ramp), skipped);
           const rampRows = warmupSetsEnabled
-            ? buildWarmupRampRowsHtml(ramp, saved, isBarbell)
-            : ramp.map(step=> `<div class="warmup-row"><span>${step.label} — ${step.weight} ${weightUnit} × ${step.reps}</span></div>`).join('');
+            ? buildWarmupRampRowsHtml(visibleSteps, saved, isBarbell)
+            : visibleSteps.map(step=> `<div class="warmup-row"><span>${step.label} — ${step.weight} ${weightUnit} × ${step.reps}</span></div>`).join('');
+          // A swipe has to be reversible after the undo toast has gone, or
+          // hiding a rung is a one-way door reachable by accident with a thumb.
+          // Shown whenever anything is hidden, including when EVERYTHING is —
+          // which is the case where there would otherwise be nothing left on
+          // screen to act on.
+          const hiddenCount = skipped.length;
+          const restoreHtml = hiddenCount
+            ? `<button type="button" class="warmup-restore-btn">↺ Restore ${hiddenCount} hidden step${hiddenCount===1?'':'s'}</button>`
+            : '';
           // Says what it was built from. A ramp that silently changed basis
           // between sessions would look like the app forgetting your numbers.
           const basisNote = rampBasis.from === 'logged'
@@ -16539,8 +16639,8 @@ async function renderWorkout(){
                 ? `(based on your last logged ${escapeHtml(ex.name)}, ${escapeHtml(programLabelFor(priorSourceProgram))})`
                 : '(based on your last session)';
           const rampTitle = `🔥 Suggested warm-up ramp <span style="font-weight:400; text-transform:none; letter-spacing:0; opacity:0.75;">${basisNote}</span>`;
-          const rampNote = warmupSetsEnabled
-            ? '<div class="warmup-foot">Not counted in your volume, 1RM or PRs.</div>' : '';
+          const rampNote = (warmupSetsEnabled && visibleSteps.length)
+            ? '<div class="warmup-foot">Not counted in your volume, 1RM or PRs. Swipe a step away if you don\'t need it.</div>' : '';
           // The box is for the READ-ONLY ramp. Once the ramp is loggable rows,
           // the box chrome is what stops it reading as part of the set list.
           //
@@ -16553,11 +16653,17 @@ async function renderWorkout(){
           // Every step can be pruned away on a weight where the percentages all
           // collapse onto the bar. A title over nothing is the silent-skip bug
           // §3.12 closed, so it takes the same nudge an under-threshold lift gets.
+          //
+          // `!ramp.length` and `!visibleSteps.length` are NOT the same case and
+          // must not collapse into one. Nothing computable means there is no
+          // ramp to offer and the nudge is the honest answer; everything hidden
+          // means there IS one and you put it away, so the strip stays with the
+          // way back in it.
           warmupHtml = !ramp.length
             ? buildWarmupNudgeHtml('light')
             : warmupSetsEnabled
-              ? `<div class="warmup-strip"><div class="warmup-title">${rampTitle}</div>${rampNote}${rampRows}</div>`
-              : `<div class="warmup-box"><div class="warmup-title">${rampTitle}</div>${rampNote}${rampRows}</div>`;
+              ? `<div class="warmup-strip"><div class="warmup-title">${rampTitle}</div>${rampNote}${rampRows}${restoreHtml}</div>`
+              : `<div class="warmup-box"><div class="warmup-title">${rampTitle}</div>${rampNote}${rampRows}${restoreHtml}</div>`;
         } else {
           // Eligible, loaded, and still no numbers. Two ways to get here and
           // they are not the same message: a lift with no history at all has
@@ -18332,6 +18438,40 @@ function wireSetsBlock(row, exIdx, ex){
     });
   }
 
+  // Follows deleteSet: snapshot, commit, re-render, offer undo. It re-renders
+  // rather than just removing the node because what the strip shows depends on
+  // how many rungs are hidden — the restore control has to appear, and when the
+  // last rung goes the rows and the footnote have to go with it.
+  async function hideWarmupStep(rowEl){
+    const label = rowEl.dataset.stepLabel;
+    if(!label) return;
+    const key = exKey(activeProgram, activeDay, exIdx, subVariant);
+    let preDeleteSnapshot = null;
+    try{
+      const item = await window.storage.get(key);
+      preDeleteSnapshot = (item && item.value) ? item.value : null;
+    }catch(e){}
+
+    // getExLog + find, which is how saveExWarmupSkipped reads the same entry.
+    // The first draft of this called a getExEntryForDate() that does not exist
+    // anywhere in the file — the identical unbound-identifier shape that made
+    // the drop button inert for four versions, caught here by the reachability
+    // suite written for that one.
+    const log = await getExLog(activeDay, exIdx, subVariant);
+    const entry = log.find(e=> e.date === selectedLogDate);
+    const already = (entry && Array.isArray(entry.warmupsSkipped)) ? entry.warmupsSkipped : [];
+    await saveExWarmupSkipped(activeDay, exIdx, already.concat([label]), subVariant);
+    await renderWorkout();
+
+    showUndoToast('Warm-up step hidden', async ()=>{
+      // Restores the whole pre-hide document rather than removing the one
+      // label, so an undo cannot resurrect a rung you hid earlier in the
+      // session. Same argument deleteSet's snapshot makes.
+      if(preDeleteSnapshot != null){ try{ await window.storage.set(key, preDeleteSnapshot); }catch(e){} }
+      renderWorkout();
+    });
+  }
+
   function wireSetRow(setRow){
     const wInput = setRow.querySelector('.ex-weight');
     const dInput = setRow.querySelector('.ex-distance');
@@ -18588,6 +18728,14 @@ function wireSetsBlock(row, exIdx, ex){
     makeSwipeable(setRow, ()=> deleteSet(setRow));
   }
 
+  const warmupRestoreBtn = block.querySelector('.warmup-restore-btn');
+  if(warmupRestoreBtn){
+    warmupRestoreBtn.addEventListener('click', async ()=>{
+      await saveExWarmupSkipped(activeDay, exIdx, [], subVariant);
+      await renderWorkout();
+    });
+  }
+
   block.querySelectorAll('.set-row').forEach(wireSetRow);
 
   // Deliberately NOT `.set-row`. Two places renumber `.set-row` by its position
@@ -18609,6 +18757,13 @@ function wireSetsBlock(row, exIdx, ex){
     // is arguably the row that needs it most. No hold-to-talk: the numbers are
     // already in the fields.
     wirePlateButton(row.querySelector('.plate-btn'), row.querySelector('.plate-result'), wInput, false);
+
+    // Swipe to put a rung away. A ramp is a SUGGESTION, so unlike a logged set
+    // there is nothing here to destroy — which is why this hides by label
+    // rather than deleting by index, and why the label comes off the row's own
+    // dataset rather than being recomputed from a ramp that may since have
+    // moved with the working weight.
+    makeSwipeable(row, ()=> hideWarmupStep(row));
     if(doneInput){
       doneInput.addEventListener('change', ()=>{
         row.classList.toggle('done', doneInput.checked);
