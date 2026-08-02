@@ -494,11 +494,6 @@
   }
   .grocery-item.done .grocery-item-text{color:var(--text-muted); text-decoration:line-through; text-decoration-color:var(--line-bright);}
   .grocery-item:active .grocery-check{transform:scale(0.88);}
-  .grocery-remove{
-    background:none; border:none; color:var(--text-muted); font-size:18px; line-height:1; padding:0 4px; cursor:pointer;
-    transition:color 0.2s var(--ease-smooth);
-  }
-  .grocery-remove:hover{color:var(--plate-red);}
   .today-insight-row{
     padding:10px 12px; background:rgba(91,124,255,0.08); border:1px solid rgba(91,124,255,0.28);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:8px;
@@ -1210,8 +1205,6 @@
     width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--text);
     border-radius:var(--radius-sm); padding:9px 6px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:13px; text-align:center;
   }
-  .macro-input-labels{display:flex; gap:8px; margin-top:6px;}
-  .macro-input-labels span{width:100%; text-align:center; font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;}
   .save-btn{
     position:relative; overflow:hidden;
     width:100%; margin-top:14px; padding:12px; border:none; border-radius:var(--radius-sm);
@@ -1707,6 +1700,16 @@
   .targets-strip .t-val{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-weight:700; font-size:16.5px; letter-spacing:-0.01em;}
   .targets-strip .t-label{font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;}
 
+  /* A button that reads as part of a sentence, for offering an action inside
+     explanatory prose. `font:inherit` rather than a size, so it tracks whatever
+     it is embedded in — including gym mode, which scales the text around it. */
+  .link-btn{
+    display:inline; padding:0; margin:0; border:0; background:none;
+    font:inherit; color:var(--plate-blue); text-decoration:underline;
+    text-underline-offset:2px; cursor:pointer;
+    -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+  }
+  .link-btn:disabled{ opacity:0.5; cursor:default; text-decoration:none; }
   .status-msg{font-size:12px; color:var(--plate-green); height:16px; margin-top:6px; text-align:center;}
   /* archiveWeekStatus reuses .status-msg for its plain "Week saved ✓" case,
      but also sometimes holds the full AI weekly recap + nutrition digest —
@@ -1739,12 +1742,58 @@
   }
   @keyframes skeleton-shimmer{ 0%{background-position:120% 0;} 100%{background-position:-20% 0;} }
 
+  /* STICKY. The nav pills are the most-used control in the app and were
+     reachable only at scroll position 0 — which on Analysis is nineteen cards
+     above where you are standing. Switching tabs meant scrolling the whole way
+     back up first, every time.
+
+     top is the safe-area inset, NOT 0. In standalone PWA mode top:0 puts the
+     rail under the status bar and the notch; the inset is the same quantity
+     .wrap's own padding-top already accounts for.
+
+     z-index:30 sits above cards (0–5) and below every floating layer — the
+     rest timer is 50, the FAB and overlays run 55–150. */
   .nav-pills{
+    position:sticky; top:env(safe-area-inset-top, 0px); z-index:30;
     display:flex; gap:8px; margin-top:6px; margin-bottom:4px;
     overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
-    padding-bottom:2px;
+    /* Full-bleed. Without the negative margins, .wrap's 18px gutters let cards
+       scroll visibly past the ends of the bar. Out and back in the same
+       amount, so the row's own content does not move — the sum-to-zero trick
+       the coloured set rows already use. */
+    margin-left:-18px; margin-right:-18px;
+    padding:8px 18px 10px;
+    background:rgba(10,11,13,0.72);
+    backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);
   }
   .nav-pills::-webkit-scrollbar{display:none;}
+  /* Seven pills are about 540px of content in roughly 354px of phone, so Care,
+     Coach and Learn sit off the right edge behind a horizontal swipe with the
+     scrollbar switched off — three of seven tabs with nothing on screen saying
+     they exist. The mask fades the right edge so the row reads as continuing.
+     Toggled off by .at-end rather than left on permanently, because a
+     permanent fade would dim the last pill once you had scrolled to it. */
+  .nav-pills:not(.at-end){
+    -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 34px), transparent);
+    mask-image:linear-gradient(to right, #000 calc(100% - 34px), transparent);
+  }
+
+  /* [ANALYSIS INDEX] Analysis is the longest tab in the app — nineteen cards
+     when everything has data, in one flat scroll with no way to skip. The rail
+     lists only what is actually on screen, so it shrinks with the tab instead
+     of promising sections that autohide has already removed. */
+  .analysis-index{
+    display:flex; gap:6px; overflow-x:auto; scrollbar-width:none;
+    margin:0 -18px 14px; padding:2px 18px 8px;
+  }
+  .analysis-index::-webkit-scrollbar{display:none;}
+  .analysis-index-chip{
+    flex:0 0 auto; background:var(--surface2); border:1px solid var(--line);
+    color:var(--text-muted); font-family:'Inter',sans-serif; font-size:11.5px;
+    font-weight:600; letter-spacing:-0.01em; padding:7px 12px;
+    border-radius:var(--radius-sm); cursor:pointer; box-shadow:var(--rim);
+  }
+  .analysis-index-chip:active{transform:scale(0.96);}
   .nav-pill{
     flex:0 0 auto;
     background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
@@ -2844,30 +2893,21 @@
     .program-basis-toggle .chev{transition:none;}
   }
 
-  .program-source{ margin-top:8px; }
-  .program-source summary{
-    font-size:11.5px; text-transform:uppercase; letter-spacing:0.5px;
-    color:var(--text-muted); cursor:pointer; list-style:none;
-    display:flex; align-items:center; gap:6px; padding:4px 0;
-  }
-  .program-source summary::-webkit-details-marker{ display:none; }
-  .program-source[open] summary{ margin-bottom:2px; }
-
   /* --- 4. Scrollable regions ------------------------------------------
      Any independently-scrolling region gets scroll containment so reaching
      its end doesn't hand the gesture to the page behind it — the specific
      symptom being that flicking a long substitution sheet used to scroll
      the whole app underneath once the sheet bottomed out. Momentum
      scrolling and a hairline scrollbar match the rest of the app. */
-  .sub-modal-sheet, .calendar-modal-sheet, .coach-chat-log, .fab-panel-body{
+  .sub-modal-sheet, .calendar-modal-sheet, .coach-chat-log{
     overscroll-behavior:contain;
     -webkit-overflow-scrolling:touch;
     scrollbar-width:thin; scrollbar-color:var(--line-bright) transparent;
   }
   .sub-modal-sheet::-webkit-scrollbar, .calendar-modal-sheet::-webkit-scrollbar,
-  .coach-chat-log::-webkit-scrollbar, .fab-panel-body::-webkit-scrollbar{ width:4px; }
+  .coach-chat-log::-webkit-scrollbar{ width:4px; }
   .sub-modal-sheet::-webkit-scrollbar-thumb, .calendar-modal-sheet::-webkit-scrollbar-thumb,
-  .coach-chat-log::-webkit-scrollbar-thumb, .fab-panel-body::-webkit-scrollbar-thumb{
+  .coach-chat-log::-webkit-scrollbar-thumb{
     background:var(--line-bright); border-radius:4px;
   }
   /* The calendar sheet was the one bottom sheet with no height ceiling — on
@@ -4351,6 +4391,11 @@
   </div>
 
   <div id="analysisView" style="display:none">
+    <!-- Populated by renderAnalysisIndex() from whatever survived
+         applyAnalysisEmptyState. Empty and hidden until there is enough on the
+         tab for an index to be worth having. -->
+    <nav class="analysis-index" id="analysisIndex" aria-label="Jump to a section of this tab" style="display:none"></nav>
+
     <div class="card" id="analysisFirstRun" style="display:none">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 6.5v4M10 13.3v.2"/></svg></span>Nothing to analyse yet</div>
       <div class="history-hint">This tab fills in as you log. Every chart here appears on its own once it has something to show — a weight trend needs two weigh-ins, a volume chart needs a logged session, a pace trend needs a distance. Nothing is missing; it just hasn't happened yet.</div>
@@ -5053,7 +5098,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.45';
+const APP_VERSION = '3.48';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -5526,6 +5571,26 @@ function noteStorageDegraded(key, err){
   try{ renderStorageBanner(); }catch(e){}
 }
 
+// [EX CORPUS GENERATION] -------------------------------------------------------
+// A monotonic counter bumped by every write to, or deletion of, an `ex:` key.
+// readExCorpus() below reads it to decide whether its cached pass over the
+// exercise logs is still true.
+//
+// THE BUMP LIVES INSIDE THE STORAGE LAYER, NOT AT THE WRITE SITES. There are
+// ten-plus places that write an `ex:` key — every save path in wireSetRow, the
+// drop-set and warm-up savers, the delete/undo pair, the backup restore, and
+// the combat-key migration — and a rule stated in ten places is ten rules, nine
+// of which are the ones that go stale (v25 §2). A write cannot reach
+// localStorage without going through set(), so putting the bump here makes it
+// impossible for a future write site to forget it. The same reasoning as the
+// scroll-lock MutationObserver: watch the one chokepoint rather than edit every
+// caller.
+//
+// Declared with `var` deliberately — v26 §2, "a `let` inside a vm context is a
+// lexical binding, not a context property", and the suites reach for this.
+var exCorpusGen = 0;
+function bumpExCorpusGen(){ exCorpusGen++; }
+
 function buildNamespacedStorage(userId){
   const PREFIX = RAW_PREFIX + 'usr' + userId + ':';
   // Doubles as the fallback store when localStorage is unavailable entirely,
@@ -5551,6 +5616,10 @@ function buildNamespacedStorage(userId){
       return {key:k, value: mem[k]};
     },
     set: async (k,v)=>{
+      // Bumped BEFORE the write, not after, and on every path including the
+      // ones that throw. An over-eager bump costs one re-read; a missed one
+      // hands a stale corpus to every trend on the Analysis tab.
+      if(k && k.indexOf('ex:') === 0) bumpExCorpusGen();
       if(useLocalStorage){
         try{
           localStorage.setItem(PREFIX + k, v);
@@ -5570,6 +5639,7 @@ function buildNamespacedStorage(userId){
       mem[k]=v; return {key:k, value:v};
     },
     delete: async (k)=>{
+      if(k && k.indexOf('ex:') === 0) bumpExCorpusGen();
       // Both copies, always. Deleting only the durable one would resurrect the
       // spilled value on the next read.
       if(k in mem){ delete mem[k]; storageHealth.spilled.delete(k); }
@@ -14819,26 +14889,11 @@ function exKeyForLocation(loc){
 // every program/day it appears in (excluding the current slot, which is
 // checked separately by the caller before ever reaching this). Returns null
 // if it's genuinely never been logged anywhere.
-async function getFallbackPriorTopSet(exerciseName, excludeKey){
-  const locations = getExerciseLocationIndex()[exerciseName] || [];
-  let best = null;
-  for(const loc of locations){
-    const key = exKeyForLocation(loc);
-    if(key === excludeKey) continue;
-    try{
-      const res = await window.storage.get(key);
-      if(!res || !res.value) continue;
-      const log = JSON.parse(res.value).map(normalizeExEntry);
-      log.filter(e=> e.date !== selectedLogDate).forEach(e=>{
-        const top = topSetOf(e);
-        if(top && top.weight!=null && (!best || new Date(e.date+'T00:00:00') > new Date(best.date+'T00:00:00'))){
-          best = {...top, date: e.date};
-        }
-      });
-    }catch(err){}
-  }
-  return best;
-}
+// getFallbackPriorTopSet was removed in v3.47. getFallbackPriorEntry, directly
+// below, returns the whole entry rather than just its top set and is what every
+// caller uses; the top-set-only version had no callers left and had not for
+// several versions. Recorded here rather than deleted silently, because "there
+// used to be two of these" is the kind of thing a later reader wonders about.
 
 // The full most-recent logged entry (every set, not just the top one) for
 // this exact exercise name, searched across every OTHER program/day it
@@ -24514,6 +24569,17 @@ function switchView(active, opts){
     }
     document.getElementById(pills[key]).classList.toggle('active', key===active);
   });
+
+  // Bring the active pill into the horizontal scroll. Seven pills do not fit
+  // on a phone, so the rail can be showing Today..History while you are on
+  // Learn — and on a restored session it did exactly that, marking a tab as
+  // active off the right-hand edge where nobody could see it. Nearest, not
+  // start: it only moves the rail when it has to.
+  const activePill = document.getElementById(pills[active]);
+  if(activePill && activePill.scrollIntoView){
+    try{ activePill.scrollIntoView({behavior:'smooth', block:'nearest', inline:'nearest'}); }
+    catch(e){ /* older engines take no options; the rail simply does not move */ }
+  }
   // The sticky mini-header only ever makes sense while actually scrolling
   // the Today tab's workout — an IntersectionObserver drives it while
   // there, but this is a hard guarantee it never lingers into another tab.
@@ -25649,6 +25715,82 @@ function parseExKey(key){
   };
 }
 
+// [EX CORPUS] ------------------------------------------------------------------
+// ONE pass over the exercise logs, shared by everything that needs them.
+//
+// Eight functions used to do this independently: collectRestBySession,
+// collectLiftE1RMs, renderExerciseProgress, reconstructAllPRs, buildDayLog,
+// renderVolumeTrend, computeWeeklyRpeAvg and computeWeeklyCardio. Each ran its
+// own storage.list('ex:'), then read, JSON.parse'd and normalised EVERY key.
+// Six of them fire inside a single Promise.all in renderAnalysis, so opening
+// the Analysis tab walked the entire corpus six times; History adds two more
+// and Coach re-runs two of them again. localStorage.getItem is cheap, but
+// JSON.parse plus normalizeExEntry over every set of every session is not, and
+// storage.list() is itself O(localStorage.length) each time it is called.
+//
+// Every one of those eight consumers is READ-ONLY over what it gets back —
+// checked one by one before this was written. The two that sort
+// (reconstructAllPRs, buildDayLog) sort the result of a .filter(), which is
+// already a fresh array, so neither touches the shared one.
+//
+// THE CONTRACT: what readExCorpus() hands back is SHARED AND MUST NOT BE
+// MUTATED. Sort or splice a copy. A consumer that needs to mutate should
+// `.map()` first — the cost of that is one consumer's worth of allocation
+// rather than eight passes over storage.
+let exCorpusCache = null;      // the published result
+let exCorpusCacheGen = -1;     // the generation it was read at
+let exCorpusInflight = null;   // {gen, promise} — concurrent callers share a pass
+
+async function readExCorpus(){
+  if(exCorpusCache && exCorpusCacheGen === exCorpusGen) return exCorpusCache;
+
+  // Six callers in one Promise.all arrive in the same tick. Without this they
+  // would each start their own pass and the sharing would buy nothing. The gen
+  // is stored alongside the promise so a caller arriving AFTER a write never
+  // gets handed a pass that started before it.
+  if(exCorpusInflight && exCorpusInflight.gen === exCorpusGen) return exCorpusInflight.promise;
+
+  const gen = exCorpusGen;
+  const promise = (async ()=>{
+    let keys = [];
+    try{
+      const res = await window.storage.list('ex:');
+      if(res && res.keys) keys = res.keys;
+    }catch(e){}
+    const out = [];
+    for(const key of keys){
+      const parsed = parseExKey(key);
+      // Keys whose program/day/index no longer resolves are dropped here, once,
+      // rather than in each consumer. Every consumer that used parseExKey
+      // already skipped them; the three that did not (collectRestBySession,
+      // computeWeeklyRpeAvg, and the rest-target scan) only ever read dates and
+      // set fields, which an unresolvable key cannot meaningfully contribute
+      // anyway — its exercise no longer exists in any program.
+      if(!parsed) continue;
+      let log = [];
+      try{
+        const item = await window.storage.get(key);
+        if(item && item.value) log = JSON.parse(item.value).map(normalizeExEntry);
+      }catch(e){}
+      out.push({key, parsed, exDef: parsed.exDef, log});
+    }
+    return out;
+  })();
+
+  exCorpusInflight = {gen, promise};
+  try{
+    const out = await promise;
+    // Only publish if nothing was written while the pass was running. If
+    // something was, this caller still gets the result it asked for — it is a
+    // render, and a render that is one save behind repaints in a moment — but
+    // it is not allowed to become the answer everyone else gets.
+    if(exCorpusGen === gen){ exCorpusCache = out; exCorpusCacheGen = gen; }
+    return out;
+  } finally {
+    if(exCorpusInflight && exCorpusInflight.promise === promise) exCorpusInflight = null;
+  }
+}
+
 // [REST TREND] -----------------------------------------------------------------
 // Per-session medians, not per-set. A single 40-second gap means nothing — a
 // belt went on crooked, someone asked to work in. What explains a session is
@@ -25700,17 +25842,8 @@ function fmtRest(seconds){
 async function collectRestBySession(){
   const out = {};
   const targets = [];
-  let keys = [];
-  try{
-    const res = await window.storage.list('ex:');
-    if(res && res.keys) keys = res.keys;
-  }catch(e){}
-  for(const key of keys){
-    let log = [];
-    try{
-      const item = await window.storage.get(key);
-      if(item && item.value) log = JSON.parse(item.value).map(normalizeExEntry);
-    }catch(e){}
+  const corpus = await readExCorpus();
+  for(const {log} of corpus){
     log.forEach(entry=>{
       if(!entry || !entry.date) return;
       (entry.sets || []).forEach(s=>{
@@ -25864,21 +25997,10 @@ async function collectLiftE1RMs(){
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - STRENGTH_CONTEXT_WINDOW_DAYS);
   const best = {};
-  let keys = [];
-  try{
-    const res = await window.storage.list('ex:');
-    if(res && res.keys) keys = res.keys;
-  }catch(e){}
-  for(const key of keys){
-    const parsed = parseExKey(key);
-    if(!parsed) continue;
-    const liftKey = liftKeyForExercise(parsed.exDef && parsed.exDef.name);
+  const corpus = await readExCorpus();
+  for(const {exDef, log} of corpus){
+    const liftKey = liftKeyForExercise(exDef && exDef.name);
     if(!liftKey) continue;
-    let log = [];
-    try{
-      const item = await window.storage.get(key);
-      if(item && item.value) log = JSON.parse(item.value).map(normalizeExEntry);
-    }catch(e){}
     log.forEach(entry=>{
       if(!entry || !entry.date) return;
       if(new Date(entry.date+'T00:00:00') < cutoff) return;
@@ -25945,29 +26067,22 @@ async function renderExerciseProgress(){
   const el = document.getElementById('exerciseProgress');
   el.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div><div class="skeleton-line" style="width:58%"></div></div>';
 
-  let keys = [];
-  try{
-    const res = await window.storage.list('ex:');
-    if(res && res.keys) keys = res.keys;
-  }catch(e){}
+  const corpus = await readExCorpus();
 
-  if(keys.length === 0){
+  if(corpus.length === 0){
     el.innerHTML = '<div class="empty-note">Log a weight and rep count on an exercise to start tracking progress.</div>';
     return;
   }
 
   const rows = [];
-  for(const key of keys){
-    const parsed = parseExKey(key);
-    if(!parsed) continue;
-    const exDef = parsed.exDef;
+  for(const entry_ of corpus){
+    const parsed = entry_.parsed;
+    const exDef = entry_.exDef;
 
-    let log = [];
-    try{
-      const item = await window.storage.get(key);
-      if(item && item.value) log = JSON.parse(item.value).map(normalizeExEntry);
-    }catch(e){}
-    log = log.filter(e=> (e.sets||[]).some(s=> s.weight!=null || s.reps!=null));
+    // .filter() before .sort(): the filter allocates a fresh array, so the sort
+    // below cannot reach the corpus's own copy. The shared array is read-only —
+    // see readExCorpus's contract.
+    const log = entry_.log.filter(e=> (e.sets||[]).some(s=> s.weight!=null || s.reps!=null));
     if(log.length === 0) continue;
     log.sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
 
@@ -26002,8 +26117,8 @@ async function renderExerciseProgress(){
     return `
       <div class="prog-row">
         <div class="prog-top">
-          <div class="prog-name">${r.name}</div>
-          <div class="prog-day">${r.dayLabel}</div>
+          <div class="prog-name">${escapeHtml(r.name)}</div>
+          <div class="prog-day">${escapeHtml(r.dayLabel)}</div>
         </div>
         <div class="prog-stats">
           <span>${r.sessionCount} session${r.sessionCount===1?'':'s'} logged</span>
@@ -26031,7 +26146,7 @@ async function renderExerciseProgress(){
     if(stalling.length === 0){
       summaryHtml = `<div class="goal-feedback-good" style="margin-bottom:12px;">✅ All ${progressing.length} exercises with enough history are trending up in weight — progressive overload is genuinely happening, not just volume for its own sake.</div>`;
     } else if(stalling.length > progressing.length){
-      const names = stalling.slice(0,3).map(r=>r.name).join(', ');
+      const names = stalling.slice(0,3).map(r=> escapeHtml(r.name)).join(', ');
       summaryHtml = `<div class="goal-feedback-warn" style="margin-bottom:12px;">⚠ ${stalling.length} of ${withEnoughData.length} exercises with enough history are flat or down since first log (${names}${stalling.length>3?', …':''}) — worth checking recovery, technique, or whether it's time to change rep ranges on these.</div>`;
     } else {
       summaryHtml = `<div class="goal-feedback-neutral" style="margin-bottom:12px;">${progressing.length} of ${withEnoughData.length} exercises with enough history are trending up; ${stalling.length} are flat or down — normal mix, worth keeping an eye on the ones that haven't moved.</div>`;
@@ -26051,24 +26166,14 @@ async function renderExerciseProgress(){
 // that ever happened, using data that's already there. No new storage key,
 // no risk of it ever drifting out of sync with the live PR badge logic.
 async function reconstructAllPRs(){
-  let keys = [];
-  try{
-    const res = await window.storage.list('ex:');
-    if(res && res.keys) keys = res.keys;
-  }catch(e){}
+  const corpus = await readExCorpus();
 
   const events = [];
-  for(const key of keys){
-    const parsed = parseExKey(key);
-    if(!parsed) continue;
-    const exDef = parsed.exDef;
+  for(const entry_ of corpus){
+    const parsed = entry_.parsed;
+    const exDef = entry_.exDef;
 
-    let log = [];
-    try{
-      const item = await window.storage.get(key);
-      if(item && item.value) log = JSON.parse(item.value).map(normalizeExEntry);
-    }catch(e){}
-    log = log.filter(e=> (e.sets||[]).some(s=> s.weight!=null));
+    const log = entry_.log.filter(e=> (e.sets||[]).some(s=> s.weight!=null));
     if(log.length === 0) continue;
     log.sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
 
@@ -26117,8 +26222,8 @@ async function renderPrTimeline(){
       <div class="pr-row">
         <div class="pr-date">${dateLabel}</div>
         <div class="pr-body">
-          <div class="pr-ex-name">${isStrength ? '💪' : '🏆'} ${ev.name}${isStrength ? ' <span class="pr-type-tag">strength PR</span>' : ''}</div>
-          <div class="pr-day-label">${ev.dayLabel}${isStrength && ev.e1rm ? ` · Est. 1RM ~${fmtWeight(ev.e1rm)}` : ''}</div>
+          <div class="pr-ex-name">${isStrength ? '💪' : '🏆'} ${escapeHtml(ev.name)}${isStrength ? ' <span class="pr-type-tag">strength PR</span>' : ''}</div>
+          <div class="pr-day-label">${escapeHtml(ev.dayLabel)}${isStrength && ev.e1rm ? ` · Est. 1RM ~${fmtWeight(ev.e1rm)}` : ''}</div>
         </div>
         <div class="pr-stat">${fmtWeight(ev.weight)}${ev.reps!=null ? ` × ${ev.reps}` : ''}</div>
       </div>
@@ -26230,20 +26335,43 @@ function aiFingerprint(parts){
 // maxAgeMs guards against an answer outliving its usefulness even when the
 // inputs happen to be byte-identical — a week-old "push harder" read is
 // worth re-deriving. Default 12h.
-async function aiCachedCall(feature, fingerprint, fn, maxAgeMs){
+async function aiCachedCall(feature, fingerprint, fn, maxAgeMs, opts){
   const key = 'ai-cache:' + feature;
   const maxAge = maxAgeMs || 12 * 60 * 60 * 1000;
+  // Skips the read, never the write. A forced call still stores its answer, so
+  // this cannot be used to bypass caching for a whole session by accident.
+  if(opts && opts.force){
+    const fresh = await fn();
+    if(!(typeof fresh === 'string' && !fresh.trim())){
+      try{ await window.storage.set(key, JSON.stringify({fp: fingerprint, result: fresh, at: Date.now()})); }catch(e){}
+    }
+    return {result: fresh, cached: false};
+  }
   try{
     const res = await window.storage.get(key);
     if(res && res.value){
       const hit = JSON.parse(res.value);
-      if(hit.fp === fingerprint && (Date.now() - hit.at) < maxAge){
+      const usable = typeof hit.result !== 'string' || hit.result.trim();
+      // `usable` is checked on READ as well as on write because builds before
+      // this one could store an empty answer, and a device that already has one
+      // would otherwise stay stuck on it for the full twelve hours no matter
+      // how many times the button was pressed. Ignoring it here means the next
+      // press recomputes and overwrites it.
+      if(hit.fp === fingerprint && (Date.now() - hit.at) < maxAge && usable){
         return {result: hit.result, cached: true};
       }
     }
   }catch(e){}
 
   const result = await fn();
+  // An empty or blank result is not an answer and must never become a cache
+  // entry. Storing one poisons the key for `maxAge`: every later press matches
+  // the fingerprint, returns the same nothing, and reports it as unchanged
+  // rather than retrying. Returned uncached so the caller still decides what to
+  // do about it, and so the next press genuinely calls the API again.
+  if(typeof result === 'string' && !result.trim()){
+    return {result, cached: false};
+  }
   try{
     await window.storage.set(key, JSON.stringify({fp: fingerprint, result, at: Date.now()}));
   }catch(e){}   // a full quota must never break the feature itself
@@ -26290,7 +26418,20 @@ async function anthropicRequest(apiKey, payload, timeoutMs){
     if(response.ok){
       const data = await response.json();
       const textBlock = (data.content || []).find(b=> b.type === 'text');
-      return textBlock ? textBlock.text : '';
+      const text = textBlock && typeof textBlock.text === 'string' ? textBlock.text : '';
+      if(!text.trim()){
+        // Name the cause when the API gave one. "The response came back empty"
+        // is unactionable; "the response was cut off at the length limit" tells
+        // you a retry is worth trying, and that is the difference between a
+        // dead button and a slow one.
+        const reason = data.stop_reason === 'max_tokens'
+          ? 'the response was cut off at the length limit'
+          : data.stop_reason === 'refusal'
+            ? 'the model declined to answer that'
+            : 'the response came back empty';
+        throw new Error(`No answer came back — ${reason}. Try again.`);
+      }
+      return text;
     }
 
     if(AI_RETRY_STATUSES.includes(response.status) && attempt < AI_MAX_ATTEMPTS){
@@ -26638,7 +26779,11 @@ async function buildCrossMetricInsightsContext(){
   return `Goal: ${goalLabel}. Active program: ${programLabel}.\n\n${lines.join('\n')}`;
 }
 
-async function generateCrossMetricInsights(){
+async function generateCrossMetricInsights(opts){
+  // `force` bypasses the cache READ and nothing else: the fresh answer is still
+  // written back, so a second press after a forced one is cached again. It is a
+  // way to ask the same question twice, not a way to turn caching off.
+  const force = !!(opts && opts.force);
   const btn = document.getElementById('genCrossInsightsBtn');
   const resultEl = document.getElementById('crossInsightsResult');
   const apiKey = await getApiKey();
@@ -26698,7 +26843,9 @@ Respond in exactly this format. First line only the word PUSH, MAINTAIN, or DELO
     const {result: reply, cached} = await aiCachedCall(
       'cross-metric',
       aiFingerprint([dataContext, persona]),
-      ()=> callClaudeChat(apiKey, systemPrompt, [{role:'user', content:'Analyze how my tracked metrics are affecting each other, give me a clear push/maintain/deload call, and tell me what to adjust.'}], 650)
+      ()=> callClaudeChat(apiKey, systemPrompt, [{role:'user', content:'Analyze how my tracked metrics are affecting each other, give me a clear push/maintain/deload call, and tell me what to adjust.'}], 650),
+      undefined,
+      {force}
     );
     const trimmed = reply.trim();
     const recMatch = trimmed.match(/^(PUSH|MAINTAIN|DELOAD)\s*\n+([\s\S]*)$/i);
@@ -26717,11 +26864,21 @@ Respond in exactly this format. First line only the word PUSH, MAINTAIN, or DELO
     // unchanged data is both honest and more informative than a fresh-looking
     // duplicate would be.
     const cachedNote = cached
-      ? `<div class="today-insight-row" style="margin-top:10px; opacity:0.75;">Unchanged since the last analysis — nothing new logged, so this is the same read rather than a repeated API call.</div>`
+      ? `<div class="today-insight-row" style="margin-top:10px; opacity:0.75;">Unchanged since the last analysis — nothing new logged, so this is the same read rather than a repeated API call. <button type="button" class="link-btn" id="crossInsightsRegenBtn">Run it again anyway</button></div>`
       : '';
     resultEl.innerHTML = recHtml + `<div class="goal-feedback-neutral">${escapeHtml(narrative).replace(/\n\n/g,'</div><div class="goal-feedback-neutral" style="margin-top:10px;">')}</div>` + cachedNote;
+    // Wired after the innerHTML that creates it, because that assignment
+    // replaces the node any earlier listener would have been attached to.
+    const regenBtn = document.getElementById('crossInsightsRegenBtn');
+    if(regenBtn){
+      regenBtn.addEventListener('click', ()=> generateCrossMetricInsights({force: true}));
+    }
   }catch(e){
-    resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't generate insights right now — ${escapeHtml(e.message || 'try again in a moment.')}</div>`;
+    resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't generate insights right now — ${escapeHtml(e.message || 'try again in a moment.')} <button type="button" class="link-btn" id="crossInsightsRetryBtn">Try again</button></div>`;
+    const retryBtn = document.getElementById('crossInsightsRetryBtn');
+    // Forced, because the failure may well have followed a poisoned cache entry
+    // written by an older build. A plain retry could hand back the same nothing.
+    if(retryBtn) retryBtn.addEventListener('click', ()=> generateCrossMetricInsights({force: true}));
   }finally{
     btn.disabled = false;
     btn.textContent = originalLabel;
@@ -28269,23 +28426,13 @@ async function buildDayLog(){
   });
 
   // Exercise logs across every program/day/exercise, with delta vs the previous session's top set
-  let exKeys = [];
-  try{
-    const res = await window.storage.list('ex:');
-    if(res && res.keys) exKeys = res.keys;
-  }catch(e){}
+  const corpus = await readExCorpus();
 
-  for(const key of exKeys){
-    const parsed = parseExKey(key);
-    if(!parsed) continue;
-    const exDef = parsed.exDef;
+  for(const entry_ of corpus){
+    const parsed = entry_.parsed;
+    const exDef = entry_.exDef;
 
-    let log = [];
-    try{
-      const item = await window.storage.get(key);
-      if(item && item.value) log = JSON.parse(item.value).map(normalizeExEntry);
-    }catch(e){}
-    log = log.filter(e=> (e.sets||[]).some(s=> s.weight!=null || s.reps!=null));
+    const log = entry_.log.filter(e=> (e.sets||[]).some(s=> s.weight!=null || s.reps!=null));
     log.sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
 
     log.forEach((entry, i)=>{
@@ -28748,11 +28895,7 @@ async function renderVolumeTrend(){
   const el = document.getElementById('volumeTrend');
   el.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div><div class="skeleton-line" style="width:58%"></div></div>';
 
-  let exKeys = [];
-  try{
-    const res = await window.storage.list('ex:');
-    if(res && res.keys) exKeys = res.keys;
-  }catch(e){}
+  const corpus = await readExCorpus();
 
   const todayMonday = mondayOf(getTodayKey());
   const thisWeekStart = new Date(todayMonday+'T00:00:00');
@@ -28761,19 +28904,10 @@ async function renderVolumeTrend(){
 
   const groupVolumes = {}; // group -> {thisWeek, lastWeek}
 
-  for(const key of exKeys){
-    const parsed = parseExKey(key);
-    if(!parsed) continue;
-    const exDef = parsed.exDef;
+  for(const {exDef, log} of corpus){
     const info = exerciseInfo[exDef.name];
     if(!info) continue;
     const group = MUSCLE_GROUP_MAP[info.category] || 'Other';
-
-    let log = [];
-    try{
-      const item = await window.storage.get(key);
-      if(item && item.value) log = JSON.parse(item.value).map(normalizeExEntry);
-    }catch(e){}
 
     log.forEach(entry=>{
       const entryDate = new Date(entry.date+'T00:00:00');
@@ -28830,11 +28964,7 @@ async function renderVolumeTrend(){
 // engine (Israetel/Renaissance Periodization autoregulation model), visible
 // here weeks before it would show up as an actual performance drop.
 async function computeWeeklyRpeAvg(numWeeks){
-  let keys = [];
-  try{
-    const res = await window.storage.list('ex:');
-    if(res && res.keys) keys = res.keys;
-  }catch(e){}
+  const corpus = await readExCorpus();
 
   const todayMonday = mondayOf(getTodayKey());
   const weekStarts = [];
@@ -28847,13 +28977,7 @@ async function computeWeeklyRpeAvg(numWeeks){
   const buckets = {}; // weekStart -> {sum, count}
   weekStarts.forEach(w=> buckets[w] = {sum:0, count:0});
 
-  for(const key of keys){
-    let log = [];
-    try{
-      const item = await window.storage.get(key);
-      if(item && item.value) log = JSON.parse(item.value).map(normalizeExEntry);
-    }catch(e){ continue; }
-
+  for(const {log} of corpus){
     log.forEach(entry=>{
       const wk = mondayOf(entry.date);
       if(!(wk in buckets)) return;
@@ -28886,24 +29010,11 @@ async function computeWeeklyRpeAvg(numWeeks){
 const CARDIO_TREND_WEEKS = 10;
 
 async function computeWeeklyCardio(weeks){
-  let exKeys = [];
-  try{
-    const res = await window.storage.list('ex:');
-    if(res && res.keys) exKeys = res.keys;
-  }catch(e){}
+  const corpus = await readExCorpus();
 
   const buckets = {}; // monday -> {metres, minuteMetres, metresWithTime}
-  for(const key of exKeys){
-    const parsed = parseExKey(key);
-    if(!parsed) continue;
-    const exDef = parsed.exDef;
+  for(const {exDef, log} of corpus){
     if(!isDistanceExercise(exDef.name)) continue;
-
-    let log = [];
-    try{
-      const item = await window.storage.get(key);
-      if(item && item.value) log = JSON.parse(item.value).map(normalizeExEntry);
-    }catch(e){}
 
     log.forEach(entry=>{
       const metres = distanceOf(entry);
@@ -30298,6 +30409,66 @@ function applyAnalysisEmptyState(){
   // the same thing individually.
   const firstRun = document.getElementById('analysisFirstRun');
   if(firstRun) firstRun.style.display = shown === 0 ? '' : 'none';
+
+  // Built HERE rather than in renderAnalysis, because this is the function that
+  // knows which cards survived. An index assembled before autohide runs would
+  // list sections that are not on the page — the worst kind of navigation,
+  // since every one of those chips is a promise the tab does not keep.
+  renderAnalysisIndex();
+}
+
+// [ANALYSIS INDEX] -------------------------------------------------------------
+// Analysis is the longest tab in the app. With everything populated it is
+// nineteen cards of flat scroll, and until now the only way to reach the RPE
+// trend at the bottom was to travel past all eighteen above it.
+//
+// The rail reads the DOM rather than holding its own list of sections. A
+// hardcoded list is a second copy of the tab's contents, and the second copy is
+// the one that goes stale when a card is added — the same reason jumpToSetting
+// asks the element which view it is in instead of being told.
+const ANALYSIS_INDEX_MIN_SECTIONS = 4;
+
+function renderAnalysisIndex(){
+  const view = document.getElementById('analysisView');
+  const rail = document.getElementById('analysisIndex');
+  if(!view || !rail) return;
+
+  const cards = [...view.querySelectorAll(':scope > .card')].filter(card=>{
+    if(card.id === 'analysisFirstRun') return false;
+    // Three different mechanisms hide a card here — data-autohide, the
+    // condition gates on BP/glucose/meal timing, and cardio's own toggle — and
+    // all three land on an inline display. Reading the result rather than the
+    // mechanism means a fourth one is covered for free.
+    if(card.style.display === 'none') return false;
+    return !!card.querySelector('.card-title');
+  });
+
+  // Below the threshold the rail is more chrome than shortcut: a new user with
+  // two charts does not need an index to find the second one.
+  if(cards.length < ANALYSIS_INDEX_MIN_SECTIONS){
+    rail.style.display = 'none';
+    rail.innerHTML = '';
+    return;
+  }
+
+  rail.innerHTML = cards.map((card, i)=>{
+    // textContent, not innerHTML: the title carries an inline SVG icon, which
+    // contributes nothing to textContent and would be nonsense inside a chip.
+    const label = (card.querySelector('.card-title').textContent || '').trim();
+    return `<button type="button" class="analysis-index-chip" data-analysis-section="${i}">${escapeHtml(label)}</button>`;
+  }).join('');
+  rail.style.display = '';
+
+  // Wired AFTER the innerHTML that creates them — that assignment replaces
+  // every node an earlier listener could have been attached to (v26 §6).
+  // Indexed against the same array the chips were built from, so a chip cannot
+  // point at a card that has since been hidden.
+  rail.querySelectorAll('[data-analysis-section]').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      const card = cards[Number(chip.dataset.analysisSection)];
+      if(card) card.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
 }
 
 async function renderAnalysis(){
@@ -30627,8 +30798,20 @@ wireCustomProgramUI();
     if(e.target === overlay || e.target.id === 'settingsBackdrop') close();
   });
 
-  overlay.addEventListener('click', (e)=>{
-    const jump = e.target.closest('[data-jump-to]');
+  // Delegated on DOCUMENT, not on the overlay. [data-jump-to] started life as a
+  // settings-sheet affordance, so the listener was scoped to the sheet — and
+  // then the Strength Context card on Analysis grew a "See the sessions these
+  // came from" button using the same attribute. It sits outside the overlay,
+  // so `overlay.addEventListener` never saw the click and the button was a
+  // dead end from the day it shipped: correct markup, correct handler, no
+  // listener in between. Scoping the delegation to the ONE PLACE THAT CONTAINS
+  // EVERY CASE is what stops the next such button being dead too.
+  //
+  // close() unconditionally: harmless when the sheet isn't open, and required
+  // when it is, because jumping to another tab behind a full-screen overlay
+  // scrolls somewhere nobody can see.
+  document.addEventListener('click', (e)=>{
+    const jump = e.target.closest && e.target.closest('[data-jump-to]');
     if(!jump) return;
     close();
     jumpToSetting(jump.dataset.jumpTo);
@@ -30643,7 +30826,22 @@ wireCustomProgramUI();
     const el = document.getElementById(id);
     if(!el) return;
     const view = el.closest('[id$="View"]');
-    if(view && typeof switchView === 'function') switchView(view.id.replace(/View$/, ''));
+    if(view){
+      // CLICK THE NAV PILL, do not call switchView directly. switchView only
+      // shows and hides the containers; what a tab CONTAINS is rendered by its
+      // pill's own click handler (renderHistory + renderSavedWeeks +
+      // renderPrTimeline for History, renderAnalysis for Analysis, and so on).
+      // Calling switchView by itself therefore lands on a tab that is visible
+      // and empty — which is the second half of why the Strength Context jump
+      // was a dead end, and would still be one with only the listener fixed.
+      // The pill is the single place that knows what its tab needs; going
+      // through it cannot fall out of step with that list the way a second
+      // copy here would.
+      const key = view.id.replace(/View$/, '');
+      const pill = document.getElementById('nav' + key.charAt(0).toUpperCase() + key.slice(1));
+      if(pill) pill.click();
+      else if(typeof switchView === 'function') switchView(key);
+    }
     // After the switch: several tabs render their contents lazily on first
     // visit, so the element can move between the switch and the scroll.
     setTimeout(()=>{
@@ -30653,9 +30851,40 @@ wireCustomProgramUI();
         ? target
         : (target.closest('.card') || target).querySelector('.nutrition-header');
       if(header && !header.classList.contains('open')) header.click();
-      target.scrollIntoView({behavior:'smooth', block:'center'});
+      // Scroll the CARD to the top of the viewport, not the target to the
+      // centre. Several jump targets are empty containers that a lazy render
+      // fills a moment later — #prTimeline can go from a three-line skeleton to
+      // several screens of PRs — and centring an element whose height is about
+      // to multiply leaves its first row scrolled off the top. The card's own
+      // start edge does not move when its contents grow, and landing on the
+      // card title also tells you where you arrived.
+      (target.closest('.card') || target).scrollIntoView({behavior:'smooth', block:'start'});
     }, 80);
   }
+})();
+
+// [NAV OVERFLOW SIGNAL] --------------------------------------------------------
+// The pill rail scrolls horizontally with its scrollbar switched off, and seven
+// pills do not fit on a phone, so three tabs live off the right edge with
+// nothing on screen indicating they are there. The CSS fades that edge unless
+// .at-end is set; this sets it.
+//
+// Also runs on resize, because a rotation can turn an overflowing rail into one
+// that fits, and a fade over a rail with nothing past it is a lie in the other
+// direction.
+(function wireNavOverflowSignal(){
+  const rail = document.querySelector('.nav-pills');
+  if(!rail) return;
+  // A 1px tolerance: fractional layout widths mean scrollLeft + clientWidth
+  // lands a hair short of scrollWidth at the true end on plenty of devices, so
+  // an exact comparison leaves the fade on permanently.
+  const sync = ()=>{
+    const atEnd = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 1;
+    rail.classList.toggle('at-end', atEnd);
+  };
+  rail.addEventListener('scroll', sync, {passive:true});
+  window.addEventListener('resize', sync, {passive:true});
+  sync();
 })();
 
 (function wireCoachFabTuck(){
