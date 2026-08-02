@@ -1784,7 +1784,26 @@
      of promising sections that autohide has already removed. */
   .analysis-index{
     display:flex; gap:6px; overflow-x:auto; scrollbar-width:none;
-    margin:0 -18px 14px; padding:2px 18px 8px;
+    margin:0 -18px 14px; padding:6px 18px 8px;
+    /* STICKS BELOW THE NAV RAIL. An index that only exists at the top of the
+       tab is as far away as the nav bar used to be once you are fifteen cards
+       down — the exact problem the sticky rail was added to solve, one level
+       in.
+
+       The offset is --nav-rail-h, measured from the rail at runtime, NOT a
+       hardcoded height. The rail's height depends on the pill font, its
+       padding and whether the search pill wraps, so a literal here would be a
+       second copy of a number the stylesheet already owns, and it would be
+       wrong on the first phone whose text size differs. The fallback in the
+       var() is only for the frame before the first measurement lands.
+
+       z-index 25: above cards (0-5), below the nav rail (30), so the index
+       slides under the rail rather than over it. */
+    position:sticky;
+    top:calc(env(safe-area-inset-top, 0px) + var(--nav-rail-h, 56px));
+    z-index:25;
+    background:rgba(10,11,13,0.72);
+    backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);
   }
   .analysis-index::-webkit-scrollbar{display:none;}
   .analysis-index-chip{
@@ -1803,6 +1822,61 @@
     transition:background 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth), color 0.25s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.25s var(--ease-smooth);
   }
   .nav-pill:active{transform:scale(0.95);}
+  /* The search pill PINS to the left of the rail rather than scrolling with it.
+     A search affordance you have to scroll sideways to find has the same
+     problem search exists to solve. sticky:left works inside a horizontal
+     scroller the same way sticky:top works in a vertical one; the background is
+     its own because the other pills scroll underneath it. */
+  .nav-pill-search{
+    position:sticky; left:0; z-index:1;
+    /* Bleeds into the rail's own 18px padding so a pill sliding under it
+       disappears at the edge of the screen, not 18px inside it. */
+    margin-left:-18px; padding-left:24px;
+    background:linear-gradient(to right, rgba(10,11,13,0.95) 78%, rgba(10,11,13,0));
+    padding-right:20px; border:none; box-shadow:none;
+    color:var(--text-muted);
+  }
+  .nav-pill-search:active{transform:none;}
+  .nav-pill-search svg{width:16px; height:16px; display:block;}
+
+  /* [CROSS-LINKS] A name that is also a lookup. Styled as text with a chevron
+     rather than as a button, because these sit inside dense rows that already
+     carry real buttons — Exercise Progress rows have a delta and a PR badge on
+     the same line — and a third button-looking thing per row would read as
+     three equal actions instead of one label you can follow. */
+  .xlink{
+    background:none; border:none; padding:0; margin:0; font:inherit; color:inherit;
+    text-align:left; cursor:pointer; display:inline-flex; align-items:baseline; gap:4px;
+    min-width:0;
+  }
+  .xlink .xlink-chev{ color:var(--text-muted); font-size:0.85em; flex:0 0 auto; }
+  .xlink:active{ opacity:0.65; }
+  /* Focus has to be visible on a control with no box of its own. */
+  .xlink:focus-visible{ outline:2px solid var(--plate-blue); outline-offset:3px; border-radius:3px; }
+
+  /* [GLOBAL SEARCH] */
+  .gsearch-input{
+    width:100%; box-sizing:border-box; margin-bottom:10px;
+    background:var(--surface2); border:1px solid var(--line-bright);
+    border-radius:var(--radius-sm); color:var(--text);
+    font-family:'Inter',sans-serif; font-size:16px; padding:12px 14px;
+  }
+  .gsearch-results{ max-height:60vh; overflow-y:auto; overscroll-behavior:contain; }
+  .gsearch-group{
+    font-size:10px; text-transform:uppercase; letter-spacing:0.6px;
+    color:var(--text-muted); margin:12px 0 6px; padding-bottom:4px;
+    border-bottom:1px solid var(--line);
+  }
+  .gsearch-group:first-child{ margin-top:0; }
+  .gsearch-hit{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    width:100%; text-align:left; background:var(--surface2);
+    border:1px solid var(--line); border-radius:var(--radius-sm);
+    color:var(--text); font-family:'Inter',sans-serif; font-size:13px;
+    padding:11px 13px; margin-top:6px; cursor:pointer; box-shadow:var(--rim);
+  }
+  .gsearch-hit:active{ transform:scale(0.99); }
+  .gsearch-hit-tab{ color:var(--text-muted); font-size:11px; flex:0 0 auto; }
   .nav-pill.active{background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%); border-color:var(--plate-blue); color:#fff; box-shadow:0 1px 0 rgba(255,255,255,0.2) inset, 0 3px 12px rgba(91,124,255,0.4);}
 
   /* --- Log date selector: lets Today/Log tab actions apply to a past date
@@ -2354,6 +2428,17 @@
     font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.3px;
     color:var(--text-muted); margin-bottom:2px;
   }
+  /* The care-area link. Same restraint as .xlink: these sit beside a real
+     button (the resting chip's ✕) and must not compete with it. */
+  .care-area-link{
+    background:none; border:none; padding:0; margin:0; font:inherit;
+    color:var(--plate-blue); text-align:left; cursor:pointer;
+    text-decoration:underline; text-underline-offset:2px;
+    text-decoration-color:color-mix(in srgb, var(--plate-blue) 45%, transparent);
+  }
+  .care-area-link:active{ opacity:0.65; }
+  .care-area-link:focus-visible{ outline:2px solid var(--plate-blue); outline-offset:3px; border-radius:3px; }
+
   .care-pattern-row{ padding:8px 0; border-bottom:1px solid var(--line); }
   .care-pattern-row:last-child{ border-bottom:none; }
   .care-pattern-name{ font-size:13px; font-weight:600; color:var(--text); }
@@ -3714,6 +3799,9 @@
   </div>
 
   <div class="nav-pills">
+    <button type="button" class="nav-pill nav-pill-search" id="globalSearchBtn" aria-label="Search the app">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><line x1="13.2" y1="13.2" x2="17" y2="17"/></svg>
+    </button>
     <button class="nav-pill active" id="navToday">Today</button>
     <button class="nav-pill" id="navLog">Log</button>
     <button class="nav-pill" id="navAnalysis">Analysis</button>
@@ -4926,6 +5014,17 @@
   </div>
 </div>
 
+<div class="sub-modal-overlay" id="globalSearchOverlay" role="dialog" aria-modal="true" aria-labelledby="globalSearchTitle">
+  <div class="sub-modal-sheet">
+    <div class="sub-modal-header">
+      <div class="sub-modal-title" id="globalSearchTitle">Search</div>
+      <button class="sub-modal-close" id="globalSearchClose" aria-label="Close search">&#10005;</button>
+    </div>
+    <input type="text" id="globalSearchInput" class="gsearch-input" placeholder="Exercise or section&#8230; e.g. squat, volume, sleep" aria-label="Search exercises and sections" autocomplete="off">
+    <div id="globalSearchResults" class="gsearch-results"></div>
+  </div>
+</div>
+
 <div class="sub-modal-overlay" id="exHistoryOverlay" role="dialog" aria-modal="true" aria-labelledby="exHistoryTitle">
   <div class="sub-modal-sheet">
     <div class="sub-modal-header">
@@ -5098,7 +5197,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.48';
+const APP_VERSION = '3.53';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -12813,7 +12912,7 @@ function renderStorageBanner(){
     // Progress Photos is on the Log tab, not Care — checked against the DOM
     // rather than assumed, since Care is where the body-related cards mostly
     // live and guessing would have sent this to the wrong tab.
-    switchView('log');
+    showView('log');
     const wrap = document.getElementById('photosExpandWrap');
     if(wrap && !wrap.classList.contains('open')){
       const header = document.getElementById('photosHeader');
@@ -13555,7 +13654,11 @@ function updateMasterclassLinkBtn(){
   btn.onclick = ()=>{
     // scrollTop:false — this link owns where the page lands (the specific
     // masterclass card, below), so switchView must not also send it to the top.
-    switchView('learn', {scrollTop:false});
+    // showView, not switchView. This line is why VIEW_RENDERERS exists: it
+    // needed {scrollTop:false}, which the nav pill could not offer, so it went
+    // around the pill — and around renderMasterclassIndex() with it, leaving
+    // the "In your program" marker on whichever program you were on last.
+    showView('learn', {scrollTop:false});
     // switchView triggers the staggered card-entrance animation synchronously,
     // but layout needs a frame to settle before scrollIntoView measures
     // positions correctly — double rAF is the standard safe wait for that.
@@ -16857,7 +16960,7 @@ async function renderWorkout(){
         hitRegionsForRow = hitRegions;
         const sub = suggestSubstitute(info.category, ex.name);
         const swapHtml = sub ? ` Try <b>${sub.name}</b> instead — ${sub.why}.` : '';
-        cautionHtml = `<div class="ex-caution">⚠️ You marked ${hitRegions.join(' & ')} as resting — consider skipping or lightening this one.${swapHtml} Clear it in Care when you're ready. <button type="button" class="ex-ai-tailor-btn">✨ Tailor to what I logged</button></div>`;
+        cautionHtml = `<div class="ex-caution">⚠️ You marked ${hitRegions.map(r=> `<button type="button" class="care-area-link" data-care-area="${escapeHtml(r)}" aria-label="Show stretches for ${escapeHtml(r)}">${escapeHtml(r)}</button>`).join(' & ')} as resting — consider skipping or lightening this one.${swapHtml} Clear it in Care when you're ready. <button type="button" class="ex-ai-tailor-btn">✨ Tailor to what I logged</button></div>`;
       }
     }
 
@@ -18019,7 +18122,7 @@ function enterGymMode(opts){
   // stripped version of a tab it was never designed against, so the view is
   // forced. scrollTop is suppressed because this function makes its own
   // scrolling decision below.
-  switchView('today', {scrollTop:false});
+  showView('today', {scrollTop:false});
   openFirstIncompleteExercise();
   refreshGymDock();
 
@@ -24625,7 +24728,7 @@ function switchView(active, opts){
 const SCROLL_LOCK_OVERLAYS = [
   'subModalOverlay', 'calendarModalOverlay', 'photoLightbox',
   'barcodeScannerOverlay', 'coachFabModal', 'userPickerOverlay',
-  'exHistoryOverlay', 'exEditOverlay'
+  'exHistoryOverlay', 'exEditOverlay', 'globalSearchOverlay'
 ];
 let scrollLockY = 0;
 let scrollLockActive = false;
@@ -24680,6 +24783,7 @@ const OVERLAY_CLOSERS = {
   exHistoryOverlay:     ()=> closeExerciseHistory(),
   exEditOverlay:        ()=> closeExerciseEditor(),
   settingsOverlay:      ()=> { const b = document.getElementById('settingsClose'); if(b) b.click(); },
+  globalSearchOverlay:  ()=> closeGlobalSearch(),
   // userPickerOverlay is deliberately absent. It is the "who is using this
   // device" gate, and there is nothing behind it to go back to — dismissing it
   // would leave the app with no active profile.
@@ -24868,7 +24972,7 @@ function updateTodayFab(){
 
 document.getElementById('todayFab').addEventListener('click', ()=>{
   setLogDate(getTodayKey());
-  switchView('today');
+  showView('today');
 });
 
 // Re-renders whichever of Today/Log is actually visible right now for the
@@ -25116,14 +25220,16 @@ async function restoreActiveView(){
     }
   }catch(e){}
 
-  switchView(savedView);
-  if(savedView === 'analysis') renderAnalysis();
-  if(savedView === 'history'){ renderHistory(); renderSavedWeeks(); renderPrTimeline(); }
-  if(savedView === 'care'){ renderCare(); populateCareLibrarySelector(); }
-  if(savedView === 'coach') renderCoach();
-  // Learn was absent from this list, so reopening the app on that tab left
-  // the masterclass index empty until the person navigated away and back.
-  if(savedView === 'learn'){ renderMasterclassIndex(); renderExerciseLibraryHint(); }
+  // Was a chain of `if(savedView === ...)` that had to be kept in step with the
+  // pill handlers by hand, and once wasn't — Learn was missing from it, so
+  // reopening the app on that tab left the masterclass index empty until you
+  // navigated away and back. showView reads the one list.
+  //
+  // Today and Log now render here too, which the old chain skipped. Both are
+  // idempotent and init has already called loadFoodLog() by this point, so the
+  // cost is one repeat read; the benefit is that this path stops being a
+  // special case that silently does less than every other way into a tab.
+  showView(savedView);
   // Last, so the class lands on a Today tab that has actually been built.
   if(pendingGymMode){ pendingGymMode = false; enterGymMode({scroll:false}); }
 }
@@ -25149,48 +25255,76 @@ document.getElementById('tipsToggle').addEventListener('click', ()=>{
 // — the session itself doesn't change because you logged food, and
 // rebuilding it on every tap would drop expanded-card and scroll state for
 // no benefit.
-document.getElementById('navToday').addEventListener('click', ()=>{
-  switchView('today');
-  renderStreak();
-  renderTodayInsights();
-});
+// [VIEW RENDERERS] -------------------------------------------------------------
+// WHAT EACH TAB NEEDS RENDERED, IN ONE PLACE.
+//
+// This list existed in three: the seven nav-pill handlers, restoreActiveView's
+// chain of `if(savedView === ...)`, and — partially — updateMasterclassLinkBtn.
+// Three copies of one rule is three rules, and the drift is already recorded in
+// this file's own comments: restoreActiveView carried "Learn was absent from
+// this list, so reopening the app on that tab left the masterclass index empty",
+// which is that exact failure, found once and fixed in one copy.
+//
+// It bit again in v3.49. updateMasterclassLinkBtn calls switchView directly to
+// get {scrollTop:false}, which the pill could not offer — so arriving in Learn
+// by that button skipped renderMasterclassIndex() and left the "In your program"
+// marker showing the program you used to be on. Same cause, third copy.
+//
+// switchView SHOWS AND HIDES; showView shows, hides AND renders. Anything that
+// moves the person to a tab should call showView. A bare switchView is now a
+// deliberate choice meaning "I will render this myself", and there should be a
+// comment where it happens.
+const VIEW_RENDERERS = {
+  today: ()=>{
+    // Only the cross-domain aggregates, not renderWorkout() — the session does
+    // not change because you logged food, and rebuilding it on every tap would
+    // drop expanded-card and scroll state for no benefit.
+    renderStreak();
+    renderTodayInsights();
+  },
+  log: ()=>{
+    // Re-reads the day's food log so macro bars reflect anything logged from
+    // elsewhere (Snap a Meal, Describe It, the coach's suggestions).
+    loadFoodLog();
+  },
+  analysis: ()=>{ renderAnalysis(); },
+  history: ()=>{ renderHistory(); renderSavedWeeks(); renderPrTimeline(); },
+  care:    (intent)=>{ renderCare(); populateCareLibrarySelector(intent && intent.careArea); },
+  coach:   ()=>{ renderCoach(); },
+  learn:   ()=>{
+    // The index has to re-render on entry so the "In your program" marker
+    // follows a program switch.
+    renderMasterclassIndex();
+    renderExerciseLibraryHint();
+  },
+};
 
-document.getElementById('navLog').addEventListener('click', ()=>{
-  switchView('log');
-  // Re-reads the day's food log so macro bars reflect anything logged from
-  // elsewhere (Snap a Meal, Describe It, the coach's suggestions).
-  loadFoodLog();
-});
+// opts.intent is ARRIVING WITH A REASON — the third navigation verb.
+// data-jump-to scrolls somewhere; data-search-for looks something up; neither
+// can drive a control at the destination. "Show me the stretches for the
+// shoulder I marked as resting" needs the Care tab to open AND its area
+// selector to be on Shoulder, and no amount of scrolling gets you that.
+//
+// Passed to the renderer rather than acted on here, because only the renderer
+// knows what its tab's controls are. showView stays the thing that switches and
+// renders; what "with intent" MEANS is the destination's business.
+//
+// Deliberately NOT a general attribute language. There is one view that reads
+// intent today. When a second one wants it, the shape of the general case will
+// be visible from two examples instead of guessed at from one.
+function showView(key, opts){
+  switchView(key, opts);
+  const render = VIEW_RENDERERS[key];
+  // Rendering AFTER the switch, and never inside a try that swallows: a tab
+  // that throws mid-render should surface, not quietly show a half-built page.
+  if(render) render(opts && opts.intent);
+}
 
-document.getElementById('navAnalysis').addEventListener('click', ()=>{
-  switchView('analysis');
-  renderAnalysis();
-});
-
-document.getElementById('navHistory').addEventListener('click', ()=>{
-  switchView('history');
-  renderHistory();
-  renderSavedWeeks();
-  renderPrTimeline();
-});
-
-document.getElementById('navCare').addEventListener('click', ()=>{
-  switchView('care');
-  renderCare();
-  populateCareLibrarySelector();
-});
-
-document.getElementById('navCoach').addEventListener('click', ()=>{
-  switchView('coach');
-  renderCoach();
-});
-
-document.getElementById('navLearn').addEventListener('click', ()=>{
-  // Learn was the one tab with no refresh at all. The index has to re-render
-  // on entry so the "In your program" marker follows a program switch.
-  renderMasterclassIndex();
-  renderExerciseLibraryHint();
-  switchView('learn');
+VIEW_KEYS.forEach(key=>{
+  const pill = document.getElementById('nav' + key.charAt(0).toUpperCase() + key.slice(1));
+  // Wired from VIEW_KEYS rather than seven copy-pasted blocks, so a new tab
+  // cannot ship with markup, a renderer and no listener between them.
+  if(pill) pill.addEventListener('click', ()=> showView(key));
 });
 
 // [WEEK BOUNDARIES] -------------------------------------------------------------
@@ -26117,7 +26251,7 @@ async function renderExerciseProgress(){
     return `
       <div class="prog-row">
         <div class="prog-top">
-          <div class="prog-name">${escapeHtml(r.name)}</div>
+          <div class="prog-name"><button type="button" class="xlink" data-search-for="${escapeHtml(r.name)}">${escapeHtml(r.name)}<span class="xlink-chev">›</span></button></div>
           <div class="prog-day">${escapeHtml(r.dayLabel)}</div>
         </div>
         <div class="prog-stats">
@@ -26222,7 +26356,7 @@ async function renderPrTimeline(){
       <div class="pr-row">
         <div class="pr-date">${dateLabel}</div>
         <div class="pr-body">
-          <div class="pr-ex-name">${isStrength ? '💪' : '🏆'} ${escapeHtml(ev.name)}${isStrength ? ' <span class="pr-type-tag">strength PR</span>' : ''}</div>
+          <div class="pr-ex-name">${isStrength ? '💪' : '🏆'} <button type="button" class="xlink" data-search-for="${escapeHtml(ev.name)}">${escapeHtml(ev.name)}<span class="xlink-chev">›</span></button>${isStrength ? ' <span class="pr-type-tag">strength PR</span>' : ''}</div>
           <div class="pr-day-label">${escapeHtml(ev.dayLabel)}${isStrength && ev.e1rm ? ` · Est. 1RM ~${fmtWeight(ev.e1rm)}` : ''}</div>
         </div>
         <div class="pr-stat">${fmtWeight(ev.weight)}${ev.reps!=null ? ` × ${ev.reps}` : ''}</div>
@@ -27999,8 +28133,9 @@ function renderCareLibrary(region){
   el.innerHTML = itemsHtml || '<div class="empty-note">🧘 No stretches for this area yet — check back as the library grows.</div>';
 }
 
-async function populateCareLibrarySelector(){
+async function populateCareLibrarySelector(preferredRegion){
   const sel = document.getElementById('careLibrarySelector');
+  if(!sel) return;
   if(sel.options.length === 0){
     Object.keys(REGION_RELIEF).forEach(region=>{
       const opt = document.createElement('option');
@@ -28010,8 +28145,18 @@ async function populateCareLibrarySelector(){
     });
     sel.addEventListener('change', ()=> renderCareLibrary(sel.value));
   }
-  // Default to a currently-resting region if there is one — that's almost
-  // certainly what someone opening this card actually wants to see first.
+  // An explicitly requested region wins over every default. Someone who tapped
+  // "Shoulder" asked a question, and answering with the Knee because that is
+  // what they happen to be resting would be worse than not offering the link.
+  // Validated against REGION_RELIEF rather than trusted: the value arrives from
+  // a DOM attribute, and an unknown one would silently blank the card.
+  if(preferredRegion && Object.keys(REGION_RELIEF).includes(preferredRegion)){
+    sel.value = preferredRegion;
+    renderCareLibrary(sel.value);
+    return;
+  }
+  // Otherwise default to a currently-resting region if there is one — that's
+  // almost certainly what someone opening this card actually wants to see.
   const resting = await getRestingRegions();
   if(resting.length > 0 && Object.keys(REGION_RELIEF).includes(resting[0])){
     sel.value = resting[0];
@@ -28279,7 +28424,7 @@ async function renderCare(){
     restEl.innerHTML = '<div class="empty-note">✅ Nothing marked as resting — you\'re clear to train everything.</div>';
   }else{
     restEl.innerHTML = resting.map(r=>`
-      <span class="resting-chip">${escapeHtml(r)} <button data-region="${escapeHtml(r)}" class="clear-resting" aria-label="Stop resting ${escapeHtml(r)}">✕</button></span>
+      <span class="resting-chip"><button type="button" class="care-area-link" data-care-area="${escapeHtml(r)}" aria-label="Show stretches for ${escapeHtml(r)}">${escapeHtml(r)}</button> <button data-region="${escapeHtml(r)}" class="clear-resting" aria-label="Stop resting ${escapeHtml(r)}">✕</button></span>
     `).join('') + `<div class="history-hint" style="margin-top:10px;">Exercises loading these regions will show a caution flag in Today\'s workout until you clear them here.</div>`;
     restEl.querySelectorAll('.clear-resting').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
@@ -28303,7 +28448,7 @@ async function renderCare(){
       ${patterns.map(x=> `
         <div class="care-pattern-row">
           <div class="care-pattern-name">${escapeHtml(x.exercise)} <span class="care-log-pain">worst ${x.worst}/10</span></div>
-          <div class="care-log-detail">${x.count} check-ins${x.region ? ` &middot; ${escapeHtml(x.region)} on ${x.regionCount} of ${x.count}` : ''} &middot; most recent ${x.latest}/10 on ${escapeHtml(fmtDayLabel(x.latestDate))}</div>
+          <div class="care-log-detail">${x.count} check-ins${x.region ? ` &middot; <button type="button" class="care-area-link" data-care-area="${escapeHtml(x.region)}" aria-label="Show stretches for ${escapeHtml(x.region)}">${escapeHtml(x.region)}</button> on ${x.regionCount} of ${x.count}` : ''} &middot; most recent ${x.latest}/10 on ${escapeHtml(fmtDayLabel(x.latestDate))}</div>
         </div>`).join('')}
     ` : '';
   }
@@ -28943,7 +29088,7 @@ async function renderVolumeTrend(){
     return `
       <div class="vol-row">
         <div class="vol-row-top">
-          <span class="vol-group-name">${g}</span>
+          <span class="vol-group-name"><button type="button" class="xlink" data-search-for="${escapeHtml(g)}">${escapeHtml(g)}<span class="xlink-chev">›</span></button></span>
           ${deltaHtml}
         </div>
         <div class="vol-bar-track"><div class="vol-bar-fill" style="width:${Math.min(100,(thisWeek/maxVal)*100)}%"></div></div>
@@ -29503,7 +29648,7 @@ document.addEventListener('click', (e)=>{
   const btn = e.target.closest && e.target.closest('.js-ai-setup-jump');
   if(!btn) return;
   e.preventDefault();
-  switchView('log');
+  showView('log');
   const header = document.getElementById('aiSettingsHeader');
   const wrap = document.getElementById('aiSettingsExpandWrap');
   if(header && wrap && !wrap.classList.contains('open')) header.click();
@@ -30837,9 +30982,12 @@ wireCustomProgramUI();
       // The pill is the single place that knows what its tab needs; going
       // through it cannot fall out of step with that list the way a second
       // copy here would.
+      // showView, not a synthesised pill click. Clicking the pill was the
+      // v3.47 workaround for there being no single place that knew what a tab
+      // needed rendered; VIEW_RENDERERS is that place now, so the indirection
+      // through a DOM element that may or may not exist can go.
       const key = view.id.replace(/View$/, '');
-      const pill = document.getElementById('nav' + key.charAt(0).toUpperCase() + key.slice(1));
-      if(pill) pill.click();
+      if(typeof showView === 'function') showView(key);
       else if(typeof switchView === 'function') switchView(key);
     }
     // After the switch: several tabs render their contents lazily on first
@@ -30863,6 +31011,238 @@ wireCustomProgramUI();
   }
 })();
 
+// [GLOBAL SEARCH] --------------------------------------------------------------
+// There were already three searches in this app — foods on Log, the 321-entry
+// exercise library on Learn, and the day-log filter on History — and not one of
+// them was reachable from anywhere else. Search you have to navigate to in
+// order to use has the same problem search exists to solve.
+//
+// SCOPE IS DELIBERATELY NARROW: exercises and sections. Not logged data. A
+// search that also scans every session would have to read the exercise corpus,
+// which makes an instant interaction depend on the slowest thing in the app,
+// and would put "3 sets of squats on 14 June" next to "Squat" in a list where
+// they answer completely different questions.
+//
+// SECTIONS ARE READ FROM THE DOM, never listed. A hardcoded list of the app's
+// cards is a second copy of the app's cards, and it is the copy that goes stale
+// the day someone adds one — the same reason renderAnalysisIndex reads the DOM
+// and jumpToSetting asks the element which view it lives in.
+const GLOBAL_SEARCH_EXERCISE_LIMIT = 12;
+const GLOBAL_SEARCH_SECTION_LIMIT = 10;
+
+const SEARCH_TAB_LABELS = {
+  today:'Today', log:'Log', analysis:'Analysis', history:'History',
+  care:'Care', coach:'Coach', learn:'Learn',
+};
+
+function collectSearchSections(){
+  const out = [];
+  Object.keys(SEARCH_TAB_LABELS).forEach(tab=>{
+    const view = document.getElementById(tab + 'View');
+    if(!view) return;
+    [...view.querySelectorAll(':scope > .card')].forEach((card, i)=>{
+      const titleEl = card.querySelector('.card-title');
+      if(!titleEl) return;
+      // Hidden right now means unreachable right now. Autohide, the condition
+      // gates and the masterclass toggles all land on an inline display, so
+      // reading the result rather than the mechanism covers all three — and a
+      // hit that scrolls you to nothing is worse than no hit at all.
+      if(card.style.display === 'none') return;
+      // Sections reuse data-jump-to, which addresses by id, so anything without
+      // one gets a stable generated id. Generated from tab and position rather
+      // than from the title, because a title is copy and copy gets rewritten.
+      if(!card.id) card.id = 'sec-' + tab + '-' + i;
+      // textContent, not innerHTML — every card title carries an inline SVG.
+      out.push({id: card.id, tab, tabLabel: SEARCH_TAB_LABELS[tab],
+                title: (titleEl.textContent || '').trim()});
+    });
+  });
+  return out;
+}
+
+function renderGlobalSearchResults(query){
+  const el = document.getElementById('globalSearchResults');
+  if(!el) return;
+  const q = (query || '').trim().toLowerCase();
+  if(!q){
+    el.innerHTML = '<div class="empty-note">Type to find an exercise in the library, or any section of any tab.</div>';
+    return;
+  }
+
+  const sections = collectSearchSections()
+    .filter(s=> s.title.toLowerCase().includes(q))
+    .slice(0, GLOBAL_SEARCH_SECTION_LIMIT);
+
+  // MATCHES ON NAME, CATEGORY, OR MUSCLE-GROUP LABEL — not name alone.
+  //
+  // Name-only matching is what makes a cross-link from Weekly Volume
+  // impossible: that card's rows are labelled "Chest & Shoulders" and
+  // "Posterior Chain", which are not substrings of any exercise name and never
+  // will be. Rather than give the volume card its own bespoke lookup, the
+  // search learns the two indirections the app already has —
+  // exerciseInfo[].category, and MUSCLE_GROUP_MAP from category to label — so
+  // "push", "chest" and "Chest & Shoulders" all find the same exercises.
+  //
+  // Rank, not filter: a name match is almost always what someone typing meant,
+  // so those come first and category matches fill in behind. Searching "squat"
+  // puts Squat and Front Squat above the rest of the squat category rather than
+  // interleaving them alphabetically.
+  const exercises = Object.keys(exerciseInfo)
+    .map(name=>{
+      const info = exerciseInfo[name] || {};
+      const cat = String(info.category || '').toLowerCase();
+      const group = String(MUSCLE_GROUP_MAP[info.category] || '').toLowerCase();
+      if(name.toLowerCase().includes(q)) return {name, rank:0};
+      if(cat && cat.includes(q)) return {name, rank:1};
+      if(group && group.includes(q)) return {name, rank:1};
+      return null;
+    })
+    .filter(Boolean)
+    .sort((a,b)=> a.rank - b.rank || a.name.localeCompare(b.name))
+    .map(x=> x.name);
+  const shownEx = exercises.slice(0, GLOBAL_SEARCH_EXERCISE_LIMIT);
+
+  if(sections.length === 0 && shownEx.length === 0){
+    el.innerHTML = '<div class="empty-note">\uD83D\uDD0D Nothing matches that \u2014 try a broader term.</div>';
+    return;
+  }
+
+  let html = '';
+  if(sections.length){
+    html += '<div class="gsearch-group">Go to</div>';
+    // data-jump-to, not a bespoke handler. The document-level delegation already
+    // switches to the right tab THROUGH ITS NAV PILL so the tab renders, then
+    // scrolls the card. One mechanism, already tested, already fixed once.
+    html += sections.map(s=>
+      `<button type="button" class="gsearch-hit" data-jump-to="${escapeHtml(s.id)}">`
+      + `<span>${escapeHtml(s.title)}</span>`
+      + `<span class="gsearch-hit-tab">${escapeHtml(s.tabLabel)} \u203a</span></button>`
+    ).join('');
+  }
+  if(shownEx.length){
+    html += '<div class="gsearch-group">Exercises</div>';
+    // The SAME builder the Learn tab's search uses. It returns a self-contained
+    // <details> needing no wiring, so the technique cues and the form-video link
+    // open in place — there is nowhere else to send someone that would tell them
+    // more, and a second renderer for the same object is a second thing to fix.
+    html += shownEx.map(buildExerciseSearchResultHtml).join('');
+    if(exercises.length > shownEx.length){
+      html += `<div class="history-hint">Showing ${shownEx.length} of ${exercises.length} matching exercises \u2014 try a more specific search.</div>`;
+    }
+  }
+  el.innerHTML = html;
+}
+
+// [CROSS-LINKS] ---------------------------------------------------------------
+// `data-search-for="<query>"` on ANY element, anywhere, opens the search sheet
+// already looking for that thing.
+//
+// This is the same bet as data-jump-to and it is made deliberately. The four
+// cross-links this app wanted — Exercise Progress to an exercise, the PR
+// timeline to an exercise, Weekly Volume to the exercises in a group, Today to
+// a technique entry — are one question asked in four places: SHOW ME THIS
+// THING. Four handlers would have been four things to keep working, and
+// data-jump-to spent its entire shipped life dead precisely because it had one
+// consumer nobody clicked. A mechanism with four consumers gets exercised.
+//
+// Delegated on document from the start, rather than on some container that
+// happens to hold today's callers. That was the exact mistake behind the v3.47
+// defect: the listener was correct, the markup was correct, and the two were
+// scoped to different subtrees.
+// `data-care-area="<region>"` opens the Care tab with its stretch library
+// already showing that region. Three consumers, all of which name a body part
+// and none of which could do anything useful with it before: the resting chips,
+// the "what you were doing" pattern rows, and — the one that crosses tabs — the
+// caution on a Today exercise that loads a region you have marked as resting.
+//
+// Delegated on document. Two of the three are re-rendered by renderCare(),
+// which replaces their nodes, and a listener attached to a node that gets
+// replaced is a listener that stops working on the second render (v26 §6).
+function goToCareArea(region){
+  // scrollTop:false because this link owns where the page lands — the library
+  // card, below — so showView must not also send it to the top.
+  showView('care', {scrollTop:false, intent:{careArea: region}});
+  // renderCare() and populateCareLibrarySelector() are both async, and the
+  // selector's card is already in the DOM either way, so this scrolls to a card
+  // that is present and about to repopulate. Double rAF for the same reason
+  // updateMasterclassLinkBtn uses it: layout needs a frame to settle before
+  // scrollIntoView measures anything.
+  requestAnimationFrame(()=> requestAnimationFrame(()=>{
+    const sel = document.getElementById('careLibrarySelector');
+    const card = sel && sel.closest('.card');
+    if(card) card.scrollIntoView({behavior:'smooth', block:'start'});
+  }));
+}
+
+document.addEventListener('click', (e)=>{
+  const link = e.target.closest && e.target.closest('[data-care-area]');
+  if(!link) return;
+  goToCareArea(link.dataset.careArea);
+});
+
+function openGlobalSearchFor(query){
+  const input = document.getElementById('globalSearchInput');
+  if(!input) return;
+  input.value = query || '';
+  openGlobalSearch();
+}
+
+document.addEventListener('click', (e)=>{
+  const link = e.target.closest && e.target.closest('[data-search-for]');
+  if(!link) return;
+  openGlobalSearchFor(link.dataset.searchFor);
+});
+
+function openGlobalSearch(){
+  const overlay = document.getElementById('globalSearchOverlay');
+  const input = document.getElementById('globalSearchInput');
+  if(!overlay || !input) return;
+  overlay.classList.add('active');
+  renderGlobalSearchResults(input.value);
+  // Not autofocused. On iOS a focus() on open raises the keyboard over the
+  // results before there are any, and the sheet animates in behind it. The
+  // focus trap already puts focus on the first control, which is this input.
+}
+
+function closeGlobalSearch(){
+  const overlay = document.getElementById('globalSearchOverlay');
+  if(overlay) overlay.classList.remove('active');
+}
+
+(function wireGlobalSearch(){
+  const btn = document.getElementById('globalSearchBtn');
+  const overlay = document.getElementById('globalSearchOverlay');
+  const input = document.getElementById('globalSearchInput');
+  const closeBtn = document.getElementById('globalSearchClose');
+  const results = document.getElementById('globalSearchResults');
+  if(!btn || !overlay || !input || !closeBtn || !results) return;
+
+  btn.addEventListener('click', openGlobalSearch);
+  closeBtn.addEventListener('click', closeGlobalSearch);
+  overlay.addEventListener('click', (e)=>{
+    if(e.target === overlay) closeGlobalSearch();
+  });
+
+  // Debounced at the same 90ms as the exercise and food searches. Same
+  // interaction, same interval — a third number here would just be a third
+  // number. Clearing renders immediately so results vanish on the keystroke
+  // that empties the field rather than a beat later.
+  let timer = null;
+  input.addEventListener('input', ()=>{
+    clearTimeout(timer);
+    if(!input.value.trim()){ renderGlobalSearchResults(''); return; }
+    timer = setTimeout(()=> renderGlobalSearchResults(input.value), 90);
+  });
+
+  // The jump itself is the document-level [data-jump-to] delegation; this only
+  // gets the sheet out of the way. Separate listener rather than one combined
+  // handler, because the two concerns belong to different owners — the jump is
+  // the app's, the sheet is this component's.
+  results.addEventListener('click', (e)=>{
+    if(e.target.closest('[data-jump-to]')) closeGlobalSearch();
+  });
+})();
+
 // [NAV OVERFLOW SIGNAL] --------------------------------------------------------
 // The pill rail scrolls horizontally with its scrollbar switched off, and seven
 // pills do not fit on a phone, so three tabs live off the right edge with
@@ -30872,6 +31252,36 @@ wireCustomProgramUI();
 // Also runs on resize, because a rotation can turn an overflowing rail into one
 // that fits, and a fade over a rail with nothing past it is a lie in the other
 // direction.
+// [NAV RAIL HEIGHT] ------------------------------------------------------------
+// Publishes the sticky nav rail's rendered height as --nav-rail-h, so anything
+// that needs to stick BELOW it can offset by a measured number rather than a
+// guessed one. The Analysis section index is the first consumer.
+//
+// Measured rather than hardcoded because the rail's height is not a constant:
+// it moves with the pill font size, the OS text-size setting, and whether the
+// search pill's icon renders at the size the stylesheet asked for. A literal
+// would be a second copy of a number the stylesheet already owns — and the
+// copy that is wrong on somebody else's phone.
+(function wireNavRailHeight(){
+  const rail = document.querySelector('.nav-pills');
+  if(!rail) return;
+  const publish = ()=>{
+    const h = Math.round(rail.getBoundingClientRect().height);
+    // Zero means the rail is hidden — gym mode, or a tab switch mid-measure.
+    // Publishing 0 would yank the index up under the rail the moment gym mode
+    // ends, so the last real value is kept instead.
+    if(h > 0) document.documentElement.style.setProperty('--nav-rail-h', h + 'px');
+  };
+  if(typeof ResizeObserver === 'function'){
+    // The rail can change height without the window changing size: a font
+    // finishing loading is the common one, and it lands after first paint.
+    new ResizeObserver(publish).observe(rail);
+  }
+  window.addEventListener('resize', publish, {passive:true});
+  window.addEventListener('orientationchange', publish, {passive:true});
+  publish();
+})();
+
 (function wireNavOverflowSignal(){
   const rail = document.querySelector('.nav-pills');
   if(!rail) return;

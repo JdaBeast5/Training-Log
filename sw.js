@@ -8,7 +8,14 @@
 //
 // HANDOFF v6 §6 flagged that APP_VERSION had not moved in five sessions and
 // that nobody knew whether sw.js keyed off it. It does now.
-const VERSION = '3.45';
+//
+// v3.53: THIS IS NO LONGER CHECKED BY HAND. `./check.sh` compares this constant
+// against APP_VERSION and fails if they disagree, which is the only automated
+// gate on a failure mode that is completely invisible from the server side.
+// Before it existed, this file sat at 3.46 while the app reached 3.53 — seven
+// versions of work that would have reached nobody who already had the app
+// installed. Run check.sh before every deploy and this line stops mattering.
+const VERSION = '3.53';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the
