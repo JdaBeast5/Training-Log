@@ -15,7 +15,7 @@
 // Before it existed, this file sat at 3.46 while the app reached 3.53 — seven
 // versions of work that would have reached nobody who already had the app
 // installed. Run check.sh before every deploy and this line stops mattering.
-const VERSION = '3.53';
+const VERSION = '3.55';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the

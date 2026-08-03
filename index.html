@@ -873,7 +873,12 @@
     position:fixed; top:0; left:0; right:0; z-index:55;
     background:rgba(31,34,38,0.72); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border-bottom:1px solid var(--line-soft);
-    padding:12px 16px calc(12px + env(safe-area-inset-top, 0px));
+    /* THE INSET GOES ON TOP. It was on the BOTTOM, so the title sat at y=0
+       underneath the clock and the bar's extra height hung down over the nav
+       rail instead — visible on a real device as "Day 1 — Upper · Strength"
+       printed across the system time. Pre-dates the sticky rail; the rail just
+       made it impossible to miss. */
+    padding:calc(12px + env(safe-area-inset-top, 0px)) 16px 12px;
     display:flex; align-items:center; gap:8px;
     transform:translateY(-100%); transition:transform 0.25s var(--ease-smooth);
     font-family:'Inter',sans-serif; font-size:14.5px; font-weight:700; letter-spacing:-0.01em; color:var(--text);
@@ -1767,6 +1772,25 @@
     backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);
   }
   .nav-pills::-webkit-scrollbar{display:none;}
+
+  /* [STATUS SCRIM] The sticky rail pins at env(safe-area-inset-top), which
+     leaves the band ABOVE it — the status bar region, ~190 device px on a Pro
+     Max — completely uncovered. Page content scrolled straight through it and
+     collided with the clock and the battery icon on every single scrolled
+     screen. Fourteen of twenty screenshots from a real device showed text
+     sitting on top of the system clock.
+     A fixed strip of the same glass as the rail closes it. Fixed rather than
+     part of the rail, because the rail is in normal flow when unscrolled and
+     giving it inset-sized top padding would shove the whole page down.
+     z-index 31: one above the rail, so the rail's own blur cannot bleed over
+     the scrim's edge and produce a visible seam. */
+  .status-scrim{
+    position:fixed; top:0; left:0; right:0;
+    height:env(safe-area-inset-top, 0px);
+    z-index:31; pointer-events:none;
+    background:rgba(10,11,13,0.72);
+    backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);
+  }
   /* Seven pills are about 540px of content in roughly 354px of phone, so Care,
      Coach and Learn sit off the right edge behind a horizontal swipe with the
      scrollbar switched off — three of seven tabs with nothing on screen saying
@@ -1806,13 +1830,28 @@
     backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);
   }
   .analysis-index::-webkit-scrollbar{display:none;}
+  /* The same fade the nav rail gets, for the same reason and by the same rule:
+     the row scrolls sideways with no scrollbar, so on a phone "Sleep Trend" is
+     cut mid-word with nothing saying the row continues. Off at .at-end so the
+     last chip is not permanently dimmed. */
+  .analysis-index:not(.at-end){
+    -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 34px), transparent);
+    mask-image:linear-gradient(to right, #000 calc(100% - 34px), transparent);
+  }
+  /* Deliberately a smaller sibling of .nav-pill, not a new thing: same fill,
+     same border, same weight, same radius scale one step down, same tap scale.
+     It sits directly beneath the rail, so anything that differed would read as
+     a mistake rather than as a hierarchy. */
   .analysis-index-chip{
     flex:0 0 auto; background:var(--surface2); border:1px solid var(--line);
     color:var(--text-muted); font-family:'Inter',sans-serif; font-size:11.5px;
     font-weight:600; letter-spacing:-0.01em; padding:7px 12px;
-    border-radius:var(--radius-sm); cursor:pointer; box-shadow:var(--rim);
+    border-radius:var(--radius-sm); cursor:pointer;
+    box-shadow:0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 12px -8px rgba(0,0,0,0.5);
+    transition:background 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
-  .analysis-index-chip:active{transform:scale(0.96);}
+  .analysis-index-chip:active{transform:scale(0.95);}
+  .analysis-index-chip:focus-visible{ outline:2px solid var(--plate-blue); outline-offset:2px; }
   .nav-pill{
     flex:0 0 auto;
     background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
@@ -1828,15 +1867,38 @@
      scroller the same way sticky:top works in a vertical one; the background is
      its own because the other pills scroll underneath it. */
   .nav-pill-search{
-    position:sticky; left:0; z-index:1;
-    /* Bleeds into the rail's own 18px padding so a pill sliding under it
-       disappears at the edge of the screen, not 18px inside it. */
-    margin-left:-18px; padding-left:24px;
-    background:linear-gradient(to right, rgba(10,11,13,0.95) 78%, rgba(10,11,13,0));
-    padding-right:20px; border:none; box-shadow:none;
-    color:var(--text-muted);
+    /* IT IS A PILL. It inherits .nav-pill entirely — same --surface2 fill, same
+       --line border, same --radius-md, same type — and adds only the two things
+       that make it pinned.
+
+       The v3.54 version overrode all of that with a square, borderless, solid
+       #0A0B0D block, because the element was doing two jobs in one background:
+       being a pill AND hiding the pills sliding under it. Fixing the
+       see-through problem by deleting the pill's appearance is not fixing it.
+       The two jobs are separated below.
+
+       left:-18px, NOT 0. In a scroller with padding, sticky offsets are
+       measured from the PADDING box — left:0 pinned the pill 18px inside the
+       screen edge and left a sliver of the scrolling pills visible beside it. */
+    position:sticky; left:-18px; z-index:2;
+    margin-left:-18px;
+
+    /* THE OCCLUDER IS A SHADOW, NOT THE BACKGROUND. A solid --bg shadow offset
+       left and spread 14px paints an opaque slab behind the pill covering the
+       rail's 18px gutter and its 8/10px vertical padding, so a pill scrolling
+       past vanishes at the screen edge rather than 18px inside it. It sits
+       BEHIND the pill's own border box, so the pill still reads as a pill.
+       Spread rather than a bigger offset because a plain offset follows the
+       border radius and leaves slivers at the corners.
+
+       Listed before the two .nav-pill shadows so the stack is: occluder, then
+       the pill's inset highlight, then its lift. */
+    box-shadow:-22px 0 0 14px var(--bg),
+               0 1px 0 rgba(255,255,255,0.04) inset,
+               0 4px 12px -8px rgba(0,0,0,0.5);
   }
-  .nav-pill-search:active{transform:none;}
+  /* Every other pill scales on tap. This one should too — it is a pill. */
+  .nav-pill-search:active{transform:scale(0.95);}
   .nav-pill-search svg{width:16px; height:16px; display:block;}
 
   /* [CROSS-LINKS] A name that is also a lookup. Styled as text with a chevron
@@ -1849,10 +1911,17 @@
     text-align:left; cursor:pointer; display:inline-flex; align-items:baseline; gap:4px;
     min-width:0;
   }
-  .xlink .xlink-chev{ color:var(--text-muted); font-size:0.85em; flex:0 0 auto; }
-  .xlink:active{ opacity:0.65; }
+  /* The chevron is --plate-blue, matching every other "tap to go somewhere"
+     chevron in the app (Training Style ›, Body Measurements ›, the exercise
+     rows). It was --text-muted, which made these read as decoration rather than
+     as the same affordance used everywhere else. */
+  .xlink .xlink-chev{ color:var(--plate-blue); font-size:0.9em; flex:0 0 auto; }
+  /* scale(0.95) is what every pill and chip in the app does on tap; an opacity
+     dip was a third interaction idiom for no reason. */
+  .xlink:active{ transform:scale(0.95); }
+  .xlink{ transition:transform 0.15s var(--ease-smooth); }
   /* Focus has to be visible on a control with no box of its own. */
-  .xlink:focus-visible{ outline:2px solid var(--plate-blue); outline-offset:3px; border-radius:3px; }
+  .xlink:focus-visible{ outline:2px solid var(--plate-blue); outline-offset:3px; border-radius:var(--radius-xs); }
 
   /* [GLOBAL SEARCH] */
   .gsearch-input{
@@ -2428,16 +2497,11 @@
     font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.3px;
     color:var(--text-muted); margin-bottom:2px;
   }
-  /* The care-area link. Same restraint as .xlink: these sit beside a real
-     button (the resting chip's ✕) and must not compete with it. */
-  .care-area-link{
-    background:none; border:none; padding:0; margin:0; font:inherit;
-    color:var(--plate-blue); text-align:left; cursor:pointer;
-    text-decoration:underline; text-underline-offset:2px;
-    text-decoration-color:color-mix(in srgb, var(--plate-blue) 45%, transparent);
-  }
-  .care-area-link:active{ opacity:0.65; }
-  .care-area-link:focus-visible{ outline:2px solid var(--plate-blue); outline-offset:3px; border-radius:3px; }
+  /* .care-area-link was a private copy of .link-btn — same inline display,
+     same --plate-blue, same underline, same offset — written without noticing
+     the app already had one. It is gone; the markup uses .link-btn. Two classes
+     for one appearance is the CSS spelling of a rule stated twice, and it is
+     the copy that stops matching when the shared one is tuned. */
 
   .care-pattern-row{ padding:8px 0; border-bottom:1px solid var(--line); }
   .care-pattern-row:last-child{ border-bottom:none; }
@@ -3797,6 +3861,8 @@
     <div id="updateBanner"></div>
     <div id="storageBanner"></div>
   </div>
+
+  <div class="status-scrim" aria-hidden="true"></div>
 
   <div class="nav-pills">
     <button type="button" class="nav-pill nav-pill-search" id="globalSearchBtn" aria-label="Search the app">
@@ -5197,7 +5263,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.53';
+const APP_VERSION = '3.55';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -16960,7 +17026,7 @@ async function renderWorkout(){
         hitRegionsForRow = hitRegions;
         const sub = suggestSubstitute(info.category, ex.name);
         const swapHtml = sub ? ` Try <b>${sub.name}</b> instead — ${sub.why}.` : '';
-        cautionHtml = `<div class="ex-caution">⚠️ You marked ${hitRegions.map(r=> `<button type="button" class="care-area-link" data-care-area="${escapeHtml(r)}" aria-label="Show stretches for ${escapeHtml(r)}">${escapeHtml(r)}</button>`).join(' & ')} as resting — consider skipping or lightening this one.${swapHtml} Clear it in Care when you're ready. <button type="button" class="ex-ai-tailor-btn">✨ Tailor to what I logged</button></div>`;
+        cautionHtml = `<div class="ex-caution">⚠️ You marked ${hitRegions.map(r=> `<button type="button" class="link-btn" data-care-area="${escapeHtml(r)}" aria-label="Show stretches for ${escapeHtml(r)}">${escapeHtml(r)}</button>`).join(' & ')} as resting — consider skipping or lightening this one.${swapHtml} Clear it in Care when you're ready. <button type="button" class="ex-ai-tailor-btn">✨ Tailor to what I logged</button></div>`;
       }
     }
 
@@ -26197,6 +26263,79 @@ async function renderStrengthContext(){
     + '<button type="button" class="settings-jump" data-jump-to="prTimeline"><span>See the sessions these came from</span><span>›</span></button>';
 }
 
+// [EXERCISE HISTORY IS NAME-SCOPED] --------------------------------------------
+// The corpus is keyed by program+day+slot, which is how it has to be STORED —
+// two slots can hold the same exercise with different prescriptions. But it is
+// not how anyone thinks about their own lifting. A device screenshot showed
+// "Barbell Row" listed twice in Exercise Progress, same program, same day, both
+// "1 session logged", 209 lb and 145 lb — because a swap wrote a second key and
+// each key counted its own history in isolation.
+//
+// Worse, and silently: reconstructAllPRs tracked its running max PER KEY, so
+// the Personal Records Timeline — whose own copy promises "every all-time PR
+// you've ever hit, across every exercise and program" — was congratulating
+// people for lifts they had already beaten somewhere else. A PR that is not a
+// record is worse than no PR.
+//
+// If you have benched 185 before, you have benched 185. It does not matter
+// which program's slot the row happened to live in.
+//
+// Returns groups; DOES NOT MUTATE the corpus (readExCorpus's contract) — the
+// merged arrays are freshly built here.
+function groupCorpusByExercise(corpus){
+  const byName = new Map();
+  for(const entry of corpus){
+    const name = entry.exDef && entry.exDef.name;
+    if(!name) continue;
+    const label = (entry.parsed && entry.parsed.dayLabel) || '';
+    let g = byName.get(name);
+    if(!g){
+      g = {name, log: [], entryLabels: [], labels: [], exDef: entry.exDef, dayLabel: label, newest: ''};
+      byName.set(name, g);
+    }
+    if(label && g.labels.indexOf(label) === -1) g.labels.push(label);
+    let newestHere = '';
+    for(const e of entry.log){
+      g.log.push(e);
+      // Parallel array rather than tagging the entries: a PR row has to say
+      // WHERE it happened, and the corpus objects are shared and read-only.
+      g.entryLabels.push(label);
+      if(e.date > newestHere) newestHere = e.date;   // ISO dates sort as strings
+    }
+    // The exercise's prescription (sets/reps) comes from wherever it was done
+    // most recently — that is the one the person is currently following.
+    if(newestHere > g.newest){ g.newest = newestHere; g.exDef = entry.exDef; g.dayLabel = label; }
+  }
+
+  for(const g of byName.values()){
+    // Sort log and labels together. Decorate-sort-undecorate rather than two
+    // sorts, because two sorts of the same comparator on different arrays is a
+    // way to have them silently disagree.
+    const pairs = g.log.map((e, i)=> [e, g.entryLabels[i]]);
+    pairs.sort((a, b)=> a[0].date < b[0].date ? -1 : a[0].date > b[0].date ? 1 : 0);
+    const seen = new Set();
+    g.log = []; g.entryLabels = [];
+    for(const [e, label] of pairs){
+      // A swap can write the same session under two keys. Counting it twice
+      // would invent a session that never happened and halve every average.
+      const sig = e.date + '|' + JSON.stringify(e.sets || []);
+      if(seen.has(sig)) continue;
+      seen.add(sig);
+      g.log.push(e); g.entryLabels.push(label);
+    }
+  }
+  return [...byName.values()];
+}
+
+// "Strength & Size · Day 1" when an exercise lives in one place, and
+// "Strength & Size · Day 1 + 2 more" when its history is genuinely pooled from
+// several. Saying only the newest label would quietly claim the merged numbers
+// all came from there.
+function describeExercisePlaces(group){
+  const extra = group.labels.length - 1;
+  return extra > 0 ? `${group.dayLabel} + ${extra} more` : group.dayLabel;
+}
+
 async function renderExerciseProgress(){
   const el = document.getElementById('exerciseProgress');
   el.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div><div class="skeleton-line" style="width:58%"></div></div>';
@@ -26209,16 +26348,13 @@ async function renderExerciseProgress(){
   }
 
   const rows = [];
-  for(const entry_ of corpus){
-    const parsed = entry_.parsed;
-    const exDef = entry_.exDef;
+  // ONE ROW PER EXERCISE, not per program slot. groupCorpusByExercise already
+  // returns each group's log merged, de-duplicated and sorted by date.
+  for(const group of groupCorpusByExercise(corpus)){
+    const exDef = group.exDef;
 
-    // .filter() before .sort(): the filter allocates a fresh array, so the sort
-    // below cannot reach the corpus's own copy. The shared array is read-only —
-    // see readExCorpus's contract.
-    const log = entry_.log.filter(e=> (e.sets||[]).some(s=> s.weight!=null || s.reps!=null));
+    const log = group.log.filter(e=> (e.sets||[]).some(s=> s.weight!=null || s.reps!=null));
     if(log.length === 0) continue;
-    log.sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
 
     const first = topSetOf(log[0]);
     const latestEntry = log[log.length-1];
@@ -26230,7 +26366,7 @@ async function renderExerciseProgress(){
     const latest1RM = latest ? estimated1RM(latest.weight, latest.reps) : null;
 
     rows.push({
-      name: exDef.name, dayLabel: parsed.dayLabel,
+      name: group.name, dayLabel: describeExercisePlaces(group),
       first, latest, sessionCount: log.length, readyToProgress, bestEver, latestVolume, latest1RM
     });
   }
@@ -26303,16 +26439,18 @@ async function reconstructAllPRs(){
   const corpus = await readExCorpus();
 
   const events = [];
-  for(const entry_ of corpus){
-    const parsed = entry_.parsed;
-    const exDef = entry_.exDef;
-
-    const log = entry_.log.filter(e=> (e.sets||[]).some(s=> s.weight!=null));
+  // The running max is per EXERCISE, not per program slot. Keyed by slot, the
+  // same lift in two programs each started from nothing and the timeline
+  // awarded records for weights already beaten elsewhere.
+  for(const group of groupCorpusByExercise(corpus)){
+    // Iterated unfiltered so the index stays aligned with entryLabels — a PR
+    // has to say where it happened, and that is not always where the exercise
+    // lives now. Entries with no weight are skipped inside the loop instead.
+    const log = group.log;
     if(log.length === 0) continue;
-    log.sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
 
     let runningMaxWeight = null, runningMaxE1RM = null;
-    log.forEach(entry=>{
+    log.forEach((entry, i)=>{
       const top = topSetOf(entry);
       if(!top || top.weight == null) return;
       const isWeightPR = runningMaxWeight === null || top.weight > runningMaxWeight;
@@ -26327,7 +26465,7 @@ async function reconstructAllPRs(){
       // entirely, since it only ever checked whether raw top-set weight
       // itself had increased.
       if(isWeightPR || isE1RMPR){
-        events.push({date: entry.date, name: exDef.name, dayLabel: parsed.dayLabel, weight: top.weight, reps: top.reps, type: isWeightPR ? 'weight' : 'strength', e1rm});
+        events.push({date: entry.date, name: group.name, dayLabel: group.entryLabels[i], weight: top.weight, reps: top.reps, type: isWeightPR ? 'weight' : 'strength', e1rm});
       }
       if(isWeightPR) runningMaxWeight = top.weight;
       if(isE1RMPR) runningMaxE1RM = e1rm;
@@ -26970,14 +27108,21 @@ ${dataContext}
 Respond in exactly this format. First line only the word PUSH, MAINTAIN, or DELOAD (a genuine recommendation for the next several sessions, based on the actual pattern in the data — not a default; pick DELOAD if RPE is climbing with falling sleep or stalling PRs, PUSH if recovery signals are all genuinely solid and performance is trending up, MAINTAIN if the picture is mixed or there isn't enough data yet to justify either extreme). Then a blank line. Then 2-4 short paragraphs, no headers or markdown: lead with the single most useful interaction you can actually support with the numbers above, and end with 1-2 specific, concrete adjustments tied directly to what you found — not generic advice like "sleep more." If nothing meaningfully correlates yet, say that honestly and note what's still missing, and let that honesty be reflected in a MAINTAIN recommendation rather than guessing.`;
 
     // Cross-Metric Insights is the most expensive call in the app (largest
-    // input context, 650 output tokens) over the slowest-moving data. If
+    // input context, 1100 output tokens) over the slowest-moving data.
+    //
+    // It was 650, and on real data it FAILED — the device showed "the response
+    // was cut off at the length limit". The prompt asks for a push/maintain/
+    // deload verdict, the interactions between five metrics, AND what to
+    // adjust; 650 tokens could not hold that once there was enough logged for
+    // the feature to be worth running. A budget that only fits when there is
+    // little to say is the wrong budget. If
     // nothing has been logged since the last run, the answer cannot
     // meaningfully differ — so the fingerprint covers the whole data
     // context and the stored answer is reused instead of re-billed.
     const {result: reply, cached} = await aiCachedCall(
       'cross-metric',
       aiFingerprint([dataContext, persona]),
-      ()=> callClaudeChat(apiKey, systemPrompt, [{role:'user', content:'Analyze how my tracked metrics are affecting each other, give me a clear push/maintain/deload call, and tell me what to adjust.'}], 650),
+      ()=> callClaudeChat(apiKey, systemPrompt, [{role:'user', content:'Analyze how my tracked metrics are affecting each other, give me a clear push/maintain/deload call, and tell me what to adjust.'}], 1100),
       undefined,
       {force}
     );
@@ -28424,7 +28569,7 @@ async function renderCare(){
     restEl.innerHTML = '<div class="empty-note">✅ Nothing marked as resting — you\'re clear to train everything.</div>';
   }else{
     restEl.innerHTML = resting.map(r=>`
-      <span class="resting-chip"><button type="button" class="care-area-link" data-care-area="${escapeHtml(r)}" aria-label="Show stretches for ${escapeHtml(r)}">${escapeHtml(r)}</button> <button data-region="${escapeHtml(r)}" class="clear-resting" aria-label="Stop resting ${escapeHtml(r)}">✕</button></span>
+      <span class="resting-chip"><button type="button" class="link-btn" data-care-area="${escapeHtml(r)}" aria-label="Show stretches for ${escapeHtml(r)}">${escapeHtml(r)}</button> <button data-region="${escapeHtml(r)}" class="clear-resting" aria-label="Stop resting ${escapeHtml(r)}">✕</button></span>
     `).join('') + `<div class="history-hint" style="margin-top:10px;">Exercises loading these regions will show a caution flag in Today\'s workout until you clear them here.</div>`;
     restEl.querySelectorAll('.clear-resting').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
@@ -28448,7 +28593,7 @@ async function renderCare(){
       ${patterns.map(x=> `
         <div class="care-pattern-row">
           <div class="care-pattern-name">${escapeHtml(x.exercise)} <span class="care-log-pain">worst ${x.worst}/10</span></div>
-          <div class="care-log-detail">${x.count} check-ins${x.region ? ` &middot; <button type="button" class="care-area-link" data-care-area="${escapeHtml(x.region)}" aria-label="Show stretches for ${escapeHtml(x.region)}">${escapeHtml(x.region)}</button> on ${x.regionCount} of ${x.count}` : ''} &middot; most recent ${x.latest}/10 on ${escapeHtml(fmtDayLabel(x.latestDate))}</div>
+          <div class="care-log-detail">${x.count} check-ins${x.region ? ` &middot; <button type="button" class="link-btn" data-care-area="${escapeHtml(x.region)}" aria-label="Show stretches for ${escapeHtml(x.region)}">${escapeHtml(x.region)}</button> on ${x.regionCount} of ${x.count}` : ''} &middot; most recent ${x.latest}/10 on ${escapeHtml(fmtDayLabel(x.latestDate))}</div>
         </div>`).join('')}
     ` : '';
   }
@@ -29077,12 +29222,20 @@ async function renderVolumeTrend(){
 
   groups.sort((a,b)=> groupVolumes[b].thisWeek - groupVolumes[a].thisWeek);
 
+  // ONE SCALE ACROSS ALL GROUPS. maxVal used to be computed per row, inside
+  // this map — so every row divided its own value by its own value and every
+  // bar rendered at 100%. On a real device Legs at 23,840 lb and Arms at 5,841
+  // lb drew identical full-width bars, which is worse than no bar: it reads as
+  // a comparison and encodes nothing.
+  const volScale = Math.max(1, ...groups.map(g=>
+    Math.max(groupVolumes[g].thisWeek || 0, groupVolumes[g].lastWeek || 0)));
+
   el.innerHTML = groups.map(g=>{
     const {thisWeek, lastWeek, setsThisWeek} = groupVolumes[g];
     const delta = lastWeek>0 ? Math.round(((thisWeek-lastWeek)/lastWeek)*100) : null;
     const deltaHtml = delta===null ? '<span class="delta-flat">new</span>' :
       `<span class="${delta>=0?'delta-up':'delta-down'}">${delta>=0?'+':''}${delta}%</span>`;
-    const maxVal = Math.max(thisWeek, lastWeek, 1);
+    const maxVal = volScale;
     const landmark = volumeLandmarkLabel(g, setsThisWeek);
     const landmarkHtml = landmark ? `<div class="vol-landmark vol-landmark-${landmark.status}">${landmark.text}</div>` : '';
     return `
@@ -30604,6 +30757,12 @@ function renderAnalysisIndex(){
   }).join('');
   rail.style.display = '';
 
+  // Wire on first render (the rail element persists across renders, so this is
+  // a no-op afterwards) and re-sync every time, because the chip count changes
+  // with autohide and a stale .at-end leaves the fade wrong in both directions.
+  wireOverflowFade(rail);
+  syncOverflowFade(rail);
+
   // Wired AFTER the innerHTML that creates them — that assignment replaces
   // every node an earlier listener could have been attached to (v26 §6).
   // Indexed against the same array the chips were built from, so a chip cannot
@@ -31282,9 +31441,12 @@ function closeGlobalSearch(){
   publish();
 })();
 
-(function wireNavOverflowSignal(){
-  const rail = document.querySelector('.nav-pills');
-  if(!rail) return;
+// Two horizontal rails now want this — the nav pills and the Analysis section
+// index — so it takes an element rather than reaching for one. The second
+// consumer is what turns it from a helper into a mechanism.
+function wireOverflowFade(rail){
+  if(!rail || rail.dataset.fadeWired) return;
+  rail.dataset.fadeWired = '1';
   // A 1px tolerance: fractional layout widths mean scrollLeft + clientWidth
   // lands a hair short of scrollWidth at the true end on plenty of devices, so
   // an exact comparison leaves the fade on permanently.
@@ -31292,9 +31454,20 @@ function closeGlobalSearch(){
     const atEnd = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 1;
     rail.classList.toggle('at-end', atEnd);
   };
+  rail.__syncOverflowFade = sync;
   rail.addEventListener('scroll', sync, {passive:true});
   window.addEventListener('resize', sync, {passive:true});
   sync();
+}
+
+// The rail's own contents can change without a scroll or a resize — the index
+// is rebuilt whenever autohide runs — so re-sync explicitly after a render.
+function syncOverflowFade(rail){
+  if(rail && rail.__syncOverflowFade) rail.__syncOverflowFade();
+}
+
+(function wireNavOverflowSignal(){
+  wireOverflowFade(document.querySelector('.nav-pills'));
 })();
 
 (function wireCoachFabTuck(){
