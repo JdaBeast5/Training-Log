@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Training Log — Jason</title>
+<title>Training Log</title>
 <!-- iOS ignores the manifest icons for a home-screen bookmark and reads ONLY
      apple-touch-icon. Without these, Safari falls back to a screenshot or the
      first letter of the title — which is why the saved app showed a bare "T". -->
@@ -16,9 +16,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Training Log">
 <meta name="theme-color" content="#0A0B0D">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="manifest" href="./manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
@@ -638,10 +636,14 @@
   .sub-modal-overlay{
     position:fixed; inset:0; background:rgba(0,0,0,0.6);
     backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-    z-index:120; display:none; align-items:flex-end; justify-content:center;
-    opacity:0; transition:opacity 0.25s var(--ease-smooth);
+    z-index:120; display:flex; align-items:flex-end; justify-content:center;
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0.25s;
   }
-  .sub-modal-overlay.active{display:flex; opacity:1;}
+  .sub-modal-overlay.active{
+    opacity:1; visibility:visible; pointer-events:auto;
+    transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0s;
+  }
   .sub-modal-sheet{
     position:relative;
     width:100%; max-width:520px;
@@ -900,8 +902,15 @@
     padding:32px 42px;
     box-shadow:0 20px 50px -10px rgba(0,0,0,0.6), 0 0 90px -8px rgba(245,197,24,0.4);
   }
+  .celebrate-banner.big.active{pointer-events:auto;}
   .celebrate-banner.big .celebrate-icon{font-size:56px;}
   .celebrate-banner.big .celebrate-text{font-size:27px;}
+  .celebrate-share-btn{
+    margin-top:14px; padding:9px 20px; border-radius:var(--radius-md);
+    background:var(--plate-yellow); color:#1a1500; border:none;
+    font-family:'Inter',sans-serif; font-size:13px; font-weight:700; cursor:pointer;
+  }
+  .celebrate-share-btn:active{transform:scale(0.96);}
   .celebrate-icon{font-size:40px; line-height:1; margin-bottom:8px; animation:celebrate-icon-pop 0.5s var(--ease-spring);}
   .celebrate-text{font-family:'Inter',sans-serif; font-size:20px; font-weight:800; letter-spacing:-0.02em; color:var(--text);}
   .celebrate-sub{font-size:13px; color:var(--text-muted); margin-top:4px;}
@@ -1022,10 +1031,13 @@
   .settings-modal{
     position:fixed; inset:0; z-index:120;
     display:flex; align-items:flex-start; justify-content:flex-end;
-    opacity:0; pointer-events:none;
-    transition:opacity 0.25s var(--ease-smooth);
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0.25s;
   }
-  .settings-modal.active{opacity:1; pointer-events:auto;}
+  .settings-modal.active{
+    opacity:1; visibility:visible; pointer-events:auto;
+    transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0s;
+  }
   .settings-backdrop{
     position:absolute; inset:0; background:rgba(0,0,0,0.34);
     backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
@@ -1506,23 +1518,33 @@
   }
   .photo-lightbox{
     position:fixed; inset:0; background:rgba(0,0,0,0.92);
-    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:80; display:none;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:80; display:flex;
     align-items:center; justify-content:center; flex-direction:column; padding:20px;
     overflow:hidden;
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0.25s;
   }
   .photo-lightbox-bg{
     position:absolute; inset:-30px; background-size:cover; background-position:center;
     filter:blur(44px) brightness(0.5) saturate(130%); transform:scale(1.15); z-index:0;
   }
-  .photo-lightbox.active{display:flex;}
+  .photo-lightbox.active{
+    opacity:1; visibility:visible; pointer-events:auto;
+    transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0s;
+  }
   .photo-lightbox img{position:relative; z-index:1; max-width:100%; max-height:75vh; border-radius:var(--radius-md); object-fit:contain; box-shadow:0 20px 50px -10px rgba(0,0,0,0.7);}
   .photo-lightbox-date{position:relative; z-index:1; color:var(--text-muted); font-size:13px; margin-top:12px;}
   .photo-lightbox-actions{position:relative; z-index:1; display:flex; gap:12px; margin-top:16px;}
   .barcode-scanner-overlay{
-    position:fixed; inset:0; background:#000; z-index:85; display:none;
+    position:fixed; inset:0; background:#000; z-index:85; display:flex;
     align-items:center; justify-content:center; flex-direction:column;
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0.25s;
   }
-  .barcode-scanner-overlay.active{display:flex;}
+  .barcode-scanner-overlay.active{
+    opacity:1; visibility:visible; pointer-events:auto;
+    transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0s;
+  }
   .barcode-scanner-overlay video{width:100%; height:100%; object-fit:cover; position:absolute; inset:0;}
   .barcode-viewfinder{
     position:relative; z-index:1; width:78%; max-width:320px; height:140px;
@@ -1580,10 +1602,13 @@
   .coach-fab-modal{
     position:fixed; inset:0; z-index:80;
     display:flex; align-items:flex-end; justify-content:flex-end;
-    opacity:0; pointer-events:none;
-    transition:opacity 0.25s var(--ease-smooth);
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0.25s;
   }
-  .coach-fab-modal.active{opacity:1; pointer-events:auto;}
+  .coach-fab-modal.active{
+    opacity:1; visibility:visible; pointer-events:auto;
+    transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0s;
+  }
   .coach-fab-backdrop{
     position:absolute; inset:0; background:rgba(0,0,0,0.28);
     backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
@@ -1762,6 +1787,23 @@
     position:sticky; top:env(safe-area-inset-top, 0px); z-index:30;
     display:flex; gap:8px; margin-top:6px; margin-bottom:4px;
     overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+
+    /* THE PINNED PILL IS AN OVERLAY, SO THE SCROLLPORT HAS TO KNOW ABOUT IT.
+       On a real device the rail opened with "Today" reading as "day": the
+       active-pill scrollIntoView had aligned it flush to the scrollport's left
+       edge, which is exactly where the sticky search pill sits. Nothing was
+       wrong with the occluder — it occluded, and the first pill was what
+       happened to be underneath.
+
+       scroll-padding-left is the mechanism CSS provides for precisely this:
+       it tells every scroll-into-view in this container to keep that much
+       clear. The alternative — special-casing the first pill in JS — would be
+       a second rule about the same overlap.
+
+       The width is a TOKEN used by both the pill and this offset, not the same
+       number written twice. --nav-search-w + the rail's own 8px gap. */
+    --nav-search-w:48px;
+    scroll-padding-left:calc(var(--nav-search-w) + 8px);
     /* Full-bleed. Without the negative margins, .wrap's 18px gutters let cards
        scroll visibly past the ends of the bar. Out and back in the same
        amount, so the row's own content does not move — the sum-to-zero trick
@@ -1882,6 +1924,13 @@
        screen edge and left a sliver of the scrolling pills visible beside it. */
     position:sticky; left:-18px; z-index:2;
     margin-left:-18px;
+    /* Explicit width so --nav-search-w is authoritative rather than a guess at
+       what 16px of icon plus .nav-pill's 16px side padding happens to add up
+       to. Padding zeroed and the icon centred instead, which lands in the same
+       place and cannot drift away from the scroll-padding above. */
+    width:var(--nav-search-w);
+    padding-left:0; padding-right:0;
+    display:flex; align-items:center; justify-content:center;
 
     /* THE OCCLUDER IS A SHADOW, NOT THE BACKGROUND. A solid --bg shadow offset
        left and spread 14px paints an opaque slab behind the pill covering the
@@ -1996,10 +2045,14 @@
   .calendar-modal-overlay{
     position:fixed; inset:0; background:rgba(0,0,0,0.6);
     backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-    z-index:120; display:none; align-items:flex-end; justify-content:center;
-    opacity:0; transition:opacity 0.25s var(--ease-smooth);
+    z-index:120; display:flex; align-items:flex-end; justify-content:center;
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0.25s;
   }
-  .calendar-modal-overlay.active{display:flex; opacity:1;}
+  .calendar-modal-overlay.active{
+    opacity:1; visibility:visible; pointer-events:auto;
+    transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0s;
+  }
   .calendar-modal-sheet{
     position:relative;
     width:100%; max-width:420px;
@@ -2169,6 +2222,12 @@
     backdrop-filter:blur(28px) saturate(160%); -webkit-backdrop-filter:blur(28px) saturate(160%);
     z-index:1000;
     display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0.25s;
+  }
+  .user-picker-overlay.active{
+    opacity:1; visibility:visible; pointer-events:auto;
+    transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0s;
   }
   .user-picker-box{
     width:100%; max-width:360px; background:rgba(23,25,29,0.9); border:1px solid var(--line);
@@ -2400,10 +2459,13 @@
     font-size:12.5px; line-height:1.5;
   }
   .diag-row:last-of-type{border-bottom:none;}
-  .diag-icon{flex:0 0 auto; font-size:13px;}
+  .diag-icon{flex:0 0 auto; width:15px; height:15px; color:var(--text-muted);}
   .diag-detail{display:block; color:var(--text-muted); font-size:11.5px; margin-top:2px;}
   .diag-bad b{color:var(--plate-red);}
+  .diag-bad .diag-icon{color:var(--plate-red);}
   .diag-warn b{color:var(--plate-yellow);}
+  .diag-warn .diag-icon{color:var(--plate-yellow);}
+  .diag-good .diag-icon{color:var(--plate-green);}
   .exedit-error{color:var(--plate-red); font-size:12px; margin-top:6px; min-height:0;}
   .exedit-actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;}
   .exedit-section{margin-top:18px; padding-top:14px; border-top:1px solid var(--line);}
@@ -2436,6 +2498,12 @@
     font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
     font-size:11px; color:var(--text-muted);
   }
+  .history-export-row{display:flex; gap:8px; margin:12px 0 4px;}
+  .history-export-select{
+    flex:0 0 auto; padding:9px 10px; background:var(--surface2); border:1px solid var(--line);
+    border-radius:var(--radius-md); color:var(--text); font-size:12.5px; font-family:'Inter',sans-serif;
+  }
+  .history-export-btn{flex:1; margin-top:0; width:auto;}
   .history-search{margin:10px 0 4px; width:100%; box-sizing:border-box;}
   .history-search-status{
     font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
@@ -3814,10 +3882,37 @@
     .gym-exit-btn:active, .gym-enter-btn:active, .gym-offer-actions button:active{transform:none;}
   }
 
+/* [PRINT REPORT] -----------------------------------------------------------
+   #printReportContent is built by buildPrintReport() and stays display:none
+   on screen — it exists purely so window.print() has clean, static markup to
+   render. On iOS Safari, printing from the share sheet offers "Save to
+   Files" as a PDF, so this is the export-to-PDF path without a JS PDF
+   library or any new dependency: the browser's own print engine does the
+   layout. Everything else in the app is hidden in the print media query so
+   none of the dark theme, nav chrome, or overlays leak onto the page. */
+.print-only{display:none;}
+@media print{
+  body > *:not(#printReportContent){display:none !important;}
+  #printReportContent{
+    display:block !important; background:#fff; color:#111; font-family:'Inter',sans-serif;
+    padding:0; margin:0; font-size:11pt; line-height:1.4;
+  }
+  .pr-header{margin-bottom:16px; border-bottom:2px solid #111; padding-bottom:10px;}
+  .pr-header h1{font-size:18pt; margin:0 0 2px;}
+  .pr-header .pr-meta{font-size:9.5pt; color:#555;}
+  .pr-day{break-inside:avoid; page-break-inside:avoid; margin-bottom:14px;}
+  .pr-day-date{font-size:12pt; font-weight:700; border-bottom:1px solid #ccc; padding-bottom:3px; margin-bottom:5px;}
+  .pr-ex-row{font-size:10pt; padding:2px 0; display:flex; gap:8px; justify-content:space-between;}
+  .pr-ex-name{font-weight:600; flex:0 0 auto;}
+  .pr-ex-sets{color:#333; flex:1; text-align:right;}
+  .pr-note{display:block; font-size:9pt; color:#666; font-style:italic;}
+  .pr-empty{color:#666; font-style:italic;}
+}
+
 </style>
 </head>
 <body>
-<div class="user-picker-overlay" id="userPickerOverlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="userPickerTitle">
+<div class="user-picker-overlay" id="userPickerOverlay" role="dialog" aria-modal="true" aria-labelledby="userPickerTitle">
   <div class="user-picker-box">
     <div class="eyebrow">Training Log</div>
     <h2 class="user-picker-title" id="userPickerTitle">Who's training?</h2>
@@ -4183,6 +4278,7 @@
            prompt. Renders nothing at all on engines without
            navigator.storage.estimate() rather than showing a misleading zero. -->
       <div id="storageUsageMeter"></div>
+      <button class="switch-profile-btn" id="printProgramBtn">🖨️ Print My Program (full week, on paper)</button>
       <button class="switch-profile-btn" id="exportDataBtn">⬇️ Export My Data (backup as JSON)</button>
       <button class="switch-profile-btn" id="importDataBtn">⬆️ Import Backup (restore from JSON)</button>
       <input type="file" id="importDataInput" accept="application/json,.json" style="display:none" aria-label="Choose a backup file to import">
@@ -4327,9 +4423,9 @@
         </div>
         <div class="macro-bar-track"><div class="macro-bar-fill" id="barWater" style="background:#4FC3F7;width:0%"></div></div>
         <div class="water-btn-row">
-          <button class="water-btn" data-oz="8">+8oz</button>
-          <button class="water-btn" data-oz="16">+16oz</button>
-          <button class="water-btn" data-oz="24">+24oz</button>
+          <button class="water-btn" data-oz="8" aria-label="Log 8 ounces of water">+8oz</button>
+          <button class="water-btn" data-oz="16" aria-label="Log 16 ounces of water">+16oz</button>
+          <button class="water-btn" data-oz="24" aria-label="Log 24 ounces of water">+24oz</button>
           <button class="water-btn water-reset" id="waterReset">Reset</button>
         </div>
         <button class="usda-key-upgrade-toggle" id="waterTipsToggle" style="margin-top:8px;">💡 Water tips & benefits</button>
@@ -4675,6 +4771,15 @@
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.2 6.2a1 1 0 0 1 1-1h3.8l1.4 1.8h8.4a1 1 0 0 1 1 1v7.8a1 1 0 0 1-1 1H3.2a1 1 0 0 1-1-1Z"/></svg></span>Day-by-Day Log</div>
       <div class="history-hint">Every logged day, grouped by month — workouts, weigh-ins, and rest days you marked as followed. Tap a month to expand it. Green = progress, red = down from last time.</div>
+      <div class="history-export-row">
+        <select id="historyExportRange" class="history-export-select" aria-label="Report date range">
+          <option value="30">Last 30 days</option>
+          <option value="90">Last 90 days</option>
+          <option value="365">Last year</option>
+          <option value="all">All time</option>
+        </select>
+        <button type="button" class="switch-profile-btn history-export-btn" id="historyExportBtn">Print / Save as PDF</button>
+      </div>
       <input type="search" id="historySearch" class="care-input history-search" placeholder="Filter by exercise, e.g. deadlift" aria-label="Filter history by exercise name" autocomplete="off">
       <div id="historySearchStatus" class="history-search-status"></div>
       <div id="historyList"></div>
@@ -4913,6 +5018,7 @@
   <div class="celebrate-icon" id="celebrateIcon">💪</div>
   <div class="celebrate-text" id="celebrateText">Session complete!</div>
   <div class="celebrate-sub" id="celebrateSub"></div>
+  <button type="button" class="celebrate-share-btn" id="celebrateShareBtn" style="display:none">Share</button>
 </div>
 
 <!-- Gym mode chrome. Both elements exist at all times and are shown by
@@ -4966,7 +5072,7 @@
         <span class="rest-timer-time" id="restTimerTime">1:30</span>
       </div>
     </button>
-    <button class="rt-add" id="restTimerAdd">+15s</button>
+    <button class="rt-add" id="restTimerAdd" aria-label="Add 15 seconds to rest timer">+15s</button>
     <button class="rt-close" id="restTimerClose" aria-label="Close rest timer">✕</button>
   </div>
   <div class="rest-timer-expand" id="restTimerPanel"><div>
@@ -4981,11 +5087,11 @@
     </div>
     <div class="rest-timer-panel-note" id="restTimerNotifyNote" hidden></div>
     <div class="rest-timer-panel-adjust">
-      <button class="rt-adjust" data-delta="-30">-30s</button>
-      <button class="rt-adjust" data-delta="-15">-15s</button>
-      <button class="rt-adjust" data-delta="15">+15s</button>
-      <button class="rt-adjust" data-delta="30">+30s</button>
-      <button class="rt-adjust" data-delta="60">+60s</button>
+      <button class="rt-adjust" data-delta="-30" aria-label="Decrease rest timer by 30 seconds">-30s</button>
+      <button class="rt-adjust" data-delta="-15" aria-label="Decrease rest timer by 15 seconds">-15s</button>
+      <button class="rt-adjust" data-delta="15" aria-label="Increase rest timer by 15 seconds">+15s</button>
+      <button class="rt-adjust" data-delta="30" aria-label="Increase rest timer by 30 seconds">+30s</button>
+      <button class="rt-adjust" data-delta="60" aria-label="Increase rest timer by 60 seconds">+60s</button>
     </div>
   </div></div>
 </div>
@@ -5263,7 +5369,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.55';
+const APP_VERSION = '3.72';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -5756,6 +5862,23 @@ function noteStorageDegraded(key, err){
 var exCorpusGen = 0;
 function bumpExCorpusGen(){ exCorpusGen++; }
 
+// Same pattern, same reasoning, for the three namespaces that had the
+// identical problem one level down: fetchDayStatuses, fetchWorkoutDates and
+// buildCrossMetricInsightsContext each ran their own independent
+// storage.list('workout:') + per-key get()+parse pass; fetchWaterDays and
+// fetchFoodDays did the same for 'water:' and 'foodlog:'. Opening the
+// Calendar alone fired three of those (fetchWorkoutDates, fetchFoodDays,
+// fetchDayStatuses) in one Promise.all. One generation counter per
+// namespace, bumped at the same set()/delete() chokepoint as exCorpusGen —
+// not a shared counter, because a food log write has no reason to invalidate
+// a cached workout pass.
+var workoutGen = 0;
+function bumpWorkoutGen(){ workoutGen++; }
+var foodLogGen = 0;
+function bumpFoodLogGen(){ foodLogGen++; }
+var waterGen = 0;
+function bumpWaterGen(){ waterGen++; }
+
 function buildNamespacedStorage(userId){
   const PREFIX = RAW_PREFIX + 'usr' + userId + ':';
   // Doubles as the fallback store when localStorage is unavailable entirely,
@@ -5785,6 +5908,9 @@ function buildNamespacedStorage(userId){
       // ones that throw. An over-eager bump costs one re-read; a missed one
       // hands a stale corpus to every trend on the Analysis tab.
       if(k && k.indexOf('ex:') === 0) bumpExCorpusGen();
+      if(k && k.indexOf('workout:') === 0) bumpWorkoutGen();
+      if(k && k.indexOf('foodlog:') === 0) bumpFoodLogGen();
+      if(k && k.indexOf('water:') === 0) bumpWaterGen();
       if(useLocalStorage){
         try{
           localStorage.setItem(PREFIX + k, v);
@@ -5805,6 +5931,9 @@ function buildNamespacedStorage(userId){
     },
     delete: async (k)=>{
       if(k && k.indexOf('ex:') === 0) bumpExCorpusGen();
+      if(k && k.indexOf('workout:') === 0) bumpWorkoutGen();
+      if(k && k.indexOf('foodlog:') === 0) bumpFoodLogGen();
+      if(k && k.indexOf('water:') === 0) bumpWaterGen();
       // Both copies, always. Deleting only the durable one would resurrect the
       // spilled value on the next read.
       if(k in mem){ delete mem[k]; storageHealth.spilled.delete(k); }
@@ -5845,7 +5974,7 @@ function createNewUser(name){
 }
 
 function showUserPicker(){
-  document.getElementById('userPickerOverlay').style.display = 'flex';
+  document.getElementById('userPickerOverlay').classList.add('active');
   document.getElementById('userPickerCancelBtn').style.display = activeUserId ? '' : 'none';
   const listEl = document.getElementById('userPickerList');
   const users = getUserList();
@@ -5860,7 +5989,7 @@ function showUserPicker(){
 }
 
 function hideUserPicker(){
-  document.getElementById('userPickerOverlay').style.display = 'none';
+  document.getElementById('userPickerOverlay').classList.remove('active');
 }
 
 document.getElementById('newUserCreateBtn').addEventListener('click', ()=>{
@@ -12834,7 +12963,8 @@ async function checkStreakMilestone(streak){
     void badgeEl.offsetWidth;
     badgeEl.classList.add('streak-pulse');
   }
-  triggerCelebration('🔥', `${streak}-day streak!`, 'Consistency is what actually builds results — nice work.');
+  triggerCelebration('🔥', `${streak}-day streak!`, 'Consistency is what actually builds results — nice work.', true,
+    {icon:'🔥', headline:`${streak}-DAY STREAK`, detail:'Consistency is what actually builds results.'});
 }
 
 // Animates a number counting up/down to its new value instead of snapping
@@ -14368,7 +14498,7 @@ function renderTabs(){
     // This is the standard roving-tabindex pattern — seven days in the tab
     // sequence would otherwise sit between the header and the workout itself.
     tab.tabIndex = (id===activeDay) ? 0 : -1;
-    const doneBadge = (!d.rest && weekProgress[id]) ? `<div class="day-done-badge">✓</div>` : '';
+    const doneBadge = (!d.rest && weekProgress[id]) ? `<div class="day-done-badge">${icon('check', {size:'11px'})}</div>` : '';
     tab.innerHTML = `<div class="plate-wrap"><div class="plate ${getDayPlateClass(id)}${d.plateNum==='OFF'?' plate-off':''}">${dayGlyphSvg(d.sub)}</div>${doneBadge}</div><div class="plate-label">${d.label}</div>`;
     tab.onclick = ()=>{
       if(reorderMode) return;
@@ -15189,7 +15319,7 @@ async function openExerciseSubModal(idx, ex){
           <div class="sub-option-name">${escapeHtml(r.name)}${r.isDefault ? '<span class="sub-option-default-tag">Default</span>' : ''}</div>
           <div class="sub-option-history">${r.summary}</div>
         </div>
-        ${isSelected ? '<span class="sub-option-check">✓</span>' : ''}
+        ${isSelected ? `<span class="sub-option-check">${icon('check', {size:'15px'})}</span>` : ''}
       </div>
     `;
   }).join('');
@@ -15232,6 +15362,23 @@ document.getElementById('historySearch').addEventListener('input', (e)=>{
     historyFilter = val;
     renderHistory();
   }, 220);
+});
+
+document.getElementById('historyExportBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('historyExportBtn');
+  const range = document.getElementById('historyExportRange').value;
+  const original = btn.textContent;
+  btn.textContent = 'Building report…';
+  btn.disabled = true;
+  try{
+    const html = await buildPrintReport(range);
+    document.getElementById('printReportContent').innerHTML = html;
+  }catch(e){
+    document.getElementById('printReportContent').innerHTML = '<div class="pr-empty">Could not build the report — try again.</div>';
+  }
+  btn.textContent = original;
+  btn.disabled = false;
+  requestAnimationFrame(()=> requestAnimationFrame(()=> window.print()));
 });
 
 document.getElementById('exEditClose').addEventListener('click', closeExerciseEditor);
@@ -16561,7 +16708,7 @@ async function renderWorkout(){
     }catch(e){}
 
     const dateLabel = formatLogDateLabel(selectedLogDate).toLowerCase();
-    const archiveBtnHtml = activeDay === 'd7' ? `<button class="save-btn" id="archiveWeekBtn" style="margin-top:14px;">🏁 Save This Week & Start Fresh</button><div class="status-msg" id="archiveWeekStatus"></div>` : '';
+    const archiveBtnHtml = activeDay === 'd7' ? `<button class="save-btn" id="archiveWeekBtn" style="margin-top:14px;">🏁 Save This Week & Start Fresh</button><div class="status-msg" id="archiveWeekStatus"></div><div id="weekShareWrap" style="display:none; margin-top:8px; text-align:center;"><button type="button" class="switch-profile-btn" id="weekShareBtn" style="width:auto; display:inline-block; padding:8px 18px;">Share This Week</button></div>` : '';
     list.innerHTML = `
       <div class="rest-note">${day.note}</div>
       <label class="rest-done-row">
@@ -17180,7 +17327,7 @@ async function renderWorkout(){
           const persona = getCoachPersona();
           const sub = suggestSubstitute(info.category, ex.name);
           const prompt = `You are ${persona}. Someone is looking at "${ex.name}" in today's workout, which loads a region they've marked as resting. ${symptomLine} The app's default suggestion is "${sub ? sub.name : 'no direct substitute on file'}". Give a short, specific take (2-3 sentences, no headers or markdown) on whether that default substitute actually makes sense given what they described, or whether something else would be more appropriate — tied to the actual symptom, not generic category advice. You are not a doctor — if what they described sounds like it needs an in-person evaluation (sharp pain, numbness, a pop/snap, or anything not clearly improving), say so plainly rather than just suggesting an exercise swap.`;
-          const reply = await callClaudeChat(apiKey, prompt, [{role:'user', content:'What do you think, given what I logged?'}], 250);
+          const reply = await callClaudeChat(apiKey, prompt, [{role:'user', content:'What do you think, given what I logged?'}], 2500);
           aiTailorBtn.outerHTML = `<div class="goal-feedback-neutral" style="margin-top:8px;">${escapeHtml(reply.trim())}</div>`;
         }catch(err){
           aiTailorBtn.disabled = false;
@@ -17296,17 +17443,186 @@ function spawnConfetti(count){
   setTimeout(()=> pieces.forEach(p=> p.remove()), 2200);
 }
 
-function triggerCelebration(icon, text, sub, big){
+function triggerCelebration(icon, text, sub, big, shareData){
   const banner = document.getElementById('celebrateBanner');
   document.getElementById('celebrateIcon').textContent = icon;
   document.getElementById('celebrateText').textContent = text;
   document.getElementById('celebrateSub').textContent = sub || '';
 
+  const shareBtn = document.getElementById('celebrateShareBtn');
+  if(shareData){
+    shareBtn.style.display = '';
+    // Clone-and-replace, same reason showUndoToast does it: guarantees
+    // exactly one listener even if a previous celebration's button was
+    // never tapped and its handler never fired.
+    const freshBtn = shareBtn.cloneNode(true);
+    shareBtn.parentNode.replaceChild(freshBtn, shareBtn);
+    freshBtn.addEventListener('click', ()=> shareCelebrationCard(shareData, 'celebrateShareBtn'));
+  } else {
+    shareBtn.style.display = 'none';
+  }
+
   if(celebrateTimeout) clearTimeout(celebrateTimeout);
   banner.classList.toggle('big', !!big);
   banner.classList.add('active');
   spawnConfetti(big ? 42 : undefined);
-  celebrateTimeout = setTimeout(()=> banner.classList.remove('active'), big ? 2800 : 2200);
+  // Longer hold when there's something to tap — 2.8s was tuned for a glance,
+  // not for finding and pressing a button. Dismissal is still automatic
+  // either way; this only changes how long it waits.
+  const holdMs = shareData ? 5000 : (big ? 2800 : 2200);
+  celebrateTimeout = setTimeout(()=> banner.classList.remove('active'), holdMs);
+}
+
+// [SHARE CARD] --------------------------------------------------------------
+// Draws a square, brand-matched image for PR and streak-milestone moments —
+// the same gold theme the celebration banner itself already uses, so a
+// shared image looks like it came from this app. cardData: {icon, headline,
+// detail}. Returns a Promise<Blob> (PNG); canvas.toBlob's callback form is
+// used rather than the promise-returning variant, same reason
+// downscaleImage already does — Safari's promise support for it arrived late.
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight){
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+  for(const word of words){
+    const test = line ? line + ' ' + word : word;
+    if(ctx.measureText(test).width > maxWidth && line){
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  }
+  if(line) lines.push(line);
+  const startY = y - ((lines.length - 1) * lineHeight) / 2;
+  lines.forEach((l, i)=> ctx.fillText(l, x, startY + i * lineHeight));
+  return lines.length;
+}
+
+function buildShareCardBlob(cardData){
+  const W = 1080, H = 1080;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#17191D');
+  bg.addColorStop(1, '#0A0B0D');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  const glow = ctx.createRadialGradient(W/2, H*0.36, 40, W/2, H*0.36, 460);
+  glow.addColorStop(0, 'rgba(245,197,24,0.22)');
+  glow.addColorStop(1, 'rgba(245,197,24,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // Stats-table cards (weekly summary) use a more compact icon/headline
+  // position to leave room for the stat rows below; detail-text cards
+  // (PR, streak) keep the original, more spacious layout unchanged.
+  const hasStats = cardData.stats && cardData.stats.length;
+  const iconY = hasStats ? 0.24 : 0.34;
+  const headlineY = hasStats ? 0.40 : 0.50;
+
+  ctx.font = hasStats ? '140px sans-serif' : '160px sans-serif';
+  ctx.fillText(cardData.icon, W/2, H*iconY);
+
+  ctx.fillStyle = '#F3F4F6';
+  ctx.font = '800 ' + (hasStats ? '66px' : '74px') + ' Inter, sans-serif';
+  ctx.fillText(cardData.headline, W/2, H*headlineY);
+
+  if(hasStats){
+    const boxTop = H*0.47, boxBottom = H*0.78;
+    const n = cardData.stats.length;
+    const rowH = (boxBottom - boxTop) / n;
+    const labelReserve = 220; // fixed space reserved for the label column
+    const valueMaxW = (W*0.82 - W*0.18) - labelReserve;
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(W*0.18, boxTop); ctx.lineTo(W*0.82, boxTop); ctx.stroke();
+
+    cardData.stats.forEach((s, i)=>{
+      const cy = boxTop + rowH*i + rowH/2;
+      // Shrink-to-fit: a long value (e.g. a custom program name) would
+      // otherwise overlap the label on the right — a real failure mode
+      // found by rendering it, not a hypothetical one.
+      let size = 40;
+      ctx.font = `600 ${size}px Inter, sans-serif`;
+      while(size > 22 && ctx.measureText(s.value).width > valueMaxW){
+        size -= 2;
+        ctx.font = `600 ${size}px Inter, sans-serif`;
+      }
+      ctx.fillStyle = '#F3F4F6';
+      ctx.textAlign = 'left';
+      ctx.fillText(s.value, W*0.18, cy);
+
+      ctx.font = '500 28px Inter, sans-serif';
+      ctx.fillStyle = '#8B929B';
+      ctx.textAlign = 'right';
+      ctx.fillText(s.label, W*0.82, cy);
+
+      if(i > 0){
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.beginPath(); ctx.moveTo(W*0.18, boxTop+rowH*i); ctx.lineTo(W*0.82, boxTop+rowH*i); ctx.stroke();
+      }
+    });
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.beginPath(); ctx.moveTo(W*0.18, boxBottom); ctx.lineTo(W*0.82, boxBottom); ctx.stroke();
+    ctx.textAlign = 'center';
+  } else {
+    ctx.fillStyle = '#8B929B';
+    ctx.font = '500 36px Inter, sans-serif';
+    wrapCanvasText(ctx, cardData.detail, W/2, H*0.58, W-160, 46);
+  }
+
+  ctx.fillStyle = '#8B929B';
+  ctx.font = '600 26px Inter, sans-serif';
+  ctx.fillText('TRAINING LOG', W/2, H*0.92);
+
+  return new Promise(resolve=>{
+    canvas.toBlob(blob=> resolve(blob), 'image/png');
+  });
+}
+
+async function shareCelebrationCard(cardData, btnId){
+  const btn = document.getElementById(btnId || 'celebrateShareBtn');
+  const original = btn.textContent;
+  btn.textContent = 'Preparing…';
+  btn.disabled = true;
+  try{
+    const blob = await buildShareCardBlob(cardData);
+    if(!blob) throw new Error('card generation failed');
+    const file = new File([blob], 'training-log.png', {type:'image/png'});
+    // detail-style cards (PR, streak) vs stats-table cards (weekly summary)
+    // need different share text — stats has no .detail to fall back on.
+    const detailText = cardData.detail || (cardData.stats ? cardData.stats.map(s=> `${s.label}: ${s.value}`).join(', ') : '');
+    const shareText = detailText ? `${cardData.headline} — ${detailText}` : cardData.headline;
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], text: shareText, title:'Training Log'});
+    } else {
+      // No Web Share support for files (older Safari, most desktop
+      // browsers) — open the image in a new tab so a long-press/right-click
+      // "Save Image" still works instead of the button silently doing
+      // nothing.
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(()=> URL.revokeObjectURL(url), 60000);
+    }
+  }catch(err){
+    // AbortError is the person closing the native share sheet without
+    // picking anything — not a failure, nothing to report.
+    if(err && err.name !== 'AbortError'){
+      btn.textContent = 'Couldn\u2019t share — try again';
+      setTimeout(()=>{ btn.textContent = original; btn.disabled = false; }, 2000);
+      return;
+    }
+  }
+  btn.textContent = original;
+  btn.disabled = false;
 }
 
 // --- Sticky day header: shows a condensed version of the day title once
@@ -18729,7 +19045,8 @@ function wireSetsBlock(row, exIdx, ex){
       if(result.isPR && await isPastPrNotificationWindow()){
         statusEl.textContent = '🏆 PR';
         statusEl.className = 'set-status set-status-pr';
-        triggerCelebration('🏆', 'New PR!', `${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`, true);
+        triggerCelebration('🏆', 'New PR!', `${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`, true,
+          {icon:'🏆', headline:'NEW PR', detail:`${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`});
       } else {
         statusEl.textContent = '✓';
         statusEl.className = 'set-status set-status-saved';
@@ -20510,7 +20827,7 @@ async function renderOnboardingCard(){
 
   document.getElementById('onboardingRows').innerHTML = steps.map(s=>`
     <div class="onboarding-row ${s.done ? 'done' : ''}">
-      <span class="onboarding-check">${s.done ? '✓' : ''}</span>
+      <span class="onboarding-check">${s.done ? icon('check', {size:'12px'}) : ''}</span>
       <span>${s.label}</span>
     </div>
   `).join('');
@@ -20664,6 +20981,22 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
 });
 
 document.getElementById('switchProfileBtn').addEventListener('click', ()=> showUserPicker());
+
+document.getElementById('printProgramBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('printProgramBtn');
+  const original = btn.textContent;
+  btn.textContent = 'Building program sheet…';
+  btn.disabled = true;
+  try{
+    const html = await buildProgramPrintReport();
+    document.getElementById('printReportContent').innerHTML = html;
+  }catch(e){
+    document.getElementById('printReportContent').innerHTML = '<div class="pr-empty">Could not build the program sheet — try again.</div>';
+  }
+  btn.textContent = original;
+  btn.disabled = false;
+  requestAnimationFrame(()=> requestAnimationFrame(()=> window.print()));
+});
 
 document.getElementById('onboardingDismiss').addEventListener('click', async ()=>{
   const card = document.getElementById('onboardingCard');
@@ -21642,6 +21975,12 @@ async function lookupBarcode(barcode){
   const p = data.product;
   const n = p.nutriments || {};
   const name = p.brands ? `${p.product_name || 'Unknown product'} (${p.brands})` : (p.product_name || 'Unknown product');
+  // Open Food Facts stores sodium in GRAMS, not milligrams like the rest of
+  // this app (extractUsdaNutrition's sodium is mg) — an EU-labeling-schema
+  // quirk, not a typo. Missing the ×1000 here wouldn't error, it would just
+  // silently store a number 1000x too small.
+  const sodiumMg = (v)=> v != null ? Math.round(v * 1000) : null;
+  const fiberG = (v)=> v != null ? Math.round(v) : null;
   // Prefer the actual per-serving numbers (what's really printed on the
   // label) over the generic per-100g figures, exactly like the USDA
   // labelNutrients preference — matches what a person expects to log.
@@ -21653,6 +21992,8 @@ async function lookupBarcode(barcode){
       pro: Math.round(n['proteins_serving'] ?? 0),
       fat: Math.round(n['fat_serving'] ?? 0),
       carb: Math.round(n['carbohydrates_serving'] ?? 0),
+      sodium: sodiumMg(n['sodium_serving']),
+      fiber: fiberG(n['fiber_serving']),
       servingDesc: p.serving_size || 'labeled serving',
       source: 'Open Food Facts',
     };
@@ -21663,6 +22004,8 @@ async function lookupBarcode(barcode){
     pro: Math.round(n['proteins_100g'] ?? 0),
     fat: Math.round(n['fat_100g'] ?? 0),
     carb: Math.round(n['carbohydrates_100g'] ?? 0),
+    sodium: sodiumMg(n['sodium_100g']),
+    fiber: fiberG(n['fiber_100g']),
     servingDesc: 'per 100g',
     source: 'Open Food Facts',
   };
@@ -21774,7 +22117,7 @@ async function handleBarcodeFound(barcode){
         <div class="photo-result-title">📦 Found it</div>
         <div class="photo-result-item">
           <span>${escapeHtml(item.name)} — ${item.cal} cal, ${item.pro}p/${item.fat}f/${item.carb}c (${escapeHtml(item.servingDesc)})</span>
-          <button class="fl-remove" style="color:var(--plate-green); font-size:18px;" id="barcodeAddBtn">+</button>
+          <button class="fl-remove" style="color:var(--plate-green); font-size:18px;" id="barcodeAddBtn" aria-label="Add ${escapeHtml(item.name)} to today's log">+</button>
         </div>
       </div>
     `;
@@ -21890,7 +22233,7 @@ ${macroLine}
 
 If what they're in the mood for is fundamentally incompatible with their dietary preference, additional needs, or avoid list (e.g. asking for a bacon dish while avoiding pork), respond with {"recipes":[]} rather than forcing a workaround they didn't ask for.`;
 
-    const raw = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content: `I'm in the mood for: ${query}`}], 900);
+    const raw = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content: `I'm in the mood for: ${query}`}], 3000);
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
     recipeFinderResults = parsed.recipes || [];
@@ -21992,7 +22335,7 @@ async function renderGroceryList(){
     return;
   }
   const itemHtmls = list.map(item=> buildSwipeItem(
-    `<div class="grocery-item ${item.checked ? 'done' : ''}"><span class="grocery-check">${item.checked ? '✓' : ''}</span><span class="grocery-item-text">${escapeHtml(item.text)}</span></div>`
+    `<div class="grocery-item ${item.checked ? 'done' : ''}"><span class="grocery-check">${item.checked ? icon('check', {size:'12px'}) : ''}</span><span class="grocery-item-text">${escapeHtml(item.text)}</span></div>`
   ));
   el.innerHTML = itemHtmls.join('');
   if(clearBtn) clearBtn.style.display = list.some(i=>i.checked) ? '' : 'none';
@@ -22296,7 +22639,7 @@ async function submitFoodDescription(){
   resultEl.innerHTML = `<div class="empty-note">Estimating nutrition…</div>`;
 
   try{
-    const systemPrompt = `You estimate nutrition from a plain-language food description for a training log app. Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"items":[{"name":"string","cal":number,"pro":number,"fat":number,"carb":number}]}. Break a described meal into its distinct components when it genuinely has more than one — use your judgment on whether that's more useful than one combined entry. Base estimates on typical restaurant/home portion sizes for what's described. If nothing edible is described, respond with {"items":[]}.`;
+    const systemPrompt = `You estimate nutrition from a plain-language food description for a training log app. Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"items":[{"name":"string","cal":number,"pro":number,"fat":number,"carb":number,"sodium":number,"fiber":number}]}. sodium is in milligrams, fiber in grams — both are rougher estimates than the calorie and macro numbers, especially for home-cooked or restaurant food where added salt varies a lot, but include your best estimate rather than omitting them. Break a described meal into its distinct components when it genuinely has more than one — use your judgment on whether that's more useful than one combined entry. Base estimates on typical restaurant/home portion sizes for what's described. If nothing edible is described, respond with {"items":[]}.`;
     const raw = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content: description}], 700, 'claude-haiku-4-5-20251001');
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
@@ -23080,11 +23423,22 @@ function scaleFoodItem(item, qty){
   // than the estimate was, but it does keep the log's arithmetic self-consistent
   // — the totals row adds up to what the lines say.
   const g = (v)=> Math.round((Number(v) || 0) * q * 10) / 10;
+  // Same idea for the extended nutrients extractUsdaNutrition pulls in
+  // (sodium/fiber/calcium/potassium as whole numbers, iron to one decimal —
+  // matching that function's own rounding), except null must stay null
+  // rather than become 0 — null there means "USDA didn't have this value,"
+  // and scaling that into a confident 0 would be worse than leaving it
+  // missing, especially for sodium on a hypertension-focused program.
+  const gi = (v)=> v == null ? null : Math.round((Number(v) || 0) * q);
+  const gd = (v)=> v == null ? null : Math.round((Number(v) || 0) * q * 10) / 10;
   return {
     ...item,
     name: `${item.name} ×${q}`,
     cal: Math.round((Number(item.cal) || 0) * q),
     pro: g(item.pro), fat: g(item.fat), carb: g(item.carb),
+    sodium: gi(item.sodium), fiber: gi(item.fiber),
+    calcium: gi(item.calcium), potassium: gi(item.potassium), folate: gi(item.folate),
+    iron: gd(item.iron),
     qty: q,
     baseName: item.name,
   };
@@ -23195,7 +23549,7 @@ function renderMealSuggestions(){
   const itemRow = (item)=> `
     <div class="photo-result-item">
       <span>${escapeHtml(item.name)} — ${item.cal} cal, ${item.pro}g protein</span>
-      <button class="fl-remove" style="color:var(--plate-green); font-size:18px;" data-add="${escapeHtml(item.name)}">+</button>
+      <button class="fl-remove" style="color:var(--plate-green); font-size:18px;" data-add="${escapeHtml(item.name)}" aria-label="Add ${escapeHtml(item.name)} to today's log">+</button>
     </div>
   `;
 
@@ -23465,7 +23819,7 @@ document.getElementById('adaptWorkoutSubmit').addEventListener('click', async ()
     const day = programs[activeProgram].days[activeDay];
     const exList = (day.exercises || []).map(ex=> `${ex.name} (${ex.sets})`).join(', ');
     const prompt = `You are ${persona}. Today's planned session (${day.label}${day.sub ? ' — '+day.sub : ''}) is: ${exList || 'a rest day with no exercises listed'}. The person says: "${constraint}". Rebuild today's session around that real constraint — same general muscle groups and rep ranges where you reasonably can, swapping in exercises that actually work with what they described (limited equipment, time, or space). List the adapted exercises with sets/reps as a short list, then 1-2 sentences on what you changed and why. No headers, no long preamble — get straight to the adapted list. If the constraint genuinely guts the day's purpose (e.g. a squat-focused day with zero legal lower-body option), say so plainly rather than forcing a bad substitute.`;
-    const reply = await callClaudeChat(apiKey, prompt, [{role:'user', content:'Adapt today\'s workout to what I actually have.'}], 500);
+    const reply = await callClaudeChat(apiKey, prompt, [{role:'user', content:'Adapt today\'s workout to what I actually have.'}], 2500);
     resultEl.innerHTML = `<div class="goal-feedback-neutral" style="margin-top:10px;">${escapeHtml(reply.trim()).replace(/\n/g,'<br>')}</div>`;
   }catch(err){
     resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't adapt the session right now — ${escapeHtml(err.message || 'try again in a moment.')}</div>`;
@@ -24048,7 +24402,7 @@ async function loadSupplements(){
   wrap.innerHTML = streakHtml + SUPPLEMENT_ITEMS.map(item=>{
     const done = !!state[item.key];
     return `<div class="supplement-row ${done ? 'done' : ''}" data-key="${item.key}">
-      <span class="supplement-check">${done ? '✓' : ''}</span>
+      <span class="supplement-check">${done ? icon('check', {size:'13px'}) : ''}</span>
       <span>${item.label}</span>
     </div>`;
   }).join('');
@@ -25121,17 +25475,8 @@ let calendarDayStatus = null;   // Map of "YYYY-MM-DD" -> 'trained' | 'rest' | '
 async function fetchDayStatuses(){
   const out = new Map();
   try{
-    const res = await window.storage.list('workout:');
-    if(!res || !res.keys) return out;
-    for(const key of res.keys){
-      const parts = key.split(':');
-      if(parts.length < 3) continue;
-      const date = parts[1], dayId = parts[2];
-      let anyDone = false;
-      try{
-        const item = await window.storage.get(key);
-        if(item && item.value) anyDone = Object.values(JSON.parse(item.value)).some(v=> v === true);
-      }catch(e){}
+    const corpus = await readWorkoutCorpus();
+    for(const {date, dayId, anyDone} of corpus){
       if(anyDone){ out.set(date, 'trained'); continue; }
       if(out.get(date) === 'trained') continue;   // another day id that date did have work
       const def = dayDefs && dayDefs[dayId];
@@ -25399,7 +25744,17 @@ function mondayOf(dateStr){
   const day = d.getDay();
   const diff = (day===0 ? -6 : 1-day);
   d.setDate(d.getDate()+diff);
-  return d.toISOString().slice(0,10);
+  // Local date components, NOT toISOString() — that converts to UTC, which
+  // silently shifts this a day early for anyone in a positive UTC-offset
+  // timezone (most of Asia, Australia, NZ): local midnight there falls on the
+  // PREVIOUS UTC calendar day. Correct in every US timezone, wrong everywhere
+  // east of Greenwich by enough to matter, which is exactly why it never
+  // showed up in on-device testing. Same construction getTodayKey() already
+  // uses correctly — this one just hadn't been checked against it.
+  const y = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${y}-${mm}-${dd}`;
 }
 
 // True when dateKey falls in the same Monday–Sunday calendar week as the
@@ -25462,21 +25817,9 @@ async function fetchAllMeasurements(){
 async function fetchWorkoutDates(){
   const dates = new Set();
   try{
-    const res = await window.storage.list('workout:');
-    if(res && res.keys){
-      for(const key of res.keys){
-        const parts = key.split(':'); // workout, YYYY-MM-DD, dX
-        if(parts.length < 3) continue;
-        const date = parts[1];
-        try{
-          const item = await window.storage.get(key);
-          if(item && item.value){
-            const completed = JSON.parse(item.value);
-            const anyDone = Object.values(completed).some(v=>v===true);
-            if(anyDone) dates.add(date);
-          }
-        }catch(e){}
-      }
+    const corpus = await readWorkoutCorpus();
+    for(const {date, anyDone} of corpus){
+      if(anyDone) dates.add(date);
     }
   }catch(e){}
   return dates;
@@ -25493,19 +25836,9 @@ async function fetchSleepEntries(){
 async function fetchWaterDays(){
   const dayTotals = {}; // date -> oz
   try{
-    const res = await window.storage.list('water:');
-    if(res && res.keys){
-      for(const key of res.keys){
-        const date = key.split(':')[1];
-        if(!date) continue;
-        try{
-          const item = await window.storage.get(key);
-          if(item && item.value){
-            const oz = Number(item.value);
-            if(oz > 0) dayTotals[date] = oz;
-          }
-        }catch(e){}
-      }
+    const corpus = await readWaterCorpus();
+    for(const {date, oz} of corpus){
+      if(oz > 0) dayTotals[date] = oz;
     }
   }catch(e){}
   return dayTotals;
@@ -25514,24 +25847,16 @@ async function fetchWaterDays(){
 async function fetchFoodDays(){
   const dayTotals = {}; // date -> {cal,pro,fat,carb}
   try{
-    const res = await window.storage.list('foodlog:');
-    if(res && res.keys){
-      for(const key of res.keys){
-        const date = key.split(':')[1];
-        try{
-          const item = await window.storage.get(key);
-          if(item && item.value){
-            const log = JSON.parse(item.value);
-            const totals = log.reduce((acc,i)=>({
-              cal: acc.cal + Number(i.cal||0),
-              pro: acc.pro + Number(i.pro||0),
-              fat: acc.fat + Number(i.fat||0),
-              carb: acc.carb + Number(i.carb||0),
-            }), {cal:0,pro:0,fat:0,carb:0});
-            if(log.length>0) dayTotals[date] = totals;
-          }
-        }catch(e){}
-      }
+    const corpus = await readFoodLogCorpus();
+    for(const {date, log} of corpus){
+      if(!log || log.length === 0) continue;
+      const totals = log.reduce((acc,i)=>({
+        cal: acc.cal + Number(i.cal||0),
+        pro: acc.pro + Number(i.pro||0),
+        fat: acc.fat + Number(i.fat||0),
+        carb: acc.carb + Number(i.carb||0),
+      }), {cal:0,pro:0,fat:0,carb:0});
+      dayTotals[date] = totals;
     }
   }catch(e){}
   return dayTotals;
@@ -25988,6 +26313,134 @@ async function readExCorpus(){
     return out;
   } finally {
     if(exCorpusInflight && exCorpusInflight.promise === promise) exCorpusInflight = null;
+  }
+}
+
+// [WORKOUT / FOODLOG / WATER CORPORA] --------------------------------------
+// Same problem readExCorpus solved for ex:, one level down. fetchDayStatuses,
+// fetchWorkoutDates, and the inline key-walk inside
+// buildCrossMetricInsightsContext each ran their own storage.list('workout:')
+// then read+parsed every key. fetchWaterDays and fetchFoodDays did the same,
+// solo, for 'water:' and 'foodlog:'. Opening the Calendar modal alone fired
+// fetchWorkoutDates + fetchFoodDays + fetchDayStatuses together in one
+// Promise.all — three full origin scans for one modal.
+//
+// Same contract as readExCorpus: what these hand back is SHARED and must not
+// be mutated. Every consumer below only reads it.
+let workoutCorpusCache = null, workoutCorpusCacheGen = -1, workoutCorpusInflight = null;
+let foodLogCorpusCache = null, foodLogCorpusCacheGen = -1, foodLogCorpusInflight = null;
+let waterCorpusCache = null, waterCorpusCacheGen = -1, waterCorpusInflight = null;
+
+// Each entry: {key, date, dayId, completed, anyDone}. `completed` is the
+// parsed stepId->bool object as logged; `anyDone` is computed once here
+// instead of by each of the three consumers separately.
+async function readWorkoutCorpus(){
+  if(workoutCorpusCache && workoutCorpusCacheGen === workoutGen) return workoutCorpusCache;
+  if(workoutCorpusInflight && workoutCorpusInflight.gen === workoutGen) return workoutCorpusInflight.promise;
+
+  const gen = workoutGen;
+  const promise = (async ()=>{
+    let keys = [];
+    try{
+      const res = await window.storage.list('workout:');
+      if(res && res.keys) keys = res.keys;
+    }catch(e){}
+    const out = [];
+    for(const key of keys){
+      const parts = key.split(':'); // workout, YYYY-MM-DD, dX (plus style segments on some programs)
+      if(parts.length < 3) continue;
+      const date = parts[1], dayId = parts[2];
+      let completed = {};
+      try{
+        const item = await window.storage.get(key);
+        if(item && item.value) completed = JSON.parse(item.value);
+      }catch(e){}
+      const anyDone = Object.values(completed).some(v=> v===true);
+      out.push({key, date, dayId, completed, anyDone});
+    }
+    return out;
+  })();
+
+  workoutCorpusInflight = {gen, promise};
+  try{
+    const out = await promise;
+    if(workoutGen === gen){ workoutCorpusCache = out; workoutCorpusCacheGen = gen; }
+    return out;
+  } finally {
+    if(workoutCorpusInflight && workoutCorpusInflight.promise === promise) workoutCorpusInflight = null;
+  }
+}
+
+// Each entry: {key, date, log}. `log` is the parsed food-item array as logged.
+async function readFoodLogCorpus(){
+  if(foodLogCorpusCache && foodLogCorpusCacheGen === foodLogGen) return foodLogCorpusCache;
+  if(foodLogCorpusInflight && foodLogCorpusInflight.gen === foodLogGen) return foodLogCorpusInflight.promise;
+
+  const gen = foodLogGen;
+  const promise = (async ()=>{
+    let keys = [];
+    try{
+      const res = await window.storage.list('foodlog:');
+      if(res && res.keys) keys = res.keys;
+    }catch(e){}
+    const out = [];
+    for(const key of keys){
+      const date = key.split(':')[1];
+      if(!date) continue;
+      let log = [];
+      try{
+        const item = await window.storage.get(key);
+        if(item && item.value) log = JSON.parse(item.value);
+      }catch(e){}
+      out.push({key, date, log});
+    }
+    return out;
+  })();
+
+  foodLogCorpusInflight = {gen, promise};
+  try{
+    const out = await promise;
+    if(foodLogGen === gen){ foodLogCorpusCache = out; foodLogCorpusCacheGen = gen; }
+    return out;
+  } finally {
+    if(foodLogCorpusInflight && foodLogCorpusInflight.promise === promise) foodLogCorpusInflight = null;
+  }
+}
+
+// Each entry: {key, date, oz}. `oz` mirrors fetchWaterDays' existing
+// Number(item.value) parse — water keys store a bare number, not JSON.
+async function readWaterCorpus(){
+  if(waterCorpusCache && waterCorpusCacheGen === waterGen) return waterCorpusCache;
+  if(waterCorpusInflight && waterCorpusInflight.gen === waterGen) return waterCorpusInflight.promise;
+
+  const gen = waterGen;
+  const promise = (async ()=>{
+    let keys = [];
+    try{
+      const res = await window.storage.list('water:');
+      if(res && res.keys) keys = res.keys;
+    }catch(e){}
+    const out = [];
+    for(const key of keys){
+      const date = key.split(':')[1];
+      if(!date) continue;
+      let oz = 0;
+      try{
+        const item = await window.storage.get(key);
+        if(item && item.value) oz = Number(item.value);
+      }catch(e){}
+      out.push({key, date, oz});
+    }
+    return out;
+  })();
+
+  waterCorpusInflight = {gen, promise};
+  try{
+    const out = await promise;
+    if(waterGen === gen){ waterCorpusCache = out; waterCorpusCacheGen = gen; }
+    return out;
+  } finally {
+    if(waterCorpusInflight && waterCorpusInflight.promise === promise) waterCorpusInflight = null;
   }
 }
 
@@ -26689,19 +27142,30 @@ async function anthropicRequest(apiKey, payload, timeoutMs){
 
     if(response.ok){
       const data = await response.json();
-      const textBlock = (data.content || []).find(b=> b.type === 'text');
-      const text = textBlock && typeof textBlock.text === 'string' ? textBlock.text : '';
+      // EVERY text block, joined — not the first one.
+      // claude-sonnet-5 runs ADAPTIVE THINKING BY DEFAULT (it is the documented
+      // change from sonnet-4-6, where a request with no `thinking` field ran
+      // without thinking), and adaptive mode automatically enables interleaved
+      // thinking. So `content` is a mixed array of thinking and text blocks and
+      // there can legitimately be more than one of the latter. .find() took the
+      // first and silently dropped the rest.
+      const text = (data.content || [])
+        .filter(b=> b && b.type === 'text' && typeof b.text === 'string')
+        .map(b=> b.text).join('');
       if(!text.trim()){
-        // Name the cause when the API gave one. "The response came back empty"
-        // is unactionable; "the response was cut off at the length limit" tells
-        // you a retry is worth trying, and that is the difference between a
-        // dead button and a slow one.
+        // WHY THIS HAPPENS, because the generic message sent someone chasing
+        // their prompt for a week: thinking tokens count against max_tokens
+        // alongside the answer. A budget tuned when nothing was thinking gets
+        // spent entirely on reasoning, the turn ends at the ceiling, and the
+        // response comes back with thinking blocks and NO text at all. The
+        // symptom is an empty answer; the cause is the budget.
+        const used = (data.usage && data.usage.output_tokens) || 0;
         const reason = data.stop_reason === 'max_tokens'
-          ? 'the response was cut off at the length limit'
+          ? `the ${used ? used + '-token ' : ''}limit was reached before any answer was written — this is a budget problem, not a prompt problem`
           : data.stop_reason === 'refusal'
             ? 'the model declined to answer that'
-            : 'the response came back empty';
-        throw new Error(`No answer came back — ${reason}. Try again.`);
+            : `the response came back with no text (stop reason: ${data.stop_reason || 'unknown'})`;
+        throw new Error(`No answer came back — ${reason}.`);
       }
       return text;
     }
@@ -26746,7 +27210,11 @@ async function callClaudeVision(apiKey, imageBase64List, promptText, maxTokens, 
   // and before/after photo-comparison calls.
   return anthropicRequest(apiKey, {
     model: model || 'claude-sonnet-5',
-    max_tokens: maxTokens || 1024,
+    // 3000, not 1024. See the note on the chat path: on claude-sonnet-5 the
+    // ceiling covers thinking AND the answer, and a form critique is exactly
+    // the kind of "look at eight frames and judge" task adaptive thinking
+    // spends real tokens on before writing a word.
+    max_tokens: maxTokens || 3000,
     messages: [{ role:'user', content }],
   }, 60000);
 }
@@ -26853,7 +27321,7 @@ Pay close attention to actual portion size, not a generic "typical serving." Use
 
 Look closely at color, texture, and shape before naming each item, and use the rest of the plate as context — visually similar foods are easy to mix up (e.g. roasted potato chunks vs. mushrooms, ground beef vs. lentils, cauliflower vs. rice) — so weigh what's more likely given what else is on the plate before committing to a name.
 
-Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"items":[{"name":"string","cal":number,"pro":number,"fat":number,"carb":number}]}. If you can't identify anything edible, respond with {"items":[]}.`;
+Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"items":[{"name":"string","cal":number,"pro":number,"fat":number,"carb":number,"sodium":number,"fiber":number}]}. sodium is in milligrams, fiber in grams — both are rougher estimates than the calorie and macro numbers, especially for anything that could be restaurant food with unseen added salt, but include your best estimate rather than omitting them. If you can't identify anything edible, respond with {"items":[]}.`;
     const raw = await callClaudeVision(apiKey, [base64], prompt, 1024, 'claude-haiku-4-5-20251001');
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
@@ -26919,7 +27387,27 @@ const COACH_PERSONAS_BY_MARTIAL_ART = {
 async function callClaudeChat(apiKey, systemPrompt, messages, maxTokens, model){
   return anthropicRequest(apiKey, {
     model: model || 'claude-sonnet-5',
-    max_tokens: maxTokens || 700,
+    // EVERY CALLER'S NUMBER IS A NO-THINKING-ERA NUMBER. The four that pass an
+    // explicit budget (250 for the post-log reply, 500 for adapt-session, 900
+    // for Recipe Finder, and Cross-Metric Insights) were all sized when a
+    // request with no `thinking` field ran without thinking. Three were small
+    // enough that adaptive reasoning would eat the entire ceiling before a word
+    // came back — the same failure the Insights card was showing, waiting to
+    // happen in three more places nobody had pressed yet.
+    //
+    // The other lever is thinking:{type:'disabled'}, supported on this model and
+    // a better fit for the short extraction-shaped calls than a big ceiling.
+    // NOT taken here: it is a parameter change that has never run against the
+    // real API from this app, and the app is broken right now. A bigger ceiling
+    // costs nothing on turns that finish early.
+    //
+    // 700 was a no-thinking-era number. On claude-sonnet-5 the same ceiling
+    // has to cover the model's reasoning as well as its reply, and the newer
+    // tokenizer produces roughly 30% more tokens for identical text on top of
+    // that. max_tokens is a CEILING, not a target — raising it costs nothing
+    // on turns that finish early, and is the difference between a working
+    // feature and an empty box on the ones that do not.
+    max_tokens: maxTokens || 3000,
     system: systemPrompt,
     messages: messages,
   }, 45000);
@@ -26946,9 +27434,11 @@ async function buildCrossMetricInsightsContext(){
   // awaited individually. Each carries its own .catch so a single failing
   // source resolves to null and the surrounding try/catch omits that line,
   // exactly as it did when the await was inline.
-  // The workout:* key walk is deliberately left inline below — it is a
-  // dependent sequence (list the keys, then read each one), not an
-  // independent source, so there is nothing to overlap.
+  // The workout:* read used to be a genuinely dependent inline sequence (list
+  // the keys, then read each one) and was left out of this list for that
+  // reason. It now goes through readWorkoutCorpus() — the same cached,
+  // shared-with-fetchDayStatuses-and-fetchWorkoutDates pass — so it belongs
+  // here with everything else that can simply be kicked off and awaited later.
   const pcWeights = fetchAllWeightEntries().catch(()=>null);
   const pcFood    = fetchFoodDays().catch(()=>null);
   const pcSleep   = fetchSleepEntries().catch(()=>null);
@@ -26956,6 +27446,7 @@ async function buildCrossMetricInsightsContext(){
   const pcRpe     = computeWeeklyRpeAvg(6).catch(()=>null);
   const pcInjury  = getInjuryLog().catch(()=>null);
   const pcPRs     = reconstructAllPRs().catch(()=>null);
+  const pcWorkout = readWorkoutCorpus().catch(()=>null);
   const goalLabel = GOAL_LABELS[userProfile?.goal] || userProfile?.goal || 'not set';
   const programLabel = programs[activeProgram].label;
   const lines = [];
@@ -27008,28 +27499,16 @@ async function buildCrossMetricInsightsContext(){
   }catch(e){}
 
   try{
-    const res = await window.storage.list('workout:');
-    if(res && res.keys){
-      const trainedDays = [];
-      for(const key of res.keys){
-        const parts = key.split(':'); // workout, YYYY-MM-DD, dX
-        if(parts.length < 3) continue;
-        const [, date, dayId] = parts;
-        try{
-          const item = await window.storage.get(key);
-          if(item && item.value){
-            const completed = JSON.parse(item.value);
-            if(Object.values(completed).some(v=>v===true)){
-              const dayDef = programs[activeProgram]?.days?.[dayId];
-              trainedDays.push({date, label: dayDef ? `${dayDef.label}${dayDef.sub ? ' — '+dayDef.sub : ''}` : dayId});
-            }
-          }
-        }catch(e){}
-      }
-      trainedDays.sort((a,b)=> new Date(a.date)-new Date(b.date));
-      const recentTrained = trainedDays.slice(-14);
-      if(recentTrained.length) lines.push(`Recent training days, oldest to newest: ${recentTrained.map(d=>`${d.date}: ${d.label}`).join('; ')}.`);
+    const corpus = await pcWorkout;
+    const trainedDays = [];
+    for(const {date, dayId, anyDone} of corpus){
+      if(!anyDone) continue;
+      const dayDef = programs[activeProgram]?.days?.[dayId];
+      trainedDays.push({date, label: dayDef ? `${dayDef.label}${dayDef.sub ? ' — '+dayDef.sub : ''}` : dayId});
     }
+    trainedDays.sort((a,b)=> new Date(a.date)-new Date(b.date));
+    const recentTrained = trainedDays.slice(-14);
+    if(recentTrained.length) lines.push(`Recent training days, oldest to newest: ${recentTrained.map(d=>`${d.date}: ${d.label}`).join('; ')}.`);
   }catch(e){}
 
   try{
@@ -27108,21 +27587,30 @@ ${dataContext}
 Respond in exactly this format. First line only the word PUSH, MAINTAIN, or DELOAD (a genuine recommendation for the next several sessions, based on the actual pattern in the data — not a default; pick DELOAD if RPE is climbing with falling sleep or stalling PRs, PUSH if recovery signals are all genuinely solid and performance is trending up, MAINTAIN if the picture is mixed or there isn't enough data yet to justify either extreme). Then a blank line. Then 2-4 short paragraphs, no headers or markdown: lead with the single most useful interaction you can actually support with the numbers above, and end with 1-2 specific, concrete adjustments tied directly to what you found — not generic advice like "sleep more." If nothing meaningfully correlates yet, say that honestly and note what's still missing, and let that honesty be reflected in a MAINTAIN recommendation rather than guessing.`;
 
     // Cross-Metric Insights is the most expensive call in the app (largest
-    // input context, 1100 output tokens) over the slowest-moving data.
+    // input context, 5000 output tokens) over the slowest-moving data.
     //
-    // It was 650, and on real data it FAILED — the device showed "the response
-    // was cut off at the length limit". The prompt asks for a push/maintain/
-    // deload verdict, the interactions between five metrics, AND what to
-    // adjust; 650 tokens could not hold that once there was enough logged for
-    // the feature to be worth running. A budget that only fits when there is
-    // little to say is the wrong budget. If
+    // 650 FAILED on a real device, and so did 1100. Raising the number was
+    // treating a symptom: the actual cause is that claude-sonnet-5 runs
+    // ADAPTIVE THINKING BY DEFAULT and thinking tokens are spent from the same
+    // max_tokens ceiling as the answer. This prompt — relate five metrics to
+    // each other, commit to push/maintain/deload, then say what to change — is
+    // precisely the shape adaptive thinking spends most on, so the whole budget
+    // went to reasoning and the turn ended before a single word of the reply.
+    // The error said "cut off at the length limit" and it was telling the exact
+    // truth; there was simply nothing to cut off yet.
+    //
+    // Manual thinking budgets are not an option here: passing
+    // thinking:{type:'enabled', budget_tokens} returns a 400 on this model.
+    // The two real levers are a bigger ceiling and thinking:{type:'disabled'},
+    // and this feature is the one place in the app where the reasoning is the
+    // product — so it gets the ceiling. If
     // nothing has been logged since the last run, the answer cannot
     // meaningfully differ — so the fingerprint covers the whole data
     // context and the stored answer is reused instead of re-billed.
     const {result: reply, cached} = await aiCachedCall(
       'cross-metric',
       aiFingerprint([dataContext, persona]),
-      ()=> callClaudeChat(apiKey, systemPrompt, [{role:'user', content:'Analyze how my tracked metrics are affecting each other, give me a clear push/maintain/deload call, and tell me what to adjust.'}], 1100),
+      ()=> callClaudeChat(apiKey, systemPrompt, [{role:'user', content:'Analyze how my tracked metrics are affecting each other, give me a clear push/maintain/deload call, and tell me what to adjust.'}], 5000),
       undefined,
       {force}
     );
@@ -27558,8 +28046,15 @@ function extractVideoFrames(file, frameCount, onProgress){
           await new Promise((res)=>{
             const onTimeUpdate = ()=>{
               video.removeEventListener('timeupdate', onTimeUpdate);
+              // Wait for the rewind to actually land before resolving. This
+              // used to resolve immediately, leaving a seek in flight while the
+              // frame loop issued the next one — and a browser handed two
+              // overlapping seeks may drop the second, which is another way to
+              // arrive at a `seeked` that never comes.
+              const onBack = ()=>{ video.removeEventListener('seeked', onBack); res(); };
+              video.addEventListener('seeked', onBack);
+              setTimeout(()=>{ video.removeEventListener('seeked', onBack); res(); }, 3000);
               video.currentTime = 0;
-              res();
             };
             video.addEventListener('timeupdate', onTimeUpdate);
             video.currentTime = 1e101;
@@ -27595,22 +28090,65 @@ function extractVideoFrames(file, frameCount, onProgress){
         const ctx = canvas.getContext('2d');
         const times = Array.from({length:frameCount}, (_,i)=> (duration*(i+1))/(frameCount+1));
 
+        // WAKE THE DECODER BEFORE SEEKING. This is why "Got stuck reading frame
+        // 1 of 8" happened on a real iPhone with a perfectly good clip.
+        //
+        // loadedmetadata fires at readyState 1 — dimensions and duration are
+        // known and NOT A SINGLE FRAME HAS BEEN DECODED. Seeking from there on
+        // iOS Safari frequently produces no `seeked` event at all, so the very
+        // first seek sat there until the 6s timeout and the whole extraction
+        // failed. It always failed on frame 1, which is the tell: nothing was
+        // wrong with the clip or with any particular timestamp.
+        //
+        // Two things fix it, and both are needed. Wait for readyState >= 2, so
+        // there is decoded data to seek within. Then play and immediately pause
+        // — muted + playsInline autoplay is permitted without a user gesture,
+        // and iOS will not reliably serve frames to a canvas from an element it
+        // has never played.
+        if(video.readyState < 2){
+          await new Promise((res)=>{
+            const onData = ()=>{ video.removeEventListener('loadeddata', onData); res(); };
+            video.addEventListener('loadeddata', onData);
+            // Proceed anyway rather than turning one stall into two — the seek
+            // below has its own timeout and a real error message.
+            setTimeout(()=>{ video.removeEventListener('loadeddata', onData); res(); }, 4000);
+          });
+        }
+        try{ await video.play(); video.pause(); }catch(e){ /* best effort */ }
+
         for(let i=0; i<times.length; i++){
           if(settled) return; // a previous iteration already failed/timed out
           await new Promise((res, rej)=>{
-            const seekTimeout = setTimeout(()=>{
-              video.removeEventListener('seeked', onSeeked);
-              rej(new Error(`Got stuck reading frame ${i+1} of ${times.length} — try a different clip.`));
-            }, 6000);
-            const onSeeked = ()=>{
-              clearTimeout(seekTimeout);
+            const grab = ()=>{
               ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
               frames.push(canvas.toDataURL('image/jpeg', 0.55).split(',')[1]);
-              video.removeEventListener('seeked', onSeeked);
               if(onProgress) onProgress(i+1, times.length);
-              res();
             };
+            // Assigning currentTime the value it ALREADY HOLDS fires no event
+            // whatsoever, and the wait below would then sit out its full
+            // timeout for something that can never arrive. Rare with evenly
+            // spaced targets, certain on a very short clip where two of them
+            // round to the same frame.
+            if(Math.abs(video.currentTime - times[i]) < 0.01){ grab(); return res(); }
+
+            let done = false;
+            const finish = (fn)=>{
+              if(done) return; done = true;
+              clearTimeout(seekTimeout);
+              video.removeEventListener('seeked', onSeeked);
+              video.removeEventListener('timeupdate', onSeeked);
+              fn();
+            };
+            // timeupdate as well as seeked: some iOS builds move the playhead
+            // and repaint without ever dispatching `seeked`. Either event means
+            // there is a frame to draw, and `done` makes sure only one wins.
+            const onSeeked = ()=> finish(()=>{ grab(); res(); });
+            const seekTimeout = setTimeout(()=> finish(()=> rej(new Error(
+              `Got stuck reading frame ${i+1} of ${times.length} at ${times[i].toFixed(1)}s — try a shorter clip, or re-export it from Photos.`
+            ))), 6000);
+
             video.addEventListener('seeked', onSeeked);
+            video.addEventListener('timeupdate', onSeeked);
             video.currentTime = times[i];
           });
         }
@@ -28940,7 +29478,7 @@ function buildHistoryDayCardHtml(date){
     // single row — that repetition was the single biggest source of
     // visual bulk in this list. showDayLabel falls back to per-row
     // display only in the rare case a day mixes labels.
-    const dayLabelHtml = showDayLabel ? `<span class="day-ex-day">${ex.dayLabel}</span>` : '';
+    const dayLabelHtml = showDayLabel ? `<span class="day-ex-day">${escapeHtml(ex.dayLabel)}</span>` : '';
     return `
           <div class="day-ex-row">
             <span class="day-ex-name">${escapeHtml(ex.name)}</span>
@@ -28954,12 +29492,104 @@ function buildHistoryDayCardHtml(date){
   }).join('');
   return `
         <div class="day-card">
-          <div class="day-card-date">${fmtDayLabel(date)}${uniformDayLabel ? ` <span class="day-card-program">· ${uniformDayLabel}</span>` : ''}</div>
+          <div class="day-card-date">${fmtDayLabel(date)}${uniformDayLabel ? ` <span class="day-card-program">· ${escapeHtml(uniformDayLabel)}</span>` : ''}</div>
           ${weightRow}
           ${restRow}
           ${exRows}
         </div>
       `;
+}
+
+// [PRINT REPORT] -------------------------------------------------------------
+// Builds a static HTML report for window.print() to render — see the
+// @media print CSS block for why this is the export-to-PDF path instead of a
+// bundled PDF library: iOS Safari's print share sheet offers "Save to Files"
+// as a PDF, so the browser's own print engine does the layout work for free.
+// Pulls from buildDayLog() directly rather than _historyDayMap so this works
+// even if the History tab was never opened this session.
+async function buildPrintReport(rangeDays){
+  const dayMap = await buildDayLog();
+  let dates = Object.keys(dayMap).sort((a,b)=> new Date(b+'T00:00:00')-new Date(a+'T00:00:00'));
+  if(rangeDays !== 'all'){
+    const cutoff = dateKeyMinusDays(getTodayKey(), Number(rangeDays));
+    dates = dates.filter(d=> d >= cutoff);
+  }
+
+  const rangeLabel = rangeDays === 'all' ? 'All time' : `Last ${rangeDays} days`;
+  const name = (userProfile && userProfile.name) ? escapeHtml(userProfile.name) : '';
+  const headerHtml = `
+    <div class="pr-header">
+      <h1>Training Log — Workout Report</h1>
+      <div class="pr-meta">${name ? name + ' · ' : ''}${rangeLabel} · ${dates.length} session${dates.length===1?'':'s'} · Generated ${formatShortDate(getTodayKey())}</div>
+    </div>
+  `;
+
+  if(dates.length === 0){
+    return headerHtml + '<div class="pr-empty">Nothing logged in this range.</div>';
+  }
+
+  // Same set-formatting rule buildHistoryDayCardHtml uses: distance-based
+  // entries (walks, rows) show distance, everything else shows weight×reps.
+  const dayBlocks = dates.map(date=>{
+    const day = dayMap[date];
+    const exRows = (day.exercises||[]).map(ex=>{
+      const setsStr = (ex.sets||[]).filter(s=> s.weight!=null || s.reps!=null || s.distance!=null)
+        .map(s=>{
+          if(s.distance!=null && s.weight==null) return `${trimUnitNum(toDisplayDistance(s.distance))}${distanceUnit}${s.reps!=null ? ' @ '+s.reps : ''}`;
+          return `${s.weight!=null ? trimUnitNum(toDisplayWeight(s.weight)) : '—'}×${s.reps ?? '—'}`;
+        }).join(', ');
+      const noted = (ex.sets||[]).map((s,i)=> ({i, note:s.note})).filter(x=> x.note);
+      const notesHtml = noted.length
+        ? `<span class="pr-note">${noted.map(x=> `${noted.length>1 ? `S${x.i+1}: ` : ''}${escapeHtml(x.note)}`).join(' · ')}</span>`
+        : '';
+      return `<div class="pr-ex-row"><span class="pr-ex-name">${escapeHtml(ex.name)}</span><span class="pr-ex-sets">${setsStr}</span></div>${notesHtml}`;
+    }).join('');
+    const weightLine = day.weight != null
+      ? `<div class="pr-ex-row"><span class="pr-ex-name">Body weight</span><span class="pr-ex-sets">${fmtWeight(day.weight)}</span></div>` : '';
+    const restLine = day.restFollowed
+      ? `<div class="pr-ex-row"><span class="pr-ex-name">Rest day — followed as planned</span></div>` : '';
+    const bodyHtml = exRows || weightLine || restLine
+      ? `${weightLine}${restLine}${exRows}` : '<div class="pr-empty">No exercises logged.</div>';
+    return `<div class="pr-day"><div class="pr-day-date">${fmtDayLabel(date)}</div>${bodyHtml}</div>`;
+  }).join('');
+
+  return headerHtml + dayBlocks;
+}
+
+// Printable version of the currently active program's full week — distinct
+// from buildPrintReport above, which is retrospective (what you logged).
+// This is prospective (what the program calls for), useful to bring to the
+// gym on paper or hand to a trainer. Reuses the same .pr-* CSS classes on
+// purpose — one print stylesheet, not two to keep in sync.
+async function buildProgramPrintReport(){
+  const prog = programs[activeProgram];
+  if(!prog){
+    return '<div class="pr-empty">No active program found.</div>';
+  }
+  const headerHtml = `
+    <div class="pr-header">
+      <h1>Training Log — ${escapeHtml(prog.label)}</h1>
+      <div class="pr-meta">${prog.short ? escapeHtml(prog.short) + ' · ' : ''}Generated ${formatShortDate(getTodayKey())}</div>
+    </div>
+  `;
+  const dayIds = Object.keys(prog.days || {});
+  if(dayIds.length === 0){
+    return headerHtml + '<div class="pr-empty">This program has no days defined.</div>';
+  }
+  const dayBlocks = dayIds.map(dayId=>{
+    const day = prog.days[dayId];
+    const dateLabel = `${escapeHtml(day.label)}${day.sub ? ' — ' + escapeHtml(day.sub) : ''}`;
+    if(day.rest || !day.exercises || day.exercises.length === 0){
+      const restText = day.note ? escapeHtml(day.note) : 'Rest day.';
+      return `<div class="pr-day"><div class="pr-day-date">${dateLabel}</div><div class="pr-empty">${restText}</div></div>`;
+    }
+    const exRows = day.exercises.map(ex=>{
+      const superTagHtml = ex.superTag ? `<span class="pr-note">${escapeHtml(ex.superTag)}</span>` : '';
+      return `<div class="pr-ex-row"><span class="pr-ex-name">${escapeHtml(ex.name)}</span><span class="pr-ex-sets">${escapeHtml(ex.sets || '')}</span></div>${superTagHtml}`;
+    }).join('');
+    return `<div class="pr-day"><div class="pr-day-date">${dateLabel}</div>${exRows}</div>`;
+  }).join('');
+  return headerHtml + dayBlocks;
 }
 
 // [ANALYSIS] ---------------------------------------------------------------
@@ -29172,13 +29802,33 @@ async function archiveCurrentWeek(){
   status.innerHTML = digestBlocks
     ? `${digestBlocks}Week saved — back to Day 1 for a fresh start ✓`
     : 'Week saved — back to Day 1 for a fresh start ✓';
+
+  // Share card: workouts + program are always known: the third row prefers
+  // sleep (most directly "how was your week"), falling back to weight, then
+  // calorie intake, in order of how commonly each is actually tracked. Any,
+  // all, or none may be missing — the card still reads fine with just two rows.
+  const shareStats = [
+    {value: String(workoutsCount), label: 'WORKOUTS'},
+    {value: programs[activeProgram].label, label: 'PROGRAM'},
+  ];
+  if(avgSleep != null) shareStats.push({value: `${avgSleep} hrs`, label: 'AVG SLEEP'});
+  else if(avgWeight != null) shareStats.push({value: fmtWeight(avgWeight), label: 'AVG WEIGHT'});
+  else if(avgCal != null) shareStats.push({value: `${avgCal} cal`, label: 'AVG INTAKE'});
+
+  const shareWrap = document.getElementById('weekShareWrap');
+  const shareBtn = document.getElementById('weekShareBtn');
+  shareWrap.style.display = '';
+  const freshShareBtn = shareBtn.cloneNode(true);
+  shareBtn.parentNode.replaceChild(freshShareBtn, shareBtn);
+  freshShareBtn.addEventListener('click', ()=> shareCelebrationCard({icon:'🏁', headline:'WEEK COMPLETE', stats: shareStats}, 'weekShareBtn'));
+
   setTimeout(async ()=>{
     activeDay = 'd1';
     renderTabs();
     renderWorkout();
     const trendStatusForRec = await getCurrentTrendStatus();
     await renderProgramRec(trendStatusForRec);
-  }, digestBlocks ? 4500 : 1400);
+  }, digestBlocks ? 6000 : 4000);
 }
 
 async function renderVolumeTrend(){
@@ -30081,11 +30731,44 @@ function checkBootPerformance(){
   return {ok:true, detail:detail + (p.toInteractive != null ? ' — under 1s, no action needed.' : '')};
 }
 
+// [ICON SYSTEM] -----------------------------------------------------------------
+// Small inline SVG icon set, starting with the three statuses diagRow uses
+// everywhere in the App Health Check panel. This replaces raw emoji glyphs
+// (✅⚠️❌), which render as different art at different weights depending on
+// the OS/browser's emoji font, can't be recolored to match --plate-red/
+// --plate-yellow/the rest of this file's own palette, and read as informal
+// next to a UI this considered about its color and elevation tokens. No
+// build step, so no icon library import — these are hand-authored, 24x24
+// viewBox, stroke-based, single weight, currentColor throughout so an icon's
+// color comes from its containing element the same way text color would.
+//
+// Not yet converted: the ~65 other emoji used as buttons/section markers
+// throughout the app (🍳🛒💪🎯🏋️ and the rest). Converting all of them is a
+// much larger pass — this establishes the pattern (ICONS + icon()) that pass
+// would extend, rather than doing it piecemeal across dozens of unrelated
+// render functions in the same edit as this one.
+const ICONS = {
+  check:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 13 9 18 20 6"/></svg>',
+  warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 22 20.5 2 20.5Z"/><line x1="12" y1="9.5" x2="12" y2="14"/><circle cx="12" cy="17.3" r="0.6" fill="currentColor" stroke="none"/></svg>',
+  error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>',
+};
+
+// Defaults to 1em so it sits inline with surrounding text at whatever
+// font-size that text already is, the same way a glyph would — no separate
+// size prop to keep in sync with the text around it at each call site.
+function icon(name, opts){
+  const svg = ICONS[name];
+  if(!svg) return '';
+  const size = (opts && opts.size) || '1em';
+  const cls = (opts && opts.cls) ? ` class="${escapeHtml(opts.cls)}"` : '';
+  return svg.replace('<svg ', `<svg width="${size}" height="${size}" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true"${cls} `);
+}
+
 function diagRow(label, result){
   const state = result.ok ? (result.warn ? 'warn' : 'good') : 'bad';
-  const icon = state === 'good' ? '✅' : state === 'warn' ? '⚠️' : '❌';
+  const iconName = state === 'good' ? 'check' : state === 'warn' ? 'warning' : 'error';
   const detail = result.reason || result.warn || result.detail || '';
-  return `<div class="diag-row diag-${state}"><span class="diag-icon">${icon}</span><span><b>${escapeHtml(label)}</b>${detail ? `<span class="diag-detail">${escapeHtml(detail)}</span>` : ''}</span></div>`;
+  return `<div class="diag-row diag-${state}"><span class="diag-icon">${icon(iconName)}</span><span><b>${escapeHtml(label)}</b>${detail ? `<span class="diag-detail">${escapeHtml(detail)}</span>` : ''}</span></div>`;
 }
 
 async function runDiagnostics(){
@@ -31603,5 +32286,6 @@ bootMark('scriptEnd');
     });
   }
 </script>
+<div id="printReportContent" class="print-only"></div>
 </body>
 </html>

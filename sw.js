@@ -15,7 +15,151 @@
 // Before it existed, this file sat at 3.46 while the app reached 3.53 — seven
 // versions of work that would have reached nobody who already had the app
 // installed. Run check.sh before every deploy and this line stops mattering.
-const VERSION = '3.55';
+//
+// v3.57: two bugs fixed in index.html this bump — an unescaped custom-program
+// day-label in the History day-card render, and a timezone bug in mondayOf()
+// that silently shifted week boundaries a day early for anyone east of
+// Greenwich. Neither touches this file directly; the version still has to move
+// so those fixes actually reach a returning user instead of sitting uncached.
+//
+// v3.58: fetchDayStatuses, fetchWorkoutDates, fetchWaterDays, fetchFoodDays,
+// and the Cross-Metric Insights workout scan each ran their own independent
+// storage.list() + per-key read+parse pass over workout:/foodlog:/water:.
+// Opening the Calendar modal alone fired three full scans in one Promise.all.
+// All five now share one cached, generation-invalidated pass per namespace —
+// same architecture readExCorpus already used for ex:. Still doesn't touch
+// this file directly, but the version still has to move.
+//
+// v3.59: seven overlays (exercise substitution, exercise history, exercise
+// editor, global search, calendar picker, photo lightbox, barcode scanner,
+// profile picker) used display:none as their closed state — which cannot be
+// transitioned, so removing .active snapped them away instantly instead of
+// playing their own defined fade/slide-out. All converted to the
+// always-display:flex + opacity/visibility/pointer-events pattern Settings
+// and Coach chat already used correctly; those two were also retrofitted
+// with the same visibility gate, closing a latent gap where a closed
+// overlay's buttons stayed reachable by keyboard Tab even though invisible.
+// Doesn't touch this file directly, but the version still has to move.
+//
+// v3.60: page <title> had a hardcoded personal name ("Training Log — Jason")
+// that every user, not just the original tester, would see in their browser
+// tab and bookmarks — removed. Also removed two dead <link> tags pointing to
+// a nonexistent icons/ subfolder that duplicated and conflicted with the
+// real, working icon links. Doesn't touch this file directly, but the
+// version still has to move.
+//
+// v3.61: started replacing emoji-as-iconography (✅⚠️❌ and ~65 others) with
+// a hand-authored inline SVG icon set — emoji render as different art at
+// different weight depending on the OS's emoji font and can't be color-
+// matched to this file's own --plate-red/--plate-yellow/etc palette. First
+// conversion: diagRow's three status icons, the single function behind
+// every row in the App Health Check panel. The other ~65 emoji throughout
+// the app are unconverted — this establishes the ICONS/icon() pattern a
+// later pass would extend, not a full sweep. Doesn't touch this file
+// directly, but the version still has to move.
+//
+// v3.62: added a Print / Save as PDF report to the History tab — builds a
+// clean static report from logged history and calls window.print(), which
+// on iOS Safari's share sheet offers "Save to Files" as a PDF. No new
+// dependency: the browser's own print engine does the layout, gated behind
+// a dedicated #printReportContent element and an @media print block that
+// hides the rest of the app. Doesn't touch this file directly, but the
+// version still has to move.
+//
+// v3.63: micronutrient tracking (sodium/fiber/calcium/iron/folate/potassium)
+// already existed for the Medically Modified program's nutrient-target bars,
+// fed by real USDA data — but scaleFoodItem() only scaled cal/pro/fat/carb
+// by quantity, so logging 2x of a food with real sodium data silently
+// reported only 1x worth in the bars. Fixed, with null preserved as null
+// rather than coerced to 0 (null means USDA had no value, not a verified
+// zero). Also extended the Describe/Snap-a-Meal AI prompts and Open Food
+// Facts barcode lookup to supply sodium/fiber too, so the bars get real data
+// regardless of which logging method is used, not just USDA text search.
+// Doesn't touch this file directly, but the version still has to move.
+//
+// v3.64: added a Share button to the celebration banner for PR and
+// streak-milestone moments — draws a branded 1080×1080 card on canvas
+// (same gold theme the banner itself already uses) and hands it to
+// navigator.share() when file-sharing is supported, falling back to
+// opening the image in a new tab otherwise. The banner was pointer-events:
+// none by design (a pure glanceable toast); fixed narrowly for .big.active
+// only, since that's the only state that now has anything to tap. Streak
+// milestones are now "big" celebrations too, matching their actual
+// significance now that they carry a share action. Doesn't touch this file
+// directly, but the version still has to move.
+//
+// v3.65: added hand-drawn start/end position diagrams for the four most
+// fundamental compound lifts (Squat, Deadlift, Bench Press, Overhead Press)
+// to the Exercise Library — 4 of 200 exercises, not a full sweep. Side-
+// profile stick figures, crossfading between positions via CSS animation
+// (respects prefers-reduced-motion). Wired into buildExerciseSearchResultHtml,
+// the single render function behind Learn's Exercise Library search —
+// deliberately not the 16 separate places elsewhere in the app that render
+// a "Watch form video" link, which would have been far riskier to touch
+// individually. Doesn't touch this file directly, but the version still has
+// to move.
+//
+// v3.66: two more diagrams — Barbell Row and Romanian Deadlift. RDL got its
+// own geometry rather than reusing Deadlift's: visibly straighter knee, bar
+// stopping around mid-shin instead of the floor. Reusing the Deadlift
+// diagram would have taught the wrong range of motion for a hip-hinge
+// movement that never reaches the ground. Doesn't touch this file directly,
+// but the version still has to move.
+//
+// v3.67: exercise form diagrams removed entirely, per direct feedback that
+// they didn't add enough value to justify the feature. EXERCISE_FORM_DIAGRAMS,
+// EXERCISE_FORM_DIAGRAM_NAMES, buildExerciseFormDiagramHtml, and the
+// associated CSS are gone; buildExerciseSearchResultHtml is back to exactly
+// its pre-diagram form (verified against the original). Doesn't touch this
+// file directly, but the version still has to move.
+//
+// v3.68: converted 5 more emoji checkmarks to the icon system — day-done
+// badge, exercise substitution selection, onboarding checklist, grocery
+// list, supplement tracker. All 5 were HTML template literals (safe for
+// SVG) rather than textContent assignments (which can't hold markup) —
+// the ~25 other checkmark instances in the app are inline text flourishes
+// in ephemeral status messages and were left as plain text on purpose.
+// Doesn't touch this file directly, but the version still has to move.
+//
+// v3.69: added a Program Sheet print export (Settings → Print My Program) —
+// a printable full-week view of the active program, distinct from the
+// existing History export (that one is retrospective/what you logged; this
+// one is prospective/what the program calls for). Reuses the same .pr-*
+// print CSS as the History report rather than adding new styles. Doesn't
+// touch this file directly, but the version still has to move.
+//
+// v3.70: added a "Week Complete" share card to archiveCurrentWeek() (the
+// "Save This Week & Start Fresh" flow) — a stats-table layout (workouts,
+// program, sleep/weight/calories) rather than the single headline+detail
+// format PR/streak cards use. buildShareCardBlob() now supports both
+// layouts; the original path is unchanged when cardData.stats is absent.
+// Found and fixed a real bug before shipping: a long program name collided
+// with its label with no size limit — added shrink-to-fit text sizing,
+// verified against the actual failing case. The share button couldn't live
+// in #archiveWeekStatus (a status-msg element hardcoded to height:16px, not
+// built to hold a button) — added a dedicated sibling container instead,
+// and extended the auto-reset delay so there's actually time to tap it.
+// Doesn't touch this file directly, but the version still has to move.
+//
+// v3.71: shareCelebrationCard() hardcoded a lookup of #celebrateShareBtn,
+// so the Week Complete button added in 3.70 was silently updating an
+// unrelated, hidden button on click instead of itself — no loading state,
+// no error feedback, nothing, on the button someone actually tapped. Also
+// fixed: share text for stats-table cards read literally "WEEK COMPLETE —
+// undefined" since it referenced cardData.detail unconditionally, which
+// stats-based cards don't have. Both found by auditing this session's own
+// work, not reported externally. Doesn't touch this file directly, but the
+// version still has to move.
+//
+// v3.72: added aria-label to 9 icon-only buttons that had no accessible
+// name at all — 2 bare "+" buttons (barcode/food-search add-to-log, would
+// announce as just "plus" with zero context on what's being added) and 7
+// water/rest-timer adjustment buttons whose only content was symbolic
+// text like "+15s". Confirmed via a broader re-scan that these were the
+// complete set — everything else flagged by the wider search already had
+// real descriptive text alongside its icon. Doesn't touch this file
+// directly, but the version still has to move.
+const VERSION = '3.72';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the
