@@ -1667,14 +1667,14 @@
   .recipe-log-btn:active{transform:scale(0.96);}
   .recipe-log-btn:disabled{opacity:0.6; cursor:default;}
 
-  .water-tracker{
-    background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
-    padding:12px 14px; margin:14px 0;
+  /* Water used to be nested inside the nutrition card, where .water-tracker
+     gave it its own visually-set-apart box. Now that Water is a top-level
+     card in its own right, that box would just double up the card's own
+     background/border — this is the readout line alone. */
+  .water-value-line{
+    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-weight:500; color:var(--text-muted); font-size:12px; margin-bottom:8px;
   }
-  .water-header{
-    display:flex; justify-content:space-between; font-size:13px; font-weight:600; margin-bottom:8px;
-  }
-  .water-header span:last-child{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-weight:500; color:var(--text-muted); font-size:12px;}
   .water-btn-row{display:flex; gap:8px; margin-top:10px;}
   .water-tips-list{margin:8px 0 0; padding-left:18px; font-size:12px; line-height:1.6; color:var(--text-muted);}
   .water-tips-list li{margin-bottom:6px;}
@@ -1894,6 +1894,25 @@
   }
   .analysis-index-chip:active{transform:scale(0.95);}
   .analysis-index-chip:focus-visible{ outline:2px solid var(--plate-blue); outline-offset:2px; }
+  /* Marks where the rail's chips cross into a new group, mirroring the
+     labelled dividers in the scroll itself below. aria-hidden and inert to
+     pointer events on purpose — it is a visual cue only, never a 21st chip
+     a screen reader or a stray tap would land on. */
+  .analysis-index-divider{
+    flex:0 0 auto; width:1px; align-self:stretch; margin:2px 0;
+    background:var(--line); pointer-events:none;
+  }
+  /* Labelled dividers between Analysis's three card groups (insights, body,
+     training) — plain text-and-rule, not a card, so it never competes with
+     the cards it is organising. Hidden per-group by syncAnalysisGroupHeaders
+     when every card under it has autohidden itself, so a heading never sits
+     over an empty gap. */
+  .analysis-group-header{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1.5px;
+    text-transform:uppercase; color:var(--text-muted);
+    margin:22px 2px 8px; padding-bottom:7px; border-bottom:1px solid var(--line-soft);
+  }
+  .analysis-group-header:first-of-type{ margin-top:4px; }
   .nav-pill{
     flex:0 0 auto;
     background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
@@ -4009,6 +4028,7 @@
   </div>
   <div class="card" id="todayInsightsCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M12.5 7.5 11 11l-3.5 1.5L9 9z"/></svg></span>Today's Priorities</div>
+    <div class="history-hint">What's worth acting on right now, from what's logged so far today. For how things are trending over time, see Insights &amp; Program Fit on the Analysis tab.</div>
     <div id="todayInsightsList"></div>
   </div>
   <div id="profileCardTopSlot"></div>
@@ -4366,14 +4386,6 @@
       <div id="recipeFinderResult"></div>
 
       <div class="section-divider"></div>
-      <div class="section-label">🛒 Grocery List</div>
-      <div class="weight-input-row">
-        <input type="text" id="groceryAddInput" class="care-input" placeholder="Add an item" aria-label="Add an item">
-        <button id="groceryAddBtn">Add</button>
-      </div>
-      <div id="groceryListItems"></div>
-      <button type="button" class="reorder-btn" id="groceryClearCheckedBtn" style="display:none; margin-top:8px;">Clear checked items</button>
-
       <button class="reorder-btn" id="hideAvoidedToggle" style="display:none; margin-bottom:10px;">🙈 Hide foods that don't fit</button>
       <div class="food-cats" id="foodCats"></div>
       <div class="food-items" id="foodItems"></div>
@@ -4415,31 +4427,39 @@
       <div class="section-label">Today</div>
       <button class="reorder-btn" id="repeatYesterdayBtn" style="display:none; margin-bottom:10px;">🔁 Repeat Yesterday</button>
       <div class="food-log-list" id="foodLogList"></div>
+    </div></div>
+  </div>
 
-      <div class="water-tracker">
-        <div class="water-header">
-          <span>💧 Water</span>
-          <span id="waterValText">0 / 128 oz</span>
-        </div>
-        <div class="macro-bar-track"><div class="macro-bar-fill" id="barWater" style="background:#4FC3F7;width:0%"></div></div>
-        <div class="water-btn-row">
-          <button class="water-btn" data-oz="8" aria-label="Log 8 ounces of water">+8oz</button>
-          <button class="water-btn" data-oz="16" aria-label="Log 16 ounces of water">+16oz</button>
-          <button class="water-btn" data-oz="24" aria-label="Log 24 ounces of water">+24oz</button>
-          <button class="water-btn water-reset" id="waterReset">Reset</button>
-        </div>
-        <button class="usda-key-upgrade-toggle" id="waterTipsToggle" style="margin-top:8px;">💡 Water tips & benefits</button>
-        <div class="smooth-toggle" id="waterTipsContent"><div>
-          <ul class="water-tips-list">
-            <li>Even mild dehydration (around 2% of body weight in fluid loss) can measurably reduce strength, endurance, and focus mid-session.</li>
-            <li>Thirst lags behind actual need, especially during hard training — drinking on a rough schedule works better than waiting to feel thirsty.</li>
-            <li>Pale yellow urine is a simple, reliable sign of good hydration; noticeably dark yellow usually means it's time to drink more.</li>
-            <li>Water helps regulate body temperature and lubricate joints during exercise — both directly affect how a session actually feels.</li>
-            <li>Replacing fluids after a hard or hot session helps kick off recovery — sweat losses add up fast in heat or humidity.</li>
-            <li>Coffee and alcohol don't reliably count toward hydration for everyone — for some people they have a mild diuretic effect.</li>
-          </ul>
-        </div></div>
-      </div>
+  <div class="card">
+    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3h2l1.6 9.4a1.5 1.5 0 0 0 1.5 1.3h7a1.5 1.5 0 0 0 1.5-1.2L17.5 6H5.3"/><circle cx="8" cy="16.5" r="1.1"/><circle cx="14.5" cy="16.5" r="1.1"/></svg></span>Grocery List</div>
+    <div class="weight-input-row">
+      <input type="text" id="groceryAddInput" class="care-input" placeholder="Add an item" aria-label="Add an item">
+      <button id="groceryAddBtn">Add</button>
+    </div>
+    <div id="groceryListItems"></div>
+    <button type="button" class="reorder-btn" id="groceryClearCheckedBtn" style="display:none; margin-top:8px;">Clear checked items</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5c2.5 3.5 5.5 7.2 5.5 10.5a5.5 5.5 0 0 1-11 0c0-3.3 3-7 5.5-10.5Z"/></svg></span>Water</div>
+    <div class="water-value-line" id="waterValText">0 / 128 oz</div>
+    <div class="macro-bar-track"><div class="macro-bar-fill" id="barWater" style="background:#4FC3F7;width:0%"></div></div>
+    <div class="water-btn-row">
+      <button class="water-btn" data-oz="8" aria-label="Log 8 ounces of water">+8oz</button>
+      <button class="water-btn" data-oz="16" aria-label="Log 16 ounces of water">+16oz</button>
+      <button class="water-btn" data-oz="24" aria-label="Log 24 ounces of water">+24oz</button>
+      <button class="water-btn water-reset" id="waterReset">Reset</button>
+    </div>
+    <button class="usda-key-upgrade-toggle" id="waterTipsToggle" style="margin-top:8px;">💡 Water tips & benefits</button>
+    <div class="smooth-toggle" id="waterTipsContent"><div>
+      <ul class="water-tips-list">
+        <li>Even mild dehydration (around 2% of body weight in fluid loss) can measurably reduce strength, endurance, and focus mid-session.</li>
+        <li>Thirst lags behind actual need, especially during hard training — drinking on a rough schedule works better than waiting to feel thirsty.</li>
+        <li>Pale yellow urine is a simple, reliable sign of good hydration; noticeably dark yellow usually means it's time to drink more.</li>
+        <li>Water helps regulate body temperature and lubricate joints during exercise — both directly affect how a session actually feels.</li>
+        <li>Replacing fluids after a hard or hot session helps kick off recovery — sweat losses add up fast in heat or humidity.</li>
+        <li>Coffee and alcohol don't reliably count toward hydration for everyone — for some people they have a mild diuretic effect.</li>
+      </ul>
     </div></div>
   </div>
 
@@ -4583,7 +4603,7 @@
       <div id="cyclePhaseGuide"></div>
     </div></div>
   </div>
-  <div class="card">
+  <div class="card" id="diagCard">
     <div class="card-title nutrition-header" id="diagHeader">
       <span><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a7.5 7.5 0 1 0 7.5 7.5"/><path d="M10 6v4l2.5 2.5"/></svg></span>App Health Check</span>
       <span class="ex-chevron" id="diagChevron">›</span>
@@ -4598,7 +4618,7 @@
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="healthImportCard">
     <div class="card-title nutrition-header" id="healthImportHeader">
       <span><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3l2-5 3 8 2-4h4"/></svg></span>Import Health Data</span>
       <span class="ex-chevron" id="healthImportChevron">›</span>
@@ -4651,6 +4671,9 @@
       <div class="history-hint">This tab fills in as you log. Every chart here appears on its own once it has something to show — a weight trend needs two weigh-ins, a volume chart needs a logged session, a pace trend needs a distance. Nothing is missing; it just hasn't happened yet.</div>
     </div>
 
+    <div class="analysis-group-header">Insights &amp; Program Fit</div>
+    <div class="history-hint" style="margin:-4px 2px 12px;">These look at your trends over time. For what needs attention right now, see Today's Priorities on the Today tab.</div>
+
     <div class="card" data-autohide>
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5 12 7.5l5.5.5-4 3.8 1.2 5.4L10 14.5l-4.7 2.7 1.2-5.4-4-3.8 5.5-.5Z"/></svg></span>AI Cross-Metric Insights</div>
       <div class="history-hint">Every card above and below looks at one metric at a time. This looks at how they're actually affecting each other — sleep vs. training load, protein vs. volume, water vs. sessions that felt harder than they should have — and what to actually adjust.</div>
@@ -4664,16 +4687,18 @@
       <div id="goalFeedback"></div>
     </div>
 
-    <div class="card" id="bodyMetricsCard" style="display:none;">
-      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7.5" width="16" height="5.5" rx="1"/><line x1="6" y1="7.5" x2="6" y2="10.2"/><line x1="10" y1="7.5" x2="10" y2="10.2"/><line x1="14" y1="7.5" x2="14" y2="10.2"/></svg></span>Measurement Context</div>
-      <div class="history-hint">What your tape-measure numbers mean for health, and where your body has actually been changing. Appears once you've logged measurements.</div>
-      <div id="bodyMetricsContent"></div>
-    </div>
-
     <div class="card" data-autohide>
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M12.5 7.5 11 11l-3.5 1.5L9 9z"/></svg></span>Program Fit Check</div>
       <div class="history-hint">Looks across every tracked exercise in your current program for a program-wide pattern — an ongoing, data-driven read on whether this program still fits, not just a one-time quiz answer.</div>
       <div id="programFitCheck"></div>
+    </div>
+
+    <div class="analysis-group-header">Body &amp; Health Trends</div>
+
+    <div class="card" id="bodyMetricsCard" style="display:none;">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7.5" width="16" height="5.5" rx="1"/><line x1="6" y1="7.5" x2="6" y2="10.2"/><line x1="10" y1="7.5" x2="10" y2="10.2"/><line x1="14" y1="7.5" x2="14" y2="10.2"/></svg></span>Measurement Context</div>
+      <div class="history-hint">What your tape-measure numbers mean for health, and where your body has actually been changing. Appears once you've logged measurements.</div>
+      <div id="bodyMetricsContent"></div>
     </div>
 
     <div class="card" data-autohide>
@@ -4713,6 +4738,8 @@
       <div class="history-hint">Looks at days where you logged a meal shortly after training and a post-meal glucose reading after that — purely a readout of what you actually logged, not a claim about cause and effect. Needs meal times and post-meal glucose logged on the same days to show anything.</div>
       <div id="mealTimingContent"></div>
     </div>
+
+    <div class="analysis-group-header">Training Trends</div>
 
     <div class="card" data-autohide>
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="14" rx="2"/><line x1="2" y1="8" x2="18" y2="8"/><line x1="6" y1="2" x2="6" y2="5.5"/><line x1="14" y1="2" x2="14" y2="5.5"/></svg></span>Week Over Week</div>
@@ -4874,7 +4901,7 @@
   <div id="coachView" style="display:none">
     <div class="card care-disclaimer-card">
       <div class="care-disclaimer">
-        Uses your saved Anthropic API key (set it up in "AI Features Setup" on the Log tab — same key powers Snap a Meal, Get Form Feedback, and the chat below). Not medical advice, and not a substitute for an in-person coach or doctor.
+        Uses your saved Anthropic API key (set it up under "AI Features Setup" in Settings — same key powers Snap a Meal, Get Form Feedback, and the chat below). Not medical advice, and not a substitute for an in-person coach or doctor.
       </div>
     </div>
 
@@ -5158,7 +5185,15 @@
       <label class="care-label">Data &amp; maintenance</label>
       <div class="history-hint field-note">Your data lives in this browser and nowhere else. The export is the only copy that is not in it.</div>
       <button type="button" class="settings-jump" data-jump-to="exportDataBtn"><span>Backup &amp; restore your data</span><span>›</span></button>
-      <button type="button" class="settings-jump" data-jump-to="diagHeader"><span>App health check</span><span>›</span></button>
+      <!-- App Health Check and Import Health Data used to live on the Log
+           tab, mixed into the same scroll as daily weight/food/sleep
+           logging — two maintenance tools with no daily-use reason to be
+           there. They're reparented here at startup (see wireSettings),
+           same treatment as aiSettingsCard above. No jump-to button for
+           either any more: a jump-to that closes this panel and then tries
+           to scroll to something now living inside it would just hide its
+           own target. -->
+      <div id="settingsMaintenanceSlot"></div>
     </div>
 </div>
     </div>
@@ -5369,7 +5404,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.72';
+const APP_VERSION = '3.77';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -23911,7 +23946,7 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
   const apiKey = await getApiKey();
 
   if(!apiKey){
-    status.textContent = 'Add your Anthropic API key in "AI Features Setup" on the Log tab first.';
+    status.textContent = 'Add your Anthropic API key under "AI Features Setup" in Settings first.';
     return;
   }
 
@@ -27186,7 +27221,7 @@ async function anthropicRequest(apiKey, payload, timeoutMs){
     // Friendlier phrasing for the handful of statuses a user can actually
     // do something about; anything else falls through to the API's own text.
     if(response.status === 401 || response.status === 403){
-      throw new Error('That API key was rejected — check it in "AI Features Setup" on the Log tab.');
+      throw new Error('That API key was rejected — check it under "AI Features Setup" in Settings.');
     }
     if(response.status === 429){
       throw new Error('Rate limited by the API, and retries didn\'t clear it — give it a minute and try again.');
@@ -27934,7 +27969,7 @@ async function sendCoachChatMessage(inputId){
 
   const apiKey = await getApiKey();
   if(!apiKey){
-    coachChatHistory.push({role:'assistant', content:'Add your Anthropic API key in "AI Features Setup" on the Log tab first, then come back and ask away.'});
+    coachChatHistory.push({role:'assistant', content:'Add your Anthropic API key under "AI Features Setup" in Settings first, then come back and ask away.'});
     renderCoachChatLog();
     setCoachChatBusy(false);
     return;
@@ -31396,6 +31431,46 @@ function applyAnalysisEmptyState(){
   // list sections that are not on the page — the worst kind of navigation,
   // since every one of those chips is a promise the tab does not keep.
   renderAnalysisIndex();
+  // Same reasoning, same call site: group headers can only be synced once
+  // every card's final display is settled, and this is the one place that
+  // is guaranteed to run after both the autohide pass above AND the
+  // condition-gated cards (BP/glucose/meal timing/measurements/cardio),
+  // since every caller of applyAnalysisEmptyState runs after those.
+  syncAnalysisGroupHeaders();
+}
+
+// Three labelled dividers group Analysis's 18 cards into insights, body
+// trends, and training trends — see the HTML. A divider hides itself only
+// when EVERY card under it is currently hidden, so it never sits over an
+// empty gap for someone who, say, tracks no health conditions and hasn't
+// logged a BP or glucose reading. Reads the DOM for group membership
+// (nearest preceding .analysis-group-header) rather than holding its own
+// list of which card belongs to which group — the same reasoning
+// renderAnalysisIndex and jumpToSetting already use, and for the same
+// reason: a hardcoded second copy is the one that goes stale when a card
+// is added or moved between groups.
+function syncAnalysisGroupHeaders(){
+  const view = document.getElementById('analysisView');
+  if(!view) return;
+  const headers = [...view.querySelectorAll(':scope > .analysis-group-header')];
+  headers.forEach(header=>{
+    let hasVisibleCard = false;
+    let node = header.nextElementSibling;
+    // A group can carry one optional intro line directly under its header
+    // (currently only Insights & Program Fit does, pointing back to Today's
+    // Priorities). It rises and falls with the header — an intro sentence
+    // with no visible group left beneath it would point at an empty gap.
+    const intro = (node && node.classList.contains('history-hint')) ? node : null;
+    while(node && !node.classList.contains('analysis-group-header')){
+      if(node.classList.contains('card') && node.style.display !== 'none'){
+        hasVisibleCard = true;
+        break;
+      }
+      node = node.nextElementSibling;
+    }
+    header.style.display = hasVisibleCard ? '' : 'none';
+    if(intro) intro.style.display = hasVisibleCard ? '' : 'none';
+  });
 }
 
 // [ANALYSIS INDEX] -------------------------------------------------------------
@@ -31432,11 +31507,29 @@ function renderAnalysisIndex(){
     return;
   }
 
+  // Nearest preceding .analysis-group-header, walking DOM siblings — not a
+  // hardcoded card→group table, for the same staleness reason as the rest of
+  // this function. A card with no header above it (shouldn't happen, but the
+  // rail should degrade quietly rather than throw) reads as its own group.
+  const groupOf = card=>{
+    let node = card.previousElementSibling;
+    while(node){
+      if(node.classList.contains('analysis-group-header')) return node;
+      node = node.previousElementSibling;
+    }
+    return null;
+  };
+
+  let lastGroup = undefined;
   rail.innerHTML = cards.map((card, i)=>{
     // textContent, not innerHTML: the title carries an inline SVG icon, which
     // contributes nothing to textContent and would be nonsense inside a chip.
     const label = (card.querySelector('.card-title').textContent || '').trim();
-    return `<button type="button" class="analysis-index-chip" data-analysis-section="${i}">${escapeHtml(label)}</button>`;
+    const group = groupOf(card);
+    let divider = '';
+    if(i > 0 && group !== lastGroup) divider = '<span class="analysis-index-divider" aria-hidden="true"></span>';
+    lastGroup = group;
+    return divider + `<button type="button" class="analysis-index-chip" data-analysis-section="${i}">${escapeHtml(label)}</button>`;
   }).join('');
   rail.style.display = '';
 
@@ -31745,6 +31838,11 @@ wireCustomProgramUI();
   move('prefDistanceUnit', 'settingsUnitsSlot');
   move('prefLoadMode', 'settingsUnitsSlot');
   move('aiSettingsCard', 'settingsAiSlot');
+  // Both diagnostic/maintenance tools, not daily logging — same reasoning
+  // that already moved AI Features Setup off the Log tab. Order matches the
+  // Settings copy: check the app, then bring in outside data.
+  move('diagCard', 'settingsMaintenanceSlot');
+  move('healthImportCard', 'settingsMaintenanceSlot');
 
   // The rest-alert permission is OS state, so a second control for it is not a
   // second copy of a setting — both surfaces read Notification.permission and
@@ -31800,8 +31898,16 @@ wireCustomProgramUI();
   document.addEventListener('click', (e)=>{
     const jump = e.target.closest && e.target.closest('[data-jump-to]');
     if(!jump) return;
-    close();
-    jumpToSetting(jump.dataset.jumpTo);
+    const targetId = jump.dataset.jumpTo;
+    const targetEl = document.getElementById(targetId);
+    // A jump target can now live INSIDE this panel (App Health Check,
+    // Import Health Data, AI Features Setup, a completed profile) rather
+    // than behind it on a tab. Closing first was correct when every target
+    // was elsewhere; a target inside the sheet and a closed sheet can't
+    // both be true, so open instead of close whenever that's the case.
+    if(targetEl && overlay.contains(targetEl)) open();
+    else close();
+    jumpToSetting(targetId);
   });
 
   // Resolve the view from the element rather than naming it. positionProfileCard
@@ -31899,6 +32005,23 @@ function collectSearchSections(){
                 title: (titleEl.textContent || '').trim()});
     });
   });
+  // Settings holds real cards too, not just toggles — App Health Check,
+  // Import Health Data and AI Features Setup are reparented here at
+  // startup, and a completed profile joins them. Same "read the DOM, don't
+  // hand-maintain a second list" reasoning as the loop above, so a future
+  // card moved into Settings is found automatically rather than silently
+  // dropping out of search the way these three already had been.
+  const settingsOverlay = document.getElementById('settingsOverlay');
+  if(settingsOverlay){
+    [...settingsOverlay.querySelectorAll('.settings-panel-body .card')].forEach((card, i)=>{
+      const titleEl = card.querySelector('.card-title');
+      if(!titleEl) return;
+      if(card.style.display === 'none') return;
+      if(!card.id) card.id = 'sec-settings-' + i;
+      out.push({id: card.id, tab: 'settings', tabLabel: 'Settings',
+                title: (titleEl.textContent || '').trim()});
+    });
+  }
   return out;
 }
 
