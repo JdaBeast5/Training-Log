@@ -1783,10 +1783,54 @@
 
      z-index:30 sits above cards (0–5) and below every floating layer — the
      rest timer is 50, the FAB and overlays run 55–150. */
+  /* HANDOFF v32: split from one div into a shell + scroller after a real-
+     device report that the chevron sat on top of the settings cog. Root
+     cause: the chevron was position:fixed at top:env(safe-area-inset-top),
+     which is only where the rail visually is AFTER it has scrolled into its
+     stuck position. At rest — the common case, right after opening the app
+     or switching tabs, since switchView scrolls to top — .nav-pills is still
+     in NORMAL FLOW below the header, and env(safe-area-inset-top) is the
+     header's own position instead. The fixed chevron had no way to know
+     that; it just always rendered at the one hardcoded spot.
+     The fix is structural, not a number tweak: .nav-pills is now the sticky
+     positioning shell only (this rule), and everything that scrolls/masks
+     moved into .nav-pills-scroll below. The chevron becomes a real
+     position:absolute CHILD of this shell, so its position is DERIVED from
+     wherever the shell actually is — stuck or not — rather than a second,
+     separately-maintained guess at the same number. */
   .nav-pills{
     position:sticky; top:env(safe-area-inset-top, 0px); z-index:30;
-    display:flex; gap:8px; margin-top:6px; margin-bottom:4px;
+    margin-top:6px; margin-bottom:4px;
+    /* Full-bleed. Without the negative margins, .wrap's 18px gutters let cards
+       scroll visibly past the ends of the bar. Out and back in the same
+       amount, so the row's own content does not move — the sum-to-zero trick
+       the coloured set rows already use. */
+    margin-left:-18px; margin-right:-18px;
+    background:rgba(10,11,13,0.72);
+    backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);
+    /* --nav-search-w declared here rather than on .nav-pills-scroll: it's
+       consumed by two things now (the scroller's scroll-padding-left, and
+       .nav-pill-search's width) that both need it, and a custom property
+       declared on this outer shell inherits down to both without caring
+       which one is "closer". One declaration, whichever descendant needs it. */
+    --nav-search-w:48px;
+  }
+  /* The actual horizontally-scrolling row. Everything that was on .nav-pills
+     itself before this split — the flex row, the overflow, the snap, the
+     scroll-padding compensation for the pinned search pill, the padding that
+     creates the bar's visual inset — lives here now, unchanged in behaviour.
+     This is deliberately the same box model the single .nav-pills div used
+     to have; only the sticky/background/margin half moved out to the shell. */
+  .nav-pills-scroll{
+    display:flex; gap:8px;
     overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+    /* HANDOFF v31: settles the rail on a pill boundary after a drag or the
+       programmatic scrollIntoView on tab switch, instead of stopping
+       mid-pill. 'proximity' rather than 'mandatory' — mandatory can fight a
+       fast flick and make the rail feel sticky/laggy, which is the opposite
+       of what this is for. Cooperates with scroll-padding-left below rather
+       than overriding it: a snap point still respects that inset. */
+    scroll-snap-type:x proximity;
 
     /* THE PINNED PILL IS AN OVERLAY, SO THE SCROLLPORT HAS TO KNOW ABOUT IT.
        On a real device the rail opened with "Today" reading as "day": the
@@ -1798,22 +1842,12 @@
        scroll-padding-left is the mechanism CSS provides for precisely this:
        it tells every scroll-into-view in this container to keep that much
        clear. The alternative — special-casing the first pill in JS — would be
-       a second rule about the same overlap.
-
-       The width is a TOKEN used by both the pill and this offset, not the same
-       number written twice. --nav-search-w + the rail's own 8px gap. */
-    --nav-search-w:48px;
+       a second rule about the same overlap. */
     scroll-padding-left:calc(var(--nav-search-w) + 8px);
-    /* Full-bleed. Without the negative margins, .wrap's 18px gutters let cards
-       scroll visibly past the ends of the bar. Out and back in the same
-       amount, so the row's own content does not move — the sum-to-zero trick
-       the coloured set rows already use. */
-    margin-left:-18px; margin-right:-18px;
     padding:8px 18px 10px;
-    background:rgba(10,11,13,0.72);
-    backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);
   }
-  .nav-pills::-webkit-scrollbar{display:none;}
+  .nav-pills-scroll::-webkit-scrollbar{display:none;}
+
 
   /* [STATUS SCRIM] The sticky rail pins at env(safe-area-inset-top), which
      leaves the band ABOVE it — the status bar region, ~190 device px on a Pro
@@ -1839,10 +1873,35 @@
      they exist. The mask fades the right edge so the row reads as continuing.
      Toggled off by .at-end rather than left on permanently, because a
      permanent fade would dim the last pill once you had scrolled to it. */
-  .nav-pills:not(.at-end){
+  .nav-pills-scroll:not(.at-end){
     -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 34px), transparent);
     mask-image:linear-gradient(to right, #000 calc(100% - 34px), transparent);
   }
+
+  /* [NAV RAIL CHEVRON] HANDOFF v32 — now a real child of the .nav-pills
+     shell (position:absolute, filling the shell's own box) rather than a
+     position:fixed guess at where the shell is — see the HANDOFF v32
+     comment on .nav-pills above for why that guess was wrong at rest. Not a
+     child of .nav-pills-scroll: that's the element carrying the fade mask,
+     and a chevron placed inside it would be faded along with the pills —
+     invisible exactly where it's most needed. As a sibling of the scroller,
+     both sitting inside the same positioned shell, it's outside the masked
+     box but still exactly aligned with it. */
+  .nav-rail-chevron{
+    position:absolute; top:0; bottom:0; right:2px; width:26px; z-index:2;
+    display:flex; align-items:center; justify-content:center;
+    background:none; border:none; padding:0; margin:0;
+    font-family:'Inter',sans-serif; font-size:17px; font-weight:700; color:var(--text-muted);
+    opacity:0; pointer-events:none;
+    transition:opacity 0.25s var(--ease-smooth);
+  }
+  /* Same condition, same class, as the scroller's own fade — one toggle, two
+     consumers. Only interactive when it means something: at the end of the
+     rail this is invisible AND untappable, not just invisible. Sibling
+     combinator works because the scroller and the chevron are now both
+     direct children of the same .nav-pills shell. */
+  .nav-pills-scroll:not(.at-end) ~ .nav-rail-chevron{ opacity:0.6; pointer-events:auto; }
+  .nav-rail-chevron:active{ opacity:0.9; transform:translateY(-1px) scale(0.92); }
 
   /* [ANALYSIS INDEX] Analysis is the longest tab in the app — nineteen cards
      when everything has data, in one flat scroll with no way to skip. The rail
@@ -1902,24 +1961,71 @@
     flex:0 0 auto; width:1px; align-self:stretch; margin:2px 0;
     background:var(--line); pointer-events:none;
   }
-  /* Labelled dividers between Analysis's three card groups (insights, body,
-     training) — plain text-and-rule, not a card, so it never competes with
-     the cards it is organising. Hidden per-group by syncAnalysisGroupHeaders
-     when every card under it has autohidden itself, so a heading never sits
-     over an empty gap. */
+  /* HANDOFF v33: Labelled dividers between Analysis's three card groups
+     (insights, body, training) — now also the collapse toggle for each
+     group, not just a label. Nineteen cards even after v29's grouping is
+     still a lot of scroll; collapsing lets someone skip past groups they
+     didn't come here for without losing the label telling them what's there.
+     Still hidden per-group by syncAnalysisGroupHeaders when every card under
+     it has autohidden itself — that check is untouched by any of this, see
+     the JS comment on setAnalysisGroupCollapsed for why the two states don't
+     fight each other. A <button> now, not a <div> — full button reset below
+     so it stays visually identical to the plain label it replaces. */
   .analysis-group-header{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    width:100%; background:none; border:none; border-bottom:1px solid var(--line-soft);
     font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1.5px;
-    text-transform:uppercase; color:var(--text-muted);
-    margin:22px 2px 8px; padding-bottom:7px; border-bottom:1px solid var(--line-soft);
+    text-transform:uppercase; color:var(--text-muted); text-align:left; cursor:pointer;
+    margin:22px 2px 8px; padding:0 0 7px;
   }
-  .analysis-group-header:first-of-type{ margin-top:4px; }
+  /* HANDOFF v33: was ':first-of-type{ margin-top:4px; }'. That rule never
+     actually matched — #analysisFirstRun, a <div>, was always the true first
+     div-tagged sibling in this container, so ':first-of-type' never
+     selected the header even when the header itself was a <div>. Converting
+     the header to a <button> (for the collapse toggle, above) would have
+     made this rule start matching for the first time — the header itself is
+     now the first BUTTON-tagged sibling, with nothing earlier competing —
+     which would shift Insights' top margin from 22px to 4px as a side effect
+     of an unrelated change, not a decision anyone made this round. Removed
+     rather than fixed forward: the 22px spacing is what every session before
+     this one has actually shipped and been seen with, and un-breaking a
+     three-version-old dead rule was not what this pass was for. If tighter
+     spacing above the first group is wanted, that's a real design call for
+     its own thread, made on purpose and checked on a screen — not an
+     accidental unlock from a tag change made for a different reason. */
+  .analysis-group-header:active{ opacity:0.7; }
+  .analysis-group-header:focus-visible{ outline:2px solid var(--focus-ring-color); outline-offset:2px; }
+  /* Rotates to point right when collapsed, down when expanded — the same
+     '›' glyph used elsewhere in the app (see .xlink-chev), rotated with CSS
+     rather than swapped for a second glyph so the transition animates. */
+  .analysis-group-header-chevron{
+    display:inline-block; flex:0 0 auto; font-size:13px; color:var(--text-muted);
+    transform:rotate(90deg); transition:transform 0.25s var(--ease-smooth);
+  }
+  .analysis-group-header.collapsed .analysis-group-header-chevron{ transform:rotate(0deg); }
+  /* The actual collapse. !important is load-bearing, not decoration: autohide
+     (applyAnalysisEmptyState) sets this same card's inline display:'' or
+     'none' independently, based on whether it has real content — collapse is
+     a SEPARATE reason to be hidden, layered on top rather than replacing
+     that signal. Without !important, an inline display:'' from autohide
+     (meaning "has content, show me") would win over this class and the card
+     would reappear the instant its data changed, regardless of collapse
+     state. With it, collapse always wins while active, and reverts to
+     whatever autohide already decided the moment the class comes off. */
+  .card.group-collapsed{ display:none !important; }
   .nav-pill{
     flex:0 0 auto;
     background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
     font-family:'Inter',sans-serif; font-size:13px; letter-spacing:-0.01em;
-    padding:10px 16px; border-radius:var(--radius-md); cursor:pointer; font-weight:600;
+    /* HANDOFF v31: was 10px 16px. Seven pills measured ~540px of content in
+       ~354px of phone (see the overflow-signal comment below) — trimming
+       3px off each side saves ~42px across seven pills, real but modest;
+       this narrows the gap, it doesn't close it, which is why the chevron
+       and the snap points above exist rather than relying on this alone. */
+    padding:10px 13px; border-radius:var(--radius-md); cursor:pointer; font-weight:600;
     box-shadow:0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 12px -8px rgba(0,0,0,0.5);
     transition:background 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth), color 0.25s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.25s var(--ease-smooth);
+    scroll-snap-align:start;
   }
   .nav-pill:active{transform:scale(0.95);}
   /* The search pill PINS to the left of the rail rather than scrolling with it.
@@ -3227,6 +3333,7 @@
   body.gym-mode header,
   body.gym-mode .app-banner-rail,
   body.gym-mode .nav-pills,
+  body.gym-mode .nav-rail-chevron,
   body.gym-mode .log-date-bar,
   body.gym-mode .coach-fab,
   body.gym-mode .tabs-header,
@@ -3978,17 +4085,36 @@
 
   <div class="status-scrim" aria-hidden="true"></div>
 
+  <!-- HANDOFF v32: .nav-pills is now the sticky positioning shell only.
+       .nav-pills-scroll (below) is the actual horizontally-scrolling row —
+       same content, same behaviour, moved in one level so the chevron button
+       can be a real child of the shell instead of a position:fixed guess at
+       where the shell is (see the CSS comment on .nav-pills for why that
+       guess broke on a real device). -->
   <div class="nav-pills">
-    <button type="button" class="nav-pill nav-pill-search" id="globalSearchBtn" aria-label="Search the app">
-      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><line x1="13.2" y1="13.2" x2="17" y2="17"/></svg>
-    </button>
-    <button class="nav-pill active" id="navToday">Today</button>
-    <button class="nav-pill" id="navLog">Log</button>
-    <button class="nav-pill" id="navAnalysis">Analysis</button>
-    <button class="nav-pill" id="navHistory">History</button>
-    <button class="nav-pill" id="navCare">Care</button>
-    <button class="nav-pill" id="navCoach">Coach</button>
-    <button class="nav-pill" id="navLearn">Learn</button>
+    <div class="nav-pills-scroll" id="navPillsScroll">
+      <button type="button" class="nav-pill nav-pill-search" id="globalSearchBtn" aria-label="Search the app">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><line x1="13.2" y1="13.2" x2="17" y2="17"/></svg>
+      </button>
+      <button class="nav-pill active" id="navToday">Today</button>
+      <button class="nav-pill" id="navLog">Log</button>
+      <button class="nav-pill" id="navAnalysis">Analysis</button>
+      <button class="nav-pill" id="navHistory">History</button>
+      <button class="nav-pill" id="navCare">Care</button>
+      <button class="nav-pill" id="navCoach">Coach</button>
+      <button class="nav-pill" id="navLearn">Learn</button>
+    </div>
+
+    <!-- The fade on .nav-pills-scroll's right edge signals more tabs exist,
+         but a fade alone is easy to miss in bright light and gives no way to
+         act on it short of a fiddly horizontal drag on a thin strip. A real
+         child of the .nav-pills SHELL, not of .nav-pills-scroll — that's the
+         element carrying the fade mask, and a chevron placed inside it would
+         be faded along with the pills. Visibility and interactivity both key
+         off the same .at-end class the scroller's own fade already uses —
+         no new JS state, just a second consumer of a toggle that already
+         exists. -->
+    <button type="button" class="nav-rail-chevron" id="navRailChevron" aria-label="Show more tabs">›</button>
   </div>
 
   <div class="log-date-bar" id="logDateBar" style="display:none">
@@ -4671,7 +4797,10 @@
       <div class="history-hint">This tab fills in as you log. Every chart here appears on its own once it has something to show — a weight trend needs two weigh-ins, a volume chart needs a logged session, a pace trend needs a distance. Nothing is missing; it just hasn't happened yet.</div>
     </div>
 
-    <div class="analysis-group-header">Insights &amp; Program Fit</div>
+    <button type="button" class="analysis-group-header" data-group="insights" aria-expanded="true">
+      <span>Insights &amp; Program Fit</span>
+      <span class="analysis-group-header-chevron" aria-hidden="true">›</span>
+    </button>
     <div class="history-hint" style="margin:-4px 2px 12px;">These look at your trends over time. For what needs attention right now, see Today's Priorities on the Today tab.</div>
 
     <div class="card" data-autohide>
@@ -4693,7 +4822,10 @@
       <div id="programFitCheck"></div>
     </div>
 
-    <div class="analysis-group-header">Body &amp; Health Trends</div>
+    <button type="button" class="analysis-group-header" data-group="body-health" aria-expanded="false">
+      <span>Body &amp; Health Trends</span>
+      <span class="analysis-group-header-chevron" aria-hidden="true">›</span>
+    </button>
 
     <div class="card" id="bodyMetricsCard" style="display:none;">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7.5" width="16" height="5.5" rx="1"/><line x1="6" y1="7.5" x2="6" y2="10.2"/><line x1="10" y1="7.5" x2="10" y2="10.2"/><line x1="14" y1="7.5" x2="14" y2="10.2"/></svg></span>Measurement Context</div>
@@ -4739,7 +4871,10 @@
       <div id="mealTimingContent"></div>
     </div>
 
-    <div class="analysis-group-header">Training Trends</div>
+    <button type="button" class="analysis-group-header" data-group="training" aria-expanded="false">
+      <span>Training Trends</span>
+      <span class="analysis-group-header-chevron" aria-hidden="true">›</span>
+    </button>
 
     <div class="card" data-autohide>
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="16" height="14" rx="2"/><line x1="2" y1="8" x2="18" y2="8"/><line x1="6" y1="2" x2="6" y2="5.5"/><line x1="14" y1="2" x2="14" y2="5.5"/></svg></span>Week Over Week</div>
@@ -5404,7 +5539,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.77';
+const APP_VERSION = '3.81';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -17362,7 +17497,9 @@ async function renderWorkout(){
           const persona = getCoachPersona();
           const sub = suggestSubstitute(info.category, ex.name);
           const prompt = `You are ${persona}. Someone is looking at "${ex.name}" in today's workout, which loads a region they've marked as resting. ${symptomLine} The app's default suggestion is "${sub ? sub.name : 'no direct substitute on file'}". Give a short, specific take (2-3 sentences, no headers or markdown) on whether that default substitute actually makes sense given what they described, or whether something else would be more appropriate — tied to the actual symptom, not generic category advice. You are not a doctor — if what they described sounds like it needs an in-person evaluation (sharp pain, numbness, a pop/snap, or anything not clearly improving), say so plainly rather than just suggesting an exercise swap.`;
-          const reply = await callClaudeChat(apiKey, prompt, [{role:'user', content:'What do you think, given what I logged?'}], 2500);
+          // effort:'medium' — this is a short 2-3 sentence take, not a task
+          // that needs Sonnet 5's default 'high' adaptive reasoning depth.
+          const reply = await callClaudeChat(apiKey, prompt, [{role:'user', content:'What do you think, given what I logged?'}], 2500, undefined, 'medium');
           aiTailorBtn.outerHTML = `<div class="goal-feedback-neutral" style="margin-top:8px;">${escapeHtml(reply.trim())}</div>`;
         }catch(err){
           aiTailorBtn.disabled = false;
@@ -22268,7 +22405,10 @@ ${macroLine}
 
 If what they're in the mood for is fundamentally incompatible with their dietary preference, additional needs, or avoid list (e.g. asking for a bacon dish while avoiding pork), respond with {"recipes":[]} rather than forcing a workaround they didn't ask for.`;
 
-    const raw = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content: `I'm in the mood for: ${query}`}], 3000);
+    // effort:'medium' — a structured JSON recipe list doesn't need 'high's
+    // extra reasoning depth, and JSON-only output is exactly the shape where
+    // burning the ceiling on thinking leaves nothing for the answer.
+    const raw = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content: `I'm in the mood for: ${query}`}], 3000, undefined, 'medium');
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
     recipeFinderResults = parsed.recipes || [];
@@ -23854,7 +23994,9 @@ document.getElementById('adaptWorkoutSubmit').addEventListener('click', async ()
     const day = programs[activeProgram].days[activeDay];
     const exList = (day.exercises || []).map(ex=> `${ex.name} (${ex.sets})`).join(', ');
     const prompt = `You are ${persona}. Today's planned session (${day.label}${day.sub ? ' — '+day.sub : ''}) is: ${exList || 'a rest day with no exercises listed'}. The person says: "${constraint}". Rebuild today's session around that real constraint — same general muscle groups and rep ranges where you reasonably can, swapping in exercises that actually work with what they described (limited equipment, time, or space). List the adapted exercises with sets/reps as a short list, then 1-2 sentences on what you changed and why. No headers, no long preamble — get straight to the adapted list. If the constraint genuinely guts the day's purpose (e.g. a squat-focused day with zero legal lower-body option), say so plainly rather than forcing a bad substitute.`;
-    const reply = await callClaudeChat(apiKey, prompt, [{role:'user', content:'Adapt today\'s workout to what I actually have.'}], 2500);
+    // effort:'medium' — rebuilding a session around a constraint is a
+    // practical substitution task, not one that needs 'high' depth.
+    const reply = await callClaudeChat(apiKey, prompt, [{role:'user', content:'Adapt today\'s workout to what I actually have.'}], 2500, undefined, 'medium');
     resultEl.innerHTML = `<div class="goal-feedback-neutral" style="margin-top:10px;">${escapeHtml(reply.trim()).replace(/\n/g,'<br>')}</div>`;
   }catch(err){
     resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't adapt the session right now — ${escapeHtml(err.message || 'try again in a moment.')}</div>`;
@@ -27419,33 +27561,41 @@ const COACH_PERSONAS_BY_MARTIAL_ART = {
   taiChi: 'an internal martial arts (tai chi) coach focused on waist-led movement, rooted weight transfer, relaxed shoulders, continuous unbroken motion, and structural alignment in stances — you evaluate softness and connectedness of movement, not power or speed',
 };
 
-async function callClaudeChat(apiKey, systemPrompt, messages, maxTokens, model){
-  return anthropicRequest(apiKey, {
-    model: model || 'claude-sonnet-5',
-    // EVERY CALLER'S NUMBER IS A NO-THINKING-ERA NUMBER. The four that pass an
-    // explicit budget (250 for the post-log reply, 500 for adapt-session, 900
-    // for Recipe Finder, and Cross-Metric Insights) were all sized when a
-    // request with no `thinking` field ran without thinking. Three were small
-    // enough that adaptive reasoning would eat the entire ceiling before a word
-    // came back — the same failure the Insights card was showing, waiting to
-    // happen in three more places nobody had pressed yet.
-    //
-    // The other lever is thinking:{type:'disabled'}, supported on this model and
-    // a better fit for the short extraction-shaped calls than a big ceiling.
-    // NOT taken here: it is a parameter change that has never run against the
-    // real API from this app, and the app is broken right now. A bigger ceiling
-    // costs nothing on turns that finish early.
-    //
-    // 700 was a no-thinking-era number. On claude-sonnet-5 the same ceiling
-    // has to cover the model's reasoning as well as its reply, and the newer
-    // tokenizer produces roughly 30% more tokens for identical text on top of
-    // that. max_tokens is a CEILING, not a target — raising it costs nothing
-    // on turns that finish early, and is the difference between a working
-    // feature and an empty box on the ones that do not.
+// HANDOFF v30: raising max_tokens alone was tried twice on Cross-Metric
+// Insights (650, then 1100) and failed both times — a bigger ceiling helps
+// but doesn't bound WHAT adaptive thinking spends, so it was a guess each
+// time, not a fix. output_config.effort is the documented, actual lever
+// (platform.claude.com/docs/en/build-with-claude/effort): it constrains how
+// much Claude reasons before answering, on top of whatever ceiling max_tokens
+// sets. 'medium' on Sonnet 5 is called out in the docs as comparable to
+// Sonnet 4.6 at 'high' — i.e. roughly the depth every prompt below was
+// actually written and tuned against, before Sonnet 5 made 'high' adaptive
+// reasoning the default and started eating these same ceilings.
+//
+// NOT supported on every model: Claude Haiku 4.5 is not in the effort-capable
+// model list and returns a 400 if output_config is present at all, so this
+// only ever attaches for callers on claude-sonnet-5 (the default). Callers
+// passing the haiku model string must leave `effort` unset — see the
+// per-call-site notes at each callClaudeChat(...) that omits it.
+async function callClaudeChat(apiKey, systemPrompt, messages, maxTokens, model, effort){
+  const resolvedModel = model || 'claude-sonnet-5';
+  const payload = {
+    model: resolvedModel,
+    // max_tokens is still the hard ceiling — effort narrows how much of it
+    // reasoning is LIKELY to use, it doesn't cap it outright. Keeping both
+    // is defense in depth, not redundancy: 700 was a no-thinking-era number,
+    // and on claude-sonnet-5 the same ceiling has to cover the model's
+    // reasoning as well as its reply, plus ~30% more tokens for identical
+    // text under the newer tokenizer. max_tokens costs nothing on turns
+    // that finish early, so callers here lean generous.
     max_tokens: maxTokens || 3000,
     system: systemPrompt,
     messages: messages,
-  }, 45000);
+  };
+  if(effort && resolvedModel === 'claude-sonnet-5'){
+    payload.output_config = {effort};
+  }
+  return anthropicRequest(apiKey, payload, 45000);
 }
 
 
@@ -27622,30 +27772,40 @@ ${dataContext}
 Respond in exactly this format. First line only the word PUSH, MAINTAIN, or DELOAD (a genuine recommendation for the next several sessions, based on the actual pattern in the data — not a default; pick DELOAD if RPE is climbing with falling sleep or stalling PRs, PUSH if recovery signals are all genuinely solid and performance is trending up, MAINTAIN if the picture is mixed or there isn't enough data yet to justify either extreme). Then a blank line. Then 2-4 short paragraphs, no headers or markdown: lead with the single most useful interaction you can actually support with the numbers above, and end with 1-2 specific, concrete adjustments tied directly to what you found — not generic advice like "sleep more." If nothing meaningfully correlates yet, say that honestly and note what's still missing, and let that honesty be reflected in a MAINTAIN recommendation rather than guessing.`;
 
     // Cross-Metric Insights is the most expensive call in the app (largest
-    // input context, 5000 output tokens) over the slowest-moving data.
+    // input context) over the slowest-moving data, and the one that's
+    // actually failed on a real device — twice.
     //
-    // 650 FAILED on a real device, and so did 1100. Raising the number was
-    // treating a symptom: the actual cause is that claude-sonnet-5 runs
-    // ADAPTIVE THINKING BY DEFAULT and thinking tokens are spent from the same
-    // max_tokens ceiling as the answer. This prompt — relate five metrics to
-    // each other, commit to push/maintain/deload, then say what to change — is
-    // precisely the shape adaptive thinking spends most on, so the whole budget
-    // went to reasoning and the turn ended before a single word of the reply.
-    // The error said "cut off at the length limit" and it was telling the exact
-    // truth; there was simply nothing to cut off yet.
+    // 650 FAILED, then 1100 FAILED, both at the API's default 'high' effort.
+    // Raising the number alone was treating a symptom: claude-sonnet-5 runs
+    // ADAPTIVE THINKING BY DEFAULT, thinking tokens spend from the same
+    // max_tokens ceiling as the answer, and this prompt — relate five metrics
+    // to each other, commit to push/maintain/deload, then say what to change
+    // — is precisely the shape adaptive thinking spends most on. The whole
+    // budget went to reasoning and the turn ended before a single word of
+    // the reply. The error said "cut off at the length limit" and it was
+    // telling the exact truth; there was simply nothing to cut off yet.
     //
-    // Manual thinking budgets are not an option here: passing
-    // thinking:{type:'enabled', budget_tokens} returns a 400 on this model.
-    // The two real levers are a bigger ceiling and thinking:{type:'disabled'},
-    // and this feature is the one place in the app where the reasoning is the
-    // product — so it gets the ceiling. If
-    // nothing has been logged since the last run, the answer cannot
+    // HANDOFF v30: manual thinking budgets are still not an option — passing
+    // thinking:{type:'enabled', budget_tokens} still returns a 400 on this
+    // model — but output_config.effort is (platform.claude.com/docs/en/
+    // build-with-claude/effort), and it's a REAL control, not a bigger bucket
+    // to hope reasoning fits inside. effort:'medium' is documented as roughly
+    // what Sonnet 4.6 gave at its own 'high' — i.e. about the depth this
+    // prompt was actually written for, before Sonnet 5 made 'high' adaptive
+    // reasoning the default and ate two ceiling raises trying to fit inside
+    // it. Paired with max_tokens still generous at 5000 for headroom. This is
+    // a real trade against the original "give it the ceiling, this is the
+    // one place reasoning is the product" instinct — if the medium-effort
+    // answers read shallow on real data, the next lever to try is 'high' with
+    // max_tokens raised well past 5000 (8000+), not a return to unset effort.
+    //
+    // If nothing has been logged since the last run, the answer cannot
     // meaningfully differ — so the fingerprint covers the whole data
     // context and the stored answer is reused instead of re-billed.
     const {result: reply, cached} = await aiCachedCall(
       'cross-metric',
       aiFingerprint([dataContext, persona]),
-      ()=> callClaudeChat(apiKey, systemPrompt, [{role:'user', content:'Analyze how my tracked metrics are affecting each other, give me a clear push/maintain/deload call, and tell me what to adjust.'}], 5000),
+      ()=> callClaudeChat(apiKey, systemPrompt, [{role:'user', content:'Analyze how my tracked metrics are affecting each other, give me a clear push/maintain/deload call, and tell me what to adjust.'}], 5000, undefined, 'medium'),
       undefined,
       {force}
     );
@@ -27996,7 +28156,13 @@ async function sendCoachChatMessage(inputId){
     // to the API keeps token cost and latency from creeping up over a
     // long-running chat, without losing the visible history.
     const recentMessages = coachChatHistory.slice(-10).map(m=>({role: m.role, content: m.content}));
-    const reply = await callClaudeChat(apiKey, systemPrompt, recentMessages, 700);
+    // This was the riskiest of the small-budget calls: 700 tokens with no
+    // effort control, running conversational free-form replies where the
+    // person's own question determines how much there is to reason about.
+    // effort:'medium' bounds that, and 1200 gives the same safety margin
+    // Cross-Metric Insights and the others got — a chat reply cut off mid-
+    // sentence is a worse experience than a slightly slower one.
+    const reply = await callClaudeChat(apiKey, systemPrompt, recentMessages, 1200, undefined, 'medium');
     coachChatHistory.push({role:'assistant', content: reply.trim()});
   }catch(err){
     coachChatHistory.push({role:'assistant', content: `Couldn't reach the coach: ${err.message}. Check your API key and connection, then try again.`});
@@ -31473,7 +31639,82 @@ function syncAnalysisGroupHeaders(){
   });
 }
 
-// [ANALYSIS INDEX] -------------------------------------------------------------
+// [ANALYSIS GROUP COLLAPSE] -----------------------------------------------
+// HANDOFF v33: nineteen cards even after v29's grouping is still a lot of
+// scroll. Collapsing lets someone skip past a whole group without losing the
+// label telling them it's there — same information, less of it forced on
+// screen at once.
+//
+// Body & Health Trends and Training Trends default to collapsed. Insights &
+// Program Fit stays open: v3.77 already established it as the "what needs
+// attention" hub Today's Priorities points to, and collapsing the one group
+// someone was likely sent here FOR would undo that work, not build on it.
+const ANALYSIS_GROUP_DEFAULT_COLLAPSED = {
+  'insights': false,
+  'body-health': true,
+  'training': true,
+};
+
+// Applies (does not toggle) a collapsed/expanded state to one group. Kept
+// separate from toggleAnalysisGroup below because wiring needs to SET an
+// initial state (default, then a possible saved override) without writing
+// that same state back to storage twice — toggle is for an actual click.
+//
+// Deliberately does not touch card.style.display, only a class. autohide
+// (applyAnalysisEmptyState) owns that inline style independently, based on
+// whether a card has real content — collapse is layered on top via a
+// separate !important class rule (see the CSS comment on .group-collapsed)
+// rather than replacing autohide's own signal. Two independent reasons a
+// card can be hidden, neither one erasing what the other decided.
+function setAnalysisGroupCollapsed(header, collapsed){
+  header.classList.toggle('collapsed', collapsed);
+  header.setAttribute('aria-expanded', String(!collapsed));
+  let node = header.nextElementSibling;
+  while(node && !node.classList.contains('analysis-group-header')){
+    if(node.classList.contains('card')) node.classList.toggle('group-collapsed', collapsed);
+    node = node.nextElementSibling;
+  }
+}
+
+// An actual toggle — flips the state and persists it. window.storage, same
+// mechanism 'active-view' already uses for exactly this kind of small
+// per-person preference. Personal (not shared): what someone chooses to
+// collapse is that person's ADHD-of-the-moment, not a fact about the app.
+function toggleAnalysisGroup(header){
+  const collapsed = !header.classList.contains('collapsed');
+  setAnalysisGroupCollapsed(header, collapsed);
+  const key = header.dataset.group;
+  if(!key) return;
+  try{ window.storage.set('analysis-group-collapsed:'+key, String(collapsed)); }
+  catch(e){ /* best effort — a failed write just means the default wins next load */ }
+}
+
+(function wireAnalysisGroupCollapse(){
+  const view = document.getElementById('analysisView');
+  if(!view) return;
+  const headers = [...view.querySelectorAll(':scope > .analysis-group-header')];
+  headers.forEach(header=>{
+    const key = header.dataset.group;
+    const defaultCollapsed = key ? !!ANALYSIS_GROUP_DEFAULT_COLLAPSED[key] : false;
+    // The default applies SYNCHRONOUSLY, before any storage read resolves —
+    // so there is no flash of the wrong state while that read is in flight.
+    // A saved preference (below) only overrides it if it turns out to differ.
+    setAnalysisGroupCollapsed(header, defaultCollapsed);
+    header.addEventListener('click', ()=> toggleAnalysisGroup(header));
+    if(!key) return;
+    (async ()=>{
+      try{
+        const res = await window.storage.get('analysis-group-collapsed:'+key);
+        if(res && res.value != null){
+          const saved = res.value === 'true';
+          if(saved !== defaultCollapsed) setAnalysisGroupCollapsed(header, saved);
+        }
+      }catch(e){ /* no saved preference yet, or storage unavailable — default stands */ }
+    })();
+  });
+})();
+
+
 // Analysis is the longest tab in the app. With everything populated it is
 // nineteen cards of flat scroll, and until now the only way to reach the RPE
 // trend at the bottom was to travel past all eighteen above it.
@@ -31546,7 +31787,16 @@ function renderAnalysisIndex(){
   rail.querySelectorAll('[data-analysis-section]').forEach(chip=>{
     chip.addEventListener('click', ()=>{
       const card = cards[Number(chip.dataset.analysisSection)];
-      if(card) card.scrollIntoView({behavior:'smooth', block:'start'});
+      if(!card) return;
+      // HANDOFF v33: a chip can point at a card inside a collapsed group now
+      // that groups collapse. scrollIntoView on a display:none element is a
+      // silent no-op — the tap would look broken, not just less useful — so
+      // expand first if needed. groupOf is the same closure defined above
+      // for the divider logic; reused rather than re-walking the DOM a
+      // second way to find the same header.
+      const group = groupOf(card);
+      if(group && group.classList.contains('collapsed')) toggleAnalysisGroup(group);
+      card.scrollIntoView({behavior:'smooth', block:'start'});
     });
   });
 }
@@ -32273,7 +32523,30 @@ function syncOverflowFade(rail){
 }
 
 (function wireNavOverflowSignal(){
-  wireOverflowFade(document.querySelector('.nav-pills'));
+  // HANDOFF v32: was '.nav-pills' — that's the outer sticky shell now, no
+  // longer the scrolling element. '.nav-pills-scroll' is the one with
+  // scrollLeft/scrollWidth/clientWidth, and the one the mask CSS keys off.
+  wireOverflowFade(document.querySelector('.nav-pills-scroll'));
+})();
+
+// HANDOFF v31: the chevron button sitting over the rail's fade edge (see the
+// HTML comment above <button id="navRailChevron">). Its own opacity/
+// pointer-events already key off .at-end via CSS — this only has to move the
+// rail. scrollBy, not scrollTo a computed end: a fixed nudge keeps every tap
+// predictable regardless of how much content is hidden, and the existing
+// 'scroll' listener from wireOverflowFade re-syncs .at-end (and this
+// button's own visibility with it) once the nudge lands — no separate sync
+// call needed here.
+(function wireNavRailChevron(){
+  const btn = document.getElementById('navRailChevron');
+  // HANDOFF v32: was '.nav-pills' — now the outer shell, which no longer
+  // scrolls. '.nav-pills-scroll' is the element scrollBy actually has to
+  // act on since the v32 split.
+  const rail = document.querySelector('.nav-pills-scroll');
+  if(!btn || !rail) return;
+  btn.addEventListener('click', ()=>{
+    rail.scrollBy({left: 160, behavior:'smooth'});
+  });
 })();
 
 (function wireCoachFabTuck(){
