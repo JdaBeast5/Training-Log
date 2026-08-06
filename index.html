@@ -863,7 +863,16 @@
      orange, four plain — not as a bordered table sitting on top of four rows.
      So the strip has no border and no background of its own: it is the same
      76px column the sets block uses, and the only thing marking its rows out
-     is the colour on each one. */
+     is the colour on each one.
+
+     [STABILIZATION PHASE C4] Checked: box-vs-strip is a deliberate choice
+     driven by the `warmupSetsEnabled` setting (persisted as
+     `warmup-sets-pref`, toggled in Settings), not accidental duplication or
+     a barbell/non-barbell split. Off (default): the ramp is a read-only
+     suggestion, needs box chrome to separate it from the loggable sets
+     below. On: the ramp becomes real loggable rows, needs to blend into the
+     set list instead — see the ternary on `warmupSetsEnabled` around the
+     `.warmup-strip`/`.warmup-box` template literals in renderWorkout. */
   .warmup-strip{ margin:0; display:flex; flex-direction:column; gap:6px; }
   .warmup-strip .warmup-title{
     color:var(--plate-orange); font-weight:600; font-size:11.5px;
