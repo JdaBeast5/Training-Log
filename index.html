@@ -5568,7 +5568,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.84';
+const APP_VERSION = '3.85';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -23760,7 +23760,7 @@ function renderMealSuggestions(){
   const result = buildMealSuggestions();
 
   if(result.done){
-    el.innerHTML = `<div class="photo-result-card"><div class="photo-result-title">✅ Right around your targets</div><div class="photo-result-item"><span>Only ${Math.round(result.remaining.cal)} cal of room left today — no real need to force in more food.</span></div></div>`;
+    el.innerHTML = `<div class="photo-result-card"><div class="photo-result-title">${icon('check')} Right around your targets</div><div class="photo-result-item"><span>Only ${Math.round(result.remaining.cal)} cal of room left today — no real need to force in more food.</span></div></div>`;
     return;
   }
 
@@ -26168,7 +26168,7 @@ function renderNutritionTrend(foodDays){
     insight: (values, avg, target)=>{
       if(!target) return null;
       const pctOff = ((avg - target) / target) * 100;
-      if(Math.abs(pctOff) <= 10) return {status:'good', text:`✅ Averaging within 10% of your ${Math.round(target)} cal target — that's the consistency that actually drives steady progress toward your goal.`};
+      if(Math.abs(pctOff) <= 10) return {status:'good', text:`${icon('check')} Averaging within 10% of your ${Math.round(target)} cal target — that's the consistency that actually drives steady progress toward your goal.`};
       if(pctOff > 10) return {status:'warn', text:`⚠ Averaging about ${Math.round(pctOff)}% above target — worth checking if that's intentional, since it can quietly work against a fat-loss or lean-bulk goal.`};
       return {status:'warn', text:`⚠ Averaging about ${Math.round(Math.abs(pctOff))}% below target — consistent under-eating can undercut recovery and muscle retention, not just the number on the scale.`};
     },
@@ -26181,7 +26181,7 @@ function renderWaterTrend(waterDays){
     formatValue: v=> `${Math.round(v)} oz`,
     insight: (values, avg, target)=>{
       const pct = (avg/target)*100;
-      if(pct >= 90) return {status:'good', text:`✅ Averaging ${Math.round(pct)}% of your hydration target — consistently in a good range.`};
+      if(pct >= 90) return {status:'good', text:`${icon('check')} Averaging ${Math.round(pct)}% of your hydration target — consistently in a good range.`};
       if(pct >= 70) return {status:'neutral', text:`Averaging ${Math.round(pct)}% of your hydration target — close, with some room to close the gap on harder training days.`};
       return {status:'warn', text:`⚠ Averaging only ${Math.round(pct)}% of your hydration target — even mild dehydration can measurably reduce strength and endurance mid-session.`};
     },
@@ -26199,7 +26199,7 @@ function renderSleepTrend(sleepEntries){
       const stdDev = Math.sqrt(variance);
       if(avg < 7) return {status:'warn', text:`⚠ Averaging ${avg.toFixed(1)} hrs — below the 7-9 hr range generally recommended for adults, which directly affects recovery and muscle protein synthesis, not just how you feel.`};
       if(stdDev > 1.5) return {status:'warn', text:`⚠ Averaging ${avg.toFixed(1)} hrs, but night-to-night swings are large (±${stdDev.toFixed(1)} hrs) — consistent sleep timing matters almost as much as the total hours.`};
-      return {status:'good', text:`✅ Averaging ${avg.toFixed(1)} hrs with fairly consistent timing — a solid foundation for recovery.`};
+      return {status:'good', text:`${icon('check')} Averaging ${avg.toFixed(1)} hrs with fairly consistent timing — a solid foundation for recovery.`};
     },
   });
 }
@@ -26255,7 +26255,7 @@ function renderGlucoseTrend(entries){
     insight: (values, avg)=>{
       if(avg <= 70) return {status:'warn', text:`⚠ Averaging ${Math.round(avg)} mg/dL — at or below the hypoglycemia alert threshold. If readings are consistently this low, that's worth flagging to your care team regardless of what caused any single one.`};
       if(avg > 140) return {status:'warn', text:`⚠ Averaging ${Math.round(avg)} mg/dL across fasting and post-meal readings mixed together — worth a closer look at which specific times of day are running high.`};
-      return {status:'good', text:`✅ Averaging ${Math.round(avg)} mg/dL — a reasonable range, though check individual entries against their own fasting/post-meal context for the fuller picture.`};
+      return {status:'good', text:`${icon('check')} Averaging ${Math.round(avg)} mg/dL — a reasonable range, though check individual entries against their own fasting/post-meal context for the fuller picture.`};
     },
   });
 }
@@ -26931,7 +26931,7 @@ async function renderStrengthContext(){
   const balanceHtml = balance.length === 0 ? '' :
     '<div class="history-hint field-note" style="margin-top:10px;"><b>How your lifts sit relative to each other</b></div>'
     + balance.map(b=>
-        `<div class="diag-row${b.inRange ? ' diag-good' : ''}"><span class="diag-icon">${b.inRange ? '✅' : 'ℹ️'}</span>`
+        `<div class="diag-row${b.inRange ? ' diag-good' : ''}"><span class="diag-icon">${b.inRange ? icon('check') : 'ℹ️'}</span>`
         + `<span><b>${escapeHtml(b.label)}</b><span class="diag-detail">`
         + `${b.ratio.toFixed(2)} — typical range ${b.low.toFixed(2)}–${b.high.toFixed(2)}. ${escapeHtml(b.note)}`
         + `</span></span></div>`).join('');
@@ -27102,7 +27102,7 @@ async function renderExerciseProgress(){
   let summaryHtml = '';
   if(withEnoughData.length >= 2){
     if(stalling.length === 0){
-      summaryHtml = `<div class="goal-feedback-good" style="margin-bottom:12px;">✅ All ${progressing.length} exercises with enough history are trending up in weight — progressive overload is genuinely happening, not just volume for its own sake.</div>`;
+      summaryHtml = `<div class="goal-feedback-good" style="margin-bottom:12px;">${icon('check')} All ${progressing.length} exercises with enough history are trending up in weight — progressive overload is genuinely happening, not just volume for its own sake.</div>`;
     } else if(stalling.length > progressing.length){
       const names = stalling.slice(0,3).map(r=> escapeHtml(r.name)).join(', ');
       summaryHtml = `<div class="goal-feedback-warn" style="margin-bottom:12px;">⚠ ${stalling.length} of ${withEnoughData.length} exercises with enough history are flat or down since first log (${names}${stalling.length>3?', …':''}) — worth checking recovery, technique, or whether it's time to change rep ranges on these.</div>`;
@@ -28785,7 +28785,7 @@ function renderPainTrend(painDays){
       const trend = values[values.length-1] - values[0];
       if(recentAvg >= 6) return {status:'warn', text:`⚠ Recent check-ins are averaging ${recentAvg.toFixed(1)}/10 — pain at this level during training is worth a conversation with a doctor or physical therapist, not just modifying the exercise around it.`};
       if(trend >= 2) return {status:'warn', text:`⚠ Trending upward over this window — worth backing off the aggravating movement or region now, before it becomes a bigger issue.`};
-      if(trend <= -2) return {status:'good', text:`✅ Trending down — whatever you're doing (rest, modified training, etc.) appears to be working.`};
+      if(trend <= -2) return {status:'good', text:`${icon('check')} Trending down — whatever you're doing (rest, modified training, etc.) appears to be working.`};
       return {status:'neutral', text:`Averaging ${avg.toFixed(1)}/10 and fairly steady — keep monitoring, especially if it's changing how you move through key lifts.`};
     },
   });
@@ -29382,7 +29382,7 @@ async function renderCare(){
 
   // Resting regions
   if(resting.length === 0){
-    restEl.innerHTML = '<div class="empty-note">✅ Nothing marked as resting — you\'re clear to train everything.</div>';
+    restEl.innerHTML = `<div class="empty-note">${icon('check')} Nothing marked as resting — you're clear to train everything.</div>`;
   }else{
     restEl.innerHTML = resting.map(r=>`
       <span class="resting-chip"><button type="button" class="link-btn" data-care-area="${escapeHtml(r)}" aria-label="Show stretches for ${escapeHtml(r)}">${escapeHtml(r)}</button> <button data-region="${escapeHtml(r)}" class="clear-resting" aria-label="Stop resting ${escapeHtml(r)}">✕</button></span>
@@ -30322,7 +30322,7 @@ async function renderCardioTrend(){
     const pFirst = paced[0].pace, pLast = paced[paced.length-1].pace;
     const secPerUnit = Math.round((pLast - pFirst) * 60);
     if(secPerUnit <= -5){
-      paceHtml = `<div class="goal-feedback-good" style="margin-top:10px;">✅ Average pace has improved by ${Math.abs(secPerUnit)}s per ${distanceUnit} across this window — ${fmtPace(pFirst)} to ${fmtPace(pLast)}.</div>`;
+      paceHtml = `<div class="goal-feedback-good" style="margin-top:10px;">${icon('check')} Average pace has improved by ${Math.abs(secPerUnit)}s per ${distanceUnit} across this window — ${fmtPace(pFirst)} to ${fmtPace(pLast)}.</div>`;
     } else if(secPerUnit >= 5){
       paceHtml = `<div class="goal-feedback-neutral" style="margin-top:10px;">Average pace has slowed by ${secPerUnit}s per ${distanceUnit} (${fmtPace(pFirst)} to ${fmtPace(pLast)}). Not automatically a problem — easy-paced volume is supposed to be easy, and a block with more of it will read exactly like this.</div>`;
     } else {
@@ -30383,7 +30383,7 @@ async function renderRpeTrend(){
   if(delta > 0.5){
     insightHtml = `<div class="goal-feedback-warn" style="margin-top:10px;">⚠ Average RPE has climbed ${deltaSign}${delta} over this window — sessions are feeling harder for the same work. If weights/reps haven't climbed to match, that's a fatigue signal worth a lighter week rather than pushing through.</div>`;
   } else if(delta < -0.5){
-    insightHtml = `<div class="goal-feedback-good" style="margin-top:10px;">✅ Average RPE has dropped ${deltaSign}${delta} — sessions are feeling easier for the same work, a good sign of real recovery and adaptation.</div>`;
+    insightHtml = `<div class="goal-feedback-good" style="margin-top:10px;">${icon('check')} Average RPE has dropped ${deltaSign}${delta} — sessions are feeling easier for the same work, a good sign of real recovery and adaptation.</div>`;
   } else {
     insightHtml = `<div class="goal-feedback-neutral" style="margin-top:10px;">RPE has stayed fairly steady (${deltaSign}${delta}) — effort is tracking consistently with output, no fatigue flag here.</div>`;
   }
@@ -31020,11 +31020,23 @@ function checkBootPerformance(){
 // viewBox, stroke-based, single weight, currentColor throughout so an icon's
 // color comes from its containing element the same way text color would.
 //
-// Not yet converted: the ~65 other emoji used as buttons/section markers
-// throughout the app (🍳🛒💪🎯🏋️ and the rest). Converting all of them is a
-// much larger pass — this establishes the pattern (ICONS + icon()) that pass
-// would extend, rather than doing it piecemeal across dozens of unrelated
-// render functions in the same edit as this one.
+// [STABILIZATION PHASE E] icon('check') extended beyond diagRow to every
+// "good" verdict string that was using ✅ inside an HTML-template context
+// (the goal-feedback-good trend insights, the lift-balance diag row, the
+// resting-regions empty state, the photo-log result card) — ~10 call sites,
+// one deliberate batch, not a full sweep. Left alone on purpose: any ✅/✓
+// assigned via .textContent rather than built into an HTML string (save-
+// confirmation flashes like "Saved ✓", the celebration banner's icon) —
+// textContent can't hold markup, and these are ephemeral status text, not
+// persistent iconography, matching this file's own established precedent
+// for what's worth converting vs. what genuinely isn't.
+//
+// Still emoji, deliberately not swept in this pass: ⚠️ warnings, the
+// decorative section-marker/button emoji throughout the app (🍳🛒💪🎯🏋️ and
+// the rest — over 300 occurrences total across ~80 distinct glyphs, per an
+// actual count, not the stale "~65" this comment used to say). A future
+// session converting more of these should follow the same rule this batch
+// did: only HTML-template contexts, verified one call site at a time.
 const ICONS = {
   check:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 13 9 18 20 6"/></svg>',
   warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 22 20.5 2 20.5Z"/><line x1="12" y1="9.5" x2="12" y2="14"/><circle cx="12" cy="17.3" r="0.6" fill="currentColor" stroke="none"/></svg>',
