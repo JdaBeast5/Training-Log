@@ -5568,7 +5568,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.85';
+const APP_VERSION = '3.86';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -19077,6 +19077,52 @@ function formatPlateResult(result){
   return `${result.bar} ${unit} bar + ${parts} per side${leftoverNote}`;
 }
 
+// Checks whether every set in this exercise now has weight (when the
+// exercise has a weight field at all), reps, and RPE filled in — reading
+// straight from the live inputs, not storage, so it's always checking
+// exactly what's on screen right now. If so, and the exercise isn't
+// already checked off, this checks it programmatically by dispatching a
+// real 'change' event — reusing the checkbox's own completion logic
+// (persist, auto-collapse, session-complete check) instead of duplicating
+// any of it here.
+//
+// [STABILIZATION PHASE F1] Pulled out of wireSetsBlock's closure (was
+// `checkAllSetsCompleteAndAutoCheck()`, reading `row`/`block` from the
+// enclosing scope) into a standalone function taking them as parameters,
+// for two reasons: it's independently testable now, and it lets
+// wireSetsBlock call it once at the end of wiring every render — not just
+// reactively from a single field's own change listener. Without that
+// second call site, "Same as Last Time" (which saves a full set of
+// data via saveExSet() directly, then calls renderWorkout()) never
+// triggered this at all — the one-tap fast path left the exercise looking
+// LESS finished than manually retyping every field would, since manual
+// entry's own change listener already called this on its last field.
+function checkAllSetsCompleteAndAutoCheck(row, block){
+  const setRows = [...block.querySelectorAll('.set-row')];
+  if(setRows.length === 0) return;
+  const requiresWeight = !!block.querySelector('.ex-weight');
+  const requiresDistance = !!block.querySelector('.ex-distance');
+  const allComplete = setRows.every(r=>{
+    const w = r.querySelector('.ex-weight');
+    const d = r.querySelector('.ex-distance');
+    const reps = r.querySelector('.ex-reps');
+    const rpe = r.querySelector('.ex-rpe');
+    if(requiresWeight && (!w || w.value === '')) return false;
+    // Same rule as weight: if the row has the field, it has to be filled
+    // before the exercise auto-checks itself off. A run with a duration but
+    // no distance is a half-logged set, not a finished one.
+    if(requiresDistance && (!d || d.value === '')) return false;
+    if(!reps || reps.value === '') return false;
+    if(!rpe || rpe.value === '') return false;
+    return true;
+  });
+  if(!allComplete) return;
+  const cb = row.querySelector('input[type=checkbox]');
+  if(!cb || cb.checked) return;
+  cb.checked = true;
+  cb.dispatchEvent(new Event('change'));
+}
+
 function wireSetsBlock(row, exIdx, ex){
   const block = row.querySelector('.sets-block');
   const subVariant = subVariantOf(ex); // undefined when this slot isn't currently substituted
@@ -19124,40 +19170,6 @@ function wireSetsBlock(row, exIdx, ex){
       r.dataset.setIdx = newIdx;
       r.querySelector('.set-num').textContent = newIdx + 1;
     });
-  }
-
-  // Checks whether every set in this exercise now has weight (when the
-  // exercise has a weight field at all), reps, and RPE filled in — reading
-  // straight from the live inputs, not storage, so it's always checking
-  // exactly what's on screen right now. If so, and the exercise isn't
-  // already checked off, this checks it programmatically by dispatching a
-  // real 'change' event — reusing the checkbox's own completion logic
-  // (persist, auto-collapse, session-complete check) instead of duplicating
-  // any of it here.
-  function checkAllSetsCompleteAndAutoCheck(){
-    const setRows = [...block.querySelectorAll('.set-row')];
-    if(setRows.length === 0) return;
-    const requiresWeight = !!block.querySelector('.ex-weight');
-    const requiresDistance = !!block.querySelector('.ex-distance');
-    const allComplete = setRows.every(r=>{
-      const w = r.querySelector('.ex-weight');
-      const d = r.querySelector('.ex-distance');
-      const reps = r.querySelector('.ex-reps');
-      const rpe = r.querySelector('.ex-rpe');
-      if(requiresWeight && (!w || w.value === '')) return false;
-      // Same rule as weight: if the row has the field, it has to be filled
-      // before the exercise auto-checks itself off. A run with a duration but
-      // no distance is a half-logged set, not a finished one.
-      if(requiresDistance && (!d || d.value === '')) return false;
-      if(!reps || reps.value === '') return false;
-      if(!rpe || rpe.value === '') return false;
-      return true;
-    });
-    if(!allComplete) return;
-    const cb = row.querySelector('input[type=checkbox]');
-    if(!cb || cb.checked) return;
-    cb.checked = true;
-    cb.dispatchEvent(new Event('change'));
   }
 
   async function deleteSet(setRow){
@@ -19280,7 +19292,7 @@ function wireSetsBlock(row, exIdx, ex){
       // also the moment to offer gym mode, or to enter it if that has already
       // been answered yes.
       maybeOfferGymMode();
-      checkAllSetsCompleteAndAutoCheck();
+      checkAllSetsCompleteAndAutoCheck(row, block);
     };
     if(wInput) wInput.addEventListener('change', save);
     if(dInput) dInput.addEventListener('change', save);
@@ -19494,6 +19506,12 @@ function wireSetsBlock(row, exIdx, ex){
   }
 
   block.querySelectorAll('.set-row').forEach(wireSetRow);
+  // Catches any exercise that already has complete weight/reps/RPE data but
+  // an unchecked box the moment this render happens — not just the case
+  // where a field's own change listener just fired. This is what makes
+  // "Same as Last Time" (which re-renders rather than firing field change
+  // events) end up auto-checked like manual entry does.
+  checkAllSetsCompleteAndAutoCheck(row, block);
 
   // Deliberately NOT `.set-row`. Two places renumber `.set-row` by its position
   // in the block (the delete path and the add-set path); a warm-up row wearing
