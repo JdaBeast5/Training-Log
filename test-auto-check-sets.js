@@ -120,4 +120,82 @@ test('wireSetsBlock actually calls checkAllSetsCompleteAndAutoCheck once after w
   );
 });
 
+// A text-count check (above) proves the call site EXISTS in the source but
+// cannot prove it's actually reachable — `if(false) checkAllSetsCompleteAnd
+// AutoCheck(row, block)` would satisfy that check while never running. Found
+// exactly this gap by sabotage-testing the count-only version of this test
+// suite (it passed against a genuinely broken build) before this real
+// invocation test existed. This calls the REAL wireSetsBlock end-to-end —
+// only its external dependencies (storage, other render functions) are
+// stubbed, not the function under test itself or checkAllSetsCompleteAnd
+// AutoCheck.
+test('REAL invocation: wireSetsBlock auto-checks an exercise whose row already has complete data, with no field-level events involved', (assert)=>{
+  const wireSetsBlockSrc = extractFunction(src, 'wireSetsBlock');
+  const bodyHtml = `
+    <div id="row">
+      <input type="checkbox">
+      <div class="sets-block">
+        <div class="set-row" data-set-idx="0">
+          <span class="set-num">1</span>
+          <input class="ex-weight" value="185">
+          <input class="ex-reps" value="5">
+          <input class="ex-rpe" value="8">
+        </div>
+        <button class="add-set-btn">Add Set</button>
+      </div>
+    </div>
+  `;
+  const globals = `
+    window.exKey = ()=> 'ex:test:d1:0';
+    window.activeProgram = 'strength';
+    window.activeDay = 'd1';
+    window.selectedLogDate = '2026-01-01';
+    window.subVariantOf = ()=> undefined;
+    window.isDistanceExercise = ()=> false;
+    window.isBarbellExercise = ()=> false;
+    window.escapeHtml = (s)=> String(s);
+    window.saveExSet = async ()=>{};
+    window.getFallbackPriorEntry = async ()=> null;
+    window.renderWorkout = async ()=>{};
+    window.refreshSessionSummary = async ()=>{};
+    window.getDefaultRestSeconds = ()=> 90;
+    window.getRestReasonLabel = ()=> '';
+    window.startRestTimer = ()=>{};
+    window.noteWorkoutActivity = ()=>{};
+    window.maybeOfferGymMode = ()=>{};
+    window.isPastPrNotificationWindow = async ()=> false;
+    window.triggerCelebration = ()=>{};
+    window.toCanonicalLb = (v)=> Number(v);
+    window.fmtWeight = (v)=> v + ' lb';
+    window.restTargetBySlot = {};
+    window.SpeechRecognitionCtor = null;
+    window.saveExWarmupSkipped = async ()=>{};
+    window.wirePlateButton = ()=>{};
+    window.wireVoiceLogButton = ()=>{};
+    window.calcPlatesPerSide = ()=> null;
+    window.formatPlateResult = ()=> '';
+    window.getEquipment = ()=> ({bar:45, plates:[45,35,25,10,5,2.5], dbIncrement:5});
+    window.toDisplayWeight = (v)=> v;
+    window.trimUnitNum = (v)=> String(v);
+    window.weightUnit = 'lb';
+    window.analyzeProgressionSignal = ()=> null;
+    window.exerciseInfo = {'Bench Press': {category:'push'}};
+    window.buildPastSessions = ()=> [];
+    window.getExLog = async ()=> [];
+    window.makeSwipeable = ()=>{};
+  `;
+  const { document, window: win } = runJsdom(bodyHtml, globals, [fnSrc, wireSetsBlockSrc, `
+    try {
+      wireSetsBlock(document.getElementById('row'), 0, {name:'Bench Press', sets:'4x4-6'});
+      window.__ok = true;
+    } catch(e) {
+      window.__err = e.message;
+    }
+  `]);
+  assert.strictEqual(win.__err, undefined, `wireSetsBlock threw: ${win.__err}`);
+  assert.strictEqual(win.__ok, true);
+  assert.strictEqual(document.getElementById('row').querySelector('input[type=checkbox]').checked, true,
+    'a real wireSetsBlock call against an already-complete, unchecked row must end up checked');
+});
+
 run();
