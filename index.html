@@ -3442,12 +3442,15 @@
      the app that did not speak this language, which is what made it read as a
      different app rather than a mode of this one.
 
-     Shadows are written literally rather than via `var(--elev-*)`. Those tokens
-     are currently INERT: `--rim` is defined as `--rim:var(--rim)` at the top of
-     this stylesheet, which is a dependency cycle, so every `--elev-*` that
-     references it is invalid at computed-value time and every declaration using
-     one computes to `none`. Until that one line is fixed, using the tokens here
-     would silently produce a flat panel. */
+     Shadows are written literally rather than via `var(--elev-*)`. This is no
+     longer a workaround for a broken token — the `--rim` self-reference cycle
+     that once made those tokens inert is fixed (see the `--rim` definition
+     near the top of this stylesheet). The literals stay because this panel's
+     elevation formula is deliberately different, not because the tokens don't
+     work: see the comment below — an opaque fill, brighter hairline, and
+     coloured bloom, tuned specifically for sitting on pure black with nothing
+     behind it to blur. Swapping in `var(--elev-3)` here would silently trade
+     that tuned look for the generic card formula. */
   body.gym-mode .exercise-block.open{
     opacity:1;
     position:relative;
