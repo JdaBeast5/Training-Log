@@ -25357,12 +25357,26 @@ const SCROLL_LOCK_OVERLAYS = [
 let scrollLockY = 0;
 let scrollLockActive = false;
 
+// [STABILIZATION PHASE C5] Three coexisting, DELIBERATELY SEPARATE
+// "is this open" idioms in this app — flagged here as the one central place
+// to check before assuming which one a given component uses, rather than
+// unified into one abstraction the rest of the file doesn't already use:
+//   1. `.active` class — the full-screen/bottom-sheet DIALOGS this function
+//      and SCROLL_LOCK_OVERLAYS track (sub modal, calendar, settings, etc).
+//   2. An inline `style.display` flip — some of those same dialogs use this
+//      instead of/alongside `.active`; both are checked below so neither
+//      leaks through anyOverlayOpen()'s test.
+//   3. `.open` class — a COMPLETELY UNRELATED idiom for collapsible CARDS
+//      (program/cycle headers, Analysis groups), never a dialog. Confusing
+//      the two fails silently: see the settingsOverlay wiring's own
+//      "`.active`, not `.open`" comment for a real instance of this exact
+//      mistake being caught before it shipped.
+// Each idiom is load-bearing for its own component type; this is a map of
+// the territory, not a todo to merge them.
 function anyOverlayOpen(){
   return SCROLL_LOCK_OVERLAYS.some(id=>{
     const el = document.getElementById(id);
     if(!el) return false;
-    // Overlays signal "open" one of two ways in this app: an .active class,
-    // or an inline display flip. Both are checked so neither leaks through.
     if(el.classList.contains('active')) return true;
     return el.style.display !== '' && el.style.display !== 'none';
   });
