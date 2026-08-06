@@ -5568,7 +5568,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.86';
+const APP_VERSION = '3.87';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -19298,6 +19298,26 @@ function wireSetsBlock(row, exIdx, ex){
     if(dInput) dInput.addEventListener('change', save);
     if(nInput) nInput.addEventListener('change', save);
     rInput.addEventListener('change', save);
+
+    // [STABILIZATION PHASE F2] weight/reps/RPE all already carry
+    // enterkeyhint="next" in their markup — a hint to the mobile keyboard to
+    // show a "Next" button — but nothing was listening for it, so tapping it
+    // did nothing and logging one set meant 3 separate manual taps into 3
+    // separate fields. This makes that hint actually true: Enter/Next moves
+    // to the next field in the row, and moves off the last one (blurring it,
+    // which fires the input's own 'change' listener above and saves,
+    // exactly like tapping away manually already does).
+    const advanceOnEnter = (fromInput, toInput)=>{
+      if(!fromInput) return;
+      fromInput.addEventListener('keydown', (e)=>{
+        if(e.key !== 'Enter') return;
+        e.preventDefault();
+        if(toInput) toInput.focus(); else fromInput.blur();
+      });
+    };
+    advanceOnEnter(wInput, rInput);
+    advanceOnEnter(rInput, rpeInput);
+    advanceOnEnter(rpeInput, null);
 
     const noteBtn = setRow.querySelector('.set-note-btn');
     const noteWrap = setRow.querySelector('.set-note-wrap');
