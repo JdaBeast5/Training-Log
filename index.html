@@ -5573,7 +5573,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.88';
+const APP_VERSION = '3.89';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -17586,7 +17586,7 @@ async function renderWorkout(){
       openExerciseHistory(i, ex);
     });
 
-    wireSetsBlock(row, i, ex);
+    wireSetsBlock(row, i, ex, fallbackPriorEntries[i]);
 
     list.appendChild(row);
 
@@ -19128,7 +19128,7 @@ function checkAllSetsCompleteAndAutoCheck(row, block){
   cb.dispatchEvent(new Event('change'));
 }
 
-function wireSetsBlock(row, exIdx, ex){
+function wireSetsBlock(row, exIdx, ex, fallbackEntry){
   const block = row.querySelector('.sets-block');
   const subVariant = subVariantOf(ex); // undefined when this slot isn't currently substituted
 
@@ -19155,7 +19155,19 @@ function wireSetsBlock(row, exIdx, ex){
         // most recent session anywhere else in the app (typically a
         // different program), exactly like the button's own label and the
         // placeholder ghost text above already reflect.
-        prior = await getFallbackPriorEntry(ex.name, key);
+        //
+        // [STABILIZATION PHASE F5] Reuses the exact value renderWorkout
+        // already computed for this slot (fallbackPriorEntries[i], threaded
+        // through as fallbackEntry) instead of independently re-deriving it
+        // via a second getFallbackPriorEntry call. Previously these were two
+        // separate lookups kept in sync only by both calling the same
+        // function with the same arguments — a future change to the
+        // fallback's tie-breaking logic could have silently made the
+        // button's label and its actual action disagree. The own-slot log
+        // read just above is still done fresh at click time on purpose (own
+        // data can change mid-session in a way a different program's last
+        // session realistically won't).
+        prior = fallbackEntry;
       }
       if(!prior) return;
       for(let setIdx=0; setIdx<prior.sets.length; setIdx++){
