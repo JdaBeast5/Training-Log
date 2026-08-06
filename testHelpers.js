@@ -14,10 +14,45 @@ function readIndexSource(){
   return fs.readFileSync(INDEX_PATH, 'utf8');
 }
 
+// A '/' at src[i] might start a regex literal (e.g. /\bwaffles?\b(?!\s*fries)/i
+// in this codebase's FOOD_NAME_OVERRIDES table) whose "(?!...)" or similar
+// content contains parens/braces that are NOT real JS structure — treating
+// them as such breaks brace-counting. Distinguishing regex-/ from divide-/
+// from a plain string requires knowing the previous token; this uses the
+// nearest non-whitespace preceding character as a heuristic (regex literals
+// in practice only ever follow punctuation like `:` `,` `(` `[` `!` `&&`
+// `||` `return`, never something that would make '/' a division operator).
+// Returns the index of the LAST character of the literal (closing '/' or a
+// trailing flag) if this is a regex literal, or -1 if it isn't — same
+// return convention as scanQuoted/scanTemplate below.
+function scanRegexLiteralIfPresent(src, i){
+  let j = i - 1;
+  while(j >= 0 && /\s/.test(src[j])) j--;
+  const prevChar = j >= 0 ? src[j] : '';
+  const beforeReturn = /\breturn$/.test(src.slice(Math.max(0, j - 5), j + 1));
+  const punctuationContext = prevChar === '' || '([{,:;=!&|?+-*%^~<>'.includes(prevChar);
+  if(!punctuationContext && !beforeReturn) return -1;
+  let k = i + 1;
+  let inClass = false;
+  while(k < src.length){
+    const c = src[k];
+    if(c === '\\'){ k += 2; continue; }
+    if(c === '\n') return -1; // ran off the line — this wasn't actually a regex
+    if(c === '[') { inClass = true; k++; continue; }
+    if(c === ']') { inClass = false; k++; continue; }
+    if(c === '/' && !inClass) break;
+    k++;
+  }
+  if(k >= src.length || src[k] !== '/') return -1;
+  let end = k + 1;
+  while(end < src.length && /[a-z]/i.test(src[end])) end++;
+  return end - 1;
+}
+
 // Scans forward from `openIdx` (the index of the opening brace/paren) and
 // returns the index just past its matching close, respecting '...', "...",
-// `...` (with ${...} interpolation nesting) and // and /* */ comments so
-// that a brace/paren inside a string or comment never miscounts.
+// `...` (with ${...} interpolation nesting), /regex/ literals, and // and
+// /* */ comments so that a brace/paren inside any of those never miscounts.
 function scanBalanced(src, openIdx, openCh, closeCh){
   let depth = 0;
   let i = openIdx;
@@ -28,12 +63,25 @@ function scanBalanced(src, openIdx, openCh, closeCh){
     else if(c === closeCh){
       depth--;
       if(depth === 0) return i + 1;
-    } else if(c === '/' && src[i+1] === '/'){
-      const nl = src.indexOf('\n', i);
-      i = (nl === -1) ? n : nl;
-    } else if(c === '/' && src[i+1] === '*'){
-      const end = src.indexOf('*/', i+2);
-      i = (end === -1) ? n : end + 1;
+    } else if(c === '/'){
+      // `//` and `/*` are unconditionally comment starts — never ambiguous
+      // with a regex literal (an empty `//` isn't valid regex syntax; the
+      // tokenizer always reads adjacent slashes as a comment) — so these
+      // must be checked BEFORE attempting regex detection, not after. Doing
+      // it in the other order made scanRegexLiteralIfPresent misread the
+      // second slash of a `//` comment as the closing slash of an empty
+      // regex whenever the preceding context looked punctuation-like, which
+      // is most of the time right after a `{` or a previous comment line.
+      if(src[i+1] === '/'){
+        const nl = src.indexOf('\n', i);
+        i = (nl === -1) ? n : nl;
+      } else if(src[i+1] === '*'){
+        const end = src.indexOf('*/', i+2);
+        i = (end === -1) ? n : end + 1;
+      } else {
+        const regexEnd = scanRegexLiteralIfPresent(src, i);
+        if(regexEnd !== -1) i = regexEnd;
+      }
     } else if(c === '\'' || c === '"'){
       i = scanQuoted(src, i, c);
     } else if(c === '`'){
@@ -105,12 +153,20 @@ function extractConst(src, name){
     if(c === '{' || c === '(' || c === '[') depth++;
     else if(c === '}' || c === ')' || c === ']') depth--;
     else if(depth === 0 && c === ';') return src.slice(start, i + 1);
-    else if(c === '/' && src[i+1] === '/'){
-      const nl = src.indexOf('\n', i);
-      i = (nl === -1) ? n : nl;
-    } else if(c === '/' && src[i+1] === '*'){
-      const end = src.indexOf('*/', i+2);
-      i = (end === -1) ? n : end + 1;
+    else if(c === '/'){
+      // Same ordering requirement as scanBalanced above: `//`/`/*` must be
+      // checked before regex detection, since adjacent slashes are always
+      // a comment, never an empty regex.
+      if(src[i+1] === '/'){
+        const nl = src.indexOf('\n', i);
+        i = (nl === -1) ? n : nl;
+      } else if(src[i+1] === '*'){
+        const end = src.indexOf('*/', i+2);
+        i = (end === -1) ? n : end + 1;
+      } else {
+        const regexEnd = scanRegexLiteralIfPresent(src, i);
+        if(regexEnd !== -1) i = regexEnd;
+      }
     } else if(c === '\'' || c === '"'){
       i = scanQuoted(src, i, c);
     } else if(c === '`'){
