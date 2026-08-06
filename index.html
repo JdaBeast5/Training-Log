@@ -20,6 +20,23 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
+  /* [STABILIZATION PHASE E] Checked: the ~384 rgba(...) literals scattered
+     through this stylesheet, at first glance scattered hand-written alpha
+     variants, are actually all alpha-blends of the SAME already-named base
+     colors below (e.g. every rgba(91,124,255,X) is --plate-blue at some
+     opacity — confirmed by hex-decoding --plate-blue:#5B7CFF = rgb(91,124,255)).
+     The "duplication" isn't missing tokens, it's a real CSS limitation: a
+     custom property holding a full hex color can't be alpha-blended via
+     rgba() without either color-mix() or splitting each color into
+     space-separated R/G/B custom properties (--plate-blue-rgb: 91,124,255)
+     for rgba(var(...), X) — and this file uses NEITHER technique anywhere
+     today. Introducing one to mechanically rewrite ~384 call sites across a
+     ~4000-line stylesheet is real surface area for a purely cosmetic change,
+     with a genuine risk of subtle rendering differences at that scale
+     (color-mix blends in a different color space than raw rgba) — not
+     attempted here. Flagged as a real, understood pattern for a future
+     session that wants to take it on deliberately, not silently merged.
+  */
   :root{
     --bg:#0A0B0D;
     --surface:#17191D;
