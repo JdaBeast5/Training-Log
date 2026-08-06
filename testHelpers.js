@@ -222,12 +222,125 @@ async function runSandboxAsync(sourceChunks, testBody){
   return JSON.parse(json);
 }
 
+// This codebase wires up several features as `(function name(){ ... })();`
+// — a named IIFE, not a function declaration — specifically so the wiring
+// runs once at load without polluting the top-level namespace with a
+// callable. extractFunction can't find these (its regex requires the line
+// to start with `function`/`async function`); this extracts the named
+// function expression itself, `function name(){ ... }`, WITHOUT the
+// wrapping parens/invocation — the caller appends `name();` to actually run
+// it, same as this file already does inline for the extracted body.
+function extractIIFE(src, name){
+  const re = new RegExp(`^\\(function\\s+${name}\\s*\\(`, 'm');
+  const m = re.exec(src);
+  if(!m) throw new Error(`extractIIFE: no named IIFE found for ${name}`);
+  const fnStart = m.index + 1; // skip the leading '('
+  const parenOpen = src.indexOf('(', fnStart);
+  const parenClose = scanBalanced(src, parenOpen, '(', ')');
+  const braceOpen = src.indexOf('{', parenClose);
+  const braceClose = scanBalanced(src, braceOpen, '{', '}');
+  return src.slice(fnStart, braceClose);
+}
+
+// Finds `id="theId"` (or `id='theId'`), walks back to the start of that
+// tag's opening `<tagname`, then scans forward counting nested opens/closes
+// of that SAME tag name until it returns to depth 0, returning the full
+// `<tagname ...>...</tagname>` substring. Skips quoted attribute values (so
+// a `>` inside `alt=">"` can't end a tag early) and HTML comments (so a
+// `</div>` mentioned inside `<!-- -->` can't miscount). This is a markup
+// analogue of extractFunction — by identity, not by line range, for the
+// same reason: line numbers drift with every edit.
+function extractElementById(html, id){
+  const idRe = new RegExp(`id=["']${id}["']`);
+  const idMatch = idRe.exec(html);
+  if(!idMatch) throw new Error(`extractElementById: no element with id="${id}" found`);
+  const tagStart = html.lastIndexOf('<', idMatch.index);
+  if(tagStart === -1) throw new Error(`extractElementById: could not find opening < before id="${id}"`);
+  const tagNameMatch = /^<([a-zA-Z0-9-]+)/.exec(html.slice(tagStart));
+  if(!tagNameMatch) throw new Error(`extractElementById: could not read tag name at index ${tagStart}`);
+  const tagName = tagNameMatch[1];
+
+  const openRe = new RegExp(`<${tagName}(?=[\\s>])`, 'g');
+  const closeRe = new RegExp(`</${tagName}\\s*>`, 'g');
+
+  let i = tagStart;
+  let depth = 0;
+  const n = html.length;
+  while(i < n){
+    if(html.startsWith('<!--', i)){
+      const end = html.indexOf('-->', i + 4);
+      i = (end === -1) ? n : end + 3;
+      continue;
+    }
+    closeRe.lastIndex = i;
+    openRe.lastIndex = i;
+    const closeAt = html.startsWith(`</${tagName}`, i) ? i : -1;
+    if(closeAt === i){
+      const m = new RegExp(`^</${tagName}\\s*>`).exec(html.slice(i));
+      if(m){
+        depth--;
+        i += m[0].length;
+        if(depth === 0) return html.slice(tagStart, i);
+        continue;
+      }
+    }
+    const openM = new RegExp(`^<${tagName}(?=[\\s>])`).exec(html.slice(i));
+    if(openM){
+      // Advance to the end of THIS opening tag (respecting quoted attribute
+      // values) to check whether it's self-closed (`... />`) before counting.
+      let j = i + openM[0].length;
+      let selfClosed = false;
+      while(j < n){
+        const c = html[j];
+        if(c === '"' || c === '\''){
+          const end = html.indexOf(c, j + 1);
+          j = (end === -1) ? n : end + 1;
+          continue;
+        }
+        if(c === '>'){
+          selfClosed = html[j-1] === '/';
+          j++;
+          break;
+        }
+        j++;
+      }
+      depth += selfClosed ? 0 : 1;
+      i = j;
+      continue;
+    }
+    i++;
+  }
+  throw new Error(`extractElementById: never found matching close for <${tagName} id="${id}">`);
+}
+
+// For tests that need real DOM behavior (classList, dataset,
+// nextElementSibling, querySelectorAll, click events) rather than pure
+// logic — builds a jsdom document from real extracted markup, injects
+// `window.storage`/other globals as plain assignments (not `var`, so they
+// land on jsdom's actual window rather than a script-local shadow — the
+// same mistake this suite already made once with a plain vm context), then
+// runs the composed script synchronously via a real <script> tag. Returns
+// {window, document} for the caller to assert against and to fire further
+// events on.
+function runJsdom(bodyHtml, globalsSetup, scriptChunks){
+  const { JSDOM } = require('jsdom');
+  const dom = new JSDOM(`<!DOCTYPE html><body>${bodyHtml}</body>`, { runScripts: 'dangerously' });
+  const full = [globalsSetup, ...scriptChunks].join('\n\n');
+  const scriptEl = dom.window.document.createElement('script');
+  scriptEl.textContent = full;
+  dom.window.document.body.appendChild(scriptEl);
+  return { window: dom.window, document: dom.window.document };
+}
+
 module.exports = {
   readIndexSource,
   extractFunction,
   extractConst,
+  extractIIFE,
+  extractElementById,
   countCallSites,
   makeRunner,
   runSandbox,
   runSandboxAsync,
+  runJsdom,
 };
