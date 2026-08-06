@@ -5573,7 +5573,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.89';
+const APP_VERSION = '3.90';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -17319,7 +17319,7 @@ async function renderWorkout(){
               <span class="ex-x">×</span>` : ''}
               <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input ex-reps${sugClass}" aria-label="Set ${setIdx+1} reps" placeholder="${repsPlaceholder}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
               <input type="number" inputmode="decimal" enterkeyhint="next" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${setIdx+1} RPE, 5 to 10" placeholder="${placeholderSet && placeholderSet.rpe!=null ? placeholderSet.rpe : 'RPE'}" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
-              ${showPlateCalc ? '<button type="button" class="plate-btn" aria-label="Open plate calculator">🏋️</button>' : ''}
+              ${showPlateCalc ? '<button type="button" class="plate-btn" aria-label="Open plate calculator — long-press to voice log a set">🏋️</button>' : ''}
               ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" aria-label="Log this set by voice">🎤</button>' : ''}
               <button type="button" class="set-drop-btn${savedSet && savedSet.drops && savedSet.drops.length ? ' has-drops' : ''}" aria-label="Add a drop set under set ${setIdx+1}">\u2935</button>
               <button type="button" class="set-note-btn${savedSet && savedSet.note ? ' has-note' : ''}" aria-label="${savedSet && savedSet.note ? 'Edit note on set '+(setIdx+1) : 'Add a note to set '+(setIdx+1)}" aria-expanded="false">${savedSet && savedSet.note ? '\u{1F4DD}' : '\u002B'}</button>
@@ -19603,7 +19603,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
         <span class="ex-x">×</span>` : ''}
         <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input ex-reps" aria-label="Set ${newIdx+1} reps" placeholder="${getSetFieldUnit(ex.sets)}" value="">
         <input type="number" inputmode="decimal" enterkeyhint="next" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${newIdx+1} RPE, 5 to 10" placeholder="RPE" value="">
-        ${showPlateCalc ? '<button type="button" class="plate-btn" aria-label="Open plate calculator">🏋️</button>' : ''}
+        ${showPlateCalc ? '<button type="button" class="plate-btn" aria-label="Open plate calculator — long-press to voice log a set">🏋️</button>' : ''}
         ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" aria-label="Log this set by voice">🎤</button>' : ''}
         <button type="button" class="set-drop-btn" aria-label="Add a drop set under set ${newIdx+1}">\u2935</button>
         <button type="button" class="set-note-btn" aria-label="Add a note to set ${newIdx+1}" aria-expanded="false">+</button>
