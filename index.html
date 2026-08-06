@@ -5542,7 +5542,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.81';
+const APP_VERSION = '3.82';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -14866,7 +14866,7 @@ function estimateExerciseCalories(ex, weightLb){
   if(!info) return 0;
   const met = CATEGORY_MET[info.category] ?? 4.5;
   const minutes = parseEstimatedMinutes(ex, parseSetCount(ex.sets));
-  const weightKg = (weightLb || 180) * 0.453592;
+  const weightKg = (weightLb || 180) * LB_PER_KG;
   return Math.round(met * weightKg * (minutes/60));
 }
 
@@ -20178,7 +20178,7 @@ document.getElementById('weightUnitSelect').addEventListener('change', async (e)
 
 function computeTargets(p){
   const heightCm = ((Number(p.heightFt)||0)*12 + (Number(p.heightIn)||0)) * 2.54;
-  const weightKg = (Number(p.weight)||150) * 0.453592;
+  const weightKg = (Number(p.weight)||150) * LB_PER_KG;
   const age = Number(p.age) || 30;
 
   let bmr;
