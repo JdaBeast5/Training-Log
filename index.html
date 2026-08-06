@@ -5568,7 +5568,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.87';
+const APP_VERSION = '3.88';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -22027,6 +22027,19 @@ const foodLibrary = {
 };
 
 let activeCat = 'Protein';
+
+// [STABILIZATION PHASE F3] Every fresh page load used to land on Protein
+// regardless of which category the person actually searches most — this
+// was set once at init and only ever mutated by tapping a category
+// button, never read back from storage. Same persisted-preference pattern
+// already used for weightUnit (loadWeightUnit/saveWeightUnit) and
+// active-view, not a new one.
+async function loadActiveCat(){
+  try{
+    const res = await window.storage.get('food-active-category');
+    if(res && res.value) activeCat = res.value;
+  }catch(e){}
+}
 let activeRestaurant = null;
 let todaysFoodLog = [];
 let favoriteFoods = [];
@@ -23360,7 +23373,13 @@ function renderFoodCats(){
     const btn = document.createElement('button');
     btn.className = 'food-cat-btn' + (cat===activeCat ? ' active' : '');
     btn.textContent = cat;
-    btn.onclick = ()=>{ activeCat = cat; activeRestaurant = null; renderFoodCats(); renderFoodItems(); };
+    btn.onclick = ()=>{
+      activeCat = cat;
+      activeRestaurant = null;
+      try{ window.storage.set('food-active-category', cat); }catch(e){}
+      renderFoodCats();
+      renderFoodItems();
+    };
     catsEl.appendChild(btn);
   });
 }
@@ -32123,6 +32142,7 @@ if(activeUserId){
       showApiKeyConnected();
     }
     updateHideAvoidedToggleVisibility();
+    await loadActiveCat();
     renderFoodCats();
     renderFoodItems();
     document.getElementById('usdaKeySettingsSlot').appendChild(buildUsdaKeyUpgradePrompt());
