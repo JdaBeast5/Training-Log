@@ -27630,6 +27630,24 @@ async function callClaudeChat(apiKey, systemPrompt, messages, maxTokens, model, 
 // low protein colliding with rising volume, water intake lagging on the
 // days sessions felt hardest — rather than restating each metric in
 // isolation the way the rule-based cards already do.
+// [STABILIZATION PHASE C3] Checked against the Analysis tab's per-metric
+// trend renderers (renderNutritionTrend/renderWaterTrend/renderSleepTrend,
+// all funneling through renderDayValueTrend) for genuine aggregation
+// duplication — found NOT to be a like-for-like case worth merging.
+// They differ in every dimension that would matter for a shared helper:
+// lookback window (this reads the last 10 logged days per metric;
+// renderDayValueTrend reads the last 16), minimum-data threshold (3 here,
+// 2 there), and what's actually computed (this also averages protein
+// alongside calories and emits a full oldest-to-newest daily breakdown
+// line for the model to reason over; the trend cards compute one value's
+// average against a threshold for a canned local sentence, nothing else).
+// Forcing a shared aggregator would mean either quietly changing one
+// side's window/threshold or building a parameterized wrapper thin enough
+// that it wouldn't meaningfully reduce duplication — not a good trade for
+// either. The real duplication (the expensive per-source storage scan)
+// was already consolidated once, into fetchFoodDays/readWorkoutCorpus/etc.
+// — this is a case of two different, intentionally separate calculations
+// sharing that same underlying corpus, which is the correct layering.
 async function buildCrossMetricInsightsContext(){
 
   // Same concurrency fix as buildCoachChatContext: these sources are
