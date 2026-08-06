@@ -146,15 +146,20 @@ function assertMod(){
 
 // Minimal test runner: register cases, run them, print a summary, exit
 // non-zero on any failure so `npm test`/check.sh actually catches it.
+// `run()` is async so test functions may themselves be async (most of this
+// app's storage-reading functions are) — check.sh awaits each test file's
+// module load, and Node keeps the process alive until pending promises
+// settle, so a plain top-level `run();` call at the bottom of a test file
+// still works whether or not any case inside it is async.
 function makeRunner(fileLabel){
   const cases = [];
   function test(name, fn){ cases.push({name, fn}); }
-  function run(){
+  async function run(){
     const assert = assertMod();
     let pass = 0, fail = 0;
     for(const {name, fn} of cases){
       try{
-        fn(assert);
+        await fn(assert);
         pass++;
         console.log(`  ok - ${name}`);
       }catch(e){
@@ -196,6 +201,27 @@ function runSandbox(sourceChunks, testBody){
   return JSON.parse(json);
 }
 
+// Same contract as runSandbox, but for test bodies that need `await` (most
+// of this app's storage-reading functions are async). Top-level await isn't
+// legal in a classic vm script, so the composed body is wrapped in an async
+// IIFE; vm.runInContext then returns a promise the caller awaits.
+async function runSandboxAsync(sourceChunks, testBody){
+  const vm = require('vm');
+  const context = vm.createContext({ console });
+  const full = [
+    "var weightUnit = 'lb';",
+    "var equipmentProfile = null;",
+    "var __capture = [];",
+    ...sourceChunks,
+    "(async () => {",
+    testBody,
+    "return JSON.stringify(__capture);",
+    "})();",
+  ].join('\n\n');
+  const json = await vm.runInContext(full, context, { filename: 'sandbox-async.js' });
+  return JSON.parse(json);
+}
+
 module.exports = {
   readIndexSource,
   extractFunction,
@@ -203,4 +229,5 @@ module.exports = {
   countCallSites,
   makeRunner,
   runSandbox,
+  runSandboxAsync,
 };
