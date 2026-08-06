@@ -5542,7 +5542,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.82';
+const APP_VERSION = '3.83';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -12987,6 +12987,21 @@ function dateKeyMinusDays(key, n){
   return `${y}-${m}-${day}`;
 }
 
+// Every date-label formatter in the app (formatShortDate, formatLogDateLabel,
+// fmtWeekLabel, fmtDayLabel) repeated the same two steps: parse a
+// "YYYY-MM-DD" key as a LOCAL-midnight Date — never toISOString()/UTC, for
+// the same reason mondayOf's own comment documents (that once shifted a
+// week boundary a day early for anyone east of Greenwich) — then hand it to
+// toLocaleDateString. One shared pair instead of four independent copies of
+// the same idiom, each formatter keeping only what's actually different
+// about it (its own options object, or Today/Yesterday special-casing).
+function parseDateKey(dateKey){
+  return new Date(dateKey+'T00:00:00');
+}
+function formatDate(date, opts){
+  return date.toLocaleDateString('en-US', opts);
+}
+
 // A same-day clock reading ("14:32"), used to tag WHEN something was logged
 // (not just what day) — feeds the Diabetes meal-timing insight below. Deliberately
 // local wall-clock time, not a full timestamp: every comparison this feeds is
@@ -18827,10 +18842,10 @@ function durationMinutesOf(entry, ex){
 // ambiguous once a lift has two years of history behind it — the year is added
 // only when it isn't the current one, which keeps recent rows unchanged.
 function formatShortDate(dateKey){
-  const d = new Date(dateKey+'T00:00:00');
+  const d = parseDateKey(dateKey);
   const opts = {month:'short', day:'numeric'};
   if(d.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
-  return d.toLocaleDateString('en-US', opts);
+  return formatDate(d, opts);
 }
 
 async function openExerciseHistory(exIdx, ex){
@@ -25545,7 +25560,7 @@ function formatLogDateLabel(dateKey){
   const today = getTodayKey();
   if(dateKey === today) return 'Today';
   if(dateKey === dateKeyMinusDays(today, 1)) return 'Yesterday';
-  return new Date(dateKey+'T00:00:00').toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+  return fmtDayLabel(dateKey);
 }
 
 function renderLogDateBar(){
@@ -25954,10 +25969,10 @@ function isInCurrentCalendarWeek(dateKey){
 }
 
 function fmtWeekLabel(mondayStr){
-  const start = new Date(mondayStr+'T00:00:00');
+  const start = parseDateKey(mondayStr);
   const end = new Date(start); end.setDate(end.getDate()+6);
   const opts = {month:'short', day:'numeric'};
-  return `${start.toLocaleDateString('en-US',opts)} – ${end.toLocaleDateString('en-US',opts)}`;
+  return `${formatDate(start, opts)} – ${formatDate(end, opts)}`;
 }
 
 // [DATA ACCESS (fetch*)] --------------------------------------------------------
@@ -27139,13 +27154,14 @@ async function renderPrTimeline(){
 }
 
 function fmtMonthLabel(monthKey){
+  // Not parseDateKey: this key is "YYYY-MM", not the "YYYY-MM-DD" shape
+  // every other formatter here takes.
   const d = new Date(monthKey+'-01T00:00:00');
-  return d.toLocaleDateString('en-US',{month:'long', year:'numeric'});
+  return formatDate(d, {month:'long', year:'numeric'});
 }
 
 function fmtDayLabel(dateStr){
-  const d = new Date(dateStr+'T00:00:00');
-  return d.toLocaleDateString('en-US',{weekday:'short', month:'short', day:'numeric'});
+  return formatDate(parseDateKey(dateStr), {weekday:'short', month:'short', day:'numeric'});
 }
 
 // [AI] ---------------------------------------------------------------
