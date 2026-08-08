@@ -66,6 +66,17 @@
     --plate-yellow-rgb:245,197,24;
     --plate-green-rgb:50,215,75;
     --plate-orange-rgb:255,122,51;
+    /* The two most-repeated CTA gradients (5x and 4x respectively) as of a
+       grep across the file — tokenized as literal 1:1 dedup, same as the
+       --plate-*-rgb shadow work above. NOT a full gradient-token system:
+       checked the other CTA gradients that use the same two base colors and
+       found real variance that isn't obviously drift — a second blue light-
+       stop (#7C97FF, 3 uses) and a second green stop percentage (60%, 2
+       uses) both exist alongside these. Forcing those into these same two
+       tokens would be a real (if subtle) visual retune, not a preserving
+       dedup, so they're left as literals rather than guessed at. */
+    --cta-gradient-green:linear-gradient(160deg, #4FE168, var(--plate-green) 55%);
+    --cta-gradient-blue:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%);
     /* The left column every row in a sets block opens with: the set number on
        a working set, the done-checkbox on a warm-up step. It is a token and
        not a literal in two rules because the weight/reps columns only line up
@@ -326,7 +337,7 @@
   .plate-wrap{position:relative; display:inline-flex;}
   .day-done-badge{
     position:absolute; top:-2px; right:-2px; width:18px; height:18px; border-radius:50%;
-    background:linear-gradient(160deg, #4FE168, var(--plate-green) 55%);
+    background:var(--cta-gradient-green);
     border:2px solid var(--bg);
     display:flex; align-items:center; justify-content:center;
     color:#fff; font-size:10px; font-weight:700; line-height:1;
@@ -498,7 +509,7 @@
     transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .supplement-row.done .supplement-check{
-    background:linear-gradient(160deg, #4FE168, var(--plate-green) 55%); border-color:var(--plate-green); color:#fff;
+    background:var(--cta-gradient-green); border-color:var(--plate-green); color:#fff;
     box-shadow:0 1px 0 rgba(255,255,255,0.25) inset;
   }
   .supplement-row.done span:last-child{color:var(--text-muted); text-decoration:line-through; text-decoration-color:var(--line-bright);}
@@ -515,7 +526,7 @@
     transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .grocery-item.done .grocery-check{
-    background:linear-gradient(160deg, #4FE168, var(--plate-green) 55%); border-color:var(--plate-green); color:#fff;
+    background:var(--cta-gradient-green); border-color:var(--plate-green); color:#fff;
     box-shadow:0 1px 0 rgba(255,255,255,0.25) inset;
   }
   .grocery-item.done .grocery-item-text{color:var(--text-muted); text-decoration:line-through; text-decoration-color:var(--line-bright);}
@@ -634,7 +645,7 @@
     width:22px; height:22px;
   }
   .exercise input[type=checkbox]:checked{
-    background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%); border-color:var(--plate-blue);
+    background:var(--cta-gradient-blue); border-color:var(--plate-blue);
     box-shadow:0 1px 0 rgba(255,255,255,0.25) inset;
   }
   .ex-thumb{
@@ -1383,7 +1394,7 @@
   .program-rec-actions{display:flex; gap:8px; margin-top:10px;}
   .program-rec-btn{
     position:relative; overflow:hidden;
-    flex:1; padding:10px; background:linear-gradient(160deg, #4FE168, var(--plate-green) 55%); color:#fff; border:none;
+    flex:1; padding:10px; background:var(--cta-gradient-green); color:#fff; border:none;
     border-radius:var(--radius-sm); font-weight:600; font-size:12.5px; cursor:pointer; font-family:'Inter',sans-serif;
     box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 5px 14px -6px rgba(var(--plate-green-rgb),0.5);
     transition:transform 0.15s var(--ease-smooth);
@@ -1701,7 +1712,7 @@
   .recipe-link-btn:active{transform:scale(0.96);}
   .recipe-log-btn{
     flex:1; padding:9px 10px; border:none; border-radius:var(--radius-sm);
-    background:linear-gradient(160deg, #4FE168, var(--plate-green) 55%); color:#fff;
+    background:var(--cta-gradient-green); color:#fff;
     font-family:'Inter',sans-serif; font-size:12px; font-weight:600; cursor:pointer;
     box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 4px 12px -6px rgba(var(--plate-green-rgb),0.45);
     transition:transform 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
@@ -2162,7 +2173,7 @@
   }
   .gsearch-hit:active{ transform:scale(0.99); }
   .gsearch-hit-tab{ color:var(--text-muted); font-size:11px; flex:0 0 auto; }
-  .nav-pill.active{background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%); border-color:var(--plate-blue); color:#fff; box-shadow:0 1px 0 rgba(255,255,255,0.2) inset, 0 3px 12px rgba(var(--plate-blue-rgb),0.4);}
+  .nav-pill.active{background:var(--cta-gradient-blue); border-color:var(--plate-blue); color:#fff; box-shadow:0 1px 0 rgba(255,255,255,0.2) inset, 0 3px 12px rgba(var(--plate-blue-rgb),0.4);}
 
   /* --- Log date selector: lets Today/Log tab actions apply to a past date
      instead of the real current day. Uses the same translucent-gradient +
@@ -2200,7 +2211,7 @@
     border-radius:1px; pointer-events:none;
   }
   .log-date-today-btn{
-    flex:0 0 auto; background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%); color:#fff; border:none; border-radius:var(--radius-pill);
+    flex:0 0 auto; background:var(--cta-gradient-blue); color:#fff; border:none; border-radius:var(--radius-pill);
     font-size:11px; font-weight:700; padding:6px 11px; cursor:pointer;
     box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 4px 12px -6px rgba(var(--plate-blue-rgb),0.55);
   }
@@ -2438,7 +2449,7 @@
   }
   .coach-chat-empty{color:var(--text-muted); font-size:12.5px; text-align:center; padding:20px 10px;}
   .coach-chat-bubble{max-width:85%; padding:10px 13px; border-radius:var(--radius-md); font-size:13px; line-height:1.5;}
-  .coach-chat-bubble.user{align-self:flex-end; background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%); color:#fff; border-bottom-right-radius:4px;}
+  .coach-chat-bubble.user{align-self:flex-end; background:var(--cta-gradient-blue); color:#fff; border-bottom-right-radius:4px;}
   .coach-chat-bubble.assistant{align-self:flex-start; background:var(--surface2); border:1px solid var(--line); border-bottom-left-radius:4px;}
   .coach-chat-bubble.thinking{color:var(--text-muted); font-style:italic;}
   .coach-chat-input-row{display:flex; gap:8px;}
@@ -5585,7 +5596,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.92';
+const APP_VERSION = '3.93';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
