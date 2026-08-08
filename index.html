@@ -3204,6 +3204,15 @@
   }
   /* Overlays fade rather than move, so opacity is the honest hint here. */
   .sub-modal-overlay, .calendar-modal-overlay{ will-change:opacity; }
+  /* [PHASE H] .view-enter/.view-exit (the tab-switch crossfade, both
+     opacity+transform) fit this section's own "few named, frequently
+     re-triggered elements" criterion — at most one of each is ever present
+     at a time, same shape as the sheets/overlays above. Deliberately did
+     NOT add this to .card-stagger: that class now lands on every view card
+     AND every rebuilt list row (H1.4), often a dozen-plus elements at once
+     on a single render — hinting all of them simultaneously is exactly the
+     "broad blanket hint" this section's own convention exists to avoid. */
+  .view-enter, .view-exit{ will-change:opacity, transform; }
 
   /* Program provenance: the intro always visible, the sourcing one tap away. */
   .program-intro{
@@ -5618,7 +5627,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.96';
+const APP_VERSION = '3.97';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
