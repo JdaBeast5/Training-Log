@@ -2718,6 +2718,18 @@
   /* The sheet can hold years of sessions, so it scrolls rather than growing
      past the viewport. max-height leaves room for the header above it. */
   #exHistoryBody{max-height:62vh; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+  #whatsNewBody{max-height:62vh; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+  .whats-new-entry{padding:12px 0; border-bottom:1px solid var(--line-soft);}
+  .whats-new-entry:last-child{border-bottom:none;}
+  .whats-new-version{
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase;
+    letter-spacing:0.5px; color:var(--text-muted);
+  }
+  .whats-new-headline{font-size:14px; font-weight:600; margin-top:2px;}
+  .whats-new-points{
+    margin:6px 0 0 18px; padding:0; font-size:12.5px; line-height:1.5; color:var(--text-muted);
+  }
+  .whats-new-points li{margin-top:3px;}
   .care-rest-btn{
     margin-top:12px; background:var(--plate-blue); color:#fff; border:none; padding:9px 14px;
     border-radius:var(--radius-sm); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
@@ -5470,6 +5482,16 @@
   </div>
 </div>
 
+<div class="sub-modal-overlay" id="whatsNewOverlay" role="dialog" aria-modal="true" aria-labelledby="whatsNewTitle">
+  <div class="sub-modal-sheet">
+    <div class="sub-modal-header">
+      <div class="sub-modal-title" id="whatsNewTitle">What's New</div>
+      <button class="sub-modal-close" id="whatsNewClose" aria-label="Close What's New">✕</button>
+    </div>
+    <div id="whatsNewBody"></div>
+  </div>
+</div>
+
 <div class="photo-lightbox" id="photoLightbox">
   <div class="photo-lightbox-bg" id="photoLightboxBg"></div>
   <img id="photoLightboxImg" src="" alt="Progress photo">
@@ -5602,6 +5624,7 @@ function bootMark(name){
      program-rec-dismissed-key           -> string (which recommendation was last dismissed)
      onboarding-dismissed                -> "1" | "0"
      voice-hint-dismissed                -> "1" | "0"
+     whats-new-last-seen                 -> string (highest APP_VERSION the What's New dialog has been shown for)
      streak-last-celebrated              -> number (streak length last celebrated, avoids re-firing)
      active-view                         -> string (which top-level tab was last open)
      card-open:{cardId}                  -> "1" | "0" (collapsible card open/closed state)
@@ -5632,8 +5655,63 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.98';
+const APP_VERSION = '3.99';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
+
+// [WHAT'S NEW] -------------------------------------------------------------
+// One short entry per APP_VERSION bump, written for the person USING the
+// app, not the person shipping it — a headline plus 2-4 short bullets, in
+// plain language. "Consolidated colored-glow box-shadow literals into
+// --plate-*-rgb tokens" belongs in a commit message; "more consistent glow
+// effects across buttons and cards" belongs here. Adding an entry here is a
+// third mechanical step alongside bumping APP_VERSION and sw.js VERSION —
+// do it every time, even for a change that's mostly invisible (say so
+// honestly rather than skipping the entry).
+const WHATS_NEW = {
+  '3.86': { headline: 'Same as Last Time now marks the exercise done', points: [
+    'Using the 1-tap repeat button now checks the exercise off, same as filling in every field by hand.',
+  ]},
+  '3.87': { headline: 'The Enter key now jumps between fields', points: [
+    'Logging a set: Enter moves you from weight to reps to RPE instead of doing nothing.',
+  ]},
+  '3.88': { headline: 'Food search remembers your last category', points: [
+    'No more starting back at Protein every time you open food search.',
+  ]},
+  '3.89': { headline: 'Smoother, more reliable "Same as Last Time"', points: [
+    'Small behind-the-scenes fix so the button and its label can never disagree about what they\'ll log.',
+  ]},
+  '3.90': { headline: 'Voice logging is easier to find', points: [
+    'The plate calculator button now hints that a long-press lets you log a set by voice.',
+  ]},
+  '3.91': { headline: 'Buttons feel more responsive', points: [
+    'Taps on rows and buttons now press down with a little squeeze instead of just fading.',
+  ]},
+  '3.92': { headline: 'More consistent glow effects', points: [
+    'Buttons and cards now share the same glow treatment instead of dozens of slightly different ones.',
+  ]},
+  '3.93': { headline: 'Cleaner button gradients', points: [
+    'Key buttons now use a more unified color gradient.',
+  ]},
+  '3.94': { headline: 'A touch more shine', points: [
+    'Extended the glassy top-highlight look to more buttons for a more polished feel.',
+  ]},
+  '3.95': { headline: 'Smoother tab switching', points: [
+    'Switching tabs now fades instead of snapping instantly.',
+  ]},
+  '3.96': { headline: 'Smoother list updates', points: [
+    'Adding or removing items from a list now animates in and out instead of popping.',
+  ]},
+  '3.97': { headline: 'Under-the-hood performance tuning', points: [
+    'Nothing to see here, but tab-switching animations should feel a touch smoother.',
+  ]},
+  '3.98': { headline: 'More performance polish', points: [
+    'A bit more smoothness tuning, this time for the floating buttons.',
+  ]},
+  '3.99': { headline: 'See what changed after every update', points: [
+    'This screen! A quick, plain-language summary of what changed shows up after an update.',
+    'Find it anytime from Settings → Data & maintenance → "What\'s New".',
+  ]},
+};
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
 // Progress photos live in IndexedDB, not localStorage, and as Blobs, not data
@@ -15671,6 +15749,11 @@ document.getElementById('exHistoryOverlay').addEventListener('click', (e)=>{
   if(e.target.id === 'exHistoryOverlay') closeExerciseHistory();
 });
 
+document.getElementById('whatsNewClose').addEventListener('click', closeWhatsNew);
+document.getElementById('whatsNewOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'whatsNewOverlay') closeWhatsNew();
+});
+
 document.getElementById('subModalOverlay').addEventListener('click', (e)=>{
   // Only the backdrop itself closes it — clicks inside the sheet shouldn't bubble here anyway since sub-option rows have their own handlers, but this guards against clicks on the sheet's own padding.
   if(e.target.id === 'subModalOverlay') closeExerciseSubModal();
@@ -19053,6 +19136,81 @@ function closeExerciseHistory(){
 }
 
 // [EXERCISE HISTORY DRILL-DOWN END] --------------------------------------------
+
+// [WHAT'S NEW] ------------------------------------------------------------------
+// Numeric, not string, comparison — "3.9" > "3.10" as plain strings, which
+// would silently stop showing new entries the moment either segment reaches
+// double digits.
+function compareVersions(a, b){
+  const pa = String(a).split('.').map(Number);
+  const pb = String(b).split('.').map(Number);
+  const len = Math.max(pa.length, pb.length);
+  for(let i = 0; i < len; i++){
+    const na = pa[i] || 0, nb = pb[i] || 0;
+    if(na !== nb) return na - nb;
+  }
+  return 0;
+}
+
+function renderWhatsNewEntries(entries){
+  return entries.map(([version, entry])=> `
+    <div class="whats-new-entry">
+      <div class="whats-new-version">v${escapeHtml(version)}</div>
+      <div class="whats-new-headline">${escapeHtml(entry.headline)}</div>
+      <ul class="whats-new-points">${entry.points.map(p=> `<li>${escapeHtml(p)}</li>`).join('')}</ul>
+    </div>
+  `).join('');
+}
+
+function openWhatsNew(entries){
+  const overlay = document.getElementById('whatsNewOverlay');
+  const body = document.getElementById('whatsNewBody');
+  if(!overlay || !body) return;
+  body.innerHTML = renderWhatsNewEntries(entries);
+  overlay.classList.add('active');
+}
+
+function closeWhatsNew(){
+  document.getElementById('whatsNewOverlay').classList.remove('active');
+}
+
+// Called once at boot. A fresh install has nothing to compare against — it
+// silently records the current version as "seen" rather than announcing
+// changes to someone who has never used any prior version. Every subsequent
+// boot after a real update shows only the entries newer than what was last
+// seen (capped at 5, so returning after months doesn't dump a wall of text),
+// and marks the dialog seen the moment it's shown — not gated on how it's
+// dismissed, same as this app's other one-shot dismissible hints.
+async function checkWhatsNew(){
+  let lastSeen = null;
+  try{
+    // A never-set key REJECTS ("not found") rather than resolving null on
+    // this app's storage layer — caught here and left as the initialized
+    // default so a fresh install still falls through to the baseline-setting
+    // branch below, instead of silently bailing out of the whole function
+    // and never recording a baseline at all (checked live: it did exactly
+    // that before this was caught).
+    const res = await window.storage.get('whats-new-last-seen');
+    lastSeen = res && res.value ? res.value : null;
+  }catch(e){ lastSeen = null; }
+
+  if(lastSeen === null){
+    try{ await window.storage.set('whats-new-last-seen', APP_VERSION); }catch(e){}
+    return;
+  }
+  if(compareVersions(lastSeen, APP_VERSION) >= 0) return;
+
+  const unseen = Object.keys(WHATS_NEW)
+    .filter(v=> compareVersions(v, lastSeen) > 0 && compareVersions(v, APP_VERSION) <= 0)
+    .sort(compareVersions);
+  if(unseen.length === 0){
+    try{ await window.storage.set('whats-new-last-seen', APP_VERSION); }catch(e){}
+    return;
+  }
+  const shown = unseen.slice(-5).reverse().map(v=> [v, WHATS_NEW[v]]);
+  try{ await window.storage.set('whats-new-last-seen', APP_VERSION); }catch(e){}
+  openWhatsNew(shown);
+}
 
 async function refreshSessionSummary(row, exIdx, ex){
   const log = await getExLog(activeDay, exIdx, subVariantOf(ex));
@@ -25601,7 +25759,8 @@ function switchView(active, opts){
 const SCROLL_LOCK_OVERLAYS = [
   'subModalOverlay', 'calendarModalOverlay', 'photoLightbox',
   'barcodeScannerOverlay', 'coachFabModal', 'userPickerOverlay',
-  'exHistoryOverlay', 'exEditOverlay', 'globalSearchOverlay', 'settingsOverlay'
+  'exHistoryOverlay', 'exEditOverlay', 'globalSearchOverlay', 'settingsOverlay',
+  'whatsNewOverlay'
 ];
 let scrollLockY = 0;
 let scrollLockActive = false;
@@ -25671,6 +25830,7 @@ const OVERLAY_CLOSERS = {
   exEditOverlay:        ()=> closeExerciseEditor(),
   settingsOverlay:      ()=> { const b = document.getElementById('settingsClose'); if(b) b.click(); },
   globalSearchOverlay:  ()=> closeGlobalSearch(),
+  whatsNewOverlay:      ()=> closeWhatsNew(),
   // userPickerOverlay is deliberately absent. It is the "who is using this
   // device" gate, and there is nothing behind it to go back to — dismissing it
   // would leave the app with no active profile.
@@ -31330,7 +31490,16 @@ async function runDiagnostics(){
     + diagRow('Backup', backup)
     + diagRow('Cold start', checkBootPerformance())
     + `<div class="history-hint field-note">App v${APP_VERSION} · schema v${SCHEMA_VERSION}. "Force refresh" clears the cached copy of the app and reloads from the server. It does not touch any of your logged data.</div>`
-    + `<div class="app-banner-actions"><button type="button" class="app-banner-btn app-banner-btn-danger" id="diagForceRefresh">Force refresh</button></div>`;
+    + `<div class="app-banner-actions"><button type="button" class="app-banner-btn app-banner-btn-danger" id="diagForceRefresh">Force refresh</button><button type="button" class="app-banner-btn" id="diagWhatsNew">What's New</button></div>`;
+
+  const whatsNewBtn = document.getElementById('diagWhatsNew');
+  // On-demand: always the most recent entries, regardless of whether the
+  // boot-time check has already marked them seen — an explicit "let me look"
+  // action, not tied to (and doesn't touch) whats-new-last-seen.
+  if(whatsNewBtn) whatsNewBtn.addEventListener('click', ()=>{
+    const recent = Object.keys(WHATS_NEW).sort(compareVersions).slice(-5).reverse().map(v=> [v, WHATS_NEW[v]]);
+    openWhatsNew(recent);
+  });
 
   const btn = document.getElementById('diagForceRefresh');
   if(btn) btn.addEventListener('click', async ()=>{
@@ -32340,6 +32509,7 @@ if(activeUserId){
     await restoreActiveView();
     await restoreGymMode();
     restoreRestTimer();
+    await checkWhatsNew();
     bootMark('initEnd');
   })();
 
