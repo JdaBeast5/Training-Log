@@ -5618,7 +5618,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.95';
+const APP_VERSION = '3.96';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -24459,7 +24459,27 @@ function makeSwipeable(itemEl, onDelete){
   }
   content.addEventListener('pointerup', endDrag);
   content.addEventListener('pointercancel', endDrag);
-  deleteBg.addEventListener('click', onDelete);
+  deleteBg.addEventListener('click', async ()=>{
+    // Collapse the row itself before the caller's onDelete commits the
+    // removal and rebuilds the list — without this, a swiped-open row is
+    // simply gone the instant the underlying data changes, with no
+    // acknowledgement of the tap that just happened. Skipped entirely
+    // under reduced motion: waiting out an animation to confirm a delete
+    // is exactly what that preference exists to avoid — the global CSS
+    // duration-collapse (`*{animation-duration:0.01ms}`) doesn't reach an
+    // unconditional JS setTimeout, so this checks explicitly.
+    const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(!reduceMotion){
+      itemEl.style.transition = 'max-height 0.2s var(--ease-smooth), opacity 0.2s var(--ease-smooth), margin-bottom 0.2s var(--ease-smooth)';
+      itemEl.style.maxHeight = itemEl.offsetHeight + 'px'; // lock in the real height so the next line has something to animate FROM
+      void itemEl.offsetHeight; // force reflow
+      itemEl.style.maxHeight = '0px';
+      itemEl.style.opacity = '0';
+      itemEl.style.marginBottom = '0px';
+      await new Promise(res=> setTimeout(res, 200));
+    }
+    onDelete();
+  });
 }
 
 // One wiring for every swipe-to-delete list backed by a stored array.
@@ -24519,8 +24539,15 @@ function wireSwipeDeleteList(container, sorted, source, opts){
 }
 
 function buildSwipeItem(innerHtml){
+  // card-stagger (not a new class) — every list this builds rows for
+  // (food log, weight/BP/glucose, grocery) currently rebuilds via a full
+  // innerHTML replace with zero enter animation, unlike view-level cards.
+  // Since these are genuinely fresh DOM nodes each render (not persistent
+  // elements being re-triggered), just carrying the class is enough — no
+  // JS stagger/reflow dance needed, and reduced-motion is already covered
+  // by the global `*{animation-duration:0.01ms!important}` rule.
   return `
-    <div class="swipe-item">
+    <div class="swipe-item card-stagger">
       <div class="swipe-delete-bg">🗑️</div>
       <div class="swipe-content">${innerHtml}</div>
     </div>
