@@ -77,6 +77,17 @@
        dedup, so they're left as literals rather than guessed at. */
     --cta-gradient-green:linear-gradient(160deg, #4FE168, var(--plate-green) 55%);
     --cta-gradient-blue:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%);
+    /* The glossy top-highlight already used on .macro-bar-fill/.vol-bar-fill
+       (a 180deg white-to-transparent sweep over the top ~55% of a filled
+       gradient surface) — tokenized here since Phase H extends it to two
+       more gradient-filled surfaces below (.save-btn, .nav-pill.active).
+       Layered into `background` as a second image rather than a new
+       ::before/::after: .save-btn's ::after slot is already used for its
+       shimmer-sweep animation, and an absolutely-positioned pseudo-element
+       would paint OVER the button's plain (unwrapped) text per normal CSS
+       stacking order — layering into the background itself paints behind
+       all content unconditionally, no z-index games needed. */
+    --shine-gloss:linear-gradient(180deg, rgba(255,255,255,0.32), rgba(255,255,255,0) 55%);
     /* The left column every row in a sets block opens with: the set number on
        a working set, the done-checkbox on a warm-up step. It is a token and
        not a literal in two rules because the weight/reps columns only line up
@@ -1266,7 +1277,7 @@
   .macro-label{width:64px; font-size:12.5px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
   .macro-bar-track{flex:1; height:9px; background:var(--surface2); border-radius:5px; overflow:hidden;}
   .macro-bar-fill{position:relative; height:100%; border-radius:5px; transition:width 0.5s var(--ease-smooth);}
-  .macro-bar-fill::after{content:''; position:absolute; inset:0; border-radius:5px; background:linear-gradient(180deg, rgba(255,255,255,0.32), rgba(255,255,255,0) 55%);}
+  .macro-bar-fill::after{content:''; position:absolute; inset:0; border-radius:5px; background:var(--shine-gloss);}
   .macro-val{
     width:78px; text-align:right; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12.5px; color:var(--text);
   }
@@ -1278,7 +1289,7 @@
   .save-btn{
     position:relative; overflow:hidden;
     width:100%; margin-top:14px; padding:12px; border:none; border-radius:var(--radius-sm);
-    background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 55%); color:#fff; font-weight:600; font-size:14px;
+    background:var(--shine-gloss), linear-gradient(160deg, #6E8AFF, var(--plate-blue) 55%); color:#fff; font-weight:600; font-size:14px;
     letter-spacing:-0.005em;
     font-family:'Inter',sans-serif; cursor:pointer;
     box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 16px -6px rgba(var(--plate-blue-rgb),0.55);
@@ -1756,7 +1767,7 @@
   .vol-row-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:13px; font-weight:600;}
   .vol-bar-track{height:8px; background:var(--surface2); border-radius:5px; overflow:hidden;}
   .vol-bar-fill{position:relative; height:100%; background:linear-gradient(160deg, #7C97FF, var(--plate-blue) 60%); border-radius:5px; transition:width 0.5s var(--ease-smooth);}
-  .vol-bar-fill::after{content:''; position:absolute; inset:0; border-radius:5px; background:linear-gradient(180deg, rgba(255,255,255,0.32), rgba(255,255,255,0) 55%);}
+  .vol-bar-fill::after{content:''; position:absolute; inset:0; border-radius:5px; background:var(--shine-gloss);}
   .vol-bar-labels{display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-muted); margin-top:4px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
   .vol-landmark{font-size:11px; margin-top:6px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
   .vol-landmark-within{color:var(--plate-green);}
@@ -2173,7 +2184,7 @@
   }
   .gsearch-hit:active{ transform:scale(0.99); }
   .gsearch-hit-tab{ color:var(--text-muted); font-size:11px; flex:0 0 auto; }
-  .nav-pill.active{background:var(--cta-gradient-blue); border-color:var(--plate-blue); color:#fff; box-shadow:0 1px 0 rgba(255,255,255,0.2) inset, 0 3px 12px rgba(var(--plate-blue-rgb),0.4);}
+  .nav-pill.active{background:var(--shine-gloss), var(--cta-gradient-blue); border-color:var(--plate-blue); color:#fff; box-shadow:0 1px 0 rgba(255,255,255,0.2) inset, 0 3px 12px rgba(var(--plate-blue-rgb),0.4);}
 
   /* --- Log date selector: lets Today/Log tab actions apply to a past date
      instead of the real current day. Uses the same translucent-gradient +
@@ -5596,7 +5607,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.93';
+const APP_VERSION = '3.94';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
