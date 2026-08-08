@@ -597,6 +597,17 @@
     from{ opacity:0; transform:translateY(10px); }
     to{ opacity:1; transform:translateY(0); }
   }
+  /* The outgoing tab used to vanish via a synchronous display:none in the
+     same tick the incoming tab started fading in — a hard cut underneath a
+     soft entrance. Shorter than .view-enter's 0.32s on purpose: this should
+     read as the old view quickly dissolving out of the way, not as an
+     equal partner in a symmetric crossfade. pointer-events:none so a tap
+     mid-fade can't land on content that's on its way out. */
+  .view-exit{ animation:viewFadeOut 0.15s var(--ease-smooth) forwards; pointer-events:none; }
+  @keyframes viewFadeOut{
+    from{ opacity:1; }
+    to{ opacity:0; }
+  }
   .card-stagger{ opacity:0; transform:translateY(14px); animation:cardRise 0.42s var(--ease-smooth) forwards; }
   @keyframes cardRise{ to{ opacity:1; transform:translateY(0); } }
 
@@ -5607,7 +5618,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.94';
+const APP_VERSION = '3.95';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -25459,6 +25470,7 @@ function switchView(active, opts){
   Object.keys(views).forEach(key=>{
     const viewEl = document.getElementById(views[key]);
     if(key === active){
+      viewEl.classList.remove('view-exit');
       viewEl.style.display = '';
       const cards = viewEl.querySelectorAll('.card');
       // Both classes come off before the flush so one forced reflow restarts
@@ -25473,6 +25485,20 @@ function switchView(active, opts){
           c.classList.add('card-stagger');
         });
       }
+    } else if(viewEl.style.display !== 'none' && !reduceMotion){
+      // Was actually visible a moment ago (not already hidden) — fade it
+      // out instead of an instant cut. Delay the real display:none until
+      // the fade finishes, guarded so a rapid second switch (tap Log then
+      // Analysis before Log's 150ms is up) can't let a stale timeout hide
+      // a view that's since become active again: the active-branch above
+      // always removes 'view-exit' first, so checking the class is still
+      // present at fire time is enough to know nothing reclaimed this view.
+      viewEl.classList.remove('view-enter');
+      void viewEl.offsetWidth;
+      viewEl.classList.add('view-exit');
+      setTimeout(()=>{
+        if(viewEl.classList.contains('view-exit')) viewEl.style.display = 'none';
+      }, 150);
     } else {
       viewEl.style.display = 'none';
     }
