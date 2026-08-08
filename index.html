@@ -3198,7 +3198,12 @@
      mobile WebKit shows on a translucent layer mid-transform, which was
      visible on the blurred sheet backgrounds specifically. */
   .sub-modal-sheet, .calendar-modal-sheet, .rest-timer,
-  .sticky-day-header, .celebrate-banner, .pull-refresh-indicator{
+  .sticky-day-header, .celebrate-banner, .pull-refresh-indicator,
+  /* [PHASE H] Same criterion as the rest of this list — fixed-position,
+     always-on-screen, transform-animating on every tap and on show/hide
+     (.coach-fab's .tucked state) — simply missed when this list was first
+     written. */
+  .coach-fab, .today-fab{
     will-change:transform;
     backface-visibility:hidden; -webkit-backface-visibility:hidden;
   }
@@ -5627,7 +5632,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.97';
+const APP_VERSION = '3.98';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
