@@ -4457,6 +4457,12 @@
           <div class="history-hint field-note" id="wakeLockNote">Stops the phone sleeping between sets while you are logging. It releases itself when you switch apps, and after 15 minutes with nothing logged, so it cannot sit draining the battery once you have finished. Pressing the power button still locks the phone as normal.</div>
         </div>
 
+        <div id="prefManualDeload">
+          <label class="care-label">Deload / taper week</label>
+          <label class="save-to-library-label"><input type="checkbox" id="manualDeloadToggle"><span>Treat this week as a deload, regardless of the schedule</span></label>
+          <div class="history-hint field-note">Every 5th week is already suggested as a deload automatically. Turn this on for a week that doesn't line up with that — before a competition, after a rough patch, or just because you need one — and suggested weights and warm-ups come down the same way they would on a scheduled one. Turn it back off when the week's over; it doesn't expire on its own.</div>
+        </div>
+
         <div>
           <label class="care-label">My equipment</label>
           <div class="history-hint field-note" style="margin-top:0;">Suggested weights get rounded to something you can actually load, and the plate calculator only lists plates you own. Leave it alone if you train at a commercial gym.</div>
@@ -5678,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.104';
+const APP_VERSION = '3.105';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5753,6 +5759,10 @@ const WHATS_NEW = {
   '3.104': { headline: 'Learn now points at what you\'ve actually been training', points: [
     'A new "Recently Trained" card on Learn surfaces technique cues and form videos for whatever you\'ve logged in the last two weeks.',
     'Same content as Exercise Library search — just picked out for you instead of typed in.',
+  ]},
+  '3.105': { headline: 'Call a deload week on your own schedule', points: [
+    'A new toggle in Settings ("During a workout") lets you mark any week as a deload/taper — not just the automatic every-5th-week one.',
+    'Suggested weights and warm-ups come down the same way they would on a scheduled deload week.',
   ]},
 };
 
@@ -14094,6 +14104,10 @@ async function getMesocycleWeek(){
   return Math.floor(daysSince/7) + 1; // 1-indexed week number
 }
 async function isDeloadWeek(){
+  // Manual override (see manualDeloadEnabled, defined further down near its
+  // toggle) always wins — a deliberate "I need this week to be lighter"
+  // beats the automatic schedule, not the other way round.
+  if(manualDeloadEnabled) return true;
   const week = await getMesocycleWeek();
   return week % DELOAD_CYCLE_WEEKS === 0;
 }
@@ -18586,6 +18600,41 @@ document.addEventListener('change', (e)=>{
   try{ window.storage.set('warmup-sets-pref', warmupSetsEnabled ? '1' : '0'); }catch(e){}
   // Repaint immediately: the whole point of the toggle is the rows appearing,
   // and a setting that needs a tab switch to take effect reads as broken.
+  renderWorkout();
+});
+
+// [MANUAL DELOAD OVERRIDE] -------------------------------------------------
+// isDeloadWeek() (defined above, near DELOAD_CYCLE_WEEKS) was schedule-only:
+// every 5th week since the mesocycle started, no way to call one on demand.
+// A real reason to deload doesn't always land on week 5 — a competition, a
+// rough patch, just needing one. This is checked FIRST inside isDeloadWeek()
+// itself, so every one of its existing consumers (suggested weights, warm-up
+// ramps, progress badges, session-length trimming) picks it up automatically
+// with no changes of their own — one source of truth, same as before.
+//
+// Same load/apply/toggle shape as warmupSetsEnabled/wakeLockEnabled just
+// above: an in-memory flag loaded at boot, a checkbox synced to it, a single
+// delegated change handler that updates both the flag and storage.
+let manualDeloadEnabled = false;
+
+async function loadManualDeloadPref(){
+  try{
+    const res = await window.storage.get('manual-deload-pref');
+    if(res && res.value === '1') manualDeloadEnabled = true;
+  }catch(e){}
+}
+
+function applyManualDeloadPrefToUI(){
+  const toggle = document.getElementById('manualDeloadToggle');
+  if(toggle) toggle.checked = manualDeloadEnabled;
+}
+
+document.addEventListener('change', (e)=>{
+  if(!e.target || e.target.id !== 'manualDeloadToggle') return;
+  manualDeloadEnabled = !!e.target.checked;
+  try{ window.storage.set('manual-deload-pref', manualDeloadEnabled ? '1' : '0'); }catch(e){}
+  // Repaint immediately — the whole point is suggested weights and the
+  // warm-up ramp reflecting it right away, not after a tab switch.
   renderWorkout();
 });
 
@@ -32788,6 +32837,7 @@ if(activeUserId){
     await loadDistanceUnit();
     await loadWakeLockPref();
     await loadWarmupSetsPref();
+    await loadManualDeloadPref();
     await loadGymPrefs();
     await loadEquipmentProfile();
     await loadSuggestionModePref();
@@ -32795,6 +32845,7 @@ if(activeUserId){
     applyWeightUnitToUI();
     applyWakeLockPrefToUI();
     applyWarmupSetsPrefToUI();
+    applyManualDeloadPrefToUI();
     renderEquipmentPicker();
     wireEquipmentPicker();
     await restoreCardOpenStates();
@@ -32932,6 +32983,7 @@ wireCustomProgramUI();
   };
   move('prefWarmupSets', 'settingsWorkoutSlot');
   move('prefWakeLock', 'settingsWorkoutSlot');
+  move('prefManualDeload', 'settingsWorkoutSlot');
   move('prefDistanceUnit', 'settingsUnitsSlot');
   move('prefLoadMode', 'settingsUnitsSlot');
   move('aiSettingsCard', 'settingsAiSlot');
