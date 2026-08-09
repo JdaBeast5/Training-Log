@@ -5693,7 +5693,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.131';
+const APP_VERSION = '3.132';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5844,6 +5844,9 @@ const WHATS_NEW = {
   ]},
   '3.131': { headline: 'Real citations behind the Pilates program', points: [
     'Two real studies now back mat Pilates for genuinely building trunk strength and endurance, not just flexibility.',
+  ]},
+  '3.132': { headline: 'A real citation behind the Mobility & Flexibility program', points: [
+    'A 2025 meta-analysis of 189 studies now backs holding stretches long enough (gains level off around 4 minutes per session) rather than rushing through more of them.',
   ]},
 };
 
@@ -8120,8 +8123,8 @@ const PROGRAM_SOURCES = {
     intro: 'Static and controlled range-of-motion work across the joints that limit most people, held long enough to actually change tissue rather than just feel loosened.',
     tier: 'school',
     school: 'Static-hold flexibility practice.',
-    primary: 'NOT YET SOURCED for the specific stretch selection. The dose-independence finding it relies on IS sourced (Konrad et al., via HANDOFF v4 §4).',
-    editorNote: 'Flexibility is not dose-dependent in the way strength is — see the Pilates note. Do not add sets, and do not introduce ballistic stretching to "progress" it.',
+    primary: 'The "held long enough to actually change tissue" framing is now sourced: Ingram LA, Tomkinson GR, d\'Unienville NMA, Gower B, Gleadhill S, Boyle T, Bennett H. Optimising the Dose of Static Stretching to Improve Flexibility: A Systematic Review, Meta-analysis and Multivariate Meta-regression. Sports Med. 2025;55(3):597-617. doi:10.1007/s40279-024-02143-9 — 189 studies, 6,654 adults; flexibility gains plateau at 4 min of cumulative stretching per session and 10 min per week, with no added benefit beyond that. WHICH specific joints/stretches this program prioritizes remains a coaching-practice selection, genuinely not sourced to a specific joint-priority ranking study. The dose-independence finding (volume/frequency not significantly moderating gains within the studies reviewed) remains separately sourced (Konrad et al., J Sport Health Sci 2023, via HANDOFF v4 §4) — a related but distinct finding from Ingram\'s plateau point, not the same claim restated.',
+    editorNote: 'Flexibility is not dose-dependent in the way strength is — see the Pilates note. Do not add sets, and do not introduce ballistic stretching to "progress" it. Ingram et al. and Konrad et al. are complementary, not identical: Konrad found volume/frequency don\'t significantly predict effect size across included studies; Ingram found a real ceiling (4 min/session, 10 min/week) beyond which more time stops helping. Do not conflate the two into one finding.',
   },
 
   swimming: {
@@ -8360,7 +8363,7 @@ const USER_TEXT = {
                    limits:"A specialisation program — pair it with something else rather than using it as your whole week." },
   pilates:       { basis:"Two real studies found mat Pilates genuinely builds trunk strength, endurance and posture, not just flexibility. Separately, flexibility gains don't depend much on how much you do.",
                    limits:"Control and precision matter more than range. Pushing deeper isn't progress here." },
-  mobility:      { basis:"Static-hold flexibility practice. Established coaching practice rather than a specific study.",
+  mobility:      { basis:"A 2025 meta-analysis of 189 studies found flexibility gains level off at about 4 minutes of cumulative stretching per session — real support for holding stretches long enough rather than rushing through more of them.",
                    limits:"Stretch to mild tension, not pain. If something is persistently tight on one side only, that's worth looking into rather than stretching harder." },
   senior:        { basis:"ACSM's 2026 guidelines, plus a 2025 study of nearly 3,900 adults finding that how quickly you can move predicts health outcomes better than how strong you are.",
                    limits:"Stand up quickly, sit down slowly — the speed is deliberate. Keep a chair or counter within reach for the balance work. If you've had a fall or feel unsteady, get assessed before starting." },
