@@ -5171,17 +5171,11 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 5.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8l-4 3v-3H4.5a2 2 0 0 1-2-2Z"/></svg></span>Ask Your Coach</div>
-      <div class="history-hint">Chat about your training, nutrition, or recovery — your goal and active program are already part of the conversation.</div>
-      <div id="coachChatLog" class="coach-chat-log"></div>
-      <div class="coach-chat-input-row">
-        <input type="text" id="coachChatInput" class="care-input" placeholder="Ask something…" aria-label="Message your coach">
-        <button class="save-btn coach-chat-send-btn" id="coachChatSend">Send</button>
-      </div>
-      <button class="usda-key-upgrade-toggle" id="coachChatClear" style="margin-top:8px;">Clear conversation</button>
-    </div>
-
+    <!-- Get Form Feedback / Past Reviews moved ahead of Ask Your Coach:
+         the chat below is the SAME conversation reachable from the
+         floating coach button on every tab (shares coachChatHistory), so
+         it isn't exclusive to this tab — Form Feedback and Past Reviews
+         are. -->
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5.2" width="10.8" height="9.6" rx="1.5"/><path d="M12.8 8.4 17.8 6v8l-5-2.4Z"/></svg></span>Get Form Feedback</div>
       <div class="history-hint">Coaching from the <b id="coachPersonaLabel">Strength & Size</b> knowledge base, since that's your active training style. Record a full working set, up to 60 seconds, from the side or a 3/4 angle — the coach reads frames across the whole set and can tell you whether your form holds up or breaks down as it goes, not just a single moment. Longer or larger clips are exactly where video reading tends to fail on iPhone, so 60 seconds is a real ceiling, not a suggestion.</div>
@@ -5199,6 +5193,17 @@
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.6" width="12" height="14.8" rx="1.5"/><rect x="7" y="2" width="6" height="3" rx="1"/><line x1="7" y1="9" x2="13" y2="9"/><line x1="7" y1="12.3" x2="13" y2="12.3"/><line x1="7" y1="15.6" x2="11" y2="15.6"/></svg></span>Past Reviews</div>
       <div id="coachHistoryList"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 5.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8l-4 3v-3H4.5a2 2 0 0 1-2-2Z"/></svg></span>Ask Your Coach</div>
+      <div class="history-hint">Chat about your training, nutrition, or recovery — your goal and active program are already part of the conversation.</div>
+      <div id="coachChatLog" class="coach-chat-log"></div>
+      <div class="coach-chat-input-row">
+        <input type="text" id="coachChatInput" class="care-input" placeholder="Ask something…" aria-label="Message your coach">
+        <button class="save-btn coach-chat-send-btn" id="coachChatSend">Send</button>
+      </div>
+      <button class="usda-key-upgrade-toggle" id="coachChatClear" style="margin-top:8px;">Clear conversation</button>
     </div>
   </div>
 
@@ -5687,7 +5692,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.127';
+const APP_VERSION = '3.128';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
