@@ -5211,6 +5211,12 @@
       <div id="exerciseSearchResults"></div>
     </div>
 
+    <div class="card" id="recentlyTrainedCard" style="display:none">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a7.5 7.5 0 1 0 7.5 7.5"/><path d="M10 6v4l2.5 2.5"/></svg></span>Recently Trained — Review Technique</div>
+      <div class="history-hint">Cues and a form video for what you've actually logged lately, not the whole library — same content as Exercise Library, just picked out for you.</div>
+      <div id="recentlyTrainedList"></div>
+    </div>
+
     <div class="card" id="strengthTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="10" r="1.8"/><circle cx="16" cy="10" r="1.8"/><line x1="5.8" y1="10" x2="14.2" y2="10"/><line x1="7" y1="8" x2="7" y2="12"/><line x1="13" y1="8" x2="13" y2="12"/></svg></span>Strength Training Fundamentals</div>
       <div class="history-hint">The squat, hinge, press, and pull broken into their teachable phases — tap a group to expand, tap a technique for a masterclass-level walkthrough.</div>
@@ -5672,7 +5678,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.103';
+const APP_VERSION = '3.104';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5743,6 +5749,10 @@ const WHATS_NEW = {
   '3.103': { headline: 'A calendar view on History', points: [
     'Day-by-Day Log now starts with a trained/rest/no-training calendar for the last 3 months, same colors as the date picker.',
     'Tap a day to jump straight to that month in the log below.',
+  ]},
+  '3.104': { headline: 'Learn now points at what you\'ve actually been training', points: [
+    'A new "Recently Trained" card on Learn surfaces technique cues and form videos for whatever you\'ve logged in the last two weeks.',
+    'Same content as Exercise Library search — just picked out for you instead of typed in.',
   ]},
 };
 
@@ -14204,6 +14214,54 @@ function renderExerciseLibraryHint(){
   if(!el) return;
   const n = Object.keys(exerciseInfo).length;
   el.textContent = `Search all ${n} exercises by name — technique cues and a form-video link for anything in the library, regardless of which program it's normally used in.`;
+}
+
+// [RECENTLY TRAINED] -------------------------------------------------------
+// Learn's 13 masterclasses and the full exercise library were pure
+// reference before this — nothing tied any of it to what's actually being
+// logged. Reuses buildDayLog() (already assembled for History) rather than
+// re-deriving "what did I train recently" from readExCorpus a second time,
+// and reuses buildExerciseSearchResultHtml (Exercise Library's own renderer)
+// rather than a second cues/video template — same content, just picked out
+// by recency instead of by search term.
+const RECENT_TRAINED_WINDOW_DAYS = 14;
+const RECENT_TRAINED_LIMIT = 8;
+
+// Distinct exercise names logged within the window, most-recently-trained
+// first. A name logged on multiple days within the window counts once, at
+// its most recent date — this answers "what should I review", not "how
+// often did I do it".
+async function getRecentlyTrainedExerciseNames(days){
+  const dayMap = await buildDayLog();
+  const cutoff = dateKeyMinusDays(getTodayKey(), days);
+  const lastSeen = new Map(); // name -> most recent date logged
+  Object.keys(dayMap).forEach(date=>{
+    if(date < cutoff) return;
+    (dayMap[date].exercises || []).forEach(ex=>{
+      const prev = lastSeen.get(ex.name);
+      if(!prev || date > prev) lastSeen.set(ex.name, date);
+    });
+  });
+  return [...lastSeen.entries()].sort((a,b)=> b[1].localeCompare(a[1])).map(e=> e[0]);
+}
+
+async function renderRecentlyTrained(){
+  const card = document.getElementById('recentlyTrainedCard');
+  const listEl = document.getElementById('recentlyTrainedList');
+  if(!card || !listEl) return;
+  let names = [];
+  try{ names = await getRecentlyTrainedExerciseNames(RECENT_TRAINED_WINDOW_DAYS); }catch(e){}
+  // buildExerciseSearchResultHtml returns '' for a name with no library
+  // entry (a custom exercise, say) — filtered out here the same way a
+  // search for that name would turn up nothing, rather than showing an
+  // empty collapsible.
+  const htmls = names.map(buildExerciseSearchResultHtml).filter(Boolean).slice(0, RECENT_TRAINED_LIMIT);
+  if(htmls.length === 0){
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = '';
+  listEl.innerHTML = htmls.join('');
 }
 
 const PROGRAM_MASTERCLASS = {
@@ -26501,6 +26559,7 @@ const VIEW_RENDERERS = {
     // follows a program switch.
     renderMasterclassIndex();
     renderExerciseLibraryHint();
+    renderRecentlyTrained();
   },
 };
 
