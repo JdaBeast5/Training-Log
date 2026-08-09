@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.117';
+const APP_VERSION = '3.118';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5806,6 +5806,9 @@ const WHATS_NEW = {
   '3.117': { headline: 'Honest sourcing for Flow, Hot and Couples yoga', points: [
     'Flow and Hot yoga now cite real studies — including an honest one: heat itself doesn\'t clearly add benefit beyond the yoga.',
     'Couples yoga explains plainly why it has no borrowed citation rather than stretching an unrelated one to cover it.',
+  ]},
+  '3.118': { headline: 'A real citation behind the Grappling/BJJ program', points: [
+    'Real match data (6-13 seconds of effort per second of rest, serious lactate demand) now backs why the week ends with live rounds, not just drilling.',
   ]},
 };
 
@@ -8010,7 +8013,7 @@ const PROGRAM_SOURCES = {
     intro: 'Drills the actual positions of BJJ — escapes, passes, takedowns, submissions — in structured reps, then finishes the week with live positional rounds. A skill program, not a strength program.',
     tier: 'school',
     school: 'Positional drilling followed by live positional sparring — standard BJJ pedagogy.',
-    primary: 'NOT YET SOURCED. Grappling skill acquisition has no position stand and the drilling-vs-live-training literature is thin; nothing verified is attached here yet.',
+    primary: 'Andreato LV, Follmer B, Celidonio CL, da Silva Honorato A. Brazilian Jiu-Jitsu combat among different categories: Time-motion and physiology. A systematic review. Strength Cond J. 2016;38:44-54. doi:10.1519/SSC.0000000000000256 — real BJJ combat runs a 6:1 to 13:1 effort-to-pause ratio, with post-match lactate around 10 mmol/L (moderate-to-high glycolytic demand), supporting why this program\'s live positional rounds — not just drilling — are where the real conditioning demand lives. Grappling SKILL ACQUISITION itself (drilling-vs-live-training pedagogy specifically) genuinely still has no position stand and remains uncited — this citation covers the physiological demand profile, not the teaching method.',
     editorNote: 'DO NOT VOLUME-AUDIT THIS PROGRAM. It reads as 65 `core` sets and 5 `hinge` because every technique — Knee Slice Pass, Double Leg Takedown, Rear Naked Choke Drill — falls through to `core` in a category system built for resistance exercises. Those numbers describe the classifier, not the program. The same logic as HANDOFF v4 §4 on flexibility: measuring sets here measures the wrong thing.',
   },
 
@@ -8304,7 +8307,7 @@ const USER_TEXT = {
                    limits:"Assumes you're comfortable swimming continuously. Technique work is much more valuable with a coach watching." },
   climbing:      { basis:"Climbing injury research showing overuse injuries to fingers and shoulders are the most common problem.",
                    limits:"Hangboarding is where climbers get hurt. If you've been climbing under a year, build a base first — finger tendons take years to adapt, not weeks." },
-  grappling:     { basis:"Standard BJJ drilling structure. Not yet matched to a specific source.",
+  grappling:     { basis:"Real BJJ match data (roughly 6-13 seconds of effort per second of rest, and lactate readings showing serious metabolic demand) backs why this week ends with live rounds, not just drilling.",
                    limits:"Drilling only. It can't teach you to roll safely, and there's no substitute for a coach and training partners." },
   hyrox:         { basis:"Hyrox race structure. The sport is new enough that there's little published research yet.",
                    limits:"Built around running while already tired, which is what the race actually demands. You'll need access to the stations to train them properly." },
