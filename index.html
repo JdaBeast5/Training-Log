@@ -4907,7 +4907,7 @@
          tab for an index to be worth having. -->
     <nav class="analysis-index" id="analysisIndex" aria-label="Jump to a section of this tab" style="display:none"></nav>
 
-    <button type="button" class="switch-profile-btn history-export-btn" id="analysisExportBtn" style="display:none; margin-bottom:12px;">Print / Save as PDF</button>
+    <button type="button" class="switch-profile-btn history-export-btn" id="analysisExportBtn" style="display:none; margin-bottom:12px;">Print Analysis Snapshot</button>
 
     <div class="card" id="analysisFirstRun" style="display:none">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 6.5v4M10 13.3v.2"/></svg></span>Nothing to analyse yet</div>
@@ -5071,7 +5071,7 @@
           <option value="365">Last year</option>
           <option value="all">All time</option>
         </select>
-        <button type="button" class="switch-profile-btn history-export-btn" id="historyExportBtn">Print / Save as PDF</button>
+        <button type="button" class="switch-profile-btn history-export-btn" id="historyExportBtn">Print Workout Report</button>
       </div>
       <input type="search" id="historySearch" class="care-input history-search" placeholder="Filter by exercise, e.g. deadlift" aria-label="Filter history by exercise name" autocomplete="off">
       <div id="historySearchStatus" class="history-search-status"></div>
@@ -5662,6 +5662,7 @@ function bootMark(name){
      onboarding-dismissed                -> "1" | "0"
      voice-hint-dismissed                -> "1" | "0"
      whats-new-last-seen                 -> string (highest APP_VERSION the What's New dialog has been shown for)
+     whats-new-pending-confirm           -> "true" | "false" (set right before an explicit Reload Now; consumed once on the next boot to gate the post-update confirmation — a natural background reopen must not show it)
      streak-last-celebrated              -> number (streak length last celebrated, avoids re-firing)
      active-view                         -> string (which top-level tab was last open)
      card-open:{cardId}                  -> "1" | "0" (collapsible card open/closed state)
@@ -5692,7 +5693,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.128';
+const APP_VERSION = '3.129';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -19399,13 +19400,50 @@ function closeWhatsNew(){
   document.getElementById('whatsNewOverlay').classList.remove('active');
 }
 
+// Shown right after an explicit Reload Now, in place of dumping the full
+// What's New overlay unprompted — a lightweight "updated" confirmation on
+// the same banner rail the update-ready prompt used, with a More Info
+// button that opens the real detail on demand rather than forcing it on
+// screen the moment the update lands.
+function showWhatsNewConfirm(entries){
+  const rail = document.getElementById('appBannerRail');
+  const el = document.getElementById('updateBanner');
+  if(!rail || !el) return;
+  rail.style.display = '';
+  el.innerHTML = `
+    <div class="app-banner app-banner-info" role="status">
+      <div class="app-banner-title">✓ Updated to v${escapeHtml(APP_VERSION)}</div>
+      <div class="app-banner-actions">
+        <button type="button" class="app-banner-btn app-banner-btn-primary" id="whatsNewMoreInfoBtn">More info</button>
+        <button type="button" class="app-banner-btn" id="whatsNewConfirmDismissBtn">Dismiss</button>
+      </div>
+    </div>
+  `;
+  const dismiss = ()=>{
+    el.innerHTML = '';
+    if(!document.getElementById('storageBanner').innerHTML) rail.style.display = 'none';
+  };
+  document.getElementById('whatsNewMoreInfoBtn').addEventListener('click', ()=>{
+    dismiss();
+    openWhatsNew(entries);
+  });
+  document.getElementById('whatsNewConfirmDismissBtn').addEventListener('click', dismiss);
+}
+
 // Called once at boot. A fresh install has nothing to compare against — it
 // silently records the current version as "seen" rather than announcing
 // changes to someone who has never used any prior version. Every subsequent
 // boot after a real update shows only the entries newer than what was last
-// seen (capped at 5, so returning after months doesn't dump a wall of text),
-// and marks the dialog seen the moment it's shown — not gated on how it's
-// dismissed, same as this app's other one-shot dismissible hints.
+// seen (capped at 5, so returning after months doesn't dump a wall of text).
+//
+// Gated on whats-new-pending-confirm, set only by the update banner's own
+// Reload Now button (see showUpdateBanner) right before it triggers the
+// reload. Without this gate, a PWA that was simply closed and reopened
+// later — which silently picks up whatever build the service worker had
+// already cached in the background — would pop this open the instant the
+// user opens the app, with no update action of their own behind it. The
+// flag is read-then-cleared unconditionally so a stale 'true' can never
+// leak into a later, unrelated boot.
 async function checkWhatsNew(){
   let lastSeen = null;
   try{
@@ -19425,6 +19463,14 @@ async function checkWhatsNew(){
   }
   if(compareVersions(lastSeen, APP_VERSION) >= 0) return;
 
+  let pendingConfirm = false;
+  try{
+    const res = await window.storage.get('whats-new-pending-confirm');
+    pendingConfirm = !!res && res.value === 'true';
+  }catch(e){ pendingConfirm = false; }
+  if(!pendingConfirm) return;
+  try{ await window.storage.set('whats-new-pending-confirm', 'false'); }catch(e){}
+
   const unseen = Object.keys(WHATS_NEW)
     .filter(v=> compareVersions(v, lastSeen) > 0 && compareVersions(v, APP_VERSION) <= 0)
     .sort(compareVersions);
@@ -19434,7 +19480,7 @@ async function checkWhatsNew(){
   }
   const shown = unseen.slice(-5).reverse().map(v=> [v, WHATS_NEW[v]]);
   try{ await window.storage.set('whats-new-last-seen', APP_VERSION); }catch(e){}
-  openWhatsNew(shown);
+  showWhatsNewConfirm(shown);
 }
 
 async function refreshSessionSummary(row, exIdx, ex){
@@ -33656,8 +33702,15 @@ bootMark('scriptEnd');
         </div>
       </div>
     `;
-    document.getElementById('updateReloadBtn').addEventListener('click', ()=>{
+    document.getElementById('updateReloadBtn').addEventListener('click', async ()=>{
       document.getElementById('updateReloadBtn').textContent = 'Updating…';
+      // Set BEFORE the reload, not after — checkWhatsNew() on the fresh boot
+      // is what reads this, and it has to already be there by the time that
+      // runs. This is the one and only place this flag is ever set to true;
+      // it's what distinguishes "the user just asked for this update" from
+      // a PWA that was simply closed and reopened onto whatever the service
+      // worker had already cached in the background.
+      try{ await window.storage.set('whats-new-pending-confirm', 'true'); }catch(e){}
       worker.postMessage({type:'SKIP_WAITING'});
     });
     document.getElementById('updateLaterBtn').addEventListener('click', ()=>{
