@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.122';
+const APP_VERSION = '3.123';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5821,6 +5821,9 @@ const WHATS_NEW = {
   ]},
   '3.122': { headline: 'Real citations behind the Boxing S&C program', points: [
     'A real biomechanics study shows trunk/legs generate ~3x the punch force your arms do; neck-strength research now backs the neck work too.',
+  ]},
+  '3.123': { headline: 'A real citation behind the Jump Rope program', points: [
+    'A 2025 controlled trial found jump rope genuinely improves cardio fitness and strength in both arms and legs — real conditioning, not a warm-up filler.',
   ]},
 };
 
@@ -8073,8 +8076,8 @@ const PROGRAM_SOURCES = {
     intro: 'Rope skill and conditioning built as a progression, from basic bounce through double-unders, with the footwork patterns treated as skills to learn rather than just cardio.',
     tier: 'school',
     school: 'Skill-progression conditioning: rope patterns sequenced by coordination demand.',
-    primary: 'NOT YET SOURCED. The skill progression reflects standard rope coaching order; no citation attached.',
-    editorNote: 'Reads as almost entirely `cardio` by category. That is accurate here and needs no correction.',
+    primary: 'Sabau AM, Ordean MN, Mancini N, et al. Jump Rope Training Improves Muscular Strength and Cardiovascular Fitness in University Students: A Controlled Educational Intervention. Sports. 2025;13(9):307. doi:10.3390/sports13090307 — controlled trial, 52 students, 8 weeks: jump rope training produced significant cardiovascular improvement plus real strength gains in both lower limbs and the upper limb. Supports jump rope as genuine conditioning, not just a warm-up filler. The specific skill-progression ORDER (basic bounce through double-unders) remains standard rope-coaching sequencing — this citation validates the activity\'s value, not that particular teaching order.',
+    editorNote: 'Reads as almost entirely `cardio` by category. That is accurate here and needs no correction. The skill-progression sequencing itself is coaching tradition, not something the cited trial specifically tested — do not imply otherwise.',
   },
 
   core: {
@@ -8331,7 +8334,7 @@ const USER_TEXT = {
                    limits:"Low volume on purpose — quality beats accumulation here. Needs a surface with some give, and a proper warm-up." },
   boxingsc:      { basis:"A real biomechanics study found your trunk and legs generate roughly 3x the punch force your arms do — the actual reason this trains rotational power, not arm strength. Neck work is backed by research linking neck strength to lower concussion odds (in general sports, not boxing specifically).",
                    limits:"This is the conditioning behind boxing, not boxing. It won't prepare you to spar." },
-  jumprope:      { basis:"Standard rope skill progression. Established coaching practice rather than a specific study.",
+  jumprope:      { basis:"A 2025 controlled trial found jump rope training genuinely improves cardiovascular fitness and strength in both arms and legs — real conditioning, not just a warm-up filler. The specific skill order is standard rope coaching, not something that study tested.",
                    limits:"High-repetition impact through the calves and feet. Build up gradually if you're new to it." },
   core:          { basis:"Anti-movement trunk training practice. Established coaching practice rather than a specific study.",
                    limits:"A specialisation program — pair it with something else rather than using it as your whole week." },
@@ -20333,7 +20336,17 @@ const PERSISTENT_CARDS = ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings
 async function getCardOpenState(key){
   try{
     const res = await window.storage.get('card-open:'+key);
-    return res && res.value === 'true';
+    // An explicit stored choice always wins. Only when NOTHING has ever
+    // been stored does this fall back to a default — Nutrition alone
+    // defaults open (it's the most-used daily section on Log, unlike the
+    // others in PERSISTENT_CARDS), everything else keeps the original
+    // default-closed behavior. restoreCardOpenStates only ever ADDS
+    // .open, never removes it, so this has to be the single source of
+    // truth for "closed" rather than hardcoding class="open" in the static
+    // HTML — that would have let a user's own explicit collapse (stored
+    // 'false') get silently overridden back open on the next reload.
+    if(res) return res.value === 'true';
+    return key === 'nutrition';
   }catch(e){ return false; }
 }
 async function setCardOpenState(key, isOpen){
