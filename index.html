@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.110';
+const APP_VERSION = '3.111';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5783,6 +5783,10 @@ const WHATS_NEW = {
   '3.110': { headline: 'A real citation behind the Shoulder Rehab program', points: [
     'A 2024 meta-analysis now backs pairing rotator cuff work with scapular stabilization, and a real trial backs the "mild discomfort is safe" guidance.',
     'Same batch as v3.106-3.109 — working through medical/health programs one at a time.',
+  ]},
+  '3.111': { headline: 'A real citation behind the Lower Back Rehab program', points: [
+    'The exercises here (curl-up, side plank, bird dog) now cite Dr. Stuart McGill\'s own published research directly, not just his name.',
+    'Same batch as v3.106-3.110 — working through medical/health programs one at a time.',
   ]},
 };
 
@@ -8236,8 +8240,8 @@ const STYLE_SOURCES = {
   rehabLowerback: {
     intro: 'Stabilisation before movement — building the trunk control to tolerate load, rather than stretching into the area that hurts.',
     tier: 'school', school: 'Motor-control and stabilisation-first lower back rehabilitation.',
-    primary: 'NOT YET SOURCED. The stabilisation-first framing traces to the McGill spine literature; that attribution has not been verified here, and it is frequently over-stated online.',
-    editorNote: 'Cannot identify the red flags that make back pain a medical emergency — bowel or bladder changes, saddle numbness, progressive leg weakness, unexplained weight loss. Any of those means stop and seek care, not modify the program.',
+    primary: 'The "McGill spine literature" attribution is now verified against McGill\'s own primary papers, not a secondhand summary: McGill SM. Low back exercises: evidence for improving exercise regimens. Phys Ther. 1998;78(7):754-765. PMID: 9672547 — the foundational case for spine-sparing exercise selection over generic strengthening. McGill SM, Karpowicz A. Exercises for spine stabilization: motion/motor patterns, stability progressions, and clinical technique. Arch Phys Med Rehabil. 2009;90(1):118-126 — quantifies muscle activation and 3D spine position specifically for the curl-up, side-bridge, and bird-dog: the exact three exercises this program prescribes by name (McGill Curl-up d1, Side Plank d4, Bird Dog d1/d4).',
+    editorNote: 'This resolves the app\'s own prior caution that the McGill attribution was unverified and "frequently over-stated online" — it is not over-stated here, it is the actual source, checked directly rather than assumed. Neither paper is an outcomes trial (pain/disability reduction) — they establish exercise selection and technique, not that this specific program reduces back pain; do not cite them as outcome evidence if that distinction ever gets blurred later. Cannot identify the red flags that make back pain a medical emergency — bowel or bladder changes, saddle numbness, progressive leg weakness, unexplained weight loss. Any of those means stop and seek care, not modify the program.',
   },
 };
 
@@ -8352,7 +8356,7 @@ const USER_TEXT = {
                  limits:"Real recovery runs 9-12 months and progresses on what you can do, not weeks elapsed. Returning early raises the risk of doing it again. Your surgeon and physio outrank this program." },
   rehabAchilles:{ basis:"Eccentric heel-drop loading (the Alfredson approach), at a lower daily volume than the original protocol — supported by a trial finding reduced volume worked comparably.",
                  limits:"For mid-portion Achilles pain — pain right at the heel bone often responds badly to full heel drops, so get it checked. Some discomfort during the exercise is expected; sharp or worsening pain isn't. Doesn't apply to a suspected rupture, which is urgent." },
-  rehabLowerback:{ basis:"Stabilisation-first practice for lower back pain. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
+  rehabLowerback:{ basis:"Dr. Stuart McGill's own published spine-stabilization research — the exercises here (the curl-up, side plank and bird dog specifically) are quantified and validated in his actual papers, not just associated with his name secondhand.",
                  limits:"Seek care rather than training through it if you have numbness in the saddle area, changes in bladder or bowel control, weakness in a leg that's getting worse, or unexplained weight loss." },
 };
 
