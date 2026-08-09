@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.121';
+const APP_VERSION = '3.122';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5818,6 +5818,9 @@ const WHATS_NEW = {
   ]},
   '3.121': { headline: 'A real citation behind the Athletic/Power program', points: [
     'A 2023 meta-analysis across ages found lower jump volumes work just as well as higher ones — real backing for training less but better here.',
+  ]},
+  '3.122': { headline: 'Real citations behind the Boxing S&C program', points: [
+    'A real biomechanics study shows trunk/legs generate ~3x the punch force your arms do; neck-strength research now backs the neck work too.',
   ]},
 };
 
@@ -8062,8 +8065,8 @@ const PROGRAM_SOURCES = {
     intro: 'The strength and conditioning that sits behind boxing — rotational power, repeat-effort conditioning and neck work — rather than the boxing itself.',
     tier: 'school',
     school: 'Combat-sport S&C: rotational power development and repeat-effort conditioning matched to round structure.',
-    primary: 'NOT YET SOURCED. Combat-sport S&C literature exists for repeat-effort conditioning and rotational power, but has not been verified against these specific sessions.',
-    editorNote: 'This is the S&C program, not skill training. It does not attempt to teach boxing, and should not be extended toward technique work — the Combat styles cover that.',
+    primary: 'Rotational power: Stanley E, Thomson E, Smith G, Lamb KL. An analysis of the three-dimensional kinetics and kinematics of maximal effort punches among amateur boxers. Int J Perform Anal Sport. 2018;18(5):835-854. doi:10.1080/24748668.2018.1525651 — 3D motion capture + force plates on real punches found trunk rotation and rear-leg extension contribute roughly 37-38% of punch force each, arm extension only ~24% — the actual case for training rotational power, not arm strength, to hit harder. Repeat-effort conditioning: supported by the same boxing/kickboxing physiological-demand citations already attached to STYLE_SOURCES.boxing/kickboxing (Slimani et al. 2017, Ouergui et al. 2021). Neck work: Collins CL, Fletcher EN, Fields SK, et al. Neck strength: a protective factor reducing risk for concussion in high school sports. J Prim Prev. 2014;35(5):309-319. doi:10.1007/s10935-014-0355-2 — each 1-lb increase in neck strength associated with ~5% lower odds of concussion.',
+    editorNote: 'The Collins et al. neck-strength finding is from a high-school, multi-sport (basketball/soccer/lacrosse) observational cohort — not boxing-specific and not causal proof that strengthening prevents concussion, just a real, meaningfully-sized association worth training toward. Do not overstate it as boxing-specific evidence. This is the S&C program, not skill training. It does not attempt to teach boxing, and should not be extended toward technique work — the Combat styles cover that.',
   },
 
   jumprope: {
@@ -8326,7 +8329,7 @@ const USER_TEXT = {
                    limits:"Needs no equipment, but progress depends on sets being genuinely hard. Easy reps won't do much." },
   athletic:      { basis:"A 2023 meta-analysis across ages found lower jump volumes work just as well as higher ones for explosive power — real support for training less but better here, not a compromise.",
                    limits:"Low volume on purpose — quality beats accumulation here. Needs a surface with some give, and a proper warm-up." },
-  boxingsc:      { basis:"Combat-sport strength and conditioning practice. Established coaching practice rather than a specific study.",
+  boxingsc:      { basis:"A real biomechanics study found your trunk and legs generate roughly 3x the punch force your arms do — the actual reason this trains rotational power, not arm strength. Neck work is backed by research linking neck strength to lower concussion odds (in general sports, not boxing specifically).",
                    limits:"This is the conditioning behind boxing, not boxing. It won't prepare you to spar." },
   jumprope:      { basis:"Standard rope skill progression. Established coaching practice rather than a specific study.",
                    limits:"High-repetition impact through the calves and feet. Build up gradually if you're new to it." },
