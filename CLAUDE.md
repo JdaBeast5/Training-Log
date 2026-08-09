@@ -21,15 +21,16 @@ At the start of every session, before any edit: run `check.sh` and every `test-*
 - If everything passes, that's the state to preserve. Any change that can't be shown to still pass the full suite afterward isn't done yet.
 - This step has never reliably happened in past sessions, since prior work happened outside an environment that could actually execute the tests. That excuse no longer applies — always run them for real, don't reason about whether they'd pass.
 
-## This session's mandate: stabilize, don't redesign
-The priority is **paying down patchwork accumulated across many iterative versions** — not adding features, not redesigning UX, not "while I'm in here" improvements. The app's current capabilities are the spec. Nothing should look, behave, or feel different to the user when this is done — it should just be built on straighter code.
+## Development phases: stabilization is done; active feature/polish work is in scope now
+The original mandate here was pure stabilization (Phases A–E): pay down patchwork, add no features, redesign nothing. That phase finished, and the project has since moved into active feature and polish development in practice — Phase F (workflow-efficiency fixes), Phase H (motion/glass polish pass), the in-app "What's New" changelog — and now a further batch of new features, agreed explicitly with the user rather than assumed as "while I'm in here." This section documents that shift; it does not relax anything below it.
 
-Concretely:
-1. **Behavior first, structure second.** Treat the current passing test suite as the definition of correct behavior. If something you're about to refactor has no test, write one that captures its *current* behavior before touching it. If you can't articulate what "unchanged" means for a piece of code, that's a signal to slow down.
-2. **No drive-by fixes.** Notice an unrelated bug, dead CSS rule, or redundant style while working on something else? Flag it, don't fix it in the same change. (Precedent: a dead `:first-of-type` CSS rule was found that would have started matching as a side effect of an unrelated tag change — it was removed rather than let a multi-version-old behavior change ship silently as a side effect. Same discipline applies here: an opportunistic fix bundled into a refactor is exactly how "cleanup" turns into an undocumented behavior change.)
-3. **Small, verifiable increments.** One consolidation at a time — e.g. "merge these near-duplicate ramp-calculation code paths into one," tested and versioned on its own — not a sweeping rewrite pass across the file.
-4. **Consolidate duplication, don't invent new abstractions.** Where the same logic is copy-pasted across programs or views, unify it using patterns already established in this codebase (see `groupCorpusByExercise`, `readExCorpus`, `buildFoodResultRow` as examples of consolidations already done well). Don't introduce new architectural layers, state managers, or abstractions the file doesn't already use.
-5. **Nothing ships "probably fine."** Every functional change gets a real test, per below.
+New features, UI/UX changes, and content additions are in scope now. The discipline that made the stabilization phase work still applies in full — it's what makes feature work safe to ship on a solo-maintained, no-build-step, single-file app, not a stabilization-only rule:
+
+1. **Behavior first, structure second.** Treat the current passing test suite as the definition of correct behavior for anything you touch. For a NEW feature "unchanged" doesn't apply, but the same underlying rule does: if you can't articulate what correct behavior looks like before you write it, that's a signal to slow down and write the test first anyway.
+2. **No drive-by fixes.** Notice an unrelated bug, dead CSS rule, or redundant style while building a feature? Flag it, don't fix it in the same change. (Precedent: a dead `:first-of-type` CSS rule was found that would have started matching as a side effect of an unrelated tag change — it was removed rather than let a multi-version-old behavior change ship silently as a side effect. Same discipline applies here: an opportunistic fix bundled into unrelated work is exactly how "just one more thing" turns into an undocumented behavior change.)
+3. **Small, verifiable increments.** One feature or change at a time — its own commit, its own test, tested and versioned on its own — never a batch of several features landing together. This is how Phase F (8 items) and Phase H (9 items) both shipped: independently, so any one of them could be reverted without touching the others.
+4. **Consolidate duplication, don't invent new abstractions.** Where new work would duplicate logic that already exists elsewhere, unify it using patterns already established in this codebase (see `groupCorpusByExercise`, `readExCorpus`, `buildFoodResultRow` as examples of consolidations already done well). Don't introduce new architectural layers, state managers, or abstractions the file doesn't already use — extend the existing ones (`VIEW_RENDERERS`, `window.storage`, `expand-wrap`, etc.) instead.
+5. **Nothing ships "probably fine."** Every functional change gets a real test, per below — new features included, not just refactors.
 
 ## Testing discipline (already established — follow it)
 - Every functional change gets a jsdom behavioral test in a `test-*.js` file: extract the real markup/function source from `index.html`, load it into jsdom, call the real functions, assert on actual resulting DOM state — not string-matching against the source.
@@ -48,5 +49,8 @@ Concretely:
 ## Handoff convention
 At the end of a session, or before a large context reset, write `HANDOFF-v<N>.md`: what changed and why, any real-device findings, what's still unverified, and explicit warnings for whoever picks this up next. Read the most recent handoff at the start of every session before making changes.
 
-## What "better and more stabilized" means here
-Fewer near-duplicate implementations of the same logic. Fewer dead code paths and unused rules — flagged, then fixed deliberately, never silently. Clearer function boundaries. The exact same feature set the app has today, just resting on straighter foundations.
+## What "better" means here now
+Stabilization phase (done, and still the standard for any code this touches going forward): fewer near-duplicate implementations, fewer dead code paths, clearer function boundaries. Feature-development phase (current): the same discipline applied to new capability instead of cleanup — every addition tested, shipped one increment at a time, and anything unrelated noticed along the way flagged rather than silently fixed.
+
+## Native app conversion (Capacitor/Android) — owned elsewhere, don't touch
+A separate, concurrent effort is converting this into a native Android app via Capacitor (`android/`, `capacitor.config.json`, `stage-www.sh`, the `@capacitor/*` deps in `package.json`). Per the user's own instruction, that work stays out of scope for feature/stabilization sessions here — don't edit those files or comment on that effort's progress unless the user explicitly asks for it.

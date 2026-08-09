@@ -1312,6 +1312,8 @@
     transform:skewX(-20deg);
   }
   .save-btn:active{opacity:0.88; transform:scale(0.96); box-shadow:0 1px 0 rgba(255,255,255,0.25) inset, 0 3px 8px -4px rgba(var(--plate-blue-rgb),0.55);}
+  .save-btn[disabled]{opacity:0.5; cursor:default;}
+  .save-btn[disabled]:active{transform:none;}
 
   .weight-input-row{display:flex; gap:8px;}
   .weight-input-row input{
@@ -5655,7 +5657,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.99';
+const APP_VERSION = '3.100';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5710,6 +5712,10 @@ const WHATS_NEW = {
   '3.99': { headline: 'See what changed after every update', points: [
     'This screen! A quick, plain-language summary of what changed shows up after an update.',
     'Find it anytime from Settings → Data & maintenance → "What\'s New".',
+  ]},
+  '3.100': { headline: 'Your API key is checked before it saves', points: [
+    'A typo used to only show up later, mid-workout, when a photo or video review silently failed.',
+    'Saving now checks the key first and tells you right away if it was rejected.',
   ]},
 };
 
@@ -27863,14 +27869,60 @@ document.getElementById('aiSettingsHeader').addEventListener('click', ()=>{
   setCardOpenState('aiSettings', isOpen);
 });
 
-document.getElementById('aiApiKeySave').addEventListener('click', async ()=>{
+// A pasted key wasn't confirmed working until first real use (Snap a Meal or
+// Get Form Feedback) — a typo surfaced there, mid-workout, instead of here.
+// Hits GET /v1/models rather than POST /v1/messages: it's the auth check
+// alone, no completion involved, so it can't hit the "adaptive thinking ate
+// the token budget before any text came back" failure this project has
+// already been bitten by once (see anthropicRequest's comment on
+// claude-sonnet-5's ceiling covering thinking AND the answer) — a
+// max_tokens:1 validation call would risk reporting a perfectly good key as
+// invalid for a reason that has nothing to do with the key.
+async function validateApiKey(apiKey){
+  let response;
+  try{
+    response = await fetch('https://api.anthropic.com/v1/models', {
+      method: 'GET',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+    });
+  }catch(err){
+    throw new Error('Could not reach the API to check that key — check your connection and try again.');
+  }
+  if(response.ok) return;
+  if(response.status === 401 || response.status === 403){
+    throw new Error('That key was rejected — double check it and try again.');
+  }
+  throw new Error(`Could not verify that key (API error ${response.status}) — try again.`);
+}
+
+// Pulled out of the click listener into a standalone function specifically
+// so it's testable in isolation — same reasoning as
+// checkAllSetsCompleteAndAutoCheck (Phase F1).
+async function handleAiApiKeySave(){
   const key = document.getElementById('aiApiKeyInput').value.trim();
   const status = document.getElementById('aiApiKeyStatus');
+  const btn = document.getElementById('aiApiKeySave');
   if(!key){ status.textContent = 'Enter a key first'; return; }
+  status.textContent = 'Checking key…';
+  btn.disabled = true;
+  try{
+    await validateApiKey(key);
+  }catch(err){
+    status.textContent = err.message;
+    btn.disabled = false;
+    return;
+  }
+  btn.disabled = false;
+  status.textContent = '';
   await saveApiKey(key);
   document.getElementById('aiApiKeyInput').value = '';
   showApiKeyConnected();
-});
+}
+document.getElementById('aiApiKeySave').addEventListener('click', handleAiApiKeySave);
 
 document.getElementById('aiApiKeyChange').addEventListener('click', ()=>{
   showApiKeySetup();
