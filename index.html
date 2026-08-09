@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.119';
+const APP_VERSION = '3.120';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5812,6 +5812,9 @@ const WHATS_NEW = {
   ]},
   '3.119': { headline: 'A real citation behind the Hyrox program', points: [
     'A 2025 study of real Hyrox racing now backs training stations while already running-fatigued — the study\'s own training recommendation, not just this app\'s.',
+  ]},
+  '3.120': { headline: 'Real citations behind the Calisthenics program', points: [
+    'A 2023 gymnastics review and a 2019 isometric-training review now back the static-hold progressions, honestly noting what they do and don\'t cover.',
   ]},
 };
 
@@ -8032,7 +8035,7 @@ const PROGRAM_SOURCES = {
     intro: 'Builds toward the gymnastic strength holds — levers, planches, handstands — through progressions, with straight-arm and bent-arm strength trained as genuinely different qualities.',
     tier: 'school',
     school: 'Gymnastic strength progressions: static holds and lever progressions trained separately from dynamic pulling and pressing.',
-    primary: 'NOT YET SOURCED. Gymnastic strength progressions are well established in coaching practice but the peer-reviewed literature on straight-arm vs bent-arm progression is thin; nothing verified is attached yet.',
+    primary: 'Two real sources now support this, honestly matched to what they actually show: Malir R, Chrudimsky J, Steffl M, Stastny P. A systematic review of dynamic, kinematic, and muscle activity during gymnastic still rings elements. Sports. 2023;11(3):50. doi:10.3390/sports11030050 — confirms static holds (iron cross, support scale) demand sustained high isometric/eccentric contraction and that training progresses from easier to harder static elements, matching this program\'s progression structure. Lum D, Barbosa TM. Brief Review: Effects of Isometric Strength Training on Strength and Dynamic Performance. Int J Sports Med. 2019;40(6):363-375. doi:10.1055/a-0863-4539 — supports isometric/static-hold training generally (less fatigue than dynamic work, joint-angle-specific strength). Neither paper explicitly frames straight-arm vs. bent-arm as two distinct trainable qualities — that specific framing remains coaching tradition, not something either citation directly tests.',
     editorNote: 'Static-hold work does not translate to weekly set-volume targets — a 3x15s front lever hold is not comparable to 3 sets of a dynamic exercise, and the audit treats them as equal. Do not add volume on that basis.',
   },
 
@@ -8314,7 +8317,7 @@ const USER_TEXT = {
                    limits:"Drilling only. It can't teach you to roll safely, and there's no substitute for a coach and training partners." },
   hyrox:         { basis:"A 2025 study of real Hyrox racing found the stations hurt more than the running, and that station-to-running transitions specifically make the next run harder — the actual reason this program trains stations while already running-fatigued.",
                    limits:"Built around running while already tired, which is what the race actually demands. You'll need access to the stations to train them properly." },
-  calisthenics:  { basis:"Gymnastic strength progressions from coaching practice.",
+  calisthenics:  { basis:"A 2023 gymnastics review and a 2019 isometric-training review back the static-hold progressions here. The straight-arm-vs-bent-arm split itself is coaching tradition — real, but not something either study specifically tested.",
                    limits:"Skip ahead in the progressions and you'll find out why they exist — levers and planches load connective tissue hard." },
   bodyweight:    { basis:"ACSM's 2026 guidelines, which found bodyweight and bands count as resistance training.",
                    limits:"Needs no equipment, but progress depends on sets being genuinely hard. Easy reps won't do much." },
