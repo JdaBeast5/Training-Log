@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.107';
+const APP_VERSION = '3.108';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5771,6 +5771,10 @@ const WHATS_NEW = {
   '3.107': { headline: 'A real citation behind the Diabetes program', points: [
     'The ADA\'s own exercise guidance now backs the combined training design, and a real study backs the post-meal walk timing specifically.',
     'Same batch as v3.106 — working through medical/health programs one at a time.',
+  ]},
+  '3.108': { headline: 'A real citation behind the Osteoporosis program', points: [
+    'A 2022 UK consensus statement now backs the weight-bearing/resistance/balance design and the no-spinal-flexion rule specifically.',
+    'Same batch as v3.106-3.107 — working through medical/health programs one at a time.',
   ]},
 };
 
@@ -8169,8 +8173,8 @@ const STYLE_SOURCES = {
   osteoporosis: {
     intro: 'Weight-bearing and resistance work chosen because bone responds to load — with the movements that are contraindicated left out rather than regressed.',
     tier: 'school', school: 'Loading-based bone-density practice.',
-    primary: 'NOT YET SOURCED. Needs an osteoporosis-specific exercise guideline.',
-    editorNote: 'Spinal flexion under load and end-range twisting are contraindicated in low bone density and their absence here is deliberate — do not add them. This program cannot assess your fracture risk; that requires a DEXA and a clinician.',
+    primary: 'Brooke-Wavell K, Skelton DA, Barker KL, et al. Strong, steady and straight: UK consensus statement on physical activity and exercise for osteoporosis. Br J Sports Med. 2022;56(15):837-846. doi:10.1136/bjsports-2021-104634 — recommends weight-bearing impact activity, resistance training, and balance/falls-prevention work together; explicitly states postures with a high degree of spinal flexion, and sustained/repeated/end-range flexion, "should be modified or avoided"; caps impact at brisk-walking-equivalent for anyone with a vertebral fracture or multiple fragility fractures (matching this program\'s own d3 note, written before this citation was attached).',
+    editorNote: 'The consensus statement\'s resistance guidance (8-12RM, building to 3 sets, 2-3x/week) describes progressive LOADED resistance training. This program is mostly bodyweight — do not imply it delivers the same loading stimulus the citation dosages describe; that would be a real gap to flag, not paper over. Spinal flexion under load and end-range twisting are contraindicated in low bone density and their absence here is deliberate — do not add them. This program cannot assess your fracture risk; that requires a DEXA and a clinician.',
   },
   bariatricEarly: {
     intro: 'Roughly the first three months after surgery — walking-first, deliberately unambitious, and with no abdominal work at all.',
@@ -8322,7 +8326,7 @@ const USER_TEXT = {
                  limits:"Don't hold your breath under load — that spikes blood pressure. Get clearance before starting, and this doesn't replace medication or monitoring." },
   diabetes:    { basis:"The American Diabetes Association's own guidance behind the combined training here. The post-meal walk timing comes from a study finding three 15-minute walks after meals beat one 45-minute walk for blood sugar control — same total time, better result, because of when it happened.",
                  limits:"The post-meal walk timing is the point — it targets the glucose rise after eating. If you take insulin or medication that can cause low blood sugar, talk to your team about how exercise fits your dosing." },
-  osteoporosis:{ basis:"Loading-based practice for bone density. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
+  osteoporosis:{ basis:"A 2022 UK consensus statement behind the weight-bearing, resistance and balance work here — and behind the no-spinal-flexion rule specifically. It also caps impact at brisk-walking level for anyone with a vertebral fracture, which is why Day 3 says the same.",
                  limits:"Bending and twisting the spine under load is left out deliberately — don't add it back. This can't assess your fracture risk; that needs a scan and a doctor." },
   bariatricEarly:{ basis:"Physical activity guidelines for bariatric surgery patients (2024 review of trials).",
                  limits:"There's no ab work here on purpose — the guideline delays it for 8-12 weeks after surgery. Timelines are typical, not personal: follow your surgical team." },
