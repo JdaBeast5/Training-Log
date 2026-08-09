@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.111';
+const APP_VERSION = '3.112';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5787,6 +5787,10 @@ const WHATS_NEW = {
   '3.111': { headline: 'A real citation behind the Lower Back Rehab program', points: [
     'The exercises here (curl-up, side plank, bird dog) now cite Dr. Stuart McGill\'s own published research directly, not just his name.',
     'Same batch as v3.106-3.110 — working through medical/health programs one at a time.',
+  ]},
+  '3.112': { headline: 'Clearer honesty on the General Rehab program', points: [
+    'Explains why this one deliberately has no single citation, and points to the specific programs it borrows from — each of which now has its own real source.',
+    'Wraps up the medical/health citation batch that started at v3.106.',
   ]},
 };
 
@@ -8215,8 +8219,8 @@ const STYLE_SOURCES = {
   rehabGeneral: {
     intro: 'A broad week touching shoulder, back, knee, hip and ankle — for when more than one area needs attention, or you are not sure which one is the problem.',
     tier: 'school', school: 'General musculoskeletal rehabilitation across multiple regions.',
-    primary: 'NOT YET SOURCED, and harder to source than the specific tracks: a deliberately broad program has no single protocol to cite.',
-    editorNote: 'Breadth is the trade-off: nothing here is dosed for a specific diagnosis. If one area is genuinely the problem, the specific track will serve you better — and an undiagnosed problem needs diagnosing, not training around.',
+    primary: 'DELIBERATELY NO SINGLE CITATION — checked directly, not assumed: the real literature here (e.g. Wendel & Wyss, Home Exercise Programs for Musculoskeletal and Sports Injuries, Springer 2019) is organized region-by-region with prescription driven by individualized structural/functional assessment, not one unified multi-region protocol. This day\'s exercises are drawn directly from this app\'s own already-sourced regional tracks (d1 shoulder = rehabShoulder\'s phase-1/2 exercises; d2 back = rehabLowerback\'s McGill curl-up/bird-dog/side-plank; d4 knee shares early-phase quad/SLR work with rehabAcl) — see those entries for their citations rather than a fabricated unifying one here.',
+    editorNote: 'Breadth is the trade-off: nothing here is dosed for a specific diagnosis. If one area is genuinely the problem, the specific track will serve you better and now has a real citation of its own — an undiagnosed problem needs diagnosing, not training around.',
   },
   rehabShoulder: {
     intro: 'The standard three-phase structure — calm the tissue, restore range, then load it — rather than jumping straight to strengthening.',
@@ -8348,7 +8352,7 @@ const USER_TEXT = {
                  limits:"Get checked by your provider before starting; some conditions change what's safe. Avoid high heat, especially early on. Stop and call your provider for bleeding, leaking fluid, contractions, chest pain, dizziness or calf pain — this app can't detect any of them." },
   postpartum:  { basis:"ACOG's guidance on returning to exercise after birth.",
                  limits:"Timelines differ after a caesarean or a difficult birth — yours come from your provider. This can't assess ab separation or pelvic floor function. Leaking, heaviness or pain means get assessed rather than push on." },
-  rehabGeneral:{ basis:"General rehabilitation practice across several areas. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
+  rehabGeneral:{ basis:"No single study covers five body regions at once — real practice treats each region on its own. So this week borrows its exercises directly from this app's own Shoulder, Lower Back and knee-focused rehab programs, each grounded in its own real source.",
                  limits:"Deliberately broad, so nothing here is dosed for a specific diagnosis. If one area is the problem, use its own program — and if you don't know what's wrong, get it looked at." },
   rehabShoulder:{ basis:"A 2024 meta-analysis found pairing scapular stabilization with rotator cuff work improves pain and function more than rotator cuff work alone — why both are here together. A separate trial found mild discomfort during these exercises is safe, though not more effective than staying pain-free.",
                  limits:"Can't tell a rotator cuff problem from instability or a neck issue — and they need different treatment. Move between phases on how the shoulder responds, not the calendar." },
