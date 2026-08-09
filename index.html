@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.113';
+const APP_VERSION = '3.114';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5791,6 +5791,10 @@ const WHATS_NEW = {
   '3.112': { headline: 'Clearer honesty on the General Rehab program', points: [
     'Explains why this one deliberately has no single citation, and points to the specific programs it borrows from — each of which now has its own real source.',
     'Wraps up the medical/health citation batch that started at v3.106.',
+  ]},
+  '3.114': { headline: 'A real citation behind the Desk Worker program', points: [
+    'A 2019 meta-analysis (620 people) now backs the Day 3 "get up every 30-60 minutes" habit specifically.',
+    'Now working through general fitness/lifestyle programs the same way medical ones were.',
   ]},
 };
 
@@ -7899,8 +7903,8 @@ const PROGRAM_SOURCES = {
     intro: 'Undoes what sitting does — thoracic and hip mobility, postural endurance for the upper back, and enough full-body strength to matter, in sessions short enough to actually do on a workday.',
     tier: 'stand',
     school: 'Postural and mobility work paired with general resistance training, structured around the specific restrictions of prolonged sitting.',
-    primary: 'Currier BS, DSouza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897 — supports the general resistance component. The specific postural-correction rationale is NOT YET SOURCED.',
-    editorNote: 'The evidence that specific stretches correct posture is much weaker than the evidence that resistance training builds strength — do not let the ACSM citation imply the postural half is equally well grounded. It is included because it is low-risk and people report it helps, not because it is proven to change alignment.',
+    primary: 'Currier BS, DSouza AC, Fiatarone Singh MA, et al. ACSM Position Stand. Med Sci Sports Exerc. 2026;58(4):851-872. doi:10.1249/MSS.0000000000003897 — supports the general resistance component. The specific postural-correction rationale remains NOT SPECIFICALLY SOURCED (see editorNote — checked, not just left). The d3 "movement snacks" note IS now sourced: Loh R, Stamatakis E, Folkerts D, Allgrove JE, Moir HJ. Effects of interrupting prolonged sitting with physical activity breaks on blood glucose, insulin and triacylglycerol measures: A systematic review and meta-analysis. Sports Med. 2019;50(2):295-330. doi:10.1007/s40279-019-01183-w — 37 studies, 620 participants; breaking up sitting produced moderate reductions in glucose (SMD -0.54) and insulin (SMD -0.56) vs. continuous sitting, and matched-energy intermittent breaks slightly outperformed one continuous bout.',
+    editorNote: 'Checked, not assumed: "upper/lower crossed syndrome" (the pattern this program targets) is Janda\'s real, well-established DESCRIPTIVE clinical framework, not something with strong trial evidence that specific corrective stretches reverse it — the evidence that specific stretches correct posture is much weaker than the evidence that resistance training builds strength or that movement breaks help metabolically (Loh et al., now cited above). Do not let either citation imply the postural-correction half is equally well grounded; it is included because it is low-risk and people report it helps, not because it is proven to change alignment.',
   },
 
   combat: {
@@ -8311,7 +8315,7 @@ const USER_TEXT = {
                    limits:"Stretch to mild tension, not pain. If something is persistently tight on one side only, that's worth looking into rather than stretching harder." },
   senior:        { basis:"ACSM's 2026 guidelines, plus a 2025 study of nearly 3,900 adults finding that how quickly you can move predicts health outcomes better than how strong you are.",
                    limits:"Stand up quickly, sit down slowly — the speed is deliberate. Keep a chair or counter within reach for the balance work. If you've had a fall or feel unsteady, get assessed before starting." },
-  desk:          { basis:"ACSM's 2026 guidelines for the strength work. The posture-specific parts are common practice rather than proven.",
+  desk:          { basis:"ACSM's 2026 guidelines for the strength work. A 2019 meta-analysis of 620 people backs the Day 3 \"get up every 30-60 minutes\" habit specifically — breaking up sitting this way measurably improved blood sugar and insulin markers compared to sitting straight through. The posture-specific stretches are common practice rather than proven.",
                    limits:"Helps you feel better and move more; won't correct structural alignment. Persistent numbness or tingling needs a doctor, not a stretch." },
   combat:        { basis:"Pick a style below — each has its own approach.",
                    limits:"Conditioning and drills, not instruction." },
