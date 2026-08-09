@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.123';
+const APP_VERSION = '3.125';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5824,6 +5824,9 @@ const WHATS_NEW = {
   ]},
   '3.123': { headline: 'A real citation behind the Jump Rope program', points: [
     'A 2025 controlled trial found jump rope genuinely improves cardio fitness and strength in both arms and legs — real conditioning, not a warm-up filler.',
+  ]},
+  '3.124': { headline: 'A real citation behind the Core & Stability program', points: [
+    'Same Dr. Stuart McGill research as Lower Back Rehab — Day 1 here is literally his curl-up, side plank and bird dog, now cited directly.',
   ]},
 };
 
@@ -8084,8 +8087,8 @@ const PROGRAM_SOURCES = {
     intro: 'Trains the trunk for what it actually does — resisting movement rather than producing it — through anti-extension, anti-rotation and anti-lateral-flexion work.',
     tier: 'school',
     school: 'Anti-movement trunk training: bracing and stability emphasis over spinal flexion volume.',
-    primary: 'NOT YET SOURCED. The anti-movement framing traces to the McGill spine-stability literature, but that attribution has not been verified against a primary source here — and doing so matters, since it is frequently over-stated online.',
-    editorNote: 'Reads as 67 `core` sets, which is unavoidable and not a red flag. Do not rebalance toward other categories — this is a specialisation program by design.',
+    primary: 'The McGill attribution is now verified, same as it was for rehabLowerback (v3.111) — this program is literally built on the same exercises: McGill SM. Low back exercises: evidence for improving exercise regimens. Phys Ther. 1998;78(7):754-765. PMID: 9672547 — the foundational case for anti-movement (resist flexion/extension/rotation) trunk training over spinal-flexion volume. McGill SM, Karpowicz A. Exercises for spine stabilization: motion/motor patterns, stability progressions, and clinical technique. Arch Phys Med Rehabil. 2009;90(1):118-126 — quantifies the curl-up, side-bridge, and bird-dog specifically, which is d1 of this program verbatim (McGill Curl-up, Bird Dog, Side Plank). d2\'s anti-rotation work (Pallof Press) and d4\'s anti-lateral-flexion work (loaded carries) extend the same anti-movement principle McGill\'s work established, though those specific exercises are not individually quantified in the two cited papers.',
+    editorNote: 'Reads as 67 `core` sets, which is unavoidable and not a red flag. Do not rebalance toward other categories — this is a specialisation program by design. Same caution as rehabLowerback: neither McGill paper is an outcomes trial — they establish exercise selection/technique, not that this program prevents or treats back pain.',
   },
 
   pilates: {
@@ -8336,7 +8339,7 @@ const USER_TEXT = {
                    limits:"This is the conditioning behind boxing, not boxing. It won't prepare you to spar." },
   jumprope:      { basis:"A 2025 controlled trial found jump rope training genuinely improves cardiovascular fitness and strength in both arms and legs — real conditioning, not just a warm-up filler. The specific skill order is standard rope coaching, not something that study tested.",
                    limits:"High-repetition impact through the calves and feet. Build up gradually if you're new to it." },
-  core:          { basis:"Anti-movement trunk training practice. Established coaching practice rather than a specific study.",
+  core:          { basis:"Dr. Stuart McGill's own published research, the same as the Lower Back Rehab program — Day 1 here is literally his curl-up, side plank and bird dog, quantified in his own papers rather than borrowed secondhand.",
                    limits:"A specialisation program — pair it with something else rather than using it as your whole week." },
   pilates:       { basis:"Classical mat Pilates. Research shows flexibility gains don't depend much on how much you do. Established coaching practice rather than a specific study.",
                    limits:"Control and precision matter more than range. Pushing deeper isn't progress here." },
@@ -20334,20 +20337,24 @@ function isDistanceExercise(exName){
 // blind persistence would fight with.
 const PERSISTENT_CARDS = ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings', 'program', 'healthImport', 'diag'];
 async function getCardOpenState(key){
+  // An explicit stored choice always wins. Only when NOTHING has ever
+  // been stored does this fall back to a default — Nutrition alone
+  // defaults open (it's the most-used daily section on Log, unlike the
+  // others in PERSISTENT_CARDS), everything else keeps the original
+  // default-closed behavior. restoreCardOpenStates only ever ADDS .open,
+  // never removes it, so this has to be the single source of truth for
+  // "closed" rather than hardcoding class="open" in the static HTML —
+  // that would have let a user's own explicit collapse (stored 'false')
+  // get silently overridden back open on the next reload. The fallback
+  // lives in BOTH branches below because this app's real storage.get
+  // REJECTS for a never-set key rather than resolving an empty value —
+  // the try branch's `if(res)` only covers a hypothetical resolved-falsy
+  // shape that isn't how storage actually behaves; catch is the real path.
   try{
     const res = await window.storage.get('card-open:'+key);
-    // An explicit stored choice always wins. Only when NOTHING has ever
-    // been stored does this fall back to a default — Nutrition alone
-    // defaults open (it's the most-used daily section on Log, unlike the
-    // others in PERSISTENT_CARDS), everything else keeps the original
-    // default-closed behavior. restoreCardOpenStates only ever ADDS
-    // .open, never removes it, so this has to be the single source of
-    // truth for "closed" rather than hardcoding class="open" in the static
-    // HTML — that would have let a user's own explicit collapse (stored
-    // 'false') get silently overridden back open on the next reload.
     if(res) return res.value === 'true';
     return key === 'nutrition';
-  }catch(e){ return false; }
+  }catch(e){ return key === 'nutrition'; }
 }
 async function setCardOpenState(key, isOpen){
   try{ await window.storage.set('card-open:'+key, isOpen ? 'true' : 'false'); }catch(e){}
