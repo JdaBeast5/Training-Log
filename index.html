@@ -2312,6 +2312,8 @@
     box-shadow:0 1px 0 rgba(255,255,255,0.3) inset, 0 6px 16px -8px rgba(var(--plate-blue-rgb),0.6);
   }
   .calendar-cell.future-disabled{opacity:0.25; cursor:default; pointer-events:none;}
+  .history-heatmap-month-label{font-size:12px; font-weight:600; color:var(--text-muted); margin:10px 0 4px;}
+  .history-heatmap-month:first-child .history-heatmap-month-label{margin-top:0;}
   .calendar-close-btn{
     width:100%; background:var(--surface2); border:1px solid rgba(255,255,255,0.07); color:var(--text);
     box-shadow:var(--rim);
@@ -5042,6 +5044,17 @@
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.2 6.2a1 1 0 0 1 1-1h3.8l1.4 1.8h8.4a1 1 0 0 1 1 1v7.8a1 1 0 0 1-1 1H3.2a1 1 0 0 1-1-1Z"/></svg></span>Day-by-Day Log</div>
       <div class="history-hint">Every logged day, grouped by month — workouts, weigh-ins, and rest days you marked as followed. Tap a month to expand it. Green = progress, red = down from last time.</div>
+      <div id="historyHeatmap" style="display:none">
+        <div class="calendar-weekday-row">
+          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+        </div>
+        <div id="historyHeatmapMonths"></div>
+        <div class="calendar-legend">
+          <span><i class="calendar-cell-dot mark-trained"></i>Trained</span>
+          <span><i class="calendar-cell-dot mark-rest"></i>Rest day</span>
+          <span><i class="calendar-cell-dot mark-off"></i>No training</span>
+        </div>
+      </div>
       <div class="history-export-row">
         <select id="historyExportRange" class="history-export-select" aria-label="Report date range">
           <option value="30">Last 30 days</option>
@@ -5659,7 +5672,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.102';
+const APP_VERSION = '3.103';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5726,6 +5739,10 @@ const WHATS_NEW = {
   '3.102': { headline: 'Analysis can now be exported as a PDF', points: [
     'A new "Print / Save as PDF" button on Analysis captures your current trends and insights, the same way History and Care already export.',
     'Handy to bring to a coach or doctor without scrolling through the app together.',
+  ]},
+  '3.103': { headline: 'A calendar view on History', points: [
+    'Day-by-Day Log now starts with a trained/rest/no-training calendar for the last 3 months, same colors as the date picker.',
+    'Tap a day to jump straight to that month in the log below.',
   ]},
 };
 
@@ -26213,6 +26230,85 @@ function closeCalendarModal(){
   document.getElementById('calendarModalOverlay').classList.remove('active');
 }
 
+// --- History calendar heatmap --------------------------------------------
+// Reuses fetchDayStatuses() (built above for the backdating picker) and the
+// same .calendar-grid/.calendar-cell/.calendar-cell-dot classes and
+// mark-trained/mark-rest/mark-off convention — one status computation, one
+// set of calendar visuals, not a second copy for History. A dedicated
+// renderer rather than calling renderCalendarGrid() directly: that one is
+// modal-specific (single month, month-to-month navigation, clicking a day
+// changes what date you're LOGGING to). This one is read-only, shows
+// several months at once stacked vertically (a phone-width card has no room
+// for them side by side), and clicking a day jumps to it in the log below
+// instead.
+function buildHistoryHeatmapMonths(dayStatus, monthCount){
+  const today = new Date();
+  const todayKey = getTodayKey();
+  const months = [];
+  for(let i = monthCount - 1; i >= 0; i--){
+    months.push(new Date(today.getFullYear(), today.getMonth() - i, 1));
+  }
+
+  return months.map(monthDate=>{
+    const year = monthDate.getFullYear(), month = monthDate.getMonth();
+    const monthKey = `${year}-${String(month+1).padStart(2,'0')}`;
+    const startWeekday = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    let cells = '';
+    for(let i = 0; i < startWeekday; i++) cells += `<div class="calendar-cell empty"></div>`;
+    for(let day = 1; day <= daysInMonth; day++){
+      const dateKey = `${monthKey}-${String(day).padStart(2,'0')}`;
+      if(dateKey > todayKey){ cells += `<div class="calendar-cell empty"></div>`; continue; }
+      const status = dayStatus.get(dateKey);
+      if(!status){ cells += `<div class="calendar-cell" aria-hidden="true">${day}</div>`; continue; }
+      const label = status === 'trained' ? ' — trained' : status === 'rest' ? ' — rest day' : ' — no training logged';
+      cells += `<button type="button" class="calendar-cell" data-jump-month="${monthKey}" aria-label="${dateKey}${label}">${day}<span class="calendar-cell-dot mark-${status}"></span></button>`;
+    }
+
+    return `
+      <div class="history-heatmap-month">
+        <div class="history-heatmap-month-label">${CALENDAR_MONTH_NAMES[month]} ${year}</div>
+        <div class="calendar-grid">${cells}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+const HISTORY_HEATMAP_MONTHS = 3;
+
+async function renderHistoryHeatmap(){
+  const wrap = document.getElementById('historyHeatmap');
+  const monthsEl = document.getElementById('historyHeatmapMonths');
+  if(!wrap || !monthsEl) return;
+  let dayStatus;
+  try{ dayStatus = await fetchDayStatuses(); }
+  catch(e){ dayStatus = new Map(); }
+  if(dayStatus.size === 0){
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = '';
+  monthsEl.innerHTML = buildHistoryHeatmapMonths(dayStatus, HISTORY_HEATMAP_MONTHS);
+  monthsEl.querySelectorAll('[data-jump-month]').forEach(cell=>{
+    cell.addEventListener('click', ()=> jumpToHistoryMonth(cell.dataset.jumpMonth));
+  });
+}
+
+// Opens (if needed) and scrolls to the matching month group in the
+// day-by-day list below — the same <details> elements renderHistory already
+// builds, so this triggers the existing lazy-fill path (fillHistoryMonth)
+// rather than a second render of that month's content.
+function jumpToHistoryMonth(monthKey){
+  const details = document.querySelector(`#historyList details.month-group[data-month="${monthKey}"]`);
+  if(!details) return; // filtered out by the current exercise search, or no entries that month
+  if(!details.open){
+    details.open = true;
+    fillHistoryMonth(details);
+  }
+  details.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
 function renderCalendarGrid(){
   const today = getTodayKey();
   const todayDate = new Date(today+'T00:00:00');
@@ -30146,6 +30242,13 @@ async function renderHistory(){
   const listEl = document.getElementById('historyList');
   const statusEl = document.getElementById('historySearchStatus');
   listEl.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div><div class="skeleton-line" style="width:58%"></div></div>';
+
+  // Independent of the exercise-name filter below (an overall "did I train"
+  // view, not a filtered one) and of dayMap, so it runs unawaited alongside
+  // the rest of this function rather than blocking the list render on it —
+  // same pattern renderStorageUsage/renderTodayInsights already use for a
+  // loosely-coupled UI update after a data change.
+  renderHistoryHeatmap();
 
   const dayMap = await buildDayLog();
   let dates = Object.keys(dayMap).sort((a,b)=> new Date(b+'T00:00:00')-new Date(a+'T00:00:00'));

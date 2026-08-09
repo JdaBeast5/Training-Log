@@ -17,6 +17,19 @@ const escapeHtmlSrc = extractFunction(src, 'escapeHtml');
 const whatsNewConstSrc = extractConst(src, 'WHATS_NEW');
 const runDiagnosticsSrc = extractFunction(src, 'runDiagnostics');
 
+// The real, currently-shipped most-recent version — computed from the real
+// registry rather than hardcoded, so this test doesn't silently go stale
+// (and start asserting a version that's no longer the most recent) every
+// time a new WHATS_NEW entry ships. This is exactly the failure mode that
+// hit this test's own previous hardcoded '3.98': real, caught by the full
+// suite, not assumed away.
+const REAL_LATEST_VERSION = (()=>{
+  const vm = require('vm');
+  const context = vm.createContext({});
+  vm.runInContext(`${compareVersionsSrc}\n${whatsNewConstSrc}\nthis.WHATS_NEW = WHATS_NEW; this.compareVersions = compareVersions;`, context);
+  return Object.keys(context.WHATS_NEW).sort(context.compareVersions).pop();
+})();
+
 const { test, run } = makeRunner('test-whats-new.js');
 
 test('compareVersions handles double-digit segments correctly (a naive string compare would get "3.10" vs "3.9" backwards)', (assert)=>{
@@ -156,12 +169,13 @@ test('closeWhatsNew removes .active, matching the one-line exHistoryOverlay conv
   assert.ok(!document.getElementById('whatsNewOverlay').classList.contains('active'));
 });
 
-test('the WHATS_NEW registry has a real entry for every version this session actually shipped (3.86 through 3.98), each with a non-empty headline and at least one point', (assert)=>{
+test('the WHATS_NEW registry has a real entry for every version shipped so far (3.86 through the current latest), each with a non-empty headline and at least one point', (assert)=>{
   const vm = require('vm');
   const context = vm.createContext({});
   vm.runInContext(`${whatsNewConstSrc}\nthis.WHATS_NEW = WHATS_NEW;`, context);
   const changelog = context.WHATS_NEW;
-  const expectedVersions = ['3.86','3.87','3.88','3.89','3.90','3.91','3.92','3.93','3.94','3.95','3.96','3.97','3.98'];
+  const expectedVersions = ['3.86','3.87','3.88','3.89','3.90','3.91','3.92','3.93','3.94','3.95','3.96','3.97','3.98',
+    '3.99','3.100','3.101','3.102','3.103'];
   for(const v of expectedVersions){
     assert.ok(changelog[v], `missing a WHATS_NEW entry for v${v}`);
     assert.ok(changelog[v].headline && changelog[v].headline.length > 0, `v${v} needs a non-empty headline`);
@@ -197,7 +211,7 @@ test('REAL invocation: the Settings "What\'s New" button opens the most recent e
   assert.ok(btn, 'runDiagnostics must render a What\'s New button');
   btn.click();
   assert.ok(document.getElementById('whatsNewOverlay').classList.contains('active'), 'clicking it must open the dialog');
-  assert.ok(document.getElementById('whatsNewBody').textContent.includes('3.98'), 'must show the most recent entry regardless of any stored last-seen value');
+  assert.ok(document.getElementById('whatsNewBody').textContent.includes(REAL_LATEST_VERSION), 'must show the most recent entry regardless of any stored last-seen value');
   assert.deepStrictEqual(JSON.parse(JSON.stringify(win.__storageSets)), [], 'the on-demand button must NOT write to whats-new-last-seen');
 });
 
