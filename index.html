@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.109';
+const APP_VERSION = '3.110';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5779,6 +5779,10 @@ const WHATS_NEW = {
   '3.109': { headline: 'A real citation behind the ACL Rehab program', points: [
     'A 2016 multi-society consensus statement and a real reinjury-rate study now back the "criteria, not the calendar" approach.',
     'Same batch as v3.106-3.108 — working through medical/health programs one at a time.',
+  ]},
+  '3.110': { headline: 'A real citation behind the Shoulder Rehab program', points: [
+    'A 2024 meta-analysis now backs pairing rotator cuff work with scapular stabilization, and a real trial backs the "mild discomfort is safe" guidance.',
+    'Same batch as v3.106-3.109 — working through medical/health programs one at a time.',
   ]},
 };
 
@@ -8213,8 +8217,8 @@ const STYLE_SOURCES = {
   rehabShoulder: {
     intro: 'The standard three-phase structure — calm the tissue, restore range, then load it — rather than jumping straight to strengthening.',
     tier: 'school', school: 'Phased rotator-cuff and impingement rehabilitation.',
-    primary: 'NOT YET SOURCED. The three-phase structure is standard physiotherapy practice but no specific protocol is cited here yet.',
-    editorNote: 'Cannot distinguish impingement from a tear, instability, or referred neck pain — and those need different treatment. Progression between phases is criterion-based and needs someone assessing you.',
+    primary: 'Zhong Z, Zang W, Tang Z, et al. Effect of scapular stabilization exercises on subacromial pain (impingement) syndrome: a systematic review and meta-analysis of randomized controlled trials. Front Neurol. 2024;15:1357763. doi:10.3389/fneur.2024.1357763 — scapular stabilization added to conventional exercise improved pain (VAS WMD -0.94) and function (SPADI WMD -10.10, p=0.02), supporting this program\'s pairing of rotator cuff work with scapular stabilization rather than either alone (d4). Mild-discomfort guidance: Cavaggion C, Luque-Suarez A, Voogt L, et al. Exercise into Pain in Chronic Rotator Cuff-Related Shoulder Pain: A Randomized Controlled Trial with 6-Month Follow-Up. Open Access J Sports Med. 2024;15:181-196. doi:10.2147/OAJSM.S483272 — exercising into mild-moderate pain was SAFE (equivalent adverse-effect rate) and produced EQUIVALENT outcomes to pain-free exercise at 12 weeks and 6 months, not superior ones.',
+    editorNote: 'Two limits, both real: Zhong et al.\'s evidence is GRADE low-to-very-low quality and only covers 4-12 week studies — cite it as "supports," not "proves." Cavaggion et al. found exercising into pain EQUIVALENT to pain-free, not better — the d3 note\'s "mild discomfort is safe, not something to avoid" framing is accurate to this; do not let it drift into implying pain is necessary or preferable, which the trial does not support ("pain provocation... does not seem to be necessary" is the paper\'s own conclusion). Cannot distinguish impingement from a tear, instability, or referred neck pain — and those need different treatment. Progression between phases is criterion-based and needs someone assessing you.',
   },
   rehabAcl: {
     intro: 'A long, criterion-based track — real ACL recovery runs nine to twelve months and progresses on what you can do, not on how many weeks have passed.',
@@ -8342,7 +8346,7 @@ const USER_TEXT = {
                  limits:"Timelines differ after a caesarean or a difficult birth — yours come from your provider. This can't assess ab separation or pelvic floor function. Leaking, heaviness or pain means get assessed rather than push on." },
   rehabGeneral:{ basis:"General rehabilitation practice across several areas. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
                  limits:"Deliberately broad, so nothing here is dosed for a specific diagnosis. If one area is the problem, use its own program — and if you don't know what's wrong, get it looked at." },
-  rehabShoulder:{ basis:"The standard three-phase shoulder rehab structure. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
+  rehabShoulder:{ basis:"A 2024 meta-analysis found pairing scapular stabilization with rotator cuff work improves pain and function more than rotator cuff work alone — why both are here together. A separate trial found mild discomfort during these exercises is safe, though not more effective than staying pain-free.",
                  limits:"Can't tell a rotator cuff problem from instability or a neck issue — and they need different treatment. Move between phases on how the shoulder responds, not the calendar." },
   rehabAcl:    { basis:"A 2016 multi-society consensus statement behind the criteria-based (not calendar-based) approach here. A separate real-world study found 38% of athletes who returned WITHOUT passing return-to-sport testing got reinjured within 2 years, vs. 6% of those who passed — the actual reason this app keeps saying wait for criteria, not weeks.",
                  limits:"Real recovery runs 9-12 months and progresses on what you can do, not weeks elapsed. Returning early raises the risk of doing it again. Your surgeon and physio outrank this program." },
