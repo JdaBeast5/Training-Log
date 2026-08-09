@@ -4927,6 +4927,15 @@
       <div id="crossInsightsResult" style="margin-top:12px;"></div>
     </div>
 
+    <!-- Moved here from Body & Health Trends: this is the other "how do
+         metrics interact" card, same family as AI Cross-Metric Insights
+         right above it, not a standalone body-health trend. -->
+    <div class="card" id="mealTimingCard" style="display:none">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 6v4l3 2"/></svg></span>Meal Timing</div>
+      <div class="history-hint">Looks at days where you logged a meal shortly after training and a post-meal glucose reading after that — purely a readout of what you actually logged, not a claim about cause and effect. Needs meal times and post-meal glucose logged on the same days to show anything.</div>
+      <div id="mealTimingContent"></div>
+    </div>
+
     <div class="card" data-autohide>
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg></span>Goal Progress Check</div>
       <div class="history-hint">Whether your actual weight/measurement trend lines up with your stated goal — not just a log of numbers.</div>
@@ -4980,12 +4989,6 @@
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 L15 11 A5.5 5.5 0 1 1 5 11 Z"/></svg></span>Blood Glucose Trend</div>
       <div class="history-hint">Daily average across however many readings you logged that day, fasting and post-meal mixed together — a rough overall trend, not a substitute for reading each entry against its own context.</div>
       <div id="glucoseChart"></div>
-    </div>
-
-    <div class="card" id="mealTimingCard" style="display:none">
-      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 6v4l3 2"/></svg></span>Meal Timing</div>
-      <div class="history-hint">Looks at days where you logged a meal shortly after training and a post-meal glucose reading after that — purely a readout of what you actually logged, not a claim about cause and effect. Needs meal times and post-meal glucose logged on the same days to show anything.</div>
-      <div id="mealTimingContent"></div>
     </div>
 
     <button type="button" class="analysis-group-header" data-group="training" aria-expanded="false">
@@ -5684,7 +5687,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.125';
+const APP_VERSION = '3.127';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5825,8 +5828,9 @@ const WHATS_NEW = {
   '3.123': { headline: 'A real citation behind the Jump Rope program', points: [
     'A 2025 controlled trial found jump rope genuinely improves cardio fitness and strength in both arms and legs — real conditioning, not a warm-up filler.',
   ]},
-  '3.124': { headline: 'A real citation behind the Core & Stability program', points: [
-    'Same Dr. Stuart McGill research as Lower Back Rehab — Day 1 here is literally his curl-up, side plank and bird dog, now cited directly.',
+  '3.125': { headline: 'Today\'s Nutrition opens by default, plus a real citation for Core & Stability', points: [
+    'The Nutrition card on Log now starts expanded — it\'s the section most people actually use every day, unlike the other cards that default closed.',
+    'Same Dr. Stuart McGill research as Lower Back Rehab — Day 1 of Core & Stability is literally his curl-up, side plank and bird dog, now cited directly.',
   ]},
 };
 

@@ -122,4 +122,27 @@ function toggleAnalysisGroupOn(document, header){
   header.dispatchEvent(new document.defaultView.Event('click', {bubbles:true}));
 }
 
+test('Meal Timing now belongs to the Insights & Program Fit group, not Body & Health Trends', (assert)=>{
+  // Relocated: it's the other "how do metrics interact" card, same family
+  // as AI Cross-Metric Insights right above it in the real markup — not a
+  // standalone body-health trend. Group membership in this app is purely
+  // DOM-sibling-position-based (nearest preceding .analysis-group-header),
+  // so this is the real behavioral proof the move actually took, not just
+  // a visual reorder: collapsing insights must now hide it, and collapsing
+  // body-health must no longer touch it at all.
+  const { document } = runJsdom(analysisViewHtml, storageGlobals({}), scriptChunks);
+  const mealTimingCard = document.getElementById('mealTimingCard');
+  const insightsHeader = document.querySelector('[data-group="insights"]');
+  const bodyHealthHeader = document.querySelector('[data-group="body-health"]');
+
+  assert.strictEqual(mealTimingCard.classList.contains('group-collapsed'), false, 'starts uncollapsed — insights is expanded by default and body-health no longer owns this card');
+
+  toggleAnalysisGroupOn(document, insightsHeader);
+  assert.ok(mealTimingCard.classList.contains('group-collapsed'), 'collapsing Insights & Program Fit must now hide Meal Timing');
+  toggleAnalysisGroupOn(document, insightsHeader); // re-expand for the next assertion
+
+  toggleAnalysisGroupOn(document, bodyHealthHeader);
+  assert.strictEqual(mealTimingCard.classList.contains('group-collapsed'), false, 'collapsing Body & Health Trends must NOT affect Meal Timing anymore — it moved out');
+});
+
 run();

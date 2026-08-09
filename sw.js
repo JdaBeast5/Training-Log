@@ -159,7 +159,7 @@
 // complete set — everything else flagged by the wider search already had
 // real descriptive text alongside its icon. Doesn't touch this file
 // directly, but the version still has to move.
-const VERSION = '3.125';
+const VERSION = '3.127';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the
