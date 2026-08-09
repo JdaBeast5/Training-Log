@@ -5693,7 +5693,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.130';
+const APP_VERSION = '3.131';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5841,6 +5841,9 @@ const WHATS_NEW = {
   '3.130': { headline: 'What\'s New no longer pops up uninvited', points: [
     'This dialog now only shows up right after you tap "Reload now" on an update — not just because the app happened to boot on a newer version.',
     'Right after updating, you\'ll see a quick "Updated to vX.X" confirmation with a "More info" button, instead of the full list of changes dropped on you immediately.',
+  ]},
+  '3.131': { headline: 'Real citations behind the Pilates program', points: [
+    'Two real studies now back mat Pilates for genuinely building trunk strength and endurance, not just flexibility.',
   ]},
 };
 
@@ -8109,8 +8112,8 @@ const PROGRAM_SOURCES = {
     intro: 'Mat Pilates focused on controlled, precise movement and breath, building trunk endurance and positional control rather than load tolerance.',
     tier: 'school',
     school: 'Classical mat Pilates: control and precision over load or range.',
-    primary: 'NOT YET SOURCED for the Pilates method itself. The dose-independence note below IS sourced (Konrad et al., via HANDOFF v4 §4).',
-    editorNote: 'Do not dose-audit this. Konrad et al. found neither volume, intensity nor frequency significantly moderated ROM gains — auditing Pilates or mobility for "enough sets" measures the wrong thing (HANDOFF v4 §4). What matters is technique type, and this program is verified as containing zero ballistic movement.',
+    primary: 'The Pilates method itself is now sourced too: Kloubec JA. Pilates for improvement of muscle endurance, flexibility, balance, and posture. J Strength Cond Res. 2010;24(3):661-667 — mat Pilates produced significant gains in abdominal endurance, trunk flexibility, and posture over the study period. Sekendiz B, et al. Effects of Pilates exercise on trunk strength, endurance and flexibility in sedentary adult females. J Bodyw Mov Ther. 2007;11(4):318-326 — the more specific match for this program\'s own framing: real gains in trunk strength AND endurance from mat work, not just flexibility. The dose-independence note remains separately sourced (Konrad et al., via HANDOFF v4 §4).',
+    editorNote: 'Do not dose-audit this. Konrad et al. found neither volume, intensity nor frequency significantly moderated ROM gains — auditing Pilates or mobility for "enough sets" measures the wrong thing (HANDOFF v4 §4). What matters is technique type, and this program is verified as containing zero ballistic movement. Kloubec and Sekendiz are both short-block studies (weeks, not months) in sedentary/general populations — real support for the method, not a claim this program was tested itself.',
   },
 
   mobility: {
@@ -8355,7 +8358,7 @@ const USER_TEXT = {
                    limits:"High-repetition impact through the calves and feet. Build up gradually if you're new to it." },
   core:          { basis:"Dr. Stuart McGill's own published research, the same as the Lower Back Rehab program — Day 1 here is literally his curl-up, side plank and bird dog, quantified in his own papers rather than borrowed secondhand.",
                    limits:"A specialisation program — pair it with something else rather than using it as your whole week." },
-  pilates:       { basis:"Classical mat Pilates. Research shows flexibility gains don't depend much on how much you do. Established coaching practice rather than a specific study.",
+  pilates:       { basis:"Two real studies found mat Pilates genuinely builds trunk strength, endurance and posture, not just flexibility. Separately, flexibility gains don't depend much on how much you do.",
                    limits:"Control and precision matter more than range. Pushing deeper isn't progress here." },
   mobility:      { basis:"Static-hold flexibility practice. Established coaching practice rather than a specific study.",
                    limits:"Stretch to mild tension, not pain. If something is persistently tight on one side only, that's worth looking into rather than stretching harder." },
