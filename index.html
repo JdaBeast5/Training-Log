@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.106';
+const APP_VERSION = '3.107';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5767,6 +5767,10 @@ const WHATS_NEW = {
   '3.106': { headline: 'A real citation behind the Hypertension program', points: [
     'The "what this is based on" note now points to an actual 2026 blood-pressure meta-analysis instead of a general disclaimer.',
     'First of a batch of programs getting the same treatment — starting with medical/health ones.',
+  ]},
+  '3.107': { headline: 'A real citation behind the Diabetes program', points: [
+    'The ADA\'s own exercise guidance now backs the combined training design, and a real study backs the post-meal walk timing specifically.',
+    'Same batch as v3.106 — working through medical/health programs one at a time.',
   ]},
 };
 
@@ -8159,8 +8163,8 @@ const STYLE_SOURCES = {
   diabetes: {
     intro: 'Combined aerobic and resistance work, with a short walk deliberately placed after meals rather than wherever it fits the training logic.',
     tier: 'school', school: 'Combined training with post-prandial activity timing.',
-    primary: 'NOT YET SOURCED. Needs a diabetes-specific exercise guideline.',
-    editorNote: 'The Post-Meal Walk timing IS the intervention — it targets post-prandial glucose. Do NOT reorder it to satisfy the strength-before-conditioning principle; that would destroy its purpose (HANDOFF v4 §4). Nothing here addresses hypoglycaemia risk during exercise, which is the main acute danger and needs clinical input.',
+    primary: 'Colberg SR, Sigal RJ, Yardley JE, et al. Physical Activity/Exercise and Diabetes: A Position Statement of the American Diabetes Association. Diabetes Care. 2016;39(11):2065-2079. doi:10.2337/dc16-1728 — >=150 min/week moderate-vigorous aerobic activity, 2-3 nonconsecutive resistance sessions/week, both recommended together rather than either alone. Post-meal walk timing specifically: DiPietro L, Gribok A, Stevens MS, Hamm LF, Rumpler W. Three 15-min Bouts of Moderate Postmeal Walking Significantly Improves 24-h Glycemic Control in Older People at Risk for Impaired Glucose Tolerance. Diabetes Care. 2013;36(10):3262-3268. doi:10.2337/dc13-0084 — three 15-min postmeal walks outperformed one 45-min sustained walk on 24h glycemic control despite equal total volume, i.e. the TIMING is what worked, not just the minutes.',
+    editorNote: 'The Post-Meal Walk timing IS the intervention — it targets post-prandial glucose, and DiPietro et al. is exactly why: same total walking time, worse result when it is not split around meals. Do NOT reorder it to satisfy the strength-before-conditioning principle; that would destroy its purpose (HANDOFF v4 §4). Neither citation addresses hypoglycaemia risk during exercise, which is the main acute danger and needs clinical input — Colberg 2016 covers exercise-medication interaction in more depth than this program does; do not let the citation imply that gap is closed.',
   },
   osteoporosis: {
     intro: 'Weight-bearing and resistance work chosen because bone responds to load — with the movements that are contraindicated left out rather than regressed.',
@@ -8316,7 +8320,7 @@ const USER_TEXT = {
                  limits:"Low-impact by design. Doesn't address medication or other conditions — worth a conversation with your doctor first." },
   hypertension:{ basis:"A 2026 meta-analysis of 105 trials found combined aerobic and resistance training among the most effective ways to lower blood pressure. Exhaling through each lift instead of holding your breath is separately well-studied — measured at roughly half the blood-pressure spike of the same lift.",
                  limits:"Don't hold your breath under load — that spikes blood pressure. Get clearance before starting, and this doesn't replace medication or monitoring." },
-  diabetes:    { basis:"Combined aerobic and resistance training, with walks timed after meals. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
+  diabetes:    { basis:"The American Diabetes Association's own guidance behind the combined training here. The post-meal walk timing comes from a study finding three 15-minute walks after meals beat one 45-minute walk for blood sugar control — same total time, better result, because of when it happened.",
                  limits:"The post-meal walk timing is the point — it targets the glucose rise after eating. If you take insulin or medication that can cause low blood sugar, talk to your team about how exercise fits your dosing." },
   osteoporosis:{ basis:"Loading-based practice for bone density. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
                  limits:"Bending and twisting the spine under load is left out deliberately — don't add it back. This can't assess your fracture risk; that needs a scan and a doctor." },
