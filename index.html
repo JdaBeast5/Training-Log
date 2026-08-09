@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.116';
+const APP_VERSION = '3.117';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5802,6 +5802,10 @@ const WHATS_NEW = {
   ]},
   '3.116': { headline: 'Real citations behind Road and Mountain cycling', points: [
     'A 2024 meta-analysis backs the "mostly easy, a few hard efforts" structure on Road; a 2026 review of elite racing backs Mountain\'s punchy-power-plus-endurance mix.',
+  ]},
+  '3.117': { headline: 'Honest sourcing for Flow, Hot and Couples yoga', points: [
+    'Flow and Hot yoga now cite real studies — including an honest one: heat itself doesn\'t clearly add benefit beyond the yoga.',
+    'Couples yoga explains plainly why it has no borrowed citation rather than stretching an unrelated one to cover it.',
   ]},
 };
 
@@ -7934,7 +7938,7 @@ const PROGRAM_SOURCES = {
     intro: 'A container for three yoga styles — Flow, Hot and Couples — each sequenced as its own practice rather than a shared pose list.',
     tier: 'school',
     school: 'Static-hold asana practice, sequenced by style.',
-    primary: 'NOT YET SOURCED for the sequencing. The dose-independence finding it relies on IS sourced (Konrad et al., via HANDOFF v4 §4).',
+    primary: 'NOW SOURCED PER STYLE where real evidence exists — see STYLE_SOURCES.flow (sequence-intensity study) and STYLE_SOURCES.hot (43-study systematic review). Couples deliberately has no sequencing citation of its own; see its own entry for why. The dose-independence finding all three rely on remains sourced separately (Konrad et al., via HANDOFF v4 §4).',
     editorNote: 'Do not dose-audit for "enough sets" — flexibility is not dose-dependent that way. Verified as 92-100% static holds with zero ballistic movement; keep it that way. In Couples Yoga specifically, every assisted pose states that the person being stretched sets the depth, never the partner — that is enforced by test and must not be softened.',
   },
 
@@ -8162,20 +8166,20 @@ const STYLE_SOURCES = {
   flow: {
     intro: 'Five flow styles from Vinyasa through Restorative, sequenced as continuous practice linking breath to movement.',
     tier: 'school', school: 'Vinyasa-lineage sequencing: continuous transitions, breath-led pacing.',
-    primary: 'NOT YET SOURCED for sequencing. Dose-independence of flexibility gains IS sourced (Konrad et al., via HANDOFF v4 §4).',
-    editorNote: 'Do not audit for "enough sets". Verified as 92-100% static holds with zero ballistic movement — keep it that way.',
+    primary: 'Sequencing is now sourced directly: Cheruka CA, Sherman SA, Davis KK, Kline CE. Oxygen Consumption and Heart Rate Responses in Different Vinyasa Yoga Sequences. Int J Yoga Therap. 2023;33:Article 2. doi:10.17761/2023-D-22-00058 — measured METs/heart rate across 7 real sequence types in a 60-min class: sun salutations/standing/crescent-lunge sequences run meaningfully higher intensity, restorative/integration sequences run lowest — direct support for moving through a spectrum from Vinyasa (higher) to Restorative (lower) rather than one flat intensity. Dose-independence of flexibility gains remains sourced separately (Konrad et al., via HANDOFF v4 §4).',
+    editorNote: 'Do not audit for "enough sets". Verified as 92-100% static holds with zero ballistic movement — keep it that way. Note Cheruka et al. also found overall vinyasa intensity (METs ~2.5-3.6, ~49% max HR across a session) runs lower than commonly marketed — do not let the sequencing citation imply this is a high-intensity cardio activity generally; it is not.',
   },
   hot: {
     intro: 'Heated-room flow. The heat changes what the practice demands of you — hydration, pacing and knowing when to stop matter more here than in any other style in the app.',
     tier: 'school', school: 'Heated-room asana practice.',
-    primary: 'NOT YET SOURCED for the practice itself. The heat caution below IS sourced: ACOG Committee Opinion 804, Physical Activity and Exercise During Pregnancy and the Postpartum Period. Obstet Gynecol. April 2020 — advises avoiding high heat and humidity, particularly in the first trimester.',
-    editorNote: 'IMPORTANT INTERACTION: this style is not appropriate during pregnancy, and especially not in the first trimester, per ACOG 804. It is selectable independently of the Prenatal program, so nothing in the app prevents that combination — the caution has to live here. Also unsuitable without clearance for anyone with a cardiovascular condition or heat intolerance.',
+    primary: 'The practice itself is now sourced too: Willmott AGB, James CA, Jewiss M, Gibson OR, Brocherie F, Mee JA. Hot Yoga: A Systematic Review of the Physiological, Functional and Psychological Responses and Adaptations. Sports Med Open. 2025;11:110. doi:10.1186/s40798-025-00917-7 — 43 studies, 942 participants. Chronic practice shows modest improvements in body composition, lipids, vascular function, bone density, balance and flexibility. Acutely, heat raises core temperature and heart rate but does NOT meaningfully raise energy expenditure over non-heated yoga. The heat caution remains separately sourced: ACOG Committee Opinion 804, Physical Activity and Exercise During Pregnancy and the Postpartum Period. Obstet Gynecol. April 2020 — advises avoiding high heat and humidity, particularly in the first trimester.',
+    editorNote: 'Checked directly, not assumed favourable: the systematic review\'s own conclusion is that "claims that hot yoga provides greater health benefits than other forms of yoga or traditional exercise are at present unsubstantiated" — one study even found non-heated yoga improved vascular function where hot yoga did not. Do not let this citation imply the heat itself is the active ingredient; the benefits found are consistent with yoga generally, and heat mainly adds acute cardiovascular/thermal strain, which is exactly why the ACOG caution below matters. IMPORTANT INTERACTION: this style is not appropriate during pregnancy, and especially not in the first trimester, per ACOG 804. It is selectable independently of the Prenatal program, so nothing in the app prevents that combination — the caution has to live here. Also unsuitable without clearance for anyone with a cardiovascular condition or heat intolerance.',
   },
   couples: {
     intro: 'A shared practice for two people — assisted poses and paired balances where the point is communication as much as the stretch.',
     tier: 'school', school: 'Partner-assisted asana.',
-    primary: 'NOT YET SOURCED for the sequencing. The partner-consent rule below is a safety decision, not a research finding, and does not depend on a citation.',
-    editorNote: 'NON-NEGOTIABLE: in every assisted pose, the person BEING stretched sets the depth, never the partner. This is enforced by test across all 20 poses and must never be softened or dropped for brevity. Partner-applied force is the entire injury mechanism in this style.',
+    primary: 'DELIBERATELY NO SEQUENCING CITATION — checked, not left by default: the closest matched literature is PNF (proprioceptive neuromuscular facilitation) partner stretching, which has real, substantial research behind it (contract-relax cycles, meta-analyses in clinical/rehab populations), but PNF is a genuinely different technique — active isometric contraction against a partner\'s resistance, not the passive partner-deepened static holds this style actually uses. Citing PNF research here would misrepresent what this program does; the pose sequencing itself remains a traditional practice, not something with its own dedicated study.',
+    editorNote: 'NON-NEGOTIABLE: in every assisted pose, the person BEING stretched sets the depth, never the partner. This is enforced by test across all 20 poses and must never be softened or dropped for brevity. Partner-applied force is the entire injury mechanism in this style. This is a safety decision, not a research finding, and was never meant to depend on a citation — do not let the sequencing gap above be read as also weakening this rule.',
   },
 
   // --- Medical ----------------------------------------------------------
@@ -8342,10 +8346,10 @@ const USER_TEXT = {
   taiChi:      { basis:"A 2023 meta-analysis of 24 trials found Tai Chi cuts fall risk by about a quarter and improves balance in older adults — one of the better-studied benefits in this app.", limits:"Low intensity is the method, not a shortfall. Good for balance and control." },
   road:        { basis:"A 2024 meta-analysis backs the 'mostly easy, a few genuinely hard efforts' structure here — real, though the edge over other well-built plans is modest and specific to certain fitness markers.",    limits:"Interval targets assume you know roughly what your sustainable effort is." },
   mountain:    { basis:"A 2026 review of elite XCO racing found riders hit 300+ hard efforts a race — real support for pairing punchy power work with endurance riding here.",        limits:"Technical descending is the main injury risk and can't be trained from text." },
-  flow:        { basis:"Vinyasa-lineage sequencing. Established coaching practice rather than a specific study.",       limits:"Work to sensation, not pain." },
-  hot:         { basis:"Heated-room practice. Heat guidance follows obstetric recommendations. Established coaching practice rather than a specific study.",
+  flow:        { basis:"A 2023 study measuring real Vinyasa classes found intensity genuinely varies by sequence — sun salutations and standing work run hardest, restorative work runs easiest — which is why this practice moves through that same spectrum.",       limits:"Work to sensation, not pain." },
+  hot:         { basis:"A 2025 review of 43 studies found real benefits from regular practice (flexibility, balance, vascular health) — but found the heat itself isn't clearly what's doing it; one study even found non-heated yoga worked better for blood vessel health. Heat guidance follows obstetric recommendations.",
                  limits:"NOT suitable during pregnancy, especially the first trimester — guidance advises avoiding high heat. Also needs clearance if you have a heart condition or don't tolerate heat well. Hydrate properly and stop if you feel faint." },
-  couples:     { basis:"Partner-assisted practice. Established coaching practice rather than a specific study.",
+  couples:     { basis:"The closest researched technique (PNF partner stretching) is genuinely different from what happens here — active resistance vs. passive assisted holds — so we're not borrowing its citation to cover this. The pose order itself is traditional practice, honestly labeled as such.",
                  limits:"The person being stretched sets the depth — always, in every pose. Never push a partner further than they ask for." },
   obesity:     { basis:"ACSM's 2026 guidelines, which found that for clinical populations, turning up consistently matters more than any training variable.",
                  limits:"Low-impact by design. Doesn't address medication or other conditions — worth a conversation with your doctor first." },
