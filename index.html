@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.115';
+const APP_VERSION = '3.116';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5799,6 +5799,9 @@ const WHATS_NEW = {
   '3.115': { headline: 'Real citations behind all 6 combat styles', points: [
     'Boxing, Kickboxing, Muay Thai, MMA, Taekwondo and Tai Chi each now cite real sports-science research instead of "established coaching practice."',
     'Tai Chi in particular now cites a real falls-prevention meta-analysis — one of the better-studied benefits in the app.',
+  ]},
+  '3.116': { headline: 'Real citations behind Road and Mountain cycling', points: [
+    'A 2024 meta-analysis backs the "mostly easy, a few hard efforts" structure on Road; a 2026 review of elite racing backs Mountain\'s punchy-power-plus-endurance mix.',
   ]},
 };
 
@@ -7923,8 +7926,8 @@ const PROGRAM_SOURCES = {
     intro: 'A container for two cycling styles — road endurance and indoor/interval work — each with its own intensity structure rather than one blended plan.',
     tier: 'school',
     school: 'Endurance cycling programming; the actual sessions come from CYCLING_STYLES.',
-    primary: 'NOT YET SOURCED at the style level.',
-    editorNote: 'Verified as correct against polarized-distribution auditing in HANDOFF v4 §4, but that is a structural check, not a citation.',
+    primary: 'NOW SOURCED PER STYLE — see STYLE_SOURCES.road (polarized-distribution meta-analysis) and STYLE_SOURCES.mountain (XCO physiology systematic review), not summarised here since the two styles have genuinely different demands.',
+    editorNote: 'Verified as correct against polarized-distribution auditing in HANDOFF v4 §4 — now backed by an actual citation at the road style level too, not just a structural check.',
   },
 
   yoga: {
@@ -8145,14 +8148,14 @@ const STYLE_SOURCES = {
   road: {
     intro: 'Structured power-based work — FTP intervals, hill repeats and endurance rides — with the week built around a small number of genuinely hard efforts.',
     tier: 'school', school: 'Power-based endurance cycling with a polarized intensity distribution.',
-    primary: 'NOT YET SOURCED for the specific interval prescriptions.',
-    editorNote: 'Verified structurally against polarized-distribution auditing (HANDOFF v4 §4) — that is a structural check, not evidence for the specific interval durations.',
+    primary: 'Silva Oliveira P, Boppre G, Fonseca H. Comparison of polarized versus other types of endurance training intensity distribution on athletes\' endurance performance: A systematic review with meta-analysis. Sports Med. 2024;54(8):2071-2095. doi:10.1007/s40279-024-02034-z — polarized distribution (mostly easy + a small number of genuinely hard efforts, minimal time in the middle) showed a small but real advantage for VO2peak, especially in shorter blocks and trained athletes. For time-trial performance and lactate threshold specifically, polarized and other well-structured distributions performed comparably — the small number of hard efforts is grounded, the specific interval durations/lengths still are not.',
+    editorNote: 'Do not overstate this: the meta-analysis found polarized training a modest, outcome-specific edge (VO2peak mainly), not a dramatic superiority over every other structured approach — for time trials and lactate threshold it was roughly equivalent to other distributions. Verified structurally against polarized-distribution auditing (HANDOFF v4 §4) — that is a structural check, not evidence for the specific interval durations, which remain uncited.',
   },
   mountain: {
     intro: 'Technical trail skill, punchy climbing power and the grip and upper-body endurance that rough descending actually demands.',
     tier: 'school', school: 'Off-road cycling: repeated short power efforts plus handling and upper-body endurance.',
-    primary: 'NOT YET SOURCED. Off-road cycling has a repeated-sprint and handling literature that has not been checked against this program.',
-    editorNote: 'Technical descending skill is not trainable from text and is the main injury exposure in this discipline.',
+    primary: 'Protzen G, Inoue A, Buzzachera C, Doma K, Devantier-Thomas B, Herrero-Molleda A, Garcia-Lopez J, Boullosa D. The Physiology of Contemporary Olympic Cross-Country Mountain Biking: A Systematic Review. Sports Med Open. 2026;12:16. doi:10.1186/s40798-026-00976-4 — elite XCO riders perform 300+ efforts above maximal aerobic power per race (mean ~4.3s, ~15-20 per lap), and training recommendations explicitly combine repeat-sprint ability with high-intensity intermittent endurance and strength work — directly supports this program\'s punchy-power-plus-endurance structure over steady-state riding alone.',
+    editorNote: 'Technical descending skill is not trainable from text and is the main injury exposure in this discipline — the citation covers physiological conditioning, not handling/descending skill acquisition.',
   },
 
   // --- Yoga -------------------------------------------------------------
@@ -8337,8 +8340,8 @@ const USER_TEXT = {
   mma:         { basis:"A 2020 research review of MMA's physical demands — genuinely conflicting energy systems across striking and grappling — is why this program trains multiple conditioning qualities rather than picking one.", limits:"Covers conditioning across ranges, not the skill of moving between them." },
   taekwondo:   { basis:"A 2025 systematic review found hip mobility/control and balance are the strongest predictors of kicking performance across studies — the real reason this program pairs kicks with dedicated hip and balance work rather than kicks alone.",       limits:"Spinning and jumping kicks need a mobility base first. Build toward them." },
   taiChi:      { basis:"A 2023 meta-analysis of 24 trials found Tai Chi cuts fall risk by about a quarter and improves balance in older adults — one of the better-studied benefits in this app.", limits:"Low intensity is the method, not a shortfall. Good for balance and control." },
-  road:        { basis:"Power-based endurance cycling. Established coaching practice rather than a specific study.",    limits:"Interval targets assume you know roughly what your sustainable effort is." },
-  mountain:    { basis:"Off-road cycling practice. Established coaching practice rather than a specific study.",        limits:"Technical descending is the main injury risk and can't be trained from text." },
+  road:        { basis:"A 2024 meta-analysis backs the 'mostly easy, a few genuinely hard efforts' structure here — real, though the edge over other well-built plans is modest and specific to certain fitness markers.",    limits:"Interval targets assume you know roughly what your sustainable effort is." },
+  mountain:    { basis:"A 2026 review of elite XCO racing found riders hit 300+ hard efforts a race — real support for pairing punchy power work with endurance riding here.",        limits:"Technical descending is the main injury risk and can't be trained from text." },
   flow:        { basis:"Vinyasa-lineage sequencing. Established coaching practice rather than a specific study.",       limits:"Work to sensation, not pain." },
   hot:         { basis:"Heated-room practice. Heat guidance follows obstetric recommendations. Established coaching practice rather than a specific study.",
                  limits:"NOT suitable during pregnancy, especially the first trimester — guidance advises avoiding high heat. Also needs clearance if you have a heart condition or don't tolerate heat well. Hydrate properly and stop if you feel faint." },
