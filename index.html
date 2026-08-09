@@ -5693,7 +5693,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.129';
+const APP_VERSION = '3.130';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5837,6 +5837,10 @@ const WHATS_NEW = {
   '3.125': { headline: 'Today\'s Nutrition opens by default, plus a real citation for Core & Stability', points: [
     'The Nutrition card on Log now starts expanded — it\'s the section most people actually use every day, unlike the other cards that default closed.',
     'Same Dr. Stuart McGill research as Lower Back Rehab — Day 1 of Core & Stability is literally his curl-up, side plank and bird dog, now cited directly.',
+  ]},
+  '3.130': { headline: 'What\'s New no longer pops up uninvited', points: [
+    'This dialog now only shows up right after you tap "Reload now" on an update — not just because the app happened to boot on a newer version.',
+    'Right after updating, you\'ll see a quick "Updated to vX.X" confirmation with a "More info" button, instead of the full list of changes dropped on you immediately.',
   ]},
 };
 
