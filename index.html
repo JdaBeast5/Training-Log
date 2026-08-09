@@ -4899,6 +4899,8 @@
          tab for an index to be worth having. -->
     <nav class="analysis-index" id="analysisIndex" aria-label="Jump to a section of this tab" style="display:none"></nav>
 
+    <button type="button" class="switch-profile-btn history-export-btn" id="analysisExportBtn" style="display:none; margin-bottom:12px;">Print / Save as PDF</button>
+
     <div class="card" id="analysisFirstRun" style="display:none">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 6.5v4M10 13.3v.2"/></svg></span>Nothing to analyse yet</div>
       <div class="history-hint">This tab fills in as you log. Every chart here appears on its own once it has something to show — a weight trend needs two weigh-ins, a volume chart needs a logged session, a pace trend needs a distance. Nothing is missing; it just hasn't happened yet.</div>
@@ -5657,7 +5659,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.101';
+const APP_VERSION = '3.102';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5720,6 +5722,10 @@ const WHATS_NEW = {
   '3.101': { headline: 'See how stale your imported health data is', points: [
     'Settings → Import Health Data now shows "last imported N days ago" instead of a fixed description.',
     'The readiness check on Today leans on that data most, so it\'s worth knowing when it\'s due for a refresh.',
+  ]},
+  '3.102': { headline: 'Analysis can now be exported as a PDF', points: [
+    'A new "Print / Save as PDF" button on Analysis captures your current trends and insights, the same way History and Care already export.',
+    'Handy to bring to a coach or doctor without scrolling through the app together.',
   ]},
 };
 
@@ -15744,6 +15750,18 @@ document.getElementById('historyExportBtn').addEventListener('click', async ()=>
   }
   btn.textContent = original;
   btn.disabled = false;
+  requestAnimationFrame(()=> requestAnimationFrame(()=> window.print()));
+});
+
+// Synchronous, unlike buildPrintReport — it reads already-rendered DOM
+// rather than awaiting a fresh buildDayLog(), so there's no "Building
+// report…" wait state to show.
+document.getElementById('analysisExportBtn').addEventListener('click', ()=>{
+  try{
+    document.getElementById('printReportContent').innerHTML = buildAnalysisPrintReport();
+  }catch(e){
+    document.getElementById('printReportContent').innerHTML = '<div class="pr-empty">Could not build the report — try again.</div>';
+  }
   requestAnimationFrame(()=> requestAnimationFrame(()=> window.print()));
 });
 
@@ -30361,6 +30379,78 @@ async function buildProgramPrintReport(){
   return headerHtml + dayBlocks;
 }
 
+// Analysis snapshot — Care has "Save a summary for an appointment" and
+// History has this same print/PDF path; Analysis, the densest tab, had
+// neither. Reuses the same .pr-* classes on purpose, per the comment above.
+//
+// Reads the CURRENTLY RENDERED cards rather than re-deriving every trend and
+// insight a second time: Analysis's cards already compute and display every
+// number this report needs, and a parallel derivation here would be a second
+// copy of that logic to keep in sync — the same reasoning
+// collectSearchSections and renderAnalysisIndex already use for reading the
+// DOM instead of hand-maintaining a duplicate list. Group membership is read
+// the same way syncAnalysisGroupHeaders/setAnalysisGroupCollapsed already
+// do: the nearest preceding .analysis-group-header sibling, not a second
+// list of which card belongs to which group.
+//
+// Only cards visible right now are included — autohide's inline
+// display:none means "no real content", the same test
+// syncAnalysisGroupHeaders applies; a COLLAPSED group's cards are still
+// exported, since collapsing is a screen-space convenience, not a statement
+// that the data isn't wanted in a snapshot someone's about to hand a coach.
+function buildAnalysisPrintReport(){
+  const name = (userProfile && userProfile.name) ? escapeHtml(userProfile.name) : '';
+  const headerHtml = `
+    <div class="pr-header">
+      <h1>Training Log — Analysis Snapshot</h1>
+      <div class="pr-meta">${name ? name + ' · ' : ''}Generated ${formatShortDate(getTodayKey())}</div>
+    </div>
+  `;
+  const view = document.getElementById('analysisView');
+  if(!view) return headerHtml + '<div class="pr-empty">Nothing to export.</div>';
+
+  const sections = [];
+  let current = null;
+  [...view.children].forEach(node=>{
+    if(node.classList.contains('analysis-group-header')){
+      // Not node.textContent directly — that would glue the chevron glyph
+      // onto the label with no space (e.g. "Training Trends›").
+      const labelSpan = node.querySelector('span:not(.analysis-group-header-chevron)');
+      current = { label: (labelSpan || node).textContent.trim(), cards: [] };
+      sections.push(current);
+      return;
+    }
+    if(node.id === 'analysisFirstRun') return; // the empty-state card, never real content
+    if(!node.classList.contains('card') || node.style.display === 'none') return;
+    const clone = node.cloneNode(true);
+    clone.querySelectorAll('button').forEach(b=> b.remove());
+    const titleEl = clone.querySelector('.card-title');
+    const title = titleEl ? titleEl.textContent.trim() : '';
+    if(titleEl) titleEl.remove();
+    // Same "what counts as real content" definition applyAnalysisEmptyState
+    // already uses: static hint copy explaining what a card does isn't a
+    // finding, so it doesn't belong in a report of findings.
+    clone.querySelectorAll(':scope > .history-hint').forEach(h=> h.remove());
+    const body = clone.textContent.replace(/\s+/g, ' ').trim();
+    if(!title && !body) return;
+    const target = current || (sections[0] && !sections[0].label ? sections[0] : (sections.unshift({label:'', cards:[]}), sections[0]));
+    target.cards.push({title, body});
+  });
+
+  const nonEmpty = sections.filter(s=> s.cards.length);
+  if(nonEmpty.length === 0){
+    return headerHtml + '<div class="pr-empty">Nothing to analyse yet — log a few days first.</div>';
+  }
+
+  const sectionsHtml = nonEmpty.map(s=> `
+    <div class="pr-day">
+      ${s.label ? `<div class="pr-day-date">${escapeHtml(s.label)}</div>` : ''}
+      ${s.cards.map(c=> `<div class="pr-ex-name" style="margin-bottom:2px;">${escapeHtml(c.title)}</div><div class="pr-note" style="margin-bottom:8px;">${escapeHtml(c.body)}</div>`).join('')}
+    </div>
+  `).join('');
+  return headerHtml + sectionsHtml;
+}
+
 // [ANALYSIS] ---------------------------------------------------------------
 // Week-over-week table, weight trend, exercise progress cards.
 const MUSCLE_GROUP_MAP = {
@@ -32180,6 +32270,10 @@ function applyAnalysisEmptyState(){
   // the same thing individually.
   const firstRun = document.getElementById('analysisFirstRun');
   if(firstRun) firstRun.style.display = shown === 0 ? '' : 'none';
+  // Same "is there anything real here" signal as firstRun above — an export
+  // button with nothing to export is just a confusing extra tap.
+  const analysisExportBtn = document.getElementById('analysisExportBtn');
+  if(analysisExportBtn) analysisExportBtn.style.display = shown === 0 ? 'none' : '';
 
   // Built HERE rather than in renderAnalysis, because this is the function that
   // knows which cards survived. An index assembled before autohide runs would
