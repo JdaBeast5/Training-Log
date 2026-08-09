@@ -30,6 +30,13 @@ const scriptChunks = [
   extractFunction(src, 'anyOverlayOpen'),
   extractFunction(src, 'openOverlayEl'),
   extractFunction(src, 'handleOverlayEscape'),
+  // wireSettings' open() also calls refreshHealthImportSummary(), which this
+  // fixture doesn't render healthImportSummaryLine for — it must no-op
+  // safely (guarded on the missing element) rather than throw and abort the
+  // rest of open() before .active ever gets added.
+  extractFunction(src, 'getTodayKey'),
+  extractFunction(src, 'describeHealthImportAge'),
+  extractFunction(src, 'refreshHealthImportSummary'),
   extractIIFE(src, 'wireSettings'),
   'wireSettings();',
   // Exposes the two extracted registries for direct assertion — top-level

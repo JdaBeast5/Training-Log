@@ -5657,7 +5657,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.100';
+const APP_VERSION = '3.101';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5716,6 +5716,10 @@ const WHATS_NEW = {
   '3.100': { headline: 'Your API key is checked before it saves', points: [
     'A typo used to only show up later, mid-workout, when a photo or video review silently failed.',
     'Saving now checks the key first and tells you right away if it was rejected.',
+  ]},
+  '3.101': { headline: 'See how stale your imported health data is', points: [
+    'Settings → Import Health Data now shows "last imported N days ago" instead of a fixed description.',
+    'The readiness check on Today leans on that data most, so it\'s worth knowing when it\'s due for a refresh.',
   ]},
 };
 
@@ -25120,6 +25124,48 @@ document.getElementById('diagHeader').addEventListener('click', ()=>{
 });
 document.getElementById('diagRunBtn').addEventListener('click', runDiagnostics);
 
+// [HEALTH IMPORT STALENESS] -----------------------------------------------
+// The readiness check on Today leans on imported resting heart rate more
+// than anything else this card brings in, but a CSV import is a one-off
+// action a PWA can't re-run on its own (no live HealthKit access — see the
+// note above HEALTH_METRICS). Without this, a stale import sits silently
+// behind "Steps, resting HR and HRV from a CSV export" with nothing telling
+// day 1 apart from day 60.
+function describeHealthImportAge(lastImportKey, todayKey){
+  if(!lastImportKey) return null; // never imported — leave the default copy alone
+  const then = new Date(lastImportKey + 'T00:00:00');
+  const now = new Date(todayKey + 'T00:00:00');
+  const days = Math.round((now - then) / 86400000);
+  if(isNaN(days)) return null;
+  const label = days <= 0 ? 'today' : days === 1 ? 'yesterday' : days + ' days ago';
+  return 'Steps, resting HR and HRV — last imported ' + label + '.';
+}
+
+async function refreshHealthImportSummary(){
+  const el = document.getElementById('healthImportSummaryLine');
+  if(!el) return;
+  let lastImportKey = null;
+  try{
+    const res = await window.storage.get('last-health-import');
+    if(res && res.value) lastImportKey = res.value;
+  }catch(e){}
+  const label = describeHealthImportAge(lastImportKey, getTodayKey());
+  if(label) el.textContent = label;
+}
+
+// Pulled out of the file-input change listener specifically so it's
+// testable without dragging in CSV parsing — same reasoning as
+// checkAllSetsCompleteAndAutoCheck (Phase F1) and handleAiApiKeySave.
+// Only a real save counts as "imported": a file whose every metric failed
+// to merge must not start the staleness clock over on a no-op. Returns
+// whether it recorded, so a caller/test can assert on that directly.
+async function recordHealthImportIfSuccessful(results){
+  if(!results.some(r=> !r.failed)) return false;
+  try{ await window.storage.set('last-health-import', getTodayKey()); }catch(e){}
+  await refreshHealthImportSummary();
+  return true;
+}
+
 document.getElementById('healthImportHeader').addEventListener('click', ()=>{
   const isOpen = document.getElementById('healthImportHeader').classList.toggle('open');
   document.getElementById('healthImportExpandWrap').classList.toggle('open', isOpen);
@@ -25175,6 +25221,7 @@ document.getElementById('healthImportInput').addEventListener('change', async (e
       ${parsed.skipped ? `<div style="margin-top:6px; color:var(--text-muted); font-size:12px;">${parsed.skipped} row${parsed.skipped===1?'':'s'} skipped — unreadable dates or values outside a plausible range.</div>` : ''}
     </div>
   `;
+  await recordHealthImportIfSuccessful(results);
   renderStorageUsage();
   renderTodayInsights();
 });
@@ -32666,7 +32713,7 @@ wireCustomProgramUI();
 
   // .active, not .open — .open is the collapsible-card class. Using the wrong
   // one here fails silently as a cog that does nothing.
-  function open(){ refreshSettingsNotify(); overlay.classList.add('active'); }
+  function open(){ refreshSettingsNotify(); refreshHealthImportSummary(); overlay.classList.add('active'); }
   function close(){ overlay.classList.remove('active'); }
   cog.addEventListener('click', open);
   document.getElementById('settingsClose').addEventListener('click', close);
