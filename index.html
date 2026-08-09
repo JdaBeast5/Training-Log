@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.120';
+const APP_VERSION = '3.121';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5815,6 +5815,9 @@ const WHATS_NEW = {
   ]},
   '3.120': { headline: 'Real citations behind the Calisthenics program', points: [
     'A 2023 gymnastics review and a 2019 isometric-training review now back the static-hold progressions, honestly noting what they do and don\'t cover.',
+  ]},
+  '3.121': { headline: 'A real citation behind the Athletic/Power program', points: [
+    'A 2023 meta-analysis across ages found lower jump volumes work just as well as higher ones — real backing for training less but better here.',
   ]},
 };
 
@@ -8051,7 +8054,7 @@ const PROGRAM_SOURCES = {
     intro: 'Jumps, throws and sprints trained for power output rather than fatigue — short sets, full recovery, quality over accumulation.',
     tier: 'school',
     school: 'Power and plyometric development: low-volume, high-quality efforts with full recovery between sets.',
-    primary: 'NOT YET SOURCED. Plyometric and power dosing has a substantial literature (contact counts, recovery intervals) but none of it has been checked against these actual prescriptions yet.',
+    primary: 'Ramirez-Campillo R, Thapa RK, Afonso J, Perez-Castilla A, Bishop C, Byrne PJ, Granacher U. Effects of Plyometric Jump Training on the Reactive Strength Index in Healthy Individuals Across the Lifespan: A Systematic Review with Meta-analysis. Sports Med. 2023;53(5):1029-1053. doi:10.1007/s40279-023-01825-0 — directly supports this program\'s low-volume design: studies using <=1,080 total jumps produced SIMILAR reactive-strength gains to studies using more, meaning conservative volume is not undertraining, it is the effective dose. Also supports full recovery: distributing load across more frequent, lower-fatigue sessions reduces overload-induced inflammation from the large eccentric loads plyometrics involve.',
     editorNote: 'Power work is deliberately low-volume. A set-volume audit will read this program as under-dosed; that is the point. Adding sets to hit a hypertrophy target would convert power training into conditioning.',
   },
 
@@ -8321,7 +8324,7 @@ const USER_TEXT = {
                    limits:"Skip ahead in the progressions and you'll find out why they exist — levers and planches load connective tissue hard." },
   bodyweight:    { basis:"ACSM's 2026 guidelines, which found bodyweight and bands count as resistance training.",
                    limits:"Needs no equipment, but progress depends on sets being genuinely hard. Easy reps won't do much." },
-  athletic:      { basis:"Standard power and plyometric training practice.",
+  athletic:      { basis:"A 2023 meta-analysis across ages found lower jump volumes work just as well as higher ones for explosive power — real support for training less but better here, not a compromise.",
                    limits:"Low volume on purpose — quality beats accumulation here. Needs a surface with some give, and a proper warm-up." },
   boxingsc:      { basis:"Combat-sport strength and conditioning practice. Established coaching practice rather than a specific study.",
                    limits:"This is the conditioning behind boxing, not boxing. It won't prepare you to spar." },
