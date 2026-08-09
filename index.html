@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.114';
+const APP_VERSION = '3.115';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5795,6 +5795,10 @@ const WHATS_NEW = {
   '3.114': { headline: 'A real citation behind the Desk Worker program', points: [
     'A 2019 meta-analysis (620 people) now backs the Day 3 "get up every 30-60 minutes" habit specifically.',
     'Now working through general fitness/lifestyle programs the same way medical ones were.',
+  ]},
+  '3.115': { headline: 'Real citations behind all 6 combat styles', points: [
+    'Boxing, Kickboxing, Muay Thai, MMA, Taekwondo and Tai Chi each now cite real sports-science research instead of "established coaching practice."',
+    'Tai Chi in particular now cites a real falls-prevention meta-analysis — one of the better-studied benefits in the app.',
   ]},
 };
 
@@ -7911,8 +7915,8 @@ const PROGRAM_SOURCES = {
     intro: 'A container for six martial-art styles — pick the one you train, and the program becomes that art\'s conditioning and drill work rather than a generic striking template.',
     tier: 'school',
     school: 'Style-specific combat conditioning; the actual program comes from COMBAT_STYLES, not from this entry.',
-    primary: 'NOT YET SOURCED. Each of the six styles needs its own provenance — they share very little literature, and a single citation here would misrepresent all six.',
-    editorNote: 'Do not treat one source as covering all six styles. Boxing, Muay Thai, BJJ, wrestling and the rest have genuinely different demands and different injury profiles.',
+    primary: 'NOW SOURCED PER STYLE, deliberately not summarised here — a single citation for this container would misrepresent six genuinely different bodies of literature as one. See STYLE_SOURCES.kickboxing/boxing/muayThai/mma/taekwondo/taiChi for each style\'s own real citation.',
+    editorNote: 'Do not treat one source as covering all six styles, even now that all six have one — each is specific to that style\'s own demands and injury profile. Boxing and Muay Thai in particular carry real head/limb-impact risk that no conditioning citation addresses; see each style\'s own editorNote.',
   },
 
   cycling: {
@@ -8103,38 +8107,38 @@ const STYLE_SOURCES = {
   kickboxing: {
     intro: 'Punches and kicks without clinch work — the balanced default if you want striking conditioning and are not committed to one art yet.',
     tier: 'school', school: 'General striking conditioning drawn from kickboxing practice.',
-    primary: 'NOT YET SOURCED. Striking-conditioning literature exists for repeat-effort work but has not been checked against these sessions.',
+    primary: 'Ouergui I, Benyoussef A, Houcine N, Abedelmalek S, Franchini E, Gmada N, Bouhlel E, Bouassida A. Physiological responses and time-motion analysis of kickboxing: differences between full contact, light contact, and point fighting contests. J Strength Cond Res. 2021;35(9):2558-2563. doi:10.1519/JSC.0000000000003190 — high-intensity bursts (~2.2s) separated by short pauses (~5.4s), roughly 1:1 fighting-to-non-fighting ratio, rising blood lactate across the bout — supports repeat-effort, interval-style conditioning over steady-state cardio for this style.',
     editorNote: 'This is conditioning and drill work, not instruction. It cannot teach you to spar safely and does not replace a coach.',
   },
   boxing: {
     intro: 'Hands only — combinations, defensive movement and footwork, with the conditioning that supports round-based work.',
     tier: 'school', school: 'Boxing drill and conditioning practice.',
-    primary: 'NOT YET SOURCED. Boxing S&C and head-impact literature are both substantial; neither has been attached here yet.',
-    editorNote: 'Head-contact risk is the defining safety issue in boxing and nothing here addresses it. Drilling alone does not prepare you to be hit.',
+    primary: 'Slimani M, Chaabene H, Davis P, Franchini E, Cheour F, Chamari K. Performance aspects and physiological responses in male amateur boxing competitions: A brief review. J Strength Cond Res. 2017;31(4):1132-1141. doi:10.1519/JSC.0000000000001643 — boxing is a high-intensity intermittent sport (activity-to-rest ratio 18:1 in elite boxers, 9:1 in novices), with rising heart rate/VO2 and lactate across rounds — supports this program\'s round-based interval structure (2-min rounds, d1/d2/d4). Head-impact literature remains genuinely NOT SOURCED here, and that is the more consequential gap — see editorNote.',
+    editorNote: 'Head-contact risk is the defining safety issue in boxing and NOTHING in this program\'s conditioning citation addresses it — the Slimani et al. source is about round intensity/pacing, not head-impact safety, and must never be read as covering that. Drilling alone does not prepare you to be hit. This remains an open, real gap, not one to paper over with an adjacent citation.',
   },
   muayThai: {
     intro: 'The full eight-limb arsenal — punches, kicks, knees, elbows and clinch — with the conditioning Thai boxing demands.',
     tier: 'school', school: 'Muay Thai drill and conditioning practice.',
-    primary: 'NOT YET SOURCED. Clinch and low-kick conditioning practice is well established in coaching but is not cited here.',
-    editorNote: 'Clinch and elbow work carry real injury risk and are not learnable from cue text. Treat this as supplementary to coached training.',
+    primary: 'Mohamad NI, Chinnasee C, Hemapandha W, Vongjaturapat N, Makaje N, Ratanarojanakool P, Pimjan L. Sports Science-Based Research on the Sport of Muay Thai: A Review of the Literature. Walailak J Sci Technol. 2016;14(8):615-625 — VO2/heart rate stay above anaerobic threshold for most of a round (heavy anaerobic-lactic contribution), roughly 20% of round time spent clinching, hip/knee joint control central to both clinch positions — supports both the anaerobic-conditioning emphasis and the clinch-specific work here. The review itself notes the broader Muay Thai sports-science literature is genuinely thin, which matches this app not overclaiming further.',
+    editorNote: 'Clinch and elbow work carry real injury risk and are not learnable from cue text — the citation covers physiological demand, not technique safety. Treat this as supplementary to coached training.',
   },
   mma: {
     intro: 'Mixed standup with sprawl and ground conditioning — built for the transitions between striking and grappling rather than either alone.',
     tier: 'school', school: 'MMA conditioning across striking and grappling ranges.',
-    primary: 'NOT YET SOURCED. Mixed-modality conditioning research exists; none has been verified against these sessions.',
-    editorNote: 'Covers conditioning across ranges, not the technical skill of transitioning between them.',
+    primary: 'Kirk C, Clark DR, Langan-Evans C, Morton JP. The physical demands of mixed martial arts: A narrative review using the ARMSS model to provide a hierarchy of evidence. J Sports Sci. 2020;38(24):2819-2841. doi:10.1080/02640414.2020.1802093 — documents genuinely conflicting metabolic demands (phosphagen for explosive exchanges, glycolytic for sustained grappling, aerobic for recovery between them) and high VO2max in MMA athletes, supporting a multifaceted approach across ranges rather than training striking or grappling conditioning in isolation. The review\'s own conclusion: limited peer-reviewed evidence exists on optimal periodization for MMA specifically — cited for physical demands, not for this program\'s periodization choices.',
+    editorNote: 'Covers conditioning across ranges, not the technical skill of transitioning between them. The citation documents WHAT the demands are, not that this specific program\'s periodization is validated — the review itself says that evidence does not yet exist.',
   },
   taekwondo: {
     intro: 'Kick-dominant training — roundhouse, side, axe and spinning kicks — with the hip mobility and balance that makes them possible.',
     tier: 'school', school: 'Taekwondo kicking practice with supporting mobility work.',
-    primary: 'NOT YET SOURCED. Kicking mechanics and hip-mobility requirements are well documented in coaching practice but uncited here.',
+    primary: 'Yilmaz EA, Ates O. Taekwondo kicks at the center of biomechanical research: systematic review. Kinesiology. 2025;57(2):289-307 — hip joint torque and hip mobility/neuromuscular control are the most consistent determinants of kicking performance across studies, and postural balance is essential since most kicks execute on a single leg — directly supports this program\'s pairing of kicking drills with dedicated hip-mobility and balance work rather than kicks alone.',
     editorNote: 'Spinning and jumping kicks demand a mobility and landing base this program builds toward rather than assumes. Do not skip ahead.',
   },
   taiChi: {
     intro: 'An internal art — standing meditation, slow form work and push hands. Trained for balance, control and breath rather than for output.',
     tier: 'school', school: 'Traditional Tai Chi practice: form, stance and controlled weight transfer.',
-    primary: 'NOT YET SOURCED. Tai Chi has a substantial falls-prevention literature in older adults that has NOT been checked against this program.',
-    editorNote: 'Do not audit this for intensity or volume — low output is the method, not a shortfall. Equally, do not claim the falls-prevention benefit until the literature is actually attached.',
+    primary: 'The falls-prevention benefit is now attached, as the prior note asked for: Chen W, Li M, Li H, Lin Y, Feng Z. Tai Chi for fall prevention and balance improvement in older adults: a systematic review and meta-analysis of randomized controlled trials. Front Public Health. 2023;11:1236050. doi:10.3389/fpubh.2023.1236050 — 24 RCTs; Tai Chi reduced fall risk (RR 0.76, 95% CI 0.71-0.82) and improved balance (timed up-and-go, functional reach, single-leg balance, gait speed) in adults 60+. Yang-style outperformed Sun-style.',
+    editorNote: 'The RCT evidence is specifically in adults 60+ — do not generalize the falls-prevention claim to this program\'s users at large without that qualifier; the balance/control training itself is appropriate at any age, but the cited benefit was measured in an older population. Do not audit this for intensity or volume — low output is the method, not a shortfall.',
   },
 
   // --- Cycling ----------------------------------------------------------
@@ -8327,12 +8331,12 @@ const USER_TEXT = {
                    limits:"These are modified training plans, not treatment. None of them replace advice from the people treating you — and where they disagree, follow your team." },
 
   // --- Styles -----------------------------------------------------------
-  kickboxing:  { basis:"Kickboxing conditioning practice. Established coaching practice rather than a specific study.", limits:"Drills and conditioning, not instruction. You'll need a coach to spar safely." },
-  boxing:      { basis:"Boxing conditioning practice. Established coaching practice rather than a specific study.",     limits:"Nothing here prepares you for being hit. That part needs a gym and a coach." },
-  muayThai:    { basis:"Muay Thai conditioning practice. Established coaching practice rather than a specific study.",  limits:"Clinch and elbow work carry real injury risk and can't be learned from text." },
-  mma:         { basis:"Mixed-range conditioning practice. Established coaching practice rather than a specific study.", limits:"Covers conditioning across ranges, not the skill of moving between them." },
-  taekwondo:   { basis:"Taekwondo kicking practice. Established coaching practice rather than a specific study.",       limits:"Spinning and jumping kicks need a mobility base first. Build toward them." },
-  taiChi:      { basis:"Traditional Tai Chi form practice. Established coaching practice rather than a specific study.", limits:"Low intensity is the method, not a shortfall. Good for balance and control." },
+  kickboxing:  { basis:"A 2021 study measuring real kickboxing bouts found short, hard bursts (about 2 seconds) with short rests — real support for interval-style conditioning over steady cardio here.", limits:"Drills and conditioning, not instruction. You'll need a coach to spar safely." },
+  boxing:      { basis:"Real amateur-boxing physiology research behind the round structure here — elite boxers work at roughly an 18:1 activity-to-rest ratio, which is what the 2-minute rounds are built around.",     limits:"Nothing here prepares you for being hit. That part needs a gym and a coach." },
+  muayThai:    { basis:"A literature review of Muay Thai sports science backs the heavy anaerobic-conditioning emphasis here — heart rate and oxygen use stay elevated for most of a round, with real recovery time hard to come by.",  limits:"Clinch and elbow work carry real injury risk and can't be learned from text." },
+  mma:         { basis:"A 2020 research review of MMA's physical demands — genuinely conflicting energy systems across striking and grappling — is why this program trains multiple conditioning qualities rather than picking one.", limits:"Covers conditioning across ranges, not the skill of moving between them." },
+  taekwondo:   { basis:"A 2025 systematic review found hip mobility/control and balance are the strongest predictors of kicking performance across studies — the real reason this program pairs kicks with dedicated hip and balance work rather than kicks alone.",       limits:"Spinning and jumping kicks need a mobility base first. Build toward them." },
+  taiChi:      { basis:"A 2023 meta-analysis of 24 trials found Tai Chi cuts fall risk by about a quarter and improves balance in older adults — one of the better-studied benefits in this app.", limits:"Low intensity is the method, not a shortfall. Good for balance and control." },
   road:        { basis:"Power-based endurance cycling. Established coaching practice rather than a specific study.",    limits:"Interval targets assume you know roughly what your sustainable effort is." },
   mountain:    { basis:"Off-road cycling practice. Established coaching practice rather than a specific study.",        limits:"Technical descending is the main injury risk and can't be trained from text." },
   flow:        { basis:"Vinyasa-lineage sequencing. Established coaching practice rather than a specific study.",       limits:"Work to sensation, not pain." },
