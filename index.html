@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.108';
+const APP_VERSION = '3.109';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5775,6 +5775,10 @@ const WHATS_NEW = {
   '3.108': { headline: 'A real citation behind the Osteoporosis program', points: [
     'A 2022 UK consensus statement now backs the weight-bearing/resistance/balance design and the no-spinal-flexion rule specifically.',
     'Same batch as v3.106-3.107 — working through medical/health programs one at a time.',
+  ]},
+  '3.109': { headline: 'A real citation behind the ACL Rehab program', points: [
+    'A 2016 multi-society consensus statement and a real reinjury-rate study now back the "criteria, not the calendar" approach.',
+    'Same batch as v3.106-3.108 — working through medical/health programs one at a time.',
   ]},
 };
 
@@ -8215,8 +8219,8 @@ const STYLE_SOURCES = {
   rehabAcl: {
     intro: 'A long, criterion-based track — real ACL recovery runs nine to twelve months and progresses on what you can do, not on how many weeks have passed.',
     tier: 'school', school: 'Criterion-based ACL rehabilitation.',
-    primary: 'NOT YET SOURCED. Return-to-sport criteria after ACL reconstruction have a substantial literature (hop-test batteries, limb symmetry indices, reinjury rates by timeline) that has NOT been attached here.',
-    editorNote: 'The criteria that gate each phase are exactly what this app cannot measure. Timeline-based progression is associated with higher reinjury risk than criterion-based progression — which makes an uncited criterion-based program a structure, not a protocol. Follow your surgeon and physiotherapist over this.',
+    primary: 'Ardern CL, Glasgow P, Schneiders A, et al. 2016 Consensus statement on return to sport from the First World Congress in Sports Physical Therapy, Bern. Br J Sports Med. 2016;50(14):853-864. doi:10.1136/bjsports-2016-096278 — establishes criterion-based (not calendar-based) return-to-sport as the standard. Reinjury data: Grindem H, Snyder-Mackler L, Moksnes H, Engebretsen L, Risberg MA. Simple decision rules can reduce reinjury risk by 84% after ACL reconstruction: the Delaware-Oslo ACL cohort study. Br J Sports Med. 2016;50(13):804-808. doi:10.1136/bjsports-2016-096031 — of athletes who did NOT pass return-to-sport criteria (quad/hamstring strength limb symmetry, hop tests, psychological readiness) before returning, 38.2% suffered a reinjury within 2 years, vs. 5.6% of those who passed — the source for this program\'s "criteria, not the calendar" framing and its reinjury-risk warnings.',
+    editorNote: 'Grindem et al.\'s ~90% limb-symmetry-index threshold is a FINAL return-to-sport criterion — it does not specifically validate the d4 note\'s "~60%+" early-phase quad-symmetry benchmark, which is a reasonable intermediate milestone but not something these two citations directly measure; do not imply it is. The criteria that actually gate each phase (isokinetic strength testing, hop-test batteries, psychological readiness) are exactly what this app cannot measure. Follow your surgeon and physiotherapist over this.',
   },
   rehabAchilles: {
     intro: 'Eccentric heel drops in both knee positions, three days a week — the Alfredson loading pattern at a volume you can actually sustain, rather than the 180 reps a day the original protocol asks for.',
@@ -8340,7 +8344,7 @@ const USER_TEXT = {
                  limits:"Deliberately broad, so nothing here is dosed for a specific diagnosis. If one area is the problem, use its own program — and if you don't know what's wrong, get it looked at." },
   rehabShoulder:{ basis:"The standard three-phase shoulder rehab structure. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
                  limits:"Can't tell a rotator cuff problem from instability or a neck issue — and they need different treatment. Move between phases on how the shoulder responds, not the calendar." },
-  rehabAcl:    { basis:"Criterion-based ACL rehabilitation practice. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
+  rehabAcl:    { basis:"A 2016 multi-society consensus statement behind the criteria-based (not calendar-based) approach here. A separate real-world study found 38% of athletes who returned WITHOUT passing return-to-sport testing got reinjured within 2 years, vs. 6% of those who passed — the actual reason this app keeps saying wait for criteria, not weeks.",
                  limits:"Real recovery runs 9-12 months and progresses on what you can do, not weeks elapsed. Returning early raises the risk of doing it again. Your surgeon and physio outrank this program." },
   rehabAchilles:{ basis:"Eccentric heel-drop loading (the Alfredson approach), at a lower daily volume than the original protocol — supported by a trial finding reduced volume worked comparably.",
                  limits:"For mid-portion Achilles pain — pain right at the heel bone often responds badly to full heel drops, so get it checked. Some discomfort during the exercise is expected; sharp or worsening pain isn't. Doesn't apply to a suspected rupture, which is urgent." },
