@@ -5684,7 +5684,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.105';
+const APP_VERSION = '3.106';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5763,6 +5763,10 @@ const WHATS_NEW = {
   '3.105': { headline: 'Call a deload week on your own schedule', points: [
     'A new toggle in Settings ("During a workout") lets you mark any week as a deload/taper — not just the automatic every-5th-week one.',
     'Suggested weights and warm-ups come down the same way they would on a scheduled deload week.',
+  ]},
+  '3.106': { headline: 'A real citation behind the Hypertension program', points: [
+    'The "what this is based on" note now points to an actual 2026 blood-pressure meta-analysis instead of a general disclaimer.',
+    'First of a batch of programs getting the same treatment — starting with medical/health ones.',
   ]},
 };
 
@@ -8149,8 +8153,8 @@ const STYLE_SOURCES = {
   hypertension: {
     intro: 'Moderate, steady effort with attention to breathing — built to avoid the pressure spikes that breath-holding under load produces.',
     tier: 'school', school: 'Moderate-intensity aerobic and resistance work with explicit avoidance of the Valsalva manoeuvre.',
-    primary: 'NOT YET SOURCED. Requires a hypertension-specific exercise guideline; ACSM 2026 does not cover blood-pressure management.',
-    editorNote: 'Does not replace medication or monitoring, and cannot tell you whether your blood pressure is controlled enough to train. Get clearance first.',
+    primary: 'Xin X, Guo Y, Wang M, et al. Optimal Exercise Modalities and Dosages for Blood Pressure Reduction in Adults With Prehypertension and Established Hypertension: A Network Meta-Analysis and Dose-Response Relationship Study. J Am Heart Assoc. 2026;15:e044003. doi:10.1161/JAHA.125.044003 — 105 RCTs; combined aerobic+resistance training and HIIT produced the largest reductions (combined: -12.05 mmHg systolic / -6.20 mmHg diastolic). Supporting: AHA. Resistance Exercise Training in Individuals With and Without Cardiovascular Disease: 2023 Update. Circulation. 2023. doi:10.1161/CIR.0000000000001189 (resistance training safety/efficacy in CV populations). Valsalva/breathing guidance: Linsenbardt ST, Thomas TR, Madsen RW. Effect of breathing techniques on blood pressure response to resistance exercise. Br J Sports Med. 1992;26(2):97-100 (exhaling through the lift measured at 198/175 mmHg vs. 311/284 mmHg with breath-holding on the same lift — foundational, not recency-matched, but the physiology has not changed).',
+    editorNote: 'Xin et al. found combined training AND high-intensity interval training both effective — this program is moderate-intensity by design, not HIIT, so cite the combined-training finding only; do not imply HIIT is validated here too. Does not replace medication or monitoring, and cannot tell you whether your blood pressure is controlled enough to train. Get clearance first.',
   },
   diabetes: {
     intro: 'Combined aerobic and resistance work, with a short walk deliberately placed after meals rather than wherever it fits the training logic.',
@@ -8310,7 +8314,7 @@ const USER_TEXT = {
                  limits:"The person being stretched sets the depth — always, in every pose. Never push a partner further than they ask for." },
   obesity:     { basis:"ACSM's 2026 guidelines, which found that for clinical populations, turning up consistently matters more than any training variable.",
                  limits:"Low-impact by design. Doesn't address medication or other conditions — worth a conversation with your doctor first." },
-  hypertension:{ basis:"Standard practice for training with high blood pressure. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
+  hypertension:{ basis:"A 2026 meta-analysis of 105 trials found combined aerobic and resistance training among the most effective ways to lower blood pressure. Exhaling through each lift instead of holding your breath is separately well-studied — measured at roughly half the blood-pressure spike of the same lift.",
                  limits:"Don't hold your breath under load — that spikes blood pressure. Get clearance before starting, and this doesn't replace medication or monitoring." },
   diabetes:    { basis:"Combined aerobic and resistance training, with walks timed after meals. This reflects common clinical practice, not a specific published guideline — your own clinician's plan should take priority.",
                  limits:"The post-meal walk timing is the point — it targets the glucose rise after eating. If you take insulin or medication that can cause low blood sugar, talk to your team about how exercise fits your dosing." },
