@@ -681,8 +681,7 @@
   .ex-name .focus-tag{color:var(--plate-green);}
   .ex-name .custom-tag{color:var(--plate-blue);}
   .ex-name .sub-tag{color:var(--plate-purple);}
-  .ex-name.ex-name-swappable{cursor:pointer;}
-  .ex-swap-icon{font-size:12px; color:var(--plate-blue); opacity:0.75; margin-left:2px;}
+  .ex-swap-icon{display:inline-block; font-size:12px; color:var(--plate-blue); opacity:0.75; margin-left:2px; padding:6px 4px; margin-block:-6px; cursor:pointer;}
   .ex-delete-custom-btn{
     flex:0 0 auto; background:none; border:none; color:var(--text-muted); font-size:15px;
     cursor:pointer; padding:4px; margin-right:2px;
@@ -5693,7 +5692,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.133';
+const APP_VERSION = '3.134';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5851,6 +5850,9 @@ const WHATS_NEW = {
   '3.133': { headline: 'Honest sourcing for Swimming\'s dryland shoulder work', points: [
     'The two actual trials on dryland shoulder prehab found only minimal, non-significant results — said plainly rather than implying settled proof. The underlying rationale and low-risk exercises stay as they were.',
     'Wraps up the citation-sourcing project started back at v3.106 — every program now has either a real, verified source or an honest, explicit note about why it doesn\'t.',
+  ]},
+  '3.134': { headline: 'Tapping an exercise name now opens it, not "Swap"', points: [
+    'The swap-exercise action used to be bound to almost the entire name text, so a normal tap to expand a set often opened "Swap Exercise" instead. It\'s now bound to just the small ⇄ icon, which also got a bit more room to tap accurately.',
   ]},
 };
 
@@ -17910,9 +17912,14 @@ async function renderWorkout(){
       row.querySelector('.expand-wrap').classList.toggle('open');
     });
 
-    const nameEl = row.querySelector('.ex-name');
-    if(hasSubs){
-      nameEl.addEventListener('click', (e)=>{
+    // Bound to the swap ICON specifically, not the whole .ex-name text — the
+    // name spans most of the row's width, and stopPropagation() there meant
+    // a normal tap anywhere on the exercise name opened "Swap Exercise"
+    // instead of the header's own expand-to-log toggle. Found via a real
+    // golden-path walkthrough, not a hypothetical.
+    const swapIcon = row.querySelector('.ex-swap-icon');
+    if(hasSubs && swapIcon){
+      swapIcon.addEventListener('click', (e)=>{
         e.stopPropagation();
         openExerciseSubModal(i, ex);
       });
@@ -19804,12 +19811,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       const restTarget = getDefaultRestSeconds(ex);
       restTargetBySlot[exKey(activeProgram, activeDay, exIdx, subVariant)] = restTarget;
       startRestTimer(restTarget, getRestReasonLabel(ex));
-      // Same signal, two consumers: a logged set both starts the rest clock and
-      // means the phone should stay awake for the next one.
       noteWorkoutActivity();
-      // Third consumer of the same signal: the first logged set of the day is
-      // also the moment to offer gym mode, or to enter it if that has already
-      // been answered yes.
       maybeOfferGymMode();
       checkAllSetsCompleteAndAutoCheck(row, block);
     };
