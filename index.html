@@ -4154,7 +4154,7 @@
     <div class="user-picker-divider">— or —</div>
     <label class="care-label" for="newUserNameInput">Create a new profile</label>
     <input type="text" id="newUserNameInput" class="care-input" placeholder="Your name">
-    <button class="save-btn" id="newUserCreateBtn">+ Create My Profile</button>
+    <button class="save-btn" id="newUserCreateBtn">+ Create my profile</button>
     <button class="user-picker-cancel" id="userPickerCancelBtn">Cancel</button>
   </div>
 </div>
@@ -4366,7 +4366,7 @@
         <input type="checkbox" id="customExNoWeight">
         <span>No weight (bodyweight, duration, or hold)</span>
       </label>
-      <button class="save-btn" id="addCustomExerciseSubmit">Add to This Day</button>
+      <button class="save-btn" id="addCustomExerciseSubmit">Add to this day</button>
       <div class="status-msg" id="customExStatus"></div>
     </div></div>
   </div>
@@ -4530,24 +4530,24 @@
       <input type="text" id="pfAvoidFoods" class="care-input" placeholder="e.g. peanuts, shellfish, pork, cilantro">
       <div class="history-hint field-note">Allergies, intolerances, religious restrictions, or just foods you don't want suggested — comma-separated. Matches whole words in a food's name, so "egg" won't flag "eggplant." Broad categories like "nuts" only catch foods actually named that — list specific ones (almonds, cashews, walnuts) for full coverage.</div>
 
-      <button class="save-btn" id="pfSave">Save Profile</button>
+      <button class="save-btn" id="pfSave">Save profile</button>
       <div class="status-msg" id="pfStatus"></div>
 
-      <button class="switch-profile-btn" id="switchProfileBtn">🔄 Switch Profile (for a shared device)</button>
+      <button class="switch-profile-btn" id="switchProfileBtn">🔄 Switch profile (for a shared device)</button>
       <!-- Sits directly above Export because that is the action it should
            prompt. Renders nothing at all on engines without
            navigator.storage.estimate() rather than showing a misleading zero. -->
       <div id="storageUsageMeter"></div>
-      <button class="switch-profile-btn" id="printProgramBtn">🖨️ Print My Program (full week, on paper)</button>
-      <button class="switch-profile-btn" id="exportDataBtn">⬇️ Export My Data (backup as JSON)</button>
-      <button class="switch-profile-btn" id="importDataBtn">⬆️ Import Backup (restore from JSON)</button>
+      <button class="switch-profile-btn" id="printProgramBtn">🖨️ Print my program (full week, on paper)</button>
+      <button class="switch-profile-btn" id="exportDataBtn">⬇️ Export my data (backup as JSON)</button>
+      <button class="switch-profile-btn" id="importDataBtn">⬆️ Import backup (restore from JSON)</button>
       <input type="file" id="importDataInput" accept="application/json,.json" style="display:none" aria-label="Choose a backup file to import">
       <div class="status-msg" id="importDataStatus"></div>
-      <button class="switch-profile-btn" id="verifyBackupBtn">🔍 Check a Backup File (reads it, changes nothing)</button>
+      <button class="switch-profile-btn" id="verifyBackupBtn">🔍 Check a backup file (reads it, changes nothing)</button>
       <input type="file" id="verifyBackupInput" accept="application/json,.json" style="display:none" aria-label="Choose a backup file to check">
       <div class="status-msg" id="verifyBackupStatus"></div>
       <div id="verifyBackupReport"></div>
-      <button class="switch-profile-btn" id="deleteAllDataBtn" style="color:var(--plate-red); border-color:rgba(255,69,58,0.3);">🗑️ Delete All My Data (this profile, permanently)</button>
+      <button class="switch-profile-btn" id="deleteAllDataBtn" style="color:var(--plate-red); border-color:rgba(255,69,58,0.3);">🗑️ Delete all my data (this profile, permanently)</button>
       <div class="status-msg" id="deleteAllDataStatus"></div>
     </div></div>
   </div>
@@ -4609,13 +4609,13 @@
           <input type="text" id="describeFoodInput" class="care-input" placeholder="e.g. chicken burrito bowl with rice, beans, and guac" aria-label="Describe what you ate">
           <span id="describeFoodVoiceSlot"></span>
         </div>
-        <button class="save-btn" id="describeFoodSubmit">Estimate Nutrition</button>
+        <button class="save-btn" id="describeFoodSubmit">Estimate nutrition</button>
       </div></div>
       <div id="recipeFinderForm" class="describe-food-form smooth-toggle"><div>
         <div class="describe-food-input-row">
           <input type="text" id="recipeFinderInput" class="care-input" placeholder="e.g. sesame chicken, overnight oats, turkey chili" aria-label="What you feel like eating">
         </div>
-        <button class="save-btn" id="recipeFinderSubmit">Find Recipes</button>
+        <button class="save-btn" id="recipeFinderSubmit">Find recipes</button>
         <div class="history-hint" style="margin-top:8px;">A few different takes on what you're craving — with estimated macros per serving, and a link to the actual recipe. Respects your dietary preference and avoid list. Nothing's shown in-app beyond the estimate; tap through to cook it, or log it straight from the estimate if you already know what you're making.</div>
       </div></div>
       <input type="file" id="photoLogInput" accept="image/*" style="display:none" aria-label="Photo of your meal">
@@ -4632,7 +4632,7 @@
 
       <button class="custom-toggle" id="customToggle">+ Add custom item</button>
       <div id="customForm" class="smooth-toggle"><div class="custom-form">
-        <button class="photo-log-btn" id="scanLabelBtn" style="margin:0 0 4px;">📷 Scan or Upload a Label Photo</button>
+        <button class="photo-log-btn" id="scanLabelBtn" style="margin:0 0 4px;">📷 Scan or upload a label photo</button>
         <input type="file" id="scanLabelInput" accept="image/*" style="display:none" aria-label="Photo of a nutrition label">
         <div class="status-msg" id="scanLabelStatus"></div>
         <input type="text" id="cName" placeholder="Item name" aria-label="Custom food name">
@@ -4659,13 +4659,13 @@
           <input type="checkbox" id="cSaveToLibrary" checked>
           <span>💾 Save to My Foods, so I can find it again next time</span>
         </label>
-        <button class="save-btn" id="addCustom">Add Item</button>
+        <button class="save-btn" id="addCustom">Add item</button>
       </div></div>
       <div class="status-msg" id="nutritionStatus"></div>
 
       <div class="section-divider"></div>
       <div class="section-label">Today</div>
-      <button class="reorder-btn" id="repeatYesterdayBtn" style="display:none; margin-bottom:10px;">🔁 Repeat Yesterday</button>
+      <button class="reorder-btn" id="repeatYesterdayBtn" style="display:none; margin-bottom:10px;">🔁 Repeat yesterday</button>
       <div class="food-log-list" id="foodLogList"></div>
     </div></div>
   </div>
@@ -4788,7 +4788,7 @@
         <div><label class="care-label" for="mHips">Hips (in)</label><input type="number" inputmode="decimal" step="0.1" id="mHips" class="care-input"></div>
         <div><label class="care-label" for="mNeck">Neck (in)</label><input type="number" inputmode="decimal" step="0.1" id="mNeck" class="care-input"></div>
       </div>
-      <button class="save-btn" id="saveMeasurements">Log Measurements</button>
+      <button class="save-btn" id="saveMeasurements">Log measurements</button>
       <div class="status-msg" id="measureStatus"></div>
       <div class="weight-list" id="measureList"></div>
     </div></div>
@@ -4803,7 +4803,7 @@
     <div class="expand-wrap" id="photosExpandWrap"><div>
       <div class="privacy-note">🔒 Stored only on this device by default, never uploaded anywhere on their own. The one exception is the separate "Compare with AI" tool below — it only sends the exact two photos you pick, and only after you explicitly confirm each time. Deleting a photo removes it completely; "Delete All My Data" in your profile wipes these too.</div>
       <input type="file" id="photoInput" accept="image/*" style="display:none" aria-label="Progress photo">
-      <button class="photo-log-btn" id="photoAddBtn">📸 Snap or Upload a Progress Photo</button>
+      <button class="photo-log-btn" id="photoAddBtn">📸 Snap or upload a progress photo</button>
       <div class="status-msg" id="photoStatus"></div>
       <div class="photo-grid" id="photoGrid"></div>
 
@@ -4888,7 +4888,7 @@
       <label class="care-label">Your Anthropic API Key</label>
       <div id="aiKeySetupState">
         <input type="password" id="aiApiKeyInput" class="care-input" placeholder="sk-ant-..." aria-label="Anthropic API key">
-        <button class="save-btn" id="aiApiKeySave">Save Key</button>
+        <button class="save-btn" id="aiApiKeySave">Save key</button>
       </div>
       <div id="aiKeyConnectedState" class="ai-key-connected" style="display:none">
         <span class="ai-key-connected-dot"></span>
@@ -4906,7 +4906,7 @@
          tab for an index to be worth having. -->
     <nav class="analysis-index" id="analysisIndex" aria-label="Jump to a section of this tab" style="display:none"></nav>
 
-    <button type="button" class="switch-profile-btn history-export-btn" id="analysisExportBtn" style="display:none; margin-bottom:12px;">Print Analysis Snapshot</button>
+    <button type="button" class="switch-profile-btn history-export-btn" id="analysisExportBtn" style="display:none; margin-bottom:12px;">Print analysis snapshot</button>
 
     <div class="card" id="analysisFirstRun" style="display:none">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 6.5v4M10 13.3v.2"/></svg></span>Nothing to analyse yet</div>
@@ -4922,7 +4922,7 @@
     <div class="card" data-autohide>
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5 12 7.5l5.5.5-4 3.8 1.2 5.4L10 14.5l-4.7 2.7 1.2-5.4-4-3.8 5.5-.5Z"/></svg></span>AI Cross-Metric Insights</div>
       <div class="history-hint">Every card above and below looks at one metric at a time. This looks at how they're actually affecting each other — sleep vs. training load, protein vs. volume, water vs. sessions that felt harder than they should have — and what to actually adjust.</div>
-      <button class="save-btn" id="genCrossInsightsBtn" style="margin-top:10px;">✨ Generate Insights</button>
+      <button class="save-btn" id="genCrossInsightsBtn" style="margin-top:10px;">✨ Generate insights</button>
       <div id="crossInsightsResult" style="margin-top:12px;"></div>
     </div>
 
@@ -5070,7 +5070,7 @@
           <option value="365">Last year</option>
           <option value="all">All time</option>
         </select>
-        <button type="button" class="switch-profile-btn history-export-btn" id="historyExportBtn">Print Workout Report</button>
+        <button type="button" class="switch-profile-btn history-export-btn" id="historyExportBtn">Print workout report</button>
       </div>
       <input type="search" id="historySearch" class="care-input history-search" placeholder="Filter by exercise, e.g. deadlift" aria-label="Filter history by exercise name" autocomplete="off">
       <div id="historySearchStatus" class="history-search-status"></div>
@@ -5130,7 +5130,7 @@
         <textarea id="careNote" class="care-input care-textarea" placeholder="Optional — swelling, when it started, what makes it worse/better..."></textarea>
 
         <div id="careLogDayNote" class="care-log-day-note" style="display:none"></div>
-        <button class="save-btn" id="careSubmit">Log &amp; Check</button>
+        <button class="save-btn" id="careSubmit">Log &amp; check</button>
         <button class="usda-key-upgrade-toggle" id="careCancelEdit" style="display:none; text-align:center; margin-top:8px;">Cancel edit</button>
       </div>
       <div id="careResult"></div>
@@ -5180,7 +5180,7 @@
       <div class="history-hint">Coaching from the <b id="coachPersonaLabel">Strength & Size</b> knowledge base, since that's your active training style. Record a full working set, up to 60 seconds, from the side or a 3/4 angle — the coach reads frames across the whole set and can tell you whether your form holds up or breaks down as it goes, not just a single moment. Longer or larger clips are exactly where video reading tends to fail on iPhone, so 60 seconds is a real ceiling, not a suggestion.</div>
       <div class="privacy-note">🔒 Your clip goes directly from this device to Anthropic using your own API key — never through any other server. Only the written feedback below gets saved; the video itself is never stored, here or anywhere else.</div>
       <input type="file" id="coachVideoInput" accept="video/*" style="display:none" aria-label="Video of your set">
-      <button class="photo-log-btn" id="coachVideoBtn">🎥 Upload or Record a Clip</button>
+      <button class="photo-log-btn" id="coachVideoBtn">🎥 Upload or record a clip</button>
       <label class="care-label" for="coachExerciseInput">What exercise/movement is this?</label>
       <input type="text" id="coachExerciseInput" class="care-input" placeholder="e.g. Back Squat, Jab-Cross Combo, Front Double Biceps" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="coachExerciseSuggest">
       <div id="coachExerciseSuggest" class="ex-suggest" role="listbox" aria-label="Matching exercises" style="display:none"></div>
@@ -5692,7 +5692,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.136';
+const APP_VERSION = '3.137';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5859,6 +5859,9 @@ const WHATS_NEW = {
   ]},
   '3.136': { headline: 'The History heatmap now agrees with your streak', points: [
     'A day with real logged weight/reps could show up in your streak and the Day-by-Day Log but leave the calendar heatmap blank — it only lit up once an exercise\'s checkbox got checked, which needs RPE filled in too. The heatmap (and the backdating date picker\'s calendar dots) now use the same "did you actually log something" signal as everything else.',
+  ]},
+  '3.137': { headline: 'Button labels now read the same way throughout the app', points: [
+    'Around two dozen buttons ("Save Profile", "Print Workout Report", "Repeat Yesterday" and the like) used Title Case while most of the app already used sentence case. They now all match — no change to what any of them do.',
   ]},
 };
 
@@ -17282,7 +17285,7 @@ async function renderWorkout(){
     }catch(e){}
 
     const dateLabel = formatLogDateLabel(selectedLogDate).toLowerCase();
-    const archiveBtnHtml = activeDay === 'd7' ? `<button class="save-btn" id="archiveWeekBtn" style="margin-top:14px;">🏁 Save This Week & Start Fresh</button><div class="status-msg" id="archiveWeekStatus"></div><div id="weekShareWrap" style="display:none; margin-top:8px; text-align:center;"><button type="button" class="switch-profile-btn" id="weekShareBtn" style="width:auto; display:inline-block; padding:8px 18px;">Share This Week</button></div>` : '';
+    const archiveBtnHtml = activeDay === 'd7' ? `<button class="save-btn" id="archiveWeekBtn" style="margin-top:14px;">🏁 Save this week & start fresh</button><div class="status-msg" id="archiveWeekStatus"></div><div id="weekShareWrap" style="display:none; margin-top:8px; text-align:center;"><button type="button" class="switch-profile-btn" id="weekShareBtn" style="width:auto; display:inline-block; padding:8px 18px;">Share this week</button></div>` : '';
     list.innerHTML = `
       <div class="rest-note">${day.note}</div>
       <label class="rest-done-row">
@@ -17726,7 +17729,7 @@ async function renderWorkout(){
           <div class="set-actions">${sameAsLastHtml}</div>
           ${warmupHtml}
           ${setRowsHtml}
-          <button class="add-set-btn" type="button">+ Add Set</button>
+          <button class="add-set-btn" type="button">+ Add set</button>
         </div>
         ${summaryHtml}
         ${badge}
@@ -22744,7 +22747,7 @@ function buildUsdaKeyUpgradePrompt(){
     <div class="usda-key-upgrade-form smooth-toggle"><div>
       <div class="care-disclaimer" style="margin-top:8px;">Search already works with zero setup. A personal key just raises the limit from 30/hour to 1,000/hour if you ever hit it. Get one free, instantly, at <b>fdc.nal.usda.gov/api-key-signup</b> — no approval wait, no billing, no account needed beyond an email. Stored only on this device.</div>
       <input type="text" class="care-input usda-key-input" placeholder="Paste your USDA API key" aria-label="USDA API key">
-      <button class="save-btn usda-key-save">Save Key</button>
+      <button class="save-btn usda-key-save">Save key</button>
     </div></div>
   `;
   wrap.querySelector('.usda-key-upgrade-toggle').addEventListener('click', (e)=>{
@@ -24542,7 +24545,7 @@ async function updateRepeatYesterdayVisibility(){
     const priorDay = dateKeyMinusDays(selectedLogDate, 1);
     const res = await window.storage.get(`foodlog:${priorDay}`);
     const priorLog = res && res.value ? JSON.parse(res.value) : [];
-    btn.textContent = isBackdating() ? `🔁 Repeat ${formatLogDateLabel(priorDay)}` : '🔁 Repeat Yesterday';
+    btn.textContent = isBackdating() ? `🔁 Repeat ${formatLogDateLabel(priorDay)}` : '🔁 Repeat yesterday';
     btn.style.display = priorLog.length > 0 ? '' : 'none';
   }catch(e){
     btn.style.display = 'none';
@@ -30510,7 +30513,7 @@ async function renderSavedWeeks(){
   const el = document.getElementById('savedWeeksList');
   const archive = await getWeekArchive();
   if(archive.length === 0){
-    el.innerHTML = '<div class="empty-note">No saved weeks yet — tap "Save This Week & Start Fresh" on Day 7 when you finish a training week.</div>';
+    el.innerHTML = '<div class="empty-note">No saved weeks yet — tap "Save this week & start fresh" on Day 7 when you finish a training week.</div>';
     return;
   }
   const sorted = [...archive].sort((a,b)=> new Date(b.weekStart+'T00:00:00')-new Date(a.weekStart+'T00:00:00'));
