@@ -5692,7 +5692,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.134';
+const APP_VERSION = '3.135';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5853,6 +5853,9 @@ const WHATS_NEW = {
   ]},
   '3.134': { headline: 'Tapping an exercise name now opens it, not "Swap"', points: [
     'The swap-exercise action used to be bound to almost the entire name text, so a normal tap to expand a set often opened "Swap Exercise" instead. It\'s now bound to just the small ⇄ icon, which also got a bit more room to tap accurately.',
+  ]},
+  '3.135': { headline: 'The rest timer no longer jumps the gun on a half-typed set', points: [
+    'Typing just a weight (before reps was filled in) used to immediately start the rest-timer countdown and pop the "Switch to gym mode?" offer — both meant for a set you\'d actually finished. Now they wait until a set has everything it needs (weight and/or distance, plus reps) before reacting. Nothing about saving as you type changed — this only holds back those two on-screen interruptions until the set is real.',
   ]},
 };
 
@@ -19808,11 +19811,31 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       }
       // Update volume/1RM/prior-session hint in place, without wiping the checkmark we just set
       await refreshSessionSummary(row, exIdx, ex);
-      const restTarget = getDefaultRestSeconds(ex);
-      restTargetBySlot[exKey(activeProgram, activeDay, exIdx, subVariant)] = restTarget;
-      startRestTimer(restTarget, getRestReasonLabel(ex));
+      // A REAL set — not just "some field now has a value" — requires reps
+      // plus whatever this exercise actually asks for (weight unless
+      // ex.noWeight, distance for cardio). Weight typed with reps still
+      // blank used to start the rest-timer countdown and pop the gym-mode
+      // offer before the entry was even finished. The save above still runs
+      // on every change regardless — this only withholds the two reactive,
+      // on-screen consequences of a *finished* set, not the persistence.
+      const hasReps = rInput.value !== '';
+      const hasRequiredWeight = !showWeight || weightValRaw !== '';
+      const hasRequiredDistance = !showDistance || distValRaw !== '';
+      const isRealSet = hasReps && hasRequiredWeight && hasRequiredDistance;
+      if(isRealSet){
+        const restTarget = getDefaultRestSeconds(ex);
+        restTargetBySlot[exKey(activeProgram, activeDay, exIdx, subVariant)] = restTarget;
+        startRestTimer(restTarget, getRestReasonLabel(ex));
+        // Second consumer of the same signal: the first logged set of the day
+        // is also the moment to offer gym mode, or to enter it if that has
+        // already been answered yes.
+        maybeOfferGymMode();
+      }
+      // A logged set also means the phone should stay awake for the next one.
+      // Kept outside the isRealSet gate on purpose — typing into a set at all
+      // justifies keeping the screen on, unlike the timer/gym-mode
+      // interruptions above, which should wait for a finished entry.
       noteWorkoutActivity();
-      maybeOfferGymMode();
       checkAllSetsCompleteAndAutoCheck(row, block);
     };
     if(wInput) wInput.addEventListener('change', save);
