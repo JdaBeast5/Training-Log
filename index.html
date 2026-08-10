@@ -5692,7 +5692,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.135';
+const APP_VERSION = '3.136';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5856,6 +5856,9 @@ const WHATS_NEW = {
   ]},
   '3.135': { headline: 'The rest timer no longer jumps the gun on a half-typed set', points: [
     'Typing just a weight (before reps was filled in) used to immediately start the rest-timer countdown and pop the "Switch to gym mode?" offer — both meant for a set you\'d actually finished. Now they wait until a set has everything it needs (weight and/or distance, plus reps) before reacting. Nothing about saving as you type changed — this only holds back those two on-screen interruptions until the set is real.',
+  ]},
+  '3.136': { headline: 'The History heatmap now agrees with your streak', points: [
+    'A day with real logged weight/reps could show up in your streak and the Day-by-Day Log but leave the calendar heatmap blank — it only lit up once an exercise\'s checkbox got checked, which needs RPE filled in too. The heatmap (and the backdating date picker\'s calendar dots) now use the same "did you actually log something" signal as everything else.',
   ]},
 };
 
@@ -26475,6 +26478,22 @@ async function fetchDayStatuses(){
       if(out.get(date) === 'trained') continue;   // another day id that date did have work
       const def = dayDefs && dayDefs[dayId];
       out.set(date, (def && def.rest) ? 'rest' : 'off');
+    }
+    // anyDone only tracks exercise CHECKBOXES, which require every field
+    // (including RPE) before checkAllSetsCompleteAndAutoCheck ticks one on
+    // its own — so a day with real logged weight/reps/distance but no
+    // checkbox ever checked came through as 'rest'/'off' above, even though
+    // the streak (saveExSet's own activity gate) and the Day-by-Day Log
+    // (buildDayLog, via this same readExCorpus) already count it as trained.
+    // Overrides rather than merges: real logged data means the day wasn't
+    // actually rest/off regardless of what the day definition says.
+    const exCorpus = await readExCorpus();
+    for(const {log} of exCorpus){
+      for(const entry of log){
+        if((entry.sets||[]).some(s=> s.weight!=null || s.reps!=null || s.distance!=null)){
+          out.set(entry.date, 'trained');
+        }
+      }
     }
   }catch(e){}
   return out;
