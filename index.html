@@ -5705,7 +5705,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.143';
+const APP_VERSION = '3.144';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5900,6 +5900,10 @@ const WHATS_NEW = {
   '3.143': { headline: 'New Watersports discipline: Wakeboarding', points: [
     'A land-based program built from wakeboarding\'s own injury research: a 2012 survey found 42.3% of wakeboarders had torn an ACL — the highest reported rate in the sport\'s literature — traced to hard landings rather than rotation, so this program leads with landing mechanics and eccentric hamstring strength; a separate national injury-record study found shoulder dislocation is the top wakeboarding shoulder injury, covered by a dedicated posterior-shoulder day.',
     '6 new techniques in Watersports Techniques: safety and gear, the deep-water start, edging and wake crossing, the basic wake jump, landing mechanics, and handle/rope control — same real setup/execution/common-mistake depth as every other masterclass.',
+  ]},
+  '3.144': { headline: 'New Watersports discipline: Kite-Assisted Surfing', points: [
+    'A land-based program built from kitesurfing\'s own research: a systematic review found the sustained, leaned-back riding stance loads the lower back, abs, and thighs almost isometrically, so this program leads with a core/lumbar-endurance day; the same review found the ankle is the single most commonly injured joint in the sport, and a 2026 survey found beginners are injured at up to 59x the rate of professionals — both covered by a dedicated landing-mechanics day.',
+    '6 new techniques in Watersports Techniques: kite safety and gear, body-dragging and kite control, the water start, crossing and edge control, basic jump and landing, and self-rescue/kite release — the last one directly addresses what historical research found to be the most common cause of serious kitesurfing accidents.',
   ]},
 };
 
@@ -8389,6 +8393,13 @@ const STYLE_SOURCES = {
     primary: 'Starr HM, Sanders B. Anterior cruciate ligament injuries in wakeboarding: prevalence and observations on injury mechanism. Sports Health. 2012;4(4):328-332. doi:10.1177/1941738112443364 — surveyed 123 wakeboarders; 42.3% reported having torn an ACL while wakeboarding, among the highest prevalence reported in the wakeboarding literature. The dominant mechanism described was noncontact axial compression on landing a jump ("felt a pop or buckle" landing a high jump), not rotation or a caught edge — only 13.5% described a rotational injury — the direct basis for this program\'s landing-mechanics day (Depth Jump, Jump Squat, Single-Leg Bound, Nordic Curl) over a generic leg-strength day. Injury distribution: Baker JI, Griffin R, Brauneis PF, Rue LW 3rd, McGwin G Jr. A comparison of wakeboard-, water skiing-, and tubing-related injuries in the United States, 2000-2007. J Sports Sci Med. 2010;9(1):92-97 — a national ED-visit dataset (NEISS) covering an estimated 18,967 wakeboarding-related injuries; among wakeboarding-specific shoulder/upper-extremity injuries, dislocation was the single most common diagnosis (33.7%), ahead of contusions/abrasions (25.4%) and strains/sprains (20.8%) — the direct basis for this program\'s posterior-shoulder/scapular-stability day, reusing the same rotator-cuff pattern already sourced for Surfing and Swimming. The same study found hip/lower-extremity injuries made up 26.5% of the total, mostly strains/sprains (57.3%) and fractures (21.3%), consistent with the landing-mechanics emphasis above.',
     editorNote: 'Baker et al. also found head and neck injuries were the single LARGEST wakeboarding injury category (47.9% of all injuries, mostly lacerations at 51.3% and concussions at 24.9%) — land-based strength training genuinely cannot address that; it is a helmet/technique/water-contact issue, not a strength deficit, and this program\'s citations must never be read as implying head/neck risk is covered. Starr & Sanders is a retrospective self-report survey (123 respondents, real recall-bias potential, no control group) — the best evidence that exists for this specific mechanism claim, but not a controlled trial proving THIS program\'s exercises reduce ACL injury rate; treat it as mechanism evidence, not an outcome guarantee. Baker et al.\'s NEISS-based diagnosis breakdown carries the authors\' own caveat that weighted estimates under ~1,200 cases are statistically unstable — the dislocation figure (945 estimated cases) clears that bar, but smaller sub-diagnoses in the same table should not be cited without checking against it first.',
   },
+  kiteAssisted: {
+    intro: 'Land-based support training for kite-assisted surfing — sustained core/lumbar endurance for the leaned-back riding stance, landing mechanics for jumps, and grip/shoulder endurance for holding the bar — built from the sport\'s own measured demands and documented injury pattern.',
+    tier: 'school',
+    school: 'Land-based S&C matched to kitesurfing\'s two best-documented findings: the sustained, quasi-isometric core/lumbar loading of the riding stance itself, and the ankle/lower-extremity injury pattern from jump landings.',
+    primary: 'Bourgois JG, Boone J, Callewaert M, Tipton MJ, Tallir IB. Biomechanical and Physiological Demands of Kitesurfing and Epidemiology of Injury Among Kitesurfers. Sports Med. 2013;43(9):867-878. doi:10.1007/s40279-013-0103-4 — the field\'s own systematic review, synthesizing 15 injury studies plus the physiological-demand literature. Riding ("crossing") is a sustained, largely quasi-isometric position with the kitesurfer leaned back against the kite\'s pull; the lower back, abdominal muscles, and thighs were the muscles most consistently reported as highly stressed, from bracing against a hyperextended lumbar position for extended periods — the direct basis for this program\'s core/lumbar-endurance day (Kite Crossing Isometric Hold, Plank, Bird Dog, Ab Wheel Rollout). Jumps and tricks ("freestyle") load the hips through takeoff and the knees/ankles through landing; across the studies reviewed, 45-70% of all kitesurfing injuries occurred in the lower extremities, and the ankle was the single most commonly injured joint (64% of lower-extremity injuries) — the direct basis for this program\'s landing-mechanics day. Physiologically, crossing runs at roughly 65-70% VO2max (mainly aerobic), while freestyle runs at roughly 80-90% VO2max (aerobic and anaerobic together) — the basis for this program\'s interval-conditioning day. Injury mechanism, historically and currently: earlier-era accidents were mostly attributed to being unable to detach the kite from the harness once control was lost, while more recent studies (after depowerable kites and quick-release systems became standard around 2004-2005) report uncontrolled jumps and tricks with poor landings as the leading mechanism instead — the basis for both the landing-mechanics day and the Self-Rescue & Kite Release technique in Watersports Techniques. Currency check: Offerhaus C, Hohage A, Poehlmann M, Balke M, Ritzmann R, Lambert C. Injuries in kitesurfing: a retrospective cross-sectional survey on injury patterns based on discipline and skill level, considering time loss and performance reduction. BMC Sports Sci Med Rehabil. 2026;18:114. doi:10.1186/s13102-026-01551-w — a much more recent, large retrospective survey confirming the same overall pattern still holds: knee injuries (13.2%) and ankle/foot fractures remain prominent, beginners are injured at up to 59 times the rate of professional riders (65.0 vs. 1.1 injuries per 1,000 hours), and knee ligament injuries specifically carry the longest recovery time (148 days on average) with 64.3% of riders returning at reduced performance — reinforcing that experience and landing mechanics, not raw fitness alone, are what the data actually points to.',
+    editorNote: 'Bourgois et al. is explicit that the underlying literature is genuinely thin and methodologically inconsistent across studies (different injury definitions, retrospective recall bias, reported injury rates ranging from 1.0 to 105 per 1,000 hours depending on study design) — cited here as the field\'s own best synthesis, not as settled, precise epidemiology. The core/lumbar-endurance rationale comes from perception-based studies (surveys/interviews about which muscles felt stressed), not force-plate or EMG measurement — real, but a genuine limitation, not something to overstate as biomechanically quantified. Nothing in either citation validates THIS program\'s specific exercise selection as reducing kitesurfing injury rates; they establish what the sport demands and where injuries occur, which is what the program is built around, not a trial of this program itself. Most importantly: no land exercise substitutes for real, supervised kite-control instruction — body-dragging, kite handling, and self-rescue are safety-critical skills that a reputable kite school teaches hands-on, and this masterclass\'s coverage of them is awareness, not certification.',
+  },
 };
 
 // Which state variable selects the style, per container program.
@@ -8438,6 +8449,8 @@ const USER_TEXT = {
                    limits:"This won't teach you to time the run-and-drop or read the sand — that's real-practice knowledge. Wave-riding skimboarding carries a rare but real risk of serious injury from headfirst impact in shallow water — always check depth first." },
   wakeboarding:  { basis:"A survey of wakeboarders found 42.3% had torn an ACL — one of the highest rates reported for any sport — and traced it to hard, compressive jump landings rather than spins or rotation, which is why this program leans hard on landing mechanics (soft-landing jump work, eccentric hamstring strength) instead of a generic leg day. Separately, national injury-record data found shoulder dislocation is the single most common wakeboarding shoulder injury, which is why the posterior-shoulder day exists.",
                    limits:"The same injury data found head and neck injuries — mostly lacerations and concussions — are actually the single biggest wakeboarding injury category, and no amount of land-based strength training addresses that; a well-fitted helmet and riding within your ability matter more there than anything in this program. This also won't teach you to read the wake, hold an edge, or actually pop off it — that's real time behind the boat." },
+  kiteAssisted:  { basis:"The sport's own systematic review found the leaned-back riding stance loads the lower back, abs, and thighs almost isometrically for sustained periods — real support for this program's core/lumbar-endurance day. The same review found the ankle is the single most commonly injured joint (64% of lower-extremity injuries, which are 45-70% of all injuries), and a 2026 survey confirms knee ligament injuries carry the longest recovery of any kitesurfing injury — both are why landing mechanics get a dedicated day here rather than generic leg work.",
+                   limits:"This won't teach you to fly a kite, body-drag, water-start, or self-rescue — those are safety-critical skills that need a certified kite instructor, not a training log. Historically, most serious kitesurfing accidents were attributed to being unable to detach the kite from the harness — know your quick-release system before you're relying on it for real." },
   climbing:      { basis:"Climbing injury research showing overuse injuries to fingers and shoulders are the most common problem.",
                    limits:"Hangboarding is where climbers get hurt. If you've been climbing under a year, build a base first — finger tendons take years to adapt, not weeks." },
   grappling:     { basis:"Real BJJ match data (roughly 6-13 seconds of effort per second of rest, and lactate readings showing serious metabolic demand) backs why this week ends with live rounds, not just drilling.",
@@ -9904,6 +9917,64 @@ const WATERSPORTS_STYLES = {
       },
     }
   },
+  kiteAssisted: {
+    label: 'Kite-Assisted Surfing', short: 'Land-based core/lumbar endurance, landing mechanics, and grip/shoulder stamina',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Core & Lumbar Stability', plate:'p-red', plateNum:'25', duration:'~35 min',
+        exercises:[
+          {name:'Kite Crossing Isometric Hold', sets:'3×30-45s', noWeight:true},
+          {name:'Plank', sets:'3×45-60s', noWeight:true},
+          {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+          {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Landing Mechanics & Ankle-Knee Resilience', plate:'p-blue', plateNum:'20', duration:'~35 min',
+        exercises:[
+          {name:'Depth Jump', sets:'3×5'},
+          {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+          {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
+          {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip.'
+      },
+      d4: {
+        label:'Day 4', sub:'Grip, Forearm & Shoulder Endurance', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+        exercises:[
+          {name:'Farmer\'s Carry', sets:'4×30yd'},
+          {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+          {name:'Band External Rotation', sets:'3×15'},
+          {name:'Face Pull', sets:'3×15'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Explosive Power & Core Rotation', plate:'p-green', plateNum:'10', duration:'~35-40 min',
+        exercises:[
+          {name:'Box Jump', sets:'4×5'},
+          {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+          {name:'Broad Jump', sets:'3×5'},
+          {name:'Russian Twist (weighted)', sets:'3×15/side'},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Aerobic-Anaerobic Conditioning', plate:'p-off', plateNum:'5', duration:'~30 min',
+        exercises:[
+          {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
+          {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+          {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+          {name:'Plank', sets:'3×45-60s', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.'
+      },
+    }
+  },
 };
 
 // [YOGA STYLES] ----------------------------------------------------------
@@ -11042,6 +11113,49 @@ const WATERSPORTS_TECHNIQUE_DETAILS = {
     'Common mistake: pulling the handle up toward the chest or shoulders, especially when tired or off-balance. This shortens the effective length of the rope, pulls the rider\'s weight backward, and is a common setup for a fall.',
     'Coaching insight: if balance starts to go, the safest response is almost always to simply let go of the handle rather than fight to hold on — a controlled release and fall is far preferable to being dragged off-balance through the water.',
   ]},
+
+  'Kite Safety & Gear': {icon:'safety', video:'kitesurfing safety gear beginners quick release', points:[
+    'Setup: before ever attaching the kite, put on a properly fitted impact vest and, ideally, a helmet, and confirm the kite\'s quick-release/safety-leash system is functioning — the sport\'s own injury research specifically credits the introduction of depowerable kites and quick-release systems as a genuine safety milestone.',
+    'Execution: check wind direction, wind strength, and the launch/landing area for obstacles and other water users before ever getting in the water — real research found a real share of injuries happened at the beach itself while launching or landing the kite, not only out on the water.',
+    'Whole-body integration: never launch or land a kite alone if you can avoid it — have a second person hold or help release the kite, the same buddy-launch practice taught in every reputable kite school.',
+    'Common mistake: treating the quick-release system as something to check "eventually." Real injury research found kitesurfers using a working quick-release system sustained fewer injuries than those without one — this is genuinely equipment-dependent safety, not a formality.',
+    'Coaching insight: know your own skill level honestly before choosing a wind strength or kite size — real research found beginners are injured at a dramatically higher rate per hour than advanced or expert riders, and overestimating your own ability is a repeatedly documented cause of real accidents.',
+  ]},
+  'Body-Dragging & Kite Control': {icon:'paddling', video:'kitesurfing body dragging kite control technique beginners', points:[
+    'Setup: before ever stepping onto the board, practice flying and controlling the kite from the water while being dragged along by it — this builds real kite-control feel with much lower consequences than trying to control an unfamiliar kite while also balancing on a board.',
+    'Execution: use small, controlled movements of the bar to steer the kite through its wind window, keeping it positioned to generate a manageable, steady pull rather than large, sudden movements that can yank you off balance or spike its power suddenly.',
+    'Whole-body integration: body-dragging both directions, with and without a board in hand, builds the same feel for the kite\'s power and position that crossing later depends on — riders who skip this step and rush straight to standing up tend to have much shakier kite control once they\'re also trying to balance.',
+    'Common mistake: overcorrecting the bar in response to the kite drifting slightly, which tends to send it further off course rather than back on track — small, patient corrections keep the kite stable; large, panicked ones rarely do.',
+    'Coaching insight: practice self-landing and self-launching the kite on land, in light wind, under supervision, before ever relying on those skills for real — these are exactly the skills a self-rescue situation depends on.',
+  ]},
+  'The Water Start': {icon:'popUp', video:'kitesurfing water start technique tutorial beginners', points:[
+    'Setup: with the board on your feet and the kite positioned in a neutral, low-power part of the wind window, wait for a clean, steady piece of wind rather than starting the moment the kite is anywhere in the sky.',
+    'Execution: as you power the kite up into the water start, keep your knees bent and your weight back against the pull, letting the kite\'s lift do the work of bringing you up onto the board rather than trying to muscle yourself upright.',
+    'Whole-body integration: this is the same knees-bent, weight-back readiness this program\'s core and landing-mechanics training is meant to make second nature — a rider with no core endurance tends to get pulled flat onto their stomach rather than up onto the board.',
+    'Common mistake: powering the kite up too aggressively on the first attempt, which can generate more pull than a new rider can control and often ends in getting dragged rather than standing up cleanly.',
+    'Coaching insight: expect this to take real repetition — very few riders stand up cleanly on the first attempt, and treating early water starts as a numbers game rather than a single moment to get right removes a lot of unnecessary frustration.',
+  ]},
+  'Crossing & Edge Control': {icon:'turn', video:'kitesurfing crossing edge control technique tutorial', points:[
+    'Setup: once riding, settle into a leaned-back stance with knees bent, board edge dug into the water, and the bar held at a comfortable distance rather than pulled in tight against your body.',
+    'Execution: crossing is a sustained, largely isometric position, not a constantly moving one — real research measuring this exact stance found the lower back, abdominals, and thighs are the muscles most heavily stressed, specifically from bracing against a hyperextended lower-back position for minutes at a time.',
+    'Whole-body integration: this is exactly the sustained, anti-extension core bracing this program\'s core and lumbar-stability day is built to prepare you for — a rider without that endurance will fatigue in the low back well before the legs or grip give out.',
+    'Common mistake: locking the knees straight while leaned back, which removes your ability to absorb small chop or gusts and transfers that load straight into the lower back instead of the legs.',
+    'Coaching insight: alternate edge (heelside and toeside) periodically during longer sessions rather than holding one edge the entire time — this distributes the sustained isometric load across both sides of the body instead of fatiguing one side exclusively.',
+  ]},
+  'Basic Jump & Landing': {icon:'wave', video:'kitesurfing basic jump landing technique tutorial', points:[
+    'Setup: build speed and edge tension before a jump, then send the kite upward through the wind window at the moment of takeoff to generate lift, driving up through the hips as the kite\'s pull lifts you off the water.',
+    'Execution: keep the knees bent through the jump and prepare to extend the legs to meet the water on landing, then immediately flex the knees again to absorb the impact — the same load-absorb pattern this program\'s landing-mechanics day trains on land.',
+    'Whole-body integration: real injury research found jumps and tricks with poor landings are now the leading documented mechanism of kitesurfing injury, and the ankle specifically is the single most commonly injured joint in the sport — the landing-mechanics work in this program exists directly because of that finding, not as generic conditioning.',
+    'Common mistake: attempting a jump with a kite size or wind strength beyond your current comfort level "because conditions look good." A jump is only as controllable as your ability to depower the kite predictably during it — bigger air with less control is a worse trade than it sounds.',
+    'Coaching insight: start with small, low, controlled jumps and build height gradually rather than chasing altitude early — the landing is the part that actually gets people hurt, and a small jump landed cleanly teaches more than a big one that isn\'t.',
+  ]},
+  'Self-Rescue & Kite Release': {icon:'safety', video:'kitesurfing self rescue quick release emergency technique', points:[
+    'Setup: before you ever need it for real, practice locating and operating your quick-release system without looking directly at it — in an actual emergency you may not have a clear visual on the mechanism.',
+    'Execution: if you lose control of the kite or need to stop immediately, activate the quick-release/safety system rather than trying to muscle the kite back under control — real historical injury data found the inability to detach the kite from the harness was the most commonly cited cause of serious kitesurfing accidents before modern quick-release systems became standard.',
+    'Whole-body integration: after releasing, know your self-rescue procedure — typically bundling the depowered kite and lines, then using it as a makeshift sail or flotation aid to work your way back to shore — this is a real, teachable skill, not something to figure out for the first time in open water.',
+    'Common mistake: assuming a self-rescue situation "won\'t happen to me" and never actually practicing it. Real research on kitesurfing rescue missions found hypothermia and exhaustion, not just trauma, among the reasons kitesurfers have needed offshore rescue.',
+    'Coaching insight: always kitesurf somewhere with other people around, ideally with a spotter on the beach, and never kitesurf in offshore wind conditions as a beginner — offshore wind carries you away from shore precisely when self-rescue is hardest to execute successfully.',
+  ]},
 };
 
 const WATERSPORTS_TECHNIQUE_GROUPS = {
@@ -11064,6 +11178,10 @@ const WATERSPORTS_TECHNIQUE_GROUPS = {
   'Wakeboarding': {
     poses:['Wakeboarding Safety & Gear','Stance & Deep-Water Start','Edging & Wake Crossing','Basic Wake Jump (Ollie)','Landing Mechanics','Handle & Rope Control'],
     note:'A real survey found 42.3% of wakeboarders had torn an ACL, the highest reported rate in the sport\'s literature, traced specifically to hard landings — so Landing Mechanics is the section to genuinely internalize here, not skim past.',
+  },
+  'Kite-Assisted Surfing': {
+    poses:['Kite Safety & Gear','Body-Dragging & Kite Control','The Water Start','Crossing & Edge Control','Basic Jump & Landing','Self-Rescue & Kite Release'],
+    note:'Historically, most serious kitesurfing accidents were attributed to being unable to detach the kite from the harness — Kite Safety & Gear and Self-Rescue & Kite Release are not optional reading in this masterclass, they are the sport\'s single best-documented safety fix.',
   },
 };
 
@@ -13649,6 +13767,15 @@ const exerciseInfo = {
   // Hold, Box Jump, Broad Jump, Russian Twist, Plank) already exists in
   // the library and is reused as-is.
   'Wakeboard Edge Transition Drill': {category:'jump', noWeight:true, videoQuery:'wakeboard edge to edge lateral drill land training', cues:['Stand in an athletic, knees-bent stance, then bound explosively sideways from one foot to the other, simulating a heelside-to-toeside edge change rather than a straight-ahead jump.','Land soft on the outside foot with the knee bent and weight centered, immediately stable enough to bound back the other way — a wakeboard edge change is a whole-body hip movement, not just a leg swing.','Keep your upper body relatively quiet and let the hips and legs drive the direction change; the same hip-led rotation this drills is what actually tips a wakeboard from one edge to the other.']},
+
+  // --- Kite-Assisted Surfing (Watersports) ----------------------------
+  // One new exercise for the Kite-Assisted Surfing style; everything else
+  // on its days (Plank, Bird Dog, Ab Wheel Rollout, Depth Jump, Single-Leg
+  // Bound, Nordic Curl, Deep Squat Hold, Farmer's Carry, Battle Ropes,
+  // Band External Rotation, Face Pull, Box Jump, Med Ball Rotational
+  // Throw, Broad Jump, Russian Twist, Sprint Intervals, Hollow Body Hold)
+  // already exists in the library and is reused as-is.
+  'Kite Crossing Isometric Hold': {category:'core', noWeight:true, videoQuery:'kitesurfing crossing stance isometric core hold land drill', cues:['Sit back into a leaned-back, knees-bent isometric hold — a wall-sit or unsupported hip-hinge squat — as if bracing your body weight against a kite pulling you forward and up.','Brace your abs hard for the entire hold, resisting the urge to let your lower back arch — this anti-extension bracing is exactly what a real crossing stance demands for minutes at a time, not seconds.','Breathe steadily throughout rather than holding your breath; this is a sustained-endurance hold, matching how long a real crossing session actually lasts, not a short maximal brace.']},
 };
 
 // --- Exercise substitution system ------------------------------------------
@@ -21846,6 +21973,15 @@ const TIPS_BY_WATERSPORTS_STYLE = {
     "<b>Rotational power transfers to holding an edge.</b> Carving heelside to toeside is a hip-driven motion — the same pattern the edge-transition drill and rotational throws are training.",
     "<b>Head and neck injuries are real, and this program can't train around them.</b> The same research found head/neck injuries — mostly lacerations and concussions — are actually the largest wakeboarding injury category. Wear a well-fitted helmet; that's a gear decision, not a strength one.",
     "<b>This program builds the body, not the ride.</b> Reading the wake, timing the pop, and holding an edge under load are skills that only come from real time behind the boat.",
+  ],
+  kiteAssisted: [
+    "<b>Crossing is an endurance hold, not a workout.</b> The sport's own research found the leaned-back riding stance loads the lower back, abs, and thighs almost isometrically — the core/lumbar day here trains the exact muscles that actually fatigue on the water.",
+    "<b>The ankle is the single most commonly injured joint in this sport.</b> Real injury research found it accounts for 64% of lower-extremity injuries — the landing-mechanics day exists specifically to build resilience to hard jump landings, not as generic leg training.",
+    "<b>Knee ligament injuries are rare but serious.</b> A 2026 survey found they carry by far the longest recovery time of any kitesurfing injury (148 days on average) — Nordic Curls and controlled landing work are built around protecting that joint specifically.",
+    "<b>Grip and shoulder endurance matter more than raw strength here.</b> Holding the bar through a long crossing session is a sustained-endurance task, which is exactly what Farmer's Carry and Battle Ropes are training.",
+    "<b>Know your quick-release system cold.</b> Historically, the most commonly cited cause of serious kitesurfing accidents was being unable to detach the kite from the harness — that's a gear-and-practice issue, not a fitness one, and this program can't train it for you.",
+    "<b>Experience is the single biggest protective factor in this sport.</b> Real data found beginners injured at up to 59 times the rate of professional riders, per hour on the water — there's no substitute for real, supervised time building that experience gradually.",
+    "<b>This program builds the body, not the kite skills.</b> Body-dragging, kite control, water starts, and self-rescue are safety-critical skills that only come from real instruction with a certified kite school.",
   ],
 };
 
