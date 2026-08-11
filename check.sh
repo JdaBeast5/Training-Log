@@ -39,9 +39,40 @@ if [ ${#TEST_FILES[@]} -eq 0 ]; then
   echo "  (Past sessions built these — e.g. test-analysis-collapse.js — but they"
   echo "   were never committed to this repo, so none currently exist here.)"
 else
+  # Each test-*.js independently re-parses the same 2.5MB index.html and pays
+  # its own `node` process-startup cost. That work is I/O/startup-bound, not
+  # CPU-bound, so running several `node` invocations concurrently (capped at
+  # MAX_JOBS) instead of strictly one-at-a-time cuts wall-clock time a lot
+  # without changing what runs. Each file's real stdout/exit code is still
+  # captured individually and replayed in ORIGINAL file order below, so the
+  # "Running $f...", "ok - ...", per-file summary, and "FAIL: $f" lines are
+  # byte-for-byte identical to the old sequential output — only the timing
+  # changes, not what a developer reads.
+  RUN_TMPDIR=$(mktemp -d)
+  trap 'rm -rf "$RUN_TMPDIR"' EXIT
+  MAX_JOBS=8
+  running=0
+  for f in "${TEST_FILES[@]}"; do
+    (
+      if node "$f" > "$RUN_TMPDIR/$f.out" 2>&1; then
+        echo 0 > "$RUN_TMPDIR/$f.exit"
+      else
+        echo "$?" > "$RUN_TMPDIR/$f.exit"
+      fi
+    ) &
+    running=$((running + 1))
+    if [ "$running" -ge "$MAX_JOBS" ]; then
+      wait -n
+      running=$((running - 1))
+    fi
+  done
+  wait
+
   for f in "${TEST_FILES[@]}"; do
     echo "  Running $f..."
-    if ! node "$f"; then
+    cat "$RUN_TMPDIR/$f.out"
+    ec=$(cat "$RUN_TMPDIR/$f.exit")
+    if [ "$ec" -ne 0 ]; then
       echo "  FAIL: $f"
       FAIL=1
     fi
