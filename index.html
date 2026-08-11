@@ -5705,7 +5705,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.141';
+const APP_VERSION = '3.142';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5892,6 +5892,10 @@ const WHATS_NEW = {
   '3.141': { headline: 'Watersports is now a discipline switcher, like Combat', points: [
     'Surfing moves from its own entry in Training Style into a new "Watersports" program with a discipline picker underneath it — the same pattern Combat/Cycling/Yoga already use — so more watersports can be added as sibling disciplines instead of cluttering the main program list one at a time. Nothing about the Surfing program itself changed.',
     'The Learn masterclass is renamed "Watersports Techniques" (from "Surfing Fundamentals") to reflect that it will grow to cover every discipline in this program, the same way Combat Techniques covers all six martial arts in one place.',
+  ]},
+  '3.142': { headline: 'New Watersports discipline: Skimboarding', points: [
+    'A land-based program built directly from real hospital injury data — two independent studies both found a rotated, planted foot and falling onto an outstretched hand are the dominant injury mechanisms — so this program leads with ankle stability and grip/wrist strength, not generic conditioning.',
+    '6 new techniques in Watersports Techniques: beach and water safety, the run-and-drop, foot positioning and stance, ankle-safe turning, falling safely, and wave-riding basics — same real setup/execution/common-mistake depth as every other masterclass.',
   ]},
 };
 
@@ -8367,6 +8371,13 @@ const STYLE_SOURCES = {
     primary: 'Farley ORL, Harris NK, Kilding AE. Physiological Demands of Competitive Surfing. J Strength Cond Res. 2012;26(7):1887-1896. doi:10.1519/JSC.0b013e3182392c4b — GPS/heart-rate analysis of 12 ranked surfers across sanctioned heats found paddling occupies ~54% of total time, riding only ~8-10%, with paddling requiring upper-body muscular endurance/strength/power and intermittent aerobic-anaerobic capacity while wave-riding demands lower-body power, dynamic balance, and rotational power — the direct basis for this program\'s day split (paddle-pulling day, rotational/pop-up day, leg-power/balance day). Injury rationale: Bracco Cianciarulo E, da Silva Vieira T, Schmidt Lara PH, Santoro Belangero P, Ejnisman B. Shoulder Injury in Surfing: A Systematic Review with Meta-analysis. Acta Ortop Bras. 2024;32(5):e279152. doi:10.1590/1413-785220243205e279152 — pooled incidence 14.88%, with paddling the mechanism in 57.68% of cases and 68.47% chronic (overuse) rather than acute, supporting the posterior-shoulder/scapular day. Pop-up-specific support: Monaco JT, Boergers R, Cappaert T, Miller M, Nelson J, Schoenberger M. The effects of a land-based home exercise programme on surfing performance in recreational surfers. J Sports Sci. 2023;41(4):358-371. doi:10.1080/02640414.2023.2213034 — an 8-week, 3x/week land program (22 recreational surfers) produced a significant improvement in surfing-performance ratings and pop-up time versus a no-intervention control. Rotational-power support: Axel TA, Crussemeyer J, Dean K, Young DE. Field Test Performance of Junior Competitive Surf Athletes following a Core Strength Training Program. Int J Exerc Sci. 2018;11(6):696-707 — an 8-week core program in 19 junior competitive surfers produced significant gains in rotational power, countermovement jump, core strength/endurance, and rotational flexibility.',
     editorNote: 'This is land support, not surf instruction — it does not and cannot teach wave judgment, positioning, or actual board control, which only develop through real ocean time (ideally with qualified instruction and full ocean-safety awareness: rip currents, crowd etiquette, and knowing your own limits). The Monaco et al. RCT is real but small (n=22, 8 weeks) — a genuine, direct trial of land training improving surf performance, not just a biomechanical inference, but not yet a large or long-term evidence base. The shoulder-injury review is observational/cross-sectional, not a trial proving this program\'s specific exercises prevent injury — the exercises are the same well-established scapular/rotator-cuff pattern already used for Swimming and Rock Climbing in this app, applied here because the same paddling-dominant, overhead-repetitive mechanism applies.',
   },
+  skimboarding: {
+    intro: 'Land-based support training for skimboarding — explosive running, ankle stability, and grip/wrist strength — built directly from the sport\'s own injury pattern rather than generic conditioning.',
+    tier: 'school',
+    school: 'Land-based S&C matched to skimboarding\'s documented injury mechanism, not a performance-training literature (which does not really exist for this sport) — the honest state of the evidence here is injury epidemiology, not training-outcome trials.',
+    primary: 'Two independent case-series studies converge on the same injury pattern: Sciarretta KH, McKenna MJ, Riccio AI. Orthopaedic Injuries Associated With Skimboarding. Am J Sports Med. 2009;37(7):1425-1428. doi:10.1177/0363546509332254 — 61 patients (mean age 19.1y), over 93% of acute injuries were fractures, ankle (41%) and wrist (36%) the most common sites; rotation about a PLANTED lower extremity was the single most common mechanism (49% of cases), with falls onto an outstretched hand (FOOSH) accounting for 43%. Merriman D, Carmichael K, Battle SC. Skimboard Injuries. J Trauma. 2008;65(2):487-490. doi:10.1097/TA.0b013e31817daca5 — a separate, larger ED chart review (79 patients, mean age 15.2y): 73.4% presented with a fracture, lower-extremity fractures in 63.8% (ankle fractures were 83.8% of those), upper-extremity in 36.2% (distal radius 61.9% of those) — independently corroborating the same ankle/wrist pattern. This is the direct basis for this program\'s ankle-stability day (targeting the planted-foot rotation mechanism) and grip/wrist day (targeting the FOOSH mechanism), rather than a generic "board sport" template. Serious-injury context: Mota AM, Silveira CJ, Nóbrega JJ, Lima PS. Skimboarding: An Increasingly Recognized Cause of Life-Threatening Spinal Cord Injury. Cureus. 2022;14(1):e20915. doi:10.7759/cureus.20915 — a case report attributing spinal cord injury to a probable headfirst impact in shallow water during wave-riding skimboarding, part of a small but real, recurring case-report literature on this specific risk.',
+    editorNote: 'This is land support, not instruction, and it cannot teach the timing of the run-and-drop, reading the sand/tide, or wave-riding judgment — those only develop with real practice, ideally with someone experienced showing you first. Both fracture studies are retrospective case series/chart reviews, not controlled trials — real, verified injury-pattern data, but they describe who got hurt and how, not proof that this specific program\'s exercises reduce that risk; do not let the citation imply a causal training-outcome claim it does not make. The spinal-injury case report is exactly that — a case report, not an epidemiological rate — cited here for the real and serious risk it documents (headfirst impact in shallow water), not as a claim about how common it is. No exercise on land can substitute for checking water depth before diving into a wave-riding maneuver.',
+  },
 };
 
 // Which state variable selects the style, per container program.
@@ -8412,6 +8423,8 @@ const USER_TEXT = {
                    limits:"None of these teach the actual water skill — that only develops on the water itself, ideally with real instruction." },
   surfing:       { basis:"Real time-motion data on competitive surfers found paddling eats up about 54% of a session — far more than actual wave-riding — which is why this program leans on pulling strength and repeat-effort conditioning, not just leg power. A real trial found 8 weeks of land training measurably sped up recreational surfers' pop-ups.",
                    limits:"This is land support, not surf lessons — it won't teach wave judgment, positioning, or board control, and it doesn't replace real ocean time or instruction. Ocean safety (currents, conditions, your own limits) is entirely on you." },
+  skimboarding:  { basis:"Two separate hospital chart-review studies, on different patient groups, both found the same pattern: ankle and wrist are by far the most commonly fractured joints, with a rotated, planted foot and falling onto an outstretched hand as the two dominant mechanisms — which is exactly what this program's ankle-stability and grip/wrist days are built to address.",
+                   limits:"This won't teach you to time the run-and-drop or read the sand — that's real-practice knowledge. Wave-riding skimboarding carries a rare but real risk of serious injury from headfirst impact in shallow water — always check depth first." },
   climbing:      { basis:"Climbing injury research showing overuse injuries to fingers and shoulders are the most common problem.",
                    limits:"Hangboarding is where climbers get hurt. If you've been climbing under a year, build a base first — finger tendons take years to adapt, not weeks." },
   grappling:     { basis:"Real BJJ match data (roughly 6-13 seconds of effort per second of rest, and lactate readings showing serious metabolic demand) backs why this week ends with live rounds, not just drilling.",
@@ -9763,6 +9776,63 @@ const WATERSPORTS_STYLES = {
       },
     }
   },
+  skimboarding: {
+    label: 'Skimboarding', short: 'Land-based sprint power, ankle stability, and fall-ready strength',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Explosive Running & Acceleration', plate:'p-red', plateNum:'25', duration:'~35 min',
+        exercises:[
+          {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
+          {name:'Broad Jump', sets:'4×5'},
+          {name:'Agility Ladder', sets:'3×20s', noWeight:true},
+          {name:'Box Jump', sets:'3×5'},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Ankle Stability & Landing Control', plate:'p-blue', plateNum:'20', duration:'~35 min',
+        exercises:[
+          {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+          {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+          {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+          {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Ankle and wrist mobility, 20-25 min. The two most commonly fractured joints in skimboarding — give them real, deliberate recovery, not just a stretch you skip.'
+      },
+      d4: {
+        label:'Day 4', sub:'Grip, Wrist & Fall-Ready Strength', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+        exercises:[
+          {name:'Farmer\'s Carry', sets:'4×30yd'},
+          {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+          {name:'Plank', sets:'3×45-60s', noWeight:true},
+          {name:'Skimboard Run-and-Drop Drill', sets:'4×6', noWeight:true},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Rotational Power & Core', plate:'p-green', plateNum:'10', duration:'~35 min',
+        exercises:[
+          {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+          {name:'Russian Twist (weighted)', sets:'3×15/side'},
+          {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+          {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Full Sprint-to-Board Conditioning', plate:'p-off', plateNum:'5', duration:'~30 min',
+        exercises:[
+          {name:'Sprint Intervals', sets:'4×20s', noWeight:true},
+          {name:'Depth Jump', sets:'3×5'},
+          {name:'Single-Leg Bound', sets:'2×5/side', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. This is land-based support training, not a replacement for real beach time — timing the run-and-drop and reading the sand only develop out there.'
+      },
+    }
+  },
 };
 
 // [YOGA STYLES] ----------------------------------------------------------
@@ -10815,6 +10885,49 @@ const WATERSPORTS_TECHNIQUE_DETAILS = {
     'Common mistake: cutting back too early, before actually reaching the shoulder and losing the wave\'s power, which leaves nowhere to redirect momentum toward. The cutback exists specifically to reconnect with power you\'ve ridden away from — it needs somewhere real to go back to.',
     'Coaching insight: this maneuver is a direct, practical payoff of the bottom-turn skill above — a surfer who hasn\'t built a confident, rotationally powerful bottom turn will generally find the cutback difficult, since it\'s built from the same movement pattern applied at a different point on the wave.',
   ]},
+
+  'Beach & Water Safety': {icon:'safety', video:'skimboarding safety tips beginners', points:[
+    'Setup: before your first run, walk the stretch of sand you\'ll be skimming — check for holes, rocks, shells, and how firm/wet the sand actually is, since that determines how far the board will slide.',
+    'Execution: for flatland skimboarding (running out onto wet sand, no waves involved), the main risks are the planted-and-rotated ankle and the outstretched-hand fall covered in the technique sections below. If you progress to riding into breaking waves, treat that as a separate, more serious step up in risk.',
+    'Whole-body integration: real case reports describe serious spinal cord injury from skimboarders diving or launching headfirst into shallow water while riding waves — a genuinely rare but genuinely serious outcome, specifically linked to riskier wave-riding maneuvers in shallow water.',
+    'Common mistake: treating wave-riding skimboarding as a simple extension of flatland skimboarding. The water is shallow by definition in both, but adding wave speed and commitment to a maneuver in water that may be only knee-deep changes the risk substantially.',
+    'Coaching insight: never dive or launch headfirst toward the water in shallow conditions, know the actual depth before committing to a wave-riding maneuver, and build flatland fundamentals first — the run-and-drop, stance, and controlled falling below — before adding wave speed to the equation.',
+  ]},
+  'The Run & Drop': {icon:'popUp', video:'skimboarding run and drop technique tutorial', points:[
+    'Setup: hold the board flat, running toward the wet sand at a controlled sprint — not your top speed on your first attempts, since timing matters more than raw pace while you\'re learning.',
+    'Execution: drop the board flat onto the wet sand just ahead of your lead foot without breaking your running stride, then step onto its center the instant it\'s down — a late or early drop means stepping onto a board that\'s already sliding away or hasn\'t started moving yet.',
+    'Whole-body integration: this is the same explosive, single-motion transition this program\'s land-based run-and-drop drill rehearses — building the movement pattern on stable ground first means you\'re not learning the timing for the very first time on sliding sand.',
+    'Common mistake: looking down at the board instead of ahead at where you\'re going. Looking down slows the drop and throws off the timing of the step-on far more than it helps you place your foot accurately.',
+    'Coaching insight: start with slow, deliberate reps focused purely on timing the drop and the first foot-plant, and only add running speed once that timing is consistent — speed amplifies a timing error just as much as it amplifies a clean drop.',
+  ]},
+  'Foot Positioning & Stance': {icon:'turn', video:'skimboarding stance foot positioning technique', points:[
+    'Setup: as you step onto the board, land your lead foot at or near the center, then bring your trailing foot on quickly into a sideways-facing, shoulder-width athletic stance.',
+    'Execution: keep both knees bent and your weight centered directly over the middle of the board — weight too far forward buries the nose and stalls you, too far back spins the tail out.',
+    'Whole-body integration: this low, bent-knee, centered stance is exactly what this program\'s ankle-stability and landing-control training is meant to make second nature — a stiff-legged, upright stance has almost no ability to absorb the board\'s movement.',
+    'Common mistake: standing up straight with locked knees immediately after landing on the board. A locked-knee landing transmits the board\'s sudden deceleration straight up the leg instead of absorbing it, which is part of the mechanism behind the sport\'s well-documented ankle injuries.',
+    'Coaching insight: practice "sticking" the landing in a low, stable stance and holding it for a full second before doing anything else — riders who rush straight into a turn or trick before the stance is actually stable are the ones who end up planting a foot awkwardly.',
+  ]},
+  'Ankle-Safe Turning & Carving': {icon:'turn', video:'skimboarding carving turn technique tutorial', points:[
+    'Setup: once sliding in a stable stance, shift weight toward your heels or toes (matching the direction you want to turn) while keeping both knees bent and your hips low.',
+    'Execution: initiate the turn by rotating your hips and shoulders together as a unit, letting the board follow — a smooth, whole-body rotation rather than twisting only at the ankle or knee while the upper body stays still.',
+    'Whole-body integration: two independent hospital studies on skimboarding injuries both found that rotation about a planted lower extremity — exactly the motion of forcing a sharp turn through a fixed, loaded foot rather than the whole body — was the single most common injury mechanism, ahead of every other cause.',
+    'Common mistake: trying to carve a sharp turn by twisting the foot and ankle against a board that has already stopped sliding or caught an edge in the sand. If the board grabs unexpectedly, the safer response is to let the turn go and reset rather than forcing it through a planted foot.',
+    'Coaching insight: build turning gradually — wide, gentle direction changes before tight carves — and treat any moment the board unexpectedly catches or stops as a cue to bail out of the motion rather than fight it, exactly the scenario the ankle-stability training in this program is meant to make you more resilient to.',
+  ]},
+  'Falling Safely': {icon:'safety', video:'how to fall safely board sports technique', points:[
+    'Setup: the instant you feel a fall becoming unavoidable — the board stopping, catching an edge, or you losing your balance — the goal shifts immediately from staying up to falling well.',
+    'Execution: try to fall to the side or roll rather than catching yourself with a straight, outstretched arm — tucking the arm in and taking the fall across the forearm and shoulder, or rolling through the fall, spreads the impact out instead of concentrating it on the wrist.',
+    'Whole-body integration: the same two hospital studies that identified planted-foot rotation as the top ankle-injury mechanism also found falling onto an outstretched hand (FOOSH) responsible for over 40% of cases — a straight, locked arm braced against a fall is a direct, well-documented path to a wrist fracture.',
+    'Common mistake: instinctively throwing a straight arm out to catch yourself. This reflex is extremely hard to override without deliberate practice, which is exactly why this program\'s grip and forearm strength work exists — a stronger wrist and forearm handle unavoidable impact better than a completely untrained one.',
+    'Coaching insight: practice controlled falls on grass or sand at low speed specifically — rolling through a fall rather than bracing against it — the same way martial artists drill breakfalls, so the safer reflex has a chance to become automatic before you actually need it.',
+  ]},
+  'Wave-Riding Basics': {icon:'wave', video:'skimboarding wave riding basics tutorial', points:[
+    'Setup: this is a progression from flatland skimboarding, not a separate starting point — have the run-and-drop, stance, and controlled falling solid before adding a breaking wave into the equation.',
+    'Execution: time your run and board drop to meet an incoming wave\'s energy as it reaches the shallows, then ride the wave\'s push the same way you\'d ride a flatland slide, adjusting stance and weight to the added speed and instability.',
+    'Whole-body integration: wave-riding adds real speed and unpredictability on top of everything flatland skimboarding already demands — the ankle-stability and landing-control work in this program matters even more here, not less.',
+    'Common mistake: attempting wave-riding maneuvers, especially anything involving diving or launching toward the water, before flatland fundamentals are genuinely solid. This is exactly the riskier-maneuver pattern the case reports on serious skimboarding injuries describe.',
+    'Coaching insight: always know the water depth where you\'re riding before committing to a maneuver, start with small, gentle whitewater rather than steeper breaking waves, and treat this as the most advanced, most injury-relevant step in skimboarding — not a natural next trick to try once flatland feels easy.',
+  ]},
 };
 
 const WATERSPORTS_TECHNIQUE_GROUPS = {
@@ -10829,6 +10942,10 @@ const WATERSPORTS_TECHNIQUE_GROUPS = {
   'Surfing — Riding & Turning': {
     poses:['Trim & Stance','Bottom Turn','Cutback'],
     note:'What happens once you\'re up — from holding a stable line to the rotational turns that everything more advanced in surfing gets built from.',
+  },
+  'Skimboarding': {
+    poses:['Beach & Water Safety','The Run & Drop','Foot Positioning & Stance','Ankle-Safe Turning & Carving','Falling Safely','Wave-Riding Basics'],
+    note:'Real hospital injury data on this sport converges hard on two mechanisms — a planted, rotated foot and falling onto an outstretched hand — so this masterclass is built around avoiding both, not just teaching the fun parts.',
   },
 };
 
@@ -13395,6 +13512,15 @@ const exerciseInfo = {
   'Straight-Arm Lat Pulldown': {category:'pull', videoQuery:'straight arm lat pulldown technique', cues:['Standing tall with a slight forward hip hinge, pull a straight bar (or rope) down from overhead to your thighs, keeping the elbows nearly locked throughout.','Drive the movement from the lats pulling the arm down as one straight lever, not from bending the elbow — this isolates the same long, straight-arm pulling pattern a paddling stroke uses.','Control the return back to overhead; letting the weight yank your arms back up trains the release, not the catch-and-pull phase that actually propels a paddling surfer forward.']},
   'Battle Ropes': {category:'cardio', videoQuery:'battle ropes technique alternating waves', cues:['Feet shoulder-width, knees soft, core braced — drive alternating waves through the rope from the shoulders and a slight hip hinge, not just the wrists.','Keep the waves consistent in size and speed for the whole interval rather than starting fast and fading — this is what actually trains the repeated-effort capacity paddling demands, not a single burst.','Reset your breathing between intervals the same way you would between paddling bursts in the water — controlled recovery between hard efforts is part of what this drill is training.']},
   'Surfboard Pop-Up Drill': {category:'jump', noWeight:true, videoQuery:'surf pop up drill technique on land', cues:['Lying prone on the floor (or a yoga mat standing in for the board), hands placed under the shoulders as if about to paddle.','In one explosive motion — not a push-up followed by a separate step-up — press up and drive both feet forward into a low, athletic surf stance, back foot roughly perpendicular to the front.','Land with knees bent, weight centered over the board\'s stringer line and hands up for balance; a real pop-up happens in under a second on a moving, unstable surface, so smooth speed matters more than a slow, technically perfect rehearsal.']},
+
+  // --- Skimboarding (Watersports) -----------------------------------
+  // One new exercise for the Skimboarding style; everything else on its
+  // days (Sprint Intervals, Broad Jump, Agility Ladder, Box Jump,
+  // Single-Leg Bound, Deep Squat Hold, Bulgarian Split Squat, Bird Dog,
+  // Farmer's Carry, Battle Ropes, Plank, Med Ball Rotational Throw,
+  // Russian Twist, Ab Wheel Rollout, Hollow Body Hold, Depth Jump)
+  // already exists in the library and is reused as-is.
+  'Skimboard Run-and-Drop Drill': {category:'jump', noWeight:true, videoQuery:'skimboarding run and drop technique tutorial land drill', cues:['Sprint a few steps, then drop a mat or towel flat on the ground just ahead of your lead foot without breaking stride — this simulates dropping the board an instant before stepping on it.','Land your first foot on the mat with the knee bent and slightly ahead of the ankle, absorbing the impact rather than landing stiff-legged, then bring the trailing foot into an athletic, sideways-facing stance.','Keep your hips low and your weight centered over the middle of the "board" immediately on landing — this is the exact moment and body position where a planted, rotated foot causes most real skimboarding ankle injuries, so control here matters more than speed.']},
 };
 
 // --- Exercise substitution system ------------------------------------------
@@ -21574,6 +21700,15 @@ const TIPS_BY_WATERSPORTS_STYLE = {
     "<b>If you're ever caught in a rip, swim parallel to shore, not against it.</b> Most rip-related trouble comes from exhaustion fighting the current head-on, not the current's actual strength.",
     "<b>Rotational power transfers directly to turning.</b> The bottom turn and cutback are hip-and-core-driven, not arm-driven — this is exactly what the rotational-power training day is building.",
     "<b>This program builds the body, not the wave judgment.</b> Real ocean time — ideally with real instruction — is still what teaches positioning, timing, and board control.",
+  ],
+  skimboarding: [
+    "<b>Ankle stability is not optional accessory work here.</b> Two separate hospital studies found a rotated, planted foot is the single most common way skimboarders get seriously hurt — the ankle-stability day exists specifically to build resilience to that exact motion.",
+    "<b>Grip and wrist strength matters more than it looks like it should.</b> Falling onto an outstretched hand is the second-most-common injury mechanism in the same research — Farmer's Carry and Battle Ropes aren't just conditioning, they're building the forearm and wrist strength that fall actually loads.",
+    "<b>Practice the run-and-drop on land until it's automatic.</b> Timing the board drop and the first foot-plant is the actual skill — rehearsing the motion on grass or sand (without the board sliding out from under you) builds the pattern safely.",
+    "<b>Land soft, knees bent, weight centered.</b> A stiff-legged landing on a moving board is exactly the setup for the planted-and-rotated ankle injury the research keeps flagging.",
+    "<b>Rotational core work transfers to carving and tricks.</b> The same hip-and-core power that turns a surfboard or bike controls a skimboard through a turn.",
+    "<b>If you ever ride into breaking waves, check the water depth first.</b> Real case reports describe serious spinal injury from headfirst impact in shallow water during wave-riding skimboarding — a genuinely rare but genuinely serious risk, not a scare tactic.",
+    "<b>This program builds the body, not the timing.</b> Reading the sand, the tide, and the board's slide only come from real repetition on the beach.",
   ],
 };
 

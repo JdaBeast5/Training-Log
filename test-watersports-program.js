@@ -55,10 +55,10 @@ test('WATERSPORTS_STYLES.surfing exists with a real 7-day structure and every ex
   assert.ok(result.exerciseCount >= 10, 'a real 7-day program should reference a real spread of exercises, not a token handful');
 });
 
-test('the 3 new exercises (Straight-Arm Lat Pulldown, Battle Ropes, Surfboard Pop-Up Drill) each have real cues, not empty placeholders', (assert)=>{
+test('the 4 new exercises across styles (Straight-Arm Lat Pulldown, Battle Ropes, Surfboard Pop-Up Drill, Skimboard Run-and-Drop Drill) each have real cues, not empty placeholders', (assert)=>{
   const chunks = [extractConst(src, 'exerciseInfo')];
   const [result] = runSandbox(chunks, `
-    const names = ['Straight-Arm Lat Pulldown', 'Battle Ropes', 'Surfboard Pop-Up Drill'];
+    const names = ['Straight-Arm Lat Pulldown', 'Battle Ropes', 'Surfboard Pop-Up Drill', 'Skimboard Run-and-Drop Drill'];
     __capture.push(names.map(n=> ({
       name: n,
       exists: !!exerciseInfo[n],
@@ -71,18 +71,43 @@ test('the 3 new exercises (Straight-Arm Lat Pulldown, Battle Ropes, Surfboard Po
   });
 });
 
-test('PROGRAM_SOURCES.watersports is a container redirect (not a placeholder, not a full citation), and STYLE_SOURCES.surfing carries the real citation', (assert)=>{
+test('WATERSPORTS_STYLES.skimboarding exists with a real 7-day structure and every exercise resolves to a real library entry', (assert)=>{
+  const chunks = [extractConst(src, 'WATERSPORTS_STYLES'), extractConst(src, 'exerciseInfo')];
+  const [result] = runSandbox(chunks, `
+    const names = new Set();
+    Object.values(WATERSPORTS_STYLES.skimboarding.days).forEach(day=>{
+      (day.exercises || []).forEach(ex=> names.add(ex.name));
+    });
+    __capture.push({
+      label: WATERSPORTS_STYLES.skimboarding.label,
+      dayCount: Object.keys(WATERSPORTS_STYLES.skimboarding.days).length,
+      hasRestDay: Object.values(WATERSPORTS_STYLES.skimboarding.days).some(d=> d.rest === true),
+      missing: [...names].filter(n=> !exerciseInfo[n]),
+      exerciseCount: names.size,
+    });
+  `);
+  assert.strictEqual(result.label, 'Skimboarding');
+  assert.strictEqual(result.dayCount, 7, 'must follow the same d1-d7 weekly structure every other style uses');
+  assert.strictEqual(result.hasRestDay, true);
+  assert.deepStrictEqual(result.missing, [], `every exercise referenced by the style must have a real exerciseInfo entry, found missing: ${JSON.stringify(result.missing)}`);
+  assert.ok(result.exerciseCount >= 8, 'a real 7-day program should reference a real spread of exercises, not a token handful');
+});
+
+test('PROGRAM_SOURCES.watersports is a container redirect (not a placeholder, not a full citation), and both STYLE_SOURCES.surfing and STYLE_SOURCES.skimboarding carry real citations', (assert)=>{
   const chunks = [extractConst(src, 'PROGRAM_SOURCES'), extractConst(src, 'STYLE_SOURCES')];
   const [result] = runSandbox(chunks, `
     __capture.push({
       containerPrimary: PROGRAM_SOURCES.watersports.primary,
-      stylePrimary: STYLE_SOURCES.surfing.primary,
+      surfingPrimary: STYLE_SOURCES.surfing.primary,
+      skimboardingPrimary: STYLE_SOURCES.skimboarding.primary,
     });
   `);
   assert.match(result.containerPrimary, /NOW SOURCED PER STYLE/, 'the container entry must redirect to per-style sourcing, matching combat/cycling/yoga');
-  assert.ok(result.stylePrimary.length > 200, 'the real citation content must live on the style, not the container');
-  assert.ok(!result.stylePrimary.includes('NOT YET SOURCED'));
-  assert.match(result.stylePrimary, /doi:/i, 'must include at least one real DOI');
+  [result.surfingPrimary, result.skimboardingPrimary].forEach(primary=>{
+    assert.ok(primary.length > 200, 'the real citation content must live on the style, not the container');
+    assert.ok(!primary.includes('NOT YET SOURCED'));
+    assert.match(primary, /doi:/i, 'must include at least one real DOI');
+  });
 });
 
 test('sabotage-relevant: every technique referenced by WATERSPORTS_TECHNIQUE_GROUPS has a real WATERSPORTS_TECHNIQUE_DETAILS entry with points and a valid icon', (assert)=>{
@@ -103,17 +128,28 @@ test('sabotage-relevant: every technique referenced by WATERSPORTS_TECHNIQUE_GRO
 });
 
 test('REAL invocation: renderWatersportsTechniques renders every group and technique into actual DOM, with a working YouTube search link', (assert)=>{
+  const groupsSrc = extractConst(src, 'WATERSPORTS_TECHNIQUE_GROUPS');
   const fnSrcs = [
     extractConst(src, 'WATERSPORTS_ICONS'),
     extractConst(src, 'WATERSPORTS_TECHNIQUE_DETAILS'),
-    extractConst(src, 'WATERSPORTS_TECHNIQUE_GROUPS'),
+    groupsSrc,
     extractFunction(src, 'renderWatersportsTechniques'),
   ];
+  // Expected counts are derived from the real source, not hardcoded — this
+  // keeps the test correct as more disciplines are added (wakeboarding,
+  // kite-assisted surfing) without needing an update every time, while still
+  // being a real render-into-DOM check, not just a source-content check.
+  const [expected] = runSandbox([groupsSrc], `
+    const groupCount = Object.keys(WATERSPORTS_TECHNIQUE_GROUPS).length;
+    const poseCount = Object.values(WATERSPORTS_TECHNIQUE_GROUPS).reduce((sum, g)=> sum + g.poses.length, 0);
+    __capture.push({groupCount, poseCount});
+  `);
   const { document } = runJsdom('<div id="watersportsTechniquesList"></div>', '', [...fnSrcs, `renderWatersportsTechniques();`]);
   const groupEls = document.querySelectorAll('#watersportsTechniquesList details.posing-class');
-  assert.strictEqual(groupEls.length, 3, 'expected 3 technique groups (all currently Surfing sub-groups)');
+  assert.strictEqual(groupEls.length, expected.groupCount, `expected ${expected.groupCount} technique groups (matching the real WATERSPORTS_TECHNIQUE_GROUPS source)`);
   const techEls = document.querySelectorAll('#watersportsTechniquesList details.pose-detail-wrap');
-  assert.strictEqual(techEls.length, 8, 'expected all 8 techniques rendered across the 3 groups');
+  assert.strictEqual(techEls.length, expected.poseCount, `expected all ${expected.poseCount} techniques rendered across the groups`);
+  assert.ok(expected.groupCount >= 4, 'sabotage-relevant: must actually include Skimboarding as a 4th group, not just the 3 Surfing sub-groups');
   const firstLink = document.querySelector('#watersportsTechniquesList .ex-video-link');
   assert.ok(firstLink, 'each technique must render a real form-video search link');
   assert.match(firstLink.getAttribute('href'), /^https:\/\/www\.youtube\.com\/results\?search_query=/);
