@@ -5705,7 +5705,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.147';
+const APP_VERSION = '3.148';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5916,6 +5916,11 @@ const WHATS_NEW = {
   '3.147': { headline: 'Search now finds masterclass techniques', points: [
     'Searching "Eskimo Roll," "Duck Dive," "Bottom Turn," or any other named technique from Learn\'s 14 masterclasses used to return nothing — those names weren\'t exercises and weren\'t section titles, the only two things search knew how to look for. Now they\'re a third result type, right alongside exercises and sections.',
     'Tapping a technique result takes you straight to Learn, opens that masterclass card if it wasn\'t already open, and expands the exact technique you searched for — no more scrolling through a wall of collapsed rows to find it.',
+  ]},
+  '3.148': { headline: 'The program recommendation now suggests a style, not just a program', points: [
+    'Combat, Cycling, Watersports, Yoga, and Medically Modified are all "pick a style underneath" programs — so when one of them gets recommended, the banner now also names a specific style to start with, and switching applies it directly instead of leaving you to hunt through the dropdown.',
+    'Medically Modified\'s pick comes straight from the conditions already checked on your profile (high blood pressure, diabetes, osteoporosis, bariatric surgery, pregnancy/postpartum) — a real match, not a guess. Combat leans toward Tai Chi if you\'re 55+ or your recent training is reading as overreaching; otherwise it\'s Kickboxing, the balanced default.',
+    'Cycling, Watersports, and Yoga don\'t have anything in your profile that actually points at one style over another yet, so those honestly default to that program\'s own starting style (Road, Surfing, Vinyasa & Flow) and say so — worth a look at the others rather than assuming it nailed it.',
   ]},
 };
 
@@ -22507,6 +22512,53 @@ async function scoreAllPrograms(p, trendStatus){
   return scores;
 }
 
+// Per-container style pick, layered onto the container-level recommendation
+// below. Reuses the exact same inputs already collected for scoreAllPrograms
+// (goal/bodyGoal/age/trendStatus) plus, for Medically Modified specifically,
+// the PERSISTENT_CONDITIONS already collected on userProfile.conditions — a
+// real, already-collected multi-select that maps directly onto six of
+// MEDICAL_STYLES' thirteen keys. Combat has one genuine signal too: Tai Chi
+// is the one style in that group that's explicitly low-impact/balance-
+// focused (see USER_TEXT.taiChi), so an older age or a currently-
+// overreaching trend nudges toward it, the same way scoreAllPrograms already
+// nudges the whole recommendation toward recovery-friendly programs elsewhere.
+//
+// Cycling, Watersports, and Yoga have no such signal in current profile
+// data — nothing collected today distinguishes "wants Kayaking" from "wants
+// Wakeboarding," or "wants Hot Yoga" from "wants Partner Yoga." Rather than
+// invent new intake questions to force a guess, those fall back to that
+// container's own existing default style (activeCyclingStyle='road' etc. —
+// see [STYLE SELECTORS] below) with guess:true, so the caller can frame it
+// honestly as a starting point rather than a tailored pick.
+const STYLE_RECOMMENDATIONS = {
+  combat(p, trendStatus){
+    const age = Number(p.age) || 30;
+    if(age >= 55 || trendStatus === 'overreaching') return {key:'taiChi', guess:false};
+    return {key:'kickboxing', guess:true};
+  },
+  cycling(){ return {key:'road', guess:true}; },
+  watersports(){ return {key:'surfing', guess:true}; },
+  yoga(){ return {key:'flow', guess:true}; },
+  medical(p){
+    const conditions = Array.isArray(p.conditions) ? p.conditions : [];
+    // Most specific/actionable first — more than one condition can be
+    // checked at once on the profile, and only one style can be suggested.
+    const priority = ['prenatal','postpartum','bariatricRebuilding','osteoporosis','diabetes','hypertension'];
+    const match = priority.find(key=> conditions.includes(key));
+    return match ? {key:match, guess:false} : {key:'obesity', guess:true};
+  },
+};
+
+// Attaches a style-level suggestion to a container-program recommendation.
+// Checked against the real STYLE_KEY_FOR_PROGRAM map (not a second hardcoded
+// list) so this always matches whichever programs are actually switcher
+// containers today. Returns null for any non-container program.
+function recommendStyle(programKey, p, trendStatus){
+  if(!STYLE_KEY_FOR_PROGRAM[programKey]) return null;
+  const fn = STYLE_RECOMMENDATIONS[programKey];
+  return fn ? fn(p, trendStatus) : null;
+}
+
 async function recommendProgram(p, trendStatus){
   if(trendStatus === undefined) trendStatus = await getCurrentTrendStatus();
   const scores = await scoreAllPrograms(p, trendStatus);
@@ -22552,7 +22604,7 @@ async function recommendProgram(p, trendStatus){
     why += ` Several lifts in your current program are also showing fatigue signals right now — this is a good time to dial back intensity for a bit.`;
   }
 
-  return {key:topKey, why};
+  return {key:topKey, why, style: recommendStyle(topKey, p, trendStatus)};
 }
 
 function renderConditionOptions(){
@@ -22756,6 +22808,33 @@ async function renderOnboardingCard(){
   card.style.display = '';
 }
 
+// Maps each container program to the *_STYLES table that names its styles —
+// used only to render a recommended style's label in the banner below.
+const STYLE_LABELS_FOR_PROGRAM = {
+  combat: COMBAT_STYLES,
+  cycling: CYCLING_STYLES,
+  watersports: WATERSPORTS_STYLES,
+  yoga: YOGA_STYLES,
+  medical: MEDICAL_STYLES,
+};
+
+// Applies a recommended style together with the container-program switch
+// below. Sets state directly — mirroring exactly what each style selector's
+// own onchange handler does (see loadMartialArtStyle/renderMartialArtSelector
+// and its four siblings above) — rather than dispatching a second 'change'
+// event on the style <select>: that select's options are only populated once
+// toggleXCard() runs inside programSelector's OWN (async) change handler, so
+// firing a second dispatchEvent immediately afterward would try to select an
+// option that doesn't exist in the DOM yet. Setting the state first means
+// it's already correct by the time that handler reads it.
+const STYLE_STATE_SETTERS = {
+  combat(key){ activeMartialArt = key; programs.combat.days = COMBAT_STYLES[key].days; return saveMartialArtStyle(); },
+  cycling(key){ activeCyclingStyle = key; programs.cycling.days = CYCLING_STYLES[key].days; return saveCyclingStyle(); },
+  watersports(key){ activeWatersportsStyle = key; programs.watersports.days = WATERSPORTS_STYLES[key].days; return saveWatersportsStyle(); },
+  yoga(key){ activeYogaStyle = key; programs.yoga.days = YOGA_STYLES[key].days; return saveYogaStyle(); },
+  medical(key){ activeMedicalStyle = key; programs.medical.days = MEDICAL_STYLES[key].days; return saveMedicalStyle(); },
+};
+
 async function renderProgramRec(trendStatus){
   const el = document.getElementById('programRecommendation');
   const rec = await recommendProgram(userProfile, trendStatus);
@@ -22769,9 +22848,14 @@ async function renderProgramRec(trendStatus){
     return;
   }
   const progLabel = programs[rec.key].label;
+  const styleTable = STYLE_LABELS_FOR_PROGRAM[rec.key];
+  const styleDef = rec.style && styleTable && styleTable[rec.style.key];
+  const styleLine = styleDef
+    ? `<br>${rec.style.guess ? 'A place to start inside it: ' : 'Within it, a specific fit: '}<b>${styleDef.label}</b>${rec.style.guess ? ' — take a look at the other styles too' : ''}`
+    : '';
   el.innerHTML = `
     <div class="program-rec-banner">
-      💡 Recommended for your goal: <b>${progLabel}</b><br>${rec.why}
+      💡 Recommended for your goal: <b>${progLabel}</b><br>${rec.why}${styleLine}
       <div class="program-rec-actions">
         <button class="program-rec-btn" id="switchToRecBtn">Switch to ${progLabel}</button>
         <button class="program-rec-btn program-rec-btn-secondary" id="stickWithCurrentBtn">Stick with current</button>
@@ -22780,6 +22864,9 @@ async function renderProgramRec(trendStatus){
   `;
   document.getElementById('switchToRecBtn').addEventListener('click', async ()=>{
     el.innerHTML = '';
+    if(rec.style && STYLE_STATE_SETTERS[rec.key]){
+      await STYLE_STATE_SETTERS[rec.key](rec.style.key);
+    }
     document.getElementById('programSelector').value = rec.key;
     document.getElementById('programSelector').dispatchEvent(new Event('change'));
   });
