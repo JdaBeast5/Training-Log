@@ -5516,7 +5516,7 @@
       <div class="sub-modal-title" id="globalSearchTitle">Search</div>
       <button class="sub-modal-close" id="globalSearchClose" aria-label="Close search">&#10005;</button>
     </div>
-    <input type="text" id="globalSearchInput" class="gsearch-input" placeholder="Exercise or section&#8230; e.g. squat, volume, sleep" aria-label="Search exercises and sections" autocomplete="off">
+    <input type="text" id="globalSearchInput" class="gsearch-input" placeholder="Exercise, technique, or section&#8230; e.g. squat, eskimo roll, sleep" aria-label="Search exercises, techniques, and sections" autocomplete="off">
     <div id="globalSearchResults" class="gsearch-results"></div>
   </div>
 </div>
@@ -5705,7 +5705,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.146';
+const APP_VERSION = '3.147';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5912,6 +5912,10 @@ const WHATS_NEW = {
   '3.146': { headline: 'New Watersports discipline: Kayaking', points: [
     'A land-based program built from kayaking\'s own research: a 2025 study of kayak athletes found the lower back, not the shoulder, is actually the single most commonly injured site, so this program leads with a core/lumbar-endurance day; a biomechanics study found something most paddlers don\'t expect — locking a kayaker\'s knees to remove leg drive cut paddle-stroke force by 21% and boat speed by 16% — the direct reason this program includes a dedicated leg-power day most kayak training skips.',
     'The Watersports Techniques masterclass now goes all the way to the Eskimo roll: 6 new techniques covering safety and gear, entry/exit and stance, the forward stroke, the sweep stroke and turning, the wet exit and capsize recovery, and the roll itself — the highest-skill technique in the whole Watersports masterclass, built around the same footbrace-driven leg mechanics as the forward stroke.',
+  ]},
+  '3.147': { headline: 'Search now finds masterclass techniques', points: [
+    'Searching "Eskimo Roll," "Duck Dive," "Bottom Turn," or any other named technique from Learn\'s 14 masterclasses used to return nothing — those names weren\'t exercises and weren\'t section titles, the only two things search knew how to look for. Now they\'re a third result type, right alongside exercises and sections.',
+    'Tapping a technique result takes you straight to Learn, opens that masterclass card if it wasn\'t already open, and expands the exact technique you searched for — no more scrolling through a wall of collapsed rows to find it.',
   ]},
 };
 
@@ -15148,22 +15152,81 @@ async function isDeloadWeek(){
 // the active program — correct for the automatic behaviour, but it left
 // every other masterclass unreachable. The index below opens any of them
 // on demand without touching that gating.
+// `details` (added alongside the pre-existing label/render pair) points at
+// the SAME *_TECHNIQUE_DETAILS record each card's own render() function
+// already reads to build its rows — not a second, hand-maintained copy of
+// technique names. This is what lets buildMasterclassTechniqueSearchIndex()
+// (below, near global search) walk all fourteen masterclasses generically
+// instead of hand-listing every *_TECHNIQUE_DETAILS const a second time.
 const MASTERCLASS_LIBRARY = {
-  posingCard:               {label:'Posing Practice',                        render:()=>renderPosingClasses()},
-  swimStylesCard:           {label:'Swimming Styles',                        render:()=>renderSwimStyles()},
-  climbTechniquesCard:      {label:'Climbing Techniques',                    render:()=>renderClimbTechniques()},
-  watersportsTechniquesCard:{label:'Watersports Techniques',                 render:()=>renderWatersportsTechniques()},
-  combatTechniquesCard:     {label:'Combat Techniques',                      render:()=>renderCombatTechniques()},
-  grappleTechniquesCard:    {label:'Grappling Positions',                    render:()=>renderGrappleTechniques()},
-  olyTechniquesCard:        {label:'Olympic Lifting Technique',              render:()=>renderOlyTechniques()},
-  strengthTechniquesCard:   {label:'Strength Training Fundamentals',         render:()=>renderStrengthTechniques()},
-  runningTechniquesCard:    {label:'Running Form Fundamentals',              render:()=>renderRunningTechniques()},
-  hyroxTechniquesCard:      {label:'Hyrox Fundamentals',                     render:()=>renderHyroxTechniques()},
-  pilatesTechniquesCard:    {label:'Pilates Fundamentals',                   render:()=>renderPilatesTechniques()},
-  yogaTechniquesCard:       {label:'Yoga Pose Fundamentals',                 render:()=>renderYogaTechniques()},
-  calisthenicsTechniquesCard:{label:'Calisthenics & Bodyweight Fundamentals',render:()=>renderCalisthenicsTechniques()},
-  cyclingTechniquesCard:    {label:'Cycling Fundamentals',                   render:()=>renderCyclingTechniques()},
+  posingCard:               {label:'Posing Practice',                        render:()=>renderPosingClasses(),        details:POSE_DETAILS},
+  swimStylesCard:           {label:'Swimming Styles',                        render:()=>renderSwimStyles(),           details:SWIM_STROKE_DETAILS},
+  climbTechniquesCard:      {label:'Climbing Techniques',                    render:()=>renderClimbTechniques(),      details:CLIMB_TECHNIQUE_DETAILS},
+  watersportsTechniquesCard:{label:'Watersports Techniques',                 render:()=>renderWatersportsTechniques(),details:WATERSPORTS_TECHNIQUE_DETAILS},
+  combatTechniquesCard:     {label:'Combat Techniques',                      render:()=>renderCombatTechniques(),     details:COMBAT_TECHNIQUE_DETAILS},
+  grappleTechniquesCard:    {label:'Grappling Positions',                    render:()=>renderGrappleTechniques(),    details:GRAPPLE_TECHNIQUE_DETAILS},
+  olyTechniquesCard:        {label:'Olympic Lifting Technique',              render:()=>renderOlyTechniques(),        details:OLY_TECHNIQUE_DETAILS},
+  strengthTechniquesCard:   {label:'Strength Training Fundamentals',         render:()=>renderStrengthTechniques(),   details:STRENGTH_TECHNIQUE_DETAILS},
+  runningTechniquesCard:    {label:'Running Form Fundamentals',              render:()=>renderRunningTechniques(),    details:RUNNING_TECHNIQUE_DETAILS},
+  hyroxTechniquesCard:      {label:'Hyrox Fundamentals',                     render:()=>renderHyroxTechniques(),      details:HYROX_TECHNIQUE_DETAILS},
+  pilatesTechniquesCard:    {label:'Pilates Fundamentals',                   render:()=>renderPilatesTechniques(),    details:PILATES_TECHNIQUE_DETAILS},
+  yogaTechniquesCard:       {label:'Yoga Pose Fundamentals',                 render:()=>renderYogaTechniques(),       details:YOGA_TECHNIQUE_DETAILS},
+  calisthenicsTechniquesCard:{label:'Calisthenics & Bodyweight Fundamentals',render:()=>renderCalisthenicsTechniques(),details:CALISTHENICS_TECHNIQUE_DETAILS},
+  cyclingTechniquesCard:    {label:'Cycling Fundamentals',                   render:()=>renderCyclingTechniques(),    details:CYCLING_TECHNIQUE_DETAILS},
 };
+
+// A flattened, cross-masterclass list of every technique/pose name, each
+// tagged with the card it lives on. Built from MASTERCLASS_LIBRARY's own
+// `details` pointers (just added above) rather than a second list of the
+// fourteen *_TECHNIQUE_DETAILS consts — global search (openMasterclassTechnique,
+// renderGlobalSearchResults) is the only consumer.
+function buildMasterclassTechniqueSearchIndex(){
+  const rows = [];
+  Object.keys(MASTERCLASS_LIBRARY).forEach(cardId=>{
+    const entry = MASTERCLASS_LIBRARY[cardId];
+    const details = entry.details || {};
+    Object.keys(details).forEach(name=>{
+      rows.push({name, cardId, masterclassLabel: entry.label});
+    });
+  });
+  return rows;
+}
+
+// Opens the masterclass technique a global-search hit points at: gets to
+// Learn, opens the (possibly-closed) masterclass card via the existing
+// openMasterclass mechanism, then expands the one <details> that actually
+// answers the search — otherwise "Eskimo Roll" lands you on a wall of
+// collapsed rows with no cue which one you searched for. Registered by name
+// so the document-level [data-technique-card] delegation near global search
+// can call it without the two features needing to know about each other's
+// internals beyond this one function.
+function openMasterclassTechnique(cardId, techniqueName){
+  // scrollTop:false — this function owns where the page lands (the specific
+  // technique row, below), matching the convention updateMasterclassLinkBtn
+  // and goToCareArea both already use for the same reason.
+  showView('learn', {scrollTop:false});
+  openMasterclass(cardId); // shows + renders the card; also scrolls to its top via its own double rAF
+  // Registered right after openMasterclass's own double-rAF scroll, so this
+  // runs the frame after it and refines the landing spot from "top of card"
+  // to the specific technique row, the same nested-rAF pattern openMasterclass
+  // itself uses to wait for layout to settle before measuring anything.
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      const card = document.getElementById(cardId);
+      if(!card) return;
+      const nameEl = [...card.querySelectorAll('.pose-name')]
+        .find(el=> (el.textContent || '').trim() === techniqueName);
+      if(!nameEl) return;
+      const row = nameEl.closest('details.pose-detail-wrap');
+      const group = nameEl.closest('details.posing-class');
+      // The group itself must be open too — a closed parent <details> hides
+      // everything inside it regardless of a child's own open attribute.
+      if(group) group.open = true;
+      if(row) row.open = true;
+      (row || nameEl).scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+}
 
 // A card the ACTIVE PROGRAM put on screen is not the browser's to remove —
 // that was the original "only ever reveals" rule and it still holds. What it
@@ -34362,11 +34425,18 @@ wireCustomProgramUI();
 // them was reachable from anywhere else. Search you have to navigate to in
 // order to use has the same problem search exists to solve.
 //
-// SCOPE IS DELIBERATELY NARROW: exercises and sections. Not logged data. A
-// search that also scans every session would have to read the exercise corpus,
-// which makes an instant interaction depend on the slowest thing in the app,
-// and would put "3 sets of squats on 14 June" next to "Squat" in a list where
-// they answer completely different questions.
+// SCOPE IS DELIBERATELY NARROW: exercises, masterclass techniques, and
+// sections. Not logged data. A search that also scans every session would
+// have to read the exercise corpus, which makes an instant interaction
+// depend on the slowest thing in the app, and would put "3 sets of squats on
+// 14 June" next to "Squat" in a list where they answer completely different
+// questions.
+//
+// TECHNIQUES ARE READ FROM MASTERCLASS_LIBRARY, same reasoning as sections
+// below being read from the DOM: buildMasterclassTechniqueSearchIndex() walks
+// the fourteen *_TECHNIQUE_DETAILS records MASTERCLASS_LIBRARY already points
+// at rather than hand-listing technique names a second time, so a fifteenth
+// masterclass added later is searchable the moment it's registered there.
 //
 // SECTIONS ARE READ FROM THE DOM, never listed. A hardcoded list of the app's
 // cards is a second copy of the app's cards, and it is the copy that goes stale
@@ -34374,6 +34444,7 @@ wireCustomProgramUI();
 // and jumpToSetting asks the element which view it lives in.
 const GLOBAL_SEARCH_EXERCISE_LIMIT = 12;
 const GLOBAL_SEARCH_SECTION_LIMIT = 10;
+const GLOBAL_SEARCH_TECHNIQUE_LIMIT = 10;
 
 const SEARCH_TAB_LABELS = {
   today:'Today', log:'Log', analysis:'Analysis', history:'History',
@@ -34427,7 +34498,7 @@ function renderGlobalSearchResults(query){
   if(!el) return;
   const q = (query || '').trim().toLowerCase();
   if(!q){
-    el.innerHTML = '<div class="empty-note">Type to find an exercise in the library, or any section of any tab.</div>';
+    el.innerHTML = '<div class="empty-note">Type to find an exercise in the library, a masterclass technique, or any section of any tab.</div>';
     return;
   }
 
@@ -34464,7 +34535,19 @@ function renderGlobalSearchResults(query){
     .map(x=> x.name);
   const shownEx = exercises.slice(0, GLOBAL_SEARCH_EXERCISE_LIMIT);
 
-  if(sections.length === 0 && shownEx.length === 0){
+  // Learn's masterclasses (Combat, Watersports, Yoga, Posing, and the rest)
+  // hold named techniques \u2014 "Eskimo Roll", "Duck Dive", "Bottom Turn" \u2014 that
+  // were previously invisible to search entirely: not an exercise, not a
+  // section title, so neither branch above ever found them. Matched on name
+  // only (no category/muscle-group indirection like exercises get \u2014 these
+  // don't have one), ranked alphabetically since there's no name-vs-category
+  // rank split to make here.
+  const techniques = buildMasterclassTechniqueSearchIndex()
+    .filter(t=> t.name.toLowerCase().includes(q))
+    .sort((a,b)=> a.name.localeCompare(b.name))
+    .slice(0, GLOBAL_SEARCH_TECHNIQUE_LIMIT);
+
+  if(sections.length === 0 && shownEx.length === 0 && techniques.length === 0){
     el.innerHTML = '<div class="empty-note">\uD83D\uDD0D Nothing matches that \u2014 try a broader term.</div>';
     return;
   }
@@ -34479,6 +34562,18 @@ function renderGlobalSearchResults(query){
       `<button type="button" class="gsearch-hit" data-jump-to="${escapeHtml(s.id)}">`
       + `<span>${escapeHtml(s.title)}</span>`
       + `<span class="gsearch-hit-tab">${escapeHtml(s.tabLabel)} \u203a</span></button>`
+    ).join('');
+  }
+  if(techniques.length){
+    html += '<div class="gsearch-group">Techniques</div>';
+    // data-technique-card + data-technique-name, not a bespoke handler here
+    // either \u2014 same delegated-on-document shape as data-jump-to, just with a
+    // second piece of addressing info since a technique needs BOTH which card
+    // to open AND which row inside it, where a section only ever needed one id.
+    html += techniques.map(t=>
+      `<button type="button" class="gsearch-hit" data-technique-card="${escapeHtml(t.cardId)}" data-technique-name="${escapeHtml(t.name)}">`
+      + `<span>${escapeHtml(t.name)}</span>`
+      + `<span class="gsearch-hit-tab">${escapeHtml(t.masterclassLabel)} \u203a</span></button>`
     ).join('');
   }
   if(shownEx.length){
@@ -34555,6 +34650,15 @@ document.addEventListener('click', (e)=>{
   openGlobalSearchFor(link.dataset.searchFor);
 });
 
+// [data-technique-card] + [data-technique-name], not a bespoke handler — same
+// delegated-on-document shape as [data-jump-to]/[data-care-area]/[data-search-for]
+// above, addressing a masterclass technique instead of a section/care-area/query.
+document.addEventListener('click', (e)=>{
+  const hit = e.target.closest && e.target.closest('[data-technique-card]');
+  if(!hit) return;
+  openMasterclassTechnique(hit.dataset.techniqueCard, hit.dataset.techniqueName);
+});
+
 function openGlobalSearch(){
   const overlay = document.getElementById('globalSearchOverlay');
   const input = document.getElementById('globalSearchInput');
@@ -34601,7 +34705,7 @@ function closeGlobalSearch(){
   // handler, because the two concerns belong to different owners — the jump is
   // the app's, the sheet is this component's.
   results.addEventListener('click', (e)=>{
-    if(e.target.closest('[data-jump-to]')) closeGlobalSearch();
+    if(e.target.closest('[data-jump-to]') || e.target.closest('[data-technique-card]')) closeGlobalSearch();
   });
 })();
 
