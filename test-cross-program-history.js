@@ -20,6 +20,7 @@ function buildChunks(){
     extractConst(src, 'MEDICAL_STYLES'),
     `var COMBAT_STYLES = {};`,
     `var CYCLING_STYLES = {};`,
+    `var WATERSPORTS_STYLES = {};`,
     `var YOGA_STYLES = {};`,
     extractFunction(src, 'normalizeExEntry'),
     `var exerciseLocationIndex = null;`,

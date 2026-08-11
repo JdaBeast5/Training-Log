@@ -4309,6 +4309,13 @@
     <div class="program-select-desc" id="cyclingDesc"></div>
   </div>
 
+  <div class="card" id="watersportsCard" style="display:none">
+    <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0"/><path d="M4 13 14 4"/></svg></span>Watersports Discipline</div>
+    <div class="history-hint">Each discipline below is its own land-based S&amp;C program, matched to that sport's own physical demands — pick the one you're actually training for.</div>
+    <select class="program-select" id="watersportsSelector" aria-label="Watersports style"></select>
+    <div class="program-select-desc" id="watersportsDesc"></div>
+  </div>
+
   <div class="card" id="yogaCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="4" r="1.8"/><path d="M10 6.5 L10 12"/><path d="M6 9 L14 9"/><path d="M10 12 L6.5 17"/><path d="M10 12 L13.5 17"/></svg></span>Style</div>
     <div class="history-hint">Vinyasa &amp; Flow, Hot Yoga, or Partner Yoga — pick whichever fits today. <b>Hot Yoga:</b> get your doctor's clearance first if you have any cardiovascular, respiratory, or heat-related condition.</div>
@@ -5290,10 +5297,10 @@
       <div id="climbTechniquesList"></div>
     </div>
 
-    <div class="card" id="surfTechniquesCard" style="display:none">
-      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0"/><path d="M4 13 14 4"/></svg></span>Surfing Fundamentals</div>
-      <div class="history-hint">Ocean safety and wave reading, paddling and the pop-up, then riding and turning — tap a group to expand, tap a technique for a masterclass-level walkthrough. Meant to be learned before you're in the water, not instead of real instruction once you're there.</div>
-      <div id="surfTechniquesList"></div>
+    <div class="card" id="watersportsTechniquesCard" style="display:none">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0"/><path d="M4 13 14 4"/></svg></span>Watersports Techniques</div>
+      <div class="history-hint">Every discipline in this program, broken down technique by technique — tap a group to expand, tap a technique for a masterclass-level walkthrough. Meant to be learned before you're in the water, not instead of real instruction once you're there.</div>
+      <div id="watersportsTechniquesList"></div>
     </div>
 
     <div class="card" id="combatTechniquesCard" style="display:none">
@@ -5698,7 +5705,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.140';
+const APP_VERSION = '3.141';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5881,6 +5888,10 @@ const WHATS_NEW = {
   '3.140': { headline: 'New program: Surfing', points: [
     'A land-based strength & conditioning program built on real time-motion research (paddling is ~54% of a session — far more than actual wave-riding) — paddle-pulling power, rotational power and pop-up speed, and posterior-shoulder injury-prevention work, matched to real citations the same way every other program in this app is.',
     'A full "Surfing Fundamentals" masterclass in Learn: ocean safety and rip currents, reading waves and lineup positioning, duck diving, paddling technique, the pop-up, and riding/turning (trim, bottom turn, cutback) — 8 techniques, each with real setup/execution/common-mistake breakdowns, meant to be learned before you\'re ever in the water.',
+  ]},
+  '3.141': { headline: 'Watersports is now a discipline switcher, like Combat', points: [
+    'Surfing moves from its own entry in Training Style into a new "Watersports" program with a discipline picker underneath it — the same pattern Combat/Cycling/Yoga already use — so more watersports can be added as sibling disciplines instead of cluttering the main program list one at a time. Nothing about the Surfing program itself changed.',
+    'The Learn masterclass is renamed "Watersports Techniques" (from "Surfing Fundamentals") to reflect that it will grow to cover every discipline in this program, the same way Combat Techniques covers all six martial arts in one place.',
   ]},
 };
 
@@ -7596,63 +7607,9 @@ const programs = {
     }
   },
 
-  surfing: {
-    label: 'Surfing', short: 'Land-based paddle power, rotational power, pop-up speed, and shoulder health',
-    days: {
-      d1: {
-        label:'Day 1', sub:'Paddle Power & Endurance', plate:'p-red', plateNum:'25', duration:'~40 min',
-        exercises:[
-          {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
-          {name:'Seated Cable Row', sets:'3×10-12'},
-          {name:'Battle Ropes', sets:'4×30s', noWeight:true},
-          {name:'Plank', sets:'3×30-45s', noWeight:true},
-        ]
-      },
-      d2: {
-        label:'Day 2', sub:'Rotational Power & Pop-Up', plate:'p-blue', plateNum:'20', duration:'~40 min',
-        exercises:[
-          {name:'Med Ball Rotational Throw', sets:'4×8/side'},
-          {name:'Box Jump', sets:'4×5'},
-          {name:'Surfboard Pop-Up Drill', sets:'4×8', noWeight:true},
-          {name:'Broad Jump', sets:'3×5'},
-        ]
-      },
-      d3: {
-        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-        note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.'
-      },
-      d4: {
-        label:'Day 4', sub:'Posterior Shoulder & Injury Prevention', plate:'p-yellow', plateNum:'15', duration:'~35 min',
-        exercises:[
-          {name:'Band External Rotation', sets:'3×15'},
-          {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
-          {name:'Face Pull', sets:'3×15'},
-          {name:'Rear Delt Fly', sets:'3×12-15'},
-        ]
-      },
-      d5: {
-        label:'Day 5', sub:'Leg Power & Balance', plate:'p-green', plateNum:'10', duration:'~40 min',
-        exercises:[
-          {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
-          {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
-          {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
-          {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
-        ]
-      },
-      d6: {
-        label:'Day 6', sub:'Endurance & Core Conditioning', plate:'p-off', plateNum:'5', duration:'~35 min',
-        exercises:[
-          {name:'Battle Ropes', sets:'4×30s', noWeight:true},
-          {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
-          {name:'Russian Twist (weighted)', sets:'3×15/side'},
-          {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
-        ]
-      },
-      d7: {
-        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-        note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.'
-      },
-    }
+  watersports: {
+    label: 'Watersports', short: 'Pick a discipline below — land-based S&C matched to what each sport actually demands',
+    days: {} // populated at runtime from WATERSPORTS_STYLES based on the selected discipline
   },
 
   climbing: {
@@ -8227,12 +8184,12 @@ const PROGRAM_SOURCES = {
     primary: 'Checked directly, and the honest result is more nuanced than assumed: the underlying rationale (repetitive freestyle/butterfly strokes overdevelop internal rotators relative to external rotators, creating an anterior-dominant imbalance) is well documented. But the two RCTs actually testing dryland posterior-shoulder/rotator programs found NON-significant results: Batalha N, Paixao C, Silva AJ, Costa MJ, Mullen J, Barbosa TM. The Effectiveness of a Dry-Land Shoulder Rotators Strength Training Program in Injury Prevention in Competitive Swimmers. J Hum Kinet. 2020;71:11-20. doi:10.2478/hukin-2019-0093 — no significant ACUTE effect on rotator strength/endurance/balance from a single session (23 swimmers). Della Tommasina I, et al. Effects of a dry-land strengthening exercise program with elastic bands following the Kabat D2 diagonal flexion pattern for the prevention of shoulder injuries in swimmers. Front Physiol. 2023;14:1275285. doi:10.3389/fphys.2023.1275285 — an 8-week RCT (22 swimmers) found only minimal, non-significant improvement in rotation strength/ROM.',
     editorNote: 'Do not spin this into "the exercises don\'t work" — both trials are small (n=22-23), one measured only an ACUTE single-session effect (a different question from months of training), and both authors call for larger/longer studies rather than concluding the approach is wrong. The honest state: the injury-mechanism rationale is sound, low-risk, and standard practice, but rigorous RCT proof that dryland posterior-shoulder work actually prevents swimmer\'s shoulder is not there yet — say that plainly rather than implying settled evidence. Do not remove the prehab work over this; a documented evidence gap is not evidence the work is wrong.',
   },
-  surfing: {
-    intro: 'Land-based support training for surfing — paddle-pattern pulling, rotational power, pop-up speed, and posterior-shoulder work — since the skill itself only develops in the water, not here.',
+  watersports: {
+    intro: 'A container for land-based S&C support across multiple watersports — each discipline gets its own citation-matched program rather than one blended plan.',
     tier: 'school',
-    school: 'Land-based S&C matched to surfing\'s own measured time-motion demands and injury pattern, not generic conditioning.',
-    primary: 'Farley ORL, Harris NK, Kilding AE. Physiological Demands of Competitive Surfing. J Strength Cond Res. 2012;26(7):1887-1896. doi:10.1519/JSC.0b013e3182392c4b — GPS/heart-rate analysis of 12 ranked surfers across sanctioned heats found paddling occupies ~54% of total time, riding only ~8-10%, with paddling requiring upper-body muscular endurance/strength/power and intermittent aerobic-anaerobic capacity while wave-riding demands lower-body power, dynamic balance, and rotational power — the direct basis for this program\'s day split (paddle-pulling day, rotational/pop-up day, leg-power/balance day). Injury rationale: Bracco Cianciarulo E, da Silva Vieira T, Schmidt Lara PH, Santoro Belangero P, Ejnisman B. Shoulder Injury in Surfing: A Systematic Review with Meta-analysis. Acta Ortop Bras. 2024;32(5):e279152. doi:10.1590/1413-785220243205e279152 — pooled incidence 14.88%, with paddling the mechanism in 57.68% of cases and 68.47% chronic (overuse) rather than acute, supporting the posterior-shoulder/scapular day. Pop-up-specific support: Monaco JT, Boergers R, Cappaert T, Miller M, Nelson J, Schoenberger M. The effects of a land-based home exercise programme on surfing performance in recreational surfers. J Sports Sci. 2023;41(4):358-371. doi:10.1080/02640414.2023.2213034 — an 8-week, 3x/week land program (22 recreational surfers) produced a significant improvement in surfing-performance ratings and pop-up time versus a no-intervention control. Rotational-power support: Axel TA, Crussemeyer J, Dean K, Young DE. Field Test Performance of Junior Competitive Surf Athletes following a Core Strength Training Program. Int J Exerc Sci. 2018;11(6):696-707 — an 8-week core program in 19 junior competitive surfers produced significant gains in rotational power, countermovement jump, core strength/endurance, and rotational flexibility.',
-    editorNote: 'This is land support, not surf instruction — it does not and cannot teach wave judgment, positioning, or actual board control, which only develop through real ocean time (ideally with qualified instruction and full ocean-safety awareness: rip currents, crowd etiquette, and knowing your own limits). The Monaco et al. RCT is real but small (n=22, 8 weeks) — a genuine, direct trial of land training improving surf performance, not just a biomechanical inference, but not yet a large or long-term evidence base. The shoulder-injury review is observational/cross-sectional, not a trial proving this program\'s specific exercises prevent injury — the exercises are the same well-established scapular/rotator-cuff pattern already used for Swimming and Rock Climbing in this app, applied here because the same paddling-dominant, overhead-repetitive mechanism applies.',
+    school: 'Land-based S&C programming; the actual sessions come from WATERSPORTS_STYLES.',
+    primary: 'NOW SOURCED PER STYLE — see STYLE_SOURCES.surfing (and further styles as they ship), not summarised here since each discipline has genuinely different physical demands and its own literature.',
+    editorNote: 'Every style added here must get its own real, verified citation before shipping — the container entry itself is deliberately generic and must never be read as covering any specific style\'s claims.',
   },
 };
 
@@ -8403,14 +8360,22 @@ const STYLE_SOURCES = {
     primary: 'The "McGill spine literature" attribution is now verified against McGill\'s own primary papers, not a secondhand summary: McGill SM. Low back exercises: evidence for improving exercise regimens. Phys Ther. 1998;78(7):754-765. PMID: 9672547 — the foundational case for spine-sparing exercise selection over generic strengthening. McGill SM, Karpowicz A. Exercises for spine stabilization: motion/motor patterns, stability progressions, and clinical technique. Arch Phys Med Rehabil. 2009;90(1):118-126 — quantifies muscle activation and 3D spine position specifically for the curl-up, side-bridge, and bird-dog: the exact three exercises this program prescribes by name (McGill Curl-up d1, Side Plank d4, Bird Dog d1/d4).',
     editorNote: 'This resolves the app\'s own prior caution that the McGill attribution was unverified and "frequently over-stated online" — it is not over-stated here, it is the actual source, checked directly rather than assumed. Neither paper is an outcomes trial (pain/disability reduction) — they establish exercise selection and technique, not that this specific program reduces back pain; do not cite them as outcome evidence if that distinction ever gets blurred later. Cannot identify the red flags that make back pain a medical emergency — bowel or bladder changes, saddle numbness, progressive leg weakness, unexplained weight loss. Any of those means stop and seek care, not modify the program.',
   },
+  surfing: {
+    intro: 'Land-based support training for surfing — paddle-pattern pulling, rotational power, pop-up speed, and posterior-shoulder work — since the skill itself only develops in the water, not here.',
+    tier: 'school',
+    school: 'Land-based S&C matched to surfing\'s own measured time-motion demands and injury pattern, not generic conditioning.',
+    primary: 'Farley ORL, Harris NK, Kilding AE. Physiological Demands of Competitive Surfing. J Strength Cond Res. 2012;26(7):1887-1896. doi:10.1519/JSC.0b013e3182392c4b — GPS/heart-rate analysis of 12 ranked surfers across sanctioned heats found paddling occupies ~54% of total time, riding only ~8-10%, with paddling requiring upper-body muscular endurance/strength/power and intermittent aerobic-anaerobic capacity while wave-riding demands lower-body power, dynamic balance, and rotational power — the direct basis for this program\'s day split (paddle-pulling day, rotational/pop-up day, leg-power/balance day). Injury rationale: Bracco Cianciarulo E, da Silva Vieira T, Schmidt Lara PH, Santoro Belangero P, Ejnisman B. Shoulder Injury in Surfing: A Systematic Review with Meta-analysis. Acta Ortop Bras. 2024;32(5):e279152. doi:10.1590/1413-785220243205e279152 — pooled incidence 14.88%, with paddling the mechanism in 57.68% of cases and 68.47% chronic (overuse) rather than acute, supporting the posterior-shoulder/scapular day. Pop-up-specific support: Monaco JT, Boergers R, Cappaert T, Miller M, Nelson J, Schoenberger M. The effects of a land-based home exercise programme on surfing performance in recreational surfers. J Sports Sci. 2023;41(4):358-371. doi:10.1080/02640414.2023.2213034 — an 8-week, 3x/week land program (22 recreational surfers) produced a significant improvement in surfing-performance ratings and pop-up time versus a no-intervention control. Rotational-power support: Axel TA, Crussemeyer J, Dean K, Young DE. Field Test Performance of Junior Competitive Surf Athletes following a Core Strength Training Program. Int J Exerc Sci. 2018;11(6):696-707 — an 8-week core program in 19 junior competitive surfers produced significant gains in rotational power, countermovement jump, core strength/endurance, and rotational flexibility.',
+    editorNote: 'This is land support, not surf instruction — it does not and cannot teach wave judgment, positioning, or actual board control, which only develop through real ocean time (ideally with qualified instruction and full ocean-safety awareness: rip currents, crowd etiquette, and knowing your own limits). The Monaco et al. RCT is real but small (n=22, 8 weeks) — a genuine, direct trial of land training improving surf performance, not just a biomechanical inference, but not yet a large or long-term evidence base. The shoulder-injury review is observational/cross-sectional, not a trial proving this program\'s specific exercises prevent injury — the exercises are the same well-established scapular/rotator-cuff pattern already used for Swimming and Rock Climbing in this app, applied here because the same paddling-dominant, overhead-repetitive mechanism applies.',
+  },
 };
 
 // Which state variable selects the style, per container program.
 const STYLE_KEY_FOR_PROGRAM = {
-  combat:  ()=> typeof activeMartialArt   !== 'undefined' ? activeMartialArt   : null,
-  cycling: ()=> typeof activeCyclingStyle !== 'undefined' ? activeCyclingStyle : null,
-  yoga:    ()=> typeof activeYogaStyle    !== 'undefined' ? activeYogaStyle    : null,
-  medical: ()=> typeof activeMedicalStyle !== 'undefined' ? activeMedicalStyle : null,
+  combat:      ()=> typeof activeMartialArt       !== 'undefined' ? activeMartialArt       : null,
+  cycling:     ()=> typeof activeCyclingStyle      !== 'undefined' ? activeCyclingStyle      : null,
+  watersports: ()=> typeof activeWatersportsStyle !== 'undefined' ? activeWatersportsStyle : null,
+  yoga:        ()=> typeof activeYogaStyle         !== 'undefined' ? activeYogaStyle         : null,
+  medical:     ()=> typeof activeMedicalStyle      !== 'undefined' ? activeMedicalStyle      : null,
 };
 
 
@@ -8443,6 +8408,8 @@ const USER_TEXT = {
                    limits:"Distances are a starting point, not a plan for a specific race. Build weekly mileage gradually — most running injuries come from doing too much too soon." },
   swimming:      { basis:"The dryland shoulder work is based on a real, well-documented imbalance (repetitive strokes overbuild internal rotators vs. external) — worth saying plainly: the two actual trials testing this fix found only minimal, non-significant results, both small and short. Standard, low-risk practice, not proven prevention.",
                    limits:"Assumes you're comfortable swimming continuously. Technique work is much more valuable with a coach watching." },
+  watersports:   { basis:"Pick a discipline below — each is its own land-based program, matched to that sport's own physical demands.",
+                   limits:"None of these teach the actual water skill — that only develops on the water itself, ideally with real instruction." },
   surfing:       { basis:"Real time-motion data on competitive surfers found paddling eats up about 54% of a session — far more than actual wave-riding — which is why this program leans on pulling strength and repeat-effort conditioning, not just leg power. A real trial found 8 weeks of land training measurably sped up recreational surfers' pop-ups.",
                    limits:"This is land support, not surf lessons — it won't teach wave judgment, positioning, or board control, and it doesn't replace real ocean time or instruction. Ocean safety (currents, conditions, your own limits) is entirely on you." },
   climbing:      { basis:"Climbing injury research showing overuse injuries to fingers and shoulders are the most common problem.",
@@ -9729,6 +9696,75 @@ const CYCLING_STYLES = {
   },
 };
 
+// [WATERSPORTS STYLES] ----------------------------------------------------
+// Same swappable-style pattern as Combat/Cycling/Yoga above. Each style is
+// land-based S&C support training — the actual skill (surfing, skimboarding,
+// wakeboarding, kite-assisted riding) only develops on the water, which this
+// app cannot teach. What it CAN do: build the specific physical qualities
+// each sport's own sports-science literature says matter, and teach the
+// technique vocabulary in Learn so there's a real mental model before ever
+// paddling/riding out for the first time.
+const WATERSPORTS_STYLES = {
+  surfing: {
+    label: 'Surfing', short: 'Land-based paddle power, rotational power, pop-up speed, and shoulder health',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Paddle Power & Endurance', plate:'p-red', plateNum:'25', duration:'~40 min',
+        exercises:[
+          {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+          {name:'Seated Cable Row', sets:'3×10-12'},
+          {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+          {name:'Plank', sets:'3×30-45s', noWeight:true},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Rotational Power & Pop-Up', plate:'p-blue', plateNum:'20', duration:'~40 min',
+        exercises:[
+          {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+          {name:'Box Jump', sets:'4×5'},
+          {name:'Surfboard Pop-Up Drill', sets:'4×8', noWeight:true},
+          {name:'Broad Jump', sets:'3×5'},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.'
+      },
+      d4: {
+        label:'Day 4', sub:'Posterior Shoulder & Injury Prevention', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+        exercises:[
+          {name:'Band External Rotation', sets:'3×15'},
+          {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+          {name:'Face Pull', sets:'3×15'},
+          {name:'Rear Delt Fly', sets:'3×12-15'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Leg Power & Balance', plate:'p-green', plateNum:'10', duration:'~40 min',
+        exercises:[
+          {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+          {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+          {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+          {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Endurance & Core Conditioning', plate:'p-off', plateNum:'5', duration:'~35 min',
+        exercises:[
+          {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+          {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+          {name:'Russian Twist (weighted)', sets:'3×15/side'},
+          {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.'
+      },
+    }
+  },
+};
+
 // [YOGA STYLES] ----------------------------------------------------------
 // Same swappable-style pattern as Combat/Cycling/Prenatal. Hot Yoga
 // deliberately reuses the same pose vocabulary as Flow -- it's the same
@@ -10695,14 +10731,25 @@ function toggleClimbTechniquesCard(){
   }
 }
 
-// [SURFING TECHNIQUES] --------------------------------------------------------
+// [WATERSPORTS TECHNIQUES] ----------------------------------------------------
 // Same "group -> expandable technique rows with icon + cues + video" pattern as
 // Posing/Swimming/Climbing/Combat/Grappling above (same CSS classes:
 // .posing-class, .pose-detail-wrap, .pose-row, .pose-detail, .pose-name,
-// .pose-icon). A smaller, shared icon set (6 icons across 8 techniques) rather
-// than one bespoke icon per technique — the point of this masterclass is depth
-// of real technique content, not an equally large investment in icon art.
-const SURF_ICONS = {
+// .pose-icon), and the same flat "group key = discipline" shape as
+// COMBAT_TECHNIQUE_GROUPS — one masterclass card covering every watersports
+// discipline, not a separate card per style. Surfing's own three groups
+// (Before You Paddle Out / Paddling & Catching the Wave / Riding & Turning)
+// are kept as three separate top-level group entries, each prefixed
+// "Surfing — ", since that pedagogical breakdown is worth keeping even
+// though the render function only supports one flat level of grouping — the
+// prefix encodes the hierarchy Combat's masterclass doesn't need (one group
+// per style there) but this one does (surfing alone has more content than
+// most other single styles).
+//
+// A smaller, shared icon set (6 icons, reused across techniques) rather than
+// one bespoke icon per technique — the point of this masterclass is depth of
+// real technique content, not an equally large investment in icon art.
+const WATERSPORTS_ICONS = {
   wave: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <path d="M4 26 Q11 16 18 26 T32 26 T44 22" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="34" x2="40" y2="34" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
   paddling: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <ellipse cx="22" cy="26" rx="16" ry="4" stroke="currentColor" stroke-width="2" fill="none"/> <circle cx="12" cy="18" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="13" y1="21" x2="20" y2="25" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M20 24 Q26 14 32 18" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M20 26 Q26 34 30 30" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> </svg>',
   popUp: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <ellipse cx="22" cy="34" rx="16" ry="3.2" stroke="currentColor" stroke-width="2" fill="none"/> <circle cx="20" cy="10" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="13" x2="20" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="12" y2="32" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="30" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="16" x2="9" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="16" x2="31" y2="12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
@@ -10711,7 +10758,7 @@ const SURF_ICONS = {
   safety: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <path d="M22 4 L38 12 V22 C38 32 30 38 22 40 C14 38 6 32 6 22 V12 Z" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="14" x2="22" y2="24" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"/> <circle cx="22" cy="30" r="1.6" fill="currentColor"/> </svg>',
 };
 
-const SURF_TECHNIQUE_DETAILS = {
+const WATERSPORTS_TECHNIQUE_DETAILS = {
   'Ocean Safety & Rip Currents': {icon:'safety', video:'ocean safety rip current identification surfing beginners', points:[
     'Setup: before ever paddling out, watch the lineup for a few minutes from the beach — identify the rip current (usually a channel of calmer, murkier, or discolored water moving seaward, often between sandbars), the peak (where waves are breaking first and hardest), and the exit if you get pulled somewhere you don\'t want to be.',
     'Execution: if you\'re ever caught in a rip, don\'t fight it directly by swimming straight back to shore — swim or paddle parallel to the beach until you\'re out of the current\'s pull, then angle back in. Rips are usually narrow; fighting them head-on is what exhausts people.',
@@ -10770,31 +10817,31 @@ const SURF_TECHNIQUE_DETAILS = {
   ]},
 };
 
-const SURF_TECHNIQUE_GROUPS = {
-  'Before You Paddle Out': {
+const WATERSPORTS_TECHNIQUE_GROUPS = {
+  'Surfing — Before You Paddle Out': {
     poses:['Ocean Safety & Rip Currents','Reading Waves & Lineup Positioning','Duck Dive'],
     note:'Start here, before technique — knowing the ocean and how to get past the whitewater safely matters more than any single move on the board, and it\'s exactly the part a phone can\'t simulate for you.',
   },
-  'Paddling & Catching the Wave': {
+  'Surfing — Paddling & Catching the Wave': {
     poses:['Paddling Technique','Pop-Up'],
     note:'The two skills that happen before you\'re actually riding anything — and, per real time-motion data on competitive surfers, the ones you\'ll spend the most total time doing.',
   },
-  'Riding & Turning': {
+  'Surfing — Riding & Turning': {
     poses:['Trim & Stance','Bottom Turn','Cutback'],
     note:'What happens once you\'re up — from holding a stable line to the rotational turns that everything more advanced in surfing gets built from.',
   },
 };
 
-function renderSurfTechniques(){
-  const listEl = document.getElementById('surfTechniquesList');
+function renderWatersportsTechniques(){
+  const listEl = document.getElementById('watersportsTechniquesList');
   if(!listEl) return;
-  listEl.innerHTML = Object.keys(SURF_TECHNIQUE_GROUPS).map((groupName)=>{
-    const grp = SURF_TECHNIQUE_GROUPS[groupName];
+  listEl.innerHTML = Object.keys(WATERSPORTS_TECHNIQUE_GROUPS).map((groupName)=>{
+    const grp = WATERSPORTS_TECHNIQUE_GROUPS[groupName];
     const techRows = grp.poses.map((techName)=>{
-      const detail = SURF_TECHNIQUE_DETAILS[techName];
-      const iconSvg = detail ? SURF_ICONS[detail.icon] : '';
+      const detail = WATERSPORTS_TECHNIQUE_DETAILS[techName];
+      const iconSvg = detail ? WATERSPORTS_ICONS[detail.icon] : '';
       const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
-      const query = encodeURIComponent(detail && detail.video ? detail.video : `${techName} surfing technique tutorial`);
+      const query = encodeURIComponent(detail && detail.video ? detail.video : `${techName} watersports technique tutorial`);
       return `
         <details class="pose-detail-wrap">
           <summary class="pose-row">
@@ -10819,12 +10866,12 @@ function renderSurfTechniques(){
   }).join('');
 }
 
-function toggleSurfTechniquesCard(){
-  const card = document.getElementById('surfTechniquesCard');
+function toggleWatersportsTechniquesCard(){
+  const card = document.getElementById('watersportsTechniquesCard');
   if(!card) return;
-  if(activeProgram === 'surfing'){
+  if(activeProgram === 'watersports'){
     card.style.display = '';
-    renderSurfTechniques();
+    renderWatersportsTechniques();
   } else {
     card.style.display = 'none';
   }
@@ -14393,7 +14440,14 @@ async function deleteCustomProgram(key){
 async function loadActiveProgram(){
   try{
     const res = await window.storage.get('active-program');
-    if(res && res.value && programs[res.value]) activeProgram = res.value;
+    // 'surfing' was a standalone top-level program for one version (v3.140)
+    // before becoming a Watersports style (v3.141) — anyone who saved it as
+    // their active program in that window lands on Watersports instead of
+    // silently falling back to the default, with the style picker already
+    // on Surfing since that's activeWatersportsStyle's own default.
+    let value = res && res.value;
+    if(value === 'surfing') value = 'watersports';
+    if(value && programs[value]) activeProgram = value;
   }catch(e){}
   dayDefs = programs[activeProgram].days;
 
@@ -14462,7 +14516,7 @@ const MASTERCLASS_LIBRARY = {
   posingCard:               {label:'Posing Practice',                        render:()=>renderPosingClasses()},
   swimStylesCard:           {label:'Swimming Styles',                        render:()=>renderSwimStyles()},
   climbTechniquesCard:      {label:'Climbing Techniques',                    render:()=>renderClimbTechniques()},
-  surfTechniquesCard:       {label:'Surfing Fundamentals',                   render:()=>renderSurfTechniques()},
+  watersportsTechniquesCard:{label:'Watersports Techniques',                 render:()=>renderWatersportsTechniques()},
   combatTechniquesCard:     {label:'Combat Techniques',                      render:()=>renderCombatTechniques()},
   grappleTechniquesCard:    {label:'Grappling Positions',                    render:()=>renderGrappleTechniques()},
   olyTechniquesCard:        {label:'Olympic Lifting Technique',              render:()=>renderOlyTechniques()},
@@ -14616,7 +14670,7 @@ const PROGRAM_MASTERCLASS = {
   bodybuilding: {cardId:'posingCard', label:'Posing Practice'},
   swimming:     {cardId:'swimStylesCard', label:'Swimming Styles'},
   climbing:     {cardId:'climbTechniquesCard', label:'Climbing Techniques'},
-  surfing:      {cardId:'surfTechniquesCard', label:'Surfing Fundamentals'},
+  watersports:  {cardId:'watersportsTechniquesCard', label:'Watersports Techniques'},
   combat:       {cardId:'combatTechniquesCard', label:'Combat Techniques'},
   grappling:    {cardId:'grappleTechniquesCard', label:'Grappling Positions'},
   oly:          {cardId:'olyTechniquesCard', label:'Olympic Lifting Technique'},
@@ -14749,11 +14803,12 @@ async function renderProgramSelector(trendStatus){
   togglePosingCard();
   toggleMartialArtCard();
   toggleCyclingCard();
+  toggleWatersportsCard();
   toggleMedicalCard();
   toggleYogaCard();
   toggleSwimStylesCard();
   toggleClimbTechniquesCard();
-  toggleSurfTechniquesCard();
+  toggleWatersportsTechniquesCard();
   toggleCombatTechniquesCard();
   toggleGrappleTechniquesCard();
   toggleOlyTechniquesCard();
@@ -14788,11 +14843,12 @@ async function renderProgramSelector(trendStatus){
     togglePosingCard();
     toggleMartialArtCard();
     toggleCyclingCard();
+    toggleWatersportsCard();
     toggleMedicalCard();
     toggleYogaCard();
     toggleSwimStylesCard();
     toggleClimbTechniquesCard();
-    toggleSurfTechniquesCard();
+    toggleWatersportsTechniquesCard();
     toggleCombatTechniquesCard();
     toggleGrappleTechniquesCard();
     toggleOlyTechniquesCard();
@@ -14929,6 +14985,56 @@ function toggleCyclingCard(){
   if(activeProgram === 'cycling'){
     card.style.display = '';
     renderCyclingSelector();
+  } else {
+    card.style.display = 'none';
+  }
+}
+
+let activeWatersportsStyle = 'surfing';
+
+async function loadWatersportsStyle(){
+  try{
+    const res = await window.storage.get('watersports-style');
+    if(res && res.value && WATERSPORTS_STYLES[res.value]) activeWatersportsStyle = res.value;
+  }catch(e){}
+  programs.watersports.days = WATERSPORTS_STYLES[activeWatersportsStyle].days;
+}
+
+async function saveWatersportsStyle(){
+  try{ await window.storage.set('watersports-style', activeWatersportsStyle); }catch(e){}
+}
+
+function renderWatersportsSelector(){
+  const el = document.getElementById('watersportsSelector');
+  const descEl = document.getElementById('watersportsDesc');
+  el.innerHTML = Object.keys(WATERSPORTS_STYLES).map(key=>
+    `<option value="${key}" ${key===activeWatersportsStyle?'selected':''}>${WATERSPORTS_STYLES[key].label}</option>`
+  ).join('');
+  descEl.textContent = WATERSPORTS_STYLES[activeWatersportsStyle].short;
+
+  el.onchange = async ()=>{
+    activeWatersportsStyle = el.value;
+    renderProgramSource();   // style provenance must follow the style, not just the program
+    programs.watersports.days = WATERSPORTS_STYLES[activeWatersportsStyle].days;
+    descEl.textContent = WATERSPORTS_STYLES[activeWatersportsStyle].short;
+    await saveWatersportsStyle();
+    if(activeProgram === 'watersports'){
+      dayDefs = programs.watersports.days;
+      activeDay = 'd1';
+      await loadDayOrder();
+      await loadWeekProgress();
+      renderTabs();
+      renderWorkout();
+      renderTips();
+    }
+  };
+}
+
+function toggleWatersportsCard(){
+  const card = document.getElementById('watersportsCard');
+  if(activeProgram === 'watersports'){
+    card.style.display = '';
+    renderWatersportsSelector();
   } else {
     card.style.display = 'none';
   }
@@ -15892,6 +15998,7 @@ function exKey(program, dayId, idx, subVariant){
   const suffix = subVariant ? `:sub:${slugifyExerciseName(subVariant)}` : '';
   if(program === 'combat') return `ex:${program}:${activeMartialArt}:${dayId}:${idx}${suffix}`;
   if(program === 'cycling') return `ex:${program}:${activeCyclingStyle}:${dayId}:${idx}${suffix}`;
+  if(program === 'watersports') return `ex:${program}:${activeWatersportsStyle}:${dayId}:${idx}${suffix}`;
   if(program === 'medical') return `ex:${program}:${activeMedicalStyle}:${dayId}:${idx}${suffix}`;
   return `ex:${program}:${dayId}:${idx}${suffix}`;
 }
@@ -15936,6 +16043,7 @@ async function applyExerciseSubs(exercises, program, dayId){
 function workoutKey(date, program, dayId){
   if(program === 'combat') return `workout:${date}:${program}:${activeMartialArt}:${dayId}`;
   if(program === 'cycling') return `workout:${date}:${program}:${activeCyclingStyle}:${dayId}`;
+  if(program === 'watersports') return `workout:${date}:${program}:${activeWatersportsStyle}:${dayId}`;
   if(program === 'medical') return `workout:${date}:${program}:${activeMedicalStyle}:${dayId}`;
   return `workout:${date}:${program}:${dayId}`;
 }
@@ -15962,14 +16070,15 @@ function getExerciseLocationIndex(){
     });
   };
   Object.entries(programs).forEach(([progKey, prog]) => {
-    // medical/combat/cycling/yoga are placeholders here (days:{}) — their
-    // real content lives in the *_STYLES consts, added below instead.
-    if(['medical','combat','cycling','yoga'].includes(progKey)) return;
+    // medical/combat/cycling/watersports/yoga are placeholders here (days:{})
+    // — their real content lives in the *_STYLES consts, added below instead.
+    if(['medical','combat','cycling','watersports','yoga'].includes(progKey)) return;
     addDays(progKey, prog.days, null);
   });
   Object.entries(MEDICAL_STYLES).forEach(([styleKey, style]) => addDays('medical', style.days, styleKey));
   Object.entries(COMBAT_STYLES).forEach(([styleKey, style]) => addDays('combat', style.days, styleKey));
   Object.entries(CYCLING_STYLES).forEach(([styleKey, style]) => addDays('cycling', style.days, styleKey));
+  Object.entries(WATERSPORTS_STYLES).forEach(([styleKey, style]) => addDays('watersports', style.days, styleKey));
   Object.entries(YOGA_STYLES).forEach(([styleKey, style]) => addDays('yoga', style.days, null)); // yoga styles share one storage key regardless of style — see exKey
   exerciseLocationIndex = index;
   return index;
@@ -21456,6 +21565,18 @@ const TIPS_BY_CYCLING_STYLE = {
   ],
 };
 
+const TIPS_BY_WATERSPORTS_STYLE = {
+  surfing: [
+    "<b>Paddling is most of the work, not the wave.</b> Real time-motion data on competitive surfers found paddling eats up roughly 54% of a session — pulling strength and repeat-effort conditioning matter as much as leg power.",
+    "<b>Drill the pop-up on land, constantly.</b> A real trial found 8 weeks of land-based pop-up practice measurably sped up recreational surfers' actual pop-up time — this isn't a warm-up formality, it's the movement pattern that determines whether you catch the wave at all.",
+    "<b>The posterior shoulder work is not optional.</b> Repetitive paddling overbuilds the internal rotators relative to the external ones — the scapular/rotator-cuff day exists specifically to counter that imbalance.",
+    "<b>Read the ocean every single session.</b> Sandbars, rip currents, and wave breaks shift with the tide — yesterday's lineup spot may not be today's.",
+    "<b>If you're ever caught in a rip, swim parallel to shore, not against it.</b> Most rip-related trouble comes from exhaustion fighting the current head-on, not the current's actual strength.",
+    "<b>Rotational power transfers directly to turning.</b> The bottom turn and cutback are hip-and-core-driven, not arm-driven — this is exactly what the rotational-power training day is building.",
+    "<b>This program builds the body, not the wave judgment.</b> Real ocean time — ideally with real instruction — is still what teaches positioning, timing, and board control.",
+  ],
+};
+
 // Medically Modified gets its tips from the selected condition/stage, not
 // one generic set — the safety-critical rule genuinely differs by condition
 // (no breath-holding for Hypertension, no spinal flexion for Osteoporosis,
@@ -21554,6 +21675,7 @@ TIPS_BY_MEDICAL_STYLE.rehabLowerback = TIPS_BY_MEDICAL_STYLE.rehabGeneral;
 function getActiveTips(){
   if(activeProgram === 'combat') return TIPS_BY_MARTIAL_ART[activeMartialArt] || TIPS_BY_PROGRAM.strength;
   if(activeProgram === 'cycling') return TIPS_BY_CYCLING_STYLE[activeCyclingStyle] || TIPS_BY_PROGRAM.strength;
+  if(activeProgram === 'watersports') return TIPS_BY_WATERSPORTS_STYLE[activeWatersportsStyle] || TIPS_BY_PROGRAM.strength;
   if(activeProgram === 'medical') return TIPS_BY_MEDICAL_STYLE[activeMedicalStyle] || TIPS_BY_PROGRAM.strength;
   return TIPS_BY_PROGRAM[activeProgram] || TIPS_BY_PROGRAM.strength;
 
@@ -27563,6 +27685,17 @@ function parseExKey(key){
       dayLabel: `${programs.cycling.label} (${styleDef.label}) · ${dayDef.label}`,
     };
   }
+  if(program === 'watersports' && parts.length >= 5){
+    const style = parts[2], dayId = parts[3], idx = Number(parts[4]);
+    const styleDef = WATERSPORTS_STYLES[style];
+    const dayDef = styleDef && styleDef.days[dayId];
+    if(!dayDef || !dayDef.exercises || !dayDef.exercises[idx]) return null;
+    return {
+      program, dayId, idx,
+      exDef: dayDef.exercises[idx],
+      dayLabel: `${programs.watersports.label} (${styleDef.label}) · ${dayDef.label}`,
+    };
+  }
   const dayId = parts[2], idx = Number(parts[3]);
   const progDef = programs[program];
   const dayDef = progDef && progDef.days[dayId];
@@ -28744,6 +28877,7 @@ const COACH_PERSONAS = {
   swimming: 'a swim stroke coach focused on body position, catch mechanics, kick timing, and body rotation across freestyle, backstroke, breaststroke, and butterfly',
   climbing: 'a climbing movement coach focused on body positioning relative to the wall, footwork precision, grip selection for the hold shown, and hip/weight transfer',
   cycling: 'a cycling coach focused on pedal stroke efficiency, cadence, and riding position/posture on the bike',
+  watersports: 'a watersports strength & conditioning coach focused on the land-based mechanics that transfer to whichever board sport is shown — paddling/pulling pattern, rotational hip-and-core drive, explosive leg power, and posterior-shoulder health — not the on-water skill itself',
   boxingsc: 'a boxing strength & conditioning coach focused on rotational power mechanics, single-leg stability, and round-based conditioning — the physical base underneath punching power, not the punches themselves',
   desk: 'a posture and corrective-exercise coach focused on countering desk-posture patterns — scapular positioning, hip flexor length, and thoracic mobility',
   hyrox: 'a functional fitness racing coach focused on pacing and technical efficiency under fatigue — sled posture, wall ball depth and rhythm, and the run-to-station transition specifically',
@@ -33293,6 +33427,7 @@ if(activeUserId){
 
     await loadMartialArtStyle();
     await loadCyclingStyle();
+    await loadWatersportsStyle();
     await loadYogaStyle();
     await loadMedicalStyle();
     await loadSessionLengthPref();
