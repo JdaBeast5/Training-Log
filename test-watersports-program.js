@@ -279,8 +279,12 @@ test('PROGRAM_MASTERCLASS.watersports and MASTERCLASS_LIBRARY.watersportsTechniq
   assert.deepStrictEqual(pm, {cardId: 'watersportsTechniquesCard', label: 'Watersports Techniques'});
 
   const libSrc = extractConst(src, 'MASTERCLASS_LIBRARY');
-  assert.match(libSrc, /watersportsTechniquesCard:\{label:'Watersports Techniques',\s*render:\(\)=>renderWatersportsTechniques\(\)\}/,
-    'MASTERCLASS_LIBRARY must register the card with the real render function, not a stub');
+  // details:WATERSPORTS_TECHNIQUE_DETAILS was added alongside label/render so
+  // global search (buildMasterclassTechniqueSearchIndex) can walk every
+  // masterclass's real technique data without a second hand-listed const —
+  // the regex now covers all three fields rather than just label/render.
+  assert.match(libSrc, /watersportsTechniquesCard:\{label:'Watersports Techniques',\s*render:\(\)=>renderWatersportsTechniques\(\),\s*details:WATERSPORTS_TECHNIQUE_DETAILS\}/,
+    'MASTERCLASS_LIBRARY must register the card with the real render function AND its real technique-details const, not a stub');
 });
 
 test('sabotage-relevant: toggleWatersportsTechniquesCard is actually wired into the program-switch flow (not just defined and never called)', (assert)=>{
