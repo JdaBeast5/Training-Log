@@ -5705,7 +5705,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.145';
+const APP_VERSION = '3.146';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5908,6 +5908,10 @@ const WHATS_NEW = {
   '3.145': { headline: 'New Watersports discipline: Stand-Up Paddleboarding', points: [
     'A land-based program built from SUP\'s own research: a real injury survey found the shoulder is by far the most commonly injured joint (about a third of all injuries), so this program leads with a paddling-pattern/posterior-shoulder day; a biomechanics study found inexperienced paddlers rely on significantly more shoulder motion and less hip rotation than experienced ones for the same stroke, directly shaping a new hip-driven land drill (SUP Paddle Stroke Simulation); a third study\'s measured core-endurance gains (front plank, both side planks, back extensors) shaped this program\'s core day around those same three positions.',
     '6 new techniques in Watersports Techniques: safety and gear, stance and balance fundamentals, the forward stroke, the sweep stroke and turning, falling safely and board recovery, and reading water and conditions.',
+  ]},
+  '3.146': { headline: 'New Watersports discipline: Kayaking', points: [
+    'A land-based program built from kayaking\'s own research: a 2025 study of kayak athletes found the lower back, not the shoulder, is actually the single most commonly injured site, so this program leads with a core/lumbar-endurance day; a biomechanics study found something most paddlers don\'t expect — locking a kayaker\'s knees to remove leg drive cut paddle-stroke force by 21% and boat speed by 16% — the direct reason this program includes a dedicated leg-power day most kayak training skips.',
+    'The Watersports Techniques masterclass now goes all the way to the Eskimo roll: 6 new techniques covering safety and gear, entry/exit and stance, the forward stroke, the sweep stroke and turning, the wet exit and capsize recovery, and the roll itself — the highest-skill technique in the whole Watersports masterclass, built around the same footbrace-driven leg mechanics as the forward stroke.',
   ]},
 };
 
@@ -8411,6 +8415,13 @@ const STYLE_SOURCES = {
     primary: 'Furness J, Olorunnife O, Schram B, Climstein M, Hing WA. Epidemiology of injuries in stand-up paddle boarding. Orthop J Sports Med. 2017;5(6). doi:10.1177/2325967117710759 — an international online survey of competitive and recreational SUP participants; the shoulder/upper arm was the single most commonly injured region (32.9% of all injuries), followed by the lower back (14.3%) and elbow/forearm (11.8%), with muscle/tendon injuries the leading type (50.4%) ahead of joint/ligament injuries (22.6%). Endurance paddling was the single most commonly reported injury mechanism (34.5%), ahead of contact with the paddler\'s own board (20.1%) and sprint paddling (9.3%) — the direct basis for this program\'s paddling-pattern/shoulder day, core-endurance day, and aerobic-endurance conditioning day. Risk factors identified: age over 46, competitive status, more than 4.8 hours/week of paddling, and racing specifically. Physiological support: Schram B, Hing W, Climstein M. The physiological, musculoskeletal and psychological effects of stand up paddle boarding. BMC Sports Sci Med Rehabil. 2016;8:32. doi:10.1186/s13102-016-0057-6 — a 6-week, 3x/week SUP training intervention measured real gains in aerobic capacity (+23.57%), anaerobic fitness (+41.98%), and multidirectional trunk endurance: prone bridge/rectus abdominis +19.78%, side bridge/obliques +26.19% (right) and +28.31% (left), and Biering-Sorensen/erector spinae +21.33% — the direct basis for this program\'s core-endurance day, pairing Plank, Side Plank, Bird Dog, and Pallof Press specifically to those same three tested positions. Stroke mechanics: Schram B, Furness J, Kemp-Smith K, Sharp J, Cristini M, Harvie D, Keady E, Ghobrial M, Tussler J, Hing W, Nessler J, Becker M. A biomechanical analysis of the stand-up paddle board stroke: a comparative study. PeerJ. 2019;7:e8006. doi:10.7717/peerj.8006 — 3D motion analysis of 26 paddlers (7 experienced, 19 inexperienced) found inexperienced paddlers used significantly greater shoulder range of motion (78.9° vs. 56.6°, p=0.010) and significantly less hip rotation (50.0° vs. 66.4°, p=0.035) than experienced paddlers performing the same stroke — the authors explicitly linked this pattern to the same joints (shoulder, elbow, hip) that show elevated injury rates in comparable paddling sports, and it is the direct basis for this program\'s hip-driven SUP Paddle Stroke Simulation drill.',
     editorNote: 'The Furness et al. injury survey is a retrospective, self-selected online survey (real limitations: recall bias, no denominator of total paddling hours per respondent to calculate a true injury rate, and a sample likely skewed toward the more engaged, online-active portion of the SUP community) — cited for injury LOCATION and mechanism pattern, not as a precise incidence rate. The Schram et al. training-intervention study measured genuinely untrained/recreational participants over 6 weeks, not competitive-level paddlers over a full season — the percentage gains are real but from a low baseline, and should not be read as "SUP alone is sufficient training," which the study does not claim either. The biomechanics study (n=26, 7 experienced vs. 19 inexperienced) is a real, statistically significant comparison, but a modest sample size — real evidence of the technique difference, not a large-scale confirmation. None of these three citations is a trial of THIS program\'s specific exercises reducing SUP injury rates; they establish what the sport demands and where it goes wrong, which the program is built around, not proof the program itself works. As with every other watersports style, no land training substitutes for real, supervised time learning to balance, fall safely, and read open-water conditions.',
   },
+  kayaking: {
+    intro: 'Land-based support training for kayaking — paddling-pattern shoulder strength, core/lumbar endurance, and the leg drive most kayak training overlooks — built from the sport\'s own injury and biomechanics research.',
+    tier: 'school',
+    school: 'Land-based S&C matched to kayaking\'s documented injury sites (lower back and shoulder) and its own measured stroke biomechanics, where the legs contribute real, quantified power most paddlers assume comes only from the arms.',
+    primary: 'Gao K, Deng Y, Zhou X, Zeng H, Kimura T, Shen S, Pan Z, Han N. Epidemiological characteristics of injuries among elite adolescent flat-water kayak and canoe athletes. Front Public Health. 2025;13:1608987. doi:10.3389/fpubh.2025.1608987 — among kayak-specific athletes, the lower back was the most commonly injured site (21.7% of all kayak injuries), followed by the shoulder (17.4%), wrist (10.9%), and knee (10.1%); the authors identified repetitive, improper paddling technique and training volume as contributing risk factors — the direct basis for this program\'s core/lumbar-endurance day and paddling-pattern/shoulder day. Chronic-injury context: Fiore DC. Injuries associated with whitewater rafting and kayaking. Wilderness Environ Med. 2003;14(4):255-260. doi:10.1580/1080-6032(2003)14[255:iawwra]2.0.co;2 — a collective review finding chronic injuries account for 25-40% of all kayaking injuries and are most often shoulder or wrist complaints, while acute injuries are usually from the transferred force of the water on the upper extremity (most often the shoulder) or from impact against an object while swimming after a capsize — the direct basis for both the shoulder/wrist-focused strength days and this program\'s Wet Exit & Capsize Recovery technique. Leg-drive support: Nilsson JE, Rosdahl HG. Contribution of leg-muscle forces to paddle force and kayak speed during maximal-effort flat-water paddling. Int J Sports Physiol Perform. 2016;11(1):22-27. doi:10.1123/ijspp.2014-0030 — in five elite male kayakers, locking the knee joints to remove leg drive from the stroke reduced mean paddle-stroke force by 21% and mean kayak speed by 16% compared to normal paddling — direct, measured evidence that kayaking is not an arms-only sport, and the basis for this program\'s dedicated leg-power day and the footbrace-driven mechanics taught in the Forward Stroke and Eskimo Roll techniques.',
+    editorNote: 'The Gao et al. figures come from elite ADOLESCENT flat-water athletes specifically — a real, recent, precise dataset, but one that may not generalize exactly to adult recreational or whitewater paddlers, whose injury pattern (per Fiore) skews more toward acute shoulder trauma and less toward the pure overuse pattern seen in young competitive flat-water racers. Fiore\'s 25-40% chronic-injury figure and shoulder/wrist emphasis are from a 2003 collective review — real and still commonly cited in more recent kayaking-injury literature, but dated, and its listed statistics were the extent confirmed by the source actually reviewed here; more granular figures sometimes attributed to this paper elsewhere (e.g. a specific shoulder-dislocation percentage) were NOT independently confirmed here and are deliberately not repeated. The Nilsson & Rosdahl leg-drive study is a small, elite-athlete sample (n=5) using an artificial knee-lock manipulation — a real, controlled biomechanical finding, not a claim about how much leg-power TRAINING specifically improves paddling performance; that causal step is not what the study measured. None of these three citations validates THIS program\'s specific exercise selection as reducing injury or improving performance — they establish what the sport demands and where it goes wrong, which the program is built around. Most importantly, and as with every watersports style: the wet exit and Eskimo roll sections are awareness and technique breakdowns, not a substitute for real, supervised instruction — both are genuine safety skills that take hands-on coaching and pool practice to become reliable, exactly as the Eskimo Roll technique itself says.',
+  },
 };
 
 // Which state variable selects the style, per container program.
@@ -8464,6 +8475,8 @@ const USER_TEXT = {
                    limits:"This won't teach you to fly a kite, body-drag, water-start, or self-rescue — those are safety-critical skills that need a certified kite instructor, not a training log. Historically, most serious kitesurfing accidents were attributed to being unable to detach the kite from the harness — know your quick-release system before you're relying on it for real." },
   sup:           { basis:"A survey of SUP paddlers found the shoulder is by far the most commonly injured area (33% of all injuries) — real support for this program's paddling-pattern and posterior-shoulder day. A separate biomechanics study found inexperienced paddlers rely on significantly more shoulder motion and less hip rotation than experienced ones for the same stroke, which is exactly what the hip-driven stroke drill here is built to correct. A third study found a real 6-week SUP training block measurably improved core endurance in the same three positions (front plank, both side planks) this program's core day trains directly.",
                    limits:"This won't teach you to balance, fall safely, read wind and current, or actually paddle efficiently — those come from real time on the water, ideally with some instruction early on. The same injury research linked longer weekly paddling hours to higher injury risk — more time on the water isn't automatically safer just because you're more experienced." },
+  kayaking:      { basis:"The most recent, precise injury data on kayak athletes found the lower back is actually the single most commonly injured site (22%), ahead of the shoulder (17%) — real support for this program's core/lumbar-endurance day. A separate biomechanics study found something most paddlers don't expect: locking a kayaker's knees to remove leg drive cut their paddle-stroke force by 21% and boat speed by 16% — direct evidence this isn't an arms-only sport, which is exactly why this program has a dedicated leg-power day most kayak training plans skip.",
+                   limits:"This won't teach you to balance, brace, wet-exit, or roll — those are safety-critical, hands-on skills that need real water time and ideally a qualified instructor, not a training log. Older research found a real share of acute kayaking injuries come from impact against an object while swimming after a capsize, which is exactly why the wet-exit technique here matters as much as any strength exercise." },
   climbing:      { basis:"Climbing injury research showing overuse injuries to fingers and shoulders are the most common problem.",
                    limits:"Hangboarding is where climbers get hurt. If you've been climbing under a year, build a base first — finger tendons take years to adapt, not weeks." },
   grappling:     { basis:"Real BJJ match data (roughly 6-13 seconds of effort per second of rest, and lactate readings showing serious metabolic demand) backs why this week ends with live rounds, not just drilling.",
@@ -10046,6 +10059,64 @@ const WATERSPORTS_STYLES = {
       },
     }
   },
+  kayaking: {
+    label: 'Kayaking', short: 'Land-based paddling-pattern strength, core/lumbar endurance, and the leg drive most kayak training skips',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
+        exercises:[
+          {name:'Kayak Stroke Simulation', sets:'4×10/side', noWeight:true},
+          {name:'Seated Cable Row', sets:'3×10-12'},
+          {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+          {name:'Band External Rotation', sets:'3×15'},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Core & Lumbar Endurance', plate:'p-blue', plateNum:'20', duration:'~35 min',
+        exercises:[
+          {name:'Plank', sets:'3×45-60s', noWeight:true},
+          {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+          {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+          {name:'Pallof Press', sets:'3×10-12/side'},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, rotational push-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.'
+      },
+      d4: {
+        label:'Day 4', sub:'Leg Drive & Lower-Body Power', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+        exercises:[
+          {name:'Jump Squat', sets:'3×8'},
+          {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+          {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+          {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Grip, Wrist & Forearm Endurance', plate:'p-green', plateNum:'10', duration:'~35 min',
+        exercises:[
+          {name:'Farmer\'s Carry', sets:'4×30yd'},
+          {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+          {name:'Face Pull', sets:'3×15'},
+          {name:'Rear Delt Fly', sets:'3×12-15'},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Rotational Power & Full-Body Conditioning', plate:'p-off', plateNum:'5', duration:'~30 min',
+        exercises:[
+          {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+          {name:'Russian Twist (weighted)', sets:'3×15/side'},
+          {name:'Sprint Intervals', sets:'4×20s', noWeight:true},
+          {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. This is land-based support training, not a replacement for real time on the water — bracing, rolling, and reading current only develop out there.'
+      },
+    }
+  },
 };
 
 // [YOGA STYLES] ----------------------------------------------------------
@@ -11270,6 +11341,49 @@ const WATERSPORTS_TECHNIQUE_DETAILS = {
     'Common mistake: underestimating how much harder paddling back against wind or current can be compared to how easy the outbound leg felt. What feels like a short, easy paddle out can become a long, exhausting paddle back if conditions shift.',
     'Coaching insight: start with shorter, closer-to-shore sessions and build distance and open-water exposure gradually, the same way this program builds training volume gradually rather than jumping straight to long endurance efforts.',
   ]},
+
+  'Kayak Safety & Gear': {icon:'safety', video:'kayaking safety gear beginners PFD spray skirt', points:[
+    'Setup: wear a properly fitted personal flotation device every time, without exception, and dress for the water temperature, not the air temperature — cold-water immersion is a real risk even on a warm day, and a wetsuit or drysuit is a safety decision in cold water, not a comfort one.',
+    'Execution: for whitewater or moving water, wear a helmet rated for paddlesports, and know the water class you\'re paddling before you commit to it — real injury research found acute kayaking injuries are usually from either the transferred force of the water on the upper extremity or impact against an object while swimming after a capsize, both directly influenced by matching your skill to actual conditions.',
+    'Whole-body integration: check your boat\'s flotation, your spray skirt\'s quick-release, and your paddle before every session — gear failure at the wrong moment turns a routine capsize into a real emergency.',
+    'Common mistake: treating a spray skirt\'s quick-release grab loop as optional or leaving it tucked away where you can\'t find it under stress. In a real wet exit, being unable to find and pull that loop immediately is the actual danger, not the capsize itself.',
+    'Coaching insight: never paddle alone in moving water or conditions beyond your current skill level, and tell someone your route and expected return time — the vast majority of serious paddlesport incidents involve solo paddlers in conditions beyond their preparation.',
+  ]},
+  'Entry, Exit & Basic Stance': {icon:'popUp', video:'kayaking entry exit basic stance footbrace technique', points:[
+    'Setup: enter the kayak from a stable position (a dock, shallow water, or with someone stabilizing the boat), sit with your back reasonably upright against the seat back, and adjust the footbraces so your knees are bent and your feet make firm, active contact.',
+    'Execution: your knees and thighs should press lightly against the thigh braces or cockpit rim, creating a connected, three-point contact (seat, feet, thighs) that lets the boat respond to your body\'s movements rather than your body sliding around inside a boat you\'re not actually connected to.',
+    'Whole-body integration: firm footbrace contact isn\'t just for comfort — real biomechanical research found leg drive through the footbraces contributes measurably to both paddle-stroke force and boat speed, so a loose, disconnected leg position isn\'t just less stable, it\'s leaving real power on the table.',
+    'Common mistake: sitting slouched with the legs flat and disengaged. This might feel relaxed, but it disconnects the strongest part of your body from the boat and forces the stroke to be generated by the arms and shoulders alone.',
+    'Coaching insight: practice entries and exits in calm, shallow water until they feel completely routine — confidence getting in and out of the boat removes a major source of hesitation and panic if you ever need to exit quickly for real.',
+  ]},
+  'The Forward Stroke': {icon:'paddling', video:'kayaking forward stroke technique torso rotation leg drive', points:[
+    'Setup: reach forward with the paddle blade, rotating your torso toward the reaching side so the blade plants in the water roughly at your feet, not out to the side.',
+    'Execution: the stroke is a push-pull motion, not a pure pull — the top arm pushes forward and across while the bottom arm pulls back, and the real power comes from unwinding your rotated torso back toward neutral, driven in part by pushing off the footbrace on that side.',
+    'Whole-body integration: real research measuring elite kayakers found that removing leg drive from the stroke (by locking the knees) reduced paddle-stroke force by 21% and boat speed by 16% — a startling amount for a sport many people assume is purely an arm-and-shoulder activity, and the direct reason this program includes a dedicated leg-power day rather than only upper-body work.',
+    'Common mistake: paddling with the arms alone, bending mostly at the elbow rather than rotating the torso. This is both a less powerful stroke and a much higher-repetition strain specifically on the shoulder — one of the most commonly injured joints in this sport across multiple studies.',
+    'Coaching insight: exit the stroke around your hip, not further back — like a paddleboard stroke, pulling the blade too far past your body stops adding forward power and starts lifting water instead, wasting energy for no forward benefit.',
+  ]},
+  'The Sweep Stroke & Turning': {icon:'turn', video:'kayaking sweep stroke turning technique tutorial', points:[
+    'Setup: to turn, plant the blade at the bow (front sweep) or stern (reverse sweep) and sweep it in a wide arc away from the boat, rather than paddling forward-and-back on alternating sides to slowly walk the bow around.',
+    'Execution: rotate your torso to follow the blade through the arc, keeping the stroke wide rather than close to the hull — a wider arc generates more turning leverage for the same effort.',
+    'Whole-body integration: like the forward stroke, an efficient sweep is driven by torso rotation rather than the arms alone, and firm footbrace contact through the turn keeps the boat responsive to your body\'s lean and rotation rather than sliding independently underneath you.',
+    'Common mistake: leaning hard away from the turn to try to force it. A dramatic lean without a corresponding, controlled edge and brace is a common way to capsize mid-turn rather than actually turn faster.',
+    'Coaching insight: combine a slight edge (tilting the boat onto one side using your hips, not your upper body) with the sweep stroke for a tighter, more efficient turn — a genuinely more advanced skill worth building toward once the basic sweep feels solid.',
+  ]},
+  'The Wet Exit & Capsize Recovery': {icon:'safety', video:'kayaking wet exit capsize recovery technique tutorial', points:[
+    'Setup: if you capsize and don\'t have, or can\'t complete, a roll, the wet exit is the fallback: tuck forward, find your spray skirt\'s grab loop, and pull it forward and up to release the skirt from the cockpit rim.',
+    'Execution: once the skirt is released, push yourself out and away from the boat, then swim clear before surfacing — trying to surface still partially inside the cockpit risks striking the boat or paddle.',
+    'Whole-body integration: real injury research found a real share of acute kayaking injuries happen from impact against an object specifically while swimming after a capsize, not from the capsize itself — staying calm, orienting yourself, and swimming clear deliberately matters as much as the exit itself.',
+    'Common mistake: panicking and clawing at the cockpit rim instead of finding the grab loop first. The wet exit is a simple, reliable motion when practiced calmly, and panic is what turns it into a genuine problem.',
+    'Coaching insight: practice a full wet exit in calm, shallow, controlled water, ideally in a pool or with an instructor, before you ever need it for real — like a martial artist drilling a breakfall, the goal is making the motion automatic under stress, not figuring it out for the first time in cold, moving water.',
+  ]},
+  'The Eskimo Roll': {icon:'wave', video:'kayaking eskimo roll technique hip snap tutorial', points:[
+    'Setup: the roll is the highest-skill technique in this masterclass — a capsized paddler rotates the boat back upright using a combination of a hip snap and a paddle brace, without ever needing to exit the boat.',
+    'Execution: from an upside-down set-up position, sweep the paddle blade out to the surface in a wide arc while simultaneously snapping your hips to rotate the boat underneath you — the roll is driven by the hip snap and torso rotation, not by pulling down on the paddle or lifting your head first.',
+    'Whole-body integration: this draws directly on the same torso-rotation and footbrace-connected leg drive this program\'s forward-stroke and leg-power training build — a paddler with a weak hip/leg connection to the boat will struggle to generate the rotational snap a roll actually requires, regardless of paddle technique.',
+    'Common mistake: lifting the head first, before the hips and boat have rotated. The head is the last thing to come out of the water in a correctly executed roll — lifting it early adds weight exactly where it works against the rotation, and is the most common reason a roll attempt fails.',
+    'Coaching insight: learn this skill with a qualified instructor, ideally in a pool, and only after the wet exit feels completely automatic — the roll is a genuine safety skill in moving water, but it takes real, dedicated practice to become reliable, and treating a shaky roll as your primary capsize plan in real conditions is a mistake many experienced paddlers warn against.',
+  ]},
 };
 
 const WATERSPORTS_TECHNIQUE_GROUPS = {
@@ -11300,6 +11414,10 @@ const WATERSPORTS_TECHNIQUE_GROUPS = {
   'Stand-Up Paddleboarding': {
     poses:['SUP Safety & Gear','Stance & Balance Fundamentals','The Forward Stroke','The Sweep Stroke & Turning','Falling Safely & Board Recovery','Reading Water & Conditions'],
     note:'Real biomechanics research found beginners lean heavily on shoulder motion where experienced paddlers use hip rotation instead — and the shoulder is, by a wide margin, this sport\'s most commonly injured joint. The Forward Stroke section exists to close that exact gap.',
+  },
+  'Kayaking': {
+    poses:['Kayak Safety & Gear','Entry, Exit & Basic Stance','The Forward Stroke','The Sweep Stroke & Turning','The Wet Exit & Capsize Recovery','The Eskimo Roll'],
+    note:'This masterclass goes all the way to the Eskimo roll — real evidence found leg drive alone accounts for a fifth of a kayaker\'s paddle-stroke force, which is exactly why Entry, Exit & Basic Stance and The Forward Stroke both emphasize footbrace connection as much as the paddle itself.',
   },
 };
 
@@ -13903,6 +14021,16 @@ const exerciseInfo = {
   // Intervals, Russian Twist, Hollow Body Hold, Ab Wheel Rollout) already
   // exists in the library and is reused as-is.
   'SUP Paddle Stroke Simulation': {category:'core', noWeight:true, videoQuery:'stand up paddleboard stroke technique land drill hip rotation', cues:['Stand in a split, athletic stance as if on a paddleboard, holding a light dowel, resistance band, or towel with both hands as if gripping a paddle.','Drive each "stroke" by rotating through the hips and torso rather than pulling with the arms and shoulders alone — real biomechanical research found inexperienced paddlers rely on significantly more shoulder motion and less hip rotation than experienced ones for the exact same stroke.','Alternate sides evenly, finishing each stroke around the hip rather than pulling it too far back — this rehearses the real catch-to-exit stroke path without needing water or a board.']},
+
+  // --- Kayaking (Watersports) -------------------------------------------
+  // One new exercise for the Kayaking style; everything else on its days
+  // (Seated Cable Row, Straight-Arm Lat Pulldown, Band External Rotation,
+  // Plank, Side Plank, Bird Dog, Pallof Press, Jump Squat, Bulgarian Split
+  // Squat, Deep Squat Hold, Single-Leg Bound, Farmer's Carry, Battle
+  // Ropes, Face Pull, Rear Delt Fly, Med Ball Rotational Throw, Russian
+  // Twist, Sprint Intervals, Hollow Body Hold) already exists in the
+  // library and is reused as-is.
+  'Kayak Stroke Simulation': {category:'core', noWeight:true, videoQuery:'kayak forward stroke technique land drill torso rotation leg drive', cues:['Sit or stand in an athletic stance with a resistance band, dowel, or towel held like a double-bladed paddle, feet braced firmly as if against a kayak footbrace.','Drive each stroke by rotating your torso and pushing through the braced foot on that side, not by pulling with the arm alone — real research found removing leg drive from the stroke cut paddle-stroke force by 21% in elite kayakers, so the legs are not a passive part of this motion.','Alternate sides in a smooth push-pull rhythm, exiting each "stroke" around the hip rather than pulling it too far back, mirroring the real catch-to-exit path of an actual forward stroke.']},
 };
 
 // --- Exercise substitution system ------------------------------------------
@@ -22118,6 +22246,15 @@ const TIPS_BY_WATERSPORTS_STYLE = {
     "<b>Endurance paddling, not sprinting, is the sport's single most common injury mechanism.</b> Real survey data found it ahead of board contact and sprint paddling combined — the aerobic-conditioning day exists to extend how long you can hold good technique before fatigue sets in.",
     "<b>More hours per week isn't automatically safer.</b> The same research found higher weekly paddling volume was linked to higher injury risk, not lower — build volume gradually rather than assuming more time on the water is always better.",
     "<b>This program builds the body, not the balance.</b> Falling safely, reading wind and current, and actual on-water balance only come from real practice, ideally with some early instruction.",
+  ],
+  kayaking: [
+    "<b>Your legs matter more than you'd think.</b> A real study found locking a kayaker's knees — removing leg drive — cut paddle-stroke force by 21% and boat speed by 16%. This isn't an arms-only sport, and the leg-power day here exists because of that exact finding.",
+    "<b>The lower back, not the shoulder, is actually the #1 injury site in the most precise recent data.</b> A 2025 study of kayak athletes found it ahead of the shoulder — real support for this program's core/lumbar-endurance day.",
+    "<b>Drive the stroke from torso rotation, not just your arms.</b> The forward stroke is a push-pull motion powered by unwinding your rotated torso, not a bicep-curl-style pull — arm-only paddling is both weaker and a documented path to shoulder overuse.",
+    "<b>Chronic shoulder and wrist injuries make up a real share of this sport's injury burden.</b> Older collective-review research found chronic injuries are 25-40% of all kayaking injuries, most often at the shoulder or wrist — the paddling-pattern and grip/forearm days exist specifically for that.",
+    "<b>Practice the wet exit until it's boring.</b> Real research found a real share of acute kayaking injuries happen from impact while swimming after a capsize, not the capsize itself — a calm, automatic exit is a genuine safety skill, not a formality.",
+    "<b>The Eskimo roll is the highest-skill technique in this masterclass on purpose.</b> It's driven by hip snap and torso rotation, not arm strength — build it with a qualified instructor once the wet exit feels completely automatic, not as your first capsize plan.",
+    "<b>This program builds the body, not the water skills.</b> Bracing, rolling, reading current, and real boat control only come from time on the water, ideally with real instruction.",
   ],
 };
 
