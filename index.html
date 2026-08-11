@@ -5692,7 +5692,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.138';
+const APP_VERSION = '3.139';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5867,6 +5867,10 @@ const WHATS_NEW = {
     'Live-verified 21 research claims spanning the formal program citations and the informal coaching-insight notes scattered through the Learn tab and rehab programs — 18 checked out exactly as described.',
     'The Diabetes program cited the ADA\'s 2016 position statement; it now points to the ADA\'s current 2026 Standards of Care instead (the numbers you\'re trained on didn\'t change — the source backing them is just current now).',
     'Three exercise-cue notes that named a specific researcher for a general finding (the chair-stand test, tandem-walk balance training, and overstriding in running form) were reworded so they don\'t overstate what\'s directly attributable to that person\'s own work.',
+  ]},
+  '3.139': { headline: 'Finished the citation audit — every formal source now checked', points: [
+    'Extended the citation-accuracy pass to the rest of the app\'s ~35 distinct research sources (combat styles, cycling, yoga, rehab programs, and more) — every one checked out as real and accurately described except one.',
+    'The Olympic Lifting program\'s citation had the wrong author name and the wrong journal (a real paper, just misattributed). Fixed to the correct authors and journal — nothing about what the program teaches changed.',
   ]},
 };
 
@@ -8047,7 +8051,7 @@ const PROGRAM_SOURCES = {
     intro: 'The snatch and clean & jerk trained as skills under low fatigue — doubles, not grinding sets — with squats, pulls and power variations carrying the strength work around them.',
     tier: 'school',
     school: 'Weightlifting coaching consensus (Bulgarian and Russian lineages, modern USAW practice): competition lifts as skill under low fatigue; volume carried by pulls, squats and power variations.',
-    primary: 'No position stand exists for weightlifting rep-scheme prescription. Closest peer-reviewed support for treating lifts as differently fatiguing: Ferreira et al. Comparison between Olympic Weightlifting Lifts and Derivatives for External Load and Fatigue Monitoring. Int J Environ Res Public Health. 2022. PMC9777922',
+    primary: 'No position stand exists for weightlifting rep-scheme prescription. Closest peer-reviewed support for treating lifts as differently fatiguing: Antunes JP, Oliveira R, Reis VM, Romero F, Moutão J, Brito JP. Comparison between Olympic Weightlifting Lifts and Derivatives for External Load and Fatigue Monitoring. Healthcare (Basel). 2022;10(12):2499. doi:10.3390/healthcare10122499. PMC9777922 (author/journal corrected during a citation-accuracy audit — the original entry misattributed this to "Ferreira et al." in the wrong journal; the paper, DOI and PMC ID were always right, only the byline and venue were wrong).',
     editorNote: 'Coaching consensus, NOT trial evidence — do not cite it as though it were. It says nothing about loading percentages, which are individual and phase-dependent, and are deliberately not prescribed here. Also: this program reads as having no posterior-chain work under a category audit. That is an artifact — 11 of 20 lifts map to `oly` -> Full Body / Power. Do not "fix" it by adding hinges.',
   },
 
