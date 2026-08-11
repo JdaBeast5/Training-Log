@@ -55,10 +55,10 @@ test('WATERSPORTS_STYLES.surfing exists with a real 7-day structure and every ex
   assert.ok(result.exerciseCount >= 10, 'a real 7-day program should reference a real spread of exercises, not a token handful');
 });
 
-test('the 6 new exercises across styles (Straight-Arm Lat Pulldown, Battle Ropes, Surfboard Pop-Up Drill, Skimboard Run-and-Drop Drill, Wakeboard Edge Transition Drill, Kite Crossing Isometric Hold) each have real cues, not empty placeholders', (assert)=>{
+test('the 7 new exercises across styles (Straight-Arm Lat Pulldown, Battle Ropes, Surfboard Pop-Up Drill, Skimboard Run-and-Drop Drill, Wakeboard Edge Transition Drill, Kite Crossing Isometric Hold, SUP Paddle Stroke Simulation) each have real cues, not empty placeholders', (assert)=>{
   const chunks = [extractConst(src, 'exerciseInfo')];
   const [result] = runSandbox(chunks, `
-    const names = ['Straight-Arm Lat Pulldown', 'Battle Ropes', 'Surfboard Pop-Up Drill', 'Skimboard Run-and-Drop Drill', 'Wakeboard Edge Transition Drill', 'Kite Crossing Isometric Hold'];
+    const names = ['Straight-Arm Lat Pulldown', 'Battle Ropes', 'Surfboard Pop-Up Drill', 'Skimboard Run-and-Drop Drill', 'Wakeboard Edge Transition Drill', 'Kite Crossing Isometric Hold', 'SUP Paddle Stroke Simulation'];
     __capture.push(names.map(n=> ({
       name: n,
       exists: !!exerciseInfo[n],
@@ -141,7 +141,31 @@ test('WATERSPORTS_STYLES.kiteAssisted exists with a real 7-day structure and eve
   assert.strictEqual(result.hasIsometricHold, true, 'sabotage check: the sport-specific crossing-stance isometric drill must actually be referenced by a real day, not just defined in exerciseInfo');
 });
 
-test('PROGRAM_SOURCES.watersports is a container redirect (not a placeholder, not a full citation), and STYLE_SOURCES.surfing / .skimboarding / .wakeboarding / .kiteAssisted all carry real citations', (assert)=>{
+test('WATERSPORTS_STYLES.sup exists with a real 7-day structure and every exercise resolves to a real library entry', (assert)=>{
+  const chunks = [extractConst(src, 'WATERSPORTS_STYLES'), extractConst(src, 'exerciseInfo')];
+  const [result] = runSandbox(chunks, `
+    const names = new Set();
+    Object.values(WATERSPORTS_STYLES.sup.days).forEach(day=>{
+      (day.exercises || []).forEach(ex=> names.add(ex.name));
+    });
+    __capture.push({
+      label: WATERSPORTS_STYLES.sup.label,
+      dayCount: Object.keys(WATERSPORTS_STYLES.sup.days).length,
+      hasRestDay: Object.values(WATERSPORTS_STYLES.sup.days).some(d=> d.rest === true),
+      missing: [...names].filter(n=> !exerciseInfo[n]),
+      exerciseCount: names.size,
+      hasStrokeDrill: names.has('SUP Paddle Stroke Simulation'),
+    });
+  `);
+  assert.strictEqual(result.label, 'Stand-Up Paddleboarding');
+  assert.strictEqual(result.dayCount, 7, 'must follow the same d1-d7 weekly structure every other style uses');
+  assert.strictEqual(result.hasRestDay, true);
+  assert.deepStrictEqual(result.missing, [], `every exercise referenced by the style must have a real exerciseInfo entry, found missing: ${JSON.stringify(result.missing)}`);
+  assert.ok(result.exerciseCount >= 8, 'a real 7-day program should reference a real spread of exercises, not a token handful');
+  assert.strictEqual(result.hasStrokeDrill, true, 'sabotage check: the sport-specific paddle-stroke drill must actually be referenced by a real day, not just defined in exerciseInfo');
+});
+
+test('PROGRAM_SOURCES.watersports is a container redirect (not a placeholder, not a full citation), and STYLE_SOURCES.surfing / .skimboarding / .wakeboarding / .kiteAssisted / .sup all carry real citations', (assert)=>{
   const chunks = [extractConst(src, 'PROGRAM_SOURCES'), extractConst(src, 'STYLE_SOURCES')];
   const [result] = runSandbox(chunks, `
     __capture.push({
@@ -150,10 +174,11 @@ test('PROGRAM_SOURCES.watersports is a container redirect (not a placeholder, no
       skimboardingPrimary: STYLE_SOURCES.skimboarding.primary,
       wakeboardingPrimary: STYLE_SOURCES.wakeboarding.primary,
       kiteAssistedPrimary: STYLE_SOURCES.kiteAssisted.primary,
+      supPrimary: STYLE_SOURCES.sup.primary,
     });
   `);
   assert.match(result.containerPrimary, /NOW SOURCED PER STYLE/, 'the container entry must redirect to per-style sourcing, matching combat/cycling/yoga');
-  [result.surfingPrimary, result.skimboardingPrimary, result.wakeboardingPrimary, result.kiteAssistedPrimary].forEach(primary=>{
+  [result.surfingPrimary, result.skimboardingPrimary, result.wakeboardingPrimary, result.kiteAssistedPrimary, result.supPrimary].forEach(primary=>{
     assert.ok(primary.length > 200, 'the real citation content must live on the style, not the container');
     assert.ok(!primary.includes('NOT YET SOURCED'));
     assert.match(primary, /doi:/i, 'must include at least one real DOI');
@@ -199,7 +224,7 @@ test('REAL invocation: renderWatersportsTechniques renders every group and techn
   assert.strictEqual(groupEls.length, expected.groupCount, `expected ${expected.groupCount} technique groups (matching the real WATERSPORTS_TECHNIQUE_GROUPS source)`);
   const techEls = document.querySelectorAll('#watersportsTechniquesList details.pose-detail-wrap');
   assert.strictEqual(techEls.length, expected.poseCount, `expected all ${expected.poseCount} techniques rendered across the groups`);
-  assert.ok(expected.groupCount >= 6, 'sabotage-relevant: must actually include Skimboarding, Wakeboarding, and Kite-Assisted Surfing as real groups, not just the 3 Surfing sub-groups');
+  assert.ok(expected.groupCount >= 7, 'sabotage-relevant: must actually include Skimboarding, Wakeboarding, Kite-Assisted Surfing, and SUP as real groups, not just the 3 Surfing sub-groups');
   const firstLink = document.querySelector('#watersportsTechniquesList .ex-video-link');
   assert.ok(firstLink, 'each technique must render a real form-video search link');
   assert.match(firstLink.getAttribute('href'), /^https:\/\/www\.youtube\.com\/results\?search_query=/);

@@ -5705,7 +5705,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.144';
+const APP_VERSION = '3.145';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5904,6 +5904,10 @@ const WHATS_NEW = {
   '3.144': { headline: 'New Watersports discipline: Kite-Assisted Surfing', points: [
     'A land-based program built from kitesurfing\'s own research: a systematic review found the sustained, leaned-back riding stance loads the lower back, abs, and thighs almost isometrically, so this program leads with a core/lumbar-endurance day; the same review found the ankle is the single most commonly injured joint in the sport, and a 2026 survey found beginners are injured at up to 59x the rate of professionals — both covered by a dedicated landing-mechanics day.',
     '6 new techniques in Watersports Techniques: kite safety and gear, body-dragging and kite control, the water start, crossing and edge control, basic jump and landing, and self-rescue/kite release — the last one directly addresses what historical research found to be the most common cause of serious kitesurfing accidents.',
+  ]},
+  '3.145': { headline: 'New Watersports discipline: Stand-Up Paddleboarding', points: [
+    'A land-based program built from SUP\'s own research: a real injury survey found the shoulder is by far the most commonly injured joint (about a third of all injuries), so this program leads with a paddling-pattern/posterior-shoulder day; a biomechanics study found inexperienced paddlers rely on significantly more shoulder motion and less hip rotation than experienced ones for the same stroke, directly shaping a new hip-driven land drill (SUP Paddle Stroke Simulation); a third study\'s measured core-endurance gains (front plank, both side planks, back extensors) shaped this program\'s core day around those same three positions.',
+    '6 new techniques in Watersports Techniques: safety and gear, stance and balance fundamentals, the forward stroke, the sweep stroke and turning, falling safely and board recovery, and reading water and conditions.',
   ]},
 };
 
@@ -8400,6 +8404,13 @@ const STYLE_SOURCES = {
     primary: 'Bourgois JG, Boone J, Callewaert M, Tipton MJ, Tallir IB. Biomechanical and Physiological Demands of Kitesurfing and Epidemiology of Injury Among Kitesurfers. Sports Med. 2013;43(9):867-878. doi:10.1007/s40279-013-0103-4 — the field\'s own systematic review, synthesizing 15 injury studies plus the physiological-demand literature. Riding ("crossing") is a sustained, largely quasi-isometric position with the kitesurfer leaned back against the kite\'s pull; the lower back, abdominal muscles, and thighs were the muscles most consistently reported as highly stressed, from bracing against a hyperextended lumbar position for extended periods — the direct basis for this program\'s core/lumbar-endurance day (Kite Crossing Isometric Hold, Plank, Bird Dog, Ab Wheel Rollout). Jumps and tricks ("freestyle") load the hips through takeoff and the knees/ankles through landing; across the studies reviewed, 45-70% of all kitesurfing injuries occurred in the lower extremities, and the ankle was the single most commonly injured joint (64% of lower-extremity injuries) — the direct basis for this program\'s landing-mechanics day. Physiologically, crossing runs at roughly 65-70% VO2max (mainly aerobic), while freestyle runs at roughly 80-90% VO2max (aerobic and anaerobic together) — the basis for this program\'s interval-conditioning day. Injury mechanism, historically and currently: earlier-era accidents were mostly attributed to being unable to detach the kite from the harness once control was lost, while more recent studies (after depowerable kites and quick-release systems became standard around 2004-2005) report uncontrolled jumps and tricks with poor landings as the leading mechanism instead — the basis for both the landing-mechanics day and the Self-Rescue & Kite Release technique in Watersports Techniques. Currency check: Offerhaus C, Hohage A, Poehlmann M, Balke M, Ritzmann R, Lambert C. Injuries in kitesurfing: a retrospective cross-sectional survey on injury patterns based on discipline and skill level, considering time loss and performance reduction. BMC Sports Sci Med Rehabil. 2026;18:114. doi:10.1186/s13102-026-01551-w — a much more recent, large retrospective survey confirming the same overall pattern still holds: knee injuries (13.2%) and ankle/foot fractures remain prominent, beginners are injured at up to 59 times the rate of professional riders (65.0 vs. 1.1 injuries per 1,000 hours), and knee ligament injuries specifically carry the longest recovery time (148 days on average) with 64.3% of riders returning at reduced performance — reinforcing that experience and landing mechanics, not raw fitness alone, are what the data actually points to.',
     editorNote: 'Bourgois et al. is explicit that the underlying literature is genuinely thin and methodologically inconsistent across studies (different injury definitions, retrospective recall bias, reported injury rates ranging from 1.0 to 105 per 1,000 hours depending on study design) — cited here as the field\'s own best synthesis, not as settled, precise epidemiology. The core/lumbar-endurance rationale comes from perception-based studies (surveys/interviews about which muscles felt stressed), not force-plate or EMG measurement — real, but a genuine limitation, not something to overstate as biomechanically quantified. Nothing in either citation validates THIS program\'s specific exercise selection as reducing kitesurfing injury rates; they establish what the sport demands and where injuries occur, which is what the program is built around, not a trial of this program itself. Most importantly: no land exercise substitutes for real, supervised kite-control instruction — body-dragging, kite handling, and self-rescue are safety-critical skills that a reputable kite school teaches hands-on, and this masterclass\'s coverage of them is awareness, not certification.',
   },
+  sup: {
+    intro: 'Land-based support training for stand-up paddleboarding — paddling-pattern shoulder strength, core endurance for the trunk load an upright paddle stroke actually creates, and hip-driven rotational power — built from the sport\'s own injury and biomechanics research.',
+    tier: 'school',
+    school: 'Land-based S&C matched to SUP\'s documented injury pattern (shoulder-dominant) and its own measured stroke biomechanics (hip-driven in experienced paddlers, shoulder-dominant in beginners).',
+    primary: 'Furness J, Olorunnife O, Schram B, Climstein M, Hing WA. Epidemiology of injuries in stand-up paddle boarding. Orthop J Sports Med. 2017;5(6). doi:10.1177/2325967117710759 — an international online survey of competitive and recreational SUP participants; the shoulder/upper arm was the single most commonly injured region (32.9% of all injuries), followed by the lower back (14.3%) and elbow/forearm (11.8%), with muscle/tendon injuries the leading type (50.4%) ahead of joint/ligament injuries (22.6%). Endurance paddling was the single most commonly reported injury mechanism (34.5%), ahead of contact with the paddler\'s own board (20.1%) and sprint paddling (9.3%) — the direct basis for this program\'s paddling-pattern/shoulder day, core-endurance day, and aerobic-endurance conditioning day. Risk factors identified: age over 46, competitive status, more than 4.8 hours/week of paddling, and racing specifically. Physiological support: Schram B, Hing W, Climstein M. The physiological, musculoskeletal and psychological effects of stand up paddle boarding. BMC Sports Sci Med Rehabil. 2016;8:32. doi:10.1186/s13102-016-0057-6 — a 6-week, 3x/week SUP training intervention measured real gains in aerobic capacity (+23.57%), anaerobic fitness (+41.98%), and multidirectional trunk endurance: prone bridge/rectus abdominis +19.78%, side bridge/obliques +26.19% (right) and +28.31% (left), and Biering-Sorensen/erector spinae +21.33% — the direct basis for this program\'s core-endurance day, pairing Plank, Side Plank, Bird Dog, and Pallof Press specifically to those same three tested positions. Stroke mechanics: Schram B, Furness J, Kemp-Smith K, Sharp J, Cristini M, Harvie D, Keady E, Ghobrial M, Tussler J, Hing W, Nessler J, Becker M. A biomechanical analysis of the stand-up paddle board stroke: a comparative study. PeerJ. 2019;7:e8006. doi:10.7717/peerj.8006 — 3D motion analysis of 26 paddlers (7 experienced, 19 inexperienced) found inexperienced paddlers used significantly greater shoulder range of motion (78.9° vs. 56.6°, p=0.010) and significantly less hip rotation (50.0° vs. 66.4°, p=0.035) than experienced paddlers performing the same stroke — the authors explicitly linked this pattern to the same joints (shoulder, elbow, hip) that show elevated injury rates in comparable paddling sports, and it is the direct basis for this program\'s hip-driven SUP Paddle Stroke Simulation drill.',
+    editorNote: 'The Furness et al. injury survey is a retrospective, self-selected online survey (real limitations: recall bias, no denominator of total paddling hours per respondent to calculate a true injury rate, and a sample likely skewed toward the more engaged, online-active portion of the SUP community) — cited for injury LOCATION and mechanism pattern, not as a precise incidence rate. The Schram et al. training-intervention study measured genuinely untrained/recreational participants over 6 weeks, not competitive-level paddlers over a full season — the percentage gains are real but from a low baseline, and should not be read as "SUP alone is sufficient training," which the study does not claim either. The biomechanics study (n=26, 7 experienced vs. 19 inexperienced) is a real, statistically significant comparison, but a modest sample size — real evidence of the technique difference, not a large-scale confirmation. None of these three citations is a trial of THIS program\'s specific exercises reducing SUP injury rates; they establish what the sport demands and where it goes wrong, which the program is built around, not proof the program itself works. As with every other watersports style, no land training substitutes for real, supervised time learning to balance, fall safely, and read open-water conditions.',
+  },
 };
 
 // Which state variable selects the style, per container program.
@@ -8451,6 +8462,8 @@ const USER_TEXT = {
                    limits:"The same injury data found head and neck injuries — mostly lacerations and concussions — are actually the single biggest wakeboarding injury category, and no amount of land-based strength training addresses that; a well-fitted helmet and riding within your ability matter more there than anything in this program. This also won't teach you to read the wake, hold an edge, or actually pop off it — that's real time behind the boat." },
   kiteAssisted:  { basis:"The sport's own systematic review found the leaned-back riding stance loads the lower back, abs, and thighs almost isometrically for sustained periods — real support for this program's core/lumbar-endurance day. The same review found the ankle is the single most commonly injured joint (64% of lower-extremity injuries, which are 45-70% of all injuries), and a 2026 survey confirms knee ligament injuries carry the longest recovery of any kitesurfing injury — both are why landing mechanics get a dedicated day here rather than generic leg work.",
                    limits:"This won't teach you to fly a kite, body-drag, water-start, or self-rescue — those are safety-critical skills that need a certified kite instructor, not a training log. Historically, most serious kitesurfing accidents were attributed to being unable to detach the kite from the harness — know your quick-release system before you're relying on it for real." },
+  sup:           { basis:"A survey of SUP paddlers found the shoulder is by far the most commonly injured area (33% of all injuries) — real support for this program's paddling-pattern and posterior-shoulder day. A separate biomechanics study found inexperienced paddlers rely on significantly more shoulder motion and less hip rotation than experienced ones for the same stroke, which is exactly what the hip-driven stroke drill here is built to correct. A third study found a real 6-week SUP training block measurably improved core endurance in the same three positions (front plank, both side planks) this program's core day trains directly.",
+                   limits:"This won't teach you to balance, fall safely, read wind and current, or actually paddle efficiently — those come from real time on the water, ideally with some instruction early on. The same injury research linked longer weekly paddling hours to higher injury risk — more time on the water isn't automatically safer just because you're more experienced." },
   climbing:      { basis:"Climbing injury research showing overuse injuries to fingers and shoulders are the most common problem.",
                    limits:"Hangboarding is where climbers get hurt. If you've been climbing under a year, build a base first — finger tendons take years to adapt, not weeks." },
   grappling:     { basis:"Real BJJ match data (roughly 6-13 seconds of effort per second of rest, and lactate readings showing serious metabolic demand) backs why this week ends with live rounds, not just drilling.",
@@ -9975,6 +9988,64 @@ const WATERSPORTS_STYLES = {
       },
     }
   },
+  sup: {
+    label: 'Stand-Up Paddleboarding', short: 'Land-based paddling-pattern shoulder strength, core endurance, and hip-driven rotational power',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
+        exercises:[
+          {name:'SUP Paddle Stroke Simulation', sets:'4×10/side', noWeight:true},
+          {name:'Seated Cable Row', sets:'3×10-12'},
+          {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+          {name:'Band External Rotation', sets:'3×15'},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Core Endurance (Trunk & Lower Back)', plate:'p-blue', plateNum:'20', duration:'~35 min',
+        exercises:[
+          {name:'Plank', sets:'3×45-60s', noWeight:true},
+          {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+          {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+          {name:'Pallof Press', sets:'3×10-12/side'},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, alternating-side reach-and-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.'
+      },
+      d4: {
+        label:'Day 4', sub:'Grip, Forearm & Posterior Shoulder Endurance', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+        exercises:[
+          {name:'Farmer\'s Carry', sets:'4×30yd'},
+          {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+          {name:'Face Pull', sets:'3×15'},
+          {name:'Rear Delt Fly', sets:'3×12-15'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Rotational Power & Sprint Conditioning', plate:'p-green', plateNum:'10', duration:'~35-40 min',
+        exercises:[
+          {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+          {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
+          {name:'Russian Twist (weighted)', sets:'3×15/side'},
+          {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Full-Body Aerobic Endurance Conditioning', plate:'p-off', plateNum:'5', duration:'~30 min',
+        exercises:[
+          {name:'Sprint Intervals', sets:'4×20s', noWeight:true},
+          {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+          {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+          {name:'Plank', sets:'3×45-60s', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. This is land-based support training, not a replacement for real time on the water — balance, falling safely, and reading wind and current only develop out there.'
+      },
+    }
+  },
 };
 
 // [YOGA STYLES] ----------------------------------------------------------
@@ -11156,6 +11227,49 @@ const WATERSPORTS_TECHNIQUE_DETAILS = {
     'Common mistake: assuming a self-rescue situation "won\'t happen to me" and never actually practicing it. Real research on kitesurfing rescue missions found hypothermia and exhaustion, not just trauma, among the reasons kitesurfers have needed offshore rescue.',
     'Coaching insight: always kitesurf somewhere with other people around, ideally with a spotter on the beach, and never kitesurf in offshore wind conditions as a beginner — offshore wind carries you away from shore precisely when self-rescue is hardest to execute successfully.',
   ]},
+
+  'SUP Safety & Gear': {icon:'safety', video:'stand up paddleboarding safety gear beginners leash', points:[
+    'Setup: before paddling out, wear a properly fitted personal flotation device and attach a leash suited to the environment — an ankle or calf leash for flat water, a quick-release waist leash for river or surf conditions where an ankle leash can trap you against the board in current.',
+    'Execution: check wind, current, and weather before heading out, and plan a route you could comfortably paddle back against wind or current if conditions changed — an offshore or downwind outbound leg can make the return far harder than it looked at the start.',
+    'Whole-body integration: choose a board and paddle length suited to your size, experience, and the day\'s conditions rather than whatever is available — real injury research found competitive status and hours per week were both linked to higher injury rates, suggesting pushing volume and intensity beyond your current level carries real risk.',
+    'Common mistake: skipping the leash on calm-looking water "just this once." A board that gets away from you in wind or current can be very difficult to swim down and retrieve, leaving you stranded without your primary flotation aid.',
+    'Coaching insight: tell someone your paddling route and expected return time, and where possible paddle with another person, especially in open water, tidal, or river conditions.',
+  ]},
+  'Stance & Balance Fundamentals': {icon:'popUp', video:'stand up paddleboarding stance balance technique beginners', points:[
+    'Setup: start on your knees near the center of the board to get a feel for its stability before standing, then stand up one foot at a time into a parallel, shoulder-width stance with knees bent and feet roughly centered over the board\'s stringer line.',
+    'Execution: keep your eyes on the horizon rather than down at your feet or the water immediately in front of the board — looking down is one of the most common reasons beginners lose their balance, since the body naturally follows where the eyes are pointed.',
+    'Whole-body integration: a soft, bent-knee stance absorbs small chop and instability through the legs rather than the lower back — exactly the low, ready stance this program\'s core-endurance training is meant to support, since a fatigued core tends to let that stance collapse.',
+    'Common mistake: standing bolt upright with locked knees, which transmits every small wobble straight up through a stiff body instead of absorbing it — a locked-knee stance is far easier to topple than a soft, bent one.',
+    'Coaching insight: practice standing up and re-kneeling deliberately in calm, flat water first — being comfortable getting up and down safely removes a lot of the instinct to panic-grab the paddle or overcorrect when the board wobbles for real.',
+  ]},
+  'The Forward Stroke': {icon:'paddling', video:'stand up paddleboarding forward stroke technique hip rotation', points:[
+    'Setup: reach forward with the paddle, blade fully buried in the water near the nose of the board, torso rotated toward the reaching side rather than reaching with the arm alone.',
+    'Execution: pull the board past the planted paddle blade — not the blade through the water — by rotating your torso and driving through the hips, exiting the stroke around your ankle rather than pulling it all the way back past your hip.',
+    'Whole-body integration: real biomechanical research comparing experienced and inexperienced paddlers found beginners rely on significantly more shoulder motion and significantly less hip rotation to generate the same stroke — exactly the imbalance this program\'s paddling-pattern day and rotational-power training are built to correct, since the same joints (shoulder, elbow, hip) that show this technique difference are also the joints with the sport\'s highest injury rates.',
+    'Common mistake: pulling the paddle back too far past the hip. Once the blade passes your ankle it stops adding forward power and starts lifting water instead, wasting energy and adding unnecessary load to the shoulder for no forward benefit.',
+    'Coaching insight: switch paddling sides regularly rather than favoring one — alternating sides distributes the stroke\'s repetitive load across both sides of the body instead of overloading one shoulder specifically, directly relevant given how commonly the shoulder is injured in this sport.',
+  ]},
+  'The Sweep Stroke & Turning': {icon:'turn', video:'stand up paddleboarding sweep stroke turning technique', points:[
+    'Setup: to turn the board, plant the paddle wide near the nose for a bow-side sweep, or near the tail for a stern-side sweep, rather than using the same straight forward stroke you\'d use to go in a straight line.',
+    'Execution: sweep the blade in a wide arc away from the board while keeping your core engaged and your stance stable — the turning force comes from the arc of the blade path through the water, not from muscling the paddle with the arms.',
+    'Whole-body integration: like the forward stroke, an efficient sweep stroke is driven by torso rotation, not just arm strength — the same rotational core training (Pallof Press, Russian Twist) that supports the forward stroke directly supports turning as well.',
+    'Common mistake: leaning the body dramatically to try to force a turn instead of using the paddle\'s sweep. Large upper-body leans away from a stable base are a common way to lose balance entirely rather than actually turn the board faster.',
+    'Coaching insight: practice sweep strokes on both sides in calm water until turning either direction feels equally natural — most paddlers develop a strong preference for one turning direction early on, a real limitation once you need to turn quickly around an obstacle or into an oncoming wave or wake.',
+  ]},
+  'Falling Safely & Board Recovery': {icon:'safety', video:'stand up paddleboarding falling safely board recovery technique', points:[
+    'Setup: if you feel a fall becoming unavoidable, the priority shifts immediately to falling away from the board — toward open water rather than toward or onto the board itself.',
+    'Execution: try to fall flat, spreading the impact across your body rather than diving in headfirst, especially in shallow or unfamiliar water where depth isn\'t confirmed.',
+    'Whole-body integration: once in the water, locate your paddle first (it floats but drifts), then use your leash to pull the board back to you rather than swimming to chase it — the leash exists specifically so you don\'t need to swim to retrieve a drifting board.',
+    'Common mistake: instinctively grabbing at the board as you fall, which can pull the board down on top of you or produce an awkward, twisting fall more likely to cause injury than simply letting go and falling clear.',
+    'Coaching insight: practice a full fall-and-remount in calm, safe conditions before you ever need to do it somewhere more challenging — knowing you can get back on the board confidently removes a lot of the panic that turns a routine fall into a real problem.',
+  ]},
+  'Reading Water & Conditions': {icon:'wave', video:'stand up paddleboarding reading water wind conditions safety', points:[
+    'Setup: before heading out, assess wind direction and strength, current or tidal movement, and any boat traffic or other hazards in the area you plan to paddle.',
+    'Execution: paddling into the wind or current first, while you\'re fresh, and returning with it at your back is a standard, deliberately conservative planning habit — real injury research linked longer weekly paddling hours and endurance paddling specifically to higher injury rates, and fatigue late in a session is exactly when technique, and judgment, breaks down.',
+    'Whole-body integration: the aerobic-endurance conditioning in this program exists specifically to extend how long you can maintain good paddling technique before fatigue sets in — a paddler whose technique degrades under fatigue is exactly the pattern the sport\'s own injury research describes.',
+    'Common mistake: underestimating how much harder paddling back against wind or current can be compared to how easy the outbound leg felt. What feels like a short, easy paddle out can become a long, exhausting paddle back if conditions shift.',
+    'Coaching insight: start with shorter, closer-to-shore sessions and build distance and open-water exposure gradually, the same way this program builds training volume gradually rather than jumping straight to long endurance efforts.',
+  ]},
 };
 
 const WATERSPORTS_TECHNIQUE_GROUPS = {
@@ -11182,6 +11296,10 @@ const WATERSPORTS_TECHNIQUE_GROUPS = {
   'Kite-Assisted Surfing': {
     poses:['Kite Safety & Gear','Body-Dragging & Kite Control','The Water Start','Crossing & Edge Control','Basic Jump & Landing','Self-Rescue & Kite Release'],
     note:'Historically, most serious kitesurfing accidents were attributed to being unable to detach the kite from the harness — Kite Safety & Gear and Self-Rescue & Kite Release are not optional reading in this masterclass, they are the sport\'s single best-documented safety fix.',
+  },
+  'Stand-Up Paddleboarding': {
+    poses:['SUP Safety & Gear','Stance & Balance Fundamentals','The Forward Stroke','The Sweep Stroke & Turning','Falling Safely & Board Recovery','Reading Water & Conditions'],
+    note:'Real biomechanics research found beginners lean heavily on shoulder motion where experienced paddlers use hip rotation instead — and the shoulder is, by a wide margin, this sport\'s most commonly injured joint. The Forward Stroke section exists to close that exact gap.',
   },
 };
 
@@ -13776,6 +13894,15 @@ const exerciseInfo = {
   // Throw, Broad Jump, Russian Twist, Sprint Intervals, Hollow Body Hold)
   // already exists in the library and is reused as-is.
   'Kite Crossing Isometric Hold': {category:'core', noWeight:true, videoQuery:'kitesurfing crossing stance isometric core hold land drill', cues:['Sit back into a leaned-back, knees-bent isometric hold — a wall-sit or unsupported hip-hinge squat — as if bracing your body weight against a kite pulling you forward and up.','Brace your abs hard for the entire hold, resisting the urge to let your lower back arch — this anti-extension bracing is exactly what a real crossing stance demands for minutes at a time, not seconds.','Breathe steadily throughout rather than holding your breath; this is a sustained-endurance hold, matching how long a real crossing session actually lasts, not a short maximal brace.']},
+
+  // --- Stand-Up Paddleboarding (Watersports) --------------------------
+  // One new exercise for the SUP style; everything else on its days
+  // (Seated Cable Row, Straight-Arm Lat Pulldown, Band External Rotation,
+  // Plank, Side Plank, Bird Dog, Pallof Press, Farmer's Carry, Battle
+  // Ropes, Face Pull, Rear Delt Fly, Med Ball Rotational Throw, Sprint
+  // Intervals, Russian Twist, Hollow Body Hold, Ab Wheel Rollout) already
+  // exists in the library and is reused as-is.
+  'SUP Paddle Stroke Simulation': {category:'core', noWeight:true, videoQuery:'stand up paddleboard stroke technique land drill hip rotation', cues:['Stand in a split, athletic stance as if on a paddleboard, holding a light dowel, resistance band, or towel with both hands as if gripping a paddle.','Drive each "stroke" by rotating through the hips and torso rather than pulling with the arms and shoulders alone — real biomechanical research found inexperienced paddlers rely on significantly more shoulder motion and less hip rotation than experienced ones for the exact same stroke.','Alternate sides evenly, finishing each stroke around the hip rather than pulling it too far back — this rehearses the real catch-to-exit stroke path without needing water or a board.']},
 };
 
 // --- Exercise substitution system ------------------------------------------
@@ -21982,6 +22109,15 @@ const TIPS_BY_WATERSPORTS_STYLE = {
     "<b>Know your quick-release system cold.</b> Historically, the most commonly cited cause of serious kitesurfing accidents was being unable to detach the kite from the harness — that's a gear-and-practice issue, not a fitness one, and this program can't train it for you.",
     "<b>Experience is the single biggest protective factor in this sport.</b> Real data found beginners injured at up to 59 times the rate of professional riders, per hour on the water — there's no substitute for real, supervised time building that experience gradually.",
     "<b>This program builds the body, not the kite skills.</b> Body-dragging, kite control, water starts, and self-rescue are safety-critical skills that only come from real instruction with a certified kite school.",
+  ],
+  sup: [
+    "<b>The shoulder is this sport's #1 injury site by a wide margin.</b> Real survey data found it accounts for roughly a third of all SUP injuries — the paddling-pattern and posterior-shoulder work here exists specifically to build resilience in that joint, not as generic upper-body training.",
+    "<b>Drive the stroke from your hips, not just your shoulder.</b> A real biomechanics study found inexperienced paddlers use significantly more shoulder motion and less hip rotation than experienced ones for the exact same stroke — the SUP Paddle Stroke Simulation drill is built to correct exactly that.",
+    "<b>Core endurance is directly measurable, and directly trainable.</b> A real 6-week SUP training study found meaningful gains in front-plank, both side-plank, and back-extensor endurance — this program's core day trains those same three positions on purpose.",
+    "<b>Switch paddling sides regularly on the water.</b> Favoring one side loads one shoulder repetitively — alternating distributes that load, which matters given how dominant shoulder injuries are in this sport's own data.",
+    "<b>Endurance paddling, not sprinting, is the sport's single most common injury mechanism.</b> Real survey data found it ahead of board contact and sprint paddling combined — the aerobic-conditioning day exists to extend how long you can hold good technique before fatigue sets in.",
+    "<b>More hours per week isn't automatically safer.</b> The same research found higher weekly paddling volume was linked to higher injury risk, not lower — build volume gradually rather than assuming more time on the water is always better.",
+    "<b>This program builds the body, not the balance.</b> Falling safely, reading wind and current, and actual on-water balance only come from real practice, ideally with some early instruction.",
   ],
 };
 
