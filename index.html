@@ -5290,6 +5290,12 @@
       <div id="climbTechniquesList"></div>
     </div>
 
+    <div class="card" id="surfTechniquesCard" style="display:none">
+      <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0"/><path d="M4 13 14 4"/></svg></span>Surfing Fundamentals</div>
+      <div class="history-hint">Ocean safety and wave reading, paddling and the pop-up, then riding and turning — tap a group to expand, tap a technique for a masterclass-level walkthrough. Meant to be learned before you're in the water, not instead of real instruction once you're there.</div>
+      <div id="surfTechniquesList"></div>
+    </div>
+
     <div class="card" id="combatTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2" fill="currentColor"/><line x1="10" y1="2.5" x2="10" y2="5.5"/><line x1="10" y1="14.5" x2="10" y2="17.5"/><line x1="2.5" y1="10" x2="5.5" y2="10"/><line x1="14.5" y1="10" x2="17.5" y2="10"/><line x1="5" y1="5" x2="7" y2="7"/><line x1="13" y1="13" x2="15" y2="15"/><line x1="15" y1="5" x2="13" y2="7"/><line x1="7" y1="13" x2="5" y2="15"/></svg></span>Combat Techniques</div>
       <div class="history-hint">Every discipline in this program, broken down technique by technique — tap a style to expand, tap a technique for a masterclass-level walkthrough.</div>
@@ -5692,7 +5698,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.139';
+const APP_VERSION = '3.140';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5871,6 +5877,10 @@ const WHATS_NEW = {
   '3.139': { headline: 'Finished the citation audit — every formal source now checked', points: [
     'Extended the citation-accuracy pass to the rest of the app\'s ~35 distinct research sources (combat styles, cycling, yoga, rehab programs, and more) — every one checked out as real and accurately described except one.',
     'The Olympic Lifting program\'s citation had the wrong author name and the wrong journal (a real paper, just misattributed). Fixed to the correct authors and journal — nothing about what the program teaches changed.',
+  ]},
+  '3.140': { headline: 'New program: Surfing', points: [
+    'A land-based strength & conditioning program built on real time-motion research (paddling is ~54% of a session — far more than actual wave-riding) — paddle-pulling power, rotational power and pop-up speed, and posterior-shoulder injury-prevention work, matched to real citations the same way every other program in this app is.',
+    'A full "Surfing Fundamentals" masterclass in Learn: ocean safety and rip currents, reading waves and lineup positioning, duck diving, paddling technique, the pop-up, and riding/turning (trim, bottom turn, cutback) — 8 techniques, each with real setup/execution/common-mistake breakdowns, meant to be learned before you\'re ever in the water.',
   ]},
 };
 
@@ -7586,6 +7596,65 @@ const programs = {
     }
   },
 
+  surfing: {
+    label: 'Surfing', short: 'Land-based paddle power, rotational power, pop-up speed, and shoulder health',
+    days: {
+      d1: {
+        label:'Day 1', sub:'Paddle Power & Endurance', plate:'p-red', plateNum:'25', duration:'~40 min',
+        exercises:[
+          {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+          {name:'Seated Cable Row', sets:'3×10-12'},
+          {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+          {name:'Plank', sets:'3×30-45s', noWeight:true},
+        ]
+      },
+      d2: {
+        label:'Day 2', sub:'Rotational Power & Pop-Up', plate:'p-blue', plateNum:'20', duration:'~40 min',
+        exercises:[
+          {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+          {name:'Box Jump', sets:'4×5'},
+          {name:'Surfboard Pop-Up Drill', sets:'4×8', noWeight:true},
+          {name:'Broad Jump', sets:'3×5'},
+        ]
+      },
+      d3: {
+        label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+        note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.'
+      },
+      d4: {
+        label:'Day 4', sub:'Posterior Shoulder & Injury Prevention', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+        exercises:[
+          {name:'Band External Rotation', sets:'3×15'},
+          {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+          {name:'Face Pull', sets:'3×15'},
+          {name:'Rear Delt Fly', sets:'3×12-15'},
+        ]
+      },
+      d5: {
+        label:'Day 5', sub:'Leg Power & Balance', plate:'p-green', plateNum:'10', duration:'~40 min',
+        exercises:[
+          {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+          {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+          {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+          {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+        ]
+      },
+      d6: {
+        label:'Day 6', sub:'Endurance & Core Conditioning', plate:'p-off', plateNum:'5', duration:'~35 min',
+        exercises:[
+          {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+          {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+          {name:'Russian Twist (weighted)', sets:'3×15/side'},
+          {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+        ]
+      },
+      d7: {
+        label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+        note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.'
+      },
+    }
+  },
+
   climbing: {
     label: 'Rock Climbing', short: 'Finger strength, pulling power, core tension, and shoulder health for climbers',
     days: {
@@ -8158,6 +8227,13 @@ const PROGRAM_SOURCES = {
     primary: 'Checked directly, and the honest result is more nuanced than assumed: the underlying rationale (repetitive freestyle/butterfly strokes overdevelop internal rotators relative to external rotators, creating an anterior-dominant imbalance) is well documented. But the two RCTs actually testing dryland posterior-shoulder/rotator programs found NON-significant results: Batalha N, Paixao C, Silva AJ, Costa MJ, Mullen J, Barbosa TM. The Effectiveness of a Dry-Land Shoulder Rotators Strength Training Program in Injury Prevention in Competitive Swimmers. J Hum Kinet. 2020;71:11-20. doi:10.2478/hukin-2019-0093 — no significant ACUTE effect on rotator strength/endurance/balance from a single session (23 swimmers). Della Tommasina I, et al. Effects of a dry-land strengthening exercise program with elastic bands following the Kabat D2 diagonal flexion pattern for the prevention of shoulder injuries in swimmers. Front Physiol. 2023;14:1275285. doi:10.3389/fphys.2023.1275285 — an 8-week RCT (22 swimmers) found only minimal, non-significant improvement in rotation strength/ROM.',
     editorNote: 'Do not spin this into "the exercises don\'t work" — both trials are small (n=22-23), one measured only an ACUTE single-session effect (a different question from months of training), and both authors call for larger/longer studies rather than concluding the approach is wrong. The honest state: the injury-mechanism rationale is sound, low-risk, and standard practice, but rigorous RCT proof that dryland posterior-shoulder work actually prevents swimmer\'s shoulder is not there yet — say that plainly rather than implying settled evidence. Do not remove the prehab work over this; a documented evidence gap is not evidence the work is wrong.',
   },
+  surfing: {
+    intro: 'Land-based support training for surfing — paddle-pattern pulling, rotational power, pop-up speed, and posterior-shoulder work — since the skill itself only develops in the water, not here.',
+    tier: 'school',
+    school: 'Land-based S&C matched to surfing\'s own measured time-motion demands and injury pattern, not generic conditioning.',
+    primary: 'Farley ORL, Harris NK, Kilding AE. Physiological Demands of Competitive Surfing. J Strength Cond Res. 2012;26(7):1887-1896. doi:10.1519/JSC.0b013e3182392c4b — GPS/heart-rate analysis of 12 ranked surfers across sanctioned heats found paddling occupies ~54% of total time, riding only ~8-10%, with paddling requiring upper-body muscular endurance/strength/power and intermittent aerobic-anaerobic capacity while wave-riding demands lower-body power, dynamic balance, and rotational power — the direct basis for this program\'s day split (paddle-pulling day, rotational/pop-up day, leg-power/balance day). Injury rationale: Bracco Cianciarulo E, da Silva Vieira T, Schmidt Lara PH, Santoro Belangero P, Ejnisman B. Shoulder Injury in Surfing: A Systematic Review with Meta-analysis. Acta Ortop Bras. 2024;32(5):e279152. doi:10.1590/1413-785220243205e279152 — pooled incidence 14.88%, with paddling the mechanism in 57.68% of cases and 68.47% chronic (overuse) rather than acute, supporting the posterior-shoulder/scapular day. Pop-up-specific support: Monaco JT, Boergers R, Cappaert T, Miller M, Nelson J, Schoenberger M. The effects of a land-based home exercise programme on surfing performance in recreational surfers. J Sports Sci. 2023;41(4):358-371. doi:10.1080/02640414.2023.2213034 — an 8-week, 3x/week land program (22 recreational surfers) produced a significant improvement in surfing-performance ratings and pop-up time versus a no-intervention control. Rotational-power support: Axel TA, Crussemeyer J, Dean K, Young DE. Field Test Performance of Junior Competitive Surf Athletes following a Core Strength Training Program. Int J Exerc Sci. 2018;11(6):696-707 — an 8-week core program in 19 junior competitive surfers produced significant gains in rotational power, countermovement jump, core strength/endurance, and rotational flexibility.',
+    editorNote: 'This is land support, not surf instruction — it does not and cannot teach wave judgment, positioning, or actual board control, which only develop through real ocean time (ideally with qualified instruction and full ocean-safety awareness: rip currents, crowd etiquette, and knowing your own limits). The Monaco et al. RCT is real but small (n=22, 8 weeks) — a genuine, direct trial of land training improving surf performance, not just a biomechanical inference, but not yet a large or long-term evidence base. The shoulder-injury review is observational/cross-sectional, not a trial proving this program\'s specific exercises prevent injury — the exercises are the same well-established scapular/rotator-cuff pattern already used for Swimming and Rock Climbing in this app, applied here because the same paddling-dominant, overhead-repetitive mechanism applies.',
+  },
 };
 
 // [STYLE PROVENANCE] ------------------------------------------------------
@@ -8367,6 +8443,8 @@ const USER_TEXT = {
                    limits:"Distances are a starting point, not a plan for a specific race. Build weekly mileage gradually — most running injuries come from doing too much too soon." },
   swimming:      { basis:"The dryland shoulder work is based on a real, well-documented imbalance (repetitive strokes overbuild internal rotators vs. external) — worth saying plainly: the two actual trials testing this fix found only minimal, non-significant results, both small and short. Standard, low-risk practice, not proven prevention.",
                    limits:"Assumes you're comfortable swimming continuously. Technique work is much more valuable with a coach watching." },
+  surfing:       { basis:"Real time-motion data on competitive surfers found paddling eats up about 54% of a session — far more than actual wave-riding — which is why this program leans on pulling strength and repeat-effort conditioning, not just leg power. A real trial found 8 weeks of land training measurably sped up recreational surfers' pop-ups.",
+                   limits:"This is land support, not surf lessons — it won't teach wave judgment, positioning, or board control, and it doesn't replace real ocean time or instruction. Ocean safety (currents, conditions, your own limits) is entirely on you." },
   climbing:      { basis:"Climbing injury research showing overuse injuries to fingers and shoulders are the most common problem.",
                    limits:"Hangboarding is where climbers get hurt. If you've been climbing under a year, build a base first — finger tendons take years to adapt, not weeks." },
   grappling:     { basis:"Real BJJ match data (roughly 6-13 seconds of effort per second of rest, and lactate readings showing serious metabolic demand) backs why this week ends with live rounds, not just drilling.",
@@ -10612,6 +10690,141 @@ function toggleClimbTechniquesCard(){
   if(activeProgram === 'climbing'){
     card.style.display = '';
     renderClimbTechniques();
+  } else {
+    card.style.display = 'none';
+  }
+}
+
+// [SURFING TECHNIQUES] --------------------------------------------------------
+// Same "group -> expandable technique rows with icon + cues + video" pattern as
+// Posing/Swimming/Climbing/Combat/Grappling above (same CSS classes:
+// .posing-class, .pose-detail-wrap, .pose-row, .pose-detail, .pose-name,
+// .pose-icon). A smaller, shared icon set (6 icons across 8 techniques) rather
+// than one bespoke icon per technique — the point of this masterclass is depth
+// of real technique content, not an equally large investment in icon art.
+const SURF_ICONS = {
+  wave: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <path d="M4 26 Q11 16 18 26 T32 26 T44 22" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="4" y1="34" x2="40" y2="34" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1,3.5"/> </svg>',
+  paddling: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <ellipse cx="22" cy="26" rx="16" ry="4" stroke="currentColor" stroke-width="2" fill="none"/> <circle cx="12" cy="18" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="13" y1="21" x2="20" y2="25" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M20 24 Q26 14 32 18" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M20 26 Q26 34 30 30" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/> </svg>',
+  popUp: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <ellipse cx="22" cy="34" rx="16" ry="3.2" stroke="currentColor" stroke-width="2" fill="none"/> <circle cx="20" cy="10" r="3.2" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="13" x2="20" y2="22" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="12" y2="32" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="20" y1="22" x2="30" y2="30" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="16" x2="9" y2="20" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="16" x2="31" y2="12" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  duckDive: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <path d="M2 14 Q11 6 20 14 T38 14" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="16" cy="26" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="18" y1="28" x2="30" y2="24" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M13 24 Q8 30 12 36" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  turn: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <path d="M8 32 Q8 12 28 12" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <path d="M23 8 L28 12 L23 16" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <circle cx="8" cy="26" r="3" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="8" y1="29" x2="8" y2="34" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> </svg>',
+  safety: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 44 44"> <path d="M22 4 L38 12 V22 C38 32 30 38 22 40 C14 38 6 32 6 22 V12 Z" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/> <line x1="22" y1="14" x2="22" y2="24" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round"/> <circle cx="22" cy="30" r="1.6" fill="currentColor"/> </svg>',
+};
+
+const SURF_TECHNIQUE_DETAILS = {
+  'Ocean Safety & Rip Currents': {icon:'safety', video:'ocean safety rip current identification surfing beginners', points:[
+    'Setup: before ever paddling out, watch the lineup for a few minutes from the beach — identify the rip current (usually a channel of calmer, murkier, or discolored water moving seaward, often between sandbars), the peak (where waves are breaking first and hardest), and the exit if you get pulled somewhere you don\'t want to be.',
+    'Execution: if you\'re ever caught in a rip, don\'t fight it directly by swimming straight back to shore — swim or paddle parallel to the beach until you\'re out of the current\'s pull, then angle back in. Rips are usually narrow; fighting them head-on is what exhausts people.',
+    'Whole-body integration: this isn\'t a one-time lesson — reread the ocean every single session, since sandbars, rip location, and wave size all shift day to day and even hour to hour with the tide.',
+    'Common mistake: treating a rip current as something to panic about and swim against at full effort. Most rip-current drownings involve exhaustion from fighting the current directly, not the current\'s strength itself.',
+    'Coaching insight: always surf with someone else nearby when you\'re new, know your own fitness and comfort limits before paddling into surf bigger or more crowded than you\'re ready for, and treat the leash, board, and conditions check as non-negotiable steps every single time — not just when it\'s convenient.',
+  ]},
+  'Reading Waves & Lineup Positioning': {icon:'wave', video:'how to read waves surf lineup positioning beginners', points:[
+    'Setup: watch a few sets roll through before paddling out — most waves arrive in groups ("sets") separated by flatter lulls, and the peak (the first part of the wave to break) usually breaks in roughly the same spot for a given sandbar and swell direction.',
+    'Execution: position yourself where waves are breaking, not where they\'ve already broken (the whitewater) or where they haven\'t started yet — this "lineup" spot takes real time on the water to find and shifts as the tide moves.',
+    'Whole-body integration: use fixed points on land (a building, a tree, a lifeguard tower) to hold your position relative to the peak — drifting out of position is one of the most common reasons beginners miss makeable waves.',
+    'Common mistake: sitting too far inside (too close to shore), where waves have already broken into whitewater by the time they reach you, or too far outside, catching nothing but the wave\'s already-fading shoulder.',
+    'Coaching insight: surf etiquette matters as much as positioning — the surfer closest to the peak (deepest, most critical part of the wave) generally has right of way; dropping in on someone already riding a wave is unsafe and is the fastest way to get an unfriendly reception in a crowded lineup.',
+  ]},
+  'Duck Dive': {icon:'duckDive', video:'surfing duck dive technique tutorial', points:[
+    'Setup: as an incoming wave or whitewater approaches while you\'re paddling out, grip the rails (edges) of the board roughly at chest level, still paddling forward with speed into the wave, not away from it.',
+    'Execution: push the nose of the board down and under the water just before the wave hits, then, as the wave passes overhead, use a knee (or on a longboard, your back foot) to drive the tail down too, letting the whole board and your body pass cleanly underneath the wave\'s force.',
+    'Whole-body integration: timing matters more than raw strength — pushing down too early lets the wave\'s force catch the board broadside; too late and you get driven backward instead of under. This is a timing skill built through repetition, not something to force on the first few tries.',
+    'Common mistake: letting go of the board or bailing off it when a wave looks intimidating. A duck dive keeps you and the board connected and moving forward through the wave; abandoning the board mid-dive usually means losing ground and getting pushed back toward shore.',
+    'Coaching insight: a shortboard duck dives more easily than a longboard because of its lower buoyancy — longboarders more often use a "turtle roll" (flipping the board upside-down and holding on as the wave passes over) instead, which is worth learning as a direct alternative rather than trying to force a duck dive on a board too buoyant for it.',
+  ]},
+  'Paddling Technique': {icon:'paddling', video:'surfing paddling technique efficient stroke', points:[
+    'Setup: lie centered on the board with your weight balanced so the nose sits just slightly out of the water — too far forward buries the nose and drags, too far back lifts the nose and slows you down just as much.',
+    'Execution: reach forward with a slightly cupped hand, catch the water, and pull back in a long stroke close to the rail of the board, alternating arms in a steady rhythm — this is the same long, straight-arm pulling pattern this program\'s land training (straight-arm pulldowns, rowing) specifically builds strength for.',
+    'Whole-body integration: keep your head up and chest slightly lifted rather than flat and looking straight down — this keeps the board\'s nose trimmed correctly and lets you actually see incoming waves and other surfers while you paddle.',
+    'Common mistake: short, splashy strokes that stay near the surface rather than a longer pull that digs deeper into the water. Real time-motion research on competitive surfers found paddling is the single largest share of time in the water — roughly 54% of a session — so an inefficient stroke compounds over an entire session, not just one wave.',
+    'Coaching insight: practice sprint-paddling in short, hard bursts followed by rest, mirroring how wave-catching actually happens — a short, all-out effort to match the wave\'s speed, then recovery — rather than only ever paddling at one steady pace.',
+  ]},
+  'Pop-Up': {icon:'popUp', video:'surfing pop up technique tutorial', points:[
+    'Setup: as you feel the wave pick up the board and start to push you forward, place both hands flat on the board roughly under your chest, ready to press up in one motion.',
+    'Execution: in a single explosive movement — not a slow push-up followed by a separate step to your feet — press up while driving both feet forward at once into a low, athletic stance, front foot roughly under your chest and back foot angled near the tail.',
+    'Whole-body integration: land with knees bent and weight centered over the board, not leaning too far forward (which noses the board underwater) or too far back (which stalls it) — a real pop-up on a moving board happens in well under a second, which is exactly what this program\'s pop-up drill and explosive leg-power work (box jumps, broad jumps) are training you to be able to do reliably.',
+    'Common mistake: standing up in two separate steps — first to the knees, then to the feet — which takes too long on a moving wave and usually ends in a stall or a fall. A real trial found that surfers who did 8 weeks of land-based pop-up-specific training measurably improved their actual pop-up speed compared to a group who didn\'t train it.',
+    'Coaching insight: practice the pop-up on the sand or a mat literally hundreds of times before ever trying it in the water — building the movement pattern until it\'s automatic on land means you aren\'t learning a brand-new motor skill for the first time on a moving board in the ocean.',
+  ]},
+  'Trim & Stance': {icon:'popUp', video:'surfing trim stance weight distribution technique', points:[
+    'Setup: once up and riding, find a relaxed, athletic stance — knees bent, feet roughly shoulder-width apart on the stringer line (the centerline of the board), hands loose and ready for balance rather than clenched.',
+    'Execution: "trim" means adjusting your fore-aft weight to keep the board running at its fastest, most efficient angle across the wave face — shift weight slightly forward to speed up on a slow section, slightly back to slow down or turn.',
+    'Whole-body integration: look where you want to go, not down at your feet or the board — the body naturally follows the eyes and shoulders, and a surfer looking down tends to stall out or wobble far more than one looking ahead along the line they intend to ride.',
+    'Common mistake: standing bolt upright with locked knees. A stiff, straight-legged stance has almost no ability to absorb the board\'s bumps and direction changes, and makes every subsequent turn harder to initiate.',
+    'Coaching insight: the exact same low, bent-knee, weight-centered stance drilled in this program\'s land-based pop-up practice is the stance you\'re trying to hold and adjust from for the entire ride — trim isn\'t a separate skill from the pop-up, it\'s what happens after it.',
+  ]},
+  'Bottom Turn': {icon:'turn', video:'surfing bottom turn technique tutorial', points:[
+    'Setup: as you ride down the face of the wave toward its base (the "bottom"), begin shifting your weight onto your back foot and rotating your shoulders and hips to face the direction you want to turn.',
+    'Execution: drive off your back foot while your front foot and knees stay bent and engaged, carving a smooth arc back up toward the wave\'s power source (the still-unbroken part of the wave) rather than turning flat across it.',
+    'Whole-body integration: this is fundamentally a rotational, hip-and-core-driven movement, not an arm movement — the same rotational power this program\'s land training (medicine-ball throws, rotational core work) is built to develop directly transfers to how hard and how fast you can drive this turn.',
+    'Common mistake: turning only with the upper body while the feet and board stay flat, which produces a weak, skidding turn instead of a carved one. The board follows the feet and the rail engagement, not the shoulders alone.',
+    'Coaching insight: the bottom turn is often called the most important turn in surfing because nearly every other maneuver — cutbacks, top turns, cutting into the barrel — is set up by the speed and angle generated here; a weak bottom turn limits everything that follows it on the wave.',
+  ]},
+  'Cutback': {icon:'turn', video:'surfing cutback technique tutorial', points:[
+    'Setup: after riding out toward the shoulder of the wave (the flatter, less powerful section), where you\'ve outrun the wave\'s power, look back over your trailing shoulder toward the wave\'s pocket (the steepest, most powerful section, usually closer to where it\'s still breaking).',
+    'Execution: shift weight to your back foot and carve a wide, committed arc back toward the pocket, using the same rotational hip-and-shoulder drive as the bottom turn but initiated from riding across the wave rather than straight down its face.',
+    'Whole-body integration: commit your weight fully into the turn rather than easing into it tentatively — a half-committed cutback tends to stall the board exactly when it needs speed to redirect, while full commitment through the hips and back foot carries speed through the whole arc.',
+    'Common mistake: cutting back too early, before actually reaching the shoulder and losing the wave\'s power, which leaves nowhere to redirect momentum toward. The cutback exists specifically to reconnect with power you\'ve ridden away from — it needs somewhere real to go back to.',
+    'Coaching insight: this maneuver is a direct, practical payoff of the bottom-turn skill above — a surfer who hasn\'t built a confident, rotationally powerful bottom turn will generally find the cutback difficult, since it\'s built from the same movement pattern applied at a different point on the wave.',
+  ]},
+};
+
+const SURF_TECHNIQUE_GROUPS = {
+  'Before You Paddle Out': {
+    poses:['Ocean Safety & Rip Currents','Reading Waves & Lineup Positioning','Duck Dive'],
+    note:'Start here, before technique — knowing the ocean and how to get past the whitewater safely matters more than any single move on the board, and it\'s exactly the part a phone can\'t simulate for you.',
+  },
+  'Paddling & Catching the Wave': {
+    poses:['Paddling Technique','Pop-Up'],
+    note:'The two skills that happen before you\'re actually riding anything — and, per real time-motion data on competitive surfers, the ones you\'ll spend the most total time doing.',
+  },
+  'Riding & Turning': {
+    poses:['Trim & Stance','Bottom Turn','Cutback'],
+    note:'What happens once you\'re up — from holding a stable line to the rotational turns that everything more advanced in surfing gets built from.',
+  },
+};
+
+function renderSurfTechniques(){
+  const listEl = document.getElementById('surfTechniquesList');
+  if(!listEl) return;
+  listEl.innerHTML = Object.keys(SURF_TECHNIQUE_GROUPS).map((groupName)=>{
+    const grp = SURF_TECHNIQUE_GROUPS[groupName];
+    const techRows = grp.poses.map((techName)=>{
+      const detail = SURF_TECHNIQUE_DETAILS[techName];
+      const iconSvg = detail ? SURF_ICONS[detail.icon] : '';
+      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
+      const query = encodeURIComponent(detail && detail.video ? detail.video : `${techName} surfing technique tutorial`);
+      return `
+        <details class="pose-detail-wrap">
+          <summary class="pose-row">
+            <div class="pose-icon">${iconSvg}</div>
+            <div class="pose-name">${techName}</div>
+            <span class="ex-chevron">›</span>
+          </summary>
+          <div class="pose-detail">
+            <ul>${pointsHtml}</ul>
+            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
+          </div>
+        </details>
+      `;
+    }).join('');
+    return `
+      <details class="posing-class">
+        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
+        <div class="posing-class-note">${grp.note}</div>
+        ${techRows}
+      </details>
+    `;
+  }).join('');
+}
+
+function toggleSurfTechniquesCard(){
+  const card = document.getElementById('surfTechniquesCard');
+  if(!card) return;
+  if(activeProgram === 'surfing'){
+    card.style.display = '';
+    renderSurfTechniques();
   } else {
     card.style.display = 'none';
   }
@@ -13123,6 +13336,18 @@ const exerciseInfo = {
   // Added for the exercise-substitution system below — a common Cable Crunch/
   // Weighted Sit-up alternative that wasn't otherwise in the library.
   'V-Up': {category:'core', videoQuery:'v-up exercise tutorial', cues:['Lying flat, simultaneously lift straight legs and straight arms to meet in a V shape over the hips, touching hands to feet (or shins if flexibility is limiting).','Lead with the lower abs curling the pelvis, not by yanking the neck or momentum-swinging the arms up.','Lower under control back to the start rather than dropping — the eccentric is where a lot of the actual work happens.']},
+
+  // --- Surfing (Watersports) -----------------------------------------
+  // Three exercises with no prior library entry, added for the Surfing
+  // program. Everything else on its days (Seated Cable Row, Plank, Med Ball
+  // Rotational Throw, Box Jump, Broad Jump, Band External Rotation,
+  // Scapular Retraction, Face Pull, Rear Delt Fly, Bulgarian Split Squat,
+  // Single-Leg Bound, Deep Squat Hold, Bird Dog, Ab Wheel Rollout, Russian
+  // Twist, Hollow Body Hold) already exists in the library and is reused
+  // as-is rather than duplicated.
+  'Straight-Arm Lat Pulldown': {category:'pull', videoQuery:'straight arm lat pulldown technique', cues:['Standing tall with a slight forward hip hinge, pull a straight bar (or rope) down from overhead to your thighs, keeping the elbows nearly locked throughout.','Drive the movement from the lats pulling the arm down as one straight lever, not from bending the elbow — this isolates the same long, straight-arm pulling pattern a paddling stroke uses.','Control the return back to overhead; letting the weight yank your arms back up trains the release, not the catch-and-pull phase that actually propels a paddling surfer forward.']},
+  'Battle Ropes': {category:'cardio', videoQuery:'battle ropes technique alternating waves', cues:['Feet shoulder-width, knees soft, core braced — drive alternating waves through the rope from the shoulders and a slight hip hinge, not just the wrists.','Keep the waves consistent in size and speed for the whole interval rather than starting fast and fading — this is what actually trains the repeated-effort capacity paddling demands, not a single burst.','Reset your breathing between intervals the same way you would between paddling bursts in the water — controlled recovery between hard efforts is part of what this drill is training.']},
+  'Surfboard Pop-Up Drill': {category:'jump', noWeight:true, videoQuery:'surf pop up drill technique on land', cues:['Lying prone on the floor (or a yoga mat standing in for the board), hands placed under the shoulders as if about to paddle.','In one explosive motion — not a push-up followed by a separate step-up — press up and drive both feet forward into a low, athletic surf stance, back foot roughly perpendicular to the front.','Land with knees bent, weight centered over the board\'s stringer line and hands up for balance; a real pop-up happens in under a second on a moving, unstable surface, so smooth speed matters more than a slow, technically perfect rehearsal.']},
 };
 
 // --- Exercise substitution system ------------------------------------------
@@ -14237,6 +14462,7 @@ const MASTERCLASS_LIBRARY = {
   posingCard:               {label:'Posing Practice',                        render:()=>renderPosingClasses()},
   swimStylesCard:           {label:'Swimming Styles',                        render:()=>renderSwimStyles()},
   climbTechniquesCard:      {label:'Climbing Techniques',                    render:()=>renderClimbTechniques()},
+  surfTechniquesCard:       {label:'Surfing Fundamentals',                   render:()=>renderSurfTechniques()},
   combatTechniquesCard:     {label:'Combat Techniques',                      render:()=>renderCombatTechniques()},
   grappleTechniquesCard:    {label:'Grappling Positions',                    render:()=>renderGrappleTechniques()},
   olyTechniquesCard:        {label:'Olympic Lifting Technique',              render:()=>renderOlyTechniques()},
@@ -14390,6 +14616,7 @@ const PROGRAM_MASTERCLASS = {
   bodybuilding: {cardId:'posingCard', label:'Posing Practice'},
   swimming:     {cardId:'swimStylesCard', label:'Swimming Styles'},
   climbing:     {cardId:'climbTechniquesCard', label:'Climbing Techniques'},
+  surfing:      {cardId:'surfTechniquesCard', label:'Surfing Fundamentals'},
   combat:       {cardId:'combatTechniquesCard', label:'Combat Techniques'},
   grappling:    {cardId:'grappleTechniquesCard', label:'Grappling Positions'},
   oly:          {cardId:'olyTechniquesCard', label:'Olympic Lifting Technique'},
@@ -14526,6 +14753,7 @@ async function renderProgramSelector(trendStatus){
   toggleYogaCard();
   toggleSwimStylesCard();
   toggleClimbTechniquesCard();
+  toggleSurfTechniquesCard();
   toggleCombatTechniquesCard();
   toggleGrappleTechniquesCard();
   toggleOlyTechniquesCard();
@@ -14564,6 +14792,7 @@ async function renderProgramSelector(trendStatus){
     toggleYogaCard();
     toggleSwimStylesCard();
     toggleClimbTechniquesCard();
+    toggleSurfTechniquesCard();
     toggleCombatTechniquesCard();
     toggleGrappleTechniquesCard();
     toggleOlyTechniquesCard();
