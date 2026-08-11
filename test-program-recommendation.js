@@ -12,7 +12,7 @@
 // Uses the REAL `programs` table (for real key order and labels) and the
 // REAL PROGRAM_FIT_SCORES/bucket constants — all expected values below were
 // computed numerically before being written into assertions, not guessed.
-const { readIndexSource, extractFunction, extractConst, runSandboxAsync, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractFunction, extractConst, countCallSites, runSandbox, runSandboxAsync, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
 
@@ -27,6 +27,14 @@ const chunks = [
   extractConst(src, 'CURRENT_PROGRAM_TREND_BOOST'),
   `var activeProgram = 'strength';`,
   extractFunction(src, 'scoreAllPrograms'),
+  // STYLE_KEY_FOR_PROGRAM's own arrow-function bodies reference
+  // activeMartialArt/activeCyclingStyle/etc via `typeof x !== 'undefined'`
+  // checks, but recommendStyle below only ever tests the map's KEYS for
+  // truthiness (never calls the functions it holds) — so none of those
+  // style-selector globals need to exist in this sandbox.
+  extractConst(src, 'STYLE_KEY_FOR_PROGRAM'),
+  extractConst(src, 'STYLE_RECOMMENDATIONS'),
+  extractFunction(src, 'recommendStyle'),
   extractFunction(src, 'recommendProgram'),
 ];
 
@@ -106,6 +114,105 @@ test('recommendProgram appends the trend-aware explanation only when the pick is
   `);
   assert.strictEqual(thrivingResult.key, 'powerbuilding');
   assert.ok(thrivingResult.why.includes('clean progression'), 'thriving + high-intensity pick should explain why, mentioning progression');
+});
+
+test('recommendProgram attaches no style suggestion when the pick is not a switcher container', async (assert)=>{
+  const [result] = await runSandboxAsync(chunks, `
+    __capture.push(await recommendProgram({goal:'gain', bodyGoal:'classic physique', age:30}, null));
+  `);
+  assert.strictEqual(result.key, 'bodybuilding');
+  assert.strictEqual(result.style, null, 'bodybuilding is not one of the 5 real switcher containers in STYLE_KEY_FOR_PROGRAM');
+});
+
+// --- Style-level suggestion (recommendStyle) --------------------------------
+// Tier 2: once a container program (combat/cycling/watersports/yoga/medical)
+// is recommended, this picks which style WITHIN it to suggest. Tested here
+// as direct calls to recommendStyle(programKey, p, trendStatus) rather than
+// only through the full recommendProgram ranking, because medical's real
+// base scores (15-33 across every goal in PROGRAM_FIT_SCORES, with nothing
+// in scoreAllPrograms currently boosting it) mean it essentially never wins
+// the overall ranking under realistic inputs — the style-pick logic itself
+// is still real, tested behavior regardless of whether medical happens to
+// be the #1 program for any given profile.
+
+test('combat: with no age/trend signal, falls back to Kickboxing (the app\'s own default style) and says so honestly', (assert)=>{
+  const [style] = runSandbox(chunks, `
+    __capture.push(recommendStyle('combat', {goal:'lose', bodyGoal:'', age:25}, null));
+  `);
+  assert.deepStrictEqual(style, {key:'kickboxing', guess:true});
+});
+
+test('combat: age 55+ routes to Tai Chi as a genuine (non-guess) pick, not the default', (assert)=>{
+  const [style] = runSandbox(chunks, `
+    __capture.push(recommendStyle('combat', {goal:'lose', bodyGoal:'', age:60}, null));
+  `);
+  assert.deepStrictEqual(style, {key:'taiChi', guess:false});
+});
+
+test('combat: an overreaching trend also routes to Tai Chi even at a young age, matching how scoreAllPrograms already treats overreaching as a recovery signal', (assert)=>{
+  const [style] = runSandbox(chunks, `
+    __capture.push(recommendStyle('combat', {goal:'lose', bodyGoal:'', age:25}, 'overreaching'));
+  `);
+  assert.deepStrictEqual(style, {key:'taiChi', guess:false});
+});
+
+test('medical: a real, already-checked profile condition maps directly onto its matching style, not a guess', (assert)=>{
+  const [style] = runSandbox(chunks, `
+    __capture.push(recommendStyle('medical', {conditions:['hypertension']}, null));
+  `);
+  assert.deepStrictEqual(style, {key:'hypertension', guess:false});
+});
+
+test('medical: with more than one condition checked, the priority order picks the more specific/actionable one (osteoporosis over diabetes)', (assert)=>{
+  const [style] = runSandbox(chunks, `
+    __capture.push(recommendStyle('medical', {conditions:['diabetes','osteoporosis']}, null));
+  `);
+  assert.deepStrictEqual(style, {key:'osteoporosis', guess:false});
+});
+
+test('medical: no conditions checked falls back to Obesity-Modified (the app\'s own default style), honestly labeled as a guess', (assert)=>{
+  const [style] = runSandbox(chunks, `
+    __capture.push(recommendStyle('medical', {conditions:[]}, null));
+  `);
+  assert.deepStrictEqual(style, {key:'obesity', guess:true});
+});
+
+test('watersports, cycling, and yoga have no distinguishing signal in current profile data, so all three honestly fall back to their own default style', (assert)=>{
+  const [watersports, cycling, yoga] = runSandbox(chunks, `
+    __capture.push(recommendStyle('watersports', {goal:'performance', bodyGoal:'', age:30}, 'thriving'));
+    __capture.push(recommendStyle('cycling', {goal:'performance', bodyGoal:'', age:30}, 'thriving'));
+    __capture.push(recommendStyle('yoga', {goal:'performance', bodyGoal:'', age:30}, 'thriving'));
+  `);
+  assert.deepStrictEqual(watersports, {key:'surfing', guess:true});
+  assert.deepStrictEqual(cycling, {key:'road', guess:true});
+  assert.deepStrictEqual(yoga, {key:'flow', guess:true});
+});
+
+test('recommendStyle returns null for a program that is not a real switcher container, per STYLE_KEY_FOR_PROGRAM', (assert)=>{
+  const [style] = runSandbox(chunks, `
+    __capture.push(recommendStyle('strength', {goal:'gain', bodyGoal:'', age:30}, null));
+  `);
+  assert.strictEqual(style, null);
+});
+
+test('recommendProgram attaches a real style suggestion when the pick IS a switcher container, matching a direct recommendStyle call for the same inputs', async (assert)=>{
+  // goal:'lose' base score: combat=85. With activeProgram='combat' and a
+  // 'thriving' trend, combat stacks both the current-program (+6) and
+  // high-intensity (+8) boosts (85+6+8=99) — comfortably ahead of the next
+  // highest lose-goal score after the same boosts (hyrox 88+8=96), so this
+  // is an unambiguous top pick, not a coincidental tie.
+  const [result] = await runSandboxAsync(chunks, `
+    activeProgram = 'combat';
+    __capture.push(await recommendProgram({goal:'lose', bodyGoal:'', age:60}, 'thriving'));
+  `);
+  assert.strictEqual(result.key, 'combat');
+  assert.ok(result.style, 'a container-program pick must carry a style suggestion');
+  assert.strictEqual(result.style.key, 'taiChi', 'age 60 must route to Tai Chi, same as calling recommendStyle directly');
+  assert.strictEqual(result.style.guess, false);
+});
+
+test('sabotage-relevant: recommendStyle is actually wired into recommendProgram (one real call site), not just defined and never called', (assert)=>{
+  assert.strictEqual(countCallSites(src, 'recommendStyle'), 1);
 });
 
 run();
