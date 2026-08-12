@@ -43,6 +43,17 @@ const wiringSrc = extractBetween(
   "exerciseHeader.addEventListener('click', ()=>{",
   "const editBtn = row.querySelector('.ex-edit-btn');"
 );
+// The header's toggle now goes through the one shared open/close helper (the
+// same one the auto-collapse, auto-open-next, gym-mode and Enter-key handover
+// paths use, so `aria-expanded` cannot go stale at any of them). The wiring
+// snippet above therefore calls it, so the REAL helper source is pulled in
+// alongside rather than stubbed — a stub here would let the helper break
+// without this test noticing.
+const openHelperSrc = extractBetween(
+  'setExerciseBlockOpen helper',
+  'function setExerciseBlockOpen(block, isOpen){',
+  '\nasync function renderWorkout(){'
+);
 
 function buildFixture(){
   return `
@@ -72,7 +83,7 @@ const { test, run } = makeRunner('test-exercise-swap-tap-target.js');
 
 test('clicking the exercise NAME text (not the swap icon) expands the row and does NOT open the swap modal', (assert)=>{
   const { document, window: win } = runJsdom(buildFixture(), globalsFor(true), [
-    headerDeclSrc, wiringSrc,
+    openHelperSrc, headerDeclSrc, wiringSrc,
     `
       var nameText = row.querySelector('.ex-name').firstChild; // the raw "Bench Press" text node
       nameText.parentNode.dispatchEvent(new window.MouseEvent('click', {bubbles: true}));
@@ -91,7 +102,7 @@ test('clicking the exercise NAME text (not the swap icon) expands the row and do
 
 test('clicking the swap icon opens the swap modal and does NOT expand the row', (assert)=>{
   const { document, window: win } = runJsdom(buildFixture(), globalsFor(true), [
-    headerDeclSrc, wiringSrc,
+    openHelperSrc, headerDeclSrc, wiringSrc,
     `
       row.querySelector('.ex-swap-icon').dispatchEvent(new window.MouseEvent('click', {bubbles: true}));
     `
@@ -103,7 +114,7 @@ test('clicking the swap icon opens the swap modal and does NOT expand the row', 
 
 test('when the exercise has no substitutes (hasSubs false), the swap icon is never wired — a click there just bubbles to expand, like anywhere else on the row', (assert)=>{
   const { document, window: win } = runJsdom(buildFixture(), globalsFor(false), [
-    headerDeclSrc, wiringSrc,
+    openHelperSrc, headerDeclSrc, wiringSrc,
     `
       row.querySelector('.ex-swap-icon').dispatchEvent(new window.MouseEvent('click', {bubbles: true}));
     `
