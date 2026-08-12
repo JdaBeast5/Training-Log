@@ -5796,7 +5796,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.155';
+const APP_VERSION = '3.156';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6039,6 +6039,10 @@ const WHATS_NEW = {
   '3.155': { headline: 'Fixed the Analysis section index landing you under itself', points: [
     'Tapping a chip in the "jump to a section" bar on Analysis scrolled the right card into view — but landed its own title tucked just behind the sticky index bar above it, since that offset was only ever sized for the one sticky bar every other tab has, not the two stacked here.',
     'Jumping to a section now clears both bars, so the card you tapped for actually lands in view instead of half-hidden behind the thing you used to get there.',
+  ]},
+  '3.156': { headline: 'Fixed the "storage is full" warning getting stuck on screen', points: [
+    'Once your device’s storage filled up even briefly, the warning banner stayed up for the rest of the session — even after you freed up space and every change had safely saved again. It could even end up saying "0 changes" are at risk, which was never true.',
+    'The warning now clears itself the moment everything is safely saved, the same way it should have all along.',
   ]},
 };
 
@@ -6486,9 +6490,16 @@ if(activeUserId && !existingUsersAtBoot.some(u=>u.id===activeUserId)){
 // session behaves normally and an export can still capture everything) and
 // raises a banner that persists until storage is actually freed.
 const storageHealth = {
-  degraded: false,      // true once any write has spilled to memory
   spilled: new Set(),   // keys living only in memory right now
   lastError: null,
+  // Derived, not a separate flag kept in sync by hand: degraded means
+  // "something is at risk of being lost right now", which is exactly what
+  // an empty spilled set means it is not. A standalone boolean set true on
+  // the first spill and never reset was the bug this replaced — the
+  // storage-full banner (and the diagnostics summary) kept saying data was
+  // at risk, down to "0 changes", long after every spilled key had been
+  // freed and successfully re-saved.
+  get degraded(){ return this.spilled.size > 0; },
 };
 
 // Engines disagree on how a full quota is reported and always have. Safari
@@ -6506,9 +6517,23 @@ function isQuotaError(e){
 }
 
 function noteStorageDegraded(key, err){
-  storageHealth.degraded = true;
   storageHealth.spilled.add(key);
   storageHealth.lastError = err;
+  try{ renderStorageBanner(); }catch(e){}
+}
+
+// The other half of noteStorageDegraded: drops a key's in-memory spill
+// shadow once its durable write succeeds again, and re-renders the banner
+// so it can clear itself the moment the last spilled key is gone — nothing
+// else calls renderStorageBanner on this path, so without this the banner
+// stayed on screen (degraded's spilled.size===0 fixed WHAT it would say,
+// not WHEN it would say it) until some unrelated event happened to
+// re-render it. One chokepoint for both of buildNamespacedStorage's
+// set()/delete() spill-clearing sites, same reasoning as exCorpusGen above.
+function clearStorageSpill(k, mem){
+  if(!(k in mem)) return;
+  delete mem[k];
+  storageHealth.spilled.delete(k);
   try{ renderStorageBanner(); }catch(e){}
 }
 
@@ -6586,7 +6611,7 @@ function buildNamespacedStorage(userId){
           localStorage.setItem(PREFIX + k, v);
           // This key previously spilled and now fits again — drop the shadow
           // so the two copies can't diverge from here on.
-          if(k in mem){ delete mem[k]; storageHealth.spilled.delete(k); }
+          clearStorageSpill(k, mem);
           return {key:k, value:v};
         }catch(e){
           // Anything that isn't a quota problem is a real bug and should still
@@ -6606,7 +6631,7 @@ function buildNamespacedStorage(userId){
       if(k && k.indexOf('water:') === 0) bumpWaterGen();
       // Both copies, always. Deleting only the durable one would resurrect the
       // spilled value on the next read.
-      if(k in mem){ delete mem[k]; storageHealth.spilled.delete(k); }
+      clearStorageSpill(k, mem);
       if(useLocalStorage){ localStorage.removeItem(PREFIX + k); }
       return {key:k, deleted:true};
     },
