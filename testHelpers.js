@@ -10,8 +10,31 @@ const path = require('path');
 
 const INDEX_PATH = path.join(__dirname, 'index.html');
 
+// Large, low-churn static content (the *_TECHNIQUE_DETAILS/*_GROUPS/*_ICONS
+// masterclass consts, STYLE_SOURCES/PROGRAM_SOURCES, exerciseInfo) lives in
+// these plain <script src> files instead of inline in index.html, so that a
+// version bump doesn't force re-fetching content that hasn't changed (see
+// sw.js comments on the cache-first same-origin strategy). They're loaded via
+// real <script src> tags in index.html at runtime, in this same order — see
+// the tags right before the main inline <script>.
+//
+// Every existing test extracts consts/functions by NAME from "the source"
+// via extractConst/extractFunction, with no idea any of this is split across
+// files on disk. So readIndexSource() concatenates index.html with these
+// files' contents into one combined string — from every test's perspective,
+// nothing has moved.
+const SPLIT_CONTENT_FILES = [
+  'content-masterclasses.js',
+  'content-citations.js',
+  'content-exercises.js',
+];
+
 function readIndexSource(){
-  return fs.readFileSync(INDEX_PATH, 'utf8');
+  const indexHtml = fs.readFileSync(INDEX_PATH, 'utf8');
+  const splitContent = SPLIT_CONTENT_FILES
+    .map(f => fs.readFileSync(path.join(__dirname, f), 'utf8'))
+    .join('\n');
+  return indexHtml + '\n' + splitContent;
 }
 
 // A '/' at src[i] might start a regex literal (e.g. /\bwaffles?\b(?!\s*fries)/i
