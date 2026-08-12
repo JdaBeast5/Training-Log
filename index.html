@@ -5787,7 +5787,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.153';
+const APP_VERSION = '3.154';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6022,6 +6022,10 @@ const WHATS_NEW = {
   '3.153': { headline: 'Fixed the tab bar going unresponsive mid-workout', points: [
     'Once you scrolled a little way into a workout, a condensed "Day 1 — Upper · Strength" bar would pin itself at the very top of the screen — directly on top of the tab bar underneath it, silently swallowing every tap meant for Today, Log, Analysis, and the rest until you scrolled all the way back up.',
     'It now sits below the tab bar instead of on top of it, using the same layering the Analysis section index already gets right one tab over.',
+  ]},
+  '3.154': { headline: 'Fixed Care’s "Mark as resting" falsely confirming when no region was picked', points: [
+    'Logging a check-in without picking a body region still showed a "Mark as resting" button. Tapping it flipped to "Marked as resting ✓" even though there was no region to actually record — so it never showed up in Today\'s exercise cautions or the stale check-in reminder, with nothing in the UI hinting that.',
+    'The button now only appears once a real region is picked, so it can\'t confirm something it never saved.',
   ]},
 };
 
@@ -27917,6 +27921,12 @@ async function populateCareLibrarySelector(preferredRegion){
 
 function buildCareResultHtml(sensation, region, pain){
   const isRedFlag = RED_FLAG_SENSATIONS.includes(sensation) || pain >= 7;
+  // Marking "as resting" means recording WHICH region to flag elsewhere in
+  // the app (Today's exercise cautions, the stale-check-in reminder) — with
+  // no region picked there's nothing to record, so the button (and the
+  // false "Marked as resting ✓" confirmation it used to give even when it
+  // had silently done nothing) is only offered when a real region exists.
+  const restBtnHtml = region ? `<button class="care-rest-btn" id="careMarkResting" data-region="${escapeHtml(region)}">Mark ${escapeHtml(region)} as resting</button>` : '';
 
   if(isRedFlag){
     return `
@@ -27929,7 +27939,7 @@ function buildCareResultHtml(sensation, region, pain){
           <li>Pain that wakes you up at night or keeps getting worse, not better</li>
         </ul>
         <div style="margin-top:8px;">Hold off on training this area until it's been checked — no exercise suggestions for this one, on purpose.</div>
-        <button class="care-rest-btn" id="careMarkResting" data-region="${escapeHtml(region)}">Mark ${escapeHtml(region || 'this area')} as resting</button>
+        ${restBtnHtml}
       </div>
     `;
   }
@@ -27937,7 +27947,7 @@ function buildCareResultHtml(sensation, region, pain){
   return `
     <div class="care-banner care-banner-caution">
       <b>Logged.</b> This sounds like it could be normal training soreness, but I genuinely can't tell from a description — I can't examine you. General self-care for mild issues: rest the area, avoid movements that reproduce the pain, and consider gentle ice/compression for the first day or two. If it isn't clearly improving within a week, or gets worse, please see a doctor or physical therapist rather than pushing through it.
-      <button class="care-rest-btn" id="careMarkResting" data-region="${escapeHtml(region)}">Mark ${escapeHtml(region || 'this area')} as resting</button>
+      ${restBtnHtml}
     </div>
     ${buildReliefHtml(region)}
   `;
