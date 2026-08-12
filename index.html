@@ -5705,7 +5705,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.148';
+const APP_VERSION = '3.149';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5921,6 +5921,10 @@ const WHATS_NEW = {
     'Combat, Cycling, Watersports, Yoga, and Medically Modified are all "pick a style underneath" programs — so when one of them gets recommended, the banner now also names a specific style to start with, and switching applies it directly instead of leaving you to hunt through the dropdown.',
     'Medically Modified\'s pick comes straight from the conditions already checked on your profile (high blood pressure, diabetes, osteoporosis, bariatric surgery, pregnancy/postpartum) — a real match, not a guess. Combat leans toward Tai Chi if you\'re 55+ or your recent training is reading as overreaching; otherwise it\'s Kickboxing, the balanced default.',
     'Cycling, Watersports, and Yoga don\'t have anything in your profile that actually points at one style over another yet, so those honestly default to that program\'s own starting style (Road, Surfing, Vinyasa & Flow) and say so — worth a look at the others rather than assuming it nailed it.',
+  ]},
+  '3.149': { headline: 'Under-the-hood cleanup: Learn tab masterclasses', points: [
+    'No visible change here — 13 of Learn\'s 14 masterclass cards (Swimming, Climbing, Combat, Grappling, Olympic Lifting, Strength, Running, Hyrox, Pilates, Yoga, Calisthenics, Cycling, and Posing Practice) were nearly-identical hand-written code that now shares one implementation, so they\'re easier to keep consistent going forward.',
+    'Every masterclass renders exactly the same content it did before — same techniques, same icons, same video links — this was purely a behind-the-scenes tidy-up.',
   ]},
 };
 
@@ -10785,38 +10789,11 @@ const SWIM_STROKES = {
   },
 };
 
+// Thin wrapper — the real implementation is the shared renderMasterclassTechniques
+// (see MASTERCLASS_LIBRARY above), which reads swimStylesCard's shape (list id,
+// SWIM_STROKES groups, SWIM_ICONS, "drill" noun) from that same registry.
 function renderSwimStyles(){
-  const listEl = document.getElementById('swimStylesList');
-  if(!listEl) return;
-  listEl.innerHTML = Object.keys(SWIM_STROKES).map((strokeName)=>{
-    const cls = SWIM_STROKES[strokeName];
-    const drillRows = cls.poses.map((drillName)=>{
-      const detail = SWIM_STROKE_DETAILS[drillName];
-      const iconSvg = detail ? SWIM_ICONS[detail.icon] : '';
-      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
-      const query = encodeURIComponent(detail && detail.video ? detail.video : `${drillName} swimming technique tutorial`);
-      return `
-        <details class="pose-detail-wrap">
-          <summary class="pose-row">
-            <div class="pose-icon">${iconSvg}</div>
-            <div class="pose-name">${drillName}</div>
-            <span class="ex-chevron">›</span>
-          </summary>
-          <div class="pose-detail">
-            <ul>${pointsHtml}</ul>
-            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
-          </div>
-        </details>
-      `;
-    }).join('');
-    return `
-      <details class="posing-class">
-        <summary>${strokeName} <span class="month-count">${cls.poses.length} drill${cls.poses.length===1?'':'s'}</span></summary>
-        <div class="posing-class-note">${cls.note}</div>
-        ${drillRows}
-      </details>
-    `;
-  }).join('');
+  renderMasterclassTechniques('swimStylesCard');
 }
 
 function toggleSwimStylesCard(){
@@ -11049,38 +11026,11 @@ const CLIMB_TECHNIQUE_GROUPS = {
   },
 };
 
+// Thin wrapper — the real implementation is the shared renderMasterclassTechniques
+// (see MASTERCLASS_LIBRARY above), which reads climbTechniquesCard's shape from
+// that same registry.
 function renderClimbTechniques(){
-  const listEl = document.getElementById('climbTechniquesList');
-  if(!listEl) return;
-  listEl.innerHTML = Object.keys(CLIMB_TECHNIQUE_GROUPS).map((groupName)=>{
-    const grp = CLIMB_TECHNIQUE_GROUPS[groupName];
-    const techRows = grp.poses.map((techName)=>{
-      const detail = CLIMB_TECHNIQUE_DETAILS[techName];
-      const iconSvg = detail ? CLIMB_ICONS[detail.icon] : '';
-      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
-      const query = encodeURIComponent(detail && detail.video ? detail.video : `${techName} rock climbing technique tutorial`);
-      return `
-        <details class="pose-detail-wrap">
-          <summary class="pose-row">
-            <div class="pose-icon">${iconSvg}</div>
-            <div class="pose-name">${techName}</div>
-            <span class="ex-chevron">›</span>
-          </summary>
-          <div class="pose-detail">
-            <ul>${pointsHtml}</ul>
-            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
-          </div>
-        </details>
-      `;
-    }).join('');
-    return `
-      <details class="posing-class">
-        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
-        <div class="posing-class-note">${grp.note}</div>
-        ${techRows}
-      </details>
-    `;
-  }).join('');
+  renderMasterclassTechniques('climbTechniquesCard');
 }
 
 function toggleClimbTechniquesCard(){
@@ -11666,38 +11616,11 @@ const GRAPPLE_TECHNIQUE_GROUPS = {
   },
 };
 
+// Thin wrapper — the real implementation is the shared renderMasterclassTechniques
+// (see MASTERCLASS_LIBRARY above), which reads grappleTechniquesCard's shape from
+// that same registry.
 function renderGrappleTechniques(){
-  const listEl = document.getElementById('grappleTechniquesList');
-  if(!listEl) return;
-  listEl.innerHTML = Object.keys(GRAPPLE_TECHNIQUE_GROUPS).map((groupName)=>{
-    const grp = GRAPPLE_TECHNIQUE_GROUPS[groupName];
-    const techRows = grp.poses.map((techName)=>{
-      const detail = GRAPPLE_TECHNIQUE_DETAILS[techName];
-      const iconSvg = detail ? GRAPPLE_ICONS[detail.icon] : '';
-      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
-      const query = encodeURIComponent(detail && detail.video ? detail.video : `${techName} bjj grappling technique tutorial`);
-      return `
-        <details class="pose-detail-wrap">
-          <summary class="pose-row">
-            <div class="pose-icon">${iconSvg}</div>
-            <div class="pose-name">${techName}</div>
-            <span class="ex-chevron">›</span>
-          </summary>
-          <div class="pose-detail">
-            <ul>${pointsHtml}</ul>
-            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
-          </div>
-        </details>
-      `;
-    }).join('');
-    return `
-      <details class="posing-class">
-        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
-        <div class="posing-class-note">${grp.note}</div>
-        ${techRows}
-      </details>
-    `;
-  }).join('');
+  renderMasterclassTechniques('grappleTechniquesCard');
 }
 
 function toggleGrappleTechniquesCard(){
@@ -11871,38 +11794,11 @@ const OLY_TECHNIQUE_GROUPS = {
   },
 };
 
+// Thin wrapper — the real implementation is the shared renderMasterclassTechniques
+// (see MASTERCLASS_LIBRARY above), which reads olyTechniquesCard's shape from that
+// same registry.
 function renderOlyTechniques(){
-  const listEl = document.getElementById('olyTechniquesList');
-  if(!listEl) return;
-  listEl.innerHTML = Object.keys(OLY_TECHNIQUE_GROUPS).map((groupName)=>{
-    const grp = OLY_TECHNIQUE_GROUPS[groupName];
-    const techRows = grp.poses.map((techName)=>{
-      const detail = OLY_TECHNIQUE_DETAILS[techName];
-      const iconSvg = detail ? OLY_ICONS[detail.icon] : '';
-      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
-      const query = encodeURIComponent(detail && detail.video ? detail.video : `${techName} olympic weightlifting technique tutorial`);
-      return `
-        <details class="pose-detail-wrap">
-          <summary class="pose-row">
-            <div class="pose-icon">${iconSvg}</div>
-            <div class="pose-name">${techName}</div>
-            <span class="ex-chevron">›</span>
-          </summary>
-          <div class="pose-detail">
-            <ul>${pointsHtml}</ul>
-            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
-          </div>
-        </details>
-      `;
-    }).join('');
-    return `
-      <details class="posing-class">
-        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
-        <div class="posing-class-note">${grp.note}</div>
-        ${techRows}
-      </details>
-    `;
-  }).join('');
+  renderMasterclassTechniques('olyTechniquesCard');
 }
 
 function toggleOlyTechniquesCard(){
@@ -12061,37 +11957,12 @@ const STRENGTH_TECHNIQUE_DETAILS = {
   ]},
 };
 
+// Thin wrapper — the real implementation is the shared renderMasterclassTechniques
+// (see MASTERCLASS_LIBRARY above), which reads strengthTechniquesCard's shape
+// (fixed CATEGORY_ICONS.barbell icon, no per-technique video field) from that
+// same registry.
 function renderStrengthTechniques(){
-  const listEl = document.getElementById('strengthTechniquesList');
-  if(!listEl) return;
-  listEl.innerHTML = Object.keys(STRENGTH_TECHNIQUE_GROUPS).map((groupName)=>{
-    const grp = STRENGTH_TECHNIQUE_GROUPS[groupName];
-    const techRows = grp.poses.map((techName)=>{
-      const detail = STRENGTH_TECHNIQUE_DETAILS[techName];
-      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
-      const query = encodeURIComponent(`${techName} proper technique tutorial`);
-      return `
-        <details class="pose-detail-wrap">
-          <summary class="pose-row">
-            <div class="pose-icon">${CATEGORY_ICONS.barbell}</div>
-            <div class="pose-name">${techName}</div>
-            <span class="ex-chevron">›</span>
-          </summary>
-          <div class="pose-detail">
-            <ul>${pointsHtml}</ul>
-            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
-          </div>
-        </details>
-      `;
-    }).join('');
-    return `
-      <details class="posing-class">
-        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
-        <div class="posing-class-note">${grp.note}</div>
-        ${techRows}
-      </details>
-    `;
-  }).join('');
+  renderMasterclassTechniques('strengthTechniquesCard');
 }
 
 // Shown for the programs actually built on these fundamentals — the ones
@@ -12253,37 +12124,11 @@ const RUNNING_TECHNIQUE_DETAILS = {
   ]},
 };
 
+// Thin wrapper — the real implementation is the shared renderMasterclassTechniques
+// (see MASTERCLASS_LIBRARY above), which reads runningTechniquesCard's shape
+// (fixed CATEGORY_ICONS.pulse icon) from that same registry.
 function renderRunningTechniques(){
-  const listEl = document.getElementById('runningTechniquesList');
-  if(!listEl) return;
-  listEl.innerHTML = Object.keys(RUNNING_TECHNIQUE_GROUPS).map((groupName)=>{
-    const grp = RUNNING_TECHNIQUE_GROUPS[groupName];
-    const techRows = grp.poses.map((techName)=>{
-      const detail = RUNNING_TECHNIQUE_DETAILS[techName];
-      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
-      const query = encodeURIComponent(`${techName} proper running technique tutorial`);
-      return `
-        <details class="pose-detail-wrap">
-          <summary class="pose-row">
-            <div class="pose-icon">${CATEGORY_ICONS.pulse}</div>
-            <div class="pose-name">${techName}</div>
-            <span class="ex-chevron">›</span>
-          </summary>
-          <div class="pose-detail">
-            <ul>${pointsHtml}</ul>
-            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
-          </div>
-        </details>
-      `;
-    }).join('');
-    return `
-      <details class="posing-class">
-        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
-        <div class="posing-class-note">${grp.note}</div>
-        ${techRows}
-      </details>
-    `;
-  }).join('');
+  renderMasterclassTechniques('runningTechniquesCard');
 }
 
 function toggleRunningTechniquesCard(){
@@ -12439,37 +12284,11 @@ const HYROX_TECHNIQUE_DETAILS = {
   ]},
 };
 
+// Thin wrapper — the real implementation is the shared renderMasterclassTechniques
+// (see MASTERCLASS_LIBRARY above), which reads hyroxTechniquesCard's shape
+// (fixed CATEGORY_ICONS.bolt icon) from that same registry.
 function renderHyroxTechniques(){
-  const listEl = document.getElementById('hyroxTechniquesList');
-  if(!listEl) return;
-  listEl.innerHTML = Object.keys(HYROX_TECHNIQUE_GROUPS).map((groupName)=>{
-    const grp = HYROX_TECHNIQUE_GROUPS[groupName];
-    const techRows = grp.poses.map((techName)=>{
-      const detail = HYROX_TECHNIQUE_DETAILS[techName];
-      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
-      const query = encodeURIComponent(`${techName} Hyrox technique tutorial`);
-      return `
-        <details class="pose-detail-wrap">
-          <summary class="pose-row">
-            <div class="pose-icon">${CATEGORY_ICONS.bolt}</div>
-            <div class="pose-name">${techName}</div>
-            <span class="ex-chevron">›</span>
-          </summary>
-          <div class="pose-detail">
-            <ul>${pointsHtml}</ul>
-            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
-          </div>
-        </details>
-      `;
-    }).join('');
-    return `
-      <details class="posing-class">
-        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
-        <div class="posing-class-note">${grp.note}</div>
-        ${techRows}
-      </details>
-    `;
-  }).join('');
+  renderMasterclassTechniques('hyroxTechniquesCard');
 }
 
 function toggleHyroxTechniquesCard(){
@@ -12622,37 +12441,11 @@ const PILATES_TECHNIQUE_DETAILS = {
   ]},
 };
 
+// Thin wrapper — the real implementation is the shared renderMasterclassTechniques
+// (see MASTERCLASS_LIBRARY above), which reads pilatesTechniquesCard's shape
+// (fixed CATEGORY_ICONS.core icon) from that same registry.
 function renderPilatesTechniques(){
-  const listEl = document.getElementById('pilatesTechniquesList');
-  if(!listEl) return;
-  listEl.innerHTML = Object.keys(PILATES_TECHNIQUE_GROUPS).map((groupName)=>{
-    const grp = PILATES_TECHNIQUE_GROUPS[groupName];
-    const techRows = grp.poses.map((techName)=>{
-      const detail = PILATES_TECHNIQUE_DETAILS[techName];
-      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
-      const query = encodeURIComponent(`${techName} Pilates technique tutorial`);
-      return `
-        <details class="pose-detail-wrap">
-          <summary class="pose-row">
-            <div class="pose-icon">${CATEGORY_ICONS.core}</div>
-            <div class="pose-name">${techName}</div>
-            <span class="ex-chevron">›</span>
-          </summary>
-          <div class="pose-detail">
-            <ul>${pointsHtml}</ul>
-            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
-          </div>
-        </details>
-      `;
-    }).join('');
-    return `
-      <details class="posing-class">
-        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
-        <div class="posing-class-note">${grp.note}</div>
-        ${techRows}
-      </details>
-    `;
-  }).join('');
+  renderMasterclassTechniques('pilatesTechniquesCard');
 }
 
 function togglePilatesTechniquesCard(){
@@ -12806,37 +12599,11 @@ const YOGA_TECHNIQUE_DETAILS = {
   ]},
 };
 
+// Thin wrapper — the real implementation is the shared renderMasterclassTechniques
+// (see MASTERCLASS_LIBRARY above), which reads yogaTechniquesCard's shape
+// (fixed CATEGORY_ICONS.core icon) from that same registry.
 function renderYogaTechniques(){
-  const listEl = document.getElementById('yogaTechniquesList');
-  if(!listEl) return;
-  listEl.innerHTML = Object.keys(YOGA_TECHNIQUE_GROUPS).map((groupName)=>{
-    const grp = YOGA_TECHNIQUE_GROUPS[groupName];
-    const techRows = grp.poses.map((techName)=>{
-      const detail = YOGA_TECHNIQUE_DETAILS[techName];
-      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
-      const query = encodeURIComponent(`${techName} yoga alignment tutorial`);
-      return `
-        <details class="pose-detail-wrap">
-          <summary class="pose-row">
-            <div class="pose-icon">${CATEGORY_ICONS.core}</div>
-            <div class="pose-name">${techName}</div>
-            <span class="ex-chevron">›</span>
-          </summary>
-          <div class="pose-detail">
-            <ul>${pointsHtml}</ul>
-            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
-          </div>
-        </details>
-      `;
-    }).join('');
-    return `
-      <details class="posing-class">
-        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
-        <div class="posing-class-note">${grp.note}</div>
-        ${techRows}
-      </details>
-    `;
-  }).join('');
+  renderMasterclassTechniques('yogaTechniquesCard');
 }
 
 function toggleYogaTechniquesCard(){
@@ -12991,37 +12758,11 @@ const CALISTHENICS_TECHNIQUE_DETAILS = {
   ]},
 };
 
+// Thin wrapper — the real implementation is the shared renderMasterclassTechniques
+// (see MASTERCLASS_LIBRARY above), which reads calisthenicsTechniquesCard's
+// shape (fixed CATEGORY_ICONS.barbell icon) from that same registry.
 function renderCalisthenicsTechniques(){
-  const listEl = document.getElementById('calisthenicsTechniquesList');
-  if(!listEl) return;
-  listEl.innerHTML = Object.keys(CALISTHENICS_TECHNIQUE_GROUPS).map((groupName)=>{
-    const grp = CALISTHENICS_TECHNIQUE_GROUPS[groupName];
-    const techRows = grp.poses.map((techName)=>{
-      const detail = CALISTHENICS_TECHNIQUE_DETAILS[techName];
-      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
-      const query = encodeURIComponent(`${techName} calisthenics progression tutorial`);
-      return `
-        <details class="pose-detail-wrap">
-          <summary class="pose-row">
-            <div class="pose-icon">${CATEGORY_ICONS.barbell}</div>
-            <div class="pose-name">${techName}</div>
-            <span class="ex-chevron">›</span>
-          </summary>
-          <div class="pose-detail">
-            <ul>${pointsHtml}</ul>
-            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
-          </div>
-        </details>
-      `;
-    }).join('');
-    return `
-      <details class="posing-class">
-        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
-        <div class="posing-class-note">${grp.note}</div>
-        ${techRows}
-      </details>
-    `;
-  }).join('');
+  renderMasterclassTechniques('calisthenicsTechniquesCard');
 }
 
 const CALISTHENICS_FUNDAMENTALS_PROGRAMS = ['calisthenics','bodyweight'];
@@ -13176,37 +12917,11 @@ const CYCLING_TECHNIQUE_DETAILS = {
   ]},
 };
 
+// Thin wrapper — the real implementation is the shared renderMasterclassTechniques
+// (see MASTERCLASS_LIBRARY above), which reads cyclingTechniquesCard's shape
+// (fixed CATEGORY_ICONS.pulse icon) from that same registry.
 function renderCyclingTechniques(){
-  const listEl = document.getElementById('cyclingTechniquesList');
-  if(!listEl) return;
-  listEl.innerHTML = Object.keys(CYCLING_TECHNIQUE_GROUPS).map((groupName)=>{
-    const grp = CYCLING_TECHNIQUE_GROUPS[groupName];
-    const techRows = grp.poses.map((techName)=>{
-      const detail = CYCLING_TECHNIQUE_DETAILS[techName];
-      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
-      const query = encodeURIComponent(`${techName} cycling technique tutorial`);
-      return `
-        <details class="pose-detail-wrap">
-          <summary class="pose-row">
-            <div class="pose-icon">${CATEGORY_ICONS.pulse}</div>
-            <div class="pose-name">${techName}</div>
-            <span class="ex-chevron">›</span>
-          </summary>
-          <div class="pose-detail">
-            <ul>${pointsHtml}</ul>
-            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
-          </div>
-        </details>
-      `;
-    }).join('');
-    return `
-      <details class="posing-class">
-        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
-        <div class="posing-class-note">${grp.note}</div>
-        ${techRows}
-      </details>
-    `;
-  }).join('');
+  renderMasterclassTechniques('cyclingTechniquesCard');
 }
 
 function toggleCyclingTechniquesCard(){
@@ -13484,38 +13199,11 @@ const COMBAT_TECHNIQUE_GROUPS = {
   },
 };
 
+// Thin wrapper — the real implementation is the shared renderMasterclassTechniques
+// (see MASTERCLASS_LIBRARY above), which reads combatTechniquesCard's shape from
+// that same registry.
 function renderCombatTechniques(){
-  const listEl = document.getElementById('combatTechniquesList');
-  if(!listEl) return;
-  listEl.innerHTML = Object.keys(COMBAT_TECHNIQUE_GROUPS).map((groupName)=>{
-    const grp = COMBAT_TECHNIQUE_GROUPS[groupName];
-    const techRows = grp.poses.map((techName)=>{
-      const detail = COMBAT_TECHNIQUE_DETAILS[techName];
-      const iconSvg = detail ? COMBAT_ICONS[detail.icon] : '';
-      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
-      const query = encodeURIComponent(detail && detail.video ? detail.video : `${techName} martial arts technique tutorial`);
-      return `
-        <details class="pose-detail-wrap">
-          <summary class="pose-row">
-            <div class="pose-icon">${iconSvg}</div>
-            <div class="pose-name">${techName}</div>
-            <span class="ex-chevron">›</span>
-          </summary>
-          <div class="pose-detail">
-            <ul>${pointsHtml}</ul>
-            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
-          </div>
-        </details>
-      `;
-    }).join('');
-    return `
-      <details class="posing-class">
-        <summary>${groupName} <span class="month-count">${grp.poses.length} technique${grp.poses.length===1?'':'s'}</span></summary>
-        <div class="posing-class-note">${grp.note}</div>
-        ${techRows}
-      </details>
-    `;
-  }).join('');
+  renderMasterclassTechniques('combatTechniquesCard');
 }
 
 function toggleCombatTechniquesCard(){
@@ -15163,22 +14851,111 @@ async function isDeloadWeek(){
 // technique names. This is what lets buildMasterclassTechniqueSearchIndex()
 // (below, near global search) walk all fourteen masterclasses generically
 // instead of hand-listing every *_TECHNIQUE_DETAILS const a second time.
+// Per-card render config for the shared renderMasterclassTechniques function (below), added
+// alongside label/render/details for 13 of the 14 cards — every one EXCEPT
+// watersportsTechniquesCard. All 14 render*Techniques()/render*Styles()/
+// render*Classes() functions were verified structurally identical (same
+// .posing-class/.pose-detail-wrap markup, same Object.keys(groups).map(...)
+// shape, same detail.video-or-fallback query logic — the only real
+// differences were which DOM id/GROUPS/DETAILS/ICONS const each one used,
+// whether the icon was per-technique or one fixed CATEGORY_ICONS svg, and
+// the noun used in the "N technique(s)" count). renderMasterclassTechniques
+// is the one shared implementation; the 13 original functions became
+// one-line wrappers around it. renderWatersportsTechniques was deliberately
+// LEFT AS ITS OWN FULL IMPLEMENTATION, not wrapped — test-watersports-program.js
+// and test-global-search-techniques.js both use testHelpers' extractFunction()
+// to pull it out BY NAME and run it standalone in a sandbox that only loads
+// its own WATERSPORTS_* consts, never renderMasterclassTechniques itself. A
+// wrapper would ReferenceError in those existing, unmodified tests.
+// `groups`/`icon` are lazy (`()=>...`), the same convention already used for
+// `render:()=>fn()` above — test-global-search-techniques.js evaluates this
+// whole const in a sandbox that only loads the *_DETAILS consts, so an eager
+// reference to a *_GROUPS/*_ICONS/CATEGORY_ICONS const not present there
+// would throw at object-construction time even though render() itself is
+// never called in that test.
 const MASTERCLASS_LIBRARY = {
-  posingCard:               {label:'Posing Practice',                        render:()=>renderPosingClasses(),        details:POSE_DETAILS},
-  swimStylesCard:           {label:'Swimming Styles',                        render:()=>renderSwimStyles(),           details:SWIM_STROKE_DETAILS},
-  climbTechniquesCard:      {label:'Climbing Techniques',                    render:()=>renderClimbTechniques(),      details:CLIMB_TECHNIQUE_DETAILS},
+  posingCard:               {label:'Posing Practice',                        render:()=>renderPosingClasses(),        details:POSE_DETAILS,
+    listElId:'posingClassList', groups:()=>POSING_CLASSES, icon:()=>({mode:'perTechnique', icons:POSE_ICONS}), itemNoun:'pose', fallbackQuerySuffix:'bodybuilding pose tutorial'},
+  swimStylesCard:           {label:'Swimming Styles',                        render:()=>renderSwimStyles(),           details:SWIM_STROKE_DETAILS,
+    listElId:'swimStylesList', groups:()=>SWIM_STROKES, icon:()=>({mode:'perTechnique', icons:SWIM_ICONS}), itemNoun:'drill', fallbackQuerySuffix:'swimming technique tutorial'},
+  climbTechniquesCard:      {label:'Climbing Techniques',                    render:()=>renderClimbTechniques(),      details:CLIMB_TECHNIQUE_DETAILS,
+    listElId:'climbTechniquesList', groups:()=>CLIMB_TECHNIQUE_GROUPS, icon:()=>({mode:'perTechnique', icons:CLIMB_ICONS}), itemNoun:'technique', fallbackQuerySuffix:'rock climbing technique tutorial'},
+  // watersportsTechniquesCard: intentionally NOT extended with the render-config
+  // fields above — see the block comment. Keep this entry exactly label/render/
+  // details (test-watersports-program.js regex-matches this literal shape).
   watersportsTechniquesCard:{label:'Watersports Techniques',                 render:()=>renderWatersportsTechniques(),details:WATERSPORTS_TECHNIQUE_DETAILS},
-  combatTechniquesCard:     {label:'Combat Techniques',                      render:()=>renderCombatTechniques(),     details:COMBAT_TECHNIQUE_DETAILS},
-  grappleTechniquesCard:    {label:'Grappling Positions',                    render:()=>renderGrappleTechniques(),    details:GRAPPLE_TECHNIQUE_DETAILS},
-  olyTechniquesCard:        {label:'Olympic Lifting Technique',              render:()=>renderOlyTechniques(),        details:OLY_TECHNIQUE_DETAILS},
-  strengthTechniquesCard:   {label:'Strength Training Fundamentals',         render:()=>renderStrengthTechniques(),   details:STRENGTH_TECHNIQUE_DETAILS},
-  runningTechniquesCard:    {label:'Running Form Fundamentals',              render:()=>renderRunningTechniques(),    details:RUNNING_TECHNIQUE_DETAILS},
-  hyroxTechniquesCard:      {label:'Hyrox Fundamentals',                     render:()=>renderHyroxTechniques(),      details:HYROX_TECHNIQUE_DETAILS},
-  pilatesTechniquesCard:    {label:'Pilates Fundamentals',                   render:()=>renderPilatesTechniques(),    details:PILATES_TECHNIQUE_DETAILS},
-  yogaTechniquesCard:       {label:'Yoga Pose Fundamentals',                 render:()=>renderYogaTechniques(),       details:YOGA_TECHNIQUE_DETAILS},
-  calisthenicsTechniquesCard:{label:'Calisthenics & Bodyweight Fundamentals',render:()=>renderCalisthenicsTechniques(),details:CALISTHENICS_TECHNIQUE_DETAILS},
-  cyclingTechniquesCard:    {label:'Cycling Fundamentals',                   render:()=>renderCyclingTechniques(),    details:CYCLING_TECHNIQUE_DETAILS},
+  combatTechniquesCard:     {label:'Combat Techniques',                      render:()=>renderCombatTechniques(),     details:COMBAT_TECHNIQUE_DETAILS,
+    listElId:'combatTechniquesList', groups:()=>COMBAT_TECHNIQUE_GROUPS, icon:()=>({mode:'perTechnique', icons:COMBAT_ICONS}), itemNoun:'technique', fallbackQuerySuffix:'martial arts technique tutorial'},
+  grappleTechniquesCard:    {label:'Grappling Positions',                    render:()=>renderGrappleTechniques(),    details:GRAPPLE_TECHNIQUE_DETAILS,
+    listElId:'grappleTechniquesList', groups:()=>GRAPPLE_TECHNIQUE_GROUPS, icon:()=>({mode:'perTechnique', icons:GRAPPLE_ICONS}), itemNoun:'technique', fallbackQuerySuffix:'bjj grappling technique tutorial'},
+  olyTechniquesCard:        {label:'Olympic Lifting Technique',              render:()=>renderOlyTechniques(),        details:OLY_TECHNIQUE_DETAILS,
+    listElId:'olyTechniquesList', groups:()=>OLY_TECHNIQUE_GROUPS, icon:()=>({mode:'perTechnique', icons:OLY_ICONS}), itemNoun:'technique', fallbackQuerySuffix:'olympic weightlifting technique tutorial'},
+  strengthTechniquesCard:   {label:'Strength Training Fundamentals',         render:()=>renderStrengthTechniques(),   details:STRENGTH_TECHNIQUE_DETAILS,
+    listElId:'strengthTechniquesList', groups:()=>STRENGTH_TECHNIQUE_GROUPS, icon:()=>({mode:'fixed', svg:CATEGORY_ICONS.barbell}), itemNoun:'technique', fallbackQuerySuffix:'proper technique tutorial'},
+  runningTechniquesCard:    {label:'Running Form Fundamentals',              render:()=>renderRunningTechniques(),    details:RUNNING_TECHNIQUE_DETAILS,
+    listElId:'runningTechniquesList', groups:()=>RUNNING_TECHNIQUE_GROUPS, icon:()=>({mode:'fixed', svg:CATEGORY_ICONS.pulse}), itemNoun:'technique', fallbackQuerySuffix:'proper running technique tutorial'},
+  hyroxTechniquesCard:      {label:'Hyrox Fundamentals',                     render:()=>renderHyroxTechniques(),      details:HYROX_TECHNIQUE_DETAILS,
+    listElId:'hyroxTechniquesList', groups:()=>HYROX_TECHNIQUE_GROUPS, icon:()=>({mode:'fixed', svg:CATEGORY_ICONS.bolt}), itemNoun:'technique', fallbackQuerySuffix:'Hyrox technique tutorial'},
+  pilatesTechniquesCard:    {label:'Pilates Fundamentals',                   render:()=>renderPilatesTechniques(),    details:PILATES_TECHNIQUE_DETAILS,
+    listElId:'pilatesTechniquesList', groups:()=>PILATES_TECHNIQUE_GROUPS, icon:()=>({mode:'fixed', svg:CATEGORY_ICONS.core}), itemNoun:'technique', fallbackQuerySuffix:'Pilates technique tutorial'},
+  yogaTechniquesCard:       {label:'Yoga Pose Fundamentals',                 render:()=>renderYogaTechniques(),       details:YOGA_TECHNIQUE_DETAILS,
+    listElId:'yogaTechniquesList', groups:()=>YOGA_TECHNIQUE_GROUPS, icon:()=>({mode:'fixed', svg:CATEGORY_ICONS.core}), itemNoun:'technique', fallbackQuerySuffix:'yoga alignment tutorial'},
+  calisthenicsTechniquesCard:{label:'Calisthenics & Bodyweight Fundamentals',render:()=>renderCalisthenicsTechniques(),details:CALISTHENICS_TECHNIQUE_DETAILS,
+    listElId:'calisthenicsTechniquesList', groups:()=>CALISTHENICS_TECHNIQUE_GROUPS, icon:()=>({mode:'fixed', svg:CATEGORY_ICONS.barbell}), itemNoun:'technique', fallbackQuerySuffix:'calisthenics progression tutorial'},
+  cyclingTechniquesCard:    {label:'Cycling Fundamentals',                   render:()=>renderCyclingTechniques(),    details:CYCLING_TECHNIQUE_DETAILS,
+    listElId:'cyclingTechniquesList', groups:()=>CYCLING_TECHNIQUE_GROUPS, icon:()=>({mode:'fixed', svg:CATEGORY_ICONS.pulse}), itemNoun:'technique', fallbackQuerySuffix:'cycling technique tutorial'},
 };
+
+// The one shared masterclass-card renderer, replacing 13 near-identical
+// hand-written render*Techniques()/render*Styles()/render*Classes()
+// functions (see the block comment on MASTERCLASS_LIBRARY above for which
+// one was deliberately left out and why). Reads its per-card shape entirely
+// from MASTERCLASS_LIBRARY[cardId] — listElId for which DOM node to fill,
+// groups()/icon() for the group data and icon strategy, details for the
+// per-technique cue/video data (the same `details` pointer global search
+// already relies on), itemNoun for the "N technique(s)/drill(s)/pose(s)"
+// count wording. `if(!listEl) return` mirrors what every original function
+// except renderPosingClasses already did — renderPosingClasses relied on
+// #posingClassList always existing, which is still true in the real app; the
+// guard here is strictly safer and never observably changes behavior.
+function renderMasterclassTechniques(cardId){
+  const cfg = MASTERCLASS_LIBRARY[cardId];
+  if(!cfg || !cfg.listElId) return;
+  const listEl = document.getElementById(cfg.listElId);
+  if(!listEl) return;
+  const groups = cfg.groups();
+  const details = cfg.details;
+  const iconCfg = cfg.icon();
+  listEl.innerHTML = Object.keys(groups).map((groupName)=>{
+    const grp = groups[groupName];
+    const itemRows = grp.poses.map((itemName)=>{
+      const detail = details[itemName];
+      const iconSvg = iconCfg.mode === 'fixed' ? iconCfg.svg : (detail ? iconCfg.icons[detail.icon] : '');
+      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
+      const query = encodeURIComponent(detail && detail.video ? detail.video : `${itemName} ${cfg.fallbackQuerySuffix}`);
+      return `
+        <details class="pose-detail-wrap">
+          <summary class="pose-row">
+            <div class="pose-icon">${iconSvg}</div>
+            <div class="pose-name">${itemName}</div>
+            <span class="ex-chevron">›</span>
+          </summary>
+          <div class="pose-detail">
+            <ul>${pointsHtml}</ul>
+            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
+          </div>
+        </details>
+      `;
+    }).join('');
+    return `
+      <details class="posing-class">
+        <summary>${groupName} <span class="month-count">${grp.poses.length} ${cfg.itemNoun}${grp.poses.length===1?'':'s'}</span></summary>
+        <div class="posing-class-note">${grp.note}</div>
+        ${itemRows}
+      </details>
+    `;
+  }).join('');
+}
 
 // A flattened, cross-masterclass list of every technique/pose name, each
 // tagged with the card it lives on. Built from MASTERCLASS_LIBRARY's own
@@ -15876,37 +15653,14 @@ function toggleMedicalCard(){
   }
 }
 
+// Thin wrapper — the real implementation is the shared renderMasterclassTechniques
+// (see MASTERCLASS_LIBRARY above), which reads posingCard's shape ("pose" noun)
+// from that same registry. The original here never guarded against a missing
+// #posingClassList; the shared function does (`if(!listEl) return`) — strictly
+// safer and not an observable behavior change since that element always exists
+// wherever this is actually called.
 function renderPosingClasses(){
-  const listEl = document.getElementById('posingClassList');
-  listEl.innerHTML = Object.keys(POSING_CLASSES).map((className, ci)=>{
-    const cls = POSING_CLASSES[className];
-    const poseRows = cls.poses.map((poseName, pi)=>{
-      const detail = POSE_DETAILS[poseName];
-      const iconSvg = detail ? POSE_ICONS[detail.icon] : '';
-      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
-      const query = encodeURIComponent(detail && detail.video ? detail.video : `${poseName} bodybuilding pose tutorial`);
-      return `
-        <details class="pose-detail-wrap">
-          <summary class="pose-row">
-            <div class="pose-icon">${iconSvg}</div>
-            <div class="pose-name">${poseName}</div>
-            <span class="ex-chevron">›</span>
-          </summary>
-          <div class="pose-detail">
-            <ul>${pointsHtml}</ul>
-            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
-          </div>
-        </details>
-      `;
-    }).join('');
-    return `
-      <details class="posing-class">
-        <summary>${className} <span class="month-count">${cls.poses.length} pose${cls.poses.length===1?'':'s'}</span></summary>
-        <div class="posing-class-note">${cls.note}</div>
-        ${poseRows}
-      </details>
-    `;
-  }).join('');
+  renderMasterclassTechniques('posingCard');
 }
 
 // [DAY ORDER, TABS & WEEK PROGRESS] ---------------------------------------------
