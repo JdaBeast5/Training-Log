@@ -946,15 +946,33 @@
   .warmup-box .warmup-row{display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px;}
 
   .sticky-day-header{
-    position:fixed; top:0; left:0; right:0; z-index:55;
+    position:fixed; left:0; right:0; z-index:20;
+    /* BELOW THE NAV RAIL, NOT AT top:0. This used to sit at the very top of
+       the viewport (padding pushed down by env(safe-area-inset-top) to clear
+       the system clock — see the old comment this replaced), which put it
+       directly on top of .nav-pills (position:sticky, its own top:
+       env(safe-area-inset-top), z-index:30): once both were visible — which
+       is most of a scrolled workout, the exact time you'd want to switch
+       tabs — this header's full 44.8px height sat OVER the entire nav rail,
+       and being a real (non-transparent-to-pointer-events) element on top of
+       it, it silently ate every tap meant for the tab bar. Confirmed live:
+       elementFromPoint() at the centre of the Analysis pill returned this
+       header, not the pill, and a dispatched click there never reached
+       Analysis. Same fix .analysis-index already uses one section over for
+       the identical "second sticky bar needs to sit below the first, not on
+       top of it" problem: offset top by the rail's own PUBLISHED height
+       (--nav-rail-h, set by wireNavRailHeight — measured, not guessed, since
+       the rail's real height depends on font size/OS text scaling) plus the
+       safe-area inset. Because the header no longer starts at y=0, the old
+       "extra padding to clear the clock" trick is gone too — the offset
+       already clears both the status bar and the rail, so plain padding is
+       enough. z-index dropped from 55 to 20: it no longer needs to outrank
+       the rail (30) since they no longer occupy the same space; 20 keeps it
+       above ordinary page content (0-5) and below every real overlay. */
+    top:calc(env(safe-area-inset-top, 0px) + var(--nav-rail-h, 56px));
     background:rgba(31,34,38,0.72); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border-bottom:1px solid var(--line-soft);
-    /* THE INSET GOES ON TOP. It was on the BOTTOM, so the title sat at y=0
-       underneath the clock and the bar's extra height hung down over the nav
-       rail instead — visible on a real device as "Day 1 — Upper · Strength"
-       printed across the system time. Pre-dates the sticky rail; the rail just
-       made it impossible to miss. */
-    padding:calc(12px + env(safe-area-inset-top, 0px)) 16px 12px;
+    padding:12px 16px;
     display:flex; align-items:center; gap:8px;
     transform:translateY(-100%); transition:transform 0.25s var(--ease-smooth);
     font-family:'Inter',sans-serif; font-size:14.5px; font-weight:700; letter-spacing:-0.01em; color:var(--text);
@@ -5769,7 +5787,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.152';
+const APP_VERSION = '3.153';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6000,6 +6018,10 @@ const WHATS_NEW = {
   '3.152': { headline: 'Fixed the "add your API key" button going nowhere useful', points: [
     'Every "Take me there" button on an AI feature (Snap a Meal, Recipe Finder, the AI coach chat, and others) used to send you to the Log tab — which is where the API key setup card used to live, before it moved into Settings a while back. The button never got the memo, so it opened a tab with nothing on it.',
     'Now it actually opens Settings and expands the right card, wherever it lives — fixed at the one shared place all of these buttons already point to, so it can\'t happen again the next time something moves.',
+  ]},
+  '3.153': { headline: 'Fixed the tab bar going unresponsive mid-workout', points: [
+    'Once you scrolled a little way into a workout, a condensed "Day 1 — Upper · Strength" bar would pin itself at the very top of the screen — directly on top of the tab bar underneath it, silently swallowing every tap meant for Today, Log, Analysis, and the rest until you scrolled all the way back up.',
+    'It now sits below the tab bar instead of on top of it, using the same layering the Analysis section index already gets right one tab over.',
   ]},
 };
 
