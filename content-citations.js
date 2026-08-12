@@ -29,7 +29,7 @@ const PROGRAM_SOURCES = {
   },
 
   cycling: {
-    intro: 'A container for two cycling styles — road endurance and indoor/interval work — each with its own intensity structure rather than one blended plan.',
+    intro: 'A container for two cycling styles — Road and Mountain — each with its own intensity structure rather than one blended plan.',
     tier: 'school',
     school: 'Endurance cycling programming; the actual sessions come from CYCLING_STYLES.',
     primary: 'NOW SOURCED PER STYLE — see STYLE_SOURCES.road (polarized-distribution meta-analysis) and STYLE_SOURCES.mountain (XCO physiology systematic review), not summarised here since the two styles have genuinely different demands.',
@@ -37,11 +37,11 @@ const PROGRAM_SOURCES = {
   },
 
   yoga: {
-    intro: 'A container for three yoga styles — Flow, Hot and Couples — each sequenced as its own practice rather than a shared pose list.',
+    intro: 'A container for three yoga styles — Flow, Hot and Partner — each sequenced as its own practice rather than a shared pose list.',
     tier: 'school',
     school: 'Static-hold asana practice, sequenced by style.',
-    primary: 'NOW SOURCED PER STYLE where real evidence exists — see STYLE_SOURCES.flow (sequence-intensity study) and STYLE_SOURCES.hot (43-study systematic review). Couples deliberately has no sequencing citation of its own; see its own entry for why. The dose-independence finding all three rely on remains sourced separately (Konrad et al., via HANDOFF v4 §4).',
-    editorNote: 'Do not dose-audit for "enough sets" — flexibility is not dose-dependent that way. Verified as 92-100% static holds with zero ballistic movement; keep it that way. In Couples Yoga specifically, every assisted pose states that the person being stretched sets the depth, never the partner — that is enforced by test and must not be softened.',
+    primary: 'NOW SOURCED PER STYLE where real evidence exists — see STYLE_SOURCES.flow (sequence-intensity study) and STYLE_SOURCES.hot (43-study systematic review). Partner Yoga deliberately has no sequencing citation of its own; see its own entry for why. The dose-independence finding all three rely on remains sourced separately (Konrad et al., via HANDOFF v4 §4).',
+    editorNote: 'Do not dose-audit for "enough sets" — flexibility is not dose-dependent that way. Verified as 92-100% static holds with zero ballistic movement; keep it that way. In Partner Yoga specifically, every assisted pose states that the person being stretched sets the depth, never the partner — that is enforced by test and must not be softened.',
   },
 
   medical: {

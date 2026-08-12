@@ -5769,7 +5769,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.151';
+const APP_VERSION = '3.152';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5888,9 +5888,9 @@ const WHATS_NEW = {
   '3.116': { headline: 'Real citations behind Road and Mountain cycling', points: [
     'A 2024 meta-analysis backs the "mostly easy, a few hard efforts" structure on Road; a 2026 review of elite racing backs Mountain\'s punchy-power-plus-endurance mix.',
   ]},
-  '3.117': { headline: 'Honest sourcing for Flow, Hot and Couples yoga', points: [
+  '3.117': { headline: 'Honest sourcing for Flow, Hot and Partner yoga', points: [
     'Flow and Hot yoga now cite real studies — including an honest one: heat itself doesn\'t clearly add benefit beyond the yoga.',
-    'Couples yoga explains plainly why it has no borrowed citation rather than stretching an unrelated one to cover it.',
+    'Partner Yoga explains plainly why it has no borrowed citation rather than stretching an unrelated one to cover it.',
   ]},
   '3.118': { headline: 'A real citation behind the Grappling/BJJ program', points: [
     'Real match data (6-13 seconds of effort per second of rest, serious lactate demand) now backs why the week ends with live rounds, not just drilling.',
@@ -5996,6 +5996,10 @@ const WHATS_NEW = {
   ]},
   '3.151': { headline: 'Fixed a nav bar glitch on the Learn tab', points: [
     'On a phone, switching to Learn (the last tab) could leave a stray letter or two floating next to the search icon — a leftover sliver of whichever tab happened to land behind it as the bar auto-scrolled. Fixed at the source rather than papered over.',
+  ]},
+  '3.152': { headline: 'Fixed the "add your API key" button going nowhere useful', points: [
+    'Every "Take me there" button on an AI feature (Snap a Meal, Recipe Finder, the AI coach chat, and others) used to send you to the Log tab — which is where the API key setup card used to live, before it moved into Settings a while back. The button never got the memo, so it opened a tab with nothing on it.',
+    'Now it actually opens Settings and expands the right card, wherever it lives — fixed at the one shared place all of these buttons already point to, so it can\'t happen again the next time something moves.',
   ]},
 };
 
@@ -26305,7 +26309,7 @@ document.getElementById('photoLogInput').addEventListener('change', async (e)=>{
   const apiKey = await getApiKey();
 
   if(!apiKey){
-    resultEl.innerHTML = `<div class="care-banner care-banner-caution">Add your Anthropic API key in the "AI Features Setup" card below to use Snap a Meal.</div>`;
+    resultEl.innerHTML = aiKeySetupPrompt('Snap a Meal');
     return;
   }
 
@@ -29559,29 +29563,25 @@ async function renderGoalFeedback(){
 // One helper now owns the wording AND the location, so the two can't drift
 // apart again, and it ships a button that just takes you there rather than
 // describing where to look. Any future move of the card is one edit here.
+//
+// UPDATE: "the LOG tab" above went stale too — wireSettings() now reparents
+// aiSettingsCard into Settings (settingsAiSlot) unconditionally on every boot
+// (see [SETTINGS] wireSettings, move('aiSettingsCard', 'settingsAiSlot')), so
+// the button's own showView('log') + manual header-click it used to ship with
+// was sending people to a tab that no longer has the card on it at all — a
+// second instance of exactly the bug this helper was written to stop. Fixed
+// by using data-jump-to="aiSettingsCard" instead of a hand-rolled handler:
+// jumpToSetting() (wired once, document-level, near wireSettings) already
+// resolves a target's location from the DOM rather than a hardcoded guess,
+// and its own comment already names "AI Features Setup" as one of the cards
+// it accounts for living inside the settings sheet. One less place for the
+// location to be able to drift out from under a hardcoded assumption again.
 function aiKeySetupPrompt(feature){
   return `<div class="care-banner care-banner-caution">
     Add your Anthropic API key to use ${escapeHtml(feature)}. The same key powers every AI feature in the app.
-    <div class="app-banner-actions"><button type="button" class="app-banner-btn app-banner-btn-primary js-ai-setup-jump">Take me there</button></div>
+    <div class="app-banner-actions"><button type="button" class="app-banner-btn app-banner-btn-primary" data-jump-to="aiSettingsCard">Take me there</button></div>
   </div>`;
 }
-
-// Delegated at the document level so it works for every banner above, however
-// and whenever it was injected, without each call site wiring its own handler.
-document.addEventListener('click', (e)=>{
-  const btn = e.target.closest && e.target.closest('.js-ai-setup-jump');
-  if(!btn) return;
-  e.preventDefault();
-  showView('log');
-  const header = document.getElementById('aiSettingsHeader');
-  const wrap = document.getElementById('aiSettingsExpandWrap');
-  if(header && wrap && !wrap.classList.contains('open')) header.click();
-  setTimeout(()=>{
-    const key = document.getElementById('aiApiKeyInput');
-    if(header) header.scrollIntoView({behavior:'smooth', block:'center'});
-    if(key) setTimeout(()=> key.focus(), 320);
-  }, 60);
-});
 
 // [DIAGNOSTICS] ----------------------------------------------------------------
 // Answers, on the actual device, the questions that cannot be answered from a
