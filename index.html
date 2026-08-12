@@ -1949,9 +1949,65 @@
      they exist. The mask fades the right edge so the row reads as continuing.
      Toggled off by .at-end rather than left on permanently, because a
      permanent fade would dim the last pill once you had scrolled to it. */
-  .nav-pills-scroll:not(.at-end){
+
+  /* [SEARCH-PILL PEEK-THROUGH] A real, reproducible bug, distinct from the
+     "pill vanishes at the screen edge" problem the box-shadow occluder above
+     solves: switch to the LAST tab (e.g. Learn) on a phone-width screen and
+     the rail auto-scrolls as far right as it can. That maxes out scrollLeft —
+     there is no further room to scroll — so scroll-padding-left (which only
+     protects the pill being scrolled TO) cannot help: whichever pill happens
+     to land in the search pill's own 0-48px footprint at that exact scroll
+     position gets partially covered by it, and since that pill's own
+     background is UNDER the search pill (z-index 2) rather than clipped,
+     whatever part of its label extends past the search pill's right edge
+     stays fully opaque and visible — a stray "s" or two floating in open
+     space with no pill around it. Confirmed live: with Learn active on a
+     375px viewport, "Analysis" lands at this exact position and leaks its
+     last couple of letters.
+
+     Fix: extend the mask (already used for the right-edge fade below) to
+     also blank a zone just past the search pill's own width — wide enough to
+     hide any single pill's worst-case peek-through given this rail's actual
+     label set (max ~90px label, so up to ~42px could poke past the 48px-wide
+     search pill; 46px of margin here). The search pill's OWN 0-48px footprint
+     stays fully opaque (mask value #000) so this never touches the pill
+     itself, only whatever tries to show through just past it. A soft ~10px
+     taper on each side of the blanked zone, not a hard cut, so a pill
+     crossing it mid-drag fades rather than snapping in and out.
+
+     Toggled by .at-start the same way the right fade is toggled by .at-end:
+     at true rest (scrollLeft 0, e.g. Today active) nothing is behind the
+     search pill yet — Today starts cleanly right after it — so blanking that
+     zone unconditionally would wrongly fade the start of Today's own label
+     every time the rail is at its default position. Four states, four rules:
+     both fades combined, right-only (the original, untouched, still the
+     common case since most tabs aren't the very first or very last), left-
+     notch-only, and — at-start AND at-end together (everything fits, nothing
+     to scroll) — no rule at all, matching the pre-existing default of no
+     mask. */
+  .nav-pills-scroll:not(.at-start):not(.at-end){
+    -webkit-mask-image:linear-gradient(to right,
+      #000 0, #000 var(--nav-search-w),
+      transparent calc(var(--nav-search-w) + 10px), transparent calc(var(--nav-search-w) + 36px),
+      #000 calc(var(--nav-search-w) + 46px), #000 calc(100% - 34px), transparent);
+    mask-image:linear-gradient(to right,
+      #000 0, #000 var(--nav-search-w),
+      transparent calc(var(--nav-search-w) + 10px), transparent calc(var(--nav-search-w) + 36px),
+      #000 calc(var(--nav-search-w) + 46px), #000 calc(100% - 34px), transparent);
+  }
+  .nav-pills-scroll.at-start:not(.at-end){
     -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 34px), transparent);
     mask-image:linear-gradient(to right, #000 calc(100% - 34px), transparent);
+  }
+  .nav-pills-scroll:not(.at-start).at-end{
+    -webkit-mask-image:linear-gradient(to right,
+      #000 0, #000 var(--nav-search-w),
+      transparent calc(var(--nav-search-w) + 10px), transparent calc(var(--nav-search-w) + 36px),
+      #000 calc(var(--nav-search-w) + 46px));
+    mask-image:linear-gradient(to right,
+      #000 0, #000 var(--nav-search-w),
+      transparent calc(var(--nav-search-w) + 10px), transparent calc(var(--nav-search-w) + 36px),
+      #000 calc(var(--nav-search-w) + 46px));
   }
 
   /* [NAV RAIL CHEVRON] HANDOFF v32 — now a real child of the .nav-pills
@@ -5713,7 +5769,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.150';
+const APP_VERSION = '3.151';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -5937,6 +5993,9 @@ const WHATS_NEW = {
   '3.150': { headline: 'Behind-the-scenes: faster updates', points: [
     'No visible change — this is a purely internal restructuring. The masterclass technique library, training-style citations, and exercise database (previously all inline in the main app file) now load from a few separate files instead.',
     'The payoff: every future update used to force a full re-download of the entire app, including all of that unchanging reference content. Now only the parts that actually changed need to be re-fetched, so routine updates land faster.',
+  ]},
+  '3.151': { headline: 'Fixed a nav bar glitch on the Learn tab', points: [
+    'On a phone, switching to Learn (the last tab) could leave a stray letter or two floating next to the search icon — a leftover sliver of whichever tab happened to land behind it as the bar auto-scrolled. Fixed at the source rather than papered over.',
   ]},
 };
 
@@ -31439,9 +31498,17 @@ function wireOverflowFade(rail){
   // A 1px tolerance: fractional layout widths mean scrollLeft + clientWidth
   // lands a hair short of scrollWidth at the true end on plenty of devices, so
   // an exact comparison leaves the fade on permanently.
+  //
+  // .at-start mirrors .at-end for the left edge — see the [SEARCH-PILL
+  // PEEK-THROUGH] comment on .nav-pills-scroll's CSS for what it drives.
+  // Harmless on the Analysis index, this function's other caller: no CSS
+  // rule keys off .at-start for that element, since it has no pinned
+  // occluder pill to protect against.
   const sync = ()=>{
     const atEnd = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 1;
+    const atStart = rail.scrollLeft <= 1;
     rail.classList.toggle('at-end', atEnd);
+    rail.classList.toggle('at-start', atStart);
   };
   rail.__syncOverflowFade = sync;
   rail.addEventListener('scroll', sync, {passive:true});
