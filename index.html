@@ -2111,6 +2111,15 @@
     flex:0 0 auto; width:1px; align-self:stretch; margin:2px 0;
     background:var(--line); pointer-events:none;
   }
+  /* Every other tab's cards sit below ONE sticky bar (.nav-pills) and clear
+     it fine with the global button/input/select/textarea/.card rule's
+     80px scroll-margin-top. Analysis cards sit below TWO stacked sticky
+     bars — .nav-pills AND .analysis-index right below it — together closer
+     to 100px. Without a bigger margin here, jumping to a card via the
+     section index landed its title right under the index bar (its heading
+     hidden the same way the sticky day header used to hide the nav rail).
+     Scoped to #analysisView so every other tab keeps the existing 80px. */
+  #analysisView .card{ scroll-margin-top:128px; }
   /* HANDOFF v33: Labelled dividers between Analysis's three card groups
      (insights, body, training) — now also the collapse toggle for each
      group, not just a label. Nineteen cards even after v29's grouping is
@@ -5787,7 +5796,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.154';
+const APP_VERSION = '3.155';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6026,6 +6035,10 @@ const WHATS_NEW = {
   '3.154': { headline: 'Fixed Care’s "Mark as resting" falsely confirming when no region was picked', points: [
     'Logging a check-in without picking a body region still showed a "Mark as resting" button. Tapping it flipped to "Marked as resting ✓" even though there was no region to actually record — so it never showed up in Today\'s exercise cautions or the stale check-in reminder, with nothing in the UI hinting that.',
     'The button now only appears once a real region is picked, so it can\'t confirm something it never saved.',
+  ]},
+  '3.155': { headline: 'Fixed the Analysis section index landing you under itself', points: [
+    'Tapping a chip in the "jump to a section" bar on Analysis scrolled the right card into view — but landed its own title tucked just behind the sticky index bar above it, since that offset was only ever sized for the one sticky bar every other tab has, not the two stacked here.',
+    'Jumping to a section now clears both bars, so the card you tapped for actually lands in view instead of half-hidden behind the thing you used to get there.',
   ]},
 };
 
