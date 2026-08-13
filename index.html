@@ -23788,7 +23788,6 @@ document.getElementById('measureHeader').addEventListener('click', ()=>{
 document.getElementById('diagHeader').addEventListener('click', ()=>{
   const isOpen = document.getElementById('diagHeader').classList.toggle('open');
   document.getElementById('diagExpandWrap').classList.toggle('open', isOpen);
-  document.getElementById('diagChevron').classList.toggle('open', isOpen);
   setCardOpenState('diag', isOpen);
 });
 document.getElementById('diagRunBtn').addEventListener('click', runDiagnostics);
@@ -23838,7 +23837,6 @@ async function recordHealthImportIfSuccessful(results){
 document.getElementById('healthImportHeader').addEventListener('click', ()=>{
   const isOpen = document.getElementById('healthImportHeader').classList.toggle('open');
   document.getElementById('healthImportExpandWrap').classList.toggle('open', isOpen);
-  document.getElementById('healthImportChevron').classList.toggle('open', isOpen);
   setCardOpenState('healthImport', isOpen);
 });
 
