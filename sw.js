@@ -159,7 +159,13 @@
 // complete set — everything else flagged by the wider search already had
 // real descriptive text alongside its icon. Doesn't touch this file
 // directly, but the version still has to move.
-const VERSION = '3.160';
+//
+// v3.161: global search's "Go to"/"Techniques" groups now show a "Showing N
+// of M" hint past their result cap (matching the Exercises group), and
+// opening a masterclass now re-renders Learn's masterclass index immediately
+// instead of leaving it stale until the tab is re-entered. Doesn't touch this
+// file directly, but the version still has to move.
+const VERSION = '3.161';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the

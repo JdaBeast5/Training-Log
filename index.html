@@ -5852,7 +5852,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.160';
+const APP_VERSION = '3.161';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6117,6 +6117,10 @@ const WHATS_NEW = {
   '3.160': { headline: 'Tidied up the tab bar — Care, Coach, and Learn now live under "More"', points: [
     'Eight items across the top meant three of them (Care, Coach, Learn) usually sat scrolled off the right edge, reachable only after a horizontal scroll and a bit of hunting.',
     'Those three now live one tap away behind a new "More" button, cutting how far the tab bar has to scroll to reach everything. Nothing was removed — Care, Coach, and Learn work exactly as they did, just reached a slightly different way.',
+  ]},
+  '3.161': { headline: 'Search now tells you when there\'s more, and Learn stays in sync', points: [
+    'Global search used to cap "Go to" sections and masterclass techniques at 10 results with no sign anything was left out — a broad search like "e" could quietly hide dozens of matches. It now says "Showing 10 of 23" (or however many), the same way exercise results already did.',
+    'Opening a masterclass from Learn\'s own index used to leave that index stale — the button you just tapped kept showing "closed" until you left the tab and came back. It now flips to "Open · tap to close" the moment you open it.',
   ]},
 };
 
@@ -12089,6 +12093,16 @@ function openMasterclass(cardId){
   if(!entry || !card) return;
   card.style.display = '';
   try{ entry.render(); }catch(e){}
+  // closeMasterclass has always re-rendered the index so a closed card's
+  // button drops back to its unopened state — this was the missing other
+  // half. Without it, opening a masterclass from its OWN index button left
+  // that button showing aria-expanded="false" and no "Open · tap to close"
+  // meta text until something unrelated (leaving and re-entering Learn,
+  // or closing a different masterclass) happened to re-render the index
+  // and catch this one up along with it. Same rebuild, same place in the
+  // sequence as closeMasterclass, so the index reflects open/closed state
+  // right after either action, not just one of them.
+  renderMasterclassIndex();
   // A close control on the card itself, not only in the index — by the time
   // you have read one you are at the bottom of it, and the index is thousands
   // of pixels back up. Injected once, and never onto the program's own card.
@@ -31494,9 +31508,9 @@ function renderGlobalSearchResults(query){
     return;
   }
 
-  const sections = collectSearchSections()
-    .filter(s=> s.title.toLowerCase().includes(q))
-    .slice(0, GLOBAL_SEARCH_SECTION_LIMIT);
+  const allSections = collectSearchSections()
+    .filter(s=> s.title.toLowerCase().includes(q));
+  const sections = allSections.slice(0, GLOBAL_SEARCH_SECTION_LIMIT);
 
   // MATCHES ON NAME, CATEGORY, OR MUSCLE-GROUP LABEL — not name alone.
   //
@@ -31534,10 +31548,10 @@ function renderGlobalSearchResults(query){
   // only (no category/muscle-group indirection like exercises get \u2014 these
   // don't have one), ranked alphabetically since there's no name-vs-category
   // rank split to make here.
-  const techniques = buildMasterclassTechniqueSearchIndex()
+  const allTechniques = buildMasterclassTechniqueSearchIndex()
     .filter(t=> t.name.toLowerCase().includes(q))
-    .sort((a,b)=> a.name.localeCompare(b.name))
-    .slice(0, GLOBAL_SEARCH_TECHNIQUE_LIMIT);
+    .sort((a,b)=> a.name.localeCompare(b.name));
+  const techniques = allTechniques.slice(0, GLOBAL_SEARCH_TECHNIQUE_LIMIT);
 
   if(sections.length === 0 && shownEx.length === 0 && techniques.length === 0){
     el.innerHTML = '<div class="empty-note">\uD83D\uDD0D Nothing matches that \u2014 try a broader term.</div>';
@@ -31555,6 +31569,15 @@ function renderGlobalSearchResults(query){
       + `<span>${escapeHtml(s.title)}</span>`
       + `<span class="gsearch-hit-tab">${escapeHtml(s.tabLabel)} \u203a</span></button>`
     ).join('');
+    // Sections and techniques (below) used to cap at their LIMIT with no sign
+    // anything was left out \u2014 silent, unlike exercises, which have always
+    // said "Showing N of M" past their own limit. A broad query ("e") can
+    // match dozens of sections or hundreds of technique names, so capping
+    // without saying so reads as "that's everything" when it is not. Same
+    // hint, same class, same wording shape as the exercises one below.
+    if(allSections.length > sections.length){
+      html += `<div class="history-hint">Showing ${sections.length} of ${allSections.length} matching sections \u2014 try a more specific search.</div>`;
+    }
   }
   if(techniques.length){
     html += '<div class="gsearch-group">Techniques</div>';
@@ -31567,6 +31590,9 @@ function renderGlobalSearchResults(query){
       + `<span>${escapeHtml(t.name)}</span>`
       + `<span class="gsearch-hit-tab">${escapeHtml(t.masterclassLabel)} \u203a</span></button>`
     ).join('');
+    if(allTechniques.length > techniques.length){
+      html += `<div class="history-hint">Showing ${techniques.length} of ${allTechniques.length} matching techniques \u2014 try a more specific search.</div>`;
+    }
   }
   if(shownEx.length){
     html += '<div class="gsearch-group">Exercises</div>';

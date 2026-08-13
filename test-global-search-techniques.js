@@ -168,10 +168,12 @@ test('REAL invocation: openMasterclassTechnique gets to Learn, opens the masterc
     extractFunction(src, 'renderWatersportsTechniques'),
     extractFunction(src, 'isProgramOwnedMasterclass'),
     extractFunction(src, 'isMasterclassOpen'),
+    extractFunction(src, 'escapeHtml'),
+    extractFunction(src, 'renderMasterclassIndex'), // openMasterclass now re-renders the index too (search-and-index-freshness fix) — a real dependency of the function under test, not a stub
     extractFunction(src, 'openMasterclass'),
     extractFunction(src, 'openMasterclassTechnique'),
   ];
-  const bodyHtml = `<div class="card" id="watersportsTechniquesCard" style="display:none"><div id="watersportsTechniquesList"></div></div>`;
+  const bodyHtml = `<div id="masterclassIndex"></div><div class="card" id="watersportsTechniquesCard" style="display:none"><div id="watersportsTechniquesList"></div></div>`;
   const globalsSetup = `
     var activeProgram = 'strength'; // deliberately NOT watersports — search must reach a card you are not currently training
     window.__showViewCalls = [];
