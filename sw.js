@@ -178,7 +178,15 @@
 // bigger invisible tap area on controls that were previously exactly as
 // small as they look. Doesn't touch this file directly, but the version
 // still has to move.
-const VERSION = '3.167';
+//
+// v3.168: History's Day-by-Day Log card is now collapsible (reuses the
+// existing nutrition-header/expand-wrap collapsible-card pattern and
+// PERSISTENT_CARDS storage, defaulting open), and the "Last 30/90 days ·
+// Last year · All time" dropdown above it now scopes the visible
+// month-by-month list, not just the printed report — composes with the
+// existing exercise-name search filter. Doesn't touch this file directly,
+// but the version still has to move.
+const VERSION = '3.168';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the

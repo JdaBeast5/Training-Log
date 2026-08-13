@@ -5332,7 +5332,11 @@
     </div>
 
     <div class="card">
-      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.2 6.2a1 1 0 0 1 1-1h3.8l1.4 1.8h8.4a1 1 0 0 1 1 1v7.8a1 1 0 0 1-1 1H3.2a1 1 0 0 1-1-1Z"/></svg></span>Day-by-Day Log</div>
+      <div class="card-title nutrition-header" id="historyLogHeader">
+        <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.2 6.2a1 1 0 0 1 1-1h3.8l1.4 1.8h8.4a1 1 0 0 1 1 1v7.8a1 1 0 0 1-1 1H3.2a1 1 0 0 1-1-1Z"/></svg></span>Day-by-Day Log</span>
+        <span class="ex-chevron" aria-hidden="true" id="historyLogChevron">›</span>
+      </div>
+      <div class="expand-wrap" id="historyLogExpandWrap"><div>
       <div class="history-hint">Every logged day, grouped by month — workouts, weigh-ins, and rest days you marked as followed. Tap a month to expand it. Green = progress, red = down from last time.</div>
       <div id="historyHeatmap" style="display:none">
         <div class="calendar-weekday-row">
@@ -5346,7 +5350,7 @@
         </div>
       </div>
       <div class="history-export-row">
-        <select id="historyExportRange" class="history-export-select" aria-label="Report date range">
+        <select id="historyExportRange" class="history-export-select" aria-label="Date range">
           <option value="30">Last 30 days</option>
           <option value="90">Last 90 days</option>
           <option value="365">Last year</option>
@@ -5357,6 +5361,7 @@
       <input type="search" id="historySearch" class="care-input history-search" placeholder="Filter by exercise, e.g. deadlift" aria-label="Filter history by exercise name" autocomplete="off">
       <div id="historySearchStatus" class="history-search-status"></div>
       <div id="historyList"></div>
+      </div></div>
     </div>
   </div>
 
@@ -6014,7 +6019,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.167';
+const APP_VERSION = '3.168';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6310,6 +6315,10 @@ const WHATS_NEW = {
   ]},
   '3.167': { headline: 'Learn tab: your stuff first, the full index below it', points: [
     'Exercise Library, Recently Trained, and your program\'s own masterclass card now sit above "All Masterclasses" instead of below it — so what\'s actually relevant to you shows up first, and the browse-everything index is there when you want it, further down.',
+  ]},
+  '3.168': { headline: 'Day-by-Day Log can now collapse, and its date range actually does something', points: [
+    'History\'s Day-by-Day Log card can now be collapsed down to just its title, the same way Nutrition, Body Measurements, and the other collapsible cards already work — tap the header to tuck the whole month-by-month list out of the way.',
+    'The "Last 30 days / 90 days / Last year / All time" dropdown above that list used to only affect the printed workout report — picking a range did nothing to what was actually shown on screen. It now scopes the visible list too, and still works together with the exercise-name search box (e.g. "last 30 days" and "deadlift" at once).',
   ]},
 };
 
@@ -13995,6 +14004,18 @@ function closeExerciseSubModal(){
 }
 
 document.getElementById('subModalClose').addEventListener('click', closeExerciseSubModal);
+
+// Day-by-Day Log card collapse. Same three-line wiring every other
+// nutrition-header/expand-wrap card uses (see cycleHeader/programHeader
+// nearby) — toggle .open on both the header and its wrap, persist via
+// setCardOpenState under the 'historyLog' key already added to
+// PERSISTENT_CARDS above.
+document.getElementById('historyLogHeader').addEventListener('click', ()=>{
+  const isOpen = document.getElementById('historyLogHeader').classList.toggle('open');
+  document.getElementById('historyLogExpandWrap').classList.toggle('open');
+  setCardOpenState('historyLog', isOpen);
+});
+
 // History filter. Debounced because renderHistory rebuilds the whole day log
 // from storage on every call, and firing that per keystroke on a phone makes
 // typing feel laggy. 220ms is below the threshold where the delay reads as the
@@ -14007,6 +14028,16 @@ document.getElementById('historySearch').addEventListener('input', (e)=>{
     historyFilter = val;
     renderHistory();
   }, 220);
+});
+
+// This dropdown used to be read ONLY at print-report time (below) — the
+// visible day-by-day list ignored it entirely, so picking "Last 30 days"
+// silently did nothing to what was on screen. renderHistory() now reads the
+// same select directly (see the [HISTORY] date-range comment inside it), so
+// this listener's only job is to re-render when the choice changes; no
+// separate state to keep in sync with what buildPrintReport reads.
+document.getElementById('historyExportRange').addEventListener('change', ()=>{
+  renderHistory();
 });
 
 document.getElementById('historyExportBtn').addEventListener('click', async ()=>{
@@ -18562,13 +18593,21 @@ function isDistanceExercise(exName){
 // survives reloads. Deliberately NOT applied to the Profile card, which
 // already has its own considered auto-collapse-after-save behavior that
 // blind persistence would fight with.
-const PERSISTENT_CARDS = ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings', 'program', 'healthImport', 'diag'];
+//
+// 'historyLog' (the History tab's Day-by-Day Log card) joined this list to
+// give it the same whole-card collapse every other long card already has —
+// each month inside it was already individually collapsible via <details>,
+// but there was no way to get the card itself out of the way. Like
+// Nutrition, it defaults OPEN: unlike the others here, this is the one
+// thing the History tab is chiefly for, so collapsed-by-default would hide
+// the reason someone came to the tab.
+const PERSISTENT_CARDS = ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings', 'program', 'healthImport', 'diag', 'historyLog'];
 async function getCardOpenState(key){
   // An explicit stored choice always wins. Only when NOTHING has ever
-  // been stored does this fall back to a default — Nutrition alone
-  // defaults open (it's the most-used daily section on Log, unlike the
-  // others in PERSISTENT_CARDS), everything else keeps the original
-  // default-closed behavior. restoreCardOpenStates only ever ADDS .open,
+  // been stored does this fall back to a default — Nutrition and the
+  // History Day-by-Day Log both default open (each is the most-used part
+  // of its own tab), everything else keeps the original default-closed
+  // behavior. restoreCardOpenStates only ever ADDS .open,
   // never removes it, so this has to be the single source of truth for
   // "closed" rather than hardcoding class="open" in the static HTML —
   // that would have let a user's own explicit collapse (stored 'false')
@@ -18580,8 +18619,8 @@ async function getCardOpenState(key){
   try{
     const res = await window.storage.get('card-open:'+key);
     if(res) return res.value === 'true';
-    return key === 'nutrition';
-  }catch(e){ return key === 'nutrition'; }
+    return key === 'nutrition' || key === 'historyLog';
+  }catch(e){ return key === 'nutrition' || key === 'historyLog'; }
 }
 async function setCardOpenState(key, isOpen){
   try{ await window.storage.set('card-open:'+key, isOpen ? 'true' : 'false'); }catch(e){}
@@ -28900,6 +28939,30 @@ async function renderHistory(){
     return;
   }
 
+  // Date-range scoping. This is the same #historyExportRange dropdown
+  // buildPrintReport already reads at export time — it used to scope ONLY
+  // the print report, leaving the dropdown showing e.g. "Last 30 days"
+  // while the list below it kept showing everything, which read as the
+  // control doing nothing. Same cutoff math (dateKeyMinusDays from
+  // getTodayKey) as buildPrintReport, so "last 30 days" means the same 30
+  // days in both places rather than two near-identical range calculations
+  // drifting apart.
+  const historyRangeSel = document.getElementById('historyExportRange');
+  const historyRangeDays = historyRangeSel ? historyRangeSel.value : 'all';
+  if(historyRangeDays !== 'all'){
+    const cutoff = dateKeyMinusDays(getTodayKey(), Number(historyRangeDays));
+    dates = dates.filter(d=> d >= cutoff);
+  }
+  const historyRangeNote = historyRangeDays === 'all' ? '' : `in the last ${historyRangeDays} days`;
+
+  if(dates.length === 0 && !historyFilter){
+    listEl.innerHTML = historyRangeNote
+      ? `<div class="empty-note">Nothing logged ${historyRangeNote}. Widen the date range above to see older entries.</div>`
+      : '<div class="empty-note">Nothing logged yet — once you start tracking workouts and weigh-ins, they\'ll show up here month by month.</div>';
+    if(statusEl) statusEl.textContent = '';
+    return;
+  }
+
   // Filtering answers the question this tab could not: "when did I last
   // deadlift?" It matches on exercise name only — substring, case-insensitive.
   // Deliberately NOT a full-text search across notes and day labels: matching
@@ -28909,7 +28972,7 @@ async function renderHistory(){
     const q = historyFilter.toLowerCase();
     dates = dates.filter(d=> (dayMap[d].exercises||[]).some(ex=> (ex.name||'').toLowerCase().includes(q)));
     if(dates.length === 0){
-      listEl.innerHTML = `<div class="empty-note">No logged sessions match "${escapeHtml(historyFilter)}". Filtering looks at exercise names only.</div>`;
+      listEl.innerHTML = `<div class="empty-note">No logged sessions match "${escapeHtml(historyFilter)}"${historyRangeNote ? ' '+historyRangeNote : ''}. Filtering looks at exercise names only.</div>`;
       if(statusEl) statusEl.textContent = '';
       return;
     }
