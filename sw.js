@@ -165,7 +165,13 @@
 // opening a masterclass now re-renders Learn's masterclass index immediately
 // instead of leaving it stale until the tab is re-entered. Doesn't touch this
 // file directly, but the version still has to move.
-const VERSION = '3.162';
+//
+// v3.163: quick-add labels no longer clip at 375px, macro "current / target"
+// values stay on one line instead of wrapping, and the app's one date input
+// now renders its native calendar chrome in dark instead of the browser's
+// default light scheme. Doesn't touch this file directly, but the version
+// still has to move.
+const VERSION = '3.163';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the

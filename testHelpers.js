@@ -335,8 +335,32 @@ function extractElementById(html, id){
   if(!idMatch) throw new Error(`extractElementById: no element with id="${id}" found`);
   const tagStart = html.lastIndexOf('<', idMatch.index);
   if(tagStart === -1) throw new Error(`extractElementById: could not find opening < before id="${id}"`);
+  return extractElementAtTagStart(html, tagStart, `id="${id}"`);
+}
+
+// Same identity-based lookup as extractElementById, keyed on a class name
+// instead — for the handful of real containers (e.g. .quick-add-row) that
+// have no id of their own. Requires the class to be unique in the file, same
+// as extractElementById requires the id to be.
+function extractElementByClass(html, className){
+  const classRe = new RegExp(`class=["'][^"']*\\b${className}\\b[^"']*["']`);
+  const matches = html.match(new RegExp(classRe.source, 'g')) || [];
+  if(matches.length === 0) throw new Error(`extractElementByClass: no element with class "${className}" found`);
+  if(matches.length > 1) throw new Error(`extractElementByClass: class "${className}" is not unique (${matches.length} matches) — pass a more specific id-based lookup instead`);
+  const classMatch = classRe.exec(html);
+  const tagStart = html.lastIndexOf('<', classMatch.index);
+  if(tagStart === -1) throw new Error(`extractElementByClass: could not find opening < before class="${className}"`);
+  return extractElementAtTagStart(html, tagStart, `class~="${className}"`);
+}
+
+// Shared by extractElementById/extractElementByClass: walks forward from a
+// known `<tagname` start, counting nested opens/closes of that SAME tag name
+// until back to depth 0. Skips quoted attribute values (so a `>` inside
+// alt=">" can't end a tag early) and HTML comments (so a `</div>` mentioned
+// inside `<!-- -->` can't miscount).
+function extractElementAtTagStart(html, tagStart, describedBy){
   const tagNameMatch = /^<([a-zA-Z0-9-]+)/.exec(html.slice(tagStart));
-  if(!tagNameMatch) throw new Error(`extractElementById: could not read tag name at index ${tagStart}`);
+  if(!tagNameMatch) throw new Error(`extractElementAtTagStart: could not read tag name at index ${tagStart} (looking for ${describedBy})`);
   const tagName = tagNameMatch[1];
 
   const openRe = new RegExp(`<${tagName}(?=[\\s>])`, 'g');
@@ -389,7 +413,7 @@ function extractElementById(html, id){
     }
     i++;
   }
-  throw new Error(`extractElementById: never found matching close for <${tagName} id="${id}">`);
+  throw new Error(`extractElementAtTagStart: never found matching close for <${tagName} ${describedBy}>`);
 }
 
 // For tests that need real DOM behavior (classList, dataset,
@@ -417,6 +441,7 @@ module.exports = {
   extractConst,
   extractIIFE,
   extractElementById,
+  extractElementByClass,
   countCallSites,
   makeRunner,
   runSandbox,
