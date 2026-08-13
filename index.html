@@ -2059,7 +2059,7 @@
      of promising sections that autohide has already removed. */
   .analysis-index{
     display:flex; gap:6px; overflow-x:auto; scrollbar-width:none;
-    margin:0 -18px 14px; padding:6px 18px 8px;
+    margin:0 -18px 14px; padding:4px 18px 6px;
     /* STICKS BELOW THE NAV RAIL. An index that only exists at the top of the
        tab is as far away as the nav bar used to be once you are fifteen cards
        down — the exact problem the sticky rail was added to solve, one level
@@ -2092,13 +2092,23 @@
   /* Deliberately a smaller sibling of .nav-pill, not a new thing: same fill,
      same border, same weight, same radius scale one step down, same tap scale.
      It sits directly beneath the rail, so anything that differed would read as
-     a mistake rather than as a hierarchy. */
+     a mistake rather than as a hierarchy.
+
+     Tab-layout audit (v3.157): stacked directly under the nav rail, this
+     chip's own drop shadow (the second half of the box-shadow below) plus
+     the rail's own on .nav-pill made the two independently-blurred glass
+     bars read as one thick blob instead of "nav + secondary index" — on
+     top of the raw height cost of two sticky bars, a compounding visual-
+     weight cost. Padding trimmed here and on .analysis-index above (saves
+     ~4px off each) and the drop shadow dropped, keeping only the inset
+     top highlight — .nav-pill is untouched, so the index still reads as
+     clearly secondary/lighter, just no longer independently "heavy". */
   .analysis-index-chip{
     flex:0 0 auto; background:var(--surface2); border:1px solid var(--line);
     color:var(--text-muted); font-family:'Inter',sans-serif; font-size:11.5px;
-    font-weight:600; letter-spacing:-0.01em; padding:7px 12px;
+    font-weight:600; letter-spacing:-0.01em; padding:5px 10px;
     border-radius:var(--radius-sm); cursor:pointer;
-    box-shadow:0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 12px -8px rgba(0,0,0,0.5);
+    box-shadow:0 1px 0 rgba(255,255,255,0.04) inset;
     transition:background 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .analysis-index-chip:active{transform:scale(0.95);}
@@ -5796,7 +5806,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.157';
+const APP_VERSION = '3.158';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6049,6 +6059,10 @@ const WHATS_NEW = {
     'Switching day tabs or food categories used to throw you back to the top of the page, because the row gets rebuilt from scratch each time. It now hands you back to the tab or category you just picked, so you carry on from where you were.',
     'Decorative icons and the little chevrons are now skipped by screen readers instead of being read out one by one next to the words they already duplicate.',
     'Nothing looks or behaves differently if you use the app by touch.',
+  ]},
+  '3.158': { headline: 'Lightened up the Analysis tab\'s section-jump bar', points: [
+    'The "jump to a section" row on Analysis sat directly under the tab bar and carried the exact same padding and drop shadow — together the two read as one thick slab rather than a tab bar with a lighter shortcut row underneath.',
+    'Trimmed the row and its chips down and dropped the extra shadow, so it now sits noticeably lighter under the tab bar instead of doubling its visual weight.',
   ]},
 };
 
