@@ -7,12 +7,15 @@
 // blurred glass, which reads as one thick blob rather than "nav + a
 // lighter secondary index").
 //
-// This increment (audit option #1, "tighten the double bar") does NOT
-// touch .nav-pill or the sticky positioning/measurement machinery
-// (--nav-rail-h, the two tests in test-analysis-index-scroll-clearance.js
-// already cover that). It only reduces .analysis-index's own vertical
-// padding and .analysis-index-chip's padding (shaving real height off the
-// second bar) and drops the chip's drop-shadow component (keeping only the
+// This increment (audit option #1, "tighten the double bar") did NOT
+// touch .nav-pill's geometry or the sticky positioning/measurement
+// machinery (--nav-rail-h, the two tests in
+// test-analysis-index-scroll-clearance.js already cover that) — a later,
+// separate increment (option #3) does trim .nav-pill's own box-shadow,
+// covered by test-nav-pill-visual-weight.js instead. This file only
+// reduces .analysis-index's own vertical padding and
+// .analysis-index-chip's padding (shaving real height off the second
+// bar) and drops the chip's drop-shadow component (keeping only the
 // inset top highlight), so the index reads as a lighter continuation of
 // the rail rather than a second independently-heavy bar.
 //
@@ -53,8 +56,15 @@ test('sabotage-relevant: .analysis-index-chip padding is smaller than the origin
 
 test('regression guard: .nav-pill itself is completely untouched by this change — the index gets lighter, the primary rail does not', (assert)=>{
   const block = extractRuleBlock(src, '.nav-pill');
-  assert.match(block, /padding:10px 13px;/, '.nav-pill padding must be unchanged');
-  assert.match(block, /box-shadow:0 1px 0 rgba\(255,255,255,0\.04\) inset, 0 4px 12px -8px rgba\(0,0,0,0\.5\);/, '.nav-pill must keep its full original shadow — only the secondary index bar was lightened');
+  // Geometry (padding/font-size/tap-target size) is this test's real
+  // regression guard for THIS increment — it's not this pass's job to
+  // touch it. .nav-pill's own box-shadow was intentionally trimmed in a
+  // later, separate increment (tab-layout option #3, same rationale as
+  // this file's .analysis-index-chip change) — see
+  // test-nav-pill-visual-weight.js for that change's own coverage, so this
+  // file no longer asserts a shadow value that later commit deliberately
+  // supersedes.
+  assert.match(block, /padding:10px 13px;/, '.nav-pill padding must be unchanged by this increment — geometry/tap-target size is out of scope here');
 });
 
 run();

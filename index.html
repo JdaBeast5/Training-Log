@@ -1916,7 +1916,7 @@
      This is deliberately the same box model the single .nav-pills div used
      to have; only the sticky/background/margin half moved out to the shell. */
   .nav-pills-scroll{
-    display:flex; gap:8px;
+    display:flex; gap:6px;
     overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
     /* HANDOFF v31: settles the rail on a pill boundary after a drag or the
        programmatic scrollIntoView on tab switch, instead of stopping
@@ -2192,7 +2192,14 @@
        this narrows the gap, it doesn't close it, which is why the chevron
        and the snap points above exist rather than relying on this alone. */
     padding:10px 13px; border-radius:var(--radius-md); cursor:pointer; font-weight:600;
-    box-shadow:0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 12px -8px rgba(0,0,0,0.5);
+    /* Tab-layout audit (v3.159, option #3): dropped the outer drop-shadow,
+       keeping only the inset top highlight — the same trim already applied
+       to .analysis-index-chip directly beneath this bar. Geometry (padding,
+       font-size, tap-target size) is UNCHANGED on purpose: that's the tap-
+       target fork's territory, not this pass's. .nav-pill.active keeps its
+       own distinct glow (a deliberate "this is selected" cue, not generic
+       weight) — untouched. */
+    box-shadow:0 1px 0 rgba(255,255,255,0.04) inset;
     transition:background 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth), color 0.25s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.25s var(--ease-smooth);
     scroll-snap-align:start;
   }
@@ -5806,7 +5813,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.158';
+const APP_VERSION = '3.159';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6063,6 +6070,10 @@ const WHATS_NEW = {
   '3.158': { headline: 'Lightened up the Analysis tab\'s section-jump bar', points: [
     'The "jump to a section" row on Analysis sat directly under the tab bar and carried the exact same padding and drop shadow — together the two read as one thick slab rather than a tab bar with a lighter shortcut row underneath.',
     'Trimmed the row and its chips down and dropped the extra shadow, so it now sits noticeably lighter under the tab bar instead of doubling its visual weight.',
+  ]},
+  '3.159': { headline: 'Lightened up the main tab bar itself', points: [
+    'The tabs at the top carried a fairly heavy drop shadow and sat with a bit more breathing room between them than they needed — nothing wrong on its own, but combined with everything else it added to the "thick" feeling at the top of the screen.',
+    'Trimmed the shadow down to a subtle highlight and tightened the spacing between tabs a touch. The tabs themselves are the exact same size and still just as easy to tap — this is purely about how heavy they look.',
   ]},
 };
 
