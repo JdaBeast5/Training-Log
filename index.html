@@ -691,8 +691,9 @@
   .ex-name .sub-tag{color:var(--plate-purple);}
   .ex-swap-icon{display:inline-block; font-size:12px; color:var(--plate-blue); opacity:0.75; margin-left:2px; padding:6px 4px; margin-block:-6px; cursor:pointer;}
   .ex-delete-custom-btn{
-    flex:0 0 auto; background:none; border:none; color:var(--text-muted); font-size:15px;
+    flex:0 0 auto; background:none; border:none; color:var(--text-muted); font-size:0;
     cursor:pointer; padding:4px; margin-right:2px;
+    display:inline-flex; align-items:center; justify-content:center;
   }
   .ex-name.done{color:var(--text-muted); text-decoration:line-through;}
   .ex-name.done .super-tag{color:var(--text-muted);}
@@ -3053,7 +3054,8 @@
     background:linear-gradient(160deg, #4FE168, var(--plate-green) 60%); border-color:var(--plate-green);
   }
   .fi-duplicate{
-    background:none; border:none; font-size:15px; cursor:pointer; padding:2px; color:var(--text-muted); line-height:1;
+    background:none; border:none; font-size:0; cursor:pointer; padding:2px; color:var(--text-muted); line-height:1;
+    display:inline-flex; align-items:center; justify-content:center;
   }
 
   /* Masterclass index rows. Secondary/navigational, so they follow the
@@ -3376,6 +3378,65 @@
     -webkit-mask-size:contain; mask-size:contain;
     -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%271.2%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Crect%20x%3D%2716.4%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Cline%20x1%3D%274%27%20y1%3D%2710%27%20x2%3D%2716%27%20y2%3D%2710%27%2F%3E%3Crect%20x%3D%274.6%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3Crect%20x%3D%2713.4%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3C%2Fsvg%3E");
     mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%271.2%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Crect%20x%3D%2716.4%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Cline%20x1%3D%274%27%20y1%3D%2710%27%20x2%3D%2716%27%20y2%3D%2710%27%2F%3E%3Crect%20x%3D%274.6%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3Crect%20x%3D%2713.4%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3C%2Fsvg%3E");
+  }
+
+  /* Second batch of icon-only glyph conversions, same mechanism as the two
+     above (font-size:0 on the base rule collapses the emoji character,
+     which stays in the markup for accessibility, and this ::after draws
+     the real glyph as a currentColor mask). .fi-duplicate is the food-row
+     "duplicate & edit" button (rendered once per row in food search — the
+     most-repeated icon-only button converted in this batch). This exact
+     pencil artwork is reused, unscaled coordinates aside, by the ICONS
+     'edit' entry below for .ex-edit-btn's icon+text button, so the two
+     "edit" affordances in this app draw visually the same pencil. */
+  .fi-duplicate::after{
+    content:''; display:block; width:14px; height:14px;
+    background:currentColor;
+    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+    -webkit-mask-position:center; mask-position:center;
+    -webkit-mask-size:contain; mask-size:contain;
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M13%203.2%2016.8%207%207.4%2016.4%203%2017.6%204.2%2013.2Z%27%2F%3E%3Cline%20x1%3D%2711%27%20y1%3D%275.2%27%20x2%3D%2714.8%27%20y2%3D%279%27%2F%3E%3C%2Fsvg%3E");
+    mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M13%203.2%2016.8%207%207.4%2016.4%203%2017.6%204.2%2013.2Z%27%2F%3E%3Cline%20x1%3D%2711%27%20y1%3D%275.2%27%20x2%3D%2714.8%27%20y2%3D%279%27%2F%3E%3C%2Fsvg%3E");
+  }
+
+  /* The food-row "remove from My Foods" button. It shares its base class,
+     .fi-star, with the adjacent favourite-star toggle (★/☆ — plain
+     typography, not an emoji, deliberately left alone) rather than having
+     one of its own, so font-size:0 can't go on .fi-star itself without
+     also blanking the star. .fi-delete is a second class added to just
+     this button's markup for that reason: same specificity as .fi-star,
+     so it wins on the properties it declares purely by appearing later in
+     the stylesheet, without touching anything .fi-star still owns for the
+     star toggle. */
+  .fi-delete{
+    font-size:0; display:inline-flex; align-items:center; justify-content:center;
+  }
+  /* Same trash artwork as .ex-delete-custom-btn::after below, reused
+     verbatim rather than drawn twice — one "remove this" glyph for the
+     whole app, matching how the plate-calculator glyph reuses the header
+     brand mark's barbell rather than being its own drawing. */
+  .fi-delete::after{
+    content:''; display:block; width:14px; height:14px;
+    background:currentColor;
+    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+    -webkit-mask-position:center; mask-position:center;
+    -webkit-mask-size:contain; mask-size:contain;
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cline%20x1%3D%274%27%20y1%3D%276%27%20x2%3D%2716%27%20y2%3D%276%27%2F%3E%3Cpath%20d%3D%27M7.3%206V4.3a1%201%200%200%201%201-1h3.4a1%201%200%200%201%201%201V6%27%2F%3E%3Cpath%20d%3D%27M5.6%206%206.3%2016.2a1%201%200%200%200%201%200.9h5.4a1%201%200%200%200%201-0.9L14.4%206%27%2F%3E%3Cline%20x1%3D%278.3%27%20y1%3D%279%27%20x2%3D%278.3%27%20y2%3D%2713.6%27%2F%3E%3Cline%20x1%3D%2711.7%27%20y1%3D%279%27%20x2%3D%2711.7%27%20y2%3D%2713.6%27%2F%3E%3C%2Fsvg%3E");
+    mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cline%20x1%3D%274%27%20y1%3D%276%27%20x2%3D%2716%27%20y2%3D%276%27%2F%3E%3Cpath%20d%3D%27M7.3%206V4.3a1%201%200%200%201%201-1h3.4a1%201%200%200%201%201%201V6%27%2F%3E%3Cpath%20d%3D%27M5.6%206%206.3%2016.2a1%201%200%200%200%201%200.9h5.4a1%201%200%200%200%201-0.9L14.4%206%27%2F%3E%3Cline%20x1%3D%278.3%27%20y1%3D%279%27%20x2%3D%278.3%27%20y2%3D%2713.6%27%2F%3E%3Cline%20x1%3D%2711.7%27%20y1%3D%279%27%20x2%3D%2711.7%27%20y2%3D%2713.6%27%2F%3E%3C%2Fsvg%3E");
+  }
+
+  /* The custom-exercise-row delete button. Not part of any existing
+     hit-area-extension group (unlike .fi-duplicate/.fi-star above), so
+     nothing to reuse here — a plain, self-contained glyph rule. Same
+     trash artwork as .fi-delete::after above. */
+  .ex-delete-custom-btn::after{
+    content:''; display:block; width:14px; height:14px;
+    background:currentColor;
+    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+    -webkit-mask-position:center; mask-position:center;
+    -webkit-mask-size:contain; mask-size:contain;
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cline%20x1%3D%274%27%20y1%3D%276%27%20x2%3D%2716%27%20y2%3D%276%27%2F%3E%3Cpath%20d%3D%27M7.3%206V4.3a1%201%200%200%201%201-1h3.4a1%201%200%200%201%201%201V6%27%2F%3E%3Cpath%20d%3D%27M5.6%206%206.3%2016.2a1%201%200%200%200%201%200.9h5.4a1%201%200%200%200%201-0.9L14.4%206%27%2F%3E%3Cline%20x1%3D%278.3%27%20y1%3D%279%27%20x2%3D%278.3%27%20y2%3D%2713.6%27%2F%3E%3Cline%20x1%3D%2711.7%27%20y1%3D%279%27%20x2%3D%2711.7%27%20y2%3D%2713.6%27%2F%3E%3C%2Fsvg%3E");
+    mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cline%20x1%3D%274%27%20y1%3D%276%27%20x2%3D%2716%27%20y2%3D%276%27%2F%3E%3Cpath%20d%3D%27M7.3%206V4.3a1%201%200%200%201%201-1h3.4a1%201%200%200%201%201%201V6%27%2F%3E%3Cpath%20d%3D%27M5.6%206%206.3%2016.2a1%201%200%200%200%201%200.9h5.4a1%201%200%200%200%201-0.9L14.4%206%27%2F%3E%3Cline%20x1%3D%278.3%27%20y1%3D%279%27%20x2%3D%278.3%27%20y2%3D%2713.6%27%2F%3E%3Cline%20x1%3D%2711.7%27%20y1%3D%279%27%20x2%3D%2711.7%27%20y2%3D%2713.6%27%2F%3E%3C%2Fsvg%3E");
   }
 
   /* .reorder-arrows has gap:2px, so there is almost no horizontal room to
@@ -6030,7 +6091,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.169';
+const APP_VERSION = '3.170';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6333,6 +6394,9 @@ const WHATS_NEW = {
   ]},
   '3.169': { headline: 'Replaced the weightlifter emoji with a matching icon everywhere', points: [
     'The plate-calculator button showed a raw 🏋️ emoji outside of Gym Mode — full-colour and a different shape on every phone, unlike the clean barbell icon Gym Mode already used for it. Now it\'s the same simple icon everywhere, matching the fix already made for the voice-log button\'s mic icon.',
+  ]},
+  '3.170': { headline: 'Replaced five more raw emoji icons with clean vector glyphs', points: [
+    'The food-search "duplicate & edit" and "remove from My Foods" buttons, the custom-exercise delete button, and the per-exercise History/Edit buttons all used to show full-colour vendor emoji (a pencil, a trash can, a trending-up chart) that looked different on every phone. They now draw the same simple line icons everywhere, matching the earlier fix to the plate-calculator and voice-log buttons.',
   ]},
 };
 
@@ -15785,8 +15849,8 @@ async function renderWorkout(){
       // before" — one applies it, the other lets you look. Placed in the sets
       // block rather than on the exercise name, which is already the swap
       // trigger for any exercise with alternatives.
-      const historyBtnHtml = `<button type="button" class="ex-history-btn" data-idx="${i}" aria-label="See all history for ${escapeHtml(ex.name)}">📈 History</button>`
-        + `<button type="button" class="ex-edit-btn" data-idx="${i}" aria-label="Edit the prescription for ${escapeHtml(ex.name)}">✏️ Edit</button>`;
+      const historyBtnHtml = `<button type="button" class="ex-history-btn" data-idx="${i}" aria-label="See all history for ${escapeHtml(ex.name)}">${icon('trend')} History</button>`
+        + `<button type="button" class="ex-edit-btn" data-idx="${i}" aria-label="Edit the prescription for ${escapeHtml(ex.name)}">${icon('edit')} Edit</button>`;
       const sameAsLastHtml = (prior ? `<button type="button" class="same-as-last-btn" data-idx="${i}">↻ Same as Last Time${priorIsCrossProgram ? ` (${escapeHtml(programLabelFor(priorSourceProgram))})` : ''}</button>` : '') + historyBtnHtml;
       const setRowsHtml = Array.from({length: setCount}).map((_,setIdx)=>{
         const savedSet = todayEntry && todayEntry.sets[setIdx] ? todayEntry.sets[setIdx] : null;
@@ -22344,7 +22408,7 @@ function buildFoodItemBtn(item, showCategory){
     <div class="fi-actions">
       <button class="fi-duplicate" type="button" aria-label="Duplicate and edit ${escapeHtml(item.name)}">✏️</button>
       <button class="fi-star ${favorited?'favorited':''}" type="button" aria-pressed="${favorited?'true':'false'}" aria-label="${favorited?'Remove':'Add'} ${escapeHtml(item.name)} ${favorited?'from':'to'} favourites">${favorited?'★':'☆'}</button>
-      ${isCustom ? `<button class="fi-star" type="button" aria-label="Remove ${escapeHtml(item.name)} from My Foods">🗑️</button>` : ''}
+      ${isCustom ? `<button class="fi-star fi-delete" type="button" aria-label="Remove ${escapeHtml(item.name)} from My Foods">🗑️</button>` : ''}
       <div class="fi-plus">+</div>
     </div>
   `;
@@ -30437,6 +30501,14 @@ const ICONS = {
   check:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 13 9 18 20 6"/></svg>',
   warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 22 20.5 2 20.5Z"/><line x1="12" y1="9.5" x2="12" y2="14"/><circle cx="12" cy="17.3" r="0.6" fill="currentColor" stroke="none"/></svg>',
   error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>',
+  // Two more icon+text conversions, same HTML-template-context rule as
+  // 'check'/'warning'/'error' above: only call sites that build markup via
+  // an HTML string, verified one at a time. 'edit' is the same pencil
+  // shape (redrawn at this object's 24x24/stroke-2.2 convention rather
+  // than the 20x20/stroke-1.6 mask convention) as .fi-duplicate::after's
+  // CSS glyph, so the app's two "edit" affordances read as one icon.
+  edit:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 4 19.4 8.2 8.2 19.4 3.4 20.6 4.6 15.8Z"/><line x1="12.7" y1="6.5" x2="16.9" y2="10.7"/></svg>',
+  trend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 10.5 13 14 21 5"/><polyline points="15 5 21 5 21 11"/></svg>',
 };
 
 // Defaults to 1em so it sits inline with surrounding text at whatever
