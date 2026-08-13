@@ -186,7 +186,13 @@
 // month-by-month list, not just the printed report — composes with the
 // existing exercise-name search filter. Doesn't touch this file directly,
 // but the version still has to move.
-const VERSION = '3.170';
+//
+// v3.171: H2.2 — extended the H2.1/v3.92 --plate-*-rgb rgba() token
+// consolidation from box-shadow-only literals to a bounded batch of
+// background/border/gradient rgba() literals (red/green/orange/teal/purple).
+// Purely internal (same computed colors); doesn't touch this file directly,
+// but the version still has to move.
+const VERSION = '3.171';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the

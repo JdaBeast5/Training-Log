@@ -68,12 +68,18 @@
     --plate-off:#4A5057;
     /* R/G/B companions for the box-shadow-glow rgba() consolidation — see
        the [PHASE H] note at the top of this <style> block for why these
-       exist and what they deliberately don't cover. */
+       exist and what they deliberately don't cover.
+       [PHASE H2.2] --plate-teal-rgb/--plate-purple-rgb added here: same
+       reasoning, extended to background/border rgba() literals of those two
+       colors (6 and 4 repeats respectively, both past the 3+ genuine-
+       duplication bar) found during the H2.1 follow-up pass. */
     --plate-red-rgb:255,69,58;
     --plate-blue-rgb:91,124,255;
     --plate-yellow-rgb:245,197,24;
     --plate-green-rgb:50,215,75;
     --plate-orange-rgb:255,122,51;
+    --plate-teal-rgb:47,184,196;
+    --plate-purple-rgb:178,107,255;
     /* The two most-repeated CTA gradients (5x and 4x respectively) as of a
        grep across the file — tokenized as literal 1:1 dedup, same as the
        --plate-*-rgb shadow work above. NOT a full gradient-token system:
@@ -288,8 +294,8 @@
   @keyframes streakPulse{ 0%{transform:scale(1);} 35%{transform:scale(1.18);} 60%{transform:scale(0.94);} 100%{transform:scale(1);} }
   .supplement-streak{
     display:inline-flex; align-items:center; margin-bottom:10px;
-    background:linear-gradient(160deg, rgba(50,215,75,0.14), rgba(50,215,75,0.05));
-    border:1px solid rgba(50,215,75,0.32);
+    background:linear-gradient(160deg, rgba(var(--plate-green-rgb),0.14), rgba(var(--plate-green-rgb),0.05));
+    border:1px solid rgba(var(--plate-green-rgb),0.32);
     border-radius:var(--radius-pill); padding:4px 12px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
     font-size:12px; color:var(--plate-green); font-weight:600;
     box-shadow:inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 12px -7px rgba(var(--plate-green-rgb),0.35);
@@ -484,7 +490,7 @@
   }
   .describe-similar-btn:active{transform:scale(0.98);}
   .privacy-note{
-    padding:10px 12px; background:rgba(50,215,75,0.08); border:1px solid rgba(50,215,75,0.28);
+    padding:10px 12px; background:rgba(var(--plate-green-rgb),0.08); border:1px solid rgba(var(--plate-green-rgb),0.28);
     border-radius:var(--radius-md); font-size:12px; line-height:1.5; color:var(--text-muted); margin-bottom:14px;
     box-shadow:var(--rim), 0 4px 14px -8px rgba(var(--plate-green-rgb),0.28);
   }
@@ -565,7 +571,7 @@
   .pf-condition-note{ color:var(--text-muted); font-size:11.5px; display:block; margin-top:2px; }
 
   .goal-feedback-good{
-    padding:10px 12px; background:rgba(50,215,75,0.1); border:1px solid rgba(50,215,75,0.32);
+    padding:10px 12px; background:rgba(var(--plate-green-rgb),0.1); border:1px solid rgba(var(--plate-green-rgb),0.32);
     border-radius:var(--radius-sm); font-size:12.5px; line-height:1.5; color:var(--plate-green);
     box-shadow:var(--rim), 0 4px 14px -8px rgba(var(--plate-green-rgb),0.35);
   }
@@ -917,8 +923,8 @@
   }
   .plate-result.open{display:block;}
   .voice-feedback{
-    flex-basis:100%; margin:2px 0 0 22px; padding:6px 10px; background:rgba(255,69,58,0.1);
-    border:1px solid rgba(255,69,58,0.3); border-radius:var(--radius-sm); font-size:11.5px;
+    flex-basis:100%; margin:2px 0 0 22px; padding:6px 10px; background:rgba(var(--plate-red-rgb),0.1);
+    border:1px solid rgba(var(--plate-red-rgb),0.3); border-radius:var(--radius-sm); font-size:11.5px;
     color:var(--text); line-height:1.4; display:none;
   }
   .voice-feedback.open{display:block;}
@@ -927,7 +933,7 @@
   /* No left margin any more: both of these now render INSIDE `.sets-block`,
      which already carries the 76px column. */
   .warmup-box{
-    margin:4px 0 8px; padding:9px 11px; background:rgba(255,122,51,0.08); border:1px solid rgba(255,122,51,0.28);
+    margin:4px 0 8px; padding:9px 11px; background:rgba(var(--plate-orange-rgb),0.08); border:1px solid rgba(var(--plate-orange-rgb),0.28);
     border-radius:var(--radius-sm); font-size:12px; color:var(--text); line-height:1.6;
     box-shadow:var(--rim), 0 4px 12px -7px rgba(var(--plate-orange-rgb),0.3);
   }
@@ -1064,7 +1070,7 @@
     border-radius:1px; pointer-events:none;
   }
   .rest-timer.active{opacity:1; pointer-events:auto; transform:translateX(-50%) translateY(0) scale(1);}
-  .rest-timer.urgent{border-color:rgba(255,69,58,0.6); box-shadow:0 1px 0 rgba(255,255,255,0.08) inset, 0 14px 34px -10px rgba(0,0,0,0.55), 0 10px 34px -6px rgba(var(--plate-red-rgb),0.5); animation:restTimerPulse 1s var(--ease-smooth) infinite;}
+  .rest-timer.urgent{border-color:rgba(var(--plate-red-rgb),0.6); box-shadow:0 1px 0 rgba(255,255,255,0.08) inset, 0 14px 34px -10px rgba(0,0,0,0.55), 0 10px 34px -6px rgba(var(--plate-red-rgb),0.5); animation:restTimerPulse 1s var(--ease-smooth) infinite;}
   @keyframes restTimerPulse{
     0%, 100%{transform:translateX(-50%) translateY(0) scale(1);}
     50%{transform:translateX(-50%) translateY(0) scale(1.035);}
@@ -1086,10 +1092,10 @@
     filter:drop-shadow(0 0 4px rgba(var(--plate-blue-rgb),0.7));
     transition:stroke-dashoffset 1s linear, stroke 0.4s var(--ease-smooth), filter 0.4s var(--ease-smooth);
   }
-  .rest-timer.tier-strength .rest-timer-ring-progress{stroke:url(#restRingGradStrength); filter:drop-shadow(0 0 4px rgba(178,107,255,0.7));}
-  .rest-timer.tier-strength{border-color:rgba(178,107,255,0.5);}
-  .rest-timer.tier-endurance .rest-timer-ring-progress{stroke:url(#restRingGradEndurance); filter:drop-shadow(0 0 4px rgba(47,184,196,0.7));}
-  .rest-timer.tier-endurance{border-color:rgba(47,184,196,0.5);}
+  .rest-timer.tier-strength .rest-timer-ring-progress{stroke:url(#restRingGradStrength); filter:drop-shadow(0 0 4px rgba(var(--plate-purple-rgb),0.7));}
+  .rest-timer.tier-strength{border-color:rgba(var(--plate-purple-rgb),0.5);}
+  .rest-timer.tier-endurance .rest-timer-ring-progress{stroke:url(#restRingGradEndurance); filter:drop-shadow(0 0 4px rgba(var(--plate-teal-rgb),0.7));}
+  .rest-timer.tier-endurance{border-color:rgba(var(--plate-teal-rgb),0.5);}
   .rest-timer.urgent .rest-timer-ring-progress{stroke:var(--plate-red); filter:drop-shadow(0 0 5px rgba(var(--plate-red-rgb),0.75));}
   .rest-timer-expand{
     max-height:0; opacity:0; overflow:hidden;
@@ -1122,7 +1128,7 @@
   .custom-program-row + .custom-program-row{border-top:1px solid var(--line-bright);}
   .custom-program-del{
     background:var(--surface); box-shadow:var(--elev-1);
-    border:1px solid rgba(255,69,58,0.3); border-radius:var(--radius-sm);
+    border:1px solid rgba(var(--plate-red-rgb),0.3); border-radius:var(--radius-sm);
     color:var(--plate-red); font-size:12px; padding:5px 9px; cursor:pointer; font-family:'Inter',sans-serif;
   }
   .settings-cog{
@@ -1301,8 +1307,8 @@
   .pr-body{flex:1; min-width:0;}
   .pr-ex-name{font-weight:600; font-size:13.5px;}
   .pr-type-tag{
-    font-size:9.5px; font-weight:700; color:var(--plate-purple); background:rgba(178,107,255,0.12);
-    border:1px solid rgba(178,107,255,0.3); border-radius:var(--radius-pill); padding:1px 7px; margin-left:4px; vertical-align:1px;
+    font-size:9.5px; font-weight:700; color:var(--plate-purple); background:rgba(var(--plate-purple-rgb),0.12);
+    border:1px solid rgba(var(--plate-purple-rgb),0.3); border-radius:var(--radius-pill); padding:1px 7px; margin-left:4px; vertical-align:1px;
   }
   .pr-day-label{font-size:11px; color:var(--text-muted); margin-top:1px;}
   .pr-stat{
@@ -1391,7 +1397,7 @@
   }
   .show-more-btn:active{transform:scale(0.98); border-color:var(--line-bright); box-shadow:0 1px 0 rgba(255,255,255,0.04) inset;}
   .usda-search-btn{
-    width:100%; margin-top:10px; padding:10px; background:var(--surface2); border:1px solid rgba(47,184,196,0.4);
+    width:100%; margin-top:10px; padding:10px; background:var(--surface2); border:1px solid rgba(var(--plate-teal-rgb),0.4);
     border-radius:var(--radius-md); color:var(--plate-teal); font-size:12.5px; font-weight:600; cursor:pointer;
     font-family:'Inter',sans-serif; letter-spacing:-0.005em; text-align:center;
     transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
@@ -1456,7 +1462,7 @@
   .height-inputs{display:flex; align-items:center; gap:6px;}
   .height-unit{font-size:12px; color:var(--text-muted);}
   .program-rec-banner{
-    margin:0 0 18px; padding:14px 16px; background:rgba(50,215,75,0.12); border:1px solid rgba(50,215,75,0.38);
+    margin:0 0 18px; padding:14px 16px; background:rgba(var(--plate-green-rgb),0.12); border:1px solid rgba(var(--plate-green-rgb),0.38);
     border-radius:var(--radius-lg); font-size:13px; line-height:1.5;
     box-shadow:0 1px 0 rgba(255,255,255,0.06) inset, 0 8px 22px -12px rgba(var(--plate-green-rgb),0.4);
   }
@@ -1581,7 +1587,7 @@
     color:var(--text-muted); font-size:15px; cursor:pointer;
     transition:color 0.15s var(--ease-smooth), background 0.15s var(--ease-smooth);
   }
-  .frr-remove-btn:active{color:var(--plate-red); background:rgba(255,69,58,0.1);}
+  .frr-remove-btn:active{color:var(--plate-red); background:rgba(var(--plate-red-rgb),0.1);}
   .qty-stepper{
     display:flex; align-items:center;
     background:var(--surface2); border:1px solid var(--line);
@@ -1620,7 +1626,7 @@
     /* Saved is a STATE, not a dead button — it stays legible rather than
        fading out, because "is this already in My Foods" is the question the
        button is answering once it has been pressed. */
-    color:var(--plate-green); border-color:rgba(50,215,75,0.4);
+    color:var(--plate-green); border-color:rgba(var(--plate-green-rgb),0.4);
     cursor:default; opacity:1;
   }
   .describe-save-btn[disabled]:active{transform:none;}
@@ -1765,7 +1771,7 @@
     padding:10px 20px; border-radius:var(--radius-sm); font-weight:600; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; border:none;
   }
   .photo-lightbox-close{background:var(--surface2); color:var(--text);}
-  .photo-lightbox-delete{background:rgba(255,69,58,0.15); color:var(--plate-red);}
+  .photo-lightbox-delete{background:rgba(var(--plate-red-rgb),0.15); color:var(--plate-red);}
 
   .photo-result-item:last-child{border-bottom:none;}
   /* .photo-result-item-editable, .photo-item-name-input and
@@ -2684,7 +2690,7 @@
     margin-top:14px; padding:12px 14px; border-radius:var(--radius-md); font-size:13px; line-height:1.5;
     box-shadow:var(--rim), 0 6px 16px -9px rgba(0,0,0,0.4);
   }
-  .care-banner-urgent{background:rgba(255,69,58,0.12); border:1px solid rgba(255,69,58,0.42); color:var(--text); box-shadow:var(--rim), 0 6px 16px -9px rgba(var(--plate-red-rgb),0.4);}
+  .care-banner-urgent{background:rgba(var(--plate-red-rgb),0.12); border:1px solid rgba(var(--plate-red-rgb),0.42); color:var(--text); box-shadow:var(--rim), 0 6px 16px -9px rgba(var(--plate-red-rgb),0.4);}
   .care-banner-urgent b{color:var(--plate-red);}
   .care-banner-caution{background:rgba(245,197,24,0.1); border:1px solid rgba(245,197,24,0.38); color:var(--text); box-shadow:var(--rim), 0 6px 16px -9px rgba(var(--plate-yellow-rgb),0.35);}
   .care-banner-caution b{color:var(--plate-yellow);}
@@ -2712,7 +2718,7 @@
     font-weight:600; margin-bottom:4px; display:flex; align-items:center; gap:6px;
   }
   .app-banner-body{color:var(--text-muted); font-size:12.5px; line-height:1.55;}
-  .app-banner-urgent{background:rgba(255,69,58,0.12); border:1px solid rgba(255,69,58,0.42); box-shadow:var(--rim), 0 6px 16px -9px rgba(var(--plate-red-rgb),0.45);}
+  .app-banner-urgent{background:rgba(var(--plate-red-rgb),0.12); border:1px solid rgba(var(--plate-red-rgb),0.42); box-shadow:var(--rim), 0 6px 16px -9px rgba(var(--plate-red-rgb),0.45);}
   .app-banner-urgent .app-banner-title{color:var(--plate-red);}
   .app-banner-info{background:rgba(91,124,255,0.12); border:1px solid rgba(91,124,255,0.42); box-shadow:var(--rim), 0 6px 16px -9px rgba(var(--plate-blue-rgb),0.45);}
   .app-banner-info .app-banner-title{color:var(--plate-blue);}
@@ -2959,7 +2965,7 @@
   }
 
   .ex-caution{
-    margin-top:4px; padding:6px 10px; background:rgba(255,69,58,0.1); border:1px solid rgba(255,69,58,0.32);
+    margin-top:4px; padding:6px 10px; background:rgba(var(--plate-red-rgb),0.1); border:1px solid rgba(var(--plate-red-rgb),0.32);
     border-radius:var(--radius-sm); font-size:11.5px; color:var(--plate-red); margin-left:76px;
     box-shadow:var(--rim), 0 4px 12px -7px rgba(var(--plate-red-rgb),0.32);
   }
@@ -3151,10 +3157,10 @@
        mid-swipe. Layered as two identical gradient stops over an opaque
        --surface instead of flattened to a hex, so the tint stays written as 8%
        orange and cannot drift the day --surface moves. */
-    background:linear-gradient(rgba(255,122,51,0.08), rgba(255,122,51,0.08)), var(--surface);
+    background:linear-gradient(rgba(var(--plate-orange-rgb),0.08), rgba(var(--plate-orange-rgb),0.08)), var(--surface);
   }
   .warmup-set-row .ex-input{
-    border-color:rgba(255,122,51,0.30);
+    border-color:rgba(var(--plate-orange-rgb),0.30);
   }
   .warmup-set-row.done{ opacity:0.5; }
   /* Sits in the gutter, where a working set puts its number. Same width, so
@@ -3192,9 +3198,9 @@
     min-height:34px;
     border-left:4px solid var(--plate-teal);
     border-radius:var(--radius-sm);
-    background:rgba(47,184,196,0.08);
+    background:rgba(var(--plate-teal-rgb),0.08);
   }
-  .drop-set-row .ex-input{ border-color:rgba(47,184,196,0.30); }
+  .drop-set-row .ex-input{ border-color:rgba(var(--plate-teal-rgb),0.30); }
   /* The gutter, where a working set puts its number and a ramp step puts its
      checkbox. A drop has neither — what it has is a parent, so it points at it.
      aria-hidden: every input on the row already says "Set 3 drop 1" in full. */
@@ -3213,7 +3219,7 @@
     font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;
     -webkit-tap-highlight-color:transparent; touch-action:manipulation;
   }
-  .set-drop-btn.has-drops{ color:var(--plate-teal); border-color:rgba(47,184,196,0.45); }
+  .set-drop-btn.has-drops{ color:var(--plate-teal); border-color:rgba(var(--plate-teal-rgb),0.45); }
   /* 46px is `.ex-rpe`'s width, and that is the point: the step label occupies
      the column a working set gives to RPE, so the plate button lands in the
      same place on both. A warm-up has no RPE — the field it would sit in is
@@ -3227,7 +3233,7 @@
      made a ramp step twice the width of the set below it. */
   .warmup-restore-btn{
     align-self:flex-start; margin-top:2px; padding:5px 9px;
-    background:transparent; border:1px dashed rgba(255,122,51,0.35);
+    background:transparent; border:1px dashed rgba(var(--plate-orange-rgb),0.35);
     border-radius:var(--radius-sm); color:var(--plate-orange);
     font-size:11.5px; font-family:inherit; cursor:pointer;
     -webkit-tap-highlight-color:transparent; touch-action:manipulation;
@@ -6091,7 +6097,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.170';
+const APP_VERSION = '3.171';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6397,6 +6403,9 @@ const WHATS_NEW = {
   ]},
   '3.170': { headline: 'Replaced five more raw emoji icons with clean vector glyphs', points: [
     'The food-search "duplicate & edit" and "remove from My Foods" buttons, the custom-exercise delete button, and the per-exercise History/Edit buttons all used to show full-colour vendor emoji (a pencil, a trash can, a trending-up chart) that looked different on every phone. They now draw the same simple line icons everywhere, matching the earlier fix to the plate-calculator and voice-log buttons.',
+  ]},
+  '3.171': { headline: 'More internal color consistency cleanup', points: [
+    'Continued the earlier glow-effect cleanup (v3.92/3.93) to more of the app\'s colored backgrounds and borders — purely internal, nothing should look any different.',
   ]},
 };
 
