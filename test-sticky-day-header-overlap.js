@@ -27,7 +27,7 @@
 // possible proof of "same pattern, same guarantee" without live layout.
 // The live browser confirmation (real elementFromPoint hit-testing) is
 // documented in the commit, not re-derived here.
-const { readIndexSource, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
 const { test, run } = makeRunner('test-sticky-day-header-overlap.js');
@@ -77,6 +77,57 @@ test('.sticky-day-header\'s z-index no longer outranks .nav-pills — it does no
   const navPillsZ = parseInt((navPillsBlock.match(/z-index:(\d+)/) || [])[1], 10);
   assert.ok(Number.isFinite(dayHeaderZ) && Number.isFinite(navPillsZ), 'both rules must declare a real z-index');
   assert.ok(dayHeaderZ < navPillsZ, `sticky-day-header's z-index (${dayHeaderZ}) should no longer be forced above nav-pills' (${navPillsZ}) now that they don't overlap spatially`);
+});
+
+// --- Regression found via real usage after the fix above shipped: the
+// hidden/resting transform (-100%) was left unchanged when `top` moved
+// from 0 to the nav-rail offset. -100% is relative to the element's OWN
+// ~44.8px height, not to `top` — so at top:0 it correctly cleared the
+// whole viewport, but at top:~56px it only cleared 44.8 of that,
+// landing the "hidden" state at screen y ~11-56px: sitting in, and
+// bleeding through, the nav rail's own translucent blurred background
+// the entire time, on every tab, not just when scrolled — exactly what
+// was reported as "at the top of the page at all times, not well
+// placed." Fixed by subtracting the same top offset from the resting
+// transform, restoring the original "hidden really means invisible"
+// guarantee.
+test('sabotage-relevant: the hidden/resting transform clears BOTH the element\'s own height AND the top offset that pushes it below the nav rail — not just its own height alone', (assert)=>{
+  const block = extractRuleBlock(src, '.sticky-day-header');
+  assert.match(block, /transform:translateY\(calc\(-100% - env\(safe-area-inset-top,\s*0px\)\s*-\s*var\(--nav-rail-h,\s*56px\)\)\);/,
+    'the resting transform must subtract the same top offset the element is now pushed down by, or the hidden state lands mid-screen instead of off it');
+});
+
+test('regression guard: .sticky-day-header.visible still simply resets to translateY(0) — the fix above only touches the HIDDEN state, not the shown one', (assert)=>{
+  assert.match(src, /\.sticky-day-header\.visible\{transform:translateY\(0\);\}/, 'the visible state must be untouched — it was already correct (lands exactly at the element\'s real top: offset, i.e. right below the nav rail)');
+});
+
+// --- New ask: clicking the condensed header should take you back to the
+// real day title it's standing in for, not sit there as a dead label.
+// Extracted from the real file rather than reimplemented, the same
+// unnamed-top-level-statement treatment this repo's other tests already
+// give jumpToSetting-style wiring that extractFunction can't reach by name.
+function extractClickWiring(source){
+  const start = source.indexOf("document.getElementById('stickyDayHeader').addEventListener('click', ()=>{");
+  if(start === -1) throw new Error('stickyDayHeader click wiring not found');
+  const end = source.indexOf('\n});', start);
+  if(end === -1) throw new Error('no closing \'});\' found after the click wiring');
+  return source.slice(start, end + 4);
+}
+
+test('REAL invocation: clicking #stickyDayHeader scrolls #dayTitle (the exact element the observer watches) into view', (assert)=>{
+  const bodyHtml = `
+    <div id="stickyDayHeader"></div>
+    <div id="dayTitle"></div>
+  `;
+  const { document } = runJsdom(bodyHtml, '', [extractClickWiring(src)]);
+  const dayTitle = document.getElementById('dayTitle');
+  let scrolledWith = null;
+  dayTitle.scrollIntoView = (opts)=>{ scrolledWith = opts; };
+
+  document.getElementById('stickyDayHeader').click();
+
+  assert.ok(scrolledWith, 'clicking the header must actually call scrollIntoView on the real day title — not do nothing');
+  assert.strictEqual(scrolledWith.block, 'start', 'must scroll the day title fully into view at the top, not just barely on-screen');
 });
 
 run();

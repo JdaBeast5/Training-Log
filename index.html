@@ -982,7 +982,20 @@
     border-bottom:1px solid var(--line-soft);
     padding:12px 16px;
     display:flex; align-items:center; gap:8px;
-    transform:translateY(-100%); transition:transform 0.25s var(--ease-smooth);
+    cursor:pointer;
+    /* -100% alone is relative to THIS element's own ~44.8px height, not to
+       its `top` offset above — that was correct back when top:0 meant "the
+       hidden position is my own height above the very top of the screen",
+       but once top moved to clear the nav rail (~56px), -100% only cleared
+       44.8 of that: the resting/hidden state landed at screen y ~11-56px
+       instead of fully off-screen, sitting in and bleeding through the nav
+       rail's own translucent, blurred background the entire time — visible
+       "at the top of the page at all times" exactly as reported, not the
+       fully-hidden state this was supposed to be. Subtracting the same
+       offset `top` adds pushes it the rest of the way off-screen, so hidden
+       genuinely means invisible again, the same guarantee it had at top:0. */
+    transform:translateY(calc(-100% - env(safe-area-inset-top, 0px) - var(--nav-rail-h, 56px)));
+    transition:transform 0.25s var(--ease-smooth);
     font-family:'Inter',sans-serif; font-size:14.5px; font-weight:700; letter-spacing:-0.01em; color:var(--text);
     box-shadow:var(--rim), 0 4px 14px rgba(0,0,0,0.3);
   }
@@ -4056,12 +4069,19 @@
     border-right:1px solid rgba(255,122,51,0.18);
   }
   body.gym-mode .warmup-done{ width:26px; height:26px; }
+  /* font-size deliberately absent here (was 18px) — this selector's higher
+     specificity than the general `body.gym-mode .plate-btn{font-size:0}`
+     rule above was overriding it back to visible, un-hiding the 🏋️ emoji
+     textContent right on top of the same button's ::after mask-image
+     glyph. The glyph's own size (24x24, set in absolute px on ::after) was
+     never driven by this font-size, so removing it costs nothing visually
+     except the stray emoji it was accidentally reviving. */
   body.gym-mode .warmup-set-row .plate-btn{
     min-width:54px; min-height:56px; flex:0 0 auto;
     display:flex; align-items:center; justify-content:center;
     background:transparent; border:none; border-radius:0;
     border-left:1px solid rgba(255,122,51,0.18);
-    font-size:18px; color:var(--text-muted);
+    color:var(--text-muted);
   }
   body.gym-mode .warmup-set-row .ex-x{ display:none; }
   body.gym-mode .warmup-foot{ font-size:12px; padding:0 4px; }
@@ -5966,7 +5986,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.164';
+const APP_VERSION = '3.165';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6251,6 +6271,11 @@ const WHATS_NEW = {
     'The plate calculator, voice log, drop-set, and note buttons on every logged set were drawn small on purpose to fit the row — but the tappable area was exactly that small too, so a slightly-off tap could miss and hit the wrong one.',
     'Same fix for the ✕ that clears a body region under Care\'s "Currently Resting," and for the Settings and AI Coach panel close buttons.',
     'All of it is an invisible tap-area change, not a visual one — nothing looks any different.',
+  ]},
+  '3.165': { headline: 'Fixed the day-title bar sitting at the top of the screen all the time', points: [
+    'A fix a few versions back for the condensed "Day 1 — Upper · Strength" bar left it not quite fully hidden — it sat faintly behind the tab bar the whole time instead of only appearing once you scrolled past the real title. It\'s properly tucked away again now until it\'s actually needed.',
+    'Tapping it now takes you straight back to the real day title, instead of just sitting there.',
+    'Also fixed in Gym Mode: the warm-up ramp\'s plate-calculator button was showing both the barbell icon and a 🏋️ emoji stacked on top of each other. Just the icon now, matching every other button in the mode.',
   ]},
 };
 
@@ -16275,6 +16300,18 @@ function setupStickyDayHeaderObserver(){
   }, {threshold: 0});
   dayHeaderObserver.observe(target);
 }
+
+// A condensed READ of the day title that couldn't be tapped to get back to
+// it was a dead end — the exact place someone deep in a scrolled workout
+// would want to jump from. Targets the same #dayTitle element the observer
+// above watches, so this is the literal reverse of whatever scrolled it
+// out of view. Wired once at load, not inside the function above (which
+// re-runs on every renderWorkout) — the button doesn't get replaced, so a
+// second listener there would just double-fire this one.
+document.getElementById('stickyDayHeader').addEventListener('click', ()=>{
+  const target = document.getElementById('dayTitle');
+  if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+});
 
 // --- Rest timer: auto-starts after logging a set, like Strong/Hevy's auto rest timer ---
 let restTimerInterval = null;
