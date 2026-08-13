@@ -2297,6 +2297,17 @@
   .gsearch-hit:active{ transform:scale(0.99); }
   .gsearch-hit-tab{ color:var(--text-muted); font-size:11px; flex:0 0 auto; }
   .nav-pill.active{background:var(--shine-gloss), var(--cta-gradient-blue); border-color:var(--plate-blue); color:#fff; box-shadow:0 1px 0 rgba(255,255,255,0.2) inset, 0 3px 12px rgba(var(--plate-blue-rgb),0.4);}
+  /* Tab-layout audit (v3.160, option #2): Care/Coach/Learn's home now, a
+     vertical list inside navMoreOverlay instead of horizontal pills in the
+     rail. These buttons keep the base .nav-pill class (same colors, same
+     border, same .active treatment above — a person who already knows what
+     "active" looks like on a tab does not need to relearn it here), just
+     laid out and sized for a list rather than a scroll-snapping row. */
+  .nav-more-list{display:flex; flex-direction:column; gap:8px;}
+  .nav-more-item{
+    flex:none; width:100%; text-align:left; padding:13px 16px;
+    scroll-snap-align:none;
+  }
 
   /* --- Log date selector: lets Today/Log tab actions apply to a past date
      instead of the real current day. Uses the same translucent-gradient +
@@ -4308,9 +4319,14 @@
       <button class="nav-pill" id="navLog">Log</button>
       <button class="nav-pill" id="navAnalysis">Analysis</button>
       <button class="nav-pill" id="navHistory">History</button>
-      <button class="nav-pill" id="navCare">Care</button>
-      <button class="nav-pill" id="navCoach">Coach</button>
-      <button class="nav-pill" id="navLearn">Learn</button>
+      <!-- Tab-layout audit (v3.160, option #2): Care/Coach/Learn moved into
+           navMoreOverlay below, reached through this one pill instead of
+           three, so the main rail fits without a horizontal scroll on a
+           typical phone. Real navCare/navCoach/navLearn buttons still live
+           there — this doesn't remove a destination, just relocates three
+           of them, same reasoning wireSettings() already uses to reparent
+           cards into Settings. -->
+      <button type="button" class="nav-pill" id="navMore">More</button>
     </div>
 
     <!-- The fade on .nav-pills-scroll's right edge signals more tabs exist,
@@ -5641,6 +5657,29 @@
   </div>
 </div>
 
+<!-- Tab-layout audit (v3.160, option #2): Care/Coach/Learn, reached from
+     the "More" pill on the main rail instead of taking up three of their
+     own slots there. These are the SAME real buttons switchView/showView
+     already look up by id (navCare/navCoach/navLearn — see the VIEW_KEYS
+     wiring loop) — only their DOM location moved, so no routing code
+     needed to change. Styled as a vertical option list (.nav-more-item),
+     not horizontal pills, since that is what actually fits this shape of
+     dialog; .active still gets toggled onto whichever one is current, the
+     same as it always did in the rail. -->
+<div class="sub-modal-overlay" id="navMoreOverlay" role="dialog" aria-modal="true" aria-labelledby="navMoreTitle">
+  <div class="sub-modal-sheet">
+    <div class="sub-modal-header">
+      <div class="sub-modal-title" id="navMoreTitle">More</div>
+      <button class="sub-modal-close" id="navMoreClose" aria-label="Close">✕</button>
+    </div>
+    <div class="nav-more-list">
+      <button class="nav-pill nav-more-item" id="navCare">Care</button>
+      <button class="nav-pill nav-more-item" id="navCoach">Coach</button>
+      <button class="nav-pill nav-more-item" id="navLearn">Learn</button>
+    </div>
+  </div>
+</div>
+
 <div class="photo-lightbox" id="photoLightbox">
   <div class="photo-lightbox-bg" id="photoLightboxBg"></div>
   <img id="photoLightboxImg" src="" alt="Progress photo">
@@ -5813,7 +5852,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.159';
+const APP_VERSION = '3.160';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6074,6 +6113,10 @@ const WHATS_NEW = {
   '3.159': { headline: 'Lightened up the main tab bar itself', points: [
     'The tabs at the top carried a fairly heavy drop shadow and sat with a bit more breathing room between them than they needed — nothing wrong on its own, but combined with everything else it added to the "thick" feeling at the top of the screen.',
     'Trimmed the shadow down to a subtle highlight and tightened the spacing between tabs a touch. The tabs themselves are the exact same size and still just as easy to tap — this is purely about how heavy they look.',
+  ]},
+  '3.160': { headline: 'Tidied up the tab bar — Care, Coach, and Learn now live under "More"', points: [
+    'Eight items across the top meant three of them (Care, Coach, Learn) usually sat scrolled off the right edge, reachable only after a horizontal scroll and a bit of hunting.',
+    'Those three now live one tap away behind a new "More" button, cutting how far the tab bar has to scroll to reach everything. Nothing was removed — Care, Coach, and Learn work exactly as they did, just reached a slightly different way.',
   ]},
 };
 
@@ -13809,6 +13852,14 @@ document.getElementById('whatsNewOverlay').addEventListener('click', (e)=>{
   if(e.target.id === 'whatsNewOverlay') closeWhatsNew();
 });
 
+document.getElementById('navMore').addEventListener('click', ()=>{
+  document.getElementById('navMoreOverlay').classList.add('active');
+});
+document.getElementById('navMoreClose').addEventListener('click', closeNavMoreOverlay);
+document.getElementById('navMoreOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'navMoreOverlay') closeNavMoreOverlay();
+});
+
 document.getElementById('subModalOverlay').addEventListener('click', (e)=>{
   // Only the backdrop itself closes it — clicks inside the sheet shouldn't bubble here anyway since sub-option rows have their own handlers, but this guards against clicks on the sheet's own padding.
   if(e.target.id === 'subModalOverlay') closeExerciseSubModal();
@@ -17272,6 +17323,11 @@ function openWhatsNew(entries){
 
 function closeWhatsNew(){
   document.getElementById('whatsNewOverlay').classList.remove('active');
+}
+
+function closeNavMoreOverlay(){
+  const el = document.getElementById('navMoreOverlay');
+  if(el) el.classList.remove('active');
 }
 
 // Shown right after an explicit Reload Now, in place of dumping the full
@@ -24045,6 +24101,11 @@ document.getElementById('saveMeasurements').addEventListener('click', async ()=>
 const STAGGER_MAX_STEPS = 4;
 const STAGGER_STEP_MS = 28;
 
+// Tab-layout audit (v3.160, option #2): the tabs relocated into the
+// navMoreOverlay sheet instead of the main rail — read by switchView below
+// to decide when the "More" pill itself should show as active.
+const MOVED_TO_MORE = ['care', 'coach', 'learn'];
+
 // Tab switching and the overlay background-scroll lock.
 function switchView(active, opts){
   const scrollToTop = !opts || opts.scrollTop !== false;
@@ -24090,14 +24151,29 @@ function switchView(active, opts){
     document.getElementById(pills[key]).classList.toggle('active', key===active);
   });
 
+  // Care/Coach/Learn live inside the "More" sheet now (tab-layout audit,
+  // v3.160), not the main rail — without this, landing on one of them would
+  // leave every pill in the visible rail looking unselected, the same
+  // "which tab am I even on" gap a sticky/scrolled rail already guards
+  // against elsewhere. navMore mirrors their own .active state instead of
+  // hardcoding the three keys a second time, so a future tab moved into or
+  // out of the sheet only has to update MOVED_TO_MORE below.
+  const moreTrigger = document.getElementById('navMore');
+  if(moreTrigger) moreTrigger.classList.toggle('active', MOVED_TO_MORE.includes(active));
+
   // Bring the active pill into the horizontal scroll. Seven pills do not fit
   // on a phone, so the rail can be showing Today..History while you are on
   // Learn — and on a restored session it did exactly that, marking a tab as
   // active off the right-hand edge where nobody could see it. Nearest, not
   // start: it only moves the rail when it has to.
-  const activePill = document.getElementById(pills[active]);
-  if(activePill && activePill.scrollIntoView){
-    try{ activePill.scrollIntoView({behavior:'smooth', block:'nearest', inline:'nearest'}); }
+  // A MOVED_TO_MORE key scrolls navMore itself instead of pills[active] —
+  // navCare/navCoach/navLearn no longer live in this scrolling rail at all,
+  // so calling scrollIntoView on them would act on the (closed, invisible)
+  // sheet's own scroll instead of the thing that actually needs revealing:
+  // the "More" pill that represents them here.
+  const railTarget = MOVED_TO_MORE.includes(active) ? moreTrigger : document.getElementById(pills[active]);
+  if(railTarget && railTarget.scrollIntoView){
+    try{ railTarget.scrollIntoView({behavior:'smooth', block:'nearest', inline:'nearest'}); }
     catch(e){ /* older engines take no options; the rail simply does not move */ }
   }
   // The sticky mini-header only ever makes sense while actually scrolling
@@ -24146,7 +24222,7 @@ const SCROLL_LOCK_OVERLAYS = [
   'subModalOverlay', 'calendarModalOverlay', 'photoLightbox',
   'barcodeScannerOverlay', 'coachFabModal', 'userPickerOverlay',
   'exHistoryOverlay', 'exEditOverlay', 'globalSearchOverlay', 'settingsOverlay',
-  'whatsNewOverlay'
+  'whatsNewOverlay', 'navMoreOverlay'
 ];
 let scrollLockY = 0;
 let scrollLockActive = false;
@@ -24217,6 +24293,7 @@ const OVERLAY_CLOSERS = {
   settingsOverlay:      ()=> { const b = document.getElementById('settingsClose'); if(b) b.click(); },
   globalSearchOverlay:  ()=> closeGlobalSearch(),
   whatsNewOverlay:      ()=> closeWhatsNew(),
+  navMoreOverlay:       ()=> closeNavMoreOverlay(),
   // userPickerOverlay is deliberately absent. It is the "who is using this
   // device" gate, and there is nothing behind it to go back to — dismissing it
   // would leave the app with no active profile.
@@ -24844,7 +24921,11 @@ VIEW_KEYS.forEach(key=>{
   const pill = document.getElementById('nav' + key.charAt(0).toUpperCase() + key.slice(1));
   // Wired from VIEW_KEYS rather than seven copy-pasted blocks, so a new tab
   // cannot ship with markup, a renderer and no listener between them.
-  if(pill) pill.addEventListener('click', ()=> showView(key));
+  // closeNavMoreOverlay() here, not only on navCare/navCoach/navLearn's own
+  // click: picking Today/Log/Analysis/History while the More sheet happens
+  // to be open should close it same as picking anything inside it does —
+  // one rule for "a tab was chosen", not a special case for which three.
+  if(pill) pill.addEventListener('click', ()=>{ closeNavMoreOverlay(); showView(key); });
 });
 
 // [WEEK BOUNDARIES] -------------------------------------------------------------

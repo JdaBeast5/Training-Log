@@ -12,6 +12,11 @@ const src = readIndexSource();
 const switchViewSrc = extractFunction(src, 'switchView');
 const staggerMaxSrc = extractConst(src, 'STAGGER_MAX_STEPS');
 const staggerStepSrc = extractConst(src, 'STAGGER_STEP_MS');
+// Tab-layout audit (v3.160): switchView reads this to decide when the
+// "More" pill (navCare/navCoach/navLearn's new home) should show as
+// active — a real dependency, not incidental, so it's extracted alongside
+// switchView itself rather than stubbed.
+const movedToMoreSrc = extractConst(src, 'MOVED_TO_MORE');
 
 const bodyHtml = `
   <div id="todayView"></div>
@@ -28,6 +33,7 @@ const bodyHtml = `
   <button id="navCare"></button>
   <button id="navCoach"></button>
   <button id="navLearn"></button>
+  <button id="navMore"></button>
   <div id="stickyDayHeader" class="visible"></div>
   <div id="logDateBar"></div>
 `;
@@ -43,7 +49,7 @@ function globals(){
 const { test, run } = makeRunner('test-view-switch-crossfade.js');
 
 test('switching views: the OUTGOING view gets .view-exit, not an immediate display:none', (assert)=>{
-  const { document, window: win } = runJsdom(bodyHtml, globals(), [staggerMaxSrc, staggerStepSrc, switchViewSrc, `
+  const { document, window: win } = runJsdom(bodyHtml, globals(), [staggerMaxSrc, staggerStepSrc, movedToMoreSrc, switchViewSrc, `
     document.getElementById('todayView').style.display = '';
     switchView('log');
   `]);
@@ -56,7 +62,7 @@ test('switching views: the OUTGOING view gets .view-exit, not an immediate displ
 });
 
 test('REAL invocation: after the fade timeout, the outgoing view actually gets display:none', async (assert)=>{
-  const { document } = runJsdom(bodyHtml, globals(), [staggerMaxSrc, staggerStepSrc, switchViewSrc, `
+  const { document } = runJsdom(bodyHtml, globals(), [staggerMaxSrc, staggerStepSrc, movedToMoreSrc, switchViewSrc, `
     document.getElementById('todayView').style.display = '';
     switchView('log');
   `]);
@@ -66,7 +72,7 @@ test('REAL invocation: after the fade timeout, the outgoing view actually gets d
 });
 
 test('sabotage-relevant: a view already hidden (display:none) does not get the exit-fade treatment', (assert)=>{
-  const { document } = runJsdom(bodyHtml, globals(), [staggerMaxSrc, staggerStepSrc, switchViewSrc, `
+  const { document } = runJsdom(bodyHtml, globals(), [staggerMaxSrc, staggerStepSrc, movedToMoreSrc, switchViewSrc, `
     document.getElementById('todayView').style.display = 'none';
     document.getElementById('careView').style.display = 'none';
     switchView('log');
@@ -77,7 +83,7 @@ test('sabotage-relevant: a view already hidden (display:none) does not get the e
 });
 
 test('rapid re-switch guard: switching BACK to a view mid-fade cancels the stale hide instead of yanking it away again', async (assert)=>{
-  const { document } = runJsdom(bodyHtml, globals(), [staggerMaxSrc, staggerStepSrc, switchViewSrc, `
+  const { document } = runJsdom(bodyHtml, globals(), [staggerMaxSrc, staggerStepSrc, movedToMoreSrc, switchViewSrc, `
     document.getElementById('todayView').style.display = '';
     switchView('log');   // todayView starts fading out (view-exit, 150ms timer running)
     switchView('today'); // switch back to today BEFORE that timer fires
@@ -90,7 +96,7 @@ test('rapid re-switch guard: switching BACK to a view mid-fade cancels the stale
 });
 
 test('reduced motion: the outgoing view is hidden immediately, no exit-fade class, matching the pre-existing enter-animation skip', (assert)=>{
-  const { document } = runJsdom(bodyHtml, globals(), [staggerMaxSrc, staggerStepSrc, switchViewSrc, `
+  const { document } = runJsdom(bodyHtml, globals(), [staggerMaxSrc, staggerStepSrc, movedToMoreSrc, switchViewSrc, `
     window.matchMedia = ()=> ({matches:true});
     document.getElementById('todayView').style.display = '';
     switchView('log');
