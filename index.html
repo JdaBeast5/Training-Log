@@ -891,7 +891,7 @@
   .ex-rpe{width:var(--set-meta-col);}
   .plate-btn{
     flex:0 0 auto; width:34px; height:34px; border-radius:var(--radius-sm); border:1px solid var(--line);
-    background:var(--surface2); color:var(--text-muted); font-size:14px; cursor:pointer;
+    background:var(--surface2); color:var(--text-muted); font-size:0; cursor:pointer;
     display:flex; align-items:center; justify-content:center; padding:0;
     -webkit-touch-callout:none; -webkit-user-select:none; user-select:none;
     -webkit-tap-highlight-color:transparent; touch-action:manipulation;
@@ -3362,6 +3362,22 @@
     mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%277.5%27%20y%3D%272.4%27%20width%3D%275%27%20height%3D%279%27%20rx%3D%272.5%27%2F%3E%3Cpath%20d%3D%27M4.6%209.6a5.4%205.4%200%200%200%2010.8%200%27%2F%3E%3Cline%20x1%3D%2710%27%20y1%3D%2715%27%20x2%3D%2710%27%20y2%3D%2717.6%27%2F%3E%3C%2Fsvg%3E");
   }
 
+  /* Same reasoning as .voice-log-btn::after above, for the plate-calculator
+     button's own barbell glyph — the header brand mark's geometry, reused
+     verbatim, matching gym mode's existing icon exactly rather than
+     introducing a second barbell drawing. Gym mode's own copy of this
+     selector only resizes it to 24px now; it deliberately does not
+     redeclare mask-image. */
+  .plate-btn::after{
+    content:''; display:block; width:16px; height:16px;
+    background:currentColor;
+    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+    -webkit-mask-position:center; mask-position:center;
+    -webkit-mask-size:contain; mask-size:contain;
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%271.2%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Crect%20x%3D%2716.4%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Cline%20x1%3D%274%27%20y1%3D%2710%27%20x2%3D%2716%27%20y2%3D%2710%27%2F%3E%3Crect%20x%3D%274.6%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3Crect%20x%3D%2713.4%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3C%2Fsvg%3E");
+    mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%271.2%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Crect%20x%3D%2716.4%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Cline%20x1%3D%274%27%20y1%3D%2710%27%20x2%3D%2716%27%20y2%3D%2710%27%2F%3E%3Crect%20x%3D%274.6%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3Crect%20x%3D%2713.4%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3C%2Fsvg%3E");
+  }
+
   /* .reorder-arrows has gap:2px, so there is almost no horizontal room to
      claim — these two chevrons are genuinely too small and too close for a
      hit area alone to bring to standard. The vertical gain is real (18px to
@@ -3902,23 +3918,26 @@
     border-left:1px solid rgba(255,255,255,0.07);
     font-size:18px; color:var(--text-muted);
   }
-  /* The plate button ships as the emoji \u{1F3CB}, the one remaining place in
-     this interface where a vendor's artwork sits inside our own control —
-     full-colour, differently weighted on every OS, and visibly foreign next
-     to a row of tabular numerals. (The voice button's \u{1F3A4} got the same
-     treatment, but is now handled once, unconditionally, by the base
-     `.voice-log-btn`/`.voice-log-btn::after` rules above — this block only
-     resizes that glyph to 24px for gym mode, it doesn't redefine it.)
-     `font-size:0` collapses the plate glyph without touching the markup,
-     which matters because this button is rendered by the shared set-row
-     template and changing it would alter the normal view too. The
-     replacement is a MASK rather than a background image, so `currentColor`
-     still drives it and the existing `.active` / `.listening` / `.processing`
-     colour states keep working untouched.
-     The plate icon is the header brand mark's own barbell geometry, reused
-     verbatim — the button is now made of the app rather than dropped into it. */
+  /* The plate and voice buttons both shipped as full-colour emoji
+     (\u{1F3CB}/\u{1F3A4}) — vendor artwork inside our own control, differently
+     weighted on every OS. Both are now handled once, unconditionally, by
+     the base `.plate-btn`/`.voice-log-btn` and their own `::after` mask
+     rules above — this block only resizes those glyphs to 24px for gym
+     mode's bigger buttons, it doesn't redefine either one. `font-size:0`
+     (on the base rules) collapses the emoji text without touching the
+     markup, which matters because these buttons are rendered by the
+     shared set-row template and changing it would alter the normal view
+     too. The plate icon is the header brand mark's own barbell geometry,
+     reused verbatim — the button is now made of the app rather than
+     dropped into it. */
   body.gym-mode .plate-btn,
   body.gym-mode .voice-log-btn{font-size:0;}
+  /* No mask-image redeclared here on purpose, for either button: the base
+     `.plate-btn::after`/`.voice-log-btn::after` rules above already set it,
+     and this selector's own equal-or-lower specificity for that property
+     means the base value keeps cascading through untouched — only
+     width/height/background/mask-repeat/position/size are resized for gym
+     mode's bigger buttons. */
   body.gym-mode .plate-btn::after,
   body.gym-mode .voice-log-btn::after{
     content:''; display:block; width:24px; height:24px;
@@ -3927,14 +3946,6 @@
     -webkit-mask-position:center; mask-position:center;
     -webkit-mask-size:contain; mask-size:contain;
   }
-  body.gym-mode .plate-btn::after{
-    -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%271.2%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Crect%20x%3D%2716.4%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Cline%20x1%3D%274%27%20y1%3D%2710%27%20x2%3D%2716%27%20y2%3D%2710%27%2F%3E%3Crect%20x%3D%274.6%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3Crect%20x%3D%2713.4%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3C%2Fsvg%3E"); mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%271.2%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Crect%20x%3D%2716.4%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Cline%20x1%3D%274%27%20y1%3D%2710%27%20x2%3D%2716%27%20y2%3D%2710%27%2F%3E%3Crect%20x%3D%274.6%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3Crect%20x%3D%2713.4%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3C%2Fsvg%3E");
-  }
-  /* No mask-image redeclared here on purpose: the base .voice-log-btn::after
-     rule above already set it, and this selector's own equal-or-lower
-     specificity for that property means the base value keeps cascading
-     through untouched — only width/height/background/mask-repeat/position/
-     size are resized for gym mode's bigger button by the shared rule above. */
   body.gym-mode .plate-btn.active{color:var(--plate-blue);}
   body.gym-mode .set-note-btn{font-size:20px; font-weight:400;}
   body.gym-mode .plate-btn:active,
@@ -6019,7 +6030,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.168';
+const APP_VERSION = '3.169';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6319,6 +6330,9 @@ const WHATS_NEW = {
   '3.168': { headline: 'Day-by-Day Log can now collapse, and its date range actually does something', points: [
     'History\'s Day-by-Day Log card can now be collapsed down to just its title, the same way Nutrition, Body Measurements, and the other collapsible cards already work — tap the header to tuck the whole month-by-month list out of the way.',
     'The "Last 30 days / 90 days / Last year / All time" dropdown above that list used to only affect the printed workout report — picking a range did nothing to what was actually shown on screen. It now scopes the visible list too, and still works together with the exercise-name search box (e.g. "last 30 days" and "deadlift" at once).',
+  ]},
+  '3.169': { headline: 'Replaced the weightlifter emoji with a matching icon everywhere', points: [
+    'The plate-calculator button showed a raw 🏋️ emoji outside of Gym Mode — full-colour and a different shape on every phone, unlike the clean barbell icon Gym Mode already used for it. Now it\'s the same simple icon everywhere, matching the fix already made for the voice-log button\'s mic icon.',
   ]},
 };
 
@@ -15362,7 +15376,7 @@ async function renderVoiceHint(){
 
   banner.className = 'voice-hint-banner';
   banner.innerHTML = `
-    <span>💡 <b>Tip:</b> hold the plate-calculator button (🏋️) — or tap the mic icon on other exercises — to voice log a set. Try "225 for 5" or "180 for 12 at a 6".</span>
+    <span>💡 <b>Tip:</b> hold the plate-calculator icon — or tap the mic icon on other exercises — to voice log a set. Try "225 for 5" or "180 for 12 at a 6".</span>
     <button class="voice-hint-dismiss" id="voiceHintDismissBtn" aria-label="Dismiss voice logging tip">✕</button>
   `;
   banner.style.display = 'flex';

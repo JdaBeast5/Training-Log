@@ -97,10 +97,16 @@ test('sabotage-relevant: Gym Mode no longer redeclares the mic mask-image (true 
   assert.doesNotMatch(gymAfterSharedSrc, /mask-image/, 'the gym-mode shared resize block must only touch sizing/background/mask-repeat/position/size, not redeclare the image itself');
 });
 
-test('regression guard: Gym Mode still resizes the voice glyph to its own 24px, and the plate glyph is untouched by this change', (assert)=>{
+test('regression guard: Gym Mode still resizes the voice glyph to its own 24px, alongside the plate glyph', (assert)=>{
   assert.match(gymAfterSharedSrc, /width:24px; height:24px/, 'gym mode\'s bigger button must still get a bigger glyph');
   assert.match(gymAfterSharedSrc, /body\.gym-mode \.voice-log-btn::after/, 'the voice button must still be part of this resize rule');
-  assert.match(src, /body\.gym-mode \.plate-btn::after\{\s*\n\s*-webkit-mask-image:url\("data:image\/svg\+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww\.w3\.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271\.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%271\.2%27/, 'the plate button\'s own barbell mask-image (a separate icon, out of scope for this change) must still be declared exactly where it was');
+  assert.match(gymAfterSharedSrc, /body\.gym-mode \.plate-btn::after/, 'the plate button must still be part of the same shared resize rule');
+  // A later change (test-plate-btn-glyph.js) moved the plate button's own
+  // barbell mask-image out of this gym-mode-specific location and onto the
+  // base .plate-btn::after rule too, mirroring this file's own voice-button
+  // fix exactly — so this file no longer asserts WHERE that image lives,
+  // only that gym mode still resizes the plate button alongside the voice
+  // button, which is genuinely still this file's concern.
 });
 
 test('REAL invocation: the voice-hint tip banner text no longer references the removed mic emoji, but still describes how to use the button', (assert)=>{

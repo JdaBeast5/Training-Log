@@ -186,7 +186,7 @@
 // month-by-month list, not just the printed report — composes with the
 // existing exercise-name search filter. Doesn't touch this file directly,
 // but the version still has to move.
-const VERSION = '3.168';
+const VERSION = '3.169';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the
