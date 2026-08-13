@@ -178,7 +178,7 @@
 // bigger invisible tap area on controls that were previously exactly as
 // small as they look. Doesn't touch this file directly, but the version
 // still has to move.
-const VERSION = '3.166';
+const VERSION = '3.167';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the

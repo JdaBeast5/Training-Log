@@ -5489,16 +5489,6 @@
   </div>
 
   <div id="learnView" style="display:none">
-    <!-- Masterclass index. Every masterclass card below is gated on the
-         active program, which meant 12 of the 13 were unreachable without
-         switching programs — the richest content in the app, effectively
-         hidden. This card is the door to all of them. -->
-    <div class="card">
-      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 A2 2 0 0 1 5 3 H9.5 V17 H5 A2 2 0 0 0 3 18.5 Z"/><path d="M17 4.5 A2 2 0 0 0 15 3 H10.5 V17 H15 A2 2 0 0 1 17 18.5 Z"/></svg></span>All Masterclasses</div>
-      <div class="history-hint">Every discipline's deep-dive, not just the one matching your current program. Tap any to open it.</div>
-      <div id="masterclassIndex"></div>
-    </div>
-
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.6" cy="8.6" r="6"/><line x1="13" y1="13" x2="17.8" y2="17.8"/></svg></span>Exercise Library</div>
       <div class="history-hint" id="exerciseLibraryHint">Search the exercise library by name — technique cues and a form-video link for anything in the library, regardless of which program it's normally used in.</div>
@@ -5594,6 +5584,19 @@
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="10" x2="18" y2="10"/><rect x="1" y="8" width="2" height="4" rx="0.5"/><rect x="17" y="8" width="2" height="4" rx="0.5"/><circle cx="10" cy="4" r="2"/><line x1="10" y1="6" x2="10" y2="10"/></svg></span>Olympic Lifting Technique</div>
       <div class="history-hint">The snatch and clean & jerk broken into their teachable phases, plus the pulls and positional strength work that build them — tap a group to expand, tap a technique for a masterclass-level walkthrough.</div>
       <div id="olyTechniquesList"></div>
+    </div>
+
+    <!-- Masterclass index. Every masterclass card above is gated on the
+         active program, which meant 12 of the 13 were unreachable without
+         switching programs — the richest content in the app, effectively
+         hidden. This card is the door to all of them. Placed last (rather
+         than first) so what's relevant to the person's own program — the
+         Exercise Library, Recently Trained, and their program's own
+         masterclass card — renders before the full browse-everything index. -->
+    <div class="card">
+      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 A2 2 0 0 1 5 3 H9.5 V17 H5 A2 2 0 0 0 3 18.5 Z"/><path d="M17 4.5 A2 2 0 0 0 15 3 H10.5 V17 H15 A2 2 0 0 1 17 18.5 Z"/></svg></span>All Masterclasses</div>
+      <div class="history-hint">Every discipline's deep-dive, not just the one matching your current program. Tap any to open it.</div>
+      <div id="masterclassIndex"></div>
     </div>
   </div>
 
@@ -6011,7 +6014,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.166';
+const APP_VERSION = '3.167';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6304,6 +6307,9 @@ const WHATS_NEW = {
   ]},
   '3.166': { headline: 'Replaced the microphone emoji with a matching icon everywhere', points: [
     'The voice-log button showed a raw 🎤 emoji outside of Gym Mode — full-colour and a different shape on every phone, unlike the clean icon Gym Mode already used for it. Now it\'s the same simple mic icon everywhere, on every set-logging row and the food-description voice button.',
+  ]},
+  '3.167': { headline: 'Learn tab: your stuff first, the full index below it', points: [
+    'Exercise Library, Recently Trained, and your program\'s own masterclass card now sit above "All Masterclasses" instead of below it — so what\'s actually relevant to you shows up first, and the browse-everything index is there when you want it, further down.',
   ]},
 };
 
