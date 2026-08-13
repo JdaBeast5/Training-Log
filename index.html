@@ -3557,6 +3557,13 @@
   body.gym-mode #profileCardTopSlot,
   body.gym-mode #profileCardPermanentSlot,
   body.gym-mode #programRecommendation,
+  /* Gym Mode audit finding #1: .sticky-day-header's own "hidden" resting
+     position (translateY(-100%) tucked behind .nav-pills) only reads as
+     hidden because .nav-pills is normally there to mask it. Gym Mode hides
+     .nav-pills above but never hid the header itself, so with nothing left
+     to mask it, it sat in view for the whole gym-mode session regardless of
+     scroll position or its own .visible state. */
+  body.gym-mode .sticky-day-header,
   body.gym-mode #todayView > .card:not(#workoutCard){
     display:none !important;
   }
@@ -3710,7 +3717,14 @@
     font-size:21px; font-weight:700; letter-spacing:-0.015em;
   }
   body.gym-mode .exercise-block.open .ex-sets{font-size:15px;}
-  body.gym-mode .exercise input[type=checkbox]{width:30px; height:30px; flex:0 0 auto;}
+  /* Gym Mode audit finding #4: every other control in this mode was
+     deliberately sized up for sweaty-hands/glance-and-tap use — .plate-btn/
+     .voice-log-btn/.set-note-btn are min 54-56px, .gym-exit-btn min 48px,
+     .same-as-last-btn/.add-set-btn min 52px — but this checkbox, the one
+     that finishes an exercise (and on the last one, the session), was left
+     at the same 30px it is in normal mode. The row already has the height
+     to absorb a bigger box. */
+  body.gym-mode .exercise input[type=checkbox]{width:42px; height:42px; flex:0 0 auto;}
 
   /* ── The set row: one control, not six ───────────────────────────────────
      Each row was a box holding five more boxes, every one with its own border
@@ -3817,7 +3831,32 @@
     position:absolute; right:8px; top:6px; font-size:13px;
   }
   body.gym-mode .set-row-content{position:relative;}
-  body.gym-mode .set-note-input{min-height:48px; font-size:15px;}
+  /* Gym Mode audit finding #3: unlike every other panel in this mode, the
+     note field kept the normal-mode flat --surface2 fill — sizing was
+     bumped for gym mode here already, but never the color, so it read as a
+     leftover normal-mode box floating in an otherwise all-dark, well-styled
+     panel. Same gradient .set-row-content/.warmup-box already use below. */
+  body.gym-mode .set-note-input{
+    min-height:48px; font-size:15px;
+    background:linear-gradient(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%);
+    border-color:rgba(255,255,255,0.10);
+    box-shadow:0 1px 0 rgba(255,255,255,0.055) inset;
+  }
+  /* Same finding, the plate calculator's result panel — one of the mode's
+     two headline actions (the persistent "hold to voice log" tip is the
+     other), and the one surface that visibly still belonged to normal mode. */
+  body.gym-mode .plate-result{
+    background:linear-gradient(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%);
+    border-color:rgba(255,255,255,0.10);
+    box-shadow:0 1px 0 rgba(255,255,255,0.055) inset;
+  }
+  /* The red-tinted border stays — it's the real "this is voice feedback"
+     signal, not incidental normal-mode chrome — only the flat fill behind
+     it changes. */
+  body.gym-mode .voice-feedback{
+    background:linear-gradient(170deg, #221818 0%, #160F0F 62%, #110B0B 100%);
+    box-shadow:0 1px 0 rgba(255,255,255,0.055) inset;
+  }
 
   /* The ramp, restyled for the panel: a recessed block in the same well
      colour as the set rows, so it reads as part of the exercise rather than as
@@ -5852,7 +5891,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.161';
+const APP_VERSION = '3.162';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6121,6 +6160,12 @@ const WHATS_NEW = {
   '3.161': { headline: 'Search now tells you when there\'s more, and Learn stays in sync', points: [
     'Global search used to cap "Go to" sections and masterclass techniques at 10 results with no sign anything was left out — a broad search like "e" could quietly hide dozens of matches. It now says "Showing 10 of 23" (or however many), the same way exercise results already did.',
     'Opening a masterclass from Learn\'s own index used to leave that index stale — the button you just tapped kept showing "closed" until you left the tab and came back. It now flips to "Open · tap to close" the moment you open it.',
+  ]},
+  '3.162': { headline: 'Gym Mode cleanup: one exercise open at a time, and a few things that looked out of place', points: [
+    'The condensed day-title bar could sometimes stay visible the whole time you were in Gym Mode instead of tucking away — now it stays hidden like everything else the mode strips out.',
+    'If more than one exercise happened to already be expanded before you entered Gym Mode, it used to leave both open. It now settles on exactly one, the way the mode is meant to work.',
+    'The plate calculator, voice-log feedback, and the set-note box all still looked like normal mode\'s lighter panels floating in Gym Mode\'s dark screen — they now match everything around them.',
+    'The checkbox that marks an exercise done was noticeably smaller than every other button in Gym Mode. It\'s bigger now, in keeping with a mode built for tapping with sweaty hands mid-set.',
   ]},
 };
 
@@ -16854,9 +16899,21 @@ function refreshGymDock(){
 function openFirstIncompleteExercise(){
   const blocks = [...document.querySelectorAll('#exerciseList .exercise-block')];
   if(!blocks.length) return;
-  // Something is already open — that is where they were, and moving it would be
-  // worse than doing nothing.
-  if(blocks.some(b=> b.classList.contains('open'))) return;
+  const openBlocks = blocks.filter(b=> b.classList.contains('open'));
+  // Gym Mode audit finding #2: normal use lets any number of exercises sit
+  // expanded at once (the header click handler only ever toggles the one
+  // clicked, never collapses the rest) — but gym mode's own rule, stated in
+  // the comment above this function, is exactly one open at a time. Two
+  // pop-outs at once is the broken state that rule exists to prevent, so it
+  // has to be consolidated down to one here rather than assumed to already
+  // hold. Exactly one open is left alone below, same as before this fix —
+  // that is where they were, and moving it would be worse than doing
+  // nothing.
+  if(openBlocks.length > 1){
+    openBlocks.forEach(b=> setExerciseBlockOpen(b, false));
+  } else if(openBlocks.length === 1){
+    return;
+  }
   const target = blocks.find(b=>{
     const cb = b.querySelector('input[type=checkbox]');
     return cb && !cb.checked;

@@ -212,13 +212,16 @@ test('REAL invocation: setExerciseBlockOpen is the single writer of open state �
 });
 
 test('SABOTAGE ANCHOR: every path that opens or closes an exercise row goes through the one helper — counted as real invocations, not text matches', (assert)=>{
-  // Six real call sites: the header toggle, the auto-collapse when a row is
+  // Seven real call sites: the header toggle, the auto-collapse when a row is
   // checked off, the auto-open of the next row, gym mode's
-  // openFirstIncompleteExercise, and the two halves of advanceToNextExercise's
-  // handover. If a seventh open/close path is added and hand-writes the class
+  // openFirstIncompleteExercise (now two calls there — closing every
+  // previously-open block before opening the first incomplete one, added by
+  // the Gym Mode audit's "exactly one exercise open at a time" fix — plus
+  // the original opening call), and the two halves of advanceToNextExercise's
+  // handover. If an eighth open/close path is added and hand-writes the class
   // dance instead, aria-expanded goes stale there — this number is what makes
   // that visible instead of silent.
-  assert.strictEqual(countCallSites(src, 'setExerciseBlockOpen'), 6);
+  assert.strictEqual(countCallSites(src, 'setExerciseBlockOpen'), 7);
   // And the old hand-written form is gone from all of them.
   assert.strictEqual(src.includes("row.querySelector('.expand-wrap').classList.toggle('open')"), false);
   assert.strictEqual(src.includes("row.querySelector('.expand-wrap').classList.remove('open')"), false);
