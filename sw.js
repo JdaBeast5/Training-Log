@@ -171,7 +171,14 @@
 // now renders its native calendar chrome in dark instead of the browser's
 // default light scheme. Doesn't touch this file directly, but the version
 // still has to move.
-const VERSION = '3.163';
+//
+// v3.164: extended the existing 44px hit-area-extension pattern to the
+// working-set row's plate/voice/drop/note buttons, Care's "stop resting" ✕,
+// and the Settings/Coach panel close buttons — no visual change, just a
+// bigger invisible tap area on controls that were previously exactly as
+// small as they look. Doesn't touch this file directly, but the version
+// still has to move.
+const VERSION = '3.164';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the

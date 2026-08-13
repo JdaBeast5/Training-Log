@@ -3276,9 +3276,18 @@
   /* Group A — isolated. Each of these sits in a space-between header or is
      flanked by at least 8px of gap and then a wide flexible element, so a
      full 44px box reaches at most the edge of the neighbouring gap and
-     never past it. */
-  .sub-modal-close, .log-date-nav, .calendar-nav-btn{ position:relative; }
-  .sub-modal-close::after, .log-date-nav::after, .calendar-nav-btn::after{
+     never past it.
+     .settings-panel-close and .coach-fab-close are the same close-button
+     shape as .sub-modal-close — a space-between header, nothing sharing the
+     row — just missed the first pass because they're a different class.
+     .qty-btn and .frr-remove-btn live in .frr-controls, which is also
+     space-between with a 10px gap; qty-btn's inner neighbour is .qty-count
+     (plain text, not a competing tap target), so the small bleed into it
+     from a centred 44px box costs nothing. */
+  .sub-modal-close, .log-date-nav, .calendar-nav-btn,
+  .settings-panel-close, .coach-fab-close, .qty-btn, .frr-remove-btn{ position:relative; }
+  .sub-modal-close::after, .log-date-nav::after, .calendar-nav-btn::after,
+  .settings-panel-close::after, .coach-fab-close::after, .qty-btn::after, .frr-remove-btn::after{
     content:''; position:absolute; top:50%; left:50%;
     transform:translate(-50%,-50%);
     width:44px; height:44px;
@@ -3301,6 +3310,25 @@
     /* .fi-actions has gap:8px. */
     width:calc(100% + 8px); height:44px;
   }
+
+  /* The set-row icon buttons — plate calculator, voice log, drop set, note —
+     are the same dense-row shape as the food-row buttons above (34px/28px/
+     26px controls a few px apart), and get logged against far more often: a
+     button here fires every working set of every exercise, not once per food
+     item. Measured in a real layout (three stacked .set-row instances, real
+     CSS): .set-row-content's own gap is 6px, and each row is 38px tall with
+     8px between one row's bottom and the next row's top — 38 + 8 = 46px of
+     clearance around a button's centre before an identical button one row
+     away starts, comfortably past 44px. So unlike .reorder-arrows below,
+     there is no vertical constraint here and these take the full height. */
+  .plate-btn, .voice-log-btn, .set-drop-btn, .set-note-btn{ position:relative; }
+  .plate-btn::after, .voice-log-btn::after, .set-drop-btn::after, .set-note-btn::after{
+    content:''; position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    /* .set-row-content has gap:6px. */
+    width:calc(100% + 6px); height:44px;
+  }
+
   /* .reorder-arrows has gap:2px, so there is almost no horizontal room to
      claim — these two chevrons are genuinely too small and too close for a
      hit area alone to bring to standard. The vertical gain is real (18px to
@@ -3313,6 +3341,27 @@
     content:''; position:absolute; top:50%; left:50%;
     transform:translate(-50%,-50%);
     width:calc(100% + 2px); height:36px;
+  }
+
+  /* Care's "stop resting this region" ✕ — same 14px icon-button-with-no-
+     padding problem as the controls above, in a view this pass was asked to
+     check. Same overlap risk as .reorder-arrows too, measured rather than
+     assumed: a .resting-chip is ~30px tall and sits 8px from the next
+     wrapped row's chips (both real values — .resting-chip's own gap and
+     margin-bottom are 8px in the CSS, confirmed against a rendered layout).
+     30 + 8 = 38px is the largest height that meets a chip in the row below
+     at the midpoint of that gap without crossing into it; 36px is that
+     figure with a small margin, same rounding-down .reorder-arrows already
+     does for the same reason. Horizontally there is real room: 8px to the
+     region-name link on the left (the chip's own gap) and the chip's own
+     12px right padding plus 8px margin to the next chip on the right, so
+     calc(100% + 8px) — meeting the link at the midpoint of the gap, same
+     formula as the food-row buttons — costs nothing on that axis. */
+  .clear-resting{ position:relative; }
+  .clear-resting::after{
+    content:''; position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:calc(100% + 8px); height:36px;
   }
 
   /* --- 2. Visible keyboard focus --------------------------------------
@@ -5917,7 +5966,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.163';
+const APP_VERSION = '3.164';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6197,6 +6246,11 @@ const WHATS_NEW = {
     'The Photo/Barcode/Describe/Suggest/Recipes row on Today\'s Nutrition was clipping a sliver off the longer labels on narrower phones. They now fit with real room to spare.',
     'A calorie or macro count in the "current / target" numbers could wrap onto two lines once it hit four digits, throwing that row out of line with the others. It now stays on one line, growing sideways instead of splitting.',
     'The one date picker in the app (Cycle Tracking) rendered its calendar control in the browser\'s default light theme and sat 2px taller than the field below it — both now match the rest of the app\'s always-dark styling and line up cleanly.',
+  ]},
+  '3.164': { headline: 'Easier to tap: set buttons, the "stop resting" ✕, and two close buttons', points: [
+    'The plate calculator, voice log, drop-set, and note buttons on every logged set were drawn small on purpose to fit the row — but the tappable area was exactly that small too, so a slightly-off tap could miss and hit the wrong one.',
+    'Same fix for the ✕ that clears a body region under Care\'s "Currently Resting," and for the Settings and AI Coach panel close buttons.',
+    'All of it is an invisible tap-area change, not a visual one — nothing looks any different.',
   ]},
 };
 
