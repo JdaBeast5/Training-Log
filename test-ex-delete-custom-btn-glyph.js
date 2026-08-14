@@ -62,14 +62,15 @@ test('sabotage-relevant: the trash SVG artwork is genuinely REUSED from .fi-dele
   // This fragment (the SVG's opening tag through the lid path's start) is
   // unique to the hand-drawn trash glyph and appears exactly once per FULL
   // mask-image declaration. If the artwork were truly shared (one drawing,
-  // referenced by both .fi-delete::after and .ex-delete-custom-btn::after,
-  // each declaring both -webkit-mask-image and mask-image), this fragment
-  // must occur exactly 4 times in the whole file — 2 declarations x 2
-  // buttons. A 5th or 6th occurrence would mean a third, drifted copy
-  // exists somewhere; fewer than 4 would mean the reuse didn't actually
-  // happen and one of the two buttons is missing its glyph.
+  // referenced by .fi-delete::after, .ex-delete-custom-btn::after, AND
+  // .swipe-delete-bg::after — the third reuse added later by
+  // test-swipe-delete-bg-glyph.js — each declaring both -webkit-mask-image
+  // and mask-image), this fragment must occur exactly 6 times in the whole
+  // file — 2 declarations x 3 consumers. A 7th occurrence would mean a
+  // fourth, drifted copy exists somewhere; fewer than 6 would mean one of
+  // the three consumers is missing its glyph.
   const trashSvgOccurrences = (src.match(/stroke-linejoin%3D%27round%27%3E%3Cline%20x1%3D%274%27%20y1%3D%276%27%20x2%3D%2716%27/g) || []).length;
-  assert.strictEqual(trashSvgOccurrences, 4, 'the trash SVG should be declared exactly 4 times total in the file — the -webkit-mask-image and mask-image declarations of BOTH .fi-delete::after and .ex-delete-custom-btn::after, and no more');
+  assert.strictEqual(trashSvgOccurrences, 6, 'the trash SVG should be declared exactly 6 times total in the file — the -webkit-mask-image and mask-image declarations of .fi-delete::after, .ex-delete-custom-btn::after, AND .swipe-delete-bg::after, and no more');
 });
 
 test('REAL invocation: the real exercise-row template still keeps the raw trash emoji character in markup/textContent, only for custom exercises', (assert)=>{
