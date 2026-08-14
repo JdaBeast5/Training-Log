@@ -43,8 +43,8 @@ test('sabotage-relevant: .nav-pill\'s outer drop-shadow component is gone, inset
   // isolates the base .nav-pill rule from .nav-pill.active/.nav-pill:active
   // that follow it — those are separate selectors, not part of this block.
   const block = extractRuleBlock(src, '.nav-pill');
-  assert.match(block, /box-shadow:0 1px 0 rgba\(255,255,255,0\.04\) inset;/, 'the inset top highlight must remain');
-  assert.doesNotMatch(block, /0 4px 12px -8px rgba\(0,0,0,0\.5\)/, 'the outer drop-shadow component must be gone');
+  assert.match(block, /box-shadow:0 1px 0 rgba\(var\(--surface-white-rgb\),0\.04\) inset;/, 'the inset top highlight must remain — the literal white rgba() was later factored into var(--surface-white-rgb) by the neutral-rgba consolidation pass, same computed color');
+  assert.doesNotMatch(block, /0 4px 12px -8px rgba\(var\(--overlay-black-rgb\),0\.5\)/, 'the outer drop-shadow component must be gone');
 });
 
 test('regression guard: .nav-pill geometry (padding, font-size, border-radius) is completely unchanged — tap-target size is out of scope for this pass', (assert)=>{
@@ -56,7 +56,7 @@ test('regression guard: .nav-pill geometry (padding, font-size, border-radius) i
 
 test('regression guard: .nav-pill.active keeps its own distinct selected-state glow, untouched by the base .nav-pill shadow trim', (assert)=>{
   const block = extractRuleBlock(src, '.nav-pill.active');
-  assert.match(block, /box-shadow:0 1px 0 rgba\(255,255,255,0\.2\) inset, 0 3px 12px rgba\(var\(--plate-blue-rgb\),0\.4\);/, '.nav-pill.active\'s own glow must be exactly as it was — this is a deliberate selection cue, not generic weight');
+  assert.match(block, /box-shadow:0 1px 0 rgba\(var\(--surface-white-rgb\),0\.2\) inset, 0 3px 12px rgba\(var\(--plate-blue-rgb\),0\.4\);/, '.nav-pill.active\'s own glow must be exactly as it was (later factored into var(--surface-white-rgb), same computed color) — this is a deliberate selection cue, not generic weight');
 });
 
 run();

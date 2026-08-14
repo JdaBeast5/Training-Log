@@ -50,8 +50,8 @@ test('sabotage-relevant: .analysis-index-chip padding is smaller than the origin
   assert.ok(paddingMatch, '.analysis-index-chip must declare real padding');
   assert.ok(Number(paddingMatch[1]) < 7, `vertical chip padding should be reduced below 7px, got ${paddingMatch[1]}px`);
   assert.ok(Number(paddingMatch[2]) < 12, `horizontal chip padding should be reduced below 12px, got ${paddingMatch[2]}px`);
-  assert.match(block, /box-shadow:0 1px 0 rgba\(255,255,255,0\.04\) inset;/, 'the inset top highlight must remain (still reads as a real, tactile chip)');
-  assert.doesNotMatch(block, /0 4px 12px -8px rgba\(0,0,0,0\.5\)/, 'the outer drop-shadow component must be gone — that duplicated .nav-pill\'s own shadow directly beneath it');
+  assert.match(block, /box-shadow:0 1px 0 rgba\(var\(--surface-white-rgb\),0\.04\) inset;/, 'the inset top highlight must remain (still reads as a real, tactile chip) — the literal white rgba() was later factored into var(--surface-white-rgb) by the neutral-rgba consolidation pass, same computed color');
+  assert.doesNotMatch(block, /0 4px 12px -8px rgba\(var\(--overlay-black-rgb\),0\.5\)/, 'the outer drop-shadow component must be gone — that duplicated .nav-pill\'s own shadow directly beneath it');
 });
 
 test('regression guard: .nav-pill itself is completely untouched by this change — the index gets lighter, the primary rail does not', (assert)=>{
