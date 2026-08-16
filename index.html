@@ -6133,7 +6133,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.183';
+const APP_VERSION = '3.184';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6479,6 +6479,9 @@ const WHATS_NEW = {
   ]},
   '3.183': { headline: 'Fixed: the resting-region check-in reminder could never actually fire', points: [
     'Marking a body part as resting in Care was supposed to start a clock — if it\'s still marked resting after a few days, the app reminds you to check in on whether it\'s actually improving. That clock could never start: a storage bug meant the very first time it tried to record a start date, it silently failed, for every region, for everyone. Marking something as resting (and clearing it) still worked fine the whole time — only the "how long has this been going on" reminder was broken. It now actually starts tracking.',
+  ]},
+  '3.184': { headline: 'Fixed: the scheduled deload week could never actually arrive', points: [
+    'Every 5th week is supposed to automatically become a lighter deload week, tracked from when you started your current program. The same kind of storage bug as the resting-region fix meant that starting point could never actually get saved — so the app always thought it was still week 1, forever, and the automatic deload week could never trigger on its own. Manually marking a week as a deload in Settings still worked fine the whole time. The schedule now actually advances.',
   ]},
 };
 
@@ -12226,12 +12229,21 @@ async function loadActiveProgram(){
   // with deload-week tracking, so existing users get a baseline immediately
   // rather than deload detection silently doing nothing until they happen
   // to switch programs.
-  try{
-    const res = await window.storage.get('program-cycle-start');
-    if(!res || !res.value){
-      await window.storage.set('program-cycle-start', getTodayKey());
-    }
-  }catch(e){}
+  //
+  // The read and the write must NOT share one try/catch: window.storage.get
+  // REJECTS (throws "not found") for a key that has never been written, not
+  // resolve null/undefined — the exact bug this comment's own stated goal
+  // fell victim to. Wrapping both in one try meant that for anyone this
+  // backfill was actually written for (program-cycle-start never set), the
+  // read threw, the catch swallowed it, and the set() that would have
+  // established the baseline never ran — so getMesocycleWeek() fell back to
+  // "today" as the start date on every single call, forever, and the
+  // scheduled deload week (every 5th week) could never be reached.
+  let cycleStartRes = null;
+  try{ cycleStartRes = await window.storage.get('program-cycle-start'); }catch(e){}
+  if(!cycleStartRes || !cycleStartRes.value){
+    try{ await window.storage.set('program-cycle-start', getTodayKey()); }catch(e){}
+  }
 }
 
 async function saveActiveProgram(){
