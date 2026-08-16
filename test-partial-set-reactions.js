@@ -62,6 +62,10 @@ function globalsFor(isDistance){
     window.refreshSessionSummary = async ()=>{};
     window.getDefaultRestSeconds = ()=> 90;
     window.getRestReasonLabel = ()=> '';
+    // Not what this file is testing (see test-backdating-rest-timer-
+    // suppression.js for that) — stubbed false so save()'s real call to the
+    // real isBackdating() doesn't throw ReferenceError.
+    window.isBackdating = ()=> false;
     window.__restCalls = 0;
     window.startRestTimer = ()=>{ window.__restCalls++; };
     window.__activityCalls = 0;

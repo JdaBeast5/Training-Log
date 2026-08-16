@@ -6130,7 +6130,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.178';
+const APP_VERSION = '3.179';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6461,6 +6461,9 @@ const WHATS_NEW = {
   ]},
   '3.178': { headline: 'Superset fix: no more warm-up ramp on the second exercise', points: [
     'If a superset landed in the first couple exercises of the day (or paired with a heavy lift), its second exercise could get its own warm-up ramp — even though there\'s no rest between the two to actually work through one. The second exercise no longer gets a ramp; the first one is unaffected.',
+  ]},
+  '3.179': { headline: 'Fixed: rest timer popping up while fixing an old day\'s workout', points: [
+    'Backdating a set — filling in a workout for a previous day — used to start a live rest-timer countdown, the same as if you\'d just finished it in real time. That countdown no longer shows up while backdating; it still works normally when logging today\'s workout.',
   ]},
 };
 
@@ -18233,7 +18236,15 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       // superTag of its own, so it still gets the normal rest timer once
       // the pair is actually finished, exactly as before.
       const isSupersetLeadIn = !!ex.superTag;
-      if(isRealSet && !isSupersetLeadIn){
+      // Same position isBackdating() already takes for saveExSet's own
+      // rest/restTarget recording ("the elapsed time between two entries
+      // typed on Sunday for a workout done on Thursday is a measurement of
+      // typing speed") and that maybeOfferGymMode() guards internally with
+      // its own comment ("Backdating is not training") — a live countdown
+      // makes no sense while retroactively filling in a day that's already
+      // over. This was the one reactive consequence of the same isRealSet
+      // signal that never got the same guard.
+      if(isRealSet && !isSupersetLeadIn && !isBackdating()){
         const restTarget = getDefaultRestSeconds(ex);
         restTargetBySlot[exKey(activeProgram, activeDay, exIdx, subVariant)] = restTarget;
         startRestTimer(restTarget, getRestReasonLabel(ex));
