@@ -6130,7 +6130,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.177';
+const APP_VERSION = '3.178';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6458,6 +6458,9 @@ const WHATS_NEW = {
   ]},
   '3.177': { headline: 'Superset fix: no more rest-timer countdown between the two exercises', points: [
     'Finishing a set on the first exercise of a superset used to pop up a full rest-timer countdown, even though the whole point of a superset is going straight into the next exercise with no rest. That countdown no longer shows up between the two — it still works normally once you\'ve finished both and are moving on to whatever comes next.',
+  ]},
+  '3.178': { headline: 'Superset fix: no more warm-up ramp on the second exercise', points: [
+    'If a superset landed in the first couple exercises of the day (or paired with a heavy lift), its second exercise could get its own warm-up ramp — even though there\'s no rest between the two to actually work through one. The second exercise no longer gets a ramp; the first one is unaffected.',
   ]},
 };
 
@@ -15825,7 +15828,15 @@ async function renderWorkout(){
       // heavy weight on this particular lift, especially past the first
       // couple exercises where this rule alone wouldn't otherwise trigger.
       const isHeavySet = topRep != null && topRep <= 8;
-      const warmupEligible = warmupEligiblePosition || isHeavySet;
+      // Neither reason above holds for the BOTTOM half of a superset pair
+      // (isSupersetBottom, computed above from the previous render slot's
+      // own superTag): the whole point of a superset is going straight from
+      // the top exercise into this one with no rest — there is no time to
+      // work through a ramp's incremental weights regardless of why this
+      // slot would otherwise qualify for one. The top half is unaffected —
+      // it's approached fresh, same as any other exercise, and only the
+      // handover AFTER it is rest-free.
+      const warmupEligible = !isSupersetBottom && (warmupEligiblePosition || isHeavySet);
       const isEligibleCategory = WARMUP_ELIGIBLE_CATEGORIES.includes(exCategory);
       if(warmupEligible && isEligibleCategory && showWeight){
         // Below: either a numeric ramp, or the nudge saying why not. Never
