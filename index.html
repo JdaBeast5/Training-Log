@@ -6133,7 +6133,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.182';
+const APP_VERSION = '3.183';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6476,6 +6476,9 @@ const WHATS_NEW = {
   ]},
   '3.182': { headline: 'A deload signal now recognizes when you\'re already in a deload week', points: [
     'When RPE has run high for 3 straight sessions with no progress, the app suggests backing off — but if that happened to land during a week already scheduled (or manually marked) as a deload, it repeated the suggestion as if it were new instead of just saying "good timing, you\'re already doing that."',
+  ]},
+  '3.183': { headline: 'Fixed: the resting-region check-in reminder could never actually fire', points: [
+    'Marking a body part as resting in Care was supposed to start a clock — if it\'s still marked resting after a few days, the app reminds you to check in on whether it\'s actually improving. That clock could never start: a storage bug meant the very first time it tried to record a start date, it silently failed, for every region, for everyone. Marking something as resting (and clearing it) still worked fine the whole time — only the "how long has this been going on" reminder was broken. It now actually starts tracking.',
   ]},
 };
 
@@ -28442,23 +28445,36 @@ async function addRestingRegion(region){
     regions.push(region);
     await setRestingRegions(regions);
   }
+  // The read and the write must NOT share one try/catch: window.storage.get
+  // REJECTS (throws "not found") for a key that has never been written, not
+  // resolve null/undefined — the same real storage contract this app's own
+  // WHATS_NEW baseline logic already had to learn the hard way. Wrapping
+  // both in one try meant the very FIRST read of this key (before it had
+  // ever been created) threw, the catch swallowed it, and the set() that
+  // would have created the key never ran — so the key could never be
+  // created at all, for any user, since this is the only place that ever
+  // writes it. The staleness reminder (getStaleRestingRegionInsight) could
+  // never have fired for anyone.
+  let since = {};
   try{
     const res = await window.storage.get('resting-regions-since');
-    const since = res && res.value ? JSON.parse(res.value) : {};
-    if(!since[region]) since[region] = getTodayKey(); // don't overwrite an existing start date
-    await window.storage.set('resting-regions-since', JSON.stringify(since));
+    if(res && res.value) since = JSON.parse(res.value);
   }catch(e){}
+  if(!since[region]) since[region] = getTodayKey(); // don't overwrite an existing start date
+  try{ await window.storage.set('resting-regions-since', JSON.stringify(since)); }catch(e){}
 }
 
 async function removeRestingRegion(region){
   const regions = (await getRestingRegions()).filter(r=>r!==region);
   await setRestingRegions(regions);
+  // Same read/write separation as addRestingRegion above, for the same reason.
+  let since = {};
   try{
     const res = await window.storage.get('resting-regions-since');
-    const since = res && res.value ? JSON.parse(res.value) : {};
-    delete since[region];
-    await window.storage.set('resting-regions-since', JSON.stringify(since));
+    if(res && res.value) since = JSON.parse(res.value);
   }catch(e){}
+  delete since[region];
+  try{ await window.storage.set('resting-regions-since', JSON.stringify(since)); }catch(e){}
 }
 
 function buildReliefHtml(region){
