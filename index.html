@@ -6133,7 +6133,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.181';
+const APP_VERSION = '3.182';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6473,6 +6473,9 @@ const WHATS_NEW = {
   ]},
   '3.181': { headline: 'Dietary warnings now show on barcode, photo, and Describe It food results', points: [
     'Searching for a food already flagged anything on your avoid list or that didn\'t fit a dietary preference or restriction (gluten-free, dairy-free, nut-free, halal, kosher) with a warning. Scanning a barcode, snapping a photo of a meal, or describing food in your own words never showed that same warning — exactly the situations where you\'re least likely to already know what\'s in something. They now get the same warning search results always have.',
+  ]},
+  '3.182': { headline: 'A deload signal now recognizes when you\'re already in a deload week', points: [
+    'When RPE has run high for 3 straight sessions with no progress, the app suggests backing off — but if that happened to land during a week already scheduled (or manually marked) as a deload, it repeated the suggestion as if it were new instead of just saying "good timing, you\'re already doing that."',
   ]},
 };
 
@@ -14837,6 +14840,16 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
   if(signal){
     if(inDeloadWeek && signal.type==='increase'){
       return {direction:'down', html:`<div class="progress-badge-deload">🔻 Deload week — sets are already reduced below; hold at a reduced load here too rather than chasing the jump this would normally suggest.</div>`};
+    }
+    // The automatic RPE-plateau deload signal (analyzeProgressionSignal's
+    // Signal 1) has no idea whether a deload week is already happening —
+    // unlike the increase override just above, it would otherwise show its
+    // normal "a 10-20% deload this week likely does more for growth" message
+    // as if recommending something new, when sets here are already reduced
+    // for exactly that reason. Acknowledges the two agree instead of
+    // repeating the recommendation redundantly.
+    if(inDeloadWeek && signal.type==='deload'){
+      return {direction:'down', html:`<div class="progress-badge-deload">🔻 Deload week — and the data backs it up: RPE has run 9+ for 3 straight sessions with no rep or weight gain. Good timing; sets are already reduced below.</div>`};
     }
     const badgeClass = signal.type==='increase' ? 'progress-badge' : signal.type==='decrease' ? 'progress-badge-decrease' : 'progress-badge-deload';
     return {
