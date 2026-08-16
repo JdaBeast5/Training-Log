@@ -41,6 +41,17 @@ function extractBetween(label, startAnchor, endAnchor){
 // ── Real source under test ──────────────────────────────────────────────────
 
 const openHelperSrc = extractFunction(src, 'setExerciseBlockOpen');
+// The header click wiring now calls setExerciseUnitOpen (opens/closes a
+// superset pair together — see test-superset-field-chaining.js), which
+// itself calls supersetPartnerBlock, which calls nextExerciseBlock. None of
+// these three change what happens for a lone, non-superset row like every
+// fixture in this file uses (supersetPartnerBlock returns null, so
+// setExerciseUnitOpen falls straight through to plain setExerciseBlockOpen)
+// — they just need to be real and in scope so that fallthrough actually
+// happens instead of throwing a ReferenceError.
+const unitOpenHelperSrc = extractFunction(src, 'setExerciseUnitOpen');
+const partnerHelperSrc = extractFunction(src, 'supersetPartnerBlock');
+const nextExerciseBlockSrc = extractFunction(src, 'nextExerciseBlock');
 
 // The exercise row's real markup template, lifted whole out of renderWorkout
 // rather than hand-copied into a fixture — the point of these tests is that
@@ -132,7 +143,7 @@ test('REAL markup: the shipped exercise header is a role="button" with tabindex,
 
 test('REAL invocation: a pointer click on the header expands the row AND flips aria-expanded, and a second click collapses both again', (assert)=>{
   const { window: win } = runJsdom('<div id="row" class="exercise-block"></div>', ROW_GLOBALS,
-    [rowTemplateSrc, openHelperSrc, headerWiringSrc, `
+    [rowTemplateSrc, openHelperSrc, unitOpenHelperSrc, partnerHelperSrc, nextExerciseBlockSrc, headerWiringSrc, `
       var header = document.querySelector('.exercise');
       function snapshot(){
         return [row.classList.contains('open'), row.querySelector('.expand-wrap').classList.contains('open'), header.getAttribute('aria-expanded')];
@@ -150,7 +161,7 @@ test('REAL invocation: a pointer click on the header expands the row AND flips a
 
 test('THE FIX: a keyboard-only Enter on the focused exercise header opens the set list — previously impossible, there was no key handler at all', (assert)=>{
   const { document, window: win } = runJsdom('<div id="row" class="exercise-block"></div>', ROW_GLOBALS,
-    [rowTemplateSrc, openHelperSrc, headerWiringSrc, keydownListenerSrc, `
+    [rowTemplateSrc, openHelperSrc, unitOpenHelperSrc, partnerHelperSrc, nextExerciseBlockSrc, headerWiringSrc, keydownListenerSrc, `
       var header = document.querySelector('.exercise');
       header.focus();
       window.__wasFocused = (document.activeElement === header);
@@ -166,7 +177,7 @@ test('THE FIX: a keyboard-only Enter on the focused exercise header opens the se
 
 test('THE FIX: Space does the same, and its default scroll is prevented (a role="button" that scrolls the page instead of activating is its own bug)', (assert)=>{
   const { document, window: win } = runJsdom('<div id="row" class="exercise-block"></div>', ROW_GLOBALS,
-    [rowTemplateSrc, openHelperSrc, headerWiringSrc, keydownListenerSrc, `
+    [rowTemplateSrc, openHelperSrc, unitOpenHelperSrc, partnerHelperSrc, nextExerciseBlockSrc, headerWiringSrc, keydownListenerSrc, `
       var header = document.querySelector('.exercise');
       header.focus();
       var ev = new window.KeyboardEvent('keydown', {key: ' ', bubbles: true, cancelable: true});
@@ -180,7 +191,7 @@ test('THE FIX: Space does the same, and its default scroll is prevented (a role=
 
 test('GUARD: Enter pressed on the completion checkbox INSIDE the header belongs to the checkbox — it must not also toggle the row open', (assert)=>{
   const { document } = runJsdom('<div id="row" class="exercise-block"></div>', ROW_GLOBALS,
-    [rowTemplateSrc, openHelperSrc, headerWiringSrc, keydownListenerSrc, `
+    [rowTemplateSrc, openHelperSrc, unitOpenHelperSrc, partnerHelperSrc, nextExerciseBlockSrc, headerWiringSrc, keydownListenerSrc, `
       var cb = document.querySelector('.exercise input[type=checkbox]');
       cb.focus();
       cb.dispatchEvent(new window.KeyboardEvent('keydown', {key: ' ', bubbles: true, cancelable: true}));
@@ -211,17 +222,24 @@ test('REAL invocation: setExerciseBlockOpen is the single writer of open state �
   void document;
 });
 
-test('SABOTAGE ANCHOR: every path that opens or closes an exercise row goes through the one helper — counted as real invocations, not text matches', (assert)=>{
-  // Seven real call sites: the header toggle, the auto-collapse when a row is
-  // checked off, the auto-open of the next row, gym mode's
-  // openFirstIncompleteExercise (now two calls there — closing every
-  // previously-open block before opening the first incomplete one, added by
-  // the Gym Mode audit's "exactly one exercise open at a time" fix — plus
-  // the original opening call), and the two halves of advanceToNextExercise's
-  // handover. If an eighth open/close path is added and hand-writes the class
-  // dance instead, aria-expanded goes stale there — this number is what makes
-  // that visible instead of silent.
-  assert.strictEqual(countCallSites(src, 'setExerciseBlockOpen'), 7);
+test('SABOTAGE ANCHOR: every path that opens or closes an exercise row goes through the one helper (directly, or via setExerciseUnitOpen) — counted as real invocations, not text matches', (assert)=>{
+  // The superset field-chaining fix (test-superset-field-chaining.js)
+  // introduced setExerciseUnitOpen, which opens/closes a superset pair
+  // TOGETHER by calling setExerciseBlockOpen on both halves — every call
+  // site that used to call setExerciseBlockOpen directly for the header
+  // toggle, the checkbox-driven auto-collapse/auto-open, and both halves of
+  // advanceToNextExercise's handover now goes through it instead, so those
+  // six real invocations moved off this count and onto
+  // setExerciseUnitOpen's own. Three real DIRECT setExerciseBlockOpen call
+  // sites remain: the two inside setExerciseUnitOpen itself, and the one
+  // inside openFirstIncompleteExercise's genuinely-broken-multi-open
+  // collapse loop (a matched superset pair is deliberately NOT collapsed
+  // there, so that one path still writes bare setExerciseBlockOpen(b,
+  // false) rather than the unit form). If either count drifts, some path
+  // now hand-writes the class dance instead and aria-expanded goes stale
+  // there — these numbers are what makes that visible instead of silent.
+  assert.strictEqual(countCallSites(src, 'setExerciseBlockOpen'), 3);
+  assert.strictEqual(countCallSites(src, 'setExerciseUnitOpen'), 6);
   // And the old hand-written form is gone from all of them.
   assert.strictEqual(src.includes("row.querySelector('.expand-wrap').classList.toggle('open')"), false);
   assert.strictEqual(src.includes("row.querySelector('.expand-wrap').classList.remove('open')"), false);

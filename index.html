@@ -6130,7 +6130,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.175';
+const APP_VERSION = '3.176';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6451,6 +6451,10 @@ const WHATS_NEW = {
   ]},
   '3.175': { headline: 'One consistent blue for every gradient button and bar', points: [
     'A few buttons and progress bars (the floating AI Coach button, the workout volume bar, the AI Coach progress bar, and the selected day on the calendar) used a slightly different, lighter blue than the rest of the app\'s blue gradients. They now all match.',
+  ]},
+  '3.176': { headline: 'Supersets: one tap opens both exercises, and Next/Enter alternates between them', points: [
+    'Tapping either exercise in a superset now opens both together, instead of having to tap each one open separately to log alternating sets.',
+    'The "Next" key on the number pad (or Enter on a real keyboard) now walks weight → reps → RPE → straight into the OTHER exercise\'s same set, then back for the next set — matching how a superset actually gets performed, instead of finishing every set of one exercise before moving to the other.',
   ]},
 };
 
@@ -15521,6 +15525,40 @@ function setExerciseBlockOpen(block, isOpen){
   if(header) header.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
 }
 
+// The other half of a superset pair, or null if `block` isn't one.
+// `.superset-top`/`.superset-bottom` are always exactly a consecutive pair in
+// this app's data model (a superTag marks "pairs with the next exercise";
+// nothing chains a third exercise onto either end) — so top's partner is
+// simply the next real `.exercise-block` (nextExerciseBlock already skips
+// the `.superset-connector` div between them) and bottom's partner is the
+// nearest real block walking backward.
+function supersetPartnerBlock(block){
+  if(!block || !block.classList) return null;
+  if(block.classList.contains('superset-top')) return nextExerciseBlock(block);
+  if(block.classList.contains('superset-bottom')){
+    let cand = block.previousElementSibling;
+    while(cand){
+      if(cand.classList && cand.classList.contains('exercise-block')) return cand;
+      cand = cand.previousElementSibling;
+    }
+  }
+  return null;
+}
+
+// Opens or closes a superset pair TOGETHER, as one unit — plain
+// setExerciseBlockOpen only ever touches the block it's given. Gym mode's
+// "exactly one exercise open at a time" invariant (see advanceToNextExercise
+// below) means "one open UNIT": a lone exercise, or a linked superset pair,
+// never a pair with only one half open. Falls back to setExerciseBlockOpen
+// itself when `block` isn't part of a pair, so every call site that used to
+// call setExerciseBlockOpen can just call this instead with no behavior
+// change for non-superset exercises.
+function setExerciseUnitOpen(block, isOpen){
+  setExerciseBlockOpen(block, isOpen);
+  const partner = supersetPartnerBlock(block);
+  if(partner) setExerciseBlockOpen(partner, isOpen);
+}
+
 async function renderWorkout(){
   const day = dayDefs[activeDay];
   renderTodayInsights(); // fire-and-forget — session heads-up depends on activeDay/activeProgram, both already updated by now
@@ -16101,18 +16139,20 @@ async function renderWorkout(){
       // Only triggers on actually checking it, not unchecking, so fixing a
       // mistaken tick doesn't yank the view shut on you.
       if(cb.checked && row.classList.contains('open')){
-        setExerciseBlockOpen(row, false);
+        setExerciseUnitOpen(row, false);
 
         // Keep the flow moving forward instead of leaving the person to tap
-        // open the next exercise themselves — rows are appended to the list
-        // in the same order as renderExercises, so the next sibling element
-        // is always the next exercise as currently displayed (already
-        // accounting for reordering, session-length trimming, etc). Skipped
-        // if there's no next exercise, or the next one is already checked
-        // off (nothing useful to show — it's already done).
-        const nextRow = row.nextElementSibling;
-        if(nextRow && nextRow.classList.contains('exercise-block') && !completed[i+1]){
-          setExerciseBlockOpen(nextRow, true);
+        // open the next exercise themselves — nextExerciseBlock walks real
+        // exercise-block siblings only (skipping the .superset-connector
+        // div a superset pair sits next to), so this lands on the next
+        // exercise as currently displayed (already accounting for
+        // reordering, session-length trimming, etc) whether or not `row`
+        // was part of a pair. Skipped if there's no next exercise, or the
+        // next one is already checked off (nothing useful to show — it's
+        // already done).
+        const nextRow = nextExerciseBlock(row);
+        if(nextRow && !completed[i+1]){
+          setExerciseUnitOpen(nextRow, true);
         }
       }
 
@@ -16186,7 +16226,7 @@ async function renderWorkout(){
     }
 
     exerciseHeader.addEventListener('click', ()=>{
-      setExerciseBlockOpen(row, !row.classList.contains('open'));
+      setExerciseUnitOpen(row, !row.classList.contains('open'));
     });
 
     // Bound to the swap ICON specifically, not the whole .ex-name text — the
@@ -17222,15 +17262,18 @@ function openFirstIncompleteExercise(){
   // Gym Mode audit finding #2: normal use lets any number of exercises sit
   // expanded at once (the header click handler only ever toggles the one
   // clicked, never collapses the rest) — but gym mode's own rule, stated in
-  // the comment above this function, is exactly one open at a time. Two
-  // pop-outs at once is the broken state that rule exists to prevent, so it
-  // has to be consolidated down to one here rather than assumed to already
-  // hold. Exactly one open is left alone below, same as before this fix —
-  // that is where they were, and moving it would be worse than doing
-  // nothing.
-  if(openBlocks.length > 1){
+  // the comment above this function, is exactly one open UNIT at a time (a
+  // lone exercise, or a linked superset pair — see setExerciseUnitOpen). Two
+  // open blocks that AREN'T a matched pair is still the broken state this
+  // rule exists to prevent, and gets consolidated down to one here rather
+  // than assumed to already hold. Two open blocks that genuinely ARE each
+  // other's superset partner is not that broken state — it's exactly what a
+  // pair looks like mid-superset — so it's left alone below, same as a
+  // single open block always was.
+  const isMatchedPair = openBlocks.length === 2 && supersetPartnerBlock(openBlocks[0]) === openBlocks[1];
+  if(openBlocks.length > 1 && !isMatchedPair){
     openBlocks.forEach(b=> setExerciseBlockOpen(b, false));
-  } else if(openBlocks.length === 1){
+  } else if(openBlocks.length >= 1){
     return;
   }
   const target = blocks.find(b=>{
@@ -17238,7 +17281,7 @@ function openFirstIncompleteExercise(){
     return cb && !cb.checked;
   });
   if(!target) return;
-  setExerciseBlockOpen(target, true);
+  setExerciseUnitOpen(target, true);
 }
 
 // ── Advancing through the fields ────────────────────────────────────────────
@@ -17287,27 +17330,36 @@ function nextExerciseBlock(block){
   return null;
 }
 
-// Hands over from one exercise to the next: collapses the one being left and
-// opens the one being entered. Exactly one exercise open is the invariant the
-// whole mode is built on — the focus dim assumes it, and two pop-outs at once
-// puts two bright things on a screen designed to have one.
+// Hands over from one exercise (or superset UNIT — see setExerciseUnitOpen)
+// to the next: collapses the one being left and opens the one being entered.
+// Exactly one open UNIT is the invariant the whole mode is built on — the
+// focus dim assumes it, and two pop-outs at once puts two bright things on a
+// screen designed to have one.
 //
 // The checkbox is deliberately NOT ticked. Running out of fields means the
 // last set has a number in it, not that the person has decided the exercise is
 // done, and marking work complete on their behalf is not a thing a text field
 // should be able to do.
 function advanceToNextExercise(block){
-  let cand = nextExerciseBlock(block);
-  // Skip anything already checked off — there is nothing to log in it.
+  // If `block` is the top half of a pair, hop over its own bottom half too —
+  // nextExerciseBlock from the bottom half is genuinely the next DIFFERENT
+  // exercise, whereas nextExerciseBlock from the top half would just be the
+  // bottom half again.
+  const partner = supersetPartnerBlock(block);
+  const searchFrom = (partner && block.classList.contains('superset-top')) ? partner : block;
+  let cand = nextExerciseBlock(searchFrom);
+  // Skip anything already checked off — there is nothing to log in it. A
+  // superset pair is skipped as a unit: if its top half is already checked,
+  // hop straight past its bottom half too rather than landing mid-pair.
   while(cand){
     const cb = cand.querySelector('input[type=checkbox]');
     if(cb && !cb.checked) break;
-    cand = nextExerciseBlock(cand);
+    cand = cand.classList.contains('superset-top') ? nextExerciseBlock(supersetPartnerBlock(cand) || cand) : nextExerciseBlock(cand);
   }
   if(!cand) return false;
 
-  setExerciseBlockOpen(block, false);
-  setExerciseBlockOpen(cand, true);
+  setExerciseUnitOpen(block, false);
+  setExerciseUnitOpen(cand, true);
 
   const first = cand.querySelector('.ex-input');
   if(first){ focusSetField(first); return true; }
@@ -17317,9 +17369,49 @@ function advanceToNextExercise(block){
   return true;
 }
 
+// Builds the field order across a superset PAIR as one interleaved sequence
+// — set 1 of the top exercise, THEN set 1 of the bottom exercise, then set 2
+// of the top, set 2 of the bottom, and so on — rather than every field of
+// the top exercise followed by every field of the bottom one. That ordering
+// is what actually matches how a superset gets performed: straight from the
+// top exercise's set into the bottom exercise's set, no rest, before either
+// one's NEXT set. Sets are matched by index (top's set 2 pairs with
+// bottom's set 2) and an exercise with fewer rendered sets than its partner
+// simply drops out of the sequence past its own last row — no placeholder,
+// nothing to skip past.
+function supersetFieldSequence(topBlock, bottomBlock){
+  const topRows = [...topBlock.querySelectorAll('.set-row')];
+  const bottomRows = [...bottomBlock.querySelectorAll('.set-row')];
+  const seq = [];
+  const maxLen = Math.max(topRows.length, bottomRows.length);
+  for(let s=0; s<maxLen; s++){
+    if(topRows[s]) seq.push(...topRows[s].querySelectorAll('.ex-input'));
+    if(bottomRows[s]) seq.push(...bottomRows[s].querySelectorAll('.ex-input'));
+  }
+  return seq;
+}
+
 function advanceSetField(input){
   const block = input.closest && input.closest('.exercise-block');
   if(!block) return false;
+
+  const partner = supersetPartnerBlock(block);
+  if(partner){
+    const topBlock = block.classList.contains('superset-top') ? block : partner;
+    const bottomBlock = topBlock === block ? partner : block;
+    const seq = supersetFieldSequence(topBlock, bottomBlock);
+    const si = seq.indexOf(input);
+    if(si !== -1){
+      const next = seq[si + 1];
+      if(next){ focusSetField(next); return true; }
+      // Both halves of the pair are exhausted — hand off exactly like a
+      // normal single exercise running out of fields, just starting the
+      // search from the bottom half so the next real exercise found is
+      // genuinely after the whole pair, not the top half again.
+      return advanceToNextExercise(bottomBlock);
+    }
+  }
+
   // Scoped to this block's own fields and read fresh: renderWorkout rebuilds
   // these nodes, so any cached list would go stale on the first re-render.
   const fields = [...block.querySelectorAll('.ex-input')];
