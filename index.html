@@ -6130,8 +6130,8 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.179';
-const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
+const APP_VERSION = '3.180';
+const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
 // One short entry per APP_VERSION bump, written for the person USING the
@@ -6464,6 +6464,9 @@ const WHATS_NEW = {
   ]},
   '3.179': { headline: 'Fixed: rest timer popping up while fixing an old day\'s workout', points: [
     'Backdating a set — filling in a workout for a previous day — used to start a live rest-timer countdown, the same as if you\'d just finished it in real time. That countdown no longer shows up while backdating; it still works normally when logging today\'s workout.',
+  ]},
+  '3.180': { headline: 'Fixed: custom exercises bleeding across Combat/Cycling/Watersports/Medical styles', points: [
+    'A custom exercise added under one style (e.g. Combat → Boxing) could also show up — and be deleted from — a different style that happened to share the same day number (Combat → Muay Thai). Custom exercises are now kept separate per style, matching how every other part of the app already works. Anything you\'d already added has been carried over to whichever style is currently active.',
   ]},
 };
 
@@ -6825,6 +6828,40 @@ async function runMigrations(){
         }
       }
     }catch(e){ photoMigrationComplete = false; }
+  }
+
+  // v7: custom exercises added under Combat/Cycling/Watersports/Medical were
+  // stored as custom-ex:{program}:{dayId} — no style segment, even though
+  // ex:/workout: keys for these same four programs have always carried one
+  // (see exKey/workoutKey above, and v3's combat migration a few blocks up,
+  // which fixed the identical shape of bug for ex:/workout: keys). There is
+  // no way to know which style a pre-existing custom exercise was actually
+  // added under, so — same resolution v3 already used for the same reason —
+  // every pre-existing key is renamed into that program's default/original
+  // style: the same value each activeX variable already starts at above
+  // (activeMartialArt='kickboxing', activeCyclingStyle='road',
+  // activeWatersportsStyle='surfing', activeMedicalStyle='obesity').
+  if(version < 7){
+    const CUSTOM_EX_DEFAULT_STYLE = {combat:'kickboxing', cycling:'road', watersports:'surfing', medical:'obesity'};
+    for(const program of Object.keys(CUSTOM_EX_DEFAULT_STYLE)){
+      try{
+        const res = await window.storage.list(`custom-ex:${program}:`);
+        if(res && res.keys){
+          for(const key of res.keys){
+            const parts = key.split(':'); // custom-ex, program, dayId  (old 3-part format only)
+            if(parts.length !== 3) continue; // already migrated / new format
+            const [, , dayId] = parts;
+            try{
+              const item = await window.storage.get(key);
+              if(item && item.value){
+                await window.storage.set(`custom-ex:${program}:${CUSTOM_EX_DEFAULT_STYLE[program]}:${dayId}`, item.value);
+                await window.storage.delete(key);
+              }
+            }catch(e){}
+          }
+        }
+      }catch(e){}
+    }
   }
 
   if(version < SCHEMA_VERSION){
@@ -18668,16 +18705,31 @@ const FOCUS_ELIGIBLE_PROGRAMS = ['strength','bodybuilding','powerlifting','athle
 
 // Custom exercises are scoped per program+day, same as the built-in list
 // they sit alongside — a custom exercise added to Push Day only shows up
-// on Push Day, not every day in the program.
+// on Push Day, not every day in the program. For Combat/Cycling/
+// Watersports/Medical, "same as the built-in list" also means the same
+// per-style namespacing exKey/workoutKey already use above — day-slot
+// identifiers like "d1" are shared across a program's different styles, but
+// mean a different actual workout in each one. This key format didn't
+// namespace by style until SCHEMA_VERSION 7 (see runMigrations): a custom
+// exercise added under one style used to bleed into every other style
+// sharing that day slot, and deleting it in one style deleted it
+// everywhere.
+function customExStorageKey(program, dayId){
+  if(program === 'combat') return `custom-ex:${program}:${activeMartialArt}:${dayId}`;
+  if(program === 'cycling') return `custom-ex:${program}:${activeCyclingStyle}:${dayId}`;
+  if(program === 'watersports') return `custom-ex:${program}:${activeWatersportsStyle}:${dayId}`;
+  if(program === 'medical') return `custom-ex:${program}:${activeMedicalStyle}:${dayId}`;
+  return `custom-ex:${program}:${dayId}`;
+}
 async function getCustomExercises(program, dayId){
   try{
-    const res = await window.storage.get(`custom-ex:${program}:${dayId}`);
+    const res = await window.storage.get(customExStorageKey(program, dayId));
     if(res && res.value) return JSON.parse(res.value);
   }catch(e){}
   return [];
 }
 async function saveCustomExercises(program, dayId, list){
-  try{ await window.storage.set(`custom-ex:${program}:${dayId}`, JSON.stringify(list)); }catch(e){}
+  try{ await window.storage.set(customExStorageKey(program, dayId), JSON.stringify(list)); }catch(e){}
 }
 
 function getBodyGoalFocusExercises(bodyGoal, program, day){
