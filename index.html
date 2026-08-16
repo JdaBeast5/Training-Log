@@ -6130,7 +6130,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.176';
+const APP_VERSION = '3.177';
 const SCHEMA_VERSION = 6; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6455,6 +6455,9 @@ const WHATS_NEW = {
   '3.176': { headline: 'Supersets: one tap opens both exercises, and Next/Enter alternates between them', points: [
     'Tapping either exercise in a superset now opens both together, instead of having to tap each one open separately to log alternating sets.',
     'The "Next" key on the number pad (or Enter on a real keyboard) now walks weight → reps → RPE → straight into the OTHER exercise\'s same set, then back for the next set — matching how a superset actually gets performed, instead of finishing every set of one exercise before moving to the other.',
+  ]},
+  '3.177': { headline: 'Superset fix: no more rest-timer countdown between the two exercises', points: [
+    'Finishing a set on the first exercise of a superset used to pop up a full rest-timer countdown, even though the whole point of a superset is going straight into the next exercise with no rest. That countdown no longer shows up between the two — it still works normally once you\'ve finished both and are moving on to whatever comes next.',
   ]},
 };
 
@@ -18210,10 +18213,21 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       const hasRequiredWeight = !showWeight || weightValRaw !== '';
       const hasRequiredDistance = !showDistance || distValRaw !== '';
       const isRealSet = hasReps && hasRequiredWeight && hasRequiredDistance;
-      if(isRealSet){
+      // ex.superTag means THIS exercise is the top half of a superset pair
+      // (see renderWorkout's isSupersetTop / the .superset-connector's own
+      // "straight into the next exercise, no rest between" label) — there is
+      // no real rest target for a set that's immediately followed by a
+      // different exercise's set, so no countdown should start and no
+      // target should be recorded for it. The bottom half carries no
+      // superTag of its own, so it still gets the normal rest timer once
+      // the pair is actually finished, exactly as before.
+      const isSupersetLeadIn = !!ex.superTag;
+      if(isRealSet && !isSupersetLeadIn){
         const restTarget = getDefaultRestSeconds(ex);
         restTargetBySlot[exKey(activeProgram, activeDay, exIdx, subVariant)] = restTarget;
         startRestTimer(restTarget, getRestReasonLabel(ex));
+      }
+      if(isRealSet){
         // Second consumer of the same signal: the first logged set of the day
         // is also the moment to offer gym mode, or to enter it if that has
         // already been answered yes.
