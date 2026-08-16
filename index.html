@@ -3046,7 +3046,10 @@
   .food-item-btn .fi-name{font-size:13.5px; font-weight:500;}
   .food-item-btn .fi-cat{font-size:10px; color:var(--plate-blue); text-transform:uppercase; letter-spacing:0.3px; margin-top:1px;}
   .food-item-btn .fi-source{font-size:10px; color:var(--plate-teal); margin-top:1px;}
-  .food-item-btn .fi-avoid-flag{font-size:10.5px; color:var(--plate-red); font-weight:600; margin-top:2px;}
+  /* .food-result-row (buildFoodResultRow — barcode/Snap-a-Meal/Describe It)
+     reuses this exact rule rather than a second near-identical one: same
+     flag, same reasoning, just a different card shape it sits inside. */
+  .food-item-btn .fi-avoid-flag, .food-result-row .fi-avoid-flag{font-size:10.5px; color:var(--plate-red); font-weight:600; margin-top:2px;}
   .food-item-btn .fi-macro{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted); margin-top:2px;}
   .food-item-btn .fi-actions{display:flex; align-items:center; gap:8px; flex:0 0 auto;}
   .fi-star{
@@ -6130,7 +6133,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.180';
+const APP_VERSION = '3.181';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6467,6 +6470,9 @@ const WHATS_NEW = {
   ]},
   '3.180': { headline: 'Fixed: custom exercises bleeding across Combat/Cycling/Watersports/Medical styles', points: [
     'A custom exercise added under one style (e.g. Combat → Boxing) could also show up — and be deleted from — a different style that happened to share the same day number (Combat → Muay Thai). Custom exercises are now kept separate per style, matching how every other part of the app already works. Anything you\'d already added has been carried over to whichever style is currently active.',
+  ]},
+  '3.181': { headline: 'Dietary warnings now show on barcode, photo, and Describe It food results', points: [
+    'Searching for a food already flagged anything on your avoid list or that didn\'t fit a dietary preference or restriction (gluten-free, dairy-free, nut-free, halal, kosher) with a warning. Scanning a barcode, snapping a photo of a meal, or describing food in your own words never showed that same warning — exactly the situations where you\'re least likely to already know what\'s in something. They now get the same warning search results always have.',
   ]},
 };
 
@@ -21926,12 +21932,23 @@ function buildFoodResultRow(it, idx, qtys, opts){
             value="${it[f.key] ?? ''}" data-idx="${idx}" data-field="${f.key}"
             placeholder="${f.label}" aria-label="Item ${idx+1} ${f.aria}">`).join('')}
         </div>` : '';
+    // Same flag buildFoodItemBtn already shows for search/USDA/restaurant
+    // results — covers the free-text avoid list and the dietary preference/
+    // flags alike. Barcode scans, Snap-a-Meal photos, and Describe It all
+    // render through this shared row (unlike buildFoodItemBtn's search/
+    // library rows) but never got the same check, which is exactly backwards
+    // from a risk standpoint: those are the paths most likely to surface
+    // something you don't already know the ingredients of.
+    const violation = itemViolatesPreferences(it.name);
+    const avoidFlagLabel = violation === 'avoid' ? 'On your avoid list' : violation ? "Doesn't fit your dietary preference" : null;
+    const avoidHtml = avoidFlagLabel ? `<div class="fi-avoid-flag">⚠️ ${avoidFlagLabel}</div>` : '';
     return `
       <div class="food-result-row${q > 1 ? ' multiplied' : ''}" data-idx="${idx}">
         <div class="frr-head">
           ${nameHtml}
           <span class="frr-total" data-total="${idx}">${foodRowTotalText(it, q)}</span>
-        </div>${macroInputs}
+        </div>
+        ${avoidHtml}${macroInputs}
         <div class="frr-controls">
           <div class="qty-stepper">
             <button type="button" class="qty-btn" data-step="-1" data-idx="${idx}"${q <= 1 ? ' disabled' : ''}

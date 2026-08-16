@@ -182,6 +182,10 @@ test('REAL invocation: buildFoodResultRow (the real, already-consolidated row bu
   const { document } = runJsdom('<div id="out"></div>', `
     window.customFoods = [];
     window.escapeHtml = (s)=> String(s);
+    // Not what this test is about (see test-food-result-row-dietary-flag.js
+    // for that) — stubbed so the real call inside buildFoodResultRow
+    // doesn't throw ReferenceError.
+    window.itemViolatesPreferences = ()=> null;
   `, [macroFieldsConst, qtyMaxConst, totalFn, fn, `
     document.getElementById('out').innerHTML = buildFoodResultRow(
       {name: 'Test Food', cal: 100}, 0, [2], {removable: true}
