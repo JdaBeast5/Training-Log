@@ -6133,7 +6133,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.184';
+const APP_VERSION = '3.185';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6482,6 +6482,9 @@ const WHATS_NEW = {
   ]},
   '3.184': { headline: 'Fixed: the scheduled deload week could never actually arrive', points: [
     'Every 5th week is supposed to automatically become a lighter deload week, tracked from when you started your current program. The same kind of storage bug as the resting-region fix meant that starting point could never actually get saved — so the app always thought it was still week 1, forever, and the automatic deload week could never trigger on its own. Manually marking a week as a deload in Settings still worked fine the whole time. The schedule now actually advances.',
+  ]},
+  '3.185': { headline: 'Fixed: restoring a backup didn\'t actually replace everything like it said', points: [
+    'The "Restore backup" confirmation says this replaces everything on the device for this profile — but the restore only ever wrote the items the backup file actually contained. Anything logged since that backup was taken (or any item the backup never had) silently stuck around afterward instead of being cleared out, which isn\'t what a "replace everything" restore should do. It now actually clears the profile\'s data and photos first, so what you get back matches exactly what\'s in the backup file.',
   ]},
 };
 
@@ -20607,6 +20610,27 @@ document.getElementById('importDataInput').addEventListener('change', async (e)=
     `This REPLACES everything currently stored on this device for this profile — training log, nutrition, measurements, everything. This can't be undone.${schemaNote}`
   );
   if(!confirmed) return;
+
+  // The confirm above promises this REPLACES everything on the device — but
+  // only writing the keys present in the backup file left anything logged
+  // SINCE that backup was taken (or any key the backup never had) silently
+  // surviving the "restore" untouched. Clearing this profile's storage first
+  // makes the actual behavior match what the dialog just told the user would
+  // happen.
+  statusEl.textContent = 'Clearing existing data…';
+  try{
+    const existingPhotoIndex = await getPhotoIndex();
+    for(const entry of existingPhotoIndex){
+      try{ await photoDelete(entry.id); }catch(e){}
+    }
+  }catch(e){}
+  try{
+    const existingRes = await window.storage.list('');
+    const existingKeys = (existingRes && existingRes.keys) || [];
+    for(const key of existingKeys){
+      try{ await window.storage.delete(key); }catch(e){}
+    }
+  }catch(e){}
 
   statusEl.textContent = 'Restoring…';
   let restored = 0, failed = 0;
