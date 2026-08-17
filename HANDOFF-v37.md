@@ -1,0 +1,49 @@
+# HANDOFF v37 — Training Log
+
+Covers v3.188 → v3.191 on `claude/exercise-research-alignment-7zecxu`. Answers a two-part request: "go through each exercise in each program and make sure they're aligned with the most recent research" and "put a place where the user can look up what info you used to create the programs." Scope for both was confirmed with the user before starting (see below) rather than assumed.
+
+## 1. Scope, as actually agreed (read this before assuming either part is incomplete)
+
+The app already had a mature, deliberately-built research system before this session: `content-citations.js` (`PROGRAM_SOURCES`/`STYLE_SOURCES`, ~55 real DOI/PMID-backed citations covering all 25 programs and 30 styles), a citation-accuracy audit already run across all of it (v3.138–3.139), and an automated `test-citation-audit.js` that fails if any entry lacks a real citation or an explicit "deliberately not sourced" marker. Given that scale, two explicit choices were confirmed with the user up front rather than guessed:
+
+1. **"Align with recent research" = audit existing citations for currency, not add new per-exercise citations.** The app cites at the program/style level, not per individual exercise — hundreds of exercises share one program-level source, and that's the existing, working architecture. Adding genuinely separate citations for each of the hundreds of individual exercises was explicitly named as a much larger, multi-session undertaking and NOT what was chosen.
+2. **"A place to look up sources" = a new consolidated Sources page**, in addition to (not replacing) the existing per-program "What this is based on" panel that already showed while a program was active.
+
+So: this handoff is NOT "every exercise now has a citation" — it's "the existing program-level citation system was checked for currency on a targeted sample, and there's now one place to browse all of it."
+
+## 2. What shipped
+
+**v3.189 — Research & Sources card (Learn tab).** New card, placed directly before "All Masterclasses" (which an existing test requires to stay the literal last card — this one had to go before it, not after). Lists all 25 programs; the 5 container programs (combat, cycling, watersports, yoga, medical) nest their styles' own citations underneath. Tapping a row expands to show `school` (training methodology) and the real `primary` citation text (authors, journal, year, DOI) — both fields already existed in the data but were NEVER rendered anywhere before this. `editorNote` is deliberately still excluded (per the existing comment above `USER_TEXT`: it's written for whoever edits the file, not for a user reading it).
+
+Implementation notes for whoever touches this next:
+- Reuses the *existing* `.program-basis-toggle` / `.smooth-toggle` open-close mechanism and its already-bound document-level delegated click handler — **no second click listener was added.** The button styling is overridden with a scoped `#researchSourcesList .program-basis-toggle{...}` rule rather than a new class, specifically to avoid fighting the original class's cascade elsewhere.
+- `CONTAINER_STYLE_GROUPS` is a new small static map (program key → its `*_STYLES` object) — deliberately separate from the existing `STYLE_KEY_FOR_PROGRAM` (which resolves only whichever style is *currently active*, via a live getter). If a 6th container program is ever added, both maps need updating; there's a comment at each pointing at the other.
+- DOM structure: one `.source-program-group` per program (25 total, always, container or not) — the container's own row and its nested style rows are *siblings* inside that group, not parent/child. This was a real bug caught by the test's own sabotage-relevant row-count assertion during development (first draft nested them the other way, which visually looked identical but broke the group-count invariant) — worth knowing if this gets restructured again.
+- `test-research-sources-view.js` (6 tests, all real jsdom invocation + one sabotage-verified: editorNote exclusion was actually reverted, confirmed to fail, restored) covers row count, real citation text presence, container/style nesting, click-to-expand/collapse via the shared listener, the editorNote exclusion, and that `escapeHtml` is actually being called on citation prose (not just trusted).
+- Touched two other tests as a direct, mechanical consequence, not scope creep: `test-learn-tab-card-order.js` (card count 17→18, new card added to the expected order array, right before `allMasterclasses`) and `test-neutral-rgba-consolidation.js` (a hardcoded site-count sabotage-anchor, 113→114, because the new card's CSS added one legitimate `rgba(var(--surface-white-rgb),...)` site).
+- **Live-verified in a real headless-Chromium session** (not just jsdom) — screenshots taken confirming the card renders, expands, and correctly nests Boxing/Kickboxing's 6 styles. Still not confirmed on an actual phone — same standing caveat every prior handoff carries.
+
+**v3.190 — Pilates citation currency.** A research pass (background agent + my own independent verification of every DOI it returned, since a subagent's citation claims can't be trusted without checking — one of its three DOI guesses for the ACL update below was actually wrong and had to be corrected against the real source) found a 2024 systematic review (Li et al., 13 studies/783 participants) that's genuinely stronger evidence for the Pilates *posture* claim than the two individual studies (Kloubec 2010, Sekendiz 2007) previously cited alone. Added as a leading citation; the two original studies stay, now scoped explicitly to the separate trunk-strength/endurance claim the 2024 review doesn't cover.
+
+**v3.191 — ACL Rehab and Boxing S&C currency.**
+- ACL Rehab: added APKASS 2024 (published 2026), an ACL-reconstruction-specific international consensus, alongside the existing 2016 Ardern/Grindem statements. Both agree on the same criteria-based position the program was already built on — this is corroboration, not a program change.
+- Boxing S&C: this one is a real downgrade, not just an addition. The original citation (Collins et al. 2014, one high-school cohort) stated "each 1-lb increase in neck strength ≈5% lower concussion odds" as if settled. A 2023 meta-analysis (Garrett et al., JOSPT — stronger evidence tier) found that relationship is NOT significant beyond very-low-certainty evidence. Updated both the internal citation (`content-citations.js`) and the **user-facing** text (`USER_TEXT.boxingsc.basis` in `index.html`, the string actually shown in the live per-program panel) so neither overstates a protective effect anymore. The neck work itself stays in the program — still reasonable, low-risk practice — only the confidence claim behind it changed.
+
+## 3. Research method, for whoever wants to extend the audit
+
+A background research agent checked 9 targeted entries (the ones most likely to have moved: not flagged "deliberately old/foundational" like McGill 1998 or Alfredson 1998, and old enough to plausibly be superseded) — not all ~55. It reported 3 genuine updates and 6 "still current, no better source found." **Every one of its 3 claimed updates was independently re-verified via direct web search before touching any file** — DOIs, journal names, and one specific number were checked against real search results, not trusted from the agent's report. This caught one real error: the agent's guessed DOI for the APKASS consensus statement (`...2026.05.007`) was wrong; the actual DOI (`...2026.05.006`) only turned up on a second, more targeted search. Worth repeating for any future citation work in this file: a subagent's citation claim is a lead to verify, never something to paste in directly.
+
+The 9 checked: grappling/BJJ, pilates, prenatal/postpartum, rehabAcl, muayThai, boxingsc (neck strength), wakeboarding, mma, oly. Of those, grappling, prenatal/postpartum, muayThai, wakeboarding, mma, and oly came back "still the best available source, no update needed" — genuinely checked, not skipped.
+
+**~46 of the ~55 total PROGRAM_SOURCES/STYLE_SOURCES entries were not part of this currency pass.** That's a real, honest gap, not a claim that everything is now current — it's the natural next increment if more of this work is wanted, following the same targeted-sample-plus-independent-verification method above rather than trying to re-research all 55 in one sitting.
+
+## 4. What's genuinely unfinished
+
+1. **Per-exercise citations** were explicitly out of scope this session (see §1) — the app still cites at the program/style level only. If ever wanted, this is a much larger undertaking than anything else in this handoff and should get its own scoping conversation, not be assumed.
+2. **~46 uncovered entries** on the currency check, as above.
+3. **Real device verification** — same standing caveat as every prior handoff. The Research & Sources card was live-verified in headless Chromium (screenshots, real click-through, real DOM state), not on an actual iPhone.
+4. Everything already open from HANDOFF v33/v36 (jump-rail scroll-timing risk, ~212 non-palette rgba() literals, the CTA-gradient color variance needing a user visual decision, Cross-Metric Insights/video-frame-extraction unconfirmed against live API/device) is untouched and still open — this session did not go near any of it.
+
+## 5. Current version and state
+
+`APP_VERSION` (index.html) / `VERSION` (sw.js): **3.191**, both pushed to `origin/claude/exercise-research-alignment-7zecxu`. `check.sh` (94 test files as of this commit) is green — run for real before every change and after every version bump, per this project's own standing discipline, not reasoned about. Nothing stashed, nothing mid-flight. Two npm-installed dependencies (`node_modules/`, from a bare `jsdom` devDependency) had to be installed fresh at the start of this session — they weren't present in the container check.sh needs them to run at all.
