@@ -932,6 +932,19 @@
   }
   .voice-log-btn.listening, .plate-btn.listening{border-color:var(--plate-red); color:var(--plate-red); animation:voiceListenPulse 1s var(--ease-loop) infinite;}
   .voice-log-btn.processing, .plate-btn.processing{border-color:var(--plate-yellow); color:var(--plate-yellow); animation:voiceProcessingFade 0.6s var(--ease-loop) infinite alternate;}
+  /* The one button in this row that always means the same thing everywhere
+     it appears — advance — so it's the only one carrying the app's accent
+     colour instead of the neutral --surface2/--line treatment every other
+     set-row button uses. That's deliberate: a person scanning the row
+     under time pressure should be able to find "next" without reading. */
+  .set-next-btn{
+    flex:0 0 auto; width:34px; height:34px; border-radius:var(--radius-sm); border:1px solid var(--plate-blue);
+    background:rgba(var(--plate-blue-rgb),0.14); color:var(--plate-blue); font-size:16px; font-weight:700; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; padding:0; line-height:1;
+    -webkit-touch-callout:none; -webkit-user-select:none; user-select:none;
+    -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+  }
+  .set-next-btn:active{background:rgba(var(--plate-blue-rgb),0.26);}
   @keyframes voiceProcessingFade{ from{opacity:0.55;} to{opacity:1;} }
   @keyframes voiceListenPulse{ 0%,100%{opacity:1;} 50%{opacity:0.5;} }
   .plate-result{
@@ -4021,6 +4034,25 @@
     border-left:1px solid rgba(var(--surface-white-rgb),0.07);
     font-size:18px; color:var(--text-muted);
   }
+  /* Narrower than its neutral siblings above (44px vs 54px) — it's a single
+     glyph, not an emoji needing room, and this is already the fourth cell in
+     a row that's tightest on exactly the screens this mode targets. Keeps
+     the normal-mode accent-blue treatment rather than going ghost like the
+     others: this is the one action in the row meant to stand out. */
+  /* Literal blue rather than var(--plate-blue-rgb), matching every other
+     Gym Mode color value in this file (see the --rim/box-shadow note
+     elsewhere in this stylesheet) — Gym Mode's hand-tuned palette is
+     deliberately NOT wired to the shared tokens, so a future retune of
+     --plate-blue for the rest of the app can't silently reshade this
+     screen along with it. */
+  body.gym-mode .set-next-btn{
+    min-width:44px; min-height:56px; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(91,124,255,0.16); border:none; border-radius:0;
+    border-left:1px solid rgba(var(--surface-white-rgb),0.07);
+    font-size:20px; font-weight:700; color:#5B7CFF;
+  }
+  body.gym-mode .set-next-btn:active{background:rgba(91,124,255,0.28);}
   /* The plate and voice buttons both shipped as full-colour emoji
      (\u{1F3CB}/\u{1F3A4}) — vendor artwork inside our own control, differently
      weighted on every OS. Both are now handled once, unconditionally, by
@@ -6133,7 +6165,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.185';
+const APP_VERSION = '3.186';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6485,6 +6517,9 @@ const WHATS_NEW = {
   ]},
   '3.185': { headline: 'Fixed: restoring a backup didn\'t actually replace everything like it said', points: [
     'The "Restore backup" confirmation says this replaces everything on the device for this profile — but the restore only ever wrote the items the backup file actually contained. Anything logged since that backup was taken (or any item the backup never had) silently stuck around afterward instead of being cleared out, which isn\'t what a "replace everything" restore should do. It now actually clears the profile\'s data and photos first, so what you get back matches exactly what\'s in the backup file.',
+  ]},
+  '3.186': { headline: 'Superset field advance: now a real button, not just a keyboard hint', points: [
+    'Logging a superset still walked one exercise\'s sets 1-2-3 straight through before starting the paired exercise, instead of alternating straight from one exercise\'s set into the paired exercise\'s set. The interleaved order was already correct under the hood — the problem was how you triggered it: relying on the keyboard\'s Enter/"Next" key, which many phone number pads never show a key for at all. Every set row now has its own "→" button that jumps to the true next field — or straight into the paired exercise — with a tap, no keyboard involved. Fixing this also caught and fixed a real bug it depended on: a swipe gesture on the row was silently swallowing taps on ANY of the row\'s buttons — plate calculator, voice log, add note, add drop set — whenever a tap started on the button itself rather than the row\'s background. Those all get more reliable along with the new one.',
   ]},
 };
 
@@ -16082,6 +16117,7 @@ async function renderWorkout(){
               ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" aria-label="Log this set by voice">🎤</button>' : ''}
               <button type="button" class="set-drop-btn${savedSet && savedSet.drops && savedSet.drops.length ? ' has-drops' : ''}" aria-label="Add a drop set under set ${setIdx+1}">\u2935</button>
               <button type="button" class="set-note-btn${savedSet && savedSet.note ? ' has-note' : ''}" aria-label="${savedSet && savedSet.note ? 'Edit note on set '+(setIdx+1) : 'Add a note to set '+(setIdx+1)}" aria-expanded="false">${savedSet && savedSet.note ? '\u{1F4DD}' : '\u002B'}</button>
+              <button type="button" class="set-next-btn" aria-label="Move to the next field — the following set, or straight into the paired superset exercise">→</button>
               <span class="set-status"></span>
               ${showPlateCalc ? '<div class="plate-result"></div>' : ''}
               ${SpeechRecognitionCtor ? '<div class="voice-feedback"></div>' : ''}
@@ -18341,25 +18377,49 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
     if(nInput) nInput.addEventListener('change', save);
     rInput.addEventListener('change', save);
 
-    // [STABILIZATION PHASE F2] weight/reps/RPE all already carry
-    // enterkeyhint="next" in their markup — a hint to the mobile keyboard to
-    // show a "Next" button — but nothing was listening for it, so tapping it
-    // did nothing and logging one set meant 3 separate manual taps into 3
-    // separate fields. This makes that hint actually true: Enter/Next moves
-    // to the next field in the row, and moves off the last one (blurring it,
-    // which fires the input's own 'change' listener above and saves,
-    // exactly like tapping away manually already does).
-    const advanceOnEnter = (fromInput, toInput)=>{
-      if(!fromInput) return;
-      fromInput.addEventListener('keydown', (e)=>{
-        if(e.key !== 'Enter') return;
-        e.preventDefault();
-        if(toInput) toInput.focus(); else fromInput.blur();
+    // [STABILIZATION PHASE F2, superseded] This used to be a second,
+    // row-local "Enter moves focus" mechanism (weight->reps->RPE->blur,
+    // wired directly on each input) that ran ALONGSIDE the document-level
+    // delegate below advanceSetField/advanceToNextExercise already handles.
+    // Removed rather than kept as a redundant duplicate: the document-level
+    // delegate is a strict superset of what this did (it walks every field
+    // in DOM order too, so weight->reps->RPE->next row already worked
+    // through it alone) plus everything this one COULDN'T do — hand off to
+    // the next exercise, or interleave a superset pair. Keeping both was
+    // real risk, not just duplication: this one fired first (bound directly
+    // on the input, ahead of the document listener in bubble order) and
+    // could blur the field via `fromInput.blur()` before the real
+    // superset-aware target had been decided.
+    //
+    // The .set-next-btn wired below is the actual answer to "the keyboard's
+    // Enter/Next key isn't a reliable way to trigger this at all" — see its
+    // own comment for why a real on-screen control replaces relying on it.
+
+    // A real, always-tappable control for "take me to the next field" —
+    // requested directly, in these words: a BUTTON, not a keyboard hint.
+    // enterkeyhint="next" only ever reaches a keyboard that actually renders
+    // a Next/Return key for it, and a numeric keypad (inputmode="decimal"/
+    // "numeric", what every field in this row uses) frequently doesn't, on
+    // any platform — there is no reliable way to know without hardware in
+    // hand, so this stops depending on the keyboard at all. It reuses
+    // advanceSetField/advanceToNextExercise exactly as they are: the same
+    // interleaved superset ordering, the same single-exercise chaining, the
+    // same next-exercise handoff — a tap is just a second, guaranteed way to
+    // trigger the one real implementation, not a second implementation.
+    // Anchored on whichever of this row's own fields was most recently
+    // focused (falling back to RPE, the last field in reading order) so the
+    // tap advances from wherever typing actually left off, not always from
+    // the same fixed field regardless of which one is half-filled.
+    const nextFieldBtn = setRow.querySelector('.set-next-btn');
+    if(nextFieldBtn){
+      let lastFocusedField = null;
+      [dInput, wInput, rInput, rpeInput].forEach(inp=>{
+        if(inp) inp.addEventListener('focus', ()=>{ lastFocusedField = inp; });
       });
-    };
-    advanceOnEnter(wInput, rInput);
-    advanceOnEnter(rInput, rpeInput);
-    advanceOnEnter(rpeInput, null);
+      nextFieldBtn.addEventListener('click', ()=>{
+        advanceSetField(lastFocusedField || rpeInput);
+      });
+    }
 
     const noteBtn = setRow.querySelector('.set-note-btn');
     const noteWrap = setRow.querySelector('.set-note-wrap');
@@ -23659,6 +23719,17 @@ function makeSwipeable(itemEl, onDelete){
   let startX = 0, currentX = 0, dragging = false, openOffset = 0;
 
   content.addEventListener('pointerdown', (e)=>{
+    // A tap that starts on a real control inside the row — a button or an
+    // input — is not the start of a swipe. setPointerCapture below
+    // retargets every subsequent pointer event (including the eventual
+    // pointerup, and the click the browser synthesizes from it) to
+    // `content` itself rather than wherever the finger actually was —
+    // which silently swallowed taps on every button in this row (plate
+    // calculator, voice log, add note, add drop set, and the new "next
+    // field" advance button) any time the tap started on the button rather
+    // than the row's own background. Bailing out here before capture ever
+    // happens leaves those controls' own click handling completely alone.
+    if(e.target.closest && e.target.closest('button, input, a, select, textarea')) return;
     dragging = true; startX = e.clientX; content.style.transition = 'none';
     content.setPointerCapture(e.pointerId);
   });

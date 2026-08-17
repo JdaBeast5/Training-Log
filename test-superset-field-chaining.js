@@ -22,16 +22,14 @@
 //      set: weight<rep<RPE, then 1st exercise 2nd set..."
 //
 // This file tests the document-level advanceSetField/advanceToNextExercise
-// mechanism directly and in isolation from wireSetRow's OWN, separate,
-// row-local advanceOnEnter (already covered by test-enter-key-chaining.js)
-// — both really do fire on every Enter press in the real app (row-local
-// first, since it's bound directly to the input; the document-level
-// delegate second, as the event bubbles), but row-local only ever knows
-// weight->reps->RPE->blur within its OWN row, with zero awareness of the
-// next row or the next exercise. Every cross-row and cross-exercise
-// decision — including all of the interleaving this file covers — comes
-// from the mechanism tested here, which is what actually determines the
-// final focus target since it runs second in the bubble sequence.
+// mechanism directly. A second, row-local mechanism (advanceOnEnter,
+// wireSetRow's OWN weight->reps->RPE->blur wiring, tested in the now-deleted
+// test-enter-key-chaining.js) used to fire ahead of this one on every Enter
+// press — removed as a redundant duplicate once this one's coverage made
+// clear it already subsumed everything the row-local version did, plus
+// everything it couldn't (cross-row and cross-exercise handoff, superset
+// interleaving). See test-set-next-button.js for the on-screen "→" button
+// that gives this same mechanism a second, keyboard-independent trigger.
 const { readIndexSource, extractFunction, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
