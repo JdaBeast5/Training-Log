@@ -6196,7 +6196,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.190';
+const APP_VERSION = '3.191';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6565,6 +6565,10 @@ const WHATS_NEW = {
   ]},
   '3.190': { headline: 'A citation currency check found a stronger source behind the Pilates program', points: [
     'The posture claim behind mat Pilates was citing two individual studies (2007, 2010). A 2024 systematic review (13 studies, 783 participants) now backs that specific claim with review-level evidence instead of single-study evidence — the two original studies stay cited for the separate trunk strength/endurance claim, which the newer review doesn\'t cover.',
+  ]},
+  '3.191': { headline: 'Citation currency, part 2: ACL Rehab and Boxing S&C', points: [
+    'ACL Rehab: a 2024 international consensus statement specific to ACL reconstruction (APKASS) now sits alongside the program\'s original 2016 return-to-sport statement — both agree on the same "criteria, not the calendar" position this program was already built on, so nothing about the program itself changed.',
+    'Boxing S&C: a more rigorous 2023 meta-analysis found the link between neck strength and lower concussion risk is NOT well supported by current evidence — weaker than what the program\'s original single-study citation implied. The neck work stays in the program (it\'s still reasonable, low-risk practice), but the app no longer states a protective effect as though it were proven.',
   ]},
 };
 
@@ -8801,7 +8805,7 @@ const USER_TEXT = {
                    limits:"Needs no equipment, but progress depends on sets being genuinely hard. Easy reps won't do much." },
   athletic:      { basis:"A 2023 meta-analysis across ages found lower jump volumes work just as well as higher ones for explosive power — real support for training less but better here, not a compromise.",
                    limits:"Low volume on purpose — quality beats accumulation here. Needs a surface with some give, and a proper warm-up." },
-  boxingsc:      { basis:"A real biomechanics study found your trunk and legs generate roughly 3x the punch force your arms do — the actual reason this trains rotational power, not arm strength. Neck work is backed by research linking neck strength to lower concussion odds (in general sports, not boxing specifically).",
+  boxingsc:      { basis:"A real biomechanics study found your trunk and legs generate roughly 3x the punch force your arms do — the actual reason this trains rotational power, not arm strength. Neck work is included as reasonable, low-risk practice; the best current evidence (a 2023 meta-analysis, in general team sports) found the link between neck strength and lower concussion risk isn't actually well-supported, so it's trained here without a proven protective claim behind it.",
                    limits:"This is the conditioning behind boxing, not boxing. It won't prepare you to spar." },
   jumprope:      { basis:"A 2025 controlled trial found jump rope training genuinely improves cardiovascular fitness and strength in both arms and legs — real conditioning, not just a warm-up filler. The specific skill order is standard rope coaching, not something that study tested.",
                    limits:"High-repetition impact through the calves and feet. Build up gradually if you're new to it." },
