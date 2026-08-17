@@ -6196,7 +6196,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.192';
+const APP_VERSION = '3.193';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6573,6 +6573,11 @@ const WHATS_NEW = {
   '3.192': { headline: 'Rescanning a barcode you\'ve already scanned is now instant', points: [
     'Barcode scans have always been saved to My Foods automatically once added to the log — that part already worked. What was missing: scanning that SAME barcode again still did a fresh network lookup every time, even though the app already knew the item.',
     'A rescanned barcode now matches against My Foods first and skips the lookup entirely when it\'s already known — no network round-trip, works without a connection, and shows "Already in My Foods" instead of "Found it" so it\'s clear why it came back instantly.',
+  ]},
+  '3.193': { headline: 'Citation currency check finished — the remaining ~46 programs and styles', points: [
+    'Continuing the earlier pass (Pilates, ACL Rehab, Boxing S&C), every remaining program and style citation in the app was checked against current literature. 9 more got real, verified updates: the bariatric surgery programs\' vague placeholder citation was replaced with its actual authors and DOI, and Diabetes, Desk Worker, Running, Calisthenics, Achilles Rehab, Surfing, Road Cycling, and Hyrox each gained a stronger or more current source alongside what was already cited.',
+    'About 35 other entries were checked and confirmed still current — including Boxing S&C\'s head-impact-safety gap, which remains honestly flagged as unaddressed rather than papered over with an unrelated citation.',
+    'One update is worth knowing about specifically: Road Cycling\'s newer source found the ideal training-intensity split actually differs between competitive and recreational riders, which this app doesn\'t currently distinguish — noted honestly in the citation record rather than quietly resolved.',
   ]},
 };
 
