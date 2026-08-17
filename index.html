@@ -655,35 +655,42 @@
     border-bottom:1px solid var(--line-soft);
   }
   .exercise-block:last-child{border-bottom:none;}
-  .exercise-block.superset-top{
-    border-bottom:none;
-    padding-bottom:0;
+  /* A superset pair is now ONE physical .exercise-block (two exercises woven
+     together — see renderWorkout's assembleSupersetPair) rather than two
+     separate blocks joined by a connector strip between them, so the yellow
+     accent treatment lives on the block itself instead of split across two
+     card-radius halves. */
+  .exercise-block.superset-pair{
     border-left:4px solid var(--plate-yellow);
     padding-left:9px;
     margin-left:-13px;
     background:rgba(var(--plate-yellow-rgb),0.08);
-    border-radius:var(--radius-sm) 8px 0 0;
+    border-radius:var(--radius-sm);
   }
-  .exercise-block.superset-bottom{
-    padding-top:0;
-    border-left:4px solid var(--plate-yellow);
-    padding-left:9px;
-    margin-left:-13px;
-    background:rgba(var(--plate-yellow-rgb),0.08);
-    border-bottom:1px solid var(--line-soft);
-    border-radius:0 0 8px 8px;
-    margin-bottom:2px;
-  }
-  .exercise-block.superset-bottom:last-child{border-bottom:none;}
-  .superset-connector{
+  .superset-banner{
     display:flex; align-items:center; gap:6px;
-    margin-left:-13px; padding:4px 10px 4px 13px;
-    border-left:4px solid var(--plate-yellow);
-    background:rgba(var(--plate-yellow-rgb),0.14);
+    padding:6px 0 4px;
     font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:10.5px; font-weight:600;
     color:var(--plate-yellow); text-transform:uppercase; letter-spacing:0.3px;
   }
-  .superset-connector::before{content:'⚡';}
+  .superset-banner::before{content:'⚡';}
+  /* The second exercise's own header/actions/warmup section, set apart from
+     the first with a hairline rather than a full card boundary — together
+     they read as one unit, not two cards glued together. */
+  .superset-member + .superset-member{
+    margin-top:4px; padding-top:8px;
+    border-top:1px dashed rgba(var(--plate-yellow-rgb),0.3);
+  }
+  /* Hidden by default; revealed only inside a woven superset pair (see
+     below) where two exercises' rows sit interleaved in one list and need
+     a label to tell them apart without repeating a full header every two
+     rows. */
+  .set-row-owner{ display:none; }
+  .superset-pair .set-row-owner{
+    display:block; flex-basis:100%; order:-1;
+    font-size:10.5px; font-weight:600; color:var(--plate-yellow);
+    text-transform:uppercase; letter-spacing:0.3px; margin-bottom:2px;
+  }
   input[type=checkbox]{
     -webkit-appearance:none; appearance:none; margin:0;
     background:var(--surface2); border:1.5px solid var(--line-bright);
@@ -792,7 +799,7 @@
     flex:0 0 auto; font-size:13px; color:var(--plate-blue); transition:transform 0.28s var(--ease-smooth); margin-left:6px;
   }
   .exercise-block.open .ex-chevron{transform:rotate(90deg);}
-  .exercise-block.open:not(.superset-top):not(.superset-bottom){
+  .exercise-block.open:not(.superset-pair){
     background:linear-gradient(180deg, rgba(var(--plate-blue-rgb),0.06), rgba(var(--plate-blue-rgb),0.015) 60%, transparent);
     border-radius:var(--radius-sm);
     margin:0 -13px; padding:2px 13px;
@@ -3173,7 +3180,7 @@
      means "this is the control you are touching" is the one colour that could
      not carry a second meaning. Orange was free.
 
-     The shape deliberately copies `.exercise-block.superset-top` — 4px left
+     The shape deliberately copies `.exercise-block.superset-pair` — 4px left
      border plus an 8% tint of the same hue — because a consistent SHAPE is what
      makes a colour legible as a category rather than as decoration. */
   /* SWIPE OUTER, mirroring `.set-row`. Everything you can SEE is the swipe
@@ -3884,18 +3891,13 @@
   /* The superset band carries its colour with negative margins tuned for the
      normal card. Inside a pop-out panel those margins pull it out through the
      panel edge, so it is re-seated rather than hidden — "no rest between these
-     two" is training information, not decoration. */
-  body.gym-mode .exercise-block.superset-top,
-  body.gym-mode .superset-connector{
+     two" is training information, not decoration. A pair is now one block
+     with the banner INSIDE it (not a sibling strip between two blocks), so
+     it inherits the block's own opacity/dim state automatically — no
+     separate opacity rule needed the way the old sibling connector required. */
+  body.gym-mode .exercise-block.superset-pair{
     margin-left:0; border-left:none; border-radius:12px;
     padding-left:12px; padding-right:12px;
-  }
-  body.gym-mode .superset-connector{
-    /* 0.26 to match `.exercise-block`. It is a SIBLING of the blocks rather
-       than a child, so the focus dim never reached it and it sat brighter than
-       everything around it — the loudest thing on a screen built to have one
-       loud thing. */
-    opacity:0.34; font-size:10px; margin:2px 0; padding-top:6px; padding-bottom:6px;
   }
 
   /* ── The current exercise: a pop-out ──────────────────────────────────────
@@ -6165,7 +6167,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.187';
+const APP_VERSION = '3.188';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6523,6 +6525,10 @@ const WHATS_NEW = {
   ]},
   '3.187': { headline: 'Fixed: tapping a grocery item to check it off silently did nothing', points: [
     'The previous release fixed taps on row BUTTONS being swallowed by the swipe gesture, but a live check afterward found the same problem one level deeper: the grocery list checks an item off by tapping the row itself, which isn\'t a button — and that tap was still being silently eaten the exact same way. The real fix was more general than "which elements count as buttons": a swipe gesture is now only recognized once a tap has actually moved sideways by a few pixels, so a plain tap — on a button, a checkbox row, anything — is never touched by the swipe logic at all, regardless of what kind of element it landed on.',
+  ]},
+  '3.188': { headline: 'Supersets: the two exercises now weave together into one flowing list', points: [
+    'A superset used to show as two separate stacked cards with a "→" button to jump from the end of one exercise\'s sets to the start of the other\'s. Now the two exercises share a single card with their sets interleaved round by round — set 1 of the first exercise, then set 1 of the second, then set 2 of the first, and so on — matching how you actually move through a superset in the gym.',
+    'Each exercise keeps its own header, history, and edit controls, but a single "+ Add a round" button adds a set to both at once, and checking one exercise off doesn\'t collapse the card until both are done.',
   ]},
 };
 
@@ -15642,42 +15648,26 @@ function setExerciseBlockOpen(block, isOpen){
   block.classList.toggle('open', isOpen);
   const wrap = block.querySelector('.expand-wrap');
   if(wrap) wrap.classList.toggle('open', isOpen);
-  const header = block.querySelector('.exercise');
-  if(header) header.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  // querySelectorAll, not querySelector: a superset pair's shared block
+  // carries TWO `.exercise` headers (one per exercise) that open and close
+  // together as one unit — both need aria-expanded kept in sync, not just
+  // whichever happens to be first in the DOM. A no-op change for a normal,
+  // unpaired exercise, which only ever has the one.
+  block.querySelectorAll('.exercise').forEach(header=>{
+    header.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
 }
 
-// The other half of a superset pair, or null if `block` isn't one.
-// `.superset-top`/`.superset-bottom` are always exactly a consecutive pair in
-// this app's data model (a superTag marks "pairs with the next exercise";
-// nothing chains a third exercise onto either end) — so top's partner is
-// simply the next real `.exercise-block` (nextExerciseBlock already skips
-// the `.superset-connector` div between them) and bottom's partner is the
-// nearest real block walking backward.
-function supersetPartnerBlock(block){
-  if(!block || !block.classList) return null;
-  if(block.classList.contains('superset-top')) return nextExerciseBlock(block);
-  if(block.classList.contains('superset-bottom')){
-    let cand = block.previousElementSibling;
-    while(cand){
-      if(cand.classList && cand.classList.contains('exercise-block')) return cand;
-      cand = cand.previousElementSibling;
-    }
-  }
-  return null;
-}
-
-// Opens or closes a superset pair TOGETHER, as one unit — plain
-// setExerciseBlockOpen only ever touches the block it's given. Gym mode's
-// "exactly one exercise open at a time" invariant (see advanceToNextExercise
-// below) means "one open UNIT": a lone exercise, or a linked superset pair,
-// never a pair with only one half open. Falls back to setExerciseBlockOpen
-// itself when `block` isn't part of a pair, so every call site that used to
-// call setExerciseBlockOpen can just call this instead with no behavior
-// change for non-superset exercises.
-function setExerciseUnitOpen(block, isOpen){
-  setExerciseBlockOpen(block, isOpen);
-  const partner = supersetPartnerBlock(block);
-  if(partner) setExerciseBlockOpen(partner, isOpen);
+// A normal exercise-block has one checkbox; a superset pair's shared block
+// has two (one per exercise). "Is this block actually done" always means
+// EVERY checkbox in it is checked — for a pair, ticking off just one
+// exercise must not read as the whole pair being finished. Used wherever
+// completion previously meant "the one checkbox in this block", so both
+// shapes are handled by the same call with no branching at the call site.
+function allMemberCheckboxesChecked(block){
+  if(!block) return false;
+  const boxes = [...block.querySelectorAll('input[type=checkbox]')];
+  return boxes.length > 0 && boxes.every(cb=> cb.checked);
 }
 
 async function renderWorkout(){
@@ -15853,11 +15843,11 @@ async function renderWorkout(){
     return await getFallbackPriorEntry(ex.name, exKey(activeProgram, activeDay, i, subVariantOf(ex)));
   }));
 
+  const exercisePieces = [];
+
   renderExercises.forEach((ex,i)=>{
-    const row = document.createElement('div');
     const isSupersetTop = !!ex.superTag;
     const isSupersetBottom = i > 0 && !!renderExercises[i-1].superTag;
-    row.className = 'exercise-block' + (isSupersetTop ? ' superset-top' : '') + (isSupersetBottom ? ' superset-bottom' : '');
     const checked = completed[i] ? 'checked' : '';
     const focusHtml = ex.isBodyGoalFocus ? `<span class="super-tag focus-tag">🎯 ${ex.focusLabel} — added for your body goal</span>` : '';
 
@@ -15872,7 +15862,11 @@ async function renderWorkout(){
     // matching how the number is actually spoken: a distance covered in a time.
     // Only for cardio-category exercises — every other row is unchanged.
     const showDistance = isDistanceExercise(ex.name);
-    let trackingHtml = '';
+    let sameAsLastHtml = '';
+    let warmupHtml = '';
+    let setRowHtmlArr = [];
+    let summaryHtml = '';
+    let badge = '';
     {
       const log = logs[i];
       // Own-slot history first; if there's genuinely none, fall back to the
@@ -15914,9 +15908,8 @@ async function renderWorkout(){
       // correct: there's no double-progression or 1RM concept for reps-only
       // bodyweight work, but the reps/RPE inputs below are unaffected either way.
       const badgeInfo = buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx, sourceNote});
-      const badge = badgeInfo.html;
+      badge = badgeInfo.html;
 
-      let warmupHtml = '';
       // THE FIRST TWO EXERCISES OF THE DAY, unconditionally.
       //
       // The second exercise used to qualify only if it trained a DIFFERENT
@@ -16072,8 +16065,13 @@ async function renderWorkout(){
       // trigger for any exercise with alternatives.
       const historyBtnHtml = `<button type="button" class="ex-history-btn" data-idx="${i}" aria-label="See all history for ${escapeHtml(ex.name)}">${icon('trend')} History</button>`
         + `<button type="button" class="ex-edit-btn" data-idx="${i}" aria-label="Edit the prescription for ${escapeHtml(ex.name)}">${icon('edit')} Edit</button>`;
-      const sameAsLastHtml = (prior ? `<button type="button" class="same-as-last-btn" data-idx="${i}">↻ Same as Last Time${priorIsCrossProgram ? ` (${escapeHtml(programLabelFor(priorSourceProgram))})` : ''}</button>` : '') + historyBtnHtml;
-      const setRowsHtml = Array.from({length: setCount}).map((_,setIdx)=>{
+      sameAsLastHtml = (prior ? `<button type="button" class="same-as-last-btn" data-idx="${i}">↻ Same as Last Time${priorIsCrossProgram ? ` (${escapeHtml(programLabelFor(priorSourceProgram))})` : ''}</button>` : '') + historyBtnHtml;
+      // Kept as an ARRAY, not joined into one string here: a superset pair
+      // needs to interleave THIS exercise's rows with its partner's (top set
+      // 1, bottom set 1, top set 2, ...) after both are built — see the
+      // assembly pass below. A normal, unpaired exercise just joins its own
+      // array back into one string, same output as before this change.
+      setRowHtmlArr = Array.from({length: setCount}).map((_,setIdx)=>{
         const savedSet = todayEntry && todayEntry.sets[setIdx] ? todayEntry.sets[setIdx] : null;
         const placeholderSet = prior && prior.sets[setIdx] ? prior.sets[setIdx] : null;
         // What the field ghosts: the progression verdict when there is one,
@@ -16106,10 +16104,11 @@ async function renderWorkout(){
           ? `, suggested ${sugReasonWord} ${trimUnitNum(suggested.weight)} ${weightUnit}`
           : '';
         return `
-          <div class="set-row swipe-item" data-set-idx="${setIdx}">
+          <div class="set-row swipe-item" data-set-idx="${setIdx}" data-ex-idx="${i}">
             <div class="swipe-delete-bg">🗑️</div>
             <div class="swipe-content set-row-content">
               <span class="set-num">${setIdx+1}</span>
+              <span class="set-row-owner">${escapeHtml(ex.name)}</span>
               ${showDistance ? `<input type="number" inputmode="decimal" enterkeyhint="next" step="0.01" min="0" class="ex-input ex-distance" aria-label="Set ${setIdx+1} distance in ${distanceUnit}" placeholder="${placeholderSet && placeholderSet.distance!=null ? trimUnitNum(toDisplayDistance(placeholderSet.distance)) : distanceUnit}" value="${savedSet && savedSet.distance!=null ? trimUnitNum(toDisplayDistance(savedSet.distance)) : ''}">
               <span class="ex-x">@</span>` : ''}
               ${showWeight ? `<input type="number" inputmode="decimal" enterkeyhint="next" class="ex-input ex-weight${sugClass}" aria-label="Set ${setIdx+1} weight in ${weightUnit}${sugAria}" placeholder="${weightPlaceholder}" value="${savedSet && savedSet.weight!=null ? trimUnitNum(toDisplayWeight(savedSet.weight)) : ''}">
@@ -16118,8 +16117,8 @@ async function renderWorkout(){
               <input type="number" inputmode="decimal" enterkeyhint="next" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${setIdx+1} RPE, 5 to 10" placeholder="${placeholderSet && placeholderSet.rpe!=null ? placeholderSet.rpe : 'RPE'}" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
               ${showPlateCalc ? '<button type="button" class="plate-btn" aria-label="Open plate calculator — long-press to voice log a set">🏋️</button>' : ''}
               ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" aria-label="Log this set by voice">🎤</button>' : ''}
-              <button type="button" class="set-drop-btn${savedSet && savedSet.drops && savedSet.drops.length ? ' has-drops' : ''}" aria-label="Add a drop set under set ${setIdx+1}">\u2935</button>
-              <button type="button" class="set-note-btn${savedSet && savedSet.note ? ' has-note' : ''}" aria-label="${savedSet && savedSet.note ? 'Edit note on set '+(setIdx+1) : 'Add a note to set '+(setIdx+1)}" aria-expanded="false">${savedSet && savedSet.note ? '\u{1F4DD}' : '\u002B'}</button>
+              <button type="button" class="set-drop-btn${savedSet && savedSet.drops && savedSet.drops.length ? ' has-drops' : ''}" aria-label="Add a drop set under set ${setIdx+1}">⤵</button>
+              <button type="button" class="set-note-btn${savedSet && savedSet.note ? ' has-note' : ''}" aria-label="${savedSet && savedSet.note ? 'Edit note on set '+(setIdx+1) : 'Add a note to set '+(setIdx+1)}" aria-expanded="false">${savedSet && savedSet.note ? '\u{1F4DD}' : '+'}</button>
               <button type="button" class="set-next-btn" aria-label="Move to the next field — the following set, or straight into the paired superset exercise">→</button>
               <span class="set-status"></span>
               ${showPlateCalc ? '<div class="plate-result"></div>' : ''}
@@ -16131,7 +16130,7 @@ async function renderWorkout(){
             </div>
           </div>
         `;
-      }).join('');
+      });
 
       const todayVolume = todayEntry ? volumeOf(todayEntry) : 0;
       const todayTop = todayEntry ? topSetOf(todayEntry) : null;
@@ -16142,38 +16141,14 @@ async function renderWorkout(){
       const todayDistance = todayEntry ? distanceOf(todayEntry) : 0;
       const todayMinutes = todayEntry ? durationMinutesOf(todayEntry, ex) : null;
       const todayPace = todayDistance > 0 ? computePace(todayDistance, todayMinutes) : null;
-      const summaryHtml = (todayVolume>0 || todayDistance>0) ? `
-        <div class="session-summary">
+      summaryHtml = (todayVolume>0 || todayDistance>0) ? `
+        <div class="session-summary" data-ex-idx="${i}">
           ${todayVolume>0 ? `<span>Volume: <b>${toDisplayWeight(todayVolume).toLocaleString()} ${weightUnit}</b></span>` : ''}
           ${oneRM ? `<span>Est. 1RM: <b>~${toDisplayWeight(oneRM)} ${weightUnit}</b></span>` : ''}
           ${todayDistance>0 ? `<span>Distance: <b>${fmtDistance(todayDistance)}</b></span>` : ''}
           ${todayPace ? `<span>Pace: <b>${fmtPace(todayPace)}</b></span>` : ''}
         </div>
       ` : '';
-
-      // THE RAMP RENDERS INSIDE THE SETS BLOCK, and this is a bug fix as much as
-      // a layout change. `wireSetsBlock` does
-      // `block = row.querySelector('.sets-block')` and then
-      // `block.querySelectorAll('.warmup-set-row')` — but the strip was emitted
-      // as a SIBLING of that block, so the selector matched nothing and every
-      // ramp row shipped unwired: typing a weight into one saved nothing,
-      // ticking one off persisted nothing and did not grey the row, and the
-      // plate button on a ramp row did nothing at all. The jsdom suite passes
-      // because its fixture builds the rows inside the block; the app did not.
-      //
-      // Order below is the reading order: the three actions once, then the ramp
-      // steps, then the working sets, then Add Set. Nothing between the orange
-      // rows and the plain ones.
-      trackingHtml = `
-        <div class="sets-block" data-day="${activeDay}" data-idx="${i}">
-          <div class="set-actions">${sameAsLastHtml}</div>
-          ${warmupHtml}
-          ${setRowsHtml}
-          <button class="add-set-btn" type="button">+ Add set</button>
-        </div>
-        ${summaryHtml}
-        ${badge}
-      `;
     }
 
     const info = exerciseInfo[ex.name];
@@ -16199,8 +16174,7 @@ async function renderWorkout(){
     const subTagHtml = ex.__isSubbed ? `<span class="super-tag sub-tag">⇄ Swapped from ${escapeHtml(ex.__originalName)}</span>` : '';
     const swapIconHtml = hasSubs ? ' <span class="ex-swap-icon">⇄</span>' : '';
 
-    row.innerHTML = `
-      <div class="exercise" role="button" tabindex="0" aria-expanded="false" aria-controls="exSetsPanel${i}">
+    const headerInnerHtml = `
         <input type="checkbox" data-idx="${i}" ${checked} aria-label="Mark ${escapeHtml(ex.name)} complete">
         ${thumbHtml}
         <div class="ex-name-wrap">
@@ -16209,20 +16183,135 @@ async function renderWorkout(){
         <div class="ex-sets"><span class="${ex.__overridden ? 'ex-sets-overridden' : ''}" ${ex.__overridden ? 'title="You changed this from the program default"' : ''}>${escapeHtml(ex.sets)}</span><div class="ex-cal-tag">~${exCalories} cal</div></div>
         ${ex.isCustom ? `<button class="ex-delete-custom-btn" aria-label="Remove custom exercise ${escapeHtml(ex.name)}">🗑️</button>` : ''}
         <span class="ex-chevron" aria-hidden="true">›</span>
+    `;
+
+    exercisePieces[i] = {
+      ex, i, isSupersetTop, isSupersetBottom, hasSubs, hitRegionsForRow,
+      headerInnerHtml, sameAsLastHtml, warmupHtml, setRowHtmlArr, summaryHtml, badge,
+      cautionHtml, detailsHtml: buildDetailsHtml(ex),
+      fallbackEntry: fallbackPriorEntries[i],
+    };
+  });
+
+  // ── Assembly pass: turn the pieces above into real DOM, one exercise-block
+  // per lone exercise, one shared exercise-block per superset pair (its rows
+  // interleaved: top's set 1, bottom's set 1, top's set 2, and so on — the
+  // order requested directly: "weave them together since it's a superset").
+  renderExercises.forEach((ex,i)=>{
+    const piece = exercisePieces[i];
+    if(piece.isSupersetBottom) return; // already assembled as part of the top's pair, below
+    if(piece.isSupersetTop){
+      assembleSupersetPair(piece, exercisePieces[i+1]);
+    } else {
+      assembleSingleExercise(piece);
+    }
+  });
+
+  function assembleSingleExercise(piece){
+    const { ex, i } = piece;
+    const row = document.createElement('div');
+    row.className = 'exercise-block';
+    const trackingHtml = `
+        <div class="sets-block" data-day="${activeDay}" data-idx="${i}">
+          <div class="set-actions" data-ex-idx="${i}">${piece.sameAsLastHtml}</div>
+          ${piece.warmupHtml}
+          ${piece.setRowHtmlArr.join('')}
+          <button class="add-set-btn" type="button">+ Add set</button>
+        </div>
+        ${piece.summaryHtml}
+        ${piece.badge}
+    `;
+    row.innerHTML = `
+      <div class="exercise" role="button" tabindex="0" aria-expanded="false" aria-controls="exSetsPanel${i}">
+        ${piece.headerInnerHtml}
       </div>
       <div class="expand-wrap" id="exSetsPanel${i}">
         <div>
-          ${cautionHtml}
+          ${piece.cautionHtml}
           ${trackingHtml}
-          ${buildDetailsHtml(ex)}
+          ${piece.detailsHtml}
         </div>
       </div>
     `;
-    const cb = row.querySelector('input[type=checkbox]');
+    wireExerciseMember(row, row, i, piece);
+    wireSetsBlock(row, i, ex, piece.fallbackEntry);
+    list.appendChild(row);
+  }
+
+  function assembleSupersetPair(topPiece, bottomPiece){
+    const t = topPiece.i, b = bottomPiece.i;
+    const pairRow = document.createElement('div');
+    pairRow.className = 'exercise-block superset-pair';
+
+    const memberHtml = (piece)=> `
+      <div class="superset-member" data-ex-idx="${piece.i}">
+        <div class="exercise" role="button" tabindex="0" aria-expanded="false" aria-controls="exSetsPanel${t}">
+          ${piece.headerInnerHtml}
+        </div>
+        <div class="set-actions" data-ex-idx="${piece.i}">${piece.sameAsLastHtml}</div>
+        ${piece.cautionHtml}
+        ${piece.warmupHtml}
+      </div>
+    `;
+
+    // Set N of the top exercise, straight into set N of the bottom exercise,
+    // before either one's next set — the actual order a superset gets
+    // performed in, not every field of one exercise followed by every field
+    // of the other. An exercise with fewer sets than its partner simply
+    // drops out of the sequence past its own last row.
+    const maxSets = Math.max(topPiece.setRowHtmlArr.length, bottomPiece.setRowHtmlArr.length);
+    let interleavedRowsHtml = '';
+    for(let s=0; s<maxSets; s++){
+      if(topPiece.setRowHtmlArr[s] != null) interleavedRowsHtml += topPiece.setRowHtmlArr[s];
+      if(bottomPiece.setRowHtmlArr[s] != null) interleavedRowsHtml += bottomPiece.setRowHtmlArr[s];
+    }
+
+    pairRow.innerHTML = `
+      <div class="superset-banner">SUPERSET — straight into the next exercise, no rest between</div>
+      ${memberHtml(topPiece)}
+      ${memberHtml(bottomPiece)}
+      <div class="expand-wrap" id="exSetsPanel${t}">
+        <div>
+          <div class="sets-block" data-day="${activeDay}" data-idx="${t}">
+            ${interleavedRowsHtml}
+            <button class="add-set-btn" type="button">+ Add a round</button>
+          </div>
+          ${topPiece.summaryHtml}
+          ${bottomPiece.summaryHtml}
+          ${topPiece.badge}
+          ${bottomPiece.badge}
+          ${topPiece.detailsHtml}
+          ${bottomPiece.detailsHtml}
+        </div>
+      </div>
+    `;
+
+    wireExerciseMember(pairRow.querySelector(`.superset-member[data-ex-idx="${t}"]`), pairRow, t, topPiece);
+    wireExerciseMember(pairRow.querySelector(`.superset-member[data-ex-idx="${b}"]`), pairRow, b, bottomPiece);
+    // Both calls wire the SAME shared .sets-block, scoped by exIdx — see the
+    // data-ex-idx scoping added throughout wireSetsBlock. This also means
+    // the ONE shared "+ Add a round" button ends up with two listeners, one
+    // per exercise, so a single tap adds a set to each: "a round" without
+    // any separate code path for that case.
+    wireSetsBlock(pairRow, t, topPiece.ex, topPiece.fallbackEntry);
+    wireSetsBlock(pairRow, b, bottomPiece.ex, bottomPiece.fallbackEntry);
+    list.appendChild(pairRow);
+  }
+
+  // Header-level wiring (checkbox, delete-custom, AI-tailor, expand toggle,
+  // swap icon, edit, history) for ONE exercise, scoped to `memberEl` — either
+  // the whole exercise-block (a lone exercise, its own sole member) or one
+  // `.superset-member` sub-section (a pair has two, each wired separately
+  // against the SAME shared `blockEl` so either header opens/closes the
+  // whole pair together and "is this block done" means both exercises,
+  // not just whichever's checkbox happened to be queried first).
+  function wireExerciseMember(memberEl, blockEl, exIdx, piece){
+    const ex = piece.ex;
+    const cb = memberEl.querySelector('input[type=checkbox]');
     cb.addEventListener('click', (e)=> e.stopPropagation());
     cb.addEventListener('change', async ()=>{
-      completed[i] = cb.checked;
-      row.querySelector('.ex-name').classList.toggle('done', cb.checked);
+      completed[exIdx] = cb.checked;
+      memberEl.querySelector('.ex-name').classList.toggle('done', cb.checked);
       const affectsCurrentWeekDisplay = isInCurrentCalendarWeek(selectedLogDate);
       try{
         // Dated key: unchanged, this is what streaks/PRs/progression history
@@ -16248,13 +16337,6 @@ async function renderWorkout(){
       // unchecking something to fix a mistake correctly un-marks the day
       // too, rather than leaving a stale "done" badge behind. Same
       // current-week gate as above, for the same reason.
-      // Computed OUTSIDE the affectsCurrentWeekDisplay gate. It used to be
-      // declared inside it, while the completion celebration below reads it
-      // from the handler scope — so that read hit an undeclared name and threw
-      // a ReferenceError on every completing tick, killing the celebration and
-      // everything after it in this listener. Short-circuiting on `cb.checked`
-      // is why it only fired when ticking rather than unticking, and why it
-      // never showed up as an obviously broken feature.
       const dayNowComplete = renderExercises.every((ex,idx)=> !!completed[idx]);
       if(affectsCurrentWeekDisplay){
         if(weekProgress[activeDay] !== dayNowComplete){
@@ -16267,22 +16349,24 @@ async function renderWorkout(){
       // Collapse the exercise back up the moment it's checked off complete
       // — no reason to keep looking at its sets once you're done with it.
       // Only triggers on actually checking it, not unchecking, so fixing a
-      // mistaken tick doesn't yank the view shut on you.
-      if(cb.checked && row.classList.contains('open')){
-        setExerciseUnitOpen(row, false);
+      // mistaken tick doesn't yank the view shut on you. For a superset pair,
+      // checking OFF just one exercise must not collapse the shared block —
+      // allMemberCheckboxesChecked requires every checkbox in it, so the
+      // block only closes once both halves are actually done.
+      if(cb.checked && blockEl.classList.contains('open') && allMemberCheckboxesChecked(blockEl)){
+        setExerciseBlockOpen(blockEl, false);
 
         // Keep the flow moving forward instead of leaving the person to tap
         // open the next exercise themselves — nextExerciseBlock walks real
-        // exercise-block siblings only (skipping the .superset-connector
-        // div a superset pair sits next to), so this lands on the next
-        // exercise as currently displayed (already accounting for
-        // reordering, session-length trimming, etc) whether or not `row`
-        // was part of a pair. Skipped if there's no next exercise, or the
-        // next one is already checked off (nothing useful to show — it's
-        // already done).
-        const nextRow = nextExerciseBlock(row);
-        if(nextRow && !completed[i+1]){
-          setExerciseUnitOpen(nextRow, true);
+        // exercise-block siblings only, so this lands on the next exercise
+        // as currently displayed (already accounting for reordering,
+        // session-length trimming, etc), whether `blockEl` was a lone
+        // exercise or a superset pair. Skipped if there's no next block, or
+        // the next one is already fully checked off (nothing useful to show
+        // — it's already done).
+        const nextRow = nextExerciseBlock(blockEl);
+        if(nextRow && !allMemberCheckboxesChecked(nextRow)){
+          setExerciseBlockOpen(nextRow, true);
         }
       }
 
@@ -16312,8 +16396,8 @@ async function renderWorkout(){
       }
     });
 
-    const exerciseHeader = row.querySelector('.exercise');
-    const deleteCustomBtn = row.querySelector('.ex-delete-custom-btn');
+    const exerciseHeader = memberEl.querySelector('.exercise');
+    const deleteCustomBtn = memberEl.querySelector('.ex-delete-custom-btn');
     if(deleteCustomBtn){
       deleteCustomBtn.addEventListener('click', async (e)=>{
         e.stopPropagation();
@@ -16323,7 +16407,7 @@ async function renderWorkout(){
       });
     }
 
-    const aiTailorBtn = row.querySelector('.ex-ai-tailor-btn');
+    const aiTailorBtn = memberEl.querySelector('.ex-ai-tailor-btn');
     if(aiTailorBtn){
       aiTailorBtn.addEventListener('click', async (e)=>{
         e.stopPropagation();
@@ -16336,11 +16420,12 @@ async function renderWorkout(){
         aiTailorBtn.textContent = 'Thinking…';
         try{
           const injuryLog = await getInjuryLog();
-          const relevant = [...injuryLog].reverse().find(entry=> hitRegionsForRow.includes(entry.region));
+          const relevant = [...injuryLog].reverse().find(entry=> piece.hitRegionsForRow.includes(entry.region));
           const symptomLine = relevant
             ? `They logged: ${relevant.pain}/10 pain in ${relevant.region}${relevant.exercise ? `, noted during/after "${relevant.exercise}"` : ''}${relevant.sensation ? `, described as ${relevant.sensation}` : ''}${relevant.note ? `. Their own note: "${relevant.note}"` : ''}.`
-            : `They've marked ${hitRegionsForRow.join(' & ')} as currently resting, but no specific symptom detail is on file.`;
+            : `They've marked ${piece.hitRegionsForRow.join(' & ')} as currently resting, but no specific symptom detail is on file.`;
           const persona = getCoachPersona();
+          const info = exerciseInfo[ex.name];
           const sub = suggestSubstitute(info.category, ex.name);
           const prompt = `You are ${persona}. Someone is looking at "${ex.name}" in today's workout, which loads a region they've marked as resting. ${symptomLine} The app's default suggestion is "${sub ? sub.name : 'no direct substitute on file'}". Give a short, specific take (2-3 sentences, no headers or markdown) on whether that default substitute actually makes sense given what they described, or whether something else would be more appropriate — tied to the actual symptom, not generic category advice. You are not a doctor — if what they described sounds like it needs an in-person evaluation (sharp pain, numbness, a pop/snap, or anything not clearly improving), say so plainly rather than just suggesting an exercise swap.`;
           // effort:'medium' — this is a short 2-3 sentence take, not a task
@@ -16356,7 +16441,7 @@ async function renderWorkout(){
     }
 
     exerciseHeader.addEventListener('click', ()=>{
-      setExerciseUnitOpen(row, !row.classList.contains('open'));
+      setExerciseBlockOpen(blockEl, !blockEl.classList.contains('open'));
     });
 
     // Bound to the swap ICON specifically, not the whole .ex-name text — the
@@ -16364,15 +16449,15 @@ async function renderWorkout(){
     // a normal tap anywhere on the exercise name opened "Swap Exercise"
     // instead of the header's own expand-to-log toggle. Found via a real
     // golden-path walkthrough, not a hypothetical.
-    const swapIcon = row.querySelector('.ex-swap-icon');
-    if(hasSubs && swapIcon){
+    const swapIcon = memberEl.querySelector('.ex-swap-icon');
+    if(piece.hasSubs && swapIcon){
       swapIcon.addEventListener('click', (e)=>{
         e.stopPropagation();
-        openExerciseSubModal(i, ex);
+        openExerciseSubModal(exIdx, ex);
       });
     }
 
-    const editBtn = row.querySelector('.ex-edit-btn');
+    const editBtn = memberEl.querySelector('.ex-edit-btn');
     if(editBtn) editBtn.addEventListener('click', (e)=>{
       e.stopPropagation();
       // The ORIGINAL index is what the override is keyed by, and it is not the
@@ -16381,27 +16466,12 @@ async function renderWorkout(){
       openExerciseEditor(ex, ex.__srcIndex);
     });
 
-    const histBtn = row.querySelector('.ex-history-btn');
+    const histBtn = memberEl.querySelector('.ex-history-btn');
     if(histBtn) histBtn.addEventListener('click', (e)=>{
       e.stopPropagation();
-      openExerciseHistory(i, ex);
+      openExerciseHistory(exIdx, ex);
     });
-
-    wireSetsBlock(row, i, ex, fallbackPriorEntries[i]);
-
-    list.appendChild(row);
-
-    // A dedicated connector band between the pair, rather than a small tag
-    // that only lives on the first exercise's name — this is what actually
-    // makes the pairing visually unmistakable, touching both blocks with no
-    // gap so the two exercises read as one continuous unit.
-    if(isSupersetTop){
-      const connector = document.createElement('div');
-      connector.className = 'superset-connector';
-      connector.textContent = 'SUPERSET — straight into the next exercise, no rest between';
-      list.appendChild(connector);
-    }
-  });
+  }
 
   updateSessionCalorieTotal(renderExercises, completed);
   // The gym bar counts checkboxes in the rendered list, so it can only be
@@ -17392,26 +17462,19 @@ function openFirstIncompleteExercise(){
   // Gym Mode audit finding #2: normal use lets any number of exercises sit
   // expanded at once (the header click handler only ever toggles the one
   // clicked, never collapses the rest) — but gym mode's own rule, stated in
-  // the comment above this function, is exactly one open UNIT at a time (a
-  // lone exercise, or a linked superset pair — see setExerciseUnitOpen). Two
-  // open blocks that AREN'T a matched pair is still the broken state this
-  // rule exists to prevent, and gets consolidated down to one here rather
-  // than assumed to already hold. Two open blocks that genuinely ARE each
-  // other's superset partner is not that broken state — it's exactly what a
-  // pair looks like mid-superset — so it's left alone below, same as a
-  // single open block always was.
-  const isMatchedPair = openBlocks.length === 2 && supersetPartnerBlock(openBlocks[0]) === openBlocks[1];
-  if(openBlocks.length > 1 && !isMatchedPair){
+  // the comment above this function, is exactly one open block at a time. A
+  // superset pair is now ONE physical block (its own two-checkbox unit, see
+  // allMemberCheckboxesChecked) rather than two blocks that had to be
+  // recognized as a matched partner pair, so any time more than one block is
+  // open, that's unambiguously the broken state this exists to fix.
+  if(openBlocks.length > 1){
     openBlocks.forEach(b=> setExerciseBlockOpen(b, false));
   } else if(openBlocks.length >= 1){
     return;
   }
-  const target = blocks.find(b=>{
-    const cb = b.querySelector('input[type=checkbox]');
-    return cb && !cb.checked;
-  });
+  const target = blocks.find(b=> !allMemberCheckboxesChecked(b));
   if(!target) return;
-  setExerciseUnitOpen(target, true);
+  setExerciseBlockOpen(target, true);
 }
 
 // ── Advancing through the fields ────────────────────────────────────────────
@@ -17449,8 +17512,9 @@ function focusSetField(el){
 // Sibling walk rather than an index into renderExercises: rows are appended in
 // render order, so the next `.exercise-block` sibling is always the next
 // exercise AS DISPLAYED — already accounting for reordering and session-length
-// trimming. `.superset-connector` sits between blocks as a sibling, which is
-// why this skips non-blocks rather than reading nextElementSibling once.
+// trimming. Skips anything that isn't an exercise-block rather than reading
+// nextElementSibling once, in case a future render ever puts something else
+// between blocks.
 function nextExerciseBlock(block){
   let cand = block.nextElementSibling;
   while(cand){
@@ -17460,36 +17524,30 @@ function nextExerciseBlock(block){
   return null;
 }
 
-// Hands over from one exercise (or superset UNIT — see setExerciseUnitOpen)
-// to the next: collapses the one being left and opens the one being entered.
-// Exactly one open UNIT is the invariant the whole mode is built on — the
-// focus dim assumes it, and two pop-outs at once puts two bright things on a
-// screen designed to have one.
+// Hands over from one exercise-block to the next: collapses the one being
+// left and opens the one being entered. Exactly one open block is the
+// invariant the whole mode is built on — the focus dim assumes it, and two
+// pop-outs at once puts two bright things on a screen designed to have one.
+// A superset pair is a single block carrying two checkboxes (see
+// allMemberCheckboxesChecked) rather than two separate blocks, so this
+// needs no pairing awareness of its own — it already treats a pair exactly
+// like any other block, correctly skipping it only once BOTH exercises in
+// it are checked off.
 //
 // The checkbox is deliberately NOT ticked. Running out of fields means the
 // last set has a number in it, not that the person has decided the exercise is
 // done, and marking work complete on their behalf is not a thing a text field
 // should be able to do.
 function advanceToNextExercise(block){
-  // If `block` is the top half of a pair, hop over its own bottom half too —
-  // nextExerciseBlock from the bottom half is genuinely the next DIFFERENT
-  // exercise, whereas nextExerciseBlock from the top half would just be the
-  // bottom half again.
-  const partner = supersetPartnerBlock(block);
-  const searchFrom = (partner && block.classList.contains('superset-top')) ? partner : block;
-  let cand = nextExerciseBlock(searchFrom);
-  // Skip anything already checked off — there is nothing to log in it. A
-  // superset pair is skipped as a unit: if its top half is already checked,
-  // hop straight past its bottom half too rather than landing mid-pair.
-  while(cand){
-    const cb = cand.querySelector('input[type=checkbox]');
-    if(cb && !cb.checked) break;
-    cand = cand.classList.contains('superset-top') ? nextExerciseBlock(supersetPartnerBlock(cand) || cand) : nextExerciseBlock(cand);
+  let cand = nextExerciseBlock(block);
+  // Skip anything already fully checked off — there is nothing left to log in it.
+  while(cand && allMemberCheckboxesChecked(cand)){
+    cand = nextExerciseBlock(cand);
   }
   if(!cand) return false;
 
-  setExerciseUnitOpen(block, false);
-  setExerciseUnitOpen(cand, true);
+  setExerciseBlockOpen(block, false);
+  setExerciseBlockOpen(cand, true);
 
   const first = cand.querySelector('.ex-input');
   if(first){ focusSetField(first); return true; }
@@ -17499,48 +17557,16 @@ function advanceToNextExercise(block){
   return true;
 }
 
-// Builds the field order across a superset PAIR as one interleaved sequence
-// — set 1 of the top exercise, THEN set 1 of the bottom exercise, then set 2
-// of the top, set 2 of the bottom, and so on — rather than every field of
-// the top exercise followed by every field of the bottom one. That ordering
-// is what actually matches how a superset gets performed: straight from the
-// top exercise's set into the bottom exercise's set, no rest, before either
-// one's NEXT set. Sets are matched by index (top's set 2 pairs with
-// bottom's set 2) and an exercise with fewer rendered sets than its partner
-// simply drops out of the sequence past its own last row — no placeholder,
-// nothing to skip past.
-function supersetFieldSequence(topBlock, bottomBlock){
-  const topRows = [...topBlock.querySelectorAll('.set-row')];
-  const bottomRows = [...bottomBlock.querySelectorAll('.set-row')];
-  const seq = [];
-  const maxLen = Math.max(topRows.length, bottomRows.length);
-  for(let s=0; s<maxLen; s++){
-    if(topRows[s]) seq.push(...topRows[s].querySelectorAll('.ex-input'));
-    if(bottomRows[s]) seq.push(...bottomRows[s].querySelectorAll('.ex-input'));
-  }
-  return seq;
-}
-
+// A superset pair's two exercises now render as ONE shared, already-woven
+// .sets-block (top's set 1, bottom's set 1, top's set 2, bottom's set 2, and
+// so on — see renderWorkout) rather than two separate row lists needing a
+// dedicated interleaving pass here. DOM order inside the block already IS
+// the interleaved order, so the plain field-list walk below is correct for
+// a pair exactly as it always was for a single exercise — no special-casing
+// needed.
 function advanceSetField(input){
   const block = input.closest && input.closest('.exercise-block');
   if(!block) return false;
-
-  const partner = supersetPartnerBlock(block);
-  if(partner){
-    const topBlock = block.classList.contains('superset-top') ? block : partner;
-    const bottomBlock = topBlock === block ? partner : block;
-    const seq = supersetFieldSequence(topBlock, bottomBlock);
-    const si = seq.indexOf(input);
-    if(si !== -1){
-      const next = seq[si + 1];
-      if(next){ focusSetField(next); return true; }
-      // Both halves of the pair are exhausted — hand off exactly like a
-      // normal single exercise running out of fields, just starting the
-      // search from the bottom half so the next real exercise found is
-      // genuinely after the whole pair, not the top half again.
-      return advanceToNextExercise(bottomBlock);
-    }
-  }
 
   // Scoped to this block's own fields and read fresh: renderWorkout rebuilds
   // these nodes, so any cached list would go stale on the first re-render.
@@ -18035,7 +18061,12 @@ async function refreshSessionSummary(row, exIdx, ex){
   const todayMinutes = todayEntry ? durationMinutesOf(todayEntry, ex) : null;
   const pace = todayDistance > 0 ? computePace(todayDistance, todayMinutes) : null;
 
-  let summaryEl = row.querySelector('.session-summary');
+  // Scoped by data-ex-idx: a superset pair's shared block can hold summaries
+  // for TWO exercises after the one shared .sets-block — an unscoped lookup
+  // would find (and overwrite, or fail to create) whichever one happens to
+  // be first in the DOM regardless of which exercise this update is
+  // actually for. A no-op distinction for a normal, unpaired exercise.
+  let summaryEl = row.querySelector(`.session-summary[data-ex-idx="${exIdx}"]`);
   // Distance joins volume as a reason for this row to exist at all. Before
   // this, a cardio session had zero lb-volume and so got no summary line —
   // the exact "you can chart a bench press and not a 5K" gap.
@@ -18049,6 +18080,7 @@ async function refreshSessionSummary(row, exIdx, ex){
     if(!summaryEl){
       summaryEl = document.createElement('div');
       summaryEl.className = 'session-summary';
+      summaryEl.dataset.exIdx = exIdx;
       row.querySelector('.sets-block').insertAdjacentElement('afterend', summaryEl);
     }
     summaryEl.innerHTML = html;
@@ -18132,11 +18164,18 @@ function formatPlateResult(result){
 // triggered this at all — the one-tap fast path left the exercise looking
 // LESS finished than manually retyping every field would, since manual
 // entry's own change listener already called this on its last field.
-function checkAllSetsCompleteAndAutoCheck(row, block){
-  const setRows = [...block.querySelectorAll('.set-row')];
+// exIdx scopes every lookup here to ONE exercise's own rows/checkbox — a
+// superset pair's shared .sets-block holds rows (and a checkbox per member,
+// both carrying data-idx/data-ex-idx) for TWO exercises, so an unscoped
+// query here would require the OTHER exercise's fields to be filled before
+// this one could auto-check, or worse, tick the wrong checkbox. For a
+// normal, unpaired exercise this scoping is a no-op — everything in its
+// block already carries this exIdx and nothing else's.
+function checkAllSetsCompleteAndAutoCheck(row, block, exIdx){
+  const setRows = [...block.querySelectorAll(`.set-row[data-ex-idx="${exIdx}"]`)];
   if(setRows.length === 0) return;
-  const requiresWeight = !!block.querySelector('.ex-weight');
-  const requiresDistance = !!block.querySelector('.ex-distance');
+  const requiresWeight = !!block.querySelector(`.set-row[data-ex-idx="${exIdx}"] .ex-weight`);
+  const requiresDistance = !!block.querySelector(`.set-row[data-ex-idx="${exIdx}"] .ex-distance`);
   const allComplete = setRows.every(r=>{
     const w = r.querySelector('.ex-weight');
     const d = r.querySelector('.ex-distance');
@@ -18152,7 +18191,7 @@ function checkAllSetsCompleteAndAutoCheck(row, block){
     return true;
   });
   if(!allComplete) return;
-  const cb = row.querySelector('input[type=checkbox]');
+  const cb = row.querySelector(`input[type=checkbox][data-idx="${exIdx}"]`);
   if(!cb || cb.checked) return;
   cb.checked = true;
   cb.dispatchEvent(new Event('change'));
@@ -18170,7 +18209,13 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
   const showDistance = isDistanceExercise(ex.name);
   const showPlateCalc = showWeight && isBarbellExercise(ex.name);
 
-  const sameAsLastBtn = block.querySelector('.same-as-last-btn');
+  // Scoped by data-ex-idx (added to every set-row, and to each member's own
+  // .set-actions wrapper) rather than assumed-singular: a superset pair's
+  // shared .sets-block holds rows AND action buttons for TWO exercises, and
+  // wireSetsBlock is called once per member against that same container.
+  // For a normal, unpaired exercise this scoping is a no-op — every row and
+  // button in its block already carries this exIdx and nothing else's.
+  const sameAsLastBtn = block.querySelector(`.set-actions[data-ex-idx="${exIdx}"] .same-as-last-btn`);
   if(sameAsLastBtn){
     sameAsLastBtn.addEventListener('click', async ()=>{
       const key = exKey(activeProgram, activeDay, exIdx, subVariant);
@@ -18213,7 +18258,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
   }
 
   function renumberRows(){
-    [...block.querySelectorAll('.set-row')].forEach((r, newIdx)=>{
+    [...block.querySelectorAll(`.set-row[data-ex-idx="${exIdx}"]`)].forEach((r, newIdx)=>{
       r.dataset.setIdx = newIdx;
       r.querySelector('.set-num').textContent = newIdx + 1;
     });
@@ -18341,7 +18386,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       const hasRequiredDistance = !showDistance || distValRaw !== '';
       const isRealSet = hasReps && hasRequiredWeight && hasRequiredDistance;
       // ex.superTag means THIS exercise is the top half of a superset pair
-      // (see renderWorkout's isSupersetTop / the .superset-connector's own
+      // (see renderWorkout's isSupersetTop / the .superset-banner's own
       // "straight into the next exercise, no rest between" label) — there is
       // no real rest target for a set that's immediately followed by a
       // different exercise's set, so no countdown should start and no
@@ -18373,7 +18418,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       // justifies keeping the screen on, unlike the timer/gym-mode
       // interruptions above, which should wait for a finished entry.
       noteWorkoutActivity();
-      checkAllSetsCompleteAndAutoCheck(row, block);
+      checkAllSetsCompleteAndAutoCheck(row, block, exIdx);
     };
     if(wInput) wInput.addEventListener('change', save);
     if(dInput) dInput.addEventListener('change', save);
@@ -18630,19 +18675,24 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
     });
   }
 
-  block.querySelectorAll('.set-row').forEach(wireSetRow);
+  block.querySelectorAll(`.set-row[data-ex-idx="${exIdx}"]`).forEach(wireSetRow);
   // Catches any exercise that already has complete weight/reps/RPE data but
   // an unchecked box the moment this render happens — not just the case
   // where a field's own change listener just fired. This is what makes
   // "Same as Last Time" (which re-renders rather than firing field change
   // events) end up auto-checked like manual entry does.
-  checkAllSetsCompleteAndAutoCheck(row, block);
+  checkAllSetsCompleteAndAutoCheck(row, block, exIdx);
 
   // Deliberately NOT `.set-row`. Two places renumber `.set-row` by its position
   // in the block (the delete path and the add-set path); a warm-up row wearing
   // that class would be swept into the numbering and start overwriting working
-  // sets. The class is the isolation.
+  // sets. The class is the isolation. Warm-up rows only ever belong to the
+  // top half of a superset pair (the bottom half is never warm-up eligible —
+  // see renderWorkout's warmupEligible), so this is naturally exIdx-safe
+  // without an explicit filter, but the guard below still checks for clarity
+  // and in case that eligibility rule ever changes.
   block.querySelectorAll('.warmup-set-row').forEach(row=>{
+    if(row.dataset.exIdx != null && Number(row.dataset.exIdx) !== exIdx) return;
     const wInput = row.querySelector('.warmup-weight');
     const rInput = row.querySelector('.warmup-reps');
     const doneInput = row.querySelector('.warmup-done');
@@ -18672,12 +18722,19 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
     }
   });
 
+  // A superset pair shares ONE add-set button between two exIdx-scoped
+  // wireSetsBlock calls against the same container — each call attaches its
+  // OWN listener here, so one click on the shared button runs both and adds
+  // a set to each exercise: "+ Add a round" without any separate code path
+  // for that case. For a normal, unpaired exercise there is only ever one
+  // wireSetsBlock call and one listener, exactly as before.
   block.querySelector('.add-set-btn').addEventListener('click', ()=>{
-    const existingRows = block.querySelectorAll('.set-row');
+    const existingRows = block.querySelectorAll(`.set-row[data-ex-idx="${exIdx}"]`);
     const newIdx = existingRows.length;
     const div = document.createElement('div');
     div.className = 'set-row swipe-item';
     div.dataset.setIdx = newIdx;
+    div.dataset.exIdx = exIdx;
     // showWeight / showDistance / showPlateCalc come from the top of
     // wireSetsBlock. They used to be re-derived here, which is how the drop
     // button's handler came to reference a binding that did not reach it.

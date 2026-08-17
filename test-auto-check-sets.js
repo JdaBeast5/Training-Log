@@ -16,7 +16,7 @@ const fnSrc = extractFunction(src, 'checkAllSetsCompleteAndAutoCheck');
 function buildFixture(setRowsHtml){
   return `
     <div id="row">
-      <input type="checkbox">
+      <input type="checkbox" data-idx="0">
       <div class="sets-block" id="block">
         ${setRowsHtml}
       </div>
@@ -26,7 +26,7 @@ function buildFixture(setRowsHtml){
 
 function setRowHtml({weight, reps, rpe} = {}){
   return `
-    <div class="set-row">
+    <div class="set-row" data-ex-idx="0">
       <input class="ex-weight" value="${weight ?? ''}">
       <input class="ex-reps" value="${reps ?? ''}">
       <input class="ex-rpe" value="${rpe ?? ''}">
@@ -45,7 +45,7 @@ test('checks the box and fires a real change event when every set is complete', 
       var block = document.getElementById('block');
       var changeFired = false;
       row.querySelector('input[type=checkbox]').addEventListener('change', ()=>{ changeFired = true; });
-      checkAllSetsCompleteAndAutoCheck(row, block);
+      checkAllSetsCompleteAndAutoCheck(row, block, 0);
       window.__testResult = { checked: row.querySelector('input[type=checkbox]').checked, changeFired: changeFired };
     `]
   );
@@ -63,7 +63,7 @@ test('does nothing when RPE is missing on one set, even if weight and reps are f
     [fnSrc, `
       var row = document.getElementById('row');
       var block = document.getElementById('block');
-      checkAllSetsCompleteAndAutoCheck(row, block);
+      checkAllSetsCompleteAndAutoCheck(row, block, 0);
       window.__testResult = row.querySelector('input[type=checkbox]').checked;
     `]
   );
@@ -81,7 +81,7 @@ test('does not redundantly re-dispatch change when already checked', (assert)=>{
       cb.checked = true;
       var changeCount = 0;
       cb.addEventListener('change', ()=>{ changeCount++; });
-      checkAllSetsCompleteAndAutoCheck(row, block);
+      checkAllSetsCompleteAndAutoCheck(row, block, 0);
       window.__testResult = changeCount;
     `]
   );
@@ -102,7 +102,7 @@ test('the exact bug this fixes: data populated WITHOUT firing field change event
       var block = document.getElementById('block');
       // No change events dispatched on the fields — values just exist, as
       // they would after a re-render from storage.
-      checkAllSetsCompleteAndAutoCheck(row, block);
+      checkAllSetsCompleteAndAutoCheck(row, block, 0);
       window.__testResult = row.querySelector('input[type=checkbox]').checked;
     `]
   );
@@ -111,11 +111,13 @@ test('the exact bug this fixes: data populated WITHOUT firing field change event
 
 test('wireSetsBlock actually calls checkAllSetsCompleteAndAutoCheck once after wiring all existing rows, not just from the field-level save handler', (assert)=>{
   const wireSetsBlockSrc = extractFunction(src, 'wireSetsBlock');
-  const callSites = wireSetsBlockSrc.match(/checkAllSetsCompleteAndAutoCheck\(row, block\)/g) || [];
+  // 3-arg now: exIdx scopes both calls to THIS exercise's own rows/checkbox
+  // within a block that (for a superset pair) can hold two exercises' worth.
+  const callSites = wireSetsBlockSrc.match(/checkAllSetsCompleteAndAutoCheck\(row, block, exIdx\)/g) || [];
   assert.strictEqual(callSites.length, 2, `expected 2 call sites (the save handler + the post-wiring pass), found ${callSites.length}`);
   assert.ok(
-    wireSetsBlockSrc.indexOf("querySelectorAll('.set-row').forEach(wireSetRow)") <
-    wireSetsBlockSrc.lastIndexOf('checkAllSetsCompleteAndAutoCheck(row, block)'),
+    wireSetsBlockSrc.indexOf("querySelectorAll(`.set-row[data-ex-idx=\"${exIdx}\"]`).forEach(wireSetRow)") <
+    wireSetsBlockSrc.lastIndexOf('checkAllSetsCompleteAndAutoCheck(row, block, exIdx)'),
     'the post-wiring auto-check call must come after all existing rows are wired, not before'
   );
 });
@@ -133,9 +135,9 @@ test('REAL invocation: wireSetsBlock auto-checks an exercise whose row already h
   const wireSetsBlockSrc = extractFunction(src, 'wireSetsBlock');
   const bodyHtml = `
     <div id="row">
-      <input type="checkbox">
+      <input type="checkbox" data-idx="0">
       <div class="sets-block">
-        <div class="set-row" data-set-idx="0">
+        <div class="set-row" data-set-idx="0" data-ex-idx="0">
           <span class="set-num">1</span>
           <input class="ex-weight" value="185">
           <input class="ex-reps" value="5">

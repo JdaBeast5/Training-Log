@@ -104,7 +104,7 @@ test('REAL CSS: .plate-btn/.voice-log-btn/.set-drop-btn/.set-note-btn get positi
 });
 
 test('REAL MARKUP: the real working-set row template emits plate-btn/voice-log-btn immediately after the RPE input, then set-drop-btn, then set-note-btn — the exact adjacency the 6px-gap CSS comment claims', (assert)=>{
-  const rowStart = src.indexOf('<div class="set-row swipe-item" data-set-idx="${setIdx}">');
+  const rowStart = src.indexOf('<div class="set-row swipe-item" data-set-idx="${setIdx}" data-ex-idx="${i}">');
   assert.ok(rowStart !== -1, 'sanity: the real set-row template must be found');
   const rowEnd = src.indexOf('<button class="add-set-btn"', rowStart);
   assert.ok(rowEnd !== -1, 'sanity: template must end before the real Add Set button');

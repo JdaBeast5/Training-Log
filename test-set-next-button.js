@@ -2,18 +2,19 @@
 // Behavioral coverage for the new .set-next-btn: an explicit, always-tappable
 // "next field" control requested directly by the user, in these words — a
 // BUTTON, not a keyboard hint. It replaces reliance on Enter/enterkeyhint
-// (see test-superset-field-chaining.js's header comment for why the old
-// row-local advanceOnEnter mechanism was removed rather than kept) with a
-// second, guaranteed trigger for the exact same, already-tested
-// advanceSetField/supersetFieldSequence logic — this file does not re-prove
-// that interleaving ordering (test-superset-field-chaining.js already does,
-// directly), it proves the NEW part: that a tap on the button reaches that
-// mechanism at all, anchored on whichever of the row's own fields was most
-// recently focused rather than always the same fixed field.
+// with a second, guaranteed trigger for the exact same, already-tested
+// advanceSetField logic — this file does not re-prove that field-order
+// logic (test-superset-field-chaining.js does, directly), it proves the NEW
+// part: that a tap on the button reaches that mechanism at all, anchored on
+// whichever of the row's own fields was most recently focused rather than
+// always the same fixed field.
 //
-// Uses the same REAL wireSetsBlock invocation harness test-enter-key-
-// chaining.js established (external dependencies stubbed at the boundary,
-// wireSetsBlock/wireSetRow themselves are the real extracted source).
+// A superset pair's interleaving is now just DOM order within one shared
+// .sets-block (see renderWorkout's assembleSupersetPair) rather than a
+// dedicated supersetFieldSequence lookup, so advanceSetField needs no
+// superset-specific dependency here — the same two-row, single-exercise
+// fixture below already exercises the real "walk this block's own fields in
+// order" path a pair now also relies on.
 const { readIndexSource, extractFunction, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
@@ -22,10 +23,8 @@ const { test, run } = makeRunner('test-set-next-button.js');
 const checkFnSrc = extractFunction(src, 'checkAllSetsCompleteAndAutoCheck');
 const advanceSetFieldSrc = extractFunction(src, 'advanceSetField');
 const advanceToNextExerciseSrc = extractFunction(src, 'advanceToNextExercise');
-const supersetFieldSequenceSrc = extractFunction(src, 'supersetFieldSequence');
-const supersetPartnerBlockSrc = extractFunction(src, 'supersetPartnerBlock');
 const setExerciseBlockOpenSrc = extractFunction(src, 'setExerciseBlockOpen');
-const setExerciseUnitOpenSrc = extractFunction(src, 'setExerciseUnitOpen');
+const allMemberCheckboxesCheckedSrc = extractFunction(src, 'allMemberCheckboxesChecked');
 const nextExerciseBlockSrc = extractFunction(src, 'nextExerciseBlock');
 const focusSetFieldSrc = extractFunction(src, 'focusSetField');
 const wireSetsBlockSrc = extractFunction(src, 'wireSetsBlock');
@@ -37,16 +36,16 @@ test('sabotage-relevant: wireSetRow (inside wireSetsBlock) actually wires .set-n
 
 const bodyHtml = `
   <div id="row" class="exercise-block">
-    <input type="checkbox">
+    <input type="checkbox" data-idx="0">
     <div class="sets-block">
-      <div class="set-row" data-set-idx="0">
+      <div class="set-row" data-set-idx="0" data-ex-idx="0">
         <span class="set-num">1</span>
         <input class="ex-input ex-weight" value="">
         <input class="ex-input ex-reps" value="">
         <input class="ex-input ex-rpe" value="">
         <button type="button" class="set-next-btn">next</button>
       </div>
-      <div class="set-row" data-set-idx="1">
+      <div class="set-row" data-set-idx="1" data-ex-idx="0">
         <span class="set-num">2</span>
         <input class="ex-input ex-weight" value="">
         <input class="ex-input ex-reps" value="">
@@ -101,8 +100,8 @@ const globals = `
 
 function build(){
   return runJsdom(bodyHtml, globals, [
-    setExerciseBlockOpenSrc, supersetPartnerBlockSrc, setExerciseUnitOpenSrc,
-    nextExerciseBlockSrc, focusSetFieldSrc, supersetFieldSequenceSrc,
+    setExerciseBlockOpenSrc, allMemberCheckboxesCheckedSrc,
+    nextExerciseBlockSrc, focusSetFieldSrc,
     advanceToNextExerciseSrc, advanceSetFieldSrc,
     checkFnSrc, wireSetsBlockSrc,
     `wireSetsBlock(document.getElementById('row'), 0, {name:'Bench Press', sets:'4x4-6'});`,

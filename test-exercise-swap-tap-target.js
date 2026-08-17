@@ -32,16 +32,20 @@ function extractBetween(label, startAnchor, endAnchor){
 // click-wiring statements (exerciseHeader's own toggle + the swap-icon
 // binding) — skipping the unrelated delete/AI-tailor button wiring that
 // sits between them in the real file, which would otherwise need its own
-// large stub surface for dependencies irrelevant to this fix.
+// large stub surface for dependencies irrelevant to this fix. Lives inside
+// wireExerciseMember(memberEl, blockEl, exIdx, piece) now (member-scoped so
+// a superset pair's two headers each wire independently against their
+// shared block) rather than directly in the per-exercise render loop — the
+// variable names below match that function's own.
 const headerDeclSrc = extractBetween(
   'exerciseHeader declaration',
-  "const exerciseHeader = row.querySelector('.exercise');",
+  "const exerciseHeader = memberEl.querySelector('.exercise');",
   '\n'
 );
 const wiringSrc = extractBetween(
   'header + swap-icon click wiring',
   "exerciseHeader.addEventListener('click', ()=>{",
-  "const editBtn = row.querySelector('.ex-edit-btn');"
+  "const editBtn = memberEl.querySelector('.ex-edit-btn');"
 );
 // The header's toggle now goes through the one shared open/close helper (the
 // same one the auto-collapse, auto-open-next, gym-mode and Enter-key handover
@@ -70,10 +74,14 @@ function buildFixture(){
 
 function globalsFor(hasSubs){
   return `
-    window.row = document.getElementById('row');
-    window.hasSubs = ${hasSubs};
-    window.i = 0;
+    // For a lone (non-superset) exercise, memberEl and blockEl are the same
+    // element — exactly how assembleSingleExercise calls
+    // wireExerciseMember(row, row, i, piece) for real.
+    window.memberEl = document.getElementById('row');
+    window.blockEl = window.memberEl;
+    window.exIdx = 0;
     window.ex = {name: 'Bench Press'};
+    window.piece = {hasSubs: ${hasSubs}, ex: window.ex, hitRegionsForRow: []};
     window.__modalCalls = [];
     window.openExerciseSubModal = (i, ex)=>{ window.__modalCalls.push([i, ex.name]); };
   `;

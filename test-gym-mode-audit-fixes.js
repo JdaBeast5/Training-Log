@@ -42,16 +42,13 @@ test('sabotage-relevant: .sticky-day-header is hidden in Gym Mode, in the same r
 
 const setExerciseBlockOpenSrc = extractFunction(src, 'setExerciseBlockOpen');
 const openFirstIncompleteSrc = extractFunction(src, 'openFirstIncompleteExercise');
-// openFirstIncompleteExercise now calls setExerciseUnitOpen (opens a
-// superset pair together — see test-superset-field-chaining.js), which
-// calls supersetPartnerBlock, which calls nextExerciseBlock. None of the
-// fixtures below use superset-top/-bottom classes, so supersetPartnerBlock
-// always returns null and setExerciseUnitOpen falls straight through to
-// plain setExerciseBlockOpen — unchanged behavior, they just need to be
-// real and in scope so that fallthrough doesn't throw a ReferenceError.
-const setExerciseUnitOpenSrc = extractFunction(src, 'setExerciseUnitOpen');
-const supersetPartnerBlockSrc = extractFunction(src, 'supersetPartnerBlock');
-const nextExerciseBlockSrc = extractFunction(src, 'nextExerciseBlock');
+// openFirstIncompleteExercise calls setExerciseBlockOpen directly (a
+// superset pair is now ONE physical block — see
+// test-superset-field-chaining.js's header comment — so there is no
+// separate partner to open together anymore) and
+// allMemberCheckboxesChecked (every checkbox in a block, not just the
+// first, must be checked for it to count as done).
+const allMemberCheckboxesCheckedSrc = extractFunction(src, 'allMemberCheckboxesChecked');
 
 function exerciseBlockHtml(id, {open, checked}){
   return `
@@ -66,7 +63,7 @@ function exerciseBlockHtml(id, {open, checked}){
 
 function setup(blocksHtml){
   const { document } = runJsdom(`<div id="exerciseList">${blocksHtml}</div>`, '', [
-    setExerciseBlockOpenSrc, setExerciseUnitOpenSrc, supersetPartnerBlockSrc, nextExerciseBlockSrc, openFirstIncompleteSrc,
+    setExerciseBlockOpenSrc, allMemberCheckboxesCheckedSrc, openFirstIncompleteSrc,
   ]);
   return document;
 }

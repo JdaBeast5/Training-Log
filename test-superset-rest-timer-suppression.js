@@ -31,9 +31,9 @@ const wireSetsBlockSrc = extractFunction(src, 'wireSetsBlock');
 function bodyHtml(){
   return `
     <div id="row">
-      <input type="checkbox">
+      <input type="checkbox" data-idx="0">
       <div class="sets-block">
-        <div class="set-row" data-set-idx="0">
+        <div class="set-row" data-set-idx="0" data-ex-idx="0">
           <span class="set-num">1</span>
           <input class="ex-weight" value="">
           <input class="ex-reps" value="">

@@ -23,8 +23,10 @@ const bodyHtml = `
   <div id="row">
     <input type="checkbox">
     <div class="sets-block">
-      <button class="same-as-last-btn">Same as Last Time</button>
-      <div class="set-row" data-set-idx="0">
+      <div class="set-actions" data-ex-idx="0">
+        <button class="same-as-last-btn">Same as Last Time</button>
+      </div>
+      <div class="set-row" data-set-idx="0" data-ex-idx="0">
         <span class="set-num">1</span>
         <input class="ex-weight" value="">
         <input class="ex-reps" value="">
@@ -111,12 +113,18 @@ test('structural: wireSetsBlock no longer CALLS getFallbackPriorEntry anywhere i
   assert.ok(!/getFallbackPriorEntry\s*\(/.test(wireSetsBlockSrc), 'wireSetsBlock must not CALL getFallbackPriorEntry anymore, even though it may still be mentioned in a comment');
 });
 
-test('the real call site (renderWorkout) passes fallbackPriorEntries[i] as the 4th argument', (assert)=>{
+test('the real call site (renderWorkout) threads the precomputed fallbackPriorEntries[i] through to wireSetsBlock', (assert)=>{
   const renderWorkoutSrc = extractFunction(src, 'renderWorkout');
-  assert.ok(
-    renderWorkoutSrc.includes('wireSetsBlock(row, i, ex, fallbackPriorEntries[i])'),
-    'renderWorkout must thread the precomputed fallbackPriorEntries[i] through to wireSetsBlock'
-  );
+  // Indirected through the per-exercise "piece" object the assembly pass
+  // builds from (see assembleSingleExercise/assembleSupersetPair) rather
+  // than passed as a literal `fallbackPriorEntries[i]` at the call site
+  // itself — the piece is WHERE fallbackPriorEntries[i] actually gets
+  // captured, once per exercise, so this checks that capture plus both real
+  // wireSetsBlock call sites reading it back off the piece.
+  assert.match(renderWorkoutSrc, /fallbackEntry:\s*fallbackPriorEntries\[i\]/, 'each exercise\'s piece must capture its own fallbackPriorEntries[i]');
+  assert.ok(renderWorkoutSrc.includes('wireSetsBlock(row, i, ex, piece.fallbackEntry)'), 'the lone-exercise assembly path must thread piece.fallbackEntry through to wireSetsBlock');
+  assert.ok(renderWorkoutSrc.includes('wireSetsBlock(pairRow, t, topPiece.ex, topPiece.fallbackEntry)'), 'the superset-pair assembly path must thread the TOP exercise\'s own fallbackEntry through');
+  assert.ok(renderWorkoutSrc.includes('wireSetsBlock(pairRow, b, bottomPiece.ex, bottomPiece.fallbackEntry)'), 'the superset-pair assembly path must thread the BOTTOM exercise\'s own fallbackEntry through, not accidentally reuse the top\'s');
 });
 
 run();
