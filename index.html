@@ -3032,11 +3032,39 @@
   .food-log-item{
     display:flex; align-items:center; gap:10px; padding:8px 0;
     border-bottom:1px solid var(--line-soft);
+    cursor:pointer;
   }
   .food-log-item .fl-name{font-size:13.5px; font-weight:500; flex:1;}
-  .food-log-item .fl-macro{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11.5px; color:var(--text-muted); white-space:nowrap;}
+  .food-log-item .fl-macro{
+    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11.5px; color:var(--text-muted); white-space:nowrap;
+    display:flex; align-items:center; gap:4px;
+  }
   .food-log-item .fl-remove{
     background:none; border:none; color:var(--text-muted); font-size:16px; cursor:pointer; padding:0 2px; line-height:1;
+  }
+  /* Tap a logged food to see its macro breakdown, since the row itself only
+     ever had room for calories. role="button"/tabindex="0" even though the
+     row also contains real qty-stepper buttons — matches .exercise, which
+     wraps a real checkbox and delete button the same way and rides the same
+     shared keydown listener (see the comment above it); Enter/Space is left
+     alone when it starts inside a real control. Swipe-vs-tap is handled by
+     makeSwipeable's own movement-threshold logic (see its DRAG_THRESHOLD
+     comment), same as every other row in this list. */
+  .food-log-item .fl-chevron{
+    display:inline-block; font-size:11px; color:var(--text-muted);
+    transition:transform 0.22s var(--ease-smooth);
+  }
+  .food-log-item.open .fl-chevron{transform:rotate(90deg);}
+  .fl-detail{margin:-4px 0 4px;}
+  .fl-detail.open{border-bottom:1px solid var(--line-soft);}
+  .fl-macro-breakdown{
+    display:flex; gap:14px; padding:2px 0 9px;
+    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11.5px;
+  }
+  .fl-macro-breakdown .fl-macro-chip{color:var(--text-muted);}
+  .fl-macro-breakdown .fl-macro-chip strong{color:var(--text); font-weight:600;}
+  @media (prefers-reduced-motion: reduce){
+    .food-log-item .fl-chevron{transition:none;}
   }
   .food-search-input{
     width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--text);
@@ -6196,7 +6224,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.193';
+const APP_VERSION = '3.194';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6578,6 +6606,10 @@ const WHATS_NEW = {
     'Continuing the earlier pass (Pilates, ACL Rehab, Boxing S&C), every remaining program and style citation in the app was checked against current literature. 9 more got real, verified updates: the bariatric surgery programs\' vague placeholder citation was replaced with its actual authors and DOI, and Diabetes, Desk Worker, Running, Calisthenics, Achilles Rehab, Surfing, Road Cycling, and Hyrox each gained a stronger or more current source alongside what was already cited.',
     'About 35 other entries were checked and confirmed still current — including Boxing S&C\'s head-impact-safety gap, which remains honestly flagged as unaddressed rather than papered over with an unrelated citation.',
     'One update is worth knowing about specifically: Road Cycling\'s newer source found the ideal training-intensity split actually differs between competitive and recreational riders, which this app doesn\'t currently distinguish — noted honestly in the citation record rather than quietly resolved.',
+  ]},
+  '3.194': { headline: 'Tap a logged food to see its macro breakdown', points: [
+    'A logged food only ever showed its calories — seeing which food actually drove up your protein, fat, or carbs meant looking it back up from scratch. Tapping any logged item now expands it to show protein, fat, and carbs for that food specifically.',
+    'Works the same as tapping an exercise to see its sets — same tap-to-expand pattern, same keyboard support (Enter/Space when focused). The quantity +/- buttons and swipe-to-delete are untouched.',
   ]},
 };
 
@@ -19251,9 +19283,10 @@ wireCollapsibleHeaders();
 // is kept in step by setExerciseBlockOpen). Unlike the card headers it wraps
 // real controls — the completion checkbox, the delete-custom button — and
 // Enter/Space on those belongs to them, so a keypress that started inside one
-// is left alone.
+// is left alone. `.food-log-item` (renderFoodLog) joins for the same reason —
+// it wraps the qty-stepper buttons the same way .exercise wraps its own.
 document.addEventListener('keydown', (e)=>{
-  const h = e.target.closest && e.target.closest('.nutrition-header, .exercise');
+  const h = e.target.closest && e.target.closest('.nutrition-header, .exercise, .food-log-item');
   if(!h) return;
   if(e.target.closest('input, button, select, textarea, a')) return;
   if(e.key === 'Enter' || e.key === ' '){
@@ -23574,13 +23607,13 @@ function renderFoodLog(){
   if(todaysFoodLog.length === 0){
     listEl.innerHTML = '<div class="empty-note">🍽️ Nothing logged yet today — tap an item below to add it.</div>';
   } else {
-    const itemHtmls = todaysFoodLog.map(item=>{
+    const itemHtmls = todaysFoodLog.map((item, i)=>{
       const q = item.qty || 1;
       const label = escapeHtml(item.baseName || item.name);
       return buildSwipeItem(
-        `<div class="food-log-item">
+        `<div class="food-log-item" role="button" tabindex="0" aria-expanded="false" aria-controls="flDetail${i}">
           <div class="fl-name">${escapeHtml(item.name)}</div>
-          <div class="fl-macro">${item.cal} cal</div>
+          <div class="fl-macro">${item.cal} cal<span class="fl-chevron" aria-hidden="true">›</span></div>
           <div class="qty-stepper">
             <button type="button" class="qty-btn" data-step="-1"${q <= 1 ? ' disabled' : ''}
               aria-label="One less portion of ${label}">−</button>
@@ -23588,7 +23621,14 @@ function renderFoodLog(){
             <button type="button" class="qty-btn" data-step="1"${q >= FOOD_QTY_MAX ? ' disabled' : ''}
               aria-label="One more portion of ${label}">+</button>
           </div>
-        </div>`
+        </div>
+        <div class="smooth-toggle fl-detail" id="flDetail${i}"><div>
+          <div class="fl-macro-breakdown">
+            <span class="fl-macro-chip">Protein <strong>${Math.round(Number(item.pro)||0)}g</strong></span>
+            <span class="fl-macro-chip">Fat <strong>${Math.round(Number(item.fat)||0)}g</strong></span>
+            <span class="fl-macro-chip">Carbs <strong>${Math.round(Number(item.carb)||0)}g</strong></span>
+          </div>
+        </div></div>`
       );
     });
     listEl.innerHTML = itemHtmls.join('');
@@ -23599,6 +23639,16 @@ function renderFoodLog(){
           e.stopPropagation();
           adjustFoodLogQty(idx, Number(btn.dataset.step));
         });
+      });
+      // Tap the row itself (not a real <button> — see the .food-log-item CSS
+      // comment for why) to reveal the protein/fat/carb breakdown that the
+      // collapsed row only ever had space to show as total calories.
+      const row = itemEl.querySelector('.food-log-item');
+      const detail = itemEl.querySelector('.fl-detail');
+      row.addEventListener('click', ()=>{
+        const open = row.classList.toggle('open');
+        detail.classList.toggle('open', open);
+        row.setAttribute('aria-expanded', open ? 'true' : 'false');
       });
     });
   }

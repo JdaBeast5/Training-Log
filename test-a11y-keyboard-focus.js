@@ -79,7 +79,7 @@ const headerWiringSrc = extractBetween(
 // other keydown listeners exist), then taken from its own
 // `document.addEventListener(` back to the `});` that closes it at column 0.
 const keydownListenerSrc = (()=>{
-  const marker = src.indexOf("'.nutrition-header, .exercise'");
+  const marker = src.indexOf("'.nutrition-header, .exercise, .food-log-item'");
   if(marker === -1) throw new Error('delegated collapsible keydown listener: selector marker not found');
   const start = src.lastIndexOf("document.addEventListener('keydown'", marker);
   if(start === -1) throw new Error('delegated collapsible keydown listener: no enclosing keydown listener');
