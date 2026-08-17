@@ -41,9 +41,9 @@ function cardOrder(document){
 
 const { test, run } = makeRunner('test-learn-tab-card-order.js');
 
-test('sabotage-relevant: #learnView really has 17 top-level cards — not a truncated extraction quietly passing on a partial fixture', (assert)=>{
+test('sabotage-relevant: #learnView really has 18 top-level cards — not a truncated extraction quietly passing on a partial fixture', (assert)=>{
   const { document } = runJsdom(learnViewHtml, '', []);
-  assert.strictEqual(document.querySelectorAll('#learnView > .card').length, 17);
+  assert.strictEqual(document.querySelectorAll('#learnView > .card').length, 18);
 });
 
 test('REAL invocation: Exercise Library, Recently Trained, and every program-specific masterclass card render in their established relative order, with All Masterclasses moved to the END', (assert)=>{
@@ -65,6 +65,7 @@ test('REAL invocation: Exercise Library, Recently Trained, and every program-spe
     'combatTechniquesCard',
     'grappleTechniquesCard',
     'olyTechniquesCard',
+    'researchSourcesCard',
     'allMasterclasses',
   ]);
 });
