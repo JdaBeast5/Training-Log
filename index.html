@@ -6165,7 +6165,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.186';
+const APP_VERSION = '3.187';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6520,6 +6520,9 @@ const WHATS_NEW = {
   ]},
   '3.186': { headline: 'Superset field advance: now a real button, not just a keyboard hint', points: [
     'Logging a superset still walked one exercise\'s sets 1-2-3 straight through before starting the paired exercise, instead of alternating straight from one exercise\'s set into the paired exercise\'s set. The interleaved order was already correct under the hood — the problem was how you triggered it: relying on the keyboard\'s Enter/"Next" key, which many phone number pads never show a key for at all. Every set row now has its own "→" button that jumps to the true next field — or straight into the paired exercise — with a tap, no keyboard involved. Fixing this also caught and fixed a real bug it depended on: a swipe gesture on the row was silently swallowing taps on ANY of the row\'s buttons — plate calculator, voice log, add note, add drop set — whenever a tap started on the button itself rather than the row\'s background. Those all get more reliable along with the new one.',
+  ]},
+  '3.187': { headline: 'Fixed: tapping a grocery item to check it off silently did nothing', points: [
+    'The previous release fixed taps on row BUTTONS being swallowed by the swipe gesture, but a live check afterward found the same problem one level deeper: the grocery list checks an item off by tapping the row itself, which isn\'t a button — and that tap was still being silently eaten the exact same way. The real fix was more general than "which elements count as buttons": a swipe gesture is now only recognized once a tap has actually moved sideways by a few pixels, so a plain tap — on a button, a checkbox row, anything — is never touched by the swipe logic at all, regardless of what kind of element it landed on.',
   ]},
 };
 
@@ -23716,26 +23719,41 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
 function makeSwipeable(itemEl, onDelete){
   const content = itemEl.querySelector('.swipe-content');
   const deleteBg = itemEl.querySelector('.swipe-delete-bg');
-  let startX = 0, currentX = 0, dragging = false, openOffset = 0;
+  let startX = 0, currentX = 0, dragging = false, openOffset = 0, activePointerId = null;
+  // How far a pointer has to move horizontally before this counts as a real
+  // swipe rather than a tap. Below this, nothing happens at all — deliberately,
+  // see the capture comment below for why "nothing" is the correct behavior.
+  const DRAG_THRESHOLD = 8;
 
   content.addEventListener('pointerdown', (e)=>{
-    // A tap that starts on a real control inside the row — a button or an
-    // input — is not the start of a swipe. setPointerCapture below
-    // retargets every subsequent pointer event (including the eventual
-    // pointerup, and the click the browser synthesizes from it) to
-    // `content` itself rather than wherever the finger actually was —
-    // which silently swallowed taps on every button in this row (plate
-    // calculator, voice log, add note, add drop set, and the new "next
-    // field" advance button) any time the tap started on the button rather
-    // than the row's own background. Bailing out here before capture ever
-    // happens leaves those controls' own click handling completely alone.
-    if(e.target.closest && e.target.closest('button, input, a, select, textarea')) return;
-    dragging = true; startX = e.clientX; content.style.transition = 'none';
-    content.setPointerCapture(e.pointerId);
+    startX = e.clientX; content.style.transition = 'none';
+    activePointerId = e.pointerId;
+    // NOT captured here, and dragging is NOT set true yet — see pointermove.
   });
   content.addEventListener('pointermove', (e)=>{
-    if(!dragging) return;
-    currentX = Math.min(0, Math.max(-90, e.clientX - startX + openOffset));
+    if(e.pointerId !== activePointerId) return;
+    const dx = e.clientX - startX;
+    if(!dragging){
+      // Every tap starts life as a pointerdown+pointermove+pointerup too —
+      // real fingers and mice never land perfectly still. Capturing the
+      // pointer on pointerdown unconditionally (the original shape of this
+      // function) meant EVERY tap anywhere in the row, not just a genuine
+      // swipe, retargeted its own pointerup — and the click the browser
+      // synthesizes from it — to `content` instead of wherever it actually
+      // landed. That silently swallowed taps on every button in the row
+      // (plate calculator, voice log, add note, add drop set, the superset
+      // "next field" button) AND on plain non-button click targets like the
+      // grocery list's checkbox-toggle row — an allowlist of interactive tag
+      // names fixed the buttons but not that last one, which is why this is
+      // a movement threshold instead: it makes no assumption about what kind
+      // of element a tap might land on, because it means what "drag" means.
+      // Below the threshold, capture never happens and every element's own
+      // tap handling — button, div, whatever — is left completely alone.
+      if(Math.abs(dx) < DRAG_THRESHOLD) return;
+      dragging = true;
+      content.setPointerCapture(activePointerId);
+    }
+    currentX = Math.min(0, Math.max(-90, dx + openOffset));
     content.style.transform = `translateX(${currentX}px)`;
   });
   function endDrag(){
