@@ -6196,7 +6196,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.191';
+const APP_VERSION = '3.192';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6569,6 +6569,10 @@ const WHATS_NEW = {
   '3.191': { headline: 'Citation currency, part 2: ACL Rehab and Boxing S&C', points: [
     'ACL Rehab: a 2024 international consensus statement specific to ACL reconstruction (APKASS) now sits alongside the program\'s original 2016 return-to-sport statement — both agree on the same "criteria, not the calendar" position this program was already built on, so nothing about the program itself changed.',
     'Boxing S&C: a more rigorous 2023 meta-analysis found the link between neck strength and lower concussion risk is NOT well supported by current evidence — weaker than what the program\'s original single-study citation implied. The neck work stays in the program (it\'s still reasonable, low-risk practice), but the app no longer states a protective effect as though it were proven.',
+  ]},
+  '3.192': { headline: 'Rescanning a barcode you\'ve already scanned is now instant', points: [
+    'Barcode scans have always been saved to My Foods automatically once added to the log — that part already worked. What was missing: scanning that SAME barcode again still did a fresh network lookup every time, even though the app already knew the item.',
+    'A rescanned barcode now matches against My Foods first and skips the lookup entirely when it\'s already known — no network round-trip, works without a connection, and shows "Already in My Foods" instead of "Found it" so it\'s clear why it came back instantly.',
   ]},
 };
 
@@ -21747,6 +21751,7 @@ async function lookupBarcode(barcode){
       fiber: fiberG(n['fiber_serving']),
       servingDesc: p.serving_size || 'labeled serving',
       source: 'Open Food Facts',
+      barcode,
     };
   }
   return {
@@ -21759,6 +21764,7 @@ async function lookupBarcode(barcode){
     fiber: fiberG(n['fiber_100g']),
     servingDesc: 'per 100g',
     source: 'Open Food Facts',
+    barcode,
   };
 }
 
@@ -21854,8 +21860,42 @@ async function openBarcodeScanner(){
   }
 }
 
+// Every barcode lookup that resolves gets cached into My Foods (via
+// addFoodToLog's generic `item.source`-cache path, with `barcode` riding
+// along as an extra field on the cached object — see lookupBarcode). This
+// checks that cache FIRST, by barcode rather than by name, so scanning the
+// same physical item a second time is instant and needs no network call at
+// all — not just "saved for next time" in the sense of being searchable
+// later, but actually skipping the lookup outright on a repeat scan.
+function renderBarcodeResult(item, fromCache){
+  const resultEl = document.getElementById('barcodeResult');
+  // Cached My Foods items don't carry servingDesc (addFoodToLog strips it
+  // before caching, same as every other My Foods entry) — shown only when
+  // present, matching how food-search rows already treat this field as
+  // optional (buildFoodResultRow's `item.servingDesc ? ... : ''`).
+  const servingSuffix = item.servingDesc ? ` (${escapeHtml(item.servingDesc)})` : '';
+  resultEl.innerHTML = `
+    <div class="photo-result-card">
+      <div class="photo-result-title">${fromCache ? '📦 Already in My Foods — no lookup needed' : '📦 Found it'}</div>
+      <div class="photo-result-item">
+        <span>${escapeHtml(item.name)} — ${item.cal} cal, ${item.pro}p/${item.fat}f/${item.carb}c${servingSuffix}</span>
+        <button class="fl-remove" style="color:var(--plate-green); font-size:18px;" id="barcodeAddBtn" aria-label="Add ${escapeHtml(item.name)} to today's log">+</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('barcodeAddBtn').addEventListener('click', async ()=>{
+    await addFoodToLog(item);
+    resultEl.innerHTML = `<div class="empty-note">Added to ${logDayLabel()} log${fromCache ? '' : ' — and saved to My Foods for next time'}.</div>`;
+  });
+}
+
 async function handleBarcodeFound(barcode){
   const resultEl = document.getElementById('barcodeResult');
+  const cached = customFoods.find(f=> f.barcode === barcode);
+  if(cached){
+    renderBarcodeResult(cached, true);
+    return;
+  }
   resultEl.innerHTML = `<div class="empty-note">Looking up barcode ${escapeHtml(barcode)}…</div>`;
   try{
     const item = await lookupBarcode(barcode);
@@ -21863,19 +21903,7 @@ async function handleBarcodeFound(barcode){
       resultEl.innerHTML = `<div class="empty-note">No product found for that barcode — try search instead, or add it as a custom item below.</div>`;
       return;
     }
-    resultEl.innerHTML = `
-      <div class="photo-result-card">
-        <div class="photo-result-title">📦 Found it</div>
-        <div class="photo-result-item">
-          <span>${escapeHtml(item.name)} — ${item.cal} cal, ${item.pro}p/${item.fat}f/${item.carb}c (${escapeHtml(item.servingDesc)})</span>
-          <button class="fl-remove" style="color:var(--plate-green); font-size:18px;" id="barcodeAddBtn" aria-label="Add ${escapeHtml(item.name)} to today's log">+</button>
-        </div>
-      </div>
-    `;
-    document.getElementById('barcodeAddBtn').addEventListener('click', async ()=>{
-      await addFoodToLog(item);
-      resultEl.innerHTML = `<div class="empty-note">Added to ${logDayLabel()} log — and saved to My Foods for next time.</div>`;
-    });
+    renderBarcodeResult(item, false);
   }catch(e){
     resultEl.innerHTML = `<div class="empty-note">${escapeHtml(e.message || 'Lookup failed — check your connection and try again.')}</div>`;
   }
