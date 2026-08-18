@@ -5006,8 +5006,17 @@
 
         <div id="prefDaysPerWeek">
           <label class="care-label" for="daysPerWeekInput">Training days per week</label>
-          <input type="number" id="daysPerWeekInput" class="care-input" min="1" max="7" inputmode="numeric" placeholder="Program default">
-          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Applies to every program in this app — including every style within Cycling, Combat, Watersports, and Yoga — except the medically-modified programs, which never will (those follow your care team's guidance, not a day-count preference).</div>
+          <select id="daysPerWeekInput" class="care-input" aria-label="Training days per week">
+            <option value="">Program default</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+          </select>
+          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Select "Program default" to revert to the program's own default split. Applies to every program in this app — including every style within Cycling, Combat, Watersports, and Yoga — except the medically-modified programs, which never will (those follow your care team's guidance, not a day-count preference).</div>
           <div id="daysPerWeekWarning" style="display:none"></div>
         </div>
 
@@ -6292,7 +6301,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.213';
+const APP_VERSION = '3.214';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6758,6 +6767,10 @@ const WHATS_NEW = {
     'Vinyasa & Flow, Hot Yoga, and Partner Yoga all now have real day-count plans, and switching between them no longer discards whichever day count you had selected — the same fix already shipped for Cycling, Combat, and Watersports now covers Yoga too.',
     'This completes the rollout: every program in the app now has a real, purpose-built plan for however many days you want to train, except the medically-modified programs, which follow your care team\'s guidance instead of a day-count preference.',
     'Higher-frequency options never add a 2nd hard session. Flow and Hot never repeat their two highest-intensity days; Hot\'s extra day specifically stays unheated, since this program\'s own citation found the heat itself doesn\'t clearly add benefit over non-heated practice. Partner Yoga\'s extra day stays gentle, since the "the person being stretched sets the depth, always" rule applies at every frequency, not just the default one.',
+  ]},
+  '3.214': { headline: 'Fixed: "Training days per week" could show the wrong value, and is now a dropdown', points: [
+    'That field is now a proper dropdown ("Program default" plus 1-7), not a number box — no more ambiguity about whether a blank field actually means "reverted to default."',
+    'Fixed a real bug behind that ambiguity: after reopening the app, the field could show "Program default" even while a real day-count preference was still genuinely active underneath it — the field was reading its displayed value before your saved preference had actually loaded. It now waits for the real value before displaying anything.',
   ]},
 };
 
@@ -42551,7 +42564,6 @@ if(activeUserId){
     applyWakeLockPrefToUI();
     applyWarmupSetsPrefToUI();
     applyManualDeloadPrefToUI();
-    applyDaysPerWeekPrefToUI();
     renderEquipmentPicker();
     wireEquipmentPicker();
     await restoreCardOpenStates();
@@ -42571,6 +42583,7 @@ if(activeUserId){
     await loadYogaStyle();
     await loadMedicalStyle();
     await loadDaysPerWeekPref();
+    applyDaysPerWeekPrefToUI();
     await loadSessionLengthPref();
     initSessionLengthSelector();
     // Before loadActiveProgram, which silently falls back to the default for a
