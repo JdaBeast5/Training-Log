@@ -4986,6 +4986,13 @@
           <div class="history-hint field-note">Every 5th week is already suggested as a deload automatically. Turn this on for a week that doesn't line up with that — before a competition, after a rough patch, or just because you need one — and suggested weights and warm-ups come down the same way they would on a scheduled one. Turn it back off when the week's over; it doesn't expire on its own.</div>
         </div>
 
+        <div id="prefDaysPerWeek">
+          <label class="care-label" for="daysPerWeekInput">Training days per week</label>
+          <input type="number" id="daysPerWeekInput" class="care-input" min="1" max="7" inputmode="numeric" placeholder="Program default">
+          <div class="history-hint field-note">Reshapes your program's week to fit however many days you actually want to train (1-7) — the rest fill in as recovery days. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size and Bodybuilding; other programs aren't affected yet.</div>
+          <div id="daysPerWeekWarning" style="display:none"></div>
+        </div>
+
         <div>
           <label class="care-label">My equipment</label>
           <div class="history-hint field-note" style="margin-top:0;">Suggested weights get rounded to something you can actually load, and the plate calculator only lists plates you own. Leave it alone if you train at a commercial gym.</div>
@@ -6267,7 +6274,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.196';
+const APP_VERSION = '3.197';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6660,6 +6667,11 @@ const WHATS_NEW = {
   ]},
   '3.196': { headline: 'Program overviews are now collapsible', points: [
     'The new program/style description shipped last version as always-visible text, which meant it could fill most of the screen on longer entries. It now opens expanded by default (so it\'s still the first thing you see) but tapping "Overview" collapses it down to a single line — same tap-to-expand pattern already used for "What this is based on" and the exercise set list.',
+  ]},
+  '3.197': { headline: 'Pick how many days a week you train', points: [
+    'A new "Training days per week" field in your Profile (1-7) reshapes the Strength & Size and Bodybuilding programs to fit however often you actually want to train — fewer days trims down to your top training sessions, more days repeats the split with recovery days filled in around it. Leave it blank to keep a program\'s own default split.',
+    'Picking more days than a program has distinct sessions for (so a session repeats within the same week) shows a heads-up about overtraining risk; picking 6-7 days shows a reminder that most programs benefit from at least one full rest day. Both are just a note — nothing is blocked.',
+    'Other programs aren\'t affected by this yet — rolling out to the rest is planned as its own follow-up, not bundled into this one.',
   ]},
 };
 
@@ -13037,6 +13049,7 @@ async function renderProgramSelector(trendStatus){
     await loadWeekProgress();
     renderTabs();
     renderWorkout();
+    renderDaysPerWeekWarning();
     togglePosingCard();
     toggleMartialArtCard();
     toggleCyclingCard();
@@ -13393,6 +13406,183 @@ function toggleMedicalCard(){
 function renderPosingClasses(){
   renderMasterclassTechniques('posingCard');
 }
+
+// [CONFIGURABLE TRAINING DAYS] ---------------------------------------------------
+// Lets a user pick how many days/week they actually train (1-7) instead of
+// living with whatever a program's authored day count happens to be. Pilot
+// scope, agreed with the user before building: strength + bodybuilding only
+// -- every other program's `days` is completely untouched, and the pref has
+// zero effect on it, same as any other pref nobody has set yet.
+//
+// Never invents exercise content. `programs.strength.days`/
+// `programs.bodybuilding.days` are partitioned by the `rest` flag they
+// already carry into a training-day list and a rest-day list, and
+// buildDaysForWeek() picks/cycles through those SAME authored days to fill
+// however many slots the user asked for. Mirrors the COMBAT_STYLES /
+// programs.combat.days precedent above (loadMartialArtStyle etc.):
+// `programs[key].days` gets reassigned to a freshly-built object; the
+// program's own original day objects are never mutated in place.
+//
+// d1..d7 stays a fixed 7-slot week on purpose -- see [DAY ORDER, TABS...]
+// below: archiveCurrentWeek's "save this week" button only fires on the
+// literal id 'd7', and day-order/active-day are both length-guarded against
+// Object.keys(dayDefs).length. Changing which of the 7 slots are training
+// vs. rest, rather than how many slots exist, means neither of those has to
+// change.
+const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding'];
+const DAYS_PER_WEEK_ORIGINAL = Object.fromEntries(DAYS_PER_WEEK_PROGRAMS.map(key => [key, programs[key].days]));
+
+const DAYS_PER_WEEK_FALLBACK_REST = {
+  label: 'Full Rest', sub: 'Full Rest', plate: 'p-off', plateNum: 'OFF', duration: '', rest: true,
+  note: 'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+};
+
+function daysPerWeekCycle(arr, n){
+  if(n <= 0) return [];
+  const source = arr.length ? arr : [DAYS_PER_WEEK_FALLBACK_REST];
+  return Array.from({length:n}, (_, i)=> source[i % source.length]);
+}
+
+// Spreads training slots across the week instead of bunching them at the
+// front. At each of the 7 slots, whichever list (train/rest) has used the
+// SMALLER share of its own items so far goes next -- a display-order
+// heuristic only (d1..d7 are user-tapped tabs, not calendar days, so there
+// is no "correct" placement to match), but worth doing so a low-day-count
+// week doesn't read as "grind straight through, then collapse."
+function daysPerWeekInterleave(trainSlots, restSlots){
+  const slots = [];
+  let ti = 0, ri = 0;
+  while(ti < trainSlots.length || ri < restSlots.length){
+    const trainShare = trainSlots.length ? ti / trainSlots.length : Infinity;
+    const restShare = restSlots.length ? ri / restSlots.length : Infinity;
+    if(ti < trainSlots.length && trainShare <= restShare){
+      slots.push(trainSlots[ti++]);
+    } else {
+      slots.push(restSlots[ri++]);
+    }
+  }
+  return slots;
+}
+
+// How many distinct training-day templates a program actually authored --
+// once daysPerWeek exceeds this, buildDaysForWeek has to repeat one of them
+// within the same week rather than invent a new one.
+function daysPerWeekTrainCount(programKey){
+  return Object.values(DAYS_PER_WEEK_ORIGINAL[programKey]).filter(d=>!d.rest).length;
+}
+
+// Pure -- reads a program's ORIGINAL authored days and a target training-day
+// count, returns a brand-new 7-slot days object. Never mutates its inputs.
+function buildDaysForWeek(programKey, daysPerWeek){
+  const original = DAYS_PER_WEEK_ORIGINAL[programKey];
+  const trainTemplates = Object.values(original).filter(d=>!d.rest);
+  const restTemplates = Object.values(original).filter(d=>d.rest);
+  const n = Math.max(1, Math.min(7, Number(daysPerWeek) || trainTemplates.length));
+  const trainSlots = daysPerWeekCycle(trainTemplates, n);
+  const restSlots = daysPerWeekCycle(restTemplates, 7 - n);
+  const slots = daysPerWeekInterleave(trainSlots, restSlots);
+  const days = {};
+  slots.forEach((slot, i)=>{ days[`d${i+1}`] = Object.assign({}, slot, {label:`Day ${i+1}`}); });
+  return days;
+}
+
+let daysPerWeekPref = null; // null = untouched -> each program's own authored days, unchanged
+
+async function loadDaysPerWeekPref(){
+  try{
+    const res = await window.storage.get('days-per-week-pref');
+    if(res && res.value){
+      const n = parseInt(res.value, 10);
+      if(n >= 1 && n <= 7) daysPerWeekPref = n;
+    }
+  }catch(e){}
+  applyDaysPerWeekProgramData();
+}
+
+async function saveDaysPerWeekPref(n){
+  daysPerWeekPref = n;
+  try{
+    if(n == null) await window.storage.delete('days-per-week-pref');
+    else await window.storage.set('days-per-week-pref', String(n));
+  }catch(e){}
+}
+
+// Rebuilds `.days` for every opted-in program from its own untouched
+// original. Called on load and on every pref change; programs outside
+// DAYS_PER_WEEK_PROGRAMS are never touched.
+function applyDaysPerWeekProgramData(){
+  DAYS_PER_WEEK_PROGRAMS.forEach(key=>{
+    programs[key].days = (daysPerWeekPref == null)
+      ? DAYS_PER_WEEK_ORIGINAL[key]
+      : buildDaysForWeek(key, daysPerWeekPref);
+  });
+}
+
+function applyDaysPerWeekPrefToUI(){
+  const input = document.getElementById('daysPerWeekInput');
+  if(input) input.value = daysPerWeekPref == null ? '' : daysPerWeekPref;
+}
+
+// Soft, non-blocking advisories only -- never stops the user from picking
+// any number 1-7. Reuses .program-basis-toggle/.smooth-toggle (already
+// wired by the delegated click listener near buildBasisHtml above) so the
+// banner can be minimized without any new toggle JS.
+function daysPerWeekWarningState(programKey, n){
+  if(n == null || !DAYS_PER_WEEK_PROGRAMS.includes(programKey)){
+    return {repeats:false, advisory:false};
+  }
+  return {
+    repeats: n > daysPerWeekTrainCount(programKey),
+    advisory: n >= 6,
+  };
+}
+
+function renderDaysPerWeekWarning(){
+  const el = document.getElementById('daysPerWeekWarning');
+  if(!el) return;
+  const state = daysPerWeekWarningState(activeProgram, daysPerWeekPref);
+  if(!state.repeats && !state.advisory){
+    el.style.display = 'none';
+    el.innerHTML = '';
+    return;
+  }
+  const lines = [];
+  if(state.repeats) lines.push('Your selected days repeat some training sessions within the same week — repeating hard sessions without full recovery between them raises overtraining risk.');
+  if(state.advisory) lines.push('Most programs benefit from at least one full rest day for recovery, even at higher training frequencies.');
+  const id = 'daysPerWeekWarningPanel';
+  el.style.display = '';
+  el.innerHTML = `
+    <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="${id}">
+      <span class="chev" aria-hidden="true">›</span> ⚠️ Heads up
+    </button>
+    <div class="smooth-toggle open" id="${id}"><div>
+      <div class="history-hint field-note">${lines.map(escapeHtml).join('<br>')}</div>
+    </div></div>`;
+}
+
+document.addEventListener('change', async (e)=>{
+  if(!e.target || e.target.id !== 'daysPerWeekInput') return;
+  const raw = e.target.value.trim();
+  let n = null;
+  if(raw !== ''){
+    const parsed = parseInt(raw, 10);
+    n = Number.isFinite(parsed) ? Math.max(1, Math.min(7, parsed)) : null;
+  }
+  e.target.value = n == null ? '' : n;
+  await saveDaysPerWeekPref(n);
+  applyDaysPerWeekProgramData();
+  if(DAYS_PER_WEEK_PROGRAMS.includes(activeProgram)){
+    dayDefs = programs[activeProgram].days;
+    activeDay = 'd1';
+    await loadDayOrder();
+    await clearWeekProgress(activeProgram, Object.keys(dayDefs));
+    await loadWeekProgress();
+    renderTabs();
+    renderWorkout();
+    renderTips();
+  }
+  renderDaysPerWeekWarning();
+});
 
 // [DAY ORDER, TABS & WEEK PROGRESS] ---------------------------------------------
 // Day reordering, the plate tab strip, per-week completion badges.
@@ -32262,6 +32452,7 @@ if(activeUserId){
     applyWakeLockPrefToUI();
     applyWarmupSetsPrefToUI();
     applyManualDeloadPrefToUI();
+    applyDaysPerWeekPrefToUI();
     renderEquipmentPicker();
     wireEquipmentPicker();
     await restoreCardOpenStates();
@@ -32280,6 +32471,7 @@ if(activeUserId){
     await loadWatersportsStyle();
     await loadYogaStyle();
     await loadMedicalStyle();
+    await loadDaysPerWeekPref();
     await loadSessionLengthPref();
     initSessionLengthSelector();
     // Before loadActiveProgram, which silently falls back to the default for a
@@ -32299,6 +32491,7 @@ if(activeUserId){
     await loadActiveDayForCurrentProgram();
     renderTabs();
     renderWorkout();
+    renderDaysPerWeekWarning();
     setupStickyDayHeaderObserver();
     await loadFavorites();
     await loadCustomFoods();
