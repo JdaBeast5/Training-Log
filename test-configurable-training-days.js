@@ -37,7 +37,7 @@ const { test, run } = makeRunner('test-configurable-training-days.js');
 
 // [Data completeness across all 7 counts, all rolled-out programs] ---------------
 const ALL_COUNTS = [1,2,3,4,5,6,7];
-const PROGRAMS_TO_CHECK = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics'];
+const PROGRAMS_TO_CHECK = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility'];
 
 for(const programKey of PROGRAMS_TO_CHECK){
   for(const n of ALL_COUNTS){
@@ -98,7 +98,7 @@ test('bodybuilding day-count 5 (falling back to the original) is byte-identical 
 //    slot is reframed as a light mobility/cardio (or, for oly specifically,
 //    still-bar-free-on-purpose) day instead. So n=7's real training-day
 //    count matches n=6's, not 7.
-const OMITTED_DEFAULT_COUNT = { strength: 4, bodybuilding: 5, oly: 5, powerlifting: 5, powerbuilding: 5, athletic: 5, bodyweight: 5, calisthenics: 5 };
+const OMITTED_DEFAULT_COUNT = { strength: 4, bodybuilding: 5, oly: 5, powerlifting: 5, powerbuilding: 5, athletic: 5, bodyweight: 5, calisthenics: 5, core: 5, jumprope: 5, mobility: 5 };
 for(const programKey of PROGRAMS_TO_CHECK){
   test(`${programKey}: every hand-authored day-count's TRAINING day count actually matches the count selected (n=3 really has 3 non-rest days, not some other number)`, (assert)=>{
     const [results] = runSandbox(pureChunks, `
@@ -176,6 +176,18 @@ test('sabotage: calisthenics makes the SAME "recovery argument wins" choice as o
   assert.doesNotMatch(note, /bar-free/i, 'must not be oly\'s wording copy-pasted in — calisthenics has no barbell to begin with');
 });
 
+test('sabotage: mobility does NOT reuse the "recovery argument wins" framing from oly/calisthenics at 7 days — its own citation (frequency doesn\'t drive ROM gains) makes that argument inapplicable, and the note text proves this wasn\'t copy-pasted', (assert)=>{
+  const [note] = runSandbox(pureChunks, `__capture.push(PROGRAM_DAY_COUNT_VARIANTS.mobility[7].days.d3.note);`);
+  assert.doesNotMatch(note, /bar-free|joints that make/i, 'must not be oly\'s or calisthenics\' wording copy-pasted in');
+});
+
+test('mobility\'s day-count overviews are honest that frequency itself doesn\'t drive extra range-of-motion gains, per this program\'s own cited research', (assert)=>{
+  const [overviews] = runSandbox(pureChunks, `
+    __capture.push([1,2,6,7].map(n => PROGRAM_DAY_COUNT_VARIANTS.mobility[n].overview));
+  `);
+  overviews.forEach((o, i) => assert.match(o, /frequency|consistency|Konrad/i, `mobility variant overview #${i} should acknowledge frequency isn't the driver here`));
+});
+
 test('every oly day-count variant is honest about evidence quality (coaching consensus, not RCT), matching this program\'s own established convention', (assert)=>{
   const [overviews] = runSandbox(pureChunks, `
     __capture.push([1,2,3,4,6,7].map(n => PROGRAM_DAY_COUNT_VARIANTS.oly[n].overview));
@@ -223,11 +235,26 @@ const bodyGoalChunks = [
   extractFunction(src, 'getBodyGoalFocusExercises'),
 ];
 
-test('FOCUS_ELIGIBLE_PROGRAMS already covers all 5 programs rolled out so far — the reason the extra accessory days align with body goals for free', (assert)=>{
+// Batches 1-3 (strength, bodybuilding, oly, powerlifting, powerbuilding,
+// athletic, bodyweight, calisthenics) are exactly FOCUS_ELIGIBLE_PROGRAMS'
+// membership, so their extra accessory days align with body goals for
+// free. Batch 4 (core, jumprope, mobility) is deliberately NOT in that
+// list -- these are the two disjoint groups, checked separately.
+const FOCUS_ELIGIBLE_BATCH = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics'];
+const NON_FOCUS_ELIGIBLE_BATCH = ['core', 'jumprope', 'mobility'];
+
+test('FOCUS_ELIGIBLE_PROGRAMS already covers the first 8 programs rolled out — the reason their extra accessory days align with body goals for free', (assert)=>{
   const [results] = runSandbox(bodyGoalChunks, `
-    __capture.push(PROGRAMS_TO_CHECK_PLACEHOLDER.map(p => FOCUS_ELIGIBLE_PROGRAMS.includes(p)));
-  `.replace('PROGRAMS_TO_CHECK_PLACEHOLDER', JSON.stringify(PROGRAMS_TO_CHECK)));
-  results.forEach((included, i) => assert.strictEqual(included, true, `${PROGRAMS_TO_CHECK[i]} should be in FOCUS_ELIGIBLE_PROGRAMS`));
+    __capture.push(PROGRAMS_PLACEHOLDER.map(p => FOCUS_ELIGIBLE_PROGRAMS.includes(p)));
+  `.replace('PROGRAMS_PLACEHOLDER', JSON.stringify(FOCUS_ELIGIBLE_BATCH)));
+  results.forEach((included, i) => assert.strictEqual(included, true, `${FOCUS_ELIGIBLE_BATCH[i]} should be in FOCUS_ELIGIBLE_PROGRAMS`));
+});
+
+test('sabotage: core/jumprope/mobility are deliberately NOT in FOCUS_ELIGIBLE_PROGRAMS — a specialization/conditioning/flexibility program isn\'t where an aesthetic body-goal add-on belongs, per that list\'s own existing comment', (assert)=>{
+  const [results] = runSandbox(bodyGoalChunks, `
+    __capture.push(PROGRAMS_PLACEHOLDER.map(p => FOCUS_ELIGIBLE_PROGRAMS.includes(p)));
+  `.replace('PROGRAMS_PLACEHOLDER', JSON.stringify(NON_FOCUS_ELIGIBLE_BATCH)));
+  results.forEach((included, i) => assert.strictEqual(included, false, `${NON_FOCUS_ELIGIBLE_BATCH[i]} should NOT be in FOCUS_ELIGIBLE_PROGRAMS`));
 });
 
 test('REAL invocation: a body goal adds its focus exercise to a NEW accessory day (strength\'s 6-day "Accessory & Weak Points"), skipping whichever focus exercise that day already happens to include', (assert)=>{
@@ -288,7 +315,7 @@ test('daysPerWeekWarningState: null pref never warns', (assert)=>{
 });
 
 test('daysPerWeekWarningState: a program outside the rollout never warns even at 7 days', (assert)=>{
-  const [state] = runSandbox(pureChunks, `__capture.push(daysPerWeekWarningState('core', 7));`);
+  const [state] = runSandbox(pureChunks, `__capture.push(daysPerWeekWarningState('running', 7));`);
   assert.strictEqual(state.advisory, false);
 });
 
@@ -327,12 +354,12 @@ test('applyDaysPerWeekProgramData with a real pref set regenerates days AND over
 
 test('sabotage: applyDaysPerWeekProgramData NEVER touches a program outside DAYS_PER_WEEK_PROGRAMS, even with a pref set', (assert)=>{
   const [sameRef, sameOverview] = runSandbox(applyChunks, `
-    const coreDaysBefore = programs.core.days;
-    const coreOverviewBefore = programs.core.overview;
+    const runningDaysBefore = programs.running.days;
+    const runningOverviewBefore = programs.running.overview;
     daysPerWeekPref = 7;
     applyDaysPerWeekProgramData();
-    __capture.push(programs.core.days === coreDaysBefore);
-    __capture.push(programs.core.overview === coreOverviewBefore);
+    __capture.push(programs.running.days === runningDaysBefore);
+    __capture.push(programs.running.overview === runningOverviewBefore);
   `);
   assert.strictEqual(sameRef, true);
   assert.strictEqual(sameOverview, true);
