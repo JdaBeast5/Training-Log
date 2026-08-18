@@ -26,6 +26,69 @@ const {
 const src = readIndexSource();
 const { test, run } = makeRunner('test-program-overview.js');
 
+// --- 0. Expand/collapse (added after the overview shipped, once it turned
+// out to fill the whole screen) --------------------------------------------
+// Deliberately reuses buildBasisHtml's exact toggle pattern — same
+// .program-basis-toggle class, same .smooth-toggle panel, same one generic
+// document-level click listener already proven out for the citation panel
+// AND for the Research & Sources card (see test-research-sources-view.js,
+// which extracts this identical listener by the identical anchor). The only
+// difference here is the STARTING state: aria-expanded="true" and
+// class="smooth-toggle open" baked into the static markup, since the whole
+// point is "shown by default, collapsible afterward" rather than the
+// citation panel's "collapsed by default, expand on demand."
+
+function extractBasisToggleListener(source){
+  const anchor = "document.addEventListener('click', (e)=>{\n  const btn = e.target.closest && e.target.closest('.program-basis-toggle');";
+  const start = source.indexOf(anchor);
+  if(start === -1) throw new Error('extractBasisToggleListener: anchor text not found — the delegated .program-basis-toggle click listener may have moved or changed');
+  const end = source.indexOf('});', start);
+  if(end === -1) throw new Error('extractBasisToggleListener: could not find closing `});`');
+  return source.slice(start, end + 3);
+}
+
+test('sabotage-relevant: all 6 overview toggle buttons (top-level + 5 styles) really exist in the static markup, each wired to its own real panel by aria-controls', (assert)=>{
+  const ids = ['programOverview', 'martialArtOverview', 'cyclingOverview', 'watersportsOverview', 'yogaOverview', 'medicalOverview'];
+  ids.forEach(id=>{
+    const panel = extractElementById(src, id + 'Panel');
+    assert.ok(panel.includes('class="smooth-toggle open"'), `${id}Panel must start open (class="smooth-toggle open") — collapsed-by-default would silently undo "shown so you can read it first"`);
+    assert.ok(panel.includes(`id="${id}"`), `${id}Panel must actually contain the real #${id} text element, not just an empty shell`);
+  });
+});
+
+// Extracts the real button+panel pair together — from the button's real,
+// fixed opening-tag text (unique per id since aria-controls differs) through
+// the panel's real closing tags — rather than hand-reconstructing the button
+// markup and hoping it still matches the template. Throws if the anchor
+// text has drifted, same discipline as extractBasisToggleListener above.
+function extractOverviewToggleAndPanel(source, panelId){
+  const anchor = `<button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="${panelId}">`;
+  const start = source.indexOf(anchor);
+  if(start === -1) throw new Error(`extractOverviewToggleAndPanel: no toggle button found for aria-controls="${panelId}"`);
+  const panelHtml = extractElementById(source, panelId);
+  const panelStart = source.indexOf(panelHtml, start);
+  if(panelStart === -1) throw new Error(`extractOverviewToggleAndPanel: panel #${panelId} not found after its own toggle button`);
+  return source.slice(start, panelStart) + panelHtml;
+}
+
+test('REAL invocation: the real #programOverview toggle button starts expanded, collapses on click, and re-expands on a second click — via the SAME shared listener the citation panel and Research & Sources card already use', (assert)=>{
+  const pairHtml = extractOverviewToggleAndPanel(src, 'programOverviewPanel');
+  const { document, window } = runJsdom(pairHtml, '', [extractBasisToggleListener(src)]);
+  const btn = document.querySelector('.program-basis-toggle');
+  const panel = document.getElementById('programOverviewPanel');
+
+  assert.strictEqual(btn.getAttribute('aria-expanded'), 'true', 'must start expanded');
+  assert.strictEqual(panel.classList.contains('open'), true, 'panel must start open');
+
+  btn.click();
+  assert.strictEqual(btn.getAttribute('aria-expanded'), 'false', 'a click must collapse it');
+  assert.strictEqual(panel.classList.contains('open'), false, 'panel must lose .open on collapse — this is what actually stops it filling the screen');
+
+  btn.click();
+  assert.strictEqual(btn.getAttribute('aria-expanded'), 'true', 'a second click must re-expand it');
+  assert.strictEqual(panel.classList.contains('open'), true, 'panel must regain .open on re-expand');
+});
+
 // --- 1. Data completeness -------------------------------------------------
 
 test('sabotage-relevant: every one of the 55 real programs/styles has a real overview — 25 top-level programs, 30 styles across the 5 containers, zero gaps', (assert)=>{

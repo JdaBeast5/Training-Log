@@ -4751,10 +4751,19 @@
     <div class="program-select-wrap">
       <select class="program-select" id="programSelector" aria-label="Training program"></select>
     </div>
-    <!-- Always visible, unlike programSelectDesc/programSourceNote below it —
+    <!-- Open by default, unlike programSelectDesc/programSourceNote below it —
          the whole point is seeing whether a program fits your goal WITHOUT
-         first tapping the header open. See renderProgramSelector(). -->
-    <div class="program-intro program-overview" id="programOverview"></div>
+         first tapping the header open. See renderProgramSelector(). Reuses
+         the exact toggle/panel pattern (and its one generic document-level
+         click listener) that buildBasisHtml already established for "What
+         this is based on" below — only the default state differs (open
+         here, closed there), which the shared listener doesn't care about. -->
+    <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="programOverviewPanel">
+      <span class="chev" aria-hidden="true">›</span> Overview
+    </button>
+    <div class="smooth-toggle open" id="programOverviewPanel"><div>
+      <div class="program-intro program-overview" id="programOverview"></div>
+    </div></div>
     <div class="expand-wrap" id="programExpandWrap"><div>
       <div class="program-select-desc" id="programSelectDesc"></div>
       <button class="masterclass-link-btn" id="viewMasterclassBtn" style="display:none">View masterclass</button>
@@ -4778,7 +4787,12 @@
     <div class="history-hint">Match your training to what you already know, or pick one to start learning.</div>
     <select class="program-select" id="martialArtSelector" aria-label="Martial art style"></select>
     <div class="program-select-desc" id="martialArtDesc"></div>
-    <div class="program-intro program-overview" id="martialArtOverview"></div>
+    <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="martialArtOverviewPanel">
+      <span class="chev" aria-hidden="true">›</span> Overview
+    </button>
+    <div class="smooth-toggle open" id="martialArtOverviewPanel"><div>
+      <div class="program-intro program-overview" id="martialArtOverview"></div>
+    </div></div>
   </div>
 
   <div class="card" id="cyclingCard" style="display:none">
@@ -4786,7 +4800,12 @@
     <div class="history-hint">Road and Mountain share a training backbone but differ in emphasis — pick the one that matches how you actually ride.</div>
     <select class="program-select" id="cyclingSelector" aria-label="Cycling style"></select>
     <div class="program-select-desc" id="cyclingDesc"></div>
-    <div class="program-intro program-overview" id="cyclingOverview"></div>
+    <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="cyclingOverviewPanel">
+      <span class="chev" aria-hidden="true">›</span> Overview
+    </button>
+    <div class="smooth-toggle open" id="cyclingOverviewPanel"><div>
+      <div class="program-intro program-overview" id="cyclingOverview"></div>
+    </div></div>
   </div>
 
   <div class="card" id="watersportsCard" style="display:none">
@@ -4794,7 +4813,12 @@
     <div class="history-hint">Each discipline below is its own land-based S&amp;C program, matched to that sport's own physical demands — pick the one you're actually training for.</div>
     <select class="program-select" id="watersportsSelector" aria-label="Watersports style"></select>
     <div class="program-select-desc" id="watersportsDesc"></div>
-    <div class="program-intro program-overview" id="watersportsOverview"></div>
+    <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="watersportsOverviewPanel">
+      <span class="chev" aria-hidden="true">›</span> Overview
+    </button>
+    <div class="smooth-toggle open" id="watersportsOverviewPanel"><div>
+      <div class="program-intro program-overview" id="watersportsOverview"></div>
+    </div></div>
   </div>
 
   <div class="card" id="yogaCard" style="display:none">
@@ -4802,7 +4826,12 @@
     <div class="history-hint">Vinyasa &amp; Flow, Hot Yoga, or Partner Yoga — pick whichever fits today. <b>Hot Yoga:</b> get your doctor's clearance first if you have any cardiovascular, respiratory, or heat-related condition.</div>
     <select class="program-select" id="yogaSelector" aria-label="Yoga style"></select>
     <div class="program-select-desc" id="yogaDesc"></div>
-    <div class="program-intro program-overview" id="yogaOverview"></div>
+    <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="yogaOverviewPanel">
+      <span class="chev" aria-hidden="true">›</span> Overview
+    </button>
+    <div class="smooth-toggle open" id="yogaOverviewPanel"><div>
+      <div class="program-intro program-overview" id="yogaOverview"></div>
+    </div></div>
   </div>
 
   <div class="card" id="medicalCard" style="display:none">
@@ -4810,7 +4839,12 @@
     <div class="history-hint">Pick whichever matches your actual situation. <b>⚠️ Every option here is a framework to use alongside your own doctor, surgical team, PT, or OB/midwife's real diagnosis and clearance</b>, not a replacement for one — this app has no way to know your specific medical history or healing timeline.</div>
     <select class="program-select" id="medicalSelector" aria-label="Medical program"></select>
     <div class="program-select-desc" id="medicalDesc"></div>
-    <div class="program-intro program-overview" id="medicalOverview"></div>
+    <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="medicalOverviewPanel">
+      <span class="chev" aria-hidden="true">›</span> Overview
+    </button>
+    <div class="smooth-toggle open" id="medicalOverviewPanel"><div>
+      <div class="program-intro program-overview" id="medicalOverview"></div>
+    </div></div>
   </div>
 
   <div class="tabs-header">
@@ -6233,7 +6267,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.195';
+const APP_VERSION = '3.196';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6623,6 +6657,9 @@ const WHATS_NEW = {
   '3.195': { headline: 'Every program now tells you what it\'s actually for', points: [
     'A real 3-5 sentence description now sits directly under the Training Style selector (and under each style selector inside Combat, Cycling, Watersports, Yoga, and Medical) — always visible, no tapping required — covering what the program focuses on, how the week is structured, and who it actually fits.',
     'All 55 programs and styles got one, grounded in each program\'s real day-by-day structure rather than generic copy. The goal: you can tell whether a program matches your training goals before switching to it, not after.',
+  ]},
+  '3.196': { headline: 'Program overviews are now collapsible', points: [
+    'The new program/style description shipped last version as always-visible text, which meant it could fill most of the screen on longer entries. It now opens expanded by default (so it\'s still the first thing you see) but tapping "Overview" collapses it down to a single line — same tap-to-expand pattern already used for "What this is based on" and the exercise set list.',
   ]},
 };
 
