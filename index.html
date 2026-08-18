@@ -93,6 +93,12 @@
        custom properties, so var() there would silently break rendering. */
     --surface-white-rgb:255,255,255;
     --overlay-black-rgb:0,0,0;
+    /* Same mechanism again, one gap the white/black neutral pass above
+       didn't cover: --surface/--surface2's own decimal RGB, hand-typed
+       repeatedly across glass panels (each keeping its own alpha — this
+       factors out only the repeated triplet, same as every token above). */
+    --surface-rgb:23,25,29;
+    --surface2-rgb:31,34,38;
     /* The two most-repeated CTA gradients (5x and 4x respectively) as of a
        grep across the file — tokenized as literal 1:1 dedup, same as the
        --plate-*-rgb shadow work above. NOT a full gradient-token system:
@@ -266,7 +272,7 @@
        every other floating layer instead of sitting flat on --bg. Modest
        blur: this animates under an active gesture, and 18px over a 70px
        strip is cheap where 26px over a full sheet would not be. */
-    background:rgba(23,25,29,0.72);
+    background:rgba(var(--surface-rgb),0.72);
     backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
     box-shadow:var(--rim), 0 8px 22px -14px rgba(var(--overlay-black-rgb),0.7);
   }
@@ -793,7 +799,7 @@
   .sub-modal-sheet{
     position:relative;
     width:100%; max-width:520px;
-    background:rgba(23,25,29,0.86);
+    background:rgba(var(--surface-rgb),0.86);
     backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
     border:1px solid rgba(var(--surface-white-rgb),0.07); border-bottom:none;
     border-top-left-radius:var(--radius-lg); border-top-right-radius:var(--radius-lg);
@@ -1069,7 +1075,7 @@
        the rail (30) since they no longer occupy the same space; 20 keeps it
        above ordinary page content (0-5) and below every real overlay. */
     top:calc(env(safe-area-inset-top, 0px) + var(--nav-rail-h, 56px));
-    background:rgba(31,34,38,0.72); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
+    background:rgba(var(--surface2-rgb),0.72); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border-bottom:1px solid var(--line-soft);
     padding:12px 16px;
     display:flex; align-items:center; gap:8px;
@@ -1094,7 +1100,7 @@
 
   .celebrate-banner{
     position:fixed; top:50%; left:50%; z-index:150;
-    background:rgba(31,34,38,0.78); box-shadow:var(--rim); backdrop-filter:blur(24px) saturate(170%); -webkit-backdrop-filter:blur(24px) saturate(170%);
+    background:rgba(var(--surface2-rgb),0.78); box-shadow:var(--rim); backdrop-filter:blur(24px) saturate(170%); -webkit-backdrop-filter:blur(24px) saturate(170%);
     border:1px solid var(--plate-yellow); border-radius:var(--radius-lg);
     padding:24px 32px; text-align:center; box-shadow:0 20px 50px -10px rgba(var(--overlay-black-rgb),0.6);
     transform:translate(-50%,-50%) scale(0.7); opacity:0; pointer-events:none;
@@ -1251,7 +1257,7 @@
     width:min(400px, calc(100vw - 28px));
     max-height:min(78vh, 720px);
     display:flex; flex-direction:column;
-    background:rgba(23,25,29,0.78);
+    background:rgba(var(--surface-rgb),0.78);
     backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
     border:1px solid rgba(var(--surface-white-rgb),0.1); border-radius:22px;
     padding:16px;
@@ -1324,7 +1330,7 @@
 
   .undo-toast{
     position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(80px);
-    background:rgba(31,34,38,0.75); box-shadow:var(--rim); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
+    background:rgba(var(--surface2-rgb),0.75); box-shadow:var(--rim); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border:1px solid var(--line-bright); border-radius:var(--radius-pill-lg);
     padding:10px 10px 10px 18px; display:flex; align-items:center; gap:14px; z-index:60;
     box-shadow:0 10px 30px -8px rgba(var(--overlay-black-rgb),0.5); opacity:0; pointer-events:none;
@@ -1835,7 +1841,7 @@
     position:relative; z-index:1; margin:0 18px 90px 0;
     width:min(380px, calc(100vw - 36px)); max-height:min(64vh, 560px);
     display:flex; flex-direction:column;
-    background:rgba(23,25,29,0.76); backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
+    background:rgba(var(--surface-rgb),0.76); backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
     border:1px solid rgba(var(--surface-white-rgb),0.1); border-radius:22px;
     padding:16px;
     box-shadow:0 30px 70px -18px rgba(var(--overlay-black-rgb),0.7), 0 1px 0 rgba(var(--surface-white-rgb),0.08) inset;
@@ -2507,7 +2513,7 @@
   .calendar-modal-sheet{
     position:relative;
     width:100%; max-width:420px;
-    background:rgba(23,25,29,0.86);
+    background:rgba(var(--surface-rgb),0.86);
     backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
     border:1px solid rgba(var(--surface-white-rgb),0.07); border-bottom:none;
     border-top-left-radius:var(--radius-lg); border-top-right-radius:var(--radius-lg);
@@ -2683,7 +2689,7 @@
     transition:opacity 0.25s var(--ease-smooth), visibility 0s linear 0s;
   }
   .user-picker-box{
-    width:100%; max-width:360px; background:rgba(23,25,29,0.9); border:1px solid var(--line);
+    width:100%; max-width:360px; background:rgba(var(--surface-rgb),0.9); border:1px solid var(--line);
     border-radius:var(--radius-lg); padding:28px 22px; backdrop-filter:blur(26px) saturate(170%); -webkit-backdrop-filter:blur(26px) saturate(170%);
     box-shadow:var(--rim), 0 20px 50px -10px rgba(var(--overlay-black-rgb),0.6);
   }
@@ -6314,7 +6320,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.213';
+const APP_VERSION = '3.214';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6777,6 +6783,10 @@ const WHATS_NEW = {
   ]},
   '3.213': { headline: 'More behind-the-scenes styling cleanup', points: [
     'The blurred glass background behind the tab bar, the status bar scrim, and the Analysis section index was copy-pasted at 4 spots — now a shared style.',
+    'Purely visual — no behavior changed, nothing should look any different.',
+  ]},
+  '3.214': { headline: 'Last of this round\'s behind-the-scenes styling cleanup', points: [
+    'A handful of glass-panel backgrounds (rest timer, dock, offer banners) had their color hand-typed 9 separate times — now a shared style, matching how the app already handles its other accent colors.',
     'Purely visual — no behavior changed, nothing should look any different.',
   ]},
 };
