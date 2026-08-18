@@ -4989,7 +4989,7 @@
         <div id="prefDaysPerWeek">
           <label class="care-label" for="daysPerWeekInput">Training days per week</label>
           <input type="number" id="daysPerWeekInput" class="care-input" min="1" max="7" inputmode="numeric" placeholder="Program default">
-          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, Powerbuilding, Athletic/Plyo, Bodyweight, Calisthenics, Core &amp; Stability, Jump Rope, and Mobility &amp; Flexibility; other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
+          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, Powerbuilding, Athletic/Plyo, Bodyweight, Calisthenics, Core &amp; Stability, Jump Rope, Mobility &amp; Flexibility, Running/Endurance, Swimming, and Rock Climbing; other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
           <div id="daysPerWeekWarning" style="display:none"></div>
         </div>
 
@@ -6274,7 +6274,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.203';
+const APP_VERSION = '3.204';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6698,6 +6698,10 @@ const WHATS_NEW = {
     'These three now have their own real, purpose-built day counts (1-7). Core and Jump Rope follow the same reasoning as the rest of this rollout — genuine breadth at low frequency, dedicated (not repeated) sessions at high frequency, with Jump Rope specifically keeping a real rope-free rest day even at 7 days since rope work stays high-impact on the lower legs no matter the intensity.',
     'Mobility & Flexibility needed different reasoning entirely — its own research (already cited in this program) found stretching FREQUENCY doesn\'t significantly drive range-of-motion gains, unlike every muscle-building program in this rollout. So its day counts are framed honestly: low counts are genuinely legitimate choices, not a compromise floor, and high counts are framed as consistency insurance, not extra stimulus.',
     'Core, Jump Rope, and Mobility are not part of the Body Goal focus-exercise system, and that\'s unchanged by this update — an aesthetic accessory doesn\'t fit a specialization or flexibility program the way it fits a hypertrophy-oriented one.',
+  ]},
+  '3.204': { headline: 'Training days per week now covers Running, Swimming, and Rock Climbing', points: [
+    'These three now have their own real, purpose-built day counts (1-7). Running and Swimming both already cite the same polarized-training research (mostly easy effort, a small number of genuinely hard sessions) — so their higher-frequency options add a 2nd easy run or a 2nd dryland-shoulder day, never a 3rd hard session that would break the intensity balance their own citations call for.',
+    'Rock Climbing has its own real constraint: fingers and connective tissue adapt over years, not weeks. Every day count keeps hangboard/finger loading capped — low-frequency plans use lighter finger work instead of dropping shoulder-health training, and high-frequency plans add antagonist and mobility work with zero extra finger stress, never a 2nd hangboard-intensive day.',
   ]},
 };
 
@@ -13465,15 +13469,22 @@ function renderPosingClasses(){
 // added athletic, bodyweight, calisthenics -- completing
 // FOCUS_ELIGIBLE_PROGRAMS' membership, so every program that already gets a
 // body-goal focus exercise (see below) also gets a real per-day-count plan.
-// Batch 4 (this one) adds core, jumprope, mobility -- NOT in
-// FOCUS_ELIGIBLE_PROGRAMS, and deliberately still not added there: that
-// list's own comment already excludes non-hypertrophy-oriented programs,
-// and a specialization/conditioning/flexibility program is exactly that
-// category. Mobility specifically needed different reasoning throughout,
-// not the same template reapplied -- its own citation (Konrad et al. 2023,
+// Batch 4 added core, jumprope, mobility -- NOT in FOCUS_ELIGIBLE_PROGRAMS,
+// deliberately still not added there. Mobility specifically needed
+// different reasoning throughout: its own citation (Konrad et al. 2023,
 // already referenced on that program's overview comment) found stretching
 // FREQUENCY itself doesn't drive range-of-motion gains, unlike the
 // muscle-frequency argument every strength-family program above leans on.
+// Batch 5 (this one) adds running, swimming, climbing -- the polarized-
+// training / injury-prevention family. Running and swimming both carry an
+// explicit "do not add hard-effort volume to fill out the week" constraint
+// in their own existing citation comments (Seiler's polarized-distribution
+// review) -- so their high-frequency variants add a 2nd EASY/prehab day,
+// never a 3rd hard session, which would violate the program's own already-
+// verified intensity distribution. Climbing has a different, slower-
+// recovering constraint (fingers/connective tissue adapt over years, not
+// weeks, per its own overview) -- its high-frequency variants add zero
+// extra finger loading, only antagonist/shoulder/mobility work.
 // Deliberately excluded, permanently, not just "not yet": the 13
 // medical/rehab programs (obesity, hypertension, diabetes, osteoporosis,
 // bariatric x2, prenatal, postpartum, and the 5 rehab tracks). Their day
@@ -13482,9 +13493,9 @@ function renderPosingClasses(){
 // team as "deliberate and non-negotiable" (see programs.medical's own
 // overview) -- letting someone dial a rehab-ACL protocol up to 7 days/week
 // would be unsafe, not just untailored. Remaining scope: the plain
-// programs not yet covered (running, senior, swimming, climbing, boxingsc,
-// desk, hyrox, grappling, pilates) and the combat/cycling/watersports/yoga
-// style-variant containers, in further batches.
+// programs not yet covered (senior, boxingsc, desk, hyrox, grappling,
+// pilates) and the combat/cycling/watersports/yoga style-variant
+// containers, in further batches.
 //
 // Accessory days already align with body goals -- for free. The user asked
 // for the new accessory/high-frequency days to reflect a person's body
@@ -13496,7 +13507,7 @@ function renderPosingClasses(){
 // from. Every program rolled out here is already on that list, so the new
 // accessory days inherit this automatically. Verified with real invocation
 // in test-configurable-training-days.js, not just reasoned about.
-const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility'];
+const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility', 'running', 'swimming', 'climbing'];
 const DAYS_PER_WEEK_ORIGINAL = Object.fromEntries(DAYS_PER_WEEK_PROGRAMS.map(key =>
   [key, { days: programs[key].days, overview: programs[key].overview, short: programs[key].short }]
 ));
@@ -16446,6 +16457,776 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Foam Rolling Full Body', sets:'10 min', noWeight:true},
             {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
             {name:'Child\'s Pose Breathing', sets:'3×60s', noWeight:true},
+          ]
+        },
+      }
+    },
+  },
+  // Running's own citation (Seiler polarized-distribution review, already
+  // referenced on this program's overview comment above) is explicit: "Do
+  // not add tempo/threshold volume to fill it out -- the small threshold
+  // share is the design, not a gap." That constraint governs every variant
+  // below. Low counts stay conservative (easy/long sessions only, no hard
+  // quality work until there's enough weekly recovery room for it); 6-7
+  // add a 2nd EASY day, never a 3rd hard session, since the original
+  // program already caps hard quality work at 2 sessions (Tempo, Intervals)
+  // and that cap is the point, not an oversight.
+  running: {
+    1: {
+      short: 'Easy Run + Strides — the floor for this program',
+      overview: 'One easy-paced run with strides, unchanged from the default program\'s own opening day — genuinely the right choice at this frequency, not a scaled-down compromise. This program\'s own citation (Seiler\'s polarized-training review) is explicit that hard quality work needs recovery room around it; with only one session a week, that room doesn\'t exist, so this stays easy rather than trying to cram in a tempo or interval session.',
+      days: {
+        d1: { label:'Day 1', sub:'Easy Run + Strides', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Easy Run', sets:'25-30 min', noWeight:true},
+            {name:'Strides', sets:'4×20s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and ankle mobility, 20-30 min. Running volume adds up fast on joints — don\'t skip recovery.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and ankle mobility, 20-30 min. Running volume adds up fast on joints — don\'t skip recovery.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Easy Run and Long Run — no quality work yet',
+      overview: 'Two low-intensity-dominant sessions — an easy run and a long run — deliberately without any tempo or interval work yet. Real polarized-training guidance treats hard quality sessions as needing genuine recovery room around them; at two days a week, building the easy aerobic base comes first.',
+      days: {
+        d1: { label:'Day 1', sub:'Easy Run + Strides', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Easy Run', sets:'25-30 min', noWeight:true},
+            {name:'Strides', sets:'4×20s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and ankle mobility, 20-30 min. Running volume adds up fast on joints — don\'t skip recovery.' },
+        d3: { label:'Day 3', sub:'Long Run', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Long Run', sets:'45-60 min', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and ankle mobility, 20-30 min. Running volume adds up fast on joints — don\'t skip recovery.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Easy Run, Tempo Run, and Long Run — the classic 3-day template',
+      overview: 'The classic minimalist running template — one easy day, one quality session, one long run — real, well-established structure at this frequency, not a scaled-down version of the 5-day plan.',
+      days: {
+        d1: { label:'Day 1', sub:'Easy Run + Strides', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Easy Run', sets:'25-30 min', noWeight:true},
+            {name:'Strides', sets:'4×20s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and ankle mobility, 20-30 min. Running volume adds up fast on joints — don\'t skip recovery.' },
+        d3: { label:'Day 3', sub:'Tempo Run', plate:'p-blue', plateNum:'20', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+            {name:'Tempo Run', sets:'20 min', noWeight:true},
+            {name:'Cool-down Jog', sets:'5-10 min', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Long Run', plate:'p-green', plateNum:'10', duration:'~55 min',
+          exercises:[
+            {name:'Long Run', sets:'45-60 min', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    4: {
+      short: 'Easy Run, Tempo, Intervals, and Long Run',
+      overview: 'Both quality sessions this program uses — Tempo and Intervals — plus the easy run and long run, at the same 2-hard-session cap the default 5-day plan itself uses. Recovery Run + Strength is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      days: {
+        d1: { label:'Day 1', sub:'Easy Run + Strides', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Easy Run', sets:'25-30 min', noWeight:true},
+            {name:'Strides', sets:'4×20s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Tempo Run', plate:'p-blue', plateNum:'20', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+            {name:'Tempo Run', sets:'20 min', noWeight:true},
+            {name:'Cool-down Jog', sets:'5-10 min', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and ankle mobility, 20-30 min. Running volume adds up fast on joints — don\'t skip recovery.' },
+        d4: { label:'Day 4', sub:'Interval Training', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+            {name:'400m Repeats', sets:'6×400m', noWeight:true},
+            {name:'Cool-down Jog', sets:'10 min', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Long Run', plate:'p-green', plateNum:'10', duration:'~55 min',
+          exercises:[
+            {name:'Long Run', sets:'45-60 min', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.running), used as-is.
+    6: {
+      short: 'The full 5-day program plus a 2nd easy run',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day that is ANOTHER easy run — not a 3rd hard session. This program\'s own citation is explicit that adding tempo/threshold volume to fill out a week is a design violation, not a gap to close, so the extra day stays in the same low-intensity zone as most of the week already is.',
+      days: {
+        d1: { label:'Day 1', sub:'Easy Run + Strides', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Easy Run', sets:'25-30 min', noWeight:true},
+            {name:'Strides', sets:'4×20s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Tempo Run', plate:'p-blue', plateNum:'20', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+            {name:'Tempo Run', sets:'20 min', noWeight:true},
+            {name:'Cool-down Jog', sets:'5-10 min', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and ankle mobility, 20-30 min. Running volume adds up fast on joints — don\'t skip recovery.' },
+        d4: { label:'Day 4', sub:'Interval Training', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+            {name:'400m Repeats', sets:'6×400m', noWeight:true},
+            {name:'Cool-down Jog', sets:'10 min', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Long Run', plate:'p-green', plateNum:'10', duration:'~55 min',
+          exercises:[
+            {name:'Long Run', sets:'45-60 min', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Recovery Run + Strength', plate:'p-off', plateNum:'5', duration:'~40 min',
+          exercises:[
+            {name:'Recovery Jog', sets:'20 min', noWeight:true},
+            {name:'Back Squat', sets:'3×5'},
+            {name:'Romanian Deadlift', sets:'3×6'},
+            {name:'Single-Leg Bound', sets:'3×6'},
+            {name:'Push-up', sets:'3×15'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Easy Run 2', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Easy Run', sets:'20-25 min', noWeight:true},
+            {name:'Strides', sets:'4×20s', noWeight:true},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, with the injury-prevention argument still winning on the rest day',
+      overview: 'The same six days as the 6-day plan, completely unchanged. Running is genuinely high-impact on joints at any pace — even at 7 days selected, the actual rest day stays genuinely run-free rather than getting reframed into more mileage.',
+      days: {
+        d1: { label:'Day 1', sub:'Easy Run + Strides', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Easy Run', sets:'25-30 min', noWeight:true},
+            {name:'Strides', sets:'4×20s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Tempo Run', plate:'p-blue', plateNum:'20', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+            {name:'Tempo Run', sets:'20 min', noWeight:true},
+            {name:'Cool-down Jog', sets:'5-10 min', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and ankle mobility, 20-30 min. Even at 7 days selected, this stays run-free on purpose — running is high-impact on joints at any pace, and that impact needs a real break somewhere.' },
+        d4: { label:'Day 4', sub:'Interval Training', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+            {name:'400m Repeats', sets:'6×400m', noWeight:true},
+            {name:'Cool-down Jog', sets:'10 min', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Long Run', plate:'p-green', plateNum:'10', duration:'~55 min',
+          exercises:[
+            {name:'Long Run', sets:'45-60 min', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Recovery Run + Strength', plate:'p-off', plateNum:'5', duration:'~40 min',
+          exercises:[
+            {name:'Recovery Jog', sets:'20 min', noWeight:true},
+            {name:'Back Squat', sets:'3×5'},
+            {name:'Romanian Deadlift', sets:'3×6'},
+            {name:'Single-Leg Bound', sets:'3×6'},
+            {name:'Push-up', sets:'3×15'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Easy Run 2', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Easy Run', sets:'20-25 min', noWeight:true},
+            {name:'Strides', sets:'4×20s', noWeight:true},
+          ]
+        },
+      }
+    },
+  },
+  // Swimming's own overview says its structure "mirrors how running and
+  // cycling programs in this app are built: mostly easy, a small number of
+  // genuinely hard efforts, and a long session" -- the same polarized-
+  // training constraint running's programming leans on applies here too.
+  // Low counts stay in the easy/technique/long zone; 6-7 add a 2nd
+  // dryland-shoulder day (real, already-established prehab content this
+  // program already uses), never a 3rd hard pool session.
+  swimming: {
+    1: {
+      short: 'Aerobic Base Swim — the floor for this program',
+      overview: 'One easy aerobic swim, unchanged from the default program\'s own opening day. This program\'s structure mirrors running and cycling\'s polarized approach — hard efforts need recovery room around them, which a single weekly session doesn\'t have, so this stays easy rather than reaching for threshold or speed work.',
+      days: {
+        d1: { label:'Day 1', sub:'Aerobic Base Swim', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Warm-up Swim', sets:'5-10 min', noWeight:true},
+            {name:'Easy Swim (Freestyle)', sets:'20-30 min', noWeight:true},
+            {name:'Cool-down Swim', sets:'5 min', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder and thoracic mobility, 20-25 min. The overhead repetition in swimming makes shoulder recovery non-negotiable — don\'t skip this.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder and thoracic mobility, 20-25 min. The overhead repetition in swimming makes shoulder recovery non-negotiable — don\'t skip this.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Aerobic Base and Technique/Kick/Pull — no hard sets yet',
+      overview: 'Two foundational sessions — the easy aerobic swim and dedicated technique/kick/pull work — deliberately without threshold or speed sets yet. Building the aerobic base and stroke mechanics comes first, same as this program\'s own polarized structure prioritizes at any frequency.',
+      days: {
+        d1: { label:'Day 1', sub:'Aerobic Base Swim', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Warm-up Swim', sets:'5-10 min', noWeight:true},
+            {name:'Easy Swim (Freestyle)', sets:'20-30 min', noWeight:true},
+            {name:'Cool-down Swim', sets:'5 min', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder and thoracic mobility, 20-25 min. The overhead repetition in swimming makes shoulder recovery non-negotiable — don\'t skip this.' },
+        d3: { label:'Day 3', sub:'Technique + Kick/Pull', plate:'p-blue', plateNum:'20', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Swim', sets:'5-10 min', noWeight:true},
+            {name:'Drill Set (technique)', sets:'6×50m', noWeight:true},
+            {name:'Kick Set (board)', sets:'6×50m', noWeight:true},
+            {name:'Pull Set (buoy)', sets:'6×50m', noWeight:true},
+            {name:'Cool-down Swim', sets:'5 min', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder and thoracic mobility, 20-25 min. The overhead repetition in swimming makes shoulder recovery non-negotiable — don\'t skip this.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Aerobic Base, Technique, and Long Swim',
+      overview: 'The aerobic base and technique days keep their spot, plus a long swim to build real aerobic capacity — still no threshold or speed sets, which this program\'s own polarized structure treats as needing more weekly recovery room than three days provides.',
+      days: {
+        d1: { label:'Day 1', sub:'Aerobic Base Swim', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Warm-up Swim', sets:'5-10 min', noWeight:true},
+            {name:'Easy Swim (Freestyle)', sets:'20-30 min', noWeight:true},
+            {name:'Cool-down Swim', sets:'5 min', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder and thoracic mobility, 20-25 min. The overhead repetition in swimming makes shoulder recovery non-negotiable — don\'t skip this.' },
+        d3: { label:'Day 3', sub:'Technique + Kick/Pull', plate:'p-blue', plateNum:'20', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Swim', sets:'5-10 min', noWeight:true},
+            {name:'Drill Set (technique)', sets:'6×50m', noWeight:true},
+            {name:'Kick Set (board)', sets:'6×50m', noWeight:true},
+            {name:'Pull Set (buoy)', sets:'6×50m', noWeight:true},
+            {name:'Cool-down Swim', sets:'5 min', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Long Swim + Dryland Shoulders', plate:'p-green', plateNum:'10', duration:'~50 min',
+          exercises:[
+            {name:'Long Swim (continuous)', sets:'30-45 min', noWeight:true},
+            {name:'Band External Rotation', sets:'3×15'},
+            {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Plank', sets:'3×30-45s', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    4: {
+      short: 'Aerobic Base, Threshold, Speed, and Long Swim',
+      overview: 'Both quality sessions this program uses — Threshold and Speed Intervals — plus the aerobic base and long swim, at the same 2-hard-session cap the default 5-day plan itself uses. Technique + Kick/Pull is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      days: {
+        d1: { label:'Day 1', sub:'Aerobic Base Swim', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Warm-up Swim', sets:'5-10 min', noWeight:true},
+            {name:'Easy Swim (Freestyle)', sets:'20-30 min', noWeight:true},
+            {name:'Cool-down Swim', sets:'5 min', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Threshold Swim', plate:'p-blue', plateNum:'20', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Swim', sets:'10 min', noWeight:true},
+            {name:'Threshold Swim Set', sets:'4×200m', noWeight:true},
+            {name:'Cool-down Swim', sets:'5-10 min', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder and thoracic mobility, 20-25 min. The overhead repetition in swimming makes shoulder recovery non-negotiable — don\'t skip this.' },
+        d4: { label:'Day 4', sub:'Speed Intervals', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Swim', sets:'10 min', noWeight:true},
+            {name:'Swim Intervals (100s)', sets:'8×100m', noWeight:true},
+            {name:'Cool-down Swim', sets:'10 min', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Long Swim + Dryland Shoulders', plate:'p-green', plateNum:'10', duration:'~50 min',
+          exercises:[
+            {name:'Long Swim (continuous)', sets:'30-45 min', noWeight:true},
+            {name:'Band External Rotation', sets:'3×15'},
+            {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Plank', sets:'3×30-45s', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.swimming), used as-is.
+    6: {
+      short: 'The full 5-day program plus a 2nd dryland shoulder day',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day dedicated entirely to dryland shoulder prehab — not a 3rd hard pool session. Overhead-repetitive shoulder overuse is a real, already-established concern this program takes seriously (see its own rest-day notes); a 2nd shoulder-specific day extends that existing priority instead of adding pool intensity this program\'s own polarized structure doesn\'t call for.',
+      days: {
+        d1: { label:'Day 1', sub:'Aerobic Base Swim', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Warm-up Swim', sets:'5-10 min', noWeight:true},
+            {name:'Easy Swim (Freestyle)', sets:'20-30 min', noWeight:true},
+            {name:'Cool-down Swim', sets:'5 min', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Technique + Kick/Pull', plate:'p-blue', plateNum:'20', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Swim', sets:'5-10 min', noWeight:true},
+            {name:'Drill Set (technique)', sets:'6×50m', noWeight:true},
+            {name:'Kick Set (board)', sets:'6×50m', noWeight:true},
+            {name:'Pull Set (buoy)', sets:'6×50m', noWeight:true},
+            {name:'Cool-down Swim', sets:'5 min', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder and thoracic mobility, 20-25 min. The overhead repetition in swimming makes shoulder recovery non-negotiable — don\'t skip this.' },
+        d4: { label:'Day 4', sub:'Threshold Swim', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Swim', sets:'10 min', noWeight:true},
+            {name:'Threshold Swim Set', sets:'4×200m', noWeight:true},
+            {name:'Cool-down Swim', sets:'5-10 min', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Speed Intervals', plate:'p-green', plateNum:'10', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Swim', sets:'10 min', noWeight:true},
+            {name:'Swim Intervals (100s)', sets:'8×100m', noWeight:true},
+            {name:'Cool-down Swim', sets:'10 min', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Long Swim + Dryland Shoulders', plate:'p-off', plateNum:'5', duration:'~50 min',
+          exercises:[
+            {name:'Long Swim (continuous)', sets:'30-45 min', noWeight:true},
+            {name:'Band External Rotation', sets:'3×15'},
+            {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Plank', sets:'3×30-45s', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Dryland Shoulder Prehab', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Band External Rotation', sets:'3×15'},
+            {name:'Scapular Retraction', sets:'3×15'},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, with the shoulder-recovery argument still winning on the rest day',
+      overview: 'The same six days as the 6-day plan, completely unchanged. This program\'s own rest-day note already calls shoulder recovery "non-negotiable" for an overhead-repetitive sport — even at 7 days selected, the actual rest day stays genuinely pool-free rather than getting reframed into more swimming.',
+      days: {
+        d1: { label:'Day 1', sub:'Aerobic Base Swim', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Warm-up Swim', sets:'5-10 min', noWeight:true},
+            {name:'Easy Swim (Freestyle)', sets:'20-30 min', noWeight:true},
+            {name:'Cool-down Swim', sets:'5 min', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Technique + Kick/Pull', plate:'p-blue', plateNum:'20', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Swim', sets:'5-10 min', noWeight:true},
+            {name:'Drill Set (technique)', sets:'6×50m', noWeight:true},
+            {name:'Kick Set (board)', sets:'6×50m', noWeight:true},
+            {name:'Pull Set (buoy)', sets:'6×50m', noWeight:true},
+            {name:'Cool-down Swim', sets:'5 min', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder and thoracic mobility, 20-25 min. Even at 7 days selected, this stays pool-free on purpose — the overhead repetition in swimming makes real shoulder recovery non-negotiable, no matter the frequency.' },
+        d4: { label:'Day 4', sub:'Threshold Swim', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Swim', sets:'10 min', noWeight:true},
+            {name:'Threshold Swim Set', sets:'4×200m', noWeight:true},
+            {name:'Cool-down Swim', sets:'5-10 min', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Speed Intervals', plate:'p-green', plateNum:'10', duration:'~40 min',
+          exercises:[
+            {name:'Warm-up Swim', sets:'10 min', noWeight:true},
+            {name:'Swim Intervals (100s)', sets:'8×100m', noWeight:true},
+            {name:'Cool-down Swim', sets:'10 min', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Long Swim + Dryland Shoulders', plate:'p-off', plateNum:'5', duration:'~50 min',
+          exercises:[
+            {name:'Long Swim (continuous)', sets:'30-45 min', noWeight:true},
+            {name:'Band External Rotation', sets:'3×15'},
+            {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Plank', sets:'3×30-45s', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Dryland Shoulder Prehab', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Band External Rotation', sets:'3×15'},
+            {name:'Scapular Retraction', sets:'3×15'},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+      }
+    },
+  },
+  // Climbing's own overview and rest-day notes are explicit that fingers
+  // and connective tissue adapt over YEARS not weeks, and that "climbing on
+  // tired tendons is one of the more common ways climbers get hurt." That's
+  // a stronger, slower-recovering constraint than ordinary muscle fatigue --
+  // real hangboard/finger-training coaching (Bechtel, Lopez) treats 48-72h+
+  // between hard finger sessions as a floor, not a suggestion. So low
+  // counts below combine categories at REDUCED finger intensity rather than
+  // dropping shoulder-health work; 6-7 add a 2nd antagonist/shoulder/
+  // mobility day with ZERO added finger-specific loading, never a 2nd
+  // hangboard-intensive day.
+  climbing: {
+    1: {
+      short: 'Full-body climbing session, reduced finger intensity',
+      overview: 'One session combining light finger work, pulling strength, and shoulder health — at REDUCED finger intensity specifically. Fingers and connective tissue adapt over years, not weeks (this program\'s own overview says so directly), so a single weekly session stays at hangboard repeaters rather than max hangs, which need more recovery room around them than one day a week provides.',
+      days: {
+        d1: { label:'Day 1', sub:'Full-Body Climbing Session', plate:'p-red', plateNum:'25', duration:'~45 min',
+          exercises:[
+            {name:'Hangboard Repeaters', sets:'2×6', noWeight:true},
+            {name:'Chin-up', sets:'3×6-8'},
+            {name:'Band External Rotation', sets:'2×15'},
+            {name:'Dead Bug', sets:'2×8-10/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and shoulder mobility, 20-25 min. Fingers and pulling muscles recover slowly — this rest day is what lets the next session actually be productive.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Fingers and connective tissue need this — climbing on tired tendons is one of the more common ways climbers get hurt.' },
+        d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and shoulder mobility, 20-25 min. Fingers and pulling muscles recover slowly — this rest day is what lets the next session actually be productive.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Fingers and connective tissue need this — climbing on tired tendons is one of the more common ways climbers get hurt.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Fingers and connective tissue need this — climbing on tired tendons is one of the more common ways climbers get hurt.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Fingers and connective tissue need this — climbing on tired tendons is one of the more common ways climbers get hurt.' },
+      }
+    },
+    2: {
+      short: 'Finger & Pulling Strength, plus Antagonist & Shoulder Health',
+      overview: 'One combined finger-and-pulling session, kept at moderate rather than maximal finger intensity, plus a full antagonist/shoulder-health day — the injury-prevention priority this program treats as essential at any frequency, not optional filler.',
+      days: {
+        d1: { label:'Day 1', sub:'Finger & Pulling Strength', plate:'p-red', plateNum:'25', duration:'~50 min',
+          exercises:[
+            {name:'Hangboard Repeaters', sets:'3×6', noWeight:true},
+            {name:'Pull-ups (or assisted)', sets:'3×6-8'},
+            {name:'Front Lever Hold', sets:'2×10-15s', noWeight:true},
+            {name:'Toes-to-Bar', sets:'2×8-10'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and shoulder mobility, 20-25 min. Fingers and pulling muscles recover slowly — this rest day is what lets the next hangboard session actually be productive.' },
+        d3: { label:'Day 3', sub:'Antagonist & Shoulder Health', plate:'p-blue', plateNum:'20', duration:'~35 min',
+          exercises:[
+            {name:'Band External Rotation', sets:'3×15'},
+            {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Rear Delt Fly', sets:'3×12-15'},
+            {name:'Push-up', sets:'3×12-15'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Fingers and connective tissue need this — climbing on tired tendons is one of the more common ways climbers get hurt.' },
+        d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and shoulder mobility, 20-25 min. Fingers and pulling muscles recover slowly — this rest day is what lets the next hangboard session actually be productive.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Fingers and connective tissue need this — climbing on tired tendons is one of the more common ways climbers get hurt.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Fingers and connective tissue need this — climbing on tired tendons is one of the more common ways climbers get hurt.' },
+      }
+    },
+    3: {
+      short: 'Finger Strength, Pulling Strength, and Antagonist & Shoulder Health',
+      overview: 'The three most essential sessions this program trains, each keeping their own day. Lock-offs/Core Tension and Hip Mobility/Grip Endurance are what don\'t fit at this frequency yet; they return at 4 days and up.',
+      days: {
+        d1: { label:'Day 1', sub:'Finger Strength', plate:'p-red', plateNum:'25', duration:'~45 min',
+          exercises:[
+            {name:'Hangboard Max Hang', sets:'6×10s'},
+            {name:'Hangboard Repeaters', sets:'3×6', noWeight:true},
+            {name:'Pull-ups (or assisted)', sets:'4×6-8'},
+            {name:'Farmer\'s Carry', sets:'3×30s'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and shoulder mobility, 20-25 min. Fingers and pulling muscles recover slowly — this rest day is what lets the next hangboard session actually be productive.' },
+        d3: { label:'Day 3', sub:'Pulling Strength + Core Tension', plate:'p-blue', plateNum:'20', duration:'~50 min',
+          exercises:[
+            {name:'Chin-up', sets:'4×6-8'},
+            {name:'Inverted Row', sets:'3×10-12'},
+            {name:'Front Lever Hold', sets:'3×10-15s', noWeight:true},
+            {name:'Toes-to-Bar', sets:'3×8-10'},
+            {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Fingers and connective tissue need this — climbing on tired tendons is one of the more common ways climbers get hurt.' },
+        d5: { label:'Day 5', sub:'Antagonist & Shoulder Health', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'Band External Rotation', sets:'3×15'},
+            {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Rear Delt Fly', sets:'3×12-15'},
+            {name:'Push-up', sets:'3×12-15'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Fingers and connective tissue need this — climbing on tired tendons is one of the more common ways climbers get hurt.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Fingers and connective tissue need this — climbing on tired tendons is one of the more common ways climbers get hurt.' },
+      }
+    },
+    4: {
+      short: 'Finger, Pulling, Shoulder Health, and Lock-offs',
+      overview: 'Four of this program\'s five sessions each get their own day. Hip Mobility & Grip Endurance is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      days: {
+        d1: { label:'Day 1', sub:'Finger Strength', plate:'p-red', plateNum:'25', duration:'~45 min',
+          exercises:[
+            {name:'Hangboard Max Hang', sets:'6×10s'},
+            {name:'Hangboard Repeaters', sets:'3×6', noWeight:true},
+            {name:'Pull-ups (or assisted)', sets:'4×6-8'},
+            {name:'Farmer\'s Carry', sets:'3×30s'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and shoulder mobility, 20-25 min. Fingers and pulling muscles recover slowly — this rest day is what lets the next hangboard session actually be productive.' },
+        d3: { label:'Day 3', sub:'Pulling Strength + Core Tension', plate:'p-blue', plateNum:'20', duration:'~50 min',
+          exercises:[
+            {name:'Chin-up', sets:'4×6-8'},
+            {name:'Inverted Row', sets:'3×10-12'},
+            {name:'Front Lever Hold', sets:'3×10-15s', noWeight:true},
+            {name:'Toes-to-Bar', sets:'3×8-10'},
+            {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Fingers and connective tissue need this — climbing on tired tendons is one of the more common ways climbers get hurt.' },
+        d5: { label:'Day 5', sub:'Antagonist & Shoulder Health', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'Band External Rotation', sets:'3×15'},
+            {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Rear Delt Fly', sets:'3×12-15'},
+            {name:'Push-up', sets:'3×12-15'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Lock-offs & Core Tension', plate:'p-green', plateNum:'10', duration:'~45 min',
+          exercises:[
+            {name:'Lock-off Hold', sets:'3×10-15s/arm', noWeight:true},
+            {name:'L-sit Hold', sets:'3×10-20s', noWeight:true},
+            {name:'Dead Bug', sets:'3×8-10/side', noWeight:true},
+            {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+            {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Fingers and connective tissue need this — climbing on tired tendons is one of the more common ways climbers get hurt.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.climbing), used as-is.
+    6: {
+      short: 'The full 5-day program plus a 2nd antagonist/mobility day',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of ZERO-finger-load antagonist and mobility work — not a 2nd hangboard-intensive session. Real finger/tendon coaching treats 48-72+ hours between hard finger sessions as a floor, not a suggestion, so the extra day adds shoulder and hip work this program already prioritizes instead of stacking more finger stress on tissue that adapts over years, not weeks.',
+      days: {
+        d1: { label:'Day 1', sub:'Finger Strength', plate:'p-red', plateNum:'25', duration:'~45 min',
+          exercises:[
+            {name:'Hangboard Max Hang', sets:'6×10s'},
+            {name:'Hangboard Repeaters', sets:'3×6', noWeight:true},
+            {name:'Pull-ups (or assisted)', sets:'4×6-8'},
+            {name:'Farmer\'s Carry', sets:'3×30s'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Pulling Strength + Core Tension', plate:'p-blue', plateNum:'20', duration:'~50 min',
+          exercises:[
+            {name:'Chin-up', sets:'4×6-8'},
+            {name:'Inverted Row', sets:'3×10-12'},
+            {name:'Front Lever Hold', sets:'3×10-15s', noWeight:true},
+            {name:'Toes-to-Bar', sets:'3×8-10'},
+            {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and shoulder mobility, 20-25 min. Fingers and pulling muscles recover slowly — this rest day is what lets the next hangboard session actually be productive.' },
+        d4: { label:'Day 4', sub:'Antagonist & Shoulder Health', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'Band External Rotation', sets:'3×15'},
+            {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Rear Delt Fly', sets:'3×12-15'},
+            {name:'Push-up', sets:'3×12-15'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Lock-offs & Core Tension', plate:'p-green', plateNum:'10', duration:'~45 min',
+          exercises:[
+            {name:'Lock-off Hold', sets:'3×10-15s/arm', noWeight:true},
+            {name:'L-sit Hold', sets:'3×10-20s', noWeight:true},
+            {name:'Dead Bug', sets:'3×8-10/side', noWeight:true},
+            {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+            {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Hip Mobility & Grip Endurance', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'90/90 Hip Switch', sets:'3×8/side', noWeight:true},
+            {name:'Pigeon Pose', sets:'2×30-45s/side', noWeight:true},
+            {name:'Couch Stretch', sets:'2×30-45s/side', noWeight:true},
+            {name:'Hangboard Repeaters', sets:'2×6', noWeight:true},
+            {name:'Wrist Flexor Stretch', sets:'2×20-30s', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Antagonist & Mobility Extra', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Scapular Retraction', sets:'3×15'},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Rear Delt Fly', sets:'3×12-15'},
+            {name:'90/90 Hip Switch', sets:'2×8/side', noWeight:true},
+            {name:'Pigeon Pose', sets:'2×30-45s/side', noWeight:true},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, with the tendon-recovery argument still winning on the rest day',
+      overview: 'The same six days as the 6-day plan, completely unchanged. This program\'s own overview is explicit that fingers and connective tissue adapt over years, not weeks — even at 7 days selected, the actual rest day stays genuinely climbing-free rather than getting reframed into more training.',
+      days: {
+        d1: { label:'Day 1', sub:'Finger Strength', plate:'p-red', plateNum:'25', duration:'~45 min',
+          exercises:[
+            {name:'Hangboard Max Hang', sets:'6×10s'},
+            {name:'Hangboard Repeaters', sets:'3×6', noWeight:true},
+            {name:'Pull-ups (or assisted)', sets:'4×6-8'},
+            {name:'Farmer\'s Carry', sets:'3×30s'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Pulling Strength + Core Tension', plate:'p-blue', plateNum:'20', duration:'~50 min',
+          exercises:[
+            {name:'Chin-up', sets:'4×6-8'},
+            {name:'Inverted Row', sets:'3×10-12'},
+            {name:'Front Lever Hold', sets:'3×10-15s', noWeight:true},
+            {name:'Toes-to-Bar', sets:'3×8-10'},
+            {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and shoulder mobility, 20-25 min. Even at 7 days selected, this stays climbing-free on purpose — fingers and connective tissue adapt over years, not weeks, and tired tendons are one of the more common ways climbers get hurt.' },
+        d4: { label:'Day 4', sub:'Antagonist & Shoulder Health', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'Band External Rotation', sets:'3×15'},
+            {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Rear Delt Fly', sets:'3×12-15'},
+            {name:'Push-up', sets:'3×12-15'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Lock-offs & Core Tension', plate:'p-green', plateNum:'10', duration:'~45 min',
+          exercises:[
+            {name:'Lock-off Hold', sets:'3×10-15s/arm', noWeight:true},
+            {name:'L-sit Hold', sets:'3×10-20s', noWeight:true},
+            {name:'Dead Bug', sets:'3×8-10/side', noWeight:true},
+            {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+            {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Hip Mobility & Grip Endurance', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'90/90 Hip Switch', sets:'3×8/side', noWeight:true},
+            {name:'Pigeon Pose', sets:'2×30-45s/side', noWeight:true},
+            {name:'Couch Stretch', sets:'2×30-45s/side', noWeight:true},
+            {name:'Hangboard Repeaters', sets:'2×6', noWeight:true},
+            {name:'Wrist Flexor Stretch', sets:'2×20-30s', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Antagonist & Mobility Extra', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Scapular Retraction', sets:'3×15'},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Rear Delt Fly', sets:'3×12-15'},
+            {name:'90/90 Hip Switch', sets:'2×8/side', noWeight:true},
+            {name:'Pigeon Pose', sets:'2×30-45s/side', noWeight:true},
           ]
         },
       }
