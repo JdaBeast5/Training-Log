@@ -35,9 +35,9 @@ const pureChunks = [
 
 const { test, run } = makeRunner('test-configurable-training-days.js');
 
-// [Data completeness across all 7 counts, both programs] -------------------------
+// [Data completeness across all 7 counts, all rolled-out programs] ---------------
 const ALL_COUNTS = [1,2,3,4,5,6,7];
-const PROGRAMS_TO_CHECK = ['strength', 'bodybuilding'];
+const PROGRAMS_TO_CHECK = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding'];
 
 for(const programKey of PROGRAMS_TO_CHECK){
   for(const n of ALL_COUNTS){
@@ -85,18 +85,20 @@ test('bodybuilding day-count 5 (falling back to the original) is byte-identical 
 
 // Two counts per program are deliberately EXCLUDED from "train-day count ==
 // n" below, and both are real design decisions, not bugs:
-//  - the intentionally-omitted default (strength 4 / bodybuilding 5) falls
-//    back to the program's own pre-existing authored content, which predates
-//    this feature. Strength's original counts Day 6 "Active Recovery" as a
-//    non-rest day (it has real exercises) even though it reads as a 5th
-//    quasi-training day — that's an existing, previously-shipped authoring
-//    choice this feature doesn't relitigate.
-//  - n=7 for BOTH programs deliberately keeps the SAME 6 real training days
-//    as n=6 (see the "6 and 7 keep the same six days" sabotage test below)
-//    rather than inventing a 7th hard session — the 7th slot is reframed as
-//    a light mobility/cardio day instead. So n=7's real training-day count
-//    is intentionally 6, not 7.
-const OMITTED_DEFAULT_COUNT = { strength: 4, bodybuilding: 5 };
+//  - the intentionally-omitted default (4 for strength, 5 for every other
+//    rolled-out program so far) falls back to the program's own pre-existing
+//    authored content, which predates this feature. Strength's original
+//    counts Day 6 "Active Recovery" as a non-rest day (it has real
+//    exercises) even though it reads as a 5th quasi-training day — that's an
+//    existing, previously-shipped authoring choice this feature doesn't
+//    relitigate.
+//  - n=7 for every rolled-out program deliberately keeps the SAME real
+//    training days as n=6 (see the "6 and 7 keep the same days" sabotage
+//    tests below) rather than inventing a 7th hard session — the remaining
+//    slot is reframed as a light mobility/cardio (or, for oly specifically,
+//    still-bar-free-on-purpose) day instead. So n=7's real training-day
+//    count matches n=6's, not 7.
+const OMITTED_DEFAULT_COUNT = { strength: 4, bodybuilding: 5, oly: 5, powerlifting: 5, powerbuilding: 5 };
 for(const programKey of PROGRAMS_TO_CHECK){
   test(`${programKey}: every hand-authored day-count's TRAINING day count actually matches the count selected (n=3 really has 3 non-rest days, not some other number)`, (assert)=>{
     const [results] = runSandbox(pureChunks, `
@@ -132,19 +134,52 @@ for(const programKey of PROGRAMS_TO_CHECK){
   });
 }
 
-test('sabotage: strength\'s 6-day and 7-day plans keep the SAME six hard/accessory training days (7 does not add an 8th kind of session, per the user\'s explicit accessory-days-not-repeats decision)', (assert)=>{
-  const [subs6, subs7] = runSandbox(pureChunks, `
-    const subsOf = (days) => Object.values(days).filter(d=>!d.rest).map(d=>d.sub).sort();
-    __capture.push(subsOf(PROGRAM_DAY_COUNT_VARIANTS.strength[6].days));
-    __capture.push(subsOf(PROGRAM_DAY_COUNT_VARIANTS.strength[7].days));
-  `);
-  assert.deepStrictEqual(subs6, subs7);
-});
+for(const programKey of PROGRAMS_TO_CHECK){
+  test(`sabotage: ${programKey}'s 6-day and 7-day plans keep the SAME real training days (7 does not add an 8th kind of session, per the user's explicit accessory-days-not-repeats decision)`, (assert)=>{
+    const [subs6, subs7] = runSandbox(pureChunks, `
+      const subsOf = (days) => Object.values(days).filter(d=>!d.rest).map(d=>d.sub).sort();
+      __capture.push(subsOf(PROGRAM_DAY_COUNT_VARIANTS['${programKey}'][6].days));
+      __capture.push(subsOf(PROGRAM_DAY_COUNT_VARIANTS['${programKey}'][7].days));
+    `);
+    assert.deepStrictEqual(subs6, subs7);
+  });
+}
 
 test('sabotage: strength\'s 7-day plan reframes the rest slot as light mobility/cardio, NOT a full-rest day and NOT a 7th hard session', (assert)=>{
   const [day3] = runSandbox(pureChunks, `__capture.push(PROGRAM_DAY_COUNT_VARIANTS.strength[7].days.d3);`);
   assert.strictEqual(day3.rest, true, 'must still be a light/rest-style day, not a hard session');
   assert.notStrictEqual(day3.plateNum, 'OFF', 'must not be a true zero-activity full-rest day either');
+});
+
+test('sabotage: oly is never made "safe" by silently dropping to full rest at high frequency — its light day is still tagged rest:true but keeps a real, program-specific reasoning note distinct from a generic rest day', (assert)=>{
+  const [note] = runSandbox(pureChunks, `__capture.push(PROGRAM_DAY_COUNT_VARIANTS.oly[7].days.d3.note);`);
+  assert.match(note, /bar-free on purpose/, 'expected the oly-specific frequency-vs-recovery reasoning, not a generic rest note');
+});
+
+test('sabotage: powerlifting keeps the deadlift on a genuinely LOWER volume than squat/bench at 1 day/week — verifying the documented "deadlift is treated conservatively" design decision actually landed in the data, not just the prose', (assert)=>{
+  const [setsFor] = runSandbox(pureChunks, `
+    const day = PROGRAM_DAY_COUNT_VARIANTS.powerlifting[1].days.d1;
+    const totalSets = (name) => {
+      const ex = day.exercises.find(e => e.name === name);
+      const m = /^(\\d+)/.exec(ex.sets);
+      return m ? parseInt(m[1], 10) : NaN;
+    };
+    __capture.push({ squat: totalSets('Squat'), bench: totalSets('Bench Press'), deadlift: totalSets('Deadlift') });
+  `);
+  assert.ok(setsFor.deadlift < setsFor.squat, `deadlift sets (${setsFor.deadlift}) should be fewer than squat sets (${setsFor.squat})`);
+  assert.ok(setsFor.deadlift < setsFor.bench, `deadlift sets (${setsFor.deadlift}) should be fewer than bench sets (${setsFor.bench})`);
+});
+
+test('every oly day-count variant is honest about evidence quality (coaching consensus, not RCT), matching this program\'s own established convention', (assert)=>{
+  const [overviews] = runSandbox(pureChunks, `
+    __capture.push([1,2,3,4,6,7].map(n => PROGRAM_DAY_COUNT_VARIANTS.oly[n].overview));
+  `);
+  overviews.forEach((o, i) => assert.match(o, /coaching|consensus|RCT/i, `oly variant overview #${i} should acknowledge the weaker evidence base, like the rest of this program does`));
+});
+
+test('sabotage: the medical/rehab programs are NEVER added to DAYS_PER_WEEK_PROGRAMS — a permanent safety exclusion, not a "not yet" gap. Regression guard against someone casually adding it back in a future rollout batch.', (assert)=>{
+  const [hasMedical] = runSandbox(pureChunks, `__capture.push(DAYS_PER_WEEK_PROGRAMS.includes('medical'));`);
+  assert.strictEqual(hasMedical, false);
 });
 
 test('bodybuilding\'s 6-day Push/Pull/Legs ×2 plan uses genuinely different exercises between the A and B session for the same pattern (sabotage: catches a literal copy-paste "B" session)', (assert)=>{
@@ -178,8 +213,8 @@ test('daysPerWeekWarningState: null pref never warns', (assert)=>{
   assert.strictEqual(state.advisory, false);
 });
 
-test('daysPerWeekWarningState: a program outside the pilot never warns even at 7 days', (assert)=>{
-  const [state] = runSandbox(pureChunks, `__capture.push(daysPerWeekWarningState('oly', 7));`);
+test('daysPerWeekWarningState: a program outside the rollout never warns even at 7 days', (assert)=>{
+  const [state] = runSandbox(pureChunks, `__capture.push(daysPerWeekWarningState('athletic', 7));`);
   assert.strictEqual(state.advisory, false);
 });
 
@@ -218,12 +253,12 @@ test('applyDaysPerWeekProgramData with a real pref set regenerates days AND over
 
 test('sabotage: applyDaysPerWeekProgramData NEVER touches a program outside DAYS_PER_WEEK_PROGRAMS, even with a pref set', (assert)=>{
   const [sameRef, sameOverview] = runSandbox(applyChunks, `
-    const olyDaysBefore = programs.oly.days;
-    const olyOverviewBefore = programs.oly.overview;
+    const athleticDaysBefore = programs.athletic.days;
+    const athleticOverviewBefore = programs.athletic.overview;
     daysPerWeekPref = 7;
     applyDaysPerWeekProgramData();
-    __capture.push(programs.oly.days === olyDaysBefore);
-    __capture.push(programs.oly.overview === olyOverviewBefore);
+    __capture.push(programs.athletic.days === athleticDaysBefore);
+    __capture.push(programs.athletic.overview === athleticOverviewBefore);
   `);
   assert.strictEqual(sameRef, true);
   assert.strictEqual(sameOverview, true);

@@ -4989,7 +4989,7 @@
         <div id="prefDaysPerWeek">
           <label class="care-label" for="daysPerWeekInput">Training days per week</label>
           <input type="number" id="daysPerWeekInput" class="care-input" min="1" max="7" inputmode="numeric" placeholder="Program default">
-          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size and Bodybuilding; other programs aren't affected yet.</div>
+          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, and Powerbuilding; other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
           <div id="daysPerWeekWarning" style="display:none"></div>
         </div>
 
@@ -6274,7 +6274,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.198';
+const APP_VERSION = '3.199';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6677,6 +6677,11 @@ const WHATS_NEW = {
     'Last version\'s "training days per week" picker reused a program\'s existing sessions to fill whatever count you chose. Now every count (1-7) for Strength & Size and Bodybuilding has its own hand-built structure — fewer days train full-body so every muscle group still gets hit twice a week instead of once, higher day counts use dedicated accessory and conditioning days rather than repeating your hardest session a 3rd time in one week.',
     'Picking 6 or 7 days never adds a repeat of an already-maximal session — the extra days are real, different training (weak points, conditioning, Push/Pull/Legs variety) and even a 7-day week still keeps one deliberately easy mobility/recovery day.',
     'The program description under the selector now updates to match whichever day count you\'ve picked, instead of always describing the default.',
+  ]},
+  '3.199': { headline: 'Training days per week now covers the barbell-strength programs too', points: [
+    'Olympic Lifting, Powerlifting, and Powerbuilding now have their own real, purpose-built day counts (1-7), same as Strength & Size and Bodybuilding — including some genuine program-specific reasoning: powerlifting keeps deadlift volume conservative even at low frequency, Olympic Lifting\'s higher-frequency options add deliberately light technical practice rather than more heavy sessions (it\'s honest that this leans on coaching consensus, not RCT evidence — this program always has been).',
+    'The 13 medically-modified and rehab programs will never get this feature — their day structure follows your care team\'s guidance, not a frequency preference, and this app has always treated that as non-negotiable.',
+    'Rolling out to the remaining programs continues in future updates.',
   ]},
 };
 
@@ -13438,7 +13443,23 @@ function renderPosingClasses(){
 // literal id 'd7', and day-order/active-day are both length-guarded against
 // Object.keys(dayDefs).length. Every variant below fills all 7 slots so
 // neither of those has to change.
-const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding'];
+//
+// Rollout status: pilot batch was strength + bodybuilding. This batch adds
+// the barbell-strength family -- oly, powerlifting, powerbuilding -- since
+// their existing content and training logic is closest to what's already
+// built. Deliberately excluded, permanently, not just "not yet": the 13
+// medical/rehab programs (obesity, hypertension, diabetes, osteoporosis,
+// bariatric x2, prenatal, postpartum, and the 5 rehab tracks). Their day
+// structure is a clinical-progression decision, not a frequency-
+// optimization one, and this app already treats deferring to a user's care
+// team as "deliberate and non-negotiable" (see programs.medical's own
+// overview) -- letting someone dial a rehab-ACL protocol up to 7 days/week
+// would be unsafe, not just untailored. Remaining scope: the plain
+// programs not yet covered (athletic, core, bodyweight, jumprope,
+// mobility, running, calisthenics, senior, swimming, climbing, boxingsc,
+// desk, hyrox, grappling, pilates) and the combat/cycling/watersports/yoga
+// style-variant containers, in further batches.
+const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding'];
 const DAYS_PER_WEEK_ORIGINAL = Object.fromEntries(DAYS_PER_WEEK_PROGRAMS.map(key =>
   [key, { days: programs[key].days, overview: programs[key].overview, short: programs[key].short }]
 ));
@@ -14018,6 +14039,814 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Calf Raise', sets:'3×15'},
             {name:'Cable Crunch', sets:'3×15'},
             {name:'Hanging Leg Raise', sets:'3×12'},
+          ]
+        },
+      }
+    },
+  },
+  // Olympic Lifting's own default program already flags its rep-scheme
+  // choices as coaching-school consensus, not RCT evidence (weightlifting
+  // programming has no ACSM-equivalent position stand) -- every variant
+  // below repeats that same honesty rather than borrowing the stronger
+  // ACSM framing strength/bodybuilding get to use. It also has a genuinely
+  // different frequency argument from a hypertrophy program: technical
+  // skill (the snatch and clean & jerk positions) degrades faster without
+  // practice than a muscle does without training, so low counts here still
+  // try to touch BOTH competition lifts every week rather than dropping one
+  // entirely, and 6/7 add a deliberately LIGHT technical day rather than
+  // pure accessory work. Even so, the CNS/joint recovery argument for a
+  // truly bar-free rest day still wins at 6-7 -- see the n=7 overview.
+  oly: {
+    1: {
+      short: 'One session touching both lifts — the genuine floor for this sport',
+      overview: 'A single weekly session touching both the snatch and the clean & jerk at moderate volume, since a full week only gets one shot at each. Be honest about what this can deliver: this is coaching-school consensus, not RCT evidence (weightlifting programming has no ACSM-equivalent position stand), but it consistently holds that technical skill benefits from frequent practice more than raw volume — one session a week is real training, but genuinely the wrong frequency to develop technique quickly. If a 2nd day ever becomes possible, splitting the two lifts into their own sessions would help more than anything else here.',
+      days: {
+        d1: { label:'Day 1', sub:'Full Session — Snatch + Clean & Jerk', plate:'p-red', plateNum:'25', duration:'~70 min',
+          exercises:[
+            {name:'Snatch', sets:'4×2'},
+            {name:'Clean & Jerk', sets:'4×2'},
+            {name:'Front Squat', sets:'3×5'},
+            {name:'Snatch Pull', sets:'3×3'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder, hip, and ankle mobility work, 20-30 min. Oly lifting is technical and taxes the CNS hard — respect this rest day.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder, hip, and ankle mobility work, 20-30 min. Oly lifting is technical and taxes the CNS hard — respect this rest day.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Snatch day and Clean & Jerk day, split for real focus on each',
+      overview: 'The two competition lifts each get their own session instead of being crammed together — snatch gets real focused practice, clean & jerk gets its own. Still light on total frequency for a technical sport (coaching consensus, not RCT evidence, favors more frequent touches for skill acquisition), but a real improvement over one combined session.',
+      days: {
+        d1: { label:'Day 1', sub:'Snatch + Pull Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Snatch', sets:'5×2'},
+            {name:'Snatch Pull', sets:'4×3'},
+            {name:'Overhead Squat', sets:'3×5'},
+            {name:'Front Squat', sets:'3×5'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder, hip, and ankle mobility work, 20-30 min. Oly lifting is technical and taxes the CNS hard — respect this rest day.' },
+        d3: { label:'Day 3', sub:'Clean & Jerk Technique', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Clean & Jerk', sets:'5×2'},
+            {name:'Clean Pull', sets:'4×3'},
+            {name:'Front Squat', sets:'3×5'},
+            {name:'Jerk Dip Squat', sets:'3×5'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder, hip, and ankle mobility work, 20-30 min. Oly lifting is technical and taxes the CNS hard — respect this rest day.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Snatch, Clean & Jerk, and a technique/strength consolidation day',
+      overview: 'Snatch and clean & jerk each keep their own dedicated day, with a 3rd day blending lighter technical pulls from both lifts with core work — real added practice without the fatigue cost of a 3rd near-maximal session. As with every count in this program, this leans on coaching consensus rather than RCT evidence — weightlifting programming has no ACSM-equivalent position stand to cite.',
+      days: {
+        d1: { label:'Day 1', sub:'Snatch + Pull Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Snatch', sets:'5×2'},
+            {name:'Snatch Pull', sets:'4×3'},
+            {name:'Overhead Squat', sets:'3×5'},
+            {name:'Front Squat', sets:'3×5'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder, hip, and ankle mobility work, 20-30 min. Oly lifting is technical and taxes the CNS hard — respect this rest day.' },
+        d3: { label:'Day 3', sub:'Clean & Jerk Technique', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Clean & Jerk', sets:'5×2'},
+            {name:'Clean Pull', sets:'4×3'},
+            {name:'Front Squat', sets:'3×5'},
+            {name:'Jerk Dip Squat', sets:'3×5'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Technique Primer + Core', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+          exercises:[
+            {name:'Snatch Pull', sets:'3×3'},
+            {name:'Clean Pull', sets:'3×3'},
+            {name:'Hanging Leg Raise', sets:'3×12'},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    4: {
+      short: 'Snatch and Clean & Jerk days, each with a dedicated variation day',
+      overview: 'The two competition lifts each get both a technique-focused day and a variation day (power versions, balance/squat work) — real added exposure to each lift\'s positions without stacking two maximal-effort snatch or clean & jerk sessions back to back. As with every count in this program, this leans on coaching consensus rather than RCT evidence — weightlifting programming has no ACSM-equivalent position stand to cite.',
+      days: {
+        d1: { label:'Day 1', sub:'Snatch + Pull Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Snatch', sets:'5×2'},
+            {name:'Snatch Pull', sets:'4×3'},
+            {name:'Overhead Squat', sets:'3×5'},
+            {name:'Front Squat', sets:'3×5'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder, hip, and ankle mobility work, 20-30 min. Oly lifting is technical and taxes the CNS hard — respect this rest day.' },
+        d3: { label:'Day 3', sub:'Clean & Jerk Technique', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Clean & Jerk', sets:'5×2'},
+            {name:'Clean Pull', sets:'4×3'},
+            {name:'Front Squat', sets:'3×5'},
+            {name:'Jerk Dip Squat', sets:'3×5'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Snatch Variations', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Power Snatch', sets:'5×3'},
+            {name:'Snatch Balance', sets:'4×3'},
+            {name:'Back Squat', sets:'3×6-8'},
+            {name:'Barbell Row', sets:'3×8-10'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Clean & Jerk Variations', plate:'p-green', plateNum:'10', duration:'~55 min',
+          exercises:[
+            {name:'Power Clean', sets:'5×3'},
+            {name:'Push Press', sets:'4×5'},
+            {name:'Back Squat', sets:'3×6-8'},
+            {name:'Weighted Sit-up', sets:'3×12'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.oly), used as-is.
+    6: {
+      short: 'The full 5-day program plus a light technical-touch day',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of deliberately light technical touches — lower-percentage singles and doubles on both lifts, focused purely on positions. Unlike a hypertrophy program, Olympic lifting genuinely benefits from more frequent skill practice (coaching consensus, not RCT evidence) — but heavy technical work 6 days a week would be real CNS and joint overuse, so this stays deliberately light rather than adding another near-maximal session.',
+      days: {
+        d1: { label:'Day 1', sub:'Snatch + Pull Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Snatch', sets:'5×2'},
+            {name:'Snatch Pull', sets:'4×3'},
+            {name:'Overhead Squat', sets:'3×5'},
+            {name:'Front Squat', sets:'3×5'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Clean & Jerk Technique', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Clean & Jerk', sets:'5×2'},
+            {name:'Clean Pull', sets:'4×3'},
+            {name:'Front Squat', sets:'3×5'},
+            {name:'Jerk Dip Squat', sets:'3×5'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder, hip, and ankle mobility work, 20-30 min. Oly lifting is technical and taxes the CNS hard — respect this rest day.' },
+        d4: { label:'Day 4', sub:'Snatch Variations', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Power Snatch', sets:'5×3'},
+            {name:'Snatch Balance', sets:'4×3'},
+            {name:'Back Squat', sets:'3×6-8'},
+            {name:'Barbell Row', sets:'3×8-10'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Clean & Jerk Variations', plate:'p-green', plateNum:'10', duration:'~55 min',
+          exercises:[
+            {name:'Power Clean', sets:'5×3'},
+            {name:'Push Press', sets:'4×5'},
+            {name:'Back Squat', sets:'3×6-8'},
+            {name:'Weighted Sit-up', sets:'3×12'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Technique Primer + Core', plate:'p-off', plateNum:'5', duration:'~40 min',
+          exercises:[
+            {name:'Snatch Pull', sets:'3×3'},
+            {name:'Clean Pull', sets:'3×3'},
+            {name:'Hanging Leg Raise', sets:'3×12'},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Light Technical Practice', plate:'p-off', plateNum:'5', duration:'~35 min',
+          exercises:[
+            {name:'Snatch (Light)', sets:'4×2'},
+            {name:'Clean & Jerk (Light)', sets:'3×2'},
+            {name:'Overhead Squat', sets:'3×5'},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, with the recovery argument still winning on the rest day',
+      overview: 'The same six days as the 6-day plan, completely unchanged. Olympic lifting has a real, genuine argument (coaching consensus, not RCT evidence — this program is upfront about that at every count) for training technique more often than most programs would ever recommend — but even so, this program still keeps one truly bar-free day. CNS and joint recovery from technical lifting isn\'t optional, no matter how light the reps would be, so the frequency-for-skill argument does not win out here.',
+      days: {
+        d1: { label:'Day 1', sub:'Snatch + Pull Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Snatch', sets:'5×2'},
+            {name:'Snatch Pull', sets:'4×3'},
+            {name:'Overhead Squat', sets:'3×5'},
+            {name:'Front Squat', sets:'3×5'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Clean & Jerk Technique', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Clean & Jerk', sets:'5×2'},
+            {name:'Clean Pull', sets:'4×3'},
+            {name:'Front Squat', sets:'3×5'},
+            {name:'Jerk Dip Squat', sets:'3×5'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder, hip, and ankle mobility work, 20-30 min. Even at 7 days selected, this stays bar-free on purpose — CNS and joint recovery from technical lifting isn\'t optional, no matter how light the reps would be.' },
+        d4: { label:'Day 4', sub:'Snatch Variations', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Power Snatch', sets:'5×3'},
+            {name:'Snatch Balance', sets:'4×3'},
+            {name:'Back Squat', sets:'3×6-8'},
+            {name:'Barbell Row', sets:'3×8-10'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Clean & Jerk Variations', plate:'p-green', plateNum:'10', duration:'~55 min',
+          exercises:[
+            {name:'Power Clean', sets:'5×3'},
+            {name:'Push Press', sets:'4×5'},
+            {name:'Back Squat', sets:'3×6-8'},
+            {name:'Weighted Sit-up', sets:'3×12'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Technique Primer + Core', plate:'p-off', plateNum:'5', duration:'~40 min',
+          exercises:[
+            {name:'Snatch Pull', sets:'3×3'},
+            {name:'Clean Pull', sets:'3×3'},
+            {name:'Hanging Leg Raise', sets:'3×12'},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Light Technical Practice', plate:'p-off', plateNum:'5', duration:'~35 min',
+          exercises:[
+            {name:'Snatch (Light)', sets:'4×2'},
+            {name:'Clean & Jerk (Light)', sets:'3×2'},
+            {name:'Overhead Squat', sets:'3×5'},
+          ]
+        },
+      }
+    },
+  },
+  // Real powerlifting programming (Sheiko, Candito, GZCL, Texas Method,
+  // Wendler 5/3/1) treats the deadlift differently from squat and bench:
+  // its per-rep systemic fatigue cost is highest of the three, so even
+  // minimal-frequency templates cap its volume/frequency more than the
+  // other two rather than training it identically. That shows up at n=1
+  // (deadlift gets a single top set, not 3) and in why n=6 adds a
+  // sub-maximal speed/technique day across all three lifts rather than a
+  // 2nd max-effort deadlift session specifically.
+  powerlifting: {
+    1: {
+      short: 'Full-body, all three lifts, lighter — one shot at everything',
+      overview: 'One session touching all three competition lifts, since a single day can\'t dedicate real focus to each. Deadlift volume stays capped even here — real powerlifting programming (5/3/1, Sheiko, GZCL) treats it differently from squat and bench because its per-rep systemic fatigue cost is highest of the three, so it\'s one top set here, not three.',
+      days: {
+        d1: { label:'Day 1', sub:'Full-Body — All Three Lifts', plate:'p-red', plateNum:'25', duration:'~65 min',
+          exercises:[
+            {name:'Squat', sets:'3×5'},
+            {name:'Bench Press', sets:'3×5'},
+            {name:'Deadlift', sets:'1×5'},
+            {name:'Barbell Row', sets:'3×8'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and shoulder mobility, 20-30 min. Heavy low-rep work is taxing on the CNS — respect this rest day.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and shoulder mobility, 20-30 min. Heavy low-rep work is taxing on the CNS — respect this rest day.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Two full-power sessions — Squat+Bench led, Deadlift+Bench led',
+      overview: 'Two sessions rather than three single-lift days — with only two days, dedicating a whole session to just one lift would leave the other two badly under-trained. Squat leads one session, deadlift leads the other, and bench appears in both since it tolerates more frequency than the other two.',
+      days: {
+        d1: { label:'Day 1', sub:'Squat + Bench', plate:'p-red', plateNum:'25', duration:'~60 min',
+          exercises:[
+            {name:'Squat', sets:'4×5'},
+            {name:'Bench Press', sets:'4×5'},
+            {name:'Barbell Row', sets:'3×8'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and shoulder mobility, 20-30 min. Heavy low-rep work is taxing on the CNS — respect this rest day.' },
+        d3: { label:'Day 3', sub:'Deadlift + Bench Volume', plate:'p-blue', plateNum:'20', duration:'~60 min',
+          exercises:[
+            {name:'Deadlift', sets:'4×3'},
+            {name:'Bench Press', sets:'3×8'},
+            {name:'Front Squat', sets:'3×5'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and shoulder mobility, 20-30 min. Heavy low-rep work is taxing on the CNS — respect this rest day.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Classic 3-day — one lift, one day, no dilution',
+      overview: 'The classic minimalist powerlifting template — squat, bench, and deadlift each get their own full day, no accessory-only days diluting focus. Real, well-established structure at this frequency, not a scaled-down version of the 5-day plan.',
+      days: {
+        d1: { label:'Day 1', sub:'Squat Focus', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Squat', sets:'5×5'},
+            {name:'Pause Squat', sets:'3×3'},
+            {name:'Leg Press', sets:'3×8-10'},
+            {name:'Weighted Sit-up', sets:'3×12'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and shoulder mobility, 20-30 min. Heavy low-rep work is taxing on the CNS — respect this rest day.' },
+        d3: { label:'Day 3', sub:'Bench Focus', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Bench Press', sets:'5×5'},
+            {name:'Close-Grip Bench Press', sets:'3×5'},
+            {name:'Barbell Row', sets:'4×6-8'},
+            {name:'Triceps Pushdown', sets:'3×10-12'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Deadlift Focus', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Deadlift', sets:'5×3'},
+            {name:'Deficit Deadlift', sets:'3×3'},
+            {name:'Romanian Deadlift', sets:'3×8'},
+            {name:'Hanging Leg Raise', sets:'3×10-12'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    4: {
+      short: 'The big three, plus dedicated bench volume',
+      overview: 'Squat, bench, and deadlift each keep their own day, plus a 4th day of bench accessory volume — bench tolerates more frequency than squat or deadlift, so it\'s the natural lift to add a 2nd session for rather than risking a 2nd max-effort squat or deadlift day.',
+      days: {
+        d1: { label:'Day 1', sub:'Squat Focus', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Squat', sets:'5×5'},
+            {name:'Pause Squat', sets:'3×3'},
+            {name:'Leg Press', sets:'3×8-10'},
+            {name:'Weighted Sit-up', sets:'3×12'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and shoulder mobility, 20-30 min. Heavy low-rep work is taxing on the CNS — respect this rest day.' },
+        d3: { label:'Day 3', sub:'Bench Focus', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Bench Press', sets:'5×5'},
+            {name:'Close-Grip Bench Press', sets:'3×5'},
+            {name:'Barbell Row', sets:'4×6-8'},
+            {name:'Triceps Pushdown', sets:'3×10-12'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Deadlift Focus', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Deadlift', sets:'5×3'},
+            {name:'Deficit Deadlift', sets:'3×3'},
+            {name:'Romanian Deadlift', sets:'3×8'},
+            {name:'Hanging Leg Raise', sets:'3×10-12'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Bench Accessory + Volume', plate:'p-green', plateNum:'10', duration:'~50 min',
+          exercises:[
+            {name:'Bench Press', sets:'4×8'},
+            {name:'Overhead Press', sets:'3×8-10'},
+            {name:'Lat Pulldown', sets:'3×10-12'},
+            {name:'DB Curl', sets:'3×10-12'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.powerlifting), used as-is.
+    6: {
+      short: 'The full 5-day program plus a speed & technique day',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of sub-maximal speed and technique work across all three lifts (real powerlifting concept — Westside-style speed work, Sheiko-style technique volume) rather than a 2nd max-effort session on an already-heavy lift. Deadlift in particular stays sub-maximal here on purpose — it\'s the lift real programming is most conservative about repeating heavy in the same week.',
+      days: {
+        d1: { label:'Day 1', sub:'Squat Focus', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Squat', sets:'5×5'},
+            {name:'Pause Squat', sets:'3×3'},
+            {name:'Leg Press', sets:'3×8-10'},
+            {name:'Weighted Sit-up', sets:'3×12'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Bench Focus', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Bench Press', sets:'5×5'},
+            {name:'Close-Grip Bench Press', sets:'3×5'},
+            {name:'Barbell Row', sets:'4×6-8'},
+            {name:'Triceps Pushdown', sets:'3×10-12'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and shoulder mobility, 20-30 min. Heavy low-rep work is taxing on the CNS — respect this rest day.' },
+        d4: { label:'Day 4', sub:'Deadlift Focus', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Deadlift', sets:'5×3'},
+            {name:'Deficit Deadlift', sets:'3×3'},
+            {name:'Romanian Deadlift', sets:'3×8'},
+            {name:'Hanging Leg Raise', sets:'3×10-12'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Bench Accessory + Volume', plate:'p-green', plateNum:'10', duration:'~50 min',
+          exercises:[
+            {name:'Bench Press', sets:'4×8'},
+            {name:'Overhead Press', sets:'3×8-10'},
+            {name:'Lat Pulldown', sets:'3×10-12'},
+            {name:'DB Curl', sets:'3×10-12'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Squat/Deadlift Accessory', plate:'p-off', plateNum:'5', duration:'~45 min',
+          exercises:[
+            {name:'Front Squat', sets:'3×5'},
+            {name:'Good Morning', sets:'3×8'},
+            {name:'Leg Curl', sets:'3×10-12'},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Speed & Technique', plate:'p-off', plateNum:'5', duration:'~40 min',
+          exercises:[
+            {name:'Squat (Speed)', sets:'6×3'},
+            {name:'Bench Press (Speed)', sets:'6×3'},
+            {name:'Deadlift (Light/Technique)', sets:'4×2'},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, plus one deliberately easy recovery day',
+      overview: 'The same six days as the 6-day plan, completely unchanged — but the week does NOT add an 8th kind of hard session on top of an already-full 6 days. What was the lone rest/mobility slot becomes explicit light cardio and mobility instead: even training every single day, real programming still needs one day where nothing is loaded near failure.',
+      days: {
+        d1: { label:'Day 1', sub:'Squat Focus', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Squat', sets:'5×5'},
+            {name:'Pause Squat', sets:'3×3'},
+            {name:'Leg Press', sets:'3×8-10'},
+            {name:'Weighted Sit-up', sets:'3×12'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Bench Focus', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Bench Press', sets:'5×5'},
+            {name:'Close-Grip Bench Press', sets:'3×5'},
+            {name:'Barbell Row', sets:'4×6-8'},
+            {name:'Triceps Pushdown', sets:'3×10-12'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Mobility & Easy Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min easy walk or bike plus hip/shoulder mobility work — conversational pace throughout. You picked 7 days a week, and this IS one of them, but nothing here is loaded near failure on purpose.' },
+        d4: { label:'Day 4', sub:'Deadlift Focus', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Deadlift', sets:'5×3'},
+            {name:'Deficit Deadlift', sets:'3×3'},
+            {name:'Romanian Deadlift', sets:'3×8'},
+            {name:'Hanging Leg Raise', sets:'3×10-12'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Bench Accessory + Volume', plate:'p-green', plateNum:'10', duration:'~50 min',
+          exercises:[
+            {name:'Bench Press', sets:'4×8'},
+            {name:'Overhead Press', sets:'3×8-10'},
+            {name:'Lat Pulldown', sets:'3×10-12'},
+            {name:'DB Curl', sets:'3×10-12'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Squat/Deadlift Accessory', plate:'p-off', plateNum:'5', duration:'~45 min',
+          exercises:[
+            {name:'Front Squat', sets:'3×5'},
+            {name:'Good Morning', sets:'3×8'},
+            {name:'Leg Curl', sets:'3×10-12'},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Speed & Technique', plate:'p-off', plateNum:'5', duration:'~40 min',
+          exercises:[
+            {name:'Squat (Speed)', sets:'6×3'},
+            {name:'Bench Press (Speed)', sets:'6×3'},
+            {name:'Deadlift (Light/Technique)', sets:'4×2'},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+      }
+    },
+  },
+  powerbuilding: {
+    1: {
+      short: 'Full-body, squat-led — the floor for this program\'s "one heavy lift + accessories" identity',
+      overview: 'This program\'s identity everywhere else is one heavy barbell lift leading into accessory volume — at one day a week, that identity is preserved by making squat the lead (it recruits the most total muscle mass of the three big lifts) and choosing accessories that cover the rest of the body, rather than abandoning the format for a generic full-body day.',
+      days: {
+        d1: { label:'Day 1', sub:'Squat-Led Full Body', plate:'p-red', plateNum:'25', duration:'~65 min',
+          exercises:[
+            {name:'Squat', sets:'4×5'},
+            {name:'Bench Press', sets:'3×5'},
+            {name:'Barbell Row', sets:'3×8-10'},
+            {name:'DB Shoulder Press', sets:'2×10-12'},
+            {name:'Leg Curl', sets:'2×12-15'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). The heavy top sets this week add up on the joints and CNS — recovery isn\'t optional here.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). The heavy top sets this week add up on the joints and CNS — recovery isn\'t optional here.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Two full-body sessions, Squat+Bench led and Deadlift+OHP led',
+      overview: 'Two sessions, each led by a different heavy lift with accessories chosen to cover the rest of the body — Squat+Bench on one day, Deadlift+Overhead Press on the other, so both days stay genuinely full-body rather than upper/lower fragments.',
+      days: {
+        d1: { label:'Day 1', sub:'Squat + Bench Led', plate:'p-red', plateNum:'25', duration:'~60 min',
+          exercises:[
+            {name:'Squat', sets:'4×5'},
+            {name:'Bench Press', sets:'4×5'},
+            {name:'Barbell Row', sets:'3×8-10'},
+            {name:'Leg Curl', sets:'2×12-15'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). The heavy top sets this week add up on the joints and CNS — recovery isn\'t optional here.' },
+        d3: { label:'Day 3', sub:'Deadlift + OHP Led', plate:'p-blue', plateNum:'20', duration:'~60 min',
+          exercises:[
+            {name:'Deadlift', sets:'4×5'},
+            {name:'Overhead Press', sets:'4×5'},
+            {name:'Lat Pulldown', sets:'3×10-12'},
+            {name:'Leg Press', sets:'2×12-15'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). The heavy top sets this week add up on the joints and CNS — recovery isn\'t optional here.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Squat, Bench, and Deadlift each lead their own day',
+      overview: 'Three of the program\'s four heavy-lift days — Squat, Bench, Deadlift — each keeping their own accessory work. Overhead Press is the one lift that doesn\'t fit at this frequency; it returns at 4 days and up.',
+      days: {
+        d1: { label:'Day 1', sub:'Squat + Legs', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Squat', sets:'5×5'},
+            {name:'Bulgarian Split Squat', sets:'3×10-12/leg'},
+            {name:'Leg Extension', sets:'3×12-15'},
+            {name:'Leg Curl', sets:'3×12-15'},
+            {name:'Standing Calf Raise', sets:'3×12-15'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). The heavy top sets this week add up on the joints and CNS — recovery isn\'t optional here.' },
+        d3: { label:'Day 3', sub:'Bench + Chest/Triceps', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Bench Press', sets:'5×5'},
+            {name:'Incline DB Press', sets:'3×10-12'},
+            {name:'Cable Fly', sets:'3×12-15'},
+            {name:'Triceps Pushdown', sets:'3×12-15'},
+            {name:'Skull Crushers', sets:'3×10-12'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Deadlift + Back/Biceps', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Deadlift', sets:'4×5'},
+            {name:'Barbell Row', sets:'4×8-10'},
+            {name:'Lat Pulldown', sets:'3×10-12'},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'EZ Bar Curl', sets:'3×10-12'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    4: {
+      short: 'All four heavy lifts, no pump day yet',
+      overview: 'Squat, Bench, Deadlift, and Overhead Press each get their own full day exactly as in the default 5-day program — the only thing missing is the dedicated Accessory Pump day, which returns at 6 days and up as real added volume rather than being squeezed in here at the cost of a heavy-lift day.',
+      days: {
+        d1: { label:'Day 1', sub:'Squat + Legs', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Squat', sets:'5×5'},
+            {name:'Bulgarian Split Squat', sets:'3×10-12/leg'},
+            {name:'Leg Extension', sets:'3×12-15'},
+            {name:'Leg Curl', sets:'3×12-15'},
+            {name:'Standing Calf Raise', sets:'3×12-15'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). The heavy top sets this week add up on the joints and CNS — recovery isn\'t optional here.' },
+        d3: { label:'Day 3', sub:'Bench + Chest/Triceps', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Bench Press', sets:'5×5'},
+            {name:'Incline DB Press', sets:'3×10-12'},
+            {name:'Cable Fly', sets:'3×12-15'},
+            {name:'Triceps Pushdown', sets:'3×12-15'},
+            {name:'Skull Crushers', sets:'3×10-12'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Deadlift + Back/Biceps', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Deadlift', sets:'4×5'},
+            {name:'Barbell Row', sets:'4×8-10'},
+            {name:'Lat Pulldown', sets:'3×10-12'},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'EZ Bar Curl', sets:'3×10-12'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Overhead Press + Shoulders', plate:'p-green', plateNum:'10', duration:'~50 min',
+          exercises:[
+            {name:'Overhead Press', sets:'5×5'},
+            {name:'DB Shoulder Press', sets:'3×10-12'},
+            {name:'Lateral Raise', sets:'3×12-15', superTag:'Superset with next'},
+            {name:'Rear Delt Fly', sets:'3×15'},
+            {name:'Cable Curl', sets:'3×10-12'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.powerbuilding), used as-is.
+    6: {
+      short: 'The full 5-day program plus a 2nd arms & weak-points day',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 2nd accessory day covering arms, rear delts, and hamstrings — extending this program\'s own established finding (see the Accessory Pump Day\'s in-code notes) that those groups were the real volume gap, rather than adding a 2nd heavy squat, bench, deadlift, or overhead press session on top of an already-full week of top sets.',
+      days: {
+        d1: { label:'Day 1', sub:'Squat + Legs', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Squat', sets:'5×5'},
+            {name:'Bulgarian Split Squat', sets:'3×10-12/leg'},
+            {name:'Leg Extension', sets:'3×12-15'},
+            {name:'Leg Curl', sets:'3×12-15'},
+            {name:'Standing Calf Raise', sets:'3×12-15'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Bench + Chest/Triceps', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Bench Press', sets:'5×5'},
+            {name:'Incline DB Press', sets:'3×10-12'},
+            {name:'Cable Fly', sets:'3×12-15'},
+            {name:'Triceps Pushdown', sets:'3×12-15'},
+            {name:'Skull Crushers', sets:'3×10-12'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). The heavy top sets this week add up on the joints and CNS — recovery isn\'t optional here.' },
+        d4: { label:'Day 4', sub:'Deadlift + Back/Biceps', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Deadlift', sets:'4×5'},
+            {name:'Barbell Row', sets:'4×8-10'},
+            {name:'Lat Pulldown', sets:'3×10-12'},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'EZ Bar Curl', sets:'3×10-12'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Overhead Press + Shoulders', plate:'p-green', plateNum:'10', duration:'~50 min',
+          exercises:[
+            {name:'Overhead Press', sets:'5×5'},
+            {name:'DB Shoulder Press', sets:'3×10-12'},
+            {name:'Lateral Raise', sets:'3×12-15', superTag:'Superset with next'},
+            {name:'Rear Delt Fly', sets:'3×15'},
+            {name:'Cable Curl', sets:'3×10-12'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Accessory Pump Day', plate:'p-off', plateNum:'5', duration:'~45 min',
+          exercises:[
+            {name:'Leg Press', sets:'3×12-15'},
+            {name:'Romanian Deadlift', sets:'3×10-12'},
+            {name:'Cable Row', sets:'3×12-15'},
+            {name:'Rope Pushdown', sets:'3×12-15'},
+            {name:'Cable Crunch', sets:'3×15'},
+            {name:'Hanging Leg Raise', sets:'3×12-15'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Arms & Weak Points', plate:'p-off', plateNum:'5', duration:'~40 min',
+          exercises:[
+            {name:'Leg Curl', sets:'3×12-15'},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Cable Curl', sets:'3×10-12'},
+            {name:'Rear Delt Fly', sets:'3×15'},
+            {name:'Skull Crushers', sets:'3×10-12'},
+            {name:'Cable Crunch', sets:'3×15'},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, plus one deliberately easy recovery day',
+      overview: 'The same six days as the 6-day plan, completely unchanged — but the week does NOT add an 8th kind of hard session on top of an already-full 6 days. What was the lone rest/cardio slot becomes explicit light mobility instead: even training every single day, real programming still needs one day where nothing is loaded near failure.',
+      days: {
+        d1: { label:'Day 1', sub:'Squat + Legs', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Squat', sets:'5×5'},
+            {name:'Bulgarian Split Squat', sets:'3×10-12/leg'},
+            {name:'Leg Extension', sets:'3×12-15'},
+            {name:'Leg Curl', sets:'3×12-15'},
+            {name:'Standing Calf Raise', sets:'3×12-15'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Bench + Chest/Triceps', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Bench Press', sets:'5×5'},
+            {name:'Incline DB Press', sets:'3×10-12'},
+            {name:'Cable Fly', sets:'3×12-15'},
+            {name:'Triceps Pushdown', sets:'3×12-15'},
+            {name:'Skull Crushers', sets:'3×10-12'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Mobility & Easy Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min easy walk or bike plus loose joint mobility work — conversational pace throughout. You picked 7 days a week, and this IS one of them, but nothing here is loaded near failure on purpose.' },
+        d4: { label:'Day 4', sub:'Deadlift + Back/Biceps', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Deadlift', sets:'4×5'},
+            {name:'Barbell Row', sets:'4×8-10'},
+            {name:'Lat Pulldown', sets:'3×10-12'},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'EZ Bar Curl', sets:'3×10-12'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Overhead Press + Shoulders', plate:'p-green', plateNum:'10', duration:'~50 min',
+          exercises:[
+            {name:'Overhead Press', sets:'5×5'},
+            {name:'DB Shoulder Press', sets:'3×10-12'},
+            {name:'Lateral Raise', sets:'3×12-15', superTag:'Superset with next'},
+            {name:'Rear Delt Fly', sets:'3×15'},
+            {name:'Cable Curl', sets:'3×10-12'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Accessory Pump Day', plate:'p-off', plateNum:'5', duration:'~45 min',
+          exercises:[
+            {name:'Leg Press', sets:'3×12-15'},
+            {name:'Romanian Deadlift', sets:'3×10-12'},
+            {name:'Cable Row', sets:'3×12-15'},
+            {name:'Rope Pushdown', sets:'3×12-15'},
+            {name:'Cable Crunch', sets:'3×15'},
+            {name:'Hanging Leg Raise', sets:'3×12-15'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Arms & Weak Points', plate:'p-off', plateNum:'5', duration:'~40 min',
+          exercises:[
+            {name:'Leg Curl', sets:'3×12-15'},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Cable Curl', sets:'3×10-12'},
+            {name:'Rear Delt Fly', sets:'3×15'},
+            {name:'Skull Crushers', sets:'3×10-12'},
+            {name:'Cable Crunch', sets:'3×15'},
           ]
         },
       }
