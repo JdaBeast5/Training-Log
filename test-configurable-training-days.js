@@ -28,7 +28,11 @@ const src = readIndexSource();
 const pureChunks = [
   extractConst(src, 'programs'),
   extractConst(src, 'DAYS_PER_WEEK_PROGRAMS'),
+  extractConst(src, 'DAYS_PER_WEEK_STYLE_CONTAINERS'),
   extractConst(src, 'DAYS_PER_WEEK_ORIGINAL'),
+  extractConst(src, 'DAYS_PER_WEEK_CONTAINER_DEFAULT'),
+  extractConst(src, 'CYCLING_STYLES'),
+  'var activeCyclingStyle = "road";', // mirrors the real `let activeCyclingStyle = 'road';` default
   extractConst(src, 'PROGRAM_DAY_COUNT_VARIANTS'),
   extractFunction(src, 'daysPerWeekWarningState'),
 ];
@@ -144,6 +148,120 @@ for(const programKey of PROGRAMS_TO_CHECK){
     assert.deepStrictEqual(subs6, subs7);
   });
 }
+
+// [Cycling — the first style-variant container] -----------------------------
+// Cycling is structurally different from every program in PROGRAMS_TO_CHECK
+// above: `programs.cycling.days` isn't fixed content, it's swapped at
+// runtime per sub-style (Road/Mountain) from CYCLING_STYLES. So
+// PROGRAM_DAY_COUNT_VARIANTS.cycling is keyed by sub-style FIRST, then day
+// count (cycling.road[n], not cycling[n]) -- deliberately NOT added to
+// PROGRAMS_TO_CHECK, since every loop above assumes the flat {1..7} shape
+// and would either silently check the wrong thing or throw against a
+// nested one. Same coverage, adapted to the real shape.
+const CYCLING_STYLES_TO_CHECK = ['road', 'mountain'];
+const CYCLING_OMITTED_DEFAULT_COUNT = 5; // both styles' own default is a 5-day week
+
+for(const style of CYCLING_STYLES_TO_CHECK){
+  for(const n of ALL_COUNTS){
+    test(`cycling.${style} day-count ${n}: a real plan resolves (either an authored variant, or the style's own default for the intentionally-omitted count), with all 7 slots present`, (assert)=>{
+      const [days] = runSandbox(pureChunks, `
+        const variant = PROGRAM_DAY_COUNT_VARIANTS.cycling['${style}'][${n}];
+        const resolved = variant || CYCLING_STYLES['${style}'];
+        __capture.push(resolved.days);
+      `);
+      assert.strictEqual(Object.keys(days).length, 7, 'must always be exactly d1..d7');
+      ['d1','d2','d3','d4','d5','d6','d7'].forEach(key => {
+        assert.ok(days[key], `missing ${key}`);
+        assert.ok(days[key].sub, `${key} missing a sub-label`);
+        if(!days[key].rest){
+          assert.ok(Array.isArray(days[key].exercises) && days[key].exercises.length > 0, `${key} is a training day but has no exercises`);
+        }
+      });
+    });
+  }
+}
+
+for(const style of CYCLING_STYLES_TO_CHECK){
+  test(`cycling.${style}: every hand-authored day-count's TRAINING day count actually matches the count selected`, (assert)=>{
+    const [results] = runSandbox(pureChunks, `
+      const out = {};
+      for(const n of [1,2,3,4,5,6,7]){
+        const variant = PROGRAM_DAY_COUNT_VARIANTS.cycling['${style}'][n];
+        if(!variant) continue;
+        out[n] = Object.values(variant.days).filter(d=>!d.rest).length;
+      }
+      __capture.push(out);
+    `);
+    for(const n of ALL_COUNTS){
+      if(n === CYCLING_OMITTED_DEFAULT_COUNT) continue;
+      const expected = (n === 7) ? 6 : n;
+      assert.strictEqual(results[n], expected, `n=${n} should have exactly ${expected} training days, got ${results[n]}`);
+    }
+  });
+
+  test(`sabotage: cycling.${style} day-count 5 is the intentionally-omitted default — PROGRAM_DAY_COUNT_VARIANTS.cycling.${style} has no key "5"`, (assert)=>{
+    const [has5] = runSandbox(pureChunks, `__capture.push(Object.prototype.hasOwnProperty.call(PROGRAM_DAY_COUNT_VARIANTS.cycling['${style}'], '5'));`);
+    assert.strictEqual(has5, false);
+  });
+
+  test(`cycling.${style}: all 7 day-count plans have genuinely distinct overview text (sabotage: catches a copy-paste-without-editing mistake across counts)`, (assert)=>{
+    const [overviews] = runSandbox(pureChunks, `
+      const out = [];
+      for(const n of [1,2,3,4,5,6,7]){
+        const variant = PROGRAM_DAY_COUNT_VARIANTS.cycling['${style}'][n] || CYCLING_STYLES['${style}'];
+        out.push(variant.overview);
+      }
+      __capture.push(out);
+    `);
+    assert.strictEqual(overviews.length, 7);
+    assert.strictEqual(new Set(overviews).size, 7, 'expected 7 distinct overview strings, found duplicates');
+    overviews.forEach(o => assert.ok(o && o.length > 40, 'overview text looks too short to be a real description'));
+  });
+
+  test(`sabotage: cycling.${style}'s 6-day and 7-day plans keep the SAME real training days`, (assert)=>{
+    const [subs6, subs7] = runSandbox(pureChunks, `
+      const subsOf = (days) => Object.values(days).filter(d=>!d.rest).map(d=>d.sub).sort();
+      __capture.push(subsOf(PROGRAM_DAY_COUNT_VARIANTS.cycling['${style}'][6].days));
+      __capture.push(subsOf(PROGRAM_DAY_COUNT_VARIANTS.cycling['${style}'][7].days));
+    `);
+    assert.deepStrictEqual(subs6, subs7);
+  });
+}
+
+test('sabotage: cycling.road\'s 6-day and 7-day extra day is "Extra Easy Ride", never a 4th hard-interval day — proving the "polarized mostly-easy week" design decision landed in the data', (assert)=>{
+  const [sub6, sub7, exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.cycling.road[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.cycling.road[7].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.cycling.road[6].days.d7.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Easy Ride');
+  assert.strictEqual(sub7, 'Extra Easy Ride');
+  ['FTP Intervals', 'Hill Repeats (seated climbing)', 'Sprint Intervals (Bike)'].forEach(hardEx => {
+    assert.strictEqual(exNames6.includes(hardEx), false, `cycling.road's 7th day should contain no hard-interval exercise, found ${hardEx}`);
+  });
+});
+
+test('sabotage: cycling.mountain\'s 6-day and 7-day extra day is "Extra Technical Trail Time", never a 2nd punchy power-interval day — proving the "skill work over more intervals" design decision landed in the data', (assert)=>{
+  const [sub6, sub7, exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.cycling.mountain[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.cycling.mountain[7].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.cycling.mountain[6].days.d7.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Technical Trail Time');
+  assert.strictEqual(sub7, 'Extra Technical Trail Time');
+  ['Standing Climb Repeats', 'Sprint Intervals (Bike)'].forEach(hardEx => {
+    assert.strictEqual(exNames6.includes(hardEx), false, `cycling.mountain's 7th day should contain no punchy power-interval exercise, found ${hardEx}`);
+  });
+});
+
+test('sabotage: cycling is deliberately NOT in the flat PROGRAMS_TO_CHECK/OMITTED_DEFAULT_COUNT shape — PROGRAM_DAY_COUNT_VARIANTS.cycling has no numeric-keyed day count directly on it, only sub-style keys', (assert)=>{
+  const [hasNumeric, hasStyleKeys] = runSandbox(pureChunks, `
+    __capture.push(Object.prototype.hasOwnProperty.call(PROGRAM_DAY_COUNT_VARIANTS.cycling, '1'));
+    __capture.push(['road','mountain'].every(k => Object.prototype.hasOwnProperty.call(PROGRAM_DAY_COUNT_VARIANTS.cycling, k)));
+  `);
+  assert.strictEqual(hasNumeric, false, 'cycling must not have a flat day-count key — it would silently shadow the real nested style-keyed shape');
+  assert.strictEqual(hasStyleKeys, true);
+});
 
 test('sabotage: strength\'s 7-day plan reframes the rest slot as light mobility/cardio, NOT a full-rest day and NOT a 7th hard session', (assert)=>{
   const [day3] = runSandbox(pureChunks, `__capture.push(PROGRAM_DAY_COUNT_VARIANTS.strength[7].days.d3);`);
@@ -332,14 +450,14 @@ const bodyGoalChunks = [
 // athletic, bodyweight, calisthenics) are exactly FOCUS_ELIGIBLE_PROGRAMS'
 // membership, so their extra accessory days align with body goals for
 // free. Batch 4 (core, jumprope, mobility), batch 6 (senior, desk,
-// pilates), and batch 7 (boxingsc, hyrox, grappling) are deliberately NOT
-// in that list -- these are the two disjoint groups, checked separately.
-// (Batch 5 -- running, swimming, climbing -- isn't in either check list;
-// also not in FOCUS_ELIGIBLE_PROGRAMS, but that batch didn't add the
-// corresponding negative-case coverage. Pre-existing gap, noted rather
-// than silently backfilled here.)
+// pilates), batch 7 (boxingsc, hyrox, grappling), and batch 8 (cycling) are
+// deliberately NOT in that list -- these are the two disjoint groups,
+// checked separately. (Batch 5 -- running, swimming, climbing -- isn't in
+// either check list; also not in FOCUS_ELIGIBLE_PROGRAMS, but that batch
+// didn't add the corresponding negative-case coverage. Pre-existing gap,
+// noted rather than silently backfilled here.)
 const FOCUS_ELIGIBLE_BATCH = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics'];
-const NON_FOCUS_ELIGIBLE_BATCH = ['core', 'jumprope', 'mobility', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling'];
+const NON_FOCUS_ELIGIBLE_BATCH = ['core', 'jumprope', 'mobility', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling', 'cycling'];
 
 test('FOCUS_ELIGIBLE_PROGRAMS already covers the first 8 programs rolled out — the reason their extra accessory days align with body goals for free', (assert)=>{
   const [results] = runSandbox(bodyGoalChunks, `
@@ -461,6 +579,68 @@ test('sabotage: applyDaysPerWeekProgramData NEVER touches a program outside DAYS
   `);
   assert.strictEqual(sameRef, true);
   assert.strictEqual(sameOverview, true);
+});
+
+// [applyDaysPerWeekProgramData — cycling's style-container branch] --------------
+// Cycling needs its own coverage here: unlike every flat program above,
+// `.days` always follows the active sub-style (pref or no pref), while
+// `.overview`/`.short` only swap to the variant's text once a real
+// day-count variant is active -- otherwise they must revert to the
+// container's own generic blurb (DAYS_PER_WEEK_CONTAINER_DEFAULT), NOT the
+// sub-style's blurb. Getting this wrong either regresses cycling's
+// pre-existing pref-unset behavior (main card would start describing
+// "Road" specifically instead of "pick a style below") or silently
+// discards the day-count pref on every style switch.
+test('applyDaysPerWeekProgramData with pref=null: cycling.days follows the active style (CYCLING_STYLES.road), but .overview/.short stay the container\'s own generic blurb, NOT the style\'s blurb', (assert)=>{
+  const [daysMatch, overviewIsContainer, shortIsContainer, overviewIsNotStyle] = runSandbox(applyChunks, `
+    applyDaysPerWeekProgramData();
+    __capture.push(JSON.stringify(programs.cycling.days) === JSON.stringify(CYCLING_STYLES.road.days));
+    __capture.push(programs.cycling.overview === DAYS_PER_WEEK_CONTAINER_DEFAULT.cycling.overview);
+    __capture.push(programs.cycling.short === DAYS_PER_WEEK_CONTAINER_DEFAULT.cycling.short);
+    __capture.push(programs.cycling.overview !== CYCLING_STYLES.road.overview);
+  `);
+  assert.strictEqual(daysMatch, true);
+  assert.strictEqual(overviewIsContainer, true);
+  assert.strictEqual(shortIsContainer, true);
+  assert.strictEqual(overviewIsNotStyle, true);
+});
+
+test('applyDaysPerWeekProgramData with a real pref set: cycling.days/.overview/.short all regenerate to match the active style\'s authored variant', (assert)=>{
+  const [daysMatch, overviewMatch, shortMatch] = runSandbox(applyChunks, `
+    daysPerWeekPref = 6;
+    applyDaysPerWeekProgramData();
+    const variant = PROGRAM_DAY_COUNT_VARIANTS.cycling.road[6];
+    __capture.push(JSON.stringify(programs.cycling.days) === JSON.stringify(variant.days));
+    __capture.push(programs.cycling.overview === variant.overview);
+    __capture.push(programs.cycling.short === variant.short);
+  `);
+  assert.strictEqual(daysMatch, true);
+  assert.strictEqual(overviewMatch, true);
+  assert.strictEqual(shortMatch, true);
+});
+
+test('REAL invocation: switching activeCyclingStyle from road to mountain and reapplying keeps the SAME day-count pref instead of silently discarding it', (assert)=>{
+  const [daysMatchMountain6, notRoad6] = runSandbox(applyChunks, `
+    daysPerWeekPref = 6;
+    applyDaysPerWeekProgramData(); // road, 6 days
+    activeCyclingStyle = 'mountain';
+    applyDaysPerWeekProgramData(); // style switch -- must reapply the same pref, not clobber .days with the raw style default
+    const mountainVariant = PROGRAM_DAY_COUNT_VARIANTS.cycling.mountain[6];
+    const roadVariant = PROGRAM_DAY_COUNT_VARIANTS.cycling.road[6];
+    __capture.push(JSON.stringify(programs.cycling.days) === JSON.stringify(mountainVariant.days));
+    __capture.push(JSON.stringify(programs.cycling.days) !== JSON.stringify(roadVariant.days));
+  `);
+  assert.strictEqual(daysMatchMountain6, true, 'day count 6 must survive the style switch, applied to the NEW style\'s own 6-day variant');
+  assert.strictEqual(notRoad6, true, 'must not still be showing road\'s 6-day plan after switching to mountain');
+});
+
+test('sabotage: cycling day-count 5 (the intentionally-omitted default) falls back to the active style\'s own CYCLING_STYLES days, not some other style or a stale value', (assert)=>{
+  const [daysMatch] = runSandbox(applyChunks, `
+    daysPerWeekPref = 5;
+    applyDaysPerWeekProgramData();
+    __capture.push(JSON.stringify(programs.cycling.days) === JSON.stringify(CYCLING_STYLES.road.days));
+  `);
+  assert.strictEqual(daysMatch, true);
 });
 
 // [loadDaysPerWeekPref / saveDaysPerWeekPref] ------------------------------------
