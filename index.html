@@ -4989,7 +4989,7 @@
         <div id="prefDaysPerWeek">
           <label class="care-label" for="daysPerWeekInput">Training days per week</label>
           <input type="number" id="daysPerWeekInput" class="care-input" min="1" max="7" inputmode="numeric" placeholder="Program default">
-          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, Powerbuilding, Athletic/Plyo, Bodyweight, and Calisthenics; other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
+          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, Powerbuilding, Athletic/Plyo, Bodyweight, Calisthenics, Core &amp; Stability, Jump Rope, and Mobility &amp; Flexibility; other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
           <div id="daysPerWeekWarning" style="display:none"></div>
         </div>
 
@@ -6274,7 +6274,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.202';
+const APP_VERSION = '3.203';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6693,6 +6693,11 @@ const WHATS_NEW = {
   '3.202': { headline: 'Training days per week now covers Athletic, Bodyweight, and Calisthenics', points: [
     'These three now have their own real, purpose-built day counts (1-7), same standard as the other 5 programs already rolled out — including genuine program-specific choices: Athletic\'s higher-frequency days add sub-maximal speed work rather than a repeated max-effort jump session (this program is explicit about protecting joints and CNS from explosive training), and Calisthenics keeps its rest day genuinely skill-free even at 7 days, since handstands, levers, and muscle-ups need real joint recovery.',
     'All 8 programs with this feature are also the same 8 already covered by the Body Goal focus-exercise system, so the new accessory days on every one of them already lean toward whatever goal you\'ve set.',
+  ]},
+  '3.203': { headline: 'Training days per week now covers Core & Stability, Jump Rope, and Mobility', points: [
+    'These three now have their own real, purpose-built day counts (1-7). Core and Jump Rope follow the same reasoning as the rest of this rollout — genuine breadth at low frequency, dedicated (not repeated) sessions at high frequency, with Jump Rope specifically keeping a real rope-free rest day even at 7 days since rope work stays high-impact on the lower legs no matter the intensity.',
+    'Mobility & Flexibility needed different reasoning entirely — its own research (already cited in this program) found stretching FREQUENCY doesn\'t significantly drive range-of-motion gains, unlike every muscle-building program in this rollout. So its day counts are framed honestly: low counts are genuinely legitimate choices, not a compromise floor, and high counts are framed as consistency insurance, not extra stimulus.',
+    'Core, Jump Rope, and Mobility are not part of the Body Goal focus-exercise system, and that\'s unchanged by this update — an aesthetic accessory doesn\'t fit a specialization or flexibility program the way it fits a hypertrophy-oriented one.',
   ]},
 };
 
@@ -13457,21 +13462,29 @@ function renderPosingClasses(){
 //
 // Rollout status: batch 1 was strength + bodybuilding. Batch 2 added the
 // barbell-strength family -- oly, powerlifting, powerbuilding. Batch 3
-// (this one) adds athletic, bodyweight, calisthenics -- the rest of
-// FOCUS_ELIGIBLE_PROGRAMS' current membership, so every program that
-// already gets a body-goal focus exercise (see below) now also gets a real
-// per-day-count plan. Deliberately excluded, permanently, not just "not
-// yet": the 13 medical/rehab programs (obesity, hypertension, diabetes,
-// osteoporosis, bariatric x2, prenatal, postpartum, and the 5 rehab
-// tracks). Their day structure is a clinical-progression decision, not a
-// frequency-optimization one, and this app already treats deferring to a
-// user's care team as "deliberate and non-negotiable" (see
-// programs.medical's own overview) -- letting someone dial a rehab-ACL
-// protocol up to 7 days/week would be unsafe, not just untailored.
-// Remaining scope: the plain programs not yet covered (core, jumprope,
-// mobility, running, senior, swimming, climbing, boxingsc, desk, hyrox,
-// grappling, pilates) and the combat/cycling/watersports/yoga style-variant
-// containers, in further batches.
+// added athletic, bodyweight, calisthenics -- completing
+// FOCUS_ELIGIBLE_PROGRAMS' membership, so every program that already gets a
+// body-goal focus exercise (see below) also gets a real per-day-count plan.
+// Batch 4 (this one) adds core, jumprope, mobility -- NOT in
+// FOCUS_ELIGIBLE_PROGRAMS, and deliberately still not added there: that
+// list's own comment already excludes non-hypertrophy-oriented programs,
+// and a specialization/conditioning/flexibility program is exactly that
+// category. Mobility specifically needed different reasoning throughout,
+// not the same template reapplied -- its own citation (Konrad et al. 2023,
+// already referenced on that program's overview comment) found stretching
+// FREQUENCY itself doesn't drive range-of-motion gains, unlike the
+// muscle-frequency argument every strength-family program above leans on.
+// Deliberately excluded, permanently, not just "not yet": the 13
+// medical/rehab programs (obesity, hypertension, diabetes, osteoporosis,
+// bariatric x2, prenatal, postpartum, and the 5 rehab tracks). Their day
+// structure is a clinical-progression decision, not a frequency-
+// optimization one, and this app already treats deferring to a user's care
+// team as "deliberate and non-negotiable" (see programs.medical's own
+// overview) -- letting someone dial a rehab-ACL protocol up to 7 days/week
+// would be unsafe, not just untailored. Remaining scope: the plain
+// programs not yet covered (running, senior, swimming, climbing, boxingsc,
+// desk, hyrox, grappling, pilates) and the combat/cycling/watersports/yoga
+// style-variant containers, in further batches.
 //
 // Accessory days already align with body goals -- for free. The user asked
 // for the new accessory/high-frequency days to reflect a person's body
@@ -13483,7 +13496,7 @@ function renderPosingClasses(){
 // from. Every program rolled out here is already on that list, so the new
 // accessory days inherit this automatically. Verified with real invocation
 // in test-configurable-training-days.js, not just reasoned about.
-const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics'];
+const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility'];
 const DAYS_PER_WEEK_ORIGINAL = Object.fromEntries(DAYS_PER_WEEK_PROGRAMS.map(key =>
   [key, { days: programs[key].days, overview: programs[key].overview, short: programs[key].short }]
 ));
@@ -15652,6 +15665,787 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Handstand Hold (wall) (Light)', sets:'3×15-20s', noWeight:true},
             {name:'Bridge Hold', sets:'2×20-30s', noWeight:true},
             {name:'Band Dislocates', sets:'3×12', noWeight:true},
+          ]
+        },
+      }
+    },
+  },
+  // Core, Jump Rope, and Mobility are NOT in FOCUS_ELIGIBLE_PROGRAMS, and
+  // that's deliberate, unchanged by this rollout -- see that list's own
+  // comment: aesthetic body-goal add-ons don't fit a specialization/
+  // conditioning/flexibility program the way they fit a hypertrophy-
+  // oriented one. Not adding them here either.
+  core: {
+    1: {
+      short: 'Full coverage — the floor for this specialization program',
+      overview: 'One session touching multiple anti-movement categories (anti-extension, anti-rotation, loaded carries) at reduced volume, since a full week only gets one shot. This program is already deliberately narrow — a bolt-on, not a standalone plan (see its own overview) — so even at low frequency the goal is breadth across categories, not depth in just one.',
+      days: {
+        d1: { label:'Day 1', sub:'Full Coverage', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'McGill Curl-up', sets:'2×8-10'},
+            {name:'Pallof Press', sets:'2×10/side'},
+            {name:'Farmer\'s Carry', sets:'3×30yd'},
+            {name:'Bird Dog', sets:'2×10/side'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Core stabilizers recover fast but still need a break from direct loading.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Core stabilizers recover fast but still need a break from direct loading.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Anti-Extension and Rotational Power, their own dedicated days',
+      overview: 'Anti-extension/spine stability and rotational power/anti-rotation each get their own full session — the two most foundational categories this program trains, given real dedicated practice instead of being combined into one shorter day.',
+      days: {
+        d1: { label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'McGill Curl-up', sets:'3×8-10'},
+            {name:'Bird Dog', sets:'3×8/side'},
+            {name:'Side Plank', sets:'3×30-45s/side'},
+            {name:'Dead Bug', sets:'3×10/side'},
+            {name:'Ab Wheel Rollout', sets:'3×8-10'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Core stabilizers recover fast but still need a break from direct loading.' },
+        d3: { label:'Day 3', sub:'Rotational Power & Obliques', plate:'p-blue', plateNum:'20', duration:'~45 min',
+          exercises:[
+            {name:'Cable Woodchopper', sets:'3×10/side'},
+            {name:'Landmine Rotation', sets:'3×8/side'},
+            {name:'Pallof Press', sets:'3×10/side'},
+            {name:'Russian Twist (weighted)', sets:'3×15/side'},
+            {name:'Hanging Leg Raise', sets:'3×10-12'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Core stabilizers recover fast but still need a break from direct loading.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Anti-Extension, Rotational Power, and Loaded Carries',
+      overview: 'The three most foundational anti-movement categories this program trains — anti-extension, anti-rotation, and anti-lateral flexion (carries) — each keeping their own day.',
+      days: {
+        d1: { label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'McGill Curl-up', sets:'3×8-10'},
+            {name:'Bird Dog', sets:'3×8/side'},
+            {name:'Side Plank', sets:'3×30-45s/side'},
+            {name:'Dead Bug', sets:'3×10/side'},
+            {name:'Ab Wheel Rollout', sets:'3×8-10'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Core stabilizers recover fast but still need a break from direct loading.' },
+        d3: { label:'Day 3', sub:'Rotational Power & Obliques', plate:'p-blue', plateNum:'20', duration:'~45 min',
+          exercises:[
+            {name:'Cable Woodchopper', sets:'3×10/side'},
+            {name:'Landmine Rotation', sets:'3×8/side'},
+            {name:'Pallof Press', sets:'3×10/side'},
+            {name:'Russian Twist (weighted)', sets:'3×15/side'},
+            {name:'Hanging Leg Raise', sets:'3×10-12'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Loaded Carries & Anti-Lateral Flexion', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+          exercises:[
+            {name:'Farmer\'s Carry', sets:'4×30yd'},
+            {name:'Suitcase Carry', sets:'3×20yd/side'},
+            {name:'Plank', sets:'3×45-60s', noWeight:true},
+            {name:'Weighted Sit-up', sets:'3×12'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    4: {
+      short: 'Anti-Extension, Rotational Power, Carries, and Dynamic Core',
+      overview: 'Four of this program\'s five categories each get their own day. Lower-Back Stabilizers & Mobility is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      days: {
+        d1: { label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'McGill Curl-up', sets:'3×8-10'},
+            {name:'Bird Dog', sets:'3×8/side'},
+            {name:'Side Plank', sets:'3×30-45s/side'},
+            {name:'Dead Bug', sets:'3×10/side'},
+            {name:'Ab Wheel Rollout', sets:'3×8-10'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Core stabilizers recover fast but still need a break from direct loading.' },
+        d3: { label:'Day 3', sub:'Rotational Power & Obliques', plate:'p-blue', plateNum:'20', duration:'~45 min',
+          exercises:[
+            {name:'Cable Woodchopper', sets:'3×10/side'},
+            {name:'Landmine Rotation', sets:'3×8/side'},
+            {name:'Pallof Press', sets:'3×10/side'},
+            {name:'Russian Twist (weighted)', sets:'3×15/side'},
+            {name:'Hanging Leg Raise', sets:'3×10-12'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Loaded Carries & Anti-Lateral Flexion', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+          exercises:[
+            {name:'Farmer\'s Carry', sets:'4×30yd'},
+            {name:'Suitcase Carry', sets:'3×20yd/side'},
+            {name:'Plank', sets:'3×45-60s', noWeight:true},
+            {name:'Weighted Sit-up', sets:'3×12'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Hanging & Dynamic Core', plate:'p-green', plateNum:'10', duration:'~40 min',
+          exercises:[
+            {name:'Hanging Leg Raise', sets:'4×10-12'},
+            {name:'Toes-to-Bar', sets:'3×AMRAP'},
+            {name:'Cable Crunch', sets:'3×15'},
+            {name:'Pallof Press', sets:'3×10/side'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.core), used as-is.
+    6: {
+      short: 'The full 5-day program plus a carries & grip endurance day',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of heavier carry work and grip endurance — real added volume in the anti-lateral-flexion category this program already trains, grounded in the same loaded-carry emphasis McGill\'s own trunk-stability research uses, not a repeat of an existing day.',
+      days: {
+        d1: { label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'McGill Curl-up', sets:'3×8-10'},
+            {name:'Bird Dog', sets:'3×8/side'},
+            {name:'Side Plank', sets:'3×30-45s/side'},
+            {name:'Dead Bug', sets:'3×10/side'},
+            {name:'Ab Wheel Rollout', sets:'3×8-10'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rotational Power & Obliques', plate:'p-blue', plateNum:'20', duration:'~45 min',
+          exercises:[
+            {name:'Cable Woodchopper', sets:'3×10/side'},
+            {name:'Landmine Rotation', sets:'3×8/side'},
+            {name:'Pallof Press', sets:'3×10/side'},
+            {name:'Russian Twist (weighted)', sets:'3×15/side'},
+            {name:'Hanging Leg Raise', sets:'3×10-12'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Core stabilizers recover fast but still need a break from direct loading.' },
+        d4: { label:'Day 4', sub:'Loaded Carries & Anti-Lateral Flexion', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+          exercises:[
+            {name:'Farmer\'s Carry', sets:'4×30yd'},
+            {name:'Suitcase Carry', sets:'3×20yd/side'},
+            {name:'Plank', sets:'3×45-60s', noWeight:true},
+            {name:'Weighted Sit-up', sets:'3×12'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Hanging & Dynamic Core', plate:'p-green', plateNum:'10', duration:'~40 min',
+          exercises:[
+            {name:'Hanging Leg Raise', sets:'4×10-12'},
+            {name:'Toes-to-Bar', sets:'3×AMRAP'},
+            {name:'Cable Crunch', sets:'3×15'},
+            {name:'Pallof Press', sets:'3×10/side'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Lower-Back Stabilizers & Mobility', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Bird Dog', sets:'3×10/side'},
+            {name:'Side Plank', sets:'3×30-45s/side'},
+            {name:'Superman Hold', sets:'3×20-30s', noWeight:true},
+            {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Carries & Grip Endurance', plate:'p-off', plateNum:'5', duration:'~35 min',
+          exercises:[
+            {name:'Farmer\'s Carry', sets:'4×40yd'},
+            {name:'Suitcase Carry', sets:'4×25yd/side'},
+            {name:'Plank', sets:'3×60s', noWeight:true},
+            {name:'Ab Wheel Rollout', sets:'3×10-12'},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, plus one deliberately easy recovery day',
+      overview: 'The same six days as the 6-day plan, completely unchanged — but the week does NOT add an 8th kind of hard session on top of an already-full 6 days. What was the lone rest/cardio slot becomes explicit light mobility instead.',
+      days: {
+        d1: { label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'McGill Curl-up', sets:'3×8-10'},
+            {name:'Bird Dog', sets:'3×8/side'},
+            {name:'Side Plank', sets:'3×30-45s/side'},
+            {name:'Dead Bug', sets:'3×10/side'},
+            {name:'Ab Wheel Rollout', sets:'3×8-10'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rotational Power & Obliques', plate:'p-blue', plateNum:'20', duration:'~45 min',
+          exercises:[
+            {name:'Cable Woodchopper', sets:'3×10/side'},
+            {name:'Landmine Rotation', sets:'3×8/side'},
+            {name:'Pallof Press', sets:'3×10/side'},
+            {name:'Russian Twist (weighted)', sets:'3×15/side'},
+            {name:'Hanging Leg Raise', sets:'3×10-12'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Mobility & Easy Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min easy walk or bike plus loose joint mobility work — conversational pace throughout. You picked 7 days a week, and this IS one of them, but nothing here is loaded near failure on purpose.' },
+        d4: { label:'Day 4', sub:'Loaded Carries & Anti-Lateral Flexion', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+          exercises:[
+            {name:'Farmer\'s Carry', sets:'4×30yd'},
+            {name:'Suitcase Carry', sets:'3×20yd/side'},
+            {name:'Plank', sets:'3×45-60s', noWeight:true},
+            {name:'Weighted Sit-up', sets:'3×12'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Hanging & Dynamic Core', plate:'p-green', plateNum:'10', duration:'~40 min',
+          exercises:[
+            {name:'Hanging Leg Raise', sets:'4×10-12'},
+            {name:'Toes-to-Bar', sets:'3×AMRAP'},
+            {name:'Cable Crunch', sets:'3×15'},
+            {name:'Pallof Press', sets:'3×10/side'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Lower-Back Stabilizers & Mobility', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Bird Dog', sets:'3×10/side'},
+            {name:'Side Plank', sets:'3×30-45s/side'},
+            {name:'Superman Hold', sets:'3×20-30s', noWeight:true},
+            {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Carries & Grip Endurance', plate:'p-off', plateNum:'5', duration:'~35 min',
+          exercises:[
+            {name:'Farmer\'s Carry', sets:'4×40yd'},
+            {name:'Suitcase Carry', sets:'4×25yd/side'},
+            {name:'Plank', sets:'3×60s', noWeight:true},
+            {name:'Ab Wheel Rollout', sets:'3×10-12'},
+          ]
+        },
+      }
+    },
+  },
+  jumprope: {
+    1: {
+      short: 'Rope fundamentals — the floor for this program',
+      overview: 'One lower-intensity session covering basic bounce and footwork, since a full week only gets one shot at building rope coordination. Rope work is high-impact on the lower legs (this program\'s own rest-day note says so directly), so a single session stays at the fundamentals rather than pushing into double-unders or power variations that need more recovery room around them than one day a week provides.',
+      days: {
+        d1: { label:'Day 1', sub:'Rope Fundamentals', plate:'p-red', plateNum:'25', duration:'~30 min',
+          exercises:[
+            {name:'Jump Rope — Basic Bounce', sets:'6×2min rounds', noWeight:true},
+            {name:'Jump Rope — Alternate Foot Step', sets:'3×1min', noWeight:true},
+            {name:'Push-up', sets:'2×15'},
+            {name:'Bodyweight Squat', sets:'2×20'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Ankle and calf mobility, 20-30 min. Rope work is high-impact on the lower legs — this rest day matters.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Ankle and calf mobility, 20-30 min. Rope work is high-impact on the lower legs — this rest day matters.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Basic Endurance and Speed & Footwork, their own dedicated days',
+      overview: 'Basic endurance and speed/footwork each get their own full session — real dedicated practice for both instead of combining them into one shorter day.',
+      days: {
+        d1: { label:'Day 1', sub:'Basic Endurance', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Basic Bounce', sets:'8×2min rounds', noWeight:true},
+            {name:'Jump Rope — Alternate Foot Step', sets:'4×1min', noWeight:true},
+            {name:'Push-up', sets:'3×15'},
+            {name:'Bodyweight Squat', sets:'3×20'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Ankle and calf mobility, 20-30 min. Rope work is high-impact on the lower legs — this rest day matters.' },
+        d3: { label:'Day 3', sub:'Speed & Footwork', plate:'p-blue', plateNum:'20', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
+            {name:'Jump Rope — Boxer Skip', sets:'4×1min', noWeight:true},
+            {name:'Jump Rope — Criss-Cross', sets:'4×1min', noWeight:true},
+            {name:'Bodyweight Squat', sets:'3×20'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Ankle and calf mobility, 20-30 min. Rope work is high-impact on the lower legs — this rest day matters.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Basic Endurance, Speed & Footwork, and HIIT Intervals',
+      overview: 'Basic endurance and speed/footwork keep their own days, plus a 3rd day of HIIT intervals — real conditioning variety without adding a 2nd high-impact power/double-unders session.',
+      days: {
+        d1: { label:'Day 1', sub:'Basic Endurance', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Basic Bounce', sets:'8×2min rounds', noWeight:true},
+            {name:'Jump Rope — Alternate Foot Step', sets:'4×1min', noWeight:true},
+            {name:'Push-up', sets:'3×15'},
+            {name:'Bodyweight Squat', sets:'3×20'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Ankle and calf mobility, 20-30 min. Rope work is high-impact on the lower legs — this rest day matters.' },
+        d3: { label:'Day 3', sub:'Speed & Footwork', plate:'p-blue', plateNum:'20', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
+            {name:'Jump Rope — Boxer Skip', sets:'4×1min', noWeight:true},
+            {name:'Jump Rope — Criss-Cross', sets:'4×1min', noWeight:true},
+            {name:'Bodyweight Squat', sets:'3×20'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'HIIT Intervals', plate:'p-green', plateNum:'10', duration:'~30 min',
+          exercises:[
+            {name:'Jump Rope — Tabata Intervals', sets:'8 rounds', noWeight:true},
+            {name:'Jump Rope — Freestyle Flow', sets:'4×2min', noWeight:true},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    4: {
+      short: 'Basic Endurance, Speed & Footwork, Double Unders, and HIIT',
+      overview: 'Four of this program\'s five sessions each get their own day. Endurance Test + Core is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      days: {
+        d1: { label:'Day 1', sub:'Basic Endurance', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Basic Bounce', sets:'8×2min rounds', noWeight:true},
+            {name:'Jump Rope — Alternate Foot Step', sets:'4×1min', noWeight:true},
+            {name:'Push-up', sets:'3×15'},
+            {name:'Bodyweight Squat', sets:'3×20'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Ankle and calf mobility, 20-30 min. Rope work is high-impact on the lower legs — this rest day matters.' },
+        d3: { label:'Day 3', sub:'Speed & Footwork', plate:'p-blue', plateNum:'20', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
+            {name:'Jump Rope — Boxer Skip', sets:'4×1min', noWeight:true},
+            {name:'Jump Rope — Criss-Cross', sets:'4×1min', noWeight:true},
+            {name:'Bodyweight Squat', sets:'3×20'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Double Unders & Power', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Double Unders', sets:'6×30-45s', noWeight:true},
+            {name:'Jump Rope — High Knees', sets:'4×1min', noWeight:true},
+            {name:'Push-up', sets:'3×15'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'HIIT Intervals', plate:'p-green', plateNum:'10', duration:'~30 min',
+          exercises:[
+            {name:'Jump Rope — Tabata Intervals', sets:'8 rounds', noWeight:true},
+            {name:'Jump Rope — Freestyle Flow', sets:'4×2min', noWeight:true},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.jumprope), used as-is.
+    6: {
+      short: 'The full 5-day program plus low-impact footwork',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of deliberately LOW-impact footwork and coordination — never a 2nd double-unders/power session, which is exactly where the high-impact load this program\'s own rest-day note warns about would stack up.',
+      days: {
+        d1: { label:'Day 1', sub:'Basic Endurance', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Basic Bounce', sets:'8×2min rounds', noWeight:true},
+            {name:'Jump Rope — Alternate Foot Step', sets:'4×1min', noWeight:true},
+            {name:'Push-up', sets:'3×15'},
+            {name:'Bodyweight Squat', sets:'3×20'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Speed & Footwork', plate:'p-blue', plateNum:'20', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
+            {name:'Jump Rope — Boxer Skip', sets:'4×1min', noWeight:true},
+            {name:'Jump Rope — Criss-Cross', sets:'4×1min', noWeight:true},
+            {name:'Bodyweight Squat', sets:'3×20'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Ankle and calf mobility, 20-30 min. Rope work is high-impact on the lower legs — this rest day matters.' },
+        d4: { label:'Day 4', sub:'Double Unders & Power', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Double Unders', sets:'6×30-45s', noWeight:true},
+            {name:'Jump Rope — High Knees', sets:'4×1min', noWeight:true},
+            {name:'Push-up', sets:'3×15'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'HIIT Intervals', plate:'p-green', plateNum:'10', duration:'~30 min',
+          exercises:[
+            {name:'Jump Rope — Tabata Intervals', sets:'8 rounds', noWeight:true},
+            {name:'Jump Rope — Freestyle Flow', sets:'4×2min', noWeight:true},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Endurance Test + Core', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Jump Rope — Continuous Bounce', sets:'3×5min', noWeight:true},
+            {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Footwork & Coordination (Low Impact)', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Jump Rope — Alternate Foot Step', sets:'4×1min', noWeight:true},
+            {name:'Jump Rope — Boxer Skip', sets:'3×1min', noWeight:true},
+            {name:'Bodyweight Squat', sets:'3×20'},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, with the impact-recovery argument still winning on the rest day',
+      overview: 'The same six days as the 6-day plan, completely unchanged. Rope work is high-impact on the lower legs at any intensity — even at 7 days selected, the actual rest day stays genuinely rope-free rather than getting reframed into more practice.',
+      days: {
+        d1: { label:'Day 1', sub:'Basic Endurance', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Basic Bounce', sets:'8×2min rounds', noWeight:true},
+            {name:'Jump Rope — Alternate Foot Step', sets:'4×1min', noWeight:true},
+            {name:'Push-up', sets:'3×15'},
+            {name:'Bodyweight Squat', sets:'3×20'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Speed & Footwork', plate:'p-blue', plateNum:'20', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
+            {name:'Jump Rope — Boxer Skip', sets:'4×1min', noWeight:true},
+            {name:'Jump Rope — Criss-Cross', sets:'4×1min', noWeight:true},
+            {name:'Bodyweight Squat', sets:'3×20'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Ankle and calf mobility, 20-30 min. Even at 7 days selected, this stays rope-free on purpose — rope work is high-impact on the lower legs at any intensity, and that impact needs a real break somewhere.' },
+        d4: { label:'Day 4', sub:'Double Unders & Power', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Double Unders', sets:'6×30-45s', noWeight:true},
+            {name:'Jump Rope — High Knees', sets:'4×1min', noWeight:true},
+            {name:'Push-up', sets:'3×15'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'HIIT Intervals', plate:'p-green', plateNum:'10', duration:'~30 min',
+          exercises:[
+            {name:'Jump Rope — Tabata Intervals', sets:'8 rounds', noWeight:true},
+            {name:'Jump Rope — Freestyle Flow', sets:'4×2min', noWeight:true},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Endurance Test + Core', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Jump Rope — Continuous Bounce', sets:'3×5min', noWeight:true},
+            {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Footwork & Coordination (Low Impact)', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Jump Rope — Alternate Foot Step', sets:'4×1min', noWeight:true},
+            {name:'Jump Rope — Boxer Skip', sets:'3×1min', noWeight:true},
+            {name:'Bodyweight Squat', sets:'3×20'},
+          ]
+        },
+      }
+    },
+  },
+  // IMPORTANT, unique to this program: the usual "frequency matters" framing
+  // this file uses everywhere else does NOT apply here. Konrad et al.
+  // (systematic review, J Sport Health Sci 2023 -- already cited on this
+  // program's own overview comment above) found neither volume, intensity,
+  // nor weekly FREQUENCY of stretching significantly moderates range-of-
+  // motion gains. So low day counts below are framed as genuinely legitimate
+  // choices, not a "floor" to apologize for -- and high day counts are
+  // framed honestly as consistency insurance and broader coverage, NOT as
+  // buying extra ROM stimulus the way more days buys more hypertrophy
+  // stimulus elsewhere in this file. What actually matters per the
+  // research: consistency over time (gains regress in 3-6 weeks of
+  // stopping, not of training less often) -- so every count here emphasizes
+  // sticking with it over hitting a specific number.
+  mobility: {
+    1: {
+      short: 'Full-body coverage — a genuinely legitimate single session',
+      overview: 'One session touching hips, shoulders, and the posterior chain, at reduced volume per area. Unlike a strength program, this is not a compromise floor: real research (Konrad et al. 2023) found stretching frequency itself doesn\'t significantly change range-of-motion outcomes — what actually matters is staying consistent over time, since gains regress after 3-6 weeks of stopping entirely, not from training less often. One honest weekly session, kept up, is a real plan here.',
+      days: {
+        d1: { label:'Day 1', sub:'Full-Body Coverage', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'90/90 Hip Switch', sets:'2×8/side', noWeight:true},
+            {name:'Shoulder CARs', sets:'2×5/side', noWeight:true},
+            {name:'PNF Hamstring Stretch', sets:'2×20-30s/side', noWeight:true},
+            {name:'Thoracic Spine Rotation (Open Book)', sets:'2×8/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Easy movement on the days between your mobility session.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Easy movement on the days between your mobility session.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Lower body/hips and upper body/posterior chain, split',
+      overview: 'Two sessions splitting lower-body/hip work from upper-body/posterior-chain work — more time per area than the single-session plan, though real research says that extra time buys comfort and thoroughness more than it buys extra range-of-motion gain specifically (frequency itself isn\'t the lever here — see this program\'s own citation note).',
+      days: {
+        d1: { label:'Day 1', sub:'Lower Body & Hips', plate:'p-red', plateNum:'25', duration:'~30 min',
+          exercises:[
+            {name:'90/90 Hip Switch', sets:'3×8/side', noWeight:true},
+            {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+            {name:'Ankle Dorsiflexion Stretch', sets:'3×30s/side', noWeight:true},
+            {name:'Pigeon Pose', sets:'2×45s/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Easy movement while your joints get a break from direct mobility loading.' },
+        d3: { label:'Day 3', sub:'Upper Body & Posterior Chain', plate:'p-blue', plateNum:'20', duration:'~30 min',
+          exercises:[
+            {name:'Shoulder CARs', sets:'2×5/side', noWeight:true},
+            {name:'Thoracic Spine Rotation (Open Book)', sets:'3×8/side', noWeight:true},
+            {name:'PNF Hamstring Stretch', sets:'3×20-30s/side', noWeight:true},
+            {name:'Wall Slides', sets:'3×10', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Easy movement while your joints get a break from direct mobility loading.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Hips & Ankles, Shoulders & T-Spine, and Full Body Flow',
+      overview: 'Both dedicated joint-focus days plus a flow day tying everything together — real breadth without needing more days than this to get genuine coverage.',
+      days: {
+        d1: { label:'Day 1', sub:'Hips & Ankles', plate:'p-red', plateNum:'25', duration:'~30 min',
+          exercises:[
+            {name:'90/90 Hip Switch', sets:'3×8/side', noWeight:true},
+            {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+            {name:'Ankle Dorsiflexion Stretch', sets:'3×30s/side', noWeight:true},
+            {name:'Pigeon Pose', sets:'2×45s/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Easy movement while your joints get a break from direct mobility loading.' },
+        d3: { label:'Day 3', sub:'Shoulders & T-Spine', plate:'p-blue', plateNum:'20', duration:'~30 min',
+          exercises:[
+            {name:'Shoulder CARs', sets:'2×5/side', noWeight:true},
+            {name:'Thoracic Spine Rotation (Open Book)', sets:'3×8/side', noWeight:true},
+            {name:'Wall Slides', sets:'3×10', noWeight:true},
+            {name:'Band Dislocates', sets:'3×12', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Full Body Flow', plate:'p-green', plateNum:'10', duration:'~30 min',
+          exercises:[
+            {name:'Sun Salutation Flow', sets:'3 rounds', noWeight:true},
+            {name:'Deep Squat Hold', sets:'3×30-45s', noWeight:true},
+            {name:'Couch Stretch', sets:'2×45s/side', noWeight:true},
+            {name:'Spinal Wave', sets:'2×8', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    4: {
+      short: 'Hips & Ankles, Shoulders & T-Spine, Posterior Chain, and Flow',
+      overview: 'Four of this program\'s five sessions each get their own day. Active Recovery Flow is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      days: {
+        d1: { label:'Day 1', sub:'Hips & Ankles', plate:'p-red', plateNum:'25', duration:'~30 min',
+          exercises:[
+            {name:'90/90 Hip Switch', sets:'3×8/side', noWeight:true},
+            {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+            {name:'Ankle Dorsiflexion Stretch', sets:'3×30s/side', noWeight:true},
+            {name:'Pigeon Pose', sets:'2×45s/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Easy movement while your joints get a break from direct mobility loading.' },
+        d3: { label:'Day 3', sub:'Shoulders & T-Spine', plate:'p-blue', plateNum:'20', duration:'~30 min',
+          exercises:[
+            {name:'Shoulder CARs', sets:'2×5/side', noWeight:true},
+            {name:'Thoracic Spine Rotation (Open Book)', sets:'3×8/side', noWeight:true},
+            {name:'Wall Slides', sets:'3×10', noWeight:true},
+            {name:'Band Dislocates', sets:'3×12', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Posterior Chain & Hamstrings', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+          exercises:[
+            {name:'PNF Hamstring Stretch', sets:'3×20-30s/side', noWeight:true},
+            {name:'World\'s Greatest Stretch', sets:'2×5/side', noWeight:true},
+            {name:'Nordic Curl', sets:'3×5-8'},
+            {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Body Flow', plate:'p-green', plateNum:'10', duration:'~30 min',
+          exercises:[
+            {name:'Sun Salutation Flow', sets:'3 rounds', noWeight:true},
+            {name:'Deep Squat Hold', sets:'3×30-45s', noWeight:true},
+            {name:'Couch Stretch', sets:'2×45s/side', noWeight:true},
+            {name:'Spinal Wave', sets:'2×8', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.mobility), used as-is.
+    6: {
+      short: 'The full 5-day program plus extra maintenance & breath work',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of full-body maintenance and breath-focused down-regulation. Worth being honest about what this buys: per this program\'s own citation, more frequency doesn\'t itself drive bigger range-of-motion gains — this 6th day is consistency insurance (a missed day matters less with a backup) and genuine recovery-support value, not extra stimulus the way a 6th day works in a strength program.',
+      days: {
+        d1: { label:'Day 1', sub:'Hips & Ankles', plate:'p-red', plateNum:'25', duration:'~30 min',
+          exercises:[
+            {name:'90/90 Hip Switch', sets:'3×8/side', noWeight:true},
+            {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+            {name:'Ankle Dorsiflexion Stretch', sets:'3×30s/side', noWeight:true},
+            {name:'Pigeon Pose', sets:'2×45s/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Shoulders & T-Spine', plate:'p-blue', plateNum:'20', duration:'~30 min',
+          exercises:[
+            {name:'Shoulder CARs', sets:'2×5/side', noWeight:true},
+            {name:'Thoracic Spine Rotation (Open Book)', sets:'3×8/side', noWeight:true},
+            {name:'Wall Slides', sets:'3×10', noWeight:true},
+            {name:'Band Dislocates', sets:'3×12', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Easy movement while your joints get a break from direct mobility loading.' },
+        d4: { label:'Day 4', sub:'Posterior Chain & Hamstrings', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+          exercises:[
+            {name:'PNF Hamstring Stretch', sets:'3×20-30s/side', noWeight:true},
+            {name:'World\'s Greatest Stretch', sets:'2×5/side', noWeight:true},
+            {name:'Nordic Curl', sets:'3×5-8'},
+            {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Full Body Flow', plate:'p-green', plateNum:'10', duration:'~30 min',
+          exercises:[
+            {name:'Sun Salutation Flow', sets:'3 rounds', noWeight:true},
+            {name:'Deep Squat Hold', sets:'3×30-45s', noWeight:true},
+            {name:'Couch Stretch', sets:'2×45s/side', noWeight:true},
+            {name:'Spinal Wave', sets:'2×8', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Active Recovery Flow', plate:'p-off', plateNum:'5', duration:'~25 min',
+          exercises:[
+            {name:'Foam Rolling Full Body', sets:'10 min', noWeight:true},
+            {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+            {name:'Child\'s Pose Breathing', sets:'3×60s', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Extra Maintenance & Breath Work', plate:'p-off', plateNum:'5', duration:'~25 min',
+          exercises:[
+            {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+            {name:'Foam Rolling Full Body', sets:'10 min', noWeight:true},
+            {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+            {name:'Child\'s Pose Breathing', sets:'3×60s', noWeight:true},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, seven days a week — no recovery-day tradeoff needed',
+      overview: 'The same six days as the 6-day plan, completely unchanged, with the existing Rest/Cardio slot kept exactly as-is. Worth being explicit about why, since every other program in this rollout reframes that slot at 7 days: mobility work carries little of the joint/CNS load that makes a genuine recovery day necessary elsewhere, so there\'s no "the recovery argument still wins" tradeoff to make here. The cardio slot stays for general health value, not because this program specifically needs a break from itself — and per this program\'s own cited research, frequency itself was never the lever driving range-of-motion gains in the first place, so there\'s nothing extra being lost by keeping the week exactly as it already was at 6 days.',
+      days: {
+        d1: { label:'Day 1', sub:'Hips & Ankles', plate:'p-red', plateNum:'25', duration:'~30 min',
+          exercises:[
+            {name:'90/90 Hip Switch', sets:'3×8/side', noWeight:true},
+            {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+            {name:'Ankle Dorsiflexion Stretch', sets:'3×30s/side', noWeight:true},
+            {name:'Pigeon Pose', sets:'2×45s/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Shoulders & T-Spine', plate:'p-blue', plateNum:'20', duration:'~30 min',
+          exercises:[
+            {name:'Shoulder CARs', sets:'2×5/side', noWeight:true},
+            {name:'Thoracic Spine Rotation (Open Book)', sets:'3×8/side', noWeight:true},
+            {name:'Wall Slides', sets:'3×10', noWeight:true},
+            {name:'Band Dislocates', sets:'3×12', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Easy movement while your joints get a break from direct mobility loading.' },
+        d4: { label:'Day 4', sub:'Posterior Chain & Hamstrings', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+          exercises:[
+            {name:'PNF Hamstring Stretch', sets:'3×20-30s/side', noWeight:true},
+            {name:'World\'s Greatest Stretch', sets:'2×5/side', noWeight:true},
+            {name:'Nordic Curl', sets:'3×5-8'},
+            {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Full Body Flow', plate:'p-green', plateNum:'10', duration:'~30 min',
+          exercises:[
+            {name:'Sun Salutation Flow', sets:'3 rounds', noWeight:true},
+            {name:'Deep Squat Hold', sets:'3×30-45s', noWeight:true},
+            {name:'Couch Stretch', sets:'2×45s/side', noWeight:true},
+            {name:'Spinal Wave', sets:'2×8', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Active Recovery Flow', plate:'p-off', plateNum:'5', duration:'~25 min',
+          exercises:[
+            {name:'Foam Rolling Full Body', sets:'10 min', noWeight:true},
+            {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+            {name:'Child\'s Pose Breathing', sets:'3×60s', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Extra Maintenance & Breath Work', plate:'p-off', plateNum:'5', duration:'~25 min',
+          exercises:[
+            {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+            {name:'Foam Rolling Full Body', sets:'10 min', noWeight:true},
+            {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+            {name:'Child\'s Pose Breathing', sets:'3×60s', noWeight:true},
           ]
         },
       }
