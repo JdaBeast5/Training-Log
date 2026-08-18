@@ -6378,7 +6378,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.230';
+const APP_VERSION = '3.231';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6901,6 +6901,9 @@ const WHATS_NEW = {
   ]},
   '3.230': { headline: 'Smoother expand/collapse for technique details and history months', points: [
     'Exercise technique cues, Learn\'s posing/masterclass technique breakdowns, Care\'s stretch details, and History\'s month groups used to snap open and shut instantly — every other expandable section in the app animates smoothly. They all match now.',
+  ]},
+  '3.231': { headline: 'Sleep, weigh-ins, and other logs no longer dump your whole history at once', points: [
+    'Tapping "Show more" on Sleep, Bodyweight, Blood Pressure, Glucose, and similar lists used to reveal every entry you\'ve ever logged in one shot — rough if you\'ve been tracking for months. It now reveals a reasonable batch at a time, with another "Show more" for the rest, so nothing is lost, it just doesn\'t all land on screen at once.',
   ]},
 };
 
@@ -36859,25 +36862,69 @@ function renderSparkline(entries){
 // Renders a list of pre-built HTML item strings into a container, showing only
 // the first `visibleCount` by default with a "Show N more" expand toggle for
 // the rest — used anywhere a list could grow unbounded over months of use.
+//
+// "Unbounded" used to mean it literally: for a log kept since day one (a
+// year of nightly sleep entries, say), the one "Show N more" button dumped
+// every remaining row into view and the DOM in a single tap. This caps each
+// reveal at COLLAPSIBLE_LIST_BATCH_SIZE and, if there's still more beyond
+// that, a second "Show N more" button appears (revealed, not created) once
+// the first batch opens — chained, so a tap never reveals more than one
+// batch, but nothing is ever permanently unreachable.
+//
+// All batches are built into the HTML string up front, as SIBLING
+// .expand-wrap/button pairs (not nested inside one another), rather than
+// inserted lazily on each click or nested — both tried first and both
+// broken, differently, confirmed live: lazy insertion would put later
+// batches' rows outside the DOM when wireSwipeDeleteList does its one
+// querySelectorAll('.swipe-item') pass right after this call, breaking its
+// sorted[i]<->i-th-.swipe-item indexing for anything past batch 1. Nesting
+// one .expand-wrap inside another seemed like the natural way to keep a
+// later batch's button hidden until the earlier one opens, but Chromium
+// does not actually collapse a doubly-nested 0fr grid child to zero size —
+// confirmed live, a button two levels deep reported a real, nonzero
+// getBoundingClientRect() and a real (if bogus, off the actual rendered
+// page) position, while still failing a real click (something else
+// legitimately paints over that position) — exactly the kind of
+// technically-still-in-the-tab-order ghost element that breaks keyboard/
+// screen-reader use even when a mouse never notices. Flat siblings, with
+// every batch beyond the first starting `display:none` until the button
+// before it is opened, sidesteps that: display:none is unambiguous — out of
+// layout, hit-testing, and tab order — no nested-grid collapse involved.
+const COLLAPSIBLE_LIST_BATCH_SIZE = 20;
 function renderCollapsibleList(container, itemHtmls, visibleCount, noun){
   if(itemHtmls.length <= visibleCount){
     container.innerHTML = itemHtmls.join('');
     return;
   }
   const visible = itemHtmls.slice(0, visibleCount).join('');
-  const hidden = itemHtmls.slice(visibleCount).join('');
-  const remaining = itemHtmls.length - visibleCount;
-  container.innerHTML = `
-    ${visible}
-    <div class="expand-wrap" id="${container.id}-more"><div>${hidden}</div></div>
-    <button class="show-more-btn" id="${container.id}-toggle">Show ${remaining} more ${noun}</button>
-  `;
-  const btn = document.getElementById(`${container.id}-toggle`);
-  const wrap = document.getElementById(`${container.id}-more`);
-  btn.addEventListener('click', ()=>{
-    const isOpen = wrap.classList.toggle('open');
-    btn.classList.toggle('expanded', isOpen);
-    btn.textContent = isOpen ? 'Show less' : `Show ${remaining} more ${noun}`;
+  const batches = [];
+  let remaining = itemHtmls.slice(visibleCount);
+  while(remaining.length > 0){
+    const batch = remaining.slice(0, COLLAPSIBLE_LIST_BATCH_SIZE);
+    remaining = remaining.slice(COLLAPSIBLE_LIST_BATCH_SIZE);
+    batches.push({ items: batch, remainingAfter: remaining.length });
+  }
+  const batchesHtml = batches.map((b, i)=>{
+    const wrapId = `${container.id}-more-${i}`;
+    const label = b.remainingAfter > 0
+      ? `Show ${b.items.length} more ${noun} (${b.items.length + b.remainingAfter} total)`
+      : `Show ${b.items.length} more ${noun}`;
+    return `
+      <div class="expand-wrap" id="${wrapId}"><div>${b.items.join('')}</div></div>
+      <button class="show-more-btn" id="${wrapId}-btn" data-collapsed-label="${label}"${i > 0 ? ' style="display:none"' : ''}>${label}</button>
+    `;
+  }).join('');
+  container.innerHTML = visible + batchesHtml;
+  batches.forEach((b, i)=>{
+    const wrap = document.getElementById(`${container.id}-more-${i}`);
+    const btn = document.getElementById(`${container.id}-more-${i}-btn`);
+    const nextBtn = i + 1 < batches.length ? document.getElementById(`${container.id}-more-${i+1}-btn`) : null;
+    btn.addEventListener('click', ()=>{
+      const isOpen = wrap.classList.toggle('open');
+      btn.classList.toggle('expanded', isOpen);
+      btn.textContent = isOpen ? 'Show less' : btn.dataset.collapsedLabel;
+      if(nextBtn && isOpen) nextBtn.style.display = '';
+    });
   });
 }
 
