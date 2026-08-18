@@ -6274,7 +6274,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.201';
+const APP_VERSION = '3.202';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6668,25 +6668,29 @@ const WHATS_NEW = {
   '3.196': { headline: 'Program overviews are now collapsible', points: [
     'The new program/style description shipped last version as always-visible text, which meant it could fill most of the screen on longer entries. It now opens expanded by default (so it\'s still the first thing you see) but tapping "Overview" collapses it down to a single line — same tap-to-expand pattern already used for "What this is based on" and the exercise set list.',
   ]},
-  '3.197': { headline: 'Pick how many days a week you train', points: [
+  '3.197': { headline: 'Sharper program overviews for the close calls', points: [
+    'Strength & Size and Powerbuilding made almost the same "bigger total AND bigger physique" promise with no way to tell them apart — each overview now says explicitly why you\'d pick one over the other (four days vs. five, less per-lift frequency vs. more).',
+    'Core & Stability now spells out that it\'s loaded, barbell-based trunk work meant to bolt onto another program, and points to Pilates if you want a bodyweight, breath-driven practice instead.',
+  ]},
+  '3.198': { headline: 'Pick how many days a week you train', points: [
     'A new "Training days per week" field in your Profile (1-7) reshapes the Strength & Size and Bodybuilding programs to fit however often you actually want to train — fewer days trims down to your top training sessions, more days repeats the split with recovery days filled in around it. Leave it blank to keep a program\'s own default split.',
     'Picking more days than a program has distinct sessions for (so a session repeats within the same week) shows a heads-up about overtraining risk; picking 6-7 days shows a reminder that most programs benefit from at least one full rest day. Both are just a note — nothing is blocked.',
     'Other programs aren\'t affected by this yet — rolling out to the rest is planned as its own follow-up, not bundled into this one.',
   ]},
-  '3.198': { headline: 'Each training-days-per-week option is now a real, purpose-built plan', points: [
+  '3.199': { headline: 'Each training-days-per-week option is now a real, purpose-built plan', points: [
     'Last version\'s "training days per week" picker reused a program\'s existing sessions to fill whatever count you chose. Now every count (1-7) for Strength & Size and Bodybuilding has its own hand-built structure — fewer days train full-body so every muscle group still gets hit twice a week instead of once, higher day counts use dedicated accessory and conditioning days rather than repeating your hardest session a 3rd time in one week.',
     'Picking 6 or 7 days never adds a repeat of an already-maximal session — the extra days are real, different training (weak points, conditioning, Push/Pull/Legs variety) and even a 7-day week still keeps one deliberately easy mobility/recovery day.',
     'The program description under the selector now updates to match whichever day count you\'ve picked, instead of always describing the default.',
   ]},
-  '3.199': { headline: 'Training days per week now covers the barbell-strength programs too', points: [
+  '3.200': { headline: 'Training days per week now covers the barbell-strength programs too', points: [
     'Olympic Lifting, Powerlifting, and Powerbuilding now have their own real, purpose-built day counts (1-7), same as Strength & Size and Bodybuilding — including some genuine program-specific reasoning: powerlifting keeps deadlift volume conservative even at low frequency, Olympic Lifting\'s higher-frequency options add deliberately light technical practice rather than more heavy sessions (it\'s honest that this leans on coaching consensus, not RCT evidence — this program always has been).',
     'The 13 medically-modified and rehab programs will never get this feature — their day structure follows your care team\'s guidance, not a frequency preference, and this app has always treated that as non-negotiable.',
     'Rolling out to the remaining programs continues in future updates.',
   ]},
-  '3.200': { headline: 'The new accessory days already match your body goal', points: [
+  '3.201': { headline: 'The new accessory days already match your body goal', points: [
     'The extra accessory/conditioning days added at higher training frequencies now confirmed to pull in your Body Goal focus exercise the same way every other day in these programs already does — pick "Hourglass / Curvy" and a 6-day Strength & Size week\'s accessory day adds a glute/hip exercise; pick "Maximum Size" and it leans arms and calves, and so on.',
   ]},
-  '3.201': { headline: 'Training days per week now covers Athletic, Bodyweight, and Calisthenics', points: [
+  '3.202': { headline: 'Training days per week now covers Athletic, Bodyweight, and Calisthenics', points: [
     'These three now have their own real, purpose-built day counts (1-7), same standard as the other 5 programs already rolled out — including genuine program-specific choices: Athletic\'s higher-frequency days add sub-maximal speed work rather than a repeated max-effort jump session (this program is explicit about protecting joints and CNS from explosive training), and Calisthenics keeps its rest day genuinely skill-free even at 7 days, since handstands, levers, and muscle-ups need real joint recovery.',
     'All 8 programs with this feature are also the same 8 already covered by the Body Goal focus-exercise system, so the new accessory days on every one of them already lean toward whatever goal you\'ve set.',
   ]},
@@ -7420,7 +7424,7 @@ const programs = {
   // behind it. Volume is the driver; the rep range on the main lift is here
   // for specificity and for the rest prescription it triggers.
   strength: {
-    label: 'Strength & Size', short: 'Upper/lower strength + hypertrophy', overview: 'A four-day upper/lower split built to train strength and size as two separate jobs in the same week rather than splitting the difference on both. The first two sessions are heavy and low-rep on the main lifts; the next two shift to higher-rep accessory work for muscle growth. Rest and active-recovery days round out the week without extra lifting. Good fit if you want a genuine, well-rounded intermediate program that builds a bigger total AND a bigger physique, not just one or the other.',
+    label: 'Strength & Size', short: 'Upper/lower strength + hypertrophy', overview: 'A four-day upper/lower split built to train strength and size as two separate jobs in the same week rather than splitting the difference on both. The first two sessions are heavy and low-rep on the main lifts; the next two shift to higher-rep accessory work for muscle growth. Rest and active-recovery days round out the week without extra lifting. Good fit if you want a genuine, well-rounded intermediate program that builds a bigger total AND a bigger physique in just four days a week — less per-lift frequency and accessory pump volume than Powerbuilding\'s five-day split, but a real time-savings if four days is what you actually have.',
     days: {
       d1: {
         label:'Day 1', sub:'Upper · Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
@@ -7728,7 +7732,7 @@ const programs = {
   },
 
   core: {
-    label: 'Core & Stability', short: 'Abs, obliques & lower-back stabilizers', overview: 'A specialization program for the trunk, built on training it for what it actually does — resisting movement, not producing it. Days rotate through anti-extension/spine stability, rotational power and anti-rotation work, loaded carries for anti-lateral flexion, and dedicated lower-back stabilizer work. It\'s deliberately narrow — this is what you add on top of (or in between) another program when your core specifically needs work, not a standalone full-body plan. Good fit if you\'ve got a weak link in trunk stability specifically, whether that\'s for lifting, sport, or just day-to-day back health.',
+    label: 'Core & Stability', short: 'Abs, obliques & lower-back stabilizers', overview: 'A specialization program for the trunk, built on training it for what it actually does — resisting movement, not producing it. Days rotate through anti-extension/spine stability, rotational power and anti-rotation work, loaded carries for anti-lateral flexion, and dedicated lower-back stabilizer work. It\'s deliberately narrow and loaded — barbell carries, cable anti-rotation, weighted stability work — meant to bolt onto another program, not replace one; if you want a bodyweight, breath-driven practice instead, Pilates is the better fit. Good fit if you\'ve got a weak link in trunk stability specifically, whether that\'s for lifting, sport, or just day-to-day back health.',
     days: {
       d1: {
         label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
@@ -8235,7 +8239,7 @@ const programs = {
   },
 
   powerbuilding: {
-    label: 'Powerbuilding', short: 'Heavy top lift + bodybuilding accessories, every session', overview: 'Every session opens with one heavy barbell lift at 5x5 while you\'re freshest, then fills the rest of the hour with bodybuilding-style accessory volume — squat day, bench day, deadlift day, and overhead press day each lead into their own accessory work, with a dedicated pump day to finish the week. It\'s built for people who want a real strength total AND real size and refuse to pick just one. Arm and shoulder volume runs high by design, not by accident. Good fit if a pure powerlifting program feels too narrow and a pure bodybuilding program doesn\'t move your numbers enough — this is the middle ground done properly, not half of each.',
+    label: 'Powerbuilding', short: 'Heavy top lift + bodybuilding accessories, every session', overview: 'Every session opens with one heavy barbell lift at 5x5 while you\'re freshest, then fills the rest of the hour with bodybuilding-style accessory volume — squat day, bench day, deadlift day, and overhead press day each lead into their own accessory work, with a dedicated pump day to finish the week. It\'s built for people who want a real strength total AND real size and refuse to pick just one. Arm and shoulder volume runs high by design, not by accident. Good fit if a pure powerlifting program feels too narrow, a pure bodybuilding program doesn\'t move your numbers enough, or Strength & Size\'s four-day split isn\'t enough dedicated volume per lift — this is the middle ground done properly, not half of each, for the cost of a fifth training day.',
     days: {
       d1: {
         label:'Day 1', sub:'Squat + Legs', plate:'p-red', plateNum:'25', duration:'~55 min',
