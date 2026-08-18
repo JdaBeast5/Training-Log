@@ -6378,7 +6378,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.229';
+const APP_VERSION = '3.230';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6898,6 +6898,9 @@ const WHATS_NEW = {
   ]},
   '3.229': { headline: 'Fixed a red line appearing under logged foods', points: [
     'Every food you log on Today\'s Nutrition was showing a thin red bar underneath it, instead of the normal subtle divider — a real layout bug, not a warning of any kind. Gone now.',
+  ]},
+  '3.230': { headline: 'Smoother expand/collapse for technique details and history months', points: [
+    'Exercise technique cues, Learn\'s posing/masterclass technique breakdowns, Care\'s stretch details, and History\'s month groups used to snap open and shut instantly — every other expandable section in the app animates smoothly. They all match now.',
   ]},
 };
 
@@ -43208,6 +43211,87 @@ document.addEventListener('click', (e)=>{
   if(!hit) return;
   openMasterclassTechnique(hit.dataset.techniqueCard, hit.dataset.techniqueName);
 });
+
+// Native <details> (.ex-details, .pose-detail-wrap, .posing-class,
+// .month-group) has no transitionable reveal — the browser snaps content
+// open/closed in one frame, which reads as choppy next to the rest of the
+// app's expand-wrap/smooth-toggle grid-based transitions. Rather than
+// replace <details>/<summary> with divs (losing native keyboard toggling
+// and Safari's find-on-page auto-expand), this intercepts the summary
+// click and animates the <details> element's own height between its
+// collapsed (summary-only) and full (scrollHeight) heights — <details> is
+// a normal block box, so its own height is directly animatable once
+// overflow is clipped for the duration of the transition. Delegated on
+// document, same shape as the handlers above, so it covers content
+// rendered after this listener is registered (all four families render
+// their <details> via innerHTML at various points after load).
+const SMOOTH_DETAILS_SELECTOR = '.ex-details, .pose-detail-wrap, .posing-class, .month-group';
+document.addEventListener('click', (e)=>{
+  const summary = e.target.closest && e.target.closest('summary');
+  if(!summary) return;
+  const details = summary.parentElement;
+  if(!details || details.tagName !== 'DETAILS' || !details.matches(SMOOTH_DETAILS_SELECTOR)) return;
+  if(details.dataset.animating === '1') return;
+  e.preventDefault();
+  animateDetailsToggle(details, summary);
+});
+
+function animateDetailsToggle(details, summary){
+  const wasOpen = details.open;
+  details.dataset.animating = '1';
+  details.style.overflow = 'hidden';
+
+  function cleanup(){
+    details.style.transition = '';
+    details.style.height = '';
+    details.style.overflow = '';
+    delete details.dataset.animating;
+    details.removeEventListener('transitionend', onTransitionEnd);
+    clearTimeout(fallbackTimer);
+  }
+  function onTransitionEnd(ev){
+    if(ev.target !== details || ev.propertyName !== 'height') return;
+    if(wasOpen) details.open = false;
+    cleanup();
+  }
+  details.addEventListener('transitionend', onTransitionEnd);
+  // Safety net: if the transition never fires (e.g. collapsed and full
+  // heights happen to match), still land in a clean, un-stuck state. Padded
+  // past the rAF hop below, not just the 0.32s transition itself.
+  const fallbackTimer = setTimeout(()=>{
+    if(wasOpen) details.open = false;
+    cleanup();
+  }, 450);
+
+  if(!wasOpen){
+    const startHeight = summary.offsetHeight;
+    details.style.height = startHeight + 'px';
+    details.open = true;
+    // The 'toggle' event (which .month-group uses to lazily fill its day
+    // cards on first open) is queued by the spec as a DOM-manipulation
+    // task, not dispatched synchronously — confirmed live, setting .open
+    // alone leaves scrollHeight at the still-collapsed, content-less size.
+    // A single requestAnimationFrame is NOT a reliable stand-in for that:
+    // confirmed live in this app (though not in an isolated repro with no
+    // other rAF activity on the page), rAF and the queued toggle task ran
+    // in the wrong order more often than not. setTimeout(0) is also a
+    // macrotask, and the toggle task — queued synchronously by the .open
+    // assignment above, strictly before this setTimeout call — runs first
+    // by plain FIFO ordering.
+    setTimeout(()=>{
+      const targetHeight = details.scrollHeight;
+      void details.offsetHeight; // force reflow so the browser registers startHeight before we animate away from it
+      details.style.transition = 'height 0.32s var(--ease-smooth)';
+      details.style.height = targetHeight + 'px';
+    }, 0);
+  } else {
+    const startHeight = details.scrollHeight;
+    details.style.height = startHeight + 'px';
+    void details.offsetHeight; // force reflow, same reason as above
+    details.style.transition = 'height 0.32s var(--ease-smooth)';
+    details.style.height = summary.offsetHeight + 'px';
+  }
+}
 
 function openGlobalSearch(){
   const overlay = document.getElementById('globalSearchOverlay');
