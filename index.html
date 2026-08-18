@@ -6274,7 +6274,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.207';
+const APP_VERSION = '3.208';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6716,6 +6716,9 @@ const WHATS_NEW = {
   '3.207': { headline: 'Training days per week now covers Cycling (Road and Mountain)', points: [
     'Cycling is the first style-variant container in this rollout — Road and Mountain each have their own real day-count plans, and switching between them no longer discards whichever day count you had selected.',
     'Both styles share the same reasoning: a small number of genuinely hard efforts inside a mostly-easy week. Higher-frequency options add extra easy-effort riding (or, for Mountain, more technical trail time) rather than another hard-interval or punchy-power day, which would break that balance instead of just adding volume.',
+  ]},
+  '3.208': { headline: 'Fixed: Strength & Size’s accessory day repeated Hip Thrust from the day before', points: [
+    'At 5, 6, and 7 days/week, the "Accessory & Weak Points" day ran immediately after "Lower · Hypertrophy" with zero rest between them — and both days included Hip Thrust, so the same exercise got trained back-to-back. Removed it from the accessory day; the remaining exercises (hamstrings, rear delts, arms) already matched that day’s own stated purpose without it.',
   ]},
 };
 
@@ -13769,7 +13772,6 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         },
         d6: { label:'Day 6', sub:'Accessory & Weak Points', plate:'p-off', plateNum:'5', duration:'~45 min',
           exercises:[
-            {name:'Hip Thrust', sets:'3×10-12'},
             {name:'Leg Curl', sets:'3×12-15'},
             {name:'Face Pull', sets:'3×15'},
             {name:'Lateral Raise', sets:'3×12-15'},
@@ -13827,7 +13829,6 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         },
         d6: { label:'Day 6', sub:'Accessory & Weak Points', plate:'p-off', plateNum:'5', duration:'~45 min',
           exercises:[
-            {name:'Hip Thrust', sets:'3×10-12'},
             {name:'Leg Curl', sets:'3×12-15'},
             {name:'Face Pull', sets:'3×15'},
             {name:'Lateral Raise', sets:'3×12-15'},
@@ -13892,7 +13893,6 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         },
         d6: { label:'Day 6', sub:'Accessory & Weak Points', plate:'p-off', plateNum:'5', duration:'~45 min',
           exercises:[
-            {name:'Hip Thrust', sets:'3×10-12'},
             {name:'Leg Curl', sets:'3×12-15'},
             {name:'Face Pull', sets:'3×15'},
             {name:'Lateral Raise', sets:'3×12-15'},

@@ -421,6 +421,27 @@ test('bodybuilding\'s 6-day Push/Pull/Legs ×2 plan uses genuinely different exe
   assert.strictEqual(overlap.length, 0, `Push A and Push B should share zero identical exercises, found: ${overlap.join(', ')}`);
 });
 
+// Found via user review, not authored test-first: strength's 5/6/7-day
+// "Accessory & Weak Points" day (d6) originally repeated Hip Thrust from
+// the immediately preceding "Lower · Hypertrophy" day (d5) -- two
+// back-to-back training days with zero rest between them, hitting the same
+// exercise twice. It also contradicted the accessory day's own stated
+// purpose (covering what four heavy days leave short -- hamstrings, rear
+// delts, arms -- not repeating something d5 already covers). Fixed by
+// dropping Hip Thrust from d6; Leg Curl/Face Pull/Lateral Raise/DB
+// Curl/Triceps Pushdown already matched that stated purpose without it.
+for(const n of [5, 6, 7]){
+  test(`sabotage: strength's ${n}-day "Accessory & Weak Points" day (d6) shares ZERO exercises with the immediately preceding "Lower · Hypertrophy" day (d5) -- these run back-to-back with no rest between them, so any overlap is real same-exercise overload, not just a coincidence`, (assert)=>{
+    const [namesD5, namesD6] = runSandbox(pureChunks, `
+      __capture.push(PROGRAM_DAY_COUNT_VARIANTS.strength[${n}].days.d5.exercises.map(e=>e.name));
+      __capture.push(PROGRAM_DAY_COUNT_VARIANTS.strength[${n}].days.d6.exercises.map(e=>e.name));
+    `);
+    const overlap = namesD5.filter(name => namesD6.includes(name));
+    assert.strictEqual(overlap.length, 0, `d5 and d6 should share zero exercises, found: ${overlap.join(', ')}`);
+    assert.strictEqual(namesD6.includes('Hip Thrust'), false, 'Hip Thrust specifically must not be back on the accessory day — d5 already covers it');
+  });
+}
+
 // [Body-goal focus exercises reach the new accessory/high-frequency days] --------
 // The user asked for the extra accessory days (added at 5-7 days/week) to
 // align with a person's body goal. Rather than building a second, competing
@@ -475,10 +496,10 @@ test('sabotage: core/jumprope/mobility are deliberately NOT in FOCUS_ELIGIBLE_PR
 
 test('REAL invocation: a body goal adds its focus exercise to a NEW accessory day (strength\'s 6-day "Accessory & Weak Points"), skipping whichever focus exercise that day already happens to include', (assert)=>{
   const [added] = runSandbox(bodyGoalChunks, `
-    const day = PROGRAM_DAY_COUNT_VARIANTS.strength[6].days.d6; // Accessory & Weak Points — already has Hip Thrust
-    __capture.push(getBodyGoalFocusExercises('Hourglass / Curvy (Wellness style)', 'strength', day).map(e=>e.name));
+    const day = PROGRAM_DAY_COUNT_VARIANTS.strength[6].days.d6; // Accessory & Weak Points — already has Lateral Raise
+    __capture.push(getBodyGoalFocusExercises('Classic Muscular (Classic Physique style)', 'strength', day).map(e=>e.name));
   `);
-  assert.deepStrictEqual(added, ['Clamshell'], 'Hip Thrust should be skipped as a duplicate; Clamshell (not already on this day) should be added');
+  assert.deepStrictEqual(added, ['Lat Pulldown'], 'Lateral Raise should be skipped as a duplicate; Lat Pulldown (not already on this day) should be added');
 });
 
 test('REAL invocation: the same mechanism reaches powerbuilding\'s NEW "Arms & Weak Points" 7-day accessory day', (assert)=>{
