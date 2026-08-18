@@ -192,6 +192,74 @@ test('bodybuilding\'s 6-day Push/Pull/Legs ×2 plan uses genuinely different exe
   assert.strictEqual(overlap.length, 0, `Push A and Push B should share zero identical exercises, found: ${overlap.join(', ')}`);
 });
 
+// [Body-goal focus exercises reach the new accessory/high-frequency days] --------
+// The user asked for the extra accessory days (added at 5-7 days/week) to
+// align with a person's body goal. Rather than building a second, competing
+// goal-selection system, this reuses the app's OWN existing one:
+// getBodyGoalFocusExercises(bodyGoal, program, day) already adds 1-2
+// goal-specific bonus exercises to whatever day is being rendered, for any
+// program in FOCUS_ELIGIBLE_PROGRAMS -- and all 5 programs rolled out so far
+// (strength, bodybuilding, oly, powerlifting, powerbuilding) are already in
+// that list, from before this feature existed. Since the mechanism operates
+// on whatever `day` object renderWorkout hands it, with no knowledge of
+// where that day came from, it already reaches the NEW accessory days added
+// by PROGRAM_DAY_COUNT_VARIANTS with zero extra code -- these tests prove
+// that integration point actually holds, real invocation, not by reasoning
+// about the code.
+//
+// Nothing tested getBodyGoalFocusExercises/BODY_GOAL_FOCUS at all before this
+// -- a real, pre-existing gap, noted here rather than silently backfilled in
+// full (that's a larger, separate testing gap than this feature's scope).
+const bodyGoalChunks = [
+  ...pureChunks,
+  extractConst(src, 'BODY_GOAL_FOCUS'),
+  extractConst(src, 'FOCUS_ELIGIBLE_PROGRAMS'),
+  extractFunction(src, 'getBodyGoalFocusExercises'),
+];
+
+test('FOCUS_ELIGIBLE_PROGRAMS already covers all 5 programs rolled out so far — the reason the extra accessory days align with body goals for free', (assert)=>{
+  const [results] = runSandbox(bodyGoalChunks, `
+    __capture.push(PROGRAMS_TO_CHECK_PLACEHOLDER.map(p => FOCUS_ELIGIBLE_PROGRAMS.includes(p)));
+  `.replace('PROGRAMS_TO_CHECK_PLACEHOLDER', JSON.stringify(PROGRAMS_TO_CHECK)));
+  results.forEach((included, i) => assert.strictEqual(included, true, `${PROGRAMS_TO_CHECK[i]} should be in FOCUS_ELIGIBLE_PROGRAMS`));
+});
+
+test('REAL invocation: a body goal adds its focus exercise to a NEW accessory day (strength\'s 6-day "Accessory & Weak Points"), skipping whichever focus exercise that day already happens to include', (assert)=>{
+  const [added] = runSandbox(bodyGoalChunks, `
+    const day = PROGRAM_DAY_COUNT_VARIANTS.strength[6].days.d6; // Accessory & Weak Points — already has Hip Thrust
+    __capture.push(getBodyGoalFocusExercises('Hourglass / Curvy (Wellness style)', 'strength', day).map(e=>e.name));
+  `);
+  assert.deepStrictEqual(added, ['Clamshell'], 'Hip Thrust should be skipped as a duplicate; Clamshell (not already on this day) should be added');
+});
+
+test('REAL invocation: the same mechanism reaches powerbuilding\'s NEW "Arms & Weak Points" 7-day accessory day', (assert)=>{
+  const [added] = runSandbox(bodyGoalChunks, `
+    const day = PROGRAM_DAY_COUNT_VARIANTS.powerbuilding[7].days.d7; // Arms & Weak Points
+    __capture.push(getBodyGoalFocusExercises('Maximum Size (Open Bodybuilding style)', 'powerbuilding', day).map(e=>e.name));
+  `);
+  // That day already has Skull Crushers/Cable Curl for arms but no calf work —
+  // Maximum Size's focus is DB Curl + Standing Calf Raise, so DB Curl (a
+  // different curl variation, not a literal name match) is added alongside
+  // Standing Calf Raise.
+  assert.deepStrictEqual(added.sort(), ['DB Curl', 'Standing Calf Raise'].sort());
+});
+
+test('REAL invocation: oly\'s NEW "Light Technical Practice" day still gets a body-goal focus exercise added — pre-existing app behavior (oly was already FOCUS_ELIGIBLE before this feature), not something this feature changed', (assert)=>{
+  const [added] = runSandbox(bodyGoalChunks, `
+    const day = PROGRAM_DAY_COUNT_VARIANTS.oly[6].days.d7; // Light Technical Practice
+    __capture.push(getBodyGoalFocusExercises('Athletic Performance', 'oly', day).map(e=>e.name));
+  `);
+  assert.deepStrictEqual(added, ['Plank', 'Box Jump']);
+});
+
+test('a rest day among the new variants (e.g. strength\'s 7-day "Mobility & Easy Cardio") never gets a body-goal focus exercise added, matching this app\'s existing rest-day exemption', (assert)=>{
+  const [added] = runSandbox(bodyGoalChunks, `
+    const day = PROGRAM_DAY_COUNT_VARIANTS.strength[7].days.d3; // Mobility & Easy Cardio, rest:true
+    __capture.push(getBodyGoalFocusExercises('Maximum Size (Open Bodybuilding style)', 'strength', day));
+  `);
+  assert.deepStrictEqual(added, []);
+});
+
 // [daysPerWeekWarningState] -------------------------------------------------------
 test('daysPerWeekWarningState no longer has a "repeats" concept — every count now has real, non-repeating content, so the shape is just {advisory}', (assert)=>{
   const [state] = runSandbox(pureChunks, `__capture.push(daysPerWeekWarningState('strength', 7));`);

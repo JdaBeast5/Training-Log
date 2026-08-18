@@ -6274,7 +6274,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.199';
+const APP_VERSION = '3.200';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6682,6 +6682,9 @@ const WHATS_NEW = {
     'Olympic Lifting, Powerlifting, and Powerbuilding now have their own real, purpose-built day counts (1-7), same as Strength & Size and Bodybuilding — including some genuine program-specific reasoning: powerlifting keeps deadlift volume conservative even at low frequency, Olympic Lifting\'s higher-frequency options add deliberately light technical practice rather than more heavy sessions (it\'s honest that this leans on coaching consensus, not RCT evidence — this program always has been).',
     'The 13 medically-modified and rehab programs will never get this feature — their day structure follows your care team\'s guidance, not a frequency preference, and this app has always treated that as non-negotiable.',
     'Rolling out to the remaining programs continues in future updates.',
+  ]},
+  '3.200': { headline: 'The new accessory days already match your body goal', points: [
+    'The extra accessory/conditioning days added at higher training frequencies now confirmed to pull in your Body Goal focus exercise the same way every other day in these programs already does — pick "Hourglass / Curvy" and a 6-day Strength & Size week\'s accessory day adds a glute/hip exercise; pick "Maximum Size" and it leans arms and calves, and so on.',
   ]},
 };
 
@@ -13459,6 +13462,17 @@ function renderPosingClasses(){
 // mobility, running, calisthenics, senior, swimming, climbing, boxingsc,
 // desk, hyrox, grappling, pilates) and the combat/cycling/watersports/yoga
 // style-variant containers, in further batches.
+//
+// Accessory days already align with body goals -- for free. The user asked
+// for the new accessory/high-frequency days to reflect a person's body
+// goal, and that already happens with zero extra code here: see
+// getBodyGoalFocusExercises()/BODY_GOAL_FOCUS/FOCUS_ELIGIBLE_PROGRAMS below
+// (pre-existing, from before this feature) -- it adds 1-2 goal-specific
+// bonus exercises to whatever day renderWorkout is showing, for any program
+// in FOCUS_ELIGIBLE_PROGRAMS, with no idea where that day's content came
+// from. Every program rolled out here is already on that list, so the new
+// accessory days inherit this automatically. Verified with real invocation
+// in test-configurable-training-days.js, not just reasoned about.
 const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding'];
 const DAYS_PER_WEEK_ORIGINAL = Object.fromEntries(DAYS_PER_WEEK_PROGRAMS.map(key =>
   [key, { days: programs[key].days, overview: programs[key].overview, short: programs[key].short }]
