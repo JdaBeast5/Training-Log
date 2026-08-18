@@ -4989,7 +4989,7 @@
         <div id="prefDaysPerWeek">
           <label class="care-label" for="daysPerWeekInput">Training days per week</label>
           <input type="number" id="daysPerWeekInput" class="care-input" min="1" max="7" inputmode="numeric" placeholder="Program default">
-          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, Powerbuilding, Athletic/Plyo, Bodyweight, Calisthenics, Core &amp; Stability, Jump Rope, Mobility &amp; Flexibility, Running/Endurance, Swimming, Rock Climbing, Senior Strength &amp; Balance, Desk Worker/Posture, Pilates, Boxing Strength &amp; Conditioning, Hyrox, and BJJ / Grappling; other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
+          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, Powerbuilding, Athletic/Plyo, Bodyweight, Calisthenics, Core &amp; Stability, Jump Rope, Mobility &amp; Flexibility, Running/Endurance, Swimming, Rock Climbing, Senior Strength &amp; Balance, Desk Worker/Posture, Pilates, Boxing Strength &amp; Conditioning, Hyrox, BJJ / Grappling, and Cycling (both Road and Mountain); other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
           <div id="daysPerWeekWarning" style="display:none"></div>
         </div>
 
@@ -6274,7 +6274,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.206';
+const APP_VERSION = '3.207';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6712,6 +6712,10 @@ const WHATS_NEW = {
     'All three of these programs share the same shape: 5 real training days, one non-negotiable Rest/Mobility day (each program\'s own note already gives a real, sport-specific recovery reason), and one full-rest day — so every day count preserves that same structure.',
     'Higher-frequency options never add a 2nd max-power, max-intensity, or live-rolling session — the highest-toll session type in each program. Instead they add lower-toll extra volume: round conditioning for boxing, easy aerobic work for Hyrox, and technical drilling for grappling.',
     'This is the last of the plain programs — every program that isn\'t a medically-modified track or a combat/cycling/watersports/yoga style-variant container now has its own real, per-day-count plan.',
+  ]},
+  '3.207': { headline: 'Training days per week now covers Cycling (Road and Mountain)', points: [
+    'Cycling is the first style-variant container in this rollout — Road and Mountain each have their own real day-count plans, and switching between them no longer discards whichever day count you had selected.',
+    'Both styles share the same reasoning: a small number of genuinely hard efforts inside a mostly-easy week. Higher-frequency options add extra easy-effort riding (or, for Mountain, more technical trail time) rather than another hard-interval or punchy-power day, which would break that balance instead of just adding volume.',
   ]},
 };
 
@@ -13220,13 +13224,20 @@ function renderCyclingSelector(){
   el.onchange = async ()=>{
     activeCyclingStyle = el.value;
     renderProgramSource();   // style provenance must follow the style, not just the program
-    programs.cycling.days = CYCLING_STYLES[activeCyclingStyle].days;
+    // Reapply the day-count pref instead of assigning CYCLING_STYLES[...].days
+    // directly -- a direct assignment here would silently discard whatever
+    // day-count variant was active the moment the user switched styles.
+    applyDaysPerWeekProgramData();
     descEl.textContent = CYCLING_STYLES[activeCyclingStyle].short;
     overviewEl.textContent = CYCLING_STYLES[activeCyclingStyle].overview;
     await saveCyclingStyle();
     if(activeProgram === 'cycling'){
       dayDefs = programs.cycling.days;
       activeDay = 'd1';
+      const descElMain = document.getElementById('programSelectDesc');
+      const overviewElMain = document.getElementById('programOverview');
+      if(descElMain) descElMain.textContent = programs.cycling.short;
+      if(overviewElMain) overviewElMain.textContent = programs.cycling.overview;
       await loadDayOrder();
       await loadWeekProgress();
       renderTabs();
@@ -13519,6 +13530,25 @@ function renderPosingClasses(){
 // volume instead (round conditioning, easy aerobic work, or technical
 // drilling, respectively), and n=7 keeps each program's own Rest/Mobility
 // note genuinely true rather than reframing it into more training.
+// Batch 8 adds cycling -- the FIRST style-variant container, and
+// structurally different from every batch before it: `programs.cycling.
+// days` is not fixed, it's swapped at runtime per sub-style (Road/
+// Mountain) via CYCLING_STYLES -- see loadCyclingStyle()/
+// renderCyclingSelector() below. PROGRAM_DAY_COUNT_VARIANTS.cycling is
+// therefore keyed by sub-style FIRST, then day count (cycling.road[n], not
+// cycling[n]), DAYS_PER_WEEK_ORIGINAL excludes cycling entirely (see
+// DAYS_PER_WEEK_STYLE_CONTAINERS above -- its snapshot would just be
+// empty), and applyDaysPerWeekProgramData() has a real branch for this one
+// key instead of the generic lookup every other program uses. The style
+// dropdown's own onchange handler now reapplies the day-count pref after a
+// style switch too -- it used to overwrite programs.cycling.days directly,
+// which would have silently discarded whatever day count the user had
+// picked the moment they changed Road/Mountain. Both styles share Road's
+// own polarized-training citation (a small number of hard efforts inside a
+// MOSTLY easy week) -- their high-frequency variants add extra genuinely
+// easy/low-toll volume (an easy ride, or more technical trail time for
+// Mountain, which its own overview already says can't be trained through
+// intervals anyway), never a 3rd/4th hard-interval or punchy-power day.
 // Deliberately excluded, permanently, not just "not yet": the 13
 // medical/rehab programs (obesity, hypertension, diabetes, osteoporosis,
 // bariatric x2, prenatal, postpartum, and the 5 rehab tracks). Their day
@@ -13527,8 +13557,7 @@ function renderPosingClasses(){
 // team as "deliberate and non-negotiable" (see programs.medical's own
 // overview) -- letting someone dial a rehab-ACL protocol up to 7 days/week
 // would be unsafe, not just untailored. Remaining scope: the
-// combat/cycling/watersports/yoga style-variant containers, in further
-// batches.
+// combat/watersports/yoga style-variant containers, in further batches.
 //
 // Accessory days already align with body goals -- for free. The user asked
 // for the new accessory/high-frequency days to reflect a person's body
@@ -13540,10 +13569,30 @@ function renderPosingClasses(){
 // from. Every program rolled out here is already on that list, so the new
 // accessory days inherit this automatically. Verified with real invocation
 // in test-configurable-training-days.js, not just reasoned about.
-const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility', 'running', 'swimming', 'climbing', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling'];
-const DAYS_PER_WEEK_ORIGINAL = Object.fromEntries(DAYS_PER_WEEK_PROGRAMS.map(key =>
+const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility', 'running', 'swimming', 'climbing', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling', 'cycling'];
+// Style-variant containers (cycling, and any future combat/watersports/
+// yoga batches) are excluded from this snapshot: programs[key].days for
+// those is still `{}` at this point in script evaluation -- it's only
+// populated later, at boot, from e.g. CYCLING_STYLES[activeCyclingStyle].
+// A snapshot taken now would be permanently empty and wrong. Their
+// pref-unset fallback instead comes from the live *_STYLES data (for
+// `.days`) plus the snapshot just below (for `.overview`/`.short`) -- see
+// applyDaysPerWeekProgramData()'s per-container branch.
+const DAYS_PER_WEEK_STYLE_CONTAINERS = ['cycling'];
+const DAYS_PER_WEEK_ORIGINAL = Object.fromEntries(DAYS_PER_WEEK_PROGRAMS.filter(key => !DAYS_PER_WEEK_STYLE_CONTAINERS.includes(key)).map(key =>
   [key, { days: programs[key].days, overview: programs[key].overview, short: programs[key].short }]
 ));
+// A style-variant container's `.overview`/`.short` are its own generic
+// "pick a style below" blurb -- unlike every flat program above, this text
+// is NOT supposed to change when the user just picks a different sub-style
+// (Road vs Mountain); only `.days` follows the style. That blurb only gets
+// swapped out when a day-count variant is actually active, and has to
+// revert to exactly this when the pref is cleared -- so it needs its own
+// snapshot, same reasoning as DAYS_PER_WEEK_ORIGINAL, just scoped to the
+// container-level text rather than the whole program.
+const DAYS_PER_WEEK_CONTAINER_DEFAULT = {
+  cycling: { overview: programs.cycling.overview, short: programs.cycling.short },
+};
 
 // Real per-count programming, not a mechanical repeat. The guiding
 // research, already used elsewhere in this program (see the ACSM 2026/
@@ -18845,6 +18894,504 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       }
     },
   },
+  // Cycling is the first STYLE-VARIANT CONTAINER in this rollout (batch 8),
+  // structurally different from every program above: `programs.cycling.days`
+  // isn't fixed content, it's swapped at runtime from CYCLING_STYLES[style]
+  // -- see loadCyclingStyle()/renderCyclingSelector() below. So this entry
+  // is keyed by sub-style FIRST, then day count (cycling.road[n], not
+  // cycling[n] like every flat program above) -- applyDaysPerWeekProgramData
+  // has a real branch for this, and the two style-switch handlers reapply
+  // the day-count pref on switch instead of silently discarding it. Road
+  // and Mountain both share Road's own polarized-training citation (a small
+  // number of hard efforts inside a MOSTLY easy week) -- high-frequency
+  // variants for both add extra genuinely-easy/low-toll volume (an easy
+  // ride, or more technical trail time for Mountain), never a 3rd/4th
+  // hard-interval or punchy-power day, which would break that ratio rather
+  // than just add volume.
+  cycling: {
+    road: {
+      1: {
+        short: 'Endurance ride + cadence — the floor for this program',
+        overview: 'One ride combining Zone 2 endurance riding with a few short cadence primers, since a full week only gets one shot. This program\'s own reasoning is explicit that the polarized model needs a small number of genuinely hard efforts inside a MOSTLY easy week -- one day can\'t deliver both an easy week and a hard effort, so this stays an easy ride with light cadence work, not a full interval session.',
+        days: {
+          d1: { label:'Day 1', sub:'Endurance Ride + Cadence', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+              {name:'Endurance Ride (Zone 2)', sets:'30 min', noWeight:true},
+              {name:'Cadence Drills', sets:'2×3 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'5 min', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip flexor and lower-back mobility, 20-25 min. The fixed, hunched riding position makes this recovery non-negotiable, not optional.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip flexor and lower-back mobility, 20-25 min. The fixed, hunched riding position makes this recovery non-negotiable, not optional.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      2: {
+        short: 'Endurance Base Ride and FTP / Threshold Intervals, dedicated days',
+        overview: 'Endurance base riding and FTP/threshold intervals each get their own full session — the aerobic base and the one genuinely hard effort this program\'s own polarized model calls for, at the lowest frequency that still keeps that structure honest.',
+        days: {
+          d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+              {name:'Endurance Ride (Zone 2)', sets:'45-60 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'5-10 min', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip flexor and lower-back mobility, 20-25 min. The fixed, hunched riding position makes this recovery non-negotiable, not optional.' },
+          d3: { label:'Day 3', sub:'FTP / Threshold Intervals', plate:'p-blue', plateNum:'20', duration:'~50 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'FTP Intervals', sets:'3×10 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip flexor and lower-back mobility, 20-25 min. The fixed, hunched riding position makes this recovery non-negotiable, not optional.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      3: {
+        short: 'Endurance Base Ride, FTP / Threshold Intervals, and Long Ride + Core/Strength',
+        overview: 'Three of this program\'s five sessions each get their own day — two easy-effort rides (endurance base and the long ride) plus one hard effort (FTP/threshold intervals) — keeping this program\'s own polarized mostly-easy distribution honest even at this frequency, not just picking three different session types.',
+        days: {
+          d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+              {name:'Endurance Ride (Zone 2)', sets:'45-60 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'5-10 min', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'FTP / Threshold Intervals', plate:'p-blue', plateNum:'20', duration:'~50 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'FTP Intervals', sets:'3×10 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip flexor and lower-back mobility, 20-25 min. The fixed, hunched riding position makes this recovery non-negotiable, not optional.' },
+          d4: { label:'Day 4', sub:'Long Ride + Core/Strength', plate:'p-yellow', plateNum:'15', duration:'~2 hr',
+            exercises:[
+              {name:'Long Ride (Zone 2)', sets:'90-120 min', noWeight:true},
+              {name:'Squat', sets:'3×10-12'},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+              {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      4: {
+        short: 'Endurance Base Ride, FTP / Threshold Intervals, Hill Repeats, and Long Ride + Core/Strength',
+        overview: 'Four of this program\'s five sessions each get their own day. Sprint & Cadence Work is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up — this program\'s own polarized model calls for a MOSTLY easy week, and three hard-effort days already outweighs the two easy ones at this count.',
+        days: {
+          d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+              {name:'Endurance Ride (Zone 2)', sets:'45-60 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'5-10 min', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'FTP / Threshold Intervals', plate:'p-blue', plateNum:'20', duration:'~50 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'FTP Intervals', sets:'3×10 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip flexor and lower-back mobility, 20-25 min. The fixed, hunched riding position makes this recovery non-negotiable, not optional.' },
+          d4: { label:'Day 4', sub:'Hill Repeats', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'Hill Repeats (seated climbing)', sets:'6×5 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Long Ride + Core/Strength', plate:'p-green', plateNum:'10', duration:'~2 hr',
+            exercises:[
+              {name:'Long Ride (Zone 2)', sets:'90-120 min', noWeight:true},
+              {name:'Squat', sets:'3×10-12'},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+              {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      // 5 intentionally omitted — this is the program's own authored
+      // default for this style (CYCLING_STYLES.road), used as-is.
+      6: {
+        short: 'The full 5-day program plus an extra easy ride',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra easy-effort riding — not a 4th hard-interval day. This program\'s own reasoning is explicit that the polarized model depends on a MOSTLY easy week around a small number of hard efforts; adding another hard session here would break that ratio, not just add volume.',
+        days: {
+          d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+              {name:'Endurance Ride (Zone 2)', sets:'45-60 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'5-10 min', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'FTP / Threshold Intervals', plate:'p-blue', plateNum:'20', duration:'~50 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'FTP Intervals', sets:'3×10 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip flexor and lower-back mobility, 20-25 min. The fixed, hunched riding position makes this recovery non-negotiable, not optional.' },
+          d4: { label:'Day 4', sub:'Hill Repeats', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'Hill Repeats (seated climbing)', sets:'6×5 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Sprint & Cadence Work', plate:'p-green', plateNum:'10', duration:'~50 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'Sprint Intervals (Bike)', sets:'8×30s', noWeight:true},
+              {name:'Cadence Drills', sets:'4×3 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Long Ride + Core/Strength', plate:'p-off', plateNum:'5', duration:'~2 hr',
+            exercises:[
+              {name:'Long Ride (Zone 2)', sets:'90-120 min', noWeight:true},
+              {name:'Squat', sets:'3×10-12'},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+              {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Easy Ride', plate:'p-off', plateNum:'5', duration:'~35 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+              {name:'Endurance Ride (Zone 2)', sets:'20-25 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says the fixed, hunched riding position makes that recovery non-negotiable, not optional, even at 7 days selected.',
+        days: {
+          d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+              {name:'Endurance Ride (Zone 2)', sets:'45-60 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'5-10 min', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'FTP / Threshold Intervals', plate:'p-blue', plateNum:'20', duration:'~50 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'FTP Intervals', sets:'3×10 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip flexor and lower-back mobility, 20-25 min. The fixed, hunched riding position makes this recovery non-negotiable, not optional, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Hill Repeats', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'Hill Repeats (seated climbing)', sets:'6×5 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Sprint & Cadence Work', plate:'p-green', plateNum:'10', duration:'~50 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'Sprint Intervals (Bike)', sets:'8×30s', noWeight:true},
+              {name:'Cadence Drills', sets:'4×3 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Long Ride + Core/Strength', plate:'p-off', plateNum:'5', duration:'~2 hr',
+            exercises:[
+              {name:'Long Ride (Zone 2)', sets:'90-120 min', noWeight:true},
+              {name:'Squat', sets:'3×10-12'},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+              {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Easy Ride', plate:'p-off', plateNum:'5', duration:'~35 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+              {name:'Endurance Ride (Zone 2)', sets:'20-25 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+        }
+      },
+    },
+    mountain: {
+      1: {
+        short: 'Endurance ride + technical trail time — the floor for this program',
+        overview: 'One ride combining Zone 2 endurance riding with a shorter block of technical trail practice, since a full week only gets one shot. This program\'s own reasoning is explicit that technical descending skill only comes from real trail time, not intervals — so even at the lowest frequency this stays an endurance-plus-skill ride, not a pure fitness session.',
+        days: {
+          d1: { label:'Day 1', sub:'Endurance Ride + Technical Trail Time', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+              {name:'Endurance Ride (Zone 2)', sets:'25 min', noWeight:true},
+              {name:'Technical Trail Ride', sets:'20-25 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'5 min', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip, shoulder, and wrist mobility, 20-25 min. Technical terrain loads the upper body and grip far more than road riding — give it real recovery.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip, shoulder, and wrist mobility, 20-25 min. Technical terrain loads the upper body and grip far more than road riding — give it real recovery.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      2: {
+        short: 'Endurance Base Ride and Technical Trail Skills, dedicated days',
+        overview: 'Endurance base riding and technical trail skills each get their own full session — the aerobic base and the specific skill this program\'s own reasoning calls out as only trainable through real trail time, at the lowest frequency that still trains both.',
+        days: {
+          d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+              {name:'Endurance Ride (Zone 2)', sets:'45-60 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'5-10 min', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip, shoulder, and wrist mobility, 20-25 min. Technical terrain loads the upper body and grip far more than road riding — give it real recovery.' },
+          d3: { label:'Day 3', sub:'Technical Trail Skills', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'Technical Trail Ride', sets:'45-60 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip, shoulder, and wrist mobility, 20-25 min. Technical terrain loads the upper body and grip far more than road riding — give it real recovery.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      3: {
+        short: 'Endurance Base Ride, Technical Trail Skills, and Long Ride + Grip/Core',
+        overview: 'Three of this program\'s five sessions each get their own day — endurance base riding, technical trail skills, and the long ride with grip/core work — keeping this program\'s own emphasis on aerobic base and real trail-skill time ahead of the punchy power-interval work at this frequency.',
+        days: {
+          d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+              {name:'Endurance Ride (Zone 2)', sets:'45-60 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'5-10 min', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Technical Trail Skills', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'Technical Trail Ride', sets:'45-60 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip, shoulder, and wrist mobility, 20-25 min. Technical terrain loads the upper body and grip far more than road riding — give it real recovery.' },
+          d4: { label:'Day 4', sub:'Long Ride + Grip/Core', plate:'p-yellow', plateNum:'15', duration:'~2.5 hr',
+            exercises:[
+              {name:'Long Ride (Zone 2)', sets:'90-150 min', noWeight:true},
+              {name:'Farmer\'s Carry', sets:'3×30s'},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+              {name:'Dead Bug', sets:'2×8-10/side', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      4: {
+        short: 'Endurance Base Ride, Technical Trail Skills, Standing Climb Power, and Long Ride + Grip/Core',
+        overview: 'Four of this program\'s five sessions each get their own day. Power & Technical Intervals is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        days: {
+          d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+              {name:'Endurance Ride (Zone 2)', sets:'45-60 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'5-10 min', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Technical Trail Skills', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'Technical Trail Ride', sets:'45-60 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip, shoulder, and wrist mobility, 20-25 min. Technical terrain loads the upper body and grip far more than road riding — give it real recovery.' },
+          d4: { label:'Day 4', sub:'Standing Climb Power', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'Standing Climb Repeats', sets:'6×3 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Long Ride + Grip/Core', plate:'p-green', plateNum:'10', duration:'~2.5 hr',
+            exercises:[
+              {name:'Long Ride (Zone 2)', sets:'90-150 min', noWeight:true},
+              {name:'Farmer\'s Carry', sets:'3×30s'},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+              {name:'Dead Bug', sets:'2×8-10/side', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      // 5 intentionally omitted — this is the program's own authored
+      // default for this style (CYCLING_STYLES.mountain), used as-is.
+      6: {
+        short: 'The full 5-day program plus extra technical trail time',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra technical trail time — not a 2nd punchy power-interval day. This program\'s own reasoning already says technical skill only comes from real trail time, not more structured intervals, and the repeated short power efforts here carry real fatigue cost; the extra day adds more of the skill work instead.',
+        days: {
+          d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+              {name:'Endurance Ride (Zone 2)', sets:'45-60 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'5-10 min', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Technical Trail Skills', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'Technical Trail Ride', sets:'45-60 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip, shoulder, and wrist mobility, 20-25 min. Technical terrain loads the upper body and grip far more than road riding — give it real recovery.' },
+          d4: { label:'Day 4', sub:'Standing Climb Power', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'Standing Climb Repeats', sets:'6×3 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Power & Technical Intervals', plate:'p-green', plateNum:'10', duration:'~50 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'Sprint Intervals (Bike)', sets:'8×20s', noWeight:true},
+              {name:'Cadence Drills', sets:'4×3 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Long Ride + Grip/Core', plate:'p-off', plateNum:'5', duration:'~2.5 hr',
+            exercises:[
+              {name:'Long Ride (Zone 2)', sets:'90-150 min', noWeight:true},
+              {name:'Farmer\'s Carry', sets:'3×30s'},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+              {name:'Dead Bug', sets:'2×8-10/side', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Technical Trail Time', plate:'p-off', plateNum:'5', duration:'~40 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+              {name:'Technical Trail Ride', sets:'30 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. This program\'s own rest-day note already says technical terrain loads the upper body and grip far more than road riding — even at 7 days selected, that stays true.',
+        days: {
+          d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+              {name:'Endurance Ride (Zone 2)', sets:'45-60 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'5-10 min', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Technical Trail Skills', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'Technical Trail Ride', sets:'45-60 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip, shoulder, and wrist mobility, 20-25 min. Technical terrain loads the upper body and grip far more than road riding — give it real recovery, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Standing Climb Power', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'Standing Climb Repeats', sets:'6×3 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Power & Technical Intervals', plate:'p-green', plateNum:'10', duration:'~50 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'15 min', noWeight:true},
+              {name:'Sprint Intervals (Bike)', sets:'8×20s', noWeight:true},
+              {name:'Cadence Drills', sets:'4×3 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Long Ride + Grip/Core', plate:'p-off', plateNum:'5', duration:'~2.5 hr',
+            exercises:[
+              {name:'Long Ride (Zone 2)', sets:'90-150 min', noWeight:true},
+              {name:'Farmer\'s Carry', sets:'3×30s'},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+              {name:'Dead Bug', sets:'2×8-10/side', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Technical Trail Time', plate:'p-off', plateNum:'5', duration:'~40 min',
+            exercises:[
+              {name:'Warm-up Ride (easy spin)', sets:'10 min', noWeight:true},
+              {name:'Technical Trail Ride', sets:'30 min', noWeight:true},
+              {name:'Cool-down Spin', sets:'10 min', noWeight:true},
+            ]
+          },
+        }
+      },
+    },
+  },
 };
 
 let daysPerWeekPref = null; // null = untouched -> each program's own authored default, unchanged
@@ -18870,11 +19417,36 @@ async function saveDaysPerWeekPref(n){
 
 // Rebuilds `.days`/`.overview`/`.short` for every opted-in program from
 // either its own untouched default (pref unset) or the matching
-// hand-authored PROGRAM_DAY_COUNT_VARIANTS entry. Called on load and on
-// every pref change; programs outside DAYS_PER_WEEK_PROGRAMS are never
-// touched.
+// hand-authored PROGRAM_DAY_COUNT_VARIANTS entry. Called on load, on every
+// pref change, AND on every style switch for a style-variant container (see
+// renderCyclingSelector() below) -- programs outside DAYS_PER_WEEK_PROGRAMS
+// are never touched.
+//
+// Style-variant containers (currently just cycling) need a different
+// lookup: PROGRAM_DAY_COUNT_VARIANTS.cycling is keyed by sub-style FIRST,
+// then day count, because programs.cycling.days is itself swapped per
+// sub-style at runtime -- a single flat set of variants couldn't represent
+// Road and Mountain's genuinely different day content. DAYS_PER_WEEK_
+// ORIGINAL has no entry for cycling at all (see DAYS_PER_WEEK_STYLE_
+// CONTAINERS above), so the pref-unset/count-omitted fallback comes from
+// the live CYCLING_STYLES data instead, keyed by whichever style is
+// currently active.
 function applyDaysPerWeekProgramData(){
   DAYS_PER_WEEK_PROGRAMS.forEach(key=>{
+    if(key === 'cycling'){
+      const variant = (daysPerWeekPref == null) ? null : PROGRAM_DAY_COUNT_VARIANTS.cycling[activeCyclingStyle][daysPerWeekPref];
+      // `.days` always follows the active style, pref or no pref -- that
+      // part of the container's existing behavior doesn't change. `.overview`
+      // /`.short` only swap to the variant's own text once a real day-count
+      // variant is active; otherwise they revert to the container's own
+      // generic blurb (DAYS_PER_WEEK_CONTAINER_DEFAULT), never to the
+      // style's blurb -- switching Road/Mountain alone must not change what
+      // the main Training Style card describes.
+      programs.cycling.days = variant ? variant.days : CYCLING_STYLES[activeCyclingStyle].days;
+      programs.cycling.overview = variant ? variant.overview : DAYS_PER_WEEK_CONTAINER_DEFAULT.cycling.overview;
+      programs.cycling.short = variant ? variant.short : DAYS_PER_WEEK_CONTAINER_DEFAULT.cycling.short;
+      return;
+    }
     const source = (daysPerWeekPref == null)
       ? DAYS_PER_WEEK_ORIGINAL[key]
       : (PROGRAM_DAY_COUNT_VARIANTS[key][daysPerWeekPref] || DAYS_PER_WEEK_ORIGINAL[key]);
