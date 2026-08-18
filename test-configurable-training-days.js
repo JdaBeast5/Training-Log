@@ -32,7 +32,10 @@ const pureChunks = [
   extractConst(src, 'DAYS_PER_WEEK_ORIGINAL'),
   extractConst(src, 'DAYS_PER_WEEK_CONTAINER_DEFAULT'),
   extractConst(src, 'CYCLING_STYLES'),
+  extractConst(src, 'COMBAT_STYLES'),
   'var activeCyclingStyle = "road";', // mirrors the real `let activeCyclingStyle = 'road';` default
+  'var activeMartialArt = "kickboxing";', // mirrors the real `let activeMartialArt = 'kickboxing';` default
+  extractFunction(src, 'getStyleContainerAccessor'),
   extractConst(src, 'PROGRAM_DAY_COUNT_VARIANTS'),
   extractFunction(src, 'daysPerWeekWarningState'),
 ];
@@ -263,6 +266,147 @@ test('sabotage: cycling is deliberately NOT in the flat PROGRAMS_TO_CHECK/OMITTE
   assert.strictEqual(hasStyleKeys, true);
 });
 
+// [Combat — the second style-variant container] ------------------------------
+// Same nested-by-sub-style shape as cycling, now generalized behind
+// getStyleContainerAccessor(). Deliberately NOT added to PROGRAMS_TO_CHECK
+// for the same reason cycling wasn't -- the flat-shape loops above would
+// either check the wrong thing or throw against a nested one.
+const COMBAT_STYLES_TO_CHECK = ['kickboxing', 'boxing', 'muayThai', 'mma', 'taekwondo', 'taiChi'];
+const COMBAT_OMITTED_DEFAULT_COUNT = 5; // every style's own default is a 5-day week
+
+for(const style of COMBAT_STYLES_TO_CHECK){
+  for(const n of ALL_COUNTS){
+    test(`combat.${style} day-count ${n}: a real plan resolves (either an authored variant, or the style's own default for the intentionally-omitted count), with all 7 slots present`, (assert)=>{
+      const [days] = runSandbox(pureChunks, `
+        const variant = PROGRAM_DAY_COUNT_VARIANTS.combat['${style}'][${n}];
+        const resolved = variant || COMBAT_STYLES['${style}'];
+        __capture.push(resolved.days);
+      `);
+      assert.strictEqual(Object.keys(days).length, 7, 'must always be exactly d1..d7');
+      ['d1','d2','d3','d4','d5','d6','d7'].forEach(key => {
+        assert.ok(days[key], `missing ${key}`);
+        assert.ok(days[key].sub, `${key} missing a sub-label`);
+        if(!days[key].rest){
+          assert.ok(Array.isArray(days[key].exercises) && days[key].exercises.length > 0, `${key} is a training day but has no exercises`);
+        }
+      });
+    });
+  }
+}
+
+for(const style of COMBAT_STYLES_TO_CHECK){
+  test(`combat.${style}: every hand-authored day-count's TRAINING day count actually matches the count selected`, (assert)=>{
+    const [results] = runSandbox(pureChunks, `
+      const out = {};
+      for(const n of [1,2,3,4,5,6,7]){
+        const variant = PROGRAM_DAY_COUNT_VARIANTS.combat['${style}'][n];
+        if(!variant) continue;
+        out[n] = Object.values(variant.days).filter(d=>!d.rest).length;
+      }
+      __capture.push(out);
+    `);
+    for(const n of ALL_COUNTS){
+      if(n === COMBAT_OMITTED_DEFAULT_COUNT) continue;
+      const expected = (n === 7) ? 6 : n;
+      assert.strictEqual(results[n], expected, `n=${n} should have exactly ${expected} training days, got ${results[n]}`);
+    }
+  });
+
+  test(`sabotage: combat.${style} day-count 5 is the intentionally-omitted default — PROGRAM_DAY_COUNT_VARIANTS.combat.${style} has no key "5"`, (assert)=>{
+    const [has5] = runSandbox(pureChunks, `__capture.push(Object.prototype.hasOwnProperty.call(PROGRAM_DAY_COUNT_VARIANTS.combat['${style}'], '5'));`);
+    assert.strictEqual(has5, false);
+  });
+
+  test(`combat.${style}: all 7 day-count plans have genuinely distinct overview text (sabotage: catches a copy-paste-without-editing mistake across counts)`, (assert)=>{
+    const [overviews] = runSandbox(pureChunks, `
+      const out = [];
+      for(const n of [1,2,3,4,5,6,7]){
+        const variant = PROGRAM_DAY_COUNT_VARIANTS.combat['${style}'][n] || COMBAT_STYLES['${style}'];
+        out.push(variant.overview);
+      }
+      __capture.push(out);
+    `);
+    assert.strictEqual(overviews.length, 7);
+    assert.strictEqual(new Set(overviews).size, 7, 'expected 7 distinct overview strings, found duplicates');
+    overviews.forEach(o => assert.ok(o && o.length > 40, 'overview text looks too short to be a real description'));
+  });
+
+  test(`sabotage: combat.${style}'s 6-day and 7-day plans keep the SAME real training days`, (assert)=>{
+    const [subs6, subs7] = runSandbox(pureChunks, `
+      const subsOf = (days) => Object.values(days).filter(d=>!d.rest).map(d=>d.sub).sort();
+      __capture.push(subsOf(PROGRAM_DAY_COUNT_VARIANTS.combat['${style}'][6].days));
+      __capture.push(subsOf(PROGRAM_DAY_COUNT_VARIANTS.combat['${style}'][7].days));
+    `);
+    assert.deepStrictEqual(subs6, subs7);
+  });
+}
+
+test('sabotage: combat.muayThai\'s 6-day and 7-day extra day contains ZERO clinch or elbow work — proving the "real injury risk, keep it off the extra day" design decision landed in the data', (assert)=>{
+  const [sub6, exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.muayThai[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.muayThai[6].days.d7.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Conditioning & Hip Mobility');
+  ['Clinch Knee Drills', 'Elbow Strike Drills'].forEach(riskyEx => {
+    assert.strictEqual(exNames6.includes(riskyEx), false, `muayThai's 7th day should contain no clinch/elbow work, found ${riskyEx}`);
+  });
+});
+
+test('sabotage: combat.mma\'s 6-day and 7-day extra day contains ZERO Ground & Pound or Sprawl work — proving the "aerobic recovery, not more high-impact ground work" design decision landed in the data', (assert)=>{
+  const [sub6, exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.mma[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.mma[6].days.d7.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Aerobic Conditioning & Mobility');
+  ['Ground & Pound Drills', 'Sprawl Drills'].forEach(riskyEx => {
+    assert.strictEqual(exNames6.includes(riskyEx), false, `mma's 7th day should contain no ground-and-pound/sprawl work, found ${riskyEx}`);
+  });
+});
+
+test('sabotage: combat.taekwondo\'s 6-day and 7-day extra day is genuinely flexibility-focused, not another kicking-power session — proving the "kick performance is built on rest days" design decision landed in the data', (assert)=>{
+  const [sub6, exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.taekwondo[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.taekwondo[6].days.d7.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Flexibility & Footwork');
+  const heavyBagExercises = exNames6.filter(name => name.startsWith('Heavy Bag'));
+  assert.strictEqual(heavyBagExercises.length, 0, `taekwondo's 7th day should contain no heavy-bag work, found ${heavyBagExercises.join(', ')}`);
+});
+
+test('sabotage: combat.taiChi\'s 6-day and 7-day extra day is real practice content (Zhan Zhuang / Qigong), not a copy-pasted mobility filler from an unrelated program', (assert)=>{
+  const [sub6, sub7, exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.taiChi[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.taiChi[7].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.taiChi[6].days.d7.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Standing Meditation & Breath Work');
+  assert.strictEqual(sub7, 'Extra Standing Meditation & Breath Work');
+  assert.strictEqual(exNames6.includes('Zhan Zhuang (Standing Post)'), true, 'expected real tai chi practice content, not generic filler');
+});
+
+test('sabotage: combat.taiChi\'s Push Hands & Sensitivity (the one day needing a training partner) is deferred to n=4 and up, not assumed available at n=1-3', (assert)=>{
+  const [has1, has2, has3, has4] = runSandbox(pureChunks, `
+    const subsOf = (n) => Object.values(PROGRAM_DAY_COUNT_VARIANTS.combat.taiChi[n].days).map(d=>d.sub);
+    __capture.push(subsOf(1).includes('Push Hands & Sensitivity'));
+    __capture.push(subsOf(2).includes('Push Hands & Sensitivity'));
+    __capture.push(subsOf(3).includes('Push Hands & Sensitivity'));
+    __capture.push(subsOf(4).includes('Push Hands & Sensitivity'));
+  `);
+  assert.strictEqual(has1, false);
+  assert.strictEqual(has2, false);
+  assert.strictEqual(has3, false);
+  assert.strictEqual(has4, true, 'Push Hands & Sensitivity should appear once the day budget allows it, starting at n=4');
+});
+
+test('sabotage: combat is deliberately NOT in the flat PROGRAMS_TO_CHECK/OMITTED_DEFAULT_COUNT shape — PROGRAM_DAY_COUNT_VARIANTS.combat has no numeric-keyed day count directly on it, only sub-style keys', (assert)=>{
+  const [hasNumeric, hasStyleKeys] = runSandbox(pureChunks, `
+    __capture.push(Object.prototype.hasOwnProperty.call(PROGRAM_DAY_COUNT_VARIANTS.combat, '1'));
+    __capture.push(${JSON.stringify(COMBAT_STYLES_TO_CHECK)}.every(k => Object.prototype.hasOwnProperty.call(PROGRAM_DAY_COUNT_VARIANTS.combat, k)));
+  `);
+  assert.strictEqual(hasNumeric, false, 'combat must not have a flat day-count key — it would silently shadow the real nested style-keyed shape');
+  assert.strictEqual(hasStyleKeys, true);
+});
+
 test('sabotage: strength\'s 7-day plan reframes the rest slot as light mobility/cardio, NOT a full-rest day and NOT a 7th hard session', (assert)=>{
   const [day3] = runSandbox(pureChunks, `__capture.push(PROGRAM_DAY_COUNT_VARIANTS.strength[7].days.d3);`);
   assert.strictEqual(day3.rest, true, 'must still be a light/rest-style day, not a hard session');
@@ -471,14 +615,15 @@ const bodyGoalChunks = [
 // athletic, bodyweight, calisthenics) are exactly FOCUS_ELIGIBLE_PROGRAMS'
 // membership, so their extra accessory days align with body goals for
 // free. Batch 4 (core, jumprope, mobility), batch 6 (senior, desk,
-// pilates), batch 7 (boxingsc, hyrox, grappling), and batch 8 (cycling) are
-// deliberately NOT in that list -- these are the two disjoint groups,
-// checked separately. (Batch 5 -- running, swimming, climbing -- isn't in
-// either check list; also not in FOCUS_ELIGIBLE_PROGRAMS, but that batch
-// didn't add the corresponding negative-case coverage. Pre-existing gap,
-// noted rather than silently backfilled here.)
+// pilates), batch 7 (boxingsc, hyrox, grappling), batch 8 (cycling), and
+// batch 9 (combat) are deliberately NOT in that list -- these are the two
+// disjoint groups, checked separately. (Batch 5 -- running, swimming,
+// climbing -- isn't in either check list; also not in
+// FOCUS_ELIGIBLE_PROGRAMS, but that batch didn't add the corresponding
+// negative-case coverage. Pre-existing gap, noted rather than silently
+// backfilled here.)
 const FOCUS_ELIGIBLE_BATCH = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics'];
-const NON_FOCUS_ELIGIBLE_BATCH = ['core', 'jumprope', 'mobility', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling', 'cycling'];
+const NON_FOCUS_ELIGIBLE_BATCH = ['core', 'jumprope', 'mobility', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling', 'cycling', 'combat'];
 
 test('FOCUS_ELIGIBLE_PROGRAMS already covers the first 8 programs rolled out — the reason their extra accessory days align with body goals for free', (assert)=>{
   const [results] = runSandbox(bodyGoalChunks, `
@@ -660,6 +805,62 @@ test('sabotage: cycling day-count 5 (the intentionally-omitted default) falls ba
     daysPerWeekPref = 5;
     applyDaysPerWeekProgramData();
     __capture.push(JSON.stringify(programs.cycling.days) === JSON.stringify(CYCLING_STYLES.road.days));
+  `);
+  assert.strictEqual(daysMatch, true);
+});
+
+// [applyDaysPerWeekProgramData — combat's style-container branch] ---------------
+// Same coverage as cycling above, now proving getStyleContainerAccessor()'s
+// generalization actually works for a SECOND container, not just the one it
+// was extracted from.
+test('applyDaysPerWeekProgramData with pref=null: combat.days follows the active style (COMBAT_STYLES.kickboxing), but .overview/.short stay the container\'s own generic blurb, NOT the style\'s blurb', (assert)=>{
+  const [daysMatch, overviewIsContainer, shortIsContainer, overviewIsNotStyle] = runSandbox(applyChunks, `
+    applyDaysPerWeekProgramData();
+    __capture.push(JSON.stringify(programs.combat.days) === JSON.stringify(COMBAT_STYLES.kickboxing.days));
+    __capture.push(programs.combat.overview === DAYS_PER_WEEK_CONTAINER_DEFAULT.combat.overview);
+    __capture.push(programs.combat.short === DAYS_PER_WEEK_CONTAINER_DEFAULT.combat.short);
+    __capture.push(programs.combat.overview !== COMBAT_STYLES.kickboxing.overview);
+  `);
+  assert.strictEqual(daysMatch, true);
+  assert.strictEqual(overviewIsContainer, true);
+  assert.strictEqual(shortIsContainer, true);
+  assert.strictEqual(overviewIsNotStyle, true);
+});
+
+test('applyDaysPerWeekProgramData with a real pref set: combat.days/.overview/.short all regenerate to match the active style\'s authored variant', (assert)=>{
+  const [daysMatch, overviewMatch, shortMatch] = runSandbox(applyChunks, `
+    daysPerWeekPref = 6;
+    applyDaysPerWeekProgramData();
+    const variant = PROGRAM_DAY_COUNT_VARIANTS.combat.kickboxing[6];
+    __capture.push(JSON.stringify(programs.combat.days) === JSON.stringify(variant.days));
+    __capture.push(programs.combat.overview === variant.overview);
+    __capture.push(programs.combat.short === variant.short);
+  `);
+  assert.strictEqual(daysMatch, true);
+  assert.strictEqual(overviewMatch, true);
+  assert.strictEqual(shortMatch, true);
+});
+
+test('REAL invocation: switching activeMartialArt from kickboxing to taiChi and reapplying keeps the SAME day-count pref instead of silently discarding it', (assert)=>{
+  const [daysMatchTaiChi6, notKickboxing6] = runSandbox(applyChunks, `
+    daysPerWeekPref = 6;
+    applyDaysPerWeekProgramData(); // kickboxing, 6 days
+    activeMartialArt = 'taiChi';
+    applyDaysPerWeekProgramData(); // style switch -- must reapply the same pref, not clobber .days with the raw style default
+    const taiChiVariant = PROGRAM_DAY_COUNT_VARIANTS.combat.taiChi[6];
+    const kickboxingVariant = PROGRAM_DAY_COUNT_VARIANTS.combat.kickboxing[6];
+    __capture.push(JSON.stringify(programs.combat.days) === JSON.stringify(taiChiVariant.days));
+    __capture.push(JSON.stringify(programs.combat.days) !== JSON.stringify(kickboxingVariant.days));
+  `);
+  assert.strictEqual(daysMatchTaiChi6, true, 'day count 6 must survive the style switch, applied to the NEW style\'s own 6-day variant');
+  assert.strictEqual(notKickboxing6, true, 'must not still be showing kickboxing\'s 6-day plan after switching to taiChi');
+});
+
+test('sabotage: combat day-count 5 (the intentionally-omitted default) falls back to the active style\'s own COMBAT_STYLES days, not some other style or a stale value', (assert)=>{
+  const [daysMatch] = runSandbox(applyChunks, `
+    daysPerWeekPref = 5;
+    applyDaysPerWeekProgramData();
+    __capture.push(JSON.stringify(programs.combat.days) === JSON.stringify(COMBAT_STYLES.kickboxing.days));
   `);
   assert.strictEqual(daysMatch, true);
 });
