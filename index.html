@@ -106,7 +106,14 @@
        A second blue light-stop (#7C97FF) used to exist here too for the
        same reason, until the user picked #6E8AFF as the one true CTA blue
        (asked directly, not guessed) — every #7C97FF site was rewritten to
-       match; see WHATS_NEW for the version this landed in. */
+       match; see WHATS_NEW for the version this landed in.
+       A second blue STOP PERCENTAGE (55%, 4 uses — .save-btn, .coach-fab,
+       .calendar-cell.selected, .compare-confirm-btn) also existed, unlike
+       the green 55/60 split above, this one was real undocumented drift,
+       not a considered exception — found during a visual-formatting/
+       redundancy review, confirmed with the user directly (same
+       asked-not-guessed approach as the retired second blue light-stop
+       above) that 60% should win, and rewritten to match. */
     --cta-gradient-green:linear-gradient(160deg, #4FE168, var(--plate-green) 55%);
     --cta-gradient-blue:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%);
     /* The glossy top-highlight already used on .macro-bar-fill/.vol-bar-fill
@@ -1416,7 +1423,7 @@
   .save-btn{
     position:relative; overflow:hidden;
     width:100%; margin-top:14px; padding:12px; border:none; border-radius:var(--radius-sm);
-    background:var(--shine-gloss), linear-gradient(160deg, #6E8AFF, var(--plate-blue) 55%); color:#fff; font-weight:600; font-size:14px;
+    background:var(--shine-gloss), var(--cta-gradient-blue); color:#fff; font-weight:600; font-size:14px;
     letter-spacing:-0.005em;
     font-family:'Inter',sans-serif; cursor:pointer;
     box-shadow:var(--cta-gloss-inset), 0 6px 16px -6px rgba(var(--plate-blue-rgb),0.55);
@@ -1761,7 +1768,7 @@
   .coach-fab{
     position:fixed; bottom:22px; right:18px; z-index:70; overflow:hidden;
     width:58px; height:58px; border-radius:50%; border:1px solid rgba(var(--surface-white-rgb),0.28);
-    background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 55%); color:#fff; font-size:24px;
+    background:var(--cta-gradient-blue); color:#fff; font-size:24px;
     display:flex; align-items:center; justify-content:center; cursor:pointer;
     box-shadow:var(--fab-gloss-inset), 0 14px 34px -8px rgba(var(--plate-blue-rgb),0.65), 0 0 50px -14px rgba(var(--plate-blue-rgb),0.55);
     transition:transform 0.18s var(--ease-smooth), box-shadow 0.18s var(--ease-smooth), opacity 0.26s var(--ease-smooth);
@@ -2537,7 +2544,7 @@
     box-shadow:inset 0 1px 0 rgba(var(--surface-white-rgb),0.06);
   }
   .calendar-cell.selected{
-    background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 55%); color:#fff; font-weight:700;
+    background:var(--cta-gradient-blue); color:#fff; font-weight:700;
     box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.3) inset, 0 6px 16px -8px rgba(var(--plate-blue-rgb),0.6);
   }
   .calendar-cell.future-disabled{opacity:0.25; cursor:default; pointer-events:none;}
@@ -2978,7 +2985,7 @@
   .compare-consent-actions{display:flex; gap:8px; margin-top:10px;}
   .compare-confirm-btn{
     flex:1; padding:9px 10px; border:none; border-radius:var(--radius-sm);
-    background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 55%); color:#fff;
+    background:var(--cta-gradient-blue); color:#fff;
     font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; cursor:pointer;
     box-shadow:var(--cta-gloss-inset), 0 4px 12px -6px rgba(var(--plate-blue-rgb),0.5);
     transition:transform 0.15s var(--ease-smooth);
@@ -6294,7 +6301,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.210';
+const APP_VERSION = '3.211';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6748,6 +6755,9 @@ const WHATS_NEW = {
   '3.210': { headline: 'More of the same behind-the-scenes styling cleanup', points: [
     'The gloss highlight on gradient buttons/checkmarks and on round buttons like the AI Coach and Log Today FABs was copy-pasted at 15 different spots — now a shared style.',
     'Purely visual — no behavior changed, nothing should look any different.',
+  ]},
+  '3.211': { headline: 'A subtle blue tweak on 4 buttons for consistency', points: [
+    'The Save button, AI Coach button, selected calendar day, and photo-compare confirm button now use the exact same shade of blue as everywhere else in the app — they were very slightly off before.',
   ]},
 };
 
