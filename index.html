@@ -5135,7 +5135,7 @@
     </div>
     <div class="macro-row">
       <div class="macro-label">PROTEIN</div>
-      <div class="macro-bar-track"><div class="macro-bar-fill" id="barPro" style="background:var(--plate-red);width:0%"></div></div>
+      <div class="macro-bar-track"><div class="macro-bar-fill" id="barPro" style="background:var(--plate-teal);width:0%"></div></div>
       <div class="macro-val" id="valPro">0 / 240</div>
     </div>
     <div class="macro-row">
@@ -6301,7 +6301,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.211';
+const APP_VERSION = '3.212';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6758,6 +6758,9 @@ const WHATS_NEW = {
   ]},
   '3.211': { headline: 'A subtle blue tweak on 4 buttons for consistency', points: [
     'The Save button, AI Coach button, selected calendar day, and photo-compare confirm button now use the exact same shade of blue as everywhere else in the app — they were very slightly off before.',
+  ]},
+  '3.212': { headline: 'Fixed the Protein bar\'s off-brand red on Today\'s Nutrition', points: [
+    'Protein\'s progress bar now uses teal, matching the rest of the app\'s color scheme — red is reserved for warnings/urgent alerts everywhere else, so a normal metric being red was a genuine mismatch.',
   ]},
 };
 
