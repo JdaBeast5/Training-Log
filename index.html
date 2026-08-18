@@ -3032,11 +3032,39 @@
   .food-log-item{
     display:flex; align-items:center; gap:10px; padding:8px 0;
     border-bottom:1px solid var(--line-soft);
+    cursor:pointer;
   }
   .food-log-item .fl-name{font-size:13.5px; font-weight:500; flex:1;}
-  .food-log-item .fl-macro{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11.5px; color:var(--text-muted); white-space:nowrap;}
+  .food-log-item .fl-macro{
+    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11.5px; color:var(--text-muted); white-space:nowrap;
+    display:flex; align-items:center; gap:4px;
+  }
   .food-log-item .fl-remove{
     background:none; border:none; color:var(--text-muted); font-size:16px; cursor:pointer; padding:0 2px; line-height:1;
+  }
+  /* Tap a logged food to see its macro breakdown, since the row itself only
+     ever had room for calories. role="button"/tabindex="0" even though the
+     row also contains real qty-stepper buttons — matches .exercise, which
+     wraps a real checkbox and delete button the same way and rides the same
+     shared keydown listener (see the comment above it); Enter/Space is left
+     alone when it starts inside a real control. Swipe-vs-tap is handled by
+     makeSwipeable's own movement-threshold logic (see its DRAG_THRESHOLD
+     comment), same as every other row in this list. */
+  .food-log-item .fl-chevron{
+    display:inline-block; font-size:11px; color:var(--text-muted);
+    transition:transform 0.22s var(--ease-smooth);
+  }
+  .food-log-item.open .fl-chevron{transform:rotate(90deg);}
+  .fl-detail{margin:-4px 0 4px;}
+  .fl-detail.open{border-bottom:1px solid var(--line-soft);}
+  .fl-macro-breakdown{
+    display:flex; gap:14px; padding:2px 0 9px;
+    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11.5px;
+  }
+  .fl-macro-breakdown .fl-macro-chip{color:var(--text-muted);}
+  .fl-macro-breakdown .fl-macro-chip strong{color:var(--text); font-weight:600;}
+  @media (prefers-reduced-motion: reduce){
+    .food-log-item .fl-chevron{transition:none;}
   }
   .food-search-input{
     width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--text);
@@ -3313,6 +3341,29 @@
     color:var(--text-muted);
   }
   .masterclass-index-btn.current .mc-index-meta{ color:var(--plate-blue); }
+
+  /* --- Research & Sources list ----------------------------------------
+     Reuses .program-basis-toggle's existing open/close behavior AND its
+     document-level delegated click handler (bound once near buildBasisHtml)
+     rather than adding a second one — this only needs the label to read as
+     a normal list row instead of the small-caps "what this is based on"
+     affordance it renders as everywhere else, so the override is scoped to
+     this card's own list and leaves that original look untouched. */
+  #researchSourcesList .program-basis-toggle{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    width:100%; margin-top:0; margin-bottom:8px; padding:12px 14px; min-height:44px;
+    border-radius:var(--radius-md);
+    background:var(--surface2); border:1px solid rgba(var(--surface-white-rgb),0.07);
+    font-family:'Inter',sans-serif; font-size:13.5px; font-weight:600;
+    text-transform:none; letter-spacing:-0.005em; color:var(--text);
+  }
+  #researchSourcesList .program-basis-toggle:active{ color:var(--text); transform:scale(0.98); }
+  #researchSourcesList .source-row-nested{ margin-left:14px; }
+  #researchSourcesList .source-row-nested .program-basis-toggle{
+    background:var(--surface); font-size:12.5px; font-weight:500; padding:10px 12px;
+  }
+  #researchSourcesList .smooth-toggle{ margin-bottom:10px; }
+  #researchSourcesList .source-program-group{ margin-bottom:4px; }
 
   /* ==================================================================
      POLISH LAYER
@@ -5739,6 +5790,12 @@
       <div id="olyTechniquesList"></div>
     </div>
 
+    <div class="card" id="researchSourcesCard">
+      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3.5h8.5L16 7v9.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1Z"/><path d="M12.5 3.5V7H16"/><line x1="6.5" y1="10" x2="13" y2="10"/><line x1="6.5" y1="13" x2="13" y2="13"/></svg></span>Research &amp; Sources</div>
+      <div class="history-hint">The real, cited research behind every program in this app, in one place — tap one to see its actual source, not a paraphrase.</div>
+      <div id="researchSourcesList"></div>
+    </div>
+
     <!-- Masterclass index. Every masterclass card above is gated on the
          active program, which meant 12 of the 13 were unreachable without
          switching programs — the richest content in the app, effectively
@@ -6167,7 +6224,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.188';
+const APP_VERSION = '3.194';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6529,6 +6586,30 @@ const WHATS_NEW = {
   '3.188': { headline: 'Supersets: the two exercises now weave together into one flowing list', points: [
     'A superset used to show as two separate stacked cards with a "→" button to jump from the end of one exercise\'s sets to the start of the other\'s. Now the two exercises share a single card with their sets interleaved round by round — set 1 of the first exercise, then set 1 of the second, then set 2 of the first, and so on — matching how you actually move through a superset in the gym.',
     'Each exercise keeps its own header, history, and edit controls, but a single "+ Add a round" button adds a set to both at once, and checking one exercise off doesn\'t collapse the card until both are done.',
+  ]},
+  '3.189': { headline: 'New: Research & Sources — every program\'s real citation, in one place', points: [
+    'A new card at the bottom of the Learn tab lists every program and style in the app with the actual research it\'s built on — tap one to see the real citation (authors, journal, year, DOI) rather than a paraphrase.',
+    'This existed per-program already (tap "What this is based on" under the program picker while that program is active), but finding it meant switching into each program one at a time. This is the same underlying data, browsable in one place instead.',
+  ]},
+  '3.190': { headline: 'A citation currency check found a stronger source behind the Pilates program', points: [
+    'The posture claim behind mat Pilates was citing two individual studies (2007, 2010). A 2024 systematic review (13 studies, 783 participants) now backs that specific claim with review-level evidence instead of single-study evidence — the two original studies stay cited for the separate trunk strength/endurance claim, which the newer review doesn\'t cover.',
+  ]},
+  '3.191': { headline: 'Citation currency, part 2: ACL Rehab and Boxing S&C', points: [
+    'ACL Rehab: a 2024 international consensus statement specific to ACL reconstruction (APKASS) now sits alongside the program\'s original 2016 return-to-sport statement — both agree on the same "criteria, not the calendar" position this program was already built on, so nothing about the program itself changed.',
+    'Boxing S&C: a more rigorous 2023 meta-analysis found the link between neck strength and lower concussion risk is NOT well supported by current evidence — weaker than what the program\'s original single-study citation implied. The neck work stays in the program (it\'s still reasonable, low-risk practice), but the app no longer states a protective effect as though it were proven.',
+  ]},
+  '3.192': { headline: 'Rescanning a barcode you\'ve already scanned is now instant', points: [
+    'Barcode scans have always been saved to My Foods automatically once added to the log — that part already worked. What was missing: scanning that SAME barcode again still did a fresh network lookup every time, even though the app already knew the item.',
+    'A rescanned barcode now matches against My Foods first and skips the lookup entirely when it\'s already known — no network round-trip, works without a connection, and shows "Already in My Foods" instead of "Found it" so it\'s clear why it came back instantly.',
+  ]},
+  '3.193': { headline: 'Citation currency check finished — the remaining ~46 programs and styles', points: [
+    'Continuing the earlier pass (Pilates, ACL Rehab, Boxing S&C), every remaining program and style citation in the app was checked against current literature. 9 more got real, verified updates: the bariatric surgery programs\' vague placeholder citation was replaced with its actual authors and DOI, and Diabetes, Desk Worker, Running, Calisthenics, Achilles Rehab, Surfing, Road Cycling, and Hyrox each gained a stronger or more current source alongside what was already cited.',
+    'About 35 other entries were checked and confirmed still current — including Boxing S&C\'s head-impact-safety gap, which remains honestly flagged as unaddressed rather than papered over with an unrelated citation.',
+    'One update is worth knowing about specifically: Road Cycling\'s newer source found the ideal training-intensity split actually differs between competitive and recreational riders, which this app doesn\'t currently distinguish — noted honestly in the citation record rather than quietly resolved.',
+  ]},
+  '3.194': { headline: 'Tap a logged food to see its macro breakdown', points: [
+    'A logged food only ever showed its calories — seeing which food actually drove up your protein, fat, or carbs meant looking it back up from scratch. Tapping any logged item now expands it to show protein, fat, and carbs for that food specifically.',
+    'Works the same as tapping an exercise to see its sets — same tap-to-expand pattern, same keyboard support (Enter/Space when focused). The quantity +/- buttons and swipe-to-delete are untouched.',
   ]},
 };
 
@@ -8765,7 +8846,7 @@ const USER_TEXT = {
                    limits:"Needs no equipment, but progress depends on sets being genuinely hard. Easy reps won't do much." },
   athletic:      { basis:"A 2023 meta-analysis across ages found lower jump volumes work just as well as higher ones for explosive power — real support for training less but better here, not a compromise.",
                    limits:"Low volume on purpose — quality beats accumulation here. Needs a surface with some give, and a proper warm-up." },
-  boxingsc:      { basis:"A real biomechanics study found your trunk and legs generate roughly 3x the punch force your arms do — the actual reason this trains rotational power, not arm strength. Neck work is backed by research linking neck strength to lower concussion odds (in general sports, not boxing specifically).",
+  boxingsc:      { basis:"A real biomechanics study found your trunk and legs generate roughly 3x the punch force your arms do — the actual reason this trains rotational power, not arm strength. Neck work is included as reasonable, low-risk practice; the best current evidence (a 2023 meta-analysis, in general team sports) found the link between neck strength and lower concussion risk isn't actually well-supported, so it's trained here without a proven protective claim behind it.",
                    limits:"This is the conditioning behind boxing, not boxing. It won't prepare you to spar." },
   jumprope:      { basis:"A 2025 controlled trial found jump rope training genuinely improves cardiovascular fitness and strength in both arms and legs — real conditioning, not just a warm-up filler. The specific skill order is standard rope coaching, not something that study tested.",
                    limits:"High-repetition impact through the calves and feet. Build up gradually if you're new to it." },
@@ -12569,6 +12650,81 @@ function openMasterclass(cardId){
   requestAnimationFrame(()=>{
     requestAnimationFrame(()=> card.scrollIntoView({behavior:'smooth', block:'start'}));
   });
+}
+
+// [RESEARCH & SOURCES] -----------------------------------------------------
+// Static style-group lookup for the Research & Sources reference list below
+// — deliberately separate from STYLE_KEY_FOR_PROGRAM (which resolves only
+// whichever style is CURRENTLY selected, via a live getter). This list needs
+// every style under a container program, not just today's pick, so it can
+// show all of them rather than only whichever one happens to be active.
+// Keep this in sync with STYLE_KEY_FOR_PROGRAM's own key set if a new
+// container program is ever added.
+const CONTAINER_STYLE_GROUPS = {
+  combat:      COMBAT_STYLES,
+  cycling:     CYCLING_STYLES,
+  yoga:        YOGA_STYLES,
+  medical:     MEDICAL_STYLES,
+  watersports: WATERSPORTS_STYLES,
+};
+
+// Unique ids for the toggle panels below — a module-level counter, same
+// approach programPanelSeq already uses, so a re-render never collides with
+// a still-open panel from the previous render.
+let sourcePanelSeq = 0;
+
+// One program/style's provenance, as an expandable row. `source` is a
+// PROGRAM_SOURCES or STYLE_SOURCES entry — `school` (the training
+// methodology, one line) and `primary` (the actual citation text, with its
+// DOI/PMID) are surfaced here specifically because neither is rendered
+// anywhere else in the app; the live per-program panel (buildBasisHtml,
+// above) shows `intro`/`limits`/a paraphrased `basis` instead. `editorNote`
+// is deliberately never included — see the comment above USER_TEXT: it is
+// written for whoever edits this file, not for someone reading it here.
+function buildSourceRowHtml(label, source, eyebrow, nested){
+  if(!source) return '';
+  const id = 'srcPanel' + (++sourcePanelSeq);
+  return `
+    <div class="source-row${nested ? ' source-row-nested' : ''}">
+      <button type="button" class="program-basis-toggle" aria-expanded="false" aria-controls="${id}">
+        <span>${escapeHtml(label)}</span>
+        <span class="chev" aria-hidden="true">›</span>
+      </button>
+      <div class="smooth-toggle" id="${id}"><div>
+        <div class="program-panel">
+          <div class="program-panel-eyebrow">${escapeHtml(eyebrow)}</div>
+          <p class="program-intro">${escapeHtml(source.school)}</p>
+          <p class="program-intro"><strong>Cited source — </strong>${escapeHtml(source.primary)}</p>
+        </div>
+      </div></div>
+    </div>`;
+}
+
+// The "what did you build this on" answer for every program in the app, in
+// one browsable place — rather than requiring a visit to each program
+// individually to find its own provenance panel (renderProgramSource, which
+// still is what shows while a program is actually active; this is the
+// reference index, not a replacement for it). Container programs (combat,
+// cycling, yoga, medical, watersports) list every style beneath their own
+// entry, since each style carries its own real citation in STYLE_SOURCES.
+function renderResearchSources(){
+  const el = document.getElementById('researchSourcesList');
+  if(!el) return;
+  const keys = Object.keys(programs).filter(k=> !isCustomProgramKey(k) && PROGRAM_SOURCES[k]);
+  // One group per program, container or not, so the group count always
+  // equals the program count regardless of how many (if any) styles nest
+  // inside it — a container's own row and its styles' rows are siblings
+  // within the same group, not nested inside each other's markup.
+  el.innerHTML = keys.map(key=>{
+    const ownRow = buildSourceRowHtml(programs[key].label, PROGRAM_SOURCES[key], 'About this program', false);
+    const styleGroup = CONTAINER_STYLE_GROUPS[key];
+    const styleRows = styleGroup
+      ? Object.keys(styleGroup).map(styleKey=>
+          buildSourceRowHtml(styleGroup[styleKey].label, STYLE_SOURCES[styleKey], 'About this style', true)
+        ).join('')
+      : '';
+    return `<div class="source-program-group">${ownRow}${styleRows}</div>`;
+  }).join('');
 }
 
 function renderMasterclassIndex(){
@@ -19127,9 +19283,10 @@ wireCollapsibleHeaders();
 // is kept in step by setExerciseBlockOpen). Unlike the card headers it wraps
 // real controls — the completion checkbox, the delete-custom button — and
 // Enter/Space on those belongs to them, so a keypress that started inside one
-// is left alone.
+// is left alone. `.food-log-item` (renderFoodLog) joins for the same reason —
+// it wraps the qty-stepper buttons the same way .exercise wraps its own.
 document.addEventListener('keydown', (e)=>{
-  const h = e.target.closest && e.target.closest('.nutrition-header, .exercise');
+  const h = e.target.closest && e.target.closest('.nutrition-header, .exercise, .food-log-item');
   if(!h) return;
   if(e.target.closest('input, button, select, textarea, a')) return;
   if(e.key === 'Enter' || e.key === ' '){
@@ -21632,6 +21789,7 @@ async function lookupBarcode(barcode){
       fiber: fiberG(n['fiber_serving']),
       servingDesc: p.serving_size || 'labeled serving',
       source: 'Open Food Facts',
+      barcode,
     };
   }
   return {
@@ -21644,6 +21802,7 @@ async function lookupBarcode(barcode){
     fiber: fiberG(n['fiber_100g']),
     servingDesc: 'per 100g',
     source: 'Open Food Facts',
+    barcode,
   };
 }
 
@@ -21739,8 +21898,42 @@ async function openBarcodeScanner(){
   }
 }
 
+// Every barcode lookup that resolves gets cached into My Foods (via
+// addFoodToLog's generic `item.source`-cache path, with `barcode` riding
+// along as an extra field on the cached object — see lookupBarcode). This
+// checks that cache FIRST, by barcode rather than by name, so scanning the
+// same physical item a second time is instant and needs no network call at
+// all — not just "saved for next time" in the sense of being searchable
+// later, but actually skipping the lookup outright on a repeat scan.
+function renderBarcodeResult(item, fromCache){
+  const resultEl = document.getElementById('barcodeResult');
+  // Cached My Foods items don't carry servingDesc (addFoodToLog strips it
+  // before caching, same as every other My Foods entry) — shown only when
+  // present, matching how food-search rows already treat this field as
+  // optional (buildFoodResultRow's `item.servingDesc ? ... : ''`).
+  const servingSuffix = item.servingDesc ? ` (${escapeHtml(item.servingDesc)})` : '';
+  resultEl.innerHTML = `
+    <div class="photo-result-card">
+      <div class="photo-result-title">${fromCache ? '📦 Already in My Foods — no lookup needed' : '📦 Found it'}</div>
+      <div class="photo-result-item">
+        <span>${escapeHtml(item.name)} — ${item.cal} cal, ${item.pro}p/${item.fat}f/${item.carb}c${servingSuffix}</span>
+        <button class="fl-remove" style="color:var(--plate-green); font-size:18px;" id="barcodeAddBtn" aria-label="Add ${escapeHtml(item.name)} to today's log">+</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('barcodeAddBtn').addEventListener('click', async ()=>{
+    await addFoodToLog(item);
+    resultEl.innerHTML = `<div class="empty-note">Added to ${logDayLabel()} log${fromCache ? '' : ' — and saved to My Foods for next time'}.</div>`;
+  });
+}
+
 async function handleBarcodeFound(barcode){
   const resultEl = document.getElementById('barcodeResult');
+  const cached = customFoods.find(f=> f.barcode === barcode);
+  if(cached){
+    renderBarcodeResult(cached, true);
+    return;
+  }
   resultEl.innerHTML = `<div class="empty-note">Looking up barcode ${escapeHtml(barcode)}…</div>`;
   try{
     const item = await lookupBarcode(barcode);
@@ -21748,19 +21941,7 @@ async function handleBarcodeFound(barcode){
       resultEl.innerHTML = `<div class="empty-note">No product found for that barcode — try search instead, or add it as a custom item below.</div>`;
       return;
     }
-    resultEl.innerHTML = `
-      <div class="photo-result-card">
-        <div class="photo-result-title">📦 Found it</div>
-        <div class="photo-result-item">
-          <span>${escapeHtml(item.name)} — ${item.cal} cal, ${item.pro}p/${item.fat}f/${item.carb}c (${escapeHtml(item.servingDesc)})</span>
-          <button class="fl-remove" style="color:var(--plate-green); font-size:18px;" id="barcodeAddBtn" aria-label="Add ${escapeHtml(item.name)} to today's log">+</button>
-        </div>
-      </div>
-    `;
-    document.getElementById('barcodeAddBtn').addEventListener('click', async ()=>{
-      await addFoodToLog(item);
-      resultEl.innerHTML = `<div class="empty-note">Added to ${logDayLabel()} log — and saved to My Foods for next time.</div>`;
-    });
+    renderBarcodeResult(item, false);
   }catch(e){
     resultEl.innerHTML = `<div class="empty-note">${escapeHtml(e.message || 'Lookup failed — check your connection and try again.')}</div>`;
   }
@@ -23426,13 +23607,13 @@ function renderFoodLog(){
   if(todaysFoodLog.length === 0){
     listEl.innerHTML = '<div class="empty-note">🍽️ Nothing logged yet today — tap an item below to add it.</div>';
   } else {
-    const itemHtmls = todaysFoodLog.map(item=>{
+    const itemHtmls = todaysFoodLog.map((item, i)=>{
       const q = item.qty || 1;
       const label = escapeHtml(item.baseName || item.name);
       return buildSwipeItem(
-        `<div class="food-log-item">
+        `<div class="food-log-item" role="button" tabindex="0" aria-expanded="false" aria-controls="flDetail${i}">
           <div class="fl-name">${escapeHtml(item.name)}</div>
-          <div class="fl-macro">${item.cal} cal</div>
+          <div class="fl-macro">${item.cal} cal<span class="fl-chevron" aria-hidden="true">›</span></div>
           <div class="qty-stepper">
             <button type="button" class="qty-btn" data-step="-1"${q <= 1 ? ' disabled' : ''}
               aria-label="One less portion of ${label}">−</button>
@@ -23440,7 +23621,14 @@ function renderFoodLog(){
             <button type="button" class="qty-btn" data-step="1"${q >= FOOD_QTY_MAX ? ' disabled' : ''}
               aria-label="One more portion of ${label}">+</button>
           </div>
-        </div>`
+        </div>
+        <div class="smooth-toggle fl-detail" id="flDetail${i}"><div>
+          <div class="fl-macro-breakdown">
+            <span class="fl-macro-chip">Protein <strong>${Math.round(Number(item.pro)||0)}g</strong></span>
+            <span class="fl-macro-chip">Fat <strong>${Math.round(Number(item.fat)||0)}g</strong></span>
+            <span class="fl-macro-chip">Carbs <strong>${Math.round(Number(item.carb)||0)}g</strong></span>
+          </div>
+        </div></div>`
       );
     });
     listEl.innerHTML = itemHtmls.join('');
@@ -23451,6 +23639,16 @@ function renderFoodLog(){
           e.stopPropagation();
           adjustFoodLogQty(idx, Number(btn.dataset.step));
         });
+      });
+      // Tap the row itself (not a real <button> — see the .food-log-item CSS
+      // comment for why) to reveal the protein/fat/carb breakdown that the
+      // collapsed row only ever had space to show as total calories.
+      const row = itemEl.querySelector('.food-log-item');
+      const detail = itemEl.querySelector('.fl-detail');
+      row.addEventListener('click', ()=>{
+        const open = row.classList.toggle('open');
+        detail.classList.toggle('open', open);
+        row.setAttribute('aria-expanded', open ? 'true' : 'false');
       });
     });
   }
@@ -25684,6 +25882,10 @@ const VIEW_RENDERERS = {
     renderMasterclassIndex();
     renderExerciseLibraryHint();
     renderRecentlyTrained();
+    // Static content (no active-program state to follow), but cheap enough
+    // to just re-render on every entry rather than special-casing a
+    // render-once path for one card.
+    renderResearchSources();
   },
 };
 
