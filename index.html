@@ -5007,7 +5007,7 @@
         <div id="prefDaysPerWeek">
           <label class="care-label" for="daysPerWeekInput">Training days per week</label>
           <input type="number" id="daysPerWeekInput" class="care-input" min="1" max="7" inputmode="numeric" placeholder="Program default">
-          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, Powerbuilding, Athletic/Plyo, Bodyweight, Calisthenics, Core &amp; Stability, Jump Rope, Mobility &amp; Flexibility, Running/Endurance, Swimming, Rock Climbing, Senior Strength &amp; Balance, Desk Worker/Posture, Pilates, Boxing Strength &amp; Conditioning, Hyrox, BJJ / Grappling, Cycling (both Road and Mountain), and Combat (Kickboxing, Boxing, Muay Thai, MMA Striking, Taekwondo, and Tai Chi); other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
+          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, Powerbuilding, Athletic/Plyo, Bodyweight, Calisthenics, Core &amp; Stability, Jump Rope, Mobility &amp; Flexibility, Running/Endurance, Swimming, Rock Climbing, Senior Strength &amp; Balance, Desk Worker/Posture, Pilates, Boxing Strength &amp; Conditioning, Hyrox, BJJ / Grappling, Cycling (both Road and Mountain), Combat (Kickboxing, Boxing, Muay Thai, MMA Striking, Taekwondo, and Tai Chi), and Watersports (Surfing, Skimboarding, Wakeboarding, Kite-Assisted Surfing, Stand-Up Paddleboarding, and Kayaking); other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
           <div id="daysPerWeekWarning" style="display:none"></div>
         </div>
 
@@ -6292,7 +6292,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.211';
+const APP_VERSION = '3.212';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6748,6 +6748,11 @@ const WHATS_NEW = {
   ]},
   '3.211': { headline: 'Fixed: "Save this week & start fresh" followed the wrong day after reordering your training days', points: [
     'That button now follows whichever day you\'ve actually got in the last position of your training week, not a fixed "Day 7" label — so if you\'ve dragged your days into a different order, it shows up where your week actually ends, not where it used to.',
+  ]},
+  '3.212': { headline: 'Training days per week now covers Watersports (Surfing, Skimboarding, Wakeboarding, Kite-Assisted Surfing, Stand-Up Paddleboarding, Kayaking)', points: [
+    'All six disciplines now have real day-count plans, and switching between them no longer discards whichever day count you had selected — the same fix already shipped for Cycling and Combat now covers Watersports too.',
+    'Higher-frequency options never repeat each discipline\'s own highest-injury-risk exercises — the jump/landing work its own citation flags for surfing, skimboarding, wakeboarding, and kite-assisted surfing. The extra day is genuinely lower-toll endurance, grip, core, or mobility work instead.',
+    'Stand-Up Paddleboarding and Kayaking both get an "Extra Shoulder Health & Core Endurance" day at higher frequencies, since each one\'s own citation names the shoulder (and, for Kayaking, the lower back) as its most commonly injured area — not more sprint or rotational-power work.',
   ]},
 };
 
@@ -13323,13 +13328,20 @@ function renderWatersportsSelector(){
   el.onchange = async ()=>{
     activeWatersportsStyle = el.value;
     renderProgramSource();   // style provenance must follow the style, not just the program
-    programs.watersports.days = WATERSPORTS_STYLES[activeWatersportsStyle].days;
+    // Reapply the day-count pref instead of assigning WATERSPORTS_STYLES[...].days
+    // directly -- a direct assignment here would silently discard whatever
+    // day-count variant was active the moment the user switched styles.
+    applyDaysPerWeekProgramData();
     descEl.textContent = WATERSPORTS_STYLES[activeWatersportsStyle].short;
     overviewEl.textContent = WATERSPORTS_STYLES[activeWatersportsStyle].overview;
     await saveWatersportsStyle();
     if(activeProgram === 'watersports'){
       dayDefs = programs.watersports.days;
       activeDay = 'd1';
+      const descElMain = document.getElementById('programSelectDesc');
+      const overviewElMain = document.getElementById('programOverview');
+      if(descElMain) descElMain.textContent = programs.watersports.short;
+      if(overviewElMain) overviewElMain.textContent = programs.watersports.overview;
       await loadDayOrder();
       await loadWeekProgress();
       renderTabs();
@@ -13615,8 +13627,25 @@ function renderPosingClasses(){
 // optimization one, and this app already treats deferring to a user's care
 // team as "deliberate and non-negotiable" (see programs.medical's own
 // overview) -- letting someone dial a rehab-ACL protocol up to 7 days/week
-// would be unsafe, not just untailored. Remaining scope: the
-// watersports/yoga style-variant containers, in further batches.
+// would be unsafe, not just untailored.
+// Batch 10 adds watersports -- the third style-variant container, same
+// nested-by-sub-style shape as cycling/combat. All 6 disciplines (surfing,
+// skimboarding, wakeboarding, kiteAssisted, sup, kayaking) share the same
+// original shape too: 5 real training days, ONE non-negotiable Rest/
+// Mobility day, one full-rest day. High-frequency variants never repeat
+// each discipline's own highest-injury-risk/highest-impact exercises (the
+// ones its own citation calls out -- e.g. Box Jump/Broad Jump/Single-Leg
+// Bound for surfing's shoulder-injury data, Sprint Intervals/Depth Jump for
+// skimboarding's ankle/wrist fracture data, Box Jump/Broad Jump for
+// wakeboarding's ACL-tear rate, Box Jump/Depth Jump/Broad Jump for
+// kiteAssisted's ankle-injury data); the extra day instead draws genuinely
+// lower-toll endurance/grip/core/mobility work from elsewhere in that same
+// discipline's own pool. SUP and Kayaking's extra day is "Extra Shoulder
+// Health & Core Endurance" for both, tied to each one's own citation
+// (SUP: shoulder is the single most commonly injured region; Kayaking:
+// lower back and shoulder are the two most commonly injured sites) rather
+// than adding more sprint/rotational-power or leg-drive load. Remaining
+// scope: the yoga style-variant container, in a further batch.
 //
 // Accessory days already align with body goals -- for free. The user asked
 // for the new accessory/high-frequency days to reflect a person's body
@@ -13628,7 +13657,7 @@ function renderPosingClasses(){
 // from. Every program rolled out here is already on that list, so the new
 // accessory days inherit this automatically. Verified with real invocation
 // in test-configurable-training-days.js, not just reasoned about.
-const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility', 'running', 'swimming', 'climbing', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling', 'cycling', 'combat'];
+const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility', 'running', 'swimming', 'climbing', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling', 'cycling', 'combat', 'watersports'];
 // Style-variant containers (cycling, combat, and any future watersports/
 // yoga batches) are excluded from this snapshot: programs[key].days for
 // those is still `{}` at this point in script evaluation -- it's only
@@ -13638,7 +13667,7 @@ const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting
 // from the live *_STYLES data (for `.days`) plus the snapshot just below
 // (for `.overview`/`.short`) -- see applyDaysPerWeekProgramData()'s
 // per-container branch, and STYLE_CONTAINER_ACCESSORS just below that.
-const DAYS_PER_WEEK_STYLE_CONTAINERS = ['cycling', 'combat'];
+const DAYS_PER_WEEK_STYLE_CONTAINERS = ['cycling', 'combat', 'watersports'];
 const DAYS_PER_WEEK_ORIGINAL = Object.fromEntries(DAYS_PER_WEEK_PROGRAMS.filter(key => !DAYS_PER_WEEK_STYLE_CONTAINERS.includes(key)).map(key =>
   [key, { days: programs[key].days, overview: programs[key].overview, short: programs[key].short }]
 ));
@@ -13654,6 +13683,7 @@ const DAYS_PER_WEEK_ORIGINAL = Object.fromEntries(DAYS_PER_WEEK_PROGRAMS.filter(
 const DAYS_PER_WEEK_CONTAINER_DEFAULT = {
   cycling: { overview: programs.cycling.overview, short: programs.cycling.short },
   combat: { overview: programs.combat.overview, short: programs.combat.short },
+  watersports: { overview: programs.watersports.overview, short: programs.watersports.short },
 };
 // Maps each style-variant container key to its live *_STYLES data object
 // and the module-level `let` variable holding the currently active
@@ -13671,6 +13701,7 @@ const DAYS_PER_WEEK_CONTAINER_DEFAULT = {
 function getStyleContainerAccessor(key){
   if(key === 'cycling') return { styles: CYCLING_STYLES, activeStyle: activeCyclingStyle };
   if(key === 'combat') return { styles: COMBAT_STYLES, activeStyle: activeMartialArt };
+  if(key === 'watersports') return { styles: WATERSPORTS_STYLES, activeStyle: activeWatersportsStyle };
   return null;
 }
 
@@ -21087,6 +21118,1537 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
     },
   },
+  // Watersports is the third style-variant container (batch 10), same
+  // nested-by-sub-style shape as cycling/combat. All 6 disciplines share
+  // the same original shape too: 5 real training days, ONE non-negotiable
+  // Rest/Mobility day (each style's own note gives a real, sport-specific
+  // recovery reason), one full-rest day. Every one of these programs is
+  // explicit that its structure comes from a real documented injury
+  // mechanism for that sport (paddling-driven shoulder injury for
+  // surfing/SUP/kayaking, hard-landing ACL risk for wakeboarding, planted-
+  // foot rotation and falls-on-hand for skimboarding, jump-landing ankle
+  // injury for kite-assisted surfing) -- so high-frequency variants never
+  // add a 2nd high-impact/explosive-power day (the closing conditioning day
+  // in every style's own 5-day default already carries that load); the
+  // extra day always stays in each program's own already-established
+  // low-impact/protective territory instead.
+  watersports: {
+    surfing: {
+      1: {
+        short: 'Paddle power + rotational power basics — the floor for this program',
+        overview: 'One session combining paddle-pattern pulling power and rotational power/pop-up work at reduced volume, since a full week only gets one shot. Real GPS/heart-rate data already grounds this program in paddling being roughly half of a real session\'s time — even at the lowest frequency, that stays the priority, not wave-riding-adjacent power work alone.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddle Power + Rotational Power Basics', plate:'p-red', plateNum:'25', duration:'~30 min',
+            exercises:[
+              {name:'Straight-Arm Lat Pulldown', sets:'3×12-15'},
+              {name:'Battle Ropes', sets:'3×30s', noWeight:true},
+              {name:'Med Ball Rotational Throw', sets:'3×8/side'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.' },
+          d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.' },
+        }
+      },
+      2: {
+        short: 'Paddle Power & Endurance and Rotational Power & Pop-Up, dedicated days',
+        overview: 'Paddle power/endurance and rotational power/pop-up each get their own full session — the two pillars this program\'s own reasoning calls out as what real session time is actually spent on, at the lowest frequency that still trains both.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddle Power & Endurance', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.' },
+          d3: { label:'Day 3', sub:'Rotational Power & Pop-Up', plate:'p-blue', plateNum:'20', duration:'~40 min',
+            exercises:[
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Box Jump', sets:'4×5'},
+              {name:'Surfboard Pop-Up Drill', sets:'4×8', noWeight:true},
+              {name:'Broad Jump', sets:'3×5'},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.' },
+          d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.' },
+        }
+      },
+      3: {
+        short: 'Paddle Power & Endurance, Rotational Power & Pop-Up, and Endurance & Core Conditioning',
+        overview: 'Three of this program\'s five sessions each get their own day — paddle power, rotational power/pop-up, and endurance/core conditioning, the trio this program is built around, even at this frequency.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddle Power & Endurance', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rotational Power & Pop-Up', plate:'p-blue', plateNum:'20', duration:'~40 min',
+            exercises:[
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Box Jump', sets:'4×5'},
+              {name:'Surfboard Pop-Up Drill', sets:'4×8', noWeight:true},
+              {name:'Broad Jump', sets:'3×5'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Endurance & Core Conditioning', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.' },
+        }
+      },
+      4: {
+        short: 'Paddle Power, Rotational Power & Pop-Up, Posterior Shoulder, and Leg Power & Balance',
+        overview: 'Four of this program\'s five sessions each get their own day. Endurance & Core Conditioning is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddle Power & Endurance', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rotational Power & Pop-Up', plate:'p-blue', plateNum:'20', duration:'~40 min',
+            exercises:[
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Box Jump', sets:'4×5'},
+              {name:'Surfboard Pop-Up Drill', sets:'4×8', noWeight:true},
+              {name:'Broad Jump', sets:'3×5'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Posterior Shoulder & Injury Prevention', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Band External Rotation', sets:'3×15'},
+              {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+              {name:'Face Pull', sets:'3×15'},
+              {name:'Rear Delt Fly', sets:'3×12-15'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Leg Power & Balance', plate:'p-green', plateNum:'10', duration:'~40 min',
+            exercises:[
+              {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.' },
+        }
+      },
+      // 5 intentionally omitted — this is the style's own authored default
+      // (WATERSPORTS_STYLES.surfing), used as-is.
+      6: {
+        short: 'The full 5-day program plus extra paddle endurance & shoulder care',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra paddle-pattern endurance and shoulder care — not a 2nd jump-power day. This program\'s own citation is explicit that paddling, not wave-riding, is the leading shoulder-injury mechanism here, and Box Jump/Broad Jump/Single-Leg Bound already carry real landing-impact cost; the extra day stays in the low-impact, shoulder-protective territory instead.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddle Power & Endurance', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rotational Power & Pop-Up', plate:'p-blue', plateNum:'20', duration:'~40 min',
+            exercises:[
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Box Jump', sets:'4×5'},
+              {name:'Surfboard Pop-Up Drill', sets:'4×8', noWeight:true},
+              {name:'Broad Jump', sets:'3×5'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Posterior Shoulder & Injury Prevention', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Band External Rotation', sets:'3×15'},
+              {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+              {name:'Face Pull', sets:'3×15'},
+              {name:'Rear Delt Fly', sets:'3×12-15'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Leg Power & Balance', plate:'p-green', plateNum:'10', duration:'~40 min',
+            exercises:[
+              {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Endurance & Core Conditioning', plate:'p-off', plateNum:'5', duration:'~35 min',
+            exercises:[
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Paddle Endurance & Shoulder Care', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Face Pull', sets:'3×15'},
+              {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says paddling and the pop-up position load the shoulders and hips repeatedly, even at 7 days selected.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddle Power & Endurance', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rotational Power & Pop-Up', plate:'p-blue', plateNum:'20', duration:'~40 min',
+            exercises:[
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Box Jump', sets:'4×5'},
+              {name:'Surfboard Pop-Up Drill', sets:'4×8', noWeight:true},
+              {name:'Broad Jump', sets:'3×5'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Posterior Shoulder & Injury Prevention', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Band External Rotation', sets:'3×15'},
+              {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+              {name:'Face Pull', sets:'3×15'},
+              {name:'Rear Delt Fly', sets:'3×12-15'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Leg Power & Balance', plate:'p-green', plateNum:'10', duration:'~40 min',
+            exercises:[
+              {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Endurance & Core Conditioning', plate:'p-off', plateNum:'5', duration:'~35 min',
+            exercises:[
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Paddle Endurance & Shoulder Care', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Face Pull', sets:'3×15'},
+              {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+            ]
+          },
+        }
+      },
+    },
+    skimboarding: {
+      1: {
+        short: 'Explosive running + ankle stability basics — the floor for this program',
+        overview: 'One session combining explosive running and ankle-stability work at reduced volume, since a full week only gets one shot. This program\'s own citation is explicit that the planted-foot rotation used to stop the board and falls onto an outstretched hand are the two dominant injury mechanisms here — even at the lowest frequency, that stays the priority over generic conditioning.',
+        days: {
+          d1: { label:'Day 1', sub:'Explosive Running + Ankle Stability Basics', plate:'p-red', plateNum:'25', duration:'~25 min',
+            exercises:[
+              {name:'Sprint Intervals', sets:'4×20s', noWeight:true},
+              {name:'Broad Jump', sets:'3×5'},
+              {name:'Single-Leg Bound', sets:'2×5/side', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Ankle and wrist mobility, 20-25 min. The two most commonly fractured joints in skimboarding — give them real, deliberate recovery, not just a stretch you skip.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real beach time — timing the run-and-drop and reading the sand only develop out there.' },
+          d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Ankle and wrist mobility, 20-25 min. The two most commonly fractured joints in skimboarding — give them real, deliberate recovery, not just a stretch you skip.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real beach time — timing the run-and-drop and reading the sand only develop out there.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real beach time — timing the run-and-drop and reading the sand only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real beach time — timing the run-and-drop and reading the sand only develop out there.' },
+        }
+      },
+      2: {
+        short: 'Explosive Running & Acceleration and Ankle Stability & Landing Control, dedicated days',
+        overview: 'Explosive running and ankle-stability/landing-control each get their own full session — the two pillars this program\'s own reasoning calls out as directly matching its documented injury mechanisms, at the lowest frequency that still trains both.',
+        days: {
+          d1: { label:'Day 1', sub:'Explosive Running & Acceleration', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
+              {name:'Broad Jump', sets:'4×5'},
+              {name:'Agility Ladder', sets:'3×20s', noWeight:true},
+              {name:'Box Jump', sets:'3×5'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Ankle and wrist mobility, 20-25 min. The two most commonly fractured joints in skimboarding — give them real, deliberate recovery, not just a stretch you skip.' },
+          d3: { label:'Day 3', sub:'Ankle Stability & Landing Control', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real beach time — timing the run-and-drop and reading the sand only develop out there.' },
+          d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Ankle and wrist mobility, 20-25 min. The two most commonly fractured joints in skimboarding — give them real, deliberate recovery, not just a stretch you skip.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real beach time — timing the run-and-drop and reading the sand only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real beach time — timing the run-and-drop and reading the sand only develop out there.' },
+        }
+      },
+      3: {
+        short: 'Explosive Running & Acceleration, Ankle Stability & Landing Control, and Full Sprint-to-Board Conditioning',
+        overview: 'Three of this program\'s five sessions each get their own day — explosive running, ankle stability, and the full sprint-to-board conditioning day, the trio this program is built around, even at this frequency.',
+        days: {
+          d1: { label:'Day 1', sub:'Explosive Running & Acceleration', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
+              {name:'Broad Jump', sets:'4×5'},
+              {name:'Agility Ladder', sets:'3×20s', noWeight:true},
+              {name:'Box Jump', sets:'3×5'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Ankle Stability & Landing Control', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Ankle and wrist mobility, 20-25 min. The two most commonly fractured joints in skimboarding — give them real, deliberate recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Full Sprint-to-Board Conditioning', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+            exercises:[
+              {name:'Sprint Intervals', sets:'4×20s', noWeight:true},
+              {name:'Depth Jump', sets:'3×5'},
+              {name:'Single-Leg Bound', sets:'2×5/side', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real beach time — timing the run-and-drop and reading the sand only develop out there.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real beach time — timing the run-and-drop and reading the sand only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real beach time — timing the run-and-drop and reading the sand only develop out there.' },
+        }
+      },
+      4: {
+        short: 'Explosive Running, Ankle Stability, Grip & Fall-Ready Strength, and Rotational Power & Core',
+        overview: 'Four of this program\'s five sessions each get their own day. Full Sprint-to-Board Conditioning is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        days: {
+          d1: { label:'Day 1', sub:'Explosive Running & Acceleration', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
+              {name:'Broad Jump', sets:'4×5'},
+              {name:'Agility Ladder', sets:'3×20s', noWeight:true},
+              {name:'Box Jump', sets:'3×5'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Ankle Stability & Landing Control', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Ankle and wrist mobility, 20-25 min. The two most commonly fractured joints in skimboarding — give them real, deliberate recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Grip, Wrist & Fall-Ready Strength', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+            exercises:[
+              {name:'Farmer\'s Carry', sets:'4×30yd'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Skimboard Run-and-Drop Drill', sets:'4×6', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Rotational Power & Core', plate:'p-green', plateNum:'10', duration:'~35 min',
+            exercises:[
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+              {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real beach time — timing the run-and-drop and reading the sand only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real beach time — timing the run-and-drop and reading the sand only develop out there.' },
+        }
+      },
+      // 5 intentionally omitted — this is the style's own authored default
+      // (WATERSPORTS_STYLES.skimboarding), used as-is.
+      6: {
+        short: 'The full 5-day program plus extra ankle stability & grip endurance',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra ankle stability and grip endurance — not a 2nd sprint-and-jump day. This program\'s own citation is explicit that planted-foot rotation and falls onto an outstretched hand are the two dominant injury mechanisms here; Sprint Intervals/Depth Jump/Single-Leg Bound already carry real landing-impact cost, so the extra day stays in the joint-protective territory instead.',
+        days: {
+          d1: { label:'Day 1', sub:'Explosive Running & Acceleration', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
+              {name:'Broad Jump', sets:'4×5'},
+              {name:'Agility Ladder', sets:'3×20s', noWeight:true},
+              {name:'Box Jump', sets:'3×5'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Ankle Stability & Landing Control', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Ankle and wrist mobility, 20-25 min. The two most commonly fractured joints in skimboarding — give them real, deliberate recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Grip, Wrist & Fall-Ready Strength', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+            exercises:[
+              {name:'Farmer\'s Carry', sets:'4×30yd'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Skimboard Run-and-Drop Drill', sets:'4×6', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Rotational Power & Core', plate:'p-green', plateNum:'10', duration:'~35 min',
+            exercises:[
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+              {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Sprint-to-Board Conditioning', plate:'p-off', plateNum:'5', duration:'~30 min',
+            exercises:[
+              {name:'Sprint Intervals', sets:'4×20s', noWeight:true},
+              {name:'Depth Jump', sets:'3×5'},
+              {name:'Single-Leg Bound', sets:'2×5/side', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Ankle Stability & Grip Endurance', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Farmer\'s Carry', sets:'3×30yd'},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says the ankle and wrist are the two most commonly fractured joints here, even at 7 days selected.',
+        days: {
+          d1: { label:'Day 1', sub:'Explosive Running & Acceleration', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
+              {name:'Broad Jump', sets:'4×5'},
+              {name:'Agility Ladder', sets:'3×20s', noWeight:true},
+              {name:'Box Jump', sets:'3×5'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Ankle Stability & Landing Control', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Ankle and wrist mobility, 20-25 min. The two most commonly fractured joints in skimboarding — give them real, deliberate recovery, not just a stretch you skip, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Grip, Wrist & Fall-Ready Strength', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+            exercises:[
+              {name:'Farmer\'s Carry', sets:'4×30yd'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Skimboard Run-and-Drop Drill', sets:'4×6', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Rotational Power & Core', plate:'p-green', plateNum:'10', duration:'~35 min',
+            exercises:[
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+              {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Sprint-to-Board Conditioning', plate:'p-off', plateNum:'5', duration:'~30 min',
+            exercises:[
+              {name:'Sprint Intervals', sets:'4×20s', noWeight:true},
+              {name:'Depth Jump', sets:'3×5'},
+              {name:'Single-Leg Bound', sets:'2×5/side', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Ankle Stability & Grip Endurance', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Farmer\'s Carry', sets:'3×30yd'},
+            ]
+          },
+        }
+      },
+    },
+    wakeboarding: {
+      1: {
+        short: 'Landing mechanics + posterior shoulder basics — the floor for this program',
+        overview: 'One session combining landing mechanics and posterior-shoulder work at reduced volume, since a full week only gets one shot. Real survey data found over 40% of wakeboarders report an ACL tear from a hard landing, with shoulder dislocation the dominant upper-body injury — even at the lowest frequency, that stays the priority over generic power work.',
+        days: {
+          d1: { label:'Day 1', sub:'Landing Mechanics + Posterior Shoulder Basics', plate:'p-red', plateNum:'25', duration:'~25 min',
+            exercises:[
+              {name:'Jump Squat', sets:'2×8'},
+              {name:'Single-Leg Bound', sets:'2×5/side', noWeight:true},
+              {name:'Band External Rotation', sets:'2×15'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Knee, ankle, and shoulder mobility, 20-25 min. Hard landings and a constant rope pull load exactly these three joints — give them real recovery, not just a stretch you skip.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+          d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Knee, ankle, and shoulder mobility, 20-25 min. Hard landings and a constant rope pull load exactly these three joints — give them real recovery, not just a stretch you skip.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+        }
+      },
+      2: {
+        short: 'Landing Mechanics & Deceleration Power and Posterior Shoulder & Dislocation Prevention, dedicated days',
+        overview: 'Landing mechanics and posterior-shoulder/dislocation-prevention each get their own full session — the two pillars this program\'s own reasoning calls out as directly matching its two best-documented injury findings, at the lowest frequency that still trains both.',
+        days: {
+          d1: { label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Depth Jump', sets:'3×5'},
+              {name:'Jump Squat', sets:'3×8'},
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Knee, ankle, and shoulder mobility, 20-25 min. Hard landings and a constant rope pull load exactly these three joints — give them real recovery, not just a stretch you skip.' },
+          d3: { label:'Day 3', sub:'Posterior Shoulder & Dislocation Prevention', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Band External Rotation', sets:'3×15'},
+              {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+              {name:'Face Pull', sets:'3×15'},
+              {name:'Rear Delt Fly', sets:'3×12-15'},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+          d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Knee, ankle, and shoulder mobility, 20-25 min. Hard landings and a constant rope pull load exactly these three joints — give them real recovery, not just a stretch you skip.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+        }
+      },
+      3: {
+        short: 'Landing Mechanics & Deceleration Power, Posterior Shoulder & Dislocation Prevention, and Full-Body Landing-to-Ride Conditioning',
+        overview: 'Three of this program\'s five sessions each get their own day — landing mechanics, posterior shoulder health, and full-body landing-to-ride conditioning, the trio this program is built around, even at this frequency.',
+        days: {
+          d1: { label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Depth Jump', sets:'3×5'},
+              {name:'Jump Squat', sets:'3×8'},
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Posterior Shoulder & Dislocation Prevention', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Band External Rotation', sets:'3×15'},
+              {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+              {name:'Face Pull', sets:'3×15'},
+              {name:'Rear Delt Fly', sets:'3×12-15'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Knee, ankle, and shoulder mobility, 20-25 min. Hard landings and a constant rope pull load exactly these three joints — give them real recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Full-Body Landing-to-Ride Conditioning', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+            exercises:[
+              {name:'Box Jump', sets:'4×5'},
+              {name:'Broad Jump', sets:'3×5'},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+        }
+      },
+      4: {
+        short: 'Landing Mechanics, Posterior Shoulder, Rope-Pull & Grip, and Edge Control & Rotational Power',
+        overview: 'Four of this program\'s five sessions each get their own day. Full-Body Landing-to-Ride Conditioning is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        days: {
+          d1: { label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Depth Jump', sets:'3×5'},
+              {name:'Jump Squat', sets:'3×8'},
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Posterior Shoulder & Dislocation Prevention', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Band External Rotation', sets:'3×15'},
+              {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+              {name:'Face Pull', sets:'3×15'},
+              {name:'Rear Delt Fly', sets:'3×12-15'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Knee, ankle, and shoulder mobility, 20-25 min. Hard landings and a constant rope pull load exactly these three joints — give them real recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Rope-Pull & Grip Strength', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Farmer\'s Carry', sets:'4×30yd'},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Edge Control & Rotational Power', plate:'p-green', plateNum:'10', duration:'~35-40 min',
+            exercises:[
+              {name:'Wakeboard Edge Transition Drill', sets:'4×8', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+        }
+      },
+      // 5 intentionally omitted — this is the style's own authored default
+      // (WATERSPORTS_STYLES.wakeboarding), used as-is.
+      6: {
+        short: 'The full 5-day program plus extra grip endurance & shoulder care',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra grip endurance and shoulder care — not a 2nd landing-impact day. This program\'s own citation found over 40% of wakeboarders report an ACL tear from a hard landing; Box Jump/Broad Jump already carry that same impact cost, so the extra day stays in the low-impact, joint-protective territory instead.',
+        days: {
+          d1: { label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Depth Jump', sets:'3×5'},
+              {name:'Jump Squat', sets:'3×8'},
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Posterior Shoulder & Dislocation Prevention', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Band External Rotation', sets:'3×15'},
+              {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+              {name:'Face Pull', sets:'3×15'},
+              {name:'Rear Delt Fly', sets:'3×12-15'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Knee, ankle, and shoulder mobility, 20-25 min. Hard landings and a constant rope pull load exactly these three joints — give them real recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Rope-Pull & Grip Strength', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Farmer\'s Carry', sets:'4×30yd'},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Edge Control & Rotational Power', plate:'p-green', plateNum:'10', duration:'~35-40 min',
+            exercises:[
+              {name:'Wakeboard Edge Transition Drill', sets:'4×8', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full-Body Landing-to-Ride Conditioning', plate:'p-off', plateNum:'5', duration:'~30 min',
+            exercises:[
+              {name:'Box Jump', sets:'4×5'},
+              {name:'Broad Jump', sets:'3×5'},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Grip Endurance & Shoulder Care', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Straight-Arm Lat Pulldown', sets:'3×12-15'},
+              {name:'Face Pull', sets:'3×15'},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says hard landings and a constant rope pull load the knee, ankle, and shoulder, even at 7 days selected.',
+        days: {
+          d1: { label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Depth Jump', sets:'3×5'},
+              {name:'Jump Squat', sets:'3×8'},
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Posterior Shoulder & Dislocation Prevention', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Band External Rotation', sets:'3×15'},
+              {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+              {name:'Face Pull', sets:'3×15'},
+              {name:'Rear Delt Fly', sets:'3×12-15'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Knee, ankle, and shoulder mobility, 20-25 min. Hard landings and a constant rope pull load exactly these three joints — give them real recovery, not just a stretch you skip, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Rope-Pull & Grip Strength', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Farmer\'s Carry', sets:'4×30yd'},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Edge Control & Rotational Power', plate:'p-green', plateNum:'10', duration:'~35-40 min',
+            exercises:[
+              {name:'Wakeboard Edge Transition Drill', sets:'4×8', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full-Body Landing-to-Ride Conditioning', plate:'p-off', plateNum:'5', duration:'~30 min',
+            exercises:[
+              {name:'Box Jump', sets:'4×5'},
+              {name:'Broad Jump', sets:'3×5'},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Grip Endurance & Shoulder Care', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Straight-Arm Lat Pulldown', sets:'3×12-15'},
+              {name:'Face Pull', sets:'3×15'},
+            ]
+          },
+        }
+      },
+    },
+    kiteAssisted: {
+      1: {
+        short: 'Core stability + landing mechanics basics — the floor for this program',
+        overview: 'One session combining core/lumbar stability and landing mechanics at reduced volume, since a full week only gets one shot. The riding stance itself is a sustained, near-isometric hold against the kite\'s pull, and this program\'s own citation found the ankle is the single most commonly hurt joint from jump landings — even at the lowest frequency, both stay the priority.',
+        days: {
+          d1: { label:'Day 1', sub:'Core Stability + Landing Mechanics Basics', plate:'p-red', plateNum:'25', duration:'~25 min',
+            exercises:[
+              {name:'Kite Crossing Isometric Hold', sets:'2×30s', noWeight:true},
+              {name:'Plank', sets:'2×45s', noWeight:true},
+              {name:'Single-Leg Bound', sets:'2×5/side', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.' },
+          d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.' },
+        }
+      },
+      2: {
+        short: 'Core & Lumbar Stability and Landing Mechanics & Ankle-Knee Resilience, dedicated days',
+        overview: 'Core/lumbar stability and landing mechanics each get their own full session — the two pillars this program\'s own reasoning calls out as directly matching the sustained isometric riding stance and its documented jump-landing injury data, at the lowest frequency that still trains both.',
+        days: {
+          d1: { label:'Day 1', sub:'Core & Lumbar Stability', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Kite Crossing Isometric Hold', sets:'3×30-45s', noWeight:true},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+              {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d3: { label:'Day 3', sub:'Landing Mechanics & Ankle-Knee Resilience', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Depth Jump', sets:'3×5'},
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
+              {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.' },
+          d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.' },
+        }
+      },
+      3: {
+        short: 'Core & Lumbar Stability, Landing Mechanics & Ankle-Knee Resilience, and Aerobic-Anaerobic Conditioning',
+        overview: 'Three of this program\'s five sessions each get their own day — core stability, landing mechanics, and aerobic-anaerobic conditioning, the trio this program is built around, even at this frequency.',
+        days: {
+          d1: { label:'Day 1', sub:'Core & Lumbar Stability', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Kite Crossing Isometric Hold', sets:'3×30-45s', noWeight:true},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+              {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Landing Mechanics & Ankle-Knee Resilience', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Depth Jump', sets:'3×5'},
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
+              {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Aerobic-Anaerobic Conditioning', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+            exercises:[
+              {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.' },
+        }
+      },
+      4: {
+        short: 'Core Stability, Landing Mechanics, Grip & Shoulder Endurance, and Explosive Power & Core Rotation',
+        overview: 'Four of this program\'s five sessions each get their own day. Aerobic-Anaerobic Conditioning is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        days: {
+          d1: { label:'Day 1', sub:'Core & Lumbar Stability', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Kite Crossing Isometric Hold', sets:'3×30-45s', noWeight:true},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+              {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Landing Mechanics & Ankle-Knee Resilience', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Depth Jump', sets:'3×5'},
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
+              {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Grip, Forearm & Shoulder Endurance', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Farmer\'s Carry', sets:'4×30yd'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Band External Rotation', sets:'3×15'},
+              {name:'Face Pull', sets:'3×15'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Explosive Power & Core Rotation', plate:'p-green', plateNum:'10', duration:'~35-40 min',
+            exercises:[
+              {name:'Box Jump', sets:'4×5'},
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Broad Jump', sets:'3×5'},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.' },
+        }
+      },
+      // 5 intentionally omitted — this is the style's own authored default
+      // (WATERSPORTS_STYLES.kiteAssisted), used as-is.
+      6: {
+        short: 'The full 5-day program plus extra core endurance & grip',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra core endurance and grip work — not a 2nd explosive-jump day. This program\'s own citation found the ankle is the single most commonly hurt joint from jump landings here; Box Jump/Depth Jump/Broad Jump already carry that impact cost, so the extra day stays in the low-impact, sustained-hold territory instead.',
+        days: {
+          d1: { label:'Day 1', sub:'Core & Lumbar Stability', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Kite Crossing Isometric Hold', sets:'3×30-45s', noWeight:true},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+              {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Landing Mechanics & Ankle-Knee Resilience', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Depth Jump', sets:'3×5'},
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
+              {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Grip, Forearm & Shoulder Endurance', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Farmer\'s Carry', sets:'4×30yd'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Band External Rotation', sets:'3×15'},
+              {name:'Face Pull', sets:'3×15'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Explosive Power & Core Rotation', plate:'p-green', plateNum:'10', duration:'~35-40 min',
+            exercises:[
+              {name:'Box Jump', sets:'4×5'},
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Broad Jump', sets:'3×5'},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Aerobic-Anaerobic Conditioning', plate:'p-off', plateNum:'5', duration:'~30 min',
+            exercises:[
+              {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Core Endurance & Grip', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Kite Crossing Isometric Hold', sets:'2×30-45s', noWeight:true},
+              {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+              {name:'Farmer\'s Carry', sets:'3×30yd'},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says the sustained, leaned-back riding stance and a hard bar pull load the lumbar spine, hip, and shoulder, even at 7 days selected.',
+        days: {
+          d1: { label:'Day 1', sub:'Core & Lumbar Stability', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Kite Crossing Isometric Hold', sets:'3×30-45s', noWeight:true},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+              {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Landing Mechanics & Ankle-Knee Resilience', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Depth Jump', sets:'3×5'},
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+              {name:'Nordic Curl', sets:'3×6-8', noWeight:true},
+              {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Grip, Forearm & Shoulder Endurance', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Farmer\'s Carry', sets:'4×30yd'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Band External Rotation', sets:'3×15'},
+              {name:'Face Pull', sets:'3×15'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Explosive Power & Core Rotation', plate:'p-green', plateNum:'10', duration:'~35-40 min',
+            exercises:[
+              {name:'Box Jump', sets:'4×5'},
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Broad Jump', sets:'3×5'},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Aerobic-Anaerobic Conditioning', plate:'p-off', plateNum:'5', duration:'~30 min',
+            exercises:[
+              {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Core Endurance & Grip', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Kite Crossing Isometric Hold', sets:'2×30-45s', noWeight:true},
+              {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+              {name:'Farmer\'s Carry', sets:'3×30yd'},
+            ]
+          },
+        }
+      },
+    },
+    sup: {
+      1: {
+        short: 'Paddling-pattern strength + core endurance basics — the floor for this program',
+        overview: 'One session combining paddling-pattern shoulder strength and core endurance at reduced volume, since a full week only gets one shot. This program\'s own citation found the shoulder is the single most commonly injured region in SUP, with endurance paddling itself the leading mechanism — even at the lowest frequency, that stays the priority alongside the core endurance a real 6-week training block was shown to measurably improve.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddling-Pattern Strength + Core Endurance Basics', plate:'p-red', plateNum:'25', duration:'~25 min',
+            exercises:[
+              {name:'SUP Paddle Stroke Simulation', sets:'2×10/side', noWeight:true},
+              {name:'Plank', sets:'2×45s', noWeight:true},
+              {name:'Seated Cable Row', sets:'2×10-12'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, alternating-side reach-and-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — balance, falling safely, and reading wind and current only develop out there.' },
+          d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, alternating-side reach-and-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — balance, falling safely, and reading wind and current only develop out there.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — balance, falling safely, and reading wind and current only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — balance, falling safely, and reading wind and current only develop out there.' },
+        }
+      },
+      2: {
+        short: 'Paddling-Pattern Strength and Core Endurance, dedicated days',
+        overview: 'Paddling-pattern shoulder strength and core endurance each get their own full session — the two pillars this program\'s own reasoning calls out as directly matching the leading SUP injury mechanism and the trunk load an upright stroke creates, at the lowest frequency that still trains both.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'SUP Paddle Stroke Simulation', sets:'4×10/side', noWeight:true},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Band External Rotation', sets:'3×15'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, alternating-side reach-and-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d3: { label:'Day 3', sub:'Core Endurance (Trunk & Lower Back)', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+              {name:'Pallof Press', sets:'3×10-12/side'},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — balance, falling safely, and reading wind and current only develop out there.' },
+          d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, alternating-side reach-and-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — balance, falling safely, and reading wind and current only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — balance, falling safely, and reading wind and current only develop out there.' },
+        }
+      },
+      3: {
+        short: 'Paddling-Pattern Strength, Core Endurance, and Full-Body Aerobic Endurance Conditioning',
+        overview: 'Three of this program\'s five sessions each get their own day — paddling-pattern strength, core endurance, and full-body aerobic conditioning, the trio this program closes its week on, even at this frequency.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'SUP Paddle Stroke Simulation', sets:'4×10/side', noWeight:true},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Band External Rotation', sets:'3×15'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Core Endurance (Trunk & Lower Back)', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+              {name:'Pallof Press', sets:'3×10-12/side'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, alternating-side reach-and-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Full-Body Aerobic Endurance Conditioning', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+            exercises:[
+              {name:'Sprint Intervals', sets:'4×20s', noWeight:true},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — balance, falling safely, and reading wind and current only develop out there.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — balance, falling safely, and reading wind and current only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — balance, falling safely, and reading wind and current only develop out there.' },
+        }
+      },
+      4: {
+        short: 'Paddling-Pattern Strength, Core Endurance, Grip & Posterior Shoulder Endurance, and Rotational Power & Sprint Conditioning',
+        overview: 'Four of this program\'s five sessions each get their own day. Full-Body Aerobic Endurance Conditioning is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'SUP Paddle Stroke Simulation', sets:'4×10/side', noWeight:true},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Band External Rotation', sets:'3×15'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Core Endurance (Trunk & Lower Back)', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+              {name:'Pallof Press', sets:'3×10-12/side'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, alternating-side reach-and-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Grip, Forearm & Posterior Shoulder Endurance', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Farmer\'s Carry', sets:'4×30yd'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Face Pull', sets:'3×15'},
+              {name:'Rear Delt Fly', sets:'3×12-15'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Rotational Power & Sprint Conditioning', plate:'p-green', plateNum:'10', duration:'~35-40 min',
+            exercises:[
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — balance, falling safely, and reading wind and current only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — balance, falling safely, and reading wind and current only develop out there.' },
+        }
+      },
+      // 5 intentionally omitted — this is the style's own authored default
+      // (WATERSPORTS_STYLES.sup), used as-is.
+      6: {
+        short: 'The full 5-day program plus extra shoulder health & core endurance',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra shoulder health and core endurance work — not a 2nd sprint/rotational-power day. This program\'s own citation found the shoulder is the single most commonly injured region in SUP; the extra day reinforces that instead of adding more explosive load.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'SUP Paddle Stroke Simulation', sets:'4×10/side', noWeight:true},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Band External Rotation', sets:'3×15'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Core Endurance (Trunk & Lower Back)', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+              {name:'Pallof Press', sets:'3×10-12/side'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, alternating-side reach-and-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Grip, Forearm & Posterior Shoulder Endurance', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Farmer\'s Carry', sets:'4×30yd'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Face Pull', sets:'3×15'},
+              {name:'Rear Delt Fly', sets:'3×12-15'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Rotational Power & Sprint Conditioning', plate:'p-green', plateNum:'10', duration:'~35-40 min',
+            exercises:[
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full-Body Aerobic Endurance Conditioning', plate:'p-off', plateNum:'5', duration:'~30 min',
+            exercises:[
+              {name:'Sprint Intervals', sets:'4×20s', noWeight:true},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Shoulder Health & Core Endurance', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Band External Rotation', sets:'2×15'},
+              {name:'Side Plank', sets:'2×20-30s/side', noWeight:true},
+              {name:'Pallof Press', sets:'2×10-12/side'},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says a repetitive, alternating-side reach-and-pull stroke loads the shoulder, thoracic spine, and hip, even at 7 days selected.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'SUP Paddle Stroke Simulation', sets:'4×10/side', noWeight:true},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Band External Rotation', sets:'3×15'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Core Endurance (Trunk & Lower Back)', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+              {name:'Pallof Press', sets:'3×10-12/side'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, alternating-side reach-and-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Grip, Forearm & Posterior Shoulder Endurance', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Farmer\'s Carry', sets:'4×30yd'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Face Pull', sets:'3×15'},
+              {name:'Rear Delt Fly', sets:'3×12-15'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Rotational Power & Sprint Conditioning', plate:'p-green', plateNum:'10', duration:'~35-40 min',
+            exercises:[
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full-Body Aerobic Endurance Conditioning', plate:'p-off', plateNum:'5', duration:'~30 min',
+            exercises:[
+              {name:'Sprint Intervals', sets:'4×20s', noWeight:true},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Ab Wheel Rollout', sets:'3×8-10', noWeight:true},
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Shoulder Health & Core Endurance', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Band External Rotation', sets:'2×15'},
+              {name:'Side Plank', sets:'2×20-30s/side', noWeight:true},
+              {name:'Pallof Press', sets:'2×10-12/side'},
+            ]
+          },
+        }
+      },
+    },
+    kayaking: {
+      1: {
+        short: 'Paddling-pattern strength + core & lumbar endurance basics — the floor for this program',
+        overview: 'One session combining paddling-pattern shoulder strength and core/lumbar endurance at reduced volume, since a full week only gets one shot. This program\'s own citation found the lower back is the single most commonly injured site in kayaking, ahead of the shoulder — even at the lowest frequency, both stay the priority.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddling-Pattern Strength + Core & Lumbar Endurance Basics', plate:'p-red', plateNum:'25', duration:'~25 min',
+            exercises:[
+              {name:'Kayak Stroke Simulation', sets:'2×10/side', noWeight:true},
+              {name:'Plank', sets:'2×45s', noWeight:true},
+              {name:'Seated Cable Row', sets:'2×10-12'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, rotational push-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — bracing, rolling, and reading current only develop out there.' },
+          d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, rotational push-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — bracing, rolling, and reading current only develop out there.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — bracing, rolling, and reading current only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — bracing, rolling, and reading current only develop out there.' },
+        }
+      },
+      2: {
+        short: 'Paddling-Pattern Strength and Core & Lumbar Endurance, dedicated days',
+        overview: 'Paddling-pattern shoulder strength and core/lumbar endurance each get their own full session — the two pillars this program\'s own reasoning calls out as directly matching kayaking\'s two most commonly injured sites, at the lowest frequency that still trains both.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Kayak Stroke Simulation', sets:'4×10/side', noWeight:true},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Band External Rotation', sets:'3×15'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, rotational push-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d3: { label:'Day 3', sub:'Core & Lumbar Endurance', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+              {name:'Pallof Press', sets:'3×10-12/side'},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — bracing, rolling, and reading current only develop out there.' },
+          d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, rotational push-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — bracing, rolling, and reading current only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — bracing, rolling, and reading current only develop out there.' },
+        }
+      },
+      3: {
+        short: 'Paddling-Pattern Strength, Core & Lumbar Endurance, and Rotational Power & Full-Body Conditioning',
+        overview: 'Three of this program\'s five sessions each get their own day — paddling-pattern strength, core/lumbar endurance, and rotational power/full-body conditioning, the trio this program closes its week on, even at this frequency.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Kayak Stroke Simulation', sets:'4×10/side', noWeight:true},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Band External Rotation', sets:'3×15'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Core & Lumbar Endurance', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+              {name:'Pallof Press', sets:'3×10-12/side'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, rotational push-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Rotational Power & Full-Body Conditioning', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+            exercises:[
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+              {name:'Sprint Intervals', sets:'4×20s', noWeight:true},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — bracing, rolling, and reading current only develop out there.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — bracing, rolling, and reading current only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — bracing, rolling, and reading current only develop out there.' },
+        }
+      },
+      4: {
+        short: 'Paddling-Pattern Strength, Core & Lumbar Endurance, Leg Drive & Lower-Body Power, and Grip, Wrist & Forearm Endurance',
+        overview: 'Four of this program\'s five sessions each get their own day. Rotational Power & Full-Body Conditioning is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Kayak Stroke Simulation', sets:'4×10/side', noWeight:true},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Band External Rotation', sets:'3×15'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Core & Lumbar Endurance', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+              {name:'Pallof Press', sets:'3×10-12/side'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, rotational push-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Leg Drive & Lower-Body Power', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Jump Squat', sets:'3×8'},
+              {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+              {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Grip, Wrist & Forearm Endurance', plate:'p-green', plateNum:'10', duration:'~35 min',
+            exercises:[
+              {name:'Farmer\'s Carry', sets:'4×30yd'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Face Pull', sets:'3×15'},
+              {name:'Rear Delt Fly', sets:'3×12-15'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — bracing, rolling, and reading current only develop out there.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. This is land-based support training, not a replacement for real time on the water — bracing, rolling, and reading current only develop out there.' },
+        }
+      },
+      // 5 intentionally omitted — this is the style's own authored default
+      // (WATERSPORTS_STYLES.kayaking), used as-is.
+      6: {
+        short: 'The full 5-day program plus extra shoulder health & core endurance',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra shoulder health and core endurance work — not a 2nd leg-power or rotational day. This program\'s own citation found the lower back and shoulder are the two most commonly injured sites in kayaking; the extra day reinforces that instead of adding more explosive or leg-drive load.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Kayak Stroke Simulation', sets:'4×10/side', noWeight:true},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Band External Rotation', sets:'3×15'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Core & Lumbar Endurance', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+              {name:'Pallof Press', sets:'3×10-12/side'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, rotational push-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip.' },
+          d4: { label:'Day 4', sub:'Leg Drive & Lower-Body Power', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Jump Squat', sets:'3×8'},
+              {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+              {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Grip, Wrist & Forearm Endurance', plate:'p-green', plateNum:'10', duration:'~35 min',
+            exercises:[
+              {name:'Farmer\'s Carry', sets:'4×30yd'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Face Pull', sets:'3×15'},
+              {name:'Rear Delt Fly', sets:'3×12-15'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Rotational Power & Full-Body Conditioning', plate:'p-off', plateNum:'5', duration:'~30 min',
+            exercises:[
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+              {name:'Sprint Intervals', sets:'4×20s', noWeight:true},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Shoulder Health & Core Endurance', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Band External Rotation', sets:'2×15'},
+              {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+              {name:'Face Pull', sets:'2×15'},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says a repetitive, rotational push-pull stroke loads the shoulder, thoracic spine, and hip, even at 7 days selected.',
+        days: {
+          d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Kayak Stroke Simulation', sets:'4×10/side', noWeight:true},
+              {name:'Seated Cable Row', sets:'3×10-12'},
+              {name:'Straight-Arm Lat Pulldown', sets:'4×12-15'},
+              {name:'Band External Rotation', sets:'3×15'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Core & Lumbar Endurance', plate:'p-blue', plateNum:'20', duration:'~35 min',
+            exercises:[
+              {name:'Plank', sets:'3×45-60s', noWeight:true},
+              {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+              {name:'Bird Dog', sets:'3×8-10/side', noWeight:true},
+              {name:'Pallof Press', sets:'3×10-12/side'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, rotational push-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Leg Drive & Lower-Body Power', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Jump Squat', sets:'3×8'},
+              {name:'Bulgarian Split Squat', sets:'3×10-12/side'},
+              {name:'Deep Squat Hold', sets:'2×30-45s', noWeight:true},
+              {name:'Single-Leg Bound', sets:'3×5/side', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Grip, Wrist & Forearm Endurance', plate:'p-green', plateNum:'10', duration:'~35 min',
+            exercises:[
+              {name:'Farmer\'s Carry', sets:'4×30yd'},
+              {name:'Battle Ropes', sets:'4×30s', noWeight:true},
+              {name:'Face Pull', sets:'3×15'},
+              {name:'Rear Delt Fly', sets:'3×12-15'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Rotational Power & Full-Body Conditioning', plate:'p-off', plateNum:'5', duration:'~30 min',
+            exercises:[
+              {name:'Med Ball Rotational Throw', sets:'4×8/side'},
+              {name:'Russian Twist (weighted)', sets:'3×15/side'},
+              {name:'Sprint Intervals', sets:'4×20s', noWeight:true},
+              {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Shoulder Health & Core Endurance', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Band External Rotation', sets:'2×15'},
+              {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+              {name:'Face Pull', sets:'2×15'},
+            ]
+          },
+        }
+      },
+    },
+  },
 };
 
 let daysPerWeekPref = null; // null = untouched -> each program's own authored default, unchanged
@@ -21117,15 +22679,16 @@ async function saveDaysPerWeekPref(n){
 // renderCyclingSelector() below) -- programs outside DAYS_PER_WEEK_PROGRAMS
 // are never touched.
 //
-// Style-variant containers (currently just cycling) need a different
+// Style-variant containers (cycling, combat, watersports) need a different
 // lookup: PROGRAM_DAY_COUNT_VARIANTS.cycling is keyed by sub-style FIRST,
 // then day count, because programs.cycling.days is itself swapped per
 // sub-style at runtime -- a single flat set of variants couldn't represent
-// Road and Mountain's genuinely different day content. DAYS_PER_WEEK_
-// ORIGINAL has no entry for cycling at all (see DAYS_PER_WEEK_STYLE_
-// CONTAINERS above), so the pref-unset/count-omitted fallback comes from
-// the live CYCLING_STYLES data instead, keyed by whichever style is
-// currently active.
+// Road and Mountain's (or any other container's sub-styles') genuinely
+// different day content. DAYS_PER_WEEK_ORIGINAL has no entry for any of
+// these at all (see DAYS_PER_WEEK_STYLE_CONTAINERS above), so the pref-
+// unset/count-omitted fallback comes from the live *_STYLES data instead
+// (via getStyleContainerAccessor()), keyed by whichever style is currently
+// active.
 function applyDaysPerWeekProgramData(){
   DAYS_PER_WEEK_PROGRAMS.forEach(key=>{
     if(DAYS_PER_WEEK_STYLE_CONTAINERS.includes(key)){

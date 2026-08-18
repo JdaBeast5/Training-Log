@@ -226,8 +226,10 @@ function martialArtHarness(){
     extractConst(src, 'DAYS_PER_WEEK_CONTAINER_DEFAULT'),
     extractConst(src, 'CYCLING_STYLES'),
     extractConst(src, 'COMBAT_STYLES'),
+    extractConst(src, 'WATERSPORTS_STYLES'),
     `window.COMBAT_STYLES = COMBAT_STYLES;`, // see topLevelHarness's identical comment on why this bridge is needed
     `window.activeCyclingStyle = 'road';`,
+    `window.activeWatersportsStyle = 'surfing';`,
     extractFunction(src, 'getStyleContainerAccessor'),
     extractConst(src, 'PROGRAM_DAY_COUNT_VARIANTS'),
     `window.daysPerWeekPref = null;`,
