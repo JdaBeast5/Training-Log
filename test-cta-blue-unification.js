@@ -35,8 +35,16 @@ test('REAL invocation: all four former-#7C97FF sites now render #6E8AFF, with ea
   const fabBlock = extractRuleBlock(src, '\n  .coach-fab');
   assert.match(fabBlock, /background:linear-gradient\(160deg, #6E8AFF, var\(--plate-blue\) 55%\);/, '.coach-fab must use #6E8AFF at its original 55% stop');
 
+  // .vol-bar-fill was later (a separate, purely-mechanical dedup pass —
+  // see test-css-mechanical-token-dedup.js) swapped from its own literal
+  // 60%-stop #6E8AFF gradient to var(--cta-gradient-blue) directly, since
+  // that literal was byte-identical to the already-existing token. Its
+  // color/stop is still #6E8AFF at 60% — just resolved through the shared
+  // token instead of a second copy of the literal.
+  const rootForVol = extractRuleBlock(src, ':root');
+  assert.match(rootForVol, /--cta-gradient-blue:linear-gradient\(160deg, #6E8AFF, var\(--plate-blue\) 60%\);/, 'sanity: the token .vol-bar-fill now resolves through still holds #6E8AFF at 60%');
   const volBlock = extractRuleBlock(src, '.vol-bar-fill');
-  assert.match(volBlock, /background:linear-gradient\(160deg, #6E8AFF, var\(--plate-blue\) 60%\);/, '.vol-bar-fill must use #6E8AFF, keeping its own 60% stop (distinct from the 55% used elsewhere — that variance is untouched by this color-only fix)');
+  assert.match(volBlock, /background:var\(--cta-gradient-blue\);/, '.vol-bar-fill must reference the shared --cta-gradient-blue token, which resolves to #6E8AFF at its original 60% stop (distinct from the 55% used elsewhere — that variance is untouched by this color-only fix)');
 
   const coachProgressBlock = extractRuleBlock(src, '.coach-progress-fill');
   assert.match(coachProgressBlock, /background:linear-gradient\(90deg, var\(--plate-blue\), #6E8AFF\);/, '.coach-progress-fill must use #6E8AFF, keeping its own reversed 90deg stop order (plate-blue first, then the light stop) unchanged');
@@ -56,12 +64,16 @@ test('regression guard: the --cta-gradient-blue token and its other three pre-ex
   assert.match(src, stopMatch, 'the AI Coach rest-timer SVG gradient stop must be unchanged — it was already #6E8AFF');
 });
 
-test('sabotage-relevant: exactly seven real #6E8AFF sites exist in the file (the three pre-existing ones plus the four rewritten ones), not more and not fewer', (assert)=>{
+test('sabotage-relevant: exactly six real #6E8AFF sites exist in the file, not more and not fewer', (assert)=>{
   const count = (src.match(/#6E8AFF/g) || []).length;
-  // 7 real color values (token, 2 pre-existing CSS sites, 1 pre-existing SVG
-  // stop, plus the 4 rewritten sites) + 2 prose mentions in the historical
-  // comment (the same two counted by the #7C97FF-retirement test above).
-  assert.strictEqual(count, 9, 'expected 7 real #6E8AFF color values plus the 2 historical-note comment mentions — a different count means either a site was missed, double-converted, or the comment text drifted');
+  // Was 7 real color values (token, 2 pre-existing CSS sites, 1 pre-existing
+  // SVG stop, plus the 4 rewritten sites) + 2 prose mentions in the
+  // historical comment. A later, separate mechanical-dedup pass (see
+  // test-css-mechanical-token-dedup.js) swapped .vol-bar-fill from its own
+  // literal #6E8AFF gradient to var(--cta-gradient-blue) — same resolved
+  // color, one fewer literal text occurrence, so 6 real values + the same
+  // 2 prose mentions.
+  assert.strictEqual(count, 8, 'expected 6 real #6E8AFF color values plus the 2 historical-note comment mentions — a different count means either a site was missed, double-converted, or the comment text drifted');
 });
 
 run();

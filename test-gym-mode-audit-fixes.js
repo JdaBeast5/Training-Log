@@ -107,9 +107,19 @@ test('sabotage-relevant: .plate-result, .voice-feedback, and .set-note-input all
   const plateBlock = extractRuleBlock(src, 'body.gym-mode .plate-result');
   const voiceBlock = extractRuleBlock(src, 'body.gym-mode .voice-feedback');
   const noteBlock = extractRuleBlock(src, 'body.gym-mode .set-note-input');
-  assert.match(plateBlock, /linear-gradient\(170deg/, '.plate-result must get a real gradient, not var(--surface2)');
+  // .plate-result and .set-note-input were later (a separate, purely-
+  // mechanical dedup pass — see test-css-mechanical-token-dedup.js) swapped
+  // from their own literal linear-gradient(170deg, ...) to the shared
+  // var(--gym-panel-gradient) token, which resolves to the exact same
+  // gradient — 4 sites (including .warmup-box and body.gym-mode
+  // .set-row-content, not asserted here) had copy-pasted it verbatim.
+  // .voice-feedback is a genuinely different, red-tinted recipe and was
+  // untouched by that pass, so it still carries its own literal.
+  const rootBlock = extractRuleBlock(src, ':root');
+  assert.match(rootBlock, /--gym-panel-gradient:linear-gradient\(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%\);/, 'sanity: the token .plate-result/.set-note-input now resolve through still holds the real gradient');
+  assert.match(plateBlock, /background:var\(--gym-panel-gradient\);/, '.plate-result must get a real gradient (via the shared token), not var(--surface2)');
   assert.match(voiceBlock, /linear-gradient\(170deg/, '.voice-feedback must get a real gradient');
-  assert.match(noteBlock, /linear-gradient\(170deg/, '.set-note-input must get a real gradient');
+  assert.match(noteBlock, /background:var\(--gym-panel-gradient\);/, '.set-note-input must get a real gradient (via the shared token)');
 });
 
 test('regression guard: .set-note-input keeps its existing gym-mode sizing (min-height/font-size) — this fix only touches color, not layout', (assert)=>{

@@ -175,6 +175,22 @@
        around border-radius, so it stays circular on the plate discs and
        pill-shaped on the nav pills without restating any radius. */
     --focus-ring-color:rgba(120,150,255,0.95);
+    /* The box-shadow-based focus glow used by the handful of inputs that
+       compose their own multi-layer box-shadow (an inset depth layer, or in
+       .program-select's case an extra colour glow) — --focus-ring-color
+       above is outline-based and doesn't apply here, since these inputs
+       need the ring as one more layer in an existing shadow list rather
+       than a separate outline. Four call sites shared this exact literal
+       verbatim before being factored out here (mechanical 1:1 dedup, same
+       method as the --plate-*-rgb shadow-glow consolidation). */
+    --focus-ring-glow:0 0 0 3px rgba(var(--plate-blue-rgb),0.15);
+    /* The gym-mode "recessed well" panel background: four call sites
+       (.set-row-content, .set-note-input, .plate-result, .warmup-box —
+       .plate-result's own comment already flagged them as sharing "the same
+       gradient .set-row-content/.warmup-box already use") had this exact
+       gradient copy-pasted verbatim. Factored out here, same mechanical
+       1:1 dedup as --focus-ring-glow above. */
+    --gym-panel-gradient:linear-gradient(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%);
     --radius-xs:6px;
     --radius-sm:9px;
     --radius-md:12px;
@@ -265,7 +281,7 @@
   input[type=number]::-webkit-outer-spin-button,
   input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
   input:focus, select:focus, textarea:focus{
-    outline:none; border-color:var(--plate-blue); box-shadow:0 0 0 3px rgba(var(--plate-blue-rgb),0.15);
+    outline:none; border-color:var(--plate-blue); box-shadow:var(--focus-ring-glow);
   }
   /* 18px sides gives every card the same inset. The bottom was 0, so the
      last card ended 18px from the page edge against 22px above the first;
@@ -834,7 +850,7 @@
     box-shadow:0 1px 3px rgba(var(--overlay-black-rgb),0.25) inset;
     transition:border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
-  .ex-input:focus{outline:none; border-color:var(--plate-blue); box-shadow:0 1px 3px rgba(var(--overlay-black-rgb),0.25) inset, 0 0 0 3px rgba(var(--plate-blue-rgb),0.15);}
+  .ex-input:focus{outline:none; border-color:var(--plate-blue); box-shadow:0 1px 3px rgba(var(--overlay-black-rgb),0.25) inset, var(--focus-ring-glow);}
   .ex-input::placeholder{color:var(--text-muted); opacity:1;}
   /* A suggested placeholder is a different KIND of thing from last session's
      ghost number — one is a record, the other is a target — so it is tinted to
@@ -1874,7 +1890,7 @@
   .vol-row:last-child{border-bottom:none;}
   .vol-row-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:13px; font-weight:600;}
   .vol-bar-track{height:8px; background:var(--surface2); border-radius:5px; overflow:hidden;}
-  .vol-bar-fill{position:relative; height:100%; background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%); border-radius:5px; transition:width 0.5s var(--ease-smooth);}
+  .vol-bar-fill{position:relative; height:100%; background:var(--cta-gradient-blue); border-radius:5px; transition:width 0.5s var(--ease-smooth);}
   .vol-bar-fill::after{content:''; position:absolute; inset:0; border-radius:5px; background:var(--shine-gloss);}
   .vol-bar-labels{display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-muted); margin-top:4px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
   .vol-landmark{font-size:11px; margin-top:6px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
@@ -2541,7 +2557,7 @@
     box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.06) inset, 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.3);
     transition:border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
-  .program-select:focus{outline:none; border-color:var(--plate-blue); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.06) inset, 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.5), 0 0 0 3px rgba(var(--plate-blue-rgb),0.15);}
+  .program-select:focus{outline:none; border-color:var(--plate-blue); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.06) inset, 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.5), var(--focus-ring-glow);}
   .program-select-wrap::after{
     content:'▾'; position:absolute; right:14px; top:50%; transform:translateY(-50%);
     color:var(--plate-blue); font-size:14px; pointer-events:none;
@@ -2702,7 +2718,7 @@
     box-shadow:0 1px 3px rgba(var(--overlay-black-rgb),0.25) inset;
     transition:border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
-  .care-input:focus{outline:none; border-color:var(--plate-blue); box-shadow:0 1px 3px rgba(var(--overlay-black-rgb),0.25) inset, 0 0 0 3px rgba(var(--plate-blue-rgb),0.15);}
+  .care-input:focus{outline:none; border-color:var(--plate-blue); box-shadow:0 1px 3px rgba(var(--overlay-black-rgb),0.25) inset, var(--focus-ring-glow);}
   /* type=date carries its own UA-drawn internal layout (the day/month/year segments
      plus the calendar-icon button) that adds height .care-input's shared padding doesn't
      account for — 2px taller than the identically-padded number input sitting right below
@@ -4043,7 +4059,7 @@
        the pink-tint bug the comment above describes, because no alpha below 1
        is involved anywhere. The inset hairline is the same sheen every other
        raised surface in the app carries. */
-    background:linear-gradient(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%);
+    background:var(--gym-panel-gradient);
     border:1px solid rgba(var(--surface-white-rgb),0.10);
     border-radius:16px;
     box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.055) inset,
@@ -4144,7 +4160,7 @@
      panel. Same gradient .set-row-content/.warmup-box already use below. */
   body.gym-mode .set-note-input{
     min-height:48px; font-size:15px;
-    background:linear-gradient(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%);
+    background:var(--gym-panel-gradient);
     border-color:rgba(var(--surface-white-rgb),0.10);
     box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.055) inset;
   }
@@ -4152,7 +4168,7 @@
      two headline actions (the persistent "hold to voice log" tip is the
      other), and the one surface that visibly still belonged to normal mode. */
   body.gym-mode .plate-result{
-    background:linear-gradient(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%);
+    background:var(--gym-panel-gradient);
     border-color:rgba(var(--surface-white-rgb),0.10);
     box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.055) inset;
   }
@@ -4169,7 +4185,7 @@
      a leftover card. Big enough to read at arm's length, which is the whole
      point of having it here. */
   body.gym-mode .warmup-box{
-    background:linear-gradient(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%);
+    background:var(--gym-panel-gradient);
     border:1px solid rgba(var(--surface-white-rgb),0.10);
     box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.055) inset;
     border-radius:16px; padding:12px 14px; margin:2px 0 10px;
@@ -6268,7 +6284,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.208';
+const APP_VERSION = '3.209';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6714,6 +6730,10 @@ const WHATS_NEW = {
   '3.208': { headline: 'Removed a stray divider line from program/style overview and citation text', points: [
     'A leftover, unused style rule was silently adding a thin top border and extra padding above some text blocks — most visible as an odd gap between a source school\'s name and its cited reference in Research & Sources.',
     'Purely visual — no behavior changed.',
+  ]},
+  '3.209': { headline: 'Behind-the-scenes cleanup of repeated visual styling', points: [
+    'Several buttons, inputs, and Gym Mode panels shared the exact same glow, gradient, and highlight recipes copy-pasted in multiple places — consolidated into shared styles so they can never quietly drift apart.',
+    'Purely visual — no behavior changed, nothing should look any different.',
   ]},
 };
 
