@@ -32,7 +32,14 @@ const pureChunks = [
   extractConst(src, 'DAYS_PER_WEEK_ORIGINAL'),
   extractConst(src, 'DAYS_PER_WEEK_CONTAINER_DEFAULT'),
   extractConst(src, 'CYCLING_STYLES'),
+  extractConst(src, 'COMBAT_STYLES'),
+  extractConst(src, 'WATERSPORTS_STYLES'),
+  extractConst(src, 'YOGA_STYLES'),
   'var activeCyclingStyle = "road";', // mirrors the real `let activeCyclingStyle = 'road';` default
+  'var activeMartialArt = "kickboxing";', // mirrors the real `let activeMartialArt = 'kickboxing';` default
+  'var activeWatersportsStyle = "surfing";', // mirrors the real `let activeWatersportsStyle = 'surfing';` default
+  'var activeYogaStyle = "flow";', // mirrors the real `let activeYogaStyle = 'flow';` default
+  extractFunction(src, 'getStyleContainerAccessor'),
   extractConst(src, 'PROGRAM_DAY_COUNT_VARIANTS'),
   extractFunction(src, 'daysPerWeekWarningState'),
 ];
@@ -263,6 +270,422 @@ test('sabotage: cycling is deliberately NOT in the flat PROGRAMS_TO_CHECK/OMITTE
   assert.strictEqual(hasStyleKeys, true);
 });
 
+// [Combat — the second style-variant container] ------------------------------
+// Same nested-by-sub-style shape as cycling, now generalized behind
+// getStyleContainerAccessor(). Deliberately NOT added to PROGRAMS_TO_CHECK
+// for the same reason cycling wasn't -- the flat-shape loops above would
+// either check the wrong thing or throw against a nested one.
+const COMBAT_STYLES_TO_CHECK = ['kickboxing', 'boxing', 'muayThai', 'mma', 'taekwondo', 'taiChi'];
+const COMBAT_OMITTED_DEFAULT_COUNT = 5; // every style's own default is a 5-day week
+
+for(const style of COMBAT_STYLES_TO_CHECK){
+  for(const n of ALL_COUNTS){
+    test(`combat.${style} day-count ${n}: a real plan resolves (either an authored variant, or the style's own default for the intentionally-omitted count), with all 7 slots present`, (assert)=>{
+      const [days] = runSandbox(pureChunks, `
+        const variant = PROGRAM_DAY_COUNT_VARIANTS.combat['${style}'][${n}];
+        const resolved = variant || COMBAT_STYLES['${style}'];
+        __capture.push(resolved.days);
+      `);
+      assert.strictEqual(Object.keys(days).length, 7, 'must always be exactly d1..d7');
+      ['d1','d2','d3','d4','d5','d6','d7'].forEach(key => {
+        assert.ok(days[key], `missing ${key}`);
+        assert.ok(days[key].sub, `${key} missing a sub-label`);
+        if(!days[key].rest){
+          assert.ok(Array.isArray(days[key].exercises) && days[key].exercises.length > 0, `${key} is a training day but has no exercises`);
+        }
+      });
+    });
+  }
+}
+
+for(const style of COMBAT_STYLES_TO_CHECK){
+  test(`combat.${style}: every hand-authored day-count's TRAINING day count actually matches the count selected`, (assert)=>{
+    const [results] = runSandbox(pureChunks, `
+      const out = {};
+      for(const n of [1,2,3,4,5,6,7]){
+        const variant = PROGRAM_DAY_COUNT_VARIANTS.combat['${style}'][n];
+        if(!variant) continue;
+        out[n] = Object.values(variant.days).filter(d=>!d.rest).length;
+      }
+      __capture.push(out);
+    `);
+    for(const n of ALL_COUNTS){
+      if(n === COMBAT_OMITTED_DEFAULT_COUNT) continue;
+      const expected = (n === 7) ? 6 : n;
+      assert.strictEqual(results[n], expected, `n=${n} should have exactly ${expected} training days, got ${results[n]}`);
+    }
+  });
+
+  test(`sabotage: combat.${style} day-count 5 is the intentionally-omitted default — PROGRAM_DAY_COUNT_VARIANTS.combat.${style} has no key "5"`, (assert)=>{
+    const [has5] = runSandbox(pureChunks, `__capture.push(Object.prototype.hasOwnProperty.call(PROGRAM_DAY_COUNT_VARIANTS.combat['${style}'], '5'));`);
+    assert.strictEqual(has5, false);
+  });
+
+  test(`combat.${style}: all 7 day-count plans have genuinely distinct overview text (sabotage: catches a copy-paste-without-editing mistake across counts)`, (assert)=>{
+    const [overviews] = runSandbox(pureChunks, `
+      const out = [];
+      for(const n of [1,2,3,4,5,6,7]){
+        const variant = PROGRAM_DAY_COUNT_VARIANTS.combat['${style}'][n] || COMBAT_STYLES['${style}'];
+        out.push(variant.overview);
+      }
+      __capture.push(out);
+    `);
+    assert.strictEqual(overviews.length, 7);
+    assert.strictEqual(new Set(overviews).size, 7, 'expected 7 distinct overview strings, found duplicates');
+    overviews.forEach(o => assert.ok(o && o.length > 40, 'overview text looks too short to be a real description'));
+  });
+
+  test(`sabotage: combat.${style}'s 6-day and 7-day plans keep the SAME real training days`, (assert)=>{
+    const [subs6, subs7] = runSandbox(pureChunks, `
+      const subsOf = (days) => Object.values(days).filter(d=>!d.rest).map(d=>d.sub).sort();
+      __capture.push(subsOf(PROGRAM_DAY_COUNT_VARIANTS.combat['${style}'][6].days));
+      __capture.push(subsOf(PROGRAM_DAY_COUNT_VARIANTS.combat['${style}'][7].days));
+    `);
+    assert.deepStrictEqual(subs6, subs7);
+  });
+}
+
+test('sabotage: combat.muayThai\'s 6-day and 7-day extra day contains ZERO clinch or elbow work — proving the "real injury risk, keep it off the extra day" design decision landed in the data', (assert)=>{
+  const [sub6, exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.muayThai[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.muayThai[6].days.d7.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Conditioning & Hip Mobility');
+  ['Clinch Knee Drills', 'Elbow Strike Drills'].forEach(riskyEx => {
+    assert.strictEqual(exNames6.includes(riskyEx), false, `muayThai's 7th day should contain no clinch/elbow work, found ${riskyEx}`);
+  });
+});
+
+test('sabotage: combat.mma\'s 6-day and 7-day extra day contains ZERO Ground & Pound or Sprawl work — proving the "aerobic recovery, not more high-impact ground work" design decision landed in the data', (assert)=>{
+  const [sub6, exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.mma[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.mma[6].days.d7.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Aerobic Conditioning & Mobility');
+  ['Ground & Pound Drills', 'Sprawl Drills'].forEach(riskyEx => {
+    assert.strictEqual(exNames6.includes(riskyEx), false, `mma's 7th day should contain no ground-and-pound/sprawl work, found ${riskyEx}`);
+  });
+});
+
+test('sabotage: combat.taekwondo\'s 6-day and 7-day extra day is genuinely flexibility-focused, not another kicking-power session — proving the "kick performance is built on rest days" design decision landed in the data', (assert)=>{
+  const [sub6, exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.taekwondo[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.taekwondo[6].days.d7.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Flexibility & Footwork');
+  const heavyBagExercises = exNames6.filter(name => name.startsWith('Heavy Bag'));
+  assert.strictEqual(heavyBagExercises.length, 0, `taekwondo's 7th day should contain no heavy-bag work, found ${heavyBagExercises.join(', ')}`);
+});
+
+test('sabotage: combat.taiChi\'s 6-day and 7-day extra day is real practice content (Zhan Zhuang / Qigong), not a copy-pasted mobility filler from an unrelated program', (assert)=>{
+  const [sub6, sub7, exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.taiChi[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.taiChi[7].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.combat.taiChi[6].days.d7.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Standing Meditation & Breath Work');
+  assert.strictEqual(sub7, 'Extra Standing Meditation & Breath Work');
+  assert.strictEqual(exNames6.includes('Zhan Zhuang (Standing Post)'), true, 'expected real tai chi practice content, not generic filler');
+});
+
+test('sabotage: combat.taiChi\'s Push Hands & Sensitivity (the one day needing a training partner) is deferred to n=4 and up, not assumed available at n=1-3', (assert)=>{
+  const [has1, has2, has3, has4] = runSandbox(pureChunks, `
+    const subsOf = (n) => Object.values(PROGRAM_DAY_COUNT_VARIANTS.combat.taiChi[n].days).map(d=>d.sub);
+    __capture.push(subsOf(1).includes('Push Hands & Sensitivity'));
+    __capture.push(subsOf(2).includes('Push Hands & Sensitivity'));
+    __capture.push(subsOf(3).includes('Push Hands & Sensitivity'));
+    __capture.push(subsOf(4).includes('Push Hands & Sensitivity'));
+  `);
+  assert.strictEqual(has1, false);
+  assert.strictEqual(has2, false);
+  assert.strictEqual(has3, false);
+  assert.strictEqual(has4, true, 'Push Hands & Sensitivity should appear once the day budget allows it, starting at n=4');
+});
+
+test('sabotage: combat is deliberately NOT in the flat PROGRAMS_TO_CHECK/OMITTED_DEFAULT_COUNT shape — PROGRAM_DAY_COUNT_VARIANTS.combat has no numeric-keyed day count directly on it, only sub-style keys', (assert)=>{
+  const [hasNumeric, hasStyleKeys] = runSandbox(pureChunks, `
+    __capture.push(Object.prototype.hasOwnProperty.call(PROGRAM_DAY_COUNT_VARIANTS.combat, '1'));
+    __capture.push(${JSON.stringify(COMBAT_STYLES_TO_CHECK)}.every(k => Object.prototype.hasOwnProperty.call(PROGRAM_DAY_COUNT_VARIANTS.combat, k)));
+  `);
+  assert.strictEqual(hasNumeric, false, 'combat must not have a flat day-count key — it would silently shadow the real nested style-keyed shape');
+  assert.strictEqual(hasStyleKeys, true);
+});
+
+// [Watersports — the third style-variant container] --------------------------
+// Same nested-by-sub-style shape as cycling/combat, generalized behind
+// getStyleContainerAccessor(). Deliberately NOT added to PROGRAMS_TO_CHECK
+// for the same reason cycling/combat weren't -- the flat-shape loops above
+// would either check the wrong thing or throw against a nested one.
+const WATERSPORTS_STYLES_TO_CHECK = ['surfing', 'skimboarding', 'wakeboarding', 'kiteAssisted', 'sup', 'kayaking'];
+const WATERSPORTS_OMITTED_DEFAULT_COUNT = 5; // every discipline's own default is a 5-day week
+
+for(const style of WATERSPORTS_STYLES_TO_CHECK){
+  for(const n of ALL_COUNTS){
+    test(`watersports.${style} day-count ${n}: a real plan resolves (either an authored variant, or the style's own default for the intentionally-omitted count), with all 7 slots present`, (assert)=>{
+      const [days] = runSandbox(pureChunks, `
+        const variant = PROGRAM_DAY_COUNT_VARIANTS.watersports['${style}'][${n}];
+        const resolved = variant || WATERSPORTS_STYLES['${style}'];
+        __capture.push(resolved.days);
+      `);
+      assert.strictEqual(Object.keys(days).length, 7, 'must always be exactly d1..d7');
+      ['d1','d2','d3','d4','d5','d6','d7'].forEach(key => {
+        assert.ok(days[key], `missing ${key}`);
+        assert.ok(days[key].sub, `${key} missing a sub-label`);
+        if(!days[key].rest){
+          assert.ok(Array.isArray(days[key].exercises) && days[key].exercises.length > 0, `${key} is a training day but has no exercises`);
+        }
+      });
+    });
+  }
+}
+
+for(const style of WATERSPORTS_STYLES_TO_CHECK){
+  test(`watersports.${style}: every hand-authored day-count's TRAINING day count actually matches the count selected`, (assert)=>{
+    const [results] = runSandbox(pureChunks, `
+      const out = {};
+      for(const n of [1,2,3,4,5,6,7]){
+        const variant = PROGRAM_DAY_COUNT_VARIANTS.watersports['${style}'][n];
+        if(!variant) continue;
+        out[n] = Object.values(variant.days).filter(d=>!d.rest).length;
+      }
+      __capture.push(out);
+    `);
+    for(const n of ALL_COUNTS){
+      if(n === WATERSPORTS_OMITTED_DEFAULT_COUNT) continue;
+      const expected = (n === 7) ? 6 : n;
+      assert.strictEqual(results[n], expected, `n=${n} should have exactly ${expected} training days, got ${results[n]}`);
+    }
+  });
+
+  test(`sabotage: watersports.${style} day-count 5 is the intentionally-omitted default — PROGRAM_DAY_COUNT_VARIANTS.watersports.${style} has no key "5"`, (assert)=>{
+    const [has5] = runSandbox(pureChunks, `__capture.push(Object.prototype.hasOwnProperty.call(PROGRAM_DAY_COUNT_VARIANTS.watersports['${style}'], '5'));`);
+    assert.strictEqual(has5, false);
+  });
+
+  test(`watersports.${style}: all 7 day-count plans have genuinely distinct overview text (sabotage: catches a copy-paste-without-editing mistake across counts)`, (assert)=>{
+    const [overviews] = runSandbox(pureChunks, `
+      const out = [];
+      for(const n of [1,2,3,4,5,6,7]){
+        const variant = PROGRAM_DAY_COUNT_VARIANTS.watersports['${style}'][n] || WATERSPORTS_STYLES['${style}'];
+        out.push(variant.overview);
+      }
+      __capture.push(out);
+    `);
+    assert.strictEqual(overviews.length, 7);
+    assert.strictEqual(new Set(overviews).size, 7, 'expected 7 distinct overview strings, found duplicates');
+    overviews.forEach(o => assert.ok(o && o.length > 40, 'overview text looks too short to be a real description'));
+  });
+
+  test(`sabotage: watersports.${style}'s 6-day and 7-day plans keep the SAME real training days`, (assert)=>{
+    const [subs6, subs7] = runSandbox(pureChunks, `
+      const subsOf = (days) => Object.values(days).filter(d=>!d.rest).map(d=>d.sub).sort();
+      __capture.push(subsOf(PROGRAM_DAY_COUNT_VARIANTS.watersports['${style}'][6].days));
+      __capture.push(subsOf(PROGRAM_DAY_COUNT_VARIANTS.watersports['${style}'][7].days));
+    `);
+    assert.deepStrictEqual(subs6, subs7);
+  });
+}
+
+test('sabotage: watersports.surfing\'s 6-day and 7-day extra day contains ZERO of the exercises this program\'s own citation flags for shoulder-injury risk (Box Jump, Broad Jump, Single-Leg Bound)', (assert)=>{
+  const [sub6, exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.watersports.surfing[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.watersports.surfing[6].days.d7.exercises.map(e=>e.name));
+  `);
+  ['Box Jump', 'Broad Jump', 'Single-Leg Bound'].forEach(riskyEx => {
+    assert.strictEqual(exNames6.includes(riskyEx), false, `surfing's extra day should contain none of its own high-injury-risk exercises, found ${riskyEx}`);
+  });
+  assert.ok(sub6 && sub6.length > 0);
+});
+
+test('sabotage: watersports.skimboarding\'s 6-day and 7-day extra day contains ZERO of the exercises this program\'s own citation flags for the dominant ankle/wrist-fracture mechanisms (Sprint Intervals, Depth Jump, Single-Leg Bound)', (assert)=>{
+  const [exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.watersports.skimboarding[6].days.d7.exercises.map(e=>e.name));
+  `);
+  ['Sprint Intervals', 'Depth Jump', 'Single-Leg Bound'].forEach(riskyEx => {
+    assert.strictEqual(exNames6.includes(riskyEx), false, `skimboarding's extra day should contain none of its own high-injury-risk exercises, found ${riskyEx}`);
+  });
+});
+
+test('sabotage: watersports.wakeboarding\'s 6-day and 7-day extra day contains ZERO of the exercises this program\'s own citation flags for the 42.3% ACL-tear rate (Box Jump, Broad Jump)', (assert)=>{
+  const [exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.watersports.wakeboarding[6].days.d7.exercises.map(e=>e.name));
+  `);
+  ['Box Jump', 'Broad Jump'].forEach(riskyEx => {
+    assert.strictEqual(exNames6.includes(riskyEx), false, `wakeboarding's extra day should contain none of its own high-injury-risk exercises, found ${riskyEx}`);
+  });
+});
+
+test('sabotage: watersports.kiteAssisted\'s 6-day and 7-day extra day contains ZERO of the exercises this program\'s own citation flags for its 64%-of-lower-extremity ankle-injury rate (Box Jump, Depth Jump, Broad Jump)', (assert)=>{
+  const [sub6, exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.watersports.kiteAssisted[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.watersports.kiteAssisted[6].days.d7.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Core Endurance & Grip');
+  ['Box Jump', 'Depth Jump', 'Broad Jump'].forEach(riskyEx => {
+    assert.strictEqual(exNames6.includes(riskyEx), false, `kiteAssisted's extra day should contain none of its own high-injury-risk exercises, found ${riskyEx}`);
+  });
+});
+
+test('sabotage: watersports.sup\'s 6-day and 7-day extra day is genuinely "Extra Shoulder Health & Core Endurance" content, not a repeat of the closing Full-Body Aerobic Endurance Conditioning day\'s exercises', (assert)=>{
+  const [sub6, sub7, exNames6, exNamesClosing] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.watersports.sup[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.watersports.sup[7].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.watersports.sup[6].days.d7.exercises.map(e=>e.name));
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.watersports.sup[6].days.d6.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Shoulder Health & Core Endurance');
+  assert.strictEqual(sub7, 'Extra Shoulder Health & Core Endurance');
+  exNames6.forEach(name => {
+    assert.strictEqual(exNamesClosing.includes(name), false, `sup's extra day should not repeat the closing aerobic day's exercise "${name}"`);
+  });
+});
+
+test('sabotage: watersports.kayaking\'s 6-day and 7-day extra day is genuinely "Extra Shoulder Health & Core Endurance" content, not a repeat of the closing Rotational Power & Full-Body Conditioning day\'s exercises', (assert)=>{
+  const [sub6, sub7, exNames6, exNamesClosing] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.watersports.kayaking[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.watersports.kayaking[7].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.watersports.kayaking[6].days.d7.exercises.map(e=>e.name));
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.watersports.kayaking[6].days.d6.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Shoulder Health & Core Endurance');
+  assert.strictEqual(sub7, 'Extra Shoulder Health & Core Endurance');
+  exNames6.forEach(name => {
+    assert.strictEqual(exNamesClosing.includes(name), false, `kayaking's extra day should not repeat the closing rotational-power day's exercise "${name}"`);
+  });
+});
+
+test('sabotage: watersports is deliberately NOT in the flat PROGRAMS_TO_CHECK/OMITTED_DEFAULT_COUNT shape — PROGRAM_DAY_COUNT_VARIANTS.watersports has no numeric-keyed day count directly on it, only sub-style keys', (assert)=>{
+  const [hasNumeric, hasStyleKeys] = runSandbox(pureChunks, `
+    __capture.push(Object.prototype.hasOwnProperty.call(PROGRAM_DAY_COUNT_VARIANTS.watersports, '1'));
+    __capture.push(${JSON.stringify(WATERSPORTS_STYLES_TO_CHECK)}.every(k => Object.prototype.hasOwnProperty.call(PROGRAM_DAY_COUNT_VARIANTS.watersports, k)));
+  `);
+  assert.strictEqual(hasNumeric, false, 'watersports must not have a flat day-count key — it would silently shadow the real nested style-keyed shape');
+  assert.strictEqual(hasStyleKeys, true);
+});
+
+// [Yoga — the fourth and final style-variant container] ----------------------
+// Same nested-by-sub-style shape as cycling/combat/watersports, generalized
+// behind getStyleContainerAccessor(). Deliberately NOT added to
+// PROGRAMS_TO_CHECK for the same reason the other three containers weren't.
+const YOGA_STYLES_TO_CHECK = ['flow', 'hot', 'couples'];
+const YOGA_OMITTED_DEFAULT_COUNT = 5; // every style's own default is a 5-day week
+
+for(const style of YOGA_STYLES_TO_CHECK){
+  for(const n of ALL_COUNTS){
+    test(`yoga.${style} day-count ${n}: a real plan resolves (either an authored variant, or the style's own default for the intentionally-omitted count), with all 7 slots present`, (assert)=>{
+      const [days] = runSandbox(pureChunks, `
+        const variant = PROGRAM_DAY_COUNT_VARIANTS.yoga['${style}'][${n}];
+        const resolved = variant || YOGA_STYLES['${style}'];
+        __capture.push(resolved.days);
+      `);
+      assert.strictEqual(Object.keys(days).length, 7, 'must always be exactly d1..d7');
+      ['d1','d2','d3','d4','d5','d6','d7'].forEach(key => {
+        assert.ok(days[key], `missing ${key}`);
+        assert.ok(days[key].sub, `${key} missing a sub-label`);
+        if(!days[key].rest){
+          assert.ok(Array.isArray(days[key].exercises) && days[key].exercises.length > 0, `${key} is a training day but has no exercises`);
+        }
+      });
+    });
+  }
+}
+
+for(const style of YOGA_STYLES_TO_CHECK){
+  test(`yoga.${style}: every hand-authored day-count's TRAINING day count actually matches the count selected`, (assert)=>{
+    const [results] = runSandbox(pureChunks, `
+      const out = {};
+      for(const n of [1,2,3,4,5,6,7]){
+        const variant = PROGRAM_DAY_COUNT_VARIANTS.yoga['${style}'][n];
+        if(!variant) continue;
+        out[n] = Object.values(variant.days).filter(d=>!d.rest).length;
+      }
+      __capture.push(out);
+    `);
+    for(const n of ALL_COUNTS){
+      if(n === YOGA_OMITTED_DEFAULT_COUNT) continue;
+      const expected = (n === 7) ? 6 : n;
+      assert.strictEqual(results[n], expected, `n=${n} should have exactly ${expected} training days, got ${results[n]}`);
+    }
+  });
+
+  test(`sabotage: yoga.${style} day-count 5 is the intentionally-omitted default — PROGRAM_DAY_COUNT_VARIANTS.yoga.${style} has no key "5"`, (assert)=>{
+    const [has5] = runSandbox(pureChunks, `__capture.push(Object.prototype.hasOwnProperty.call(PROGRAM_DAY_COUNT_VARIANTS.yoga['${style}'], '5'));`);
+    assert.strictEqual(has5, false);
+  });
+
+  test(`yoga.${style}: all 7 day-count plans have genuinely distinct overview text (sabotage: catches a copy-paste-without-editing mistake across counts)`, (assert)=>{
+    const [overviews] = runSandbox(pureChunks, `
+      const out = [];
+      for(const n of [1,2,3,4,5,6,7]){
+        const variant = PROGRAM_DAY_COUNT_VARIANTS.yoga['${style}'][n] || YOGA_STYLES['${style}'];
+        out.push(variant.overview);
+      }
+      __capture.push(out);
+    `);
+    assert.strictEqual(overviews.length, 7);
+    assert.strictEqual(new Set(overviews).size, 7, 'expected 7 distinct overview strings, found duplicates');
+    overviews.forEach(o => assert.ok(o && o.length > 40, 'overview text looks too short to be a real description'));
+  });
+
+  test(`sabotage: yoga.${style}'s 6-day and 7-day plans keep the SAME real training days`, (assert)=>{
+    const [subs6, subs7] = runSandbox(pureChunks, `
+      const subsOf = (days) => Object.values(days).filter(d=>!d.rest).map(d=>d.sub).sort();
+      __capture.push(subsOf(PROGRAM_DAY_COUNT_VARIANTS.yoga['${style}'][6].days));
+      __capture.push(subsOf(PROGRAM_DAY_COUNT_VARIANTS.yoga['${style}'][7].days));
+    `);
+    assert.deepStrictEqual(subs6, subs7);
+  });
+}
+
+test('sabotage: yoga.flow\'s 6-day and 7-day extra day is genuinely "Extra Balance & Breath Integration" content, not a repeat of the closing Restorative Yoga day\'s exercises', (assert)=>{
+  const [sub6, sub7, exNames6, exNamesClosing] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.yoga.flow[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.yoga.flow[7].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.yoga.flow[6].days.d7.exercises.map(e=>e.name));
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.yoga.flow[6].days.d6.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Balance & Breath Integration');
+  assert.strictEqual(sub7, 'Extra Balance & Breath Integration');
+  exNames6.forEach(name => {
+    assert.strictEqual(exNamesClosing.includes(name), false, `flow's extra day should not repeat the closing Restorative day's exercise "${name}"`);
+  });
+  ['Chaturanga', 'Plank'].forEach(hardEx => {
+    assert.strictEqual(exNames6.includes(hardEx), false, `flow's extra day should contain no Vinyasa/Power-intensity exercise, found ${hardEx}`);
+  });
+});
+
+test('sabotage: yoga.hot\'s 6-day and 7-day extra day is genuinely "Extra Cool-Room Balance & Breath" content — proving the "answer to more frequency is more unheated practice, not more heat exposure" design decision landed in the data', (assert)=>{
+  const [sub6, sub7, note6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.yoga.hot[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.yoga.hot[7].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.yoga.hot[6].days.d7.note);
+  `);
+  assert.strictEqual(sub6, 'Extra Cool-Room Balance & Breath');
+  assert.strictEqual(sub7, 'Extra Cool-Room Balance & Breath');
+  assert.match(note6, /unheated/, 'expected the extra day to explicitly stay unheated, matching the "heat doesn\'t clearly add benefit" citation');
+});
+
+test('sabotage: yoga.couples\'s 6-day and 7-day extra day contains ZERO of the counterbalance/strength exercises from Day 2 — proving the "gentle extra day, never a 2nd shared-strength session" design decision landed in the data', (assert)=>{
+  const [sub6, exNames6, exNamesDay2] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.yoga.couples[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.yoga.couples[6].days.d7.exercises.map(e=>e.name));
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.yoga.couples[6].days.d2.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Partner Connection & Mobility');
+  exNames6.forEach(name => {
+    assert.strictEqual(exNamesDay2.includes(name), false, `couples's extra day should not repeat Partner Strength & Counterbalance's exercise "${name}"`);
+  });
+});
+
+test('sabotage: yoga is deliberately NOT in the flat PROGRAMS_TO_CHECK/OMITTED_DEFAULT_COUNT shape — PROGRAM_DAY_COUNT_VARIANTS.yoga has no numeric-keyed day count directly on it, only sub-style keys', (assert)=>{
+  const [hasNumeric, hasStyleKeys] = runSandbox(pureChunks, `
+    __capture.push(Object.prototype.hasOwnProperty.call(PROGRAM_DAY_COUNT_VARIANTS.yoga, '1'));
+    __capture.push(${JSON.stringify(YOGA_STYLES_TO_CHECK)}.every(k => Object.prototype.hasOwnProperty.call(PROGRAM_DAY_COUNT_VARIANTS.yoga, k)));
+  `);
+  assert.strictEqual(hasNumeric, false, 'yoga must not have a flat day-count key — it would silently shadow the real nested style-keyed shape');
+  assert.strictEqual(hasStyleKeys, true);
+});
+
 test('sabotage: strength\'s 7-day plan reframes the rest slot as light mobility/cardio, NOT a full-rest day and NOT a 7th hard session', (assert)=>{
   const [day3] = runSandbox(pureChunks, `__capture.push(PROGRAM_DAY_COUNT_VARIANTS.strength[7].days.d3);`);
   assert.strictEqual(day3.rest, true, 'must still be a light/rest-style day, not a hard session');
@@ -421,6 +844,27 @@ test('bodybuilding\'s 6-day Push/Pull/Legs ×2 plan uses genuinely different exe
   assert.strictEqual(overlap.length, 0, `Push A and Push B should share zero identical exercises, found: ${overlap.join(', ')}`);
 });
 
+// Found via user review, not authored test-first: strength's 5/6/7-day
+// "Accessory & Weak Points" day (d6) originally repeated Hip Thrust from
+// the immediately preceding "Lower · Hypertrophy" day (d5) -- two
+// back-to-back training days with zero rest between them, hitting the same
+// exercise twice. It also contradicted the accessory day's own stated
+// purpose (covering what four heavy days leave short -- hamstrings, rear
+// delts, arms -- not repeating something d5 already covers). Fixed by
+// dropping Hip Thrust from d6; Leg Curl/Face Pull/Lateral Raise/DB
+// Curl/Triceps Pushdown already matched that stated purpose without it.
+for(const n of [5, 6, 7]){
+  test(`sabotage: strength's ${n}-day "Accessory & Weak Points" day (d6) shares ZERO exercises with the immediately preceding "Lower · Hypertrophy" day (d5) -- these run back-to-back with no rest between them, so any overlap is real same-exercise overload, not just a coincidence`, (assert)=>{
+    const [namesD5, namesD6] = runSandbox(pureChunks, `
+      __capture.push(PROGRAM_DAY_COUNT_VARIANTS.strength[${n}].days.d5.exercises.map(e=>e.name));
+      __capture.push(PROGRAM_DAY_COUNT_VARIANTS.strength[${n}].days.d6.exercises.map(e=>e.name));
+    `);
+    const overlap = namesD5.filter(name => namesD6.includes(name));
+    assert.strictEqual(overlap.length, 0, `d5 and d6 should share zero exercises, found: ${overlap.join(', ')}`);
+    assert.strictEqual(namesD6.includes('Hip Thrust'), false, 'Hip Thrust specifically must not be back on the accessory day — d5 already covers it');
+  });
+}
+
 // [Body-goal focus exercises reach the new accessory/high-frequency days] --------
 // The user asked for the extra accessory days (added at 5-7 days/week) to
 // align with a person's body goal. Rather than building a second, competing
@@ -450,14 +894,15 @@ const bodyGoalChunks = [
 // athletic, bodyweight, calisthenics) are exactly FOCUS_ELIGIBLE_PROGRAMS'
 // membership, so their extra accessory days align with body goals for
 // free. Batch 4 (core, jumprope, mobility), batch 6 (senior, desk,
-// pilates), batch 7 (boxingsc, hyrox, grappling), and batch 8 (cycling) are
-// deliberately NOT in that list -- these are the two disjoint groups,
-// checked separately. (Batch 5 -- running, swimming, climbing -- isn't in
-// either check list; also not in FOCUS_ELIGIBLE_PROGRAMS, but that batch
-// didn't add the corresponding negative-case coverage. Pre-existing gap,
-// noted rather than silently backfilled here.)
+// pilates), batch 7 (boxingsc, hyrox, grappling), batch 8 (cycling), and
+// batch 9 (combat) are deliberately NOT in that list -- these are the two
+// disjoint groups, checked separately. (Batch 5 -- running, swimming,
+// climbing -- isn't in either check list; also not in
+// FOCUS_ELIGIBLE_PROGRAMS, but that batch didn't add the corresponding
+// negative-case coverage. Pre-existing gap, noted rather than silently
+// backfilled here.)
 const FOCUS_ELIGIBLE_BATCH = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics'];
-const NON_FOCUS_ELIGIBLE_BATCH = ['core', 'jumprope', 'mobility', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling', 'cycling'];
+const NON_FOCUS_ELIGIBLE_BATCH = ['core', 'jumprope', 'mobility', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling', 'cycling', 'combat', 'watersports', 'yoga'];
 
 test('FOCUS_ELIGIBLE_PROGRAMS already covers the first 8 programs rolled out — the reason their extra accessory days align with body goals for free', (assert)=>{
   const [results] = runSandbox(bodyGoalChunks, `
@@ -475,10 +920,10 @@ test('sabotage: core/jumprope/mobility are deliberately NOT in FOCUS_ELIGIBLE_PR
 
 test('REAL invocation: a body goal adds its focus exercise to a NEW accessory day (strength\'s 6-day "Accessory & Weak Points"), skipping whichever focus exercise that day already happens to include', (assert)=>{
   const [added] = runSandbox(bodyGoalChunks, `
-    const day = PROGRAM_DAY_COUNT_VARIANTS.strength[6].days.d6; // Accessory & Weak Points — already has Hip Thrust
-    __capture.push(getBodyGoalFocusExercises('Hourglass / Curvy (Wellness style)', 'strength', day).map(e=>e.name));
+    const day = PROGRAM_DAY_COUNT_VARIANTS.strength[6].days.d6; // Accessory & Weak Points — already has Lateral Raise
+    __capture.push(getBodyGoalFocusExercises('Classic Muscular (Classic Physique style)', 'strength', day).map(e=>e.name));
   `);
-  assert.deepStrictEqual(added, ['Clamshell'], 'Hip Thrust should be skipped as a duplicate; Clamshell (not already on this day) should be added');
+  assert.deepStrictEqual(added, ['Lat Pulldown'], 'Lateral Raise should be skipped as a duplicate; Lat Pulldown (not already on this day) should be added');
 });
 
 test('REAL invocation: the same mechanism reaches powerbuilding\'s NEW "Arms & Weak Points" 7-day accessory day', (assert)=>{
@@ -643,6 +1088,173 @@ test('sabotage: cycling day-count 5 (the intentionally-omitted default) falls ba
   assert.strictEqual(daysMatch, true);
 });
 
+// [applyDaysPerWeekProgramData — combat's style-container branch] ---------------
+// Same coverage as cycling above, now proving getStyleContainerAccessor()'s
+// generalization actually works for a SECOND container, not just the one it
+// was extracted from.
+test('applyDaysPerWeekProgramData with pref=null: combat.days follows the active style (COMBAT_STYLES.kickboxing), but .overview/.short stay the container\'s own generic blurb, NOT the style\'s blurb', (assert)=>{
+  const [daysMatch, overviewIsContainer, shortIsContainer, overviewIsNotStyle] = runSandbox(applyChunks, `
+    applyDaysPerWeekProgramData();
+    __capture.push(JSON.stringify(programs.combat.days) === JSON.stringify(COMBAT_STYLES.kickboxing.days));
+    __capture.push(programs.combat.overview === DAYS_PER_WEEK_CONTAINER_DEFAULT.combat.overview);
+    __capture.push(programs.combat.short === DAYS_PER_WEEK_CONTAINER_DEFAULT.combat.short);
+    __capture.push(programs.combat.overview !== COMBAT_STYLES.kickboxing.overview);
+  `);
+  assert.strictEqual(daysMatch, true);
+  assert.strictEqual(overviewIsContainer, true);
+  assert.strictEqual(shortIsContainer, true);
+  assert.strictEqual(overviewIsNotStyle, true);
+});
+
+test('applyDaysPerWeekProgramData with a real pref set: combat.days/.overview/.short all regenerate to match the active style\'s authored variant', (assert)=>{
+  const [daysMatch, overviewMatch, shortMatch] = runSandbox(applyChunks, `
+    daysPerWeekPref = 6;
+    applyDaysPerWeekProgramData();
+    const variant = PROGRAM_DAY_COUNT_VARIANTS.combat.kickboxing[6];
+    __capture.push(JSON.stringify(programs.combat.days) === JSON.stringify(variant.days));
+    __capture.push(programs.combat.overview === variant.overview);
+    __capture.push(programs.combat.short === variant.short);
+  `);
+  assert.strictEqual(daysMatch, true);
+  assert.strictEqual(overviewMatch, true);
+  assert.strictEqual(shortMatch, true);
+});
+
+test('REAL invocation: switching activeMartialArt from kickboxing to taiChi and reapplying keeps the SAME day-count pref instead of silently discarding it', (assert)=>{
+  const [daysMatchTaiChi6, notKickboxing6] = runSandbox(applyChunks, `
+    daysPerWeekPref = 6;
+    applyDaysPerWeekProgramData(); // kickboxing, 6 days
+    activeMartialArt = 'taiChi';
+    applyDaysPerWeekProgramData(); // style switch -- must reapply the same pref, not clobber .days with the raw style default
+    const taiChiVariant = PROGRAM_DAY_COUNT_VARIANTS.combat.taiChi[6];
+    const kickboxingVariant = PROGRAM_DAY_COUNT_VARIANTS.combat.kickboxing[6];
+    __capture.push(JSON.stringify(programs.combat.days) === JSON.stringify(taiChiVariant.days));
+    __capture.push(JSON.stringify(programs.combat.days) !== JSON.stringify(kickboxingVariant.days));
+  `);
+  assert.strictEqual(daysMatchTaiChi6, true, 'day count 6 must survive the style switch, applied to the NEW style\'s own 6-day variant');
+  assert.strictEqual(notKickboxing6, true, 'must not still be showing kickboxing\'s 6-day plan after switching to taiChi');
+});
+
+test('sabotage: combat day-count 5 (the intentionally-omitted default) falls back to the active style\'s own COMBAT_STYLES days, not some other style or a stale value', (assert)=>{
+  const [daysMatch] = runSandbox(applyChunks, `
+    daysPerWeekPref = 5;
+    applyDaysPerWeekProgramData();
+    __capture.push(JSON.stringify(programs.combat.days) === JSON.stringify(COMBAT_STYLES.kickboxing.days));
+  `);
+  assert.strictEqual(daysMatch, true);
+});
+
+// [applyDaysPerWeekProgramData — watersports's style-container branch] ----------
+// Same coverage as cycling/combat above, now proving getStyleContainerAccessor()'s
+// generalization actually works for a THIRD container.
+test('applyDaysPerWeekProgramData with pref=null: watersports.days follows the active style (WATERSPORTS_STYLES.surfing), but .overview/.short stay the container\'s own generic blurb, NOT the style\'s blurb', (assert)=>{
+  const [daysMatch, overviewIsContainer, shortIsContainer, overviewIsNotStyle] = runSandbox(applyChunks, `
+    applyDaysPerWeekProgramData();
+    __capture.push(JSON.stringify(programs.watersports.days) === JSON.stringify(WATERSPORTS_STYLES.surfing.days));
+    __capture.push(programs.watersports.overview === DAYS_PER_WEEK_CONTAINER_DEFAULT.watersports.overview);
+    __capture.push(programs.watersports.short === DAYS_PER_WEEK_CONTAINER_DEFAULT.watersports.short);
+    __capture.push(programs.watersports.overview !== WATERSPORTS_STYLES.surfing.overview);
+  `);
+  assert.strictEqual(daysMatch, true);
+  assert.strictEqual(overviewIsContainer, true);
+  assert.strictEqual(shortIsContainer, true);
+  assert.strictEqual(overviewIsNotStyle, true);
+});
+
+test('applyDaysPerWeekProgramData with a real pref set: watersports.days/.overview/.short all regenerate to match the active style\'s authored variant', (assert)=>{
+  const [daysMatch, overviewMatch, shortMatch] = runSandbox(applyChunks, `
+    daysPerWeekPref = 6;
+    applyDaysPerWeekProgramData();
+    const variant = PROGRAM_DAY_COUNT_VARIANTS.watersports.surfing[6];
+    __capture.push(JSON.stringify(programs.watersports.days) === JSON.stringify(variant.days));
+    __capture.push(programs.watersports.overview === variant.overview);
+    __capture.push(programs.watersports.short === variant.short);
+  `);
+  assert.strictEqual(daysMatch, true);
+  assert.strictEqual(overviewMatch, true);
+  assert.strictEqual(shortMatch, true);
+});
+
+test('REAL invocation: switching activeWatersportsStyle from surfing to kayaking and reapplying keeps the SAME day-count pref instead of silently discarding it', (assert)=>{
+  const [daysMatchKayaking6, notSurfing6] = runSandbox(applyChunks, `
+    daysPerWeekPref = 6;
+    applyDaysPerWeekProgramData(); // surfing, 6 days
+    activeWatersportsStyle = 'kayaking';
+    applyDaysPerWeekProgramData(); // style switch -- must reapply the same pref, not clobber .days with the raw style default
+    const kayakingVariant = PROGRAM_DAY_COUNT_VARIANTS.watersports.kayaking[6];
+    const surfingVariant = PROGRAM_DAY_COUNT_VARIANTS.watersports.surfing[6];
+    __capture.push(JSON.stringify(programs.watersports.days) === JSON.stringify(kayakingVariant.days));
+    __capture.push(JSON.stringify(programs.watersports.days) !== JSON.stringify(surfingVariant.days));
+  `);
+  assert.strictEqual(daysMatchKayaking6, true, 'day count 6 must survive the style switch, applied to the NEW style\'s own 6-day variant');
+  assert.strictEqual(notSurfing6, true, 'must not still be showing surfing\'s 6-day plan after switching to kayaking');
+});
+
+test('sabotage: watersports day-count 5 (the intentionally-omitted default) falls back to the active style\'s own WATERSPORTS_STYLES days, not some other style or a stale value', (assert)=>{
+  const [daysMatch] = runSandbox(applyChunks, `
+    daysPerWeekPref = 5;
+    applyDaysPerWeekProgramData();
+    __capture.push(JSON.stringify(programs.watersports.days) === JSON.stringify(WATERSPORTS_STYLES.surfing.days));
+  `);
+  assert.strictEqual(daysMatch, true);
+});
+
+// [applyDaysPerWeekProgramData — yoga's style-container branch] -----------------
+// Same coverage as cycling/combat/watersports above, now proving
+// getStyleContainerAccessor()'s generalization actually works for a FOURTH
+// and final container.
+test('applyDaysPerWeekProgramData with pref=null: yoga.days follows the active style (YOGA_STYLES.flow), but .overview/.short stay the container\'s own generic blurb, NOT the style\'s blurb', (assert)=>{
+  const [daysMatch, overviewIsContainer, shortIsContainer, overviewIsNotStyle] = runSandbox(applyChunks, `
+    applyDaysPerWeekProgramData();
+    __capture.push(JSON.stringify(programs.yoga.days) === JSON.stringify(YOGA_STYLES.flow.days));
+    __capture.push(programs.yoga.overview === DAYS_PER_WEEK_CONTAINER_DEFAULT.yoga.overview);
+    __capture.push(programs.yoga.short === DAYS_PER_WEEK_CONTAINER_DEFAULT.yoga.short);
+    __capture.push(programs.yoga.overview !== YOGA_STYLES.flow.overview);
+  `);
+  assert.strictEqual(daysMatch, true);
+  assert.strictEqual(overviewIsContainer, true);
+  assert.strictEqual(shortIsContainer, true);
+  assert.strictEqual(overviewIsNotStyle, true);
+});
+
+test('applyDaysPerWeekProgramData with a real pref set: yoga.days/.overview/.short all regenerate to match the active style\'s authored variant', (assert)=>{
+  const [daysMatch, overviewMatch, shortMatch] = runSandbox(applyChunks, `
+    daysPerWeekPref = 6;
+    applyDaysPerWeekProgramData();
+    const variant = PROGRAM_DAY_COUNT_VARIANTS.yoga.flow[6];
+    __capture.push(JSON.stringify(programs.yoga.days) === JSON.stringify(variant.days));
+    __capture.push(programs.yoga.overview === variant.overview);
+    __capture.push(programs.yoga.short === variant.short);
+  `);
+  assert.strictEqual(daysMatch, true);
+  assert.strictEqual(overviewMatch, true);
+  assert.strictEqual(shortMatch, true);
+});
+
+test('REAL invocation: switching activeYogaStyle from flow to couples and reapplying keeps the SAME day-count pref instead of silently discarding it', (assert)=>{
+  const [daysMatchCouples6, notFlow6] = runSandbox(applyChunks, `
+    daysPerWeekPref = 6;
+    applyDaysPerWeekProgramData(); // flow, 6 days
+    activeYogaStyle = 'couples';
+    applyDaysPerWeekProgramData(); // style switch -- must reapply the same pref, not clobber .days with the raw style default
+    const couplesVariant = PROGRAM_DAY_COUNT_VARIANTS.yoga.couples[6];
+    const flowVariant = PROGRAM_DAY_COUNT_VARIANTS.yoga.flow[6];
+    __capture.push(JSON.stringify(programs.yoga.days) === JSON.stringify(couplesVariant.days));
+    __capture.push(JSON.stringify(programs.yoga.days) !== JSON.stringify(flowVariant.days));
+  `);
+  assert.strictEqual(daysMatchCouples6, true, 'day count 6 must survive the style switch, applied to the NEW style\'s own 6-day variant');
+  assert.strictEqual(notFlow6, true, 'must not still be showing flow\'s 6-day plan after switching to couples');
+});
+
+test('sabotage: yoga day-count 5 (the intentionally-omitted default) falls back to the active style\'s own YOGA_STYLES days, not some other style or a stale value', (assert)=>{
+  const [daysMatch] = runSandbox(applyChunks, `
+    daysPerWeekPref = 5;
+    applyDaysPerWeekProgramData();
+    __capture.push(JSON.stringify(programs.yoga.days) === JSON.stringify(YOGA_STYLES.flow.days));
+  `);
+  assert.strictEqual(daysMatch, true);
+});
+
 // [loadDaysPerWeekPref / saveDaysPerWeekPref] ------------------------------------
 // Real `window` is only available under jsdom (a bare vm context has none),
 // and these functions read/write window.storage — so, matching this
@@ -704,6 +1316,35 @@ test('REAL invocation: an out-of-range stored value (e.g. "9") is rejected — p
   assert.strictEqual(window.__programs.strength.days, window.__daysPerWeekOriginal.strength.days);
 });
 
+// [applyDaysPerWeekPrefToUI boot-ordering] ---------------------------------------
+// Found via user report: after reloading the app, the Profile field showed
+// "Program default" even though a real 6/7-day pref was still genuinely
+// stored AND still genuinely applied to the program's actual day content --
+// a real desync between what the field displayed and what was true. Root
+// cause: boot's init() called applyDaysPerWeekPrefToUI() long before
+// await loadDaysPerWeekPref() ran, so it read the in-memory `daysPerWeekPref`
+// variable while it was still at its initial `null` -- before the real
+// stored value had even been read from storage yet. Fixed by moving the
+// apply call to right after the load call resolves, matching the ordering
+// every other load/apply preference pair in this file already uses.
+test('REAL invocation: applyDaysPerWeekPrefToUI() reflects a real stored 7-day pref into the select once called AFTER loadDaysPerWeekPref() resolves -- the correct boot order', async (assert)=>{
+  const { window, document } = runJsdom(inputHtml, storageGlobals({ 'days-per-week-pref': '7' }), loadSaveChunks.concat([
+    extractFunction(src, 'applyDaysPerWeekPrefToUI'),
+    'window.__ready = false; loadDaysPerWeekPref().then(() => { applyDaysPerWeekPrefToUI(); window.__ready = true; });',
+  ]));
+  await new Promise(res => setTimeout(res, 20));
+  assert.strictEqual(window.__ready, true, 'sabotage anchor: the async chain actually ran before we assert');
+  assert.strictEqual(document.getElementById('daysPerWeekInput').value, '7');
+});
+
+test('sabotage: calling applyDaysPerWeekPrefToUI() BEFORE loadDaysPerWeekPref() resolves shows the wrong "Program default" even though a real pref is stored -- reproduces the exact boot-order bug that was fixed', (assert)=>{
+  const { document } = runJsdom(inputHtml, storageGlobals({ 'days-per-week-pref': '7' }), loadSaveChunks.concat([
+    extractFunction(src, 'applyDaysPerWeekPrefToUI'),
+    'applyDaysPerWeekPrefToUI(); loadDaysPerWeekPref();', // deliberately wrong order
+  ]));
+  assert.strictEqual(document.getElementById('daysPerWeekInput').value, '', 'demonstrates the bug this fix removes: the field reads the still-null in-memory pref before the storage read has a chance to resolve');
+});
+
 test('REAL invocation: saveDaysPerWeekPref(6) writes the value to storage and updates the in-memory pref', async (assert)=>{
   const { window } = runJsdom('', storageGlobals({}), loadSaveChunks.concat(['saveDaysPerWeekPref(6);']));
   await new Promise(res => setTimeout(res, 20));
@@ -721,13 +1362,17 @@ test('REAL invocation: saveDaysPerWeekPref(null) DELETES the stored key (this is
 // [DOM: Profile input markup + warning banner] -----------------------------------
 const inputHtml = extractElementById(src, 'prefDaysPerWeek');
 
-test('the Profile "Training days per week" input matches the existing customProgDays precedent: number input, min=1, max=7', (assert)=>{
-  assert.match(inputHtml, /id="daysPerWeekInput"/);
-  assert.match(inputHtml, /type="number"/);
-  assert.match(inputHtml, /min="1"/);
-  assert.match(inputHtml, /max="7"/);
-  const inputCount = (inputHtml.match(/<input\b/g) || []).length;
-  assert.strictEqual(inputCount, 1, 'sabotage anchor: exactly one input in this block');
+test('the Profile "Training days per week" field is a real <select> with a "Program default" option plus exactly one option per day count 1-7 — not a number input, so there is no way to type an out-of-range or ambiguous value', (assert)=>{
+  assert.match(inputHtml, /<select\b[^>]*id="daysPerWeekInput"/);
+  assert.match(inputHtml, /<option value="">Program default<\/option>/);
+  for(const n of [1,2,3,4,5,6,7]){
+    assert.match(inputHtml, new RegExp(`<option value="${n}">${n}</option>`), `missing option for ${n}`);
+  }
+  const optionCount = (inputHtml.match(/<option\b/g) || []).length;
+  assert.strictEqual(optionCount, 8, 'sabotage anchor: exactly 8 options (Program default + 1-7), not a duplicate or missing one');
+  const selectCount = (inputHtml.match(/<select\b/g) || []).length;
+  assert.strictEqual(selectCount, 1, 'sabotage anchor: exactly one select in this block');
+  assert.strictEqual((inputHtml.match(/<input\b/g) || []).length, 0, 'must not still be a number input');
 });
 
 test('the Profile card ships an (initially hidden) daysPerWeekWarning container for the advisory banner', (assert)=>{

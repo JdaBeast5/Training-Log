@@ -208,14 +208,34 @@ function martialArtHarness(){
     // re-render — unrelated to what this test covers) never runs, and
     // doesn't need its own pile of stubs.
     window.activeProgram = 'strength';
-    window.programs = { combat: { days: {} } };
     window.storage = { set: async ()=>{} };
     function renderProgramSource(){}
     async function saveMartialArtStyle(){}
   `;
+  // renderMartialArtSelector's onchange now calls the REAL
+  // applyDaysPerWeekProgramData() (see the fix that stopped a style switch
+  // from silently discarding whatever day-count variant was active) --
+  // that touches every program in DAYS_PER_WEEK_PROGRAMS, not just combat,
+  // so this harness needs the real `programs` object and the real
+  // configurable-training-days machinery in scope, not a minimal stub.
   return runJsdom(bodyHtml, globals, [
+    extractConst(src, 'programs'),
+    extractConst(src, 'DAYS_PER_WEEK_PROGRAMS'),
+    extractConst(src, 'DAYS_PER_WEEK_STYLE_CONTAINERS'),
+    extractConst(src, 'DAYS_PER_WEEK_ORIGINAL'),
+    extractConst(src, 'DAYS_PER_WEEK_CONTAINER_DEFAULT'),
+    extractConst(src, 'CYCLING_STYLES'),
     extractConst(src, 'COMBAT_STYLES'),
+    extractConst(src, 'WATERSPORTS_STYLES'),
+    extractConst(src, 'YOGA_STYLES'),
     `window.COMBAT_STYLES = COMBAT_STYLES;`, // see topLevelHarness's identical comment on why this bridge is needed
+    `window.activeCyclingStyle = 'road';`,
+    `window.activeWatersportsStyle = 'surfing';`,
+    `window.activeYogaStyle = 'flow';`,
+    extractFunction(src, 'getStyleContainerAccessor'),
+    extractConst(src, 'PROGRAM_DAY_COUNT_VARIANTS'),
+    `window.daysPerWeekPref = null;`,
+    extractFunction(src, 'applyDaysPerWeekProgramData'),
     extractFunction(src, 'renderMartialArtSelector'),
     `renderMartialArtSelector();`,
   ]);
