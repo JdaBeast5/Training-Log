@@ -908,7 +908,7 @@
      one statement — the same pairing the other three badge colours already
      have with their placeholders. */
   .progress-badge-rpe{
-    background:rgba(0,191,165,0.12); border:1px solid rgba(0,191,165,0.4); color:var(--text);
+    background:rgba(var(--plate-teal-rgb),0.12); border:1px solid rgba(var(--plate-teal-rgb),0.4); color:var(--text);
     padding:8px 11px; border-radius:var(--radius-sm); font-size:12px; line-height:1.5; margin:6px 0 2px;
   }
   .progress-badge-rpe b{color:var(--plate-teal); font-weight:600;}
@@ -6320,7 +6320,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.215';
+const APP_VERSION = '3.216';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6791,6 +6791,9 @@ const WHATS_NEW = {
   ]},
   '3.215': { headline: 'Fixed a mismatched red on the Deload progress badge', points: [
     'The Deload badge\'s background/border/glow now use the same red as its text — they were subtly different reds before, which was never intentional.',
+  ]},
+  '3.216': { headline: 'Fixed a mismatched teal on the RPE progress badge', points: [
+    'The RPE badge\'s background/border now use the same teal as its own bold text and the field it explains — they were subtly different teals before, which broke the "read as one statement" pairing this badge was built for.',
   ]},
 };
 
