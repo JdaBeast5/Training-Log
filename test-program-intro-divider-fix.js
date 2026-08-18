@@ -50,8 +50,20 @@ function computedStylesFor(cssBlocks, bodyHtml, selectorAll){
   return els.map(el => dom.window.getComputedStyle(el));
 }
 
-test('sabotage-relevant: .program-intro is now declared exactly once, not the pre-fix two competing rules', (assert)=>{
-  assert.strictEqual(countRuleBlocks(src, '.program-intro'), 1, 'expected exactly one .program-intro{...} declaration after removing the dead, superseded rule');
+test('sabotage-relevant: .program-intro has exactly two real rule declarations — the base rule and a later, deliberate .program-intro + .program-intro adjacent-sibling rule — not the pre-fix two COMPETING same-selector rules', (assert)=>{
+  // The original bug was two rules sharing the EXACT SAME selector
+  // (.program-intro), racing each other in the cascade — that's what
+  // countRuleBlocks(src, '.program-intro') === 1 used to guard against.
+  // A later, unrelated fix (visual-formatting spacing pass) added a
+  // second, DIFFERENT selector, .program-intro + .program-intro, to give
+  // two directly-stacked paragraphs (buildSourceRowHtml's school + cited-
+  // source lines) breathing room — this is not a regression of the
+  // original bug, since it's a distinct selector with a clear, narrow,
+  // deliberate purpose, not two rules blindly targeting the same thing.
+  // countRuleBlocks matches on the literal substring ".program-intro{",
+  // which both rules end in, so the real count is now 2, not 1.
+  assert.strictEqual(countRuleBlocks(src, '.program-intro'), 2, 'expected exactly two .program-intro-related declarations: the base rule and the adjacent-sibling spacing rule');
+  assert.strictEqual((src.match(/\.program-intro \+ \.program-intro\{/g) || []).length, 1, 'the adjacent-sibling rule itself must be declared exactly once');
 });
 
 test('the surviving .program-intro rule is the "spec plate" one (margin:0, no border-top/padding-top of its own)', (assert)=>{
@@ -72,7 +84,9 @@ test('REAL invocation: buildSourceRowHtml renders two adjacent .program-intro pa
   assert.match(html, /<p class="program-intro"><strong>Cited source — <\/strong>Some Citation/, 'expected the real cited-source paragraph markup');
 
   const introCss = extractRuleBlock(src, '.program-intro');
-  const [schoolStyle, citedStyle] = computedStylesFor([introCss], html, 'p.program-intro');
+  const siblingCss = (src.match(/\.program-intro \+ \.program-intro\{[^}]*\}/) || [])[0];
+  assert.ok(siblingCss, 'expected to find the real .program-intro + .program-intro rule in source');
+  const [schoolStyle, citedStyle] = computedStylesFor([introCss, siblingCss], html, 'p.program-intro');
   // jsdom's getComputedStyle doesn't collapse border-*-width to 0 just
   // because border-*-style computes to 'none' (real browsers report the used
   // value, 0px; jsdom reports the raw initial value instead) — borderTopStyle
@@ -81,8 +95,12 @@ test('REAL invocation: buildSourceRowHtml renders two adjacent .program-intro pa
   // regression would show up here as borderTopStyle === 'solid'.
   assert.strictEqual(schoolStyle.borderTopStyle, 'none', 'school paragraph must not have a border-top divider');
   assert.strictEqual(schoolStyle.paddingTop, '0', 'school paragraph must not have leftover top padding');
+  assert.strictEqual(schoolStyle.marginTop, '0px', 'school paragraph (the first of the pair, no preceding .program-intro sibling) must NOT pick up the adjacent-sibling spacing');
   assert.strictEqual(citedStyle.borderTopStyle, 'none', 'cited-source paragraph (the one directly under the school line) must not have a border-top divider');
   assert.strictEqual(citedStyle.paddingTop, '0', 'cited-source paragraph must not have leftover top padding');
+  // The actual fix this round: previously 0px (margin:0 on both, nothing
+  // else), which read as one run-on block instead of two distinct lines.
+  assert.strictEqual(citedStyle.marginTop, '8px', 'cited-source paragraph (the SECOND of the pair, directly after a .program-intro sibling) must now get real breathing room via the adjacent-sibling rule');
 });
 
 test('REAL invocation: buildBasisHtml (the live per-program provenance panel) also resolves the fixed, undivided .program-intro style', (assert)=>{

@@ -3763,6 +3763,14 @@
     font-size:13px; line-height:1.55; color:var(--text);
     margin:0;
   }
+  /* buildSourceRowHtml (Research & Sources) is the one place two of these
+     land as direct siblings — a source's school name, then its cited
+     reference. margin:0 on the base rule means back-to-back they'd
+     otherwise touch with zero gap, reading as one run-on block instead of
+     two distinct lines. Scoped to the adjacent-sibling case only, so the
+     single-paragraph usages elsewhere (buildBasisHtml's intro, the six
+     Overview panels) are untouched. */
+  .program-intro + .program-intro{margin-top:8px;}
   .program-limits{
     margin-top:11px; padding:9px 11px 9px 12px;
     background:rgba(var(--plate-yellow-rgb),0.1);
@@ -6356,7 +6364,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.227';
+const APP_VERSION = '3.228';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6870,6 +6878,9 @@ const WHATS_NEW = {
   ]},
   '3.227': { headline: 'Fixed tight spacing on the Grocery List\'s empty state', points: [
     'The "Nothing here yet" message now has the same breathing room above it that the other empty-state lists (Bodyweight, Sleep, Blood Pressure, Glucose) already had — it was noticeably tighter than all of them.',
+  ]},
+  '3.228': { headline: 'Fixed two citation lines in Research & Sources running together', points: [
+    'A source\'s school/methodology line and its "Cited source" line had zero space between them, reading as one run-on block instead of two separate statements.',
   ]},
 };
 
