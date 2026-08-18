@@ -5007,7 +5007,7 @@
         <div id="prefDaysPerWeek">
           <label class="care-label" for="daysPerWeekInput">Training days per week</label>
           <input type="number" id="daysPerWeekInput" class="care-input" min="1" max="7" inputmode="numeric" placeholder="Program default">
-          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, Powerbuilding, Athletic/Plyo, Bodyweight, Calisthenics, Core &amp; Stability, Jump Rope, Mobility &amp; Flexibility, Running/Endurance, Swimming, Rock Climbing, Senior Strength &amp; Balance, Desk Worker/Posture, Pilates, Boxing Strength &amp; Conditioning, Hyrox, BJJ / Grappling, Cycling (both Road and Mountain), Combat (Kickboxing, Boxing, Muay Thai, MMA Striking, Taekwondo, and Tai Chi), and Watersports (Surfing, Skimboarding, Wakeboarding, Kite-Assisted Surfing, Stand-Up Paddleboarding, and Kayaking); other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
+          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Applies to every program in this app — including every style within Cycling, Combat, Watersports, and Yoga — except the medically-modified programs, which never will (those follow your care team's guidance, not a day-count preference).</div>
           <div id="daysPerWeekWarning" style="display:none"></div>
         </div>
 
@@ -6292,7 +6292,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.212';
+const APP_VERSION = '3.213';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6753,6 +6753,11 @@ const WHATS_NEW = {
     'All six disciplines now have real day-count plans, and switching between them no longer discards whichever day count you had selected — the same fix already shipped for Cycling and Combat now covers Watersports too.',
     'Higher-frequency options never repeat each discipline\'s own highest-injury-risk exercises — the jump/landing work its own citation flags for surfing, skimboarding, wakeboarding, and kite-assisted surfing. The extra day is genuinely lower-toll endurance, grip, core, or mobility work instead.',
     'Stand-Up Paddleboarding and Kayaking both get an "Extra Shoulder Health & Core Endurance" day at higher frequencies, since each one\'s own citation names the shoulder (and, for Kayaking, the lower back) as its most commonly injured area — not more sprint or rotational-power work.',
+  ]},
+  '3.213': { headline: 'Training days per week now covers Yoga — and every non-medical program in the app', points: [
+    'Vinyasa & Flow, Hot Yoga, and Partner Yoga all now have real day-count plans, and switching between them no longer discards whichever day count you had selected — the same fix already shipped for Cycling, Combat, and Watersports now covers Yoga too.',
+    'This completes the rollout: every program in the app now has a real, purpose-built plan for however many days you want to train, except the medically-modified programs, which follow your care team\'s guidance instead of a day-count preference.',
+    'Higher-frequency options never add a 2nd hard session. Flow and Hot never repeat their two highest-intensity days; Hot\'s extra day specifically stays unheated, since this program\'s own citation found the heat itself doesn\'t clearly add benefit over non-heated practice. Partner Yoga\'s extra day stays gentle, since the "the person being stretched sets the depth, always" rule applies at every frequency, not just the default one.',
   ]},
 };
 
@@ -13388,13 +13393,20 @@ function renderYogaSelector(){
   el.onchange = async ()=>{
     activeYogaStyle = el.value;
     renderProgramSource();   // style provenance must follow the style, not just the program
-    programs.yoga.days = YOGA_STYLES[activeYogaStyle].days;
+    // Reapply the day-count pref instead of assigning YOGA_STYLES[...].days
+    // directly -- a direct assignment here would silently discard whatever
+    // day-count variant was active the moment the user switched styles.
+    applyDaysPerWeekProgramData();
     descEl.textContent = YOGA_STYLES[activeYogaStyle].short;
     overviewEl.textContent = YOGA_STYLES[activeYogaStyle].overview;
     await saveYogaStyle();
     if(activeProgram === 'yoga'){
       dayDefs = programs.yoga.days;
       activeDay = 'd1';
+      const descElMain = document.getElementById('programSelectDesc');
+      const overviewElMain = document.getElementById('programOverview');
+      if(descElMain) descElMain.textContent = programs.yoga.short;
+      if(overviewElMain) overviewElMain.textContent = programs.yoga.overview;
       await loadDayOrder();
       await loadWeekProgress();
       renderTabs();
@@ -13644,8 +13656,26 @@ function renderPosingClasses(){
 // Health & Core Endurance" for both, tied to each one's own citation
 // (SUP: shoulder is the single most commonly injured region; Kayaking:
 // lower back and shoulder are the two most commonly injured sites) rather
-// than adding more sprint/rotational-power or leg-drive load. Remaining
-// scope: the yoga style-variant container, in a further batch.
+// than adding more sprint/rotational-power or leg-drive load.
+// Batch 11 adds yoga -- the fourth and final style-variant container. This
+// completes the rollout: every non-medical program in the app (all 24 of
+// them, counting each style within Cycling/Combat/Watersports/Yoga as part
+// of its container) now has real, hand-authored per-day-count plans; only
+// the 13 medical/rehab programs remain permanently excluded (see above).
+// Flow and Hot each use their own two highest-intensity days (Vinyasa +
+// Power, or Hot Vinyasa + Hot Power) as the low-frequency pillars, and never
+// add a 2nd hard session at high frequency -- Flow's own citation already
+// found even its hardest sequences measure as genuinely moderate-intensity,
+// and Hot's own citation found the heat itself doesn't clearly add benefit
+// over non-heated practice, so Hot's extra day stays deliberately unheated
+// rather than adding more heat/cardiovascular strain. Couples uses Trust &
+// Connection and Partner Strength & Counterbalance as its low-frequency
+// pillars, and its extra day stays gentle (never a 2nd counterbalance/
+// strength session) since this program's own non-negotiable rule -- the
+// person being stretched sets the depth, always -- applies at every
+// frequency, not just the default one. All three styles' high-frequency
+// extra days pull only from exercise names already used elsewhere in that
+// same style's own pool, so no new library entries were needed.
 //
 // Accessory days already align with body goals -- for free. The user asked
 // for the new accessory/high-frequency days to reflect a person's body
@@ -13657,7 +13687,7 @@ function renderPosingClasses(){
 // from. Every program rolled out here is already on that list, so the new
 // accessory days inherit this automatically. Verified with real invocation
 // in test-configurable-training-days.js, not just reasoned about.
-const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility', 'running', 'swimming', 'climbing', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling', 'cycling', 'combat', 'watersports'];
+const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility', 'running', 'swimming', 'climbing', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling', 'cycling', 'combat', 'watersports', 'yoga'];
 // Style-variant containers (cycling, combat, and any future watersports/
 // yoga batches) are excluded from this snapshot: programs[key].days for
 // those is still `{}` at this point in script evaluation -- it's only
@@ -13667,7 +13697,7 @@ const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting
 // from the live *_STYLES data (for `.days`) plus the snapshot just below
 // (for `.overview`/`.short`) -- see applyDaysPerWeekProgramData()'s
 // per-container branch, and STYLE_CONTAINER_ACCESSORS just below that.
-const DAYS_PER_WEEK_STYLE_CONTAINERS = ['cycling', 'combat', 'watersports'];
+const DAYS_PER_WEEK_STYLE_CONTAINERS = ['cycling', 'combat', 'watersports', 'yoga'];
 const DAYS_PER_WEEK_ORIGINAL = Object.fromEntries(DAYS_PER_WEEK_PROGRAMS.filter(key => !DAYS_PER_WEEK_STYLE_CONTAINERS.includes(key)).map(key =>
   [key, { days: programs[key].days, overview: programs[key].overview, short: programs[key].short }]
 ));
@@ -13684,6 +13714,7 @@ const DAYS_PER_WEEK_CONTAINER_DEFAULT = {
   cycling: { overview: programs.cycling.overview, short: programs.cycling.short },
   combat: { overview: programs.combat.overview, short: programs.combat.short },
   watersports: { overview: programs.watersports.overview, short: programs.watersports.short },
+  yoga: { overview: programs.yoga.overview, short: programs.yoga.short },
 };
 // Maps each style-variant container key to its live *_STYLES data object
 // and the module-level `let` variable holding the currently active
@@ -13702,6 +13733,7 @@ function getStyleContainerAccessor(key){
   if(key === 'cycling') return { styles: CYCLING_STYLES, activeStyle: activeCyclingStyle };
   if(key === 'combat') return { styles: COMBAT_STYLES, activeStyle: activeMartialArt };
   if(key === 'watersports') return { styles: WATERSPORTS_STYLES, activeStyle: activeWatersportsStyle };
+  if(key === 'yoga') return { styles: YOGA_STYLES, activeStyle: activeYogaStyle };
   return null;
 }
 
@@ -22649,6 +22681,843 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
     },
   },
+  yoga: {
+    flow: {
+      1: {
+        short: 'Vinyasa + Power basics — the floor for this program',
+        overview: 'One session combining Vinyasa Flow and Power Yoga at reduced volume, since a full week only gets one shot. These are this program\'s own two highest-intensity flow styles — real measured data across vinyasa sequence types found sun-salutation and standing sequences run meaningfully harder than restorative sequences, so even at the lowest frequency, these two stay the priority.',
+        days: {
+          d1: { label:'Day 1', sub:'Vinyasa + Power Basics', plate:'p-red', plateNum:'25', duration:'~25 min',
+            exercises:[
+              {name:'Sun Salutation Flow', sets:'3 rounds', noWeight:true},
+              {name:'Warrior II', sets:'2×5 breaths/side', noWeight:true},
+              {name:'Boat Pose', sets:'2×20s', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Gentle Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A relaxed walk or complete rest. Let yesterday\'s effort actually absorb — yoga\'s benefits show up on the rest days too.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day.' },
+          d4: { label:'Day 4', sub:'Rest / Gentle Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A relaxed walk or complete rest. Let yesterday\'s effort actually absorb — yoga\'s benefits show up on the rest days too.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day.' },
+        }
+      },
+      2: {
+        short: 'Vinyasa Flow and Power Yoga, dedicated days',
+        overview: 'Vinyasa Flow and Power Yoga each get their own full session — this program\'s own two highest-intensity styles, at the lowest frequency that still trains both.',
+        days: {
+          d1: { label:'Day 1', sub:'Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Sun Salutation Flow', sets:'5 rounds', noWeight:true},
+              {name:'Downward Dog', sets:'5 breaths ×3', noWeight:true},
+              {name:'Warrior II', sets:'5 breaths/side ×2', noWeight:true},
+              {name:'Triangle Pose', sets:'5 breaths/side', noWeight:true},
+              {name:'Chaturanga', sets:'3×5', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Gentle Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A relaxed walk or complete rest. Let yesterday\'s effort actually absorb — yoga\'s benefits show up on the rest days too.' },
+          d3: { label:'Day 3', sub:'Power Yoga', plate:'p-blue', plateNum:'20', duration:'~40 min',
+            exercises:[
+              {name:'Chair Pose', sets:'3×8 breaths', noWeight:true},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+              {name:'Warrior II', sets:'3×8 breaths/side', noWeight:true},
+              {name:'Side Plank', sets:'2×20s/side', noWeight:true},
+              {name:'Boat Pose', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day.' },
+          d5: { label:'Day 5', sub:'Rest / Gentle Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A relaxed walk or complete rest. Let yesterday\'s effort actually absorb — yoga\'s benefits show up on the rest days too.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day.' },
+        }
+      },
+      3: {
+        short: 'Vinyasa Flow, Power Yoga, and Restorative Yoga',
+        overview: 'Three of this program\'s five sessions each get their own day — Vinyasa Flow and Power Yoga at the high-intensity end, and Restorative Yoga closing the week at the opposite end, the same spectrum this program is built around, even at this frequency.',
+        days: {
+          d1: { label:'Day 1', sub:'Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Sun Salutation Flow', sets:'5 rounds', noWeight:true},
+              {name:'Downward Dog', sets:'5 breaths ×3', noWeight:true},
+              {name:'Warrior II', sets:'5 breaths/side ×2', noWeight:true},
+              {name:'Triangle Pose', sets:'5 breaths/side', noWeight:true},
+              {name:'Chaturanga', sets:'3×5', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Power Yoga', plate:'p-blue', plateNum:'20', duration:'~40 min',
+            exercises:[
+              {name:'Chair Pose', sets:'3×8 breaths', noWeight:true},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+              {name:'Warrior II', sets:'3×8 breaths/side', noWeight:true},
+              {name:'Side Plank', sets:'2×20s/side', noWeight:true},
+              {name:'Boat Pose', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Gentle Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A relaxed walk or complete rest. Let yesterday\'s effort actually absorb — yoga\'s benefits show up on the rest days too.' },
+          d4: { label:'Day 4', sub:'Restorative Yoga', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+            exercises:[
+              {name:'Legs-Up-The-Wall', sets:'1×5-10 min', noWeight:true},
+              {name:'Corpse Pose (Savasana)', sets:'1×5-10 min', noWeight:true},
+              {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+              {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day.' },
+        }
+      },
+      4: {
+        short: 'Vinyasa Flow, Power Yoga, Hatha Flow, and Yin Yoga',
+        overview: 'Four of this program\'s five sessions each get their own day. Restorative Yoga is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        days: {
+          d1: { label:'Day 1', sub:'Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Sun Salutation Flow', sets:'5 rounds', noWeight:true},
+              {name:'Downward Dog', sets:'5 breaths ×3', noWeight:true},
+              {name:'Warrior II', sets:'5 breaths/side ×2', noWeight:true},
+              {name:'Triangle Pose', sets:'5 breaths/side', noWeight:true},
+              {name:'Chaturanga', sets:'3×5', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Power Yoga', plate:'p-blue', plateNum:'20', duration:'~40 min',
+            exercises:[
+              {name:'Chair Pose', sets:'3×8 breaths', noWeight:true},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+              {name:'Warrior II', sets:'3×8 breaths/side', noWeight:true},
+              {name:'Side Plank', sets:'2×20s/side', noWeight:true},
+              {name:'Boat Pose', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Gentle Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A relaxed walk or complete rest. Let yesterday\'s effort actually absorb — yoga\'s benefits show up on the rest days too.' },
+          d4: { label:'Day 4', sub:'Hatha Flow', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+            exercises:[
+              {name:'Tree Pose', sets:'3×20-30s/side', noWeight:true},
+              {name:'Triangle Pose', sets:'3×30s/side', noWeight:true},
+              {name:'Warrior II', sets:'3×30s/side', noWeight:true},
+              {name:'Bridge Hold', sets:'3×20-30s', noWeight:true},
+              {name:'Seated Forward Fold', sets:'3×45s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Yin Yoga', plate:'p-green', plateNum:'10', duration:'~45 min',
+            exercises:[
+              {name:'Pigeon Pose', sets:'2×90s/side', noWeight:true},
+              {name:'Butterfly Pose', sets:'2×90s', noWeight:true},
+              {name:'Sphinx Pose', sets:'2×90s', noWeight:true},
+              {name:'Seated Forward Fold', sets:'2×90s', noWeight:true},
+              {name:'Child\'s Pose Breathing', sets:'2×90s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day.' },
+        }
+      },
+      // 5 intentionally omitted — this is the style's own authored default
+      // (YOGA_STYLES.flow), used as-is.
+      6: {
+        short: 'The full 5-day program plus extra balance & breath integration',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra balance and breath work — not a 2nd Vinyasa or Power session. This program\'s own citation found even its hardest sequences measure as genuinely moderate-intensity, not high-intensity cardio; the extra day stays gentle rather than adding a harder session that would run against that finding.',
+        days: {
+          d1: { label:'Day 1', sub:'Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Sun Salutation Flow', sets:'5 rounds', noWeight:true},
+              {name:'Downward Dog', sets:'5 breaths ×3', noWeight:true},
+              {name:'Warrior II', sets:'5 breaths/side ×2', noWeight:true},
+              {name:'Triangle Pose', sets:'5 breaths/side', noWeight:true},
+              {name:'Chaturanga', sets:'3×5', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Power Yoga', plate:'p-blue', plateNum:'20', duration:'~40 min',
+            exercises:[
+              {name:'Chair Pose', sets:'3×8 breaths', noWeight:true},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+              {name:'Warrior II', sets:'3×8 breaths/side', noWeight:true},
+              {name:'Side Plank', sets:'2×20s/side', noWeight:true},
+              {name:'Boat Pose', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Gentle Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A relaxed walk or complete rest. Let yesterday\'s effort actually absorb — yoga\'s benefits show up on the rest days too.' },
+          d4: { label:'Day 4', sub:'Hatha Flow', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+            exercises:[
+              {name:'Tree Pose', sets:'3×20-30s/side', noWeight:true},
+              {name:'Triangle Pose', sets:'3×30s/side', noWeight:true},
+              {name:'Warrior II', sets:'3×30s/side', noWeight:true},
+              {name:'Bridge Hold', sets:'3×20-30s', noWeight:true},
+              {name:'Seated Forward Fold', sets:'3×45s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Yin Yoga', plate:'p-green', plateNum:'10', duration:'~45 min',
+            exercises:[
+              {name:'Pigeon Pose', sets:'2×90s/side', noWeight:true},
+              {name:'Butterfly Pose', sets:'2×90s', noWeight:true},
+              {name:'Sphinx Pose', sets:'2×90s', noWeight:true},
+              {name:'Seated Forward Fold', sets:'2×90s', noWeight:true},
+              {name:'Child\'s Pose Breathing', sets:'2×90s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Restorative Yoga', plate:'p-off', plateNum:'5', duration:'~30 min',
+            exercises:[
+              {name:'Legs-Up-The-Wall', sets:'1×5-10 min', noWeight:true},
+              {name:'Corpse Pose (Savasana)', sets:'1×5-10 min', noWeight:true},
+              {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+              {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Balance & Breath Integration', plate:'p-off', plateNum:'5', duration:'~20 min',
+            exercises:[
+              {name:'Tree Pose', sets:'2×20-30s/side', noWeight:true},
+              {name:'Bridge Hold', sets:'2×20-30s', noWeight:true},
+              {name:'Child\'s Pose Breathing', sets:'2×90s', noWeight:true},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The full-rest slot stays real: this program\'s own note already says no mat time is needed on a rest day, even at 7 days selected.',
+        days: {
+          d1: { label:'Day 1', sub:'Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Sun Salutation Flow', sets:'5 rounds', noWeight:true},
+              {name:'Downward Dog', sets:'5 breaths ×3', noWeight:true},
+              {name:'Warrior II', sets:'5 breaths/side ×2', noWeight:true},
+              {name:'Triangle Pose', sets:'5 breaths/side', noWeight:true},
+              {name:'Chaturanga', sets:'3×5', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Power Yoga', plate:'p-blue', plateNum:'20', duration:'~40 min',
+            exercises:[
+              {name:'Chair Pose', sets:'3×8 breaths', noWeight:true},
+              {name:'Plank', sets:'3×30-45s', noWeight:true},
+              {name:'Warrior II', sets:'3×8 breaths/side', noWeight:true},
+              {name:'Side Plank', sets:'2×20s/side', noWeight:true},
+              {name:'Boat Pose', sets:'3×20-30s', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Gentle Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A relaxed walk or complete rest. Let yesterday\'s effort actually absorb — yoga\'s benefits show up on the rest days too, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Hatha Flow', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+            exercises:[
+              {name:'Tree Pose', sets:'3×20-30s/side', noWeight:true},
+              {name:'Triangle Pose', sets:'3×30s/side', noWeight:true},
+              {name:'Warrior II', sets:'3×30s/side', noWeight:true},
+              {name:'Bridge Hold', sets:'3×20-30s', noWeight:true},
+              {name:'Seated Forward Fold', sets:'3×45s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Yin Yoga', plate:'p-green', plateNum:'10', duration:'~45 min',
+            exercises:[
+              {name:'Pigeon Pose', sets:'2×90s/side', noWeight:true},
+              {name:'Butterfly Pose', sets:'2×90s', noWeight:true},
+              {name:'Sphinx Pose', sets:'2×90s', noWeight:true},
+              {name:'Seated Forward Fold', sets:'2×90s', noWeight:true},
+              {name:'Child\'s Pose Breathing', sets:'2×90s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Restorative Yoga', plate:'p-off', plateNum:'5', duration:'~30 min',
+            exercises:[
+              {name:'Legs-Up-The-Wall', sets:'1×5-10 min', noWeight:true},
+              {name:'Corpse Pose (Savasana)', sets:'1×5-10 min', noWeight:true},
+              {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+              {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Balance & Breath Integration', plate:'p-off', plateNum:'5', duration:'~20 min',
+            exercises:[
+              {name:'Tree Pose', sets:'2×20-30s/side', noWeight:true},
+              {name:'Bridge Hold', sets:'2×20-30s', noWeight:true},
+              {name:'Child\'s Pose Breathing', sets:'2×90s', noWeight:true},
+            ]
+          },
+        }
+      },
+    },
+    hot: {
+      1: {
+        short: 'Hot Vinyasa + Hot Power basics — the floor for this program',
+        overview: 'One session combining Hot Vinyasa Flow and Hot Power Flow at reduced volume, since a full week only gets one shot. These are this program\'s own two highest-intensity heated sessions — even at the lowest frequency, the same hydration and pacing cautions apply.',
+        days: {
+          d1: { label:'Day 1', sub:'Hot Vinyasa + Power Basics', plate:'p-red', plateNum:'25', duration:'~30 min',
+            note:'Room typically 95-105°F. Drink ~16oz of water in the two hours before class and sip (don\'t chug) throughout — the excess sweating here is real dehydration risk, not just discomfort.',
+            exercises:[
+              {name:'Sun Salutation Flow', sets:'4 rounds', noWeight:true},
+              {name:'Warrior II', sets:'2×6 breaths/side', noWeight:true},
+              {name:'Boat Pose', sets:'2×30s', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day, and keep drinking water normally, not just on practice days.' },
+          d4: { label:'Day 4', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day, and keep drinking water normally, not just on practice days.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day, and keep drinking water normally, not just on practice days.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day, and keep drinking water normally, not just on practice days.' },
+        }
+      },
+      2: {
+        short: 'Hot Vinyasa Flow and Hot Power Flow, dedicated days',
+        overview: 'Hot Vinyasa Flow and Hot Power Flow each get their own full session — this program\'s own two highest-intensity heated styles, at the lowest frequency that still trains both.',
+        days: {
+          d1: { label:'Day 1', sub:'Hot Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~45 min',
+            note:'Room typically 95-105°F. Drink ~16oz of water in the two hours before class and sip (don\'t chug) throughout — the excess sweating here is real dehydration risk, not just discomfort.',
+            exercises:[
+              {name:'Sun Salutation Flow', sets:'6 rounds', noWeight:true},
+              {name:'Downward Dog', sets:'6 breaths ×3', noWeight:true},
+              {name:'Warrior II', sets:'6 breaths/side ×2', noWeight:true},
+              {name:'Triangle Pose', sets:'6 breaths/side', noWeight:true},
+              {name:'Chaturanga', sets:'3×6', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break.' },
+          d3: { label:'Day 3', sub:'Hot Power Flow', plate:'p-blue', plateNum:'20', duration:'~45 min',
+            note:'Heat makes muscles feel more flexible than the ligaments underneath actually are — this is when overstretching injuries happen, not from the heat itself. Stay inside your normal range, not a heat-inflated one.',
+            exercises:[
+              {name:'Chair Pose', sets:'3×10 breaths', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+              {name:'Warrior II', sets:'3×10 breaths/side', noWeight:true},
+              {name:'Side Plank', sets:'2×30s/side', noWeight:true},
+              {name:'Boat Pose', sets:'3×30s', noWeight:true},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day, and keep drinking water normally, not just on practice days.' },
+          d5: { label:'Day 5', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day, and keep drinking water normally, not just on practice days.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day, and keep drinking water normally, not just on practice days.' },
+        }
+      },
+      3: {
+        short: 'Hot Vinyasa Flow, Hot Power Flow, and Cool-Room Recovery',
+        overview: 'Three of this program\'s five sessions each get their own day — Hot Vinyasa and Hot Power at the heated end, and Cool-Room Recovery closing the week to balance out the heat exposure, even at this frequency.',
+        days: {
+          d1: { label:'Day 1', sub:'Hot Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~45 min',
+            note:'Room typically 95-105°F. Drink ~16oz of water in the two hours before class and sip (don\'t chug) throughout — the excess sweating here is real dehydration risk, not just discomfort.',
+            exercises:[
+              {name:'Sun Salutation Flow', sets:'6 rounds', noWeight:true},
+              {name:'Downward Dog', sets:'6 breaths ×3', noWeight:true},
+              {name:'Warrior II', sets:'6 breaths/side ×2', noWeight:true},
+              {name:'Triangle Pose', sets:'6 breaths/side', noWeight:true},
+              {name:'Chaturanga', sets:'3×6', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Hot Power Flow', plate:'p-blue', plateNum:'20', duration:'~45 min',
+            note:'Heat makes muscles feel more flexible than the ligaments underneath actually are — this is when overstretching injuries happen, not from the heat itself. Stay inside your normal range, not a heat-inflated one.',
+            exercises:[
+              {name:'Chair Pose', sets:'3×10 breaths', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+              {name:'Warrior II', sets:'3×10 breaths/side', noWeight:true},
+              {name:'Side Plank', sets:'2×30s/side', noWeight:true},
+              {name:'Boat Pose', sets:'3×30s', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break.' },
+          d4: { label:'Day 4', sub:'Cool-Room Recovery', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+            note:'A normal-temperature room on purpose, to balance out a week of heat exposure — not every recovery day needs to be a heated one.',
+            exercises:[
+              {name:'Legs-Up-The-Wall', sets:'1×5-10 min', noWeight:true},
+              {name:'Corpse Pose (Savasana)', sets:'1×5-10 min', noWeight:true},
+              {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+              {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day, and keep drinking water normally, not just on practice days.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day, and keep drinking water normally, not just on practice days.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day, and keep drinking water normally, not just on practice days.' },
+        }
+      },
+      4: {
+        short: 'Hot Vinyasa Flow, Hot Power Flow, Hot Hatha & Alignment, and Warm Yin',
+        overview: 'Four of this program\'s five sessions each get their own day. Cool-Room Recovery is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        days: {
+          d1: { label:'Day 1', sub:'Hot Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~45 min',
+            note:'Room typically 95-105°F. Drink ~16oz of water in the two hours before class and sip (don\'t chug) throughout — the excess sweating here is real dehydration risk, not just discomfort.',
+            exercises:[
+              {name:'Sun Salutation Flow', sets:'6 rounds', noWeight:true},
+              {name:'Downward Dog', sets:'6 breaths ×3', noWeight:true},
+              {name:'Warrior II', sets:'6 breaths/side ×2', noWeight:true},
+              {name:'Triangle Pose', sets:'6 breaths/side', noWeight:true},
+              {name:'Chaturanga', sets:'3×6', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Hot Power Flow', plate:'p-blue', plateNum:'20', duration:'~45 min',
+            note:'Heat makes muscles feel more flexible than the ligaments underneath actually are — this is when overstretching injuries happen, not from the heat itself. Stay inside your normal range, not a heat-inflated one.',
+            exercises:[
+              {name:'Chair Pose', sets:'3×10 breaths', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+              {name:'Warrior II', sets:'3×10 breaths/side', noWeight:true},
+              {name:'Side Plank', sets:'2×30s/side', noWeight:true},
+              {name:'Boat Pose', sets:'3×30s', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break.' },
+          d4: { label:'Day 4', sub:'Hot Hatha & Alignment', plate:'p-yellow', plateNum:'15', duration:'~45 min',
+            note:'Slower pace than the flow days, but the same room heat — alignment matters more here specifically because static holds in a heated room give overstretched ligaments more time to actually get compromised, not less.',
+            exercises:[
+              {name:'Tree Pose', sets:'3×30s/side', noWeight:true},
+              {name:'Triangle Pose', sets:'3×40s/side', noWeight:true},
+              {name:'Warrior II', sets:'3×40s/side', noWeight:true},
+              {name:'Bridge Hold', sets:'3×30s', noWeight:true},
+              {name:'Seated Forward Fold', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Warm Yin (Reduced Heat)', plate:'p-green', plateNum:'10', duration:'~45 min',
+            note:'Deliberately a warm room, not full class heat — yin\'s long, deep holds combined with full heat is a real compounding risk (long static stretch + heat-masked ligament limits), so this day intentionally backs the temperature off rather than stacking both at once.',
+            exercises:[
+              {name:'Pigeon Pose', sets:'2×90s/side', noWeight:true},
+              {name:'Butterfly Pose', sets:'2×90s', noWeight:true},
+              {name:'Sphinx Pose', sets:'2×90s', noWeight:true},
+              {name:'Seated Forward Fold', sets:'2×90s', noWeight:true},
+              {name:'Child\'s Pose Breathing', sets:'2×90s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day, and keep drinking water normally, not just on practice days.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No mat time needed — just move naturally through your day, and keep drinking water normally, not just on practice days.' },
+        }
+      },
+      // 5 intentionally omitted — this is the style's own authored default
+      // (YOGA_STYLES.hot), used as-is.
+      6: {
+        short: 'The full 5-day program plus extra cool-room balance & breath',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra cool-room balance and breath work — not a 3rd heated session. This program\'s own citation found hot yoga doesn\'t clearly out-perform non-heated yoga even with regular practice; the extra day stays unheated rather than adding more cardiovascular/heat strain that the research doesn\'t show a real benefit for.',
+        days: {
+          d1: { label:'Day 1', sub:'Hot Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~45 min',
+            note:'Room typically 95-105°F. Drink ~16oz of water in the two hours before class and sip (don\'t chug) throughout — the excess sweating here is real dehydration risk, not just discomfort.',
+            exercises:[
+              {name:'Sun Salutation Flow', sets:'6 rounds', noWeight:true},
+              {name:'Downward Dog', sets:'6 breaths ×3', noWeight:true},
+              {name:'Warrior II', sets:'6 breaths/side ×2', noWeight:true},
+              {name:'Triangle Pose', sets:'6 breaths/side', noWeight:true},
+              {name:'Chaturanga', sets:'3×6', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Hot Power Flow', plate:'p-blue', plateNum:'20', duration:'~45 min',
+            note:'Heat makes muscles feel more flexible than the ligaments underneath actually are — this is when overstretching injuries happen, not from the heat itself. Stay inside your normal range, not a heat-inflated one.',
+            exercises:[
+              {name:'Chair Pose', sets:'3×10 breaths', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+              {name:'Warrior II', sets:'3×10 breaths/side', noWeight:true},
+              {name:'Side Plank', sets:'2×30s/side', noWeight:true},
+              {name:'Boat Pose', sets:'3×30s', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break.' },
+          d4: { label:'Day 4', sub:'Hot Hatha & Alignment', plate:'p-yellow', plateNum:'15', duration:'~45 min',
+            note:'Slower pace than the flow days, but the same room heat — alignment matters more here specifically because static holds in a heated room give overstretched ligaments more time to actually get compromised, not less.',
+            exercises:[
+              {name:'Tree Pose', sets:'3×30s/side', noWeight:true},
+              {name:'Triangle Pose', sets:'3×40s/side', noWeight:true},
+              {name:'Warrior II', sets:'3×40s/side', noWeight:true},
+              {name:'Bridge Hold', sets:'3×30s', noWeight:true},
+              {name:'Seated Forward Fold', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Warm Yin (Reduced Heat)', plate:'p-green', plateNum:'10', duration:'~45 min',
+            note:'Deliberately a warm room, not full class heat — yin\'s long, deep holds combined with full heat is a real compounding risk (long static stretch + heat-masked ligament limits), so this day intentionally backs the temperature off rather than stacking both at once.',
+            exercises:[
+              {name:'Pigeon Pose', sets:'2×90s/side', noWeight:true},
+              {name:'Butterfly Pose', sets:'2×90s', noWeight:true},
+              {name:'Sphinx Pose', sets:'2×90s', noWeight:true},
+              {name:'Seated Forward Fold', sets:'2×90s', noWeight:true},
+              {name:'Child\'s Pose Breathing', sets:'2×90s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Cool-Room Recovery', plate:'p-off', plateNum:'5', duration:'~30 min',
+            note:'A normal-temperature room on purpose, to balance out a week of heat exposure — not every recovery day needs to be a heated one.',
+            exercises:[
+              {name:'Legs-Up-The-Wall', sets:'1×5-10 min', noWeight:true},
+              {name:'Corpse Pose (Savasana)', sets:'1×5-10 min', noWeight:true},
+              {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+              {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Cool-Room Balance & Breath', plate:'p-off', plateNum:'5', duration:'~20 min',
+            note:'Another normal-temperature room, deliberately -- the answer to more frequency here is more unheated practice, not more heat exposure.',
+            exercises:[
+              {name:'Tree Pose', sets:'2×20-30s/side', noWeight:true},
+              {name:'Bridge Hold', sets:'2×20-30s', noWeight:true},
+              {name:'Child\'s Pose Breathing', sets:'2×90s', noWeight:true},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Hydration Reset slot stays real: this program\'s own note already says two heated sessions back to back is real cumulative heat and fluid stress, even at 7 days selected.',
+        days: {
+          d1: { label:'Day 1', sub:'Hot Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~45 min',
+            note:'Room typically 95-105°F. Drink ~16oz of water in the two hours before class and sip (don\'t chug) throughout — the excess sweating here is real dehydration risk, not just discomfort.',
+            exercises:[
+              {name:'Sun Salutation Flow', sets:'6 rounds', noWeight:true},
+              {name:'Downward Dog', sets:'6 breaths ×3', noWeight:true},
+              {name:'Warrior II', sets:'6 breaths/side ×2', noWeight:true},
+              {name:'Triangle Pose', sets:'6 breaths/side', noWeight:true},
+              {name:'Chaturanga', sets:'3×6', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Hot Power Flow', plate:'p-blue', plateNum:'20', duration:'~45 min',
+            note:'Heat makes muscles feel more flexible than the ligaments underneath actually are — this is when overstretching injuries happen, not from the heat itself. Stay inside your normal range, not a heat-inflated one.',
+            exercises:[
+              {name:'Chair Pose', sets:'3×10 breaths', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+              {name:'Warrior II', sets:'3×10 breaths/side', noWeight:true},
+              {name:'Side Plank', sets:'2×30s/side', noWeight:true},
+              {name:'Boat Pose', sets:'3×30s', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Hot Hatha & Alignment', plate:'p-yellow', plateNum:'15', duration:'~45 min',
+            note:'Slower pace than the flow days, but the same room heat — alignment matters more here specifically because static holds in a heated room give overstretched ligaments more time to actually get compromised, not less.',
+            exercises:[
+              {name:'Tree Pose', sets:'3×30s/side', noWeight:true},
+              {name:'Triangle Pose', sets:'3×40s/side', noWeight:true},
+              {name:'Warrior II', sets:'3×40s/side', noWeight:true},
+              {name:'Bridge Hold', sets:'3×30s', noWeight:true},
+              {name:'Seated Forward Fold', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Warm Yin (Reduced Heat)', plate:'p-green', plateNum:'10', duration:'~45 min',
+            note:'Deliberately a warm room, not full class heat — yin\'s long, deep holds combined with full heat is a real compounding risk (long static stretch + heat-masked ligament limits), so this day intentionally backs the temperature off rather than stacking both at once.',
+            exercises:[
+              {name:'Pigeon Pose', sets:'2×90s/side', noWeight:true},
+              {name:'Butterfly Pose', sets:'2×90s', noWeight:true},
+              {name:'Sphinx Pose', sets:'2×90s', noWeight:true},
+              {name:'Seated Forward Fold', sets:'2×90s', noWeight:true},
+              {name:'Child\'s Pose Breathing', sets:'2×90s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Cool-Room Recovery', plate:'p-off', plateNum:'5', duration:'~30 min',
+            note:'A normal-temperature room on purpose, to balance out a week of heat exposure — not every recovery day needs to be a heated one.',
+            exercises:[
+              {name:'Legs-Up-The-Wall', sets:'1×5-10 min', noWeight:true},
+              {name:'Corpse Pose (Savasana)', sets:'1×5-10 min', noWeight:true},
+              {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+              {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Cool-Room Balance & Breath', plate:'p-off', plateNum:'5', duration:'~20 min',
+            note:'Another normal-temperature room, deliberately -- the answer to more frequency here is more unheated practice, not more heat exposure.',
+            exercises:[
+              {name:'Tree Pose', sets:'2×20-30s/side', noWeight:true},
+              {name:'Bridge Hold', sets:'2×20-30s', noWeight:true},
+              {name:'Child\'s Pose Breathing', sets:'2×90s', noWeight:true},
+            ]
+          },
+        }
+      },
+    },
+    couples: {
+      1: {
+        short: 'Trust & Connection + Partner Strength basics — the floor for this program',
+        overview: 'One session combining Trust & Connection and Partner Strength & Counterbalance at reduced volume, since a full week only gets one shot. These are this program\'s own two opening pillars — connection first, then shared strength — and this program\'s own non-negotiable rule (the person being stretched sets the depth, always) applies just as much at the lowest frequency as at any other.',
+        days: {
+          d1: { label:'Day 1', sub:'Trust & Connection + Partner Strength Basics', plate:'p-red', plateNum:'25', duration:'~25 min',
+            note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality.',
+            exercises:[
+              {name:'Seated Back-to-Back Breathing', sets:'2×2 min', noWeight:true},
+              {name:'Double Tree Pose (Hands Joined)', sets:'2×20s/side', noWeight:true},
+              {name:'Partner Chair Pose (Back-to-Back)', sets:'2×20s', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Connection Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A slow walk together, or full rest for both of you. The point of a partner practice extends past the mat — a shared rest day counts too.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day for both of you. No mat time needed.' },
+          d4: { label:'Day 4', sub:'Rest / Connection Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A slow walk together, or full rest for both of you. The point of a partner practice extends past the mat — a shared rest day counts too.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day for both of you. No mat time needed.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day for both of you. No mat time needed.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day for both of you. No mat time needed.' },
+        }
+      },
+      2: {
+        short: 'Trust & Connection Warm-Up and Partner Strength & Counterbalance, dedicated days',
+        overview: 'Trust & Connection Warm-Up and Partner Strength & Counterbalance each get their own full session — this program\'s own two opening pillars, at the lowest frequency that still trains both.',
+        days: {
+          d1: { label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
+            note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality. Move at whichever partner\'s pace is slower; this isn\'t a session to rush.',
+            exercises:[
+              {name:'Seated Back-to-Back Breathing', sets:'2×2 min', noWeight:true},
+              {name:'Partner Seated Forward Fold (Row)', sets:'3×30s', noWeight:true},
+              {name:'Double Tree Pose (Hands Joined)', sets:'2×30s/side', noWeight:true},
+              {name:'Partner Twist (Seated, Facing)', sets:'2×30s/side', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Connection Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A slow walk together, or full rest for both of you. The point of a partner practice extends past the mat — a shared rest day counts too.' },
+          d3: { label:'Day 3', sub:'Partner Strength & Counterbalance', plate:'p-blue', plateNum:'20', duration:'~40 min',
+            note:'Counterbalance poses work because you\'re both leaning on each other\'s weight, not muscling through alone — communicate before each pose about what feels stable versus what doesn\'t.',
+            exercises:[
+              {name:'Partner Boat Pose (Feet-to-Feet)', sets:'3×20-30s', noWeight:true},
+              {name:'Partner Plank (Facing, Hand-to-Wrist)', sets:'3×20-30s', noWeight:true},
+              {name:'Partner Chair Pose (Back-to-Back)', sets:'3×20-30s', noWeight:true},
+              {name:'Standing Counterbalance Lean', sets:'2×20s', noWeight:true},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day for both of you. No mat time needed.' },
+          d5: { label:'Day 5', sub:'Rest / Connection Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A slow walk together, or full rest for both of you. The point of a partner practice extends past the mat — a shared rest day counts too.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day for both of you. No mat time needed.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day for both of you. No mat time needed.' },
+        }
+      },
+      3: {
+        short: 'Trust & Connection Warm-Up, Partner Strength & Counterbalance, and Partner Restorative & Breath',
+        overview: 'Three of this program\'s five sessions each get their own day — connection and shared strength opening the week, and Partner Restorative & Breath closing it, the same arc this program is built around, even at this frequency.',
+        days: {
+          d1: { label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
+            note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality. Move at whichever partner\'s pace is slower; this isn\'t a session to rush.',
+            exercises:[
+              {name:'Seated Back-to-Back Breathing', sets:'2×2 min', noWeight:true},
+              {name:'Partner Seated Forward Fold (Row)', sets:'3×30s', noWeight:true},
+              {name:'Double Tree Pose (Hands Joined)', sets:'2×30s/side', noWeight:true},
+              {name:'Partner Twist (Seated, Facing)', sets:'2×30s/side', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Partner Strength & Counterbalance', plate:'p-blue', plateNum:'20', duration:'~40 min',
+            note:'Counterbalance poses work because you\'re both leaning on each other\'s weight, not muscling through alone — communicate before each pose about what feels stable versus what doesn\'t.',
+            exercises:[
+              {name:'Partner Boat Pose (Feet-to-Feet)', sets:'3×20-30s', noWeight:true},
+              {name:'Partner Plank (Facing, Hand-to-Wrist)', sets:'3×20-30s', noWeight:true},
+              {name:'Partner Chair Pose (Back-to-Back)', sets:'3×20-30s', noWeight:true},
+              {name:'Standing Counterbalance Lean', sets:'2×20s', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Connection Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A slow walk together, or full rest for both of you. The point of a partner practice extends past the mat — a shared rest day counts too.' },
+          d4: { label:'Day 4', sub:'Partner Restorative & Breath', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+            note:'This day is entirely about slowing down together — there\'s no pace to keep beyond matching each other\'s breath.',
+            exercises:[
+              {name:'Synchronized Breathing (Seated)', sets:'3×2 min', noWeight:true},
+              {name:'Partner Supported Child\'s Pose', sets:'2×90s', noWeight:true},
+              {name:'Legs-Up-The-Wall (Side-by-Side)', sets:'1×5-10 min', noWeight:true},
+              {name:'Partner Savasana (Hand Connection)', sets:'1×5-10 min', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day for both of you. No mat time needed.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day for both of you. No mat time needed.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day for both of you. No mat time needed.' },
+        }
+      },
+      4: {
+        short: 'Trust & Connection, Partner Strength & Counterbalance, Assisted Flexibility, and Partner Balance & Flow',
+        overview: 'Four of this program\'s five sessions each get their own day. Partner Restorative & Breath is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        days: {
+          d1: { label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
+            note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality. Move at whichever partner\'s pace is slower; this isn\'t a session to rush.',
+            exercises:[
+              {name:'Seated Back-to-Back Breathing', sets:'2×2 min', noWeight:true},
+              {name:'Partner Seated Forward Fold (Row)', sets:'3×30s', noWeight:true},
+              {name:'Double Tree Pose (Hands Joined)', sets:'2×30s/side', noWeight:true},
+              {name:'Partner Twist (Seated, Facing)', sets:'2×30s/side', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Partner Strength & Counterbalance', plate:'p-blue', plateNum:'20', duration:'~40 min',
+            note:'Counterbalance poses work because you\'re both leaning on each other\'s weight, not muscling through alone — communicate before each pose about what feels stable versus what doesn\'t.',
+            exercises:[
+              {name:'Partner Boat Pose (Feet-to-Feet)', sets:'3×20-30s', noWeight:true},
+              {name:'Partner Plank (Facing, Hand-to-Wrist)', sets:'3×20-30s', noWeight:true},
+              {name:'Partner Chair Pose (Back-to-Back)', sets:'3×20-30s', noWeight:true},
+              {name:'Standing Counterbalance Lean', sets:'2×20s', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Connection Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A slow walk together, or full rest for both of you. The point of a partner practice extends past the mat — a shared rest day counts too.' },
+          d4: { label:'Day 4', sub:'Assisted Flexibility', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+            note:'The assisting partner should only ever apply gentle, steady pressure and stop immediately if asked — this is not a day to push a stretch further than the receiving partner is actually comfortable with.',
+            exercises:[
+              {name:'Assisted Seated Forward Fold', sets:'2×45s/partner', noWeight:true},
+              {name:'Assisted Pigeon Pose (Gentle Press)', sets:'2×45s/side/partner', noWeight:true},
+              {name:'Partner Spinal Twist (Assisted)', sets:'2×30s/side/partner', noWeight:true},
+              {name:'Assisted Shoulder Opener', sets:'2×30s/partner', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Partner Balance & Flow', plate:'p-green', plateNum:'10', duration:'~40 min',
+            note:'Balance poses here depend on both people committing to the same rhythm — count breaths out loud together if it helps stay synced.',
+            exercises:[
+              {name:'Double Downward Dog (Stacked)', sets:'3×20-30s', noWeight:true},
+              {name:'Partner Warrior II Flow (Mirrored)', sets:'3×6 breaths/side', noWeight:true},
+              {name:'Partner Tree Pose (Hand-Assisted)', sets:'2×30s/side', noWeight:true},
+              {name:'Synchronized Sun Salutation', sets:'4 rounds', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day for both of you. No mat time needed.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day for both of you. No mat time needed.' },
+        }
+      },
+      // 5 intentionally omitted — this is the style's own authored default
+      // (YOGA_STYLES.couples), used as-is.
+      6: {
+        short: 'The full 5-day program plus extra partner connection & mobility',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra partner connection and mobility work — not a 2nd counterbalance/strength session. This program\'s own non-negotiable rule (the person being stretched sets the depth, always) matters just as much on an extra day as on any other, so the extra day stays gentle rather than adding more shared load.',
+        days: {
+          d1: { label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
+            note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality. Move at whichever partner\'s pace is slower; this isn\'t a session to rush.',
+            exercises:[
+              {name:'Seated Back-to-Back Breathing', sets:'2×2 min', noWeight:true},
+              {name:'Partner Seated Forward Fold (Row)', sets:'3×30s', noWeight:true},
+              {name:'Double Tree Pose (Hands Joined)', sets:'2×30s/side', noWeight:true},
+              {name:'Partner Twist (Seated, Facing)', sets:'2×30s/side', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Partner Strength & Counterbalance', plate:'p-blue', plateNum:'20', duration:'~40 min',
+            note:'Counterbalance poses work because you\'re both leaning on each other\'s weight, not muscling through alone — communicate before each pose about what feels stable versus what doesn\'t.',
+            exercises:[
+              {name:'Partner Boat Pose (Feet-to-Feet)', sets:'3×20-30s', noWeight:true},
+              {name:'Partner Plank (Facing, Hand-to-Wrist)', sets:'3×20-30s', noWeight:true},
+              {name:'Partner Chair Pose (Back-to-Back)', sets:'3×20-30s', noWeight:true},
+              {name:'Standing Counterbalance Lean', sets:'2×20s', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Connection Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A slow walk together, or full rest for both of you. The point of a partner practice extends past the mat — a shared rest day counts too.' },
+          d4: { label:'Day 4', sub:'Assisted Flexibility', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+            note:'The assisting partner should only ever apply gentle, steady pressure and stop immediately if asked — this is not a day to push a stretch further than the receiving partner is actually comfortable with.',
+            exercises:[
+              {name:'Assisted Seated Forward Fold', sets:'2×45s/partner', noWeight:true},
+              {name:'Assisted Pigeon Pose (Gentle Press)', sets:'2×45s/side/partner', noWeight:true},
+              {name:'Partner Spinal Twist (Assisted)', sets:'2×30s/side/partner', noWeight:true},
+              {name:'Assisted Shoulder Opener', sets:'2×30s/partner', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Partner Balance & Flow', plate:'p-green', plateNum:'10', duration:'~40 min',
+            note:'Balance poses here depend on both people committing to the same rhythm — count breaths out loud together if it helps stay synced.',
+            exercises:[
+              {name:'Double Downward Dog (Stacked)', sets:'3×20-30s', noWeight:true},
+              {name:'Partner Warrior II Flow (Mirrored)', sets:'3×6 breaths/side', noWeight:true},
+              {name:'Partner Tree Pose (Hand-Assisted)', sets:'2×30s/side', noWeight:true},
+              {name:'Synchronized Sun Salutation', sets:'4 rounds', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Partner Restorative & Breath', plate:'p-off', plateNum:'5', duration:'~30 min',
+            note:'This day is entirely about slowing down together — there\'s no pace to keep beyond matching each other\'s breath.',
+            exercises:[
+              {name:'Synchronized Breathing (Seated)', sets:'3×2 min', noWeight:true},
+              {name:'Partner Supported Child\'s Pose', sets:'2×90s', noWeight:true},
+              {name:'Legs-Up-The-Wall (Side-by-Side)', sets:'1×5-10 min', noWeight:true},
+              {name:'Partner Savasana (Hand Connection)', sets:'1×5-10 min', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Partner Connection & Mobility', plate:'p-off', plateNum:'5', duration:'~25 min',
+            note:'Same non-negotiable rule as every other day here: the person being stretched sets the depth, always.',
+            exercises:[
+              {name:'Partner Tree Pose (Hand-Assisted)', sets:'2×20-30s/side', noWeight:true},
+              {name:'Assisted Shoulder Opener', sets:'2×30s/partner', noWeight:true},
+              {name:'Partner Spinal Twist (Assisted)', sets:'2×30s/side/partner', noWeight:true},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Connection Walk slot stays real: this program\'s own note already says a shared rest day counts as part of the practice too, even at 7 days selected.',
+        days: {
+          d1: { label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
+            note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality. Move at whichever partner\'s pace is slower; this isn\'t a session to rush.',
+            exercises:[
+              {name:'Seated Back-to-Back Breathing', sets:'2×2 min', noWeight:true},
+              {name:'Partner Seated Forward Fold (Row)', sets:'3×30s', noWeight:true},
+              {name:'Double Tree Pose (Hands Joined)', sets:'2×30s/side', noWeight:true},
+              {name:'Partner Twist (Seated, Facing)', sets:'2×30s/side', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Partner Strength & Counterbalance', plate:'p-blue', plateNum:'20', duration:'~40 min',
+            note:'Counterbalance poses work because you\'re both leaning on each other\'s weight, not muscling through alone — communicate before each pose about what feels stable versus what doesn\'t.',
+            exercises:[
+              {name:'Partner Boat Pose (Feet-to-Feet)', sets:'3×20-30s', noWeight:true},
+              {name:'Partner Plank (Facing, Hand-to-Wrist)', sets:'3×20-30s', noWeight:true},
+              {name:'Partner Chair Pose (Back-to-Back)', sets:'3×20-30s', noWeight:true},
+              {name:'Standing Counterbalance Lean', sets:'2×20s', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Connection Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+            note:'A slow walk together, or full rest for both of you. The point of a partner practice extends past the mat — a shared rest day counts too, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Assisted Flexibility', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+            note:'The assisting partner should only ever apply gentle, steady pressure and stop immediately if asked — this is not a day to push a stretch further than the receiving partner is actually comfortable with.',
+            exercises:[
+              {name:'Assisted Seated Forward Fold', sets:'2×45s/partner', noWeight:true},
+              {name:'Assisted Pigeon Pose (Gentle Press)', sets:'2×45s/side/partner', noWeight:true},
+              {name:'Partner Spinal Twist (Assisted)', sets:'2×30s/side/partner', noWeight:true},
+              {name:'Assisted Shoulder Opener', sets:'2×30s/partner', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Partner Balance & Flow', plate:'p-green', plateNum:'10', duration:'~40 min',
+            note:'Balance poses here depend on both people committing to the same rhythm — count breaths out loud together if it helps stay synced.',
+            exercises:[
+              {name:'Double Downward Dog (Stacked)', sets:'3×20-30s', noWeight:true},
+              {name:'Partner Warrior II Flow (Mirrored)', sets:'3×6 breaths/side', noWeight:true},
+              {name:'Partner Tree Pose (Hand-Assisted)', sets:'2×30s/side', noWeight:true},
+              {name:'Synchronized Sun Salutation', sets:'4 rounds', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Partner Restorative & Breath', plate:'p-off', plateNum:'5', duration:'~30 min',
+            note:'This day is entirely about slowing down together — there\'s no pace to keep beyond matching each other\'s breath.',
+            exercises:[
+              {name:'Synchronized Breathing (Seated)', sets:'3×2 min', noWeight:true},
+              {name:'Partner Supported Child\'s Pose', sets:'2×90s', noWeight:true},
+              {name:'Legs-Up-The-Wall (Side-by-Side)', sets:'1×5-10 min', noWeight:true},
+              {name:'Partner Savasana (Hand Connection)', sets:'1×5-10 min', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Partner Connection & Mobility', plate:'p-off', plateNum:'5', duration:'~25 min',
+            note:'Same non-negotiable rule as every other day here: the person being stretched sets the depth, always.',
+            exercises:[
+              {name:'Partner Tree Pose (Hand-Assisted)', sets:'2×20-30s/side', noWeight:true},
+              {name:'Assisted Shoulder Opener', sets:'2×30s/partner', noWeight:true},
+              {name:'Partner Spinal Twist (Assisted)', sets:'2×30s/side/partner', noWeight:true},
+            ]
+          },
+        }
+      },
+    },
+  },
 };
 
 let daysPerWeekPref = null; // null = untouched -> each program's own authored default, unchanged
@@ -22679,7 +23548,7 @@ async function saveDaysPerWeekPref(n){
 // renderCyclingSelector() below) -- programs outside DAYS_PER_WEEK_PROGRAMS
 // are never touched.
 //
-// Style-variant containers (cycling, combat, watersports) need a different
+// Style-variant containers (cycling, combat, watersports, yoga) need a different
 // lookup: PROGRAM_DAY_COUNT_VARIANTS.cycling is keyed by sub-style FIRST,
 // then day count, because programs.cycling.days is itself swapped per
 // sub-style at runtime -- a single flat set of variants couldn't represent
