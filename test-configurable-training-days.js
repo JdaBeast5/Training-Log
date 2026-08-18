@@ -37,7 +37,7 @@ const { test, run } = makeRunner('test-configurable-training-days.js');
 
 // [Data completeness across all 7 counts, all rolled-out programs] ---------------
 const ALL_COUNTS = [1,2,3,4,5,6,7];
-const PROGRAMS_TO_CHECK = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility'];
+const PROGRAMS_TO_CHECK = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility', 'running', 'swimming', 'climbing'];
 
 for(const programKey of PROGRAMS_TO_CHECK){
   for(const n of ALL_COUNTS){
@@ -98,7 +98,7 @@ test('bodybuilding day-count 5 (falling back to the original) is byte-identical 
 //    slot is reframed as a light mobility/cardio (or, for oly specifically,
 //    still-bar-free-on-purpose) day instead. So n=7's real training-day
 //    count matches n=6's, not 7.
-const OMITTED_DEFAULT_COUNT = { strength: 4, bodybuilding: 5, oly: 5, powerlifting: 5, powerbuilding: 5, athletic: 5, bodyweight: 5, calisthenics: 5, core: 5, jumprope: 5, mobility: 5 };
+const OMITTED_DEFAULT_COUNT = { strength: 4, bodybuilding: 5, oly: 5, powerlifting: 5, powerbuilding: 5, athletic: 5, bodyweight: 5, calisthenics: 5, core: 5, jumprope: 5, mobility: 5, running: 5, swimming: 5, climbing: 5 };
 for(const programKey of PROGRAMS_TO_CHECK){
   test(`${programKey}: every hand-authored day-count's TRAINING day count actually matches the count selected (n=3 really has 3 non-rest days, not some other number)`, (assert)=>{
     const [results] = runSandbox(pureChunks, `
@@ -174,6 +174,25 @@ test('sabotage: calisthenics makes the SAME "recovery argument wins" choice as o
   const [note] = runSandbox(pureChunks, `__capture.push(PROGRAM_DAY_COUNT_VARIANTS.calisthenics[7].days.d3.note);`);
   assert.match(note, /joints/i, 'expected calisthenics\' own joint-safety reasoning');
   assert.doesNotMatch(note, /bar-free/i, 'must not be oly\'s wording copy-pasted in — calisthenics has no barbell to begin with');
+});
+
+test('sabotage: running\'s 6-day and 7-day plans never add a 3rd hard-quality session — Tempo Run and Interval Training each appear exactly once across the training days, proving the "cap hard sessions at 2" claim landed in the data, not just the prose', (assert)=>{
+  const [subs6, subs7] = runSandbox(pureChunks, `
+    const subsOf = (days) => Object.values(days).filter(d=>!d.rest).map(d=>d.sub);
+    __capture.push(subsOf(PROGRAM_DAY_COUNT_VARIANTS.running[6].days));
+    __capture.push(subsOf(PROGRAM_DAY_COUNT_VARIANTS.running[7].days));
+  `);
+  [subs6, subs7].forEach(subs => {
+    assert.strictEqual(subs.filter(s => s === 'Tempo Run').length, 1);
+    assert.strictEqual(subs.filter(s => s === 'Interval Training').length, 1);
+  });
+});
+
+test('sabotage: climbing\'s 6-day and 7-day new accessory days add ZERO extra Hangboard Max Hang (the hardest finger-loading exercise) — proving the "no added finger loading at high frequency" claim landed in the data', (assert)=>{
+  const [day7Names] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.climbing[6].days.d7.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(day7Names.includes('Hangboard Max Hang'), false);
 });
 
 test('sabotage: mobility does NOT reuse the "recovery argument wins" framing from oly/calisthenics at 7 days — its own citation (frequency doesn\'t drive ROM gains) makes that argument inapplicable, and the note text proves this wasn\'t copy-pasted', (assert)=>{
@@ -315,7 +334,7 @@ test('daysPerWeekWarningState: null pref never warns', (assert)=>{
 });
 
 test('daysPerWeekWarningState: a program outside the rollout never warns even at 7 days', (assert)=>{
-  const [state] = runSandbox(pureChunks, `__capture.push(daysPerWeekWarningState('running', 7));`);
+  const [state] = runSandbox(pureChunks, `__capture.push(daysPerWeekWarningState('senior', 7));`);
   assert.strictEqual(state.advisory, false);
 });
 
@@ -354,12 +373,12 @@ test('applyDaysPerWeekProgramData with a real pref set regenerates days AND over
 
 test('sabotage: applyDaysPerWeekProgramData NEVER touches a program outside DAYS_PER_WEEK_PROGRAMS, even with a pref set', (assert)=>{
   const [sameRef, sameOverview] = runSandbox(applyChunks, `
-    const runningDaysBefore = programs.running.days;
-    const runningOverviewBefore = programs.running.overview;
+    const seniorDaysBefore = programs.senior.days;
+    const seniorOverviewBefore = programs.senior.overview;
     daysPerWeekPref = 7;
     applyDaysPerWeekProgramData();
-    __capture.push(programs.running.days === runningDaysBefore);
-    __capture.push(programs.running.overview === runningOverviewBefore);
+    __capture.push(programs.senior.days === seniorDaysBefore);
+    __capture.push(programs.senior.overview === seniorOverviewBefore);
   `);
   assert.strictEqual(sameRef, true);
   assert.strictEqual(sameOverview, true);
