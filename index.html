@@ -1415,8 +1415,8 @@
     padding:2px 7px; border-radius:var(--radius-md); flex:0 0 auto;
   }
   .care-type-tag.stretch{background:rgba(79,195,247,0.15); color:#4FC3F7;}
-  .care-type-tag.strengthen{background:rgba(224,163,80,0.15); color:var(--plate-yellow);}
-  .care-type-tag.mobility{background:rgba(126,211,140,0.15); color:var(--plate-green);}
+  .care-type-tag.strengthen{background:rgba(var(--plate-yellow-rgb),0.15); color:var(--plate-yellow);}
+  .care-type-tag.mobility{background:rgba(var(--plate-green-rgb),0.15); color:var(--plate-green);}
 
   .macro-row{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
   .macro-row:last-child{margin-bottom:0;}
@@ -1812,7 +1812,7 @@
     border-radius:var(--radius-pill); border:1px solid rgba(var(--surface-white-rgb),0.28);
     background:linear-gradient(160deg, #FFC978, var(--plate-yellow) 60%); color:#1a1a1a;
     font-family:'Inter',sans-serif; font-weight:700; font-size:13.5px; cursor:pointer;
-    box-shadow:var(--fab-gloss-inset), 0 14px 34px -8px rgba(255,184,92,0.6), 0 0 50px -14px rgba(255,184,92,0.5);
+    box-shadow:var(--fab-gloss-inset), 0 14px 34px -8px rgba(var(--plate-yellow-rgb),0.6), 0 0 50px -14px rgba(var(--plate-yellow-rgb),0.5);
     transition:transform 0.18s var(--ease-smooth), box-shadow 0.18s var(--ease-smooth), opacity 0.22s var(--ease-smooth);
   }
   .today-fab::before{
@@ -1821,7 +1821,7 @@
     pointer-events:none;
   }
   .today-fab-label{position:relative; z-index:1;}
-  .today-fab:active{transform:scale(0.92); box-shadow:var(--fab-gloss-inset), 0 8px 20px -8px rgba(255,184,92,0.5);}
+  .today-fab:active{transform:scale(0.92); box-shadow:var(--fab-gloss-inset), 0 8px 20px -8px rgba(var(--plate-yellow-rgb),0.5);}
 
   .coach-fab-modal{
     position:fixed; inset:0; z-index:80;
@@ -6320,7 +6320,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.216';
+const APP_VERSION = '3.217';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6794,6 +6794,9 @@ const WHATS_NEW = {
   ]},
   '3.216': { headline: 'Fixed a mismatched teal on the RPE progress badge', points: [
     'The RPE badge\'s background/border now use the same teal as its own bold text and the field it explains — they were subtly different teals before, which broke the "read as one statement" pairing this badge was built for.',
+  ]},
+  '3.217': { headline: 'Matched two Care tag colors to their own text', points: [
+    'The Strengthen and Mobility tag chips in Care now tint their background to match their own text color, the same way the Stretch chip already did.',
   ]},
 };
 
