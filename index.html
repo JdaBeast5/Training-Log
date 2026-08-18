@@ -967,9 +967,9 @@
     box-shadow:var(--rim), 0 4px 12px -7px rgba(230,126,34,0.35);
   }
   .progress-badge-deload{
-    margin:4px 0 2px 76px; padding:7px 10px; background:rgba(224,80,80,0.12); border:1px solid rgba(224,80,80,0.38);
+    margin:4px 0 2px 76px; padding:7px 10px; background:rgba(var(--plate-red-rgb),0.12); border:1px solid rgba(var(--plate-red-rgb),0.38);
     border-radius:var(--radius-sm); font-size:12px; color:var(--plate-red); line-height:1.4;
-    box-shadow:var(--rim), 0 4px 12px -7px rgba(224,80,80,0.35);
+    box-shadow:var(--rim), 0 4px 12px -7px rgba(var(--plate-red-rgb),0.35);
   }
 
   .ex-rpe{width:var(--set-meta-col);}
@@ -6320,7 +6320,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.214';
+const APP_VERSION = '3.215';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6788,6 +6788,9 @@ const WHATS_NEW = {
   '3.214': { headline: 'Last of this round\'s behind-the-scenes styling cleanup', points: [
     'A handful of glass-panel backgrounds (rest timer, dock, offer banners) had their color hand-typed 9 separate times — now a shared style, matching how the app already handles its other accent colors.',
     'Purely visual — no behavior changed, nothing should look any different.',
+  ]},
+  '3.215': { headline: 'Fixed a mismatched red on the Deload progress badge', points: [
+    'The Deload badge\'s background/border/glow now use the same red as its text — they were subtly different reds before, which was never intentional.',
   ]},
 };
 
