@@ -4989,7 +4989,7 @@
         <div id="prefDaysPerWeek">
           <label class="care-label" for="daysPerWeekInput">Training days per week</label>
           <input type="number" id="daysPerWeekInput" class="care-input" min="1" max="7" inputmode="numeric" placeholder="Program default">
-          <div class="history-hint field-note">Reshapes your program's week to fit however many days you actually want to train (1-7) — the rest fill in as recovery days. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size and Bodybuilding; other programs aren't affected yet.</div>
+          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size and Bodybuilding; other programs aren't affected yet.</div>
           <div id="daysPerWeekWarning" style="display:none"></div>
         </div>
 
@@ -6274,7 +6274,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.197';
+const APP_VERSION = '3.198';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6672,6 +6672,11 @@ const WHATS_NEW = {
     'A new "Training days per week" field in your Profile (1-7) reshapes the Strength & Size and Bodybuilding programs to fit however often you actually want to train — fewer days trims down to your top training sessions, more days repeats the split with recovery days filled in around it. Leave it blank to keep a program\'s own default split.',
     'Picking more days than a program has distinct sessions for (so a session repeats within the same week) shows a heads-up about overtraining risk; picking 6-7 days shows a reminder that most programs benefit from at least one full rest day. Both are just a note — nothing is blocked.',
     'Other programs aren\'t affected by this yet — rolling out to the rest is planned as its own follow-up, not bundled into this one.',
+  ]},
+  '3.198': { headline: 'Each training-days-per-week option is now a real, purpose-built plan', points: [
+    'Last version\'s "training days per week" picker reused a program\'s existing sessions to fill whatever count you chose. Now every count (1-7) for Strength & Size and Bodybuilding has its own hand-built structure — fewer days train full-body so every muscle group still gets hit twice a week instead of once, higher day counts use dedicated accessory and conditioning days rather than repeating your hardest session a 3rd time in one week.',
+    'Picking 6 or 7 days never adds a repeat of an already-maximal session — the extra days are real, different training (weak points, conditioning, Push/Pull/Legs variety) and even a 7-day week still keeps one deliberately easy mobility/recovery day.',
+    'The program description under the selector now updates to match whichever day count you\'ve picked, instead of always describing the default.',
   ]},
 };
 
@@ -13414,79 +13419,613 @@ function renderPosingClasses(){
 // -- every other program's `days` is completely untouched, and the pref has
 // zero effect on it, same as any other pref nobody has set yet.
 //
-// Never invents exercise content. `programs.strength.days`/
-// `programs.bodybuilding.days` are partitioned by the `rest` flag they
-// already carry into a training-day list and a rest-day list, and
-// buildDaysForWeek() picks/cycles through those SAME authored days to fill
-// however many slots the user asked for. Mirrors the COMBAT_STYLES /
-// programs.combat.days precedent above (loadMartialArtStyle etc.):
-// `programs[key].days` gets reassigned to a freshly-built object; the
-// program's own original day objects are never mutated in place.
+// v2 (this version): earlier this pilot cycled through a program's existing
+// days to fill whatever count was requested. The user explicitly asked for
+// more than that -- each day count gets its OWN hand-authored, frequency-
+// appropriate structure (own overview text too, so the description never
+// goes stale against what's actually shown), not a repeat of the same
+// content. See PROGRAM_DAY_COUNT_VARIANTS below for the reasoning behind
+// each count's split choice.
+//
+// `programs[key].days`/`.overview`/`.short` get reassigned wholesale to a
+// variant's own values -- same pattern as the COMBAT_STYLES /
+// programs.combat.days precedent above (loadMartialArtStyle etc.). The
+// program's own default-authored content (used whenever the pref is unset)
+// is untouched.
 //
 // d1..d7 stays a fixed 7-slot week on purpose -- see [DAY ORDER, TABS...]
 // below: archiveCurrentWeek's "save this week" button only fires on the
 // literal id 'd7', and day-order/active-day are both length-guarded against
-// Object.keys(dayDefs).length. Changing which of the 7 slots are training
-// vs. rest, rather than how many slots exist, means neither of those has to
-// change.
+// Object.keys(dayDefs).length. Every variant below fills all 7 slots so
+// neither of those has to change.
 const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding'];
-const DAYS_PER_WEEK_ORIGINAL = Object.fromEntries(DAYS_PER_WEEK_PROGRAMS.map(key => [key, programs[key].days]));
+const DAYS_PER_WEEK_ORIGINAL = Object.fromEntries(DAYS_PER_WEEK_PROGRAMS.map(key =>
+  [key, { days: programs[key].days, overview: programs[key].overview, short: programs[key].short }]
+));
 
-const DAYS_PER_WEEK_FALLBACK_REST = {
-  label: 'Full Rest', sub: 'Full Rest', plate: 'p-off', plateNum: 'OFF', duration: '', rest: true,
-  note: 'Full rest day. No structured training — just hit your steps, protein, and sleep targets.'
+// Real per-count programming, not a mechanical repeat. The guiding
+// research, already used elsewhere in this program (see the ACSM 2026/
+// Currier et al. citation on bodybuilding's Day 6 restructuring above):
+// training a muscle group ~2x/week outperforms 1x/week for both strength
+// and hypertrophy once volume is comparable. That's why every LOW day
+// count below is full-body (or full-body-leaning), not a split fragment --
+// a 2-day upper/lower would only train each muscle once a week, which is
+// exactly the frequency gap that citation argues against. Splits only
+// appear once there's enough frequency budget (4+ days) to hit each group
+// twice without them.
+//
+// At 6-7 days, the extra days are NEW accessory/weak-point/conditioning
+// work, never a 3rd copy of an already-maximal upper or lower session --
+// repeating a near-maximal lift a 3rd time in one week, on the same joints,
+// with reduced recovery, is where real overuse risk shows up. This was a
+// direct question the user asked ("repeat, or accessory days?") -- answer:
+// accessory days, every time, at every frequency tested here.
+//
+// 7 specifically does NOT add an 8th kind of hard session on top of 6's
+// already-full week -- it reframes the one remaining light slot as
+// deliberate mobility/easy-cardio recovery, explained honestly in that
+// variant's own overview, rather than inventing a session that would just
+// be more of the same fatigue with no recovery day left to absorb it.
+const PROGRAM_DAY_COUNT_VARIANTS = {
+  strength: {
+    1: {
+      short: 'One full-body session — the floor, not the ideal',
+      overview: 'A single weekly full-body session covering every major pattern — squat, hinge, horizontal push, horizontal pull — so nothing gets skipped outright if one day is genuinely all you have. Real frequency research (ACSM 2026/Currier et al., the same citation this program leans on elsewhere) finds training a muscle group twice a week beats once for both strength and hypertrophy, so if a 2nd day ever becomes possible, that single change would do more for your results than anything else in this plan.',
+      days: {
+        d1: { label:'Day 1', sub:'Full-Body Foundation', plate:'p-red', plateNum:'25', duration:'~65 min',
+          exercises:[
+            {name:'Squat', sets:'3×6-8'},
+            {name:'Bench Press', sets:'3×6-8'},
+            {name:'Barbell Row', sets:'3×8-10'},
+            {name:'Romanian Deadlift', sets:'2×8-10'},
+            {name:'Overhead Press', sets:'2×8-10'},
+            {name:'DB Curl', sets:'2×12-15', superTag:'Superset with next'},
+            {name:'Triceps Pushdown', sets:'2×12-15'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Keep it conversational pace — this is recovery, not a second workout.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Keep it conversational pace — this is recovery, not a second workout.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Two full-body sessions a week, not a fragmented split',
+      overview: 'Two full-body sessions, each leading with a different big lift, so every major pattern still gets trained twice a week — the frequency floor real muscle-frequency research actually supports. An upper/lower split would only give each muscle group one weekly session with just two days total; alternating full-body sessions gives every pattern the 2x/week hit that matters more for strength and hypertrophy than which specific split you use.',
+      days: {
+        d1: { label:'Day 1', sub:'Full Body A', plate:'p-red', plateNum:'25', duration:'~60 min',
+          exercises:[
+            {name:'Squat', sets:'3×5-8'},
+            {name:'Bench Press', sets:'3×5-8'},
+            {name:'Barbell Row', sets:'3×8-10'},
+            {name:'DB Curl', sets:'2×10-12', superTag:'Superset with next'},
+            {name:'Triceps Pushdown', sets:'2×10-12'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Keep it conversational pace — this is recovery, not a second workout.' },
+        d3: { label:'Day 3', sub:'Full Body B', plate:'p-blue', plateNum:'20', duration:'~60 min',
+          exercises:[
+            {name:'Deadlift', sets:'3×5-6'},
+            {name:'Overhead Press', sets:'3×6-8'},
+            {name:'Lat Pulldown', sets:'3×8-10'},
+            {name:'Bulgarian Split Squat', sets:'2×10-12/leg'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Keep it conversational pace — this is recovery, not a second workout.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Three full-body sessions — squat, hinge, and pump-focused',
+      overview: 'Three full-body sessions, each built around a different lift so the same movement is never maxed out two days running, while every major pattern still gets trained three times a week — still full-body rather than a 3-way split, since a split at this frequency would drop each muscle back down to a single weekly session.',
+      days: {
+        d1: { label:'Day 1', sub:'Full Body — Squat Focus', plate:'p-red', plateNum:'25', duration:'~60 min',
+          exercises:[
+            {name:'Squat', sets:'3×5-6'},
+            {name:'Bench Press', sets:'3×6-8'},
+            {name:'Barbell Row', sets:'3×8-10'},
+            {name:'Standing Calf Raise', sets:'2×12-15'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Keep it conversational pace — this is recovery, not a second workout.' },
+        d3: { label:'Day 3', sub:'Full Body — Hinge Focus', plate:'p-blue', plateNum:'20', duration:'~60 min',
+          exercises:[
+            {name:'Romanian Deadlift', sets:'3×6-8'},
+            {name:'Overhead Press', sets:'3×6-8'},
+            {name:'Lat Pulldown', sets:'3×8-10'},
+            {name:'Hanging Leg Raise', sets:'2×10-12'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Full Body — Accessory & Pump', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Leg Press', sets:'3×10-12'},
+            {name:'Incline DB Press', sets:'3×10-12'},
+            {name:'Cable Row', sets:'3×10-12'},
+            {name:'DB Curl', sets:'2×12-15', superTag:'Superset with next'},
+            {name:'Triceps Pushdown', sets:'2×12-15'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 4 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.strength), used as-is so the most common
+    // selection matches exactly what already shipped, unchanged.
+    5: {
+      short: 'Upper/lower strength + hypertrophy, plus a dedicated accessory day',
+      overview: 'The same upper/lower strength-and-hypertrophy split as the default 4-day plan, plus a 5th day dedicated to what four heavy compound-lift days leave short — hamstrings, rear delts, and arms — rather than adding a 3rd near-max upper or lower session on top of the four you\'re already doing.',
+      days: {
+        d1: { label:'Day 1', sub:'Upper · Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Bench Press', sets:'4×4-6'},
+            {name:'Barbell Row', sets:'4×6-8'},
+            {name:'Overhead Press', sets:'3×8-10'},
+            {name:'Lat Pulldown', sets:'3×10-12'},
+            {name:'DB Curl', sets:'3×10-12', superTag:'Superset with next'},
+            {name:'Triceps Pushdown', sets:'3×10-12'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Lower · Strength', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Squat', sets:'4×4-6'},
+            {name:'Romanian Deadlift', sets:'3×8-10'},
+            {name:'Leg Press', sets:'3×10-12'},
+            {name:'Leg Curl', sets:'3×10-12'},
+            {name:'Calf Raise', sets:'3×12-15'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Keep it conversational pace — this is recovery, not a second workout.' },
+        d4: { label:'Day 4', sub:'Upper · Hypertrophy', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Incline DB Press', sets:'4×10-12'},
+            {name:'Cable Row', sets:'4×10-12'},
+            {name:'DB Shoulder Press', sets:'3×10-12'},
+            {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            {name:'Lateral Raise', sets:'3×12-15', superTag:'Superset with next'},
+            {name:'Face Pull', sets:'3×15'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Lower · Hypertrophy', plate:'p-green', plateNum:'10', duration:'~55 min',
+          exercises:[
+            {name:'Deadlift', sets:'3×5-6'},
+            {name:'Bulgarian Split Squat', sets:'3×10-12/leg'},
+            {name:'Leg Extension', sets:'3×12-15'},
+            {name:'Hip Thrust', sets:'3×10-12'},
+            {name:'Standing Calf Raise', sets:'3×12-15'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Accessory & Weak Points', plate:'p-off', plateNum:'5', duration:'~45 min',
+          exercises:[
+            {name:'Hip Thrust', sets:'3×10-12'},
+            {name:'Leg Curl', sets:'3×12-15'},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Lateral Raise', sets:'3×12-15'},
+            {name:'DB Curl', sets:'3×10-12', superTag:'Superset with next'},
+            {name:'Triceps Pushdown', sets:'3×10-12'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    6: {
+      short: 'Upper/lower ×2 plus two accessory/conditioning days',
+      overview: 'The same upper/lower strength and hypertrophy days as lower frequencies, unchanged, with two ADDED days covering weak points and conditioning instead of a 3rd heavy upper and lower session. Repeating the same near-maximal lift a 3rd time in a week, on the same joints, with less recovery between attempts, is exactly where overuse risk shows up — so the extra training time goes into what four hard days leave short, not a copy of what they already cover.',
+      days: {
+        d1: { label:'Day 1', sub:'Upper · Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Bench Press', sets:'4×4-6'},
+            {name:'Barbell Row', sets:'4×6-8'},
+            {name:'Overhead Press', sets:'3×8-10'},
+            {name:'Lat Pulldown', sets:'3×10-12'},
+            {name:'DB Curl', sets:'3×10-12', superTag:'Superset with next'},
+            {name:'Triceps Pushdown', sets:'3×10-12'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Lower · Strength', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Squat', sets:'4×4-6'},
+            {name:'Romanian Deadlift', sets:'3×8-10'},
+            {name:'Leg Press', sets:'3×10-12'},
+            {name:'Leg Curl', sets:'3×10-12'},
+            {name:'Calf Raise', sets:'3×12-15'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Keep it conversational pace — this is recovery, not a second workout.' },
+        d4: { label:'Day 4', sub:'Upper · Hypertrophy', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Incline DB Press', sets:'4×10-12'},
+            {name:'Cable Row', sets:'4×10-12'},
+            {name:'DB Shoulder Press', sets:'3×10-12'},
+            {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            {name:'Lateral Raise', sets:'3×12-15', superTag:'Superset with next'},
+            {name:'Face Pull', sets:'3×15'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Lower · Hypertrophy', plate:'p-green', plateNum:'10', duration:'~55 min',
+          exercises:[
+            {name:'Deadlift', sets:'3×5-6'},
+            {name:'Bulgarian Split Squat', sets:'3×10-12/leg'},
+            {name:'Leg Extension', sets:'3×12-15'},
+            {name:'Hip Thrust', sets:'3×10-12'},
+            {name:'Standing Calf Raise', sets:'3×12-15'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Accessory & Weak Points', plate:'p-off', plateNum:'5', duration:'~45 min',
+          exercises:[
+            {name:'Hip Thrust', sets:'3×10-12'},
+            {name:'Leg Curl', sets:'3×12-15'},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Lateral Raise', sets:'3×12-15'},
+            {name:'DB Curl', sets:'3×10-12', superTag:'Superset with next'},
+            {name:'Triceps Pushdown', sets:'3×10-12'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Conditioning & Core', plate:'p-off', plateNum:'5', duration:'~35 min',
+          exercises:[
+            {name:'Incline Walk', sets:'25 min', noWeight:true},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+            {name:'Cable Crunch', sets:'3×15'},
+            {name:'Hanging Leg Raise', sets:'3×12'},
+            {name:'Standing Calf Raise', sets:'3×15'},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'Six training days plus one deliberately easy recovery day',
+      overview: 'The same six days as the 6-day plan, completely unchanged — but the week does NOT add an 8th kind of hard session on top of an already-full 6 days. What was the lone rest/cardio slot becomes an explicit mobility-and-easy-cardio day instead: even training every single day, real programming still needs one day where nothing is loaded near failure. This is that day, framed honestly rather than dressed up as more training than it is.',
+      days: {
+        d1: { label:'Day 1', sub:'Upper · Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Bench Press', sets:'4×4-6'},
+            {name:'Barbell Row', sets:'4×6-8'},
+            {name:'Overhead Press', sets:'3×8-10'},
+            {name:'Lat Pulldown', sets:'3×10-12'},
+            {name:'DB Curl', sets:'3×10-12', superTag:'Superset with next'},
+            {name:'Triceps Pushdown', sets:'3×10-12'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Lower · Strength', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Squat', sets:'4×4-6'},
+            {name:'Romanian Deadlift', sets:'3×8-10'},
+            {name:'Leg Press', sets:'3×10-12'},
+            {name:'Leg Curl', sets:'3×10-12'},
+            {name:'Calf Raise', sets:'3×12-15'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Mobility & Easy Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min easy walk or bike plus loose joint mobility work — conversational pace throughout. You picked 7 days a week, and this IS one of them, but nothing here is loaded near failure on purpose: even at this frequency, real recovery still has to happen somewhere.' },
+        d4: { label:'Day 4', sub:'Upper · Hypertrophy', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Incline DB Press', sets:'4×10-12'},
+            {name:'Cable Row', sets:'4×10-12'},
+            {name:'DB Shoulder Press', sets:'3×10-12'},
+            {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            {name:'Lateral Raise', sets:'3×12-15', superTag:'Superset with next'},
+            {name:'Face Pull', sets:'3×15'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Lower · Hypertrophy', plate:'p-green', plateNum:'10', duration:'~55 min',
+          exercises:[
+            {name:'Deadlift', sets:'3×5-6'},
+            {name:'Bulgarian Split Squat', sets:'3×10-12/leg'},
+            {name:'Leg Extension', sets:'3×12-15'},
+            {name:'Hip Thrust', sets:'3×10-12'},
+            {name:'Standing Calf Raise', sets:'3×12-15'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Accessory & Weak Points', plate:'p-off', plateNum:'5', duration:'~45 min',
+          exercises:[
+            {name:'Hip Thrust', sets:'3×10-12'},
+            {name:'Leg Curl', sets:'3×12-15'},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Lateral Raise', sets:'3×12-15'},
+            {name:'DB Curl', sets:'3×10-12', superTag:'Superset with next'},
+            {name:'Triceps Pushdown', sets:'3×10-12'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Conditioning & Core', plate:'p-off', plateNum:'5', duration:'~35 min',
+          exercises:[
+            {name:'Incline Walk', sets:'25 min', noWeight:true},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+            {name:'Cable Crunch', sets:'3×15'},
+            {name:'Hanging Leg Raise', sets:'3×12'},
+            {name:'Standing Calf Raise', sets:'3×15'},
+          ]
+        },
+      }
+    },
+  },
+  bodybuilding: {
+    1: {
+      short: 'One full-body hypertrophy circuit — the floor, not the ideal',
+      overview: 'A single higher-volume full-body session, still bodybuilding-flavored (moderate-high reps, real isolation work) but structured full-body rather than a body-part split — a split at this frequency would leave most muscle groups untouched for a full week. If a 2nd day ever becomes possible, moving toward the 2-day plan would raise every muscle group\'s weekly frequency more than any other single change here.',
+      days: {
+        d1: { label:'Day 1', sub:'Full-Body Hypertrophy Circuit', plate:'p-red', plateNum:'25', duration:'~65 min',
+          exercises:[
+            {name:'Flat Bench Press', sets:'3×10-12'},
+            {name:'Squat', sets:'3×10-12'},
+            {name:'Lat Pulldown', sets:'3×10-12'},
+            {name:'Overhead Press', sets:'2×10-12'},
+            {name:'DB Curl', sets:'2×12-15', superTag:'Superset with next'},
+            {name:'Triceps Pushdown', sets:'2×12-15'},
+            {name:'Cable Crunch', sets:'2×15'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Keep it conversational pace — this is recovery, not a second workout.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Keep it conversational pace — this is recovery, not a second workout.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Two full-body hypertrophy sessions a week',
+      overview: 'Two full-body sessions rather than a one-and-done body-part split — with only two days total, a true split would train each muscle group just once a week, the exact frequency gap this app\'s own citations argue against. Still bodybuilding-flavored throughout: moderate-high reps, real isolation accessories, not a powerlifting-style two-day plan wearing this program\'s name.',
+      days: {
+        d1: { label:'Day 1', sub:'Full Body A', plate:'p-red', plateNum:'25', duration:'~60 min',
+          exercises:[
+            {name:'Flat Bench Press', sets:'3×10-12'},
+            {name:'Squat', sets:'3×10-12'},
+            {name:'Lat Pulldown', sets:'3×10-12'},
+            {name:'Lateral Raise', sets:'2×12-15'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Keep it conversational pace — this is recovery, not a second workout.' },
+        d3: { label:'Day 3', sub:'Full Body B', plate:'p-blue', plateNum:'20', duration:'~60 min',
+          exercises:[
+            {name:'Incline DB Press', sets:'3×10-12'},
+            {name:'Leg Press', sets:'3×12-15'},
+            {name:'Cable Row', sets:'3×10-12'},
+            {name:'DB Curl', sets:'2×12-15', superTag:'Superset with next'},
+            {name:'Triceps Pushdown', sets:'2×12-15'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Keep it conversational pace — this is recovery, not a second workout.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Classic Push/Pull/Legs, once through',
+      overview: 'The classic 3-day Push/Pull/Legs split — the most recognizable bodybuilding template at this frequency, and a fair choice for adherence even though a frequency purist would lean full-body instead (PPL at 3 days trains each muscle group once a week, same as any other 3-way split; full-body x3 would hit everything twice). If pure results-per-hour matters more to you than a familiar split, the 3-day full-body plan under Strength & Size trains at higher frequency for the same time investment.',
+      days: {
+        d1: { label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Flat Bench Press', sets:'3×10-12'},
+            {name:'Overhead Press', sets:'3×10-12'},
+            {name:'Lateral Raise', sets:'2×12-15'},
+            {name:'Triceps Pushdown', sets:'2×12-15'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Keep it conversational pace — this is recovery, not a second workout.' },
+        d3: { label:'Day 3', sub:'Pull', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Lat Pulldown', sets:'3×10-12'},
+            {name:'Cable Row', sets:'3×10-12'},
+            {name:'DB Curl', sets:'2×12-15'},
+            {name:'Face Pull', sets:'2×15'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Legs', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Squat', sets:'3×10-12'},
+            {name:'Leg Press', sets:'3×12-15'},
+            {name:'Leg Curl', sets:'2×12-15'},
+            {name:'Calf Raise', sets:'2×15'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    4: {
+      short: 'Upper/lower ×2, bodybuilding-flavored',
+      overview: 'Upper/lower, twice through — higher frequency than the default 5-day body-part split, at the cost of some exercise variety per muscle group. Still moderate-high rep, isolation-leaning throughout, same as this program\'s identity everywhere else; the difference from a true body-part split is purely in how the same total weekly volume gets grouped into sessions.',
+      days: {
+        d1: { label:'Day 1', sub:'Upper A', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Flat Bench Press', sets:'3×10-12'},
+            {name:'Lat Pulldown', sets:'3×10-12'},
+            {name:'Overhead Press', sets:'3×10-12'},
+            {name:'DB Curl', sets:'2×12-15'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Lower A', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Squat', sets:'3×10-12'},
+            {name:'Romanian Deadlift', sets:'3×10-12'},
+            {name:'Leg Curl', sets:'2×12-15'},
+            {name:'Calf Raise', sets:'2×15'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Keep it conversational pace — this is recovery, not a second workout.' },
+        d4: { label:'Day 4', sub:'Upper B', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Incline DB Press', sets:'3×10-12'},
+            {name:'Cable Row', sets:'3×10-12'},
+            {name:'Lateral Raise', sets:'3×12-15'},
+            {name:'Triceps Pushdown', sets:'2×12-15'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Lower B', plate:'p-green', plateNum:'10', duration:'~55 min',
+          exercises:[
+            {name:'Leg Press', sets:'3×12-15'},
+            {name:'Hip Thrust', sets:'3×10-12'},
+            {name:'Leg Extension', sets:'2×15'},
+            {name:'Calf Raise', sets:'2×15'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.bodybuilding), used as-is.
+    6: {
+      short: 'Push/Pull/Legs ×2 — the standard advanced bodybuilding split',
+      overview: 'Push/Pull/Legs, twice through — the standard high-frequency bodybuilding template at 6 days, genuinely training every muscle group twice a week with real exercise variety between the A and B session for each pattern, not a repeat of the same session. Each PPL round trains different exercises for the same pattern (e.g. Push A leads with a flat press, Push B with an incline press) specifically so nothing gets maxed out twice in the same way.',
+      days: {
+        d1: { label:'Day 1', sub:'Push A', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Flat Bench Press', sets:'4×8-10'},
+            {name:'Overhead Press', sets:'3×8-10'},
+            {name:'Cable Fly', sets:'3×12-15'},
+            {name:'Triceps Pushdown', sets:'3×12-15'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Pull A', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Lat Pulldown', sets:'4×8-10'},
+            {name:'Barbell Row', sets:'3×8-10'},
+            {name:'DB Curl', sets:'3×10-12'},
+            {name:'Rear Delt Fly', sets:'3×15'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Legs A', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Squat', sets:'4×8-10'},
+            {name:'Romanian Deadlift', sets:'3×10-12'},
+            {name:'Leg Curl', sets:'3×12-15'},
+            {name:'Calf Raise', sets:'3×15'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio (incline walk / bike). Keep it conversational pace — this is recovery, not a second workout.' },
+        d5: { label:'Day 5', sub:'Push B', plate:'p-green', plateNum:'10', duration:'~55 min',
+          exercises:[
+            {name:'Incline DB Press', sets:'3×10-12'},
+            {name:'Overhead Triceps Extension', sets:'3×12-15'},
+            {name:'Lateral Raise', sets:'3×15'},
+            {name:'Rope Pushdown', sets:'3×12-15'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Pull B', plate:'p-off', plateNum:'5', duration:'~55 min',
+          exercises:[
+            {name:'Seated Cable Row', sets:'3×10-12'},
+            {name:'Cable Row', sets:'3×10-12'},
+            {name:'Hammer Curl', sets:'3×10-12'},
+            {name:'EZ Bar Curl', sets:'3×10-12'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Legs B & Core', plate:'p-off', plateNum:'5', duration:'~55 min',
+          exercises:[
+            {name:'Leg Press', sets:'4×10-12'},
+            {name:'Leg Extension', sets:'3×12-15'},
+            {name:'Calf Raise', sets:'3×15'},
+            {name:'Cable Crunch', sets:'3×15'},
+            {name:'Hanging Leg Raise', sets:'3×12'},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'Push/Pull/Legs ×2 plus one deliberately easy recovery day',
+      overview: 'The same six Push/Pull/Legs ×2 days as the 6-day plan, completely unchanged — but the week does NOT add a 3rd round of PPL on top of an already-full 6 days. What was the lone rest/cardio slot becomes an explicit mobility-and-easy-cardio day instead: even training every single day, real programming still needs one day where nothing is loaded near failure. This is that day, framed honestly rather than dressed up as more training than it is.',
+      days: {
+        d1: { label:'Day 1', sub:'Push A', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Flat Bench Press', sets:'4×8-10'},
+            {name:'Overhead Press', sets:'3×8-10'},
+            {name:'Cable Fly', sets:'3×12-15'},
+            {name:'Triceps Pushdown', sets:'3×12-15'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Pull A', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Lat Pulldown', sets:'4×8-10'},
+            {name:'Barbell Row', sets:'3×8-10'},
+            {name:'DB Curl', sets:'3×10-12'},
+            {name:'Rear Delt Fly', sets:'3×15'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Legs A', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Squat', sets:'4×8-10'},
+            {name:'Romanian Deadlift', sets:'3×10-12'},
+            {name:'Leg Curl', sets:'3×12-15'},
+            {name:'Calf Raise', sets:'3×15'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Mobility & Easy Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min easy walk or bike plus loose joint mobility work — conversational pace throughout. You picked 7 days a week, and this IS one of them, but nothing here is loaded near failure on purpose: even at this frequency, real recovery still has to happen somewhere.' },
+        d5: { label:'Day 5', sub:'Push B', plate:'p-green', plateNum:'10', duration:'~55 min',
+          exercises:[
+            {name:'Incline DB Press', sets:'3×10-12'},
+            {name:'Overhead Triceps Extension', sets:'3×12-15'},
+            {name:'Lateral Raise', sets:'3×15'},
+            {name:'Rope Pushdown', sets:'3×12-15'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Pull B', plate:'p-off', plateNum:'5', duration:'~55 min',
+          exercises:[
+            {name:'Seated Cable Row', sets:'3×10-12'},
+            {name:'Cable Row', sets:'3×10-12'},
+            {name:'Hammer Curl', sets:'3×10-12'},
+            {name:'EZ Bar Curl', sets:'3×10-12'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Legs B & Core', plate:'p-off', plateNum:'5', duration:'~55 min',
+          exercises:[
+            {name:'Leg Press', sets:'4×10-12'},
+            {name:'Leg Extension', sets:'3×12-15'},
+            {name:'Calf Raise', sets:'3×15'},
+            {name:'Cable Crunch', sets:'3×15'},
+            {name:'Hanging Leg Raise', sets:'3×12'},
+          ]
+        },
+      }
+    },
+  },
 };
 
-function daysPerWeekCycle(arr, n){
-  if(n <= 0) return [];
-  const source = arr.length ? arr : [DAYS_PER_WEEK_FALLBACK_REST];
-  return Array.from({length:n}, (_, i)=> source[i % source.length]);
-}
-
-// Spreads training slots across the week instead of bunching them at the
-// front. At each of the 7 slots, whichever list (train/rest) has used the
-// SMALLER share of its own items so far goes next -- a display-order
-// heuristic only (d1..d7 are user-tapped tabs, not calendar days, so there
-// is no "correct" placement to match), but worth doing so a low-day-count
-// week doesn't read as "grind straight through, then collapse."
-function daysPerWeekInterleave(trainSlots, restSlots){
-  const slots = [];
-  let ti = 0, ri = 0;
-  while(ti < trainSlots.length || ri < restSlots.length){
-    const trainShare = trainSlots.length ? ti / trainSlots.length : Infinity;
-    const restShare = restSlots.length ? ri / restSlots.length : Infinity;
-    if(ti < trainSlots.length && trainShare <= restShare){
-      slots.push(trainSlots[ti++]);
-    } else {
-      slots.push(restSlots[ri++]);
-    }
-  }
-  return slots;
-}
-
-// How many distinct training-day templates a program actually authored --
-// once daysPerWeek exceeds this, buildDaysForWeek has to repeat one of them
-// within the same week rather than invent a new one.
-function daysPerWeekTrainCount(programKey){
-  return Object.values(DAYS_PER_WEEK_ORIGINAL[programKey]).filter(d=>!d.rest).length;
-}
-
-// Pure -- reads a program's ORIGINAL authored days and a target training-day
-// count, returns a brand-new 7-slot days object. Never mutates its inputs.
-function buildDaysForWeek(programKey, daysPerWeek){
-  const original = DAYS_PER_WEEK_ORIGINAL[programKey];
-  const trainTemplates = Object.values(original).filter(d=>!d.rest);
-  const restTemplates = Object.values(original).filter(d=>d.rest);
-  const n = Math.max(1, Math.min(7, Number(daysPerWeek) || trainTemplates.length));
-  const trainSlots = daysPerWeekCycle(trainTemplates, n);
-  const restSlots = daysPerWeekCycle(restTemplates, 7 - n);
-  const slots = daysPerWeekInterleave(trainSlots, restSlots);
-  const days = {};
-  slots.forEach((slot, i)=>{ days[`d${i+1}`] = Object.assign({}, slot, {label:`Day ${i+1}`}); });
-  return days;
-}
-
-let daysPerWeekPref = null; // null = untouched -> each program's own authored days, unchanged
+let daysPerWeekPref = null; // null = untouched -> each program's own authored default, unchanged
 
 async function loadDaysPerWeekPref(){
   try{
@@ -13507,14 +14046,19 @@ async function saveDaysPerWeekPref(n){
   }catch(e){}
 }
 
-// Rebuilds `.days` for every opted-in program from its own untouched
-// original. Called on load and on every pref change; programs outside
-// DAYS_PER_WEEK_PROGRAMS are never touched.
+// Rebuilds `.days`/`.overview`/`.short` for every opted-in program from
+// either its own untouched default (pref unset) or the matching
+// hand-authored PROGRAM_DAY_COUNT_VARIANTS entry. Called on load and on
+// every pref change; programs outside DAYS_PER_WEEK_PROGRAMS are never
+// touched.
 function applyDaysPerWeekProgramData(){
   DAYS_PER_WEEK_PROGRAMS.forEach(key=>{
-    programs[key].days = (daysPerWeekPref == null)
+    const source = (daysPerWeekPref == null)
       ? DAYS_PER_WEEK_ORIGINAL[key]
-      : buildDaysForWeek(key, daysPerWeekPref);
+      : (PROGRAM_DAY_COUNT_VARIANTS[key][daysPerWeekPref] || DAYS_PER_WEEK_ORIGINAL[key]);
+    programs[key].days = source.days;
+    programs[key].overview = source.overview;
+    programs[key].short = source.short;
   });
 }
 
@@ -13523,32 +14067,29 @@ function applyDaysPerWeekPrefToUI(){
   if(input) input.value = daysPerWeekPref == null ? '' : daysPerWeekPref;
 }
 
-// Soft, non-blocking advisories only -- never stops the user from picking
-// any number 1-7. Reuses .program-basis-toggle/.smooth-toggle (already
-// wired by the delegated click listener near buildBasisHtml above) so the
-// banner can be minimized without any new toggle JS.
+// Soft, non-blocking advisory only -- never stops the user from picking any
+// number 1-7. Every count now has its own real, hand-authored plan (see
+// PROGRAM_DAY_COUNT_VARIANTS above), so there is no more "repeats a
+// session" case to warn about -- 6-7 day plans use dedicated accessory/
+// conditioning days instead, which is exactly what this advisory keeps
+// flagging as the thing to still be mindful of at that frequency.
 function daysPerWeekWarningState(programKey, n){
-  if(n == null || !DAYS_PER_WEEK_PROGRAMS.includes(programKey)){
-    return {repeats:false, advisory:false};
-  }
-  return {
-    repeats: n > daysPerWeekTrainCount(programKey),
-    advisory: n >= 6,
-  };
+  if(n == null || !DAYS_PER_WEEK_PROGRAMS.includes(programKey)) return {advisory:false};
+  return {advisory: n >= 6};
 }
 
+// Reuses .program-basis-toggle/.smooth-toggle (already wired by the
+// delegated click listener near buildBasisHtml above) so the banner can be
+// minimized without any new toggle JS.
 function renderDaysPerWeekWarning(){
   const el = document.getElementById('daysPerWeekWarning');
   if(!el) return;
   const state = daysPerWeekWarningState(activeProgram, daysPerWeekPref);
-  if(!state.repeats && !state.advisory){
+  if(!state.advisory){
     el.style.display = 'none';
     el.innerHTML = '';
     return;
   }
-  const lines = [];
-  if(state.repeats) lines.push('Your selected days repeat some training sessions within the same week — repeating hard sessions without full recovery between them raises overtraining risk.');
-  if(state.advisory) lines.push('Most programs benefit from at least one full rest day for recovery, even at higher training frequencies.');
   const id = 'daysPerWeekWarningPanel';
   el.style.display = '';
   el.innerHTML = `
@@ -13556,7 +14097,7 @@ function renderDaysPerWeekWarning(){
       <span class="chev" aria-hidden="true">›</span> ⚠️ Heads up
     </button>
     <div class="smooth-toggle open" id="${id}"><div>
-      <div class="history-hint field-note">${lines.map(escapeHtml).join('<br>')}</div>
+      <div class="history-hint field-note">${escapeHtml('Most programs benefit from at least one full rest day for recovery, even at higher training frequencies. The extra days here are dedicated accessory/conditioning work, not a repeat of your hardest sessions — but listen to your body.')}</div>
     </div></div>`;
 }
 
@@ -13574,6 +14115,10 @@ document.addEventListener('change', async (e)=>{
   if(DAYS_PER_WEEK_PROGRAMS.includes(activeProgram)){
     dayDefs = programs[activeProgram].days;
     activeDay = 'd1';
+    const descEl = document.getElementById('programSelectDesc');
+    const overviewEl = document.getElementById('programOverview');
+    if(descEl) descEl.textContent = programs[activeProgram].short;
+    if(overviewEl) overviewEl.textContent = programs[activeProgram].overview;
     await loadDayOrder();
     await clearWeekProgress(activeProgram, Object.keys(dayDefs));
     await loadWeekProgress();
