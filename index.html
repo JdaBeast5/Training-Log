@@ -4896,11 +4896,14 @@
     <!-- Lives outside #exerciseList on purpose: that div's innerHTML gets
          wholesale-replaced on every renderWorkout() call, which used to be
          where this button was injected -- but only inside the rest-day
-         branch, so a 6/7-day-per-week plan whose Day 7 is a real training
-         day (not rest:true) had nowhere to reach it at all. A day-count-
-         independent, persistent element here, toggled by visibility rather
-         than existence, means it survives regardless of what Day 7's
-         content actually is. See renderArchiveWeekVisibility(). -->
+         branch gated on the literal id 'd7', so a 6/7-day-per-week plan
+         whose Day 7 is a real training day (not rest:true) had nowhere to
+         reach it at all, and a drag-reordered week could put a different
+         day in the actual last position. A persistent element here,
+         toggled by visibility (keyed off dayOrder's last slot, not day.rest
+         or a hardcoded id) rather than existence, survives regardless of
+         what content or which id ends up there. See
+         renderArchiveWeekVisibility(). -->
     <div id="archiveWeekWrap" style="display:none;">
       <button class="save-btn" id="archiveWeekBtn" style="margin-top:14px;">🏁 Save this week & start fresh</button>
       <div class="status-msg" id="archiveWeekStatus"></div>
@@ -6289,7 +6292,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.210';
+const APP_VERSION = '3.211';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6742,6 +6745,9 @@ const WHATS_NEW = {
   ]},
   '3.210': { headline: 'Fixed: "Save this week & start fresh" was unreachable on 6-7 day/week plans', points: [
     'The archive-week button only ever appeared on Day 7 when Day 7 was a rest day — but on every 6 or 7 day/week plan, Day 7 is a real training day, so the button had nowhere to render. It now shows up on Day 7 regardless of what that day\'s content actually is, so training every day no longer means losing the ability to close out a week.',
+  ]},
+  '3.211': { headline: 'Fixed: "Save this week & start fresh" followed the wrong day after reordering your training days', points: [
+    'That button now follows whichever day you\'ve actually got in the last position of your training week, not a fixed "Day 7" label — so if you\'ve dragged your days into a different order, it shows up where your week actually ends, not where it used to.',
   ]},
 };
 
@@ -13513,10 +13519,11 @@ function renderPosingClasses(){
 // is untouched.
 //
 // d1..d7 stays a fixed 7-slot week on purpose -- see [DAY ORDER, TABS...]
-// below: archiveCurrentWeek's "save this week" button only fires on the
-// literal id 'd7', and day-order/active-day are both length-guarded against
+// below: archiveCurrentWeek's "save this week" button fires on whichever
+// day sits in the LAST dayOrder slot (see renderArchiveWeekVisibility()),
+// and day-order/active-day are both length-guarded against
 // Object.keys(dayDefs).length. Every variant below fills all 7 slots so
-// neither of those has to change.
+// none of those has to change.
 //
 // Rollout status: batch 1 was strength + bodybuilding. Batch 2 added the
 // barbell-strength family -- oly, powerlifting, powerbuilding. Batch 3
@@ -23712,21 +23719,29 @@ function allMemberCheckboxesChecked(block){
   return boxes.length > 0 && boxes.every(cb=> cb.checked);
 }
 
-// Shows/hides the persistent #archiveWeekWrap based on activeDay alone --
-// deliberately NOT on whether Day 7 happens to be a rest day. Before this,
-// the archive button only existed inside the rest-day branch's rebuilt
-// HTML, so any 6/7-day-per-week variant whose Day 7 is a real training day
-// (every one of them, across every program this feature covers) had no way
-// to reach "Save this week & start fresh" at all. Since the wrap is a
-// persistent element rather than rebuilt per render (see its own HTML
-// comment), switching back to it after an earlier archive needs an
-// explicit reset here -- otherwise a stale "week saved" confirmation (and
-// a disabled button) from a previous visit would linger into a new one.
+// Shows/hides the persistent #archiveWeekWrap based on whichever day
+// currently occupies the LAST tab position, per dayOrder -- deliberately
+// NOT the literal id 'd7', and NOT whether that day happens to be a rest
+// day. Two separate things broke the original 'd7'-only check:
+//   1. Every 6/7-day-per-week variant this feature added makes Day 7 a
+//      real training day, not a rest day -- so gating on day.rest left the
+//      button unreachable at those frequencies entirely.
+//   2. Days can be drag-reordered (see dayOrder/moveDay below); after a
+//      reorder, the day sitting in the 7th/last position is whatever
+//      dayOrder[dayOrder.length-1] says, which is not necessarily 'd7'
+//      anymore. The archive action is a "this is the end of my week"
+//      action from the user's actual position in their own rail, not from
+//      an internal id they never see.
+// Since the wrap is a persistent element rather than rebuilt per render
+// (see its own HTML comment), switching back to it after an earlier
+// archive needs an explicit reset here -- otherwise a stale "week saved"
+// confirmation (and a disabled button) from a previous visit would linger
+// into a new one.
 function renderArchiveWeekVisibility(){
   const wrap = document.getElementById('archiveWeekWrap');
-  const isDay7 = activeDay === 'd7';
-  wrap.style.display = isDay7 ? '' : 'none';
-  if(isDay7){
+  const isLastDay = activeDay === dayOrder[dayOrder.length - 1];
+  wrap.style.display = isLastDay ? '' : 'none';
+  if(isLastDay){
     document.getElementById('archiveWeekBtn').disabled = false;
     document.getElementById('archiveWeekStatus').innerHTML = '';
     document.getElementById('weekShareWrap').style.display = 'none';
