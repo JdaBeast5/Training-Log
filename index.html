@@ -1467,6 +1467,11 @@
     color:#fff; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; font-size:13px;
   }
   .weight-list{margin-top:12px; display:flex; flex-direction:column; gap:6px;}
+  /* Grocery List's own list container never got the same margin-top the
+     weight/sleep/BP/glucose lists above all share — its empty-state note
+     sat only 6px below the Add row (the note's own top padding, nothing
+     else), noticeably tighter than every sibling card's equivalent. */
+  #groceryListItems{margin-top:12px;}
   .weight-item{
     display:flex; justify-content:space-between; font-size:13px;
     padding:6px 0; border-bottom:1px solid var(--line-soft); color:var(--text-muted);
@@ -6351,7 +6356,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.226';
+const APP_VERSION = '3.227';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6862,6 +6867,9 @@ const WHATS_NEW = {
   ]},
   '3.226': { headline: 'Fixed the USDA search message crowding the buttons below it', points: [
     'On Today\'s Nutrition, the "USDA food search: on..." note sat with zero space above the Photo/Barcode/Describe/Suggest/Recipes row — now has the same breathing room as everywhere else in the app.',
+  ]},
+  '3.227': { headline: 'Fixed tight spacing on the Grocery List\'s empty state', points: [
+    'The "Nothing here yet" message now has the same breathing room above it that the other empty-state lists (Bodyweight, Sleep, Blood Pressure, Glucose) already had — it was noticeably tighter than all of them.',
   ]},
 };
 
