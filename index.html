@@ -6320,7 +6320,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.217';
+const APP_VERSION = '3.218';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6797,6 +6797,9 @@ const WHATS_NEW = {
   ]},
   '3.217': { headline: 'Matched two Care tag colors to their own text', points: [
     'The Strengthen and Mobility tag chips in Care now tint their background to match their own text color, the same way the Stretch chip already did.',
+  ]},
+  '3.218': { headline: 'Fixed a mismatched glow on the Log Today button', points: [
+    'The Log Today FAB\'s glow now matches its own yellow gradient, the same way the AI Coach button\'s blue glow already matches its gradient — it was a subtly different, unrelated amber before.',
   ]},
 };
 

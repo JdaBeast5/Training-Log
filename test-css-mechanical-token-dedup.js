@@ -210,8 +210,14 @@ test('REAL CASCADE: a representative sample of --fab-gloss-inset call sites reso
   const coachFabBlock = resolveToken(extractRuleBlock(src, '.coach-fab'), 'fab-gloss-inset', gloss);
   assert.ok(coachFabBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.35) inset, 0 14px 34px -8px rgba(var(--plate-blue-rgb),0.65), 0 0 50px -14px rgba(var(--plate-blue-rgb),0.55);'), `.coach-fab must resolve to its exact original shadow, got: ${coachFabBlock}`);
 
+  // .today-fab:active's own glow color was later (a separate, deliberate
+  // color fix, not a mechanical dedup — see test-today-fab-glow-color.js)
+  // changed from an unlinked literal (255,184,92) to var(--plate-yellow-rgb),
+  // matching how .coach-fab's own glow above already resolves through
+  // --plate-blue-rgb rather than a hand-picked literal. Only the
+  // --fab-gloss-inset layer (this test's actual subject) is checked here.
   const todayFabActiveBlock = resolveToken(extractRuleBlock(src, '.today-fab:active'), 'fab-gloss-inset', gloss);
-  assert.ok(todayFabActiveBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.35) inset, 0 8px 20px -8px rgba(255,184,92,0.5);'), `.today-fab:active must resolve to its exact original shadow, got: ${todayFabActiveBlock}`);
+  assert.ok(todayFabActiveBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.35) inset, 0 8px 20px -8px rgba(var(--plate-yellow-rgb),0.5);'), `.today-fab:active must resolve its --fab-gloss-inset layer correctly, got: ${todayFabActiveBlock}`);
 });
 
 // ── Glass blur + nav-glass background: 4 and 3 real call sites ─────────
