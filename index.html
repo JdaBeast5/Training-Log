@@ -4751,6 +4751,10 @@
     <div class="program-select-wrap">
       <select class="program-select" id="programSelector" aria-label="Training program"></select>
     </div>
+    <!-- Always visible, unlike programSelectDesc/programSourceNote below it —
+         the whole point is seeing whether a program fits your goal WITHOUT
+         first tapping the header open. See renderProgramSelector(). -->
+    <div class="program-intro program-overview" id="programOverview"></div>
     <div class="expand-wrap" id="programExpandWrap"><div>
       <div class="program-select-desc" id="programSelectDesc"></div>
       <button class="masterclass-link-btn" id="viewMasterclassBtn" style="display:none">View masterclass</button>
@@ -4774,6 +4778,7 @@
     <div class="history-hint">Match your training to what you already know, or pick one to start learning.</div>
     <select class="program-select" id="martialArtSelector" aria-label="Martial art style"></select>
     <div class="program-select-desc" id="martialArtDesc"></div>
+    <div class="program-intro program-overview" id="martialArtOverview"></div>
   </div>
 
   <div class="card" id="cyclingCard" style="display:none">
@@ -4781,6 +4786,7 @@
     <div class="history-hint">Road and Mountain share a training backbone but differ in emphasis — pick the one that matches how you actually ride.</div>
     <select class="program-select" id="cyclingSelector" aria-label="Cycling style"></select>
     <div class="program-select-desc" id="cyclingDesc"></div>
+    <div class="program-intro program-overview" id="cyclingOverview"></div>
   </div>
 
   <div class="card" id="watersportsCard" style="display:none">
@@ -4788,6 +4794,7 @@
     <div class="history-hint">Each discipline below is its own land-based S&amp;C program, matched to that sport's own physical demands — pick the one you're actually training for.</div>
     <select class="program-select" id="watersportsSelector" aria-label="Watersports style"></select>
     <div class="program-select-desc" id="watersportsDesc"></div>
+    <div class="program-intro program-overview" id="watersportsOverview"></div>
   </div>
 
   <div class="card" id="yogaCard" style="display:none">
@@ -4795,6 +4802,7 @@
     <div class="history-hint">Vinyasa &amp; Flow, Hot Yoga, or Partner Yoga — pick whichever fits today. <b>Hot Yoga:</b> get your doctor's clearance first if you have any cardiovascular, respiratory, or heat-related condition.</div>
     <select class="program-select" id="yogaSelector" aria-label="Yoga style"></select>
     <div class="program-select-desc" id="yogaDesc"></div>
+    <div class="program-intro program-overview" id="yogaOverview"></div>
   </div>
 
   <div class="card" id="medicalCard" style="display:none">
@@ -4802,6 +4810,7 @@
     <div class="history-hint">Pick whichever matches your actual situation. <b>⚠️ Every option here is a framework to use alongside your own doctor, surgical team, PT, or OB/midwife's real diagnosis and clearance</b>, not a replacement for one — this app has no way to know your specific medical history or healing timeline.</div>
     <select class="program-select" id="medicalSelector" aria-label="Medical program"></select>
     <div class="program-select-desc" id="medicalDesc"></div>
+    <div class="program-intro program-overview" id="medicalOverview"></div>
   </div>
 
   <div class="tabs-header">
@@ -6224,7 +6233,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.194';
+const APP_VERSION = '3.195';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6610,6 +6619,10 @@ const WHATS_NEW = {
   '3.194': { headline: 'Tap a logged food to see its macro breakdown', points: [
     'A logged food only ever showed its calories — seeing which food actually drove up your protein, fat, or carbs meant looking it back up from scratch. Tapping any logged item now expands it to show protein, fat, and carbs for that food specifically.',
     'Works the same as tapping an exercise to see its sets — same tap-to-expand pattern, same keyboard support (Enter/Space when focused). The quantity +/- buttons and swipe-to-delete are untouched.',
+  ]},
+  '3.195': { headline: 'Every program now tells you what it\'s actually for', points: [
+    'A real 3-5 sentence description now sits directly under the Training Style selector (and under each style selector inside Combat, Cycling, Watersports, Yoga, and Medical) — always visible, no tapping required — covering what the program focuses on, how the week is structured, and who it actually fits.',
+    'All 55 programs and styles got one, grounded in each program\'s real day-by-day structure rather than generic copy. The goal: you can tell whether a program matches your training goals before switching to it, not after.',
   ]},
 };
 
@@ -7341,7 +7354,7 @@ const programs = {
   // behind it. Volume is the driver; the rep range on the main lift is here
   // for specificity and for the rest prescription it triggers.
   strength: {
-    label: 'Strength & Size', short: 'Upper/lower strength + hypertrophy',
+    label: 'Strength & Size', short: 'Upper/lower strength + hypertrophy', overview: 'A four-day upper/lower split built to train strength and size as two separate jobs in the same week rather than splitting the difference on both. The first two sessions are heavy and low-rep on the main lifts; the next two shift to higher-rep accessory work for muscle growth. Rest and active-recovery days round out the week without extra lifting. Good fit if you want a genuine, well-rounded intermediate program that builds a bigger total AND a bigger physique, not just one or the other.',
     days: {
       d1: {
         label:'Day 1', sub:'Upper · Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
@@ -7417,7 +7430,7 @@ const programs = {
   },
 
   bodybuilding: {
-    label: 'Bodybuilding', short: 'Body-part split, higher volume & isolation',
+    label: 'Bodybuilding', short: 'Body-part split, higher volume & isolation', overview: 'A classic body-part split — five lifting days across the week, each targeting a specific muscle group or pairing (chest/triceps, back/biceps, shoulders/abs, legs, and a dedicated arms-and-detail day) with high accessory volume and isolation work. Every muscle group gets hit at least twice a week rather than the traditional once, closing the frequency gap that hurts a lot of old-school bro-splits. Best fit if your goal is visible size and shape more than a numbers-driven total — more time under tension, more angles per muscle, less focus on the big three lifts specifically.',
     days: {
       d1: {
         label:'Day 1', sub:'Chest & Triceps', plate:'p-red', plateNum:'25', duration:'~55 min',
@@ -7500,7 +7513,7 @@ const programs = {
   },
 
   oly: {
-    label: 'Olympic Lifting', short: 'Snatch, clean & jerk technique + strength',
+    label: 'Olympic Lifting', short: 'Snatch, clean & jerk technique + strength', overview: 'Built around the two competition lifts — snatch and clean & jerk — trained as technical skills under low fatigue rather than ground out for reps. Pulls, squats, and power variations carry the actual strength work around them, so the competition lifts stay sharp instead of getting sloppy under accumulated fatigue. A technique-primer day and dedicated variation days round out the week. This is the right fit if you specifically want to get better at Olympic lifting (or a strength sport that uses it), not a general "get stronger" program — it assumes some comfort with the lifts already or a coach to learn the positions from.',
     days: {
       d1: {
         label:'Day 1', sub:'Snatch + Pull Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
@@ -7581,7 +7594,7 @@ const programs = {
   },
 
   athletic: {
-    label: 'Athletic / Plyo', short: 'Explosive power, plyometrics & conditioning',
+    label: 'Athletic / Plyo', short: 'Explosive power, plyometrics & conditioning', overview: 'Trains explosive power and speed the way it actually needs to be trained — low volume, full recovery between sets, quality over accumulation. Lower- and upper-body power days (jumps, throws, sprints) run twice each across the week, with a dedicated conditioning-and-agility day rounding things out. This isn\'t a hypertrophy or endurance program in disguise; the whole point is force output, not fatigue. Fits best if you\'re an athlete (or training like one) who needs to move fast and explosively — sprinting, jumping, change of direction — more than you need bigger muscles or a bigger total.',
     days: {
       d1: {
         label:'Day 1', sub:'Lower Power', plate:'p-red', plateNum:'25', duration:'~55 min',
@@ -7639,17 +7652,17 @@ const programs = {
   },
 
   combat: {
-    label: 'Boxing / Kickboxing', short: 'Pick your martial art style below — bag rounds + strength',
+    label: 'Boxing / Kickboxing', short: 'Pick your martial art style below — bag rounds + strength', overview: 'A container for six martial-art styles — Kickboxing, Boxing, Muay Thai, MMA Striking, Taekwondo, and Tai Chi — each with its own genuinely different conditioning, drill work, and injury profile rather than one blended striking template. A boxer\'s neck and shoulder demands are not a kickboxer\'s hip mobility demands, and neither is Tai Chi\'s emphasis on balance and breath over output, so this program deliberately does not pretend one plan fits all six. Pick a style below to see its actual program and description; the training itself only really starts once you\'ve chosen one. Whichever you pick, expect real conditioning and drill work, not sparring instruction — none of these teach you to actually fight safely.',
     days: {} // populated at runtime from COMBAT_STYLES based on the selected martial art
   },
 
   cycling: {
-    label: 'Cycling', short: 'Pick Road or Mountain below — polarized ride training + strength',
+    label: 'Cycling', short: 'Pick Road or Mountain below — polarized ride training + strength', overview: 'A container for two cycling disciplines — Road and Mountain — each built around a different intensity structure and skill set rather than one generic "ride your bike" plan. Road is FTP-and-interval structured power work on pavement; Mountain adds technical trail skill and grip/upper-body endurance for the terrain road riding never demands. Pick a style below to see its actual program and description — the two share a training backbone but genuinely differ in what they emphasize.',
     days: {} // populated at runtime from CYCLING_STYLES based on the selected discipline
   },
 
   core: {
-    label: 'Core & Stability', short: 'Abs, obliques & lower-back stabilizers',
+    label: 'Core & Stability', short: 'Abs, obliques & lower-back stabilizers', overview: 'A specialization program for the trunk, built on training it for what it actually does — resisting movement, not producing it. Days rotate through anti-extension/spine stability, rotational power and anti-rotation work, loaded carries for anti-lateral flexion, and dedicated lower-back stabilizer work. It\'s deliberately narrow — this is what you add on top of (or in between) another program when your core specifically needs work, not a standalone full-body plan. Good fit if you\'ve got a weak link in trunk stability specifically, whether that\'s for lifting, sport, or just day-to-day back health.',
     days: {
       d1: {
         label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
@@ -7710,7 +7723,7 @@ const programs = {
   },
 
   bodyweight: {
-    label: 'Bodyweight', short: 'No gym needed — anywhere, minimal equipment',
+    label: 'Bodyweight', short: 'No gym needed — anywhere, minimal equipment', overview: 'A genuine full-body strength program built entirely around bodyweight leverage and single-limb variations instead of external load — no gym, no equipment, train anywhere. Push, pull, and leg days are followed by a full-body conditioning day and a dedicated core-and-mobility day, so nothing gets neglected just because there\'s no barbell involved. Progression comes from harder leverage and unilateral variations, not just more reps. The right fit if you travel a lot, don\'t have gym access, or just prefer training with nothing but your own bodyweight — genuinely capable of building real strength, not just a placeholder until you get back to a gym.',
     days: {
       d1: {
         label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -7786,7 +7799,7 @@ const programs = {
   },
 
   jumprope: {
-    label: 'Jump Rope', short: 'Rope conditioning — fast, portable, no gym',
+    label: 'Jump Rope', short: 'Rope conditioning — fast, portable, no gym', overview: 'Rope skill and cardio conditioning built as a genuine progression — basic bounce and footwork patterns first, building toward double-unders and power variations — rather than treating jump rope as a warm-up filler. A HIIT-interval day and an endurance test round out the week alongside dedicated speed-and-footwork work. It\'s fast, portable, and needs almost nothing but a rope and floor space. Good fit if you want serious cardio conditioning without a treadmill or bike, or if you\'re specifically building the footwork and coordination that carries over to combat sports and other rope-heavy training.',
     days: {
       d1: {
         label:'Day 1', sub:'Basic Endurance', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -7868,7 +7881,7 @@ const programs = {
   // a full range improves ROM on its own, which is why the strength programs
   // in this app do not need bolted-on stretching to be complete.
   mobility: {
-    label: 'Mobility & Flexibility', short: 'Joint prep, range of motion & recovery',
+    label: 'Mobility & Flexibility', short: 'Joint prep, range of motion & recovery', overview: 'Static and controlled range-of-motion work targeting the joints that limit most people — hips, ankles, shoulders, thoracic spine, and the posterior chain — held long enough to actually change tissue rather than just feel loosened for the moment. A full-body flow day and an active-recovery flow round things out. This isn\'t a strength program and isn\'t meant to replace one; it\'s built to sit alongside whatever else you\'re training, or to run on its own during a deload or recovery block. Good fit if stiffness or restricted range is actually limiting your lifts or your day-to-day movement, not just something to stretch idly.',
     days: {
       d1: {
         label:'Day 1', sub:'Hips & Ankles', plate:'p-red', plateNum:'25', duration:'~30 min',
@@ -7935,7 +7948,7 @@ const programs = {
   // approach it is named for. Do not add tempo/threshold volume to "fill it
   // out": the small threshold share is the design, not a gap.
   running: {
-    label: 'Running / Endurance', short: 'Jack Daniels-style paced running progression',
+    label: 'Running / Endurance', short: 'Jack Daniels-style paced running progression', overview: 'A polarized running program — most of the week easy, two genuinely hard sessions (tempo and intervals), one long run — paired with a heavy lifting day that\'s actually heavy enough to move the needle on running economy, not just token strength work. Paces are structured Jack Daniels-style rather than run-by-feel, so easy days stay easy and hard days stay hard. A recovery run doubles as a lighter strength day late in the week. Fits best if you\'re training for a race or a real endurance goal and want a structured plan, not just "go run some miles."',
     days: {
       d1: {
         label:'Day 1', sub:'Easy Run + Strides', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -7999,7 +8012,7 @@ const programs = {
   },
 
   calisthenics: {
-    label: 'Calisthenics / Gymnastics', short: 'Skill work — muscle-ups, levers, handstands, L-sits',
+    label: 'Calisthenics / Gymnastics', short: 'Skill work — muscle-ups, levers, handstands, L-sits', overview: 'Builds toward real gymnastic strength skills — muscle-ups, levers, handstands, L-sits — through actual progressions rather than just attempting the end skill and hoping. Push and pull skill days are trained separately from straight-arm static-hold work, with a dedicated core/L-sit progression day and an explosive-legs day rounding out the week. A skill-practice-and-mobility day keeps the harder positions (handstands especially) honest. Good fit if you\'re chasing a specific bodyweight skill and want the actual prerequisite strength built in the right order, not a generic bodyweight-fitness program with a few advanced moves bolted on.',
     days: {
       d1: {
         label:'Day 1', sub:'Push Skills', plate:'p-red', plateNum:'25', duration:'~40 min',
@@ -8082,7 +8095,7 @@ const programs = {
   // the bodybuilding program is held to; applying that here would misread
   // a correctly specific program as under-dosed.
   powerlifting: {
-    label: 'Powerlifting', short: 'Max-strength squat, bench & deadlift cycle',
+    label: 'Powerlifting', short: 'Max-strength squat, bench & deadlift cycle', overview: 'Squat, bench, and deadlift each get their own dedicated training day at competition-relevant rep ranges, with accessory work chosen specifically for carryover to the big three rather than for general size. Two additional accessory-and-volume days round out the week without diluting focus on the main lifts. This is judged by your total, not by how much total work you did — it\'s built for someone training toward a number, not a look. Best fit if you\'re training for a powerlifting meet (or just want a strength-first program organized the way meet prep actually works).',
     days: {
       d1: {
         label:'Day 1', sub:'Squat Focus', plate:'p-red', plateNum:'25', duration:'~55 min',
@@ -8141,7 +8154,7 @@ const programs = {
   },
 
   medical: {
-    label: 'Medically Modified', short: 'Pick your specific condition or recovery stage below \u2014 grounded in real clinical/exercise-science guidance, always deferring to your own care team\u2019s clearance.',
+    label: 'Medically Modified', short: 'Pick your specific condition or recovery stage below \u2014 grounded in real clinical/exercise-science guidance, always deferring to your own care team\u2019s clearance.', overview: 'A container for thirteen medically modified programs — bariatric recovery, prenatal and postpartum, five injury rehab tracks, and four condition-specific plans — selected by what you\'re actually working around, not a one-size-fits-all modification. Each one is grounded in real clinical or exercise-science guidance specific to that condition, not a generic program with the intensity turned down. Pick your specific condition or recovery stage below to see its actual program, description, and safety notes. Every single one of them defers to your own care team\'s clearance before it defers to anything in this app — that ordering is deliberate and non-negotiable.',
     days: {} // populated at runtime from MEDICAL_STYLES based on the selected condition/style
   },
 
@@ -8151,12 +8164,12 @@ const programs = {
 
 
   yoga: {
-    label: 'Yoga', short: 'Vinyasa & Flow, Hot Yoga, or Partner Yoga — pick your style',
+    label: 'Yoga', short: 'Vinyasa & Flow, Hot Yoga, or Partner Yoga — pick your style', overview: 'A container for three yoga styles — Vinyasa & Flow, Hot Yoga, and Partner Yoga — each sequenced as its own distinct practice rather than a shared, interchangeable pose list. Flow moves through five sequence intensities in one week, Hot adds real heat-management demands Flow doesn\'t have, and Partner is built entirely around training with someone else rather than solo. Pick a style below to see its actual program and description — they share a static-hold foundation but genuinely differ in pacing, environment, and who you need in the room.',
     days: {}
   },
 
   powerbuilding: {
-    label: 'Powerbuilding', short: 'Heavy top lift + bodybuilding accessories, every session',
+    label: 'Powerbuilding', short: 'Heavy top lift + bodybuilding accessories, every session', overview: 'Every session opens with one heavy barbell lift at 5x5 while you\'re freshest, then fills the rest of the hour with bodybuilding-style accessory volume — squat day, bench day, deadlift day, and overhead press day each lead into their own accessory work, with a dedicated pump day to finish the week. It\'s built for people who want a real strength total AND real size and refuse to pick just one. Arm and shoulder volume runs high by design, not by accident. Good fit if a pure powerlifting program feels too narrow and a pure bodybuilding program doesn\'t move your numbers enough — this is the middle ground done properly, not half of each.',
     days: {
       d1: {
         label:'Day 1', sub:'Squat + Legs', plate:'p-red', plateNum:'25', duration:'~55 min',
@@ -8254,7 +8267,7 @@ const programs = {
   // category but are balance and mobility work, not core volume. Do not
   // "rebalance" on that number.
   senior: {
-    label: 'Senior Strength & Balance', short: 'Joint-friendly strength + fall-prevention balance training',
+    label: 'Senior Strength & Balance', short: 'Joint-friendly strength + fall-prevention balance training', overview: 'Built around the everyday tasks that actually determine whether someone stays independent — getting out of a chair quickly, not losing your balance, carrying groceries — with the speed of the movement treated as part of the prescription, not just the load. Lower- and upper-body strength days alternate with dedicated balance-and-stability days, plus a functional full-body day that ties movement patterns together. Concentric reps are trained fast; the eccentric stays slow and controlled — power, not just strength, turns out to matter more for fall risk and independence as we age. Good fit for older adults, or anyone specifically prioritizing joint-friendly training and fall prevention over maximal load.',
     days: {
       d1: {
         label:'Day 1', sub:'Lower Body Strength', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -8323,7 +8336,7 @@ const programs = {
   // rather than strictly polarized, so a low-heavy distribution here is
   // expected rather than a shortfall.
   swimming: {
-    label: 'Swimming', short: 'Polarized pool training — easy aerobic base, threshold, and speed work',
+    label: 'Swimming', short: 'Polarized pool training — easy aerobic base, threshold, and speed work', overview: 'Polarized pool training — an easy aerobic-base swim, dedicated technique/kick/pull work, a threshold swim, speed intervals, and a long swim — paired with a dryland day for the posterior shoulder, the tissue that takes the real load in an overhead-repetitive sport like swimming. The structure mirrors how running and cycling programs in this app are built: mostly easy, a small number of genuinely hard efforts, and a long session to build aerobic capacity. The dryland shoulder work is prehab, not proven prevention — real, honest uncertainty in the evidence there, covered in the program\'s own citation notes. Good fit if you\'re training for real swim performance (not just fitness laps) and want structure to your pool sessions instead of swimming the same set every time.',
     days: {
       d1: {
         label:'Day 1', sub:'Aerobic Base Swim', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -8381,12 +8394,12 @@ const programs = {
   },
 
   watersports: {
-    label: 'Watersports', short: 'Pick a discipline below — land-based S&C matched to what each sport actually demands',
+    label: 'Watersports', short: 'Pick a discipline below — land-based S&C matched to what each sport actually demands', overview: 'A container for land-based strength-and-conditioning support across six watersports disciplines — Surfing, Skimboarding, Wakeboarding, Kite-Assisted Surfing, Stand-Up Paddleboarding, and Kayaking — each matched to what that specific sport\'s own research actually demands, not one generic "watersports athlete" template. A surfer\'s paddle-dominant shoulder load and a kayaker\'s overlooked leg drive are genuinely different problems, which is why each discipline gets its own citation-matched program rather than a shared template. Pick a discipline below to see its actual program and description. None of these teach the water skill itself — only the land-based conditioning underneath it, meant to sit alongside real time in (or on) the water.',
     days: {} // populated at runtime from WATERSPORTS_STYLES based on the selected discipline
   },
 
   climbing: {
-    label: 'Rock Climbing', short: 'Finger strength, pulling power, core tension, and shoulder health for climbers',
+    label: 'Rock Climbing', short: 'Finger strength, pulling power, core tension, and shoulder health for climbers', overview: 'Finger and pulling strength each get their own dedicated day, balanced by a full antagonist-and-shoulder-health session — because the tissue that limits climbers (fingers, shoulders) is also the tissue that breaks, and it adapts over years, not weeks. Lock-off and core-tension work and a hip-mobility/grip-endurance day round out the week. The shoulder day isn\'t optional filler; overuse injury to fingers AND shoulders is consistently more common than acute injury in climbers, which is exactly why it gets a full session rather than an afterthought. Good fit if you climb regularly and want structured strength training that actually respects how climbing injuries happen, not just a generic hangboard routine.',
     days: {
       d1: {
         label:'Day 1', sub:'Finger Strength', plate:'p-red', plateNum:'25', duration:'~45 min',
@@ -8451,7 +8464,7 @@ const programs = {
 
 
   boxingsc: {
-    label: 'Boxing Strength & Conditioning', short: 'Rotational power, single-leg strength, and round-based conditioning — the physical base under the skill work',
+    label: 'Boxing Strength & Conditioning', short: 'Rotational power, single-leg strength, and round-based conditioning — the physical base under the skill work', overview: 'The strength and conditioning underneath boxing — rotational power, single-leg strength, and round-based conditioning — rather than the boxing itself; this doesn\'t teach punches or defense. Days are built around what actually drives punching power (trunk rotation and rear-leg extension contribute more force than the arm ever does) plus anaerobic round-structured conditioning that matches real fight pacing. A core-and-conditioning circuit and dedicated neck work round out the week. Best fit as the physical base underneath real boxing skill training (drilling, sparring, coaching) — pair it with the Combat program\'s Boxing style, don\'t use it as a substitute for learning to box.',
     days: {
       d1: {
         label:'Day 1', sub:'Rotational Power', plate:'p-red', plateNum:'25', duration:'~40 min',
@@ -8518,7 +8531,7 @@ const programs = {
   // built from the existing library — this is a targeted remix of mobility
   // and corrective work already in the app, not a new modality.
   desk: {
-    label: 'Desk Worker / Posture', short: 'Corrective training for upper/lower crossed syndrome — the postural pattern prolonged sitting produces',
+    label: 'Desk Worker / Posture', short: 'Corrective training for upper/lower crossed syndrome — the postural pattern prolonged sitting produces', overview: 'Corrective training for the specific postural pattern prolonged sitting produces — tight hips and chest, weak glutes and upper back — paired with genuine full-body strength work, not just stretching. Upper-body and hip "reset" days open the week, a thoracic-mobility day and full-body strength day follow, and a movement-and-mobility flow closes it out; even the rest day includes short "movement snack" breaks rather than a full day of continued sitting. Those movement breaks are the best-evidenced part of the program — real, measured metabolic benefit from just breaking up sitting time. Good fit if you sit most of the day for work and want both the postural corrective work and real strength training in sessions short enough to actually fit around a workday.',
     days: {
       d1: {
         label:'Day 1', sub:'Upper Body Posture Reset', plate:'p-red', plateNum:'25', duration:'~25 min',
@@ -8593,7 +8606,7 @@ const programs = {
   // Training it polarized would train the wrong thing. Same category of
   // mistake as judging the powerlifting program by hypertrophy set volume.
   hyrox: {
-    label: 'Hyrox', short: 'Functional fitness racing — running paired with 8 race-specific stations',
+    label: 'Hyrox', short: 'Functional fitness racing — running paired with 8 race-specific stations', overview: 'Functional-fitness race prep built around compromised running — the single quality that actually decides a Hyrox result, since running while already fatigued from a station is a completely different skill than running fresh. Sled work, station-skill practice, and brick intervals (running straight into a station) build toward a full-simulation finisher late in the week. The intensity distribution here runs harder than a typical endurance program on purpose — that\'s correct for the format, not a mistake. Good fit if you\'re specifically training for a Hyrox race (or a similar hybrid competition) and want the actual race-specific stations trained, not generic circuit conditioning.',
     days: {
       d1: { label:'Day 1', sub:'Running Base + Engine Work', plate:'p-red', plateNum:'25', duration:'~45 min',
         exercises:[
@@ -8638,7 +8651,7 @@ const programs = {
   },
 
   grappling: {
-    label: 'BJJ / Grappling', short: 'Positional control, submissions, and takedowns — gi or no-gi',
+    label: 'BJJ / Grappling', short: 'Positional control, submissions, and takedowns — gi or no-gi', overview: 'A skill program, not a strength program — drills the actual positions of BJJ (guard, passing, takedowns, submissions) in structured reps through the week, then finishes with live positional rolling where the real conditioning demand actually lives. Guard fundamentals and escapes open the week, guard passing and clinch/takedown work follow, and a submissions-and-control day leads into live rolling and conditioning. Real BJJ rounds run at a genuinely high effort-to-pause ratio with real glycolytic demand — this isn\'t just technique practice, the live day is a conditioning session in its own right. Good fit whether you\'re new to BJJ and need structured drilling to actually learn positions, or already training and want your reps organized rather than random.',
     days: {
       d1: { label:'Day 1', sub:'Guard Fundamentals & Escapes', plate:'p-red', plateNum:'25', duration:'~40 min',
         exercises:[
@@ -8679,7 +8692,7 @@ const programs = {
   },
 
   pilates: {
-    label: 'Pilates', short: 'Classical mat work — powerhouse control, spinal articulation, breath-timed movement',
+    label: 'Pilates', short: 'Classical mat work — powerhouse control, spinal articulation, breath-timed movement', overview: 'Classical mat Pilates — powerhouse activation, two dedicated abdominal series, back extension and posture work, and a full flow day with teaser work — built around control and precision rather than load or range of motion. This isn\'t a strength program in the barbell sense; the emphasis is trunk endurance, positional control, and breath-timed movement, and real research backs genuine gains in trunk strength, endurance, and posture from consistent mat work. There\'s zero ballistic movement anywhere in the program by design. Good fit if you want a genuinely challenging bodyweight core-and-control practice — not a "gentle stretching" program, an actual method with real technique to learn.',
     days: {
       d1: { label:'Day 1', sub:'Foundations & Powerhouse Activation', plate:'p-red', plateNum:'25', duration:'~35 min',
         exercises:[
@@ -8983,7 +8996,7 @@ document.addEventListener('click', (e)=>{
 const MEDICAL_STYLES = {
   obesity: {
     group: 'Metabolic & Cardiac',
-    label: 'Obesity-Modified', short: 'Low-impact, joint-friendly entry point grounded in ACSM exercise prescription guidance — start low, go slow, and progress from here whenever you\'re ready.',
+    label: 'Obesity-Modified', short: 'Low-impact, joint-friendly entry point grounded in ACSM exercise prescription guidance — start low, go slow, and progress from here whenever you\'re ready.', overview: 'A low-impact, joint-friendly entry point that prioritizes being able to repeat the session consistently over how hard any single session is — grounded in real clinical guidance finding that consistency itself, more than any specific training variable, is what actually matters for this population. Low-impact cardio and joint-friendly lower-body strength days open the week, a full-body circuit and active-recovery day follow, building comfortable capacity rather than pushing intensity early. Progression comes from doing more of what you can already do consistently, not from being pushed into harder sessions before you\'re ready. This is a healthy-adult guideline applied with clinical-population care, not a medical treatment plan — it doesn\'t address medication, bariatric surgery, or other conditions specifically.',
     days: {
       d1: {
         label:'Day 1', sub:'Low-Impact Cardio + Upper Body', plate:'p-red', plateNum:'25', duration:'~30 min',
@@ -9043,7 +9056,7 @@ const MEDICAL_STYLES = {
   },
   hypertension: {
     group: 'Metabolic & Cardiac',
-    label: 'Hypertension / Cardiac-Modified', short: 'Moderate, steady effort with careful breathing technique — never hold your breath under load. ⚠️ Get clearance from your doctor first, especially if you\'re on blood pressure medication or have any cardiac history.',
+    label: 'Hypertension / Cardiac-Modified', short: 'Moderate, steady effort with careful breathing technique — never hold your breath under load. ⚠️ Get clearance from your doctor first, especially if you\'re on blood pressure medication or have any cardiac history.', overview: 'Moderate, steady aerobic and resistance effort with one hard rule built into every lift: never hold your breath under load, since breath-holding measurably spikes blood pressure far more than exhaling through the same lift does. Moderate aerobic days alternate with full-body resistance days, with active recovery and stretching worked in rather than pushed to the margins. Real network meta-analysis data found combined aerobic-and-resistance training among the most effective non-drug approaches for lowering blood pressure — the actual basis for pairing both here instead of picking one. Get clearance from your doctor first, especially if you\'re on blood pressure medication or have any cardiac history — this can\'t tell you whether your blood pressure is controlled enough to train safely.',
     days: {
       d1: {
         label:'Day 1', sub:'Moderate Aerobic', plate:'p-red', plateNum:'25', duration:'~30 min',
@@ -9096,7 +9109,7 @@ const MEDICAL_STYLES = {
   },
   diabetes: {
     group: 'Metabolic & Cardiac',
-    label: 'Type 2 Diabetes-Modified', short: 'Combined aerobic and resistance training, with activity timed after meals specifically — that timing measurably helps blood glucose, not just general fitness. ⚠️ Talk to your care team about hypoglycemia risk if you use insulin or other glucose-lowering medication.',
+    label: 'Type 2 Diabetes-Modified', short: 'Combined aerobic and resistance training, with activity timed after meals specifically — that timing measurably helps blood glucose, not just general fitness. ⚠️ Talk to your care team about hypoglycemia risk if you use insulin or other glucose-lowering medication.', overview: 'Combined aerobic and resistance training, with one specific and deliberate detail: short walks are placed right after meals, not wherever they fit the training logic, because real trial data found that timing alone — not just the total minutes — measurably improves blood sugar control. Post-meal walks pair with upper-body work early in the week, resistance and core days follow, and a combined full-body circuit closes things out. That post-meal walk timing is the actual intervention here — moving it to satisfy a "lift first" instinct would undercut the entire point of including it. Talk to your care team about hypoglycemia risk if you use insulin or other glucose-lowering medication — this program has no way to detect or manage that risk itself.',
     days: {
       d1: {
         label:'Day 1', sub:'Post-Meal Walk + Upper Body', plate:'p-red', plateNum:'25', duration:'~30 min',
@@ -9153,7 +9166,7 @@ const MEDICAL_STYLES = {
   },
   osteoporosis: {
     group: 'Bone Health',
-    label: 'Osteoporosis / Low Bone Density', short: 'Weight-bearing and resistance work to build bone strength, built around one key rule: no spinal flexion under load. ⚠️ Confirm with your doctor which activities fit your specific bone density and fracture history.',
+    label: 'Osteoporosis / Low Bone Density', short: 'Weight-bearing and resistance work to build bone strength, built around one key rule: no spinal flexion under load. ⚠️ Confirm with your doctor which activities fit your specific bone density and fracture history.', overview: 'Weight-bearing and resistance work chosen specifically because bone responds to load — built around one rule that\'s a genuine bright line, not a soft suggestion: no spinal flexion under load, anywhere in the program. Weight-bearing cardio and posture work open the week, lower- and upper-body resistance days follow, with dedicated balance/fall-prevention and posture/gentle-extension days rounding things out. A UK consensus statement specifically recommends weight-bearing impact, resistance training, and balance work together, and explicitly says high-flexion postures and end-range twisting should be avoided — exactly what this program is built around and deliberately leaves out. This can\'t assess your actual fracture risk; that needs a DEXA scan and a clinician\'s input, and any activity here should be confirmed against your specific bone density and fracture history first.',
     days: {
       d1: {
         label:'Day 1', sub:'Weight-Bearing Cardio + Posture', plate:'p-red', plateNum:'25', duration:'~25 min',
@@ -9211,7 +9224,7 @@ const MEDICAL_STYLES = {
   },
   bariatricEarly: {
     group: 'Bariatric Surgery Recovery',
-    label: 'Early Recovery', short: 'Roughly the first ~12 weeks — walking-first, no core work, no heavy lifting. Please confirm every stage with your surgical/bariatric team before advancing; this app has no way to know your actual clearance.',
+    label: 'Early Recovery', short: 'Roughly the first ~12 weeks — walking-first, no core work, no heavy lifting. Please confirm every stage with your surgical/bariatric team before advancing; this app has no way to know your actual clearance.', overview: 'Roughly the first three months after surgery — walking-first, deliberately unambitious, and with zero abdominal work anywhere in the program. Walking-focus and breathing days open the week, gentle mobility with no core loading and progressive walking-plus-light-strength days follow, all built around real expert guidelines for this exact recovery phase. The absence of planks and sit-ups is the actual guideline, not an oversight — abdominal work is delayed 8-12 weeks post-op on purpose, and "completing" this program with core work would work against your own recovery. Please confirm every stage with your surgical team before advancing — this program has no way to know your actual clearance status.',
     days: {
       d1: {
         label:'Day 1', sub:'Walking Focus & Breathing', plate:'p-red', plateNum:'25', duration:'~20 min',
@@ -9284,7 +9297,7 @@ const MEDICAL_STYLES = {
   },
   bariatricRebuilding: {
     group: 'Bariatric Surgery Recovery',
-    label: 'Rebuilding Phase', short: 'From roughly month 3 onward, once your team has cleared full activity — real resistance training with protein and bone-loading kept front and center. There\'s no fixed end date to this phase: whenever you and your team feel ready, moving to any standard program in this app (Strength & Size and general fitness programs are both reasonable) is completely fine — there\'s nothing bariatric-specific left to need once you\'re here consistently.',
+    label: 'Rebuilding Phase', short: 'From roughly month 3 onward, once your team has cleared full activity — real resistance training with protein and bone-loading kept front and center. There\'s no fixed end date to this phase: whenever you and your team feel ready, moving to any standard program in this app (Strength & Size and general fitness programs are both reasonable) is completely fine — there\'s nothing bariatric-specific left to need once you\'re here consistently.', overview: 'From roughly month three onward, once your surgical team has cleared full activity — real resistance training resumes here, with protein and bone-loading kept front and center for a body that\'s been through rapid, significant change. Full-body strength days alternate with cardio-and-core-introduction and cardio-and-balance days, reintroducing the training elements the early-recovery phase deliberately left out. There\'s no fixed end date to this phase — entering it is a clinical decision your team makes, not a calendar date this app tracks. Once you\'re training consistently here, moving to any standard program in this app (Strength & Size and general fitness programs are both reasonable) is completely fine — there\'s nothing bariatric-specific left to need.',
     days: {
       d1: {
         label:'Day 1', sub:'Full-Body Strength A', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -9363,7 +9376,7 @@ const MEDICAL_STYLES = {
   },
   prenatal: {
     group: 'Pregnancy & Postpartum',
-    label: 'Prenatal', short: 'Moderate, fall-risk-aware training for pregnancy — always cleared by your OB first',
+    label: 'Prenatal', short: 'Moderate, fall-risk-aware training for pregnancy — always cleared by your OB first', overview: 'Moderate, fall-risk-aware training built on the actual obstetric guidance position: staying active during pregnancy is the recommended default, not something to avoid out of caution. Gentle full-body strength and cardio-and-balance days open the week, upper-body/posture and functional-strength days follow, with gentle cardio and stretching closing things out. "Strength" here means real resistance training, not the low-rep heavy-strength tier used elsewhere in this app — that distinction matters and is enforced throughout. Clinical evaluation should precede starting this or any exercise program during pregnancy — get cleared by your OB first, and stop and call your provider for any of the real warning signs (bleeding, contractions, chest pain, dizziness) this app has no way to detect.',
     days: {
       d1: { label:'Day 1', sub:'Gentle Full-Body Strength', plate:'p-red', plateNum:'25', duration:'~30 min',
         exercises:[
@@ -9408,7 +9421,7 @@ const MEDICAL_STYLES = {
   },
   postpartum: {
     group: 'Pregnancy & Postpartum',
-    label: 'Postpartum', short: 'Diastasis-aware, pelvic-floor-first return to training — always cleared by your provider first',
+    label: 'Postpartum', short: 'Diastasis-aware, pelvic-floor-first return to training — always cleared by your provider first', overview: 'A diastasis-aware, pelvic-floor-first return to training, sequenced so the tissue that actually took the load during pregnancy and delivery recovers before it gets loaded again. Foundational core-and-breath work opens the week, gentle cardio progression follows, and upper-body and lower-body rebuild days close things out — deliberately gradual, not a fast return to a pre-pregnancy program. Typical timelines (around 4-6 weeks after an uncomplicated vaginal delivery, longer after a caesarean) are just that — typical, not personal, and they differ meaningfully based on your own delivery. This can\'t assess diastasis recti or pelvic floor function itself; both need in-person assessment, and any leaking, heaviness, or pain means getting checked rather than pushing through it.',
     days: {
       d1: { label:'Day 1', sub:'Foundational Core & Breath', plate:'p-red', plateNum:'25', duration:'~25 min',
         exercises:[
@@ -9452,7 +9465,7 @@ const MEDICAL_STYLES = {
   },
   rehabGeneral: {
     group: 'Injury Rehab',
-    label: 'General / Multiple Areas', short: 'A broad week touching shoulder, back, knee, hip, and ankle — a reasonable default if you don\'t have one specific injury in mind. ⚠️ General guidance only — see a doctor/PT for an actual diagnosis.',
+    label: 'General / Multiple Areas', short: 'A broad week touching shoulder, back, knee, hip, and ankle — a reasonable default if you don\'t have one specific injury in mind. ⚠️ General guidance only — see a doctor/PT for an actual diagnosis.', overview: 'A broad week touching shoulder, back, knee, hip, and ankle — a reasonable default if more than one area needs attention, or you\'re honestly not sure yet which one is actually the problem. Each day borrows its exercises directly from this app\'s own dedicated regional tracks (shoulder day pulls from the Shoulder program, back day from the Lower Back program, and so on), rather than inventing a generic one-size-fits-all protocol that doesn\'t really exist in real rehab practice. Breadth is the deliberate trade-off here — nothing in this week is dosed for one specific diagnosis. If you do know which area is the actual problem, that program\'s own dedicated track will serve you better than this general one; an undiagnosed problem needs diagnosing by a doctor or PT, not just training around.',
     days: {
       d1: {
         label:'Day 1', sub:'Shoulder Mobility & Stability', plate:'p-red', plateNum:'25', duration:'~25 min',
@@ -9515,7 +9528,7 @@ const MEDICAL_STYLES = {
   },
   rehabShoulder: {
     group: 'Injury Rehab',
-    label: 'Shoulder (Rotator Cuff / Impingement)', short: 'The standard 3-phase structure — calm the tissue first, then rebuild rotator cuff and scapular strength, then reintroduce overhead work. ⚠️ Overhead/loaded progression should be cleared by a doctor or PT, not self-timed.',
+    label: 'Shoulder (Rotator Cuff / Impingement)', short: 'The standard 3-phase structure — calm the tissue first, then rebuild rotator cuff and scapular strength, then reintroduce overhead work. ⚠️ Overhead/loaded progression should be cleared by a doctor or PT, not self-timed.', overview: 'The standard three-phase rehab structure — calm the tissue down first, then rebuild rotator cuff and scapular strength, then reintroduce overhead work — rather than jumping straight to strengthening a joint that\'s still irritated. Gentle mobility and a postural reset make up Phase 1, rotator cuff strengthening and scapular stability work make up Phase 2, with active recovery worked in throughout. Real trial evidence backs pairing scapular stabilization with rotator cuff work specifically, rather than training the rotator cuff in isolation. This can\'t distinguish a rotator cuff problem from instability or referred neck pain, which need different treatment — progression between phases should be criterion-based and confirmed by a doctor or PT, not just self-timed.',
     days: {
       d1: {
         label:'Day 1', sub:'Phase 1 · Gentle Mobility', plate:'p-red', plateNum:'25', duration:'~20 min',
@@ -9570,7 +9583,7 @@ const MEDICAL_STYLES = {
   },
   rehabAcl: {
     group: 'Injury Rehab',
-    label: 'ACL (Post-Surgical or Non-Surgical)', short: 'A real recovery here runs 9-12 months and is criterion-based, not calendar-based — this is a framework to use alongside your surgeon and physical therapist, not instead of them. Re-injury risk from returning too early is real and well-documented.',
+    label: 'ACL (Post-Surgical or Non-Surgical)', short: 'A real recovery here runs 9-12 months and is criterion-based, not calendar-based — this is a framework to use alongside your surgeon and physical therapist, not instead of them. Re-injury risk from returning too early is real and well-documented.', overview: 'A long, criterion-based track — real ACL recovery runs nine to twelve months and progresses based on what you can actually do, not on how many weeks have passed on a calendar. Early quad activation and swelling control open the recovery, progressive strengthening and balance/proprioception work follow as tolerance builds. Real cohort data found athletes who returned to sport without passing return-to-sport testing got reinjured at nearly seven times the rate of those who passed — the actual reason this program keeps saying wait for criteria, not weeks. This is a framework to use alongside your surgeon and physical therapist, not instead of them — the actual gating criteria (strength testing, hop tests, psychological readiness) are exactly what this app can\'t measure.',
     days: {
       d1: {
         label:'Day 1', sub:'Early Quad Activation & ROM', plate:'p-red', plateNum:'25', duration:'~20 min',
@@ -9625,7 +9638,7 @@ const MEDICAL_STYLES = {
   },
   rehabAchilles: {
     group: 'Injury Rehab',
-    label: 'Achilles Tendon', short: 'Grounded in the Alfredson eccentric-loading protocol, the most studied conservative approach for Achilles tendinopathy — a 12-week progressive program. ⚠️ Confirm with a doctor/PT whether this fits your specific situation (tendinopathy vs. rupture are very different).',
+    label: 'Achilles Tendon', short: 'Grounded in the Alfredson eccentric-loading protocol, the most studied conservative approach for Achilles tendinopathy — a 12-week progressive program. ⚠️ Confirm with a doctor/PT whether this fits your specific situation (tendinopathy vs. rupture are very different).', overview: 'Grounded in the Alfredson eccentric-loading protocol — the most studied conservative approach for mid-portion Achilles tendinopathy — at a repetition volume you can actually sustain rather than the twice-daily full protocol. Eccentric loading days alternate with mobility/isometric work, building to progressive loading and balance work over a 12-week arc. Real trial evidence supports a reduced-volume, do-as-tolerated approach achieving comparable results to the full protocol, which is exactly the adjustment made here. This applies specifically to mid-portion tendinopathy, not insertional pain (which often responds badly to the same heel-drop pattern) and not to a suspected rupture, which is a surgical question — confirm with a doctor or PT which one you actually have.',
     days: {
       d1: {
         label:'Day 1', sub:'Eccentric Loading A', plate:'p-red', plateNum:'25', duration:'~15 min',
@@ -9683,7 +9696,7 @@ const MEDICAL_STYLES = {
   },
   rehabLowerback: {
     group: 'Injury Rehab',
-    label: 'Lower Back', short: 'Core stabilization first, built on the same principle used elsewhere in this app for spine safety — control through a stable, neutral spine rather than pushing range of motion under load.',
+    label: 'Lower Back', short: 'Core stabilization first, built on the same principle used elsewhere in this app for spine safety — control through a stable, neutral spine rather than pushing range of motion under load.', overview: 'Stabilization before movement — building real trunk control to tolerate load, rather than stretching into the area that actually hurts. Core stabilization basics and hip/glute activation open the week, core endurance and full-body stabilization work follow, all built on the same McGill spine-stabilization research (the curl-up, side plank, and bird dog specifically) used elsewhere in this app for spine safety. The emphasis throughout is control through a stable, neutral spine rather than pushing range of motion under load. This can\'t identify the genuine red flags that make back pain a medical emergency — bowel/bladder changes, saddle numbness, progressive leg weakness, unexplained weight loss — any of those means stop and seek care immediately, not modify the program.',
     days: {
       d1: {
         label:'Day 1', sub:'Core Stabilization Basics', plate:'p-red', plateNum:'25', duration:'~20 min',
@@ -9739,7 +9752,7 @@ const MEDICAL_STYLES = {
 
 const COMBAT_STYLES = {
   kickboxing: {
-    label: 'Kickboxing', short: 'Punches + kicks, no clinch — the balanced default',
+    label: 'Kickboxing', short: 'Punches + kicks, no clinch — the balanced default', overview: 'Punches and kicks without clinch work — the balanced default if you want striking conditioning and haven\'t committed to one specific art yet. Boxing-focused power/combo days alternate with kickboxing-focused kick-and-core days, building toward a power-kicks day and a conditioning finisher. Real time-motion data on kickboxing shows short high-intensity bursts separated by brief pauses, which is exactly the interval structure this program trains. This is drill and conditioning work, not sparring instruction — it builds the engine and the combinations, not fight IQ or contact experience.',
     days: {
       d1: { label:'Day 1', sub:'Boxing · Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
         exercises:[
@@ -9788,7 +9801,7 @@ const COMBAT_STYLES = {
   },
 
   boxing: {
-    label: 'Boxing', short: 'Hands only — combos, defense, footwork, no kicks',
+    label: 'Boxing', short: 'Hands only — combos, defense, footwork, no kicks', overview: 'Hands only — combinations, defensive movement, and footwork, with the round-based conditioning that supports real boxing output. Power-and-combo and speed-and-footwork days open the week, a dedicated defense-and-counters day follows, and a power-endurance day plus conditioning finisher round it out. The round structure (2-minute rounds matching real fight pacing) is grounded in actual physiological data on boxing\'s intermittent, high-intensity demand. Important limit: nothing here addresses head-impact safety specifically — this is conditioning and drilling, not a substitute for a coach teaching you to take a punch safely.',
     days: {
       d1: { label:'Day 1', sub:'Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
         exercises:[
@@ -9837,7 +9850,7 @@ const COMBAT_STYLES = {
   },
 
   muayThai: {
-    label: 'Muay Thai', short: 'Punches, kicks, knees, elbows, and clinch work',
+    label: 'Muay Thai', short: 'Punches, kicks, knees, elbows, and clinch work', overview: 'The full eight-limb arsenal — punches, kicks, knees, elbows, and clinch work — with the anaerobic conditioning Thai boxing actually demands. Punch-kick combo power and knees-and-clinch days open the week, elbow combos and power-kick/leg days follow, building toward a conditioning finisher. Real physiological data shows Muay Thai rounds run heavily anaerobic with roughly a fifth of round time spent in the clinch specifically, which is why clinch work gets its own dedicated time rather than an afterthought. Clinch and elbow work carry real injury risk and aren\'t learnable safely from text — treat this as supplementary conditioning to real coached training, not a replacement for it.',
     days: {
       d1: { label:'Day 1', sub:'Punch-Kick Combos & Power', plate:'p-red', plateNum:'25', duration:'~55 min',
         exercises:[
@@ -9886,7 +9899,7 @@ const COMBAT_STYLES = {
   },
 
   mma: {
-    label: 'MMA Striking', short: 'Mixed standup with sprawl/ground conditioning',
+    label: 'MMA Striking', short: 'Mixed standup with sprawl/ground conditioning', overview: 'Mixed standup striking with sprawl-and-ground conditioning — built for the transitions between striking and grappling rather than either range alone. Boxing combos paired with takedown defense open the week, kicks-and-clinch and ground-and-pound conditioning follow, building to a full-combos day and conditioning finisher. MMA\'s metabolic demands genuinely conflict — explosive phosphagen output for exchanges, sustained glycolytic demand for grappling, aerobic recovery between — which is exactly why this trains across ranges instead of picking one. This covers conditioning across those ranges, not the technical skill of actually transitioning between striking and grappling live.',
     days: {
       d1: { label:'Day 1', sub:'Boxing Combos + Takedown Defense', plate:'p-red', plateNum:'25', duration:'~55 min',
         exercises:[
@@ -9932,7 +9945,7 @@ const COMBAT_STYLES = {
   },
 
   taekwondo: {
-    label: 'Taekwondo', short: 'Kick-dominant — roundhouse, side, axe, and spinning kicks',
+    label: 'Taekwondo', short: 'Kick-dominant — roundhouse, side, axe, and spinning kicks', overview: 'Kick-dominant training — roundhouse, side, axe, and spinning kicks — with the hip mobility and balance work that actually makes them possible, not just kicking drills in isolation. Roundhouse/power-kick and side-kick/footwork days open the week, axe-kick/flexibility and spinning-kick/power days follow, building to a kick-endurance finisher. Hip joint torque and mobility are the most consistent predictors of real kicking performance across the research, and since most kicks land off a single supporting leg, balance work isn\'t optional extra credit here. Spinning and jumping kicks specifically demand a mobility and landing base this program builds toward rather than assumes you already have.',
     days: {
       d1: { label:'Day 1', sub:'Roundhouse & Power Kicks', plate:'p-red', plateNum:'25', duration:'~55 min',
         exercises:[
@@ -9981,7 +9994,7 @@ const COMBAT_STYLES = {
   },
 
   taiChi: {
-    label: 'Tai Chi', short: 'Internal art — standing meditation, form work, push hands, and stance strength',
+    label: 'Tai Chi', short: 'Internal art — standing meditation, form work, push hands, and stance strength', overview: 'An internal art — standing meditation, slow form work, and push hands — trained for balance, control, and breath rather than for power output. Standing meditation and rooting open the week, cardinal-technique form practice and push-hands sensitivity work follow, building to stance/leg-strength work and a full form flow. Real trial evidence in older adults found Tai Chi meaningfully reduces fall risk and improves balance — genuinely the best-evidenced program in this app for that specific outcome, though that evidence is specifically in adults 60+. Low output is the actual method here, not a shortfall to fix — don\'t expect (or add) intensity.',
     days: {
       d1: { label:'Day 1', sub:'Standing Meditation & Rooting', plate:'p-red', plateNum:'25', duration:'~40 min',
         exercises:[
@@ -10035,7 +10048,7 @@ const COMBAT_STYLES = {
 // technical trail climbs demand.
 const CYCLING_STYLES = {
   road: {
-    label: 'Road', short: 'Structured power-based intervals — FTP, hill repeats, sprints',
+    label: 'Road', short: 'Structured power-based intervals — FTP, hill repeats, sprints', overview: 'Structured power-based intervals — FTP threshold work, hill repeats, and sprint/cadence sessions — built around a small number of genuinely hard efforts inside a mostly-easy week, the polarized model that real endurance research consistently favors. An endurance base ride opens the week, threshold and hill-repeat days follow, and a long ride closes it out with core/strength work attached. One real nuance worth knowing: how well polarized training works may depend on how competitive you are — some research suggests recreational riders actually respond better to a different (pyramidal) distribution, something this program doesn\'t currently adjust for. Good fit if you want real structure to your rides instead of just riding by feel.',
     days: {
       d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
         exercises:[
@@ -10076,7 +10089,7 @@ const CYCLING_STYLES = {
     }
   },
   mountain: {
-    label: 'Mountain', short: 'Technical trail skills + punchy climbing power + grip endurance',
+    label: 'Mountain', short: 'Technical trail skills + punchy climbing power + grip endurance', overview: 'Technical trail skill, punchy climbing power, and the grip-and-upper-body endurance that rough descending actually demands — built for off-road riding specifically, not road cycling with dirt under the tires. An endurance base ride and technical-trail-skills day open the week, standing-climb power and technical intervals follow, and a long ride with grip/core work closes it out. Elite XCO racing data shows 300+ short, punchy efforts above maximal aerobic power in a single race — the direct basis for this program\'s repeated-power-effort structure over steady-state riding alone. One real limit: technical descending skill isn\'t trainable from a program — that only comes from actual trail time, ideally with someone who can watch your line choices.',
     days: {
       d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
         exercises:[
@@ -10128,7 +10141,7 @@ const CYCLING_STYLES = {
 // paddling/riding out for the first time.
 const WATERSPORTS_STYLES = {
   surfing: {
-    label: 'Surfing', short: 'Land-based paddle power, rotational power, pop-up speed, and shoulder health',
+    label: 'Surfing', short: 'Land-based paddle power, rotational power, pop-up speed, and shoulder health', overview: 'Land-based support training for surfing — paddle-pattern pulling power, rotational power, pop-up speed, and posterior-shoulder health — since the actual surfing skill only develops in the water, this never will. Paddle-power and rotational-power/pop-up days open the week, a dedicated posterior-shoulder injury-prevention day follows (paddling is the majority of a real session and the leading mechanism behind shoulder injuries here too), and leg-power/balance and endurance days round it out. Real GPS/heart-rate data on competitive surfing found paddling makes up roughly half of total session time versus a small fraction actually riding waves — directly why this program is built the way it is. This is land conditioning only; it can\'t teach wave judgment, positioning, or board control, which need real ocean time and ideally real instruction.',
     days: {
       d1: {
         label:'Day 1', sub:'Paddle Power & Endurance', plate:'p-red', plateNum:'25', duration:'~40 min',
@@ -10186,7 +10199,7 @@ const WATERSPORTS_STYLES = {
     }
   },
   skimboarding: {
-    label: 'Skimboarding', short: 'Land-based sprint power, ankle stability, and fall-ready strength',
+    label: 'Skimboarding', short: 'Land-based sprint power, ankle stability, and fall-ready strength', overview: 'Land-based support training for skimboarding — explosive running, ankle stability, and grip/wrist strength — built directly from the sport\'s own documented injury pattern rather than generic athletic conditioning. Explosive-running/acceleration and ankle-stability/landing-control days open the week, grip/wrist/fall-ready strength and rotational-power/core days follow, building to a full sprint-to-board conditioning day. Real injury data shows the planted-foot rotation used to stop the board and falls onto an outstretched hand are the two dominant injury mechanisms — directly why ankle stability and grip/wrist strength each get their own day rather than generic full-body work. This is land support only; it can\'t teach the timing of the run-and-drop or reading sand/tide conditions, which take real practice, ideally with someone experienced showing you first.',
     days: {
       d1: {
         label:'Day 1', sub:'Explosive Running & Acceleration', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -10243,7 +10256,7 @@ const WATERSPORTS_STYLES = {
     }
   },
   wakeboarding: {
-    label: 'Wakeboarding', short: 'Land-based landing mechanics, posterior-shoulder stability, and rope-pull grip strength',
+    label: 'Wakeboarding', short: 'Land-based landing mechanics, posterior-shoulder stability, and rope-pull grip strength', overview: 'Land-based support training for wakeboarding — landing mechanics, posterior-shoulder stability, and rope-pull grip strength — built from the sport\'s two best-documented injury findings: an unusually high ACL-tear rate from hard jump landings, and shoulder dislocation as the dominant upper-body injury. Landing-mechanics and posterior-shoulder days open the week, rope-pull/grip strength and edge-control/rotational-power days follow, closing with a full landing-to-ride conditioning day. Survey data found over 40% of wakeboarders report tearing an ACL specifically while wakeboarding — most from a hard landing, not a twist — directly why the landing-mechanics day exists as its own full session. Real limit: head and neck injuries are actually the single largest wakeboarding injury category, and land-based strength training genuinely can\'t address that — it\'s a helmet/technique issue this program doesn\'t and can\'t cover.',
     days: {
       d1: {
         label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -10301,7 +10314,7 @@ const WATERSPORTS_STYLES = {
     }
   },
   kiteAssisted: {
-    label: 'Kite-Assisted Surfing', short: 'Land-based core/lumbar endurance, landing mechanics, and grip/shoulder stamina',
+    label: 'Kite-Assisted Surfing', short: 'Land-based core/lumbar endurance, landing mechanics, and grip/shoulder stamina', overview: 'Land-based support training for kite-assisted surfing — sustained core/lumbar endurance for the leaned-back riding stance, landing mechanics for jumps, and grip/shoulder endurance for holding the bar. Core-and-lumbar-stability and landing-mechanics days open the week, grip/forearm/shoulder endurance and explosive-power/core-rotation days follow, closing with aerobic-anaerobic conditioning matching the sport\'s real intensity swings between cruising and freestyle tricks. The riding stance itself is a sustained, near-isometric hold against the kite\'s pull, and real injury data shows the ankle is the single most commonly hurt joint from jump landings — both directly shape this program\'s structure. Most important limit: no land exercise substitutes for real, supervised kite-control instruction — body-dragging, kite handling, and self-rescue are safety-critical skills a kite school needs to teach hands-on.',
     days: {
       d1: {
         label:'Day 1', sub:'Core & Lumbar Stability', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -10359,7 +10372,7 @@ const WATERSPORTS_STYLES = {
     }
   },
   sup: {
-    label: 'Stand-Up Paddleboarding', short: 'Land-based paddling-pattern shoulder strength, core endurance, and hip-driven rotational power',
+    label: 'Stand-Up Paddleboarding', short: 'Land-based paddling-pattern shoulder strength, core endurance, and hip-driven rotational power', overview: 'Land-based support training for stand-up paddleboarding — paddling-pattern shoulder strength, core endurance for the real trunk load an upright stroke creates, and hip-driven rotational power. Paddling-pattern/shoulder-health and core-endurance days open the week, grip/forearm/posterior-shoulder endurance and rotational-power/sprint days follow, closing with full-body aerobic conditioning. Real injury survey data found the shoulder is the single most commonly injured region in SUP, with endurance paddling itself (not falls or collisions) the leading mechanism — directly why shoulder health gets sustained attention here rather than just falls-prevention. One real nuance: motion analysis found experienced paddlers actually drive the stroke from the hips far more than beginners do, which is why this program deliberately trains hip rotation, not just arms.',
     days: {
       d1: {
         label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -10417,7 +10430,7 @@ const WATERSPORTS_STYLES = {
     }
   },
   kayaking: {
-    label: 'Kayaking', short: 'Land-based paddling-pattern strength, core/lumbar endurance, and the leg drive most kayak training skips',
+    label: 'Kayaking', short: 'Land-based paddling-pattern strength, core/lumbar endurance, and the leg drive most kayak training skips', overview: 'Land-based support training for kayaking — paddling-pattern shoulder strength, core/lumbar endurance, and the leg drive most kayak training completely overlooks. Paddling-pattern/shoulder-health and core/lumbar-endurance days open the week, leg-drive/lower-body-power and grip/wrist/forearm-endurance days follow, closing with rotational-power/full-body conditioning. Real biomechanical testing found that removing leg drive from the stroke (locking the knees) cut paddle force by over a fifth and boat speed by nearly a sixth — direct, measured proof kayaking is not an arms-only sport, which is exactly why this program gives legs their own dedicated day. Injury data also shows the lower back and shoulder are the most commonly hurt sites in kayaking, matching the core/lumbar and shoulder emphasis here.',
     days: {
       d1: {
         label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -10488,7 +10501,7 @@ const WATERSPORTS_STYLES = {
 // conditions, pregnancy, certain medications) worth a clearance check.
 const YOGA_STYLES = {
   flow: {
-    label: 'Vinyasa & Flow', short: 'Five professional flow styles — Vinyasa to Restorative',
+    label: 'Vinyasa & Flow', short: 'Five professional flow styles — Vinyasa to Restorative', overview: 'Five professional flow styles in one program — Vinyasa, Power Yoga, Hatha Flow, Yin, and Restorative — sequenced across the week from higher intensity toward lower, rather than one flat-intensity practice repeated daily. Real measured data across different vinyasa sequence types found sun-salutation and standing sequences run meaningfully harder than restorative/integration sequences, directly why this program moves through that same spectrum instead of treating all flow as equal. Worth knowing: even the harder sequences here measure as genuinely moderate-intensity, not the high-intensity cardio some marketing implies — the real value is flexibility, breath-linked movement, and body control, not calorie burn. Good fit if you want real variety across yoga styles rather than committing to just one.',
     days: {
       d1: {
         label:'Day 1', sub:'Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~40 min',
@@ -10550,7 +10563,7 @@ const YOGA_STYLES = {
     }
   },
   hot: {
-    label: 'Hot Yoga', short: 'Heated-room flow — please get your doctor\'s clearance first if you have any cardiovascular, respiratory, or heat-related condition',
+    label: 'Hot Yoga', short: 'Heated-room flow — please get your doctor\'s clearance first if you have any cardiovascular, respiratory, or heat-related condition', overview: 'Heated-room flow — the same style of practice as Flow, but the heat itself changes what a session actually demands: hydration, pacing, and knowing when to stop matter more here than in any other style in this app. Hot Vinyasa and Hot Power days open the week, Hot Hatha/alignment and a deliberately-cooler Yin day follow, with a cool-room recovery day built in. Honest finding from the research: regular practice does show real benefits (flexibility, balance, some vascular improvements), but the systematic review\'s own conclusion is that hot yoga doesn\'t clearly out-perform non-heated yoga — the heat adds real cardiovascular strain without clearly adding extra benefit. Not appropriate during pregnancy (especially the first trimester) or without medical clearance if you have any cardiovascular condition or heat intolerance.',
     days: {
       d1: {
         label:'Day 1', sub:'Hot Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~45 min',
@@ -10617,7 +10630,7 @@ const YOGA_STYLES = {
     }
   },
   couples: {
-    label: 'Partner Yoga', short: 'A shared practice built around two people — poses and pacing designed for both of you together',
+    label: 'Partner Yoga', short: 'A shared practice built around two people — poses and pacing designed for both of you together', overview: 'A shared practice for two people — assisted poses and paired balances where communication matters as much as the stretch itself. Trust-and-connection and partner-strength/counterbalance days open the week, assisted-flexibility and partner-balance/flow days follow, closing with a partner-restorative-and-breath session. One non-negotiable rule runs through every single pose: the person being stretched sets the depth, always — a partner can\'t feel where your actual end range is, so it has to be communicated out loud, never assumed. Good fit as a genuinely shared activity with a partner rather than two people doing solo yoga side by side — the whole structure assumes two people moving together, not one leading and one following.',
     days: {
       d1: {
         label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -12913,6 +12926,7 @@ function wireCustomProgramUI(){
 async function renderProgramSelector(trendStatus){
   const el = document.getElementById('programSelector');
   const descEl = document.getElementById('programSelectDesc');
+  const overviewEl = document.getElementById('programOverview');
   renderProgramSource();   // provenance follows whichever program is active
 
   const scores = await scoreAllPrograms(userProfile, trendStatus);
@@ -12944,6 +12958,7 @@ async function renderProgramSelector(trendStatus){
   el.innerHTML = html;
   renderCustomProgramList();
   descEl.textContent = programs[activeProgram].short;
+  overviewEl.textContent = programs[activeProgram].overview;
   togglePosingCard();
   toggleMartialArtCard();
   toggleCyclingCard();
@@ -12975,6 +12990,7 @@ async function renderProgramSelector(trendStatus){
     dayDefs = programs[activeProgram].days;
     activeDay = 'd1';
     descEl.textContent = programs[activeProgram].short;
+    overviewEl.textContent = programs[activeProgram].overview;
     renderProgramSource();   // onchange updates the description in place and
                              // never re-runs renderProgramSelector(), so the
                              // provenance note has to be refreshed here too
@@ -13051,16 +13067,19 @@ async function saveMartialArtStyle(){
 function renderMartialArtSelector(){
   const el = document.getElementById('martialArtSelector');
   const descEl = document.getElementById('martialArtDesc');
+  const overviewEl = document.getElementById('martialArtOverview');
   el.innerHTML = Object.keys(COMBAT_STYLES).map(key=>
     `<option value="${key}" ${key===activeMartialArt?'selected':''}>${COMBAT_STYLES[key].label}</option>`
   ).join('');
   descEl.textContent = COMBAT_STYLES[activeMartialArt].short;
+  overviewEl.textContent = COMBAT_STYLES[activeMartialArt].overview;
 
   el.onchange = async ()=>{
     activeMartialArt = el.value;
     renderProgramSource();   // style provenance must follow the style, not just the program
     programs.combat.days = COMBAT_STYLES[activeMartialArt].days;
     descEl.textContent = COMBAT_STYLES[activeMartialArt].short;
+    overviewEl.textContent = COMBAT_STYLES[activeMartialArt].overview;
     await saveMartialArtStyle();
     if(activeProgram === 'combat'){
       dayDefs = programs.combat.days;
@@ -13101,16 +13120,19 @@ async function saveCyclingStyle(){
 function renderCyclingSelector(){
   const el = document.getElementById('cyclingSelector');
   const descEl = document.getElementById('cyclingDesc');
+  const overviewEl = document.getElementById('cyclingOverview');
   el.innerHTML = Object.keys(CYCLING_STYLES).map(key=>
     `<option value="${key}" ${key===activeCyclingStyle?'selected':''}>${CYCLING_STYLES[key].label}</option>`
   ).join('');
   descEl.textContent = CYCLING_STYLES[activeCyclingStyle].short;
+  overviewEl.textContent = CYCLING_STYLES[activeCyclingStyle].overview;
 
   el.onchange = async ()=>{
     activeCyclingStyle = el.value;
     renderProgramSource();   // style provenance must follow the style, not just the program
     programs.cycling.days = CYCLING_STYLES[activeCyclingStyle].days;
     descEl.textContent = CYCLING_STYLES[activeCyclingStyle].short;
+    overviewEl.textContent = CYCLING_STYLES[activeCyclingStyle].overview;
     await saveCyclingStyle();
     if(activeProgram === 'cycling'){
       dayDefs = programs.cycling.days;
@@ -13151,16 +13173,19 @@ async function saveWatersportsStyle(){
 function renderWatersportsSelector(){
   const el = document.getElementById('watersportsSelector');
   const descEl = document.getElementById('watersportsDesc');
+  const overviewEl = document.getElementById('watersportsOverview');
   el.innerHTML = Object.keys(WATERSPORTS_STYLES).map(key=>
     `<option value="${key}" ${key===activeWatersportsStyle?'selected':''}>${WATERSPORTS_STYLES[key].label}</option>`
   ).join('');
   descEl.textContent = WATERSPORTS_STYLES[activeWatersportsStyle].short;
+  overviewEl.textContent = WATERSPORTS_STYLES[activeWatersportsStyle].overview;
 
   el.onchange = async ()=>{
     activeWatersportsStyle = el.value;
     renderProgramSource();   // style provenance must follow the style, not just the program
     programs.watersports.days = WATERSPORTS_STYLES[activeWatersportsStyle].days;
     descEl.textContent = WATERSPORTS_STYLES[activeWatersportsStyle].short;
+    overviewEl.textContent = WATERSPORTS_STYLES[activeWatersportsStyle].overview;
     await saveWatersportsStyle();
     if(activeProgram === 'watersports'){
       dayDefs = programs.watersports.days;
@@ -13201,16 +13226,19 @@ async function saveYogaStyle(){
 function renderYogaSelector(){
   const el = document.getElementById('yogaSelector');
   const descEl = document.getElementById('yogaDesc');
+  const overviewEl = document.getElementById('yogaOverview');
   el.innerHTML = Object.keys(YOGA_STYLES).map(key=>
     `<option value="${key}" ${key===activeYogaStyle?'selected':''}>${YOGA_STYLES[key].label}</option>`
   ).join('');
   descEl.textContent = YOGA_STYLES[activeYogaStyle].short;
+  overviewEl.textContent = YOGA_STYLES[activeYogaStyle].overview;
 
   el.onchange = async ()=>{
     activeYogaStyle = el.value;
     renderProgramSource();   // style provenance must follow the style, not just the program
     programs.yoga.days = YOGA_STYLES[activeYogaStyle].days;
     descEl.textContent = YOGA_STYLES[activeYogaStyle].short;
+    overviewEl.textContent = YOGA_STYLES[activeYogaStyle].overview;
     await saveYogaStyle();
     if(activeProgram === 'yoga'){
       dayDefs = programs.yoga.days;
@@ -13257,6 +13285,7 @@ async function saveMedicalStyle(){
 function renderMedicalSelector(){
   const el = document.getElementById('medicalSelector');
   const descEl = document.getElementById('medicalDesc');
+  const overviewEl = document.getElementById('medicalOverview');
   const groups = [];
   Object.keys(MEDICAL_STYLES).forEach(key=>{
     const g = MEDICAL_STYLES[key].group;
@@ -13270,6 +13299,7 @@ function renderMedicalSelector(){
     ).join('')}</optgroup>`
   ).join('');
   descEl.textContent = MEDICAL_STYLES[activeMedicalStyle].short;
+  overviewEl.textContent = MEDICAL_STYLES[activeMedicalStyle].overview;
 
   el.onchange = async ()=>{
     const prev = activeMedicalStyle;
@@ -13277,6 +13307,7 @@ function renderMedicalSelector(){
     renderProgramSource();   // style provenance must follow the style, not just the program
     programs.medical.days = MEDICAL_STYLES[activeMedicalStyle].days;
     descEl.textContent = MEDICAL_STYLES[activeMedicalStyle].short;
+    overviewEl.textContent = MEDICAL_STYLES[activeMedicalStyle].overview;
     await saveMedicalStyle();
     if(activeProgram === 'medical'){
       dayDefs = programs.medical.days;
