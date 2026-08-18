@@ -29,6 +29,19 @@
 //    (`...0.35) inset`), for large round/pill surfaces (.day-hero-plate,
 //    coach-fab, today-fab, and each FAB's own :active state) — 5 exact
 //    call sites.
+// 6. --glass-blur — `blur(18px) saturate(160%)`, the single most-repeated
+//    backdrop-filter recipe in the file: 4 exact call sites (.nav-pills,
+//    .status-scrim, .analysis-index, and the pull-refresh indicator, whose
+//    own comment already said it takes "the same treatment as every other
+//    floating layer"). Each site restates it twice (unprefixed +
+//    -webkit-, since backdrop-filter needs both), so 8 real occurrences.
+// 7. --nav-glass-bg — `rgba(10,11,13,0.72)`, the near-black glass
+//    background specific to the app's sticky navigation-adjacent bars
+//    (.nav-pills, .status-scrim, .analysis-index) — 3 exact call sites,
+//    always paired with --glass-blur. The pull-refresh indicator shares
+//    the blur but not this background (it's --surface-toned, lighter), so
+//    it correctly keeps its own literal background and is NOT part of
+//    this token.
 //
 // jsdom's CSSOM does not resolve custom properties in getComputedStyle at
 // all (documented by the prior H2.2/H2.3 passes) — so, same as those files,
@@ -185,6 +198,42 @@ test('REAL CASCADE: a representative sample of --fab-gloss-inset call sites reso
 
   const todayFabActiveBlock = resolveToken(extractRuleBlock(src, '.today-fab:active'), 'fab-gloss-inset', gloss);
   assert.ok(todayFabActiveBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.35) inset, 0 8px 20px -8px rgba(255,184,92,0.5);'), `.today-fab:active must resolve to its exact original shadow, got: ${todayFabActiveBlock}`);
+});
+
+// ── Glass blur + nav-glass background: 4 and 3 real call sites ─────────
+test('sabotage-relevant: --glass-blur and --nav-glass-bg are each declared exactly once, in :root', (assert)=>{
+  assert.strictEqual((src.match(/--glass-blur:/g) || []).length, 1);
+  assert.strictEqual((src.match(/--nav-glass-bg:/g) || []).length, 1);
+  assert.ok(rootBlock.includes('--glass-blur:'), 'must live in :root');
+  assert.ok(rootBlock.includes('--nav-glass-bg:'), 'must live in :root');
+});
+
+test('sabotage-relevant: var(--glass-blur) appears at exactly 8 real occurrences (4 sites x 2 prefixed declarations each), var(--nav-glass-bg) at exactly 3', (assert)=>{
+  assert.strictEqual((src.match(/var\(--glass-blur\)/g) || []).length, 8);
+  assert.strictEqual((src.match(/var\(--nav-glass-bg\)/g) || []).length, 3);
+});
+
+test('REAL CASCADE: .nav-pills, .status-scrim, and .analysis-index all resolve to the exact pre-conversion background + backdrop-filter pair', (assert)=>{
+  const blur = extractCustomProp(rootBlock, 'glass-blur');
+  const navBg = extractCustomProp(rootBlock, 'nav-glass-bg');
+  assert.strictEqual(blur, 'blur(18px) saturate(160%)', 'sanity: token holds the known pre-conversion literal');
+  assert.strictEqual(navBg, 'rgba(10,11,13,0.72)', 'sanity: token holds the known pre-conversion literal');
+
+  for(const selector of ['.nav-pills', '.status-scrim', '.analysis-index']){
+    let block = extractRuleBlock(src, selector);
+    block = resolveToken(block, 'glass-blur', blur);
+    block = resolveToken(block, 'nav-glass-bg', navBg);
+    assert.ok(block.includes('background:rgba(10,11,13,0.72);'), `${selector} must resolve to the exact pre-conversion background, got: ${block}`);
+    assert.ok(block.includes('backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);'), `${selector} must resolve to the exact pre-conversion backdrop-filter pair, got: ${block}`);
+  }
+});
+
+test('REAL CASCADE: the pull-refresh indicator resolves to its exact pre-conversion backdrop-filter, but keeps its OWN (non-nav) background literal unchanged', (assert)=>{
+  const blur = extractCustomProp(rootBlock, 'glass-blur');
+  let block = extractRuleBlock(src, '.pull-refresh-indicator');
+  assert.match(block, /background:rgba\(23,25,29,0\.72\);/, '.pull-refresh-indicator must keep its own --surface-toned literal background, NOT var(--nav-glass-bg)');
+  block = resolveToken(block, 'glass-blur', blur);
+  assert.ok(block.includes('backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);'), `.pull-refresh-indicator must resolve to the exact pre-conversion backdrop-filter pair, got: ${block}`);
 });
 
 run();

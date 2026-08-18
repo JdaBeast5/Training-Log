@@ -208,6 +208,19 @@
        their own :active state). 5 call sites shared this exact literal
        verbatim before being factored out here. */
     --fab-gloss-inset:0 1px 0 rgba(var(--surface-white-rgb),0.35) inset;
+    /* The single most-repeated backdrop-filter recipe in the file — 4 exact
+       call sites (.nav-pills, .status-scrim, .analysis-index, and the
+       pull-refresh indicator, which its own comment already called out as
+       "the same treatment as every other floating layer"). Factored out
+       here, same mechanical 1:1 dedup as the tokens above. */
+    --glass-blur:blur(18px) saturate(160%);
+    /* The near-black glass background specific to the app's sticky
+       navigation-adjacent bars (.nav-pills, .status-scrim, .analysis-index)
+       — 3 exact call sites, always paired with --glass-blur above. The
+       pull-refresh indicator uses the same blur but a different (lighter,
+       --surface-toned) background, so it stays its own literal rather than
+       being folded into this nav-specific token. */
+    --nav-glass-bg:rgba(10,11,13,0.72);
     --radius-xs:6px;
     --radius-sm:9px;
     --radius-md:12px;
@@ -254,7 +267,7 @@
        blur: this animates under an active gesture, and 18px over a 70px
        strip is cheap where 26px over a full sheet would not be. */
     background:rgba(23,25,29,0.72);
-    backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);
+    backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
     box-shadow:var(--rim), 0 8px 22px -14px rgba(var(--overlay-black-rgb),0.7);
   }
   .pull-refresh-indicator.dragging{ transition:none; }
@@ -2026,8 +2039,8 @@
        amount, so the row's own content does not move — the sum-to-zero trick
        the coloured set rows already use. */
     margin-left:-18px; margin-right:-18px;
-    background:rgba(10,11,13,0.72);
-    backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);
+    background:var(--nav-glass-bg);
+    backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
     /* --nav-search-w declared here rather than on .nav-pills-scroll: it's
        consumed by two things now (the scroller's scroll-padding-left, and
        .nav-pill-search's width) that both need it, and a custom property
@@ -2084,8 +2097,8 @@
     position:fixed; top:0; left:0; right:0;
     height:env(safe-area-inset-top, 0px);
     z-index:31; pointer-events:none;
-    background:rgba(10,11,13,0.72);
-    backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);
+    background:var(--nav-glass-bg);
+    backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
   }
   /* Seven pills are about 540px of content in roughly 354px of phone, so Care,
      Coach and Learn sit off the right edge behind a horizontal swipe with the
@@ -2203,8 +2216,8 @@
     position:sticky;
     top:calc(env(safe-area-inset-top, 0px) + var(--nav-rail-h, 56px));
     z-index:25;
-    background:rgba(10,11,13,0.72);
-    backdrop-filter:blur(18px) saturate(160%); -webkit-backdrop-filter:blur(18px) saturate(160%);
+    background:var(--nav-glass-bg);
+    backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
   }
   .analysis-index::-webkit-scrollbar{display:none;}
   /* The same fade the nav rail gets, for the same reason and by the same rule:
@@ -6301,7 +6314,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.212';
+const APP_VERSION = '3.213';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6761,6 +6774,10 @@ const WHATS_NEW = {
   ]},
   '3.212': { headline: 'Fixed the Protein bar\'s off-brand red on Today\'s Nutrition', points: [
     'Protein\'s progress bar now uses teal, matching the rest of the app\'s color scheme — red is reserved for warnings/urgent alerts everywhere else, so a normal metric being red was a genuine mismatch.',
+  ]},
+  '3.213': { headline: 'More behind-the-scenes styling cleanup', points: [
+    'The blurred glass background behind the tab bar, the status bar scrim, and the Analysis section index was copy-pasted at 4 spots — now a shared style.',
+    'Purely visual — no behavior changed, nothing should look any different.',
   ]},
 };
 
