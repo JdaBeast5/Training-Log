@@ -4893,6 +4893,21 @@
       <button class="save-btn" id="addCustomExerciseSubmit">Add to this day</button>
       <div class="status-msg" id="customExStatus"></div>
     </div></div>
+    <!-- Lives outside #exerciseList on purpose: that div's innerHTML gets
+         wholesale-replaced on every renderWorkout() call, which used to be
+         where this button was injected -- but only inside the rest-day
+         branch, so a 6/7-day-per-week plan whose Day 7 is a real training
+         day (not rest:true) had nowhere to reach it at all. A day-count-
+         independent, persistent element here, toggled by visibility rather
+         than existence, means it survives regardless of what Day 7's
+         content actually is. See renderArchiveWeekVisibility(). -->
+    <div id="archiveWeekWrap" style="display:none;">
+      <button class="save-btn" id="archiveWeekBtn" style="margin-top:14px;">🏁 Save this week & start fresh</button>
+      <div class="status-msg" id="archiveWeekStatus"></div>
+      <div id="weekShareWrap" style="display:none; margin-top:8px; text-align:center;">
+        <button type="button" class="switch-profile-btn" id="weekShareBtn" style="width:auto; display:inline-block; padding:8px 18px;">Share this week</button>
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -6274,7 +6289,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.209';
+const APP_VERSION = '3.210';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6724,6 +6739,9 @@ const WHATS_NEW = {
     'All six martial arts now have real day-count plans, and switching between them no longer discards whichever day count you had selected — the same fix already shipped for Cycling now covers Combat too.',
     'Higher-frequency options never add a 3rd heavy-bag-power or high-impact day. Muay Thai and MMA specifically keep clinch, elbow, and ground-and-pound work off the extra day since those already carry real injury/impact risk. Taekwondo leans into extra flexibility work instead, since this program\'s own reasoning already says that\'s what actually builds kick performance.',
     'Tai Chi works differently from the other five: its own reasoning says low output IS the method, so its higher-frequency options are just more of the same gentle practice, not a lower-toll substitute for something harder.',
+  ]},
+  '3.210': { headline: 'Fixed: "Save this week & start fresh" was unreachable on 6-7 day/week plans', points: [
+    'The archive-week button only ever appeared on Day 7 when Day 7 was a rest day — but on every 6 or 7 day/week plan, Day 7 is a real training day, so the button had nowhere to render. It now shows up on Day 7 regardless of what that day\'s content actually is, so training every day no longer means losing the ability to close out a week.',
   ]},
 };
 
@@ -23694,9 +23712,31 @@ function allMemberCheckboxesChecked(block){
   return boxes.length > 0 && boxes.every(cb=> cb.checked);
 }
 
+// Shows/hides the persistent #archiveWeekWrap based on activeDay alone --
+// deliberately NOT on whether Day 7 happens to be a rest day. Before this,
+// the archive button only existed inside the rest-day branch's rebuilt
+// HTML, so any 6/7-day-per-week variant whose Day 7 is a real training day
+// (every one of them, across every program this feature covers) had no way
+// to reach "Save this week & start fresh" at all. Since the wrap is a
+// persistent element rather than rebuilt per render (see its own HTML
+// comment), switching back to it after an earlier archive needs an
+// explicit reset here -- otherwise a stale "week saved" confirmation (and
+// a disabled button) from a previous visit would linger into a new one.
+function renderArchiveWeekVisibility(){
+  const wrap = document.getElementById('archiveWeekWrap');
+  const isDay7 = activeDay === 'd7';
+  wrap.style.display = isDay7 ? '' : 'none';
+  if(isDay7){
+    document.getElementById('archiveWeekBtn').disabled = false;
+    document.getElementById('archiveWeekStatus').innerHTML = '';
+    document.getElementById('weekShareWrap').style.display = 'none';
+  }
+}
+
 async function renderWorkout(){
   const day = dayDefs[activeDay];
   renderTodayInsights(); // fire-and-forget — session heads-up depends on activeDay/activeProgram, both already updated by now
+  renderArchiveWeekVisibility(); // day-count-independent -- see #archiveWeekWrap's HTML comment
   document.getElementById('dayHeroEyebrow').textContent = day.label;
   document.getElementById('dayTitle').textContent = day.sub;
   const dayPlateClass = getDayPlateClass(activeDay) + (day.plateNum==='OFF' ? ' plate-off' : '');
@@ -23730,14 +23770,12 @@ async function renderWorkout(){
     }catch(e){}
 
     const dateLabel = formatLogDateLabel(selectedLogDate).toLowerCase();
-    const archiveBtnHtml = activeDay === 'd7' ? `<button class="save-btn" id="archiveWeekBtn" style="margin-top:14px;">🏁 Save this week & start fresh</button><div class="status-msg" id="archiveWeekStatus"></div><div id="weekShareWrap" style="display:none; margin-top:8px; text-align:center;"><button type="button" class="switch-profile-btn" id="weekShareBtn" style="width:auto; display:inline-block; padding:8px 18px;">Share this week</button></div>` : '';
     list.innerHTML = `
       <div class="rest-note">${day.note}</div>
       <label class="rest-done-row">
         <input type="checkbox" id="restDoneCheckbox" ${restDone ? 'checked' : ''}>
         <span id="restDoneLabel">${restDone ? `Marked as done for ${dateLabel} ✓` : `Mark ${dateLabel}'s rest day as done`}</span>
       </label>
-      ${archiveBtnHtml}
     `;
     document.getElementById('restDoneCheckbox').addEventListener('change', async (e)=>{
       const done = e.target.checked;
@@ -23745,9 +23783,6 @@ async function renderWorkout(){
       if(done) recordActivity(selectedLogDate).then(renderStreak);
       document.getElementById('restDoneLabel').textContent = done ? `Marked as done for ${dateLabel} ✓` : `Mark ${dateLabel}'s rest day as done`;
     });
-    if(activeDay === 'd7'){
-      document.getElementById('archiveWeekBtn').addEventListener('click', archiveCurrentWeek);
-    }
     document.getElementById('sessionCalTotal').textContent = '';
     return;
   }
@@ -31590,6 +31625,13 @@ document.getElementById('moreNutrientsToggle').addEventListener('click', ()=>{
 document.getElementById('addCustomExerciseBtn').addEventListener('click', ()=>{
   document.getElementById('customExerciseForm').classList.toggle('open');
 });
+
+// #archiveWeekWrap is a persistent element (see its HTML comment above),
+// not rebuilt via innerHTML on every renderWorkout() call the way
+// #exerciseList is -- so its click handler is wired once here, same
+// pattern as addCustomExerciseBtn/addCustomExerciseSubmit above, rather
+// than re-attached on every render.
+document.getElementById('archiveWeekBtn').addEventListener('click', archiveCurrentWeek);
 
 document.getElementById('adaptWorkoutBtn').addEventListener('click', ()=>{
   document.getElementById('adaptWorkoutPanel').classList.toggle('open');
