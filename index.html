@@ -4989,7 +4989,7 @@
         <div id="prefDaysPerWeek">
           <label class="care-label" for="daysPerWeekInput">Training days per week</label>
           <input type="number" id="daysPerWeekInput" class="care-input" min="1" max="7" inputmode="numeric" placeholder="Program default">
-          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, Powerbuilding, Athletic/Plyo, Bodyweight, Calisthenics, Core &amp; Stability, Jump Rope, Mobility &amp; Flexibility, Running/Endurance, Swimming, Rock Climbing, Senior Strength &amp; Balance, Desk Worker/Posture, Pilates, Boxing Strength &amp; Conditioning, Hyrox, BJJ / Grappling, and Cycling (both Road and Mountain); other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
+          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, Powerbuilding, Athletic/Plyo, Bodyweight, Calisthenics, Core &amp; Stability, Jump Rope, Mobility &amp; Flexibility, Running/Endurance, Swimming, Rock Climbing, Senior Strength &amp; Balance, Desk Worker/Posture, Pilates, Boxing Strength &amp; Conditioning, Hyrox, BJJ / Grappling, Cycling (both Road and Mountain), and Combat (Kickboxing, Boxing, Muay Thai, MMA Striking, Taekwondo, and Tai Chi); other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
           <div id="daysPerWeekWarning" style="display:none"></div>
         </div>
 
@@ -6274,7 +6274,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.208';
+const APP_VERSION = '3.209';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6719,6 +6719,11 @@ const WHATS_NEW = {
   ]},
   '3.208': { headline: 'Fixed: Strength & Size’s accessory day repeated Hip Thrust from the day before', points: [
     'At 5, 6, and 7 days/week, the "Accessory & Weak Points" day ran immediately after "Lower · Hypertrophy" with zero rest between them — and both days included Hip Thrust, so the same exercise got trained back-to-back. Removed it from the accessory day; the remaining exercises (hamstrings, rear delts, arms) already matched that day’s own stated purpose without it.',
+  ]},
+  '3.209': { headline: 'Training days per week now covers Combat (Kickboxing, Boxing, Muay Thai, MMA Striking, Taekwondo, Tai Chi)', points: [
+    'All six martial arts now have real day-count plans, and switching between them no longer discards whichever day count you had selected — the same fix already shipped for Cycling now covers Combat too.',
+    'Higher-frequency options never add a 3rd heavy-bag-power or high-impact day. Muay Thai and MMA specifically keep clinch, elbow, and ground-and-pound work off the extra day since those already carry real injury/impact risk. Taekwondo leans into extra flexibility work instead, since this program\'s own reasoning already says that\'s what actually builds kick performance.',
+    'Tai Chi works differently from the other five: its own reasoning says low output IS the method, so its higher-frequency options are just more of the same gentle practice, not a lower-toll substitute for something harder.',
   ]},
 };
 
@@ -13174,13 +13179,20 @@ function renderMartialArtSelector(){
   el.onchange = async ()=>{
     activeMartialArt = el.value;
     renderProgramSource();   // style provenance must follow the style, not just the program
-    programs.combat.days = COMBAT_STYLES[activeMartialArt].days;
+    // Reapply the day-count pref instead of assigning COMBAT_STYLES[...].days
+    // directly -- a direct assignment here would silently discard whatever
+    // day-count variant was active the moment the user switched styles.
+    applyDaysPerWeekProgramData();
     descEl.textContent = COMBAT_STYLES[activeMartialArt].short;
     overviewEl.textContent = COMBAT_STYLES[activeMartialArt].overview;
     await saveMartialArtStyle();
     if(activeProgram === 'combat'){
       dayDefs = programs.combat.days;
       activeDay = 'd1';
+      const descElMain = document.getElementById('programSelectDesc');
+      const overviewElMain = document.getElementById('programOverview');
+      if(descElMain) descElMain.textContent = programs.combat.short;
+      if(overviewElMain) overviewElMain.textContent = programs.combat.overview;
       await loadDayOrder();
       await loadWeekProgress();
       renderTabs();
@@ -13552,6 +13564,25 @@ function renderPosingClasses(){
 // easy/low-toll volume (an easy ride, or more technical trail time for
 // Mountain, which its own overview already says can't be trained through
 // intervals anyway), never a 3rd/4th hard-interval or punchy-power day.
+// Batch 9 adds combat -- the second style-variant container, same nested-
+// by-sub-style shape as cycling (see getStyleContainerAccessor() above,
+// which now generalizes the per-container branch both share). All 6
+// martial arts (kickboxing, boxing, muayThai, mma, taekwondo, taiChi)
+// share the same original shape too: 5 real training days, ONE
+// non-negotiable Rest/Mobility day, one full-rest day. High-frequency
+// variants never add a 3rd heavy-bag-power or high-impact day -- the extra
+// day is always genuinely lower-toll (light conditioning, footwork, or
+// mobility). Muay Thai and MMA specifically keep clinch/elbow/ground-and-
+// pound work off the extra day (their own overviews already flag real
+// injury risk / real joint impact there). Taekwondo's extra day leans into
+// flexibility specifically because that program's own rest-day note
+// already claims kick performance is built on rest days more than on the
+// bag. Tai Chi is the one exception to "never add intensity" reasoning
+// entirely -- its own overview says low output IS the method, not a gap to
+// fill, so its extra day is just more of the same gentle solo practice
+// (and it's also the only style here where one of the five days, Push
+// Hands & Sensitivity, genuinely needs a training partner -- deferred to
+// n=4 and up rather than assumed available at the lowest frequencies).
 // Deliberately excluded, permanently, not just "not yet": the 13
 // medical/rehab programs (obesity, hypertension, diabetes, osteoporosis,
 // bariatric x2, prenatal, postpartum, and the 5 rehab tracks). Their day
@@ -13560,7 +13591,7 @@ function renderPosingClasses(){
 // team as "deliberate and non-negotiable" (see programs.medical's own
 // overview) -- letting someone dial a rehab-ACL protocol up to 7 days/week
 // would be unsafe, not just untailored. Remaining scope: the
-// combat/watersports/yoga style-variant containers, in further batches.
+// watersports/yoga style-variant containers, in further batches.
 //
 // Accessory days already align with body goals -- for free. The user asked
 // for the new accessory/high-frequency days to reflect a person's body
@@ -13572,30 +13603,51 @@ function renderPosingClasses(){
 // from. Every program rolled out here is already on that list, so the new
 // accessory days inherit this automatically. Verified with real invocation
 // in test-configurable-training-days.js, not just reasoned about.
-const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility', 'running', 'swimming', 'climbing', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling', 'cycling'];
-// Style-variant containers (cycling, and any future combat/watersports/
+const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility', 'running', 'swimming', 'climbing', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling', 'cycling', 'combat'];
+// Style-variant containers (cycling, combat, and any future watersports/
 // yoga batches) are excluded from this snapshot: programs[key].days for
 // those is still `{}` at this point in script evaluation -- it's only
-// populated later, at boot, from e.g. CYCLING_STYLES[activeCyclingStyle].
-// A snapshot taken now would be permanently empty and wrong. Their
-// pref-unset fallback instead comes from the live *_STYLES data (for
-// `.days`) plus the snapshot just below (for `.overview`/`.short`) -- see
-// applyDaysPerWeekProgramData()'s per-container branch.
-const DAYS_PER_WEEK_STYLE_CONTAINERS = ['cycling'];
+// populated later, at boot, from e.g. CYCLING_STYLES[activeCyclingStyle] or
+// COMBAT_STYLES[activeMartialArt]. A snapshot taken now would be
+// permanently empty and wrong. Their pref-unset fallback instead comes
+// from the live *_STYLES data (for `.days`) plus the snapshot just below
+// (for `.overview`/`.short`) -- see applyDaysPerWeekProgramData()'s
+// per-container branch, and STYLE_CONTAINER_ACCESSORS just below that.
+const DAYS_PER_WEEK_STYLE_CONTAINERS = ['cycling', 'combat'];
 const DAYS_PER_WEEK_ORIGINAL = Object.fromEntries(DAYS_PER_WEEK_PROGRAMS.filter(key => !DAYS_PER_WEEK_STYLE_CONTAINERS.includes(key)).map(key =>
   [key, { days: programs[key].days, overview: programs[key].overview, short: programs[key].short }]
 ));
 // A style-variant container's `.overview`/`.short` are its own generic
 // "pick a style below" blurb -- unlike every flat program above, this text
 // is NOT supposed to change when the user just picks a different sub-style
-// (Road vs Mountain); only `.days` follows the style. That blurb only gets
-// swapped out when a day-count variant is actually active, and has to
-// revert to exactly this when the pref is cleared -- so it needs its own
-// snapshot, same reasoning as DAYS_PER_WEEK_ORIGINAL, just scoped to the
-// container-level text rather than the whole program.
+// (Road vs Mountain, or one martial art vs another); only `.days` follows
+// the style. That blurb only gets swapped out when a day-count variant is
+// actually active, and has to revert to exactly this when the pref is
+// cleared -- so it needs its own snapshot, same reasoning as
+// DAYS_PER_WEEK_ORIGINAL, just scoped to the container-level text rather
+// than the whole program.
 const DAYS_PER_WEEK_CONTAINER_DEFAULT = {
   cycling: { overview: programs.cycling.overview, short: programs.cycling.short },
+  combat: { overview: programs.combat.overview, short: programs.combat.short },
 };
+// Maps each style-variant container key to its live *_STYLES data object
+// and the module-level `let` variable holding the currently active
+// sub-style -- everything applyDaysPerWeekProgramData() needs to pick the
+// right nested variant table for that container. A getter function (not a
+// plain object literal) specifically because activeCyclingStyle/
+// activeMartialArt are declared with `let` further down the file; reading
+// them inside a function body is fine regardless of declaration order
+// (functions aren't evaluated until called, long after boot()), but a
+// literal built here at parse time would capture their value too early.
+// Extend this the same way when watersports/yoga join the rollout -- one
+// line here, plus that container's own PROGRAM_DAY_COUNT_VARIANTS entry
+// and the fix to its style-switch handler (see renderCyclingSelector/
+// renderMartialArtSelector for the pattern).
+function getStyleContainerAccessor(key){
+  if(key === 'cycling') return { styles: CYCLING_STYLES, activeStyle: activeCyclingStyle };
+  if(key === 'combat') return { styles: COMBAT_STYLES, activeStyle: activeMartialArt };
+  return null;
+}
 
 // Real per-count programming, not a mechanical repeat. The guiding
 // research, already used elsewhere in this program (see the ACSM 2026/
@@ -19392,6 +19444,1624 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
     },
   },
+  // Combat is the second style-variant container (batch 9), same nested-
+  // by-sub-style shape as cycling. All 6 martial arts share the same
+  // original shape too: 5 real training days, ONE non-negotiable
+  // Rest/Mobility day (each style's own note gives a real, style-specific
+  // recovery reason), one full-rest day. High-frequency variants never add
+  // a 3rd heavy-bag-power/high-impact day -- the extra day is always
+  // genuinely lower-toll (light conditioning, footwork, or mobility),
+  // matching the reasoning already established for boxingsc/hyrox/
+  // grappling. Muay Thai and MMA specifically avoid clinch/elbow/ground-
+  // and-pound work on the extra day (their own overviews already flag real
+  // injury risk / real joint impact for those). Taekwondo's extra day
+  // leans into flexibility specifically because that program's own d3 note
+  // already claims kick performance is built on rest days more than on the
+  // bag. Tai Chi is the one exception to "never add intensity" reasoning
+  // entirely -- its own overview says low output IS the method, not a gap
+  // to fill, so its extra day is just more of the same gentle practice.
+  combat: {
+    kickboxing: {
+      1: {
+        short: 'Boxing + kickboxing basics — the floor for this program',
+        overview: 'One session combining boxing combos and kickboxing kicks at reduced volume, since a full week only gets one shot at both halves of this program\'s "balanced default" between the two. The real interval structure (short high-intensity bursts, brief pauses) stays the same even at this frequency — just less of it.',
+        days: {
+          d1: { label:'Day 1', sub:'Boxing + Kickboxing Basics', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'3×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'3×2min rounds', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip and shoulder mobility, 20-30 min. Kicking and heavy bag power both live and die on hip/shoulder range of motion — don\'t skip this.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip and shoulder mobility, 20-30 min. Kicking and heavy bag power both live and die on hip/shoulder range of motion — don\'t skip this.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      2: {
+        short: 'Boxing · Power & Combos and Kickboxing · Kicks & Core, dedicated days',
+        overview: 'Boxing power/combos and kickboxing kicks/core each get their own full session — the two disciplines this "balanced default" program is built to cover, at the lowest frequency that still trains both.',
+        days: {
+          d1: { label:'Day 1', sub:'Boxing · Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Hooks & Uppercuts', sets:'4×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip and shoulder mobility, 20-30 min. Kicking and heavy bag power both live and die on hip/shoulder range of motion — don\'t skip this.' },
+          d3: { label:'Day 3', sub:'Kickboxing · Kicks & Core', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Teep + Knee Combos', sets:'4×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Hanging Leg Raise', sets:'3×12'},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip and shoulder mobility, 20-30 min. Kicking and heavy bag power both live and die on hip/shoulder range of motion — don\'t skip this.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      3: {
+        short: 'Boxing · Power & Combos, Kickboxing · Kicks & Core, and Conditioning Finisher',
+        overview: 'Three of this program\'s five sessions each get their own day — one boxing day, one kickboxing day, and the conditioning finisher that ties both together — the balanced trio this "default" style is meant to represent, even at this frequency.',
+        days: {
+          d1: { label:'Day 1', sub:'Boxing · Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Hooks & Uppercuts', sets:'4×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Kickboxing · Kicks & Core', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Teep + Knee Combos', sets:'4×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Hanging Leg Raise', sets:'3×12'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip and shoulder mobility, 20-30 min. Kicking and heavy bag power both live and die on hip/shoulder range of motion — don\'t skip this.' },
+          d4: { label:'Day 4', sub:'Conditioning Finisher', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+            exercises:[
+              {name:'Heavy Bag — Freestyle Flow (punches + kicks)', sets:'4×3min rounds', noWeight:true},
+              {name:'Burpees', sets:'4×30s', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+              {name:'Weighted Sit-up', sets:'3×12'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      4: {
+        short: 'Boxing ×2 and Kickboxing ×2 — Conditioning Finisher not included',
+        overview: 'Four of this program\'s five sessions each get their own day — two boxing days, two kickboxing days. Conditioning Finisher is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        days: {
+          d1: { label:'Day 1', sub:'Boxing · Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Hooks & Uppercuts', sets:'4×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Kickboxing · Kicks & Core', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Teep + Knee Combos', sets:'4×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Hanging Leg Raise', sets:'3×12'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip and shoulder mobility, 20-30 min. Kicking and heavy bag power both live and die on hip/shoulder range of motion — don\'t skip this.' },
+          d4: { label:'Day 4', sub:'Boxing · Speed & Output', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Speed Combos (light power, high output)', sets:'8×1.5min rounds', noWeight:true},
+              {name:'Shadowboxing w/ Footwork', sets:'4×2min rounds', noWeight:true},
+              {name:'Overhead Press', sets:'3×8-10'},
+              {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Kickboxing · Power Kicks', plate:'p-green', plateNum:'10', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Punch-Kick Combos', sets:'4×2min rounds', noWeight:true},
+              {name:'Deadlift', sets:'3×5-6'},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      // 5 intentionally omitted — this is the style's own authored default
+      // (COMBAT_STYLES.kickboxing), used as-is.
+      6: {
+        short: 'The full 5-day program plus extra conditioning & mobility',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra light conditioning and mobility — not a 2nd heavy-bag power day. Real time-motion data already grounds this program in short bursts with real recovery between them; a 3rd all-out bag session here would work against that structure, not extend it.',
+        days: {
+          d1: { label:'Day 1', sub:'Boxing · Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Hooks & Uppercuts', sets:'4×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Kickboxing · Kicks & Core', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Teep + Knee Combos', sets:'4×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Hanging Leg Raise', sets:'3×12'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip and shoulder mobility, 20-30 min. Kicking and heavy bag power both live and die on hip/shoulder range of motion — don\'t skip this.' },
+          d4: { label:'Day 4', sub:'Boxing · Speed & Output', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Speed Combos (light power, high output)', sets:'8×1.5min rounds', noWeight:true},
+              {name:'Shadowboxing w/ Footwork', sets:'4×2min rounds', noWeight:true},
+              {name:'Overhead Press', sets:'3×8-10'},
+              {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Kickboxing · Power Kicks', plate:'p-green', plateNum:'10', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Punch-Kick Combos', sets:'4×2min rounds', noWeight:true},
+              {name:'Deadlift', sets:'3×5-6'},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Conditioning Finisher', plate:'p-off', plateNum:'5', duration:'~40 min',
+            exercises:[
+              {name:'Heavy Bag — Freestyle Flow (punches + kicks)', sets:'4×3min rounds', noWeight:true},
+              {name:'Burpees', sets:'4×30s', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+              {name:'Weighted Sit-up', sets:'3×12'},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Conditioning & Mobility', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Jump Rope — Speed Singles', sets:'4×1min', noWeight:true},
+              {name:'Shadowboxing w/ Footwork', sets:'3×2min rounds', noWeight:true},
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says hip/shoulder range of motion is non-negotiable for kicking and bag power, even at 7 days selected.',
+        days: {
+          d1: { label:'Day 1', sub:'Boxing · Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Hooks & Uppercuts', sets:'4×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Kickboxing · Kicks & Core', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Teep + Knee Combos', sets:'4×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Hanging Leg Raise', sets:'3×12'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip and shoulder mobility, 20-30 min. Kicking and heavy bag power both live and die on hip/shoulder range of motion — don\'t skip this, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Boxing · Speed & Output', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Speed Combos (light power, high output)', sets:'8×1.5min rounds', noWeight:true},
+              {name:'Shadowboxing w/ Footwork', sets:'4×2min rounds', noWeight:true},
+              {name:'Overhead Press', sets:'3×8-10'},
+              {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Kickboxing · Power Kicks', plate:'p-green', plateNum:'10', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Punch-Kick Combos', sets:'4×2min rounds', noWeight:true},
+              {name:'Deadlift', sets:'3×5-6'},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Conditioning Finisher', plate:'p-off', plateNum:'5', duration:'~40 min',
+            exercises:[
+              {name:'Heavy Bag — Freestyle Flow (punches + kicks)', sets:'4×3min rounds', noWeight:true},
+              {name:'Burpees', sets:'4×30s', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+              {name:'Weighted Sit-up', sets:'3×12'},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Conditioning & Mobility', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Jump Rope — Speed Singles', sets:'4×1min', noWeight:true},
+              {name:'Shadowboxing w/ Footwork', sets:'3×2min rounds', noWeight:true},
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+            ]
+          },
+        }
+      },
+    },
+    boxing: {
+      1: {
+        short: 'Power & combos + footwork basics — the floor for this program',
+        overview: 'One session combining power/combo work and footwork basics at reduced volume, since a full week only gets one shot at both. Real 2-minute round pacing (matching real fight physiology) stays the same even at this frequency — just fewer rounds.',
+        days: {
+          d1: { label:'Day 1', sub:'Power & Combos + Footwork Basics', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'3×2min rounds', noWeight:true},
+              {name:'Shadowboxing w/ Footwork', sets:'3×2min rounds', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder and neck mobility, 20-30 min. Boxing rewards loose, fast shoulders — protect that with real recovery.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder and neck mobility, 20-30 min. Boxing rewards loose, fast shoulders — protect that with real recovery.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      2: {
+        short: 'Power & Combos and Speed & Footwork, dedicated days',
+        overview: 'Power/combos and speed/footwork each get their own full session — the two pillars real boxing conditioning is built from, at the lowest frequency that still trains both.',
+        days: {
+          d1: { label:'Day 1', sub:'Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Hooks & Uppercuts', sets:'4×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder and neck mobility, 20-30 min. Boxing rewards loose, fast shoulders — protect that with real recovery.' },
+          d3: { label:'Day 3', sub:'Speed & Footwork', plate:'p-blue', plateNum:'20', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Speed Combos (light power, high output)', sets:'8×1.5min rounds', noWeight:true},
+              {name:'Shadowboxing w/ Footwork', sets:'4×2min rounds', noWeight:true},
+              {name:'Overhead Press', sets:'3×8-10'},
+              {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder and neck mobility, 20-30 min. Boxing rewards loose, fast shoulders — protect that with real recovery.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      3: {
+        short: 'Power & Combos, Speed & Footwork, and Conditioning Finisher',
+        overview: 'Three of this program\'s five sessions each get their own day — power/combos, speed/footwork, and the conditioning finisher that ties both together, the trio this program\'s round-based conditioning is built around, even at this frequency.',
+        days: {
+          d1: { label:'Day 1', sub:'Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Hooks & Uppercuts', sets:'4×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Speed & Footwork', plate:'p-blue', plateNum:'20', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Speed Combos (light power, high output)', sets:'8×1.5min rounds', noWeight:true},
+              {name:'Shadowboxing w/ Footwork', sets:'4×2min rounds', noWeight:true},
+              {name:'Overhead Press', sets:'3×8-10'},
+              {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder and neck mobility, 20-30 min. Boxing rewards loose, fast shoulders — protect that with real recovery.' },
+          d4: { label:'Day 4', sub:'Conditioning Finisher', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+            exercises:[
+              {name:'Burpees', sets:'4×30s', noWeight:true},
+              {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+              {name:'Weighted Sit-up', sets:'3×12'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      4: {
+        short: 'Power & Combos, Speed & Footwork, Defense & Counters, and Power Endurance',
+        overview: 'Four of this program\'s five sessions each get their own day. Conditioning Finisher is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        days: {
+          d1: { label:'Day 1', sub:'Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Hooks & Uppercuts', sets:'4×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Speed & Footwork', plate:'p-blue', plateNum:'20', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Speed Combos (light power, high output)', sets:'8×1.5min rounds', noWeight:true},
+              {name:'Shadowboxing w/ Footwork', sets:'4×2min rounds', noWeight:true},
+              {name:'Overhead Press', sets:'3×8-10'},
+              {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder and neck mobility, 20-30 min. Boxing rewards loose, fast shoulders — protect that with real recovery.' },
+          d4: { label:'Day 4', sub:'Defense & Counters', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Slip & Counter Drills', sets:'6×2min rounds', noWeight:true},
+              {name:'Head Movement Drills', sets:'4×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Deadlift', sets:'3×5-6'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Power Endurance', plate:'p-green', plateNum:'10', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Freestyle Flow (punches + kicks)', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Hooks & Uppercuts', sets:'4×2min rounds', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      // 5 intentionally omitted — this is the style's own authored default
+      // (COMBAT_STYLES.boxing), used as-is.
+      6: {
+        short: 'The full 5-day program plus extra footwork & conditioning',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra footwork and light conditioning — not a 2nd heavy-bag power day. This program\'s own round structure already keeps intensity honest; a 3rd all-out session here would just add fatigue without more of what the program is actually training.',
+        days: {
+          d1: { label:'Day 1', sub:'Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Hooks & Uppercuts', sets:'4×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Speed & Footwork', plate:'p-blue', plateNum:'20', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Speed Combos (light power, high output)', sets:'8×1.5min rounds', noWeight:true},
+              {name:'Shadowboxing w/ Footwork', sets:'4×2min rounds', noWeight:true},
+              {name:'Overhead Press', sets:'3×8-10'},
+              {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder and neck mobility, 20-30 min. Boxing rewards loose, fast shoulders — protect that with real recovery.' },
+          d4: { label:'Day 4', sub:'Defense & Counters', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Slip & Counter Drills', sets:'6×2min rounds', noWeight:true},
+              {name:'Head Movement Drills', sets:'4×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Deadlift', sets:'3×5-6'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Power Endurance', plate:'p-green', plateNum:'10', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Freestyle Flow (punches + kicks)', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Hooks & Uppercuts', sets:'4×2min rounds', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Conditioning Finisher', plate:'p-off', plateNum:'5', duration:'~35 min',
+            exercises:[
+              {name:'Burpees', sets:'4×30s', noWeight:true},
+              {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+              {name:'Weighted Sit-up', sets:'3×12'},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Footwork & Conditioning', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Shadowboxing w/ Footwork', sets:'3×2min rounds', noWeight:true},
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Head Movement Drills', sets:'3×2min rounds', noWeight:true},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says loose, fast shoulders depend on real recovery, even at 7 days selected.',
+        days: {
+          d1: { label:'Day 1', sub:'Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Hooks & Uppercuts', sets:'4×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Speed & Footwork', plate:'p-blue', plateNum:'20', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Speed Combos (light power, high output)', sets:'8×1.5min rounds', noWeight:true},
+              {name:'Shadowboxing w/ Footwork', sets:'4×2min rounds', noWeight:true},
+              {name:'Overhead Press', sets:'3×8-10'},
+              {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Shoulder and neck mobility, 20-30 min. Boxing rewards loose, fast shoulders — protect that with real recovery, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Defense & Counters', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Slip & Counter Drills', sets:'6×2min rounds', noWeight:true},
+              {name:'Head Movement Drills', sets:'4×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Deadlift', sets:'3×5-6'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Power Endurance', plate:'p-green', plateNum:'10', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Freestyle Flow (punches + kicks)', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Hooks & Uppercuts', sets:'4×2min rounds', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Conditioning Finisher', plate:'p-off', plateNum:'5', duration:'~35 min',
+            exercises:[
+              {name:'Burpees', sets:'4×30s', noWeight:true},
+              {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+              {name:'Weighted Sit-up', sets:'3×12'},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Footwork & Conditioning', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Shadowboxing w/ Footwork', sets:'3×2min rounds', noWeight:true},
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Head Movement Drills', sets:'3×2min rounds', noWeight:true},
+            ]
+          },
+        }
+      },
+    },
+    muayThai: {
+      1: {
+        short: 'Punch-kick combos + knee basics — the floor for this program',
+        overview: 'One session combining punch-kick combo power and a taste of knee/clinch work at reduced volume, since a full week only gets one shot at the full eight-limb arsenal this program is built around. Real elbow and clinch work stays off the table at this frequency the same way it does at every count here — see the 6/7-day reasoning below.',
+        days: {
+          d1: { label:'Day 1', sub:'Punch-Kick Combos + Knee Basics', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'3×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Teep + Knee Combos', sets:'2×2min rounds', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip mobility is everything in Muay Thai — 20-30 min of dedicated hip work here directly improves your kick height and speed.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip mobility is everything in Muay Thai — 20-30 min of dedicated hip work here directly improves your kick height and speed.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      2: {
+        short: 'Punch-Kick Combos & Power and Knees & Clinch, dedicated days',
+        overview: 'Punch-kick combo power and knee/clinch work each get their own full session — the striking and clinch pillars this program\'s own reasoning calls out (clinch time alone is roughly a fifth of a real round), at the lowest frequency that still trains both.',
+        days: {
+          d1: { label:'Day 1', sub:'Punch-Kick Combos & Power', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'5×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip mobility is everything in Muay Thai — 20-30 min of dedicated hip work here directly improves your kick height and speed.' },
+          d3: { label:'Day 3', sub:'Knees & Clinch', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Teep + Knee Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Clinch Knee Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Deadlift', sets:'3×5-6'},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip mobility is everything in Muay Thai — 20-30 min of dedicated hip work here directly improves your kick height and speed.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      3: {
+        short: 'Punch-Kick Combos & Power, Knees & Clinch, and Conditioning Finisher',
+        overview: 'Three of this program\'s five sessions each get their own day — punch-kick combo power, knee/clinch work, and the conditioning finisher, the striking-plus-clinch trio this program is built around, even at this frequency. Elbow work and the second kicks day wait for a higher frequency, not because they\'re unsafe, just because there\'s not enough day budget yet.',
+        days: {
+          d1: { label:'Day 1', sub:'Punch-Kick Combos & Power', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'5×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Knees & Clinch', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Teep + Knee Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Clinch Knee Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Deadlift', sets:'3×5-6'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip mobility is everything in Muay Thai — 20-30 min of dedicated hip work here directly improves your kick height and speed.' },
+          d4: { label:'Day 4', sub:'Conditioning Finisher', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+            exercises:[
+              {name:'Heavy Bag — Freestyle Flow (punches + kicks)', sets:'4×3min rounds', noWeight:true},
+              {name:'Burpees', sets:'4×30s', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+              {name:'Weighted Sit-up', sets:'3×12'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      4: {
+        short: 'Punch-Kick Combos, Knees & Clinch, Elbows & Combos, and Power Kicks & Legs',
+        overview: 'Four of this program\'s five sessions each get their own day. Conditioning Finisher is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        days: {
+          d1: { label:'Day 1', sub:'Punch-Kick Combos & Power', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'5×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Knees & Clinch', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Teep + Knee Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Clinch Knee Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Deadlift', sets:'3×5-6'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip mobility is everything in Muay Thai — 20-30 min of dedicated hip work here directly improves your kick height and speed.' },
+          d4: { label:'Day 4', sub:'Elbows & Combos', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Elbow Strike Drills', sets:'4×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Punch-Kick Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Overhead Press', sets:'3×8-10'},
+              {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Power Kicks & Legs', plate:'p-green', plateNum:'10', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'4×2min rounds', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+              {name:'Calf Raise', sets:'3×15'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      // 5 intentionally omitted — this is the style's own authored default
+      // (COMBAT_STYLES.muayThai), used as-is.
+      6: {
+        short: 'The full 5-day program plus extra conditioning & hip mobility',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra conditioning and hip mobility — not more clinch or elbow work. This program\'s own overview is explicit that clinch and elbow work carry real injury risk and aren\'t learnable safely from text; the extra day stays firmly in the low-risk territory the rest of this program\'s own reasoning already respects.',
+        days: {
+          d1: { label:'Day 1', sub:'Punch-Kick Combos & Power', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'5×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Knees & Clinch', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Teep + Knee Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Clinch Knee Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Deadlift', sets:'3×5-6'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip mobility is everything in Muay Thai — 20-30 min of dedicated hip work here directly improves your kick height and speed.' },
+          d4: { label:'Day 4', sub:'Elbows & Combos', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Elbow Strike Drills', sets:'4×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Punch-Kick Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Overhead Press', sets:'3×8-10'},
+              {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Power Kicks & Legs', plate:'p-green', plateNum:'10', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'4×2min rounds', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+              {name:'Calf Raise', sets:'3×15'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Conditioning Finisher', plate:'p-off', plateNum:'5', duration:'~40 min',
+            exercises:[
+              {name:'Heavy Bag — Freestyle Flow (punches + kicks)', sets:'4×3min rounds', noWeight:true},
+              {name:'Burpees', sets:'4×30s', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+              {name:'Weighted Sit-up', sets:'3×12'},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Conditioning & Hip Mobility', plate:'p-off', plateNum:'5', duration:'~30 min',
+            exercises:[
+              {name:'Jump Rope — Speed Singles', sets:'4×1min', noWeight:true},
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+              {name:'Pigeon Pose', sets:'2×45s/side', noWeight:true},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says hip mobility drives kick height and speed more directly than anything else here, even at 7 days selected.',
+        days: {
+          d1: { label:'Day 1', sub:'Punch-Kick Combos & Power', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'5×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Knees & Clinch', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Teep + Knee Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Clinch Knee Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Deadlift', sets:'3×5-6'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip mobility is everything in Muay Thai — 20-30 min of dedicated hip work here directly improves your kick height and speed, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Elbows & Combos', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Elbow Strike Drills', sets:'4×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Punch-Kick Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Overhead Press', sets:'3×8-10'},
+              {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Power Kicks & Legs', plate:'p-green', plateNum:'10', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'4×2min rounds', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+              {name:'Calf Raise', sets:'3×15'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Conditioning Finisher', plate:'p-off', plateNum:'5', duration:'~40 min',
+            exercises:[
+              {name:'Heavy Bag — Freestyle Flow (punches + kicks)', sets:'4×3min rounds', noWeight:true},
+              {name:'Burpees', sets:'4×30s', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+              {name:'Weighted Sit-up', sets:'3×12'},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Conditioning & Hip Mobility', plate:'p-off', plateNum:'5', duration:'~30 min',
+            exercises:[
+              {name:'Jump Rope — Speed Singles', sets:'4×1min', noWeight:true},
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+              {name:'Pigeon Pose', sets:'2×45s/side', noWeight:true},
+            ]
+          },
+        }
+      },
+    },
+    mma: {
+      1: {
+        short: 'Boxing combos + takedown defense basics — the floor for this program',
+        overview: 'One session combining boxing combos and takedown defense at reduced volume, since a full week only gets one shot at the standup-to-ground transition this program is actually built around. The rest of the ranges (kicks/clinch, ground-and-pound, full combos) wait for a higher frequency.',
+        days: {
+          d1: { label:'Day 1', sub:'Boxing Combos + Takedown Defense Basics', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'3×2min rounds', noWeight:true},
+              {name:'Sprawl Drills', sets:'3×2min rounds', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Full-body mobility, 20-30 min. MMA demands range of motion in every direction — hips, shoulders, and spine all need attention.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Full-body mobility, 20-30 min. MMA demands range of motion in every direction — hips, shoulders, and spine all need attention.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      2: {
+        short: 'Boxing Combos + Takedown Defense and Kicks & Clinch, dedicated days',
+        overview: 'Boxing combos/takedown defense and kicks/clinch each get their own full session — real cross-range training at the lowest frequency that still touches both, rather than picking one range and ignoring the transitions between them.',
+        days: {
+          d1: { label:'Day 1', sub:'Boxing Combos + Takedown Defense', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Sprawl Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Full-body mobility, 20-30 min. MMA demands range of motion in every direction — hips, shoulders, and spine all need attention.' },
+          d3: { label:'Day 3', sub:'Kicks & Clinch', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'5×2min rounds', noWeight:true},
+              {name:'Clinch Knee Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Deadlift', sets:'3×5-6'},
+              {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Full-body mobility, 20-30 min. MMA demands range of motion in every direction — hips, shoulders, and spine all need attention.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      3: {
+        short: 'Boxing Combos + Takedown Defense, Kicks & Clinch, and Conditioning Finisher',
+        overview: 'Three of this program\'s five sessions each get their own day — standup striking, kicks/clinch, and the conditioning finisher — covering multiple ranges even at this frequency, which is the whole point of an MMA-specific program over a single-range one.',
+        days: {
+          d1: { label:'Day 1', sub:'Boxing Combos + Takedown Defense', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Sprawl Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Kicks & Clinch', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'5×2min rounds', noWeight:true},
+              {name:'Clinch Knee Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Deadlift', sets:'3×5-6'},
+              {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Full-body mobility, 20-30 min. MMA demands range of motion in every direction — hips, shoulders, and spine all need attention.' },
+          d4: { label:'Day 4', sub:'Conditioning Finisher', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+            exercises:[
+              {name:'Burpees', sets:'4×30s', noWeight:true},
+              {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
+              {name:'Weighted Sit-up', sets:'3×12'},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      4: {
+        short: 'Boxing Combos + Takedown Defense, Kicks & Clinch, Ground & Pound, and Full Combos',
+        overview: 'Four of this program\'s five sessions each get their own day. Conditioning Finisher is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        days: {
+          d1: { label:'Day 1', sub:'Boxing Combos + Takedown Defense', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Sprawl Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Kicks & Clinch', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'5×2min rounds', noWeight:true},
+              {name:'Clinch Knee Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Deadlift', sets:'3×5-6'},
+              {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Full-body mobility, 20-30 min. MMA demands range of motion in every direction — hips, shoulders, and spine all need attention.' },
+          d4: { label:'Day 4', sub:'Ground & Pound Conditioning', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Ground & Pound Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Push-up', sets:'3×15'},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Combos', plate:'p-green', plateNum:'10', duration:'~55 min',
+            exercises:[
+              {name:'Heavy Bag — Freestyle Flow (punches + kicks)', sets:'5×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Punch-Kick Combos', sets:'4×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      // 5 intentionally omitted — this is the style's own authored default
+      // (COMBAT_STYLES.mma), used as-is.
+      6: {
+        short: 'The full 5-day program plus extra aerobic conditioning & mobility',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra aerobic conditioning and mobility — not a 2nd Ground & Pound or sprawl-heavy day. This program\'s own overview already names aerobic recovery as one of the three metabolic demands MMA genuinely conflicts between; the extra day trains exactly that instead of adding more high-impact ground work.',
+        days: {
+          d1: { label:'Day 1', sub:'Boxing Combos + Takedown Defense', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Sprawl Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Kicks & Clinch', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'5×2min rounds', noWeight:true},
+              {name:'Clinch Knee Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Deadlift', sets:'3×5-6'},
+              {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Full-body mobility, 20-30 min. MMA demands range of motion in every direction — hips, shoulders, and spine all need attention.' },
+          d4: { label:'Day 4', sub:'Ground & Pound Conditioning', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Ground & Pound Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Push-up', sets:'3×15'},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Combos', plate:'p-green', plateNum:'10', duration:'~55 min',
+            exercises:[
+              {name:'Heavy Bag — Freestyle Flow (punches + kicks)', sets:'5×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Punch-Kick Combos', sets:'4×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Conditioning Finisher', plate:'p-off', plateNum:'5', duration:'~40 min',
+            exercises:[
+              {name:'Burpees', sets:'4×30s', noWeight:true},
+              {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
+              {name:'Weighted Sit-up', sets:'3×12'},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Aerobic Conditioning & Mobility', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Shadowboxing w/ Footwork', sets:'3×2min rounds', noWeight:true},
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says MMA demands range of motion in every direction, even at 7 days selected.',
+        days: {
+          d1: { label:'Day 1', sub:'Boxing Combos + Takedown Defense', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Jab-Cross Combos', sets:'5×2min rounds', noWeight:true},
+              {name:'Sprawl Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Barbell Row', sets:'3×6-8'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Kicks & Clinch', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'5×2min rounds', noWeight:true},
+              {name:'Clinch Knee Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Deadlift', sets:'3×5-6'},
+              {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Full-body mobility, 20-30 min. MMA demands range of motion in every direction — hips, shoulders, and spine all need attention, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Ground & Pound Conditioning', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Ground & Pound Drills', sets:'5×2min rounds', noWeight:true},
+              {name:'Push-up', sets:'3×15'},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Combos', plate:'p-green', plateNum:'10', duration:'~55 min',
+            exercises:[
+              {name:'Heavy Bag — Freestyle Flow (punches + kicks)', sets:'5×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Punch-Kick Combos', sets:'4×2min rounds', noWeight:true},
+              {name:'Bench Press', sets:'3×6-8'},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Conditioning Finisher', plate:'p-off', plateNum:'5', duration:'~40 min',
+            exercises:[
+              {name:'Burpees', sets:'4×30s', noWeight:true},
+              {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
+              {name:'Weighted Sit-up', sets:'3×12'},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Aerobic Conditioning & Mobility', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Shadowboxing w/ Footwork', sets:'3×2min rounds', noWeight:true},
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+            ]
+          },
+        }
+      },
+    },
+    taekwondo: {
+      1: {
+        short: 'Roundhouse + side kick basics — the floor for this program',
+        overview: 'One session combining roundhouse and side kick work at reduced volume, since a full week only gets one shot. Even here, this program\'s own reasoning still holds: hip mobility and balance drive kick performance more than the number of kicks thrown, so the rest day below matters as much as this one.',
+        days: {
+          d1: { label:'Day 1', sub:'Roundhouse + Side Kick Basics', plate:'p-red', plateNum:'25', duration:'~35 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'3×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Side Kick', sets:'3×2min rounds', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~30 min', rest:true,
+            note:'Hip and hamstring flexibility, 25-30 min. Kick height and speed in Taekwondo are built here, on rest days, more than on the bag.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~30 min', rest:true,
+            note:'Hip and hamstring flexibility, 25-30 min. Kick height and speed in Taekwondo are built here, on rest days, more than on the bag.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      2: {
+        short: 'Roundhouse & Power Kicks and Side Kick & Footwork, dedicated days',
+        overview: 'Roundhouse/power kicks and side kick/footwork each get their own full session — two of the core kicking patterns this program builds toward spinning and jumping kicks from, at the lowest frequency that still trains both.',
+        days: {
+          d1: { label:'Day 1', sub:'Roundhouse & Power Kicks', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'5×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Calf Raise', sets:'3×15'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~30 min', rest:true,
+            note:'Hip and hamstring flexibility, 25-30 min. Kick height and speed in Taekwondo are built here, on rest days, more than on the bag.' },
+          d3: { label:'Day 3', sub:'Side Kick & Footwork', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Side Kick', sets:'6×2min rounds', noWeight:true},
+              {name:'Agility Ladder', sets:'12 min', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+              {name:'Hanging Leg Raise', sets:'3×12'},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~30 min', rest:true,
+            note:'Hip and hamstring flexibility, 25-30 min. Kick height and speed in Taekwondo are built here, on rest days, more than on the bag.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      3: {
+        short: 'Roundhouse & Power Kicks, Side Kick & Footwork, and Kick Endurance Finisher',
+        overview: 'Three of this program\'s five sessions each get their own day — roundhouse/power kicks, side kick/footwork, and the kick endurance finisher, the foundational trio this program\'s spinning and jumping kick work eventually builds on, even at this frequency.',
+        days: {
+          d1: { label:'Day 1', sub:'Roundhouse & Power Kicks', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'5×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Calf Raise', sets:'3×15'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Side Kick & Footwork', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Side Kick', sets:'6×2min rounds', noWeight:true},
+              {name:'Agility Ladder', sets:'12 min', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+              {name:'Hanging Leg Raise', sets:'3×12'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~30 min', rest:true,
+            note:'Hip and hamstring flexibility, 25-30 min. Kick height and speed in Taekwondo are built here, on rest days, more than on the bag.' },
+          d4: { label:'Day 4', sub:'Kick Endurance Finisher', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+            exercises:[
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'6×2min rounds', noWeight:true},
+              {name:'Burpees', sets:'4×30s', noWeight:true},
+              {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      4: {
+        short: 'Roundhouse & Power Kicks, Side Kick & Footwork, Axe Kick & Flexibility, and Spinning Kicks & Power',
+        overview: 'Four of this program\'s five sessions each get their own day. Kick Endurance Finisher is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        days: {
+          d1: { label:'Day 1', sub:'Roundhouse & Power Kicks', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'5×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Calf Raise', sets:'3×15'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Side Kick & Footwork', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Side Kick', sets:'6×2min rounds', noWeight:true},
+              {name:'Agility Ladder', sets:'12 min', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+              {name:'Hanging Leg Raise', sets:'3×12'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~30 min', rest:true,
+            note:'Hip and hamstring flexibility, 25-30 min. Kick height and speed in Taekwondo are built here, on rest days, more than on the bag.' },
+          d4: { label:'Day 4', sub:'Axe Kick & Flexibility', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Axe Kick', sets:'5×2min rounds', noWeight:true},
+              {name:'High Kick Flexibility Drill', sets:'3×10/side', noWeight:true},
+              {name:'Deadlift', sets:'3×5-6'},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Spinning Kicks & Power', plate:'p-green', plateNum:'10', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Spinning Back Kick', sets:'5×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'4×2min rounds', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+              {name:'Weighted Sit-up', sets:'3×12'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      // 5 intentionally omitted — this is the style's own authored default
+      // (COMBAT_STYLES.taekwondo), used as-is.
+      6: {
+        short: 'The full 5-day program plus extra flexibility & footwork',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra flexibility and footwork — not a 2nd high-kick power day. This program\'s own reasoning already says kick height and speed are built on rest/flexibility days more than on the bag, so the extra day leans directly into that, rather than adding a 3rd kicking session that would just add fatigue.',
+        days: {
+          d1: { label:'Day 1', sub:'Roundhouse & Power Kicks', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'5×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Calf Raise', sets:'3×15'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Side Kick & Footwork', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Side Kick', sets:'6×2min rounds', noWeight:true},
+              {name:'Agility Ladder', sets:'12 min', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+              {name:'Hanging Leg Raise', sets:'3×12'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~30 min', rest:true,
+            note:'Hip and hamstring flexibility, 25-30 min. Kick height and speed in Taekwondo are built here, on rest days, more than on the bag.' },
+          d4: { label:'Day 4', sub:'Axe Kick & Flexibility', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Axe Kick', sets:'5×2min rounds', noWeight:true},
+              {name:'High Kick Flexibility Drill', sets:'3×10/side', noWeight:true},
+              {name:'Deadlift', sets:'3×5-6'},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Spinning Kicks & Power', plate:'p-green', plateNum:'10', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Spinning Back Kick', sets:'5×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'4×2min rounds', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+              {name:'Weighted Sit-up', sets:'3×12'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Kick Endurance Finisher', plate:'p-off', plateNum:'5', duration:'~40 min',
+            exercises:[
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'6×2min rounds', noWeight:true},
+              {name:'Burpees', sets:'4×30s', noWeight:true},
+              {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Flexibility & Footwork', plate:'p-off', plateNum:'5', duration:'~30 min',
+            exercises:[
+              {name:'High Kick Flexibility Drill', sets:'3×10/side', noWeight:true},
+              {name:'Agility Ladder', sets:'10 min', noWeight:true},
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says kick height and speed are built here more than on the bag, even at 7 days selected.',
+        days: {
+          d1: { label:'Day 1', sub:'Roundhouse & Power Kicks', plate:'p-red', plateNum:'25', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'6×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'5×2min rounds', noWeight:true},
+              {name:'Squat', sets:'3×6-8'},
+              {name:'Calf Raise', sets:'3×15'},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Side Kick & Footwork', plate:'p-blue', plateNum:'20', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Side Kick', sets:'6×2min rounds', noWeight:true},
+              {name:'Agility Ladder', sets:'12 min', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+              {name:'Hanging Leg Raise', sets:'3×12'},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~30 min', rest:true,
+            note:'Hip and hamstring flexibility, 25-30 min. Kick height and speed in Taekwondo are built here, on rest days, more than on the bag, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Axe Kick & Flexibility', plate:'p-yellow', plateNum:'15', duration:'~50 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Axe Kick', sets:'5×2min rounds', noWeight:true},
+              {name:'High Kick Flexibility Drill', sets:'3×10/side', noWeight:true},
+              {name:'Deadlift', sets:'3×5-6'},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Spinning Kicks & Power', plate:'p-green', plateNum:'10', duration:'~55 min',
+            exercises:[
+              {name:'Jump Rope (warm-up)', sets:'5 min', noWeight:true},
+              {name:'Heavy Bag — Spinning Back Kick', sets:'5×2min rounds', noWeight:true},
+              {name:'Heavy Bag — Power Round Kicks', sets:'4×2min rounds', noWeight:true},
+              {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+              {name:'Weighted Sit-up', sets:'3×12'},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Kick Endurance Finisher', plate:'p-off', plateNum:'5', duration:'~40 min',
+            exercises:[
+              {name:'Heavy Bag — Roundhouse Kicks (both legs)', sets:'6×2min rounds', noWeight:true},
+              {name:'Burpees', sets:'4×30s', noWeight:true},
+              {name:'Jump Rope — Speed Singles', sets:'6×1min', noWeight:true},
+              {name:'Plank', sets:'3×45s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Flexibility & Footwork', plate:'p-off', plateNum:'5', duration:'~30 min',
+            exercises:[
+              {name:'High Kick Flexibility Drill', sets:'3×10/side', noWeight:true},
+              {name:'Agility Ladder', sets:'10 min', noWeight:true},
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+            ]
+          },
+        }
+      },
+    },
+    // Tai Chi is the one exception to every other combat style's "never
+    // add intensity" reasoning above -- its own overview says low output
+    // IS the method, not a shortfall to fix. So its high-frequency variant
+    // below is just more of the same gentle solo practice, not a
+    // deliberately-lower-toll substitute for something harder. It's also
+    // the only style here where one of the five days (Push Hands &
+    // Sensitivity) genuinely needs a training partner -- worth being
+    // honest about at low frequency, where solo-practicable content
+    // (meditation, form, stance work) is prioritized instead.
+    taiChi: {
+      1: {
+        short: 'Standing meditation + form basics — the floor for this program',
+        overview: 'One session combining standing meditation and opening form work at reduced volume, since a full week only gets one shot. Both of these are fully solo-practicable — unlike Push Hands, which needs a partner and isn\'t assumed available at the lowest frequency.',
+        days: {
+          d1: { label:'Day 1', sub:'Standing Meditation + Form Basics', plate:'p-red', plateNum:'25', duration:'~30 min',
+            exercises:[
+              {name:'Zhan Zhuang (Standing Post)', sets:'3×2 min', noWeight:true},
+              {name:'Tai Chi Form — Opening & Ward Off (Peng)', sets:'4 reps ×2', noWeight:true},
+              {name:'Diaphragmatic Breathing', sets:'2×60s', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term.' },
+          d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term.' },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      2: {
+        short: 'Standing Meditation & Rooting and Form Practice · Cardinal Techniques, dedicated days',
+        overview: 'Standing meditation/rooting and cardinal-technique form practice each get their own full session — both fully solo-practicable, at the lowest frequency that still trains both.',
+        days: {
+          d1: { label:'Day 1', sub:'Standing Meditation & Rooting', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+              {name:'Zhan Zhuang (Standing Post)', sets:'4×2-3 min', noWeight:true},
+              {name:'Silk Reeling Qigong (Chan Si Gong)', sets:'3×3 min', noWeight:true},
+              {name:'Tai Chi Form — Opening & Ward Off (Peng)', sets:'5 reps ×3', noWeight:true},
+              {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term.' },
+          d3: { label:'Day 3', sub:'Form Practice · Cardinal Techniques', plate:'p-blue', plateNum:'20', duration:'~45 min',
+            exercises:[
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+              {name:'Tai Chi Form — Grasp the Sparrow\'s Tail', sets:'6 reps ×3', noWeight:true},
+              {name:'Tai Chi Form — Single Whip', sets:'6 reps ×3', noWeight:true},
+              {name:'Tai Chi Form — Cloud Hands (Yun Shou)', sets:'8 reps/side ×2', noWeight:true},
+            ]
+          },
+          d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      3: {
+        short: 'Standing Meditation & Rooting, Form Practice · Cardinal Techniques, and Full Form Flow',
+        overview: 'Three of this program\'s five sessions each get their own day — meditation, cardinal-technique form, and full form flow, all fully solo-practicable. Push Hands & Sensitivity waits for a higher frequency, since that one genuinely needs a training partner rather than something to solve alone.',
+        days: {
+          d1: { label:'Day 1', sub:'Standing Meditation & Rooting', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+              {name:'Zhan Zhuang (Standing Post)', sets:'4×2-3 min', noWeight:true},
+              {name:'Silk Reeling Qigong (Chan Si Gong)', sets:'3×3 min', noWeight:true},
+              {name:'Tai Chi Form — Opening & Ward Off (Peng)', sets:'5 reps ×3', noWeight:true},
+              {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Form Practice · Cardinal Techniques', plate:'p-blue', plateNum:'20', duration:'~45 min',
+            exercises:[
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+              {name:'Tai Chi Form — Grasp the Sparrow\'s Tail', sets:'6 reps ×3', noWeight:true},
+              {name:'Tai Chi Form — Single Whip', sets:'6 reps ×3', noWeight:true},
+              {name:'Tai Chi Form — Cloud Hands (Yun Shou)', sets:'8 reps/side ×2', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term.' },
+          d4: { label:'Day 4', sub:'Full Form Flow', plate:'p-yellow', plateNum:'15', duration:'~45 min',
+            exercises:[
+              {name:'Tai Chi Form — Repulse Monkey (Retreating)', sets:'6 reps ×2', noWeight:true},
+              {name:'Tai Chi Form — Brush Knee & Twist Step', sets:'6 reps ×2', noWeight:true},
+              {name:'Short Form Flow (Full Run-Through)', sets:'3-5 min ×3', noWeight:true},
+              {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      4: {
+        short: 'Standing Meditation, Form Practice, Push Hands & Sensitivity, and Stance & Leg Strength',
+        overview: 'Four of this program\'s five sessions each get their own day, now including Push Hands & Sensitivity — a training partner is assumed available at this frequency. Full Form Flow is the one thing that doesn\'t fit; it returns at 6 days and up.',
+        days: {
+          d1: { label:'Day 1', sub:'Standing Meditation & Rooting', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+              {name:'Zhan Zhuang (Standing Post)', sets:'4×2-3 min', noWeight:true},
+              {name:'Silk Reeling Qigong (Chan Si Gong)', sets:'3×3 min', noWeight:true},
+              {name:'Tai Chi Form — Opening & Ward Off (Peng)', sets:'5 reps ×3', noWeight:true},
+              {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Form Practice · Cardinal Techniques', plate:'p-blue', plateNum:'20', duration:'~45 min',
+            exercises:[
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+              {name:'Tai Chi Form — Grasp the Sparrow\'s Tail', sets:'6 reps ×3', noWeight:true},
+              {name:'Tai Chi Form — Single Whip', sets:'6 reps ×3', noWeight:true},
+              {name:'Tai Chi Form — Cloud Hands (Yun Shou)', sets:'8 reps/side ×2', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term.' },
+          d4: { label:'Day 4', sub:'Push Hands & Sensitivity', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+            exercises:[
+              {name:'Zhan Zhuang (Standing Post)', sets:'2×2 min', noWeight:true},
+              {name:'Push Hands — Fixed Step (Tui Shou)', sets:'6×2min rounds', noWeight:true},
+              {name:'Push Hands — Rollback & Press (Lu & Ji)', sets:'4×2min rounds', noWeight:true},
+              {name:'Silk Reeling Qigong (Chan Si Gong)', sets:'2×3 min', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Stance & Leg Strength', plate:'p-green', plateNum:'10', duration:'~35 min',
+            exercises:[
+              {name:'Horse Stance Hold (Mabu)', sets:'4×45-60s', noWeight:true},
+              {name:'Bow Stance Transitions (Gong Bu)', sets:'3×8/side', noWeight:true},
+              {name:'Golden Rooster Stands on One Leg', sets:'3×20-30s/side', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+          d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+            note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        }
+      },
+      // 5 intentionally omitted — this is the style's own authored default
+      // (COMBAT_STYLES.taiChi), used as-is.
+      6: {
+        short: 'The full 5-day program plus extra standing meditation & breath work',
+        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra standing meditation and breath work. Unlike every other combat style in this rollout, this isn\'t a deliberately lower-toll substitute for something harder — this program\'s own overview says low output IS the method, and real trial evidence in older adults backs frequent, gentle practice for balance and fall-risk reduction specifically.',
+        days: {
+          d1: { label:'Day 1', sub:'Standing Meditation & Rooting', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+              {name:'Zhan Zhuang (Standing Post)', sets:'4×2-3 min', noWeight:true},
+              {name:'Silk Reeling Qigong (Chan Si Gong)', sets:'3×3 min', noWeight:true},
+              {name:'Tai Chi Form — Opening & Ward Off (Peng)', sets:'5 reps ×3', noWeight:true},
+              {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Form Practice · Cardinal Techniques', plate:'p-blue', plateNum:'20', duration:'~45 min',
+            exercises:[
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+              {name:'Tai Chi Form — Grasp the Sparrow\'s Tail', sets:'6 reps ×3', noWeight:true},
+              {name:'Tai Chi Form — Single Whip', sets:'6 reps ×3', noWeight:true},
+              {name:'Tai Chi Form — Cloud Hands (Yun Shou)', sets:'8 reps/side ×2', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term.' },
+          d4: { label:'Day 4', sub:'Push Hands & Sensitivity', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+            exercises:[
+              {name:'Zhan Zhuang (Standing Post)', sets:'2×2 min', noWeight:true},
+              {name:'Push Hands — Fixed Step (Tui Shou)', sets:'6×2min rounds', noWeight:true},
+              {name:'Push Hands — Rollback & Press (Lu & Ji)', sets:'4×2min rounds', noWeight:true},
+              {name:'Silk Reeling Qigong (Chan Si Gong)', sets:'2×3 min', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Stance & Leg Strength', plate:'p-green', plateNum:'10', duration:'~35 min',
+            exercises:[
+              {name:'Horse Stance Hold (Mabu)', sets:'4×45-60s', noWeight:true},
+              {name:'Bow Stance Transitions (Gong Bu)', sets:'3×8/side', noWeight:true},
+              {name:'Golden Rooster Stands on One Leg', sets:'3×20-30s/side', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Form Flow', plate:'p-off', plateNum:'5', duration:'~45 min',
+            exercises:[
+              {name:'Tai Chi Form — Repulse Monkey (Retreating)', sets:'6 reps ×2', noWeight:true},
+              {name:'Tai Chi Form — Brush Knee & Twist Step', sets:'6 reps ×2', noWeight:true},
+              {name:'Short Form Flow (Full Run-Through)', sets:'3-5 min ×3', noWeight:true},
+              {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Standing Meditation & Breath Work', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Zhan Zhuang (Standing Post)', sets:'3×3 min', noWeight:true},
+              {name:'Silk Reeling Qigong (Chan Si Gong)', sets:'2×3 min', noWeight:true},
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+            ]
+          },
+        }
+      },
+      7: {
+        short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. Even in a program built for frequent gentle practice, the actual rest day stays real: this program\'s own note already says hip and ankle mobility is what keeps the low stances sustainable long-term, even at 7 days selected.',
+        days: {
+          d1: { label:'Day 1', sub:'Standing Meditation & Rooting', plate:'p-red', plateNum:'25', duration:'~40 min',
+            exercises:[
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+              {name:'Zhan Zhuang (Standing Post)', sets:'4×2-3 min', noWeight:true},
+              {name:'Silk Reeling Qigong (Chan Si Gong)', sets:'3×3 min', noWeight:true},
+              {name:'Tai Chi Form — Opening & Ward Off (Peng)', sets:'5 reps ×3', noWeight:true},
+              {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d2: { label:'Day 2', sub:'Form Practice · Cardinal Techniques', plate:'p-blue', plateNum:'20', duration:'~45 min',
+            exercises:[
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+              {name:'Tai Chi Form — Grasp the Sparrow\'s Tail', sets:'6 reps ×3', noWeight:true},
+              {name:'Tai Chi Form — Single Whip', sets:'6 reps ×3', noWeight:true},
+              {name:'Tai Chi Form — Cloud Hands (Yun Shou)', sets:'8 reps/side ×2', noWeight:true},
+            ]
+          },
+          d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+            note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term, even at 7 days selected.' },
+          d4: { label:'Day 4', sub:'Push Hands & Sensitivity', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+            exercises:[
+              {name:'Zhan Zhuang (Standing Post)', sets:'2×2 min', noWeight:true},
+              {name:'Push Hands — Fixed Step (Tui Shou)', sets:'6×2min rounds', noWeight:true},
+              {name:'Push Hands — Rollback & Press (Lu & Ji)', sets:'4×2min rounds', noWeight:true},
+              {name:'Silk Reeling Qigong (Chan Si Gong)', sets:'2×3 min', noWeight:true},
+            ]
+          },
+          d5: { label:'Day 5', sub:'Stance & Leg Strength', plate:'p-green', plateNum:'10', duration:'~35 min',
+            exercises:[
+              {name:'Horse Stance Hold (Mabu)', sets:'4×45-60s', noWeight:true},
+              {name:'Bow Stance Transitions (Gong Bu)', sets:'3×8/side', noWeight:true},
+              {name:'Golden Rooster Stands on One Leg', sets:'3×20-30s/side', noWeight:true},
+            ]
+          },
+          d6: { label:'Day 6', sub:'Full Form Flow', plate:'p-off', plateNum:'5', duration:'~45 min',
+            exercises:[
+              {name:'Tai Chi Form — Repulse Monkey (Retreating)', sets:'6 reps ×2', noWeight:true},
+              {name:'Tai Chi Form — Brush Knee & Twist Step', sets:'6 reps ×2', noWeight:true},
+              {name:'Short Form Flow (Full Run-Through)', sets:'3-5 min ×3', noWeight:true},
+              {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
+            ]
+          },
+          d7: { label:'Day 7', sub:'Extra Standing Meditation & Breath Work', plate:'p-off', plateNum:'5', duration:'~25 min',
+            exercises:[
+              {name:'Zhan Zhuang (Standing Post)', sets:'3×3 min', noWeight:true},
+              {name:'Silk Reeling Qigong (Chan Si Gong)', sets:'2×3 min', noWeight:true},
+              {name:'Hip CARs', sets:'2×5/side', noWeight:true},
+            ]
+          },
+        }
+      },
+    },
+  },
 };
 
 let daysPerWeekPref = null; // null = untouched -> each program's own authored default, unchanged
@@ -19433,18 +21103,19 @@ async function saveDaysPerWeekPref(n){
 // currently active.
 function applyDaysPerWeekProgramData(){
   DAYS_PER_WEEK_PROGRAMS.forEach(key=>{
-    if(key === 'cycling'){
-      const variant = (daysPerWeekPref == null) ? null : PROGRAM_DAY_COUNT_VARIANTS.cycling[activeCyclingStyle][daysPerWeekPref];
+    if(DAYS_PER_WEEK_STYLE_CONTAINERS.includes(key)){
+      const { styles, activeStyle } = getStyleContainerAccessor(key);
+      const variant = (daysPerWeekPref == null) ? null : PROGRAM_DAY_COUNT_VARIANTS[key][activeStyle][daysPerWeekPref];
       // `.days` always follows the active style, pref or no pref -- that
       // part of the container's existing behavior doesn't change. `.overview`
       // /`.short` only swap to the variant's own text once a real day-count
       // variant is active; otherwise they revert to the container's own
       // generic blurb (DAYS_PER_WEEK_CONTAINER_DEFAULT), never to the
-      // style's blurb -- switching Road/Mountain alone must not change what
+      // style's blurb -- switching sub-styles alone must not change what
       // the main Training Style card describes.
-      programs.cycling.days = variant ? variant.days : CYCLING_STYLES[activeCyclingStyle].days;
-      programs.cycling.overview = variant ? variant.overview : DAYS_PER_WEEK_CONTAINER_DEFAULT.cycling.overview;
-      programs.cycling.short = variant ? variant.short : DAYS_PER_WEEK_CONTAINER_DEFAULT.cycling.short;
+      programs[key].days = variant ? variant.days : styles[activeStyle].days;
+      programs[key].overview = variant ? variant.overview : DAYS_PER_WEEK_CONTAINER_DEFAULT[key].overview;
+      programs[key].short = variant ? variant.short : DAYS_PER_WEEK_CONTAINER_DEFAULT[key].short;
       return;
     }
     const source = (daysPerWeekPref == null)
