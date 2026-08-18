@@ -91,10 +91,10 @@ test('sabotage-relevant: the neutral-rgba sweep is genuinely complete inside the
   assert.doesNotMatch(styleBlock, /rgba\(0,0,0,/, 'every in-stylesheet black rgba() literal must now be var()-based');
 });
 
-test('sabotage-relevant: the real total count of converted sites matches what this pass actually touched (113 white, 60 black) — not a partial sweep that happens to pass the spot-checks above', (assert)=>{
+test('sabotage-relevant: the real total count of converted sites matches what this pass actually touched (100 white, 60 black) — not a partial sweep that happens to pass the spot-checks above', (assert)=>{
   const whiteCount = (src.match(/rgba\(var\(--surface-white-rgb\),/g) || []).length;
   const blackCount = (src.match(/rgba\(var\(--overlay-black-rgb\),/g) || []).length;
-  assert.strictEqual(whiteCount, 113, 'the real total of rgba(var(--surface-white-rgb), occurrences in the file must be 113 — every white-alpha CSS declaration in the <style> block, and no more (the :root declaration line itself is `--surface-white-rgb:255,255,255;`, which has no rgba( prefix and so is not counted here; 113 rather than 114 as of the visual-formatting pass that deleted a dead, superseded .program-intro{...} rule — see test-program-intro-divider-fix.js — whose border-top:...rgba(var(--surface-white-rgb),0.06) was the one site removed)');
+  assert.strictEqual(whiteCount, 100, 'the real total of rgba(var(--surface-white-rgb), occurrences in the file must be 100 — every white-alpha CSS declaration in the <style> block, and no more (the :root declaration line itself is `--surface-white-rgb:255,255,255;`, which has no rgba( prefix and so is not counted here). History: 114 -> 113 when a visual-formatting pass deleted a dead, superseded .program-intro{...} rule (see test-program-intro-divider-fix.js); 113 -> 100 when the same pass factored 15 exact-duplicate box-shadow literals (10x the 0.25 "CTA gloss" inset highlight, 5x the 0.35 "FAB gloss" inset highlight) into --cta-gloss-inset/--fab-gloss-inset tokens (see test-css-mechanical-token-dedup.js) — each literal site still resolves the same rgba(), just through a token now instead of 15 separate copies of the text');
   assert.strictEqual(blackCount, 60, 'the real total of rgba(var(--overlay-black-rgb), occurrences in the file must be 60 — every black-alpha CSS declaration in the <style> block, and no more');
 });
 

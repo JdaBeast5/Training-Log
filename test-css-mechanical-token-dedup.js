@@ -21,6 +21,14 @@
 //    ALREADY-EXISTING --cta-gradient-blue token (byte-identical: 160deg,
 //    #6E8AFF, var(--plate-blue) 60%) — swapped to the token directly, no
 //    new token needed.
+// 4. --cta-gloss-inset — `0 1px 0 rgba(var(--surface-white-rgb),0.25) inset`,
+//    the top-highlight hairline on gradient-filled (CTA green/blue) flat
+//    surfaces (checkmarks, save/log/compare buttons, chips) — 10 exact
+//    call sites.
+// 5. --fab-gloss-inset — the same idea, one alpha step stronger
+//    (`...0.35) inset`), for large round/pill surfaces (.day-hero-plate,
+//    coach-fab, today-fab, and each FAB's own :active state) — 5 exact
+//    call sites.
 //
 // jsdom's CSSOM does not resolve custom properties in getComputedStyle at
 // all (documented by the prior H2.2/H2.3 passes) — so, same as those files,
@@ -135,6 +143,48 @@ test('REAL CASCADE: .vol-bar-fill now uses var(--cta-gradient-blue), which resol
   assert.match(block, /background:var\(--cta-gradient-blue\)/, 'expected .vol-bar-fill to reference the shared token, not a duplicate literal');
   const resolved = resolveToken(block, 'cta-gradient-blue', ctaBlue);
   assert.ok(resolved.includes(`background:${ctaBlue};`), 'resolved background must equal the exact pre-conversion literal');
+});
+
+// ── CTA gloss inset: 10 real call sites ─────────────────────────────────
+test('sabotage-relevant: --cta-gloss-inset and --fab-gloss-inset are each declared exactly once, in :root', (assert)=>{
+  assert.strictEqual((src.match(/--cta-gloss-inset:/g) || []).length, 1);
+  assert.strictEqual((src.match(/--fab-gloss-inset:/g) || []).length, 1);
+  assert.ok(rootBlock.includes('--cta-gloss-inset:'), 'must live in :root');
+  assert.ok(rootBlock.includes('--fab-gloss-inset:'), 'must live in :root');
+});
+
+test('sabotage-relevant: var(--cta-gloss-inset) appears at exactly 10 real call sites, var(--fab-gloss-inset) at exactly 5', (assert)=>{
+  assert.strictEqual((src.match(/var\(--cta-gloss-inset\)/g) || []).length, 10);
+  assert.strictEqual((src.match(/var\(--fab-gloss-inset\)/g) || []).length, 5);
+});
+
+test('REAL CASCADE: a representative sample of --cta-gloss-inset call sites resolve to the exact pre-conversion literal', (assert)=>{
+  const gloss = extractCustomProp(rootBlock, 'cta-gloss-inset');
+  assert.strictEqual(gloss, '0 1px 0 rgba(var(--surface-white-rgb),0.25) inset', 'sanity: token holds the known pre-conversion literal');
+
+  const checkboxBlock = resolveToken(extractRuleBlock(src, '.exercise input[type=checkbox]:checked'), 'cta-gloss-inset', gloss);
+  assert.ok(checkboxBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset;'), `checkbox check must resolve to the exact pre-conversion single-layer shadow, got: ${checkboxBlock}`);
+
+  const saveBtnBlock = resolveToken(extractRuleBlock(src, '.save-btn'), 'cta-gloss-inset', gloss);
+  assert.ok(saveBtnBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset, 0 6px 16px -6px rgba(var(--plate-blue-rgb),0.55);'), `.save-btn must resolve to its exact original multi-layer shadow, got: ${saveBtnBlock}`);
+
+  const compareBtnBlock = resolveToken(extractRuleBlock(src, '.compare-confirm-btn'), 'cta-gloss-inset', gloss);
+  assert.ok(compareBtnBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset, 0 4px 12px -6px rgba(var(--plate-blue-rgb),0.5);'), `.compare-confirm-btn must resolve to its exact original shadow, got: ${compareBtnBlock}`);
+});
+
+// ── FAB gloss inset: 5 real call sites ──────────────────────────────────
+test('REAL CASCADE: a representative sample of --fab-gloss-inset call sites resolve to the exact pre-conversion literal', (assert)=>{
+  const gloss = extractCustomProp(rootBlock, 'fab-gloss-inset');
+  assert.strictEqual(gloss, '0 1px 0 rgba(var(--surface-white-rgb),0.35) inset', 'sanity: token holds the known pre-conversion literal');
+
+  const heroPlateBlock = resolveToken(extractRuleBlock(src, '.day-hero-plate'), 'fab-gloss-inset', gloss);
+  assert.ok(heroPlateBlock.includes('0 1px 0 rgba(var(--surface-white-rgb),0.35) inset,'), `.day-hero-plate must resolve to its exact original shadow layer, got: ${heroPlateBlock}`);
+
+  const coachFabBlock = resolveToken(extractRuleBlock(src, '.coach-fab'), 'fab-gloss-inset', gloss);
+  assert.ok(coachFabBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.35) inset, 0 14px 34px -8px rgba(var(--plate-blue-rgb),0.65), 0 0 50px -14px rgba(var(--plate-blue-rgb),0.55);'), `.coach-fab must resolve to its exact original shadow, got: ${coachFabBlock}`);
+
+  const todayFabActiveBlock = resolveToken(extractRuleBlock(src, '.today-fab:active'), 'fab-gloss-inset', gloss);
+  assert.ok(todayFabActiveBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.35) inset, 0 8px 20px -8px rgba(255,184,92,0.5);'), `.today-fab:active must resolve to its exact original shadow, got: ${todayFabActiveBlock}`);
 });
 
 run();

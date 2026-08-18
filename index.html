@@ -191,6 +191,16 @@
        gradient copy-pasted verbatim. Factored out here, same mechanical
        1:1 dedup as --focus-ring-glow above. */
     --gym-panel-gradient:linear-gradient(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%);
+    /* The top-highlight hairline on a gradient-filled (CTA green/blue) flat
+       surface — checkmarks, save/log/compare buttons, chips. 10 call sites
+       shared this exact literal verbatim before being factored out here
+       (mechanical 1:1 dedup, same method as the tokens above). */
+    --cta-gloss-inset:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset;
+    /* The same idea, one step stronger, for large round/pill surfaces —
+       .day-hero-plate and the FABs (coach-fab, today-fab, each including
+       their own :active state). 5 call sites shared this exact literal
+       verbatim before being factored out here. */
+    --fab-gloss-inset:0 1px 0 rgba(var(--surface-white-rgb),0.35) inset;
     --radius-xs:6px;
     --radius-sm:9px;
     --radius-md:12px;
@@ -400,7 +410,7 @@
     border:2px solid var(--bg);
     display:flex; align-items:center; justify-content:center;
     color:#fff; font-size:10px; font-weight:700; line-height:1;
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset, 0 2px 6px -2px rgba(var(--plate-green-rgb),0.5);
+    box-shadow:var(--cta-gloss-inset), 0 2px 6px -2px rgba(var(--plate-green-rgb),0.5);
     z-index:2;
   }
   .plate-label{font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap;}
@@ -429,7 +439,7 @@
     display:flex; align-items:center; justify-content:center;
     border:1.5px solid rgba(var(--surface-white-rgb),0.4);
     box-shadow:
-      0 1px 0 rgba(var(--surface-white-rgb),0.35) inset,
+      var(--fab-gloss-inset),
       0 4px 10px -4px rgba(var(--overlay-black-rgb),0.5),
       0 18px 34px -12px rgba(var(--overlay-black-rgb),0.55);
   }
@@ -569,7 +579,7 @@
   }
   .supplement-row.done .supplement-check{
     background:var(--cta-gradient-green); border-color:var(--plate-green); color:#fff;
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset;
+    box-shadow:var(--cta-gloss-inset);
   }
   .supplement-row.done span:last-child{color:var(--text-muted); text-decoration:line-through; text-decoration-color:var(--line-bright);}
   .supplement-row:active .supplement-check{transform:scale(0.88);}
@@ -586,7 +596,7 @@
   }
   .grocery-item.done .grocery-check{
     background:var(--cta-gradient-green); border-color:var(--plate-green); color:#fff;
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset;
+    box-shadow:var(--cta-gloss-inset);
   }
   .grocery-item.done .grocery-item-text{color:var(--text-muted); text-decoration:line-through; text-decoration-color:var(--line-bright);}
   .grocery-item:active .grocery-check{transform:scale(0.88);}
@@ -723,7 +733,7 @@
   }
   .exercise input[type=checkbox]:checked{
     background:var(--cta-gradient-blue); border-color:var(--plate-blue);
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset;
+    box-shadow:var(--cta-gloss-inset);
   }
   .ex-thumb{
     flex:0 0 auto; width:30px; height:30px; color:var(--text-muted); opacity:0.9;
@@ -1409,7 +1419,7 @@
     background:var(--shine-gloss), linear-gradient(160deg, #6E8AFF, var(--plate-blue) 55%); color:#fff; font-weight:600; font-size:14px;
     letter-spacing:-0.005em;
     font-family:'Inter',sans-serif; cursor:pointer;
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset, 0 6px 16px -6px rgba(var(--plate-blue-rgb),0.55);
+    box-shadow:var(--cta-gloss-inset), 0 6px 16px -6px rgba(var(--plate-blue-rgb),0.55);
     transition:transform 0.15s var(--ease-smooth), box-shadow 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
   }
   .save-btn::after{
@@ -1417,7 +1427,7 @@
     background:linear-gradient(100deg, transparent, rgba(var(--surface-white-rgb),0.16), transparent);
     transform:skewX(-20deg);
   }
-  .save-btn:active{opacity:0.88; transform:scale(0.96); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset, 0 3px 8px -4px rgba(var(--plate-blue-rgb),0.55);}
+  .save-btn:active{opacity:0.88; transform:scale(0.96); box-shadow:var(--cta-gloss-inset), 0 3px 8px -4px rgba(var(--plate-blue-rgb),0.55);}
   .save-btn[disabled]{opacity:0.5; cursor:default;}
   .save-btn[disabled]:active{transform:none;}
 
@@ -1526,7 +1536,7 @@
     position:relative; overflow:hidden;
     flex:1; padding:10px; background:var(--cta-gradient-green); color:#fff; border:none;
     border-radius:var(--radius-sm); font-weight:600; font-size:12.5px; cursor:pointer; font-family:'Inter',sans-serif;
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset, 0 5px 14px -6px rgba(var(--plate-green-rgb),0.5);
+    box-shadow:var(--cta-gloss-inset), 0 5px 14px -6px rgba(var(--plate-green-rgb),0.5);
     transition:transform 0.15s var(--ease-smooth);
   }
   .program-rec-btn:active{transform:scale(0.98);}
@@ -1753,7 +1763,7 @@
     width:58px; height:58px; border-radius:50%; border:1px solid rgba(var(--surface-white-rgb),0.28);
     background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 55%); color:#fff; font-size:24px;
     display:flex; align-items:center; justify-content:center; cursor:pointer;
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.35) inset, 0 14px 34px -8px rgba(var(--plate-blue-rgb),0.65), 0 0 50px -14px rgba(var(--plate-blue-rgb),0.55);
+    box-shadow:var(--fab-gloss-inset), 0 14px 34px -8px rgba(var(--plate-blue-rgb),0.65), 0 0 50px -14px rgba(var(--plate-blue-rgb),0.55);
     transition:transform 0.18s var(--ease-smooth), box-shadow 0.18s var(--ease-smooth), opacity 0.26s var(--ease-smooth);
   }
   .coach-fab.tucked{opacity:0; transform:scale(0.3); pointer-events:none; transition:transform 0.3s var(--ease-smooth), opacity 0.22s var(--ease-smooth);}
@@ -1763,7 +1773,7 @@
     pointer-events:none;
   }
   .coach-fab span{position:relative; z-index:1;}
-  .coach-fab:active{transform:scale(0.9); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.35) inset, 0 8px 20px -8px rgba(var(--plate-blue-rgb),0.5);}
+  .coach-fab:active{transform:scale(0.9); box-shadow:var(--fab-gloss-inset), 0 8px 20px -8px rgba(var(--plate-blue-rgb),0.5);}
 
   /* --- Global "Today" quick-access — bottom-left mirror of the coach FAB,
      but only ever visible while backdating is active anywhere in the app
@@ -1776,7 +1786,7 @@
     border-radius:var(--radius-pill); border:1px solid rgba(var(--surface-white-rgb),0.28);
     background:linear-gradient(160deg, #FFC978, var(--plate-yellow) 60%); color:#1a1a1a;
     font-family:'Inter',sans-serif; font-weight:700; font-size:13.5px; cursor:pointer;
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.35) inset, 0 14px 34px -8px rgba(255,184,92,0.6), 0 0 50px -14px rgba(255,184,92,0.5);
+    box-shadow:var(--fab-gloss-inset), 0 14px 34px -8px rgba(255,184,92,0.6), 0 0 50px -14px rgba(255,184,92,0.5);
     transition:transform 0.18s var(--ease-smooth), box-shadow 0.18s var(--ease-smooth), opacity 0.22s var(--ease-smooth);
   }
   .today-fab::before{
@@ -1785,7 +1795,7 @@
     pointer-events:none;
   }
   .today-fab-label{position:relative; z-index:1;}
-  .today-fab:active{transform:scale(0.92); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.35) inset, 0 8px 20px -8px rgba(255,184,92,0.5);}
+  .today-fab:active{transform:scale(0.92); box-shadow:var(--fab-gloss-inset), 0 8px 20px -8px rgba(255,184,92,0.5);}
 
   .coach-fab-modal{
     position:fixed; inset:0; z-index:80;
@@ -1849,7 +1859,7 @@
     flex:1; padding:9px 10px; border:none; border-radius:var(--radius-sm);
     background:var(--cta-gradient-green); color:#fff;
     font-family:'Inter',sans-serif; font-size:12px; font-weight:600; cursor:pointer;
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset, 0 4px 12px -6px rgba(var(--plate-green-rgb),0.45);
+    box-shadow:var(--cta-gloss-inset), 0 4px 12px -6px rgba(var(--plate-green-rgb),0.45);
     transition:transform 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
   }
   .recipe-log-btn:active{transform:scale(0.96);}
@@ -2456,7 +2466,7 @@
   .log-date-today-btn{
     flex:0 0 auto; background:var(--cta-gradient-blue); color:#fff; border:none; border-radius:var(--radius-pill);
     font-size:11px; font-weight:700; padding:6px 11px; cursor:pointer;
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset, 0 4px 12px -6px rgba(var(--plate-blue-rgb),0.55);
+    box-shadow:var(--cta-gloss-inset), 0 4px 12px -6px rgba(var(--plate-blue-rgb),0.55);
   }
 
   /* --- Calendar picker: same bottom-sheet-overlay convention as the
@@ -2970,7 +2980,7 @@
     flex:1; padding:9px 10px; border:none; border-radius:var(--radius-sm);
     background:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 55%); color:#fff;
     font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; cursor:pointer;
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset, 0 4px 12px -6px rgba(var(--plate-blue-rgb),0.5);
+    box-shadow:var(--cta-gloss-inset), 0 4px 12px -6px rgba(var(--plate-blue-rgb),0.5);
     transition:transform 0.15s var(--ease-smooth);
   }
   .compare-confirm-btn:active{transform:scale(0.96);}
@@ -6284,7 +6294,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.209';
+const APP_VERSION = '3.210';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6733,6 +6743,10 @@ const WHATS_NEW = {
   ]},
   '3.209': { headline: 'Behind-the-scenes cleanup of repeated visual styling', points: [
     'Several buttons, inputs, and Gym Mode panels shared the exact same glow, gradient, and highlight recipes copy-pasted in multiple places — consolidated into shared styles so they can never quietly drift apart.',
+    'Purely visual — no behavior changed, nothing should look any different.',
+  ]},
+  '3.210': { headline: 'More of the same behind-the-scenes styling cleanup', points: [
+    'The gloss highlight on gradient buttons/checkmarks and on round buttons like the AI Coach and Log Today FABs was copy-pasted at 15 different spots — now a shared style.',
     'Purely visual — no behavior changed, nothing should look any different.',
   ]},
 };
