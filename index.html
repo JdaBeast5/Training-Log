@@ -3643,12 +3643,6 @@
      "broad blanket hint" this section's own convention exists to avoid. */
   .view-enter, .view-exit{ will-change:opacity, transform; }
 
-  /* Program provenance: the intro always visible, the sourcing one tap away. */
-  .program-intro{
-    font-size:13px; line-height:1.5; color:var(--text-muted);
-    margin-top:10px; padding-top:10px;
-    border-top:1px solid rgba(var(--surface-white-rgb),0.06);
-  }
   /* --- No-backdrop-filter fallback ----------------------------------
      Twelve surfaces in this app are translucent *because* a blur sits behind
      them. Where backdrop-filter is unsupported — older Android WebViews, and
@@ -6274,7 +6268,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.207';
+const APP_VERSION = '3.208';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6716,6 +6710,10 @@ const WHATS_NEW = {
   '3.207': { headline: 'Training days per week now covers Cycling (Road and Mountain)', points: [
     'Cycling is the first style-variant container in this rollout — Road and Mountain each have their own real day-count plans, and switching between them no longer discards whichever day count you had selected.',
     'Both styles share the same reasoning: a small number of genuinely hard efforts inside a mostly-easy week. Higher-frequency options add extra easy-effort riding (or, for Mountain, more technical trail time) rather than another hard-interval or punchy-power day, which would break that balance instead of just adding volume.',
+  ]},
+  '3.208': { headline: 'Removed a stray divider line from program/style overview and citation text', points: [
+    'A leftover, unused style rule was silently adding a thin top border and extra padding above some text blocks — most visible as an odd gap between a source school\'s name and its cited reference in Research & Sources.',
+    'Purely visual — no behavior changed.',
   ]},
 };
 
