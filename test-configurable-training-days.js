@@ -1316,6 +1316,35 @@ test('REAL invocation: an out-of-range stored value (e.g. "9") is rejected — p
   assert.strictEqual(window.__programs.strength.days, window.__daysPerWeekOriginal.strength.days);
 });
 
+// [applyDaysPerWeekPrefToUI boot-ordering] ---------------------------------------
+// Found via user report: after reloading the app, the Profile field showed
+// "Program default" even though a real 6/7-day pref was still genuinely
+// stored AND still genuinely applied to the program's actual day content --
+// a real desync between what the field displayed and what was true. Root
+// cause: boot's init() called applyDaysPerWeekPrefToUI() long before
+// await loadDaysPerWeekPref() ran, so it read the in-memory `daysPerWeekPref`
+// variable while it was still at its initial `null` -- before the real
+// stored value had even been read from storage yet. Fixed by moving the
+// apply call to right after the load call resolves, matching the ordering
+// every other load/apply preference pair in this file already uses.
+test('REAL invocation: applyDaysPerWeekPrefToUI() reflects a real stored 7-day pref into the select once called AFTER loadDaysPerWeekPref() resolves -- the correct boot order', async (assert)=>{
+  const { window, document } = runJsdom(inputHtml, storageGlobals({ 'days-per-week-pref': '7' }), loadSaveChunks.concat([
+    extractFunction(src, 'applyDaysPerWeekPrefToUI'),
+    'window.__ready = false; loadDaysPerWeekPref().then(() => { applyDaysPerWeekPrefToUI(); window.__ready = true; });',
+  ]));
+  await new Promise(res => setTimeout(res, 20));
+  assert.strictEqual(window.__ready, true, 'sabotage anchor: the async chain actually ran before we assert');
+  assert.strictEqual(document.getElementById('daysPerWeekInput').value, '7');
+});
+
+test('sabotage: calling applyDaysPerWeekPrefToUI() BEFORE loadDaysPerWeekPref() resolves shows the wrong "Program default" even though a real pref is stored -- reproduces the exact boot-order bug that was fixed', (assert)=>{
+  const { document } = runJsdom(inputHtml, storageGlobals({ 'days-per-week-pref': '7' }), loadSaveChunks.concat([
+    extractFunction(src, 'applyDaysPerWeekPrefToUI'),
+    'applyDaysPerWeekPrefToUI(); loadDaysPerWeekPref();', // deliberately wrong order
+  ]));
+  assert.strictEqual(document.getElementById('daysPerWeekInput').value, '', 'demonstrates the bug this fix removes: the field reads the still-null in-memory pref before the storage read has a chance to resolve');
+});
+
 test('REAL invocation: saveDaysPerWeekPref(6) writes the value to storage and updates the in-memory pref', async (assert)=>{
   const { window } = runJsdom('', storageGlobals({}), loadSaveChunks.concat(['saveDaysPerWeekPref(6);']));
   await new Promise(res => setTimeout(res, 20));
@@ -1333,13 +1362,17 @@ test('REAL invocation: saveDaysPerWeekPref(null) DELETES the stored key (this is
 // [DOM: Profile input markup + warning banner] -----------------------------------
 const inputHtml = extractElementById(src, 'prefDaysPerWeek');
 
-test('the Profile "Training days per week" input matches the existing customProgDays precedent: number input, min=1, max=7', (assert)=>{
-  assert.match(inputHtml, /id="daysPerWeekInput"/);
-  assert.match(inputHtml, /type="number"/);
-  assert.match(inputHtml, /min="1"/);
-  assert.match(inputHtml, /max="7"/);
-  const inputCount = (inputHtml.match(/<input\b/g) || []).length;
-  assert.strictEqual(inputCount, 1, 'sabotage anchor: exactly one input in this block');
+test('the Profile "Training days per week" field is a real <select> with a "Program default" option plus exactly one option per day count 1-7 — not a number input, so there is no way to type an out-of-range or ambiguous value', (assert)=>{
+  assert.match(inputHtml, /<select\b[^>]*id="daysPerWeekInput"/);
+  assert.match(inputHtml, /<option value="">Program default<\/option>/);
+  for(const n of [1,2,3,4,5,6,7]){
+    assert.match(inputHtml, new RegExp(`<option value="${n}">${n}</option>`), `missing option for ${n}`);
+  }
+  const optionCount = (inputHtml.match(/<option\b/g) || []).length;
+  assert.strictEqual(optionCount, 8, 'sabotage anchor: exactly 8 options (Program default + 1-7), not a duplicate or missing one');
+  const selectCount = (inputHtml.match(/<select\b/g) || []).length;
+  assert.strictEqual(selectCount, 1, 'sabotage anchor: exactly one select in this block');
+  assert.strictEqual((inputHtml.match(/<input\b/g) || []).length, 0, 'must not still be a number input');
 });
 
 test('the Profile card ships an (initially hidden) daysPerWeekWarning container for the advisory banner', (assert)=>{
