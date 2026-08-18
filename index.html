@@ -1964,8 +1964,22 @@
     -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cline%20x1%3D%274%27%20y1%3D%276%27%20x2%3D%2716%27%20y2%3D%276%27%2F%3E%3Cpath%20d%3D%27M7.3%206V4.3a1%201%200%200%201%201-1h3.4a1%201%200%200%201%201%201V6%27%2F%3E%3Cpath%20d%3D%27M5.6%206%206.3%2016.2a1%201%200%200%200%201%200.9h5.4a1%201%200%200%200%201-0.9L14.4%206%27%2F%3E%3Cline%20x1%3D%278.3%27%20y1%3D%279%27%20x2%3D%278.3%27%20y2%3D%2713.6%27%2F%3E%3Cline%20x1%3D%2711.7%27%20y1%3D%279%27%20x2%3D%2711.7%27%20y2%3D%2713.6%27%2F%3E%3C%2Fsvg%3E");
     mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cline%20x1%3D%274%27%20y1%3D%276%27%20x2%3D%2716%27%20y2%3D%276%27%2F%3E%3Cpath%20d%3D%27M7.3%206V4.3a1%201%200%200%201%201-1h3.4a1%201%200%200%201%201%201V6%27%2F%3E%3Cpath%20d%3D%27M5.6%206%206.3%2016.2a1%201%200%200%200%201%200.9h5.4a1%201%200%200%200%201-0.9L14.4%206%27%2F%3E%3Cline%20x1%3D%278.3%27%20y1%3D%279%27%20x2%3D%278.3%27%20y2%3D%2713.6%27%2F%3E%3Cline%20x1%3D%2711.7%27%20y1%3D%279%27%20x2%3D%2711.7%27%20y2%3D%2713.6%27%2F%3E%3C%2Fsvg%3E");
   }
+  /* overflow:hidden isn't here for clipping — nothing inside a swipe row is
+     meant to overflow it. It's here because a negative margin on a
+     collapsed .smooth-toggle child (.fl-detail is -4px 0 4px) makes a
+     plain block's own auto-height calculation undercount by the negative
+     amount unless the block establishes its own formatting context. Without
+     this, .swipe-content came out 4px SHORTER than .swipe-item/.food-log-item
+     actually render — real height, confirmed live — leaving a thin sliver at
+     the bottom of every food-log row where this element's own opaque
+     background didn't reach, exposing the red .swipe-delete-bg underneath
+     instead of the card surface. .swipe-item already uses overflow:hidden
+     for its own, different reason (containing the swipe gesture) and
+     doesn't have this bug for exactly that reason — same fix, same
+     mechanism, applied one level in. */
   .swipe-content{
     position:relative; background:var(--surface); touch-action:pan-y; cursor:grab;
+    overflow:hidden;
   }
 
   .water-reset{color:var(--text-muted); flex:0.6;}
@@ -6364,7 +6378,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.228';
+const APP_VERSION = '3.229';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6881,6 +6895,9 @@ const WHATS_NEW = {
   ]},
   '3.228': { headline: 'Fixed two citation lines in Research & Sources running together', points: [
     'A source\'s school/methodology line and its "Cited source" line had zero space between them, reading as one run-on block instead of two separate statements.',
+  ]},
+  '3.229': { headline: 'Fixed a red line appearing under logged foods', points: [
+    'Every food you log on Today\'s Nutrition was showing a thin red bar underneath it, instead of the normal subtle divider — a real layout bug, not a warning of any kind. Gone now.',
   ]},
 };
 
