@@ -37,7 +37,7 @@ const { test, run } = makeRunner('test-configurable-training-days.js');
 
 // [Data completeness across all 7 counts, all rolled-out programs] ---------------
 const ALL_COUNTS = [1,2,3,4,5,6,7];
-const PROGRAMS_TO_CHECK = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding'];
+const PROGRAMS_TO_CHECK = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics'];
 
 for(const programKey of PROGRAMS_TO_CHECK){
   for(const n of ALL_COUNTS){
@@ -98,7 +98,7 @@ test('bodybuilding day-count 5 (falling back to the original) is byte-identical 
 //    slot is reframed as a light mobility/cardio (or, for oly specifically,
 //    still-bar-free-on-purpose) day instead. So n=7's real training-day
 //    count matches n=6's, not 7.
-const OMITTED_DEFAULT_COUNT = { strength: 4, bodybuilding: 5, oly: 5, powerlifting: 5, powerbuilding: 5 };
+const OMITTED_DEFAULT_COUNT = { strength: 4, bodybuilding: 5, oly: 5, powerlifting: 5, powerbuilding: 5, athletic: 5, bodyweight: 5, calisthenics: 5 };
 for(const programKey of PROGRAMS_TO_CHECK){
   test(`${programKey}: every hand-authored day-count's TRAINING day count actually matches the count selected (n=3 really has 3 non-rest days, not some other number)`, (assert)=>{
     const [results] = runSandbox(pureChunks, `
@@ -168,6 +168,12 @@ test('sabotage: powerlifting keeps the deadlift on a genuinely LOWER volume than
   `);
   assert.ok(setsFor.deadlift < setsFor.squat, `deadlift sets (${setsFor.deadlift}) should be fewer than squat sets (${setsFor.squat})`);
   assert.ok(setsFor.deadlift < setsFor.bench, `deadlift sets (${setsFor.deadlift}) should be fewer than bench sets (${setsFor.bench})`);
+});
+
+test('sabotage: calisthenics makes the SAME "recovery argument wins" choice as oly at 7 days, but with its own genuinely different reasoning (joint safety, not skill-frequency evidence quality) — proving this isn\'t a copy-pasted note between the two programs', (assert)=>{
+  const [note] = runSandbox(pureChunks, `__capture.push(PROGRAM_DAY_COUNT_VARIANTS.calisthenics[7].days.d3.note);`);
+  assert.match(note, /joints/i, 'expected calisthenics\' own joint-safety reasoning');
+  assert.doesNotMatch(note, /bar-free/i, 'must not be oly\'s wording copy-pasted in — calisthenics has no barbell to begin with');
 });
 
 test('every oly day-count variant is honest about evidence quality (coaching consensus, not RCT), matching this program\'s own established convention', (assert)=>{
@@ -282,7 +288,7 @@ test('daysPerWeekWarningState: null pref never warns', (assert)=>{
 });
 
 test('daysPerWeekWarningState: a program outside the rollout never warns even at 7 days', (assert)=>{
-  const [state] = runSandbox(pureChunks, `__capture.push(daysPerWeekWarningState('athletic', 7));`);
+  const [state] = runSandbox(pureChunks, `__capture.push(daysPerWeekWarningState('core', 7));`);
   assert.strictEqual(state.advisory, false);
 });
 
@@ -321,12 +327,12 @@ test('applyDaysPerWeekProgramData with a real pref set regenerates days AND over
 
 test('sabotage: applyDaysPerWeekProgramData NEVER touches a program outside DAYS_PER_WEEK_PROGRAMS, even with a pref set', (assert)=>{
   const [sameRef, sameOverview] = runSandbox(applyChunks, `
-    const athleticDaysBefore = programs.athletic.days;
-    const athleticOverviewBefore = programs.athletic.overview;
+    const coreDaysBefore = programs.core.days;
+    const coreOverviewBefore = programs.core.overview;
     daysPerWeekPref = 7;
     applyDaysPerWeekProgramData();
-    __capture.push(programs.athletic.days === athleticDaysBefore);
-    __capture.push(programs.athletic.overview === athleticOverviewBefore);
+    __capture.push(programs.core.days === coreDaysBefore);
+    __capture.push(programs.core.overview === coreOverviewBefore);
   `);
   assert.strictEqual(sameRef, true);
   assert.strictEqual(sameOverview, true);

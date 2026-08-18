@@ -4989,7 +4989,7 @@
         <div id="prefDaysPerWeek">
           <label class="care-label" for="daysPerWeekInput">Training days per week</label>
           <input type="number" id="daysPerWeekInput" class="care-input" min="1" max="7" inputmode="numeric" placeholder="Program default">
-          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, and Powerbuilding; other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
+          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, Powerbuilding, Athletic/Plyo, Bodyweight, and Calisthenics; other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
           <div id="daysPerWeekWarning" style="display:none"></div>
         </div>
 
@@ -6274,7 +6274,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.200';
+const APP_VERSION = '3.201';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6685,6 +6685,10 @@ const WHATS_NEW = {
   ]},
   '3.200': { headline: 'The new accessory days already match your body goal', points: [
     'The extra accessory/conditioning days added at higher training frequencies now confirmed to pull in your Body Goal focus exercise the same way every other day in these programs already does — pick "Hourglass / Curvy" and a 6-day Strength & Size week\'s accessory day adds a glute/hip exercise; pick "Maximum Size" and it leans arms and calves, and so on.',
+  ]},
+  '3.201': { headline: 'Training days per week now covers Athletic, Bodyweight, and Calisthenics', points: [
+    'These three now have their own real, purpose-built day counts (1-7), same standard as the other 5 programs already rolled out — including genuine program-specific choices: Athletic\'s higher-frequency days add sub-maximal speed work rather than a repeated max-effort jump session (this program is explicit about protecting joints and CNS from explosive training), and Calisthenics keeps its rest day genuinely skill-free even at 7 days, since handstands, levers, and muscle-ups need real joint recovery.',
+    'All 8 programs with this feature are also the same 8 already covered by the Body Goal focus-exercise system, so the new accessory days on every one of them already lean toward whatever goal you\'ve set.',
   ]},
 };
 
@@ -13447,21 +13451,23 @@ function renderPosingClasses(){
 // Object.keys(dayDefs).length. Every variant below fills all 7 slots so
 // neither of those has to change.
 //
-// Rollout status: pilot batch was strength + bodybuilding. This batch adds
-// the barbell-strength family -- oly, powerlifting, powerbuilding -- since
-// their existing content and training logic is closest to what's already
-// built. Deliberately excluded, permanently, not just "not yet": the 13
-// medical/rehab programs (obesity, hypertension, diabetes, osteoporosis,
-// bariatric x2, prenatal, postpartum, and the 5 rehab tracks). Their day
-// structure is a clinical-progression decision, not a frequency-
-// optimization one, and this app already treats deferring to a user's care
-// team as "deliberate and non-negotiable" (see programs.medical's own
-// overview) -- letting someone dial a rehab-ACL protocol up to 7 days/week
-// would be unsafe, not just untailored. Remaining scope: the plain
-// programs not yet covered (athletic, core, bodyweight, jumprope,
-// mobility, running, calisthenics, senior, swimming, climbing, boxingsc,
-// desk, hyrox, grappling, pilates) and the combat/cycling/watersports/yoga
-// style-variant containers, in further batches.
+// Rollout status: batch 1 was strength + bodybuilding. Batch 2 added the
+// barbell-strength family -- oly, powerlifting, powerbuilding. Batch 3
+// (this one) adds athletic, bodyweight, calisthenics -- the rest of
+// FOCUS_ELIGIBLE_PROGRAMS' current membership, so every program that
+// already gets a body-goal focus exercise (see below) now also gets a real
+// per-day-count plan. Deliberately excluded, permanently, not just "not
+// yet": the 13 medical/rehab programs (obesity, hypertension, diabetes,
+// osteoporosis, bariatric x2, prenatal, postpartum, and the 5 rehab
+// tracks). Their day structure is a clinical-progression decision, not a
+// frequency-optimization one, and this app already treats deferring to a
+// user's care team as "deliberate and non-negotiable" (see
+// programs.medical's own overview) -- letting someone dial a rehab-ACL
+// protocol up to 7 days/week would be unsafe, not just untailored.
+// Remaining scope: the plain programs not yet covered (core, jumprope,
+// mobility, running, senior, swimming, climbing, boxingsc, desk, hyrox,
+// grappling, pilates) and the combat/cycling/watersports/yoga style-variant
+// containers, in further batches.
 //
 // Accessory days already align with body goals -- for free. The user asked
 // for the new accessory/high-frequency days to reflect a person's body
@@ -13473,7 +13479,7 @@ function renderPosingClasses(){
 // from. Every program rolled out here is already on that list, so the new
 // accessory days inherit this automatically. Verified with real invocation
 // in test-configurable-training-days.js, not just reasoned about.
-const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding'];
+const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics'];
 const DAYS_PER_WEEK_ORIGINAL = Object.fromEntries(DAYS_PER_WEEK_PROGRAMS.map(key =>
   [key, { days: programs[key].days, overview: programs[key].overview, short: programs[key].short }]
 ));
@@ -14861,6 +14867,787 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Rear Delt Fly', sets:'3×15'},
             {name:'Skull Crushers', sets:'3×10-12'},
             {name:'Cable Crunch', sets:'3×15'},
+          ]
+        },
+      }
+    },
+  },
+  // Athletic/Plyo's own overview and rest-day note are explicit that this
+  // is a low-volume, full-recovery, high-impact program -- "quality over
+  // accumulation," and its existing rest day protects joints/CNS from
+  // explosive work specifically. That argues against a 2nd max-effort power
+  // day at high frequency even more strongly than a hypertrophy program
+  // would -- so 6-7 add a SUB-MAXIMAL speed/agility day, never a repeat of
+  // a jump-focused session.
+  athletic: {
+    1: {
+      short: 'Full-body power — the floor for this program',
+      overview: 'One combined lower-and-upper power session, kept genuinely low volume since this program\'s whole identity is quality over accumulation, not accumulated fatigue. A real session, but the lower-frequency floor for developing explosive power specifically — if a 2nd day ever becomes possible, splitting lower and upper power back into their own sessions is the natural next step.',
+      days: {
+        d1: { label:'Day 1', sub:'Full-Body Power', plate:'p-red', plateNum:'25', duration:'~50 min',
+          exercises:[
+            {name:'Trap Bar Jump Squat', sets:'3×3'},
+            {name:'Med Ball Chest Pass', sets:'3×5'},
+            {name:'Squat', sets:'3×5'},
+            {name:'Broad Jump', sets:'2×5'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Mobility and light movement, 20-30 min. Explosive training is high-impact — this rest day protects your joints and CNS.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Mobility and light movement, 20-30 min. Explosive training is high-impact — this rest day protects your joints and CNS.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Lower Power and Upper Power, their own dedicated days',
+      overview: 'Lower and upper power each get their own full session — real dedicated practice for both instead of combining them into one longer, more fatiguing day.',
+      days: {
+        d1: { label:'Day 1', sub:'Lower Power', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Trap Bar Jump Squat', sets:'4×3'},
+            {name:'Box Jump', sets:'4×5'},
+            {name:'Squat', sets:'4×5'},
+            {name:'Broad Jump', sets:'3×5'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Mobility and light movement, 20-30 min. Explosive training is high-impact — this rest day protects your joints and CNS.' },
+        d3: { label:'Day 3', sub:'Upper Power', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Med Ball Chest Pass', sets:'4×5'},
+            {name:'Plyo Push-up', sets:'3×8'},
+            {name:'Bench Press', sets:'4×6-8'},
+            {name:'Barbell Row', sets:'3×8-10'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Mobility and light movement, 20-30 min. Explosive training is high-impact — this rest day protects your joints and CNS.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Lower Power, Upper Power, and Conditioning & Agility',
+      overview: 'Lower and upper power keep their own days, plus a 3rd day of conditioning and agility work — real variety in movement quality (sprints, footwork) without a 2nd max-effort jump session on either lower or upper power.',
+      days: {
+        d1: { label:'Day 1', sub:'Lower Power', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Trap Bar Jump Squat', sets:'4×3'},
+            {name:'Box Jump', sets:'4×5'},
+            {name:'Squat', sets:'4×5'},
+            {name:'Broad Jump', sets:'3×5'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Mobility and light movement, 20-30 min. Explosive training is high-impact — this rest day protects your joints and CNS.' },
+        d3: { label:'Day 3', sub:'Upper Power', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Med Ball Chest Pass', sets:'4×5'},
+            {name:'Plyo Push-up', sets:'3×8'},
+            {name:'Bench Press', sets:'4×6-8'},
+            {name:'Barbell Row', sets:'3×8-10'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Conditioning & Agility', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'Sprint Intervals', sets:'6×40yd', noWeight:true},
+            {name:'Agility Ladder', sets:'15 min', noWeight:true},
+            {name:'Sled Push', sets:'4×20yd'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    4: {
+      short: 'Lower and Upper Power, each with a 2nd session',
+      overview: 'Lower and upper power each get a 2nd dedicated session — real added exposure to both power qualities without stacking a 3rd session on either in the same week. Conditioning & Agility is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      days: {
+        d1: { label:'Day 1', sub:'Lower Power', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Trap Bar Jump Squat', sets:'4×3'},
+            {name:'Box Jump', sets:'4×5'},
+            {name:'Squat', sets:'4×5'},
+            {name:'Broad Jump', sets:'3×5'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Mobility and light movement, 20-30 min. Explosive training is high-impact — this rest day protects your joints and CNS.' },
+        d3: { label:'Day 3', sub:'Upper Power', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Med Ball Chest Pass', sets:'4×5'},
+            {name:'Plyo Push-up', sets:'3×8'},
+            {name:'Bench Press', sets:'4×6-8'},
+            {name:'Barbell Row', sets:'3×8-10'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Lower Power 2', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Depth Jump', sets:'4×5'},
+            {name:'Single-Leg Bound', sets:'3×6/leg'},
+            {name:'Deadlift', sets:'4×5'},
+            {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Upper Power 2 + Core', plate:'p-green', plateNum:'10', duration:'~50 min',
+          exercises:[
+            {name:'Med Ball Rotational Throw', sets:'3×6/side'},
+            {name:'Overhead Press', sets:'4×6-8'},
+            {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            {name:'Cable Woodchopper', sets:'3×12/side'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.athletic), used as-is.
+    6: {
+      short: 'The full 5-day program plus a sub-maximal speed day',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of sub-maximal sprint mechanics and change-of-direction work — real added practice at a lower CNS/joint cost than another max-effort jump or throw session, consistent with this program\'s own stated priority: full recovery between sets, quality over accumulation.',
+      days: {
+        d1: { label:'Day 1', sub:'Lower Power', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Trap Bar Jump Squat', sets:'4×3'},
+            {name:'Box Jump', sets:'4×5'},
+            {name:'Squat', sets:'4×5'},
+            {name:'Broad Jump', sets:'3×5'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Upper Power', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Med Ball Chest Pass', sets:'4×5'},
+            {name:'Plyo Push-up', sets:'3×8'},
+            {name:'Bench Press', sets:'4×6-8'},
+            {name:'Barbell Row', sets:'3×8-10'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Mobility and light movement, 20-30 min. Explosive training is high-impact — this rest day protects your joints and CNS.' },
+        d4: { label:'Day 4', sub:'Lower Power 2', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Depth Jump', sets:'4×5'},
+            {name:'Single-Leg Bound', sets:'3×6/leg'},
+            {name:'Deadlift', sets:'4×5'},
+            {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Upper Power 2 + Core', plate:'p-green', plateNum:'10', duration:'~50 min',
+          exercises:[
+            {name:'Med Ball Rotational Throw', sets:'3×6/side'},
+            {name:'Overhead Press', sets:'4×6-8'},
+            {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            {name:'Cable Woodchopper', sets:'3×12/side'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Conditioning & Agility', plate:'p-off', plateNum:'5', duration:'~35 min',
+          exercises:[
+            {name:'Sprint Intervals', sets:'6×40yd', noWeight:true},
+            {name:'Agility Ladder', sets:'15 min', noWeight:true},
+            {name:'Sled Push', sets:'4×20yd'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Speed & Change of Direction', plate:'p-off', plateNum:'5', duration:'~35 min',
+          exercises:[
+            {name:'Sprint Intervals (Sub-Max)', sets:'4×30yd', noWeight:true},
+            {name:'Agility Ladder', sets:'10 min', noWeight:true},
+            {name:'Cable Woodchopper', sets:'3×10/side'},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, plus one deliberately easy recovery day',
+      overview: 'The same six days as the 6-day plan, completely unchanged — but the week does NOT add an 8th kind of hard session on top of an already-full 6 days. What was the lone rest/mobility slot becomes explicit light cardio instead: even training every single day, real programming still needs one day where nothing is loaded near failure, and this program is more explicit about that than most — its own overview leads with "full recovery between sets."',
+      days: {
+        d1: { label:'Day 1', sub:'Lower Power', plate:'p-red', plateNum:'25', duration:'~55 min',
+          exercises:[
+            {name:'Trap Bar Jump Squat', sets:'4×3'},
+            {name:'Box Jump', sets:'4×5'},
+            {name:'Squat', sets:'4×5'},
+            {name:'Broad Jump', sets:'3×5'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Upper Power', plate:'p-blue', plateNum:'20', duration:'~55 min',
+          exercises:[
+            {name:'Med Ball Chest Pass', sets:'4×5'},
+            {name:'Plyo Push-up', sets:'3×8'},
+            {name:'Bench Press', sets:'4×6-8'},
+            {name:'Barbell Row', sets:'3×8-10'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Mobility & Easy Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min easy walk or bike plus loose joint mobility work — conversational pace throughout. You picked 7 days a week, and this IS one of them, but nothing here is loaded near failure on purpose.' },
+        d4: { label:'Day 4', sub:'Lower Power 2', plate:'p-yellow', plateNum:'15', duration:'~55 min',
+          exercises:[
+            {name:'Depth Jump', sets:'4×5'},
+            {name:'Single-Leg Bound', sets:'3×6/leg'},
+            {name:'Deadlift', sets:'4×5'},
+            {name:'Bulgarian Split Squat', sets:'3×8/leg'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Upper Power 2 + Core', plate:'p-green', plateNum:'10', duration:'~50 min',
+          exercises:[
+            {name:'Med Ball Rotational Throw', sets:'3×6/side'},
+            {name:'Overhead Press', sets:'4×6-8'},
+            {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            {name:'Cable Woodchopper', sets:'3×12/side'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Conditioning & Agility', plate:'p-off', plateNum:'5', duration:'~35 min',
+          exercises:[
+            {name:'Sprint Intervals', sets:'6×40yd', noWeight:true},
+            {name:'Agility Ladder', sets:'15 min', noWeight:true},
+            {name:'Sled Push', sets:'4×20yd'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Speed & Change of Direction', plate:'p-off', plateNum:'5', duration:'~35 min',
+          exercises:[
+            {name:'Sprint Intervals (Sub-Max)', sets:'4×30yd', noWeight:true},
+            {name:'Agility Ladder', sets:'10 min', noWeight:true},
+            {name:'Cable Woodchopper', sets:'3×10/side'},
+          ]
+        },
+      }
+    },
+  },
+  bodyweight: {
+    1: {
+      short: 'Full-body bodyweight — the floor for this program',
+      overview: 'A single full-body session touching push, pull, and legs, since a full week only gets one shot at each pattern. This is genuine strength training, just without external load — the same 2x/week-beats-1x frequency argument this program\'s own barbell-based siblings lean on applies here too, so if a 2nd day ever becomes possible, splitting patterns across sessions would help more than anything else here.',
+      days: {
+        d1: { label:'Day 1', sub:'Full-Body Bodyweight', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Push-up', sets:'3×AMRAP'},
+            {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            {name:'Bodyweight Squat', sets:'3×20-25'},
+            {name:'Plank', sets:'2×45s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio — a brisk outdoor walk or bike works great here, no gym required.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio — a brisk outdoor walk or bike works great here, no gym required.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Two full-body sessions, push+legs led and pull+legs led',
+      overview: 'Two full-body sessions rather than an upper/lower split — with only two days, a true split would train each pattern just once a week. Push leads one session, pull leads the other, and legs appear in both since bodyweight leg work tolerates real frequency.',
+      days: {
+        d1: { label:'Day 1', sub:'Full Body A — Push Led', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Push-up', sets:'3×AMRAP'},
+            {name:'Bodyweight Squat', sets:'3×20-25'},
+            {name:'Inverted Row', sets:'3×12-15'},
+            {name:'Plank', sets:'2×45s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio — a brisk outdoor walk or bike works great here, no gym required.' },
+        d3: { label:'Day 3', sub:'Full Body B — Pull Led', plate:'p-blue', plateNum:'20', duration:'~40 min',
+          exercises:[
+            {name:'Pull-ups (or assisted)', sets:'3×AMRAP'},
+            {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
+            {name:'Triceps Dip', sets:'3×12-15'},
+            {name:'Hollow Body Hold', sets:'2×20-30s', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio — a brisk outdoor walk or bike works great here, no gym required.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Push, Pull, and Legs — classic bodyweight split',
+      overview: 'Push, pull, and legs each keep their own full day, no accessory-only days diluting focus — a real, well-established structure at this frequency.',
+      days: {
+        d1: { label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Push-up', sets:'4×AMRAP'},
+            {name:'Pike Push-up', sets:'3×10-12'},
+            {name:'Decline Push-up', sets:'3×12-15'},
+            {name:'Triceps Dip', sets:'3×12-15'},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio — a brisk outdoor walk or bike works great here, no gym required.' },
+        d3: { label:'Day 3', sub:'Pull', plate:'p-blue', plateNum:'20', duration:'~35 min',
+          exercises:[
+            {name:'Pull-ups (or assisted)', sets:'4×AMRAP'},
+            {name:'Chin-up', sets:'3×AMRAP'},
+            {name:'Inverted Row', sets:'3×12-15'},
+            {name:'Superman Hold', sets:'3×20-30s', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Legs', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'Bodyweight Squat', sets:'4×20-25'},
+            {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
+            {name:'Glute Bridge', sets:'3×15-20'},
+            {name:'Nordic Curl', sets:'3×5-8'},
+            {name:'Calf Raise', sets:'3×20-25'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    4: {
+      short: 'Push, Pull, Legs, plus Full Body Conditioning',
+      overview: 'Push, pull, and legs each keep their own day, plus a 4th day of full-body conditioning — real added work capacity without diluting any single pattern day. Core & Mobility is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      days: {
+        d1: { label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Push-up', sets:'4×AMRAP'},
+            {name:'Pike Push-up', sets:'3×10-12'},
+            {name:'Decline Push-up', sets:'3×12-15'},
+            {name:'Triceps Dip', sets:'3×12-15'},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio — a brisk outdoor walk or bike works great here, no gym required.' },
+        d3: { label:'Day 3', sub:'Pull', plate:'p-blue', plateNum:'20', duration:'~35 min',
+          exercises:[
+            {name:'Pull-ups (or assisted)', sets:'4×AMRAP'},
+            {name:'Chin-up', sets:'3×AMRAP'},
+            {name:'Inverted Row', sets:'3×12-15'},
+            {name:'Superman Hold', sets:'3×20-30s', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Legs', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'Bodyweight Squat', sets:'4×20-25'},
+            {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
+            {name:'Glute Bridge', sets:'3×15-20'},
+            {name:'Nordic Curl', sets:'3×5-8'},
+            {name:'Calf Raise', sets:'3×20-25'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Body Conditioning', plate:'p-green', plateNum:'10', duration:'~35 min',
+          exercises:[
+            {name:'Burpees', sets:'4×30-45s', noWeight:true},
+            {name:'Mountain Climbers', sets:'4×30s', noWeight:true},
+            {name:'Jump Squat', sets:'3×12-15'},
+            {name:'Push-up to Plank', sets:'3×10'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.bodyweight), used as-is.
+    6: {
+      short: 'The full 5-day program plus unilateral & isometric progressions',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day extending this program\'s own stated progression path — harder leverage and single-limb variations — rather than a 2nd copy of push, pull, or legs day.',
+      days: {
+        d1: { label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Push-up', sets:'4×AMRAP'},
+            {name:'Pike Push-up', sets:'3×10-12'},
+            {name:'Decline Push-up', sets:'3×12-15'},
+            {name:'Triceps Dip', sets:'3×12-15'},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Pull', plate:'p-blue', plateNum:'20', duration:'~35 min',
+          exercises:[
+            {name:'Pull-ups (or assisted)', sets:'4×AMRAP'},
+            {name:'Chin-up', sets:'3×AMRAP'},
+            {name:'Inverted Row', sets:'3×12-15'},
+            {name:'Superman Hold', sets:'3×20-30s', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min zone 2 cardio — a brisk outdoor walk or bike works great here, no gym required.' },
+        d4: { label:'Day 4', sub:'Legs', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'Bodyweight Squat', sets:'4×20-25'},
+            {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
+            {name:'Glute Bridge', sets:'3×15-20'},
+            {name:'Nordic Curl', sets:'3×5-8'},
+            {name:'Calf Raise', sets:'3×20-25'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Full Body Conditioning', plate:'p-green', plateNum:'10', duration:'~35 min',
+          exercises:[
+            {name:'Burpees', sets:'4×30-45s', noWeight:true},
+            {name:'Mountain Climbers', sets:'4×30s', noWeight:true},
+            {name:'Jump Squat', sets:'3×12-15'},
+            {name:'Push-up to Plank', sets:'3×10'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Core & Mobility', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            {name:'Plank', sets:'3×45-60s', noWeight:true},
+            {name:'Bicycle Crunch', sets:'3×15/side'},
+            {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Unilateral & Isometric Progressions', plate:'p-off', plateNum:'5', duration:'~35 min',
+          exercises:[
+            {name:'Decline Push-up', sets:'3×12-15'},
+            {name:'Chin-up', sets:'3×AMRAP'},
+            {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
+            {name:'Nordic Curl', sets:'3×5-8'},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, plus one deliberately easy recovery day',
+      overview: 'The same six days as the 6-day plan, completely unchanged — but the week does NOT add an 8th kind of hard session on top of an already-full 6 days. What was the lone rest/cardio slot becomes explicit light mobility instead: even training every single day, real programming still needs one day where nothing is loaded near failure.',
+      days: {
+        d1: { label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Push-up', sets:'4×AMRAP'},
+            {name:'Pike Push-up', sets:'3×10-12'},
+            {name:'Decline Push-up', sets:'3×12-15'},
+            {name:'Triceps Dip', sets:'3×12-15'},
+            {name:'Plank', sets:'3×45s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Pull', plate:'p-blue', plateNum:'20', duration:'~35 min',
+          exercises:[
+            {name:'Pull-ups (or assisted)', sets:'4×AMRAP'},
+            {name:'Chin-up', sets:'3×AMRAP'},
+            {name:'Inverted Row', sets:'3×12-15'},
+            {name:'Superman Hold', sets:'3×20-30s', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Mobility & Easy Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'20-30 min easy walk or bike plus loose joint mobility work — conversational pace throughout. You picked 7 days a week, and this IS one of them, but nothing here is loaded near failure on purpose.' },
+        d4: { label:'Day 4', sub:'Legs', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'Bodyweight Squat', sets:'4×20-25'},
+            {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
+            {name:'Glute Bridge', sets:'3×15-20'},
+            {name:'Nordic Curl', sets:'3×5-8'},
+            {name:'Calf Raise', sets:'3×20-25'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Full Body Conditioning', plate:'p-green', plateNum:'10', duration:'~35 min',
+          exercises:[
+            {name:'Burpees', sets:'4×30-45s', noWeight:true},
+            {name:'Mountain Climbers', sets:'4×30s', noWeight:true},
+            {name:'Jump Squat', sets:'3×12-15'},
+            {name:'Push-up to Plank', sets:'3×10'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Core & Mobility', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            {name:'Plank', sets:'3×45-60s', noWeight:true},
+            {name:'Bicycle Crunch', sets:'3×15/side'},
+            {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Unilateral & Isometric Progressions', plate:'p-off', plateNum:'5', duration:'~35 min',
+          exercises:[
+            {name:'Decline Push-up', sets:'3×12-15'},
+            {name:'Chin-up', sets:'3×AMRAP'},
+            {name:'Bulgarian Split Squat', sets:'3×12-15/leg'},
+            {name:'Nordic Curl', sets:'3×5-8'},
+          ]
+        },
+      }
+    },
+  },
+  // Calisthenics' own d3 rest note ("skill work like handstands and levers
+  // demands healthy joints — protect them here") makes the same argument
+  // Oly's evidence-quality note makes for skill frequency, applied here to
+  // joint safety instead: even at 6-7 days, the actual rest day stays
+  // genuinely bar/skill-free, and the added day is deliberately LOW
+  // intensity skill reinforcement, never a 2nd max-effort attempt at a
+  // joint-taxing skill (muscle-ups, levers, planche).
+  calisthenics: {
+    1: {
+      short: 'Push + Pull skill primer — the floor for this program',
+      overview: 'A single session touching both push and pull skill work at reduced volume, since a full week only gets one shot at each. Real skill acquisition benefits from more frequent practice than this — if a 2nd day ever becomes possible, splitting push and pull skills into their own sessions (like the 2-day plan) is the natural next step.',
+      days: {
+        d1: { label:'Day 1', sub:'Push + Pull Skill Primer', plate:'p-red', plateNum:'25', duration:'~45 min',
+          exercises:[
+            {name:'Handstand Hold (wall)', sets:'3×20-30s', noWeight:true},
+            {name:'Pull-ups (or assisted)', sets:'3×8-10'},
+            {name:'Dip (Bar/Ring)', sets:'3×8-12'},
+            {name:'Inverted Row', sets:'3×12'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder and wrist mobility, 20-30 min. Skill work like handstands and levers demands healthy joints — protect them here.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder and wrist mobility, 20-30 min. Skill work like handstands and levers demands healthy joints — protect them here.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Push Skills and Pull Skills, their own dedicated days',
+      overview: 'Push and pull skill work each get their own full session — real dedicated practice for both instead of combining them into one shorter, split-focus day.',
+      days: {
+        d1: { label:'Day 1', sub:'Push Skills', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Handstand Hold (wall)', sets:'4×20-30s', noWeight:true},
+            {name:'Pike Push-up', sets:'3×8-10'},
+            {name:'Dip (Bar/Ring)', sets:'4×8-12'},
+            {name:'Planche Lean', sets:'3×15-20s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder and wrist mobility, 20-30 min. Skill work like handstands and levers demands healthy joints — protect them here.' },
+        d3: { label:'Day 3', sub:'Pull Skills', plate:'p-blue', plateNum:'20', duration:'~40 min',
+          exercises:[
+            {name:'Muscle-up', sets:'4×3-5'},
+            {name:'Front Lever Hold', sets:'4×10-15s', noWeight:true},
+            {name:'Pull-ups (or assisted)', sets:'4×8-10'},
+            {name:'Inverted Row', sets:'3×12'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder and wrist mobility, 20-30 min. Skill work like handstands and levers demands healthy joints — protect them here.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Push Skills, Pull Skills, and Legs & Explosive',
+      overview: 'Push and pull skills keep their own days, plus a 3rd day of leg and explosive work — real added training that doesn\'t double up on the joint-taxing skill work (handstands, levers, muscle-ups) either day already carries.',
+      days: {
+        d1: { label:'Day 1', sub:'Push Skills', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Handstand Hold (wall)', sets:'4×20-30s', noWeight:true},
+            {name:'Pike Push-up', sets:'3×8-10'},
+            {name:'Dip (Bar/Ring)', sets:'4×8-12'},
+            {name:'Planche Lean', sets:'3×15-20s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder and wrist mobility, 20-30 min. Skill work like handstands and levers demands healthy joints — protect them here.' },
+        d3: { label:'Day 3', sub:'Pull Skills', plate:'p-blue', plateNum:'20', duration:'~40 min',
+          exercises:[
+            {name:'Muscle-up', sets:'4×3-5'},
+            {name:'Front Lever Hold', sets:'4×10-15s', noWeight:true},
+            {name:'Pull-ups (or assisted)', sets:'4×8-10'},
+            {name:'Inverted Row', sets:'3×12'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Legs & Explosive', plate:'p-green', plateNum:'10', duration:'~40 min',
+          exercises:[
+            {name:'Pistol Squat', sets:'3×5-8/leg'},
+            {name:'Jump Squat', sets:'3×12-15'},
+            {name:'Nordic Curl', sets:'3×5-8'},
+            {name:'Calf Raise', sets:'3×20-25'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    4: {
+      short: 'Push, Pull, Core & L-Sit, and Legs & Explosive',
+      overview: 'Push skills, pull skills, core/L-sit progressions, and legs each get their own day — real breadth across this program\'s full skill set. Skill Practice & Mobility is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      days: {
+        d1: { label:'Day 1', sub:'Push Skills', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Handstand Hold (wall)', sets:'4×20-30s', noWeight:true},
+            {name:'Pike Push-up', sets:'3×8-10'},
+            {name:'Dip (Bar/Ring)', sets:'4×8-12'},
+            {name:'Planche Lean', sets:'3×15-20s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder and wrist mobility, 20-30 min. Skill work like handstands and levers demands healthy joints — protect them here.' },
+        d3: { label:'Day 3', sub:'Pull Skills', plate:'p-blue', plateNum:'20', duration:'~40 min',
+          exercises:[
+            {name:'Muscle-up', sets:'4×3-5'},
+            {name:'Front Lever Hold', sets:'4×10-15s', noWeight:true},
+            {name:'Pull-ups (or assisted)', sets:'4×8-10'},
+            {name:'Inverted Row', sets:'3×12'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Core & L-Sit Progressions', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'L-sit Hold', sets:'4×10-20s', noWeight:true},
+            {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            {name:'Dragon Flag', sets:'3×5-8', noWeight:true},
+            {name:'Hanging Leg Raise', sets:'3×10-12'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Legs & Explosive', plate:'p-green', plateNum:'10', duration:'~40 min',
+          exercises:[
+            {name:'Pistol Squat', sets:'3×5-8/leg'},
+            {name:'Jump Squat', sets:'3×12-15'},
+            {name:'Nordic Curl', sets:'3×5-8'},
+            {name:'Calf Raise', sets:'3×20-25'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.calisthenics), used as-is.
+    6: {
+      short: 'The full 5-day program plus mobility & light skill reinforcement',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of deliberately light skill reinforcement and mobility — never a 2nd max-effort attempt at a joint-taxing skill like a muscle-up or front lever. This program\'s own rest-day note already makes the case: healthy joints are what let the harder positions keep progressing at all.',
+      days: {
+        d1: { label:'Day 1', sub:'Push Skills', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Handstand Hold (wall)', sets:'4×20-30s', noWeight:true},
+            {name:'Pike Push-up', sets:'3×8-10'},
+            {name:'Dip (Bar/Ring)', sets:'4×8-12'},
+            {name:'Planche Lean', sets:'3×15-20s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Pull Skills', plate:'p-blue', plateNum:'20', duration:'~40 min',
+          exercises:[
+            {name:'Muscle-up', sets:'4×3-5'},
+            {name:'Front Lever Hold', sets:'4×10-15s', noWeight:true},
+            {name:'Pull-ups (or assisted)', sets:'4×8-10'},
+            {name:'Inverted Row', sets:'3×12'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder and wrist mobility, 20-30 min. Skill work like handstands and levers demands healthy joints — protect them here.' },
+        d4: { label:'Day 4', sub:'Core & L-Sit Progressions', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'L-sit Hold', sets:'4×10-20s', noWeight:true},
+            {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            {name:'Dragon Flag', sets:'3×5-8', noWeight:true},
+            {name:'Hanging Leg Raise', sets:'3×10-12'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Legs & Explosive', plate:'p-green', plateNum:'10', duration:'~40 min',
+          exercises:[
+            {name:'Pistol Squat', sets:'3×5-8/leg'},
+            {name:'Jump Squat', sets:'3×12-15'},
+            {name:'Nordic Curl', sets:'3×5-8'},
+            {name:'Calf Raise', sets:'3×20-25'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Skill Practice & Mobility', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Handstand Hold (wall)', sets:'4×30-60s attempts', noWeight:true},
+            {name:'Bridge Hold', sets:'3×20-30s', noWeight:true},
+            {name:'Band Dislocates', sets:'3×12', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Mobility & Light Skill Reinforcement', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Handstand Hold (wall) (Light)', sets:'3×15-20s', noWeight:true},
+            {name:'Bridge Hold', sets:'2×20-30s', noWeight:true},
+            {name:'Band Dislocates', sets:'3×12', noWeight:true},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, with the joint-safety argument still winning on the rest day',
+      overview: 'The same six days as the 6-day plan, completely unchanged. This program takes joint health more seriously than most, by its own design — even at 7 days selected, the actual rest day stays genuinely skill-free rather than getting reframed into more practice, because handstands, levers, and muscle-ups punish joints that never get a real break.',
+      days: {
+        d1: { label:'Day 1', sub:'Push Skills', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Handstand Hold (wall)', sets:'4×20-30s', noWeight:true},
+            {name:'Pike Push-up', sets:'3×8-10'},
+            {name:'Dip (Bar/Ring)', sets:'4×8-12'},
+            {name:'Planche Lean', sets:'3×15-20s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Pull Skills', plate:'p-blue', plateNum:'20', duration:'~40 min',
+          exercises:[
+            {name:'Muscle-up', sets:'4×3-5'},
+            {name:'Front Lever Hold', sets:'4×10-15s', noWeight:true},
+            {name:'Pull-ups (or assisted)', sets:'4×8-10'},
+            {name:'Inverted Row', sets:'3×12'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Shoulder and wrist mobility, 20-30 min. Even at 7 days selected, this stays genuinely skill-free on purpose — the joints that make handstands, levers, and muscle-ups possible need a real break, not a lighter version of more practice.' },
+        d4: { label:'Day 4', sub:'Core & L-Sit Progressions', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'L-sit Hold', sets:'4×10-20s', noWeight:true},
+            {name:'Hollow Body Hold', sets:'3×20-30s', noWeight:true},
+            {name:'Dragon Flag', sets:'3×5-8', noWeight:true},
+            {name:'Hanging Leg Raise', sets:'3×10-12'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Legs & Explosive', plate:'p-green', plateNum:'10', duration:'~40 min',
+          exercises:[
+            {name:'Pistol Squat', sets:'3×5-8/leg'},
+            {name:'Jump Squat', sets:'3×12-15'},
+            {name:'Nordic Curl', sets:'3×5-8'},
+            {name:'Calf Raise', sets:'3×20-25'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Skill Practice & Mobility', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Handstand Hold (wall)', sets:'4×30-60s attempts', noWeight:true},
+            {name:'Bridge Hold', sets:'3×20-30s', noWeight:true},
+            {name:'Band Dislocates', sets:'3×12', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Mobility & Light Skill Reinforcement', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Handstand Hold (wall) (Light)', sets:'3×15-20s', noWeight:true},
+            {name:'Bridge Hold', sets:'2×20-30s', noWeight:true},
+            {name:'Band Dislocates', sets:'3×12', noWeight:true},
           ]
         },
       }
