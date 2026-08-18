@@ -4989,7 +4989,7 @@
         <div id="prefDaysPerWeek">
           <label class="care-label" for="daysPerWeekInput">Training days per week</label>
           <input type="number" id="daysPerWeekInput" class="care-input" min="1" max="7" inputmode="numeric" placeholder="Program default">
-          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, Powerbuilding, Athletic/Plyo, Bodyweight, Calisthenics, Core &amp; Stability, Jump Rope, Mobility &amp; Flexibility, Running/Endurance, Swimming, and Rock Climbing; other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
+          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, Powerbuilding, Athletic/Plyo, Bodyweight, Calisthenics, Core &amp; Stability, Jump Rope, Mobility &amp; Flexibility, Running/Endurance, Swimming, Rock Climbing, Senior Strength &amp; Balance, Desk Worker/Posture, and Pilates; other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
           <div id="daysPerWeekWarning" style="display:none"></div>
         </div>
 
@@ -6274,7 +6274,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.204';
+const APP_VERSION = '3.205';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6702,6 +6702,11 @@ const WHATS_NEW = {
   '3.204': { headline: 'Training days per week now covers Running, Swimming, and Rock Climbing', points: [
     'These three now have their own real, purpose-built day counts (1-7). Running and Swimming both already cite the same polarized-training research (mostly easy effort, a small number of genuinely hard sessions) — so their higher-frequency options add a 2nd easy run or a 2nd dryland-shoulder day, never a 3rd hard session that would break the intensity balance their own citations call for.',
     'Rock Climbing has its own real constraint: fingers and connective tissue adapt over years, not weeks. Every day count keeps hangboard/finger loading capped — low-frequency plans use lighter finger work instead of dropping shoulder-health training, and high-frequency plans add antagonist and mobility work with zero extra finger stress, never a 2nd hangboard-intensive day.',
+  ]},
+  '3.205': { headline: 'Training days per week now covers Senior Strength & Balance, Desk Worker/Posture, and Pilates', points: [
+    'Senior Strength & Balance keeps its dual strength-and-balance priority at every day count — never strength-only, even at the lowest frequency — and its higher-frequency options add extra balance practice rather than a 3rd heavy strength day, since balance work tolerates more frequent practice than this population\'s strength recovery does.',
+    'Desk Worker/Posture is honest at every day count that the movement-snacks habit (getting up every 30-60 minutes) matters as much as, or more than, the structured session count — that slot stays exactly the same no matter which count you pick.',
+    'Pilates keeps its higher-frequency options deliberately low-fatigue — extra breath-and-control work, never more of the ballistic Full Flow & Teaser content — since precise control is the whole point of the method, and fatigue is exactly what degrades it.',
   ]},
 };
 
@@ -13475,7 +13480,7 @@ function renderPosingClasses(){
 // already referenced on that program's overview comment) found stretching
 // FREQUENCY itself doesn't drive range-of-motion gains, unlike the
 // muscle-frequency argument every strength-family program above leans on.
-// Batch 5 (this one) adds running, swimming, climbing -- the polarized-
+// Batch 5 adds running, swimming, climbing -- the polarized-
 // training / injury-prevention family. Running and swimming both carry an
 // explicit "do not add hard-effort volume to fill out the week" constraint
 // in their own existing citation comments (Seiler's polarized-distribution
@@ -13485,6 +13490,19 @@ function renderPosingClasses(){
 // recovering constraint (fingers/connective tissue adapt over years, not
 // weeks, per its own overview) -- its high-frequency variants add zero
 // extra finger loading, only antagonist/shoulder/mobility work.
+// Batch 6 (this one) adds senior, desk, pilates. Senior keeps a dual
+// strength+balance priority at every count -- never strength-only even at
+// n=1/2 -- and its n=6 adds "Extra Balance Practice" rather than a 3rd
+// strength day, since balance work tolerates higher frequency than heavy
+// strength in this population (fall-prevention literature, same overview
+// comment already on programs.senior). Desk is honest at every single
+// count that the movement-snacks habit (get up every 30-60 min) matters as
+// much as, or more than, which day count is picked -- that slot's content
+// is preserved verbatim across every variant, unlike everything else here.
+// Pilates leans on a fatigue-degrades-precision constraint, the same shape
+// as Calisthenics'/Oly's reasoning but applied to motor control instead of
+// joints/skill -- its n=6 adds "Breath & Control Refinement", deliberately
+// low-fatigue, never the more ballistic Full Flow & Teaser content.
 // Deliberately excluded, permanently, not just "not yet": the 13
 // medical/rehab programs (obesity, hypertension, diabetes, osteoporosis,
 // bariatric x2, prenatal, postpartum, and the 5 rehab tracks). Their day
@@ -13493,9 +13511,9 @@ function renderPosingClasses(){
 // team as "deliberate and non-negotiable" (see programs.medical's own
 // overview) -- letting someone dial a rehab-ACL protocol up to 7 days/week
 // would be unsafe, not just untailored. Remaining scope: the plain
-// programs not yet covered (senior, boxingsc, desk, hyrox, grappling,
-// pilates) and the combat/cycling/watersports/yoga style-variant
-// containers, in further batches.
+// programs not yet covered (boxingsc, hyrox, grappling) and the
+// combat/cycling/watersports/yoga style-variant containers, in further
+// batches.
 //
 // Accessory days already align with body goals -- for free. The user asked
 // for the new accessory/high-frequency days to reflect a person's body
@@ -13507,7 +13525,7 @@ function renderPosingClasses(){
 // from. Every program rolled out here is already on that list, so the new
 // accessory days inherit this automatically. Verified with real invocation
 // in test-configurable-training-days.js, not just reasoned about.
-const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility', 'running', 'swimming', 'climbing'];
+const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility', 'running', 'swimming', 'climbing', 'senior', 'desk', 'pilates'];
 const DAYS_PER_WEEK_ORIGINAL = Object.fromEntries(DAYS_PER_WEEK_PROGRAMS.map(key =>
   [key, { days: programs[key].days, overview: programs[key].overview, short: programs[key].short }]
 ));
@@ -17227,6 +17245,832 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Rear Delt Fly', sets:'3×12-15'},
             {name:'90/90 Hip Switch', sets:'2×8/side', noWeight:true},
             {name:'Pigeon Pose', sets:'2×30-45s/side', noWeight:true},
+          ]
+        },
+      }
+    },
+  },
+  // Senior Strength & Balance's own overview treats fall prevention as
+  // equally important as strength -- "the speed of the movement treated as
+  // part of the prescription, not just the load." That dual priority
+  // governs every low-frequency variant below (never strength-only days,
+  // even at minimum frequency) and the high-frequency choice: extra
+  // balance/functional practice, safe at real frequency per fall-prevention
+  // research, rather than a 3rd heavy strength day this population doesn't
+  // need and doesn't recover from as quickly.
+  senior: {
+    1: {
+      short: 'Full-body strength + balance — the floor for this program',
+      overview: 'One session combining core strength and balance work, since a full week only gets one shot at both. This program treats fall prevention as equally important as strength — never strength-only, even at the lowest frequency.',
+      days: {
+        d1: { label:'Day 1', sub:'Full-Body Strength + Balance', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Sit-to-Stand', sets:'2×8-10', noWeight:true},
+            {name:'Single-Leg Balance', sets:'2×20-30s/side', noWeight:true},
+            {name:'Glute Bridge', sets:'2×10-12', noWeight:true},
+            {name:'Wall Push-up', sets:'2×8-12', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Easy Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+          note:'A relaxed 15-20 min walk if you feel like it — otherwise full rest. This isn\'t a day to push anything.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Gentle movement — walking to the mailbox counts — is welcome, but nothing structured is needed today.' },
+        d4: { label:'Day 4', sub:'Rest / Easy Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+          note:'A relaxed 15-20 min walk if you feel like it — otherwise full rest. This isn\'t a day to push anything.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Gentle movement — walking to the mailbox counts — is welcome, but nothing structured is needed today.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Gentle movement — walking to the mailbox counts — is welcome, but nothing structured is needed today.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Gentle movement — walking to the mailbox counts — is welcome, but nothing structured is needed today.' },
+      }
+    },
+    2: {
+      short: 'Lower Body Strength and Balance & Stability, dedicated days',
+      overview: 'Lower-body strength and balance/stability each get their own full session — real dedicated practice for both instead of combining them into one shorter day, still keeping the strength-and-balance priority this program treats as equally important.',
+      days: {
+        d1: { label:'Day 1', sub:'Lower Body Strength', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Sit-to-Stand', sets:'3×8-10', noWeight:true},
+            {name:'Bodyweight Squat', sets:'2×10-12', noWeight:true},
+            {name:'Glute Bridge', sets:'3×10-12', noWeight:true},
+            {name:'Calf Raise', sets:'2×12-15'},
+            {name:'Straight Leg Raise', sets:'2×10-12', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Easy Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+          note:'A relaxed 15-20 min walk if you feel like it — otherwise full rest. This isn\'t a day to push anything.' },
+        d3: { label:'Day 3', sub:'Balance & Stability', plate:'p-blue', plateNum:'20', duration:'~30 min',
+          exercises:[
+            {name:'Single-Leg Balance', sets:'3×20-30s/side', noWeight:true},
+            {name:'Heel-to-Toe Walk', sets:'3×10 steps', noWeight:true},
+            {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
+            {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+            {name:'Ankle Circles', sets:'2×10/direction', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Gentle movement — walking to the mailbox counts — is welcome, but nothing structured is needed today.' },
+        d5: { label:'Day 5', sub:'Rest / Easy Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+          note:'A relaxed 15-20 min walk if you feel like it — otherwise full rest. This isn\'t a day to push anything.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Gentle movement — walking to the mailbox counts — is welcome, but nothing structured is needed today.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Gentle movement — walking to the mailbox counts — is welcome, but nothing structured is needed today.' },
+      }
+    },
+    3: {
+      short: 'Lower Body Strength, Balance & Stability, and Upper Body Strength',
+      overview: 'Three of this program\'s five sessions each get their own day — lower body, balance, and upper body, the foundational trio this program is built around.',
+      days: {
+        d1: { label:'Day 1', sub:'Lower Body Strength', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Sit-to-Stand', sets:'3×8-10', noWeight:true},
+            {name:'Bodyweight Squat', sets:'2×10-12', noWeight:true},
+            {name:'Glute Bridge', sets:'3×10-12', noWeight:true},
+            {name:'Calf Raise', sets:'2×12-15'},
+            {name:'Straight Leg Raise', sets:'2×10-12', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Balance & Stability', plate:'p-blue', plateNum:'20', duration:'~30 min',
+          exercises:[
+            {name:'Single-Leg Balance', sets:'3×20-30s/side', noWeight:true},
+            {name:'Heel-to-Toe Walk', sets:'3×10 steps', noWeight:true},
+            {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
+            {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+            {name:'Ankle Circles', sets:'2×10/direction', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Easy Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+          note:'A relaxed 15-20 min walk if you feel like it — otherwise full rest. This isn\'t a day to push anything.' },
+        d4: { label:'Day 4', sub:'Upper Body Strength', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+          exercises:[
+            {name:'Wall Push-up', sets:'3×8-12', noWeight:true},
+            {name:'Seated Cable Row', sets:'3×10-12'},
+            {name:'Wall Slides', sets:'2×10-12', noWeight:true},
+            {name:'Chin Tucks', sets:'2×10', noWeight:true},
+            {name:'Farmer\'s Carry', sets:'2×20-30s'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Gentle movement — walking to the mailbox counts — is welcome, but nothing structured is needed today.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Gentle movement — walking to the mailbox counts — is welcome, but nothing structured is needed today.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Gentle movement — walking to the mailbox counts — is welcome, but nothing structured is needed today.' },
+      }
+    },
+    4: {
+      short: 'Lower Body, Balance, Upper Body, and Functional Full-Body',
+      overview: 'Four of this program\'s five sessions each get their own day. Balance & Mobility is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      days: {
+        d1: { label:'Day 1', sub:'Lower Body Strength', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Sit-to-Stand', sets:'3×8-10', noWeight:true},
+            {name:'Bodyweight Squat', sets:'2×10-12', noWeight:true},
+            {name:'Glute Bridge', sets:'3×10-12', noWeight:true},
+            {name:'Calf Raise', sets:'2×12-15'},
+            {name:'Straight Leg Raise', sets:'2×10-12', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Balance & Stability', plate:'p-blue', plateNum:'20', duration:'~30 min',
+          exercises:[
+            {name:'Single-Leg Balance', sets:'3×20-30s/side', noWeight:true},
+            {name:'Heel-to-Toe Walk', sets:'3×10 steps', noWeight:true},
+            {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
+            {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+            {name:'Ankle Circles', sets:'2×10/direction', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Easy Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+          note:'A relaxed 15-20 min walk if you feel like it — otherwise full rest. This isn\'t a day to push anything.' },
+        d4: { label:'Day 4', sub:'Upper Body Strength', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+          exercises:[
+            {name:'Wall Push-up', sets:'3×8-12', noWeight:true},
+            {name:'Seated Cable Row', sets:'3×10-12'},
+            {name:'Wall Slides', sets:'2×10-12', noWeight:true},
+            {name:'Chin Tucks', sets:'2×10', noWeight:true},
+            {name:'Farmer\'s Carry', sets:'2×20-30s'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Functional Full-Body', plate:'p-green', plateNum:'10', duration:'~35 min',
+          exercises:[
+            {name:'Sit-to-Stand', sets:'3×8-10', noWeight:true},
+            {name:'Step-Up (controlled)', sets:'2×8-10/leg', noWeight:true},
+            {name:'Dead Bug', sets:'2×8-10/side', noWeight:true},
+            {name:'Seated Cable Row', sets:'2×10-12'},
+            {name:'Tibialis Raise', sets:'2×12-15', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Gentle movement — walking to the mailbox counts — is welcome, but nothing structured is needed today.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Gentle movement — walking to the mailbox counts — is welcome, but nothing structured is needed today.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.senior), used as-is.
+    6: {
+      short: 'The full 5-day program plus extra balance practice',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra balance and functional practice — not a 3rd strength day. Balance work is genuinely safe at higher frequency and real fall-prevention research supports frequent, brief practice; a 3rd heavy strength day is not something this population needs or recovers from as quickly as the balance work does.',
+      days: {
+        d1: { label:'Day 1', sub:'Lower Body Strength', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Sit-to-Stand', sets:'3×8-10', noWeight:true},
+            {name:'Bodyweight Squat', sets:'2×10-12', noWeight:true},
+            {name:'Glute Bridge', sets:'3×10-12', noWeight:true},
+            {name:'Calf Raise', sets:'2×12-15'},
+            {name:'Straight Leg Raise', sets:'2×10-12', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Balance & Stability', plate:'p-blue', plateNum:'20', duration:'~30 min',
+          exercises:[
+            {name:'Single-Leg Balance', sets:'3×20-30s/side', noWeight:true},
+            {name:'Heel-to-Toe Walk', sets:'3×10 steps', noWeight:true},
+            {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
+            {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+            {name:'Ankle Circles', sets:'2×10/direction', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Easy Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+          note:'A relaxed 15-20 min walk if you feel like it — otherwise full rest. This isn\'t a day to push anything.' },
+        d4: { label:'Day 4', sub:'Upper Body Strength', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+          exercises:[
+            {name:'Wall Push-up', sets:'3×8-12', noWeight:true},
+            {name:'Seated Cable Row', sets:'3×10-12'},
+            {name:'Wall Slides', sets:'2×10-12', noWeight:true},
+            {name:'Chin Tucks', sets:'2×10', noWeight:true},
+            {name:'Farmer\'s Carry', sets:'2×20-30s'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Functional Full-Body', plate:'p-green', plateNum:'10', duration:'~35 min',
+          exercises:[
+            {name:'Sit-to-Stand', sets:'3×8-10', noWeight:true},
+            {name:'Step-Up (controlled)', sets:'2×8-10/leg', noWeight:true},
+            {name:'Dead Bug', sets:'2×8-10/side', noWeight:true},
+            {name:'Seated Cable Row', sets:'2×10-12'},
+            {name:'Tibialis Raise', sets:'2×12-15', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Balance & Mobility', plate:'p-off', plateNum:'5', duration:'~25 min',
+          exercises:[
+            {name:'Heel-to-Toe Walk', sets:'2×10 steps', noWeight:true},
+            {name:'Cat-Cow Mobility', sets:'2×8-10', noWeight:true},
+            {name:'Hip CARs', sets:'2×5/direction', noWeight:true},
+            {name:'Marching in Place', sets:'2×30-45s', noWeight:true},
+            {name:'Plank', sets:'2×15-20s', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Extra Balance Practice', plate:'p-off', plateNum:'5', duration:'~20 min',
+          exercises:[
+            {name:'Single-Leg Balance', sets:'3×20-30s/side', noWeight:true},
+            {name:'Heel-to-Toe Walk', sets:'3×10 steps', noWeight:true},
+            {name:'Marching in Place', sets:'2×30-45s', noWeight:true},
+            {name:'Ankle Circles', sets:'2×10/direction', noWeight:true},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, plus one genuinely gentle rest day',
+      overview: 'The same six days as the 6-day plan, completely unchanged — but the week does NOT add an 8th kind of session on top of an already-full 6 days. The rest day stays exactly as gentle as the default program\'s own: a relaxed walk if you feel like it, otherwise real rest.',
+      days: {
+        d1: { label:'Day 1', sub:'Lower Body Strength', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Sit-to-Stand', sets:'3×8-10', noWeight:true},
+            {name:'Bodyweight Squat', sets:'2×10-12', noWeight:true},
+            {name:'Glute Bridge', sets:'3×10-12', noWeight:true},
+            {name:'Calf Raise', sets:'2×12-15'},
+            {name:'Straight Leg Raise', sets:'2×10-12', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Balance & Stability', plate:'p-blue', plateNum:'20', duration:'~30 min',
+          exercises:[
+            {name:'Single-Leg Balance', sets:'3×20-30s/side', noWeight:true},
+            {name:'Heel-to-Toe Walk', sets:'3×10 steps', noWeight:true},
+            {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
+            {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+            {name:'Ankle Circles', sets:'2×10/direction', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Easy Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+          note:'A relaxed 15-20 min walk if you feel like it — otherwise full rest. Even at 7 days selected, this stays exactly this gentle — this isn\'t a day to push anything, at any frequency.' },
+        d4: { label:'Day 4', sub:'Upper Body Strength', plate:'p-yellow', plateNum:'15', duration:'~30 min',
+          exercises:[
+            {name:'Wall Push-up', sets:'3×8-12', noWeight:true},
+            {name:'Seated Cable Row', sets:'3×10-12'},
+            {name:'Wall Slides', sets:'2×10-12', noWeight:true},
+            {name:'Chin Tucks', sets:'2×10', noWeight:true},
+            {name:'Farmer\'s Carry', sets:'2×20-30s'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Functional Full-Body', plate:'p-green', plateNum:'10', duration:'~35 min',
+          exercises:[
+            {name:'Sit-to-Stand', sets:'3×8-10', noWeight:true},
+            {name:'Step-Up (controlled)', sets:'2×8-10/leg', noWeight:true},
+            {name:'Dead Bug', sets:'2×8-10/side', noWeight:true},
+            {name:'Seated Cable Row', sets:'2×10-12'},
+            {name:'Tibialis Raise', sets:'2×12-15', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Balance & Mobility', plate:'p-off', plateNum:'5', duration:'~25 min',
+          exercises:[
+            {name:'Heel-to-Toe Walk', sets:'2×10 steps', noWeight:true},
+            {name:'Cat-Cow Mobility', sets:'2×8-10', noWeight:true},
+            {name:'Hip CARs', sets:'2×5/direction', noWeight:true},
+            {name:'Marching in Place', sets:'2×30-45s', noWeight:true},
+            {name:'Plank', sets:'2×15-20s', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Extra Balance Practice', plate:'p-off', plateNum:'5', duration:'~20 min',
+          exercises:[
+            {name:'Single-Leg Balance', sets:'3×20-30s/side', noWeight:true},
+            {name:'Heel-to-Toe Walk', sets:'3×10 steps', noWeight:true},
+            {name:'Marching in Place', sets:'2×30-45s', noWeight:true},
+            {name:'Ankle Circles', sets:'2×10/direction', noWeight:true},
+          ]
+        },
+      }
+    },
+  },
+  // Desk Worker's own d3/d7 notes make an unusual, explicit claim: the
+  // movement-snacks habit (get up every 30-60 min during the workday)
+  // "matters as much as the other 6 days combined" and "runs independent of
+  // your training schedule." That's true regardless of which day count is
+  // selected below -- every variant keeps that slot exactly as-is, and
+  // every overview says so honestly rather than pretending the structured-
+  // session count is the main lever here.
+  desk: {
+    1: {
+      short: 'Full-body posture reset — the floor for this program, on top of the movement-snack habit that matters most',
+      overview: 'One session combining upper-body and hip posture-reset work with genuine strength, since a full week only gets one shot. Worth being honest about what actually drives this program\'s results, at any day count: this program\'s own rest-day notes call the movement-snacks habit (up every 30-60 minutes during the workday) as valuable as the other 6 structured days combined — that habit is unchanged by which day count you pick here.',
+      days: {
+        d1: { label:'Day 1', sub:'Full-Body Posture Reset', plate:'p-red', plateNum:'25', duration:'~30 min',
+          exercises:[
+            {name:'Chin Tucks', sets:'2×10', noWeight:true},
+            {name:'Scapular Retraction', sets:'2×12-15', noWeight:true},
+            {name:'Glute Bridge', sets:'2×12-15', noWeight:true},
+            {name:'Bodyweight Squat', sets:'2×12-15', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
+          note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.' },
+        d4: { label:'Day 4', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
+          note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.' },
+      }
+    },
+    2: {
+      short: 'Upper Body and Hip/Lower Body Posture Resets, dedicated days',
+      overview: 'The two posture-reset days each get their own session. Same honesty as every count in this program: the movement-snacks habit on the off days matters as much as these structured sessions do, per this program\'s own citation on breaking up sitting time.',
+      days: {
+        d1: { label:'Day 1', sub:'Upper Body Posture Reset', plate:'p-red', plateNum:'25', duration:'~25 min',
+          exercises:[
+            {name:'Chin Tucks', sets:'3×10', noWeight:true},
+            {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Doorway Pec Stretch', sets:'2×30s/side', noWeight:true},
+            {name:'Upper Trap Stretch', sets:'2×30s/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
+          note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.' },
+        d3: { label:'Day 3', sub:'Hip & Lower Body Reset', plate:'p-blue', plateNum:'20', duration:'~25 min',
+          exercises:[
+            {name:'Couch Stretch', sets:'2×30-45s/side', noWeight:true},
+            {name:'Glute Bridge', sets:'3×12-15', noWeight:true},
+            {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
+            {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+            {name:'Pelvic Tilt', sets:'2×10-12', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.' },
+        d5: { label:'Day 5', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
+          note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.' },
+      }
+    },
+    3: {
+      short: 'Upper Reset, Hip Reset, and Full-Body Strength',
+      overview: 'Both posture-reset days keep their spot, plus a genuine strength day — real added training capacity at this frequency, on top of the movement-snacks habit that matters as much as any of these structured sessions.',
+      days: {
+        d1: { label:'Day 1', sub:'Upper Body Posture Reset', plate:'p-red', plateNum:'25', duration:'~25 min',
+          exercises:[
+            {name:'Chin Tucks', sets:'3×10', noWeight:true},
+            {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Doorway Pec Stretch', sets:'2×30s/side', noWeight:true},
+            {name:'Upper Trap Stretch', sets:'2×30s/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
+          note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.' },
+        d3: { label:'Day 3', sub:'Hip & Lower Body Reset', plate:'p-blue', plateNum:'20', duration:'~25 min',
+          exercises:[
+            {name:'Couch Stretch', sets:'2×30-45s/side', noWeight:true},
+            {name:'Glute Bridge', sets:'3×12-15', noWeight:true},
+            {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
+            {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+            {name:'Pelvic Tilt', sets:'2×10-12', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.' },
+        d5: { label:'Day 5', sub:'Full-Body Strength', plate:'p-green', plateNum:'10', duration:'~30 min',
+          exercises:[
+            {name:'Bodyweight Squat', sets:'3×12-15', noWeight:true},
+            {name:'Step-Up (controlled)', sets:'2×8-10/leg', noWeight:true},
+            {name:'Inverted Row', sets:'3×10-12', noWeight:true},
+            {name:'Dead Bug', sets:'2×8-10/side', noWeight:true},
+            {name:'Standing Pelvic Tilt', sets:'2×10', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.' },
+      }
+    },
+    4: {
+      short: 'Upper Reset, Hip Reset, Thoracic/Upper Strength, and Full-Body Strength',
+      overview: 'Four of this program\'s five sessions each get their own day. Movement & Mobility Flow is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      days: {
+        d1: { label:'Day 1', sub:'Upper Body Posture Reset', plate:'p-red', plateNum:'25', duration:'~25 min',
+          exercises:[
+            {name:'Chin Tucks', sets:'3×10', noWeight:true},
+            {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Doorway Pec Stretch', sets:'2×30s/side', noWeight:true},
+            {name:'Upper Trap Stretch', sets:'2×30s/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Hip & Lower Body Reset', plate:'p-blue', plateNum:'20', duration:'~25 min',
+          exercises:[
+            {name:'Couch Stretch', sets:'2×30-45s/side', noWeight:true},
+            {name:'Glute Bridge', sets:'3×12-15', noWeight:true},
+            {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
+            {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+            {name:'Pelvic Tilt', sets:'2×10-12', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
+          note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.' },
+        d4: { label:'Day 4', sub:'Thoracic Mobility & Upper Strength', plate:'p-yellow', plateNum:'15', duration:'~25 min',
+          exercises:[
+            {name:'Thoracic Spine Rotation (Open Book)', sets:'2×8-10/side', noWeight:true},
+            {name:'Thoracic Extension Over Foam Roller', sets:'2×10', noWeight:true},
+            {name:'Wall Slides', sets:'3×10-12', noWeight:true},
+            {name:'Band Pull-Apart', sets:'3×12-15'},
+            {name:'Wall Push-up', sets:'2×10-12', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Full-Body Strength', plate:'p-green', plateNum:'10', duration:'~30 min',
+          exercises:[
+            {name:'Bodyweight Squat', sets:'3×12-15', noWeight:true},
+            {name:'Step-Up (controlled)', sets:'2×8-10/leg', noWeight:true},
+            {name:'Inverted Row', sets:'3×10-12', noWeight:true},
+            {name:'Dead Bug', sets:'2×8-10/side', noWeight:true},
+            {name:'Standing Pelvic Tilt', sets:'2×10', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.desk), used as-is.
+    6: {
+      short: 'The full 5-day program plus extra mobility & movement',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra low-intensity mobility and movement. This is a genuinely low-intensity program already, so the extra day is safe and simple to add — but be honest about scale: this program\'s own citation still holds that the movement-snacks habit does more than any single added structured day could.',
+      days: {
+        d1: { label:'Day 1', sub:'Upper Body Posture Reset', plate:'p-red', plateNum:'25', duration:'~25 min',
+          exercises:[
+            {name:'Chin Tucks', sets:'3×10', noWeight:true},
+            {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Doorway Pec Stretch', sets:'2×30s/side', noWeight:true},
+            {name:'Upper Trap Stretch', sets:'2×30s/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Hip & Lower Body Reset', plate:'p-blue', plateNum:'20', duration:'~25 min',
+          exercises:[
+            {name:'Couch Stretch', sets:'2×30-45s/side', noWeight:true},
+            {name:'Glute Bridge', sets:'3×12-15', noWeight:true},
+            {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
+            {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+            {name:'Pelvic Tilt', sets:'2×10-12', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
+          note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.' },
+        d4: { label:'Day 4', sub:'Thoracic Mobility & Upper Strength', plate:'p-yellow', plateNum:'15', duration:'~25 min',
+          exercises:[
+            {name:'Thoracic Spine Rotation (Open Book)', sets:'2×8-10/side', noWeight:true},
+            {name:'Thoracic Extension Over Foam Roller', sets:'2×10', noWeight:true},
+            {name:'Wall Slides', sets:'3×10-12', noWeight:true},
+            {name:'Band Pull-Apart', sets:'3×12-15'},
+            {name:'Wall Push-up', sets:'2×10-12', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Full-Body Strength', plate:'p-green', plateNum:'10', duration:'~30 min',
+          exercises:[
+            {name:'Bodyweight Squat', sets:'3×12-15', noWeight:true},
+            {name:'Step-Up (controlled)', sets:'2×8-10/leg', noWeight:true},
+            {name:'Inverted Row', sets:'3×10-12', noWeight:true},
+            {name:'Dead Bug', sets:'2×8-10/side', noWeight:true},
+            {name:'Standing Pelvic Tilt', sets:'2×10', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Movement & Mobility Flow', plate:'p-off', plateNum:'5', duration:'~25 min',
+          exercises:[
+            {name:'Walking', sets:'15-20 min', noWeight:true},
+            {name:'Cat-Cow Mobility', sets:'2×8-10', noWeight:true},
+            {name:'World\'s Greatest Stretch', sets:'2×5/side', noWeight:true},
+            {name:'Pigeon Pose', sets:'2×30-45s/side', noWeight:true},
+            {name:'Levator Scapulae Stretch', sets:'2×20-30s/side', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Extra Mobility & Movement', plate:'p-off', plateNum:'5', duration:'~20 min',
+          exercises:[
+            {name:'Walking', sets:'15-20 min', noWeight:true},
+            {name:'World\'s Greatest Stretch', sets:'2×5/side', noWeight:true},
+            {name:'Levator Scapulae Stretch', sets:'2×20-30s/side', noWeight:true},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, seven days a week — the movement-snacks habit unchanged',
+      overview: 'The same six days as the 6-day plan, completely unchanged, with the Rest/Movement Snacks slot kept exactly as-is. Same honesty as every count in this program: this app\'s own citation holds that the movement-snacks habit matters as much as the structured sessions, and that habit already runs on every single day regardless of which count is picked here.',
+      days: {
+        d1: { label:'Day 1', sub:'Upper Body Posture Reset', plate:'p-red', plateNum:'25', duration:'~25 min',
+          exercises:[
+            {name:'Chin Tucks', sets:'3×10', noWeight:true},
+            {name:'Scapular Retraction', sets:'3×12-15', noWeight:true},
+            {name:'Face Pull', sets:'3×15'},
+            {name:'Doorway Pec Stretch', sets:'2×30s/side', noWeight:true},
+            {name:'Upper Trap Stretch', sets:'2×30s/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Hip & Lower Body Reset', plate:'p-blue', plateNum:'20', duration:'~25 min',
+          exercises:[
+            {name:'Couch Stretch', sets:'2×30-45s/side', noWeight:true},
+            {name:'Glute Bridge', sets:'3×12-15', noWeight:true},
+            {name:'Clamshell', sets:'2×12-15/side', noWeight:true},
+            {name:'Bird Dog', sets:'2×8-10/side', noWeight:true},
+            {name:'Pelvic Tilt', sets:'2×10-12', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
+          note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.' },
+        d4: { label:'Day 4', sub:'Thoracic Mobility & Upper Strength', plate:'p-yellow', plateNum:'15', duration:'~25 min',
+          exercises:[
+            {name:'Thoracic Spine Rotation (Open Book)', sets:'2×8-10/side', noWeight:true},
+            {name:'Thoracic Extension Over Foam Roller', sets:'2×10', noWeight:true},
+            {name:'Wall Slides', sets:'3×10-12', noWeight:true},
+            {name:'Band Pull-Apart', sets:'3×12-15'},
+            {name:'Wall Push-up', sets:'2×10-12', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Full-Body Strength', plate:'p-green', plateNum:'10', duration:'~30 min',
+          exercises:[
+            {name:'Bodyweight Squat', sets:'3×12-15', noWeight:true},
+            {name:'Step-Up (controlled)', sets:'2×8-10/leg', noWeight:true},
+            {name:'Inverted Row', sets:'3×10-12', noWeight:true},
+            {name:'Dead Bug', sets:'2×8-10/side', noWeight:true},
+            {name:'Standing Pelvic Tilt', sets:'2×10', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Movement & Mobility Flow', plate:'p-off', plateNum:'5', duration:'~25 min',
+          exercises:[
+            {name:'Walking', sets:'15-20 min', noWeight:true},
+            {name:'Cat-Cow Mobility', sets:'2×8-10', noWeight:true},
+            {name:'World\'s Greatest Stretch', sets:'2×5/side', noWeight:true},
+            {name:'Pigeon Pose', sets:'2×30-45s/side', noWeight:true},
+            {name:'Levator Scapulae Stretch', sets:'2×20-30s/side', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Extra Mobility & Movement', plate:'p-off', plateNum:'5', duration:'~20 min',
+          exercises:[
+            {name:'Walking', sets:'15-20 min', noWeight:true},
+            {name:'World\'s Greatest Stretch', sets:'2×5/side', noWeight:true},
+            {name:'Levator Scapulae Stretch', sets:'2×20-30s/side', noWeight:true},
+          ]
+        },
+      }
+    },
+  },
+  // Pilates' own d3 rest note makes the argument directly: "precise control
+  // is the whole point of this method — real rest protects that quality for
+  // the next session." That's a fatigue-degrades-precision constraint, the
+  // same shape as calisthenics' joint-safety argument and oly's skill-
+  // frequency argument, applied to control instead -- so 6-7 day counts add
+  // deliberately LOW-fatigue precision reinforcement, never more ballistic
+  // or intense flow work, and the real rest day stays real even at 7.
+  pilates: {
+    1: {
+      short: 'Foundations — the floor for this program',
+      overview: 'One session combining powerhouse activation and ab work at reduced volume, since a full week only gets one shot. Real skill in this method comes from consistent, controlled practice — one honest weekly session, kept up, is a real start here, not a compromise.',
+      days: {
+        d1: { label:'Day 1', sub:'Foundations', plate:'p-red', plateNum:'25', duration:'~30 min',
+          exercises:[
+            {name:'The Hundred', sets:'1×100 pumps', noWeight:true},
+            {name:'Roll-Up', sets:'4-6 reps', noWeight:true},
+            {name:'Single Leg Stretch', sets:'2×10/side', noWeight:true},
+            {name:'Dead Bug', sets:'2×10/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Gentle Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+          note:'Gentle spinal mobility and breath work, 15-20 min. Precise control is the whole point of this method — real rest protects that quality for the next session.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Gentle Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+          note:'Gentle spinal mobility and breath work, 15-20 min. Precise control is the whole point of this method — real rest protects that quality for the next session.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Foundations & Powerhouse, and Abdominal Series I, dedicated days',
+      overview: 'The two most foundational sessions each get their own day — real dedicated practice for both instead of combining them into one shorter session.',
+      days: {
+        d1: { label:'Day 1', sub:'Foundations & Powerhouse Activation', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'The Hundred', sets:'1×100 pumps', noWeight:true},
+            {name:'Roll-Up', sets:'5-8 reps', noWeight:true},
+            {name:'Glute Bridge', sets:'2×12', noWeight:true},
+            {name:'Dead Bug', sets:'2×10/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Gentle Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+          note:'Gentle spinal mobility and breath work, 15-20 min. Precise control is the whole point of this method — real rest protects that quality for the next session.' },
+        d3: { label:'Day 3', sub:'Abdominal Series I', plate:'p-blue', plateNum:'20', duration:'~35 min',
+          exercises:[
+            {name:'Single Leg Stretch', sets:'2×10/side', noWeight:true},
+            {name:'Double Leg Stretch', sets:'2×8-10', noWeight:true},
+            {name:'Criss-Cross', sets:'2×10/side', noWeight:true},
+            {name:'Spine Stretch Forward', sets:'2×6-8', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Gentle Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+          note:'Gentle spinal mobility and breath work, 15-20 min. Precise control is the whole point of this method — real rest protects that quality for the next session.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Foundations, Abdominal Series I, and Back Extension & Posture',
+      overview: 'The two foundational days keep their spot, plus back-extension and posture work — real breadth across pushing and pulling the spine, not just flexion.',
+      days: {
+        d1: { label:'Day 1', sub:'Foundations & Powerhouse Activation', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'The Hundred', sets:'1×100 pumps', noWeight:true},
+            {name:'Roll-Up', sets:'5-8 reps', noWeight:true},
+            {name:'Glute Bridge', sets:'2×12', noWeight:true},
+            {name:'Dead Bug', sets:'2×10/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Gentle Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+          note:'Gentle spinal mobility and breath work, 15-20 min. Precise control is the whole point of this method — real rest protects that quality for the next session.' },
+        d3: { label:'Day 3', sub:'Abdominal Series I', plate:'p-blue', plateNum:'20', duration:'~35 min',
+          exercises:[
+            {name:'Single Leg Stretch', sets:'2×10/side', noWeight:true},
+            {name:'Double Leg Stretch', sets:'2×8-10', noWeight:true},
+            {name:'Criss-Cross', sets:'2×10/side', noWeight:true},
+            {name:'Spine Stretch Forward', sets:'2×6-8', noWeight:true},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Back Extension & Posture', plate:'p-green', plateNum:'10', duration:'~35 min',
+          exercises:[
+            {name:'Swan', sets:'2×6-8', noWeight:true},
+            {name:'Bird Dog', sets:'2×8/side', noWeight:true},
+            {name:'Side Plank', sets:'2×20-30s/side', noWeight:true},
+            {name:'Side Kick Series', sets:'2×10/side', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    4: {
+      short: 'Foundations, Abdominal Series I & II, and Back Extension',
+      overview: 'Four of this program\'s five sessions each get their own day. Full Flow & Teaser Work is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      days: {
+        d1: { label:'Day 1', sub:'Foundations & Powerhouse Activation', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'The Hundred', sets:'1×100 pumps', noWeight:true},
+            {name:'Roll-Up', sets:'5-8 reps', noWeight:true},
+            {name:'Glute Bridge', sets:'2×12', noWeight:true},
+            {name:'Dead Bug', sets:'2×10/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Abdominal Series I', plate:'p-blue', plateNum:'20', duration:'~35 min',
+          exercises:[
+            {name:'Single Leg Stretch', sets:'2×10/side', noWeight:true},
+            {name:'Double Leg Stretch', sets:'2×8-10', noWeight:true},
+            {name:'Criss-Cross', sets:'2×10/side', noWeight:true},
+            {name:'Spine Stretch Forward', sets:'2×6-8', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Gentle Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+          note:'Gentle spinal mobility and breath work, 15-20 min. Precise control is the whole point of this method — real rest protects that quality for the next session.' },
+        d4: { label:'Day 4', sub:'Abdominal Series II & Control', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'Rolling Like a Ball', sets:'2×8-10', noWeight:true},
+            {name:'Single Leg Circles', sets:'2×6/direction/side', noWeight:true},
+            {name:'Saw', sets:'2×5/side', noWeight:true},
+            {name:'Plank', sets:'2×30-45s', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Back Extension & Posture', plate:'p-green', plateNum:'10', duration:'~35 min',
+          exercises:[
+            {name:'Swan', sets:'2×6-8', noWeight:true},
+            {name:'Bird Dog', sets:'2×8/side', noWeight:true},
+            {name:'Side Plank', sets:'2×20-30s/side', noWeight:true},
+            {name:'Side Kick Series', sets:'2×10/side', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.pilates), used as-is.
+    6: {
+      short: 'The full 5-day program plus breath & control refinement',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of deliberately LOW-fatigue precision work — never more ballistic or intense flow. This program\'s own rest-day note is explicit that fatigue degrades the exact quality (control) this method is built around, so the extra day stays gentle rather than adding more Full Flow & Teaser-style intensity.',
+      days: {
+        d1: { label:'Day 1', sub:'Foundations & Powerhouse Activation', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'The Hundred', sets:'1×100 pumps', noWeight:true},
+            {name:'Roll-Up', sets:'5-8 reps', noWeight:true},
+            {name:'Glute Bridge', sets:'2×12', noWeight:true},
+            {name:'Dead Bug', sets:'2×10/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Abdominal Series I', plate:'p-blue', plateNum:'20', duration:'~35 min',
+          exercises:[
+            {name:'Single Leg Stretch', sets:'2×10/side', noWeight:true},
+            {name:'Double Leg Stretch', sets:'2×8-10', noWeight:true},
+            {name:'Criss-Cross', sets:'2×10/side', noWeight:true},
+            {name:'Spine Stretch Forward', sets:'2×6-8', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Gentle Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+          note:'Gentle spinal mobility and breath work, 15-20 min. Precise control is the whole point of this method — real rest protects that quality for the next session.' },
+        d4: { label:'Day 4', sub:'Abdominal Series II & Control', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'Rolling Like a Ball', sets:'2×8-10', noWeight:true},
+            {name:'Single Leg Circles', sets:'2×6/direction/side', noWeight:true},
+            {name:'Saw', sets:'2×5/side', noWeight:true},
+            {name:'Plank', sets:'2×30-45s', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Back Extension & Posture', plate:'p-green', plateNum:'10', duration:'~35 min',
+          exercises:[
+            {name:'Swan', sets:'2×6-8', noWeight:true},
+            {name:'Bird Dog', sets:'2×8/side', noWeight:true},
+            {name:'Side Plank', sets:'2×20-30s/side', noWeight:true},
+            {name:'Side Kick Series', sets:'2×10/side', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Flow & Teaser Work', plate:'p-off', plateNum:'5', duration:'~40 min',
+          exercises:[
+            {name:'The Hundred', sets:'1×100 pumps', noWeight:true},
+            {name:'Roll-Up', sets:'6-8 reps', noWeight:true},
+            {name:'Teaser (Prep)', sets:'3×5', noWeight:true},
+            {name:'Spine Stretch Forward', sets:'2×6-8', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Breath & Control Refinement', plate:'p-off', plateNum:'5', duration:'~25 min',
+          exercises:[
+            {name:'Spine Stretch Forward', sets:'2×6-8', noWeight:true},
+            {name:'Dead Bug', sets:'2×10/side', noWeight:true},
+            {name:'Side Plank', sets:'2×20-30s/side', noWeight:true},
+            {name:'Bird Dog', sets:'2×8/side', noWeight:true},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, with the control-quality argument still winning on the rest day',
+      overview: 'The same six days as the 6-day plan, completely unchanged. This program\'s own rest-day note already says precise control is the whole point of the method — even at 7 days selected, the actual rest day stays genuine rather than getting reframed into more practice that fatigue would only degrade.',
+      days: {
+        d1: { label:'Day 1', sub:'Foundations & Powerhouse Activation', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'The Hundred', sets:'1×100 pumps', noWeight:true},
+            {name:'Roll-Up', sets:'5-8 reps', noWeight:true},
+            {name:'Glute Bridge', sets:'2×12', noWeight:true},
+            {name:'Dead Bug', sets:'2×10/side', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Abdominal Series I', plate:'p-blue', plateNum:'20', duration:'~35 min',
+          exercises:[
+            {name:'Single Leg Stretch', sets:'2×10/side', noWeight:true},
+            {name:'Double Leg Stretch', sets:'2×8-10', noWeight:true},
+            {name:'Criss-Cross', sets:'2×10/side', noWeight:true},
+            {name:'Spine Stretch Forward', sets:'2×6-8', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Gentle Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
+          note:'Gentle spinal mobility and breath work, 15-20 min. Even at 7 days selected, this stays genuine rest on purpose — precise control is the whole point of this method, and fatigue is exactly what degrades it.' },
+        d4: { label:'Day 4', sub:'Abdominal Series II & Control', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'Rolling Like a Ball', sets:'2×8-10', noWeight:true},
+            {name:'Single Leg Circles', sets:'2×6/direction/side', noWeight:true},
+            {name:'Saw', sets:'2×5/side', noWeight:true},
+            {name:'Plank', sets:'2×30-45s', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Back Extension & Posture', plate:'p-green', plateNum:'10', duration:'~35 min',
+          exercises:[
+            {name:'Swan', sets:'2×6-8', noWeight:true},
+            {name:'Bird Dog', sets:'2×8/side', noWeight:true},
+            {name:'Side Plank', sets:'2×20-30s/side', noWeight:true},
+            {name:'Side Kick Series', sets:'2×10/side', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Flow & Teaser Work', plate:'p-off', plateNum:'5', duration:'~40 min',
+          exercises:[
+            {name:'The Hundred', sets:'1×100 pumps', noWeight:true},
+            {name:'Roll-Up', sets:'6-8 reps', noWeight:true},
+            {name:'Teaser (Prep)', sets:'3×5', noWeight:true},
+            {name:'Spine Stretch Forward', sets:'2×6-8', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Breath & Control Refinement', plate:'p-off', plateNum:'5', duration:'~25 min',
+          exercises:[
+            {name:'Spine Stretch Forward', sets:'2×6-8', noWeight:true},
+            {name:'Dead Bug', sets:'2×10/side', noWeight:true},
+            {name:'Side Plank', sets:'2×20-30s/side', noWeight:true},
+            {name:'Bird Dog', sets:'2×8/side', noWeight:true},
           ]
         },
       }
