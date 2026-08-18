@@ -4989,7 +4989,7 @@
         <div id="prefDaysPerWeek">
           <label class="care-label" for="daysPerWeekInput">Training days per week</label>
           <input type="number" id="daysPerWeekInput" class="care-input" min="1" max="7" inputmode="numeric" placeholder="Program default">
-          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, Powerbuilding, Athletic/Plyo, Bodyweight, Calisthenics, Core &amp; Stability, Jump Rope, Mobility &amp; Flexibility, Running/Endurance, Swimming, Rock Climbing, Senior Strength &amp; Balance, Desk Worker/Posture, and Pilates; other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
+          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Leave blank to keep the program's own default split. Currently applies to Strength &amp; Size, Bodybuilding, Olympic Lifting, Powerlifting, Powerbuilding, Athletic/Plyo, Bodyweight, Calisthenics, Core &amp; Stability, Jump Rope, Mobility &amp; Flexibility, Running/Endurance, Swimming, Rock Climbing, Senior Strength &amp; Balance, Desk Worker/Posture, Pilates, Boxing Strength &amp; Conditioning, Hyrox, and BJJ / Grappling; other programs aren't affected yet (and the medically-modified programs never will be — those follow your care team's guidance, not a day-count preference).</div>
           <div id="daysPerWeekWarning" style="display:none"></div>
         </div>
 
@@ -6274,7 +6274,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.205';
+const APP_VERSION = '3.206';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6707,6 +6707,11 @@ const WHATS_NEW = {
     'Senior Strength & Balance keeps its dual strength-and-balance priority at every day count — never strength-only, even at the lowest frequency — and its higher-frequency options add extra balance practice rather than a 3rd heavy strength day, since balance work tolerates more frequent practice than this population\'s strength recovery does.',
     'Desk Worker/Posture is honest at every day count that the movement-snacks habit (getting up every 30-60 minutes) matters as much as, or more than, the structured session count — that slot stays exactly the same no matter which count you pick.',
     'Pilates keeps its higher-frequency options deliberately low-fatigue — extra breath-and-control work, never more of the ballistic Full Flow & Teaser content — since precise control is the whole point of the method, and fatigue is exactly what degrades it.',
+  ]},
+  '3.206': { headline: 'Training days per week now covers Boxing Strength & Conditioning, Hyrox, and BJJ/Grappling', points: [
+    'All three of these programs share the same shape: 5 real training days, one non-negotiable Rest/Mobility day (each program\'s own note already gives a real, sport-specific recovery reason), and one full-rest day — so every day count preserves that same structure.',
+    'Higher-frequency options never add a 2nd max-power, max-intensity, or live-rolling session — the highest-toll session type in each program. Instead they add lower-toll extra volume: round conditioning for boxing, easy aerobic work for Hyrox, and technical drilling for grappling.',
+    'This is the last of the plain programs — every program that isn\'t a medically-modified track or a combat/cycling/watersports/yoga style-variant container now has its own real, per-day-count plan.',
   ]},
 };
 
@@ -13503,6 +13508,17 @@ function renderPosingClasses(){
 // as Calisthenics'/Oly's reasoning but applied to motor control instead of
 // joints/skill -- its n=6 adds "Breath & Control Refinement", deliberately
 // low-fatigue, never the more ballistic Full Flow & Teaser content.
+// Batch 7 adds boxingsc, hyrox, grappling -- the last 3 plain programs.
+// All three share the same original shape: 5 real training days, ONE
+// non-negotiable Rest/Mobility day (each program's own note already gives
+// a real, sport-specific recovery reason -- spinal/hip rotational load for
+// boxing S&C, whole-body running+sled load for Hyrox, neck/hip load for
+// grappling -- not generic filler), and one full-rest day. High-frequency
+// variants never add a 3rd power/max-effort/live-rolling session -- the
+// highest-toll session type in each program -- only lower-toll extra
+// volume instead (round conditioning, easy aerobic work, or technical
+// drilling, respectively), and n=7 keeps each program's own Rest/Mobility
+// note genuinely true rather than reframing it into more training.
 // Deliberately excluded, permanently, not just "not yet": the 13
 // medical/rehab programs (obesity, hypertension, diabetes, osteoporosis,
 // bariatric x2, prenatal, postpartum, and the 5 rehab tracks). Their day
@@ -13510,8 +13526,7 @@ function renderPosingClasses(){
 // optimization one, and this app already treats deferring to a user's care
 // team as "deliberate and non-negotiable" (see programs.medical's own
 // overview) -- letting someone dial a rehab-ACL protocol up to 7 days/week
-// would be unsafe, not just untailored. Remaining scope: the plain
-// programs not yet covered (boxingsc, hyrox, grappling) and the
+// would be unsafe, not just untailored. Remaining scope: the
 // combat/cycling/watersports/yoga style-variant containers, in further
 // batches.
 //
@@ -13525,7 +13540,7 @@ function renderPosingClasses(){
 // from. Every program rolled out here is already on that list, so the new
 // accessory days inherit this automatically. Verified with real invocation
 // in test-configurable-training-days.js, not just reasoned about.
-const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility', 'running', 'swimming', 'climbing', 'senior', 'desk', 'pilates'];
+const DAYS_PER_WEEK_PROGRAMS = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility', 'running', 'swimming', 'climbing', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling'];
 const DAYS_PER_WEEK_ORIGINAL = Object.fromEntries(DAYS_PER_WEEK_PROGRAMS.map(key =>
   [key, { days: programs[key].days, overview: programs[key].overview, short: programs[key].short }]
 ));
@@ -18071,6 +18086,760 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             {name:'Dead Bug', sets:'2×10/side', noWeight:true},
             {name:'Side Plank', sets:'2×20-30s/side', noWeight:true},
             {name:'Bird Dog', sets:'2×8/side', noWeight:true},
+          ]
+        },
+      }
+    },
+  },
+  // Boxing S&C, Hyrox, and Grappling all share the same original shape: 5
+  // real training days, ONE non-negotiable Rest/Mobility day (each program's
+  // own note explains a real, sport-specific recovery reason -- spinal/hip
+  // rotational load, whole-body running+sled load, neck/hip load -- not
+  // generic filler), and one full-rest day. All three keep that reasoning
+  // shape: never a 3rd power/max-effort/live-rolling session at high
+  // frequency, only lower-toll extra volume (conditioning, easy aerobic
+  // work, or technical drilling); and n=7 keeps the Rest/Mobility slot's own
+  // note genuinely true rather than reframing it into more training.
+  boxingsc: {
+    1: {
+      short: 'Rotational power + conditioning — the floor for this program',
+      overview: 'One session combining rotational power and anaerobic round conditioning, since a full week only gets one shot. This program\'s own reasoning is explicit that trunk rotation and rear-leg extension -- not the arms -- actually drive punching force, so even at the lowest frequency this stays a power-plus-conditioning day, not an arms-and-cardio one.',
+      days: {
+        d1: { label:'Day 1', sub:'Rotational Power + Conditioning', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Med Ball Rotational Throw', sets:'3×6/side'},
+            {name:'Landmine Rotation', sets:'2×10/side'},
+            {name:'Jump Rope — Freestyle Flow', sets:'3×3 min', noWeight:true},
+            {name:'Sprint Intervals', sets:'5×20s', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and thoracic mobility, 20-25 min. The rotational demands of this program load the spine and hips in ways pure bag work doesn\'t — don\'t skip this.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and thoracic mobility, 20-25 min. The rotational demands of this program load the spine and hips in ways pure bag work doesn\'t — don\'t skip this.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Full-Body Power and Anaerobic Round Conditioning, dedicated days',
+      overview: 'Full-body power (rotational and lower-body combined) and anaerobic round conditioning each get their own full session — the two pillars this program\'s own reasoning calls the actual physical base under boxing, at the lowest frequency that still trains both.',
+      days: {
+        d1: { label:'Day 1', sub:'Full-Body Power', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Med Ball Rotational Throw', sets:'3×6/side'},
+            {name:'Power Clean', sets:'4×3'},
+            {name:'Bulgarian Split Squat', sets:'2×8-10/leg'},
+            {name:'Landmine Rotation', sets:'2×10/side'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and thoracic mobility, 20-25 min. The rotational demands of this program load the spine and hips in ways pure bag work doesn\'t — don\'t skip this.' },
+        d3: { label:'Day 3', sub:'Anaerobic Round Conditioning', plate:'p-blue', plateNum:'20', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Freestyle Flow', sets:'5×3 min', noWeight:true},
+            {name:'Sled Push', sets:'5×20m'},
+            {name:'Sprint Intervals', sets:'8×20s', noWeight:true},
+            {name:'Russian Twist (weighted)', sets:'3×15/side'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and thoracic mobility, 20-25 min. The rotational demands of this program load the spine and hips in ways pure bag work doesn\'t — don\'t skip this.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Rotational Power, Lower Body Power, and Anaerobic Round Conditioning',
+      overview: 'Three of this program\'s five sessions each get their own day — rotational power, lower-body power, and anaerobic round conditioning, the trio this program\'s own reasoning calls out as what actually drives punching power and fight-pace endurance.',
+      days: {
+        d1: { label:'Day 1', sub:'Rotational Power', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Med Ball Rotational Throw', sets:'4×6/side'},
+            {name:'Landmine Rotation', sets:'3×10/side'},
+            {name:'Cable Woodchopper', sets:'3×12/side'},
+            {name:'Pallof Press', sets:'3×10/side'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Lower Body Power & Single-Leg Strength', plate:'p-blue', plateNum:'20', duration:'~50 min',
+          exercises:[
+            {name:'Power Clean', sets:'5×3'},
+            {name:'Bulgarian Split Squat', sets:'3×8-10/leg'},
+            {name:'Box Jump', sets:'4×5'},
+            {name:'Single-Leg Bound', sets:'3×5/leg'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and thoracic mobility, 20-25 min. The rotational demands of this program load the spine and hips in ways pure bag work doesn\'t — don\'t skip this.' },
+        d4: { label:'Day 4', sub:'Anaerobic Round Conditioning', plate:'p-yellow', plateNum:'15', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Freestyle Flow', sets:'5×3 min', noWeight:true},
+            {name:'Sled Push', sets:'5×20m'},
+            {name:'Sprint Intervals', sets:'8×20s', noWeight:true},
+            {name:'Russian Twist (weighted)', sets:'3×15/side'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    4: {
+      short: 'Rotational Power, Lower Body Power, Upper Body Power, and Anaerobic Conditioning',
+      overview: 'Four of this program\'s five sessions each get their own day. Core & Conditioning Circuit is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      days: {
+        d1: { label:'Day 1', sub:'Rotational Power', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Med Ball Rotational Throw', sets:'4×6/side'},
+            {name:'Landmine Rotation', sets:'3×10/side'},
+            {name:'Cable Woodchopper', sets:'3×12/side'},
+            {name:'Pallof Press', sets:'3×10/side'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Lower Body Power & Single-Leg Strength', plate:'p-blue', plateNum:'20', duration:'~50 min',
+          exercises:[
+            {name:'Power Clean', sets:'5×3'},
+            {name:'Bulgarian Split Squat', sets:'3×8-10/leg'},
+            {name:'Box Jump', sets:'4×5'},
+            {name:'Single-Leg Bound', sets:'3×5/leg'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and thoracic mobility, 20-25 min. The rotational demands of this program load the spine and hips in ways pure bag work doesn\'t — don\'t skip this.' },
+        d4: { label:'Day 4', sub:'Upper Body Power & Punching Chain', plate:'p-yellow', plateNum:'15', duration:'~45 min',
+          exercises:[
+            {name:'Med Ball Chest Pass', sets:'4×6'},
+            {name:'Bench Press', sets:'4×6-8'},
+            {name:'Cable Row', sets:'3×10-12'},
+            {name:'Face Pull', sets:'3×15'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Anaerobic Round Conditioning', plate:'p-green', plateNum:'10', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Freestyle Flow', sets:'5×3 min', noWeight:true},
+            {name:'Sled Push', sets:'5×20m'},
+            {name:'Sprint Intervals', sets:'8×20s', noWeight:true},
+            {name:'Russian Twist (weighted)', sets:'3×15/side'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.boxingsc), used as-is.
+    6: {
+      short: 'The full 5-day program plus extra round conditioning',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra round-based conditioning — not a 2nd max-power day. Rotational and lower-body power work taxes the CNS in a way that needs full recovery between sessions; anaerobic conditioning recovers faster and tolerates the extra frequency instead.',
+      days: {
+        d1: { label:'Day 1', sub:'Rotational Power', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Med Ball Rotational Throw', sets:'4×6/side'},
+            {name:'Landmine Rotation', sets:'3×10/side'},
+            {name:'Cable Woodchopper', sets:'3×12/side'},
+            {name:'Pallof Press', sets:'3×10/side'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Lower Body Power & Single-Leg Strength', plate:'p-blue', plateNum:'20', duration:'~50 min',
+          exercises:[
+            {name:'Power Clean', sets:'5×3'},
+            {name:'Bulgarian Split Squat', sets:'3×8-10/leg'},
+            {name:'Box Jump', sets:'4×5'},
+            {name:'Single-Leg Bound', sets:'3×5/leg'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and thoracic mobility, 20-25 min. The rotational demands of this program load the spine and hips in ways pure bag work doesn\'t — don\'t skip this.' },
+        d4: { label:'Day 4', sub:'Upper Body Power & Punching Chain', plate:'p-yellow', plateNum:'15', duration:'~45 min',
+          exercises:[
+            {name:'Med Ball Chest Pass', sets:'4×6'},
+            {name:'Bench Press', sets:'4×6-8'},
+            {name:'Cable Row', sets:'3×10-12'},
+            {name:'Face Pull', sets:'3×15'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Anaerobic Round Conditioning', plate:'p-green', plateNum:'10', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Freestyle Flow', sets:'5×3 min', noWeight:true},
+            {name:'Sled Push', sets:'5×20m'},
+            {name:'Sprint Intervals', sets:'8×20s', noWeight:true},
+            {name:'Russian Twist (weighted)', sets:'3×15/side'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Core & Conditioning Circuit', plate:'p-off', plateNum:'5', duration:'~35 min',
+          exercises:[
+            {name:'Burpees', sets:'4×10', noWeight:true},
+            {name:'Mountain Climbers', sets:'3×20', noWeight:true},
+            {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+            {name:'Farmer\'s Carry', sets:'3×30s'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Extra Round Conditioning', plate:'p-off', plateNum:'5', duration:'~25 min',
+          exercises:[
+            {name:'Jump Rope — Freestyle Flow', sets:'4×3 min', noWeight:true},
+            {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
+            {name:'Burpees', sets:'3×10', noWeight:true},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+      overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says the rotational and hip/spine demands here make that day non-negotiable, not just optional filler, even at 7 days selected.',
+      days: {
+        d1: { label:'Day 1', sub:'Rotational Power', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Med Ball Rotational Throw', sets:'4×6/side'},
+            {name:'Landmine Rotation', sets:'3×10/side'},
+            {name:'Cable Woodchopper', sets:'3×12/side'},
+            {name:'Pallof Press', sets:'3×10/side'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Lower Body Power & Single-Leg Strength', plate:'p-blue', plateNum:'20', duration:'~50 min',
+          exercises:[
+            {name:'Power Clean', sets:'5×3'},
+            {name:'Bulgarian Split Squat', sets:'3×8-10/leg'},
+            {name:'Box Jump', sets:'4×5'},
+            {name:'Single-Leg Bound', sets:'3×5/leg'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip and thoracic mobility, 20-25 min. The rotational demands of this program load the spine and hips in ways pure bag work doesn\'t — don\'t skip this, even at 7 days selected.' },
+        d4: { label:'Day 4', sub:'Upper Body Power & Punching Chain', plate:'p-yellow', plateNum:'15', duration:'~45 min',
+          exercises:[
+            {name:'Med Ball Chest Pass', sets:'4×6'},
+            {name:'Bench Press', sets:'4×6-8'},
+            {name:'Cable Row', sets:'3×10-12'},
+            {name:'Face Pull', sets:'3×15'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Anaerobic Round Conditioning', plate:'p-green', plateNum:'10', duration:'~35 min',
+          exercises:[
+            {name:'Jump Rope — Freestyle Flow', sets:'5×3 min', noWeight:true},
+            {name:'Sled Push', sets:'5×20m'},
+            {name:'Sprint Intervals', sets:'8×20s', noWeight:true},
+            {name:'Russian Twist (weighted)', sets:'3×15/side'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Core & Conditioning Circuit', plate:'p-off', plateNum:'5', duration:'~35 min',
+          exercises:[
+            {name:'Burpees', sets:'4×10', noWeight:true},
+            {name:'Mountain Climbers', sets:'3×20', noWeight:true},
+            {name:'Side Plank', sets:'3×20-30s/side', noWeight:true},
+            {name:'Farmer\'s Carry', sets:'3×30s'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Extra Round Conditioning', plate:'p-off', plateNum:'5', duration:'~25 min',
+          exercises:[
+            {name:'Jump Rope — Freestyle Flow', sets:'4×3 min', noWeight:true},
+            {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
+            {name:'Burpees', sets:'3×10', noWeight:true},
+          ]
+        },
+      }
+    },
+  },
+  hyrox: {
+    1: {
+      short: 'Running + station basics — the floor for this program',
+      overview: 'One session combining running-based engine work and station skill basics, since a full week only gets one shot at what actually decides a Hyrox result: running while already fatigued from a station. Even at the lowest frequency, this program\'s own reasoning -- compromised running is the deciding quality, not fresh running or stations in isolation -- still holds.',
+      days: {
+        d1: { label:'Day 1', sub:'Running + Station Basics', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'8 min', noWeight:true},
+            {name:'Tempo Run', sets:'12 min', noWeight:true},
+            {name:'Wall Balls', sets:'3×15', noWeight:true},
+            {name:'Sled Push', sets:'3×20m'},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip, ankle, and shoulder mobility, 20-25 min. Between running volume and sled/carry work, this program loads the whole body hard — recovery isn\'t optional here.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip, ankle, and shoulder mobility, 20-25 min. Between running volume and sled/carry work, this program loads the whole body hard — recovery isn\'t optional here.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Running Base + Engine Work and Sled Work + Lower Body Strength, dedicated days',
+      overview: 'Running-based engine work and sled/lower-body strength each get their own full session — the aerobic and strength base this program builds compromised running on top of, at the lowest frequency that still trains both.',
+      days: {
+        d1: { label:'Day 1', sub:'Running Base + Engine Work', plate:'p-red', plateNum:'25', duration:'~45 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+            {name:'Tempo Run', sets:'20 min', noWeight:true},
+            {name:'Rowing Machine Intervals', sets:'6×500m', noWeight:true},
+            {name:'Cool-down Jog', sets:'5-10 min', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip, ankle, and shoulder mobility, 20-25 min. Between running volume and sled/carry work, this program loads the whole body hard — recovery isn\'t optional here.' },
+        d3: { label:'Day 3', sub:'Sled Work + Lower Body Strength', plate:'p-blue', plateNum:'20', duration:'~45 min',
+          exercises:[
+            {name:'Back Squat', sets:'4×6'},
+            {name:'Sled Push', sets:'5×20m'},
+            {name:'Sled Pull', sets:'5×20m', noWeight:true},
+            {name:'Romanian Deadlift', sets:'3×8'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip, ankle, and shoulder mobility, 20-25 min. Between running volume and sled/carry work, this program loads the whole body hard — recovery isn\'t optional here.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Running Base + Engine Work, Sled Work + Lower Body Strength, and Compromised Running',
+      overview: 'Three of this program\'s five sessions each get their own day — running-based engine work, sled/lower-body strength, and compromised running itself, since that\'s the specific quality this program\'s own reasoning calls the actual deciding factor in a Hyrox result.',
+      days: {
+        d1: { label:'Day 1', sub:'Running Base + Engine Work', plate:'p-red', plateNum:'25', duration:'~45 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+            {name:'Tempo Run', sets:'20 min', noWeight:true},
+            {name:'Rowing Machine Intervals', sets:'6×500m', noWeight:true},
+            {name:'Cool-down Jog', sets:'5-10 min', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Sled Work + Lower Body Strength', plate:'p-blue', plateNum:'20', duration:'~45 min',
+          exercises:[
+            {name:'Back Squat', sets:'4×6'},
+            {name:'Sled Push', sets:'5×20m'},
+            {name:'Sled Pull', sets:'5×20m', noWeight:true},
+            {name:'Romanian Deadlift', sets:'3×8'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip, ankle, and shoulder mobility, 20-25 min. Between running volume and sled/carry work, this program loads the whole body hard — recovery isn\'t optional here.' },
+        d4: { label:'Day 4', sub:'Compromised Running (Brick Intervals)', plate:'p-yellow', plateNum:'15', duration:'~45 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+            {name:'400m Repeats', sets:'4×400m', noWeight:true},
+            {name:'Wall Balls', sets:'4×15', noWeight:true},
+            {name:'Burpee Broad Jumps', sets:'3×10', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    4: {
+      short: 'Running Base, Sled Work, Station Skills, and Compromised Running',
+      overview: 'Four of this program\'s five sessions each get their own day. Full Simulation Finisher is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up — this program\'s own week structure builds toward that finisher, not away from it.',
+      days: {
+        d1: { label:'Day 1', sub:'Running Base + Engine Work', plate:'p-red', plateNum:'25', duration:'~45 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+            {name:'Tempo Run', sets:'20 min', noWeight:true},
+            {name:'Rowing Machine Intervals', sets:'6×500m', noWeight:true},
+            {name:'Cool-down Jog', sets:'5-10 min', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Sled Work + Lower Body Strength', plate:'p-blue', plateNum:'20', duration:'~45 min',
+          exercises:[
+            {name:'Back Squat', sets:'4×6'},
+            {name:'Sled Push', sets:'5×20m'},
+            {name:'Sled Pull', sets:'5×20m', noWeight:true},
+            {name:'Romanian Deadlift', sets:'3×8'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip, ankle, and shoulder mobility, 20-25 min. Between running volume and sled/carry work, this program loads the whole body hard — recovery isn\'t optional here.' },
+        d4: { label:'Day 4', sub:'Station Skills', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+          exercises:[
+            {name:'Wall Balls', sets:'5×15', noWeight:true},
+            {name:'Burpee Broad Jumps', sets:'4×10', noWeight:true},
+            {name:'Sandbag Lunges', sets:'4×20'},
+            {name:'SkiErg Intervals', sets:'6×250m', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Compromised Running (Brick Intervals)', plate:'p-green', plateNum:'10', duration:'~45 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+            {name:'400m Repeats', sets:'4×400m', noWeight:true},
+            {name:'Wall Balls', sets:'4×15', noWeight:true},
+            {name:'Burpee Broad Jumps', sets:'3×10', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.hyrox), used as-is.
+    6: {
+      short: 'The full 5-day program plus easy aerobic engine work',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of easy aerobic engine work — not a 2nd Full Simulation or brick session. Compromised running already trains the hardest, most race-specific quality in this program; adding a 2nd high-intensity day this early would just add fatigue without more of that specific skill. Easy aerobic volume builds the base underneath it instead.',
+      days: {
+        d1: { label:'Day 1', sub:'Running Base + Engine Work', plate:'p-red', plateNum:'25', duration:'~45 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+            {name:'Tempo Run', sets:'20 min', noWeight:true},
+            {name:'Rowing Machine Intervals', sets:'6×500m', noWeight:true},
+            {name:'Cool-down Jog', sets:'5-10 min', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Sled Work + Lower Body Strength', plate:'p-blue', plateNum:'20', duration:'~45 min',
+          exercises:[
+            {name:'Back Squat', sets:'4×6'},
+            {name:'Sled Push', sets:'5×20m'},
+            {name:'Sled Pull', sets:'5×20m', noWeight:true},
+            {name:'Romanian Deadlift', sets:'3×8'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip, ankle, and shoulder mobility, 20-25 min. Between running volume and sled/carry work, this program loads the whole body hard — recovery isn\'t optional here.' },
+        d4: { label:'Day 4', sub:'Station Skills', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+          exercises:[
+            {name:'Wall Balls', sets:'5×15', noWeight:true},
+            {name:'Burpee Broad Jumps', sets:'4×10', noWeight:true},
+            {name:'Sandbag Lunges', sets:'4×20'},
+            {name:'SkiErg Intervals', sets:'6×250m', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Compromised Running (Brick Intervals)', plate:'p-green', plateNum:'10', duration:'~45 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+            {name:'400m Repeats', sets:'4×400m', noWeight:true},
+            {name:'Wall Balls', sets:'4×15', noWeight:true},
+            {name:'Burpee Broad Jumps', sets:'3×10', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Simulation Finisher', plate:'p-off', plateNum:'5', duration:'~45 min',
+          exercises:[
+            {name:'Farmers Carry (Heavy)', sets:'4×40m'},
+            {name:'Sandbag Lunges', sets:'3×20'},
+            {name:'Rowing Machine Intervals', sets:'4×500m', noWeight:true},
+            {name:'Wall Balls', sets:'3×20', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Easy Aerobic Engine', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'20 min', noWeight:true},
+            {name:'Cool-down Jog', sets:'10 min', noWeight:true},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+      overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of hard session on top of an already-full 6 days. This program\'s own rest-day note already says recovery isn\'t optional given the whole-body running-plus-sled load — even at 7 days selected, that stays true.',
+      days: {
+        d1: { label:'Day 1', sub:'Running Base + Engine Work', plate:'p-red', plateNum:'25', duration:'~45 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+            {name:'Tempo Run', sets:'20 min', noWeight:true},
+            {name:'Rowing Machine Intervals', sets:'6×500m', noWeight:true},
+            {name:'Cool-down Jog', sets:'5-10 min', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Sled Work + Lower Body Strength', plate:'p-blue', plateNum:'20', duration:'~45 min',
+          exercises:[
+            {name:'Back Squat', sets:'4×6'},
+            {name:'Sled Push', sets:'5×20m'},
+            {name:'Sled Pull', sets:'5×20m', noWeight:true},
+            {name:'Romanian Deadlift', sets:'3×8'},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Hip, ankle, and shoulder mobility, 20-25 min. Between running volume and sled/carry work, this program loads the whole body hard — recovery isn\'t optional here, even at 7 days selected.' },
+        d4: { label:'Day 4', sub:'Station Skills', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+          exercises:[
+            {name:'Wall Balls', sets:'5×15', noWeight:true},
+            {name:'Burpee Broad Jumps', sets:'4×10', noWeight:true},
+            {name:'Sandbag Lunges', sets:'4×20'},
+            {name:'SkiErg Intervals', sets:'6×250m', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Compromised Running (Brick Intervals)', plate:'p-green', plateNum:'10', duration:'~45 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'10 min', noWeight:true},
+            {name:'400m Repeats', sets:'4×400m', noWeight:true},
+            {name:'Wall Balls', sets:'4×15', noWeight:true},
+            {name:'Burpee Broad Jumps', sets:'3×10', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Simulation Finisher', plate:'p-off', plateNum:'5', duration:'~45 min',
+          exercises:[
+            {name:'Farmers Carry (Heavy)', sets:'4×40m'},
+            {name:'Sandbag Lunges', sets:'3×20'},
+            {name:'Rowing Machine Intervals', sets:'4×500m', noWeight:true},
+            {name:'Wall Balls', sets:'3×20', noWeight:true},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Easy Aerobic Engine', plate:'p-off', plateNum:'5', duration:'~30 min',
+          exercises:[
+            {name:'Warm-up Jog', sets:'20 min', noWeight:true},
+            {name:'Cool-down Jog', sets:'10 min', noWeight:true},
+          ]
+        },
+      }
+    },
+  },
+  grappling: {
+    1: {
+      short: 'Guard fundamentals + positional rolling — the floor for this program',
+      overview: 'One session combining guard fundamentals and a taste of live positional rolling, since a full week only gets one shot at both the structured drilling foundation and the real conditioning demand this program\'s own reasoning says only live rolling provides.',
+      days: {
+        d1: { label:'Day 1', sub:'Guard Fundamentals + Positional Rolling', plate:'p-red', plateNum:'25', duration:'~35 min',
+          exercises:[
+            {name:'Hip Escape (Shrimping)', sets:'3×8/side', noWeight:true},
+            {name:'Bridge & Roll (Upa Escape)', sets:'3×5/side', noWeight:true},
+            {name:'Positional Sparring (Guard Retention)', sets:'3×3min rounds', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Neck, hip, and shoulder mobility, 20-25 min. Grappling loads the neck and hips in ways few other sports do — don\'t skip this.' },
+        d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Neck, hip, and shoulder mobility, 20-25 min. Grappling loads the neck and hips in ways few other sports do — don\'t skip this.' },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    2: {
+      short: 'Guard Fundamentals & Escapes and Live Rolling & Conditioning, dedicated days',
+      overview: 'Guard fundamentals/escapes and live rolling each get their own full session — the structured-drilling foundation and the real conditioning session this program\'s own reasoning calls out, at the lowest frequency that still trains both.',
+      days: {
+        d1: { label:'Day 1', sub:'Guard Fundamentals & Escapes', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Hip Escape (Shrimping)', sets:'4×8/side', noWeight:true},
+            {name:'Bridge & Roll (Upa Escape)', sets:'4×5/side', noWeight:true},
+            {name:'Technical Stand-up', sets:'3×6/side', noWeight:true},
+            {name:'Guard Retention Drill', sets:'4×2min rounds', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Neck, hip, and shoulder mobility, 20-25 min. Grappling loads the neck and hips in ways few other sports do — don\'t skip this.' },
+        d3: { label:'Day 3', sub:'Live Rolling & Conditioning', plate:'p-blue', plateNum:'20', duration:'~45 min',
+          exercises:[
+            {name:'Positional Sparring (Guard Retention)', sets:'6×3min rounds', noWeight:true},
+            {name:'Neck Bridges', sets:'3×8', noWeight:true},
+            {name:'Farmers Carry (Heavy)', sets:'3×30m'},
+          ]
+        },
+        d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Neck, hip, and shoulder mobility, 20-25 min. Grappling loads the neck and hips in ways few other sports do — don\'t skip this.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    3: {
+      short: 'Guard Fundamentals & Escapes, Guard Passing & Pressure, and Live Rolling & Conditioning',
+      overview: 'Three of this program\'s five sessions each get their own day — guard fundamentals, guard passing, and live rolling, the guard-game trio plus the live application that ties them together.',
+      days: {
+        d1: { label:'Day 1', sub:'Guard Fundamentals & Escapes', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Hip Escape (Shrimping)', sets:'4×8/side', noWeight:true},
+            {name:'Bridge & Roll (Upa Escape)', sets:'4×5/side', noWeight:true},
+            {name:'Technical Stand-up', sets:'3×6/side', noWeight:true},
+            {name:'Guard Retention Drill', sets:'4×2min rounds', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Guard Passing & Pressure', plate:'p-blue', plateNum:'20', duration:'~45 min',
+          exercises:[
+            {name:'Knee Slice Pass', sets:'5×5/side', noWeight:true},
+            {name:'Torreando Pass', sets:'5×5', noWeight:true},
+            {name:'Combat Base Drill', sets:'4×30-45s', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Neck, hip, and shoulder mobility, 20-25 min. Grappling loads the neck and hips in ways few other sports do — don\'t skip this.' },
+        d4: { label:'Day 4', sub:'Live Rolling & Conditioning', plate:'p-yellow', plateNum:'15', duration:'~45 min',
+          exercises:[
+            {name:'Positional Sparring (Guard Retention)', sets:'6×3min rounds', noWeight:true},
+            {name:'Neck Bridges', sets:'3×8', noWeight:true},
+            {name:'Farmers Carry (Heavy)', sets:'3×30m'},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    4: {
+      short: 'Guard Fundamentals, Guard Passing, Submissions & Control, and Live Rolling',
+      overview: 'Four of this program\'s five sessions each get their own day. Takedowns & Clinch is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      days: {
+        d1: { label:'Day 1', sub:'Guard Fundamentals & Escapes', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Hip Escape (Shrimping)', sets:'4×8/side', noWeight:true},
+            {name:'Bridge & Roll (Upa Escape)', sets:'4×5/side', noWeight:true},
+            {name:'Technical Stand-up', sets:'3×6/side', noWeight:true},
+            {name:'Guard Retention Drill', sets:'4×2min rounds', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Guard Passing & Pressure', plate:'p-blue', plateNum:'20', duration:'~45 min',
+          exercises:[
+            {name:'Knee Slice Pass', sets:'5×5/side', noWeight:true},
+            {name:'Torreando Pass', sets:'5×5', noWeight:true},
+            {name:'Combat Base Drill', sets:'4×30-45s', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Neck, hip, and shoulder mobility, 20-25 min. Grappling loads the neck and hips in ways few other sports do — don\'t skip this.' },
+        d4: { label:'Day 4', sub:'Submissions & Control', plate:'p-yellow', plateNum:'15', duration:'~45 min',
+          exercises:[
+            {name:'Rear Naked Choke Drill', sets:'5×5/side', noWeight:true},
+            {name:'Armbar from Guard Drill', sets:'5×5/side', noWeight:true},
+            {name:'Mount Control & Maintenance', sets:'4×1min/side', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Live Rolling & Conditioning', plate:'p-green', plateNum:'10', duration:'~45 min',
+          exercises:[
+            {name:'Positional Sparring (Guard Retention)', sets:'6×3min rounds', noWeight:true},
+            {name:'Neck Bridges', sets:'3×8', noWeight:true},
+            {name:'Farmers Carry (Heavy)', sets:'3×30m'},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+        d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
+          note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
+      }
+    },
+    // 5 intentionally omitted — this is the program's own authored default
+    // (DAYS_PER_WEEK_ORIGINAL.grappling), used as-is.
+    6: {
+      short: 'The full 5-day program plus extra technical drilling',
+      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra technical drilling — not a 2nd live-rolling session. This program\'s own reasoning already flags neck and hip loading as a real, non-optional recovery cost, and live rolling carries the highest physical toll of any session here; the extra day adds more structured reps instead.',
+      days: {
+        d1: { label:'Day 1', sub:'Guard Fundamentals & Escapes', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Hip Escape (Shrimping)', sets:'4×8/side', noWeight:true},
+            {name:'Bridge & Roll (Upa Escape)', sets:'4×5/side', noWeight:true},
+            {name:'Technical Stand-up', sets:'3×6/side', noWeight:true},
+            {name:'Guard Retention Drill', sets:'4×2min rounds', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Guard Passing & Pressure', plate:'p-blue', plateNum:'20', duration:'~45 min',
+          exercises:[
+            {name:'Knee Slice Pass', sets:'5×5/side', noWeight:true},
+            {name:'Torreando Pass', sets:'5×5', noWeight:true},
+            {name:'Combat Base Drill', sets:'4×30-45s', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Neck, hip, and shoulder mobility, 20-25 min. Grappling loads the neck and hips in ways few other sports do — don\'t skip this.' },
+        d4: { label:'Day 4', sub:'Takedowns & Clinch', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+          exercises:[
+            {name:'Double Leg Takedown', sets:'5×5', noWeight:true},
+            {name:'Single Leg Takedown', sets:'5×5/side', noWeight:true},
+            {name:'Sprawl Drills', sets:'5×2min rounds', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Submissions & Control', plate:'p-green', plateNum:'10', duration:'~45 min',
+          exercises:[
+            {name:'Rear Naked Choke Drill', sets:'5×5/side', noWeight:true},
+            {name:'Armbar from Guard Drill', sets:'5×5/side', noWeight:true},
+            {name:'Mount Control & Maintenance', sets:'4×1min/side', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Live Rolling & Conditioning', plate:'p-off', plateNum:'5', duration:'~45 min',
+          exercises:[
+            {name:'Positional Sparring (Guard Retention)', sets:'6×3min rounds', noWeight:true},
+            {name:'Neck Bridges', sets:'3×8', noWeight:true},
+            {name:'Farmers Carry (Heavy)', sets:'3×30m'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Extra Technical Drilling', plate:'p-off', plateNum:'5', duration:'~25 min',
+          exercises:[
+            {name:'Guard Retention Drill', sets:'4×2min rounds', noWeight:true},
+            {name:'Knee Slice Pass', sets:'4×5/side', noWeight:true},
+            {name:'Technical Stand-up', sets:'3×6/side', noWeight:true},
+          ]
+        },
+      }
+    },
+    7: {
+      short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
+      overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. This program\'s own rest-day note already says the neck and hip demands here make that day non-negotiable — even at 7 days selected, that stays true.',
+      days: {
+        d1: { label:'Day 1', sub:'Guard Fundamentals & Escapes', plate:'p-red', plateNum:'25', duration:'~40 min',
+          exercises:[
+            {name:'Hip Escape (Shrimping)', sets:'4×8/side', noWeight:true},
+            {name:'Bridge & Roll (Upa Escape)', sets:'4×5/side', noWeight:true},
+            {name:'Technical Stand-up', sets:'3×6/side', noWeight:true},
+            {name:'Guard Retention Drill', sets:'4×2min rounds', noWeight:true},
+          ]
+        },
+        d2: { label:'Day 2', sub:'Guard Passing & Pressure', plate:'p-blue', plateNum:'20', duration:'~45 min',
+          exercises:[
+            {name:'Knee Slice Pass', sets:'5×5/side', noWeight:true},
+            {name:'Torreando Pass', sets:'5×5', noWeight:true},
+            {name:'Combat Base Drill', sets:'4×30-45s', noWeight:true},
+          ]
+        },
+        d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
+          note:'Neck, hip, and shoulder mobility, 20-25 min. Grappling loads the neck and hips in ways few other sports do — don\'t skip this, even at 7 days selected.' },
+        d4: { label:'Day 4', sub:'Takedowns & Clinch', plate:'p-yellow', plateNum:'15', duration:'~40 min',
+          exercises:[
+            {name:'Double Leg Takedown', sets:'5×5', noWeight:true},
+            {name:'Single Leg Takedown', sets:'5×5/side', noWeight:true},
+            {name:'Sprawl Drills', sets:'5×2min rounds', noWeight:true},
+          ]
+        },
+        d5: { label:'Day 5', sub:'Submissions & Control', plate:'p-green', plateNum:'10', duration:'~45 min',
+          exercises:[
+            {name:'Rear Naked Choke Drill', sets:'5×5/side', noWeight:true},
+            {name:'Armbar from Guard Drill', sets:'5×5/side', noWeight:true},
+            {name:'Mount Control & Maintenance', sets:'4×1min/side', noWeight:true},
+          ]
+        },
+        d6: { label:'Day 6', sub:'Live Rolling & Conditioning', plate:'p-off', plateNum:'5', duration:'~45 min',
+          exercises:[
+            {name:'Positional Sparring (Guard Retention)', sets:'6×3min rounds', noWeight:true},
+            {name:'Neck Bridges', sets:'3×8', noWeight:true},
+            {name:'Farmers Carry (Heavy)', sets:'3×30m'},
+          ]
+        },
+        d7: { label:'Day 7', sub:'Extra Technical Drilling', plate:'p-off', plateNum:'5', duration:'~25 min',
+          exercises:[
+            {name:'Guard Retention Drill', sets:'4×2min rounds', noWeight:true},
+            {name:'Knee Slice Pass', sets:'4×5/side', noWeight:true},
+            {name:'Technical Stand-up', sets:'3×6/side', noWeight:true},
           ]
         },
       }

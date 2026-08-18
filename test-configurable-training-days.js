@@ -37,7 +37,7 @@ const { test, run } = makeRunner('test-configurable-training-days.js');
 
 // [Data completeness across all 7 counts, all rolled-out programs] ---------------
 const ALL_COUNTS = [1,2,3,4,5,6,7];
-const PROGRAMS_TO_CHECK = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility', 'running', 'swimming', 'climbing', 'senior', 'desk', 'pilates'];
+const PROGRAMS_TO_CHECK = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope', 'mobility', 'running', 'swimming', 'climbing', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling'];
 
 for(const programKey of PROGRAMS_TO_CHECK){
   for(const n of ALL_COUNTS){
@@ -98,7 +98,7 @@ test('bodybuilding day-count 5 (falling back to the original) is byte-identical 
 //    slot is reframed as a light mobility/cardio (or, for oly specifically,
 //    still-bar-free-on-purpose) day instead. So n=7's real training-day
 //    count matches n=6's, not 7.
-const OMITTED_DEFAULT_COUNT = { strength: 4, bodybuilding: 5, oly: 5, powerlifting: 5, powerbuilding: 5, athletic: 5, bodyweight: 5, calisthenics: 5, core: 5, jumprope: 5, mobility: 5, running: 5, swimming: 5, climbing: 5, senior: 5, desk: 5, pilates: 5 };
+const OMITTED_DEFAULT_COUNT = { strength: 4, bodybuilding: 5, oly: 5, powerlifting: 5, powerbuilding: 5, athletic: 5, bodyweight: 5, calisthenics: 5, core: 5, jumprope: 5, mobility: 5, running: 5, swimming: 5, climbing: 5, senior: 5, desk: 5, pilates: 5, boxingsc: 5, hyrox: 5, grappling: 5 };
 for(const programKey of PROGRAMS_TO_CHECK){
   test(`${programKey}: every hand-authored day-count's TRAINING day count actually matches the count selected (n=3 really has 3 non-rest days, not some other number)`, (assert)=>{
     const [results] = runSandbox(pureChunks, `
@@ -242,6 +242,45 @@ test('sabotage: pilates\'s 6-day and 7-day new day is "Breath & Control Refineme
   assert.strictEqual(exNames6.some(name => /Teaser/i.test(name)), false, 'pilates\'s 7th day should contain zero ballistic Teaser content');
 });
 
+test('sabotage: boxingsc\'s 6-day and 7-day extra day is "Extra Round Conditioning", never a 2nd max-power/CNS-taxing session — proving the "conditioning tolerates the extra frequency, power doesn\'t" design decision landed in the data', (assert)=>{
+  const [sub6, sub7, exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.boxingsc[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.boxingsc[7].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.boxingsc[6].days.d7.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Round Conditioning');
+  assert.strictEqual(sub7, 'Extra Round Conditioning');
+  ['Power Clean', 'Box Jump', 'Med Ball Rotational Throw', 'Bench Press'].forEach(powerEx => {
+    assert.strictEqual(exNames6.includes(powerEx), false, `boxingsc's 7th day should contain no max-power/CNS-taxing exercise, found ${powerEx}`);
+  });
+});
+
+test('sabotage: hyrox\'s 6-day and 7-day extra day is "Easy Aerobic Engine", never a 2nd Full Simulation/brick session — proving the "no 2nd high-intensity day" design decision landed in the data', (assert)=>{
+  const [sub6, sub7, exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.hyrox[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.hyrox[7].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.hyrox[6].days.d7.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Easy Aerobic Engine');
+  assert.strictEqual(sub7, 'Easy Aerobic Engine');
+  ['Farmers Carry (Heavy)', '400m Repeats', 'Sandbag Lunges', 'Wall Balls'].forEach(hardEx => {
+    assert.strictEqual(exNames6.includes(hardEx), false, `hyrox's 7th day should contain no hard-effort/station exercise, found ${hardEx}`);
+  });
+});
+
+test('sabotage: grappling\'s 6-day and 7-day extra day is "Extra Technical Drilling", never a 2nd live-rolling session — proving the "drilling tolerates the extra frequency, live rolling doesn\'t" design decision landed in the data', (assert)=>{
+  const [sub6, sub7, exNames6] = runSandbox(pureChunks, `
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.grappling[6].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.grappling[7].days.d7.sub);
+    __capture.push(PROGRAM_DAY_COUNT_VARIANTS.grappling[6].days.d7.exercises.map(e=>e.name));
+  `);
+  assert.strictEqual(sub6, 'Extra Technical Drilling');
+  assert.strictEqual(sub7, 'Extra Technical Drilling');
+  ['Positional Sparring (Guard Retention)', 'Neck Bridges', 'Farmers Carry (Heavy)'].forEach(rollingEx => {
+    assert.strictEqual(exNames6.includes(rollingEx), false, `grappling's 7th day should contain no live-rolling exercise, found ${rollingEx}`);
+  });
+});
+
 test('every oly day-count variant is honest about evidence quality (coaching consensus, not RCT), matching this program\'s own established convention', (assert)=>{
   const [overviews] = runSandbox(pureChunks, `
     __capture.push([1,2,3,4,6,7].map(n => PROGRAM_DAY_COUNT_VARIANTS.oly[n].overview));
@@ -292,14 +331,15 @@ const bodyGoalChunks = [
 // Batches 1-3 (strength, bodybuilding, oly, powerlifting, powerbuilding,
 // athletic, bodyweight, calisthenics) are exactly FOCUS_ELIGIBLE_PROGRAMS'
 // membership, so their extra accessory days align with body goals for
-// free. Batch 4 (core, jumprope, mobility) and batch 6 (senior, desk,
-// pilates) are deliberately NOT in that list -- these are the two disjoint
-// groups, checked separately. (Batch 5 -- running, swimming, climbing --
-// isn't in either check list; also not in FOCUS_ELIGIBLE_PROGRAMS, but that
-// batch didn't add the corresponding negative-case coverage. Pre-existing
-// gap, noted rather than silently backfilled here.)
+// free. Batch 4 (core, jumprope, mobility), batch 6 (senior, desk,
+// pilates), and batch 7 (boxingsc, hyrox, grappling) are deliberately NOT
+// in that list -- these are the two disjoint groups, checked separately.
+// (Batch 5 -- running, swimming, climbing -- isn't in either check list;
+// also not in FOCUS_ELIGIBLE_PROGRAMS, but that batch didn't add the
+// corresponding negative-case coverage. Pre-existing gap, noted rather
+// than silently backfilled here.)
 const FOCUS_ELIGIBLE_BATCH = ['strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding', 'athletic', 'bodyweight', 'calisthenics'];
-const NON_FOCUS_ELIGIBLE_BATCH = ['core', 'jumprope', 'mobility', 'senior', 'desk', 'pilates'];
+const NON_FOCUS_ELIGIBLE_BATCH = ['core', 'jumprope', 'mobility', 'senior', 'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling'];
 
 test('FOCUS_ELIGIBLE_PROGRAMS already covers the first 8 programs rolled out — the reason their extra accessory days align with body goals for free', (assert)=>{
   const [results] = runSandbox(bodyGoalChunks, `
@@ -373,7 +413,7 @@ test('daysPerWeekWarningState: null pref never warns', (assert)=>{
 });
 
 test('daysPerWeekWarningState: a program outside the rollout never warns even at 7 days', (assert)=>{
-  const [state] = runSandbox(pureChunks, `__capture.push(daysPerWeekWarningState('hyrox', 7));`);
+  const [state] = runSandbox(pureChunks, `__capture.push(daysPerWeekWarningState('medical', 7));`);
   assert.strictEqual(state.advisory, false);
 });
 
@@ -412,12 +452,12 @@ test('applyDaysPerWeekProgramData with a real pref set regenerates days AND over
 
 test('sabotage: applyDaysPerWeekProgramData NEVER touches a program outside DAYS_PER_WEEK_PROGRAMS, even with a pref set', (assert)=>{
   const [sameRef, sameOverview] = runSandbox(applyChunks, `
-    const hyroxDaysBefore = programs.hyrox.days;
-    const hyroxOverviewBefore = programs.hyrox.overview;
+    const medicalDaysBefore = programs.medical.days;
+    const medicalOverviewBefore = programs.medical.overview;
     daysPerWeekPref = 7;
     applyDaysPerWeekProgramData();
-    __capture.push(programs.hyrox.days === hyroxDaysBefore);
-    __capture.push(programs.hyrox.overview === hyroxOverviewBefore);
+    __capture.push(programs.medical.days === medicalDaysBefore);
+    __capture.push(programs.medical.overview === medicalOverviewBefore);
   `);
   assert.strictEqual(sameRef, true);
   assert.strictEqual(sameOverview, true);
