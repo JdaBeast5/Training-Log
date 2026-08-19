@@ -1395,7 +1395,17 @@
     font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted); flex:0 0 66px;
   }
   .pr-body{flex:1; min-width:0;}
-  .pr-ex-name{font-weight:600; font-size:13.5px;}
+  /* Named prt- (PR Timeline), not pr-ex-name, deliberately: the print-only
+     export report (buildAnalysisPrintReport et al., search "[PRINT REPORT]")
+     independently uses .pr-ex-name for its own, unrelated exercise-name
+     spans. Both features picked "pr-" ("Personal Record" here, "Print
+     Report" there) and happened to collide on this one name — harmless
+     today only because @media print's own wildcard hide rule keeps the
+     print report's version from ever painting outside of it, but a future
+     change to that scoping would have silently pulled this PR Timeline
+     row's font-weight/size from the print stylesheet instead. Disambiguated
+     rather than left as a landmine. */
+  .prt-ex-name{font-weight:600; font-size:13.5px;}
   .pr-type-tag{
     font-size:9.5px; font-weight:700; color:var(--plate-purple); background:rgba(var(--plate-purple-rgb),0.12);
     border:1px solid rgba(var(--plate-purple-rgb),0.3); border-radius:var(--radius-pill); padding:1px 7px; margin-left:4px; vertical-align:1px;
@@ -6378,7 +6388,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.231';
+const APP_VERSION = '3.232';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6904,6 +6914,9 @@ const WHATS_NEW = {
   ]},
   '3.231': { headline: 'Sleep, weigh-ins, and other logs no longer dump your whole history at once', points: [
     'Tapping "Show more" on Sleep, Bodyweight, Blood Pressure, Glucose, and similar lists used to reveal every entry you\'ve ever logged in one shot — rough if you\'ve been tracking for months. It now reveals a reasonable batch at a time, with another "Show more" for the rest, so nothing is lost, it just doesn\'t all land on screen at once.',
+  ]},
+  '3.232': { headline: 'Internal housekeeping — nothing to see here', points: [
+    'A style-consistency pass turned up one internal naming collision (the PR Timeline card and the printable report both happened to reuse the same style name) — fixed so they can never step on each other, with no visible change to either.',
   ]},
 };
 
@@ -37688,7 +37701,7 @@ async function renderPrTimeline(){
       <div class="pr-row">
         <div class="pr-date">${dateLabel}</div>
         <div class="pr-body">
-          <div class="pr-ex-name">${isStrength ? '💪' : '🏆'} <button type="button" class="xlink" data-search-for="${escapeHtml(ev.name)}">${escapeHtml(ev.name)}<span class="xlink-chev" aria-hidden="true">›</span></button>${isStrength ? ' <span class="pr-type-tag">strength PR</span>' : ''}</div>
+          <div class="prt-ex-name">${isStrength ? '💪' : '🏆'} <button type="button" class="xlink" data-search-for="${escapeHtml(ev.name)}">${escapeHtml(ev.name)}<span class="xlink-chev" aria-hidden="true">›</span></button>${isStrength ? ' <span class="pr-type-tag">strength PR</span>' : ''}</div>
           <div class="pr-day-label">${escapeHtml(ev.dayLabel)}${isStrength && ev.e1rm ? ` · Est. 1RM ~${fmtWeight(ev.e1rm)}` : ''}</div>
         </div>
         <div class="pr-stat">${fmtWeight(ev.weight)}${ev.reps!=null ? ` × ${ev.reps}` : ''}</div>
