@@ -6388,7 +6388,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.232';
+const APP_VERSION = '3.233';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6917,6 +6917,9 @@ const WHATS_NEW = {
   ]},
   '3.232': { headline: 'Internal housekeeping — nothing to see here', points: [
     'A style-consistency pass turned up one internal naming collision (the PR Timeline card and the printable report both happened to reuse the same style name) — fixed so they can never step on each other, with no visible change to either.',
+  ]},
+  '3.233': { headline: 'PR Timeline now labels weight PRs, not just strength PRs', points: [
+    'Strength PRs (💪) already showed a "strength PR" tag — weight PRs (🏆) only showed the trophy with no label, so at a glance the two looked less clearly explained. Weight PRs now get their own "weight PR" tag to match.',
   ]},
 };
 
@@ -37701,7 +37704,7 @@ async function renderPrTimeline(){
       <div class="pr-row">
         <div class="pr-date">${dateLabel}</div>
         <div class="pr-body">
-          <div class="prt-ex-name">${isStrength ? '💪' : '🏆'} <button type="button" class="xlink" data-search-for="${escapeHtml(ev.name)}">${escapeHtml(ev.name)}<span class="xlink-chev" aria-hidden="true">›</span></button>${isStrength ? ' <span class="pr-type-tag">strength PR</span>' : ''}</div>
+          <div class="prt-ex-name">${isStrength ? '💪' : '🏆'} <button type="button" class="xlink" data-search-for="${escapeHtml(ev.name)}">${escapeHtml(ev.name)}<span class="xlink-chev" aria-hidden="true">›</span></button> <span class="pr-type-tag">${isStrength ? 'strength PR' : 'weight PR'}</span></div>
           <div class="pr-day-label">${escapeHtml(ev.dayLabel)}${isStrength && ev.e1rm ? ` · Est. 1RM ~${fmtWeight(ev.e1rm)}` : ''}</div>
         </div>
         <div class="pr-stat">${fmtWeight(ev.weight)}${ev.reps!=null ? ` × ${ev.reps}` : ''}</div>
