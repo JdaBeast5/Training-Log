@@ -6388,7 +6388,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.232';
+const APP_VERSION = '3.233';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6917,6 +6917,9 @@ const WHATS_NEW = {
   ]},
   '3.232': { headline: 'Internal housekeeping — nothing to see here', points: [
     'A style-consistency pass turned up one internal naming collision (the PR Timeline card and the printable report both happened to reuse the same style name) — fixed so they can never step on each other, with no visible change to either.',
+  ]},
+  '3.233': { headline: 'A bonus accessory shows up during your heaviest accumulation weeks', points: [
+    'Strength & Size, Day 1 (Upper Strength): during the two peak weeks of each 5-week accumulation block — the same weeks that already add an extra set to your main lifts — Cable Fly now joins the day as a bonus accessory, and the workout duration label explains why ("week 3 · +1 exercise").',
   ]},
 };
 
@@ -24486,6 +24489,36 @@ function applyAccumulation(exercises, week){
   });
 }
 
+// Accumulation accessory: on the peak accumulation weeks (cycle position 3-4
+// — the same weeks ACCUMULATION_ADDS already maxes out at +2 sets), a small
+// per-program/day pool of bonus accessories gets appended to the day. This is
+// the exercise-SELECTION half of accumulation, complementing applyAccumulation's
+// set-count half above; same "render-time modifier, program stays the single
+// source of truth" reasoning, same reversibility.
+//
+// MUST be append-only, never inserted mid-list. getExLog()/saveExSet() key a
+// day's logged history by an exercise's POSITION within renderExercises (see
+// the i passed to getExLog at the Promise.all call below), not by name or a
+// stable id. Inserting a bonus exercise anywhere but the very end would shift
+// every exercise after it onto a different week's history slot — the week it
+// appears would silently start reading/writing a neighbour's log. Appending
+// only adds a new trailing slot that simply doesn't exist in other weeks,
+// which is the same append-only exposure focus/custom exercises already
+// carry, not a new category of risk.
+const ACCUMULATION_ACCESSORY_POOL = {
+  strength: {
+    d1: {name:'Cable Fly', sets:'3×12-15'},
+  }
+};
+
+function applyAccumulationAccessory(exercises, week, program, dayId){
+  const pos = cycleWeekOf(week);
+  if((ACCUMULATION_ADDS[pos] || 0) < 2) return exercises; // only the peak weeks
+  const bonus = (ACCUMULATION_ACCESSORY_POOL[program] || {})[dayId];
+  if(!bonus) return exercises;
+  return [...exercises, {...bonus, accumulatedAccessory: true}];
+}
+
 function applyDeloadVolumeReduction(exercises){
   return exercises.map(ex=>{
     if(!hasNumericSetPrefix(ex.sets)) return ex;
@@ -26442,6 +26475,7 @@ async function renderWorkout(){
     // stacking an accumulation bump on top of a deload reduction would produce
     // a "lighter" week with more sets than the one before it.
     fullExercises = applyAccumulation(fullExercises, mesoWeek);
+    fullExercises = applyAccumulationAccessory(fullExercises, mesoWeek, activeProgram, activeDay);
   }
 
   // Apply the session-length preference here, in one place, before anything
@@ -26466,10 +26500,15 @@ async function renderWorkout(){
   // has been true since the profile was set and doesn't explain why THIS week
   // differs from last.
   const accumulated = !inDeloadWeek && renderExercises.some(ex=> ex.accumulated);
+  const accessoryAdded = !inDeloadWeek && renderExercises.some(ex=> ex.accumulatedAccessory);
   const cyclePos = cycleWeekOf(mesoWeek);
+  // accessoryAdded is reported separately from accumulated (not folded into
+  // the same "+X set" count) because it isn't a set added to an existing
+  // exercise — it's a whole extra exercise, and counting it alongside sets
+  // would make the number describe something that didn't happen.
   const suffix = wasShortened ? ' (shortened)'
     : inDeloadWeek ? ' (deload)'
-    : accumulated ? ` (week ${cyclePos} · +${renderExercises.filter(ex=> ex.accumulated).length} set)`
+    : (accumulated || accessoryAdded) ? ` (week ${cyclePos}${accumulated ? ` · +${renderExercises.filter(ex=> ex.accumulated).length} set` : ''}${accessoryAdded ? ' · +1 exercise' : ''})`
     : goalVolApplied ? (goalVolKind === 'hypertrophy' ? ' (+1 set · muscle-gain goal)' : ' (strength goal)')
     : '';
   durationEl.textContent = `~${Math.round(estimatedMinutes)} min${suffix}`;
