@@ -6420,7 +6420,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.239';
+const APP_VERSION = '3.240';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6972,6 +6972,9 @@ const WHATS_NEW = {
   ]},
   '3.239': { headline: 'Fixed the "Switch to gym mode?" prompt lingering on other tabs', points: [
     'Logging a full exercise\'s worth of sets shows a one-time "Switch to gym mode?" card. Navigating to Log, Analysis, or History before answering it used to leave that card floating on screen there too, on top of unrelated content (covering the Sleep card on Log, sitting inside the calendar grid on History). It now closes automatically the moment you leave Today, the same way the sticky day-title bar already did.',
+  ]},
+  '3.240': { headline: 'Fixed profile fields silently rejecting an entered 0', points: [
+    'Saving your profile with age, height (ft), or weight set to 0 used to quietly keep the OLD value instead — the save still said "Saved ✓," but the number you actually typed never took. Entering 0 on purpose now saves as 0; leaving a field genuinely blank still keeps what was there before.',
   ]},
 };
 
@@ -31342,11 +31345,17 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
   // so the visibility pass has to re-run on save, not only on a program switch.
   userProfile = {
     name: document.getElementById('pfName').value.trim(),
-    age: Number(document.getElementById('pfAge').value) || userProfile.age,
+    // `field.value || fallback` looks like a normal empty-input guard, but
+    // Number('0') is 0, which is falsy — so a deliberately entered 0 fell
+    // through to the fallback and silently kept the OLD value instead,
+    // with the save still reporting success. Gate on the raw string being
+    // non-empty instead, so 0 is treated as the real value it is and only
+    // an actually-blank field keeps what was there before.
+    age: document.getElementById('pfAge').value !== '' ? Number(document.getElementById('pfAge').value) : userProfile.age,
     gender: document.getElementById('pfGender').value,
-    heightFt: Number(document.getElementById('pfHeightFt').value) || userProfile.heightFt,
+    heightFt: document.getElementById('pfHeightFt').value !== '' ? Number(document.getElementById('pfHeightFt').value) : userProfile.heightFt,
     heightIn: Number(document.getElementById('pfHeightIn').value) || 0,
-    weight: (document.getElementById('pfWeight').value ? toCanonicalLb(document.getElementById('pfWeight').value) : null) || userProfile.weight,
+    weight: document.getElementById('pfWeight').value ? toCanonicalLb(document.getElementById('pfWeight').value) : userProfile.weight,
     activity: Number(document.getElementById('pfActivity').value),
     goal: document.getElementById('pfGoal').value,
     bodyGoal: document.getElementById('pfBodyGoal').value,
