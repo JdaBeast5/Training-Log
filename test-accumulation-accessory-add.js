@@ -72,9 +72,55 @@ test('a day with no pool entry (strength/d2) adds nothing even in a peak week', 
   assert.strictEqual(result.length, 2);
 });
 
-test('a program with no pool entry at all adds nothing even in a peak week', (assert)=>{
-  const [result] = runSandbox(chunks, `__capture.push(applyAccumulationAccessory(${JSON.stringify(baseExercises)}, 3, 'bodybuilding', 'd1'));`);
+test('a program with no pool entry at all (oly — deliberately excluded, technique-only days) adds nothing even in a peak week', (assert)=>{
+  const [result] = runSandbox(chunks, `__capture.push(applyAccumulationAccessory(${JSON.stringify(baseExercises)}, 3, 'oly', 'd1'));`);
   assert.strictEqual(result.length, 2);
+});
+
+test('bodybuilding/d1 (peak week) appends Skull Crushers', (assert)=>{
+  const [result] = runSandbox(chunks, `__capture.push(applyAccumulationAccessory(${JSON.stringify(baseExercises)}, 3, 'bodybuilding', 'd1'));`);
+  assert.strictEqual(result.length, 3);
+  assert.strictEqual(result[2].name, 'Skull Crushers');
+  assert.strictEqual(result[2].sets, '3×10-12');
+});
+
+test('powerlifting/d4 (peak week) appends Good Morning', (assert)=>{
+  const [result] = runSandbox(chunks, `__capture.push(applyAccumulationAccessory(${JSON.stringify(baseExercises)}, 4, 'powerlifting', 'd4'));`);
+  assert.strictEqual(result.length, 3);
+  assert.strictEqual(result[2].name, 'Good Morning');
+});
+
+test('powerbuilding/d6 (peak week) appends Bulgarian Split Squat', (assert)=>{
+  const [result] = runSandbox(chunks, `__capture.push(applyAccumulationAccessory(${JSON.stringify(baseExercises)}, 3, 'powerbuilding', 'd6'));`);
+  assert.strictEqual(result.length, 3);
+  assert.strictEqual(result[2].name, 'Bulgarian Split Squat');
+  assert.strictEqual(result[2].sets, '3×10-12/leg');
+});
+
+test('powerlifting/d3 (a real rest day, not in the pool) adds nothing even in a peak week', (assert)=>{
+  const [result] = runSandbox(chunks, `__capture.push(applyAccumulationAccessory(${JSON.stringify(baseExercises)}, 3, 'powerlifting', 'd3'));`);
+  assert.strictEqual(result.length, 2);
+});
+
+test('REGRESSION GUARD: every pool entry across every covered program is a real exerciseInfo-catalogued exercise, is a real non-rest day in that program, and is NOT already present in that day\'s own authored exercise list', (assert)=>{
+  const [result] = runSandbox([
+    extractConst(src, 'programs'),
+    extractConst(src, 'exerciseInfo'),
+    extractConst(src, 'ACCUMULATION_ACCESSORY_POOL'),
+  ], `
+    const problems = [];
+    for(const prog in ACCUMULATION_ACCESSORY_POOL){
+      for(const dayId in ACCUMULATION_ACCESSORY_POOL[prog]){
+        const pick = ACCUMULATION_ACCESSORY_POOL[prog][dayId];
+        if(!exerciseInfo[pick.name]) problems.push(prog+'/'+dayId+': not in exerciseInfo');
+        const day = (programs[prog] && programs[prog].days || {})[dayId];
+        if(!day || day.rest) { problems.push(prog+'/'+dayId+': missing or a rest day'); continue; }
+        if((day.exercises||[]).some(e=>e.name === pick.name)) problems.push(prog+'/'+dayId+': already in that day');
+      }
+    }
+    __capture.push(problems);
+  `);
+  assert.deepStrictEqual(result, [], 'every pool entry must be a real, non-duplicate, catalogued exercise on a real training day');
 });
 
 run();

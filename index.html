@@ -6398,7 +6398,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.234';
+const APP_VERSION = '3.235';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6933,6 +6933,10 @@ const WHATS_NEW = {
   ]},
   '3.234': { headline: 'A new tag shows what week of your training cycle you\'re in', points: [
     'Every workout day now shows "Week N of 5 · Accumulation" or "Week 5 of 5 · Deload" right under the day title — previously the only clue was a small note that only appeared on weeks where something actually changed, so early weeks gave no sense of where you were in the cycle.',
+  ]},
+  '3.235': { headline: 'Bonus accumulation accessories now cover Bodybuilding, Powerlifting, and Powerbuilding too', points: [
+    'The peak-week bonus accessory (previously just Strength & Size, Day 1) now shows up on every eligible day of Bodybuilding, Powerlifting, and Powerbuilding — 15 new picks total, each one an exercise already used elsewhere in that same program, matched to that day\'s own rep range.',
+    'Left out on purpose: the other 21 programs (Olympic lifting, climbing, senior, running, and similar) aren\'t built as compound-plus-accessory day splits, so a bonus accessory wouldn\'t be a natural fit there.',
   ]},
 };
 
@@ -24537,10 +24541,46 @@ function applyAccumulation(exercises, week){
 // only adds a new trailing slot that simply doesn't exist in other weeks,
 // which is the same append-only exposure focus/custom exercises already
 // carry, not a new category of risk.
+// Expanded to every other classic day-split lifting program (bodybuilding,
+// powerlifting, powerbuilding) — the same shape as strength/d1: a compound
+// anchor plus an established accessory pattern per day. Deliberately NOT
+// expanded to the other 21 programs: most (oly, climbing, senior, desk,
+// pilates, grappling, hyrox, mobility, jumprope, boxingsc, calisthenics,
+// running, athletic, ...) have at most one loosely compound-shaped movement
+// buried among technique/skill/mobility/conditioning work, where "bonus
+// accessory" isn't a natural extension of how that program is actually
+// built — it would be inventing new programming content, not applying an
+// established pattern.
+//
+// Every pick here is a REAL exercise already authored elsewhere in that same
+// program (reusing its own established rep range/character), so nothing new
+// is being invented — same principle as strength/d1's Cable Fly, which was
+// already real content in bodybuilding before it became strength's pick.
 const ACCUMULATION_ACCESSORY_POOL = {
   strength: {
     d1: {name:'Cable Fly', sets:'3×12-15'},
-  }
+  },
+  bodybuilding: {
+    d1: {name:'Skull Crushers', sets:'3×10-12'},           // from powerbuilding/d2
+    d2: {name:'EZ Bar Curl', sets:'3×10-12'},               // from bodybuilding/d6
+    d4: {name:'DB Shoulder Press', sets:'3×10-12'},         // from powerbuilding/d5
+    d5: {name:'Bulgarian Split Squat', sets:'3×10-12/leg'}, // from powerbuilding/d1
+    d6: {name:'Hammer Curl', sets:'3×10-12'},               // from bodybuilding/d2
+  },
+  powerlifting: {
+    d1: {name:'Leg Curl', sets:'3×10-12'},          // from powerlifting/d6
+    d2: {name:'Overhead Press', sets:'3×8-10'},     // from powerlifting/d5
+    d4: {name:'Good Morning', sets:'3×8'},          // from powerlifting/d6
+    d5: {name:'Triceps Pushdown', sets:'3×10-12'},  // from powerlifting/d2
+    d6: {name:'Leg Press', sets:'3×8-10'},          // from powerlifting/d1
+  },
+  powerbuilding: {
+    d1: {name:'Leg Press', sets:'3×12-15'},                      // from powerbuilding/d6
+    d2: {name:'Overhead Triceps Extension', sets:'3×10-12'},     // from bodybuilding/d1
+    d4: {name:'Cable Row', sets:'3×12-15'},                      // from powerbuilding/d6
+    d5: {name:'Incline DB Press', sets:'3×10-12'},               // from powerbuilding/d2
+    d6: {name:'Bulgarian Split Squat', sets:'3×10-12/leg'},      // from powerbuilding/d1
+  },
 };
 
 function applyAccumulationAccessory(exercises, week, program, dayId){
