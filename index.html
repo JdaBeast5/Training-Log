@@ -1624,6 +1624,15 @@
     display:flex; flex-direction:column; gap:6px;
   }
   .nutrition-summary b{color:var(--text);}
+  /* #profileSummary reuses this class (its collapsed "Tap to set up..." /
+     name line), but unlike every other .nutrition-summary user — which only
+     ever shows short, app-generated strings like "Protein 45g" — this one
+     can hold a free-form name someone actually typed, with no length cap on
+     the input. An unbroken long name (no spaces to break on) overflowed the
+     card instead of wrapping. Scoped to the id, not the shared class, so
+     every other .nutrition-summary usage (bounded, predictable text) is
+     untouched. */
+  #profileSummary{overflow-wrap:anywhere;}
 
   .photo-log-btn{
     width:100%; margin:12px 0; padding:12px; background:var(--surface2); border:1px dashed var(--plate-blue);
@@ -6420,7 +6429,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.241';
+const APP_VERSION = '3.242';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6978,6 +6987,9 @@ const WHATS_NEW = {
   ]},
   '3.241': { headline: 'Fixed a negative age silently skewing your calorie target', points: [
     'The profile form accepted a negative age (e.g. a stray "-" while editing) with no warning, and it fed straight into the calorie-target formula — not a crash, just a quietly wrong number. Age now falls back to your previous value if what\'s entered isn\'t a real, non-negative age.',
+  ]},
+  '3.242': { headline: 'Fixed a very long profile name overflowing its card', points: [
+    'A name with no spaces long enough to have no natural break point (nothing stops you from typing one) spilled out past the edge of the Profile card instead of wrapping. It now wraps like everything else on the page.',
   ]},
 };
 
