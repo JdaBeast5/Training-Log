@@ -532,6 +532,15 @@
     font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11.5px; color:var(--text-muted);
     margin-bottom:4px; margin-top:2px;
   }
+  .mesocycle-phase-tag{
+    display:inline-flex; align-items:center; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-size:11px; padding:3px 9px; border-radius:999px; margin:2px 0 6px;
+    background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
+  }
+  .mesocycle-phase-tag:empty{display:none;}
+  .mesocycle-phase-tag.deload{
+    background:rgba(var(--plate-red-rgb),0.12); border-color:rgba(var(--plate-red-rgb),0.38); color:var(--plate-red);
+  }
   .duration-row{display:flex; align-items:center; justify-content:space-between; gap:8px;}
   .duration-row .duration-tag{margin-bottom:0;}
   .session-length-select{
@@ -4951,6 +4960,7 @@
         <div class="workout-hero-title" id="dayTitle"></div>
       </div>
     </div>
+    <div class="mesocycle-phase-tag" id="mesocyclePhaseTag"></div>
     <div class="duration-row">
       <div class="duration-tag" id="dayDuration"></div>
       <select class="session-length-select" id="sessionLengthSelector" aria-label="Session length"></select>
@@ -6388,7 +6398,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.233';
+const APP_VERSION = '3.234';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6920,6 +6930,9 @@ const WHATS_NEW = {
   ]},
   '3.233': { headline: 'A bonus accessory shows up during your heaviest accumulation weeks', points: [
     'Strength & Size, Day 1 (Upper Strength): during the two peak weeks of each 5-week accumulation block — the same weeks that already add an extra set to your main lifts — Cable Fly now joins the day as a bonus accessory, and the workout duration label explains why ("week 3 · +1 exercise").',
+  ]},
+  '3.234': { headline: 'A new tag shows what week of your training cycle you\'re in', points: [
+    'Every workout day now shows "Week N of 5 · Accumulation" or "Week 5 of 5 · Deload" right under the day title — previously the only clue was a small note that only appeared on weeks where something actually changed, so early weeks gave no sense of where you were in the cycle.',
   ]},
 };
 
@@ -24460,6 +24473,25 @@ function cycleWeekOf(week){
   return ((week - 1) % DELOAD_CYCLE_WEEKS) + 1;
 }
 
+// Always-visible phase indicator for the day header — distinct from the
+// duration-tag suffix elsewhere, which only appears when THIS SPECIFIC day
+// deviates from baseline (an accumulation add, a deload cut). A week-1 or
+// week-2 day shows no suffix at all today, so there was previously no way to
+// tell what week of the cycle you're in without landing on a day where
+// something actually changed.
+//
+// Only two real phases are named — Accumulation (weeks 1-4) and Deload
+// (week 5) — because those are the only two applyAccumulation/
+// applyDeloadVolumeReduction actually implement. No Intensification/
+// Realization label until real per-week behavior backs one up; labeling a
+// week that isn't functionally different would be a UI claim the code
+// doesn't support.
+function mesocyclePhaseTag(cyclePos, inDeloadWeek){
+  return inDeloadWeek
+    ? {text: `Week ${cyclePos} of ${DELOAD_CYCLE_WEEKS} · Deload`, className: 'mesocycle-phase-tag deload'}
+    : {text: `Week ${cyclePos} of ${DELOAD_CYCLE_WEEKS} · Accumulation`, className: 'mesocycle-phase-tag'};
+}
+
 function applyAccumulation(exercises, week){
   const pos = cycleWeekOf(week);
   const adds = ACCUMULATION_ADDS[pos] || 0;
@@ -26394,6 +26426,7 @@ async function renderWorkout(){
 
   if(day.rest){
     document.getElementById('dayDuration').textContent = day.duration;
+    document.getElementById('mesocyclePhaseTag').textContent = '';
     // Deliberately a separate key prefix from workout: — that one feeds
     // the "X workouts this week" stat directly (fetchWorkoutDates sums it),
     // and a rest day being followed isn't a workout. It still counts toward
@@ -26512,6 +26545,11 @@ async function renderWorkout(){
     : goalVolApplied ? (goalVolKind === 'hypertrophy' ? ' (+1 set · muscle-gain goal)' : ' (strength goal)')
     : '';
   durationEl.textContent = `~${Math.round(estimatedMinutes)} min${suffix}`;
+
+  const phaseTag = mesocyclePhaseTag(cyclePos, inDeloadWeek);
+  const phaseTagEl = document.getElementById('mesocyclePhaseTag');
+  phaseTagEl.textContent = phaseTag.text;
+  phaseTagEl.className = phaseTag.className;
 
   // Resolve any active exercise substitutions before anything else reads
   // ex.name — cues, category-driven warm-up eligibility, PR badges, plate
