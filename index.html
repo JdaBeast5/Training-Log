@@ -3963,6 +3963,7 @@
   }
 
   body.gym-mode #workoutCard .workout-hero,
+  body.gym-mode #workoutCard .mesocycle-phase-tag,
   body.gym-mode #workoutCard .duration-row,
   body.gym-mode #workoutCard .session-cal-total,
   body.gym-mode #workoutCard .day-insight,
@@ -6398,7 +6399,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.235';
+const APP_VERSION = '3.236';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6937,6 +6938,9 @@ const WHATS_NEW = {
   '3.235': { headline: 'Bonus accumulation accessories now cover Bodybuilding, Powerlifting, and Powerbuilding too', points: [
     'The peak-week bonus accessory (previously just Strength & Size, Day 1) now shows up on every eligible day of Bodybuilding, Powerlifting, and Powerbuilding — 15 new picks total, each one an exercise already used elsewhere in that same program, matched to that day\'s own rep range.',
     'Left out on purpose: the other 21 programs (Olympic lifting, climbing, senior, running, and similar) aren\'t built as compound-plus-accessory day splits, so a bonus accessory wouldn\'t be a natural fit there.',
+  ]},
+  '3.236': { headline: 'Fixed the week/phase tag floating awkwardly in Gym Mode', points: [
+    'The "Week N of 5 · Accumulation" tag added last version was showing up as a small orphaned pill at the top of the screen in Gym Mode, disconnected from any context, since gym mode already hides everything else in that area (day title, plate icon, duration). It\'s now hidden there too, matching how the rest of that header region already behaves in gym mode.',
   ]},
 };
 

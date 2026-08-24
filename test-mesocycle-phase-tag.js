@@ -57,4 +57,22 @@ test('never says "Deload" while inDeloadWeek is false, regardless of cyclePos', 
   }
 });
 
+// --- Gym Mode regression: found and fixed in the same session this feature
+// shipped. #mesocyclePhaseTag sits between .workout-hero and .duration-row
+// in the markup, and gym mode's own CSS already hides that entire header
+// region (day title, plate icon, duration, insight card) via an explicit
+// hide-list — but the new tag wasn't added to that list, so it rendered as
+// an orphaned pill floating alone at the top of the screen with none of its
+// surrounding context, confirmed via a real screenshot before this fix
+// landed. Gym mode deliberately shows nothing at the day-header level (its
+// own dock only has a clock/progress/exit button), so hiding the tag there
+// — not mirroring it into the dock — matches the mode's own established
+// minimalism, same as .workout-hero and .duration-row already do.
+test('sabotage-relevant: .mesocycle-phase-tag is hidden in Gym Mode, in the same rule block as .workout-hero and .duration-row', (assert)=>{
+  const hideListRe = /body\.gym-mode #workoutCard \.workout-hero,[\s\S]*?display:none !important;\s*\}/;
+  const m = hideListRe.exec(src);
+  assert.ok(m, 'the gym-mode #workoutCard hide-list block must exist');
+  assert.match(m[0], /body\.gym-mode #workoutCard \.mesocycle-phase-tag/, '.mesocycle-phase-tag must be in the hide list — without it, it renders as an orphaned pill with no surrounding context once .workout-hero and .duration-row are hidden');
+});
+
 run();
