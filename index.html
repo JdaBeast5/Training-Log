@@ -6420,7 +6420,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.238';
+const APP_VERSION = '3.239';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6969,6 +6969,9 @@ const WHATS_NEW = {
   ]},
   '3.238': { headline: 'Day-by-Day Log\'s calendar now flips one month at a time', points: [
     'The History tab\'s calendar used to show three months stacked on top of each other. It now shows one month at once, with the same ‹ › arrows as the calendar you get from tapping the date on Today/Log — tapping a trained/rest/no-training day jumps straight to that day\'s entry below, not just its month.',
+  ]},
+  '3.239': { headline: 'Fixed the "Switch to gym mode?" prompt lingering on other tabs', points: [
+    'Logging a full exercise\'s worth of sets shows a one-time "Switch to gym mode?" card. Navigating to Log, Analysis, or History before answering it used to leave that card floating on screen there too, on top of unrelated content (covering the Sleep card on Log, sitting inside the calendar grid on History). It now closes automatically the moment you leave Today, the same way the sticky day-title bar already did.',
   ]},
 };
 
@@ -35833,8 +35836,18 @@ function switchView(active, opts){
   // The sticky mini-header only ever makes sense while actually scrolling
   // the Today tab's workout — an IntersectionObserver drives it while
   // there, but this is a hard guarantee it never lingers into another tab.
+  //
+  // The post-set "Switch to gym mode?" offer is the same class of bug
+  // waiting to happen: it's a position:fixed card (unlike the rest timer,
+  // which is deliberately allowed to follow you across tabs — see its own
+  // comments) with no view scoping of its own, so nothing stopped it
+  // rendering on top of Log/Analysis/History if you navigated away before
+  // answering it. Its own copy already tells the user "you can turn it on
+  // any time from the button on Today," so silently dismissing it here on
+  // navigation is consistent with what it says, not a behavior change.
   if(active !== 'today'){
     document.getElementById('stickyDayHeader').classList.remove('visible');
+    hideGymOffer();
   }
 
   // The date selector only makes sense on the two tabs with date-keyed

@@ -80,6 +80,7 @@ const viewsHtml = `
   <div id="learnView"></div>
   <div id="stickyDayHeader" class="visible"></div>
   <div id="logDateBar"></div>
+  <div class="gym-offer" id="gymOffer"></div>
 `;
 
 const viewKeysSrc = extractConst(src, 'VIEW_KEYS');
@@ -87,6 +88,7 @@ const movedToMoreSrc = extractConst(src, 'MOVED_TO_MORE');
 const staggerMaxSrc = extractConst(src, 'STAGGER_MAX_STEPS');
 const staggerStepSrc = extractConst(src, 'STAGGER_STEP_MS');
 const switchViewSrc = extractFunction(src, 'switchView');
+const hideGymOfferSrc = extractFunction(src, 'hideGymOffer');
 const closeNavMoreOverlaySrc = extractFunction(src, 'closeNavMoreOverlay');
 const showViewWiringSrc = extractStatement(src, 'VIEW_KEYS.forEach(key=>{');
 
@@ -126,7 +128,7 @@ function setup(){
   `;
   const { document, window } = runJsdom(bodyHtml, globalsSetup, [
     viewKeysSrc, movedToMoreSrc, staggerMaxSrc, staggerStepSrc,
-    switchViewSrc, closeNavMoreOverlaySrc, showViewSrc,
+    hideGymOfferSrc, switchViewSrc, closeNavMoreOverlaySrc, showViewSrc,
     showViewWiringSrc, navMoreWiringSrc,
   ]);
   return { document, window };
