@@ -2609,8 +2609,6 @@
     box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.3) inset, 0 6px 16px -8px rgba(var(--plate-blue-rgb),0.6);
   }
   .calendar-cell.future-disabled{opacity:0.25; cursor:default; pointer-events:none;}
-  .history-heatmap-month-label{font-size:12px; font-weight:600; color:var(--text-muted); margin:10px 0 4px;}
-  .history-heatmap-month:first-child .history-heatmap-month-label{margin-top:0;}
   .calendar-close-btn{
     width:100%; background:var(--surface2); border:1px solid rgba(var(--surface-white-rgb),0.07); color:var(--text);
     box-shadow:var(--rim);
@@ -5731,10 +5729,15 @@
       <div class="expand-wrap" id="historyLogExpandWrap"><div>
       <div class="history-hint">Every logged day, grouped by month — workouts, weigh-ins, and rest days you marked as followed. Tap a month to expand it. Green = progress, red = down from last time.</div>
       <div id="historyHeatmap" style="display:none">
+        <div class="calendar-modal-header">
+          <button type="button" class="calendar-nav-btn" id="historyHeatmapPrevMonth" aria-label="Previous month">‹</button>
+          <div class="calendar-modal-title" id="historyHeatmapMonthLabel"></div>
+          <button type="button" class="calendar-nav-btn" id="historyHeatmapNextMonth" aria-label="Next month">›</button>
+        </div>
         <div class="calendar-weekday-row">
           <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
         </div>
-        <div id="historyHeatmapMonths"></div>
+        <div class="calendar-grid" id="historyHeatmapGrid"></div>
         <div class="calendar-legend">
           <span><i class="calendar-cell-dot mark-trained"></i>Trained</span>
           <span><i class="calendar-cell-dot mark-rest"></i>Rest day</span>
@@ -6417,7 +6420,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.237';
+const APP_VERSION = '3.238';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6963,6 +6966,9 @@ const WHATS_NEW = {
   '3.237': { headline: 'One date-range selector now controls all six Body & Health Trends charts', points: [
     'Weight, Nutrition, Sleep, Water, Blood Pressure, and Blood Glucose Trend previously each just showed the last 16 logged days with no way to change that. A single "Last 7 days / 30 days / 90 days / All time" selector above them now scopes all six at once.',
     'Strength Context, Volume Trend, and the other Training Trends cards keep their own fixed windows on purpose — those exist for specific reasons documented at each one, not because nobody had gotten to them yet.',
+  ]},
+  '3.238': { headline: 'Day-by-Day Log\'s calendar now flips one month at a time', points: [
+    'The History tab\'s calendar used to show three months stacked on top of each other. It now shows one month at once, with the same ‹ › arrows as the calendar you get from tapping the date on Today/Log — tapping a trained/rest/no-training day jumps straight to that day\'s entry below, not just its month.',
   ]},
 };
 
@@ -36273,53 +36279,21 @@ function closeCalendarModal(){
 // Reuses fetchDayStatuses() (built above for the backdating picker) and the
 // same .calendar-grid/.calendar-cell/.calendar-cell-dot classes and
 // mark-trained/mark-rest/mark-off convention — one status computation, one
-// set of calendar visuals, not a second copy for History. A dedicated
-// renderer rather than calling renderCalendarGrid() directly: that one is
-// modal-specific (single month, month-to-month navigation, clicking a day
-// changes what date you're LOGGING to). This one is read-only, shows
-// several months at once stacked vertically (a phone-width card has no room
-// for them side by side), and clicking a day jumps to it in the log below
-// instead.
-function buildHistoryHeatmapMonths(dayStatus, monthCount){
-  const today = new Date();
-  const todayKey = getTodayKey();
-  const months = [];
-  for(let i = monthCount - 1; i >= 0; i--){
-    months.push(new Date(today.getFullYear(), today.getMonth() - i, 1));
-  }
-
-  return months.map(monthDate=>{
-    const year = monthDate.getFullYear(), month = monthDate.getMonth();
-    const monthKey = `${year}-${String(month+1).padStart(2,'0')}`;
-    const startWeekday = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-    let cells = '';
-    for(let i = 0; i < startWeekday; i++) cells += `<div class="calendar-cell empty"></div>`;
-    for(let day = 1; day <= daysInMonth; day++){
-      const dateKey = `${monthKey}-${String(day).padStart(2,'0')}`;
-      if(dateKey > todayKey){ cells += `<div class="calendar-cell empty"></div>`; continue; }
-      const status = dayStatus.get(dateKey);
-      if(!status){ cells += `<div class="calendar-cell" aria-hidden="true">${day}</div>`; continue; }
-      const label = status === 'trained' ? ' — trained' : status === 'rest' ? ' — rest day' : ' — no training logged';
-      cells += `<button type="button" class="calendar-cell" data-jump-month="${monthKey}" aria-label="${dateKey}${label}">${day}<span class="calendar-cell-dot mark-${status}"></span></button>`;
-    }
-
-    return `
-      <div class="history-heatmap-month">
-        <div class="history-heatmap-month-label">${CALENDAR_MONTH_NAMES[month]} ${year}</div>
-        <div class="calendar-grid">${cells}</div>
-      </div>
-    `;
-  }).join('');
-}
-
-const HISTORY_HEATMAP_MONTHS = 3;
+// set of calendar visuals, not a second copy for History. Also reuses the
+// backdating picker's own .calendar-modal-header/.calendar-nav-btn/
+// .calendar-modal-title markup and month-at-a-time navigation shape (see
+// openCalendarModal/renderCalendarGrid above) so this reads as "the same
+// calendar," not a lookalike — the difference is what a day click DOES:
+// the picker changes what date you're LOGGING to, this jumps to that day
+// in the read-only log below instead.
+let historyHeatmapViewYear = null;
+let historyHeatmapViewMonth = null;
+let _historyHeatmapDayStatus = null;
 
 async function renderHistoryHeatmap(){
   const wrap = document.getElementById('historyHeatmap');
-  const monthsEl = document.getElementById('historyHeatmapMonths');
-  if(!wrap || !monthsEl) return;
+  const gridEl = document.getElementById('historyHeatmapGrid');
+  if(!wrap || !gridEl) return;
   let dayStatus;
   try{ dayStatus = await fetchDayStatuses(); }
   catch(e){ dayStatus = new Map(); }
@@ -36328,24 +36302,81 @@ async function renderHistoryHeatmap(){
     return;
   }
   wrap.style.display = '';
-  monthsEl.innerHTML = buildHistoryHeatmapMonths(dayStatus, HISTORY_HEATMAP_MONTHS);
-  monthsEl.querySelectorAll('[data-jump-month]').forEach(cell=>{
-    cell.addEventListener('click', ()=> jumpToHistoryMonth(cell.dataset.jumpMonth));
-  });
+  _historyHeatmapDayStatus = dayStatus;
+  // Only ever set once per page load — a re-render (tab revisit, search
+  // filter changing) must not snap the calendar back to the current month
+  // out from under someone who navigated it elsewhere.
+  if(historyHeatmapViewYear == null){
+    const today = new Date();
+    historyHeatmapViewYear = today.getFullYear();
+    historyHeatmapViewMonth = today.getMonth();
+  }
+  renderHistoryHeatmapMonth();
 }
 
-// Opens (if needed) and scrolls to the matching month group in the
-// day-by-day list below — the same <details> elements renderHistory already
-// builds, so this triggers the existing lazy-fill path (fillHistoryMonth)
-// rather than a second render of that month's content.
-function jumpToHistoryMonth(monthKey){
+function renderHistoryHeatmapMonth(){
+  const dayStatus = _historyHeatmapDayStatus || new Map();
+  const todayKey = getTodayKey();
+  const today = new Date();
+  const year = historyHeatmapViewYear, month = historyHeatmapViewMonth;
+  document.getElementById('historyHeatmapMonthLabel').textContent = `${CALENDAR_MONTH_NAMES[month]} ${year}`;
+
+  const startWeekday = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  let cells = '';
+  for(let i = 0; i < startWeekday; i++) cells += `<div class="calendar-cell empty"></div>`;
+  for(let day = 1; day <= daysInMonth; day++){
+    const dateKey = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    if(dateKey > todayKey){ cells += `<div class="calendar-cell empty"></div>`; continue; }
+    const isToday = dateKey === todayKey;
+    const status = dayStatus.get(dateKey);
+    if(!status){ cells += `<div class="calendar-cell${isToday?' today':''}" aria-hidden="true">${day}</div>`; continue; }
+    const label = status === 'trained' ? ' — trained' : status === 'rest' ? ' — rest day' : ' — no training logged';
+    cells += `<button type="button" class="calendar-cell${isToday?' today':''}" data-jump-date="${dateKey}" aria-label="${dateKey}${label}">${day}<span class="calendar-cell-dot mark-${status}"></span></button>`;
+  }
+  document.getElementById('historyHeatmapGrid').innerHTML = cells;
+  document.getElementById('historyHeatmapGrid').querySelectorAll('[data-jump-date]').forEach(cell=>{
+    cell.addEventListener('click', ()=> jumpToHistoryDay(cell.dataset.jumpDate));
+  });
+
+  // Same rule as the backdating picker: can't navigate forward past the
+  // month containing today, since every day beyond that would be disabled
+  // (and blank) anyway.
+  const isCurrentOrLaterMonth = (year > today.getFullYear())
+    || (year === today.getFullYear() && month >= today.getMonth());
+  document.getElementById('historyHeatmapNextMonth').disabled = isCurrentOrLaterMonth;
+}
+
+document.getElementById('historyHeatmapPrevMonth').addEventListener('click', ()=>{
+  historyHeatmapViewMonth--;
+  if(historyHeatmapViewMonth < 0){ historyHeatmapViewMonth = 11; historyHeatmapViewYear--; }
+  renderHistoryHeatmapMonth();
+});
+document.getElementById('historyHeatmapNextMonth').addEventListener('click', ()=>{
+  if(document.getElementById('historyHeatmapNextMonth').disabled) return;
+  historyHeatmapViewMonth++;
+  if(historyHeatmapViewMonth > 11){ historyHeatmapViewMonth = 0; historyHeatmapViewYear++; }
+  renderHistoryHeatmapMonth();
+});
+
+// Opens (if needed) the matching month group in the day-by-day list below —
+// the same <details> elements renderHistory already builds, so this
+// triggers the existing lazy-fill path (fillHistoryMonth) rather than a
+// second render of that month's content — then scrolls to the specific
+// day's own card within it (falling back to the month group itself if that
+// exact day was filtered out by the exercise-name search but the month
+// still has other matches).
+function jumpToHistoryDay(dateKey){
+  const monthKey = dateKey.slice(0,7);
   const details = document.querySelector(`#historyList details.month-group[data-month="${monthKey}"]`);
   if(!details) return; // filtered out by the current exercise search, or no entries that month
   if(!details.open){
     details.open = true;
     fillHistoryMonth(details);
   }
-  details.scrollIntoView({behavior:'smooth', block:'start'});
+  const dayCard = details.querySelector(`.day-card[data-date="${dateKey}"]`);
+  (dayCard || details).scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function renderCalendarGrid(){
@@ -40578,7 +40609,7 @@ function buildHistoryDayCardHtml(date){
         `;
   }).join('');
   return `
-        <div class="day-card">
+        <div class="day-card" data-date="${date}">
           <div class="day-card-date">${fmtDayLabel(date)}${uniformDayLabel ? ` <span class="day-card-program">· ${escapeHtml(uniformDayLabel)}</span>` : ''}</div>
           ${weightRow}
           ${restRow}
