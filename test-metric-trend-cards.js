@@ -10,6 +10,10 @@ const { readIndexSource, extractFunction, runJsdom, makeRunner } = require('./te
 
 const src = readIndexSource();
 
+const getTodayKeySrc = extractFunction(src, 'getTodayKey');
+const dateKeyMinusDaysSrc = extractFunction(src, 'dateKeyMinusDays');
+const getAnalysisTrendRangeDaysSrc = extractFunction(src, 'getAnalysisTrendRangeDays');
+const filterDatesByRangeSrc = extractFunction(src, 'filterDatesByRange');
 const renderDayValueTrendSrc = extractFunction(src, 'renderDayValueTrend');
 const averageByDaySrc = extractFunction(src, 'averageByDay');
 const categorizeBPSrc = extractFunction(src, 'categorizeBP');
@@ -39,7 +43,15 @@ const otherGlobals = `
   window.userProfile = { weight: 150, activity: 1.2 };
 `;
 
+// getAnalysisTrendRangeDays/filterDatesByRange back the new Analysis-tab
+// #analysisTrendRange selector (see test-analysis-trend-range.js) — every
+// render function under test here now calls getAnalysisTrendRangeDays()
+// unconditionally, so it has to be in scope even though bodyHtml below has
+// no #analysisTrendRange select. With no select present it falls back to
+// 'all' (no cutoff), which reproduces this file's original pre-selector
+// behavior exactly for every fixture here (none exceed the old 16-entry cap).
 const scriptChunks = [
+  getTodayKeySrc, dateKeyMinusDaysSrc, filterDatesByRangeSrc, getAnalysisTrendRangeDaysSrc,
   toDisplayWeightSrc, trimUnitNumSrc, fmtWeightSrc,
   renderDayValueTrendSrc, averageByDaySrc, categorizeBPSrc, categorizeGlucoseSrc,
   computeWaterTargetSrc, renderWaterTrendSrc, renderBPTrendSrc, renderGlucoseTrendSrc, renderSparklineSrc,
