@@ -36,6 +36,10 @@ function extractClickWiring(source, elementId){
 }
 
 const toCanonicalLbSrc = extractFunction(src, 'toCanonicalLb');
+// A real dependency of the pfSave handler added alongside this bug's own
+// fix (negative-age validation, see test-profile-age-validation.js) — not
+// under test here, but the handler now throws without it defined.
+const readValidAgeSrc = extractFunction(src, 'readValidAge');
 const pfSaveWiringSrc = extractClickWiring(src, 'pfSave');
 
 const FIELD_IDS = [
@@ -92,7 +96,7 @@ const stubGlobals = `
 `;
 
 async function saveWith(fieldValues){
-  const { document, window } = runJsdom(buildBodyHtml(), stubGlobals, [toCanonicalLbSrc, pfSaveWiringSrc]);
+  const { document, window } = runJsdom(buildBodyHtml(), stubGlobals, [toCanonicalLbSrc, readValidAgeSrc, pfSaveWiringSrc]);
   for(const [id, value] of Object.entries(fieldValues)){
     document.getElementById(id).value = value;
   }

@@ -6420,7 +6420,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.240';
+const APP_VERSION = '3.241';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6975,6 +6975,9 @@ const WHATS_NEW = {
   ]},
   '3.240': { headline: 'Fixed profile fields silently rejecting an entered 0', points: [
     'Saving your profile with age, height (ft), or weight set to 0 used to quietly keep the OLD value instead — the save still said "Saved ✓," but the number you actually typed never took. Entering 0 on purpose now saves as 0; leaving a field genuinely blank still keeps what was there before.',
+  ]},
+  '3.241': { headline: 'Fixed a negative age silently skewing your calorie target', points: [
+    'The profile form accepted a negative age (e.g. a stray "-" while editing) with no warning, and it fed straight into the calorie-target formula — not a crash, just a quietly wrong number. Age now falls back to your previous value if what\'s entered isn\'t a real, non-negative age.',
   ]},
 };
 
@@ -31339,6 +31342,19 @@ document.getElementById('pfGender').addEventListener('change', (e)=>{
 
 document.getElementById('pfBodyGoal').addEventListener('change', (e)=> renderBodyGoalEffect(e.target.value));
 
+// Age feeds straight into computeTargets' BMR formula as `-5*age`. A
+// negative age doesn't crash anything there — Number(-5) is truthy, so it
+// sails past that function's own `Number(p.age) || 30` guard — it just
+// quietly inflates the calorie target by a wrong amount, with nothing
+// telling the user their profile now holds a nonsensical number. Same
+// "blank keeps the old value" rule the save handler already uses, extended
+// to any value that isn't a real (non-negative) age.
+function readValidAge(rawValue, fallback){
+  if(rawValue === '') return fallback;
+  const n = Number(rawValue);
+  return (Number.isFinite(n) && n >= 0) ? n : fallback;
+}
+
 document.getElementById('pfSave').addEventListener('click', async ()=>{
   invalidateFoodPrefCache(); // dietary preference, flags and avoid list all live on userProfile
   // Conditions live here too now, and they decide which tracker cards exist —
@@ -31351,7 +31367,7 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
     // with the save still reporting success. Gate on the raw string being
     // non-empty instead, so 0 is treated as the real value it is and only
     // an actually-blank field keeps what was there before.
-    age: document.getElementById('pfAge').value !== '' ? Number(document.getElementById('pfAge').value) : userProfile.age,
+    age: readValidAge(document.getElementById('pfAge').value, userProfile.age),
     gender: document.getElementById('pfGender').value,
     heightFt: document.getElementById('pfHeightFt').value !== '' ? Number(document.getElementById('pfHeightFt').value) : userProfile.heightFt,
     heightIn: Number(document.getElementById('pfHeightIn').value) || 0,
