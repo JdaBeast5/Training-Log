@@ -1631,6 +1631,12 @@
     font-family:'Inter',sans-serif;
   }
   .photo-preview{width:100%; max-width:200px; border-radius:var(--radius-md); margin:10px 0; display:block;}
+  /* Batch Snap-a-Meal uploads (v3.239): several photos share one row of
+     fixed-size thumbnails instead of each getting the full-width single-photo
+     treatment above — .photo-preview is reused so a single-photo upload keeps
+     its existing large preview untouched, this only applies inside the row. */
+  .photo-preview-row{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0;}
+  .photo-preview-row .photo-preview{width:76px; height:76px; max-width:76px; margin:0; object-fit:cover;}
   .section-label{
     font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase;
     color:var(--text-muted); margin:2px 0 8px;
@@ -5272,7 +5278,7 @@
         <button class="save-btn" id="recipeFinderSubmit">Find recipes</button>
         <div class="history-hint" style="margin-top:8px;">A few different takes on what you're craving — with estimated macros per serving, and a link to the actual recipe. Respects your dietary preference and avoid list. Nothing's shown in-app beyond the estimate; tap through to cook it, or log it straight from the estimate if you already know what you're making.</div>
       </div></div>
-      <input type="file" id="photoLogInput" accept="image/*" style="display:none" aria-label="Photo of your meal">
+      <input type="file" id="photoLogInput" accept="image/*" multiple style="display:none" aria-label="Photo(s) of your meal(s)">
       <div id="photoLogResult"></div>
       <div id="mealSuggestions"></div>
       <div id="barcodeResult"></div>
@@ -6420,7 +6426,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.238';
+const APP_VERSION = '3.239';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6969,6 +6975,9 @@ const WHATS_NEW = {
   ]},
   '3.238': { headline: 'Day-by-Day Log\'s calendar now flips one month at a time', points: [
     'The History tab\'s calendar used to show three months stacked on top of each other. It now shows one month at once, with the same ‹ › arrows as the calendar you get from tapping the date on Today/Log — tapping a trained/rest/no-training day jumps straight to that day\'s entry below, not just its month.',
+  ]},
+  '3.239': { headline: 'Snap a Meal now takes multiple photos at once', points: [
+    'The photo picker used to only take one meal photo at a time. Now you can select several — each is analyzed on its own so portion estimates stay accurate, and everything found across all of them lands in one editable list you can add in one go.',
   ]},
 };
 
@@ -38282,6 +38291,17 @@ let photoLogQtys = [];
 
 document.getElementById('photoLogBtn').addEventListener('click', ()=> document.getElementById('photoLogInput').click());
 
+// One or several thumbnails above the results — a single photo keeps the
+// existing full-width .photo-preview treatment, multiple photos share a row
+// of fixed-size thumbnails (see the .photo-preview-row CSS comment) so the
+// original single-upload look is unchanged.
+function renderPhotoPreviewRow(previewUrls){
+  if(previewUrls.length <= 1){
+    return `<img src="${previewUrls[0]}" class="photo-preview">`;
+  }
+  return `<div class="photo-preview-row">${previewUrls.map(u=> `<img src="${u}" class="photo-preview">`).join('')}</div>`;
+}
+
 // Renders Snap a Meal's detected items as editable rows rather than plain
 // text — misidentification (e.g. mushrooms vs. roasted potatoes) or an
 // off portion-size estimate used to mean deleting the photo and trying
@@ -38289,16 +38309,24 @@ document.getElementById('photoLogBtn').addEventListener('click', ()=> document.g
 // and a wrong item can be removed outright rather than forcing a re-shoot.
 // Re-called after every edit/removal so indices in the data-idx attributes
 // always line up with the live photoLogParsedItems array.
-function renderPhotoLogResult(resultEl, previewUrl){
+//
+// previewUrls is an array (v3.239, batch upload) — items from every photo in
+// the batch are merged into one flat list, matching how the "Add All" button
+// already adds every item at once regardless of source. failedCount (if any)
+// surfaces which photos in the batch couldn't be analyzed without discarding
+// the ones that succeeded.
+function renderPhotoLogResult(resultEl, previewUrls, failedCount){
   // Was a bespoke row with its own editing, its own remove button, no portion
   // control and no way to save. It is the same object Describe produces, so it
   // is now the same component — which is where the portions and the Save button
   // come from.
   const itemsHtml = buildFoodResultRows(photoLogParsedItems, photoLogQtys,
                                         {editable:true, removable:true});
+  const failedHtml = failedCount ? `<div class="care-banner care-banner-caution">Couldn't analyze ${failedCount} of your photos — the rest are shown below.</div>` : '';
   resultEl.innerHTML = `
-    <img src="${previewUrl}" class="photo-preview">
+    ${renderPhotoPreviewRow(previewUrls)}
     <div class="photo-result-card">
+      ${failedHtml}
       <div class="photo-result-title">Found ${photoLogParsedItems.length} item${photoLogParsedItems.length===1?'':'s'} — estimates, edit anything that's off before adding</div>
       ${itemsHtml || '<div class="empty-note">Everything removed — nothing left to add.</div>'}
       <button class="photo-add-all-btn" id="photoAddAllBtn" ${photoLogParsedItems.length===0?'disabled':''}>Add All to ${logDayLabel()} Log</button>
@@ -38310,7 +38338,7 @@ function renderPhotoLogResult(resultEl, previewUrl){
   // equivalent in Describe, which is half of the inconsistency this closes.
   wireFoodResultRows(resultEl, photoLogParsedItems, photoLogQtys, {
     editable:true, removable:true,
-    onRerender: ()=> renderPhotoLogResult(resultEl, previewUrl),
+    onRerender: ()=> renderPhotoLogResult(resultEl, previewUrls, failedCount),
   });
   const addAllBtn = document.getElementById('photoAddAllBtn');
   if(addAllBtn){
@@ -38323,9 +38351,14 @@ function renderPhotoLogResult(resultEl, previewUrl){
   }
 }
 
-document.getElementById('photoLogInput').addEventListener('change', async (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
+// Pulled out of the change listener (matching handleAiApiKeySave's own
+// standalone-function precedent) so batch analysis is testable in isolation.
+// Each photo gets its own callClaudeVision call rather than bundling every
+// image into one request — the portion-size cues the prompt relies on
+// ("how much of the plate is covered") are specific to a single photo, and a
+// per-photo call means one bad/unreadable photo in the batch (Promise.allSettled)
+// doesn't sink the others.
+async function handlePhotoLogUpload(files){
   clearOtherQuickAddResults('photoLogResult');
   const resultEl = document.getElementById('photoLogResult');
   const apiKey = await getApiKey();
@@ -38335,33 +38368,56 @@ document.getElementById('photoLogInput').addEventListener('change', async (e)=>{
     return;
   }
 
-  const previewUrl = URL.createObjectURL(file);
-  resultEl.innerHTML = `<img src="${previewUrl}" class="photo-preview"><div class="empty-note">Analyzing photo…</div>`;
+  const previewUrls = files.map(f=> URL.createObjectURL(f));
+  resultEl.innerHTML = `${renderPhotoPreviewRow(previewUrls)}<div class="empty-note">Analyzing ${files.length} photo${files.length===1?'':'s'}…</div>`;
 
-  try{
-    const base64 = await fileToBase64(file);
-    const prompt = `Identify each distinct food item visible in this photo and estimate its nutrition.
+  const prompt = `Identify each distinct food item visible in this photo and estimate its nutrition.
 
 Pay close attention to actual portion size, not a generic "typical serving." Use visual cues — how much of the plate or container is covered, the apparent depth/height of the food, how it's piled or spread, and any reference objects in frame (utensils, hands, packaging) — to judge real quantity. A fuller plate should scale the estimate up accordingly; a small side portion should scale down. Don't default to a textbook single serving if the photo clearly shows more or less than that.
 
 Look closely at color, texture, and shape before naming each item, and use the rest of the plate as context — visually similar foods are easy to mix up (e.g. roasted potato chunks vs. mushrooms, ground beef vs. lentils, cauliflower vs. rice) — so weigh what's more likely given what else is on the plate before committing to a name.
 
 Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"items":[{"name":"string","cal":number,"pro":number,"fat":number,"carb":number,"sodium":number,"fiber":number}]}. sodium is in milligrams, fiber in grams — both are rougher estimates than the calorie and macro numbers, especially for anything that could be restaurant food with unseen added salt, but include your best estimate rather than omitting them. If you can't identify anything edible, respond with {"items":[]}.`;
-    const raw = await callClaudeVision(apiKey, [base64], prompt, 1024, 'claude-haiku-4-5-20251001');
-    const cleaned = raw.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(cleaned);
-    photoLogParsedItems = parsed.items || [];
+
+  try{
+    const results = await Promise.allSettled(files.map(async (file)=>{
+      const base64 = await fileToBase64(file);
+      const raw = await callClaudeVision(apiKey, [base64], prompt, 1024, 'claude-haiku-4-5-20251001');
+      const cleaned = raw.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(cleaned);
+      return parsed.items || [];
+    }));
+
+    const items = [];
+    let failedCount = 0;
+    results.forEach(r=>{
+      if(r.status === 'fulfilled') items.push(...r.value);
+      else failedCount++;
+    });
+
+    photoLogParsedItems = items;
     photoLogQtys = photoLogParsedItems.map(()=> 1);
 
-    if(photoLogParsedItems.length === 0){
-      resultEl.innerHTML = `<img src="${previewUrl}" class="photo-preview"><div class="empty-note">🤷 Couldn't identify any food in that photo — try again or add it manually below.</div>`;
+    if(failedCount === files.length){
+      resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't analyze ${files.length===1?'that photo':'those photos'}: ${results[0].reason && results[0].reason.message}. Check your API key or try again.</div>`;
       return;
     }
 
-    renderPhotoLogResult(resultEl, previewUrl);
+    if(photoLogParsedItems.length === 0){
+      resultEl.innerHTML = `${renderPhotoPreviewRow(previewUrls)}<div class="empty-note">🤷 Couldn't identify any food in ${files.length===1?'that photo':'those photos'} — try again or add it manually below.</div>`;
+      return;
+    }
+
+    renderPhotoLogResult(resultEl, previewUrls, failedCount);
   }catch(err){
     resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't analyze that photo: ${err.message}. Check your API key or try again.</div>`;
   }
+}
+
+document.getElementById('photoLogInput').addEventListener('change', async (e)=>{
+  const files = Array.from(e.target.files || []);
+  if(files.length === 0) return;
+  await handlePhotoLogUpload(files);
 });
 
 // [COACH] ---------------------------------------------------------------
