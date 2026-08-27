@@ -192,7 +192,7 @@
 // background/border/gradient rgba() literals (red/green/orange/teal/purple).
 // Purely internal (same computed colors); doesn't touch this file directly,
 // but the version still has to move.
-const VERSION = '3.242';
+const VERSION = '3.243';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the
@@ -219,6 +219,7 @@ const PRECACHE_OPTIONAL = [
   './icon-192.png',
   './icon-512.png',
   './icon-512-maskable.png',
+  './icon-512-monochrome.png',
   './apple-touch-icon.png',
   './apple-touch-icon-167.png',
   './apple-touch-icon-152.png',

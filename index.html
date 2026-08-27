@@ -6429,7 +6429,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.242';
+const APP_VERSION = '3.243';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6990,6 +6990,10 @@ const WHATS_NEW = {
   ]},
   '3.242': { headline: 'Fixed a very long profile name overflowing its card', points: [
     'A name with no spaces long enough to have no natural break point (nothing stops you from typing one) spilled out past the edge of the Profile card instead of wrapping. It now wraps like everything else on the page.',
+  ]},
+  '3.243': { headline: 'A real home screen icon — Signature Blue, no more grey', points: [
+    'The Home Screen icon is now the app\'s own signature blue with a white dumbbell, instead of near-grayscale. It also now supplies a proper "monochrome" icon so iOS 18+ Tinted and Dark Home Screen appearances recolor it on purpose, not as a fallback.',
+    'Also fixed along the way: the web app manifest\'s icons pointed at a subfolder that has never existed in this repo (icons/icon-192.png etc. — the real files have always lived at the root), so any browser that actually reads the manifest for install icons — mainly Android/Chrome, not iOS — was silently falling back to a blank icon.',
   ]},
 };
 
