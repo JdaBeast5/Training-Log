@@ -280,9 +280,11 @@ test('sabotage-relevant: --surface-rgb and --surface2-rgb are each declared exac
   assert.strictEqual(extractCustomProp(rootBlock, 'surface2-rgb'), '31,34,38', 'sanity: matches the known #1F2226 decode');
 });
 
-test('sabotage-relevant: var(--surface-rgb) appears at exactly 6 real call sites, var(--surface2-rgb) at exactly 3', (assert)=>{
+test('sabotage-relevant: var(--surface-rgb) appears at exactly 6 real call sites, var(--surface2-rgb) at exactly 4', (assert)=>{
   assert.strictEqual((src.match(/rgba\(var\(--surface-rgb\),/g) || []).length, 6);
-  assert.strictEqual((src.match(/rgba\(var\(--surface2-rgb\),/g) || []).length, 3);
+  // 4, not the original 3 — .food-add-pop (v3.240's "+1" confirmation pop)
+  // added one new legitimate rgba(var(--surface2-rgb),…) site.
+  assert.strictEqual((src.match(/rgba\(var\(--surface2-rgb\),/g) || []).length, 4);
 });
 
 test('sabotage-relevant: the neutral rgba(23,25,29,…)/rgba(31,34,38,…) literals are genuinely gone from the file, not just supplemented', (assert)=>{
@@ -307,9 +309,11 @@ test('REAL CASCADE: a representative sample of --surface-rgb/--surface2-rgb call
   const resolvedHighAlpha = resolveToken(highAlphaBlock, 'surface-rgb', surfaceRgb);
   assert.match(resolvedHighAlpha, /background:rgba\(23,25,29,0\.9\);/, `expected the 0.9-alpha site to resolve to its exact original alpha, got: ${resolvedHighAlpha}`);
 
-  // The three --surface2 sites keep their own distinct alphas (0.72, 0.78, 0.75).
+  // The four --surface2 sites keep their own distinct alphas (0.72, 0.78,
+  // 0.75, plus 0.85 from .food-add-pop — v3.240's "+1" confirmation pop,
+  // added after this pass).
   const alphas = [...src.matchAll(/rgba\(var\(--surface2-rgb\),([\d.]+)\)/g)].map(m => m[1]);
-  assert.deepStrictEqual(alphas.sort(), ['0.72', '0.75', '0.78'].sort(), 'the 3 --surface2-rgb sites must keep their own 3 distinct original alphas, not collapse to one shared value');
+  assert.deepStrictEqual(alphas.sort(), ['0.72', '0.75', '0.78', '0.85'].sort(), 'the 4 --surface2-rgb sites must keep their own distinct original alphas, not collapse to one shared value');
   for(const alpha of alphas){
     assert.ok(`rgba(${surface2Rgb},${alpha})` === `rgba(31,34,38,${alpha})`, `--surface2-rgb must resolve to 31,34,38 regardless of which site's alpha is applied`);
   }

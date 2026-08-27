@@ -1353,6 +1353,22 @@
     cursor:pointer; font-family:'Inter',sans-serif; padding:6px 4px; white-space:nowrap;
   }
 
+  /* Deliberately its own small fixed-position notice, not a reuse of
+     .undo-toast — no text, no button, nothing to lay out, so it doesn't
+     need that component's flex row or padding-for-a-button shape. Sits
+     above .celebrate-banner's z-index so it's never hidden behind a
+     milestone banner if both somehow land at once. */
+  .food-add-pop{
+    position:fixed; top:18%; left:50%; z-index:200;
+    transform:translate(-50%,0) scale(0.85); opacity:0; pointer-events:none;
+    background:rgba(var(--surface2-rgb),0.85); box-shadow:var(--rim); backdrop-filter:blur(16px) saturate(160%); -webkit-backdrop-filter:blur(16px) saturate(160%);
+    border:1px solid var(--line-bright); border-radius:var(--radius-pill-lg);
+    padding:8px 20px; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:15px; color:var(--plate-green);
+    box-shadow:0 10px 24px -8px rgba(var(--overlay-black-rgb),0.5);
+    transition:transform 0.25s var(--ease-spring), opacity 0.2s var(--ease-smooth);
+  }
+  .food-add-pop.active{transform:translate(-50%,-10px) scale(1); opacity:1;}
+
   .ex-details{margin:6px 0 2px 76px;}
   .ex-details summary{
     list-style:none; cursor:pointer; display:flex; align-items:center; gap:5px;
@@ -6112,6 +6128,7 @@
   <span id="undoToastText"></span>
   <button id="undoToastBtn">Undo</button>
 </div>
+<div class="food-add-pop" id="foodAddedPop" aria-hidden="true">+1</div>
 
 <!-- SETTINGS. The sections below are filled by MOVING the existing controls in
      at startup, not by re-creating them. Every id, every wired handler and every
@@ -6979,8 +6996,8 @@ const WHATS_NEW = {
   '3.239': { headline: 'Snap a Meal now takes multiple photos at once', points: [
     'The photo picker used to only take one meal photo at a time. Now you can select several — each is analyzed on its own so portion estimates stay accurate, and everything found across all of them lands in one editable list you can add in one go.',
   ]},
-  '3.240': { headline: 'A quick confirmation now shows when you log a food', points: [
-    'Adding a food used to give no feedback at all — the only way to check it landed was scrolling down to the log itself. A brief "added" notice now appears wherever you log from (search, barcode, Describe, Snap-a-Meal, recipes, suggestions), with an Undo if it was a mistake.',
+  '3.240': { headline: 'A quick "+1" pop now confirms when you log a food', points: [
+    'Adding a food used to give no feedback at all — the only way to check it landed was scrolling down to the log itself. A small "+1" now fades in and out wherever you log from (search, barcode, Describe, Snap-a-Meal, recipes, suggestions), just enough to confirm the tap landed.',
   ]},
 };
 
@@ -27305,12 +27322,11 @@ async function renderWorkout(){
   refreshGymDock();
 }
 
-// --- Undo toast: generic, reusable — any action worth a brief confirmation
-// (set deletion, food-log deletion, and now logging a food) can call
-// showUndoToast(message, undoFn) to give the person a few seconds to reverse
-// it. Only one toast is ever shown at a time; triggering a new one cancels
-// whatever undo window was still open for the previous one, since only the
-// most recent action is undoable.
+// --- Undo toast: generic, reusable — any destructive action (currently
+// just set deletion) can call showUndoToast(message, undoFn) to give the
+// person a few seconds to reverse it. Only one toast is ever shown at a
+// time; triggering a new one cancels whatever undo window was still open
+// for the previous one, since only the most recent action is undoable.
 let undoToastTimeout = null;
 function showUndoToast(message, undoFn){
   const toast = document.getElementById('undoToast');
@@ -27335,6 +27351,24 @@ function showUndoToast(message, undoFn){
   freshBtn.addEventListener('click', onClick);
 
   undoToastTimeout = setTimeout(hide, 5000);
+}
+
+// --- Food-added pop: deliberately NOT the undo toast above — logging a
+// food happens far more often than deleting one, and a name + "added to
+// X log" + Undo button read as too much ceremony for something this
+// routine. Just a small "+1" that fades in and back out on its own, no
+// text, no button, no interaction at all (pointer-events stay off) — a
+// glance is enough to know the tap landed, without scrolling down to the
+// log to check. Timeout-based rather than animationend-based so a rapid
+// run of adds (an "Add All" loop) just keeps extending the same visible
+// window instead of the pop flickering closed between each one.
+let foodAddedPopTimeout = null;
+function showFoodAddedPop(){
+  const pop = document.getElementById('foodAddedPop');
+  if(!pop) return;
+  if(foodAddedPopTimeout) clearTimeout(foodAddedPopTimeout);
+  pop.classList.add('active');
+  foodAddedPopTimeout = setTimeout(()=> pop.classList.remove('active'), 900);
 }
 
 // --- Celebration banner: generic, reusable — a brief, purely cosmetic
@@ -33980,8 +34014,7 @@ async function addFoodToLog(item, qty){
   // actually eaten, and stamping "right now" would just be wrong, corrupting
   // the Diabetes meal-timing insight with a fabricated time. Missing time is
   // already treated as "not enough data for this day" there, not an error.
-  const entry = {...scaleFoodItem(item, qty), time: isBackdating() ? undefined : nowTimeKey()};
-  todaysFoodLog.push(entry);
+  todaysFoodLog.push({...scaleFoodItem(item, qty), time: isBackdating() ? undefined : nowTimeKey()});
   await saveFoodLog();
   // The BASE name, deliberately. Usage counts drive search ranking and the
   // "Bagel ×3" spelling is not a food anyone will ever search for — counting it
@@ -34005,22 +34038,8 @@ async function addFoodToLog(item, qty){
   // The one place every logging path funnels through (search, barcode,
   // Describe, Snap-a-Meal, recipes, meal suggestions, custom foods) — a
   // confirmation here reaches all of them at once, so nobody has to scroll
-  // down to the log itself just to check whether a tap landed. Reuses the
-  // undo-toast component rather than a bespoke banner: an accidental
-  // double-tap add is exactly as reversible as an accidental delete.
-  // Identity-based removal (indexOf on the actual pushed object, not a
-  // stored index) rather than the date-guarded snapshot/restore
-  // removeFoodFromLog uses for deletions: if the viewed date has since
-  // changed, todaysFoodLog now points at a different day's freshly-parsed
-  // array that could never contain this exact object, so indexOf safely
-  // misses and Undo quietly no-ops instead of touching the wrong day.
-  showUndoToast(`${entry.name} added to ${logDayLabel()} log`, async ()=>{
-    const idx = todaysFoodLog.indexOf(entry);
-    if(idx === -1) return;
-    todaysFoodLog.splice(idx, 1);
-    await saveFoodLog();
-    renderFoodLog();
-  });
+  // down to the log itself just to check whether a tap landed.
+  showFoodAddedPop();
 }
 
 // --- Meal suggestions: "what should I eat to hit today's remaining
