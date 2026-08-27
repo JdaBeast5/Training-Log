@@ -1353,6 +1353,22 @@
     cursor:pointer; font-family:'Inter',sans-serif; padding:6px 4px; white-space:nowrap;
   }
 
+  /* Deliberately its own small fixed-position notice, not a reuse of
+     .undo-toast — no text, no button, nothing to lay out, so it doesn't
+     need that component's flex row or padding-for-a-button shape. Sits
+     above .celebrate-banner's z-index so it's never hidden behind a
+     milestone banner if both somehow land at once. */
+  .food-add-pop{
+    position:fixed; top:18%; left:50%; z-index:200;
+    transform:translate(-50%,0) scale(0.85); opacity:0; pointer-events:none;
+    background:rgba(var(--surface2-rgb),0.85); box-shadow:var(--rim); backdrop-filter:blur(16px) saturate(160%); -webkit-backdrop-filter:blur(16px) saturate(160%);
+    border:1px solid var(--line-bright); border-radius:var(--radius-pill-lg);
+    padding:8px 20px; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:15px; color:var(--plate-green);
+    box-shadow:0 10px 24px -8px rgba(var(--overlay-black-rgb),0.5);
+    transition:transform 0.25s var(--ease-spring), opacity 0.2s var(--ease-smooth);
+  }
+  .food-add-pop.active{transform:translate(-50%,-10px) scale(1); opacity:1;}
+
   .ex-details{margin:6px 0 2px 76px;}
   .ex-details summary{
     list-style:none; cursor:pointer; display:flex; align-items:center; gap:5px;
@@ -6112,6 +6128,7 @@
   <span id="undoToastText"></span>
   <button id="undoToastBtn">Undo</button>
 </div>
+<div class="food-add-pop" id="foodAddedPop" aria-hidden="true">+1</div>
 
 <!-- SETTINGS. The sections below are filled by MOVING the existing controls in
      at startup, not by re-creating them. Every id, every wired handler and every
@@ -6426,7 +6443,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.239';
+const APP_VERSION = '3.240';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6978,6 +6995,9 @@ const WHATS_NEW = {
   ]},
   '3.239': { headline: 'Snap a Meal now takes multiple photos at once', points: [
     'The photo picker used to only take one meal photo at a time. Now you can select several — each is analyzed on its own so portion estimates stay accurate, and everything found across all of them lands in one editable list you can add in one go.',
+  ]},
+  '3.240': { headline: 'A quick "+1" pop now confirms when you log a food', points: [
+    'Adding a food used to give no feedback at all — the only way to check it landed was scrolling down to the log itself. A small "+1" now fades in and out wherever you log from (search, barcode, Describe, Snap-a-Meal, recipes, suggestions), just enough to confirm the tap landed.',
   ]},
 };
 
@@ -27333,6 +27353,24 @@ function showUndoToast(message, undoFn){
   undoToastTimeout = setTimeout(hide, 5000);
 }
 
+// --- Food-added pop: deliberately NOT the undo toast above — logging a
+// food happens far more often than deleting one, and a name + "added to
+// X log" + Undo button read as too much ceremony for something this
+// routine. Just a small "+1" that fades in and back out on its own, no
+// text, no button, no interaction at all (pointer-events stay off) — a
+// glance is enough to know the tap landed, without scrolling down to the
+// log to check. Timeout-based rather than animationend-based so a rapid
+// run of adds (an "Add All" loop) just keeps extending the same visible
+// window instead of the pop flickering closed between each one.
+let foodAddedPopTimeout = null;
+function showFoodAddedPop(){
+  const pop = document.getElementById('foodAddedPop');
+  if(!pop) return;
+  if(foodAddedPopTimeout) clearTimeout(foodAddedPopTimeout);
+  pop.classList.add('active');
+  foodAddedPopTimeout = setTimeout(()=> pop.classList.remove('active'), 900);
+}
+
 // --- Celebration banner: generic, reusable — a brief, purely cosmetic
 // full-screen moment for things worth actually feeling good about
 // (finishing today's session, a streak milestone). Never blocks
@@ -33997,6 +34035,11 @@ async function addFoodToLog(item, qty){
   renderFoodLog();
   renderFoodItems();
   markMilestone('has-logged-first-meal');
+  // The one place every logging path funnels through (search, barcode,
+  // Describe, Snap-a-Meal, recipes, meal suggestions, custom foods) — a
+  // confirmation here reaches all of them at once, so nobody has to scroll
+  // down to the log itself just to check whether a tap landed.
+  showFoodAddedPop();
 }
 
 // --- Meal suggestions: "what should I eat to hit today's remaining
