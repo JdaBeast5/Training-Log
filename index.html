@@ -1353,6 +1353,22 @@
     cursor:pointer; font-family:'Inter',sans-serif; padding:6px 4px; white-space:nowrap;
   }
 
+  /* Deliberately its own small fixed-position notice, not a reuse of
+     .undo-toast — no text, no button, nothing to lay out, so it doesn't
+     need that component's flex row or padding-for-a-button shape. Sits
+     above .celebrate-banner's z-index so it's never hidden behind a
+     milestone banner if both somehow land at once. */
+  .food-add-pop{
+    position:fixed; top:18%; left:50%; z-index:200;
+    transform:translate(-50%,0) scale(0.85); opacity:0; pointer-events:none;
+    background:rgba(var(--surface2-rgb),0.85); box-shadow:var(--rim); backdrop-filter:blur(16px) saturate(160%); -webkit-backdrop-filter:blur(16px) saturate(160%);
+    border:1px solid var(--line-bright); border-radius:var(--radius-pill-lg);
+    padding:8px 20px; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:15px; color:var(--plate-green);
+    box-shadow:0 10px 24px -8px rgba(var(--overlay-black-rgb),0.5);
+    transition:transform 0.25s var(--ease-spring), opacity 0.2s var(--ease-smooth);
+  }
+  .food-add-pop.active{transform:translate(-50%,-10px) scale(1); opacity:1;}
+
   .ex-details{margin:6px 0 2px 76px;}
   .ex-details summary{
     list-style:none; cursor:pointer; display:flex; align-items:center; gap:5px;
@@ -1640,6 +1656,12 @@
     font-family:'Inter',sans-serif;
   }
   .photo-preview{width:100%; max-width:200px; border-radius:var(--radius-md); margin:10px 0; display:block;}
+  /* Batch Snap-a-Meal uploads (v3.239): several photos share one row of
+     fixed-size thumbnails instead of each getting the full-width single-photo
+     treatment above — .photo-preview is reused so a single-photo upload keeps
+     its existing large preview untouched, this only applies inside the row. */
+  .photo-preview-row{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0;}
+  .photo-preview-row .photo-preview{width:76px; height:76px; max-width:76px; margin:0; object-fit:cover;}
   .section-label{
     font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase;
     color:var(--text-muted); margin:2px 0 8px;
@@ -5281,7 +5303,7 @@
         <button class="save-btn" id="recipeFinderSubmit">Find recipes</button>
         <div class="history-hint" style="margin-top:8px;">A few different takes on what you're craving — with estimated macros per serving, and a link to the actual recipe. Respects your dietary preference and avoid list. Nothing's shown in-app beyond the estimate; tap through to cook it, or log it straight from the estimate if you already know what you're making.</div>
       </div></div>
-      <input type="file" id="photoLogInput" accept="image/*" style="display:none" aria-label="Photo of your meal">
+      <input type="file" id="photoLogInput" accept="image/*" multiple style="display:none" aria-label="Photo(s) of your meal(s)">
       <div id="photoLogResult"></div>
       <div id="mealSuggestions"></div>
       <div id="barcodeResult"></div>
@@ -6115,6 +6137,7 @@
   <span id="undoToastText"></span>
   <button id="undoToastBtn">Undo</button>
 </div>
+<div class="food-add-pop" id="foodAddedPop" aria-hidden="true">+1</div>
 
 <!-- SETTINGS. The sections below are filled by MOVING the existing controls in
      at startup, not by re-creating them. Every id, every wired handler and every
@@ -6429,7 +6452,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.243';
+const APP_VERSION = '3.245';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6979,19 +7002,25 @@ const WHATS_NEW = {
   '3.238': { headline: 'Day-by-Day Log\'s calendar now flips one month at a time', points: [
     'The History tab\'s calendar used to show three months stacked on top of each other. It now shows one month at once, with the same ‹ › arrows as the calendar you get from tapping the date on Today/Log — tapping a trained/rest/no-training day jumps straight to that day\'s entry below, not just its month.',
   ]},
-  '3.239': { headline: 'Fixed the "Switch to gym mode?" prompt lingering on other tabs', points: [
+  '3.239': { headline: 'Snap a Meal now takes multiple photos at once', points: [
+    'The photo picker used to only take one meal photo at a time. Now you can select several — each is analyzed on its own so portion estimates stay accurate, and everything found across all of them lands in one editable list you can add in one go.',
+  ]},
+  '3.240': { headline: 'A quick "+1" pop now confirms when you log a food', points: [
+    'Adding a food used to give no feedback at all — the only way to check it landed was scrolling down to the log itself. A small "+1" now fades in and out wherever you log from (search, barcode, Describe, Snap-a-Meal, recipes, suggestions), just enough to confirm the tap landed.',
+  ]},
+  '3.241': { headline: 'Fixed the "Switch to gym mode?" prompt lingering on other tabs', points: [
     'Logging a full exercise\'s worth of sets shows a one-time "Switch to gym mode?" card. Navigating to Log, Analysis, or History before answering it used to leave that card floating on screen there too, on top of unrelated content (covering the Sleep card on Log, sitting inside the calendar grid on History). It now closes automatically the moment you leave Today, the same way the sticky day-title bar already did.',
   ]},
-  '3.240': { headline: 'Fixed profile fields silently rejecting an entered 0', points: [
+  '3.242': { headline: 'Fixed profile fields silently rejecting an entered 0', points: [
     'Saving your profile with age, height (ft), or weight set to 0 used to quietly keep the OLD value instead — the save still said "Saved ✓," but the number you actually typed never took. Entering 0 on purpose now saves as 0; leaving a field genuinely blank still keeps what was there before.',
   ]},
-  '3.241': { headline: 'Fixed a negative age silently skewing your calorie target', points: [
+  '3.243': { headline: 'Fixed a negative age silently skewing your calorie target', points: [
     'The profile form accepted a negative age (e.g. a stray "-" while editing) with no warning, and it fed straight into the calorie-target formula — not a crash, just a quietly wrong number. Age now falls back to your previous value if what\'s entered isn\'t a real, non-negative age.',
   ]},
-  '3.242': { headline: 'Fixed a very long profile name overflowing its card', points: [
+  '3.244': { headline: 'Fixed a very long profile name overflowing its card', points: [
     'A name with no spaces long enough to have no natural break point (nothing stops you from typing one) spilled out past the edge of the Profile card instead of wrapping. It now wraps like everything else on the page.',
   ]},
-  '3.243': { headline: 'A real home screen icon — Signature Blue, no more grey', points: [
+  '3.245': { headline: 'A real home screen icon — Signature Blue, no more grey', points: [
     'The Home Screen icon is now the app\'s own signature blue with a white dumbbell, instead of near-grayscale. It also now supplies a proper "monochrome" icon so iOS 18+ Tinted and Dark Home Screen appearances recolor it on purpose, not as a fallback.',
     'Also fixed along the way: the web app manifest\'s icons pointed at a subfolder that has never existed in this repo (icons/icon-192.png etc. — the real files have always lived at the root), so any browser that actually reads the manifest for install icons — mainly Android/Chrome, not iOS — was silently falling back to a blank icon.',
   ]},
@@ -27349,6 +27378,24 @@ function showUndoToast(message, undoFn){
   undoToastTimeout = setTimeout(hide, 5000);
 }
 
+// --- Food-added pop: deliberately NOT the undo toast above — logging a
+// food happens far more often than deleting one, and a name + "added to
+// X log" + Undo button read as too much ceremony for something this
+// routine. Just a small "+1" that fades in and back out on its own, no
+// text, no button, no interaction at all (pointer-events stay off) — a
+// glance is enough to know the tap landed, without scrolling down to the
+// log to check. Timeout-based rather than animationend-based so a rapid
+// run of adds (an "Add All" loop) just keeps extending the same visible
+// window instead of the pop flickering closed between each one.
+let foodAddedPopTimeout = null;
+function showFoodAddedPop(){
+  const pop = document.getElementById('foodAddedPop');
+  if(!pop) return;
+  if(foodAddedPopTimeout) clearTimeout(foodAddedPopTimeout);
+  pop.classList.add('active');
+  foodAddedPopTimeout = setTimeout(()=> pop.classList.remove('active'), 900);
+}
+
 // --- Celebration banner: generic, reusable — a brief, purely cosmetic
 // full-screen moment for things worth actually feeling good about
 // (finishing today's session, a streak milestone). Never blocks
@@ -34032,6 +34079,11 @@ async function addFoodToLog(item, qty){
   renderFoodLog();
   renderFoodItems();
   markMilestone('has-logged-first-meal');
+  // The one place every logging path funnels through (search, barcode,
+  // Describe, Snap-a-Meal, recipes, meal suggestions, custom foods) — a
+  // confirmation here reaches all of them at once, so nobody has to scroll
+  // down to the log itself just to check whether a tap landed.
+  showFoodAddedPop();
 }
 
 // --- Meal suggestions: "what should I eat to hit today's remaining
@@ -38336,6 +38388,17 @@ let photoLogQtys = [];
 
 document.getElementById('photoLogBtn').addEventListener('click', ()=> document.getElementById('photoLogInput').click());
 
+// One or several thumbnails above the results — a single photo keeps the
+// existing full-width .photo-preview treatment, multiple photos share a row
+// of fixed-size thumbnails (see the .photo-preview-row CSS comment) so the
+// original single-upload look is unchanged.
+function renderPhotoPreviewRow(previewUrls){
+  if(previewUrls.length <= 1){
+    return `<img src="${previewUrls[0]}" class="photo-preview">`;
+  }
+  return `<div class="photo-preview-row">${previewUrls.map(u=> `<img src="${u}" class="photo-preview">`).join('')}</div>`;
+}
+
 // Renders Snap a Meal's detected items as editable rows rather than plain
 // text — misidentification (e.g. mushrooms vs. roasted potatoes) or an
 // off portion-size estimate used to mean deleting the photo and trying
@@ -38343,16 +38406,24 @@ document.getElementById('photoLogBtn').addEventListener('click', ()=> document.g
 // and a wrong item can be removed outright rather than forcing a re-shoot.
 // Re-called after every edit/removal so indices in the data-idx attributes
 // always line up with the live photoLogParsedItems array.
-function renderPhotoLogResult(resultEl, previewUrl){
+//
+// previewUrls is an array (v3.239, batch upload) — items from every photo in
+// the batch are merged into one flat list, matching how the "Add All" button
+// already adds every item at once regardless of source. failedCount (if any)
+// surfaces which photos in the batch couldn't be analyzed without discarding
+// the ones that succeeded.
+function renderPhotoLogResult(resultEl, previewUrls, failedCount){
   // Was a bespoke row with its own editing, its own remove button, no portion
   // control and no way to save. It is the same object Describe produces, so it
   // is now the same component — which is where the portions and the Save button
   // come from.
   const itemsHtml = buildFoodResultRows(photoLogParsedItems, photoLogQtys,
                                         {editable:true, removable:true});
+  const failedHtml = failedCount ? `<div class="care-banner care-banner-caution">Couldn't analyze ${failedCount} of your photos — the rest are shown below.</div>` : '';
   resultEl.innerHTML = `
-    <img src="${previewUrl}" class="photo-preview">
+    ${renderPhotoPreviewRow(previewUrls)}
     <div class="photo-result-card">
+      ${failedHtml}
       <div class="photo-result-title">Found ${photoLogParsedItems.length} item${photoLogParsedItems.length===1?'':'s'} — estimates, edit anything that's off before adding</div>
       ${itemsHtml || '<div class="empty-note">Everything removed — nothing left to add.</div>'}
       <button class="photo-add-all-btn" id="photoAddAllBtn" ${photoLogParsedItems.length===0?'disabled':''}>Add All to ${logDayLabel()} Log</button>
@@ -38364,7 +38435,7 @@ function renderPhotoLogResult(resultEl, previewUrl){
   // equivalent in Describe, which is half of the inconsistency this closes.
   wireFoodResultRows(resultEl, photoLogParsedItems, photoLogQtys, {
     editable:true, removable:true,
-    onRerender: ()=> renderPhotoLogResult(resultEl, previewUrl),
+    onRerender: ()=> renderPhotoLogResult(resultEl, previewUrls, failedCount),
   });
   const addAllBtn = document.getElementById('photoAddAllBtn');
   if(addAllBtn){
@@ -38377,9 +38448,14 @@ function renderPhotoLogResult(resultEl, previewUrl){
   }
 }
 
-document.getElementById('photoLogInput').addEventListener('change', async (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
+// Pulled out of the change listener (matching handleAiApiKeySave's own
+// standalone-function precedent) so batch analysis is testable in isolation.
+// Each photo gets its own callClaudeVision call rather than bundling every
+// image into one request — the portion-size cues the prompt relies on
+// ("how much of the plate is covered") are specific to a single photo, and a
+// per-photo call means one bad/unreadable photo in the batch (Promise.allSettled)
+// doesn't sink the others.
+async function handlePhotoLogUpload(files){
   clearOtherQuickAddResults('photoLogResult');
   const resultEl = document.getElementById('photoLogResult');
   const apiKey = await getApiKey();
@@ -38389,33 +38465,56 @@ document.getElementById('photoLogInput').addEventListener('change', async (e)=>{
     return;
   }
 
-  const previewUrl = URL.createObjectURL(file);
-  resultEl.innerHTML = `<img src="${previewUrl}" class="photo-preview"><div class="empty-note">Analyzing photo…</div>`;
+  const previewUrls = files.map(f=> URL.createObjectURL(f));
+  resultEl.innerHTML = `${renderPhotoPreviewRow(previewUrls)}<div class="empty-note">Analyzing ${files.length} photo${files.length===1?'':'s'}…</div>`;
 
-  try{
-    const base64 = await fileToBase64(file);
-    const prompt = `Identify each distinct food item visible in this photo and estimate its nutrition.
+  const prompt = `Identify each distinct food item visible in this photo and estimate its nutrition.
 
 Pay close attention to actual portion size, not a generic "typical serving." Use visual cues — how much of the plate or container is covered, the apparent depth/height of the food, how it's piled or spread, and any reference objects in frame (utensils, hands, packaging) — to judge real quantity. A fuller plate should scale the estimate up accordingly; a small side portion should scale down. Don't default to a textbook single serving if the photo clearly shows more or less than that.
 
 Look closely at color, texture, and shape before naming each item, and use the rest of the plate as context — visually similar foods are easy to mix up (e.g. roasted potato chunks vs. mushrooms, ground beef vs. lentils, cauliflower vs. rice) — so weigh what's more likely given what else is on the plate before committing to a name.
 
 Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"items":[{"name":"string","cal":number,"pro":number,"fat":number,"carb":number,"sodium":number,"fiber":number}]}. sodium is in milligrams, fiber in grams — both are rougher estimates than the calorie and macro numbers, especially for anything that could be restaurant food with unseen added salt, but include your best estimate rather than omitting them. If you can't identify anything edible, respond with {"items":[]}.`;
-    const raw = await callClaudeVision(apiKey, [base64], prompt, 1024, 'claude-haiku-4-5-20251001');
-    const cleaned = raw.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(cleaned);
-    photoLogParsedItems = parsed.items || [];
+
+  try{
+    const results = await Promise.allSettled(files.map(async (file)=>{
+      const base64 = await fileToBase64(file);
+      const raw = await callClaudeVision(apiKey, [base64], prompt, 1024, 'claude-haiku-4-5-20251001');
+      const cleaned = raw.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(cleaned);
+      return parsed.items || [];
+    }));
+
+    const items = [];
+    let failedCount = 0;
+    results.forEach(r=>{
+      if(r.status === 'fulfilled') items.push(...r.value);
+      else failedCount++;
+    });
+
+    photoLogParsedItems = items;
     photoLogQtys = photoLogParsedItems.map(()=> 1);
 
-    if(photoLogParsedItems.length === 0){
-      resultEl.innerHTML = `<img src="${previewUrl}" class="photo-preview"><div class="empty-note">🤷 Couldn't identify any food in that photo — try again or add it manually below.</div>`;
+    if(failedCount === files.length){
+      resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't analyze ${files.length===1?'that photo':'those photos'}: ${results[0].reason && results[0].reason.message}. Check your API key or try again.</div>`;
       return;
     }
 
-    renderPhotoLogResult(resultEl, previewUrl);
+    if(photoLogParsedItems.length === 0){
+      resultEl.innerHTML = `${renderPhotoPreviewRow(previewUrls)}<div class="empty-note">🤷 Couldn't identify any food in ${files.length===1?'that photo':'those photos'} — try again or add it manually below.</div>`;
+      return;
+    }
+
+    renderPhotoLogResult(resultEl, previewUrls, failedCount);
   }catch(err){
     resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't analyze that photo: ${err.message}. Check your API key or try again.</div>`;
   }
+}
+
+document.getElementById('photoLogInput').addEventListener('change', async (e)=>{
+  const files = Array.from(e.target.files || []);
+  if(files.length === 0) return;
+  await handlePhotoLogUpload(files);
 });
 
 // [COACH] ---------------------------------------------------------------
