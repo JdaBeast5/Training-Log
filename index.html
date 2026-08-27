@@ -6426,7 +6426,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.239';
+const APP_VERSION = '3.240';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -6978,6 +6978,9 @@ const WHATS_NEW = {
   ]},
   '3.239': { headline: 'Snap a Meal now takes multiple photos at once', points: [
     'The photo picker used to only take one meal photo at a time. Now you can select several — each is analyzed on its own so portion estimates stay accurate, and everything found across all of them lands in one editable list you can add in one go.',
+  ]},
+  '3.240': { headline: 'A quick confirmation now shows when you log a food', points: [
+    'Adding a food used to give no feedback at all — the only way to check it landed was scrolling down to the log itself. A brief "added" notice now appears wherever you log from (search, barcode, Describe, Snap-a-Meal, recipes, suggestions), with an Undo if it was a mistake.',
   ]},
 };
 
@@ -27302,11 +27305,12 @@ async function renderWorkout(){
   refreshGymDock();
 }
 
-// --- Undo toast: generic, reusable — any destructive action (currently
-// just set deletion) can call showUndoToast(message, undoFn) to give the
-// person a few seconds to reverse it. Only one toast is ever shown at a
-// time; triggering a new one cancels whatever undo window was still open
-// for the previous one, since only the most recent action is undoable.
+// --- Undo toast: generic, reusable — any action worth a brief confirmation
+// (set deletion, food-log deletion, and now logging a food) can call
+// showUndoToast(message, undoFn) to give the person a few seconds to reverse
+// it. Only one toast is ever shown at a time; triggering a new one cancels
+// whatever undo window was still open for the previous one, since only the
+// most recent action is undoable.
 let undoToastTimeout = null;
 function showUndoToast(message, undoFn){
   const toast = document.getElementById('undoToast');
@@ -33976,7 +33980,8 @@ async function addFoodToLog(item, qty){
   // actually eaten, and stamping "right now" would just be wrong, corrupting
   // the Diabetes meal-timing insight with a fabricated time. Missing time is
   // already treated as "not enough data for this day" there, not an error.
-  todaysFoodLog.push({...scaleFoodItem(item, qty), time: isBackdating() ? undefined : nowTimeKey()});
+  const entry = {...scaleFoodItem(item, qty), time: isBackdating() ? undefined : nowTimeKey()};
+  todaysFoodLog.push(entry);
   await saveFoodLog();
   // The BASE name, deliberately. Usage counts drive search ranking and the
   // "Bagel ×3" spelling is not a food anyone will ever search for — counting it
@@ -33997,6 +34002,25 @@ async function addFoodToLog(item, qty){
   renderFoodLog();
   renderFoodItems();
   markMilestone('has-logged-first-meal');
+  // The one place every logging path funnels through (search, barcode,
+  // Describe, Snap-a-Meal, recipes, meal suggestions, custom foods) — a
+  // confirmation here reaches all of them at once, so nobody has to scroll
+  // down to the log itself just to check whether a tap landed. Reuses the
+  // undo-toast component rather than a bespoke banner: an accidental
+  // double-tap add is exactly as reversible as an accidental delete.
+  // Identity-based removal (indexOf on the actual pushed object, not a
+  // stored index) rather than the date-guarded snapshot/restore
+  // removeFoodFromLog uses for deletions: if the viewed date has since
+  // changed, todaysFoodLog now points at a different day's freshly-parsed
+  // array that could never contain this exact object, so indexOf safely
+  // misses and Undo quietly no-ops instead of touching the wrong day.
+  showUndoToast(`${entry.name} added to ${logDayLabel()} log`, async ()=>{
+    const idx = todaysFoodLog.indexOf(entry);
+    if(idx === -1) return;
+    todaysFoodLog.splice(idx, 1);
+    await saveFoodLog();
+    renderFoodLog();
+  });
 }
 
 // --- Meal suggestions: "what should I eat to hit today's remaining

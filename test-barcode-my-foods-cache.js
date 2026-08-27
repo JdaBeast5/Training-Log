@@ -27,6 +27,12 @@ const baseChunks = [
   extractFunction(src, 'lookupBarcode'),
   extractFunction(src, 'renderBarcodeResult'),
   extractFunction(src, 'handleBarcodeFound'),
+  // addFoodToLog now shows a confirmation toast on every add (v3.240) —
+  // showUndoToast is real here, not stubbed, since its own click-driven undo
+  // path is exercised for real elsewhere (test-food-add-confirmation-toast.js);
+  // this file just needs it wired up so addFoodToLog doesn't throw.
+  extractFunction(src, 'showUndoToast'),
+  'let undoToastTimeout = null;',
   // Stubs for addFoodToLog's other real dependencies — deliberately inert,
   // none of them are what this file is testing.
   'var todaysFoodLog = [];',
@@ -40,7 +46,13 @@ const baseChunks = [
   'function logDayLabel(){ return "Today\'s"; }',
 ];
 
-const barcodeResultHtml = '<div id="barcodeResult"></div>';
+const barcodeResultHtml = `
+  <div id="barcodeResult"></div>
+  <div class="undo-toast" id="undoToast" role="status" aria-live="polite">
+    <span id="undoToastText"></span>
+    <button id="undoToastBtn">Undo</button>
+  </div>
+`;
 
 function setup(extraChunks, customFoods){
   const globalsSetup = `
