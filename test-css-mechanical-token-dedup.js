@@ -180,9 +180,12 @@ test('sabotage-relevant: --cta-gloss-inset and --fab-gloss-inset are each declar
   assert.ok(rootBlock.includes('--fab-gloss-inset:'), 'must live in :root');
 });
 
-test('sabotage-relevant: var(--cta-gloss-inset) appears at exactly 10 real call sites, var(--fab-gloss-inset) at exactly 5', (assert)=>{
+test('sabotage-relevant: var(--cta-gloss-inset) appears at exactly 10 real call sites, var(--fab-gloss-inset) at exactly 6', (assert)=>{
   assert.strictEqual((src.match(/var\(--cta-gloss-inset\)/g) || []).length, 10);
-  assert.strictEqual((src.match(/var\(--fab-gloss-inset\)/g) || []).length, 5);
+  // 6, not the original 5 — .coach-fab.dragging (the drag-to-reposition
+  // feature) reuses this same token for its own lift-shadow, consistent
+  // with every other FAB active/hover state already doing so.
+  assert.strictEqual((src.match(/var\(--fab-gloss-inset\)/g) || []).length, 6);
 });
 
 test('REAL CASCADE: a representative sample of --cta-gloss-inset call sites resolve to the exact pre-conversion literal', (assert)=>{

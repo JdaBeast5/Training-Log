@@ -1849,9 +1849,23 @@
     background:var(--cta-gradient-blue); color:#fff; font-size:24px;
     display:flex; align-items:center; justify-content:center; cursor:pointer;
     box-shadow:var(--fab-gloss-inset), 0 14px 34px -8px rgba(var(--plate-blue-rgb),0.65), 0 0 50px -14px rgba(var(--plate-blue-rgb),0.55);
-    transition:transform 0.18s var(--ease-smooth), box-shadow 0.18s var(--ease-smooth), opacity 0.26s var(--ease-smooth);
+    transition:transform 0.18s var(--ease-smooth), box-shadow 0.18s var(--ease-smooth), opacity 0.26s var(--ease-smooth),
+               top 0.22s var(--ease-smooth), left 0.22s var(--ease-smooth);
+    /* Repositionable by drag (wireCoachFabDrag) — this is a small circular
+       control with nothing legitimate to pan/scroll inside it, so handing
+       touch entirely to our own pointer handling rather than the browser's
+       native scroll/zoom gestures is a clean tradeoff, not a compromise. */
+    touch-action:none;
   }
   .coach-fab.tucked{opacity:0; transform:scale(0.3); pointer-events:none; transition:transform 0.3s var(--ease-smooth), opacity 0.22s var(--ease-smooth);}
+  /* Live drag feedback: no transition (position must track the pointer with
+     zero lag, not ease toward it) and a visible lift so it reads as "picked
+     up," distinct from the existing :active tap-down scale. Position itself
+     (top/left, set inline by wireCoachFabDrag) is what actually moves it. */
+  .coach-fab.dragging{
+    transition:none; transform:scale(1.08);
+    box-shadow:var(--fab-gloss-inset), 0 20px 40px -10px rgba(var(--plate-blue-rgb),0.75), 0 0 60px -12px rgba(var(--plate-blue-rgb),0.6);
+  }
   .coach-fab::before{
     content:''; position:absolute; top:-30%; left:-10%; width:120%; height:65%;
     background:radial-gradient(ellipse at center, rgba(var(--surface-white-rgb),0.45), transparent 70%);
@@ -6452,7 +6466,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.245';
+const APP_VERSION = '3.246';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7023,6 +7037,9 @@ const WHATS_NEW = {
   '3.245': { headline: 'A real home screen icon — Signature Blue, no more grey', points: [
     'The Home Screen icon is now the app\'s own signature blue with a white dumbbell, instead of near-grayscale. It also now supplies a proper "monochrome" icon so iOS 18+ Tinted and Dark Home Screen appearances recolor it on purpose, not as a fallback.',
     'Also fixed along the way: the web app manifest\'s icons pointed at a subfolder that has never existed in this repo (icons/icon-192.png etc. — the real files have always lived at the root), so any browser that actually reads the manifest for install icons — mainly Android/Chrome, not iOS — was silently falling back to a blank icon.',
+  ]},
+  '3.246': { headline: 'The AI coach bubble can now be dragged out of the way', points: [
+    'Press and drag the blue chat bubble anywhere along the left or right edge of the screen — it snaps to whichever side you let go near, and stays there for next time. A quick tap still opens the chat exactly as before; only a real drag moves it.',
   ]},
 };
 
@@ -39456,7 +39473,15 @@ document.getElementById('coachChatClear').addEventListener('click', async ()=>{
 // not a separate chat. Opening it just renders whatever's already in
 // coachChatHistory; sending from here uses the exact same logic as the
 // Coach tab's own input.
+//
+// wireCoachFabDrag (below, near wireCoachFabTuck) sets this true for the one
+// click that follows a real drag — browsers still synthesize a click after
+// a pointerdown/pointerup pair even once real movement happened in between,
+// and without this guard every drag-to-reposition would also pop the chat
+// panel open the instant you let go.
+let coachFabJustDragged = false;
 document.getElementById('coachFab').addEventListener('click', ()=>{
+  if(coachFabJustDragged){ coachFabJustDragged = false; return; }
   const modal = document.getElementById('coachFabModal');
   const fab = document.getElementById('coachFab');
   const isOpen = modal.classList.contains('active');
@@ -43225,6 +43250,7 @@ if(activeUserId){
     await restoreActiveView();
     await restoreGymMode();
     restoreRestTimer();
+    await restoreCoachFabPosition();
     await checkWhatsNew();
     bootMark('initEnd');
   })();
@@ -43913,6 +43939,134 @@ function syncOverflowFade(rail){
     if(idle) clearTimeout(idle);
     idle = setTimeout(()=> fab.classList.remove('tucked'), 650);
   }, {passive:true});
+})();
+
+// --- Coach FAB drag-to-reposition -------------------------------------------
+// Free vertical placement along either edge, snapping to whichever edge
+// (left or right) it's released nearer to — the same interaction shape as
+// iOS's own AssistiveTouch bubble. Saved position survives reload the same
+// way rest-timer state does: one JSON blob under window.storage, restored
+// during [INIT].
+//
+// Clearances keep it out of two real collision zones rather than letting it
+// go edge-to-edge: COACH_FAB_TOP_CLEARANCE stays below the nav rail/header,
+// COACH_FAB_BOTTOM_CLEARANCE matches the CSS default's own bottom:22px so a
+// freshly-dragged position doesn't look inconsistent with an untouched one.
+const COACH_FAB_POSITION_KEY = 'coach-fab-position';
+const COACH_FAB_EDGE_GAP = 18; // matches .coach-fab's own default right:18px
+const COACH_FAB_TOP_CLEARANCE = 100;
+const COACH_FAB_BOTTOM_CLEARANCE = 22;
+
+function clampCoachFabTop(rawTop, fabHeight){
+  const min = COACH_FAB_TOP_CLEARANCE;
+  const max = Math.max(min, window.innerHeight - COACH_FAB_BOTTOM_CLEARANCE - fabHeight);
+  return Math.min(max, Math.max(min, rawTop));
+}
+
+// Always positions via top+left/right — never left AND right at once, and
+// never touches bottom (which stays 'auto' once a custom position exists,
+// so top is the single source of truth for vertical placement).
+function applyCoachFabPosition(fab, side, topPx){
+  fab.style.top = topPx + 'px';
+  fab.style.bottom = 'auto';
+  fab.style.left = side === 'left' ? COACH_FAB_EDGE_GAP + 'px' : 'auto';
+  fab.style.right = side === 'right' ? COACH_FAB_EDGE_GAP + 'px' : 'auto';
+}
+
+async function saveCoachFabPosition(side, topFraction){
+  try{ await window.storage.set(COACH_FAB_POSITION_KEY, JSON.stringify({side, topFraction})); }catch(e){}
+}
+
+// topFraction is 0-1 within the draggable range, not a raw pixel — so a
+// saved position still lands somewhere sane if the viewport height differs
+// next time (a different phone, or this same one after a keyboard/rotation
+// change), rather than trusting a pixel value that may no longer fit.
+async function restoreCoachFabPosition(){
+  const fab = document.getElementById('coachFab');
+  if(!fab) return;
+  try{
+    const res = await window.storage.get(COACH_FAB_POSITION_KEY);
+    if(!res || !res.value) return;
+    const saved = JSON.parse(res.value);
+    if(saved.side !== 'left' && saved.side !== 'right') return;
+    if(typeof saved.topFraction !== 'number' || !Number.isFinite(saved.topFraction)) return;
+    const rect = fab.getBoundingClientRect();
+    const min = COACH_FAB_TOP_CLEARANCE;
+    const max = Math.max(min, window.innerHeight - COACH_FAB_BOTTOM_CLEARANCE - rect.height);
+    const topPx = min + Math.min(1, Math.max(0, saved.topFraction)) * (max - min);
+    applyCoachFabPosition(fab, saved.side, topPx);
+  }catch(e){}
+}
+
+(function wireCoachFabDrag(){
+  const fab = document.getElementById('coachFab');
+  if(!fab) return;
+  // Same movement-threshold-before-capture shape makeSwipeable already
+  // established (see its own comment on why this is a threshold rather than
+  // a target-element allowlist): every tap is also a
+  // pointerdown+pointermove+pointerup, and capturing on pointerdown
+  // unconditionally would retarget the synthesized click for every plain
+  // tap, not just real drags.
+  const DRAG_THRESHOLD = 8;
+  let startX = 0, startY = 0, dragging = false, activePointerId = null;
+  let fabStartLeft = 0, fabStartTop = 0;
+
+  fab.addEventListener('pointerdown', (e)=>{
+    if(e.button != null && e.button !== 0) return; // primary contact only
+    startX = e.clientX; startY = e.clientY;
+    activePointerId = e.pointerId;
+    const rect = fab.getBoundingClientRect();
+    fabStartLeft = rect.left; fabStartTop = rect.top;
+    fab.style.transition = 'none';
+    // NOT captured yet, dragging NOT set true yet — see pointermove.
+  });
+
+  fab.addEventListener('pointermove', (e)=>{
+    if(e.pointerId !== activePointerId) return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    if(!dragging){
+      if(Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+      dragging = true;
+      fab.classList.add('dragging');
+      fab.setPointerCapture(activePointerId);
+    }
+    if(e.cancelable) e.preventDefault(); // the page itself must not scroll under a real drag
+    const rect = fab.getBoundingClientRect();
+    const newTop = clampCoachFabTop(fabStartTop + dy, rect.height);
+    const newLeft = Math.min(window.innerWidth - rect.width, Math.max(0, fabStartLeft + dx));
+    fab.style.top = newTop + 'px';
+    fab.style.bottom = 'auto';
+    fab.style.left = newLeft + 'px';
+    fab.style.right = 'auto';
+  }, {passive:false});
+
+  async function endDrag(){
+    if(!dragging){ activePointerId = null; return; }
+    dragging = false;
+    coachFabJustDragged = true; // consumed once by the click handler above
+    fab.classList.remove('dragging');
+    fab.style.transition = ''; // restore the CSS-defined transition for the snap
+    const rect = fab.getBoundingClientRect();
+    const side = (rect.left + rect.width / 2) < (window.innerWidth / 2) ? 'left' : 'right';
+    const finalTop = clampCoachFabTop(rect.top, rect.height);
+    applyCoachFabPosition(fab, side, finalTop);
+    const min = COACH_FAB_TOP_CLEARANCE;
+    const max = Math.max(min, window.innerHeight - COACH_FAB_BOTTOM_CLEARANCE - rect.height);
+    await saveCoachFabPosition(side, max > min ? (finalTop - min) / (max - min) : 0);
+    activePointerId = null;
+  }
+  fab.addEventListener('pointerup', endDrag);
+  fab.addEventListener('pointercancel', endDrag);
+
+  // A saved custom position stays in bounds across a resize/rotation —
+  // recomputed against the new viewport with the same clearances a fresh
+  // drag would use, rather than trusting a now-possibly-stale pixel value.
+  window.addEventListener('resize', ()=>{
+    if(fab.style.top === '' || fab.style.top === 'auto') return; // still at the CSS default — nothing to re-clamp
+    const rect = fab.getBoundingClientRect();
+    const side = fab.style.left !== 'auto' && fab.style.left !== '' ? 'left' : 'right';
+    applyCoachFabPosition(fab, side, clampCoachFabTop(rect.top, rect.height));
+  });
 })();
 
 (function wireBackupVerify(){
