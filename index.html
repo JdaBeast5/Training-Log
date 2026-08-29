@@ -636,6 +636,7 @@
      or a name+subtitle pair (My Supplements matching a known entry). */
   .supplement-name-wrap{display:flex; flex-direction:column; gap:2px; min-width:0;}
   .supplement-name-wrap .supplement-benefit{font-size:11.5px; color:var(--text-muted); font-weight:400;}
+  .supplement-name-wrap .supplement-frequency{font-size:11.5px; color:var(--plate-blue); font-weight:600;}
   .grocery-item{
     display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px;
     cursor:pointer; user-select:none;
@@ -5491,6 +5492,11 @@
     <div class="history-hint">Track whatever you actually take, day to day — anything that matches a Supplement Recommendations entry gets its evidence tier shown here too.</div>
     <div class="weight-input-row">
       <input type="text" id="mySupplementAddInput" class="care-input" placeholder="Add a supplement (e.g. Creatine)" aria-label="Add a supplement" autocomplete="off">
+      <select id="mySupplementFrequencySelect" class="care-input" style="flex:0 0 116px; padding-left:8px;" aria-label="How often">
+        <option value="daily">Daily</option>
+        <option value="twice-daily">Twice daily</option>
+        <option value="weekly">Weekly</option>
+      </select>
       <button id="mySupplementAddBtn">Add</button>
     </div>
     <div id="mySupplementsList"></div>
@@ -6464,10 +6470,15 @@ function bootMark(name){
      week-progress:{program}             -> {dayId: boolean, ...} (whole-day-complete flags, resets weekly)
      week-checked:{program}:{dayId}      -> {exerciseIdx: boolean, ...} (per-exercise, resets weekly)
      grocery-list                        -> [{text, checked}, ...]
-     my-supplements                      -> ["name", ...] (user-maintained list, general/any supplement)
-     supplement-taken:{date}             -> {name: boolean, ...} (per-day taken state for my-supplements — a
-                                             DELIBERATE separate key from supplement-log:{date} above, never
-                                             read by computeSupplementStreak)
+     my-supplements                      -> [{name, frequency: "daily"|"twice-daily"|"weekly"}, ...] (user-
+                                             maintained list, general/any supplement) [v8: legacy bare-string
+                                             entries read transparently as {name, frequency:"daily"}]
+     supplement-taken:{periodKey}        -> {name: count, ...} (per-PERIOD check-in count for my-supplements —
+                                             a DELIBERATE separate key from supplement-log:{date} above, never
+                                             read by computeSupplementStreak. periodKey is selectedLogDate for
+                                             daily/twice-daily items, mondayOf(selectedLogDate) for weekly ones
+                                             — see supplementPeriodKey(). [v8: legacy boolean values read
+                                             transparently as 0/1 counts])
      hide-avoided-foods                  -> "1" | "0"
      workout-time:{date}                 -> {first, last} ("HH:MM" clock times of first/last set logged that day) [session 3]
                                              — a parallel display key like week-progress, never read by PRs/streaks/history,
@@ -6515,8 +6526,8 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.252';
-const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
+const APP_VERSION = '3.253';
+const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
 // One short entry per APP_VERSION bump, written for the person USING the
@@ -7112,6 +7123,10 @@ const WHATS_NEW = {
     'Tracking both halves of a known mineral-absorption pair (Iron + Calcium, or Iron + Zinc) now shows a heads-up about taking them a few hours apart.',
     'Every tracked supplement now has a small chat-bubble button that opens Ask Your Coach with a question about it already typed in — send it as-is or edit it first.',
   ]},
+  '3.253': { headline: 'My Supplements now tracks dosing frequency, plus Vitamin B12', points: [
+    'Adding a supplement now asks how often you take it — daily, twice daily, or weekly — and the tracker keeps count: a twice-daily item shows your progress today (e.g. "1/2"), and a weekly one stays checked off for the whole week instead of resetting every night.',
+    'Vitamin B12 joins the Foundational Stack as a sixth baseline recommendation, and Calcium is now correctly flagged as twice-daily, matching its own existing "split doses absorb better" guidance.',
+  ]},
 };
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -7507,6 +7522,13 @@ async function runMigrations(){
       }catch(e){}
     }
   }
+
+  // v8: my-supplements entries moved from bare name strings to
+  // {name, frequency} objects, and supplement-taken:{periodKey} values moved
+  // from booleans to counts (to support "twice daily" needing two check-ins
+  // per period). No destructive rewrite needed — loadMySupplements() and
+  // loadSupplementTakenState() both read either shape transparently on
+  // every access, same treatment as the v2 exercise-log shape change above.
 
   if(version < SCHEMA_VERSION){
     // Held back if the photo move didn't finish, so the next launch retries it.
@@ -33043,13 +33065,23 @@ document.getElementById('groceryClearCheckedBtn').addEventListener('click', asyn
 // `my-supplements` is a maintained list (add/remove rarely — mirrors
 // grocery-list's own {list, dedupe-on-add, swipe-to-delete} shape exactly,
 // see loadGroceryList/addGroceryItems/renderGroceryList just above), while
-// `supplement-taken:{date}` is a per-day boolean map keyed by
-// selectedLogDate — same shape as the bariatric checklist's own
-// `supplement-log:{date}` (see SUPPLEMENT_ITEMS/loadSupplements below), but
-// a DELIBERATELY SEPARATE key: this list is arbitrary and user-authored,
-// and writing its entries into supplement-log:{date} would corrupt
-// computeSupplementStreak's `SUPPLEMENT_ITEMS.every(...)` check the moment
-// an unrelated name showed up in that same map.
+// `supplement-taken:{periodKey}` is a per-PERIOD count map — a DELIBERATELY
+// SEPARATE key from the bariatric checklist's own `supplement-log:{date}`
+// (see SUPPLEMENT_ITEMS/loadSupplements below): this list is arbitrary and
+// user-authored, and writing its entries into supplement-log:{date} would
+// corrupt computeSupplementStreak's `SUPPLEMENT_ITEMS.every(...)` check the
+// moment an unrelated name showed up in that same map.
+//
+// "Per-period", not always "per-day": a daily or twice-daily item's period
+// is selectedLogDate, same as before; a weekly item's period is the Monday
+// of that same week (mondayOf(), the exact boundary "Save This Week & Start
+// Fresh" already uses) — so a weekly item's check-in genuinely persists for
+// the whole week instead of resetting every midnight. The stored value
+// under each name is now a COUNT, not a boolean (a legacy `true` from
+// before this changed reads as 1, `false`/absent as 0 — no destructive
+// rewrite needed, same "read either shape transparently" treatment as the
+// v2 exercise-log migration above) — one mechanism covers "once" (daily/
+// weekly, required=1) and "twice a day" (required=2) alike.
 //
 // A name typed here that happens to match a Foundational Stack entry (case-
 // insensitively) gets that entry's evidence tier and a one-line benefit note
@@ -33059,37 +33091,69 @@ document.getElementById('groceryClearCheckedBtn').addEventListener('click', asyn
 // here surfaces the same "well-established, 3-5g daily" framing Coach
 // already gives it, for free.
 async function loadMySupplements(){
+  let list = [];
   try{
     const res = await window.storage.get('my-supplements');
-    return res && res.value ? JSON.parse(res.value) : [];
+    list = res && res.value ? JSON.parse(res.value) : [];
   }catch(e){ return []; }
+  // Legacy shape was a bare array of name strings (pre-dosing-frequency) —
+  // normalized to {name, frequency} on every read, same transparent-upgrade
+  // treatment as the exercise-log v2 migration. saveMySupplements always
+  // writes the new shape, so this only ever matters for old stored data.
+  return list.map(entry=>{
+    if(typeof entry === 'string') return {name: entry, frequency: 'daily'};
+    const frequency = SUPPLEMENT_FREQUENCY_META[entry.frequency] ? entry.frequency : 'daily';
+    return {name: entry.name, frequency};
+  });
 }
 
 async function saveMySupplements(list){
   try{ await window.storage.set('my-supplements', JSON.stringify(list)); }catch(e){}
 }
 
-async function addMySupplement(name){
+async function addMySupplement(name, frequency){
   const trimmed = String(name || '').trim();
   if(!trimmed) return;
   const list = await loadMySupplements();
-  if(list.some(n=> n.toLowerCase() === trimmed.toLowerCase())) return;
-  list.push(trimmed);
+  if(list.some(item=> item.name.toLowerCase() === trimmed.toLowerCase())) return;
+  list.push({name: trimmed, frequency: SUPPLEMENT_FREQUENCY_META[frequency] ? frequency : 'daily'});
   await saveMySupplements(list);
   await renderMySupplements();
 }
 
-async function loadSupplementTakenState(){
+// A weekly item's "today" is really "this week" — mondayOf(selectedLogDate)
+// so it reads/writes the same key all week regardless of which day it's
+// viewed from, then genuinely resets once a new Monday starts.
+function supplementPeriodKey(frequency){
+  return frequency === 'weekly' ? mondayOf(selectedLogDate) : selectedLogDate;
+}
+
+async function loadSupplementTakenState(periodKey){
   try{
-    const res = await window.storage.get(`supplement-taken:${selectedLogDate}`);
-    return res && res.value ? JSON.parse(res.value) : {};
+    const res = await window.storage.get(`supplement-taken:${periodKey}`);
+    if(!res || !res.value) return {};
+    const raw = JSON.parse(res.value);
+    // Legacy per-item value was a boolean; normalized to a count (0 or 1)
+    // on every read, same transparent-upgrade treatment loadMySupplements
+    // gives its own legacy shape.
+    const normalized = {};
+    for(const key of Object.keys(raw)) normalized[key] = raw[key] === true ? 1 : (raw[key] === false ? 0 : Number(raw[key]) || 0);
+    return normalized;
   }catch(e){ return {}; }
 }
 
-async function toggleMySupplementTaken(name){
-  const state = await loadSupplementTakenState();
-  state[name] = !state[name];
-  try{ await window.storage.set(`supplement-taken:${selectedLogDate}`, JSON.stringify(state)); }catch(e){}
+// Cycles a tracked item's count for its own period (0 -> 1 -> ... ->
+// required -> 0) rather than a plain boolean flip, so "twice daily" has
+// somewhere to record the SECOND check-in without a different mechanism
+// for it. requiredCount comes from the frequency itself, never a UI param —
+// a row can't be marked more done than its own dosing schedule allows for.
+async function toggleMySupplementTaken(name, frequency){
+  const periodKey = supplementPeriodKey(frequency);
+  const state = await loadSupplementTakenState(periodKey);
+  const requiredCount = (SUPPLEMENT_FREQUENCY_META[frequency] || SUPPLEMENT_FREQUENCY_META.daily).requiredCount;
+  const current = state[name] || 0;
+  state[name] = current >= requiredCount ? 0 : current + 1;
+  try{ await window.storage.set(`supplement-taken:${periodKey}`, JSON.stringify(state)); }catch(e){}
   await renderMySupplements();
 }
 
@@ -33162,30 +33226,50 @@ async function renderMySupplements(){
     `;
     return;
   }
-  const state = await loadSupplementTakenState();
-  const itemHtmls = list.map(name=>{
-    const done = !!state[name];
+  // Two possible period keys, never more: today for daily/twice-daily items,
+  // this week's Monday for weekly ones. The weekly fetch only happens when
+  // at least one tracked item actually needs it.
+  const todayState = await loadSupplementTakenState(selectedLogDate);
+  const weekState = list.some(item=> item.frequency === 'weekly')
+    ? await loadSupplementTakenState(mondayOf(selectedLogDate))
+    : {};
+
+  const itemHtmls = list.map(item=>{
+    const { name, frequency } = item;
+    const meta = SUPPLEMENT_FREQUENCY_META[frequency] || SUPPLEMENT_FREQUENCY_META.daily;
+    const count = (frequency === 'weekly' ? weekState : todayState)[name] || 0;
+    const done = count >= meta.requiredCount;
     const info = findKnownSupplementInfo(name);
+
     // .supplement-label (not the old span:last-child) is what the .done
     // rule now targets — see the CSS comment above .supplement-ask-btn —
     // since the ask-your-coach button below makes this a THREE-child row,
-    // and the actual last child is no longer the name/benefit span.
-    const contentHtml = info
-      ? `<span class="supplement-name-wrap supplement-label"><span>${escapeHtml(name)}</span><span class="supplement-benefit">${SUPPLEMENT_EVIDENCE_LABELS[info.evidence] || ''} — ${escapeHtml(info.why.split('. ')[0])}${info.why.includes('. ') ? '.' : ''}</span></span>`
-      : `<span class="supplement-label">${escapeHtml(name)}</span>`;
+    // and the actual last child is no longer the name/benefit span. Only
+    // wrapped in the multi-line container when there's actually a second
+    // line to show (a known benefit, or a non-default frequency) — a plain
+    // daily item with no match stays the simple single-span row it always was.
+    const parts = [`<span>${escapeHtml(name)}</span>`];
+    if(info) parts.push(`<span class="supplement-benefit">${SUPPLEMENT_EVIDENCE_LABELS[info.evidence] || ''} — ${escapeHtml(info.why.split('. ')[0])}${info.why.includes('. ') ? '.' : ''}</span>`);
+    if(frequency !== 'daily'){
+      const progress = meta.requiredCount > 1 ? ` — ${count}/${meta.requiredCount} today` : '';
+      parts.push(`<span class="supplement-frequency">${escapeHtml(meta.label)}${progress}</span>`);
+    }
+    const contentHtml = parts.length > 1
+      ? `<span class="supplement-name-wrap supplement-label">${parts.join('')}</span>`
+      : `<span class="supplement-label">${parts[0]}</span>`;
     const askBtnHtml = `<button type="button" class="supplement-ask-btn" aria-label="Ask your coach about ${escapeHtml(name)}">${icon('chat', {size:'15px'})}</button>`;
     return buildSwipeItem(
       `<div class="supplement-row ${done ? 'done' : ''}"><span class="supplement-check">${done ? icon('check', {size:'13px'}) : ''}</span>${contentHtml}${askBtnHtml}</div>`
     );
   });
-  const interactionBanners = findSupplementInteractionNotes(list)
+  const interactionBanners = findSupplementInteractionNotes(list.map(item=> item.name))
     .map(note=> `<div class="care-banner care-banner-caution" style="margin-bottom:8px;">${escapeHtml(note)}</div>`)
     .join('');
   el.innerHTML = interactionBanners + itemHtmls.join('');
 
   el.querySelectorAll('.swipe-item').forEach((swipeEl, idx)=>{
-    const name = list[idx];
-    swipeEl.querySelector('.supplement-row').addEventListener('click', ()=> toggleMySupplementTaken(name));
+    const { name, frequency } = list[idx];
+    swipeEl.querySelector('.supplement-row').addEventListener('click', ()=> toggleMySupplementTaken(name, frequency));
     // The ask button lives INSIDE .supplement-row (so it sits inline, at
     // the row's end) — stopPropagation is what keeps its click from also
     // bubbling up into the row's own toggle listener above.
@@ -33195,7 +33279,7 @@ async function renderMySupplements(){
     });
     makeSwipeable(swipeEl, async ()=>{
       const current = await loadMySupplements();
-      const removedIdx = current.indexOf(name);
+      const removedIdx = current.findIndex(item=> item.name === name);
       if(removedIdx === -1) return;
       const preDeleteSnapshot = JSON.stringify(current);
       current.splice(removedIdx, 1);
@@ -33211,9 +33295,10 @@ async function renderMySupplements(){
 
 document.getElementById('mySupplementAddBtn').addEventListener('click', async ()=>{
   const input = document.getElementById('mySupplementAddInput');
+  const freqSelect = document.getElementById('mySupplementFrequencySelect');
   const text = input.value.trim();
   if(!text) return;
-  await addMySupplement(text);
+  await addMySupplement(text, freqSelect ? freqSelect.value : 'daily');
   input.value = '';
 });
 document.getElementById('mySupplementAddInput').addEventListener('keydown', (e)=>{
@@ -39493,15 +39578,27 @@ const SUPPLEMENT_EVIDENCE_LABELS = {
   'limited': '❔ Limited evidence',
 };
 
-// `alreadyTracked` is the real My Supplements list (loadMySupplements()'s
-// own return shape — an array of names), passed in by the caller rather
-// than read here, so this stays a plain synchronous renderer. A name
-// already tracked (case-insensitive — matches addMySupplement's own dedupe
-// rule) renders its add button as already-added and disabled from the
-// first paint, not just after a click in the current session — the same
-// "already tracked" state has to be true everywhere this card can appear
-// (a fresh Foundational Stack open, a brand new AI request), not just the
-// one render that happened to add it.
+// Required check-ins per frequency, and its display label — shared by My
+// Supplements (the tracker actually enforcing this) and, indirectly, by
+// every place a name+frequency pair gets created (Foundational Stack items
+// already carry a real `frequency`; the AI JSON schema below asks for one
+// too) so "twice daily" means the same thing everywhere it's set.
+const SUPPLEMENT_FREQUENCY_META = {
+  daily: { requiredCount: 1, label: 'Daily' },
+  'twice-daily': { requiredCount: 2, label: 'Twice daily' },
+  weekly: { requiredCount: 1, label: 'Weekly' },
+};
+
+// `alreadyTracked` is the real My Supplements list, NAMES ONLY — callers
+// map loadMySupplements()'s `{name, frequency}` objects down to `.name`
+// before passing, since this stays a plain synchronous renderer and has no
+// business caring about a tracked item's frequency, only whether it's
+// tracked at all. A name already tracked (case-insensitive — matches
+// addMySupplement's own dedupe rule) renders its add button as already-
+// added and disabled from the first paint, not just after a click in the
+// current session — the same "already tracked" state has to be true
+// everywhere this card can appear (a fresh Foundational Stack open, a
+// brand new AI request), not just the one render that happened to add it.
 function renderSupplementCards(items, alreadyTracked){
   const trackedLower = new Set((alreadyTracked || []).map(n=> n.toLowerCase()));
   return items.map((r, i)=> {
@@ -39532,7 +39629,11 @@ function wireSupplementAddButtons(containerEl, items){
     btn.addEventListener('click', async ()=>{
       const item = items[Number(btn.dataset.idx)];
       if(!item || !item.name) return;
-      await addMySupplement(item.name);
+      // Carries the recommendation's own dosing schedule into the tracker
+      // (Foundational Stack items always have a real `frequency`; an AI
+      // response that omits or mis-types one falls back to 'daily' inside
+      // addMySupplement itself, same as a manually-typed add would).
+      await addMySupplement(item.name, item.frequency);
       btn.textContent = 'Added ✓';
       btn.disabled = true;
     });
@@ -39562,6 +39663,7 @@ const FOUNDATIONAL_SUPPLEMENT_STACK = {
       typicalDose: '1,000-2,000 IU daily',
       timing: 'With a meal containing fat, for absorption',
       caution: null,
+      frequency: 'daily',
     },
     {
       name: 'Omega-3 (Fish Oil or Algae-Based EPA/DHA)',
@@ -39570,6 +39672,7 @@ const FOUNDATIONAL_SUPPLEMENT_STACK = {
       typicalDose: '1-2g combined EPA/DHA daily',
       timing: 'With a meal',
       caution: null,
+      frequency: 'daily',
     },
     {
       name: 'Magnesium (Glycinate or Citrate)',
@@ -39578,6 +39681,7 @@ const FOUNDATIONAL_SUPPLEMENT_STACK = {
       typicalDose: '200-400mg',
       timing: 'Evening',
       caution: 'The citrate form can have a laxative effect at higher doses — glycinate is gentler if that becomes an issue.',
+      frequency: 'daily',
     },
     {
       name: 'Creatine Monohydrate',
@@ -39586,6 +39690,7 @@ const FOUNDATIONAL_SUPPLEMENT_STACK = {
       typicalDose: '3-5g daily, no loading phase needed',
       timing: 'Any time — consistency matters far more than timing',
       caution: null,
+      frequency: 'daily',
     },
     {
       name: 'Protein Powder (Whey or Plant-Based)',
@@ -39594,6 +39699,16 @@ const FOUNDATIONAL_SUPPLEMENT_STACK = {
       typicalDose: '20-40g per serving, as needed to hit your daily target',
       timing: 'Any time, often convenient right after training',
       caution: null,
+      frequency: 'daily',
+    },
+    {
+      name: 'Vitamin B12',
+      evidence: 'well-established',
+      why: 'One of the most broadly under-supplied nutrients — plant-based diets, aging, and some common medications (like metformin) all reduce absorption, and low levels drive real fatigue and neurological symptoms well before they show up on a routine checkup.',
+      typicalDose: '250-500mcg daily',
+      timing: 'Any time',
+      caution: null,
+      frequency: 'daily',
     },
   ],
   male: [
@@ -39604,6 +39719,7 @@ const FOUNDATIONAL_SUPPLEMENT_STACK = {
       typicalDose: '15-25mg daily',
       timing: 'With food, to avoid nausea',
       caution: 'Long-term high-dose zinc can impair copper absorption — don\'t exceed the recommended dose without a specific reason, and consider a copper-balanced formula for extended use.',
+      frequency: 'daily',
     },
   ],
   female: [
@@ -39614,6 +39730,7 @@ const FOUNDATIONAL_SUPPLEMENT_STACK = {
       typicalDose: 'Varies widely by actual level — this is the one item here worth a blood test before starting, not a guess',
       timing: 'On an empty stomach if tolerated, away from calcium/coffee/tea, which block absorption',
       caution: 'Iron overload is genuinely harmful — do not supplement iron without a blood test confirming you\'re actually low.',
+      frequency: 'daily',
     },
     {
       name: 'Calcium',
@@ -39622,6 +39739,10 @@ const FOUNDATIONAL_SUPPLEMENT_STACK = {
       typicalDose: '500-1,000mg, accounting for what you already get from food',
       timing: 'Split doses through the day absorb better than one large dose',
       caution: 'Count dietary calcium (dairy, fortified foods) first — supplementing on top of an already-sufficient diet has no added benefit and may raise kidney stone risk.',
+      // The one Foundational Stack entry genuinely dosed twice a day, not
+      // once — grounded in its OWN timing note above (split doses absorb
+      // better), not picked to force variety into the frequency field.
+      frequency: 'twice-daily',
     },
     {
       name: 'Folate (Vitamin B9)',
@@ -39630,6 +39751,7 @@ const FOUNDATIONAL_SUPPLEMENT_STACK = {
       typicalDose: '400mcg daily (higher if pregnant or planning — that\'s a doctor conversation, not a self-directed increase)',
       timing: 'Any time',
       caution: null,
+      frequency: 'daily',
     },
   ],
   other: [],
@@ -39654,7 +39776,7 @@ function getFoundationalSupplementStack(){
 async function renderFoundationalStack(){
   const container = document.getElementById('foundationalStackResult').firstElementChild;
   const items = getFoundationalSupplementStack();
-  const existing = await loadMySupplements();
+  const existing = (await loadMySupplements()).map(i=> i.name);
   container.innerHTML = `
     <div class="history-hint">A general starting point for anyone — not tailored to your specific goal or a particular request. For that, use the box below.</div>
     ${renderSupplementCards(items, existing)}
@@ -39701,7 +39823,7 @@ Rules:
 - If the request conflicts with a flagged condition or dietary restriction, address that directly in the note rather than silently ignoring it.
 - Every dose/timing is a general adult starting point from the literature, not a personalized prescription — say so in the note, and flag anywhere a real medication interaction or condition makes "ask your doctor first" more than boilerplate.
 
-Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"recommendations":[{"name":"string","evidence":"well-established"|"promising"|"mixed"|"limited","why":"one to two sentences tying it to their specific goal/request","typicalDose":"string","timing":"string","caution":"string or null, only if there is something specific to THIS person's flagged conditions/diet/request"}],"note":"string — closing context, safety framing, or refusal explanation; always non-empty"}`;
+Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"recommendations":[{"name":"string","evidence":"well-established"|"promising"|"mixed"|"limited","why":"one to two sentences tying it to their specific goal/request","typicalDose":"string","timing":"string","frequency":"daily"|"twice-daily"|"weekly" (the REAL typical dosing schedule — most supplements are "daily"; use "twice-daily" only when split dosing is actually standard for it, "weekly" only for something genuinely dosed that infrequently, never guessed for variety),"caution":"string or null, only if there is something specific to THIS person's flagged conditions/diet/request"}],"note":"string — closing context, safety framing, or refusal explanation; always non-empty"}`;
 }
 
 async function submitSupplementRequest(){
@@ -39730,7 +39852,7 @@ async function submitSupplementRequest(){
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
     const recs = parsed.recommendations || [];
-    const existing = await loadMySupplements();
+    const existing = (await loadMySupplements()).map(i=> i.name);
 
     resultEl.innerHTML = `
       ${renderSupplementCards(recs, existing)}

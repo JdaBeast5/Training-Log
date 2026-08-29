@@ -44,6 +44,7 @@ const wireSupplementAddButtonsSrc = extractFunction(src, 'wireSupplementAddButto
 const addMySupplementSrc = extractFunction(src, 'addMySupplement');
 const loadMySupplementsSrc = extractFunction(src, 'loadMySupplements');
 const saveMySupplementsSrc = extractFunction(src, 'saveMySupplements');
+const supplementFrequencyMetaSrc = extractConst(src, 'SUPPLEMENT_FREQUENCY_META');
 
 function extractStatement(source, startText){
   const startIdx = source.indexOf(startText);
@@ -182,7 +183,7 @@ function setupSubmit({ apiKey = 'fake-key', profileOverrides = {} } = {}){
     escapeHtmlSrc, aiKeySetupPromptSrc, getApiKeySrc,
     goalLabelsSrc, persistentConditionsSrc, describeDietaryFlagsSrc, activeConditionKeysSrc,
     supplementEvidenceLabelsSrc, renderSupplementCardsSrc,
-    loadMySupplementsSrc, saveMySupplementsSrc, addMySupplementSrc, wireSupplementAddButtonsSrc,
+    supplementFrequencyMetaSrc, loadMySupplementsSrc, saveMySupplementsSrc, addMySupplementSrc, wireSupplementAddButtonsSrc,
     buildSupplementSystemPromptSrc, submitSupplementRequestSrc,
     'window.__capturedRequests = [];',
     'window.submitSupplementRequest = submitSupplementRequest;',
@@ -291,7 +292,7 @@ function setupFoundationalStack(profileOverrides){
   `;
   const { window, document } = runJsdom(bodyHtml, globalsSetup, [
     escapeHtmlSrc, supplementEvidenceLabelsSrc, renderSupplementCardsSrc,
-    loadMySupplementsSrc, saveMySupplementsSrc, addMySupplementSrc, wireSupplementAddButtonsSrc,
+    supplementFrequencyMetaSrc, loadMySupplementsSrc, saveMySupplementsSrc, addMySupplementSrc, wireSupplementAddButtonsSrc,
     foundationalStackSrc, getFoundationalSupplementStackSrc,
     renderFoundationalStackSrc, foundationalToggleWiringSrc,
     'window.getFoundationalSupplementStack = getFoundationalSupplementStack;',
@@ -310,8 +311,18 @@ function foundationalStackContentEl(document){
 test('REAL invocation: getFoundationalSupplementStack for an unset/other gender returns ONLY the base list', (assert)=>{
   const { window } = setupFoundationalStack({gender:'other'});
   const names = window.getFoundationalSupplementStack().map(i=>i.name);
-  assert.ok(names.includes('Vitamin D3') && names.includes('Creatine Monohydrate'), 'base items must be present');
+  assert.ok(names.includes('Vitamin D3') && names.includes('Creatine Monohydrate') && names.includes('Vitamin B12'), 'base items, including the newly-added Vitamin B12, must be present');
   assert.ok(!names.includes('Zinc') && !names.includes('Iron'), 'no gender-specific additions must be guessed for other/unset');
+});
+
+test('REAL invocation: every Foundational Stack entry carries a real, recognized frequency', (assert)=>{
+  const { window } = setupFoundationalStack({gender:'female'});
+  const items = window.getFoundationalSupplementStack();
+  items.forEach(item=>{
+    assert.ok(['daily','twice-daily','weekly'].includes(item.frequency), `${item.name} must carry a real frequency value, got: ${item.frequency}`);
+  });
+  const calcium = items.find(i=> i.name === 'Calcium');
+  assert.strictEqual(calcium.frequency, 'twice-daily', 'Calcium specifically must be twice-daily, matching its own "split doses absorb better" guidance');
 });
 
 test('sabotage-relevant: a male profile adds the real male-specific item(s) on top of the same base list, and none of the female-specific ones', (assert)=>{
@@ -395,7 +406,7 @@ test('REAL invocation: clicking "+ Add to my supplements" on an AI-recommended c
   addBtn.click();
   await new Promise(r=> setTimeout(r, 20));
 
-  assert.deepStrictEqual(JSON.parse(window.storage.__store['my-supplements']), ['Creatine Monohydrate'], 'the real name from the recommendation must reach the real my-supplements list');
+  assert.deepStrictEqual(JSON.parse(window.storage.__store['my-supplements']), [{name:'Creatine Monohydrate', frequency:'daily'}], 'the real name from the recommendation must reach the real my-supplements list (frequency defaults to daily since this fixture response omits one)');
   assert.strictEqual(addBtn.disabled, true, 'the button must disable itself after adding');
   assert.match(addBtn.textContent, /Added/, 'the button label must confirm the add');
 });
@@ -416,7 +427,7 @@ test('sabotage-relevant: with two recommendation cards, clicking the SECOND card
   addBtns[1].click();
   await new Promise(r=> setTimeout(r, 20));
 
-  assert.deepStrictEqual(JSON.parse(window.storage.__store['my-supplements']), ['Magnesium'], 'only the SECOND card\'s name (Magnesium) must be added — a sabotaged index-0-always bug would add Vitamin D3 instead');
+  assert.deepStrictEqual(JSON.parse(window.storage.__store['my-supplements']), [{name:'Magnesium', frequency:'daily'}], 'only the SECOND card\'s name (Magnesium) must be added — a sabotaged index-0-always bug would add Vitamin D3 instead');
 });
 
 test('REAL invocation: clicking "+ Add to my supplements" on a Foundational Stack card adds the real matched item', async (assert)=>{
@@ -430,7 +441,21 @@ test('REAL invocation: clicking "+ Add to my supplements" on a Foundational Stac
 
   const stored = JSON.parse(window.storage.__store['my-supplements']);
   assert.strictEqual(stored.length, 1);
-  assert.ok(window.getFoundationalSupplementStack().some(i=> i.name === stored[0]), 'the added name must be one of the REAL Foundational Stack entries, not a placeholder');
+  assert.ok(window.getFoundationalSupplementStack().some(i=> i.name === stored[0].name), 'the added name must be one of the REAL Foundational Stack entries, not a placeholder');
+});
+
+test('REAL invocation: adding Calcium from the Foundational Stack carries over its real twice-daily frequency, not a default', async (assert)=>{
+  const { window, document } = setupFoundationalStack({gender:'female'});
+  await window.renderFoundationalStack();
+  const cards = [...document.querySelectorAll('#foundationalStackResult .photo-result-card')];
+  const calciumCard = cards.find(c=> c.textContent.includes('Calcium'));
+  assert.ok(calciumCard, 'precondition: a real Calcium card must have rendered for a female profile');
+
+  calciumCard.querySelector('.supplement-add-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  const stored = JSON.parse(window.storage.__store['my-supplements']);
+  assert.deepStrictEqual(stored, [{name:'Calcium', frequency:'twice-daily'}], 'Calcium\'s real, curated frequency (twice-daily) must reach the tracker automatically, not fall back to daily');
 });
 
 // --- "Already tracked" state must be real and persisted, not session-only --
