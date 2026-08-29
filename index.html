@@ -5954,8 +5954,10 @@
       <div class="care-disclaimer" style="margin-bottom:10px;"><b>Not medical advice.</b> Supplements can interact with medications and health conditions — check with your doctor or pharmacist before starting anything new, especially if you're pregnant, breastfeeding, or managing a condition like high blood pressure or diabetes. Doses below are general adult starting points from the research, not a personalized prescription, and none of this has been evaluated by the FDA.</div>
       <div class="history-hint">Grounded in your goal, program, and profile. Ask about something specific, or leave it blank for a general starting point.</div>
 
-      <button class="usda-key-upgrade-toggle" id="foundationalStackToggle">📋 View foundational stack</button>
-      <div id="foundationalStackResult" style="display:none"></div>
+      <button type="button" class="program-basis-toggle" id="foundationalStackToggle" aria-expanded="false" aria-controls="foundationalStackResult">
+        <span class="chev" aria-hidden="true">›</span> View foundational stack
+      </button>
+      <div class="smooth-toggle" id="foundationalStackResult"><div></div></div>
 
       <label class="care-label" for="supplementRequestInput">Anything specific? (optional)</label>
       <input type="text" id="supplementRequestInput" class="care-input" placeholder="e.g. best for recovery, budget picks, I get GI issues with creatine" autocomplete="off">
@@ -6501,7 +6503,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.250';
+const APP_VERSION = '3.251';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7088,6 +7090,10 @@ const WHATS_NEW = {
   ]},
   '3.250': { headline: 'Supplement Recommendations now add straight to your tracker', points: [
     'Every card in Supplement Recommendations — both the AI-generated ones and the Foundational Stack — now has a "+ Add to my supplements" button that sends it straight to the My Supplements tracker on the Log tab, so you don\'t have to retype the name.',
+  ]},
+  '3.251': { headline: 'Supplement Recommendations polish: real "already added" state, smoother reveal', points: [
+    'An item already in My Supplements now shows as "Added ✓" the moment a card renders — a fresh Foundational Stack open or a brand new AI request — instead of only right after you click it.',
+    '"View foundational stack" now expands with the same smooth animated reveal and chevron the rest of the app uses for optional detail (Body Measurements, Progress Photos, "What this is based on"), instead of a plain text toggle.',
   ]},
 };
 
@@ -39406,8 +39412,20 @@ const SUPPLEMENT_EVIDENCE_LABELS = {
   'limited': '❔ Limited evidence',
 };
 
-function renderSupplementCards(items){
-  return items.map((r, i)=> `
+// `alreadyTracked` is the real My Supplements list (loadMySupplements()'s
+// own return shape — an array of names), passed in by the caller rather
+// than read here, so this stays a plain synchronous renderer. A name
+// already tracked (case-insensitive — matches addMySupplement's own dedupe
+// rule) renders its add button as already-added and disabled from the
+// first paint, not just after a click in the current session — the same
+// "already tracked" state has to be true everywhere this card can appear
+// (a fresh Foundational Stack open, a brand new AI request), not just the
+// one render that happened to add it.
+function renderSupplementCards(items, alreadyTracked){
+  const trackedLower = new Set((alreadyTracked || []).map(n=> n.toLowerCase()));
+  return items.map((r, i)=> {
+    const isTracked = trackedLower.has(String(r.name || '').toLowerCase());
+    return `
     <div class="photo-result-card">
       <div class="photo-result-title">${escapeHtml(r.name || '')}</div>
       <div class="history-hint">${SUPPLEMENT_EVIDENCE_LABELS[r.evidence] || escapeHtml(r.evidence || '')}</div>
@@ -39415,9 +39433,10 @@ function renderSupplementCards(items){
       <div class="photo-result-item"><span><b>Typical dose:</b> ${escapeHtml(r.typicalDose || '—')}</span></div>
       <div class="photo-result-item"><span><b>Timing:</b> ${escapeHtml(r.timing || '—')}</span></div>
       ${r.caution ? `<div class="care-banner care-banner-caution" style="margin-top:8px;">${escapeHtml(r.caution)}</div>` : ''}
-      <button type="button" class="supplement-add-btn" data-idx="${i}">+ Add to my supplements</button>
+      <button type="button" class="supplement-add-btn" data-idx="${i}" ${isTracked ? 'disabled' : ''}>${isTracked ? 'Added ✓' : '+ Add to my supplements'}</button>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 // Wires every "+ Add to my supplements" button rendered by
@@ -39540,29 +39559,26 @@ function getFoundationalSupplementStack(){
   return [...FOUNDATIONAL_SUPPLEMENT_STACK.base, ...genderExtras];
 }
 
-function renderFoundationalStack(){
-  const container = document.getElementById('foundationalStackResult');
+// The #foundationalStackResult wrapper is a real .smooth-toggle (same
+// grid-row animation as .expand-wrap, same component the program-overview
+// panels use for "What this is based on") rather than a bespoke
+// display:none/'' toggle — its OPEN/CLOSE mechanic is handled entirely by
+// the existing generic delegated .program-basis-toggle click listener
+// (already wired once, document-wide — see its own comment near
+// MEDICAL_STYLES/buildProgramPanelHtml), which this deliberately does NOT
+// duplicate. This function only fills in the content, into the wrapper's
+// single required child div (renderSupplementCards' cards go inside it, not
+// directly into the animated wrapper — same "exactly one child" rule
+// .expand-wrap's own CSS comment documents, for the same clipping reason).
+async function renderFoundationalStack(){
+  const container = document.getElementById('foundationalStackResult').firstElementChild;
   const items = getFoundationalSupplementStack();
+  const existing = await loadMySupplements();
   container.innerHTML = `
     <div class="history-hint">A general starting point for anyone — not tailored to your specific goal or a particular request. For that, use the box below.</div>
-    ${renderSupplementCards(items)}
+    ${renderSupplementCards(items, existing)}
   `;
   wireSupplementAddButtons(container, items);
-}
-
-function toggleFoundationalStack(){
-  const container = document.getElementById('foundationalStackResult');
-  const btn = document.getElementById('foundationalStackToggle');
-  const isOpen = container.style.display !== 'none';
-  if(isOpen){
-    container.style.display = 'none';
-    container.innerHTML = '';
-    btn.textContent = '📋 View foundational stack';
-  } else {
-    renderFoundationalStack();
-    container.style.display = '';
-    btn.textContent = '📋 Hide foundational stack';
-  }
 }
 
 function buildSupplementSystemPrompt(request){
@@ -39633,9 +39649,10 @@ async function submitSupplementRequest(){
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
     const recs = parsed.recommendations || [];
+    const existing = await loadMySupplements();
 
     resultEl.innerHTML = `
-      ${renderSupplementCards(recs)}
+      ${renderSupplementCards(recs, existing)}
       <div class="history-hint" style="margin-top:${recs.length ? '10px' : '0'}">${escapeHtml(parsed.note || '')}</div>
     `;
     wireSupplementAddButtons(resultEl, recs);
@@ -39900,7 +39917,18 @@ document.getElementById('coachChatClear').addEventListener('click', async ()=>{
   });
 });
 
-document.getElementById('foundationalStackToggle').addEventListener('click', toggleFoundationalStack);
+// The open/close animation itself is the existing generic delegated
+// .program-basis-toggle listener (fires on this element too, since it
+// matches by class, not by id) — this second, element-specific listener
+// only re-renders content, and only when OPENING (aria-expanded still
+// reflects the PRE-click state here, same read the generic listener makes,
+// since a direct listener on the target always runs before a listener
+// delegated on an ancestor). That keeps "already added" state and any
+// gender-profile change current on every open, without re-rendering
+// pointlessly on every close too.
+document.getElementById('foundationalStackToggle').addEventListener('click', (e)=>{
+  if(e.currentTarget.getAttribute('aria-expanded') !== 'true') renderFoundationalStack();
+});
 document.getElementById('supplementRequestSubmit').addEventListener('click', submitSupplementRequest);
 document.getElementById('supplementRequestInput').addEventListener('keydown', (e)=>{
   if(e.key === 'Enter') submitSupplementRequest();

@@ -29,7 +29,6 @@ const supplementEvidenceLabelsSrc = extractConst(src, 'SUPPLEMENT_EVIDENCE_LABEL
 const foundationalStackSrc = extractConst(src, 'FOUNDATIONAL_SUPPLEMENT_STACK');
 const getFoundationalSupplementStackSrc = extractFunction(src, 'getFoundationalSupplementStack');
 const renderFoundationalStackSrc = extractFunction(src, 'renderFoundationalStack');
-const toggleFoundationalStackSrc = extractFunction(src, 'toggleFoundationalStack');
 const callClaudeChatSrc = extractFunction(src, 'callClaudeChat');
 const anthropicRequestSrc = extractFunction(src, 'anthropicRequest');
 const aiSleepSrc = extractFunction(src, 'aiSleep');
@@ -46,14 +45,31 @@ const addMySupplementSrc = extractFunction(src, 'addMySupplement');
 const loadMySupplementsSrc = extractFunction(src, 'loadMySupplements');
 const saveMySupplementsSrc = extractFunction(src, 'saveMySupplements');
 
+function extractStatement(source, startText){
+  const startIdx = source.indexOf(startText);
+  if(startIdx === -1) throw new Error(`extractStatement: start text not found: ${startText}`);
+  const endIdx = source.indexOf('\n});', startIdx);
+  if(endIdx === -1) throw new Error(`extractStatement: no closing '});' found after ${startText}`);
+  return source.slice(startIdx, endIdx + 4);
+}
+
+const foundationalToggleWiringSrc = extractStatement(src, "document.getElementById('foundationalStackToggle').addEventListener('click'");
+
 // Real markup for the pieces this flow touches, hand-assembled rather than
 // extracted — <input> has no closing tag for extractElementById to find,
-// and these three ids sit inside a larger Coach-tab card whose other
-// siblings (the disclaimer text, the history-hint) this flow never reads,
-// matching the established pattern in test-weight-log-crud.js.
+// and these ids sit inside a larger Coach-tab card whose other siblings
+// (the disclaimer text, the history-hint) this flow never reads, matching
+// the established pattern in test-weight-log-crud.js. The foundational-
+// stack toggle button and its .smooth-toggle wrapper match the REAL
+// program-basis-toggle/smooth-toggle shape (see test-program-overview.js
+// for that shared component's own open/close coverage — not re-tested
+// here) — a real `<div>` single child, since renderFoundationalStack
+// targets firstElementChild, not the wrapper itself.
 const bodyHtml = `
-  <button id="foundationalStackToggle">View foundational stack</button>
-  <div id="foundationalStackResult" style="display:none"></div>
+  <button type="button" class="program-basis-toggle" id="foundationalStackToggle" aria-expanded="false" aria-controls="foundationalStackResult">
+    <span class="chev" aria-hidden="true">›</span> View foundational stack
+  </button>
+  <div class="smooth-toggle" id="foundationalStackResult"><div></div></div>
   <input type="text" id="supplementRequestInput" class="care-input" placeholder="e.g. best for recovery, budget picks, I get GI issues with creatine" autocomplete="off">
   <button class="save-btn" id="supplementRequestSubmit">Get Recommendations</button>
   <div id="supplementResult"></div>
@@ -277,12 +293,18 @@ function setupFoundationalStack(profileOverrides){
     escapeHtmlSrc, supplementEvidenceLabelsSrc, renderSupplementCardsSrc,
     loadMySupplementsSrc, saveMySupplementsSrc, addMySupplementSrc, wireSupplementAddButtonsSrc,
     foundationalStackSrc, getFoundationalSupplementStackSrc,
-    renderFoundationalStackSrc, toggleFoundationalStackSrc,
+    renderFoundationalStackSrc, foundationalToggleWiringSrc,
     'window.getFoundationalSupplementStack = getFoundationalSupplementStack;',
     'window.renderFoundationalStack = renderFoundationalStack;',
-    'window.toggleFoundationalStack = toggleFoundationalStack;',
   ]);
   return { window, document };
+}
+
+// The inner content div renderFoundationalStack actually writes to —
+// #foundationalStackResult itself is the animated .smooth-toggle wrapper
+// and must keep exactly one child for the grid-row clipping to work.
+function foundationalStackContentEl(document){
+  return document.getElementById('foundationalStackResult').firstElementChild;
 }
 
 test('REAL invocation: getFoundationalSupplementStack for an unset/other gender returns ONLY the base list', (assert)=>{
@@ -308,31 +330,45 @@ test('sabotage-relevant: a female profile adds the real female-specific items on
   assert.ok(!names.includes('Zinc'), 'the male-specific item must not leak into a female profile');
 });
 
-test('REAL invocation: renderFoundationalStack renders every item into the real #foundationalStackResult markup with evidence tier and dose', (assert)=>{
+test('REAL invocation: renderFoundationalStack renders every item into the real .smooth-toggle content div with evidence tier and dose', async (assert)=>{
   const { window, document } = setupFoundationalStack({gender:'female'});
-  window.renderFoundationalStack();
-  const html = document.getElementById('foundationalStackResult').innerHTML;
+  await window.renderFoundationalStack();
+  const html = foundationalStackContentEl(document).innerHTML;
   assert.match(html, /Vitamin D3/);
   assert.match(html, /Iron/);
   assert.match(html, /Well-established/);
   assert.match(html, /1,000-2,000 IU daily/, 'the real typical dose text must render, not a placeholder');
 });
 
-test('REAL invocation: toggleFoundationalStack reveals real content on the first click and fully resets on the second', (assert)=>{
+// The open/close ANIMATION (aria-expanded flip, .open class) is the
+// existing generic delegated .program-basis-toggle listener, already
+// covered by test-program-overview.js — not re-tested here. What's real
+// and unique to this feature is the SECOND, element-specific listener that
+// re-renders content only when opening (aria-expanded still reads the
+// pre-click state, same convention the generic listener itself relies on).
+test('REAL invocation: clicking the toggle while collapsed (aria-expanded=false) renders real content into the content div', async (assert)=>{
   const { window, document } = setupFoundationalStack({gender:'male'});
-  const container = document.getElementById('foundationalStackResult');
   const btn = document.getElementById('foundationalStackToggle');
+  assert.strictEqual(btn.getAttribute('aria-expanded'), 'false', 'precondition: real markup starts collapsed');
+  assert.strictEqual(foundationalStackContentEl(document).innerHTML, '', 'precondition: nothing rendered yet');
 
-  assert.strictEqual(container.style.display, 'none', 'precondition: starts hidden');
-  window.toggleFoundationalStack();
-  assert.notStrictEqual(container.style.display, 'none', 'first click must reveal the list');
-  assert.match(container.innerHTML, /Zinc/, 'must have actually rendered real content, not just toggled visibility');
-  assert.match(btn.textContent, /hide/i, 'button label must flip to the hide state');
+  btn.click();
+  await new Promise(r=> setTimeout(r, 20));
 
-  window.toggleFoundationalStack();
-  assert.strictEqual(container.style.display, 'none', 'second click must hide it again');
-  assert.strictEqual(container.innerHTML, '', 'hiding must clear the rendered content, not just hide it, so a stale render can never show through display:none');
-  assert.match(btn.textContent, /view/i, 'button label must flip back to the view state');
+  assert.match(foundationalStackContentEl(document).innerHTML, /Zinc/, 'must have actually rendered real content on the click that opens it');
+});
+
+test('sabotage-relevant: clicking the toggle while already expanded (aria-expanded=true) does NOT re-render', async (assert)=>{
+  const { window, document } = setupFoundationalStack({gender:'male'});
+  const btn = document.getElementById('foundationalStackToggle');
+  btn.setAttribute('aria-expanded', 'true'); // simulate: already open, this click is the one that closes it
+  const contentEl = foundationalStackContentEl(document);
+  contentEl.innerHTML = '<div id="sentinel">unchanged</div>';
+
+  btn.click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  assert.strictEqual(contentEl.innerHTML, '<div id="sentinel">unchanged</div>', 'a closing click must never trigger a pointless re-render');
 });
 
 // --- "+ Add to my supplements" integration ----------------------------------
@@ -385,7 +421,7 @@ test('sabotage-relevant: with two recommendation cards, clicking the SECOND card
 
 test('REAL invocation: clicking "+ Add to my supplements" on a Foundational Stack card adds the real matched item', async (assert)=>{
   const { window, document } = setupFoundationalStack({gender:'other'});
-  window.renderFoundationalStack();
+  await window.renderFoundationalStack();
 
   const addBtn = document.querySelector('#foundationalStackResult .supplement-add-btn');
   assert.ok(addBtn, 'precondition: a real add button must have rendered');
@@ -395,6 +431,60 @@ test('REAL invocation: clicking "+ Add to my supplements" on a Foundational Stac
   const stored = JSON.parse(window.storage.__store['my-supplements']);
   assert.strictEqual(stored.length, 1);
   assert.ok(window.getFoundationalSupplementStack().some(i=> i.name === stored[0]), 'the added name must be one of the REAL Foundational Stack entries, not a placeholder');
+});
+
+// --- "Already tracked" state must be real and persisted, not session-only --
+// The gap flagged when the tracker first shipped (HANDOFF v46): the button
+// only confirmed a JUST-clicked add, but a fresh render of the SAME card
+// (a new AI request, or reopening Foundational Stack) had no memory of it.
+// Both render paths now check the real My Supplements list up front.
+
+test('REAL invocation: a Foundational Stack item already in My Supplements renders pre-added and disabled, while an untracked one in the same list does not', async (assert)=>{
+  const { window, document } = setupFoundationalStack({gender:'other'});
+  window.storage.__store['my-supplements'] = JSON.stringify(['Vitamin D3']);
+
+  await window.renderFoundationalStack();
+  const cards = [...foundationalStackContentEl(document).querySelectorAll('.photo-result-card')];
+  const vitDCard = cards.find(c=> c.textContent.includes('Vitamin D3'));
+  const creatineCard = cards.find(c=> c.textContent.includes('Creatine Monohydrate'));
+
+  const vitDBtn = vitDCard.querySelector('.supplement-add-btn');
+  assert.strictEqual(vitDBtn.disabled, true, 'an already-tracked item must render pre-disabled, not just after a fresh click');
+  assert.match(vitDBtn.textContent, /Added/);
+
+  const creatineBtn = creatineCard.querySelector('.supplement-add-btn');
+  assert.strictEqual(creatineBtn.disabled, false, 'an UNTRACKED item in the same render must stay a normal, enabled add button');
+  assert.match(creatineBtn.textContent, /Add to my supplements/);
+});
+
+test('sabotage-relevant: the already-tracked check is case-insensitive, matching addMySupplement\'s own dedupe rule', async (assert)=>{
+  const { window, document } = setupFoundationalStack({gender:'other'});
+  window.storage.__store['my-supplements'] = JSON.stringify(['vitamin d3']); // lowercase, as a person might have typed it manually
+
+  await window.renderFoundationalStack();
+  const cards = [...foundationalStackContentEl(document).querySelectorAll('.photo-result-card')];
+  const vitDBtn = cards.find(c=> c.textContent.includes('Vitamin D3')).querySelector('.supplement-add-btn');
+  assert.strictEqual(vitDBtn.disabled, true, 'a case-different but otherwise identical stored name must still count as already tracked');
+});
+
+test('REAL invocation: an AI-recommended item already in My Supplements renders pre-added and disabled', async (assert)=>{
+  const { window, document } = setupSubmit({});
+  window.storage.__store['my-supplements'] = JSON.stringify(['Creatine Monohydrate']);
+  window.__fakeResponse = fakeApiResponse(JSON.stringify({
+    recommendations: [
+      { name: 'Creatine Monohydrate', evidence: 'well-established', why: 'why', typicalDose: 'dose', timing: 'time', caution: null },
+      { name: 'Fish Oil', evidence: 'well-established', why: 'why2', typicalDose: 'dose2', timing: 'time2', caution: null },
+    ],
+    note: 'note',
+  }));
+
+  await window.submitSupplementRequest();
+
+  const cards = [...document.querySelectorAll('#supplementResult .photo-result-card')];
+  const creatineBtn = cards.find(c=> c.textContent.includes('Creatine Monohydrate')).querySelector('.supplement-add-btn');
+  const fishOilBtn = cards.find(c=> c.textContent.includes('Fish Oil')).querySelector('.supplement-add-btn');
+  assert.strictEqual(creatineBtn.disabled, true, 'an AI recommendation matching an existing tracked item must render pre-added');
+  assert.strictEqual(fishOilBtn.disabled, false, 'a different, untracked recommendation in the same response must stay a normal add button');
 });
 
 run();
