@@ -5931,6 +5931,16 @@
       </div>
       <button class="usda-key-upgrade-toggle" id="coachChatClear" style="margin-top:8px;">Clear conversation</button>
     </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="15" height="6" rx="3"/><line x1="10" y1="7" x2="10" y2="13"/></svg></span>Supplement Recommendations</div>
+      <div class="care-disclaimer" style="margin-bottom:10px;"><b>Not medical advice.</b> Supplements can interact with medications and health conditions — check with your doctor or pharmacist before starting anything new, especially if you're pregnant, breastfeeding, or managing a condition like high blood pressure or diabetes. Doses below are general adult starting points from the research, not a personalized prescription, and none of this has been evaluated by the FDA.</div>
+      <div class="history-hint">Grounded in your goal, program, and profile. Ask about something specific, or leave it blank for a general starting point.</div>
+      <label class="care-label" for="supplementRequestInput">Anything specific? (optional)</label>
+      <input type="text" id="supplementRequestInput" class="care-input" placeholder="e.g. best for recovery, budget picks, I get GI issues with creatine" autocomplete="off">
+      <button class="save-btn" id="supplementRequestSubmit">Get recommendations</button>
+      <div id="supplementResult"></div>
+    </div>
   </div>
 
   <div id="learnView" style="display:none">
@@ -6466,7 +6476,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.246';
+const APP_VERSION = '3.247';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7040,6 +7050,9 @@ const WHATS_NEW = {
   ]},
   '3.246': { headline: 'The AI coach bubble can now be dragged out of the way', points: [
     'Press and drag the blue chat bubble anywhere along the left or right edge of the screen — it snaps to whichever side you let go near, and stays there for next time. A quick tap still opens the chat exactly as before; only a real drag moves it.',
+  ]},
+  '3.247': { headline: 'New: goal-based Supplement Recommendations', points: [
+    'A new card on the Coach tab gives evidence-graded supplement suggestions tied to your actual goal, program, and profile — ask about something specific (recovery, budget picks, a GI issue with creatine) or leave it blank for a general starting point. Carries its own stronger disclaimer: never a substitute for your doctor or pharmacist, especially around medications, pregnancy, or a flagged condition.',
   ]},
 };
 
@@ -39214,6 +39227,117 @@ function getCoachPersona(){
   return COACH_PERSONAS[activeProgram] || COACH_PERSONAS.strength;
 }
 
+// [SUPPLEMENT RECOMMENDATIONS] ---------------------------------------------
+// Deliberately a scoped, one-shot request (Recipe Finder's shape: free-text
+// ask + goal/profile context baked into the system prompt) rather than
+// folded into the open-ended Ask Your Coach chat — supplement advice needs
+// its own stronger safety framing (interactions, conditions, pregnancy) up
+// front every time, not just whenever it happens to come up in conversation.
+//
+// "Current, elite-level sports-nutrition knowledge" here means the system
+// prompt holds the model to the actual evidence tiers (ISSN-position-stand
+// grade consensus vs. promising-but-early vs. marketing hype) rather than a
+// generic "supplements are great" list — it can't give the model live
+// internet access to today's news, only instruct it to reason from the real
+// current state of the research the way the rest of this app's coaching
+// content already does (see COACH_PERSONAS, PROGRAM_SOURCES).
+function buildSupplementSystemPrompt(request){
+  const goalLabel = GOAL_LABELS[userProfile?.goal] || userProfile?.goal || 'general fitness';
+  const bodyGoalLine = userProfile?.bodyGoal ? ` Their specific physique/performance goal: ${userProfile.bodyGoal}.` : '';
+  const programLabel = programs[activeProgram]?.label || 'general training';
+
+  const DIET_PREF_LABELS = {pescatarian:'Pescatarian', vegetarian:'Vegetarian', vegan:'Vegan'};
+  let dietLine = '';
+  if(userProfile?.dietaryPreference && DIET_PREF_LABELS[userProfile.dietaryPreference]){
+    dietLine += `They are ${DIET_PREF_LABELS[userProfile.dietaryPreference]} — never recommend an animal-derived product (e.g. whey, fish oil, bovine collagen, gelatin capsules) without naming a genuinely equivalent plant-based or synthetic alternative instead.`;
+  }
+  const flagsDesc = describeDietaryFlags(userProfile?.dietaryFlags);
+  if(flagsDesc) dietLine += `${dietLine ? ' ' : ''}Also needs: ${flagsDesc}.`;
+  if(userProfile?.avoidFoods) dietLine += `${dietLine ? ' ' : ''}Avoids: ${userProfile.avoidFoods} — rule out any supplement whose common formulations rely on this (e.g. shellfish-derived glucosamine if avoiding shellfish).`;
+
+  const conditionLabels = activeConditionKeys()
+    .map(key=> PERSISTENT_CONDITIONS.find(c=> c.key === key)?.label)
+    .filter(Boolean);
+  const conditionLine = conditionLabels.length
+    ? `They have flagged: ${conditionLabels.join(', ')}. Weigh real interactions for each (e.g. stimulant pre-workouts and high blood pressure, blood-sugar-active ingredients and diabetes, and note that pregnancy/postpartum rules out most unregulated supplements outright beyond what a doctor has already specifically cleared).`
+    : '';
+
+  const requestLine = request
+    ? `They're specifically asking: "${request}"`
+    : `They haven't asked about anything specific — give a general, goal-appropriate starting point.`;
+
+  return `You are the supplement-recommendation feature of a fitness tracking app, held to the same elite, current, evidence-based standard as the rest of this app's coaching content. Reason from the real current state of sports-nutrition research — ISSN position stands and meta-analyses over marketing claims or bro-science — and grade every recommendation honestly by evidence strength rather than presenting all of it as equally proven.
+
+Person's goal: ${goalLabel}.${bodyGoalLine} Active training program: ${programLabel}.
+${dietLine}
+${conditionLine}
+${requestLine}
+
+Rules:
+- Supplements are marginal additions on top of training, sleep, and protein intake — never imply one closes a gap that behavior actually closes. If the request is really answered by "fix your protein/sleep/training first," say so plainly, even if it means fewer or zero product recommendations.
+- Recommend at most 4, ranked by actual relevance to THIS person's goal and request — not a padded generic top-10.
+- NEVER recommend a banned, unregulated, or dangerous substance or practice (anabolic steroids, SARMs, prohormones, DNP, ephedra, or any extreme/unregulated stimulant stack). If asked about one, refuse in the note and explain why, with recommendations left empty.
+- If the request conflicts with a flagged condition or dietary restriction, address that directly in the note rather than silently ignoring it.
+- Every dose/timing is a general adult starting point from the literature, not a personalized prescription — say so in the note, and flag anywhere a real medication interaction or condition makes "ask your doctor first" more than boilerplate.
+
+Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"recommendations":[{"name":"string","evidence":"well-established"|"promising"|"mixed"|"limited","why":"one to two sentences tying it to their specific goal/request","typicalDose":"string","timing":"string","caution":"string or null, only if there is something specific to THIS person's flagged conditions/diet/request"}],"note":"string — closing context, safety framing, or refusal explanation; always non-empty"}`;
+}
+
+async function submitSupplementRequest(){
+  const input = document.getElementById('supplementRequestInput');
+  const request = input.value.trim();
+  const resultEl = document.getElementById('supplementResult');
+  const btn = document.getElementById('supplementRequestSubmit');
+  const apiKey = await getApiKey();
+
+  if(!apiKey){
+    resultEl.innerHTML = aiKeySetupPrompt('Supplement Recommendations');
+    return;
+  }
+
+  btn.disabled = true;
+  resultEl.innerHTML = `<div class="skeleton-wrap"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:50%"></div><div class="skeleton-line" style="width:60%"></div></div>`;
+
+  try{
+    const systemPrompt = buildSupplementSystemPrompt(request);
+    // effort:'medium' — matches Recipe Finder and the Cross-Metric Insights
+    // fix: a bounded, structured JSON answer doesn't need 'high's extra
+    // reasoning depth, and leaving effort unset here is exactly the failure
+    // mode that fix addressed (adaptive thinking can eat the whole budget
+    // before producing any output).
+    const raw = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content: request || 'Give me a general starting point.'}], 3000, undefined, 'medium');
+    const cleaned = raw.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    const recs = parsed.recommendations || [];
+
+    const EVIDENCE_LABELS = {
+      'well-established': '✅ Well-established',
+      'promising': '🔬 Promising',
+      'mixed': '⚖️ Mixed evidence',
+      'limited': '❔ Limited evidence',
+    };
+
+    const cardsHtml = recs.map(r=> `
+      <div class="photo-result-card">
+        <div class="photo-result-title">${escapeHtml(r.name || '')}</div>
+        <div class="history-hint">${EVIDENCE_LABELS[r.evidence] || escapeHtml(r.evidence || '')}</div>
+        <div class="photo-result-item"><span>${escapeHtml(r.why || '')}</span></div>
+        <div class="photo-result-item"><span><b>Typical dose:</b> ${escapeHtml(r.typicalDose || '—')}</span></div>
+        <div class="photo-result-item"><span><b>Timing:</b> ${escapeHtml(r.timing || '—')}</span></div>
+        ${r.caution ? `<div class="care-banner care-banner-caution" style="margin-top:8px;">${escapeHtml(r.caution)}</div>` : ''}
+      </div>
+    `).join('');
+
+    resultEl.innerHTML = `
+      ${cardsHtml}
+      <div class="history-hint" style="margin-top:${recs.length ? '10px' : '0'}">${escapeHtml(parsed.note || '')}</div>
+    `;
+  }catch(err){
+    resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't get recommendations: ${err.message}. Try again.</div>`;
+  }
+  btn.disabled = false;
+}
+
 // Detached (never-added-to-DOM) <video> elements are unreliable for
 // seeking/frame-capture on iOS Safari specifically — metadata can load fine
 // but 'seeked' then just never fires, and without a timeout anywhere in the
@@ -39467,6 +39591,11 @@ document.getElementById('coachChatClear').addEventListener('click', async ()=>{
     await saveCoachChatHistory();
     renderCoachChatLog();
   });
+});
+
+document.getElementById('supplementRequestSubmit').addEventListener('click', submitSupplementRequest);
+document.getElementById('supplementRequestInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') submitSupplementRequest();
 });
 
 // The floating bubble is the same conversation, everywhere in the app —
