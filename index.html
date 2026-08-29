@@ -5936,6 +5936,10 @@
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="15" height="6" rx="3"/><line x1="10" y1="7" x2="10" y2="13"/></svg></span>Supplement Recommendations</div>
       <div class="care-disclaimer" style="margin-bottom:10px;"><b>Not medical advice.</b> Supplements can interact with medications and health conditions — check with your doctor or pharmacist before starting anything new, especially if you're pregnant, breastfeeding, or managing a condition like high blood pressure or diabetes. Doses below are general adult starting points from the research, not a personalized prescription, and none of this has been evaluated by the FDA.</div>
       <div class="history-hint">Grounded in your goal, program, and profile. Ask about something specific, or leave it blank for a general starting point.</div>
+
+      <button class="usda-key-upgrade-toggle" id="foundationalStackToggle">📋 View foundational stack</button>
+      <div id="foundationalStackResult" style="display:none"></div>
+
       <label class="care-label" for="supplementRequestInput">Anything specific? (optional)</label>
       <input type="text" id="supplementRequestInput" class="care-input" placeholder="e.g. best for recovery, budget picks, I get GI issues with creatine" autocomplete="off">
       <button class="save-btn" id="supplementRequestSubmit">Get recommendations</button>
@@ -6476,7 +6480,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.247';
+const APP_VERSION = '3.248';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7053,6 +7057,9 @@ const WHATS_NEW = {
   ]},
   '3.247': { headline: 'New: goal-based Supplement Recommendations', points: [
     'A new card on the Coach tab gives evidence-graded supplement suggestions tied to your actual goal, program, and profile — ask about something specific (recovery, budget picks, a GI issue with creatine) or leave it blank for a general starting point. Carries its own stronger disclaimer: never a substitute for your doctor or pharmacist, especially around medications, pregnancy, or a flagged condition.',
+  ]},
+  '3.248': { headline: 'New: a Foundational Stack preset for Supplement Recommendations', points: [
+    '"View Foundational Stack" on the Coach tab\'s Supplement Recommendations card shows an instant, always-available baseline (Vitamin D3, omega-3, magnesium, creatine, protein) plus a couple of well-evidenced additions if your profile is set to male (zinc) or female (iron, calcium, folate) — no AI request needed, and it never calls the API.',
   ]},
 };
 
@@ -39241,6 +39248,155 @@ function getCoachPersona(){
 // internet access to today's news, only instruct it to reason from the real
 // current state of the research the way the rest of this app's coaching
 // content already does (see COACH_PERSONAS, PROGRAM_SOURCES).
+//
+// Shared by both the AI-generated recommendations below AND the static
+// Foundational Stack preset (FOUNDATIONAL_SUPPLEMENT_STACK) — same card
+// shape either way, so the two never look like two different features.
+const SUPPLEMENT_EVIDENCE_LABELS = {
+  'well-established': '✅ Well-established',
+  'promising': '🔬 Promising',
+  'mixed': '⚖️ Mixed evidence',
+  'limited': '❔ Limited evidence',
+};
+
+function renderSupplementCards(items){
+  return items.map(r=> `
+    <div class="photo-result-card">
+      <div class="photo-result-title">${escapeHtml(r.name || '')}</div>
+      <div class="history-hint">${SUPPLEMENT_EVIDENCE_LABELS[r.evidence] || escapeHtml(r.evidence || '')}</div>
+      <div class="photo-result-item"><span>${escapeHtml(r.why || '')}</span></div>
+      <div class="photo-result-item"><span><b>Typical dose:</b> ${escapeHtml(r.typicalDose || '—')}</span></div>
+      <div class="photo-result-item"><span><b>Timing:</b> ${escapeHtml(r.timing || '—')}</span></div>
+      ${r.caution ? `<div class="care-banner care-banner-caution" style="margin-top:8px;">${escapeHtml(r.caution)}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+// A static, curated preset — unlike buildSupplementSystemPrompt below, this
+// never calls the API: same instant, zero-cost, always-available pattern as
+// this file's other hand-authored content tables (BODY_GOALS, PROGRAM_SOURCES).
+// `base` is what mainstream sports-nutrition/general-health evidence supports
+// for almost anyone regardless of goal (ISSN position stands for creatine and
+// protein; NIH Office of Dietary Supplements fact sheets for vitamin D,
+// magnesium, and omega-3). `male`/`female` layer on the handful of nutrients
+// where the evidence for a shortfall or benefit is genuinely sex-specific —
+// not padded to force a symmetric list on both sides (see BODY_GOALS' own
+// comment on the same discipline: real, established differences only, never
+// invented for symmetry's sake). Read from userProfile.gender, same field
+// BODY_GOALS itself keys off — 'other'/unset intentionally gets ONLY the base
+// list, since there's no analogous established population-level addition for
+// it to guess at.
+const FOUNDATIONAL_SUPPLEMENT_STACK = {
+  base: [
+    {
+      name: 'Vitamin D3',
+      evidence: 'well-established',
+      why: 'Most adults with limited sun exposure run low — it supports bone density, immune function, and muscle function, and low levels are broadly linked to worse recovery and mood.',
+      typicalDose: '1,000-2,000 IU daily',
+      timing: 'With a meal containing fat, for absorption',
+      caution: null,
+    },
+    {
+      name: 'Omega-3 (Fish Oil or Algae-Based EPA/DHA)',
+      evidence: 'well-established',
+      why: 'Supports cardiovascular health and has a real anti-inflammatory benefit relevant to training recovery — most diets fall well short of the intake levels the research is actually built on.',
+      typicalDose: '1-2g combined EPA/DHA daily',
+      timing: 'With a meal',
+      caution: null,
+    },
+    {
+      name: 'Magnesium (Glycinate or Citrate)',
+      evidence: 'promising',
+      why: 'Involved in muscle relaxation and sleep quality, and typical diets often fall short of the RDA — better sleep is one of the highest-leverage recovery tools there is.',
+      typicalDose: '200-400mg',
+      timing: 'Evening',
+      caution: 'The citrate form can have a laxative effect at higher doses — glycinate is gentler if that becomes an issue.',
+    },
+    {
+      name: 'Creatine Monohydrate',
+      evidence: 'well-established',
+      why: 'One of the most-researched supplements in existence — reliably supports strength, power output, and muscle mass, with an emerging (less certain) case for cognitive benefits too.',
+      typicalDose: '3-5g daily, no loading phase needed',
+      timing: 'Any time — consistency matters far more than timing',
+      caution: null,
+    },
+    {
+      name: 'Protein Powder (Whey or Plant-Based)',
+      evidence: 'well-established',
+      why: 'Not a magic ingredient on its own — a convenient way to close the gap to your daily protein target, which is what actually drives the muscle-repair benefit.',
+      typicalDose: '20-40g per serving, as needed to hit your daily target',
+      timing: 'Any time, often convenient right after training',
+      caution: null,
+    },
+  ],
+  male: [
+    {
+      name: 'Zinc',
+      evidence: 'promising',
+      why: 'Supports testosterone production and immune function; diets lower in red meat and shellfish (zinc\'s densest sources) commonly fall short.',
+      typicalDose: '15-25mg daily',
+      timing: 'With food, to avoid nausea',
+      caution: 'Long-term high-dose zinc can impair copper absorption — don\'t exceed the recommended dose without a specific reason, and consider a copper-balanced formula for extended use.',
+    },
+  ],
+  female: [
+    {
+      name: 'Iron',
+      evidence: 'well-established',
+      why: 'Menstrual blood loss puts many women at real risk of iron deficiency, which shows up as fatigue and reduced exercise capacity long before it\'s obvious.',
+      typicalDose: 'Varies widely by actual level — this is the one item here worth a blood test before starting, not a guess',
+      timing: 'On an empty stomach if tolerated, away from calcium/coffee/tea, which block absorption',
+      caution: 'Iron overload is genuinely harmful — do not supplement iron without a blood test confirming you\'re actually low.',
+    },
+    {
+      name: 'Calcium',
+      evidence: 'well-established',
+      why: 'Women face meaningfully higher lifetime osteoporosis risk, and calcium is the one nutrient most directly tied to bone density outcomes in the research.',
+      typicalDose: '500-1,000mg, accounting for what you already get from food',
+      timing: 'Split doses through the day absorb better than one large dose',
+      caution: 'Count dietary calcium (dairy, fortified foods) first — supplementing on top of an already-sufficient diet has no added benefit and may raise kidney stone risk.',
+    },
+    {
+      name: 'Folate (Vitamin B9)',
+      evidence: 'well-established',
+      why: 'Relevant to any woman of childbearing age, not only while actively trying to conceive — neural tube development happens very early, often before pregnancy is confirmed.',
+      typicalDose: '400mcg daily (higher if pregnant or planning — that\'s a doctor conversation, not a self-directed increase)',
+      timing: 'Any time',
+      caution: null,
+    },
+  ],
+  other: [],
+};
+
+function getFoundationalSupplementStack(){
+  const genderExtras = FOUNDATIONAL_SUPPLEMENT_STACK[userProfile?.gender] || [];
+  return [...FOUNDATIONAL_SUPPLEMENT_STACK.base, ...genderExtras];
+}
+
+function renderFoundationalStack(){
+  const container = document.getElementById('foundationalStackResult');
+  const items = getFoundationalSupplementStack();
+  container.innerHTML = `
+    <div class="history-hint">A general starting point for anyone — not tailored to your specific goal or a particular request. For that, use the box below.</div>
+    ${renderSupplementCards(items)}
+  `;
+}
+
+function toggleFoundationalStack(){
+  const container = document.getElementById('foundationalStackResult');
+  const btn = document.getElementById('foundationalStackToggle');
+  const isOpen = container.style.display !== 'none';
+  if(isOpen){
+    container.style.display = 'none';
+    container.innerHTML = '';
+    btn.textContent = '📋 View foundational stack';
+  } else {
+    renderFoundationalStack();
+    container.style.display = '';
+    btn.textContent = '📋 Hide foundational stack';
+  }
+}
+
 function buildSupplementSystemPrompt(request){
   const goalLabel = GOAL_LABELS[userProfile?.goal] || userProfile?.goal || 'general fitness';
   const bodyGoalLine = userProfile?.bodyGoal ? ` Their specific physique/performance goal: ${userProfile.bodyGoal}.` : '';
@@ -39310,26 +39466,8 @@ async function submitSupplementRequest(){
     const parsed = JSON.parse(cleaned);
     const recs = parsed.recommendations || [];
 
-    const EVIDENCE_LABELS = {
-      'well-established': '✅ Well-established',
-      'promising': '🔬 Promising',
-      'mixed': '⚖️ Mixed evidence',
-      'limited': '❔ Limited evidence',
-    };
-
-    const cardsHtml = recs.map(r=> `
-      <div class="photo-result-card">
-        <div class="photo-result-title">${escapeHtml(r.name || '')}</div>
-        <div class="history-hint">${EVIDENCE_LABELS[r.evidence] || escapeHtml(r.evidence || '')}</div>
-        <div class="photo-result-item"><span>${escapeHtml(r.why || '')}</span></div>
-        <div class="photo-result-item"><span><b>Typical dose:</b> ${escapeHtml(r.typicalDose || '—')}</span></div>
-        <div class="photo-result-item"><span><b>Timing:</b> ${escapeHtml(r.timing || '—')}</span></div>
-        ${r.caution ? `<div class="care-banner care-banner-caution" style="margin-top:8px;">${escapeHtml(r.caution)}</div>` : ''}
-      </div>
-    `).join('');
-
     resultEl.innerHTML = `
-      ${cardsHtml}
+      ${renderSupplementCards(recs)}
       <div class="history-hint" style="margin-top:${recs.length ? '10px' : '0'}">${escapeHtml(parsed.note || '')}</div>
     `;
   }catch(err){
@@ -39593,6 +39731,7 @@ document.getElementById('coachChatClear').addEventListener('click', async ()=>{
   });
 });
 
+document.getElementById('foundationalStackToggle').addEventListener('click', toggleFoundationalStack);
 document.getElementById('supplementRequestSubmit').addEventListener('click', submitSupplementRequest);
 document.getElementById('supplementRequestInput').addEventListener('keydown', (e)=>{
   if(e.key === 'Enter') submitSupplementRequest();

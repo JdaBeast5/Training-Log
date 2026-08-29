@@ -24,6 +24,12 @@ const { test, run } = makeRunner('test-supplement-recommendations.js');
 
 const buildSupplementSystemPromptSrc = extractFunction(src, 'buildSupplementSystemPrompt');
 const submitSupplementRequestSrc = extractFunction(src, 'submitSupplementRequest');
+const renderSupplementCardsSrc = extractFunction(src, 'renderSupplementCards');
+const supplementEvidenceLabelsSrc = extractConst(src, 'SUPPLEMENT_EVIDENCE_LABELS');
+const foundationalStackSrc = extractConst(src, 'FOUNDATIONAL_SUPPLEMENT_STACK');
+const getFoundationalSupplementStackSrc = extractFunction(src, 'getFoundationalSupplementStack');
+const renderFoundationalStackSrc = extractFunction(src, 'renderFoundationalStack');
+const toggleFoundationalStackSrc = extractFunction(src, 'toggleFoundationalStack');
 const callClaudeChatSrc = extractFunction(src, 'callClaudeChat');
 const anthropicRequestSrc = extractFunction(src, 'anthropicRequest');
 const aiSleepSrc = extractFunction(src, 'aiSleep');
@@ -42,6 +48,8 @@ const persistentConditionsSrc = extractConst(src, 'PERSISTENT_CONDITIONS');
 // siblings (the disclaimer text, the history-hint) this flow never reads,
 // matching the established pattern in test-weight-log-crud.js.
 const bodyHtml = `
+  <button id="foundationalStackToggle">View foundational stack</button>
+  <div id="foundationalStackResult" style="display:none"></div>
   <input type="text" id="supplementRequestInput" class="care-input" placeholder="e.g. best for recovery, budget picks, I get GI issues with creatine" autocomplete="off">
   <button class="save-btn" id="supplementRequestSubmit">Get Recommendations</button>
   <div id="supplementResult"></div>
@@ -53,7 +61,7 @@ const bodyHtml = `
 // here throws instead of silently reading `undefined`.
 function profileSetup(overrides){
   const profile = Object.assign({
-    goal: 'gain', bodyGoal: '', conditions: [], dietaryPreference: '', avoidFoods: '',
+    goal: 'gain', bodyGoal: '', conditions: [], dietaryPreference: '', avoidFoods: '', gender: 'other',
     dietaryFlags: {glutenFree:false, dairyFree:false, nutFree:false, halal:false, kosher:false},
   }, overrides || {});
   return `
@@ -142,6 +150,7 @@ function setupSubmit({ apiKey = 'fake-key', profileOverrides = {} } = {}){
     aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
     escapeHtmlSrc, aiKeySetupPromptSrc, getApiKeySrc,
     goalLabelsSrc, persistentConditionsSrc, describeDietaryFlagsSrc, activeConditionKeysSrc,
+    supplementEvidenceLabelsSrc, renderSupplementCardsSrc,
     buildSupplementSystemPromptSrc, submitSupplementRequestSrc,
     'window.__capturedRequests = [];',
     'window.submitSupplementRequest = submitSupplementRequest;',
@@ -221,6 +230,78 @@ test('REAL invocation: a malformed API response is caught and shown as an error 
   await window.submitSupplementRequest();
 
   assert.match(document.getElementById('supplementResult').innerHTML, /Couldn't get recommendations/, 'must fall back to the real error banner rather than throwing');
+});
+
+// --- Foundational Stack: the new static, no-API-call preset ----------------
+// Same shared renderSupplementCards() as the AI path above, but the content
+// is a hand-authored table (FOUNDATIONAL_SUPPLEMENT_STACK), keyed off
+// userProfile.gender — the real field the Profile tab writes and BODY_GOALS
+// already reads. Sabotage-relevant framing: a bug that let one gender's
+// additions leak into another's list, or that dropped the gender-specific
+// items back to nothing, would still "render something" and look fine at a
+// glance — these tests check the actual item sets, not just that some HTML
+// came out.
+
+function setupFoundationalStack(profileOverrides){
+  const { window, document } = runJsdom(bodyHtml, profileSetup(profileOverrides), [
+    escapeHtmlSrc, supplementEvidenceLabelsSrc, renderSupplementCardsSrc,
+    foundationalStackSrc, getFoundationalSupplementStackSrc,
+    renderFoundationalStackSrc, toggleFoundationalStackSrc,
+    'window.getFoundationalSupplementStack = getFoundationalSupplementStack;',
+    'window.renderFoundationalStack = renderFoundationalStack;',
+    'window.toggleFoundationalStack = toggleFoundationalStack;',
+  ]);
+  return { window, document };
+}
+
+test('REAL invocation: getFoundationalSupplementStack for an unset/other gender returns ONLY the base list', (assert)=>{
+  const { window } = setupFoundationalStack({gender:'other'});
+  const names = window.getFoundationalSupplementStack().map(i=>i.name);
+  assert.ok(names.includes('Vitamin D3') && names.includes('Creatine Monohydrate'), 'base items must be present');
+  assert.ok(!names.includes('Zinc') && !names.includes('Iron'), 'no gender-specific additions must be guessed for other/unset');
+});
+
+test('sabotage-relevant: a male profile adds the real male-specific item(s) on top of the same base list, and none of the female-specific ones', (assert)=>{
+  const { window } = setupFoundationalStack({gender:'male'});
+  const names = window.getFoundationalSupplementStack().map(i=>i.name);
+  assert.ok(names.includes('Vitamin D3'), 'base items must still be present');
+  assert.ok(names.includes('Zinc'), 'the real male-specific addition must be included');
+  assert.ok(!names.includes('Iron') && !names.includes('Calcium'), 'female-specific items must not leak into a male profile');
+});
+
+test('sabotage-relevant: a female profile adds the real female-specific items on top of the same base list, and not the male-specific one', (assert)=>{
+  const { window } = setupFoundationalStack({gender:'female'});
+  const names = window.getFoundationalSupplementStack().map(i=>i.name);
+  assert.ok(names.includes('Vitamin D3'), 'base items must still be present');
+  assert.ok(names.includes('Iron') && names.includes('Calcium') && names.includes('Folate (Vitamin B9)'), 'the real female-specific additions must all be included');
+  assert.ok(!names.includes('Zinc'), 'the male-specific item must not leak into a female profile');
+});
+
+test('REAL invocation: renderFoundationalStack renders every item into the real #foundationalStackResult markup with evidence tier and dose', (assert)=>{
+  const { window, document } = setupFoundationalStack({gender:'female'});
+  window.renderFoundationalStack();
+  const html = document.getElementById('foundationalStackResult').innerHTML;
+  assert.match(html, /Vitamin D3/);
+  assert.match(html, /Iron/);
+  assert.match(html, /Well-established/);
+  assert.match(html, /1,000-2,000 IU daily/, 'the real typical dose text must render, not a placeholder');
+});
+
+test('REAL invocation: toggleFoundationalStack reveals real content on the first click and fully resets on the second', (assert)=>{
+  const { window, document } = setupFoundationalStack({gender:'male'});
+  const container = document.getElementById('foundationalStackResult');
+  const btn = document.getElementById('foundationalStackToggle');
+
+  assert.strictEqual(container.style.display, 'none', 'precondition: starts hidden');
+  window.toggleFoundationalStack();
+  assert.notStrictEqual(container.style.display, 'none', 'first click must reveal the list');
+  assert.match(container.innerHTML, /Zinc/, 'must have actually rendered real content, not just toggled visibility');
+  assert.match(btn.textContent, /hide/i, 'button label must flip to the hide state');
+
+  window.toggleFoundationalStack();
+  assert.strictEqual(container.style.display, 'none', 'second click must hide it again');
+  assert.strictEqual(container.innerHTML, '', 'hiding must clear the rendered content, not just hide it, so a stale render can never show through display:none');
+  assert.match(btn.textContent, /view/i, 'button label must flip back to the view state');
 });
 
 run();
