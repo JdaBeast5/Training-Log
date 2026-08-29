@@ -41,6 +41,10 @@ const describeDietaryFlagsSrc = extractFunction(src, 'describeDietaryFlags');
 const activeConditionKeysSrc = extractFunction(src, 'activeConditionKeys');
 const goalLabelsSrc = extractConst(src, 'GOAL_LABELS');
 const persistentConditionsSrc = extractConst(src, 'PERSISTENT_CONDITIONS');
+const wireSupplementAddButtonsSrc = extractFunction(src, 'wireSupplementAddButtons');
+const addMySupplementSrc = extractFunction(src, 'addMySupplement');
+const loadMySupplementsSrc = extractFunction(src, 'loadMySupplements');
+const saveMySupplementsSrc = extractFunction(src, 'saveMySupplements');
 
 // Real markup for the pieces this flow touches, hand-assembled rather than
 // extracted — <input> has no closing tag for extractElementById to find,
@@ -134,6 +138,7 @@ function fakeApiResponse(text){
 
 function setupSubmit({ apiKey = 'fake-key', profileOverrides = {} } = {}){
   const captured = [];
+  const initialStore = apiKey ? {'ai-api-key': apiKey} : {};
   const globalsSetup = `
     ${profileSetup(profileOverrides)}
     window.fetch = (url, opts) => {
@@ -141,16 +146,27 @@ function setupSubmit({ apiKey = 'fake-key', profileOverrides = {} } = {}){
       return __fakeResponse;
     };
     window.storage = {
-      get: async (k)=> k === 'ai-api-key' && ${JSON.stringify(apiKey)}
-        ? {key:k, value:${JSON.stringify(apiKey)}}
-        : (()=>{ throw new Error('not found'); })(),
+      __store: ${JSON.stringify(initialStore)},
+      get: async (key)=>{
+        if(Object.prototype.hasOwnProperty.call(window.storage.__store, key)){
+          return { value: window.storage.__store[key] };
+        }
+        throw new Error('not found');
+      },
+      set: async (key, value)=>{ window.storage.__store[key] = value; },
     };
+    // renderMySupplements itself (the My Supplements card) is covered by its
+    // own test-my-supplements-tracker.js — stubbed here so addMySupplement's
+    // real read-modify-write against window.storage can be exercised without
+    // needing that card's markup in this file's bodyHtml too.
+    window.renderMySupplements = async ()=>{};
   `;
   const { window, document } = runJsdom(bodyHtml, globalsSetup, [
     aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
     escapeHtmlSrc, aiKeySetupPromptSrc, getApiKeySrc,
     goalLabelsSrc, persistentConditionsSrc, describeDietaryFlagsSrc, activeConditionKeysSrc,
     supplementEvidenceLabelsSrc, renderSupplementCardsSrc,
+    loadMySupplementsSrc, saveMySupplementsSrc, addMySupplementSrc, wireSupplementAddButtonsSrc,
     buildSupplementSystemPromptSrc, submitSupplementRequestSrc,
     'window.__capturedRequests = [];',
     'window.submitSupplementRequest = submitSupplementRequest;',
@@ -243,8 +259,23 @@ test('REAL invocation: a malformed API response is caught and shown as an error 
 // came out.
 
 function setupFoundationalStack(profileOverrides){
-  const { window, document } = runJsdom(bodyHtml, profileSetup(profileOverrides), [
+  const globalsSetup = `
+    ${profileSetup(profileOverrides)}
+    window.storage = {
+      __store: {},
+      get: async (key)=>{
+        if(Object.prototype.hasOwnProperty.call(window.storage.__store, key)){
+          return { value: window.storage.__store[key] };
+        }
+        throw new Error('not found');
+      },
+      set: async (key, value)=>{ window.storage.__store[key] = value; },
+    };
+    window.renderMySupplements = async ()=>{};
+  `;
+  const { window, document } = runJsdom(bodyHtml, globalsSetup, [
     escapeHtmlSrc, supplementEvidenceLabelsSrc, renderSupplementCardsSrc,
+    loadMySupplementsSrc, saveMySupplementsSrc, addMySupplementSrc, wireSupplementAddButtonsSrc,
     foundationalStackSrc, getFoundationalSupplementStackSrc,
     renderFoundationalStackSrc, toggleFoundationalStackSrc,
     'window.getFoundationalSupplementStack = getFoundationalSupplementStack;',
@@ -302,6 +333,68 @@ test('REAL invocation: toggleFoundationalStack reveals real content on the first
   assert.strictEqual(container.style.display, 'none', 'second click must hide it again');
   assert.strictEqual(container.innerHTML, '', 'hiding must clear the rendered content, not just hide it, so a stale render can never show through display:none');
   assert.match(btn.textContent, /view/i, 'button label must flip back to the view state');
+});
+
+// --- "+ Add to my supplements" integration ----------------------------------
+// The follow-on the earlier design proposal flagged: every card
+// renderSupplementCards produces (AI-generated or Foundational Stack) now
+// carries a button that sends that item straight into the real My
+// Supplements tracker via the real addMySupplement — proven here against
+// the real function (test-my-supplements-tracker.js separately covers
+// addMySupplement's own dedupe/persistence behavior in depth; this file
+// proves the WIRING from a rendered recommendation card into it).
+
+test('REAL invocation: clicking "+ Add to my supplements" on an AI-recommended card calls the real addMySupplement and disables the button', async (assert)=>{
+  const { window, document } = setupSubmit({});
+  window.__fakeResponse = fakeApiResponse(JSON.stringify({
+    recommendations: [
+      { name: 'Creatine Monohydrate', evidence: 'well-established', why: 'Supports strength.', typicalDose: '3-5g daily', timing: 'Any time', caution: null },
+    ],
+    note: 'Sleep and protein matter more.',
+  }));
+  await window.submitSupplementRequest();
+
+  const addBtn = document.querySelector('#supplementResult .supplement-add-btn');
+  assert.ok(addBtn, 'precondition: a real add button must have rendered on the card');
+  addBtn.click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  assert.deepStrictEqual(JSON.parse(window.storage.__store['my-supplements']), ['Creatine Monohydrate'], 'the real name from the recommendation must reach the real my-supplements list');
+  assert.strictEqual(addBtn.disabled, true, 'the button must disable itself after adding');
+  assert.match(addBtn.textContent, /Added/, 'the button label must confirm the add');
+});
+
+test('sabotage-relevant: with two recommendation cards, clicking the SECOND card\'s add button adds only that one, not the first', async (assert)=>{
+  const { window, document } = setupSubmit({});
+  window.__fakeResponse = fakeApiResponse(JSON.stringify({
+    recommendations: [
+      { name: 'Vitamin D3', evidence: 'well-established', why: 'why1', typicalDose: 'd1', timing: 't1', caution: null },
+      { name: 'Magnesium', evidence: 'promising', why: 'why2', typicalDose: 'd2', timing: 't2', caution: null },
+    ],
+    note: 'note',
+  }));
+  await window.submitSupplementRequest();
+
+  const addBtns = document.querySelectorAll('#supplementResult .supplement-add-btn');
+  assert.strictEqual(addBtns.length, 2, 'precondition: two add buttons rendered, one per card');
+  addBtns[1].click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  assert.deepStrictEqual(JSON.parse(window.storage.__store['my-supplements']), ['Magnesium'], 'only the SECOND card\'s name (Magnesium) must be added — a sabotaged index-0-always bug would add Vitamin D3 instead');
+});
+
+test('REAL invocation: clicking "+ Add to my supplements" on a Foundational Stack card adds the real matched item', async (assert)=>{
+  const { window, document } = setupFoundationalStack({gender:'other'});
+  window.renderFoundationalStack();
+
+  const addBtn = document.querySelector('#foundationalStackResult .supplement-add-btn');
+  assert.ok(addBtn, 'precondition: a real add button must have rendered');
+  addBtn.click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  const stored = JSON.parse(window.storage.__store['my-supplements']);
+  assert.strictEqual(stored.length, 1);
+  assert.ok(window.getFoundationalSupplementStack().some(i=> i.name === stored[0]), 'the added name must be one of the REAL Foundational Stack entries, not a placeholder');
 });
 
 run();

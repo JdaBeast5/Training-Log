@@ -1960,15 +1960,16 @@
     transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .recipe-link-btn:active{transform:scale(0.96);}
-  .recipe-log-btn{
+  .recipe-log-btn, .supplement-add-btn{
     flex:1; padding:9px 10px; border:none; border-radius:var(--radius-sm);
     background:var(--cta-gradient-green); color:#fff;
     font-family:'Inter',sans-serif; font-size:12px; font-weight:600; cursor:pointer;
     box-shadow:var(--cta-gloss-inset), 0 4px 12px -6px rgba(var(--plate-green-rgb),0.45);
     transition:transform 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
   }
-  .recipe-log-btn:active{transform:scale(0.96);}
-  .recipe-log-btn:disabled{opacity:0.6; cursor:default;}
+  .recipe-log-btn:active, .supplement-add-btn:active{transform:scale(0.96);}
+  .recipe-log-btn:disabled, .supplement-add-btn:disabled{opacity:0.6; cursor:default;}
+  .supplement-add-btn{width:100%; margin-top:8px;}
 
   /* Water used to be nested inside the nutrition card, where .water-tracker
      gave it its own visually-set-apart box. Now that Water is a top-level
@@ -6500,7 +6501,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.249';
+const APP_VERSION = '3.250';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7084,6 +7085,9 @@ const WHATS_NEW = {
   '3.249': { headline: 'New: My Supplements — a daily tracker on the Log tab', points: [
     'A new card on the Log tab lets you add anything you take (any supplement, not just AI-recommended ones) and check it off day by day — separate from the maintained list, so unchecking or re-checking never touches what you actually take, only whether you took it today.',
     'A name that matches a Supplement Recommendations entry (from the Foundational Stack) shows its evidence tier and a one-line benefit note right in the tracker, so it stays grounded in the same research-backed content instead of becoming a bare checklist.',
+  ]},
+  '3.250': { headline: 'Supplement Recommendations now add straight to your tracker', points: [
+    'Every card in Supplement Recommendations — both the AI-generated ones and the Foundational Stack — now has a "+ Add to my supplements" button that sends it straight to the My Supplements tracker on the Log tab, so you don\'t have to retype the name.',
   ]},
 };
 
@@ -39403,7 +39407,7 @@ const SUPPLEMENT_EVIDENCE_LABELS = {
 };
 
 function renderSupplementCards(items){
-  return items.map(r=> `
+  return items.map((r, i)=> `
     <div class="photo-result-card">
       <div class="photo-result-title">${escapeHtml(r.name || '')}</div>
       <div class="history-hint">${SUPPLEMENT_EVIDENCE_LABELS[r.evidence] || escapeHtml(r.evidence || '')}</div>
@@ -39411,8 +39415,28 @@ function renderSupplementCards(items){
       <div class="photo-result-item"><span><b>Typical dose:</b> ${escapeHtml(r.typicalDose || '—')}</span></div>
       <div class="photo-result-item"><span><b>Timing:</b> ${escapeHtml(r.timing || '—')}</span></div>
       ${r.caution ? `<div class="care-banner care-banner-caution" style="margin-top:8px;">${escapeHtml(r.caution)}</div>` : ''}
+      <button type="button" class="supplement-add-btn" data-idx="${i}">+ Add to my supplements</button>
     </div>
   `).join('');
+}
+
+// Wires every "+ Add to my supplements" button rendered by
+// renderSupplementCards into the real My Supplements tracker (Log tab) —
+// shared by both call sites below (the AI recommendations and the static
+// Foundational Stack) so the two never drift into two different behaviors.
+// Keyed by index into the SAME `items` array the caller just rendered
+// (matching submitRecipeSearch's own recipe-log-btn/data-idx convention),
+// not by embedding the name in a data attribute directly.
+function wireSupplementAddButtons(containerEl, items){
+  containerEl.querySelectorAll('.supplement-add-btn').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const item = items[Number(btn.dataset.idx)];
+      if(!item || !item.name) return;
+      await addMySupplement(item.name);
+      btn.textContent = 'Added ✓';
+      btn.disabled = true;
+    });
+  });
 }
 
 // A static, curated preset — unlike buildSupplementSystemPrompt below, this
@@ -39523,6 +39547,7 @@ function renderFoundationalStack(){
     <div class="history-hint">A general starting point for anyone — not tailored to your specific goal or a particular request. For that, use the box below.</div>
     ${renderSupplementCards(items)}
   `;
+  wireSupplementAddButtons(container, items);
 }
 
 function toggleFoundationalStack(){
@@ -39613,6 +39638,7 @@ async function submitSupplementRequest(){
       ${renderSupplementCards(recs)}
       <div class="history-hint" style="margin-top:${recs.length ? '10px' : '0'}">${escapeHtml(parsed.note || '')}</div>
     `;
+    wireSupplementAddButtons(resultEl, recs);
   }catch(err){
     resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't get recommendations: ${err.message}. Try again.</div>`;
   }
