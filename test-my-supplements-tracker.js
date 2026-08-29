@@ -37,7 +37,10 @@ const addMySupplementSrc = extractFunction(src, 'addMySupplement');
 const loadSupplementTakenStateSrc = extractFunction(src, 'loadSupplementTakenState');
 const toggleMySupplementTakenSrc = extractFunction(src, 'toggleMySupplementTaken');
 const findKnownSupplementInfoSrc = extractFunction(src, 'findKnownSupplementInfo');
+const supplementInteractionPairsSrc = extractConst(src, 'SUPPLEMENT_INTERACTION_PAIRS');
+const findSupplementInteractionNotesSrc = extractFunction(src, 'findSupplementInteractionNotes');
 const renderMySupplementsSrc = extractFunction(src, 'renderMySupplements');
+const askCoachAboutSupplementSrc = extractFunction(src, 'askCoachAboutSupplement');
 const buildSwipeItemSrc = extractFunction(src, 'buildSwipeItem');
 const makeSwipeableSrc = extractFunction(src, 'makeSwipeable');
 const showUndoToastSrc = extractFunction(src, 'showUndoToast');
@@ -54,6 +57,23 @@ const bodyHtml = `
     <span id="undoToastText"></span>
     <button id="undoToastBtn">Undo</button>
   </div>
+  <button id="coachFab"></button>
+  <div id="coachFabModal"></div>
+  <input type="text" id="floatingChatInput">
+`;
+
+// A minimal stand-in for #coachFab's own real open/close behavior (real
+// version: test-coach-fab-drag.js) — genuinely TOGGLES (open when closed,
+// close when already open), matching the real handler's actual contract,
+// so askCoachAboutSupplement's guard against re-clicking an already-open
+// fab is tested against behavior that would actually close it if the
+// guard were missing — not a stub that only ever opens, which would let
+// that guard's absence pass silently. Drag/keyboard/animation-timing
+// concerns belong to that other file, not this one.
+const coachFabStubSrc = `
+  document.getElementById('coachFab').addEventListener('click', ()=>{
+    document.getElementById('coachFabModal').classList.toggle('active');
+  });
 `;
 
 function storageGlobals(initial){
@@ -78,7 +98,7 @@ function otherGlobals(selectedLogDate){
     var undoToastTimeout = null;
     window.selectedLogDate = ${JSON.stringify(selectedLogDate || '2026-08-20')};
     window.matchMedia = ()=> ({ matches: true }); // reduced-motion: skip the swipe-delete animation timer
-    window.icon = (name)=> name === 'check' ? '<span class="check-glyph">CHECK</span>' : '';
+    window.icon = (name)=> name === 'check' ? '<span class="check-glyph">CHECK</span>' : (name === 'chat' ? '<span class="chat-glyph">CHAT</span>' : '');
   `;
 }
 
@@ -86,7 +106,9 @@ const scriptChunks = [
   escapeHtmlSrc, foundationalStackSrc, supplementEvidenceLabelsSrc,
   loadMySupplementsSrc, saveMySupplementsSrc, addMySupplementSrc,
   loadSupplementTakenStateSrc, toggleMySupplementTakenSrc, findKnownSupplementInfoSrc,
+  supplementInteractionPairsSrc, findSupplementInteractionNotesSrc,
   buildSwipeItemSrc, makeSwipeableSrc, showUndoToastSrc,
+  coachFabStubSrc, askCoachAboutSupplementSrc,
   renderMySupplementsSrc, addBtnWiringSrc,
 ];
 
@@ -94,10 +116,24 @@ const { test, run } = makeRunner('test-my-supplements-tracker.js');
 
 // --- Read/render ------------------------------------------------------------
 
-test('renderMySupplements shows the empty state when nothing has been added', async (assert)=>{
+test('renderMySupplements shows the empty state, with a real jump-link to Supplement Recommendations, when nothing has been added', async (assert)=>{
   const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
   await window.renderMySupplements();
-  assert.match(document.getElementById('mySupplementsList').innerHTML, /Nothing here yet/);
+  const html = document.getElementById('mySupplementsList').innerHTML;
+  assert.match(html, /Nothing here yet/);
+  // data-jump-to is the app's real, existing cross-tab navigation mechanism
+  // (jumpToSetting, delegated on document) — this only proves the real
+  // markup wires to the real target id; the jump mechanic itself already
+  // has its own coverage elsewhere (test-ai-key-prompt-navigation.js).
+  assert.match(html, /data-jump-to="supplementRecommendationsCard"/, 'the empty state must link back to the real Supplement Recommendations card id');
+});
+
+test('sabotage-relevant: a populated list shows no jump-link to Supplement Recommendations — that CTA is empty-state only', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify(['Creatine']),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  assert.doesNotMatch(document.getElementById('mySupplementsList').innerHTML, /data-jump-to/, 'once something is tracked, the empty-state nudge must not still show');
 });
 
 test('a name that matches a Foundational Stack entry (case-insensitively) renders its real evidence tier and benefit note', async (assert)=>{
@@ -108,6 +144,24 @@ test('a name that matches a Foundational Stack entry (case-insensitively) render
   const html = document.getElementById('mySupplementsList').innerHTML;
   assert.match(html, /Well-established/, 'the real evidence tier for Creatine Monohydrate must render');
   assert.match(html, /strength, power output/, 'the real benefit text (from FOUNDATIONAL_SUPPLEMENT_STACK) must render, not a placeholder');
+});
+
+test('sabotage-relevant: both a matched and an unmatched row carry the real .supplement-label class on their name element', async (assert)=>{
+  // The .done rule (line-through/muted styling) targets .supplement-label,
+  // not :last-child — this row now has a THIRD flex child (the ask-coach
+  // button), so the name/benefit element is no longer the actual last
+  // child, and a class that silently went missing would leave a "done"
+  // supplement with no visual confirmation at all despite the JS state
+  // being correct underneath.
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify(['Creatine Monohydrate', 'My Custom Blend XYZ']),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  const rows = [...document.getElementById('mySupplementsList').querySelectorAll('.supplement-row')];
+  assert.strictEqual(rows.length, 2, 'precondition: both rows rendered');
+  rows.forEach(row=>{
+    assert.ok(row.querySelector('.supplement-label'), `every row (matched or not) must carry a real .supplement-label element — row html: ${row.innerHTML}`);
+  });
 });
 
 test('an unmatched, made-up name renders as a plain row with no benefit subtitle', async (assert)=>{
@@ -124,6 +178,64 @@ test('sabotage-relevant: findKnownSupplementInfo returns null for a name that is
   const { window } = runJsdom('', otherGlobals(), [foundationalStackSrc, findKnownSupplementInfoSrc]);
   assert.strictEqual(window.findKnownSupplementInfo('Definitely Not A Real Supplement'), null);
   assert.notStrictEqual(window.findKnownSupplementInfo('vitamin d3'), null, 'precondition: a real, lowercased entry name must still match');
+});
+
+// --- Interaction notes: proactive, conservative, pair-based -----------------
+// NOT a general drug/supplement interaction checker — this app has no
+// business attempting that. Just the two well-established mineral-
+// absorption pairs already implicit in Iron/Calcium/Zinc's own `caution`
+// fields, surfaced when BOTH members of a pair are actually tracked.
+
+function setupInteractionNotes(){
+  const { window } = runJsdom('', otherGlobals(), [supplementInteractionPairsSrc, findSupplementInteractionNotesSrc]);
+  return window;
+}
+
+test('REAL invocation: tracking both Iron and Calcium produces the real interaction note', (assert)=>{
+  const window = setupInteractionNotes();
+  const notes = window.findSupplementInteractionNotes(['Creatine', 'Iron', 'Calcium']);
+  assert.strictEqual(notes.length, 1);
+  assert.match(notes[0], /compete for absorption/);
+});
+
+test('sabotage-relevant: tracking only ONE half of a pair produces no note at all', (assert)=>{
+  // .length, not deepStrictEqual against a literal [] — the real array
+  // comes back from the jsdom window's OWN Array realm, whose prototype
+  // differs from Node's host-realm Array even when both are empty (same
+  // cross-realm trap testHelpers.js documents elsewhere).
+  const window = setupInteractionNotes();
+  assert.strictEqual(window.findSupplementInteractionNotes(['Iron', 'Vitamin D3']).length, 0, 'Iron alone, without Calcium or Zinc, must not trigger a note');
+  assert.strictEqual(window.findSupplementInteractionNotes(['Calcium']).length, 0);
+});
+
+test('REAL invocation: the check is case-insensitive, matching how a person might actually type either name', (assert)=>{
+  const window = setupInteractionNotes();
+  const notes = window.findSupplementInteractionNotes(['iron', 'CALCIUM']);
+  assert.strictEqual(notes.length, 1, 'differing case on both tracked names must still trigger the real pair match');
+});
+
+test('REAL invocation: tracking Iron, Calcium, AND Zinc together surfaces BOTH real pair notes, not just one', (assert)=>{
+  const window = setupInteractionNotes();
+  const notes = window.findSupplementInteractionNotes(['Iron', 'Calcium', 'Zinc']);
+  assert.strictEqual(notes.length, 2, 'both real pairs (Iron+Calcium, Iron+Zinc) must each surface their own note');
+});
+
+test('REAL invocation: renderMySupplements shows the real interaction banner above the list when both Iron and Calcium are tracked', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify(['Iron', 'Calcium']),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  const html = document.getElementById('mySupplementsList').innerHTML;
+  assert.match(html, /compete for absorption/, 'the real interaction note must render');
+  assert.match(html, /care-banner-caution/, 'must use the app\'s real caution-banner styling, not a bespoke one');
+});
+
+test('sabotage-relevant: renderMySupplements shows NO interaction banner when only one of the pair is tracked', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify(['Iron', 'Vitamin D3']),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  assert.doesNotMatch(document.getElementById('mySupplementsList').innerHTML, /compete for absorption/, 'Iron without its interacting partner must never show the pair note');
 });
 
 // --- Create: addMySupplement, including dedupe -----------------------------
@@ -191,6 +303,50 @@ test('sabotage-relevant: taken state for one date never leaks into another date\
   await new Promise(r=> setTimeout(r, 20));
   assert.deepStrictEqual(JSON.parse(window.storage.__store['supplement-taken:2026-08-19']), {Creatine: true}, 'yesterday\'s map must be byte-for-byte untouched');
   assert.deepStrictEqual(JSON.parse(window.storage.__store['supplement-taken:2026-08-20']), {Creatine: true}, 'today\'s own map must have been written');
+});
+
+// --- Ask your coach: the bridge from a tracked row to the real chat --------
+// Shares the SAME floating chat every tab reaches (#coachFab/#floatingChatInput,
+// coachChatHistory) rather than opening a separate conversation — see the
+// comment above askCoachAboutSupplement itself. The real open/close
+// animation is #coachFab's own job (test-coach-fab-drag.js); what's proven
+// here is askCoachAboutSupplement's own guard (never re-click an already-
+// open fab, which would close it) and that the row wiring reaches it with
+// the right name, without also toggling that row's taken state.
+
+test('REAL invocation: askCoachAboutSupplement pre-fills the real input and opens the fab when it starts closed', (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, otherGlobals(), scriptChunks);
+  assert.strictEqual(document.getElementById('coachFabModal').classList.contains('active'), false, 'precondition: fab starts closed');
+
+  window.askCoachAboutSupplement('Creatine');
+
+  assert.strictEqual(document.getElementById('floatingChatInput').value, 'What should I know about Creatine?');
+  assert.strictEqual(document.getElementById('coachFabModal').classList.contains('active'), true, 'a closed fab must actually open');
+});
+
+test('sabotage-relevant: askCoachAboutSupplement never re-clicks an ALREADY-open fab (which would close it) — it still pre-fills the input', (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, otherGlobals(), scriptChunks);
+  document.getElementById('coachFabModal').classList.add('active'); // simulate: already open
+
+  window.askCoachAboutSupplement('Magnesium');
+
+  assert.strictEqual(document.getElementById('coachFabModal').classList.contains('active'), true, 'must still be open — re-clicking #coachFab while open would have closed it, which is exactly the bug this guards against');
+  assert.strictEqual(document.getElementById('floatingChatInput').value, 'What should I know about Magnesium?', 'the input must still be pre-filled even when the fab was already open');
+});
+
+test('REAL invocation: clicking a row\'s ask-coach button reaches the real function with THAT row\'s name, and does not also toggle taken state', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify(['Creatine', 'Fish Oil']),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  const rows = document.getElementById('mySupplementsList').querySelectorAll('.swipe-item');
+
+  rows[1].querySelector('.supplement-ask-btn').click(); // Fish Oil, not Creatine
+  await new Promise(r=> setTimeout(r, 20));
+
+  assert.strictEqual(document.getElementById('floatingChatInput').value, 'What should I know about Fish Oil?', 'clicking the SECOND row\'s button must reach that row\'s own name, not the first');
+  const updatedRows = document.getElementById('mySupplementsList').querySelectorAll('.swipe-item');
+  assert.strictEqual(updatedRows[1].querySelector('.supplement-row').classList.contains('done'), false, 'clicking the ask button must never also mark the row as taken');
 });
 
 // --- Delete: real makeSwipeable-driven removal, independent of taken state --
