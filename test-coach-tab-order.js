@@ -30,13 +30,13 @@ test('the disclaimer card is still first, ahead of everything else', (assert)=>{
   assert.ok(disclaimerIdx !== -1 && disclaimerIdx < formFeedbackIdx, 'the API-key disclaimer must stay first');
 });
 
-test('sabotage-anchor: exactly 4 top-level cards exist in #coachView — the reorder must not have dropped or duplicated one', (assert)=>{
+test('sabotage-anchor: exactly 5 top-level cards exist in #coachView — the reorder must not have dropped or duplicated one', (assert)=>{
   // Matches `class="card"` or `class="card <more classes>"` exactly — NOT
   // `class="card-title"`/`class="card-icon"`, which a looser
   // `class="card` prefix match would also catch (confirmed: it did, on
   // the first run of this test, counting 7 instead of 4).
   const cardCount = (coachViewHtml.match(/<div class="card(?:"| )/g) || []).length;
-  assert.strictEqual(cardCount, 4, `expected exactly 4 cards (disclaimer, form feedback, past reviews, chat), got ${cardCount}`);
+  assert.strictEqual(cardCount, 5, `expected exactly 5 cards (disclaimer, form feedback, past reviews, chat, supplement recommendations), got ${cardCount}`);
 });
 
 test('all functional element ids survived the move: coachChatLog, coachVideoBtn, coachHistoryList', (assert)=>{

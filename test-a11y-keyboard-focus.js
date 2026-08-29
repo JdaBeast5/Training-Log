@@ -391,11 +391,16 @@ test('every <svg> in index.html is hidden from assistive tech, except the sparkl
   assert.ok(tags.length > 100, 'sanity: the file really does contain a large pile of SVGs');
 
   const sparklines = tags.filter(t=> t.includes('class="sparkline"'));
-  // The icon() registry's three literals get their aria-hidden injected by
-  // icon() itself, verified separately below — the raw literals legitimately
-  // lack it, and so does the template inside icon()'s own replace() call.
-  const registryLines = indexOnly.split('\n').filter(l=> /^\s*(check|warning|error):\s*'<svg/.test(l) || l.includes('svg.replace('));
-  const registryTags = registryLines.join('\n').match(/<svg\b[^>]*>/g) || [];
+  // The icon() registry's literals get their aria-hidden injected by icon()
+  // itself, verified separately below — the raw literals legitimately lack
+  // it. Derived from the real, fully-extracted ICONS object (iconsRegistrySrc,
+  // built above) rather than a hardcoded key-name regex — a hardcoded
+  // (check|warning|error) list silently stopped covering new entries the
+  // moment 'edit'/'trend'/'trash'/'chat' were added, and only kept passing
+  // for 'edit'/'trend'/'trash' by accident (their opening <svg> tag text
+  // happens to be byte-identical to 'warning''s). Scanning the real object
+  // means an as-yet-unwritten fifth icon is covered automatically too.
+  const registryTags = iconsRegistrySrc.match(/<svg\b[^>]*>/g) || [];
 
   const unhidden = tags.filter(t=> !/aria-hidden/.test(t) && !t.includes('class="sparkline"') && !registryTags.includes(t));
   assert.strictEqual(unhidden.length, 0,
@@ -436,14 +441,20 @@ test('REAL DOM: the app-header brand mark and the search pill icon are hidden �
   assert.strictEqual(search.querySelector('svg').getAttribute('aria-hidden'), 'true');
 });
 
-test('REAL invocation: icon() still injects aria-hidden into its registry SVGs at render time, which is why those three literals are exempt above', (assert)=>{
+test('REAL invocation: icon() still injects aria-hidden into EVERY registry SVG at render time, which is why the whole registry is exempt above', (assert)=>{
+  // Every current key, read from the real ICONS object rather than a
+  // hardcoded list — same reasoning as the registryTags fix above: a fixed
+  // name list silently stops covering an icon added later.
   const { window: win } = runJsdom('<div id="out"></div>', '', [iconsRegistrySrc, iconHelperSrc, `
-    document.getElementById('out').innerHTML = icon('check') + icon('warning') + icon('error');
+    const keys = Object.keys(ICONS);
+    document.getElementById('out').innerHTML = keys.map(k=> icon(k)).join('');
+    window.__keyCount = keys.length;
     window.__svgCount = document.querySelectorAll('#out svg').length;
     window.__hiddenCount = document.querySelectorAll('#out svg[aria-hidden="true"]').length;
   `]);
-  assert.strictEqual(win.__svgCount, 3);
-  assert.strictEqual(win.__hiddenCount, 3, 'all three rendered icons are hidden without the literals needing the attribute');
+  assert.ok(win.__keyCount >= 3, 'sanity: the registry really does hold multiple icons');
+  assert.strictEqual(win.__svgCount, win.__keyCount);
+  assert.strictEqual(win.__hiddenCount, win.__keyCount, 'every rendered icon in the registry must be hidden without its literal needing the attribute');
 });
 
 run();
