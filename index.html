@@ -618,6 +618,12 @@
   }
   .supplement-row.done span:last-child{color:var(--text-muted); text-decoration:line-through; text-decoration-color:var(--line-bright);}
   .supplement-row:active .supplement-check{transform:scale(0.88);}
+  /* Wraps a name + its evidence-tier subtitle as ONE last-child span, so the
+     .done rule above (line-through/muted on span:last-child) still targets
+     exactly one element whether a row has a plain label (bariatric checklist)
+     or a name+subtitle pair (My Supplements matching a known entry). */
+  .supplement-name-wrap{display:flex; flex-direction:column; gap:2px; min-width:0;}
+  .supplement-name-wrap .supplement-benefit{font-size:11.5px; color:var(--text-muted); font-weight:400;}
   .grocery-item{
     display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px;
     cursor:pointer; user-select:none;
@@ -5467,6 +5473,16 @@
     <div id="supplementRows"></div>
   </div>
 
+  <div class="card" id="mySupplementsCard">
+    <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="15" height="6" rx="3"/><line x1="10" y1="7" x2="10" y2="13"/></svg></span>My Supplements</div>
+    <div class="history-hint">Track whatever you actually take, day to day — anything that matches a Supplement Recommendations entry gets its evidence tier shown here too.</div>
+    <div class="weight-input-row">
+      <input type="text" id="mySupplementAddInput" class="care-input" placeholder="Add a supplement (e.g. Creatine)" aria-label="Add a supplement" autocomplete="off">
+      <button id="mySupplementAddBtn">Add</button>
+    </div>
+    <div id="mySupplementsList"></div>
+  </div>
+
 
   <div class="card">
     <div class="card-title nutrition-header" id="measureHeader">
@@ -6433,6 +6449,10 @@ function bootMark(name){
      week-progress:{program}             -> {dayId: boolean, ...} (whole-day-complete flags, resets weekly)
      week-checked:{program}:{dayId}      -> {exerciseIdx: boolean, ...} (per-exercise, resets weekly)
      grocery-list                        -> [{text, checked}, ...]
+     my-supplements                      -> ["name", ...] (user-maintained list, general/any supplement)
+     supplement-taken:{date}             -> {name: boolean, ...} (per-day taken state for my-supplements — a
+                                             DELIBERATE separate key from supplement-log:{date} above, never
+                                             read by computeSupplementStreak)
      hide-avoided-foods                  -> "1" | "0"
      workout-time:{date}                 -> {first, last} ("HH:MM" clock times of first/last set logged that day) [session 3]
                                              — a parallel display key like week-progress, never read by PRs/streaks/history,
@@ -6480,7 +6500,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.248';
+const APP_VERSION = '3.249';
 const SCHEMA_VERSION = 7; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7060,6 +7080,10 @@ const WHATS_NEW = {
   ]},
   '3.248': { headline: 'New: a Foundational Stack preset for Supplement Recommendations', points: [
     '"View Foundational Stack" on the Coach tab\'s Supplement Recommendations card shows an instant, always-available baseline (Vitamin D3, omega-3, magnesium, creatine, protein) plus a couple of well-evidenced additions if your profile is set to male (zinc) or female (iron, calcium, folate) — no AI request needed, and it never calls the API.',
+  ]},
+  '3.249': { headline: 'New: My Supplements — a daily tracker on the Log tab', points: [
+    'A new card on the Log tab lets you add anything you take (any supplement, not just AI-recommended ones) and check it off day by day — separate from the maintained list, so unchecking or re-checking never touches what you actually take, only whether you took it today.',
+    'A name that matches a Supplement Recommendations entry (from the Foundational Stack) shows its evidence tier and a one-line benefit note right in the tracker, so it stays grounded in the same research-backed content instead of becoming a bare checklist.',
   ]},
 };
 
@@ -32987,6 +33011,124 @@ document.getElementById('groceryClearCheckedBtn').addEventListener('click', asyn
   await renderGroceryList();
 });
 
+// --- My Supplements (general, self-directed daily tracker) -----------------
+// Two independent axes, on purpose, per the design this was scoped against:
+// `my-supplements` is a maintained list (add/remove rarely — mirrors
+// grocery-list's own {list, dedupe-on-add, swipe-to-delete} shape exactly,
+// see loadGroceryList/addGroceryItems/renderGroceryList just above), while
+// `supplement-taken:{date}` is a per-day boolean map keyed by
+// selectedLogDate — same shape as the bariatric checklist's own
+// `supplement-log:{date}` (see SUPPLEMENT_ITEMS/loadSupplements below), but
+// a DELIBERATELY SEPARATE key: this list is arbitrary and user-authored,
+// and writing its entries into supplement-log:{date} would corrupt
+// computeSupplementStreak's `SUPPLEMENT_ITEMS.every(...)` check the moment
+// an unrelated name showed up in that same map.
+//
+// A name typed here that happens to match a Foundational Stack entry (case-
+// insensitively) gets that entry's evidence tier and a one-line benefit note
+// shown alongside it — the same authored, evidence-graded content already
+// backing Supplement Recommendations, not a second copy of it. This is what
+// keeps a plain daily checkbox from being a dumb list: tracking "Creatine"
+// here surfaces the same "well-established, 3-5g daily" framing Coach
+// already gives it, for free.
+async function loadMySupplements(){
+  try{
+    const res = await window.storage.get('my-supplements');
+    return res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){ return []; }
+}
+
+async function saveMySupplements(list){
+  try{ await window.storage.set('my-supplements', JSON.stringify(list)); }catch(e){}
+}
+
+async function addMySupplement(name){
+  const trimmed = String(name || '').trim();
+  if(!trimmed) return;
+  const list = await loadMySupplements();
+  if(list.some(n=> n.toLowerCase() === trimmed.toLowerCase())) return;
+  list.push(trimmed);
+  await saveMySupplements(list);
+  await renderMySupplements();
+}
+
+async function loadSupplementTakenState(){
+  try{
+    const res = await window.storage.get(`supplement-taken:${selectedLogDate}`);
+    return res && res.value ? JSON.parse(res.value) : {};
+  }catch(e){ return {}; }
+}
+
+async function toggleMySupplementTaken(name){
+  const state = await loadSupplementTakenState();
+  state[name] = !state[name];
+  try{ await window.storage.set(`supplement-taken:${selectedLogDate}`, JSON.stringify(state)); }catch(e){}
+  await renderMySupplements();
+}
+
+// Case-insensitive match against the SAME curated table Supplement
+// Recommendations' Foundational Stack renders from — a lookup, not a copy.
+function findKnownSupplementInfo(name){
+  const all = [...FOUNDATIONAL_SUPPLEMENT_STACK.base, ...FOUNDATIONAL_SUPPLEMENT_STACK.male, ...FOUNDATIONAL_SUPPLEMENT_STACK.female];
+  const needle = String(name || '').trim().toLowerCase();
+  return all.find(item=> item.name.toLowerCase() === needle) || null;
+}
+
+async function renderMySupplements(){
+  const el = document.getElementById('mySupplementsList');
+  if(!el) return;
+  const list = await loadMySupplements();
+  if(list.length === 0){
+    el.innerHTML = '<div class="empty-note">💊 Nothing here yet — add what you actually take below.</div>';
+    return;
+  }
+  const state = await loadSupplementTakenState();
+  const itemHtmls = list.map(name=>{
+    const done = !!state[name];
+    const info = findKnownSupplementInfo(name);
+    // A wrapping span keeps the .done rule's `span:last-child` targeting ONE
+    // element whether or not a benefit line is present (see the CSS comment
+    // above .supplement-name-wrap) — a plain match's row looks identical to
+    // an unmatched one, no special-casing needed at the CSS layer.
+    const contentHtml = info
+      ? `<span class="supplement-name-wrap"><span>${escapeHtml(name)}</span><span class="supplement-benefit">${SUPPLEMENT_EVIDENCE_LABELS[info.evidence] || ''} — ${escapeHtml(info.why.split('. ')[0])}${info.why.includes('. ') ? '.' : ''}</span></span>`
+      : `<span>${escapeHtml(name)}</span>`;
+    return buildSwipeItem(
+      `<div class="supplement-row ${done ? 'done' : ''}"><span class="supplement-check">${done ? icon('check', {size:'13px'}) : ''}</span>${contentHtml}</div>`
+    );
+  });
+  el.innerHTML = itemHtmls.join('');
+
+  el.querySelectorAll('.swipe-item').forEach((swipeEl, idx)=>{
+    const name = list[idx];
+    swipeEl.querySelector('.supplement-row').addEventListener('click', ()=> toggleMySupplementTaken(name));
+    makeSwipeable(swipeEl, async ()=>{
+      const current = await loadMySupplements();
+      const removedIdx = current.indexOf(name);
+      if(removedIdx === -1) return;
+      const preDeleteSnapshot = JSON.stringify(current);
+      current.splice(removedIdx, 1);
+      await saveMySupplements(current);
+      await renderMySupplements();
+      showUndoToast(`${name} removed`, async ()=>{
+        try{ await saveMySupplements(JSON.parse(preDeleteSnapshot)); }catch(e){}
+        await renderMySupplements();
+      });
+    });
+  });
+}
+
+document.getElementById('mySupplementAddBtn').addEventListener('click', async ()=>{
+  const input = document.getElementById('mySupplementAddInput');
+  const text = input.value.trim();
+  if(!text) return;
+  await addMySupplement(text);
+  input.value = '';
+});
+document.getElementById('mySupplementAddInput').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') document.getElementById('mySupplementAddBtn').click();
+});
+
 // Matches on the meaningful words in a food name (skipping short/common
 // words) against everything already in the food library — a proven,
 // previously-used entry is worth surfacing as an alternative to a brand
@@ -36305,6 +36447,7 @@ async function refreshForLogDate(){
     loadBP();
     loadGlucose();
     loadSupplements();
+    renderMySupplements();
   }
 }
 
@@ -43504,6 +43647,7 @@ if(activeUserId){
     await renderGroceryList();
     loadWeights();
     toggleConditionTrackerCards();
+    renderMySupplements();
     loadSleep();
     loadMeasurements();
     loadProgressPhotos();
