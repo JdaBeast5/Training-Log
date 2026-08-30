@@ -2,11 +2,14 @@
 // Behavioral coverage for the Foundational Stack condition/cycle nudge — a
 // proactive Today Insights row for someone whose flagged medical condition
 // (prenatal, postpartum, hypertension, diabetes, osteoporosis) or CURRENT
-// cycle phase (menstrual, via real Cycle Tracking data) has a real
+// cycle phase (menstrual or luteal, via real Cycle Tracking data — mapped
+// through CYCLE_PHASE_SUPPLEMENT_ITEM, the only two phases with a genuine,
+// already-curated Foundational Stack item behind them) has a real
 // FOUNDATIONAL_SUPPLEMENT_STACK addition they haven't added to their tracker
 // yet — the user ask this was built for ("medically modified groups...
 // pregnant or postpartum, women on their periods... should be getting
-// supplements added to their list or at least recommended").
+// supplements added to their list or at least recommended"), later extended
+// from menstrual-only to every phase with a genuine match.
 //
 // This is a RECOMMEND, not an auto-add: it only ever surfaces a real
 // jump-link to the existing "+Add" flow (Coach tab's Foundational Stack
@@ -23,6 +26,7 @@ const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } =
 const src = readIndexSource();
 
 const getFoundationalStackNudgeInsightSrc = extractFunction(src, 'getFoundationalStackNudgeInsight');
+const cyclePhaseSupplementItemSrc = extractConst(src, 'CYCLE_PHASE_SUPPLEMENT_ITEM');
 const foundationalStackSrc = extractConst(src, 'FOUNDATIONAL_SUPPLEMENT_STACK');
 const activeConditionKeysSrc = extractFunction(src, 'activeConditionKeys');
 const computeCyclePhaseSrc = extractFunction(src, 'computeCyclePhase');
@@ -61,7 +65,7 @@ function profileGlobals(overrides){
 const baseChunks = [
   foundationalStackSrc, activeConditionKeysSrc, cyclePhasesSrc, getTodayKeySrc,
   computeCyclePhaseSrc, supplementFrequencyMetaSrc, escapeHtmlSrc, loadMySupplementsSrc,
-  getFoundationalStackNudgeInsightSrc,
+  cyclePhaseSupplementItemSrc, getFoundationalStackNudgeInsightSrc,
 ];
 
 function setup(profileOverrides, storageInitial){
@@ -174,6 +178,34 @@ test('REAL invocation: a flagged condition AND the menstrual phase at once combi
   assert.match(result, /Iron/);
 });
 
+// --- Cycle-phase trigger (luteal) -------------------------------------------
+
+test('REAL invocation: currently in the LUTEAL phase (real computeCyclePhase, day 20 of 28) surfaces the real, existing Magnesium item — not a new duplicate one', async (assert)=>{
+  const window = setup({ gender: 'female', conditions: [] }, {
+    'cycle-data': JSON.stringify({ lastPeriod: daysAgoKey(19), cycleLength: 28 }),
+  });
+  const result = await window.getFoundationalStackNudgeInsight();
+  assert.ok(result, 'day 20 of a 28-day cycle must compute as the real luteal phase and trigger a nudge');
+  assert.match(result, /Magnesium/, 'must point at the real, already-existing base-axis Magnesium item — never a second, invented one');
+});
+
+test('sabotage-relevant: currently in the OVULATION phase (day 14 of 28) produces no nudge — ovulation has no CYCLE_PHASE_SUPPLEMENT_ITEM entry on purpose', async (assert)=>{
+  const window = setup({ gender: 'female', conditions: [] }, {
+    'cycle-data': JSON.stringify({ lastPeriod: daysAgoKey(13), cycleLength: 28 }),
+  });
+  const result = await window.getFoundationalStackNudgeInsight();
+  assert.strictEqual(result, null, 'day 14 of a 28-day cycle is ovulation, not menstrual or luteal — a nudge here would prove the phase map is not actually being checked');
+});
+
+test('REAL invocation: Magnesium already tracked during the luteal phase produces no nudge', async (assert)=>{
+  const window = setup({ gender: 'female', conditions: [] }, {
+    'cycle-data': JSON.stringify({ lastPeriod: daysAgoKey(20), cycleLength: 28 }),
+    'my-supplements': JSON.stringify([{name: 'Magnesium (Glycinate or Citrate)', frequency: 'daily'}]),
+  });
+  const result = await window.getFoundationalStackNudgeInsight();
+  assert.strictEqual(result, null);
+});
+
 // --- Wiring: renderTodayInsights actually calls this, not just defines it --
 // Every other get*Insight function renderTodayInsights depends on is
 // stubbed to resolve null, so the ONLY way a row can appear in the real
@@ -194,6 +226,7 @@ const OTHER_INSIGHT_STUBS = `
   async function getPregnancyHeatInsight(){ return null; }
   async function getBackupReminderInsight(){ return null; }
   async function getReadinessInsight(){ return null; }
+  async function getCyclePhaseNutritionInsight(){ return null; }
 `;
 
 const wiringBodyHtml = `

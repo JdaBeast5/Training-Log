@@ -6550,7 +6550,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.263';
+const APP_VERSION = '3.264';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7185,6 +7185,10 @@ const WHATS_NEW = {
   '3.263': { headline: 'My Supplements: on-demand AI insight for database finds, unified expand/collapse', points: [
     'A database-found supplement that isn\'t on the curated evidence list can now get a real AI-generated read on its likely benefits and any safety concerns, right from its own card — a one-tap "Get AI insight" button, same AI setup as the rest of the app.',
     'Every tracked supplement\'s details (curated description, or label ingredients and AI insight) now expand and collapse the same consistent way, whether or not it\'s on the curated list.',
+  ]},
+  '3.264': { headline: 'Today now reflects your current cycle phase for both supplements and nutrition', points: [
+    'The supplement nudge on Today now covers your current cycle phase generally, not just your period — the luteal phase now points at Magnesium the same way menstrual already points at Iron, both already in the foundational stack.',
+    'A new Today row shows what your current cycle phase actually means for nutrition (not just training), with a direct link to the Nutrition card — still just information, nothing is ever added automatically.',
   ]},
 };
 
@@ -12326,6 +12330,30 @@ async function getCycleInsight(){
   return `${phase.icon} <b>${phase.name}:</b> ${phase.training}`;
 }
 
+// --- Cycle-phase nutrition insight: same idea as getCycleInsight above, just
+// surfacing CYCLE_PHASES' own `nutrition` field instead of `training` — that
+// content already existed (shown inside the Cycle Tracking card's phase-guide
+// list) but nobody saw it without opening that card and scrolling to it.
+// Mirrors getCycleInsight's own precedent exactly: same phase lookup, same
+// "always show once cycle data exists" rule (including a phase whose text is
+// "no major shift needed" — that is itself useful reassurance, not filler,
+// and inventing a rule to hide it would be a second, undocumented behavior
+// for what is otherwise one consistent pair of rows). Jumps into the real
+// Nutrition card (nutritionHeader, Log tab) via the same data-jump-to
+// mechanism used everywhere else in the app.
+async function getCyclePhaseNutritionInsight(){
+  if(userProfile.gender !== 'female') return null;
+  let data = null;
+  try{
+    const res = await window.storage.get('cycle-data');
+    if(res && res.value) data = JSON.parse(res.value);
+  }catch(e){ return null; }
+  if(!data || !data.lastPeriod || !data.cycleLength) return null;
+
+  const {phase} = computeCyclePhase(data.lastPeriod, data.cycleLength);
+  return `${phase.icon} <b>${phase.name} nutrition:</b> ${phase.nutrition} <button type="button" class="link-btn" data-jump-to="nutritionHeader">Open nutrition →</button>`;
+}
+
 // --- Foundational Stack nudge: a proactive RECOMMENDATION, not an auto-add.
 // The user ask behind this was "medically modified groups, pregnant/
 // postpartum, women on their periods... should be getting supplements added
@@ -12347,19 +12375,33 @@ async function getCycleInsight(){
 //     .conditions entry (prenatal, postpartum, osteoporosis, diabetes,
 //     hypertension) currently flagged via activeConditionKeys() — the same
 //     real function getFoundationalSupplementStack() itself reads.
-//  2. Currently IN the menstrual phase per Cycle Tracking's own
-//     computeCyclePhase (not merely "female" — that would fire year-round for
-//     a nutrient loss that is actually acute for ~5 days). This deliberately
-//     does NOT add a new supplement: it points at the SAME Iron entry the
-//     female axis already carries, whose own `why` text already names
-//     menstrual blood loss as the reason — restating it as a second entry
-//     with a tweaked dose is exactly the anti-pattern the comment above
-//     FOUNDATIONAL_SUPPLEMENT_STACK's `conditions` axis already warns against.
+//  2. The current cycle phase per Cycle Tracking's own computeCyclePhase
+//     (not merely "female" — that would fire year-round for needs that are
+//     actually specific to one part of the cycle), mapped through
+//     CYCLE_PHASE_SUPPLEMENT_ITEM below. This deliberately does NOT add a new
+//     supplement: every phase entry points at an EXISTING Foundational Stack
+//     item whose own `why` text already names that phase's need — menstrual
+//     points at Iron (female axis, already about menstrual blood loss),
+//     luteal points at Magnesium (base axis, already about muscle relaxation
+//     and sleep — also genuinely evidenced for PMS-type symptoms, which is
+//     exactly what CYCLE_PHASES' own luteal entry describes). Restating
+//     either as a second entry with a tweaked dose would be exactly the
+//     anti-pattern the comment above FOUNDATIONAL_SUPPLEMENT_STACK's
+//     `conditions` axis already warns against. Follicular and ovulation have
+//     no entry here on purpose: CYCLE_PHASES' own nutrition text for both
+//     already says no major shift is needed, and inventing a supplement nudge
+//     to fill that gap would be the "invented for symmetry's sake" anti-
+//     pattern that same table's header comment warns against too.
 //
 // Either way, anything already in `my-supplements` (case-insensitive, same
 // rule wireSupplementAddButtons' "already tracked" state uses) is filtered
 // out — this nudges toward what's missing, never re-announces what someone
 // already tracks.
+const CYCLE_PHASE_SUPPLEMENT_ITEM = {
+  menstrual: ()=> FOUNDATIONAL_SUPPLEMENT_STACK.female.find(item=> item.name === 'Iron'),
+  luteal: ()=> FOUNDATIONAL_SUPPLEMENT_STACK.base.find(item=> item.name === 'Magnesium (Glycinate or Citrate)'),
+};
+
 async function getFoundationalStackNudgeInsight(){
   const relevant = [];
   activeConditionKeys().forEach(key=>{
@@ -12367,21 +12409,19 @@ async function getFoundationalStackNudgeInsight(){
     if(extras) relevant.push(...extras);
   });
 
-  let onPeriod = false;
   if(userProfile.gender === 'female'){
     try{
       const res = await window.storage.get('cycle-data');
       if(res && res.value){
         const data = JSON.parse(res.value);
         if(data && data.lastPeriod && data.cycleLength){
-          onPeriod = computeCyclePhase(data.lastPeriod, data.cycleLength).phase.key === 'menstrual';
+          const phaseKey = computeCyclePhase(data.lastPeriod, data.cycleLength).phase.key;
+          const getItem = CYCLE_PHASE_SUPPLEMENT_ITEM[phaseKey];
+          const item = getItem && getItem();
+          if(item) relevant.push(item);
         }
       }
     }catch(e){ /* no cycle data saved — not an error, just nothing to check */ }
-  }
-  if(onPeriod){
-    const iron = FOUNDATIONAL_SUPPLEMENT_STACK.female.find(item=> item.name === 'Iron');
-    if(iron) relevant.push(iron);
   }
   if(relevant.length === 0) return null;
 
@@ -12806,11 +12846,11 @@ async function renderTodayInsights(){
   const el = document.getElementById('todayInsightsList');
   if(!card || !el) return;
 
-  const [deload, sleep, cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge] = await Promise.all([
+  const [deload, sleep, cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge, cycleNutrition] = await Promise.all([
     getDeloadInsight(), getSleepInsight(), getCycleInsight(),
     getStaleRestingRegionInsight(), getWeighInReminderInsight(), getWaterPaceInsight(), getSessionHeadsUpInsight(),
     getDeficitGuardrailInsight(), getPregnancyHeatInsight(), getBackupReminderInsight(),
-    getReadinessInsight(), getFoundationalStackNudgeInsight(),
+    getReadinessInsight(), getFoundationalStackNudgeInsight(), getCyclePhaseNutritionInsight(),
   ]);
 
   // deficit sits second: under the session heads-up (which is about the next
@@ -12833,7 +12873,12 @@ async function renderTodayInsights(){
   // condition or, per that row, the current cycle phase) turned into an
   // actionable pointer, so reading them back to back keeps cause and
   // recommendation adjacent rather than scattered across the list.
-  const items = [pregnancyHeat, readiness, sessionHeadsUp, deficit, deload, sleep, cycle, stackNudge, staleRegion, weighIn, waterPace, backup].filter(Boolean);
+  // cycleNutrition sits directly under stackNudge, for the same reason —
+  // it's the SAME cycle-phase context as cycle/stackNudge, just the nutrition
+  // half instead of the training/supplement halves. All three reading
+  // together as one group keeps every angle on "what does this phase mean
+  // for me" adjacent, rather than nutrition being the one orphaned elsewhere.
+  const items = [pregnancyHeat, readiness, sessionHeadsUp, deficit, deload, sleep, cycle, stackNudge, cycleNutrition, staleRegion, weighIn, waterPace, backup].filter(Boolean);
   if(items.length === 0){
     card.style.display = 'none';
     return;
