@@ -62,14 +62,18 @@ const { test, run } = makeRunner('test-history-log-collapse.js');
 
 // --- Markup shape ------------------------------------------------------
 
-test('sabotage-relevant: PERSISTENT_CARDS includes historyLog exactly once, alongside the pre-existing eight', (assert)=>{
+test('sabotage-relevant: PERSISTENT_CARDS includes historyLog exactly once, alongside the other real entries', (assert)=>{
   // `const` at the top level of a classic <script> does not become a window
   // property (unlike `var`) — this line exposes it for the assertion below
   // without changing what's actually declared in the real source.
   const { window } = runJsdom('', '', [persistentCardsSrc, 'window.__PERSISTENT_CARDS = PERSISTENT_CARDS;']);
   const arr = JSON.parse(JSON.stringify(window.__PERSISTENT_CARDS));
   assert.strictEqual(arr.filter(k=> k==='historyLog').length, 1);
-  assert.deepStrictEqual(arr, ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings', 'program', 'healthImport', 'diag', 'historyLog']);
+  // 'mySupplements' joined later (see test-my-supplements-tracker.js's own
+  // card-collapse coverage) — updated here rather than left as a stale
+  // exact-match failure, same precedent this suite already follows for a
+  // real, intentional shape change.
+  assert.deepStrictEqual(arr, ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings', 'program', 'healthImport', 'diag', 'historyLog', 'mySupplements']);
 });
 
 test('the real Day-by-Day Log header/wrap markup uses the established collapsible-card pattern, not a bespoke one', (assert)=>{

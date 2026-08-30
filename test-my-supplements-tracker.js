@@ -58,17 +58,26 @@ const searchDsldSupplementsSrc = extractFunction(src, 'searchDsldSupplements');
 const runDsldSearchSrc = extractFunction(src, 'runDsldSearch');
 const renderDsldSearchResultsSrc = extractFunction(src, 'renderDsldSearchResults');
 const dsldInputWiringSrc = extractStatement(src, "document.getElementById('mySupplementAddInput').addEventListener('input'");
+const setCardOpenStateSrc = extractFunction(src, 'setCardOpenState');
+const headerToggleWiringSrc = extractStatement(src, "document.getElementById('mySupplementsHeader').addEventListener('click'");
 
 const bodyHtml = `
-  <input type="text" id="mySupplementAddInput" class="care-input" placeholder="Add a supplement (e.g. Creatine)" aria-label="Add a supplement" autocomplete="off">
-  <select id="mySupplementFrequencySelect" aria-label="How often">
-    <option value="daily">Daily</option>
-    <option value="twice-daily">Twice daily</option>
-    <option value="weekly">Weekly</option>
-  </select>
-  <button id="mySupplementAddBtn">Add</button>
-  <div id="dsldSearchResults"></div>
-  <div id="mySupplementsList"></div>
+  <div class="card-title nutrition-header" id="mySupplementsHeader">
+    <span>My Supplements</span>
+    <span class="ex-chevron" aria-hidden="true" id="mySupplementsChevron">›</span>
+  </div>
+  <div class="nutrition-summary" id="mySupplementsSummary">Track whatever you actually take.</div>
+  <div class="expand-wrap" id="mySupplementsExpandWrap"><div>
+    <input type="text" id="mySupplementAddInput" class="care-input" placeholder="Add a supplement (e.g. Creatine)" aria-label="Add a supplement" autocomplete="off">
+    <select id="mySupplementFrequencySelect" aria-label="How often">
+      <option value="daily">Daily</option>
+      <option value="twice-daily">Twice daily</option>
+      <option value="weekly">Weekly</option>
+    </select>
+    <button id="mySupplementAddBtn">Add</button>
+    <div id="dsldSearchResults"></div>
+    <div id="mySupplementsList"></div>
+  </div></div>
   <div class="undo-toast" id="undoToast" role="status" aria-live="polite">
     <span id="undoToastText"></span>
     <button id="undoToastBtn">Undo</button>
@@ -130,6 +139,7 @@ const scriptChunks = [
   dsldApiBaseSrc, searchDsldSupplementsSrc,
   'let dsldVisibleTerm = ""; let dsldResults = []; let dsldSearchedTerm = null; let dsldSearchLoading = false; let dsldSearchError = null; let _dsldSearchTimer = null;',
   runDsldSearchSrc, renderDsldSearchResultsSrc, dsldInputWiringSrc,
+  setCardOpenStateSrc, headerToggleWiringSrc,
 ];
 
 const { test, run } = makeRunner('test-my-supplements-tracker.js');
@@ -164,6 +174,21 @@ test('a name that matches a Foundational Stack entry (case-insensitively) render
   const html = document.getElementById('mySupplementsList').innerHTML;
   assert.match(html, /Well-established/, 'the real evidence tier for Creatine Monohydrate must render');
   assert.match(html, /strength, power output/, 'the real benefit text (from FOUNDATIONAL_SUPPLEMENT_STACK) must render, not a placeholder');
+});
+
+// End-to-end version of the bareNeedle fix above: a real tracked item saved
+// under a brand-qualified name (exactly what addMySupplement stores for a
+// DSLD-search add) must still show its description on every render, not
+// just once at add time.
+test('REAL invocation: a tracked item saved under a brand-qualified name (a real DSLD-add shape) still shows its real description on render', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify([{name:'Creatine Monohydrate (Optimum Nutrition)', frequency:'daily'}]),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  const html = document.getElementById('mySupplementsList').innerHTML;
+  assert.match(html, /Creatine Monohydrate \(Optimum Nutrition\)/, 'the real tracked (brand-qualified) name must still render as the row label');
+  assert.match(html, /Well-established/, 'the description must still resolve for a brand-qualified persisted name, not just a bare curated one');
+  assert.match(html, /strength, power output/, 'the real curated benefit text must render, not be silently dropped once a brand suffix is attached');
 });
 
 test('sabotage-relevant: both a matched and an unmatched row carry the real .supplement-label class on their name element', async (assert)=>{
@@ -210,6 +235,20 @@ test('REAL invocation: a shorter, naturally-typed name still matches its curated
   assert.strictEqual(window.findKnownSupplementInfo('B12')?.name, 'Vitamin B12', '"B12" must match "Vitamin B12"');
   assert.strictEqual(window.findKnownSupplementInfo('Fish Oil')?.name, 'Omega-3 (Fish Oil or Algae-Based EPA/DHA)', '"Fish Oil" must match the Omega-3 entry it appears inside');
   assert.strictEqual(window.findKnownSupplementInfo('Magnesium Glycinate')?.name, 'Magnesium (Glycinate or Citrate)', 'a name with extra real detail beyond the curated label must still match');
+});
+
+// A real bug found while adding the "supplements card is expandable" work:
+// a DSLD search result is persisted into my-supplements under its full
+// brand-qualified product name ("Creatine Monohydrate (BrandX)" - see
+// searchDsldSupplements' own bareName comment). Every render AFTER the
+// initial add re-resolves the description from that PERSISTED name, not
+// the bare one the search step itself matched against - so without this
+// fix, a DSLD-added item showed its rich description exactly once (in the
+// search result, before adding) and then lost it forever once tracked.
+test('REAL invocation: findKnownSupplementInfo still resolves a brand-qualified persisted name (the exact shape a DSLD add stores)', (assert)=>{
+  const { window } = runJsdom('', otherGlobals(), [foundationalStackSrc, findKnownSupplementInfoSrc]);
+  assert.strictEqual(window.findKnownSupplementInfo('Creatine Monohydrate (Optimum Nutrition)')?.name, 'Creatine Monohydrate', 'the exact curated name plus a brand suffix must still resolve');
+  assert.strictEqual(window.findKnownSupplementInfo('Vitamin B12 (BrandY)')?.name, 'Vitamin B12', 'an exact curated name plus brand must resolve via the bare-exact path, not just the word-boundary fallback');
 });
 
 // The FOUNDATIONAL_SUPPLEMENT_STACK.conditions axis was added after this
@@ -746,6 +785,34 @@ test('sabotage-relevant: a stale search (input changed after the real fetch was 
   const html = document.getElementById('dsldSearchResults').innerHTML;
   assert.doesNotMatch(html, /Creatine Monohydrate/, 'a stale result for the OLD term must never be shown once the term has changed');
   assert.match(html, /Search supplement database for "magnesium"/, 'must fall back to the real search-trigger button for the new, not-yet-searched term');
+});
+
+// --- Card is now expandable/collapsible: the SAME generic
+// nutrition-header/expand-wrap/setCardOpenState mechanism 9 other cards
+// already use (Nutrition, Body Measurements, Progress Photos, Cycle
+// Tracking, etc.) - not a bespoke toggle invented for this card.
+
+test('REAL invocation: clicking the real header toggles .open on both the header and the expand-wrap', (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
+  const header = document.getElementById('mySupplementsHeader');
+  const wrap = document.getElementById('mySupplementsExpandWrap');
+  assert.ok(!header.classList.contains('open') && !wrap.classList.contains('open'), 'precondition: real markup starts closed');
+
+  header.click();
+  assert.ok(header.classList.contains('open'), 'header must gain .open on click');
+  assert.ok(wrap.classList.contains('open'), 'the expand-wrap must gain .open in lockstep with the header');
+
+  header.click();
+  assert.ok(!header.classList.contains('open') && !wrap.classList.contains('open'), 'a second click must close both again, not just toggle the header');
+});
+
+test('REAL invocation: clicking the header persists the real open state via the real setCardOpenState/window.storage', (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
+  document.getElementById('mySupplementsHeader').click();
+  assert.strictEqual(window.storage.__store['card-open:mySupplements'], 'true', 'opening must persist under the real card-open:mySupplements key, matching every other collapsible card');
+
+  document.getElementById('mySupplementsHeader').click();
+  assert.strictEqual(window.storage.__store['card-open:mySupplements'], 'false', 'closing again must persist the real false value, not just leave the last-written true in place');
 });
 
 run();
