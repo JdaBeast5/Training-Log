@@ -38,9 +38,9 @@ test('aiKeySetupPrompt no longer ships the stale showView(\'log\') + manual head
   assert.doesNotMatch(src, /js-ai-setup-jump/, 'no remaining reference anywhere in the file to the removed handler\'s target class');
 });
 
-test('sabotage-relevant: exactly 9 real aiKeySetupPrompt( call sites (the original 7, Snap a Meal converted from hand-rolled HTML, plus Supplement Recommendations)', (assert)=>{
+test('sabotage-relevant: exactly 10 real aiKeySetupPrompt( call sites (the original 7, Snap a Meal converted from hand-rolled HTML, Supplement Recommendations, plus the My Supplements AI-insight feature)', (assert)=>{
   const count = countCallSites(src, 'aiKeySetupPrompt');
-  assert.strictEqual(count, 9, `expected 9 real call sites, found ${count}`);
+  assert.strictEqual(count, 10, `expected 10 real call sites, found ${count}`);
 });
 
 test('the Snap a Meal "no API key" banner no longer hand-rolls its own HTML, and the stale "card below" phrasing is gone from the file', (assert)=>{
