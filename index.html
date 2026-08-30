@@ -644,6 +644,8 @@
   .supplement-benefit-toggle:active{opacity:0.6;}
   .supplement-benefit-detail{display:block; margin-top:4px; color:var(--text-muted);}
   .supplement-benefit-detail b{color:var(--text);}
+  .supplement-ingredients{display:block; font-size:11.5px; color:var(--text-muted); margin-top:4px;}
+  .supplement-ingredients b{color:var(--text);}
   .grocery-item{
     display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px;
     cursor:pointer; user-select:none;
@@ -6539,7 +6541,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.261';
+const APP_VERSION = '3.262';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7166,6 +7168,10 @@ const WHATS_NEW = {
   ]},
   '3.261': { headline: 'Today now proactively points to relevant supplement suggestions', points: [
     'If a flagged condition (pregnancy, postpartum, hypertension, diabetes, osteoporosis) or your current cycle phase has a Foundational Stack suggestion you haven\'t added yet, Today now says so, with a direct link — this only recommends, nothing is ever added to your list automatically.',
+  ]},
+  '3.262': { headline: 'My Supplements now shows real label ingredients for database finds', points: [
+    'A supplement found by searching the database that isn\'t on this app\'s curated evidence list now shows its real, factual label ingredients instead of nothing — still clearly marked as not evaluated for effectiveness, never a fabricated claim.',
+    'These ingredients now persist once added, so they keep showing every time you open My Supplements, not just in the search result before adding.',
   ]},
 };
 
@@ -33226,10 +33232,15 @@ async function loadMySupplements(){
   // normalized to {name, frequency} on every read, same transparent-upgrade
   // treatment as the exercise-log v2 migration. saveMySupplements always
   // writes the new shape, so this only ever matters for old stored data.
+  // `ingredients` is a later, optional addition (real DSLD label facts for
+  // an item with no curated match — see searchDsldSupplements) - carried
+  // through only when actually present, so an item added before this
+  // existed, or added manually/from the curated table, is untouched.
   return list.map(entry=>{
     if(typeof entry === 'string') return {name: entry, frequency: 'daily'};
     const frequency = SUPPLEMENT_FREQUENCY_META[entry.frequency] ? entry.frequency : 'daily';
-    return {name: entry.name, frequency};
+    const base = {name: entry.name, frequency};
+    return Array.isArray(entry.ingredients) && entry.ingredients.length ? {...base, ingredients: entry.ingredients} : base;
   });
 }
 
@@ -33237,12 +33248,19 @@ async function saveMySupplements(list){
   try{ await window.storage.set('my-supplements', JSON.stringify(list)); }catch(e){}
 }
 
-async function addMySupplement(name, frequency){
+// `extra` is optional additional data to persist alongside name/frequency —
+// currently only `ingredients` (see searchDsldSupplements/
+// renderDsldSearchResults), for a DSLD-found product with no curated
+// evidence-graded match, so its real label facts survive past the initial
+// add instead of only ever showing once, in the search result card.
+async function addMySupplement(name, frequency, extra){
   const trimmed = String(name || '').trim();
   if(!trimmed) return;
   const list = await loadMySupplements();
   if(list.some(item=> item.name.toLowerCase() === trimmed.toLowerCase())) return;
-  list.push({name: trimmed, frequency: SUPPLEMENT_FREQUENCY_META[frequency] ? frequency : 'daily'});
+  const entry = {name: trimmed, frequency: SUPPLEMENT_FREQUENCY_META[frequency] ? frequency : 'daily'};
+  if(extra && Array.isArray(extra.ingredients) && extra.ingredients.length) entry.ingredients = extra.ingredients;
+  list.push(entry);
   await saveMySupplements(list);
   await renderMySupplements();
 }
@@ -33342,16 +33360,13 @@ function findKnownSupplementInfo(name){
 // as fully keyless, so no key-storage/upgrade-prompt machinery is needed
 // here at all.
 //
-// IMPORTANT — UNVERIFIED AGAINST A LIVE CALL: this sandbox's network policy
-// blocks api.ods.od.nih.gov the same way it blocks every other unlisted
-// external host, so the request/response shape below is built from DSLD's
-// public API documentation, not a real round-trip. Treat this the same as
-// this app's other "unverified against live" features (Cross-Metric
-// Insights, video frame extraction before their own fixes were confirmed)
-// until someone actually exercises it from a real deployed session — if the
-// live shape differs, only the two spots marked below (the URL and the
-// result-mapping) should need adjusting; the loading/error/render wiring
-// around it doesn't depend on the exact shape.
+// UPDATE, confirmed live: name/brand search results (fullName/brandName
+// under hits[]._source) were verified against the real API by the user
+// directly. The ingredient-list extraction added below (ingredientRows)
+// is NEWER and NOT yet verified the same way — if real results come back
+// with no ingredients shown, that specific field name is the first thing
+// to check against an actual response, same "unverified against live"
+// caveat this app already carries for a few of its AI features.
 const DSLD_API_BASE = 'https://api.ods.od.nih.gov/dsld/v9';
 
 async function searchDsldSupplements(query){
@@ -33373,6 +33388,21 @@ async function searchDsldSupplements(query){
     const fullName = src.fullName || src.productName || src.name || '';
     if(!fullName) return null;
     const brand = src.brandName || src.brand || '';
+    // Real per-serving ingredient list straight off the product's own
+    // label, for a result with no curated evidence-graded match — shown
+    // as plain fact ("this product's label lists X, Y, Z"), never as a
+    // claim about what any of it does, which is exactly what stays
+    // curated-only. Tolerant of a couple of plausible field-name shapes
+    // per the caveat above.
+    const ingredients = Array.isArray(src.ingredientRows)
+      ? src.ingredientRows.map(row=>{
+          const ingName = row.name || row.ingredientName || '';
+          if(!ingName) return null;
+          const qty = row.quantity ?? row.amount ?? '';
+          const unit = row.unit || row.uom || '';
+          return qty !== '' ? `${ingName} (${qty}${unit})` : ingName;
+        }).filter(Boolean)
+      : [];
     return {
       name: brand ? `${fullName} (${brand})` : fullName,
       // Kept separate from `name` specifically so a curated-table lookup
@@ -33382,6 +33412,7 @@ async function searchDsldSupplements(query){
       // never will ("BrandX" isn't a word in "Creatine Monohydrate").
       bareName: fullName,
       dsldId: hit._id || src.dsldId || src.id || null,
+      ingredients,
       source: 'DSLD',
     };
   }).filter(Boolean);
@@ -33495,6 +33526,12 @@ async function renderMySupplements(){
         ? `<span class="supplement-benefit-detail">${escapeHtml(info.why)}<br><b>Typical dose:</b> ${escapeHtml(info.typicalDose || '—')}<br><b>Timing:</b> ${escapeHtml(info.timing || '—')}${info.caution ? `<br><b>Caution:</b> ${escapeHtml(info.caution)}` : ''}</span>`
         : '';
       parts.push(`<span class="supplement-benefit">${expanded ? evidenceLabel : firstSentence}${toggleBtn}${detailHtml}</span>`);
+    } else if(Array.isArray(item.ingredients) && item.ingredients.length){
+      // No curated evidence-graded match, but this item was added from a
+      // real DSLD search result that DID carry real label ingredients —
+      // show those plain facts rather than nothing at all. Still never a
+      // claim about effectiveness, which is what stays exclusively curated.
+      parts.push(buildDsldIngredientsHtml(item.ingredients));
     }
     if(frequency !== 'daily'){
       const progress = meta.requiredCount > 1 ? ` — ${count}/${meta.requiredCount} today` : '';
@@ -33580,6 +33617,15 @@ let dsldSearchedTerm = null;
 let dsldSearchLoading = false;
 let dsldSearchError = null;
 
+// Shared by the search-result card AND renderMySupplements — a product's
+// real label ingredients, factual and unranked, never a claim about
+// effectiveness. Returns '' (nothing rendered) when there's simply nothing
+// to show, same as every other conditional row in this card.
+function buildDsldIngredientsHtml(ingredients){
+  if(!Array.isArray(ingredients) || ingredients.length === 0) return '';
+  return `<span class="supplement-ingredients"><b>Label ingredients:</b> ${escapeHtml(ingredients.join(', '))}</span>`;
+}
+
 async function runDsldSearch(term){
   dsldSearchLoading = true;
   dsldSearchError = null;
@@ -33651,6 +33697,7 @@ async function renderDsldSearchResults(){
   const unmatchedHtml = unmatchedResults.map((r, i)=> `
     <div class="photo-result-card">
       <div class="photo-result-title">${escapeHtml(r.name)}</div>
+      ${buildDsldIngredientsHtml(r.ingredients)}
       <div class="care-disclaimer" style="margin-top:6px;">Not evaluated here — not medical advice. Ask your coach before starting anything new.</div>
       <button type="button" class="supplement-add-btn dsld-unmatched-add-btn" data-idx="${i}">+ Add to my supplements</button>
     </div>
@@ -33666,7 +33713,7 @@ async function renderDsldSearchResults(){
       const r = unmatchedResults[Number(btn.dataset.idx)];
       if(!r) return;
       const freqSelect = document.getElementById('mySupplementFrequencySelect');
-      await addMySupplement(r.name, freqSelect ? freqSelect.value : 'daily');
+      await addMySupplement(r.name, freqSelect ? freqSelect.value : 'daily', {ingredients: r.ingredients});
       btn.textContent = 'Added ✓';
       btn.disabled = true;
     });

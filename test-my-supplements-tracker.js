@@ -57,6 +57,7 @@ const dsldApiBaseSrc = extractConst(src, 'DSLD_API_BASE');
 const searchDsldSupplementsSrc = extractFunction(src, 'searchDsldSupplements');
 const runDsldSearchSrc = extractFunction(src, 'runDsldSearch');
 const renderDsldSearchResultsSrc = extractFunction(src, 'renderDsldSearchResults');
+const buildDsldIngredientsHtmlSrc = extractFunction(src, 'buildDsldIngredientsHtml');
 const dsldInputWiringSrc = extractStatement(src, "document.getElementById('mySupplementAddInput').addEventListener('input'");
 const setCardOpenStateSrc = extractFunction(src, 'setCardOpenState');
 const headerToggleWiringSrc = extractStatement(src, "document.getElementById('mySupplementsHeader').addEventListener('click'");
@@ -139,7 +140,7 @@ const scriptChunks = [
   dsldApiBaseSrc, searchDsldSupplementsSrc,
   'let dsldVisibleTerm = ""; let dsldResults = []; let dsldSearchedTerm = null; let dsldSearchLoading = false; let dsldSearchError = null; let _dsldSearchTimer = null;',
   'let expandedSupplementNames = new Set();',
-  runDsldSearchSrc, renderDsldSearchResultsSrc, dsldInputWiringSrc,
+  buildDsldIngredientsHtmlSrc, runDsldSearchSrc, renderDsldSearchResultsSrc, dsldInputWiringSrc,
   setCardOpenStateSrc, headerToggleWiringSrc,
 ];
 
@@ -707,6 +708,91 @@ test('REAL invocation: a 429 response throws the real rate-limit-specific messag
   const { window } = runJsdom('', otherGlobals(), [dsldApiBaseSrc, searchDsldSupplementsSrc]);
   window.fetch = async ()=> ({ ok: false, status: 429, json: async ()=> ({}) });
   await assert.rejects(() => window.searchDsldSupplements('creatine'), /rate limit/i);
+});
+
+// --- Real label ingredients for a product with no curated match: shown as
+// plain fact (never a claim about effectiveness), and persisted so they
+// survive past the initial add, not just the search-result card.
+
+test('REAL invocation: searchDsldSupplements extracts a real ingredientRows list into plain "name (qty unit)" strings', async (assert)=>{
+  const { window } = runJsdom('', otherGlobals(), [dsldApiBaseSrc, searchDsldSupplementsSrc]);
+  window.fetch = async ()=> fakeDsldResponse([
+    { _id: '1', _source: { fullName: 'Some Obscure Herbal Blend', ingredientRows: [
+      { name: 'Ashwagandha Root Extract', quantity: 300, unit: 'mg' },
+      { name: 'Black Pepper Extract', quantity: 5, unit: 'mg' },
+      { name: 'Proprietary Blend' }, // no quantity - must still render, just without a (qty unit) suffix
+    ] } },
+  ]);
+  const results = await window.searchDsldSupplements('herbal');
+  assert.deepStrictEqual([...results[0].ingredients], ['Ashwagandha Root Extract (300mg)', 'Black Pepper Extract (5mg)', 'Proprietary Blend']);
+});
+
+test('sabotage-relevant: a hit with no ingredientRows at all produces an empty ingredients array, not a crash', async (assert)=>{
+  const { window } = runJsdom('', otherGlobals(), [dsldApiBaseSrc, searchDsldSupplementsSrc]);
+  window.fetch = async ()=> fakeDsldResponse([{ _id: '1', _source: { fullName: 'Plain Product' } }]);
+  const results = await window.searchDsldSupplements('plain');
+  assert.strictEqual(results[0].ingredients.length, 0);
+});
+
+test('REAL invocation: an unmatched DSLD search result shows its real label ingredients in the result card itself', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
+  window.fetch = async ()=> fakeDsldResponse([
+    { _id: '1', _source: { fullName: 'Some Obscure Herbal Blend', ingredientRows: [{ name: 'Ashwagandha Root Extract', quantity: 300, unit: 'mg' }] } },
+  ]);
+  const input = document.getElementById('mySupplementAddInput');
+  input.value = 'obscure herbal';
+  input.dispatchEvent(new window.Event('input', {bubbles:true}));
+  await new Promise(r=> setTimeout(r, 120));
+  document.querySelector('#dsldSearchResults .dsld-search-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  const html = document.getElementById('dsldSearchResults').innerHTML;
+  assert.match(html, /Label ingredients/);
+  assert.match(html, /Ashwagandha Root Extract \(300mg\)/, 'the real extracted ingredient must render, not a placeholder');
+});
+
+test('REAL invocation: adding an unmatched DSLD result persists its real ingredients into my-supplements, and renderMySupplements shows them on every render after', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
+  window.fetch = async ()=> fakeDsldResponse([
+    { _id: '1', _source: { fullName: 'Some Obscure Herbal Blend', ingredientRows: [{ name: 'Ashwagandha Root Extract', quantity: 300, unit: 'mg' }] } },
+  ]);
+  const input = document.getElementById('mySupplementAddInput');
+  input.value = 'obscure herbal';
+  input.dispatchEvent(new window.Event('input', {bubbles:true}));
+  await new Promise(r=> setTimeout(r, 120));
+  document.querySelector('#dsldSearchResults .dsld-search-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+  document.querySelector('#dsldSearchResults .dsld-unmatched-add-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  const stored = JSON.parse(window.storage.__store['my-supplements']);
+  assert.deepStrictEqual([...stored[0].ingredients], ['Ashwagandha Root Extract (300mg)'], 'the real ingredients must be persisted, not dropped at add time');
+
+  // Independent render, well after the add - proves this isn't just an
+  // artifact of the search-result card still being on screen.
+  await window.renderMySupplements();
+  const listHtml = document.getElementById('mySupplementsList').innerHTML;
+  assert.match(listHtml, /Ashwagandha Root Extract \(300mg\)/, 'the real ingredients must still render on a later, independent renderMySupplements call');
+});
+
+test('sabotage-relevant: an item added WITHOUT any ingredients (a plain manual add) never renders an ingredients line', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify(['My Custom Blend XYZ']),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  assert.doesNotMatch(document.getElementById('mySupplementsList').innerHTML, /Label ingredients/, 'no ingredients data must mean no ingredients line at all');
+});
+
+test('sabotage-relevant: loadMySupplements carries ingredients through on read, but never invents them for an entry that has none', async (assert)=>{
+  const { window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify([
+      {name:'Herbal Blend', frequency:'daily', ingredients:['Real Ingredient (10mg)']},
+      {name:'Plain Item', frequency:'daily'},
+    ]),
+  }) + otherGlobals(), scriptChunks);
+  const list = await window.loadMySupplements();
+  assert.deepStrictEqual([...list[0].ingredients], ['Real Ingredient (10mg)']);
+  assert.strictEqual(list[1].ingredients, undefined, 'an entry with no stored ingredients must not get a fabricated empty array or leaked data from another entry');
 });
 
 test('REAL invocation: typing into the add input shows the real "search database" button WITHOUT firing a network call yet', async (assert)=>{
