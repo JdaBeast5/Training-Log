@@ -293,7 +293,7 @@ function setupFoundationalStack(profileOverrides){
   const { window, document } = runJsdom(bodyHtml, globalsSetup, [
     escapeHtmlSrc, supplementEvidenceLabelsSrc, renderSupplementCardsSrc,
     supplementFrequencyMetaSrc, loadMySupplementsSrc, saveMySupplementsSrc, addMySupplementSrc, wireSupplementAddButtonsSrc,
-    foundationalStackSrc, getFoundationalSupplementStackSrc,
+    activeConditionKeysSrc, foundationalStackSrc, getFoundationalSupplementStackSrc,
     renderFoundationalStackSrc, foundationalToggleWiringSrc,
     'window.getFoundationalSupplementStack = getFoundationalSupplementStack;',
     'window.renderFoundationalStack = renderFoundationalStack;',
@@ -339,6 +339,59 @@ test('sabotage-relevant: a female profile adds the real female-specific items on
   assert.ok(names.includes('Vitamin D3'), 'base items must still be present');
   assert.ok(names.includes('Iron') && names.includes('Calcium') && names.includes('Folate (Vitamin B9)'), 'the real female-specific additions must all be included');
   assert.ok(!names.includes('Zinc'), 'the male-specific item must not leak into a female profile');
+});
+
+// --- Condition-based additions: the SAME real flagged-condition pipeline ---
+// buildSupplementSystemPrompt already reads (activeConditionKeys/
+// PERSISTENT_CONDITIONS), not a parallel system invented for this feature.
+// bariatricRebuilding is deliberately excluded (it already has its own
+// dedicated checklist elsewhere) — proven here as a real negative case, not
+// just asserted in a comment.
+
+test('REAL invocation: a flagged osteoporosis condition adds the real Vitamin K2 entry on top of base', (assert)=>{
+  const { window } = setupFoundationalStack({conditions:['osteoporosis']});
+  const names = window.getFoundationalSupplementStack().map(i=>i.name);
+  assert.ok(names.includes('Vitamin D3'), 'base items must still be present');
+  assert.ok(names.includes('Vitamin K2 (MK-7)'), 'the real osteoporosis-specific addition must be included');
+});
+
+test('REAL invocation: a flagged diabetes condition adds the real Alpha-Lipoic Acid entry', (assert)=>{
+  const { window } = setupFoundationalStack({conditions:['diabetes']});
+  const names = window.getFoundationalSupplementStack().map(i=>i.name);
+  assert.ok(names.includes('Alpha-Lipoic Acid'));
+});
+
+test('REAL invocation: a flagged hypertension condition adds the real CoQ10 entry', (assert)=>{
+  const { window } = setupFoundationalStack({conditions:['hypertension']});
+  const names = window.getFoundationalSupplementStack().map(i=>i.name);
+  assert.ok(names.includes('Coenzyme Q10 (CoQ10)'));
+});
+
+test('REAL invocation: prenatal and postpartum each add a real Choline entry worded for that condition specifically', (assert)=>{
+  const { window: prenatalWin } = setupFoundationalStack({conditions:['prenatal']});
+  const prenatalItem = prenatalWin.getFoundationalSupplementStack().find(i=> i.name === 'Choline');
+  assert.ok(prenatalItem, 'prenatal must add a real Choline entry');
+  assert.match(prenatalItem.why, /pregnancy/i, 'the prenatal wording must actually reference pregnancy, not generic breastfeeding text');
+
+  const { window: postpartumWin } = setupFoundationalStack({conditions:['postpartum']});
+  const postpartumItem = postpartumWin.getFoundationalSupplementStack().find(i=> i.name === 'Choline');
+  assert.ok(postpartumItem, 'postpartum must add a real Choline entry');
+  assert.match(postpartumItem.why, /breastfeeding/i, 'the postpartum wording must actually reference breastfeeding, not the prenatal text verbatim');
+});
+
+test('sabotage-relevant: no flagged conditions means none of the condition-specific additions appear', (assert)=>{
+  const { window } = setupFoundationalStack({conditions:[]});
+  const names = window.getFoundationalSupplementStack().map(i=>i.name);
+  assert.ok(!names.includes('Vitamin K2 (MK-7)') && !names.includes('Alpha-Lipoic Acid') && !names.includes('Coenzyme Q10 (CoQ10)') && !names.includes('Choline'), 'nothing condition-specific must appear when nothing is actually flagged');
+});
+
+test('sabotage-relevant: a flagged bariatricRebuilding condition adds nothing here — it already has its own dedicated checklist elsewhere', (assert)=>{
+  const plainBaseCount = setupFoundationalStack({conditions:[], gender:'other'}).window.getFoundationalSupplementStack().length;
+  const { window } = setupFoundationalStack({conditions:['bariatricRebuilding'], gender:'other'});
+  // Exactly the same count as the plain base list, nothing more — proves
+  // this condition was left out deliberately rather than by an accidental
+  // typo in the conditions map key.
+  assert.strictEqual(window.getFoundationalSupplementStack().length, plainBaseCount, 'bariatricRebuilding must add zero items on top of the plain base list');
 });
 
 test('REAL invocation: renderFoundationalStack renders every item into the real .smooth-toggle content div with evidence tier and dose', async (assert)=>{
