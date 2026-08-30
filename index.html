@@ -5488,19 +5488,24 @@
   </div>
 
   <div class="card" id="mySupplementsCard">
-    <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="15" height="6" rx="3"/><line x1="10" y1="7" x2="10" y2="13"/></svg></span>My Supplements</div>
-    <div class="history-hint">Track whatever you actually take, day to day — anything that matches a Supplement Recommendations entry gets its evidence tier shown here too.</div>
-    <div class="weight-input-row">
-      <input type="text" id="mySupplementAddInput" class="care-input" placeholder="Add a supplement (e.g. Creatine)" aria-label="Add a supplement" autocomplete="off">
-      <select id="mySupplementFrequencySelect" class="care-input" style="flex:0 0 116px; padding-left:8px;" aria-label="How often">
-        <option value="daily">Daily</option>
-        <option value="twice-daily">Twice daily</option>
-        <option value="weekly">Weekly</option>
-      </select>
-      <button id="mySupplementAddBtn">Add</button>
+    <div class="card-title nutrition-header" id="mySupplementsHeader">
+      <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="15" height="6" rx="3"/><line x1="10" y1="7" x2="10" y2="13"/></svg></span>My Supplements</span>
+      <span class="ex-chevron" aria-hidden="true" id="mySupplementsChevron">›</span>
     </div>
-    <div id="dsldSearchResults"></div>
-    <div id="mySupplementsList"></div>
+    <div class="nutrition-summary" id="mySupplementsSummary">Track whatever you actually take, day to day — anything that matches a Supplement Recommendations entry gets its evidence tier shown here too.</div>
+    <div class="expand-wrap" id="mySupplementsExpandWrap"><div>
+      <div class="weight-input-row">
+        <input type="text" id="mySupplementAddInput" class="care-input" placeholder="Add a supplement (e.g. Creatine)" aria-label="Add a supplement" autocomplete="off">
+        <select id="mySupplementFrequencySelect" class="care-input" style="flex:0 0 116px; padding-left:8px;" aria-label="How often">
+          <option value="daily">Daily</option>
+          <option value="twice-daily">Twice daily</option>
+          <option value="weekly">Weekly</option>
+        </select>
+        <button id="mySupplementAddBtn">Add</button>
+      </div>
+      <div id="dsldSearchResults"></div>
+      <div id="mySupplementsList"></div>
+    </div></div>
   </div>
 
 
@@ -6527,7 +6532,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.258';
+const APP_VERSION = '3.259';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7144,6 +7149,10 @@ const WHATS_NEW = {
   ]},
   '3.258': { headline: 'Foundational Stack now accounts for age', points: [
     'At 50+, the Foundational Stack adds HMB — real evidence specifically in older or less-active adults for slowing age-related muscle loss (sarcopenia), alongside your existing base and gender/condition-based recommendations.',
+  ]},
+  '3.259': { headline: 'My Supplements: fixed descriptions, made the card collapsible', points: [
+    'Fixed a real bug: a supplement added by searching the database kept its evidence-graded description only until the next time the list re-rendered, then silently lost it — the tracked list now resolves descriptions correctly no matter how an item was added.',
+    'My Supplements is now a collapsible card like Nutrition and Body Measurements, so it can be tucked away once its list (and everyone\'s descriptions) grow long.',
   ]},
 };
 
@@ -30084,7 +30093,15 @@ function isDistanceExercise(exName){
 // Nutrition, it defaults OPEN: unlike the others here, this is the one
 // thing the History tab is chiefly for, so collapsed-by-default would hide
 // the reason someone came to the tab.
-const PERSISTENT_CARDS = ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings', 'program', 'healthImport', 'diag', 'historyLog'];
+//
+// 'mySupplements' joined once its card grew real height (evidence tier,
+// benefit description, frequency badge, and interaction banners can all
+// stack on top of the add row and list) — same collapse every other long
+// card gets. Defaults OPEN for the same reason nutrition/historyLog do:
+// checking off today's supplements is a daily-use interaction, not a
+// rarely-touched settings panel, so hiding it by default would be a real
+// visibility regression for the existing tracked list.
+const PERSISTENT_CARDS = ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings', 'program', 'healthImport', 'diag', 'historyLog', 'mySupplements'];
 async function getCardOpenState(key){
   // An explicit stored choice always wins. Only when NOTHING has ever
   // been stored does this fall back to a default — Nutrition and the
@@ -30102,8 +30119,8 @@ async function getCardOpenState(key){
   try{
     const res = await window.storage.get('card-open:'+key);
     if(res) return res.value === 'true';
-    return key === 'nutrition' || key === 'historyLog';
-  }catch(e){ return key === 'nutrition' || key === 'historyLog'; }
+    return key === 'nutrition' || key === 'historyLog' || key === 'mySupplements';
+  }catch(e){ return key === 'nutrition' || key === 'historyLog' || key === 'mySupplements'; }
 }
 async function setCardOpenState(key, isOpen){
   try{ await window.storage.set('card-open:'+key, isOpen ? 'true' : 'false'); }catch(e){}
@@ -33201,7 +33218,24 @@ function findKnownSupplementInfo(name){
   if(!needle) return null;
   const exact = all.find(item=> item.name.toLowerCase() === needle);
   if(exact) return exact;
-  const words = needle.split(/[^a-z0-9]+/).filter(w=> w.length >= 2);
+  // A DSLD search result is stored under its real product name WITH the
+  // brand appended ("Creatine Monohydrate (BrandX)") — see
+  // searchDsldSupplements. Once that's the persisted my-supplements name,
+  // every later call here (e.g. renderMySupplements re-rendering the
+  // tracked list) has to re-resolve it, and the trailing brand would
+  // otherwise have to satisfy the word-boundary check below too, which it
+  // structurally never will ("brandx" isn't a word in "Creatine
+  // Monohydrate"). Stripping a trailing "(...)" group before matching fixes
+  // this without touching the curated table's OWN names, several of which
+  // have real, meaningful parenthetical content of their own (e.g. "Folate
+  // (Vitamin B9)") — those are never the needle here, only ever the
+  // candidates being matched against.
+  const bareNeedle = needle.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  if(bareNeedle && bareNeedle !== needle){
+    const bareExact = all.find(item=> item.name.toLowerCase() === bareNeedle);
+    if(bareExact) return bareExact;
+  }
+  const words = bareNeedle.split(/[^a-z0-9]+/).filter(w=> w.length >= 2);
   if(words.length === 0) return null;
   const patterns = words.map(w=> new RegExp(`\\b${w}`, 'i'));
   return all.find(item=> patterns.every(p=> p.test(item.name))) || null;
@@ -33389,6 +33423,12 @@ async function renderMySupplements(){
     });
   });
 }
+
+document.getElementById('mySupplementsHeader').addEventListener('click', ()=>{
+  const isOpen = document.getElementById('mySupplementsHeader').classList.toggle('open');
+  document.getElementById('mySupplementsExpandWrap').classList.toggle('open');
+  setCardOpenState('mySupplements', isOpen);
+});
 
 document.getElementById('mySupplementAddBtn').addEventListener('click', async ()=>{
   const input = document.getElementById('mySupplementAddInput');
