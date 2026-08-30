@@ -26,6 +26,7 @@ const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } =
 const src = readIndexSource();
 
 const getFoundationalStackNudgeInsightSrc = extractFunction(src, 'getFoundationalStackNudgeInsight');
+const isCycleTrackingEnabledSrc = extractFunction(src, 'isCycleTrackingEnabled');
 const cyclePhaseSupplementItemSrc = extractConst(src, 'CYCLE_PHASE_SUPPLEMENT_ITEM');
 const foundationalStackSrc = extractConst(src, 'FOUNDATIONAL_SUPPLEMENT_STACK');
 const activeConditionKeysSrc = extractFunction(src, 'activeConditionKeys');
@@ -65,7 +66,7 @@ function profileGlobals(overrides){
 const baseChunks = [
   foundationalStackSrc, activeConditionKeysSrc, cyclePhasesSrc, getTodayKeySrc,
   computeCyclePhaseSrc, supplementFrequencyMetaSrc, escapeHtmlSrc, loadMySupplementsSrc,
-  cyclePhaseSupplementItemSrc, getFoundationalStackNudgeInsightSrc,
+  cyclePhaseSupplementItemSrc, isCycleTrackingEnabledSrc, getFoundationalStackNudgeInsightSrc,
 ];
 
 function setup(profileOverrides, storageInitial){
@@ -149,6 +150,14 @@ test('REAL invocation: currently in the menstrual phase (real computeCyclePhase,
   const result = await window.getFoundationalStackNudgeInsight();
   assert.ok(result, 'day 1 of a 28-day cycle must compute as the real menstrual phase and trigger a nudge');
   assert.match(result, /Iron/, 'must point at the real, already-existing female-axis Iron item — never a second, invented one');
+});
+
+test('REAL invocation: female gender who has explicitly opted OUT of cycle tracking, currently in the menstrual phase, produces no cycle-phase nudge — even with real cycle data still saved from before the opt-out', async (assert)=>{
+  const window = setup({ gender: 'female', conditions: [], cycleTrackingEnabled: false }, {
+    'cycle-data': JSON.stringify({ lastPeriod: daysAgoKey(0), cycleLength: 28 }),
+  });
+  const result = await window.getFoundationalStackNudgeInsight();
+  assert.strictEqual(result, null, 'opting out must be a real off switch — it must stop reading pre-existing cycle-data for the phase-based item too, not just stop collecting new data');
 });
 
 test('sabotage-relevant: currently in the FOLLICULAR phase (day 10 of 28) produces no nudge — this is gated on the real current phase, not just "female with cycle data saved"', async (assert)=>{

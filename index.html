@@ -5126,6 +5126,11 @@
         </div>
       </div>
 
+      <div id="pfCycleTrackingRow" style="display:none;">
+        <label class="save-to-library-label"><input type="checkbox" id="pfCycleTrackingEnabled"><span>Track menstrual cycle</span></label>
+        <div class="history-hint field-note">Powers the Cycle Tracking card and phase-aware Today insights. Turn this off if you'd rather not track or see it — nothing about your program or nutrition targets changes either way.</div>
+      </div>
+
       <div class="profile-row-2">
         <div>
           <label class="care-label">Height</label>
@@ -6550,7 +6555,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.264';
+const APP_VERSION = '3.265';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7189,6 +7194,9 @@ const WHATS_NEW = {
   '3.264': { headline: 'Today now reflects your current cycle phase for both supplements and nutrition', points: [
     'The supplement nudge on Today now covers your current cycle phase generally, not just your period — the luteal phase now points at Magnesium the same way menstrual already points at Iron, both already in the foundational stack.',
     'A new Today row shows what your current cycle phase actually means for nutrition (not just training), with a direct link to the Nutrition card — still just information, nothing is ever added automatically.',
+  ]},
+  '3.265': { headline: 'Cycle tracking can now be turned off from your profile', points: [
+    'Women can now opt out of cycle tracking entirely from Your Profile — this hides the Cycle Tracking card and turns off every phase-aware Today insight, even if cycle data was saved before turning it off.',
   ]},
 };
 
@@ -12318,7 +12326,7 @@ async function getSleepInsight(){
 // modifier — individual variation is significant, and only the person
 // training knows how they actually feel that day.
 async function getCycleInsight(){
-  if(userProfile.gender !== 'female') return null;
+  if(!isCycleTrackingEnabled()) return null;
   let data = null;
   try{
     const res = await window.storage.get('cycle-data');
@@ -12342,7 +12350,7 @@ async function getCycleInsight(){
 // Nutrition card (nutritionHeader, Log tab) via the same data-jump-to
 // mechanism used everywhere else in the app.
 async function getCyclePhaseNutritionInsight(){
-  if(userProfile.gender !== 'female') return null;
+  if(!isCycleTrackingEnabled()) return null;
   let data = null;
   try{
     const res = await window.storage.get('cycle-data');
@@ -12409,7 +12417,7 @@ async function getFoundationalStackNudgeInsight(){
     if(extras) relevant.push(...extras);
   });
 
-  if(userProfile.gender === 'female'){
+  if(isCycleTrackingEnabled()){
     try{
       const res = await window.storage.get('cycle-data');
       if(res && res.value){
@@ -30082,6 +30090,7 @@ let userProfile = {
   name:'', age:30, gender:'other', heightFt:5, heightIn:8, weight:160,
   activity:1.375, goal:'maintain', bodyGoal:'', conditions:[], dietaryPreference:'', avoidFoods:'',
   dietaryFlags:{glutenFree:false, dairyFree:false, nutFree:false, halal:false, kosher:false},
+  cycleTrackingEnabled:true,
 };
 
 async function loadProfile(){
@@ -31670,6 +31679,15 @@ function applyTargetsToUI(){
   }
 }
 
+// The opt-out checkbox only makes sense once a female gender is selected —
+// same "only exists where it's relevant" rule the Cycle Tracking card itself
+// already follows (toggleCycleCard). Shared by populateProfileForm (initial
+// load) and the pfGender change listener (live, as someone edits the form)
+// so the two can never drift into showing it under different conditions.
+function updatePfCycleTrackingRowVisibility(){
+  document.getElementById('pfCycleTrackingRow').style.display = (document.getElementById('pfGender').value === 'female') ? '' : 'none';
+}
+
 function populateProfileForm(){
   const p = userProfile;
   document.getElementById('pfName').value = p.name || '';
@@ -31680,6 +31698,8 @@ function populateProfileForm(){
   document.getElementById('pfWeight').value = p.weight ? trimUnitNum(toDisplayWeight(p.weight)) : '';
   document.getElementById('pfActivity').value = p.activity;
   document.getElementById('pfGoal').value = p.goal;
+  document.getElementById('pfCycleTrackingEnabled').checked = p.cycleTrackingEnabled !== false;
+  updatePfCycleTrackingRowVisibility();
   document.getElementById('pfDietaryPreference').value = p.dietaryPreference || '';
   const flags = p.dietaryFlags || {};
   document.getElementById('pfGlutenFree').checked = !!flags.glutenFree;
@@ -31699,6 +31719,7 @@ document.getElementById('profileHeader').addEventListener('click', ()=>{
 
 document.getElementById('pfGender').addEventListener('change', (e)=>{
   userProfile.gender = e.target.value;
+  updatePfCycleTrackingRowVisibility();
   updateBodyGoalOptions();
   toggleCycleCard();
 });
@@ -31732,6 +31753,7 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
     // an actually-blank field keeps what was there before.
     age: readValidAge(document.getElementById('pfAge').value, userProfile.age),
     gender: document.getElementById('pfGender').value,
+    cycleTrackingEnabled: document.getElementById('pfCycleTrackingEnabled').checked,
     heightFt: document.getElementById('pfHeightFt').value !== '' ? Number(document.getElementById('pfHeightFt').value) : userProfile.heightFt,
     heightIn: Number(document.getElementById('pfHeightIn').value) || 0,
     weight: document.getElementById('pfWeight').value ? toCanonicalLb(document.getElementById('pfWeight').value) : userProfile.weight,
@@ -36618,9 +36640,20 @@ function buildPhaseCardHtml(phase, isCurrent){
   `;
 }
 
+// A woman can opt out of cycle tracking entirely — it's optional health data,
+// nobody has to share it with an app. `cycleTrackingEnabled` defaults to true
+// (see userProfile's own default object below) so nothing changes for anyone
+// who has never touched this setting; explicitly turning it off hides the
+// Cycle Tracking card AND stops every phase-aware Today insight from reading
+// whatever cycle-data may already be saved from before the opt-out — turning
+// it off is a real off switch, not just a "stop collecting new data" one.
+function isCycleTrackingEnabled(){
+  return userProfile.gender === 'female' && userProfile.cycleTrackingEnabled !== false;
+}
+
 function toggleCycleCard(){
   const card = document.getElementById('cycleCard');
-  card.style.display = (userProfile.gender === 'female') ? '' : 'none';
+  card.style.display = isCycleTrackingEnabled() ? '' : 'none';
 }
 
 async function loadCycleData(){
@@ -36633,7 +36666,7 @@ async function loadCycleData(){
 
 async function renderCycleTracking(){
   toggleCycleCard();
-  if(userProfile.gender !== 'female') return;
+  if(!isCycleTrackingEnabled()) return;
 
   const data = await loadCycleData();
   const guideEl = document.getElementById('cyclePhaseGuide');
