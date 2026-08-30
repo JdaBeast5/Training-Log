@@ -1545,13 +1545,13 @@
     box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset, 0 6px 16px -10px rgba(var(--overlay-black-rgb),0.5);
   }
   .show-more-btn:active{transform:scale(0.98); border-color:var(--line-bright); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset;}
-  .usda-search-btn{
+  .usda-search-btn, .dsld-search-btn{
     width:100%; margin-top:10px; padding:10px; background:var(--surface2); border:1px solid rgba(var(--plate-teal-rgb),0.4);
     border-radius:var(--radius-md); color:var(--plate-teal); font-size:12.5px; font-weight:600; cursor:pointer;
     font-family:'Inter',sans-serif; letter-spacing:-0.005em; text-align:center;
     transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
-  .usda-search-btn:active{transform:scale(0.98);}
+  .usda-search-btn:active, .dsld-search-btn:active{transform:scale(0.98);}
   .usda-key-upgrade{margin-top:10px;}
   .usda-key-upgrade-toggle{
     background:none; border:none; color:var(--text-muted); font-size:11.5px; text-decoration:underline;
@@ -5499,6 +5499,7 @@
       </select>
       <button id="mySupplementAddBtn">Add</button>
     </div>
+    <div id="dsldSearchResults"></div>
     <div id="mySupplementsList"></div>
   </div>
 
@@ -6526,7 +6527,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.256';
+const APP_VERSION = '3.257';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7136,6 +7137,10 @@ const WHATS_NEW = {
   '3.256': { headline: 'Foundational Stack now accounts for flagged health conditions', points: [
     'If you\'ve flagged osteoporosis, diabetes, high blood pressure, pregnancy, or postpartum in your profile, the Foundational Stack now adds a real, evidence-graded pick for it — Vitamin K2, Alpha-Lipoic Acid, CoQ10, or Choline — right alongside the existing base and gender-specific recommendations.',
     'Bariatric surgery is deliberately left out here since it already has its own dedicated supplement checklist elsewhere in the app.',
+  ]},
+  '3.257': { headline: 'Search a real supplement database when adding to My Supplements', points: [
+    'A "Search supplement database" button now appears while adding a supplement, searching NIH\'s free public Dietary Supplement Label Database — thousands of real products, not just this app\'s curated list.',
+    'A result that matches this app\'s own evidence-graded picks still shows the same real description; anything else shows a plain "not evaluated here, not medical advice" note instead of a guessed one.',
   ]},
 };
 
@@ -33177,7 +33182,16 @@ async function toggleMySupplementTaken(name, frequency){
 // "Fish Oil" vs "Omega-3 (Fish Oil or Algae-Based EPA/DHA)") — without this,
 // only someone who typed the curated label verbatim ever saw a description.
 function findKnownSupplementInfo(name){
-  const all = [...FOUNDATIONAL_SUPPLEMENT_STACK.base, ...FOUNDATIONAL_SUPPLEMENT_STACK.male, ...FOUNDATIONAL_SUPPLEMENT_STACK.female];
+  // .flat() over every condition's own array too — this list grew a
+  // `conditions` axis after this function was first written, and a plain
+  // spread of just base/male/female would silently stop finding anything
+  // added there (Vitamin K2, Alpha-Lipoic Acid, CoQ10, Choline).
+  const all = [
+    ...FOUNDATIONAL_SUPPLEMENT_STACK.base,
+    ...FOUNDATIONAL_SUPPLEMENT_STACK.male,
+    ...FOUNDATIONAL_SUPPLEMENT_STACK.female,
+    ...Object.values(FOUNDATIONAL_SUPPLEMENT_STACK.conditions || {}).flat(),
+  ];
   const needle = String(name || '').trim().toLowerCase();
   if(!needle) return null;
   const exact = all.find(item=> item.name.toLowerCase() === needle);
@@ -33186,6 +33200,61 @@ function findKnownSupplementInfo(name){
   if(words.length === 0) return null;
   const patterns = words.map(w=> new RegExp(`\\b${w}`, 'i'));
   return all.find(item=> patterns.every(p=> p.test(item.name))) || null;
+}
+
+// --- DSLD: NIH's free, public Dietary Supplement Label Database ------------
+// Same role for supplements that USDA FoodData Central already plays for
+// food (see searchUsdaFoods above): a real external database of actual
+// products, used ONLY as an optional "browse to find the exact product"
+// search — never as the source of the "does it help" descriptions above,
+// which stay exclusively curated (a product label has no evidence-tier
+// framing to give). Unlike USDA's DEMO_KEY, DSLD's public API is documented
+// as fully keyless, so no key-storage/upgrade-prompt machinery is needed
+// here at all.
+//
+// IMPORTANT — UNVERIFIED AGAINST A LIVE CALL: this sandbox's network policy
+// blocks api.ods.od.nih.gov the same way it blocks every other unlisted
+// external host, so the request/response shape below is built from DSLD's
+// public API documentation, not a real round-trip. Treat this the same as
+// this app's other "unverified against live" features (Cross-Metric
+// Insights, video frame extraction before their own fixes were confirmed)
+// until someone actually exercises it from a real deployed session — if the
+// live shape differs, only the two spots marked below (the URL and the
+// result-mapping) should need adjusting; the loading/error/render wiring
+// around it doesn't depend on the exact shape.
+const DSLD_API_BASE = 'https://api.ods.od.nih.gov/dsld/v9';
+
+async function searchDsldSupplements(query){
+  const url = `${DSLD_API_BASE}/search-filter?q=${encodeURIComponent(query)}&size=8`;
+  const response = await fetch(url);
+  if(response.status === 429){
+    throw new Error('Supplement database rate limit hit — try again in a bit.');
+  }
+  if(!response.ok){
+    throw new Error(`Supplement database lookup failed (${response.status})`);
+  }
+  const data = await response.json();
+  // DSLD's search-filter endpoint is Elasticsearch-backed; results are
+  // documented under `hits`, each carrying its real fields under `_source`.
+  // Tolerant of a couple of plausible shapes since this is unverified live.
+  const hits = data.hits || data.results || [];
+  return hits.map(hit=>{
+    const src = hit._source || hit;
+    const fullName = src.fullName || src.productName || src.name || '';
+    if(!fullName) return null;
+    const brand = src.brandName || src.brand || '';
+    return {
+      name: brand ? `${fullName} (${brand})` : fullName,
+      // Kept separate from `name` specifically so a curated-table lookup
+      // (findKnownSupplementInfo) can match against the real product name
+      // alone — matching against `name` would require the brand itself to
+      // also satisfy the word-boundary fallback, which it structurally
+      // never will ("BrandX" isn't a word in "Creatine Monohydrate").
+      bareName: fullName,
+      dsldId: hit._id || src.dsldId || src.id || null,
+      source: 'DSLD',
+    };
+  }).filter(Boolean);
 }
 
 // A short, deliberately conservative list of well-established mineral-
@@ -33326,6 +33395,118 @@ document.getElementById('mySupplementAddBtn').addEventListener('click', async ()
 });
 document.getElementById('mySupplementAddInput').addEventListener('keydown', (e)=>{
   if(e.key === 'Enter') document.getElementById('mySupplementAddBtn').click();
+});
+
+// --- DSLD search: an OPTIONAL, additional way to add, never a replacement
+// for the plain type-and-click-Add flow above. Same button-triggered
+// pattern as USDA food search (runUsdaSearch/renderFoodItems) rather than a
+// live call on every keystroke — a real product database search is worth
+// rate-limiting deliberately, not firing on every character typed.
+let dsldVisibleTerm = '';
+let dsldResults = [];
+let dsldSearchedTerm = null;
+let dsldSearchLoading = false;
+let dsldSearchError = null;
+
+async function runDsldSearch(term){
+  dsldSearchLoading = true;
+  dsldSearchError = null;
+  await renderDsldSearchResults();
+  try{
+    dsldResults = await searchDsldSupplements(term);
+    dsldSearchError = null;
+  }catch(e){
+    dsldSearchError = e.message || 'Supplement database lookup failed — check your connection and try again.';
+    dsldResults = [];
+  }
+  dsldSearchedTerm = term;
+  dsldSearchLoading = false;
+  await renderDsldSearchResults();
+}
+
+async function renderDsldSearchResults(){
+  const el = document.getElementById('dsldSearchResults');
+  if(!el) return;
+  const term = dsldVisibleTerm;
+  if(!term){ el.innerHTML = ''; return; }
+
+  if(dsldSearchLoading){
+    el.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div></div>';
+    return;
+  }
+
+  // Same "only ever applies to the exact term it was fetched for" guard
+  // runUsdaSearch/renderFoodItems already use — if the box has changed
+  // since the last real search, treat it as not-yet-searched rather than
+  // showing a stale result or error from a different query.
+  const isCurrent = dsldSearchedTerm === term;
+
+  if(isCurrent && dsldSearchError){
+    const retryBtn = `<button type="button" class="dsld-search-btn">Try again</button>`;
+    el.innerHTML = `<div class="empty-note">${escapeHtml(dsldSearchError)}</div>${retryBtn}`;
+    el.querySelector('.dsld-search-btn').addEventListener('click', ()=> runDsldSearch(term));
+    return;
+  }
+
+  if(!isCurrent){
+    el.innerHTML = `<button type="button" class="dsld-search-btn">🔍 Search supplement database for "${escapeHtml(term)}"</button>`;
+    el.querySelector('.dsld-search-btn').addEventListener('click', ()=> runDsldSearch(term));
+    return;
+  }
+
+  if(dsldResults.length === 0){
+    el.innerHTML = '<div class="empty-note">No matches found in the supplement database.</div>';
+    return;
+  }
+
+  // Every DSLD hit that also matches something in the curated table gets
+  // the SAME rich card renderSupplementCards already builds for AI/
+  // Foundational Stack recommendations (real evidence tier, why, dose,
+  // timing, caution) — just labeled with the real product name found,
+  // brand included. Anything DSLD returns with no curated match gets a
+  // deliberately bare card: a real product name is not itself evidence a
+  // supplement works, so no dose/timing/evidence gets invented for it.
+  const tracked = (await loadMySupplements()).map(i=> i.name);
+  const matchedItems = [];
+  const unmatchedResults = [];
+  dsldResults.forEach(r=>{
+    const info = findKnownSupplementInfo(r.bareName);
+    if(info) matchedItems.push({...info, name: r.name});
+    else unmatchedResults.push(r);
+  });
+
+  const matchedHtml = matchedItems.length ? `<div id="dsldMatchedResults">${renderSupplementCards(matchedItems, tracked)}</div>` : '';
+  const unmatchedHtml = unmatchedResults.map((r, i)=> `
+    <div class="photo-result-card">
+      <div class="photo-result-title">${escapeHtml(r.name)}</div>
+      <div class="care-disclaimer" style="margin-top:6px;">Not evaluated here — not medical advice. Ask your coach before starting anything new.</div>
+      <button type="button" class="supplement-add-btn dsld-unmatched-add-btn" data-idx="${i}">+ Add to my supplements</button>
+    </div>
+  `).join('');
+
+  el.innerHTML = matchedHtml + unmatchedHtml;
+
+  if(matchedItems.length){
+    wireSupplementAddButtons(document.getElementById('dsldMatchedResults'), matchedItems);
+  }
+  el.querySelectorAll('.dsld-unmatched-add-btn').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const r = unmatchedResults[Number(btn.dataset.idx)];
+      if(!r) return;
+      const freqSelect = document.getElementById('mySupplementFrequencySelect');
+      await addMySupplement(r.name, freqSelect ? freqSelect.value : 'daily');
+      btn.textContent = 'Added ✓';
+      btn.disabled = true;
+    });
+  });
+}
+
+let _dsldSearchTimer = null;
+document.getElementById('mySupplementAddInput').addEventListener('input', (e)=>{
+  dsldVisibleTerm = e.target.value.trim();
+  clearTimeout(_dsldSearchTimer);
+  if(!dsldVisibleTerm){ renderDsldSearchResults(); return; }
+  _dsldSearchTimer = setTimeout(renderDsldSearchResults, 90);
 });
 
 // Matches on the meaningful words in a food name (skipping short/common

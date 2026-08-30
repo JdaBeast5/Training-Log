@@ -51,6 +51,13 @@ const supplementEvidenceLabelsSrc = extractConst(src, 'SUPPLEMENT_EVIDENCE_LABEL
 const supplementFrequencyMetaSrc = extractConst(src, 'SUPPLEMENT_FREQUENCY_META');
 const mondayOfSrc = extractFunction(src, 'mondayOf');
 const addBtnWiringSrc = extractStatement(src, "document.getElementById('mySupplementAddBtn').addEventListener('click'");
+const renderSupplementCardsSrc = extractFunction(src, 'renderSupplementCards');
+const wireSupplementAddButtonsSrc = extractFunction(src, 'wireSupplementAddButtons');
+const dsldApiBaseSrc = extractConst(src, 'DSLD_API_BASE');
+const searchDsldSupplementsSrc = extractFunction(src, 'searchDsldSupplements');
+const runDsldSearchSrc = extractFunction(src, 'runDsldSearch');
+const renderDsldSearchResultsSrc = extractFunction(src, 'renderDsldSearchResults');
+const dsldInputWiringSrc = extractStatement(src, "document.getElementById('mySupplementAddInput').addEventListener('input'");
 
 const bodyHtml = `
   <input type="text" id="mySupplementAddInput" class="care-input" placeholder="Add a supplement (e.g. Creatine)" aria-label="Add a supplement" autocomplete="off">
@@ -60,6 +67,7 @@ const bodyHtml = `
     <option value="weekly">Weekly</option>
   </select>
   <button id="mySupplementAddBtn">Add</button>
+  <div id="dsldSearchResults"></div>
   <div id="mySupplementsList"></div>
   <div class="undo-toast" id="undoToast" role="status" aria-live="polite">
     <span id="undoToastText"></span>
@@ -117,7 +125,11 @@ const scriptChunks = [
   supplementInteractionPairsSrc, findSupplementInteractionNotesSrc,
   buildSwipeItemSrc, makeSwipeableSrc, showUndoToastSrc,
   coachFabStubSrc, askCoachAboutSupplementSrc,
+  renderSupplementCardsSrc, wireSupplementAddButtonsSrc,
   renderMySupplementsSrc, addBtnWiringSrc,
+  dsldApiBaseSrc, searchDsldSupplementsSrc,
+  'let dsldVisibleTerm = ""; let dsldResults = []; let dsldSearchedTerm = null; let dsldSearchLoading = false; let dsldSearchError = null; let _dsldSearchTimer = null;',
+  runDsldSearchSrc, renderDsldSearchResultsSrc, dsldInputWiringSrc,
 ];
 
 const { test, run } = makeRunner('test-my-supplements-tracker.js');
@@ -198,6 +210,16 @@ test('REAL invocation: a shorter, naturally-typed name still matches its curated
   assert.strictEqual(window.findKnownSupplementInfo('B12')?.name, 'Vitamin B12', '"B12" must match "Vitamin B12"');
   assert.strictEqual(window.findKnownSupplementInfo('Fish Oil')?.name, 'Omega-3 (Fish Oil or Algae-Based EPA/DHA)', '"Fish Oil" must match the Omega-3 entry it appears inside');
   assert.strictEqual(window.findKnownSupplementInfo('Magnesium Glycinate')?.name, 'Magnesium (Glycinate or Citrate)', 'a name with extra real detail beyond the curated label must still match');
+});
+
+// The FOUNDATIONAL_SUPPLEMENT_STACK.conditions axis was added after this
+// function was first written, and its lookup array wasn't updated to
+// include it - a real regression this test would have caught at the time.
+test('REAL invocation: findKnownSupplementInfo also matches condition-specific entries, not just base/male/female', (assert)=>{
+  const { window } = runJsdom('', otherGlobals(), [foundationalStackSrc, findKnownSupplementInfoSrc]);
+  assert.strictEqual(window.findKnownSupplementInfo('CoQ10')?.name, 'Coenzyme Q10 (CoQ10)', 'a condition-flagged item must be findable too');
+  assert.strictEqual(window.findKnownSupplementInfo('Alpha-Lipoic Acid')?.name, 'Alpha-Lipoic Acid');
+  assert.strictEqual(window.findKnownSupplementInfo('Choline')?.name, 'Choline');
 });
 
 test('sabotage-relevant: the word-boundary fallback requires an ACTUAL shared word, not just any substring overlap', (assert)=>{
@@ -546,6 +568,177 @@ test('an item name with HTML-significant characters is escaped, not injected as 
   await window.renderMySupplements();
   assert.strictEqual(document.querySelectorAll('#mySupplementsList script').length, 0, 'a raw <script> tag in a supplement name must never become a real DOM element');
   assert.match(document.getElementById('mySupplementsList').textContent, /<script>alert\(1\)<\/script>/, 'the text must still be visible as literal text');
+});
+
+// --- DSLD search: an OPTIONAL extra way to find/add a supplement, on top of
+// (never instead of) the plain type-and-click-Add flow already covered
+// above. Mirrors USDA food search's own button-triggered pattern (a real
+// external database call is deliberately NOT fired on every keystroke).
+// NOTE: this app's real network call to api.ods.od.nih.gov is unverified
+// against a live response (see the comment on searchDsldSupplements in
+// index.html) - these tests stub fetch at the network boundary, same as
+// every other AI/external-API test in this suite, and exercise the REAL
+// parsing/rendering/wiring code around that boundary.
+
+function fakeDsldResponse(hits){
+  return { ok: true, status: 200, json: async ()=> ({ hits }) };
+}
+
+test('REAL invocation: searchDsldSupplements parses the documented hits/_source shape into name+source, dropping hits with no usable name', async (assert)=>{
+  const { window } = runJsdom('', otherGlobals(), [dsldApiBaseSrc, searchDsldSupplementsSrc]);
+  window.fetch = async ()=> fakeDsldResponse([
+    { _id: 'abc123', _source: { fullName: 'Creatine Monohydrate', brandName: 'Optimum Nutrition' } },
+    { _id: 'def456', _source: { fullName: 'Fish Oil' } },
+    { _id: 'ghi789', _source: {} }, // no usable name - must be dropped, not rendered as a blank result
+  ]);
+  const results = await window.searchDsldSupplements('creatine');
+  assert.strictEqual(results.length, 2, 'the nameless hit must be dropped');
+  assert.strictEqual(results[0].name, 'Creatine Monohydrate (Optimum Nutrition)', 'a branded hit must show brand in parentheses, matching this app\'s own USDA branded-food naming convention');
+  assert.strictEqual(results[1].name, 'Fish Oil', 'an unbranded hit must show just its name');
+});
+
+test('REAL invocation: a 429 response throws the real rate-limit-specific message', async (assert)=>{
+  const { window } = runJsdom('', otherGlobals(), [dsldApiBaseSrc, searchDsldSupplementsSrc]);
+  window.fetch = async ()=> ({ ok: false, status: 429, json: async ()=> ({}) });
+  await assert.rejects(() => window.searchDsldSupplements('creatine'), /rate limit/i);
+});
+
+test('REAL invocation: typing into the add input shows the real "search database" button WITHOUT firing a network call yet', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
+  let fetchCalls = 0;
+  window.fetch = async ()=> { fetchCalls++; return fakeDsldResponse([]); };
+
+  const input = document.getElementById('mySupplementAddInput');
+  input.value = 'creatine';
+  input.dispatchEvent(new window.Event('input', {bubbles:true}));
+  await new Promise(r=> setTimeout(r, 120)); // past the real 90ms debounce
+
+  assert.strictEqual(fetchCalls, 0, 'typing alone must never trigger the real network call - only clicking the search button may');
+  assert.match(document.getElementById('dsldSearchResults').innerHTML, /Search supplement database/, 'the real search-trigger button must appear once debounced');
+});
+
+test('REAL invocation: clicking the search button fires exactly one real fetch with the typed term, and renders a curated match as a real rich card', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
+  let capturedUrl = null;
+  window.fetch = async (url)=>{ capturedUrl = url; return fakeDsldResponse([
+    { _id: '1', _source: { fullName: 'Creatine Monohydrate', brandName: 'BrandX' } },
+  ]); };
+
+  const input = document.getElementById('mySupplementAddInput');
+  input.value = 'creatine';
+  input.dispatchEvent(new window.Event('input', {bubbles:true}));
+  await new Promise(r=> setTimeout(r, 120));
+  document.querySelector('#dsldSearchResults .dsld-search-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  assert.match(capturedUrl, /creatine/, 'the real typed term must reach the real request URL');
+  const html = document.getElementById('dsldSearchResults').innerHTML;
+  assert.match(html, /Creatine Monohydrate \(BrandX\)/, 'the real product name, brand included, must render as the card title');
+  assert.match(html, /Well-established/, 'a curated match must show the SAME real evidence tier renderSupplementCards already builds for AI/Foundational Stack cards');
+  assert.match(html, /reliably supports strength/, 'a curated match must show the real curated "why" text, not fabricated product-label content');
+});
+
+test('REAL invocation: adding a curated-matched DSLD result carries its real curated frequency into My Supplements, keyed to the real product name', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
+  // Calcium is deliberately used here (not a daily item) - its real curated
+  // frequency is 'twice-daily', which is NOT the same value the unmatched
+  // fallback path would produce (the select's default, 'daily'). A passing
+  // assertion on 'twice-daily' can only mean the real curated match was
+  // actually found and used, not a false-positive that happened to agree
+  // with the fallback default by coincidence.
+  window.fetch = async ()=> fakeDsldResponse([
+    { _id: '1', _source: { fullName: 'Calcium', brandName: 'BrandY' } },
+  ]);
+  const input = document.getElementById('mySupplementAddInput');
+  input.value = 'calcium';
+  input.dispatchEvent(new window.Event('input', {bubbles:true}));
+  await new Promise(r=> setTimeout(r, 120));
+  document.querySelector('#dsldSearchResults .dsld-search-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  assert.match(document.getElementById('dsldSearchResults').innerHTML, /Well-established/, 'precondition: the real curated match must have actually rendered, not silently fallen through to the unmatched path');
+
+  document.querySelector('#dsldSearchResults .supplement-add-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  const stored = JSON.parse(window.storage.__store['my-supplements']);
+  assert.strictEqual(stored.length, 1);
+  assert.strictEqual(stored[0].name, 'Calcium (BrandY)', 'the real full product name (brand included) must be what gets tracked, not the bare curated label');
+  assert.strictEqual(stored[0].frequency, 'twice-daily', 'must carry the real curated frequency, not a hardcoded guess or the unmatched-path default');
+});
+
+test('REAL invocation: a DSLD result with no curated match renders a bare card with a not-medical-advice note, and still adds correctly on click', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
+  window.fetch = async ()=> fakeDsldResponse([
+    { _id: '1', _source: { fullName: 'Some Obscure Herbal Blend', brandName: 'NicheBrand' } },
+  ]);
+  const input = document.getElementById('mySupplementAddInput');
+  input.value = 'obscure herbal';
+  input.dispatchEvent(new window.Event('input', {bubbles:true}));
+  await new Promise(r=> setTimeout(r, 120));
+  document.querySelector('#dsldSearchResults .dsld-search-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  const html = document.getElementById('dsldSearchResults').innerHTML;
+  assert.match(html, /Some Obscure Herbal Blend \(NicheBrand\)/);
+  assert.match(html, /Not evaluated here/i, 'an unmatched product must get the real not-medical-advice disclaimer, never a fabricated description');
+  assert.doesNotMatch(html, /Well-established|Promising/, 'an unmatched product must never show a fabricated evidence tier');
+
+  document.querySelector('#dsldSearchResults .dsld-unmatched-add-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+  const stored = JSON.parse(window.storage.__store['my-supplements']);
+  assert.strictEqual(stored[0].name, 'Some Obscure Herbal Blend (NicheBrand)');
+  assert.strictEqual(stored[0].frequency, 'daily', 'an unmatched item must default to the current frequency select value (daily), same as a manual add would');
+});
+
+test('sabotage-relevant: matched and unmatched result add buttons are wired independently - clicking one never adds the other', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
+  window.fetch = async ()=> fakeDsldResponse([
+    { _id: '1', _source: { fullName: 'Creatine Monohydrate', brandName: 'BrandX' } },
+    { _id: '2', _source: { fullName: 'Some Obscure Herbal Blend', brandName: 'NicheBrand' } },
+  ]);
+  const input = document.getElementById('mySupplementAddInput');
+  input.value = 'creatine or herbal';
+  input.dispatchEvent(new window.Event('input', {bubbles:true}));
+  await new Promise(r=> setTimeout(r, 120));
+  document.querySelector('#dsldSearchResults .dsld-search-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  // Only click the UNMATCHED item's add button.
+  document.querySelector('#dsldSearchResults .dsld-unmatched-add-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  const stored = JSON.parse(window.storage.__store['my-supplements']);
+  assert.strictEqual(stored.length, 1, 'only the clicked item must be added');
+  assert.strictEqual(stored[0].name, 'Some Obscure Herbal Blend (NicheBrand)', 'the matched card\'s own add button must not have fired just because it shares the .supplement-add-btn class');
+});
+
+test('sabotage-relevant: a stale search (input changed after the real fetch was fired) shows the search button for the NEW term, not the old results', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
+  window.fetch = async ()=> fakeDsldResponse([{ _id: '1', _source: { fullName: 'Creatine Monohydrate' } }]);
+
+  // dsldVisibleTerm has to actually be 'creatine' for renderDsldSearchResults
+  // to render anything at all - set it via the real input event first,
+  // exactly as a person typing would, before triggering the search itself.
+  const firstInput = document.getElementById('mySupplementAddInput');
+  firstInput.value = 'creatine';
+  firstInput.dispatchEvent(new window.Event('input', {bubbles:true}));
+  await window.runDsldSearch('creatine');
+  assert.match(document.getElementById('dsldSearchResults').innerHTML, /Creatine Monohydrate/, 'precondition: the real search actually rendered a result');
+
+  // Term changed (e.g. user kept typing) without a new search being run yet
+  // - dsldVisibleTerm is a plain top-level `let`, not a window property (the
+  // same cross-realm trap this suite's other files already document), so
+  // this goes through the REAL input listener rather than poking state
+  // directly - it updates dsldVisibleTerm synchronously, before its own
+  // 90ms debounce fires the next render.
+  const input = document.getElementById('mySupplementAddInput');
+  input.value = 'magnesium';
+  input.dispatchEvent(new window.Event('input', {bubbles:true}));
+  await window.renderDsldSearchResults();
+  const html = document.getElementById('dsldSearchResults').innerHTML;
+  assert.doesNotMatch(html, /Creatine Monohydrate/, 'a stale result for the OLD term must never be shown once the term has changed');
+  assert.match(html, /Search supplement database for "magnesium"/, 'must fall back to the real search-trigger button for the new, not-yet-searched term');
 });
 
 run();
