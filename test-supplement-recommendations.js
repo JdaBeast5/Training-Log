@@ -351,6 +351,33 @@ test('REAL invocation: renderFoundationalStack renders every item into the real 
   assert.match(html, /1,000-2,000 IU daily/, 'the real typical dose text must render, not a placeholder');
 });
 
+// The frequency field has driven My Supplements' dosing-count tracking since
+// v3.253, but was never actually shown ON the recommendation card itself —
+// a user reading Calcium's card had no way to know it's twice-daily before
+// adding it. sabotage-relevant: a card that renders every other field but
+// silently drops frequency would still pass every test above this one.
+test('REAL invocation: Foundational Stack cards each show their real frequency label, not just dose/timing', async (assert)=>{
+  const { window, document } = setupFoundationalStack({gender:'female'});
+  await window.renderFoundationalStack();
+  const html = foundationalStackContentEl(document).innerHTML;
+  assert.match(html, /Frequency:<\/b>\s*Daily/, 'a plain daily item (e.g. Vitamin D3) must show "Frequency: Daily"');
+  assert.match(html, /Frequency:<\/b>\s*Twice daily/, 'Calcium must show "Frequency: Twice daily", matching its own real frequency value, not a guessed/default label');
+});
+
+test('REAL invocation: an AI recommendation missing/mistyped frequency still renders a real fallback label (Daily), matching addMySupplement\'s own default', async (assert)=>{
+  const { window, document, captured } = setupSubmit({});
+  window.__fakeResponse = fakeApiResponse(JSON.stringify({
+    recommendations: [
+      { name: 'Weird Item', evidence: 'promising', why: 'test', typicalDose: '1 unit', timing: 'Any time', caution: null, frequency: 'monthly' },
+    ],
+    note: '',
+  }));
+  await window.submitSupplementRequest();
+  const html = document.getElementById('supplementResult').innerHTML;
+  assert.match(html, /Frequency:<\/b>\s*Daily/, 'an unrecognized frequency value must fall back to the real "Daily" label rather than rendering nothing or the raw invalid string');
+  assert.ok(!/Frequency:<\/b>\s*monthly/.test(html), 'must not render the raw unrecognized value verbatim');
+});
+
 // The open/close ANIMATION (aria-expanded flip, .open class) is the
 // existing generic delegated .program-basis-toggle listener, already
 // covered by test-program-overview.js — not re-tested here. What's real
