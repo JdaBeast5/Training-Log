@@ -71,6 +71,7 @@ const buildSupplementInsightPromptSrc = extractFunction(src, 'buildSupplementIns
 const generateAiSupplementInsightSrc = extractFunction(src, 'generateAiSupplementInsight');
 const saveSupplementAiInsightSrc = extractFunction(src, 'saveSupplementAiInsight');
 const requestSupplementAiInsightSrc = extractFunction(src, 'requestSupplementAiInsight');
+const requestDsldSearchAiInsightSrc = extractFunction(src, 'requestDsldSearchAiInsight');
 
 const bodyHtml = `
   <div class="card-title nutrition-header" id="mySupplementsHeader">
@@ -155,7 +156,7 @@ const scriptChunks = [
   aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
   aiKeySetupPromptSrc, getApiKeySrc,
   buildSupplementInsightPromptSrc, generateAiSupplementInsightSrc,
-  saveSupplementAiInsightSrc, requestSupplementAiInsightSrc,
+  saveSupplementAiInsightSrc, requestSupplementAiInsightSrc, requestDsldSearchAiInsightSrc,
 ];
 
 const { test, run } = makeRunner('test-my-supplements-tracker.js');
@@ -1100,6 +1101,137 @@ test('sabotage-relevant: clicking "Get AI insight" never also toggles the row\'s
   document.querySelector('#mySupplementsList .supplement-ai-insight-btn').click();
   await new Promise(r=> setTimeout(r, 20));
   assert.doesNotMatch(document.getElementById('mySupplementsList').innerHTML, /supplement-row done/, 'requesting an insight must never mark the item taken');
+});
+
+// --- AI insight PREVIEWED at search time, carried over on add --------------
+// The user ask this replaces the old flow with: "give the option to copy
+// over the description that comes up the first time you search it... and
+// add it to the log, that way we can save tokens and make sure the
+// description doesn't get re-pulled or reassessed unless requested." The
+// tracked-list "Get AI insight" button (tested above) stays as a fallback
+// for anything added without a preview — this covers the new, preferred
+// path: preview in the search card, then a plain copy into the tracker.
+
+async function searchForObscureHerbalBlend(document, window){
+  window.fetch = async ()=> fakeDsldResponse([
+    { _id: '1', _source: { fullName: 'Some Obscure Herbal Blend', brandName: 'NicheBrand', ingredientRows: [{ name: 'Ashwagandha Root Extract', quantity: 300, unit: 'mg' }] } },
+  ]);
+  const input = document.getElementById('mySupplementAddInput');
+  input.value = 'obscure herbal';
+  input.dispatchEvent(new window.Event('input', {bubbles:true}));
+  await new Promise(r=> setTimeout(r, 120));
+  document.querySelector('#dsldSearchResults .dsld-search-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+}
+
+test('REAL invocation: an unmatched search result shows a real "Preview AI insight" button, not the description itself', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
+  await searchForObscureHerbalBlend(document, window);
+  const html = document.getElementById('dsldSearchResults').innerHTML;
+  assert.match(html, /dsld-preview-ai-insight-btn/, 'the real preview button must render');
+  assert.match(html, /Preview AI insight/);
+  assert.doesNotMatch(html, /✨ AI insight:/, 'no description must appear before the button is actually clicked');
+});
+
+test('REAL invocation: clicking "Preview AI insight" with no API key shows the real aiKeySetupPrompt banner and never touches the network', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
+  await searchForObscureHerbalBlend(document, window);
+  let fetchCalls = 0;
+  window.fetch = async ()=> { fetchCalls++; return fakeAiInsightResponse('should never be reached'); };
+  document.querySelector('#dsldSearchResults .dsld-preview-ai-insight-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+  assert.strictEqual(fetchCalls, 0, 'no API key must short-circuit before any request');
+  assert.match(document.getElementById('dsldSearchResults').innerHTML, /Add your Anthropic API key/, 'must show the real shared setup prompt');
+});
+
+test('REAL invocation: clicking "Preview AI insight" with a real key calls the API exactly once and shows the real text right in the search card, before anything is added', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({ 'ai-api-key': 'fake-key' }) + otherGlobals(), scriptChunks);
+  await searchForObscureHerbalBlend(document, window);
+
+  const captured = [];
+  window.fetch = async (url, opts)=> { captured.push(JSON.parse(opts.body)); return fakeAiInsightResponse('Modest, preliminary evidence at best for this exact blend.'); };
+  document.querySelector('#dsldSearchResults .dsld-preview-ai-insight-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  assert.strictEqual(captured.length, 1, 'exactly one request for one click');
+  assert.strictEqual(captured[0].output_config && captured[0].output_config.effort, 'medium');
+
+  assert.strictEqual(window.storage.__store['my-supplements'], undefined, 'nothing must be written to storage from a preview alone — the item has not been added yet');
+  const html = document.getElementById('dsldSearchResults').innerHTML;
+  assert.match(html, /✨ AI insight/, 'the real insight must render directly in the search card');
+  assert.match(html, /Modest, preliminary evidence/);
+  assert.doesNotMatch(html, /dsld-preview-ai-insight-btn/, 'the button must be replaced by the text, not sit alongside it');
+});
+
+test('REAL invocation: adding a result AFTER previewing its insight carries the SAME text into my-supplements with no second API call', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({ 'ai-api-key': 'fake-key' }) + otherGlobals(), scriptChunks);
+  await searchForObscureHerbalBlend(document, window);
+
+  let fetchCalls = 0;
+  window.fetch = async ()=> { fetchCalls++; return fakeAiInsightResponse('Modest, preliminary evidence at best for this exact blend.'); };
+  document.querySelector('#dsldSearchResults .dsld-preview-ai-insight-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+  assert.strictEqual(fetchCalls, 1, 'precondition: the preview must have actually called the API once');
+
+  document.querySelector('#dsldSearchResults .dsld-unmatched-add-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  assert.strictEqual(fetchCalls, 1, 'adding after a preview must NEVER call the API a second time — it is a copy, not a re-request');
+  const stored = JSON.parse(window.storage.__store['my-supplements']);
+  assert.match(stored[0].aiInsight, /Modest, preliminary evidence/, 'the exact previewed text must be the one persisted');
+
+  // Independent render, well after the add - the tracked list must show the
+  // carried-over text directly, with NO "Get AI insight" fallback button,
+  // since a real description already exists.
+  await window.renderMySupplements();
+  document.querySelector('#mySupplementsList .supplement-benefit-toggle').click();
+  await new Promise(r=> setTimeout(r, 20));
+  const listHtml = document.getElementById('mySupplementsList').innerHTML;
+  assert.match(listHtml, /Modest, preliminary evidence/, 'the carried-over text must render on an independent, later renderMySupplements call');
+  assert.doesNotMatch(listHtml, /supplement-ai-insight-btn/, 'no fallback button once a real description already exists');
+});
+
+test('sabotage-relevant: adding a result WITHOUT previewing first persists no aiInsight, and the tracked list keeps the real fallback button', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
+  await searchForObscureHerbalBlend(document, window);
+
+  document.querySelector('#dsldSearchResults .dsld-unmatched-add-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  const stored = JSON.parse(window.storage.__store['my-supplements']);
+  assert.strictEqual(stored[0].aiInsight, undefined, 'no preview means no description — must never be fabricated at add time');
+
+  await window.renderMySupplements();
+  document.querySelector('#mySupplementsList .supplement-benefit-toggle').click();
+  await new Promise(r=> setTimeout(r, 20));
+  assert.match(document.getElementById('mySupplementsList').innerHTML, /supplement-ai-insight-btn/, 'the tracked list must still offer the real fallback "Get AI insight" button for an item added without a preview');
+});
+
+test('REAL invocation: re-rendering the search results after a preview (e.g. a second render pass) keeps showing the SAME text without another API call', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({ 'ai-api-key': 'fake-key' }) + otherGlobals(), scriptChunks);
+  await searchForObscureHerbalBlend(document, window);
+
+  let fetchCalls = 0;
+  window.fetch = async ()=> { fetchCalls++; return fakeAiInsightResponse('Frozen text that must not change.'); };
+  document.querySelector('#dsldSearchResults .dsld-preview-ai-insight-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  await window.renderDsldSearchResults(); // a second, independent render pass — no new user action
+  assert.strictEqual(fetchCalls, 1, 'a re-render must never silently re-request the insight — it must not get "re-pulled or reassessed" on its own');
+  assert.match(document.getElementById('dsldSearchResults').innerHTML, /Frozen text that must not change\./, 'the same previously-generated text must still be showing');
+});
+
+test('REAL invocation: a real network error during preview re-enables the button with a visible error, and never crashes the search card', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({ 'ai-api-key': 'fake-key' }) + otherGlobals(), scriptChunks);
+  await searchForObscureHerbalBlend(document, window);
+
+  window.fetch = async ()=> { throw new Error('network down'); };
+  const btn = document.querySelector('#dsldSearchResults .dsld-preview-ai-insight-btn');
+  btn.click();
+  await new Promise(r=> setTimeout(r, 2500)); // real anthropicRequest retry/backoff, same as the tracked-list equivalent test
+
+  assert.strictEqual(btn.disabled, false, 'the button must re-enable after a failure so the person can retry');
+  assert.match(document.getElementById('dsldSearchResults').textContent, /Couldn't get an insight/, 'a real, visible error must appear, not a silent failure');
 });
 
 run();
