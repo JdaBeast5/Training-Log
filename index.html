@@ -6526,7 +6526,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.255';
+const APP_VERSION = '3.256';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7132,6 +7132,10 @@ const WHATS_NEW = {
   ]},
   '3.255': { headline: 'My Supplements now recognizes more of what you actually type', points: [
     'Adding a supplement under a shorter or different name than its curated listing — "Creatine" instead of "Creatine Monohydrate", "B12" instead of "Vitamin B12", "Fish Oil" instead of its full Omega-3 listing — now still matches it and shows the same short "does it help" description in your tracked list.',
+  ]},
+  '3.256': { headline: 'Foundational Stack now accounts for flagged health conditions', points: [
+    'If you\'ve flagged osteoporosis, diabetes, high blood pressure, pregnancy, or postpartum in your profile, the Foundational Stack now adds a real, evidence-graded pick for it — Vitamin K2, Alpha-Lipoic Acid, CoQ10, or Choline — right alongside the existing base and gender-specific recommendations.',
+    'Bariatric surgery is deliberately left out here since it already has its own dedicated supplement checklist elsewhere in the app.',
   ]},
 };
 
@@ -39674,6 +39678,21 @@ function wireSupplementAddButtons(containerEl, items){
 // BODY_GOALS itself keys off — 'other'/unset intentionally gets ONLY the base
 // list, since there's no analogous established population-level addition for
 // it to guess at.
+//
+// `conditions` is the same idea applied to the REAL flagged-condition system
+// this app already has (PERSISTENT_CONDITIONS/activeConditionKeys — the same
+// pipeline buildSupplementSystemPrompt below already reads) rather than a
+// parallel one invented for this feature. Deliberately excludes
+// bariatricRebuilding: that condition already has its own dedicated,
+// prescription-driven checklist (SUPPLEMENT_ITEMS/loadSupplements, the Care
+// tab's bariatric multivitamin/calcium/vitamin D/B12 tracker) — restating a
+// looser, generic version of the same guidance here would just be a second,
+// less authoritative copy of content that already exists. Every entry here
+// is a genuinely NEW nutrient not already covered elsewhere in this table
+// (never a re-statement of an existing item with a tweaked dose), which
+// sidesteps needing any priority rule for a name collision — deduped by name
+// in getFoundationalSupplementStack purely as a safety net, not a load-bearing
+// mechanism.
 const FOUNDATIONAL_SUPPLEMENT_STACK = {
   base: [
     {
@@ -39775,11 +39794,84 @@ const FOUNDATIONAL_SUPPLEMENT_STACK = {
     },
   ],
   other: [],
+  conditions: {
+    osteoporosis: [
+      {
+        name: 'Vitamin K2 (MK-7)',
+        evidence: 'promising',
+        why: 'Works alongside vitamin D and calcium by helping direct calcium into bone rather than soft tissue and arteries — a newer but genuinely researched piece of the bone-density picture beyond calcium and vitamin D alone.',
+        typicalDose: '90-120mcg daily (MK-7 form)',
+        timing: 'With a meal containing fat, alongside vitamin D/calcium',
+        caution: 'Interacts directly with warfarin and other vitamin K-affected blood thinners — do not start this without clearing it with whoever manages that medication.',
+        frequency: 'daily',
+      },
+    ],
+    diabetes: [
+      {
+        name: 'Alpha-Lipoic Acid',
+        evidence: 'promising',
+        why: 'Best-supported for easing diabetic peripheral neuropathy symptoms (tingling, burning, numbness) — a genuine, researched use case, not a general blood-sugar cure-all.',
+        typicalDose: '600-1,200mg daily',
+        timing: 'On an empty stomach for best absorption',
+        caution: 'Can itself lower blood sugar — combined with insulin or sulfonylureas, this raises real hypoglycemia risk. Coordinate with whoever manages your diabetes medication before starting.',
+        frequency: 'daily',
+      },
+    ],
+    hypertension: [
+      {
+        name: 'Coenzyme Q10 (CoQ10)',
+        evidence: 'promising',
+        why: 'Meta-analyses show a modest but real blood-pressure-lowering effect — not a replacement for medication, but a reasonable adjunct with genuine research behind it.',
+        typicalDose: '100-200mg daily',
+        timing: 'With a meal containing fat, for absorption',
+        caution: 'Can reduce the effectiveness of warfarin and other blood thinners — flag it to whoever manages that medication before starting.',
+        frequency: 'daily',
+      },
+    ],
+    prenatal: [
+      {
+        name: 'Choline',
+        evidence: 'promising',
+        why: 'Growing evidence ties adequate choline intake during pregnancy to fetal brain development, alongside folate — most prenatal vitamins still under-dose it relative to newer intake recommendations.',
+        typicalDose: '450mg daily (ACOG-referenced target)',
+        timing: 'Any time',
+        caution: null,
+        frequency: 'daily',
+      },
+    ],
+    postpartum: [
+      {
+        name: 'Choline',
+        evidence: 'promising',
+        why: 'Choline is concentrated in breast milk and demand stays elevated while breastfeeding — the same nutrient pregnancy already raised your needs for doesn\'t drop back down just because delivery happened.',
+        typicalDose: '550mg daily while breastfeeding (higher than the prenatal target)',
+        timing: 'Any time',
+        caution: null,
+        frequency: 'daily',
+      },
+    ],
+  },
 };
 
+// Merges base + gender extras (unchanged behavior) with extras for every
+// currently-flagged condition (activeConditionKeys — profile checkboxes AND
+// an active medical program, same real source buildSupplementSystemPrompt
+// already reads), deduped by name so a future content addition can never
+// silently show the same supplement twice regardless of how many axes
+// recommend it.
 function getFoundationalSupplementStack(){
   const genderExtras = FOUNDATIONAL_SUPPLEMENT_STACK[userProfile?.gender] || [];
-  return [...FOUNDATIONAL_SUPPLEMENT_STACK.base, ...genderExtras];
+  const combined = [...FOUNDATIONAL_SUPPLEMENT_STACK.base, ...genderExtras];
+  const seen = new Set(combined.map(item=> item.name.toLowerCase()));
+  activeConditionKeys().forEach(key=>{
+    const extras = FOUNDATIONAL_SUPPLEMENT_STACK.conditions[key] || [];
+    extras.forEach(item=>{
+      if(seen.has(item.name.toLowerCase())) return;
+      seen.add(item.name.toLowerCase());
+      combined.push(item);
+    });
+  });
+  return combined;
 }
 
 // The #foundationalStackResult wrapper is a real .smooth-toggle (same
