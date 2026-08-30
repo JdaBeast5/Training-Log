@@ -6526,7 +6526,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.254';
+const APP_VERSION = '3.255';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7129,6 +7129,9 @@ const WHATS_NEW = {
   ]},
   '3.254': { headline: 'Supplement recommendation cards now show frequency', points: [
     'Every AI recommendation and Foundational Stack card now states how often to take it (Daily / Twice daily / Weekly) right alongside the dose and timing, instead of only tracking that once it\'s already added to My Supplements.',
+  ]},
+  '3.255': { headline: 'My Supplements now recognizes more of what you actually type', points: [
+    'Adding a supplement under a shorter or different name than its curated listing — "Creatine" instead of "Creatine Monohydrate", "B12" instead of "Vitamin B12", "Fish Oil" instead of its full Omega-3 listing — now still matches it and shows the same short "does it help" description in your tracked list.',
   ]},
 };
 
@@ -33162,10 +33165,23 @@ async function toggleMySupplementTaken(name, frequency){
 
 // Case-insensitive match against the SAME curated table Supplement
 // Recommendations' Foundational Stack renders from — a lookup, not a copy.
+// An exact match is tried first ("Vitamin B12"), then a word-boundary
+// fallback against the curated item's full name — the SAME approach
+// findSimilarLibraryFoods already uses for food names, applied here since a
+// manually-typed name is usually shorter/more generic than the curated
+// label ("Creatine" vs "Creatine Monohydrate", "B12" vs "Vitamin B12",
+// "Fish Oil" vs "Omega-3 (Fish Oil or Algae-Based EPA/DHA)") — without this,
+// only someone who typed the curated label verbatim ever saw a description.
 function findKnownSupplementInfo(name){
   const all = [...FOUNDATIONAL_SUPPLEMENT_STACK.base, ...FOUNDATIONAL_SUPPLEMENT_STACK.male, ...FOUNDATIONAL_SUPPLEMENT_STACK.female];
   const needle = String(name || '').trim().toLowerCase();
-  return all.find(item=> item.name.toLowerCase() === needle) || null;
+  if(!needle) return null;
+  const exact = all.find(item=> item.name.toLowerCase() === needle);
+  if(exact) return exact;
+  const words = needle.split(/[^a-z0-9]+/).filter(w=> w.length >= 2);
+  if(words.length === 0) return null;
+  const patterns = words.map(w=> new RegExp(`\\b${w}`, 'i'));
+  return all.find(item=> patterns.every(p=> p.test(item.name))) || null;
 }
 
 // A short, deliberately conservative list of well-established mineral-
