@@ -394,6 +394,36 @@ test('sabotage-relevant: a flagged bariatricRebuilding condition adds nothing he
   assert.strictEqual(window.getFoundationalSupplementStack().length, plainBaseCount, 'bariatricRebuilding must add zero items on top of the plain base list');
 });
 
+// --- Age-based additions: a single real threshold (50), not several
+// arbitrary bands, matching the same "real, established differences only"
+// discipline as gender/conditions.
+
+test('REAL invocation: a profile aged 50+ adds the real HMB entry on top of base', (assert)=>{
+  const { window } = setupFoundationalStack({age: 55, conditions:[], gender:'other'});
+  const names = window.getFoundationalSupplementStack().map(i=>i.name);
+  assert.ok(names.includes('Vitamin D3'), 'base items must still be present');
+  assert.ok(names.includes('HMB (Beta-Hydroxy-Beta-Methylbutyrate)'), 'the real 50+ age-band addition must be included');
+});
+
+test('REAL invocation: exactly age 50 clears the real threshold (inclusive boundary)', (assert)=>{
+  const { window } = setupFoundationalStack({age: 50, conditions:[], gender:'other'});
+  const names = window.getFoundationalSupplementStack().map(i=>i.name);
+  assert.ok(names.includes('HMB (Beta-Hydroxy-Beta-Methylbutyrate)'), 'age 50 itself must clear a real >=50 threshold, not require 51');
+});
+
+test('sabotage-relevant: a profile under 50 does NOT get the age-band addition', (assert)=>{
+  const { window } = setupFoundationalStack({age: 49, conditions:[], gender:'other'});
+  const names = window.getFoundationalSupplementStack().map(i=>i.name);
+  assert.ok(!names.includes('HMB (Beta-Hydroxy-Beta-Methylbutyrate)'), 'age 49 must not clear the real 50 threshold');
+});
+
+test('sabotage-relevant: an unset/non-numeric age never crashes and never adds the age-band item', (assert)=>{
+  const { window } = setupFoundationalStack({conditions:[], gender:'other'}); // no age override at all
+  const stack = window.getFoundationalSupplementStack();
+  assert.ok(Array.isArray(stack), 'must return a real array, not throw, when age is unset');
+  assert.ok(!stack.map(i=>i.name).includes('HMB (Beta-Hydroxy-Beta-Methylbutyrate)'), 'an unset age must never be treated as clearing the threshold');
+});
+
 test('REAL invocation: renderFoundationalStack renders every item into the real .smooth-toggle content div with evidence tier and dose', async (assert)=>{
   const { window, document } = setupFoundationalStack({gender:'female'});
   await window.renderFoundationalStack();
