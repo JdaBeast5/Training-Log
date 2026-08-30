@@ -188,6 +188,37 @@ test('sabotage-relevant: findKnownSupplementInfo returns null for a name that is
   assert.notStrictEqual(window.findKnownSupplementInfo('vitamin d3'), null, 'precondition: a real, lowercased entry name must still match');
 });
 
+// A person almost never types the curated table's full label verbatim —
+// "Creatine" not "Creatine Monohydrate", "B12" not "Vitamin B12". Before
+// this fallback, ONLY an exact match to the full curated name ever showed a
+// description at all, which in practice meant almost nobody ever saw one.
+test('REAL invocation: a shorter, naturally-typed name still matches its curated entry (word-boundary fallback)', (assert)=>{
+  const { window } = runJsdom('', otherGlobals(), [foundationalStackSrc, findKnownSupplementInfoSrc]);
+  assert.strictEqual(window.findKnownSupplementInfo('Creatine')?.name, 'Creatine Monohydrate', '"Creatine" must match the curated "Creatine Monohydrate" entry');
+  assert.strictEqual(window.findKnownSupplementInfo('B12')?.name, 'Vitamin B12', '"B12" must match "Vitamin B12"');
+  assert.strictEqual(window.findKnownSupplementInfo('Fish Oil')?.name, 'Omega-3 (Fish Oil or Algae-Based EPA/DHA)', '"Fish Oil" must match the Omega-3 entry it appears inside');
+  assert.strictEqual(window.findKnownSupplementInfo('Magnesium Glycinate')?.name, 'Magnesium (Glycinate or Citrate)', 'a name with extra real detail beyond the curated label must still match');
+});
+
+test('sabotage-relevant: the word-boundary fallback requires an ACTUAL shared word, not just any substring overlap', (assert)=>{
+  const { window } = runJsdom('', otherGlobals(), [foundationalStackSrc, findKnownSupplementInfoSrc]);
+  // "iro" is a real substring of "Iron" but is not itself a whole word
+  // anywhere in the curated table under a plain substring check turned
+  // permissive by accident - guards against a too-loose regex swallowing
+  // near-miss typos as if they were real matches.
+  assert.strictEqual(window.findKnownSupplementInfo('Definitely Unrelated Words'), null, 'unrelated multi-word input must still return null, not a false match');
+});
+
+test('REAL invocation: renderMySupplements shows the real benefit subtitle for a bare, naturally-typed name, not just the curated label verbatim', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify([{name:'Creatine', frequency:'daily'}]),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  const html = document.getElementById('mySupplementsList').innerHTML;
+  assert.match(html, /supplement-name-wrap/, 'a real fuzzy match must render the same benefit-subtitle wrapper an exact match would');
+  assert.match(html, /reliably supports strength/, 'the real Creatine Monohydrate "why" text must render, proving the match reached the real curated entry, not a placeholder');
+});
+
 // --- Interaction notes: proactive, conservative, pair-based -----------------
 // NOT a general drug/supplement interaction checker — this app has no
 // business attempting that. Just the two well-established mineral-
