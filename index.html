@@ -637,6 +637,13 @@
   .supplement-name-wrap{display:flex; flex-direction:column; gap:2px; min-width:0;}
   .supplement-name-wrap .supplement-benefit{font-size:11.5px; color:var(--text-muted); font-weight:400;}
   .supplement-name-wrap .supplement-frequency{font-size:11.5px; color:var(--plate-blue); font-weight:600;}
+  .supplement-benefit-toggle{
+    background:none; border:none; padding:0; margin-left:4px; font-size:11.5px; font-weight:600; color:var(--plate-blue);
+    cursor:pointer; font-family:'Inter',sans-serif; text-decoration:underline; text-underline-offset:2px;
+  }
+  .supplement-benefit-toggle:active{opacity:0.6;}
+  .supplement-benefit-detail{display:block; margin-top:4px; color:var(--text-muted);}
+  .supplement-benefit-detail b{color:var(--text);}
   .grocery-item{
     display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px;
     cursor:pointer; user-select:none;
@@ -6532,7 +6539,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.259';
+const APP_VERSION = '3.260';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7153,6 +7160,9 @@ const WHATS_NEW = {
   '3.259': { headline: 'My Supplements: fixed descriptions, made the card collapsible', points: [
     'Fixed a real bug: a supplement added by searching the database kept its evidence-graded description only until the next time the list re-rendered, then silently lost it — the tracked list now resolves descriptions correctly no matter how an item was added.',
     'My Supplements is now a collapsible card like Nutrition and Body Measurements, so it can be tucked away once its list (and everyone\'s descriptions) grow long.',
+  ]},
+  '3.260': { headline: 'Supplement descriptions in My Supplements are now expandable', points: [
+    'Each tracked supplement\'s description now has a real "More" button — tap it to see the full explanation, typical dose, timing, and any caution, without leaving the Log tab.',
   ]},
 };
 
@@ -33340,6 +33350,17 @@ function askCoachAboutSupplement(name){
   }
 }
 
+// Session-only (not persisted to storage) — which tracked items currently
+// show their FULL curated description rather than just the first sentence.
+// Has to survive a re-render (renderMySupplements runs after every add/
+// delete/taken-toggle in this card), so it can't just be a class flipped on
+// the existing DOM node the way a one-off detail toggle elsewhere in this
+// app (e.g. the food log's .fl-detail) gets away with — that pattern resets
+// silently the next time ANY unrelated row's own render-triggering action
+// fires. Keyed by lowercased name, matching every other case-insensitive
+// lookup this card already does.
+let expandedSupplementNames = new Set();
+
 async function renderMySupplements(){
   const el = document.getElementById('mySupplementsList');
   if(!el) return;
@@ -33380,7 +33401,20 @@ async function renderMySupplements(){
     // line to show (a known benefit, or a non-default frequency) — a plain
     // daily item with no match stays the simple single-span row it always was.
     const parts = [`<span>${escapeHtml(name)}</span>`];
-    if(info) parts.push(`<span class="supplement-benefit">${SUPPLEMENT_EVIDENCE_LABELS[info.evidence] || ''} — ${escapeHtml(info.why.split('. ')[0])}${info.why.includes('. ') ? '.' : ''}</span>`);
+    if(info){
+      const expanded = expandedSupplementNames.has(name.toLowerCase());
+      const evidenceLabel = SUPPLEMENT_EVIDENCE_LABELS[info.evidence] || '';
+      const firstSentence = `${evidenceLabel} — ${escapeHtml(info.why.split('. ')[0])}${info.why.includes('. ') ? '.' : ''}`;
+      // Collapsed shows only the first sentence (unchanged from before) —
+      // the toggle reveals the SAME full why/dose/timing/caution content
+      // renderSupplementCards already shows on the Coach tab, not a
+      // separate, second copy of this text authored just for this view.
+      const toggleBtn = `<button type="button" class="supplement-benefit-toggle" aria-expanded="${expanded}">${expanded ? 'Less' : 'More'}</button>`;
+      const detailHtml = expanded
+        ? `<span class="supplement-benefit-detail">${escapeHtml(info.why)}<br><b>Typical dose:</b> ${escapeHtml(info.typicalDose || '—')}<br><b>Timing:</b> ${escapeHtml(info.timing || '—')}${info.caution ? `<br><b>Caution:</b> ${escapeHtml(info.caution)}` : ''}</span>`
+        : '';
+      parts.push(`<span class="supplement-benefit">${expanded ? evidenceLabel : firstSentence}${toggleBtn}${detailHtml}</span>`);
+    }
     if(frequency !== 'daily'){
       const progress = meta.requiredCount > 1 ? ` — ${count}/${meta.requiredCount} today` : '';
       parts.push(`<span class="supplement-frequency">${escapeHtml(meta.label)}${progress}</span>`);
@@ -33408,6 +33442,18 @@ async function renderMySupplements(){
       e.stopPropagation();
       askCoachAboutSupplement(name);
     });
+    // Only present for a row with a real curated match — an unmatched
+    // item's row has no benefit text at all to expand.
+    const benefitToggle = swipeEl.querySelector('.supplement-benefit-toggle');
+    if(benefitToggle){
+      benefitToggle.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const key = name.toLowerCase();
+        if(expandedSupplementNames.has(key)) expandedSupplementNames.delete(key);
+        else expandedSupplementNames.add(key);
+        renderMySupplements();
+      });
+    }
     makeSwipeable(swipeEl, async ()=>{
       const current = await loadMySupplements();
       const removedIdx = current.findIndex(item=> item.name === name);

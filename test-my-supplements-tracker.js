@@ -138,6 +138,7 @@ const scriptChunks = [
   renderMySupplementsSrc, addBtnWiringSrc,
   dsldApiBaseSrc, searchDsldSupplementsSrc,
   'let dsldVisibleTerm = ""; let dsldResults = []; let dsldSearchedTerm = null; let dsldSearchLoading = false; let dsldSearchError = null; let _dsldSearchTimer = null;',
+  'let expandedSupplementNames = new Set();',
   runDsldSearchSrc, renderDsldSearchResultsSrc, dsldInputWiringSrc,
   setCardOpenStateSrc, headerToggleWiringSrc,
 ];
@@ -174,6 +175,65 @@ test('a name that matches a Foundational Stack entry (case-insensitively) render
   const html = document.getElementById('mySupplementsList').innerHTML;
   assert.match(html, /Well-established/, 'the real evidence tier for Creatine Monohydrate must render');
   assert.match(html, /strength, power output/, 'the real benefit text (from FOUNDATIONAL_SUPPLEMENT_STACK) must render, not a placeholder');
+});
+
+// --- Expandable descriptions: the collapsed row only ever showed the FIRST
+// sentence of the curated "why" text - a real "More" toggle now reveals the
+// rest, plus dose/timing/caution, the same full content renderSupplementCards
+// already shows on the Coach tab (not a second, separately-authored copy).
+
+test('REAL invocation: a matched item collapsed by default shows only the first sentence, with a real "More" toggle', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify(['creatine monohydrate']),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  const html = document.getElementById('mySupplementsList').innerHTML;
+  assert.match(html, /reliably supports strength, power output, and muscle mass/, 'the real why text must render');
+  assert.doesNotMatch(html, /Typical dose/, 'dose/timing/caution must not render at all while collapsed');
+  assert.match(html, /<button type="button" class="supplement-benefit-toggle" aria-expanded="false">More<\/button>/, 'a real, unclicked toggle button must be present');
+});
+
+test('REAL invocation: clicking "More" reveals the real full why text plus dose/timing, and persists across the next unrelated re-render', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify([{name:'Creatine Monohydrate', frequency:'daily'}, {name:'Magnesium', frequency:'daily'}]),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  document.querySelector('#mySupplementsList .supplement-benefit-toggle').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  let html = document.getElementById('mySupplementsList').innerHTML;
+  assert.match(html, /no loading phase needed/, 'the real full why text (past the first sentence) must now render');
+  assert.match(html, /3-5g daily, no loading phase needed/, 'the real typical dose must render');
+  assert.match(html, /Any time — consistency matters far more than timing/, 'the real timing must render');
+  assert.match(html, />Less<\/button>/, 'the toggle must now read "Less"');
+
+  // sabotage-relevant: toggling a DIFFERENT, unrelated row (Magnesium's own
+  // taken-state) triggers a full re-render of this card - the expanded
+  // state above must survive that, not silently collapse back.
+  const rows = Array.from(document.querySelectorAll('#mySupplementsList .supplement-row'));
+  const magnesiumRow = rows.find(r=> r.textContent.includes('Magnesium'));
+  magnesiumRow.click();
+  await new Promise(r=> setTimeout(r, 20));
+  html = document.getElementById('mySupplementsList').innerHTML;
+  assert.match(html, /no loading phase needed/, 'Creatine\'s expanded description must still be showing after an unrelated re-render, not silently reset');
+});
+
+test('sabotage-relevant: clicking "More" does not also toggle the row\'s own taken/done state', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify(['creatine monohydrate']),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  document.querySelector('#mySupplementsList .supplement-benefit-toggle').click();
+  await new Promise(r=> setTimeout(r, 20));
+  assert.doesNotMatch(document.getElementById('mySupplementsList').innerHTML, /supplement-row done/, 'clicking the description toggle must never also mark the item taken');
+});
+
+test('sabotage-relevant: an unmatched item (no curated info) has no benefit toggle at all', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify(['My Custom Blend XYZ']),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  assert.strictEqual(document.querySelectorAll('#mySupplementsList .supplement-benefit-toggle').length, 0, 'no known match must mean no toggle to expand nothing');
 });
 
 // End-to-end version of the bareNeedle fix above: a real tracked item saved
