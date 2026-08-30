@@ -57,9 +57,20 @@ const dsldApiBaseSrc = extractConst(src, 'DSLD_API_BASE');
 const searchDsldSupplementsSrc = extractFunction(src, 'searchDsldSupplements');
 const runDsldSearchSrc = extractFunction(src, 'runDsldSearch');
 const renderDsldSearchResultsSrc = extractFunction(src, 'renderDsldSearchResults');
+const buildDsldIngredientsHtmlSrc = extractFunction(src, 'buildDsldIngredientsHtml');
 const dsldInputWiringSrc = extractStatement(src, "document.getElementById('mySupplementAddInput').addEventListener('input'");
 const setCardOpenStateSrc = extractFunction(src, 'setCardOpenState');
 const headerToggleWiringSrc = extractStatement(src, "document.getElementById('mySupplementsHeader').addEventListener('click'");
+const callClaudeChatSrc = extractFunction(src, 'callClaudeChat');
+const anthropicRequestSrc = extractFunction(src, 'anthropicRequest');
+const aiSleepSrc = extractFunction(src, 'aiSleep');
+const aiMaxAttemptsSrc = extractConst(src, 'AI_MAX_ATTEMPTS');
+const aiKeySetupPromptSrc = extractFunction(src, 'aiKeySetupPrompt');
+const getApiKeySrc = extractFunction(src, 'getApiKey');
+const buildSupplementInsightPromptSrc = extractFunction(src, 'buildSupplementInsightPrompt');
+const generateAiSupplementInsightSrc = extractFunction(src, 'generateAiSupplementInsight');
+const saveSupplementAiInsightSrc = extractFunction(src, 'saveSupplementAiInsight');
+const requestSupplementAiInsightSrc = extractFunction(src, 'requestSupplementAiInsight');
 
 const bodyHtml = `
   <div class="card-title nutrition-header" id="mySupplementsHeader">
@@ -139,8 +150,12 @@ const scriptChunks = [
   dsldApiBaseSrc, searchDsldSupplementsSrc,
   'let dsldVisibleTerm = ""; let dsldResults = []; let dsldSearchedTerm = null; let dsldSearchLoading = false; let dsldSearchError = null; let _dsldSearchTimer = null;',
   'let expandedSupplementNames = new Set();',
-  runDsldSearchSrc, renderDsldSearchResultsSrc, dsldInputWiringSrc,
+  buildDsldIngredientsHtmlSrc, runDsldSearchSrc, renderDsldSearchResultsSrc, dsldInputWiringSrc,
   setCardOpenStateSrc, headerToggleWiringSrc,
+  aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
+  aiKeySetupPromptSrc, getApiKeySrc,
+  buildSupplementInsightPromptSrc, generateAiSupplementInsightSrc,
+  saveSupplementAiInsightSrc, requestSupplementAiInsightSrc,
 ];
 
 const { test, run } = makeRunner('test-my-supplements-tracker.js');
@@ -228,12 +243,20 @@ test('sabotage-relevant: clicking "More" does not also toggle the row\'s own tak
   assert.doesNotMatch(document.getElementById('mySupplementsList').innerHTML, /supplement-row done/, 'clicking the description toggle must never also mark the item taken');
 });
 
-test('sabotage-relevant: an unmatched item (no curated info) has no benefit toggle at all', async (assert)=>{
+// Was "no benefit toggle at all" before the AI-insight feature - an
+// unmatched item now DOES get the same toggle every other row has, since
+// even with no curated match and no ingredients, an on-demand AI insight
+// is still something to expand into. Renamed/rewritten rather than left
+// asserting the old, now-intentionally-changed behavior.
+test('REAL invocation: an unmatched item (no curated info, no ingredients) still gets the real toggle, collapsed by default with no ingredients/AI content showing', async (assert)=>{
   const { document, window } = runJsdom(bodyHtml, storageGlobals({
     'my-supplements': JSON.stringify(['My Custom Blend XYZ']),
   }) + otherGlobals(), scriptChunks);
   await window.renderMySupplements();
-  assert.strictEqual(document.querySelectorAll('#mySupplementsList .supplement-benefit-toggle').length, 0, 'no known match must mean no toggle to expand nothing');
+  const html = document.getElementById('mySupplementsList').innerHTML;
+  assert.strictEqual(document.querySelectorAll('#mySupplementsList .supplement-benefit-toggle').length, 1, 'a real toggle must exist even with no curated match and no ingredients');
+  assert.match(html, /Not evaluated here — not medical advice\./, 'the disclaimer must show even collapsed');
+  assert.doesNotMatch(html, /Get AI insight/, 'the AI-insight button must only appear once expanded, not by default');
 });
 
 // End-to-end version of the bareNeedle fix above: a real tracked item saved
@@ -269,14 +292,17 @@ test('sabotage-relevant: both a matched and an unmatched row carry the real .sup
   });
 });
 
-test('an unmatched, made-up name renders as a plain row with no benefit subtitle', async (assert)=>{
+// Was "no benefit subtitle at all" before the AI-insight feature - an
+// unmatched item now gets the same wrapped name+benefit-subtitle shape
+// as a matched one, since it carries the "not evaluated" line and toggle.
+test('an unmatched, made-up name still renders inside the real wrapped name+benefit shape', async (assert)=>{
   const { document, window } = runJsdom(bodyHtml, storageGlobals({
     'my-supplements': JSON.stringify(['My Custom Blend XYZ']),
   }) + otherGlobals(), scriptChunks);
   await window.renderMySupplements();
   const html = document.getElementById('mySupplementsList').innerHTML;
   assert.match(html, /My Custom Blend XYZ/);
-  assert.doesNotMatch(html, /supplement-name-wrap/, 'no known match must mean no benefit-subtitle wrapper at all');
+  assert.match(html, /supplement-name-wrap/, 'every row now carries a real benefit subtitle (at least the not-evaluated disclaimer + toggle), so the wrapper must be present');
 });
 
 test('sabotage-relevant: findKnownSupplementInfo returns null for a name that is not in FOUNDATIONAL_SUPPLEMENT_STACK', (assert)=>{
@@ -709,6 +735,95 @@ test('REAL invocation: a 429 response throws the real rate-limit-specific messag
   await assert.rejects(() => window.searchDsldSupplements('creatine'), /rate limit/i);
 });
 
+// --- Real label ingredients for a product with no curated match: shown as
+// plain fact (never a claim about effectiveness), and persisted so they
+// survive past the initial add, not just the search-result card.
+
+test('REAL invocation: searchDsldSupplements extracts a real ingredientRows list into plain "name (qty unit)" strings', async (assert)=>{
+  const { window } = runJsdom('', otherGlobals(), [dsldApiBaseSrc, searchDsldSupplementsSrc]);
+  window.fetch = async ()=> fakeDsldResponse([
+    { _id: '1', _source: { fullName: 'Some Obscure Herbal Blend', ingredientRows: [
+      { name: 'Ashwagandha Root Extract', quantity: 300, unit: 'mg' },
+      { name: 'Black Pepper Extract', quantity: 5, unit: 'mg' },
+      { name: 'Proprietary Blend' }, // no quantity - must still render, just without a (qty unit) suffix
+    ] } },
+  ]);
+  const results = await window.searchDsldSupplements('herbal');
+  assert.deepStrictEqual([...results[0].ingredients], ['Ashwagandha Root Extract (300mg)', 'Black Pepper Extract (5mg)', 'Proprietary Blend']);
+});
+
+test('sabotage-relevant: a hit with no ingredientRows at all produces an empty ingredients array, not a crash', async (assert)=>{
+  const { window } = runJsdom('', otherGlobals(), [dsldApiBaseSrc, searchDsldSupplementsSrc]);
+  window.fetch = async ()=> fakeDsldResponse([{ _id: '1', _source: { fullName: 'Plain Product' } }]);
+  const results = await window.searchDsldSupplements('plain');
+  assert.strictEqual(results[0].ingredients.length, 0);
+});
+
+test('REAL invocation: an unmatched DSLD search result shows its real label ingredients in the result card itself', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
+  window.fetch = async ()=> fakeDsldResponse([
+    { _id: '1', _source: { fullName: 'Some Obscure Herbal Blend', ingredientRows: [{ name: 'Ashwagandha Root Extract', quantity: 300, unit: 'mg' }] } },
+  ]);
+  const input = document.getElementById('mySupplementAddInput');
+  input.value = 'obscure herbal';
+  input.dispatchEvent(new window.Event('input', {bubbles:true}));
+  await new Promise(r=> setTimeout(r, 120));
+  document.querySelector('#dsldSearchResults .dsld-search-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  const html = document.getElementById('dsldSearchResults').innerHTML;
+  assert.match(html, /Label ingredients/);
+  assert.match(html, /Ashwagandha Root Extract \(300mg\)/, 'the real extracted ingredient must render, not a placeholder');
+});
+
+test('REAL invocation: adding an unmatched DSLD result persists its real ingredients into my-supplements, and renderMySupplements shows them on every render after', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
+  window.fetch = async ()=> fakeDsldResponse([
+    { _id: '1', _source: { fullName: 'Some Obscure Herbal Blend', ingredientRows: [{ name: 'Ashwagandha Root Extract', quantity: 300, unit: 'mg' }] } },
+  ]);
+  const input = document.getElementById('mySupplementAddInput');
+  input.value = 'obscure herbal';
+  input.dispatchEvent(new window.Event('input', {bubbles:true}));
+  await new Promise(r=> setTimeout(r, 120));
+  document.querySelector('#dsldSearchResults .dsld-search-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+  document.querySelector('#dsldSearchResults .dsld-unmatched-add-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  const stored = JSON.parse(window.storage.__store['my-supplements']);
+  assert.deepStrictEqual([...stored[0].ingredients], ['Ashwagandha Root Extract (300mg)'], 'the real ingredients must be persisted, not dropped at add time');
+
+  // Independent render, well after the add - proves this isn't just an
+  // artifact of the search-result card still being on screen. Ingredients
+  // now live behind the same collapsible toggle every row has, so the row
+  // has to actually be expanded first.
+  await window.renderMySupplements();
+  document.querySelector('#mySupplementsList .supplement-benefit-toggle').click();
+  await new Promise(r=> setTimeout(r, 20));
+  const listHtml = document.getElementById('mySupplementsList').innerHTML;
+  assert.match(listHtml, /Ashwagandha Root Extract \(300mg\)/, 'the real ingredients must still render, once expanded, on a later, independent renderMySupplements call');
+});
+
+test('sabotage-relevant: an item added WITHOUT any ingredients (a plain manual add) never renders an ingredients line', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify(['My Custom Blend XYZ']),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  assert.doesNotMatch(document.getElementById('mySupplementsList').innerHTML, /Label ingredients/, 'no ingredients data must mean no ingredients line at all');
+});
+
+test('sabotage-relevant: loadMySupplements carries ingredients through on read, but never invents them for an entry that has none', async (assert)=>{
+  const { window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify([
+      {name:'Herbal Blend', frequency:'daily', ingredients:['Real Ingredient (10mg)']},
+      {name:'Plain Item', frequency:'daily'},
+    ]),
+  }) + otherGlobals(), scriptChunks);
+  const list = await window.loadMySupplements();
+  assert.deepStrictEqual([...list[0].ingredients], ['Real Ingredient (10mg)']);
+  assert.strictEqual(list[1].ingredients, undefined, 'an entry with no stored ingredients must not get a fabricated empty array or leaked data from another entry');
+});
+
 test('REAL invocation: typing into the add input shows the real "search database" button WITHOUT firing a network call yet', async (assert)=>{
   const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
   let fetchCalls = 0;
@@ -873,6 +988,118 @@ test('REAL invocation: clicking the header persists the real open state via the 
 
   document.getElementById('mySupplementsHeader').click();
   assert.strictEqual(window.storage.__store['card-open:mySupplements'], 'false', 'closing again must persist the real false value, not just leave the last-written true in place');
+});
+
+// --- On-demand AI insight for a non-curated item: a clearly-labeled,
+// separate real-time AI read (never blended into the curated table), using
+// the SAME getApiKey/callClaudeChat plumbing as Supplement Recommendations.
+
+function fakeAiInsightResponse(text){
+  return { ok: true, json: async ()=> ({ content: [{type:'text', text}] }) };
+}
+
+test('REAL invocation: buildSupplementInsightPrompt includes the real product name and its real ingredients', (assert)=>{
+  const { window } = runJsdom('', otherGlobals(), [buildSupplementInsightPromptSrc]);
+  const prompt = window.buildSupplementInsightPrompt('Some Obscure Herbal Blend', ['Ashwagandha Root Extract (300mg)']);
+  assert.match(prompt, /Some Obscure Herbal Blend/, 'the real product name must reach the prompt');
+  assert.match(prompt, /Ashwagandha Root Extract \(300mg\)/, 'the real ingredient list must reach the prompt');
+});
+
+test('REAL invocation: buildSupplementInsightPrompt omits the ingredient line entirely when there are none, rather than an empty list', (assert)=>{
+  const { window } = runJsdom('', otherGlobals(), [buildSupplementInsightPromptSrc]);
+  const prompt = window.buildSupplementInsightPrompt('Plain Item', []);
+  assert.doesNotMatch(prompt, /label lists/, 'no real ingredients must mean no fabricated/empty ingredient-list sentence');
+});
+
+test('REAL invocation: clicking "Get AI insight" with no API key shows the real aiKeySetupPrompt banner and never touches the network', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify(['My Custom Blend XYZ']),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  document.querySelector('#mySupplementsList .supplement-benefit-toggle').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  let fetchCalls = 0;
+  window.fetch = async ()=> { fetchCalls++; return fakeAiInsightResponse('should never be reached'); };
+  document.querySelector('#mySupplementsList .supplement-ai-insight-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  assert.strictEqual(fetchCalls, 0, 'no API key must short-circuit before any request');
+  assert.match(document.getElementById('mySupplementsList').innerHTML, /Add your Anthropic API key/, 'must show the real shared setup prompt, not a bespoke message');
+});
+
+test('REAL invocation: clicking "Get AI insight" with a real key calls the real API exactly once at medium effort, and persists+renders the real insight text', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'ai-api-key': 'fake-key',
+    'my-supplements': JSON.stringify([{name:'Some Obscure Herbal Blend', frequency:'daily', ingredients:['Ashwagandha Root Extract (300mg)']}]),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  document.querySelector('#mySupplementsList .supplement-benefit-toggle').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  const captured = [];
+  window.fetch = async (url, opts)=> { captured.push(JSON.parse(opts.body)); return fakeAiInsightResponse('Modest, preliminary evidence at best — ashwagandha has some support for stress reduction, but this exact product has not itself been studied.'); };
+  document.querySelector('#mySupplementsList .supplement-ai-insight-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  assert.strictEqual(captured.length, 1, 'exactly one request must be sent per click');
+  assert.strictEqual(captured[0].output_config && captured[0].output_config.effort, 'medium', 'must request medium effort, matching the documented cross-metric-insights fix');
+  assert.match(captured[0].messages[0].content ? JSON.stringify(captured[0]) : '', /Some Obscure Herbal Blend/, 'the real product name must reach the actual request');
+
+  const stored = JSON.parse(window.storage.__store['my-supplements']);
+  assert.match(stored[0].aiInsight, /Modest, preliminary evidence/, 'the real AI response text must be persisted onto the real tracked entry');
+
+  const html = document.getElementById('mySupplementsList').innerHTML;
+  assert.match(html, /✨ AI insight/, 'the real insight must render, clearly labeled');
+  assert.match(html, /Modest, preliminary evidence/);
+  assert.match(html, /Not medical advice — a real-time AI read/, 'the real disclaimer distinguishing this from the curated table must render alongside it');
+});
+
+test('sabotage-relevant: once an AI insight exists, the "Get AI insight" button is gone — no button to re-request it', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify([{name:'Some Obscure Herbal Blend', frequency:'daily', aiInsight:'Already generated text.'}]),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  document.querySelector('#mySupplementsList .supplement-benefit-toggle').click();
+  await new Promise(r=> setTimeout(r, 20));
+  const html = document.getElementById('mySupplementsList').innerHTML;
+  assert.match(html, /Already generated text\./);
+  assert.doesNotMatch(html, /supplement-ai-insight-btn/, 'a real stored insight must replace the button, not sit alongside it');
+});
+
+test('REAL invocation: a real API/network error leaves the button re-enabled with a visible error, and never crashes the row', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'ai-api-key': 'fake-key',
+    'my-supplements': JSON.stringify(['Some Obscure Herbal Blend']),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  document.querySelector('#mySupplementsList .supplement-benefit-toggle').click();
+  await new Promise(r=> setTimeout(r, 20));
+
+  window.fetch = async ()=> { throw new Error('network down'); };
+  const btn = document.querySelector('#mySupplementsList .supplement-ai-insight-btn');
+  btn.click();
+  // anthropicRequest genuinely retries a network-level throw up to
+  // AI_MAX_ATTEMPTS times with real 600ms/1200ms backoff sleeps before
+  // giving up - has to actually wait that out, not a fixed short delay.
+  await new Promise(r=> setTimeout(r, 2500));
+
+  assert.strictEqual(btn.disabled, false, 'the button must re-enable after a failure so the person can retry');
+  assert.match(document.getElementById('mySupplementsList').textContent, /Couldn't get an insight/, 'a real, visible error must appear, not a silent failure');
+});
+
+test('sabotage-relevant: clicking "Get AI insight" never also toggles the row\'s taken/done state', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'ai-api-key': 'fake-key',
+    'my-supplements': JSON.stringify(['Some Obscure Herbal Blend']),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  document.querySelector('#mySupplementsList .supplement-benefit-toggle').click();
+  await new Promise(r=> setTimeout(r, 20));
+  window.fetch = async ()=> fakeAiInsightResponse('Some insight text.');
+  document.querySelector('#mySupplementsList .supplement-ai-insight-btn').click();
+  await new Promise(r=> setTimeout(r, 20));
+  assert.doesNotMatch(document.getElementById('mySupplementsList').innerHTML, /supplement-row done/, 'requesting an insight must never mark the item taken');
 });
 
 run();
