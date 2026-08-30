@@ -6527,7 +6527,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.257';
+const APP_VERSION = '3.258';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7141,6 +7141,9 @@ const WHATS_NEW = {
   '3.257': { headline: 'Search a real supplement database when adding to My Supplements', points: [
     'A "Search supplement database" button now appears while adding a supplement, searching NIH\'s free public Dietary Supplement Label Database — thousands of real products, not just this app\'s curated list.',
     'A result that matches this app\'s own evidence-graded picks still shows the same real description; anything else shows a plain "not evaluated here, not medical advice" note instead of a guessed one.',
+  ]},
+  '3.258': { headline: 'Foundational Stack now accounts for age', points: [
+    'At 50+, the Foundational Stack adds HMB — real evidence specifically in older or less-active adults for slowing age-related muscle loss (sarcopenia), alongside your existing base and gender/condition-based recommendations.',
   ]},
 };
 
@@ -33182,15 +33185,17 @@ async function toggleMySupplementTaken(name, frequency){
 // "Fish Oil" vs "Omega-3 (Fish Oil or Algae-Based EPA/DHA)") — without this,
 // only someone who typed the curated label verbatim ever saw a description.
 function findKnownSupplementInfo(name){
-  // .flat() over every condition's own array too — this list grew a
-  // `conditions` axis after this function was first written, and a plain
-  // spread of just base/male/female would silently stop finding anything
-  // added there (Vitamin K2, Alpha-Lipoic Acid, CoQ10, Choline).
+  // .flat() over every condition's and age band's own array too — this list
+  // grew a `conditions` axis and then an `ageBands` axis after this
+  // function was first written, and a plain spread of just base/male/female
+  // would silently stop finding anything added on either axis (Vitamin K2,
+  // Alpha-Lipoic Acid, CoQ10, Choline, HMB).
   const all = [
     ...FOUNDATIONAL_SUPPLEMENT_STACK.base,
     ...FOUNDATIONAL_SUPPLEMENT_STACK.male,
     ...FOUNDATIONAL_SUPPLEMENT_STACK.female,
     ...Object.values(FOUNDATIONAL_SUPPLEMENT_STACK.conditions || {}).flat(),
+    ...(FOUNDATIONAL_SUPPLEMENT_STACK.ageBands || []).flatMap(band=> band.items),
   ];
   const needle = String(name || '').trim().toLowerCase();
   if(!needle) return null;
@@ -40032,26 +40037,57 @@ const FOUNDATIONAL_SUPPLEMENT_STACK = {
       },
     ],
   },
+  // A single, real threshold rather than several arbitrary bands — the same
+  // "real, established differences only, never invented for symmetry's
+  // sake" discipline BODY_GOALS and the gender/condition axes above already
+  // follow. 50 is the age most mainstream aging-nutrition guidance actually
+  // uses as its dividing line (it's also where the RDA for calcium and
+  // vitamin D step up, both already covered elsewhere in this table).
+  // There's no analogous well-established "add a supplement for being
+  // younger" case, so — same as 'other'/unset gender getting only the base
+  // list — no band exists below 50 to guess at one.
+  ageBands: [
+    {
+      minAge: 50,
+      items: [
+        {
+          name: 'HMB (Beta-Hydroxy-Beta-Methylbutyrate)',
+          evidence: 'promising',
+          why: 'Age-related muscle loss (sarcopenia) is a real and accelerating concern from around this age on, and HMB has real evidence specifically in older or less-active adults — a population where creatine and protein\'s own well-established benefits are less consistently reproduced than in younger, more active lifters.',
+          typicalDose: '3g daily, typically split into 3x1g doses',
+          timing: 'With meals',
+          caution: 'No substitute for resistance training, which remains the primary, much stronger intervention against sarcopenia — this is a modest adjunct, not a replacement for staying strength-trained.',
+          frequency: 'daily',
+        },
+      ],
+    },
+  ],
 };
 
 // Merges base + gender extras (unchanged behavior) with extras for every
 // currently-flagged condition (activeConditionKeys — profile checkboxes AND
 // an active medical program, same real source buildSupplementSystemPrompt
-// already reads), deduped by name so a future content addition can never
-// silently show the same supplement twice regardless of how many axes
-// recommend it.
+// already reads) and every age band the real profile age actually clears,
+// deduped by name so a future content addition can never silently show the
+// same supplement twice regardless of how many axes recommend it.
 function getFoundationalSupplementStack(){
   const genderExtras = FOUNDATIONAL_SUPPLEMENT_STACK[userProfile?.gender] || [];
   const combined = [...FOUNDATIONAL_SUPPLEMENT_STACK.base, ...genderExtras];
   const seen = new Set(combined.map(item=> item.name.toLowerCase()));
-  activeConditionKeys().forEach(key=>{
-    const extras = FOUNDATIONAL_SUPPLEMENT_STACK.conditions[key] || [];
-    extras.forEach(item=>{
+  function addExtras(extras){
+    (extras || []).forEach(item=>{
       if(seen.has(item.name.toLowerCase())) return;
       seen.add(item.name.toLowerCase());
       combined.push(item);
     });
-  });
+  }
+  activeConditionKeys().forEach(key=> addExtras(FOUNDATIONAL_SUPPLEMENT_STACK.conditions[key]));
+  const age = Number(userProfile?.age);
+  if(Number.isFinite(age)){
+    FOUNDATIONAL_SUPPLEMENT_STACK.ageBands
+      .filter(band=> age >= band.minAge)
+      .forEach(band=> addExtras(band.items));
+  }
   return combined;
 }
 

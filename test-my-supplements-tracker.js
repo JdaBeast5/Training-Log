@@ -222,6 +222,13 @@ test('REAL invocation: findKnownSupplementInfo also matches condition-specific e
   assert.strictEqual(window.findKnownSupplementInfo('Choline')?.name, 'Choline');
 });
 
+// Same regression shape, one axis later: ageBands was added after the
+// conditions fix above, and its own items need the same explicit inclusion.
+test('REAL invocation: findKnownSupplementInfo also matches the age-band entry (HMB)', (assert)=>{
+  const { window } = runJsdom('', otherGlobals(), [foundationalStackSrc, findKnownSupplementInfoSrc]);
+  assert.strictEqual(window.findKnownSupplementInfo('HMB')?.name, 'HMB (Beta-Hydroxy-Beta-Methylbutyrate)');
+});
+
 test('sabotage-relevant: the word-boundary fallback requires an ACTUAL shared word, not just any substring overlap', (assert)=>{
   const { window } = runJsdom('', otherGlobals(), [foundationalStackSrc, findKnownSupplementInfoSrc]);
   // "iro" is a real substring of "Iron" but is not itself a whole word
