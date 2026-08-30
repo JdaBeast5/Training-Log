@@ -20,6 +20,7 @@ const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } =
 const src = readIndexSource();
 
 const getCyclePhaseNutritionInsightSrc = extractFunction(src, 'getCyclePhaseNutritionInsight');
+const isCycleTrackingEnabledSrc = extractFunction(src, 'isCycleTrackingEnabled');
 const cyclePhasesSrc = extractConst(src, 'CYCLE_PHASES');
 const computeCyclePhaseSrc = extractFunction(src, 'computeCyclePhase');
 const getTodayKeySrc = extractFunction(src, 'getTodayKey');
@@ -47,7 +48,7 @@ function profileGlobals(overrides){
   return `var userProfile = ${JSON.stringify(profile)};`;
 }
 
-const baseChunks = [cyclePhasesSrc, getTodayKeySrc, computeCyclePhaseSrc, getCyclePhaseNutritionInsightSrc];
+const baseChunks = [cyclePhasesSrc, getTodayKeySrc, computeCyclePhaseSrc, isCycleTrackingEnabledSrc, getCyclePhaseNutritionInsightSrc];
 
 function setup(profileOverrides, storageInitial){
   const { window } = runJsdom('', profileGlobals(profileOverrides) + storageGlobals(storageInitial), baseChunks);
@@ -75,6 +76,12 @@ test('REAL invocation: female gender with no cycle data saved yet -> null, not a
   const window = setup({ gender: 'female' }, {});
   const result = await window.getCyclePhaseNutritionInsight();
   assert.strictEqual(result, null);
+});
+
+test('REAL invocation: female gender who has explicitly opted OUT of cycle tracking -> null, even with real cycle data still saved from before the opt-out', async (assert)=>{
+  const window = setup({ gender: 'female', cycleTrackingEnabled: false }, { 'cycle-data': JSON.stringify({ lastPeriod: daysAgoKey(0), cycleLength: 28 }) });
+  const result = await window.getCyclePhaseNutritionInsight();
+  assert.strictEqual(result, null, 'opting out must be a real off switch — it must stop reading pre-existing cycle-data, not just stop collecting new data going forward');
 });
 
 test('REAL invocation: menstrual phase (day 1 of 28) surfaces the real CYCLE_PHASES menstrual nutrition text, with a jump-link to the real Nutrition card', async (assert)=>{

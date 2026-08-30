@@ -44,13 +44,13 @@ const pfSaveWiringSrc = extractClickWiring(src, 'pfSave');
 
 const FIELD_IDS = [
   'pfName', 'pfAge', 'pfGender', 'pfHeightFt', 'pfHeightIn', 'pfWeight',
-  'pfActivity', 'pfGoal', 'pfBodyGoal', 'pfGlutenFree', 'pfDairyFree',
+  'pfActivity', 'pfGoal', 'pfBodyGoal', 'pfCycleTrackingEnabled', 'pfGlutenFree', 'pfDairyFree',
   'pfNutFree', 'pfHalal', 'pfKosher', 'pfAvoidFoods', 'pfDietaryPreference',
 ];
 
 function buildBodyHtml(){
   const selectIds = ['pfGender', 'pfActivity', 'pfGoal', 'pfBodyGoal', 'pfDietaryPreference'];
-  const checkboxIds = ['pfGlutenFree', 'pfDairyFree', 'pfNutFree', 'pfHalal', 'pfKosher'];
+  const checkboxIds = ['pfCycleTrackingEnabled', 'pfGlutenFree', 'pfDairyFree', 'pfNutFree', 'pfHalal', 'pfKosher'];
   const inputs = FIELD_IDS.map(id => {
     if(checkboxIds.includes(id)) return `<input type="checkbox" id="${id}">`;
     if(selectIds.includes(id)) return `<select id="${id}"><option value="" selected></option></select>`;
