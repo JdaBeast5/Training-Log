@@ -6539,7 +6539,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.260';
+const APP_VERSION = '3.261';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7163,6 +7163,9 @@ const WHATS_NEW = {
   ]},
   '3.260': { headline: 'Supplement descriptions in My Supplements are now expandable', points: [
     'Each tracked supplement\'s description now has a real "More" button — tap it to see the full explanation, typical dose, timing, and any caution, without leaving the Log tab.',
+  ]},
+  '3.261': { headline: 'Today now proactively points to relevant supplement suggestions', points: [
+    'If a flagged condition (pregnancy, postpartum, hypertension, diabetes, osteoporosis) or your current cycle phase has a Foundational Stack suggestion you haven\'t added yet, Today now says so, with a direct link — this only recommends, nothing is ever added to your list automatically.',
   ]},
 };
 
@@ -12304,6 +12307,80 @@ async function getCycleInsight(){
   return `${phase.icon} <b>${phase.name}:</b> ${phase.training}`;
 }
 
+// --- Foundational Stack nudge: a proactive RECOMMENDATION, not an auto-add.
+// The user ask behind this was "medically modified groups, pregnant/
+// postpartum, women on their periods... should be getting supplements added
+// to their list or at least recommended". Every existing path that writes to
+// `my-supplements` (the Coach tab's "+ Add" buttons) already requires an
+// explicit tap — there is no precedent anywhere in this app for silently
+// populating someone's tracked list without one, and starting that precedent
+// here, for content a person hasn't asked about, would be a materially more
+// paternalistic move than anything else this app does. This closes the real
+// gap instead: the condition-linked and menstrual-phase-relevant items
+// already exist in FOUNDATIONAL_SUPPLEMENT_STACK, but nothing ever pointed a
+// flagged person at them — they were only findable by opening Coach and
+// manually expanding "View foundational stack". This surfaces them, with a
+// real jump-link to that exact card, same mechanism getWeighInReminderInsight
+// and friends already use for a plain nudge.
+//
+// Two triggers, evaluated independently:
+//  1. Any PERSISTENT_CONDITIONS key with a real FOUNDATIONAL_SUPPLEMENT_STACK
+//     .conditions entry (prenatal, postpartum, osteoporosis, diabetes,
+//     hypertension) currently flagged via activeConditionKeys() — the same
+//     real function getFoundationalSupplementStack() itself reads.
+//  2. Currently IN the menstrual phase per Cycle Tracking's own
+//     computeCyclePhase (not merely "female" — that would fire year-round for
+//     a nutrient loss that is actually acute for ~5 days). This deliberately
+//     does NOT add a new supplement: it points at the SAME Iron entry the
+//     female axis already carries, whose own `why` text already names
+//     menstrual blood loss as the reason — restating it as a second entry
+//     with a tweaked dose is exactly the anti-pattern the comment above
+//     FOUNDATIONAL_SUPPLEMENT_STACK's `conditions` axis already warns against.
+//
+// Either way, anything already in `my-supplements` (case-insensitive, same
+// rule wireSupplementAddButtons' "already tracked" state uses) is filtered
+// out — this nudges toward what's missing, never re-announces what someone
+// already tracks.
+async function getFoundationalStackNudgeInsight(){
+  const relevant = [];
+  activeConditionKeys().forEach(key=>{
+    const extras = FOUNDATIONAL_SUPPLEMENT_STACK.conditions[key];
+    if(extras) relevant.push(...extras);
+  });
+
+  let onPeriod = false;
+  if(userProfile.gender === 'female'){
+    try{
+      const res = await window.storage.get('cycle-data');
+      if(res && res.value){
+        const data = JSON.parse(res.value);
+        if(data && data.lastPeriod && data.cycleLength){
+          onPeriod = computeCyclePhase(data.lastPeriod, data.cycleLength).phase.key === 'menstrual';
+        }
+      }
+    }catch(e){ /* no cycle data saved — not an error, just nothing to check */ }
+  }
+  if(onPeriod){
+    const iron = FOUNDATIONAL_SUPPLEMENT_STACK.female.find(item=> item.name === 'Iron');
+    if(iron) relevant.push(iron);
+  }
+  if(relevant.length === 0) return null;
+
+  const tracked = new Set((await loadMySupplements()).map(item=> item.name.toLowerCase()));
+  const seen = new Set();
+  const names = [];
+  relevant.forEach(item=>{
+    const lower = item.name.toLowerCase();
+    if(tracked.has(lower) || seen.has(lower)) return;
+    seen.add(lower);
+    names.push(item.name);
+  });
+  if(names.length === 0) return null;
+
+  const list = names.length <= 2 ? names.join(' & ') : `${names.slice(0, -1).join(', ')}, & ${names[names.length - 1]}`;
+  return `💊 <b>Worth a look:</b> ${escapeHtml(list)} — evidence-based suggestion${names.length===1?'':'s'} for your current profile, not yet in your tracker. <button type="button" class="link-btn" data-jump-to="supplementRecommendationsCard">Review in the foundational stack →</button>`;
+}
+
 // --- Deload week banner: scheduled/proactive, complementing the reactive
 // per-exercise deload signal already in the progression engine.
 // ACOG Committee Opinion 804 (Physical Activity and Exercise During Pregnancy
@@ -12710,11 +12787,11 @@ async function renderTodayInsights(){
   const el = document.getElementById('todayInsightsList');
   if(!card || !el) return;
 
-  const [deload, sleep, cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness] = await Promise.all([
+  const [deload, sleep, cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge] = await Promise.all([
     getDeloadInsight(), getSleepInsight(), getCycleInsight(),
     getStaleRestingRegionInsight(), getWeighInReminderInsight(), getWaterPaceInsight(), getSessionHeadsUpInsight(),
     getDeficitGuardrailInsight(), getPregnancyHeatInsight(), getBackupReminderInsight(),
-    getReadinessInsight(),
+    getReadinessInsight(), getFoundationalStackNudgeInsight(),
   ]);
 
   // deficit sits second: under the session heads-up (which is about the next
@@ -12733,7 +12810,11 @@ async function renderTodayInsights(){
   // question the heads-up and everything below it are all downstream of — and
   // it synthesises the sleep and deload rows further down, so reading it first
   // makes those two land as detail rather than as new information.
-  const items = [pregnancyHeat, readiness, sessionHeadsUp, deficit, deload, sleep, cycle, staleRegion, weighIn, waterPace, backup].filter(Boolean);
+  // stackNudge sits directly under cycle: it's the same context (a flagged
+  // condition or, per that row, the current cycle phase) turned into an
+  // actionable pointer, so reading them back to back keeps cause and
+  // recommendation adjacent rather than scattered across the list.
+  const items = [pregnancyHeat, readiness, sessionHeadsUp, deficit, deload, sleep, cycle, stackNudge, staleRegion, weighIn, waterPace, backup].filter(Boolean);
   if(items.length === 0){
     card.style.display = 'none';
     return;
