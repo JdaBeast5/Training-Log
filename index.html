@@ -6526,7 +6526,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.253';
+const APP_VERSION = '3.254';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7126,6 +7126,9 @@ const WHATS_NEW = {
   '3.253': { headline: 'My Supplements now tracks dosing frequency, plus Vitamin B12', points: [
     'Adding a supplement now asks how often you take it — daily, twice daily, or weekly — and the tracker keeps count: a twice-daily item shows your progress today (e.g. "1/2"), and a weekly one stays checked off for the whole week instead of resetting every night.',
     'Vitamin B12 joins the Foundational Stack as a sixth baseline recommendation, and Calcium is now correctly flagged as twice-daily, matching its own existing "split doses absorb better" guidance.',
+  ]},
+  '3.254': { headline: 'Supplement recommendation cards now show frequency', points: [
+    'Every AI recommendation and Foundational Stack card now states how often to take it (Daily / Twice daily / Weekly) right alongside the dose and timing, instead of only tracking that once it\'s already added to My Supplements.',
   ]},
 };
 
@@ -39609,6 +39612,7 @@ function renderSupplementCards(items, alreadyTracked){
       <div class="history-hint">${SUPPLEMENT_EVIDENCE_LABELS[r.evidence] || escapeHtml(r.evidence || '')}</div>
       <div class="photo-result-item"><span>${escapeHtml(r.why || '')}</span></div>
       <div class="photo-result-item"><span><b>Typical dose:</b> ${escapeHtml(r.typicalDose || '—')}</span></div>
+      <div class="photo-result-item"><span><b>Frequency:</b> ${escapeHtml((SUPPLEMENT_FREQUENCY_META[r.frequency] || SUPPLEMENT_FREQUENCY_META.daily).label)}</span></div>
       <div class="photo-result-item"><span><b>Timing:</b> ${escapeHtml(r.timing || '—')}</span></div>
       ${r.caution ? `<div class="care-banner care-banner-caution" style="margin-top:8px;">${escapeHtml(r.caution)}</div>` : ''}
       <button type="button" class="supplement-add-btn" data-idx="${i}" ${isTracked ? 'disabled' : ''}>${isTracked ? 'Added ✓' : '+ Add to my supplements'}</button>
