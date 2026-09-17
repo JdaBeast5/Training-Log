@@ -6555,7 +6555,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.267';
+const APP_VERSION = '3.268';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7204,6 +7204,10 @@ const WHATS_NEW = {
   ]},
   '3.267': { headline: 'Foundational Stack descriptions are now a consistent length', points: [
     'The curated evidence-tier descriptions in the Foundational Stack were hand-written independently and had drifted from a single short sentence up to a long run-on one — tightened so every item now reads at a similar length.',
+  ]},
+  '3.268': { headline: 'A non-curated item with an AI description now previews it, instead of always saying "not evaluated"', points: [
+    'If a supplement already has a real AI insight saved, My Supplements now shows a preview of it right away — before, that line stayed generic even once a real description existed.',
+    'A non-curated item with nothing generated yet now says so as a next step ("tap for ingredients or an AI read") instead of reading like a dead end.',
   ]},
 };
 
@@ -33640,7 +33644,21 @@ async function renderMySupplements(){
           : `<button type="button" class="supplement-ai-insight-btn">✨ Get AI insight</button>`;
         detailHtml = `${ingredientsHtml}${insightHtml}`;
       }
-      parts.push(`<span class="supplement-benefit">Not evaluated here — not medical advice.${toggleBtn}${detailHtml}</span>`);
+      // A real AI insight already carries the SAME "short snippet collapsed,
+      // full text expanded" treatment a curated match's `why` already gets
+      // (see firstSentence/evidenceLabel above) — previously this line
+      // stayed the generic "not evaluated" text even once a real
+      // description existed, which read as if nothing were there at all.
+      // Nothing generated yet keeps an honest, plain label, but frames
+      // "More" as an actual next step rather than a dead end.
+      let summaryHtml;
+      if(item.aiInsight){
+        const firstSentence = `${escapeHtml(item.aiInsight.split('. ')[0])}${item.aiInsight.includes('. ') ? '.' : ''}`;
+        summaryHtml = expanded ? '✨ AI insight' : `✨ ${firstSentence}`;
+      } else {
+        summaryHtml = 'Not curated here — tap for ingredients or an AI read.';
+      }
+      parts.push(`<span class="supplement-benefit">${summaryHtml}${toggleBtn}${detailHtml}</span>`);
     }
     if(frequency !== 'daily'){
       const progress = meta.requiredCount > 1 ? ` — ${count}/${meta.requiredCount} today` : '';
