@@ -67,6 +67,7 @@ const aiSleepSrc = extractFunction(src, 'aiSleep');
 const aiMaxAttemptsSrc = extractConst(src, 'AI_MAX_ATTEMPTS');
 const aiKeySetupPromptSrc = extractFunction(src, 'aiKeySetupPrompt');
 const getApiKeySrc = extractFunction(src, 'getApiKey');
+const supplementDescriptionLengthInstructionSrc = extractConst(src, 'SUPPLEMENT_DESCRIPTION_LENGTH_INSTRUCTION');
 const buildSupplementInsightPromptSrc = extractFunction(src, 'buildSupplementInsightPrompt');
 const generateAiSupplementInsightSrc = extractFunction(src, 'generateAiSupplementInsight');
 const saveSupplementAiInsightSrc = extractFunction(src, 'saveSupplementAiInsight');
@@ -155,7 +156,7 @@ const scriptChunks = [
   setCardOpenStateSrc, headerToggleWiringSrc,
   aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
   aiKeySetupPromptSrc, getApiKeySrc,
-  buildSupplementInsightPromptSrc, generateAiSupplementInsightSrc,
+  supplementDescriptionLengthInstructionSrc, buildSupplementInsightPromptSrc, generateAiSupplementInsightSrc,
   saveSupplementAiInsightSrc, requestSupplementAiInsightSrc, requestDsldSearchAiInsightSrc,
 ];
 
@@ -256,7 +257,7 @@ test('REAL invocation: an unmatched item (no curated info, no ingredients) still
   await window.renderMySupplements();
   const html = document.getElementById('mySupplementsList').innerHTML;
   assert.strictEqual(document.querySelectorAll('#mySupplementsList .supplement-benefit-toggle').length, 1, 'a real toggle must exist even with no curated match and no ingredients');
-  assert.match(html, /Not evaluated here — not medical advice\./, 'the disclaimer must show even collapsed');
+  assert.match(html, /Not curated here — tap for ingredients or an AI read\./, 'a real, actionable label must show even collapsed, not a flat "not evaluated" dead end');
   assert.doesNotMatch(html, /Get AI insight/, 'the AI-insight button must only appear once expanded, not by default');
 });
 
@@ -1000,14 +1001,14 @@ function fakeAiInsightResponse(text){
 }
 
 test('REAL invocation: buildSupplementInsightPrompt includes the real product name and its real ingredients', (assert)=>{
-  const { window } = runJsdom('', otherGlobals(), [buildSupplementInsightPromptSrc]);
+  const { window } = runJsdom('', otherGlobals(), [supplementDescriptionLengthInstructionSrc, buildSupplementInsightPromptSrc]);
   const prompt = window.buildSupplementInsightPrompt('Some Obscure Herbal Blend', ['Ashwagandha Root Extract (300mg)']);
   assert.match(prompt, /Some Obscure Herbal Blend/, 'the real product name must reach the prompt');
   assert.match(prompt, /Ashwagandha Root Extract \(300mg\)/, 'the real ingredient list must reach the prompt');
 });
 
 test('REAL invocation: buildSupplementInsightPrompt omits the ingredient line entirely when there are none, rather than an empty list', (assert)=>{
-  const { window } = runJsdom('', otherGlobals(), [buildSupplementInsightPromptSrc]);
+  const { window } = runJsdom('', otherGlobals(), [supplementDescriptionLengthInstructionSrc, buildSupplementInsightPromptSrc]);
   const prompt = window.buildSupplementInsightPrompt('Plain Item', []);
   assert.doesNotMatch(prompt, /label lists/, 'no real ingredients must mean no fabricated/empty ingredient-list sentence');
 });
@@ -1054,6 +1055,17 @@ test('REAL invocation: clicking "Get AI insight" with a real key calls the real 
   assert.match(html, /✨ AI insight/, 'the real insight must render, clearly labeled');
   assert.match(html, /Modest, preliminary evidence/);
   assert.match(html, /Not medical advice — a real-time AI read/, 'the real disclaimer distinguishing this from the curated table must render alongside it');
+});
+
+test('REAL invocation: an item with a real AI insight already saved shows a real snippet of it COLLAPSED, mirroring how a curated match previews its own first sentence', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify([{name:'Some Obscure Herbal Blend', frequency:'daily', aiInsight:'Modest, preliminary evidence at best. This exact product has not itself been studied.'}]),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  const collapsedHtml = document.getElementById('mySupplementsList').innerHTML;
+  assert.match(collapsedHtml, /✨ Modest, preliminary evidence at best\./, 'the real first sentence of the saved insight must show collapsed — a real description existing must never still read as "nothing here"');
+  assert.doesNotMatch(collapsedHtml, /This exact product has not itself been studied/, 'only the first sentence shows collapsed, not the full text — same truncation rule a curated match already follows');
+  assert.doesNotMatch(collapsedHtml, /Not curated here/, 'the generic no-description label must not show once a real insight exists');
 });
 
 test('sabotage-relevant: once an AI insight exists, the "Get AI insight" button is gone — no button to re-request it', async (assert)=>{
