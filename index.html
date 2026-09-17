@@ -6555,7 +6555,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.268';
+const APP_VERSION = '3.269';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7208,6 +7208,9 @@ const WHATS_NEW = {
   '3.268': { headline: 'A non-curated item with an AI description now previews it, instead of always saying "not evaluated"', points: [
     'If a supplement already has a real AI insight saved, My Supplements now shows a preview of it right away — before, that line stayed generic even once a real description existed.',
     'A non-curated item with nothing generated yet now says so as a next step ("tap for ingredients or an AI read") instead of reading like a dead end.',
+  ]},
+  '3.269': { headline: 'AI-generated supplement descriptions now target the same length as curated ones', points: [
+    'Both AI prompts (Supplement Recommendations and the non-curated AI insight) now ask for the same one-sentence, ~20-30-word length the curated Foundational Stack descriptions were just tightened to, so a description reads about the same length no matter where it came from.',
   ]},
 };
 
@@ -33769,6 +33772,18 @@ function buildDsldIngredientsHtml(ingredients){
 // plumbing as Supplement Recommendations (effort:'medium', matching the
 // documented Cross-Metric-Insights fix) — never a second, unlabeled source
 // of "curated-looking" content.
+// Single shared target so every supplement description reads at roughly the
+// same length regardless of where it came from — a curated `why` (enforced
+// against FOUNDATIONAL_SUPPLEMENT_STACK by a real test, see
+// test-supplement-recommendations.js), an AI recommendation's `why`
+// (buildSupplementSystemPrompt below), and this non-curated AI insight used
+// to vary independently (a hand-authored single sentence vs. AI ranges of
+// "1-2" and "2-4" sentences) — one real user complaint about the same
+// feature reading inconsistently depending on which of the three happened
+// to render. Both AI prompts reference this ONE string so they can't drift
+// apart from each other again.
+const SUPPLEMENT_DESCRIPTION_LENGTH_INSTRUCTION = 'exactly one sentence, about 20-30 words';
+
 function buildSupplementInsightPrompt(name, ingredients){
   const ingredientLine = (Array.isArray(ingredients) && ingredients.length)
     ? ` Its real label lists these ingredients: ${ingredients.join(', ')}.`
@@ -33777,7 +33792,7 @@ function buildSupplementInsightPrompt(name, ingredients){
 
 Someone added "${name}" to their supplement tracker.${ingredientLine}
 
-In 2-4 sentences: give an honest, evidence-graded read on what this specific product/ingredient combination is actually supported to do (or isn't) — name its strongest ingredient's real evidence tier if there is one, and flag any genuine safety concern worth knowing (a real interaction, a dosing risk, or plainly "there's no real evidence behind this" if that's the honest answer). Do not invent certainty that doesn't exist. Never recommend continuing use of a banned, unregulated, or dangerous substance — say so plainly instead if one is present.`;
+In ${SUPPLEMENT_DESCRIPTION_LENGTH_INSTRUCTION}: give an honest, evidence-graded read on what this specific product/ingredient combination is actually supported to do (or isn't), naming its strongest ingredient's real evidence tier if there is one — fold in any genuine safety concern worth knowing (a real interaction, a dosing risk, or plainly "no real evidence behind this" if that's the honest answer) rather than dropping it for length. Do not invent certainty that doesn't exist. Never recommend continuing use of a banned, unregulated, or dangerous substance — say so plainly instead if one is present.`;
 }
 
 async function generateAiSupplementInsight(apiKey, name, ingredients){
@@ -40618,7 +40633,7 @@ Rules:
 - If the request conflicts with a flagged condition or dietary restriction, address that directly in the note rather than silently ignoring it.
 - Every dose/timing is a general adult starting point from the literature, not a personalized prescription — say so in the note, and flag anywhere a real medication interaction or condition makes "ask your doctor first" more than boilerplate.
 
-Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"recommendations":[{"name":"string","evidence":"well-established"|"promising"|"mixed"|"limited","why":"one to two sentences tying it to their specific goal/request","typicalDose":"string","timing":"string","frequency":"daily"|"twice-daily"|"weekly" (the REAL typical dosing schedule — most supplements are "daily"; use "twice-daily" only when split dosing is actually standard for it, "weekly" only for something genuinely dosed that infrequently, never guessed for variety),"caution":"string or null, only if there is something specific to THIS person's flagged conditions/diet/request"}],"note":"string — closing context, safety framing, or refusal explanation; always non-empty"}`;
+Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"recommendations":[{"name":"string","evidence":"well-established"|"promising"|"mixed"|"limited","why":"${SUPPLEMENT_DESCRIPTION_LENGTH_INSTRUCTION}, tying it to their specific goal/request","typicalDose":"string","timing":"string","frequency":"daily"|"twice-daily"|"weekly" (the REAL typical dosing schedule — most supplements are "daily"; use "twice-daily" only when split dosing is actually standard for it, "weekly" only for something genuinely dosed that infrequently, never guessed for variety),"caution":"string or null, only if there is something specific to THIS person's flagged conditions/diet/request"}],"note":"string — closing context, safety framing, or refusal explanation; always non-empty"}`;
 }
 
 async function submitSupplementRequest(){

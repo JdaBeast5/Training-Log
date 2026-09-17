@@ -67,6 +67,7 @@ const aiSleepSrc = extractFunction(src, 'aiSleep');
 const aiMaxAttemptsSrc = extractConst(src, 'AI_MAX_ATTEMPTS');
 const aiKeySetupPromptSrc = extractFunction(src, 'aiKeySetupPrompt');
 const getApiKeySrc = extractFunction(src, 'getApiKey');
+const supplementDescriptionLengthInstructionSrc = extractConst(src, 'SUPPLEMENT_DESCRIPTION_LENGTH_INSTRUCTION');
 const buildSupplementInsightPromptSrc = extractFunction(src, 'buildSupplementInsightPrompt');
 const generateAiSupplementInsightSrc = extractFunction(src, 'generateAiSupplementInsight');
 const saveSupplementAiInsightSrc = extractFunction(src, 'saveSupplementAiInsight');
@@ -155,7 +156,7 @@ const scriptChunks = [
   setCardOpenStateSrc, headerToggleWiringSrc,
   aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
   aiKeySetupPromptSrc, getApiKeySrc,
-  buildSupplementInsightPromptSrc, generateAiSupplementInsightSrc,
+  supplementDescriptionLengthInstructionSrc, buildSupplementInsightPromptSrc, generateAiSupplementInsightSrc,
   saveSupplementAiInsightSrc, requestSupplementAiInsightSrc, requestDsldSearchAiInsightSrc,
 ];
 
@@ -1000,14 +1001,14 @@ function fakeAiInsightResponse(text){
 }
 
 test('REAL invocation: buildSupplementInsightPrompt includes the real product name and its real ingredients', (assert)=>{
-  const { window } = runJsdom('', otherGlobals(), [buildSupplementInsightPromptSrc]);
+  const { window } = runJsdom('', otherGlobals(), [supplementDescriptionLengthInstructionSrc, buildSupplementInsightPromptSrc]);
   const prompt = window.buildSupplementInsightPrompt('Some Obscure Herbal Blend', ['Ashwagandha Root Extract (300mg)']);
   assert.match(prompt, /Some Obscure Herbal Blend/, 'the real product name must reach the prompt');
   assert.match(prompt, /Ashwagandha Root Extract \(300mg\)/, 'the real ingredient list must reach the prompt');
 });
 
 test('REAL invocation: buildSupplementInsightPrompt omits the ingredient line entirely when there are none, rather than an empty list', (assert)=>{
-  const { window } = runJsdom('', otherGlobals(), [buildSupplementInsightPromptSrc]);
+  const { window } = runJsdom('', otherGlobals(), [supplementDescriptionLengthInstructionSrc, buildSupplementInsightPromptSrc]);
   const prompt = window.buildSupplementInsightPrompt('Plain Item', []);
   assert.doesNotMatch(prompt, /label lists/, 'no real ingredients must mean no fabricated/empty ingredient-list sentence');
 });

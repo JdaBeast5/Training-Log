@@ -23,6 +23,7 @@ const src = readIndexSource();
 const { test, run } = makeRunner('test-supplement-recommendations.js');
 
 const buildSupplementSystemPromptSrc = extractFunction(src, 'buildSupplementSystemPrompt');
+const supplementDescriptionLengthInstructionSrc = extractConst(src, 'SUPPLEMENT_DESCRIPTION_LENGTH_INSTRUCTION');
 const submitSupplementRequestSrc = extractFunction(src, 'submitSupplementRequest');
 const renderSupplementCardsSrc = extractFunction(src, 'renderSupplementCards');
 const supplementEvidenceLabelsSrc = extractConst(src, 'SUPPLEMENT_EVIDENCE_LABELS');
@@ -45,6 +46,7 @@ const addMySupplementSrc = extractFunction(src, 'addMySupplement');
 const loadMySupplementsSrc = extractFunction(src, 'loadMySupplements');
 const saveMySupplementsSrc = extractFunction(src, 'saveMySupplements');
 const supplementFrequencyMetaSrc = extractConst(src, 'SUPPLEMENT_FREQUENCY_META');
+const buildSupplementInsightPromptSrc = extractFunction(src, 'buildSupplementInsightPrompt');
 
 function extractStatement(source, startText){
   const startIdx = source.indexOf(startText);
@@ -96,7 +98,7 @@ function setupPromptBuilder(profileOverrides){
   const { window } = runJsdom('', profileSetup(profileOverrides), [
     goalLabelsSrc, persistentConditionsSrc,
     describeDietaryFlagsSrc, activeConditionKeysSrc,
-    buildSupplementSystemPromptSrc,
+    supplementDescriptionLengthInstructionSrc, buildSupplementSystemPromptSrc,
   ]);
   return window;
 }
@@ -184,7 +186,7 @@ function setupSubmit({ apiKey = 'fake-key', profileOverrides = {} } = {}){
     goalLabelsSrc, persistentConditionsSrc, describeDietaryFlagsSrc, activeConditionKeysSrc,
     supplementEvidenceLabelsSrc, renderSupplementCardsSrc,
     supplementFrequencyMetaSrc, loadMySupplementsSrc, saveMySupplementsSrc, addMySupplementSrc, wireSupplementAddButtonsSrc,
-    buildSupplementSystemPromptSrc, submitSupplementRequestSrc,
+    supplementDescriptionLengthInstructionSrc, buildSupplementSystemPromptSrc, submitSupplementRequestSrc,
     'window.__capturedRequests = [];',
     'window.submitSupplementRequest = submitSupplementRequest;',
   ]);
@@ -645,6 +647,34 @@ test('sabotage-relevant: every REAL FOUNDATIONAL_SUPPLEMENT_STACK "why" field is
     assert.ok(wordCount >= 18 && wordCount <= 33, `${item.name}'s why is ${wordCount} words (outside the enforced 18-33 band): "${item.why}"`);
     assert.doesNotMatch(item.why, /\. [A-Z]/, `${item.name}'s why must be a single sentence (no internal ". Capital" break) — a second, unbounded sentence is exactly how HMB's drifted to 46 words before this fix`);
   });
+});
+
+// Real user ask, verbatim: "I want all the descriptions to have about the
+// same length, whether presaved or ai generated." The curated band above is
+// enforced against real content; an AI response can't be enforced the same
+// way (the model isn't guaranteed to obey), but what CAN be verified is that
+// both AI prompts ask for the exact same target rather than two
+// independently-typed instructions that could silently drift apart again —
+// which is exactly what happened before (curated: 1 hand-authored sentence,
+// Coach recommendations: "1-2 sentences", non-curated insight: "2-4
+// sentences", three different targets for the same feature).
+test('sabotage-relevant: buildSupplementSystemPrompt\'s "why" length instruction and buildSupplementInsightPrompt\'s length instruction are the exact same real string, not two independently-typed targets', (assert)=>{
+  const { window: sysWindow } = runJsdom('', profileSetup({gender:'other'}), [
+    goalLabelsSrc, persistentConditionsSrc, describeDietaryFlagsSrc, activeConditionKeysSrc,
+    supplementDescriptionLengthInstructionSrc, buildSupplementSystemPromptSrc,
+  ]);
+  const systemPrompt = sysWindow.buildSupplementSystemPrompt(null);
+
+  const { window: insightWindow } = runJsdom('', '', [
+    supplementDescriptionLengthInstructionSrc, buildSupplementInsightPromptSrc,
+    'window.SUPPLEMENT_DESCRIPTION_LENGTH_INSTRUCTION = SUPPLEMENT_DESCRIPTION_LENGTH_INSTRUCTION;',
+  ]);
+  const insightPrompt = insightWindow.buildSupplementInsightPrompt('Some Item', []);
+
+  const target = insightWindow.SUPPLEMENT_DESCRIPTION_LENGTH_INSTRUCTION;
+  assert.ok(target && target.length > 5, 'precondition: the real shared constant must actually have real content');
+  assert.match(systemPrompt, new RegExp(target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), 'the Coach-tab recommendation prompt must reference the real shared length target verbatim, not a separately-typed one');
+  assert.match(insightPrompt, new RegExp(target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), 'the non-curated insight prompt must reference the SAME real shared length target verbatim');
 });
 
 run();
