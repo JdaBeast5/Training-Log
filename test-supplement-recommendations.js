@@ -622,4 +622,29 @@ test('REAL invocation: an AI-recommended item already in My Supplements renders 
   assert.strictEqual(fishOilBtn.disabled, false, 'a different, untracked recommendation in the same response must stay a normal add button');
 });
 
+// --- Content-quality guard: consistent description length -----------------
+// Real user feedback: each curated `why` was hand-authored independently
+// with no shared length target, so they drifted from 19 words (Zinc) to 46
+// (HMB) — reading, in the same list, as some descriptions being abrupt and
+// one sprawling into a run-on sentence. Trimmed to a single enforced band
+// (not just "roughly similar" by eye) so every curated item reads at a
+// consistent length regardless of which one happens to render. This is a
+// content-only fix — evidence tier, dose, timing, and caution are untouched,
+// only the `why` prose itself was tightened.
+test('sabotage-relevant: every REAL FOUNDATIONAL_SUPPLEMENT_STACK "why" field is a single sentence within a consistent word-count band (18-33 words)', (assert)=>{
+  const { window } = runJsdom('', '', [foundationalStackSrc, 'window.FOUNDATIONAL_SUPPLEMENT_STACK = FOUNDATIONAL_SUPPLEMENT_STACK;']);
+  const stack = window.FOUNDATIONAL_SUPPLEMENT_STACK;
+  const all = [
+    ...stack.base, ...stack.male, ...stack.female,
+    ...Object.values(stack.conditions).flat(),
+    ...stack.ageBands.flatMap(band=> band.items),
+  ];
+  assert.ok(all.length >= 10, 'precondition: the real table must have real entries to check, not an empty/stubbed one');
+  all.forEach(item=>{
+    const wordCount = item.why.trim().split(/\s+/).length;
+    assert.ok(wordCount >= 18 && wordCount <= 33, `${item.name}'s why is ${wordCount} words (outside the enforced 18-33 band): "${item.why}"`);
+    assert.doesNotMatch(item.why, /\. [A-Z]/, `${item.name}'s why must be a single sentence (no internal ". Capital" break) — a second, unbounded sentence is exactly how HMB's drifted to 46 words before this fix`);
+  });
+});
+
 run();

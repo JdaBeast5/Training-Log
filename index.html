@@ -6555,7 +6555,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.266';
+const APP_VERSION = '3.267';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7201,6 +7201,9 @@ const WHATS_NEW = {
   '3.266': { headline: 'AI insight for database finds now previews at search time', points: [
     'Non-curated supplement search results can now show their AI insight right in the search card via a "Preview AI insight" button, before you even add them — adding afterward carries that same text straight into your tracker instead of a second, separate request.',
     'My Supplements still offers "Get AI insight" as a fallback for anything added without previewing first.',
+  ]},
+  '3.267': { headline: 'Foundational Stack descriptions are now a consistent length', points: [
+    'The curated evidence-tier descriptions in the Foundational Stack were hand-written independently and had drifted from a single short sentence up to a long run-on one — tightened so every item now reads at a similar length.',
   ]},
 };
 
@@ -40374,7 +40377,7 @@ const FOUNDATIONAL_SUPPLEMENT_STACK = {
     {
       name: 'Vitamin B12',
       evidence: 'well-established',
-      why: 'One of the most broadly under-supplied nutrients — plant-based diets, aging, and some common medications (like metformin) all reduce absorption, and low levels drive real fatigue and neurological symptoms well before they show up on a routine checkup.',
+      why: 'One of the most broadly under-supplied nutrients — plant-based diets, aging, and some common medications (like metformin) all reduce absorption, and low levels drive real fatigue and neurological symptoms.',
       typicalDose: '250-500mcg daily',
       timing: 'Any time',
       caution: null,
@@ -40430,7 +40433,7 @@ const FOUNDATIONAL_SUPPLEMENT_STACK = {
       {
         name: 'Vitamin K2 (MK-7)',
         evidence: 'promising',
-        why: 'Works alongside vitamin D and calcium by helping direct calcium into bone rather than soft tissue and arteries — a newer but genuinely researched piece of the bone-density picture beyond calcium and vitamin D alone.',
+        why: 'Works alongside vitamin D and calcium by helping direct calcium into bone rather than soft tissue and arteries — a newer but genuinely researched piece of the bone-density picture.',
         typicalDose: '90-120mcg daily (MK-7 form)',
         timing: 'With a meal containing fat, alongside vitamin D/calcium',
         caution: 'Interacts directly with warfarin and other vitamin K-affected blood thinners — do not start this without clearing it with whoever manages that medication.',
@@ -40498,7 +40501,7 @@ const FOUNDATIONAL_SUPPLEMENT_STACK = {
         {
           name: 'HMB (Beta-Hydroxy-Beta-Methylbutyrate)',
           evidence: 'promising',
-          why: 'Age-related muscle loss (sarcopenia) is a real and accelerating concern from around this age on, and HMB has real evidence specifically in older or less-active adults — a population where creatine and protein\'s own well-established benefits are less consistently reproduced than in younger, more active lifters.',
+          why: 'Age-related muscle loss (sarcopenia) is a real, accelerating concern from this age on — HMB has real evidence specifically in older or less-active adults, where creatine and protein\'s benefits are less consistent.',
           typicalDose: '3g daily, typically split into 3x1g doses',
           timing: 'With meals',
           caution: 'No substitute for resistance training, which remains the primary, much stronger intervention against sarcopenia — this is a modest adjunct, not a replacement for staying strength-trained.',
