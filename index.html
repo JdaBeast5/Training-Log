@@ -4805,8 +4805,8 @@
      page no fold or hinge API: all it sees is a resize. Stretching the phone
      column to fill that width ran every card straight across the crease. So
      at this size the page widens, and a .posture-split tab splits in two: its
-     .split-primary (on Today, the day picker and the session) on the left,
-     everything else stacked on the right. Each half
+     .split-primary (on Today, the day picker and the session; on Log, the
+     nutrition card) on the left, everything else stacked on the right. Each half
      is ~415pt, which is a phone's width, so cards keep the proportions they
      were designed at. With two equal columns the gutter between them falls on
      the crease.
@@ -4819,7 +4819,7 @@
      gives a spanning item's extra height to the flexible track it crosses,
      so a long primary grows that last row instead of pushing gaps between
      the right-hand cards. 24 auto rows is headroom over the right-hand
-     children (13 on Today); empty or display:none ones take no space. Row gap
+     children (13 on Today, 14 on Log); empty or display:none ones take no space. Row gap
      is 0 because .card already carries its own margin-bottom.
 
      A tab without a split keeps the phone column it was designed in: an
@@ -4835,8 +4835,8 @@
       align-items:start;
     }
     .posture-split > *{ grid-column:2; }
-    .posture-split > .split-primary{ grid-column:1; grid-row:1 / -1; align-self:stretch; }
-    #logView, #analysisView, #historyView, #careView, #coachView, #learnView{
+    .posture-split > .split-primary{ grid-column:1; grid-row:1 / -1; }
+    #analysisView, #historyView, #careView, #coachView, #learnView{
       max-width:calc(640px - 36px); margin-left:auto; margin-right:auto;
     }
     /* Belongs to the session, so it spans the session pane rather than the
@@ -5390,8 +5390,9 @@
 
   </div>
 
-  <div id="logView" style="display:none">
-  <div class="card">
+  <div id="logView" class="posture-split" style="display:none">
+  <!-- split-primary: the left pane on an unfolded iPhone Duo ([OPEN POSTURE]). -->
+  <div class="card split-primary">
 
     <div class="card-title nutrition-header" id="nutritionHeader">
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg></span>Today's Nutrition</span>
@@ -6648,7 +6649,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.272';
+const APP_VERSION = '3.273';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7313,6 +7314,9 @@ const WHATS_NEW = {
   ]},
   '3.272': { headline: 'Two panes on an unfolded iPhone Duo', points: [
     'Unfold your iPhone Duo and Today splits in two: the day picker and your session on the left, priorities, profile and training style on the right. Nothing sits across the fold. On the folded cover screen or a regular iPhone, Today looks the same as before.',
+  ]},
+  '3.273': { headline: 'Log uses both halves of an unfolded iPhone Duo too', points: [
+    'Unfold your iPhone Duo on the Log tab and nutrition (food search, quick-add and today\'s food) sits on the left, with water, bodyweight, sleep, supplements and the rest on the right. On a regular iPhone, Log looks the same as before.',
   ]},
 };
 
