@@ -70,7 +70,10 @@ function resolve(expr, env, vars){
 
 const wrap = ruleBlock('.wrap');
 const wrapVars = {};
-for(const name of ['--wrap-max', '--wrap-side-margin', '--gutter-l', '--gutter-r']) wrapVars[name] = decl(wrap, name);
+for(const name of ['--wrap-side-margin', '--gutter-l', '--gutter-r']) wrapVars[name] = decl(wrap, name);
+// The phone-width column (the open-posture layout overrides it in a media
+// query; these cases are all phone-sized, so the base :root value applies).
+wrapVars['--wrap-max'] = decl(ruleBlock(':root', '--wrap-max:640px'), '--wrap-max');
 function gutters(env){
   // Custom properties resolve lazily against each other, same as the browser.
   const vars = {...wrapVars};
@@ -144,7 +147,7 @@ test('today FAB, sticky day header and gym dock clear the side insets', (assert)
   const dock = ruleBlock('.gym-dock', 'position:fixed');
   assert.equal(resolve(decl(dock, 'left'), env, {}), 50);
   assert.equal(resolve(decl(dock, 'right'), env, {}), 34);
-  const pad = parts(decl(ruleBlock('.sticky-day-header'), 'padding'));
+  const pad = parts(decl(ruleBlock('.sticky-day-header', 'position:fixed'), 'padding'));
   assert.equal(resolve(pad[1], env, {}), 24); assert.equal(resolve(pad[3], env, {}), 40);
   assert.equal(resolve(pad[1], {}, {}), 16, 'unchanged 16px with no inset');
 });

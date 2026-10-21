@@ -41,6 +41,10 @@
      work if ever wanted, not touched here.
   */
   :root{
+    /* The page column's width. On :root rather than .wrap so things positioned
+       outside .wrap (.sticky-day-header) can line up with it; the open-posture
+       layout below widens it. */
+    --wrap-max:640px;
     /* This app has never had a light theme (no prefers-color-scheme handling, no
        data-theme toggle) — it's dark, full stop. Without this, native form chrome
        the app doesn't otherwise style (the date-input calendar affordance/popup,
@@ -338,7 +342,6 @@
      Declared once here as tokens; every full-bleed child below
      (.nav-pills, .analysis-index) bleeds out by the same amount it was let in. */
   .wrap{
-    --wrap-max:640px;
     --wrap-side-margin:max(0px, (100vw - var(--wrap-max)) / 2);
     --gutter-l:max(18px, env(safe-area-inset-left, 0px) - var(--wrap-side-margin));
     --gutter-r:max(18px, env(safe-area-inset-right, 0px) - var(--wrap-side-margin));
@@ -4797,6 +4800,57 @@
     .gym-exit-btn:active, .gym-enter-btn:active, .gym-offer-actions button:active{transform:none;}
   }
 
+  /* [OPEN POSTURE] -----------------------------------------------------------
+     An unfolded iPhone Duo is ~890x626pt, wider than tall, and Safari gives a
+     page no fold or hinge API: all it sees is a resize. Stretching the phone
+     column to fill that width ran every card straight across the crease. So
+     at this size the page widens, and a .posture-split tab splits in two: its
+     .split-primary (on Today, the day picker and the session) on the left,
+     everything else stacked on the right. Each half
+     is ~415pt, which is a phone's width, so cards keep the proportions they
+     were designed at. With two equal columns the gutter between them falls on
+     the crease.
+
+     The height condition keeps a slab phone in landscape (~400pt tall) on the
+     ordinary single column, where two panes under the nav would be cramped.
+     The folded Duo's cover screen (~466pt wide) never matches.
+
+     Rows: the primary spans every explicit row, ending in a 1fr track. Grid
+     gives a spanning item's extra height to the flexible track it crosses,
+     so a long primary grows that last row instead of pushing gaps between
+     the right-hand cards. 24 auto rows is headroom over the right-hand
+     children (13 on Today); empty or display:none ones take no space. Row gap
+     is 0 because .card already carries its own margin-bottom.
+
+     A tab without a split keeps the phone column it was designed in: an
+     854pt single column puts ~130 characters on a line, and a row-aligned
+     two-column grid leaves holes beside every tall card. */
+  @media (min-width:760px) and (min-height:560px){
+    :root{ --wrap-max:1080px; --pane-gap:24px; }
+    .posture-split{
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows:repeat(24, auto) 1fr;
+      column-gap:var(--pane-gap);
+      align-items:start;
+    }
+    .posture-split > *{ grid-column:2; }
+    .posture-split > .split-primary{ grid-column:1; grid-row:1 / -1; align-self:stretch; }
+    #logView, #analysisView, #historyView, #careView, #coachView, #learnView{
+      max-width:calc(640px - 36px); margin-left:auto; margin-right:auto;
+    }
+    /* Belongs to the session, so it spans the session pane rather than the
+       whole screen: from the column's left edge to the crease gutter. */
+    .sticky-day-header{
+      left:max(0px, (100vw - var(--wrap-max)) / 2);
+      right:calc(50vw + var(--pane-gap) / 2);
+    }
+    /* Gym mode hides everything except the session, so a second pane would be
+       an empty half-screen. It keeps its phone-width single column instead. */
+    body.gym-mode{ --wrap-max:640px; }
+    body.gym-mode #todayView{ display:block; }
+  }
+
 /* [PRINT REPORT] -----------------------------------------------------------
    #printReportContent is built by buildPrintReport() and stays display:none
    on screen — it exists purely so window.print() has clean, static markup to
@@ -4940,7 +4994,7 @@
     </div>
   </div>
 
-  <div id="todayView">
+  <div id="todayView" class="posture-split">
   <div class="card" id="onboardingCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5c2 2 3 5.5 3 8 0 2.2-1.2 4.2-3 6-1.8-1.8-3-3.8-3-6 0-2.5 1-6 3-8Z"/><circle cx="10" cy="8.5" r="1.3"/><path d="M7.3 13.5 5.5 17M12.7 13.5 14.5 17"/></svg></span>Getting Started</div>
     <div id="onboardingRows"></div>
@@ -5059,6 +5113,10 @@
     </div></div>
   </div>
 
+  <!-- The day picker and the session, as one unit: one block among the rest
+       on a phone, its own pane beside the rest on an unfolded iPhone Duo
+       (see [OPEN POSTURE]). -->
+  <div class="today-session-pane split-primary">
   <div class="tabs-header">
     <div class="hint">Tap a day to view it</div>
     <button class="reorder-btn" id="reorderToggle">Reorder days</button>
@@ -5125,6 +5183,7 @@
       </div>
     </div>
   </div>
+  </div><!-- /.today-session-pane -->
 
   <div class="card">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a5.3 5.3 0 0 0-2.8 9.8V14h5.6v-1.7A5.3 5.3 0 0 0 10 2.5Z"/><line x1="8" y1="16.5" x2="12" y2="16.5"/><line x1="8.6" y1="18.3" x2="11.4" y2="18.3"/></svg></span>Keep In Mind</div>
@@ -6589,7 +6648,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.271';
+const APP_VERSION = '3.272';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7251,6 +7310,9 @@ const WHATS_NEW = {
   ]},
   '3.271': { headline: 'Nothing hides behind the camera when the phone is sideways', points: [
     'Now that the app rotates, the page edges, tab bar, Coach button and gym-mode dock keep clear of the camera and rounded corners on each side, including on iPhone Duo. Upright, nothing moves.',
+  ]},
+  '3.272': { headline: 'Two panes on an unfolded iPhone Duo', points: [
+    'Unfold your iPhone Duo and Today splits in two: the day picker and your session on the left, priorities, profile and training style on the right. Nothing sits across the fold. On the folded cover screen or a regular iPhone, Today looks the same as before.',
   ]},
 };
 
