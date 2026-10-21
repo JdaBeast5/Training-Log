@@ -4915,6 +4915,60 @@
     }
   }
 
+  /* [SHORT LANDSCAPE] ---------------------------------------------------------
+     Gym mode on any screen turned sideways that is too short for the open
+     layout: the iPhone Duo's cover screen (~678x466pt) and a slab iPhone
+     (~874x402pt). Possible since v3.270 unlocked rotation. Laid out as on a
+     portrait phone, the 74px dock across the bottom covered the open
+     exercise, leaving about one or two set rows usable at a time.
+
+     So the dock turns into a slim rail down the right edge — clock,
+     progress, Exit — and the exercise list gets the full height of the
+     screen beside it. The rest timer centres on the list area and sits at
+     the bottom, since nothing is under it any more. Body padding reserves
+     the rail and the side safe areas, which is why .wrap's own sides drop
+     back to gym mode's plain 10px here (keeping both would count an inset
+     twice).
+
+     max-height:559px is the open-posture gate's min-height minus one, so the
+     two can never both apply: an unfolded Duo held naturally (626pt tall)
+     gets the two-pane gym layout above, never this. Portrait screens of any
+     size never match. */
+  @media (orientation:landscape) and (max-height:559px){
+    body.gym-mode{
+      --gym-rail-w:116px;
+      --gym-pad-l:env(safe-area-inset-left, 0px);
+      --gym-pad-r:calc(var(--gym-rail-w) + 20px + env(safe-area-inset-right, 0px));
+      padding-left:var(--gym-pad-l);
+      padding-right:var(--gym-pad-r);
+    }
+    body.gym-mode .wrap{
+      padding-left:10px; padding-right:10px;
+      /* Only the rest timer is at the bottom now, not the dock as well. */
+      padding-bottom:calc(110px + env(safe-area-inset-bottom, 0px));
+    }
+    body.gym-mode .gym-dock{
+      left:auto; right:calc(10px + env(safe-area-inset-right, 0px));
+      top:calc(10px + env(safe-area-inset-top, 0px));
+      bottom:calc(10px + env(safe-area-inset-bottom, 0px));
+      margin-bottom:0;
+      width:var(--gym-rail-w);
+      flex-direction:column; align-items:stretch; justify-content:space-between;
+      padding:16px 10px 10px; text-align:center;
+    }
+    /* 22px fits the longest clock, "9:59:59", in the rail. */
+    body.gym-mode .gym-clock{ font-size:22px; }
+    body.gym-mode .gym-dock-meta{ flex:0 0 auto; }
+    body.gym-mode .gym-exit-btn{ padding:0 10px; }
+    /* In and out from the side the rail lives on, not up from the bottom. */
+    .gym-dock, body.gym-leaving .gym-dock{ transform:translateX(160%); }
+    body.gym-mode .rest-timer{
+      bottom:calc(10px + env(safe-area-inset-bottom, 0px));
+      left:calc((var(--gym-pad-l) + 100vw - var(--gym-pad-r)) / 2);
+      max-width:calc(100vw - var(--gym-pad-l) - var(--gym-pad-r) - 20px);
+    }
+  }
+
 /* [PRINT REPORT] -----------------------------------------------------------
    #printReportContent is built by buildPrintReport() and stays display:none
    on screen — it exists purely so window.print() has clean, static markup to
@@ -6713,7 +6767,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.276';
+const APP_VERSION = '3.277';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7390,6 +7444,9 @@ const WHATS_NEW = {
   ]},
   '3.276': { headline: 'Tap any exercise in gym mode to bring it over on an unfolded iPhone Duo', points: [
     'In gym mode on an unfolded iPhone Duo, tapping an exercise in your session list moves it into the big panel on the right, replacing the one you were on. Folded, or on a regular iPhone, tapping works exactly as before.',
+  ]},
+  '3.277': { headline: 'Gym mode fits sideways screens, including the iPhone Duo\'s front screen', points: [
+    'Turn your iPhone sideways in gym mode, or your iPhone Duo\'s front screen, and the clock and Exit button move into a slim bar on the right so your exercise gets the full height of the screen instead of being covered at the bottom. Upright, nothing changes.',
   ]},
 };
 

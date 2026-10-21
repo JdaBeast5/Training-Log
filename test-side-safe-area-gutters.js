@@ -153,7 +153,7 @@ test('today FAB, sticky day header and gym dock clear the side insets', (assert)
 });
 
 test('gym mode keeps its tighter 10px sides, but still clears a side inset', (assert)=>{
-  const b = ruleBlock('body.gym-mode .wrap');
+  const b = ruleBlock('body.gym-mode .wrap', 'padding-top');
   const env = {vw:430, left:40, right:24};
   const g = gutters(env);
   assert.equal(resolve(decl(b, 'padding-left'), env, g.vars), 40);
