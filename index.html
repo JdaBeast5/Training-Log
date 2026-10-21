@@ -6649,7 +6649,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.273';
+const APP_VERSION = '3.274';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7317,6 +7317,9 @@ const WHATS_NEW = {
   ]},
   '3.273': { headline: 'Log uses both halves of an unfolded iPhone Duo too', points: [
     'Unfold your iPhone Duo on the Log tab and nutrition (food search, quick-add and today\'s food) sits on the left, with water, bodyweight, sleep, supplements and the rest on the right. On a regular iPhone, Log looks the same as before.',
+  ]},
+  '3.274': { headline: 'Fold or unfold without losing your place', points: [
+    'When you fold or unfold your iPhone Duo mid-workout, the exercise or card you were looking at stays put on screen instead of the page jumping somewhere else. Rotating a regular iPhone works the same way.',
   ]},
 };
 
@@ -45428,6 +45431,93 @@ function closeGlobalSearch(){
 // Also runs on resize, because a rotation can turn an overflowing rail into one
 // that fits, and a fade over a rail with nothing past it is a lie in the other
 // direction.
+// [POSTURE CONTINUITY] ---------------------------------------------------------
+// Folding or unfolding an iPhone Duo reaches a page as nothing but a resize,
+// but a big one: between the cover screen (~466pt) and the open screen
+// (~890pt, where Today and Log split into two panes) nearly every card moves,
+// and the same scrollY lands somewhere else entirely. Native apps keep your
+// place across that, so this does too: it remembers what you were looking at
+// and puts it back where it was on screen. Done explicitly rather than left to
+// browser scroll anchoring, which picks its own anchor node and was not built
+// for a reflow that moves content between columns.
+//
+// The anchor is the innermost card or exercise row crossing the line just
+// under the sticky nav (what you are actually reading) or, if that line falls
+// in a gap, the next one down. When both panes cross the line, the left one
+// wins: that is the split's primary (the session, the food log).
+const POSTURE_ANCHOR_SELECTOR = '.card, .exercise-block';
+// Width change that counts as a posture change. A keyboard only changes
+// height, and nothing short of a fold or a rotation moves width this far.
+const POSTURE_WIDTH_DELTA = 100;
+
+function findPostureAnchor(root, lineY){
+  const candidates = [...root.querySelectorAll(POSTURE_ANCHOR_SELECTOR)]
+    .map(el=> ({el, r:el.getBoundingClientRect()}))
+    .filter(c=> c.r.height > 0);
+  const crosses = c=> c.r.top <= lineY && c.r.bottom > lineY;
+  // Innermost: drop any crossing candidate that contains another crossing one
+  // (the workout card, when an exercise row inside it is what is on the line).
+  const crossing = candidates.filter(c=> crosses(c) && !candidates.some(d=> d !== c && crosses(d) && c.el.contains(d.el)));
+  if(crossing.length){
+    crossing.sort((a, b)=> a.r.left - b.r.left);
+    return {el:crossing[0].el, top:crossing[0].r.top};
+  }
+  const below = candidates.filter(c=> c.r.top > lineY);
+  if(!below.length) return null;
+  below.sort((a, b)=> (a.r.top - b.r.top) || (a.r.left - b.r.left));
+  return {el:below[0].el, top:below[0].r.top};
+}
+
+(function wirePostureContinuity(){
+  let anchor = null;
+  let anchorWidth = window.innerWidth;
+  let captureTimer = 0, restoreFrame = 0;
+
+  function capture(){
+    // Width already moved but the resize handler has not run yet (a scroll
+    // event from the reflow can arrive first): measuring now would replace
+    // the pre-fold anchor with a post-fold one and restore nothing.
+    if(Math.abs(window.innerWidth - anchorWidth) >= POSTURE_WIDTH_DELTA) return;
+    const view = VIEW_KEYS.map(k=> document.getElementById(k + 'View')).find(v=> v && v.style.display !== 'none');
+    if(!view) return;
+    const rail = document.querySelector('.nav-pills');
+    const lineY = (rail ? Math.max(0, rail.getBoundingClientRect().bottom) : 0) + 8;
+    anchor = findPostureAnchor(view, lineY);
+  }
+  // Settled positions only: after scrolling stops, and after a tap's
+  // expand/collapse animation has had time to land.
+  function scheduleCapture(delay){
+    clearTimeout(captureTimer);
+    captureTimer = setTimeout(capture, delay);
+  }
+  window.addEventListener('scroll', ()=> scheduleCapture(120), {passive:true});
+  document.addEventListener('pointerup', ()=> scheduleCapture(450), {passive:true});
+
+  window.addEventListener('resize', ()=>{
+    if(Math.abs(window.innerWidth - anchorWidth) < POSTURE_WIDTH_DELTA) return;
+    const saved = anchor;
+    clearTimeout(captureTimer);
+    cancelAnimationFrame(restoreFrame);
+    restoreFrame = requestAnimationFrame(()=>{
+      // An open sheet holds the page in place itself (body.scroll-locked) and
+      // restores its own offset on close — moving the page under it here
+      // would fight that.
+      if(saved && saved.el.isConnected && !document.body.classList.contains('scroll-locked')){
+        const r = saved.el.getBoundingClientRect();
+        // Instant: html{scroll-behavior:smooth} would otherwise glide there,
+        // and the point is that you never see the page move.
+        if(r.height > 0){
+          try{ window.scrollBy({top:r.top - saved.top, left:0, behavior:'instant'}); }
+          catch(e){ window.scrollBy(0, r.top - saved.top); }
+        }
+      }
+      anchorWidth = window.innerWidth;
+      capture();
+    });
+  }, {passive:true});
+  capture();
+})();
+
 // [NAV RAIL HEIGHT] ------------------------------------------------------------
 // Publishes the sticky nav rail's rendered height as --nav-rail-h, so anything
 // that needs to stick BELOW it can offset by a measured number rather than a
