@@ -1,6 +1,6 @@
 # HANDOFF v51 — Training Log
 
-Branch: `claude/iphone-duo-form-factor` (from `Branch-1` at `1ee15ca`). `APP_VERSION`/`VERSION` bumped 3.269 → **3.276**, seven increments, one commit each. No `SCHEMA_VERSION` change: no stored-data shape changed.
+Branch: `claude/iphone-duo-form-factor` (from `Branch-1` at `1ee15ca`). `APP_VERSION`/`VERSION` bumped 3.269 → **3.277**, eight increments, one commit each. No `SCHEMA_VERSION` change: no stored-data shape changed.
 
 ## 1. What was asked
 
@@ -12,7 +12,7 @@ From Apple's spec listing (via search results; apple.com could not be fetched fr
 
 Safari exposes **no fold/hinge API** (no Viewport Segments, no Device Posture). A fold or unfold reaches the page only as a resize. Every adjustment below is therefore width- and height-driven. None of it detects "a Duo" specifically, so an iPad or any similarly sized viewport gets the same treatment.
 
-Follow-up request, same session: "including gym mode … make sure it adapts to the correct form factor as well. … we are not removing the capability to use it on slab phones … Make it automatically sense the form factor." That became 3.275–3.276.
+Follow-up request, same session: "including gym mode … make sure it adapts to the correct form factor as well. … we are not removing the capability to use it on slab phones … Make it automatically sense the form factor." That became 3.275–3.276. Then: "make sure you also include the front screen". The cover screen upright was already the phone layout; turned sideways, gym mode was cramped there and on a sideways slab iPhone. That became 3.277.
 
 ## How the form factor is sensed
 
@@ -33,8 +33,9 @@ Both re-evaluate live: folding or unfolding re-lays out the open app with no rel
 | 3.274 | `wirePostureContinuity` / `findPostureAnchor`: keeps the card or exercise row you were on at the same screen position across a width change of ≥100px. | `test-duo-posture-continuity.js` |
 | 3.275 | Gym mode, open posture: `#exerciseList` splits into the quiet list (left) and the open exercise (right). The right pane is sticky and scrolls inside itself if taller than the screen. An extra open block stays in the list. With nothing open, the list is one centred column. While something is open, the dock and rest timer sit under the list column. Replaces 3.272's "gym mode stays 640px". CSS only. | `test-duo-gym-mode-open-split.js` |
 | 3.276 | `toggleExerciseBlockFromHeader`: in gym mode AND open posture, tapping another exercise closes the open one, so the tapped one takes the pane. Everywhere else a tap still toggles just that one. `OPEN_POSTURE_QUERY`/`isOpenPosture()` added. | `test-duo-gym-tap-to-switch.js` |
+| 3.277 | Gym mode on short sideways screens: `@media (orientation:landscape) and (max-height:559px)`, which covers the Duo cover screen sideways (678×466) and a slab iPhone sideways (874×402). The dock becomes a 116px rail on the right, and body padding reserves the rail and side insets. The rest timer centres on the list area. It can't overlap the open-posture gate (559 = 560 − 1, checked exhaustively in the test). CSS only. | `test-duo-gym-short-landscape.js` |
 
-Each test was sabotage-verified (every break listed in the commit messages failed its test, and `index.html` was confirmed byte-identical after restore). `bash check.sh` passes with all 137 test files, version parity at 3.276. `test-analysis-index-visual-weight.js`'s padding regex was updated in 3.271 to accept the gutter-token sides. It only asserts the vertical values, which are unchanged.
+Each test was sabotage-verified (every break listed in the commit messages failed its test, and `index.html` was confirmed byte-identical after restore). `bash check.sh` passes with all 138 test files, version parity at 3.277. `test-analysis-index-visual-weight.js`'s padding regex was updated in 3.271 to accept the gutter-token sides. It only asserts the vertical values, which are unchanged.
 
 3.276 touched three existing suites that run the real exercise-header listener in a sandbox: `test-a11y-keyboard-focus.js`, `test-exercise-swap-tap-target.js` and `test-superset-field-chaining.js`.
 - They now load the real `toggleExerciseBlockFromHeader`/`isOpenPosture` with `gymModeActive=false`, not stubs.
@@ -58,6 +59,8 @@ Process note: during 3.276 a `check.sh … | grep … && git commit` chain commi
   - Whether iOS home-screen web apps honour the manifest `orientation` at all.
   - That WebKit gives a spanning grid item's extra height to the `1fr` track the way Chromium does (it is spec behaviour, but if it doesn't, the symptom is vertical gaps between right-hand cards).
   - Real inset values on the Duo.
+- **Final Chromium sweep (3.277)**: tested cover upright/sideways, open natural/rotated, and slab upright/sideways, in normal and gym mode. All showed 0 page errors and no horizontal scroll. Both sideways shapes use the rail, and the open exercise gets 440 of 466px (cover) and 376 of 402px (slab).
+- **Rest timer while running, sideways**: it floats over the list as it does upright, but on a ~400px-tall screen it covers proportionally more. It's scrollable past, but whether it feels right is a device call.
 - **Gym-mode right pane in Safari**: not yet confirmed.
   - The pane is `position:sticky` inside a grid area and scrolls inside itself.
   - The no-exercise-open fallback and the dock/timer placement use `:has()`, which iOS has supported since 15.4.
