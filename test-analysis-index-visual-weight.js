@@ -38,8 +38,11 @@ function extractRuleBlock(source, selector){
 
 test('sabotage-relevant: .analysis-index\'s own vertical padding is smaller than the original 6px/8px top/bottom', (assert)=>{
   const block = extractRuleBlock(src, '.analysis-index');
-  const m = block.match(/padding:(\d+)px 18px (\d+)px/);
-  assert.ok(m, '.analysis-index must declare a real top/bottom padding alongside its 18px sides');
+  // Sides are the --gutter-r/--gutter-l tokens since v3.271 (side safe-area
+  // insets, see test-side-safe-area-gutters.js) — 18px whenever there is no
+  // inset. This test is about the vertical values only.
+  const m = block.match(/padding:(\d+)px var\(--gutter-r\) (\d+)px var\(--gutter-l\)/);
+  assert.ok(m, '.analysis-index must declare a real top/bottom padding alongside its gutter-token sides');
   assert.ok(Number(m[1]) < 6, `top padding should be reduced below the original 6px, got ${m[1]}px`);
   assert.ok(Number(m[2]) < 8, `bottom padding should be reduced below the original 8px, got ${m[2]}px`);
 });

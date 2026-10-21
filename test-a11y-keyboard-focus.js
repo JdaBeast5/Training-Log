@@ -24,7 +24,7 @@
 // renderTabs/renderFoodCats) against jsdom and asserts on resulting DOM state
 // and document.activeElement — never string-matching the source for behavior.
 const {
-  readIndexSource, extractFunction, extractElementById,
+  readIndexSource, extractFunction, extractConst, extractElementById,
   countCallSites, runJsdom, makeRunner,
 } = require('./testHelpers.js');
 
@@ -40,7 +40,17 @@ function extractBetween(label, startAnchor, endAnchor){
 
 // ── Real source under test ──────────────────────────────────────────────────
 
-const openHelperSrc = extractFunction(src, 'setExerciseBlockOpen');
+// Since v3.276 the header listener calls toggleExerciseBlockFromHeader (the
+// open-posture gym-mode switch, see test-duo-gym-tap-to-switch.js), so the
+// REAL function and its posture check come along too. gymModeActive is false:
+// this test is about the normal (non-gym) tap.
+const openHelperSrc = [
+  extractFunction(src, 'setExerciseBlockOpen'),
+  extractConst(src, 'OPEN_POSTURE_QUERY'),
+  extractFunction(src, 'isOpenPosture'),
+  extractFunction(src, 'toggleExerciseBlockFromHeader'),
+  'var gymModeActive = false;',
+].join('\n');
 const nextExerciseBlockSrc = extractFunction(src, 'nextExerciseBlock');
 
 // The exercise row's real markup template, lifted whole out of renderWorkout
@@ -227,10 +237,13 @@ test('SABOTAGE ANCHOR: every path that opens or closes an exercise row goes thro
   // opens the shared block), the checkbox-driven auto-collapse/auto-open,
   // openFirstIncompleteExercise's own consolidate-to-one and open-the-
   // target calls, and both halves of advanceToNextExercise's handover — 7
-  // real direct call sites. If this count drifts, some path now hand-writes
-  // the class dance instead and aria-expanded goes stale there — this
-  // number is what makes that visible instead of silent.
-  assert.strictEqual(countCallSites(src, 'setExerciseBlockOpen'), 7);
+  // real direct call sites — plus, since v3.276, the header toggle's home
+  // moved into toggleExerciseBlockFromHeader, which adds an 8th: closing the
+  // other open exercise when gym mode on an unfolded Duo switches its pane
+  // (test-duo-gym-tap-to-switch.js). If this count drifts, some path now
+  // hand-writes the class dance instead and aria-expanded goes stale there —
+  // this number is what makes that visible instead of silent.
+  assert.strictEqual(countCallSites(src, 'setExerciseBlockOpen'), 8);
   assert.strictEqual(src.includes('setExerciseUnitOpen'), false, 'the old pairing wrapper must be gone entirely, not just uncalled');
   // And the old hand-written form is gone from all of them.
   assert.strictEqual(src.includes("row.querySelector('.expand-wrap').classList.toggle('open')"), false);
