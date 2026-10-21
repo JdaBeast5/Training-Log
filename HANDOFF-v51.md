@@ -22,7 +22,7 @@ Safari exposes **no fold/hinge API** (no Viewport Segments, no Device Posture). 
 | 3.273 | Log opts in: the nutrition card is its `.split-primary`. Primaries no longer `align-self:stretch` (it grew an empty band of card background). | `test-duo-open-posture-log-split.js` |
 | 3.274 | `wirePostureContinuity` / `findPostureAnchor`: keeps the card or exercise row you were on at the same screen position across a width change of ≥100px. | `test-duo-posture-continuity.js` |
 
-Each test was sabotage-verified (every break listed in the commit messages failed its test, and `index.html` was confirmed byte-identical after restore). `bash check.sh` passes with all 133 test files, version parity at 3.274. `test-analysis-index-visual-weight.js`'s padding regex was updated in 3.271 to accept the gutter-token sides. It only asserts the vertical values, which are unchanged.
+Each test was sabotage-verified (every break listed in the commit messages failed its test, and `index.html` was confirmed byte-identical after restore). `bash check.sh` passes with all 135 test files, version parity at 3.274. `test-analysis-index-visual-weight.js`'s padding regex was updated in 3.271 to accept the gutter-token sides. It only asserts the vertical values, which are unchanged.
 
 ## 4. Verified in a real browser (Chromium via Playwright, not Safari)
 
