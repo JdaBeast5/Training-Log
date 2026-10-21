@@ -57,7 +57,10 @@ const openHelperSrc = extractBetween(
   'setExerciseBlockOpen helper',
   'function setExerciseBlockOpen(block, isOpen){',
   '\nasync function renderWorkout(){'
-);
+) + '\nvar gymModeActive = false;';
+// ^ The range above now also carries toggleExerciseBlockFromHeader (v3.276,
+// the open-posture gym-mode switch the header listener calls), which reads
+// gymModeActive. This test is about the normal (non-gym) tap.
 
 function buildFixture(){
   return `

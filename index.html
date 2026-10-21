@@ -6713,7 +6713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.275';
+const APP_VERSION = '3.276';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7387,6 +7387,9 @@ const WHATS_NEW = {
   ]},
   '3.275': { headline: 'Gym mode uses both halves of an unfolded iPhone Duo', points: [
     'Unfold your iPhone Duo in gym mode and your session list sits on the left with the clock and rest timer, while the exercise you are on stays pinned on the right at full height. Checking an exercise off brings the next one over. Folded, or on a regular iPhone, gym mode is exactly as before.',
+  ]},
+  '3.276': { headline: 'Tap any exercise in gym mode to bring it over on an unfolded iPhone Duo', points: [
+    'In gym mode on an unfolded iPhone Duo, tapping an exercise in your session list moves it into the big panel on the right, replacing the one you were on. Folded, or on a regular iPhone, tapping works exactly as before.',
   ]},
 };
 
@@ -26979,6 +26982,29 @@ function setExerciseBlockOpen(block, isOpen){
   });
 }
 
+// The open-posture condition the stylesheet's [OPEN POSTURE] @media block uses,
+// for the one place JS has to know which layout is on screen. Kept as the exact
+// same string — test-duo-gym-tap-to-switch.js fails if the two drift apart —
+// and read live through matchMedia, so a fold or unfold is picked up the
+// moment it happens, with no reload and nothing cached.
+const OPEN_POSTURE_QUERY = '(min-width:760px) and (min-height:560px)';
+function isOpenPosture(){
+  return !!(window.matchMedia && window.matchMedia(OPEN_POSTURE_QUERY).matches);
+}
+
+// Tapping an exercise header. Everywhere else it toggles just that exercise,
+// as it always has. In gym mode on an unfolded Duo the right pane shows ONE
+// exercise, so opening another one is a switch: the current one closes and
+// the tapped one takes the pane. Without this the tapped exercise expanded
+// inside the list while the pane kept showing the old one.
+function toggleExerciseBlockFromHeader(blockEl){
+  const opening = !blockEl.classList.contains('open');
+  if(opening && gymModeActive && isOpenPosture()){
+    document.querySelectorAll('#exerciseList > .exercise-block.open').forEach(b=> setExerciseBlockOpen(b, false));
+  }
+  setExerciseBlockOpen(blockEl, opening);
+}
+
 // A normal exercise-block has one checkbox; a superset pair's shared block
 // has two (one per exercise). "Is this block actually done" always means
 // EVERY checkbox in it is checked — for a pair, ticking off just one
@@ -27799,7 +27825,7 @@ async function renderWorkout(){
     }
 
     exerciseHeader.addEventListener('click', ()=>{
-      setExerciseBlockOpen(blockEl, !blockEl.classList.contains('open'));
+      toggleExerciseBlockFromHeader(blockEl);
     });
 
     // Bound to the swap ICON specifically, not the whole .ex-name text — the
