@@ -157,9 +157,8 @@ test('sticky day header spans the session pane, ending at the crease gutter (Duo
   }
 });
 
-test('gym mode stays one phone-width column even when open', (assert)=>{
+test('gym mode does not use Today\'s split (it splits its exercise list instead — test-duo-gym-mode-open-split.js)', (assert)=>{
   assert.equal(decl(wideRule('body.gym-mode #todayView'), 'display'), 'block');
-  assert.equal(decl(wideRule('body.gym-mode'), '--wrap-max'), '640px');
 });
 
 test('every tab is either a split view or held to the phone column when open — a new tab cannot silently go 854pt wide', (assert)=>{

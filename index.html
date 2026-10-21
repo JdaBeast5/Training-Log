@@ -4845,10 +4845,74 @@
       left:max(0px, (100vw - var(--wrap-max)) / 2);
       right:calc(50vw + var(--pane-gap) / 2);
     }
-    /* Gym mode hides everything except the session, so a second pane would be
-       an empty half-screen. It keeps its phone-width single column instead. */
-    body.gym-mode{ --wrap-max:640px; }
+    /* GYM MODE, OPEN: the session list | the exercise you are on.
+       Gym mode hides everything except the session, so Today's own split
+       would leave an empty half. Instead the exercise list itself splits:
+       the quiet list down the left, and the open exercise (the pop-out) on
+       the right, pinned in view while the list scrolls under it. Same nodes
+       and the same .open rule as the phone layout: checking an exercise off
+       already opens the next one, which here means it takes over the right
+       pane.
+
+       The dock (clock, progress, Exit) and the rest timer move under the
+       left pane, so the exercise you are logging gets the full height of
+       the screen. --gym-col-w/--gym-wrap-left restate gym mode's column
+       geometry (10px sides, the pane gap) for those fixed elements, which
+       live outside .wrap and cannot measure it. */
+    body.gym-mode{
+      --gym-wrap-left:max(0px, (100vw - var(--wrap-max)) / 2);
+      --gym-col-w:calc((min(100vw, var(--wrap-max)) - 20px - var(--pane-gap)) / 2);
+    }
     body.gym-mode #todayView{ display:block; }
+    body.gym-mode #exerciseList{
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
+      /* Same 1fr-tail trick as .posture-split: the pinned panel's height goes
+         to the last track, not into gaps between list rows. */
+      grid-template-rows:repeat(40, auto) 1fr;
+      column-gap:var(--pane-gap);
+      align-items:start;
+    }
+    /* Rows carry 7px top and bottom margins that collapse to one 7px gap in
+       the phone's block layout. Grid items' margins never collapse, so the
+       top one goes, keeping the same rhythm and the first row level with
+       the panel. */
+    body.gym-mode #exerciseList > *{ grid-column:1; margin-top:0; }
+    body.gym-mode #exerciseList > .exercise-block.open{
+      grid-column:2; grid-row:1 / -1;
+      position:sticky; top:calc(12px + env(safe-area-inset-top, 0px));
+      margin:0;
+      /* A long exercise (warm-up ramp plus six sets) is taller than the
+         screen. Pinned, its bottom would be unreachable until the end of the
+         list, so it scrolls inside itself instead. */
+      max-height:calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+      overflow-y:auto; overscroll-behavior:contain;
+    }
+    /* Normally only one exercise is open in gym mode, but one opened on the
+       cover screen can be open alongside another when you unfold. Two pinned
+       panels would sit on top of each other; any after the first stay in the
+       list, expanded in place, until one is closed. */
+    body.gym-mode #exerciseList > .exercise-block.open ~ .exercise-block.open{
+      grid-column:1; grid-row:auto;
+      position:relative; top:auto; max-height:none; overflow:visible;
+      margin:14px 0;
+    }
+    /* Nothing open (you closed it, or the session is done): one centred
+       phone-width list, rather than a list beside an empty pane. */
+    body.gym-mode #exerciseList:not(:has(> .exercise-block.open)){
+      display:block; max-width:calc(640px - 20px); margin-left:auto; margin-right:auto;
+    }
+    /* Only while the right pane is occupied — with nothing open the list is
+       one centred column again, and the dock and timer go back to spanning
+       and centring on the screen, as on a phone. */
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .gym-dock{
+      left:calc(var(--gym-wrap-left) + 10px + env(safe-area-inset-left, 0px));
+      right:calc(100vw - var(--gym-wrap-left) - 10px - var(--gym-col-w));
+    }
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer{
+      left:calc(var(--gym-wrap-left) + 10px + var(--gym-col-w) / 2);
+      max-width:var(--gym-col-w);
+    }
   }
 
 /* [PRINT REPORT] -----------------------------------------------------------
@@ -6649,7 +6713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.274';
+const APP_VERSION = '3.275';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7320,6 +7384,9 @@ const WHATS_NEW = {
   ]},
   '3.274': { headline: 'Fold or unfold without losing your place', points: [
     'When you fold or unfold your iPhone Duo mid-workout, the exercise or card you were looking at stays put on screen instead of the page jumping somewhere else. Rotating a regular iPhone works the same way.',
+  ]},
+  '3.275': { headline: 'Gym mode uses both halves of an unfolded iPhone Duo', points: [
+    'Unfold your iPhone Duo in gym mode and your session list sits on the left with the clock and rest timer, while the exercise you are on stays pinned on the right at full height. Checking an exercise off brings the next one over. Folded, or on a regular iPhone, gym mode is exactly as before.',
   ]},
 };
 
