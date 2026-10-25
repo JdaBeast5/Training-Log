@@ -389,12 +389,15 @@
     color:var(--text-muted);
     transition:color 0.3s var(--ease-smooth);
   }
+  /* [GLASS & GLOW, v3.289] An iOS-style large title that names where you are
+     (switchView sets it per tab). The product's name lives in the brand line
+     above it, so the header still says what this app is. */
   h1{
     font-family:var(--font-sans);
-    font-weight:700;
-    font-size:24px;
-    letter-spacing:-0.02em;
-    line-height:1.15;
+    font-weight:750;
+    font-size:34px;
+    letter-spacing:-0.035em;
+    line-height:1.05;
     margin-top:6px;
   }
   .sub{color:var(--text-muted); font-size:13.5px; margin-top:5px; letter-spacing:-0.005em;}
@@ -530,9 +533,13 @@
     font-family:var(--font-sans); font-size:11px;
     color:var(--text-muted); margin-bottom:2px;
   }
+  /* v3.289 (Glass & glow hero): the day's name, set big, fading from white into
+     that day's own plate colour (--day-hue, published by renderWorkout). */
   .workout-hero-title{
-    font-family:var(--font-sans); font-weight:800; font-size:24px; letter-spacing:-0.02em; line-height:1.2;
+    font-family:var(--font-sans); font-weight:800; font-size:36px; letter-spacing:-0.04em; line-height:1.02;
     color:var(--text);
+    background:linear-gradient(100deg, var(--text) 45%, var(--day-hue, var(--text)));
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
   }
 
   .reorder-arrows{
@@ -4822,7 +4829,7 @@
       <span class="brand-mark"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1.2" y="8" width="2.4" height="4" rx="1"/><rect x="16.4" y="8" width="2.4" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg></span>
       <div class="eyebrow" id="headerEyebrow">Training Log</div>
     </div>
-    <h1>Training Log</h1>
+    <h1 id="viewTitle">Today</h1>
     <div class="sub" id="headerSub">Set up your profile below to personalize this</div>
     <div class="streak-badge" id="streakBadge" style="display:none"></div>
     <!-- v3.288: search lives in the header beside the cog; the bottom tab bar holds the five destinations -->
@@ -6572,7 +6579,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.288';
+const APP_VERSION = '3.289';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7299,6 +7306,10 @@ const WHATS_NEW = {
   '3.288': { headline: 'Tabs at your thumb', points: [
     'The tabs moved into a floating glass bar at the bottom of the screen, within easy reach of your thumb. The selected tab is the white one.',
     'The rest timer, undo messages and the coach and Today buttons now sit just above the bar.',
+  ]},
+  '3.289': { headline: 'Big titles', points: [
+    'Each tab now opens with a large title that tells you where you are.',
+    'Your workout\'s name is set big on Today, fading into that day\'s plate colour.',
   ]},
 };
 
@@ -26945,6 +26956,8 @@ async function renderWorkout(){
   const dayPlateClass = getDayPlateClass(activeDay) + (day.plateNum==='OFF' ? ' plate-off' : '');
   const iconEl = document.getElementById('dayPlateIcon');
   iconEl.className = 'day-hero-plate ' + dayPlateClass;
+  // v3.289: the hero title's gradient fades into this day's own plate colour.
+  document.getElementById('workoutCard').style.setProperty('--day-hue', 'var(--plate-' + getDayPlateClass(activeDay).slice(2) + ')');
   iconEl.innerHTML = dayGlyphSvg(day.sub);
   // Mirrors the main title so the sticky header reads correctly whenever it
   // becomes visible, without needing its own render pass.
@@ -36998,6 +37011,10 @@ function switchView(active, opts){
   try{ window.storage.set('active-view', active); }catch(e){}
   const views = {today:'todayView', log:'logView', analysis:'analysisView', history:'historyView', care:'careView', coach:'coachView', learn:'learnView'};
   const pills = {today:'navToday', log:'navLog', analysis:'navAnalysis', history:'navHistory', care:'navCare', coach:'navCoach', learn:'navLearn'};
+  // v3.289 (Glass & glow): the header's large title names the view you are in.
+  const titles = {today:'Today', log:'Log', analysis:'Analysis', history:'History', care:'Care', coach:'Coach', learn:'Learn'};
+  const titleEl = document.getElementById('viewTitle');
+  if(titleEl && titles[active]) titleEl.textContent = titles[active];
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   Object.keys(views).forEach(key=>{
     const viewEl = document.getElementById(views[key]);
