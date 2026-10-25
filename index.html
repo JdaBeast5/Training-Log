@@ -801,13 +801,16 @@
     background:rgba(var(--plate-yellow-rgb),0.08);
     border-radius:var(--radius-sm);
   }
+  /* [TASTESKILL TODAY PILOT, v3.274] Sentence case in the text face at 12px,
+     no tracking, and no ⚡ injected through ::before (an emoji the inspector
+     reads like any other). The yellow edge and pale yellow tint on the pair
+     above stay: they code the kind of block, which is what a hue is for. */
   .superset-banner{
     display:flex; align-items:center; gap:6px;
     padding:6px 0 4px;
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:10.5px; font-weight:600;
-    color:var(--plate-yellow); text-transform:uppercase; letter-spacing:0.3px;
+    font-size:12px; font-weight:600;
+    color:var(--plate-yellow);
   }
-  .superset-banner::before{content:'⚡';}
   /* The second exercise's own header/actions/warmup section, set apart from
      the first with a hairline rather than a full card boundary — together
      they read as one unit, not two cards glued together. */
@@ -822,8 +825,8 @@
   .set-row-owner{ display:none; }
   .superset-pair .set-row-owner{
     display:block; flex-basis:100%; order:-1;
-    font-size:10.5px; font-weight:600; color:var(--plate-yellow);
-    text-transform:uppercase; letter-spacing:0.3px; margin-bottom:2px;
+    font-size:12px; font-weight:600; color:var(--plate-yellow);
+    margin-bottom:2px;
   }
   input[type=checkbox]{
     -webkit-appearance:none; appearance:none; margin:0;
@@ -1107,9 +1110,14 @@
   .warmup-box{
     margin:4px 0 8px; padding:9px 11px; background:rgba(var(--plate-orange-rgb),0.08); border:1px solid rgba(var(--plate-orange-rgb),0.28);
     border-radius:var(--radius-sm); font-size:12px; color:var(--text); line-height:1.6;
-    box-shadow:var(--rim), 0 4px 12px -7px rgba(var(--plate-orange-rgb),0.3);
   }
-  .warmup-box .warmup-title{color:var(--plate-orange); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:3px;}
+  /* [TASTESKILL TODAY PILOT, v3.274] The box is a notice: a pale orange tint
+     with a 1px border of the same hue, nothing more. Its rim and orange glow
+     shadow are gone (no shadows on things at rest), the title is sentence case
+     and untracked, and the nudge's prose (.warmup-note) is set in the text face;
+     the ramp's own figures (.warmup-row) keep the mono numerals. */
+  .warmup-box .warmup-title{color:var(--plate-orange); font-weight:600; font-size:12px; margin-bottom:3px;}
+  .warmup-box .warmup-row.warmup-note{font-family:inherit;} /* must outrank .warmup-box .warmup-row (mono), declared later */
   /* THE STRIP, used instead of the box once the ramp is real rows.
      A 4-set exercise with a 3-step ramp should read as SEVEN set lines — three
      orange, four plain — not as a bordered table sitting on top of four rows.
@@ -1127,8 +1135,7 @@
      `.warmup-strip`/`.warmup-box` template literals in renderWorkout. */
   .warmup-strip{ margin:0; display:flex; flex-direction:column; gap:6px; }
   .warmup-strip .warmup-title{
-    color:var(--plate-orange); font-weight:600; font-size:11.5px;
-    text-transform:uppercase; letter-spacing:0.3px;
+    color:var(--plate-orange); font-weight:600; font-size:12px;
   }
   .warmup-box .warmup-row{display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px;}
 
@@ -6600,7 +6607,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.273';
+const APP_VERSION = '3.274';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7270,6 +7277,10 @@ const WHATS_NEW = {
   ]},
   '3.273': { headline: 'Fewer emoji in your workout', points: [
     'The workout card\'s tips, insights, warm-ups and buttons now use plain words, and Gym mode has a simple barbell icon, instead of emoji that looked different on every phone.',
+  ]},
+  '3.274': { headline: 'Quieter warm-up and superset labels', points: [
+    'Warm-up and superset labels are now in normal sentence case instead of small shouty capitals, and warm-up advice reads in the regular font.',
+    'The warm-up box lost its orange glow. It\'s still tinted orange, so it stands apart from your working sets.',
   ]},
 };
 
@@ -26276,7 +26287,7 @@ function buildWarmupNudgeHtml(reason){
     : reason === 'light'
       ? 'Light enough that a formal ramp is more clutter than help. One easy set to groove the movement is plenty.'
       : 'No logged history for this lift yet, so there is no working weight to ramp to. Work up in a few easy sets today; from your next session the ramp builds itself.';
-  return `<div class="warmup-box"><div class="warmup-title">Warm up first</div><div class="warmup-row"><span>${body}</span></div></div>`;
+  return `<div class="warmup-box"><div class="warmup-title">Warm up first</div><div class="warmup-row warmup-note"><span>${body}</span></div></div>`;
 }
 
 // Named, so it can be tested rather than asserted as a substring — the same
@@ -27508,7 +27519,7 @@ async function renderWorkout(){
     }
 
     pairRow.innerHTML = `
-      <div class="superset-banner">SUPERSET — straight into the next exercise, no rest between</div>
+      <div class="superset-banner">Superset — straight into the next exercise, no rest between</div>
       ${memberHtml(topPiece)}
       ${memberHtml(bottomPiece)}
       <div class="expand-wrap" id="exSetsPanel${t}">
