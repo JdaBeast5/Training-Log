@@ -1928,7 +1928,11 @@
     transition:none; transform:scale(1.08);
     box-shadow:0 20px 40px -12px rgba(var(--overlay-black-rgb),0.85); /* deeper neutral lift = "picked up" (v3.283) */
   }
-  .coach-fab span{position:relative; z-index:1;}
+  .coach-fab span{position:relative; z-index:1; display:flex;}
+  /* v3.285: the app's own chat-bubble outline (ICONS.chat's path) instead of a 💬 emoji */
+  .coach-fab-icon{ width:26px; height:26px; }
+  /* ICONS.warning's artwork inline in static markup (replaced a ⚠️ emoji in the medical-program safety note, v3.285) */
+  .inline-warning{ width:1em; height:1em; vertical-align:-0.125em; display:inline-block; color:var(--plate-yellow); }
   .coach-fab:active{transform:scale(0.9);}
 
   /* --- Global "Today" quick-access — bottom-left mirror of the coach FAB,
@@ -5045,7 +5049,7 @@
         <label class="equip-sublabel" for="customProgDays">Training days per week</label>
         <input type="number" id="customProgDays" class="care-input" value="4" min="1" max="7" inputmode="numeric">
         <div id="customProgError" class="exedit-error"></div>
-        <button type="button" class="switch-profile-btn" id="customProgCreate">➕ Create program</button>
+        <button type="button" class="switch-profile-btn" id="customProgCreate">+ Create program</button>
         <div id="customProgList"></div>
       </div>
     </div></div>
@@ -5105,7 +5109,7 @@
 
   <div class="card" id="medicalCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v6M10 11v6M3 10h6M11 10h6"/></svg></span>Condition / Stage</div>
-    <div class="history-hint">Pick whichever matches your actual situation. <b>⚠️ Every option here is a framework to use alongside your own doctor, surgical team, PT, or OB/midwife's real diagnosis and clearance</b>, not a replacement for one — this app has no way to know your specific medical history or healing timeline.</div>
+    <div class="history-hint">Pick whichever matches your actual situation. <b><svg class="inline-warning" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 22 20.5 2 20.5Z"/><line x1="12" y1="9.5" x2="12" y2="14"/><circle cx="12" cy="17.3" r="0.6" fill="currentColor" stroke="none"/></svg> Every option here is a framework to use alongside your own doctor, surgical team, PT, or OB/midwife's real diagnosis and clearance</b>, not a replacement for one — this app has no way to know your specific medical history or healing timeline.</div>
     <select class="program-select" id="medicalSelector" aria-label="Medical program"></select>
     <div class="program-select-desc" id="medicalDesc"></div>
     <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="medicalOverviewPanel">
@@ -5299,17 +5303,17 @@
       <button class="save-btn" id="pfSave">Save profile</button>
       <div class="status-msg" id="pfStatus"></div>
 
-      <button class="switch-profile-btn" id="switchProfileBtn">🔄 Switch profile (for a shared device)</button>
+      <button class="switch-profile-btn" id="switchProfileBtn">Switch profile (for a shared device)</button>
       <!-- Sits directly above Export because that is the action it should
            prompt. Renders nothing at all on engines without
            navigator.storage.estimate() rather than showing a misleading zero. -->
       <div id="storageUsageMeter"></div>
-      <button class="switch-profile-btn" id="printProgramBtn">🖨️ Print my program (full week, on paper)</button>
-      <button class="switch-profile-btn" id="exportDataBtn">⬇️ Export my data (backup as JSON)</button>
-      <button class="switch-profile-btn" id="importDataBtn">⬆️ Import backup (restore from JSON)</button>
+      <button class="switch-profile-btn" id="printProgramBtn">Print my program (full week, on paper)</button>
+      <button class="switch-profile-btn" id="exportDataBtn">Export my data (backup as JSON)</button>
+      <button class="switch-profile-btn" id="importDataBtn">Import backup (restore from JSON)</button>
       <input type="file" id="importDataInput" accept="application/json,.json" style="display:none" aria-label="Choose a backup file to import">
       <div class="status-msg" id="importDataStatus"></div>
-      <button class="switch-profile-btn" id="verifyBackupBtn">🔍 Check a backup file (reads it, changes nothing)</button>
+      <button class="switch-profile-btn" id="verifyBackupBtn">Check a backup file (reads it, changes nothing)</button>
       <input type="file" id="verifyBackupInput" accept="application/json,.json" style="display:none" aria-label="Choose a backup file to check">
       <div class="status-msg" id="verifyBackupStatus"></div>
       <div id="verifyBackupReport"></div>
@@ -6415,7 +6419,7 @@
   <button class="barcode-close-btn" id="barcodeCloseBtn">Cancel</button>
 </div>
 
-<button class="coach-fab" id="coachFab" aria-label="Ask your coach"><span aria-hidden="true">💬</span></button>
+<button class="coach-fab" id="coachFab" aria-label="Ask your coach"><span aria-hidden="true"><svg class="coach-fab-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 5.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8l-4 3v-3H4.5a2 2 0 0 1-2-2Z"/></svg></span></button>
 
 <button class="today-fab" id="todayFab" style="display:none;" title="Jump back to today">
   <span class="today-fab-label">Today</span>
@@ -6579,7 +6583,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.284';
+const APP_VERSION = '3.285';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7291,6 +7295,9 @@ const WHATS_NEW = {
   ]},
   '3.284': { headline: 'Words in the regular font', points: [
     'Your profile summary, the training-week tag, the session picker, the calories line and exercise tags now read in the regular font instead of typewriter-style lettering. Numbers still line up.',
+  ]},
+  '3.285': { headline: 'The last emoji on Today', points: [
+    'Today\'s Priorities, the profile and backup buttons, and the coach button now use words and a simple chat icon instead of emoji that looked different on every phone.',
   ]},
 };
 
@@ -12413,7 +12420,7 @@ async function getSleepInsight(){
   const hrs = Number(recent.hours);
   if(hrs >= POOR_SLEEP_THRESHOLD) return null;
 
-  return `😴 <b>Recovery note:</b> Only ${hrs} hrs logged last night — strength, reaction time, and injury risk all take a real hit under ${POOR_SLEEP_THRESHOLD} hours. Consider trimming today's session to your top sets, or swapping in something lighter.`;
+  return `<b>Recovery note:</b> Only ${hrs} hrs logged last night — strength, reaction time, and injury risk all take a real hit under ${POOR_SLEEP_THRESHOLD} hours. Consider trimming today's session to your top sets, or swapping in something lighter.`;
 }
 
 // --- Cycle-phase insight: deliberately just surfaces the SAME educational
@@ -12543,7 +12550,7 @@ async function getFoundationalStackNudgeInsight(){
   if(names.length === 0) return null;
 
   const list = names.length <= 2 ? names.join(' & ') : `${names.slice(0, -1).join(', ')}, & ${names[names.length - 1]}`;
-  return `💊 <b>Worth a look:</b> ${escapeHtml(list)} — evidence-based suggestion${names.length===1?'':'s'} for your current profile, not yet in your tracker. <button type="button" class="link-btn" data-jump-to="supplementRecommendationsCard">Review in the foundational stack →</button>`;
+  return `<b>Worth a look:</b> ${escapeHtml(list)} — evidence-based suggestion${names.length===1?'':'s'} for your current profile, not yet in your tracker. <button type="button" class="link-btn" data-jump-to="supplementRecommendationsCard">Review in the foundational stack →</button>`;
 }
 
 // --- Deload week banner: scheduled/proactive, complementing the reactive
@@ -12716,7 +12723,7 @@ async function getDeloadInsight(){
   const isDeload = await isDeloadWeek();
   if(!isDeload) return null;
   const week = await getMesocycleWeek();
-  return `🔻 <b>Deload week (week ${week}):</b> A planned lighter week — sets are already trimmed below (roughly 40-50% less volume), and working weights should come down another ~10-20% on top of that. This combination is what actually lets the last month of hard training turn into progress instead of just accumulated fatigue — cutting weight alone while keeping full volume is one of the most common ways a deload fails to do its job.`;
+  return `<b>Deload week (week ${week}):</b> A planned lighter week — sets are already trimmed below (roughly 40-50% less volume), and working weights should come down another ~10-20% on top of that. This combination is what actually lets the last month of hard training turn into progress instead of just accumulated fatigue — cutting weight alone while keeping full volume is one of the most common ways a deload fails to do its job.`;
 }
 
 // --- Stale resting-region check-in: Care lets you mark a region as resting,
@@ -12744,7 +12751,7 @@ async function getStaleRestingRegionInsight(){
   });
   if(!stale.length) return null;
 
-  return `🩹 <b>Check-in reminder:</b> ${stale.join(' & ')} ${stale.length===1?'has':'have'} been marked resting for ${STALE_RESTING_DAYS}+ days — a quick check-in in Care tells you whether it's actually improving or needs more attention.`;
+  return `<b>Check-in reminder:</b> ${stale.join(' & ')} ${stale.length===1?'has':'have'} been marked resting for ${STALE_RESTING_DAYS}+ days — a quick check-in in Care tells you whether it's actually improving or needs more attention.`;
 }
 
 // --- Weigh-in reminder: only fires for someone who has logged weight
@@ -12757,7 +12764,7 @@ async function getWeighInReminderInsight(){
   const sorted = [...entries].sort((a,b)=> new Date(b.date+'T00:00:00') - new Date(a.date+'T00:00:00'));
   const daysSince = Math.floor((new Date(getTodayKey()+'T00:00:00') - new Date(sorted[0].date+'T00:00:00'))/86400000);
   if(daysSince < STALE_WEIGHIN_DAYS) return null;
-  return `⚖️ <b>Weigh-in reminder:</b> It's been ${daysSince} days since your last weight log — logging one keeps your Goal Progress Check accurate.`;
+  return `<b>Weigh-in reminder:</b> It's been ${daysSince} days since your last weight log — logging one keeps your Goal Progress Check accurate.`;
 }
 
 // --- Water pace check: compares today's intake against a rough expected
@@ -12776,7 +12783,7 @@ async function getWaterPaceInsight(){
   const expected = frac * target;
   if(expected <= 0 || current >= expected * 0.5) return null;
 
-  return `💧 <b>Hydration check:</b> ${current}/${target} oz so far today — behind pace for this time of day.`;
+  return `<b>Hydration check:</b> ${current}/${target} oz so far today — behind pace for this time of day.`;
 }
 
 // --- Deficit guard rail ------------------------------------------------
@@ -12905,7 +12912,7 @@ async function getSessionHeadsUpInsight(){
 
   if(flaggedCount === 0) return null;
   const dayRefText = isBackdating() ? `${formatLogDateLabel(selectedLogDate)}'s` : "today's";
-  return `📋 <b>Session heads-up:</b> ${flaggedCount} exercise${flaggedCount===1?'':'s'} in ${dayRefText} ${day.sub || 'session'} ${flaggedCount===1?'is':'are'} flagged below — a resting-region caution or a fatigue/deload signal. Worth a scroll-through before you start.`;
+  return `<b>Session heads-up:</b> ${flaggedCount} exercise${flaggedCount===1?'':'s'} in ${dayRefText} ${day.sub || 'session'} ${flaggedCount===1?'is':'are'} flagged below — a resting-region caution or a fatigue/deload signal. Worth a scroll-through before you start.`;
 }
 
 // --- Unified Today Insights card: the single "what matters today" summary,
