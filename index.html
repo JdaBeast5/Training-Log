@@ -585,7 +585,6 @@
   .today-standout-banner{
     padding:10px 12px; background:rgba(var(--plate-yellow-rgb),0.1); border:1px solid rgba(var(--plate-yellow-rgb),0.38);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
-    box-shadow:var(--rim), 0 4px 14px -8px rgba(var(--plate-yellow-rgb),0.35);
   }
   .describe-similar-note{font-size:11.5px; color:var(--text-muted); margin-top:12px; padding-top:10px; border-top:1px solid var(--line-soft);}
   .describe-similar-list{display:flex; flex-direction:column; gap:6px; margin-top:8px;}
@@ -602,12 +601,10 @@
   .day-insight{
     padding:10px 12px; background:rgba(var(--plate-blue-rgb),0.08); border:1px solid rgba(var(--plate-blue-rgb),0.28);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
-    box-shadow:var(--rim), 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.35);
   }
   .voice-hint-banner{
     display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(var(--plate-blue-rgb),0.08);
     border:1px solid rgba(var(--plate-blue-rgb),0.28); border-radius:var(--radius-md); font-size:12.5px; line-height:1.4;
-    box-shadow:var(--rim), 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.35);
     color:var(--text); margin-bottom:14px;
   }
   .voice-hint-banner span:first-of-type{flex:1;}
@@ -699,7 +696,6 @@
   .today-insight-row{
     padding:10px 12px; background:rgba(var(--plate-blue-rgb),0.08); border:1px solid rgba(var(--plate-blue-rgb),0.28);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:8px;
-    box-shadow:var(--rim), 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.35);
   }
   .today-insight-row:last-child{margin-bottom:0;}
   .pf-conditions{ border:1px solid var(--line); border-radius:var(--radius-md); padding:12px; margin-bottom:12px; }
@@ -1292,7 +1288,6 @@
   .custom-program-box{
     margin-top:14px; padding:14px; border-radius:var(--radius-md);
     background:var(--surface2); border:1px solid var(--line-bright);
-    box-shadow:var(--elev-1);
   }
   .custom-program-box .care-input{box-shadow:var(--rim);}
   .custom-program-row{
@@ -1310,7 +1305,7 @@
     width:40px; height:40px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
     background:var(--surface2); border:1px solid var(--line-bright); color:var(--text-muted);
-    box-shadow:var(--elev-1); cursor:pointer;
+    cursor:pointer;
     transition:color 0.2s var(--ease-smooth), transform 0.3s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
   .settings-cog svg{width:19px; height:19px;}
@@ -1591,7 +1586,6 @@
     border-radius:var(--radius-md); color:var(--plate-blue); font-size:12.5px; font-weight:600; cursor:pointer;
     font-family:var(--font-sans); letter-spacing:-0.005em; display:flex; align-items:center; justify-content:center; gap:6px;
     transition:border-color 0.2s var(--ease-smooth), background 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset, 0 6px 16px -10px rgba(var(--overlay-black-rgb),0.5);
   }
   .show-more-btn:active{transform:scale(0.98); border-color:var(--line-bright); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset;}
   .usda-search-btn, .dsld-search-btn{
@@ -1915,7 +1909,8 @@
     width:58px; height:58px; border-radius:50%; border:1px solid rgba(var(--surface-white-rgb),0.28);
     background:var(--cta-gradient-blue); color:#fff; font-size:24px;
     display:flex; align-items:center; justify-content:center; cursor:pointer;
-    box-shadow:var(--fab-gloss-inset), 0 14px 34px -8px rgba(var(--plate-blue-rgb),0.65), 0 0 50px -14px rgba(var(--plate-blue-rgb),0.55);
+    /* v3.283: it floats, so it keeps a shadow — a neutral one, not a blue glow */
+    box-shadow:0 10px 24px -10px rgba(var(--overlay-black-rgb),0.7);
     transition:transform 0.18s var(--ease-smooth), box-shadow 0.18s var(--ease-smooth), opacity 0.26s var(--ease-smooth),
                top 0.22s var(--ease-smooth), left 0.22s var(--ease-smooth);
     /* Repositionable by drag (wireCoachFabDrag) — this is a small circular
@@ -1931,15 +1926,10 @@
      (top/left, set inline by wireCoachFabDrag) is what actually moves it. */
   .coach-fab.dragging{
     transition:none; transform:scale(1.08);
-    box-shadow:var(--fab-gloss-inset), 0 20px 40px -10px rgba(var(--plate-blue-rgb),0.75), 0 0 60px -12px rgba(var(--plate-blue-rgb),0.6);
-  }
-  .coach-fab::before{
-    content:''; position:absolute; top:-30%; left:-10%; width:120%; height:65%;
-    background:radial-gradient(ellipse at center, rgba(var(--surface-white-rgb),0.45), transparent 70%);
-    pointer-events:none;
+    box-shadow:0 20px 40px -12px rgba(var(--overlay-black-rgb),0.85); /* deeper neutral lift = "picked up" (v3.283) */
   }
   .coach-fab span{position:relative; z-index:1;}
-  .coach-fab:active{transform:scale(0.9); box-shadow:var(--fab-gloss-inset), 0 8px 20px -8px rgba(var(--plate-blue-rgb),0.5);}
+  .coach-fab:active{transform:scale(0.9);}
 
   /* --- Global "Today" quick-access — bottom-left mirror of the coach FAB,
      but only ever visible while backdating is active anywhere in the app
@@ -1950,18 +1940,14 @@
     position:fixed; bottom:22px; left:18px; z-index:70; overflow:hidden;
     display:flex; align-items:center; height:44px; padding:0 18px;
     border-radius:var(--radius-pill); border:1px solid rgba(var(--surface-white-rgb),0.28);
-    background:linear-gradient(160deg, #FFC978, var(--plate-yellow) 60%); color:#1a1a1a;
+    background:var(--plate-yellow); color:#1a1a1a;
     font-family:var(--font-sans); font-weight:700; font-size:13.5px; cursor:pointer;
-    box-shadow:var(--fab-gloss-inset), 0 14px 34px -8px rgba(var(--plate-yellow-rgb),0.6), 0 0 50px -14px rgba(var(--plate-yellow-rgb),0.5);
+    /* v3.283: flat fill, and the same neutral float shadow as .coach-fab instead of a yellow glow */
+    box-shadow:0 10px 24px -10px rgba(var(--overlay-black-rgb),0.7);
     transition:transform 0.18s var(--ease-smooth), box-shadow 0.18s var(--ease-smooth), opacity 0.22s var(--ease-smooth);
   }
-  .today-fab::before{
-    content:''; position:absolute; top:-30%; left:-10%; width:120%; height:65%;
-    background:radial-gradient(ellipse at center, rgba(var(--surface-white-rgb),0.5), transparent 70%);
-    pointer-events:none;
-  }
   .today-fab-label{position:relative; z-index:1;}
-  .today-fab:active{transform:scale(0.92); box-shadow:var(--fab-gloss-inset), 0 8px 20px -8px rgba(var(--plate-yellow-rgb),0.5);}
+  .today-fab:active{transform:scale(0.92);}
 
   .coach-fab-modal{
     position:fixed; inset:0; z-index:80;
@@ -2594,7 +2580,7 @@
   }
   .gsearch-hit:active{ transform:scale(0.99); }
   .gsearch-hit-tab{ color:var(--text-muted); font-size:11px; flex:0 0 auto; }
-  .nav-pill.active{background:var(--shine-gloss), var(--cta-gradient-blue); border-color:var(--plate-blue); color:#fff; box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.2) inset, 0 3px 12px rgba(var(--plate-blue-rgb),0.4);}
+  .nav-pill.active{background:var(--shine-gloss), var(--cta-gradient-blue); border-color:var(--plate-blue); color:#fff;}
   /* Tab-layout audit (v3.160, option #2): Care/Coach/Learn's home now, a
      vertical list inside navMoreOverlay instead of horizontal pills in the
      rail. These buttons keep the base .nav-pill class (same colors, same
@@ -2741,7 +2727,6 @@
     border-radius:var(--radius-md); padding:12px 36px 12px 14px;
     font-family:var(--font-sans); font-size:14.5px; font-weight:700; letter-spacing:-0.01em;
     cursor:pointer;
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.06) inset, 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.3);
     transition:border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
   .program-select:focus{outline:none; border-color:var(--plate-blue); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.06) inset, 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.5), var(--focus-ring-glow);}
@@ -2867,7 +2852,6 @@
     width:100%; margin-top:12px; padding:10px; background:var(--surface2); border:1px solid var(--line);
     border-radius:var(--radius-md); color:var(--text-muted); font-size:12.5px; font-weight:600; cursor:pointer;
     font-family:var(--font-sans); transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset, 0 6px 16px -10px rgba(var(--overlay-black-rgb),0.5);
   }
   .switch-profile-btn:active{transform:scale(0.98); border-color:var(--line-bright); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset;}
   .care-disclaimer-card{border-color:var(--plate-yellow);}
@@ -3884,7 +3868,6 @@
     background:linear-gradient(180deg, rgba(var(--surface-white-rgb),0.025), rgba(var(--surface-white-rgb),0) 60%), var(--surface2);
     border:1px solid var(--line);
     border-radius:var(--radius-md);
-    box-shadow:var(--rim), 0 8px 20px -14px rgba(var(--overlay-black-rgb),0.6);
   }
   .program-panel-eyebrow{
     font-family:var(--font-sans);
@@ -3918,7 +3901,6 @@
     border-left-width:3px;
     border-radius:var(--radius-sm);
     font-size:12.5px; line-height:1.5; color:var(--text);
-    box-shadow:var(--rim), 0 4px 14px -9px rgba(var(--plate-yellow-rgb),0.3);
   }
   .program-limits-label{
     display:block; font-family:var(--font-sans);
@@ -6597,7 +6579,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.282';
+const APP_VERSION = '3.283';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7302,6 +7284,10 @@ const WHATS_NEW = {
   '3.282': { headline: 'Your lifts come first', points: [
     'The day\'s exercises now start right under the Gym mode button.',
     'The "Adapt this session" option and the day\'s training insight moved below the exercise list.',
+  ]},
+  '3.283': { headline: 'No more glow', points: [
+    'The coloured glow under the active tab, tips, insight boxes and the coach and Today buttons is gone. The two floating buttons keep a soft plain shadow so they still look like they float.',
+    'Buttons and panels that sit still on the page no longer cast shadows.',
   ]},
 };
 

@@ -189,7 +189,9 @@ test('sabotage-relevant: var(--cta-gloss-inset) appears at exactly 10 real call 
   // 6, not the original 5 — .coach-fab.dragging (the drag-to-reposition
   // feature) reuses this same token for its own lift-shadow, consistent
   // with every other FAB active/hover state already doing so.
-  assert.strictEqual((src.match(/var\(--fab-gloss-inset\)/g) || []).length, 6);
+  // 6 -> 1 in v3.283: both FABs (base, :active, .dragging) and their gloss
+  // went neutral; only .day-hero-plate, the modelled day plate, keeps it.
+  assert.strictEqual((src.match(/var\(--fab-gloss-inset\)/g) || []).length, 1);
 });
 
 test('REAL CASCADE: a representative sample of --cta-gloss-inset call sites resolve to the exact pre-conversion literal', (assert)=>{
@@ -214,8 +216,8 @@ test('REAL CASCADE: a representative sample of --fab-gloss-inset call sites reso
   const heroPlateBlock = resolveToken(extractRuleBlock(src, '.day-hero-plate'), 'fab-gloss-inset', gloss);
   assert.ok(heroPlateBlock.includes('0 1px 0 rgba(var(--surface-white-rgb),0.35) inset,'), `.day-hero-plate must resolve to its exact original shadow layer, got: ${heroPlateBlock}`);
 
-  const coachFabBlock = resolveToken(extractRuleBlock(src, '.coach-fab'), 'fab-gloss-inset', gloss);
-  assert.ok(coachFabBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.35) inset, 0 14px 34px -8px rgba(var(--plate-blue-rgb),0.65), 0 0 50px -14px rgba(var(--plate-blue-rgb),0.55);'), `.coach-fab must resolve to its exact original shadow, got: ${coachFabBlock}`);
+  // .coach-fab left this sample in v3.283: it uses a neutral float shadow now.
+  assert.doesNotMatch(extractRuleBlock(src, '.coach-fab'), /fab-gloss-inset/);
 
   // .today-fab:active's own glow color was later (a separate, deliberate
   // color fix, not a mechanical dedup — see test-today-fab-glow-color.js)
@@ -223,8 +225,8 @@ test('REAL CASCADE: a representative sample of --fab-gloss-inset call sites reso
   // matching how .coach-fab's own glow above already resolves through
   // --plate-blue-rgb rather than a hand-picked literal. Only the
   // --fab-gloss-inset layer (this test's actual subject) is checked here.
-  const todayFabActiveBlock = resolveToken(extractRuleBlock(src, '.today-fab:active'), 'fab-gloss-inset', gloss);
-  assert.ok(todayFabActiveBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.35) inset, 0 8px 20px -8px rgba(var(--plate-yellow-rgb),0.5);'), `.today-fab:active must resolve its --fab-gloss-inset layer correctly, got: ${todayFabActiveBlock}`);
+  // .today-fab:active left this sample in v3.283: pressing scales it, no glow.
+  assert.doesNotMatch(extractRuleBlock(src, '.today-fab:active'), /fab-gloss-inset|box-shadow/);
 });
 
 // ── Glass blur + nav-glass background: 4 and 3 real call sites ─────────

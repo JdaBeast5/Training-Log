@@ -30,15 +30,20 @@ test('sabotage-relevant: the old unlinked literal glow color (255,184,92 / #FFB8
   assert.doesNotMatch(src, /255,184,92/, 'the old off-token literal must not remain anywhere');
 });
 
-test('.today-fab and .today-fab:active now glow with rgba(var(--plate-yellow-rgb),X), matching how .coach-fab already resolves its own glow through --plate-blue-rgb', (assert)=>{
-  const todayFabBlock = extractRuleBlock(src, '.today-fab');
-  assert.match(todayFabBlock, /0 14px 34px -8px rgba\(var\(--plate-yellow-rgb\),0\.6\), 0 0 50px -14px rgba\(var\(--plate-yellow-rgb\),0\.5\);/, '.today-fab glow must resolve through --plate-yellow-rgb');
-
-  const todayFabActiveBlock = extractRuleBlock(src, '.today-fab:active');
-  assert.match(todayFabActiveBlock, /0 8px 20px -8px rgba\(var\(--plate-yellow-rgb\),0\.5\);/, '.today-fab:active glow must resolve through --plate-yellow-rgb');
-
-  const coachFabBlock = extractRuleBlock(src, '.coach-fab');
-  assert.match(coachFabBlock, /rgba\(var\(--plate-blue-rgb\),0\.65\), 0 0 50px -14px rgba\(var\(--plate-blue-rgb\),0\.55\);/, 'sanity: .coach-fab already used its real token — this is the pattern .today-fab now matches');
+// v3.283 (tasteskill rollout): glows are gone app-wide on the owner's
+// direction to replace the layout using the vendored skills. The earlier
+// owner call above was about WHICH colour the glow used; with no glow left,
+// both floating buttons share one neutral float shadow through the black
+// token, and neither keeps a plate-colour bloom or a gradient fill.
+test('.today-fab and .coach-fab float on the same neutral shadow (overlay-black token), with no plate-colour glow and no gradient', (assert)=>{
+  const NEUTRAL = /box-shadow:0 10px 24px -10px rgba\(var\(--overlay-black-rgb\),0\.7\);/;
+  for(const sel of ['.today-fab', '.coach-fab']){
+    const block = extractRuleBlock(src, sel);
+    assert.match(block, NEUTRAL, `${sel} must use the shared neutral float shadow`);
+    assert.doesNotMatch(block, /rgba\(var\(--plate-(yellow|blue)-rgb\)/, `${sel} must not glow in a plate colour`);
+    assert.doesNotMatch(block, /linear-gradient/, `${sel} must be a flat fill`);
+  }
+  assert.doesNotMatch(extractRuleBlock(src, '.today-fab:active'), /box-shadow/, 'pressing scales it; no glow on press');
 });
 
 run();

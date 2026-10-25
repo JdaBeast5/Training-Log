@@ -54,9 +54,14 @@ test('regression guard: .nav-pill geometry (padding, font-size, border-radius) i
   assert.match(block, /border-radius:var\(--radius-md\);/, 'border-radius must be unchanged');
 });
 
-test('regression guard: .nav-pill.active keeps its own distinct selected-state glow, untouched by the base .nav-pill shadow trim', (assert)=>{
+// v3.283 (tasteskill rollout): the selected pill's glow is retired with every
+// other glow; selection is still unmistakable because the active pill is the
+// only FILLED, coloured pill in the rail (white text on the CTA blue, blue border).
+test('regression guard: .nav-pill.active is still distinct — the one filled pill — but no longer glows', (assert)=>{
   const block = extractRuleBlock(src, '.nav-pill.active');
-  assert.match(block, /box-shadow:0 1px 0 rgba\(var\(--surface-white-rgb\),0\.2\) inset, 0 3px 12px rgba\(var\(--plate-blue-rgb\),0\.4\);/, '.nav-pill.active\'s own glow must be exactly as it was (later factored into var(--surface-white-rgb), same computed color) — this is a deliberate selection cue, not generic weight');
+  assert.match(block, /background:var\(--shine-gloss\), var\(--cta-gradient-blue\);/, 'the active pill keeps its fill');
+  assert.match(block, /border-color:var\(--plate-blue\);/);
+  assert.doesNotMatch(block, /box-shadow/, 'no glow on the active pill');
 });
 
 run();
