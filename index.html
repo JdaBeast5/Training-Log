@@ -714,9 +714,6 @@
   .session-length-wrap{position:relative; display:block;}
   .session-length-chevron{position:absolute; right:16px; top:50%; width:12px; height:12px; margin-top:-6px; color:var(--text-muted); pointer-events:none;}
   .session-length-select:focus-visible{outline:2px solid var(--focus-ring-color); outline-offset:2px;}
-  .ex-cal-tag{
-    font-size:11px; color:var(--plate-yellow); text-align:right; margin-top:2px; font-weight:600;
-  }
   .today-standout-banner{
     padding:10px 12px; background:rgba(var(--plate-yellow-rgb),0.1); border:1px solid rgba(var(--plate-yellow-rgb),0.38);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
@@ -910,30 +907,31 @@
      separate blocks joined by a connector strip between them, so the yellow
      accent treatment lives on the block itself instead of split across two
      card-radius halves. */
-  .exercise-block.superset-pair{
-    border-left:4px solid var(--plate-yellow);
-    padding-left:9px;
-    margin-left:-13px;
-    background:rgba(var(--plate-yellow-rgb),0.08);
-    border-radius:var(--radius-sm);
+  /* v3.304 (Impeccable craft floor: no coloured edge over 1px; Apple HIG:
+     group related rows rather than boxing them): no yellow edge or tint. A
+     thin rail links the two exercises' checkboxes, and a small label names
+     the pairing. Their sets are already woven together as chips. */
+  .exercise-block.superset-pair{position:relative;}
+  .superset-tag{
+    display:inline-flex; align-items:center; gap:6px; margin:10px 0 0;
+    padding:3px 10px 3px 8px; border-radius:var(--radius-pill);
+    background:var(--glass-fill); border:1px solid var(--glass-hair);
+    font-size:12px; font-weight:500; color:var(--text-muted);
   }
-  /* [TASTESKILL TODAY PILOT, v3.274] Sentence case in the text face at 12px,
-     no tracking, and no ⚡ injected through ::before (an emoji the inspector
-     reads like any other). The yellow edge and pale yellow tint on the pair
-     above stay: they code the kind of block, which is what a hue is for. */
-  .superset-banner{
-    display:flex; align-items:center; gap:6px;
-    padding:6px 0 4px;
-    font-size:12px; font-weight:600;
-    color:var(--plate-yellow);
+  /* A link glyph drawn in CSS: two small rings, overlapping. */
+  .superset-tag-link{position:relative; width:14px; height:8px;}
+  .superset-tag-link::before, .superset-tag-link::after{
+    content:''; position:absolute; top:0; width:8px; height:8px; border-radius:50%;
+    border:1.5px solid currentColor; box-sizing:border-box;
   }
-  /* The second exercise's own header/actions/warmup section, set apart from
-     the first with a hairline rather than a full card boundary — together
-     they read as one unit, not two cards glued together. */
-  .superset-member + .superset-member{
-    margin-top:4px; padding-top:8px;
-    border-top:1px dashed rgba(var(--plate-yellow-rgb),0.3);
+  .superset-tag-link::before{left:0;} .superset-tag-link::after{left:6px;}
+  .superset-member{position:relative;}
+  /* The rail: from the first exercise's checkbox down to the second's. */
+  .superset-member + .superset-member::before{
+    content:''; position:absolute; left:10px; top:-14px; height:28px; width:2px;
+    border-radius:1px; background:rgba(var(--surface-white-rgb),0.22);
   }
+  .set-actions-owner{font-size:12px; color:var(--text-muted); margin-right:4px; align-self:center;}
   /* Hidden by default; revealed only inside a woven superset pair (see
      below) where two exercises' rows sit interleaved in one list and need
      a label to tell them apart without repeating a full header every two
@@ -941,7 +939,7 @@
   .set-row-owner{ display:none; }
   .superset-pair .set-row-owner{
     display:block; flex-basis:100%; order:-1;
-    font-size:12px; font-weight:600; color:var(--plate-yellow);
+    font-size:12px; font-weight:600; color:var(--text-muted);
     margin-bottom:2px;
   }
   input[type=checkbox]{
@@ -3467,8 +3465,9 @@
   /* SET-TYPE COLOUR LANGUAGE. One colour per kind of set, so which is which is
      answerable at a glance without reading a word:
 
-       superset   yellow  --plate-yellow   .exercise-block.superset-*
        warm-up    ORANGE  --plate-orange   .warmup-set-row
+       (superset was yellow until v3.304; it is now a neutral rail and label,
+        since its sets are told apart by the chips' exercise initials)
 
      v3.35 through v3.39 used #4FC3F7 here on the reasoning that the warm-up BOX
      had always been that colour and reusing an existing identity beats
@@ -3480,9 +3479,9 @@
      means "this is the control you are touching" is the one colour that could
      not carry a second meaning. Orange was free.
 
-     The shape deliberately copies `.exercise-block.superset-pair` — 4px left
-     border plus an 8% tint of the same hue — because a consistent SHAPE is what
-     makes a colour legible as a category rather than as decoration. */
+     The shape (4px left border plus an 8% tint of the same hue) was copied from
+     the old yellow superset block, because a consistent SHAPE is what makes a
+     colour legible as a category rather than as decoration. */
   /* SWIPE OUTER, mirroring `.set-row`. Everything you can SEE is the swipe
      content and slides with it — accent, tint, grid. Anything left up here
      would sit still while the row moved and read as the row tearing in half.
@@ -4121,8 +4120,7 @@
   body.gym-mode .ex-history-btn,
   body.gym-mode .ex-edit-btn,
   body.gym-mode .ex-thumb,
-  body.gym-mode .ex-details,
-  body.gym-mode .ex-cal-tag{
+  body.gym-mode .ex-details{
     display:none !important;
   }
 
@@ -6657,7 +6655,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.303';
+const APP_VERSION = '3.304';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7425,6 +7423,9 @@ const WHATS_NEW = {
   ]},  '3.303': { headline: 'Up or stay, set by set', points: [
     'After each set, your next one says whether to go up (↑) or stay (=), based on your reps and RPE. Hit the top of your range without a grind and it adds a step.',
     'The reason shows on Up next and in the quick logger.',
+  ]},  '3.304': { headline: 'Cleaner exercise list', points: [
+    'The yellow calorie tags are off every exercise (your session total is still at the top).',
+    'Supersets are linked with a thin line and a small label instead of a yellow box, and their buttons now sit inside, like any exercise.',
   ]},
 };
 
@@ -27324,7 +27325,6 @@ async function renderWorkout(){
     const info = exerciseInfo[ex.name];
     const thumbSvg = info ? getExerciseIcon(ex.name, info.category) : '';
     const thumbHtml = thumbSvg ? `<div class="ex-thumb">${thumbSvg}</div>` : '';
-    const exCalories = estimateExerciseCalories(ex, userProfile.weight);
 
     let cautionHtml = '';
     let hitRegionsForRow = [];
@@ -27350,7 +27350,7 @@ async function renderWorkout(){
         <div class="ex-name-wrap">
           <div class="ex-name ${completed[i]?'done':''} ${hasSubs ? 'ex-name-swappable' : ''}">${escapeHtml(ex.name)}${swapIconHtml}${focusHtml}${subTagHtml}${ex.isCustom ? '<span class="super-tag custom-tag">✏️ Custom</span>' : ''}</div>
         </div>
-        <div class="ex-sets"><span class="${ex.__overridden ? 'ex-sets-overridden' : ''}" ${ex.__overridden ? 'title="You changed this from the program default"' : ''}>${escapeHtml(ex.sets)}</span><div class="ex-cal-tag">~${exCalories} cal</div></div>
+        <div class="ex-sets"><span class="${ex.__overridden ? 'ex-sets-overridden' : ''}" ${ex.__overridden ? 'title="You changed this from the program default"' : ''}>${escapeHtml(ex.sets)}</span></div>
         ${ex.isCustom ? `<button class="ex-delete-custom-btn" aria-label="Remove custom exercise ${escapeHtml(ex.name)}">🗑️</button>` : ''}
         <span class="ex-chevron" aria-hidden="true">›</span>
     `;
@@ -27415,16 +27415,19 @@ async function renderWorkout(){
     const pairRow = document.createElement('div');
     pairRow.className = 'exercise-block superset-pair';
 
+    // v3.304: the members are headers (plus caution and warm-up); their
+    // actions (Same as Last Time, History, Edit) live in the panel like any
+    // exercise's, each labelled with its exercise.
     const memberHtml = (piece)=> `
       <div class="superset-member" data-ex-idx="${piece.i}">
         <div class="exercise" role="button" tabindex="0" aria-expanded="false" aria-controls="exSetsPanel${t}">
           ${piece.headerInnerHtml}
         </div>
-        <div class="set-actions" data-ex-idx="${piece.i}">${piece.sameAsLastHtml}</div>
         ${piece.cautionHtml}
         ${piece.warmupHtml}
       </div>
     `;
+    const actionsHtml = (piece)=> `<div class="set-actions" data-ex-idx="${piece.i}"><span class="set-actions-owner">${escapeHtml(piece.ex.name)}</span>${piece.sameAsLastHtml}</div>`;
 
     // Set N of the top exercise, straight into set N of the bottom exercise,
     // before either one's next set — the actual order a superset gets
@@ -27439,13 +27442,15 @@ async function renderWorkout(){
     }
 
     pairRow.innerHTML = `
-      <div class="superset-banner">Superset — straight into the next exercise, no rest between</div>
+      <div class="superset-tag"><span class="superset-tag-link" aria-hidden="true"></span>Superset · no rest between</div>
       ${memberHtml(topPiece)}
       ${memberHtml(bottomPiece)}
       <div class="set-chips" role="group"></div>
       <div class="expand-wrap" id="exSetsPanel${t}">
         <div>
           <div class="sets-block" data-day="${activeDay}" data-idx="${t}">
+            ${actionsHtml(topPiece)}
+            ${actionsHtml(bottomPiece)}
             ${interleavedRowsHtml}
             <button class="add-set-btn" type="button">+ Add a round</button>
           </div>
@@ -27638,7 +27643,7 @@ async function renderWorkout(){
       });
     }
 
-    const editBtn = memberEl.querySelector('.ex-edit-btn');
+    const editBtn = blockEl.querySelector(`.set-actions[data-ex-idx="${exIdx}"] .ex-edit-btn`);
     if(editBtn) editBtn.addEventListener('click', (e)=>{
       e.stopPropagation();
       // The ORIGINAL index is what the override is keyed by, and it is not the
@@ -27647,7 +27652,7 @@ async function renderWorkout(){
       openExerciseEditor(ex, ex.__srcIndex);
     });
 
-    const histBtn = memberEl.querySelector('.ex-history-btn');
+    const histBtn = blockEl.querySelector(`.set-actions[data-ex-idx="${exIdx}"] .ex-history-btn`);
     if(histBtn) histBtn.addEventListener('click', (e)=>{
       e.stopPropagation();
       openExerciseHistory(exIdx, ex);
@@ -30043,7 +30048,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       const hasRequiredDistance = !showDistance || distValRaw !== '';
       const isRealSet = hasReps && hasRequiredWeight && hasRequiredDistance;
       // ex.superTag means THIS exercise is the top half of a superset pair
-      // (see renderWorkout's isSupersetTop / the .superset-banner's own
+      // (see renderWorkout's isSupersetTop / the .superset-tag's own
       // "straight into the next exercise, no rest between" label) — there is
       // no real rest target for a set that's immediately followed by a
       // different exercise's set, so no countdown should start and no

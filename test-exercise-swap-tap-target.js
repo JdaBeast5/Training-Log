@@ -45,7 +45,9 @@ const headerDeclSrc = extractBetween(
 const wiringSrc = extractBetween(
   'header + swap-icon click wiring',
   "exerciseHeader.addEventListener('click', ()=>{",
-  "const editBtn = memberEl.querySelector('.ex-edit-btn');"
+  // v3.304: Edit is found by exercise in the whole block now (a superset's
+  // actions moved into its shared panel); same end of the wiring block.
+  "const editBtn = blockEl.querySelector(`.set-actions[data-ex-idx=\"${exIdx}\"] .ex-edit-btn`);"
 );
 // The header's toggle now goes through the one shared open/close helper (the
 // same one the auto-collapse, auto-open-next, gym-mode and Enter-key handover
