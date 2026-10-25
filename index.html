@@ -4977,7 +4977,7 @@
   </div>
   <div class="card" id="todayInsightsCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M12.5 7.5 11 11l-3.5 1.5L9 9z"/></svg></span>Today's Priorities</div>
-    <div class="history-hint">What's worth acting on right now, from what's logged so far today. For how things are trending over time, see Insights &amp; Program Fit on the Analysis tab.</div>
+    <div class="history-hint">What needs attention today. For trends, see Insights &amp; Program Fit on Analysis.</div>
     <div id="todayInsightsList"></div>
   </div>
   <div id="profileCardTopSlot"></div>
@@ -5126,7 +5126,7 @@
 
       <div class="custom-program-box">
         <label class="care-label" for="customProgName">Your own program</label>
-        <div class="history-hint field-note">Start an empty program with as many days as you want, then add exercises to each day the same way you would to any other program. It sits alongside the built-in ones and can be deleted at any time.</div>
+        <div class="history-hint field-note">An empty program with as many days as you want. Add exercises as usual; delete it any time.</div>
         <input type="text" id="customProgName" class="care-input" placeholder="e.g. Off-season block" maxlength="40" autocomplete="off">
         <label class="equip-sublabel" for="customProgDays">Training days per week</label>
         <input type="number" id="customProgDays" class="care-input" value="4" min="1" max="7" inputmode="numeric">
@@ -5152,7 +5152,7 @@
 
   <div class="card" id="cyclingCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="15" r="2.8"/><circle cx="15" cy="15" r="2.8"/><path d="M5 15 9 7h4M9 7l3 8M12 15h3M9 7 7 4"/></svg></span>Cycling Discipline</div>
-    <div class="history-hint">Road and Mountain share a training backbone but differ in emphasis — pick the one that matches how you actually ride.</div>
+    <div class="history-hint">Road and Mountain share a base but differ in emphasis — pick how you ride.</div>
     <select class="program-select" id="cyclingSelector" aria-label="Cycling style"></select>
     <div class="program-select-desc" id="cyclingDesc"></div>
     <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="cyclingOverviewPanel">
@@ -5165,7 +5165,7 @@
 
   <div class="card" id="watersportsCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0"/><path d="M4 13 14 4"/></svg></span>Watersports Discipline</div>
-    <div class="history-hint">Each discipline below is its own land-based S&amp;C program, matched to that sport's own physical demands — pick the one you're actually training for.</div>
+    <div class="history-hint">Each is a land-based S&amp;C program built for that sport — pick yours.</div>
     <select class="program-select" id="watersportsSelector" aria-label="Watersports style"></select>
     <div class="program-select-desc" id="watersportsDesc"></div>
     <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="watersportsOverviewPanel">
@@ -5178,7 +5178,7 @@
 
   <div class="card" id="yogaCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="4" r="1.8"/><path d="M10 6.5 L10 12"/><path d="M6 9 L14 9"/><path d="M10 12 L6.5 17"/><path d="M10 12 L13.5 17"/></svg></span>Style</div>
-    <div class="history-hint">Vinyasa &amp; Flow, Hot Yoga, or Partner Yoga — pick whichever fits today. <b>Hot Yoga:</b> get your doctor's clearance first if you have any cardiovascular, respiratory, or heat-related condition.</div>
+    <div class="history-hint">Pick whichever fits today. <b>Hot Yoga:</b> get your doctor's clearance first if you have a heart, breathing or heat-related condition.</div>
     <select class="program-select" id="yogaSelector" aria-label="Yoga style"></select>
     <div class="program-select-desc" id="yogaDesc"></div>
     <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="yogaOverviewPanel">
@@ -5191,7 +5191,7 @@
 
   <div class="card" id="medicalCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v6M10 11v6M3 10h6M11 10h6"/></svg></span>Condition / Stage</div>
-    <div class="history-hint">Pick whichever matches your actual situation. <b><svg class="inline-warning" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 22 20.5 2 20.5Z"/><line x1="12" y1="9.5" x2="12" y2="14"/><circle cx="12" cy="17.3" r="0.6" fill="currentColor" stroke="none"/></svg> Every option here is a framework to use alongside your own doctor, surgical team, PT, or OB/midwife's real diagnosis and clearance</b>, not a replacement for one — this app has no way to know your specific medical history or healing timeline.</div>
+    <div class="history-hint">Pick what matches your situation. <b><svg class="inline-warning" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 22 20.5 2 20.5Z"/><line x1="12" y1="9.5" x2="12" y2="14"/><circle cx="12" cy="17.3" r="0.6" fill="currentColor" stroke="none"/></svg> Use these alongside your doctor, surgical team, PT or OB/midwife's diagnosis and clearance</b>, never instead — this app can't know your medical history or healing timeline.</div>
     <select class="program-select" id="medicalSelector" aria-label="Medical program"></select>
     <div class="program-select-desc" id="medicalDesc"></div>
     <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="medicalOverviewPanel">
@@ -5238,7 +5238,7 @@
 
       <div id="pfCycleTrackingRow" style="display:none;">
         <label class="save-to-library-label"><input type="checkbox" id="pfCycleTrackingEnabled"><span>Track menstrual cycle</span></label>
-        <div class="history-hint field-note">Powers the Cycle Tracking card and phase-aware Today insights. Turn this off if you'd rather not track or see it — nothing about your program or nutrition targets changes either way.</div>
+        <div class="history-hint field-note">Powers Cycle Tracking and phase-aware Today insights. Turning it off doesn't change your program or nutrition targets.</div>
       </div>
 
       <div class="profile-row-2">
@@ -5268,7 +5268,7 @@
             <option value="mi">Miles (mi)</option>
             <option value="km">Kilometres (km)</option>
           </select>
-          <div class="history-hint field-note">Used for cardio distance and pace. Kept separate from the weight unit on purpose — plenty of people lift in pounds and run in kilometres.</div>
+          <div class="history-hint field-note">For cardio distance and pace. Separate from the weight unit: lift in pounds, run in kilometres.</div>
         </div>
 
         <div id="prefLoadMode">
@@ -5283,19 +5283,19 @@
         <div id="prefWarmupSets">
           <label class="care-label">Warm-up ramp</label>
           <label class="save-to-library-label"><input type="checkbox" id="warmupSetsToggle"><span>Build the ramp in as sets I can log</span></label>
-          <div class="history-hint field-note">The suggested ramp becomes real rows above your working sets, with the weights and reps already filled in, so you can tick them off instead of adding sets and typing the numbers. Warm-up rows never count toward your volume, estimated 1RM, PRs or progression &mdash; they are recorded separately.</div>
+          <div class="history-hint field-note">Adds the suggested ramp as pre-filled rows above your working sets, so you just tick them off. Warm-ups never count toward volume, estimated 1RM, PRs or progression.</div>
         </div>
 
         <div id="prefWakeLock">
           <label class="care-label">Screen</label>
           <label class="save-to-library-label"><input type="checkbox" id="wakeLockToggle" checked><span>Keep the screen awake</span></label>
-          <div class="history-hint field-note" id="wakeLockNote">Stops the phone sleeping between sets while you are logging. It releases itself when you switch apps, and after 15 minutes with nothing logged, so it cannot sit draining the battery once you have finished. Pressing the power button still locks the phone as normal.</div>
+          <div class="history-hint field-note" id="wakeLockNote">Keeps the screen awake between sets. Lets go when you switch apps or after 15 minutes with nothing logged. The power button still locks the phone.</div>
         </div>
 
         <div id="prefManualDeload">
           <label class="care-label">Deload / taper week</label>
           <label class="save-to-library-label"><input type="checkbox" id="manualDeloadToggle"><span>Treat this week as a deload, regardless of the schedule</span></label>
-          <div class="history-hint field-note">Every 5th week is already suggested as a deload automatically. Turn this on for a week that doesn't line up with that — before a competition, after a rough patch, or just because you need one — and suggested weights and warm-ups come down the same way they would on a scheduled one. Turn it back off when the week's over; it doesn't expire on its own.</div>
+          <div class="history-hint field-note">Every 5th week is already a deload. Turn this on for an extra one — before a competition or after a rough patch — and suggested weights and warm-ups drop as usual. It stays on until you turn it off.</div>
         </div>
 
         <div id="prefDaysPerWeek">
@@ -5310,13 +5310,13 @@
             <option value="6">6</option>
             <option value="7">7</option>
           </select>
-          <div class="history-hint field-note">Switches to a real, purpose-built plan for however many days you actually want to train (1-7) — not the same sessions repeated, a genuinely different structure per count. Select "Program default" to revert to the program's own default split. Applies to every program in this app — including every style within Cycling, Combat, Watersports, and Yoga — except the medically-modified programs, which never will (those follow your care team's guidance, not a day-count preference).</div>
+          <div class="history-hint field-note">A purpose-built plan for 1-7 days a week — a different structure for each count, not repeated sessions. "Program default" switches back. Works on every program and style except the medically-modified ones, which follow your care team's guidance.</div>
           <div id="daysPerWeekWarning" style="display:none"></div>
         </div>
 
         <div>
           <label class="care-label">My equipment</label>
-          <div class="history-hint field-note" style="margin-top:0;">Suggested weights get rounded to something you can actually load, and the plate calculator only lists plates you own. Leave it alone if you train at a commercial gym.</div>
+          <div class="history-hint field-note" style="margin-top:0;">Rounds suggested weights to what you can load; the plate calculator uses only plates you own. Skip this at a commercial gym.</div>
           <div class="equip-grid">
             <div>
               <label class="equip-sublabel" for="equipBar">Bar weight (<span class="equip-unit">lb</span>)</label>
@@ -5358,7 +5358,7 @@
 
       <fieldset class="pf-conditions">
         <legend class="care-label">Health conditions</legend>
-        <div class="history-hint" style="margin-bottom:8px;">Optional, and stored only on this device. These turn on the tracking and nutrient targets that go with them, and they stay on whatever program you train — so switching to a strength program doesn't hide your blood-pressure history. This is not a diagnosis and it is not a substitute for your care team.</div>
+        <div class="history-hint" style="margin-bottom:8px;">Optional, and stored only on this device. Each turns on its own tracking and nutrient targets, on every program. Not a diagnosis, and not a substitute for your care team.</div>
         <div id="pfConditionsList"></div>
       </fieldset>
 
@@ -5376,11 +5376,11 @@
       <label class="save-to-library-label"><input type="checkbox" id="pfNutFree"><span>Nut-free (tree nuts + peanuts)</span></label>
       <label class="save-to-library-label"><input type="checkbox" id="pfHalal"><span>Halal</span></label>
       <label class="save-to-library-label"><input type="checkbox" id="pfKosher"><span>Kosher</span></label>
-      <div class="history-hint field-note">Halal and Kosher here only ever catch obvious ingredient conflicts — no pork, no shellfish (Kosher), no alcohol (Halal), no meat-and-dairy combination (Kosher). Real compliance also depends on how something was slaughtered and prepared, which no app can verify from a name — treat this as a helpful filter, not a certification.</div>
+      <div class="history-hint field-note">Halal and Kosher catch only obvious ingredient conflicts: pork, shellfish (Kosher), alcohol (Halal), meat with dairy (Kosher). No app can verify slaughter or preparation — a filter, not a certification.</div>
 
       <label class="care-label" for="pfAvoidFoods">Avoid</label>
       <input type="text" id="pfAvoidFoods" class="care-input" placeholder="e.g. peanuts, shellfish, pork, cilantro">
-      <div class="history-hint field-note">Allergies, intolerances, religious restrictions, or just foods you don't want suggested — comma-separated. Matches whole words in a food's name, so "egg" won't flag "eggplant." Broad categories like "nuts" only catch foods actually named that — list specific ones (almonds, cashews, walnuts) for full coverage.</div>
+      <div class="history-hint field-note">Foods never to suggest, comma-separated. Matches whole words ("egg" won't flag "eggplant"), so list specifics — almonds, cashews — not just "nuts".</div>
 
       <button class="save-btn" id="pfSave">Save profile</button>
       <div class="status-msg" id="pfStatus"></div>
@@ -5724,7 +5724,7 @@
     <div class="nutrition-summary" id="diagSummaryLine">Version, offline support and storage</div>
     <div class="expand-wrap" id="diagExpandWrap">
       <div>
-        <div class="history-hint">Checks whether this device is running the newest version, whether offline support is working, and whether storage is healthy. Run it after publishing an update if the app looks unchanged.</div>
+        <div class="history-hint">Checks for the newest version, offline support and storage health. Run it if an update doesn't show.</div>
         <button class="switch-profile-btn" id="diagRunBtn">🩺 Run check</button>
         <div id="diagResults"></div>
       </div>
@@ -5739,7 +5739,7 @@
     <div class="nutrition-summary" id="healthImportSummaryLine">Steps, resting HR and HRV from a CSV export</div>
     <div class="expand-wrap" id="healthImportExpandWrap">
       <div>
-        <div class="history-hint">Bring in steps, resting heart rate and HRV from Apple Health, Garmin, Fitbit, Oura or Whoop. Export a CSV from that app, then pick it here. Resting heart rate is what the readiness check on Today leans on most.</div>
+        <div class="history-hint">Import steps, resting heart rate and HRV: export a CSV from Apple Health, Garmin, Fitbit, Oura or Whoop, then pick it here. Today's readiness check leans most on resting heart rate.</div>
         <input type="file" id="healthImportInput" aria-label="Choose a health data CSV file to import" accept=".csv,text/csv" style="display:none">
         <button class="switch-profile-btn" id="healthImportBtn">📥 Choose a CSV file</button>
         <div id="healthImportStatus" class="history-hint"></div>
@@ -6381,7 +6381,7 @@
 
     <div class="settings-section">
       <label class="care-label">You</label>
-      <div class="history-hint field-note">Your profile carries the weight unit, dietary restrictions, equipment and health conditions with it, so it lives here in full.</div>
+      <div class="history-hint field-note">Your units, dietary restrictions, equipment and health conditions, all in one place.</div>
       <div id="settingsProfileSlot"></div>
     </div>
 
@@ -6392,7 +6392,7 @@
 
     <div class="settings-section">
       <label class="care-label">Data &amp; maintenance</label>
-      <div class="history-hint field-note">Your data lives in this browser and nowhere else. The export is the only copy that is not in it.</div>
+      <div class="history-hint field-note">Your data lives only in this browser. An export is the only copy outside it.</div>
       <button type="button" class="settings-jump" data-jump-to="exportDataBtn"><span>Backup &amp; restore your data</span><span>›</span></button>
       <!-- App Health Check and Import Health Data used to live on the Log
            tab, mixed into the same scroll as daily weight/food/sleep
@@ -6415,7 +6415,7 @@
       <div class="sub-modal-title" id="subModalTitle">Swap exercise</div>
       <button class="sub-modal-close" id="subModalClose" aria-label="Close exercise swap">✕</button>
     </div>
-    <div class="sub-modal-hint">Pick an alternative that hits the same muscles — matched for equipment or preference. Each option keeps its own separate weight/reps/RPE history at this slot.</div>
+    <div class="sub-modal-hint">Alternatives that hit the same muscles. Each keeps its own weight, reps and RPE history here.</div>
     <div id="subModalOptions"></div>
   </div>
 </div>
@@ -6665,7 +6665,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.293';
+const APP_VERSION = '3.294';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7408,6 +7408,8 @@ const WHATS_NEW = {
   ]},  '3.293': { headline: 'One size for buttons', points: [
     'Buttons on your workout now share two sizes: the ones you use mid-session, and the ones that add to your plan. Log set is no longer smaller than the buttons around it.',
     'The voice tip is a quiet note instead of another box, and its close button is easier to tap.',
+  ]},  '3.294': { headline: 'Less reading on Today and Settings', points: [
+    'Help notes on Today and in Settings say the same thing in about a third fewer words.',
   ]},
 };
 
@@ -24399,7 +24401,7 @@ function renderDaysPerWeekWarning(){
       <span class="chev" aria-hidden="true">›</span> ⚠️ Heads up
     </button>
     <div class="smooth-toggle open" id="${id}"><div>
-      <div class="history-hint field-note">${escapeHtml('Most programs benefit from at least one full rest day for recovery, even at higher training frequencies. The extra days here are dedicated accessory/conditioning work, not a repeat of your hardest sessions — but listen to your body.')}</div>
+      <div class="history-hint field-note">${escapeHtml('Most programs need at least one full rest day. The extra days are accessory and conditioning work, not repeats of your hardest sessions — listen to your body.')}</div>
     </div></div>`;
 }
 
@@ -26266,7 +26268,7 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
     };
   }
   if(inDeloadWeek && priorTop && priorTop.weight!=null){
-    return {direction:'down', html:`<div class="progress-hint">🔻 Deload week — sets are already reduced below; last top set was ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'} reps${note}, aim for roughly 10-20% lighter today.</div>`};
+    return {direction:'down', html:`<div class="progress-hint">🔻 Deload week — sets are already reduced. Last top set ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'}${note}; go about 10-20% lighter today.</div>`};
   }
   if(priorTop && priorTop.reps!=null && topRep!=null && priorTop.reps >= topRep){
     return {direction:'up', html:`<div class="progress-badge">⬆ Hit ${priorTop.reps} reps last time at ${priorTop.weight!=null ? fmtWeight(priorTop.weight) : '?'}${note} — try adding weight today</div>`};
@@ -26414,10 +26416,10 @@ function chooseRampBasis(todayFirstSet, suggestedFirst, priorTop){
 // an exercise is indistinguishable from a feature that is broken.
 function buildWarmupNudgeHtml(reason){
   const body = reason === 'bodyweight'
-    ? 'A few easier reps — knee push-ups, band-assisted pulls, a lighter-tempo set, whatever gets the same joints moving — before your first real set.'
+    ? 'A few easier reps first — knee push-ups, band-assisted pulls, a slower set — to get the same joints moving.'
     : reason === 'light'
-      ? 'Light enough that a formal ramp is more clutter than help. One easy set to groove the movement is plenty.'
-      : 'No logged history for this lift yet, so there is no working weight to ramp to. Work up in a few easy sets today; from your next session the ramp builds itself.';
+      ? 'Light enough that one easy set to groove the movement is plenty.'
+      : 'No history for this lift yet, so there is nothing to ramp to. Do a few easy sets today; the ramp builds itself from next session.';
   return `<div class="warmup-box"><div class="warmup-title">Warm up first</div><div class="warmup-row warmup-note"><span>${body}</span></div></div>`;
 }
 
@@ -26971,7 +26973,7 @@ async function renderVoiceHint(){
 
   banner.className = 'voice-hint-banner';
   banner.innerHTML = `
-    <span><b>Tip:</b> hold the plate-calculator icon — or tap the mic icon on other exercises — to voice log a set. Try "225 for 5" or "180 for 12 at a 6".</span>
+    <span><b>Tip:</b> log a set by voice — hold the plate-calculator icon, or tap the mic icon. Try "225 for 5" or "180 for 12 at a 6".</span>
     <button class="voice-hint-dismiss" id="voiceHintDismissBtn" aria-label="Dismiss voice logging tip">✕</button>
   `;
   banner.style.display = 'flex';
@@ -43764,7 +43766,7 @@ function renderBackupReport(report){
     + ` · exported ${when}${report.appVersion ? ' from v' + report.appVersion : ''}`;
   el.innerHTML = diagRow('Backup file', report.warnings.length ? {ok:true, warn:detail} : {ok:true, detail})
     + report.warnings.map(w=> diagRow('Note', {ok:true, warn:w})).join('')
-    + '<div class="history-hint field-note">Nothing was imported and nothing on this device was changed. If these numbers look like your training history, this file is a usable backup.</div>';
+    + '<div class="history-hint field-note">Nothing was imported or changed. If these numbers match your training, the file is a usable backup.</div>';
 }
 
 // Age of the last backup, for the health check. Sessions-since is already on
@@ -43985,7 +43987,7 @@ async function runDiagnostics(){
     + diagRow('Storage', storage)
     + diagRow('Backup', backup)
     + diagRow('Cold start', checkBootPerformance())
-    + `<div class="history-hint field-note">App v${APP_VERSION} · schema v${SCHEMA_VERSION}. "Force refresh" clears the cached copy of the app and reloads from the server. It does not touch any of your logged data.</div>`
+    + `<div class="history-hint field-note">App v${APP_VERSION} · schema v${SCHEMA_VERSION}. "Force refresh" reloads the app from the server; your data is untouched.</div>`
     + `<div class="app-banner-actions"><button type="button" class="app-banner-btn app-banner-btn-danger" id="diagForceRefresh">Force refresh</button><button type="button" class="app-banner-btn" id="diagWhatsNew">What's New</button></div>`;
 
   const whatsNewBtn = document.getElementById('diagWhatsNew');
@@ -44133,7 +44135,7 @@ async function openExerciseEditor(ex, srcIndex){
   const authored = (day && day.exercises && day.exercises[srcIndex]) ? day.exercises[srcIndex].sets : ex.sets;
 
   body.innerHTML = `
-    <div class="history-hint">Changes apply to this exercise on this day, every week. The program itself isn't touched — reset at any time to get the original back.</div>
+    <div class="history-hint">Applies to this exercise on this day, every week. The program is untouched — reset any time.</div>
 
     <label class="equip-sublabel" for="exEditSets" style="margin-top:12px;">Sets and reps</label>
     <input type="text" id="exEditSets" class="care-input" value="${escapeHtml(ov && ov.sets ? ov.sets : ex.sets)}" maxlength="24" autocomplete="off" aria-describedby="exEditSetsHelp">
@@ -44156,7 +44158,7 @@ async function openExerciseEditor(ex, srcIndex){
 
     <div class="exedit-section">
       <button type="button" class="app-banner-btn app-banner-btn-danger" id="exEditRemove">Remove from this day</button>
-      <div class="history-hint field-note">Hides it from this day only. Nothing you've already logged for it is deleted, and you can bring it back by resetting.</div>
+      <div class="history-hint field-note">Hides it from this day only. Logged history stays; reset to bring it back.</div>
     </div>
   `;
 
