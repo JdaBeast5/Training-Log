@@ -3320,6 +3320,7 @@
     margin-bottom:4px; transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .custom-toggle:active{transform:scale(0.98); border-color:var(--line-bright);}
+  .session-extras{ margin-top:14px; } /* adapt + day insight, moved below the list in v3.282 */
   .adapt-workout-toggle{
     /* Flat fill at the old gradient's midpoint, no glow (tasteskill Today pilot, v3.275). */
     width:100%; background:rgba(var(--plate-blue-rgb),0.10);
@@ -4973,15 +4974,8 @@
       <select class="session-length-select" id="sessionLengthSelector" aria-label="Session length"></select>
     </div>
     <div class="session-cal-total" id="sessionCalTotal"></div>
-    <div class="day-insight" id="dayInsight"></div>
     <div class="today-standout-banner" id="todayStandoutBanner" style="display:none"></div>
     <div id="voiceHintBanner" style="display:none"></div>
-    <button class="adapt-workout-toggle" id="adaptWorkoutBtn">Only have limited equipment or time today? Adapt this session</button>
-    <div id="adaptWorkoutPanel" class="smooth-toggle"><div>
-      <input type="text" id="adaptWorkoutInput" class="care-input" placeholder="e.g. only dumbbells, no equipment at all, 20 minutes, traveling with just resistance bands" aria-label="What you have available today">
-      <button class="save-btn" id="adaptWorkoutSubmit">Get adapted session</button>
-      <div id="adaptWorkoutResult"></div>
-    </div></div>
     <button type="button" class="gym-enter-btn" id="gymEnterBtn">
       <svg class="gym-enter-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg> Gym mode
     </button>
@@ -4997,6 +4991,20 @@
       <button class="save-btn" id="addCustomExerciseSubmit">Add to this day</button>
       <div class="status-msg" id="customExStatus"></div>
     </div></div>
+    <!-- Below the exercise list on purpose (tasteskill rollout, v3.282): the
+         card answers "what's next in today's session?", so the lifts come
+         first. Adapting the session is an occasional job and the day insight
+         is general advice; above the list they pushed the first set row
+         ~1130px down. Gym mode, today's standout and the voice tip stay up top. -->
+    <div class="session-extras">
+      <button class="adapt-workout-toggle" id="adaptWorkoutBtn">Only have limited equipment or time today? Adapt this session</button>
+      <div id="adaptWorkoutPanel" class="smooth-toggle"><div>
+        <input type="text" id="adaptWorkoutInput" class="care-input" placeholder="e.g. only dumbbells, no equipment at all, 20 minutes, traveling with just resistance bands" aria-label="What you have available today">
+        <button class="save-btn" id="adaptWorkoutSubmit">Get adapted session</button>
+        <div id="adaptWorkoutResult"></div>
+      </div></div>
+      <div class="day-insight" id="dayInsight"></div>
+    </div>
     <!-- Lives outside #exerciseList on purpose: that div's innerHTML gets
          wholesale-replaced on every renderWorkout() call, which used to be
          where this button was injected -- but only inside the rest-day
@@ -6589,7 +6597,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.281';
+const APP_VERSION = '3.282';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7290,6 +7298,10 @@ const WHATS_NEW = {
   ]},
   '3.281': { headline: 'Calmer nutrition bars', points: [
     'Calories, protein, fat, carbs and the extra nutrient bars are labelled in normal sentence case instead of all capitals.',
+  ]},
+  '3.282': { headline: 'Your lifts come first', points: [
+    'The day\'s exercises now start right under the Gym mode button.',
+    'The "Adapt this session" option and the day\'s training insight moved below the exercise list.',
   ]},
 };
 

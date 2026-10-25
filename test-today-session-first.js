@@ -99,4 +99,23 @@ test('REAL invocation: positionProfileCard() still puts an UNFINISHED profile ab
   assert.strictEqual(card.previousElementSibling.id, 'profileCardTopSlot');
 });
 
+// v3.282: inside the workout card, the lifts come before the occasional
+// extras. Measured in Chromium on the seeded returning user: first exercise
+// 1613px (pre-rollout) -> 1130px (v3.271) -> 924px. The adapt panel still opens
+// and gym mode still hides the moved items (their rules are id-based).
+test('REAL markup (v3.282): Gym mode, today\'s standout and the voice tip stay above the exercise list; Adapt and the day insight follow it', (assert)=>{
+  const document = freshToday();
+  const list = document.getElementById('exerciseList');
+  for(const id of ['gymEnterBtn', 'todayStandoutBanner', 'voiceHintBanner']){
+    assert.ok(precedes(document.getElementById(id), list), `#${id} must stay above the exercise list`);
+  }
+  for(const id of ['adaptWorkoutBtn', 'adaptWorkoutPanel', 'dayInsight']){
+    const el = document.getElementById(id);
+    assert.ok(precedes(list, el), `#${id} must come after the exercise list`);
+    assert.ok(el.closest('#workoutCard'), `#${id} must stay inside the workout card (gym mode hides it via #workoutCard)`);
+  }
+  assert.strictEqual(document.getElementById('adaptWorkoutBtn').nextElementSibling.id, 'adaptWorkoutPanel', 'the panel still follows its toggle');
+  assert.ok(precedes(document.getElementById('customExerciseForm'), document.getElementById('adaptWorkoutBtn')), 'add-custom stays attached to the list it extends');
+});
+
 run();
