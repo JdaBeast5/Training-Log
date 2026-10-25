@@ -472,11 +472,11 @@
 
   .workout-hero{display:flex; align-items:center; gap:16px; margin-bottom:16px;}
   .workout-hero-plate-wrap{position:relative; flex:0 0 auto;}
-  .workout-hero-glow{
-    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    width:92px; height:92px; border-radius:50%; filter:blur(18px); opacity:0.28;
-    pointer-events:none; z-index:0;
-  }
+  /* [TASTESKILL TODAY PILOT, v3.275] The blurred plate-coloured halo that sat
+     behind this plate (.workout-hero-glow / #dayHeroGlow) is gone, markup and
+     the renderWorkout line that coloured it both: glows are off-style on this
+     screen. The plate itself stays exactly as modelled — it is the day's
+     identity, the Olympic-plate colour this product owns. */
   .day-hero-plate{
     position:relative; overflow:hidden; z-index:1;
     width:68px; height:68px; border-radius:50%;
@@ -3340,11 +3340,12 @@
   }
   .custom-toggle:active{transform:scale(0.98); border-color:var(--line-bright);}
   .adapt-workout-toggle{
-    width:100%; background:linear-gradient(160deg, rgba(var(--plate-blue-rgb),0.14), rgba(var(--plate-blue-rgb),0.06));
+    /* Flat fill at the old gradient's midpoint, no glow (tasteskill Today pilot, v3.275). */
+    width:100%; background:rgba(var(--plate-blue-rgb),0.10);
     border:1px solid rgba(var(--plate-blue-rgb),0.35); color:var(--text);
     padding:11px; border-radius:var(--radius-sm); font-size:13px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
-    margin-bottom:10px; box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.06) inset, 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.35);
-    transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
+    margin-bottom:10px;
+    transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .adapt-workout-toggle:active{transform:scale(0.98); border-color:rgba(var(--plate-blue-rgb),0.55);}
   .custom-form{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
@@ -4632,7 +4633,8 @@
   .gym-enter-btn{
     display:flex; align-items:center; justify-content:center; gap:8px;
     width:100%; min-height:50px; margin:2px 0 14px;
-    background:linear-gradient(180deg, rgba(91,124,255,0.18), rgba(91,124,255,0.08));
+    /* Flat fill at the old gradient's midpoint (tasteskill Today pilot, v3.275). */
+    background:rgba(91,124,255,0.13);
     color:var(--text); border:1px solid rgba(91,124,255,0.45);
     border-radius:var(--radius-md);
     font-family:'Inter',sans-serif; font-size:15px; font-weight:600;
@@ -4977,7 +4979,6 @@
   <div id="workoutCard" class="card" role="tabpanel" aria-label="Selected day's workout">
     <div class="workout-hero">
       <div class="workout-hero-plate-wrap">
-        <div class="workout-hero-glow" id="dayHeroGlow"></div>
         <span id="dayPlateIcon" class="day-hero-plate"></span>
       </div>
       <div class="workout-hero-text">
@@ -6607,7 +6608,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.274';
+const APP_VERSION = '3.275';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7281,6 +7282,10 @@ const WHATS_NEW = {
   '3.274': { headline: 'Quieter warm-up and superset labels', points: [
     'Warm-up and superset labels are now in normal sentence case instead of small shouty capitals, and warm-up advice reads in the regular font.',
     'The warm-up box lost its orange glow. It\'s still tinted orange, so it stands apart from your working sets.',
+  ]},
+  '3.275': { headline: 'Cleaner workout header', points: [
+    'The coloured glow behind the day\'s plate is gone. The plate keeps its colour.',
+    'The Adapt and Gym mode buttons are now flat instead of shaded.',
   ]},
 };
 
@@ -26924,7 +26929,6 @@ async function renderWorkout(){
   const iconEl = document.getElementById('dayPlateIcon');
   iconEl.className = 'day-hero-plate ' + dayPlateClass;
   iconEl.innerHTML = dayGlyphSvg(day.sub);
-  document.getElementById('dayHeroGlow').className = 'workout-hero-glow ' + dayPlateClass;
   // Mirrors the main title so the sticky header reads correctly whenever it
   // becomes visible, without needing its own render pass.
   document.getElementById('stickyDayTitle').textContent = `${day.label} — ${day.sub}`;
