@@ -45,7 +45,8 @@ test('sabotage-relevant: #7C97FF no longer appears as a real CSS/SVG color value
 test('REAL invocation: all four former-#7C97FF sites resolve to #6E8AFF at the token\'s 60% stop, either directly or via --cta-gradient-blue', (assert)=>{
   const rootBlock = extractRuleBlock(src, ':root');
   // v3.280 (tasteskill rollout) deliberately flattened this token to #3860FF — a deeper --plate-blue step chosen so white text passes 4.5:1 (4.9:1, against 3.1-3.6:1 on the old gradient). The structural point of this test (call sites share the one token) still holds.
-  assert.match(rootBlock, /--cta-gradient-blue:#3860FF;/, 'sanity: the token holds the flat #3860FF');
+  // v3.287 (Glass & glow): a blue->purple gradient again, every stop AA with white.
+  assert.match(rootBlock, /--cta-gradient-blue:linear-gradient\(135deg, #3860FF, #7A3CE0\);/, 'sanity: the token holds the v3.287 gradient');
 
   // .coach-fab, .vol-bar-fill, and .calendar-cell.selected were all later
   // (a separate, purely-mechanical dedup pass for vol-bar-fill; a
@@ -68,8 +69,8 @@ test('REAL invocation: all four former-#7C97FF sites resolve to #6E8AFF at the t
 
 test('regression guard: the --cta-gradient-blue token and the AI Coach rest-timer SVG stop are untouched by either fix', (assert)=>{
   const rootBlock = extractRuleBlock(src, ':root');
-  // Changed once, deliberately, in v3.280 (flat #3860FF, see the note above).
-  assert.match(rootBlock, /--cta-gradient-blue:#3860FF;/, 'the token holds the v3.280 flat value');
+  // Changed deliberately in v3.280 (flat #3860FF, contrast) and v3.287 (Glass & glow gradient).
+  assert.match(rootBlock, /--cta-gradient-blue:linear-gradient\(135deg, #3860FF, #7A3CE0\);/, 'the token holds the v3.287 value');
 
   const stopMatch = /<stop offset="0%" stop-color="#6E8AFF"\/>/;
   assert.match(src, stopMatch, 'the AI Coach rest-timer SVG gradient stop must be unchanged — it was already #6E8AFF');
@@ -89,7 +90,9 @@ test('sabotage-relevant: exactly four real #6E8AFF sites exist in the file, not 
   // var(--cta-gradient-blue) reference. What's left: the token definition
   // itself, .coach-progress-fill's own untouched literal, the SVG stop,
   // and one prose mention in the :root comment.
-  assert.strictEqual(count, 4, 'expected 3 real #6E8AFF color values (token, .coach-progress-fill, SVG stop) plus 1 historical-note comment mention — a different count means either a site was missed, double-converted, or the comment text drifted');
+  // 3 since v3.280: the token stopped holding #6E8AFF (contrast), so what is
+  // left is .coach-progress-fill, the SVG stop and the historical :root note.
+  assert.strictEqual(count, 3, 'expected 2 real #6E8AFF color values (.coach-progress-fill, SVG stop) plus 1 historical-note comment mention — a different count means either a site was missed, double-converted, or the comment text drifted');
 });
 
 run();

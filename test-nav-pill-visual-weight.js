@@ -38,29 +38,32 @@ test('sabotage-relevant: .nav-pills-scroll gap is tightened from the original 8p
   assert.ok(Number(m[1]) < 8, `gap should be reduced below the original 8px, got ${m[1]}px`);
 });
 
-test('sabotage-relevant: .nav-pill\'s outer drop-shadow component is gone, inset highlight kept', (assert)=>{
+// v3.288 (Glass & glow): inside the floating glass tab bar a resting tab is just
+// its label (no fill, no highlight); the selected tab is the white pill.
+test('sabotage-relevant: .nav-pill has no drop-shadow and, since v3.288, no inset highlight either — a resting tab is just its label', (assert)=>{
   // extractRuleBlock's regex stops at the first '}', which correctly
   // isolates the base .nav-pill rule from .nav-pill.active/.nav-pill:active
   // that follow it — those are separate selectors, not part of this block.
   const block = extractRuleBlock(src, '.nav-pill');
-  assert.match(block, /box-shadow:0 1px 0 rgba\(var\(--surface-white-rgb\),0\.04\) inset;/, 'the inset top highlight must remain — the literal white rgba() was later factored into var(--surface-white-rgb) by the neutral-rgba consolidation pass, same computed color');
+  assert.match(block, /box-shadow:none;/, 'a resting tab casts nothing');
+  assert.match(block, /background:transparent;/, 'and has no fill of its own');
   assert.doesNotMatch(block, /0 4px 12px -8px rgba\(var\(--overlay-black-rgb\),0\.5\)/, 'the outer drop-shadow component must be gone');
 });
 
-test('regression guard: .nav-pill geometry (padding, font-size, border-radius) is completely unchanged — tap-target size is out of scope for this pass', (assert)=>{
+test('regression guard: .nav-pill tap height and type are unchanged; v3.288 only narrowed side padding and rounded it into a pill', (assert)=>{
   const block = extractRuleBlock(src, '.nav-pill');
-  assert.match(block, /padding:10px 13px;/, 'padding must be unchanged');
+  assert.match(block, /padding:10px 10px;/, 'vertical padding 10px (tap height) unchanged; sides 13px -> 10px so five tabs fit 375px');
   assert.match(block, /font-size:13px;/, 'font-size must be unchanged');
-  assert.match(block, /border-radius:var\(--radius-md\);/, 'border-radius must be unchanged');
+  assert.match(block, /border-radius:var\(--radius-pill\);/, 'a pill inside the pill-shaped bar');
 });
 
 // v3.283 (tasteskill rollout): the selected pill's glow is retired with every
 // other glow; selection is still unmistakable because the active pill is the
 // only FILLED, coloured pill in the rail (white text on the CTA blue, blue border).
-test('regression guard: .nav-pill.active is still distinct — the one filled pill — but no longer glows', (assert)=>{
+test('regression guard: .nav-pill.active is still distinct — the one filled pill (white, concept A) — and does not glow', (assert)=>{
   const block = extractRuleBlock(src, '.nav-pill.active');
-  assert.match(block, /background:var\(--shine-gloss\), var\(--cta-gradient-blue\);/, 'the active pill keeps its fill');
-  assert.match(block, /border-color:var\(--plate-blue\);/);
+  assert.match(block, /background:#fff;/, 'the active tab is the white pill');
+  assert.match(block, /color:#000;/);
   assert.doesNotMatch(block, /box-shadow/, 'no glow on the active pill');
 });
 

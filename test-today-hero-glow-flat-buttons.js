@@ -58,14 +58,17 @@ test('REAL CSSOM: no .workout-hero-glow rule survives, and the plate\'s own rule
   assert.notStrictEqual(plate.getPropertyValue('box-shadow'), '', 'the plate keeps its modelled depth');
 });
 
-test('REAL CSSOM: Adapt and Gym mode buttons are flat fills with no gradient, the toggle with no glow shadow, borders kept', (assert)=>{
+// v3.287 (Glass & glow, owner-chosen): Adapt and Gym mode are frosted-glass
+// pills now. What this test still guards from v3.275: neither glows (glow is
+// reserved for the primary button and the coach button), borders are kept.
+test('REAL CSSOM: Adapt and Gym mode are glass pills (glass fill, border kept) with no glow', (assert)=>{
   for(const sel of ['.adapt-workout-toggle', '.gym-enter-btn']){
     const st = only(sel);
-    assert.ok(!/gradient/.test(st.getPropertyValue('background') + st.getPropertyValue('background-image')), `${sel} must not use a gradient`);
-    assert.match(st.getPropertyValue('background') || st.getPropertyValue('background-color'), /rgba\(/, `${sel} keeps a flat tint`);
+    assert.strictEqual(st.getPropertyValue('background'), 'var(--glass-fill)', `${sel} is glass`);
     assert.match(st.getPropertyValue('border'), /1px solid/, `${sel} keeps its border`);
+    assert.strictEqual(st.getPropertyValue('border-radius'), 'var(--radius-pill)');
+    assert.strictEqual(st.getPropertyValue('box-shadow'), '', `${sel} must not glow`);
   }
-  assert.strictEqual(only('.adapt-workout-toggle').getPropertyValue('box-shadow'), '');
 });
 
 run();

@@ -27,11 +27,13 @@ function only(sel){
 const headerHtml = extractElementById(src, 'headerEyebrow'); // anchor: the real element exists
 const EMOJI = /\p{Extended_Pictographic}/u;
 
-test('REAL CSSOM: h1 is app-title size (24px, 700) and the eyebrow is sentence-case text face at 12px, untracked', (assert)=>{
+// v3.289 (Glass & glow): the h1 became an iOS-style large title naming the
+// current view (34/750); the eyebrow rules from v3.278 are unchanged.
+test('REAL CSSOM: h1 is the large view title (34px, 750) and the eyebrow is sentence-case text face at 12px, untracked', (assert)=>{
   assert.ok(headerHtml.includes('headerEyebrow'));
   const h1 = only('h1');
-  assert.strictEqual(h1.getPropertyValue('font-size'), '24px');
-  assert.strictEqual(h1.getPropertyValue('font-weight'), '700');
+  assert.strictEqual(h1.getPropertyValue('font-size'), '34px');
+  assert.strictEqual(h1.getPropertyValue('font-weight'), '750');
   const eb = only('.eyebrow');
   assert.strictEqual(eb.getPropertyValue('text-transform'), '');
   assert.strictEqual(eb.getPropertyValue('letter-spacing'), '');
@@ -74,6 +76,34 @@ test('REAL CSSOM: the streak pill is a flat tint with a same-hue border, no grad
   assert.match(b.getPropertyValue('border'), /plate-yellow-rgb/);
   assert.strictEqual(b.getPropertyValue('font-family'), 'var(--font-sans)');
   assert.strictEqual(b.getPropertyValue('font-variant-numeric'), 'tabular-nums');
+});
+
+// v3.289: the large title follows the view. switchView is driven for real with
+// a minimal document carrying every view and pill it touches.
+test('REAL invocation: switchView sets the large title to the view you switched to, for every view', (assert)=>{
+  const keys = ['today','log','analysis','history','care','coach','learn'];
+  const markup = '<h1 id="viewTitle">Today</h1><button id="navMore"></button><div id="stickyDayHeader"></div><div id="logDateBar"></div>' + keys.map(k => `<div id="${k}View"><div class="card"></div></div><button id="nav${k[0].toUpperCase()+k.slice(1)}"></button>`).join('');
+  const { window } = runJsdom(markup, `
+    window.storage = { set(){}, get: async ()=>{ throw new Error('nf'); } };
+    window.matchMedia = ()=>({ matches:true });
+    window.scrollTo = ()=>{};
+    var STAGGER_MAX_STEPS = 6, STAGGER_STEP_MS = 40;
+    function closeNavMoreOverlay(){} function hideGymOffer(){} function renderLogDateBar(){}
+    Element.prototype.scrollIntoView = function(){};`,
+    [extractConst(src, 'MOVED_TO_MORE'), extractFunction(src, 'switchView'), 'window.__seen = [];' + keys.map(k => `try{ switchView('${k}'); }catch(e){ window.__err = e.message; } window.__seen.push(document.getElementById('viewTitle').textContent);`).join('\n')]);
+  assert.ok(!window.__err, window.__err);
+  assert.deepStrictEqual(Array.from(window.__seen), ['Today','Log','Analysis','History','Care','Coach','Learn']);
+});
+
+test('REAL source, comments stripped: renderWorkout publishes the day\'s plate colour as --day-hue on the workout card, and the hero title fades into it', (assert)=>{
+  const fn = extractFunction(src, 'renderWorkout').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
+  const lines = fn.split('\n').filter(l => /--day-hue/.test(l));
+  assert.strictEqual(lines.length, 1, 'exactly one place sets --day-hue (anchor)');
+  assert.match(lines[0], /getElementById\('workoutCard'\)\.style\.setProperty\('--day-hue', 'var\(--plate-' \+ getDayPlateClass\(activeDay\)\.slice\(2\) \+ '\)'\)/);
+  assert.match(only('.workout-hero-title').getPropertyValue('background'), /var\(--day-hue/);
+  // Every plate class the day can get has the matching colour token.
+  const classes = new Function(`${extractConst(src, 'VIVID_PLATE_CLASSES')}; return VIVID_PLATE_CLASSES;`)().concat(['p-off']);
+  for(const c of classes) assert.match(src, new RegExp(`--plate-${c.slice(2)}:#`), `--plate-${c.slice(2)} must exist`);
 });
 
 run();

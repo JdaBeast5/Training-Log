@@ -64,7 +64,9 @@ test('regression guard: .nav-pill itself is completely untouched by this change 
   // test-nav-pill-visual-weight.js for that change's own coverage, so this
   // file no longer asserts a shadow value that later commit deliberately
   // supersedes.
-  assert.match(block, /padding:10px 13px;/, '.nav-pill padding must be unchanged by this increment — geometry/tap-target size is out of scope here');
+  // v3.288 (Glass & glow tab bar): side padding 13px -> 10px so the five tabs fit
+  // a 375px phone in the bottom bar; the vertical padding (tap height) is unchanged.
+  assert.match(block, /padding:10px 10px;/, '.nav-pill padding is the v3.288 tab-bar value; its 10px vertical padding (tap height) is unchanged');
 });
 
 run();

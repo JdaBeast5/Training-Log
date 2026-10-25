@@ -166,7 +166,8 @@ test('REAL CASCADE: .vol-bar-fill now uses var(--cta-gradient-blue), which resol
   assert.strictEqual(countRuleOpenings(src, '.vol-bar-fill'), 1);
   const ctaBlue = extractCustomProp(rootBlock, 'cta-gradient-blue');
   // v3.280 (tasteskill rollout) deliberately flattened this token to #3860FF — a deeper --plate-blue step chosen so white text passes 4.5:1 (4.9:1, against 3.1-3.6:1 on the old gradient). The structural point of this test (call sites share the one token) still holds.
-  assert.strictEqual(ctaBlue, '#3860FF', 'sanity: matches the known token value');
+  // v3.287 (Glass & glow): the deliberate gradient, every stop AA with white.
+  assert.strictEqual(ctaBlue, 'linear-gradient(135deg, #3860FF, #7A3CE0)', 'sanity: matches the known token value');
   const block = extractRuleBlock(src, '.vol-bar-fill');
   assert.match(block, /background:var\(--cta-gradient-blue\)/, 'expected .vol-bar-fill to reference the shared token, not a duplicate literal');
   const resolved = resolveToken(block, 'cta-gradient-blue', ctaBlue);
@@ -202,7 +203,9 @@ test('REAL CASCADE: a representative sample of --cta-gloss-inset call sites reso
   assert.ok(checkboxBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset;'), `checkbox check must resolve to the exact pre-conversion single-layer shadow, got: ${checkboxBlock}`);
 
   // .save-btn left this sample in v3.280: it is flat now, with no shadow at all.
-  assert.doesNotMatch(extractRuleBlock(src, '.save-btn'), /box-shadow/, '.save-btn is flat since v3.280');
+  // v3.287: no gloss inset on .save-btn; its only shadow is the --cta-glow token.
+  assert.doesNotMatch(extractRuleBlock(src, '.save-btn'), /cta-gloss-inset/);
+  assert.match(extractRuleBlock(src, '.save-btn'), /box-shadow:var\(--cta-glow\);/);
 
   const compareBtnBlock = resolveToken(extractRuleBlock(src, '.compare-confirm-btn'), 'cta-gloss-inset', gloss);
   assert.ok(compareBtnBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset, 0 4px 12px -6px rgba(var(--plate-blue-rgb),0.5);'), `.compare-confirm-btn must resolve to its exact original shadow, got: ${compareBtnBlock}`);

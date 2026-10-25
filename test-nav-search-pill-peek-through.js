@@ -30,28 +30,27 @@ const { test, run } = makeRunner('test-nav-search-pill-peek-through.js');
 
 // --- CSS shape: source-checked, since this is styling, not JS behavior -----
 
-test('the combined-fade rule (:not(.at-start):not(.at-end)) blanks both the search-pill footprint AND the right edge', (assert)=>{
-  const m = src.match(/\.nav-pills-scroll:not\(\.at-start\):not\(\.at-end\)\{[\s\S]*?\}/);
-  assert.ok(m, 'expected a .nav-pills-scroll:not(.at-start):not(.at-end) rule to exist');
-  const body = m[0];
-  assert.match(body, /var\(--nav-search-w\)/, 'must blank a zone sized off the search pill\'s own width, not a hardcoded guess');
-  assert.match(body, /calc\(100% - 34px\)/, 'must also carry the original right-edge fade — this is the BOTH-active state');
+// v3.288 (Glass & glow): search moved out of the rail into the header, so
+// nothing is pinned at the rail's left edge any more and the peek-through this
+// file was written for cannot happen. The at-start/at-end machinery below still
+// drives plain edge fades on narrow phones (320px), so it stays covered.
+test('the search button is no longer in the scrolling rail (it lives in the header), so nothing can peek out from behind it', (assert)=>{
+  const { JSDOM } = require('jsdom');
+  const doc = new JSDOM(require('fs').readFileSync(require('path').join(__dirname, 'index.html'), 'utf8').replace(/<script[\s\S]*?<\/script>/g, '')).window.document;
+  const btn = doc.getElementById('globalSearchBtn');
+  assert.ok(btn && btn.closest('header'), 'search lives in the header');
+  assert.strictEqual(btn.closest('.nav-pills-scroll'), null, 'and not in the scroller');
+  assert.doesNotMatch(src, /var\(--nav-search-w\)/, 'no rule still sizes anything off the old pinned pill');
 });
 
-test('the .at-start:not(.at-end) rule is the ORIGINAL right-fade-only rule, unchanged — no left notch when nothing is behind the search pill', (assert)=>{
-  const m = src.match(/\.nav-pills-scroll\.at-start:not\(\.at-end\)\{[\s\S]*?\}/);
-  assert.ok(m, 'expected a .nav-pills-scroll.at-start:not(.at-end) rule to exist');
-  const body = m[0];
-  assert.match(body, /calc\(100% - 34px\)/, 'must keep the right-edge fade');
-  assert.doesNotMatch(body, /var\(--nav-search-w\)/, 'must NOT blank anything near the search pill — at true rest (e.g. Today active) nothing is behind it yet, so blanking there would wrongly fade the start of the very next pill\'s own label');
-});
-
-test('the :not(.at-start).at-end rule is left-notch-only — no right fade once genuinely scrolled to the end', (assert)=>{
-  const m = src.match(/\.nav-pills-scroll:not\(\.at-start\)\.at-end\{[\s\S]*?\}/);
-  assert.ok(m, 'expected a .nav-pills-scroll:not(.at-start).at-end rule to exist');
-  const body = m[0];
-  assert.match(body, /var\(--nav-search-w\)/, 'must blank the search-pill peek-through zone');
-  assert.doesNotMatch(body, /calc\(100% - 34px\)/, 'must NOT fade the right edge — .at-end means there is nothing further right to hint at');
+test('the mid-scroll rule fades both edges; the at-start rule fades only the right; the at-end rule fades only the left', (assert)=>{
+  const body = sel => (src.match(new RegExp(sel.replace(/[.()]/g, m => '\\' + m) + '\\{[\\s\\S]*?\\}')) || [''])[0];
+  const mid = body('.nav-pills-scroll:not(.at-start):not(.at-end)');
+  assert.match(mid, /transparent, #000 24px/); assert.match(mid, /calc\(100% - 34px\), transparent/);
+  const start = body('.nav-pills-scroll.at-start:not(.at-end)');
+  assert.match(start, /calc\(100% - 34px\), transparent/); assert.doesNotMatch(start, /transparent, #000 24px/);
+  const end = body('.nav-pills-scroll:not(.at-start).at-end');
+  assert.match(end, /transparent, #000 24px/); assert.doesNotMatch(end, /calc\(100% - 34px\)/);
 });
 
 test('sabotage-relevant: exactly 3 .nav-pills-scroll mask rules exist (the 4th state, both-at-once, is deliberately the no-mask default)', (assert)=>{

@@ -30,20 +30,18 @@ test('sabotage-relevant: the old unlinked literal glow color (255,184,92 / #FFB8
   assert.doesNotMatch(src, /255,184,92/, 'the old off-token literal must not remain anywhere');
 });
 
-// v3.283 (tasteskill rollout): glows are gone app-wide on the owner's
-// direction to replace the layout using the vendored skills. The earlier
-// owner call above was about WHICH colour the glow used; with no glow left,
-// both floating buttons share one neutral float shadow through the black
-// token, and neither keeps a plate-colour bloom or a gradient fill.
-test('.today-fab and .coach-fab float on the same neutral shadow (overlay-black token), with no plate-colour glow and no gradient', (assert)=>{
-  const NEUTRAL = /box-shadow:0 10px 24px -10px rgba\(var\(--overlay-black-rgb\),0\.7\);/;
-  for(const sel of ['.today-fab', '.coach-fab']){
-    const block = extractRuleBlock(src, sel);
-    assert.match(block, NEUTRAL, `${sel} must use the shared neutral float shadow`);
-    assert.doesNotMatch(block, /rgba\(var\(--plate-(yellow|blue)-rgb\)/, `${sel} must not glow in a plate colour`);
-    assert.doesNotMatch(block, /linear-gradient/, `${sel} must be a flat fill`);
-  }
-  assert.doesNotMatch(extractRuleBlock(src, '.today-fab:active'), /box-shadow/, 'pressing scales it; no glow on press');
+// v3.283 retired every glow; v3.287 (Glass & glow, the owner's chosen concept)
+// brings ONE back on purpose: --cta-glow, "press me", on the primary button and
+// the floating coach button. The Today jump-back button stays a flat yellow
+// pill on a neutral float shadow, and neither uses an unlinked literal.
+test('the coach button glows through the shared --cta-glow token; the Today button floats on a neutral shadow, flat, no gradient', (assert)=>{
+  const coach = extractRuleBlock(src, '.coach-fab');
+  assert.match(coach, /box-shadow:var\(--cta-glow\);/, '.coach-fab glows via the shared token');
+  const today = extractRuleBlock(src, '.today-fab');
+  assert.match(today, /box-shadow:0 10px 24px -10px rgba\(var\(--overlay-black-rgb\),0\.7\);/);
+  assert.doesNotMatch(today, /rgba\(var\(--plate-(yellow|blue)-rgb\)/);
+  assert.doesNotMatch(today, /linear-gradient/);
+  assert.doesNotMatch(extractRuleBlock(src, '.today-fab:active'), /box-shadow/);
 });
 
 run();

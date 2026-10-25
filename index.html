@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Training Log">
-<meta name="theme-color" content="#0A0B0D">
+<meta name="theme-color" content="#050507">
 <link rel="manifest" href="./manifest.json">
 <!-- Fonts are self-hosted from ./fonts/ (fontsource variable builds, latin
      subset, OFL — licence beside them) so they are same-origin, precached by
@@ -66,7 +66,25 @@
     color-scheme:dark;
     --font-sans:'Geist',-apple-system,BlinkMacSystemFont,sans-serif;
     --font-mono:'Geist Mono',ui-monospace,monospace;
-    --bg:#0A0B0D;
+    --bg:#050507;
+    /* [GLASS & GLOW, v3.286] The owner-chosen direction (concept A): deep
+       black, soft red/blue/violet light behind everything, frosted-glass
+       panels. --aura is painted once on a FIXED layer (body::before) — iOS
+       Safari ignores background-attachment:fixed. Cards get their glass look
+       from translucency over that light, NOT from backdrop-filter: blur on
+       scrolling content forces a repaint every frame on a phone (the soft
+       skill's own guardrail), so real blur is kept for fixed chrome only. */
+    --aura:
+      radial-gradient(420px 380px at 88% -6%, rgba(var(--plate-red-rgb),.40), transparent 70%),
+      radial-gradient(380px 360px at -12% 32%, rgba(var(--plate-blue-rgb),.30), transparent 70%),
+      radial-gradient(520px 440px at 62% 112%, rgba(var(--plate-purple-rgb),.24), transparent 70%);
+    --glass-fill:linear-gradient(160deg, rgba(var(--surface-white-rgb),.085), rgba(var(--surface-white-rgb),.025));
+    --glass-hair:rgba(var(--surface-white-rgb),.10);
+    --glass-shine:inset 0 1px 0 rgba(var(--surface-white-rgb),.12);
+    --glass-shadow:0 30px 60px -30px rgba(var(--overlay-black-rgb),.8);
+    --radius-card:28px;
+    /* v3.288: where floating things start, so they sit above the bottom tab bar */
+    --above-bar:calc(var(--nav-rail-h, 64px) + env(safe-area-inset-bottom, 0px) + 10px);
     --surface:#17191D;
     --surface2:#1F2226;
     --line:#26292F;
@@ -137,13 +155,15 @@
        redundancy review, confirmed with the user directly (same
        asked-not-guessed approach as the retired second blue light-stop
        above) that 60% should win, and rewritten to match. */
-    /* [TASTESKILL ROLLOUT, v3.280] Filled controls are FLAT (no gradient, no
-       gloss) — the names are kept so the 16 call sites stay untouched. The
-       blue is a deeper step of --plate-blue chosen for contrast: white text
-       measures 4.9:1 on #3860FF, against 3.1-3.6:1 on the old #6E8AFF->#5B7CFF
-       gradient. Green fills carry dark ink (--bg, ~10:1), not white (2:1). */
+    /* [GLASS & GLOW, v3.287] The primary fill is a blue->purple gradient that
+       echoes the aura — and EVERY stop still passes AA with white text (#3860FF
+       4.9:1, #7A3CE0 5.9:1), so the contrast fix of v3.280 survives the new
+       look. Glow means "press me": --cta-glow is reserved for the primary
+       button and the floating coach button; info boxes stay unlit. Green fills
+       keep dark ink (--bg, ~10:1). Names kept so the call sites stay put. */
     --cta-gradient-green:var(--plate-green);
-    --cta-gradient-blue:#3860FF;
+    --cta-gradient-blue:linear-gradient(135deg, #3860FF, #7A3CE0);
+    --cta-glow:0 14px 34px -12px rgba(var(--plate-blue-rgb),0.6);
     /* The glossy top-highlight already used on .macro-bar-fill/.vol-bar-fill
        (a 180deg white-to-transparent sweep over the top ~55% of a filled
        gradient surface) — tokenized here since Phase H extends it to two
@@ -268,19 +288,22 @@
   ::selection{ background:rgba(var(--plate-blue-rgb),0.32); color:var(--text); }
   ::-moz-selection{ background:rgba(var(--plate-blue-rgb),0.32); color:var(--text); }
   body{
-    background:
-      radial-gradient(circle at 12% -4%, rgba(var(--plate-blue-rgb),0.07), transparent 42%),
-      radial-gradient(circle at 88% 14%, rgba(var(--plate-yellow-rgb),0.035), transparent 38%),
-      var(--bg);
-    background-attachment:fixed;
+    background:var(--bg);
     color:var(--text);
     font-family:var(--font-sans);
-    padding-bottom:96px;
+    /* v3.288: clears the floating tab bar (its measured height) plus room for the FABs */
+    padding-bottom:calc(var(--above-bar) + 86px);
     -webkit-font-smoothing:antialiased;
     letter-spacing:-0.01em;
     animation:appFadeIn 0.5s var(--ease-smooth);
   }
   @keyframes appFadeIn{ from{opacity:0;} to{opacity:1;} }
+  /* The light behind the glass (v3.286): one fixed, non-interactive layer. */
+  body::before{
+    content:''; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:var(--aura);
+  }
+  body.gym-mode::before{ display:none; } /* gym mode keeps its hand-tuned black ground */
 
   .pull-refresh-indicator{
     position:fixed; top:0; left:0; right:0; height:70px;
@@ -366,12 +389,15 @@
     color:var(--text-muted);
     transition:color 0.3s var(--ease-smooth);
   }
+  /* [GLASS & GLOW, v3.289] An iOS-style large title that names where you are
+     (switchView sets it per tab). The product's name lives in the brand line
+     above it, so the header still says what this app is. */
   h1{
     font-family:var(--font-sans);
-    font-weight:700;
-    font-size:24px;
-    letter-spacing:-0.02em;
-    line-height:1.15;
+    font-weight:750;
+    font-size:34px;
+    letter-spacing:-0.035em;
+    line-height:1.05;
     margin-top:6px;
   }
   .sub{color:var(--text-muted); font-size:13.5px; margin-top:5px; letter-spacing:-0.005em;}
@@ -401,7 +427,7 @@
   .tabs-header{display:flex; align-items:center; justify-content:space-between; padding-top:14px;}
   .tabs-header .hint{font-size:11px; color:var(--text-muted); font-family:var(--font-sans);}
   .reorder-btn{
-    background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    background:var(--glass-fill); border:1px solid var(--glass-hair); color:var(--text);
     font-family:var(--font-sans); font-size:12px; font-weight:600;
     padding:7px 12px; border-radius:var(--radius-pill); cursor:pointer;
     transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
@@ -507,10 +533,53 @@
     font-family:var(--font-sans); font-size:11px;
     color:var(--text-muted); margin-bottom:2px;
   }
+  /* v3.289 (Glass & glow hero): the day's name, set big, fading from white into
+     that day's own plate colour (--day-hue, published by renderWorkout). */
   .workout-hero-title{
-    font-family:var(--font-sans); font-weight:800; font-size:24px; letter-spacing:-0.02em; line-height:1.2;
+    font-family:var(--font-sans); font-weight:800; font-size:36px; letter-spacing:-0.04em; line-height:1.02;
     color:var(--text);
+    background:linear-gradient(100deg, var(--text) 45%, var(--day-hue, var(--text)));
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
   }
+  /* [GLASS & GLOW, v3.290] "Up next" — the nested glass panel inside the workout
+     card, tinted by the day's own hue (--day-hue), concept A's hero. */
+  .up-next{
+    position:relative; margin:4px 0 16px; padding:18px;
+    border-radius:22px; border:1px solid var(--glass-hair);
+    background:linear-gradient(160deg, rgba(var(--surface-white-rgb),.09), rgba(var(--surface-white-rgb),.02));
+    box-shadow:var(--glass-shine);
+  }
+  .up-next[hidden]{display:none;}
+  .up-next-head{display:flex; align-items:center; gap:14px;}
+  .up-next-text{flex:1; min-width:0;}
+  .up-next-label{font-size:12px; color:var(--text-muted);}
+  .up-next-lift{font-size:24px; font-weight:700; letter-spacing:-0.025em; line-height:1.15; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .up-next-target{font-family:var(--font-mono); font-size:13.5px; color:var(--day-hue, var(--text-muted)); margin-top:3px;}
+  .up-next-sr{position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+  .up-next-ring{width:60px; height:60px; flex:0 0 auto;}
+  .up-next-ring-track{fill:none; stroke:rgba(var(--surface-white-rgb),.10); stroke-width:6;}
+  .up-next-ring-fill{fill:none; stroke:var(--day-hue, var(--plate-blue)); stroke-width:6; stroke-linecap:round; transition:stroke-dashoffset .5s var(--ease-smooth);}
+  .up-next-ring text{font-family:var(--font-mono); font-size:13px; fill:var(--text);}
+  /* v3.292 (Impeccable distill): borderless wells (the panel already draws the
+     edge; a third ring of hairlines was noise), one size step smaller, and a
+     tight fields→button gap so the inputs and Log set read as one group. */
+  .up-next-fields{display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:8px; margin-top:16px;}
+  .up-next-field{display:flex; flex-direction:column; gap:1px; padding:8px 12px 9px; border-radius:14px; background:rgba(var(--overlay-black-rgb),.30); border:1px solid transparent;}
+  .up-next-field[hidden]{display:none;}
+  .up-next-field small{font-size:12px; color:var(--text-muted);}
+  /* 22px !important: the global `input{font-size:16px !important}` (iOS zoom guard) would
+     otherwise shrink these digits; 22px still satisfies that guard's >=16px intent. */
+  .up-next .up-next-field input{width:100%; background:none; border:0; padding:0; color:var(--text); font-family:var(--font-mono); font-size:22px !important; font-variant-numeric:tabular-nums;}
+  /* The focus ring moves to the whole tile instead of a box inside it; still visible. */
+  .up-next .up-next-field input:focus, .up-next .up-next-field input:focus-visible{outline:none; box-shadow:none; border-color:transparent;}
+  .up-next-field input::placeholder{color:rgba(var(--surface-white-rgb),.28);}
+  .up-next-field:focus-within{border-color:rgba(var(--plate-blue-rgb),.6); outline:2px solid var(--focus-ring-color); outline-offset:2px;}
+  /* `.up-next` prefix on purpose: the global .save-btn rule comes later in the
+     sheet with equal specificity and would otherwise win (it did, silently, for
+     v3.292's gap). v3.293: the primary is never smaller than the 16px controls. */
+  .up-next .up-next-go{margin-top:10px; font-size:16px;}
+  .up-next.is-done .up-next-fields, .up-next.is-done .up-next-go{display:none;}
+  body.gym-mode .up-next{display:none;} /* gym mode has its own focused flow */
 
   .reorder-arrows{
     display:flex; gap:2px; margin-top:2px;
@@ -523,16 +592,15 @@
   .reorder-arrows button:disabled{opacity:0.25;}
 
   .card{
-    /* [TASTESKILL ROLLOUT, v3.277] A resting card is a lightness step alone
-       (--surface on --bg): no visible border, no shadow, no blue --lift bloom
-       and no sheen line along its top (the old ::before). Shadows and glass are
-       for what floats — nav, sheets, overlays — per the owner's call. Proven on
-       Today in the v3.272 pilot, then promoted here so every view matches. The
-       border stays as 1px transparent so no card's box moves by a pixel. */
+    /* [GLASS & GLOW, v3.286] Supersedes the v3.277 flat card at the owner's
+       direction (concept A). A frosted-glass panel: translucent fill over the
+       fixed aura, a light hairline, a top inner highlight and a soft deep
+       shadow. Deliberately no backdrop-filter here — see --aura in :root. */
     position:relative;
-    background:var(--surface);
-    border:1px solid transparent;
-    border-radius:var(--radius-lg);
+    background:var(--glass-fill);
+    border:1px solid var(--glass-hair);
+    border-radius:var(--radius-card);
+    box-shadow:var(--glass-shine), var(--glass-shadow);
     /* Even on all four sides. This read 22px 22px 23px, which put one more
        pixel under the content than above it on all 62 cards. */
     padding:22px;
@@ -555,30 +623,37 @@
   .card-icon svg{width:100%; height:100%;}
   .day-plate-inline{width:20px; height:20px; border-radius:50%; flex:0 0 auto; border:2px solid rgba(var(--overlay-black-rgb),0.25);}
   .duration-tag{
-    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11.5px; color:var(--text-muted);
-    margin-bottom:4px; margin-top:2px;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:13px; color:var(--text-muted);
   }
   .mesocycle-phase-tag{
     display:inline-flex; align-items:center; font-family:var(--font-sans); font-variant-numeric:tabular-nums;
-    font-size:11px; padding:3px 9px; border-radius:999px; margin:2px 0 6px;
+    font-size:12px; padding:3px 10px; border-radius:999px;
     background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
   }
   .mesocycle-phase-tag:empty{display:none;}
   .mesocycle-phase-tag.deload{
     background:rgba(var(--plate-red-rgb),0.12); border-color:rgba(var(--plate-red-rgb),0.38); color:var(--plate-red);
   }
-  .duration-row{display:flex; align-items:center; justify-content:space-between; gap:8px;}
-  .duration-row .duration-tag{margin-bottom:0;}
-  .session-length-select{
-    font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:11px; background:var(--surface2);
-    border:1px solid var(--line); color:var(--text-muted); border-radius:var(--radius-sm);
-    padding:3px 8px; appearance:none; -webkit-appearance:none; cursor:pointer;
-  }
-  .session-length-select:focus{outline:none; border-color:var(--plate-blue);}
+  /* v3.291 (Impeccable layout pass): one meta line (phase pill + length), the
+     calorie line tight under it, then the actions row with a clear gap. */
+  .duration-row{display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; margin-top:4px;}
   .session-cal-total{
-    font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:12px; color:var(--plate-yellow);
-    margin-bottom:14px; font-weight:600;
+    font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:13px; color:var(--plate-yellow);
+    margin-top:6px; font-weight:500;
   }
+  .session-actions{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:16px 0 14px;}
+  /* Session length: a glass pill matching Gym mode beside it. Selects render at
+     16px whatever this says (the global iOS zoom guard, font-size:16px
+     !important), so Gym mode is set at 16px too and the pair matches. */
+  .session-length-select{
+    font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:15px; font-weight:600;
+    width:100%; color:var(--text); min-height:44px; padding:0 34px 0 16px; border-radius:var(--radius-pill);
+    border:1px solid var(--glass-hair); background:var(--glass-fill);
+    appearance:none; -webkit-appearance:none; cursor:pointer; text-align:center; text-align-last:center;
+  }
+  .session-length-wrap{position:relative; display:block;}
+  .session-length-chevron{position:absolute; right:16px; top:50%; width:12px; height:12px; margin-top:-6px; color:var(--text-muted); pointer-events:none;}
+  .session-length-select:focus-visible{outline:2px solid var(--focus-ring-color); outline-offset:2px;}
   .ex-cal-tag{
     font-size:11px; color:var(--plate-yellow); text-align:right; margin-top:2px; font-weight:600;
   }
@@ -602,15 +677,18 @@
     padding:10px 12px; background:rgba(var(--plate-blue-rgb),0.08); border:1px solid rgba(var(--plate-blue-rgb),0.28);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
   }
+  /* v3.293 (Impeccable distill): a quiet note, not a third bordered box under
+     Up next — muted text on a faint fill, no hairline. */
   .voice-hint-banner{
-    display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(var(--plate-blue-rgb),0.08);
-    border:1px solid rgba(var(--plate-blue-rgb),0.28); border-radius:var(--radius-md); font-size:12.5px; line-height:1.4;
-    color:var(--text); margin-bottom:14px;
+    display:flex; align-items:center; gap:4px; padding:4px 4px 4px 14px; background:rgba(var(--plate-blue-rgb),0.06);
+    border:1px solid transparent; border-radius:var(--radius-md); font-size:13px; line-height:1.45;
+    color:var(--text-muted); margin-bottom:14px;
   }
+  .voice-hint-banner b{color:var(--text); font-weight:600;}
   .voice-hint-banner span:first-of-type{flex:1;}
   .voice-hint-dismiss{
-    flex:0 0 auto; background:none; border:none; color:var(--text-muted); font-size:18px; line-height:1;
-    cursor:pointer; padding:2px;
+    flex:0 0 auto; background:none; border:none; color:var(--text-muted); font-size:16px; line-height:1;
+    cursor:pointer; padding:0; min-width:44px; min-height:44px; /* v3.293: a full touch target, was 19x22px */
   }
   .fade-out-dismiss{transition:opacity 0.3s var(--ease-smooth), transform 0.3s var(--ease-smooth);}
   .fade-out-dismiss.fading{opacity:0; transform:translateY(-8px);}
@@ -1154,7 +1232,7 @@
        enough. z-index dropped from 55 to 20: it no longer needs to outrank
        the rail (30) since they no longer occupy the same space; 20 keeps it
        above ordinary page content (0-5) and below every real overlay. */
-    top:calc(env(safe-area-inset-top, 0px) + var(--nav-rail-h, 56px));
+    top:env(safe-area-inset-top, 0px); /* v3.288: the rail moved to the bottom */
     background:rgba(var(--surface2-rgb),0.72); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border-bottom:1px solid var(--line-soft);
     padding:12px 16px;
@@ -1171,7 +1249,7 @@
        fully-hidden state this was supposed to be. Subtracting the same
        offset `top` adds pushes it the rest of the way off-screen, so hidden
        genuinely means invisible again, the same guarantee it had at top:0. */
-    transform:translateY(calc(-100% - env(safe-area-inset-top, 0px) - var(--nav-rail-h, 56px)));
+    transform:translateY(calc(-100% - env(safe-area-inset-top, 0px)));
     transition:transform 0.25s var(--ease-smooth);
     font-family:var(--font-sans); font-size:14.5px; font-weight:700; letter-spacing:-0.01em; color:var(--text);
     box-shadow:var(--rim), 0 4px 14px rgba(var(--overlay-black-rgb),0.3);
@@ -1216,7 +1294,7 @@
   }
 
   .rest-timer{
-    position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(16px) scale(0.92);
+    position:fixed; bottom:calc(var(--above-bar) + 12px); left:50%; transform:translateX(-50%) translateY(16px) scale(0.92);
     width:var(--rest-timer-collapsed-w, 208px); max-width:calc(100vw - 32px);
     background:linear-gradient(160deg, rgba(45,49,55,0.86), rgba(26,29,33,0.86));
     backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
@@ -1300,11 +1378,21 @@
     border:1px solid rgba(var(--plate-red-rgb),0.3); border-radius:var(--radius-sm);
     color:var(--plate-red); font-size:12px; padding:5px 9px; cursor:pointer; font-family:var(--font-sans);
   }
+  /* v3.288: global search, beside the cog — same glass circle */
+  .header-search{
+    position:absolute; top:0; right:50px; z-index:5;
+    width:40px; height:40px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--glass-fill); border:1px solid var(--glass-hair); color:var(--text-muted);
+    cursor:pointer; transition:transform 0.15s var(--ease-smooth);
+  }
+  .header-search:active{transform:scale(0.92);}
+  .header-search svg{width:17px; height:17px; display:block;}
   .settings-cog{
     position:absolute; top:0; right:0; z-index:5;
     width:40px; height:40px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
-    background:var(--surface2); border:1px solid var(--line-bright); color:var(--text-muted);
+    background:var(--glass-fill); border:1px solid var(--glass-hair); color:var(--text-muted);
     cursor:pointer;
     transition:color 0.2s var(--ease-smooth), transform 0.3s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
@@ -1407,7 +1495,7 @@
   .rest-timer .rt-close{color:var(--plate-red); font-weight:600; font-size:15px; padding:8px 4px;}
 
   .undo-toast{
-    position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(80px);
+    position:fixed; bottom:calc(var(--above-bar) + 12px); left:50%; transform:translateX(-50%) translateY(80px);
     background:rgba(var(--surface2-rgb),0.75); box-shadow:var(--rim); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border:1px solid var(--line-bright); border-radius:var(--radius-pill-lg);
     padding:10px 10px 10px 18px; display:flex; align-items:center; gap:14px; z-index:60;
@@ -1545,8 +1633,9 @@
   }
   .save-btn{
     position:relative; overflow:hidden;
-    width:100%; margin-top:14px; padding:12px; border:none; border-radius:var(--radius-sm);
-    background:var(--cta-gradient-blue); color:#fff; font-weight:600; font-size:14px;
+    width:100%; margin-top:14px; padding:14px; border:none; border-radius:var(--radius-pill);
+    background:var(--cta-gradient-blue); color:#fff; font-weight:600; font-size:14.5px;
+    box-shadow:var(--cta-glow);
     letter-spacing:-0.005em;
     font-family:var(--font-sans); cursor:pointer;
     transition:transform 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
@@ -1582,8 +1671,8 @@
   .tip b{color:var(--text);}
 
   .show-more-btn{
-    width:100%; margin-top:10px; padding:10px; background:var(--surface2); border:1px solid var(--line);
-    border-radius:var(--radius-md); color:var(--plate-blue); font-size:12.5px; font-weight:600; cursor:pointer;
+    width:100%; margin-top:10px; padding:11px; background:var(--glass-fill); border:1px solid var(--glass-hair);
+    border-radius:var(--radius-pill); color:var(--plate-blue); font-size:12.5px; font-weight:600; cursor:pointer;
     font-family:var(--font-sans); letter-spacing:-0.005em; display:flex; align-items:center; justify-content:center; gap:6px;
     transition:border-color 0.2s var(--ease-smooth), background 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
@@ -1905,12 +1994,12 @@
     padding:12px 28px; border-radius:var(--radius-pill); cursor:pointer;
   }
   .coach-fab{
-    position:fixed; bottom:22px; right:18px; z-index:70; overflow:hidden;
+    position:fixed; bottom:calc(var(--above-bar) + 12px); right:18px; z-index:70; overflow:hidden;
     width:58px; height:58px; border-radius:50%; border:1px solid rgba(var(--surface-white-rgb),0.28);
     background:var(--cta-gradient-blue); color:#fff; font-size:24px;
     display:flex; align-items:center; justify-content:center; cursor:pointer;
     /* v3.283: it floats, so it keeps a shadow — a neutral one, not a blue glow */
-    box-shadow:0 10px 24px -10px rgba(var(--overlay-black-rgb),0.7);
+    box-shadow:var(--cta-glow);
     transition:transform 0.18s var(--ease-smooth), box-shadow 0.18s var(--ease-smooth), opacity 0.26s var(--ease-smooth),
                top 0.22s var(--ease-smooth), left 0.22s var(--ease-smooth);
     /* Repositionable by drag (wireCoachFabDrag) — this is a small circular
@@ -1941,7 +2030,7 @@
      legible at a glance without needing to tap it first to find out what it
      does — this is a jump-to-safety control, not a decorative icon. */
   .today-fab{
-    position:fixed; bottom:22px; left:18px; z-index:70; overflow:hidden;
+    position:fixed; bottom:calc(var(--above-bar) + 12px); left:18px; z-index:70; overflow:hidden;
     display:flex; align-items:center; height:44px; padding:0 18px;
     border-radius:var(--radius-pill); border:1px solid rgba(var(--surface-white-rgb),0.28);
     background:var(--plate-yellow); color:#1a1a1a;
@@ -2182,13 +2271,20 @@
      wherever the shell actually is — stuck or not — rather than a second,
      separately-maintained guess at the same number. */
   .nav-pills{
-    position:sticky; top:env(safe-area-inset-top, 0px); z-index:30;
-    margin-top:6px; margin-bottom:4px;
+    /* [GLASS & GLOW, v3.288] A floating glass tab bar at the bottom, in thumb
+       reach, instead of a sticky rail at the top. Fixed, so real blur is fine
+       here (blur only on fixed/sticky chrome). --nav-rail-h is still published
+       from this element and now means "how much the bottom bar covers": body
+       padding and the two floating buttons clear it with that measured number. */
+    position:fixed; top:auto; z-index:30;
+    left:12px; right:12px; bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);
+    border-radius:var(--radius-pill); border:1px solid var(--glass-hair);
+    box-shadow:0 20px 40px -14px rgba(var(--overlay-black-rgb),0.75);
+    overflow:hidden;
     /* Full-bleed. Without the negative margins, .wrap's 18px gutters let cards
        scroll visibly past the ends of the bar. Out and back in the same
        amount, so the row's own content does not move — the sum-to-zero trick
        the coloured set rows already use. */
-    margin-left:-18px; margin-right:-18px;
     background:var(--nav-glass-bg);
     backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
     /* --nav-search-w declared here rather than on .nav-pills-scroll: it's
@@ -2196,7 +2292,6 @@
        .nav-pill-search's width) that both need it, and a custom property
        declared on this outer shell inherits down to both without caring
        which one is "closer". One declaration, whichever descendant needs it. */
-    --nav-search-w:48px;
   }
   /* The actual horizontally-scrolling row. Everything that was on .nav-pills
      itself before this split — the flex row, the overflow, the snap, the
@@ -2226,8 +2321,7 @@
        it tells every scroll-into-view in this container to keep that much
        clear. The alternative — special-casing the first pill in JS — would be
        a second rule about the same overlap. */
-    scroll-padding-left:calc(var(--nav-search-w) + 8px);
-    padding:8px 18px 10px;
+    padding:6px;
   }
   .nav-pills-scroll::-webkit-scrollbar{display:none;}
 
@@ -2292,29 +2386,20 @@
      notch-only, and — at-start AND at-end together (everything fits, nothing
      to scroll) — no rule at all, matching the pre-existing default of no
      mask. */
+  /* v3.288: with search out of the rail nothing is pinned at its left edge, so
+     the old search-pill notch is gone: these are plain edge fades, shown only
+     on the side that has more to scroll to (narrow phones). */
   .nav-pills-scroll:not(.at-start):not(.at-end){
-    -webkit-mask-image:linear-gradient(to right,
-      #000 0, #000 var(--nav-search-w),
-      transparent calc(var(--nav-search-w) + 10px), transparent calc(var(--nav-search-w) + 36px),
-      #000 calc(var(--nav-search-w) + 46px), #000 calc(100% - 34px), transparent);
-    mask-image:linear-gradient(to right,
-      #000 0, #000 var(--nav-search-w),
-      transparent calc(var(--nav-search-w) + 10px), transparent calc(var(--nav-search-w) + 36px),
-      #000 calc(var(--nav-search-w) + 46px), #000 calc(100% - 34px), transparent);
+    -webkit-mask-image:linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 34px), transparent);
+    mask-image:linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 34px), transparent);
   }
   .nav-pills-scroll.at-start:not(.at-end){
     -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 34px), transparent);
     mask-image:linear-gradient(to right, #000 calc(100% - 34px), transparent);
   }
   .nav-pills-scroll:not(.at-start).at-end{
-    -webkit-mask-image:linear-gradient(to right,
-      #000 0, #000 var(--nav-search-w),
-      transparent calc(var(--nav-search-w) + 10px), transparent calc(var(--nav-search-w) + 36px),
-      #000 calc(var(--nav-search-w) + 46px));
-    mask-image:linear-gradient(to right,
-      #000 0, #000 var(--nav-search-w),
-      transparent calc(var(--nav-search-w) + 10px), transparent calc(var(--nav-search-w) + 36px),
-      #000 calc(var(--nav-search-w) + 46px));
+    -webkit-mask-image:linear-gradient(to right, transparent, #000 24px);
+    mask-image:linear-gradient(to right, transparent, #000 24px);
   }
 
   /* [NAV RAIL CHEVRON] HANDOFF v32 — now a real child of the .nav-pills
@@ -2364,7 +2449,7 @@
        z-index 25: above cards (0-5), below the nav rail (30), so the index
        slides under the rail rather than over it. */
     position:sticky;
-    top:calc(env(safe-area-inset-top, 0px) + var(--nav-rail-h, 56px));
+    top:env(safe-area-inset-top, 0px); /* v3.288: the rail moved to the bottom, nothing to sit below */
     z-index:25;
     background:var(--nav-glass-bg);
     backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
@@ -2471,23 +2556,24 @@
      whatever autohide already decided the moment the class comes off. */
   .card.group-collapsed{ display:none !important; }
   .nav-pill{
-    flex:0 0 auto;
-    background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
+    flex:1 0 auto; /* v3.288: the five tabs share the bar's width (grow, never shrink) */
+    background:transparent; border:1px solid transparent; color:var(--text-muted);
     font-family:var(--font-sans); font-size:13px; letter-spacing:-0.01em;
     /* HANDOFF v31: was 10px 16px. Seven pills measured ~540px of content in
        ~354px of phone (see the overflow-signal comment below) — trimming
        3px off each side saves ~42px across seven pills, real but modest;
        this narrows the gap, it doesn't close it, which is why the chevron
        and the snap points above exist rather than relying on this alone. */
-    padding:10px 13px; border-radius:var(--radius-md); cursor:pointer; font-weight:600;
+    padding:10px 10px; border-radius:var(--radius-pill); cursor:pointer; font-weight:600; /* v3.288: 13px -> 10px sides so all five fit a 375px phone; height (the tap target) unchanged */
     /* Tab-layout audit (v3.159, option #3): dropped the outer drop-shadow,
        keeping only the inset top highlight — the same trim already applied
        to .analysis-index-chip directly beneath this bar. Geometry (padding,
        font-size, tap-target size) is UNCHANGED on purpose: that's the tap-
        target fork's territory, not this pass's. .nav-pill.active keeps its
        own distinct glow (a deliberate "this is selected" cue, not generic
-       weight) — untouched. */
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset;
+       weight) — untouched. v3.288: inside the glass tab bar a resting pill is
+       just its label; the selected one is the white pill (see .nav-pill.active). */
+    box-shadow:none;
     transition:background 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth), color 0.25s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.25s var(--ease-smooth);
     scroll-snap-align:start;
   }
@@ -2497,47 +2583,6 @@
      problem search exists to solve. sticky:left works inside a horizontal
      scroller the same way sticky:top works in a vertical one; the background is
      its own because the other pills scroll underneath it. */
-  .nav-pill-search{
-    /* IT IS A PILL. It inherits .nav-pill entirely — same --surface2 fill, same
-       --line border, same --radius-md, same type — and adds only the two things
-       that make it pinned.
-
-       The v3.54 version overrode all of that with a square, borderless, solid
-       #0A0B0D block, because the element was doing two jobs in one background:
-       being a pill AND hiding the pills sliding under it. Fixing the
-       see-through problem by deleting the pill's appearance is not fixing it.
-       The two jobs are separated below.
-
-       left:-18px, NOT 0. In a scroller with padding, sticky offsets are
-       measured from the PADDING box — left:0 pinned the pill 18px inside the
-       screen edge and left a sliver of the scrolling pills visible beside it. */
-    position:sticky; left:-18px; z-index:2;
-    margin-left:-18px;
-    /* Explicit width so --nav-search-w is authoritative rather than a guess at
-       what 16px of icon plus .nav-pill's 16px side padding happens to add up
-       to. Padding zeroed and the icon centred instead, which lands in the same
-       place and cannot drift away from the scroll-padding above. */
-    width:var(--nav-search-w);
-    padding-left:0; padding-right:0;
-    display:flex; align-items:center; justify-content:center;
-
-    /* THE OCCLUDER IS A SHADOW, NOT THE BACKGROUND. A solid --bg shadow offset
-       left and spread 14px paints an opaque slab behind the pill covering the
-       rail's 18px gutter and its 8/10px vertical padding, so a pill scrolling
-       past vanishes at the screen edge rather than 18px inside it. It sits
-       BEHIND the pill's own border box, so the pill still reads as a pill.
-       Spread rather than a bigger offset because a plain offset follows the
-       border radius and leaves slivers at the corners.
-
-       Listed before the two .nav-pill shadows so the stack is: occluder, then
-       the pill's inset highlight, then its lift. */
-    box-shadow:-22px 0 0 14px var(--bg),
-               0 1px 0 rgba(var(--surface-white-rgb),0.04) inset,
-               0 4px 12px -8px rgba(var(--overlay-black-rgb),0.5);
-  }
-  /* Every other pill scales on tap. This one should too — it is a pill. */
-  .nav-pill-search:active{transform:scale(0.95);}
-  .nav-pill-search svg{width:16px; height:16px; display:block;}
 
   /* [CROSS-LINKS] A name that is also a lookup. Styled as text with a chevron
      rather than as a button, because these sit inside dense rows that already
@@ -2584,7 +2629,7 @@
   }
   .gsearch-hit:active{ transform:scale(0.99); }
   .gsearch-hit-tab{ color:var(--text-muted); font-size:11px; flex:0 0 auto; }
-  .nav-pill.active{background:var(--shine-gloss), var(--cta-gradient-blue); border-color:var(--plate-blue); color:#fff;}
+  .nav-pill.active{background:#fff; border-color:#fff; color:#000;} /* v3.288: the selected tab is the one white pill in the glass bar (concept A) */
   /* Tab-layout audit (v3.160, option #2): Care/Coach/Learn's home now, a
      vertical list inside navMoreOverlay instead of horizontal pills in the
      rail. These buttons keep the base .nav-pill class (same colors, same
@@ -2853,8 +2898,8 @@
     font-size:12.5px; cursor:pointer; font-family:var(--font-sans);
   }
   .switch-profile-btn{
-    width:100%; margin-top:12px; padding:10px; background:var(--surface2); border:1px solid var(--line);
-    border-radius:var(--radius-md); color:var(--text-muted); font-size:12.5px; font-weight:600; cursor:pointer;
+    width:100%; margin-top:12px; padding:11px; background:var(--glass-fill); border:1px solid var(--glass-hair);
+    border-radius:var(--radius-pill); color:var(--text-muted); font-size:12.5px; font-weight:600; cursor:pointer;
     font-family:var(--font-sans); transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
   .switch-profile-btn:active{transform:scale(0.98); border-color:var(--line-bright); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset;}
@@ -3303,17 +3348,16 @@
   }
   .back-btn:active{transform:scale(0.96);}
   .custom-toggle{
-    width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
-    padding:10px; border-radius:var(--radius-sm); font-size:13px; cursor:pointer; font-family:var(--font-sans);
+    width:100%; background:var(--glass-fill); border:1px solid var(--glass-hair); color:var(--text-muted);
+    padding:11px; min-height:44px; border-radius:var(--radius-pill); font-size:15px; font-weight:500; cursor:pointer; font-family:var(--font-sans);
     margin-bottom:4px; transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .custom-toggle:active{transform:scale(0.98); border-color:var(--line-bright);}
   .session-extras{ margin-top:14px; } /* adapt + day insight, moved below the list in v3.282 */
   .adapt-workout-toggle{
     /* Flat fill at the old gradient's midpoint, no glow (tasteskill Today pilot, v3.275). */
-    width:100%; background:rgba(var(--plate-blue-rgb),0.10);
-    border:1px solid rgba(var(--plate-blue-rgb),0.35); color:var(--text);
-    padding:11px; border-radius:var(--radius-sm); font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-sans);
+    width:100%; background:var(--glass-fill); border:1px solid var(--glass-hair); color:var(--text);
+    padding:12px 20px; min-height:44px; border-radius:var(--radius-pill); font-size:15px; font-weight:500; line-height:1.35; text-wrap:balance; cursor:pointer; font-family:var(--font-sans);
     margin-bottom:10px;
     transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
@@ -4058,6 +4102,7 @@
   body.gym-mode #workoutCard .workout-hero,
   body.gym-mode #workoutCard .mesocycle-phase-tag,
   body.gym-mode #workoutCard .duration-row,
+  body.gym-mode #workoutCard .session-actions,
   body.gym-mode #workoutCard .session-cal-total,
   body.gym-mode #workoutCard .day-insight,
   body.gym-mode #workoutCard #todayStandoutBanner,
@@ -4600,12 +4645,12 @@
      thing it changes. */
   .gym-enter-btn{
     display:flex; align-items:center; justify-content:center; gap:8px;
-    width:100%; min-height:50px; margin:2px 0 14px;
+    width:100%; min-height:44px; margin:0;
     /* Flat fill at the old gradient's midpoint (tasteskill Today pilot, v3.275). */
-    background:rgba(91,124,255,0.13);
-    color:var(--text); border:1px solid rgba(91,124,255,0.45);
-    border-radius:var(--radius-md);
-    font-family:var(--font-sans); font-size:15px; font-weight:600;
+    background:var(--glass-fill);
+    color:var(--text); border:1px solid rgba(91,124,255,0.45); /* literal on purpose: gym mode's own hand-tuned block (see test-rgba-blue-yellow-consolidation) */
+    border-radius:var(--radius-pill);
+    font-family:var(--font-sans); font-size:16px; font-weight:600;
     cursor:pointer; transition:transform 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth);
   }
   .gym-enter-btn:active{transform:scale(0.985); border-color:rgba(91,124,255,0.7);}
@@ -4626,7 +4671,7 @@
      starts that timer — so the two appear together, every time. At 18px this
      sat directly on top of it. */
   .gym-offer{
-    position:fixed; left:50%; bottom:110px; z-index:60;
+    position:fixed; left:50%; bottom:calc(var(--above-bar) + 104px); z-index:60; /* v3.288: same 92px gap over the rest timer, now measured from the tab bar */
     transform:translateX(-50%) translateY(12px);
     width:min(380px, calc(100vw - 28px));
     background:linear-gradient(165deg, rgba(38,42,49,0.94), rgba(20,22,26,0.94));
@@ -4834,9 +4879,13 @@
       <span class="brand-mark"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1.2" y="8" width="2.4" height="4" rx="1"/><rect x="16.4" y="8" width="2.4" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg></span>
       <div class="eyebrow" id="headerEyebrow">Training Log</div>
     </div>
-    <h1>Training Log</h1>
+    <h1 id="viewTitle">Today</h1>
     <div class="sub" id="headerSub">Set up your profile below to personalize this</div>
     <div class="streak-badge" id="streakBadge" style="display:none"></div>
+    <!-- v3.288: search lives in the header beside the cog; the bottom tab bar holds the five destinations -->
+    <button type="button" class="header-search" id="globalSearchBtn" aria-label="Search the app">
+      <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><line x1="13.2" y1="13.2" x2="17" y2="17"/></svg>
+    </button>
     <button class="settings-cog" id="settingsCog" aria-label="Settings">
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M7.68 4.41 L8.10 2.08 L11.90 2.08 L12.32 4.41 L12.32 4.41 L14.26 3.05 L16.95 5.74 L15.59 7.68 L15.59 7.68 L17.92 8.10 L17.92 11.90 L15.59 12.32 L15.59 12.32 L16.95 14.26 L14.26 16.95 L12.32 15.59 L12.32 15.59 L11.90 17.92 L8.10 17.92 L7.68 15.59 L7.68 15.59 L5.74 16.95 L3.05 14.26 L4.41 12.32 L4.41 12.32 L2.08 11.90 L2.08 8.10 L4.41 7.68 L4.41 7.68 L3.05 5.74 L5.74 3.05 L7.68 4.41 Z" stroke-linejoin="round"/>
@@ -4865,9 +4914,6 @@
        guess broke on a real device). -->
   <div class="nav-pills">
     <div class="nav-pills-scroll" id="navPillsScroll">
-      <button type="button" class="nav-pill nav-pill-search" id="globalSearchBtn" aria-label="Search the app">
-        <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><line x1="13.2" y1="13.2" x2="17" y2="17"/></svg>
-      </button>
       <button class="nav-pill active" id="navToday">Today</button>
       <button class="nav-pill" id="navLog">Log</button>
       <button class="nav-pill" id="navAnalysis">Analysis</button>
@@ -4954,17 +5000,53 @@
         <div class="workout-hero-title" id="dayTitle"></div>
       </div>
     </div>
-    <div class="mesocycle-phase-tag" id="mesocyclePhaseTag"></div>
+    <!-- v3.291 (Impeccable layout pass): what the session is (phase, length,
+         calories) reads as one quiet line, then the two ways to change HOW
+         you run it — length and gym mode — sit together as one row of
+         matched pills, ahead of "Up next". -->
     <div class="duration-row">
+      <div class="mesocycle-phase-tag" id="mesocyclePhaseTag"></div>
       <div class="duration-tag" id="dayDuration"></div>
-      <select class="session-length-select" id="sessionLengthSelector" aria-label="Session length"></select>
     </div>
     <div class="session-cal-total" id="sessionCalTotal"></div>
+    <div class="session-actions">
+      <span class="session-length-wrap">
+        <select class="session-length-select" id="sessionLengthSelector" aria-label="Session length"></select>
+        <svg class="session-length-chevron" aria-hidden="true" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,4.5 6,7.5 9,4.5"/></svg>
+      </span>
+      <button type="button" class="gym-enter-btn" id="gymEnterBtn">
+        <svg class="gym-enter-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg> Gym mode
+      </button>
+    </div>
+    <!-- [GLASS & GLOW, v3.290] "Up next": the next set to do, one tap to log it.
+         A thin front end over the real set rows below — renderUpNext() reads
+         the first row with no reps yet, and logging writes into THAT row and
+         fires its own change events, so saving, PRs, the rest timer, the gym
+         offer and auto-check all run exactly as if the set were typed there. -->
+    <div class="up-next" id="upNext" hidden>
+      <div class="up-next-head">
+        <div class="up-next-text">
+          <div class="up-next-label" id="upNextLabel"></div>
+          <div class="up-next-lift" id="upNextLift"></div>
+          <div class="up-next-target" id="upNextTarget"></div>
+        </div>
+        <span class="up-next-sr" id="upNextProgress"></span>
+        <svg class="up-next-ring" viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="32" cy="32" r="27" class="up-next-ring-track"/>
+          <circle cx="32" cy="32" r="27" class="up-next-ring-fill" id="upNextRingFill" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" transform="rotate(-90 32 32)"/>
+          <text x="32" y="36" text-anchor="middle" id="upNextRingText"></text>
+        </svg>
+      </div>
+      <div class="up-next-fields" id="upNextFields">
+        <label class="up-next-field" data-field="weight"><small id="upNextWeightUnit">lb</small><input type="number" inputmode="decimal" id="upNextWeight" aria-label="Weight for the next set"></label>
+        <label class="up-next-field" data-field="distance"><small id="upNextDistanceUnit">m</small><input type="number" inputmode="decimal" step="0.01" min="0" id="upNextDistance" aria-label="Distance for the next set"></label>
+        <label class="up-next-field" data-field="reps"><small>Reps</small><input type="number" inputmode="numeric" id="upNextReps" aria-label="Reps for the next set"></label>
+        <label class="up-next-field" data-field="rpe"><small>RPE</small><input type="number" inputmode="decimal" step="0.5" min="5" max="10" id="upNextRpe" aria-label="RPE for the next set, 5 to 10"></label>
+      </div>
+      <button type="button" class="save-btn up-next-go" id="upNextLog">Log set</button>
+    </div>
     <div class="today-standout-banner" id="todayStandoutBanner" style="display:none"></div>
     <div id="voiceHintBanner" style="display:none"></div>
-    <button type="button" class="gym-enter-btn" id="gymEnterBtn">
-      <svg class="gym-enter-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg> Gym mode
-    </button>
     <div id="exerciseList"></div>
     <button class="custom-toggle" id="addCustomExerciseBtn">+ Add custom exercise</button>
     <div id="customExerciseForm" class="smooth-toggle"><div>
@@ -6583,7 +6665,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.285';
+const APP_VERSION = '3.293';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7298,6 +7380,34 @@ const WHATS_NEW = {
   ]},
   '3.285': { headline: 'The last emoji on Today', points: [
     'Today\'s Priorities, the profile and backup buttons, and the coach button now use words and a simple chat icon instead of emoji that looked different on every phone.',
+  ]},
+  '3.286': { headline: 'Glass & glow', points: [
+    'A new look: deep black with soft red, blue and violet light behind frosted-glass cards.',
+    'Gym mode keeps its plain black background for focus.',
+  ]},
+  '3.287': { headline: 'Glowing buttons, glass controls', points: [
+    'Main buttons are rounded pills in a blue-to-purple glow, and the coach button glows too. Glow means "tap me".',
+    'Secondary buttons (Gym mode, Adapt, Reorder, settings) are frosted glass to match the cards.',
+  ]},
+  '3.288': { headline: 'Tabs at your thumb', points: [
+    'The tabs moved into a floating glass bar at the bottom of the screen, within easy reach of your thumb. The selected tab is the white one.',
+    'The rest timer, undo messages and the coach and Today buttons now sit just above the bar.',
+  ]},
+  '3.289': { headline: 'Big titles', points: [
+    'Each tab now opens with a large title that tells you where you are.',
+    'Your workout\'s name is set big on Today, fading into that day\'s plate colour.',
+  ]},
+  '3.290': { headline: 'Up next: log a set in one tap', points: [
+    'A new card at the top of your workout shows the next set to do, with last time\'s numbers filled in. Adjust if needed and tap Log set.',
+    'The ring fills as you go: sets done out of today\'s total. Rest timer, PRs and everything else work exactly as before.',
+  ]},  '3.291': { headline: 'Tidier session controls', points: [
+    'Session length and Gym mode now sit side by side as a matching pair, right above Up next.',
+    'The week, length and calories read as one quiet line instead of four different styles.',
+  ]},  '3.292': { headline: 'Cleaner Up next fields', points: [
+    'The weight, reps and RPE boxes are lighter and empty boxes no longer show a dash, so the numbers stand out.',
+  ]},  '3.293': { headline: 'One size for buttons', points: [
+    'Buttons on your workout now share two sizes: the ones you use mid-session, and the ones that add to your plan. Log set is no longer smaller than the buttons around it.',
+    'The voice tip is a quiet note instead of another box, and its close button is easier to tap.',
   ]},
 };
 
@@ -26944,6 +27054,8 @@ async function renderWorkout(){
   const dayPlateClass = getDayPlateClass(activeDay) + (day.plateNum==='OFF' ? ' plate-off' : '');
   const iconEl = document.getElementById('dayPlateIcon');
   iconEl.className = 'day-hero-plate ' + dayPlateClass;
+  // v3.289: the hero title's gradient fades into this day's own plate colour.
+  document.getElementById('workoutCard').style.setProperty('--day-hue', 'var(--plate-' + getDayPlateClass(activeDay).slice(2) + ')');
   iconEl.innerHTML = dayGlyphSvg(day.sub);
   // Mirrors the main title so the sticky header reads correctly whenever it
   // becomes visible, without needing its own render pass.
@@ -27746,6 +27858,7 @@ async function renderWorkout(){
   }
 
   updateSessionCalorieTotal(renderExercises, completed);
+  renderUpNext(); // v3.290: reads the rows this render just built
   // The gym bar counts checkboxes in the rendered list, so it can only be
   // correct after that list exists. No-ops when gym mode is off.
   refreshGymDock();
@@ -28867,6 +28980,100 @@ function advanceSetField(input){
   if(next){ focusSetField(next); return true; }
   return advanceToNextExercise(block);
 }
+
+// [GLASS & GLOW, v3.290] "Up next". Everything is read from the rendered set
+// rows, which are the source of truth: the next set is the first main row (not
+// a warm-up or drop row) with no reps yet, in on-screen order — so supersets
+// come out interleaved exactly as they are performed — skipping exercises
+// already ticked done. Its suggestions are that row's own placeholders.
+function findNextSetRow(listEl){
+  const rows = [...listEl.querySelectorAll('.set-row[data-set-idx]')];
+  const isDone = r => r.querySelector('.ex-reps') && r.querySelector('.ex-reps').value !== '';
+  const ticked = r => { const b = r.closest('.exercise-block'); const c = b && b.querySelector('input[type=checkbox]'); return !!(c && c.checked); };
+  const done = rows.filter(isDone).length;
+  const next = rows.find(r => !isDone(r) && !ticked(r)) || null;
+  if(!next) return {row:null, done, total:rows.length};
+  const peers = rows.filter(r => r.dataset.exIdx === next.dataset.exIdx && r.closest('.exercise-block') === next.closest('.exercise-block'));
+  return {row:next, done, total:rows.length, setNum:peers.indexOf(next) + 1, setCount:peers.length,
+          prev:peers[peers.indexOf(next) - 1] || null,
+          name:(next.querySelector('.set-row-owner') || {}).textContent || ''};
+}
+
+// A placeholder is a suggestion only when it is a number ("185"); otherwise it
+// is the unit hint ("lb", "reps", "RPE") and the card falls back to the set
+// just logged for the same exercise, or empty.
+function numericPlaceholder(input){
+  return input && /^\d+(\.\d+)?$/.test(input.placeholder) ? input.placeholder : '';
+}
+
+function renderUpNext(){
+  const card = document.getElementById('upNext');
+  const list = document.getElementById('exerciseList');
+  if(!card || !list) return;
+  const n = findNextSetRow(list);
+  if(n.total === 0){ card.hidden = true; return; } // rest day: nothing to log
+  card.hidden = false;
+  const pct = Math.round((n.done / n.total) * 100);
+  document.getElementById('upNextRingFill').setAttribute('stroke-dashoffset', String(100 - pct));
+  document.getElementById('upNextRingText').textContent = `${n.done}/${n.total}`;
+  document.getElementById('upNextProgress').textContent = `${n.done} of ${n.total} sets done`;
+  card.classList.toggle('is-done', !n.row);
+  if(!n.row){
+    document.getElementById('upNextLabel').textContent = 'Session complete';
+    document.getElementById('upNextLift').textContent = `All ${n.total} sets logged`;
+    document.getElementById('upNextTarget').textContent = '';
+    return;
+  }
+  document.getElementById('upNextLabel').textContent = `Up next · set ${n.setNum} of ${n.setCount}`;
+  document.getElementById('upNextLift').textContent = n.name;
+  const owner = n.row.closest('.superset-member') || n.row.closest('.exercise-block');
+  // The prescription span only (.ex-sets also carries the calorie tag).
+  const target = owner && owner.querySelector('.ex-sets > span');
+  document.getElementById('upNextTarget').textContent = target ? `${target.textContent.trim()} reps` : '';
+  for(const field of ['weight', 'distance', 'reps', 'rpe']){
+    const src = n.row.querySelector('.ex-' + field);
+    const label = card.querySelector(`.up-next-field[data-field="${field}"]`);
+    const input = document.getElementById('upNext' + field[0].toUpperCase() + field.slice(1));
+    label.hidden = !src;
+    if(!src) continue;
+    // The app's own suggestion first; failing that, carry forward the set just
+    // logged for this exercise (same weight across sets is the common case).
+    const prevSrc = n.prev && n.prev.querySelector('.ex-' + field);
+    input.value = numericPlaceholder(src) || (prevSrc ? prevSrc.value : '');
+    // Empty tiles still guide: reps shows the prescribed range ("6-8"), the rest a dash.
+    const range = target ? (target.textContent.split('×')[1] || '').trim() : '';
+    input.placeholder = field === 'reps' && range ? range : ''; // v3.292: no '–' filler — the label already names the tile
+  }
+  const unit = n.row.querySelector('.ex-weight');
+  if(unit) document.getElementById('upNextWeightUnit').textContent = /^\d/.test(unit.placeholder) ? weightUnit : unit.placeholder;
+  card.dataset.rowKey = `${n.row.dataset.exIdx}:${n.row.dataset.setIdx}`;
+}
+
+// Logging writes into the REAL row and fires its own change events, reps last
+// so the row only becomes a "real set" (rest timer, gym offer) once, after the
+// rest of the entry is in — the same order a person filling the row ends on.
+function logUpNext(){
+  const list = document.getElementById('exerciseList');
+  const n = list ? findNextSetRow(list) : {row:null};
+  if(!n.row) return false;
+  const reps = document.getElementById('upNextReps').value;
+  if(reps === ''){ document.getElementById('upNextReps').focus(); return false; }
+  for(const field of ['weight', 'distance', 'rpe', 'reps']){
+    const src = n.row.querySelector('.ex-' + field);
+    if(!src) continue;
+    const v = document.getElementById('upNext' + field[0].toUpperCase() + field.slice(1)).value;
+    if(v === '' && field !== 'reps') continue;
+    src.value = v;
+    src.dispatchEvent(new Event('change', {bubbles:true}));
+  }
+  renderUpNext();
+  return true;
+}
+document.getElementById('upNextLog').addEventListener('click', logUpNext);
+// Anything typed or ticked in the real list moves the card along too.
+document.addEventListener('change', (e)=>{
+  if(e.target && e.target.closest && e.target.closest('#exerciseList')) setTimeout(renderUpNext, 0);
+});
 
 // Delegated at the document, so it survives every renderWorkout without
 // needing to be re-bound. Arrow keys are deliberately untouched: ArrowUp and
@@ -36997,6 +37204,10 @@ function switchView(active, opts){
   try{ window.storage.set('active-view', active); }catch(e){}
   const views = {today:'todayView', log:'logView', analysis:'analysisView', history:'historyView', care:'careView', coach:'coachView', learn:'learnView'};
   const pills = {today:'navToday', log:'navLog', analysis:'navAnalysis', history:'navHistory', care:'navCare', coach:'navCoach', learn:'navLearn'};
+  // v3.289 (Glass & glow): the header's large title names the view you are in.
+  const titles = {today:'Today', log:'Log', analysis:'Analysis', history:'History', care:'Care', coach:'Coach', learn:'Learn'};
+  const titleEl = document.getElementById('viewTitle');
+  if(titleEl && titles[active]) titleEl.textContent = titles[active];
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   Object.keys(views).forEach(key=>{
     const viewEl = document.getElementById(views[key]);
