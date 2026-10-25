@@ -66,13 +66,15 @@ test('REAL CSSOM: the resting elements that cast shadows before v3.283 cast none
   }
 });
 
-test('REAL CSSOM: the two floating buttons share one neutral float shadow, and no gloss highlight layer remains on them', (assert)=>{
-  const rule = sel => allRules().find(r => r.selectorText === sel);
-  const shadow = sel => rule(sel).style.getPropertyValue('box-shadow');
-  assert.strictEqual(shadow('.coach-fab'), shadow('.today-fab'));
-  assert.match(shadow('.coach-fab'), /--overlay-black-rgb/);
-  for(const sel of ['.coach-fab::before', '.today-fab::before']) assert.strictEqual(rule(sel), undefined, `${sel} gloss must be gone`);
-  assert.match(rule('.coach-fab.dragging').style.getPropertyValue('box-shadow'), /--overlay-black-rgb/, 'drag lift stays, neutral');
+// v3.287 (Glass & glow): one deliberate glow returns — --cta-glow, "press me".
+// The discipline this file guards: plate-colour light reaches the screen ONLY
+// through that token, and only on the named interactive elements below.
+const GLOW_ALLOWED = new Set(['.save-btn', '.coach-fab']);
+test('GUARD: --cta-glow (the only glow) is used only by the primary button and the floating coach button', (assert)=>{
+  const users = allRules().filter(r => /var\(--cta-glow\)/.test(r.style.getPropertyValue('box-shadow'))).map(r => r.selectorText);
+  assert.ok(users.length >= 2, 'anchor: the token is in use');
+  assert.deepStrictEqual(users.filter(sel => !GLOW_ALLOWED.has(sel)), []);
+  for(const sel of ['.coach-fab::before', '.today-fab::before']) assert.strictEqual(allRules().find(r => r.selectorText === sel), undefined, `${sel} gloss must stay gone`);
 });
 
 run();

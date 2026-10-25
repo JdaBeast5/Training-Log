@@ -153,13 +153,15 @@
        redundancy review, confirmed with the user directly (same
        asked-not-guessed approach as the retired second blue light-stop
        above) that 60% should win, and rewritten to match. */
-    /* [TASTESKILL ROLLOUT, v3.280] Filled controls are FLAT (no gradient, no
-       gloss) — the names are kept so the 16 call sites stay untouched. The
-       blue is a deeper step of --plate-blue chosen for contrast: white text
-       measures 4.9:1 on #3860FF, against 3.1-3.6:1 on the old #6E8AFF->#5B7CFF
-       gradient. Green fills carry dark ink (--bg, ~10:1), not white (2:1). */
+    /* [GLASS & GLOW, v3.287] The primary fill is a blue->purple gradient that
+       echoes the aura — and EVERY stop still passes AA with white text (#3860FF
+       4.9:1, #7A3CE0 5.9:1), so the contrast fix of v3.280 survives the new
+       look. Glow means "press me": --cta-glow is reserved for the primary
+       button and the floating coach button; info boxes stay unlit. Green fills
+       keep dark ink (--bg, ~10:1). Names kept so the call sites stay put. */
     --cta-gradient-green:var(--plate-green);
-    --cta-gradient-blue:#3860FF;
+    --cta-gradient-blue:linear-gradient(135deg, #3860FF, #7A3CE0);
+    --cta-glow:0 14px 34px -12px rgba(var(--plate-blue-rgb),0.6);
     /* The glossy top-highlight already used on .macro-bar-fill/.vol-bar-fill
        (a 180deg white-to-transparent sweep over the top ~55% of a filled
        gradient surface) — tokenized here since Phase H extends it to two
@@ -419,7 +421,7 @@
   .tabs-header{display:flex; align-items:center; justify-content:space-between; padding-top:14px;}
   .tabs-header .hint{font-size:11px; color:var(--text-muted); font-family:var(--font-sans);}
   .reorder-btn{
-    background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    background:var(--glass-fill); border:1px solid var(--glass-hair); color:var(--text);
     font-family:var(--font-sans); font-size:12px; font-weight:600;
     padding:7px 12px; border-radius:var(--radius-pill); cursor:pointer;
     transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
@@ -1321,7 +1323,7 @@
     position:absolute; top:0; right:0; z-index:5;
     width:40px; height:40px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
-    background:var(--surface2); border:1px solid var(--line-bright); color:var(--text-muted);
+    background:var(--glass-fill); border:1px solid var(--glass-hair); color:var(--text-muted);
     cursor:pointer;
     transition:color 0.2s var(--ease-smooth), transform 0.3s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
@@ -1562,8 +1564,9 @@
   }
   .save-btn{
     position:relative; overflow:hidden;
-    width:100%; margin-top:14px; padding:12px; border:none; border-radius:var(--radius-sm);
-    background:var(--cta-gradient-blue); color:#fff; font-weight:600; font-size:14px;
+    width:100%; margin-top:14px; padding:14px; border:none; border-radius:var(--radius-pill);
+    background:var(--cta-gradient-blue); color:#fff; font-weight:600; font-size:14.5px;
+    box-shadow:var(--cta-glow);
     letter-spacing:-0.005em;
     font-family:var(--font-sans); cursor:pointer;
     transition:transform 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
@@ -1599,8 +1602,8 @@
   .tip b{color:var(--text);}
 
   .show-more-btn{
-    width:100%; margin-top:10px; padding:10px; background:var(--surface2); border:1px solid var(--line);
-    border-radius:var(--radius-md); color:var(--plate-blue); font-size:12.5px; font-weight:600; cursor:pointer;
+    width:100%; margin-top:10px; padding:11px; background:var(--glass-fill); border:1px solid var(--glass-hair);
+    border-radius:var(--radius-pill); color:var(--plate-blue); font-size:12.5px; font-weight:600; cursor:pointer;
     font-family:var(--font-sans); letter-spacing:-0.005em; display:flex; align-items:center; justify-content:center; gap:6px;
     transition:border-color 0.2s var(--ease-smooth), background 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
@@ -1927,7 +1930,7 @@
     background:var(--cta-gradient-blue); color:#fff; font-size:24px;
     display:flex; align-items:center; justify-content:center; cursor:pointer;
     /* v3.283: it floats, so it keeps a shadow — a neutral one, not a blue glow */
-    box-shadow:0 10px 24px -10px rgba(var(--overlay-black-rgb),0.7);
+    box-shadow:var(--cta-glow);
     transition:transform 0.18s var(--ease-smooth), box-shadow 0.18s var(--ease-smooth), opacity 0.26s var(--ease-smooth),
                top 0.22s var(--ease-smooth), left 0.22s var(--ease-smooth);
     /* Repositionable by drag (wireCoachFabDrag) — this is a small circular
@@ -2870,8 +2873,8 @@
     font-size:12.5px; cursor:pointer; font-family:var(--font-sans);
   }
   .switch-profile-btn{
-    width:100%; margin-top:12px; padding:10px; background:var(--surface2); border:1px solid var(--line);
-    border-radius:var(--radius-md); color:var(--text-muted); font-size:12.5px; font-weight:600; cursor:pointer;
+    width:100%; margin-top:12px; padding:11px; background:var(--glass-fill); border:1px solid var(--glass-hair);
+    border-radius:var(--radius-pill); color:var(--text-muted); font-size:12.5px; font-weight:600; cursor:pointer;
     font-family:var(--font-sans); transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
   .switch-profile-btn:active{transform:scale(0.98); border-color:var(--line-bright); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset;}
@@ -3320,17 +3323,16 @@
   }
   .back-btn:active{transform:scale(0.96);}
   .custom-toggle{
-    width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
-    padding:10px; border-radius:var(--radius-sm); font-size:13px; cursor:pointer; font-family:var(--font-sans);
+    width:100%; background:var(--glass-fill); border:1px solid var(--glass-hair); color:var(--text-muted);
+    padding:11px; border-radius:var(--radius-pill); font-size:13px; cursor:pointer; font-family:var(--font-sans);
     margin-bottom:4px; transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .custom-toggle:active{transform:scale(0.98); border-color:var(--line-bright);}
   .session-extras{ margin-top:14px; } /* adapt + day insight, moved below the list in v3.282 */
   .adapt-workout-toggle{
     /* Flat fill at the old gradient's midpoint, no glow (tasteskill Today pilot, v3.275). */
-    width:100%; background:rgba(var(--plate-blue-rgb),0.10);
-    border:1px solid rgba(var(--plate-blue-rgb),0.35); color:var(--text);
-    padding:11px; border-radius:var(--radius-sm); font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-sans);
+    width:100%; background:var(--glass-fill); border:1px solid var(--glass-hair); color:var(--text);
+    padding:12px; border-radius:var(--radius-pill); font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-sans);
     margin-bottom:10px;
     transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
@@ -4619,9 +4621,9 @@
     display:flex; align-items:center; justify-content:center; gap:8px;
     width:100%; min-height:50px; margin:2px 0 14px;
     /* Flat fill at the old gradient's midpoint (tasteskill Today pilot, v3.275). */
-    background:rgba(91,124,255,0.13);
-    color:var(--text); border:1px solid rgba(91,124,255,0.45);
-    border-radius:var(--radius-md);
+    background:var(--glass-fill);
+    color:var(--text); border:1px solid rgba(91,124,255,0.45); /* literal on purpose: gym mode's own hand-tuned block (see test-rgba-blue-yellow-consolidation) */
+    border-radius:var(--radius-pill);
     font-family:var(--font-sans); font-size:15px; font-weight:600;
     cursor:pointer; transition:transform 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth);
   }
@@ -6600,7 +6602,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.286';
+const APP_VERSION = '3.287';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7319,6 +7321,10 @@ const WHATS_NEW = {
   '3.286': { headline: 'Glass & glow', points: [
     'A new look: deep black with soft red, blue and violet light behind frosted-glass cards.',
     'Gym mode keeps its plain black background for focus.',
+  ]},
+  '3.287': { headline: 'Glowing buttons, glass controls', points: [
+    'Main buttons are rounded pills in a blue-to-purple glow, and the coach button glows too. Glow means "tap me".',
+    'Secondary buttons (Gym mode, Adapt, Reorder, settings) are frosted glass to match the cards.',
   ]},
 };
 
