@@ -71,4 +71,20 @@ test('REAL markup: the two labels whose Title Case surfaced are sentence case', 
   assert.ok(!texts.includes('Add a Food') && !texts.includes('Cal Target'));
 });
 
+test('REAL markup + invocation (v3.281): the macro bar labels are sentence case — the four static rows and renderMedicalNutrientBars\' generated rows', (assert)=>{
+  const { runJsdom, extractFunction } = require('./testHelpers.js');
+  const src = readIndexSource();
+  const log = new JSDOM(`<body>${extractElementById(src, 'logView')}</body>`).window.document;
+  const statics = [...log.querySelectorAll('.macro-row .macro-label')].map(e => e.textContent.trim());
+  assert.deepStrictEqual(statics.slice(0, 4), ['Calories', 'Protein', 'Fat', 'Carbs']);
+  const { window } = runJsdom('<div id="medicalNutrientBars"></div>', `
+    var activeProgram = 'medical'; var userProfile = {}; var targets = {cal: 2000};
+    var NUTRIENT_BAR_COLOR = {sodium: 'red', fiber: 'green'};
+    function activeConditionKeys(){ return ['hypertension']; }
+    function computeMicronutrientTargets(){ return { sodium:{type:'max', value:1500, unit:'mg', label:'Sodium'}, fiber:{type:'min', value:30, unit:'g', label:'Fiber'} }; }`,
+    [extractFunction(src, 'renderMedicalNutrientBars'), 'renderMedicalNutrientBars({sodium: 900, fiber: 12});']);
+  const labels = [...window.document.querySelectorAll('.macro-label')].map(e => e.textContent.trim());
+  assert.deepStrictEqual(Array.from(labels), ['Sodium (stay under)', 'Fiber (aim for)']);
+});
+
 run();

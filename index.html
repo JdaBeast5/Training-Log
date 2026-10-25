@@ -1529,7 +1529,7 @@
 
   .macro-row{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
   .macro-row:last-child{margin-bottom:0;}
-  .macro-label{width:64px; font-size:12.5px; color:var(--text-muted); font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
+  .macro-label{width:64px; font-size:12.5px; color:var(--text-muted); font-family:var(--font-sans);} /* v3.281: words in the text face, sentence case; the figures in .macro-val keep mono */
   .macro-bar-track{flex:1; height:9px; background:var(--surface2); border-radius:5px; overflow:hidden;}
   .macro-bar-fill{position:relative; height:100%; border-radius:5px; transition:width 0.5s var(--ease-smooth);}
   .macro-bar-fill::after{content:''; position:absolute; inset:0; border-radius:5px; background:var(--shine-gloss);}
@@ -5347,22 +5347,22 @@
     </div>
     <div class="history-hint" id="calorieFloorNote" style="display:none"></div>
     <div class="macro-row">
-      <div class="macro-label">CALORIES</div>
+      <div class="macro-label">Calories</div>
       <div class="macro-bar-track"><div class="macro-bar-fill" id="barCal" style="background:var(--plate-white);width:0%"></div></div>
       <div class="macro-val" id="valCal">0 / 2650</div>
     </div>
     <div class="macro-row">
-      <div class="macro-label">PROTEIN</div>
+      <div class="macro-label">Protein</div>
       <div class="macro-bar-track"><div class="macro-bar-fill" id="barPro" style="background:var(--plate-teal);width:0%"></div></div>
       <div class="macro-val" id="valPro">0 / 240</div>
     </div>
     <div class="macro-row">
-      <div class="macro-label">FAT</div>
+      <div class="macro-label">Fat</div>
       <div class="macro-bar-track"><div class="macro-bar-fill" id="barFat" style="background:var(--plate-yellow);width:0%"></div></div>
       <div class="macro-val" id="valFat">0 / 75</div>
     </div>
     <div class="macro-row">
-      <div class="macro-label">CARBS</div>
+      <div class="macro-label">Carbs</div>
       <div class="macro-bar-track"><div class="macro-bar-fill" id="barCarb" style="background:var(--plate-blue);width:0%"></div></div>
       <div class="macro-val" id="valCarb">0 / 250</div>
     </div>
@@ -6589,7 +6589,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.280';
+const APP_VERSION = '3.281';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7287,6 +7287,9 @@ const WHATS_NEW = {
   '3.280': { headline: 'Clearer buttons', points: [
     'Main buttons are now solid instead of shaded and glowing, in a slightly deeper blue so their text is easier to read.',
     'Green buttons and ticks now use dark text, which reads far better on green than white did.',
+  ]},
+  '3.281': { headline: 'Calmer nutrition bars', points: [
+    'Calories, protein, fat, carbs and the extra nutrient bars are labelled in normal sentence case instead of all capitals.',
   ]},
 };
 
@@ -35551,7 +35554,7 @@ function renderMedicalNutrientBars(totals){
     const label = spec.type === 'max' ? `${spec.label} (stay under)` : `${spec.label} (aim for)`;
     return `
       <div class="macro-row">
-        <div class="macro-label">${label.toUpperCase()}</div>
+        <div class="macro-label">${label}</div>
         <div class="macro-bar-track"><div class="macro-bar-fill" style="background:${overMax ? 'var(--plate-red)' : NUTRIENT_BAR_COLOR[nutrient]};width:${pct}%"></div></div>
         <div class="macro-val">${current} / ${spec.value} ${spec.unit}</div>
       </div>
