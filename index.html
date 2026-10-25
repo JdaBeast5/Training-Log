@@ -5468,7 +5468,7 @@
           <input type="text" id="recipeFinderInput" class="care-input" placeholder="e.g. sesame chicken, overnight oats, turkey chili" aria-label="What you feel like eating">
         </div>
         <button class="save-btn" id="recipeFinderSubmit">Find recipes</button>
-        <div class="history-hint" style="margin-top:8px;">A few different takes on what you're craving — with estimated macros per serving, and a link to the actual recipe. Respects your dietary preference and avoid list. Nothing's shown in-app beyond the estimate; tap through to cook it, or log it straight from the estimate if you already know what you're making.</div>
+        <div class="history-hint" style="margin-top:8px;">A few takes on what you're craving, with estimated macros and a link to each recipe. Respects your diet and avoid list. Log straight from the estimate, or tap through to cook.</div>
       </div></div>
       <input type="file" id="photoLogInput" accept="image/*" multiple style="display:none" aria-label="Photo(s) of your meal(s)">
       <div id="photoLogResult"></div>
@@ -5545,12 +5545,12 @@
     <button class="usda-key-upgrade-toggle" id="waterTipsToggle" style="margin-top:8px;">💡 Water tips & benefits</button>
     <div class="smooth-toggle" id="waterTipsContent"><div>
       <ul class="water-tips-list">
-        <li>Even mild dehydration (around 2% of body weight in fluid loss) can measurably reduce strength, endurance, and focus mid-session.</li>
-        <li>Thirst lags behind actual need, especially during hard training — drinking on a rough schedule works better than waiting to feel thirsty.</li>
-        <li>Pale yellow urine is a simple, reliable sign of good hydration; noticeably dark yellow usually means it's time to drink more.</li>
-        <li>Water helps regulate body temperature and lubricate joints during exercise — both directly affect how a session actually feels.</li>
-        <li>Replacing fluids after a hard or hot session helps kick off recovery — sweat losses add up fast in heat or humidity.</li>
-        <li>Coffee and alcohol don't reliably count toward hydration for everyone — for some people they have a mild diuretic effect.</li>
+        <li>Losing just 2% of body weight in fluid can cut strength, endurance and focus.</li>
+        <li>Thirst lags behind need, especially in hard sessions — drink on a rough schedule.</li>
+        <li>Pale yellow urine means you're hydrated; dark yellow means drink more.</li>
+        <li>Water regulates body temperature and lubricates joints — both change how a session feels.</li>
+        <li>Replace fluids after hard or hot sessions — sweat losses add up fast.</li>
+        <li>Coffee and alcohol don't reliably count — for some people they're mildly diuretic.</li>
       </ul>
     </div></div>
   </div>
@@ -5576,19 +5576,19 @@
     <button class="usda-key-upgrade-toggle" id="sleepTipsToggle" style="margin-top:8px;">💡 Sleep tips & facts</button>
     <div class="smooth-toggle" id="sleepTipsContent"><div>
       <ul class="water-tips-list">
-        <li>Adults generally need 7-9 hours a night (National Sleep Foundation / AASM); people training hard regularly often do better toward the top of that range, and some research on athletes points to 8-10 hours as the more accurate target during heavy training blocks.</li>
-        <li>Growth hormone release and muscle protein synthesis both ramp up during deep sleep — cutting sleep short doesn't just make you tired, it directly blunts the recovery you trained for.</li>
-        <li>Chronic short sleep (5-6 hours a night for several nights running) has been shown to reduce muscle protein synthesis by close to 20% — a bigger hit than most people expect from "just" losing sleep.</li>
-        <li>A full sleep cycle runs about 90 minutes; 5 cycles (~7.5 hrs) is a common target for waking up between cycles instead of mid-cycle, which often feels less groggy than the raw hour count alone would suggest.</li>
-        <li>Short sleep is linked to measurably higher injury risk during training, not just worse performance — this isn't only a recovery-quality issue.</li>
-        <li>A cool, dark room and cutting caffeine well before bed are the two most consistently supported sleep-hygiene habits — simple, unglamorous, and well-evidenced.</li>
+        <li>Adults need 7-9 hours (National Sleep Foundation / AASM); during heavy training, research on athletes points to 8-10.</li>
+        <li>Growth hormone and muscle protein synthesis peak in deep sleep — short sleep blunts the recovery you trained for.</li>
+        <li>Several nights of 5-6 hours can cut muscle protein synthesis by close to 20%.</li>
+        <li>A sleep cycle is about 90 minutes; waking after 5 (~7.5 hrs) often feels less groggy than waking mid-cycle.</li>
+        <li>Short sleep raises injury risk, not just fatigue.</li>
+        <li>A cool, dark room and no late caffeine are the best-supported sleep habits.</li>
       </ul>
     </div></div>
   </div>
 
   <div class="card" id="bpCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v4M10 13v4M3 10h4M13 10h4"/><circle cx="10" cy="10" r="3"/></svg></span>Blood Pressure</div>
-    <div class="history-hint">Only shown while Hypertension is your active condition. A single reading is just a snapshot — the trend over days matters far more than any one number, and this is never a substitute for your doctor's monitoring or your prescribed medication.</div>
+    <div class="history-hint">Shown while Hypertension is active. The trend matters more than any one reading. Never a substitute for your doctor's monitoring or prescribed medication.</div>
     <div class="weight-input-row">
       <input type="number" inputmode="numeric" id="bpSystolicInput" placeholder="Systolic" style="max-width:90px;" aria-label="Systolic blood pressure">
       <span style="align-self:center; color:var(--text-muted);">/</span>
@@ -5601,7 +5601,7 @@
 
   <div class="card" id="glucoseCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 L15 11 A5.5 5.5 0 1 1 5 11 Z"/></svg></span>Blood Glucose</div>
-    <div class="history-hint">Only shown while Diabetes is your active condition. Tag each reading so it's compared against the right target — fasting/before-meal and after-meal have different normal ranges. Never a substitute for your prescribed monitoring routine or your care team's guidance.</div>
+    <div class="history-hint">Shown while Diabetes is active. Tag each reading — fasting and after-meal have different normal ranges. Never a substitute for your prescribed monitoring or care team.</div>
     <div class="weight-input-row">
       <input type="number" inputmode="numeric" id="glucoseInput" placeholder="mg/dL" aria-label="Blood glucose in mg/dL">
       <select id="glucoseContext" class="care-input" style="flex:0 0 auto; width:auto;" aria-label="When this glucose reading was taken">
@@ -5616,7 +5616,7 @@
 
   <div class="card" id="supplementCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="6" height="16" rx="3"/><line x1="7" y1="9" x2="13" y2="9"/></svg></span>Today's Supplements</div>
-    <div class="history-hint">Only shown during Bariatric Recovery. Research consistently found food alone rarely covers post-op needs — these four are the ones most commonly prescribed. Doses, exact brands, and whether you need all four are entirely up to your surgical/bariatric team, not this app — this is just a daily reminder checklist, not a substitute for their guidance or your scheduled bloodwork.</div>
+    <div class="history-hint">Shown during Bariatric Recovery. Food alone rarely covers post-op needs; these four are the most commonly prescribed. Your surgical team decides doses, brands and which you need — this is a reminder checklist, not a substitute for their guidance or bloodwork.</div>
     <div id="supplementRows"></div>
   </div>
 
@@ -5625,7 +5625,7 @@
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="15" height="6" rx="3"/><line x1="10" y1="7" x2="10" y2="13"/></svg></span>My Supplements</span>
       <span class="ex-chevron" aria-hidden="true" id="mySupplementsChevron">›</span>
     </div>
-    <div class="nutrition-summary" id="mySupplementsSummary">Track whatever you actually take, day to day — anything that matches a Supplement Recommendations entry gets its evidence tier shown here too.</div>
+    <div class="nutrition-summary" id="mySupplementsSummary">Track what you take each day. Known supplements show their evidence tier.</div>
     <div class="expand-wrap" id="mySupplementsExpandWrap"><div>
       <div class="weight-input-row">
         <input type="text" id="mySupplementAddInput" class="care-input" placeholder="Add a supplement (e.g. Creatine)" aria-label="Add a supplement" autocomplete="off">
@@ -5672,9 +5672,9 @@
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="16" height="10.5" rx="2"/><path d="M7 6 8.4 3.6h3.2L14 6"/><circle cx="10" cy="11.2" r="3.2"/></svg></span>Progress Photos</span>
       <span class="ex-chevron" aria-hidden="true" id="photosChevron">›</span>
     </div>
-    <div class="nutrition-summary" id="photosSummary">Tap to log — a visual record the scale and tape measure can't show</div>
+    <div class="nutrition-summary" id="photosSummary">What the scale and tape can't show</div>
     <div class="expand-wrap" id="photosExpandWrap"><div>
-      <div class="privacy-note">🔒 Stored only on this device by default, never uploaded anywhere on their own. The one exception is the separate "Compare with AI" tool below — it only sends the exact two photos you pick, and only after you explicitly confirm each time. Deleting a photo removes it completely; "Delete All My Data" in your profile wipes these too.</div>
+      <div class="privacy-note">🔒 Stored only on this device, never uploaded — except the two photos you pick for "Compare with AI", after you confirm. Deleting a photo removes it completely; "Delete All My Data" wipes them too.</div>
       <input type="file" id="photoInput" accept="image/*" style="display:none" aria-label="Progress photo">
       <button class="photo-log-btn" id="photoAddBtn">📸 Snap or upload a progress photo</button>
       <div class="status-msg" id="photoStatus"></div>
@@ -5682,7 +5682,7 @@
 
       <div class="section-divider"></div>
       <div class="section-label">🤖 Compare with AI (optional)</div>
-      <div class="history-hint">Separate from everything above — this is the only thing in Progress Photos that ever leaves this device, and only the exact two photos you pick here, only when you tap confirm below.</div>
+      <div class="history-hint">The only part of Progress Photos that leaves this device: just the two photos you pick, only after you confirm.</div>
       <div class="photo-compare-row">
         <select id="comparePhotoBefore" class="care-input" aria-label="Before photo"><option value="">Earlier photo…</option></select>
         <select id="comparePhotoAfter" class="care-input" aria-label="After photo"><option value="">Later photo…</option></select>
@@ -6665,7 +6665,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.294';
+const APP_VERSION = '3.295';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7410,6 +7410,8 @@ const WHATS_NEW = {
     'The voice tip is a quiet note instead of another box, and its close button is easier to tap.',
   ]},  '3.294': { headline: 'Less reading on Today and Settings', points: [
     'Help notes on Today and in Settings say the same thing in about a third fewer words.',
+  ]},  '3.295': { headline: 'Less reading on Log', points: [
+    'Food search, water and sleep tips, health-condition cards and progress photos now say the same in about 40% fewer words.',
   ]},
 };
 
@@ -33089,9 +33091,9 @@ function buildUsdaKeyUpgradePrompt(){
   const wrap = document.createElement('div');
   wrap.className = 'usda-key-upgrade';
   wrap.innerHTML = `
-    <button class="usda-key-upgrade-toggle" type="button">USDA food search: on, using the shared free key · Add a personal key</button>
+    <button class="usda-key-upgrade-toggle" type="button">Food search is on (shared key) · Add your own key</button>
     <div class="usda-key-upgrade-form smooth-toggle"><div>
-      <div class="care-disclaimer" style="margin-top:8px;">Search already works with zero setup. A personal key just raises the limit from 30/hour to 1,000/hour if you ever hit it. Get one free, instantly, at <b>fdc.nal.usda.gov/api-key-signup</b> — no approval wait, no billing, no account needed beyond an email. Stored only on this device.</div>
+      <div class="care-disclaimer" style="margin-top:8px;">Search already works. Your own key raises the limit from 30 to 1,000 searches an hour. It's free and instant at <b>fdc.nal.usda.gov/api-key-signup</b> — just an email. Stored only on this device.</div>
       <input type="text" class="care-input usda-key-input" placeholder="Paste your USDA API key" aria-label="USDA API key">
       <button class="save-btn usda-key-save">Save key</button>
     </div></div>
@@ -33322,7 +33324,7 @@ async function handleBarcodeFound(barcode){
   try{
     const item = await lookupBarcode(barcode);
     if(!item){
-      resultEl.innerHTML = `<div class="empty-note">No product found for that barcode — try search instead, or add it as a custom item below.</div>`;
+      resultEl.innerHTML = `<div class="empty-note">No product for that barcode — search, or add it below.</div>`;
       return;
     }
     renderBarcodeResult(item, false);
@@ -33444,7 +33446,7 @@ If what they're in the mood for is fundamentally incompatible with their dietary
     recipeFinderQtys = recipeFinderResults.map(()=> 1);
 
     if(recipeFinderResults.length === 0){
-      resultEl.innerHTML = `<div class="empty-note">🤷 Nothing fits — that request may conflict with your dietary preference or avoid list, or the model just didn't find a good match. Try rephrasing.</div>`;
+      resultEl.innerHTML = `<div class="empty-note">🤷 Nothing fits — it may clash with your diet or avoid list. Try rephrasing.</div>`;
       return;
     }
 
@@ -33463,7 +33465,7 @@ If what they're in the mood for is fundamentally incompatible with their dietary
     `).join('');
 
     resultEl.innerHTML = `
-      <div class="history-hint">Estimates, not exact — actual macros depend on the specific recipe and portion you end up cooking.</div>
+      <div class="history-hint">Estimates — real macros depend on your recipe and portion.</div>
       ${cardsHtml}
     `;
     // Portions here are SERVINGS: the macro line above says "per serving", so
@@ -34560,7 +34562,7 @@ async function submitFoodDescription(){
     describeFoodQtys = describeFoodParsedItems.map(()=> 1);
 
     if(describeFoodParsedItems.length === 0){
-      resultEl.innerHTML = `<div class="empty-note">🤷 Couldn't identify any food in that description — try rephrasing, or add it manually below.</div>`;
+      resultEl.innerHTML = `<div class="empty-note">🤷 Couldn't find a food in that — rephrase, or add it below.</div>`;
       return;
     }
 
@@ -35777,7 +35779,7 @@ function renderMedicalNutrientBars(totals){
       </div>
       <div class="history-hint nutrient-inline-note">${spec.note}</div>
     `;
-  }).join('') + `<div class="history-hint subtle">⚠️ These numbers are only as good as what's entered — packaged foods (Scan Label) are usually accurate, but AI photo estimates and whole/home-cooked foods are much rougher for these specific nutrients than for calories. Treat this as a rough guide, not a precise reading, and never as a replacement for bloodwork your care team orders.</div>`;
+  }).join('') + `<div class="history-hint subtle">⚠️ Only as good as what's entered: scanned labels are close, AI photo and home-cooked estimates are rough for these nutrients. A guide, never a replacement for bloodwork your care team orders.</div>`;
 }
 
 function updateBars(v){

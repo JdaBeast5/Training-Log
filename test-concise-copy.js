@@ -12,6 +12,7 @@
 // (caught by the suite, fixed before commit).
 //
 // v3.294: Today + Settings/profile (32 strings, 37% fewer words overall).
+// v3.295: Log — food search, water and sleep tips, condition cards, photos (27 strings, 41% fewer).
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -24,7 +25,7 @@ const { document } = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).w
 const words = t => t.split(/\s+/).filter(Boolean).length;
 // The smallest element whose text contains the anchor.
 function noteFor(anchor){
-  const hits = [...document.querySelectorAll('div, p, span, small, label')].filter(e => e.textContent.includes(anchor));
+  const hits = [...document.querySelectorAll('div, p, span, small, label, li')].filter(e => e.textContent.includes(anchor));
   if(!hits.length) throw new Error(`no element contains "${anchor}"`);
   return hits.reduce((a, b) => (a.textContent.length <= b.textContent.length ? a : b)).textContent.replace(/\s+/g, ' ').trim();
 }
@@ -49,6 +50,15 @@ const NOTES = [
   ['Import steps, resting heart rate and HRV', 34, [/CSV/, /Apple Health/, /readiness/]],
   ['Your data lives only in this browser', 16, [/export/i]],
   ['Alternatives that hit the same muscles', 18, [/own weight, reps and RPE history/]],
+  // v3.295: Log
+  ['Shown while Hypertension is active', 26, [/trend/, /doctor's monitoring/, /prescribed medication/]],
+  ['Shown while Diabetes is active', 26, [/fasting and after-meal/, /prescribed monitoring/, /care team/]],
+  ['Shown during Bariatric Recovery', 42, [/surgical team decides/, /not a substitute/, /bloodwork/]],
+  ['Stored only on this device, never uploaded', 36, [/Compare with AI/, /after you confirm/, /Delete All My Data/]],
+  ['The only part of Progress Photos that leaves', 22, [/two photos you pick/, /after you confirm/]],
+  ['A few takes on what you', 32, [/estimated macros/, /diet and avoid list/]],
+  ['Track what you take each day', 14, [/evidence tier/]],
+  ['Adults need 7-9 hours', 22, [/National Sleep Foundation/, /8-10/]],
 ];
 
 test('REAL markup: each rewritten note is under its word budget and keeps its facts', (assert)=>{
@@ -81,7 +91,8 @@ test('GUARD: every inline script still parses (rewritten strings must not break 
 });
 
 test('sabotage anchors: the long versions are gone (one per area)', (assert)=>{
-  for(const old of ["What's worth acting on right now", 'Switches to a real, purpose-built plan', 'Halal and Kosher here only ever', 'clutter than help']){
+  for(const old of ["What's worth acting on right now", 'Switches to a real, purpose-built plan', 'Halal and Kosher here only ever', 'clutter than help',
+                   'Search already works with zero setup', 'Only shown while Hypertension', 'never uploaded anywhere on their own']){
     assert.ok(!src.includes(old), `still present: ${old}`);
   }
 });
