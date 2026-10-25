@@ -563,6 +563,7 @@
   .set-chip-trend{font-family:var(--font-sans); font-size:12px; font-weight:700;}
   .set-chip-trend.is-up{color:var(--plate-green);}
   .set-chip-trend.is-down{color:var(--plate-yellow);}
+  .set-chip-trend.is-same{color:var(--text-muted);}
   .set-chip.is-next .set-chip-trend{color:#fff;}
   /* [SET SHEET, v3.299] Option 2's logger as an Apple HIG sheet: fixed chrome,
      so it may blur; grabber; steppers beside an editable number; 44px+ targets. */
@@ -612,6 +613,7 @@
   .up-next-text{flex:1; min-width:0;}
   .up-next-label{font-size:12px; color:var(--text-muted);}
   .up-next-lift{font-size:24px; font-weight:700; letter-spacing:-0.025em; line-height:1.15; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .up-next-why{font-size:13px; color:var(--text-muted); margin-top:4px;}
   .up-next-target{font-family:var(--font-mono); font-size:13.5px; color:var(--day-hue, var(--text-muted)); margin-top:3px;}
   .up-next-sr{position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
   .up-next-ring{width:60px; height:60px; flex:0 0 auto;}
@@ -4976,6 +4978,7 @@
           <div class="up-next-label" id="upNextLabel"></div>
           <div class="up-next-lift" id="upNextLift"></div>
           <div class="up-next-target" id="upNextTarget"></div>
+          <div class="up-next-why" id="upNextWhy" hidden></div>
         </div>
         <span class="up-next-sr" id="upNextProgress"></span>
         <svg class="up-next-ring" viewBox="0 0 64 64" aria-hidden="true">
@@ -6654,7 +6657,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.302';
+const APP_VERSION = '3.303';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7419,6 +7422,9 @@ const WHATS_NEW = {
     'The screen moves on to the next exercise by itself as you go.',
   ]},  '3.302': { headline: 'RPE is optional', points: [
     'An exercise now checks itself off once every set has its weight and reps. RPE is there when you want it.',
+  ]},  '3.303': { headline: 'Up or stay, set by set', points: [
+    'After each set, your next one says whether to go up (↑) or stay (=), based on your reps and RPE. Hit the top of your range without a grind and it adds a step.',
+    'The reason shows on Up next and in the quick logger.',
   ]},
 };
 
@@ -26925,6 +26931,7 @@ async function renderWorkout(){
   fullExercises = applyExOverrides(fullExercises, exOverrides);
 
   const inDeloadWeek = await isDeloadWeek();
+  document.getElementById('exerciseList').dataset.deload = inDeloadWeek ? '1' : ''; // read by the set chips (v3.303)
   const mesoWeek = await getMesocycleWeek();
   if(inDeloadWeek){
     fullExercises = applyDeloadVolumeReduction(fullExercises);
@@ -27648,8 +27655,8 @@ async function renderWorkout(){
   }
 
   updateSessionCalorieTotal(renderExercises, completed);
-  renderUpNext(); // v3.290: reads the rows this render just built
-  renderAllSetChips(); // v3.298: same rows, as chips
+  renderAllSetChips(); // v3.298: the rows as chips (v3.303: first — they hold the set-to-set call)
+  renderUpNext(); // v3.290: reads the rows this render just built, and the chips
   // The gym bar counts checkboxes in the rendered list, so it can only be
   // correct after that list exists. No-ops when gym mode is off.
   refreshGymDock();
@@ -28821,6 +28828,9 @@ function renderUpNext(){
   // The prescription span only (.ex-sets also carries the calorie tag).
   const target = owner && owner.querySelector('.ex-sets > span');
   document.getElementById('upNextTarget').textContent = target ? `${target.textContent.trim()} reps` : '';
+  const chip = list.querySelector(`.set-chip[data-ex-idx="${n.row.dataset.exIdx}"][data-set-idx="${n.row.dataset.setIdx}"]`);
+  const why = document.getElementById('upNextWhy');
+  if(why){ why.textContent = (chip && chip._values && chip._values.why) || ''; why.hidden = !why.textContent; }
   for(const field of ['weight', 'distance', 'reps', 'rpe']){
     const src = n.row.querySelector('.ex-' + field);
     const label = card.querySelector(`.up-next-field[data-field="${field}"]`);
@@ -28830,7 +28840,9 @@ function renderUpNext(){
     // The app's own suggestion first; failing that, carry forward the set just
     // logged for this exercise (same weight across sets is the common case).
     const prevSrc = n.prev && n.prev.querySelector('.ex-' + field);
-    input.value = numericPlaceholder(src) || (prevSrc ? prevSrc.value : '');
+    // v3.303: the chip for this set already holds the set-to-set call.
+    const chipV = chip && chip._values;
+    input.value = chipV && chipV[field] != null && chipV[field] !== '' && field !== 'rpe' ? chipV[field] : (numericPlaceholder(src) || (prevSrc ? prevSrc.value : ''));
     // Empty tiles still guide: reps shows the prescribed range ("6-8"), the rest a dash.
     const range = target ? (target.textContent.split('×')[1] || '').trim() : '';
     input.placeholder = field === 'reps' && range ? range : ''; // v3.292: no '–' filler — the label already names the tile
@@ -28901,6 +28913,36 @@ function setChipValues(row, prev){
   return {done, suggested, trend, weight:pick('weight'), distance:pick('distance'), reps:pick('reps'), rpe: done && el('rpe') ? el('rpe').value : ''};
 }
 
+// [NEXT-SET RECOMMENDATION, v3.303] Once a set is logged, should the next set
+// of the same exercise go up or stay? The progression engine above answers
+// that between SESSIONS; this answers it between SETS, from the set just done.
+// Double progression, the same model the engine uses, read set to set:
+//  - UP one loadable step when you reached the top of the rep range (or beat
+//    a single target) and it wasn't a grind: RPE 8 or less, or not logged;
+//    reps restart at the bottom of the range, as they do between sessions;
+//  - otherwise STAY at the same weight: after a grind, same reps; short of the
+//    top, the chip shows the top of the range to build to. Never up in a deload week.
+// `prev` is the logged set {weight, reps, rpe}; `step` is a loadable jump.
+function recommendNextSet(prev, setsStr, step, inDeload){
+  const w = parseFloat(prev.weight), r = parseInt(prev.reps, 10);
+  if(isNaN(w) || isNaN(r)) return null;
+  const top = parseTopRep(setsStr || ''), bottom = parseBottomRep(setsStr || '') || top;
+  const rpe = prev.rpe === '' || prev.rpe == null ? null : parseFloat(prev.rpe);
+  const hitTop = top != null && r >= top;
+  const easyEnough = rpe == null || rpe <= 8;
+  const same = {dir:'same', weight:trimUnitNum(w), reps:String(r)};
+  if(inDeload) return {...same, why:'Deload week — hold the weight'};
+  if(hitTop && easyEnough && step > 0){
+    return {dir:'up', weight:trimUnitNum(Math.round((w + step) * 100) / 100), reps:String(bottom || r),
+            why:`Go up ${trimUnitNum(step)} — ${r} reps${rpe != null ? ` at RPE ${trimUnitNum(rpe)}` : ''} last set`};
+  }
+  if(hitTop) return {...same, why:`Stay — RPE ${trimUnitNum(rpe)} last set`};
+  // Short of the top: same weight, and the chip shows the reps to build to,
+  // so the number on it matches the words.
+  if(top != null) return {...same, reps:String(top), why:`Stay — aim for ${top} reps`};
+  return {...same, why:'Stay at this weight'};
+}
+
 // "135×8", "2.5 km × 1", "12 reps", "45 sec"; '' when there is nothing to show.
 function setChipLabel(v, row){
   const r = row.querySelector('.ex-reps');
@@ -28935,9 +28977,18 @@ function renderSetChips(blockEl, glowRow){
   const names = [...blockEl.querySelectorAll('.exercise .ex-name')].map(n => (n.firstChild && n.firstChild.textContent || '').trim()).filter(Boolean);
   strip.setAttribute('aria-label', 'Sets for ' + names.join(' and '));
   strip.innerHTML = '';
+  const inDeload = !!(blockEl.closest('#exerciseList') && blockEl.closest('#exerciseList').dataset.deload);
   rows.forEach(row => {
     const ex = row.dataset.exIdx;
-    const v = setChipValues(row, prevFor[ex]);
+    const prevV = prevFor[ex];
+    const v = setChipValues(row, prevV);
+    // The set right after one logged today: the set-to-set call decides.
+    if(!v.done && prevV && prevV.done && prevV.weight && rangeFor[ex] != null){
+      const presc = (blockEl.querySelector(`.exercise input[type=checkbox][data-idx="${ex}"]`) || {closest:()=>null}).closest('.exercise');
+      const sets = presc && presc.querySelector('.ex-sets > span') ? presc.querySelector('.ex-sets > span').textContent : '';
+      const rec = recommendNextSet(prevV, sets, setSheetWeightStep(row), inDeload);
+      if(rec){ v.weight = rec.weight; v.reps = rec.reps; v.trend = rec.dir; v.why = rec.why; v.suggested = true; }
+    }
     prevFor[ex] = v;
     let state = 'pending';
     if(v.done) state = 'done';
@@ -28956,11 +29007,11 @@ function renderSetChips(blockEl, glowRow){
     if(loggable) chip.dataset.loggable = '1';
     chip.innerHTML = (isPair ? `<span class="set-chip-tag">${escapeHtml(setChipOwnerTag(row))}</span>` : '')
       + `<span class="set-chip-val">${escapeHtml(label || (target ? '×' + target : 'Set ' + setNum))}</span>`
-      + (v.trend ? `<span class="set-chip-trend is-${v.trend}" aria-hidden="true">${v.trend === 'up' ? '↑' : '↓'}</span>` : '');
+      + (v.trend ? `<span class="set-chip-trend is-${v.trend}" aria-hidden="true">${v.trend === 'up' ? '↑' : v.trend === 'same' ? '=' : '↓'}</span>` : '');
     // RPE is not on the chip (four sets fit one line without it); it is spoken, and shown in the sheet.
     chip.setAttribute('aria-label', `${owner}, set ${setNum}: ${label || (target ? 'target ' + target + ' reps' : 'not logged')}${v.done && v.rpe ? ' at RPE ' + v.rpe : ''}`
       + (v.done ? ', logged' : loggable ? ', tap to log' : ', tap to enter')
-      + (v.trend === 'up' ? ', suggested increase' : v.trend === 'down' ? ', suggested lighter weight' : v.suggested ? ', suggested weight' : ''));
+      + (v.why ? `. ${v.why}` : v.trend === 'up' ? ', suggested increase' : v.trend === 'down' ? ', suggested lighter weight' : v.suggested ? ', suggested weight' : ''));
     chip._values = v;
     strip.appendChild(chip);
   });
@@ -29086,7 +29137,7 @@ function openSetSheet(row, chip){
   const cb = holder && holder.querySelector(`.exercise input[type=checkbox][data-idx="${row.dataset.exIdx}"]`);
   const presc = cb && cb.closest('.exercise').querySelector('.ex-sets > span');
   document.getElementById('setSheetTitle').textContent = `${owner} · Set ${setNum}`;
-  document.getElementById('setSheetSub').textContent = presc ? `Target ${presc.textContent.trim()}` : '';
+  document.getElementById('setSheetSub').textContent = v.why || (presc ? `Target ${presc.textContent.trim()}` : '');
   for(const f of ['weight', 'distance', 'reps']){
     sheet.querySelector(`.set-sheet-step[data-field="${f}"]`).hidden = !has(f);
     const input = document.getElementById('setSheet' + f[0].toUpperCase() + f.slice(1));
@@ -29221,7 +29272,7 @@ function stepSetSheet(field, dir){
 document.getElementById('upNextLog').addEventListener('click', logUpNext);
 // Anything typed or ticked in the real list moves the card along too.
 document.addEventListener('change', (e)=>{
-  if(e.target && e.target.closest && e.target.closest('#exerciseList')) setTimeout(()=>{ renderUpNext(); renderAllSetChips(); }, 0);
+  if(e.target && e.target.closest && e.target.closest('#exerciseList')) setTimeout(()=>{ renderAllSetChips(); renderUpNext(); }, 0);
 });
 
 // Delegated at the document, so it survives every renderWorkout without

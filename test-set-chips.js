@@ -27,7 +27,9 @@ const { readIndexSource, extractFunction, runJsdom, makeRunner } = require('./te
 const { test, run } = makeRunner('test-set-chips.js');
 const src = readIndexSource();
 const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel',
-  'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'commitSet', 'logSetChip'].map(n => extractFunction(src, n));
+  'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'commitSet', 'logSetChip',
+  // v3.303: the set-to-set recommendation and what it needs.
+  'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep'].map(n => extractFunction(src, n));
 // The one delegated click listener, taken whole from its comment to its close.
 const CLICK = (()=>{
   const a = src.indexOf('// One delegated listener for every strip');
@@ -51,7 +53,10 @@ function block(i, name, sets, rows, {ticked = false} = {}){
 }
 function mount(listHtml){
   const { window } = runJsdom(`<div id="exerciseList">${listHtml}</div><div id="undoToast"></div>`, `
-    var distanceUnit = 'km';
+    var distanceUnit = 'km', weightUnit = 'lb';
+    function getEquipment(){ return {bar:45, plates:[45, 25, 10, 5, 2.5], dbIncrement:5}; } // 5 lb barbell step
+    function isBarbellExercise(){ return true; }
+    function isDumbbellExercise(){ return false; }
     var setChipLongPressAt = 0; // v3.299: the long-press flag the click listener reads (no press in these tests)
     window.__undo = null; window.__opened = null;
     function showUndoToast(msg, fn){ window.__toast = msg; window.__undo = fn; }
@@ -76,7 +81,11 @@ test('REAL invocation: logged sets show what was done; each exercise has one rea
   // v3.299: RPE moved off the chip (into its spoken label and the sheet) so four sets fit one line.
   assert.strictEqual(ui.chips(0)[0].querySelector('.set-chip-rpe'), null);
   assert.match(ui.chips(0)[0].getAttribute('aria-label'), /185×5 at RPE 8/);
-  assert.deepStrictEqual(ui.describe(1), ['done:135×8', 'ready next:135×8', 'pending:135×8'], 'carried forward from the logged set, through the plan');
+  // v3.303: the set after one logged today takes the set-to-set call — 8 reps
+  // (top of 6-8) at RPE 7 -> up one 5 lb step, reps back to the bottom (6).
+  assert.deepStrictEqual(ui.describe(1), ['done:135×8', 'ready next:140×6', 'pending:140×6'], 'the call carries through the plan');
+  assert.strictEqual(ui.chips(1)[1].querySelector('.set-chip-trend').textContent, '↑');
+  assert.match(ui.chips(1)[1].getAttribute('aria-label'), /Go up 5 — 8 reps at RPE 7 last set/);
   assert.deepStrictEqual(ui.describe(2), ['ready:95×10', 'pending:95×10'], 'its own suggestion, ready but not the glowing one');
   assert.strictEqual(ui.window.document.querySelectorAll('.set-chip.is-next').length, 1, 'exactly one glow');
 });
@@ -100,7 +109,8 @@ test('REAL invocation: one tap on a ready chip writes into the REAL row (reps la
   ui.chips(0)[0].click();
   assert.deepStrictEqual(order, ['weight:135', 'reps:8'], 'weight first, reps last; no RPE invented');
   assert.strictEqual(ui.window.__toast, 'Logged Barbell Row 135×8');
-  assert.deepStrictEqual(ui.describe(0), ['done:135×8', 'ready next:135×8'], 'the strip moved on');
+  // v3.303: 8 reps (top of 6-8), no RPE -> up one step for set 2.
+  assert.deepStrictEqual(ui.describe(0), ['done:135×8', 'ready next:140×6'], 'the strip moved on, with the set-to-set call');
   ui.window.__undo();
   assert.strictEqual(real.querySelector('.ex-reps').value, '');
   assert.strictEqual(real.querySelector('.ex-weight').value, '');
@@ -140,8 +150,9 @@ test('REAL source: the strip sits OUTSIDE the expanding panel in both assemblies
   // added or swiped away change the rows without a change event).
   assert.strictEqual((fn.match(/\brenderAllSetChips\(\)/g) || []).length, 2);
   assert.match(fn, /new MutationObserver\(\(\)=> renderAllSetChips\(\)\)\.observe\(sets, \{childList:true\}\)/, 'the watcher');
+  // v3.303: the chips draw BEFORE Up next, which reads the set-to-set call off the chip.
   const draw = fn.indexOf('renderAllSetChips(); ');
-  assert.ok(draw > fn.indexOf('renderUpNext()'), 'drawn after the list (and Up next) are built');
+  assert.ok(draw > fn.indexOf("getElementById('exerciseList')") && draw < fn.indexOf('renderUpNext()'), 'after the rows, before Up next');
 });
 
 test('REAL CSSOM: chips are at least 44px tall (Apple HIG touch target) and the next set has no glow', (assert)=>{
