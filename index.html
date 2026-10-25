@@ -167,10 +167,9 @@
        expensive. Three steps, one rim, one lift. A component that seems to
        need a fourth step almost certainly wants a different component.
 
-       --rim is the hairline where light catches a top edge. --lift is the
-       coloured bloom beneath a raised surface, in --plate-blue rather than
-       neutral grey so the depth belongs to this palette instead of being
-       borrowed from a generic dark theme. */
+       --rim is the hairline where light catches a top edge. (--lift, the blue
+       bloom that sat under every card, was retired in v3.277 when resting
+       cards went flat app-wide — see .card.) */
     /* Was `--rim:var(--rim)` — a dependency cycle. Per the CSS variables spec
        a custom property in a cycle computes to the guaranteed-invalid value,
        so every `var(--rim)` without a fallback made its whole declaration
@@ -181,7 +180,6 @@
        var(--elev-*) uses were inert. --sheen already holds the hairline colour
        this was always meant to be. */
     --rim:0 1px 0 var(--sheen) inset;
-    --lift:0 24px 60px -30px rgba(var(--plate-blue-rgb),0.16);
     --elev-1:var(--rim), 0 2px 6px -2px rgba(var(--overlay-black-rgb),0.40);
     --elev-2:var(--rim), 0 14px 32px -12px rgba(var(--overlay-black-rgb),0.55);
     --elev-3:var(--rim), 0 24px 48px -16px rgba(var(--overlay-black-rgb),0.70);
@@ -514,21 +512,21 @@
   .reorder-arrows button:disabled{opacity:0.25;}
 
   .card{
+    /* [TASTESKILL ROLLOUT, v3.277] A resting card is a lightness step alone
+       (--surface on --bg): no visible border, no shadow, no blue --lift bloom
+       and no sheen line along its top (the old ::before). Shadows and glass are
+       for what floats — nav, sheets, overlays — per the owner's call. Proven on
+       Today in the v3.272 pilot, then promoted here so every view matches. The
+       border stays as 1px transparent so no card's box moves by a pixel. */
     position:relative;
     background:var(--surface);
-    border:1px solid rgba(var(--surface-white-rgb),0.07);
+    border:1px solid transparent;
     border-radius:var(--radius-lg);
     /* Even on all four sides. This read 22px 22px 23px, which put one more
        pixel under the content than above it on all 62 cards. */
     padding:22px;
     margin-bottom:18px;
-    box-shadow:var(--elev-2), var(--lift);
-    transition:box-shadow 0.3s var(--ease-smooth), border-color 0.3s var(--ease-smooth), transform 0.2s var(--ease-smooth);
-  }
-  .card::before{
-    content:''; position:absolute; top:0; left:14px; right:14px; height:1px;
-    background:linear-gradient(90deg, transparent, var(--sheen-strong) 40%, var(--sheen-strong) 60%, transparent);
-    border-radius:1px; pointer-events:none;
+    transition:transform 0.2s var(--ease-smooth);
   }
   .card-title{
     font-family:var(--font-sans);
@@ -758,23 +756,12 @@
   .card-stagger{ opacity:0; transform:translateY(14px); animation:cardRise 0.42s var(--ease-smooth) forwards; }
   @keyframes cardRise{ to{ opacity:1; transform:translateY(0); } }
 
-  /* [TASTESKILL TODAY PILOT, v3.272] Today's resting cards follow the
-     true-black-flat style dealt for this screen: elevation by a lightness step
-     alone (--surface on --bg), no border, no shadow, no blue --lift bloom and no
-     sheen line — those are for what floats (nav, sheets, overlays), which keep
-     their glass per the owner's call. And nothing on Today performs an
-     entrance: the card rise that replays on every switch to this tab is off
-     here; the view crossfade (navigation feedback) and row/press feedback stay.
-     Scoped to direct children of #todayView so other views keep their look
-     until the pilot is rolled out; base .card is untouched. Gym mode's own
-     hand-tuned .exercise-block.open formula lives inside #workoutCard and is
-     not touched by this. */
-  #todayView > .card{
-    border-color:transparent;
-    box-shadow:none;
-  }
-  #todayView > .card::before{ content:none; }
-  #todayView > .card.card-stagger{ opacity:1; transform:none; animation:none; }
+  /* [TASTESKILL ROLLOUT, v3.277] Cards no longer perform an entrance: the
+     rise switchView replays on every tab switch is off for .card in every view
+     (piloted on Today in v3.272). List ROWS that carry .card-stagger
+     (buildSwipeItem) keep it — a row arriving is feedback, which stays, as do
+     the view crossfade and press feedback. */
+  .card.card-stagger{ opacity:1; transform:none; animation:none; }
 
   .exercise{
     display:flex; align-items:center; gap:12px;
@@ -6607,7 +6594,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.276';
+const APP_VERSION = '3.277';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7289,6 +7276,10 @@ const WHATS_NEW = {
   '3.276': { headline: 'A fresh typeface', points: [
     'The whole app now uses Geist, a crisper typeface with numbers that line up digit for digit in your sets and stats.',
     'It ships with the app, so it works offline like before.',
+  ]},
+  '3.277': { headline: 'Every tab gets the calmer cards', points: [
+    'The flat cards Today got are now on every tab: no outlines, shadows or blue glow, just a lighter shade against the background.',
+    'Cards no longer slide in each time you switch tabs. New rows in your lists still glide in.',
   ]},
 };
 
