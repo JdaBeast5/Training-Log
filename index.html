@@ -1724,9 +1724,11 @@
     flex:1; background:var(--surface2); border:1px solid var(--line); color:var(--text);
     border-radius:var(--radius-sm); padding:10px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:14px;
   }
+  /* v3.309 (2.0): every inline submit (Log, Add) is the app's primary — the
+     blue-to-purple pill, compact and without the glow — not a green button. */
   .weight-input-row button{
-    padding:10px 16px; border:none; border-radius:var(--radius-sm); background:var(--plate-green);
-    color:#fff; font-weight:600; cursor:pointer; font-family:var(--font-sans); font-size:13px;
+    padding:0 18px; min-height:44px; border:none; border-radius:var(--radius-pill); background:var(--cta-gradient-blue);
+    color:#fff; font-weight:600; cursor:pointer; font-family:var(--font-sans); font-size:15px;
   }
   .weight-list{margin-top:12px; display:flex; flex-direction:column; gap:6px;}
   /* Grocery List's own list container never got the same margin-top the
@@ -1903,23 +1905,21 @@
   .quick-add-btn{
     position:relative; overflow:hidden;
     flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
-    background:var(--surface2); border:1px dashed var(--plate-blue); border-radius:var(--radius-md);
+    /* v3.309 (2.0): a glass tile with a drawn icon, like every other secondary
+       control — was a dashed blue box with an emoji, a blue glow and a gloss. */
+    background:var(--glass-fill); border:1px solid var(--glass-hair); border-radius:16px;
     /* 6px side padding + 11.5px type clipped "Describe"/"Suggest"/"Recipes" by 1-4px against
        .quick-add-btn's own overflow:hidden (needed for the ::before gloss) at a 375px-wide
        screen — 5 buttons sharing one row leaves ~52px each. 4px padding + 10.5px (already used
        at this size for .section-label) buys back enough room that the longest label, "Describe",
        clears with a real if thin margin instead of losing its last pixel to the clip. */
-    padding:10px 4px; color:var(--plate-blue); font-weight:600; font-size:10.5px; cursor:pointer;
+    padding:10px 4px; min-height:56px; color:var(--text); font-weight:600; font-size:10.5px; cursor:pointer;
     font-family:var(--font-sans); transition:transform 0.15s var(--ease-smooth);
-    box-shadow:0 6px 16px -10px rgba(var(--plate-blue-rgb),0.4);
-  }
-  .quick-add-btn::before{
-    content:''; position:absolute; top:0; left:0; right:0; height:50%; z-index:0;
-    background:linear-gradient(180deg, rgba(var(--plate-blue-rgb),0.1), transparent); pointer-events:none;
   }
   .quick-add-btn span, .quick-add-btn .quick-add-icon{position:relative; z-index:1;}
   .quick-add-btn:active{transform:scale(0.96);}
-  .quick-add-icon{font-size:18px;}
+  .quick-add-icon{display:grid; place-items:center; width:20px; height:20px; color:var(--plate-blue);}
+  .quick-add-icon svg{width:20px; height:20px;}
   .describe-food-form{margin-bottom:10px;}
 
   /* ── A described item: portions and reuse ─────────────────────────────────
@@ -5451,15 +5451,15 @@
 
     <div class="expand-wrap" id="nutritionExpandWrap"><div>
       <div class="section-label">Add a food</div>
-      <input type="text" id="foodSearchInput" class="food-search-input" placeholder="🔍 Search any food or restaurant..." aria-label="Search any food or restaurant">
+      <input type="text" id="foodSearchInput" class="food-search-input" placeholder="Search any food or restaurant..." aria-label="Search any food or restaurant">
       <div id="usdaKeySettingsSlot"></div>
 
       <div class="quick-add-row">
-        <button class="quick-add-btn" id="photoLogBtn"><span class="quick-add-icon">📷</span>Photo</button>
-        <button class="quick-add-btn" id="barcodeScanBtn"><span class="quick-add-icon">▦</span>Barcode</button>
-        <button class="quick-add-btn" id="describeFoodBtn"><span class="quick-add-icon">📝</span>Describe</button>
-        <button class="quick-add-btn" id="suggestMealBtn"><span class="quick-add-icon">💡</span>Suggest</button>
-        <button class="quick-add-btn" id="recipeFinderBtn"><span class="quick-add-icon">🍳</span>Recipes</button>
+        <button class="quick-add-btn" id="photoLogBtn"><span class="quick-add-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5h3l1.5-2h5L14 6.5h3v9H3z"/><circle cx="10" cy="10.8" r="3"/></svg></span>Photo</button>
+        <button class="quick-add-btn" id="barcodeScanBtn"><span class="quick-add-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5v10M5.5 5v10M8 5v10M11 5v10M13 5v10M15.5 5v10M17 5v10"/></svg></span>Barcode</button>
+        <button class="quick-add-btn" id="describeFoodBtn"><span class="quick-add-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15.5 5 12l7.5-7.5 2.5 2.5L7.5 14.5z"/><path d="M11 6l2.5 2.5"/></svg></span>Describe</button>
+        <button class="quick-add-btn" id="suggestMealBtn"><span class="quick-add-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 13.5a4.5 4.5 0 1 1 5 0V15h-5z"/><path d="M8 17h4"/></svg></span>Suggest</button>
+        <button class="quick-add-btn" id="recipeFinderBtn"><span class="quick-add-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 4.5c2.5-1 4.5-.6 6.5.8v10.2c-2-1.4-4-1.8-6.5-.8zM16.5 4.5c-2.5-1-4.5-.6-6.5.8v10.2c2-1.4 4-1.8 6.5-.8z"/></svg></span>Recipes</button>
       </div>
       <div id="describeFoodForm" class="describe-food-form smooth-toggle"><div>
         <div class="describe-food-input-row">
@@ -5483,7 +5483,7 @@
       <div id="recipeFinderResult"></div>
 
       <div class="section-divider"></div>
-      <button class="reorder-btn" id="hideAvoidedToggle" style="display:none; margin-bottom:10px;">🙈 Hide foods that don't fit</button>
+      <button class="reorder-btn" id="hideAvoidedToggle" style="display:none; margin-bottom:10px;">Hide foods that don't fit</button>
       <div class="food-cats" id="foodCats"></div>
       <div class="food-items" id="foodItems"></div>
 
@@ -5514,7 +5514,7 @@
         </div></div>
         <label class="save-to-library-label">
           <input type="checkbox" id="cSaveToLibrary" checked>
-          <span>💾 Save to My Foods, so I can find it again next time</span>
+          <span>Save to My Foods, so I can find it again next time</span>
         </label>
         <button class="save-btn" id="addCustom">Add item</button>
       </div></div>
@@ -5522,7 +5522,7 @@
 
       <div class="section-divider"></div>
       <div class="section-label">Today</div>
-      <button class="reorder-btn" id="repeatYesterdayBtn" style="display:none; margin-bottom:10px;">🔁 Repeat yesterday</button>
+      <button class="reorder-btn" id="repeatYesterdayBtn" style="display:none; margin-bottom:10px;">Repeat yesterday</button>
       <div class="food-log-list" id="foodLogList"></div>
     </div></div>
   </div>
@@ -5547,7 +5547,7 @@
       <button class="water-btn" data-oz="24" aria-label="Log 24 ounces of water">+24oz</button>
       <button class="water-btn water-reset" id="waterReset">Reset</button>
     </div>
-    <button class="usda-key-upgrade-toggle" id="waterTipsToggle" style="margin-top:8px;">💡 Water tips & benefits</button>
+    <button class="usda-key-upgrade-toggle" id="waterTipsToggle" style="margin-top:8px;">Water tips & benefits</button>
     <div class="smooth-toggle" id="waterTipsContent"><div>
       <ul class="water-tips-list">
         <li>Losing just 2% of body weight in fluid can cut strength, endurance and focus.</li>
@@ -5567,7 +5567,7 @@
       <button id="saveWeight">Log</button>
     </div>
     <div class="status-msg" id="weightSaveStatus"></div>
-    <div class="weight-list" id="weightList"><div class="empty-note">⚖️ No entries yet — log your first weigh-in.</div></div>
+    <div class="weight-list" id="weightList"><div class="empty-note">No entries yet — log your first weigh-in.</div></div>
   </div>
 
   <div class="card">
@@ -5577,8 +5577,8 @@
       <button id="saveSleep">Log</button>
     </div>
     <div class="sleep-avg" id="sleepAvg"></div>
-    <div class="weight-list" id="sleepList"><div class="empty-note">😴 No entries yet — log last night's sleep.</div></div>
-    <button class="usda-key-upgrade-toggle" id="sleepTipsToggle" style="margin-top:8px;">💡 Sleep tips & facts</button>
+    <div class="weight-list" id="sleepList"><div class="empty-note">No entries yet — log last night's sleep.</div></div>
+    <button class="usda-key-upgrade-toggle" id="sleepTipsToggle" style="margin-top:8px;">Sleep tips & facts</button>
     <div class="smooth-toggle" id="sleepTipsContent"><div>
       <ul class="water-tips-list">
         <li>Adults need 7-9 hours (National Sleep Foundation / AASM); during heavy training, research on athletes points to 8-10.</li>
@@ -5601,7 +5601,7 @@
       <button id="saveBP">Log</button>
     </div>
     <div class="status-msg" id="bpSaveStatus"></div>
-    <div class="weight-list" id="bpList"><div class="empty-note">🩺 No readings yet — log your first one.</div></div>
+    <div class="weight-list" id="bpList"><div class="empty-note">No readings yet — log your first one.</div></div>
   </div>
 
   <div class="card" id="glucoseCard" style="display:none">
@@ -5616,7 +5616,7 @@
       <button id="saveGlucose">Log</button>
     </div>
     <div class="status-msg" id="glucoseSaveStatus"></div>
-    <div class="weight-list" id="glucoseList"><div class="empty-note">🩸 No readings yet — log your first one.</div></div>
+    <div class="weight-list" id="glucoseList"><div class="empty-note">No readings yet — log your first one.</div></div>
   </div>
 
   <div class="card" id="supplementCard" style="display:none">
@@ -5686,7 +5686,7 @@
       <div class="photo-grid" id="photoGrid"></div>
 
       <div class="section-divider"></div>
-      <div class="section-label">🤖 Compare with AI (optional)</div>
+      <div class="section-label">Compare with AI (optional)</div>
       <div class="history-hint">The only part of Progress Photos that leaves this device: just the two photos you pick, only after you confirm.</div>
       <div class="photo-compare-row">
         <select id="comparePhotoBefore" class="care-input" aria-label="Before photo"><option value="">Earlier photo…</option></select>
@@ -5730,7 +5730,7 @@
     <div class="expand-wrap" id="diagExpandWrap">
       <div>
         <div class="history-hint">Checks for the newest version, offline support and storage health. Run it if an update doesn't show.</div>
-        <button class="switch-profile-btn" id="diagRunBtn">🩺 Run check</button>
+        <button class="switch-profile-btn" id="diagRunBtn">Run check</button>
         <div id="diagResults"></div>
       </div>
     </div>
@@ -5746,7 +5746,7 @@
       <div>
         <div class="history-hint">Import steps, resting heart rate and HRV: export a CSV from Apple Health, Garmin, Fitbit, Oura or Whoop, then pick it here. Today's readiness check leans most on resting heart rate.</div>
         <input type="file" id="healthImportInput" aria-label="Choose a health data CSV file to import" accept=".csv,text/csv" style="display:none">
-        <button class="switch-profile-btn" id="healthImportBtn">📥 Choose a CSV file</button>
+        <button class="switch-profile-btn" id="healthImportBtn">Choose a CSV file</button>
         <div id="healthImportStatus" class="history-hint"></div>
         <div id="healthImportSummary"></div>
       </div>
@@ -6713,7 +6713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.308';
+const APP_VERSION = '3.309';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7492,6 +7492,9 @@ const WHATS_NEW = {
     'Settings slides up from the bottom like the rest of the app, with switches for anything on or off and a Done button.',
   ]},  '3.308': { headline: 'One look for notes and buttons', points: [
     'Privacy and safety notes share one calm style with a small icon, and upload buttons match the rest of the app.',
+  ]},  '3.309': { headline: 'Log, in the same style', points: [
+    'The Photo, Barcode, Describe, Suggest and Recipes buttons get clean icons, and Log and Add buttons match the rest of the app.',
+    'Empty lists say what to do without the emoji.',
   ]},
 };
 
@@ -8164,7 +8167,7 @@ function showUserPicker(){
   const listEl = document.getElementById('userPickerList');
   const users = getUserList();
   if(users.length === 0){
-    listEl.innerHTML = '<div class="empty-note">👤 No profiles on this device yet — create the first one below.</div>';
+    listEl.innerHTML = '<div class="empty-note">No profiles on this device yet — create the first one below.</div>';
   }else{
     listEl.innerHTML = users.map(u=>`<button class="user-pick-btn" data-id="${escapeHtml(u.id)}">${escapeHtml(u.name)}</button>`).join('');
     listEl.querySelectorAll('.user-pick-btn').forEach(btn=>{
@@ -33526,7 +33529,7 @@ If what they're in the mood for is fundamentally incompatible with their dietary
     recipeFinderQtys = recipeFinderResults.map(()=> 1);
 
     if(recipeFinderResults.length === 0){
-      resultEl.innerHTML = `<div class="empty-note">🤷 Nothing fits — it may clash with your diet or avoid list. Try rephrasing.</div>`;
+      resultEl.innerHTML = `<div class="empty-note">Nothing fits — it may clash with your diet or avoid list. Try rephrasing.</div>`;
       return;
     }
 
@@ -33616,7 +33619,7 @@ async function renderGroceryList(){
   const list = await loadGroceryList();
   const clearBtn = document.getElementById('groceryClearCheckedBtn');
   if(list.length === 0){
-    el.innerHTML = '<div class="empty-note">🛒 Nothing here yet — add items below, or tap "Add ingredients" on a Recipe Finder result.</div>';
+    el.innerHTML = '<div class="empty-note">Nothing here yet — add items below, or tap "Add ingredients" on a Recipe Finder result.</div>';
     if(clearBtn) clearBtn.style.display = 'none';
     return;
   }
@@ -33966,7 +33969,7 @@ async function renderMySupplements(){
     // direction, for someone who lands on an empty tracker first with no
     // idea Supplement Recommendations exists.
     el.innerHTML = `
-      <div class="empty-note">💊 Nothing here yet — add what you actually take below.</div>
+      <div class="empty-note">Nothing here yet — add what you actually take below.</div>
       <div class="app-banner-actions" style="justify-content:center;">
         <button type="button" class="app-banner-btn app-banner-btn-primary" data-jump-to="supplementRecommendationsCard">Get supplement recommendations</button>
       </div>
@@ -34642,7 +34645,7 @@ async function submitFoodDescription(){
     describeFoodQtys = describeFoodParsedItems.map(()=> 1);
 
     if(describeFoodParsedItems.length === 0){
-      resultEl.innerHTML = `<div class="empty-note">🤷 Couldn't find a food in that — rephrase, or add it below.</div>`;
+      resultEl.innerHTML = `<div class="empty-note">Couldn't find a food in that — rephrase, or add it below.</div>`;
       return;
     }
 
@@ -35362,7 +35365,7 @@ function renderFoodItems(){
       : items && items.length > 0
         ? 'Everything here is on your avoid list — turn off "Hide avoided foods" above to see it.'
         : 'No favorites yet — tap the ☆ on any food to save it here for quick access.';
-    itemsEl.innerHTML = `<div class="empty-note">⭐ ${emptyMsg}</div>`;
+    itemsEl.innerHTML = `<div class="empty-note">${emptyMsg}</div>`;
     return;
   }
   appendItemsCollapsible(itemsEl, visibleItems.map(item=>buildFoodItemBtn(item, false)), 5);
@@ -35774,7 +35777,7 @@ function computeTodaysFoodTotals(){
 function renderFoodLog(){
   const listEl = document.getElementById('foodLogList');
   if(todaysFoodLog.length === 0){
-    listEl.innerHTML = '<div class="empty-note">🍽️ Nothing logged yet today — tap an item below to add it.</div>';
+    listEl.innerHTML = '<div class="empty-note">Nothing logged yet today — tap an item below to add it.</div>';
   } else {
     const itemHtmls = todaysFoodLog.map((item, i)=>{
       const q = item.qty || 1;
@@ -36300,7 +36303,7 @@ async function loadWeights(){
     let entries = [];
     if(res && res.value) entries = JSON.parse(res.value);
     if(entries.length===0){
-      listEl.innerHTML = '<div class="empty-note">⚖️ No entries yet — log your first weigh-in.</div>';
+      listEl.innerHTML = '<div class="empty-note">No entries yet — log your first weigh-in.</div>';
       return;
     }
     entries.sort((a,b)=> new Date(b.date) - new Date(a.date));
@@ -36318,7 +36321,7 @@ async function loadWeights(){
       rerender: ()=>{ loadWeights(); renderTodayInsights(); },
     });
   }catch(e){
-    listEl.innerHTML = '<div class="empty-note">⚖️ No entries yet — log your first weigh-in.</div>';
+    listEl.innerHTML = '<div class="empty-note">No entries yet — log your first weigh-in.</div>';
   }
 }
 
@@ -36398,7 +36401,7 @@ async function loadBP(){
     let entries = [];
     if(res && res.value) entries = JSON.parse(res.value);
     if(entries.length===0){
-      listEl.innerHTML = '<div class="empty-note">🩺 No readings yet — log your first one.</div>';
+      listEl.innerHTML = '<div class="empty-note">No readings yet — log your first one.</div>';
       return;
     }
     entries.sort((a,b)=> new Date(b.date) - new Date(a.date));
@@ -36416,7 +36419,7 @@ async function loadBP(){
       rerender: ()=> loadBP(),
     });
   }catch(e){
-    listEl.innerHTML = '<div class="empty-note">🩺 No readings yet — log your first one.</div>';
+    listEl.innerHTML = '<div class="empty-note">No readings yet — log your first one.</div>';
   }
 }
 
@@ -36468,7 +36471,7 @@ async function loadGlucose(){
     let entries = [];
     if(res && res.value) entries = JSON.parse(res.value);
     if(entries.length===0){
-      listEl.innerHTML = '<div class="empty-note">🩸 No readings yet — log your first one.</div>';
+      listEl.innerHTML = '<div class="empty-note">No readings yet — log your first one.</div>';
       return;
     }
     entries.sort((a,b)=> new Date(b.date) - new Date(a.date));
@@ -36490,7 +36493,7 @@ async function loadGlucose(){
       rerender: ()=> loadGlucose(),
     });
   }catch(e){
-    listEl.innerHTML = '<div class="empty-note">🩸 No readings yet — log your first one.</div>';
+    listEl.innerHTML = '<div class="empty-note">No readings yet — log your first one.</div>';
   }
 }
 
@@ -36622,7 +36625,7 @@ async function loadSleep(){
     let entries = [];
     if(res && res.value) entries = JSON.parse(res.value);
     if(entries.length===0){
-      listEl.innerHTML = '<div class="empty-note">😴 No entries yet — log last night\'s sleep.</div>';
+      listEl.innerHTML = '<div class="empty-note">No entries yet — log last night\'s sleep.</div>';
       avgEl.textContent = '';
       return;
     }
@@ -36642,7 +36645,7 @@ async function loadSleep(){
       rerender: ()=>{ loadSleep(); renderTodayInsights(); },
     });
   }catch(e){
-    listEl.innerHTML = '<div class="empty-note">😴 No entries yet — log last night\'s sleep.</div>';
+    listEl.innerHTML = '<div class="empty-note">No entries yet — log last night\'s sleep.</div>';
     avgEl.textContent = '';
   }
 }
@@ -36861,7 +36864,7 @@ async function loadProgressPhotos(){
   releasePhotoObjectUrls();
   const index = await getPhotoIndex();
   if(index.length === 0){
-    grid.innerHTML = '<div class="empty-note">📸 No photos yet — add your first progress photo.</div>';
+    grid.innerHTML = '<div class="empty-note">No photos yet — add your first progress photo.</div>';
     populateComparePhotoSelects([]);
     return;
   }
@@ -39936,7 +39939,7 @@ Respond with ONLY valid JSON, no other text, no markdown fences, in this exact s
     }
 
     if(photoLogParsedItems.length === 0){
-      resultEl.innerHTML = `${renderPhotoPreviewRow(previewUrls)}<div class="empty-note">🤷 Couldn't identify any food in ${files.length===1?'that photo':'those photos'} — try again or add it manually below.</div>`;
+      resultEl.innerHTML = `${renderPhotoPreviewRow(previewUrls)}<div class="empty-note">Couldn't identify any food in ${files.length===1?'that photo':'those photos'} — try again or add it manually below.</div>`;
       return;
     }
 
@@ -41270,7 +41273,7 @@ async function renderCoach(){
   const log = await getCoachLog();
   const listEl = document.getElementById('coachHistoryList');
   if(log.length === 0){
-    listEl.innerHTML = '<div class="empty-note">🎥 No reviews yet — record a set above to get feedback on your form.</div>';
+    listEl.innerHTML = '<div class="empty-note">No reviews yet — record a set above to get feedback on your form.</div>';
   }else{
     const sorted = [...log].sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'));
     // `e.program` was the one interpolation on this line left unescaped while
@@ -41910,7 +41913,7 @@ function renderExerciseSearchResults(query){
     .filter(name=> name.toLowerCase().includes(q))
     .sort((a,b)=> a.localeCompare(b));
   if(matches.length === 0){
-    el.innerHTML = '<div class="empty-note">🔍 No exercises match that search — try a broader term.</div>';
+    el.innerHTML = '<div class="empty-note">No exercises match that search — try a broader term.</div>';
     return;
   }
   const shown = matches.slice(0, EXERCISE_SEARCH_RESULT_LIMIT);
@@ -41939,7 +41942,7 @@ function renderCareLibrary(region){
   const el = document.getElementById('careLibraryList');
   const list = REGION_RELIEF[region] || REGION_RELIEF['Other'];
   const itemsHtml = list.map(buildCareItemHtml).join('');
-  el.innerHTML = itemsHtml || '<div class="empty-note">🧘 No stretches for this area yet — check back as the library grows.</div>';
+  el.innerHTML = itemsHtml || '<div class="empty-note">No stretches for this area yet — check back as the library grows.</div>';
 }
 
 async function populateCareLibrarySelector(preferredRegion){
@@ -44979,7 +44982,7 @@ async function renderAnalysis(){
 
   const activeRows = rows.filter(r=>r.hasData);
   if(activeRows.length === 0){
-    tableEl.innerHTML = '<div class="empty-note">📭 No data yet — log a workout, meal, or weigh-in and check back here.</div>';
+    tableEl.innerHTML = '<div class="empty-note">No data yet — log a workout, meal, or weigh-in and check back here.</div>';
     // Still runs the pass on the way out. This early return is the FIRST-RUN
     // path, which is exactly when the most cards need hiding — returning
     // without it would leave all sixteen on screen for a brand-new profile,

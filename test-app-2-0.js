@@ -18,6 +18,10 @@
 // privacy notes and safety disclaimers, and one secondary button (glass pill,
 // drawn icon) for the upload buttons. Before: green boxes with a green glow and
 // a lock emoji, yellow-outlined cards, dashed blue boxes with emoji.
+// v3.309 — Log joins the system: the five quick actions are glass tiles with
+// drawn icons (were dashed blue boxes with emoji, a blue glow and a gloss),
+// inline Log/Add buttons are the compact primary (were green), and no empty
+// state anywhere in the app opens with an emoji (25 did).
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -101,6 +105,20 @@ test('REAL CSSOM + markup (v3.308): notices share one neutral style with a drawn
     assert.ok(m && /<svg class="btn-icon" aria-hidden="true"/.test(m[1]) && !/\p{Extended_Pictographic}/u.test(m[1]), `${id}: drawn icon, no emoji`);
   }
   assert.ok(!/class="privacy-note">\p{Extended_Pictographic}/u.test(html), 'no lock emoji');
+});
+
+test('REAL markup + CSSOM (v3.309): Log quick actions are glass tiles with drawn icons; inline Log/Add is the compact primary; no emoji empty states anywhere', (assert)=>{
+  const row = html.slice(html.indexOf('<div class="quick-add-row">'), html.indexOf('</div>', html.indexOf('<div class="quick-add-row">')));
+  const btns = row.match(/<button class="quick-add-btn"[\s\S]*?<\/button>/g);
+  assert.strictEqual(btns.length, 5);
+  for(const b of btns) assert.ok(/<span class="quick-add-icon"><svg aria-hidden="true"/.test(b) && !/\p{Extended_Pictographic}|▦/u.test(b), b.slice(0, 60));
+  const rule = sel => CSS.replace(/\/\*[\s\S]*?\*\//g, '').match(new RegExp('\\n\\s*' + sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\{[^}]*\\}'))[0];
+  assert.doesNotMatch(rule('.quick-add-btn'), /dashed|plate-blue-rgb/, 'no dashed edge, no blue glow');
+  assert.strictEqual(CSS.match(/\.quick-add-btn::before\{/g), null, 'the gloss layer is gone');
+  assert.match(rule('.weight-input-row button'), /background:var\(--cta-gradient-blue\)/);
+  assert.match(rule('.weight-input-row button'), /min-height:44px/);
+  assert.doesNotMatch(rule('.weight-input-row button'), /plate-green|box-shadow/, 'not green, no glow');
+  assert.strictEqual((src.match(/class="empty-note">\s*[\p{Extended_Pictographic}]/gu) || []).length, 0, 'no empty state opens with an emoji');
 });
 
 run();
