@@ -25,6 +25,9 @@
 // v3.310 — Disclosure rows (Learn's technique groups, posing classes, History's
 // months) are iOS rows: a muted chevron that turns down when open, the count in
 // the text face beside it, 44px rows. Before: a blue ▸ and a monospace count.
+// v3.311 — The last emoji leave the buttons (✨ 🔔 🛒 🔍 prefixes; the food
+// filter chips show "Favorites" / "My Foods", keys unchanged), and a food
+// row's add is the primary gradient rather than green.
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -138,6 +141,21 @@ test('REAL CSSOM (v3.310): disclosure rows end in a muted chevron that turns dow
   assert.match(raw, /\.month-group\[open\] summary::after\{transform:rotate\(45deg\);\}/, 'turns down when open');
   assert.strictEqual(cs('#m .month-count').fontFamily.includes('Mono'), false, 'count in the text face');
   assert.strictEqual(cs('#m .month-count').marginLeft, 'auto', 'count sits with the chevron');
+});
+
+test('REAL source + invocation (v3.311): no button text opens with an emoji; food chips drop the glyph but keep their keys; food-row add is the primary', (assert)=>{
+  const opens = [...src.matchAll(/<button[^>]*>\s*([^<\s][^<]{0,40})/g)].map(m => m[1]).filter(t => /^[✨\u{1F514}\u{1F6D2}\u{1F50D}]/u.test(t));
+  assert.deepStrictEqual(opens, [], 'no ✨ 🔔 🛒 🔍 button prefixes');
+  const { window } = runJsdom('<div id="foodCats"></div>', `
+    var foodLibrary = {Protein:[]}, activeCat = '📁 My Foods', activeRestaurant = null;
+    window.storage = { set(){} }; function renderFoodItems(){}`,
+    [extractFunction(src, 'renderFoodCats'), 'renderFoodCats();']);
+  const chips = [...window.document.querySelectorAll('.food-cat-btn')];
+  assert.strictEqual(chips.length, 3, 'anchor: the real chips rendered');
+  assert.deepStrictEqual(chips.slice(0, 2).map(c => c.textContent), ['Favorites', 'My Foods']);
+  assert.deepStrictEqual(chips.slice(0, 2).map(c => c.dataset.cat), ['★ Favorites', '📁 My Foods'], 'keys unchanged');
+  assert.ok(chips[1].classList.contains('active'), 'the active key still matches');
+  assert.match(CSS, /\.food-item-btn \.fi-plus\{[^}]*background:var\(--cta-gradient-blue\)/);
 });
 
 run();

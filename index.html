@@ -3435,8 +3435,10 @@
     background:none; border:none; font-size:18px; cursor:pointer; padding:2px; color:var(--text-muted); line-height:1;
   }
   .fi-star.favorited{color:var(--plate-yellow);}
+  /* v3.311 (2.0): "add" is the primary action, so it wears the primary — the
+     blue-to-purple gradient — like every other add/log button (was green). */
   .food-item-btn .fi-plus{
-    flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--plate-green);
+    flex:0 0 auto; width:26px; height:26px; border-radius:50%; background:var(--cta-gradient-blue);
     color:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:600;
   }
   .restaurant-btn .ex-chevron{color:var(--plate-blue); font-size:16px;}
@@ -5804,7 +5806,7 @@
     <div class="card" data-autohide>
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5 12 7.5l5.5.5-4 3.8 1.2 5.4L10 14.5l-4.7 2.7 1.2-5.4-4-3.8 5.5-.5Z"/></svg></span>AI Cross-Metric Insights</div>
       <div class="history-hint">How your metrics affect each other — sleep vs. training load, protein vs. volume, water vs. hard sessions — and what to adjust.</div>
-      <button class="save-btn" id="genCrossInsightsBtn" style="margin-top:10px;">✨ Generate insights</button>
+      <button class="save-btn" id="genCrossInsightsBtn" style="margin-top:10px;">Generate insights</button>
       <div id="crossInsightsResult" style="margin-top:12px;"></div>
     </div>
 
@@ -6330,7 +6332,7 @@
          this app can cause, so it is put behind a deliberate tap rather than
          fired from the timer starting — see requestRestNotifications(). -->
     <div class="rest-timer-panel-notify" id="restTimerNotifyRow" hidden>
-      <button class="rt-adjust rt-notify" id="restTimerNotifyBtn" type="button">🔔 Tell me when rest is over</button>
+      <button class="rt-adjust rt-notify" id="restTimerNotifyBtn" type="button">Tell me when rest is over</button>
     </div>
     <div class="rest-timer-panel-note" id="restTimerNotifyNote" hidden></div>
     <div class="rest-timer-panel-adjust">
@@ -6421,7 +6423,7 @@
       <div id="settingsWorkoutSlot"></div>
       <div id="settingsNotifyRow">
         <label class="care-label">Rest alerts</label>
-        <button type="button" class="switch-profile-btn" id="settingsNotifyBtn">🔔 Allow notifications when rest is over</button>
+        <button type="button" class="switch-profile-btn" id="settingsNotifyBtn">Allow notifications when rest is over</button>
         <div class="history-hint field-note" id="settingsNotifyNote"></div>
       </div>
     </div>
@@ -6717,7 +6719,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.310';
+const APP_VERSION = '3.311';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7501,6 +7503,8 @@ const WHATS_NEW = {
     'Empty lists say what to do without the emoji.',
   ]},  '3.310': { headline: 'Lists that open like iPhone lists', points: [
     'Learn, posing classes and History months open with a chevron that turns down, and their counts are easier to read.',
+  ]},  '3.311': { headline: 'Final polish', points: [
+    'The last emoji are gone from buttons, and adding a food uses the same blue as every other add button.',
   ]},
 };
 
@@ -27410,7 +27414,7 @@ async function renderWorkout(){
         hitRegionsForRow = hitRegions;
         const sub = suggestSubstitute(info.category, ex.name);
         const swapHtml = sub ? ` Try <b>${sub.name}</b> instead — ${sub.why}.` : '';
-        cautionHtml = `<div class="ex-caution">⚠️ You marked ${hitRegions.map(r=> `<button type="button" class="link-btn" data-care-area="${escapeHtml(r)}" aria-label="Show stretches for ${escapeHtml(r)}">${escapeHtml(r)}</button>`).join(' & ')} as resting — consider skipping or lightening this one.${swapHtml} Clear it in Care when you're ready. <button type="button" class="ex-ai-tailor-btn">✨ Tailor to what I logged</button></div>`;
+        cautionHtml = `<div class="ex-caution">⚠️ You marked ${hitRegions.map(r=> `<button type="button" class="link-btn" data-care-area="${escapeHtml(r)}" aria-label="Show stretches for ${escapeHtml(r)}">${escapeHtml(r)}</button>`).join(' & ')} as resting — consider skipping or lightening this one.${swapHtml} Clear it in Care when you're ready. <button type="button" class="ex-ai-tailor-btn">Tailor to what I logged</button></div>`;
       }
     }
 
@@ -33549,7 +33553,7 @@ If what they're in the mood for is fundamentally incompatible with their dietary
           <a class="recipe-link-btn" href="${buildRecipeSearchUrl(r.name)}" target="_blank" rel="noopener">🔗 Find this recipe</a>
           <button type="button" class="recipe-log-btn" data-idx="${i}">+ Log to ${logDayLabel()}</button>
         </div>
-        ${(r.ingredients && r.ingredients.length) ? `<button type="button" class="recipe-grocery-btn" data-idx="${i}">🛒 Add ${r.ingredients.length} ingredients to grocery list</button>` : ''}
+        ${(r.ingredients && r.ingredients.length) ? `<button type="button" class="recipe-grocery-btn" data-idx="${i}">Add ${r.ingredients.length} ingredients to grocery list</button>` : ''}
       </div>
     `).join('');
 
@@ -34034,7 +34038,7 @@ async function renderMySupplements(){
         const ingredientsHtml = buildDsldIngredientsHtml(item.ingredients);
         const insightHtml = item.aiInsight
           ? `<span class="supplement-ai-insight"><b>✨ AI insight:</b> ${escapeHtml(item.aiInsight)}<span class="supplement-ai-disclaimer">Not medical advice — a real-time AI read, not this app's hand-vetted evidence table.</span></span>`
-          : `<button type="button" class="supplement-ai-insight-btn">✨ Get AI insight</button>`;
+          : `<button type="button" class="supplement-ai-insight-btn">Get AI insight</button>`;
         detailHtml = `${ingredientsHtml}${insightHtml}`;
       }
       // A real AI insight already carries the SAME "short snippet collapsed,
@@ -34298,7 +34302,7 @@ async function renderDsldSearchResults(){
   }
 
   if(!isCurrent){
-    el.innerHTML = `<button type="button" class="dsld-search-btn">🔍 Search supplement database for "${escapeHtml(term)}"</button>`;
+    el.innerHTML = `<button type="button" class="dsld-search-btn">Search supplement database for "${escapeHtml(term)}"</button>`;
     el.querySelector('.dsld-search-btn').addEventListener('click', ()=> runDsldSearch(term));
     return;
   }
@@ -34338,7 +34342,7 @@ async function renderDsldSearchResults(){
       <div class="care-disclaimer" style="margin-top:6px;">Not evaluated here — not medical advice. Ask your coach before starting anything new.</div>
       ${r.aiInsight
         ? `<span class="supplement-ai-insight"><b>✨ AI insight:</b> ${escapeHtml(r.aiInsight)}<span class="supplement-ai-disclaimer">Not medical advice — a real-time AI read, not this app's hand-vetted evidence table.</span></span>`
-        : `<button type="button" class="supplement-ai-insight-btn dsld-preview-ai-insight-btn" data-idx="${i}">✨ Preview AI insight</button>`}
+        : `<button type="button" class="supplement-ai-insight-btn dsld-preview-ai-insight-btn" data-idx="${i}">Preview AI insight</button>`}
       <button type="button" class="supplement-add-btn dsld-unmatched-add-btn" data-idx="${i}">+ Add to my supplements</button>
     </div>
   `).join('');
@@ -35115,7 +35119,9 @@ function renderFoodCats(){
   cats.forEach(cat=>{
     const btn = document.createElement('button');
     btn.className = 'food-cat-btn' + (cat===activeCat ? ' active' : '');
-    btn.textContent = cat;
+    // v3.311 (2.0): shown without the glyph; the key (stored and compared
+    // everywhere as "★ Favorites" / "📁 My Foods") is unchanged.
+    btn.textContent = cat.replace(/^(★|📁)\s*/u, '');
     btn.dataset.cat = cat;
     btn.onclick = ()=>{
       activeCat = cat;
