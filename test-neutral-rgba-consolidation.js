@@ -66,10 +66,12 @@ test('REAL CASCADE: --sheen/--sheen-strong/--elev-1/2/3 resolve to their exact p
   assert.match(resolveVars(rootBlock), /--elev-3:var\(--rim\), 0 24px 48px -16px rgba\(0,0,0,0\.70\);/, '--elev-3 must byte-match the original literal');
 });
 
-test('REAL CASCADE: --shine-gloss (a two-stop white gradient) resolves to its exact pre-conversion literal', (assert)=>{
+test('REAL CASCADE: --shine-gloss is a no-op none since v3.280 (was a two-stop white gradient)', (assert)=>{
   const shineBlock = rootBlock.match(/--shine-gloss:[^;]*;/)[0];
   assert.ok(shineBlock, '--shine-gloss must be declared');
-  assert.strictEqual(resolveVars(shineBlock), '--shine-gloss:linear-gradient(180deg, rgba(255,255,255,0.32), rgba(255,255,255,0) 55%);', 'both gradient stops must byte-match the original literal, including the fully-transparent 0-alpha stop');
+  // v3.280: the gloss layer was retired (filled controls went flat); the token
+  // stays as a no-op `none` so `background:var(--shine-gloss), ...` still parses.
+  assert.ok(shineBlock.startsWith('--shine-gloss:none;'), shineBlock);
 });
 
 test('REAL CASCADE: .analysis-index-chip and .nav-pill/.nav-pill.active box-shadows resolve to their exact pre-conversion literals', (assert)=>{
@@ -91,10 +93,10 @@ test('sabotage-relevant: the neutral-rgba sweep is genuinely complete inside the
   assert.doesNotMatch(styleBlock, /rgba\(0,0,0,/, 'every in-stylesheet black rgba() literal must now be var()-based');
 });
 
-test('sabotage-relevant: the real total count of converted sites matches what this pass actually touched (97 white, 61 black) — not a partial sweep that happens to pass the spot-checks above', (assert)=>{
+test('sabotage-relevant: the real total count of converted sites matches what this pass actually touched (94 white, 61 black) — not a partial sweep that happens to pass the spot-checks above', (assert)=>{
   const whiteCount = (src.match(/rgba\(var\(--surface-white-rgb\),/g) || []).length;
   const blackCount = (src.match(/rgba\(var\(--overlay-black-rgb\),/g) || []).length;
-  assert.strictEqual(whiteCount, 97, 'the real total of rgba(var(--surface-white-rgb), occurrences in the file must be 97 — every white-alpha CSS declaration in the <style> block, and no more (the :root declaration line itself is `--surface-white-rgb:255,255,255;`, which has no rgba( prefix and so is not counted here). History: 114 -> 113 when a visual-formatting pass deleted a dead, superseded .program-intro{...} rule (see test-program-intro-divider-fix.js); 113 -> 100 when the same pass factored 15 exact-duplicate box-shadow literals (10x the 0.25 "CTA gloss" inset highlight, 5x the 0.35 "FAB gloss" inset highlight) into --cta-gloss-inset/--fab-gloss-inset tokens (see test-css-mechanical-token-dedup.js) — each literal site still resolves the same rgba(), just through a token now instead of 15 separate copies of the text; 100 -> 99 in v3.275 (tasteskill Today pilot) when .adapt-workout-toggle lost its box-shadow, whose inset highlight was one white-alpha site (see test-today-hero-glow-flat-buttons.js); 99 -> 98 in v3.277 when the 0.07 white border on base .card became transparent as cards went flat app-wide (see test-flat-cards.js); 98 -> 97 in v3.278 when the streak pill lost its inset highlight and glow (see test-header-refresh.js)');
+  assert.strictEqual(whiteCount, 94, 'the real total of rgba(var(--surface-white-rgb), occurrences in the file must be 94 — every white-alpha CSS declaration in the <style> block, and no more (the :root declaration line itself is `--surface-white-rgb:255,255,255;`, which has no rgba( prefix and so is not counted here). History: 114 -> 113 when a visual-formatting pass deleted a dead, superseded .program-intro{...} rule (see test-program-intro-divider-fix.js); 113 -> 100 when the same pass factored 15 exact-duplicate box-shadow literals (10x the 0.25 "CTA gloss" inset highlight, 5x the 0.35 "FAB gloss" inset highlight) into --cta-gloss-inset/--fab-gloss-inset tokens (see test-css-mechanical-token-dedup.js) — each literal site still resolves the same rgba(), just through a token now instead of 15 separate copies of the text; 100 -> 99 in v3.275 (tasteskill Today pilot) when .adapt-workout-toggle lost its box-shadow, whose inset highlight was one white-alpha site (see test-today-hero-glow-flat-buttons.js); 99 -> 98 in v3.277 when the 0.07 white border on base .card became transparent as cards went flat app-wide (see test-flat-cards.js); 98 -> 97 in v3.278 when the streak pill lost its inset highlight and glow (see test-header-refresh.js); 97 -> 94 in v3.280 when --shine-gloss (two white stops) became none and the .save-btn sheen stripe was removed (see test-flat-controls.js)');
   // 61, not the original 60 — .food-add-pop (v3.240's "+1" confirmation
   // pop) added one new legitimate rgba(var(--overlay-black-rgb),…)
   // box-shadow site.

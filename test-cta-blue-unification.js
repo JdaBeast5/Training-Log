@@ -44,7 +44,8 @@ test('sabotage-relevant: #7C97FF no longer appears as a real CSS/SVG color value
 
 test('REAL invocation: all four former-#7C97FF sites resolve to #6E8AFF at the token\'s 60% stop, either directly or via --cta-gradient-blue', (assert)=>{
   const rootBlock = extractRuleBlock(src, ':root');
-  assert.match(rootBlock, /--cta-gradient-blue:linear-gradient\(160deg, #6E8AFF, var\(--plate-blue\) 60%\);/, 'sanity: the token holds #6E8AFF at 60%');
+  // v3.280 (tasteskill rollout) deliberately flattened this token to #3860FF — a deeper --plate-blue step chosen so white text passes 4.5:1 (4.9:1, against 3.1-3.6:1 on the old gradient). The structural point of this test (call sites share the one token) still holds.
+  assert.match(rootBlock, /--cta-gradient-blue:#3860FF;/, 'sanity: the token holds the flat #3860FF');
 
   // .coach-fab, .vol-bar-fill, and .calendar-cell.selected were all later
   // (a separate, purely-mechanical dedup pass for vol-bar-fill; a
@@ -67,7 +68,8 @@ test('REAL invocation: all four former-#7C97FF sites resolve to #6E8AFF at the t
 
 test('regression guard: the --cta-gradient-blue token and the AI Coach rest-timer SVG stop are untouched by either fix', (assert)=>{
   const rootBlock = extractRuleBlock(src, ':root');
-  assert.match(rootBlock, /--cta-gradient-blue:linear-gradient\(160deg, #6E8AFF, var\(--plate-blue\) 60%\);/, 'the token itself must be unchanged — it was already the chosen color and stop');
+  // Changed once, deliberately, in v3.280 (flat #3860FF, see the note above).
+  assert.match(rootBlock, /--cta-gradient-blue:#3860FF;/, 'the token holds the v3.280 flat value');
 
   const stopMatch = /<stop offset="0%" stop-color="#6E8AFF"\/>/;
   assert.match(src, stopMatch, 'the AI Coach rest-timer SVG gradient stop must be unchanged — it was already #6E8AFF');

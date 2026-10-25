@@ -137,8 +137,13 @@
        redundancy review, confirmed with the user directly (same
        asked-not-guessed approach as the retired second blue light-stop
        above) that 60% should win, and rewritten to match. */
-    --cta-gradient-green:linear-gradient(160deg, #4FE168, var(--plate-green) 55%);
-    --cta-gradient-blue:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%);
+    /* [TASTESKILL ROLLOUT, v3.280] Filled controls are FLAT (no gradient, no
+       gloss) — the names are kept so the 16 call sites stay untouched. The
+       blue is a deeper step of --plate-blue chosen for contrast: white text
+       measures 4.9:1 on #3860FF, against 3.1-3.6:1 on the old #6E8AFF->#5B7CFF
+       gradient. Green fills carry dark ink (--bg, ~10:1), not white (2:1). */
+    --cta-gradient-green:var(--plate-green);
+    --cta-gradient-blue:#3860FF;
     /* The glossy top-highlight already used on .macro-bar-fill/.vol-bar-fill
        (a 180deg white-to-transparent sweep over the top ~55% of a filled
        gradient surface) — tokenized here since Phase H extends it to two
@@ -149,7 +154,7 @@
        would paint OVER the button's plain (unwrapped) text per normal CSS
        stacking order — layering into the background itself paints behind
        all content unconditionally, no z-index games needed. */
-    --shine-gloss:linear-gradient(180deg, rgba(var(--surface-white-rgb),0.32), rgba(var(--surface-white-rgb),0) 55%);
+    --shine-gloss:none; /* v3.280: the white gloss layer on filled controls is retired; kept as a no-op token so `background:var(--shine-gloss), ...` sites still parse */
     /* The left column every row in a sets block opens with: the set number on
        a working set, the done-checkbox on a warm-up step. It is a token and
        not a literal in two rules because the weight/reps columns only line up
@@ -457,8 +462,7 @@
     background:var(--cta-gradient-green);
     border:2px solid var(--bg);
     display:flex; align-items:center; justify-content:center;
-    color:#fff; font-size:10px; font-weight:700; line-height:1;
-    box-shadow:var(--cta-gloss-inset), 0 2px 6px -2px rgba(var(--plate-green-rgb),0.5);
+    color:var(--bg); font-size:10px; font-weight:700; line-height:1;
     z-index:2;
   }
   .plate-label{font-size:11px; color:var(--text-muted); white-space:nowrap;}
@@ -635,8 +639,7 @@
     transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .supplement-row.done .supplement-check{
-    background:var(--cta-gradient-green); border-color:var(--plate-green); color:#fff;
-    box-shadow:var(--cta-gloss-inset);
+    background:var(--cta-gradient-green); border-color:var(--plate-green); color:var(--bg);
   }
   /* .supplement-label, not span:last-child — a row can now have a THIRD
      flex child (the "ask your coach" button below), which would otherwise
@@ -689,8 +692,7 @@
     transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .grocery-item.done .grocery-check{
-    background:var(--cta-gradient-green); border-color:var(--plate-green); color:#fff;
-    box-shadow:var(--cta-gloss-inset);
+    background:var(--cta-gradient-green); border-color:var(--plate-green); color:var(--bg);
   }
   .grocery-item.done .grocery-item-text{color:var(--text-muted); text-decoration:line-through; text-decoration-color:var(--line-bright);}
   .grocery-item:active .grocery-check{transform:scale(0.88);}
@@ -1549,18 +1551,12 @@
   .save-btn{
     position:relative; overflow:hidden;
     width:100%; margin-top:14px; padding:12px; border:none; border-radius:var(--radius-sm);
-    background:var(--shine-gloss), var(--cta-gradient-blue); color:#fff; font-weight:600; font-size:14px;
+    background:var(--cta-gradient-blue); color:#fff; font-weight:600; font-size:14px;
     letter-spacing:-0.005em;
     font-family:var(--font-sans); cursor:pointer;
-    box-shadow:var(--cta-gloss-inset), 0 6px 16px -6px rgba(var(--plate-blue-rgb),0.55);
-    transition:transform 0.15s var(--ease-smooth), box-shadow 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
+    transition:transform 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
   }
-  .save-btn::after{
-    content:''; position:absolute; top:0; left:-30%; width:30%; height:100%;
-    background:linear-gradient(100deg, transparent, rgba(var(--surface-white-rgb),0.16), transparent);
-    transform:skewX(-20deg);
-  }
-  .save-btn:active{opacity:0.88; transform:scale(0.96); box-shadow:var(--cta-gloss-inset), 0 3px 8px -4px rgba(var(--plate-blue-rgb),0.55);}
+  .save-btn:active{opacity:0.88; transform:scale(0.96);}
   .save-btn[disabled]{opacity:0.5; cursor:default;}
   .save-btn[disabled]:active{transform:none;}
 
@@ -1672,9 +1668,8 @@
   .program-rec-actions{display:flex; gap:8px; margin-top:10px;}
   .program-rec-btn{
     position:relative; overflow:hidden;
-    flex:1; padding:10px; background:var(--cta-gradient-green); color:#fff; border:none;
+    flex:1; padding:10px; background:var(--cta-gradient-green); color:var(--bg); border:none;
     border-radius:var(--radius-sm); font-weight:600; font-size:12.5px; cursor:pointer; font-family:var(--font-sans);
-    box-shadow:var(--cta-gloss-inset), 0 5px 14px -6px rgba(var(--plate-green-rgb),0.5);
     transition:transform 0.15s var(--ease-smooth);
   }
   .program-rec-btn:active{transform:scale(0.98);}
@@ -2028,9 +2023,8 @@
   .recipe-link-btn:active{transform:scale(0.96);}
   .recipe-log-btn, .supplement-add-btn{
     flex:1; padding:9px 10px; border:none; border-radius:var(--radius-sm);
-    background:var(--cta-gradient-green); color:#fff;
+    background:var(--cta-gradient-green); color:var(--bg);
     font-family:var(--font-sans); font-size:12px; font-weight:600; cursor:pointer;
-    box-shadow:var(--cta-gloss-inset), 0 4px 12px -6px rgba(var(--plate-green-rgb),0.45);
     transition:transform 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
   }
   .recipe-log-btn:active, .supplement-add-btn:active{transform:scale(0.96);}
@@ -6595,7 +6589,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.279';
+const APP_VERSION = '3.280';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7289,6 +7283,10 @@ const WHATS_NEW = {
   '3.279': { headline: 'Easier-to-read labels everywhere', points: [
     'Small labels across the app (day names, section headers, tags, stats) are now in normal sentence case instead of tiny spaced-out capitals.',
     'Nothing is smaller than 11px any more, so labels are easier to read at arm\'s length.',
+  ]},
+  '3.280': { headline: 'Clearer buttons', points: [
+    'Main buttons are now solid instead of shaded and glowing, in a slightly deeper blue so their text is easier to read.',
+    'Green buttons and ticks now use dark text, which reads far better on green than white did.',
   ]},
 };
 
