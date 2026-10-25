@@ -17,9 +17,27 @@
 <meta name="apple-mobile-web-app-title" content="Training Log">
 <meta name="theme-color" content="#0A0B0D">
 <link rel="manifest" href="./manifest.json">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<!-- Fonts are self-hosted from ./fonts/ (fontsource builds of the same Google
+     Fonts files, latin subset, OFL — licences beside them) instead of the
+     Google Fonts CDN, so they are same-origin, precached by sw.js and present
+     offline. Before this, an offline launch fell back to the system face. -->
+<link rel="preload" href="./fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+  @font-face{
+    font-family:'Inter'; font-style:normal; font-weight:100 900; font-display:swap;
+    src:url(./fonts/inter-latin-wght-normal.woff2) format('woff2');
+    unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+  }
+  @font-face{
+    font-family:'IBM Plex Mono'; font-style:normal; font-weight:500; font-display:swap;
+    src:url(./fonts/ibm-plex-mono-latin-500-normal.woff2) format('woff2');
+    unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+  }
+  @font-face{
+    font-family:'IBM Plex Mono'; font-style:normal; font-weight:600; font-display:swap;
+    src:url(./fonts/ibm-plex-mono-latin-600-normal.woff2) format('woff2');
+    unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+  }
   /* [STABILIZATION PHASE E] Checked: the ~384 rgba(...) literals scattered
      through this stylesheet, at first glance scattered hand-written alpha
      variants, are actually all alpha-blends of the SAME already-named base
@@ -6555,7 +6573,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.269';
+const APP_VERSION = '3.270';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7211,6 +7229,9 @@ const WHATS_NEW = {
   ]},
   '3.269': { headline: 'AI-generated supplement descriptions now target the same length as curated ones', points: [
     'Both AI prompts (Supplement Recommendations and the non-curated AI insight) now ask for the same one-sentence, ~20-30-word length the curated Foundational Stack descriptions were just tightened to, so a description reads about the same length no matter where it came from.',
+  ]},
+  '3.270': { headline: 'The app\'s typeface now works offline', points: [
+    'Fonts now ship with the app instead of loading from Google, so text looks the same at the gym with no signal as it does at home.',
   ]},
 };
 
