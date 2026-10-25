@@ -106,7 +106,8 @@ test('regression guard: .fi-avoid-flag is styled for BOTH .food-item-btn and .fo
   const ruleMatch = src.match(/\.food-item-btn \.fi-avoid-flag, \.food-result-row \.fi-avoid-flag\{[^}]*\}/);
   assert.ok(ruleMatch, 'one shared rule must cover both card shapes the flag can now appear inside');
   const duplicateRuleCount = (src.match(/\.fi-avoid-flag\{color:var\(--plate-red\)/g) || []).length
-    + (src.match(/font-size:10\.5px; color:var\(--plate-red\); font-weight:600; margin-top:2px;\}/g) || []).length;
+    // 10.5px -> 11px in v3.279 (tasteskill rollout: nothing under 11px).
+    + (src.match(/font-size:11px; color:var\(--plate-red\); font-weight:600; margin-top:2px;\}/g) || []).length;
   assert.strictEqual(duplicateRuleCount, 1, 'the flag styling must exist exactly once in the file, not as a second near-identical copy for the new context');
 });
 

@@ -17,9 +17,24 @@
 <meta name="apple-mobile-web-app-title" content="Training Log">
 <meta name="theme-color" content="#0A0B0D">
 <link rel="manifest" href="./manifest.json">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<!-- Fonts are self-hosted from ./fonts/ (fontsource variable builds, latin
+     subset, OFL — licence beside them) so they are same-origin, precached by
+     sw.js and present offline. v3.276: Geist + Geist Mono replaced Inter + IBM
+     Plex Mono (tasteskill rollout: a face with more character than the kit
+     default; Geist's tabular figures verified to equalise digit widths). Every
+     rule reads the faces through --font-sans / --font-mono in :root. -->
+<link rel="preload" href="./fonts/geist-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+  @font-face{
+    font-family:'Geist'; font-style:normal; font-weight:100 900; font-display:swap;
+    src:url(./fonts/geist-latin-wght-normal.woff2) format('woff2');
+    unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+  }
+  @font-face{
+    font-family:'Geist Mono'; font-style:normal; font-weight:100 900; font-display:swap;
+    src:url(./fonts/geist-mono-latin-wght-normal.woff2) format('woff2');
+    unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+  }
   /* [STABILIZATION PHASE E] Checked: the ~384 rgba(...) literals scattered
      through this stylesheet, at first glance scattered hand-written alpha
      variants, are actually all alpha-blends of the SAME already-named base
@@ -49,6 +64,8 @@
        near-black UI. This tells the browser to draw its own unstyled pieces dark
        to match everything already around them, same intent as the rest of :root. */
     color-scheme:dark;
+    --font-sans:'Geist',-apple-system,BlinkMacSystemFont,sans-serif;
+    --font-mono:'Geist Mono',ui-monospace,monospace;
     --bg:#0A0B0D;
     --surface:#17191D;
     --surface2:#1F2226;
@@ -120,8 +137,13 @@
        redundancy review, confirmed with the user directly (same
        asked-not-guessed approach as the retired second blue light-stop
        above) that 60% should win, and rewritten to match. */
-    --cta-gradient-green:linear-gradient(160deg, #4FE168, var(--plate-green) 55%);
-    --cta-gradient-blue:linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%);
+    /* [TASTESKILL ROLLOUT, v3.280] Filled controls are FLAT (no gradient, no
+       gloss) — the names are kept so the 16 call sites stay untouched. The
+       blue is a deeper step of --plate-blue chosen for contrast: white text
+       measures 4.9:1 on #3860FF, against 3.1-3.6:1 on the old #6E8AFF->#5B7CFF
+       gradient. Green fills carry dark ink (--bg, ~10:1), not white (2:1). */
+    --cta-gradient-green:var(--plate-green);
+    --cta-gradient-blue:#3860FF;
     /* The glossy top-highlight already used on .macro-bar-fill/.vol-bar-fill
        (a 180deg white-to-transparent sweep over the top ~55% of a filled
        gradient surface) — tokenized here since Phase H extends it to two
@@ -132,7 +154,7 @@
        would paint OVER the button's plain (unwrapped) text per normal CSS
        stacking order — layering into the background itself paints behind
        all content unconditionally, no z-index games needed. */
-    --shine-gloss:linear-gradient(180deg, rgba(var(--surface-white-rgb),0.32), rgba(var(--surface-white-rgb),0) 55%);
+    --shine-gloss:none; /* v3.280: the white gloss layer on filled controls is retired; kept as a no-op token so `background:var(--shine-gloss), ...` sites still parse */
     /* The left column every row in a sets block opens with: the set number on
        a working set, the done-checkbox on a warm-up step. It is a token and
        not a literal in two rules because the weight/reps columns only line up
@@ -150,10 +172,9 @@
        expensive. Three steps, one rim, one lift. A component that seems to
        need a fourth step almost certainly wants a different component.
 
-       --rim is the hairline where light catches a top edge. --lift is the
-       coloured bloom beneath a raised surface, in --plate-blue rather than
-       neutral grey so the depth belongs to this palette instead of being
-       borrowed from a generic dark theme. */
+       --rim is the hairline where light catches a top edge. (--lift, the blue
+       bloom that sat under every card, was retired in v3.277 when resting
+       cards went flat app-wide — see .card.) */
     /* Was `--rim:var(--rim)` — a dependency cycle. Per the CSS variables spec
        a custom property in a cycle computes to the guaranteed-invalid value,
        so every `var(--rim)` without a fallback made its whole declaration
@@ -164,7 +185,6 @@
        var(--elev-*) uses were inert. --sheen already holds the hairline colour
        this was always meant to be. */
     --rim:0 1px 0 var(--sheen) inset;
-    --lift:0 24px 60px -30px rgba(var(--plate-blue-rgb),0.16);
     --elev-1:var(--rim), 0 2px 6px -2px rgba(var(--overlay-black-rgb),0.40);
     --elev-2:var(--rim), 0 14px 32px -12px rgba(var(--overlay-black-rgb),0.55);
     --elev-3:var(--rim), 0 24px 48px -16px rgba(var(--overlay-black-rgb),0.70);
@@ -254,7 +274,7 @@
       var(--bg);
     background-attachment:fixed;
     color:var(--text);
-    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    font-family:var(--font-sans);
     padding-bottom:96px;
     -webkit-font-smoothing:antialiased;
     letter-spacing:-0.01em;
@@ -283,7 +303,7 @@
   .pull-refresh-spinner.past-threshold{ transform:rotate(180deg); }
   .pull-refresh-spinner.spinning{ animation:pullRefreshSpin 0.7s linear infinite; }
   @keyframes pullRefreshSpin{ from{transform:rotate(0deg);} to{transform:rotate(360deg);} }
-  .pull-refresh-label{ font-size:11px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; }
+  .pull-refresh-label{ font-size:11px; color:var(--text-muted); font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
   button, input, select, textarea{ font-family:inherit; }
   /* iOS Safari auto-zooms the whole page when a focused input's font-size is
      under 16px, and doesn't zoom back out on blur — this is what was causing
@@ -334,31 +354,38 @@
     display:inline-flex; width:14px; height:14px; flex:0 0 auto; color:var(--plate-blue); opacity:0.85;
   }
   .brand-mark svg{width:100%; height:100%;}
+  /* [TASTESKILL ROLLOUT, v3.278] The eyebrow names the scope (whose log, which
+     goal) beside the product mark, so it keeps its job but stops shouting:
+     sentence case as the person typed their name, text face, 12px, no
+     tracking. The h1 drops to app-title size (24/700): an app screen is not a
+     landing page, and every view shares this header. */
   .eyebrow{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
-    font-size:10.5px;
-    letter-spacing:2.5px;
+    font-family:var(--font-sans);
+    font-size:12px;
+    font-weight:500;
     color:var(--text-muted);
-    text-transform:uppercase;
     transition:color 0.3s var(--ease-smooth);
   }
   h1{
-    font-family:'Inter',sans-serif;
-    font-weight:800;
-    font-size:32px;
-    letter-spacing:-0.03em;
-    line-height:1.08;
+    font-family:var(--font-sans);
+    font-weight:700;
+    font-size:24px;
+    letter-spacing:-0.02em;
+    line-height:1.15;
     margin-top:6px;
   }
   .sub{color:var(--text-muted); font-size:13.5px; margin-top:5px; letter-spacing:-0.005em;}
+  /* v3.278: a status pill — flat pale tint at the old gradient's midpoint with
+     a same-hue border, no glow; a flame outline (.streak-flame) instead of 🔥;
+     text face with tabular figures so the count doesn't jitter as it animates. */
   .streak-badge{
     display:inline-flex; align-items:center; gap:5px; margin-top:10px;
-    background:linear-gradient(160deg, rgba(var(--plate-yellow-rgb),0.14), rgba(var(--plate-yellow-rgb),0.05));
+    background:rgba(var(--plate-yellow-rgb),0.10);
     border:1px solid rgba(var(--plate-yellow-rgb),0.32);
-    border-radius:var(--radius-pill); padding:4px 12px 4px 11px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    border-radius:var(--radius-pill); padding:4px 12px 4px 10px; font-family:var(--font-sans); font-variant-numeric:tabular-nums;
     font-size:12px; color:var(--plate-yellow); font-weight:600;
-    box-shadow:inset 0 1px 0 rgba(var(--surface-white-rgb),0.08), 0 4px 12px -7px rgba(var(--plate-yellow-rgb),0.35);
   }
+  .streak-flame{ width:13px; height:13px; flex:0 0 auto; }
   .streak-badge.zero{background:var(--surface2); border-color:var(--line); color:var(--text-muted); font-weight:500; box-shadow:none;}
   .streak-badge.streak-pulse{ animation:streakPulse 0.7s var(--ease-spring); }
   @keyframes streakPulse{ 0%{transform:scale(1);} 35%{transform:scale(1.18);} 60%{transform:scale(0.94);} 100%{transform:scale(1);} }
@@ -366,16 +393,16 @@
     display:inline-flex; align-items:center; margin-bottom:10px;
     background:linear-gradient(160deg, rgba(var(--plate-green-rgb),0.14), rgba(var(--plate-green-rgb),0.05));
     border:1px solid rgba(var(--plate-green-rgb),0.32);
-    border-radius:var(--radius-pill); padding:4px 12px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    border-radius:var(--radius-pill); padding:4px 12px; font-family:var(--font-mono); font-variant-numeric:tabular-nums;
     font-size:12px; color:var(--plate-green); font-weight:600;
     box-shadow:inset 0 1px 0 rgba(var(--surface-white-rgb),0.08), 0 4px 12px -7px rgba(var(--plate-green-rgb),0.35);
   }
 
   .tabs-header{display:flex; align-items:center; justify-content:space-between; padding-top:14px;}
-  .tabs-header .hint{font-size:11px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; text-transform:uppercase; letter-spacing:0.5px;}
+  .tabs-header .hint{font-size:11px; color:var(--text-muted); font-family:var(--font-sans);}
   .reorder-btn{
     background:var(--surface2); border:1px solid var(--line); color:var(--text);
-    font-family:'Inter',sans-serif; font-size:12px; font-weight:600;
+    font-family:var(--font-sans); font-size:12px; font-weight:600;
     padding:7px 12px; border-radius:var(--radius-pill); cursor:pointer;
     transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
@@ -403,7 +430,7 @@
     position:relative; overflow:hidden;
     width:46px; height:46px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-weight:600; font-size:12px;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-weight:600; font-size:12px;
     border:3px solid rgba(var(--overlay-black-rgb),0.25);
     color:#14171A;
     /* Top rim bright, bottom falling away, disc sitting on the surface —
@@ -435,11 +462,10 @@
     background:var(--cta-gradient-green);
     border:2px solid var(--bg);
     display:flex; align-items:center; justify-content:center;
-    color:#fff; font-size:10px; font-weight:700; line-height:1;
-    box-shadow:var(--cta-gloss-inset), 0 2px 6px -2px rgba(var(--plate-green-rgb),0.5);
+    color:var(--bg); font-size:10px; font-weight:700; line-height:1;
     z-index:2;
   }
-  .plate-label{font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap;}
+  .plate-label{font-size:11px; color:var(--text-muted); white-space:nowrap;}
   .tab.active .plate-label{color:var(--text);}
 
   .p-red{background:var(--plate-red);}
@@ -454,11 +480,11 @@
 
   .workout-hero{display:flex; align-items:center; gap:16px; margin-bottom:16px;}
   .workout-hero-plate-wrap{position:relative; flex:0 0 auto;}
-  .workout-hero-glow{
-    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    width:92px; height:92px; border-radius:50%; filter:blur(18px); opacity:0.28;
-    pointer-events:none; z-index:0;
-  }
+  /* [TASTESKILL TODAY PILOT, v3.275] The blurred plate-coloured halo that sat
+     behind this plate (.workout-hero-glow / #dayHeroGlow) is gone, markup and
+     the renderWorkout line that coloured it both: glows are off-style on this
+     screen. The plate itself stays exactly as modelled — it is the day's
+     identity, the Olympic-plate colour this product owns. */
   .day-hero-plate{
     position:relative; overflow:hidden; z-index:1;
     width:68px; height:68px; border-radius:50%;
@@ -478,11 +504,11 @@
   .day-hero-plate.plate-off svg{color:var(--text-muted);}
   .workout-hero-text{position:relative; z-index:1; min-width:0;}
   .workout-hero-eyebrow{
-    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+    font-family:var(--font-sans); font-size:11px;
     color:var(--text-muted); margin-bottom:2px;
   }
   .workout-hero-title{
-    font-family:'Inter',sans-serif; font-weight:800; font-size:24px; letter-spacing:-0.02em; line-height:1.2;
+    font-family:var(--font-sans); font-weight:800; font-size:24px; letter-spacing:-0.02em; line-height:1.2;
     color:var(--text);
   }
 
@@ -497,24 +523,24 @@
   .reorder-arrows button:disabled{opacity:0.25;}
 
   .card{
+    /* [TASTESKILL ROLLOUT, v3.277] A resting card is a lightness step alone
+       (--surface on --bg): no visible border, no shadow, no blue --lift bloom
+       and no sheen line along its top (the old ::before). Shadows and glass are
+       for what floats — nav, sheets, overlays — per the owner's call. Proven on
+       Today in the v3.272 pilot, then promoted here so every view matches. The
+       border stays as 1px transparent so no card's box moves by a pixel. */
     position:relative;
     background:var(--surface);
-    border:1px solid rgba(var(--surface-white-rgb),0.07);
+    border:1px solid transparent;
     border-radius:var(--radius-lg);
     /* Even on all four sides. This read 22px 22px 23px, which put one more
        pixel under the content than above it on all 62 cards. */
     padding:22px;
     margin-bottom:18px;
-    box-shadow:var(--elev-2), var(--lift);
-    transition:box-shadow 0.3s var(--ease-smooth), border-color 0.3s var(--ease-smooth), transform 0.2s var(--ease-smooth);
-  }
-  .card::before{
-    content:''; position:absolute; top:0; left:14px; right:14px; height:1px;
-    background:linear-gradient(90deg, transparent, var(--sheen-strong) 40%, var(--sheen-strong) 60%, transparent);
-    border-radius:1px; pointer-events:none;
+    transition:transform 0.2s var(--ease-smooth);
   }
   .card-title{
-    font-family:'Inter',sans-serif;
+    font-family:var(--font-sans);
     font-weight:700;
     font-size:16.5px;
     letter-spacing:-0.01em;
@@ -529,11 +555,11 @@
   .card-icon svg{width:100%; height:100%;}
   .day-plate-inline{width:20px; height:20px; border-radius:50%; flex:0 0 auto; border:2px solid rgba(var(--overlay-black-rgb),0.25);}
   .duration-tag{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11.5px; color:var(--text-muted);
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11.5px; color:var(--text-muted);
     margin-bottom:4px; margin-top:2px;
   }
   .mesocycle-phase-tag{
-    display:inline-flex; align-items:center; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    display:inline-flex; align-items:center; font-family:var(--font-sans); font-variant-numeric:tabular-nums;
     font-size:11px; padding:3px 9px; border-radius:999px; margin:2px 0 6px;
     background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
   }
@@ -544,28 +570,27 @@
   .duration-row{display:flex; align-items:center; justify-content:space-between; gap:8px;}
   .duration-row .duration-tag{margin-bottom:0;}
   .session-length-select{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11px; background:var(--surface2);
+    font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:11px; background:var(--surface2);
     border:1px solid var(--line); color:var(--text-muted); border-radius:var(--radius-sm);
     padding:3px 8px; appearance:none; -webkit-appearance:none; cursor:pointer;
   }
   .session-length-select:focus{outline:none; border-color:var(--plate-blue);}
   .session-cal-total{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px; color:var(--plate-yellow);
+    font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:12px; color:var(--plate-yellow);
     margin-bottom:14px; font-weight:600;
   }
   .ex-cal-tag{
-    font-size:10px; color:var(--plate-yellow); text-align:right; margin-top:2px; font-weight:600;
+    font-size:11px; color:var(--plate-yellow); text-align:right; margin-top:2px; font-weight:600;
   }
   .today-standout-banner{
     padding:10px 12px; background:rgba(var(--plate-yellow-rgb),0.1); border:1px solid rgba(var(--plate-yellow-rgb),0.38);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
-    box-shadow:var(--rim), 0 4px 14px -8px rgba(var(--plate-yellow-rgb),0.35);
   }
   .describe-similar-note{font-size:11.5px; color:var(--text-muted); margin-top:12px; padding-top:10px; border-top:1px solid var(--line-soft);}
   .describe-similar-list{display:flex; flex-direction:column; gap:6px; margin-top:8px;}
   .describe-similar-btn{
     text-align:left; padding:8px 10px; background:var(--surface2); border:1px solid var(--line);
-    border-radius:var(--radius-sm); color:var(--text); font-size:12px; cursor:pointer; font-family:'Inter',sans-serif;
+    border-radius:var(--radius-sm); color:var(--text); font-size:12px; cursor:pointer; font-family:var(--font-sans);
   }
   .describe-similar-btn:active{transform:scale(0.98);}
   .privacy-note{
@@ -576,12 +601,10 @@
   .day-insight{
     padding:10px 12px; background:rgba(var(--plate-blue-rgb),0.08); border:1px solid rgba(var(--plate-blue-rgb),0.28);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
-    box-shadow:var(--rim), 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.35);
   }
   .voice-hint-banner{
     display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(var(--plate-blue-rgb),0.08);
     border:1px solid rgba(var(--plate-blue-rgb),0.28); border-radius:var(--radius-md); font-size:12.5px; line-height:1.4;
-    box-shadow:var(--rim), 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.35);
     color:var(--text); margin-bottom:14px;
   }
   .voice-hint-banner span:first-of-type{flex:1;}
@@ -613,8 +636,7 @@
     transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .supplement-row.done .supplement-check{
-    background:var(--cta-gradient-green); border-color:var(--plate-green); color:#fff;
-    box-shadow:var(--cta-gloss-inset);
+    background:var(--cta-gradient-green); border-color:var(--plate-green); color:var(--bg);
   }
   /* .supplement-label, not span:last-child — a row can now have a THIRD
      flex child (the "ask your coach" button below), which would otherwise
@@ -639,7 +661,7 @@
   .supplement-name-wrap .supplement-frequency{font-size:11.5px; color:var(--plate-blue); font-weight:600;}
   .supplement-benefit-toggle{
     background:none; border:none; padding:0; margin-left:4px; font-size:11.5px; font-weight:600; color:var(--plate-blue);
-    cursor:pointer; font-family:'Inter',sans-serif; text-decoration:underline; text-underline-offset:2px;
+    cursor:pointer; font-family:var(--font-sans); text-decoration:underline; text-underline-offset:2px;
   }
   .supplement-benefit-toggle:active{opacity:0.6;}
   .supplement-benefit-detail{display:block; margin-top:4px; color:var(--text-muted);}
@@ -648,10 +670,10 @@
   .supplement-ingredients b{color:var(--text);}
   .supplement-ai-insight{display:block; margin-top:6px; color:var(--text-muted);}
   .supplement-ai-insight b{color:var(--plate-purple);}
-  .supplement-ai-disclaimer{display:block; margin-top:2px; font-size:10.5px; color:var(--text-muted); font-style:italic; opacity:0.8;}
+  .supplement-ai-disclaimer{display:block; margin-top:2px; font-size:11px; color:var(--text-muted); font-style:italic; opacity:0.8;}
   .supplement-ai-insight-btn{
     display:block; margin-top:6px; background:none; border:1px dashed rgba(var(--plate-blue-rgb),0.4); border-radius:var(--radius-sm);
-    padding:6px 10px; font-size:11.5px; font-weight:600; color:var(--plate-blue); cursor:pointer; font-family:'Inter',sans-serif;
+    padding:6px 10px; font-size:11.5px; font-weight:600; color:var(--plate-blue); cursor:pointer; font-family:var(--font-sans);
   }
   .supplement-ai-insight-btn:active{opacity:0.6;}
   .supplement-ai-insight-btn:disabled{opacity:0.5; cursor:default;}
@@ -667,15 +689,13 @@
     transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .grocery-item.done .grocery-check{
-    background:var(--cta-gradient-green); border-color:var(--plate-green); color:#fff;
-    box-shadow:var(--cta-gloss-inset);
+    background:var(--cta-gradient-green); border-color:var(--plate-green); color:var(--bg);
   }
   .grocery-item.done .grocery-item-text{color:var(--text-muted); text-decoration:line-through; text-decoration-color:var(--line-bright);}
   .grocery-item:active .grocery-check{transform:scale(0.88);}
   .today-insight-row{
     padding:10px 12px; background:rgba(var(--plate-blue-rgb),0.08); border:1px solid rgba(var(--plate-blue-rgb),0.28);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:8px;
-    box-shadow:var(--rim), 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.35);
   }
   .today-insight-row:last-child{margin-bottom:0;}
   .pf-conditions{ border:1px solid var(--line); border-radius:var(--radius-md); padding:12px; margin-bottom:12px; }
@@ -741,6 +761,13 @@
   .card-stagger{ opacity:0; transform:translateY(14px); animation:cardRise 0.42s var(--ease-smooth) forwards; }
   @keyframes cardRise{ to{ opacity:1; transform:translateY(0); } }
 
+  /* [TASTESKILL ROLLOUT, v3.277] Cards no longer perform an entrance: the
+     rise switchView replays on every tab switch is off for .card in every view
+     (piloted on Today in v3.272). List ROWS that carry .card-stagger
+     (buildSwipeItem) keep it — a row arriving is feedback, which stays, as do
+     the view crossfade and press feedback. */
+  .card.card-stagger{ opacity:1; transform:none; animation:none; }
+
   .exercise{
     display:flex; align-items:center; gap:12px;
     padding:12px 0 12px;
@@ -765,13 +792,16 @@
     background:rgba(var(--plate-yellow-rgb),0.08);
     border-radius:var(--radius-sm);
   }
+  /* [TASTESKILL TODAY PILOT, v3.274] Sentence case in the text face at 12px,
+     no tracking, and no ⚡ injected through ::before (an emoji the inspector
+     reads like any other). The yellow edge and pale yellow tint on the pair
+     above stay: they code the kind of block, which is what a hue is for. */
   .superset-banner{
     display:flex; align-items:center; gap:6px;
     padding:6px 0 4px;
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:10.5px; font-weight:600;
-    color:var(--plate-yellow); text-transform:uppercase; letter-spacing:0.3px;
+    font-size:12px; font-weight:600;
+    color:var(--plate-yellow);
   }
-  .superset-banner::before{content:'⚡';}
   /* The second exercise's own header/actions/warmup section, set apart from
      the first with a hairline rather than a full card boundary — together
      they read as one unit, not two cards glued together. */
@@ -786,8 +816,8 @@
   .set-row-owner{ display:none; }
   .superset-pair .set-row-owner{
     display:block; flex-basis:100%; order:-1;
-    font-size:10.5px; font-weight:600; color:var(--plate-yellow);
-    text-transform:uppercase; letter-spacing:0.3px; margin-bottom:2px;
+    font-size:12px; font-weight:600; color:var(--plate-yellow);
+    margin-bottom:2px;
   }
   input[type=checkbox]{
     -webkit-appearance:none; appearance:none; margin:0;
@@ -814,7 +844,7 @@
   .ex-thumb svg{width:100%; height:100%;}
   .ex-name-wrap{min-width:0; flex:1;}
   .ex-name{font-weight:500; font-size:14.5px;}
-  .ex-name .super-tag{font-size:10.5px; color:var(--plate-yellow); display:block; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; margin-top:1px;}
+  .ex-name .super-tag{font-size:11px; color:var(--plate-yellow); display:block; font-family:var(--font-sans); font-variant-numeric:tabular-nums; margin-top:1px;}
   .ex-name .focus-tag{color:var(--plate-green);}
   .ex-name .custom-tag{color:var(--plate-blue);}
   .ex-name .sub-tag{color:var(--plate-purple);}
@@ -861,7 +891,7 @@
   }
   .sub-modal-overlay.active .sub-modal-sheet{transform:translateY(0);}
   .sub-modal-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:2px;}
-  .sub-modal-title{font-family:'Inter',sans-serif; font-weight:700; font-size:16.5px; letter-spacing:-0.01em; color:var(--text);}
+  .sub-modal-title{font-family:var(--font-sans); font-weight:700; font-size:16.5px; letter-spacing:-0.01em; color:var(--text);}
   .sub-modal-close{
     flex:0 0 auto; background:var(--surface2); border:1px solid rgba(var(--surface-white-rgb),0.07); color:var(--text-muted);
     width:28px; height:28px; border-radius:50%; font-size:14px; cursor:pointer; line-height:1;
@@ -881,12 +911,12 @@
     box-shadow:inset 0 1px 0 rgba(var(--surface-white-rgb),0.08), 0 8px 20px -12px rgba(var(--plate-blue-rgb),0.4);
   }
   .sub-option-text{min-width:0;}
-  .sub-option-name{font-family:'Inter',sans-serif; font-weight:600; font-size:14px; color:var(--text);}
-  .sub-option-default-tag{font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.4px; font-weight:700; margin-left:6px;}
-  .sub-option-history{font-size:11.5px; color:var(--text-muted); margin-top:2px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
+  .sub-option-name{font-family:var(--font-sans); font-weight:600; font-size:14px; color:var(--text);}
+  .sub-option-default-tag{font-size:11px; color:var(--text-muted); font-weight:700; margin-left:6px;}
+  .sub-option-history{font-size:11.5px; color:var(--text-muted); margin-top:2px; font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
   .sub-option-check{color:var(--plate-blue); font-size:17px; flex:0 0 auto; font-weight:700;}
   .ex-sets{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
     font-size:12.5px;
     color:var(--text-muted);
     margin-left:auto;
@@ -924,11 +954,11 @@
     min-height:34px;
   }
   .set-num{
-    width:var(--set-gutter); text-align:center; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted); flex:0 0 auto;
+    width:var(--set-gutter); text-align:center; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted); flex:0 0 auto;
   }
   .ex-input{
     width:62px; background:var(--surface2); border:1px solid var(--line); color:var(--text);
-    border-radius:var(--radius-sm); padding:6px 2px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:13px; text-align:center;
+    border-radius:var(--radius-sm); padding:6px 2px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:13px; text-align:center;
     box-shadow:0 1px 3px rgba(var(--overlay-black-rgb),0.25) inset;
     transition:border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
@@ -964,14 +994,14 @@
   .ex-input-suggested:focus::placeholder{color:var(--text-muted); font-weight:400;}
   .ex-x{color:var(--text-muted); font-size:12px;}
   .set-status{
-    width:36px; flex:0 0 auto; font-size:12px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; text-align:center;
+    width:36px; flex:0 0 auto; font-size:12px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; text-align:center;
   }
   .set-status-saved{color:var(--plate-green);}
   .set-status-pr{color:var(--plate-yellow); font-weight:700; animation:pr-pop .4s var(--ease-spring);}
   @keyframes pr-pop{ 0%{transform:scale(0.6);} 60%{transform:scale(1.25);} 100%{transform:scale(1);} }
   .add-set-btn{
     align-self:flex-start; background:none; border:1px dashed var(--line); color:var(--text-muted);
-    font-size:11.5px; padding:5px 10px; border-radius:var(--radius-sm); cursor:pointer; font-family:'Inter',sans-serif;
+    font-size:11.5px; padding:5px 10px; border-radius:var(--radius-sm); cursor:pointer; font-family:var(--font-sans);
     margin-top:2px;
   }
   /* Same as Last Time, History and Edit are one wrapping row, not three
@@ -992,15 +1022,15 @@
   .same-as-last-btn{
     width:100%; margin-bottom:10px; padding:9px; background:var(--surface2); border:1px solid rgba(var(--plate-blue-rgb),0.3);
     border-radius:var(--radius-md); color:var(--plate-blue); font-size:12.5px; font-weight:600; cursor:pointer;
-    font-family:'Inter',sans-serif; transition:transform 0.15s var(--ease-smooth);
+    font-family:var(--font-sans); transition:transform 0.15s var(--ease-smooth);
   }
   .same-as-last-btn:active{transform:scale(0.98);}
   .session-summary{
     display:flex; gap:14px; padding:4px 0 2px 76px; font-size:11.5px; color:var(--text-muted);
   }
-  .session-summary b{color:var(--text); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
+  .session-summary b{color:var(--text); font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
   .progress-hint{
-    padding:2px 0 2px 76px; font-size:11.5px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    padding:2px 0 2px 76px; font-size:11.5px; color:var(--text-muted); font-family:var(--font-mono); font-variant-numeric:tabular-nums;
   }
   .progress-badge{
     margin:4px 0 2px 76px; padding:7px 10px; background:rgba(var(--plate-yellow-rgb),0.12); border:1px solid rgba(var(--plate-yellow-rgb),0.38);
@@ -1054,7 +1084,7 @@
   @keyframes voiceListenPulse{ 0%,100%{opacity:1;} 50%{opacity:0.5;} }
   .plate-result{
     flex-basis:100%; margin:2px 0 0 22px; padding:6px 10px; background:var(--surface2);
-    border:1px solid var(--line); border-radius:var(--radius-sm); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    border:1px solid var(--line); border-radius:var(--radius-sm); font-family:var(--font-mono); font-variant-numeric:tabular-nums;
     font-size:11.5px; color:var(--text); line-height:1.5; display:none;
   }
   .plate-result.open{display:block;}
@@ -1071,9 +1101,14 @@
   .warmup-box{
     margin:4px 0 8px; padding:9px 11px; background:rgba(var(--plate-orange-rgb),0.08); border:1px solid rgba(var(--plate-orange-rgb),0.28);
     border-radius:var(--radius-sm); font-size:12px; color:var(--text); line-height:1.6;
-    box-shadow:var(--rim), 0 4px 12px -7px rgba(var(--plate-orange-rgb),0.3);
   }
-  .warmup-box .warmup-title{color:var(--plate-orange); font-weight:600; font-size:11.5px; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:3px;}
+  /* [TASTESKILL TODAY PILOT, v3.274] The box is a notice: a pale orange tint
+     with a 1px border of the same hue, nothing more. Its rim and orange glow
+     shadow are gone (no shadows on things at rest), the title is sentence case
+     and untracked, and the nudge's prose (.warmup-note) is set in the text face;
+     the ramp's own figures (.warmup-row) keep the mono numerals. */
+  .warmup-box .warmup-title{color:var(--plate-orange); font-weight:600; font-size:12px; margin-bottom:3px;}
+  .warmup-box .warmup-row.warmup-note{font-family:inherit;} /* must outrank .warmup-box .warmup-row (mono), declared later */
   /* THE STRIP, used instead of the box once the ramp is real rows.
      A 4-set exercise with a 3-step ramp should read as SEVEN set lines — three
      orange, four plain — not as a bordered table sitting on top of four rows.
@@ -1091,10 +1126,9 @@
      `.warmup-strip`/`.warmup-box` template literals in renderWorkout. */
   .warmup-strip{ margin:0; display:flex; flex-direction:column; gap:6px; }
   .warmup-strip .warmup-title{
-    color:var(--plate-orange); font-weight:600; font-size:11.5px;
-    text-transform:uppercase; letter-spacing:0.3px;
+    color:var(--plate-orange); font-weight:600; font-size:12px;
   }
-  .warmup-box .warmup-row{display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px;}
+  .warmup-box .warmup-row{display:flex; justify-content:space-between; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px;}
 
   .sticky-day-header{
     position:fixed; left:0; right:0; z-index:20;
@@ -1139,7 +1173,7 @@
        genuinely means invisible again, the same guarantee it had at top:0. */
     transform:translateY(calc(-100% - env(safe-area-inset-top, 0px) - var(--nav-rail-h, 56px)));
     transition:transform 0.25s var(--ease-smooth);
-    font-family:'Inter',sans-serif; font-size:14.5px; font-weight:700; letter-spacing:-0.01em; color:var(--text);
+    font-family:var(--font-sans); font-size:14.5px; font-weight:700; letter-spacing:-0.01em; color:var(--text);
     box-shadow:var(--rim), 0 4px 14px rgba(var(--overlay-black-rgb),0.3);
   }
   .sticky-day-header.visible{transform:translateY(0);}
@@ -1164,11 +1198,11 @@
   .celebrate-share-btn{
     margin-top:14px; padding:9px 20px; border-radius:var(--radius-md);
     background:var(--plate-yellow); color:#1a1500; border:none;
-    font-family:'Inter',sans-serif; font-size:13px; font-weight:700; cursor:pointer;
+    font-family:var(--font-sans); font-size:13px; font-weight:700; cursor:pointer;
   }
   .celebrate-share-btn:active{transform:scale(0.96);}
   .celebrate-icon{font-size:40px; line-height:1; margin-bottom:8px; animation:celebrate-icon-pop 0.5s var(--ease-spring);}
-  .celebrate-text{font-family:'Inter',sans-serif; font-size:20px; font-weight:800; letter-spacing:-0.02em; color:var(--text);}
+  .celebrate-text{font-family:var(--font-sans); font-size:20px; font-weight:800; letter-spacing:-0.02em; color:var(--text);}
   .celebrate-sub{font-size:13px; color:var(--text-muted); margin-top:4px;}
   @keyframes celebrate-icon-pop{ 0%{transform:scale(0.4) rotate(-15deg);} 60%{transform:scale(1.2) rotate(8deg);} 100%{transform:scale(1) rotate(0);} }
 
@@ -1243,7 +1277,7 @@
   }
   .rest-timer-expand > div{overflow:hidden;}
   .rest-timer-panel-tier{
-    padding:18px 2px 0; font-family:'Inter',sans-serif; font-weight:700; font-size:13px; color:var(--plate-blue); text-align:center;
+    padding:18px 2px 0; font-family:var(--font-sans); font-weight:700; font-size:13px; color:var(--plate-blue); text-align:center;
   }
   .rest-timer-panel-tip{
     padding:6px 4px 14px; font-size:12px; line-height:1.5; color:var(--text-muted); text-align:center;
@@ -1254,7 +1288,6 @@
   .custom-program-box{
     margin-top:14px; padding:14px; border-radius:var(--radius-md);
     background:var(--surface2); border:1px solid var(--line-bright);
-    box-shadow:var(--elev-1);
   }
   .custom-program-box .care-input{box-shadow:var(--rim);}
   .custom-program-row{
@@ -1265,14 +1298,14 @@
   .custom-program-del{
     background:var(--surface); box-shadow:var(--elev-1);
     border:1px solid rgba(var(--plate-red-rgb),0.3); border-radius:var(--radius-sm);
-    color:var(--plate-red); font-size:12px; padding:5px 9px; cursor:pointer; font-family:'Inter',sans-serif;
+    color:var(--plate-red); font-size:12px; padding:5px 9px; cursor:pointer; font-family:var(--font-sans);
   }
   .settings-cog{
     position:absolute; top:0; right:0; z-index:5;
     width:40px; height:40px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
     background:var(--surface2); border:1px solid var(--line-bright); color:var(--text-muted);
-    box-shadow:var(--elev-1); cursor:pointer;
+    cursor:pointer;
     transition:color 0.2s var(--ease-smooth), transform 0.3s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
   .settings-cog svg{width:19px; height:19px;}
@@ -1340,14 +1373,13 @@
   .settings-section{margin-bottom:20px;}
   .settings-section > .care-label:first-child{
     display:block; margin-bottom:8px; padding-bottom:6px;
-    border-bottom:1px solid var(--line-bright);
-    text-transform:uppercase; letter-spacing:0.6px; font-size:10px; color:var(--text-muted);
+    border-bottom:1px solid var(--line-bright); font-size:11px; color:var(--text-muted);
   }
   .settings-section > div + div{margin-top:14px;}
   .settings-jump{
     display:flex; align-items:center; justify-content:space-between; width:100%;
     background:var(--surface2); border:1px solid var(--line-bright); border-radius:var(--radius-sm);
-    color:var(--text); font-family:'Inter',sans-serif; font-size:13px;
+    color:var(--text); font-family:var(--font-sans); font-size:13px;
     padding:12px 14px; margin-top:8px; cursor:pointer; box-shadow:var(--elev-1);
   }
   .settings-jump span:last-child{color:var(--text-muted);}
@@ -1355,19 +1387,19 @@
   .rest-timer-panel-notify[hidden]{display:none;}
   .rest-timer-panel-note{padding:0 4px 8px; font-size:11px; line-height:1.45; color:var(--text-muted); text-align:center;}
   .rest-timer-panel-note[hidden]{display:none;}
-  .rt-notify{flex:1; font-family:'Inter',sans-serif; font-size:12px; box-shadow:var(--elev-1);}
+  .rt-notify{flex:1; font-family:var(--font-sans); font-size:12px; box-shadow:var(--elev-1);}
   .rt-adjust{
     flex:1; min-width:50px; padding:8px 6px; background:rgba(var(--plate-blue-rgb),0.1); border:1px solid rgba(var(--plate-blue-rgb),0.3);
-    border-radius:var(--radius-sm); color:var(--text); font-size:12px; font-weight:600; cursor:pointer; font-family:'IBM Plex Mono',monospace;
+    border-radius:var(--radius-sm); color:var(--text); font-size:12px; font-weight:600; cursor:pointer; font-family:var(--font-mono);
     box-shadow:var(--rim); transition:transform 0.15s var(--ease-smooth), background 0.15s var(--ease-smooth);
   }
   .rt-adjust:active{transform:scale(0.94); background:rgba(var(--plate-blue-rgb),0.2);}
   .rest-timer-main{
     position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
   }
-  .rest-timer-time{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-weight:700; font-size:15px; color:var(--text); text-align:center; letter-spacing:-0.02em;}
+  .rest-timer-time{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-weight:700; font-size:15px; color:var(--text); text-align:center; letter-spacing:-0.02em;}
   .rest-timer button{
-    background:none; border:none; color:var(--text-muted); font-size:13px; cursor:pointer; font-family:'Inter',sans-serif;
+    background:none; border:none; color:var(--text-muted); font-size:13px; cursor:pointer; font-family:var(--font-sans);
     transition:transform 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
   }
   .rest-timer button:active{transform:scale(0.92);}
@@ -1387,7 +1419,7 @@
   .undo-toast span{font-size:13px; color:var(--text);}
   .undo-toast button{
     background:none; border:none; color:var(--plate-blue); font-weight:700; font-size:13px;
-    cursor:pointer; font-family:'Inter',sans-serif; padding:6px 4px; white-space:nowrap;
+    cursor:pointer; font-family:var(--font-sans); padding:6px 4px; white-space:nowrap;
   }
 
   /* Deliberately its own small fixed-position notice, not a reuse of
@@ -1400,7 +1432,7 @@
     transform:translate(-50%,0) scale(0.85); opacity:0; pointer-events:none;
     background:rgba(var(--surface2-rgb),0.85); box-shadow:var(--rim); backdrop-filter:blur(16px) saturate(160%); -webkit-backdrop-filter:blur(16px) saturate(160%);
     border:1px solid var(--line-bright); border-radius:var(--radius-pill-lg);
-    padding:8px 20px; font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:15px; color:var(--plate-green);
+    padding:8px 20px; font-family:var(--font-mono); font-weight:700; font-size:15px; color:var(--plate-green);
     box-shadow:0 10px 24px -8px rgba(var(--overlay-black-rgb),0.5);
     transition:transform 0.25s var(--ease-spring), opacity 0.2s var(--ease-smooth);
   }
@@ -1409,7 +1441,7 @@
   .ex-details{margin:6px 0 2px 76px;}
   .ex-details summary{
     list-style:none; cursor:pointer; display:flex; align-items:center; gap:5px;
-    font-size:11.5px; color:var(--plate-blue); font-weight:600; text-transform:uppercase; letter-spacing:0.3px;
+    font-size:11.5px; color:var(--plate-blue); font-weight:600;
     padding:2px 0;
   }
   .ex-details summary::-webkit-details-marker{display:none;}
@@ -1454,7 +1486,7 @@
   }
   .pr-row:last-child{border-bottom:none;}
   .pr-date{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted); flex:0 0 66px;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted); flex:0 0 66px;
   }
   .pr-body{flex:1; min-width:0;}
   /* Named prt- (PR Timeline), not pr-ex-name, deliberately: the print-only
@@ -1469,21 +1501,21 @@
      rather than left as a landmine. */
   .prt-ex-name{font-weight:600; font-size:13.5px;}
   .pr-type-tag{
-    font-size:9.5px; font-weight:700; color:var(--plate-purple); background:rgba(var(--plate-purple-rgb),0.12);
+    font-size:11px; font-weight:700; color:var(--plate-purple); background:rgba(var(--plate-purple-rgb),0.12);
     border:1px solid rgba(var(--plate-purple-rgb),0.3); border-radius:var(--radius-pill); padding:1px 7px; margin-left:4px; vertical-align:1px;
   }
   .pr-day-label{font-size:11px; color:var(--text-muted); margin-top:1px;}
   .pr-stat{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:15px; letter-spacing:-0.01em; color:var(--plate-yellow); font-weight:700; flex:0 0 auto; text-align:right;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:15px; letter-spacing:-0.01em; color:var(--plate-yellow); font-weight:700; flex:0 0 auto; text-align:right;
   }
   .rpe-trend-labels{
-    display:flex; justify-content:space-between; margin-top:8px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    display:flex; justify-content:space-between; margin-top:8px; font-family:var(--font-mono); font-variant-numeric:tabular-nums;
     font-size:12px; color:var(--text-muted);
   }
   .care-details{margin:0 0 10px 0;}
   .care-details summary{display:flex; align-items:center; gap:8px;}
   .care-type-tag{
-    font-size:9.5px; text-transform:uppercase; letter-spacing:0.4px; font-weight:700;
+    font-size:11px; font-weight:700;
     padding:2px 7px; border-radius:var(--radius-md); flex:0 0 auto;
   }
   .care-type-tag.stretch{background:rgba(79,195,247,0.15); color:#4FC3F7;}
@@ -1492,7 +1524,7 @@
 
   .macro-row{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
   .macro-row:last-child{margin-bottom:0;}
-  .macro-label{width:64px; font-size:12.5px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
+  .macro-label{width:64px; font-size:12.5px; color:var(--text-muted); font-family:var(--font-sans);} /* v3.281: words in the text face, sentence case; the figures in .macro-val keep mono */
   .macro-bar-track{flex:1; height:9px; background:var(--surface2); border-radius:5px; overflow:hidden;}
   .macro-bar-fill{position:relative; height:100%; border-radius:5px; transition:width 0.5s var(--ease-smooth);}
   .macro-bar-fill::after{content:''; position:absolute; inset:0; border-radius:5px; background:var(--shine-gloss);}
@@ -1504,39 +1536,33 @@
        actual flex:1 sibling) give up the room instead — same division of labor .fl-macro /
        .fl-name already use in the food log list. */
     min-width:78px; flex-shrink:0; white-space:nowrap;
-    text-align:right; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12.5px; color:var(--text);
+    text-align:right; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px; color:var(--text);
   }
   .macro-input-row{display:flex; gap:8px; margin-top:14px;}
   .macro-input-row input{
     width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--text);
-    border-radius:var(--radius-sm); padding:9px 6px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:13px; text-align:center;
+    border-radius:var(--radius-sm); padding:9px 6px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:13px; text-align:center;
   }
   .save-btn{
     position:relative; overflow:hidden;
     width:100%; margin-top:14px; padding:12px; border:none; border-radius:var(--radius-sm);
-    background:var(--shine-gloss), var(--cta-gradient-blue); color:#fff; font-weight:600; font-size:14px;
+    background:var(--cta-gradient-blue); color:#fff; font-weight:600; font-size:14px;
     letter-spacing:-0.005em;
-    font-family:'Inter',sans-serif; cursor:pointer;
-    box-shadow:var(--cta-gloss-inset), 0 6px 16px -6px rgba(var(--plate-blue-rgb),0.55);
-    transition:transform 0.15s var(--ease-smooth), box-shadow 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
+    font-family:var(--font-sans); cursor:pointer;
+    transition:transform 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
   }
-  .save-btn::after{
-    content:''; position:absolute; top:0; left:-30%; width:30%; height:100%;
-    background:linear-gradient(100deg, transparent, rgba(var(--surface-white-rgb),0.16), transparent);
-    transform:skewX(-20deg);
-  }
-  .save-btn:active{opacity:0.88; transform:scale(0.96); box-shadow:var(--cta-gloss-inset), 0 3px 8px -4px rgba(var(--plate-blue-rgb),0.55);}
+  .save-btn:active{opacity:0.88; transform:scale(0.96);}
   .save-btn[disabled]{opacity:0.5; cursor:default;}
   .save-btn[disabled]:active{transform:none;}
 
   .weight-input-row{display:flex; gap:8px;}
   .weight-input-row input{
     flex:1; background:var(--surface2); border:1px solid var(--line); color:var(--text);
-    border-radius:var(--radius-sm); padding:10px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:14px;
+    border-radius:var(--radius-sm); padding:10px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:14px;
   }
   .weight-input-row button{
     padding:10px 16px; border:none; border-radius:var(--radius-sm); background:var(--plate-green);
-    color:#fff; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; font-size:13px;
+    color:#fff; font-weight:600; cursor:pointer; font-family:var(--font-sans); font-size:13px;
   }
   .weight-list{margin-top:12px; display:flex; flex-direction:column; gap:6px;}
   /* Grocery List's own list container never got the same margin-top the
@@ -1548,7 +1574,7 @@
     display:flex; justify-content:space-between; font-size:13px;
     padding:6px 0; border-bottom:1px solid var(--line-soft); color:var(--text-muted);
   }
-  .weight-item span:last-child{color:var(--text); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
+  .weight-item span:last-child{color:var(--text); font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
 
   .tip{display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px; line-height:1.45; color:var(--text-muted);}
   .tip:last-child{border-bottom:none;}
@@ -1558,22 +1584,21 @@
   .show-more-btn{
     width:100%; margin-top:10px; padding:10px; background:var(--surface2); border:1px solid var(--line);
     border-radius:var(--radius-md); color:var(--plate-blue); font-size:12.5px; font-weight:600; cursor:pointer;
-    font-family:'Inter',sans-serif; letter-spacing:-0.005em; display:flex; align-items:center; justify-content:center; gap:6px;
+    font-family:var(--font-sans); letter-spacing:-0.005em; display:flex; align-items:center; justify-content:center; gap:6px;
     transition:border-color 0.2s var(--ease-smooth), background 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset, 0 6px 16px -10px rgba(var(--overlay-black-rgb),0.5);
   }
   .show-more-btn:active{transform:scale(0.98); border-color:var(--line-bright); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset;}
   .usda-search-btn, .dsld-search-btn{
     width:100%; margin-top:10px; padding:10px; background:var(--surface2); border:1px solid rgba(var(--plate-teal-rgb),0.4);
     border-radius:var(--radius-md); color:var(--plate-teal); font-size:12.5px; font-weight:600; cursor:pointer;
-    font-family:'Inter',sans-serif; letter-spacing:-0.005em; text-align:center;
+    font-family:var(--font-sans); letter-spacing:-0.005em; text-align:center;
     transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .usda-search-btn:active, .dsld-search-btn:active{transform:scale(0.98);}
   .usda-key-upgrade{margin-top:10px;}
   .usda-key-upgrade-toggle{
     background:none; border:none; color:var(--text-muted); font-size:11.5px; text-decoration:underline;
-    cursor:pointer; font-family:'Inter',sans-serif; padding:0; width:100%; text-align:left; white-space:normal; line-height:1.4;
+    cursor:pointer; font-family:var(--font-sans); padding:0; width:100%; text-align:left; white-space:normal; line-height:1.4;
   }
   .show-more-btn::after{content:'⌄'; font-size:12px; transition:transform 0.28s var(--ease-smooth);}
   .show-more-btn.expanded::after{transform:rotate(180deg);}
@@ -1637,9 +1662,8 @@
   .program-rec-actions{display:flex; gap:8px; margin-top:10px;}
   .program-rec-btn{
     position:relative; overflow:hidden;
-    flex:1; padding:10px; background:var(--cta-gradient-green); color:#fff; border:none;
-    border-radius:var(--radius-sm); font-weight:600; font-size:12.5px; cursor:pointer; font-family:'Inter',sans-serif;
-    box-shadow:var(--cta-gloss-inset), 0 5px 14px -6px rgba(var(--plate-green-rgb),0.5);
+    flex:1; padding:10px; background:var(--cta-gradient-green); color:var(--bg); border:none;
+    border-radius:var(--radius-sm); font-weight:600; font-size:12.5px; cursor:pointer; font-family:var(--font-sans);
     transition:transform 0.15s var(--ease-smooth);
   }
   .program-rec-btn:active{transform:scale(0.98);}
@@ -1673,7 +1697,7 @@
   .nutrition-header .ex-chevron{transition:transform 0.28s var(--ease-smooth);}
   .nutrition-header.open .ex-chevron{transform:rotate(90deg);}
   .nutrition-summary{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12.5px; color:var(--text-muted); margin:8px 0 4px;
+    font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:12.5px; color:var(--text-muted); margin:8px 0 4px;
     display:flex; flex-direction:column; gap:6px;
   }
   .nutrition-summary b{color:var(--text);}
@@ -1690,7 +1714,7 @@
   .photo-log-btn{
     width:100%; margin:12px 0; padding:12px; background:var(--surface2); border:1px dashed var(--plate-blue);
     border-radius:var(--radius-md); color:var(--plate-blue); font-weight:600; font-size:13.5px; cursor:pointer;
-    font-family:'Inter',sans-serif;
+    font-family:var(--font-sans);
   }
   .photo-preview{width:100%; max-width:200px; border-radius:var(--radius-md); margin:10px 0; display:block;}
   /* Batch Snap-a-Meal uploads (v3.239): several photos share one row of
@@ -1700,7 +1724,7 @@
   .photo-preview-row{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0;}
   .photo-preview-row .photo-preview{width:76px; height:76px; max-width:76px; margin:0; object-fit:cover;}
   .section-label{
-    font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase;
+    font-family:var(--font-sans); font-size:11px;
     color:var(--text-muted); margin:2px 0 8px;
   }
   .section-divider{height:1px; background:var(--line-soft); margin:18px 0 14px;}
@@ -1719,7 +1743,7 @@
        at this size for .section-label) buys back enough room that the longest label, "Describe",
        clears with a real if thin margin instead of losing its last pixel to the clip. */
     padding:10px 4px; color:var(--plate-blue); font-weight:600; font-size:10.5px; cursor:pointer;
-    font-family:'Inter',sans-serif; transition:transform 0.15s var(--ease-smooth);
+    font-family:var(--font-sans); transition:transform 0.15s var(--ease-smooth);
     box-shadow:0 6px 16px -10px rgba(var(--plate-blue-rgb),0.4);
   }
   .quick-add-btn::before{
@@ -1753,7 +1777,7 @@
   .frr-name{color:var(--text); min-width:0;}
   .frr-name-input{flex:1; min-width:0;}
   .frr-total{
-    flex:0 0 auto; font-family:'IBM Plex Mono',monospace;
+    flex:0 0 auto; font-family:var(--font-mono);
     font-variant-numeric:tabular-nums; color:var(--text-muted);
     transition:color 0.2s var(--ease-smooth);
   }
@@ -1786,7 +1810,7 @@
     width:40px; height:40px; flex:0 0 auto;
     display:flex; align-items:center; justify-content:center;
     background:none; border:none; color:var(--text);
-    font-family:'Inter',sans-serif; font-size:19px; font-weight:600;
+    font-family:var(--font-sans); font-size:19px; font-weight:600;
     cursor:pointer; border-radius:var(--radius-pill);
     transition:transform 0.15s var(--ease-smooth), background 0.15s var(--ease-smooth);
   }
@@ -1795,7 +1819,7 @@
   .qty-btn:disabled:active{transform:none; background:none;}
   .qty-count{
     min-width:34px; text-align:center;
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
     font-size:13.5px; font-weight:600; color:var(--text);
   }
   .describe-save-btn{
@@ -1803,7 +1827,7 @@
     background:var(--surface2); color:var(--text);
     border:1px solid var(--line); border-radius:var(--radius-pill);
     box-shadow:var(--rim);
-    font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600;
+    font-family:var(--font-sans); font-size:12.5px; font-weight:600;
     cursor:pointer;
     transition:transform 0.15s var(--ease-smooth), border-color 0.2s var(--ease-smooth);
   }
@@ -1833,7 +1857,7 @@
   .photo-thumb-wrap{position:relative; aspect-ratio:3/4; border-radius:var(--radius-sm); overflow:hidden; background:var(--surface2); cursor:pointer;}
   .photo-thumb-wrap img{width:100%; height:100%; object-fit:cover; display:block;}
   .photo-thumb-date{
-    position:absolute; bottom:0; left:0; right:0; padding:4px 6px; font-size:10px; color:#fff;
+    position:absolute; bottom:0; left:0; right:0; padding:4px 6px; font-size:11px; color:#fff;
     background:linear-gradient(transparent, rgba(var(--overlay-black-rgb),0.75)); text-align:center;
   }
   .photo-lightbox{
@@ -1872,12 +1896,12 @@
     box-shadow:0 0 0 2000px rgba(var(--overlay-black-rgb),0.45);
   }
   .barcode-status{
-    position:relative; z-index:1; margin-top:18px; color:#fff; font-size:13.5px; font-family:'Inter',sans-serif;
+    position:relative; z-index:1; margin-top:18px; color:#fff; font-size:13.5px; font-family:var(--font-sans);
     background:rgba(var(--overlay-black-rgb),0.5); padding:8px 16px; border-radius:var(--radius-pill);
   }
   .barcode-close-btn{
     position:absolute; bottom:40px; z-index:1; background:var(--surface2); border:1px solid var(--line);
-    color:var(--text); font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px;
+    color:var(--text); font-family:var(--font-sans); font-weight:600; font-size:13.5px;
     padding:12px 28px; border-radius:var(--radius-pill); cursor:pointer;
   }
   .coach-fab{
@@ -1885,7 +1909,8 @@
     width:58px; height:58px; border-radius:50%; border:1px solid rgba(var(--surface-white-rgb),0.28);
     background:var(--cta-gradient-blue); color:#fff; font-size:24px;
     display:flex; align-items:center; justify-content:center; cursor:pointer;
-    box-shadow:var(--fab-gloss-inset), 0 14px 34px -8px rgba(var(--plate-blue-rgb),0.65), 0 0 50px -14px rgba(var(--plate-blue-rgb),0.55);
+    /* v3.283: it floats, so it keeps a shadow — a neutral one, not a blue glow */
+    box-shadow:0 10px 24px -10px rgba(var(--overlay-black-rgb),0.7);
     transition:transform 0.18s var(--ease-smooth), box-shadow 0.18s var(--ease-smooth), opacity 0.26s var(--ease-smooth),
                top 0.22s var(--ease-smooth), left 0.22s var(--ease-smooth);
     /* Repositionable by drag (wireCoachFabDrag) — this is a small circular
@@ -1901,15 +1926,14 @@
      (top/left, set inline by wireCoachFabDrag) is what actually moves it. */
   .coach-fab.dragging{
     transition:none; transform:scale(1.08);
-    box-shadow:var(--fab-gloss-inset), 0 20px 40px -10px rgba(var(--plate-blue-rgb),0.75), 0 0 60px -12px rgba(var(--plate-blue-rgb),0.6);
+    box-shadow:0 20px 40px -12px rgba(var(--overlay-black-rgb),0.85); /* deeper neutral lift = "picked up" (v3.283) */
   }
-  .coach-fab::before{
-    content:''; position:absolute; top:-30%; left:-10%; width:120%; height:65%;
-    background:radial-gradient(ellipse at center, rgba(var(--surface-white-rgb),0.45), transparent 70%);
-    pointer-events:none;
-  }
-  .coach-fab span{position:relative; z-index:1;}
-  .coach-fab:active{transform:scale(0.9); box-shadow:var(--fab-gloss-inset), 0 8px 20px -8px rgba(var(--plate-blue-rgb),0.5);}
+  .coach-fab span{position:relative; z-index:1; display:flex;}
+  /* v3.285: the app's own chat-bubble outline (ICONS.chat's path) instead of a 💬 emoji */
+  .coach-fab-icon{ width:26px; height:26px; }
+  /* ICONS.warning's artwork inline in static markup (replaced a ⚠️ emoji in the medical-program safety note, v3.285) */
+  .inline-warning{ width:1em; height:1em; vertical-align:-0.125em; display:inline-block; color:var(--plate-yellow); }
+  .coach-fab:active{transform:scale(0.9);}
 
   /* --- Global "Today" quick-access — bottom-left mirror of the coach FAB,
      but only ever visible while backdating is active anywhere in the app
@@ -1920,18 +1944,14 @@
     position:fixed; bottom:22px; left:18px; z-index:70; overflow:hidden;
     display:flex; align-items:center; height:44px; padding:0 18px;
     border-radius:var(--radius-pill); border:1px solid rgba(var(--surface-white-rgb),0.28);
-    background:linear-gradient(160deg, #FFC978, var(--plate-yellow) 60%); color:#1a1a1a;
-    font-family:'Inter',sans-serif; font-weight:700; font-size:13.5px; cursor:pointer;
-    box-shadow:var(--fab-gloss-inset), 0 14px 34px -8px rgba(var(--plate-yellow-rgb),0.6), 0 0 50px -14px rgba(var(--plate-yellow-rgb),0.5);
+    background:var(--plate-yellow); color:#1a1a1a;
+    font-family:var(--font-sans); font-weight:700; font-size:13.5px; cursor:pointer;
+    /* v3.283: flat fill, and the same neutral float shadow as .coach-fab instead of a yellow glow */
+    box-shadow:0 10px 24px -10px rgba(var(--overlay-black-rgb),0.7);
     transition:transform 0.18s var(--ease-smooth), box-shadow 0.18s var(--ease-smooth), opacity 0.22s var(--ease-smooth);
   }
-  .today-fab::before{
-    content:''; position:absolute; top:-30%; left:-10%; width:120%; height:65%;
-    background:radial-gradient(ellipse at center, rgba(var(--surface-white-rgb),0.5), transparent 70%);
-    pointer-events:none;
-  }
   .today-fab-label{position:relative; z-index:1;}
-  .today-fab:active{transform:scale(0.92); box-shadow:var(--fab-gloss-inset), 0 8px 20px -8px rgba(var(--plate-yellow-rgb),0.5);}
+  .today-fab:active{transform:scale(0.92);}
 
   .coach-fab-modal{
     position:fixed; inset:0; z-index:80;
@@ -1968,7 +1988,7 @@
   .coach-fab-close{background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer; padding:4px;}
   .coach-fab-panel .coach-chat-log{flex:1; max-height:none;}
   .photo-lightbox-actions button{
-    padding:10px 20px; border-radius:var(--radius-sm); font-weight:600; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; border:none;
+    padding:10px 20px; border-radius:var(--radius-sm); font-weight:600; font-size:13px; cursor:pointer; font-family:var(--font-sans); border:none;
   }
   .photo-lightbox-close{background:var(--surface2); color:var(--text);}
   .photo-lightbox-delete{background:rgba(var(--plate-red-rgb),0.15); color:var(--plate-red);}
@@ -1980,22 +2000,21 @@
   .food-result-row .macro-input-row{margin-top:7px;}
   .photo-add-all-btn{
     width:100%; margin-top:10px; padding:10px; background:var(--plate-green); color:#fff; border:none;
-    border-radius:var(--radius-sm); font-weight:600; font-size:12.5px; cursor:pointer; font-family:'Inter',sans-serif;
+    border-radius:var(--radius-sm); font-weight:600; font-size:12.5px; cursor:pointer; font-family:var(--font-sans);
   }
   .recipe-card-actions{display:flex; gap:8px; margin-top:10px;}
   .recipe-link-btn{
     flex:1; text-align:center; padding:9px 10px; border-radius:var(--radius-sm);
     background:var(--surface2); border:1px solid var(--line); color:var(--text);
-    font-family:'Inter',sans-serif; font-size:12px; font-weight:600; text-decoration:none;
+    font-family:var(--font-sans); font-size:12px; font-weight:600; text-decoration:none;
     display:flex; align-items:center; justify-content:center;
     transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .recipe-link-btn:active{transform:scale(0.96);}
   .recipe-log-btn, .supplement-add-btn{
     flex:1; padding:9px 10px; border:none; border-radius:var(--radius-sm);
-    background:var(--cta-gradient-green); color:#fff;
-    font-family:'Inter',sans-serif; font-size:12px; font-weight:600; cursor:pointer;
-    box-shadow:var(--cta-gloss-inset), 0 4px 12px -6px rgba(var(--plate-green-rgb),0.45);
+    background:var(--cta-gradient-green); color:var(--bg);
+    font-family:var(--font-sans); font-size:12px; font-weight:600; cursor:pointer;
     transition:transform 0.15s var(--ease-smooth), opacity 0.15s var(--ease-smooth);
   }
   .recipe-log-btn:active, .supplement-add-btn:active{transform:scale(0.96);}
@@ -2007,7 +2026,7 @@
      card in its own right, that box would just double up the card's own
      background/border — this is the readout line alone. */
   .water-value-line{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
     font-weight:500; color:var(--text-muted); font-size:12px; margin-bottom:8px;
   }
   .water-btn-row{display:flex; gap:8px; margin-top:10px;}
@@ -2016,17 +2035,17 @@
   .water-tips-list li:last-child{margin-bottom:0;}
   .water-btn{
     flex:1; background:var(--surface); border:1px solid var(--line); color:#4FC3F7;
-    padding:8px; border-radius:var(--radius-sm); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
+    padding:8px; border-radius:var(--radius-sm); font-size:12.5px; font-weight:600; cursor:pointer; font-family:var(--font-sans);
   }
-  .sleep-avg{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px; color:var(--plate-blue); margin:8px 0; font-weight:600;}
+  .sleep-avg{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--plate-blue); margin:8px 0; font-weight:600;}
 
   .cycle-current-banner{
     margin-top:14px; padding:14px; background:rgba(var(--plate-blue-rgb),0.1); border:1px solid rgba(var(--plate-blue-rgb),0.32);
     border-radius:var(--radius-md);
     box-shadow:var(--rim), 0 6px 16px -9px rgba(var(--plate-blue-rgb),0.35);
   }
-  .cycle-current-title{font-family:'Inter',sans-serif; font-size:16px; font-weight:700; letter-spacing:-0.01em; color:var(--plate-blue); margin-bottom:4px;}
-  .cycle-current-day{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted); margin-bottom:10px;}
+  .cycle-current-title{font-family:var(--font-sans); font-size:16px; font-weight:700; letter-spacing:-0.01em; color:var(--plate-blue); margin-bottom:4px;}
+  .cycle-current-day{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted); margin-bottom:10px;}
   .cycle-phase-card{
     margin-top:10px; padding:12px 14px; background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
   }
@@ -2039,8 +2058,8 @@
   .vol-bar-track{height:8px; background:var(--surface2); border-radius:5px; overflow:hidden;}
   .vol-bar-fill{position:relative; height:100%; background:var(--cta-gradient-blue); border-radius:5px; transition:width 0.5s var(--ease-smooth);}
   .vol-bar-fill::after{content:''; position:absolute; inset:0; border-radius:5px; background:var(--shine-gloss);}
-  .vol-bar-labels{display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-muted); margin-top:4px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
-  .vol-landmark{font-size:11px; margin-top:6px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
+  .vol-bar-labels{display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-top:4px; font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
+  .vol-landmark{font-size:11px; margin-top:6px; font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
   .vol-landmark-within{color:var(--plate-green);}
   .vol-landmark-below{color:var(--plate-yellow);}
   .vol-landmark-above{color:#4FC3F7;}
@@ -2091,8 +2110,8 @@
     background:var(--surface2); border-radius:var(--radius-md); padding:12px 6px; margin:8px 0 14px;
   }
   .targets-strip div{flex:1;}
-  .targets-strip .t-val{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-weight:700; font-size:16.5px; letter-spacing:-0.01em;}
-  .targets-strip .t-label{font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px;}
+  .targets-strip .t-val{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-weight:700; font-size:16.5px; letter-spacing:-0.01em;}
+  .targets-strip .t-label{font-size:11px; color:var(--text-muted); margin-top:2px;}
 
   /* A button that reads as part of a sentence, for offering an action inside
      explanatory prose. `font:inherit` rather than a size, so it tracks whatever
@@ -2311,7 +2330,7 @@
     position:absolute; top:0; bottom:0; right:2px; width:26px; z-index:2;
     display:flex; align-items:center; justify-content:center;
     background:none; border:none; padding:0; margin:0;
-    font-family:'Inter',sans-serif; font-size:17px; font-weight:700; color:var(--text-muted);
+    font-family:var(--font-sans); font-size:17px; font-weight:700; color:var(--text-muted);
     opacity:0; pointer-events:none;
     transition:opacity 0.25s var(--ease-smooth);
   }
@@ -2375,7 +2394,7 @@
      clearly secondary/lighter, just no longer independently "heavy". */
   .analysis-index-chip{
     flex:0 0 auto; background:var(--surface2); border:1px solid var(--line);
-    color:var(--text-muted); font-family:'Inter',sans-serif; font-size:11.5px;
+    color:var(--text-muted); font-family:var(--font-sans); font-size:11.5px;
     font-weight:600; letter-spacing:-0.01em; padding:5px 10px;
     border-radius:var(--radius-sm); cursor:pointer;
     box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset;
@@ -2413,8 +2432,7 @@
   .analysis-group-header{
     display:flex; align-items:center; justify-content:space-between; gap:8px;
     width:100%; background:none; border:none; border-bottom:1px solid var(--line-soft);
-    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1.5px;
-    text-transform:uppercase; color:var(--text-muted); text-align:left; cursor:pointer;
+    font-family:var(--font-sans); font-size:11px; color:var(--text-muted); text-align:left; cursor:pointer;
     margin:22px 2px 8px; padding:0 0 7px;
   }
   /* HANDOFF v33: was ':first-of-type{ margin-top:4px; }'. That rule never
@@ -2455,7 +2473,7 @@
   .nav-pill{
     flex:0 0 auto;
     background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
-    font-family:'Inter',sans-serif; font-size:13px; letter-spacing:-0.01em;
+    font-family:var(--font-sans); font-size:13px; letter-spacing:-0.01em;
     /* HANDOFF v31: was 10px 16px. Seven pills measured ~540px of content in
        ~354px of phone (see the overflow-signal comment below) — trimming
        3px off each side saves ~42px across seven pills, real but modest;
@@ -2548,11 +2566,11 @@
     width:100%; box-sizing:border-box; margin-bottom:10px;
     background:var(--surface2); border:1px solid var(--line-bright);
     border-radius:var(--radius-sm); color:var(--text);
-    font-family:'Inter',sans-serif; font-size:16px; padding:12px 14px;
+    font-family:var(--font-sans); font-size:16px; padding:12px 14px;
   }
   .gsearch-results{ max-height:60vh; overflow-y:auto; overscroll-behavior:contain; }
   .gsearch-group{
-    font-size:10px; text-transform:uppercase; letter-spacing:0.6px;
+    font-size:11px;
     color:var(--text-muted); margin:12px 0 6px; padding-bottom:4px;
     border-bottom:1px solid var(--line);
   }
@@ -2561,12 +2579,12 @@
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     width:100%; text-align:left; background:var(--surface2);
     border:1px solid var(--line); border-radius:var(--radius-sm);
-    color:var(--text); font-family:'Inter',sans-serif; font-size:13px;
+    color:var(--text); font-family:var(--font-sans); font-size:13px;
     padding:11px 13px; margin-top:6px; cursor:pointer; box-shadow:var(--rim);
   }
   .gsearch-hit:active{ transform:scale(0.99); }
   .gsearch-hit-tab{ color:var(--text-muted); font-size:11px; flex:0 0 auto; }
-  .nav-pill.active{background:var(--shine-gloss), var(--cta-gradient-blue); border-color:var(--plate-blue); color:#fff; box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.2) inset, 0 3px 12px rgba(var(--plate-blue-rgb),0.4);}
+  .nav-pill.active{background:var(--shine-gloss), var(--cta-gradient-blue); border-color:var(--plate-blue); color:#fff;}
   /* Tab-layout audit (v3.160, option #2): Care/Coach/Learn's home now, a
      vertical list inside navMoreOverlay instead of horizontal pills in the
      rail. These buttons keep the base .nav-pill class (same colors, same
@@ -2607,7 +2625,7 @@
   .log-date-label-wrap{
     flex:1; text-align:center; cursor:pointer; background:none; border:none; padding:4px 0;
   }
-  .log-date-label-text{font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px; color:var(--text);}
+  .log-date-label-text{font-family:var(--font-sans); font-weight:600; font-size:13.5px; color:var(--text);}
   .log-date-bar.backdating .log-date-label-text{color:var(--plate-yellow);}
   .log-date-bar::before{
     content:''; position:absolute; top:0; left:12px; right:12px; height:1px;
@@ -2653,7 +2671,7 @@
   }
   .calendar-modal-overlay.active .calendar-modal-sheet{transform:translateY(0);}
   .calendar-modal-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
-  .calendar-modal-title{font-family:'Inter',sans-serif; font-weight:700; font-size:15px; letter-spacing:-0.01em; color:var(--text);}
+  .calendar-modal-title{font-family:var(--font-sans); font-weight:700; font-size:15px; letter-spacing:-0.01em; color:var(--text);}
   .calendar-nav-btn{
     flex:0 0 auto; width:30px; height:30px; border-radius:50%; border:1px solid rgba(var(--surface-white-rgb),0.07);
     background:var(--surface2); color:var(--text); font-size:16px; cursor:pointer; line-height:1;
@@ -2666,13 +2684,13 @@
     display:grid; grid-template-columns:repeat(7, 1fr); text-align:center; margin-bottom:4px;
   }
   .calendar-weekday-row span{
-    font-family:'IBM Plex Mono',monospace; font-size:10.5px; font-weight:600; color:var(--text-muted); text-transform:uppercase;
+    font-family:var(--font-sans); font-size:11px; font-weight:600; color:var(--text-muted);
   }
   .calendar-grid{display:grid; grid-template-columns:repeat(7, 1fr); gap:2px; margin-bottom:14px;}
   .calendar-cell{
     aspect-ratio:1; display:flex; align-items:center; justify-content:center; position:relative;
     background:none; border:none; border-radius:50%; color:var(--text); font-size:13.5px;
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; cursor:pointer;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums; cursor:pointer;
     transition:background 0.15s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.15s var(--ease-smooth);
   }
   .calendar-cell-dot{
@@ -2695,7 +2713,7 @@
   .calendar-close-btn{
     width:100%; background:var(--surface2); border:1px solid rgba(var(--surface-white-rgb),0.07); color:var(--text);
     box-shadow:var(--rim);
-    font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px; padding:12px; border-radius:var(--radius-md); cursor:pointer;
+    font-family:var(--font-sans); font-weight:600; font-size:13.5px; padding:12px; border-radius:var(--radius-md); cursor:pointer;
   }
 
   /* Sits between the header and the collapsible body, so it owns the gap on
@@ -2711,9 +2729,8 @@
     width:100%; appearance:none; -webkit-appearance:none;
     background:linear-gradient(160deg, var(--surface2), rgba(var(--surface-white-rgb),0.02)); border:1px solid var(--line); color:var(--text);
     border-radius:var(--radius-md); padding:12px 36px 12px 14px;
-    font-family:'Inter',sans-serif; font-size:14.5px; font-weight:700; letter-spacing:-0.01em;
+    font-family:var(--font-sans); font-size:14.5px; font-weight:700; letter-spacing:-0.01em;
     cursor:pointer;
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.06) inset, 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.3);
     transition:border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
   .program-select:focus{outline:none; border-color:var(--plate-blue); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.06) inset, 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.5), var(--focus-ring-glow);}
@@ -2727,7 +2744,7 @@
   .masterclass-link-btn{
     width:100%; margin:2px 0 4px; padding:10px; background:var(--surface2); border:1px solid var(--line);
     border-radius:var(--radius-md); color:var(--plate-blue); font-size:12.5px; font-weight:600; cursor:pointer;
-    font-family:'Inter',sans-serif; letter-spacing:-0.005em; display:flex; align-items:center; justify-content:center; gap:6px;
+    font-family:var(--font-sans); letter-spacing:-0.005em; display:flex; align-items:center; justify-content:center; gap:6px;
     transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .masterclass-link-btn:active{transform:scale(0.98); border-color:var(--line-bright);}
@@ -2738,9 +2755,9 @@
   .week-row:last-child{border-bottom:none;}
   .week-col{flex:1; text-align:center;}
   .week-col.label{flex:1.4; text-align:left;}
-  .week-col .w-val{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:14.5px; font-weight:700; letter-spacing:-0.01em;}
-  .week-col .w-label{font-size:9.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.4px; margin-top:2px;}
-  .week-col .w-date{font-size:12.5px; font-weight:600; font-family:'Inter',sans-serif;}
+  .week-col .w-val{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:14.5px; font-weight:700; letter-spacing:-0.01em;}
+  .week-col .w-label{font-size:11px; color:var(--text-muted); margin-top:2px;}
+  .week-col .w-date{font-size:12.5px; font-weight:600; font-family:var(--font-sans);}
   .w-up{color:var(--plate-red);}
   .w-down{color:var(--plate-green);}
   .w-flat{color:var(--text-muted);}
@@ -2751,11 +2768,11 @@
   .prog-row:last-child{border-bottom:none;}
   .prog-top{display:flex; justify-content:space-between; align-items:baseline;}
   .prog-name{font-size:13.5px; font-weight:600;}
-  .prog-day{font-size:10.5px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; text-transform:uppercase;}
-  .prog-stats{display:flex; justify-content:space-between; margin-top:4px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);}
+  .prog-day{font-size:11px; color:var(--text-muted); font-family:var(--font-sans);}
+  .prog-stats{display:flex; justify-content:space-between; margin-top:4px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);}
   .prog-current{color:var(--text); font-weight:600;}
-  .prog-best{color:var(--plate-yellow); font-size:11.5px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
-  .prog-ready{color:var(--plate-yellow); font-size:11.5px; margin-top:3px; font-family:'Inter',sans-serif;}
+  .prog-best{color:var(--plate-yellow); font-size:11.5px; font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
+  .prog-ready{color:var(--plate-yellow); font-size:11.5px; margin-top:3px; font-family:var(--font-sans);}
 
   .history-hint{font-size:12px; color:var(--text-muted); margin-bottom:14px; line-height:1.4;}
   .history-hint.nutrient-inline-note{margin-top:-6px; margin-bottom:12px;}
@@ -2766,17 +2783,17 @@
   .month-group summary{
     list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between;
     padding:10px 0; border-bottom:1px solid var(--line-soft);
-    font-family:'Inter',sans-serif; font-size:15.5px; font-weight:700; letter-spacing:-0.01em;
+    font-family:var(--font-sans); font-size:15.5px; font-weight:700; letter-spacing:-0.01em;
   }
   .month-group summary::-webkit-details-marker{display:none;}
   .month-group summary::after{content:'▸'; font-size:12px; color:var(--plate-blue); transition:transform .15s var(--ease-smooth);}
   .month-group[open] summary::after{transform:rotate(90deg);}
-  .month-count{color:var(--text-muted); font-size:11.5px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; text-transform:none;}
+  .month-count{color:var(--text-muted); font-size:11.5px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; text-transform:none;}
 
   .day-card{padding:12px 0; border-bottom:1px solid var(--line-soft);}
   .day-card:last-child{border-bottom:none;}
   .day-card-date{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12.5px; font-weight:600; color:var(--text);
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px; font-weight:600; color:var(--text);
     margin-bottom:6px;
   }
   .day-card-program{font-weight:500; color:var(--text-muted); font-size:11px;}
@@ -2788,15 +2805,15 @@
     padding:3px 0;
   }
   .day-ex-name{color:var(--text); font-weight:500;}
-  .day-ex-day{font-size:10.5px; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;}
-  .delta-up{color:var(--plate-green); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11.5px;}
-  .delta-down{color:var(--plate-red); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11.5px;}
-  .delta-flat{color:var(--text-muted); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11.5px;}
-  .day-ex-vol{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted);}
+  .day-ex-day{font-size:11px; color:var(--text-muted); font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
+  .delta-up{color:var(--plate-green); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11.5px;}
+  .delta-down{color:var(--plate-red); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11.5px;}
+  .delta-flat{color:var(--text-muted); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11.5px;}
+  .day-ex-vol{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted);}
 
   .app-footer{
-    text-align:center; padding:24px 0 8px; font-size:10.5px; color:#4A5057;
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    text-align:center; padding:24px 0 8px; font-size:11px; color:#4A5057;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
   }
 
   .user-picker-overlay{
@@ -2817,30 +2834,28 @@
     box-shadow:var(--rim), 0 20px 50px -10px rgba(var(--overlay-black-rgb),0.6);
   }
   .user-picker-title{
-    font-family:'Inter',sans-serif; font-weight:800; font-size:25px; letter-spacing:-0.02em;
+    font-family:var(--font-sans); font-weight:800; font-size:25px; letter-spacing:-0.02em;
     margin:6px 0 18px;
   }
   .user-picker-list{display:flex; flex-direction:column; gap:8px; margin-bottom:16px;}
   .user-pick-btn{
     width:100%; padding:13px; background:var(--surface2); border:1px solid var(--line); color:var(--text);
-    border-radius:var(--radius-md); font-size:14.5px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
+    border-radius:var(--radius-md); font-size:14.5px; font-weight:600; cursor:pointer; font-family:var(--font-sans);
     text-align:left;
     transition:transform 0.15s var(--ease-smooth), border-color 0.15s var(--ease-smooth);
   }
   .user-pick-btn:active{transform:scale(0.98); border-color:var(--plate-blue);}
   .user-picker-divider{
     text-align:center; color:var(--text-muted); font-size:11.5px; margin-bottom:14px;
-    text-transform:uppercase; letter-spacing:0.5px;
   }
   .user-picker-cancel{
     width:100%; margin-top:10px; padding:9px; background:none; border:none; color:var(--text-muted);
-    font-size:12.5px; cursor:pointer; font-family:'Inter',sans-serif;
+    font-size:12.5px; cursor:pointer; font-family:var(--font-sans);
   }
   .switch-profile-btn{
     width:100%; margin-top:12px; padding:10px; background:var(--surface2); border:1px solid var(--line);
     border-radius:var(--radius-md); color:var(--text-muted); font-size:12.5px; font-weight:600; cursor:pointer;
-    font-family:'Inter',sans-serif; transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset, 0 6px 16px -10px rgba(var(--overlay-black-rgb),0.5);
+    font-family:var(--font-sans); transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
   .switch-profile-btn:active{transform:scale(0.98); border-color:var(--line-bright); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset;}
   .care-disclaimer-card{border-color:var(--plate-yellow);}
@@ -2861,7 +2876,7 @@
   .coach-chat-send-btn{width:auto; margin:0; padding:11px 18px; white-space:nowrap;}
 
   .care-form{display:flex; flex-direction:column; gap:10px;}
-  .care-label{font-size:11.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.3px; margin-top:4px;}
+  .care-label{font-size:11.5px; color:var(--text-muted); margin-top:4px;}
   .ai-key-connected{
     display:flex; align-items:center; gap:8px; padding:10px 12px; background:var(--surface2);
     border:1px solid var(--line); border-radius:var(--radius-sm); font-size:13px; color:var(--text);
@@ -2869,11 +2884,11 @@
   .ai-key-connected-dot{width:8px; height:8px; border-radius:50%; background:var(--plate-green); flex:0 0 auto; box-shadow:0 0 6px rgba(var(--plate-green-rgb),0.6);}
   .ai-key-change-btn{
     margin-left:auto; background:none; border:none; color:var(--plate-blue); font-size:12.5px; font-weight:600;
-    cursor:pointer; font-family:'Inter',sans-serif; padding:0;
+    cursor:pointer; font-family:var(--font-sans); padding:0;
   }
   .care-input{
     width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--text);
-    border-radius:var(--radius-sm); padding:10px; font-family:'Inter',sans-serif; font-size:13.5px;
+    border-radius:var(--radius-sm); padding:10px; font-family:var(--font-sans); font-size:13.5px;
     box-shadow:0 1px 3px rgba(var(--overlay-black-rgb),0.25) inset;
     transition:border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
@@ -2884,7 +2899,7 @@
      it (#cycleLength), enough to visibly break the vertical rhythm of the care-input stack.
      Trimming the vertical padding by 1px a side brings it back to the same rendered height. */
   input[type="date"].care-input{padding:9px 10px;}
-  .care-textarea{min-height:60px; resize:vertical; font-family:'Inter',sans-serif;}
+  .care-textarea{min-height:60px; resize:vertical; font-family:var(--font-sans);}
   .care-slider{
     width:100%; -webkit-appearance:none; appearance:none; background:transparent; height:22px; margin:6px 0;
   }
@@ -2942,7 +2957,7 @@
     animation:cardRise 0.4s var(--ease-smooth) forwards;
   }
   .app-banner-title{
-    font-family:'IBM Plex Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.5px;
+    font-family:var(--font-sans); font-size:11px;
     font-weight:600; margin-bottom:4px; display:flex; align-items:center; gap:6px;
   }
   .app-banner-body{color:var(--text-muted); font-size:12.5px; line-height:1.55;}
@@ -2953,7 +2968,7 @@
   .app-banner-actions{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;}
   .app-banner-btn{
     background:var(--surface2); color:var(--text); border:1px solid var(--line-bright); padding:7px 13px;
-    border-radius:var(--radius-sm); font-size:12px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
+    border-radius:var(--radius-sm); font-size:12px; font-weight:600; cursor:pointer; font-family:var(--font-sans);
     transition:border-color 0.2s var(--ease-smooth), transform 0.2s var(--ease-spring);
   }
   .app-banner-btn:active{transform:scale(0.96);}
@@ -2964,7 +2979,7 @@
   .storage-meter{height:5px; border-radius:3px; background:var(--surface2); overflow:hidden; margin:9px 0 5px;}
   .storage-meter-fill{height:100%; border-radius:3px; transition:width 0.5s var(--ease-smooth);}
   .storage-meter-label{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted);
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted);
     display:flex; justify-content:space-between;
   }
 
@@ -2973,12 +2988,12 @@
      like looking at a rack, and the numbers stay legible at thumb size. */
   .equip-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;}
   .equip-sublabel{
-    font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.5px;
+    font-family:var(--font-sans); font-size:11px;
     color:var(--text-muted); display:block; margin-bottom:4px;
   }
   .equip-plates{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;}
   .equip-plate{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12.5px; font-weight:600;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px; font-weight:600;
     padding:7px 12px; border-radius:var(--radius-sm); cursor:pointer;
     background:var(--surface2); color:var(--text-muted); border:1px solid var(--line);
     transition:border-color 0.18s var(--ease-smooth), color 0.18s var(--ease-smooth), transform 0.18s var(--ease-spring);
@@ -2986,7 +3001,7 @@
   .equip-plate:active{transform:scale(0.94);}
   .equip-plate.on{background:rgba(var(--plate-blue-rgb),0.16); border-color:var(--plate-blue); color:var(--text);}
   .equip-preview{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11.5px;
+    font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:11.5px;
     color:var(--text-muted); margin-top:9px; line-height:1.6;
   }
   .equip-preview b{color:var(--text); font-weight:600;}
@@ -3011,7 +3026,7 @@
   .set-note-input{
     width:100%; box-sizing:border-box; background:var(--surface2); color:var(--text);
     border:1px solid var(--line); border-radius:var(--radius-sm);
-    padding:7px 10px; font-size:12.5px; font-family:'Inter',sans-serif;
+    padding:7px 10px; font-size:12.5px; font-family:var(--font-sans);
   }
   .set-note-input::placeholder{color:var(--text-muted); opacity:0.8;}
   .set-note-input:focus{outline:none; border-color:var(--plate-blue);}
@@ -3027,7 +3042,7 @@
   .ex-history-btn{
     background:var(--surface2); color:var(--text-muted); border:1px solid var(--line);
     border-radius:var(--radius-sm); padding:6px 11px; font-size:11.5px; font-weight:600;
-    font-family:'Inter',sans-serif; cursor:pointer; margin-left:6px;
+    font-family:var(--font-sans); cursor:pointer; margin-left:6px;
     transition:border-color 0.18s var(--ease-smooth), color 0.18s var(--ease-smooth), transform 0.18s var(--ease-spring);
   }
   .ex-history-btn:active{transform:scale(0.95);}
@@ -3035,7 +3050,7 @@
   .ex-edit-btn{
     background:var(--surface2); color:var(--text-muted); border:1px solid var(--line);
     border-radius:var(--radius-sm); padding:6px 11px; font-size:11.5px; font-weight:600;
-    font-family:'Inter',sans-serif; cursor:pointer; margin-left:6px;
+    font-family:var(--font-sans); cursor:pointer; margin-left:6px;
     transition:border-color 0.18s var(--ease-smooth), color 0.18s var(--ease-smooth), transform 0.18s var(--ease-spring);
   }
   .ex-edit-btn:active{transform:scale(0.95);}
@@ -3066,16 +3081,14 @@
     padding:9px 10px; text-align:center;
   }
   .exh-stats b{
-    display:block; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    display:block; font-family:var(--font-mono); font-variant-numeric:tabular-nums;
     font-size:17px; color:var(--text); font-weight:600; line-height:1.2;
   }
   .exh-stats span{
-    display:block; font-size:10px; color:var(--text-muted); text-transform:uppercase;
-    letter-spacing:0.4px; margin-top:3px;
+    display:block; font-size:11px; color:var(--text-muted); margin-top:3px;
   }
   .exh-section-label{
-    font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase;
-    letter-spacing:0.5px; color:var(--text-muted); margin:16px 0 7px;
+    font-family:var(--font-sans); font-size:11px; color:var(--text-muted); margin:16px 0 7px;
   }
   .exh-row{
     padding:9px 0; border-bottom:1px solid var(--line);
@@ -3084,23 +3097,23 @@
   .exh-row-head{display:flex; justify-content:space-between; align-items:baseline; gap:8px;}
   .exh-date{font-size:12px; color:var(--text); font-weight:600;}
   .exh-vol{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
     font-size:11px; color:var(--text-muted);
   }
   .history-export-row{display:flex; gap:8px; margin:12px 0 4px;}
   .history-export-select{
     flex:0 0 auto; padding:9px 10px; background:var(--surface2); border:1px solid var(--line);
-    border-radius:var(--radius-md); color:var(--text); font-size:12.5px; font-family:'Inter',sans-serif;
+    border-radius:var(--radius-md); color:var(--text); font-size:12.5px; font-family:var(--font-sans);
   }
   .history-export-btn{flex:1; margin-top:0; width:auto;}
   .history-search{margin:10px 0 4px; width:100%; box-sizing:border-box;}
   .history-search-status{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
     font-size:11.5px; color:var(--text-muted); margin-bottom:8px; min-height:0;
   }
   .history-search-status b{color:var(--text); font-weight:600;}
   .exh-sets{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
     font-size:12px; color:var(--text-muted); margin-top:3px; line-height:1.5;
   }
   /* The sheet can hold years of sessions, so it scrolls rather than growing
@@ -3110,8 +3123,7 @@
   .whats-new-entry{padding:12px 0; border-bottom:1px solid var(--line-soft);}
   .whats-new-entry:last-child{border-bottom:none;}
   .whats-new-version{
-    font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase;
-    letter-spacing:0.5px; color:var(--text-muted);
+    font-family:var(--font-mono); font-size:11px; color:var(--text-muted);
   }
   .whats-new-headline{font-size:14px; font-weight:600; margin-top:2px;}
   .whats-new-points{
@@ -3120,7 +3132,7 @@
   .whats-new-points li{margin-top:3px;}
   .care-rest-btn{
     margin-top:12px; background:var(--plate-blue); color:#fff; border:none; padding:9px 14px;
-    border-radius:var(--radius-sm); font-size:12.5px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
+    border-radius:var(--radius-sm); font-size:12.5px; font-weight:600; cursor:pointer; font-family:var(--font-sans);
   }
   .photo-compare-row{display:flex; gap:8px; margin-top:8px;}
   .photo-compare-row select{flex:1;}
@@ -3128,7 +3140,7 @@
   .compare-confirm-btn{
     flex:1; padding:9px 10px; border:none; border-radius:var(--radius-sm);
     background:var(--cta-gradient-blue); color:#fff;
-    font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; cursor:pointer;
+    font-family:var(--font-sans); font-size:12.5px; font-weight:600; cursor:pointer;
     box-shadow:var(--cta-gloss-inset), 0 4px 12px -6px rgba(var(--plate-blue-rgb),0.5);
     transition:transform 0.15s var(--ease-smooth);
   }
@@ -3136,7 +3148,7 @@
   .compare-cancel-btn{
     flex:1; padding:9px 10px; border-radius:var(--radius-sm);
     background:var(--surface2); border:1px solid var(--line); color:var(--text);
-    font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; cursor:pointer;
+    font-family:var(--font-sans); font-size:12.5px; font-weight:600; cursor:pointer;
     transition:transform 0.15s var(--ease-smooth);
   }
   .compare-cancel-btn:active{transform:scale(0.96);}
@@ -3160,10 +3172,10 @@
     padding:10px 0; border-bottom:1px solid var(--line-soft); font-size:12.5px;
   }
   .care-log-item:last-child{border-bottom:none;}
-  .care-log-date{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-weight:600; font-size:11.5px; color:var(--text);}
+  .care-log-date{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-weight:600; font-size:11.5px; color:var(--text);}
   .care-log-detail{color:var(--text-muted); margin-top:3px; line-height:1.4;}
   .care-pattern-title{
-    font-size:11.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.3px;
+    font-size:11.5px; font-weight:600;
     color:var(--text-muted); margin-bottom:2px;
   }
   /* .care-area-link was a private copy of .link-btn — same inline display,
@@ -3175,13 +3187,13 @@
   .care-pattern-row{ padding:8px 0; border-bottom:1px solid var(--line); }
   .care-pattern-row:last-child{ border-bottom:none; }
   .care-pattern-name{ font-size:13px; font-weight:600; color:var(--text); }
-  .care-log-pain{color:var(--plate-red); font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11px;}
+  .care-log-pain{color:var(--plate-red); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11px;}
   /* Edit is deliberately a quiet text affordance rather than a second solid
      button: the row's primary gesture is still swipe-to-delete, and two
      competing buttons on a 12.5px row is how a list stops being scannable. */
   .care-log-edit{
     background:none; border:none; color:var(--plate-blue); font-size:11.5px; font-weight:600;
-    font-family:'Inter',sans-serif; padding:4px 0 0; cursor:pointer; text-decoration:underline;
+    font-family:var(--font-sans); padding:4px 0 0; cursor:pointer; text-decoration:underline;
   }
   /* Only ever visible while backdating, so it is allowed to be loud. Silence
      here is the failure mode — a check-in filed to the wrong day reads as
@@ -3199,7 +3211,7 @@
   }
   .ex-ai-tailor-btn{
     display:block; margin-top:6px; background:none; border:none; color:var(--plate-blue); font-size:11px; font-weight:600;
-    text-decoration:underline; cursor:pointer; padding:0; font-family:'Inter',sans-serif;
+    text-decoration:underline; cursor:pointer; padding:0; font-family:var(--font-sans);
   }
   .ex-ai-tailor-btn:disabled{opacity:0.6;}
 
@@ -3211,7 +3223,7 @@
   }
   .food-log-item .fl-name{font-size:13.5px; font-weight:500; flex:1;}
   .food-log-item .fl-macro{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11.5px; color:var(--text-muted); white-space:nowrap;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11.5px; color:var(--text-muted); white-space:nowrap;
     display:flex; align-items:center; gap:4px;
   }
   .food-log-item .fl-remove{
@@ -3234,7 +3246,7 @@
   .fl-detail.open{border-bottom:1px solid var(--line-soft);}
   .fl-macro-breakdown{
     display:flex; gap:14px; padding:2px 0 9px;
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11.5px;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11.5px;
   }
   .fl-macro-breakdown .fl-macro-chip{color:var(--text-muted);}
   .fl-macro-breakdown .fl-macro-chip strong{color:var(--text); font-weight:600;}
@@ -3243,7 +3255,7 @@
   }
   .food-search-input{
     width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--text);
-    border-radius:var(--radius-md); padding:11px 14px; font-family:'Inter',sans-serif; font-size:13.5px; margin-bottom:10px;
+    border-radius:var(--radius-md); padding:11px 14px; font-family:var(--font-sans); font-size:13.5px; margin-bottom:10px;
   }
   .food-search-input::placeholder{color:var(--text-muted);}
   .food-cats{
@@ -3255,7 +3267,7 @@
   .food-cats::-webkit-scrollbar-thumb{background:var(--line-bright); border-radius:4px;}
   .food-cat-btn{
     flex:0 0 auto; background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
-    font-family:'Inter',sans-serif; font-size:12.5px; font-weight:600; padding:7px 13px; border-radius:var(--radius-pill); cursor:pointer;
+    font-family:var(--font-sans); font-size:12.5px; font-weight:600; padding:7px 13px; border-radius:var(--radius-pill); cursor:pointer;
   }
   .food-cat-btn.active{background:var(--plate-blue); border-color:var(--plate-blue); color:#fff;}
   .food-items{display:flex; flex-direction:column; gap:6px; margin-bottom:12px;}
@@ -3267,13 +3279,13 @@
   }
   .food-item-btn:active{transform:scale(0.98); border-color:var(--plate-blue);}
   .food-item-btn .fi-name{font-size:13.5px; font-weight:500;}
-  .food-item-btn .fi-cat{font-size:10px; color:var(--plate-blue); text-transform:uppercase; letter-spacing:0.3px; margin-top:1px;}
-  .food-item-btn .fi-source{font-size:10px; color:var(--plate-teal); margin-top:1px;}
+  .food-item-btn .fi-cat{font-size:11px; color:var(--plate-blue); margin-top:1px;}
+  .food-item-btn .fi-source{font-size:11px; color:var(--plate-teal); margin-top:1px;}
   /* .food-result-row (buildFoodResultRow — barcode/Snap-a-Meal/Describe It)
      reuses this exact rule rather than a second near-identical one: same
      flag, same reasoning, just a different card shape it sits inside. */
-  .food-item-btn .fi-avoid-flag, .food-result-row .fi-avoid-flag{font-size:10.5px; color:var(--plate-red); font-weight:600; margin-top:2px;}
-  .food-item-btn .fi-macro{font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted); margin-top:2px;}
+  .food-item-btn .fi-avoid-flag, .food-result-row .fi-avoid-flag{font-size:11px; color:var(--plate-red); font-weight:600; margin-top:2px;}
+  .food-item-btn .fi-macro{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted); margin-top:2px;}
   .food-item-btn .fi-actions{display:flex; align-items:center; gap:8px; flex:0 0 auto;}
   .fi-star{
     background:none; border:none; font-size:18px; cursor:pointer; padding:2px; color:var(--text-muted); line-height:1;
@@ -3286,28 +3298,30 @@
   .restaurant-btn .ex-chevron{color:var(--plate-blue); font-size:16px;}
   .back-btn{
     width:100%; text-align:left; background:none; border:none; color:var(--plate-blue);
-    font-size:13px; font-weight:600; padding:6px 0 12px; cursor:pointer; font-family:'Inter',sans-serif;
+    font-size:13px; font-weight:600; padding:6px 0 12px; cursor:pointer; font-family:var(--font-sans);
     letter-spacing:-0.005em; transition:opacity 0.15s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .back-btn:active{transform:scale(0.96);}
   .custom-toggle{
     width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
-    padding:10px; border-radius:var(--radius-sm); font-size:13px; cursor:pointer; font-family:'Inter',sans-serif;
+    padding:10px; border-radius:var(--radius-sm); font-size:13px; cursor:pointer; font-family:var(--font-sans);
     margin-bottom:4px; transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .custom-toggle:active{transform:scale(0.98); border-color:var(--line-bright);}
+  .session-extras{ margin-top:14px; } /* adapt + day insight, moved below the list in v3.282 */
   .adapt-workout-toggle{
-    width:100%; background:linear-gradient(160deg, rgba(var(--plate-blue-rgb),0.14), rgba(var(--plate-blue-rgb),0.06));
+    /* Flat fill at the old gradient's midpoint, no glow (tasteskill Today pilot, v3.275). */
+    width:100%; background:rgba(var(--plate-blue-rgb),0.10);
     border:1px solid rgba(var(--plate-blue-rgb),0.35); color:var(--text);
-    padding:11px; border-radius:var(--radius-sm); font-size:13px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;
-    margin-bottom:10px; box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.06) inset, 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.35);
-    transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
+    padding:11px; border-radius:var(--radius-sm); font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-sans);
+    margin-bottom:10px;
+    transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .adapt-workout-toggle:active{transform:scale(0.98); border-color:rgba(var(--plate-blue-rgb),0.55);}
   .custom-form{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
   .custom-form input[type=text]{
     background:var(--surface2); border:1px solid var(--line); color:var(--text);
-    border-radius:var(--radius-sm); padding:10px; font-family:'Inter',sans-serif; font-size:13.5px;
+    border-radius:var(--radius-sm); padding:10px; font-family:var(--font-sans); font-size:13.5px;
   }
   .save-to-library-label{
     display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-muted); padding:4px 0;
@@ -3334,7 +3348,7 @@
     width:100%; text-align:left; cursor:pointer;
     padding:12px 14px; margin-bottom:8px; border-radius:var(--radius-md);
     background:var(--surface2); border:1px solid rgba(var(--surface-white-rgb),0.07);
-    color:var(--text); font-family:'Inter',sans-serif; font-size:13.5px; font-weight:600;
+    color:var(--text); font-family:var(--font-sans); font-size:13.5px; font-weight:600;
     letter-spacing:-0.005em;
     box-shadow:inset 0 1px 0 rgba(var(--surface-white-rgb),0.04);
     transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth),
@@ -3347,7 +3361,7 @@
     width:100%; margin-top:14px; padding:10px; background:var(--surface2);
     border:1px solid var(--line); border-radius:var(--radius-md);
     color:var(--text-muted); font-size:12.5px; font-weight:600; cursor:pointer;
-    font-family:'Inter',sans-serif; letter-spacing:-0.005em;
+    font-family:var(--font-sans); letter-spacing:-0.005em;
   }
   .masterclass-close-btn:active{ transform:scale(0.98); }
   /* Sits directly under its input, so it reads as belonging to it rather than
@@ -3361,7 +3375,7 @@
   .ex-suggest-option{
     display:block; width:100%; text-align:left; cursor:pointer;
     padding:10px 12px; background:none; border:none; border-bottom:1px solid var(--line);
-    color:var(--text); font-family:'Inter',sans-serif; font-size:13px; letter-spacing:-0.005em;
+    color:var(--text); font-family:var(--font-sans); font-size:13px; letter-spacing:-0.005em;
   }
   .ex-suggest-option:last-child{ border-bottom:none; }
   .ex-suggest-option:active{ background:var(--surface); }
@@ -3470,7 +3484,7 @@
   .drop-step-label{
     width:var(--set-meta-col); flex:0 0 auto; text-align:center;
     font-size:11px; color:var(--plate-teal);
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
   }
   .set-drop-btn{
     flex:0 0 auto; width:28px; height:28px; border-radius:var(--radius-sm);
@@ -3486,7 +3500,7 @@
   .warmup-step-label{
     width:var(--set-meta-col); flex:0 0 auto; text-align:center;
     font-size:11px; color:var(--plate-orange);
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
   }
   /* Deliberately NOT `flex:1`. Stretching the inputs to fill the row is what
      made a ramp step twice the width of the set below it. */
@@ -3502,7 +3516,7 @@
      between the ramp and the working sets — the one place nothing should be
      if the whole block is meant to read as one list of set lines. */
   .warmup-foot{
-    margin:0 0 2px; font-size:10.5px; color:var(--text-muted); line-height:1.4;
+    margin:0 0 2px; font-size:11px; color:var(--text-muted); line-height:1.4;
   }
   .masterclass-index-btn.current{
     background:linear-gradient(160deg, rgba(var(--plate-blue-rgb),0.14), rgba(var(--plate-blue-rgb),0.05));
@@ -3511,8 +3525,8 @@
   }
   .masterclass-index-btn .mc-index-meta{
     display:inline-flex; align-items:center; gap:6px; flex:0 0 auto;
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
-    font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.4px;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
+    font-size:11px; font-weight:600;
     color:var(--text-muted);
   }
   .masterclass-index-btn.current .mc-index-meta{ color:var(--plate-blue); }
@@ -3529,7 +3543,7 @@
     width:100%; margin-top:0; margin-bottom:8px; padding:12px 14px; min-height:44px;
     border-radius:var(--radius-md);
     background:var(--surface2); border:1px solid rgba(var(--surface-white-rgb),0.07);
-    font-family:'Inter',sans-serif; font-size:13.5px; font-weight:600;
+    font-family:var(--font-sans); font-size:13.5px; font-weight:600;
     text-transform:none; letter-spacing:-0.005em; color:var(--text);
   }
   #researchSourcesList .program-basis-toggle:active{ color:var(--text); transform:scale(0.98); }
@@ -3858,11 +3872,10 @@
     background:linear-gradient(180deg, rgba(var(--surface-white-rgb),0.025), rgba(var(--surface-white-rgb),0) 60%), var(--surface2);
     border:1px solid var(--line);
     border-radius:var(--radius-md);
-    box-shadow:var(--rim), 0 8px 20px -14px rgba(var(--overlay-black-rgb),0.6);
   }
   .program-panel-eyebrow{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:9.5px; letter-spacing:1.6px; text-transform:uppercase;
+    font-family:var(--font-sans);
+    font-size:11px;
     color:var(--text-muted); margin-bottom:7px;
     display:flex; align-items:center; gap:7px;
   }
@@ -3892,11 +3905,10 @@
     border-left-width:3px;
     border-radius:var(--radius-sm);
     font-size:12.5px; line-height:1.5; color:var(--text);
-    box-shadow:var(--rim), 0 4px 14px -9px rgba(var(--plate-yellow-rgb),0.3);
   }
   .program-limits-label{
-    display:block; font-family:'IBM Plex Mono',monospace;
-    font-size:9.5px; letter-spacing:1.2px; text-transform:uppercase;
+    display:block; font-family:var(--font-sans);
+    font-size:11px;
     color:var(--plate-yellow); font-weight:600; margin-bottom:4px;
   }
   /* Basis collapses; limits never do. Provenance is worth having and worth
@@ -3907,8 +3919,8 @@
        app is held to. */
     width:100%; margin-top:5px; padding:4px 2px; min-height:44px;
     background:none; border:none; cursor:pointer; text-align:left;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:10px; letter-spacing:1.1px; text-transform:uppercase;
+    font-family:var(--font-sans);
+    font-size:11px;
     color:var(--text-muted);
     display:flex; align-items:center; gap:6px;
     transition:color 0.18s var(--ease-smooth);
@@ -4562,20 +4574,20 @@
     transition:opacity 0.2s var(--ease-smooth), transform 0.26s var(--ease-smooth);
   }
   .gym-clock{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
     font-size:28px; font-weight:600; color:var(--text);
     letter-spacing:-0.02em; line-height:1;
   }
   .gym-dock-meta{flex:1 1 auto; min-width:0;}
   .gym-progress{
-    font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
     font-size:11.5px; color:var(--text-muted); margin-top:4px; letter-spacing:0.02em;
   }
   .gym-exit-btn{
     flex:0 0 auto; min-height:48px; padding:0 22px;
     background:rgba(var(--surface-white-rgb),0.07); color:var(--text);
     border:1px solid rgba(var(--surface-white-rgb),0.12); border-radius:24px;
-    font-family:'Inter',sans-serif; font-size:15px; font-weight:600;
+    font-family:var(--font-sans); font-size:15px; font-weight:600;
     cursor:pointer; transition:transform 0.2s var(--ease-smooth);
   }
   .gym-exit-btn:active{transform:scale(0.94); background:rgba(var(--surface-white-rgb),0.12);}
@@ -4589,13 +4601,18 @@
   .gym-enter-btn{
     display:flex; align-items:center; justify-content:center; gap:8px;
     width:100%; min-height:50px; margin:2px 0 14px;
-    background:linear-gradient(180deg, rgba(91,124,255,0.18), rgba(91,124,255,0.08));
+    /* Flat fill at the old gradient's midpoint (tasteskill Today pilot, v3.275). */
+    background:rgba(91,124,255,0.13);
     color:var(--text); border:1px solid rgba(91,124,255,0.45);
     border-radius:var(--radius-md);
-    font-family:'Inter',sans-serif; font-size:15px; font-weight:600;
+    font-family:var(--font-sans); font-size:15px; font-weight:600;
     cursor:pointer; transition:transform 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth);
   }
   .gym-enter-btn:active{transform:scale(0.985); border-color:rgba(91,124,255,0.7);}
+  /* Same barbell outline (and 17px size) as .card-icon on the Training Style
+     header — replaced a 🏋 emoji, which drew as different full-colour art on
+     every OS (tasteskill Today pilot, v3.273). */
+  .gym-enter-icon{ width:17px; height:17px; flex:0 0 auto; }
 
   /* ── The offer ────────────────────────────────────────────────────────────
      Shown once, on the first logged set, and never again in either direction —
@@ -4628,7 +4645,7 @@
   .gym-offer-actions{display:flex; gap:8px;}
   .gym-offer-actions button{
     flex:1 1 0; min-height:48px; border-radius:14px;
-    font-family:'Inter',sans-serif; font-size:15px; font-weight:600; cursor:pointer;
+    font-family:var(--font-sans); font-size:15px; font-weight:600; cursor:pointer;
     transition:transform 0.2s var(--ease-smooth);
   }
   .gym-offer-actions button:active{transform:scale(0.96);}
@@ -4775,7 +4792,7 @@
 @media print{
   body > *:not(#printReportContent){display:none !important;}
   #printReportContent{
-    display:block !important; background:#fff; color:#111; font-family:'Inter',sans-serif;
+    display:block !important; background:#fff; color:#111; font-family:var(--font-sans);
     padding:0; margin:0; font-size:11pt; line-height:1.4;
   }
   .pr-header{margin-bottom:16px; border-bottom:2px solid #111; padding-bottom:10px;}
@@ -4921,6 +4938,84 @@
 
   <div id="programRecommendation"></div>
 
+  <div class="tabs-header">
+    <div class="hint">Tap a day to view it</div>
+    <button class="reorder-btn" id="reorderToggle">Reorder days</button>
+  </div>
+  <div class="tabs" id="tabs" role="tablist" aria-label="Training day"></div>
+
+  <div id="workoutCard" class="card" role="tabpanel" aria-label="Selected day's workout">
+    <div class="workout-hero">
+      <div class="workout-hero-plate-wrap">
+        <span id="dayPlateIcon" class="day-hero-plate"></span>
+      </div>
+      <div class="workout-hero-text">
+        <div class="workout-hero-eyebrow" id="dayHeroEyebrow"></div>
+        <div class="workout-hero-title" id="dayTitle"></div>
+      </div>
+    </div>
+    <div class="mesocycle-phase-tag" id="mesocyclePhaseTag"></div>
+    <div class="duration-row">
+      <div class="duration-tag" id="dayDuration"></div>
+      <select class="session-length-select" id="sessionLengthSelector" aria-label="Session length"></select>
+    </div>
+    <div class="session-cal-total" id="sessionCalTotal"></div>
+    <div class="today-standout-banner" id="todayStandoutBanner" style="display:none"></div>
+    <div id="voiceHintBanner" style="display:none"></div>
+    <button type="button" class="gym-enter-btn" id="gymEnterBtn">
+      <svg class="gym-enter-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg> Gym mode
+    </button>
+    <div id="exerciseList"></div>
+    <button class="custom-toggle" id="addCustomExerciseBtn">+ Add custom exercise</button>
+    <div id="customExerciseForm" class="smooth-toggle"><div>
+      <input type="text" id="customExName" class="care-input" placeholder="Exercise name" aria-label="Exercise name">
+      <input type="text" id="customExSets" class="care-input" placeholder="Sets × reps (e.g. 3x10)" style="margin-top:8px;" aria-label="Sets × reps (e.g. 3x10)">
+      <label class="save-to-library-label">
+        <input type="checkbox" id="customExNoWeight">
+        <span>No weight (bodyweight, duration, or hold)</span>
+      </label>
+      <button class="save-btn" id="addCustomExerciseSubmit">Add to this day</button>
+      <div class="status-msg" id="customExStatus"></div>
+    </div></div>
+    <!-- Below the exercise list on purpose (tasteskill rollout, v3.282): the
+         card answers "what's next in today's session?", so the lifts come
+         first. Adapting the session is an occasional job and the day insight
+         is general advice; above the list they pushed the first set row
+         ~1130px down. Gym mode, today's standout and the voice tip stay up top. -->
+    <div class="session-extras">
+      <button class="adapt-workout-toggle" id="adaptWorkoutBtn">Only have limited equipment or time today? Adapt this session</button>
+      <div id="adaptWorkoutPanel" class="smooth-toggle"><div>
+        <input type="text" id="adaptWorkoutInput" class="care-input" placeholder="e.g. only dumbbells, no equipment at all, 20 minutes, traveling with just resistance bands" aria-label="What you have available today">
+        <button class="save-btn" id="adaptWorkoutSubmit">Get adapted session</button>
+        <div id="adaptWorkoutResult"></div>
+      </div></div>
+      <div class="day-insight" id="dayInsight"></div>
+    </div>
+    <!-- Lives outside #exerciseList on purpose: that div's innerHTML gets
+         wholesale-replaced on every renderWorkout() call, which used to be
+         where this button was injected -- but only inside the rest-day
+         branch gated on the literal id 'd7', so a 6/7-day-per-week plan
+         whose Day 7 is a real training day (not rest:true) had nowhere to
+         reach it at all, and a drag-reordered week could put a different
+         day in the actual last position. A persistent element here,
+         toggled by visibility (keyed off dayOrder's last slot, not day.rest
+         or a hardcoded id) rather than existence, survives regardless of
+         what content or which id ends up there. See
+         renderArchiveWeekVisibility(). -->
+    <div id="archiveWeekWrap" style="display:none;">
+      <button class="save-btn" id="archiveWeekBtn" style="margin-top:14px;">Save this week & start fresh</button>
+      <div class="status-msg" id="archiveWeekStatus"></div>
+      <div id="weekShareWrap" style="display:none; margin-top:8px; text-align:center;">
+        <button type="button" class="switch-profile-btn" id="weekShareBtn" style="width:auto; display:inline-block; padding:8px 18px;">Share this week</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Set-once program choice sits BELOW the session, not above it. The day
+       rail and workout card answer what Today is opened for ("what's next in
+       today's session?"); with this block above them a returning user's first
+       set row started ~1500px down. Same reasoning positionProfileCard()
+       already applies to a finished profile. (tasteskill Today pilot, v3.271) -->
   <div class="card">
     <div class="card-title nutrition-header" id="programHeader">
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg></span>Training Style</span>
@@ -4954,7 +5049,7 @@
         <label class="equip-sublabel" for="customProgDays">Training days per week</label>
         <input type="number" id="customProgDays" class="care-input" value="4" min="1" max="7" inputmode="numeric">
         <div id="customProgError" class="exedit-error"></div>
-        <button type="button" class="switch-profile-btn" id="customProgCreate">➕ Create program</button>
+        <button type="button" class="switch-profile-btn" id="customProgCreate">+ Create program</button>
         <div id="customProgList"></div>
       </div>
     </div></div>
@@ -5014,7 +5109,7 @@
 
   <div class="card" id="medicalCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v6M10 11v6M3 10h6M11 10h6"/></svg></span>Condition / Stage</div>
-    <div class="history-hint">Pick whichever matches your actual situation. <b>⚠️ Every option here is a framework to use alongside your own doctor, surgical team, PT, or OB/midwife's real diagnosis and clearance</b>, not a replacement for one — this app has no way to know your specific medical history or healing timeline.</div>
+    <div class="history-hint">Pick whichever matches your actual situation. <b><svg class="inline-warning" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 22 20.5 2 20.5Z"/><line x1="12" y1="9.5" x2="12" y2="14"/><circle cx="12" cy="17.3" r="0.6" fill="currentColor" stroke="none"/></svg> Every option here is a framework to use alongside your own doctor, surgical team, PT, or OB/midwife's real diagnosis and clearance</b>, not a replacement for one — this app has no way to know your specific medical history or healing timeline.</div>
     <select class="program-select" id="medicalSelector" aria-label="Medical program"></select>
     <div class="program-select-desc" id="medicalDesc"></div>
     <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="medicalOverviewPanel">
@@ -5023,73 +5118,6 @@
     <div class="smooth-toggle open" id="medicalOverviewPanel"><div>
       <div class="program-intro program-overview" id="medicalOverview"></div>
     </div></div>
-  </div>
-
-  <div class="tabs-header">
-    <div class="hint">Tap a day to view it</div>
-    <button class="reorder-btn" id="reorderToggle">Reorder days</button>
-  </div>
-  <div class="tabs" id="tabs" role="tablist" aria-label="Training day"></div>
-
-  <div id="workoutCard" class="card" role="tabpanel" aria-label="Selected day's workout">
-    <div class="workout-hero">
-      <div class="workout-hero-plate-wrap">
-        <div class="workout-hero-glow" id="dayHeroGlow"></div>
-        <span id="dayPlateIcon" class="day-hero-plate"></span>
-      </div>
-      <div class="workout-hero-text">
-        <div class="workout-hero-eyebrow" id="dayHeroEyebrow"></div>
-        <div class="workout-hero-title" id="dayTitle"></div>
-      </div>
-    </div>
-    <div class="mesocycle-phase-tag" id="mesocyclePhaseTag"></div>
-    <div class="duration-row">
-      <div class="duration-tag" id="dayDuration"></div>
-      <select class="session-length-select" id="sessionLengthSelector" aria-label="Session length"></select>
-    </div>
-    <div class="session-cal-total" id="sessionCalTotal"></div>
-    <div class="day-insight" id="dayInsight"></div>
-    <div class="today-standout-banner" id="todayStandoutBanner" style="display:none"></div>
-    <div id="voiceHintBanner" style="display:none"></div>
-    <button class="adapt-workout-toggle" id="adaptWorkoutBtn">🔄 Only have limited equipment/time today? Adapt this session</button>
-    <div id="adaptWorkoutPanel" class="smooth-toggle"><div>
-      <input type="text" id="adaptWorkoutInput" class="care-input" placeholder="e.g. only dumbbells, no equipment at all, 20 minutes, traveling with just resistance bands" aria-label="What you have available today">
-      <button class="save-btn" id="adaptWorkoutSubmit">Get adapted session</button>
-      <div id="adaptWorkoutResult"></div>
-    </div></div>
-    <button type="button" class="gym-enter-btn" id="gymEnterBtn">
-      <span aria-hidden="true">🏋</span> Gym mode
-    </button>
-    <div id="exerciseList"></div>
-    <button class="custom-toggle" id="addCustomExerciseBtn">+ Add custom exercise</button>
-    <div id="customExerciseForm" class="smooth-toggle"><div>
-      <input type="text" id="customExName" class="care-input" placeholder="Exercise name" aria-label="Exercise name">
-      <input type="text" id="customExSets" class="care-input" placeholder="Sets × reps (e.g. 3x10)" style="margin-top:8px;" aria-label="Sets × reps (e.g. 3x10)">
-      <label class="save-to-library-label">
-        <input type="checkbox" id="customExNoWeight">
-        <span>No weight (bodyweight, duration, or hold)</span>
-      </label>
-      <button class="save-btn" id="addCustomExerciseSubmit">Add to this day</button>
-      <div class="status-msg" id="customExStatus"></div>
-    </div></div>
-    <!-- Lives outside #exerciseList on purpose: that div's innerHTML gets
-         wholesale-replaced on every renderWorkout() call, which used to be
-         where this button was injected -- but only inside the rest-day
-         branch gated on the literal id 'd7', so a 6/7-day-per-week plan
-         whose Day 7 is a real training day (not rest:true) had nowhere to
-         reach it at all, and a drag-reordered week could put a different
-         day in the actual last position. A persistent element here,
-         toggled by visibility (keyed off dayOrder's last slot, not day.rest
-         or a hardcoded id) rather than existence, survives regardless of
-         what content or which id ends up there. See
-         renderArchiveWeekVisibility(). -->
-    <div id="archiveWeekWrap" style="display:none;">
-      <button class="save-btn" id="archiveWeekBtn" style="margin-top:14px;">🏁 Save this week & start fresh</button>
-      <div class="status-msg" id="archiveWeekStatus"></div>
-      <div id="weekShareWrap" style="display:none; margin-top:8px; text-align:center;">
-        <button type="button" class="switch-profile-btn" id="weekShareBtn" style="width:auto; display:inline-block; padding:8px 18px;">Share this week</button>
-      </div>
-    </div>
   </div>
 
   <div class="card">
@@ -5275,17 +5303,17 @@
       <button class="save-btn" id="pfSave">Save profile</button>
       <div class="status-msg" id="pfStatus"></div>
 
-      <button class="switch-profile-btn" id="switchProfileBtn">🔄 Switch profile (for a shared device)</button>
+      <button class="switch-profile-btn" id="switchProfileBtn">Switch profile (for a shared device)</button>
       <!-- Sits directly above Export because that is the action it should
            prompt. Renders nothing at all on engines without
            navigator.storage.estimate() rather than showing a misleading zero. -->
       <div id="storageUsageMeter"></div>
-      <button class="switch-profile-btn" id="printProgramBtn">🖨️ Print my program (full week, on paper)</button>
-      <button class="switch-profile-btn" id="exportDataBtn">⬇️ Export my data (backup as JSON)</button>
-      <button class="switch-profile-btn" id="importDataBtn">⬆️ Import backup (restore from JSON)</button>
+      <button class="switch-profile-btn" id="printProgramBtn">Print my program (full week, on paper)</button>
+      <button class="switch-profile-btn" id="exportDataBtn">Export my data (backup as JSON)</button>
+      <button class="switch-profile-btn" id="importDataBtn">Import backup (restore from JSON)</button>
       <input type="file" id="importDataInput" accept="application/json,.json" style="display:none" aria-label="Choose a backup file to import">
       <div class="status-msg" id="importDataStatus"></div>
-      <button class="switch-profile-btn" id="verifyBackupBtn">🔍 Check a backup file (reads it, changes nothing)</button>
+      <button class="switch-profile-btn" id="verifyBackupBtn">Check a backup file (reads it, changes nothing)</button>
       <input type="file" id="verifyBackupInput" accept="application/json,.json" style="display:none" aria-label="Choose a backup file to check">
       <div class="status-msg" id="verifyBackupStatus"></div>
       <div id="verifyBackupReport"></div>
@@ -5306,36 +5334,36 @@
     </div>
 
     <div class="targets-strip">
-      <div><div class="t-val" id="tvCal">2650</div><div class="t-label">Cal Target</div></div>
+      <div><div class="t-val" id="tvCal">2650</div><div class="t-label">Cal target</div></div>
       <div><div class="t-val" id="tvPro">240g</div><div class="t-label">Protein</div></div>
       <div><div class="t-val" id="tvFat">75g</div><div class="t-label">Fat</div></div>
       <div><div class="t-val" id="tvCarb">250g</div><div class="t-label">Carbs</div></div>
     </div>
     <div class="history-hint" id="calorieFloorNote" style="display:none"></div>
     <div class="macro-row">
-      <div class="macro-label">CALORIES</div>
+      <div class="macro-label">Calories</div>
       <div class="macro-bar-track"><div class="macro-bar-fill" id="barCal" style="background:var(--plate-white);width:0%"></div></div>
       <div class="macro-val" id="valCal">0 / 2650</div>
     </div>
     <div class="macro-row">
-      <div class="macro-label">PROTEIN</div>
+      <div class="macro-label">Protein</div>
       <div class="macro-bar-track"><div class="macro-bar-fill" id="barPro" style="background:var(--plate-teal);width:0%"></div></div>
       <div class="macro-val" id="valPro">0 / 240</div>
     </div>
     <div class="macro-row">
-      <div class="macro-label">FAT</div>
+      <div class="macro-label">Fat</div>
       <div class="macro-bar-track"><div class="macro-bar-fill" id="barFat" style="background:var(--plate-yellow);width:0%"></div></div>
       <div class="macro-val" id="valFat">0 / 75</div>
     </div>
     <div class="macro-row">
-      <div class="macro-label">CARBS</div>
+      <div class="macro-label">Carbs</div>
       <div class="macro-bar-track"><div class="macro-bar-fill" id="barCarb" style="background:var(--plate-blue);width:0%"></div></div>
       <div class="macro-val" id="valCarb">0 / 250</div>
     </div>
     <div id="medicalNutrientBars" style="display:none"></div>
 
     <div class="expand-wrap" id="nutritionExpandWrap"><div>
-      <div class="section-label">Add a Food</div>
+      <div class="section-label">Add a food</div>
       <input type="text" id="foodSearchInput" class="food-search-input" placeholder="🔍 Search any food or restaurant..." aria-label="Search any food or restaurant">
       <div id="usdaKeySettingsSlot"></div>
 
@@ -6391,7 +6419,7 @@
   <button class="barcode-close-btn" id="barcodeCloseBtn">Cancel</button>
 </div>
 
-<button class="coach-fab" id="coachFab" aria-label="Ask your coach"><span aria-hidden="true">💬</span></button>
+<button class="coach-fab" id="coachFab" aria-label="Ask your coach"><span aria-hidden="true"><svg class="coach-fab-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 5.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8l-4 3v-3H4.5a2 2 0 0 1-2-2Z"/></svg></span></button>
 
 <button class="today-fab" id="todayFab" style="display:none;" title="Jump back to today">
   <span class="today-fab-label">Today</span>
@@ -6555,7 +6583,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.269';
+const APP_VERSION = '3.285';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7211,6 +7239,65 @@ const WHATS_NEW = {
   ]},
   '3.269': { headline: 'AI-generated supplement descriptions now target the same length as curated ones', points: [
     'Both AI prompts (Supplement Recommendations and the non-curated AI insight) now ask for the same one-sentence, ~20-30-word length the curated Foundational Stack descriptions were just tightened to, so a description reads about the same length no matter where it came from.',
+  ]},
+  '3.270': { headline: 'The app\'s typeface now works offline', points: [
+    'Fonts now ship with the app instead of loading from Google, so text looks the same at the gym with no signal as it does at home.',
+  ]},
+  '3.271': { headline: 'Today opens on your workout', points: [
+    'The day picker and today\'s session now come first on the Today tab.',
+    'Training Style and the other program pickers moved below the workout, since you set them once and log sets every day.',
+  ]},
+  '3.272': { headline: 'A calmer Today tab', points: [
+    'Cards on Today are now flat panels: no outlines, shadows or blue glow, just a lighter shade against the background.',
+    'Today\'s cards no longer slide in one by one each time you open the tab. They\'re just there.',
+  ]},
+  '3.273': { headline: 'Fewer emoji in your workout', points: [
+    'The workout card\'s tips, insights, warm-ups and buttons now use plain words, and Gym mode has a simple barbell icon, instead of emoji that looked different on every phone.',
+  ]},
+  '3.274': { headline: 'Quieter warm-up and superset labels', points: [
+    'Warm-up and superset labels are now in normal sentence case instead of small shouty capitals, and warm-up advice reads in the regular font.',
+    'The warm-up box lost its orange glow. It\'s still tinted orange, so it stands apart from your working sets.',
+  ]},
+  '3.275': { headline: 'Cleaner workout header', points: [
+    'The coloured glow behind the day\'s plate is gone. The plate keeps its colour.',
+    'The Adapt and Gym mode buttons are now flat instead of shaded.',
+  ]},
+  '3.276': { headline: 'A fresh typeface', points: [
+    'The whole app now uses Geist, a crisper typeface with numbers that line up digit for digit in your sets and stats.',
+    'It ships with the app, so it works offline like before.',
+  ]},
+  '3.277': { headline: 'Every tab gets the calmer cards', points: [
+    'The flat cards Today got are now on every tab: no outlines, shadows or blue glow, just a lighter shade against the background.',
+    'Cards no longer slide in each time you switch tabs. New rows in your lists still glide in.',
+  ]},
+  '3.278': { headline: 'A lighter header', points: [
+    'The app title is a little smaller, and the line above it shows your name the way you typed it instead of in spaced-out capitals.',
+    'Your streak badge has a simple flame icon and no glow.',
+  ]},
+  '3.279': { headline: 'Easier-to-read labels everywhere', points: [
+    'Small labels across the app (day names, section headers, tags, stats) are now in normal sentence case instead of tiny spaced-out capitals.',
+    'Nothing is smaller than 11px any more, so labels are easier to read at arm\'s length.',
+  ]},
+  '3.280': { headline: 'Clearer buttons', points: [
+    'Main buttons are now solid instead of shaded and glowing, in a slightly deeper blue so their text is easier to read.',
+    'Green buttons and ticks now use dark text, which reads far better on green than white did.',
+  ]},
+  '3.281': { headline: 'Calmer nutrition bars', points: [
+    'Calories, protein, fat, carbs and the extra nutrient bars are labelled in normal sentence case instead of all capitals.',
+  ]},
+  '3.282': { headline: 'Your lifts come first', points: [
+    'The day\'s exercises now start right under the Gym mode button.',
+    'The "Adapt this session" option and the day\'s training insight moved below the exercise list.',
+  ]},
+  '3.283': { headline: 'No more glow', points: [
+    'The coloured glow under the active tab, tips, insight boxes and the coach and Today buttons is gone. The two floating buttons keep a soft plain shadow so they still look like they float.',
+    'Buttons and panels that sit still on the page no longer cast shadows.',
+  ]},
+  '3.284': { headline: 'Words in the regular font', points: [
+    'Your profile summary, the training-week tag, the session picker, the calories line and exercise tags now read in the regular font instead of typewriter-style lettering. Numbers still line up.',
+  ]},
+  '3.285': { headline: 'The last emoji on Today', points: [
+    'Today\'s Priorities, the profile and backup buttons, and the coach button now use words and a simple chat icon instead of emoji that looked different on every phone.',
   ]},
 };
 
@@ -12287,6 +12374,10 @@ function animateNumberTo(el, newValue, opts = {}){
   requestAnimationFrame(tick);
 }
 
+// Outline flame for the streak pill (replaced a 🔥 emoji in v3.278): same
+// 20x20 / 1.5 stroke / currentColor convention as the .card-icon set.
+const STREAK_FLAME_SVG = '<svg class="streak-flame" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5c.6 2.6 4.8 4.6 4.8 9a4.8 4.8 0 0 1-9.6 0c0-2 1-3.4 2.2-4.4.1 1.5.8 2.6 1.9 3C9 7.8 9.4 5 10 2.5Z"/></svg>';
+
 async function renderStreak(){
   const el = document.getElementById('streakBadge');
   if(!el) return;
@@ -12300,7 +12391,7 @@ async function renderStreak(){
   const numEl = el.querySelector('#streakNum');
   if(!numEl){
     // First render this session — just show it, nothing to animate from yet.
-    el.innerHTML = `🔥 <span id="streakNum">${streak}</span> <span id="streakNumLabel">day${streak===1?'':'s'} streak</span>`;
+    el.innerHTML = `${STREAK_FLAME_SVG}<span id="streakNum">${streak}</span> <span id="streakNumLabel">day${streak===1?'':'s'} streak</span>`;
   } else {
     animateNumberTo(numEl, streak, {duration: 600});
     el.querySelector('#streakNumLabel').textContent = `day${streak===1?'':'s'} streak`;
@@ -12329,7 +12420,7 @@ async function getSleepInsight(){
   const hrs = Number(recent.hours);
   if(hrs >= POOR_SLEEP_THRESHOLD) return null;
 
-  return `😴 <b>Recovery note:</b> Only ${hrs} hrs logged last night — strength, reaction time, and injury risk all take a real hit under ${POOR_SLEEP_THRESHOLD} hours. Consider trimming today's session to your top sets, or swapping in something lighter.`;
+  return `<b>Recovery note:</b> Only ${hrs} hrs logged last night — strength, reaction time, and injury risk all take a real hit under ${POOR_SLEEP_THRESHOLD} hours. Consider trimming today's session to your top sets, or swapping in something lighter.`;
 }
 
 // --- Cycle-phase insight: deliberately just surfaces the SAME educational
@@ -12459,7 +12550,7 @@ async function getFoundationalStackNudgeInsight(){
   if(names.length === 0) return null;
 
   const list = names.length <= 2 ? names.join(' & ') : `${names.slice(0, -1).join(', ')}, & ${names[names.length - 1]}`;
-  return `💊 <b>Worth a look:</b> ${escapeHtml(list)} — evidence-based suggestion${names.length===1?'':'s'} for your current profile, not yet in your tracker. <button type="button" class="link-btn" data-jump-to="supplementRecommendationsCard">Review in the foundational stack →</button>`;
+  return `<b>Worth a look:</b> ${escapeHtml(list)} — evidence-based suggestion${names.length===1?'':'s'} for your current profile, not yet in your tracker. <button type="button" class="link-btn" data-jump-to="supplementRecommendationsCard">Review in the foundational stack →</button>`;
 }
 
 // --- Deload week banner: scheduled/proactive, complementing the reactive
@@ -12632,7 +12723,7 @@ async function getDeloadInsight(){
   const isDeload = await isDeloadWeek();
   if(!isDeload) return null;
   const week = await getMesocycleWeek();
-  return `🔻 <b>Deload week (week ${week}):</b> A planned lighter week — sets are already trimmed below (roughly 40-50% less volume), and working weights should come down another ~10-20% on top of that. This combination is what actually lets the last month of hard training turn into progress instead of just accumulated fatigue — cutting weight alone while keeping full volume is one of the most common ways a deload fails to do its job.`;
+  return `<b>Deload week (week ${week}):</b> A planned lighter week — sets are already trimmed below (roughly 40-50% less volume), and working weights should come down another ~10-20% on top of that. This combination is what actually lets the last month of hard training turn into progress instead of just accumulated fatigue — cutting weight alone while keeping full volume is one of the most common ways a deload fails to do its job.`;
 }
 
 // --- Stale resting-region check-in: Care lets you mark a region as resting,
@@ -12660,7 +12751,7 @@ async function getStaleRestingRegionInsight(){
   });
   if(!stale.length) return null;
 
-  return `🩹 <b>Check-in reminder:</b> ${stale.join(' & ')} ${stale.length===1?'has':'have'} been marked resting for ${STALE_RESTING_DAYS}+ days — a quick check-in in Care tells you whether it's actually improving or needs more attention.`;
+  return `<b>Check-in reminder:</b> ${stale.join(' & ')} ${stale.length===1?'has':'have'} been marked resting for ${STALE_RESTING_DAYS}+ days — a quick check-in in Care tells you whether it's actually improving or needs more attention.`;
 }
 
 // --- Weigh-in reminder: only fires for someone who has logged weight
@@ -12673,7 +12764,7 @@ async function getWeighInReminderInsight(){
   const sorted = [...entries].sort((a,b)=> new Date(b.date+'T00:00:00') - new Date(a.date+'T00:00:00'));
   const daysSince = Math.floor((new Date(getTodayKey()+'T00:00:00') - new Date(sorted[0].date+'T00:00:00'))/86400000);
   if(daysSince < STALE_WEIGHIN_DAYS) return null;
-  return `⚖️ <b>Weigh-in reminder:</b> It's been ${daysSince} days since your last weight log — logging one keeps your Goal Progress Check accurate.`;
+  return `<b>Weigh-in reminder:</b> It's been ${daysSince} days since your last weight log — logging one keeps your Goal Progress Check accurate.`;
 }
 
 // --- Water pace check: compares today's intake against a rough expected
@@ -12692,7 +12783,7 @@ async function getWaterPaceInsight(){
   const expected = frac * target;
   if(expected <= 0 || current >= expected * 0.5) return null;
 
-  return `💧 <b>Hydration check:</b> ${current}/${target} oz so far today — behind pace for this time of day.`;
+  return `<b>Hydration check:</b> ${current}/${target} oz so far today — behind pace for this time of day.`;
 }
 
 // --- Deficit guard rail ------------------------------------------------
@@ -12821,7 +12912,7 @@ async function getSessionHeadsUpInsight(){
 
   if(flaggedCount === 0) return null;
   const dayRefText = isBackdating() ? `${formatLogDateLabel(selectedLogDate)}'s` : "today's";
-  return `📋 <b>Session heads-up:</b> ${flaggedCount} exercise${flaggedCount===1?'':'s'} in ${dayRefText} ${day.sub || 'session'} ${flaggedCount===1?'is':'are'} flagged below — a resting-region caution or a fatigue/deload signal. Worth a scroll-through before you start.`;
+  return `<b>Session heads-up:</b> ${flaggedCount} exercise${flaggedCount===1?'':'s'} in ${dayRefText} ${day.sub || 'session'} ${flaggedCount===1?'is':'are'} flagged below — a resting-region caution or a fatigue/deload signal. Worth a scroll-through before you start.`;
 }
 
 // --- Unified Today Insights card: the single "what matters today" summary,
@@ -26041,7 +26132,7 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
     const shown = snapToLoadable(toDisplayWeight(rpeBadgeTarget), ex.name, 'down');
     return {
       direction: 'rpe',
-      html: `<div class="progress-badge-rpe">🎯 ${inDeloadWeek ? 'Deload week' : `Week ${cycleWeekOf(rpeCtx.week)}`} target: <b>RPE ${rpeTargetRpe}</b> — about ${rir} rep${rir===1?'':'s'} left at the end. From your recent best that's around <b>${trimUnitNum(shown)} ${weightUnit}</b>${note}.</div>`,
+      html: `<div class="progress-badge-rpe">${inDeloadWeek ? 'Deload week' : `Week ${cycleWeekOf(rpeCtx.week)}`} target: <b>RPE ${rpeTargetRpe}</b> — about ${rir} rep${rir===1?'':'s'} left at the end. From your recent best that's around <b>${trimUnitNum(shown)} ${weightUnit}</b>${note}.</div>`,
     };
   }
   if(signal){
@@ -26217,7 +26308,7 @@ function buildWarmupNudgeHtml(reason){
     : reason === 'light'
       ? 'Light enough that a formal ramp is more clutter than help. One easy set to groove the movement is plenty.'
       : 'No logged history for this lift yet, so there is no working weight to ramp to. Work up in a few easy sets today; from your next session the ramp builds itself.';
-  return `<div class="warmup-box"><div class="warmup-title">🔥 Warm up first</div><div class="warmup-row"><span>${body}</span></div></div>`;
+  return `<div class="warmup-box"><div class="warmup-title">Warm up first</div><div class="warmup-row warmup-note"><span>${body}</span></div></div>`;
 }
 
 // Named, so it can be tested rather than asserted as a substring — the same
@@ -26713,7 +26804,7 @@ function updateSessionCalorieTotal(exercises, completed){
   if(total <= 0){ el.textContent = ''; return; }
   const numEl = el.querySelector('#sessionCalNum');
   if(!numEl){
-    el.innerHTML = `🔥 ~<span id="sessionCalNum">${total}</span> cal burned so far this session`;
+    el.innerHTML = `~<span id="sessionCalNum">${total}</span> cal burned so far this session`;
   } else {
     animateNumberTo(numEl, total, {duration: 500});
   }
@@ -26722,30 +26813,30 @@ function updateSessionCalorieTotal(exercises, completed){
 // Contextual health insight, matched against the day's focus label so it's
 // relevant to what's actually being trained that session, not generic filler.
 const DAY_INSIGHT_RULES = [
-  {pattern:/rest|recovery|gentle/i, insight:'🧠 <b>Recovery insight:</b> Light movement increases blood flow to sore muscles without adding fatigue — a short walk here does more for tomorrow\'s session than sitting completely still.'},
-  {pattern:/vinyasa|power yoga|hatha|yoga flow|restorative/i, insight:'🧘 <b>Breath insight:</b> Match your movement to your inhale and exhale — flow-based yoga is as much a breathing practice as a movement one. Rushing the breath rushes, and weakens, the pose.'},
-  {pattern:/kick/i, insight:'🦵 <b>Kick power insight:</b> Real kicking power comes from hip rotation and core bracing, not leg muscle alone — a strong, controlled hip drive matters as much as flexibility for both power and speed.'},
-  {pattern:/power|explosive|plyo|jump/i, insight:'⚡ <b>Neural insight:</b> Explosive/plyometric work fatigues your nervous system faster than your muscles — if power output drops noticeably, that\'s your body\'s honest signal to stop, not push through.'},
-  {pattern:/squat|deadlift|leg|thigh|lower/i, insight:'🦴 <b>Joint health insight:</b> Heavy lower-body work loads your spine and knees directly — a thorough 5-10 min warm-up (not just a couple of stretches) meaningfully lowers injury risk on days like this.'},
-  {pattern:/hiit|interval|speed|sprint|tabata/i, insight:'❤️ <b>Cardiovascular insight:</b> High-intensity interval work spikes heart rate fast — make sure your warm-up gradually raises it first rather than jumping straight into max effort cold.'},
-  {pattern:/yin|mobility|flexibility/i, insight:'🧘 <b>Mobility insight:</b> Static stretching is most effective on already-warm tissue — a few minutes of light movement first noticeably improves the return on this session.'},
-  {pattern:/core|ab|stability/i, insight:'🎯 <b>Performance insight:</b> A little core activation before heavier lifts (not just as a separate session) can meaningfully improve bracing and lifting safety that day.'},
-  {pattern:/push|pull|upper|chest|back|shoulder|arm/i, insight:'💪 <b>Balance insight:</b> Pressing and pulling movements both recruit the rotator cuff — keeping push and pull volume roughly even across your week is one of the best ways to avoid shoulder imbalances.'},
-  {pattern:/knee|hip|wrist|ankle|neck|stabilit/i, insight:'🩹 <b>Rehab insight:</b> Isometric holds (no joint movement) are generally the safest way to keep a healing area loaded — resist the urge to progress to dynamic movement before it\'s pain-free.'},
+  {pattern:/rest|recovery|gentle/i, insight:'<b>Recovery insight:</b> Light movement increases blood flow to sore muscles without adding fatigue — a short walk here does more for tomorrow\'s session than sitting completely still.'},
+  {pattern:/vinyasa|power yoga|hatha|yoga flow|restorative/i, insight:'<b>Breath insight:</b> Match your movement to your inhale and exhale — flow-based yoga is as much a breathing practice as a movement one. Rushing the breath rushes, and weakens, the pose.'},
+  {pattern:/kick/i, insight:'<b>Kick power insight:</b> Real kicking power comes from hip rotation and core bracing, not leg muscle alone — a strong, controlled hip drive matters as much as flexibility for both power and speed.'},
+  {pattern:/power|explosive|plyo|jump/i, insight:'<b>Neural insight:</b> Explosive/plyometric work fatigues your nervous system faster than your muscles — if power output drops noticeably, that\'s your body\'s honest signal to stop, not push through.'},
+  {pattern:/squat|deadlift|leg|thigh|lower/i, insight:'<b>Joint health insight:</b> Heavy lower-body work loads your spine and knees directly — a thorough 5-10 min warm-up (not just a couple of stretches) meaningfully lowers injury risk on days like this.'},
+  {pattern:/hiit|interval|speed|sprint|tabata/i, insight:'<b>Cardiovascular insight:</b> High-intensity interval work spikes heart rate fast — make sure your warm-up gradually raises it first rather than jumping straight into max effort cold.'},
+  {pattern:/yin|mobility|flexibility/i, insight:'<b>Mobility insight:</b> Static stretching is most effective on already-warm tissue — a few minutes of light movement first noticeably improves the return on this session.'},
+  {pattern:/core|ab|stability/i, insight:'<b>Performance insight:</b> A little core activation before heavier lifts (not just as a separate session) can meaningfully improve bracing and lifting safety that day.'},
+  {pattern:/push|pull|upper|chest|back|shoulder|arm/i, insight:'<b>Balance insight:</b> Pressing and pulling movements both recruit the rotator cuff — keeping push and pull volume roughly even across your week is one of the best ways to avoid shoulder imbalances.'},
+  {pattern:/knee|hip|wrist|ankle|neck|stabilit/i, insight:'<b>Rehab insight:</b> Isometric holds (no joint movement) are generally the safest way to keep a healing area loaded — resist the urge to progress to dynamic movement before it\'s pain-free.'},
 ];
 
 const DEFAULT_INSIGHTS_BY_PROGRAM = {
-  combat: '🥊 <b>Insight:</b> Rounds-based training taxes your grip and forearms as much as your cardio — don\'t underestimate how much hand/wrist fatigue affects technique late in a session.',
-  running: '🏃 <b>Insight:</b> Your easy pace should genuinely feel easy — most runners who plateau are running their "easy" days too hard to actually recover between the harder ones.',
-  calisthenics: '🤸 <b>Insight:</b> Skill-based bodyweight work rewards fresh attempts — practice your hardest progressions early in the session, not after you\'re fatigued from accessory work.',
-  jumprope: '🪢 <b>Insight:</b> Efficient rope technique uses your wrists, not your shoulders — if your upper arms are getting tired fast, you\'re over-swinging instead of flicking the rope.',
-  bodyweight: '💯 <b>Insight:</b> Without external load, tempo is your main lever for intensity — slow the eccentric (lowering) phase down if a movement is starting to feel too easy.',
-  oly: '🏋️ <b>Technical insight:</b> Olympic lift variations are learned through repetition of the correct pattern, not heavier loading — if your technique breaks down, drop the weight before you drop the quality.',
-  powerlifting: '📐 <b>Strength insight:</b> Bar path efficiency matters more than how the rep looks — the shortest, most direct line to lockout is almost always the strongest one, even if it feels less dramatic.',
-  athletic: '🏃 <b>Conditioning insight:</b> Agility and footwork drills sharpen fastest with full attention, not fatigue — do them early in a session if precision matters more than conditioning that day.',
-  core: '🎯 <b>Stability insight:</b> Anti-rotation and anti-extension work (resisting movement) builds more real-world core strength than crunches alone — bracing under load is the actual skill being trained.',
-  mobility: '🧘 <b>Range insight:</b> Consistent short sessions beat occasional long ones for building real, usable range of motion — a few focused minutes daily compounds faster than one long weekly stretch.',
-  bodybuilding: '💪 <b>Hypertrophy insight:</b> Muscle responds to mechanical tension and total volume more than raw weight lifted — this is the core finding across Dr. Brad Schoenfeld\'s hypertrophy research (the most published scientist in this specific field). Slow the eccentric down on isolation work if you want more growth stimulus from the same load.',
+  combat: '<b>Insight:</b> Rounds-based training taxes your grip and forearms as much as your cardio — don\'t underestimate how much hand/wrist fatigue affects technique late in a session.',
+  running: '<b>Insight:</b> Your easy pace should genuinely feel easy — most runners who plateau are running their "easy" days too hard to actually recover between the harder ones.',
+  calisthenics: '<b>Insight:</b> Skill-based bodyweight work rewards fresh attempts — practice your hardest progressions early in the session, not after you\'re fatigued from accessory work.',
+  jumprope: '<b>Insight:</b> Efficient rope technique uses your wrists, not your shoulders — if your upper arms are getting tired fast, you\'re over-swinging instead of flicking the rope.',
+  bodyweight: '<b>Insight:</b> Without external load, tempo is your main lever for intensity — slow the eccentric (lowering) phase down if a movement is starting to feel too easy.',
+  oly: '<b>Technical insight:</b> Olympic lift variations are learned through repetition of the correct pattern, not heavier loading — if your technique breaks down, drop the weight before you drop the quality.',
+  powerlifting: '<b>Strength insight:</b> Bar path efficiency matters more than how the rep looks — the shortest, most direct line to lockout is almost always the strongest one, even if it feels less dramatic.',
+  athletic: '<b>Conditioning insight:</b> Agility and footwork drills sharpen fastest with full attention, not fatigue — do them early in a session if precision matters more than conditioning that day.',
+  core: '<b>Stability insight:</b> Anti-rotation and anti-extension work (resisting movement) builds more real-world core strength than crunches alone — bracing under load is the actual skill being trained.',
+  mobility: '<b>Range insight:</b> Consistent short sessions beat occasional long ones for building real, usable range of motion — a few focused minutes daily compounds faster than one long weekly stretch.',
+  bodybuilding: '<b>Hypertrophy insight:</b> Muscle responds to mechanical tension and total volume more than raw weight lifted — this is the core finding across Dr. Brad Schoenfeld\'s hypertrophy research (the most published scientist in this specific field). Slow the eccentric down on isolation work if you want more growth stimulus from the same load.',
 };
 
 function renderDayInsight(day){
@@ -26754,7 +26845,7 @@ function renderDayInsight(day){
   const rule = DAY_INSIGHT_RULES.find(r=>r.pattern.test(day.sub));
   if(rule){ el.innerHTML = rule.insight; return; }
   if(day.rest){ el.innerHTML = ''; return; }
-  el.innerHTML = DEFAULT_INSIGHTS_BY_PROGRAM[activeProgram] || '💡 <b>Insight:</b> Consistency compounds — showing up for a moderate session beats skipping in search of a "perfect" one.';
+  el.innerHTML = DEFAULT_INSIGHTS_BY_PROGRAM[activeProgram] || '<b>Insight:</b> Consistency compounds — showing up for a moderate session beats skipping in search of a "perfect" one.';
 }
 
 async function renderVoiceHint(){
@@ -26770,7 +26861,7 @@ async function renderVoiceHint(){
 
   banner.className = 'voice-hint-banner';
   banner.innerHTML = `
-    <span>💡 <b>Tip:</b> hold the plate-calculator icon — or tap the mic icon on other exercises — to voice log a set. Try "225 for 5" or "180 for 12 at a 6".</span>
+    <span><b>Tip:</b> hold the plate-calculator icon — or tap the mic icon on other exercises — to voice log a set. Try "225 for 5" or "180 for 12 at a 6".</span>
     <button class="voice-hint-dismiss" id="voiceHintDismissBtn" aria-label="Dismiss voice logging tip">✕</button>
   `;
   banner.style.display = 'flex';
@@ -26854,7 +26945,6 @@ async function renderWorkout(){
   const iconEl = document.getElementById('dayPlateIcon');
   iconEl.className = 'day-hero-plate ' + dayPlateClass;
   iconEl.innerHTML = dayGlyphSvg(day.sub);
-  document.getElementById('dayHeroGlow').className = 'workout-hero-glow ' + dayPlateClass;
   // Mirrors the main title so the sticky header reads correctly whenever it
   // becomes visible, without needing its own render pass.
   document.getElementById('stickyDayTitle').textContent = `${day.label} — ${day.sub}`;
@@ -27031,7 +27121,7 @@ async function renderWorkout(){
     const isSupersetTop = !!ex.superTag;
     const isSupersetBottom = i > 0 && !!renderExercises[i-1].superTag;
     const checked = completed[i] ? 'checked' : '';
-    const focusHtml = ex.isBodyGoalFocus ? `<span class="super-tag focus-tag">🎯 ${ex.focusLabel} — added for your body goal</span>` : '';
+    const focusHtml = ex.isBodyGoalFocus ? `<span class="super-tag focus-tag">${ex.focusLabel} — added for your body goal</span>` : '';
 
     // Every exercise gets reps + sets + RPE tracking, full stop — noWeight
     // only ever means "skip the lb field" (bodyweight/duration/hold work),
@@ -27200,7 +27290,7 @@ async function renderWorkout(){
               : isFallback
                 ? `(based on your last logged ${escapeHtml(ex.name)}, ${escapeHtml(programLabelFor(priorSourceProgram))})`
                 : '(based on your last session)';
-          const rampTitle = `🔥 Suggested warm-up ramp <span style="font-weight:400; text-transform:none; letter-spacing:0; opacity:0.75;">${basisNote}</span>`;
+          const rampTitle = `Suggested warm-up ramp <span style="font-weight:400; text-transform:none; letter-spacing:0; opacity:0.75;">${basisNote}</span>`;
           const rampNote = (warmupSetsEnabled && visibleSteps.length)
             ? '<div class="warmup-foot">Not counted in your volume, 1RM or PRs. Swipe a step away if you don\'t need it.</div>' : '';
           // The box is for the READ-ONLY ramp. Once the ramp is loggable rows,
@@ -27449,7 +27539,7 @@ async function renderWorkout(){
     }
 
     pairRow.innerHTML = `
-      <div class="superset-banner">SUPERSET — straight into the next exercise, no rest between</div>
+      <div class="superset-banner">Superset — straight into the next exercise, no rest between</div>
       ${memberHtml(topPiece)}
       ${memberHtml(bottomPiece)}
       <div class="expand-wrap" id="exSetsPanel${t}">
@@ -27823,7 +27913,7 @@ function buildShareCardBlob(cardData){
   ctx.fillText(cardData.icon, W/2, H*iconY);
 
   ctx.fillStyle = '#F3F4F6';
-  ctx.font = '800 ' + (hasStats ? '66px' : '74px') + ' Inter, sans-serif';
+  ctx.font = '800 ' + (hasStats ? '66px' : '74px') + ' Geist, sans-serif';
   ctx.fillText(cardData.headline, W/2, H*headlineY);
 
   if(hasStats){
@@ -27843,16 +27933,16 @@ function buildShareCardBlob(cardData){
       // otherwise overlap the label on the right — a real failure mode
       // found by rendering it, not a hypothetical one.
       let size = 40;
-      ctx.font = `600 ${size}px Inter, sans-serif`;
+      ctx.font = `600 ${size}px Geist, sans-serif`;
       while(size > 22 && ctx.measureText(s.value).width > valueMaxW){
         size -= 2;
-        ctx.font = `600 ${size}px Inter, sans-serif`;
+        ctx.font = `600 ${size}px Geist, sans-serif`;
       }
       ctx.fillStyle = '#F3F4F6';
       ctx.textAlign = 'left';
       ctx.fillText(s.value, W*0.18, cy);
 
-      ctx.font = '500 28px Inter, sans-serif';
+      ctx.font = '500 28px Geist, sans-serif';
       ctx.fillStyle = '#8B929B';
       ctx.textAlign = 'right';
       ctx.fillText(s.label, W*0.82, cy);
@@ -27867,12 +27957,12 @@ function buildShareCardBlob(cardData){
     ctx.textAlign = 'center';
   } else {
     ctx.fillStyle = '#8B929B';
-    ctx.font = '500 36px Inter, sans-serif';
+    ctx.font = '500 36px Geist, sans-serif';
     wrapCanvasText(ctx, cardData.detail, W/2, H*0.58, W-160, 46);
   }
 
   ctx.fillStyle = '#8B929B';
-  ctx.font = '600 26px Inter, sans-serif';
+  ctx.font = '600 26px Geist, sans-serif';
   ctx.fillText('TRAINING LOG', W/2, H*0.92);
 
   return new Promise(resolve=>{
@@ -31483,7 +31573,7 @@ function renderBodyGoalEffect(bodyGoal){
 function renderHeader(){
   const p = userProfile;
   if(p.name){
-    document.getElementById('headerEyebrow').textContent = `${p.name.toUpperCase()} · ${GOAL_LABELS[p.goal] || ''} Program`;
+    document.getElementById('headerEyebrow').textContent = `${p.name} · ${GOAL_LABELS[p.goal] || ''} program`;
     document.getElementById('headerSub').textContent = `7-day split · ${p.heightFt}'${p.heightIn}" · ${fmtWeight(p.weight)} · ${(GOAL_LABELS[p.goal]||'').toLowerCase()} · 45-60 min sessions`;
   } else {
     document.getElementById('headerEyebrow').textContent = 'Training Log';
@@ -35472,7 +35562,7 @@ function renderMedicalNutrientBars(totals){
     const label = spec.type === 'max' ? `${spec.label} (stay under)` : `${spec.label} (aim for)`;
     return `
       <div class="macro-row">
-        <div class="macro-label">${label.toUpperCase()}</div>
+        <div class="macro-label">${label}</div>
         <div class="macro-bar-track"><div class="macro-bar-fill" style="background:${overMax ? 'var(--plate-red)' : NUTRIENT_BAR_COLOR[nutrient]};width:${pct}%"></div></div>
         <div class="macro-val">${current} / ${spec.value} ${spec.unit}</div>
       </div>
@@ -36025,7 +36115,7 @@ async function loadBP(){
     const itemHtmls = sorted.map(e=>{
       const cat = categorizeBP(e.systolic, e.diastolic);
       return buildSwipeItem(
-        `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${e.systolic}/${e.diastolic} <span style="color:${cat.color}; font-size:11px; font-weight:600; font-family:'Inter',sans-serif;">${cat.label}</span></span></div>`
+        `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${e.systolic}/${e.diastolic} <span style="color:${cat.color}; font-size:11px; font-weight:600; font-family:var(--font-sans);">${cat.label}</span></span></div>`
       );
     });
     renderCollapsibleList(listEl, itemHtmls, 3, 'readings');
@@ -36096,7 +36186,7 @@ async function loadGlucose(){
     const itemHtmls = sorted.map(e=>{
       const cat = categorizeGlucose(e.value, e.context);
       return buildSwipeItem(
-        `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${contextLabel[e.context]||'fasting'}</span><span>${e.value} mg/dL <span style="color:${cat.color}; font-size:11px; font-weight:600; font-family:'Inter',sans-serif;">${cat.label}</span></span></div>`
+        `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${contextLabel[e.context]||'fasting'}</span><span>${e.value} mg/dL <span style="color:${cat.color}; font-size:11px; font-weight:600; font-family:var(--font-sans);">${cat.label}</span></span></div>`
       );
     });
     renderCollapsibleList(listEl, itemHtmls, 3, 'readings');
@@ -37976,7 +38066,7 @@ function renderDayValueTrend(elId, dayTotals, opts){
       <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#grad-${elId})"/>
       <polyline fill="none" stroke="${opts.color}" stroke-width="2.5" points="${pts}"/>
     </svg>
-    <div style="display:flex; justify-content:space-between; margin-top:8px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);">
+    <div style="display:flex; justify-content:space-between; margin-top:8px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);">
       <span>${opts.formatValue(values[0])}</span>
       <span>Avg: ${opts.formatValue(avg)}${targetNote} over ${recent.length} days</span>
       <span>${opts.formatValue(values[values.length-1])}</span>
@@ -38239,7 +38329,7 @@ function renderSparkline(entries){
       <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#gradWeightTrend)"/>
       <polyline fill="none" stroke="#5B7CFF" stroke-width="2.5" points="${pts}"/>
     </svg>
-    <div style="display:flex; justify-content:space-between; margin-top:8px; font-family:'IBM Plex Mono',monospace; font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);">
+    <div style="display:flex; justify-content:space-between; margin-top:8px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);">
       <span>${fmtWeight(sorted[0].weight)}</span>
       <span class="${deltaClass}">${deltaSign}${deltaDisplay} ${weightUnit} over ${sorted.length} entries</span>
       <span>${fmtWeight(sorted[sorted.length-1].weight)}</span>

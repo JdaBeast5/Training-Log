@@ -165,7 +165,8 @@ test('REAL CASCADE: body.gym-mode .set-row-content, .set-note-input, .plate-resu
 test('REAL CASCADE: .vol-bar-fill now uses var(--cta-gradient-blue), which resolves to the exact literal it held before this pass', (assert)=>{
   assert.strictEqual(countRuleOpenings(src, '.vol-bar-fill'), 1);
   const ctaBlue = extractCustomProp(rootBlock, 'cta-gradient-blue');
-  assert.strictEqual(ctaBlue, 'linear-gradient(160deg, #6E8AFF, var(--plate-blue) 60%)', 'sanity: matches the known token value');
+  // v3.280 (tasteskill rollout) deliberately flattened this token to #3860FF — a deeper --plate-blue step chosen so white text passes 4.5:1 (4.9:1, against 3.1-3.6:1 on the old gradient). The structural point of this test (call sites share the one token) still holds.
+  assert.strictEqual(ctaBlue, '#3860FF', 'sanity: matches the known token value');
   const block = extractRuleBlock(src, '.vol-bar-fill');
   assert.match(block, /background:var\(--cta-gradient-blue\)/, 'expected .vol-bar-fill to reference the shared token, not a duplicate literal');
   const resolved = resolveToken(block, 'cta-gradient-blue', ctaBlue);
@@ -181,11 +182,16 @@ test('sabotage-relevant: --cta-gloss-inset and --fab-gloss-inset are each declar
 });
 
 test('sabotage-relevant: var(--cta-gloss-inset) appears at exactly 10 real call sites, var(--fab-gloss-inset) at exactly 6', (assert)=>{
-  assert.strictEqual((src.match(/var\(--cta-gloss-inset\)/g) || []).length, 10);
+  // 10 -> 3 in v3.280: the gloss highlight came off .save-btn (base + :active),
+  // .day-done-badge, the supplement/grocery checks, .program-rec-btn and
+  // .recipe-log-btn/.supplement-add-btn when filled controls went flat.
+  assert.strictEqual((src.match(/var\(--cta-gloss-inset\)/g) || []).length, 3);
   // 6, not the original 5 — .coach-fab.dragging (the drag-to-reposition
   // feature) reuses this same token for its own lift-shadow, consistent
   // with every other FAB active/hover state already doing so.
-  assert.strictEqual((src.match(/var\(--fab-gloss-inset\)/g) || []).length, 6);
+  // 6 -> 1 in v3.283: both FABs (base, :active, .dragging) and their gloss
+  // went neutral; only .day-hero-plate, the modelled day plate, keeps it.
+  assert.strictEqual((src.match(/var\(--fab-gloss-inset\)/g) || []).length, 1);
 });
 
 test('REAL CASCADE: a representative sample of --cta-gloss-inset call sites resolve to the exact pre-conversion literal', (assert)=>{
@@ -195,8 +201,8 @@ test('REAL CASCADE: a representative sample of --cta-gloss-inset call sites reso
   const checkboxBlock = resolveToken(extractRuleBlock(src, '.exercise input[type=checkbox]:checked'), 'cta-gloss-inset', gloss);
   assert.ok(checkboxBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset;'), `checkbox check must resolve to the exact pre-conversion single-layer shadow, got: ${checkboxBlock}`);
 
-  const saveBtnBlock = resolveToken(extractRuleBlock(src, '.save-btn'), 'cta-gloss-inset', gloss);
-  assert.ok(saveBtnBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset, 0 6px 16px -6px rgba(var(--plate-blue-rgb),0.55);'), `.save-btn must resolve to its exact original multi-layer shadow, got: ${saveBtnBlock}`);
+  // .save-btn left this sample in v3.280: it is flat now, with no shadow at all.
+  assert.doesNotMatch(extractRuleBlock(src, '.save-btn'), /box-shadow/, '.save-btn is flat since v3.280');
 
   const compareBtnBlock = resolveToken(extractRuleBlock(src, '.compare-confirm-btn'), 'cta-gloss-inset', gloss);
   assert.ok(compareBtnBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.25) inset, 0 4px 12px -6px rgba(var(--plate-blue-rgb),0.5);'), `.compare-confirm-btn must resolve to its exact original shadow, got: ${compareBtnBlock}`);
@@ -210,8 +216,8 @@ test('REAL CASCADE: a representative sample of --fab-gloss-inset call sites reso
   const heroPlateBlock = resolveToken(extractRuleBlock(src, '.day-hero-plate'), 'fab-gloss-inset', gloss);
   assert.ok(heroPlateBlock.includes('0 1px 0 rgba(var(--surface-white-rgb),0.35) inset,'), `.day-hero-plate must resolve to its exact original shadow layer, got: ${heroPlateBlock}`);
 
-  const coachFabBlock = resolveToken(extractRuleBlock(src, '.coach-fab'), 'fab-gloss-inset', gloss);
-  assert.ok(coachFabBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.35) inset, 0 14px 34px -8px rgba(var(--plate-blue-rgb),0.65), 0 0 50px -14px rgba(var(--plate-blue-rgb),0.55);'), `.coach-fab must resolve to its exact original shadow, got: ${coachFabBlock}`);
+  // .coach-fab left this sample in v3.283: it uses a neutral float shadow now.
+  assert.doesNotMatch(extractRuleBlock(src, '.coach-fab'), /fab-gloss-inset/);
 
   // .today-fab:active's own glow color was later (a separate, deliberate
   // color fix, not a mechanical dedup — see test-today-fab-glow-color.js)
@@ -219,8 +225,8 @@ test('REAL CASCADE: a representative sample of --fab-gloss-inset call sites reso
   // matching how .coach-fab's own glow above already resolves through
   // --plate-blue-rgb rather than a hand-picked literal. Only the
   // --fab-gloss-inset layer (this test's actual subject) is checked here.
-  const todayFabActiveBlock = resolveToken(extractRuleBlock(src, '.today-fab:active'), 'fab-gloss-inset', gloss);
-  assert.ok(todayFabActiveBlock.includes('box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.35) inset, 0 8px 20px -8px rgba(var(--plate-yellow-rgb),0.5);'), `.today-fab:active must resolve its --fab-gloss-inset layer correctly, got: ${todayFabActiveBlock}`);
+  // .today-fab:active left this sample in v3.283: pressing scales it, no glow.
+  assert.doesNotMatch(extractRuleBlock(src, '.today-fab:active'), /fab-gloss-inset|box-shadow/);
 });
 
 // ── Glass blur + nav-glass background: 4 and 3 real call sites ─────────

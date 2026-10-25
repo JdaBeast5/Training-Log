@@ -152,12 +152,14 @@ test('REAL CASCADE: body{} composite background (blue AND yellow radial-gradient
   assert.match(resolved, /radial-gradient\(circle at 88% 14%, rgba\(245,197,24,0\.035\), transparent 38%\)/, 'resolved yellow radial-gradient stop must byte-match the original literal');
 });
 
-test('REAL CASCADE: .streak-badge gradient+border (yellow) resolve to the exact pre-conversion literals', (assert)=>{
+test('REAL CASCADE: .streak-badge background+border (yellow) resolve to the yellow token (flat since v3.278)', (assert)=>{
   assert.strictEqual(countRuleOpenings(src, '.streak-badge'), 1, '.streak-badge must be declared exactly once');
   const block = extractRuleBlock(src, '.streak-badge');
   assert.doesNotMatch(block, /rgba\(245,\s*197,\s*24,\s*0\.14|rgba\(245,\s*197,\s*24,\s*0\.05|rgba\(245,\s*197,\s*24,\s*0\.32/, 'the literal yellow rgba() background/border must be gone');
   const resolved = resolveVars(block);
-  assert.match(resolved, /background:linear-gradient\(160deg, rgba\(245,197,24,0\.14\), rgba\(245,197,24,0\.05\)\);/, 'resolved gradient must byte-match the original literal gradient');
+  // v3.278 (tasteskill rollout): the badge's gradient became a flat tint at
+  // its own midpoint (0.14 -> 0.05 averages to ~0.10), still via the token.
+  assert.match(resolved, /background:rgba\(245,197,24,0\.10\);/, 'resolved flat tint must be the yellow token at 0.10');
   assert.match(resolved, /border:1px solid rgba\(245,197,24,0\.32\);/, 'resolved border must byte-match the original literal border');
 });
 

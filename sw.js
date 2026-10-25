@@ -192,12 +192,17 @@
 // background/border/gradient rgba() literals (red/green/orange/teal/purple).
 // Purely internal (same computed colors); doesn't touch this file directly,
 // but the version still has to move.
-const VERSION = '3.269';
+const VERSION = '3.285';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the
-// app uses (fonts, the Anthropic API, USDA, ZXing) is deliberately NOT
-// precached — see the fetch handler.
+// app uses (the Anthropic API, USDA, ZXing) is deliberately NOT precached —
+// see the fetch handler.
+//
+// v3.270: fonts moved from the Google Fonts CDN to ./fonts/ (same-origin), so
+// they ARE precached now, as optional entries: a missing font file degrades
+// the type to the system face, it must not block an update.
+// v3.276: the faces are now Geist + Geist Mono (variable, one file each).
 // SPLIT INTO ESSENTIAL AND OPTIONAL, and this distinction is the whole point.
 //
 // cache.addAll() is atomic: one 404 rejects the entire promise, the install
@@ -223,6 +228,8 @@ const PRECACHE_OPTIONAL = [
   './apple-touch-icon.png',
   './apple-touch-icon-167.png',
   './apple-touch-icon-152.png',
+  './fonts/geist-latin-wght-normal.woff2',
+  './fonts/geist-mono-latin-wght-normal.woff2',
 ];
 
 self.addEventListener('install', (event)=>{
@@ -295,7 +302,7 @@ self.addEventListener('fetch', (event)=>{
   if(url.searchParams.has('__diag')) return;
 
   // Cross-origin is passed straight through and never cached. The API calls
-  // (api.anthropic.com), USDA lookups, barcode library and web fonts all live
+  // (api.anthropic.com), USDA lookups and barcode library all live
   // here, and caching any of them would be wrong in a different way each time:
   // stale API responses, a stale food database, and a cache that grows without
   // bound against the same origin quota the photos and localStorage share.
