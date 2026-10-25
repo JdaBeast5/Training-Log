@@ -9,8 +9,8 @@
 //    logs it in one tap (with Undo), "Log set" opens the sheet when there is
 //    nothing to suggest, and it hides when nothing is left;
 //  - the open exercise follows the next set, so the chips on screen are the
-//    ones being logged — including past an exercise that is finished but not
-//    ticked (ticking needs an RPE on every set; a one-tap log leaves it empty).
+//    ones being logged — including past an exercise that is finished but whose
+//    box was unticked by hand (v3.302 made RPE optional for the auto-tick).
 // Confirmed in Chromium (390x844, seeded): entering gym mode showed Barbell
 // Row's chips at 167x76 with no field rows; three dock taps logged sets 2-4
 // with "Logged Barbell Row 135×8"; the open card moved to Overhead Press and
@@ -72,7 +72,7 @@ test('REAL invocation: nothing to suggest → "Log set" opens the sheet on the n
   assert.strictEqual(done.document.getElementById('gymLogBtn').hidden, true);
 });
 
-test('REAL invocation: in gym mode the open exercise follows the next set, one open at a time (an exercise finished but not ticked is passed); outside gym mode nothing moves', (assert)=>{
+test('REAL invocation: in gym mode the open exercise follows the next set, one open at a time (an exercise finished but unticked is passed); outside gym mode nothing moves', (assert)=>{
   const list = block(1, 'Barbell Row', row(1, 0, '8') + row(1, 1, '8'), true) + block(2, 'Overhead Press', row(2, 0));
   const w = mount(list, {});
   assert.deepStrictEqual([...w.document.querySelectorAll('.exercise-block.open')].map(b => b.dataset.b), ['2']);

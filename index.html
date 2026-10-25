@@ -6654,7 +6654,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.301';
+const APP_VERSION = '3.302';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7417,6 +7417,8 @@ const WHATS_NEW = {
   ]},  '3.301': { headline: 'Gym mode, rebuilt around chips', points: [
     'Gym mode shows your current exercise as big set chips, and the bottom bar has a Log button for your next set — one tap, right by the rest timer.',
     'The screen moves on to the next exercise by itself as you go.',
+  ]},  '3.302': { headline: 'RPE is optional', points: [
+    'An exercise now checks itself off once every set has its weight and reps. RPE is there when you want it.',
   ]},
 };
 
@@ -28988,8 +28990,7 @@ function refreshGymLogBtn(){
   if(!next) return;
   // In gym mode the open exercise follows the next set (one open at a time),
   // so the big chips on screen are always the ones being logged — including
-  // when an exercise is finished but not ticked (ticking needs an RPE on
-  // every set, and a one-tap log leaves RPE empty).
+  // when an exercise is finished but its box was unticked by hand.
   if(gymModeActive){
     const block = next.closest('.exercise-block');
     if(block && !block.classList.contains('open')){
@@ -29790,14 +29791,14 @@ function checkAllSetsCompleteAndAutoCheck(row, block, exIdx){
     const w = r.querySelector('.ex-weight');
     const d = r.querySelector('.ex-distance');
     const reps = r.querySelector('.ex-reps');
-    const rpe = r.querySelector('.ex-rpe');
     if(requiresWeight && (!w || w.value === '')) return false;
     // Same rule as weight: if the row has the field, it has to be filled
     // before the exercise auto-checks itself off. A run with a duration but
     // no distance is a half-logged set, not a finished one.
     if(requiresDistance && (!d || d.value === '')) return false;
     if(!reps || reps.value === '') return false;
-    if(!rpe || rpe.value === '') return false;
+    // v3.302 (owner): RPE is optional. A set chip logs weight and reps in one
+    // tap, so requiring RPE meant no exercise ever ticked itself off.
     return true;
   });
   if(!allComplete) return;
@@ -37640,8 +37641,8 @@ async function fetchDayStatuses(){
       const def = dayDefs && dayDefs[dayId];
       out.set(date, (def && def.rest) ? 'rest' : 'off');
     }
-    // anyDone only tracks exercise CHECKBOXES, which require every field
-    // (including RPE) before checkAllSetsCompleteAndAutoCheck ticks one on
+    // anyDone only tracks exercise CHECKBOXES, which require every set's
+    // weight and reps (RPE optional since v3.302) before checkAllSetsCompleteAndAutoCheck ticks one on
     // its own — so a day with real logged weight/reps/distance but no
     // checkbox ever checked came through as 'rest'/'off' above, even though
     // the streak (saveExSet's own activity gate) and the Day-by-Day Log
