@@ -617,30 +617,37 @@
   .card-icon svg{width:100%; height:100%;}
   .day-plate-inline{width:20px; height:20px; border-radius:50%; flex:0 0 auto; border:2px solid rgba(var(--overlay-black-rgb),0.25);}
   .duration-tag{
-    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11.5px; color:var(--text-muted);
-    margin-bottom:4px; margin-top:2px;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:13px; color:var(--text-muted);
   }
   .mesocycle-phase-tag{
     display:inline-flex; align-items:center; font-family:var(--font-sans); font-variant-numeric:tabular-nums;
-    font-size:11px; padding:3px 9px; border-radius:999px; margin:2px 0 6px;
+    font-size:12px; padding:3px 10px; border-radius:999px;
     background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
   }
   .mesocycle-phase-tag:empty{display:none;}
   .mesocycle-phase-tag.deload{
     background:rgba(var(--plate-red-rgb),0.12); border-color:rgba(var(--plate-red-rgb),0.38); color:var(--plate-red);
   }
-  .duration-row{display:flex; align-items:center; justify-content:space-between; gap:8px;}
-  .duration-row .duration-tag{margin-bottom:0;}
-  .session-length-select{
-    font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:11px; background:var(--surface2);
-    border:1px solid var(--line); color:var(--text-muted); border-radius:var(--radius-sm);
-    padding:3px 8px; appearance:none; -webkit-appearance:none; cursor:pointer;
-  }
-  .session-length-select:focus{outline:none; border-color:var(--plate-blue);}
+  /* v3.291 (Impeccable layout pass): one meta line (phase pill + length), the
+     calorie line tight under it, then the actions row with a clear gap. */
+  .duration-row{display:flex; align-items:center; flex-wrap:wrap; gap:6px 10px; margin-top:4px;}
   .session-cal-total{
-    font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:12px; color:var(--plate-yellow);
-    margin-bottom:14px; font-weight:600;
+    font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:13px; color:var(--plate-yellow);
+    margin-top:6px; font-weight:500;
   }
+  .session-actions{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:16px 0 14px;}
+  /* Session length: a glass pill matching Gym mode beside it. Selects render at
+     16px whatever this says (the global iOS zoom guard, font-size:16px
+     !important), so Gym mode is set at 16px too and the pair matches. */
+  .session-length-select{
+    font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:15px; font-weight:600;
+    width:100%; color:var(--text); min-height:44px; padding:0 34px 0 16px; border-radius:var(--radius-pill);
+    border:1px solid var(--glass-hair); background:var(--glass-fill);
+    appearance:none; -webkit-appearance:none; cursor:pointer; text-align:center; text-align-last:center;
+  }
+  .session-length-wrap{position:relative; display:block;}
+  .session-length-chevron{position:absolute; right:16px; top:50%; width:12px; height:12px; margin-top:-6px; color:var(--text-muted); pointer-events:none;}
+  .session-length-select:focus-visible{outline:2px solid var(--focus-ring-color); outline-offset:2px;}
   .ex-cal-tag{
     font-size:11px; color:var(--plate-yellow); text-align:right; margin-top:2px; font-weight:600;
   }
@@ -4086,6 +4093,7 @@
   body.gym-mode #workoutCard .workout-hero,
   body.gym-mode #workoutCard .mesocycle-phase-tag,
   body.gym-mode #workoutCard .duration-row,
+  body.gym-mode #workoutCard .session-actions,
   body.gym-mode #workoutCard .session-cal-total,
   body.gym-mode #workoutCard .day-insight,
   body.gym-mode #workoutCard #todayStandoutBanner,
@@ -4628,12 +4636,12 @@
      thing it changes. */
   .gym-enter-btn{
     display:flex; align-items:center; justify-content:center; gap:8px;
-    width:100%; min-height:50px; margin:2px 0 14px;
+    width:100%; min-height:44px; margin:0;
     /* Flat fill at the old gradient's midpoint (tasteskill Today pilot, v3.275). */
     background:var(--glass-fill);
     color:var(--text); border:1px solid rgba(91,124,255,0.45); /* literal on purpose: gym mode's own hand-tuned block (see test-rgba-blue-yellow-consolidation) */
     border-radius:var(--radius-pill);
-    font-family:var(--font-sans); font-size:15px; font-weight:600;
+    font-family:var(--font-sans); font-size:16px; font-weight:600;
     cursor:pointer; transition:transform 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth);
   }
   .gym-enter-btn:active{transform:scale(0.985); border-color:rgba(91,124,255,0.7);}
@@ -4983,12 +4991,24 @@
         <div class="workout-hero-title" id="dayTitle"></div>
       </div>
     </div>
-    <div class="mesocycle-phase-tag" id="mesocyclePhaseTag"></div>
+    <!-- v3.291 (Impeccable layout pass): what the session is (phase, length,
+         calories) reads as one quiet line, then the two ways to change HOW
+         you run it — length and gym mode — sit together as one row of
+         matched pills, ahead of "Up next". -->
     <div class="duration-row">
+      <div class="mesocycle-phase-tag" id="mesocyclePhaseTag"></div>
       <div class="duration-tag" id="dayDuration"></div>
-      <select class="session-length-select" id="sessionLengthSelector" aria-label="Session length"></select>
     </div>
     <div class="session-cal-total" id="sessionCalTotal"></div>
+    <div class="session-actions">
+      <span class="session-length-wrap">
+        <select class="session-length-select" id="sessionLengthSelector" aria-label="Session length"></select>
+        <svg class="session-length-chevron" aria-hidden="true" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,4.5 6,7.5 9,4.5"/></svg>
+      </span>
+      <button type="button" class="gym-enter-btn" id="gymEnterBtn">
+        <svg class="gym-enter-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg> Gym mode
+      </button>
+    </div>
     <!-- [GLASS & GLOW, v3.290] "Up next": the next set to do, one tap to log it.
          A thin front end over the real set rows below — renderUpNext() reads
          the first row with no reps yet, and logging writes into THAT row and
@@ -5018,9 +5038,6 @@
     </div>
     <div class="today-standout-banner" id="todayStandoutBanner" style="display:none"></div>
     <div id="voiceHintBanner" style="display:none"></div>
-    <button type="button" class="gym-enter-btn" id="gymEnterBtn">
-      <svg class="gym-enter-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg> Gym mode
-    </button>
     <div id="exerciseList"></div>
     <button class="custom-toggle" id="addCustomExerciseBtn">+ Add custom exercise</button>
     <div id="customExerciseForm" class="smooth-toggle"><div>
@@ -6639,7 +6656,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.290';
+const APP_VERSION = '3.291';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7374,6 +7391,9 @@ const WHATS_NEW = {
   '3.290': { headline: 'Up next: log a set in one tap', points: [
     'A new card at the top of your workout shows the next set to do, with last time\'s numbers filled in. Adjust if needed and tap Log set.',
     'The ring fills as you go: sets done out of today\'s total. Rest timer, PRs and everything else work exactly as before.',
+  ]},  '3.291': { headline: 'Tidier session controls', points: [
+    'Session length and Gym mode now sit side by side as a matching pair, right above Up next.',
+    'The week, length and calories read as one quiet line instead of four different styles.',
   ]},
 };
 
