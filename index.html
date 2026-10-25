@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Training Log">
-<meta name="theme-color" content="#0A0B0D">
+<meta name="theme-color" content="#050507">
 <link rel="manifest" href="./manifest.json">
 <!-- Fonts are self-hosted from ./fonts/ (fontsource variable builds, latin
      subset, OFL — licence beside them) so they are same-origin, precached by
@@ -66,7 +66,23 @@
     color-scheme:dark;
     --font-sans:'Geist',-apple-system,BlinkMacSystemFont,sans-serif;
     --font-mono:'Geist Mono',ui-monospace,monospace;
-    --bg:#0A0B0D;
+    --bg:#050507;
+    /* [GLASS & GLOW, v3.286] The owner-chosen direction (concept A): deep
+       black, soft red/blue/violet light behind everything, frosted-glass
+       panels. --aura is painted once on a FIXED layer (body::before) — iOS
+       Safari ignores background-attachment:fixed. Cards get their glass look
+       from translucency over that light, NOT from backdrop-filter: blur on
+       scrolling content forces a repaint every frame on a phone (the soft
+       skill's own guardrail), so real blur is kept for fixed chrome only. */
+    --aura:
+      radial-gradient(420px 380px at 88% -6%, rgba(var(--plate-red-rgb),.40), transparent 70%),
+      radial-gradient(380px 360px at -12% 32%, rgba(var(--plate-blue-rgb),.30), transparent 70%),
+      radial-gradient(520px 440px at 62% 112%, rgba(var(--plate-purple-rgb),.24), transparent 70%);
+    --glass-fill:linear-gradient(160deg, rgba(var(--surface-white-rgb),.085), rgba(var(--surface-white-rgb),.025));
+    --glass-hair:rgba(var(--surface-white-rgb),.10);
+    --glass-shine:inset 0 1px 0 rgba(var(--surface-white-rgb),.12);
+    --glass-shadow:0 30px 60px -30px rgba(var(--overlay-black-rgb),.8);
+    --radius-card:28px;
     --surface:#17191D;
     --surface2:#1F2226;
     --line:#26292F;
@@ -268,11 +284,7 @@
   ::selection{ background:rgba(var(--plate-blue-rgb),0.32); color:var(--text); }
   ::-moz-selection{ background:rgba(var(--plate-blue-rgb),0.32); color:var(--text); }
   body{
-    background:
-      radial-gradient(circle at 12% -4%, rgba(var(--plate-blue-rgb),0.07), transparent 42%),
-      radial-gradient(circle at 88% 14%, rgba(var(--plate-yellow-rgb),0.035), transparent 38%),
-      var(--bg);
-    background-attachment:fixed;
+    background:var(--bg);
     color:var(--text);
     font-family:var(--font-sans);
     padding-bottom:96px;
@@ -281,6 +293,12 @@
     animation:appFadeIn 0.5s var(--ease-smooth);
   }
   @keyframes appFadeIn{ from{opacity:0;} to{opacity:1;} }
+  /* The light behind the glass (v3.286): one fixed, non-interactive layer. */
+  body::before{
+    content:''; position:fixed; inset:0; z-index:-1; pointer-events:none;
+    background:var(--aura);
+  }
+  body.gym-mode::before{ display:none; } /* gym mode keeps its hand-tuned black ground */
 
   .pull-refresh-indicator{
     position:fixed; top:0; left:0; right:0; height:70px;
@@ -523,16 +541,15 @@
   .reorder-arrows button:disabled{opacity:0.25;}
 
   .card{
-    /* [TASTESKILL ROLLOUT, v3.277] A resting card is a lightness step alone
-       (--surface on --bg): no visible border, no shadow, no blue --lift bloom
-       and no sheen line along its top (the old ::before). Shadows and glass are
-       for what floats — nav, sheets, overlays — per the owner's call. Proven on
-       Today in the v3.272 pilot, then promoted here so every view matches. The
-       border stays as 1px transparent so no card's box moves by a pixel. */
+    /* [GLASS & GLOW, v3.286] Supersedes the v3.277 flat card at the owner's
+       direction (concept A). A frosted-glass panel: translucent fill over the
+       fixed aura, a light hairline, a top inner highlight and a soft deep
+       shadow. Deliberately no backdrop-filter here — see --aura in :root. */
     position:relative;
-    background:var(--surface);
-    border:1px solid transparent;
-    border-radius:var(--radius-lg);
+    background:var(--glass-fill);
+    border:1px solid var(--glass-hair);
+    border-radius:var(--radius-card);
+    box-shadow:var(--glass-shine), var(--glass-shadow);
     /* Even on all four sides. This read 22px 22px 23px, which put one more
        pixel under the content than above it on all 62 cards. */
     padding:22px;
@@ -6583,7 +6600,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.285';
+const APP_VERSION = '3.286';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7298,6 +7315,10 @@ const WHATS_NEW = {
   ]},
   '3.285': { headline: 'The last emoji on Today', points: [
     'Today\'s Priorities, the profile and backup buttons, and the coach button now use words and a simple chat icon instead of emoji that looked different on every phone.',
+  ]},
+  '3.286': { headline: 'Glass & glow', points: [
+    'A new look: deep black with soft red, blue and violet light behind frosted-glass cards.',
+    'Gym mode keeps its plain black background for focus.',
   ]},
 };
 

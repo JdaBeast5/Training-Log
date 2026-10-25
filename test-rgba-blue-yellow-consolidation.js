@@ -144,12 +144,19 @@ test('REAL CASCADE: ::selection and ::-moz-selection (blue) resolve to the exact
   assert.match(resolveVars(mozBlock), /background:rgba\(91,124,255,0\.32\);/, 'resolved ::-moz-selection background must byte-match the original literal');
 });
 
-test('REAL CASCADE: body{} composite background (blue AND yellow radial-gradient stops together) resolves to the exact pre-conversion literals', (assert)=>{
-  const block = extractRuleBlock(src, 'body');
-  assert.doesNotMatch(block, /rgba\(91,\s*124,\s*255,|rgba\(245,\s*197,\s*24,/, 'neither literal must remain in the body{} rule');
-  const resolved = resolveVars(block);
-  assert.match(resolved, /radial-gradient\(circle at 12% -4%, rgba\(91,124,255,0\.07\), transparent 42%\)/, 'resolved blue radial-gradient stop must byte-match the original literal');
-  assert.match(resolved, /radial-gradient\(circle at 88% 14%, rgba\(245,197,24,0\.035\), transparent 38%\)/, 'resolved yellow radial-gradient stop must byte-match the original literal');
+// v3.286 (Glass & glow, owner-chosen): the body's two faint washes were
+// replaced by --aura, painted on a fixed body::before layer (iOS ignores
+// background-attachment:fixed). The token rule this test exists for still
+// holds: every aura stop goes through a plate token, never a literal.
+test('REAL CASCADE: the background light (--aura, on body::before) is built from plate tokens, not literals', (assert)=>{
+  const body = extractRuleBlock(src, 'body');
+  assert.doesNotMatch(body, /rgba\(91,\s*124,\s*255,|rgba\(245,\s*197,\s*24,/, 'no literal blue/yellow in body{}');
+  assert.match(body, /background:var\(--bg\);/);
+  const aura = src.match(/--aura:([^;]*);/)[1];
+  assert.match(aura, /rgba\(var\(--plate-red-rgb\),/);
+  assert.match(aura, /rgba\(var\(--plate-blue-rgb\),/);
+  assert.match(aura, /rgba\(var\(--plate-purple-rgb\),/);
+  assert.doesNotMatch(aura, /rgba\(\d/, 'no literal rgba() stops in --aura');
 });
 
 test('REAL CASCADE: .streak-badge background+border (yellow) resolve to the yellow token (flat since v3.278)', (assert)=>{
