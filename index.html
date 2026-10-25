@@ -1479,7 +1479,35 @@
     font-weight:700; font-size:15px;
     margin-bottom:10px; padding-bottom:10px; border-bottom:1px solid var(--line-soft);
   }
-  .settings-panel-close{background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer; padding:4px;}
+  /* v3.307: "Done", trailing, in the app's interaction colour (Apple HIG sheets). */
+  .settings-panel-close{background:none; border:none; color:var(--plate-blue); font-size:16px; font-weight:600; cursor:pointer; padding:10px 4px; min-height:44px; font-family:var(--font-sans);}
+  /* v3.307 (2.0, Apple HIG): on a phone, Settings is a bottom sheet with a
+     grabber — the same sheet as the set logger — not a card dropped from the
+     corner. Wider screens keep the panel by the cog. */
+  @media (max-width: 600px){
+    .settings-modal{align-items:flex-end; justify-content:center;}
+    .settings-panel{
+      margin:0; width:100%; max-height:88vh; border-radius:28px 28px 0 0; border-bottom:0;
+      padding:8px 18px calc(16px + env(safe-area-inset-bottom, 0px));
+      transform:translateY(100%); transform-origin:bottom center;
+    }
+    .settings-modal.active .settings-panel{transform:translateY(0);}
+    .settings-panel::before{content:''; display:block; flex:0 0 auto; width:38px; height:5px; border-radius:3px; background:rgba(var(--surface-white-rgb),0.25); margin:0 auto 6px;}
+  }
+  /* v3.307: settings' on/off rows are iOS switches — label on the left, switch
+     on the right, a 44px row. Scoped to Settings; checkboxes elsewhere keep
+     their own look. */
+  .settings-panel-body .save-to-library-label{flex-direction:row-reverse; justify-content:space-between; gap:12px; min-height:44px; font-size:15px; color:var(--text);}
+  .settings-panel-body .save-to-library-label > span{flex:1;}
+  .settings-panel-body .save-to-library-label input[type=checkbox]{width:51px; height:31px; border-radius:999px; border:0; background:rgba(var(--surface-white-rgb),0.16);}
+  .settings-panel-body .save-to-library-label input[type=checkbox]::before{
+    content:''; position:absolute; top:2px; left:2px; width:27px; height:27px; border-radius:50%;
+    background:#fff; box-shadow:0 2px 6px rgba(var(--overlay-black-rgb),0.35); transition:transform 0.22s var(--ease-smooth);
+  }
+  .settings-panel-body .save-to-library-label input[type=checkbox]:checked{background:var(--plate-green); border-color:transparent;}
+  .settings-panel-body .save-to-library-label input[type=checkbox]:checked::before{transform:translateX(20px);}
+  .settings-panel-body .save-to-library-label input[type=checkbox]:checked::after{display:none;}
+  .settings-panel-body .save-to-library-label input[type=checkbox]:active{transform:none;}
   /* The scroll lives on the body, not the panel, so the header stays put and
      the rounded corners never clip a mid-scroll row. */
   .settings-panel-body{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-right:2px;}
@@ -6360,7 +6388,7 @@
   <div class="settings-panel">
     <div class="settings-panel-header">
       <div class="settings-panel-title" id="settingsTitle">Settings</div>
-      <button class="settings-panel-close" id="settingsClose" aria-label="Close settings">✕</button>
+      <button class="settings-panel-close" id="settingsClose">Done</button>
     </div>
     <div class="settings-panel-body">
 
@@ -6671,7 +6699,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.306';
+const APP_VERSION = '3.307';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7446,6 +7474,8 @@ const WHATS_NEW = {
     'Each tab now opens with just its title. Your streak and profile line stay on Today.',
   ]},  '3.306': { headline: 'A clearer More menu', points: [
     'Care, Coach and Learn now each show an icon and a line about what is inside.',
+  ]},  '3.307': { headline: 'Settings, iPhone-style', points: [
+    'Settings slides up from the bottom like the rest of the app, with switches for anything on or off and a Done button.',
   ]},
 };
 
@@ -45157,6 +45187,9 @@ wireCustomProgramUI();
   // Settings copy: check the app, then bring in outside data.
   move('diagCard', 'settingsMaintenanceSlot');
   move('healthImportCard', 'settingsMaintenanceSlot');
+  // v3.307 (2.0, Apple HIG): on/off settings are switches, and say so to
+  // VoiceOver ("switch, on") rather than "checkbox, checked".
+  overlay.querySelectorAll('.settings-panel-body .save-to-library-label input[type=checkbox]').forEach(c => c.setAttribute('role', 'switch'));
 
   // The rest-alert permission is OS state, so a second control for it is not a
   // second copy of a setting — both surfaces read Notification.permission and

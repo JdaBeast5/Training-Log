@@ -11,6 +11,9 @@
 // v3.306 — The More sheet is an inset grouped list (Apple HIG): each row a
 // drawn icon, its name, one line on what is inside, and a chevron; 60px rows.
 // Before: three bare words.
+// v3.307 — Settings on a phone is a bottom sheet with a grabber and a "Done"
+// button (Apple HIG sheets), and on/off settings are iOS switches announced as
+// switches. Before: a card dropped from the cog, checkboxes, and a ✕.
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -50,6 +53,30 @@ test('REAL markup + CSSOM (v3.306): More is a grouped list — icon, name, descr
     assert.strictEqual(window.getComputedStyle(r).minHeight, '60px');
   }
   assert.strictEqual(rows.map(r => r.querySelector('.nav-more-label').textContent).join(','), 'Care,Coach,Learn');
+});
+
+test('REAL CSSOM + markup (v3.307): Settings is a bottom sheet on a phone, with Done; on/off rows are 51x31 switches', (assert)=>{
+  const done = html.match(/<button class="settings-panel-close" id="settingsClose">([^<]*)<\/button>/);
+  assert.ok(done && done[1] === 'Done', 'a visible "Done", not an unlabelled ✕');
+  const phone = CSS.match(/@media \(max-width: 600px\)\{[\s\S]*?\.settings-modal\{align-items:flex-end;[\s\S]*?\.settings-panel::before\{[^}]*\}\s*\}/);
+  assert.ok(phone, 'the phone rule docks it to the bottom and draws a grabber');
+  assert.match(phone[0], /border-radius:28px 28px 0 0/);
+  const { window } = new JSDOM(`<style>${CSS}</style><div class="settings-panel-body"><label class="save-to-library-label"><input type="checkbox" id="a" checked><span>Keep the screen awake</span></label></div>`);
+  const box = window.getComputedStyle(window.document.getElementById('a'));
+  assert.strictEqual(box.width, '51px'); assert.strictEqual(box.height, '31px');
+  assert.match(CSS, /\.settings-panel-body \.save-to-library-label input\[type=checkbox\]:checked::before\{transform:translateX\(20px\);\}/, 'the knob slides when on');
+  assert.strictEqual(window.getComputedStyle(window.document.querySelector('.save-to-library-label')).flexDirection, 'row-reverse', 'label left, switch right');
+});
+
+test('REAL invocation (v3.307): wireSettings marks every settings on/off control as a switch', (assert)=>{
+  const start = src.indexOf('(function wireSettings(){');
+  const a = src.indexOf("  move('healthImportCard', 'settingsMaintenanceSlot');", start);
+  const line = src.slice(a).split('\n').find(l => l.includes("setAttribute('role', 'switch')"));
+  assert.ok(line, 'the role is set in wireSettings, after the moves');
+  const { window } = runJsdom(`<div id="settingsOverlay"><div class="settings-panel-body"><label class="save-to-library-label"><input type="checkbox"></label><label class="save-to-library-label"><input type="checkbox"></label></div></div><input type="checkbox" id="outside">`,
+    "var overlay = document.getElementById('settingsOverlay');", [line]);
+  assert.deepStrictEqual([...window.document.querySelectorAll('.settings-panel-body input')].map(i => i.getAttribute('role')), ['switch', 'switch']);
+  assert.strictEqual(window.document.getElementById('outside').getAttribute('role'), null, 'only inside Settings');
 });
 
 run();
