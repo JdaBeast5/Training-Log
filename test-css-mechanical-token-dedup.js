@@ -144,16 +144,18 @@ test('REAL CASCADE: .ex-input:focus, .program-select:focus, .care-input:focus ea
 });
 
 // ── Gym-panel gradient: 4 real call sites ───────────────────────────────
-test('sabotage-relevant: var(--gym-panel-gradient) appears at exactly 4 real call sites', (assert)=>{
+// v3.300 (owner request): the plate calculator and voice set logging were removed with the set chips.
+// Its result panel was one of the four sites; three remain.
+test('sabotage-relevant: var(--gym-panel-gradient) appears at exactly 3 real call sites', (assert)=>{
   const count = (src.match(/var\(--gym-panel-gradient\)/g) || []).length;
-  assert.strictEqual(count, 4, `expected 4 usage sites, found ${count}`);
+  assert.strictEqual(count, 3, `expected 3 usage sites, found ${count}`);
 });
 
-test('REAL CASCADE: body.gym-mode .set-row-content, .set-note-input, .plate-result, .warmup-box all resolve to the exact pre-conversion gradient literal', (assert)=>{
+test('REAL CASCADE: body.gym-mode .set-row-content, .set-note-input, .warmup-box all resolve to the exact pre-conversion gradient literal', (assert)=>{
   const grad = extractCustomProp(rootBlock, 'gym-panel-gradient');
   assert.strictEqual(grad, 'linear-gradient(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%)', 'sanity: token holds the known pre-conversion literal');
 
-  for(const selector of ['body.gym-mode .set-row-content', 'body.gym-mode .set-note-input', 'body.gym-mode .plate-result', 'body.gym-mode .warmup-box']){
+  for(const selector of ['body.gym-mode .set-row-content', 'body.gym-mode .set-note-input', 'body.gym-mode .warmup-box']){
     const block = extractRuleBlock(src, selector);
     const resolved = resolveToken(block, 'gym-panel-gradient', grad);
     assert.ok(resolved.includes(`background:${grad};`), `${selector} must resolve to the exact pre-conversion gradient, got: ${resolved}`);

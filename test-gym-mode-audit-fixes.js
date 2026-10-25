@@ -103,10 +103,11 @@ test('regression guard: nothing open opens the first incomplete exercise, unchan
 
 // --- Finding 3: dark-well reskin for plate/voice/note panels ---------------
 
-test('sabotage-relevant: .plate-result, .voice-feedback, and .set-note-input all get a real dark gradient background in Gym Mode, not the normal-mode flat fill', (assert)=>{
-  const plateBlock = extractRuleBlock(src, 'body.gym-mode .plate-result');
-  const voiceBlock = extractRuleBlock(src, 'body.gym-mode .voice-feedback');
+// v3.300 (owner request): the plate calculator and voice set logging were removed with the set chips.
+// .plate-result and .voice-feedback went with them; .set-note-input stays.
+test('sabotage-relevant: .set-note-input gets a real dark gradient background in Gym Mode, not the normal-mode flat fill; the removed panels left no rules behind', (assert)=>{
   const noteBlock = extractRuleBlock(src, 'body.gym-mode .set-note-input');
+  assert.ok(!/\.plate-result|\.voice-feedback/.test(src), 'no leftover rules for the removed panels');
   // .plate-result and .set-note-input were later (a separate, purely-
   // mechanical dedup pass — see test-css-mechanical-token-dedup.js) swapped
   // from their own literal linear-gradient(170deg, ...) to the shared
@@ -116,9 +117,7 @@ test('sabotage-relevant: .plate-result, .voice-feedback, and .set-note-input all
   // .voice-feedback is a genuinely different, red-tinted recipe and was
   // untouched by that pass, so it still carries its own literal.
   const rootBlock = extractRuleBlock(src, ':root');
-  assert.match(rootBlock, /--gym-panel-gradient:linear-gradient\(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%\);/, 'sanity: the token .plate-result/.set-note-input now resolve through still holds the real gradient');
-  assert.match(plateBlock, /background:var\(--gym-panel-gradient\);/, '.plate-result must get a real gradient (via the shared token), not var(--surface2)');
-  assert.match(voiceBlock, /linear-gradient\(170deg/, '.voice-feedback must get a real gradient');
+  assert.match(rootBlock, /--gym-panel-gradient:linear-gradient\(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%\);/, 'sanity: the token .set-note-input resolves through still holds the real gradient');
   assert.match(noteBlock, /background:var\(--gym-panel-gradient\);/, '.set-note-input must get a real gradient (via the shared token)');
 });
 

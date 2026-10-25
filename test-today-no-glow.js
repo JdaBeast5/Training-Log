@@ -61,7 +61,8 @@ test('GUARD: no rule that matches anything on the Today screen casts a plate-col
 
 test('REAL CSSOM: the resting elements that cast shadows before v3.283 cast none now', (assert)=>{
   const rule = sel => { const f = allRules().filter(r => r.selectorText === sel); if(f.length !== 1) throw new Error(`${sel}: ${f.length}`); return f[0].style; };
-  for(const sel of ['.today-insight-row', '.voice-hint-banner', '.day-insight', '.program-select', '.program-limits', '.switch-profile-btn', '.show-more-btn', '.program-panel', '.custom-program-box', '.settings-cog', '.nav-pill.active']){
+  // v3.300 (owner request): the plate calculator and voice set logging were removed with the set chips. The voice tip (.voice-hint-banner) went with it.
+  for(const sel of ['.today-insight-row', '.day-insight', '.program-select', '.program-limits', '.switch-profile-btn', '.show-more-btn', '.program-panel', '.custom-program-box', '.settings-cog', '.nav-pill.active']){
     assert.strictEqual(rule(sel).getPropertyValue('box-shadow'), '', `${sel} still casts a shadow`);
   }
 });

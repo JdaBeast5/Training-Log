@@ -160,21 +160,15 @@ test('REAL CASCADE: .supplement-streak gradient+border (green) resolve to the ex
   assert.match(resolved, /border:1px solid rgba\(50,215,75,0\.32\);/, 'resolved border must byte-match the original literal border');
 });
 
-test('REAL CASCADE: .voice-feedback background+border (red) resolve to the exact pre-conversion literals', (assert)=>{
-  // Declared twice by design: the base rule here, plus a Gym Mode sizing
-  // override (`body.gym-mode .voice-feedback{...}`) that this pass must not
-  // touch — verified separately below. extractRuleBlock always returns the
-  // FIRST match in source order, which is this base (non-Gym-Mode) rule.
-  assert.strictEqual(countRuleOpenings(src, '.voice-feedback'), 2, '.voice-feedback must be declared exactly twice: the base rule and its Gym Mode override');
-  const block = extractRuleBlock(src, '.voice-feedback');
-  assert.doesNotMatch(block, /rgba\(255,\s*69,\s*58,/, 'the literal red rgba() must be gone');
-  const resolved = resolveVars(block);
-  assert.match(resolved, /background:rgba\(255,69,58,0\.1\);/, 'resolved background must byte-match the original literal');
-  assert.match(resolved, /border:1px solid rgba\(255,69,58,0\.3\);/, 'resolved border must byte-match the original literal');
+// v3.300 (owner request): the plate calculator and voice set logging were removed with the set chips.
+// .voice-feedback (voice set logging's result line) went with it; this test
+// used to check its consolidated red. It now checks nothing reintroduced it.
+test('REMOVED (v3.300): .voice-feedback no longer exists — no rule, base or Gym Mode', (assert)=>{
+  assert.strictEqual(countRuleOpenings(src, '.voice-feedback'), 0);
 });
 
 test('REAL CASCADE: .warmup-box background+border (orange) resolve to the exact pre-conversion literals', (assert)=>{
-  // Same Gym-Mode-override shape as .voice-feedback above.
+  // Declared twice: the base rule and its Gym Mode override.
   assert.strictEqual(countRuleOpenings(src, '.warmup-box'), 2, '.warmup-box must be declared exactly twice: the base rule and its Gym Mode override');
   const block = extractRuleBlock(src, '.warmup-box');
   assert.doesNotMatch(block, /rgba\(255,\s*122,\s*51,/, 'the literal orange rgba() must be gone');

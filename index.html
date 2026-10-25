@@ -238,9 +238,8 @@
        method as the --plate-*-rgb shadow-glow consolidation). */
     --focus-ring-glow:0 0 0 3px rgba(var(--plate-blue-rgb),0.15);
     /* The gym-mode "recessed well" panel background: four call sites
-       (.set-row-content, .set-note-input, .plate-result, .warmup-box —
-       .plate-result's own comment already flagged them as sharing "the same
-       gradient .set-row-content/.warmup-box already use") had this exact
+       (.set-row-content, .set-note-input, .warmup-box, and the plate
+       calculator's result panel until v3.300 removed it) had this exact
        gradient copy-pasted verbatim. Factored out here, same mechanical
        1:1 dedup as --focus-ring-glow above. */
     --gym-panel-gradient:linear-gradient(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%);
@@ -736,19 +735,6 @@
     padding:10px 12px; background:rgba(var(--plate-blue-rgb),0.08); border:1px solid rgba(var(--plate-blue-rgb),0.28);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
   }
-  /* v3.293 (Impeccable distill): a quiet note, not a third bordered box under
-     Up next — muted text on a faint fill, no hairline. */
-  .voice-hint-banner{
-    display:flex; align-items:center; gap:4px; padding:4px 4px 4px 14px; background:rgba(var(--plate-blue-rgb),0.06);
-    border:1px solid transparent; border-radius:var(--radius-md); font-size:13px; line-height:1.45;
-    color:var(--text-muted); margin-bottom:14px;
-  }
-  .voice-hint-banner b{color:var(--text); font-weight:600;}
-  .voice-hint-banner span:first-of-type{flex:1;}
-  .voice-hint-dismiss{
-    flex:0 0 auto; background:none; border:none; color:var(--text-muted); font-size:16px; line-height:1;
-    cursor:pointer; padding:0; min-width:44px; min-height:44px; /* v3.293: a full touch target, was 19x22px */
-  }
   .fade-out-dismiss{transition:opacity 0.3s var(--ease-smooth), transform 0.3s var(--ease-smooth);}
   .fade-out-dismiss.fading{opacity:0; transform:translateY(-8px);}
   .onboarding-row{
@@ -1186,24 +1172,30 @@
   }
 
   .ex-rpe{width:var(--set-meta-col);}
-  .plate-btn{
+  /* Describe a Meal's dictation button. These were the set row's voice-button
+     styles; set voice logging went in v3.300, so they now live on the one mic
+     left, scoped to its slot. */
+  #describeFoodVoiceSlot .voice-log-btn{
     flex:0 0 auto; width:34px; height:34px; border-radius:var(--radius-sm); border:1px solid var(--line);
-    background:var(--surface2); color:var(--text-muted); font-size:0; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; padding:0;
-    -webkit-touch-callout:none; -webkit-user-select:none; user-select:none;
-    -webkit-tap-highlight-color:transparent; touch-action:manipulation;
-  }
-  .plate-btn.active{border-color:var(--plate-blue); color:var(--plate-blue);}
-  .voice-log-btn{
-    flex:0 0 auto; width:34px; height:34px; border-radius:var(--radius-sm); border:1px solid var(--line);
-    background:var(--surface2); color:var(--text-muted); font-size:0; cursor:pointer;
+    background:var(--surface2); color:var(--text-muted); font-size:0; cursor:pointer; position:relative;
     display:flex; align-items:center; justify-content:center; padding:0;
     transition:border-color 0.2s var(--ease-smooth), color 0.2s var(--ease-smooth);
     -webkit-touch-callout:none; -webkit-user-select:none; user-select:none;
     -webkit-tap-highlight-color:transparent; touch-action:manipulation;
   }
-  .voice-log-btn.listening, .plate-btn.listening{border-color:var(--plate-red); color:var(--plate-red); animation:voiceListenPulse 1s var(--ease-loop) infinite;}
-  .voice-log-btn.processing, .plate-btn.processing{border-color:var(--plate-yellow); color:var(--plate-yellow); animation:voiceProcessingFade 0.6s var(--ease-loop) infinite alternate;}
+  #describeFoodVoiceSlot .voice-log-btn.listening{border-color:var(--plate-red); color:var(--plate-red); animation:voiceListenPulse 1s var(--ease-loop) infinite;}
+  #describeFoodVoiceSlot .voice-log-btn.processing{border-color:var(--plate-yellow); color:var(--plate-yellow); animation:voiceProcessingFade 0.6s var(--ease-loop) infinite alternate;}
+  @keyframes voiceProcessingFade{ from{opacity:0.55;} to{opacity:1;} }
+  @keyframes voiceListenPulse{ 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+  #describeFoodVoiceSlot .voice-log-btn::after{
+    content:''; display:block; width:16px; height:16px;
+    background:currentColor;
+    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+    -webkit-mask-position:center; mask-position:center;
+    -webkit-mask-size:contain; mask-size:contain;
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%277.5%27%20y%3D%272.4%27%20width%3D%275%27%20height%3D%279%27%20rx%3D%272.5%27%2F%3E%3Cpath%20d%3D%27M4.6%209.6a5.4%205.4%200%200%200%2010.8%200%27%2F%3E%3Cline%20x1%3D%2710%27%20y1%3D%2715%27%20x2%3D%2710%27%20y2%3D%2717.6%27%2F%3E%3C%2Fsvg%3E");
+    mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%277.5%27%20y%3D%272.4%27%20width%3D%275%27%20height%3D%279%27%20rx%3D%272.5%27%2F%3E%3Cpath%20d%3D%27M4.6%209.6a5.4%205.4%200%200%200%2010.8%200%27%2F%3E%3Cline%20x1%3D%2710%27%20y1%3D%2715%27%20x2%3D%2710%27%20y2%3D%2717.6%27%2F%3E%3C%2Fsvg%3E");
+  }
   /* The one button in this row that always means the same thing everywhere
      it appears — advance — so it's the only one carrying the app's accent
      colour instead of the neutral --surface2/--line treatment every other
@@ -1217,20 +1209,6 @@
     -webkit-tap-highlight-color:transparent; touch-action:manipulation;
   }
   .set-next-btn:active{background:rgba(var(--plate-blue-rgb),0.26);}
-  @keyframes voiceProcessingFade{ from{opacity:0.55;} to{opacity:1;} }
-  @keyframes voiceListenPulse{ 0%,100%{opacity:1;} 50%{opacity:0.5;} }
-  .plate-result{
-    flex-basis:100%; margin:2px 0 0 22px; padding:6px 10px; background:var(--surface2);
-    border:1px solid var(--line); border-radius:var(--radius-sm); font-family:var(--font-mono); font-variant-numeric:tabular-nums;
-    font-size:11.5px; color:var(--text); line-height:1.5; display:none;
-  }
-  .plate-result.open{display:block;}
-  .voice-feedback{
-    flex-basis:100%; margin:2px 0 0 22px; padding:6px 10px; background:rgba(var(--plate-red-rgb),0.1);
-    border:1px solid rgba(var(--plate-red-rgb),0.3); border-radius:var(--radius-sm); font-size:11.5px;
-    color:var(--text); line-height:1.4; display:none;
-  }
-  .voice-feedback.open{display:block;}
   .set-row-content{flex-wrap:wrap;}
 
   /* No left margin any more: both of these now render INSIDE `.sets-block`,
@@ -3523,7 +3501,6 @@
     display:flex; align-items:center; gap:6px;
     padding:2px 4px 2px 6px;
     min-height:34px;
-    /* .plate-result is flex-basis:100%, so it needs somewhere to wrap to. */
     flex-wrap:wrap;
     border-left:4px solid var(--plate-orange);
     border-radius:var(--radius-sm);
@@ -3741,48 +3718,12 @@
      clearance around a button's centre before an identical button one row
      away starts, comfortably past 44px. So unlike .reorder-arrows below,
      there is no vertical constraint here and these take the full height. */
-  .plate-btn, .voice-log-btn, .set-drop-btn, .set-note-btn{ position:relative; }
-  .plate-btn::after, .voice-log-btn::after, .set-drop-btn::after, .set-note-btn::after{
+  .set-drop-btn, .set-note-btn{ position:relative; }
+  .set-drop-btn::after, .set-note-btn::after{
     content:''; position:absolute; top:50%; left:50%;
     transform:translate(-50%,-50%);
     /* .set-row-content has gap:6px. */
     width:calc(100% + 6px); height:44px;
-  }
-
-  /* The voice button ships as the emoji \u{1F3A4}, full-colour and differently
-     weighted on every OS — the same foreign-artwork problem the plate button's
-     barbell glyph exists to solve for \u{1F3CB}, just not fixed here until now.
-     font-size:0 on .voice-log-btn (above) collapses the emoji everywhere, and
-     this re-uses the same ::after box the hit-area rule above already claims
-     for tap-target sizing — it wins width/height/background/mask here by
-     coming later at equal specificity, while position/centering still cascade
-     in from that earlier rule untouched. Gym mode's own copy of this selector
-     resizes the same glyph to 24px; it deliberately does not redeclare
-     mask-image, so this is still the one place the icon itself is defined. */
-  .voice-log-btn::after{
-    content:''; display:block; width:16px; height:16px;
-    background:currentColor;
-    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
-    -webkit-mask-position:center; mask-position:center;
-    -webkit-mask-size:contain; mask-size:contain;
-    -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%277.5%27%20y%3D%272.4%27%20width%3D%275%27%20height%3D%279%27%20rx%3D%272.5%27%2F%3E%3Cpath%20d%3D%27M4.6%209.6a5.4%205.4%200%200%200%2010.8%200%27%2F%3E%3Cline%20x1%3D%2710%27%20y1%3D%2715%27%20x2%3D%2710%27%20y2%3D%2717.6%27%2F%3E%3C%2Fsvg%3E");
-    mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%277.5%27%20y%3D%272.4%27%20width%3D%275%27%20height%3D%279%27%20rx%3D%272.5%27%2F%3E%3Cpath%20d%3D%27M4.6%209.6a5.4%205.4%200%200%200%2010.8%200%27%2F%3E%3Cline%20x1%3D%2710%27%20y1%3D%2715%27%20x2%3D%2710%27%20y2%3D%2717.6%27%2F%3E%3C%2Fsvg%3E");
-  }
-
-  /* Same reasoning as .voice-log-btn::after above, for the plate-calculator
-     button's own barbell glyph — the header brand mark's geometry, reused
-     verbatim, matching gym mode's existing icon exactly rather than
-     introducing a second barbell drawing. Gym mode's own copy of this
-     selector only resizes it to 24px now; it deliberately does not
-     redeclare mask-image. */
-  .plate-btn::after{
-    content:''; display:block; width:16px; height:16px;
-    background:currentColor;
-    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
-    -webkit-mask-position:center; mask-position:center;
-    -webkit-mask-size:contain; mask-size:contain;
-    -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%271.2%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Crect%20x%3D%2716.4%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Cline%20x1%3D%274%27%20y1%3D%2710%27%20x2%3D%2716%27%20y2%3D%2710%27%2F%3E%3Crect%20x%3D%274.6%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3Crect%20x%3D%2713.4%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3C%2Fsvg%3E");
-    mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Crect%20x%3D%271.2%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Crect%20x%3D%2716.4%27%20y%3D%278%27%20width%3D%272.4%27%20height%3D%274%27%20rx%3D%271%27%2F%3E%3Cline%20x1%3D%274%27%20y1%3D%2710%27%20x2%3D%2716%27%20y2%3D%2710%27%2F%3E%3Crect%20x%3D%274.6%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3Crect%20x%3D%2713.4%27%20y%3D%276.3%27%20width%3D%272%27%20height%3D%277.4%27%20rx%3D%270.6%27%2F%3E%3C%2Fsvg%3E");
   }
 
   /* Second batch of icon-only glyph conversions, same mechanism as the two
@@ -4165,7 +4106,6 @@
   body.gym-mode #workoutCard .session-cal-total,
   body.gym-mode #workoutCard .day-insight,
   body.gym-mode #workoutCard #todayStandoutBanner,
-  body.gym-mode #workoutCard #voiceHintBanner,
   body.gym-mode #workoutCard #adaptWorkoutBtn,
   body.gym-mode #workoutCard #adaptWorkoutPanel,
   body.gym-mode #workoutCard #addCustomExerciseBtn,
@@ -4305,8 +4245,8 @@
   }
   body.gym-mode .exercise-block.open .ex-sets{font-size:15px;}
   /* Gym Mode audit finding #4: every other control in this mode was
-     deliberately sized up for sweaty-hands/glance-and-tap use — .plate-btn/
-     .voice-log-btn/.set-note-btn are min 54-56px, .gym-exit-btn min 48px,
+     deliberately sized up for sweaty-hands/glance-and-tap use — .set-note-btn
+     is min 54-56px, .gym-exit-btn min 48px,
      .same-as-last-btn/.add-set-btn min 52px — but this checkbox, the one
      that finishes an exercise (and on the last one, the session), was left
      at the same 30px it is in normal mode. The row already has the height
@@ -4318,10 +4258,9 @@
      and its own radius, on top of a sixth box for the exercise. The fields are
      now cells of a single grouped control separated by hairlines, which is the
      same relationship the plate calculator and the number pads already use.
-     `overflow` is deliberately NOT hidden: `.plate-result`, `.voice-feedback`
-     and `.set-note-wrap` are children of this flex container with
-     `flex-basis:100%` and they expand BELOW the row, so clipping it would hide
-     the plate breakdown and the note field. */
+     `overflow` is deliberately NOT hidden: `.set-note-wrap` is a child of this
+     flex container with `flex-basis:100%` and expands BELOW the row, so
+     clipping it would hide the note field. */
   /* The clip radius MUST match `.set-row-content`'s radius. `.set-row` is
      `overflow:hidden; border-radius:var(--radius-sm)` (9px) and that clip is
      what contains `.swipe-delete-bg`; with a 16px radius on the content, each
@@ -4369,11 +4308,8 @@
      different fields", so the glyph is one more thing to read for nothing. */
   body.gym-mode .ex-x{display:none;}
   /* Buttons become the last cells of the same control rather than competing
-     tiles. Ghost by default; the app's own colour states (.has-note,
-     .listening, .processing) still win because they set border-color and
+     tiles. Ghost by default; the app's own colour state (.has-note) still wins because they set border-color and
      colour, which these rules leave alone. */
-  body.gym-mode .plate-btn,
-  body.gym-mode .voice-log-btn,
   body.gym-mode .set-note-btn{
     min-width:54px; min-height:56px; flex:0 0 auto;
     display:flex; align-items:center; justify-content:center;
@@ -4400,38 +4336,7 @@
     font-size:20px; font-weight:700; color:#5B7CFF;
   }
   body.gym-mode .set-next-btn:active{background:rgba(91,124,255,0.28);}
-  /* The plate and voice buttons both shipped as full-colour emoji
-     (\u{1F3CB}/\u{1F3A4}) — vendor artwork inside our own control, differently
-     weighted on every OS. Both are now handled once, unconditionally, by
-     the base `.plate-btn`/`.voice-log-btn` and their own `::after` mask
-     rules above — this block only resizes those glyphs to 24px for gym
-     mode's bigger buttons, it doesn't redefine either one. `font-size:0`
-     (on the base rules) collapses the emoji text without touching the
-     markup, which matters because these buttons are rendered by the
-     shared set-row template and changing it would alter the normal view
-     too. The plate icon is the header brand mark's own barbell geometry,
-     reused verbatim — the button is now made of the app rather than
-     dropped into it. */
-  body.gym-mode .plate-btn,
-  body.gym-mode .voice-log-btn{font-size:0;}
-  /* No mask-image redeclared here on purpose, for either button: the base
-     `.plate-btn::after`/`.voice-log-btn::after` rules above already set it,
-     and this selector's own equal-or-lower specificity for that property
-     means the base value keeps cascading through untouched — only
-     width/height/background/mask-repeat/position/size are resized for gym
-     mode's bigger buttons. */
-  body.gym-mode .plate-btn::after,
-  body.gym-mode .voice-log-btn::after{
-    content:''; display:block; width:24px; height:24px;
-    background:currentColor;
-    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
-    -webkit-mask-position:center; mask-position:center;
-    -webkit-mask-size:contain; mask-size:contain;
-  }
-  body.gym-mode .plate-btn.active{color:var(--plate-blue);}
   body.gym-mode .set-note-btn{font-size:20px; font-weight:400;}
-  body.gym-mode .plate-btn:active,
-  body.gym-mode .voice-log-btn:active,
   body.gym-mode .set-note-btn:active{background:rgba(var(--surface-white-rgb),0.06); opacity:1;}
   body.gym-mode .set-status{
     position:absolute; right:8px; top:6px; font-size:13px;
@@ -4448,22 +4353,6 @@
     border-color:rgba(var(--surface-white-rgb),0.10);
     box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.055) inset;
   }
-  /* Same finding, the plate calculator's result panel — one of the mode's
-     two headline actions (the persistent "hold to voice log" tip is the
-     other), and the one surface that visibly still belonged to normal mode. */
-  body.gym-mode .plate-result{
-    background:var(--gym-panel-gradient);
-    border-color:rgba(var(--surface-white-rgb),0.10);
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.055) inset;
-  }
-  /* The red-tinted border stays — it's the real "this is voice feedback"
-     signal, not incidental normal-mode chrome — only the flat fill behind
-     it changes. */
-  body.gym-mode .voice-feedback{
-    background:linear-gradient(170deg, #221818 0%, #160F0F 62%, #110B0B 100%);
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.055) inset;
-  }
-
   /* The ramp, restyled for the panel: a recessed block in the same well
      colour as the set rows, so it reads as part of the exercise rather than as
      a leftover card. Big enough to read at arm's length, which is the whole
@@ -4587,20 +4476,6 @@
     border-right:1px solid rgba(255,122,51,0.18);
   }
   body.gym-mode .warmup-done{ width:26px; height:26px; }
-  /* font-size deliberately absent here (was 18px) — this selector's higher
-     specificity than the general `body.gym-mode .plate-btn{font-size:0}`
-     rule above was overriding it back to visible, un-hiding the 🏋️ emoji
-     textContent right on top of the same button's ::after mask-image
-     glyph. The glyph's own size (24x24, set in absolute px on ::after) was
-     never driven by this font-size, so removing it costs nothing visually
-     except the stray emoji it was accidentally reviving. */
-  body.gym-mode .warmup-set-row .plate-btn{
-    min-width:54px; min-height:56px; flex:0 0 auto;
-    display:flex; align-items:center; justify-content:center;
-    background:transparent; border:none; border-radius:0;
-    border-left:1px solid rgba(255,122,51,0.18);
-    color:var(--text-muted);
-  }
   body.gym-mode .warmup-set-row .ex-x{ display:none; }
   body.gym-mode .warmup-foot{ font-size:12px; padding:0 4px; }
 
@@ -5105,7 +4980,6 @@
       <button type="button" class="save-btn up-next-go" id="upNextLog">Log set</button>
     </div>
     <div class="today-standout-banner" id="todayStandoutBanner" style="display:none"></div>
-    <div id="voiceHintBanner" style="display:none"></div>
     <div id="exerciseList"></div>
     <button class="custom-toggle" id="addCustomExerciseBtn">+ Add custom exercise</button>
     <div id="customExerciseForm" class="smooth-toggle"><div>
@@ -5375,7 +5249,7 @@
 
         <div>
           <label class="care-label">My equipment</label>
-          <div class="history-hint field-note" style="margin-top:0;">Rounds suggested weights to what you can load; the plate calculator uses only plates you own. Skip this at a commercial gym.</div>
+          <div class="history-hint field-note" style="margin-top:0;">Rounds suggested weights to what you can load with the plates you own. Skip this at a commercial gym.</div>
           <div class="equip-grid">
             <div>
               <label class="equip-sublabel" for="equipBar">Bar weight (<span class="equip-unit">lb</span>)</label>
@@ -6731,7 +6605,7 @@ function bootMark(name){
      program-cycle-start                 -> "YYYY-MM-DD"
      program-rec-dismissed-key           -> string (which recommendation was last dismissed)
      onboarding-dismissed                -> "1" | "0"
-     voice-hint-dismissed                -> "1" | "0"
+     voice-hint-dismissed                -> "1" | "0" (no longer read: the voice tip went with voice set logging in v3.300)
      whats-new-last-seen                 -> string (highest APP_VERSION the What's New dialog has been shown for)
      whats-new-pending-confirm           -> "true" | "false" (set right before an explicit Reload Now; consumed once on the next boot to gate the post-update confirmation — a natural background reopen must not show it)
      streak-last-celebrated              -> number (streak length last celebrated, avoids re-firing)
@@ -6764,7 +6638,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.299';
+const APP_VERSION = '3.300';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7521,6 +7395,9 @@ const WHATS_NEW = {
   ]},  '3.299': { headline: 'Adjust a set with + and −', points: [
     'Tap any other set, or press and hold one, to open a quick logger: big + and − for weight (in steps you can load) and reps, and tap an RPE.',
     'Add a note or a drop set from there too. Logged sets can be edited or cleared, with Undo.',
+  ]},  '3.300': { headline: 'Simpler set rows', points: [
+    'The plate calculator and voice logging are gone — one tap on a chip logs your set, and + / − step in weights you can load.',
+    'Describing a meal by voice on Log still works.',
   ]},
 };
 
@@ -26104,153 +25981,10 @@ async function getCurrentTrendStatus(){
 // fatigue before the real work sets. Only shown for barbell-style compound
 // categories and only once we actually know a working weight from last time —
 // guessing a ramp for an unknown or very light load isn't useful.
-// Voice logging: browser-native, free, no library or API key. Feature-detected
-// once here — the mic button only ever renders into the set-row template at
-// all on browsers that actually support it (mainly Safari/Chrome; Firefox
-// doesn't as of this writing), rather than showing a button that fails.
+// Browser-native dictation, feature-detected once. Used by Describe a Meal.
+// (Voice SET logging and its mic button were removed in v3.300 with the set
+// chips: one tap logs the suggested set, so there is nothing left to dictate.)
 const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-// [VOICE SET ENTRY] ------------------------------------------------------------
-// The old parser only ever looked for /\d+/. That is not what a speech engine
-// returns. "70 for 5 at a 6" comes back as some mix of digits and words that
-// varies by utterance and by engine — commonly "70 for 5 at a six", and the
-// trailing RPE is the MOST likely of the three to arrive as a word because it
-// is short, unstressed and at the end of the sentence. So the RPE was the one
-// that never landed. Nothing was wrong with the regex; it was reading the
-// wrong alphabet.
-//
-// Three other things a real transcript does that a digit scan cannot survive:
-//
-//   * "for" is transcribed as "4" constantly. "70 for 5" becomes "70 4 5",
-//     and a positional parser then reads 70x4 at RPE 5. This is why a set
-//     sometimes came out with reps it was never told.
-//   * Lifters say weights as compounds — "two twenty five", "one thirty five".
-//     Three number words, one number.
-//   * "at a 6" and "at an 8" put an article between the keyword and the value.
-//
-// So: normalise words to digits, THEN resolve connectives, THEN read the
-// grammar. Split out as a pure function because the interesting part of voice
-// input is the string handling, and none of it needs a microphone to test.
-const VOICE_UNITS = {zero:0, one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9,
-  ten:10, eleven:11, twelve:12, thirteen:13, fourteen:14, fifteen:15, sixteen:16, seventeen:17,
-  eighteen:18, nineteen:19};
-const VOICE_TENS = {twenty:20, thirty:30, forty:40, fourty:40, fifty:50, sixty:60, seventy:70, eighty:80, ninety:90};
-
-// "two twenty five" -> 225. A leading single digit followed by a tens word is
-// a hundreds compound, which is how every weight over 100 gets said out loud.
-// "one thirty five" -> 135. "three fifteen" -> 315 (a teen closes it too).
-// Runs BEFORE number words become digits, deliberately. The hundreds part can
-// arrive either way — "two twenty five" or "2 twenty five" — but the tens and
-// units parts must still be WORDS to count. Otherwise "225 15" (a weight then
-// a rep count) would collapse into 315, and a plain pair of numbers is far
-// more common than a spoken compound.
-function voiceCollapseNumbers(tokens){
-  const val = t=>{
-    if(t == null) return null;
-    if(/^\d+$/.test(t)) return Number(t);
-    return VOICE_UNITS[t] != null ? VOICE_UNITS[t] : null;
-  };
-  const out = [];
-  for(let i = 0; i < tokens.length; i++){
-    const a = tokens[i], b = tokens[i+1], c = tokens[i+2];
-    const av = val(a);
-    if(av != null && av >= 1 && av <= 9){
-      if(b != null && VOICE_TENS[b] != null){
-        const cu = (c != null && VOICE_UNITS[c] != null && VOICE_UNITS[c] < 10) ? VOICE_UNITS[c] : 0;
-        out.push(String(av * 100 + VOICE_TENS[b] + cu));
-        i += cu ? 2 : 1;
-        continue;
-      }
-      if(b != null && VOICE_UNITS[b] != null && VOICE_UNITS[b] >= 10){
-        out.push(String(av * 100 + VOICE_UNITS[b]));
-        i += 1;
-        continue;
-      }
-      // "four oh five" — hundreds with an empty tens column. Without this the
-      // sentence parses as three separate numbers and produces a set that
-      // looks entirely reasonable and is completely wrong, which is worse
-      // than failing to understand it.
-      if((b === 'oh' || b === 'o' || b === 'zero' || b === '0')){
-        const cv = val(c);
-        if(cv != null && cv >= 1 && cv <= 9){ out.push(String(av * 100 + cv)); i += 2; continue; }
-      }
-    }
-    out.push(a);
-  }
-  return out;
-}
-
-function voiceNormalise(transcript){
-  let t = String(transcript || '').toLowerCase();
-  // Punctuation out first, so "225, 5, 8" and "225 5 8" are the same sentence —
-  // but a period BETWEEN digits is a decimal point, and RPE is the one field
-  // that is routinely spoken with one. Stripping it turned 9.5 into 9 and 5.
-  t = t.replace(/[,!?;:]+/g, ' ');
-  t = t.replace(/\.(?!\d)/g, ' ');
-  let tokens = t.split(/\s+/).filter(Boolean);
-
-  // Collapse first, while the number words are still words.
-  tokens = voiceCollapseNumbers(tokens);
-  tokens = tokens.map(w=>{
-    if(VOICE_TENS[w] != null) return String(VOICE_TENS[w]);
-    if(VOICE_UNITS[w] != null) return String(VOICE_UNITS[w]);
-    return w;
-  });
-  return tokens;
-}
-
-// Returns {weight, reps, rpe} — each a number or null. Never throws, never
-// guesses past what was actually said.
-function parseVoiceSet(transcript){
-  const tokens = voiceNormalise(transcript);
-  const REP_SEP = new Set(['for', 'by', 'x', 'times']);
-  const RPE_SEP = new Set(['rpe', 'at', '@', 'rate', 'effort']);
-  const SKIP = new Set(['a', 'an', 'the', 'reps', 'rep', 'lb', 'lbs', 'kg', 'kgs', 'pounds', 'pound', 'kilos', 'and']);
-
-  const isNum = t=> /^\d+(\.\d+)?$/.test(t);
-  let weight = null, reps = null, rpe = null;
-  let seen = [];            // numbers in order, for the positional fallback
-  let pending = null;       // which field the last keyword pointed at
-
-  for(let i = 0; i < tokens.length; i++){
-    const t = tokens[i];
-    if(SKIP.has(t)) continue;
-
-    // "for" arriving as "4" is the single most common corruption here. It is
-    // only treated as a separator when it sits between two numbers and reps
-    // are not yet known — "70 4 5" is 70 for 5, but "4 5" on its own is a
-    // number followed by a number and must stay that way.
-    if(isNum(t) && t === '4' && pending === null && weight !== null && reps === null
-       && tokens[i+1] != null && isNum(tokens[i+1])){
-      pending = 'reps';
-      continue;
-    }
-    if(REP_SEP.has(t)){ pending = 'reps'; continue; }
-    if(RPE_SEP.has(t)){ pending = 'rpe'; continue; }
-    if(!isNum(t)){ pending = null; continue; }
-
-    const value = Number(t);
-    seen.push(value);
-    if(pending === 'rpe' && rpe === null){ rpe = value; pending = null; continue; }
-    if(pending === 'reps' && reps === null){ reps = value; pending = null; continue; }
-    pending = null;
-    if(weight === null) weight = value;
-    else if(reps === null) reps = value;
-    else if(rpe === null) rpe = value;
-  }
-
-  // A bare "8" with no keyword and nothing else is a rep count, not a weight —
-  // it is what you say on a bodyweight movement. Bounded by size, because
-  // "one thirty five" is also a single number and nobody does 135 reps. 30 is
-  // the ceiling: above it the number is a load, below it either reading is
-  // plausible and reps is the one you get from saying nothing else.
-  if(weight !== null && reps === null && rpe === null && seen.length === 1 && weight <= 30){
-    return {weight: null, reps: weight, rpe: null};
-  }
-  // An RPE above 10 was misheard; the scale only goes to 10.
-  if(rpe !== null && rpe > 10) rpe = null;
-  return {weight, reps, rpe};
-}
 
 const WARMUP_ELIGIBLE_CATEGORIES = ['squat','hinge','push','pull','oly','shoulder','lunge'];
 const WARMUP_MIN_WORKING_WEIGHT = 95; // below this, a formal ramp adds more clutter than value
@@ -26561,7 +26295,6 @@ function warmupRepsValue(reps){
 //   gutter  — set number on a working set, done-checkbox here
 //   weight  ×  reps  — identical fields, identical widths
 //   46px    — RPE on a working set, the step label here
-//   plate button
 // Before this the checkbox and a 66px label both sat in front of the weight
 // field, so a ramp step's numbers started ~50px right of the numbers on the set
 // directly below it and its inputs were stretched to fill what was left. Same
@@ -26573,64 +26306,7 @@ function warmupRepsValue(reps){
 // you actually did is a fact; the ramp number is a suggestion until you touch
 // it, and a render that recomputed over the top of a logged value would quietly
 // undo an edit every time the tab was reopened.
-// The plate button's behaviour, lifted out of wireSetRow so a warm-up row can
-// have it without a second copy.
-//
-// `withVoice` is the only difference between the two call sites. A working set
-// row supports hold-to-talk because its fields are empty and dictating
-// "225 for 5 at RPE 8" beats typing it. A warm-up row arrives with its weight
-// and reps already filled in, so there is nothing to dictate — and a
-// long-press that quietly starts the microphone on a row nobody asked to
-// dictate is worse than not offering it.
-function wirePlateButton(plateBtn, plateResult, wInput, withVoice){
-  if(!plateBtn || !plateResult) return;
-
-  // Tap opens/closes the breakdown. Holding it down (~400ms) starts voice
-  // recognition on the same button instead — no second tap, no sub-menu, and
-  // the row never grows.
-  let holdTimer = null;
-  let heldLongEnough = false;
-  const LONG_PRESS_MS = 400;
-  const canVoice = withVoice && !!SpeechRecognitionCtor;
-  const cancelHold = ()=> clearTimeout(holdTimer);
-
-  plateBtn.addEventListener('pointerdown', (e)=>{
-    e.preventDefault(); // stop the browser's own long-press (text selection/callout) from competing with ours
-    heldLongEnough = false;
-    if(!canVoice) return;
-    holdTimer = setTimeout(()=>{
-      heldLongEnough = true;
-      startVoiceRecognition(plateBtn);
-    }, LONG_PRESS_MS);
-  });
-  plateBtn.addEventListener('pointerup', cancelHold);
-  plateBtn.addEventListener('pointerleave', cancelHold);
-  plateBtn.addEventListener('pointercancel', cancelHold);
-  plateBtn.addEventListener('contextmenu', (e)=> e.preventDefault());
-
-  plateBtn.addEventListener('click', (e)=>{
-    e.stopPropagation();
-    if(heldLongEnough){ heldLongEnough = false; return; } // the click that follows a long-press shouldn't also toggle the panel
-    const isOpen = plateResult.classList.contains('open');
-    if(isOpen){
-      plateResult.classList.remove('open');
-      plateBtn.classList.remove('active');
-      return;
-    }
-    const w = (wInput && wInput.value !== '') ? Number(wInput.value) : null;
-    // Uses the person's own bar and plates rather than the commercial-gym
-    // default, so a home-gym breakdown doesn't list plates they don't own.
-    const eq = getEquipment();
-    const result = calcPlatesPerSide(w, eq.bar, eq.plates);
-    plateResult.textContent = formatPlateResult(result);
-    plateResult.classList.add('open');
-    plateBtn.classList.add('active');
-  });
-
-  plateBtn.title = canVoice ? 'Tap: plate calculator · Hold: voice log' : 'Plate calculator';
-}
-
-function buildWarmupRampRowsHtml(ramp, saved, showPlateCalc){
+function buildWarmupRampRowsHtml(ramp, saved){
   const savedRows = Array.isArray(saved) ? saved : [];
   // `step.idx`, not the map index. The steps arriving here have already had
   // hidden ones filtered out, so their position in THIS array is not their
@@ -26652,8 +26328,6 @@ function buildWarmupRampRowsHtml(ramp, saved, showPlateCalc){
         <span class="ex-x">×</span>
         <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input warmup-reps" aria-label="Warm-up ${escapeHtml(step.label)} reps" value="${escapeHtml(String(rVal))}">
         <span class="warmup-step-label">${escapeHtml(String(step.short || step.label))}</span>
-        ${showPlateCalc ? `<button type="button" class="plate-btn" aria-label="Plate calculator for warm-up ${escapeHtml(step.label)}">🏋️</button>` : ''}
-        ${showPlateCalc ? '<div class="plate-result"></div>' : ''}
         </div>
       </div>`;
   }).join('');
@@ -27071,29 +26745,6 @@ function renderDayInsight(day){
   el.innerHTML = DEFAULT_INSIGHTS_BY_PROGRAM[activeProgram] || '<b>Insight:</b> Consistency compounds — showing up for a moderate session beats skipping in search of a "perfect" one.';
 }
 
-async function renderVoiceHint(){
-  const banner = document.getElementById('voiceHintBanner');
-  if(!banner) return;
-  if(!SpeechRecognitionCtor){ banner.style.display = 'none'; return; }
-  let dismissed = false;
-  try{
-    const res = await window.storage.get('voice-hint-dismissed');
-    dismissed = !!(res && res.value === '1');
-  }catch(e){}
-  if(dismissed){ banner.style.display = 'none'; return; }
-
-  banner.className = 'voice-hint-banner';
-  banner.innerHTML = `
-    <span><b>Tip:</b> log a set by voice — hold the plate-calculator icon, or tap the mic icon. Try "225 for 5" or "180 for 12 at a 6".</span>
-    <button class="voice-hint-dismiss" id="voiceHintDismissBtn" aria-label="Dismiss voice logging tip">✕</button>
-  `;
-  banner.style.display = 'flex';
-  document.getElementById('voiceHintDismissBtn').addEventListener('click', async ()=>{
-    banner.classList.add('fade-out-dismiss', 'fading');
-    setTimeout(()=>{ banner.style.display = 'none'; banner.classList.remove('fading'); }, 300);
-    try{ await window.storage.set('voice-hint-dismissed', '1'); }catch(e){}
-  });
-}
 
 // The one place an exercise row opens or closes. Five separate sites used to
 // hand-write the same two-line class dance (header tap, auto-collapse on
@@ -27177,7 +26828,6 @@ async function renderWorkout(){
   const list = document.getElementById('exerciseList');
   list.innerHTML = '';
   renderDayInsight(day);
-  renderVoiceHint();
 
   if(day.rest){
     document.getElementById('dayDuration').textContent = day.duration;
@@ -27495,7 +27145,7 @@ async function renderWorkout(){
           const skipped = (todayEntry && Array.isArray(todayEntry.warmupsSkipped)) ? todayEntry.warmupsSkipped : [];
           const visibleSteps = visibleRampSteps(indexRampSteps(ramp), skipped);
           const rampRows = warmupSetsEnabled
-            ? buildWarmupRampRowsHtml(visibleSteps, saved, isBarbell)
+            ? buildWarmupRampRowsHtml(visibleSteps, saved)
             : visibleSteps.map(step=> `<div class="warmup-row"><span>${step.label} — ${step.weight} ${weightUnit} × ${step.reps}</span></div>`).join('');
           // A swipe has to be reversible after the undo toast has gone, or
           // hiding a rung is a one-way door reachable by accident with a thumb.
@@ -27555,7 +27205,6 @@ async function renderWorkout(){
         warmupHtml = buildWarmupNudgeHtml('bodyweight');
       }
 
-      const showPlateCalc = showWeight && isBarbellExercise(ex.name);
       // Sits next to Same as Last Time because both answer "what did I do
       // before" — one applies it, the other lets you look. Placed in the sets
       // block rather than on the exercise name, which is already the swap
@@ -27612,14 +27261,10 @@ async function renderWorkout(){
               <span class="ex-x">×</span>` : ''}
               <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input ex-reps${sugClass}" aria-label="Set ${setIdx+1} reps" placeholder="${repsPlaceholder}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
               <input type="number" inputmode="decimal" enterkeyhint="next" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${setIdx+1} RPE, 5 to 10" placeholder="${placeholderSet && placeholderSet.rpe!=null ? placeholderSet.rpe : 'RPE'}" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
-              ${showPlateCalc ? '<button type="button" class="plate-btn" aria-label="Open plate calculator — long-press to voice log a set">🏋️</button>' : ''}
-              ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" aria-label="Log this set by voice">🎤</button>' : ''}
               <button type="button" class="set-drop-btn${savedSet && savedSet.drops && savedSet.drops.length ? ' has-drops' : ''}" aria-label="Add a drop set under set ${setIdx+1}">⤵</button>
               <button type="button" class="set-note-btn${savedSet && savedSet.note ? ' has-note' : ''}" aria-label="${savedSet && savedSet.note ? 'Edit note on set '+(setIdx+1) : 'Add a note to set '+(setIdx+1)}" aria-expanded="false">${savedSet && savedSet.note ? '\u{1F4DD}' : '+'}</button>
               <button type="button" class="set-next-btn" aria-label="Move to the next field — the following set, or straight into the paired superset exercise">→</button>
               <span class="set-status"></span>
-              ${showPlateCalc ? '<div class="plate-result"></div>' : ''}
-              ${SpeechRecognitionCtor ? '<div class="voice-feedback"></div>' : ''}
               <div class="set-drop-wrap${savedSet && savedSet.drops && savedSet.drops.length ? ' open' : ''}">${buildDropRowsHtml(savedSet && savedSet.drops, setIdx, showWeight)}</div>
               <div class="set-note-wrap${savedSet && savedSet.note ? ' open' : ''}">
                 <input type="text" class="set-note-input" maxlength="200" placeholder="e.g. left shoulder pinched" aria-label="Note for set ${setIdx+1}" value="${savedSet && savedSet.note ? escapeHtml(savedSet.note) : ''}">
@@ -30054,41 +29699,6 @@ const BARBELL_EXERCISES = new Set([
 ]);
 function isBarbellExercise(name){ return BARBELL_EXERCISES.has(name); }
 
-function calcPlatesPerSide(totalWeight, barWeight, plateSet){
-  const standard = BARBELL_STANDARDS[weightUnit];
-  const bar = barWeight ?? standard.bar;
-  const plates = plateSet ?? standard.plates;
-  if(totalWeight == null || isNaN(totalWeight)) return null;
-  if(totalWeight < bar){
-    return {tooLight:true, bar};
-  }
-  let perSide = (totalWeight - bar) / 2;
-  const breakdown = [];
-  let remaining = perSide;
-  plates.forEach(p=>{
-    const count = Math.floor((remaining + 0.001) / p); // small epsilon guards against float rounding
-    if(count > 0){
-      breakdown.push({plate:p, count});
-      remaining -= count * p;
-    }
-  });
-  const leftover = Math.round(remaining * 100) / 100;
-  return {bar, perSide, breakdown, leftover};
-}
-
-function formatPlateResult(result){
-  if(!result) return 'Enter a weight first.';
-  const unit = weightUnit;
-  if(result.tooLight){
-    return `At or below the ${result.bar} ${unit} bar — likely a dumbbell, machine stack, or bodyweight movement rather than a barbell load.`;
-  }
-  if(!result.breakdown.length){
-    return `${result.bar} ${unit} bar only, no plates needed per side.`;
-  }
-  const parts = result.breakdown.map(b=> `${b.count}×${b.plate}`).join(' + ');
-  const leftoverNote = result.leftover > 0 ? ` (${result.leftover} ${unit} short of exact — round to nearest plate available)` : '';
-  return `${result.bar} ${unit} bar + ${parts} per side${leftoverNote}`;
-}
 
 // Checks whether every set in this exercise now has weight (when the
 // exercise has a weight field at all), reps, and RPE filled in — reading
@@ -30153,7 +29763,6 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
   // renderWorkout emitted or the two disagree about what a set row is.
   const showWeight = !ex.noWeight;
   const showDistance = isDistanceExercise(ex.name);
-  const showPlateCalc = showWeight && isBarbellExercise(ex.name);
 
   // Scoped by data-ex-idx (added to every set-row, and to each member's own
   // .set-actions wrapper) rather than assumed-singular: a superset pair's
@@ -30285,10 +29894,6 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
     const rInput = setRow.querySelector('.ex-reps');
     const rpeInput = setRow.querySelector('.ex-rpe');
     const statusEl = setRow.querySelector('.set-status');
-    const plateBtn = setRow.querySelector('.plate-btn');
-    const plateResult = setRow.querySelector('.plate-result');
-    const voiceBtn = setRow.querySelector('.voice-log-btn');
-    const voiceFeedback = setRow.querySelector('.voice-feedback');
 
     // Read the set's index fresh at save time, not once up front — after a
     // delete, remaining rows get renumbered, and this makes sure a save
@@ -30433,148 +30038,6 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
     }
     rpeInput.addEventListener('change', save);
 
-    // Shared listening logic — triggered either by a direct click (standalone
-    // mic button, non-barbell rows) or a long-press (the plate-calc button,
-    // barbell rows). One implementation, two ways in, so voice logging never
-    // has to compete with the plate calculator for its own row-width slot,
-    // and never requires opening a panel just to reach a second button.
-    function startVoiceRecognition(btn){
-      if(btn.classList.contains('listening') || btn.classList.contains('processing')) return; // already mid-flow, ignore a repeat trigger
-      voiceFeedback.classList.remove('open'); // clear any stale message from a previous attempt before this one starts
-      // ONE instance for the whole app, created on first use and reused.
-      // Constructing a new SpeechRecognition per tap is what made the
-      // permission prompt reappear every single time: each object negotiates
-      // its own microphone access, and on iOS that surfaces as a fresh ask.
-      // Reusing one keeps the grant alive for the session.
-      if(!window.__voiceRecognition){
-        window.__voiceRecognition = new SpeechRecognitionCtor();
-        window.__voiceRecognition.lang = 'en-US';
-        window.__voiceRecognition.continuous = false;
-        window.__voiceRecognition.interimResults = false;
-      }
-      const recognition = window.__voiceRecognition;
-      // Several alternatives, because the top transcript is frequently the one
-      // that turned "for" into "4". The first that parses into a usable set
-      // wins — see below.
-      recognition.maxAlternatives = 4;
-      btn.classList.add('listening');
-      const originalTitle = btn.title;
-      let settled = false;
-
-      // Without this, recognition waits on the engine's own internal
-      // silence timeout to decide you're done talking — which varies by
-      // browser and can drag on well after you've actually finished a
-      // sentence. Stopping the instant speech itself ends (not just
-      // waiting for a longer overall timeout) is what makes this feel
-      // snappy and predictable instead of hanging.
-      recognition.onspeechend = ()=>{
-        if(settled) return;
-        btn.classList.remove('listening');
-        btn.classList.add('processing');
-        try{ recognition.stop(); }catch(e){}
-      };
-
-      // A hard ceiling in case the engine never fires onspeechend/onresult/
-      // onerror for some reason (rare, but leaves the button stuck
-      // "listening" forever otherwise) — belt-and-suspenders, not the
-      // normal path.
-      const safetyTimer = setTimeout(()=>{
-        if(settled) return;
-        settled = true;
-        try{ recognition.abort(); }catch(e){}
-        btn.classList.remove('listening', 'processing');
-      }, 8000);
-
-      const finish = ()=>{
-        settled = true;
-        clearTimeout(safetyTimer);
-        btn.classList.remove('listening', 'processing');
-      };
-
-      recognition.onresult = (event)=>{
-        finish();
-        const alternatives = [];
-        for(let i = 0; i < event.results[0].length; i++) alternatives.push(event.results[0][i].transcript);
-        const rawTranscript = alternatives[0] || '';
-
-        // Score each alternative by how complete a set it yields and take the
-        // best. A transcript that gives weight AND reps AND RPE is worth more
-        // than one that gives a single number, and the engine's own confidence
-        // ranking does not know that.
-        let best = null, bestScore = -1;
-        alternatives.forEach(text=>{
-          const p = parseVoiceSet(text);
-          const score = (p.weight != null ? 1 : 0) + (p.reps != null ? 1 : 0) + (p.rpe != null ? 2 : 0);
-          if(score > bestScore){ bestScore = score; best = p; }
-        });
-
-        if(best && (best.weight != null || best.reps != null || best.rpe != null)){
-          if(best.weight != null && wInput) wInput.value = best.weight;
-          if(best.reps != null) rInput.value = Math.round(best.reps);
-          if(best.rpe != null) rpeInput.value = best.rpe;
-          // Say what was understood, not just that something happened. When it
-          // mishears, seeing "heard: 70 x 4 @ 5" is the difference between
-          // knowing to repeat yourself and thinking the feature is broken.
-          const parts = [];
-          if(best.weight != null) parts.push(String(best.weight));
-          if(best.reps != null) parts.push('× ' + Math.round(best.reps));
-          if(best.rpe != null) parts.push('@ RPE ' + best.rpe);
-          voiceFeedback.textContent = 'Heard: ' + parts.join(' ');
-          voiceFeedback.classList.add('open');
-          setTimeout(()=> voiceFeedback.classList.remove('open'), 2600);
-          save();
-          // Move to the next set rather than leaving you on the one just
-          // filled. Focus only — NOT another recognition start: re-opening the
-          // microphone unasked would listen to the gym rather than to you, and
-          // the whole point of the button is that listening is something you
-          // choose.
-          const nextRow = setRow.nextElementSibling;
-          if(nextRow && nextRow.classList && nextRow.classList.contains('set-row')){
-            const nextInput = nextRow.querySelector('input');
-            if(nextInput){ nextInput.focus({preventScroll:true}); nextRow.scrollIntoView({block:'nearest'}); }
-          }
-          return;
-        }
-
-        voiceFeedback.textContent = `Heard "${rawTranscript}" — try "225 for 5 at RPE 8"`;
-        voiceFeedback.classList.add('open');
-        setTimeout(()=> voiceFeedback.classList.remove('open'), 3600);
-      };
-      recognition.onerror = (event)=>{
-        finish();
-        if(event.error === 'not-allowed'){
-          btn.title = 'Microphone access denied — allow it in your browser/phone settings to use voice log.';
-          voiceFeedback.textContent = 'Microphone access denied — check your browser/phone settings to allow it.';
-          voiceFeedback.classList.add('open');
-          setTimeout(()=> voiceFeedback.classList.remove('open'), 4000);
-        } else if(event.error === 'no-speech'){
-          voiceFeedback.textContent = `Didn't hear anything — tap and try again.`;
-          voiceFeedback.classList.add('open');
-          setTimeout(()=> voiceFeedback.classList.remove('open'), 2500);
-          btn.title = originalTitle;
-        } else if(event.error !== 'aborted'){
-          // 'aborted' just means the safety timer or a repeat tap cancelled it deliberately — nothing to report
-          voiceFeedback.textContent = `Voice log had a hiccup — tap and try again.`;
-          voiceFeedback.classList.add('open');
-          setTimeout(()=> voiceFeedback.classList.remove('open'), 2500);
-          btn.title = originalTitle;
-        } else {
-          btn.title = originalTitle;
-        }
-      };
-      recognition.onend = ()=> finish();
-      recognition.start();
-    }
-
-    if(voiceBtn){
-      voiceBtn.addEventListener('click', (e)=>{
-        e.stopPropagation();
-        startVoiceRecognition(voiceBtn);
-      });
-    }
-
-    // Voice belongs on a working set, whose fields are empty. See wirePlateButton.
-    wirePlateButton(plateBtn, plateResult, wInput, true);
 
     const dropBtn = setRow.querySelector('.set-drop-btn');
     const dropWrap = setRow.querySelector('.set-drop-wrap');
@@ -30652,7 +30115,6 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
     // The ramp is exactly when you are loading and unloading the bar, so this
     // is arguably the row that needs it most. No hold-to-talk: the numbers are
     // already in the fields.
-    wirePlateButton(row.querySelector('.plate-btn'), row.querySelector('.plate-result'), wInput, false);
 
     // Swipe to put a rung away. A ramp is a SUGGESTION, so unlike a logged set
     // there is nothing here to destroy — which is why this hides by label
@@ -30681,7 +30143,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
     div.className = 'set-row swipe-item';
     div.dataset.setIdx = newIdx;
     div.dataset.exIdx = exIdx;
-    // showWeight / showDistance / showPlateCalc come from the top of
+    // showWeight / showDistance come from the top of
     // wireSetsBlock. They used to be re-derived here, which is how the drop
     // button's handler came to reference a binding that did not reach it.
     div.innerHTML = `
@@ -30694,13 +30156,9 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
         <span class="ex-x">×</span>` : ''}
         <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input ex-reps" aria-label="Set ${newIdx+1} reps" placeholder="${getSetFieldUnit(ex.sets)}" value="">
         <input type="number" inputmode="decimal" enterkeyhint="next" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${newIdx+1} RPE, 5 to 10" placeholder="RPE" value="">
-        ${showPlateCalc ? '<button type="button" class="plate-btn" aria-label="Open plate calculator — long-press to voice log a set">🏋️</button>' : ''}
-        ${(!showPlateCalc && SpeechRecognitionCtor) ? '<button type="button" class="voice-log-btn" aria-label="Log this set by voice">🎤</button>' : ''}
         <button type="button" class="set-drop-btn" aria-label="Add a drop set under set ${newIdx+1}">\u2935</button>
         <button type="button" class="set-note-btn" aria-label="Add a note to set ${newIdx+1}" aria-expanded="false">+</button>
         <span class="set-status"></span>
-        ${showPlateCalc ? '<div class="plate-result"></div>' : ''}
-        ${SpeechRecognitionCtor ? '<div class="voice-feedback"></div>' : ''}
         <div class="set-drop-wrap"></div>
         <div class="set-note-wrap">
           <input type="text" class="set-note-input" maxlength="200" placeholder="e.g. left shoulder pinched" aria-label="Note for set ${newIdx+1}" value="">
@@ -31175,7 +30633,7 @@ function getEquipment(){
   const saved = equipmentProfile && equipmentProfile[weightUnit];
   return {
     bar: (saved && saved.bar != null) ? saved.bar : std.bar,
-    // Always sorted descending — calcPlatesPerSide fills greedily from the
+    // Always sorted descending — snapping fills greedily from the
     // largest down and would produce nonsense from an unsorted list.
     plates: (saved && Array.isArray(saved.plates) && saved.plates.length)
       ? [...saved.plates].sort((a,b)=> b-a)
@@ -31325,9 +30783,9 @@ function wireEquipmentPicker(){
 // which is exactly the case this exists for.
 //
 // This assumes at least two pairs of the smaller plates, which is true of any
-// real gym but is an assumption rather than a proof; calcPlatesPerSide remains
-// the authority on whether a specific number is loadable, and the tests check
-// the two agree.
+// real gym but is an assumption rather than a proof. (The plate calculator
+// that used to double-check it was removed in v3.300; test-warmup-ramp-and-
+// plates.js checks snapToLoadable's results directly.)
 
 // Syncs the handful of static labels/placeholders that show the unit itself
 // (as opposed to a converted number, which every render function already

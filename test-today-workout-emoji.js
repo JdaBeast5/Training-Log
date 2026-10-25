@@ -58,17 +58,11 @@ test('REAL invocation: renderDayInsight renders every rule, every program defaul
   }
 });
 
-test('REAL invocation: renderVoiceHint shows the tip with no emoji, "Tip:" leading, and its dismiss control intact', async (assert)=>{
-  const { window } = runJsdom('<div id="voiceHintBanner" style="display:none"></div>',
-    'var SpeechRecognitionCtor = function(){}; window.storage = { get: async ()=>{ throw new Error("not found"); }, set: async ()=>{} };',
-    [extractFunction(src, 'renderVoiceHint'), 'window.__p = renderVoiceHint();']);
-  await window.__p;
-  const banner = window.document.getElementById('voiceHintBanner');
-  assert.strictEqual(banner.style.display, 'flex');
-  const tip = banner.querySelector('span');
-  assert.deepStrictEqual(emojiIn(tip.textContent), []);
-  assert.strictEqual(tip.firstElementChild.textContent, 'Tip:');
-  assert.ok(banner.querySelector('#voiceHintDismissBtn[aria-label]'), 'the dismiss button and its accessible name must survive');
+// v3.300 (owner request): the plate calculator and voice set logging were removed with the set chips.
+// The voice tip this test checked for emoji went with it.
+test('REMOVED (v3.300): the voice tip is gone — no renderVoiceHint, no #voiceHintBanner', (assert)=>{
+  assert.ok(!/function renderVoiceHint\b/.test(src));
+  assert.ok(!src.includes('id="voiceHintBanner"'));
 });
 
 test('REAL invocation: buildWarmupNudgeHtml titles every reason "Warm up first", with no emoji', (assert)=>{

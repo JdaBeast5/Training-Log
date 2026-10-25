@@ -36,14 +36,11 @@ test('REAL computed style: the list-extending actions share 15px/500 with full 4
   }
 });
 
-test('REAL stylesheet: the voice tip is a quiet note (muted, no hairline); its dismiss is a 44px target', (assert)=>{
-  const tip = document.createElement('div'); tip.className = 'voice-hint-banner';
-  tip.innerHTML = '<span><b>Tip:</b> x</span><button class="voice-hint-dismiss">✕</button>';
-  document.getElementById('workoutCard').appendChild(tip);
-  assert.match(declared('.voice-hint-banner'), /color:var\(--text-muted\)/);
-  assert.match(declared('.voice-hint-banner'), /border:1px solid transparent/, 'no hairline');
-  const x = tip.querySelector('button');
-  assert.strictEqual(cs(x).minWidth, '44px'); assert.strictEqual(cs(x).minHeight, '44px');
+// v3.300 (owner request): the plate calculator and voice set logging were removed with the set chips.
+// The voice tip this test quietened (v3.293) went with it.
+test('REMOVED (v3.300): the voice tip and its styles are gone from the workout card', (assert)=>{
+  assert.strictEqual(document.getElementById('voiceHintBanner'), null);
+  assert.ok(!/\.voice-hint-banner\{/.test(html), 'no leftover rule');
 });
 
 run();
