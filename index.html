@@ -400,6 +400,8 @@
     margin-top:6px;
   }
   .sub{color:var(--text-muted); font-size:13.5px; margin-top:5px; letter-spacing:-0.005em;}
+  /* v3.305: off Today, the large title stands alone (see switchView). */
+  header.header-compact .sub, header.header-compact .streak-badge{display:none !important;}
   /* v3.278: a status pill — flat pale tint at the old gradient's midpoint with
      a same-hue border, no glow; a flame outline (.streak-flame) instead of 🔥;
      text face with tabular figures so the count doesn't jitter as it animates. */
@@ -6655,7 +6657,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.304';
+const APP_VERSION = '3.305';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7426,6 +7428,8 @@ const WHATS_NEW = {
   ]},  '3.304': { headline: 'Cleaner exercise list', points: [
     'The yellow calorie tags are off every exercise (your session total is still at the top).',
     'Supersets are linked with a thin line and a small label instead of a yellow box, and their buttons now sit inside, like any exercise.',
+  ]},  '3.305': { headline: 'Cleaner headers', points: [
+    'Each tab now opens with just its title. Your streak and profile line stay on Today.',
   ]},
 };
 
@@ -37226,6 +37230,10 @@ function switchView(active, opts){
   const titles = {today:'Today', log:'Log', analysis:'Analysis', history:'History', care:'Care', coach:'Coach', learn:'Learn'};
   const titleEl = document.getElementById('viewTitle');
   if(titleEl && titles[active]) titleEl.textContent = titles[active];
+  // v3.305 (2.0, Apple HIG large titles): every other view's title stands
+  // alone; the profile line and the streak belong to Today.
+  const headerEl = document.querySelector('header');
+  if(headerEl) headerEl.classList.toggle('header-compact', active !== 'today');
   const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   Object.keys(views).forEach(key=>{
     const viewEl = document.getElementById(views[key]);
