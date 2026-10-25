@@ -541,6 +541,31 @@
     background:linear-gradient(100deg, var(--text) 45%, var(--day-hue, var(--text)));
     -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
   }
+  /* [SET CHIPS, v3.298] Each set as a chip under its exercise, visible
+     without opening it. 44px targets (Apple HIG minimum). States: done (green
+     fill), ready (this exercise's next set: one tap logs it, glass + blue
+     hairline), next (the session's very next set: the primary gradient, no
+     glow — glow stays reserved for the primary button and coach button),
+     pending (faint ghost of the suggestion). */
+  .set-chips{display:flex; flex-wrap:wrap; gap:6px; padding:0 0 14px;}
+  .set-chips[hidden]{display:none;}
+  .set-chip{
+    flex:1 0 auto; min-width:56px; max-width:132px; min-height:44px; padding:0 8px; border-radius:14px; white-space:nowrap;
+    display:inline-flex; align-items:center; justify-content:center; gap:3px;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:14.5px; line-height:1;
+    border:1px solid transparent; background:rgba(var(--surface-white-rgb),.05); color:var(--text-muted);
+    cursor:pointer; transition:transform .15s var(--ease-smooth), background-color .2s var(--ease-smooth);
+  }
+  .set-chip:active{transform:scale(0.95);}
+  .set-chip.is-done{background:rgba(var(--plate-green-rgb),.14); color:var(--text);}
+  .set-chip.is-ready{background:var(--glass-fill); border-color:rgba(var(--plate-blue-rgb),.55); color:var(--text);}
+  .set-chip.is-next{background:var(--cta-gradient-blue); border-color:transparent; color:#fff; font-weight:600;}
+  .set-chip-tag{font-family:var(--font-sans); font-size:11px; font-weight:600; opacity:.7; margin-right:2px;}
+  .set-chip-rpe{font-size:11px; color:var(--plate-green);}
+  .set-chip-trend{font-family:var(--font-sans); font-size:12px; font-weight:700;}
+  .set-chip-trend.is-up{color:var(--plate-green);}
+  .set-chip-trend.is-down{color:var(--plate-yellow);}
+  .set-chip.is-next .set-chip-trend{color:#fff;}
   /* [GLASS & GLOW, v3.290] "Up next" — the nested glass panel inside the workout
      card, tinted by the day's own hue (--day-hue), concept A's hero. */
   .up-next{
@@ -6665,7 +6690,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.297';
+const APP_VERSION = '3.298';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7416,6 +7441,9 @@ const WHATS_NEW = {
     'Chart intros, empty screens and explanations say the same in about 40% fewer words.',
   ]},  '3.297': { headline: 'Less reading in Care, Coach and Learn', points: [
     'Disclaimers, form-feedback tips and Learn intros keep every safety note in about 40% fewer words.',
+  ]},  '3.298': { headline: 'Set chips: log a set in one tap', points: [
+    'Every exercise now shows its sets as chips, no need to open it. Green is logged.',
+    'Your next set is filled in with the recommended weight (↑ when it\'s time to go up). Tap it once to log it; Undo is right there.',
   ]},
 };
 
@@ -27617,6 +27645,7 @@ async function renderWorkout(){
       <div class="exercise" role="button" tabindex="0" aria-expanded="false" aria-controls="exSetsPanel${i}">
         ${piece.headerInnerHtml}
       </div>
+      <div class="set-chips" role="group"></div>
       <div class="expand-wrap" id="exSetsPanel${i}">
         <div>
           ${piece.cautionHtml}
@@ -27627,6 +27656,7 @@ async function renderWorkout(){
     `;
     wireExerciseMember(row, row, i, piece);
     wireSetsBlock(row, i, ex, piece.fallbackEntry);
+    watchSetChips(row);
     list.appendChild(row);
   }
 
@@ -27662,6 +27692,7 @@ async function renderWorkout(){
       <div class="superset-banner">Superset — straight into the next exercise, no rest between</div>
       ${memberHtml(topPiece)}
       ${memberHtml(bottomPiece)}
+      <div class="set-chips" role="group"></div>
       <div class="expand-wrap" id="exSetsPanel${t}">
         <div>
           <div class="sets-block" data-day="${activeDay}" data-idx="${t}">
@@ -27687,7 +27718,15 @@ async function renderWorkout(){
     // any separate code path for that case.
     wireSetsBlock(pairRow, t, topPiece.ex, topPiece.fallbackEntry);
     wireSetsBlock(pairRow, b, bottomPiece.ex, bottomPiece.fallbackEntry);
+    watchSetChips(pairRow);
     list.appendChild(pairRow);
+  }
+
+  function watchSetChips(blockEl){
+    const sets = blockEl.querySelector('.sets-block');
+    if(sets && typeof MutationObserver === 'function'){
+      new MutationObserver(()=> renderAllSetChips()).observe(sets, {childList:true});
+    }
   }
 
   // Header-level wiring (checkbox, delete-custom, AI-tailor, expand toggle,
@@ -27867,6 +27906,7 @@ async function renderWorkout(){
 
   updateSessionCalorieTotal(renderExercises, completed);
   renderUpNext(); // v3.290: reads the rows this render just built
+  renderAllSetChips(); // v3.298: same rows, as chips
   // The gym bar counts checkboxes in the rendered list, so it can only be
   // correct after that list exists. No-ops when gym mode is off.
   refreshGymDock();
@@ -29066,21 +29106,164 @@ function logUpNext(){
   if(!n.row) return false;
   const reps = document.getElementById('upNextReps').value;
   if(reps === ''){ document.getElementById('upNextReps').focus(); return false; }
-  for(const field of ['weight', 'distance', 'rpe', 'reps']){
-    const src = n.row.querySelector('.ex-' + field);
-    if(!src) continue;
-    const v = document.getElementById('upNext' + field[0].toUpperCase() + field.slice(1)).value;
-    if(v === '' && field !== 'reps') continue;
-    src.value = v;
-    src.dispatchEvent(new Event('change', {bubbles:true}));
-  }
+  const values = {};
+  for(const field of ['weight', 'distance', 'rpe', 'reps']) values[field] = document.getElementById('upNext' + field[0].toUpperCase() + field.slice(1)).value;
+  writeSetToRow(n.row, values);
   renderUpNext();
   return true;
 }
+
+// Writes a set into a REAL row and fires the row's own change events: weight,
+// distance and RPE first, reps last, so the row becomes a "real set" (rest
+// timer, gym offer, auto-check) once, after the rest of the entry is in.
+// Shared by Up next and the set chips: one path into the row, not two.
+// `force` also writes empty values (used by Undo to put a row back).
+function writeSetToRow(row, values, force){
+  for(const field of ['weight', 'distance', 'rpe', 'reps']){
+    const src = row.querySelector('.ex-' + field);
+    if(!src) continue;
+    const v = values[field];
+    if(!force && (v === '' || v == null) && field !== 'reps') continue;
+    src.value = v == null ? '' : v;
+    src.dispatchEvent(new Event('change', {bubbles:true}));
+  }
+}
+
+// [SET CHIPS, v3.298] Every set of an exercise as one chip, visible without
+// opening the exercise. Built from the real rows (the source of truth), like
+// Up next: a logged set shows what was done; the others show the app's own
+// suggestion (the row's numeric placeholder: the progression engine's next
+// weight), else the set just logged, carried forward. Each exercise's next
+// set is "ready": one tap logs it as shown, with Undo (Apple HIG: prefer undo
+// to confirmation). The session's very next set (the one Up next shows)
+// glows. Any other chip opens the exercise at that set to edit it.
+function setChipValues(row, prev){
+  const el = name => row.querySelector('.ex-' + name);
+  const done = !!(el('reps') && el('reps').value !== '');
+  const pick = name => {
+    const input = el(name);
+    if(!input) return null;
+    if(done) return input.value;
+    const sug = numericPlaceholder(input);
+    if(sug) return sug;
+    // Carried forward from the chip before it (logged or itself carried), so
+    // the whole plan previews once one set of the exercise is known.
+    return prev && prev[name] ? prev[name] : '';
+  };
+  // The progression engine marks its suggestion on the input: increase, or
+  // decrease / deload / an RPE-derived load (all of which read as "down").
+  const w = el('weight');
+  const suggested = !done && !!(w && w.classList.contains('ex-input-suggested'));
+  const trend = !suggested ? '' : w.classList.contains('ex-suggested-increase') ? 'up' : w.classList.contains('ex-suggested-rpe') ? '' : 'down';
+  return {done, suggested, trend, weight:pick('weight'), distance:pick('distance'), reps:pick('reps'), rpe: done && el('rpe') ? el('rpe').value : ''};
+}
+
+// "135×8", "2.5 km × 1", "12 reps", "45 sec"; '' when there is nothing to show.
+function setChipLabel(v, row){
+  const r = row.querySelector('.ex-reps');
+  const unit = r && r.placeholder && !/^[\d.\s-]+$/.test(r.placeholder) ? r.placeholder : 'reps';
+  if(!v.reps) return v.weight || (v.distance ? `${v.distance} ${distanceUnit}` : '');
+  if(v.weight) return `${v.weight}×${v.reps}`;
+  if(v.distance) return `${v.distance} ${distanceUnit} × ${v.reps}`;
+  return `${v.reps} ${unit}`;
+}
+
+// Initials of an exercise name, telling superset partners apart ("DC").
+function setChipOwnerTag(row){
+  const name = ((row.querySelector('.set-row-owner') || {}).textContent || '').trim();
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+}
+
+function renderSetChips(blockEl, glowRow){
+  const strip = blockEl.querySelector(':scope > .set-chips');
+  if(!strip) return;
+  const rows = [...blockEl.querySelectorAll('.sets-block .set-row[data-set-idx]')];
+  const isPair = blockEl.classList.contains('superset-pair');
+  const boxes = [...blockEl.querySelectorAll('.exercise input[type=checkbox]')];
+  const tickedEx = new Set(boxes.filter(c => c.checked).map(c => c.dataset.idx));
+  const readyFor = {}, prevFor = {};
+  // The prescribed rep range per exercise ("4×6-8" -> "6-8"), from its header.
+  const rangeFor = {};
+  blockEl.querySelectorAll('.exercise').forEach(h => {
+    const cb = h.querySelector('input[type=checkbox]'), sets = h.querySelector('.ex-sets > span');
+    if(cb && sets) rangeFor[cb.dataset.idx] = (sets.textContent.split('×')[1] || '').trim();
+  });
+  // Named from the real headers (setAttribute needs no escaping).
+  const names = [...blockEl.querySelectorAll('.exercise .ex-name')].map(n => (n.firstChild && n.firstChild.textContent || '').trim()).filter(Boolean);
+  strip.setAttribute('aria-label', 'Sets for ' + names.join(' and '));
+  strip.innerHTML = '';
+  rows.forEach(row => {
+    const ex = row.dataset.exIdx;
+    const v = setChipValues(row, prevFor[ex]);
+    prevFor[ex] = v;
+    let state = 'pending';
+    if(v.done) state = 'done';
+    else if(!tickedEx.has(ex) && !readyFor[ex]){ readyFor[ex] = true; state = 'ready'; }
+    const loggable = state === 'ready' && !!v.reps;
+    const label = setChipLabel(v, row);
+    const setNum = Number(row.dataset.setIdx) + 1;
+    const owner = ((row.querySelector('.set-row-owner') || {}).textContent || '').trim();
+    // Nothing to suggest yet (no history): the chip shows the prescription.
+    const target = rangeFor[ex] || '';
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'set-chip is-' + state + (row === glowRow && loggable ? ' is-next' : '');
+    chip.dataset.exIdx = ex;
+    chip.dataset.setIdx = row.dataset.setIdx;
+    if(loggable) chip.dataset.loggable = '1';
+    chip.innerHTML = (isPair ? `<span class="set-chip-tag">${escapeHtml(setChipOwnerTag(row))}</span>` : '')
+      + `<span class="set-chip-val">${escapeHtml(label || (target ? '×' + target : 'Set ' + setNum))}</span>`
+      + (v.done && v.rpe ? `<span class="set-chip-rpe">@${escapeHtml(v.rpe)}</span>` : '')
+      + (v.trend ? `<span class="set-chip-trend is-${v.trend}" aria-hidden="true">${v.trend === 'up' ? '↑' : '↓'}</span>` : '');
+    chip.setAttribute('aria-label', `${owner}, set ${setNum}: ${label || (target ? 'target ' + target + ' reps' : 'not logged')}`
+      + (v.done ? ', logged' : loggable ? ', tap to log' : ', tap to enter')
+      + (v.trend === 'up' ? ', suggested increase' : v.trend === 'down' ? ', suggested lighter weight' : v.suggested ? ', suggested weight' : ''));
+    chip._values = v;
+    strip.appendChild(chip);
+  });
+  // No "+" chip: with four sets it wrapped onto a line of its own on every
+  // exercise. Adding a set is rare; "+ Add set" stays inside the exercise.
+  strip.hidden = rows.length === 0;
+}
+
+function renderAllSetChips(){
+  const list = document.getElementById('exerciseList');
+  if(!list) return;
+  const glow = findNextSetRow(list).row;
+  list.querySelectorAll(':scope > .exercise-block').forEach(b => renderSetChips(b, glow));
+}
+
+// One tap logs a ready chip: the row's values before the tap are kept so Undo
+// can put the row back exactly as it was.
+function logSetChip(chip, row){
+  const before = {};
+  for(const f of ['weight', 'distance', 'rpe', 'reps']){ const el = row.querySelector('.ex-' + f); if(el) before[f] = el.value; }
+  writeSetToRow(row, chip._values);
+  renderAllSetChips();
+  const owner = ((row.querySelector('.set-row-owner') || {}).textContent || '').trim();
+  showUndoToast(`Logged ${owner} ${setChipLabel(chip._values, row)}`, ()=>{ writeSetToRow(row, before, true); renderAllSetChips(); });
+}
+
+// One delegated listener for every strip, so re-renders never re-bind.
+document.addEventListener('click', (e)=>{
+  const chip = e.target.closest && e.target.closest('.set-chip');
+  if(!chip || !chip.closest('#exerciseList')) return;
+  const block = chip.closest('.exercise-block');
+  const row = block.querySelector(`.sets-block .set-row[data-ex-idx="${chip.dataset.exIdx}"][data-set-idx="${chip.dataset.setIdx}"]`);
+  if(!row) return;
+  if(chip.dataset.loggable && chip._values){ logSetChip(chip, row); return; }
+  // Anything else: open the exercise at that set to enter or change it.
+  if(!block.classList.contains('open')) setExerciseBlockOpen(block, true);
+  const first = row.querySelector('.ex-input');
+  if(first){
+    first.focus({preventScroll:true});
+    if(row.scrollIntoView) row.scrollIntoView({block:'center', behavior:'smooth'});
+  }
+});
 document.getElementById('upNextLog').addEventListener('click', logUpNext);
 // Anything typed or ticked in the real list moves the card along too.
 document.addEventListener('change', (e)=>{
-  if(e.target && e.target.closest && e.target.closest('#exerciseList')) setTimeout(renderUpNext, 0);
+  if(e.target && e.target.closest && e.target.closest('#exerciseList')) setTimeout(()=>{ renderUpNext(); renderAllSetChips(); }, 0);
 });
 
 // Delegated at the document, so it survives every renderWorkout without
