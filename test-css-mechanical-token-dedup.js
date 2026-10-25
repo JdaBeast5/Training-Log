@@ -240,9 +240,11 @@ test('sabotage-relevant: --glass-blur and --nav-glass-bg are each declared exact
   assert.ok(rootBlock.includes('--nav-glass-bg:'), 'must live in :root');
 });
 
-test('sabotage-relevant: var(--glass-blur) appears at exactly 8 real occurrences (4 sites x 2 prefixed declarations each), var(--nav-glass-bg) at exactly 3', (assert)=>{
-  assert.strictEqual((src.match(/var\(--glass-blur\)/g) || []).length, 8);
-  assert.strictEqual((src.match(/var\(--nav-glass-bg\)/g) || []).length, 3);
+// v3.299: +1 site for each token — the set sheet (Option 2's logger) is fixed
+// chrome made of the same glass as the tab bar (see test-set-sheet.js).
+test('sabotage-relevant: var(--glass-blur) appears at exactly 10 real occurrences (5 sites x 2 prefixed declarations each), var(--nav-glass-bg) at exactly 4', (assert)=>{
+  assert.strictEqual((src.match(/var\(--glass-blur\)/g) || []).length, 10);
+  assert.strictEqual((src.match(/var\(--nav-glass-bg\)/g) || []).length, 4);
 });
 
 test('REAL CASCADE: .nav-pills, .status-scrim, and .analysis-index all resolve to the exact pre-conversion background + backdrop-filter pair', (assert)=>{

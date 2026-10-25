@@ -1,7 +1,7 @@
 'use strict';
 // v3.298 (owner-chosen Option 3, "Set chips"): every set of an exercise shows
 // as a chip under its name, without opening the exercise.
-//  - logged set: what was done ("185×5", RPE beside it);
+//  - logged set: what was done ("185×5"; its RPE is spoken and shown in the set sheet);
 //  - each exercise's next set is "ready": its chip shows the app's own
 //    suggestion (the row's numeric placeholder — the progression engine's next
 //    weight, with ↑/↓ when it is an increase or a lighter load), else the set
@@ -27,7 +27,7 @@ const { readIndexSource, extractFunction, runJsdom, makeRunner } = require('./te
 const { test, run } = makeRunner('test-set-chips.js');
 const src = readIndexSource();
 const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel',
-  'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'logSetChip'].map(n => extractFunction(src, n));
+  'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'commitSet', 'logSetChip'].map(n => extractFunction(src, n));
 // The one delegated click listener, taken whole from its comment to its close.
 const CLICK = (()=>{
   const a = src.indexOf('// One delegated listener for every strip');
@@ -52,9 +52,12 @@ function block(i, name, sets, rows, {ticked = false} = {}){
 function mount(listHtml){
   const { window } = runJsdom(`<div id="exerciseList">${listHtml}</div><div id="undoToast"></div>`, `
     var distanceUnit = 'km';
+    var setChipLongPressAt = 0; // v3.299: the long-press flag the click listener reads (no press in these tests)
     window.__undo = null; window.__opened = null;
     function showUndoToast(msg, fn){ window.__toast = msg; window.__undo = fn; }
     function setExerciseBlockOpen(b, open){ window.__opened = open; b.classList.toggle('open', open); }
+    // v3.299: the set sheet has its own test (test-set-sheet.js); here, only that a tap opens it on the right row.
+    function openSetSheet(row, chip){ window.__sheet = {row, chip}; }
   `, [...FNS, CLICK, 'window.__renderAll = renderAllSetChips;']);
   window.__renderAll();
   const chips = (n = 0) => [...window.document.querySelectorAll('#exerciseList > .exercise-block')[n].querySelectorAll('.set-chip')];
@@ -69,7 +72,9 @@ test('REAL invocation: logged sets show what was done; each exercise has one rea
     + block(1, 'Barbell Row', '4×6-8', row(1, 0, 'Barbell Row', {wv:'135', rv:'8', rpev:'7'}) + row(1, 1, 'Barbell Row') + row(1, 2, 'Barbell Row'))
     + block(2, 'Overhead Press', '3×8-10', row(2, 0, 'Overhead Press', {wp:'95', rp:'10'}) + row(2, 1, 'Overhead Press')));
   assert.deepStrictEqual(ui.describe(0), ['done:185×5', 'done:185×5']);
-  assert.strictEqual(ui.chips(0)[0].querySelector('.set-chip-rpe').textContent, '@8');
+  // v3.299: RPE moved off the chip (into its spoken label and the sheet) so four sets fit one line.
+  assert.strictEqual(ui.chips(0)[0].querySelector('.set-chip-rpe'), null);
+  assert.match(ui.chips(0)[0].getAttribute('aria-label'), /185×5 at RPE 8/);
   assert.deepStrictEqual(ui.describe(1), ['done:135×8', 'ready next:135×8', 'pending:135×8'], 'carried forward from the logged set, through the plan');
   assert.deepStrictEqual(ui.describe(2), ['ready:95×10', 'pending:95×10'], 'its own suggestion, ready but not the glowing one');
   assert.strictEqual(ui.window.document.querySelectorAll('.set-chip.is-next').length, 1, 'exactly one glow');
@@ -101,14 +106,17 @@ test('REAL invocation: one tap on a ready chip writes into the REAL row (reps la
   assert.deepStrictEqual(ui.describe(0), ['ready next:135×8', 'pending:135×8'], 'back as it was');
 });
 
-test('REAL invocation: no history → the chip shows the prescription and a tap opens the exercise at that set (nothing logged blind)', (assert)=>{
+// v3.299: a chip that isn't one-tap loggable opens the set sheet for its row
+// (v3.298 opened the exercise at that row; the sheet replaced that).
+test('REAL invocation: no history → the chip shows the prescription and a tap opens the set sheet for that set (nothing logged blind)', (assert)=>{
   const ui = mount(block(0, 'Lat Pulldown', '3×10-12', row(0, 0, 'Lat Pulldown') + row(0, 1, 'Lat Pulldown')));
   assert.deepStrictEqual(ui.describe(0), ['ready:×10-12', 'pending:×10-12']);
   ui.chips(0)[1].click();
   const r = ui.window.document.querySelector('.set-row[data-set-idx="1"]');
-  assert.strictEqual(ui.window.__opened, true, 'opened through setExerciseBlockOpen');
-  assert.ok(r.contains(ui.window.document.activeElement), 'focus lands in that set');
+  assert.strictEqual(ui.window.__sheet.row, r, 'the sheet opens on that row');
   assert.strictEqual(r.querySelector('.ex-reps').value, '', 'nothing written');
+  ui.chips(0)[0].click();
+  assert.strictEqual(ui.window.__sheet.row, ui.window.document.querySelector('.set-row[data-set-idx="0"]'), 'a ready chip with nothing to suggest opens the sheet too');
 });
 
 test('REAL invocation: an exercise ticked done offers no ready chip; a superset interleaves its two exercises, told apart by initials', (assert)=>{
