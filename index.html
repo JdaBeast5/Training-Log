@@ -4632,6 +4632,10 @@
     cursor:pointer; transition:transform 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth);
   }
   .gym-enter-btn:active{transform:scale(0.985); border-color:rgba(91,124,255,0.7);}
+  /* Same barbell outline (and 17px size) as .card-icon on the Training Style
+     header — replaced a 🏋 emoji, which drew as different full-colour art on
+     every OS (tasteskill Today pilot, v3.273). */
+  .gym-enter-icon{ width:17px; height:17px; flex:0 0 auto; }
 
   /* ── The offer ────────────────────────────────────────────────────────────
      Shown once, on the first logged set, and never again in either direction —
@@ -4983,14 +4987,14 @@
     <div class="day-insight" id="dayInsight"></div>
     <div class="today-standout-banner" id="todayStandoutBanner" style="display:none"></div>
     <div id="voiceHintBanner" style="display:none"></div>
-    <button class="adapt-workout-toggle" id="adaptWorkoutBtn">🔄 Only have limited equipment/time today? Adapt this session</button>
+    <button class="adapt-workout-toggle" id="adaptWorkoutBtn">Only have limited equipment or time today? Adapt this session</button>
     <div id="adaptWorkoutPanel" class="smooth-toggle"><div>
       <input type="text" id="adaptWorkoutInput" class="care-input" placeholder="e.g. only dumbbells, no equipment at all, 20 minutes, traveling with just resistance bands" aria-label="What you have available today">
       <button class="save-btn" id="adaptWorkoutSubmit">Get adapted session</button>
       <div id="adaptWorkoutResult"></div>
     </div></div>
     <button type="button" class="gym-enter-btn" id="gymEnterBtn">
-      <span aria-hidden="true">🏋</span> Gym mode
+      <svg class="gym-enter-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg> Gym mode
     </button>
     <div id="exerciseList"></div>
     <button class="custom-toggle" id="addCustomExerciseBtn">+ Add custom exercise</button>
@@ -5016,7 +5020,7 @@
          what content or which id ends up there. See
          renderArchiveWeekVisibility(). -->
     <div id="archiveWeekWrap" style="display:none;">
-      <button class="save-btn" id="archiveWeekBtn" style="margin-top:14px;">🏁 Save this week & start fresh</button>
+      <button class="save-btn" id="archiveWeekBtn" style="margin-top:14px;">Save this week & start fresh</button>
       <div class="status-msg" id="archiveWeekStatus"></div>
       <div id="weekShareWrap" style="display:none; margin-top:8px; text-align:center;">
         <button type="button" class="switch-profile-btn" id="weekShareBtn" style="width:auto; display:inline-block; padding:8px 18px;">Share this week</button>
@@ -6596,7 +6600,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.272';
+const APP_VERSION = '3.273';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7263,6 +7267,9 @@ const WHATS_NEW = {
   '3.272': { headline: 'A calmer Today tab', points: [
     'Cards on Today are now flat panels: no outlines, shadows or blue glow, just a lighter shade against the background.',
     'Today\'s cards no longer slide in one by one each time you open the tab. They\'re just there.',
+  ]},
+  '3.273': { headline: 'Fewer emoji in your workout', points: [
+    'The workout card\'s tips, insights, warm-ups and buttons now use plain words, and Gym mode has a simple barbell icon, instead of emoji that looked different on every phone.',
   ]},
 };
 
@@ -26093,7 +26100,7 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
     const shown = snapToLoadable(toDisplayWeight(rpeBadgeTarget), ex.name, 'down');
     return {
       direction: 'rpe',
-      html: `<div class="progress-badge-rpe">🎯 ${inDeloadWeek ? 'Deload week' : `Week ${cycleWeekOf(rpeCtx.week)}`} target: <b>RPE ${rpeTargetRpe}</b> — about ${rir} rep${rir===1?'':'s'} left at the end. From your recent best that's around <b>${trimUnitNum(shown)} ${weightUnit}</b>${note}.</div>`,
+      html: `<div class="progress-badge-rpe">${inDeloadWeek ? 'Deload week' : `Week ${cycleWeekOf(rpeCtx.week)}`} target: <b>RPE ${rpeTargetRpe}</b> — about ${rir} rep${rir===1?'':'s'} left at the end. From your recent best that's around <b>${trimUnitNum(shown)} ${weightUnit}</b>${note}.</div>`,
     };
   }
   if(signal){
@@ -26269,7 +26276,7 @@ function buildWarmupNudgeHtml(reason){
     : reason === 'light'
       ? 'Light enough that a formal ramp is more clutter than help. One easy set to groove the movement is plenty.'
       : 'No logged history for this lift yet, so there is no working weight to ramp to. Work up in a few easy sets today; from your next session the ramp builds itself.';
-  return `<div class="warmup-box"><div class="warmup-title">🔥 Warm up first</div><div class="warmup-row"><span>${body}</span></div></div>`;
+  return `<div class="warmup-box"><div class="warmup-title">Warm up first</div><div class="warmup-row"><span>${body}</span></div></div>`;
 }
 
 // Named, so it can be tested rather than asserted as a substring — the same
@@ -26765,7 +26772,7 @@ function updateSessionCalorieTotal(exercises, completed){
   if(total <= 0){ el.textContent = ''; return; }
   const numEl = el.querySelector('#sessionCalNum');
   if(!numEl){
-    el.innerHTML = `🔥 ~<span id="sessionCalNum">${total}</span> cal burned so far this session`;
+    el.innerHTML = `~<span id="sessionCalNum">${total}</span> cal burned so far this session`;
   } else {
     animateNumberTo(numEl, total, {duration: 500});
   }
@@ -26774,30 +26781,30 @@ function updateSessionCalorieTotal(exercises, completed){
 // Contextual health insight, matched against the day's focus label so it's
 // relevant to what's actually being trained that session, not generic filler.
 const DAY_INSIGHT_RULES = [
-  {pattern:/rest|recovery|gentle/i, insight:'🧠 <b>Recovery insight:</b> Light movement increases blood flow to sore muscles without adding fatigue — a short walk here does more for tomorrow\'s session than sitting completely still.'},
-  {pattern:/vinyasa|power yoga|hatha|yoga flow|restorative/i, insight:'🧘 <b>Breath insight:</b> Match your movement to your inhale and exhale — flow-based yoga is as much a breathing practice as a movement one. Rushing the breath rushes, and weakens, the pose.'},
-  {pattern:/kick/i, insight:'🦵 <b>Kick power insight:</b> Real kicking power comes from hip rotation and core bracing, not leg muscle alone — a strong, controlled hip drive matters as much as flexibility for both power and speed.'},
-  {pattern:/power|explosive|plyo|jump/i, insight:'⚡ <b>Neural insight:</b> Explosive/plyometric work fatigues your nervous system faster than your muscles — if power output drops noticeably, that\'s your body\'s honest signal to stop, not push through.'},
-  {pattern:/squat|deadlift|leg|thigh|lower/i, insight:'🦴 <b>Joint health insight:</b> Heavy lower-body work loads your spine and knees directly — a thorough 5-10 min warm-up (not just a couple of stretches) meaningfully lowers injury risk on days like this.'},
-  {pattern:/hiit|interval|speed|sprint|tabata/i, insight:'❤️ <b>Cardiovascular insight:</b> High-intensity interval work spikes heart rate fast — make sure your warm-up gradually raises it first rather than jumping straight into max effort cold.'},
-  {pattern:/yin|mobility|flexibility/i, insight:'🧘 <b>Mobility insight:</b> Static stretching is most effective on already-warm tissue — a few minutes of light movement first noticeably improves the return on this session.'},
-  {pattern:/core|ab|stability/i, insight:'🎯 <b>Performance insight:</b> A little core activation before heavier lifts (not just as a separate session) can meaningfully improve bracing and lifting safety that day.'},
-  {pattern:/push|pull|upper|chest|back|shoulder|arm/i, insight:'💪 <b>Balance insight:</b> Pressing and pulling movements both recruit the rotator cuff — keeping push and pull volume roughly even across your week is one of the best ways to avoid shoulder imbalances.'},
-  {pattern:/knee|hip|wrist|ankle|neck|stabilit/i, insight:'🩹 <b>Rehab insight:</b> Isometric holds (no joint movement) are generally the safest way to keep a healing area loaded — resist the urge to progress to dynamic movement before it\'s pain-free.'},
+  {pattern:/rest|recovery|gentle/i, insight:'<b>Recovery insight:</b> Light movement increases blood flow to sore muscles without adding fatigue — a short walk here does more for tomorrow\'s session than sitting completely still.'},
+  {pattern:/vinyasa|power yoga|hatha|yoga flow|restorative/i, insight:'<b>Breath insight:</b> Match your movement to your inhale and exhale — flow-based yoga is as much a breathing practice as a movement one. Rushing the breath rushes, and weakens, the pose.'},
+  {pattern:/kick/i, insight:'<b>Kick power insight:</b> Real kicking power comes from hip rotation and core bracing, not leg muscle alone — a strong, controlled hip drive matters as much as flexibility for both power and speed.'},
+  {pattern:/power|explosive|plyo|jump/i, insight:'<b>Neural insight:</b> Explosive/plyometric work fatigues your nervous system faster than your muscles — if power output drops noticeably, that\'s your body\'s honest signal to stop, not push through.'},
+  {pattern:/squat|deadlift|leg|thigh|lower/i, insight:'<b>Joint health insight:</b> Heavy lower-body work loads your spine and knees directly — a thorough 5-10 min warm-up (not just a couple of stretches) meaningfully lowers injury risk on days like this.'},
+  {pattern:/hiit|interval|speed|sprint|tabata/i, insight:'<b>Cardiovascular insight:</b> High-intensity interval work spikes heart rate fast — make sure your warm-up gradually raises it first rather than jumping straight into max effort cold.'},
+  {pattern:/yin|mobility|flexibility/i, insight:'<b>Mobility insight:</b> Static stretching is most effective on already-warm tissue — a few minutes of light movement first noticeably improves the return on this session.'},
+  {pattern:/core|ab|stability/i, insight:'<b>Performance insight:</b> A little core activation before heavier lifts (not just as a separate session) can meaningfully improve bracing and lifting safety that day.'},
+  {pattern:/push|pull|upper|chest|back|shoulder|arm/i, insight:'<b>Balance insight:</b> Pressing and pulling movements both recruit the rotator cuff — keeping push and pull volume roughly even across your week is one of the best ways to avoid shoulder imbalances.'},
+  {pattern:/knee|hip|wrist|ankle|neck|stabilit/i, insight:'<b>Rehab insight:</b> Isometric holds (no joint movement) are generally the safest way to keep a healing area loaded — resist the urge to progress to dynamic movement before it\'s pain-free.'},
 ];
 
 const DEFAULT_INSIGHTS_BY_PROGRAM = {
-  combat: '🥊 <b>Insight:</b> Rounds-based training taxes your grip and forearms as much as your cardio — don\'t underestimate how much hand/wrist fatigue affects technique late in a session.',
-  running: '🏃 <b>Insight:</b> Your easy pace should genuinely feel easy — most runners who plateau are running their "easy" days too hard to actually recover between the harder ones.',
-  calisthenics: '🤸 <b>Insight:</b> Skill-based bodyweight work rewards fresh attempts — practice your hardest progressions early in the session, not after you\'re fatigued from accessory work.',
-  jumprope: '🪢 <b>Insight:</b> Efficient rope technique uses your wrists, not your shoulders — if your upper arms are getting tired fast, you\'re over-swinging instead of flicking the rope.',
-  bodyweight: '💯 <b>Insight:</b> Without external load, tempo is your main lever for intensity — slow the eccentric (lowering) phase down if a movement is starting to feel too easy.',
-  oly: '🏋️ <b>Technical insight:</b> Olympic lift variations are learned through repetition of the correct pattern, not heavier loading — if your technique breaks down, drop the weight before you drop the quality.',
-  powerlifting: '📐 <b>Strength insight:</b> Bar path efficiency matters more than how the rep looks — the shortest, most direct line to lockout is almost always the strongest one, even if it feels less dramatic.',
-  athletic: '🏃 <b>Conditioning insight:</b> Agility and footwork drills sharpen fastest with full attention, not fatigue — do them early in a session if precision matters more than conditioning that day.',
-  core: '🎯 <b>Stability insight:</b> Anti-rotation and anti-extension work (resisting movement) builds more real-world core strength than crunches alone — bracing under load is the actual skill being trained.',
-  mobility: '🧘 <b>Range insight:</b> Consistent short sessions beat occasional long ones for building real, usable range of motion — a few focused minutes daily compounds faster than one long weekly stretch.',
-  bodybuilding: '💪 <b>Hypertrophy insight:</b> Muscle responds to mechanical tension and total volume more than raw weight lifted — this is the core finding across Dr. Brad Schoenfeld\'s hypertrophy research (the most published scientist in this specific field). Slow the eccentric down on isolation work if you want more growth stimulus from the same load.',
+  combat: '<b>Insight:</b> Rounds-based training taxes your grip and forearms as much as your cardio — don\'t underestimate how much hand/wrist fatigue affects technique late in a session.',
+  running: '<b>Insight:</b> Your easy pace should genuinely feel easy — most runners who plateau are running their "easy" days too hard to actually recover between the harder ones.',
+  calisthenics: '<b>Insight:</b> Skill-based bodyweight work rewards fresh attempts — practice your hardest progressions early in the session, not after you\'re fatigued from accessory work.',
+  jumprope: '<b>Insight:</b> Efficient rope technique uses your wrists, not your shoulders — if your upper arms are getting tired fast, you\'re over-swinging instead of flicking the rope.',
+  bodyweight: '<b>Insight:</b> Without external load, tempo is your main lever for intensity — slow the eccentric (lowering) phase down if a movement is starting to feel too easy.',
+  oly: '<b>Technical insight:</b> Olympic lift variations are learned through repetition of the correct pattern, not heavier loading — if your technique breaks down, drop the weight before you drop the quality.',
+  powerlifting: '<b>Strength insight:</b> Bar path efficiency matters more than how the rep looks — the shortest, most direct line to lockout is almost always the strongest one, even if it feels less dramatic.',
+  athletic: '<b>Conditioning insight:</b> Agility and footwork drills sharpen fastest with full attention, not fatigue — do them early in a session if precision matters more than conditioning that day.',
+  core: '<b>Stability insight:</b> Anti-rotation and anti-extension work (resisting movement) builds more real-world core strength than crunches alone — bracing under load is the actual skill being trained.',
+  mobility: '<b>Range insight:</b> Consistent short sessions beat occasional long ones for building real, usable range of motion — a few focused minutes daily compounds faster than one long weekly stretch.',
+  bodybuilding: '<b>Hypertrophy insight:</b> Muscle responds to mechanical tension and total volume more than raw weight lifted — this is the core finding across Dr. Brad Schoenfeld\'s hypertrophy research (the most published scientist in this specific field). Slow the eccentric down on isolation work if you want more growth stimulus from the same load.',
 };
 
 function renderDayInsight(day){
@@ -26806,7 +26813,7 @@ function renderDayInsight(day){
   const rule = DAY_INSIGHT_RULES.find(r=>r.pattern.test(day.sub));
   if(rule){ el.innerHTML = rule.insight; return; }
   if(day.rest){ el.innerHTML = ''; return; }
-  el.innerHTML = DEFAULT_INSIGHTS_BY_PROGRAM[activeProgram] || '💡 <b>Insight:</b> Consistency compounds — showing up for a moderate session beats skipping in search of a "perfect" one.';
+  el.innerHTML = DEFAULT_INSIGHTS_BY_PROGRAM[activeProgram] || '<b>Insight:</b> Consistency compounds — showing up for a moderate session beats skipping in search of a "perfect" one.';
 }
 
 async function renderVoiceHint(){
@@ -26822,7 +26829,7 @@ async function renderVoiceHint(){
 
   banner.className = 'voice-hint-banner';
   banner.innerHTML = `
-    <span>💡 <b>Tip:</b> hold the plate-calculator icon — or tap the mic icon on other exercises — to voice log a set. Try "225 for 5" or "180 for 12 at a 6".</span>
+    <span><b>Tip:</b> hold the plate-calculator icon — or tap the mic icon on other exercises — to voice log a set. Try "225 for 5" or "180 for 12 at a 6".</span>
     <button class="voice-hint-dismiss" id="voiceHintDismissBtn" aria-label="Dismiss voice logging tip">✕</button>
   `;
   banner.style.display = 'flex';
@@ -27083,7 +27090,7 @@ async function renderWorkout(){
     const isSupersetTop = !!ex.superTag;
     const isSupersetBottom = i > 0 && !!renderExercises[i-1].superTag;
     const checked = completed[i] ? 'checked' : '';
-    const focusHtml = ex.isBodyGoalFocus ? `<span class="super-tag focus-tag">🎯 ${ex.focusLabel} — added for your body goal</span>` : '';
+    const focusHtml = ex.isBodyGoalFocus ? `<span class="super-tag focus-tag">${ex.focusLabel} — added for your body goal</span>` : '';
 
     // Every exercise gets reps + sets + RPE tracking, full stop — noWeight
     // only ever means "skip the lb field" (bodyweight/duration/hold work),
@@ -27252,7 +27259,7 @@ async function renderWorkout(){
               : isFallback
                 ? `(based on your last logged ${escapeHtml(ex.name)}, ${escapeHtml(programLabelFor(priorSourceProgram))})`
                 : '(based on your last session)';
-          const rampTitle = `🔥 Suggested warm-up ramp <span style="font-weight:400; text-transform:none; letter-spacing:0; opacity:0.75;">${basisNote}</span>`;
+          const rampTitle = `Suggested warm-up ramp <span style="font-weight:400; text-transform:none; letter-spacing:0; opacity:0.75;">${basisNote}</span>`;
           const rampNote = (warmupSetsEnabled && visibleSteps.length)
             ? '<div class="warmup-foot">Not counted in your volume, 1RM or PRs. Swipe a step away if you don\'t need it.</div>' : '';
           // The box is for the READ-ONLY ramp. Once the ramp is loggable rows,

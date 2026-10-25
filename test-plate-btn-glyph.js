@@ -117,7 +117,9 @@ test('regression guard: the warm-up-ramp-specific plate-btn override (fixed in a
 });
 
 test('REAL invocation: the voice-hint tip banner text no longer references the removed plate emoji, but still describes how to use the button', (assert)=>{
-  const bannerRe = /<span>\u{1F4A1} <b>Tip:<\/b>[^<]*<\/span>/u;
+  // v3.273 dropped the tip's leading 💡 (tasteskill Today pilot), so the
+  // locator keys on the bold "Tip:" label that now leads the banner.
+  const bannerRe = /<span><b>Tip:<\/b>[^<]*<\/span>/u;
   const m = bannerRe.exec(src);
   if(!m) throw new Error('voice-hint tip banner markup not found');
   const bannerText = m[0];
