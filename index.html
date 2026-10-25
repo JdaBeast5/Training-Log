@@ -574,7 +574,10 @@
   .up-next .up-next-field input:focus, .up-next .up-next-field input:focus-visible{outline:none; box-shadow:none; border-color:transparent;}
   .up-next-field input::placeholder{color:rgba(var(--surface-white-rgb),.28);}
   .up-next-field:focus-within{border-color:rgba(var(--plate-blue-rgb),.6); outline:2px solid var(--focus-ring-color); outline-offset:2px;}
-  .up-next-go{margin-top:10px;}
+  /* `.up-next` prefix on purpose: the global .save-btn rule comes later in the
+     sheet with equal specificity and would otherwise win (it did, silently, for
+     v3.292's gap). v3.293: the primary is never smaller than the 16px controls. */
+  .up-next .up-next-go{margin-top:10px; font-size:16px;}
   .up-next.is-done .up-next-fields, .up-next.is-done .up-next-go{display:none;}
   body.gym-mode .up-next{display:none;} /* gym mode has its own focused flow */
 
@@ -674,15 +677,18 @@
     padding:10px 12px; background:rgba(var(--plate-blue-rgb),0.08); border:1px solid rgba(var(--plate-blue-rgb),0.28);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
   }
+  /* v3.293 (Impeccable distill): a quiet note, not a third bordered box under
+     Up next — muted text on a faint fill, no hairline. */
   .voice-hint-banner{
-    display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(var(--plate-blue-rgb),0.08);
-    border:1px solid rgba(var(--plate-blue-rgb),0.28); border-radius:var(--radius-md); font-size:12.5px; line-height:1.4;
-    color:var(--text); margin-bottom:14px;
+    display:flex; align-items:center; gap:4px; padding:4px 4px 4px 14px; background:rgba(var(--plate-blue-rgb),0.06);
+    border:1px solid transparent; border-radius:var(--radius-md); font-size:13px; line-height:1.45;
+    color:var(--text-muted); margin-bottom:14px;
   }
+  .voice-hint-banner b{color:var(--text); font-weight:600;}
   .voice-hint-banner span:first-of-type{flex:1;}
   .voice-hint-dismiss{
-    flex:0 0 auto; background:none; border:none; color:var(--text-muted); font-size:18px; line-height:1;
-    cursor:pointer; padding:2px;
+    flex:0 0 auto; background:none; border:none; color:var(--text-muted); font-size:16px; line-height:1;
+    cursor:pointer; padding:0; min-width:44px; min-height:44px; /* v3.293: a full touch target, was 19x22px */
   }
   .fade-out-dismiss{transition:opacity 0.3s var(--ease-smooth), transform 0.3s var(--ease-smooth);}
   .fade-out-dismiss.fading{opacity:0; transform:translateY(-8px);}
@@ -3343,7 +3349,7 @@
   .back-btn:active{transform:scale(0.96);}
   .custom-toggle{
     width:100%; background:var(--glass-fill); border:1px solid var(--glass-hair); color:var(--text-muted);
-    padding:11px; border-radius:var(--radius-pill); font-size:13px; cursor:pointer; font-family:var(--font-sans);
+    padding:11px; min-height:44px; border-radius:var(--radius-pill); font-size:15px; font-weight:500; cursor:pointer; font-family:var(--font-sans);
     margin-bottom:4px; transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
   .custom-toggle:active{transform:scale(0.98); border-color:var(--line-bright);}
@@ -3351,7 +3357,7 @@
   .adapt-workout-toggle{
     /* Flat fill at the old gradient's midpoint, no glow (tasteskill Today pilot, v3.275). */
     width:100%; background:var(--glass-fill); border:1px solid var(--glass-hair); color:var(--text);
-    padding:12px; border-radius:var(--radius-pill); font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font-sans);
+    padding:12px 20px; min-height:44px; border-radius:var(--radius-pill); font-size:15px; font-weight:500; line-height:1.35; text-wrap:balance; cursor:pointer; font-family:var(--font-sans);
     margin-bottom:10px;
     transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
@@ -6659,7 +6665,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.292';
+const APP_VERSION = '3.293';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7399,6 +7405,9 @@ const WHATS_NEW = {
     'The week, length and calories read as one quiet line instead of four different styles.',
   ]},  '3.292': { headline: 'Cleaner Up next fields', points: [
     'The weight, reps and RPE boxes are lighter and empty boxes no longer show a dash, so the numbers stand out.',
+  ]},  '3.293': { headline: 'One size for buttons', points: [
+    'Buttons on your workout now share two sizes: the ones you use mid-session, and the ones that add to your plan. Log set is no longer smaller than the buttons around it.',
+    'The voice tip is a quiet note instead of another box, and its close button is easier to tap.',
   ]},
 };
 

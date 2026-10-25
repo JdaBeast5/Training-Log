@@ -125,18 +125,23 @@ test('REAL source, comments stripped: renderWorkout refreshes the card exactly o
 // v3.292 (Impeccable distill): the input wells lose their hairline (the panel
 // already draws the edge) and the fields→button gap tightens so the inputs and
 // Log set read as one group, set apart from the heading above.
-test('REAL CSSOM (v3.292): borderless wells; tight fields→button gap, wider heading→fields gap', (assert)=>{
+// v3.293: checked on the COMPUTED style of the real card, not the rule text —
+// the rule-text version of this test passed while the global .save-btn rule
+// (later in the sheet, same specificity) silently overrode the gap. Also: the
+// primary is never set smaller than the 16px controls row above it.
+test('REAL computed style (v3.292/3): borderless wells; fields→button gap tighter than heading→fields; Log set ≥ 16px', (assert)=>{
   const fs = require('fs'), path = require('path'), { JSDOM } = require('jsdom');
   const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
   const css = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
-  const { document } = new JSDOM(`<style>${css}</style>`).window;
-  const rules = []; const walk = l => { for(const r of l){ if(r.type === 1) rules.push(r); else if(r.cssRules) walk(r.cssRules); } };
-  for(const sh of document.styleSheets) walk(sh.cssRules);
-  const one = sel => { const f = rules.filter(r => r.selectorText === sel); if(f.length !== 1) throw new Error(`${sel}: ${f.length}`); return f[0].style; };
-  assert.match(one('.up-next-field').getPropertyValue('border'), /transparent/, 'no visible hairline on the wells');
-  const gapAbove = parseFloat(one('.up-next-fields').getPropertyValue('margin-top'));
-  const gapBelow = parseFloat(one('.up-next-go').getPropertyValue('margin-top'));
+  const { window } = new JSDOM(`<style>${css}</style>${extractElementById(src, 'upNext')}`);
+  const cs = sel => window.getComputedStyle(window.document.querySelector(sel));
+  assert.match(cs('.up-next-field').borderTopColor, /^(transparent|rgba\(0, 0, 0, 0\))$/, 'no visible hairline on the wells');
+  // jsdom drops var() borders when computing, so also pin the declared value.
+  assert.match(html.match(/\.up-next-field\{[^}]*\}/)[0], /border:1px solid transparent/, 'declared border stays transparent');
+  const gapAbove = parseFloat(cs('.up-next-fields').marginTop);
+  const gapBelow = parseFloat(cs('#upNextLog').marginTop);
   assert.ok(gapBelow < gapAbove, `fields→button (${gapBelow}px) must be tighter than heading→fields (${gapAbove}px)`);
+  assert.ok(parseFloat(cs('#upNextLog').fontSize) >= 16, `Log set renders at ${cs('#upNextLog').fontSize}`);
 });
 
 run();
