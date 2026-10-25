@@ -2675,11 +2675,25 @@
      border, same .active treatment above — a person who already knows what
      "active" looks like on a tab does not need to relearn it here), just
      laid out and sized for a list rather than a scroll-snapping row. */
-  .nav-more-list{display:flex; flex-direction:column; gap:8px;}
+  /* v3.306 (2.0, Apple HIG inset grouped list): one glass group, hairline
+     separators, each row an icon, a name, one line on what is inside, and a
+     chevron. The current view is marked, not filled white like a tab. */
+  .nav-more-list{display:flex; flex-direction:column; border-radius:20px; overflow:hidden;
+    background:var(--glass-fill); border:1px solid var(--glass-hair);}
   .nav-more-item{
-    flex:none; width:100%; text-align:left; padding:13px 16px;
+    flex:none; width:100%; text-align:left; padding:12px 14px; min-height:60px;
+    display:flex; align-items:center; gap:12px; border-radius:0; border:0; background:transparent;
     scroll-snap-align:none;
   }
+  .nav-more-item + .nav-more-item{border-top:1px solid var(--glass-hair);}
+  .nav-more-icon{flex:0 0 32px; height:32px; border-radius:9px; display:grid; place-items:center;
+    background:rgba(var(--plate-blue-rgb),0.16); color:var(--plate-blue);}
+  .nav-more-icon svg{width:18px; height:18px;}
+  .nav-more-text{flex:1; min-width:0; display:flex; flex-direction:column; gap:2px;}
+  .nav-more-label{font-size:16px; font-weight:600; color:var(--text);}
+  .nav-more-desc{font-size:13px; color:var(--text-muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .nav-more-chev{color:var(--text-muted); font-size:20px; line-height:1;}
+  .nav-more-item.active{background:rgba(var(--surface-white-rgb),0.06); border-color:transparent; color:var(--text);}
 
   /* --- Log date selector: lets Today/Log tab actions apply to a past date
      instead of the real current day. Uses the same translucent-gradient +
@@ -6469,9 +6483,9 @@
       <button class="sub-modal-close" id="navMoreClose" aria-label="Close">✕</button>
     </div>
     <div class="nav-more-list">
-      <button class="nav-pill nav-more-item" id="navCare">Care</button>
-      <button class="nav-pill nav-more-item" id="navCoach">Coach</button>
-      <button class="nav-pill nav-more-item" id="navLearn">Learn</button>
+      <button class="nav-pill nav-more-item" id="navCare"><span class="nav-more-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 16.5s-6-3.6-6-8a3.3 3.3 0 0 1 6-1.9 3.3 3.3 0 0 1 6 1.9c0 4.4-6 8-6 8Z"/></svg></span><span class="nav-more-text"><span class="nav-more-label">Care</span><span class="nav-more-desc">Pain check-ins, resting areas, stretches</span></span><span class="nav-more-chev" aria-hidden="true">›</span></button>
+      <button class="nav-pill nav-more-item" id="navCoach"><span class="nav-more-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h12v8H9l-4 3v-3H4z"/></svg></span><span class="nav-more-text"><span class="nav-more-label">Coach</span><span class="nav-more-desc">Form feedback, chat, supplements</span></span><span class="nav-more-chev" aria-hidden="true">›</span></button>
+      <button class="nav-pill nav-more-item" id="navLearn"><span class="nav-more-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 4.5c2.5-1 4.5-.6 6.5.8v10.2c-2-1.4-4-1.8-6.5-.8zM16.5 4.5c-2.5-1-4.5-.6-6.5.8v10.2c2-1.4 4-1.8 6.5-.8z"/></svg></span><span class="nav-more-text"><span class="nav-more-label">Learn</span><span class="nav-more-desc">Exercise library, masterclasses, research</span></span><span class="nav-more-chev" aria-hidden="true">›</span></button>
     </div>
   </div>
 </div>
@@ -6657,7 +6671,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.305';
+const APP_VERSION = '3.306';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7430,6 +7444,8 @@ const WHATS_NEW = {
     'Supersets are linked with a thin line and a small label instead of a yellow box, and their buttons now sit inside, like any exercise.',
   ]},  '3.305': { headline: 'Cleaner headers', points: [
     'Each tab now opens with just its title. Your streak and profile line stay on Today.',
+  ]},  '3.306': { headline: 'A clearer More menu', points: [
+    'Care, Coach and Learn now each show an icon and a line about what is inside.',
   ]},
 };
 

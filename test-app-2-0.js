@@ -8,6 +8,9 @@
 // v3.305 — Large titles stand alone (Apple HIG): the profile line and the
 // streak belong to Today; every other tab's header is just its title, search
 // and settings. Before, both repeated under every tab.
+// v3.306 — The More sheet is an inset grouped list (Apple HIG): each row a
+// drawn icon, its name, one line on what is inside, and a chevron; 60px rows.
+// Before: three bare words.
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -34,6 +37,19 @@ test('REAL invocation (v3.305): switchView makes the header compact everywhere b
   const { window: w } = new JSDOM(`<style>${CSS}</style><header class="header-compact"><div class="sub">x</div><div class="streak-badge" style="display:inline-flex">1</div></header>`);
   assert.strictEqual(w.getComputedStyle(w.document.querySelector('.sub')).display, 'none');
   assert.strictEqual(w.getComputedStyle(w.document.querySelector('.streak-badge')).display, 'none', 'beats the inline display renderStreak sets');
+});
+
+test('REAL markup + CSSOM (v3.306): More is a grouped list — icon, name, description, chevron per row; ids unchanged', (assert)=>{
+  const { window } = new JSDOM(`<style>${CSS}</style>` + html.slice(html.indexOf('<div class="sub-modal-overlay" id="navMoreOverlay"'), html.indexOf('<div class="photo-lightbox"')));
+  const rows = [...window.document.querySelectorAll('.nav-more-list > .nav-more-item')];
+  assert.deepStrictEqual(rows.map(r => r.id), ['navCare', 'navCoach', 'navLearn'], 'navigation keeps its ids');
+  for(const r of rows){
+    assert.ok(r.querySelector('.nav-more-icon svg[aria-hidden="true"]'), `${r.id}: drawn icon`);
+    assert.ok(r.querySelector('.nav-more-label').textContent && r.querySelector('.nav-more-desc').textContent.length > 10, `${r.id}: name and description`);
+    assert.ok(r.querySelector('.nav-more-chev'), `${r.id}: chevron`);
+    assert.strictEqual(window.getComputedStyle(r).minHeight, '60px');
+  }
+  assert.strictEqual(rows.map(r => r.querySelector('.nav-more-label').textContent).join(','), 'Care,Coach,Learn');
 });
 
 run();
