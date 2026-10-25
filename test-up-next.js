@@ -68,7 +68,7 @@ test('REAL invocation: suggestions — numeric placeholder first, else carry for
   assert.strictEqual(ui.$('upNextWeight').value, '95');
   assert.strictEqual(ui.$('upNextReps').value, '10');
   assert.strictEqual(ui.$('upNextRpe').value, '', 'no suggestion and no earlier set: empty');
-  assert.strictEqual(ui.$('upNextRpe').placeholder, '–');
+  assert.strictEqual(ui.$('upNextRpe').placeholder, '', 'v3.292: an empty tile stays empty — no dash filler');
   const fresh = mount(block('4×6-8', row(1, 0, 'Barbell Row')));
   fresh.render();
   assert.strictEqual(fresh.$('upNextReps').value, '');
@@ -120,6 +120,23 @@ test('REAL source, comments stripped: renderWorkout refreshes the card exactly o
   const fn = extractFunction(src, 'renderWorkout').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
   assert.strictEqual((fn.match(/\brenderUpNext\(\)/g) || []).length, 1);
   assert.ok(fn.indexOf('renderUpNext()') > fn.indexOf("getElementById('exerciseList')"), 'after the list is built');
+});
+
+// v3.292 (Impeccable distill): the input wells lose their hairline (the panel
+// already draws the edge) and the fields→button gap tightens so the inputs and
+// Log set read as one group, set apart from the heading above.
+test('REAL CSSOM (v3.292): borderless wells; tight fields→button gap, wider heading→fields gap', (assert)=>{
+  const fs = require('fs'), path = require('path'), { JSDOM } = require('jsdom');
+  const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+  const css = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+  const { document } = new JSDOM(`<style>${css}</style>`).window;
+  const rules = []; const walk = l => { for(const r of l){ if(r.type === 1) rules.push(r); else if(r.cssRules) walk(r.cssRules); } };
+  for(const sh of document.styleSheets) walk(sh.cssRules);
+  const one = sel => { const f = rules.filter(r => r.selectorText === sel); if(f.length !== 1) throw new Error(`${sel}: ${f.length}`); return f[0].style; };
+  assert.match(one('.up-next-field').getPropertyValue('border'), /transparent/, 'no visible hairline on the wells');
+  const gapAbove = parseFloat(one('.up-next-fields').getPropertyValue('margin-top'));
+  const gapBelow = parseFloat(one('.up-next-go').getPropertyValue('margin-top'));
+  assert.ok(gapBelow < gapAbove, `fields→button (${gapBelow}px) must be tighter than heading→fields (${gapAbove}px)`);
 });
 
 run();

@@ -560,18 +560,21 @@
   .up-next-ring-track{fill:none; stroke:rgba(var(--surface-white-rgb),.10); stroke-width:6;}
   .up-next-ring-fill{fill:none; stroke:var(--day-hue, var(--plate-blue)); stroke-width:6; stroke-linecap:round; transition:stroke-dashoffset .5s var(--ease-smooth);}
   .up-next-ring text{font-family:var(--font-mono); font-size:13px; fill:var(--text);}
+  /* v3.292 (Impeccable distill): borderless wells (the panel already draws the
+     edge; a third ring of hairlines was noise), one size step smaller, and a
+     tight fields→button gap so the inputs and Log set read as one group. */
   .up-next-fields{display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:8px; margin-top:16px;}
-  .up-next-field{display:flex; flex-direction:column; gap:2px; padding:10px 12px; border-radius:16px; background:rgba(var(--overlay-black-rgb),.30); border:1px solid var(--glass-hair);}
+  .up-next-field{display:flex; flex-direction:column; gap:1px; padding:8px 12px 9px; border-radius:14px; background:rgba(var(--overlay-black-rgb),.30); border:1px solid transparent;}
   .up-next-field[hidden]{display:none;}
-  .up-next-field small{font-size:11px; color:var(--text-muted);}
-  /* 24px !important: the global `input{font-size:16px !important}` (iOS zoom guard) would
-     otherwise shrink these digits; 24px still satisfies that guard's >=16px intent. */
-  .up-next .up-next-field input{width:100%; background:none; border:0; padding:0; color:var(--text); font-family:var(--font-mono); font-size:24px !important; font-variant-numeric:tabular-nums;}
+  .up-next-field small{font-size:12px; color:var(--text-muted);}
+  /* 22px !important: the global `input{font-size:16px !important}` (iOS zoom guard) would
+     otherwise shrink these digits; 22px still satisfies that guard's >=16px intent. */
+  .up-next .up-next-field input{width:100%; background:none; border:0; padding:0; color:var(--text); font-family:var(--font-mono); font-size:22px !important; font-variant-numeric:tabular-nums;}
   /* The focus ring moves to the whole tile instead of a box inside it; still visible. */
   .up-next .up-next-field input:focus, .up-next .up-next-field input:focus-visible{outline:none; box-shadow:none; border-color:transparent;}
   .up-next-field input::placeholder{color:rgba(var(--surface-white-rgb),.28);}
   .up-next-field:focus-within{border-color:rgba(var(--plate-blue-rgb),.6); outline:2px solid var(--focus-ring-color); outline-offset:2px;}
-  .up-next-go{margin-top:14px;}
+  .up-next-go{margin-top:10px;}
   .up-next.is-done .up-next-fields, .up-next.is-done .up-next-go{display:none;}
   body.gym-mode .up-next{display:none;} /* gym mode has its own focused flow */
 
@@ -6656,7 +6659,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.291';
+const APP_VERSION = '3.292';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7394,6 +7397,8 @@ const WHATS_NEW = {
   ]},  '3.291': { headline: 'Tidier session controls', points: [
     'Session length and Gym mode now sit side by side as a matching pair, right above Up next.',
     'The week, length and calories read as one quiet line instead of four different styles.',
+  ]},  '3.292': { headline: 'Cleaner Up next fields', points: [
+    'The weight, reps and RPE boxes are lighter and empty boxes no longer show a dash, so the numbers stand out.',
   ]},
 };
 
@@ -29028,7 +29033,7 @@ function renderUpNext(){
     input.value = numericPlaceholder(src) || (prevSrc ? prevSrc.value : '');
     // Empty tiles still guide: reps shows the prescribed range ("6-8"), the rest a dash.
     const range = target ? (target.textContent.split('×')[1] || '').trim() : '';
-    input.placeholder = field === 'reps' && range ? range : '–';
+    input.placeholder = field === 'reps' && range ? range : ''; // v3.292: no '–' filler — the label already names the tile
   }
   const unit = n.row.querySelector('.ex-weight');
   if(unit) document.getElementById('upNextWeightUnit').textContent = /^\d/.test(unit.placeholder) ? weightUnit : unit.placeholder;
