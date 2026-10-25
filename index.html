@@ -727,11 +727,19 @@
     border-radius:var(--radius-sm); color:var(--text); font-size:12px; cursor:pointer; font-family:var(--font-sans);
   }
   .describe-similar-btn:active{transform:scale(0.98);}
-  .privacy-note{
-    padding:10px 12px; background:rgba(var(--plate-green-rgb),0.08); border:1px solid rgba(var(--plate-green-rgb),0.28);
-    border-radius:var(--radius-md); font-size:12px; line-height:1.5; color:var(--text-muted); margin-bottom:14px;
-    box-shadow:var(--rim), 0 4px 14px -8px rgba(var(--plate-green-rgb),0.28);
+  /* v3.308 (2.0): ONE notice style for every "worth knowing" note — neutral
+     glass, a hairline, a small drawn icon leading the text. The privacy note
+     was green with a green glow and a lock emoji; the safety disclaimers were
+     yellow-outlined cards. Colour is for state, not for "please read this". */
+  .privacy-note, .care-disclaimer-card .care-disclaimer, .notice{
+    position:relative; padding:12px 14px 12px 40px; background:var(--glass-fill); border:1px solid var(--glass-hair);
+    border-radius:16px; font-size:13px; line-height:1.5; color:var(--text-muted); margin-bottom:14px;
   }
+  .privacy-note::before, .care-disclaimer-card .care-disclaimer::before{
+    content:''; position:absolute; left:14px; top:13px; width:16px; height:16px; background:var(--text-muted);
+  }
+  .privacy-note::before{-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='9' width='11' height='8' rx='1.8'/%3E%3Cpath d='M7 9V6.5a3 3 0 0 1 6 0V9'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='9' width='11' height='8' rx='1.8'/%3E%3Cpath d='M7 9V6.5a3 3 0 0 1 6 0V9'/%3E%3C/svg%3E") center/contain no-repeat;}
+  .care-disclaimer-card .care-disclaimer::before{-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 3 18 17H2Z'/%3E%3Cpath d='M10 8.5v3.5M10 14.6v.1'/%3E%3C/svg%3E") center/contain no-repeat; mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 3 18 17H2Z'/%3E%3Cpath d='M10 8.5v3.5M10 14.6v.1'/%3E%3C/svg%3E") center/contain no-repeat; background:var(--plate-yellow);}
   .day-insight{
     padding:10px 12px; background:rgba(var(--plate-blue-rgb),0.08); border:1px solid rgba(var(--plate-blue-rgb),0.28);
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:14px;
@@ -1867,11 +1875,14 @@
      untouched. */
   #profileSummary{overflow-wrap:anywhere;}
 
+  /* v3.308 (2.0): the app's secondary button — a glass pill with a drawn
+     icon — instead of a dashed blue box with an emoji. */
   .photo-log-btn{
-    width:100%; margin:12px 0; padding:12px; background:var(--surface2); border:1px dashed var(--plate-blue);
-    border-radius:var(--radius-md); color:var(--plate-blue); font-weight:600; font-size:13.5px; cursor:pointer;
-    font-family:var(--font-sans);
+    width:100%; margin:12px 0; min-height:48px; padding:12px; background:var(--glass-fill); border:1px solid var(--glass-hair);
+    border-radius:var(--radius-pill); color:var(--text); font-weight:600; font-size:15px; cursor:pointer;
+    font-family:var(--font-sans); display:flex; align-items:center; justify-content:center; gap:8px;
   }
+  .btn-icon{width:18px; height:18px; flex:0 0 auto;}
   .photo-preview{width:100%; max-width:200px; border-radius:var(--radius-md); margin:10px 0; display:block;}
   /* Batch Snap-a-Meal uploads (v3.239): several photos share one row of
      fixed-size thumbnails instead of each getting the full-width single-photo
@@ -2984,9 +2995,12 @@
     font-family:var(--font-sans); transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
   .switch-profile-btn:active{transform:scale(0.98); border-color:var(--line-bright); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset;}
-  .care-disclaimer-card{border-color:var(--plate-yellow);}
+  /* v3.308: the disclaimer card is just its notice — no yellow outline, no
+     second box around the box. The bold lead stays bold, in the text colour. */
+  .care-disclaimer-card{background:none; border:0; box-shadow:none; padding:0;}
+  .care-disclaimer-card .care-disclaimer{margin-bottom:0;}
   .care-disclaimer{font-size:13px; line-height:1.5; color:var(--text-muted);}
-  .care-disclaimer b{color:var(--plate-yellow);}
+  .care-disclaimer b{color:var(--text);}
 
   .coach-chat-log{
     display:flex; flex-direction:column; gap:10px; max-height:360px; overflow-y:auto;
@@ -5475,7 +5489,7 @@
 
       <button class="custom-toggle" id="customToggle">+ Add custom item</button>
       <div id="customForm" class="smooth-toggle"><div class="custom-form">
-        <button class="photo-log-btn" id="scanLabelBtn" style="margin:0 0 4px;">📷 Scan or upload a label photo</button>
+        <button class="photo-log-btn" id="scanLabelBtn" style="margin:0 0 4px;"><svg class="btn-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5h3l1.5-2h5L14 6.5h3v9H3z"/><circle cx="10" cy="10.8" r="3"/></svg>Scan or upload a label photo</button>
         <input type="file" id="scanLabelInput" accept="image/*" style="display:none" aria-label="Photo of a nutrition label">
         <div class="status-msg" id="scanLabelStatus"></div>
         <input type="text" id="cName" placeholder="Item name" aria-label="Custom food name">
@@ -5665,9 +5679,9 @@
     </div>
     <div class="nutrition-summary" id="photosSummary">What the scale and tape can't show</div>
     <div class="expand-wrap" id="photosExpandWrap"><div>
-      <div class="privacy-note">🔒 Stored only on this device, never uploaded — except the two photos you pick for "Compare with AI", after you confirm. Deleting a photo removes it completely; "Delete All My Data" wipes them too.</div>
+      <div class="privacy-note">Stored only on this device, never uploaded — except the two photos you pick for "Compare with AI", after you confirm. Deleting a photo removes it completely; "Delete All My Data" wipes them too.</div>
       <input type="file" id="photoInput" accept="image/*" style="display:none" aria-label="Progress photo">
-      <button class="photo-log-btn" id="photoAddBtn">📸 Snap or upload a progress photo</button>
+      <button class="photo-log-btn" id="photoAddBtn"><svg class="btn-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5h3l1.5-2h5L14 6.5h3v9H3z"/><circle cx="10" cy="10.8" r="3"/></svg>Snap or upload a progress photo</button>
       <div class="status-msg" id="photoStatus"></div>
       <div class="photo-grid" id="photoGrid"></div>
 
@@ -6070,9 +6084,9 @@
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5.2" width="10.8" height="9.6" rx="1.5"/><path d="M12.8 8.4 17.8 6v8l-5-2.4Z"/></svg></span>Get Form Feedback</div>
       <div class="history-hint">Coaching for your <b id="coachPersonaLabel">Strength & Size</b> style. Record a full working set from the side or a 3/4 angle; the coach checks whether your form holds up across the set. Keep it under 60 seconds — longer clips fail on iPhone.</div>
-      <div class="privacy-note">🔒 Your clip goes straight to Anthropic with your own key — no other server. Only the written feedback is saved; the video never is.</div>
+      <div class="privacy-note">Your clip goes straight to Anthropic with your own key — no other server. Only the written feedback is saved; the video never is.</div>
       <input type="file" id="coachVideoInput" accept="video/*" style="display:none" aria-label="Video of your set">
-      <button class="photo-log-btn" id="coachVideoBtn">🎥 Upload or record a clip</button>
+      <button class="photo-log-btn" id="coachVideoBtn"><svg class="btn-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="10.5" height="9" rx="1.5"/><path d="M13 8.6 17.5 6v8L13 11.4Z"/></svg>Upload or record a clip</button>
       <label class="care-label" for="coachExerciseInput">What exercise/movement is this?</label>
       <input type="text" id="coachExerciseInput" class="care-input" placeholder="e.g. Back Squat, Jab-Cross Combo, Front Double Biceps" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="coachExerciseSuggest">
       <div id="coachExerciseSuggest" class="ex-suggest" role="listbox" aria-label="Matching exercises" style="display:none"></div>
@@ -6699,7 +6713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.307';
+const APP_VERSION = '3.308';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7476,6 +7490,8 @@ const WHATS_NEW = {
     'Care, Coach and Learn now each show an icon and a line about what is inside.',
   ]},  '3.307': { headline: 'Settings, iPhone-style', points: [
     'Settings slides up from the bottom like the rest of the app, with switches for anything on or off and a Done button.',
+  ]},  '3.308': { headline: 'One look for notes and buttons', points: [
+    'Privacy and safety notes share one calm style with a small icon, and upload buttons match the rest of the app.',
   ]},
 };
 

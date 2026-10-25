@@ -14,6 +14,10 @@
 // v3.307 — Settings on a phone is a bottom sheet with a grabber and a "Done"
 // button (Apple HIG sheets), and on/off settings are iOS switches announced as
 // switches. Before: a card dropped from the cog, checkboxes, and a ✕.
+// v3.308 — One notice style (neutral glass, hairline, drawn leading icon) for
+// privacy notes and safety disclaimers, and one secondary button (glass pill,
+// drawn icon) for the upload buttons. Before: green boxes with a green glow and
+// a lock emoji, yellow-outlined cards, dashed blue boxes with emoji.
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -77,6 +81,26 @@ test('REAL invocation (v3.307): wireSettings marks every settings on/off control
     "var overlay = document.getElementById('settingsOverlay');", [line]);
   assert.deepStrictEqual([...window.document.querySelectorAll('.settings-panel-body input')].map(i => i.getAttribute('role')), ['switch', 'switch']);
   assert.strictEqual(window.document.getElementById('outside').getAttribute('role'), null, 'only inside Settings');
+});
+
+test('REAL CSSOM + markup (v3.308): notices share one neutral style with a drawn icon; upload buttons are glass pills with drawn icons, no emoji', (assert)=>{
+  const { window } = new JSDOM(`<style>${CSS}</style><div class="privacy-note" id="p">x</div><div class="card care-disclaimer-card" id="c"><div class="care-disclaimer" id="d"><b>This isn't a diagnosis.</b> x</div></div><button class="photo-log-btn" id="b">x</button>`);
+  const cs = (id, pseudo) => window.getComputedStyle(window.document.getElementById(id), pseudo);
+  const noColour = /plate-(green|yellow)|cta-glow/;
+  const rule = sel => CSS.replace(/\/\*[\s\S]*?\*\//g, '').match(new RegExp(sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\{[^}]*\\}'))[0];
+  assert.doesNotMatch(rule('.privacy-note, .care-disclaimer-card .care-disclaimer, .notice'), noColour, 'notices are neutral');
+  assert.doesNotMatch(rule('.care-disclaimer-card'), /plate-yellow/, 'no yellow outline');
+  assert.match(rule('.privacy-note::before'), /mask:url\("data:image\/svg\+xml/, 'drawn lock');
+  assert.strictEqual(cs('d').paddingLeft, '40px', 'room for the leading icon');
+  assert.match(rule('.care-disclaimer b'), /color:var\(--text\)/, 'the bold safety lead stays bold, in text colour');
+  assert.match(rule('.photo-log-btn'), /border-radius:var\(--radius-pill\)/);
+  assert.doesNotMatch(rule('.photo-log-btn'), /dashed/);
+  // The three upload buttons and two privacy notes carry no emoji now.
+  for(const id of ['scanLabelBtn', 'photoAddBtn', 'coachVideoBtn']){
+    const m = html.match(new RegExp(`<button class="photo-log-btn" id="${id}"[^>]*>([\\s\\S]*?)</button>`));
+    assert.ok(m && /<svg class="btn-icon" aria-hidden="true"/.test(m[1]) && !/\p{Extended_Pictographic}/u.test(m[1]), `${id}: drawn icon, no emoji`);
+  }
+  assert.ok(!/class="privacy-note">\p{Extended_Pictographic}/u.test(html), 'no lock emoji');
 });
 
 run();
