@@ -22,6 +22,9 @@
 // drawn icons (were dashed blue boxes with emoji, a blue glow and a gloss),
 // inline Log/Add buttons are the compact primary (were green), and no empty
 // state anywhere in the app opens with an emoji (25 did).
+// v3.310 — Disclosure rows (Learn's technique groups, posing classes, History's
+// months) are iOS rows: a muted chevron that turns down when open, the count in
+// the text face beside it, 44px rows. Before: a blue ▸ and a monospace count.
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -119,6 +122,22 @@ test('REAL markup + CSSOM (v3.309): Log quick actions are glass tiles with drawn
   assert.match(rule('.weight-input-row button'), /min-height:44px/);
   assert.doesNotMatch(rule('.weight-input-row button'), /plate-green|box-shadow/, 'not green, no glow');
   assert.strictEqual((src.match(/class="empty-note">\s*[\p{Extended_Pictographic}]/gu) || []).length, 0, 'no empty state opens with an emoji');
+});
+
+test('REAL CSSOM (v3.310): disclosure rows end in a muted chevron that turns down when open; counts in the text face; 44px rows', (assert)=>{
+  const { window } = new JSDOM(`<style>${CSS}</style><details class="month-group" id="m"><summary>October <span class="month-count">4 days</span></summary></details>
+    <details class="posing-class" id="p" open><summary>The Squat <span class="month-count">4 techniques</span></summary></details>`);
+  const cs = (sel, pseudo) => window.getComputedStyle(window.document.querySelector(sel), pseudo);
+  for(const id of ['#m', '#p']) assert.strictEqual(cs(`${id} summary`).minHeight, '44px', id);
+  const raw = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
+  for(const sel of ['.month-group summary::after', '.posing-class summary::after']){
+    const r = raw.match(new RegExp(sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\{[^}]*\\}'))[0];
+    assert.doesNotMatch(r, /▸|plate-blue/, `${sel}: no blue triangle`);
+    assert.match(r, /border-right:2px solid var\(--text-muted\)[\s\S]*rotate\(-45deg\)/, `${sel}: a muted chevron pointing right`);
+  }
+  assert.match(raw, /\.month-group\[open\] summary::after\{transform:rotate\(45deg\);\}/, 'turns down when open');
+  assert.strictEqual(cs('#m .month-count').fontFamily.includes('Mono'), false, 'count in the text face');
+  assert.strictEqual(cs('#m .month-count').marginLeft, 'auto', 'count sits with the chevron');
 });
 
 run();
