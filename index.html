@@ -759,6 +759,24 @@
   .card-stagger{ opacity:0; transform:translateY(14px); animation:cardRise 0.42s var(--ease-smooth) forwards; }
   @keyframes cardRise{ to{ opacity:1; transform:translateY(0); } }
 
+  /* [TASTESKILL TODAY PILOT, v3.272] Today's resting cards follow the
+     true-black-flat style dealt for this screen: elevation by a lightness step
+     alone (--surface on --bg), no border, no shadow, no blue --lift bloom and no
+     sheen line — those are for what floats (nav, sheets, overlays), which keep
+     their glass per the owner's call. And nothing on Today performs an
+     entrance: the card rise that replays on every switch to this tab is off
+     here; the view crossfade (navigation feedback) and row/press feedback stay.
+     Scoped to direct children of #todayView so other views keep their look
+     until the pilot is rolled out; base .card is untouched. Gym mode's own
+     hand-tuned .exercise-block.open formula lives inside #workoutCard and is
+     not touched by this. */
+  #todayView > .card{
+    border-color:transparent;
+    box-shadow:none;
+  }
+  #todayView > .card::before{ content:none; }
+  #todayView > .card.card-stagger{ opacity:1; transform:none; animation:none; }
+
   .exercise{
     display:flex; align-items:center; gap:12px;
     padding:12px 0 12px;
@@ -6578,7 +6596,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.271';
+const APP_VERSION = '3.272';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7241,6 +7259,10 @@ const WHATS_NEW = {
   '3.271': { headline: 'Today opens on your workout', points: [
     'The day picker and today\'s session now come first on the Today tab.',
     'Training Style and the other program pickers moved below the workout, since you set them once and log sets every day.',
+  ]},
+  '3.272': { headline: 'A calmer Today tab', points: [
+    'Cards on Today are now flat panels: no outlines, shadows or blue glow, just a lighter shade against the background.',
+    'Today\'s cards no longer slide in one by one each time you open the tab. They\'re just there.',
   ]},
 };
 
