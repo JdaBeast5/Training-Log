@@ -63,7 +63,7 @@ test('REAL CSSOM: the warm-up box has no shadow of its own, but keeps its pale t
 test('REAL cascade: the nudge-note rule outranks the mono .warmup-row rule (equal specificity lost to source order in a first draft)', (assert)=>{
   const note = only('.warmup-box .warmup-row.warmup-note');
   assert.strictEqual(note.getPropertyValue('font-family'), 'inherit');
-  assert.match(only('.warmup-box .warmup-row').getPropertyValue('font-family'), /IBM Plex Mono/, 'ramp figures keep their mono numerals');
+  assert.match(only('.warmup-box .warmup-row').getPropertyValue('font-family'), /--font-mono/, 'ramp figures keep their mono numerals (via the --font-mono token since v3.276)');
   // Both rules match the same element, and the note's selector carries one more class.
   const el = document.createElement('div'); el.className = 'warmup-box';
   el.innerHTML = '<div class="warmup-row warmup-note"></div>'; document.body.appendChild(el);

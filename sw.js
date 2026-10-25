@@ -192,7 +192,7 @@
 // background/border/gradient rgba() literals (red/green/orange/teal/purple).
 // Purely internal (same computed colors); doesn't touch this file directly,
 // but the version still has to move.
-const VERSION = '3.275';
+const VERSION = '3.276';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the
@@ -202,6 +202,7 @@ const CACHE = 'training-log-v' + VERSION;
 // v3.270: fonts moved from the Google Fonts CDN to ./fonts/ (same-origin), so
 // they ARE precached now, as optional entries: a missing font file degrades
 // the type to the system face, it must not block an update.
+// v3.276: the faces are now Geist + Geist Mono (variable, one file each).
 // SPLIT INTO ESSENTIAL AND OPTIONAL, and this distinction is the whole point.
 //
 // cache.addAll() is atomic: one 404 rejects the entire promise, the install
@@ -227,9 +228,8 @@ const PRECACHE_OPTIONAL = [
   './apple-touch-icon.png',
   './apple-touch-icon-167.png',
   './apple-touch-icon-152.png',
-  './fonts/inter-latin-wght-normal.woff2',
-  './fonts/ibm-plex-mono-latin-500-normal.woff2',
-  './fonts/ibm-plex-mono-latin-600-normal.woff2',
+  './fonts/geist-latin-wght-normal.woff2',
+  './fonts/geist-mono-latin-wght-normal.woff2',
 ];
 
 self.addEventListener('install', (event)=>{

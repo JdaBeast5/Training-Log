@@ -65,7 +65,7 @@ function weightRange(rule){
 
 test('sabotage anchor: the parsed CSSOM and the descriptor reading see the same @font-face families, in the same order', (assert)=>{
   const fromCssom = cssomFontFaceFamilies();
-  assert.ok(fromCssom.length >= 3, `the parser must see at least 3 @font-face rules, saw ${fromCssom.length}`);
+  assert.ok(fromCssom.length >= 2, `the parser must see at least 2 @font-face rules, saw ${fromCssom.length}`);
   assert.deepStrictEqual(fontFaceRules().map(family), fromCssom);
 });
 function precacheOptional(){
@@ -80,21 +80,32 @@ test('REAL DOM: no <link> to the Google Fonts CDN survives in the parsed documen
   assert.strictEqual(cdn.length, 0, 'index.html must not load fonts from Google any more — that is the offline gap this change closes');
 });
 
-test('REAL CSSOM: exactly one @font-face for Inter, and it covers every weight the old CDN request loaded (400-800)', (assert)=>{
-  const inter = fontFaceRules().filter(r => family(r) === 'Inter');
-  assert.strictEqual(inter.length, 1, `expected one Inter @font-face (variable), found ${inter.length}`);
-  const { min, max } = weightRange(inter[0]);
-  assert.ok(min <= 400 && max >= 800, `Inter's face must span 400-800 like the old wght@400;500;600;700;800 request, got ${min}-${max}`);
+// v3.276: the faces are Geist + Geist Mono (variable), replacing Inter + IBM
+// Plex Mono. The weight bars below are the ones the app's CSS actually uses.
+test('REAL CSSOM: exactly one @font-face for Geist, and it covers every text weight the app uses (400-800)', (assert)=>{
+  const sans = fontFaceRules().filter(r => family(r) === 'Geist');
+  assert.strictEqual(sans.length, 1, `expected one Geist @font-face (variable), found ${sans.length}`);
+  const { min, max } = weightRange(sans[0]);
+  assert.ok(min <= 400 && max >= 800, `Geist's face must span 400-800, got ${min}-${max}`);
 });
 
-test('REAL CSSOM: IBM Plex Mono has faces for exactly the 500 and 600 weights the old CDN request loaded', (assert)=>{
-  const mono = fontFaceRules().filter(r => family(r) === 'IBM Plex Mono').map(r => weightRange(r).min).sort();
-  assert.deepStrictEqual(mono, [500, 600]);
+test('REAL CSSOM: exactly one @font-face for Geist Mono, covering the 500 and 600 weights the mono figures use', (assert)=>{
+  const mono = fontFaceRules().filter(r => family(r) === 'Geist Mono');
+  assert.strictEqual(mono.length, 1);
+  const { min, max } = weightRange(mono[0]);
+  assert.ok(min <= 500 && max >= 600, `Geist Mono must span 500-600, got ${min}-${max}`);
+});
+
+test('REAL CSSOM: the :root tokens name the self-hosted families first, and no rule names a face that is no longer shipped', (assert)=>{
+  const css = [...document.querySelectorAll('style')].map(s => s.textContent).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.match(css, /--font-sans:'Geist',/);
+  assert.match(css, /--font-mono:'Geist Mono',/);
+  assert.doesNotMatch(css, /font-family:\s*'(Inter|IBM Plex Mono)'/, 'a rule still asks for a face the app no longer ships');
 });
 
 test('REAL files: every @font-face src resolves to a file on disk that is genuine WOFF2 (wOF2 magic), not a 404 page or a stray file', (assert)=>{
   const rules = fontFaceRules();
-  assert.ok(rules.length >= 3, `expected at least 3 @font-face rules, found ${rules.length}`);
+  assert.ok(rules.length >= 2, `expected at least 2 @font-face rules, found ${rules.length}`);
   for(const rule of rules){
     const url = srcUrl(rule);
     assert.ok(url && url.startsWith('./fonts/'), `@font-face src must be same-origin under ./fonts/, got ${url}`);
@@ -123,8 +134,8 @@ test('REAL sw.js: every @font-face file is in PRECACHE_OPTIONAL (offline from fi
   }
 });
 
-test('the OFL licence ships beside each family', (assert)=>{
-  for(const f of ['fonts/OFL-Inter.txt', 'fonts/OFL-IBM-Plex-Mono.txt']){
+test('the OFL licence ships beside the fonts (Geist and Geist Mono share one licence file, byte-identical upstream)', (assert)=>{
+  for(const f of ['fonts/OFL-Geist.txt']){
     const text = fs.readFileSync(path.join(ROOT, f), 'utf8');
     assert.ok(/SIL Open Font License/.test(text), `${f} must carry the OFL text`);
   }
