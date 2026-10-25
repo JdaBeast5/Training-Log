@@ -14,6 +14,7 @@
 // v3.294: Today + Settings/profile (32 strings, 37% fewer words overall).
 // v3.295: Log — food search, water and sleep tips, condition cards, photos (27 strings, 41% fewer).
 // v3.296: Analysis + History — card intros, empty states, rest/strength/waist notes (31 strings, 39% fewer).
+// v3.297: Care, Coach, Learn — disclaimers, form feedback, masterclass intros (35 strings, 42% fewer).
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -68,6 +69,15 @@ const NOTES = [
   ['Daily average of all readings', 22, [/rough trend/]],
   ['Weekly average RPE', 20, [/overreaching/]],
   ['Every logged day by month', 20, [/Green is progress, red is down/]],
+  // v3.297: Care, Coach, Learn
+  ["This isn't a diagnosis", 46, [/doctor or physical therapist/, /flag symptoms/, /quiet exercises/]],
+  ['Uses your Anthropic API key', 24, [/AI Features Setup/, /Not medical advice/, /coach or doctor/]],
+  ['Supplements can interact', 50, [/doctor or pharmacist/, /pregnant, breastfeeding/, /not a prescription/, /FDA/]],
+  ['Record a full working set', 42, [/side or a 3\/4 angle/, /60 seconds/]],
+  ['Your clip goes straight to Anthropic', 26, [/no other server/, /video never is/]],
+  ['Plain text: your check-ins', 24, [/nothing is sent/]],
+  ['Research-informed starting points', 22, [/not a treatment plan/]],
+  ['Learn before you', 20, [/not instead of real instruction/]],
 ];
 
 test('REAL markup: each rewritten note is under its word budget and keeps its facts', (assert)=>{
@@ -102,7 +112,8 @@ test('GUARD: every inline script still parses (rewritten strings must not break 
 test('sabotage anchors: the long versions are gone (one per area)', (assert)=>{
   for(const old of ["What's worth acting on right now", 'Switches to a real, purpose-built plan', 'Halal and Kosher here only ever', 'clutter than help',
                    'Search already works with zero setup', 'Only shown while Hypertension', 'never uploaded anywhere on their own',
-                   'This tab fills in as you log', 'Every card above and below', 'which no amount of training changes']){
+                   'This tab fills in as you log', 'Every card above and below', 'which no amount of training changes',
+                   'masterclass-level walkthrough', '60 seconds is a real ceiling', 'quiet down exercises that might aggravate']){
     assert.ok(!src.includes(old), `still present: ${old}`);
   }
 });

@@ -5139,7 +5139,7 @@
 
   <div class="card" id="martialArtCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.2 16.5 4.8V10c0 4-2.7 6.8-6.5 7.8-3.8-1-6.5-3.8-6.5-7.8V4.8Z"/></svg></span>Martial Art Style</div>
-    <div class="history-hint">Match your training to what you already know, or pick one to start learning.</div>
+    <div class="history-hint">Match what you know, or pick one to learn.</div>
     <select class="program-select" id="martialArtSelector" aria-label="Martial art style"></select>
     <div class="program-select-desc" id="martialArtDesc"></div>
     <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="martialArtOverviewPanel">
@@ -5982,7 +5982,7 @@
   <div id="careView" style="display:none">
     <div class="card care-disclaimer-card">
       <div class="care-disclaimer">
-        <b>This isn't a diagnosis.</b> This tool can't examine you, so it can't tell you what's actually injured or how long it'll take to heal — a doctor or physical therapist can. What it can do: keep a record of what happened (useful to bring to an appointment), flag symptoms that need prompt medical attention, and quiet down exercises that might aggravate the area while you get it checked out.
+        <b>This isn't a diagnosis.</b> It can't examine you or say what's injured or how long healing takes — a doctor or physical therapist can. It can keep a record for your appointment, flag symptoms that need prompt care, and quiet exercises that might aggravate the area.
       </div>
     </div>
 
@@ -6044,13 +6044,13 @@
 
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,14 7,9.3 10.8,12 18,4.5"/><circle cx="18" cy="4.5" r="1.3" fill="currentColor"/></svg></span>Pain Trend</div>
-      <div class="history-hint">Worst reported pain per day, from your check-ins — whether it's actually trending down, not just a list of entries.</div>
+      <div class="history-hint">Your worst pain each day, from check-ins — is it trending down?</div>
       <div id="painChart"></div>
     </div>
 
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,10.5 5.8,10.5 7.6,4.5 11.6,15.5 13.4,10.5 18,10.5"/></svg></span>Stretches & Strengthening by Area</div>
-      <div class="history-hint">Research-informed starting points for common problem areas — not a treatment plan, but a well-supported place to begin. Tap a move for cues and a form video.</div>
+      <div class="history-hint">Research-informed starting points for common problem areas — not a treatment plan. Tap a move for cues and a video.</div>
       <div class="program-select-wrap"><select class="program-select" id="careLibrarySelector" aria-label="Stretch and mobility category"></select></div>
       <div id="careLibraryList"></div>
     </div>
@@ -6060,14 +6060,14 @@
       <div id="carePatternList"></div>
       <div id="careLogList"></div>
       <button class="care-rest-btn" id="careExport" style="display:none; width:100%; margin-top:14px;">Save a summary for an appointment</button>
-      <div id="careExportNote" class="history-hint" style="display:none; margin-top:8px;">Plain text — your check-ins, worst and most recent pain per area, and what you're currently resting. Saved to your device; nothing is sent anywhere.</div>
+      <div id="careExportNote" class="history-hint" style="display:none; margin-top:8px;">Plain text: your check-ins, worst and latest pain per area, and what you're resting. Saved to your device; nothing is sent.</div>
     </div>
   </div>
 
   <div id="coachView" style="display:none">
     <div class="card care-disclaimer-card">
       <div class="care-disclaimer">
-        Uses your saved Anthropic API key (set it up under "AI Features Setup" in Settings — same key powers Snap a Meal, Get Form Feedback, and the chat below). Not medical advice, and not a substitute for an in-person coach or doctor.
+        Uses your Anthropic API key (Settings → AI Features Setup). Not medical advice, and not a substitute for an in-person coach or doctor.
       </div>
     </div>
 
@@ -6078,8 +6078,8 @@
          are. -->
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5.2" width="10.8" height="9.6" rx="1.5"/><path d="M12.8 8.4 17.8 6v8l-5-2.4Z"/></svg></span>Get Form Feedback</div>
-      <div class="history-hint">Coaching from the <b id="coachPersonaLabel">Strength & Size</b> knowledge base, since that's your active training style. Record a full working set, up to 60 seconds, from the side or a 3/4 angle — the coach reads frames across the whole set and can tell you whether your form holds up or breaks down as it goes, not just a single moment. Longer or larger clips are exactly where video reading tends to fail on iPhone, so 60 seconds is a real ceiling, not a suggestion.</div>
-      <div class="privacy-note">🔒 Your clip goes directly from this device to Anthropic using your own API key — never through any other server. Only the written feedback below gets saved; the video itself is never stored, here or anywhere else.</div>
+      <div class="history-hint">Coaching for your <b id="coachPersonaLabel">Strength & Size</b> style. Record a full working set from the side or a 3/4 angle; the coach checks whether your form holds up across the set. Keep it under 60 seconds — longer clips fail on iPhone.</div>
+      <div class="privacy-note">🔒 Your clip goes straight to Anthropic with your own key — no other server. Only the written feedback is saved; the video never is.</div>
       <input type="file" id="coachVideoInput" accept="video/*" style="display:none" aria-label="Video of your set">
       <button class="photo-log-btn" id="coachVideoBtn">🎥 Upload or record a clip</button>
       <label class="care-label" for="coachExerciseInput">What exercise/movement is this?</label>
@@ -6097,7 +6097,7 @@
 
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 5.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8l-4 3v-3H4.5a2 2 0 0 1-2-2Z"/></svg></span>Ask Your Coach</div>
-      <div class="history-hint">Chat about your training, nutrition, or recovery — your goal and active program are already part of the conversation.</div>
+      <div class="history-hint">Ask about training, nutrition or recovery — the coach already knows your goal and program.</div>
       <div id="coachChatLog" class="coach-chat-log"></div>
       <div class="coach-chat-input-row">
         <input type="text" id="coachChatInput" class="care-input" placeholder="Ask something…" aria-label="Message your coach">
@@ -6108,8 +6108,8 @@
 
     <div class="card" id="supplementRecommendationsCard">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="15" height="6" rx="3"/><line x1="10" y1="7" x2="10" y2="13"/></svg></span>Supplement Recommendations</div>
-      <div class="care-disclaimer" style="margin-bottom:10px;"><b>Not medical advice.</b> Supplements can interact with medications and health conditions — check with your doctor or pharmacist before starting anything new, especially if you're pregnant, breastfeeding, or managing a condition like high blood pressure or diabetes. Doses below are general adult starting points from the research, not a personalized prescription, and none of this has been evaluated by the FDA.</div>
-      <div class="history-hint">Grounded in your goal, program, and profile. Ask about something specific, or leave it blank for a general starting point.</div>
+      <div class="care-disclaimer" style="margin-bottom:10px;"><b>Not medical advice.</b> Supplements can interact with medications and conditions — ask your doctor or pharmacist first, especially if you're pregnant, breastfeeding, or managing high blood pressure or diabetes. Doses are general adult starting points, not a prescription, and not evaluated by the FDA.</div>
+      <div class="history-hint">Based on your goal, program and profile. Ask something specific, or leave it blank.</div>
 
       <button type="button" class="program-basis-toggle" id="foundationalStackToggle" aria-expanded="false" aria-controls="foundationalStackResult">
         <span class="chev" aria-hidden="true">›</span> View foundational stack
@@ -6126,104 +6126,104 @@
   <div id="learnView" style="display:none">
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.6" cy="8.6" r="6"/><line x1="13" y1="13" x2="17.8" y2="17.8"/></svg></span>Exercise Library</div>
-      <div class="history-hint" id="exerciseLibraryHint">Search the exercise library by name — technique cues and a form-video link for anything in the library, regardless of which program it's normally used in.</div>
+      <div class="history-hint" id="exerciseLibraryHint">Search every exercise — cues and a form video for each.</div>
       <input type="text" id="exerciseSearchInput" class="care-input" placeholder="Search exercises… e.g. squat, plank, jab" aria-label="Search exercises">
       <div id="exerciseSearchResults"></div>
     </div>
 
     <div class="card" id="recentlyTrainedCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a7.5 7.5 0 1 0 7.5 7.5"/><path d="M10 6v4l2.5 2.5"/></svg></span>Recently Trained — Review Technique</div>
-      <div class="history-hint">Cues and a form video for what you've actually logged lately, not the whole library — same content as Exercise Library, just picked out for you.</div>
+      <div class="history-hint">Cues and form videos for what you've logged lately.</div>
       <div id="recentlyTrainedList"></div>
     </div>
 
     <div class="card" id="strengthTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="4" cy="10" r="1.8"/><circle cx="16" cy="10" r="1.8"/><line x1="5.8" y1="10" x2="14.2" y2="10"/><line x1="7" y1="8" x2="7" y2="12"/><line x1="13" y1="8" x2="13" y2="12"/></svg></span>Strength Training Fundamentals</div>
-      <div class="history-hint">The squat, hinge, press, and pull broken into their teachable phases — tap a group to expand, tap a technique for a masterclass-level walkthrough.</div>
+      <div class="history-hint">The squat, hinge, press and pull, phase by phase.</div>
       <div id="strengthTechniquesList"></div>
     </div>
 
     <div class="card" id="runningTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="14.5" cy="4" r="1.8"/><path d="M12 7 L9 10 L11 12 L9.5 17 L6 19"/><path d="M11 12 L15 13 L17.5 17"/><path d="M9 10 L5.5 8.5"/></svg></span>Running Form Fundamentals</div>
-      <div class="history-hint">Posture, cadence, hip drive, and terrain technique broken into their teachable phases — including what current research actually says about cadence, not the popular "180 spm" myth.</div>
+      <div class="history-hint">Posture, cadence, hip drive and terrain, phase by phase — with what research says about cadence, not the "180 spm" myth.</div>
       <div id="runningTechniquesList"></div>
     </div>
 
     <div class="card" id="hyroxTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 L5 14 H11 L9 22 L20 9 H14 Z"/></svg></span>Hyrox Fundamentals</div>
-      <div class="history-hint">Compromised running, sled work, carries, and the wall-ball finish broken into their teachable phases — grounded in real race specifics (distances, weights, target heights), not generic functional-fitness advice.</div>
+      <div class="history-hint">Compromised running, sleds, carries and wall balls, phase by phase — built on real race distances, weights and targets.</div>
       <div id="hyroxTechniquesList"></div>
     </div>
 
     <div class="card" id="pilatesTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="4" r="1.8"/><path d="M10 6.5 L10 12"/><path d="M6 9 L14 9"/><path d="M10 12 L6.5 17"/><path d="M10 12 L13.5 17"/></svg></span>Pilates Fundamentals</div>
-      <div class="history-hint">Breath, core foundation, and the classical mat sequence broken into their teachable phases — grounded in the original Joseph Pilates method, not generic core-work relabeled.</div>
+      <div class="history-hint">Breath, core and the classical mat sequence, phase by phase — from Joseph Pilates' original method.</div>
       <div id="pilatesTechniquesList"></div>
     </div>
 
     <div class="card" id="yogaTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="4.5" r="1.8"/><path d="M10 7 L10 11"/><path d="M10 11 L5.5 15.5"/><path d="M10 11 L14.5 15.5"/><path d="M6.5 8.5 L4 6.5"/><path d="M13.5 8.5 L16 6.5"/></svg></span>Yoga Pose Fundamentals</div>
-      <div class="history-hint">Standing poses, breath, folds/backbends, and balance broken into their teachable phases — shared across all three styles, since alignment itself doesn't change with room temperature or a partner.</div>
+      <div class="history-hint">Standing poses, breath, folds, backbends and balance, phase by phase — the same alignment for all three styles.</div>
       <div id="yogaTechniquesList"></div>
     </div>
 
     <div class="card" id="calisthenicsTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="4" r="1.8"/><path d="M10 6.5 L10 10.5"/><path d="M6 8 L14 8"/><path d="M10 10.5 L6.5 16"/><path d="M10 10.5 L13.5 16"/></svg></span>Calisthenics & Bodyweight Fundamentals</div>
-      <div class="history-hint">Push/pull progressions, static holds, and leg skills broken into their teachable phases — including the real strength prerequisites for advanced skills like the muscle-up, not just how to attempt them.</div>
+      <div class="history-hint">Push/pull progressions, holds and leg skills, phase by phase — including the strength you need first for skills like the muscle-up.</div>
       <div id="calisthenicsTechniquesList"></div>
     </div>
 
     <div class="card" id="cyclingTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="15" r="3"/><circle cx="15" cy="15" r="3"/><path d="M5 15 L9 7 L13 7 M9 7 L15 15 M9 7 L12 11"/></svg></span>Cycling Fundamentals</div>
-      <div class="history-hint">Bike fit, pedaling, cornering, and pacing broken into their teachable phases — grounded in verified bike-fit formulas and cornering technique, not generic riding tips.</div>
+      <div class="history-hint">Bike fit, pedaling, cornering and pacing, phase by phase — from verified bike-fit formulas.</div>
       <div id="cyclingTechniquesList"></div>
     </div>
 
     <div class="card" id="posingCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h7v3.6a3.5 3.5 0 0 1-7 0Z"/><path d="M6.5 4H3.2v1a3 3 0 0 0 3 3M13.5 4h3.3v1a3 3 0 0 1-3 3"/><line x1="10" y1="10.6" x2="10" y2="13.5"/><line x1="7.2" y1="17" x2="12.8" y2="17"/><line x1="8.2" y1="13.5" x2="11.8" y2="13.5"/></svg></span>Posing Practice</div>
-      <div class="history-hint">Physique classes and their mandatory poses — tap a class to expand, tap a pose for key points and tips.</div>
+      <div class="history-hint">Physique classes and their mandatory poses, with key points for each.</div>
       <div id="posingClassList"></div>
     </div>
 
     <div class="card" id="swimStylesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0"/><path d="M2 13c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0"/></svg></span>Swimming Styles</div>
-      <div class="history-hint">Water confidence fundamentals plus a full technical breakdown of all four competitive strokes — tap a stroke to expand, tap a drill for a masterclass-level walkthrough.</div>
+      <div class="history-hint">Water confidence, then all four competitive strokes, drill by drill.</div>
       <div id="swimStylesList"></div>
     </div>
 
     <div class="card" id="climbTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16 7.5 6 11 12 13 9 18 16Z"/></svg></span>Climbing Techniques</div>
-      <div class="history-hint">Movement fundamentals, every major hand grip, footwork, and advanced body positioning — tap a group to expand, tap a technique for a masterclass-level walkthrough.</div>
+      <div class="history-hint">Movement, every major hand grip, footwork and advanced body positioning.</div>
       <div id="climbTechniquesList"></div>
     </div>
 
     <div class="card" id="watersportsTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13c1.5-1.5 3-1.5 4.5 0s3 1.5 4.5 0 3-1.5 4.5 0 3 1.5 4.5 0"/><path d="M4 13 14 4"/></svg></span>Watersports Techniques</div>
-      <div class="history-hint">Every discipline in this program, broken down technique by technique — tap a group to expand, tap a technique for a masterclass-level walkthrough. Meant to be learned before you're in the water, not instead of real instruction once you're there.</div>
+      <div class="history-hint">Every discipline, technique by technique. Learn before you're in the water — not instead of real instruction.</div>
       <div id="watersportsTechniquesList"></div>
     </div>
 
     <div class="card" id="combatTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="2" fill="currentColor"/><line x1="10" y1="2.5" x2="10" y2="5.5"/><line x1="10" y1="14.5" x2="10" y2="17.5"/><line x1="2.5" y1="10" x2="5.5" y2="10"/><line x1="14.5" y1="10" x2="17.5" y2="10"/><line x1="5" y1="5" x2="7" y2="7"/><line x1="13" y1="13" x2="15" y2="15"/><line x1="15" y1="5" x2="13" y2="7"/><line x1="7" y1="13" x2="5" y2="15"/></svg></span>Combat Techniques</div>
-      <div class="history-hint">Every discipline in this program, broken down technique by technique — tap a style to expand, tap a technique for a masterclass-level walkthrough.</div>
+      <div class="history-hint">Every discipline in this program, technique by technique.</div>
       <div id="combatTechniquesList"></div>
     </div>
 
     <div class="card" id="grappleTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="6" r="2.4"/><path d="M7 8.4 12 12l5-2"/><path d="M12 12l-1.5 6"/><path d="M12 12l4 3.5"/></svg></span>Grappling Positions</div>
-      <div class="history-hint">Fundamentals, guard passing, dominant positions, submissions, and takedowns — tap a group to expand, tap a technique for a masterclass-level walkthrough.</div>
+      <div class="history-hint">Fundamentals, guard passing, dominant positions, submissions and takedowns.</div>
       <div id="grappleTechniquesList"></div>
     </div>
 
     <div class="card" id="olyTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="10" x2="18" y2="10"/><rect x="1" y="8" width="2" height="4" rx="0.5"/><rect x="17" y="8" width="2" height="4" rx="0.5"/><circle cx="10" cy="4" r="2"/><line x1="10" y1="6" x2="10" y2="10"/></svg></span>Olympic Lifting Technique</div>
-      <div class="history-hint">The snatch and clean & jerk broken into their teachable phases, plus the pulls and positional strength work that build them — tap a group to expand, tap a technique for a masterclass-level walkthrough.</div>
+      <div class="history-hint">The snatch and clean & jerk, phase by phase, plus the pulls and strength work behind them.</div>
       <div id="olyTechniquesList"></div>
     </div>
 
     <div class="card" id="researchSourcesCard">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3.5h8.5L16 7v9.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1Z"/><path d="M12.5 3.5V7H16"/><line x1="6.5" y1="10" x2="13" y2="10"/><line x1="6.5" y1="13" x2="13" y2="13"/></svg></span>Research &amp; Sources</div>
-      <div class="history-hint">The real, cited research behind every program in this app, in one place — tap one to see its actual source, not a paraphrase.</div>
+      <div class="history-hint">The cited research behind every program — tap one for its source.</div>
       <div id="researchSourcesList"></div>
     </div>
 
@@ -6236,7 +6236,7 @@
          masterclass card — renders before the full browse-everything index. -->
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5 A2 2 0 0 1 5 3 H9.5 V17 H5 A2 2 0 0 0 3 18.5 Z"/><path d="M17 4.5 A2 2 0 0 0 15 3 H10.5 V17 H15 A2 2 0 0 1 17 18.5 Z"/></svg></span>All Masterclasses</div>
-      <div class="history-hint">Every discipline's deep-dive, not just the one matching your current program. Tap any to open it.</div>
+      <div class="history-hint">Every discipline's deep-dive, not just your program's.</div>
       <div id="masterclassIndex"></div>
     </div>
   </div>
@@ -6665,7 +6665,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.296';
+const APP_VERSION = '3.297';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7414,6 +7414,8 @@ const WHATS_NEW = {
     'Food search, water and sleep tips, health-condition cards and progress photos now say the same in about 40% fewer words.',
   ]},  '3.296': { headline: 'Less reading on Analysis and History', points: [
     'Chart intros, empty screens and explanations say the same in about 40% fewer words.',
+  ]},  '3.297': { headline: 'Less reading in Care, Coach and Learn', points: [
+    'Disclaimers, form-feedback tips and Learn intros keep every safety note in about 40% fewer words.',
   ]},
 };
 
@@ -13693,7 +13695,7 @@ function renderExerciseLibraryHint(){
   const el = document.getElementById('exerciseLibraryHint');
   if(!el) return;
   const n = Object.keys(exerciseInfo).length;
-  el.textContent = `Search all ${n} exercises by name — technique cues and a form-video link for anything in the library, regardless of which program it's normally used in.`;
+  el.textContent = `Search all ${n} exercises — cues and a form video for each.`;
 }
 
 // [RECENTLY TRAINED] -------------------------------------------------------
@@ -40895,7 +40897,7 @@ async function renderFoundationalStack(){
   const items = getFoundationalSupplementStack();
   const existing = (await loadMySupplements()).map(i=> i.name);
   container.innerHTML = `
-    <div class="history-hint">A general starting point for anyone — not tailored to your specific goal or a particular request. For that, use the box below.</div>
+    <div class="history-hint">A general starting point, not tailored to you. For that, use the box below.</div>
     ${renderSupplementCards(items, existing)}
   `;
   wireSupplementAddButtons(container, items);
@@ -41619,7 +41621,7 @@ function buildReliefHtml(region){
     <div class="care-relief">
       <div class="care-relief-title">🌱 Gentle movements that may help right now:</div>
       <ul>${items}</ul>
-      <div class="care-relief-note">Stop immediately if any of these reproduce sharp pain — these are general, low-risk suggestions, not a treatment plan. Full routines for this area live in the Recovery & Rehab training style.</div>
+      <div class="care-relief-note">Stop if any of these cause sharp pain — general, low-risk ideas, not a treatment plan. Full routines are in the Recovery & Rehab style.</div>
     </div>
   `;
 }
@@ -42158,7 +42160,7 @@ async function renderCare(){
   }else{
     restEl.innerHTML = resting.map(r=>`
       <span class="resting-chip"><button type="button" class="link-btn" data-care-area="${escapeHtml(r)}" aria-label="Show stretches for ${escapeHtml(r)}">${escapeHtml(r)}</button> <button data-region="${escapeHtml(r)}" class="clear-resting" aria-label="Stop resting ${escapeHtml(r)}">✕</button></span>
-    `).join('') + `<div class="history-hint" style="margin-top:10px;">Exercises loading these regions will show a caution flag in Today\'s workout until you clear them here.</div>`;
+    `).join('') + `<div class="history-hint" style="margin-top:10px;">Exercises that load these areas show a caution flag on Today until you clear them.</div>`;
     restEl.querySelectorAll('.clear-resting').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
         await removeRestingRegion(btn.dataset.region);
@@ -42177,7 +42179,7 @@ async function renderCare(){
     const patterns = summarisePainByExercise(log);
     patternEl.innerHTML = patterns.length ? `
       <div class="care-pattern-title">What you were doing</div>
-      <div class="history-hint" style="margin-top:0;">Exercises named in two or more check-ins. Your own notes, not a finding &mdash; a pattern here is a thing to mention, not a diagnosis.</div>
+      <div class="history-hint" style="margin-top:0;">Exercises named in two or more check-ins — something to mention, not a diagnosis.</div>
       ${patterns.map(x=> `
         <div class="care-pattern-row">
           <div class="care-pattern-name">${escapeHtml(x.exercise)} <span class="care-log-pain">worst ${x.worst}/10</span></div>
