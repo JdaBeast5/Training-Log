@@ -4939,6 +4939,78 @@
 
   <div id="programRecommendation"></div>
 
+  <div class="tabs-header">
+    <div class="hint">Tap a day to view it</div>
+    <button class="reorder-btn" id="reorderToggle">Reorder days</button>
+  </div>
+  <div class="tabs" id="tabs" role="tablist" aria-label="Training day"></div>
+
+  <div id="workoutCard" class="card" role="tabpanel" aria-label="Selected day's workout">
+    <div class="workout-hero">
+      <div class="workout-hero-plate-wrap">
+        <div class="workout-hero-glow" id="dayHeroGlow"></div>
+        <span id="dayPlateIcon" class="day-hero-plate"></span>
+      </div>
+      <div class="workout-hero-text">
+        <div class="workout-hero-eyebrow" id="dayHeroEyebrow"></div>
+        <div class="workout-hero-title" id="dayTitle"></div>
+      </div>
+    </div>
+    <div class="mesocycle-phase-tag" id="mesocyclePhaseTag"></div>
+    <div class="duration-row">
+      <div class="duration-tag" id="dayDuration"></div>
+      <select class="session-length-select" id="sessionLengthSelector" aria-label="Session length"></select>
+    </div>
+    <div class="session-cal-total" id="sessionCalTotal"></div>
+    <div class="day-insight" id="dayInsight"></div>
+    <div class="today-standout-banner" id="todayStandoutBanner" style="display:none"></div>
+    <div id="voiceHintBanner" style="display:none"></div>
+    <button class="adapt-workout-toggle" id="adaptWorkoutBtn">🔄 Only have limited equipment/time today? Adapt this session</button>
+    <div id="adaptWorkoutPanel" class="smooth-toggle"><div>
+      <input type="text" id="adaptWorkoutInput" class="care-input" placeholder="e.g. only dumbbells, no equipment at all, 20 minutes, traveling with just resistance bands" aria-label="What you have available today">
+      <button class="save-btn" id="adaptWorkoutSubmit">Get adapted session</button>
+      <div id="adaptWorkoutResult"></div>
+    </div></div>
+    <button type="button" class="gym-enter-btn" id="gymEnterBtn">
+      <span aria-hidden="true">🏋</span> Gym mode
+    </button>
+    <div id="exerciseList"></div>
+    <button class="custom-toggle" id="addCustomExerciseBtn">+ Add custom exercise</button>
+    <div id="customExerciseForm" class="smooth-toggle"><div>
+      <input type="text" id="customExName" class="care-input" placeholder="Exercise name" aria-label="Exercise name">
+      <input type="text" id="customExSets" class="care-input" placeholder="Sets × reps (e.g. 3x10)" style="margin-top:8px;" aria-label="Sets × reps (e.g. 3x10)">
+      <label class="save-to-library-label">
+        <input type="checkbox" id="customExNoWeight">
+        <span>No weight (bodyweight, duration, or hold)</span>
+      </label>
+      <button class="save-btn" id="addCustomExerciseSubmit">Add to this day</button>
+      <div class="status-msg" id="customExStatus"></div>
+    </div></div>
+    <!-- Lives outside #exerciseList on purpose: that div's innerHTML gets
+         wholesale-replaced on every renderWorkout() call, which used to be
+         where this button was injected -- but only inside the rest-day
+         branch gated on the literal id 'd7', so a 6/7-day-per-week plan
+         whose Day 7 is a real training day (not rest:true) had nowhere to
+         reach it at all, and a drag-reordered week could put a different
+         day in the actual last position. A persistent element here,
+         toggled by visibility (keyed off dayOrder's last slot, not day.rest
+         or a hardcoded id) rather than existence, survives regardless of
+         what content or which id ends up there. See
+         renderArchiveWeekVisibility(). -->
+    <div id="archiveWeekWrap" style="display:none;">
+      <button class="save-btn" id="archiveWeekBtn" style="margin-top:14px;">🏁 Save this week & start fresh</button>
+      <div class="status-msg" id="archiveWeekStatus"></div>
+      <div id="weekShareWrap" style="display:none; margin-top:8px; text-align:center;">
+        <button type="button" class="switch-profile-btn" id="weekShareBtn" style="width:auto; display:inline-block; padding:8px 18px;">Share this week</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Set-once program choice sits BELOW the session, not above it. The day
+       rail and workout card answer what Today is opened for ("what's next in
+       today's session?"); with this block above them a returning user's first
+       set row started ~1500px down. Same reasoning positionProfileCard()
+       already applies to a finished profile. (tasteskill Today pilot, v3.271) -->
   <div class="card">
     <div class="card-title nutrition-header" id="programHeader">
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg></span>Training Style</span>
@@ -5041,73 +5113,6 @@
     <div class="smooth-toggle open" id="medicalOverviewPanel"><div>
       <div class="program-intro program-overview" id="medicalOverview"></div>
     </div></div>
-  </div>
-
-  <div class="tabs-header">
-    <div class="hint">Tap a day to view it</div>
-    <button class="reorder-btn" id="reorderToggle">Reorder days</button>
-  </div>
-  <div class="tabs" id="tabs" role="tablist" aria-label="Training day"></div>
-
-  <div id="workoutCard" class="card" role="tabpanel" aria-label="Selected day's workout">
-    <div class="workout-hero">
-      <div class="workout-hero-plate-wrap">
-        <div class="workout-hero-glow" id="dayHeroGlow"></div>
-        <span id="dayPlateIcon" class="day-hero-plate"></span>
-      </div>
-      <div class="workout-hero-text">
-        <div class="workout-hero-eyebrow" id="dayHeroEyebrow"></div>
-        <div class="workout-hero-title" id="dayTitle"></div>
-      </div>
-    </div>
-    <div class="mesocycle-phase-tag" id="mesocyclePhaseTag"></div>
-    <div class="duration-row">
-      <div class="duration-tag" id="dayDuration"></div>
-      <select class="session-length-select" id="sessionLengthSelector" aria-label="Session length"></select>
-    </div>
-    <div class="session-cal-total" id="sessionCalTotal"></div>
-    <div class="day-insight" id="dayInsight"></div>
-    <div class="today-standout-banner" id="todayStandoutBanner" style="display:none"></div>
-    <div id="voiceHintBanner" style="display:none"></div>
-    <button class="adapt-workout-toggle" id="adaptWorkoutBtn">🔄 Only have limited equipment/time today? Adapt this session</button>
-    <div id="adaptWorkoutPanel" class="smooth-toggle"><div>
-      <input type="text" id="adaptWorkoutInput" class="care-input" placeholder="e.g. only dumbbells, no equipment at all, 20 minutes, traveling with just resistance bands" aria-label="What you have available today">
-      <button class="save-btn" id="adaptWorkoutSubmit">Get adapted session</button>
-      <div id="adaptWorkoutResult"></div>
-    </div></div>
-    <button type="button" class="gym-enter-btn" id="gymEnterBtn">
-      <span aria-hidden="true">🏋</span> Gym mode
-    </button>
-    <div id="exerciseList"></div>
-    <button class="custom-toggle" id="addCustomExerciseBtn">+ Add custom exercise</button>
-    <div id="customExerciseForm" class="smooth-toggle"><div>
-      <input type="text" id="customExName" class="care-input" placeholder="Exercise name" aria-label="Exercise name">
-      <input type="text" id="customExSets" class="care-input" placeholder="Sets × reps (e.g. 3x10)" style="margin-top:8px;" aria-label="Sets × reps (e.g. 3x10)">
-      <label class="save-to-library-label">
-        <input type="checkbox" id="customExNoWeight">
-        <span>No weight (bodyweight, duration, or hold)</span>
-      </label>
-      <button class="save-btn" id="addCustomExerciseSubmit">Add to this day</button>
-      <div class="status-msg" id="customExStatus"></div>
-    </div></div>
-    <!-- Lives outside #exerciseList on purpose: that div's innerHTML gets
-         wholesale-replaced on every renderWorkout() call, which used to be
-         where this button was injected -- but only inside the rest-day
-         branch gated on the literal id 'd7', so a 6/7-day-per-week plan
-         whose Day 7 is a real training day (not rest:true) had nowhere to
-         reach it at all, and a drag-reordered week could put a different
-         day in the actual last position. A persistent element here,
-         toggled by visibility (keyed off dayOrder's last slot, not day.rest
-         or a hardcoded id) rather than existence, survives regardless of
-         what content or which id ends up there. See
-         renderArchiveWeekVisibility(). -->
-    <div id="archiveWeekWrap" style="display:none;">
-      <button class="save-btn" id="archiveWeekBtn" style="margin-top:14px;">🏁 Save this week & start fresh</button>
-      <div class="status-msg" id="archiveWeekStatus"></div>
-      <div id="weekShareWrap" style="display:none; margin-top:8px; text-align:center;">
-        <button type="button" class="switch-profile-btn" id="weekShareBtn" style="width:auto; display:inline-block; padding:8px 18px;">Share this week</button>
-      </div>
-    </div>
   </div>
 
   <div class="card">
@@ -6573,7 +6578,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.270';
+const APP_VERSION = '3.271';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7232,6 +7237,10 @@ const WHATS_NEW = {
   ]},
   '3.270': { headline: 'The app\'s typeface now works offline', points: [
     'Fonts now ship with the app instead of loading from Google, so text looks the same at the gym with no signal as it does at home.',
+  ]},
+  '3.271': { headline: 'Today opens on your workout', points: [
+    'The day picker and today\'s session now come first on the Today tab.',
+    'Training Style and the other program pickers moved below the workout, since you set them once and log sets every day.',
   ]},
 };
 
