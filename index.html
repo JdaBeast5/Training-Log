@@ -541,6 +541,39 @@
     background:linear-gradient(100deg, var(--text) 45%, var(--day-hue, var(--text)));
     -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
   }
+  /* [GLASS & GLOW, v3.290] "Up next" — the nested glass panel inside the workout
+     card, tinted by the day's own hue (--day-hue), concept A's hero. */
+  .up-next{
+    position:relative; margin:4px 0 16px; padding:18px;
+    border-radius:22px; border:1px solid var(--glass-hair);
+    background:linear-gradient(160deg, rgba(var(--surface-white-rgb),.09), rgba(var(--surface-white-rgb),.02));
+    box-shadow:var(--glass-shine);
+  }
+  .up-next[hidden]{display:none;}
+  .up-next-head{display:flex; align-items:center; gap:14px;}
+  .up-next-text{flex:1; min-width:0;}
+  .up-next-label{font-size:12px; color:var(--text-muted);}
+  .up-next-lift{font-size:24px; font-weight:700; letter-spacing:-0.025em; line-height:1.15; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .up-next-target{font-family:var(--font-mono); font-size:13.5px; color:var(--day-hue, var(--text-muted)); margin-top:3px;}
+  .up-next-sr{position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+  .up-next-ring{width:60px; height:60px; flex:0 0 auto;}
+  .up-next-ring-track{fill:none; stroke:rgba(var(--surface-white-rgb),.10); stroke-width:6;}
+  .up-next-ring-fill{fill:none; stroke:var(--day-hue, var(--plate-blue)); stroke-width:6; stroke-linecap:round; transition:stroke-dashoffset .5s var(--ease-smooth);}
+  .up-next-ring text{font-family:var(--font-mono); font-size:13px; fill:var(--text);}
+  .up-next-fields{display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:8px; margin-top:16px;}
+  .up-next-field{display:flex; flex-direction:column; gap:2px; padding:10px 12px; border-radius:16px; background:rgba(var(--overlay-black-rgb),.30); border:1px solid var(--glass-hair);}
+  .up-next-field[hidden]{display:none;}
+  .up-next-field small{font-size:11px; color:var(--text-muted);}
+  /* 24px !important: the global `input{font-size:16px !important}` (iOS zoom guard) would
+     otherwise shrink these digits; 24px still satisfies that guard's >=16px intent. */
+  .up-next .up-next-field input{width:100%; background:none; border:0; padding:0; color:var(--text); font-family:var(--font-mono); font-size:24px !important; font-variant-numeric:tabular-nums;}
+  /* The focus ring moves to the whole tile instead of a box inside it; still visible. */
+  .up-next .up-next-field input:focus, .up-next .up-next-field input:focus-visible{outline:none; box-shadow:none; border-color:transparent;}
+  .up-next-field input::placeholder{color:rgba(var(--surface-white-rgb),.28);}
+  .up-next-field:focus-within{border-color:rgba(var(--plate-blue-rgb),.6); outline:2px solid var(--focus-ring-color); outline-offset:2px;}
+  .up-next-go{margin-top:14px;}
+  .up-next.is-done .up-next-fields, .up-next.is-done .up-next-go{display:none;}
+  body.gym-mode .up-next{display:none;} /* gym mode has its own focused flow */
 
   .reorder-arrows{
     display:flex; gap:2px; margin-top:2px;
@@ -4956,6 +4989,33 @@
       <select class="session-length-select" id="sessionLengthSelector" aria-label="Session length"></select>
     </div>
     <div class="session-cal-total" id="sessionCalTotal"></div>
+    <!-- [GLASS & GLOW, v3.290] "Up next": the next set to do, one tap to log it.
+         A thin front end over the real set rows below — renderUpNext() reads
+         the first row with no reps yet, and logging writes into THAT row and
+         fires its own change events, so saving, PRs, the rest timer, the gym
+         offer and auto-check all run exactly as if the set were typed there. -->
+    <div class="up-next" id="upNext" hidden>
+      <div class="up-next-head">
+        <div class="up-next-text">
+          <div class="up-next-label" id="upNextLabel"></div>
+          <div class="up-next-lift" id="upNextLift"></div>
+          <div class="up-next-target" id="upNextTarget"></div>
+        </div>
+        <span class="up-next-sr" id="upNextProgress"></span>
+        <svg class="up-next-ring" viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="32" cy="32" r="27" class="up-next-ring-track"/>
+          <circle cx="32" cy="32" r="27" class="up-next-ring-fill" id="upNextRingFill" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" transform="rotate(-90 32 32)"/>
+          <text x="32" y="36" text-anchor="middle" id="upNextRingText"></text>
+        </svg>
+      </div>
+      <div class="up-next-fields" id="upNextFields">
+        <label class="up-next-field" data-field="weight"><small id="upNextWeightUnit">lb</small><input type="number" inputmode="decimal" id="upNextWeight" aria-label="Weight for the next set"></label>
+        <label class="up-next-field" data-field="distance"><small id="upNextDistanceUnit">m</small><input type="number" inputmode="decimal" step="0.01" min="0" id="upNextDistance" aria-label="Distance for the next set"></label>
+        <label class="up-next-field" data-field="reps"><small>Reps</small><input type="number" inputmode="numeric" id="upNextReps" aria-label="Reps for the next set"></label>
+        <label class="up-next-field" data-field="rpe"><small>RPE</small><input type="number" inputmode="decimal" step="0.5" min="5" max="10" id="upNextRpe" aria-label="RPE for the next set, 5 to 10"></label>
+      </div>
+      <button type="button" class="save-btn up-next-go" id="upNextLog">Log set</button>
+    </div>
     <div class="today-standout-banner" id="todayStandoutBanner" style="display:none"></div>
     <div id="voiceHintBanner" style="display:none"></div>
     <button type="button" class="gym-enter-btn" id="gymEnterBtn">
@@ -6579,7 +6639,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.289';
+const APP_VERSION = '3.290';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7310,6 +7370,10 @@ const WHATS_NEW = {
   '3.289': { headline: 'Big titles', points: [
     'Each tab now opens with a large title that tells you where you are.',
     'Your workout\'s name is set big on Today, fading into that day\'s plate colour.',
+  ]},
+  '3.290': { headline: 'Up next: log a set in one tap', points: [
+    'A new card at the top of your workout shows the next set to do, with last time\'s numbers filled in. Adjust if needed and tap Log set.',
+    'The ring fills as you go: sets done out of today\'s total. Rest timer, PRs and everything else work exactly as before.',
   ]},
 };
 
@@ -27760,6 +27824,7 @@ async function renderWorkout(){
   }
 
   updateSessionCalorieTotal(renderExercises, completed);
+  renderUpNext(); // v3.290: reads the rows this render just built
   // The gym bar counts checkboxes in the rendered list, so it can only be
   // correct after that list exists. No-ops when gym mode is off.
   refreshGymDock();
@@ -28881,6 +28946,100 @@ function advanceSetField(input){
   if(next){ focusSetField(next); return true; }
   return advanceToNextExercise(block);
 }
+
+// [GLASS & GLOW, v3.290] "Up next". Everything is read from the rendered set
+// rows, which are the source of truth: the next set is the first main row (not
+// a warm-up or drop row) with no reps yet, in on-screen order — so supersets
+// come out interleaved exactly as they are performed — skipping exercises
+// already ticked done. Its suggestions are that row's own placeholders.
+function findNextSetRow(listEl){
+  const rows = [...listEl.querySelectorAll('.set-row[data-set-idx]')];
+  const isDone = r => r.querySelector('.ex-reps') && r.querySelector('.ex-reps').value !== '';
+  const ticked = r => { const b = r.closest('.exercise-block'); const c = b && b.querySelector('input[type=checkbox]'); return !!(c && c.checked); };
+  const done = rows.filter(isDone).length;
+  const next = rows.find(r => !isDone(r) && !ticked(r)) || null;
+  if(!next) return {row:null, done, total:rows.length};
+  const peers = rows.filter(r => r.dataset.exIdx === next.dataset.exIdx && r.closest('.exercise-block') === next.closest('.exercise-block'));
+  return {row:next, done, total:rows.length, setNum:peers.indexOf(next) + 1, setCount:peers.length,
+          prev:peers[peers.indexOf(next) - 1] || null,
+          name:(next.querySelector('.set-row-owner') || {}).textContent || ''};
+}
+
+// A placeholder is a suggestion only when it is a number ("185"); otherwise it
+// is the unit hint ("lb", "reps", "RPE") and the card falls back to the set
+// just logged for the same exercise, or empty.
+function numericPlaceholder(input){
+  return input && /^\d+(\.\d+)?$/.test(input.placeholder) ? input.placeholder : '';
+}
+
+function renderUpNext(){
+  const card = document.getElementById('upNext');
+  const list = document.getElementById('exerciseList');
+  if(!card || !list) return;
+  const n = findNextSetRow(list);
+  if(n.total === 0){ card.hidden = true; return; } // rest day: nothing to log
+  card.hidden = false;
+  const pct = Math.round((n.done / n.total) * 100);
+  document.getElementById('upNextRingFill').setAttribute('stroke-dashoffset', String(100 - pct));
+  document.getElementById('upNextRingText').textContent = `${n.done}/${n.total}`;
+  document.getElementById('upNextProgress').textContent = `${n.done} of ${n.total} sets done`;
+  card.classList.toggle('is-done', !n.row);
+  if(!n.row){
+    document.getElementById('upNextLabel').textContent = 'Session complete';
+    document.getElementById('upNextLift').textContent = `All ${n.total} sets logged`;
+    document.getElementById('upNextTarget').textContent = '';
+    return;
+  }
+  document.getElementById('upNextLabel').textContent = `Up next · set ${n.setNum} of ${n.setCount}`;
+  document.getElementById('upNextLift').textContent = n.name;
+  const owner = n.row.closest('.superset-member') || n.row.closest('.exercise-block');
+  // The prescription span only (.ex-sets also carries the calorie tag).
+  const target = owner && owner.querySelector('.ex-sets > span');
+  document.getElementById('upNextTarget').textContent = target ? `${target.textContent.trim()} reps` : '';
+  for(const field of ['weight', 'distance', 'reps', 'rpe']){
+    const src = n.row.querySelector('.ex-' + field);
+    const label = card.querySelector(`.up-next-field[data-field="${field}"]`);
+    const input = document.getElementById('upNext' + field[0].toUpperCase() + field.slice(1));
+    label.hidden = !src;
+    if(!src) continue;
+    // The app's own suggestion first; failing that, carry forward the set just
+    // logged for this exercise (same weight across sets is the common case).
+    const prevSrc = n.prev && n.prev.querySelector('.ex-' + field);
+    input.value = numericPlaceholder(src) || (prevSrc ? prevSrc.value : '');
+    // Empty tiles still guide: reps shows the prescribed range ("6-8"), the rest a dash.
+    const range = target ? (target.textContent.split('×')[1] || '').trim() : '';
+    input.placeholder = field === 'reps' && range ? range : '–';
+  }
+  const unit = n.row.querySelector('.ex-weight');
+  if(unit) document.getElementById('upNextWeightUnit').textContent = /^\d/.test(unit.placeholder) ? weightUnit : unit.placeholder;
+  card.dataset.rowKey = `${n.row.dataset.exIdx}:${n.row.dataset.setIdx}`;
+}
+
+// Logging writes into the REAL row and fires its own change events, reps last
+// so the row only becomes a "real set" (rest timer, gym offer) once, after the
+// rest of the entry is in — the same order a person filling the row ends on.
+function logUpNext(){
+  const list = document.getElementById('exerciseList');
+  const n = list ? findNextSetRow(list) : {row:null};
+  if(!n.row) return false;
+  const reps = document.getElementById('upNextReps').value;
+  if(reps === ''){ document.getElementById('upNextReps').focus(); return false; }
+  for(const field of ['weight', 'distance', 'rpe', 'reps']){
+    const src = n.row.querySelector('.ex-' + field);
+    if(!src) continue;
+    const v = document.getElementById('upNext' + field[0].toUpperCase() + field.slice(1)).value;
+    if(v === '' && field !== 'reps') continue;
+    src.value = v;
+    src.dispatchEvent(new Event('change', {bubbles:true}));
+  }
+  renderUpNext();
+  return true;
+}
+document.getElementById('upNextLog').addEventListener('click', logUpNext);
+// Anything typed or ticked in the real list moves the card along too.
+document.addEventListener('change', (e)=>{
+  if(e.target && e.target.closest && e.target.closest('#exerciseList')) setTimeout(renderUpNext, 0);
+});
 
 // Delegated at the document, so it survives every renderWorkout without
 // needing to be re-bound. Arrow keys are deliberately untouched: ArrowUp and
