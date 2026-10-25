@@ -87,4 +87,13 @@ test('REAL markup + invocation (v3.281): the macro bar labels are sentence case 
   assert.deepStrictEqual(Array.from(labels), ['Sodium (stay under)', 'Fiber (aim for)']);
 });
 
+test('REAL CSSOM (v3.284): Today\'s word-carrying text is in the text face with tabular figures; figure-only text keeps mono numerals', (assert)=>{
+  const ff = sel => { const f = allRules().filter(r => r.selectorText === sel); if(f.length !== 1) throw new Error(`${sel}: ${f.length}`); return f[0].style; };
+  for(const sel of ['.nutrition-summary', '.equip-preview', '.mesocycle-phase-tag', '.session-cal-total', '.ex-name .super-tag', '.session-length-select']){
+    assert.strictEqual(ff(sel).getPropertyValue('font-family'), 'var(--font-sans)', sel);
+    assert.strictEqual(ff(sel).getPropertyValue('font-variant-numeric'), 'tabular-nums', `${sel} keeps aligned figures`);
+  }
+  assert.strictEqual(ff('.duration-tag').getPropertyValue('font-family'), 'var(--font-mono)', '"~63 min" is a figure and keeps mono');
+});
+
 run();
