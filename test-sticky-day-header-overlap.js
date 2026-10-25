@@ -47,22 +47,22 @@ function extractRuleBlock(source, selector){
   return m[0].replace(/\/\*[\s\S]*?\*\//g, '');
 }
 
-test('.sticky-day-header no longer starts at the viewport top — it is offset below the nav rail, same expression as .analysis-index', (assert)=>{
+// v3.288 (Glass & glow): the nav moved to a floating bar at the BOTTOM, so the
+// overlap this file was written for (the sticky header sitting on the top rail
+// and eating its taps) cannot recur. Both sticky bars now pin at the top safe
+// area — still one shared expression, which is what these tests keep guarding.
+test('.sticky-day-header pins at the top safe area (the nav rail is no longer up there), not at a bare top:0 under the clock', (assert)=>{
   const block = extractRuleBlock(src, '.sticky-day-header');
-  assert.doesNotMatch(block, /(?:^|[;{]\s*)top:0(?:px)?[;\s]/, 'must not declare top:0 anymore (checked as a real declaration, comments stripped) — that is what put it on top of the nav rail');
-  assert.match(block, /top:calc\(env\(safe-area-inset-top,\s*0px\)\s*\+\s*var\(--nav-rail-h,\s*56px\)\)/,
-    'must use the exact same measured-offset expression .analysis-index already uses for the identical problem');
+  assert.doesNotMatch(block, /(?:^|[;{]\s*)top:0(?:px)?[;\s]/, 'top:0 would put it under the status bar');
+  assert.match(block, /top:env\(safe-area-inset-top,\s*0px\);/);
 });
 
-test('.analysis-index and .sticky-day-header use the IDENTICAL top offset expression — proof this is the same established pattern, not a one-off guess', (assert)=>{
-  const dayHeaderBlock = extractRuleBlock(src, '.sticky-day-header');
-  const analysisIndexBlock = extractRuleBlock(src, '.analysis-index');
-  const topExpr = /top:calc\([^;]+\);/;
-  const dayHeaderTop = dayHeaderBlock.match(topExpr);
-  const analysisIndexTop = analysisIndexBlock.match(topExpr);
-  assert.ok(dayHeaderTop, 'sticky-day-header must have a top:calc(...) declaration');
-  assert.ok(analysisIndexTop, 'analysis-index must have a top:calc(...) declaration (precondition — this is the pattern being copied)');
-  assert.strictEqual(dayHeaderTop[0], analysisIndexTop[0], 'both must use byte-identical top offset expressions');
+test('.analysis-index and .sticky-day-header use the IDENTICAL top offset expression — one established pattern, not two guesses', (assert)=>{
+  const topExpr = /top:env\([^;]+\);/;
+  const a = extractRuleBlock(src, '.sticky-day-header').match(topExpr);
+  const b = extractRuleBlock(src, '.analysis-index').match(topExpr);
+  assert.ok(a && b, 'both must declare a top offset');
+  assert.strictEqual(a[0], b[0]);
 });
 
 test('sabotage-relevant: .sticky-day-header no longer double-counts the safe-area inset in its own padding (that compensation was specifically for sitting at top:0, which no longer applies)', (assert)=>{
@@ -93,8 +93,9 @@ test('.sticky-day-header\'s z-index no longer outranks .nav-pills — it does no
 // guarantee.
 test('sabotage-relevant: the hidden/resting transform clears BOTH the element\'s own height AND the top offset that pushes it below the nav rail — not just its own height alone', (assert)=>{
   const block = extractRuleBlock(src, '.sticky-day-header');
-  assert.match(block, /transform:translateY\(calc\(-100% - env\(safe-area-inset-top,\s*0px\)\s*-\s*var\(--nav-rail-h,\s*56px\)\)\);/,
-    'the resting transform must subtract the same top offset the element is now pushed down by, or the hidden state lands mid-screen instead of off it');
+  // v3.288: the offset is now just the safe area, so that is what it subtracts.
+  assert.match(block, /transform:translateY\(calc\(-100% - env\(safe-area-inset-top,\s*0px\)\)\);/,
+    'the resting transform must subtract the same top offset the element is pushed down by, or the hidden state lands on screen');
 });
 
 test('regression guard: .sticky-day-header.visible still simply resets to translateY(0) — the fix above only touches the HIDDEN state, not the shown one', (assert)=>{

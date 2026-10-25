@@ -83,6 +83,8 @@
     --glass-shine:inset 0 1px 0 rgba(var(--surface-white-rgb),.12);
     --glass-shadow:0 30px 60px -30px rgba(var(--overlay-black-rgb),.8);
     --radius-card:28px;
+    /* v3.288: where floating things start, so they sit above the bottom tab bar */
+    --above-bar:calc(var(--nav-rail-h, 64px) + env(safe-area-inset-bottom, 0px) + 10px);
     --surface:#17191D;
     --surface2:#1F2226;
     --line:#26292F;
@@ -289,7 +291,8 @@
     background:var(--bg);
     color:var(--text);
     font-family:var(--font-sans);
-    padding-bottom:96px;
+    /* v3.288: clears the floating tab bar (its measured height) plus room for the FABs */
+    padding-bottom:calc(var(--above-bar) + 86px);
     -webkit-font-smoothing:antialiased;
     letter-spacing:-0.01em;
     animation:appFadeIn 0.5s var(--ease-smooth);
@@ -1173,7 +1176,7 @@
        enough. z-index dropped from 55 to 20: it no longer needs to outrank
        the rail (30) since they no longer occupy the same space; 20 keeps it
        above ordinary page content (0-5) and below every real overlay. */
-    top:calc(env(safe-area-inset-top, 0px) + var(--nav-rail-h, 56px));
+    top:env(safe-area-inset-top, 0px); /* v3.288: the rail moved to the bottom */
     background:rgba(var(--surface2-rgb),0.72); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border-bottom:1px solid var(--line-soft);
     padding:12px 16px;
@@ -1190,7 +1193,7 @@
        fully-hidden state this was supposed to be. Subtracting the same
        offset `top` adds pushes it the rest of the way off-screen, so hidden
        genuinely means invisible again, the same guarantee it had at top:0. */
-    transform:translateY(calc(-100% - env(safe-area-inset-top, 0px) - var(--nav-rail-h, 56px)));
+    transform:translateY(calc(-100% - env(safe-area-inset-top, 0px)));
     transition:transform 0.25s var(--ease-smooth);
     font-family:var(--font-sans); font-size:14.5px; font-weight:700; letter-spacing:-0.01em; color:var(--text);
     box-shadow:var(--rim), 0 4px 14px rgba(var(--overlay-black-rgb),0.3);
@@ -1235,7 +1238,7 @@
   }
 
   .rest-timer{
-    position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(16px) scale(0.92);
+    position:fixed; bottom:calc(var(--above-bar) + 12px); left:50%; transform:translateX(-50%) translateY(16px) scale(0.92);
     width:var(--rest-timer-collapsed-w, 208px); max-width:calc(100vw - 32px);
     background:linear-gradient(160deg, rgba(45,49,55,0.86), rgba(26,29,33,0.86));
     backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
@@ -1319,6 +1322,16 @@
     border:1px solid rgba(var(--plate-red-rgb),0.3); border-radius:var(--radius-sm);
     color:var(--plate-red); font-size:12px; padding:5px 9px; cursor:pointer; font-family:var(--font-sans);
   }
+  /* v3.288: global search, beside the cog — same glass circle */
+  .header-search{
+    position:absolute; top:0; right:50px; z-index:5;
+    width:40px; height:40px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--glass-fill); border:1px solid var(--glass-hair); color:var(--text-muted);
+    cursor:pointer; transition:transform 0.15s var(--ease-smooth);
+  }
+  .header-search:active{transform:scale(0.92);}
+  .header-search svg{width:17px; height:17px; display:block;}
   .settings-cog{
     position:absolute; top:0; right:0; z-index:5;
     width:40px; height:40px; border-radius:50%;
@@ -1426,7 +1439,7 @@
   .rest-timer .rt-close{color:var(--plate-red); font-weight:600; font-size:15px; padding:8px 4px;}
 
   .undo-toast{
-    position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(80px);
+    position:fixed; bottom:calc(var(--above-bar) + 12px); left:50%; transform:translateX(-50%) translateY(80px);
     background:rgba(var(--surface2-rgb),0.75); box-shadow:var(--rim); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border:1px solid var(--line-bright); border-radius:var(--radius-pill-lg);
     padding:10px 10px 10px 18px; display:flex; align-items:center; gap:14px; z-index:60;
@@ -1925,7 +1938,7 @@
     padding:12px 28px; border-radius:var(--radius-pill); cursor:pointer;
   }
   .coach-fab{
-    position:fixed; bottom:22px; right:18px; z-index:70; overflow:hidden;
+    position:fixed; bottom:calc(var(--above-bar) + 12px); right:18px; z-index:70; overflow:hidden;
     width:58px; height:58px; border-radius:50%; border:1px solid rgba(var(--surface-white-rgb),0.28);
     background:var(--cta-gradient-blue); color:#fff; font-size:24px;
     display:flex; align-items:center; justify-content:center; cursor:pointer;
@@ -1961,7 +1974,7 @@
      legible at a glance without needing to tap it first to find out what it
      does — this is a jump-to-safety control, not a decorative icon. */
   .today-fab{
-    position:fixed; bottom:22px; left:18px; z-index:70; overflow:hidden;
+    position:fixed; bottom:calc(var(--above-bar) + 12px); left:18px; z-index:70; overflow:hidden;
     display:flex; align-items:center; height:44px; padding:0 18px;
     border-radius:var(--radius-pill); border:1px solid rgba(var(--surface-white-rgb),0.28);
     background:var(--plate-yellow); color:#1a1a1a;
@@ -2202,13 +2215,20 @@
      wherever the shell actually is — stuck or not — rather than a second,
      separately-maintained guess at the same number. */
   .nav-pills{
-    position:sticky; top:env(safe-area-inset-top, 0px); z-index:30;
-    margin-top:6px; margin-bottom:4px;
+    /* [GLASS & GLOW, v3.288] A floating glass tab bar at the bottom, in thumb
+       reach, instead of a sticky rail at the top. Fixed, so real blur is fine
+       here (blur only on fixed/sticky chrome). --nav-rail-h is still published
+       from this element and now means "how much the bottom bar covers": body
+       padding and the two floating buttons clear it with that measured number. */
+    position:fixed; top:auto; z-index:30;
+    left:12px; right:12px; bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);
+    border-radius:var(--radius-pill); border:1px solid var(--glass-hair);
+    box-shadow:0 20px 40px -14px rgba(var(--overlay-black-rgb),0.75);
+    overflow:hidden;
     /* Full-bleed. Without the negative margins, .wrap's 18px gutters let cards
        scroll visibly past the ends of the bar. Out and back in the same
        amount, so the row's own content does not move — the sum-to-zero trick
        the coloured set rows already use. */
-    margin-left:-18px; margin-right:-18px;
     background:var(--nav-glass-bg);
     backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
     /* --nav-search-w declared here rather than on .nav-pills-scroll: it's
@@ -2216,7 +2236,6 @@
        .nav-pill-search's width) that both need it, and a custom property
        declared on this outer shell inherits down to both without caring
        which one is "closer". One declaration, whichever descendant needs it. */
-    --nav-search-w:48px;
   }
   /* The actual horizontally-scrolling row. Everything that was on .nav-pills
      itself before this split — the flex row, the overflow, the snap, the
@@ -2246,8 +2265,7 @@
        it tells every scroll-into-view in this container to keep that much
        clear. The alternative — special-casing the first pill in JS — would be
        a second rule about the same overlap. */
-    scroll-padding-left:calc(var(--nav-search-w) + 8px);
-    padding:8px 18px 10px;
+    padding:6px;
   }
   .nav-pills-scroll::-webkit-scrollbar{display:none;}
 
@@ -2312,29 +2330,20 @@
      notch-only, and — at-start AND at-end together (everything fits, nothing
      to scroll) — no rule at all, matching the pre-existing default of no
      mask. */
+  /* v3.288: with search out of the rail nothing is pinned at its left edge, so
+     the old search-pill notch is gone: these are plain edge fades, shown only
+     on the side that has more to scroll to (narrow phones). */
   .nav-pills-scroll:not(.at-start):not(.at-end){
-    -webkit-mask-image:linear-gradient(to right,
-      #000 0, #000 var(--nav-search-w),
-      transparent calc(var(--nav-search-w) + 10px), transparent calc(var(--nav-search-w) + 36px),
-      #000 calc(var(--nav-search-w) + 46px), #000 calc(100% - 34px), transparent);
-    mask-image:linear-gradient(to right,
-      #000 0, #000 var(--nav-search-w),
-      transparent calc(var(--nav-search-w) + 10px), transparent calc(var(--nav-search-w) + 36px),
-      #000 calc(var(--nav-search-w) + 46px), #000 calc(100% - 34px), transparent);
+    -webkit-mask-image:linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 34px), transparent);
+    mask-image:linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 34px), transparent);
   }
   .nav-pills-scroll.at-start:not(.at-end){
     -webkit-mask-image:linear-gradient(to right, #000 calc(100% - 34px), transparent);
     mask-image:linear-gradient(to right, #000 calc(100% - 34px), transparent);
   }
   .nav-pills-scroll:not(.at-start).at-end{
-    -webkit-mask-image:linear-gradient(to right,
-      #000 0, #000 var(--nav-search-w),
-      transparent calc(var(--nav-search-w) + 10px), transparent calc(var(--nav-search-w) + 36px),
-      #000 calc(var(--nav-search-w) + 46px));
-    mask-image:linear-gradient(to right,
-      #000 0, #000 var(--nav-search-w),
-      transparent calc(var(--nav-search-w) + 10px), transparent calc(var(--nav-search-w) + 36px),
-      #000 calc(var(--nav-search-w) + 46px));
+    -webkit-mask-image:linear-gradient(to right, transparent, #000 24px);
+    mask-image:linear-gradient(to right, transparent, #000 24px);
   }
 
   /* [NAV RAIL CHEVRON] HANDOFF v32 — now a real child of the .nav-pills
@@ -2384,7 +2393,7 @@
        z-index 25: above cards (0-5), below the nav rail (30), so the index
        slides under the rail rather than over it. */
     position:sticky;
-    top:calc(env(safe-area-inset-top, 0px) + var(--nav-rail-h, 56px));
+    top:env(safe-area-inset-top, 0px); /* v3.288: the rail moved to the bottom, nothing to sit below */
     z-index:25;
     background:var(--nav-glass-bg);
     backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
@@ -2491,23 +2500,24 @@
      whatever autohide already decided the moment the class comes off. */
   .card.group-collapsed{ display:none !important; }
   .nav-pill{
-    flex:0 0 auto;
-    background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
+    flex:1 0 auto; /* v3.288: the five tabs share the bar's width (grow, never shrink) */
+    background:transparent; border:1px solid transparent; color:var(--text-muted);
     font-family:var(--font-sans); font-size:13px; letter-spacing:-0.01em;
     /* HANDOFF v31: was 10px 16px. Seven pills measured ~540px of content in
        ~354px of phone (see the overflow-signal comment below) — trimming
        3px off each side saves ~42px across seven pills, real but modest;
        this narrows the gap, it doesn't close it, which is why the chevron
        and the snap points above exist rather than relying on this alone. */
-    padding:10px 13px; border-radius:var(--radius-md); cursor:pointer; font-weight:600;
+    padding:10px 10px; border-radius:var(--radius-pill); cursor:pointer; font-weight:600; /* v3.288: 13px -> 10px sides so all five fit a 375px phone; height (the tap target) unchanged */
     /* Tab-layout audit (v3.159, option #3): dropped the outer drop-shadow,
        keeping only the inset top highlight — the same trim already applied
        to .analysis-index-chip directly beneath this bar. Geometry (padding,
        font-size, tap-target size) is UNCHANGED on purpose: that's the tap-
        target fork's territory, not this pass's. .nav-pill.active keeps its
        own distinct glow (a deliberate "this is selected" cue, not generic
-       weight) — untouched. */
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.04) inset;
+       weight) — untouched. v3.288: inside the glass tab bar a resting pill is
+       just its label; the selected one is the white pill (see .nav-pill.active). */
+    box-shadow:none;
     transition:background 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth), color 0.25s var(--ease-smooth), transform 0.15s var(--ease-smooth), box-shadow 0.25s var(--ease-smooth);
     scroll-snap-align:start;
   }
@@ -2517,47 +2527,6 @@
      problem search exists to solve. sticky:left works inside a horizontal
      scroller the same way sticky:top works in a vertical one; the background is
      its own because the other pills scroll underneath it. */
-  .nav-pill-search{
-    /* IT IS A PILL. It inherits .nav-pill entirely — same --surface2 fill, same
-       --line border, same --radius-md, same type — and adds only the two things
-       that make it pinned.
-
-       The v3.54 version overrode all of that with a square, borderless, solid
-       #0A0B0D block, because the element was doing two jobs in one background:
-       being a pill AND hiding the pills sliding under it. Fixing the
-       see-through problem by deleting the pill's appearance is not fixing it.
-       The two jobs are separated below.
-
-       left:-18px, NOT 0. In a scroller with padding, sticky offsets are
-       measured from the PADDING box — left:0 pinned the pill 18px inside the
-       screen edge and left a sliver of the scrolling pills visible beside it. */
-    position:sticky; left:-18px; z-index:2;
-    margin-left:-18px;
-    /* Explicit width so --nav-search-w is authoritative rather than a guess at
-       what 16px of icon plus .nav-pill's 16px side padding happens to add up
-       to. Padding zeroed and the icon centred instead, which lands in the same
-       place and cannot drift away from the scroll-padding above. */
-    width:var(--nav-search-w);
-    padding-left:0; padding-right:0;
-    display:flex; align-items:center; justify-content:center;
-
-    /* THE OCCLUDER IS A SHADOW, NOT THE BACKGROUND. A solid --bg shadow offset
-       left and spread 14px paints an opaque slab behind the pill covering the
-       rail's 18px gutter and its 8/10px vertical padding, so a pill scrolling
-       past vanishes at the screen edge rather than 18px inside it. It sits
-       BEHIND the pill's own border box, so the pill still reads as a pill.
-       Spread rather than a bigger offset because a plain offset follows the
-       border radius and leaves slivers at the corners.
-
-       Listed before the two .nav-pill shadows so the stack is: occluder, then
-       the pill's inset highlight, then its lift. */
-    box-shadow:-22px 0 0 14px var(--bg),
-               0 1px 0 rgba(var(--surface-white-rgb),0.04) inset,
-               0 4px 12px -8px rgba(var(--overlay-black-rgb),0.5);
-  }
-  /* Every other pill scales on tap. This one should too — it is a pill. */
-  .nav-pill-search:active{transform:scale(0.95);}
-  .nav-pill-search svg{width:16px; height:16px; display:block;}
 
   /* [CROSS-LINKS] A name that is also a lookup. Styled as text with a chevron
      rather than as a button, because these sit inside dense rows that already
@@ -2604,7 +2573,7 @@
   }
   .gsearch-hit:active{ transform:scale(0.99); }
   .gsearch-hit-tab{ color:var(--text-muted); font-size:11px; flex:0 0 auto; }
-  .nav-pill.active{background:var(--shine-gloss), var(--cta-gradient-blue); border-color:var(--plate-blue); color:#fff;}
+  .nav-pill.active{background:#fff; border-color:#fff; color:#000;} /* v3.288: the selected tab is the one white pill in the glass bar (concept A) */
   /* Tab-layout audit (v3.160, option #2): Care/Coach/Learn's home now, a
      vertical list inside navMoreOverlay instead of horizontal pills in the
      rail. These buttons keep the base .nav-pill class (same colors, same
@@ -4645,7 +4614,7 @@
      starts that timer — so the two appear together, every time. At 18px this
      sat directly on top of it. */
   .gym-offer{
-    position:fixed; left:50%; bottom:110px; z-index:60;
+    position:fixed; left:50%; bottom:calc(var(--above-bar) + 104px); z-index:60; /* v3.288: same 92px gap over the rest timer, now measured from the tab bar */
     transform:translateX(-50%) translateY(12px);
     width:min(380px, calc(100vw - 28px));
     background:linear-gradient(165deg, rgba(38,42,49,0.94), rgba(20,22,26,0.94));
@@ -4856,6 +4825,10 @@
     <h1>Training Log</h1>
     <div class="sub" id="headerSub">Set up your profile below to personalize this</div>
     <div class="streak-badge" id="streakBadge" style="display:none"></div>
+    <!-- v3.288: search lives in the header beside the cog; the bottom tab bar holds the five destinations -->
+    <button type="button" class="header-search" id="globalSearchBtn" aria-label="Search the app">
+      <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><line x1="13.2" y1="13.2" x2="17" y2="17"/></svg>
+    </button>
     <button class="settings-cog" id="settingsCog" aria-label="Settings">
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M7.68 4.41 L8.10 2.08 L11.90 2.08 L12.32 4.41 L12.32 4.41 L14.26 3.05 L16.95 5.74 L15.59 7.68 L15.59 7.68 L17.92 8.10 L17.92 11.90 L15.59 12.32 L15.59 12.32 L16.95 14.26 L14.26 16.95 L12.32 15.59 L12.32 15.59 L11.90 17.92 L8.10 17.92 L7.68 15.59 L7.68 15.59 L5.74 16.95 L3.05 14.26 L4.41 12.32 L4.41 12.32 L2.08 11.90 L2.08 8.10 L4.41 7.68 L4.41 7.68 L3.05 5.74 L5.74 3.05 L7.68 4.41 Z" stroke-linejoin="round"/>
@@ -4884,9 +4857,6 @@
        guess broke on a real device). -->
   <div class="nav-pills">
     <div class="nav-pills-scroll" id="navPillsScroll">
-      <button type="button" class="nav-pill nav-pill-search" id="globalSearchBtn" aria-label="Search the app">
-        <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"/><line x1="13.2" y1="13.2" x2="17" y2="17"/></svg>
-      </button>
       <button class="nav-pill active" id="navToday">Today</button>
       <button class="nav-pill" id="navLog">Log</button>
       <button class="nav-pill" id="navAnalysis">Analysis</button>
@@ -6602,7 +6572,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.287';
+const APP_VERSION = '3.288';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7325,6 +7295,10 @@ const WHATS_NEW = {
   '3.287': { headline: 'Glowing buttons, glass controls', points: [
     'Main buttons are rounded pills in a blue-to-purple glow, and the coach button glows too. Glow means "tap me".',
     'Secondary buttons (Gym mode, Adapt, Reorder, settings) are frosted glass to match the cards.',
+  ]},
+  '3.288': { headline: 'Tabs at your thumb', points: [
+    'The tabs moved into a floating glass bar at the bottom of the screen, within easy reach of your thumb. The selected tab is the white one.',
+    'The rest timer, undo messages and the coach and Today buttons now sit just above the bar.',
   ]},
 };
 
