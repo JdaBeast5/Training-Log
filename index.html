@@ -4570,6 +4570,19 @@
     cursor:pointer; transition:transform 0.2s var(--ease-smooth);
   }
   .gym-exit-btn:active{transform:scale(0.94); background:rgba(var(--surface-white-rgb),0.12);}
+  /* [GYM SET CHIPS, v3.301] The dock's Log button: the session's next set. */
+  .gym-dock .gym-log-btn{flex:1 1 auto; width:auto; min-width:0; min-height:56px; margin:0; padding:0 14px; font-size:17px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .gym-dock .gym-log-btn[hidden]{display:none;}
+  /* The open exercise's sets as big chips, two to a row (HIG workouts: large
+     numerals, minimal text). Logging is the chips and the set sheet, so the
+     cramped field rows are not shown in gym mode; they stay in the page as
+     the source of truth. Closed exercises show no chips: one at a time. */
+  body.gym-mode .exercise-block:not(.open) > .set-chips{display:none;}
+  body.gym-mode .exercise-block.open > .set-chips{display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:4px 0 16px;}
+  body.gym-mode .exercise-block.open > .set-chips .set-chip{max-width:none; min-height:76px; border-radius:22px; font-size:26px; font-weight:600;}
+  body.gym-mode .set-chip-tag{font-size:13px;}
+  body.gym-mode .set-chip-trend{font-size:18px;}
+  body.gym-mode .sets-block > .set-row{display:none;}
 
   /* Raised clear of the dock rather than floating over it. */
   body.gym-mode .rest-timer{bottom:calc(96px + env(safe-area-inset-bottom, 0px));}
@@ -6199,6 +6212,9 @@
     <div class="gym-clock" id="gymClock" aria-label="Time in gym mode">00:00</div>
     <div class="gym-progress" id="gymProgress"></div>
   </div>
+  <!-- v3.301: the session's next set, always one thumb tap away (Apple HIG,
+       workouts: persistent controls, large targets). Mirrors the glowing chip. -->
+  <button type="button" class="save-btn gym-log-btn" id="gymLogBtn" hidden>Log set</button>
   <button type="button" class="gym-exit-btn" id="gymExitBtn" aria-label="Exit gym mode">Exit</button>
 </div>
 
@@ -6638,7 +6654,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.300';
+const APP_VERSION = '3.301';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7398,6 +7414,9 @@ const WHATS_NEW = {
   ]},  '3.300': { headline: 'Simpler set rows', points: [
     'The plate calculator and voice logging are gone — one tap on a chip logs your set, and + / − step in weights you can load.',
     'Describing a meal by voice on Log still works.',
+  ]},  '3.301': { headline: 'Gym mode, rebuilt around chips', points: [
+    'Gym mode shows your current exercise as big set chips, and the bottom bar has a Log button for your next set — one tap, right by the rest timer.',
+    'The screen moves on to the next exercise by itself as you go.',
   ]},
 };
 
@@ -28953,7 +28972,42 @@ function renderAllSetChips(){
   if(!list) return;
   const glow = findNextSetRow(list).row;
   list.querySelectorAll(':scope > .exercise-block').forEach(b => renderSetChips(b, glow));
+  refreshGymLogBtn();
 }
+
+// [GYM SET CHIPS, v3.301] The dock's Log button mirrors the glowing chip:
+// "Log 135×8" logs it in one tap (with Undo); with nothing to suggest it reads
+// "Log set" and opens the sheet on that set; with nothing left it hides.
+function refreshGymLogBtn(){
+  const btn = document.getElementById('gymLogBtn');
+  const list = document.getElementById('exerciseList');
+  if(!btn || !list) return;
+  const next = findNextSetRow(list).row;
+  const chip = list.querySelector('.set-chip.is-next');
+  btn.hidden = !next;
+  if(!next) return;
+  // In gym mode the open exercise follows the next set (one open at a time),
+  // so the big chips on screen are always the ones being logged — including
+  // when an exercise is finished but not ticked (ticking needs an RPE on
+  // every set, and a one-tap log leaves RPE empty).
+  if(gymModeActive){
+    const block = next.closest('.exercise-block');
+    if(block && !block.classList.contains('open')){
+      list.querySelectorAll(':scope > .exercise-block.open').forEach(b => setExerciseBlockOpen(b, false));
+      setExerciseBlockOpen(block, true);
+    }
+  }
+  const label = chip ? (chip.querySelector('.set-chip-val') || {}).textContent : '';
+  btn.textContent = label ? `Log ${label}` : 'Log set';
+  btn.setAttribute('aria-label', chip ? chip.getAttribute('aria-label').replace(', tap to log', '') + ', log it' : 'Log the next set');
+}
+document.getElementById('gymLogBtn').addEventListener('click', ()=>{
+  const list = document.getElementById('exerciseList');
+  const chip = list && list.querySelector('.set-chip.is-next');
+  if(chip){ chip.click(); return; }
+  const next = list && findNextSetRow(list).row;
+  if(next) openSetSheet(next, list.querySelector(`.set-chip[data-ex-idx="${next.dataset.exIdx}"][data-set-idx="${next.dataset.setIdx}"]`));
+});
 
 // Commits a set into its row — from a one-tap chip or the set sheet — keeping
 // the row's values from before so Undo can put it back exactly as it was.

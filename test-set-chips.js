@@ -58,6 +58,7 @@ function mount(listHtml){
     function setExerciseBlockOpen(b, open){ window.__opened = open; b.classList.toggle('open', open); }
     // v3.299: the set sheet has its own test (test-set-sheet.js); here, only that a tap opens it on the right row.
     function openSetSheet(row, chip){ window.__sheet = {row, chip}; }
+    function refreshGymLogBtn(){} // v3.301: gym mode's dock button, covered by test-gym-set-chips.js
   `, [...FNS, CLICK, 'window.__renderAll = renderAllSetChips;']);
   window.__renderAll();
   const chips = (n = 0) => [...window.document.querySelectorAll('#exerciseList > .exercise-block')[n].querySelectorAll('.set-chip')];
