@@ -14,6 +14,9 @@
 // overrode .fi-star::after, the shared 44px hit area: a 13x14 tap target in
 // Chromium (elementFromPoint), next to a 30x44 pencil. The icon is on ::before
 // now, the same fix v3.350 made for the pencil.
+// v3.375 — The last typed symbols on the workout card: the set note button
+// showed "+" (no note) or 📝 (has a note). It draws a note icon now, and the
+// yellow .has-note colour says a note exists.
 const { readIndexSource, extractConst, extractFunction, runSandbox, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
@@ -70,6 +73,21 @@ test('REAL CSSOM (v3.374): the trash icon is on ::before, and nothing on .fi-del
   assert.strictEqual(declared('.fi-star::after', 'height'), '44px', 'the shared hit area it now gets');
   assert.strictEqual(declared('.fi-delete', 'min-width'), '22px');
   assert.strictEqual(declared('.fi-delete', 'min-height'), '22px');
+});
+
+test('sabotage anchor (v3.375): both note-button templates are empty, and no code writes + or 📝 into it', (assert)=>{
+  const btns = [...src.matchAll(/<button type="button" class="set-note-btn[^"]*"[^>]*>([^<]*)<\/button>/g)];
+  assert.strictEqual(btns.length, 2, 'anchor: renderWorkout and the add-set path');
+  for(const m of btns) assert.strictEqual(m[1], '');
+  assert.strictEqual((src.match(/1F4DD|📝/g) || []).length, 0);
+  assert.doesNotMatch(src, /noteBtn\.textContent\s*=/);
+});
+
+test('REAL CSSOM (v3.375): the note button draws its icon on ::before and keeps the 44px hit area on ::after', (assert)=>{
+  assert.match(declared('.set-note-btn::before', 'mask-image') || declared('.set-note-btn::before', '-webkit-mask-image'), /data:image\/svg\+xml/);
+  assert.strictEqual(declared('.set-note-btn::before', 'background'), 'currentcolor');
+  assert.strictEqual(declared('.set-note-btn::after', 'height'), '44px');
+  assert.match(declared('.set-note-btn.has-note', 'color'), /plate-yellow/);
 });
 
 run();

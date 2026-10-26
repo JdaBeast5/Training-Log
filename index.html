@@ -3210,6 +3210,17 @@
   }
   .set-note-btn:active{transform:scale(0.9);}
   .set-note-btn.has-note{border-color:var(--plate-yellow); color:var(--plate-yellow);}
+  /* v3.375: a drawn note icon instead of a typed "+" (no note) or the memo emoji (has a
+     note). The yellow .has-note colour is what says a note exists; ::after
+     stays the 44px hit area. */
+  .set-note-btn::before{
+    content:''; width:14px; height:14px; background:currentColor;
+    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+    -webkit-mask-position:center; mask-position:center;
+    -webkit-mask-size:contain; mask-size:contain;
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4.5%203.5h11v9l-4%204h-7Z%27%2F%3E%3Cpath%20d%3D%27M11.5%2016.5v-4h4%27%2F%3E%3Cline%20x1%3D%277.5%27%20y1%3D%277%27%20x2%3D%2712.5%27%20y2%3D%277%27%2F%3E%3Cline%20x1%3D%277.5%27%20y1%3D%2710%27%20x2%3D%2710.5%27%20y2%3D%2710%27%2F%3E%3C%2Fsvg%3E");
+    mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4.5%203.5h11v9l-4%204h-7Z%27%2F%3E%3Cpath%20d%3D%27M11.5%2016.5v-4h4%27%2F%3E%3Cline%20x1%3D%277.5%27%20y1%3D%277%27%20x2%3D%2712.5%27%20y2%3D%277%27%2F%3E%3Cline%20x1%3D%277.5%27%20y1%3D%2710%27%20x2%3D%2710.5%27%20y2%3D%2710%27%2F%3E%3C%2Fsvg%3E");
+  }
   .set-note-wrap{
     display:none; flex-basis:100%; margin-top:7px;
   }
@@ -6698,7 +6709,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.374';
+const APP_VERSION = '3.375';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7627,6 +7638,9 @@ const WHATS_NEW = {
   ]},
   '3.374': { headline: 'Easier to tap', points: [
     'The remove button on your own foods has a full-size tap area, like the buttons next to it.',
+  ]},
+  '3.375': { headline: 'Drawn note icon', points: [
+    'The set note button shows a drawn note icon, yellow when a set has a note.',
   ]},
 };
 
@@ -27492,7 +27506,7 @@ async function renderWorkout(){
               <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input ex-reps${sugClass}" aria-label="Set ${setIdx+1} reps" placeholder="${repsPlaceholder}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
               <input type="number" inputmode="decimal" enterkeyhint="next" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${setIdx+1} RPE, 5 to 10" placeholder="${placeholderSet && placeholderSet.rpe!=null ? placeholderSet.rpe : 'RPE'}" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
               <button type="button" class="set-drop-btn${savedSet && savedSet.drops && savedSet.drops.length ? ' has-drops' : ''}" aria-label="Add a drop set under set ${setIdx+1}"></button>
-              <button type="button" class="set-note-btn${savedSet && savedSet.note ? ' has-note' : ''}" aria-label="${savedSet && savedSet.note ? 'Edit note on set '+(setIdx+1) : 'Add a note to set '+(setIdx+1)}" aria-expanded="false">${savedSet && savedSet.note ? '\u{1F4DD}' : '+'}</button>
+              <button type="button" class="set-note-btn${savedSet && savedSet.note ? ' has-note' : ''}" aria-label="${savedSet && savedSet.note ? 'Edit note on set '+(setIdx+1) : 'Add a note to set '+(setIdx+1)}" aria-expanded="false"></button>
               <button type="button" class="set-next-btn" aria-label="Move to the next field — the following set, or straight into the paired superset exercise">→</button>
               <span class="set-status"></span>
               <div class="set-drop-wrap${savedSet && savedSet.drops && savedSet.drops.length ? ' open' : ''}">${buildDropRowsHtml(savedSet && savedSet.drops, setIdx, showWeight)}</div>
@@ -30358,7 +30372,6 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       if(nInput) nInput.addEventListener('input', ()=>{
         const has = nInput.value.trim() !== '';
         noteBtn.classList.toggle('has-note', has);
-        noteBtn.textContent = has ? '\u{1F4DD}' : '+';
       });
     }
     rpeInput.addEventListener('change', save);
@@ -30482,7 +30495,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
         <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input ex-reps" aria-label="Set ${newIdx+1} reps" placeholder="${getSetFieldUnit(ex.sets)}" value="">
         <input type="number" inputmode="decimal" enterkeyhint="next" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${newIdx+1} RPE, 5 to 10" placeholder="RPE" value="">
         <button type="button" class="set-drop-btn" aria-label="Add a drop set under set ${newIdx+1}"></button>
-        <button type="button" class="set-note-btn" aria-label="Add a note to set ${newIdx+1}" aria-expanded="false">+</button>
+        <button type="button" class="set-note-btn" aria-label="Add a note to set ${newIdx+1}" aria-expanded="false"></button>
         <span class="set-status"></span>
         <div class="set-drop-wrap"></div>
         <div class="set-note-wrap">
