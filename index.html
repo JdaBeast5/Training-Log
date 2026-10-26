@@ -1750,7 +1750,9 @@
 
   .rest-note{color:var(--text-muted); font-size:14px; line-height:1.5;}
   .rest-done-row{
-    display:flex; align-items:center; gap:10px; margin-top:14px; padding:12px;
+    /* v3.396: margin-bottom too — it is the last thing in the list on a rest
+       day, and "+ Add custom exercise" sat flush against it. */
+    display:flex; align-items:center; gap:10px; margin:14px 0; padding:12px;
     background:var(--row-fill); border:1px solid var(--line); border-radius:var(--radius-md);
     font-size:13.5px; cursor:pointer;
   }
@@ -6935,7 +6937,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.395';
+const APP_VERSION = '3.396';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7927,6 +7929,9 @@ const WHATS_NEW = {
   ]},
   '3.395': { headline: 'Sets that match your program', points: [
     'When your last session of a lift was in another program, today\'s sets now start from one working weight at today\'s reps, instead of copying that program\'s set-by-set pattern.',
+  ]},
+  '3.396': { headline: 'Rest-day spacing', points: [
+    'Mark today\'s rest day as done no longer touches the button below it.',
   ]},
 };
 
