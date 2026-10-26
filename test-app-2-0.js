@@ -34,6 +34,9 @@
 // v3.314 — Exercise Progress rows: figures in the text face (was mono), "Best"
 // plain (was a yellow 🏆 badge), "ready to go up" the chips' green ↑ (was a
 // yellow ⬆).
+// v3.315 — The line under an exercise name (body-goal focus, swapped from,
+// custom) is one muted 12px meta style; was yellow/green/blue/purple, and
+// Custom carried a ✏️.
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -208,6 +211,24 @@ test('REAL invocation + CSSOM (v3.314): Exercise Progress rows carry no emoji, a
   assert.strictEqual(cs('.prog-stats').fontFamily, 'var(--font-sans)');
   assert.strictEqual(cs('.prog-best').color, 'var(--text)');
   assert.strictEqual(cs('.prog-ready').color, 'var(--plate-green)', 'same green as the chips\u2019 up arrow');
+});
+
+test('REAL CSSOM + source (v3.315): every tag under an exercise name is the same muted meta line; Custom has no emoji', (assert)=>{
+  const raw = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
+  const { window } = new JSDOM(`<style>${raw}</style><div class="ex-name">Glute Bridge
+      <span class="super-tag focus-tag">Toning Focus — added for your body goal</span>
+      <span class="super-tag sub-tag">⇄ Swapped from Hip Thrust</span>
+      <span class="super-tag custom-tag">Custom</span></div>`);
+  const tags = [...window.document.querySelectorAll('.super-tag')];
+  assert.strictEqual(tags.length, 3, 'anchor');
+  for(const t of tags){
+    const cs = window.getComputedStyle(t);
+    assert.strictEqual(cs.color, 'var(--text-muted)', t.className);
+    assert.strictEqual(cs.fontSize, '12px', t.className);
+  }
+  const sites = src.split('\n').filter(l => l.includes('class="super-tag custom-tag"'));
+  assert.strictEqual(sites.length, 1, 'anchor: one Custom tag site');
+  assert.match(sites[0], /custom-tag">Custom<\/span>/, 'Custom, no ✏️');
 });
 
 run();

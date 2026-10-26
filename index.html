@@ -977,10 +977,11 @@
   .ex-thumb svg{width:100%; height:100%;}
   .ex-name-wrap{min-width:0; flex:1;}
   .ex-name{font-weight:500; font-size:14.5px;}
-  .ex-name .super-tag{font-size:11px; color:var(--plate-yellow); display:block; font-family:var(--font-sans); font-variant-numeric:tabular-nums; margin-top:1px;}
-  .ex-name .focus-tag{color:var(--plate-green);}
-  .ex-name .custom-tag{color:var(--plate-blue);}
-  .ex-name .sub-tag{color:var(--plate-purple);}
+  /* v3.315 (2.0): the line under an exercise name (added for your body goal,
+     swapped from, custom) is quiet meta in one muted style, like the set
+     actions' owner label — was four colours (yellow, green, blue, purple)
+     competing with the set chips for attention. */
+  .ex-name .super-tag{font-size:12px; font-weight:400; color:var(--text-muted); display:block; font-family:var(--font-sans); font-variant-numeric:tabular-nums; margin-top:2px;}
   .ex-swap-icon{display:inline-block; font-size:12px; color:var(--plate-blue); opacity:0.75; margin-left:2px; padding:6px 4px; margin-block:-6px; cursor:pointer;}
   .ex-delete-custom-btn{
     flex:0 0 auto; background:none; border:none; color:var(--text-muted); font-size:0;
@@ -6733,7 +6734,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.314';
+const APP_VERSION = '3.315';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7525,6 +7526,8 @@ const WHATS_NEW = {
     'The date range for body and health trends now hides with its section instead of sitting on its own.',
   ]},  '3.314': { headline: 'Exercise Progress, cleaner', points: [
     'Progress rows use the same type as your sets, Best is shown plainly, and "ready to go up" uses the same green arrow as your sets.',
+  ]},  '3.315': { headline: 'Quieter exercise labels', points: [
+    'Notes under an exercise name, like "added for your body goal", "swapped from" and "Custom", are now one calm grey instead of four colours.',
   ]},
 };
 
@@ -27447,7 +27450,7 @@ async function renderWorkout(){
         <input type="checkbox" data-idx="${i}" ${checked} aria-label="Mark ${escapeHtml(ex.name)} complete">
         ${thumbHtml}
         <div class="ex-name-wrap">
-          <div class="ex-name ${completed[i]?'done':''} ${hasSubs ? 'ex-name-swappable' : ''}">${escapeHtml(ex.name)}${swapIconHtml}${focusHtml}${subTagHtml}${ex.isCustom ? '<span class="super-tag custom-tag">✏️ Custom</span>' : ''}</div>
+          <div class="ex-name ${completed[i]?'done':''} ${hasSubs ? 'ex-name-swappable' : ''}">${escapeHtml(ex.name)}${swapIconHtml}${focusHtml}${subTagHtml}${ex.isCustom ? '<span class="super-tag custom-tag">Custom</span>' : ''}</div>
         </div>
         <div class="ex-sets"><span class="${ex.__overridden ? 'ex-sets-overridden' : ''}" ${ex.__overridden ? 'title="You changed this from the program default"' : ''}>${escapeHtml(ex.sets)}</span></div>
         ${ex.isCustom ? `<button class="ex-delete-custom-btn" aria-label="Remove custom exercise ${escapeHtml(ex.name)}">🗑️</button>` : ''}
