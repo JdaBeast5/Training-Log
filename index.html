@@ -6635,7 +6635,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.351';
+const APP_VERSION = '3.352';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7501,6 +7501,8 @@ const WHATS_NEW = {
     'The pencil on a food row (duplicate and edit) has a full-size tap area again.',
   ]},  '3.351': { headline: 'Better with VoiceOver', points: [
     'The rest timer is hidden from screen readers while it is not running.',
+  ]},  '3.352': { headline: 'Clearer empty lists', points: [
+    'Empty food, grocery and supplement lists no longer point you "below" when what you tap is above.',
   ]},
 };
 
@@ -33638,7 +33640,7 @@ async function renderGroceryList(){
   const list = await loadGroceryList();
   const clearBtn = document.getElementById('groceryClearCheckedBtn');
   if(list.length === 0){
-    el.innerHTML = '<div class="empty-note">Nothing here yet — add items below, or tap "Add ingredients" on a Recipe Finder result.</div>';
+    el.innerHTML = '<div class="empty-note">Nothing here yet — add an item, or tap "Add ingredients" on a Recipe Finder result.</div>';
     if(clearBtn) clearBtn.style.display = 'none';
     return;
   }
@@ -33988,7 +33990,7 @@ async function renderMySupplements(){
     // direction, for someone who lands on an empty tracker first with no
     // idea Supplement Recommendations exists.
     el.innerHTML = `
-      <div class="empty-note">Nothing here yet — add what you actually take below.</div>
+      <div class="empty-note">Nothing here yet — add what you actually take.</div>
       <div class="app-banner-actions" style="justify-content:center;">
         <button type="button" class="app-banner-btn app-banner-btn-primary" data-jump-to="supplementRecommendationsCard">Get supplement recommendations</button>
       </div>
@@ -35798,7 +35800,7 @@ function computeTodaysFoodTotals(){
 function renderFoodLog(){
   const listEl = document.getElementById('foodLogList');
   if(todaysFoodLog.length === 0){
-    listEl.innerHTML = '<div class="empty-note">Nothing logged yet today — tap an item below to add it.</div>';
+    listEl.innerHTML = '<div class="empty-note">Nothing logged yet today — tap + on a food to add it.</div>';
   } else {
     const itemHtmls = todaysFoodLog.map((item, i)=>{
       const q = item.qty || 1;

@@ -56,4 +56,13 @@ test('REAL markup + invocation (v3.351): the idle rest timer is inert, and follo
   assert.ok(el.hasAttribute('inert'), 'closed or completed: inert again');
 });
 
+test('REAL source (v3.352): empty states no longer send you below to controls that are above', (assert)=>{
+  const lines = [...src.matchAll(/empty-note">([^<]*)</g)].map(m => m[1]);
+  assert.ok(lines.length > 20, 'anchor: the real empty states');
+  const wrong = lines.filter(l => /tap an item below|add items below|actually take below/.test(l));
+  assert.deepStrictEqual(wrong, []);
+  for(const fixed of ['tap + on a food to add it', 'add an item, or tap', 'add what you actually take.']) assert.ok(lines.some(l => l.includes(fixed)), fixed);
+  assert.ok(lines.some(l => /log how you\\?.re feeling above/.test(l)), 'the correct "above" in Care stays');
+});
+
 run();
