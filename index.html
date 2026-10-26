@@ -80,6 +80,9 @@
       radial-gradient(520px 440px at 62% 112%, rgba(var(--plate-purple-rgb),.24), transparent 70%);
     --glass-fill:linear-gradient(160deg, rgba(var(--surface-white-rgb),.085), rgba(var(--surface-white-rgb),.025));
     --glass-hair:rgba(var(--surface-white-rgb),.10);
+    /* v3.388: list rows inside glass cards — see-through, so the aura reads
+       through them the way it does through the cards. */
+    --row-fill:rgba(var(--surface-white-rgb),.045);
     --glass-shine:inset 0 1px 0 rgba(var(--surface-white-rgb),.12);
     --glass-shadow:0 30px 60px -30px rgba(var(--overlay-black-rgb),.8);
     --radius-card:28px;
@@ -856,7 +859,7 @@
      stay fully opaque, or the red layer behind it shows through). */
   #todayInsightsList .swipe-item{border-radius:var(--radius-md); margin-bottom:8px;}
   #todayInsightsList .swipe-item:last-child{margin-bottom:0;}
-  #todayInsightsList .swipe-content{background:var(--surface2); border-radius:var(--radius-md);}
+  #todayInsightsList .swipe-content{background:transparent; border-radius:var(--radius-md);}
   #todayInsightsList .today-insight-row{margin-bottom:0;}
   .pf-conditions{ border:1px solid var(--line); border-radius:var(--radius-md); padding:12px; margin-bottom:12px; }
   .pf-conditions legend{ padding:0 6px; }
@@ -2341,10 +2344,16 @@
 
   /* Reusable swipe-to-delete for list entries — pointer events work for both touch and mouse */
   .swipe-item{position:relative; overflow:hidden; border-radius:var(--radius-sm); margin-bottom:2px;}
+  /* v3.388: clipped to the strip a swipe has actually uncovered
+     (--swipe-reveal, set by makeSwipeable). It used to fill the whole row and
+     relied on an opaque row to hide it, which is why every swipe list painted
+     a solid slab over the app's aura. Now nothing red sits behind the row. */
   .swipe-delete-bg{
     position:absolute; inset:0; background:var(--plate-red); display:flex; align-items:center;
     justify-content:flex-end; padding-right:18px; color:#fff; font-size:0; cursor:pointer;
+    clip-path:inset(0 0 0 calc(100% - var(--swipe-reveal, 0px))); transition:clip-path 0.2s var(--ease-smooth);
   }
+  .swipe-item.is-dragging .swipe-delete-bg{transition:none;}
   /* Same trash artwork as .fi-delete::before / .ex-delete-custom-btn::after
      (see those rules for the shared drawing), reused verbatim for a third
      time rather than drawn again — one "delete this" glyph across every
@@ -2373,8 +2382,10 @@
      for its own, different reason (containing the swipe gesture) and
      doesn't have this bug for exactly that reason — same fix, same
      mechanism, applied one level in. */
+  /* v3.388: translucent, like the glass cards around it — a faint lift, not a
+     solid slab (the red layer behind is clipped to the swipe now). */
   .swipe-content{
-    position:relative; background:var(--surface); touch-action:pan-y; cursor:grab;
+    position:relative; background:var(--row-fill); touch-action:pan-y; cursor:grab;
     overflow:hidden;
   }
 
@@ -6889,7 +6900,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.387';
+const APP_VERSION = '3.388';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7857,6 +7868,9 @@ const WHATS_NEW = {
   ]},
   '3.387': { headline: 'Smoother launch', points: [
     'The opening animation glides instead of drawing in steps: the ring turns into place, the lit segment orbits round and settles, and it stays smooth while the app loads.',
+  ]},
+  '3.388': { headline: 'See-through lists', points: [
+    'Supplement, food log, grocery and the other swipe lists are translucent, so the app\'s glow shows through them like the cards around them.',
   ]},
 };
 
@@ -36631,6 +36645,9 @@ function makeSwipeable(itemEl, onDelete){
     }
     currentX = Math.min(0, Math.max(-90, dx + openOffset));
     content.style.transform = `translateX(${currentX}px)`;
+    // v3.388: the red layer is uncovered exactly as far as the row has moved.
+    itemEl.classList.add('is-dragging');
+    itemEl.style.setProperty('--swipe-reveal', `${-currentX}px`);
   });
   function endDrag(){
     if(!dragging) return;
@@ -36638,6 +36655,8 @@ function makeSwipeable(itemEl, onDelete){
     content.style.transition = 'transform 0.2s var(--ease-smooth)';
     const open = currentX < -45;
     openOffset = open ? -80 : 0;
+    itemEl.classList.remove('is-dragging');
+    itemEl.style.setProperty('--swipe-reveal', `${-openOffset}px`);
     content.style.transform = `translateX(${openOffset}px)`;
   }
   content.addEventListener('pointerup', endDrag);
