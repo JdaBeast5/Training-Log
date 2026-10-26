@@ -83,6 +83,11 @@
     /* v3.388: list rows inside glass cards — see-through, so the aura reads
        through them the way it does through the cards. */
     --row-fill:rgba(var(--surface-white-rgb),.045);
+    /* v3.389: also the fill of every in-card list tile that used an opaque
+       --surface2 (food choices, search results, exercise-swap options, AI
+       result cards, technique panel, program boxes, cycle and care cards,
+       rest-day row, targets strip, history stats). Floating layers —
+       dropdowns, sheets, toasts — stay opaque on purpose. */
     --glass-shine:inset 0 1px 0 rgba(var(--surface-white-rgb),.12);
     --glass-shadow:0 30px 60px -30px rgba(var(--overlay-black-rgb),.8);
     --radius-card:28px;
@@ -1069,7 +1074,7 @@
   .sub-option{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     padding:12px 14px; margin-bottom:8px; border-radius:var(--radius-md);
-    background:var(--surface2); border:1px solid rgba(var(--surface-white-rgb),0.07); cursor:pointer;
+    background:var(--row-fill); border:1px solid rgba(var(--surface-white-rgb),0.07); cursor:pointer;
     box-shadow:inset 0 1px 0 rgba(var(--surface-white-rgb),0.04);
     transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
@@ -1451,7 +1456,7 @@
   }
   .custom-program-box{
     margin-top:14px; padding:14px; border-radius:var(--radius-md);
-    background:var(--surface2); border:1px solid var(--line-bright);
+    background:var(--row-fill); border:1px solid var(--line-bright);
   }
   .custom-program-box .care-input{box-shadow:var(--rim);}
   .custom-program-row{
@@ -1703,7 +1708,7 @@
   }
   .ex-details[open] summary::before{transform:rotate(90deg);}
   .ex-detail-body{
-    display:flex; gap:12px; margin-top:8px; padding:12px; background:var(--surface2);
+    display:flex; gap:12px; margin-top:8px; padding:12px; background:var(--row-fill);
     border-radius:var(--radius-md); border:1px solid var(--line);
   }
   .ex-icon{
@@ -1740,7 +1745,7 @@
   .rest-note{color:var(--text-muted); font-size:14px; line-height:1.5;}
   .rest-done-row{
     display:flex; align-items:center; gap:10px; margin-top:14px; padding:12px;
-    background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
+    background:var(--row-fill); border:1px solid var(--line); border-radius:var(--radius-md);
     font-size:13.5px; cursor:pointer;
   }
   .rest-done-row input[type=checkbox]{width:22px; height:22px;}
@@ -2126,7 +2131,7 @@
   .describe-food-input-row{display:flex; gap:8px; align-items:center;}
   .describe-food-input-row input{flex:1;}
   .photo-result-card{
-    margin-top:10px; padding:12px 14px; background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
+    margin-top:10px; padding:12px 14px; background:var(--row-fill); border:1px solid var(--line); border-radius:var(--radius-md);
   }
   .photo-result-title{font-size:12.5px; font-weight:600; color:var(--plate-green); margin-bottom:8px;}
   .photo-result-item{display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--line-soft); font-size:12.5px;}
@@ -2325,7 +2330,7 @@
   .cycle-current-title{font-family:var(--font-sans); font-size:16px; font-weight:700; letter-spacing:-0.01em; color:var(--plate-blue); margin-bottom:4px;}
   .cycle-current-day{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted); margin-bottom:10px;}
   .cycle-phase-card{
-    margin-top:10px; padding:12px 14px; background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
+    margin-top:10px; padding:12px 14px; background:var(--row-fill); border:1px solid var(--line); border-radius:var(--radius-md);
   }
   .cycle-phase-title{font-weight:700; font-size:13.5px; margin-bottom:6px; display:flex; align-items:center; gap:8px;}
   .cycle-phase-section{font-size:12.5px; line-height:1.5; color:var(--text-muted); margin-top:6px;}
@@ -2393,7 +2398,7 @@
 
   .targets-strip{
     display:flex; justify-content:space-between; text-align:center;
-    background:var(--surface2); border-radius:var(--radius-md); padding:12px 6px; margin:8px 0 14px;
+    background:var(--row-fill); border-radius:var(--radius-md); padding:12px 6px; margin:8px 0 14px;
   }
   .targets-strip div{flex:1;}
   .targets-strip .t-val{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-weight:700; font-size:16.5px; letter-spacing:-0.01em;}
@@ -2830,7 +2835,7 @@
   .gsearch-group:first-child{ margin-top:0; }
   .gsearch-hit{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
-    width:100%; text-align:left; background:var(--surface2);
+    width:100%; text-align:left; background:var(--row-fill);
     border:1px solid var(--line); border-radius:var(--radius-sm);
     color:var(--text); font-family:var(--font-sans); font-size:13px;
     padding:11px 13px; margin-top:6px; cursor:pointer; box-shadow:var(--rim);
@@ -3367,7 +3372,7 @@
     display:flex; gap:10px; margin-bottom:14px;
   }
   .exh-stats > div{
-    flex:1; background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-sm);
+    flex:1; background:var(--row-fill); border:1px solid var(--line); border-radius:var(--radius-sm);
     padding:9px 10px; text-align:center;
   }
   .exh-stats b{
@@ -3443,7 +3448,7 @@
   }
   .compare-cancel-btn:active{transform:scale(0.96);}
   .care-relief{
-    margin-top:12px; padding:12px 14px; background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
+    margin-top:12px; padding:12px 14px; background:var(--row-fill); border:1px solid var(--line); border-radius:var(--radius-md);
   }
   .care-relief-title{font-size:12.5px; font-weight:600; color:var(--plate-green); margin-bottom:6px;}
   .care-relief ul{margin:0 0 8px 18px; padding:0; font-size:12.5px; line-height:1.5; color:var(--text-muted);}
@@ -3563,7 +3568,7 @@
   .food-items{display:flex; flex-direction:column; gap:6px; margin-bottom:12px;}
   .food-item-btn{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
-    background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
+    background:var(--row-fill); border:1px solid var(--line); border-radius:var(--radius-md);
     padding:11px 13px; cursor:pointer; text-align:left;
     transition:transform 0.15s var(--ease-smooth), border-color 0.2s var(--ease-smooth), background 0.2s var(--ease-smooth);
   }
@@ -4170,7 +4175,7 @@
      where it actually matters. Amber matches .care-banner-caution exactly. */
   .program-panel{
     margin-top:12px; padding:13px 14px 12px;
-    background:linear-gradient(180deg, rgba(var(--surface-white-rgb),0.025), rgba(var(--surface-white-rgb),0) 60%), var(--surface2);
+    background:linear-gradient(180deg, rgba(var(--surface-white-rgb),0.025), rgba(var(--surface-white-rgb),0) 60%), var(--row-fill);
     border:1px solid var(--line);
     border-radius:var(--radius-md);
   }
@@ -6900,7 +6905,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.388';
+const APP_VERSION = '3.389';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7871,6 +7876,9 @@ const WHATS_NEW = {
   ]},
   '3.388': { headline: 'See-through lists', points: [
     'Supplement, food log, grocery and the other swipe lists are translucent, so the app\'s glow shows through them like the cards around them.',
+  ]},
+  '3.389': { headline: 'See-through list tiles', points: [
+    'Food choices, search results, swap options and the other list tiles inside cards are translucent too.',
   ]},
 };
 

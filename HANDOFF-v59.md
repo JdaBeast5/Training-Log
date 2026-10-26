@@ -241,3 +241,14 @@ PR #37 was merged (v3.386 live). Owner: "make the starting animation more smooth
   - The page holds 1.35s, then fades over 0.55s with a slight lift.
 - **Tested:** `test-launch.js` asserts the transform/opacity-only keyframe and the curve (sabotage-checked with the old overshoot).
 - **Checked in Chromium:** frames every 100ms show even, decaying motion, settled by ~0.9s.
+
+## Addendum 10: translucent lists (v3.388–v3.389)
+PR #38 was merged (v3.387 live). Owner: lists covered the aura (the supplements and food selection). The tests are in `test-translucent-lists.js`.
+- **v3.388, swipe rows:** every `buildSwipeItem` row (supplements, food log, grocery, weight, BP, glucose, measurements, priorities) had an opaque `.swipe-content` (`--surface`), because the red `.swipe-delete-bg` filled the whole row behind it.
+  - The red layer is now clipped to the uncovered strip: `clip-path:inset(0 0 0 calc(100% - var(--swipe-reveal)))`. `makeSwipeable` sets `--swipe-reveal` as the row moves, and `.is-dragging` disables its transition while the finger is down.
+  - Rows use the new `--row-fill: rgba(white, .045)`.
+  - Verified in Chromium: 60px of red mid-drag, 80px open, no pink tint on the translucent row.
+  - Warm-up rows keep their own opaque well (the "pink-tint rule"); it's no longer required, but it was left as is.
+- **v3.389, other list tiles:** `--row-fill` replaces `--surface2` on twelve in-card tiles: `.food-item-btn`, `.gsearch-hit`, `.sub-option`, `.photo-result-card`, `.ex-detail-body`, `.custom-program-box`, `.cycle-phase-card`, `.care-relief`, `.rest-done-row`, `.targets-strip`, `.exh-stats > div` and `.program-panel` (sheen kept).
+  - Floating layers (the `.ex-suggest` dropdown, sheets, toasts, modals) stay opaque on purpose.
+- **Updated guards:** the white-alpha count went 89→90, and `test-swipe-content-height-fix` now checks for `--row-fill` (dated notes).

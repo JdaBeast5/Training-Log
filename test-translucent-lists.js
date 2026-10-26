@@ -10,6 +10,12 @@
 // The red layer is now clipped to the strip the swipe has actually uncovered
 // (--swipe-reveal, set by makeSwipeable as the row moves), so the row can be
 // translucent: --row-fill, a faint white lift like the glass cards.
+// v3.389 — The same --row-fill replaces the opaque --surface2 on every in-card
+// list tile: the food choices (the food library's .food-item-btn), search
+// results, exercise-swap options, AI result cards, the technique panel,
+// program boxes, cycle and care cards, the rest-day row, the targets strip
+// and History's stats. Floating layers (dropdowns, sheets, toasts) stay
+// opaque on purpose: they sit over content, not over the aura.
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -76,6 +82,15 @@ test('REAL invocation (v3.388): a tap below the drag threshold uncovers nothing'
   r.fire('pointermove', 296);
   r.fire('pointerup', 296);
   assert.strictEqual(r.reveal(), '');
+});
+
+test('REAL CSSOM (v3.389): every in-card list tile uses the translucent row fill; floating layers stay opaque', (assert)=>{
+  for(const sel of ['.food-item-btn', '.gsearch-hit', '.sub-option', '.photo-result-card', '.ex-detail-body', '.custom-program-box',
+                    '.cycle-phase-card', '.care-relief', '.rest-done-row', '.targets-strip', '.exh-stats > div']){
+    assert.strictEqual(declared(sel, 'background'), 'var(--row-fill)', sel);
+  }
+  assert.match(declared('.program-panel', 'background'), /, var\(--row-fill\)$/, '.program-panel: its sheen over the translucent fill');
+  assert.match(declared('.ex-suggest', 'background') || declared('.ex-suggest', 'background-color'), /surface2/, 'the autocomplete dropdown floats over content: still opaque');
 });
 
 run();
