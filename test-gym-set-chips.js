@@ -35,13 +35,21 @@ function block(i, name, rows, open = false){
     <div class="set-chips"></div><div class="sets-block">${rows}</div></div>`;
 }
 function row(i, s, reps = ''){ return `<div class="set-row" data-ex-idx="${i}" data-set-idx="${s}"><input class="ex-reps" value="${reps}"></div>`; }
-function mount(listHtml, chipsHtml, {gym = true} = {}){
+// 2026-10-26 (v3.393): the dock also walks warm-up steps first, so the harness
+// carries pendingWarmupChip, the real warm-up chips (built from real ramp
+// rows) and an Undo stub.
+const WARM_FNS = ['escapeHtml', 'trimUnitNum', 'toDisplayWeight', 'warmupRepsValue', 'buildWarmupRampRowsHtml', 'renderWarmupChips'].map(n => extractFunction(src, n));
+function mount(listHtml, chipsHtml, {gym = true, ramp = null} = {}){
   const { window } = runJsdom(`<div id="exerciseList">${listHtml}</div>${extractElementById(src, 'gymDock')}`, `
-    var gymModeActive = ${gym};
+    var gymModeActive = ${gym}, weightUnit = 'lb';
     window.__sheet = null;
     function setExerciseBlockOpen(b, open){ b.classList.toggle('open', open); }
     function openSetSheet(row, chip){ window.__sheet = {row, chip}; }
-  `, [extractFunction(src, 'findNextSetRow'), extractFunction(src, 'refreshGymLogBtn'), DOCK_CLICK]);
+    function showUndoToast(msg, fn){ window.__toast = msg; window.__undo = fn; }
+  `, [extractFunction(src, 'findNextSetRow'), extractFunction(src, 'refreshGymLogBtn'), extractFunction(src, 'pendingWarmupChip'), ...WARM_FNS, DOCK_CLICK,
+      ramp ? `(()=>{ const b = document.querySelector('[data-b="${ramp.b}"]');
+        b.querySelector('.sets-block').insertAdjacentHTML('afterbegin', '<div class="warmup-strip">' + buildWarmupRampRowsHtml(${JSON.stringify(ramp.steps)}, ${JSON.stringify(ramp.saved || [])}) + '</div>');
+        renderWarmupChips(b); })();` : '']);
   // Chips as renderSetChips leaves them (their own behaviour is test-set-chips.js's).
   for(const [i, html] of Object.entries(chipsHtml)) window.document.querySelector(`[data-b="${i}"] .set-chips`).innerHTML = html;
   window.refreshGymLogBtn();
@@ -92,6 +100,48 @@ test('REAL CSSOM: gym mode shows the open exercise\'s chips as a big two-column 
   assert.strictEqual(cs('#o .set-chip').fontSize, '26px');
   assert.strictEqual(cs('#c > .set-chips').display, 'none');
   assert.strictEqual(cs('#o .set-row').display, 'none');
+});
+
+const STEPS = [{idx:0, label:'Bar', short:'Bar', weight:45, reps:8}, {idx:1, label:'60%', short:'60%', weight:110, reps:3}];
+const BENCH = block(0, 'Bench Press', row(0, 0) + row(0, 1), true);
+const BENCH_CHIPS = {0: '<button class="set-chip is-ready is-next" data-loggable="1" data-ex-idx="0" data-set-idx="0" aria-label="Bench Press, set 1: 185×5, tap to log"><span class="set-chip-val">185×5</span></button>'};
+
+test('REAL invocation (v3.393): warm-ups first — the dock logs each step (orange, with Undo), then the working set', (assert)=>{
+  const w = mount(BENCH, BENCH_CHIPS, {ramp: {b: 0, steps: STEPS}});
+  const btn = w.document.getElementById('gymLogBtn');
+  w.refreshGymLogBtn();
+  assert.strictEqual(btn.textContent, 'Log 45×8');
+  assert.ok(btn.classList.contains('is-warmup'));
+  assert.strictEqual(w.document.querySelectorAll('.set-chips .is-next').length, 0, 'the working set waits to glow');
+  btn.click();
+  assert.strictEqual(w.document.querySelector('.warmup-set-row[data-step-label="Bar"] .warmup-done').checked, true, 'the REAL row is ticked');
+  assert.strictEqual(w.__toast, 'Logged warm-up 45×8');
+  assert.strictEqual(btn.textContent, 'Log 110×3');
+  w.__undo();
+  assert.strictEqual(w.document.querySelector('.warmup-set-row[data-step-label="Bar"] .warmup-done').checked, false, 'Undo unticks it');
+  assert.strictEqual(btn.textContent, 'Log 45×8');
+  btn.click(); btn.click();
+  assert.ok(!btn.classList.contains('is-warmup'));
+  assert.strictEqual(btn.textContent, 'Log 185×5', 'then the working set, as before');
+  assert.strictEqual(w.document.querySelectorAll('.set-chips .is-next').length, 1, 'with its glow back');
+});
+
+test('REAL invocation (v3.393): once a working set is logged the ramp is behind you; outside gym mode warm-ups never drive the dock', (assert)=>{
+  const started = mount(block(0, 'Bench Press', row(0, 0, '5') + row(0, 1), true),
+    {0: '<button class="set-chip is-done" data-ex-idx="0" data-set-idx="0"><span class="set-chip-val">185×5</span></button><button class="set-chip is-ready is-next" data-ex-idx="0" data-set-idx="1" aria-label="Bench Press, set 2: 185×5, tap to log"><span class="set-chip-val">185×5</span></button>'},
+    {ramp: {b: 0, steps: STEPS}});
+  assert.strictEqual(started.document.getElementById('gymLogBtn').textContent, 'Log 185×5');
+  const off = mount(BENCH, BENCH_CHIPS, {gym: false, ramp: {b: 0, steps: STEPS}});
+  assert.ok(!off.document.getElementById('gymLogBtn').classList.contains('is-warmup'));
+  assert.strictEqual(off.document.querySelectorAll('.set-chips .is-next').length, 1);
+});
+
+test('REAL source (v3.393): entering and leaving gym mode redraw the chips (dock label, glow)', (assert)=>{
+  const strip = s => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
+  assert.strictEqual((strip(extractFunction(src, 'enterGymMode')).match(/\brenderAllSetChips\(\)/g) || []).length, 1);
+  const exit = strip(extractFunction(src, 'exitGymMode'));
+  assert.strictEqual((exit.match(/\brenderAllSetChips\(\)/g) || []).length, 1);
+  assert.ok(exit.indexOf('renderAllSetChips()') > exit.indexOf('gymModeActive = false'), 'after the flag drops');
 });
 
 run();

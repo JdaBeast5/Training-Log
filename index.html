@@ -4715,6 +4715,7 @@
   /* [GYM SET CHIPS, v3.301] The dock's Log button: the session's next set. */
   .gym-dock .gym-log-btn{flex:1 1 auto; width:auto; min-width:0; min-height:56px; margin:0; padding:0 14px; font-size:17px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .gym-dock .gym-log-btn[hidden]{display:none;}
+  .gym-dock .gym-log-btn.is-warmup{background:var(--plate-orange); box-shadow:none;} /* v3.393: a warm-up step */
   /* The open exercise's sets as big chips, two to a row (HIG workouts: large
      numerals, minimal text). Logging is the chips and the set sheet, so the
      cramped field rows are not shown in gym mode; they stay in the page as
@@ -6927,7 +6928,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.392';
+const APP_VERSION = '3.393';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7910,6 +7911,9 @@ const WHATS_NEW = {
   ]},
   '3.392': { headline: 'Warm-ups first in gym mode', points: [
     'In gym mode the warm-up ramp is a row of chips above your working sets. Tap a step when it\'s done, or Skip the whole ramp.',
+  ]},
+  '3.393': { headline: 'Log button walks the warm-ups', points: [
+    'In gym mode the Log button logs each warm-up step first, in orange with Undo, then your working sets.',
   ]},
 };
 
@@ -29635,6 +29639,7 @@ function renderWarmupChips(blockEl){
       cb.checked = !cb.checked;
       cb.dispatchEvent(new Event('change', {bubbles:true}));
       renderWarmupChips(blockEl);
+      if(typeof refreshGymLogBtn === 'function') refreshGymLogBtn(); // v3.393: the dock follows
     });
     row.appendChild(chip);
   });
@@ -29660,7 +29665,7 @@ function refreshGymLogBtn(){
   const list = document.getElementById('exerciseList');
   if(!btn || !list) return;
   const next = findNextSetRow(list).row;
-  const chip = list.querySelector('.set-chip.is-next');
+  let chip = list.querySelector('.set-chip.is-next');
   btn.hidden = !next;
   if(!next) return;
   // In gym mode the open exercise follows the next set (one open at a time),
@@ -29673,12 +29678,54 @@ function refreshGymLogBtn(){
       setExerciseBlockOpen(block, true);
     }
   }
+  // v3.393: warm-ups first. While this exercise has a warm-up step left and no
+  // working set logged yet, the button logs that step (orange), and the
+  // working chip waits to glow until the ramp is done or skipped.
+  const warm = gymModeActive ? pendingWarmupChip(next.closest('.exercise-block')) : null;
+  btn.classList.toggle('is-warmup', !!warm);
+  if(warm){
+    list.querySelectorAll('.set-chip.is-next').forEach(c => c.classList.remove('is-next'));
+    btn.textContent = `Log ${warm.textContent}`;
+    btn.setAttribute('aria-label', warm.getAttribute('aria-label').replace(', tap to mark done', '') + ', log it');
+    return;
+  }
+  // The ramp just finished: the glow comes back, on the chip renderSetChips
+  // would give it (the next set's, when it is loggable).
+  if(!chip){
+    const own = list.querySelector(`.set-chip[data-ex-idx="${next.dataset.exIdx}"][data-set-idx="${next.dataset.setIdx}"]`);
+    if(own && own.dataset.loggable){ own.classList.add('is-next'); chip = own; }
+  }
   const label = chip ? (chip.querySelector('.set-chip-val') || {}).textContent : '';
   btn.textContent = label ? `Log ${label}` : 'Log set';
   btn.setAttribute('aria-label', chip ? chip.getAttribute('aria-label').replace(', tap to log', '') + ', log it' : 'Log the next set');
 }
+// The warm-up step the dock logs next: the ready chip, but only while none of
+// the exercise's working sets is logged (once you are into them, the ramp is
+// behind you whether or not every step was ticked).
+function pendingWarmupChip(block){
+  if(!block) return null;
+  const warm = block.querySelector(':scope > .warmup-chips .set-chip.is-ready');
+  if(!warm) return null;
+  const started = [...block.querySelectorAll('.sets-block .set-row[data-set-idx] .ex-reps')].some(r => r.value !== '');
+  return started ? null : warm;
+}
+
 document.getElementById('gymLogBtn').addEventListener('click', ()=>{
   const list = document.getElementById('exerciseList');
+  const nextRow = list && findNextSetRow(list).row;
+  const block = nextRow && nextRow.closest('.exercise-block');
+  const warm = gymModeActive ? pendingWarmupChip(block) : null;
+  if(warm){
+    const step = warm.dataset.stepIdx, label = warm.textContent;
+    warm.click();
+    refreshGymLogBtn();
+    showUndoToast(`Logged warm-up ${label}`, ()=>{
+      const again = block.querySelector(`:scope > .warmup-chips .set-chip[data-step-idx="${step}"]`);
+      if(again && again.classList.contains('is-done')) again.click();
+      refreshGymLogBtn();
+    });
+    return;
+  }
   const chip = list && list.querySelector('.set-chip.is-next');
   if(chip){ chip.click(); return; }
   const next = list && findNextSetRow(list).row;
@@ -29979,6 +30026,7 @@ function enterGymMode(opts){
   // scrolling decision below.
   showView('today', {scrollTop:false});
   openFirstIncompleteExercise();
+  renderAllSetChips(); // v3.393: the Log button and glow know about warm-ups only in gym mode
   refreshGymDock();
 
   // The wake lock, one signal earlier than before. `noteWorkoutActivity` still
@@ -30011,6 +30059,7 @@ function exitGymMode(){
   // true for 280ms would let a set logged in that window re-enter the mode
   // being left.
   gymModeActive = false;
+  renderAllSetChips(); // v3.393: give the working set back its glow (warm-ups are gym-only)
   const leaveMs = gymLeaveDuration();
   if(leaveMs === 0){
     finishGymLeave();
