@@ -37,7 +37,7 @@ function buildPair(){
   return runJsdom('<div id="list"></div>', `
     window.list = document.getElementById('list'); window.activeDay = 'd1';
     window.wireSetsBlock = ()=>{}; window.wireExerciseMember = ()=>{}; window.watchSetChips = ()=>{};
-  `, [extractFunction(src, 'escapeHtml'), nested('function assembleSupersetPair(topPiece, bottomPiece){'),
+  `, [extractFunction(src, 'escapeHtml'), extractFunction(src, 'exLoggerHtml') /* v3.376 */, nested('function assembleSupersetPair(topPiece, bottomPiece){'),
       `assembleSupersetPair(${JSON.stringify(piece(4, 'DB Curl'))}, ${JSON.stringify(piece(5, 'Triceps <Pushdown>'))});`]).window.document;
 }
 

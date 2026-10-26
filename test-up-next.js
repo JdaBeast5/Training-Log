@@ -20,7 +20,9 @@ const { readIndexSource, extractFunction, extractElementById, runJsdom, makeRunn
 const { test, run } = makeRunner('test-up-next.js');
 const src = readIndexSource();
 // v3.298: logUpNext writes through writeSetToRow, shared with the set chips.
-const FNS = ['findNextSetRow', 'numericPlaceholder', 'renderUpNext', 'logUpNext', 'writeSetToRow'].map(n => extractFunction(src, n));
+// 2026-10-26 (v3.376): each open exercise carries its own logger (exLoggerHtml
+// in the template; fillSetLogger/readSetLogger shared with Up next).
+const FNS = ['findNextSetRow', 'numericPlaceholder', 'renderUpNext', 'fillSetLogger', 'readSetLogger', 'logUpNext', 'writeSetToRow'].map(n => extractFunction(src, n));
 
 // One row, shaped like renderWorkout's .set-row template.
 function row(exIdx, setIdx, owner, {w = 'lb', r = 'reps', rpe = 'RPE', wv = '', rv = '', rpev = ''} = {}){

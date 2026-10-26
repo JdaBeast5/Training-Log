@@ -28,6 +28,8 @@ const { test, run } = makeRunner('test-set-chips.js');
 const src = readIndexSource();
 const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel',
   'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'commitSet', 'logSetChip',
+  // 2026-10-26 (v3.376): renderAllSetChips also renders each exercise's logger.
+  'renderExerciseLogger', 'fillSetLogger',
   // v3.303: the set-to-set recommendation and what it needs.
   'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep'].map(n => extractFunction(src, n));
 // The one delegated click listener, taken whole from its comment to its close.

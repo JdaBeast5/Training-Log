@@ -101,7 +101,9 @@ const iconsRegistrySrc = extractBetween('ICONS registry', 'const ICONS = {', '\n
 // to match — `i` and `trackingHtml` stay bare globals because the real
 // function still reads THOSE directly from its own scope, only `cautionHtml`/
 // `headerInnerHtml`/`detailsHtml` moved onto the piece.
-const ROW_GLOBALS = `
+// 2026-10-26 (v3.376): the row template now starts its panel with the real
+// exercise logger, so its builder is loaded with the globals.
+const ROW_GLOBALS = extractFunction(src, 'exLoggerHtml') + `
   window.i = 3;
   window.piece = {
     headerInnerHtml: '<input type="checkbox" data-idx="3"><div class="ex-name-wrap"><div class="ex-name">Back Squat</div></div><div class="ex-sets"><span>3×8</span></div><span class="ex-chevron" aria-hidden="true">›</span>',
