@@ -6624,7 +6624,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.326';
+const APP_VERSION = '3.327';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7440,6 +7440,8 @@ const WHATS_NEW = {
     'Mobility, Running, Swimming, Rock Climbing and Senior Strength too.',
   ]},  '3.326': { headline: 'Shorter days-per-week notes, continued', points: [
     'Desk Worker, Pilates, Boxing S&C, Hyrox and BJJ too.',
+  ]},  '3.327': { headline: 'Shorter days-per-week notes, continued', points: [
+    'Road and Mountain cycling, Kickboxing, Boxing and Muay Thai too.',
   ]},
 };
 
@@ -19864,7 +19866,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     road: {
       1: {
         short: 'Endurance ride + cadence — the floor for this program',
-        overview: 'One ride combining Zone 2 endurance riding with a few short cadence primers, since a full week only gets one shot. This program\'s own reasoning is explicit that the polarized model needs a small number of genuinely hard efforts inside a MOSTLY easy week -- one day can\'t deliver both an easy week and a hard effort, so this stays an easy ride with light cadence work, not a full interval session.',
+        overview: 'One Zone 2 endurance ride with a few short cadence primers. Polarized training needs a mostly easy week around a few hard efforts, which one ride can\'t give, so it stays easy.',
         days: {
           d1: { label:'Day 1', sub:'Endurance Ride + Cadence', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -19890,7 +19892,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Endurance Base Ride and FTP / Threshold Intervals, dedicated days',
-        overview: 'Endurance base riding and FTP/threshold intervals each get their own full session — the aerobic base and the one genuinely hard effort this program\'s own polarized model calls for, at the lowest frequency that still keeps that structure honest.',
+        overview: 'An endurance base ride and an FTP/threshold interval session: the aerobic base plus the one hard effort the polarized model calls for.',
         days: {
           d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
             exercises:[
@@ -19920,7 +19922,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Endurance Base Ride, FTP / Threshold Intervals, and Long Ride + Core/Strength',
-        overview: 'Three of this program\'s five sessions each get their own day — two easy-effort rides (endurance base and the long ride) plus one hard effort (FTP/threshold intervals) — keeping this program\'s own polarized mostly-easy distribution honest even at this frequency, not just picking three different session types.',
+        overview: 'Two easy rides (endurance base and the long ride) plus one hard threshold session, keeping the week mostly easy.',
         days: {
           d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
             exercises:[
@@ -19956,7 +19958,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Endurance Base Ride, FTP / Threshold Intervals, Hill Repeats, and Long Ride + Core/Strength',
-        overview: 'Four of this program\'s five sessions each get their own day. Sprint & Cadence Work is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up — this program\'s own polarized model calls for a MOSTLY easy week, and three hard-effort days already outweighs the two easy ones at this count.',
+        overview: 'Four of the five sessions get their own day. Sprint and cadence work returns at six days and up, so the week stays mostly easy.',
         days: {
           d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
             exercises:[
@@ -19999,7 +20001,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // default for this style (CYCLING_STYLES.road), used as-is.
       6: {
         short: 'The full 5-day program plus an extra easy ride',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra easy-effort riding — not a 4th hard-interval day. This program\'s own reasoning is explicit that the polarized model depends on a MOSTLY easy week around a small number of hard efforts; adding another hard session here would break that ratio, not just add volume.',
+        overview: 'The 5-day program plus an extra easy ride, not a fourth hard interval day, which would break the mostly-easy ratio.',
         days: {
           d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
             exercises:[
@@ -20051,7 +20053,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says the fixed, hunched riding position makes that recovery non-negotiable, not optional, even at 7 days selected.',
+        overview: 'The 6-day plan unchanged, and the rest and mobility day stays: the fixed, hunched riding position makes that recovery necessary.',
         days: {
           d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
             exercises:[
@@ -20105,7 +20107,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     mountain: {
       1: {
         short: 'Endurance ride + technical trail time — the floor for this program',
-        overview: 'One ride combining Zone 2 endurance riding with a shorter block of technical trail practice, since a full week only gets one shot. This program\'s own reasoning is explicit that technical descending skill only comes from real trail time, not intervals — so even at the lowest frequency this stays an endurance-plus-skill ride, not a pure fitness session.',
+        overview: 'One Zone 2 endurance ride with a block of technical trail practice. Descending skill only comes from trail time, so even one day mixes endurance and skill.',
         days: {
           d1: { label:'Day 1', sub:'Endurance Ride + Technical Trail Time', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -20131,7 +20133,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Endurance Base Ride and Technical Trail Skills, dedicated days',
-        overview: 'Endurance base riding and technical trail skills each get their own full session — the aerobic base and the specific skill this program\'s own reasoning calls out as only trainable through real trail time, at the lowest frequency that still trains both.',
+        overview: 'An endurance base ride and a technical trail-skills session: aerobic base plus the skill only trail time builds.',
         days: {
           d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
             exercises:[
@@ -20161,7 +20163,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Endurance Base Ride, Technical Trail Skills, and Long Ride + Grip/Core',
-        overview: 'Three of this program\'s five sessions each get their own day — endurance base riding, technical trail skills, and the long ride with grip/core work — keeping this program\'s own emphasis on aerobic base and real trail-skill time ahead of the punchy power-interval work at this frequency.',
+        overview: 'Endurance base, technical trail skills, and the long ride with grip and core work each get a day, putting base and trail time ahead of power intervals.',
         days: {
           d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
             exercises:[
@@ -20197,7 +20199,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Endurance Base Ride, Technical Trail Skills, Standing Climb Power, and Long Ride + Grip/Core',
-        overview: 'Four of this program\'s five sessions each get their own day. Power & Technical Intervals is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        overview: 'Four of the five sessions get their own day. Power and technical intervals return at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
             exercises:[
@@ -20240,7 +20242,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // default for this style (CYCLING_STYLES.mountain), used as-is.
       6: {
         short: 'The full 5-day program plus extra technical trail time',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra technical trail time — not a 2nd punchy power-interval day. This program\'s own reasoning already says technical skill only comes from real trail time, not more structured intervals, and the repeated short power efforts here carry real fatigue cost; the extra day adds more of the skill work instead.',
+        overview: 'The 5-day program plus extra technical trail time, not a second power-interval day: skill comes from trail time, and repeated power efforts are fatiguing.',
         days: {
           d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
             exercises:[
@@ -20292,7 +20294,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. This program\'s own rest-day note already says technical terrain loads the upper body and grip far more than road riding — even at 7 days selected, that stays true.',
+        overview: 'The 6-day plan unchanged, and the rest day stays: technical terrain loads the upper body and grip far more than road riding.',
         days: {
           d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
             exercises:[
@@ -20364,7 +20366,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     kickboxing: {
       1: {
         short: 'Boxing + kickboxing basics — the floor for this program',
-        overview: 'One session combining boxing combos and kickboxing kicks at reduced volume, since a full week only gets one shot at both halves of this program\'s "balanced default" between the two. The real interval structure (short high-intensity bursts, brief pauses) stays the same even at this frequency — just less of it.',
+        overview: 'One session of boxing combos and kicks at reduced volume, keeping the short high-intensity bursts and brief pauses, just less of them.',
         days: {
           d1: { label:'Day 1', sub:'Boxing + Kickboxing Basics', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -20389,7 +20391,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Boxing · Power & Combos and Kickboxing · Kicks & Core, dedicated days',
-        overview: 'Boxing power/combos and kickboxing kicks/core each get their own full session — the two disciplines this "balanced default" program is built to cover, at the lowest frequency that still trains both.',
+        overview: 'A boxing power-and-combos session and a kicks-and-core session: both halves of this balanced style.',
         days: {
           d1: { label:'Day 1', sub:'Boxing · Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -20423,7 +20425,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Boxing · Power & Combos, Kickboxing · Kicks & Core, and Conditioning Finisher',
-        overview: 'Three of this program\'s five sessions each get their own day — one boxing day, one kickboxing day, and the conditioning finisher that ties both together — the balanced trio this "default" style is meant to represent, even at this frequency.',
+        overview: 'A boxing day, a kickboxing day, and the conditioning finisher that ties them together.',
         days: {
           d1: { label:'Day 1', sub:'Boxing · Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -20463,7 +20465,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Boxing ×2 and Kickboxing ×2 — Conditioning Finisher not included',
-        overview: 'Four of this program\'s five sessions each get their own day — two boxing days, two kickboxing days. Conditioning Finisher is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        overview: 'Two boxing days and two kickboxing days. The conditioning finisher returns at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Boxing · Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -20513,7 +20515,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // (COMBAT_STYLES.kickboxing), used as-is.
       6: {
         short: 'The full 5-day program plus extra conditioning & mobility',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra light conditioning and mobility — not a 2nd heavy-bag power day. Real time-motion data already grounds this program in short bursts with real recovery between them; a 3rd all-out bag session here would work against that structure, not extend it.',
+        overview: 'The 5-day program plus light conditioning and mobility, not another all-out bag session, keeping the bursts-with-recovery structure.',
         days: {
           d1: { label:'Day 1', sub:'Boxing · Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -20572,7 +20574,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says hip/shoulder range of motion is non-negotiable for kicking and bag power, even at 7 days selected.',
+        overview: 'The 6-day plan unchanged, and the rest and mobility day stays: hip and shoulder range drive kicking and bag power.',
         days: {
           d1: { label:'Day 1', sub:'Boxing · Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -20633,7 +20635,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     boxing: {
       1: {
         short: 'Power & combos + footwork basics — the floor for this program',
-        overview: 'One session combining power/combo work and footwork basics at reduced volume, since a full week only gets one shot at both. Real 2-minute round pacing (matching real fight physiology) stays the same even at this frequency — just fewer rounds.',
+        overview: 'One session of power combos and footwork basics at reduced volume, keeping fight-paced 2-minute rounds, just fewer of them.',
         days: {
           d1: { label:'Day 1', sub:'Power & Combos + Footwork Basics', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -20658,7 +20660,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Power & Combos and Speed & Footwork, dedicated days',
-        overview: 'Power/combos and speed/footwork each get their own full session — the two pillars real boxing conditioning is built from, at the lowest frequency that still trains both.',
+        overview: 'A power-and-combos session and a speed-and-footwork session: the two pillars of boxing conditioning.',
         days: {
           d1: { label:'Day 1', sub:'Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -20692,7 +20694,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Power & Combos, Speed & Footwork, and Conditioning Finisher',
-        overview: 'Three of this program\'s five sessions each get their own day — power/combos, speed/footwork, and the conditioning finisher that ties both together, the trio this program\'s round-based conditioning is built around, even at this frequency.',
+        overview: 'Power and combos, speed and footwork, and the conditioning finisher that ties them together.',
         days: {
           d1: { label:'Day 1', sub:'Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -20732,7 +20734,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Power & Combos, Speed & Footwork, Defense & Counters, and Power Endurance',
-        overview: 'Four of this program\'s five sessions each get their own day. Conditioning Finisher is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        overview: 'Four of the five sessions get their own day. The conditioning finisher returns at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -20782,7 +20784,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // (COMBAT_STYLES.boxing), used as-is.
       6: {
         short: 'The full 5-day program plus extra footwork & conditioning',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra footwork and light conditioning — not a 2nd heavy-bag power day. This program\'s own round structure already keeps intensity honest; a 3rd all-out session here would just add fatigue without more of what the program is actually training.',
+        overview: 'The 5-day program plus extra footwork and light conditioning, not another all-out bag day that would only add fatigue.',
         days: {
           d1: { label:'Day 1', sub:'Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -20841,7 +20843,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says loose, fast shoulders depend on real recovery, even at 7 days selected.',
+        overview: 'The 6-day plan unchanged, and the rest and mobility day stays: loose, fast shoulders depend on recovery.',
         days: {
           d1: { label:'Day 1', sub:'Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -20902,7 +20904,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     muayThai: {
       1: {
         short: 'Punch-kick combos + knee basics — the floor for this program',
-        overview: 'One session combining punch-kick combo power and a taste of knee/clinch work at reduced volume, since a full week only gets one shot at the full eight-limb arsenal this program is built around. Real elbow and clinch work stays off the table at this frequency the same way it does at every count here — see the 6/7-day reasoning below.',
+        overview: 'One session of punch-kick combos with some knee and clinch work at reduced volume. Elbow work and heavier clinch wait for more days.',
         days: {
           d1: { label:'Day 1', sub:'Punch-Kick Combos + Knee Basics', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -20927,7 +20929,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Punch-Kick Combos & Power and Knees & Clinch, dedicated days',
-        overview: 'Punch-kick combo power and knee/clinch work each get their own full session — the striking and clinch pillars this program\'s own reasoning calls out (clinch time alone is roughly a fifth of a real round), at the lowest frequency that still trains both.',
+        overview: 'Punch-kick combo power and knee-and-clinch work each get their own session; clinch fills about a fifth of a round.',
         days: {
           d1: { label:'Day 1', sub:'Punch-Kick Combos & Power', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -20961,7 +20963,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Punch-Kick Combos & Power, Knees & Clinch, and Conditioning Finisher',
-        overview: 'Three of this program\'s five sessions each get their own day — punch-kick combo power, knee/clinch work, and the conditioning finisher, the striking-plus-clinch trio this program is built around, even at this frequency. Elbow work and the second kicks day wait for a higher frequency, not because they\'re unsafe, just because there\'s not enough day budget yet.',
+        overview: 'Punch-kick combos, knees and clinch, and the conditioning finisher. Elbows and a second kick day wait for more days, not for safety reasons.',
         days: {
           d1: { label:'Day 1', sub:'Punch-Kick Combos & Power', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -21001,7 +21003,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Punch-Kick Combos, Knees & Clinch, Elbows & Combos, and Power Kicks & Legs',
-        overview: 'Four of this program\'s five sessions each get their own day. Conditioning Finisher is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        overview: 'Four of the five sessions get their own day. The conditioning finisher returns at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Punch-Kick Combos & Power', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -21051,7 +21053,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // (COMBAT_STYLES.muayThai), used as-is.
       6: {
         short: 'The full 5-day program plus extra conditioning & hip mobility',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra conditioning and hip mobility — not more clinch or elbow work. This program\'s own overview is explicit that clinch and elbow work carry real injury risk and aren\'t learnable safely from text; the extra day stays firmly in the low-risk territory the rest of this program\'s own reasoning already respects.',
+        overview: 'The 5-day program plus extra conditioning and hip mobility — not more clinch or elbow work, which carry real injury risk and need a coach.',
         days: {
           d1: { label:'Day 1', sub:'Punch-Kick Combos & Power', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -21110,7 +21112,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says hip mobility drives kick height and speed more directly than anything else here, even at 7 days selected.',
+        overview: 'The 6-day plan unchanged, and the rest and mobility day stays: hip mobility drives kick height and speed more than anything else.',
         days: {
           d1: { label:'Day 1', sub:'Punch-Kick Combos & Power', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[

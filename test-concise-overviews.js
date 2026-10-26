@@ -97,6 +97,8 @@ const VARIANTS_DONE = [
   'mobility', 'running', 'swimming', 'climbing', 'senior',
   // v3.326
   'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling',
+  // v3.327
+  'cycling.road', 'cycling.mountain', 'combat.kickboxing', 'combat.boxing', 'combat.muayThai',
 ];
 
 function variants(){
