@@ -96,3 +96,53 @@ Everything in the flow run worked. The fixes, each with a test in `test-audit-fi
 - the food star ☆ is a text glyph.
 
 **Still unverified:** a real iPhone or Safari.
+
+## Addendum 5: glyph icons and the AI pass (v3.358–v3.371)
+Owner: "confirm and enhance all the AI features we have in it so far, improve it with current capabilities across the whole app. Then after that, let's make it live."
+
+**Glyphs (the audit's open P3s)**, tested in `test-glyph-icons.js`:
+- **v3.358:** "Watch form video" uses a mask-drawn play mark, `#7A93FF` (5.66:1 on `--surface2`, scoped to this link only, not a token change) and a 44px minimum height.
+- **v3.359:** the drop-set button draws a step-down arrow on `::before` (its `::after` is still the hit area).
+- **v3.360:** the food favourite is a drawn star on `.fi-fav::before`, outlined or filled with `.favorited`. It follows the same two-class pattern as `.fi-delete`, so the base `.fi-star` is untouched.
+
+**AI**, tested in `test-ai-current-api.js` (network stubbed at `fetch`) and `test-coach-chat-context.js`:
+
+| Version | Change |
+|---|---|
+| v3.361 | `anthropic-version: 2026-10-21` on both endpoints. That version removes sampling params, assistant-side documents, user-side citations and Admin API fields; this app sends none of them. |
+| v3.362 | `AI_MODEL_DEFAULT = 'claude-sonnet-5-5'` (was Sonnet 5, same price). |
+| v3.363 | `AI_MODEL_FAST = 'claude-haiku-5-5'` for the six quick calls (was Haiku 4.5, ~10x cheaper now). See the Haiku note below. |
+| v3.364 | Sonnet calls send `fallbacks:'default'` with `anthropic-beta: server-side-fallback-2026-07-01`. Haiku never sends it (no server-side fallback there). `stop_reason:'refusal'` is checked before content is read. If the API rejects the beta field, the request is resent once without it. |
+| v3.365–v3.369 | Structured outputs (`output_config.format` json_schema) for describe-a-meal, food photos, label scan, recipe finder and supplement recommendations, all from one `AI_JSON_SCHEMAS` object. A test checks the API's schema rules, each prompt's documented empty reply, and that the supplement enums match `SUPPLEMENT_EVIDENCE_LABELS` / `SUPPLEMENT_FREQUENCY_META`. |
+| v3.370 | **Bug:** coach chat's `slice(-10)` began with a coach reply from the sixth question on, and the API requires the first message to be the user's. Fixed in `coachChatApiMessages`. |
+| v3.371 | Coach chat's own notices (no key, couldn't reach the coach) are `notice:true`: shown in the chat, never sent to the model. |
+
+**Haiku 5.5 thinks by default** (Haiku 4.5 never did), and thinking spends from `max_tokens`: the HANDOFF v30 failure. So every Haiku call sends effort `'low'` and a raised ceiling (1024–3000). The prompts set their own reply length.
+
+`callClaudeChat` / `callClaudeVision` now take `(…, model, effort, schema)`. The old model gate on effort is gone, because every current model accepts it.
+
+**Confirmed in Chromium with the API mocked at the network layer** (`scratchpad/scripts/aiflows.js`; the mock rejects whatever the current API would reject). Zero request problems and zero page errors across:
+- coach chat ×7 (turns 6–7 send 9 messages, starting on a question);
+- describe a meal, recipe finder, supplement recommendations, supplement insight;
+- label photo, food photo;
+- weekly recap and nutrition check-ins;
+- adapt workout.
+
+**Not run in the browser:**
+- Cross-Metric Insights (the seed data is too thin);
+- the tailor button (none on the seeded day);
+- photo comparison and form video;
+- the Today standout.
+
+All of these share the tested request path, and most have their own suites.
+
+**Considered and skipped:** prompt caching on coach chat. The system prompt is short (likely under the cacheable minimum) and the 10-message window slides every turn after the fifth question, so the saving is near zero.
+
+**Still unverified:**
+- **Live API:** no key here. In particular, confirm on device that the refusal-fallback beta is accepted from a browser; if not, the v3.364 guard falls back to a plain request.
+- **iPhone / Safari:** not tested.
+
+**Flagged, not fixed:**
+- the favourite star's `aria-pressed`/`aria-label` aren't updated on tap (pre-existing);
+- `.fi-delete::after` draws the trash glyph and so overrides the shared 44px hit area (the same collision v3.350 fixed for the pencil);
+- the set note button still uses a 📝 emoji.
