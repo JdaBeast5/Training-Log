@@ -46,6 +46,18 @@ const MUST_KEEP = {
   'programs.hyrox': [/compromised running/, /brick intervals/, /harder than a typical endurance plan/],
   'programs.grappling': [/live positional rolling/, /conditioning in its own right/],
   'programs.pilates': [/no ballistic movement/, /not gentle stretching/],
+  // v3.319 — martial-art, cycling and yoga styles
+  'COMBAT_STYLES.kickboxing': [/without clinch/, /not sparring instruction/],
+  'COMBAT_STYLES.boxing': [/head-impact safety/, /take a punch safely/],
+  'COMBAT_STYLES.muayThai': [/eight-limb/, /real injury risk/, /coached training/],
+  'COMBAT_STYLES.mma': [/transitions/, /not the live skill/],
+  'COMBAT_STYLES.taekwondo': [/hip mobility/, /landing base/],
+  'COMBAT_STYLES.taiChi': [/fall risk/, /60 and over/, /don't expect or add intensity/],
+  'CYCLING_STYLES.road': [/FTP/, /polarized/, /pyramidal/],
+  'CYCLING_STYLES.mountain': [/descend/, /trail time/],
+  'YOGA_STYLES.flow': [/Restorative/, /moderate intensity/, /not calorie burn/],
+  'YOGA_STYLES.hot': [/hydration/, /doesn't clearly beat unheated yoga/, /pregnancy/, /medical clearance/],
+  'YOGA_STYLES.couples': [/person being stretched sets the depth/, /out loud/],
 };
 
 function entries(){

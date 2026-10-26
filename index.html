@@ -6619,7 +6619,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.318';
+const APP_VERSION = '3.319';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7419,6 +7419,8 @@ const WHATS_NEW = {
     'Thirteen program overviews on Today are about 40% shorter, with the same key facts: the weekly plan, who it suits and what sets it apart.',
   ]},  '3.318': { headline: 'Shorter program overviews, continued', points: [
     'The other twelve main programs get the same shorter overviews, with every safety note kept.',
+  ]},  '3.319': { headline: 'Shorter style overviews', points: [
+    'Martial-art, cycling and yoga styles have shorter overviews, with every limit and safety note kept.',
   ]},
 };
 
@@ -10555,7 +10557,7 @@ const MEDICAL_STYLES = {
 
 const COMBAT_STYLES = {
   kickboxing: {
-    label: 'Kickboxing', short: 'Punches + kicks, no clinch — the balanced default', overview: 'Punches and kicks without clinch work — the balanced default if you want striking conditioning and haven\'t committed to one specific art yet. Boxing-focused power/combo days alternate with kickboxing-focused kick-and-core days, building toward a power-kicks day and a conditioning finisher. Real time-motion data on kickboxing shows short high-intensity bursts separated by brief pauses, which is exactly the interval structure this program trains. This is drill and conditioning work, not sparring instruction — it builds the engine and the combinations, not fight IQ or contact experience.',
+    label: 'Kickboxing', short: 'Punches + kicks, no clinch — the balanced default', overview: 'Punches and kicks without clinch work — the balanced default if you haven\'t committed to one art yet. Boxing power-and-combo days alternate with kick-and-core days, building to a power-kicks day and a conditioning finisher, in the short high-intensity bursts kickboxing data shows. Drill and conditioning work, not sparring instruction: it builds the engine and combinations, not fight IQ or contact experience.',
     days: {
       d1: { label:'Day 1', sub:'Boxing · Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
         exercises:[
@@ -10604,7 +10606,7 @@ const COMBAT_STYLES = {
   },
 
   boxing: {
-    label: 'Boxing', short: 'Hands only — combos, defense, footwork, no kicks', overview: 'Hands only — combinations, defensive movement, and footwork, with the round-based conditioning that supports real boxing output. Power-and-combo and speed-and-footwork days open the week, a dedicated defense-and-counters day follows, and a power-endurance day plus conditioning finisher round it out. The round structure (2-minute rounds matching real fight pacing) is grounded in actual physiological data on boxing\'s intermittent, high-intensity demand. Important limit: nothing here addresses head-impact safety specifically — this is conditioning and drilling, not a substitute for a coach teaching you to take a punch safely.',
+    label: 'Boxing', short: 'Hands only — combos, defense, footwork, no kicks', overview: 'Hands only — combinations, defense and footwork, with round-based conditioning in 2-minute rounds that match fight pacing. Power-and-combo, speed-and-footwork, defense-and-counters and power-endurance days fill the week. Important limit: nothing here covers head-impact safety; it\'s conditioning and drilling, not a substitute for a coach teaching you to take a punch safely.',
     days: {
       d1: { label:'Day 1', sub:'Power & Combos', plate:'p-red', plateNum:'25', duration:'~55 min',
         exercises:[
@@ -10653,7 +10655,7 @@ const COMBAT_STYLES = {
   },
 
   muayThai: {
-    label: 'Muay Thai', short: 'Punches, kicks, knees, elbows, and clinch work', overview: 'The full eight-limb arsenal — punches, kicks, knees, elbows, and clinch work — with the anaerobic conditioning Thai boxing actually demands. Punch-kick combo power and knees-and-clinch days open the week, elbow combos and power-kick/leg days follow, building toward a conditioning finisher. Real physiological data shows Muay Thai rounds run heavily anaerobic with roughly a fifth of round time spent in the clinch specifically, which is why clinch work gets its own dedicated time rather than an afterthought. Clinch and elbow work carry real injury risk and aren\'t learnable safely from text — treat this as supplementary conditioning to real coached training, not a replacement for it.',
+    label: 'Muay Thai', short: 'Punches, kicks, knees, elbows, and clinch work', overview: 'The full eight-limb arsenal — punches, kicks, knees, elbows and clinch — with the anaerobic conditioning Thai boxing demands. Clinch work gets its own days because about a fifth of round time is spent there. Clinch and elbow work carry real injury risk and can\'t be learned safely from text: use this alongside coached training, not instead of it.',
     days: {
       d1: { label:'Day 1', sub:'Punch-Kick Combos & Power', plate:'p-red', plateNum:'25', duration:'~55 min',
         exercises:[
@@ -10702,7 +10704,7 @@ const COMBAT_STYLES = {
   },
 
   mma: {
-    label: 'MMA Striking', short: 'Mixed standup with sprawl/ground conditioning', overview: 'Mixed standup striking with sprawl-and-ground conditioning — built for the transitions between striking and grappling rather than either range alone. Boxing combos paired with takedown defense open the week, kicks-and-clinch and ground-and-pound conditioning follow, building to a full-combos day and conditioning finisher. MMA\'s metabolic demands genuinely conflict — explosive phosphagen output for exchanges, sustained glycolytic demand for grappling, aerobic recovery between — which is exactly why this trains across ranges instead of picking one. This covers conditioning across those ranges, not the technical skill of actually transitioning between striking and grappling live.',
+    label: 'MMA Striking', short: 'Mixed standup with sprawl/ground conditioning', overview: 'Standup striking with sprawl-and-ground conditioning, built for the transitions between striking and grappling. Boxing with takedown defense, kicks-and-clinch and ground-and-pound days build to a full-combos finisher, training explosive exchanges, sustained grappling effort and recovery between. It covers conditioning across those ranges, not the live skill of transitioning between them.',
     days: {
       d1: { label:'Day 1', sub:'Boxing Combos + Takedown Defense', plate:'p-red', plateNum:'25', duration:'~55 min',
         exercises:[
@@ -10748,7 +10750,7 @@ const COMBAT_STYLES = {
   },
 
   taekwondo: {
-    label: 'Taekwondo', short: 'Kick-dominant — roundhouse, side, axe, and spinning kicks', overview: 'Kick-dominant training — roundhouse, side, axe, and spinning kicks — with the hip mobility and balance work that actually makes them possible, not just kicking drills in isolation. Roundhouse/power-kick and side-kick/footwork days open the week, axe-kick/flexibility and spinning-kick/power days follow, building to a kick-endurance finisher. Hip joint torque and mobility are the most consistent predictors of real kicking performance across the research, and since most kicks land off a single supporting leg, balance work isn\'t optional extra credit here. Spinning and jumping kicks specifically demand a mobility and landing base this program builds toward rather than assumes you already have.',
+    label: 'Taekwondo', short: 'Kick-dominant — roundhouse, side, axe, and spinning kicks', overview: 'Kick-dominant training — roundhouse, side, axe and spinning kicks — with the hip mobility and balance that make them possible, since hip mobility best predicts kicking performance and most kicks land on one leg. Days build to a kick-endurance finisher. Spinning and jumping kicks need a mobility and landing base, which this builds toward rather than assumes.',
     days: {
       d1: { label:'Day 1', sub:'Roundhouse & Power Kicks', plate:'p-red', plateNum:'25', duration:'~55 min',
         exercises:[
@@ -10797,7 +10799,7 @@ const COMBAT_STYLES = {
   },
 
   taiChi: {
-    label: 'Tai Chi', short: 'Internal art — standing meditation, form work, push hands, and stance strength', overview: 'An internal art — standing meditation, slow form work, and push hands — trained for balance, control, and breath rather than for power output. Standing meditation and rooting open the week, cardinal-technique form practice and push-hands sensitivity work follow, building to stance/leg-strength work and a full form flow. Real trial evidence in older adults found Tai Chi meaningfully reduces fall risk and improves balance — genuinely the best-evidenced program in this app for that specific outcome, though that evidence is specifically in adults 60+. Low output is the actual method here, not a shortfall to fix — don\'t expect (or add) intensity.',
+    label: 'Tai Chi', short: 'Internal art — standing meditation, form work, push hands, and stance strength', overview: 'An internal art — standing meditation, slow form work and push hands — trained for balance, control and breath, not power. Trials show it reduces fall risk and improves balance, the best evidence in this app for that outcome, though that evidence is in adults 60 and over. Low output is the method, not a shortfall: don\'t expect or add intensity.',
     days: {
       d1: { label:'Day 1', sub:'Standing Meditation & Rooting', plate:'p-red', plateNum:'25', duration:'~40 min',
         exercises:[
@@ -10851,7 +10853,7 @@ const COMBAT_STYLES = {
 // technical trail climbs demand.
 const CYCLING_STYLES = {
   road: {
-    label: 'Road', short: 'Structured power-based intervals — FTP, hill repeats, sprints', overview: 'Structured power-based intervals — FTP threshold work, hill repeats, and sprint/cadence sessions — built around a small number of genuinely hard efforts inside a mostly-easy week, the polarized model that real endurance research consistently favors. An endurance base ride opens the week, threshold and hill-repeat days follow, and a long ride closes it out with core/strength work attached. One real nuance worth knowing: how well polarized training works may depend on how competitive you are — some research suggests recreational riders actually respond better to a different (pyramidal) distribution, something this program doesn\'t currently adjust for. Good fit if you want real structure to your rides instead of just riding by feel.',
+    label: 'Road', short: 'Structured power-based intervals — FTP, hill repeats, sprints', overview: 'Structured power intervals — FTP threshold, hill repeats, sprint and cadence — inside a mostly easy week, the polarized model endurance research favours, with a long ride and core work to close. One nuance: recreational riders may respond better to a pyramidal distribution, which this doesn\'t adjust for yet. For structure instead of riding by feel.',
     days: {
       d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
         exercises:[
@@ -10892,7 +10894,7 @@ const CYCLING_STYLES = {
     }
   },
   mountain: {
-    label: 'Mountain', short: 'Technical trail skills + punchy climbing power + grip endurance', overview: 'Technical trail skill, punchy climbing power, and the grip-and-upper-body endurance that rough descending actually demands — built for off-road riding specifically, not road cycling with dirt under the tires. An endurance base ride and technical-trail-skills day open the week, standing-climb power and technical intervals follow, and a long ride with grip/core work closes it out. Elite XCO racing data shows 300+ short, punchy efforts above maximal aerobic power in a single race — the direct basis for this program\'s repeated-power-effort structure over steady-state riding alone. One real limit: technical descending skill isn\'t trainable from a program — that only comes from actual trail time, ideally with someone who can watch your line choices.',
+    label: 'Mountain', short: 'Technical trail skills + punchy climbing power + grip endurance', overview: 'Technical trail skill, punchy climbing power, and the grip and upper-body endurance rough descents demand. Repeated short power efforts take priority over steady riding, matching race data of 300+ efforts above maximal aerobic power. One limit: technical descending only comes from trail time, ideally with someone watching your lines.',
     days: {
       d1: { label:'Day 1', sub:'Endurance Base Ride', plate:'p-red', plateNum:'25', duration:'~65 min',
         exercises:[
@@ -11304,7 +11306,7 @@ const WATERSPORTS_STYLES = {
 // conditions, pregnancy, certain medications) worth a clearance check.
 const YOGA_STYLES = {
   flow: {
-    label: 'Vinyasa & Flow', short: 'Five professional flow styles — Vinyasa to Restorative', overview: 'Five professional flow styles in one program — Vinyasa, Power Yoga, Hatha Flow, Yin, and Restorative — sequenced across the week from higher intensity toward lower, rather than one flat-intensity practice repeated daily. Real measured data across different vinyasa sequence types found sun-salutation and standing sequences run meaningfully harder than restorative/integration sequences, directly why this program moves through that same spectrum instead of treating all flow as equal. Worth knowing: even the harder sequences here measure as genuinely moderate-intensity, not the high-intensity cardio some marketing implies — the real value is flexibility, breath-linked movement, and body control, not calorie burn. Good fit if you want real variety across yoga styles rather than committing to just one.',
+    label: 'Vinyasa & Flow', short: 'Five professional flow styles — Vinyasa to Restorative', overview: 'Five flow styles — Vinyasa, Power Yoga, Hatha Flow, Yin and Restorative — sequenced from higher to lower intensity across the week, since sun-salutation and standing sequences measure harder than restorative ones. Even the hardest are moderate intensity: the value is flexibility, breath-linked movement and control, not calorie burn. For variety across styles rather than committing to one.',
     days: {
       d1: {
         label:'Day 1', sub:'Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~40 min',
@@ -11366,7 +11368,7 @@ const YOGA_STYLES = {
     }
   },
   hot: {
-    label: 'Hot Yoga', short: 'Heated-room flow — please get your doctor\'s clearance first if you have any cardiovascular, respiratory, or heat-related condition', overview: 'Heated-room flow — the same style of practice as Flow, but the heat itself changes what a session actually demands: hydration, pacing, and knowing when to stop matter more here than in any other style in this app. Hot Vinyasa and Hot Power days open the week, Hot Hatha/alignment and a deliberately-cooler Yin day follow, with a cool-room recovery day built in. Honest finding from the research: regular practice does show real benefits (flexibility, balance, some vascular improvements), but the systematic review\'s own conclusion is that hot yoga doesn\'t clearly out-perform non-heated yoga — the heat adds real cardiovascular strain without clearly adding extra benefit. Not appropriate during pregnancy (especially the first trimester) or without medical clearance if you have any cardiovascular condition or heat intolerance.',
+    label: 'Hot Yoga', short: 'Heated-room flow — please get your doctor\'s clearance first if you have any cardiovascular, respiratory, or heat-related condition', overview: 'Heated-room flow, where hydration, pacing and knowing when to stop matter more than in any other style here; a cooler Yin day and a cool-room recovery day are built in. It helps flexibility and balance, but reviews find it doesn\'t clearly beat unheated yoga, while the heat adds cardiovascular strain. Not for pregnancy (especially the first trimester), or without medical clearance if you have a heart condition or heat intolerance.',
     days: {
       d1: {
         label:'Day 1', sub:'Hot Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~45 min',
@@ -11433,7 +11435,7 @@ const YOGA_STYLES = {
     }
   },
   couples: {
-    label: 'Partner Yoga', short: 'A shared practice built around two people — poses and pacing designed for both of you together', overview: 'A shared practice for two people — assisted poses and paired balances where communication matters as much as the stretch itself. Trust-and-connection and partner-strength/counterbalance days open the week, assisted-flexibility and partner-balance/flow days follow, closing with a partner-restorative-and-breath session. One non-negotiable rule runs through every single pose: the person being stretched sets the depth, always — a partner can\'t feel where your actual end range is, so it has to be communicated out loud, never assumed. Good fit as a genuinely shared activity with a partner rather than two people doing solo yoga side by side — the whole structure assumes two people moving together, not one leading and one following.',
+    label: 'Partner Yoga', short: 'A shared practice built around two people — poses and pacing designed for both of you together', overview: 'A shared practice for two — assisted poses and paired balances where communication matters as much as the stretch. Days move from trust and counterbalance through assisted flexibility to a restorative breath session. One rule in every pose: the person being stretched sets the depth, said out loud, because a partner can\'t feel your end range.',
     days: {
       d1: {
         label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
