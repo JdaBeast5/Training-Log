@@ -25,6 +25,7 @@ const DONE = [
   'OLY_TECHNIQUE_DETAILS', // v3.338
   'RUNNING_TECHNIQUE_DETAILS', // v3.339
   'HYROX_TECHNIQUE_DETAILS', // v3.340
+  'PILATES_TECHNIQUE_DETAILS', // v3.341
 ];
 
 const MUST_KEEP = [
@@ -39,6 +40,8 @@ const MUST_KEEP = [
   /5-10%/, /8-12 weeks/, /overstriding/, /leaning back/,
   // v3.340
   /152kg/, /102kg/, /200m/, /10 feet/, /9 feet/, /time penalty/, /can't be dropped mid-effort/,
+  // v3.341
+  /never the neck/, /raise the legs or bend the knees/, /hands support the head/,
 ];
 
 function learn(){
