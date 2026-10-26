@@ -117,4 +117,19 @@ test('REAL markup + CSSOM (v3.356): every sheet closes with a Done or Cancel tex
   assert.strictEqual(declared('.sub-modal-close', 'border-radius'), '', 'no circle');
 });
 
+test('REAL CSSOM (v3.357): unselected day dims its plate, not its label; chip tag is muted colour at full opacity', (assert)=>{
+  const raw = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
+  const { window } = new JSDOM(`<style>${raw}</style><div class="tabs">
+    <button class="tab active" id="t1"><div class="plate" id="p1"></div><span class="plate-label" id="l1">Day 1</span></button>
+    <button class="tab" id="t2"><div class="plate" id="p2"></div><span class="plate-label" id="l2">Day 2</span></button></div>
+    <button class="set-chip"><span class="set-chip-tag" id="tag">DC</span></button>`);
+  const cs = id => window.getComputedStyle(window.document.getElementById(id));
+  assert.strictEqual(cs('t2').opacity, '1', 'the tab itself is not dimmed');
+  assert.strictEqual(cs('p2').opacity, '0.5', 'its plate is');
+  assert.strictEqual(cs('p1').opacity, '1', 'the selected plate is not');
+  assert.strictEqual(cs('l2').color, 'var(--text-muted)');
+  assert.strictEqual(cs('tag').opacity, '1');
+  assert.strictEqual(cs('tag').color, 'var(--text-muted)');
+});
+
 run();

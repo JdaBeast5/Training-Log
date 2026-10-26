@@ -447,11 +447,16 @@
   .tab{
     flex:0 0 auto;
     display:flex; flex-direction:column; align-items:center; gap:5px;
-    cursor:pointer; opacity:0.5; transition:opacity 0.25s var(--ease-smooth), transform 0.2s var(--ease-smooth);
+    cursor:pointer; transition:transform 0.2s var(--ease-smooth);
     background:none; border:none; color:inherit; font-family:inherit;
     position:relative;
   }
-  .tab.active{opacity:1; transform:scale(1.04);}
+  /* v3.357 (audit): an unselected day dims its plate, not its label. With the
+     whole tab at 50% the muted 'Day 2' label measured 2.34:1; it now keeps the
+     muted text colour (the selected day's label is full text colour). */
+  .tab .plate{transition:opacity 0.25s var(--ease-smooth);}
+  .tab:not(.active) .plate{opacity:0.5;}
+  .tab.active{transform:scale(1.04);}
   .tab:active{transform:scale(0.94);}
   .plate{
     position:relative; overflow:hidden;
@@ -561,7 +566,9 @@
   .set-chip.is-done{background:rgba(var(--plate-green-rgb),.14); color:var(--text);}
   .set-chip.is-ready{background:var(--glass-fill); border-color:rgba(var(--plate-blue-rgb),.55); color:var(--text);}
   .set-chip.is-next{background:var(--cta-gradient-blue); border-color:transparent; color:#fff; font-weight:600;}
-  .set-chip-tag{font-family:var(--font-sans); font-size:11px; font-weight:600; opacity:.7; margin-right:2px;}
+  /* v3.357 (audit): muted colour instead of 70% opacity, which put the
+     superset owner tag ('DC', 'TP') at 3.5:1. */
+  .set-chip-tag{font-family:var(--font-sans); font-size:11px; font-weight:600; color:var(--text-muted); margin-right:2px;}
   .set-chip-trend{font-family:var(--font-sans); font-size:12px; font-weight:700;}
   .set-chip-trend.is-up{color:var(--plate-green);}
   .set-chip-trend.is-down{color:var(--plate-yellow);}
@@ -6643,7 +6650,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.356';
+const APP_VERSION = '3.357';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7519,6 +7526,8 @@ const WHATS_NEW = {
     'Grocery and supplement fields, and placeholders like “Weight today”, use the same type as the rest of the app; the numbers you enter stay in the figure face.',
   ]},  '3.356': { headline: 'Sheets close the same way', points: [
     'Every sheet now closes with Done or Cancel at the top right, like Settings, instead of a small ✕.',
+  ]},  '3.357': { headline: 'Easier to read', points: [
+    'Day labels in the day strip and superset tags on set chips have more contrast.',
   ]},
 };
 
