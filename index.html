@@ -1026,10 +1026,13 @@
   .sub-modal-overlay.active .sub-modal-sheet{transform:translateY(0);}
   .sub-modal-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:2px;}
   .sub-modal-title{font-family:var(--font-sans); font-weight:700; font-size:16.5px; letter-spacing:-0.01em; color:var(--text);}
+  /* v3.356 (audit, Apple HIG sheets): every sheet closes with a text button,
+     like Settings' Done (v3.307) — 'Done' when you were only looking, 'Cancel'
+     when closing abandons a choice or an edit. Was a grey ✕ glyph circle. */
   .sub-modal-close{
-    flex:0 0 auto; background:var(--surface2); border:1px solid rgba(var(--surface-white-rgb),0.07); color:var(--text-muted);
-    width:28px; height:28px; border-radius:50%; font-size:14px; cursor:pointer; line-height:1;
-    box-shadow:var(--rim);
+    flex:0 0 auto; background:none; border:none; color:var(--plate-blue);
+    font-family:var(--font-sans); font-size:16px; font-weight:600; line-height:1;
+    padding:10px 4px; min-height:44px; cursor:pointer;
   }
   .sub-modal-hint{font-size:12px; color:var(--text-muted); margin:6px 0 14px; line-height:1.5;}
   .sub-option{
@@ -6388,7 +6391,7 @@
   <div class="sub-modal-sheet">
     <div class="sub-modal-header">
       <div class="sub-modal-title" id="subModalTitle">Swap exercise</div>
-      <button class="sub-modal-close" id="subModalClose" aria-label="Close exercise swap">✕</button>
+      <button class="sub-modal-close" id="subModalClose">Cancel</button>
     </div>
     <div class="sub-modal-hint">Alternatives that hit the same muscles. Each keeps its own weight, reps and RPE history here.</div>
     <div id="subModalOptions"></div>
@@ -6399,7 +6402,7 @@
   <div class="sub-modal-sheet">
     <div class="sub-modal-header">
       <div class="sub-modal-title" id="exEditTitle">Edit exercise</div>
-      <button class="sub-modal-close" id="exEditClose" aria-label="Close editor">✕</button>
+      <button class="sub-modal-close" id="exEditClose">Cancel</button>
     </div>
     <div id="exEditBody"></div>
   </div>
@@ -6409,7 +6412,7 @@
   <div class="sub-modal-sheet">
     <div class="sub-modal-header">
       <div class="sub-modal-title" id="globalSearchTitle">Search</div>
-      <button class="sub-modal-close" id="globalSearchClose" aria-label="Close search">&#10005;</button>
+      <button class="sub-modal-close" id="globalSearchClose">Cancel</button>
     </div>
     <input type="text" id="globalSearchInput" class="gsearch-input" placeholder="Exercise, technique, or section&#8230; e.g. squat, eskimo roll, sleep" aria-label="Search exercises, techniques, and sections" autocomplete="off">
     <div id="globalSearchResults" class="gsearch-results"></div>
@@ -6420,7 +6423,7 @@
   <div class="sub-modal-sheet">
     <div class="sub-modal-header">
       <div class="sub-modal-title" id="exHistoryTitle">Exercise history</div>
-      <button class="sub-modal-close" id="exHistoryClose" aria-label="Close exercise history">✕</button>
+      <button class="sub-modal-close" id="exHistoryClose">Done</button>
     </div>
     <div id="exHistoryBody"></div>
   </div>
@@ -6430,7 +6433,7 @@
   <div class="sub-modal-sheet">
     <div class="sub-modal-header">
       <div class="sub-modal-title" id="whatsNewTitle">What's New</div>
-      <button class="sub-modal-close" id="whatsNewClose" aria-label="Close What's New">✕</button>
+      <button class="sub-modal-close" id="whatsNewClose">Done</button>
     </div>
     <div id="whatsNewBody"></div>
   </div>
@@ -6449,7 +6452,7 @@
   <div class="sub-modal-sheet">
     <div class="sub-modal-header">
       <div class="sub-modal-title" id="navMoreTitle">More</div>
-      <button class="sub-modal-close" id="navMoreClose" aria-label="Close">✕</button>
+      <button class="sub-modal-close" id="navMoreClose">Done</button>
     </div>
     <div class="nav-more-list">
       <button class="nav-pill nav-more-item" id="navCare"><span class="nav-more-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 16.5s-6-3.6-6-8a3.3 3.3 0 0 1 6-1.9 3.3 3.3 0 0 1 6 1.9c0 4.4-6 8-6 8Z"/></svg></span><span class="nav-more-text"><span class="nav-more-label">Care</span><span class="nav-more-desc">Pain check-ins, resting areas, stretches</span></span><span class="nav-more-chev" aria-hidden="true">›</span></button>
@@ -6640,7 +6643,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.355';
+const APP_VERSION = '3.356';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7514,6 +7517,8 @@ const WHATS_NEW = {
     'Week Over Week no longer shows a stray “g” with no protein data, and its weight change column fits on one line.',
   ]},  '3.355': { headline: 'Consistent text fields', points: [
     'Grocery and supplement fields, and placeholders like “Weight today”, use the same type as the rest of the app; the numbers you enter stay in the figure face.',
+  ]},  '3.356': { headline: 'Sheets close the same way', points: [
+    'Every sheet now closes with Done or Cancel at the top right, like Settings, instead of a small ✕.',
   ]},
 };
 

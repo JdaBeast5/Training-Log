@@ -107,4 +107,14 @@ test('REAL CSSOM (v3.355): Log text fields and placeholders use the text face; t
   assert.ok(/id="groceryAddInput"[^>]*|type="text" id="groceryAddInput"/.test(src) && src.includes('class="weight-input-row"'), 'anchor: the real markup uses these classes');
 });
 
+test('REAL markup + CSSOM (v3.356): every sheet closes with a Done or Cancel text button, 44px tall', (assert)=>{
+  const doc = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).window.document;
+  const closes = Object.fromEntries([...doc.querySelectorAll('.sub-modal-close')].map(b => [b.id, b.textContent.trim()]));
+  assert.deepStrictEqual(closes, {subModalClose:'Cancel', exEditClose:'Cancel', globalSearchClose:'Cancel', exHistoryClose:'Done', whatsNewClose:'Done', navMoreClose:'Done'});
+  assert.strictEqual(doc.getElementById('settingsClose').textContent.trim(), 'Done', 'anchor: matches Settings');
+  assert.strictEqual(declared('.sub-modal-close', 'min-height'), '44px');
+  assert.strictEqual(declared('.sub-modal-close', 'color'), 'var(--plate-blue)');
+  assert.strictEqual(declared('.sub-modal-close', 'border-radius'), '', 'no circle');
+});
+
 run();
