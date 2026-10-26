@@ -6624,7 +6624,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.325';
+const APP_VERSION = '3.326';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7438,6 +7438,8 @@ const WHATS_NEW = {
     'Athletic, Bodyweight, Calisthenics, Core and Jump Rope too.',
   ]},  '3.325': { headline: 'Shorter days-per-week notes, continued', points: [
     'Mobility, Running, Swimming, Rock Climbing and Senior Strength too.',
+  ]},  '3.326': { headline: 'Shorter days-per-week notes, continued', points: [
+    'Desk Worker, Pilates, Boxing S&C, Hyrox and BJJ too.',
   ]},
 };
 
@@ -18557,7 +18559,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   desk: {
     1: {
       short: 'Full-body posture reset — the floor for this program, on top of the movement-snack habit that matters most',
-      overview: 'One session combining upper-body and hip posture-reset work with genuine strength, since a full week only gets one shot. Worth being honest about what actually drives this program\'s results, at any day count: this program\'s own rest-day notes call the movement-snacks habit (up every 30-60 minutes during the workday) as valuable as the other 6 structured days combined — that habit is unchanged by which day count you pick here.',
+      overview: 'One session combining upper-body and hip posture resets with strength. At any day count, the biggest lever is getting up every 30-60 minutes during the workday, which matters as much as all the structured sessions.',
       days: {
         d1: { label:'Day 1', sub:'Full-Body Posture Reset', plate:'p-red', plateNum:'25', duration:'~30 min',
           exercises:[
@@ -18583,7 +18585,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Upper Body and Hip/Lower Body Posture Resets, dedicated days',
-      overview: 'The two posture-reset days each get their own session. Same honesty as every count in this program: the movement-snacks habit on the off days matters as much as these structured sessions do, per this program\'s own citation on breaking up sitting time.',
+      overview: 'The two posture-reset days each get their own session. On off days, the movement-break habit matters as much as these sessions do.',
       days: {
         d1: { label:'Day 1', sub:'Upper Body Posture Reset', plate:'p-red', plateNum:'25', duration:'~25 min',
           exercises:[
@@ -18617,7 +18619,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Upper Reset, Hip Reset, and Full-Body Strength',
-      overview: 'Both posture-reset days keep their spot, plus a genuine strength day — real added training capacity at this frequency, on top of the movement-snacks habit that matters as much as any of these structured sessions.',
+      overview: 'Both posture-reset days plus a strength day, on top of the movement-break habit that matters as much as any of them.',
       days: {
         d1: { label:'Day 1', sub:'Upper Body Posture Reset', plate:'p-red', plateNum:'25', duration:'~25 min',
           exercises:[
@@ -18658,7 +18660,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Upper Reset, Hip Reset, Thoracic/Upper Strength, and Full-Body Strength',
-      overview: 'Four of this program\'s five sessions each get their own day. Movement & Mobility Flow is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      overview: 'Four of the five sessions get their own day. The movement and mobility flow returns at six days and up.',
       days: {
         d1: { label:'Day 1', sub:'Upper Body Posture Reset', plate:'p-red', plateNum:'25', duration:'~25 min',
           exercises:[
@@ -18708,7 +18710,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.desk), used as-is.
     6: {
       short: 'The full 5-day program plus extra mobility & movement',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra low-intensity mobility and movement. This is a genuinely low-intensity program already, so the extra day is safe and simple to add — but be honest about scale: this program\'s own citation still holds that the movement-snacks habit does more than any single added structured day could.',
+      overview: 'The 5-day program plus an easy mobility and movement day. It\'s safe to add, but the movement-break habit still does more than any extra structured day.',
       days: {
         d1: { label:'Day 1', sub:'Upper Body Posture Reset', plate:'p-red', plateNum:'25', duration:'~25 min',
           exercises:[
@@ -18768,7 +18770,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, seven days a week — the movement-snacks habit unchanged',
-      overview: 'The same six days as the 6-day plan, completely unchanged, with the Rest/Movement Snacks slot kept exactly as-is. Same honesty as every count in this program: this app\'s own citation holds that the movement-snacks habit matters as much as the structured sessions, and that habit already runs on every single day regardless of which count is picked here.',
+      overview: 'The 6-day plan unchanged, rest and movement-break slot included. The movement-break habit already runs every day, whatever count you pick.',
       days: {
         d1: { label:'Day 1', sub:'Upper Body Posture Reset', plate:'p-red', plateNum:'25', duration:'~25 min',
           exercises:[
@@ -18837,7 +18839,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   pilates: {
     1: {
       short: 'Foundations — the floor for this program',
-      overview: 'One session combining powerhouse activation and ab work at reduced volume, since a full week only gets one shot. Real skill in this method comes from consistent, controlled practice — one honest weekly session, kept up, is a real start here, not a compromise.',
+      overview: 'One session of powerhouse activation and ab work at reduced volume. Skill in this method comes from consistent, controlled practice, so one weekly session, kept up, is a real start.',
       days: {
         d1: { label:'Day 1', sub:'Foundations', plate:'p-red', plateNum:'25', duration:'~30 min',
           exercises:[
@@ -18863,7 +18865,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Foundations & Powerhouse, and Abdominal Series I, dedicated days',
-      overview: 'The two most foundational sessions each get their own day — real dedicated practice for both instead of combining them into one shorter session.',
+      overview: 'The two foundational sessions each get their own day.',
       days: {
         d1: { label:'Day 1', sub:'Foundations & Powerhouse Activation', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -18895,7 +18897,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Foundations, Abdominal Series I, and Back Extension & Posture',
-      overview: 'The two foundational days keep their spot, plus back-extension and posture work — real breadth across pushing and pulling the spine, not just flexion.',
+      overview: 'The two foundational days plus back extension and posture work, so the spine is trained in extension, not just flexion.',
       days: {
         d1: { label:'Day 1', sub:'Foundations & Powerhouse Activation', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -18933,7 +18935,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Foundations, Abdominal Series I & II, and Back Extension',
-      overview: 'Four of this program\'s five sessions each get their own day. Full Flow & Teaser Work is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      overview: 'Four of the five sessions get their own day. Full flow with teaser work returns at six days and up.',
       days: {
         d1: { label:'Day 1', sub:'Foundations & Powerhouse Activation', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -18979,7 +18981,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.pilates), used as-is.
     6: {
       short: 'The full 5-day program plus breath & control refinement',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of deliberately LOW-fatigue precision work — never more ballistic or intense flow. This program\'s own rest-day note is explicit that fatigue degrades the exact quality (control) this method is built around, so the extra day stays gentle rather than adding more Full Flow & Teaser-style intensity.',
+      overview: 'The 5-day program plus a low-fatigue precision day — never more intense flow, because fatigue degrades the control this method is built on.',
       days: {
         d1: { label:'Day 1', sub:'Foundations & Powerhouse Activation', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -19035,7 +19037,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, with the control-quality argument still winning on the rest day',
-      overview: 'The same six days as the 6-day plan, completely unchanged. This program\'s own rest-day note already says precise control is the whole point of the method — even at 7 days selected, the actual rest day stays genuine rather than getting reframed into more practice that fatigue would only degrade.',
+      overview: 'The 6-day plan unchanged, and the rest day stays a rest day: more practice on tired muscles would only degrade control.',
       days: {
         d1: { label:'Day 1', sub:'Foundations & Powerhouse Activation', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -19102,7 +19104,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   boxingsc: {
     1: {
       short: 'Rotational power + conditioning — the floor for this program',
-      overview: 'One session combining rotational power and anaerobic round conditioning, since a full week only gets one shot. This program\'s own reasoning is explicit that trunk rotation and rear-leg extension -- not the arms -- actually drive punching force, so even at the lowest frequency this stays a power-plus-conditioning day, not an arms-and-cardio one.',
+      overview: 'One session of rotational power and round conditioning. Punching force comes from trunk rotation and rear-leg drive, not the arms, so even one day stays power plus conditioning.',
       days: {
         d1: { label:'Day 1', sub:'Rotational Power + Conditioning', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -19128,7 +19130,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Full-Body Power and Anaerobic Round Conditioning, dedicated days',
-      overview: 'Full-body power (rotational and lower-body combined) and anaerobic round conditioning each get their own full session — the two pillars this program\'s own reasoning calls the actual physical base under boxing, at the lowest frequency that still trains both.',
+      overview: 'Full-body power and round-based conditioning each get their own session: the two pillars under boxing.',
       days: {
         d1: { label:'Day 1', sub:'Full-Body Power', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -19160,7 +19162,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Rotational Power, Lower Body Power, and Anaerobic Round Conditioning',
-      overview: 'Three of this program\'s five sessions each get their own day — rotational power, lower-body power, and anaerobic round conditioning, the trio this program\'s own reasoning calls out as what actually drives punching power and fight-pace endurance.',
+      overview: 'Rotational power, lower-body power and round conditioning each get their own day: what drives punching power and fight-pace endurance.',
       days: {
         d1: { label:'Day 1', sub:'Rotational Power', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -19198,7 +19200,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Rotational Power, Lower Body Power, Upper Body Power, and Anaerobic Conditioning',
-      overview: 'Four of this program\'s five sessions each get their own day. Core & Conditioning Circuit is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      overview: 'Four of the five sessions get their own day. The core and conditioning circuit returns at six days and up.',
       days: {
         d1: { label:'Day 1', sub:'Rotational Power', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -19244,7 +19246,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.boxingsc), used as-is.
     6: {
       short: 'The full 5-day program plus extra round conditioning',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra round-based conditioning — not a 2nd max-power day. Rotational and lower-body power work taxes the CNS in a way that needs full recovery between sessions; anaerobic conditioning recovers faster and tolerates the extra frequency instead.',
+      overview: 'The 5-day program plus extra round conditioning, not a second max-power day: power work needs full recovery, while conditioning tolerates the extra frequency.',
       days: {
         d1: { label:'Day 1', sub:'Rotational Power', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -19299,7 +19301,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-      overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says the rotational and hip/spine demands here make that day non-negotiable, not just optional filler, even at 7 days selected.',
+      overview: 'The 6-day plan unchanged, and the rest and mobility day stays: rotation puts real load on hips and spine that needs it.',
       days: {
         d1: { label:'Day 1', sub:'Rotational Power', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -19356,7 +19358,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   hyrox: {
     1: {
       short: 'Running + station basics — the floor for this program',
-      overview: 'One session combining running-based engine work and station skill basics, since a full week only gets one shot at what actually decides a Hyrox result: running while already fatigued from a station. Even at the lowest frequency, this program\'s own reasoning -- compromised running is the deciding quality, not fresh running or stations in isolation -- still holds.',
+      overview: 'One session of running engine work and station basics. What decides a Hyrox result is running while fatigued from a station, and that still holds at one day.',
       days: {
         d1: { label:'Day 1', sub:'Running + Station Basics', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -19382,7 +19384,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Running Base + Engine Work and Sled Work + Lower Body Strength, dedicated days',
-      overview: 'Running-based engine work and sled/lower-body strength each get their own full session — the aerobic and strength base this program builds compromised running on top of, at the lowest frequency that still trains both.',
+      overview: 'Running engine work and sled and lower-body strength each get their own session: the base compromised running builds on.',
       days: {
         d1: { label:'Day 1', sub:'Running Base + Engine Work', plate:'p-red', plateNum:'25', duration:'~45 min',
           exercises:[
@@ -19414,7 +19416,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Running Base + Engine Work, Sled Work + Lower Body Strength, and Compromised Running',
-      overview: 'Three of this program\'s five sessions each get their own day — running-based engine work, sled/lower-body strength, and compromised running itself, since that\'s the specific quality this program\'s own reasoning calls the actual deciding factor in a Hyrox result.',
+      overview: 'Running engine, sled and lower-body strength, and compromised running each get their own day.',
       days: {
         d1: { label:'Day 1', sub:'Running Base + Engine Work', plate:'p-red', plateNum:'25', duration:'~45 min',
           exercises:[
@@ -19452,7 +19454,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Running Base, Sled Work, Station Skills, and Compromised Running',
-      overview: 'Four of this program\'s five sessions each get their own day. Full Simulation Finisher is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up — this program\'s own week structure builds toward that finisher, not away from it.',
+      overview: 'Four of the five sessions get their own day. The full race simulation returns at six days and up.',
       days: {
         d1: { label:'Day 1', sub:'Running Base + Engine Work', plate:'p-red', plateNum:'25', duration:'~45 min',
           exercises:[
@@ -19498,7 +19500,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.hyrox), used as-is.
     6: {
       short: 'The full 5-day program plus easy aerobic engine work',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of easy aerobic engine work — not a 2nd Full Simulation or brick session. Compromised running already trains the hardest, most race-specific quality in this program; adding a 2nd high-intensity day this early would just add fatigue without more of that specific skill. Easy aerobic volume builds the base underneath it instead.',
+      overview: 'The 5-day program plus easy aerobic running, not a second simulation or brick session; more high intensity would add fatigue, not race skill.',
       days: {
         d1: { label:'Day 1', sub:'Running Base + Engine Work', plate:'p-red', plateNum:'25', duration:'~45 min',
           exercises:[
@@ -19552,7 +19554,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-      overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of hard session on top of an already-full 6 days. This program\'s own rest-day note already says recovery isn\'t optional given the whole-body running-plus-sled load — even at 7 days selected, that stays true.',
+      overview: 'The 6-day plan unchanged, and the rest day stays: whole-body running and sled load makes recovery necessary.',
       days: {
         d1: { label:'Day 1', sub:'Running Base + Engine Work', plate:'p-red', plateNum:'25', duration:'~45 min',
           exercises:[
@@ -19608,7 +19610,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   grappling: {
     1: {
       short: 'Guard fundamentals + positional rolling — the floor for this program',
-      overview: 'One session combining guard fundamentals and a taste of live positional rolling, since a full week only gets one shot at both the structured drilling foundation and the real conditioning demand this program\'s own reasoning says only live rolling provides.',
+      overview: 'One session of guard fundamentals plus some live positional rolling: the drilling foundation and the conditioning only live rolling provides.',
       days: {
         d1: { label:'Day 1', sub:'Guard Fundamentals + Positional Rolling', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -19633,7 +19635,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Guard Fundamentals & Escapes and Live Rolling & Conditioning, dedicated days',
-      overview: 'Guard fundamentals/escapes and live rolling each get their own full session — the structured-drilling foundation and the real conditioning session this program\'s own reasoning calls out, at the lowest frequency that still trains both.',
+      overview: 'Guard fundamentals with escapes, and live rolling, each get their own session.',
       days: {
         d1: { label:'Day 1', sub:'Guard Fundamentals & Escapes', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -19664,7 +19666,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Guard Fundamentals & Escapes, Guard Passing & Pressure, and Live Rolling & Conditioning',
-      overview: 'Three of this program\'s five sessions each get their own day — guard fundamentals, guard passing, and live rolling, the guard-game trio plus the live application that ties them together.',
+      overview: 'Guard fundamentals, guard passing and live rolling each get their own day.',
       days: {
         d1: { label:'Day 1', sub:'Guard Fundamentals & Escapes', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -19700,7 +19702,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Guard Fundamentals, Guard Passing, Submissions & Control, and Live Rolling',
-      overview: 'Four of this program\'s five sessions each get their own day. Takedowns & Clinch is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      overview: 'Four of the five sessions get their own day. Takedowns and clinch return at six days and up.',
       days: {
         d1: { label:'Day 1', sub:'Guard Fundamentals & Escapes', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -19743,7 +19745,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.grappling), used as-is.
     6: {
       short: 'The full 5-day program plus extra technical drilling',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra technical drilling — not a 2nd live-rolling session. This program\'s own reasoning already flags neck and hip loading as a real, non-optional recovery cost, and live rolling carries the highest physical toll of any session here; the extra day adds more structured reps instead.',
+      overview: 'The 5-day program plus extra technical drilling, not a second live-rolling session: live rolling is the hardest on neck and hips.',
       days: {
         d1: { label:'Day 1', sub:'Guard Fundamentals & Escapes', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -19794,7 +19796,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-      overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. This program\'s own rest-day note already says the neck and hip demands here make that day non-negotiable — even at 7 days selected, that stays true.',
+      overview: 'The 6-day plan unchanged, and the rest day stays: neck and hip loading needs real recovery.',
       days: {
         d1: { label:'Day 1', sub:'Guard Fundamentals & Escapes', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[

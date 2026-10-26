@@ -95,6 +95,8 @@ const VARIANTS_DONE = [
   'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope',
   // v3.325
   'mobility', 'running', 'swimming', 'climbing', 'senior',
+  // v3.326
+  'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling',
 ];
 
 function variants(){
@@ -151,7 +153,7 @@ test('REAL data (v3.323+): no overview tells the user to read the code or the ap
   // Variants: the rewritten programs (later batches remove the rest).
   const done = Object.entries(variants()).filter(([p]) => VARIANTS_DONE.includes(p.split('.')[0]) || VARIANTS_DONE.includes(p.split('.').slice(0, 2).join('.'))).map(([, t]) => t);
   const texts = [...done, ...Object.values(entries())];
-  assert.deepStrictEqual(texts.filter(t => /in-code|this app's own citations|the same citation this program|own rest-day note|see its own overview|own citation note|see its own rest-day notes/i.test(t)), []);
+  assert.deepStrictEqual(texts.filter(t => /in-code|this app's own citations|the same citation this program|own rest-day note|see its own overview|own citation note|see its own rest-day notes|this program's own reasoning|this program's own rest-day note/i.test(t)), []);
 });
 
 run();
