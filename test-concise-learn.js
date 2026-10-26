@@ -29,6 +29,7 @@ const DONE = [
   'YOGA_TECHNIQUE_DETAILS', // v3.342
   'CALISTHENICS_TECHNIQUE_DETAILS', // v3.343
   'CYCLING_TECHNIQUE_DETAILS', // v3.344
+  'GRAPPLE_TECHNIQUE_DETAILS', // v3.345
 ];
 
 const MUST_KEEP = [
@@ -51,6 +52,8 @@ const MUST_KEEP = [
   /10 strict pull-ups/, /chicken wing/, /impingement/, /wrist strain/, /neck strain/,
   // v3.344
   /0\.883/, /25-35°/, /80-100 rpm/, /brake before, not during/, /knee pain/,
+  // v3.345
+  /without ever turning your back/, /ankle-lock counter/, /not cranking the neck/,
 ];
 
 function learn(){
