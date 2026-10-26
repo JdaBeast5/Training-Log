@@ -1639,9 +1639,22 @@
   .ex-cues li::before{
     content:'—'; position:absolute; left:0; color:var(--text-muted);
   }
+  /* v3.358: the link was 4.39:1 in --plate-blue on --surface2 at 12px, under
+     the 4.5:1 floor for small text. #7A93FF is the same hue lifted to 5.66:1
+     there; it is scoped to this link only, not a token change. The play mark
+     is a mask glyph (the .fi-duplicate::after convention) instead of a typed
+     ▶, and min-height gives the link a 44px tap target. */
   .ex-video-link{
-    display:inline-block; margin-top:6px; padding:6px 4px 6px 0; font-size:12px; color:var(--plate-blue);
-    text-decoration:none; font-weight:600;
+    display:inline-flex; align-items:center; gap:6px; min-height:44px; margin-top:2px; padding:0 4px 0 0;
+    font-size:12px; color:#7A93FF; text-decoration:none; font-weight:600;
+  }
+  .ex-video-link::before{
+    content:''; flex:0 0 auto; width:11px; height:11px; background:currentColor;
+    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+    -webkit-mask-position:center; mask-position:center;
+    -webkit-mask-size:contain; mask-size:contain;
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27black%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M6.5%204.5v11l9-5.5Z%27%2F%3E%3C%2Fsvg%3E");
+    mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27black%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M6.5%204.5v11l9-5.5Z%27%2F%3E%3C%2Fsvg%3E");
   }
   .ex-video-link:active{opacity:0.7;}
 
@@ -6650,7 +6663,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.357';
+const APP_VERSION = '3.358';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7528,6 +7541,9 @@ const WHATS_NEW = {
     'Every sheet now closes with Done or Cancel at the top right, like Settings, instead of a small ✕.',
   ]},  '3.357': { headline: 'Easier to read', points: [
     'Day labels in the day strip and superset tags on set chips have more contrast.',
+  ]},
+  '3.358': { headline: 'Clearer video links', points: [
+    'Watch form video links are easier to read and tap, with a drawn play icon.',
   ]},
 };
 
@@ -11821,7 +11837,7 @@ function renderWatersportsTechniques(){
           </summary>
           <div class="pose-detail">
             <ul>${pointsHtml}</ul>
-            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
+            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">Watch form video</a>
           </div>
         </details>
       `;
@@ -13568,7 +13584,7 @@ function renderMasterclassTechniques(cardId){
           </summary>
           <div class="pose-detail">
             <ul>${pointsHtml}</ul>
-            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
+            <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">Watch form video</a>
           </div>
         </details>
       `;
@@ -26811,7 +26827,7 @@ function buildDetailsHtml(ex){
         <div class="ex-icon">${iconSvg}</div>
         <div class="ex-detail-content">
           <ul class="ex-cues">${cuesHtml}</ul>
-          <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
+          <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">Watch form video</a>
         </div>
       </div>
     </details>
@@ -41802,7 +41818,7 @@ function buildCareItemHtml(name){
       <div class="ex-detail-body">
         <div class="ex-detail-content">
           <ul class="ex-cues">${cuesHtml}</ul>
-          <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
+          <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">Watch form video</a>
         </div>
       </div>
     </details>
@@ -41827,7 +41843,7 @@ function buildExerciseSearchResultHtml(name){
         <div class="ex-icon">${iconSvg}</div>
         <div class="ex-detail-content">
           <ul class="ex-cues">${cuesHtml}</ul>
-          <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">▶ Watch form video</a>
+          <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">Watch form video</a>
         </div>
       </div>
     </details>
