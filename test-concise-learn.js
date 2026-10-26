@@ -22,6 +22,7 @@ const CONSTS = ['POSE_DETAILS', 'SWIM_STROKE_DETAILS', 'CLIMB_TECHNIQUE_DETAILS'
 const DONE = [
   'POSE_DETAILS', // v3.336
   'STRENGTH_TECHNIQUE_DETAILS', // v3.337
+  'OLY_TECHNIQUE_DETAILS', // v3.338
 ];
 
 const MUST_KEEP = [
@@ -30,6 +31,8 @@ const MUST_KEEP = [
   // v3.337 — strength
   /knees caving in/, /linked to knee strain/, /butt wink/, /needs mobility work, not pushing through/,
   /elbows tucked about 45-75°/, /impingement/, /lower back over-arching|lower back over-arch/, /Valsalva/,
+  // v3.338
+  /early-extension|extending the hips before the knees/, /leaning back during the drive/, /elbows dropping/,
 ];
 
 function learn(){
