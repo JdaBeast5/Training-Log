@@ -49,4 +49,14 @@ test('REAL CSSOM (v3.397): a picker\'s option list stays solid (it is its own su
   assert.strictEqual(declared('select option', 'background'), 'var(--surface2)');
 });
 
+// v3.398 — The date bar ("‹ Today ›" on Today and Log, the owner's example)
+// sits on the page like a card, so it takes the cards' glass; its arrows and
+// the History calendar's take the row fill. Backdating keeps its yellow wash.
+test('REAL CSSOM (v3.398): the date bar is glass, its arrows and the calendar arrows translucent; backdating still yellow', (assert)=>{
+  assert.strictEqual(declared('.log-date-bar', 'background'), 'var(--glass-fill)');
+  assert.strictEqual(declared('.log-date-nav', 'background'), 'var(--row-fill)');
+  assert.strictEqual(declared('.calendar-nav-btn', 'background'), 'var(--row-fill)');
+  assert.match(declared('.log-date-bar.backdating', 'background'), /plate-yellow-rgb/);
+});
+
 run();

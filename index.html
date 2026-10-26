@@ -2886,9 +2886,11 @@
      other tinted surfaces throughout the app, not a flat fill — a warm
      amber tint the moment it's not on today, a persistent, hard-to-miss
      reminder that new entries are being backdated, not logged for right now. */
+  /* v3.398: the date bar ("‹ Today ›" on Today and Log) is glass like the
+     cards, and its arrows (and the calendar's) take the translucent row fill. */
   .log-date-bar{
     position:relative; display:flex; align-items:center; gap:8px; padding:9px 12px; margin-bottom:12px;
-    border-radius:var(--radius-md); background:var(--surface2); border:1px solid rgba(var(--surface-white-rgb),0.07);
+    border-radius:var(--radius-md); background:var(--glass-fill); border:1px solid rgba(var(--surface-white-rgb),0.07);
     box-shadow:var(--rim), 0 8px 20px -14px rgba(var(--overlay-black-rgb),0.5);
     transition:background 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth), box-shadow 0.25s var(--ease-smooth);
   }
@@ -2899,7 +2901,7 @@
   }
   .log-date-nav{
     flex:0 0 auto; width:28px; height:28px; border-radius:50%; border:1px solid rgba(var(--surface-white-rgb),0.07);
-    background:var(--surface); color:var(--text); font-size:15px; cursor:pointer; line-height:1;
+    background:var(--row-fill); color:var(--text); font-size:15px; cursor:pointer; line-height:1;
     box-shadow:var(--rim);
     display:flex; align-items:center; justify-content:center; transition:transform 0.15s var(--ease-smooth);
   }
@@ -2957,7 +2959,7 @@
   .calendar-modal-title{font-family:var(--font-sans); font-weight:700; font-size:15px; letter-spacing:-0.01em; color:var(--text);}
   .calendar-nav-btn{
     flex:0 0 auto; width:30px; height:30px; border-radius:50%; border:1px solid rgba(var(--surface-white-rgb),0.07);
-    background:var(--surface2); color:var(--text); font-size:16px; cursor:pointer; line-height:1;
+    background:var(--row-fill); color:var(--text); font-size:16px; cursor:pointer; line-height:1;
     box-shadow:var(--rim);
     display:flex; align-items:center; justify-content:center; transition:transform 0.15s var(--ease-smooth);
   }
@@ -6945,7 +6947,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.397';
+const APP_VERSION = '3.398';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7943,6 +7945,9 @@ const WHATS_NEW = {
   ]},
   '3.397': { headline: 'Translucent fields', points: [
     'Every text field and picker across the app now lets the background glow through, like the cards around them.',
+  ]},
+  '3.398': { headline: 'Glass date bar', points: [
+    'The date bar on Today and Log, and the calendar arrows, now match the glass cards.',
   ]},
 };
 
