@@ -15,7 +15,7 @@ const { readIndexSource, extractConst, runSandbox, makeRunner } = require('./tes
 const src = readIndexSource();
 const { test, run } = makeRunner('test-concise-cues.js');
 
-const OVER_24_LEFT = 156; // v3.333: 178 -> 156 (batch 1 rewrote 70 cues over 20 words)
+const OVER_24_LEFT = 78; // v3.333: 178 -> 156 (batch 1 rewrote 70 cues over 20 words); v3.334: 78
 
 const MUST_KEEP = [
   // v3.333 — batch 1
@@ -23,6 +23,10 @@ const MUST_KEEP = [
   /releases the instant they're asked/, /The person folding controls the depth/, /not the neck or lower back/,
   /not lower back/, /never against the knee/, /glide the nerve, don't stretch it hard/,
   /stand up as quickly as you safely can, then lower slowly/, /bend your knees if hamstrings are tight rather than rounding your back/,
+  // v3.334 — batch 2
+  /Sharp or pinching finger pain means stop/, /feet-on or large-edge hangs/, /fully relax the pelvic floor between reps/,
+  /insulin or a medication that can cause low blood sugar, ask your care team/, /not sharp or worsening pain/,
+  /raising on the injured side defeats it/, /harder on the lower back/, /front knee tracking over the foot rather than caving in/,
 ];
 
 function cues(){
