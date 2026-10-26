@@ -101,6 +101,8 @@ const VARIANTS_DONE = [
   'cycling.road', 'cycling.mountain', 'combat.kickboxing', 'combat.boxing', 'combat.muayThai',
   // v3.328
   'combat.mma', 'combat.taekwondo', 'combat.taiChi', 'yoga.flow', 'yoga.hot', 'yoga.couples',
+  // v3.329 — the last six; from here every variant is covered
+  'watersports.surfing', 'watersports.skimboarding', 'watersports.wakeboarding', 'watersports.kiteAssisted', 'watersports.sup', 'watersports.kayaking',
 ];
 
 function variants(){
@@ -150,6 +152,7 @@ test('REAL data (v3.323+): day-count variant overviews of the rewritten programs
   assert.strictEqual(Object.keys(all).length, 222, 'anchor: the real 222 day-count variants');
   const done = Object.keys(all).filter(p => VARIANTS_DONE.includes(p.split('.')[0]) || VARIANTS_DONE.includes(p.split('.').slice(0, 2).join('.')));
   assert.strictEqual(done.length, VARIANTS_DONE.length * 6, 'anchor: six variants per listed program');
+  assert.strictEqual(done.length, 222, 'every variant has been rewritten (v3.329)');
   assert.deepStrictEqual(done.map(p => [p, all[p].split(/\s+/).length]).filter(([, n]) => n > 45), []);
 });
 
@@ -157,7 +160,7 @@ test('REAL data (v3.323+): no overview tells the user to read the code or the ap
   // Variants: the rewritten programs (later batches remove the rest).
   const done = Object.entries(variants()).filter(([p]) => VARIANTS_DONE.includes(p.split('.')[0]) || VARIANTS_DONE.includes(p.split('.').slice(0, 2).join('.'))).map(([, t]) => t);
   const texts = [...done, ...Object.values(entries())];
-  assert.deepStrictEqual(texts.filter(t => /in-code|this app's own citations|the same citation this program|own rest-day note|see its own overview|own citation note|see its own rest-day notes|this program's own reasoning|this program's own rest-day note/i.test(t)), []);
+  assert.deepStrictEqual(texts.filter(t => /in-code|this app's own citations|the same citation this program|own rest-day note|see its own overview|own citation note|see its own rest-day notes|this program's own (reasoning|note|citation|overview)/i.test(t)), []);
 });
 
 run();

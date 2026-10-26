@@ -6624,7 +6624,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.328';
+const APP_VERSION = '3.329';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7444,6 +7444,8 @@ const WHATS_NEW = {
     'Road and Mountain cycling, Kickboxing, Boxing and Muay Thai too.',
   ]},  '3.328': { headline: 'Shorter days-per-week notes, continued', points: [
     'MMA, Taekwondo, Tai Chi and the three yoga styles too.',
+  ]},  '3.329': { headline: 'Shorter days-per-week notes, done', points: [
+    'The six watersports too. Every days-per-week note in the app is now about half as long.',
   ]},
 };
 
@@ -21984,7 +21986,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     surfing: {
       1: {
         short: 'Paddle power + rotational power basics — the floor for this program',
-        overview: 'One session combining paddle-pattern pulling power and rotational power/pop-up work at reduced volume, since a full week only gets one shot. Real GPS/heart-rate data already grounds this program in paddling being roughly half of a real session\'s time — even at the lowest frequency, that stays the priority, not wave-riding-adjacent power work alone.',
+        overview: 'One session of paddling power plus rotational power and pop-ups at reduced volume. Paddling fills about half a surf session, so it stays the priority.',
         days: {
           d1: { label:'Day 1', sub:'Paddle Power + Rotational Power Basics', plate:'p-red', plateNum:'25', duration:'~30 min',
             exercises:[
@@ -22009,7 +22011,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Paddle Power & Endurance and Rotational Power & Pop-Up, dedicated days',
-        overview: 'Paddle power/endurance and rotational power/pop-up each get their own full session — the two pillars this program\'s own reasoning calls out as what real session time is actually spent on, at the lowest frequency that still trains both.',
+        overview: 'Paddle power and endurance, and rotational power with pop-ups, each get their own session: where surf time actually goes.',
         days: {
           d1: { label:'Day 1', sub:'Paddle Power & Endurance', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -22041,7 +22043,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Paddle Power & Endurance, Rotational Power & Pop-Up, and Endurance & Core Conditioning',
-        overview: 'Three of this program\'s five sessions each get their own day — paddle power, rotational power/pop-up, and endurance/core conditioning, the trio this program is built around, even at this frequency.',
+        overview: 'Paddle power, rotational power with pop-ups, and endurance with core conditioning each get a day.',
         days: {
           d1: { label:'Day 1', sub:'Paddle Power & Endurance', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -22079,7 +22081,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Paddle Power, Rotational Power & Pop-Up, Posterior Shoulder, and Leg Power & Balance',
-        overview: 'Four of this program\'s five sessions each get their own day. Endurance & Core Conditioning is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        overview: 'Four of the five sessions get their own day. Endurance and core conditioning return at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Paddle Power & Endurance', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -22125,7 +22127,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // (WATERSPORTS_STYLES.surfing), used as-is.
       6: {
         short: 'The full 5-day program plus extra paddle endurance & shoulder care',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra paddle-pattern endurance and shoulder care — not a 2nd jump-power day. This program\'s own citation is explicit that paddling, not wave-riding, is the leading shoulder-injury mechanism here, and Box Jump/Broad Jump/Single-Leg Bound already carry real landing-impact cost; the extra day stays in the low-impact, shoulder-protective territory instead.',
+        overview: 'The 5-day program plus paddling endurance and shoulder care, not another jump-power day: paddling drives most shoulder injuries, and jumps already add landing impact.',
         days: {
           d1: { label:'Day 1', sub:'Paddle Power & Endurance', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -22180,7 +22182,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says paddling and the pop-up position load the shoulders and hips repeatedly, even at 7 days selected.',
+        overview: 'The 6-day plan unchanged, and the rest and mobility day stays: paddling and pop-ups load shoulders and hips over and over.',
         days: {
           d1: { label:'Day 1', sub:'Paddle Power & Endurance', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -22237,7 +22239,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     skimboarding: {
       1: {
         short: 'Explosive running + ankle stability basics — the floor for this program',
-        overview: 'One session combining explosive running and ankle-stability work at reduced volume, since a full week only gets one shot. This program\'s own citation is explicit that the planted-foot rotation used to stop the board and falls onto an outstretched hand are the two dominant injury mechanisms here — even at the lowest frequency, that stays the priority over generic conditioning.',
+        overview: 'One session of explosive running and ankle stability at reduced volume, targeting the two main injuries: planted-foot rotation and falls onto an outstretched hand.',
         days: {
           d1: { label:'Day 1', sub:'Explosive Running + Ankle Stability Basics', plate:'p-red', plateNum:'25', duration:'~25 min',
             exercises:[
@@ -22262,7 +22264,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Explosive Running & Acceleration and Ankle Stability & Landing Control, dedicated days',
-        overview: 'Explosive running and ankle-stability/landing-control each get their own full session — the two pillars this program\'s own reasoning calls out as directly matching its documented injury mechanisms, at the lowest frequency that still trains both.',
+        overview: 'Explosive running and ankle stability with landing control each get their own session, matching the sport\'s main injuries.',
         days: {
           d1: { label:'Day 1', sub:'Explosive Running & Acceleration', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -22294,7 +22296,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Explosive Running & Acceleration, Ankle Stability & Landing Control, and Full Sprint-to-Board Conditioning',
-        overview: 'Three of this program\'s five sessions each get their own day — explosive running, ankle stability, and the full sprint-to-board conditioning day, the trio this program is built around, even at this frequency.',
+        overview: 'Explosive running, ankle stability, and full sprint-to-board conditioning each get a day.',
         days: {
           d1: { label:'Day 1', sub:'Explosive Running & Acceleration', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -22331,7 +22333,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Explosive Running, Ankle Stability, Grip & Fall-Ready Strength, and Rotational Power & Core',
-        overview: 'Four of this program\'s five sessions each get their own day. Full Sprint-to-Board Conditioning is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        overview: 'Four of the five sessions get their own day. Sprint-to-board conditioning returns at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Explosive Running & Acceleration', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -22377,7 +22379,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // (WATERSPORTS_STYLES.skimboarding), used as-is.
       6: {
         short: 'The full 5-day program plus extra ankle stability & grip endurance',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra ankle stability and grip endurance — not a 2nd sprint-and-jump day. This program\'s own citation is explicit that planted-foot rotation and falls onto an outstretched hand are the two dominant injury mechanisms here; Sprint Intervals/Depth Jump/Single-Leg Bound already carry real landing-impact cost, so the extra day stays in the joint-protective territory instead.',
+        overview: 'The 5-day program plus extra ankle stability and grip endurance, not another sprint-and-jump day, protecting the ankle and wrist that get hurt most.',
         days: {
           d1: { label:'Day 1', sub:'Explosive Running & Acceleration', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -22431,7 +22433,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says the ankle and wrist are the two most commonly fractured joints here, even at 7 days selected.',
+        overview: 'The 6-day plan unchanged, and the rest and mobility day stays: ankles and wrists are the joints most often fractured.',
         days: {
           d1: { label:'Day 1', sub:'Explosive Running & Acceleration', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -22487,7 +22489,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     wakeboarding: {
       1: {
         short: 'Landing mechanics + posterior shoulder basics — the floor for this program',
-        overview: 'One session combining landing mechanics and posterior-shoulder work at reduced volume, since a full week only gets one shot. Real survey data found over 40% of wakeboarders report an ACL tear from a hard landing, with shoulder dislocation the dominant upper-body injury — even at the lowest frequency, that stays the priority over generic power work.',
+        overview: 'One session of landing mechanics and posterior-shoulder work at reduced volume: over 40% of wakeboarders report an ACL tear from hard landings, and shoulder dislocation leads upper-body injuries.',
         days: {
           d1: { label:'Day 1', sub:'Landing Mechanics + Posterior Shoulder Basics', plate:'p-red', plateNum:'25', duration:'~25 min',
             exercises:[
@@ -22512,7 +22514,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Landing Mechanics & Deceleration Power and Posterior Shoulder & Dislocation Prevention, dedicated days',
-        overview: 'Landing mechanics and posterior-shoulder/dislocation-prevention each get their own full session — the two pillars this program\'s own reasoning calls out as directly matching its two best-documented injury findings, at the lowest frequency that still trains both.',
+        overview: 'Landing mechanics and shoulder dislocation prevention each get their own session, matching the two best-documented injuries.',
         days: {
           d1: { label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -22544,7 +22546,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Landing Mechanics & Deceleration Power, Posterior Shoulder & Dislocation Prevention, and Full-Body Landing-to-Ride Conditioning',
-        overview: 'Three of this program\'s five sessions each get their own day — landing mechanics, posterior shoulder health, and full-body landing-to-ride conditioning, the trio this program is built around, even at this frequency.',
+        overview: 'Landing mechanics, posterior shoulder health, and landing-to-ride conditioning each get a day.',
         days: {
           d1: { label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -22582,7 +22584,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Landing Mechanics, Posterior Shoulder, Rope-Pull & Grip, and Edge Control & Rotational Power',
-        overview: 'Four of this program\'s five sessions each get their own day. Full-Body Landing-to-Ride Conditioning is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        overview: 'Four of the five sessions get their own day. Landing-to-ride conditioning returns at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -22628,7 +22630,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // (WATERSPORTS_STYLES.wakeboarding), used as-is.
       6: {
         short: 'The full 5-day program plus extra grip endurance & shoulder care',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra grip endurance and shoulder care — not a 2nd landing-impact day. This program\'s own citation found over 40% of wakeboarders report an ACL tear from a hard landing; Box Jump/Broad Jump already carry that same impact cost, so the extra day stays in the low-impact, joint-protective territory instead.',
+        overview: 'The 5-day program plus grip endurance and shoulder care, not another landing-impact day, given how often hard landings tear ACLs.',
         days: {
           d1: { label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -22683,7 +22685,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says hard landings and a constant rope pull load the knee, ankle, and shoulder, even at 7 days selected.',
+        overview: 'The 6-day plan unchanged, and the rest and mobility day stays: hard landings and rope pull load knees, ankles and shoulders.',
         days: {
           d1: { label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -22740,7 +22742,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     kiteAssisted: {
       1: {
         short: 'Core stability + landing mechanics basics — the floor for this program',
-        overview: 'One session combining core/lumbar stability and landing mechanics at reduced volume, since a full week only gets one shot. The riding stance itself is a sustained, near-isometric hold against the kite\'s pull, and this program\'s own citation found the ankle is the single most commonly hurt joint from jump landings — even at the lowest frequency, both stay the priority.',
+        overview: 'One session of core and lower-back stability plus landing mechanics at reduced volume: the riding stance is a sustained hold against the kite, and the ankle is the joint jumps hurt most.',
         days: {
           d1: { label:'Day 1', sub:'Core Stability + Landing Mechanics Basics', plate:'p-red', plateNum:'25', duration:'~25 min',
             exercises:[
@@ -22765,7 +22767,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Core & Lumbar Stability and Landing Mechanics & Ankle-Knee Resilience, dedicated days',
-        overview: 'Core/lumbar stability and landing mechanics each get their own full session — the two pillars this program\'s own reasoning calls out as directly matching the sustained isometric riding stance and its documented jump-landing injury data, at the lowest frequency that still trains both.',
+        overview: 'Core and lower-back stability, and landing mechanics, each get their own session.',
         days: {
           d1: { label:'Day 1', sub:'Core & Lumbar Stability', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -22797,7 +22799,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Core & Lumbar Stability, Landing Mechanics & Ankle-Knee Resilience, and Aerobic-Anaerobic Conditioning',
-        overview: 'Three of this program\'s five sessions each get their own day — core stability, landing mechanics, and aerobic-anaerobic conditioning, the trio this program is built around, even at this frequency.',
+        overview: 'Core stability, landing mechanics, and aerobic-anaerobic conditioning each get a day.',
         days: {
           d1: { label:'Day 1', sub:'Core & Lumbar Stability', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -22835,7 +22837,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Core Stability, Landing Mechanics, Grip & Shoulder Endurance, and Explosive Power & Core Rotation',
-        overview: 'Four of this program\'s five sessions each get their own day. Aerobic-Anaerobic Conditioning is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        overview: 'Four of the five sessions get their own day. Aerobic-anaerobic conditioning returns at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Core & Lumbar Stability', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -22881,7 +22883,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // (WATERSPORTS_STYLES.kiteAssisted), used as-is.
       6: {
         short: 'The full 5-day program plus extra core endurance & grip',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra core endurance and grip work — not a 2nd explosive-jump day. This program\'s own citation found the ankle is the single most commonly hurt joint from jump landings here; Box Jump/Depth Jump/Broad Jump already carry that impact cost, so the extra day stays in the low-impact, sustained-hold territory instead.',
+        overview: 'The 5-day program plus extra core endurance and grip, not another jump day, sparing the ankles jump landings hurt most.',
         days: {
           d1: { label:'Day 1', sub:'Core & Lumbar Stability', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -22936,7 +22938,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says the sustained, leaned-back riding stance and a hard bar pull load the lumbar spine, hip, and shoulder, even at 7 days selected.',
+        overview: 'The 6-day plan unchanged, and the rest and mobility day stays: the leaned-back stance and bar pull load the lower back, hips and shoulders.',
         days: {
           d1: { label:'Day 1', sub:'Core & Lumbar Stability', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -22993,7 +22995,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     sup: {
       1: {
         short: 'Paddling-pattern strength + core endurance basics — the floor for this program',
-        overview: 'One session combining paddling-pattern shoulder strength and core endurance at reduced volume, since a full week only gets one shot. This program\'s own citation found the shoulder is the single most commonly injured region in SUP, with endurance paddling itself the leading mechanism — even at the lowest frequency, that stays the priority alongside the core endurance a real 6-week training block was shown to measurably improve.',
+        overview: 'One session of paddling shoulder strength and core endurance at reduced volume. The shoulder is the most-injured area in SUP, mostly from long paddling.',
         days: {
           d1: { label:'Day 1', sub:'Paddling-Pattern Strength + Core Endurance Basics', plate:'p-red', plateNum:'25', duration:'~25 min',
             exercises:[
@@ -23018,7 +23020,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Paddling-Pattern Strength and Core Endurance, dedicated days',
-        overview: 'Paddling-pattern shoulder strength and core endurance each get their own full session — the two pillars this program\'s own reasoning calls out as directly matching the leading SUP injury mechanism and the trunk load an upright stroke creates, at the lowest frequency that still trains both.',
+        overview: 'Paddling shoulder strength and core endurance each get their own session, for the main injury risk and the upright stroke\'s trunk load.',
         days: {
           d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -23050,7 +23052,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Paddling-Pattern Strength, Core Endurance, and Full-Body Aerobic Endurance Conditioning',
-        overview: 'Three of this program\'s five sessions each get their own day — paddling-pattern strength, core endurance, and full-body aerobic conditioning, the trio this program closes its week on, even at this frequency.',
+        overview: 'Paddling strength, core endurance, and full-body aerobic conditioning each get a day.',
         days: {
           d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -23088,7 +23090,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Paddling-Pattern Strength, Core Endurance, Grip & Posterior Shoulder Endurance, and Rotational Power & Sprint Conditioning',
-        overview: 'Four of this program\'s five sessions each get their own day. Full-Body Aerobic Endurance Conditioning is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        overview: 'Four of the five sessions get their own day. Full-body aerobic conditioning returns at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -23134,7 +23136,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // (WATERSPORTS_STYLES.sup), used as-is.
       6: {
         short: 'The full 5-day program plus extra shoulder health & core endurance',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra shoulder health and core endurance work — not a 2nd sprint/rotational-power day. This program\'s own citation found the shoulder is the single most commonly injured region in SUP; the extra day reinforces that instead of adding more explosive load.',
+        overview: 'The 5-day program plus extra shoulder health and core endurance, not another sprint or rotational-power day.',
         days: {
           d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -23189,7 +23191,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says a repetitive, alternating-side reach-and-pull stroke loads the shoulder, thoracic spine, and hip, even at 7 days selected.',
+        overview: 'The 6-day plan unchanged, and the rest and mobility day stays: the repeated reach-and-pull stroke loads shoulders, upper back and hips.',
         days: {
           d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -23246,7 +23248,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     kayaking: {
       1: {
         short: 'Paddling-pattern strength + core & lumbar endurance basics — the floor for this program',
-        overview: 'One session combining paddling-pattern shoulder strength and core/lumbar endurance at reduced volume, since a full week only gets one shot. This program\'s own citation found the lower back is the single most commonly injured site in kayaking, ahead of the shoulder — even at the lowest frequency, both stay the priority.',
+        overview: 'One session of paddling shoulder strength and core and lower-back endurance at reduced volume: the lower back and shoulder are where kayakers get hurt most.',
         days: {
           d1: { label:'Day 1', sub:'Paddling-Pattern Strength + Core & Lumbar Endurance Basics', plate:'p-red', plateNum:'25', duration:'~25 min',
             exercises:[
@@ -23271,7 +23273,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Paddling-Pattern Strength and Core & Lumbar Endurance, dedicated days',
-        overview: 'Paddling-pattern shoulder strength and core/lumbar endurance each get their own full session — the two pillars this program\'s own reasoning calls out as directly matching kayaking\'s two most commonly injured sites, at the lowest frequency that still trains both.',
+        overview: 'Paddling shoulder strength and core and lower-back endurance each get their own session, matching the most common injuries.',
         days: {
           d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -23303,7 +23305,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Paddling-Pattern Strength, Core & Lumbar Endurance, and Rotational Power & Full-Body Conditioning',
-        overview: 'Three of this program\'s five sessions each get their own day — paddling-pattern strength, core/lumbar endurance, and rotational power/full-body conditioning, the trio this program closes its week on, even at this frequency.',
+        overview: 'Paddling strength, core and lower-back endurance, and rotational power with full-body conditioning each get a day.',
         days: {
           d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -23341,7 +23343,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Paddling-Pattern Strength, Core & Lumbar Endurance, Leg Drive & Lower-Body Power, and Grip, Wrist & Forearm Endurance',
-        overview: 'Four of this program\'s five sessions each get their own day. Rotational Power & Full-Body Conditioning is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        overview: 'Four of the five sessions get their own day. Rotational power and full-body conditioning return at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -23387,7 +23389,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // (WATERSPORTS_STYLES.kayaking), used as-is.
       6: {
         short: 'The full 5-day program plus extra shoulder health & core endurance',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra shoulder health and core endurance work — not a 2nd leg-power or rotational day. This program\'s own citation found the lower back and shoulder are the two most commonly injured sites in kayaking; the extra day reinforces that instead of adding more explosive or leg-drive load.',
+        overview: 'The 5-day program plus extra shoulder health and core endurance, not another leg-power or rotational day, protecting the lower back and shoulders.',
         days: {
           d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -23442,7 +23444,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says a repetitive, rotational push-pull stroke loads the shoulder, thoracic spine, and hip, even at 7 days selected.',
+        overview: 'The 6-day plan unchanged, and the rest and mobility day stays: the rotational push-pull stroke loads shoulders, upper back and hips.',
         days: {
           d1: { label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
