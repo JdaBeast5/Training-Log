@@ -2913,6 +2913,11 @@
   .w-up{color:var(--plate-red);}
   .w-down{color:var(--plate-green);}
   .w-flat{color:var(--text-muted);}
+  /* v3.322: performance deltas (a lift's weight, estimated max, distance)
+     read the other way round from bodyweight — up is the good direction. They
+     borrowed .w-up/.w-down, so a heavier lift showed red. */
+  .perf-up{color:var(--plate-green);}
+  .perf-down{color:var(--text-muted);}
 
   .sparkline{width:100%; height:70px; display:block;}
 
@@ -6619,7 +6624,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.321';
+const APP_VERSION = '3.322';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7425,6 +7430,8 @@ const WHATS_NEW = {
     'The six watersports have shorter overviews, keeping what each trains, why, and what only time on the water can teach.',
   ]},  '3.321': { headline: 'Shorter medical program overviews', points: [
     'The thirteen medically modified programs have shorter overviews. Every clearance step, limit and warning sign is still there.',
+  ]},  '3.322': { headline: 'Progress shows green', points: [
+    'A heavier lift, a higher estimated max or a longer distance now shows in green, not red.',
   ]},
 };
 
@@ -29553,7 +29560,7 @@ async function openExerciseHistory(exIdx, ex){
     }).join(' ');
     const first = e1rmSeries[0].v, last = e1rmSeries[e1rmSeries.length-1].v;
     const delta = toDisplayWeight(last - first);
-    const cls = delta > 0 ? 'w-up' : delta < 0 ? 'w-down' : 'w-flat';
+    const cls = delta > 0 ? 'perf-up' : delta < 0 ? 'perf-down' : 'w-flat'; // v3.322: a higher max is good
     chartHtml = `
       <div class="exh-section-label">Estimated 1RM</div>
       <svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
@@ -39288,7 +39295,7 @@ async function renderExerciseProgress(){
   const rowHtmls = rows.map(r=>{
     const deltaWLb = (r.sessionCount > 1 && r.first && r.latest && r.first.weight!=null && r.latest.weight!=null) ? (r.latest.weight - r.first.weight) : null;
     const deltaHtml = deltaWLb==null ? '' :
-      `<span class="${deltaWLb>0?'w-up':deltaWLb<0?'w-down':'w-flat'}">${deltaWLb>0?'+':''}${trimUnitNum(toDisplayWeight(deltaWLb))} ${weightUnit} since first log</span>`;
+      `<span class="${deltaWLb>0?'perf-up':deltaWLb<0?'perf-down':'w-flat'}">${deltaWLb>0?'+':''}${trimUnitNum(toDisplayWeight(deltaWLb))} ${weightUnit} since first log</span>`;
     // v3.314: the same ↑ the set chips use for "go up", and no trophy emoji.
     const readyHtml = r.readyToProgress ? `<div class="prog-ready"><span aria-hidden="true">↑</span> Ready to go up next session</div>` : '';
     const bestHtml = r.bestEver!=null ? `<span class="prog-best">Best ${fmtWeight(r.bestEver)}</span>` : '';
@@ -43203,7 +43210,7 @@ async function renderCardioTrend(){
   const first = withData[0], last = withData[withData.length-1];
   const distDelta = last.metres - first.metres;
   const distPct = first.metres > 0 ? Math.round((distDelta/first.metres)*100) : null;
-  const deltaClass = distDelta > 0 ? 'w-up' : distDelta < 0 ? 'w-down' : 'w-flat';
+  const deltaClass = distDelta > 0 ? 'perf-up' : distDelta < 0 ? 'perf-down' : 'w-flat'; // v3.322: farther is good
 
   // Pace commentary only where both ends of the window actually have one.
   // A lower minutes-per-unit is faster, which is the one place in this app
