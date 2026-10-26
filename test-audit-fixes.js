@@ -81,4 +81,18 @@ test('REAL invocation (v3.353): PR timeline rows carry no emoji; the strength PR
   assert.strictEqual(rows[0].querySelector('.prt-ex-name .xlink').textContent.replace('›', '').trim(), 'Bench Press');
 });
 
+test('REAL source (v3.354): Week Over Week has no unit on an empty protein value and a one-word change label', (assert)=>{
+  const fn = extractFunction(src, 'renderAnalysis');
+  const rowTpl = fn.slice(fn.indexOf('<div class="week-row">'), fn.indexOf('`;', fn.indexOf('<div class="week-row">')));
+  assert.ok(rowTpl.length > 200, 'anchor: the real row template');
+  assert.match(rowTpl, /\$\{r\.avgPro != null \? r\.avgPro \+ 'g' : '—'\}/);
+  assert.doesNotMatch(rowTpl, /'—'\}g</, 'no unit glued to the dash');
+  assert.match(rowTpl, /<div class="w-label">Change<\/div>/);
+  assert.doesNotMatch(rowTpl, /vs Prior Wk/);
+  // The real expression, evaluated both ways.
+  const expr = (avgPro) => new Function('r', "return r.avgPro != null ? r.avgPro + 'g' : '—';")({avgPro});
+  assert.strictEqual(expr(null), '—');
+  assert.strictEqual(expr(142), '142g');
+});
+
 run();

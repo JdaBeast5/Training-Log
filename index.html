@@ -6635,7 +6635,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.353';
+const APP_VERSION = '3.354';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7505,6 +7505,8 @@ const WHATS_NEW = {
     'Empty food, grocery and supplement lists no longer point you "below" when what you tap is above.',
   ]},  '3.353': { headline: 'Cleaner PR timeline', points: [
     'Personal records in History drop their emoji, matching Exercise Progress.',
+  ]},  '3.354': { headline: 'Tidier Week Over Week', points: [
+    'Week Over Week no longer shows a stray “g” with no protein data, and its weight change column fits on one line.',
   ]},
 };
 
@@ -45038,6 +45040,9 @@ async function renderAnalysis(){
       const sign = d > 0 ? '+' : '';
       deltaHtml = `<span class="${cls}">${sign}${d}</span>`;
     }
+    // v3.354 (audit): no '—g' when there's no protein data, and 'Change'
+    // (the weight change, beside Weight) instead of 'vs Prior Wk', which
+    // wrapped to two lines at phone width and dropped its value out of line.
     return `
       <div class="week-row">
         <div class="week-col label">
@@ -45052,7 +45057,7 @@ async function renderAnalysis(){
           <div class="w-label">Avg Cal</div>
         </div>
         <div class="week-col">
-          <div class="w-val">${r.avgPro ?? '—'}g</div>
+          <div class="w-val">${r.avgPro != null ? r.avgPro + 'g' : '—'}</div>
           <div class="w-label">Avg Pro</div>
         </div>
         <div class="week-col">
@@ -45061,7 +45066,7 @@ async function renderAnalysis(){
         </div>
         <div class="week-col">
           <div class="w-val">${deltaHtml}</div>
-          <div class="w-label">vs Prior Wk</div>
+          <div class="w-label">Change</div>
         </div>
       </div>
     `;
