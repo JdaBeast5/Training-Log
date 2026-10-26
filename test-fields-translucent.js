@@ -35,4 +35,18 @@ test('REAL CSSOM (v3.396): the rest-day row has the same 14px below it as above 
   assert.strictEqual(declared('.rest-done-row', 'margin-bottom'), '14px');
 });
 
+// v3.397 — Every entry field. The audit's input/select/textarea hits, by the
+// rule that paints them. Asserted on the declared fill; the Chromium re-audit
+// (every tab) found no opaque entry field left.
+const FIELDS = ['.care-input', '.food-search-input', '.weight-input-row input', '.macro-input-row input', '.history-export-select',
+  '.ex-input', '.set-note-input', '.gsearch-input', '.custom-form input[type=text]'];
+test('REAL CSSOM (v3.397): every entry field is filled with the translucent --row-fill, not opaque --surface2', (assert)=>{
+  for(const sel of FIELDS) assert.strictEqual(declared(sel, 'background'), 'var(--row-fill)', sel);
+  assert.match(html.match(/--row-fill:([^;]+);/)[1], /rgba\(var\(--surface-white-rgb\),\s*\.045\)/, 'anchor: the token is translucent');
+});
+
+test('REAL CSSOM (v3.397): a picker\'s option list stays solid (it is its own surface on some platforms)', (assert)=>{
+  assert.strictEqual(declared('select option', 'background'), 'var(--surface2)');
+});
+
 run();
