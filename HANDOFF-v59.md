@@ -61,3 +61,38 @@ If you edit an overview, keep its MUST_KEEP phrases or update them deliberately.
   - `ship.py` bumps the version, adds the What's New entry and extends the test lists.
 - **What's New was not rewritten, deliberately.** The app shows only the latest five entries (unseen ones at boot, or via Settings → What's New). The ~250 older entries never reach the screen and serve as the developer changelog that code comments cite, so rewriting them changes nothing a user sees.
 - **Flagged, not fixed:** one Olympic Lifting Front Squat insight reads a little backwards in the original ("can clean more than you can front squat … masking a strength gap"). I kept its meaning as written; worth a coach's eye.
+
+## Addendum 4: post-2.0 audit (v3.350–v3.357)
+Impeccable `audit` plus Apple HIG review, run live in Chromium at 390×844 over every tab, sheet and gym mode. It covered errors, overflow, target sizes, accessible names, contrast sampling, input font sizes (iOS zoom) and an emoji sweep. A scripted core-flow run then checked:
+- logging food, water, bodyweight, sleep and groceries;
+- search;
+- switching programs and back;
+- a Care check-in;
+- jumping from a History calendar day;
+- a setting persisting across reload;
+- opening What's New;
+- entering and leaving gym mode;
+- the rest timer start, +15s and close;
+- long-press opening the set sheet under both mouse and touch.
+
+Everything in the flow run worked. The fixes, each with a test in `test-audit-fixes.js` and sabotage-verified:
+- **v3.350:** the food-row pencil's real tap area was 13×15; it's now 30×45. Two `::after` rules had collided.
+- **v3.351:** the idle rest timer is `inert`, kept in sync with `.active` by a MutationObserver.
+- **v3.352:** three empty states said "below" for controls that are above.
+- **v3.353:** the PR timeline dropped its 💪/🏆.
+- **v3.354:** Week Over Week showed "—g" with no protein data, and its "vs Prior Wk" label wrapped. Now "—" and "Change".
+- **v3.355:** the grocery and supplement text fields, and word placeholders, moved from mono to sans.
+- **v3.356:** six sheets now close with a Done/Cancel text button instead of a ✕ circle (white-alpha guard 90 → 89).
+- **v3.357:** day-strip labels (2.34:1) and chip superset tags (3.5:1) now measure ≥4.5:1.
+
+**Verified false positives:**
+- collapsible card headers are 22px boxes, but their `::after` gives a 44px hit area;
+- the day strip scrolls horizontally on purpose;
+- every input renders at 16px or larger, so iOS won't zoom.
+
+**Open P3s:**
+- "Watch form video" is 4.39:1 and starts with a ▶ glyph;
+- the drop-set button uses a ⤵ glyph;
+- the food star ☆ is a text glyph.
+
+**Still unverified:** a real iPhone or Safari.
