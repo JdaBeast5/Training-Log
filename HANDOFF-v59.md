@@ -342,3 +342,15 @@ Owner (Rest / Cardio screenshot): "Fix the spacing for the fields, also check al
   - Checkbox wells (`input[type=checkbox]`) still use `--surface2`.
   - Icon wells (`.ex-thumb`, `.pose-icon`) still use `--surface2`.
   - The progress tracks (`.macro-bar-track`, `.vol-bar-track`, and so on) are opaque too, but those are meters, not fields.
+
+## Addendum 16: pull to refresh, ramp only in gym mode (v3.400–v3.401)
+- **v3.400, pull to refresh** (owner: "make the refresh function more responsive"):
+  - **Cause:** the gesture followed pointer events, and iOS Safari fires `pointercancel` once it treats a drag as a scroll. A pull at the top is exactly that.
+  - **Touch input now uses touch events.** `touchmove` is non-passive and claims the drag only while it's a downward pull from the top, so the page doesn't bounce. Sideways moves and `.swipe-content` are ignored. Mouse and pen keep pointer events, filtered with `pointerType !== 'touch'`.
+  - **Faster reload:** `RELOAD_DELAY` is 150ms (was 500ms).
+  - The IIFE is now named `pullToRefresh` for `test-pull-to-refresh.js`.
+  - **Checked in Chromium:** iPhone 13 emulation, with a CDP touch drag. Not yet felt on a real phone.
+- **v3.401, ramp:** the owner meant "the ramp only in gym mode", but v3.392 had changed only gym mode's display and left Today's list as it was.
+  - `body:not(.gym-mode) #exerciseList .warmup-strip/.warmup-box{display:none}` hides the loggable rows, the read-only table and the nudge everywhere outside gym mode.
+  - Saved data and the `warmupSetsEnabled` setting are unchanged.
+  - The rgba consolidation guard now counts three `.warmup-box` rules (dated note).
