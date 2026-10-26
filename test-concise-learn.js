@@ -23,6 +23,7 @@ const DONE = [
   'POSE_DETAILS', // v3.336
   'STRENGTH_TECHNIQUE_DETAILS', // v3.337
   'OLY_TECHNIQUE_DETAILS', // v3.338
+  'RUNNING_TECHNIQUE_DETAILS', // v3.339
 ];
 
 const MUST_KEEP = [
@@ -33,6 +34,8 @@ const MUST_KEEP = [
   /elbows tucked about 45-75°/, /impingement/, /lower back over-arching|lower back over-arch/, /Valsalva/,
   // v3.338
   /early-extension|extending the hips before the knees/, /leaning back during the drive/, /elbows dropping/,
+  // v3.339
+  /5-10%/, /8-12 weeks/, /overstriding/, /leaning back/,
 ];
 
 function learn(){
