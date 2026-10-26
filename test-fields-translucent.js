@@ -59,4 +59,31 @@ test('REAL CSSOM (v3.398): the date bar is glass, its arrows and the calendar ar
   assert.match(declared('.log-date-bar.backdating', 'background'), /plate-yellow-rgb/);
 });
 
+// v3.399 — The secondary buttons and chips inside cards: History / Edit /
+// Same as Last Time, food categories, water buttons, Analysis jump chips,
+// Learn's source rows and masterclass index, and the rest of that family. The
+// Chromium re-audit afterwards found only the deliberate solids left: the
+// active tab pill and the blue primaries (gym offer, active food category,
+// banner primary). Floating layers (sheets, menus, lightbox) stay opaque.
+const CONTROLS = ['.water-btn', '#researchSourcesList .program-basis-toggle', '#researchSourcesList .source-row-nested .program-basis-toggle',
+  '.same-as-last-btn', '.ex-history-btn', '.ex-edit-btn', '.masterclass-link-btn', '.food-cat-btn', '.analysis-index-chip', '.masterclass-index-btn',
+  '.reorder-arrows button', '.describe-similar-btn', '.qty-stepper', '.describe-save-btn', '.recipe-link-btn', '.equip-plate', '.set-note-btn',
+  '.compare-cancel-btn', '.resting-chip', '.set-drop-btn', '.mesocycle-phase-tag', '.user-pick-btn', '#describeFoodVoiceSlot .voice-log-btn'];
+// The FIRST rule for each selector (where the fill lives); later rules for the
+// same selector are state or layout tweaks.
+function firstDeclared(selector, prop){
+  for(const sheet of cssWin.document.styleSheets) for(const rule of sheet.cssRules){
+    if(rule.selectorText && rule.selectorText.split(/,(?![^(]*\))/).map(x => x.trim()).includes(selector)){
+      const v = rule.style.getPropertyValue(prop); if(v) return v;
+    }
+  }
+  return '';
+}
+test('REAL CSSOM (v3.399): the secondary controls inside cards are translucent; the deliberate solids are not touched', (assert)=>{
+  assert.strictEqual(CONTROLS.length, 23, 'anchor: the audited list');
+  for(const sel of CONTROLS) assert.strictEqual(firstDeclared(sel, 'background'), 'var(--row-fill)', sel);
+  assert.doesNotMatch(declared('.food-cat-btn.active', 'background'), /row-fill/, 'the selected category stays blue');
+  assert.doesNotMatch(declared('.ex-suggest', 'background') || 'var(--surface2)', /row-fill/, 'a floating menu stays opaque');
+});
+
 run();
