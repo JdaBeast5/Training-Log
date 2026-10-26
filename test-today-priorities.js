@@ -12,6 +12,9 @@
 // "Week 5 of 5 · Deload" from the same isDeloadWeek() (manual deloads too),
 // the session time says "(deload)", the sets are already cut and the chips
 // suggest the lighter weights; the row repeated all of it as a paragraph.
+// v3.382 — The cycle phase is one row: training, then food, then the jump to
+// Nutrition. It was two rows (getCycleInsight, getCyclePhaseNutritionInsight)
+// each naming the phase.
 const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const { test, run } = makeRunner('test-today-priorities.js');
@@ -51,6 +54,22 @@ test('REAL source (v3.381): no deload row; the day header carries the deload wee
   const render = extractFunction(src, 'renderWorkout');
   assert.match(render, /const inDeloadWeek = await isDeloadWeek\(\);/, 'the header asks isDeloadWeek(), which includes the manual toggle');
   assert.match(render, /mesocyclePhaseTag\(cyclePos, inDeloadWeek\)/);
+});
+
+test('REAL invocation (v3.382): the cycle phase is one row carrying both its training and its food advice', async (assert)=>{
+  assert.ok(!SOURCES.includes('getCyclePhaseNutritionInsight'));
+  assert.doesNotMatch(src, /function getCyclePhaseNutritionInsight\(/);
+  const d = new Date(); d.setDate(d.getDate() - 19); // day 20 of 28: luteal
+  const last = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const { window } = runJsdom('', `
+    window.storage = { get: async k => k === 'cycle-data' ? { value: JSON.stringify({ lastPeriod: '${last}', cycleLength: 28 }) } : null };
+    function isCycleTrackingEnabled(){ return true; }
+  `, [extractConst(src, 'CYCLE_PHASES'), extractFunction(src, 'getTodayKey'), extractFunction(src, 'computeCyclePhase'), extractFunction(src, 'getCycleInsight')]);
+  const row = await window.getCycleInsight();
+  assert.strictEqual((row.match(/Luteal Phase/g) || []).length, 1, 'the phase is named once');
+  assert.match(row, /technique work and moderate intensity/, 'its training advice');
+  assert.match(row, /<b>Food:<\/b> Slightly higher calorie needs/, 'and its food advice');
+  assert.match(row, /data-jump-to="nutritionHeader"/);
 });
 
 run();

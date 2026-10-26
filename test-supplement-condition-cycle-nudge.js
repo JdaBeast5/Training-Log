@@ -235,7 +235,6 @@ const OTHER_INSIGHT_STUBS = `
   async function getPregnancyHeatInsight(){ return null; }
   async function getBackupReminderInsight(){ return null; }
   async function getReadinessInsight(){ return null; }
-  async function getCyclePhaseNutritionInsight(){ return null; }
 `;
 
 const wiringBodyHtml = `

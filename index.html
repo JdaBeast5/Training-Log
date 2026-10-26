@@ -6789,7 +6789,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.381';
+const APP_VERSION = '3.382';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7739,6 +7739,9 @@ const WHATS_NEW = {
   ]},
   '3.381': { headline: 'Fewer repeats in Today\'s Priorities', points: [
     'The deload-week row is gone: the day header already shows the deload week, and the suggested weights already account for it.',
+  ]},
+  '3.382': { headline: 'One cycle row', points: [
+    'Your cycle phase shows as one row in Today\'s Priorities, with its training and food advice together.',
   ]},
 };
 
@@ -12861,32 +12864,11 @@ async function getCycleInsight(){
   if(!data || !data.lastPeriod || !data.cycleLength) return null;
 
   const {phase} = computeCyclePhase(data.lastPeriod, data.cycleLength);
-  return `${phase.icon} <b>${phase.name}:</b> ${phase.training}`;
+  // v3.382: one row per phase — training, then food — where there used to be
+  // two rows (this and getCyclePhaseNutritionInsight) each naming the phase.
+  return `${phase.icon} <b>${phase.name}:</b> ${phase.training} <b>Food:</b> ${phase.nutrition} <button type="button" class="link-btn" data-jump-to="nutritionHeader">Open nutrition →</button>`;
 }
 
-// --- Cycle-phase nutrition insight: same idea as getCycleInsight above, just
-// surfacing CYCLE_PHASES' own `nutrition` field instead of `training` — that
-// content already existed (shown inside the Cycle Tracking card's phase-guide
-// list) but nobody saw it without opening that card and scrolling to it.
-// Mirrors getCycleInsight's own precedent exactly: same phase lookup, same
-// "always show once cycle data exists" rule (including a phase whose text is
-// "no major shift needed" — that is itself useful reassurance, not filler,
-// and inventing a rule to hide it would be a second, undocumented behavior
-// for what is otherwise one consistent pair of rows). Jumps into the real
-// Nutrition card (nutritionHeader, Log tab) via the same data-jump-to
-// mechanism used everywhere else in the app.
-async function getCyclePhaseNutritionInsight(){
-  if(!isCycleTrackingEnabled()) return null;
-  let data = null;
-  try{
-    const res = await window.storage.get('cycle-data');
-    if(res && res.value) data = JSON.parse(res.value);
-  }catch(e){ return null; }
-  if(!data || !data.lastPeriod || !data.cycleLength) return null;
-
-  const {phase} = computeCyclePhase(data.lastPeriod, data.cycleLength);
-  return `${phase.icon} <b>${phase.name} nutrition:</b> ${phase.nutrition} <button type="button" class="link-btn" data-jump-to="nutritionHeader">Open nutrition →</button>`;
-}
 
 // --- Foundational Stack nudge: a proactive RECOMMENDATION, not an auto-add.
 // The user ask behind this was "medically modified groups, pregnant/
@@ -13379,11 +13361,11 @@ async function renderTodayInsights(){
   const el = document.getElementById('todayInsightsList');
   if(!card || !el) return;
 
-  const [cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge, cycleNutrition] = await Promise.all([
+  const [cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge] = await Promise.all([
     getCycleInsight(),
     getStaleRestingRegionInsight(), getWeighInReminderInsight(), getWaterPaceInsight(), getSessionHeadsUpInsight(),
     getDeficitGuardrailInsight(), getPregnancyHeatInsight(), getBackupReminderInsight(),
-    getReadinessInsight(), getFoundationalStackNudgeInsight(), getCyclePhaseNutritionInsight(),
+    getReadinessInsight(), getFoundationalStackNudgeInsight(),
   ]);
 
   // deficit sits second: under the session heads-up (which is about the next
@@ -13406,12 +13388,9 @@ async function renderTodayInsights(){
   // condition or, per that row, the current cycle phase) turned into an
   // actionable pointer, so reading them back to back keeps cause and
   // recommendation adjacent rather than scattered across the list.
-  // cycleNutrition sits directly under stackNudge, for the same reason —
-  // it's the SAME cycle-phase context as cycle/stackNudge, just the nutrition
-  // half instead of the training/supplement halves. All three reading
-  // together as one group keeps every angle on "what does this phase mean
-  // for me" adjacent, rather than nutrition being the one orphaned elsewhere.
-  const items = [pregnancyHeat, readiness, sessionHeadsUp, deficit, cycle, stackNudge, cycleNutrition, staleRegion, weighIn, waterPace, backup].filter(Boolean);
+  // The cycle row carries the phase's food advice too since v3.382 (it was
+  // a separate cycleNutrition row naming the same phase a second time).
+  const items = [pregnancyHeat, readiness, sessionHeadsUp, deficit, cycle, stackNudge, staleRegion, weighIn, waterPace, backup].filter(Boolean);
   if(items.length === 0){
     card.style.display = 'none';
     return;
