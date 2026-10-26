@@ -225,4 +225,14 @@ test('sabotage anchor (v3.366): food photos send the same foodItems schema, one 
   assert.ok(validates(SCHEMAS.foodItems, { items: [] }), 'the prompt\'s "nothing edible" reply');
 });
 
+test('sabotage anchor (v3.367): the label scan sends the nutritionLabel schema, which keeps null distinct from 0', (assert)=>{
+  const lines = src.split('\n').filter(l => /callClaudeVision\(apiKey, \[base64\], prompt, 2048,/.test(l) && !/^\s*\/\//.test(l));
+  assert.strictEqual(lines.length, 1, 'the one label call');
+  assert.match(lines[0], /AI_MODEL_FAST, 'low', AI_JSON_SCHEMAS\.nutritionLabel\)/);
+  const unreadable = { name: '', cal: 0, pro: 0, fat: 0, carb: 0, sodium: null, fiber: null, calcium: null, iron: null, potassium: null, folate: null };
+  assert.ok(validates(SCHEMAS.nutritionLabel, unreadable), 'the prompt\'s "can\'t read it" reply');
+  assert.ok(validates(SCHEMAS.nutritionLabel, Object.assign({}, unreadable, { name: 'Oats', cal: 150, sodium: 0, fiber: 4 })), 'a real 0 is allowed');
+  assert.ok(!validates(SCHEMAS.nutritionLabel, Object.assign({}, unreadable, { cal: null })), 'the four core numbers are never null');
+});
+
 run();

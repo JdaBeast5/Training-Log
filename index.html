@@ -6694,7 +6694,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.366';
+const APP_VERSION = '3.367';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7599,6 +7599,9 @@ const WHATS_NEW = {
   ]},
   '3.366': { headline: 'Reliable food photos', points: [
     'Snap a meal always comes back in a shape the app can read.',
+  ]},
+  '3.367': { headline: 'Reliable label scans', points: [
+    'Scanning a nutrition label always comes back in a shape the app can read.',
   ]},
 };
 
@@ -36149,7 +36152,7 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
   try{
     const base64 = await fileToBase64(file);
     const prompt = `This is a photo of a nutrition facts label. Read it carefully and respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"name":"string (product name if visible, else a short generic description)","cal":number,"pro":number,"fat":number,"carb":number,"sodium":number|null,"fiber":number|null,"calcium":number|null,"iron":number|null,"potassium":number|null,"folate":number|null}. Use the values for ONE serving as defined on the label. Sodium/potassium are in mg, fiber in g, calcium in mg, iron in mg, folate in mcg — use null (not 0) for any of these six that aren't printed on this specific label, since a real 0 and "not listed" mean different things. If you can't read the label clearly, respond with {"name":"","cal":0,"pro":0,"fat":0,"carb":0,"sodium":null,"fiber":null,"calcium":null,"iron":null,"potassium":null,"folate":null}.`;
-    const raw = await callClaudeVision(apiKey, [base64], prompt, 2048, AI_MODEL_FAST, 'low');
+    const raw = await callClaudeVision(apiKey, [base64], prompt, 2048, AI_MODEL_FAST, 'low', AI_JSON_SCHEMAS.nutritionLabel);
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
 
@@ -39793,6 +39796,19 @@ const AI_JSON_SCHEMAS = {
           carb: { type: 'number' }, sodium: { type: 'number' }, fiber: { type: 'number' },
         },
       }},
+    },
+  },
+  // Nutrition label (v3.367): one serving. The six micronutrients are null,
+  // not 0, when the label doesn't print them — a real 0 and "not listed" mean
+  // different things, and the prompt says so.
+  nutritionLabel: {
+    type: 'object', additionalProperties: false,
+    required: ['name', 'cal', 'pro', 'fat', 'carb', 'sodium', 'fiber', 'calcium', 'iron', 'potassium', 'folate'],
+    properties: {
+      name: { type: 'string' }, cal: { type: 'number' }, pro: { type: 'number' }, fat: { type: 'number' }, carb: { type: 'number' },
+      sodium: { anyOf: [{ type: 'number' }, { type: 'null' }] }, fiber: { anyOf: [{ type: 'number' }, { type: 'null' }] },
+      calcium: { anyOf: [{ type: 'number' }, { type: 'null' }] }, iron: { anyOf: [{ type: 'number' }, { type: 'null' }] },
+      potassium: { anyOf: [{ type: 'number' }, { type: 'null' }] }, folate: { anyOf: [{ type: 'number' }, { type: 'null' }] },
     },
   },
 };
