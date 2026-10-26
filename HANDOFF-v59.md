@@ -179,3 +179,30 @@ PR #35 was merged (v3.371 live; the Pages deploy succeeded). This batch is on `c
 **Testing note:** Chromium screenshots must block service workers (`serviceWorkers:'block'`), or the SW serves a stale `index.html`.
 
 **Still unverified:** a real iPhone/Safari; the live Claude API.
+
+## Addendum 7: Today's Priorities review (v3.380–v3.383)
+PR #36 was merged (v3.379 live). This batch is on `claude/taste-skill-v2` and is **not yet live**.
+
+Owner: "evaluate if they're necessary or redundant, also make them removable by swiping." The tests are in `test-today-priorities.js`.
+
+**Removed or merged:**
+- **v3.380, Sleep row:** removed, along with `getSleepInsight` (now dead code). It duplicated Readiness (same <6h threshold), and the two rows' advice disagreed.
+- **v3.381, Deload row:** removed (`getDeloadInsight`). The day header already shows "Week 5 of 5 · Deload" from the same `isDeloadWeek()`; the time reads "(deload)", sets are cut, and the chips suggest lighter weights.
+- **v3.382, cycle phase:** one row now. `getCycleInsight` returns training plus `<b>Food:</b>` plus the Nutrition link. `getCyclePhaseNutritionInsight` is gone, and its tests were moved onto `getCycleInsight`.
+
+**Kept:**
+- pregnancy-heat safety;
+- readiness;
+- the session heads-up (exercise cautions are inside collapsed exercises);
+- the deficit guardrail;
+- the supplement nudge (now hideable);
+- the stale resting region;
+- weigh-in, hydration and backup.
+
+**v3.383, swipe to hide:**
+- Every row is a `buildSwipeItem` row wired with `makeSwipeable`.
+- Hiding is for today, with an Undo toast. It's stored as `priorities-hidden = {date, ids}`, and any other date reads as empty.
+- `#todayInsightsList .swipe-content` is opaque `--surface2`. `test-swipe-content-height-fix.js` now counts only unscoped `.swipe-content{` declarations (dated note).
+- Confirmed in Chromium with a real drag, the hide, the toast and a reload.
+
+**Known gap:** like every swipe list in the app, there's no keyboard or VoiceOver path to hide a row.
