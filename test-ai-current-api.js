@@ -244,4 +244,18 @@ test('sabotage anchor (v3.368): the recipe finder sends the recipes schema', (as
   assert.ok(!validates(SCHEMAS.recipes, { recipes: [{ name: 'x', description: '', cal: 1, pro: 1, fat: 1, carb: 1, ingredients: [3] }] }), 'ingredients are strings');
 });
 
+test('sabotage anchor (v3.369): supplement recommendations send the supplements schema, its enums match the app\'s own tables', (assert)=>{
+  const lines = callLines('submitSupplementRequest', 'callClaudeChat(');
+  assert.strictEqual(lines.length, 1);
+  assert.match(lines[0], /undefined, 'medium', AI_JSON_SCHEMAS\.supplements\)/);
+  const tables = runJsdom('', '', [extractConst(src, 'SUPPLEMENT_EVIDENCE_LABELS'), extractConst(src, 'SUPPLEMENT_FREQUENCY_META'),
+    'window.__keys = JSON.stringify([Object.keys(SUPPLEMENT_EVIDENCE_LABELS), Object.keys(SUPPLEMENT_FREQUENCY_META)]);']).window;
+  const [evidence, frequency] = JSON.parse(tables.__keys);
+  const rec = SCHEMAS.supplements.properties.recommendations.items.properties;
+  assert.deepStrictEqual(rec.evidence.enum, evidence, 'every evidence level the app can label, and no other');
+  assert.deepStrictEqual(rec.frequency.enum, frequency, 'every frequency My Supplements can track, and no other');
+  assert.ok(validates(SCHEMAS.supplements, { recommendations: [], note: 'Not something this app can responsibly recommend.' }), 'the prompt\'s refusal reply');
+  assert.ok(!validates(SCHEMAS.supplements, { recommendations: [{ name: 'Creatine', evidence: 'strong', why: '', typicalDose: '3-5 g', timing: 'any', frequency: 'daily', caution: null }], note: '' }), 'an evidence level the app has no label for fails');
+});
+
 run();

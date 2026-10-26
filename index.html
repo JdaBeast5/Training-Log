@@ -6694,7 +6694,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.368';
+const APP_VERSION = '3.369';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7605,6 +7605,9 @@ const WHATS_NEW = {
   ]},
   '3.368': { headline: 'Reliable recipe ideas', points: [
     'Recipe ideas always come back in a shape the app can read.',
+  ]},
+  '3.369': { headline: 'Reliable supplement ideas', points: [
+    'Supplement recommendations always come back in a shape the app can read, with an evidence level and frequency it knows.',
   ]},
 };
 
@@ -39829,6 +39832,27 @@ const AI_JSON_SCHEMAS = {
       }},
     },
   },
+  // Supplement recommendations (v3.369). The two enums are the keys of
+  // SUPPLEMENT_EVIDENCE_LABELS and SUPPLEMENT_FREQUENCY_META, written out
+  // because those are declared further down the file (a test keeps them in
+  // step). caution is null unless something applies to this person.
+  supplements: {
+    type: 'object', additionalProperties: false, required: ['recommendations', 'note'],
+    properties: {
+      recommendations: { type: 'array', items: {
+        type: 'object', additionalProperties: false,
+        required: ['name', 'evidence', 'why', 'typicalDose', 'timing', 'frequency', 'caution'],
+        properties: {
+          name: { type: 'string' },
+          evidence: { type: 'string', enum: ['well-established', 'promising', 'mixed', 'limited'] },
+          why: { type: 'string' }, typicalDose: { type: 'string' }, timing: { type: 'string' },
+          frequency: { type: 'string', enum: ['daily', 'twice-daily', 'weekly'] },
+          caution: { anyOf: [{ type: 'string' }, { type: 'null' }] },
+        },
+      }},
+      note: { type: 'string' },
+    },
+  },
 };
 function aiOutputConfig(effort, schema){
   const config = {};
@@ -41278,7 +41302,7 @@ async function submitSupplementRequest(){
     // reasoning depth, and leaving effort unset here is exactly the failure
     // mode that fix addressed (adaptive thinking can eat the whole budget
     // before producing any output).
-    const raw = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content: request || 'Give me a general starting point.'}], 3000, undefined, 'medium');
+    const raw = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content: request || 'Give me a general starting point.'}], 3000, undefined, 'medium', AI_JSON_SCHEMAS.supplements);
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
     const recs = parsed.recommendations || [];
