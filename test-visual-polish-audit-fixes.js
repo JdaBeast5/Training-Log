@@ -157,7 +157,21 @@ test(':root now declares color-scheme:dark, matching the fact that this app has 
   // prefers-color-scheme handling, no data-theme toggle", which would
   // defeat a naive check against the raw, comment-inclusive source.
   const withoutComments = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '');
-  assert.doesNotMatch(withoutComments, /prefers-color-scheme|data-theme=/, 'precondition: this app must still have no real light-mode branching for a blanket dark color-scheme to be safe');
+  // 2026-10-26 (v3.385): the launch page follows the system appearance (owner
+  // request: the launch should adapt to light and dark). That is the one
+  // allowed light branch: every prefers-color-scheme @media must style ONLY
+  // .launch rules, which hold no form controls, so the blanket dark
+  // color-scheme below stays safe for everything else.
+  assert.doesNotMatch(withoutComments, /data-theme=/, 'precondition: no theme toggle');
+  const at = [...withoutComments.matchAll(/@media[^{]*prefers-color-scheme[^{]*\{/g)];
+  for(const m of at){
+    let depth = 1, i = m.index + m[0].length;
+    while(depth && i < withoutComments.length){ if(withoutComments[i] === '{') depth++; else if(withoutComments[i] === '}') depth--; i++; }
+    const body = withoutComments.slice(m.index + m[0].length, i - 1);
+    const selectors = [...body.matchAll(/([^{}]+)\{/g)].map(x => x[1].trim());
+    assert.ok(selectors.length && selectors.every(sel => sel.split(',').every(x => x.trim().startsWith('.launch'))), `a prefers-color-scheme block styles only the launch page: ${selectors.join(' | ')}`);
+  }
+  assert.ok(at.length >= 1, 'anchor: the launch page\'s light branch exists');
   const block = extractRuleBlock(src, ':root');
   assert.match(block, /color-scheme:dark/, 'expected :root to declare color-scheme:dark');
 });

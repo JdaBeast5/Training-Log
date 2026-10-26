@@ -4926,9 +4926,88 @@
   .pr-empty{color:#666; font-style:italic;}
 }
 
+
+  /* ── v3.385: launch ─────────────────────────────────────────────────────── */
+  .launch{
+    position:fixed; inset:0; z-index:2147483000; display:flex; align-items:center; justify-content:center;
+    background:var(--aura), var(--bg); transition:opacity .4s cubic-bezier(.2,.8,.2,1);
+    --launch-ink:#F6F3EE; --launch-ink-2:rgba(246,243,238,.62);
+  }
+  .launch.is-out{opacity:0; pointer-events:none;}
+  .launch-mark{width:112px; height:112px; overflow:visible; transition:transform .42s cubic-bezier(.2,.8,.2,1);}
+  .launch.is-out .launch-mark{transform:scale(1.08);}
+  .launch-rim, .launch-lit{fill:none; stroke-width:104; stroke-dasharray:1 1; stroke-dashoffset:1;}
+  .launch-rim{stroke:var(--launch-ink); animation:launchDraw .62s cubic-bezier(.45,0,.2,1) .08s forwards;}
+  .launch-lit{stroke:url(#launchAcc); animation:launchDraw .26s cubic-bezier(.2,.8,.2,1) .68s forwards;}
+  .launch-hub{fill:none; stroke:var(--launch-ink-2); stroke-width:38; opacity:0; animation:launchFade .4s ease-out .22s forwards;}
+  .launch-bore{fill:var(--launch-ink); transform-origin:512px 512px; transform:scale(.4); opacity:0; animation:launchBore .3s cubic-bezier(.34,1.56,.64,1) .72s forwards;}
+  @keyframes launchDraw{to{stroke-dashoffset:0;}}
+  @keyframes launchFade{to{opacity:1;}}
+  @keyframes launchBore{to{opacity:1; transform:scale(1);}}
+  /* Light appearance: a porcelain page and a graphite mark (platinum would
+     vanish on it). The app behind is dark-only, so the hand-off is a fade. */
+  @media (prefers-color-scheme: light){
+    .launch{
+      background:radial-gradient(420px 380px at 88% -6%, rgba(var(--plate-red-rgb),.14), transparent 70%),
+                 radial-gradient(380px 360px at -12% 32%, rgba(var(--plate-blue-rgb),.12), transparent 70%), #F3F0EA;
+      --launch-ink:#1B1A20; --launch-ink-2:rgba(27,26,32,.42);
+    }
+  }
+  @media (prefers-contrast: more){
+    .launch{background:var(--bg);}
+    .launch-hub{stroke:var(--launch-ink);}
+  }
+  @media (prefers-contrast: more) and (prefers-color-scheme: light){ .launch{background:#FFFFFF;} }
+  /* Reduce Motion: the finished mark, and a cross-fade out. */
+  @media (prefers-reduced-motion: reduce){
+    .launch-rim, .launch-lit{stroke-dashoffset:0; animation:none;}
+    .launch-hub, .launch-bore{opacity:1; transform:none; animation:none;}
+    .launch.is-out .launch-mark{transform:none;}
+    .launch{transition-duration:.2s;}
+  }
 </style>
 </head>
 <body>
+<!-- v3.385: launch. The app's mark draws itself once per cold launch, then
+     dissolves into the app: the plate's rim draws clockwise from the cut, the
+     hub fades in, the lit seventh sweeps in last and the bore settles. Its
+     page matches the system appearance (dark: the app's own background and
+     aura, so the hand-off is seamless; light: porcelain with a graphite
+     mark); Increase Contrast drops the aura; Reduce Motion shows the finished
+     mark and cross-fades. A tap skips it. Grayscale is a system filter the
+     mark is built for (its parts differ by luminance, not hue). -->
+<div class="launch" id="launch" aria-hidden="true">
+  <svg class="launch-mark" viewBox="0 0 1024 1024" aria-hidden="true">
+    <defs><linearGradient id="launchAcc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF6A3D"/><stop offset="1" stop-color="#FF2D55"/></linearGradient></defs>
+    <path class="launch-rim" pathLength="1" d="M754.8 335.8 A300 300 0 1 1 498.4 212.3"/>
+    <path class="launch-lit" pathLength="1" d="M512.0 212.0 A300 300 0 0 1 746.5 325.0"/>
+    <circle class="launch-hub" cx="512" cy="512" r="132"/>
+    <circle class="launch-bore" cx="512" cy="512" r="46"/>
+  </svg>
+</div>
+<script>
+(function launch(){
+  var el = document.getElementById('launch');
+  if(!el) return;
+  // Cold launches only: a reload in the same session (pull to refresh) skips it.
+  var seen = false;
+  try{ seen = sessionStorage.getItem('launch-played') === '1'; sessionStorage.setItem('launch-played', '1'); }catch(e){}
+  if(seen){ el.parentNode.removeChild(el); return; }
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var start = Date.now(), done = false;
+  function finish(){
+    if(done) return; done = true;
+    el.classList.add('is-out');
+    setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, reduce ? 220 : 420);
+  }
+  // Out once the mark has drawn AND the page has loaded, never longer than 4s.
+  var minMs = reduce ? 250 : 1150;
+  function whenReady(){ setTimeout(finish, Math.max(0, minMs - (Date.now() - start))); }
+  if(document.readyState === 'complete') whenReady(); else window.addEventListener('load', whenReady);
+  setTimeout(finish, 4000);
+  el.addEventListener('pointerdown', finish);
+})();
+</script>
 <div class="user-picker-overlay" id="userPickerOverlay" role="dialog" aria-modal="true" aria-labelledby="userPickerTitle">
   <div class="user-picker-box">
     <div class="eyebrow">Training Log</div>
@@ -6796,7 +6875,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.384';
+const APP_VERSION = '3.385';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7755,6 +7834,9 @@ const WHATS_NEW = {
   ]},
   '3.384': { headline: 'New app icon', points: [
     'A new icon: a weight plate with one seventh of the ring lit, on the app\'s own dark glow. It holds up in Dark, Tinted and Grayscale home screens.',
+  ]},
+  '3.385': { headline: 'Launch animation', points: [
+    'Opening the app draws its new mark, then fades into Today. It follows your phone\'s light or dark setting, and Reduce Motion shows it without the animation.',
   ]},
 };
 
