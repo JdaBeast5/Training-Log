@@ -241,3 +241,67 @@ PR #37 was merged (v3.386 live). Owner: "make the starting animation more smooth
   - The page holds 1.35s, then fades over 0.55s with a slight lift.
 - **Tested:** `test-launch.js` asserts the transform/opacity-only keyframe and the curve (sabotage-checked with the old overshoot).
 - **Checked in Chromium:** frames every 100ms show even, decaying motion, settled by ~0.9s.
+
+## Addendum 10: translucent lists (v3.388–v3.389)
+PR #38 was merged (v3.387 live). Owner: lists covered the aura (the supplements and food selection). The tests are in `test-translucent-lists.js`.
+- **v3.388, swipe rows:** every `buildSwipeItem` row (supplements, food log, grocery, weight, BP, glucose, measurements, priorities) had an opaque `.swipe-content` (`--surface`), because the red `.swipe-delete-bg` filled the whole row behind it.
+  - The red layer is now clipped to the uncovered strip: `clip-path:inset(0 0 0 calc(100% - var(--swipe-reveal)))`. `makeSwipeable` sets `--swipe-reveal` as the row moves, and `.is-dragging` disables its transition while the finger is down.
+  - Rows use the new `--row-fill: rgba(white, .045)`.
+  - Verified in Chromium: 60px of red mid-drag, 80px open, no pink tint on the translucent row.
+  - Warm-up rows keep their own opaque well (the "pink-tint rule"); it's no longer required, but it was left as is.
+- **v3.389, other list tiles:** `--row-fill` replaces `--surface2` on twelve in-card tiles: `.food-item-btn`, `.gsearch-hit`, `.sub-option`, `.photo-result-card`, `.ex-detail-body`, `.custom-program-box`, `.cycle-phase-card`, `.care-relief`, `.rest-done-row`, `.targets-strip`, `.exh-stats > div` and `.program-panel` (sheen kept).
+  - Floating layers (the `.ex-suggest` dropdown, sheets, toasts, modals) stay opaque on purpose.
+- **Updated guards:** the white-alpha count went 89→90, and `test-swipe-content-height-fix` now checks for `--row-fill` (dated notes).
+
+## Addendum 11: brand mark as a home button (v3.390)
+Owner: "Make the new symbol a bit bigger and make it act like a home button that gets you to the top of the Today tab."
+- **The change:** the header plate mark is now 20px (was 14px). It's a `<button id="brandHome" aria-label="Today, back to top">` with no box of its own and a 44px tap area on `::before`, and it presses in to 0.88 on `:active`.
+- **`goHome()`** (just before the `VIEW_KEYS` wiring): it closes the More overlay, then:
+  - off Today, it calls `showView('today')`, which already lands at the top;
+  - on Today, it smooth-scrolls to the top, or jumps there instantly under Reduce Motion.
+- **Tested in `test-app-icon.js`:** a real `goHome` invocation for both branches and for Reduce Motion, the CSSOM sizes, and a check that the button is wired exactly once. Every one was sabotage-checked. The v3.386 test's anchor regex now matches the button instead of the span (dated note).
+- **Checked in Chromium on the seeded page:**
+  - The mark is 20×20 and reads well next to "Training Log".
+  - On Today, a tap from scrollY 2537 returned to 0.
+  - From History, a tap landed on Today at the top.
+  - There were no page errors.
+- **Unverified on an iPhone:** the feel of the smooth scroll and the press feedback.
+
+## Addendum 12: rest days hide Up next (v3.391)
+Owner (screenshots of Rest / Cardio and Full Rest showing "Squat 0/23"): "the rest days show exercises? Is that by design?" It wasn't by design.
+- **Cause:** `renderWorkout`'s `if(day.rest)` branch returns early, before the `renderUpNext()` at the end of the function. The Up next card therefore kept the last training day's lift. It has carried that stale state ever since Up next was added (v3.290).
+- **Fix:** the rest branch now calls `renderUpNext()` after the rest note replaces the rows. With no set rows, the card hides itself through its existing "rest day: nothing to log" path.
+- **Tests:**
+  - `test-up-next.js` extracts the real rest branch, runs it against a card that Squat filled, and asserts the card is hidden. It's sabotage-checked.
+  - The call-count guard is now two calls, one per path.
+  - `test-set-chips`' ordering check uses `lastIndexOf`. Both changes carry dated notes.
+- **Checked in Chromium:**
+  - Day 1 then Day 3 (seeded page, real plate taps): the card is hidden, and the rest note leads.
+  - Every day rendered after Day 1: only d3 and d7 (the rest days) hide the card.
+- **Flagged, not fixed:** on a rest day the card still shows "Full session" / "Gym mode", "+ Add custom exercise" and "Adapt this session", all of which are workout controls. The rest branch never renders custom exercises, so adding one on a rest day saves it but shows nothing.
+
+## Addendum 13: agreed next work (NOT started), gym-mode warm-up flow, and the 5×5 chip finding
+The owner ran low on session budget. This addendum records the decisions; the code is unchanged.
+
+### Gym-mode warm-up flow (owner approved; build as 3 separate increments, GYM MODE ONLY)
+The owner's problem: "jumping around between bottom of the screen then top then next".
+- **Current order:** working-set chips → a full-width "Same as Last Time" → the ramp title and note → orange warm-up rows with checkboxes. The dock's Log button skips warm-ups (`refreshGymLogBtn` and `findNextSetRow` only see `.set-row`).
+- **Mock:** a Playwright DOM-injection mock of the agreed design is the script `gym-mock.js` in the previous session's scratchpad. It doesn't persist, so rebuild it if you need a picture.
+
+Increments:
+1. **Warm-up chips:** in gym mode, the ramp becomes orange chips above the working chips, under the label "Warm-up · not counted". Order: Bar, 40%, 60%, 80%.
+   - Tapping a chip edits its weight and reps, like the set sheet does.
+   - `.warmup-strip` rows are hidden in gym mode but stay the source of truth, with the same storage (`saveExWarmupSet`, `todayEntry.warmups`).
+   - A single "Skip warm-up" control skips the whole ramp (owner's choice), reusing the `warmupsSkipped` mechanism for all steps.
+2. **Dock Log button:** walks the undone warm-up steps first ("Log 45×8", orange), then the working sets. The glow follows it, with Undo the same as a chip.
+   - No rest timer after a warm-up step (owner accepted).
+   - Today's "Up next" card and the per-exercise logger do not include warm-ups (owner: gym mode only).
+3. **"Same as Last Time":** in gym mode, a small text link under the working chips instead of the full-width button.
+
+### Investigated: 5×5 Squat chips showing 135×10, 185×10, 225×8, 275×4, 275×4
+- **Cause:** in `renderWorkout` each set row's placeholder is `prior.sets[setIdx]`, set by set, adjusted by `computeSuggestedSet`. `prior` can come from another program (the owner's button read "Same as Last Time (Strength & Size)", i.e. `priorIsCrossProgram`).
+  - So a 5×5 copies the other program's pyramid, set by set: its reps (10/10/8/4/4) and its weights.
+  - Nothing reconciles the copy with today's prescription (5 reps × 5 sets at one working weight).
+- **Proposed fix (not done; a progression-engine behavior change, so test first):** when `prior` is cross-program, or its set shape doesn't match the current prescription, derive every working set from one basis: the top set via `computeSuggestedSet`, with reps from the current prescription.
+  - Keep the per-set copy only when the shape matches.
+  - Needs a REAL-invocation test with a cross-program pyramid prior, and a sabotage check.

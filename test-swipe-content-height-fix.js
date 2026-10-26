@@ -57,7 +57,11 @@ test('sabotage-relevant: .swipe-content is still declared exactly once (this fix
 test('.swipe-content now has overflow:hidden', (assert)=>{
   const block = (src.match(/^\s*\.swipe-content\{[^}]*\}/m) || [''])[0];
   assert.match(block, /overflow:hidden/, 'expected overflow:hidden to establish a block-formatting-context, matching .swipe-item\'s own existing pattern');
-  assert.match(block, /background:var\(--surface\)/, 'sanity: the opaque background this fix is protecting must still be here');
+  // 2026-10-26 (v3.388): the row is translucent now (--row-fill) — the red
+  // layer is clipped to the swiped-open strip instead of hidden behind an
+  // opaque row (test-translucent-lists.js). overflow:hidden still matters:
+  // it keeps the row's own fill reaching its full height.
+  assert.match(block, /background:var\(--row-fill\)/, 'sanity: the row still paints its own fill');
 });
 
 test('sabotage-relevant: .fl-detail\'s negative top margin (the actual trigger condition this fix protects against) is still present — if it were ever removed, this fix would be defending against a scenario that no longer exists', (assert)=>{

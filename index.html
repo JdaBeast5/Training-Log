@@ -80,6 +80,14 @@
       radial-gradient(520px 440px at 62% 112%, rgba(var(--plate-purple-rgb),.24), transparent 70%);
     --glass-fill:linear-gradient(160deg, rgba(var(--surface-white-rgb),.085), rgba(var(--surface-white-rgb),.025));
     --glass-hair:rgba(var(--surface-white-rgb),.10);
+    /* v3.388: list rows inside glass cards — see-through, so the aura reads
+       through them the way it does through the cards. */
+    --row-fill:rgba(var(--surface-white-rgb),.045);
+    /* v3.389: also the fill of every in-card list tile that used an opaque
+       --surface2 (food choices, search results, exercise-swap options, AI
+       result cards, technique panel, program boxes, cycle and care cards,
+       rest-day row, targets strip, history stats). Floating layers —
+       dropdowns, sheets, toasts — stay opaque on purpose. */
     --glass-shine:inset 0 1px 0 rgba(var(--surface-white-rgb),.12);
     --glass-shadow:0 30px 60px -30px rgba(var(--overlay-black-rgb),.8);
     --radius-card:28px;
@@ -371,12 +379,18 @@
      why the three safe-area rules already in this file were doing nothing. */
   .wrap{max-width:640px; margin:0 auto; padding:calc(22px + env(safe-area-inset-top, 0px)) 18px 4px;}
   header{padding:8px 0 18px;}
-  .eyebrow-row{display:flex; align-items:center; gap:7px;}
+  .eyebrow-row{display:flex; align-items:center; gap:8px;}
   /* v3.386: the app icon's mark (the plate, its lit seventh and bore) at
      header size — the hub ring is dropped, it can't resolve at 14px. */
+  /* v3.390: 20px (was 14px), and a home button — tap it from any tab to go
+     to the top of Today. A 44pt tap area on ::before, no visual box. */
   .brand-mark{
-    display:inline-flex; width:14px; height:14px; flex:0 0 auto; color:var(--text);
+    position:relative; display:inline-flex; width:20px; height:20px; flex:0 0 auto; color:var(--text);
+    padding:0; margin:0; background:none; border:0; cursor:pointer; -webkit-tap-highlight-color:transparent;
+    transition:transform .18s var(--ease-smooth);
   }
+  .brand-mark::before{content:''; position:absolute; top:50%; left:50%; width:44px; height:44px; transform:translate(-50%,-50%);}
+  .brand-mark:active{transform:scale(.88);}
   .brand-mark-lit{stroke:var(--plate-red);}
   .brand-mark svg{width:100%; height:100%;}
   /* [TASTESKILL ROLLOUT, v3.278] The eyebrow names the scope (whose log, which
@@ -856,7 +870,7 @@
      stay fully opaque, or the red layer behind it shows through). */
   #todayInsightsList .swipe-item{border-radius:var(--radius-md); margin-bottom:8px;}
   #todayInsightsList .swipe-item:last-child{margin-bottom:0;}
-  #todayInsightsList .swipe-content{background:var(--surface2); border-radius:var(--radius-md);}
+  #todayInsightsList .swipe-content{background:transparent; border-radius:var(--radius-md);}
   #todayInsightsList .today-insight-row{margin-bottom:0;}
   .pf-conditions{ border:1px solid var(--line); border-radius:var(--radius-md); padding:12px; margin-bottom:12px; }
   .pf-conditions legend{ padding:0 6px; }
@@ -1066,7 +1080,7 @@
   .sub-option{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     padding:12px 14px; margin-bottom:8px; border-radius:var(--radius-md);
-    background:var(--surface2); border:1px solid rgba(var(--surface-white-rgb),0.07); cursor:pointer;
+    background:var(--row-fill); border:1px solid rgba(var(--surface-white-rgb),0.07); cursor:pointer;
     box-shadow:inset 0 1px 0 rgba(var(--surface-white-rgb),0.04);
     transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
   }
@@ -1448,7 +1462,7 @@
   }
   .custom-program-box{
     margin-top:14px; padding:14px; border-radius:var(--radius-md);
-    background:var(--surface2); border:1px solid var(--line-bright);
+    background:var(--row-fill); border:1px solid var(--line-bright);
   }
   .custom-program-box .care-input{box-shadow:var(--rim);}
   .custom-program-row{
@@ -1700,7 +1714,7 @@
   }
   .ex-details[open] summary::before{transform:rotate(90deg);}
   .ex-detail-body{
-    display:flex; gap:12px; margin-top:8px; padding:12px; background:var(--surface2);
+    display:flex; gap:12px; margin-top:8px; padding:12px; background:var(--row-fill);
     border-radius:var(--radius-md); border:1px solid var(--line);
   }
   .ex-icon{
@@ -1737,7 +1751,7 @@
   .rest-note{color:var(--text-muted); font-size:14px; line-height:1.5;}
   .rest-done-row{
     display:flex; align-items:center; gap:10px; margin-top:14px; padding:12px;
-    background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
+    background:var(--row-fill); border:1px solid var(--line); border-radius:var(--radius-md);
     font-size:13.5px; cursor:pointer;
   }
   .rest-done-row input[type=checkbox]{width:22px; height:22px;}
@@ -2123,7 +2137,7 @@
   .describe-food-input-row{display:flex; gap:8px; align-items:center;}
   .describe-food-input-row input{flex:1;}
   .photo-result-card{
-    margin-top:10px; padding:12px 14px; background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
+    margin-top:10px; padding:12px 14px; background:var(--row-fill); border:1px solid var(--line); border-radius:var(--radius-md);
   }
   .photo-result-title{font-size:12.5px; font-weight:600; color:var(--plate-green); margin-bottom:8px;}
   .photo-result-item{display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--line-soft); font-size:12.5px;}
@@ -2322,7 +2336,7 @@
   .cycle-current-title{font-family:var(--font-sans); font-size:16px; font-weight:700; letter-spacing:-0.01em; color:var(--plate-blue); margin-bottom:4px;}
   .cycle-current-day{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted); margin-bottom:10px;}
   .cycle-phase-card{
-    margin-top:10px; padding:12px 14px; background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
+    margin-top:10px; padding:12px 14px; background:var(--row-fill); border:1px solid var(--line); border-radius:var(--radius-md);
   }
   .cycle-phase-title{font-weight:700; font-size:13.5px; margin-bottom:6px; display:flex; align-items:center; gap:8px;}
   .cycle-phase-section{font-size:12.5px; line-height:1.5; color:var(--text-muted); margin-top:6px;}
@@ -2341,10 +2355,16 @@
 
   /* Reusable swipe-to-delete for list entries — pointer events work for both touch and mouse */
   .swipe-item{position:relative; overflow:hidden; border-radius:var(--radius-sm); margin-bottom:2px;}
+  /* v3.388: clipped to the strip a swipe has actually uncovered
+     (--swipe-reveal, set by makeSwipeable). It used to fill the whole row and
+     relied on an opaque row to hide it, which is why every swipe list painted
+     a solid slab over the app's aura. Now nothing red sits behind the row. */
   .swipe-delete-bg{
     position:absolute; inset:0; background:var(--plate-red); display:flex; align-items:center;
     justify-content:flex-end; padding-right:18px; color:#fff; font-size:0; cursor:pointer;
+    clip-path:inset(0 0 0 calc(100% - var(--swipe-reveal, 0px))); transition:clip-path 0.2s var(--ease-smooth);
   }
+  .swipe-item.is-dragging .swipe-delete-bg{transition:none;}
   /* Same trash artwork as .fi-delete::before / .ex-delete-custom-btn::after
      (see those rules for the shared drawing), reused verbatim for a third
      time rather than drawn again — one "delete this" glyph across every
@@ -2373,8 +2393,10 @@
      for its own, different reason (containing the swipe gesture) and
      doesn't have this bug for exactly that reason — same fix, same
      mechanism, applied one level in. */
+  /* v3.388: translucent, like the glass cards around it — a faint lift, not a
+     solid slab (the red layer behind is clipped to the swipe now). */
   .swipe-content{
-    position:relative; background:var(--surface); touch-action:pan-y; cursor:grab;
+    position:relative; background:var(--row-fill); touch-action:pan-y; cursor:grab;
     overflow:hidden;
   }
 
@@ -2382,7 +2404,7 @@
 
   .targets-strip{
     display:flex; justify-content:space-between; text-align:center;
-    background:var(--surface2); border-radius:var(--radius-md); padding:12px 6px; margin:8px 0 14px;
+    background:var(--row-fill); border-radius:var(--radius-md); padding:12px 6px; margin:8px 0 14px;
   }
   .targets-strip div{flex:1;}
   .targets-strip .t-val{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-weight:700; font-size:16.5px; letter-spacing:-0.01em;}
@@ -2819,7 +2841,7 @@
   .gsearch-group:first-child{ margin-top:0; }
   .gsearch-hit{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
-    width:100%; text-align:left; background:var(--surface2);
+    width:100%; text-align:left; background:var(--row-fill);
     border:1px solid var(--line); border-radius:var(--radius-sm);
     color:var(--text); font-family:var(--font-sans); font-size:13px;
     padding:11px 13px; margin-top:6px; cursor:pointer; box-shadow:var(--rim);
@@ -3356,7 +3378,7 @@
     display:flex; gap:10px; margin-bottom:14px;
   }
   .exh-stats > div{
-    flex:1; background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-sm);
+    flex:1; background:var(--row-fill); border:1px solid var(--line); border-radius:var(--radius-sm);
     padding:9px 10px; text-align:center;
   }
   .exh-stats b{
@@ -3432,7 +3454,7 @@
   }
   .compare-cancel-btn:active{transform:scale(0.96);}
   .care-relief{
-    margin-top:12px; padding:12px 14px; background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
+    margin-top:12px; padding:12px 14px; background:var(--row-fill); border:1px solid var(--line); border-radius:var(--radius-md);
   }
   .care-relief-title{font-size:12.5px; font-weight:600; color:var(--plate-green); margin-bottom:6px;}
   .care-relief ul{margin:0 0 8px 18px; padding:0; font-size:12.5px; line-height:1.5; color:var(--text-muted);}
@@ -3552,7 +3574,7 @@
   .food-items{display:flex; flex-direction:column; gap:6px; margin-bottom:12px;}
   .food-item-btn{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
-    background:var(--surface2); border:1px solid var(--line); border-radius:var(--radius-md);
+    background:var(--row-fill); border:1px solid var(--line); border-radius:var(--radius-md);
     padding:11px 13px; cursor:pointer; text-align:left;
     transition:transform 0.15s var(--ease-smooth), border-color 0.2s var(--ease-smooth), background 0.2s var(--ease-smooth);
   }
@@ -4159,7 +4181,7 @@
      where it actually matters. Amber matches .care-banner-caution exactly. */
   .program-panel{
     margin-top:12px; padding:13px 14px 12px;
-    background:linear-gradient(180deg, rgba(var(--surface-white-rgb),0.025), rgba(var(--surface-white-rgb),0) 60%), var(--surface2);
+    background:linear-gradient(180deg, rgba(var(--surface-white-rgb),0.025), rgba(var(--surface-white-rgb),0) 60%), var(--row-fill);
     border:1px solid var(--line);
     border-radius:var(--radius-md);
   }
@@ -5043,7 +5065,7 @@
 <div class="wrap">
   <header>
     <div class="eyebrow-row">
-      <span class="brand-mark"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke-width="2.6"><path d="M15.90 6.23 A7 7 0 1 1 9.27 3.04" stroke="currentColor"/><path class="brand-mark-lit" d="M10.00 3.00 A7 7 0 0 1 15.47 5.64"/><circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none"/></svg></span>
+      <button type="button" class="brand-mark" id="brandHome" aria-label="Today, back to top"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke-width="2.6"><path d="M15.90 6.23 A7 7 0 1 1 9.27 3.04" stroke="currentColor"/><path class="brand-mark-lit" d="M10.00 3.00 A7 7 0 0 1 15.47 5.64"/><circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none"/></svg></button>
       <div class="eyebrow" id="headerEyebrow">Training Log</div>
     </div>
     <h1 id="viewTitle">Today</h1>
@@ -6889,7 +6911,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.387';
+const APP_VERSION = '3.391';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7857,6 +7879,18 @@ const WHATS_NEW = {
   ]},
   '3.387': { headline: 'Smoother launch', points: [
     'The opening animation glides instead of drawing in steps: the ring turns into place, the lit segment orbits round and settles, and it stays smooth while the app loads.',
+  ]},
+  '3.388': { headline: 'See-through lists', points: [
+    'Supplement, food log, grocery and the other swipe lists are translucent, so the app\'s glow shows through them like the cards around them.',
+  ]},
+  '3.389': { headline: 'See-through list tiles', points: [
+    'Food choices, search results, swap options and the other list tiles inside cards are translucent too.',
+  ]},
+  '3.390': { headline: 'Home button', points: [
+    'Tap the plate mark beside Training Log to jump to the top of Today from anywhere.',
+  ]},
+  '3.391': { headline: 'Rest days stay rest days', points: [
+    'A rest day no longer shows the last training day\'s lift in Up next.',
   ]},
 };
 
@@ -27306,6 +27340,9 @@ async function renderWorkout(){
       document.getElementById('restDoneLabel').textContent = done ? `Marked as done for ${dateLabel} ✓` : `Mark ${dateLabel}'s rest day as done`;
     });
     document.getElementById('sessionCalTotal').textContent = '';
+    // v3.391: the list now has no set rows, so this hides "Up next". Without
+    // it the card kept the last training day's lift (Squat on a rest day).
+    renderUpNext();
     return;
   }
 
@@ -36631,6 +36668,9 @@ function makeSwipeable(itemEl, onDelete){
     }
     currentX = Math.min(0, Math.max(-90, dx + openOffset));
     content.style.transform = `translateX(${currentX}px)`;
+    // v3.388: the red layer is uncovered exactly as far as the row has moved.
+    itemEl.classList.add('is-dragging');
+    itemEl.style.setProperty('--swipe-reveal', `${-currentX}px`);
   });
   function endDrag(){
     if(!dragging) return;
@@ -36638,6 +36678,8 @@ function makeSwipeable(itemEl, onDelete){
     content.style.transition = 'transform 0.2s var(--ease-smooth)';
     const open = currentX < -45;
     openOffset = open ? -80 : 0;
+    itemEl.classList.remove('is-dragging');
+    itemEl.style.setProperty('--swipe-reveal', `${-openOffset}px`);
     content.style.transform = `translateX(${openOffset}px)`;
   }
   content.addEventListener('pointerup', endDrag);
@@ -38585,6 +38627,21 @@ function showView(key, opts){
   // that throws mid-render should surface, not quietly show a half-built page.
   if(render) render(opts && opts.intent);
 }
+
+// v3.390: the brand mark is a home button. From another tab it goes to
+// Today through showView, exactly like the Today tab (which lands at the
+// top); already on Today, it glides to the top, the way tapping the iPhone
+// status bar does — instantly under Reduce Motion.
+function goHome(){
+  closeNavMoreOverlay();
+  const onToday = document.getElementById('navToday').classList.contains('active');
+  if(!onToday){ showView('today'); return 'switched'; }
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  try{ window.scrollTo({top:0, left:0, behavior: reduce ? 'instant' : 'smooth'}); }
+  catch(e){ window.scrollTo(0, 0); }
+  return 'scrolled';
+}
+document.getElementById('brandHome').addEventListener('click', goHome);
 
 VIEW_KEYS.forEach(key=>{
   const pill = document.getElementById('nav' + key.charAt(0).toUpperCase() + key.slice(1));

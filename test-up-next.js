@@ -119,10 +119,45 @@ test('REAL invocation: a finished session says so; a rest day (no rows) hides th
   assert.strictEqual(rest.$('upNext').hidden, true);
 });
 
-test('REAL source, comments stripped: renderWorkout refreshes the card exactly once, after the rows exist', (assert)=>{
+// 2026-10-26 (v3.391): twice now — once at the end of the rest-day branch
+// (which returns early), once at the end of a training day. Before, the rest
+// branch skipped it and the card kept the previous day's lift.
+test('REAL source, comments stripped: renderWorkout refreshes the card once per path, after the rows exist', (assert)=>{
   const fn = extractFunction(src, 'renderWorkout').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
-  assert.strictEqual((fn.match(/\brenderUpNext\(\)/g) || []).length, 1);
-  assert.ok(fn.indexOf('renderUpNext()') > fn.indexOf("getElementById('exerciseList')"), 'after the list is built');
+  assert.strictEqual((fn.match(/\brenderUpNext\(\)/g) || []).length, 2);
+  const rest = restBranch();
+  assert.strictEqual((rest.match(/\brenderUpNext\(\)/g) || []).length, 1, 'one in the rest-day branch');
+  assert.ok(rest.lastIndexOf('renderUpNext()') > rest.indexOf('list.innerHTML = `'), 'after the rest note replaces the rows');
+  assert.ok(fn.lastIndexOf('renderUpNext()') > fn.indexOf("getElementById('exerciseList')"), 'after the list is built');
+});
+
+// The real `if(day.rest){ ... }` block of renderWorkout, braces matched.
+function restBranch(){
+  const fn = extractFunction(src, 'renderWorkout');
+  const start = fn.indexOf('if(day.rest){');
+  let depth = 0, i = fn.indexOf('{', start);
+  for(; i < fn.length; i++){ if(fn[i] === '{') depth++; else if(fn[i] === '}' && --depth === 0) break; }
+  return fn.slice(start, i + 1);
+}
+
+test('REAL invocation (v3.391): switching from a training day to a rest day hides a card still showing the last lift', async (assert)=>{
+  const branch = restBranch();
+  assert.ok(branch.startsWith('if(day.rest){') && branch.includes('return;'), 'anchor: the real rest branch');
+  const { window } = runJsdom(extractElementById(src, 'upNext') + `<div id="exerciseList">${block('5×5', [0,1,2,3,4].map(i => row(0, i, 'Squat')).join(''))}</div>
+    <div id="dayDuration"></div><div id="mesocyclePhaseTag"></div><div id="sessionCalTotal"></div>`, `
+    var weightUnit = 'lb', selectedLogDate = '2026-10-26', activeProgram = 'p', activeDay = 7;
+    window.storage = { get: async () => null, set: async () => {} };
+    function formatLogDateLabel(){ return 'Today'; }
+    function recordActivity(){ return Promise.resolve(); } function renderStreak(){}
+  `, [...FNS, `window.__render = renderUpNext;
+    window.__rest = async function(day){ const list = document.getElementById('exerciseList'); list.innerHTML = ''; ${branch} };`]);
+  const $ = id => window.document.getElementById(id);
+  window.__render();
+  assert.strictEqual($('upNextLift').textContent, 'Squat', 'anchor: the training day filled the card');
+  assert.strictEqual($('upNext').hidden, false);
+  await window.__rest({ rest: true, duration: '', note: 'Full rest day.' });
+  assert.strictEqual($('upNext').hidden, true, 'no lift on a rest day');
+  assert.match($('exerciseList').textContent, /Full rest day\./, 'the rest note is what shows');
 });
 
 // v3.292 (Impeccable distill): the input wells lose their hairline (the panel
