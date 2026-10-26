@@ -6935,7 +6935,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.394';
+const APP_VERSION = '3.395';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7924,6 +7924,9 @@ const WHATS_NEW = {
   ]},
   '3.394': { headline: 'Quieter Same as Last Time in gym mode', points: [
     'In gym mode, Same as Last Time is a small link under your sets instead of a full-width button.',
+  ]},
+  '3.395': { headline: 'Sets that match your program', points: [
+    'When your last session of a lift was in another program, today\'s sets now start from one working weight at today\'s reps, instead of copying that program\'s set-by-set pattern.',
   ]},
 };
 
@@ -26636,6 +26639,27 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
   return {direction:null, html:''};
 }
 
+// [v3.395] Which of last session's sets a set slot starts from. From this
+// program's own history: the matching set, as always (set 2 from set 2). From
+// ANOTHER program (the cross-program fallback), set-by-set copying carries that
+// program's shape into this one — a pyramid 135×10 … 275×4 became the five
+// "suggestions" for a 5×5 Squat. So every slot starts from one working set: the
+// heaviest set that reached today's bottom rep, at today's reps. None reached
+// it → no basis (an honest empty field beats a weight you have never done for
+// those reps). Sets without a weight (bodyweight, timed) keep the old copy.
+function priorSetForSlot(prior, setIdx, ex, crossProgram){
+  if(!prior || !Array.isArray(prior.sets)) return null;
+  const own = prior.sets[setIdx] || null;
+  if(!crossProgram) return own;
+  const logged = prior.sets.filter(st => st && st.weight != null && st.reps != null);
+  if(!logged.length) return own;
+  const bottom = parseBottomRep(ex.sets);
+  const reaching = bottom == null ? logged : logged.filter(st => st.reps >= bottom);
+  if(!reaching.length) return null;
+  const basis = reaching.reduce((a, st) => st.weight > a.weight ? st : a);
+  return {weight: basis.weight, reps: bottom != null ? bottom : basis.reps};
+}
+
 function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, priorTop, rpeCtx){
   if(!priorSet || priorSet.weight == null) return null;
 
@@ -27644,10 +27668,11 @@ async function renderWorkout(){
         // placeholder; the ramp builders take lb. toCanonicalLb is the inverse
         // and skipping it silently ramps a kg user off a number 2.2x too big.
         const todayFirstSet = todayEntry && todayEntry.sets && todayEntry.sets[0];
-        const suggestedFirst = computeSuggestedSet(
-          (prior && prior.sets[0]) ? prior.sets[0] : null,
-          signal, inDeloadWeek, exCategory, ex, priorTop, rpeCtx);
-        const rampBasis = chooseRampBasis(todayFirstSet, suggestedFirst, priorTop);
+        // v3.395: from the same slot basis the fields use; from another
+        // program, its fallback is that basis too, not that program's top set.
+        const firstBasis = priorSetForSlot(prior, 0, ex, priorIsCrossProgram);
+        const suggestedFirst = computeSuggestedSet(firstBasis, signal, inDeloadWeek, exCategory, ex, priorTop, rpeCtx);
+        const rampBasis = chooseRampBasis(todayFirstSet, suggestedFirst, priorIsCrossProgram ? (firstBasis || priorTop) : priorTop);
         if(rampBasis && rampBasis.weight >= minWeight){
           // The name goes in so the steps can be snapped to what this person can
           // actually load, the same way the working-set suggestion already is.
@@ -27735,7 +27760,7 @@ async function renderWorkout(){
       // array back into one string, same output as before this change.
       setRowHtmlArr = Array.from({length: setCount}).map((_,setIdx)=>{
         const savedSet = todayEntry && todayEntry.sets[setIdx] ? todayEntry.sets[setIdx] : null;
-        const placeholderSet = prior && prior.sets[setIdx] ? prior.sets[setIdx] : null;
+        const placeholderSet = priorSetForSlot(prior, setIdx, ex, priorIsCrossProgram); // v3.395
         // What the field ghosts: the progression verdict when there is one,
         // otherwise last session's own number exactly as before. Never applied
         // to a set that already has a logged value — a saved set shows what was
