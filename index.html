@@ -5819,10 +5819,10 @@
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="8" height="8" rx="1"/><line x1="10" y1="1.6" x2="10" y2="6"/><line x1="10" y1="14" x2="10" y2="18.4"/><line x1="1.6" y1="10" x2="6" y2="10"/><line x1="14" y1="10" x2="18.4" y2="10"/></svg></span>AI Features Setup</span>
       <span class="ex-chevron" aria-hidden="true" id="aiSettingsChevron">›</span>
     </div>
-    <div class="nutrition-summary" id="aiSettingsSummary">Powers Snap a Meal + Coaching video review</div>
+    <div class="nutrition-summary" id="aiSettingsSummary">Coach chat, meal photos, form feedback and more</div>
     <div class="expand-wrap" id="aiSettingsExpandWrap"><div>
       <div class="care-disclaimer" style="margin-top:10px;">
-        Photo meal logging and video form coaching call Anthropic's API directly from your phone using your own key — nothing routes through me. Get a free key at <b>console.anthropic.com</b>, paste it below. It's stored only on this device. Each photo/video review costs a small amount on your own Anthropic account (a few cents at most).
+        The coach, meal photos, form feedback and the other AI features call Anthropic's API straight from this device with your own key; nothing passes through anyone else. Get a key at <b>console.anthropic.com</b> and paste it below. It stays on this device. Each request costs a small amount on your Anthropic account.
       </div>
       <label class="care-label">Your Anthropic API Key</label>
       <div id="aiKeySetupState">
@@ -6782,7 +6782,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.377';
+const APP_VERSION = '3.378';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7720,6 +7720,9 @@ const WHATS_NEW = {
   ]},
   '3.377': { headline: 'Settings, tidied', points: [
     'Settings is laid out like iOS Settings: each section is one rounded group of rows, with the explanation under each.',
+  ]},
+  '3.378': { headline: 'Clearer AI setup', points: [
+    'The AI setup row says what AI does in the app now, and simply reads Connected once your key is saved.',
   ]},
 };
 
@@ -39841,12 +39844,13 @@ async function saveApiKey(key){
 function showApiKeyConnected(){
   document.getElementById('aiKeySetupState').style.display = 'none';
   document.getElementById('aiKeyConnectedState').style.display = 'flex';
-  document.getElementById('aiSettingsSummary').textContent = 'Key saved — AI features ready';
+  // v3.378: the row's closed summary; the Connected row inside says the rest.
+  document.getElementById('aiSettingsSummary').textContent = 'Connected';
 }
 function showApiKeySetup(){
   document.getElementById('aiKeySetupState').style.display = '';
   document.getElementById('aiKeyConnectedState').style.display = 'none';
-  document.getElementById('aiSettingsSummary').textContent = 'Powers Snap a Meal + Coaching video review';
+  document.getElementById('aiSettingsSummary').textContent = 'Coach chat, meal photos, form feedback and more';
 }
 
 // --- Shared Anthropic transport ----------------------------------------

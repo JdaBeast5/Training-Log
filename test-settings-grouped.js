@@ -13,10 +13,15 @@
 // start at one edge, "Load suggestions" no longer wraps or clips its value,
 // and the empty "You" group (no profile yet) draws nothing. jsdom cannot
 // match :has(), so those rules are checked as declared, not as computed.
+//
+// v3.378 — The AI row's wording was from when it did two things: "Powers Snap
+// a Meal + Coaching video review", and a note promising a "free key". It now
+// names what AI powers today, drops "free" (API use is billed), and closed
+// with a key saved it reads "Connected" instead of repeating the row inside.
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
-const { readIndexSource, extractElementById, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractElementById, extractFunction, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const { test, run } = makeRunner('test-settings-grouped.js');
 const src = readIndexSource();
@@ -80,6 +85,21 @@ test('REAL CSSOM: switch rows drop their duplicate label; pickers are rows with 
 test('REAL markup: the load-suggestion choices fit a picker row (no "(default)" suffix)', (assert)=>{
   const opts = [...new JSDOM(html).window.document.querySelectorAll('#loadModeSelect option')].map(o => o.textContent);
   assert.deepStrictEqual(opts, ['Double progression', 'RPE targets']);
+});
+
+test('REAL invocation (v3.378): the AI row\'s summary follows the key state, in current words', (assert)=>{
+  const { window } = runJsdom(extractElementById(src, 'aiSettingsCard'), '', [extractFunction(src, 'showApiKeyConnected'), extractFunction(src, 'showApiKeySetup')]);
+  const summary = window.document.getElementById('aiSettingsSummary');
+  assert.strictEqual(summary.textContent, 'Coach chat, meal photos, form feedback and more', 'anchor: the shipped markup');
+  window.showApiKeyConnected();
+  assert.strictEqual(summary.textContent, 'Connected');
+  assert.strictEqual(window.document.getElementById('aiKeyConnectedState').style.display, 'flex');
+  window.showApiKeySetup();
+  assert.strictEqual(summary.textContent, 'Coach chat, meal photos, form feedback and more');
+  const note = window.document.querySelector('#aiSettingsCard .care-disclaimer').textContent;
+  assert.doesNotMatch(note, /free key|routes through me/);
+  assert.match(note, /console\.anthropic\.com/);
+  assert.match(note, /stays on this device/, 'the storage promise is kept');
 });
 
 run();
