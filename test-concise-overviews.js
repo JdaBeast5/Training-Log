@@ -33,6 +33,19 @@ const MUST_KEEP = {
   'programs.running': [/Jack Daniels/, /tempo and intervals/, /long run/],
   'programs.calisthenics': [/muscle-ups/, /in order/],
   'programs.powerlifting': [/competition rep ranges/, /meet prep/],
+  // v3.318 — main programs, second batch
+  'programs.medical': [/bariatric/, /prenatal and postpartum/, /care team's clearance first/, /safety notes/],
+  'programs.yoga': [/Vinyasa & Flow/, /Hot Yoga/, /Partner Yoga/],
+  'programs.powerbuilding': [/5x5/, /pump day/, /Strength & Size/],
+  'programs.senior': [/chair/, /balance/, /fall risk/, /lowered slowly/],
+  'programs.swimming': [/dryland/, /prehab, not proven prevention/],
+  'programs.watersports': [/Kayaking/, /Land-based/, /None of these teach the water skill/],
+  'programs.climbing': [/antagonist-and-shoulder/, /years, not weeks/, /overuse/],
+  'programs.boxingsc': [/not punches or defense/, /not a substitute for learning to box/],
+  'programs.desk': [/prolonged sitting/, /movement breaks/, /best-evidenced/],
+  'programs.hyrox': [/compromised running/, /brick intervals/, /harder than a typical endurance plan/],
+  'programs.grappling': [/live positional rolling/, /conditioning in its own right/],
+  'programs.pilates': [/no ballistic movement/, /not gentle stretching/],
 };
 
 function entries(){
