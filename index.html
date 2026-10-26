@@ -6624,7 +6624,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.323';
+const APP_VERSION = '3.324';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7434,6 +7434,8 @@ const WHATS_NEW = {
     'A heavier lift, a higher estimated max or a longer distance now shows in green, not red.',
   ]},  '3.323': { headline: 'Shorter days-per-week notes', points: [
     'The notes for each days-per-week choice in Strength & Size, Bodybuilding, Olympic Lifting, Powerlifting and Powerbuilding are about half as long.',
+  ]},  '3.324': { headline: 'Shorter days-per-week notes, continued', points: [
+    'Athletic, Bodyweight, Calisthenics, Core and Jump Rope too.',
   ]},
 };
 
@@ -15938,7 +15940,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   athletic: {
     1: {
       short: 'Full-body power — the floor for this program',
-      overview: 'One combined lower-and-upper power session, kept genuinely low volume since this program\'s whole identity is quality over accumulation, not accumulated fatigue. A real session, but the lower-frequency floor for developing explosive power specifically — if a 2nd day ever becomes possible, splitting lower and upper power back into their own sessions is the natural next step.',
+      overview: 'One combined lower- and upper-body power session, kept low volume: quality over fatigue. A second day, splitting lower and upper power, would be the natural next step.',
       days: {
         d1: { label:'Day 1', sub:'Full-Body Power', plate:'p-red', plateNum:'25', duration:'~50 min',
           exercises:[
@@ -15964,7 +15966,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Lower Power and Upper Power, their own dedicated days',
-      overview: 'Lower and upper power each get their own full session — real dedicated practice for both instead of combining them into one longer, more fatiguing day.',
+      overview: 'Lower and upper power each get their own session, instead of one longer, more fatiguing day.',
       days: {
         d1: { label:'Day 1', sub:'Lower Power', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -15996,7 +15998,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Lower Power, Upper Power, and Conditioning & Agility',
-      overview: 'Lower and upper power keep their own days, plus a 3rd day of conditioning and agility work — real variety in movement quality (sprints, footwork) without a 2nd max-effort jump session on either lower or upper power.',
+      overview: 'Lower and upper power days, plus a third day of conditioning and agility (sprints, footwork) instead of a second max-effort jump session.',
       days: {
         d1: { label:'Day 1', sub:'Lower Power', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -16033,7 +16035,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Lower and Upper Power, each with a 2nd session',
-      overview: 'Lower and upper power each get a 2nd dedicated session — real added exposure to both power qualities without stacking a 3rd session on either in the same week. Conditioning & Agility is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      overview: 'Two sessions each for lower and upper power, without a third on either. Conditioning and agility return at six days and up.',
       days: {
         d1: { label:'Day 1', sub:'Lower Power', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -16079,7 +16081,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.athletic), used as-is.
     6: {
       short: 'The full 5-day program plus a sub-maximal speed day',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of sub-maximal sprint mechanics and change-of-direction work — real added practice at a lower CNS/joint cost than another max-effort jump or throw session, consistent with this program\'s own stated priority: full recovery between sets, quality over accumulation.',
+      overview: 'The 5-day program plus a sixth day of sub-maximal sprint mechanics and change of direction: extra practice at lower joint cost than another max-effort jump or throw day.',
       days: {
         d1: { label:'Day 1', sub:'Lower Power', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -16133,7 +16135,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, plus one deliberately easy recovery day',
-      overview: 'The same six days as the 6-day plan, completely unchanged — but the week does NOT add an 8th kind of hard session on top of an already-full 6 days. What was the lone rest/mobility slot becomes explicit light cardio instead: even training every single day, real programming still needs one day where nothing is loaded near failure, and this program is more explicit about that than most — its own overview leads with "full recovery between sets."',
+      overview: 'The 6-day plan unchanged, with the rest slot turned into light cardio. Power training depends on full recovery, so one day loads nothing near failure.',
       days: {
         d1: { label:'Day 1', sub:'Lower Power', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -16189,7 +16191,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   bodyweight: {
     1: {
       short: 'Full-body bodyweight — the floor for this program',
-      overview: 'A single full-body session touching push, pull, and legs, since a full week only gets one shot at each pattern. This is genuine strength training, just without external load — the same 2x/week-beats-1x frequency argument this program\'s own barbell-based siblings lean on applies here too, so if a 2nd day ever becomes possible, splitting patterns across sessions would help more than anything else here.',
+      overview: 'One full-body session touching push, pull and legs. It\'s real strength training without external load; a second day, splitting the patterns, would help more than anything else.',
       days: {
         d1: { label:'Day 1', sub:'Full-Body Bodyweight', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -16215,7 +16217,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Two full-body sessions, push+legs led and pull+legs led',
-      overview: 'Two full-body sessions rather than an upper/lower split — with only two days, a true split would train each pattern just once a week. Push leads one session, pull leads the other, and legs appear in both since bodyweight leg work tolerates real frequency.',
+      overview: 'Two full-body sessions, one led by push and one by pull, with legs in both. A split over two days would train each pattern only once a week.',
       days: {
         d1: { label:'Day 1', sub:'Full Body A — Push Led', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -16247,7 +16249,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Push, Pull, and Legs — classic bodyweight split',
-      overview: 'Push, pull, and legs each keep their own full day, no accessory-only days diluting focus — a real, well-established structure at this frequency.',
+      overview: 'Push, pull and legs each get their own full day, with no accessory-only days diluting focus.',
       days: {
         d1: { label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -16287,7 +16289,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Push, Pull, Legs, plus Full Body Conditioning',
-      overview: 'Push, pull, and legs each keep their own day, plus a 4th day of full-body conditioning — real added work capacity without diluting any single pattern day. Core & Mobility is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      overview: 'Push, pull and leg days, plus a full-body conditioning day. Core and mobility return at six days and up.',
       days: {
         d1: { label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -16335,7 +16337,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.bodyweight), used as-is.
     6: {
       short: 'The full 5-day program plus unilateral & isometric progressions',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day extending this program\'s own stated progression path — harder leverage and single-limb variations — rather than a 2nd copy of push, pull, or legs day.',
+      overview: 'The 5-day program plus a sixth day of harder leverage and single-limb variations, instead of repeating push, pull or legs.',
       days: {
         d1: { label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -16393,7 +16395,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, plus one deliberately easy recovery day',
-      overview: 'The same six days as the 6-day plan, completely unchanged — but the week does NOT add an 8th kind of hard session on top of an already-full 6 days. What was the lone rest/cardio slot becomes explicit light mobility instead: even training every single day, real programming still needs one day where nothing is loaded near failure.',
+      overview: 'The 6-day plan unchanged, with the rest slot turned into light mobility. Even training daily, one day should load nothing near failure.',
       days: {
         d1: { label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -16460,7 +16462,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   calisthenics: {
     1: {
       short: 'Push + Pull skill primer — the floor for this program',
-      overview: 'A single session touching both push and pull skill work at reduced volume, since a full week only gets one shot at each. Real skill acquisition benefits from more frequent practice than this — if a 2nd day ever becomes possible, splitting push and pull skills into their own sessions (like the 2-day plan) is the natural next step.',
+      overview: 'One session of push and pull skill work at reduced volume. Skills build faster with more frequent practice, so a second day, splitting push and pull, is the next step.',
       days: {
         d1: { label:'Day 1', sub:'Push + Pull Skill Primer', plate:'p-red', plateNum:'25', duration:'~45 min',
           exercises:[
@@ -16486,7 +16488,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Push Skills and Pull Skills, their own dedicated days',
-      overview: 'Push and pull skill work each get their own full session — real dedicated practice for both instead of combining them into one shorter, split-focus day.',
+      overview: 'Push skills and pull skills each get their own session for dedicated practice.',
       days: {
         d1: { label:'Day 1', sub:'Push Skills', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -16518,7 +16520,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Push Skills, Pull Skills, and Legs & Explosive',
-      overview: 'Push and pull skills keep their own days, plus a 3rd day of leg and explosive work — real added training that doesn\'t double up on the joint-taxing skill work (handstands, levers, muscle-ups) either day already carries.',
+      overview: 'Push and pull skill days, plus a legs and explosive day that adds training without more joint-taxing skill work.',
       days: {
         d1: { label:'Day 1', sub:'Push Skills', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -16556,7 +16558,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Push, Pull, Core & L-Sit, and Legs & Explosive',
-      overview: 'Push skills, pull skills, core/L-sit progressions, and legs each get their own day — real breadth across this program\'s full skill set. Skill Practice & Mobility is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      overview: 'A day each for push skills, pull skills, core and L-sit progressions, and legs. Skill practice and mobility return at six days and up.',
       days: {
         d1: { label:'Day 1', sub:'Push Skills', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -16602,7 +16604,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.calisthenics), used as-is.
     6: {
       short: 'The full 5-day program plus mobility & light skill reinforcement',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of deliberately light skill reinforcement and mobility — never a 2nd max-effort attempt at a joint-taxing skill like a muscle-up or front lever. This program\'s own rest-day note already makes the case: healthy joints are what let the harder positions keep progressing at all.',
+      overview: 'The 5-day program plus a light skill-and-mobility day — never a second max attempt at a muscle-up or front lever. Healthy joints are what keep the hard positions progressing.',
       days: {
         d1: { label:'Day 1', sub:'Push Skills', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -16656,7 +16658,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, with the joint-safety argument still winning on the rest day',
-      overview: 'The same six days as the 6-day plan, completely unchanged. This program takes joint health more seriously than most, by its own design — even at 7 days selected, the actual rest day stays genuinely skill-free rather than getting reframed into more practice, because handstands, levers, and muscle-ups punish joints that never get a real break.',
+      overview: 'The 6-day plan unchanged, and the rest day stays skill-free: handstands, levers and muscle-ups punish joints that never get a real break.',
       days: {
         d1: { label:'Day 1', sub:'Push Skills', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -16717,7 +16719,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   core: {
     1: {
       short: 'Full coverage — the floor for this specialization program',
-      overview: 'One session touching multiple anti-movement categories (anti-extension, anti-rotation, loaded carries) at reduced volume, since a full week only gets one shot. This program is already deliberately narrow — a bolt-on, not a standalone plan (see its own overview) — so even at low frequency the goal is breadth across categories, not depth in just one.',
+      overview: 'One session across anti-extension, anti-rotation and loaded carries at reduced volume. This program is a bolt-on, so at one day the aim is breadth, not depth.',
       days: {
         d1: { label:'Day 1', sub:'Full Coverage', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -16743,7 +16745,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Anti-Extension and Rotational Power, their own dedicated days',
-      overview: 'Anti-extension/spine stability and rotational power/anti-rotation each get their own full session — the two most foundational categories this program trains, given real dedicated practice instead of being combined into one shorter day.',
+      overview: 'Spine stability (anti-extension) and rotational power with anti-rotation each get their own session: the two most foundational categories.',
       days: {
         d1: { label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -16777,7 +16779,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Anti-Extension, Rotational Power, and Loaded Carries',
-      overview: 'The three most foundational anti-movement categories this program trains — anti-extension, anti-rotation, and anti-lateral flexion (carries) — each keeping their own day.',
+      overview: 'Anti-extension, anti-rotation and loaded carries (anti-lateral flexion) each get their own day.',
       days: {
         d1: { label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -16817,7 +16819,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Anti-Extension, Rotational Power, Carries, and Dynamic Core',
-      overview: 'Four of this program\'s five categories each get their own day. Lower-Back Stabilizers & Mobility is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      overview: 'Four of the five categories get their own day. Lower-back stabilizers and mobility return at six days and up.',
       days: {
         d1: { label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -16865,7 +16867,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.core), used as-is.
     6: {
       short: 'The full 5-day program plus a carries & grip endurance day',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of heavier carry work and grip endurance — real added volume in the anti-lateral-flexion category this program already trains, grounded in the same loaded-carry emphasis McGill\'s own trunk-stability research uses, not a repeat of an existing day.',
+      overview: 'The 5-day program plus a sixth day of heavier carries and grip endurance, the loaded-carry emphasis McGill\'s trunk research uses, rather than repeating a day.',
       days: {
         d1: { label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -16923,7 +16925,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, plus one deliberately easy recovery day',
-      overview: 'The same six days as the 6-day plan, completely unchanged — but the week does NOT add an 8th kind of hard session on top of an already-full 6 days. What was the lone rest/cardio slot becomes explicit light mobility instead.',
+      overview: 'The 6-day plan unchanged, with the rest slot turned into light mobility rather than another hard session.',
       days: {
         d1: { label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
           exercises:[
@@ -16983,7 +16985,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   jumprope: {
     1: {
       short: 'Rope fundamentals — the floor for this program',
-      overview: 'One lower-intensity session covering basic bounce and footwork, since a full week only gets one shot at building rope coordination. Rope work is high-impact on the lower legs (this program\'s own rest-day note says so directly), so a single session stays at the fundamentals rather than pushing into double-unders or power variations that need more recovery room around them than one day a week provides.',
+      overview: 'One lower-intensity session of basic bounce and footwork. Rope work is high-impact on the lower legs, so one day stays with the fundamentals, not double-unders or power variations.',
       days: {
         d1: { label:'Day 1', sub:'Rope Fundamentals', plate:'p-red', plateNum:'25', duration:'~30 min',
           exercises:[
@@ -17009,7 +17011,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Basic Endurance and Speed & Footwork, their own dedicated days',
-      overview: 'Basic endurance and speed/footwork each get their own full session — real dedicated practice for both instead of combining them into one shorter day.',
+      overview: 'Basic endurance and speed-and-footwork each get their own session.',
       days: {
         d1: { label:'Day 1', sub:'Basic Endurance', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17041,7 +17043,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Basic Endurance, Speed & Footwork, and HIIT Intervals',
-      overview: 'Basic endurance and speed/footwork keep their own days, plus a 3rd day of HIIT intervals — real conditioning variety without adding a 2nd high-impact power/double-unders session.',
+      overview: 'Endurance and speed-and-footwork days, plus HIIT intervals, without a second high-impact power or double-unders session.',
       days: {
         d1: { label:'Day 1', sub:'Basic Endurance', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17078,7 +17080,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Basic Endurance, Speed & Footwork, Double Unders, and HIIT',
-      overview: 'Four of this program\'s five sessions each get their own day. Endurance Test + Core is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      overview: 'Four of the five sessions get their own day. The endurance test with core returns at six days and up.',
       days: {
         d1: { label:'Day 1', sub:'Basic Endurance', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17122,7 +17124,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.jumprope), used as-is.
     6: {
       short: 'The full 5-day program plus low-impact footwork',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of deliberately LOW-impact footwork and coordination — never a 2nd double-unders/power session, which is exactly where the high-impact load this program\'s own rest-day note warns about would stack up.',
+      overview: 'The 5-day program plus a low-impact footwork and coordination day — never a second double-unders or power day, where lower-leg impact would stack up.',
       days: {
         d1: { label:'Day 1', sub:'Basic Endurance', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17173,7 +17175,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, with the impact-recovery argument still winning on the rest day',
-      overview: 'The same six days as the 6-day plan, completely unchanged. Rope work is high-impact on the lower legs at any intensity — even at 7 days selected, the actual rest day stays genuinely rope-free rather than getting reframed into more practice.',
+      overview: 'The 6-day plan unchanged, and the rest day stays rope-free: rope work is high-impact on the lower legs at any intensity.',
       days: {
         d1: { label:'Day 1', sub:'Basic Endurance', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[

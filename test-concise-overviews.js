@@ -91,6 +91,8 @@ const MUST_KEEP = {
 const VARIANTS_DONE = [
   // v3.323
   'strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding',
+  // v3.324
+  'athletic', 'bodyweight', 'calisthenics', 'core', 'jumprope',
 ];
 
 function variants(){
@@ -144,8 +146,10 @@ test('REAL data (v3.323+): day-count variant overviews of the rewritten programs
 });
 
 test('REAL data (v3.323+): no overview tells the user to read the code or the app\u2019s own citations', (assert)=>{
-  const texts = [...Object.values(variants()), ...Object.values(entries())];
-  assert.deepStrictEqual(texts.filter(t => /in-code|this app's own citations|the same citation this program/i.test(t)), []);
+  // Variants: the rewritten programs (later batches remove the rest).
+  const done = Object.entries(variants()).filter(([p]) => VARIANTS_DONE.includes(p.split('.')[0]) || VARIANTS_DONE.includes(p.split('.').slice(0, 2).join('.'))).map(([, t]) => t);
+  const texts = [...done, ...Object.values(entries())];
+  assert.deepStrictEqual(texts.filter(t => /in-code|this app's own citations|the same citation this program|own rest-day note|see its own overview/i.test(t)), []);
 });
 
 run();
