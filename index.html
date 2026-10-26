@@ -1565,6 +1565,56 @@
     border-bottom:1px solid var(--line-bright); font-size:11px; color:var(--text-muted);
   }
   .settings-section > div + div{margin-top:14px;}
+  /* ── v3.377: Settings as an iOS inset-grouped list ─────────────────────────
+     Header (small, muted, no rule) → one rounded group of rows with hairlines
+     between them → footer note. Everything that lands in a group — switch
+     prefs, picker prefs, the rest-alert row, the jump row and the cards moved
+     in at startup (AI, App Health Check, Import Health Data, a finished
+     profile) — is drawn as a row, not as a card inside a sheet. */
+  .settings-section > .care-label:first-child{border-bottom:0; padding:0 16px; margin-bottom:6px; font-size:13px;}
+  .settings-group{position:relative; background:var(--surface2); border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+  .settings-group > [id$="Slot"]{display:contents;}
+  .settings-group > [id$="Slot"] > *, .settings-group > #settingsNotifyRow, .settings-group > .settings-jump{
+    margin:0; padding:10px 16px; border-top:1px solid var(--line);
+  }
+  /* The first row's hairline would double the group's own border: covered. */
+  .settings-group::before{content:''; position:absolute; z-index:1; top:0; left:0; right:0; height:1px; background:var(--surface2);}
+  .settings-group .field-note{font-size:12.5px; margin:2px 0 4px;}
+  .settings-section > .settings-group + .field-note{margin-top:6px; padding:0 16px; font-size:12.5px;}
+  .settings-group .care-label{margin:6px 0 0;}
+  /* A switch row's title already says what it does; the label above it
+     ("Warm-up ramp" over "Build the ramp in as sets I can log") doubled it. */
+  .settings-group > [id$="Slot"] > [id^="pref"]:has(> .save-to-library-label) > .care-label{display:none;}
+  /* Picker rows: the label is the row title, the value sits on the right. */
+  .settings-group > [id$="Slot"] > [id^="pref"]:has(> select){display:grid; grid-template-columns:1fr auto; align-items:center; column-gap:12px;}
+  .settings-group > [id$="Slot"] > [id^="pref"]:has(> select) > .care-label{margin:0; font-size:15px; color:var(--text); white-space:nowrap;}
+  .settings-group > [id$="Slot"] > [id^="pref"]:has(> select) > .field-note{grid-column:1 / -1;}
+  .settings-panel-body .settings-group select{
+    width:auto; max-width:190px; min-height:44px; margin:0; padding:0 18px 0 0; background-color:transparent; border:0; box-shadow:none;
+    font-size:15px; color:var(--text-muted); text-align:right; text-align-last:right; -webkit-appearance:none; appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 16' fill='none' stroke='%238B929B' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 6l3-3 3 3M2 10l3 3 3-3'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right center; background-size:9px 14px;
+  }
+  /* The rest-alert action reads as a blue action row, not a boxed button. */
+  #settingsNotifyRow > .care-label{margin:0; font-size:15px; color:var(--text);}
+  .settings-group #settingsNotifyBtn{width:100%; min-height:44px; margin:0; padding:0; background:none; border:0; box-shadow:none; color:var(--plate-blue); text-align:left; font-size:15px; font-weight:400;}
+  /* Jump and card rows. */
+  .settings-group .settings-jump{display:flex; width:100%; min-height:44px; background:transparent; border-left:0; border-right:0; border-bottom:0; border-radius:0; box-shadow:none; font-size:15px;}
+  .settings-panel-body .settings-group .card{background:transparent; border-left:0; border-right:0; border-bottom:0; border-radius:0; box-shadow:none;}
+  .settings-group .card .card-title{font-size:15px; font-weight:500; margin:0; min-height:24px;}
+  /* Rows start at one edge: the cards' icons would indent three rows past the
+     plain ones, and their chevrons go grey like every other disclosure row. */
+  .settings-group .card .card-icon{display:none;}
+  .settings-group .card .ex-chevron{color:var(--text-muted);}
+  .settings-group .card .nutrition-summary{margin:2px 0;}
+  /* A row's one-line summary is for when it is closed; open, the detail
+     below says the same thing at length (and for AI, "Key saved — AI
+     features ready" sat right above the "Connected" row). */
+  .settings-group .card:has(> .nutrition-header.open) > .nutrition-summary{display:none;}
+  /* A group whose only slot has received nothing (the profile, before it is
+     set up) would draw as an empty outline. */
+  .settings-group:has(> [id$="Slot"]:only-child:empty){display:none;}
+  .settings-group .card .expand-wrap > div{padding-left:0;}
   .settings-jump{
     display:flex; align-items:center; justify-content:space-between; width:100%;
     background:var(--surface2); border:1px solid var(--line-bright); border-radius:var(--radius-sm);
@@ -5290,7 +5340,7 @@
         <div id="prefLoadMode">
           <label class="care-label">Load suggestions</label>
           <select id="loadModeSelect" class="care-input" aria-label="How suggested weights are calculated">
-            <option value="progression">Double progression (default)</option>
+            <option value="progression">Double progression</option>
             <option value="rpe">RPE targets</option>
           </select>
           <div class="history-hint field-note" id="loadModeNote"></div>
@@ -6423,35 +6473,41 @@
          The optional integration and the maintenance tools are last: both are
          set-up-once, and one of them contains the destructive actions. -->
 
+    <!-- v3.377: each section is an iOS inset group — header, one rounded group
+         of rows (.settings-group), then any footer note below it. The slots
+         are display:contents inside the group, so the rows they receive at
+         startup sit directly in it. -->
     <div class="settings-section">
       <label class="care-label">During a workout</label>
-      <div id="settingsWorkoutSlot"></div>
-      <div id="settingsNotifyRow">
-        <label class="care-label">Rest alerts</label>
-        <button type="button" class="switch-profile-btn" id="settingsNotifyBtn">Allow notifications when rest is over</button>
-        <div class="history-hint field-note" id="settingsNotifyNote"></div>
+      <div class="settings-group">
+        <div id="settingsWorkoutSlot"></div>
+        <div id="settingsNotifyRow">
+          <label class="care-label">Rest alerts</label>
+          <button type="button" class="switch-profile-btn" id="settingsNotifyBtn">Allow notifications when rest is over</button>
+          <div class="history-hint field-note" id="settingsNotifyNote"></div>
+        </div>
       </div>
     </div>
 
     <div class="settings-section">
       <label class="care-label">Units &amp; suggestions</label>
-      <div id="settingsUnitsSlot"></div>
+      <div class="settings-group"><div id="settingsUnitsSlot"></div></div>
     </div>
 
     <div class="settings-section">
       <label class="care-label">You</label>
+      <div class="settings-group"><div id="settingsProfileSlot"></div></div>
       <div class="history-hint field-note">Your units, dietary restrictions, equipment and health conditions, all in one place.</div>
-      <div id="settingsProfileSlot"></div>
     </div>
 
     <div class="settings-section">
       <label class="care-label">AI features</label>
-      <div id="settingsAiSlot"></div>
+      <div class="settings-group"><div id="settingsAiSlot"></div></div>
     </div>
 
     <div class="settings-section">
       <label class="care-label">Data &amp; maintenance</label>
-      <div class="history-hint field-note">Your data lives only in this browser. An export is the only copy outside it.</div>
+      <div class="settings-group">
       <button type="button" class="settings-jump" data-jump-to="exportDataBtn"><span>Backup &amp; restore your data</span><span>›</span></button>
       <!-- App Health Check and Import Health Data used to live on the Log
            tab, mixed into the same scroll as daily weight/food/sleep
@@ -6462,6 +6518,8 @@
            to scroll to something now living inside it would just hide its
            own target. -->
       <div id="settingsMaintenanceSlot"></div>
+      </div>
+      <div class="history-hint field-note">Your data lives only in this browser. An export is the only copy outside it.</div>
     </div>
 </div>
     </div>
@@ -6724,7 +6782,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.376';
+const APP_VERSION = '3.377';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7659,6 +7717,9 @@ const WHATS_NEW = {
   ]},
   '3.376': { headline: 'Every exercise logs like Up next', points: [
     'Open any exercise and it logs the way the Up next card does: big weight, reps and RPE tiles with one Log set button, instead of rows of small fields.',
+  ]},
+  '3.377': { headline: 'Settings, tidied', points: [
+    'Settings is laid out like iOS Settings: each section is one rounded group of rows, with the explanation under each.',
   ]},
 };
 
