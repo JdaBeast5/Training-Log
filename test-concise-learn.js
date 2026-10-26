@@ -31,6 +31,7 @@ const DONE = [
   'CYCLING_TECHNIQUE_DETAILS', // v3.344
   'GRAPPLE_TECHNIQUE_DETAILS', // v3.345
   'CLIMB_TECHNIQUE_DETAILS', // v3.346
+  'SWIM_STROKE_DETAILS', // v3.347
 ];
 
 const MUST_KEEP = [
@@ -57,6 +58,8 @@ const MUST_KEEP = [
   /without ever turning your back/, /ankle-lock counter/, /not cranking the neck/,
   // v3.346
   /A2 pulley/, /cranking monos or two-finger pockets cold/, /years of healthy tendon loading/,
+  // v3.347
+  /holding your breath/, /bicycle or scissor kick/, /pull-breathe-kick-glide|pull, breathe, kick, glide/,
 ];
 
 function learn(){
