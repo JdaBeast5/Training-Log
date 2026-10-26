@@ -6619,7 +6619,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.319';
+const APP_VERSION = '3.320';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7421,6 +7421,8 @@ const WHATS_NEW = {
     'The other twelve main programs get the same shorter overviews, with every safety note kept.',
   ]},  '3.319': { headline: 'Shorter style overviews', points: [
     'Martial-art, cycling and yoga styles have shorter overviews, with every limit and safety note kept.',
+  ]},  '3.320': { headline: 'Shorter watersports overviews', points: [
+    'The six watersports have shorter overviews, keeping what each trains, why, and what only time on the water can teach.',
   ]},
 };
 
@@ -10946,7 +10948,7 @@ const CYCLING_STYLES = {
 // paddling/riding out for the first time.
 const WATERSPORTS_STYLES = {
   surfing: {
-    label: 'Surfing', short: 'Land-based paddle power, rotational power, pop-up speed, and shoulder health', overview: 'Land-based support training for surfing — paddle-pattern pulling power, rotational power, pop-up speed, and posterior-shoulder health — since the actual surfing skill only develops in the water, this never will. Paddle-power and rotational-power/pop-up days open the week, a dedicated posterior-shoulder injury-prevention day follows (paddling is the majority of a real session and the leading mechanism behind shoulder injuries here too), and leg-power/balance and endurance days round it out. Real GPS/heart-rate data on competitive surfing found paddling makes up roughly half of total session time versus a small fraction actually riding waves — directly why this program is built the way it is. This is land conditioning only; it can\'t teach wave judgment, positioning, or board control, which need real ocean time and ideally real instruction.',
+    label: 'Surfing', short: 'Land-based paddle power, rotational power, pop-up speed, and shoulder health', overview: 'Land training for surfing — paddling power, rotational power, pop-up speed and posterior-shoulder health — because paddling fills about half a session and drives most shoulder injuries. Paddle, pop-up, shoulder-prevention, leg-power/balance and endurance days fill the week. Land conditioning only: wave judgment, positioning and board control need ocean time and ideally instruction.',
     days: {
       d1: {
         label:'Day 1', sub:'Paddle Power & Endurance', plate:'p-red', plateNum:'25', duration:'~40 min',
@@ -11004,7 +11006,7 @@ const WATERSPORTS_STYLES = {
     }
   },
   skimboarding: {
-    label: 'Skimboarding', short: 'Land-based sprint power, ankle stability, and fall-ready strength', overview: 'Land-based support training for skimboarding — explosive running, ankle stability, and grip/wrist strength — built directly from the sport\'s own documented injury pattern rather than generic athletic conditioning. Explosive-running/acceleration and ankle-stability/landing-control days open the week, grip/wrist/fall-ready strength and rotational-power/core days follow, building to a full sprint-to-board conditioning day. Real injury data shows the planted-foot rotation used to stop the board and falls onto an outstretched hand are the two dominant injury mechanisms — directly why ankle stability and grip/wrist strength each get their own day rather than generic full-body work. This is land support only; it can\'t teach the timing of the run-and-drop or reading sand/tide conditions, which take real practice, ideally with someone experienced showing you first.',
+    label: 'Skimboarding', short: 'Land-based sprint power, ankle stability, and fall-ready strength', overview: 'Land training for skimboarding — explosive running, ankle stability and grip/wrist strength — built from its two main injuries: rotating on a planted foot to stop the board, and falling onto an outstretched hand. Days build to a sprint-to-board conditioning session. Land support only: the run-and-drop timing and reading sand and tide take real practice, ideally with someone experienced.',
     days: {
       d1: {
         label:'Day 1', sub:'Explosive Running & Acceleration', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -11061,7 +11063,7 @@ const WATERSPORTS_STYLES = {
     }
   },
   wakeboarding: {
-    label: 'Wakeboarding', short: 'Land-based landing mechanics, posterior-shoulder stability, and rope-pull grip strength', overview: 'Land-based support training for wakeboarding — landing mechanics, posterior-shoulder stability, and rope-pull grip strength — built from the sport\'s two best-documented injury findings: an unusually high ACL-tear rate from hard jump landings, and shoulder dislocation as the dominant upper-body injury. Landing-mechanics and posterior-shoulder days open the week, rope-pull/grip strength and edge-control/rotational-power days follow, closing with a full landing-to-ride conditioning day. Survey data found over 40% of wakeboarders report tearing an ACL specifically while wakeboarding — most from a hard landing, not a twist — directly why the landing-mechanics day exists as its own full session. Real limit: head and neck injuries are actually the single largest wakeboarding injury category, and land-based strength training genuinely can\'t address that — it\'s a helmet/technique issue this program doesn\'t and can\'t cover.',
+    label: 'Wakeboarding', short: 'Land-based landing mechanics, posterior-shoulder stability, and rope-pull grip strength', overview: 'Land training for wakeboarding — landing mechanics, posterior-shoulder stability and rope-pull grip. Over 40% of wakeboarders report an ACL tear, mostly from hard landings, and shoulder dislocation leads upper-body injuries. Real limit: head and neck injuries are the largest category, and strength training can\'t address them; that\'s down to helmets and technique.',
     days: {
       d1: {
         label:'Day 1', sub:'Landing Mechanics & Deceleration Power', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -11119,7 +11121,7 @@ const WATERSPORTS_STYLES = {
     }
   },
   kiteAssisted: {
-    label: 'Kite-Assisted Surfing', short: 'Land-based core/lumbar endurance, landing mechanics, and grip/shoulder stamina', overview: 'Land-based support training for kite-assisted surfing — sustained core/lumbar endurance for the leaned-back riding stance, landing mechanics for jumps, and grip/shoulder endurance for holding the bar. Core-and-lumbar-stability and landing-mechanics days open the week, grip/forearm/shoulder endurance and explosive-power/core-rotation days follow, closing with aerobic-anaerobic conditioning matching the sport\'s real intensity swings between cruising and freestyle tricks. The riding stance itself is a sustained, near-isometric hold against the kite\'s pull, and real injury data shows the ankle is the single most commonly hurt joint from jump landings — both directly shape this program\'s structure. Most important limit: no land exercise substitutes for real, supervised kite-control instruction — body-dragging, kite handling, and self-rescue are safety-critical skills a kite school needs to teach hands-on.',
+    label: 'Kite-Assisted Surfing', short: 'Land-based core/lumbar endurance, landing mechanics, and grip/shoulder stamina', overview: 'Land training for kite-assisted surfing — core and lower-back endurance for the leaned-back stance against the kite, and grip and shoulder endurance for the bar. Landing mechanics get their own day, since the ankle is the joint jumps hurt most. Most important limit: nothing on land replaces supervised kite instruction; body-dragging, kite handling and self-rescue are safety-critical skills a kite school must teach.',
     days: {
       d1: {
         label:'Day 1', sub:'Core & Lumbar Stability', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -11177,7 +11179,7 @@ const WATERSPORTS_STYLES = {
     }
   },
   sup: {
-    label: 'Stand-Up Paddleboarding', short: 'Land-based paddling-pattern shoulder strength, core endurance, and hip-driven rotational power', overview: 'Land-based support training for stand-up paddleboarding — paddling-pattern shoulder strength, core endurance for the real trunk load an upright stroke creates, and hip-driven rotational power. Paddling-pattern/shoulder-health and core-endurance days open the week, grip/forearm/posterior-shoulder endurance and rotational-power/sprint days follow, closing with full-body aerobic conditioning. Real injury survey data found the shoulder is the single most commonly injured region in SUP, with endurance paddling itself (not falls or collisions) the leading mechanism — directly why shoulder health gets sustained attention here rather than just falls-prevention. One real nuance: motion analysis found experienced paddlers actually drive the stroke from the hips far more than beginners do, which is why this program deliberately trains hip rotation, not just arms.',
+    label: 'Stand-Up Paddleboarding', short: 'Land-based paddling-pattern shoulder strength, core endurance, and hip-driven rotational power', overview: 'Land training for stand-up paddleboarding — shoulder strength for the stroke, core endurance for the upright trunk load, and hip-driven rotation. Shoulder health gets sustained attention because the shoulder is the most-injured area, mostly from long paddling rather than falls. Hip rotation is trained deliberately, since experienced paddlers drive the stroke from the hips far more than beginners do.',
     days: {
       d1: {
         label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -11235,7 +11237,7 @@ const WATERSPORTS_STYLES = {
     }
   },
   kayaking: {
-    label: 'Kayaking', short: 'Land-based paddling-pattern strength, core/lumbar endurance, and the leg drive most kayak training skips', overview: 'Land-based support training for kayaking — paddling-pattern shoulder strength, core/lumbar endurance, and the leg drive most kayak training completely overlooks. Paddling-pattern/shoulder-health and core/lumbar-endurance days open the week, leg-drive/lower-body-power and grip/wrist/forearm-endurance days follow, closing with rotational-power/full-body conditioning. Real biomechanical testing found that removing leg drive from the stroke (locking the knees) cut paddle force by over a fifth and boat speed by nearly a sixth — direct, measured proof kayaking is not an arms-only sport, which is exactly why this program gives legs their own dedicated day. Injury data also shows the lower back and shoulder are the most commonly hurt sites in kayaking, matching the core/lumbar and shoulder emphasis here.',
+    label: 'Kayaking', short: 'Land-based paddling-pattern strength, core/lumbar endurance, and the leg drive most kayak training skips', overview: 'Land training for kayaking — shoulder strength for the stroke, core and lower-back endurance, and the leg drive most kayak training overlooks. Locking the knees cut paddle force by over a fifth in testing, so legs get their own day. The emphasis on core, lower back and shoulders matches where kayakers most often get hurt.',
     days: {
       d1: {
         label:'Day 1', sub:'Paddling-Pattern Strength & Shoulder Health', plate:'p-red', plateNum:'25', duration:'~35 min',

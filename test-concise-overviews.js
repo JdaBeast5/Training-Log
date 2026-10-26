@@ -58,6 +58,13 @@ const MUST_KEEP = {
   'YOGA_STYLES.flow': [/Restorative/, /moderate intensity/, /not calorie burn/],
   'YOGA_STYLES.hot': [/hydration/, /doesn't clearly beat unheated yoga/, /pregnancy/, /medical clearance/],
   'YOGA_STYLES.couples': [/person being stretched sets the depth/, /out loud/],
+  // v3.320 — watersports disciplines
+  'WATERSPORTS_STYLES.surfing': [/paddling/, /posterior-shoulder/, /Land conditioning only/],
+  'WATERSPORTS_STYLES.skimboarding': [/planted foot/, /outstretched hand/, /Land support only/],
+  'WATERSPORTS_STYLES.wakeboarding': [/ACL/, /shoulder dislocation/, /head and neck injuries/, /can't address/],
+  'WATERSPORTS_STYLES.kiteAssisted': [/ankle/, /supervised kite instruction/, /self-rescue/],
+  'WATERSPORTS_STYLES.sup': [/most-injured/, /from the hips/],
+  'WATERSPORTS_STYLES.kayaking': [/leg drive/, /Locking the knees/, /lower back/],
 };
 
 function entries(){
