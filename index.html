@@ -6619,7 +6619,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.320';
+const APP_VERSION = '3.321';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7423,6 +7423,8 @@ const WHATS_NEW = {
     'Martial-art, cycling and yoga styles have shorter overviews, with every limit and safety note kept.',
   ]},  '3.320': { headline: 'Shorter watersports overviews', points: [
     'The six watersports have shorter overviews, keeping what each trains, why, and what only time on the water can teach.',
+  ]},  '3.321': { headline: 'Shorter medical program overviews', points: [
+    'The thirteen medically modified programs have shorter overviews. Every clearance step, limit and warning sign is still there.',
   ]},
 };
 
@@ -9803,7 +9805,7 @@ document.addEventListener('click', (e)=>{
 const MEDICAL_STYLES = {
   obesity: {
     group: 'Metabolic & Cardiac',
-    label: 'Obesity-Modified', short: 'Low-impact, joint-friendly entry point grounded in ACSM exercise prescription guidance — start low, go slow, and progress from here whenever you\'re ready.', overview: 'A low-impact, joint-friendly entry point that prioritizes being able to repeat the session consistently over how hard any single session is — grounded in real clinical guidance finding that consistency itself, more than any specific training variable, is what actually matters for this population. Low-impact cardio and joint-friendly lower-body strength days open the week, a full-body circuit and active-recovery day follow, building comfortable capacity rather than pushing intensity early. Progression comes from doing more of what you can already do consistently, not from being pushed into harder sessions before you\'re ready. This is a healthy-adult guideline applied with clinical-population care, not a medical treatment plan — it doesn\'t address medication, bariatric surgery, or other conditions specifically.',
+    label: 'Obesity-Modified', short: 'Low-impact, joint-friendly entry point grounded in ACSM exercise prescription guidance — start low, go slow, and progress from here whenever you\'re ready.', overview: 'A low-impact, joint-friendly start that puts repeating sessions consistently ahead of how hard any one session is, since clinical guidance finds consistency matters most. Cardio, lower-body strength, circuit and recovery days build capacity, and progression means doing more of what you can already do. It\'s healthy-adult guidance applied with care, not a treatment plan — it doesn\'t address medication, bariatric surgery or other conditions.',
     days: {
       d1: {
         label:'Day 1', sub:'Low-Impact Cardio + Upper Body', plate:'p-red', plateNum:'25', duration:'~30 min',
@@ -9863,7 +9865,7 @@ const MEDICAL_STYLES = {
   },
   hypertension: {
     group: 'Metabolic & Cardiac',
-    label: 'Hypertension / Cardiac-Modified', short: 'Moderate, steady effort with careful breathing technique — never hold your breath under load. ⚠️ Get clearance from your doctor first, especially if you\'re on blood pressure medication or have any cardiac history.', overview: 'Moderate, steady aerobic and resistance effort with one hard rule built into every lift: never hold your breath under load, since breath-holding measurably spikes blood pressure far more than exhaling through the same lift does. Moderate aerobic days alternate with full-body resistance days, with active recovery and stretching worked in rather than pushed to the margins. Real network meta-analysis data found combined aerobic-and-resistance training among the most effective non-drug approaches for lowering blood pressure — the actual basis for pairing both here instead of picking one. Get clearance from your doctor first, especially if you\'re on blood pressure medication or have any cardiac history — this can\'t tell you whether your blood pressure is controlled enough to train safely.',
+    label: 'Hypertension / Cardiac-Modified', short: 'Moderate, steady effort with careful breathing technique — never hold your breath under load. ⚠️ Get clearance from your doctor first, especially if you\'re on blood pressure medication or have any cardiac history.', overview: 'Moderate aerobic and resistance work with one hard rule on every lift: never hold your breath under load, because breath-holding spikes blood pressure. Both are here because combining them is among the most effective non-drug ways to lower blood pressure. Get your doctor\'s clearance first, especially on blood pressure medication or with any cardiac history — this can\'t tell whether your blood pressure is controlled enough to train safely.',
     days: {
       d1: {
         label:'Day 1', sub:'Moderate Aerobic', plate:'p-red', plateNum:'25', duration:'~30 min',
@@ -9916,7 +9918,7 @@ const MEDICAL_STYLES = {
   },
   diabetes: {
     group: 'Metabolic & Cardiac',
-    label: 'Type 2 Diabetes-Modified', short: 'Combined aerobic and resistance training, with activity timed after meals specifically — that timing measurably helps blood glucose, not just general fitness. ⚠️ Talk to your care team about hypoglycemia risk if you use insulin or other glucose-lowering medication.', overview: 'Combined aerobic and resistance training, with one specific and deliberate detail: short walks are placed right after meals, not wherever they fit the training logic, because real trial data found that timing alone — not just the total minutes — measurably improves blood sugar control. Post-meal walks pair with upper-body work early in the week, resistance and core days follow, and a combined full-body circuit closes things out. That post-meal walk timing is the actual intervention here — moving it to satisfy a "lift first" instinct would undercut the entire point of including it. Talk to your care team about hypoglycemia risk if you use insulin or other glucose-lowering medication — this program has no way to detect or manage that risk itself.',
+    label: 'Type 2 Diabetes-Modified', short: 'Combined aerobic and resistance training, with activity timed after meals specifically — that timing measurably helps blood glucose, not just general fitness. ⚠️ Talk to your care team about hypoglycemia risk if you use insulin or other glucose-lowering medication.', overview: 'Combined aerobic and resistance training, with short walks placed right after meals, because that timing alone measurably improves blood sugar control. Keep the walks after meals; moving them undercuts the point. Talk to your care team about hypoglycemia risk if you use insulin or other glucose-lowering medication — this program can\'t detect or manage that risk.',
     days: {
       d1: {
         label:'Day 1', sub:'Post-Meal Walk + Upper Body', plate:'p-red', plateNum:'25', duration:'~30 min',
@@ -9973,7 +9975,7 @@ const MEDICAL_STYLES = {
   },
   osteoporosis: {
     group: 'Bone Health',
-    label: 'Osteoporosis / Low Bone Density', short: 'Weight-bearing and resistance work to build bone strength, built around one key rule: no spinal flexion under load. ⚠️ Confirm with your doctor which activities fit your specific bone density and fracture history.', overview: 'Weight-bearing and resistance work chosen specifically because bone responds to load — built around one rule that\'s a genuine bright line, not a soft suggestion: no spinal flexion under load, anywhere in the program. Weight-bearing cardio and posture work open the week, lower- and upper-body resistance days follow, with dedicated balance/fall-prevention and posture/gentle-extension days rounding things out. A UK consensus statement specifically recommends weight-bearing impact, resistance training, and balance work together, and explicitly says high-flexion postures and end-range twisting should be avoided — exactly what this program is built around and deliberately leaves out. This can\'t assess your actual fracture risk; that needs a DEXA scan and a clinician\'s input, and any activity here should be confirmed against your specific bone density and fracture history first.',
+    label: 'Osteoporosis / Low Bone Density', short: 'Weight-bearing and resistance work to build bone strength, built around one key rule: no spinal flexion under load. ⚠️ Confirm with your doctor which activities fit your specific bone density and fracture history.', overview: 'Weight-bearing, resistance and balance work, because bone responds to load, with one bright line: no spinal flexion under load anywhere, and no end-range twisting, as UK consensus guidance advises. Posture and fall-prevention days are built in. This can\'t assess your fracture risk; that needs a DEXA scan and a clinician, so confirm activities against your bone density and fracture history first.',
     days: {
       d1: {
         label:'Day 1', sub:'Weight-Bearing Cardio + Posture', plate:'p-red', plateNum:'25', duration:'~25 min',
@@ -10031,7 +10033,7 @@ const MEDICAL_STYLES = {
   },
   bariatricEarly: {
     group: 'Bariatric Surgery Recovery',
-    label: 'Early Recovery', short: 'Roughly the first ~12 weeks — walking-first, no core work, no heavy lifting. Please confirm every stage with your surgical/bariatric team before advancing; this app has no way to know your actual clearance.', overview: 'Roughly the first three months after surgery — walking-first, deliberately unambitious, and with zero abdominal work anywhere in the program. Walking-focus and breathing days open the week, gentle mobility with no core loading and progressive walking-plus-light-strength days follow, all built around real expert guidelines for this exact recovery phase. The absence of planks and sit-ups is the actual guideline, not an oversight — abdominal work is delayed 8-12 weeks post-op on purpose, and "completing" this program with core work would work against your own recovery. Please confirm every stage with your surgical team before advancing — this program has no way to know your actual clearance status.',
+    label: 'Early Recovery', short: 'Roughly the first ~12 weeks — walking-first, no core work, no heavy lifting. Please confirm every stage with your surgical/bariatric team before advancing; this app has no way to know your actual clearance.', overview: 'Roughly the first three months after surgery: walking first, deliberately unambitious, with gentle mobility, breathing and light strength. There is no abdominal work at all, on purpose — guidelines delay it 8-12 weeks after surgery, and adding planks or sit-ups would work against your recovery. Confirm every stage with your surgical team before advancing; this program can\'t know your clearance status.',
     days: {
       d1: {
         label:'Day 1', sub:'Walking Focus & Breathing', plate:'p-red', plateNum:'25', duration:'~20 min',
@@ -10104,7 +10106,7 @@ const MEDICAL_STYLES = {
   },
   bariatricRebuilding: {
     group: 'Bariatric Surgery Recovery',
-    label: 'Rebuilding Phase', short: 'From roughly month 3 onward, once your team has cleared full activity — real resistance training with protein and bone-loading kept front and center. There\'s no fixed end date to this phase: whenever you and your team feel ready, moving to any standard program in this app (Strength & Size and general fitness programs are both reasonable) is completely fine — there\'s nothing bariatric-specific left to need once you\'re here consistently.', overview: 'From roughly month three onward, once your surgical team has cleared full activity — real resistance training resumes here, with protein and bone-loading kept front and center for a body that\'s been through rapid, significant change. Full-body strength days alternate with cardio-and-core-introduction and cardio-and-balance days, reintroducing the training elements the early-recovery phase deliberately left out. There\'s no fixed end date to this phase — entering it is a clinical decision your team makes, not a calendar date this app tracks. Once you\'re training consistently here, moving to any standard program in this app (Strength & Size and general fitness programs are both reasonable) is completely fine — there\'s nothing bariatric-specific left to need.',
+    label: 'Rebuilding Phase', short: 'From roughly month 3 onward, once your team has cleared full activity — real resistance training with protein and bone-loading kept front and center. There\'s no fixed end date to this phase: whenever you and your team feel ready, moving to any standard program in this app (Strength & Size and general fitness programs are both reasonable) is completely fine — there\'s nothing bariatric-specific left to need once you\'re here consistently.', overview: 'From about month three, once your surgical team clears full activity: resistance training resumes, with protein and bone loading front and centre, and core and balance work return. Entering this phase is your team\'s clinical decision, not a date this app tracks. Once you train consistently here, moving to any standard program, such as Strength & Size, is fine.',
     days: {
       d1: {
         label:'Day 1', sub:'Full-Body Strength A', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -10183,7 +10185,7 @@ const MEDICAL_STYLES = {
   },
   prenatal: {
     group: 'Pregnancy & Postpartum',
-    label: 'Prenatal', short: 'Moderate, fall-risk-aware training for pregnancy — always cleared by your OB first', overview: 'Moderate, fall-risk-aware training built on the actual obstetric guidance position: staying active during pregnancy is the recommended default, not something to avoid out of caution. Gentle full-body strength and cardio-and-balance days open the week, upper-body/posture and functional-strength days follow, with gentle cardio and stretching closing things out. "Strength" here means real resistance training, not the low-rep heavy-strength tier used elsewhere in this app — that distinction matters and is enforced throughout. Clinical evaluation should precede starting this or any exercise program during pregnancy — get cleared by your OB first, and stop and call your provider for any of the real warning signs (bleeding, contractions, chest pain, dizziness) this app has no way to detect.',
+    label: 'Prenatal', short: 'Moderate, fall-risk-aware training for pregnancy — always cleared by your OB first', overview: 'Moderate, fall-risk-aware training, following obstetric guidance that staying active in pregnancy is the recommended default. Strength here means moderate resistance training, not the heavy low-rep tier used elsewhere in this app. Get cleared by your OB before starting, and stop and call your provider for warning signs this app can\'t detect: bleeding, contractions, chest pain or dizziness.',
     days: {
       d1: { label:'Day 1', sub:'Gentle Full-Body Strength', plate:'p-red', plateNum:'25', duration:'~30 min',
         exercises:[
@@ -10228,7 +10230,7 @@ const MEDICAL_STYLES = {
   },
   postpartum: {
     group: 'Pregnancy & Postpartum',
-    label: 'Postpartum', short: 'Diastasis-aware, pelvic-floor-first return to training — always cleared by your provider first', overview: 'A diastasis-aware, pelvic-floor-first return to training, sequenced so the tissue that actually took the load during pregnancy and delivery recovers before it gets loaded again. Foundational core-and-breath work opens the week, gentle cardio progression follows, and upper-body and lower-body rebuild days close things out — deliberately gradual, not a fast return to a pre-pregnancy program. Typical timelines (around 4-6 weeks after an uncomplicated vaginal delivery, longer after a caesarean) are just that — typical, not personal, and they differ meaningfully based on your own delivery. This can\'t assess diastasis recti or pelvic floor function itself; both need in-person assessment, and any leaking, heaviness, or pain means getting checked rather than pushing through it.',
+    label: 'Postpartum', short: 'Diastasis-aware, pelvic-floor-first return to training — always cleared by your provider first', overview: 'A diastasis-aware, pelvic-floor-first return, so the tissues that took the load of pregnancy and delivery recover before they\'re loaded again: core and breath work, then gradual cardio and strength. Typical timelines (about 4-6 weeks after an uncomplicated vaginal delivery, longer after a caesarean) are not personal. This can\'t assess diastasis recti or pelvic floor function; any leaking, heaviness or pain means getting checked, not pushing through.',
     days: {
       d1: { label:'Day 1', sub:'Foundational Core & Breath', plate:'p-red', plateNum:'25', duration:'~25 min',
         exercises:[
@@ -10272,7 +10274,7 @@ const MEDICAL_STYLES = {
   },
   rehabGeneral: {
     group: 'Injury Rehab',
-    label: 'General / Multiple Areas', short: 'A broad week touching shoulder, back, knee, hip, and ankle — a reasonable default if you don\'t have one specific injury in mind. ⚠️ General guidance only — see a doctor/PT for an actual diagnosis.', overview: 'A broad week touching shoulder, back, knee, hip, and ankle — a reasonable default if more than one area needs attention, or you\'re honestly not sure yet which one is actually the problem. Each day borrows its exercises directly from this app\'s own dedicated regional tracks (shoulder day pulls from the Shoulder program, back day from the Lower Back program, and so on), rather than inventing a generic one-size-fits-all protocol that doesn\'t really exist in real rehab practice. Breadth is the deliberate trade-off here — nothing in this week is dosed for one specific diagnosis. If you do know which area is the actual problem, that program\'s own dedicated track will serve you better than this general one; an undiagnosed problem needs diagnosing by a doctor or PT, not just training around.',
+    label: 'General / Multiple Areas', short: 'A broad week touching shoulder, back, knee, hip, and ankle — a reasonable default if you don\'t have one specific injury in mind. ⚠️ General guidance only — see a doctor/PT for an actual diagnosis.', overview: 'A broad week covering shoulder, back, knee, hip and ankle, for when more than one area needs attention or you\'re not sure which. Each day borrows from this app\'s dedicated regional tracks, so nothing is dosed for one diagnosis. If you know the problem area, its own track will serve you better, and an undiagnosed problem needs a doctor or PT, not just training around.',
     days: {
       d1: {
         label:'Day 1', sub:'Shoulder Mobility & Stability', plate:'p-red', plateNum:'25', duration:'~25 min',
@@ -10335,7 +10337,7 @@ const MEDICAL_STYLES = {
   },
   rehabShoulder: {
     group: 'Injury Rehab',
-    label: 'Shoulder (Rotator Cuff / Impingement)', short: 'The standard 3-phase structure — calm the tissue first, then rebuild rotator cuff and scapular strength, then reintroduce overhead work. ⚠️ Overhead/loaded progression should be cleared by a doctor or PT, not self-timed.', overview: 'The standard three-phase rehab structure — calm the tissue down first, then rebuild rotator cuff and scapular strength, then reintroduce overhead work — rather than jumping straight to strengthening a joint that\'s still irritated. Gentle mobility and a postural reset make up Phase 1, rotator cuff strengthening and scapular stability work make up Phase 2, with active recovery worked in throughout. Real trial evidence backs pairing scapular stabilization with rotator cuff work specifically, rather than training the rotator cuff in isolation. This can\'t distinguish a rotator cuff problem from instability or referred neck pain, which need different treatment — progression between phases should be criterion-based and confirmed by a doctor or PT, not just self-timed.',
+    label: 'Shoulder (Rotator Cuff / Impingement)', short: 'The standard 3-phase structure — calm the tissue first, then rebuild rotator cuff and scapular strength, then reintroduce overhead work. ⚠️ Overhead/loaded progression should be cleared by a doctor or PT, not self-timed.', overview: 'The standard three phases: calm the tissue first, then rebuild rotator cuff and scapular strength (trial evidence backs pairing the two), then reintroduce overhead work. This can\'t tell a rotator cuff problem from instability or referred neck pain, which need different treatment. Move between phases on criteria confirmed by a doctor or PT, not on a self-set timeline.',
     days: {
       d1: {
         label:'Day 1', sub:'Phase 1 · Gentle Mobility', plate:'p-red', plateNum:'25', duration:'~20 min',
@@ -10390,7 +10392,7 @@ const MEDICAL_STYLES = {
   },
   rehabAcl: {
     group: 'Injury Rehab',
-    label: 'ACL (Post-Surgical or Non-Surgical)', short: 'A real recovery here runs 9-12 months and is criterion-based, not calendar-based — this is a framework to use alongside your surgeon and physical therapist, not instead of them. Re-injury risk from returning too early is real and well-documented.', overview: 'A long, criterion-based track — real ACL recovery runs nine to twelve months and progresses based on what you can actually do, not on how many weeks have passed on a calendar. Early quad activation and swelling control open the recovery, progressive strengthening and balance/proprioception work follow as tolerance builds. Real cohort data found athletes who returned to sport without passing return-to-sport testing got reinjured at nearly seven times the rate of those who passed — the actual reason this program keeps saying wait for criteria, not weeks. This is a framework to use alongside your surgeon and physical therapist, not instead of them — the actual gating criteria (strength testing, hop tests, psychological readiness) are exactly what this app can\'t measure.',
+    label: 'ACL (Post-Surgical or Non-Surgical)', short: 'A real recovery here runs 9-12 months and is criterion-based, not calendar-based — this is a framework to use alongside your surgeon and physical therapist, not instead of them. Re-injury risk from returning too early is real and well-documented.', overview: 'A long, criterion-based track: ACL recovery takes nine to twelve months and progresses on what you can do, not weeks passed, from quad activation and swelling control to strength and balance. Athletes who returned to sport without passing testing were reinjured at nearly seven times the rate. Use it alongside your surgeon and physical therapist; the gating tests (strength, hops, readiness) are what this app can\'t measure.',
     days: {
       d1: {
         label:'Day 1', sub:'Early Quad Activation & ROM', plate:'p-red', plateNum:'25', duration:'~20 min',
@@ -10445,7 +10447,7 @@ const MEDICAL_STYLES = {
   },
   rehabAchilles: {
     group: 'Injury Rehab',
-    label: 'Achilles Tendon', short: 'Grounded in the Alfredson eccentric-loading protocol, the most studied conservative approach for Achilles tendinopathy — a 12-week progressive program. ⚠️ Confirm with a doctor/PT whether this fits your specific situation (tendinopathy vs. rupture are very different).', overview: 'Grounded in the Alfredson eccentric-loading protocol — the most studied conservative approach for mid-portion Achilles tendinopathy — at a repetition volume you can actually sustain rather than the twice-daily full protocol. Eccentric loading days alternate with mobility/isometric work, building to progressive loading and balance work over a 12-week arc. Real trial evidence supports a reduced-volume, do-as-tolerated approach achieving comparable results to the full protocol, which is exactly the adjustment made here. This applies specifically to mid-portion tendinopathy, not insertional pain (which often responds badly to the same heel-drop pattern) and not to a suspected rupture, which is a surgical question — confirm with a doctor or PT which one you actually have.',
+    label: 'Achilles Tendon', short: 'Grounded in the Alfredson eccentric-loading protocol, the most studied conservative approach for Achilles tendinopathy — a 12-week progressive program. ⚠️ Confirm with a doctor/PT whether this fits your specific situation (tendinopathy vs. rupture are very different).', overview: 'Based on the Alfredson eccentric-loading protocol for mid-portion Achilles tendinopathy, at a reduced, as-tolerated volume that trials show works comparably, over a 12-week arc. It\'s not for insertional pain, which often responds badly to heel drops, or a suspected rupture, which is a surgical question. Confirm with a doctor or PT which one you have.',
     days: {
       d1: {
         label:'Day 1', sub:'Eccentric Loading A', plate:'p-red', plateNum:'25', duration:'~15 min',
@@ -10503,7 +10505,7 @@ const MEDICAL_STYLES = {
   },
   rehabLowerback: {
     group: 'Injury Rehab',
-    label: 'Lower Back', short: 'Core stabilization first, built on the same principle used elsewhere in this app for spine safety — control through a stable, neutral spine rather than pushing range of motion under load.', overview: 'Stabilization before movement — building real trunk control to tolerate load, rather than stretching into the area that actually hurts. Core stabilization basics and hip/glute activation open the week, core endurance and full-body stabilization work follow, all built on the same McGill spine-stabilization research (the curl-up, side plank, and bird dog specifically) used elsewhere in this app for spine safety. The emphasis throughout is control through a stable, neutral spine rather than pushing range of motion under load. This can\'t identify the genuine red flags that make back pain a medical emergency — bowel/bladder changes, saddle numbness, progressive leg weakness, unexplained weight loss — any of those means stop and seek care immediately, not modify the program.',
+    label: 'Lower Back', short: 'Core stabilization first, built on the same principle used elsewhere in this app for spine safety — control through a stable, neutral spine rather than pushing range of motion under load.', overview: 'Stabilization before movement: building trunk control to tolerate load through a neutral spine, using McGill\'s curl-up, side plank and bird dog, rather than stretching into the painful area. This can\'t identify red flags that make back pain an emergency. Bowel or bladder changes, saddle numbness, progressive leg weakness or unexplained weight loss mean stop and seek care immediately.',
     days: {
       d1: {
         label:'Day 1', sub:'Core Stabilization Basics', plate:'p-red', plateNum:'25', duration:'~20 min',

@@ -65,6 +65,20 @@ const MUST_KEEP = {
   'WATERSPORTS_STYLES.kiteAssisted': [/ankle/, /supervised kite instruction/, /self-rescue/],
   'WATERSPORTS_STYLES.sup': [/most-injured/, /from the hips/],
   'WATERSPORTS_STYLES.kayaking': [/leg drive/, /Locking the knees/, /lower back/],
+  // v3.321 — medically modified programs: every clearance, limit and warning sign
+  'MEDICAL_STYLES.obesity': [/consisten/, /not a treatment plan/, /medication, bariatric surgery/],
+  'MEDICAL_STYLES.hypertension': [/never hold your breath under load/, /doctor's clearance/, /cardiac history/],
+  'MEDICAL_STYLES.diabetes': [/after meals/, /hypoglycemia/, /insulin/, /can't detect or manage/],
+  'MEDICAL_STYLES.osteoporosis': [/no spinal flexion under load/, /twisting/, /DEXA/, /fracture history/],
+  'MEDICAL_STYLES.bariatricEarly': [/no abdominal work/, /8-12 weeks/, /surgical team/],
+  'MEDICAL_STYLES.bariatricRebuilding': [/surgical team clears/, /clinical decision/, /protein/],
+  'MEDICAL_STYLES.prenatal': [/recommended default/, /cleared by your OB/, /bleeding, contractions, chest pain or dizziness/],
+  'MEDICAL_STYLES.postpartum': [/pelvic-floor-first/, /caesarean/, /leaking, heaviness or pain/],
+  'MEDICAL_STYLES.rehabGeneral': [/more than one area/, /doctor or PT/],
+  'MEDICAL_STYLES.rehabShoulder': [/three phases/, /instability or referred neck pain/, /doctor or PT/],
+  'MEDICAL_STYLES.rehabAcl': [/nine to twelve months/, /seven times/, /surgeon and physical therapist/],
+  'MEDICAL_STYLES.rehabAchilles': [/Alfredson/, /insertional/, /rupture/, /doctor or PT/],
+  'MEDICAL_STYLES.rehabLowerback': [/neutral spine/, /McGill/, /saddle numbness/, /seek care immediately/],
 };
 
 function entries(){
@@ -82,9 +96,11 @@ function entries(){
   return all;
 }
 
-test('REAL data: every rewritten overview is at most 70 words', (assert)=>{
+test('REAL data: every rewritten overview is at most 70 words — all 55 by v3.321', (assert)=>{
   const all = entries();
   const keys = Object.keys(MUST_KEEP);
+  assert.strictEqual(Object.keys(all).length, 55, 'anchor: the real 55 programs and styles');
+  assert.deepStrictEqual(Object.keys(all).filter(k => !keys.includes(k)), [], 'every overview has been rewritten and listed');
   assert.deepStrictEqual(keys.filter(k => !(k in all)), [], 'anchor: every listed entry exists in the real data');
   const long = keys.map(k => [k, all[k].split(/\s+/).length]).filter(([, n]) => n > 70);
   assert.deepStrictEqual(long, []);
