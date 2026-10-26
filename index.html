@@ -6624,7 +6624,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.324';
+const APP_VERSION = '3.325';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7436,6 +7436,8 @@ const WHATS_NEW = {
     'The notes for each days-per-week choice in Strength & Size, Bodybuilding, Olympic Lifting, Powerlifting and Powerbuilding are about half as long.',
   ]},  '3.324': { headline: 'Shorter days-per-week notes, continued', points: [
     'Athletic, Bodyweight, Calisthenics, Core and Jump Rope too.',
+  ]},  '3.325': { headline: 'Shorter days-per-week notes, continued', points: [
+    'Mobility, Running, Swimming, Rock Climbing and Senior Strength too.',
   ]},
 };
 
@@ -17241,7 +17243,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   mobility: {
     1: {
       short: 'Full-body coverage — a genuinely legitimate single session',
-      overview: 'One session touching hips, shoulders, and the posterior chain, at reduced volume per area. Unlike a strength program, this is not a compromise floor: real research (Konrad et al. 2023) found stretching frequency itself doesn\'t significantly change range-of-motion outcomes — what actually matters is staying consistent over time, since gains regress after 3-6 weeks of stopping entirely, not from training less often. One honest weekly session, kept up, is a real plan here.',
+      overview: 'One session for hips, shoulders and the posterior chain. That\'s a real plan, not a compromise: research finds stretching frequency matters little, while consistency matters a lot, since gains fade after 3-6 weeks of stopping.',
       days: {
         d1: { label:'Day 1', sub:'Full-Body Coverage', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17267,7 +17269,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Lower body/hips and upper body/posterior chain, split',
-      overview: 'Two sessions splitting lower-body/hip work from upper-body/posterior-chain work — more time per area than the single-session plan, though real research says that extra time buys comfort and thoroughness more than it buys extra range-of-motion gain specifically (frequency itself isn\'t the lever here — see this program\'s own citation note).',
+      overview: 'Two sessions, lower body and hips on one, upper body and posterior chain on the other. The extra time buys thoroughness more than extra range, since frequency isn\'t the lever.',
       days: {
         d1: { label:'Day 1', sub:'Lower Body & Hips', plate:'p-red', plateNum:'25', duration:'~30 min',
           exercises:[
@@ -17299,7 +17301,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Hips & Ankles, Shoulders & T-Spine, and Full Body Flow',
-      overview: 'Both dedicated joint-focus days plus a flow day tying everything together — real breadth without needing more days than this to get genuine coverage.',
+      overview: 'Both joint-focus days plus a flow day tying them together: full coverage in three days.',
       days: {
         d1: { label:'Day 1', sub:'Hips & Ankles', plate:'p-red', plateNum:'25', duration:'~30 min',
           exercises:[
@@ -17337,7 +17339,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Hips & Ankles, Shoulders & T-Spine, Posterior Chain, and Flow',
-      overview: 'Four of this program\'s five sessions each get their own day. Active Recovery Flow is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      overview: 'Four of the five sessions get their own day. The active-recovery flow returns at six days and up.',
       days: {
         d1: { label:'Day 1', sub:'Hips & Ankles', plate:'p-red', plateNum:'25', duration:'~30 min',
           exercises:[
@@ -17383,7 +17385,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.mobility), used as-is.
     6: {
       short: 'The full 5-day program plus extra maintenance & breath work',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of full-body maintenance and breath-focused down-regulation. Worth being honest about what this buys: per this program\'s own citation, more frequency doesn\'t itself drive bigger range-of-motion gains — this 6th day is consistency insurance (a missed day matters less with a backup) and genuine recovery-support value, not extra stimulus the way a 6th day works in a strength program.',
+      overview: 'The 5-day program plus a full-body maintenance and breathing day. It\'s consistency insurance and recovery support, not extra stimulus — more frequency doesn\'t drive more range.',
       days: {
         d1: { label:'Day 1', sub:'Hips & Ankles', plate:'p-red', plateNum:'25', duration:'~30 min',
           exercises:[
@@ -17438,7 +17440,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, seven days a week — no recovery-day tradeoff needed',
-      overview: 'The same six days as the 6-day plan, completely unchanged, with the existing Rest/Cardio slot kept exactly as-is. Worth being explicit about why, since every other program in this rollout reframes that slot at 7 days: mobility work carries little of the joint/CNS load that makes a genuine recovery day necessary elsewhere, so there\'s no "the recovery argument still wins" tradeoff to make here. The cardio slot stays for general health value, not because this program specifically needs a break from itself — and per this program\'s own cited research, frequency itself was never the lever driving range-of-motion gains in the first place, so there\'s nothing extra being lost by keeping the week exactly as it already was at 6 days.',
+      overview: 'The 6-day plan unchanged, rest/cardio slot included. Mobility work doesn\'t need a recovery day the way heavy training does, and frequency was never what drives range.',
       days: {
         d1: { label:'Day 1', sub:'Hips & Ankles', plate:'p-red', plateNum:'25', duration:'~30 min',
           exercises:[
@@ -17504,7 +17506,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   running: {
     1: {
       short: 'Easy Run + Strides — the floor for this program',
-      overview: 'One easy-paced run with strides, unchanged from the default program\'s own opening day — genuinely the right choice at this frequency, not a scaled-down compromise. This program\'s own citation (Seiler\'s polarized-training review) is explicit that hard quality work needs recovery room around it; with only one session a week, that room doesn\'t exist, so this stays easy rather than trying to cram in a tempo or interval session.',
+      overview: 'One easy run with strides. Hard sessions need recovery around them, which one day a week doesn\'t allow, so it stays easy.',
       days: {
         d1: { label:'Day 1', sub:'Easy Run + Strides', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17528,7 +17530,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Easy Run and Long Run — no quality work yet',
-      overview: 'Two low-intensity-dominant sessions — an easy run and a long run — deliberately without any tempo or interval work yet. Real polarized-training guidance treats hard quality sessions as needing genuine recovery room around them; at two days a week, building the easy aerobic base comes first.',
+      overview: 'An easy run and a long run, with no tempo or intervals yet: at two days, the aerobic base comes first.',
       days: {
         d1: { label:'Day 1', sub:'Easy Run + Strides', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17555,7 +17557,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Easy Run, Tempo Run, and Long Run — the classic 3-day template',
-      overview: 'The classic minimalist running template — one easy day, one quality session, one long run — real, well-established structure at this frequency, not a scaled-down version of the 5-day plan.',
+      overview: 'The classic minimalist template: one easy run, one quality session and one long run.',
       days: {
         d1: { label:'Day 1', sub:'Easy Run + Strides', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17587,7 +17589,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Easy Run, Tempo, Intervals, and Long Run',
-      overview: 'Both quality sessions this program uses — Tempo and Intervals — plus the easy run and long run, at the same 2-hard-session cap the default 5-day plan itself uses. Recovery Run + Strength is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      overview: 'Tempo and intervals, plus an easy run and a long run — the same two-hard-session cap as the 5-day plan. The recovery run with strength returns at six days and up.',
       days: {
         d1: { label:'Day 1', sub:'Easy Run + Strides', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17626,7 +17628,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.running), used as-is.
     6: {
       short: 'The full 5-day program plus a 2nd easy run',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day that is ANOTHER easy run — not a 3rd hard session. This program\'s own citation is explicit that adding tempo/threshold volume to fill out a week is a design violation, not a gap to close, so the extra day stays in the same low-intensity zone as most of the week already is.',
+      overview: 'The 5-day program plus another easy run, not a third hard session; adding tempo work to fill the week would break the polarized design.',
       days: {
         d1: { label:'Day 1', sub:'Easy Run + Strides', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17674,7 +17676,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, with the injury-prevention argument still winning on the rest day',
-      overview: 'The same six days as the 6-day plan, completely unchanged. Running is genuinely high-impact on joints at any pace — even at 7 days selected, the actual rest day stays genuinely run-free rather than getting reframed into more mileage.',
+      overview: 'The 6-day plan unchanged, and the rest day stays run-free: running is high-impact on joints at any pace.',
       days: {
         d1: { label:'Day 1', sub:'Easy Run + Strides', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17731,7 +17733,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   swimming: {
     1: {
       short: 'Aerobic Base Swim — the floor for this program',
-      overview: 'One easy aerobic swim, unchanged from the default program\'s own opening day. This program\'s structure mirrors running and cycling\'s polarized approach — hard efforts need recovery room around them, which a single weekly session doesn\'t have, so this stays easy rather than reaching for threshold or speed work.',
+      overview: 'One easy aerobic swim. Hard efforts need recovery around them, which a single weekly session doesn\'t have, so it stays easy.',
       days: {
         d1: { label:'Day 1', sub:'Aerobic Base Swim', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17756,7 +17758,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Aerobic Base and Technique/Kick/Pull — no hard sets yet',
-      overview: 'Two foundational sessions — the easy aerobic swim and dedicated technique/kick/pull work — deliberately without threshold or speed sets yet. Building the aerobic base and stroke mechanics comes first, same as this program\'s own polarized structure prioritizes at any frequency.',
+      overview: 'An easy aerobic swim and a technique, kick and pull session, with no threshold or speed sets yet: base and stroke mechanics come first.',
       days: {
         d1: { label:'Day 1', sub:'Aerobic Base Swim', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17788,7 +17790,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Aerobic Base, Technique, and Long Swim',
-      overview: 'The aerobic base and technique days keep their spot, plus a long swim to build real aerobic capacity — still no threshold or speed sets, which this program\'s own polarized structure treats as needing more weekly recovery room than three days provides.',
+      overview: 'The aerobic and technique days plus a long swim, still without threshold or speed sets, which need more recovery than three days allow.',
       days: {
         d1: { label:'Day 1', sub:'Aerobic Base Swim', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17827,7 +17829,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Aerobic Base, Threshold, Speed, and Long Swim',
-      overview: 'Both quality sessions this program uses — Threshold and Speed Intervals — plus the aerobic base and long swim, at the same 2-hard-session cap the default 5-day plan itself uses. Technique + Kick/Pull is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      overview: 'Threshold and speed intervals, plus the aerobic and long swims — the same two-hard-session cap as the 5-day plan. Technique, kick and pull returns at six days and up.',
       days: {
         d1: { label:'Day 1', sub:'Aerobic Base Swim', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17871,7 +17873,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.swimming), used as-is.
     6: {
       short: 'The full 5-day program plus a 2nd dryland shoulder day',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day dedicated entirely to dryland shoulder prehab — not a 3rd hard pool session. Overhead-repetitive shoulder overuse is a real, already-established concern this program takes seriously (see its own rest-day notes); a 2nd shoulder-specific day extends that existing priority instead of adding pool intensity this program\'s own polarized structure doesn\'t call for.',
+      overview: 'The 5-day program plus a second dryland shoulder prehab day, not a third hard pool session, because overhead shoulder overuse is the main risk in swimming.',
       days: {
         d1: { label:'Day 1', sub:'Aerobic Base Swim', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17926,7 +17928,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, with the shoulder-recovery argument still winning on the rest day',
-      overview: 'The same six days as the 6-day plan, completely unchanged. This program\'s own rest-day note already calls shoulder recovery "non-negotiable" for an overhead-repetitive sport — even at 7 days selected, the actual rest day stays genuinely pool-free rather than getting reframed into more swimming.',
+      overview: 'The 6-day plan unchanged, and the rest day stays pool-free: shoulders in an overhead sport need that recovery.',
       days: {
         d1: { label:'Day 1', sub:'Aerobic Base Swim', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -17993,7 +17995,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   climbing: {
     1: {
       short: 'Full-body climbing session, reduced finger intensity',
-      overview: 'One session combining light finger work, pulling strength, and shoulder health — at REDUCED finger intensity specifically. Fingers and connective tissue adapt over years, not weeks (this program\'s own overview says so directly), so a single weekly session stays at hangboard repeaters rather than max hangs, which need more recovery room around them than one day a week provides.',
+      overview: 'One session of light finger work, pulling and shoulder health, with finger intensity reduced: repeaters, not max hangs, because fingers and tendons adapt over years, not weeks.',
       days: {
         d1: { label:'Day 1', sub:'Full-Body Climbing Session', plate:'p-red', plateNum:'25', duration:'~45 min',
           exercises:[
@@ -18019,7 +18021,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Finger & Pulling Strength, plus Antagonist & Shoulder Health',
-      overview: 'One combined finger-and-pulling session, kept at moderate rather than maximal finger intensity, plus a full antagonist/shoulder-health day — the injury-prevention priority this program treats as essential at any frequency, not optional filler.',
+      overview: 'One finger-and-pulling session at moderate finger intensity, plus a full antagonist and shoulder-health day, which this program treats as essential at any frequency.',
       days: {
         d1: { label:'Day 1', sub:'Finger & Pulling Strength', plate:'p-red', plateNum:'25', duration:'~50 min',
           exercises:[
@@ -18052,7 +18054,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Finger Strength, Pulling Strength, and Antagonist & Shoulder Health',
-      overview: 'The three most essential sessions this program trains, each keeping their own day. Lock-offs/Core Tension and Hip Mobility/Grip Endurance are what don\'t fit at this frequency yet; they return at 4 days and up.',
+      overview: 'The three most essential sessions each get their own day. Lock-offs with core tension, and hip mobility with grip endurance, return at four days and up.',
       days: {
         d1: { label:'Day 1', sub:'Finger Strength', plate:'p-red', plateNum:'25', duration:'~45 min',
           exercises:[
@@ -18092,7 +18094,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Finger, Pulling, Shoulder Health, and Lock-offs',
-      overview: 'Four of this program\'s five sessions each get their own day. Hip Mobility & Grip Endurance is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      overview: 'Four of the five sessions get their own day. Hip mobility with grip endurance returns at six days and up.',
       days: {
         d1: { label:'Day 1', sub:'Finger Strength', plate:'p-red', plateNum:'25', duration:'~45 min',
           exercises:[
@@ -18141,7 +18143,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.climbing), used as-is.
     6: {
       short: 'The full 5-day program plus a 2nd antagonist/mobility day',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of ZERO-finger-load antagonist and mobility work — not a 2nd hangboard-intensive session. Real finger/tendon coaching treats 48-72+ hours between hard finger sessions as a floor, not a suggestion, so the extra day adds shoulder and hip work this program already prioritizes instead of stacking more finger stress on tissue that adapts over years, not weeks.',
+      overview: 'The 5-day program plus a sixth day of antagonist and mobility work with no finger load. Hard finger sessions need 48-72+ hours between them, and fingers adapt over years.',
       days: {
         d1: { label:'Day 1', sub:'Finger Strength', plate:'p-red', plateNum:'25', duration:'~45 min',
           exercises:[
@@ -18202,7 +18204,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, with the tendon-recovery argument still winning on the rest day',
-      overview: 'The same six days as the 6-day plan, completely unchanged. This program\'s own overview is explicit that fingers and connective tissue adapt over years, not weeks — even at 7 days selected, the actual rest day stays genuinely climbing-free rather than getting reframed into more training.',
+      overview: 'The 6-day plan unchanged, and the rest day stays climbing-free: fingers and connective tissue adapt over years, not weeks.',
       days: {
         d1: { label:'Day 1', sub:'Finger Strength', plate:'p-red', plateNum:'25', duration:'~45 min',
           exercises:[
@@ -18273,7 +18275,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   senior: {
     1: {
       short: 'Full-body strength + balance — the floor for this program',
-      overview: 'One session combining core strength and balance work, since a full week only gets one shot at both. This program treats fall prevention as equally important as strength — never strength-only, even at the lowest frequency.',
+      overview: 'One session combining strength and balance. Fall prevention matters as much as strength here, so it\'s never strength-only.',
       days: {
         d1: { label:'Day 1', sub:'Full-Body Strength + Balance', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -18299,7 +18301,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Lower Body Strength and Balance & Stability, dedicated days',
-      overview: 'Lower-body strength and balance/stability each get their own full session — real dedicated practice for both instead of combining them into one shorter day, still keeping the strength-and-balance priority this program treats as equally important.',
+      overview: 'Lower-body strength and balance-and-stability each get their own session, keeping both priorities equal.',
       days: {
         d1: { label:'Day 1', sub:'Lower Body Strength', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -18333,7 +18335,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Lower Body Strength, Balance & Stability, and Upper Body Strength',
-      overview: 'Three of this program\'s five sessions each get their own day — lower body, balance, and upper body, the foundational trio this program is built around.',
+      overview: 'Lower body, balance and upper body each get their own day: the program\'s foundation.',
       days: {
         d1: { label:'Day 1', sub:'Lower Body Strength', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -18374,7 +18376,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Lower Body, Balance, Upper Body, and Functional Full-Body',
-      overview: 'Four of this program\'s five sessions each get their own day. Balance & Mobility is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+      overview: 'Four of the five sessions get their own day. Balance and mobility returns at six days and up.',
       days: {
         d1: { label:'Day 1', sub:'Lower Body Strength', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -18424,7 +18426,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.senior), used as-is.
     6: {
       short: 'The full 5-day program plus extra balance practice',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra balance and functional practice — not a 3rd strength day. Balance work is genuinely safe at higher frequency and real fall-prevention research supports frequent, brief practice; a 3rd heavy strength day is not something this population needs or recovers from as quickly as the balance work does.',
+      overview: 'The 5-day program plus extra balance and functional practice, not a third strength day. Brief, frequent balance work is safe and supports fall prevention; more heavy strength isn\'t needed.',
       days: {
         d1: { label:'Day 1', sub:'Lower Body Strength', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
@@ -18485,7 +18487,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, plus one genuinely gentle rest day',
-      overview: 'The same six days as the 6-day plan, completely unchanged — but the week does NOT add an 8th kind of session on top of an already-full 6 days. The rest day stays exactly as gentle as the default program\'s own: a relaxed walk if you feel like it, otherwise real rest.',
+      overview: 'The 6-day plan unchanged, with the rest day as gentle as ever: a relaxed walk if you feel like it, otherwise real rest.',
       days: {
         d1: { label:'Day 1', sub:'Lower Body Strength', plate:'p-red', plateNum:'25', duration:'~35 min',
           exercises:[
