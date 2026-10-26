@@ -6694,7 +6694,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.365';
+const APP_VERSION = '3.366';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7596,6 +7596,9 @@ const WHATS_NEW = {
   ]},
   '3.365': { headline: 'Reliable meal descriptions', points: [
     'Describe a meal always comes back in a shape the app can read, so it no longer fails on a malformed reply.',
+  ]},
+  '3.366': { headline: 'Reliable food photos', points: [
+    'Snap a meal always comes back in a shape the app can read.',
   ]},
 };
 
@@ -39776,7 +39779,9 @@ const AI_MODEL_FAST = 'claude-haiku-5-5';
 // API's rules: every object closes with additionalProperties:false, and no
 // numeric or length constraints.
 const AI_JSON_SCHEMAS = {
-  // Describe-a-meal: one entry per distinct component of the meal.
+  // Describe-a-meal (v3.365) and food photos (v3.366): one entry per
+  // distinct component of the meal. Same shape for both on purpose — both
+  // feed buildFoodResultRows.
   foodItems: {
     type: 'object', additionalProperties: false, required: ['items'],
     properties: {
@@ -40105,7 +40110,7 @@ Respond with ONLY valid JSON, no other text, no markdown fences, in this exact s
   try{
     const results = await Promise.allSettled(files.map(async (file)=>{
       const base64 = await fileToBase64(file);
-      const raw = await callClaudeVision(apiKey, [base64], prompt, 3000, AI_MODEL_FAST, 'low');
+      const raw = await callClaudeVision(apiKey, [base64], prompt, 3000, AI_MODEL_FAST, 'low', AI_JSON_SCHEMAS.foodItems);
       const cleaned = raw.replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(cleaned);
       return parsed.items || [];

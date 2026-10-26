@@ -218,4 +218,11 @@ test('sabotage anchor (v3.365): describe-a-meal sends the foodItems schema, and 
   assert.ok(!validates(SCHEMAS.foodItems, { items: [{ name: 'Eggs', cal: 140 }] }), 'a missing field fails');
 });
 
+test('sabotage anchor (v3.366): food photos send the same foodItems schema, one request per photo', (assert)=>{
+  const lines = callLines('handlePhotoLogUpload', 'callClaudeVision(');
+  assert.strictEqual(lines.length, 1);
+  assert.match(lines[0], /AI_MODEL_FAST, 'low', AI_JSON_SCHEMAS\.foodItems\)/);
+  assert.ok(validates(SCHEMAS.foodItems, { items: [] }), 'the prompt\'s "nothing edible" reply');
+});
+
 run();

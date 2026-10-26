@@ -162,6 +162,9 @@ test('REAL invocation: three photos in one batch produce exactly three independe
     assert.strictEqual(body.model, 'claude-haiku-5-5');
     assert.strictEqual(body.output_config.effort, 'low');
     assert.ok(body.max_tokens >= 2048, 'thinking spends from max_tokens');
+    // v3.366: structured output, so the reply always parses.
+    assert.strictEqual(body.output_config.format.type, 'json_schema');
+    assert.deepStrictEqual(Object.keys(body.output_config.format.schema.properties), ['items']);
   });
   const sentImages = captured.map(b=> Buffer.from(b.messages[0].content[0].source.data, 'base64').toString()).sort();
   assert.deepStrictEqual(sentImages, ['photoA','photoB','photoC'], 'each request must actually carry that specific photo\'s own data, not a shared/wrong one');
