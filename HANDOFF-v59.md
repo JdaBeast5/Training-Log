@@ -36,3 +36,13 @@ Total went from 5,989 to about 3,250 words: average ~109 → ~59, every overview
 - one or more phrases per entry that must survive the cut. These cover every safety caveat, clearance step and warning sign (medical red flags, hot yoga in pregnancy, head-impact and clinch limits, the kite-instruction limit, and others).
 
 If you edit an overview, keep its MUST_KEEP phrases or update them deliberately.
+
+## Addendum 2: performance colours, day-count notes, day notes (v3.322–v3.331)
+- **v3.322**: A lift's weight change, the estimated-max trend and the distance trend use the new `.perf-up` (green) / `.perf-down` (muted) classes. They had borrowed bodyweight's `.w-up` red. Bodyweight is unchanged. Test: `test-performance-delta-colours.js`.
+- **v3.323–v3.329**: All 222 day-count variant overviews (`PROGRAM_DAY_COUNT_VARIANTS`) rewritten, 11,011 → 4,785 words, each ≤45 words.
+  - Removed: repeated frequency-research arguments, and pointers to text the user can't see from there ("in-code notes", "this program's own rest-day note").
+  - Kept: oly's "coaching consensus" caveat on every count, which `test-configurable-training-days.js` pins.
+  - `test-concise-overviews.js` enforces all of this.
+  - Scratchpad tooling, if more passes are needed: `vextract.js` re-extracts the variants; `vapply.py` replaces by path and handles duplicated texts by source order.
+- **v3.330–v3.331**: Every day note (rest-day or program-day `note`) that ran over 30 words was rewritten; none now exceeds 40. Two non-day notes, the NICE waist-ratio note and the folate note, were rewritten in the same pass. `test-concise-day-notes.js` collects every real day note and pins each safety phrase. Oly's "bar-free on purpose" stays, because an existing guard pins it.
+- **Not yet touched:** exercise technique cues (behind "Technique & focus"), Analysis card hints, Learn content, and old What's New entries.
