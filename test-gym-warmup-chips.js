@@ -148,4 +148,23 @@ test('REAL computed style (v3.394): in gym mode Same as Last Time is a link (no 
   assert.notStrictEqual(n.minHeight, '44px');
 });
 
+// v3.401 (owner: "the warm up ramp is still in the regular work out, didn't
+// we say to only keep the ramp in the gym mode?"). v3.392 changed how gym mode
+// shows the ramp and left Today's list as it was; the owner meant the ramp
+// belongs to gym mode only. Outside gym mode no ramp shows — loggable rows,
+// read-only table or nudge. Checked on COMPUTED style of real markup.
+test('REAL computed style (v3.401): no warm-up ramp on the regular list; gym mode still shows it (rows while editing)', (assert)=>{
+  const at = (bodyClass, blockClass = 'exercise-block open') => {
+    const { window } = new JSDOM(`<style>${CSS.replace(/\/\*[\s\S]*?\*\//g, '')}</style><body class="${bodyClass}"><div id="exerciseList"><div class="${blockClass}">
+      <div class="sets-block"><div class="warmup-strip" id="s">rows</div><div class="warmup-box" id="b">Warm up first</div></div></div></div></body>`);
+    const d = id => window.getComputedStyle(window.document.getElementById(id)).display;
+    return { strip: d('s'), box: d('b') };
+  };
+  assert.deepStrictEqual(at(''), { strip: 'none', box: 'none' }, 'regular Today list');
+  const gym = at('gym-mode');
+  assert.strictEqual(gym.strip, 'none', 'gym mode: the rows sit behind the chips…');
+  assert.notStrictEqual(gym.box, 'none', '…and a read-only ramp or nudge still shows');
+  assert.notStrictEqual(at('gym-mode', 'exercise-block open warmup-editing').strip, 'none', '…and Edit brings the rows back');
+});
+
 run();

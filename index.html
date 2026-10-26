@@ -364,6 +364,9 @@
   button:disabled:active, button[disabled]:active{ transform:none; }
   input, select, textarea{ transition:border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth); }
   input[type=number]{ -moz-appearance:textfield; }
+  /* v3.397: pickers are translucent now; their option lists are a separate
+     surface on some platforms, which must stay solid to stay readable. */
+  select option{ background:var(--surface2); color:var(--text); }
   input[type=number]::-webkit-outer-spin-button,
   input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none; margin:0; }
   input:focus, select:focus, textarea:focus{
@@ -683,7 +686,7 @@
   }
   .reorder-arrows button{
     width:20px; height:18px; border-radius:var(--radius-xs); border:1px solid var(--line);
-    background:var(--surface2); color:var(--text); font-size:10px; cursor:pointer;
+    background:var(--row-fill); color:var(--text); font-size:10px; cursor:pointer;
     display:flex; align-items:center; justify-content:center; padding:0;
   }
   .reorder-arrows button:disabled{opacity:0.25;}
@@ -725,7 +728,7 @@
   .mesocycle-phase-tag{
     display:inline-flex; align-items:center; font-family:var(--font-sans); font-variant-numeric:tabular-nums;
     font-size:12px; padding:3px 10px; border-radius:999px;
-    background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
+    background:var(--row-fill); border:1px solid var(--line); color:var(--text-muted);
   }
   .mesocycle-phase-tag:empty{display:none;}
   .mesocycle-phase-tag.deload{
@@ -758,7 +761,7 @@
   .describe-similar-note{font-size:11.5px; color:var(--text-muted); margin-top:12px; padding-top:10px; border-top:1px solid var(--line-soft);}
   .describe-similar-list{display:flex; flex-direction:column; gap:6px; margin-top:8px;}
   .describe-similar-btn{
-    text-align:left; padding:8px 10px; background:var(--surface2); border:1px solid var(--line);
+    text-align:left; padding:8px 10px; background:var(--row-fill); border:1px solid var(--line);
     border-radius:var(--radius-sm); color:var(--text); font-size:12px; cursor:pointer; font-family:var(--font-sans);
   }
   .describe-similar-btn:active{transform:scale(0.98);}
@@ -1140,7 +1143,7 @@
     width:var(--set-gutter); text-align:center; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted); flex:0 0 auto;
   }
   .ex-input{
-    width:62px; background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    width:62px; background:var(--row-fill); border:1px solid var(--line); color:var(--text);
     border-radius:var(--radius-sm); padding:6px 2px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:13px; text-align:center;
     box-shadow:0 1px 3px rgba(var(--overlay-black-rgb),0.25) inset;
     transition:border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
@@ -1203,7 +1206,7 @@
      here (background, border, border-radius, color, font, cursor,
      transition) is this button's actual, load-bearing styling. Leave as-is. */
   .same-as-last-btn{
-    width:100%; margin-bottom:10px; padding:9px; background:var(--surface2); border:1px solid rgba(var(--plate-blue-rgb),0.3);
+    width:100%; margin-bottom:10px; padding:9px; background:var(--row-fill); border:1px solid rgba(var(--plate-blue-rgb),0.3);
     border-radius:var(--radius-md); color:var(--plate-blue); font-size:12.5px; font-weight:600; cursor:pointer;
     font-family:var(--font-sans); transition:transform 0.15s var(--ease-smooth);
   }
@@ -1237,7 +1240,7 @@
      left, scoped to its slot. */
   #describeFoodVoiceSlot .voice-log-btn{
     flex:0 0 auto; width:34px; height:34px; border-radius:var(--radius-sm); border:1px solid var(--line);
-    background:var(--surface2); color:var(--text-muted); font-size:0; cursor:pointer; position:relative;
+    background:var(--row-fill); color:var(--text-muted); font-size:0; cursor:pointer; position:relative;
     display:flex; align-items:center; justify-content:center; padding:0;
     transition:border-color 0.2s var(--ease-smooth), color 0.2s var(--ease-smooth);
     -webkit-touch-callout:none; -webkit-user-select:none; user-select:none;
@@ -1750,7 +1753,9 @@
 
   .rest-note{color:var(--text-muted); font-size:14px; line-height:1.5;}
   .rest-done-row{
-    display:flex; align-items:center; gap:10px; margin-top:14px; padding:12px;
+    /* v3.396: margin-bottom too — it is the last thing in the list on a rest
+       day, and "+ Add custom exercise" sat flush against it. */
+    display:flex; align-items:center; gap:10px; margin:14px 0; padding:12px;
     background:var(--row-fill); border:1px solid var(--line); border-radius:var(--radius-md);
     font-size:13.5px; cursor:pointer;
   }
@@ -1817,7 +1822,7 @@
   }
   .macro-input-row{display:flex; gap:8px; margin-top:14px;}
   .macro-input-row input{
-    width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    width:100%; background:var(--row-fill); border:1px solid var(--line); color:var(--text);
     border-radius:var(--radius-sm); padding:9px 6px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:13px; text-align:center;
   }
   .save-btn{
@@ -1835,7 +1840,7 @@
 
   .weight-input-row{display:flex; gap:8px;}
   .weight-input-row input{
-    flex:1; background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    flex:1; background:var(--row-fill); border:1px solid var(--line); color:var(--text);
     border-radius:var(--radius-sm); padding:10px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:14px;
   }
   /* v3.355 (audit): mono is for the numbers you type, not words. The two
@@ -2089,7 +2094,7 @@
   .frr-remove-btn:active{color:var(--plate-red); background:rgba(var(--plate-red-rgb),0.1);}
   .qty-stepper{
     display:flex; align-items:center;
-    background:var(--surface2); border:1px solid var(--line);
+    background:var(--row-fill); border:1px solid var(--line);
     border-radius:var(--radius-pill); box-shadow:var(--rim);
   }
   .qty-btn{
@@ -2113,7 +2118,7 @@
   }
   .describe-save-btn{
     flex:0 0 auto; min-height:40px; padding:0 16px;
-    background:var(--surface2); color:var(--text);
+    background:var(--row-fill); color:var(--text);
     border:1px solid var(--line); border-radius:var(--radius-pill);
     box-shadow:var(--rim);
     font-family:var(--font-sans); font-size:12.5px; font-weight:600;
@@ -2294,7 +2299,7 @@
   .recipe-card-actions{display:flex; gap:8px; margin-top:10px;}
   .recipe-link-btn{
     flex:1; text-align:center; padding:9px 10px; border-radius:var(--radius-sm);
-    background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    background:var(--row-fill); border:1px solid var(--line); color:var(--text);
     font-family:var(--font-sans); font-size:12px; font-weight:600; text-decoration:none;
     display:flex; align-items:center; justify-content:center;
     transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
@@ -2323,7 +2328,7 @@
   .water-tips-list li{margin-bottom:6px;}
   .water-tips-list li:last-child{margin-bottom:0;}
   .water-btn{
-    flex:1; background:var(--surface); border:1px solid var(--line); color:#4FC3F7;
+    flex:1; background:var(--row-fill); border:1px solid var(--line); color:#4FC3F7;
     padding:8px; border-radius:var(--radius-sm); font-size:12.5px; font-weight:600; cursor:pointer; font-family:var(--font-sans);
   }
   .sleep-avg{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--plate-blue); margin:8px 0; font-weight:600;}
@@ -2686,7 +2691,7 @@
      top highlight — .nav-pill is untouched, so the index still reads as
      clearly secondary/lighter, just no longer independently "heavy". */
   .analysis-index-chip{
-    flex:0 0 auto; background:var(--surface2); border:1px solid var(--line);
+    flex:0 0 auto; background:var(--row-fill); border:1px solid var(--line);
     color:var(--text-muted); font-family:var(--font-sans); font-size:11.5px;
     font-weight:600; letter-spacing:-0.01em; padding:5px 10px;
     border-radius:var(--radius-sm); cursor:pointer;
@@ -2828,7 +2833,7 @@
   /* [GLOBAL SEARCH] */
   .gsearch-input{
     width:100%; box-sizing:border-box; margin-bottom:10px;
-    background:var(--surface2); border:1px solid var(--line-bright);
+    background:var(--row-fill); border:1px solid var(--line-bright);
     border-radius:var(--radius-sm); color:var(--text);
     font-family:var(--font-sans); font-size:16px; padding:12px 14px;
   }
@@ -2881,9 +2886,11 @@
      other tinted surfaces throughout the app, not a flat fill — a warm
      amber tint the moment it's not on today, a persistent, hard-to-miss
      reminder that new entries are being backdated, not logged for right now. */
+  /* v3.398: the date bar ("‹ Today ›" on Today and Log) is glass like the
+     cards, and its arrows (and the calendar's) take the translucent row fill. */
   .log-date-bar{
     position:relative; display:flex; align-items:center; gap:8px; padding:9px 12px; margin-bottom:12px;
-    border-radius:var(--radius-md); background:var(--surface2); border:1px solid rgba(var(--surface-white-rgb),0.07);
+    border-radius:var(--radius-md); background:var(--glass-fill); border:1px solid rgba(var(--surface-white-rgb),0.07);
     box-shadow:var(--rim), 0 8px 20px -14px rgba(var(--overlay-black-rgb),0.5);
     transition:background 0.25s var(--ease-smooth), border-color 0.25s var(--ease-smooth), box-shadow 0.25s var(--ease-smooth);
   }
@@ -2894,7 +2901,7 @@
   }
   .log-date-nav{
     flex:0 0 auto; width:28px; height:28px; border-radius:50%; border:1px solid rgba(var(--surface-white-rgb),0.07);
-    background:var(--surface); color:var(--text); font-size:15px; cursor:pointer; line-height:1;
+    background:var(--row-fill); color:var(--text); font-size:15px; cursor:pointer; line-height:1;
     box-shadow:var(--rim);
     display:flex; align-items:center; justify-content:center; transition:transform 0.15s var(--ease-smooth);
   }
@@ -2952,7 +2959,7 @@
   .calendar-modal-title{font-family:var(--font-sans); font-weight:700; font-size:15px; letter-spacing:-0.01em; color:var(--text);}
   .calendar-nav-btn{
     flex:0 0 auto; width:30px; height:30px; border-radius:50%; border:1px solid rgba(var(--surface-white-rgb),0.07);
-    background:var(--surface2); color:var(--text); font-size:16px; cursor:pointer; line-height:1;
+    background:var(--row-fill); color:var(--text); font-size:16px; cursor:pointer; line-height:1;
     box-shadow:var(--rim);
     display:flex; align-items:center; justify-content:center; transition:transform 0.15s var(--ease-smooth);
   }
@@ -3020,7 +3027,7 @@
     font-size:12px; color:var(--text-muted); margin:0 0 12px; line-height:1.45;
   }
   .masterclass-link-btn{
-    width:100%; margin:2px 0 4px; padding:10px; background:var(--surface2); border:1px solid var(--line);
+    width:100%; margin:2px 0 4px; padding:10px; background:var(--row-fill); border:1px solid var(--line);
     border-radius:var(--radius-md); color:var(--plate-blue); font-size:12.5px; font-weight:600; cursor:pointer;
     font-family:var(--font-sans); letter-spacing:-0.005em; display:flex; align-items:center; justify-content:center; gap:6px;
     transition:border-color 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
@@ -3126,7 +3133,7 @@
   }
   .user-picker-list{display:flex; flex-direction:column; gap:8px; margin-bottom:16px;}
   .user-pick-btn{
-    width:100%; padding:13px; background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    width:100%; padding:13px; background:var(--row-fill); border:1px solid var(--line); color:var(--text);
     border-radius:var(--radius-md); font-size:14.5px; font-weight:600; cursor:pointer; font-family:var(--font-sans);
     text-align:left;
     transition:transform 0.15s var(--ease-smooth), border-color 0.15s var(--ease-smooth);
@@ -3176,8 +3183,13 @@
     margin-left:auto; background:none; border:none; color:var(--plate-blue); font-size:12.5px; font-weight:600;
     cursor:pointer; font-family:var(--font-sans); padding:0;
   }
+  /* v3.397: every entry field (this, the food search, the weight/grocery/
+     supplement rows, custom-food macros, the set fields and notes, global
+     search, the History export picker, the custom-exercise form) is filled
+     with the translucent --row-fill rather than opaque --surface2, so the
+     aura reads through like it does on the cards and list rows around them. */
   .care-input{
-    width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    width:100%; background:var(--row-fill); border:1px solid var(--line); color:var(--text);
     border-radius:var(--radius-sm); padding:10px; font-family:var(--font-sans); font-size:13.5px;
     box-shadow:0 1px 3px rgba(var(--overlay-black-rgb),0.25) inset;
     transition:border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
@@ -3285,7 +3297,7 @@
   .equip-plate{
     font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px; font-weight:600;
     padding:7px 12px; border-radius:var(--radius-sm); cursor:pointer;
-    background:var(--surface2); color:var(--text-muted); border:1px solid var(--line);
+    background:var(--row-fill); color:var(--text-muted); border:1px solid var(--line);
     transition:border-color 0.18s var(--ease-smooth), color 0.18s var(--ease-smooth), transform 0.18s var(--ease-spring);
   }
   .equip-plate:active{transform:scale(0.94);}
@@ -3301,7 +3313,7 @@
      a permanent text field for a thing used occasionally. */
   .set-note-btn{
     flex:0 0 auto; width:26px; height:26px; padding:0; border-radius:var(--radius-sm);
-    background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
+    background:var(--row-fill); border:1px solid var(--line); color:var(--text-muted);
     font-size:13px; line-height:1; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
     transition:border-color 0.18s var(--ease-smooth), color 0.18s var(--ease-smooth), transform 0.18s var(--ease-spring);
@@ -3325,7 +3337,7 @@
   .set-note-wrap.open{display:block; animation:noteReveal 0.22s var(--ease-smooth) both;}
   @keyframes noteReveal{ from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);} }
   .set-note-input{
-    width:100%; box-sizing:border-box; background:var(--surface2); color:var(--text);
+    width:100%; box-sizing:border-box; background:var(--row-fill); color:var(--text);
     border:1px solid var(--line); border-radius:var(--radius-sm);
     padding:7px 10px; font-size:12.5px; font-family:var(--font-sans);
   }
@@ -3341,7 +3353,7 @@
   /* Exercise history drill-down. Reuses .sub-modal-* for the sheet itself, so
      only the contents need styling here. */
   .ex-history-btn{
-    background:var(--surface2); color:var(--text-muted); border:1px solid var(--line);
+    background:var(--row-fill); color:var(--text-muted); border:1px solid var(--line);
     border-radius:var(--radius-sm); padding:6px 11px; font-size:11.5px; font-weight:600;
     font-family:var(--font-sans); cursor:pointer; margin-left:6px;
     transition:border-color 0.18s var(--ease-smooth), color 0.18s var(--ease-smooth), transform 0.18s var(--ease-spring);
@@ -3349,7 +3361,7 @@
   .ex-history-btn:active{transform:scale(0.95);}
   .ex-history-btn:hover{border-color:var(--line-bright); color:var(--text);}
   .ex-edit-btn{
-    background:var(--surface2); color:var(--text-muted); border:1px solid var(--line);
+    background:var(--row-fill); color:var(--text-muted); border:1px solid var(--line);
     border-radius:var(--radius-sm); padding:6px 11px; font-size:11.5px; font-weight:600;
     font-family:var(--font-sans); cursor:pointer; margin-left:6px;
     transition:border-color 0.18s var(--ease-smooth), color 0.18s var(--ease-smooth), transform 0.18s var(--ease-spring);
@@ -3403,7 +3415,7 @@
   }
   .history-export-row{display:flex; gap:8px; margin:12px 0 4px;}
   .history-export-select{
-    flex:0 0 auto; padding:9px 10px; background:var(--surface2); border:1px solid var(--line);
+    flex:0 0 auto; padding:9px 10px; background:var(--row-fill); border:1px solid var(--line);
     border-radius:var(--radius-md); color:var(--text); font-size:12.5px; font-family:var(--font-sans);
   }
   .history-export-btn{flex:1; margin-top:0; width:auto;}
@@ -3448,7 +3460,7 @@
   .compare-confirm-btn:active{transform:scale(0.96);}
   .compare-cancel-btn{
     flex:1; padding:9px 10px; border-radius:var(--radius-sm);
-    background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    background:var(--row-fill); border:1px solid var(--line); color:var(--text);
     font-family:var(--font-sans); font-size:12.5px; font-weight:600; cursor:pointer;
     transition:transform 0.15s var(--ease-smooth);
   }
@@ -3462,7 +3474,7 @@
   .care-relief-note{font-size:11px; color:var(--text-muted); line-height:1.4;}
 
   .resting-chip{
-    display:inline-flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--plate-yellow);
+    display:inline-flex; align-items:center; gap:8px; background:var(--row-fill); border:1px solid var(--plate-yellow);
     border-radius:var(--radius-pill); padding:7px 12px; margin:0 8px 8px 0; font-size:12.5px;
   }
   .resting-chip button{
@@ -3555,7 +3567,7 @@
     .food-log-item .fl-chevron{transition:none;}
   }
   .food-search-input{
-    width:100%; background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    width:100%; background:var(--row-fill); border:1px solid var(--line); color:var(--text);
     border-radius:var(--radius-md); padding:11px 14px; font-family:var(--font-sans); font-size:13.5px; margin-bottom:10px;
   }
   .food-search-input::placeholder{color:var(--text-muted);}
@@ -3567,7 +3579,7 @@
   .food-cats::-webkit-scrollbar-track{background:transparent;}
   .food-cats::-webkit-scrollbar-thumb{background:var(--line-bright); border-radius:4px;}
   .food-cat-btn{
-    flex:0 0 auto; background:var(--surface2); border:1px solid var(--line); color:var(--text-muted);
+    flex:0 0 auto; background:var(--row-fill); border:1px solid var(--line); color:var(--text-muted);
     font-family:var(--font-sans); font-size:12.5px; font-weight:600; padding:7px 13px; border-radius:var(--radius-pill); cursor:pointer;
   }
   .food-cat-btn.active{background:var(--plate-blue); border-color:var(--plate-blue); color:#fff;}
@@ -3642,7 +3654,7 @@
   .adapt-workout-toggle:active{transform:scale(0.98); border-color:rgba(var(--plate-blue-rgb),0.55);}
   .custom-form{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
   .custom-form input[type=text]{
-    background:var(--surface2); border:1px solid var(--line); color:var(--text);
+    background:var(--row-fill); border:1px solid var(--line); color:var(--text);
     border-radius:var(--radius-sm); padding:10px; font-family:var(--font-sans); font-size:13.5px;
   }
   .save-to-library-label{
@@ -3680,7 +3692,7 @@
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     width:100%; text-align:left; cursor:pointer;
     padding:12px 14px; margin-bottom:8px; border-radius:var(--radius-md);
-    background:var(--surface2); border:1px solid rgba(var(--surface-white-rgb),0.07);
+    background:var(--row-fill); border:1px solid rgba(var(--surface-white-rgb),0.07);
     color:var(--text); font-family:var(--font-sans); font-size:13.5px; font-weight:600;
     letter-spacing:-0.005em;
     box-shadow:inset 0 1px 0 rgba(var(--surface-white-rgb),0.04);
@@ -3821,7 +3833,7 @@
   }
   .set-drop-btn{
     flex:0 0 auto; width:28px; height:28px; border-radius:var(--radius-sm);
-    border:1px solid var(--line); background:var(--surface2); color:var(--text-muted);
+    border:1px solid var(--line); background:var(--row-fill); color:var(--text-muted);
     font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;
     -webkit-tap-highlight-color:transparent; touch-action:manipulation;
   }
@@ -3886,14 +3898,14 @@
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     width:100%; margin-top:0; margin-bottom:8px; padding:12px 14px; min-height:44px;
     border-radius:var(--radius-md);
-    background:var(--surface2); border:1px solid rgba(var(--surface-white-rgb),0.07);
+    background:var(--row-fill); border:1px solid rgba(var(--surface-white-rgb),0.07);
     font-family:var(--font-sans); font-size:13.5px; font-weight:600;
     text-transform:none; letter-spacing:-0.005em; color:var(--text);
   }
   #researchSourcesList .program-basis-toggle:active{ color:var(--text); transform:scale(0.98); }
   #researchSourcesList .source-row-nested{ margin-left:14px; }
   #researchSourcesList .source-row-nested .program-basis-toggle{
-    background:var(--surface); font-size:12.5px; font-weight:500; padding:10px 12px;
+    background:var(--row-fill); font-size:12.5px; font-weight:500; padding:10px 12px;
   }
   #researchSourcesList .smooth-toggle{ margin-bottom:10px; }
   #researchSourcesList .source-program-group{ margin-bottom:4px; }
@@ -4737,6 +4749,11 @@
      truth (and come back with Edit). Skip hides the whole ramp for today. Literal orange rgba(), as everywhere in
      this gym-mode block (see the rgba consolidation guard). */
   .warmup-chips{display:none;}
+  /* v3.401 (owner: "only keep the ramp in the gym mode"): outside gym mode the
+     ramp — loggable rows, read-only table or the "warm up first" nudge — is
+     not shown at all. Its data is untouched; gym mode shows it as above. */
+  body:not(.gym-mode) #exerciseList .warmup-strip,
+  body:not(.gym-mode) #exerciseList .warmup-box{display:none;}
   body.gym-mode .exercise-block.open > .warmup-chips{display:block; padding:2px 0 14px;}
   .warmup-chips-head{display:flex; align-items:center; gap:4px; margin:0 0 8px;}
   .warmup-chips-title{flex:1 1 auto; font-size:13px; font-weight:600; color:var(--plate-orange);}
@@ -6935,7 +6952,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.395';
+const APP_VERSION = '3.401';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7927,6 +7944,24 @@ const WHATS_NEW = {
   ]},
   '3.395': { headline: 'Sets that match your program', points: [
     'When your last session of a lift was in another program, today\'s sets now start from one working weight at today\'s reps, instead of copying that program\'s set-by-set pattern.',
+  ]},
+  '3.396': { headline: 'Rest-day spacing', points: [
+    'Mark today\'s rest day as done no longer touches the button below it.',
+  ]},
+  '3.397': { headline: 'Translucent fields', points: [
+    'Every text field and picker across the app now lets the background glow through, like the cards around them.',
+  ]},
+  '3.398': { headline: 'Glass date bar', points: [
+    'The date bar on Today and Log, and the calendar arrows, now match the glass cards.',
+  ]},
+  '3.399': { headline: 'Translucent buttons and chips', points: [
+    'History, Edit, food categories, water buttons, Analysis chips and Learn\'s source rows now match the glass look.',
+  ]},
+  '3.400': { headline: 'Snappier pull to refresh', points: [
+    'Pull to refresh now follows your finger reliably on iPhone and reloads sooner after you let go.',
+  ]},
+  '3.401': { headline: 'Warm-ups live in gym mode', points: [
+    'The warm-up ramp now shows only in gym mode; the regular workout list goes straight to your sets.',
   ]},
 };
 
@@ -36731,36 +36766,49 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
 // this never touches localStorage, which is scoped to the origin only, so
 // nobody's logged data is affected by pulling to refresh or by any update
 // pushed to the underlying file.
-(function(){
+(function pullToRefresh(){
   const indicator = document.getElementById('pullRefreshIndicator');
   const spinner = document.getElementById('pullRefreshSpinner');
   const label = document.getElementById('pullRefreshLabel');
   const THRESHOLD = 45;
   const MAX_PULL = 100;
   const SCROLL_TOLERANCE = 5; // allow refresh even if not pixel-perfect at the top (rubber-band bounce, etc.)
-  let startY = 0, dragging = false, currentPull = 0;
+  // v3.400: the reload waits only long enough for a blurred field's change
+  // handler to save (storage writes are local); it was 500ms.
+  const RELOAD_DELAY = 150;
+  let startY = 0, startX = 0, dragging = false, currentPull = 0;
 
   function getScrollTop(){
     return window.scrollY || document.documentElement.scrollTop || 0;
   }
 
-  document.addEventListener('pointerdown', (e)=>{
-    if(e.target && e.target.closest && e.target.closest('.swipe-content')) return; // don't fight with swipe-to-delete
+  // v3.400: touch input is followed with TOUCH events. iOS Safari fires
+  // pointercancel the moment it treats a drag as a page scroll, and a drag
+  // down at the top is exactly that (the rubber-band bounce), so the pointer
+  // version was cut off before the threshold more often than not. Touch
+  // events keep coming, and while the drag is a downward pull from the top
+  // the gesture takes it (preventDefault), so the page doesn't bounce under
+  // it. Mouse and pen keep the pointer events.
+  function begin(x, y, target){
+    if(target && target.closest && target.closest('.swipe-content')) return; // don't fight with swipe-to-delete
     if(getScrollTop() > SCROLL_TOLERANCE) return;
-    startY = e.clientY;
+    startY = y; startX = x;
     dragging = true;
     currentPull = 0;
-  });
+  }
 
-  document.addEventListener('pointermove', (e)=>{
-    if(!dragging) return;
-    if(getScrollTop() > SCROLL_TOLERANCE){ dragging = false; return; }
-    const deltaY = e.clientY - startY;
+  // Returns true when this move is the pull (so a touch can claim it).
+  function move(x, y){
+    if(!dragging) return false;
+    if(getScrollTop() > SCROLL_TOLERANCE){ dragging = false; return false; }
+    const deltaY = y - startY;
+    // A sideways swipe (a chip row, a swipe row) is not a pull.
+    if(Math.abs(x - startX) > Math.abs(deltaY) && currentPull === 0) return false;
     if(deltaY <= 0){
       currentPull = 0;
       indicator.classList.add('dragging');
       indicator.style.transform = 'translateY(-70px)';
-      return;
+      return false;
     }
     currentPull = Math.min(MAX_PULL, deltaY * 0.85); // lighter resistance — a shorter, easier drag now reaches threshold
     indicator.classList.add('dragging');
@@ -36768,7 +36816,15 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
     const pastThreshold = currentPull >= THRESHOLD;
     spinner.classList.toggle('past-threshold', pastThreshold);
     label.textContent = pastThreshold ? 'Release to refresh' : 'Pull to refresh';
-  });
+    return true;
+  }
+
+  document.addEventListener('touchstart', (e)=>{ const t = e.touches[0]; if(t && e.touches.length === 1) begin(t.clientX, t.clientY, e.target); }, {passive:true});
+  document.addEventListener('touchmove', (e)=>{ const t = e.touches[0]; if(t && move(t.clientX, t.clientY) && e.cancelable) e.preventDefault(); }, {passive:false});
+  document.addEventListener('touchend', ()=> endPull());
+  document.addEventListener('touchcancel', ()=> endPull());
+  document.addEventListener('pointerdown', (e)=>{ if(e.pointerType !== 'touch') begin(e.clientX, e.clientY, e.target); });
+  document.addEventListener('pointermove', (e)=>{ if(e.pointerType !== 'touch') move(e.clientX, e.clientY); });
 
   function endPull(){
     if(!dragging) return;
@@ -36793,7 +36849,7 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
 
       setTimeout(()=>{
         window.location.href = window.location.pathname + '?_r=' + Date.now();
-      }, 500); // slightly longer than before, so the just-triggered save has time to finish first
+      }, RELOAD_DELAY);
     } else {
       indicator.style.transform = 'translateY(-70px)';
       spinner.classList.remove('past-threshold');
@@ -36802,8 +36858,8 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
     currentPull = 0;
   }
 
-  document.addEventListener('pointerup', endPull);
-  document.addEventListener('pointercancel', endPull);
+  document.addEventListener('pointerup', (e)=>{ if(e.pointerType !== 'touch') endPull(); });
+  document.addEventListener('pointercancel', (e)=>{ if(e.pointerType !== 'touch') endPull(); });
 })();
 
 // [SWIPE-TO-DELETE] -------------------------------------------------------------
