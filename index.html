@@ -4332,46 +4332,7 @@
      to absorb a bigger box. */
   body.gym-mode .exercise input[type=checkbox]{width:42px; height:42px; flex:0 0 auto;}
 
-  /* ── The set row: one control, not six ───────────────────────────────────
-     Each row was a box holding five more boxes, every one with its own border
-     and its own radius, on top of a sixth box for the exercise. The fields are
-     now cells of a single grouped control separated by hairlines, which is the
-     same relationship the plate calculator and the number pads already use.
-     `overflow` is deliberately NOT hidden: `.set-note-wrap` is a child of this
-     flex container with `flex-basis:100%` and expands BELOW the row, so
-     clipping it would hide the note field. */
-  /* The clip radius MUST match `.set-row-content`'s radius. `.set-row` is
-     `overflow:hidden; border-radius:var(--radius-sm)` (9px) and that clip is
-     what contains `.swipe-delete-bg`; with a 16px radius on the content, each
-     corner left a crescent of red visible between the two curves. */
-  body.gym-mode .set-row{margin:7px 0; border-radius:16px;}
   body.gym-mode .swipe-delete-bg{border-radius:16px;}
-  /* THIS BACKGROUND MUST STAY OPAQUE, and the reason is not cosmetic.
-     `.swipe-delete-bg` is `position:absolute; inset:0; background:var(--plate-red)`
-     and sits directly BEHIND this element — the swipe gesture reveals it by
-     translating this layer aside. A previous revision set this to
-     `transparent` to stop the rows reading as stacked tiles, and every set row
-     in gym mode turned solid red with a visible bin icon, permanently.
-     Translucency does not work here either: any alpha below ~1 tints the row
-     pink. If this needs to change, change the COLOUR, never the opacity. */
-  body.gym-mode .set-row-content{
-    gap:0; padding:0;
-    /* v3.28: was the flat colour #0C0E11. This is a gradient between two FULLY
-       OPAQUE colours — that is not translucency and it does not reintroduce
-       the pink-tint bug the comment above describes, because no alpha below 1
-       is involved anywhere. The inset hairline is the same sheen every other
-       raised surface in the app carries. */
-    background:var(--gym-panel-gradient);
-    border:1px solid rgba(var(--surface-white-rgb),0.10);
-    border-radius:16px;
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.055) inset,
-               0 6px 18px -12px rgba(var(--overlay-black-rgb),0.9);
-  }
-  body.gym-mode .set-num{
-    width:40px; min-height:56px; display:flex; align-items:center; justify-content:center;
-    font-size:15px; font-weight:600; color:var(--text-muted);
-    border-right:1px solid rgba(var(--surface-white-rgb),0.07); flex:0 0 auto;
-  }
   body.gym-mode .ex-input{
     width:auto; flex:1 1 0; min-width:0; min-height:56px;
     background:transparent; border:none; border-radius:0;
@@ -4386,52 +4347,6 @@
   /* The × and @ separators. A hairline divider already says "these are
      different fields", so the glyph is one more thing to read for nothing. */
   body.gym-mode .ex-x{display:none;}
-  /* Buttons become the last cells of the same control rather than competing
-     tiles. Ghost by default; the app's own colour state (.has-note) still wins because they set border-color and
-     colour, which these rules leave alone. */
-  body.gym-mode .set-note-btn{
-    min-width:54px; min-height:56px; flex:0 0 auto;
-    display:flex; align-items:center; justify-content:center;
-    background:transparent; border:none; border-radius:0;
-    border-left:1px solid rgba(var(--surface-white-rgb),0.07);
-    font-size:18px; color:var(--text-muted);
-  }
-  /* Narrower than its neutral siblings above (44px vs 54px) — it's a single
-     glyph, not an emoji needing room, and this is already the fourth cell in
-     a row that's tightest on exactly the screens this mode targets. Keeps
-     the normal-mode accent-blue treatment rather than going ghost like the
-     others: this is the one action in the row meant to stand out. */
-  /* Literal blue rather than var(--plate-blue-rgb), matching every other
-     Gym Mode color value in this file (see the --rim/box-shadow note
-     elsewhere in this stylesheet) — Gym Mode's hand-tuned palette is
-     deliberately NOT wired to the shared tokens, so a future retune of
-     --plate-blue for the rest of the app can't silently reshade this
-     screen along with it. */
-  body.gym-mode .set-next-btn{
-    min-width:44px; min-height:56px; flex:0 0 auto;
-    display:flex; align-items:center; justify-content:center;
-    background:rgba(91,124,255,0.16); border:none; border-radius:0;
-    border-left:1px solid rgba(var(--surface-white-rgb),0.07);
-    font-size:20px; font-weight:700; color:#5B7CFF;
-  }
-  body.gym-mode .set-next-btn:active{background:rgba(91,124,255,0.28);}
-  body.gym-mode .set-note-btn{font-size:20px; font-weight:400;}
-  body.gym-mode .set-note-btn:active{background:rgba(var(--surface-white-rgb),0.06); opacity:1;}
-  body.gym-mode .set-status{
-    position:absolute; right:8px; top:6px; font-size:13px;
-  }
-  body.gym-mode .set-row-content{position:relative;}
-  /* Gym Mode audit finding #3: unlike every other panel in this mode, the
-     note field kept the normal-mode flat --surface2 fill — sizing was
-     bumped for gym mode here already, but never the color, so it read as a
-     leftover normal-mode box floating in an otherwise all-dark, well-styled
-     panel. Same gradient .set-row-content/.warmup-box already use below. */
-  body.gym-mode .set-note-input{
-    min-height:48px; font-size:15px;
-    background:var(--gym-panel-gradient);
-    border-color:rgba(var(--surface-white-rgb),0.10);
-    box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.055) inset;
-  }
   /* The ramp, restyled for the panel: a recessed block in the same well
      colour as the set rows, so it reads as part of the exercise rather than as
      a leftover card. Big enough to read at arm's length, which is the whole
@@ -4444,46 +4359,6 @@
   }
   body.gym-mode .warmup-title{font-size:11px; letter-spacing:0.04em; opacity:0.75; margin-bottom:6px;}
   body.gym-mode .warmup-row{font-size:16px; padding:5px 0; line-height:1.35;}
-  /* The strip has no chrome of its own in gym mode either — the wells do the
-     work, exactly as they do for the working set rows below them. */
-  /* Gym mode: the drop rows get the same arm's-length treatment as every other
-     row, in teal. Background is a FULLY OPAQUE teal-shifted gradient — the
-     pink-tint rule applies to every row well, not just the ones that existed
-     when it was written. */
-  body.gym-mode .drop-set-row{
-    gap:0; padding:0; margin:6px 0;
-    background:linear-gradient(170deg, #132123 0%, #0D1719 62%, #0A1214 100%);
-    border:1px solid rgba(47,184,196,0.30);
-    border-left:4px solid var(--plate-teal);
-    border-radius:14px;
-  }
-  body.gym-mode .drop-set-row .ex-input{
-    width:auto; flex:1 1 0; min-width:0; min-height:48px;
-    background:transparent; border:none; border-radius:0;
-    border-right:1px solid rgba(47,184,196,0.18);
-    box-shadow:none; font-size:20px; font-weight:600; padding:0 2px;
-  }
-  /* Mirrors the warm-up label above, for the same two reasons: it is no longer
-     the first cell, and a fixed width cannot land on a flexed column. */
-  body.gym-mode .drop-step-label{
-    min-width:0; flex:1 1 0; min-height:48px;
-    display:flex; align-items:center; justify-content:center;
-    font-size:12px; font-weight:600;
-    border-right:none;
-  }
-  body.gym-mode .drop-hang{
-    min-width:40px; width:40px; min-height:48px;
-    display:flex; align-items:center; justify-content:center;
-    font-size:15px; flex:0 0 auto;
-    border-right:1px solid rgba(47,184,196,0.18);
-  }
-  body.gym-mode .drop-set-row .ex-x{ display:none; }
-  body.gym-mode .set-drop-btn{
-    min-width:54px; min-height:56px; width:auto; height:auto; flex:0 0 auto;
-    background:transparent; border:none; border-radius:0;
-    border-left:1px solid rgba(var(--surface-white-rgb),0.07);
-    font-size:18px;
-  }
   body.gym-mode .warmup-strip{margin-left:0;}
   body.gym-mode .warmup-restore-btn{ min-height:44px; font-size:13px; padding:8px 14px; }
   /* Gym mode keeps the stacked full-width buttons — at arm's length a row of
@@ -4662,6 +4537,16 @@
   body.gym-mode .set-chip-tag{font-size:13px;}
   body.gym-mode .set-chip-trend{font-size:18px;}
   body.gym-mode .sets-block > .set-row{display:none;}
+  /* v3.316: the gym-mode styling for the parts of those rows (the field
+     wells, set number, note and next buttons, drop rows) was removed — none of
+     it could show once the rows were hidden. The warm-up ramp's rows are not
+     set rows and keep their gym styling (above).
+     THE PINK-TINT RULE (it lived on the removed set-row well and still governs
+     the warm-up well): `.swipe-delete-bg` is a red layer directly BEHIND a
+     swipeable row's content, revealed by sliding the content aside. A row
+     well's background must stay FULLY OPAQUE — `transparent` turned every row
+     solid red with a bin icon, and any alpha below ~1 tints it pink. Change
+     the colour, never the opacity. */
 
   /* Raised clear of the dock rather than floating over it. */
   body.gym-mode .rest-timer{bottom:calc(96px + env(safe-area-inset-bottom, 0px));}
@@ -6734,7 +6619,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.315';
+const APP_VERSION = '3.316';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7528,6 +7413,8 @@ const WHATS_NEW = {
     'Progress rows use the same type as your sets, Best is shown plainly, and "ready to go up" uses the same green arrow as your sets.',
   ]},  '3.315': { headline: 'Quieter exercise labels', points: [
     'Notes under an exercise name, like "added for your body goal", "swapped from" and "Custom", are now one calm grey instead of four colours.',
+  ]},  '3.316': { headline: 'Behind the scenes', points: [
+    'Removed old Gym mode styling for set rows, which Gym mode replaced with set chips.',
   ]},
 };
 

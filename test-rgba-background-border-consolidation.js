@@ -229,11 +229,15 @@ test('REAL CASCADE: .care-banner-urgent and .app-banner-urgent (red) resolve to 
 });
 
 // ── Gym Mode must stay untouched ────────────────────────────────────────
-test('regression guard: Gym Mode keeps its own literal orange/teal rgba() values, not converted to var() by this pass', (assert)=>{
+// 2026-10-26 (v3.316): Gym Mode's literal teal sites were all on its drop-set
+// rows, removed with the rest of the gym-mode set-row styling (gym mode hides
+// set rows; see test-gym-mode-audit-fixes.js), so the teal-literal floor is
+// gone. Neither colour may be converted to var() inside Gym Mode, still.
+test('regression guard: Gym Mode keeps its own literal orange rgba() values, and neither orange nor teal is converted to var() there', (assert)=>{
   const orangeLiterals = (gymBlock.match(/rgba\(255,\s*122,\s*51,/g) || []).length;
   const tealLiterals = (gymBlock.match(/rgba\(47,\s*184,\s*196,/g) || []).length;
   assert.ok(orangeLiterals >= 3, `Gym Mode should still hold real literal orange rgba() sites, found ${orangeLiterals}`);
-  assert.ok(tealLiterals >= 3, `Gym Mode should still hold real literal teal rgba() sites, found ${tealLiterals}`);
+  assert.strictEqual(tealLiterals, 0, `the gym-mode drop rows (the only teal literal sites) were removed in v3.316, found ${tealLiterals}`);
   const orangeVarUse = (gymBlock.match(/rgba\(var\(--plate-orange-rgb\)/g) || []).length;
   const tealVarUse = (gymBlock.match(/rgba\(var\(--plate-teal-rgb\)/g) || []).length;
   assert.strictEqual(orangeVarUse, 0, 'this pass must not have touched Gym Mode\'s orange literals');
