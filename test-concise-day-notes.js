@@ -14,7 +14,7 @@ const { readIndexSource, extractConst, extractFunction, runSandbox, makeRunner }
 const src = readIndexSource();
 const { test, run } = makeRunner('test-concise-day-notes.js');
 
-const CEILING = 45; // v3.330: the 40 longest rewritten; the rest are <= 42
+const CEILING = 40; // v3.330: 45; v3.331: 40 — every note that was over 30 words rewritten; the medical ones keep their specifics
 
 const MUST_KEEP = [
   // v3.330 — first batch (medical and safety content)
@@ -29,6 +29,10 @@ const MUST_KEEP = [
   /talk test/, /Avoid maximal or near-maximal lifts entirely/,
   /vertebral compression fracture/, /much less strain on the lower back than crunches/,
   /Start quad activation right away/, /4-6 weeks after surgery, once your team clears it/, /Isometric holds \(30-45 seconds\)/,
+  // v3.331 — second batch
+  /blood pressure medication, ask your doctor/, /Ab work usually waits until 8-12 weeks/, /under-drink/,
+  /Rest 60-90 seconds between sets/, /diastasis recti, a pelvic floor PT/, /stops immediately when asked/,
+  /surgeon\/PT clears it/, /60%\+ of the other leg/, /fractures almost always start with a fall/,
 ];
 
 function dayNotes(){

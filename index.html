@@ -6624,7 +6624,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.330';
+const APP_VERSION = '3.331';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7448,6 +7448,8 @@ const WHATS_NEW = {
     'The six watersports too. Every days-per-week note in the app is now about half as long.',
   ]},  '3.330': { headline: 'Shorter day notes', points: [
     'The 40 longest rest-day and program-day notes are about a third shorter, with every number and safety sign kept.',
+  ]},  '3.331': { headline: 'Shorter day notes, done', points: [
+    'The rest of the long rest-day and program-day notes are shorter too, with every safety point kept.',
   ]},
 };
 
@@ -9841,7 +9843,7 @@ const MEDICAL_STYLES = {
       },
       d2: {
         label:'Day 2', sub:'Lower Body Strength (Joint-Friendly)', plate:'p-blue', plateNum:'20', duration:'~25 min',
-        note:'Form and control matter far more here than how much resistance is used — full range of motion isn\'t required from day one. A comfortable, controlled partial range is a completely legitimate starting point.',
+        note:'Form and control matter far more than resistance, and full range isn\'t needed from day one; a comfortable, controlled partial range is a fine start.',
         exercises:[
           {name:'Bodyweight Squat', sets:'2×10 (comfortable depth)', noWeight:true},
           {name:'Glute Bridge', sets:'2×12', noWeight:true},
@@ -9908,18 +9910,18 @@ const MEDICAL_STYLES = {
       },
       d3: {
         label:'Day 3', sub:'Rest', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
-        note:'A real rest day. If you\'re on blood pressure medication, ask your doctor whether timing your workouts around your dose makes sense — some medications have a window where exercise response is more predictable.'
+        note:'A rest day. If you take blood pressure medication, ask your doctor whether to time workouts around your dose; some have a window where exercise response is more predictable.'
       },
       d4: {
         label:'Day 4', sub:'Moderate Aerobic', plate:'p-yellow', plateNum:'15', duration:'~30 min',
-        note:'Small, frequent sessions genuinely count here — research specifically supports short 10-minute bouts spread through the day as a legitimate alternative to one continuous session if that fits your schedule better.',
+        note:'Short, frequent sessions count: research supports 10-minute bouts spread through the day as an alternative to one longer session.',
         exercises:[
           {name:'Walking', sets:'20-25 min (talk-test pace)', noWeight:true},
         ]
       },
       d5: {
         label:'Day 5', sub:'Resistance — Full Body B', plate:'p-green', plateNum:'10', duration:'~30 min',
-        note:'Rest a genuine 60-90 seconds between sets — longer than you might default to. That extra recovery time specifically helps prevent blood pressure from stacking up across a session, not just muscle fatigue.',
+        note:'Rest 60-90 seconds between sets, longer than you might default to, so blood pressure doesn\'t stack up across the session.',
         exercises:[
           {name:'Glute Bridge', sets:'2×12', noWeight:true},
           {name:'Band External Rotation', sets:'2×12', noWeight:true},
@@ -9945,7 +9947,7 @@ const MEDICAL_STYLES = {
     days: {
       d1: {
         label:'Day 1', sub:'Post-Meal Walk + Upper Body', plate:'p-red', plateNum:'25', duration:'~30 min',
-        note:'Being active after a meal specifically blunts the blood sugar rise that follows eating — this isn\'t just "exercise is good," it\'s a real, time-specific effect worth building your schedule around when you can.',
+        note:'Moving after a meal blunts the blood sugar rise that follows it — a time-specific effect worth planning around when you can.',
         exercises:[
           {name:'Post-Meal Walk', sets:'15-20 min (start within ~30 min of eating)', noWeight:true},
           {name:'Wall Push-up', sets:'2×10', noWeight:true},
@@ -10023,7 +10025,7 @@ const MEDICAL_STYLES = {
       },
       d4: {
         label:'Day 4', sub:'Resistance — Upper Body', plate:'p-yellow', plateNum:'15', duration:'~25 min',
-        note:'Never hold your breath while lifting — exhale through the effort. Building back and shoulder strength specifically supports the posture that helps protect the spine day to day, not just during workouts.',
+        note:'Never hold your breath while lifting — breathe out through the effort. Back and shoulder strength supports the posture that protects your spine day to day.',
         exercises:[
           {name:'Wall Push-up', sets:'3×10', noWeight:true},
           {name:'Seated Cable Row', sets:'3×12'},
@@ -10032,7 +10034,7 @@ const MEDICAL_STYLES = {
       },
       d5: {
         label:'Day 5', sub:'Balance & Fall Prevention', plate:'p-green', plateNum:'10', duration:'~20 min',
-        note:'This day matters as much as the strength days — a fracture almost always starts with a fall, so reducing fall risk is directly protecting bone health, not a separate afterthought.',
+        note:'This day matters as much as the strength days: fractures almost always start with a fall, so lowering fall risk protects your bones.',
         exercises:[
           {name:'Single-Leg Balance', sets:'3×20-30s/side', noWeight:true},
           {name:'Heel-to-Toe Walk', sets:'2×10 steps', noWeight:true},
@@ -10060,7 +10062,7 @@ const MEDICAL_STYLES = {
     days: {
       d1: {
         label:'Day 1', sub:'Walking Focus & Breathing', plate:'p-red', plateNum:'25', duration:'~20 min',
-        note:'Short, frequent walks matter more here than one long one — several 5-10 minute walks spread through the day is a completely legitimate way to hit this, especially in the first couple of weeks.',
+        note:'Short, frequent walks matter more than one long one: several 5-10 minute walks through the day is fine, especially in the first weeks.',
         exercises:[
           {name:'Marching in Place', sets:'3×60s', noWeight:true},
           {name:'Diaphragmatic Breathing', sets:'3×60s', noWeight:true},
@@ -10069,7 +10071,7 @@ const MEDICAL_STYLES = {
       },
       d2: {
         label:'Day 2', sub:'Gentle Mobility (No Core Loading)', plate:'p-blue', plateNum:'20', duration:'~20 min',
-        note:'Nothing here should pull on the abdominal wall — no twisting, no crunching, no holding a plank-like position yet. That\'s intentional; ab-specific work is one of the things typically delayed until 8-12 weeks.',
+        note:'Nothing here should pull on the abdominal wall — no twisting, crunching or plank-like holds yet. Ab work usually waits until 8-12 weeks.',
         exercises:[
           {name:'Cat-Cow Mobility', sets:'2×8', noWeight:true},
           {name:'Heel-to-Toe Walk', sets:'2×10 steps', noWeight:true},
@@ -10078,7 +10080,7 @@ const MEDICAL_STYLES = {
       },
       d3: {
         label:'Day 3', sub:'Rest / Hydration Focus', plate:'p-white', plateNum:'—', duration:'~15 min', rest:true,
-        note:'A genuine rest day, and hydration deserves real attention here — reduced stomach capacity makes it easy to under-drink without noticing. Sip steadily through the day rather than trying to drink a lot at once.'
+        note:'A rest day, with attention on hydration: reduced stomach capacity makes it easy to under-drink. Sip steadily through the day rather than drinking a lot at once.'
       },
       d4: {
         label:'Day 4', sub:'Walking Progression + Light Upper Body', plate:'p-yellow', plateNum:'15', duration:'~25 min',
@@ -10151,7 +10153,7 @@ const MEDICAL_STYLES = {
       },
       d3: {
         label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
-        note:'A real rest day. Protein intake matters just as much on rest days as training days — muscle you\'re working to rebuild is protected on the days you\'re not training it too.'
+        note:'A rest day. Protein matters as much today as on training days; it protects the muscle you\'re rebuilding.'
       },
       d4: {
         label:'Day 4', sub:'Full-Body Strength B', plate:'p-yellow', plateNum:'15', duration:'~35 min',
@@ -10292,7 +10294,7 @@ const MEDICAL_STYLES = {
           {name:'Farmer\'s Carry', sets:'2×20-30s'},
         ]},
       d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-        note:'Full rest day. This program deliberately avoids traditional crunches/sit-ups throughout — if you have (or suspect) diastasis recti, a pelvic floor PT can check and guide the return to fuller core loading.' },
+        note:'Full rest day. This program avoids crunches and sit-ups throughout; if you have or suspect diastasis recti, a pelvic floor PT can guide your return to fuller core work.' },
     }
   },
   rehabGeneral: {
@@ -10440,7 +10442,7 @@ const MEDICAL_STYLES = {
       },
       d4: {
         label:'Day 4', sub:'Progressive Strengthening', plate:'p-yellow', plateNum:'15', duration:'~25 min',
-        note:'Only progress to loaded leg work once your surgeon/PT has actually cleared it — quad strength symmetry (roughly 60%+ of the uninjured leg) is a common early-phase benchmark before advancing further.',
+        note:'Progress to loaded leg work only once your surgeon/PT clears it; quad strength around 60%+ of the other leg is a common early benchmark.',
         exercises:[
           {name:'Leg Curl', sets:'3×10 (light)', noWeight:true},
           {name:'Glute Bridge', sets:'3×12', noWeight:true},
@@ -10449,7 +10451,7 @@ const MEDICAL_STYLES = {
       },
       d5: {
         label:'Day 5', sub:'Balance & Proprioception', plate:'p-green', plateNum:'10', duration:'~25 min',
-        note:'Balance and proprioception work matters as much as raw strength here — the knee re-learning to sense and control its own position is a real, separate part of recovery, not just a warm-up formality.',
+        note:'Balance and proprioception matter as much as strength: relearning to sense and control the knee\'s position is its own part of recovery.',
         exercises:[
           {name:'Single-Leg Balance', sets:'3×20-30s/side', noWeight:true},
           {name:'Heel-to-Toe Walk', sets:'2×10 steps', noWeight:true},
@@ -10464,7 +10466,7 @@ const MEDICAL_STYLES = {
       },
       d7: {
         label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-        note:'Full rest day. Return to sport depends on criteria, not a date: quad and hamstring strength within about 10-15% of the other leg and passing hop tests, generally not before 9 months, decided by your surgical/PT team. Returning early raises re-tear rates.'
+        note:'Return to sport depends on criteria, not a date: quad and hamstring strength within about 10-15% of the other leg and passing hop tests, generally not before 9 months, decided by your surgical/PT team. Returning early raises re-tear rates.'
       },
     }
   },
@@ -10474,7 +10476,7 @@ const MEDICAL_STYLES = {
     days: {
       d1: {
         label:'Day 1', sub:'Eccentric Loading A', plate:'p-red', plateNum:'25', duration:'~15 min',
-        note:'Alfredson protocol: 3×15 straight-knee heel drops, then 3×15 bent-knee. Rise on both legs, shift to the affected side, and lower slowly (about 3 seconds) until the heel dips below the step. Some discomfort is expected; stop for sharp or worsening pain.',
+        note:'Alfredson protocol: 3×15 straight-knee heel drops, then 3×15 bent-knee. Rise on both legs, shift to the affected side, and lower slowly (about 3 seconds) until the heel dips below the step. Discomfort is expected; stop for sharp or worsening pain.',
         exercises:[
           {name:'Eccentric Heel Drop', sets:'3×15 (straight-knee, 3s eccentric lower)', noWeight:true},
           {name:'Eccentric Heel Drop', sets:'3×15 (bent-knee, 3s eccentric lower)', noWeight:true},
@@ -10494,7 +10496,7 @@ const MEDICAL_STYLES = {
       },
       d4: {
         label:'Day 4', sub:'Eccentric Loading B', plate:'p-yellow', plateNum:'15', duration:'~15 min',
-        note:'Same protocol as Day 1. Consistency matters more than intensity here — this is a 12-week program, and the tendon adapts to repeated, patient loading over that time, not a big single effort.',
+        note:'Same protocol as Day 1. Consistency beats intensity: over 12 weeks, the tendon adapts to patient, repeated loading.',
         exercises:[
           {name:'Eccentric Heel Drop', sets:'3×15 (straight-knee, 3s eccentric lower)', noWeight:true},
           {name:'Eccentric Heel Drop', sets:'3×15 (bent-knee, 3s eccentric lower)', noWeight:true},
@@ -10844,7 +10846,7 @@ const COMBAT_STYLES = {
           {name:'Tai Chi Form — Cloud Hands (Yun Shou)', sets:'8 reps/side ×2', noWeight:true},
         ]},
       d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-        note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term.' },
+        note:'Hip and ankle mobility, 20-25 minutes. Every tai chi stance depends on that range, and it keeps the low stances sustainable.' },
       d4: { label:'Day 4', sub:'Push Hands & Sensitivity', plate:'p-yellow', plateNum:'15', duration:'~40 min',
         exercises:[
           {name:'Zhan Zhuang (Standing Post)', sets:'2×2 min', noWeight:true},
@@ -10995,7 +10997,7 @@ const WATERSPORTS_STYLES = {
       },
       d3: {
         label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-        note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.'
+        note:'Thoracic spine, hip and shoulder mobility, 20-25 minutes. Paddling and the pop-up load shoulders and hips repeatedly, so give them real recovery.'
       },
       d4: {
         label:'Day 4', sub:'Posterior Shoulder & Injury Prevention', plate:'p-yellow', plateNum:'15', duration:'~35 min',
@@ -11141,7 +11143,7 @@ const WATERSPORTS_STYLES = {
       },
       d7: {
         label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-        note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.'
+        note:'Full rest day. This is land support, not a replacement for time behind the boat: reading the wake, timing a pop and holding an edge only develop there.'
       },
     }
   },
@@ -11168,7 +11170,7 @@ const WATERSPORTS_STYLES = {
       },
       d3: {
         label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-        note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip.'
+        note:'Lower back, hip and shoulder mobility, 20-25 minutes. The leaned-back stance and bar pull load these areas, so give them real recovery.'
       },
       d4: {
         label:'Day 4', sub:'Grip, Forearm & Shoulder Endurance', plate:'p-yellow', plateNum:'15', duration:'~35 min',
@@ -11410,7 +11412,7 @@ const YOGA_STYLES = {
       },
       d2: {
         label:'Day 2', sub:'Hot Power Flow', plate:'p-blue', plateNum:'20', duration:'~45 min',
-        note:'Heat makes muscles feel more flexible than the ligaments underneath actually are — this is when overstretching injuries happen, not from the heat itself. Stay inside your normal range, not a heat-inflated one.',
+        note:'Heat makes muscles feel looser than the ligaments underneath are, which is when overstretching injuries happen. Stay inside your normal range.',
         exercises:[
           {name:'Chair Pose', sets:'3×10 breaths', noWeight:true},
           {name:'Plank', sets:'3×45s', noWeight:true},
@@ -11466,7 +11468,7 @@ const YOGA_STYLES = {
     days: {
       d1: {
         label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
-        note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality. Move at whichever partner\'s pace is slower; this isn\'t a session to rush.',
+        note:'Start sitting back to back and feel each other\'s breath — that\'s the warm-up. Move at the slower partner\'s pace.',
         exercises:[
           {name:'Seated Back-to-Back Breathing', sets:'2×2 min', noWeight:true},
           {name:'Partner Seated Forward Fold (Row)', sets:'3×30s', noWeight:true},
@@ -11490,7 +11492,7 @@ const YOGA_STYLES = {
       },
       d4: {
         label:'Day 4', sub:'Assisted Flexibility', plate:'p-yellow', plateNum:'15', duration:'~40 min',
-        note:'The assisting partner should only ever apply gentle, steady pressure and stop immediately if asked — this is not a day to push a stretch further than the receiving partner is actually comfortable with.',
+        note:'The assisting partner applies only gentle, steady pressure and stops immediately when asked — never further than the receiving partner is comfortable.',
         exercises:[
           {name:'Assisted Seated Forward Fold', sets:'2×45s/partner', noWeight:true},
           {name:'Assisted Pigeon Pose (Gentle Press)', sets:'2×45s/side/partner', noWeight:true},
@@ -11643,7 +11645,7 @@ const SWIM_STROKES = {
   },
   'Butterfly': {
     poses:['Body Undulation (The Wave)','Two-Beat Dolphin Kick','Butterfly Pull (Keyhole Pattern)','Butterfly Recovery','Breathing (Chin-Skim Technique)','Timing & Rhythm'],
-    note:'Widely considered the hardest stroke to learn, almost always because it\'s taught as an arm stroke rather than a whole-body wave — get the undulation right first and the rest becomes far more manageable.',
+    note:'The hardest stroke to learn, usually because it\'s taught as an arm stroke rather than a whole-body wave. Get the undulation right first.',
   },
 };
 
@@ -15365,7 +15367,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-          note:'Shoulder, hip, and ankle mobility work, 20-30 min. Even at 7 days selected, this stays bar-free on purpose — CNS and joint recovery from technical lifting isn\'t optional, no matter how light the reps would be.' },
+          note:'Shoulder, hip and ankle mobility, 20-30 minutes, bar-free on purpose: joints and nervous system need recovery from technical lifting, however light.' },
         d4: { label:'Day 4', sub:'Snatch Variations', plate:'p-yellow', plateNum:'15', duration:'~55 min',
           exercises:[
             {name:'Power Snatch', sets:'5×3'},
@@ -15626,7 +15628,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Mobility & Easy Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-          note:'20-30 min easy walk or bike plus hip/shoulder mobility work — conversational pace throughout. You picked 7 days a week, and this IS one of them, but nothing here is loaded near failure on purpose.' },
+          note:'20-30 minutes of easy walking or cycling plus hip and shoulder mobility, at conversational pace. Nothing is loaded near failure.' },
         d4: { label:'Day 4', sub:'Deadlift Focus', plate:'p-yellow', plateNum:'15', duration:'~55 min',
           exercises:[
             {name:'Deadlift', sets:'5×3'},
@@ -15900,7 +15902,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Mobility & Easy Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-          note:'20-30 min easy walk or bike plus loose joint mobility work — conversational pace throughout. You picked 7 days a week, and this IS one of them, but nothing here is loaded near failure on purpose.' },
+          note:'20-30 minutes of easy walking or cycling plus loose mobility, at conversational pace. Nothing is loaded near failure.' },
         d4: { label:'Day 4', sub:'Deadlift + Back/Biceps', plate:'p-yellow', plateNum:'15', duration:'~55 min',
           exercises:[
             {name:'Deadlift', sets:'4×5'},
@@ -16166,7 +16168,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Mobility & Easy Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-          note:'20-30 min easy walk or bike plus loose joint mobility work — conversational pace throughout. You picked 7 days a week, and this IS one of them, but nothing here is loaded near failure on purpose.' },
+          note:'20-30 minutes of easy walking or cycling plus loose mobility, at conversational pace. Nothing is loaded near failure.' },
         d4: { label:'Day 4', sub:'Lower Power 2', plate:'p-yellow', plateNum:'15', duration:'~55 min',
           exercises:[
             {name:'Depth Jump', sets:'4×5'},
@@ -16427,7 +16429,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Mobility & Easy Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-          note:'20-30 min easy walk or bike plus loose joint mobility work — conversational pace throughout. You picked 7 days a week, and this IS one of them, but nothing here is loaded near failure on purpose.' },
+          note:'20-30 minutes of easy walking or cycling plus loose mobility, at conversational pace. Nothing is loaded near failure.' },
         d4: { label:'Day 4', sub:'Legs', plate:'p-yellow', plateNum:'15', duration:'~35 min',
           exercises:[
             {name:'Bodyweight Squat', sets:'4×20-25'},
@@ -16958,7 +16960,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Mobility & Easy Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-          note:'20-30 min easy walk or bike plus loose joint mobility work — conversational pace throughout. You picked 7 days a week, and this IS one of them, but nothing here is loaded near failure on purpose.' },
+          note:'20-30 minutes of easy walking or cycling plus loose mobility, at conversational pace. Nothing is loaded near failure.' },
         d4: { label:'Day 4', sub:'Loaded Carries & Anti-Lateral Flexion', plate:'p-yellow', plateNum:'15', duration:'~40 min',
           exercises:[
             {name:'Farmer\'s Carry', sets:'4×30yd'},
@@ -17206,7 +17208,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-          note:'Ankle and calf mobility, 20-30 min. Even at 7 days selected, this stays rope-free on purpose — rope work is high-impact on the lower legs at any intensity, and that impact needs a real break somewhere.' },
+          note:'Ankle and calf mobility, 20-30 minutes, and no rope: rope work is high-impact on the lower legs at any intensity.' },
         d4: { label:'Day 4', sub:'Double Unders & Power', plate:'p-yellow', plateNum:'15', duration:'~35 min',
           exercises:[
             {name:'Jump Rope — Double Unders', sets:'6×30-45s', noWeight:true},
@@ -17702,7 +17704,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-          note:'Hip and ankle mobility, 20-30 min. Even at 7 days selected, this stays run-free on purpose — running is high-impact on joints at any pace, and that impact needs a real break somewhere.' },
+          note:'Hip and ankle mobility, 20-30 minutes, and no running: running is high-impact on joints at any pace.' },
         d4: { label:'Day 4', sub:'Interval Training', plate:'p-yellow', plateNum:'15', duration:'~40 min',
           exercises:[
             {name:'Warm-up Jog', sets:'10 min', noWeight:true},
@@ -17957,7 +17959,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-          note:'Shoulder and thoracic mobility, 20-25 min. Even at 7 days selected, this stays pool-free on purpose — the overhead repetition in swimming makes real shoulder recovery non-negotiable, no matter the frequency.' },
+          note:'Shoulder and thoracic mobility, 20-25 minutes, and no pool: overhead repetition makes shoulder recovery essential.' },
         d4: { label:'Day 4', sub:'Threshold Swim', plate:'p-yellow', plateNum:'15', duration:'~40 min',
           exercises:[
             {name:'Warm-up Swim', sets:'10 min', noWeight:true},
@@ -18518,7 +18520,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Easy Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
-          note:'A relaxed 15-20 min walk if you feel like it — otherwise full rest. Even at 7 days selected, this stays exactly this gentle — this isn\'t a day to push anything, at any frequency.' },
+          note:'A relaxed 15-20 minute walk if you feel like it, otherwise full rest. Keep it this gentle at any frequency.' },
         d4: { label:'Day 4', sub:'Upper Body Strength', plate:'p-yellow', plateNum:'15', duration:'~30 min',
           exercises:[
             {name:'Wall Push-up', sets:'3×8-12', noWeight:true},
@@ -19064,7 +19066,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Gentle Mobility', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
-          note:'Gentle spinal mobility and breath work, 15-20 min. Even at 7 days selected, this stays genuine rest on purpose — precise control is the whole point of this method, and fatigue is exactly what degrades it.' },
+          note:'Gentle spinal mobility and breath work, 15-20 minutes, and real rest: fatigue degrades the precise control this method depends on.' },
         d4: { label:'Day 4', sub:'Abdominal Series II & Control', plate:'p-yellow', plateNum:'15', duration:'~35 min',
           exercises:[
             {name:'Rolling Like a Ball', sets:'2×8-10', noWeight:true},
@@ -19328,7 +19330,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-          note:'Hip and thoracic mobility, 20-25 min. The rotational demands of this program load the spine and hips in ways pure bag work doesn\'t — don\'t skip this, even at 7 days selected.' },
+          note:'Hip and thoracic mobility, 20-25 minutes. Rotation loads the spine and hips in ways bag work doesn\'t, so don\'t skip it.' },
         d4: { label:'Day 4', sub:'Upper Body Power & Punching Chain', plate:'p-yellow', plateNum:'15', duration:'~45 min',
           exercises:[
             {name:'Med Ball Chest Pass', sets:'4×6'},
@@ -21727,11 +21729,11 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term.' },
+            note:'Hip and ankle mobility, 20-25 minutes. Every tai chi stance depends on that range, and it keeps the low stances sustainable.' },
           d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
             note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
           d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term.' },
+            note:'Hip and ankle mobility, 20-25 minutes. Every tai chi stance depends on that range, and it keeps the low stances sustainable.' },
           d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
             note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
           d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
@@ -21754,7 +21756,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term.' },
+            note:'Hip and ankle mobility, 20-25 minutes. Every tai chi stance depends on that range, and it keeps the low stances sustainable.' },
           d3: { label:'Day 3', sub:'Form Practice · Cardinal Techniques', plate:'p-blue', plateNum:'20', duration:'~45 min',
             exercises:[
               {name:'Hip CARs', sets:'2×5/side', noWeight:true},
@@ -21766,7 +21768,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
             note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
           d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term.' },
+            note:'Hip and ankle mobility, 20-25 minutes. Every tai chi stance depends on that range, and it keeps the low stances sustainable.' },
           d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
             note:'Full rest day. No structured training — just hit your steps, protein, and sleep targets.' },
           d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
@@ -21795,7 +21797,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term.' },
+            note:'Hip and ankle mobility, 20-25 minutes. Every tai chi stance depends on that range, and it keeps the low stances sustainable.' },
           d4: { label:'Day 4', sub:'Full Form Flow', plate:'p-yellow', plateNum:'15', duration:'~45 min',
             exercises:[
               {name:'Tai Chi Form — Repulse Monkey (Retreating)', sets:'6 reps ×2', noWeight:true},
@@ -21834,7 +21836,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term.' },
+            note:'Hip and ankle mobility, 20-25 minutes. Every tai chi stance depends on that range, and it keeps the low stances sustainable.' },
           d4: { label:'Day 4', sub:'Push Hands & Sensitivity', plate:'p-yellow', plateNum:'15', duration:'~40 min',
             exercises:[
               {name:'Zhan Zhuang (Standing Post)', sets:'2×2 min', noWeight:true},
@@ -21880,7 +21882,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term.' },
+            note:'Hip and ankle mobility, 20-25 minutes. Every tai chi stance depends on that range, and it keeps the low stances sustainable.' },
           d4: { label:'Day 4', sub:'Push Hands & Sensitivity', plate:'p-yellow', plateNum:'15', duration:'~40 min',
             exercises:[
               {name:'Zhan Zhuang (Standing Post)', sets:'2×2 min', noWeight:true},
@@ -21935,7 +21937,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Hip and ankle mobility, 20-25 min. Every stance and transition in tai chi depends on hip and ankle range of motion — this is what keeps the low stances sustainable long-term, even at 7 days selected.' },
+            note:'Hip and ankle mobility, 20-25 minutes, at seven days too. Every tai chi stance depends on that range, and it keeps the low stances sustainable.' },
           d4: { label:'Day 4', sub:'Push Hands & Sensitivity', plate:'p-yellow', plateNum:'15', duration:'~40 min',
             exercises:[
               {name:'Zhan Zhuang (Standing Post)', sets:'2×2 min', noWeight:true},
@@ -21998,11 +22000,11 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.' },
+            note:'Thoracic spine, hip and shoulder mobility, 20-25 minutes. Paddling and the pop-up load shoulders and hips repeatedly, so give them real recovery.' },
           d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
             note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.' },
           d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.' },
+            note:'Thoracic spine, hip and shoulder mobility, 20-25 minutes. Paddling and the pop-up load shoulders and hips repeatedly, so give them real recovery.' },
           d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
             note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.' },
           d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
@@ -22024,7 +22026,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.' },
+            note:'Thoracic spine, hip and shoulder mobility, 20-25 minutes. Paddling and the pop-up load shoulders and hips repeatedly, so give them real recovery.' },
           d3: { label:'Day 3', sub:'Rotational Power & Pop-Up', plate:'p-blue', plateNum:'20', duration:'~40 min',
             exercises:[
               {name:'Med Ball Rotational Throw', sets:'4×8/side'},
@@ -22036,7 +22038,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
             note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.' },
           d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.' },
+            note:'Thoracic spine, hip and shoulder mobility, 20-25 minutes. Paddling and the pop-up load shoulders and hips repeatedly, so give them real recovery.' },
           d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
             note:'Full rest day. This is land-based support training, not a replacement for actual surf time — the ocean is still where the skill itself gets built.' },
           d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
@@ -22064,7 +22066,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.' },
+            note:'Thoracic spine, hip and shoulder mobility, 20-25 minutes. Paddling and the pop-up load shoulders and hips repeatedly, so give them real recovery.' },
           d4: { label:'Day 4', sub:'Endurance & Core Conditioning', plate:'p-yellow', plateNum:'15', duration:'~35 min',
             exercises:[
               {name:'Battle Ropes', sets:'4×30s', noWeight:true},
@@ -22102,7 +22104,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.' },
+            note:'Thoracic spine, hip and shoulder mobility, 20-25 minutes. Paddling and the pop-up load shoulders and hips repeatedly, so give them real recovery.' },
           d4: { label:'Day 4', sub:'Posterior Shoulder & Injury Prevention', plate:'p-yellow', plateNum:'15', duration:'~35 min',
             exercises:[
               {name:'Band External Rotation', sets:'3×15'},
@@ -22148,7 +22150,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip.' },
+            note:'Thoracic spine, hip and shoulder mobility, 20-25 minutes. Paddling and the pop-up load shoulders and hips repeatedly, so give them real recovery.' },
           d4: { label:'Day 4', sub:'Posterior Shoulder & Injury Prevention', plate:'p-yellow', plateNum:'15', duration:'~35 min',
             exercises:[
               {name:'Band External Rotation', sets:'3×15'},
@@ -22454,7 +22456,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Ankle and wrist mobility, 20-25 min. The two most commonly fractured joints in skimboarding — give them real, deliberate recovery, not just a stretch you skip, even at 7 days selected.' },
+            note:'Ankle and wrist mobility, 20-25 minutes: the two joints most often fractured in skimboarding need deliberate recovery.' },
           d4: { label:'Day 4', sub:'Grip, Wrist & Fall-Ready Strength', plate:'p-yellow', plateNum:'15', duration:'~30 min',
             exercises:[
               {name:'Farmer\'s Carry', sets:'4×30yd'},
@@ -22503,15 +22505,15 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
             note:'Knee, ankle, and shoulder mobility, 20-25 min. Hard landings and a constant rope pull load exactly these three joints — give them real recovery, not just a stretch you skip.' },
           d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+            note:'Full rest day. This is land support, not a replacement for time behind the boat: reading the wake, timing a pop and holding an edge only develop there.' },
           d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
             note:'Knee, ankle, and shoulder mobility, 20-25 min. Hard landings and a constant rope pull load exactly these three joints — give them real recovery, not just a stretch you skip.' },
           d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+            note:'Full rest day. This is land support, not a replacement for time behind the boat: reading the wake, timing a pop and holding an edge only develop there.' },
           d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+            note:'Full rest day. This is land support, not a replacement for time behind the boat: reading the wake, timing a pop and holding an edge only develop there.' },
           d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+            note:'Full rest day. This is land support, not a replacement for time behind the boat: reading the wake, timing a pop and holding an edge only develop there.' },
         }
       },
       2: {
@@ -22537,13 +22539,13 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+            note:'Full rest day. This is land support, not a replacement for time behind the boat: reading the wake, timing a pop and holding an edge only develop there.' },
           d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
             note:'Knee, ankle, and shoulder mobility, 20-25 min. Hard landings and a constant rope pull load exactly these three joints — give them real recovery, not just a stretch you skip.' },
           d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+            note:'Full rest day. This is land support, not a replacement for time behind the boat: reading the wake, timing a pop and holding an edge only develop there.' },
           d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+            note:'Full rest day. This is land support, not a replacement for time behind the boat: reading the wake, timing a pop and holding an edge only develop there.' },
         }
       },
       3: {
@@ -22577,11 +22579,11 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+            note:'Full rest day. This is land support, not a replacement for time behind the boat: reading the wake, timing a pop and holding an edge only develop there.' },
           d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+            note:'Full rest day. This is land support, not a replacement for time behind the boat: reading the wake, timing a pop and holding an edge only develop there.' },
           d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+            note:'Full rest day. This is land support, not a replacement for time behind the boat: reading the wake, timing a pop and holding an edge only develop there.' },
         }
       },
       4: {
@@ -22623,9 +22625,9 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+            note:'Full rest day. This is land support, not a replacement for time behind the boat: reading the wake, timing a pop and holding an edge only develop there.' },
           d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-            note:'Full rest day. This is land-based support training, not a replacement for real time behind the boat — reading the wake, timing a pop, and holding an edge under load only develop out there.' },
+            note:'Full rest day. This is land support, not a replacement for time behind the boat: reading the wake, timing a pop and holding an edge only develop there.' },
         }
       },
       // 5 intentionally omitted — this is the style's own authored default
@@ -22706,7 +22708,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Knee, ankle, and shoulder mobility, 20-25 min. Hard landings and a constant rope pull load exactly these three joints — give them real recovery, not just a stretch you skip, even at 7 days selected.' },
+            note:'Knee, ankle and shoulder mobility, 20-25 minutes. Hard landings and rope pull load exactly these joints, so give them real recovery.' },
           d4: { label:'Day 4', sub:'Rope-Pull & Grip Strength', plate:'p-yellow', plateNum:'15', duration:'~35 min',
             exercises:[
               {name:'Farmer\'s Carry', sets:'4×30yd'},
@@ -22754,11 +22756,11 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip.' },
+            note:'Lower back, hip and shoulder mobility, 20-25 minutes. The leaned-back stance and bar pull load these areas, so give them real recovery.' },
           d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
             note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.' },
           d4: { label:'Day 4', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip.' },
+            note:'Lower back, hip and shoulder mobility, 20-25 minutes. The leaned-back stance and bar pull load these areas, so give them real recovery.' },
           d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
             note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.' },
           d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
@@ -22780,7 +22782,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d2: { label:'Day 2', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip.' },
+            note:'Lower back, hip and shoulder mobility, 20-25 minutes. The leaned-back stance and bar pull load these areas, so give them real recovery.' },
           d3: { label:'Day 3', sub:'Landing Mechanics & Ankle-Knee Resilience', plate:'p-blue', plateNum:'20', duration:'~35 min',
             exercises:[
               {name:'Depth Jump', sets:'3×5'},
@@ -22792,7 +22794,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
             note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.' },
           d5: { label:'Day 5', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip.' },
+            note:'Lower back, hip and shoulder mobility, 20-25 minutes. The leaned-back stance and bar pull load these areas, so give them real recovery.' },
           d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
             note:'Full rest day. This is land-based support training, not a replacement for real, supervised kite instruction — kite control, water starts, and self-rescue only develop out there.' },
           d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
@@ -22820,7 +22822,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip.' },
+            note:'Lower back, hip and shoulder mobility, 20-25 minutes. The leaned-back stance and bar pull load these areas, so give them real recovery.' },
           d4: { label:'Day 4', sub:'Aerobic-Anaerobic Conditioning', plate:'p-yellow', plateNum:'15', duration:'~30 min',
             exercises:[
               {name:'Sprint Intervals', sets:'6×20s', noWeight:true},
@@ -22858,7 +22860,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip.' },
+            note:'Lower back, hip and shoulder mobility, 20-25 minutes. The leaned-back stance and bar pull load these areas, so give them real recovery.' },
           d4: { label:'Day 4', sub:'Grip, Forearm & Shoulder Endurance', plate:'p-yellow', plateNum:'15', duration:'~35 min',
             exercises:[
               {name:'Farmer\'s Carry', sets:'4×30yd'},
@@ -22904,7 +22906,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip.' },
+            note:'Lower back, hip and shoulder mobility, 20-25 minutes. The leaned-back stance and bar pull load these areas, so give them real recovery.' },
           d4: { label:'Day 4', sub:'Grip, Forearm & Shoulder Endurance', plate:'p-yellow', plateNum:'15', duration:'~35 min',
             exercises:[
               {name:'Farmer\'s Carry', sets:'4×30yd'},
@@ -23465,7 +23467,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, rotational push-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip, even at 7 days selected.' },
+            note:'Shoulder, thoracic spine and hip mobility, 20-25 minutes. The rotational push-pull stroke loads exactly these areas, so give them real recovery.' },
           d4: { label:'Day 4', sub:'Leg Drive & Lower-Body Power', plate:'p-yellow', plateNum:'15', duration:'~35 min',
             exercises:[
               {name:'Jump Squat', sets:'3×8'},
@@ -23815,7 +23817,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           d2: { label:'Day 2', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
             note:'A full rest day. Back-to-back heated sessions add up to real heat and fluid stress: drink water with electrolytes, and don\'t stack another heated session without a real break.' },
           d3: { label:'Day 3', sub:'Hot Power Flow', plate:'p-blue', plateNum:'20', duration:'~45 min',
-            note:'Heat makes muscles feel more flexible than the ligaments underneath actually are — this is when overstretching injuries happen, not from the heat itself. Stay inside your normal range, not a heat-inflated one.',
+            note:'Heat makes muscles feel looser than the ligaments underneath are, which is when overstretching injuries happen. Stay inside your normal range.',
             exercises:[
               {name:'Chair Pose', sets:'3×10 breaths', noWeight:true},
               {name:'Plank', sets:'3×45s', noWeight:true},
@@ -23849,7 +23851,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d2: { label:'Day 2', sub:'Hot Power Flow', plate:'p-blue', plateNum:'20', duration:'~45 min',
-            note:'Heat makes muscles feel more flexible than the ligaments underneath actually are — this is when overstretching injuries happen, not from the heat itself. Stay inside your normal range, not a heat-inflated one.',
+            note:'Heat makes muscles feel looser than the ligaments underneath are, which is when overstretching injuries happen. Stay inside your normal range.',
             exercises:[
               {name:'Chair Pose', sets:'3×10 breaths', noWeight:true},
               {name:'Plank', sets:'3×45s', noWeight:true},
@@ -23892,7 +23894,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d2: { label:'Day 2', sub:'Hot Power Flow', plate:'p-blue', plateNum:'20', duration:'~45 min',
-            note:'Heat makes muscles feel more flexible than the ligaments underneath actually are — this is when overstretching injuries happen, not from the heat itself. Stay inside your normal range, not a heat-inflated one.',
+            note:'Heat makes muscles feel looser than the ligaments underneath are, which is when overstretching injuries happen. Stay inside your normal range.',
             exercises:[
               {name:'Chair Pose', sets:'3×10 breaths', noWeight:true},
               {name:'Plank', sets:'3×45s', noWeight:true},
@@ -23946,7 +23948,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d2: { label:'Day 2', sub:'Hot Power Flow', plate:'p-blue', plateNum:'20', duration:'~45 min',
-            note:'Heat makes muscles feel more flexible than the ligaments underneath actually are — this is when overstretching injuries happen, not from the heat itself. Stay inside your normal range, not a heat-inflated one.',
+            note:'Heat makes muscles feel looser than the ligaments underneath are, which is when overstretching injuries happen. Stay inside your normal range.',
             exercises:[
               {name:'Chair Pose', sets:'3×10 breaths', noWeight:true},
               {name:'Plank', sets:'3×45s', noWeight:true},
@@ -24011,7 +24013,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d2: { label:'Day 2', sub:'Hot Power Flow', plate:'p-blue', plateNum:'20', duration:'~45 min',
-            note:'Heat makes muscles feel more flexible than the ligaments underneath actually are — this is when overstretching injuries happen, not from the heat itself. Stay inside your normal range, not a heat-inflated one.',
+            note:'Heat makes muscles feel looser than the ligaments underneath are, which is when overstretching injuries happen. Stay inside your normal range.',
             exercises:[
               {name:'Chair Pose', sets:'3×10 breaths', noWeight:true},
               {name:'Plank', sets:'3×45s', noWeight:true},
@@ -24094,7 +24096,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         overview: 'A trust-and-connection session and a partner strength-and-counterbalance session.',
         days: {
           d1: { label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
-            note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality. Move at whichever partner\'s pace is slower; this isn\'t a session to rush.',
+            note:'Start sitting back to back and feel each other\'s breath — that\'s the warm-up. Move at the slower partner\'s pace.',
             exercises:[
               {name:'Seated Back-to-Back Breathing', sets:'2×2 min', noWeight:true},
               {name:'Partner Seated Forward Fold (Row)', sets:'3×30s', noWeight:true},
@@ -24128,7 +24130,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         overview: 'Connection and shared strength open the week, and partner restorative and breath work closes it.',
         days: {
           d1: { label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
-            note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality. Move at whichever partner\'s pace is slower; this isn\'t a session to rush.',
+            note:'Start sitting back to back and feel each other\'s breath — that\'s the warm-up. Move at the slower partner\'s pace.',
             exercises:[
               {name:'Seated Back-to-Back Breathing', sets:'2×2 min', noWeight:true},
               {name:'Partner Seated Forward Fold (Row)', sets:'3×30s', noWeight:true},
@@ -24169,7 +24171,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         overview: 'Four of the five sessions get their own day. Partner restorative and breath returns at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
-            note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality. Move at whichever partner\'s pace is slower; this isn\'t a session to rush.',
+            note:'Start sitting back to back and feel each other\'s breath — that\'s the warm-up. Move at the slower partner\'s pace.',
             exercises:[
               {name:'Seated Back-to-Back Breathing', sets:'2×2 min', noWeight:true},
               {name:'Partner Seated Forward Fold (Row)', sets:'3×30s', noWeight:true},
@@ -24189,7 +24191,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           d3: { label:'Day 3', sub:'Rest / Connection Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
             note:'A slow walk together, or full rest for both of you. The point of a partner practice extends past the mat — a shared rest day counts too.' },
           d4: { label:'Day 4', sub:'Assisted Flexibility', plate:'p-yellow', plateNum:'15', duration:'~40 min',
-            note:'The assisting partner should only ever apply gentle, steady pressure and stop immediately if asked — this is not a day to push a stretch further than the receiving partner is actually comfortable with.',
+            note:'The assisting partner applies only gentle, steady pressure and stops immediately when asked — never further than the receiving partner is comfortable.',
             exercises:[
               {name:'Assisted Seated Forward Fold', sets:'2×45s/partner', noWeight:true},
               {name:'Assisted Pigeon Pose (Gentle Press)', sets:'2×45s/side/partner', noWeight:true},
@@ -24219,7 +24221,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         overview: 'The 5-day program plus gentle partner connection and mobility, not more shared load; the person being stretched still sets the depth.',
         days: {
           d1: { label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
-            note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality. Move at whichever partner\'s pace is slower; this isn\'t a session to rush.',
+            note:'Start sitting back to back and feel each other\'s breath — that\'s the warm-up. Move at the slower partner\'s pace.',
             exercises:[
               {name:'Seated Back-to-Back Breathing', sets:'2×2 min', noWeight:true},
               {name:'Partner Seated Forward Fold (Row)', sets:'3×30s', noWeight:true},
@@ -24239,7 +24241,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           d3: { label:'Day 3', sub:'Rest / Connection Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
             note:'A slow walk together, or full rest for both of you. The point of a partner practice extends past the mat — a shared rest day counts too.' },
           d4: { label:'Day 4', sub:'Assisted Flexibility', plate:'p-yellow', plateNum:'15', duration:'~40 min',
-            note:'The assisting partner should only ever apply gentle, steady pressure and stop immediately if asked — this is not a day to push a stretch further than the receiving partner is actually comfortable with.',
+            note:'The assisting partner applies only gentle, steady pressure and stops immediately when asked — never further than the receiving partner is comfortable.',
             exercises:[
               {name:'Assisted Seated Forward Fold', sets:'2×45s/partner', noWeight:true},
               {name:'Assisted Pigeon Pose (Gentle Press)', sets:'2×45s/side/partner', noWeight:true},
@@ -24280,7 +24282,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         overview: 'The 6-day plan unchanged, with the rest day kept as a shared walk, which counts as part of the practice too.',
         days: {
           d1: { label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
-            note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality. Move at whichever partner\'s pace is slower; this isn\'t a session to rush.',
+            note:'Start sitting back to back and feel each other\'s breath — that\'s the warm-up. Move at the slower partner\'s pace.',
             exercises:[
               {name:'Seated Back-to-Back Breathing', sets:'2×2 min', noWeight:true},
               {name:'Partner Seated Forward Fold (Row)', sets:'3×30s', noWeight:true},
@@ -24298,9 +24300,9 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Connection Walk', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
-            note:'A slow walk together, or full rest for both of you. The point of a partner practice extends past the mat — a shared rest day counts too, even at 7 days selected.' },
+            note:'A slow walk together, or full rest for both of you. A shared rest day counts as part of the practice.' },
           d4: { label:'Day 4', sub:'Assisted Flexibility', plate:'p-yellow', plateNum:'15', duration:'~40 min',
-            note:'The assisting partner should only ever apply gentle, steady pressure and stop immediately if asked — this is not a day to push a stretch further than the receiving partner is actually comfortable with.',
+            note:'The assisting partner applies only gentle, steady pressure and stops immediately when asked — never further than the receiving partner is comfortable.',
             exercises:[
               {name:'Assisted Seated Forward Fold', sets:'2×45s/partner', noWeight:true},
               {name:'Assisted Pigeon Pose (Gentle Press)', sets:'2×45s/side/partner', noWeight:true},
@@ -32551,7 +32553,7 @@ const MEDICAL_NUTRIENT_TARGETS = {
   },
   prenatal: {
     iron: {type:'min', value:27, unit:'mg', label:'Iron', note:'Elevated for pregnancy (vs. ~18mg typical) to support the real increase in blood volume.'},
-    folate: {type:'min', value:600, unit:'mcg DFE', label:'Folate', note:'The single most evidence-backed prenatal nutrient — adequate folate specifically reduces neural tube defect risk. Most of this should come from your prenatal vitamin; this tracks food on top of that.'},
+    folate: {type:'min', value:600, unit:'mcg DFE', label:'Folate', note:'The best-evidenced prenatal nutrient: enough folate reduces neural tube defect risk. Most should come from your prenatal vitamin; this tracks food on top.'},
   },
   postpartum: {
     iron: {type:'min', value:18, unit:'mg', label:'Iron', note:'Still elevated if breastfeeding or recovering from delivery-related blood loss.'},
@@ -43452,7 +43454,7 @@ const WHTR_BANDS = [
   {max: 0.60, key:'increased', label:'increased central adiposity',
    note:'NICE associates this band with increased risk of things like type 2 diabetes, hypertension and cardiovascular disease. It is a screening signal, not a diagnosis.'},
   {max: Infinity, key:'high',  label:'high central adiposity',
-   note:'NICE associates this band with further increased health risk. It is a screening signal, not a diagnosis — a GP can put it in context with the rest of your picture.'},
+   note:'NICE links this band with further increased health risk. It\'s a screening signal, not a diagnosis; a GP can put it in context.'},
 ];
 
 const MEASURE_FIELDS = [
