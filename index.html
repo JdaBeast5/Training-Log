@@ -6635,7 +6635,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.350';
+const APP_VERSION = '3.351';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7499,6 +7499,8 @@ const WHATS_NEW = {
     'The surfing, skimboarding, wakeboarding, kitesurfing, SUP and kayaking masterclass is about 45% shorter, with every safety point kept.',
   ]},  '3.350': { headline: 'Easier to tap', points: [
     'The pencil on a food row (duplicate and edit) has a full-size tap area again.',
+  ]},  '3.351': { headline: 'Better with VoiceOver', points: [
+    'The rest timer is hidden from screen readers while it is not running.',
   ]},
 };
 
@@ -28399,6 +28401,19 @@ document.getElementById('restTimerClose').addEventListener('click', ()=>{
   el.classList.remove('expanded');
   el.classList.remove('urgent');
 });
+
+// v3.351 (audit): when it isn't running, the timer is opacity 0 and
+// pointer-events:none, but its nine buttons stayed in the accessibility tree,
+// so VoiceOver could land on controls nobody can see. It is inert whenever it
+// isn't .active — watched on the class itself, so every path that shows or
+// hides it (start, restore on load, complete, close) is covered.
+(function syncRestTimerInert(){
+  const el = document.getElementById('restTimer');
+  if(!el) return;
+  const sync = ()=> el.toggleAttribute('inert', !el.classList.contains('active'));
+  sync();
+  new MutationObserver(sync).observe(el, {attributes:true, attributeFilter:['class']});
+})();
 
 // [SCREEN WAKE LOCK] -----------------------------------------------------------
 // The phone sleeping between sets, and having to be unlocked with chalky hands

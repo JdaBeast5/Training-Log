@@ -9,10 +9,14 @@
 // glyph and overrode the shared 44px hit-area ::after, so its real tap area
 // was ~14x14 (button box 4x4 at font-size:0). Measured with elementFromPoint
 // in Chromium: 13x15 before, 30x45 after (the star beside it is 31x45).
+// v3.351 — The idle rest timer is opacity 0 / pointer-events:none but its
+// nine buttons stayed in the accessibility tree (VoiceOver could reach
+// invisible controls). It is now inert whenever it isn't .active, synced by a
+// MutationObserver on its class so every show/hide path is covered.
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
-const { readIndexSource, extractFunction, extractElementById, runJsdom, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractFunction, extractElementById, extractIIFE, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const { test, run } = makeRunner('test-audit-fixes.js');
 const src = readIndexSource();
@@ -37,6 +41,19 @@ test('REAL CSSOM (v3.350): the food-row pencil keeps its drawn glyph on ::after 
   assert.strictEqual(declared('.fi-duplicate::before', 'position'), 'absolute');
   assert.strictEqual(declared('.fi-duplicate', 'min-width'), '22px');
   assert.strictEqual(declared('.fi-duplicate', 'min-height'), '22px');
+});
+
+test('REAL markup + invocation (v3.351): the idle rest timer is inert, and follows .active both ways', async (assert)=>{
+  const { window } = runJsdom(extractElementById(src, 'restTimer'), '', [extractIIFE(src, 'syncRestTimerInert'), 'syncRestTimerInert();']);
+  const el = window.document.getElementById('restTimer');
+  assert.ok(el.querySelectorAll('button').length >= 4, 'anchor: the real timer with its buttons');
+  assert.ok(el.hasAttribute('inert'), 'idle on load: out of the accessibility tree and tab order');
+  el.classList.add('active');
+  await new Promise(r => setTimeout(r, 0));
+  assert.strictEqual(el.hasAttribute('inert'), false, 'running: reachable');
+  el.classList.remove('active');
+  await new Promise(r => setTimeout(r, 0));
+  assert.ok(el.hasAttribute('inert'), 'closed or completed: inert again');
 });
 
 run();
