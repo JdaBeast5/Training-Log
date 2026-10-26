@@ -6624,7 +6624,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.329';
+const APP_VERSION = '3.330';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7446,6 +7446,8 @@ const WHATS_NEW = {
     'MMA, Taekwondo, Tai Chi and the three yoga styles too.',
   ]},  '3.329': { headline: 'Shorter days-per-week notes, done', points: [
     'The six watersports too. Every days-per-week note in the app is now about half as long.',
+  ]},  '3.330': { headline: 'Shorter day notes', points: [
+    'The 40 longest rest-day and program-day notes are about a third shorter, with every number and safety sign kept.',
   ]},
 };
 
@@ -9385,7 +9387,7 @@ const programs = {
       },
       d3: {
         label:'Day 3', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
-        note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.'
+        note:'No structured session: get up and move for 2-3 minutes every 30-60 minutes of your workday. Breaking up sitting matters as much as the other six days combined.'
       },
       d4: {
         label:'Day 4', sub:'Thoracic Mobility & Upper Strength', plate:'p-yellow', plateNum:'15', duration:'~25 min',
@@ -9830,7 +9832,7 @@ const MEDICAL_STYLES = {
     days: {
       d1: {
         label:'Day 1', sub:'Low-Impact Cardio + Upper Body', plate:'p-red', plateNum:'25', duration:'~30 min',
-        note:'Pace cardio using the "talk test" — you should be able to hold a conversation but not comfortably sing. That\'s the safe, sustainable moderate intensity this whole program is built around, not a specific heart rate number.',
+        note:'Pace cardio with the talk test: you can hold a conversation but not comfortably sing. That moderate intensity is the target, not a heart-rate number.',
         exercises:[
           {name:'Walking', sets:'15-20 min (talk-test pace)', noWeight:true},
           {name:'Wall Push-up', sets:'2×10', noWeight:true},
@@ -9852,7 +9854,7 @@ const MEDICAL_STYLES = {
       },
       d4: {
         label:'Day 4', sub:'Low-Impact Cardio + Core', plate:'p-yellow', plateNum:'15', duration:'~30 min',
-        note:'Curl-ups engage the abdominal muscles effectively with meaningfully less strain on the lower back than a traditional crunch — that\'s specifically why this program uses that version, not a lesser substitute for it.',
+        note:'Curl-ups work the abs with much less strain on the lower back than crunches, which is why this program uses them.',
         exercises:[
           {name:'Walking', sets:'15-20 min (talk-test pace)', noWeight:true},
           {name:'McGill Curl-up', sets:'2×8', noWeight:true},
@@ -9861,7 +9863,7 @@ const MEDICAL_STYLES = {
       },
       d5: {
         label:'Day 5', sub:'Full-Body Circuit', plate:'p-green', plateNum:'10', duration:'~30 min',
-        note:'Progression rule: once a movement feels genuinely easy for the full set of reps below, add resistance gradually — a commonly cited guide is roughly 5% more once you can complete 15 reps on a lower-body movement or 12 on an upper-body one with good form.',
+        note:'Progression: once a movement feels easy for the full set, add resistance gradually — roughly 5% more once you can do 15 reps on a lower-body move or 12 on an upper-body one with good form.',
         exercises:[
           {name:'Bodyweight Squat', sets:'2×12', noWeight:true},
           {name:'Wall Push-up', sets:'2×12', noWeight:true},
@@ -9871,7 +9873,7 @@ const MEDICAL_STYLES = {
       },
       d6: {
         label:'Day 6', sub:'Active Recovery / Flexibility', plate:'p-off', plateNum:'5', duration:'~20 min',
-        note:'Stretch after you\'re already warm, not cold — a short walk first is a good way to get there. Regular flexibility work isn\'t just about range of motion here, it genuinely helps reduce the joint and muscle discomfort that can come with carrying extra load through daily movement.',
+        note:'Stretch once warm, not cold — a short walk first works. Regular flexibility work also eases the joint and muscle discomfort that extra load can bring.',
         exercises:[
           {name:'Walking', sets:'10 min (easy pace)', noWeight:true},
           {name:'Cat-Cow Mobility', sets:'2×10', noWeight:true},
@@ -9880,7 +9882,7 @@ const MEDICAL_STYLES = {
       },
       d7: {
         label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-        note:'Full rest day. The overall target most days end up building toward is 150-300 minutes of activity a week, combining cardio and resistance work — but getting there gradually, without forcing it early, is what actually makes it sustainable long-term.'
+        note:'Full rest day. Most weeks build toward 150-300 minutes of activity, cardio and resistance combined — getting there gradually is what makes it last.'
       },
     }
   },
@@ -9890,14 +9892,14 @@ const MEDICAL_STYLES = {
     days: {
       d1: {
         label:'Day 1', sub:'Moderate Aerobic', plate:'p-red', plateNum:'25', duration:'~30 min',
-        note:'Use the talk test — able to talk, not able to sing comfortably. Warm up and cool down for a genuine 5 minutes each; easing your heart rate up and back down gradually matters here, not just the middle of the session.',
+        note:'Use the talk test: able to talk, not comfortably sing. Warm up and cool down for a full 5 minutes each, easing your heart rate up and down gradually.',
         exercises:[
           {name:'Walking', sets:'20-25 min (talk-test pace)', noWeight:true},
         ]
       },
       d2: {
         label:'Day 2', sub:'Resistance — Full Body A', plate:'p-blue', plateNum:'20', duration:'~30 min',
-        note:'The single most important rule in this whole program: exhale as you lift, inhale as you lower, and never hold your breath against a closed airway — that breath-hold (the Valsalva maneuver) is what causes dangerous blood pressure spikes during resistance work, far more than the weight itself. Keep a loose, relaxed grip too — gripping hard adds an isometric spike you don\'t need.',
+        note:'The most important rule here: breathe out as you lift and in as you lower, and never hold your breath under load — that breath-hold spikes blood pressure far more than the weight does. Keep your grip relaxed too.',
         exercises:[
           {name:'Bodyweight Squat', sets:'2×12 (moderate pace, controlled)', noWeight:true},
           {name:'Wall Push-up', sets:'2×10', noWeight:true},
@@ -9933,7 +9935,7 @@ const MEDICAL_STYLES = {
       },
       d7: {
         label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-        note:'Full rest day. Avoid maximal or near-maximal effort lifts entirely — moderate, controlled loads produce real blood pressure benefits without the spike risk that heavy near-max lifting carries for this specific population.'
+        note:'Full rest day. Avoid maximal or near-maximal lifts entirely: moderate, controlled loads lower blood pressure without the spike heavy lifting brings.'
       },
     }
   },
@@ -9952,7 +9954,7 @@ const MEDICAL_STYLES = {
       },
       d2: {
         label:'Day 2', sub:'Resistance — Lower Body', plate:'p-blue', plateNum:'20', duration:'~25 min',
-        note:'If you use insulin or a medication that can cause low blood sugar, check your glucose before starting and know your care team\'s plan for it — a snack or an insulin adjustment beforehand is a completely normal part of exercising safely with diabetes, not a sign something\'s wrong.',
+        note:'If you use insulin or a medication that can cause low blood sugar, check your glucose before starting and know your care team\'s plan. A snack or insulin adjustment beforehand is a normal part of exercising safely.',
         exercises:[
           {name:'Bodyweight Squat', sets:'2×12', noWeight:true},
           {name:'Glute Bridge', sets:'2×12', noWeight:true},
@@ -9961,7 +9963,7 @@ const MEDICAL_STYLES = {
       },
       d3: {
         label:'Day 3', sub:'Rest / Movement Breaks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
-        note:'A real rest day — but if you\'re sitting for long stretches today, a genuinely useful habit is standing or moving for about 3 minutes every 30 minutes. That alone has real, measured benefits for blood sugar, separate from a structured workout.'
+        note:'A rest day — but if you sit for long stretches, stand or move for about 3 minutes every 30 minutes. That alone measurably helps blood sugar.'
       },
       d4: {
         label:'Day 4', sub:'Post-Meal Walk + Core', plate:'p-yellow', plateNum:'15', duration:'~30 min',
@@ -9990,7 +9992,7 @@ const MEDICAL_STYLES = {
       },
       d7: {
         label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-        note:'Full rest day. The overall weekly target is generally 150 minutes of moderate aerobic activity plus resistance work on 2 or more days — check hydration and avoid exercising in peak heat, since both matter more with blood sugar management involved.'
+        note:'Full rest day. The usual weekly target is 150 minutes of moderate aerobic activity plus resistance work on 2+ days. Stay hydrated and avoid peak heat; both matter more with blood sugar management.'
       },
     }
   },
@@ -10000,7 +10002,7 @@ const MEDICAL_STYLES = {
     days: {
       d1: {
         label:'Day 1', sub:'Weight-Bearing Cardio + Posture', plate:'p-red', plateNum:'25', duration:'~25 min',
-        note:'Weight-bearing cardio (on your feet, bones supporting your weight) is what actually targets bone density here — it\'s not interchangeable with swimming or cycling for this specific purpose, even though those are great for other things.',
+        note:'Weight-bearing cardio, on your feet, is what targets bone density; swimming and cycling are great but don\'t do this job.',
         exercises:[
           {name:'Walking', sets:'15-20 min', noWeight:true},
           {name:'Swan', sets:'2×8 (gentle extension, not flexion)', noWeight:true},
@@ -10008,7 +10010,7 @@ const MEDICAL_STYLES = {
       },
       d2: {
         label:'Day 2', sub:'Resistance — Lower Body', plate:'p-blue', plateNum:'20', duration:'~25 min',
-        note:'Any forward reaching happens by hinging at the hips, never by rounding the spine — the same hip-hinge principle used throughout this app\'s strength content, just applied here for a specifically different reason: protecting vertebrae, not just performance.',
+        note:'Reach forward by hinging at the hips, never by rounding the spine — here it protects your vertebrae.',
         exercises:[
           {name:'Sit-to-Stand', sets:'3×10', noWeight:true},
           {name:'Glute Bridge', sets:'3×12', noWeight:true},
@@ -10017,7 +10019,7 @@ const MEDICAL_STYLES = {
       },
       d3: {
         label:'Day 3', sub:'Rest / Gentle Mobility', plate:'p-white', plateNum:'—', duration:'~15 min', rest:true,
-        note:'A real rest day. If you\'ve had a vertebral compression fracture, current guidance generally limits impact to about a brisk-walk level until you and your doctor decide otherwise — this isn\'t a day to push past that.'
+        note:'A rest day. After a vertebral compression fracture, guidance generally limits impact to about a brisk walk until you and your doctor decide otherwise.'
       },
       d4: {
         label:'Day 4', sub:'Resistance — Upper Body', plate:'p-yellow', plateNum:'15', duration:'~25 min',
@@ -10048,7 +10050,7 @@ const MEDICAL_STYLES = {
       },
       d7: {
         label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-        note:'Full rest day. Light resistance bands are a fine starting point, but building real bone density typically needs genuine progressive loading over time — talk to your doctor or a PT experienced with osteoporosis about when and how to add load safely.'
+        note:'Full rest day. Light bands are a fine start, but building bone density needs progressive loading over time; ask your doctor or a PT experienced with osteoporosis when and how to add load.'
       },
     }
   },
@@ -10080,7 +10082,7 @@ const MEDICAL_STYLES = {
       },
       d4: {
         label:'Day 4', sub:'Walking Progression + Light Upper Body', plate:'p-yellow', plateNum:'15', duration:'~25 min',
-        note:'The resistance work below is typically appropriate starting around 4-6 weeks post-op, once your team has cleared it — not from day one. If you\'re earlier than that, this day is walking and breathing only for now.',
+        note:'The resistance work below usually starts around 4-6 weeks after surgery, once your team clears it. Earlier than that, this day is walking and breathing only.',
         exercises:[
           {name:'Marching in Place', sets:'3×90s', noWeight:true},
           {name:'Band Pull-Apart', sets:'2×12', noWeight:true},
@@ -10153,7 +10155,7 @@ const MEDICAL_STYLES = {
       },
       d4: {
         label:'Day 4', sub:'Full-Body Strength B', plate:'p-yellow', plateNum:'15', duration:'~35 min',
-        note:'Weight-bearing and resistance work here is doing double duty — building strength back, and specifically helping protect bone density, which research shows keeps declining for years after surgery. This isn\'t optional extra credit.',
+        note:'Weight-bearing and resistance work here also protects bone density, which keeps declining for years after surgery. It isn\'t optional.',
         // Verified against bariatric-specific clinical guidance rather than
         // general training literature. Expert-based physical activity
         // guidelines for metabolic and bariatric surgery patients
@@ -10200,7 +10202,7 @@ const MEDICAL_STYLES = {
       },
       d7: {
         label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-        note:'Full rest day. When training here feels consistent and genuinely sustainable, that\'s the real signal — not a specific week number — that switching to a standard program is a reasonable next step. Your surgical/bariatric team\'s clearance is still the final word on timing.'
+        note:'Full rest day. When training here feels consistent and sustainable, that\'s the signal to consider a standard program, not a week number. Your surgical/bariatric team has the final word on timing.'
       },
     }
   },
@@ -10379,7 +10381,7 @@ const MEDICAL_STYLES = {
       },
       d3: {
         label:'Day 3', sub:'Rest / Gentle Mobility', plate:'p-white', plateNum:'—', duration:'~15 min', rest:true,
-        note:'Some mild discomfort during rehab exercises is normal and generally safe — research specifically supports exercising into manageable discomfort rather than avoiding it entirely. The line is sharp or worsening pain, not mild soreness.'
+        note:'Mild discomfort during rehab exercises is normal and generally safe; research supports working into manageable discomfort. Stop for sharp or worsening pain.'
       },
       d4: {
         label:'Day 4', sub:'Phase 2 · Rotator Cuff Strengthening', plate:'p-yellow', plateNum:'15', duration:'~25 min',
@@ -10407,7 +10409,7 @@ const MEDICAL_STYLES = {
       },
       d7: {
         label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-        note:'Full rest day. Phase 3 (overhead pressing, sport-specific movement) is genuinely the next step once pain is consistently low and strength has actually rebuilt — that\'s a decision for you and your PT to make together, not a week number to watch for.'
+        note:'Full rest day. Phase 3 (overhead pressing, sport-specific movement) comes once pain stays low and strength has rebuilt — a decision for you and your PT, not a week number.'
       },
     }
   },
@@ -10417,7 +10419,7 @@ const MEDICAL_STYLES = {
     days: {
       d1: {
         label:'Day 1', sub:'Early Quad Activation & ROM', plate:'p-red', plateNum:'25', duration:'~20 min',
-        note:'Quad activation starting immediately (not waiting for it to "feel ready") is specifically emphasized in the research — under-loading this early phase is one of the most common mistakes, more so than doing too much.',
+        note:'Start quad activation right away rather than waiting until it feels ready; doing too little in this early phase is a more common mistake than too much.',
         exercises:[
           {name:'Quad Set', sets:'3×10 (5s hold)', noWeight:true},
           {name:'Straight Leg Raise', sets:'3×10', noWeight:true},
@@ -10462,7 +10464,7 @@ const MEDICAL_STYLES = {
       },
       d7: {
         label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-        note:'Full rest day. Return-to-sport is a criteria decision, not a date — current guidelines look for things like quadriceps/hamstring strength within about 10-15% of the uninjured leg and passing hop-testing, generally not before 9 months, decided by your surgical/PT team. Re-tear rates climb meaningfully with premature return, so this genuinely isn\'t a number to rush.'
+        note:'Full rest day. Return to sport depends on criteria, not a date: quad and hamstring strength within about 10-15% of the other leg and passing hop tests, generally not before 9 months, decided by your surgical/PT team. Returning early raises re-tear rates.'
       },
     }
   },
@@ -10472,7 +10474,7 @@ const MEDICAL_STYLES = {
     days: {
       d1: {
         label:'Day 1', sub:'Eccentric Loading A', plate:'p-red', plateNum:'25', duration:'~15 min',
-        note:'The Alfredson protocol: 3×15 straight-knee heel drops, then 3×15 bent-knee heel drops. Rise up on both legs, shift weight to the affected side, then lower SLOWLY (about 3 seconds) until the heel dips just below the step. A degree of discomfort during the exercise is expected and considered part of the protocol — the line is sharp or worsening pain, not manageable discomfort.',
+        note:'Alfredson protocol: 3×15 straight-knee heel drops, then 3×15 bent-knee. Rise on both legs, shift to the affected side, and lower slowly (about 3 seconds) until the heel dips below the step. Some discomfort is expected; stop for sharp or worsening pain.',
         exercises:[
           {name:'Eccentric Heel Drop', sets:'3×15 (straight-knee, 3s eccentric lower)', noWeight:true},
           {name:'Eccentric Heel Drop', sets:'3×15 (bent-knee, 3s eccentric lower)', noWeight:true},
@@ -10480,7 +10482,7 @@ const MEDICAL_STYLES = {
       },
       d2: {
         label:'Day 2', sub:'Mobility & Isometric Loading', plate:'p-blue', plateNum:'20', duration:'~15 min',
-        note:'Isometric holds (30-45 seconds) are a well-supported alternative or addition on days when eccentric loading feels like too much — they\'re specifically useful for calming acute pain while still loading the tendon.',
+        note:'Isometric holds (30-45 seconds) are a well-supported option when eccentric loading feels like too much; they calm acute pain while still loading the tendon.',
         exercises:[
           {name:'Ankle Circles', sets:'2×10/direction', noWeight:true},
           {name:'Calf Stretch', sets:'3×30s/side', noWeight:true},
@@ -10488,7 +10490,7 @@ const MEDICAL_STYLES = {
       },
       d3: {
         label:'Day 3', sub:'Rest', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
-        note:'The original Alfredson protocol actually prescribes loading 7 days a week — if your PT has you on that exact protocol, this rest day may just mean lighter, not off. Follow whatever your actual clearance says over this general structure.'
+        note:'The original Alfredson protocol loads 7 days a week, so if your PT has you on it, this day may be lighter rather than off. Follow your own clearance over this general plan.'
       },
       d4: {
         label:'Day 4', sub:'Eccentric Loading B', plate:'p-yellow', plateNum:'15', duration:'~15 min',
@@ -10500,7 +10502,7 @@ const MEDICAL_STYLES = {
       },
       d5: {
         label:'Day 5', sub:'Progressive Loading + Balance', plate:'p-green', plateNum:'10', duration:'~20 min',
-        note:'As the weeks progress and pain allows, this is typically where added resistance (a weighted backpack, a plate held at the chest) gets layered onto the same heel-drop pattern — only once your PT has confirmed you\'re ready for it.',
+        note:'As pain allows, added resistance (a weighted backpack or a plate at the chest) is layered onto the same heel drops — only once your PT confirms you\'re ready.',
         exercises:[
           {name:'Eccentric Heel Drop', sets:'3×15 (straight-knee, 3s eccentric lower)', noWeight:true},
           // d5 was missing the bent-knee variation that d1 and d4 both carry.
@@ -10520,7 +10522,7 @@ const MEDICAL_STYLES = {
       },
       d7: {
         label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
-        note:'Full rest day. Running and jumping only get reintroduced once pain has genuinely settled during daily activity and your PT has signed off — going back too early on a tendon that\'s still adapting is one of the most common ways this drags out much longer than 12 weeks.'
+        note:'Full rest day. Running and jumping come back only once pain has settled in daily activity and your PT signs off; returning too early is a common way recovery stretches well past 12 weeks.'
       },
     }
   },
@@ -10547,7 +10549,7 @@ const MEDICAL_STYLES = {
       },
       d3: {
         label:'Day 3', sub:'Rest / Gentle Mobility', plate:'p-white', plateNum:'—', duration:'~15 min', rest:true,
-        note:'Light, pain-free movement only — a short walk is a completely legitimate way to spend this day. If pain radiates down a leg, is worsening, or comes with numbness/weakness, that\'s worth a doctor\'s visit, not something to work through with exercise alone.'
+        note:'Light, pain-free movement only; a short walk is a fine way to spend the day. Pain that radiates down a leg, worsens, or comes with numbness or weakness needs a doctor, not more exercise.'
       },
       d4: {
         label:'Day 4', sub:'Core Endurance', plate:'p-yellow', plateNum:'15', duration:'~20 min',
@@ -11419,11 +11421,11 @@ const YOGA_STYLES = {
       },
       d3: {
         label:'Day 3', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
-        note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break.'
+        note:'A full rest day. Back-to-back heated sessions add up to real heat and fluid stress: drink water with electrolytes, and don\'t stack another heated session without a real break.'
       },
       d4: {
         label:'Day 4', sub:'Hot Hatha & Alignment', plate:'p-yellow', plateNum:'15', duration:'~45 min',
-        note:'Slower pace than the flow days, but the same room heat — alignment matters more here specifically because static holds in a heated room give overstretched ligaments more time to actually get compromised, not less.',
+        note:'Slower than the flow days, in the same heat. Alignment matters more here, because static holds in heat give overstretched ligaments longer to get hurt.',
         exercises:[
           {name:'Tree Pose', sets:'3×30s/side', noWeight:true},
           {name:'Triangle Pose', sets:'3×40s/side', noWeight:true},
@@ -11434,7 +11436,7 @@ const YOGA_STYLES = {
       },
       d5: {
         label:'Day 5', sub:'Warm Yin (Reduced Heat)', plate:'p-green', plateNum:'10', duration:'~45 min',
-        note:'Deliberately a warm room, not full class heat — yin\'s long, deep holds combined with full heat is a real compounding risk (long static stretch + heat-masked ligament limits), so this day intentionally backs the temperature off rather than stacking both at once.',
+        note:'A warm room, not full class heat: long, deep yin holds in full heat compound the risk to ligaments, so this day backs the temperature off.',
         exercises:[
           {name:'Pigeon Pose', sets:'2×90s/side', noWeight:true},
           {name:'Butterfly Pose', sets:'2×90s', noWeight:true},
@@ -14829,7 +14831,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Mobility & Easy Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-          note:'20-30 min easy walk or bike plus loose joint mobility work — conversational pace throughout. You picked 7 days a week, and this IS one of them, but nothing here is loaded near failure on purpose: even at this frequency, real recovery still has to happen somewhere.' },
+          note:'20-30 minutes of easy walking or cycling plus loose mobility, at conversational pace. Nothing is loaded near failure, so recovery still happens at seven days a week.' },
         d4: { label:'Day 4', sub:'Upper · Hypertrophy', plate:'p-yellow', plateNum:'15', duration:'~55 min',
           exercises:[
             {name:'Incline DB Press', sets:'4×10-12'},
@@ -15103,7 +15105,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d4: { label:'Day 4', sub:'Mobility & Easy Cardio', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-          note:'20-30 min easy walk or bike plus loose joint mobility work — conversational pace throughout. You picked 7 days a week, and this IS one of them, but nothing here is loaded near failure on purpose: even at this frequency, real recovery still has to happen somewhere.' },
+          note:'20-30 minutes of easy walking or cycling plus loose mobility, at conversational pace. Nothing is loaded near failure, so recovery still happens at seven days a week.' },
         d5: { label:'Day 5', sub:'Push B', plate:'p-green', plateNum:'10', duration:'~55 min',
           exercises:[
             {name:'Incline DB Press', sets:'3×10-12'},
@@ -16687,7 +16689,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-          note:'Shoulder and wrist mobility, 20-30 min. Even at 7 days selected, this stays genuinely skill-free on purpose — the joints that make handstands, levers, and muscle-ups possible need a real break, not a lighter version of more practice.' },
+          note:'Shoulder and wrist mobility, 20-30 minutes. It stays skill-free: the joints behind handstands, levers and muscle-ups need a real break.' },
         d4: { label:'Day 4', sub:'Core & L-Sit Progressions', plate:'p-yellow', plateNum:'15', duration:'~35 min',
           exercises:[
             {name:'L-sit Hold', sets:'4×10-20s', noWeight:true},
@@ -18232,7 +18234,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-          note:'Hip and shoulder mobility, 20-25 min. Even at 7 days selected, this stays climbing-free on purpose — fingers and connective tissue adapt over years, not weeks, and tired tendons are one of the more common ways climbers get hurt.' },
+          note:'Hip and shoulder mobility, 20-25 minutes, and no climbing: fingers and tendons adapt over years, and tired tendons are a common way climbers get hurt.' },
         d4: { label:'Day 4', sub:'Antagonist & Shoulder Health', plate:'p-yellow', plateNum:'15', duration:'~35 min',
           exercises:[
             {name:'Band External Rotation', sets:'3×15'},
@@ -18576,11 +18578,11 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d2: { label:'Day 2', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
-          note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.' },
+          note:'No structured session: get up and move for 2-3 minutes every 30-60 minutes of your workday. Breaking up sitting matters as much as the other six days combined.' },
         d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
           note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.' },
         d4: { label:'Day 4', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
-          note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.' },
+          note:'No structured session: get up and move for 2-3 minutes every 30-60 minutes of your workday. Breaking up sitting matters as much as the other six days combined.' },
         d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
           note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.' },
         d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
@@ -18603,7 +18605,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d2: { label:'Day 2', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
-          note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.' },
+          note:'No structured session: get up and move for 2-3 minutes every 30-60 minutes of your workday. Breaking up sitting matters as much as the other six days combined.' },
         d3: { label:'Day 3', sub:'Hip & Lower Body Reset', plate:'p-blue', plateNum:'20', duration:'~25 min',
           exercises:[
             {name:'Couch Stretch', sets:'2×30-45s/side', noWeight:true},
@@ -18616,7 +18618,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
           note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.' },
         d5: { label:'Day 5', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
-          note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.' },
+          note:'No structured session: get up and move for 2-3 minutes every 30-60 minutes of your workday. Breaking up sitting matters as much as the other six days combined.' },
         d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
           note:'Full rest day. Keep taking movement breaks during your workday even on rest days — that habit runs independent of your training schedule.' },
         d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
@@ -18637,7 +18639,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d2: { label:'Day 2', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
-          note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.' },
+          note:'No structured session: get up and move for 2-3 minutes every 30-60 minutes of your workday. Breaking up sitting matters as much as the other six days combined.' },
         d3: { label:'Day 3', sub:'Hip & Lower Body Reset', plate:'p-blue', plateNum:'20', duration:'~25 min',
           exercises:[
             {name:'Couch Stretch', sets:'2×30-45s/side', noWeight:true},
@@ -18687,7 +18689,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
-          note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.' },
+          note:'No structured session: get up and move for 2-3 minutes every 30-60 minutes of your workday. Breaking up sitting matters as much as the other six days combined.' },
         d4: { label:'Day 4', sub:'Thoracic Mobility & Upper Strength', plate:'p-yellow', plateNum:'15', duration:'~25 min',
           exercises:[
             {name:'Thoracic Spine Rotation (Open Book)', sets:'2×8-10/side', noWeight:true},
@@ -18737,7 +18739,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
-          note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.' },
+          note:'No structured session: get up and move for 2-3 minutes every 30-60 minutes of your workday. Breaking up sitting matters as much as the other six days combined.' },
         d4: { label:'Day 4', sub:'Thoracic Mobility & Upper Strength', plate:'p-yellow', plateNum:'15', duration:'~25 min',
           exercises:[
             {name:'Thoracic Spine Rotation (Open Book)', sets:'2×8-10/side', noWeight:true},
@@ -18797,7 +18799,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           ]
         },
         d3: { label:'Day 3', sub:'Rest / Movement Snacks', plate:'p-white', plateNum:'—', duration:'~10 min', rest:true,
-          note:'No structured session — instead, get up and move for 2-3 minutes every 30-60 minutes during your workday. Occupational health research consistently links breaking up sitting time, not just total exercise, to better outcomes — this habit matters as much as the other 6 days combined.' },
+          note:'No structured session: get up and move for 2-3 minutes every 30-60 minutes of your workday. Breaking up sitting matters as much as the other six days combined.' },
         d4: { label:'Day 4', sub:'Thoracic Mobility & Upper Strength', plate:'p-yellow', plateNum:'15', duration:'~25 min',
           exercises:[
             {name:'Thoracic Spine Rotation (Open Book)', sets:'2×8-10/side', noWeight:true},
@@ -22201,7 +22203,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Thoracic spine, hip, and shoulder mobility, 20-25 min. Paddling and the crouched pop-up position both load the shoulders and hips repeatedly — give them real recovery, not just a stretch you skip, even at 7 days selected.' },
+            note:'Thoracic spine, hip and shoulder mobility, 20-25 minutes. Paddling and the pop-up load shoulders and hips over and over, so give them real recovery.' },
           d4: { label:'Day 4', sub:'Posterior Shoulder & Injury Prevention', plate:'p-yellow', plateNum:'15', duration:'~35 min',
             exercises:[
               {name:'Band External Rotation', sets:'3×15'},
@@ -22957,7 +22959,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Lumbar spine, hip, and shoulder mobility, 20-25 min. A sustained, leaned-back riding stance and a hard bar pull load exactly these areas — give them real recovery, not just a stretch you skip, even at 7 days selected.' },
+            note:'Lower back, hip and shoulder mobility, 20-25 minutes. The leaned-back stance and bar pull load exactly these areas, so give them real recovery.' },
           d4: { label:'Day 4', sub:'Grip, Forearm & Shoulder Endurance', plate:'p-yellow', plateNum:'15', duration:'~35 min',
             exercises:[
               {name:'Farmer\'s Carry', sets:'4×30yd'},
@@ -23210,7 +23212,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Mobility', plate:'p-white', plateNum:'—', duration:'~25 min', rest:true,
-            note:'Shoulder, thoracic spine, and hip mobility, 20-25 min. A repetitive, alternating-side reach-and-pull stroke loads exactly these areas — give them real recovery, not just a stretch you skip, even at 7 days selected.' },
+            note:'Shoulder, thoracic spine and hip mobility, 20-25 minutes. The repeated reach-and-pull stroke loads exactly these areas, so give them real recovery.' },
           d4: { label:'Day 4', sub:'Grip, Forearm & Posterior Shoulder Endurance', plate:'p-yellow', plateNum:'15', duration:'~35 min',
             exercises:[
               {name:'Farmer\'s Carry', sets:'4×30yd'},
@@ -23783,11 +23785,11 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d2: { label:'Day 2', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
-            note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break.' },
+            note:'A full rest day. Back-to-back heated sessions add up to real heat and fluid stress: drink water with electrolytes, and don\'t stack another heated session without a real break.' },
           d3: { label:'Day 3', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
             note:'Full rest day. No mat time needed — just move naturally through your day, and keep drinking water normally, not just on practice days.' },
           d4: { label:'Day 4', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
-            note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break.' },
+            note:'A full rest day. Back-to-back heated sessions add up to real heat and fluid stress: drink water with electrolytes, and don\'t stack another heated session without a real break.' },
           d5: { label:'Day 5', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
             note:'Full rest day. No mat time needed — just move naturally through your day, and keep drinking water normally, not just on practice days.' },
           d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
@@ -23811,7 +23813,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d2: { label:'Day 2', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
-            note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break.' },
+            note:'A full rest day. Back-to-back heated sessions add up to real heat and fluid stress: drink water with electrolytes, and don\'t stack another heated session without a real break.' },
           d3: { label:'Day 3', sub:'Hot Power Flow', plate:'p-blue', plateNum:'20', duration:'~45 min',
             note:'Heat makes muscles feel more flexible than the ligaments underneath actually are — this is when overstretching injuries happen, not from the heat itself. Stay inside your normal range, not a heat-inflated one.',
             exercises:[
@@ -23825,7 +23827,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           d4: { label:'Day 4', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
             note:'Full rest day. No mat time needed — just move naturally through your day, and keep drinking water normally, not just on practice days.' },
           d5: { label:'Day 5', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
-            note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break.' },
+            note:'A full rest day. Back-to-back heated sessions add up to real heat and fluid stress: drink water with electrolytes, and don\'t stack another heated session without a real break.' },
           d6: { label:'Day 6', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
             note:'Full rest day. No mat time needed — just move naturally through your day, and keep drinking water normally, not just on practice days.' },
           d7: { label:'Day 7', sub:'Full Rest', plate:'p-off', plateNum:'OFF', duration:'', rest:true,
@@ -23857,7 +23859,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
-            note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break.' },
+            note:'A full rest day. Back-to-back heated sessions add up to real heat and fluid stress: drink water with electrolytes, and don\'t stack another heated session without a real break.' },
           d4: { label:'Day 4', sub:'Cool-Room Recovery', plate:'p-yellow', plateNum:'15', duration:'~30 min',
             note:'A normal-temperature room on purpose, to balance out a week of heat exposure — not every recovery day needs to be a heated one.',
             exercises:[
@@ -23900,9 +23902,9 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
-            note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break.' },
+            note:'A full rest day. Back-to-back heated sessions add up to real heat and fluid stress: drink water with electrolytes, and don\'t stack another heated session without a real break.' },
           d4: { label:'Day 4', sub:'Hot Hatha & Alignment', plate:'p-yellow', plateNum:'15', duration:'~45 min',
-            note:'Slower pace than the flow days, but the same room heat — alignment matters more here specifically because static holds in a heated room give overstretched ligaments more time to actually get compromised, not less.',
+            note:'Slower than the flow days, in the same heat. Alignment matters more here, because static holds in heat give overstretched ligaments longer to get hurt.',
             exercises:[
               {name:'Tree Pose', sets:'3×30s/side', noWeight:true},
               {name:'Triangle Pose', sets:'3×40s/side', noWeight:true},
@@ -23912,7 +23914,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d5: { label:'Day 5', sub:'Warm Yin (Reduced Heat)', plate:'p-green', plateNum:'10', duration:'~45 min',
-            note:'Deliberately a warm room, not full class heat — yin\'s long, deep holds combined with full heat is a real compounding risk (long static stretch + heat-masked ligament limits), so this day intentionally backs the temperature off rather than stacking both at once.',
+            note:'A warm room, not full class heat: long, deep yin holds in full heat compound the risk to ligaments, so this day backs the temperature off.',
             exercises:[
               {name:'Pigeon Pose', sets:'2×90s/side', noWeight:true},
               {name:'Butterfly Pose', sets:'2×90s', noWeight:true},
@@ -23954,9 +23956,9 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
-            note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break.' },
+            note:'A full rest day. Back-to-back heated sessions add up to real heat and fluid stress: drink water with electrolytes, and don\'t stack another heated session without a real break.' },
           d4: { label:'Day 4', sub:'Hot Hatha & Alignment', plate:'p-yellow', plateNum:'15', duration:'~45 min',
-            note:'Slower pace than the flow days, but the same room heat — alignment matters more here specifically because static holds in a heated room give overstretched ligaments more time to actually get compromised, not less.',
+            note:'Slower than the flow days, in the same heat. Alignment matters more here, because static holds in heat give overstretched ligaments longer to get hurt.',
             exercises:[
               {name:'Tree Pose', sets:'3×30s/side', noWeight:true},
               {name:'Triangle Pose', sets:'3×40s/side', noWeight:true},
@@ -23966,7 +23968,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d5: { label:'Day 5', sub:'Warm Yin (Reduced Heat)', plate:'p-green', plateNum:'10', duration:'~45 min',
-            note:'Deliberately a warm room, not full class heat — yin\'s long, deep holds combined with full heat is a real compounding risk (long static stretch + heat-masked ligament limits), so this day intentionally backs the temperature off rather than stacking both at once.',
+            note:'A warm room, not full class heat: long, deep yin holds in full heat compound the risk to ligaments, so this day backs the temperature off.',
             exercises:[
               {name:'Pigeon Pose', sets:'2×90s/side', noWeight:true},
               {name:'Butterfly Pose', sets:'2×90s', noWeight:true},
@@ -24019,9 +24021,9 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d3: { label:'Day 3', sub:'Rest / Hydration Reset', plate:'p-white', plateNum:'—', duration:'~20 min', rest:true,
-            note:'A full rest day, not just a gentle one. Two heated sessions back to back is real cumulative heat and fluid stress — prioritize water plus electrolytes today, and don\'t stack a third heated session right after this without a genuine break, even at 7 days selected.' },
+            note:'A full rest day. Back-to-back heated sessions add up to real heat and fluid stress: drink water with electrolytes, and take a real break before another heated session.' },
           d4: { label:'Day 4', sub:'Hot Hatha & Alignment', plate:'p-yellow', plateNum:'15', duration:'~45 min',
-            note:'Slower pace than the flow days, but the same room heat — alignment matters more here specifically because static holds in a heated room give overstretched ligaments more time to actually get compromised, not less.',
+            note:'Slower than the flow days, in the same heat. Alignment matters more here, because static holds in heat give overstretched ligaments longer to get hurt.',
             exercises:[
               {name:'Tree Pose', sets:'3×30s/side', noWeight:true},
               {name:'Triangle Pose', sets:'3×40s/side', noWeight:true},
@@ -24031,7 +24033,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
             ]
           },
           d5: { label:'Day 5', sub:'Warm Yin (Reduced Heat)', plate:'p-green', plateNum:'10', duration:'~45 min',
-            note:'Deliberately a warm room, not full class heat — yin\'s long, deep holds combined with full heat is a real compounding risk (long static stretch + heat-masked ligament limits), so this day intentionally backs the temperature off rather than stacking both at once.',
+            note:'A warm room, not full class heat: long, deep yin holds in full heat compound the risk to ligaments, so this day backs the temperature off.',
             exercises:[
               {name:'Pigeon Pose', sets:'2×90s/side', noWeight:true},
               {name:'Butterfly Pose', sets:'2×90s', noWeight:true},
@@ -43444,7 +43446,7 @@ function computeGoalFeedback(profile, weightEntries, measureEntries){
 // with a BMI under 35, and that limit is enforced below.
 const WHTR_BANDS = [
   {max: 0.40, key:'below',     label:'below the range NICE describes',
-   note:'A waist-to-height ratio under 0.4 sits below NICE\'s healthy band rather than above it. Lower is not automatically better, and this is worth mentioning at your next check-up rather than treating as a target to keep chasing.'},
+   note:'A waist-to-height ratio under 0.4 is below NICE\'s healthy band, not above it. Lower isn\'t automatically better; mention it at your next check-up rather than chasing it.'},
   {max: 0.50, key:'healthy',   label:'healthy central adiposity',
    note:'NICE describes this band as not indicating increased health risk from central adiposity.'},
   {max: 0.60, key:'increased', label:'increased central adiposity',
