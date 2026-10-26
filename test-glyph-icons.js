@@ -8,6 +8,9 @@
 // with a 44px minimum height for the tap target.
 // v3.359 — The drop-set button's ⤵ is now a mask-drawn step-down arrow on
 // .set-drop-btn::before; ::after stays its 44px hit area.
+// v3.360 — The food favourite toggle's ★/☆ is now a drawn star on
+// .fi-fav::before (outline, filled when .favorited), the same two-class
+// pattern as .fi-delete so the shared .fi-star base is untouched.
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -74,6 +77,45 @@ test('REAL CSSOM (v3.359): ::before draws the arrow, ::after is still the 44px h
   assert.strictEqual(declared('.set-drop-btn::before', 'width'), '14px');
   assert.strictEqual(declared('.set-drop-btn::after', 'height'), '44px');
   assert.strictEqual(declared('.set-drop-btn', 'display'), 'flex', 'centres the glyph');
+});
+
+function buildStar(favs, clicks){
+  const chunks = [extractFunction(src, 'escapeHtml'), extractFunction(src, 'buildFoodItemBtn'), `
+    let activeCat = 'Proteins';
+    const favs = new Set(${JSON.stringify(favs)});
+    const isFavorited = n => favs.has(n);
+    const toggleFavorite = async item => { favs.has(item.name) ? favs.delete(item.name) : favs.add(item.name); };
+    const itemViolatesPreferences = () => null;
+    const addFoodToLog = () => {}; const duplicateToCustomForm = () => {}; const removeFromCustomFoods = async () => {}; const renderFoodItems = () => {};
+    document.body.append(buildFoodItemBtn({name:'Chicken Breast', cal:165, pro:31, fat:4, carb:0, category:'Proteins'}, false));
+  `];
+  return runJsdom('', '', chunks);
+}
+
+test('REAL invocation (v3.360): buildFoodItemBtn renders an empty fi-fav toggle that flips .favorited on tap', async (assert)=>{
+  const { document } = buildStar([]);
+  const star = document.querySelector('.fi-star');
+  assert.ok(star.classList.contains('fi-fav'), 'the toggle is the first .fi-star and carries fi-fav');
+  assert.strictEqual(star.textContent, '', 'no typed glyph');
+  assert.strictEqual(star.classList.contains('favorited'), false);
+  star.click(); await new Promise(r => setTimeout(r, 0));
+  assert.strictEqual(star.classList.contains('favorited'), true, 'filled after favouriting');
+  assert.strictEqual(star.textContent, '', 'the click handler does not write a glyph back');
+  star.click(); await new Promise(r => setTimeout(r, 0));
+  assert.strictEqual(star.classList.contains('favorited'), false);
+  const pre = buildStar(['Chicken Breast']).document.querySelector('.fi-fav');
+  assert.ok(pre.classList.contains('favorited'), 'an already-saved food renders filled');
+});
+
+test('REAL CSSOM (v3.360): outline star by default, filled star when favourited, 44px hit area kept', (assert)=>{
+  const outline = declared('.fi-fav::before', 'mask-image') || declared('.fi-fav::before', '-webkit-mask-image');
+  const filled = declared('.fi-fav.favorited::before', 'mask-image') || declared('.fi-fav.favorited::before', '-webkit-mask-image');
+  assert.match(outline, /fill%3D%27none%27/, 'outline');
+  assert.match(filled, /fill%3D%27black%27/, 'filled');
+  assert.strictEqual(declared('.fi-fav', 'font-size'), '0px');
+  assert.strictEqual(declared('.fi-fav', 'min-width'), '22px');
+  assert.strictEqual(declared('.fi-star::after', 'height'), '44px');
+  assert.strictEqual((src.match(/'★' : '☆'|'★':'☆'/g) || []).length, 0, 'no code path writes the old glyphs');
 });
 
 run();

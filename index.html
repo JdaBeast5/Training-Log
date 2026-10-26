@@ -3483,6 +3483,26 @@
     background:none; border:none; font-size:18px; cursor:pointer; padding:2px; color:var(--text-muted); line-height:1;
   }
   .fi-star.favorited{color:var(--plate-yellow);}
+  /* v3.360: the favourite toggle is drawn (outline star, filled when
+     favourited) instead of typed ★/☆, which rendered at a different weight per
+     platform font. Same two-class pattern as .fi-delete below: .fi-fav is a
+     second class on just the toggle, so the base .fi-star is untouched and
+     ::after stays the shared 44px hit area. */
+  .fi-fav{
+    font-size:0; min-width:22px; min-height:22px; display:inline-flex; align-items:center; justify-content:center;
+  }
+  .fi-fav::before{
+    content:''; width:18px; height:18px; background:currentColor;
+    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+    -webkit-mask-position:center; mask-position:center;
+    -webkit-mask-size:contain; mask-size:contain;
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M10%202.6l2.3%204.7%205.2.8-3.8%203.6.9%205.1L10%2014.4l-4.6%202.4.9-5.1-3.8-3.6%205.2-.8Z%27%2F%3E%3C%2Fsvg%3E");
+    mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M10%202.6l2.3%204.7%205.2.8-3.8%203.6.9%205.1L10%2014.4l-4.6%202.4.9-5.1-3.8-3.6%205.2-.8Z%27%2F%3E%3C%2Fsvg%3E");
+  }
+  .fi-fav.favorited::before{
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27black%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M10%202.6l2.3%204.7%205.2.8-3.8%203.6.9%205.1L10%2014.4l-4.6%202.4.9-5.1-3.8-3.6%205.2-.8Z%27%2F%3E%3C%2Fsvg%3E");
+    mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27black%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M10%202.6l2.3%204.7%205.2.8-3.8%203.6.9%205.1L10%2014.4l-4.6%202.4.9-5.1-3.8-3.6%205.2-.8Z%27%2F%3E%3C%2Fsvg%3E");
+  }
   /* v3.311 (2.0): "add" is the primary action, so it wears the primary — the
      blue-to-purple gradient — like every other add/log button (was green). */
   .food-item-btn .fi-plus{
@@ -6674,7 +6694,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.359';
+const APP_VERSION = '3.360';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7558,6 +7578,9 @@ const WHATS_NEW = {
   ]},
   '3.359': { headline: 'Cleaner drop-set button', points: [
     'The drop-set button shows a drawn arrow instead of a text symbol.',
+  ]},
+  '3.360': { headline: 'Drawn favourite star', points: [
+    'The favourite star on foods is a drawn icon that fills in when you save a food.',
   ]},
 };
 
@@ -35256,7 +35279,7 @@ function buildFoodItemBtn(item, showCategory){
     </div>
     <div class="fi-actions">
       <button class="fi-duplicate" type="button" aria-label="Duplicate and edit ${escapeHtml(item.name)}">✏️</button>
-      <button class="fi-star ${favorited?'favorited':''}" type="button" aria-pressed="${favorited?'true':'false'}" aria-label="${favorited?'Remove':'Add'} ${escapeHtml(item.name)} ${favorited?'from':'to'} favourites">${favorited?'★':'☆'}</button>
+      <button class="fi-star fi-fav ${favorited?'favorited':''}" type="button" aria-pressed="${favorited?'true':'false'}" aria-label="${favorited?'Remove':'Add'} ${escapeHtml(item.name)} ${favorited?'from':'to'} favourites"></button>
       ${isCustom ? `<button class="fi-star fi-delete" type="button" aria-label="Remove ${escapeHtml(item.name)} from My Foods">🗑️</button>` : ''}
       <div class="fi-plus">+</div>
     </div>
@@ -35271,7 +35294,6 @@ function buildFoodItemBtn(item, showCategory){
   starBtn.addEventListener('click', async (e)=>{
     e.stopPropagation();
     await toggleFavorite(item);
-    starBtn.textContent = isFavorited(item.name) ? '★' : '☆';
     starBtn.classList.toggle('favorited', isFavorited(item.name));
     if(activeCat === '★ Favorites') renderFoodItems();
   });
@@ -35442,7 +35464,7 @@ function renderFoodItems(){
       ? 'Nothing here yet — anything you add as a custom item (with "Save to My Foods" checked) or scan from a label shows up here for reuse.'
       : items && items.length > 0
         ? 'Everything here is on your avoid list — turn off "Hide avoided foods" above to see it.'
-        : 'No favorites yet — tap the ☆ on any food to save it here for quick access.';
+        : 'No favorites yet. Tap the star on any food to save it here.';
     itemsEl.innerHTML = `<div class="empty-note">${emptyMsg}</div>`;
     return;
   }
