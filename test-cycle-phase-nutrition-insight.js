@@ -1,4 +1,8 @@
 'use strict';
+// 2026-10-26 (v3.382): the nutrition row was merged into the cycle row —
+// getCycleInsight now returns training AND food advice for the phase in one
+// row, and getCyclePhaseNutritionInsight is gone. Every check below now runs
+// against getCycleInsight, unchanged otherwise (test-today-priorities.js).
 // Behavioral coverage for getCyclePhaseNutritionInsight — a proactive Today
 // Insights row surfacing CYCLE_PHASES' own `nutrition` field (real content
 // that already existed inside the Cycle Tracking card's phase-guide list,
@@ -19,12 +23,15 @@ const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } =
 
 const src = readIndexSource();
 
-const getCyclePhaseNutritionInsightSrc = extractFunction(src, 'getCyclePhaseNutritionInsight');
+const getCyclePhaseNutritionInsightSrc = extractFunction(src, 'getCycleInsight');
 const isCycleTrackingEnabledSrc = extractFunction(src, 'isCycleTrackingEnabled');
 const cyclePhasesSrc = extractConst(src, 'CYCLE_PHASES');
 const computeCyclePhaseSrc = extractFunction(src, 'computeCyclePhase');
 const getTodayKeySrc = extractFunction(src, 'getTodayKey');
-const renderTodayInsightsSrc = extractFunction(src, 'renderTodayInsights');
+// 2026-10-26 (v3.383): each row is a swipe item that hides until tomorrow, so
+// the renderer brings its hidden-rows store and the shared swipe row with it.
+const renderTodayInsightsSrc = ['renderTodayInsights', 'getHiddenPriorities', 'setHiddenPriorities', 'buildSwipeItem', 'makeSwipeable']
+  .map(n => extractFunction(src, n)).join('\n');
 
 const { test, run } = makeRunner('test-cycle-phase-nutrition-insight.js');
 
@@ -68,25 +75,25 @@ function daysAgoKey(n){
 
 test('REAL invocation: non-female gender -> null (no false-positive nudge)', async (assert)=>{
   const window = setup({ gender: 'other' }, { 'cycle-data': JSON.stringify({ lastPeriod: daysAgoKey(0), cycleLength: 28 }) });
-  const result = await window.getCyclePhaseNutritionInsight();
+  const result = await window.getCycleInsight();
   assert.strictEqual(result, null);
 });
 
 test('REAL invocation: female gender with no cycle data saved yet -> null, not a crash', async (assert)=>{
   const window = setup({ gender: 'female' }, {});
-  const result = await window.getCyclePhaseNutritionInsight();
+  const result = await window.getCycleInsight();
   assert.strictEqual(result, null);
 });
 
 test('REAL invocation: female gender who has explicitly opted OUT of cycle tracking -> null, even with real cycle data still saved from before the opt-out', async (assert)=>{
   const window = setup({ gender: 'female', cycleTrackingEnabled: false }, { 'cycle-data': JSON.stringify({ lastPeriod: daysAgoKey(0), cycleLength: 28 }) });
-  const result = await window.getCyclePhaseNutritionInsight();
+  const result = await window.getCycleInsight();
   assert.strictEqual(result, null, 'opting out must be a real off switch — it must stop reading pre-existing cycle-data, not just stop collecting new data going forward');
 });
 
 test('REAL invocation: menstrual phase (day 1 of 28) surfaces the real CYCLE_PHASES menstrual nutrition text, with a jump-link to the real Nutrition card', async (assert)=>{
   const window = setup({ gender: 'female' }, { 'cycle-data': JSON.stringify({ lastPeriod: daysAgoKey(0), cycleLength: 28 }) });
-  const result = await window.getCyclePhaseNutritionInsight();
+  const result = await window.getCycleInsight();
   assert.ok(result, 'must return a real row once cycle data exists');
   assert.match(result, /iron/i, 'must be the REAL menstrual-phase nutrition text (mentions iron), not a placeholder');
   assert.match(result, /Menstrual Phase/, 'must name the real current phase');
@@ -96,7 +103,7 @@ test('REAL invocation: menstrual phase (day 1 of 28) surfaces the real CYCLE_PHA
 
 test('REAL invocation: luteal phase (day 20 of 28) surfaces the real CYCLE_PHASES luteal nutrition text — a genuinely different phase, genuinely different text', async (assert)=>{
   const window = setup({ gender: 'female' }, { 'cycle-data': JSON.stringify({ lastPeriod: daysAgoKey(19), cycleLength: 28 }) });
-  const result = await window.getCyclePhaseNutritionInsight();
+  const result = await window.getCycleInsight();
   assert.ok(result);
   assert.match(result, /Luteal Phase/);
   assert.match(result, /calorie/i, 'must be the real luteal-phase nutrition text (mentions calorie needs), not the menstrual one carried over by mistake');
@@ -104,7 +111,7 @@ test('REAL invocation: luteal phase (day 20 of 28) surfaces the real CYCLE_PHASE
 
 test('sabotage-relevant: a phase whose real nutrition text says no major shift is needed (ovulation, day 14 of 28) still produces a real row — this is NOT filtered out as "boring"', async (assert)=>{
   const window = setup({ gender: 'female' }, { 'cycle-data': JSON.stringify({ lastPeriod: daysAgoKey(13), cycleLength: 28 }) });
-  const result = await window.getCyclePhaseNutritionInsight();
+  const result = await window.getCycleInsight();
   assert.ok(result, 'every phase must produce a row once cycle data exists, matching getCycleInsight\'s own "always show" precedent — a phase with unremarkable advice is not the same as no advice');
   assert.match(result, /Ovulation/);
 });
@@ -113,7 +120,6 @@ test('sabotage-relevant: a phase whose real nutrition text says no major shift i
 const OTHER_INSIGHT_STUBS = `
   async function getDeloadInsight(){ return null; }
   async function getSleepInsight(){ return null; }
-  async function getCycleInsight(){ return null; }
   async function getStaleRestingRegionInsight(){ return null; }
   async function getWeighInReminderInsight(){ return null; }
   async function getWaterPaceInsight(){ return null; }

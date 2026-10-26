@@ -372,9 +372,12 @@
   .wrap{max-width:640px; margin:0 auto; padding:calc(22px + env(safe-area-inset-top, 0px)) 18px 4px;}
   header{padding:8px 0 18px;}
   .eyebrow-row{display:flex; align-items:center; gap:7px;}
+  /* v3.386: the app icon's mark (the plate, its lit seventh and bore) at
+     header size — the hub ring is dropped, it can't resolve at 14px. */
   .brand-mark{
-    display:inline-flex; width:14px; height:14px; flex:0 0 auto; color:var(--plate-blue); opacity:0.85;
+    display:inline-flex; width:14px; height:14px; flex:0 0 auto; color:var(--text);
   }
+  .brand-mark-lit{stroke:var(--plate-red);}
   .brand-mark svg{width:100%; height:100%;}
   /* [TASTESKILL ROLLOUT, v3.278] The eyebrow names the scope (whose log, which
      goal) beside the product mark, so it keeps its job but stops shouting:
@@ -848,6 +851,13 @@
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:8px;
   }
   .today-insight-row:last-child{margin-bottom:0;}
+  /* v3.383: each row is a swipe item. Spacing and corners move to the
+     wrapper; the row's tint sits on an opaque surface (the swipe content must
+     stay fully opaque, or the red layer behind it shows through). */
+  #todayInsightsList .swipe-item{border-radius:var(--radius-md); margin-bottom:8px;}
+  #todayInsightsList .swipe-item:last-child{margin-bottom:0;}
+  #todayInsightsList .swipe-content{background:var(--surface2); border-radius:var(--radius-md);}
+  #todayInsightsList .today-insight-row{margin-bottom:0;}
   .pf-conditions{ border:1px solid var(--line); border-radius:var(--radius-md); padding:12px; margin-bottom:12px; }
   .pf-conditions legend{ padding:0 6px; }
   .pf-condition-row{ display:flex; align-items:flex-start; gap:9px; padding:7px 0; border-top:1px solid var(--line-soft); }
@@ -4919,9 +4929,88 @@
   .pr-empty{color:#666; font-style:italic;}
 }
 
+
+  /* ── v3.385: launch ─────────────────────────────────────────────────────── */
+  .launch{
+    position:fixed; inset:0; z-index:2147483000; display:flex; align-items:center; justify-content:center;
+    background:var(--aura), var(--bg); transition:opacity .4s cubic-bezier(.2,.8,.2,1);
+    --launch-ink:#F6F3EE; --launch-ink-2:rgba(246,243,238,.62);
+  }
+  .launch.is-out{opacity:0; pointer-events:none;}
+  .launch-mark{width:112px; height:112px; overflow:visible; transition:transform .42s cubic-bezier(.2,.8,.2,1);}
+  .launch.is-out .launch-mark{transform:scale(1.08);}
+  .launch-rim, .launch-lit{fill:none; stroke-width:104; stroke-dasharray:1 1; stroke-dashoffset:1;}
+  .launch-rim{stroke:var(--launch-ink); animation:launchDraw .62s cubic-bezier(.45,0,.2,1) .08s forwards;}
+  .launch-lit{stroke:url(#launchAcc); animation:launchDraw .26s cubic-bezier(.2,.8,.2,1) .68s forwards;}
+  .launch-hub{fill:none; stroke:var(--launch-ink-2); stroke-width:38; opacity:0; animation:launchFade .4s ease-out .22s forwards;}
+  .launch-bore{fill:var(--launch-ink); transform-origin:512px 512px; transform:scale(.4); opacity:0; animation:launchBore .3s cubic-bezier(.34,1.56,.64,1) .72s forwards;}
+  @keyframes launchDraw{to{stroke-dashoffset:0;}}
+  @keyframes launchFade{to{opacity:1;}}
+  @keyframes launchBore{to{opacity:1; transform:scale(1);}}
+  /* Light appearance: a porcelain page and a graphite mark (platinum would
+     vanish on it). The app behind is dark-only, so the hand-off is a fade. */
+  @media (prefers-color-scheme: light){
+    .launch{
+      background:radial-gradient(420px 380px at 88% -6%, rgba(var(--plate-red-rgb),.14), transparent 70%),
+                 radial-gradient(380px 360px at -12% 32%, rgba(var(--plate-blue-rgb),.12), transparent 70%), #F3F0EA;
+      --launch-ink:#1B1A20; --launch-ink-2:rgba(27,26,32,.42);
+    }
+  }
+  @media (prefers-contrast: more){
+    .launch{background:var(--bg);}
+    .launch-hub{stroke:var(--launch-ink);}
+  }
+  @media (prefers-contrast: more) and (prefers-color-scheme: light){ .launch{background:#FFFFFF;} }
+  /* Reduce Motion: the finished mark, and a cross-fade out. */
+  @media (prefers-reduced-motion: reduce){
+    .launch-rim, .launch-lit{stroke-dashoffset:0; animation:none;}
+    .launch-hub, .launch-bore{opacity:1; transform:none; animation:none;}
+    .launch.is-out .launch-mark{transform:none;}
+    .launch{transition-duration:.2s;}
+  }
 </style>
 </head>
 <body>
+<!-- v3.385: launch. The app's mark draws itself once per cold launch, then
+     dissolves into the app: the plate's rim draws clockwise from the cut, the
+     hub fades in, the lit seventh sweeps in last and the bore settles. Its
+     page matches the system appearance (dark: the app's own background and
+     aura, so the hand-off is seamless; light: porcelain with a graphite
+     mark); Increase Contrast drops the aura; Reduce Motion shows the finished
+     mark and cross-fades. A tap skips it. Grayscale is a system filter the
+     mark is built for (its parts differ by luminance, not hue). -->
+<div class="launch" id="launch" aria-hidden="true">
+  <svg class="launch-mark" viewBox="0 0 1024 1024" aria-hidden="true">
+    <defs><linearGradient id="launchAcc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF6A3D"/><stop offset="1" stop-color="#FF2D55"/></linearGradient></defs>
+    <path class="launch-rim" pathLength="1" d="M754.8 335.8 A300 300 0 1 1 498.4 212.3"/>
+    <path class="launch-lit" pathLength="1" d="M512.0 212.0 A300 300 0 0 1 746.5 325.0"/>
+    <circle class="launch-hub" cx="512" cy="512" r="132"/>
+    <circle class="launch-bore" cx="512" cy="512" r="46"/>
+  </svg>
+</div>
+<script>
+(function launch(){
+  var el = document.getElementById('launch');
+  if(!el) return;
+  // Cold launches only: a reload in the same session (pull to refresh) skips it.
+  var seen = false;
+  try{ seen = sessionStorage.getItem('launch-played') === '1'; sessionStorage.setItem('launch-played', '1'); }catch(e){}
+  if(seen){ el.parentNode.removeChild(el); return; }
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var start = Date.now(), done = false;
+  function finish(){
+    if(done) return; done = true;
+    el.classList.add('is-out');
+    setTimeout(function(){ if(el.parentNode) el.parentNode.removeChild(el); }, reduce ? 220 : 420);
+  }
+  // Out once the mark has drawn AND the page has loaded, never longer than 4s.
+  var minMs = reduce ? 250 : 1150;
+  function whenReady(){ setTimeout(finish, Math.max(0, minMs - (Date.now() - start))); }
+  if(document.readyState === 'complete') whenReady(); else window.addEventListener('load', whenReady);
+  setTimeout(finish, 4000);
+  el.addEventListener('pointerdown', finish);
+})();
+</script>
 <div class="user-picker-overlay" id="userPickerOverlay" role="dialog" aria-modal="true" aria-labelledby="userPickerTitle">
   <div class="user-picker-box">
     <div class="eyebrow">Training Log</div>
@@ -4943,7 +5032,7 @@
 <div class="wrap">
   <header>
     <div class="eyebrow-row">
-      <span class="brand-mark"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1.2" y="8" width="2.4" height="4" rx="1"/><rect x="16.4" y="8" width="2.4" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg></span>
+      <span class="brand-mark"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke-width="2.6"><path d="M15.90 6.23 A7 7 0 1 1 9.27 3.04" stroke="currentColor"/><path class="brand-mark-lit" d="M10.00 3.00 A7 7 0 0 1 15.47 5.64"/><circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none"/></svg></span>
       <div class="eyebrow" id="headerEyebrow">Training Log</div>
     </div>
     <h1 id="viewTitle">Today</h1>
@@ -5044,7 +5133,7 @@
   </div>
   <div class="card" id="todayInsightsCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M12.5 7.5 11 11l-3.5 1.5L9 9z"/></svg></span>Today's Priorities</div>
-    <div class="history-hint">What needs attention today. For trends, see Insights &amp; Program Fit on Analysis.</div>
+    <div class="history-hint">What needs attention today. Swipe to hide. Trends: Insights &amp; Program Fit on Analysis.</div>
     <div id="todayInsightsList"></div>
   </div>
   <div id="profileCardTopSlot"></div>
@@ -6789,7 +6878,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.379';
+const APP_VERSION = '3.386';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7733,6 +7822,27 @@ const WHATS_NEW = {
   ]},
   '3.379': { headline: 'Profile from Settings', points: [
     'Settings has a Set up your profile row until your profile is filled in.',
+  ]},
+  '3.380': { headline: 'Fewer repeats in Today\'s Priorities', points: [
+    'Short sleep shows once, in the Readiness row, instead of also as a separate sleep row with different advice.',
+  ]},
+  '3.381': { headline: 'Fewer repeats in Today\'s Priorities', points: [
+    'The deload-week row is gone: the day header already shows the deload week, and the suggested weights already account for it.',
+  ]},
+  '3.382': { headline: 'One cycle row', points: [
+    'Your cycle phase shows as one row in Today\'s Priorities, with its training and food advice together.',
+  ]},
+  '3.383': { headline: 'Swipe priorities away', points: [
+    'Swipe a row in Today\'s Priorities left to hide it until tomorrow, with Undo.',
+  ]},
+  '3.384': { headline: 'New app icon', points: [
+    'A new icon: a weight plate with one seventh of the ring lit, on the app\'s own dark glow. It holds up in Dark, Tinted and Grayscale home screens.',
+  ]},
+  '3.385': { headline: 'Launch animation', points: [
+    'Opening the app draws its new mark, then fades into Today. It follows your phone\'s light or dark setting, and Reduce Motion shows it without the animation.',
+  ]},
+  '3.386': { headline: 'Matching header mark', points: [
+    'The small mark beside Training Log on Today is the new plate, matching the app icon.',
   ]},
 };
 
@@ -12834,29 +12944,9 @@ async function renderStreak(){
   checkStreakMilestone(streak);
 }
 
-// --- Sleep-aware recovery nudge: purely informational, same spirit as the
-// per-exercise progression signals — it surfaces a pattern, it never edits
-// the workout for you. Only looks at last night's entry (or today's, if
-// logged early) so it can't go stale and nag about sleep from days ago.
-const POOR_SLEEP_THRESHOLD = 6;
-async function getSleepInsight(){
-  let entries = [];
-  try{
-    const res = await window.storage.get('sleep-log');
-    if(res && res.value) entries = JSON.parse(res.value);
-  }catch(e){ return null; }
-  if(!entries.length) return null;
-
-  const today = getTodayKey();
-  const yesterday = dateKeyMinusDays(today, 1);
-  const recent = entries.find(e=> e.date===today) || entries.find(e=> e.date===yesterday);
-  if(!recent) return null;
-
-  const hrs = Number(recent.hours);
-  if(hrs >= POOR_SLEEP_THRESHOLD) return null;
-
-  return `<b>Recovery note:</b> Only ${hrs} hrs logged last night — strength, reaction time, and injury risk all take a real hit under ${POOR_SLEEP_THRESHOLD} hours. Consider trimming today's session to your top sets, or swapping in something lighter.`;
-}
+// v3.380: the separate sleep row (getSleepInsight) was removed from Today's
+// Priorities. Readiness already flags under-6h sleep (READINESS_SLEEP_LOW), so
+// the two rows said the same thing — and disagreed about what to do.
 
 // --- Cycle-phase insight: deliberately just surfaces the SAME educational
 // training guidance already written for the Care tab's phase cards — this
@@ -12875,32 +12965,11 @@ async function getCycleInsight(){
   if(!data || !data.lastPeriod || !data.cycleLength) return null;
 
   const {phase} = computeCyclePhase(data.lastPeriod, data.cycleLength);
-  return `${phase.icon} <b>${phase.name}:</b> ${phase.training}`;
+  // v3.382: one row per phase — training, then food — where there used to be
+  // two rows (this and getCyclePhaseNutritionInsight) each naming the phase.
+  return `${phase.icon} <b>${phase.name}:</b> ${phase.training} <b>Food:</b> ${phase.nutrition} <button type="button" class="link-btn" data-jump-to="nutritionHeader">Open nutrition →</button>`;
 }
 
-// --- Cycle-phase nutrition insight: same idea as getCycleInsight above, just
-// surfacing CYCLE_PHASES' own `nutrition` field instead of `training` — that
-// content already existed (shown inside the Cycle Tracking card's phase-guide
-// list) but nobody saw it without opening that card and scrolling to it.
-// Mirrors getCycleInsight's own precedent exactly: same phase lookup, same
-// "always show once cycle data exists" rule (including a phase whose text is
-// "no major shift needed" — that is itself useful reassurance, not filler,
-// and inventing a rule to hide it would be a second, undocumented behavior
-// for what is otherwise one consistent pair of rows). Jumps into the real
-// Nutrition card (nutritionHeader, Log tab) via the same data-jump-to
-// mechanism used everywhere else in the app.
-async function getCyclePhaseNutritionInsight(){
-  if(!isCycleTrackingEnabled()) return null;
-  let data = null;
-  try{
-    const res = await window.storage.get('cycle-data');
-    if(res && res.value) data = JSON.parse(res.value);
-  }catch(e){ return null; }
-  if(!data || !data.lastPeriod || !data.cycleLength) return null;
-
-  const {phase} = computeCyclePhase(data.lastPeriod, data.cycleLength);
-  return `${phase.icon} <b>${phase.name} nutrition:</b> ${phase.nutrition} <button type="button" class="link-btn" data-jump-to="nutritionHeader">Open nutrition →</button>`;
-}
 
 // --- Foundational Stack nudge: a proactive RECOMMENDATION, not an auto-add.
 // The user ask behind this was "medically modified groups, pregnant/
@@ -13154,12 +13223,11 @@ async function getPregnancyHeatInsight(){
   return '<b>Hot Yoga while pregnant.</b> ACOG advises avoiding exercise in excessive heat during pregnancy, especially in the first trimester. The Flow style covers the same poses without the heated room. Worth raising with your OB or midwife before your next session.';
 }
 
-async function getDeloadInsight(){
-  const isDeload = await isDeloadWeek();
-  if(!isDeload) return null;
-  const week = await getMesocycleWeek();
-  return `<b>Deload week (week ${week}):</b> A planned lighter week — sets are already trimmed below (roughly 40-50% less volume), and working weights should come down another ~10-20% on top of that. This combination is what actually lets the last month of hard training turn into progress instead of just accumulated fatigue — cutting weight alone while keeping full volume is one of the most common ways a deload fails to do its job.`;
-}
+// v3.381: the Deload-week row (getDeloadInsight) was removed from Today's
+// Priorities. The day header already says "Week 5 of 5 · Deload" (from the
+// same isDeloadWeek(), so a manual deload too), the session time reads
+// "(deload)", the sets are already cut, and the chips suggest the lighter
+// weights — the row only repeated all of that as a paragraph.
 
 // --- Stale resting-region check-in: Care lets you mark a region as resting,
 // but nothing ever prompted you back to it — it could sit there indefinitely
@@ -13394,11 +13462,11 @@ async function renderTodayInsights(){
   const el = document.getElementById('todayInsightsList');
   if(!card || !el) return;
 
-  const [deload, sleep, cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge, cycleNutrition] = await Promise.all([
-    getDeloadInsight(), getSleepInsight(), getCycleInsight(),
+  const [cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge] = await Promise.all([
+    getCycleInsight(),
     getStaleRestingRegionInsight(), getWeighInReminderInsight(), getWaterPaceInsight(), getSessionHeadsUpInsight(),
     getDeficitGuardrailInsight(), getPregnancyHeatInsight(), getBackupReminderInsight(),
-    getReadinessInsight(), getFoundationalStackNudgeInsight(), getCyclePhaseNutritionInsight(),
+    getReadinessInsight(), getFoundationalStackNudgeInsight(),
   ]);
 
   // deficit sits second: under the session heads-up (which is about the next
@@ -13415,24 +13483,52 @@ async function renderTodayInsights(){
   // readiness sits directly under the safety item and above the session heads-up.
   // It is the one row that answers "should I train hard today", which is the
   // question the heads-up and everything below it are all downstream of — and
-  // it synthesises the sleep and deload rows further down, so reading it first
-  // makes those two land as detail rather than as new information.
+  // it synthesised the sleep and deload rows that used to sit below it (both
+  // removed as duplicates, v3.380 and v3.381).
   // stackNudge sits directly under cycle: it's the same context (a flagged
   // condition or, per that row, the current cycle phase) turned into an
   // actionable pointer, so reading them back to back keeps cause and
   // recommendation adjacent rather than scattered across the list.
-  // cycleNutrition sits directly under stackNudge, for the same reason —
-  // it's the SAME cycle-phase context as cycle/stackNudge, just the nutrition
-  // half instead of the training/supplement halves. All three reading
-  // together as one group keeps every angle on "what does this phase mean
-  // for me" adjacent, rather than nutrition being the one orphaned elsewhere.
-  const items = [pregnancyHeat, readiness, sessionHeadsUp, deficit, deload, sleep, cycle, stackNudge, cycleNutrition, staleRegion, weighIn, waterPace, backup].filter(Boolean);
+  // The cycle row carries the phase's food advice too since v3.382 (it was
+  // a separate cycleNutrition row naming the same phase a second time).
+  const rows = {pregnancyHeat, readiness, sessionHeadsUp, deficit, cycle, stackNudge, staleRegion, weighIn, waterPace, backup};
+  const order = ['pregnancyHeat', 'readiness', 'sessionHeadsUp', 'deficit', 'cycle', 'stackNudge', 'staleRegion', 'weighIn', 'waterPace', 'backup'];
+  const hidden = await getHiddenPriorities();
+  const items = order.filter(id => rows[id] && !hidden.includes(id));
   if(items.length === 0){
     card.style.display = 'none';
     return;
   }
   card.style.display = '';
-  el.innerHTML = items.map(text=> `<div class="today-insight-row">${text}</div>`).join('');
+  // v3.383: each row swipes away for the rest of today, with Undo — the shared
+  // swipe-to-delete row (buildSwipeItem + makeSwipeable), like every other list.
+  el.innerHTML = items.map(id => buildSwipeItem(`<div class="today-insight-row" data-priority="${id}">${rows[id]}</div>`)).join('');
+  el.querySelectorAll('.swipe-item').forEach(item => {
+    const id = item.querySelector('[data-priority]').dataset.priority;
+    item.querySelector('.swipe-delete-bg').setAttribute('aria-label', 'Hide until tomorrow');
+    makeSwipeable(item, async ()=>{
+      await setHiddenPriorities([...await getHiddenPriorities(), id]);
+      await renderTodayInsights();
+      showUndoToast('Hidden until tomorrow', async ()=>{
+        await setHiddenPriorities((await getHiddenPriorities()).filter(x => x !== id));
+        await renderTodayInsights();
+      });
+    });
+  });
+}
+
+// v3.383: which Today's Priorities rows were swiped away today. One key, not
+// one per day: it holds the date it was written, and any other day reads as
+// nothing hidden, so a row comes back tomorrow if it still applies.
+async function getHiddenPriorities(){
+  try{
+    const res = await window.storage.get('priorities-hidden');
+    const v = res && res.value ? JSON.parse(res.value) : null;
+    return v && v.date === getTodayKey() && Array.isArray(v.ids) ? v.ids : [];
+  }catch(e){ return []; }
+}
+async function setHiddenPriorities(ids){
+  try{ await window.storage.set('priorities-hidden', JSON.stringify({date: getTodayKey(), ids: [...new Set(ids)]})); }catch(e){}
 }
 
 // [PROGRAM SELECTION & MESOCYCLE] -----------------------------------------------

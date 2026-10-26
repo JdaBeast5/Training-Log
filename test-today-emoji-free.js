@@ -19,7 +19,10 @@ const EMOJI = /\p{Extended_Pictographic}/gu;
 // Code without comments, so a comment that QUOTES an old emoji can't decide a check.
 const code = s => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
 
-const INSIGHT_GETTERS = ['getDeloadInsight', 'getSleepInsight', 'getStaleRestingRegionInsight', 'getWeighInReminderInsight',
+// 2026-10-26 (v3.380): getSleepInsight was removed (Readiness covers short
+// sleep; test-today-priorities.js), and getDeloadInsight in v3.381 (the day
+// header already shows the deload week).
+const INSIGHT_GETTERS = ['getStaleRestingRegionInsight', 'getWeighInReminderInsight',
   'getWaterPaceInsight', 'getSessionHeadsUpInsight', 'getFoundationalStackNudgeInsight'];
 
 test('REAL markup: no emoji anywhere in the Today screen\'s static markup (header, nav, the tab, both floating buttons)', (assert)=>{
@@ -46,7 +49,7 @@ test('REAL markup: the setup buttons keep their words, minus the emoji', (assert
   for(const [id, re] of Object.entries(want)) assert.match(document.getElementById(id).textContent.trim(), re, id);
 });
 
-test('REAL source, comments stripped: each of the seven insight getters leads with its bold label and carries no emoji', (assert)=>{
+test('REAL source, comments stripped: each insight getter leads with its bold label and carries no emoji', (assert)=>{
   for(const name of INSIGHT_GETTERS){
     const body = code(extractFunction(src, name));
     assert.deepStrictEqual(body.match(EMOJI) || [], [], `${name} still carries emoji`);
