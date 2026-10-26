@@ -1614,6 +1614,7 @@
   /* A group whose only slot has received nothing (the profile, before it is
      set up) would draw as an empty outline. */
   .settings-group:has(> [id$="Slot"]:only-child:empty){display:none;}
+  .settings-group:has(> #settingsProfileSlot > *) > #settingsProfileSetup{display:none;}
   .settings-group .card .expand-wrap > div{padding-left:0;}
   .settings-jump{
     display:flex; align-items:center; justify-content:space-between; width:100%;
@@ -6496,7 +6497,13 @@
 
     <div class="settings-section">
       <label class="care-label">You</label>
-      <div class="settings-group"><div id="settingsProfileSlot"></div></div>
+      <!-- v3.379: until the profile is set up it lives on Today, not here, and
+           this section had nothing in it but its footer. The row goes to it;
+           once the finished profile moves into the slot, the row hides. -->
+      <div class="settings-group">
+        <button type="button" class="settings-jump" id="settingsProfileSetup" data-jump-to="profileCard"><span>Set up your profile</span><span>›</span></button>
+        <div id="settingsProfileSlot"></div>
+      </div>
       <div class="history-hint field-note">Your units, dietary restrictions, equipment and health conditions, all in one place.</div>
     </div>
 
@@ -6782,7 +6789,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.378';
+const APP_VERSION = '3.379';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7723,6 +7730,9 @@ const WHATS_NEW = {
   ]},
   '3.378': { headline: 'Clearer AI setup', points: [
     'The AI setup row says what AI does in the app now, and simply reads Connected once your key is saved.',
+  ]},
+  '3.379': { headline: 'Profile from Settings', points: [
+    'Settings has a Set up your profile row until your profile is filled in.',
   ]},
 };
 

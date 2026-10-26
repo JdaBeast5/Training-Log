@@ -18,6 +18,10 @@
 // a Meal + Coaching video review", and a note promising a "free key". It now
 // names what AI powers today, drops "free" (API use is billed), and closed
 // with a key saved it reads "Connected" instead of repeating the row inside.
+//
+// v3.379 — Before the profile is set up it lives on Today, so "You" held only
+// its footer. It now has a "Set up your profile" row (a data-jump-to row like
+// Backup's) that hides once the finished profile moves into the slot.
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -100,6 +104,15 @@ test('REAL invocation (v3.378): the AI row\'s summary follows the key state, in 
   assert.doesNotMatch(note, /free key|routes through me/);
   assert.match(note, /console\.anthropic\.com/);
   assert.match(note, /stays on this device/, 'the storage promise is kept');
+});
+
+test('REAL markup + CSSOM (v3.379): "You" has a setup row that jumps to the real profile card, hidden once the profile is in the slot', (assert)=>{
+  const row = doc.getElementById('settingsProfileSetup');
+  assert.ok(row && row.parentElement.classList.contains('settings-group'));
+  assert.strictEqual(row.dataset.jumpTo, 'profileCard');
+  assert.ok(row.nextElementSibling && row.nextElementSibling.id === 'settingsProfileSlot', 'the slot follows it in the same group');
+  assert.match(html, /<div class="card"[^>]*id="profileCard"|id="profileCard"/, 'the jump target exists');
+  assert.strictEqual(declared('.settings-group:has(> #settingsProfileSlot > *) > #settingsProfileSetup', 'display'), 'none');
 });
 
 run();
