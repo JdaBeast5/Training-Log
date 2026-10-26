@@ -206,3 +206,26 @@ Owner: "evaluate if they're necessary or redundant, also make them removable by 
 - Confirmed in Chromium with a real drag, the hide, the toast and a reload.
 
 **Known gap:** like every swipe list in the app, there's no keyboard or VoiceOver path to hide a row.
+
+## Addendum 8: app icon, launch and header mark (v3.384–v3.386)
+Owner: a more luxurious, more fitting glyph and a launch animation that follows light, dark and grayscale. This batch was built with the apple-hig skill. Its `app-icons` reference is pending, so the live HIG page was read from its JSON endpoint.
+
+**v3.384, icon** (`test-app-icon.js`):
+- **Design:** the plate face-on (rim, hub ring, bore), with one seventh of the rim lit coral→rose, on the app's near-black aura. The aura is quieter than the UI's.
+- **Choice:** picked from three concepts after simulating Default, Dark, Tinted and Grayscale tiles in Chromium.
+- **Source:** `icon.svg` is the 1024 master; all PNGs are rendered from it, opaque and square except the RGBA monochrome.
+- **iOS limits:** a home-screen web app gets ONE `apple-touch-icon` and cannot ship dark or tinted variants. iOS generates them, so the mark separates its parts by luminance, which is what tinted and grayscale keep.
+- **Installed copies:** iOS reads a web clip's icon only when it is added. Existing installs keep the old icon until removed and re-added, and removing a home-screen web app deletes its data, so **export a backup first**.
+
+**v3.385, launch** (`test-launch.js`):
+- `#launch` is the first element in `<body>`, with an inline IIFE.
+- **Sequence:** the rim draws from the cut, then the hub, the lit seventh and the bore; then a fade with a slight scale.
+- **Timing:** about 1.15s minimum, waiting for `load`; a 4s cap; a tap skips it.
+- **Cold launch only:** sessionStorage `launch-played` prevents replays on reload.
+- **Appearances:** dark uses `var(--aura), var(--bg)` for a seamless hand-off; light is porcelain with a graphite mark; Increase Contrast drops the aura; Reduce Motion shows the finished mark and cross-fades in 0.2s.
+- `test-visual-polish-audit-fixes.js` now allows `prefers-color-scheme` only in `.launch`-scoped blocks (dated note).
+- **Note:** the app itself is still dark-only, so in light mode the launch hands off from porcelain to a dark app with a fade.
+
+**v3.386, header mark:** the 14px brand mark beside "Training Log" is the same plate (no hub ring at that size).
+
+**Not done:** iOS `apple-touch-startup-image` (per-device static launch images shown before the HTML parses). iOS still shows its own blank screen for that first moment.
