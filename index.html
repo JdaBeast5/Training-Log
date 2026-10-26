@@ -6694,7 +6694,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.370';
+const APP_VERSION = '3.371';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7611,6 +7611,9 @@ const WHATS_NEW = {
   ]},
   '3.370': { headline: 'Coach chat fix', points: [
     'Coach chat keeps working in long conversations. From the sixth question on, it could send the API a conversation that started with its own reply.',
+  ]},
+  '3.371': { headline: 'Cleaner coach context', points: [
+    'Error notices in coach chat are no longer sent to the coach as if it had said them.',
   ]},
 };
 
@@ -40837,8 +40840,11 @@ function renderCoachChatLog(){
 // v3.370: the history alternates question/reply and ends on the question just
 // asked, so from the sixth question on, a plain slice(-10) began with a coach
 // reply — and the API requires the first message to be the user's.
+// v3.371: the app's own notices (no API key, couldn't reach the coach) are
+// shown in the chat but marked notice:true and never sent — the model would
+// otherwise read them as things it had said.
 function coachChatApiMessages(history){
-  const recent = history.slice(-10).map(m=>({role: m.role, content: m.content}));
+  const recent = history.filter(m=> !m.notice).slice(-10).map(m=>({role: m.role, content: m.content}));
   while(recent.length && recent[0].role !== 'user') recent.shift();
   return recent;
 }
@@ -40852,7 +40858,7 @@ async function sendCoachChatMessage(inputId){
 
   const apiKey = await getApiKey();
   if(!apiKey){
-    coachChatHistory.push({role:'assistant', content:'Add your Anthropic API key under "AI Features Setup" in Settings first, then come back and ask away.'});
+    coachChatHistory.push({role:'assistant', notice:true, content:'Add your Anthropic API key under "AI Features Setup" in Settings first, then come back and ask away.'});
     renderCoachChatLog();
     setCoachChatBusy(false);
     return;
@@ -40888,7 +40894,7 @@ async function sendCoachChatMessage(inputId){
     const reply = await callClaudeChat(apiKey, systemPrompt, recentMessages, 1200, undefined, 'medium');
     coachChatHistory.push({role:'assistant', content: reply.trim()});
   }catch(err){
-    coachChatHistory.push({role:'assistant', content: `Couldn't reach the coach: ${err.message}. Check your API key and connection, then try again.`});
+    coachChatHistory.push({role:'assistant', notice:true, content: `Couldn't reach the coach: ${err.message}. Check your API key and connection, then try again.`});
   }
   await saveCoachChatHistory();
   setCoachChatBusy(false);
