@@ -305,3 +305,26 @@ Increments:
 - **Proposed fix (not done; a progression-engine behavior change, so test first):** when `prior` is cross-program, or its set shape doesn't match the current prescription, derive every working set from one basis: the top set via `computeSuggestedSet`, with reps from the current prescription.
   - Keep the per-set copy only when the shape matches.
   - Needs a REAL-invocation test with a cross-program pyramid prior, and a sabotage check.
+
+## Addendum 14: gym-mode warm-up flow and cross-program sets (v3.392–v3.395)
+This builds the plan from addendum 13. The owner chose: skip the whole ramp, warm-ups in gym mode only, no rest timer after a warm-up. Each item is its own commit and test, sabotage-checked and confirmed in Chromium on the seeded page.
+- **v3.392, warm-up chips (`renderWarmupChips`, drawn by `renderAllSetChips`):**
+  - In gym mode the loggable ramp is orange chips above the working chips. The `.warmup-strip` rows stay hidden as the source of truth.
+  - Tapping a chip ticks or unticks the real row's checkbox; its own change handler saves.
+  - "Edit" toggles `.warmup-editing` to show the rows.
+  - "Skip" calls `strip._skipAll`, which `wireSetsBlock` sets: every step's label goes into `warmupsSkipped`, with an Undo snapshot. Afterwards the row reads "Warm-up skipped · Restore".
+  - Skip is absent for a superset member's ramp, because its rows sit outside `.sets-block` and so never get the hook. The rows weren't wired for logging before this change either; flagged, not changed.
+  - **Deviation from the plan:** a chip tap marks the step done rather than opening the set sheet. The sheet is `.set-row`-specific (`.ex-weight` and so on), and the warm-up rows use `.warmup-weight`. Edit covers changing numbers.
+  - Orange is a literal `rgba(255,122,51,…)` inside the gym block, per the rgba consolidation guard.
+- **v3.393, the dock walks the warm-ups (`pendingWarmupChip`):**
+  - While the open exercise has a ready warm-up step and no working set logged, the Log button reads "Log 45×8" (`.is-warmup`, orange) and logs the step through its chip, with Undo. The working chip's glow waits.
+  - `refreshGymLogBtn` restores the glow when the ramp is done, using `renderSetChips`' rule.
+  - `enterGymMode` and `exitGymMode` call `renderAllSetChips()` so the label and glow are right immediately.
+- **v3.394:** `body.gym-mode .set-actions .same-as-last-btn` is a 44px text link. Today's button is unchanged.
+- **v3.395, `priorSetForSlot`:**
+  - The 5×5 cause from addendum 13 is fixed. Own-program history still copies set by set.
+  - From another program, every slot starts from the heaviest set that reached today's bottom rep, at today's reps. If none reached it, there's no basis.
+  - The ramp's basis follows the same rule; `chooseRampBasis` falls back to that basis instead of the other program's top set.
+  - The "Last top set" hint and "Same as Last Time" still show the other program's real numbers, on purpose.
+- **Harness updates (dated notes):** `test-set-chips` and `test-exercise-logger` (`renderWarmupChips`), `test-gym-set-chips` (`pendingWarmupChip`, warm-up functions, Undo stub).
+- **Unverified on an iPhone:** the chip sizes at real thumb reach, and the orange dock button in sunlight.
