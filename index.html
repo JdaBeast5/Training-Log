@@ -6947,7 +6947,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.399';
+const APP_VERSION = '3.400';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7951,6 +7951,9 @@ const WHATS_NEW = {
   ]},
   '3.399': { headline: 'Translucent buttons and chips', points: [
     'History, Edit, food categories, water buttons, Analysis chips and Learn\'s source rows now match the glass look.',
+  ]},
+  '3.400': { headline: 'Snappier pull to refresh', points: [
+    'Pull to refresh now follows your finger reliably on iPhone and reloads sooner after you let go.',
   ]},
 };
 
@@ -36755,36 +36758,49 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
 // this never touches localStorage, which is scoped to the origin only, so
 // nobody's logged data is affected by pulling to refresh or by any update
 // pushed to the underlying file.
-(function(){
+(function pullToRefresh(){
   const indicator = document.getElementById('pullRefreshIndicator');
   const spinner = document.getElementById('pullRefreshSpinner');
   const label = document.getElementById('pullRefreshLabel');
   const THRESHOLD = 45;
   const MAX_PULL = 100;
   const SCROLL_TOLERANCE = 5; // allow refresh even if not pixel-perfect at the top (rubber-band bounce, etc.)
-  let startY = 0, dragging = false, currentPull = 0;
+  // v3.400: the reload waits only long enough for a blurred field's change
+  // handler to save (storage writes are local); it was 500ms.
+  const RELOAD_DELAY = 150;
+  let startY = 0, startX = 0, dragging = false, currentPull = 0;
 
   function getScrollTop(){
     return window.scrollY || document.documentElement.scrollTop || 0;
   }
 
-  document.addEventListener('pointerdown', (e)=>{
-    if(e.target && e.target.closest && e.target.closest('.swipe-content')) return; // don't fight with swipe-to-delete
+  // v3.400: touch input is followed with TOUCH events. iOS Safari fires
+  // pointercancel the moment it treats a drag as a page scroll, and a drag
+  // down at the top is exactly that (the rubber-band bounce), so the pointer
+  // version was cut off before the threshold more often than not. Touch
+  // events keep coming, and while the drag is a downward pull from the top
+  // the gesture takes it (preventDefault), so the page doesn't bounce under
+  // it. Mouse and pen keep the pointer events.
+  function begin(x, y, target){
+    if(target && target.closest && target.closest('.swipe-content')) return; // don't fight with swipe-to-delete
     if(getScrollTop() > SCROLL_TOLERANCE) return;
-    startY = e.clientY;
+    startY = y; startX = x;
     dragging = true;
     currentPull = 0;
-  });
+  }
 
-  document.addEventListener('pointermove', (e)=>{
-    if(!dragging) return;
-    if(getScrollTop() > SCROLL_TOLERANCE){ dragging = false; return; }
-    const deltaY = e.clientY - startY;
+  // Returns true when this move is the pull (so a touch can claim it).
+  function move(x, y){
+    if(!dragging) return false;
+    if(getScrollTop() > SCROLL_TOLERANCE){ dragging = false; return false; }
+    const deltaY = y - startY;
+    // A sideways swipe (a chip row, a swipe row) is not a pull.
+    if(Math.abs(x - startX) > Math.abs(deltaY) && currentPull === 0) return false;
     if(deltaY <= 0){
       currentPull = 0;
       indicator.classList.add('dragging');
       indicator.style.transform = 'translateY(-70px)';
-      return;
+      return false;
     }
     currentPull = Math.min(MAX_PULL, deltaY * 0.85); // lighter resistance — a shorter, easier drag now reaches threshold
     indicator.classList.add('dragging');
@@ -36792,7 +36808,15 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
     const pastThreshold = currentPull >= THRESHOLD;
     spinner.classList.toggle('past-threshold', pastThreshold);
     label.textContent = pastThreshold ? 'Release to refresh' : 'Pull to refresh';
-  });
+    return true;
+  }
+
+  document.addEventListener('touchstart', (e)=>{ const t = e.touches[0]; if(t && e.touches.length === 1) begin(t.clientX, t.clientY, e.target); }, {passive:true});
+  document.addEventListener('touchmove', (e)=>{ const t = e.touches[0]; if(t && move(t.clientX, t.clientY) && e.cancelable) e.preventDefault(); }, {passive:false});
+  document.addEventListener('touchend', ()=> endPull());
+  document.addEventListener('touchcancel', ()=> endPull());
+  document.addEventListener('pointerdown', (e)=>{ if(e.pointerType !== 'touch') begin(e.clientX, e.clientY, e.target); });
+  document.addEventListener('pointermove', (e)=>{ if(e.pointerType !== 'touch') move(e.clientX, e.clientY); });
 
   function endPull(){
     if(!dragging) return;
@@ -36817,7 +36841,7 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
 
       setTimeout(()=>{
         window.location.href = window.location.pathname + '?_r=' + Date.now();
-      }, 500); // slightly longer than before, so the just-triggered save has time to finish first
+      }, RELOAD_DELAY);
     } else {
       indicator.style.transform = 'translateY(-70px)';
       spinner.classList.remove('past-threshold');
@@ -36826,8 +36850,8 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
     currentPull = 0;
   }
 
-  document.addEventListener('pointerup', endPull);
-  document.addEventListener('pointercancel', endPull);
+  document.addEventListener('pointerup', (e)=>{ if(e.pointerType !== 'touch') endPull(); });
+  document.addEventListener('pointercancel', (e)=>{ if(e.pointerType !== 'touch') endPull(); });
 })();
 
 // [SWIPE-TO-DELETE] -------------------------------------------------------------
