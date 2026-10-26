@@ -379,12 +379,18 @@
      why the three safe-area rules already in this file were doing nothing. */
   .wrap{max-width:640px; margin:0 auto; padding:calc(22px + env(safe-area-inset-top, 0px)) 18px 4px;}
   header{padding:8px 0 18px;}
-  .eyebrow-row{display:flex; align-items:center; gap:7px;}
+  .eyebrow-row{display:flex; align-items:center; gap:8px;}
   /* v3.386: the app icon's mark (the plate, its lit seventh and bore) at
      header size — the hub ring is dropped, it can't resolve at 14px. */
+  /* v3.390: 20px (was 14px), and a home button — tap it from any tab to go
+     to the top of Today. A 44pt tap area on ::before, no visual box. */
   .brand-mark{
-    display:inline-flex; width:14px; height:14px; flex:0 0 auto; color:var(--text);
+    position:relative; display:inline-flex; width:20px; height:20px; flex:0 0 auto; color:var(--text);
+    padding:0; margin:0; background:none; border:0; cursor:pointer; -webkit-tap-highlight-color:transparent;
+    transition:transform .18s var(--ease-smooth);
   }
+  .brand-mark::before{content:''; position:absolute; top:50%; left:50%; width:44px; height:44px; transform:translate(-50%,-50%);}
+  .brand-mark:active{transform:scale(.88);}
   .brand-mark-lit{stroke:var(--plate-red);}
   .brand-mark svg{width:100%; height:100%;}
   /* [TASTESKILL ROLLOUT, v3.278] The eyebrow names the scope (whose log, which
@@ -5059,7 +5065,7 @@
 <div class="wrap">
   <header>
     <div class="eyebrow-row">
-      <span class="brand-mark"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke-width="2.6"><path d="M15.90 6.23 A7 7 0 1 1 9.27 3.04" stroke="currentColor"/><path class="brand-mark-lit" d="M10.00 3.00 A7 7 0 0 1 15.47 5.64"/><circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none"/></svg></span>
+      <button type="button" class="brand-mark" id="brandHome" aria-label="Today, back to top"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke-width="2.6"><path d="M15.90 6.23 A7 7 0 1 1 9.27 3.04" stroke="currentColor"/><path class="brand-mark-lit" d="M10.00 3.00 A7 7 0 0 1 15.47 5.64"/><circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none"/></svg></button>
       <div class="eyebrow" id="headerEyebrow">Training Log</div>
     </div>
     <h1 id="viewTitle">Today</h1>
@@ -6905,7 +6911,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.389';
+const APP_VERSION = '3.390';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7879,6 +7885,9 @@ const WHATS_NEW = {
   ]},
   '3.389': { headline: 'See-through list tiles', points: [
     'Food choices, search results, swap options and the other list tiles inside cards are translucent too.',
+  ]},
+  '3.390': { headline: 'Home button', points: [
+    'Tap the plate mark beside Training Log to jump to the top of Today from anywhere.',
   ]},
 };
 
@@ -38612,6 +38621,21 @@ function showView(key, opts){
   // that throws mid-render should surface, not quietly show a half-built page.
   if(render) render(opts && opts.intent);
 }
+
+// v3.390: the brand mark is a home button. From another tab it goes to
+// Today through showView, exactly like the Today tab (which lands at the
+// top); already on Today, it glides to the top, the way tapping the iPhone
+// status bar does — instantly under Reduce Motion.
+function goHome(){
+  closeNavMoreOverlay();
+  const onToday = document.getElementById('navToday').classList.contains('active');
+  if(!onToday){ showView('today'); return 'switched'; }
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  try{ window.scrollTo({top:0, left:0, behavior: reduce ? 'instant' : 'smooth'}); }
+  catch(e){ window.scrollTo(0, 0); }
+  return 'scrolled';
+}
+document.getElementById('brandHome').addEventListener('click', goHome);
 
 VIEW_KEYS.forEach(key=>{
   const pill = document.getElementById('nav' + key.charAt(0).toUpperCase() + key.slice(1));
