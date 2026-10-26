@@ -28,6 +28,7 @@ const DONE = [
   'PILATES_TECHNIQUE_DETAILS', // v3.341
   'YOGA_TECHNIQUE_DETAILS', // v3.342
   'CALISTHENICS_TECHNIQUE_DETAILS', // v3.343
+  'CYCLING_TECHNIQUE_DETAILS', // v3.344
 ];
 
 const MUST_KEEP = [
@@ -48,6 +49,8 @@ const MUST_KEEP = [
   /never on the knee/, /never turn your head/, /not the neck/, /shoulder irritation/,
   // v3.343
   /10 strict pull-ups/, /chicken wing/, /impingement/, /wrist strain/, /neck strain/,
+  // v3.344
+  /0\.883/, /25-35°/, /80-100 rpm/, /brake before, not during/, /knee pain/,
 ];
 
 function learn(){
