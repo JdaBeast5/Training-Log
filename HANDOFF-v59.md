@@ -46,3 +46,18 @@ If you edit an overview, keep its MUST_KEEP phrases or update them deliberately.
   - Scratchpad tooling, if more passes are needed: `vextract.js` re-extracts the variants; `vapply.py` replaces by path and handles duplicated texts by source order.
 - **v3.330–v3.331**: Every day note (rest-day or program-day `note`) that ran over 30 words was rewritten; none now exceeds 40. Two non-day notes, the NICE waist-ratio note and the folate note, were rewritten in the same pass. `test-concise-day-notes.js` collects every real day note and pins each safety phrase. Oly's "bar-free on purpose" stays, because an existing guard pins it.
 - **Not yet touched:** exercise technique cues (behind "Technique & focus"), Analysis card hints, Learn content, and old What's New entries.
+
+## Addendum 3: less writing app-wide, round 2 (v3.332–v3.349)
+- **v3.332, Analysis notes:** dropped the "Appears once…" clauses (those cards are hidden until they have data) and tightened the Strength Context note. Test: `test-concise-copy.js`.
+- **v3.333–v3.335, technique cues** (`content-exercises.js`, behind "Technique & focus"): every cue that was over 24 words (178 of 964) was rewritten; none is over 24 now and no cue was dropped. Test: `test-concise-cues.js`.
+- **v3.336–v3.349, Learn masterclasses** (`content-masterclasses.js`): rewritten one sport per version, 14 sports in all; ~49,800 → ~27,300 words. Every technique still has its five labelled points (Setup / Execution / Whole-body integration / Common mistake / Coaching or Judging insight), and each point is ≤25 words. Test: `test-concise-learn.js`, which checks:
+  - the structure of all 274 techniques;
+  - the word ceiling, which must cover all 14 sports;
+  - the safety phrases for each sport.
+- **Static content lives outside index.html:** `content-exercises.js`, `content-masterclasses.js` and `content-citations.js` are separate files loaded by `<script src>`, which `testHelpers.readIndexSource` also loads. Don't add them to sw.js PRECACHE (see the sw.js comments).
+- **Scratchpad tooling for rewrites:**
+  - `capply.py` (cues) and `lapply.py` (Learn) match each old literal in single, double or `\uXXXX`-escaped form, and `lapply.py` enforces the same count and labels;
+  - `lfix.py` makes exact in-place trims;
+  - `ship.py` bumps the version, adds the What's New entry and extends the test lists.
+- **What's New was not rewritten, deliberately.** The app shows only the latest five entries (unseen ones at boot, or via Settings → What's New). The ~250 older entries never reach the screen and serve as the developer changelog that code comments cite, so rewriting them changes nothing a user sees.
+- **Flagged, not fixed:** one Olympic Lifting Front Squat insight reads a little backwards in the original ("can clean more than you can front squat … masking a strength gap"). I kept its meaning as written; worth a coach's eye.
