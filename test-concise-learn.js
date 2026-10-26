@@ -33,6 +33,7 @@ const DONE = [
   'CLIMB_TECHNIQUE_DETAILS', // v3.346
   'SWIM_STROKE_DETAILS', // v3.347
   'COMBAT_TECHNIQUE_DETAILS', // v3.348
+  'WATERSPORTS_TECHNIQUE_DETAILS', // v3.349
 ];
 
 const MUST_KEEP = [
@@ -63,6 +64,8 @@ const MUST_KEEP = [
   /holding your breath/, /bicycle or scissor kick/, /pull-breathe-kick-glide|pull, breathe, kick, glide/,
   // v3.348
   /not the foot/, /cutting risk/, /spot the target|spotting comes first/, /shin-conditioning/,
+  // v3.349
+  /paddle parallel to the beach/, /never dive headfirst/, /wrapping the tow rope/, /42\.3%/, /quick release/, /spray skirt/, /dress for water/,
 ];
 
 function learn(){
@@ -83,8 +86,9 @@ test('REAL data: every technique keeps five labelled points (structure unchanged
   }
 });
 
-test('REAL data: rewritten sports have no point over 25 words', (assert)=>{
+test('REAL data: rewritten sports have no point over 25 words — all 14 since v3.349', (assert)=>{
   const all = learn();
+  assert.deepStrictEqual([...DONE].sort(), [...CONSTS].sort(), 'every sport has been rewritten');
   const long = DONE.flatMap(c => Object.entries(all[c]).flatMap(([name, t]) => t.points.filter(p => p.split(/\s+/).length > 25).map(p => `${c} / ${name}: ${p.slice(0, 50)}`)));
   assert.deepStrictEqual(long, []);
 });
