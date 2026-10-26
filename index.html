@@ -2644,6 +2644,9 @@
      state. With it, collapse always wins while active, and reverts to
      whatever autohide already decided the moment the class comes off. */
   .card.group-collapsed{ display:none !important; }
+  /* v3.313: a group's own control row (Body & Health's trend-range picker)
+     goes with its cards — it sat alone under a collapsed header before. */
+  .history-export-row.group-collapsed{ display:none !important; }
   .nav-pill{
     flex:1 0 auto; /* v3.288: the five tabs share the bar's width (grow, never shrink) */
     background:transparent; border:1px solid transparent; color:var(--text-muted);
@@ -6727,7 +6730,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.312';
+const APP_VERSION = '3.313';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7515,6 +7518,8 @@ const WHATS_NEW = {
     'The last emoji are gone from buttons, and adding a food uses the same blue as every other add button.',
   ]},  '3.312': { headline: 'Analysis sections, easier to tap', points: [
     'The three Analysis sections open and close from full-size rows, like History and Learn.',
+  ]},  '3.313': { headline: 'Tidier Analysis', points: [
+    'The date range for body and health trends now hides with its section instead of sitting on its own.',
   ]},
 };
 
@@ -44739,6 +44744,11 @@ function syncAnalysisGroupHeaders(){
     }
     header.style.display = hasVisibleCard ? '' : 'none';
     if(intro) intro.style.display = hasVisibleCard ? '' : 'none';
+    // v3.313: likewise the group's control row — a range picker with no
+    // chart left under it controls nothing.
+    for(let n = header.nextElementSibling; n && !n.classList.contains('analysis-group-header'); n = n.nextElementSibling){
+      if(n.classList.contains('history-export-row')) n.style.display = hasVisibleCard ? '' : 'none';
+    }
   });
 }
 
@@ -44774,7 +44784,8 @@ function setAnalysisGroupCollapsed(header, collapsed){
   header.setAttribute('aria-expanded', String(!collapsed));
   let node = header.nextElementSibling;
   while(node && !node.classList.contains('analysis-group-header')){
-    if(node.classList.contains('card')) node.classList.toggle('group-collapsed', collapsed);
+    // v3.313: the group's control row (the trend-range picker) too.
+    if(node.classList.contains('card') || node.classList.contains('history-export-row')) node.classList.toggle('group-collapsed', collapsed);
     node = node.nextElementSibling;
   }
 }

@@ -145,4 +145,36 @@ test('Meal Timing now belongs to the Insights & Program Fit group, not Body & He
   assert.strictEqual(mealTimingCard.classList.contains('group-collapsed'), false, 'collapsing Body & Health Trends must NOT affect Meal Timing anymore — it moved out');
 });
 
+// v3.313 (2026-10-26): Body & Health's trend-range picker (#analysisTrendRange,
+// in a .history-export-row) is not a card, so it stayed on screen alone
+// under a collapsed header — and under a header hidden because every chart
+// had autohidden. It now goes with its group in both cases.
+test('REAL markup (v3.313): the trend-range picker hides with a collapsed Body & Health group and returns on expand', (assert)=>{
+  const { document } = runJsdom(analysisViewHtml, storageGlobals({}), scriptChunks);
+  const row = document.getElementById('analysisTrendRange').closest('.history-export-row');
+  assert.ok(row, 'anchor: the real picker row');
+  assert.ok(row.classList.contains('group-collapsed'), 'collapsed by default with its group');
+  document.querySelector('[data-group="body-health"]').click();
+  assert.strictEqual(row.classList.contains('group-collapsed'), false, 'expands with its group');
+  document.querySelector('[data-group="insights"]').click();
+  assert.strictEqual(row.classList.contains('group-collapsed'), false, 'another group collapsing leaves it alone');
+});
+
+test('REAL invocation (v3.313): when every Body & Health chart has autohidden, the picker hides with the header', (assert)=>{
+  const { document, window } = runJsdom(analysisViewHtml, '', [extractFunction(src, 'syncAnalysisGroupHeaders'), 'window.__sync = syncAnalysisGroupHeaders;']);
+  const header = document.querySelector('[data-group="body-health"]');
+  const row = document.getElementById('analysisTrendRange').closest('.history-export-row');
+  const groupCards = [];
+  for(let n = header.nextElementSibling; n && !n.classList.contains('analysis-group-header'); n = n.nextElementSibling) if(n.classList.contains('card')) groupCards.push(n);
+  assert.ok(groupCards.length >= 6, 'anchor: the real group cards');
+  groupCards.forEach(c => { c.style.display = 'none'; });
+  window.__sync();
+  assert.strictEqual(header.style.display, 'none');
+  assert.strictEqual(row.style.display, 'none', 'no picker over an empty gap');
+  groupCards[1].style.display = '';
+  window.__sync();
+  assert.strictEqual(header.style.display, '');
+  assert.strictEqual(row.style.display, '', 'back with a chart to control');
+});
+
 run();
