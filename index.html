@@ -6694,7 +6694,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.369';
+const APP_VERSION = '3.370';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7608,6 +7608,9 @@ const WHATS_NEW = {
   ]},
   '3.369': { headline: 'Reliable supplement ideas', points: [
     'Supplement recommendations always come back in a shape the app can read, with an evidence level and frequency it knows.',
+  ]},
+  '3.370': { headline: 'Coach chat fix', points: [
+    'Coach chat keeps working in long conversations. From the sixth question on, it could send the API a conversation that started with its own reply.',
   ]},
 };
 
@@ -40830,6 +40833,16 @@ function renderCoachChatLog(){
   });
 }
 
+// What coach chat sends: the last 10 messages, starting on a question.
+// v3.370: the history alternates question/reply and ends on the question just
+// asked, so from the sixth question on, a plain slice(-10) began with a coach
+// reply — and the API requires the first message to be the user's.
+function coachChatApiMessages(history){
+  const recent = history.slice(-10).map(m=>({role: m.role, content: m.content}));
+  while(recent.length && recent[0].role !== 'user') recent.shift();
+  return recent;
+}
+
 async function sendCoachChatMessage(inputId){
   if(coachChatBusy) return;
   const input = document.getElementById(inputId || 'coachChatInput');
@@ -40865,7 +40878,7 @@ async function sendCoachChatMessage(inputId){
     // conversation staying in the UI forever but only recent turns going
     // to the API keeps token cost and latency from creeping up over a
     // long-running chat, without losing the visible history.
-    const recentMessages = coachChatHistory.slice(-10).map(m=>({role: m.role, content: m.content}));
+    const recentMessages = coachChatApiMessages(coachChatHistory);
     // This was the riskiest of the small-budget calls: 700 tokens with no
     // effort control, running conversational free-form replies where the
     // person's own question determines how much there is to reason about.
