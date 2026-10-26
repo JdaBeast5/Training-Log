@@ -2595,11 +2595,15 @@
      the JS comment on setAnalysisGroupCollapsed for why the two states don't
      fight each other. A <button> now, not a <div> — full button reset below
      so it stays visually identical to the plain label it replaces. */
+  /* v3.312 (2.0, Apple HIG disclosure rows): the same row as History's months
+     and Learn's sections (v3.310) — 15.5px bold title, a 44px target, a muted
+     drawn chevron. Was an 11px muted label with a small text glyph. */
   .analysis-group-header{
-    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
     width:100%; background:none; border:none; border-bottom:1px solid var(--line-soft);
-    font-family:var(--font-sans); font-size:11px; color:var(--text-muted); text-align:left; cursor:pointer;
-    margin:22px 2px 8px; padding:0 0 7px;
+    font-family:var(--font-sans); font-size:15.5px; font-weight:700; letter-spacing:-0.01em;
+    color:var(--text); text-align:left; cursor:pointer;
+    margin:22px 2px 10px; padding:10px 0; min-height:44px;
   }
   /* HANDOFF v33: was ':first-of-type{ margin-top:4px; }'. That rule never
      actually matched — #analysisFirstRun, a <div>, was always the true first
@@ -2621,11 +2625,15 @@
   /* Rotates to point right when collapsed, down when expanded — the same
      '›' glyph used elsewhere in the app (see .xlink-chev), rotated with CSS
      rather than swapped for a second glyph so the transition animates. */
+  /* v3.312: drawn, like .month-group's — the '›' text stays in the markup
+     (aria-hidden) but is not painted. Down when open, right when collapsed. */
   .analysis-group-header-chevron{
-    display:inline-block; flex:0 0 auto; font-size:13px; color:var(--text-muted);
-    transform:rotate(90deg); transition:transform 0.25s var(--ease-smooth);
+    display:inline-block; flex:0 0 auto; width:7px; height:7px; margin:0 3px 0 10px;
+    font-size:0; color:transparent; overflow:hidden;
+    border-right:2px solid var(--text-muted); border-bottom:2px solid var(--text-muted);
+    transform:rotate(45deg); transition:transform 0.25s var(--ease-smooth);
   }
-  .analysis-group-header.collapsed .analysis-group-header-chevron{ transform:rotate(0deg); }
+  .analysis-group-header.collapsed .analysis-group-header-chevron{ transform:rotate(-45deg); }
   /* The actual collapse. !important is load-bearing, not decoration: autohide
      (applyAnalysisEmptyState) sets this same card's inline display:'' or
      'none' independently, based on whether it has real content — collapse is
@@ -6719,7 +6727,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.311';
+const APP_VERSION = '3.312';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7505,6 +7513,8 @@ const WHATS_NEW = {
     'Learn, posing classes and History months open with a chevron that turns down, and their counts are easier to read.',
   ]},  '3.311': { headline: 'Final polish', points: [
     'The last emoji are gone from buttons, and adding a food uses the same blue as every other add button.',
+  ]},  '3.312': { headline: 'Analysis sections, easier to tap', points: [
+    'The three Analysis sections open and close from full-size rows, like History and Learn.',
   ]},
 };
 

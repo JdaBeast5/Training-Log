@@ -28,6 +28,9 @@
 // v3.311 — The last emoji leave the buttons (✨ 🔔 🛒 🔍 prefixes; the food
 // filter chips show "Favorites" / "My Foods", keys unchanged), and a food
 // row's add is the primary gradient rather than green.
+// v3.312 — Analysis's three group headers join the disclosure rows: 15.5px
+// bold title, 44px target, the same drawn muted chevron (down open, right
+// collapsed). Before: an 11px muted label with a small text glyph.
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -156,6 +159,27 @@ test('REAL source + invocation (v3.311): no button text opens with an emoji; foo
   assert.deepStrictEqual(chips.slice(0, 2).map(c => c.dataset.cat), ['★ Favorites', '📁 My Foods'], 'keys unchanged');
   assert.ok(chips[1].classList.contains('active'), 'the active key still matches');
   assert.match(CSS, /\.food-item-btn \.fi-plus\{[^}]*background:var\(--cta-gradient-blue\)/);
+});
+
+test('REAL invocation + CSSOM (v3.312): Analysis group headers are 44px disclosure rows whose drawn chevron turns with the real collapse', (assert)=>{
+  const raw = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
+  const { window } = runJsdom(`<style>${raw}</style><div id="analysisView">
+      <button type="button" class="analysis-group-header" data-group="body-health" aria-expanded="true"><span>Body &amp; Health Trends</span><span class="analysis-group-header-chevron" aria-hidden="true">›</span></button>
+      <div class="card" id="c1">Weight</div></div>`, '',
+    [extractFunction(src, 'setAnalysisGroupCollapsed')]);
+  const doc = window.document, header = doc.querySelector('.analysis-group-header');
+  const cs = el => window.getComputedStyle(el);
+  assert.strictEqual(cs(header).minHeight, '44px');
+  assert.strictEqual(cs(header).fontSize, '15.5px');
+  const chev = header.querySelector('.analysis-group-header-chevron');
+  assert.strictEqual(cs(chev).fontSize, '0px', 'the text glyph is not painted');
+  assert.match(raw.match(/\.analysis-group-header-chevron\{[^}]*\}/)[0], /border-right:2px solid var\(--text-muted\);[^}]*border-bottom:2px solid var\(--text-muted\)/, 'drawn with muted borders');
+  window.setAnalysisGroupCollapsed(header, false);
+  assert.strictEqual(cs(chev).transform, 'rotate(45deg)', 'open: points down');
+  window.setAnalysisGroupCollapsed(header, true);
+  assert.strictEqual(cs(chev).transform, 'rotate(-45deg)', 'collapsed: points right');
+  assert.ok(doc.getElementById('c1').classList.contains('group-collapsed'), 'anchor: the real collapse ran');
+  assert.strictEqual(header.querySelector('span:not(.analysis-group-header-chevron)').textContent, 'Body & Health Trends', 'the jump rail still reads the label');
 });
 
 run();
