@@ -6694,7 +6694,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.360';
+const APP_VERSION = '3.361';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7581,6 +7581,9 @@ const WHATS_NEW = {
   ]},
   '3.360': { headline: 'Drawn favourite star', points: [
     'The favourite star on foods is a drawn icon that fills in when you save a food.',
+  ]},
+  '3.361': { headline: 'Current Claude API', points: [
+    'AI features talk to the current version of the Claude API.',
   ]},
 };
 
@@ -39747,9 +39750,12 @@ async function anthropicRequest(apiKey, payload, timeoutMs){
     try{
       response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
+        // v3.361: API version 2026-10-21. Its changes are sampling params,
+        // assistant-side documents, user-side citations and Admin API fields;
+        // this app sends none of them, so no request body changes.
         headers: {
           'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
+          'anthropic-version': '2026-10-21',
           'content-type': 'application/json',
           'anthropic-dangerous-direct-browser-access': 'true',
         },
@@ -39880,7 +39886,7 @@ async function validateApiKey(apiKey){
       method: 'GET',
       headers: {
         'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+        'anthropic-version': '2026-10-21',
         'anthropic-dangerous-direct-browser-access': 'true',
       },
     });
