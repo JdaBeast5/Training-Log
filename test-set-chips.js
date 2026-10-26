@@ -153,8 +153,10 @@ test('REAL source: the strip sits OUTSIDE the expanding panel in both assemblies
   assert.strictEqual((fn.match(/\brenderAllSetChips\(\)/g) || []).length, 2);
   assert.match(fn, /new MutationObserver\(\(\)=> renderAllSetChips\(\)\)\.observe\(sets, \{childList:true\}\)/, 'the watcher');
   // v3.303: the chips draw BEFORE Up next, which reads the set-to-set call off the chip.
+  // 2026-10-26 (v3.391): lastIndexOf — the rest-day branch now has its own
+  // earlier renderUpNext() (no rows, no chips); this is the training-day one.
   const draw = fn.indexOf('renderAllSetChips(); ');
-  assert.ok(draw > fn.indexOf("getElementById('exerciseList')") && draw < fn.indexOf('renderUpNext()'), 'after the rows, before Up next');
+  assert.ok(draw > fn.indexOf("getElementById('exerciseList')") && draw < fn.lastIndexOf('renderUpNext()'), 'after the rows, before Up next');
 });
 
 test('REAL CSSOM: chips are at least 44px tall (Apple HIG touch target) and the next set has no glow', (assert)=>{

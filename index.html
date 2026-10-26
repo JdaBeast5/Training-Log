@@ -6911,7 +6911,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.390';
+const APP_VERSION = '3.391';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7888,6 +7888,9 @@ const WHATS_NEW = {
   ]},
   '3.390': { headline: 'Home button', points: [
     'Tap the plate mark beside Training Log to jump to the top of Today from anywhere.',
+  ]},
+  '3.391': { headline: 'Rest days stay rest days', points: [
+    'A rest day no longer shows the last training day\'s lift in Up next.',
   ]},
 };
 
@@ -27337,6 +27340,9 @@ async function renderWorkout(){
       document.getElementById('restDoneLabel').textContent = done ? `Marked as done for ${dateLabel} ✓` : `Mark ${dateLabel}'s rest day as done`;
     });
     document.getElementById('sessionCalTotal').textContent = '';
+    // v3.391: the list now has no set rows, so this hides "Up next". Without
+    // it the card kept the last training day's lift (Squat on a rest day).
+    renderUpNext();
     return;
   }
 
