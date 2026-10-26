@@ -6789,7 +6789,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.379';
+const APP_VERSION = '3.380';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7733,6 +7733,9 @@ const WHATS_NEW = {
   ]},
   '3.379': { headline: 'Profile from Settings', points: [
     'Settings has a Set up your profile row until your profile is filled in.',
+  ]},
+  '3.380': { headline: 'Fewer repeats in Today\'s Priorities', points: [
+    'Short sleep shows once, in the Readiness row, instead of also as a separate sleep row with different advice.',
   ]},
 };
 
@@ -12834,29 +12837,9 @@ async function renderStreak(){
   checkStreakMilestone(streak);
 }
 
-// --- Sleep-aware recovery nudge: purely informational, same spirit as the
-// per-exercise progression signals — it surfaces a pattern, it never edits
-// the workout for you. Only looks at last night's entry (or today's, if
-// logged early) so it can't go stale and nag about sleep from days ago.
-const POOR_SLEEP_THRESHOLD = 6;
-async function getSleepInsight(){
-  let entries = [];
-  try{
-    const res = await window.storage.get('sleep-log');
-    if(res && res.value) entries = JSON.parse(res.value);
-  }catch(e){ return null; }
-  if(!entries.length) return null;
-
-  const today = getTodayKey();
-  const yesterday = dateKeyMinusDays(today, 1);
-  const recent = entries.find(e=> e.date===today) || entries.find(e=> e.date===yesterday);
-  if(!recent) return null;
-
-  const hrs = Number(recent.hours);
-  if(hrs >= POOR_SLEEP_THRESHOLD) return null;
-
-  return `<b>Recovery note:</b> Only ${hrs} hrs logged last night — strength, reaction time, and injury risk all take a real hit under ${POOR_SLEEP_THRESHOLD} hours. Consider trimming today's session to your top sets, or swapping in something lighter.`;
-}
+// v3.380: the separate sleep row (getSleepInsight) was removed from Today's
+// Priorities. Readiness already flags under-6h sleep (READINESS_SLEEP_LOW), so
+// the two rows said the same thing — and disagreed about what to do.
 
 // --- Cycle-phase insight: deliberately just surfaces the SAME educational
 // training guidance already written for the Care tab's phase cards — this
@@ -13394,8 +13377,8 @@ async function renderTodayInsights(){
   const el = document.getElementById('todayInsightsList');
   if(!card || !el) return;
 
-  const [deload, sleep, cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge, cycleNutrition] = await Promise.all([
-    getDeloadInsight(), getSleepInsight(), getCycleInsight(),
+  const [deload, cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge, cycleNutrition] = await Promise.all([
+    getDeloadInsight(), getCycleInsight(),
     getStaleRestingRegionInsight(), getWeighInReminderInsight(), getWaterPaceInsight(), getSessionHeadsUpInsight(),
     getDeficitGuardrailInsight(), getPregnancyHeatInsight(), getBackupReminderInsight(),
     getReadinessInsight(), getFoundationalStackNudgeInsight(), getCyclePhaseNutritionInsight(),
@@ -13415,8 +13398,9 @@ async function renderTodayInsights(){
   // readiness sits directly under the safety item and above the session heads-up.
   // It is the one row that answers "should I train hard today", which is the
   // question the heads-up and everything below it are all downstream of — and
-  // it synthesises the sleep and deload rows further down, so reading it first
-  // makes those two land as detail rather than as new information.
+  // it synthesises the deload row further down, so reading it first makes that
+  // land as detail rather than as new information. (It used to synthesise a
+  // sleep row too; that row was removed in v3.380 as a duplicate of it.)
   // stackNudge sits directly under cycle: it's the same context (a flagged
   // condition or, per that row, the current cycle phase) turned into an
   // actionable pointer, so reading them back to back keeps cause and
@@ -13426,7 +13410,7 @@ async function renderTodayInsights(){
   // half instead of the training/supplement halves. All three reading
   // together as one group keeps every angle on "what does this phase mean
   // for me" adjacent, rather than nutrition being the one orphaned elsewhere.
-  const items = [pregnancyHeat, readiness, sessionHeadsUp, deficit, deload, sleep, cycle, stackNudge, cycleNutrition, staleRegion, weighIn, waterPace, backup].filter(Boolean);
+  const items = [pregnancyHeat, readiness, sessionHeadsUp, deficit, deload, cycle, stackNudge, cycleNutrition, staleRegion, weighIn, waterPace, backup].filter(Boolean);
   if(items.length === 0){
     card.style.display = 'none';
     return;
