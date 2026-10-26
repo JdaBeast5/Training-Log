@@ -15,7 +15,7 @@ const { readIndexSource, extractConst, runSandbox, makeRunner } = require('./tes
 const src = readIndexSource();
 const { test, run } = makeRunner('test-concise-cues.js');
 
-const OVER_24_LEFT = 78; // v3.333: 178 -> 156 (batch 1 rewrote 70 cues over 20 words); v3.334: 78
+const OVER_24_LEFT = 0; // v3.333: 178 -> 156 (batch 1 rewrote 70 cues over 20 words); v3.334: 78; v3.335: 0
 
 const MUST_KEEP = [
   // v3.333 — batch 1
@@ -27,6 +27,9 @@ const MUST_KEEP = [
   /Sharp or pinching finger pain means stop/, /feet-on or large-edge hangs/, /fully relax the pelvic floor between reps/,
   /insulin or a medication that can cause low blood sugar, ask your care team/, /not sharp or worsening pain/,
   /raising on the injured side defeats it/, /harder on the lower back/, /front knee tracking over the foot rather than caving in/,
+  // v3.335 — batch 3
+  /only as far as feels stable and pain-free/, /without letting the lower back arch/, /planted, rotated foot causes most skimboarding ankle injuries/,
+  /21% in elite kayakers/, /keep the low back long rather than crunching/,
 ];
 
 function cues(){
