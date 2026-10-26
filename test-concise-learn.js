@@ -27,6 +27,7 @@ const DONE = [
   'HYROX_TECHNIQUE_DETAILS', // v3.340
   'PILATES_TECHNIQUE_DETAILS', // v3.341
   'YOGA_TECHNIQUE_DETAILS', // v3.342
+  'CALISTHENICS_TECHNIQUE_DETAILS', // v3.343
 ];
 
 const MUST_KEEP = [
@@ -45,6 +46,8 @@ const MUST_KEEP = [
   /never the neck/, /raise the legs or bend the knees/, /hands support the head/,
   // v3.342
   /never on the knee/, /never turn your head/, /not the neck/, /shoulder irritation/,
+  // v3.343
+  /10 strict pull-ups/, /chicken wing/, /impingement/, /wrist strain/, /neck strain/,
 ];
 
 function learn(){
