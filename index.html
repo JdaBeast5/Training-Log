@@ -6694,7 +6694,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.367';
+const APP_VERSION = '3.368';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7602,6 +7602,9 @@ const WHATS_NEW = {
   ]},
   '3.367': { headline: 'Reliable label scans', points: [
     'Scanning a nutrition label always comes back in a shape the app can read.',
+  ]},
+  '3.368': { headline: 'Reliable recipe ideas', points: [
+    'Recipe ideas always come back in a shape the app can read.',
   ]},
 };
 
@@ -33642,7 +33645,7 @@ If what they're in the mood for is fundamentally incompatible with their dietary
     // effort:'medium' — a structured JSON recipe list doesn't need 'high's
     // extra reasoning depth, and JSON-only output is exactly the shape where
     // burning the ceiling on thinking leaves nothing for the answer.
-    const raw = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content: `I'm in the mood for: ${query}`}], 3000, undefined, 'medium');
+    const raw = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content: `I'm in the mood for: ${query}`}], 3000, undefined, 'medium', AI_JSON_SCHEMAS.recipes);
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
     recipeFinderResults = parsed.recipes || [];
@@ -39809,6 +39812,21 @@ const AI_JSON_SCHEMAS = {
       sodium: { anyOf: [{ type: 'number' }, { type: 'null' }] }, fiber: { anyOf: [{ type: 'number' }, { type: 'null' }] },
       calcium: { anyOf: [{ type: 'number' }, { type: 'null' }] }, iron: { anyOf: [{ type: 'number' }, { type: 'null' }] },
       potassium: { anyOf: [{ type: 'number' }, { type: 'null' }] }, folate: { anyOf: [{ type: 'number' }, { type: 'null' }] },
+    },
+  },
+  // Recipe finder (v3.368): per-serving macros and a short shopping list.
+  recipes: {
+    type: 'object', additionalProperties: false, required: ['recipes'],
+    properties: {
+      recipes: { type: 'array', items: {
+        type: 'object', additionalProperties: false,
+        required: ['name', 'description', 'cal', 'pro', 'fat', 'carb', 'ingredients'],
+        properties: {
+          name: { type: 'string' }, description: { type: 'string' },
+          cal: { type: 'number' }, pro: { type: 'number' }, fat: { type: 'number' }, carb: { type: 'number' },
+          ingredients: { type: 'array', items: { type: 'string' } },
+        },
+      }},
     },
   },
 };

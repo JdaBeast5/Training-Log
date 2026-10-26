@@ -235,4 +235,13 @@ test('sabotage anchor (v3.367): the label scan sends the nutritionLabel schema, 
   assert.ok(!validates(SCHEMAS.nutritionLabel, Object.assign({}, unreadable, { cal: null })), 'the four core numbers are never null');
 });
 
+test('sabotage anchor (v3.368): the recipe finder sends the recipes schema', (assert)=>{
+  const lines = callLines('submitRecipeSearch', 'callClaudeChat(');
+  assert.strictEqual(lines.length, 1);
+  assert.match(lines[0], /undefined, 'medium', AI_JSON_SCHEMAS\.recipes\)/);
+  assert.ok(validates(SCHEMAS.recipes, { recipes: [] }), 'the prompt\'s "incompatible with your diet" reply');
+  assert.ok(validates(SCHEMAS.recipes, { recipes: [{ name: 'Teriyaki chicken', description: 'Leaner, baked.', cal: 520, pro: 45, fat: 14, carb: 50, ingredients: ['chicken thighs', 'soy sauce'] }] }));
+  assert.ok(!validates(SCHEMAS.recipes, { recipes: [{ name: 'x', description: '', cal: 1, pro: 1, fat: 1, carb: 1, ingredients: [3] }] }), 'ingredients are strings');
+});
+
 run();
