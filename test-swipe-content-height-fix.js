@@ -44,13 +44,18 @@ function extractRuleBlock(source, selector){
   return m[0].replace(/\/\*[\s\S]*?\*\//g, '');
 }
 
+// 2026-10-26 (v3.383): Today's Priorities adds a scoped
+// `#todayInsightsList .swipe-content{...}` (opaque surface2 for its tinted
+// rows). This guard is about the BASE rule, so it counts unscoped
+// declarations — a line that starts with the selector — and the block check
+// below reads that one.
 test('sabotage-relevant: .swipe-content is still declared exactly once (this fix touches the one real declaration, not a stray duplicate)', (assert)=>{
-  const count = (src.match(/\.swipe-content\{/g) || []).length;
+  const count = (src.match(/^\s*\.swipe-content\{/gm) || []).length;
   assert.strictEqual(count, 1, `expected exactly one .swipe-content{...} declaration, found ${count}`);
 });
 
 test('.swipe-content now has overflow:hidden', (assert)=>{
-  const block = extractRuleBlock(src, '.swipe-content');
+  const block = (src.match(/^\s*\.swipe-content\{[^}]*\}/m) || [''])[0];
   assert.match(block, /overflow:hidden/, 'expected overflow:hidden to establish a block-formatting-context, matching .swipe-item\'s own existing pattern');
   assert.match(block, /background:var\(--surface\)/, 'sanity: the opaque background this fix is protecting must still be here');
 });

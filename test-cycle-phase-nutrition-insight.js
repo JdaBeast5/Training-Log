@@ -28,7 +28,10 @@ const isCycleTrackingEnabledSrc = extractFunction(src, 'isCycleTrackingEnabled')
 const cyclePhasesSrc = extractConst(src, 'CYCLE_PHASES');
 const computeCyclePhaseSrc = extractFunction(src, 'computeCyclePhase');
 const getTodayKeySrc = extractFunction(src, 'getTodayKey');
-const renderTodayInsightsSrc = extractFunction(src, 'renderTodayInsights');
+// 2026-10-26 (v3.383): each row is a swipe item that hides until tomorrow, so
+// the renderer brings its hidden-rows store and the shared swipe row with it.
+const renderTodayInsightsSrc = ['renderTodayInsights', 'getHiddenPriorities', 'setHiddenPriorities', 'buildSwipeItem', 'makeSwipeable']
+  .map(n => extractFunction(src, n)).join('\n');
 
 const { test, run } = makeRunner('test-cycle-phase-nutrition-insight.js');
 

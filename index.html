@@ -848,6 +848,13 @@
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:8px;
   }
   .today-insight-row:last-child{margin-bottom:0;}
+  /* v3.383: each row is a swipe item. Spacing and corners move to the
+     wrapper; the row's tint sits on an opaque surface (the swipe content must
+     stay fully opaque, or the red layer behind it shows through). */
+  #todayInsightsList .swipe-item{border-radius:var(--radius-md); margin-bottom:8px;}
+  #todayInsightsList .swipe-item:last-child{margin-bottom:0;}
+  #todayInsightsList .swipe-content{background:var(--surface2); border-radius:var(--radius-md);}
+  #todayInsightsList .today-insight-row{margin-bottom:0;}
   .pf-conditions{ border:1px solid var(--line); border-radius:var(--radius-md); padding:12px; margin-bottom:12px; }
   .pf-conditions legend{ padding:0 6px; }
   .pf-condition-row{ display:flex; align-items:flex-start; gap:9px; padding:7px 0; border-top:1px solid var(--line-soft); }
@@ -5044,7 +5051,7 @@
   </div>
   <div class="card" id="todayInsightsCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M12.5 7.5 11 11l-3.5 1.5L9 9z"/></svg></span>Today's Priorities</div>
-    <div class="history-hint">What needs attention today. For trends, see Insights &amp; Program Fit on Analysis.</div>
+    <div class="history-hint">What needs attention today. Swipe to hide. Trends: Insights &amp; Program Fit on Analysis.</div>
     <div id="todayInsightsList"></div>
   </div>
   <div id="profileCardTopSlot"></div>
@@ -6789,7 +6796,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.382';
+const APP_VERSION = '3.383';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7742,6 +7749,9 @@ const WHATS_NEW = {
   ]},
   '3.382': { headline: 'One cycle row', points: [
     'Your cycle phase shows as one row in Today\'s Priorities, with its training and food advice together.',
+  ]},
+  '3.383': { headline: 'Swipe priorities away', points: [
+    'Swipe a row in Today\'s Priorities left to hide it until tomorrow, with Undo.',
   ]},
 };
 
@@ -13390,13 +13400,44 @@ async function renderTodayInsights(){
   // recommendation adjacent rather than scattered across the list.
   // The cycle row carries the phase's food advice too since v3.382 (it was
   // a separate cycleNutrition row naming the same phase a second time).
-  const items = [pregnancyHeat, readiness, sessionHeadsUp, deficit, cycle, stackNudge, staleRegion, weighIn, waterPace, backup].filter(Boolean);
+  const rows = {pregnancyHeat, readiness, sessionHeadsUp, deficit, cycle, stackNudge, staleRegion, weighIn, waterPace, backup};
+  const order = ['pregnancyHeat', 'readiness', 'sessionHeadsUp', 'deficit', 'cycle', 'stackNudge', 'staleRegion', 'weighIn', 'waterPace', 'backup'];
+  const hidden = await getHiddenPriorities();
+  const items = order.filter(id => rows[id] && !hidden.includes(id));
   if(items.length === 0){
     card.style.display = 'none';
     return;
   }
   card.style.display = '';
-  el.innerHTML = items.map(text=> `<div class="today-insight-row">${text}</div>`).join('');
+  // v3.383: each row swipes away for the rest of today, with Undo — the shared
+  // swipe-to-delete row (buildSwipeItem + makeSwipeable), like every other list.
+  el.innerHTML = items.map(id => buildSwipeItem(`<div class="today-insight-row" data-priority="${id}">${rows[id]}</div>`)).join('');
+  el.querySelectorAll('.swipe-item').forEach(item => {
+    const id = item.querySelector('[data-priority]').dataset.priority;
+    item.querySelector('.swipe-delete-bg').setAttribute('aria-label', 'Hide until tomorrow');
+    makeSwipeable(item, async ()=>{
+      await setHiddenPriorities([...await getHiddenPriorities(), id]);
+      await renderTodayInsights();
+      showUndoToast('Hidden until tomorrow', async ()=>{
+        await setHiddenPriorities((await getHiddenPriorities()).filter(x => x !== id));
+        await renderTodayInsights();
+      });
+    });
+  });
+}
+
+// v3.383: which Today's Priorities rows were swiped away today. One key, not
+// one per day: it holds the date it was written, and any other day reads as
+// nothing hidden, so a row comes back tomorrow if it still applies.
+async function getHiddenPriorities(){
+  try{
+    const res = await window.storage.get('priorities-hidden');
+    const v = res && res.value ? JSON.parse(res.value) : null;
+    return v && v.date === getTodayKey() && Array.isArray(v.ids) ? v.ids : [];
+  }catch(e){ return []; }
+}
+async function setHiddenPriorities(ids){
+  try{ await window.storage.set('priorities-hidden', JSON.stringify({date: getTodayKey(), ids: [...new Set(ids)]})); }catch(e){}
 }
 
 // [PROGRAM SELECTION & MESOCYCLE] -----------------------------------------------

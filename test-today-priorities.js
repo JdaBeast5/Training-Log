@@ -15,6 +15,10 @@
 // v3.382 — The cycle phase is one row: training, then food, then the jump to
 // Nutrition. It was two rows (getCycleInsight, getCyclePhaseNutritionInsight)
 // each naming the phase.
+// v3.383 — Every row swipes away for the rest of today, with Undo: the shared
+// swipe row (buildSwipeItem + makeSwipeable). Hidden ids are stored once as
+// {date, ids} in window.storage, so a hidden row comes back tomorrow if it
+// still applies, and nothing piles up day after day.
 const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const { test, run } = makeRunner('test-today-priorities.js');
@@ -24,9 +28,13 @@ const renderSrc = extractFunction(src, 'renderTodayInsights');
 // Every source the real renderer awaits, by the name it calls. A test sets
 // the ones it cares about; the rest return null (nothing to say today).
 const SOURCES = [...renderSrc.matchAll(/\b(get[A-Za-z]+Insight)\(\)/g)].map(m => m[1]);
-function mount(rows){
+function mount(rows, stored){
   const stubs = SOURCES.map(n => `async function ${n}(){ return ${JSON.stringify(rows[n] || null)}; }`).join('\n');
-  const { window } = runJsdom('<div class="card" id="todayInsightsCard" style="display:none"><div id="todayInsightsList"></div></div>', '', [stubs, renderSrc]);
+  const { window } = runJsdom('<div class="card" id="todayInsightsCard" style="display:none"><div id="todayInsightsList"></div></div>', `
+    window.__store = ${JSON.stringify(stored || {})};
+    window.storage = { get: async k => k in window.__store ? { value: window.__store[k] } : null, set: async (k, v) => { window.__store[k] = v; } };
+    function showUndoToast(msg, fn){ window.__toast = msg; window.__undo = fn; }
+  `, [stubs, extractFunction(src, 'getTodayKey'), ...['getHiddenPriorities', 'setHiddenPriorities', 'buildSwipeItem', 'makeSwipeable'].map(n => extractFunction(src, n)), renderSrc]);
   return window;
 }
 const rowsOf = w => [...w.document.querySelectorAll('#todayInsightsList .today-insight-row')].map(r => r.textContent.trim());
@@ -70,6 +78,41 @@ test('REAL invocation (v3.382): the cycle phase is one row carrying both its tra
   assert.match(row, /technique work and moderate intensity/, 'its training advice');
   assert.match(row, /<b>Food:<\/b> Slightly higher calorie needs/, 'and its food advice');
   assert.match(row, /data-jump-to="nutritionHeader"/);
+});
+
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const swipeAway = async (w, id) => { w.document.querySelector(`[data-priority="${id}"]`).closest('.swipe-item').querySelector('.swipe-delete-bg').click(); await wait(260); };
+
+test('REAL invocation (v3.383): every row is a swipe item whose action is labelled for what it does', async (assert)=>{
+  const w = mount({ getWaterPaceInsight: '<b>Hydration check:</b> 20/96 oz', getBackupReminderInsight: '<b>Back up.</b>' });
+  await w.renderTodayInsights();
+  const items = [...w.document.querySelectorAll('#todayInsightsList > .swipe-item')];
+  assert.strictEqual(items.length, 2);
+  assert.deepStrictEqual(items.map(i => i.querySelector('.today-insight-row').dataset.priority), ['waterPace', 'backup'], 'in the list\'s order');
+  for(const i of items) assert.strictEqual(i.querySelector('.swipe-delete-bg').getAttribute('aria-label'), 'Hide until tomorrow');
+});
+
+test('REAL invocation (v3.383): a swiped row is hidden for today, remembered, and Undo brings it back', async (assert)=>{
+  const w = mount({ getWaterPaceInsight: '<b>Hydration check:</b> 20/96 oz', getBackupReminderInsight: '<b>Back up.</b>' });
+  await w.renderTodayInsights();
+  await swipeAway(w, 'waterPace');
+  assert.deepStrictEqual(rowsOf(w), ['Back up.']);
+  assert.strictEqual(w.__toast, 'Hidden until tomorrow');
+  const saved = JSON.parse(w.__store['priorities-hidden']);
+  assert.deepStrictEqual(saved.ids, ['waterPace']);
+  assert.match(saved.date, /^\d{4}-\d{2}-\d{2}$/);
+  await w.renderTodayInsights();
+  assert.deepStrictEqual(rowsOf(w), ['Back up.'], 'stays hidden on the next render');
+  await w.__undo();
+  assert.deepStrictEqual(rowsOf(w), ['Hydration check: 20/96 oz', 'Back up.']);
+});
+
+test('REAL invocation (v3.383): a row hidden on another day shows again; hiding the last row hides the card', async (assert)=>{
+  const w = mount({ getWaterPaceInsight: '<b>Hydration check:</b> 20/96 oz' }, { 'priorities-hidden': JSON.stringify({ date: '2020-01-01', ids: ['waterPace'] }) });
+  await w.renderTodayInsights();
+  assert.deepStrictEqual(rowsOf(w), ['Hydration check: 20/96 oz'], 'yesterday\'s hide has expired');
+  await swipeAway(w, 'waterPace');
+  assert.strictEqual(w.document.getElementById('todayInsightsCard').style.display, 'none');
 });
 
 run();
