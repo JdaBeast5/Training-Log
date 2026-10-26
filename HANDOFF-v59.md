@@ -328,3 +328,17 @@ This builds the plan from addendum 13. The owner chose: skip the whole ramp, war
   - The "Last top set" hint and "Same as Last Time" still show the other program's real numbers, on purpose.
 - **Harness updates (dated notes):** `test-set-chips` and `test-exercise-logger` (`renderWarmupChips`), `test-gym-set-chips` (`pendingWarmupChip`, warm-up functions, Undo stub).
 - **Unverified on an iPhone:** the chip sizes at real thumb reach, and the orange dock button in sunlight.
+
+## Addendum 15: rest-day spacing, translucent fields and controls (v3.396–v3.399)
+Owner (Rest / Cardio screenshot): "Fix the spacing for the fields, also check all the tabs for any fields that are not yet translucent". Each item is its own commit; the tests are in `test-fields-translucent.js`, sabotage-checked.
+- **v3.396:** `.rest-done-row` gets `margin:14px 0`. On a rest day it's the last item in the list, and "+ Add custom exercise" sat flush against it (0px).
+- **The audit:** a Playwright script ran over every `VIEW_KEYS` tab of the seeded page, with collapsibles opened. It flagged every visible input, select, textarea and button with an opaque computed fill.
+- **v3.397, entry fields:** nine rules move to `--row-fill`: `.care-input`, `.food-search-input`, `.weight-input-row input`, `.macro-input-row input`, `.history-export-select`, `.ex-input`, `.set-note-input`, `.gsearch-input`, `.custom-form input[type=text]`. `select option` stays solid, because on some platforms the option list is its own surface.
+- **v3.398, date bar:** `.log-date-bar` (the owner's "Today field") becomes `--glass-fill`, and `.log-date-nav` and `.calendar-nav-btn` become `--row-fill`. Backdating's yellow wash is kept.
+- **v3.399, secondary controls:** 23 rules for buttons and chips inside cards become `--row-fill`; the test lists them.
+- **After the change:** the re-audit finds only the deliberate solids: the active tab pill, the gym-offer and banner primaries, and the active food category.
+- **Kept opaque on purpose:** floating layers: the settings sheet groups and `.settings-jump`, `.ex-suggest`, the lightbox, and the calendar and masterclass close buttons.
+- **Flagged, not changed:**
+  - Checkbox wells (`input[type=checkbox]`) still use `--surface2`.
+  - Icon wells (`.ex-thumb`, `.pose-icon`) still use `--surface2`.
+  - The progress tracks (`.macro-bar-track`, `.vol-bar-track`, and so on) are opaque too, but those are meters, not fields.
