@@ -6694,7 +6694,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.361';
+const APP_VERSION = '3.362';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7584,6 +7584,9 @@ const WHATS_NEW = {
   ]},
   '3.361': { headline: 'Current Claude API', points: [
     'AI features talk to the current version of the Claude API.',
+  ]},
+  '3.362': { headline: 'Newer AI model', points: [
+    'Coach chat, insights, form feedback and the other AI features use Claude Sonnet 5.5.',
   ]},
 };
 
@@ -39735,6 +39738,11 @@ async function aiCachedCall(feature, fingerprint, fn, maxAgeMs, opts){
   return {result, cached: false};
 }
 
+// v3.362: Claude Sonnet 5.5, the current Sonnet — same price as Sonnet 5
+// ($2/$10 per MTok), same tokenizer. It is the model for every call that
+// doesn't name one. Its effort levels were recalibrated, so callers keep
+// passing effort explicitly rather than relying on the default (high).
+const AI_MODEL_DEFAULT = 'claude-sonnet-5-5';
 const AI_RETRY_STATUSES = [429, 529];
 const AI_MAX_ATTEMPTS = 3;
 
@@ -39844,7 +39852,7 @@ async function callClaudeVision(apiKey, imageBase64List, promptText, maxTokens, 
   // and legitimately take longer, especially the multi-frame form-feedback
   // and before/after photo-comparison calls.
   return anthropicRequest(apiKey, {
-    model: model || 'claude-sonnet-5',
+    model: model || AI_MODEL_DEFAULT,
     // 3000, not 1024. See the note on the chat path: on claude-sonnet-5 the
     // ceiling covers thinking AND the answer, and a form critique is exactly
     // the kind of "look at eight frames and judge" task adaptive thinking
@@ -40130,7 +40138,7 @@ const COACH_PERSONAS_BY_MARTIAL_ART = {
 // passing the haiku model string must leave `effort` unset — see the
 // per-call-site notes at each callClaudeChat(...) that omits it.
 async function callClaudeChat(apiKey, systemPrompt, messages, maxTokens, model, effort){
-  const resolvedModel = model || 'claude-sonnet-5';
+  const resolvedModel = model || AI_MODEL_DEFAULT;
   const payload = {
     model: resolvedModel,
     // max_tokens is still the hard ceiling — effort narrows how much of it
@@ -40144,7 +40152,7 @@ async function callClaudeChat(apiKey, systemPrompt, messages, maxTokens, model, 
     system: systemPrompt,
     messages: messages,
   };
-  if(effort && resolvedModel === 'claude-sonnet-5'){
+  if(effort && resolvedModel === AI_MODEL_DEFAULT){
     payload.output_config = {effort};
   }
   return anthropicRequest(apiKey, payload, 45000);

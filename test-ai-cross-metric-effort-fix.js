@@ -30,6 +30,9 @@ const callClaudeChatSrc = extractFunction(src, 'callClaudeChat');
 const anthropicRequestSrc = extractFunction(src, 'anthropicRequest');
 const aiSleepSrc = extractFunction(src, 'aiSleep');
 const aiMaxAttemptsSrc = extractConst(src, 'AI_MAX_ATTEMPTS');
+// 2026-10-26 (v3.362): the default model is the AI_MODEL_DEFAULT const now
+// (claude-sonnet-5-5), so the harness loads it.
+const aiModelDefaultSrc = extractConst(src, 'AI_MODEL_DEFAULT');
 
 // A minimal, real-shaped Claude Messages API response — enough for
 // anthropicRequest's own "every text block, joined" logic to resolve a
@@ -47,21 +50,21 @@ function setupCallClaudeChat(){
     };
   `;
   const { window } = runJsdom('', globalsSetup, [
-    aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
+    aiModelDefaultSrc, aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
     'window.__capturedRequests = [];',
   ]);
   window.__capturedRequests = captured;
   return { window, captured };
 }
 
-test('REAL invocation: callClaudeChat attaches output_config.effort for claude-sonnet-5 when effort is passed', async (assert)=>{
+test('REAL invocation: callClaudeChat attaches output_config.effort for the default model (claude-sonnet-5-5 since v3.362) when effort is passed', async (assert)=>{
   const { window, captured } = setupCallClaudeChat();
   window.__fakeResponse = fakeApiResponse('PUSH\n\nSome analysis.');
   await window.callClaudeChat('fake-key', 'system prompt', [{role:'user', content:'hi'}], 5000, undefined, 'medium');
 
   assert.strictEqual(captured.length, 1, 'exactly one request must have been sent');
   const body = captured[0];
-  assert.strictEqual(body.model, 'claude-sonnet-5', 'must default to claude-sonnet-5 when no model is passed');
+  assert.strictEqual(body.model, 'claude-sonnet-5-5', 'must default to claude-sonnet-5-5 (v3.362) when no model is passed');
   assert.strictEqual(body.max_tokens, 5000, 'max_tokens must still be the hard ceiling — effort narrows likely usage, it does not replace this');
   // JSON.stringify round-trip, not assert.deepStrictEqual: body.output_config
   // was parsed by jsdom's OWN realm-local JSON.parse (inside window.fetch),
@@ -131,7 +134,7 @@ function setupGenerate(dataLineCount){
     };
   `;
   const { window, document } = runJsdom(bodyHtml, globalsSetup, [
-    aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
+    aiModelDefaultSrc, aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
     aiPromptVersionSrc, aiFingerprintSrc, aiCachedCallSrc,
     escapeHtmlSrc, aiKeySetupPromptSrc, getApiKeySrc,
     contextStub(dataLineCount),

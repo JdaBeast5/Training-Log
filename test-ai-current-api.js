@@ -10,6 +10,8 @@
 // (/v1/messages and the /v1/models key check). Its four changes (sampling
 // params, documents in assistant turns, citations in user turns, Admin API
 // fields) don't touch anything this app sends.
+// v3.362 — Claude Sonnet 5 -> Sonnet 5.5 (same price) for every call that
+// doesn't name a model, via one AI_MODEL_DEFAULT const.
 const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
@@ -27,7 +29,7 @@ function harness(extraChunks){
       const next = window.__queue.shift();
       return next || { ok: true, status: 200, headers: { get: ()=> null }, json: async ()=> ({ content: [{ type: 'text', text: 'ok' }], stop_reason: 'end_turn' }) };
     };
-  `, [extractConst(src, 'AI_RETRY_STATUSES'), extractConst(src, 'AI_MAX_ATTEMPTS'), extractFunction(src, 'aiSleep'),
+  `, [extractConst(src, 'AI_MODEL_DEFAULT'), extractConst(src, 'AI_RETRY_STATUSES'), extractConst(src, 'AI_MAX_ATTEMPTS'), extractFunction(src, 'aiSleep'),
       extractFunction(src, 'anthropicRequest'), extractFunction(src, 'callClaudeChat'), extractFunction(src, 'callClaudeVision'),
       extractFunction(src, 'validateApiKey'), ...(extraChunks || [])]);
   const sent = () => JSON.parse(JSON.stringify(window.__sent));
@@ -54,6 +56,17 @@ test('REAL invocation (v3.361): no request carries a field 2026-10-21 rejects', 
     for(const f of ['temperature', 'top_p', 'top_k']) assert.ok(!(f in body), `${f} is a 400 on 2026-10-21`);
     for(const m of body.messages) assert.notStrictEqual(m.role, 'assistant', 'no prefill (400 on current models)');
   }
+});
+
+test('REAL invocation (v3.362): chat and vision default to claude-sonnet-5-5, with effort attached when asked', async (assert)=>{
+  const h = harness();
+  await h.window.callClaudeChat('k', 'sys', [{ role: 'user', content: 'hi' }], 1000, undefined, 'medium');
+  await h.window.callClaudeVision('k', ['AAAA'], 'look', 1000);
+  const [chat, vision] = h.sent().map(r => r.body);
+  assert.strictEqual(chat.model, 'claude-sonnet-5-5');
+  assert.strictEqual(vision.model, 'claude-sonnet-5-5');
+  assert.strictEqual(chat.output_config.effort, 'medium');
+  assert.strictEqual((src.match(/'claude-sonnet-5'/g) || []).length, 0, 'no call left on Sonnet 5');
 });
 
 run();
