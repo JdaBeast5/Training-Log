@@ -266,3 +266,16 @@ Owner: "Make the new symbol a bit bigger and make it act like a home button that
   - From History, a tap landed on Today at the top.
   - There were no page errors.
 - **Unverified on an iPhone:** the feel of the smooth scroll and the press feedback.
+
+## Addendum 12: rest days hide Up next (v3.391)
+Owner (screenshots of Rest / Cardio and Full Rest showing "Squat 0/23"): "the rest days show exercises? Is that by design?" It wasn't by design.
+- **Cause:** `renderWorkout`'s `if(day.rest)` branch returns early, before the `renderUpNext()` at the end of the function. The Up next card therefore kept the last training day's lift. It has carried that stale state ever since Up next was added (v3.290).
+- **Fix:** the rest branch now calls `renderUpNext()` after the rest note replaces the rows. With no set rows, the card hides itself through its existing "rest day: nothing to log" path.
+- **Tests:**
+  - `test-up-next.js` extracts the real rest branch, runs it against a card that Squat filled, and asserts the card is hidden. It's sabotage-checked.
+  - The call-count guard is now two calls, one per path.
+  - `test-set-chips`' ordering check uses `lastIndexOf`. Both changes carry dated notes.
+- **Checked in Chromium:**
+  - Day 1 then Day 3 (seeded page, real plate taps): the card is hidden, and the rest note leads.
+  - Every day rendered after Day 1: only d3 and d7 (the rest days) hide the card.
+- **Flagged, not fixed:** on a rest day the card still shows "Full session" / "Gym mode", "+ Add custom exercise" and "Adapt this session", all of which are workout controls. The rest branch never renders custom exercises, so adding one on a rest day saves it but shows nothing.
