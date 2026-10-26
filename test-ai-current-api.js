@@ -21,6 +21,12 @@
 // refusal is checked before content is read, so partial text is never shown
 // as an answer. If the API rejects the beta field, the request is sent once
 // more without it.
+// v3.365+ — Structured outputs (output_config.format, json_schema) on the five
+// JSON features, one per version, from one AI_JSON_SCHEMAS object. The API
+// then guarantees the reply parses and has every field. Schemas are checked
+// against the API's own rules (additionalProperties:false everywhere, no
+// numeric/length constraints) and against each prompt's documented empty
+// reply, so a schema can't drift from its prompt.
 const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
@@ -38,7 +44,7 @@ function harness(extraChunks){
       const next = window.__queue.shift();
       return next || { ok: true, status: 200, headers: { get: ()=> null }, json: async ()=> ({ content: [{ type: 'text', text: 'ok' }], stop_reason: 'end_turn' }) };
     };
-  `, [extractConst(src, 'AI_MODEL_DEFAULT'), extractConst(src, 'AI_MODEL_FAST'), extractConst(src, 'AI_FALLBACK_BETA'), extractFunction(src, 'withRefusalFallback'), extractConst(src, 'AI_RETRY_STATUSES'), extractConst(src, 'AI_MAX_ATTEMPTS'), extractFunction(src, 'aiSleep'),
+  `, [extractConst(src, 'AI_MODEL_DEFAULT'), extractConst(src, 'AI_MODEL_FAST'), extractConst(src, 'AI_FALLBACK_BETA'), extractFunction(src, 'withRefusalFallback'), extractConst(src, 'AI_JSON_SCHEMAS'), extractFunction(src, 'aiOutputConfig'), extractConst(src, 'AI_RETRY_STATUSES'), extractConst(src, 'AI_MAX_ATTEMPTS'), extractFunction(src, 'aiSleep'),
       extractFunction(src, 'anthropicRequest'), extractFunction(src, 'callClaudeChat'), extractFunction(src, 'callClaudeVision'),
       extractFunction(src, 'validateApiKey'), ...(extraChunks || [])]);
   const sent = () => JSON.parse(JSON.stringify(window.__sent));
@@ -81,7 +87,7 @@ test('REAL invocation (v3.362): chat and vision default to claude-sonnet-5-5, wi
 test('sabotage anchor (v3.363): exactly six real calls name AI_MODEL_FAST, each with low effort and a ceiling >= 1024', (assert)=>{
   // Line-based: a comment that quotes a call can't count as one.
   const code = src.split('\n').filter(l => !/^\s*(\/\/|\*)/.test(l)).join('\n');
-  const calls = [...code.matchAll(/callClaude(Chat|Vision)\(([^;]*?), (\d+), AI_MODEL_FAST(?:, '(\w+)')?\)/g)];
+  const calls = [...code.matchAll(/callClaude(Chat|Vision)\(([^;]*?), (\d+), AI_MODEL_FAST(?:, '(\w+)')?(?:, AI_JSON_SCHEMAS\.\w+)?\)/g)];
   assert.strictEqual(calls.length, 6, 'daily nudge, describe-a-meal, label photo, food photos, two weekly check-ins');
   for(const c of calls){
     assert.strictEqual(c[4], 'low', `effort on ${c[0].slice(0, 60)}`);
@@ -148,6 +154,68 @@ test('REAL invocation (v3.364): any other 400 is still an error, with no extra r
   try{ await h.window.callClaudeChat('k', 'sys', [{ role: 'user', content: 'hi' }], 1000); }catch(e){ msg = e.message; }
   assert.match(msg, /non-empty/);
   assert.strictEqual(h.sent().length, 1);
+});
+
+// A small JSON-schema checker for exactly the keywords these schemas use.
+function validates(schema, v){
+  if(schema.anyOf) return schema.anyOf.some(s => validates(s, v));
+  if(schema.enum && !schema.enum.includes(v)) return false;
+  switch(schema.type){
+    case 'object':
+      if(!v || typeof v !== 'object' || Array.isArray(v)) return false;
+      if(!(schema.required || []).every(k => k in v)) return false;
+      if(Object.keys(v).some(k => !(k in schema.properties))) return false;
+      return Object.entries(v).every(([k, x]) => validates(schema.properties[k], x));
+    case 'array': return Array.isArray(v) && v.every(x => validates(schema.items, x));
+    case 'string': return typeof v === 'string';
+    case 'number': return typeof v === 'number';
+    case 'null': return v === null;
+    default: return true;
+  }
+}
+function apiRuleViolations(schema, path){
+  const out = [];
+  for(const bad of ['minimum', 'maximum', 'multipleOf', 'minLength', 'maxLength', 'exclusiveMinimum', 'exclusiveMaximum', 'minItems', 'maxItems']){
+    if(bad in schema) out.push(`${path}: ${bad} is not supported`);
+  }
+  if(schema.type === 'object'){
+    if(schema.additionalProperties !== false) out.push(`${path}: additionalProperties must be false`);
+    const keys = Object.keys(schema.properties || {}).sort().join();
+    if((schema.required || []).slice().sort().join() !== keys) out.push(`${path}: every property is required`);
+    for(const [k, s] of Object.entries(schema.properties || {})) out.push(...apiRuleViolations(s, `${path}.${k}`));
+  }
+  if(schema.items) out.push(...apiRuleViolations(schema.items, `${path}[]`));
+  for(const s of schema.anyOf || []) out.push(...apiRuleViolations(s, path));
+  return out;
+}
+const SCHEMAS = (()=>{ const h = harness(); return JSON.parse(JSON.stringify(h.window.eval('AI_JSON_SCHEMAS'))); })();
+// The real call line(s) inside a named function, comments excluded.
+const callLines = (fn, needle) => extractFunction(src, fn).split('\n').filter(l => l.includes(needle) && !/^\s*\/\//.test(l));
+
+test('REAL source (v3.365): every schema follows the structured-output rules', (assert)=>{
+  assert.ok(Object.keys(SCHEMAS).length >= 1, 'anchor');
+  for(const [name, schema] of Object.entries(SCHEMAS)) assert.deepStrictEqual(apiRuleViolations(schema, name), []);
+});
+
+test('REAL invocation (v3.365): a schema rides in output_config.format next to effort, on chat and vision', async (assert)=>{
+  const h = harness();
+  await h.window.callClaudeChat('k', 'sys', [{ role: 'user', content: 'eggs' }], 2048, 'claude-haiku-5-5', 'low', h.window.eval('AI_JSON_SCHEMAS.foodItems'));
+  await h.window.callClaudeVision('k', ['AAAA'], 'meal', 3000, 'claude-haiku-5-5', undefined, h.window.eval('AI_JSON_SCHEMAS.foodItems'));
+  await h.window.callClaudeChat('k', 'sys', [{ role: 'user', content: 'hi' }], 1000);
+  const [chat, vision, plain] = h.sent().map(r => r.body);
+  assert.strictEqual(chat.output_config.effort, 'low');
+  assert.deepStrictEqual(chat.output_config.format, { type: 'json_schema', schema: SCHEMAS.foodItems });
+  assert.deepStrictEqual(vision.output_config, { format: { type: 'json_schema', schema: SCHEMAS.foodItems } }, 'no effort key when none is passed');
+  assert.strictEqual(plain.output_config, undefined, 'a call with neither sends no output_config');
+});
+
+test('sabotage anchor (v3.365): describe-a-meal sends the foodItems schema, and its prompt\'s empty reply fits it', (assert)=>{
+  const lines = callLines('submitFoodDescription', 'callClaudeChat(');
+  assert.strictEqual(lines.length, 1);
+  assert.match(lines[0], /AI_MODEL_FAST, 'low', AI_JSON_SCHEMAS\.foodItems\)/);
+  assert.ok(validates(SCHEMAS.foodItems, { items: [] }), 'the prompt\'s "nothing edible" reply');
+  assert.ok(validates(SCHEMAS.foodItems, { items: [{ name: 'Eggs', cal: 140, pro: 12, fat: 10, carb: 1, sodium: 140, fiber: 0 }] }));
+  assert.ok(!validates(SCHEMAS.foodItems, { items: [{ name: 'Eggs', cal: 140 }] }), 'a missing field fails');
 });
 
 run();
