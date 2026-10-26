@@ -24,6 +24,7 @@ const DONE = [
   'STRENGTH_TECHNIQUE_DETAILS', // v3.337
   'OLY_TECHNIQUE_DETAILS', // v3.338
   'RUNNING_TECHNIQUE_DETAILS', // v3.339
+  'HYROX_TECHNIQUE_DETAILS', // v3.340
 ];
 
 const MUST_KEEP = [
@@ -36,6 +37,8 @@ const MUST_KEEP = [
   /early-extension|extending the hips before the knees/, /leaning back during the drive/, /elbows dropping/,
   // v3.339
   /5-10%/, /8-12 weeks/, /overstriding/, /leaning back/,
+  // v3.340
+  /152kg/, /102kg/, /200m/, /10 feet/, /9 feet/, /time penalty/, /can't be dropped mid-effort/,
 ];
 
 function learn(){
