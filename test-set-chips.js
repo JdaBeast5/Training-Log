@@ -30,6 +30,8 @@ const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRo
   'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'commitSet', 'logSetChip',
   // 2026-10-26 (v3.376): renderAllSetChips also renders each exercise's logger.
   'renderExerciseLogger', 'fillSetLogger',
+  // 2026-10-26 (v3.392): and gym mode's warm-up chips (a no-op with no ramp).
+  'renderWarmupChips',
   // v3.303: the set-to-set recommendation and what it needs.
   'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep'].map(n => extractFunction(src, n));
 // The one delegated click listener, taken whole from its comment to its close.

@@ -24,7 +24,9 @@ const src = readIndexSource();
 const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRow', 'setChipValues', 'setChipLabel',
   'setChipOwnerTag', 'renderSetChips', 'renderAllSetChips', 'commitSet',
   'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep',
-  'exLoggerHtml', 'fillSetLogger', 'readSetLogger', 'renderExerciseLogger', 'logExerciseLogger'].map(n => extractFunction(src, n));
+  'exLoggerHtml', 'fillSetLogger', 'readSetLogger', 'renderExerciseLogger', 'logExerciseLogger',
+  // 2026-10-26 (v3.392): renderAllSetChips also draws gym mode's warm-up chips.
+  'renderWarmupChips'].map(n => extractFunction(src, n));
 
 function row(exIdx, setIdx, owner, {wp = 'lb', rp = 'reps', wv = '', rv = '', rpev = ''} = {}){
   return `<div class="set-row" data-set-idx="${setIdx}" data-ex-idx="${exIdx}"><span class="set-row-owner">${owner}</span>
@@ -66,7 +68,8 @@ test('REAL source: both exercise assemblies open their panel with the logger, on
   const panels = fn.match(/<div class="expand-wrap" id="exSetsPanel\$\{[it]\}">\s*<div>\s*\$\{exLoggerHtml\(\)\}/g) || [];
   assert.strictEqual(panels.length, 2, 'single exercise and superset pair');
   assert.strictEqual((fn.match(/exLoggerHtml\(\)/g) || []).length, 2, 'and nowhere else');
-  assert.match(extractFunction(src, 'renderAllSetChips'), /renderSetChips\(b, glow\); renderExerciseLogger\(b\);/);
+  // 2026-10-26 (v3.392): gym mode's warm-up chips are drawn between the two.
+  assert.match(extractFunction(src, 'renderAllSetChips'), /renderSetChips\(b, glow\); renderWarmupChips\(b\); renderExerciseLogger\(b\);/);
 });
 
 test('REAL invocation: an open exercise shows its own next set — label, carried-forward weight, rep range as the hint', (assert)=>{
