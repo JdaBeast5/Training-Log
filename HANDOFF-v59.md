@@ -22,3 +22,17 @@ Green after every increment below. Each version is its own commit with its own t
 ## Still open
 - Today's program write-up length: the owner is choosing between shortening all 55, collapsing the long one by default, or leaving them as they are.
 - Safari/iPhone verification is still blocked (WebKit download denied by the network policy).
+
+## Addendum: concise program overviews (v3.317–v3.321)
+The owner chose to rewrite all 55 program and style overviews shorter "without losing important content". Five batches, each its own version:
+- v3.317: main programs, first 13;
+- v3.318: the other 12 main programs;
+- v3.319: martial-art, cycling and yoga styles;
+- v3.320: watersports;
+- v3.321: medical.
+
+Total went from 5,989 to about 3,250 words: average ~109 → ~59, every overview ≤70 words. The overviews still open by default, and the 3–5 sentence floor in `test-program-overview.js` still holds. The new `test-concise-overviews.js` pins two things:
+- the 70-word ceiling for all 55 (with a count anchor of 55);
+- one or more phrases per entry that must survive the cut. These cover every safety caveat, clearance step and warning sign (medical red flags, hot yoga in pregnancy, head-impact and clinch limits, the kite-instruction limit, and others).
+
+If you edit an overview, keep its MUST_KEEP phrases or update them deliberately.
