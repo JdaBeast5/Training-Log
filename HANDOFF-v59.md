@@ -252,3 +252,17 @@ PR #38 was merged (v3.387 live). Owner: lists covered the aura (the supplements 
 - **v3.389, other list tiles:** `--row-fill` replaces `--surface2` on twelve in-card tiles: `.food-item-btn`, `.gsearch-hit`, `.sub-option`, `.photo-result-card`, `.ex-detail-body`, `.custom-program-box`, `.cycle-phase-card`, `.care-relief`, `.rest-done-row`, `.targets-strip`, `.exh-stats > div` and `.program-panel` (sheen kept).
   - Floating layers (the `.ex-suggest` dropdown, sheets, toasts, modals) stay opaque on purpose.
 - **Updated guards:** the white-alpha count went 89→90, and `test-swipe-content-height-fix` now checks for `--row-fill` (dated notes).
+
+## Addendum 11: brand mark as a home button (v3.390)
+Owner: "Make the new symbol a bit bigger and make it act like a home button that gets you to the top of the Today tab."
+- **The change:** the header plate mark is now 20px (was 14px). It's a `<button id="brandHome" aria-label="Today, back to top">` with no box of its own and a 44px tap area on `::before`, and it presses in to 0.88 on `:active`.
+- **`goHome()`** (just before the `VIEW_KEYS` wiring): it closes the More overlay, then:
+  - off Today, it calls `showView('today')`, which already lands at the top;
+  - on Today, it smooth-scrolls to the top, or jumps there instantly under Reduce Motion.
+- **Tested in `test-app-icon.js`:** a real `goHome` invocation for both branches and for Reduce Motion, the CSSOM sizes, and a check that the button is wired exactly once. Every one was sabotage-checked. The v3.386 test's anchor regex now matches the button instead of the span (dated note).
+- **Checked in Chromium on the seeded page:**
+  - The mark is 20×20 and reads well next to "Training Log".
+  - On Today, a tap from scrollY 2537 returned to 0.
+  - From History, a tap landed on Today at the top.
+  - There were no page errors.
+- **Unverified on an iPhone:** the feel of the smooth scroll and the press feedback.
