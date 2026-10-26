@@ -82,13 +82,17 @@ test('sabotage-relevant: callClaudeChat does NOT attach output_config when no ef
   assert.strictEqual(captured[0].output_config, undefined, 'callers that pass no effort must not get output_config at all, not an effort:undefined key');
 });
 
-test('REAL invocation: callClaudeChat does NOT attach output_config for a non-sonnet-5 model even when effort is passed — Haiku 4.5 returns a 400 if output_config is present at all', async (assert)=>{
+// 2026-10-26 (v3.363): the model gate this test guarded is gone on purpose.
+// Haiku 4.5 (which 400'd on output_config) was replaced by Haiku 5.5, which
+// accepts effort and needs it because it thinks by default. The test now
+// proves the opposite: the fast model DOES get the effort it is passed.
+test('REAL invocation: callClaudeChat attaches output_config.effort for the fast model too (claude-haiku-5-5, v3.363)', async (assert)=>{
   const { window, captured } = setupCallClaudeChat();
   window.__fakeResponse = fakeApiResponse('a plain reply');
-  await window.callClaudeChat('fake-key', 'system prompt', [{role:'user', content:'hi'}], 1200, 'claude-haiku-4-5-20251001', 'medium');
+  await window.callClaudeChat('fake-key', 'system prompt', [{role:'user', content:'hi'}], 1200, 'claude-haiku-5-5', 'low');
 
-  assert.strictEqual(captured[0].model, 'claude-haiku-4-5-20251001');
-  assert.strictEqual(captured[0].output_config, undefined, 'a caller accidentally passing effort for a non-effort-capable model must not crash the request — the guard has to actually filter it out, not just rely on callers remembering');
+  assert.strictEqual(captured[0].model, 'claude-haiku-5-5');
+  assert.strictEqual(JSON.stringify(captured[0].output_config), JSON.stringify({effort: 'low'}));
 });
 
 // --- generateCrossMetricInsights: the real call site this fix exists for ---

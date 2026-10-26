@@ -6694,7 +6694,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.362';
+const APP_VERSION = '3.363';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7587,6 +7587,9 @@ const WHATS_NEW = {
   ]},
   '3.362': { headline: 'Newer AI model', points: [
     'Coach chat, insights, form feedback and the other AI features use Claude Sonnet 5.5.',
+  ]},
+  '3.363': { headline: 'Faster, cheaper quick AI', points: [
+    'Quick AI features (meal descriptions, label and food photos, check-ins) use Claude Haiku 5.5.',
   ]},
 };
 
@@ -24779,7 +24782,7 @@ async function maybeShowTodayStandout(){
   try{
     const persona = getCoachPersona();
     const prompt = `You are ${persona}. Their training-load trend is showing signs of overreaching right after finishing today's session — rising effort with no real rest lately. Write exactly one short, direct sentence flagging this and suggesting the specific next step (e.g. a lighter day or extra rest). No greeting, no markdown, just the one sentence.`;
-    const note = (await callClaudeChat(apiKey, prompt, [{role:'user', content:'Anything stand out from today?'}], 100, 'claude-haiku-4-5-20251001')).trim();
+    const note = (await callClaudeChat(apiKey, prompt, [{role:'user', content:'Anything stand out from today?'}], 1024, AI_MODEL_FAST, 'low')).trim();
     if(note){
       banner.textContent = `⚠️ ${note}`;
       banner.style.display = '';
@@ -34743,7 +34746,7 @@ async function submitFoodDescription(){
 
   try{
     const systemPrompt = `You estimate nutrition from a plain-language food description for a training log app. Respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"items":[{"name":"string","cal":number,"pro":number,"fat":number,"carb":number,"sodium":number,"fiber":number}]}. sodium is in milligrams, fiber in grams — both are rougher estimates than the calorie and macro numbers, especially for home-cooked or restaurant food where added salt varies a lot, but include your best estimate rather than omitting them. Break a described meal into its distinct components when it genuinely has more than one — use your judgment on whether that's more useful than one combined entry. Base estimates on typical restaurant/home portion sizes for what's described. If nothing edible is described, respond with {"items":[]}.`;
-    const raw = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content: description}], 700, 'claude-haiku-4-5-20251001');
+    const raw = await callClaudeChat(apiKey, systemPrompt, [{role:'user', content: description}], 2048, AI_MODEL_FAST, 'low');
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
     describeFoodParsedItems = parsed.items || [];
@@ -36137,7 +36140,7 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
   try{
     const base64 = await fileToBase64(file);
     const prompt = `This is a photo of a nutrition facts label. Read it carefully and respond with ONLY valid JSON, no other text, no markdown fences, in this exact shape: {"name":"string (product name if visible, else a short generic description)","cal":number,"pro":number,"fat":number,"carb":number,"sodium":number|null,"fiber":number|null,"calcium":number|null,"iron":number|null,"potassium":number|null,"folate":number|null}. Use the values for ONE serving as defined on the label. Sodium/potassium are in mg, fiber in g, calcium in mg, iron in mg, folate in mcg — use null (not 0) for any of these six that aren't printed on this specific label, since a real 0 and "not listed" mean different things. If you can't read the label clearly, respond with {"name":"","cal":0,"pro":0,"fat":0,"carb":0,"sodium":null,"fiber":null,"calcium":null,"iron":null,"potassium":null,"folate":null}.`;
-    const raw = await callClaudeVision(apiKey, [base64], prompt, 500, 'claude-haiku-4-5-20251001');
+    const raw = await callClaudeVision(apiKey, [base64], prompt, 2048, AI_MODEL_FAST, 'low');
     const cleaned = raw.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cleaned);
 
@@ -39743,6 +39746,14 @@ async function aiCachedCall(feature, fingerprint, fn, maxAgeMs, opts){
 // doesn't name one. Its effort levels were recalibrated, so callers keep
 // passing effort explicitly rather than relying on the default (high).
 const AI_MODEL_DEFAULT = 'claude-sonnet-5-5';
+// v3.363: Claude Haiku 5.5 for the quick, high-volume calls (daily nudge,
+// weekly check-ins, describe-a-meal, label and food photos). About a tenth of
+// Haiku 4.5's price, and better at following the JSON shapes these prompts
+// ask for. Unlike 4.5 it THINKS by default, and thinking spends from
+// max_tokens — the exact failure HANDOFF v30 hit on Sonnet — so every Haiku
+// call sends effort 'low' (closest to 4.5, which never thought) and a ceiling
+// with room for thinking. Each prompt sets its own reply length.
+const AI_MODEL_FAST = 'claude-haiku-5-5';
 const AI_RETRY_STATUSES = [429, 529];
 const AI_MAX_ATTEMPTS = 3;
 
@@ -39843,7 +39854,7 @@ async function anthropicRequest(apiKey, payload, timeoutMs){
   throw lastErr || new Error('Request failed.');
 }
 
-async function callClaudeVision(apiKey, imageBase64List, promptText, maxTokens, model){
+async function callClaudeVision(apiKey, imageBase64List, promptText, maxTokens, model, effort){
   const content = [
     ...imageBase64List.map(b64=>({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data: b64 } })),
     { type:'text', text: promptText },
@@ -39859,6 +39870,7 @@ async function callClaudeVision(apiKey, imageBase64List, promptText, maxTokens, 
     // spends real tokens on before writing a word.
     max_tokens: maxTokens || 3000,
     messages: [{ role:'user', content }],
+    ...(effort ? { output_config: {effort} } : {}),
   }, 60000);
 }
 
@@ -40037,7 +40049,7 @@ Respond with ONLY valid JSON, no other text, no markdown fences, in this exact s
   try{
     const results = await Promise.allSettled(files.map(async (file)=>{
       const base64 = await fileToBase64(file);
-      const raw = await callClaudeVision(apiKey, [base64], prompt, 1024, 'claude-haiku-4-5-20251001');
+      const raw = await callClaudeVision(apiKey, [base64], prompt, 3000, AI_MODEL_FAST, 'low');
       const cleaned = raw.replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(cleaned);
       return parsed.items || [];
@@ -40132,11 +40144,9 @@ const COACH_PERSONAS_BY_MARTIAL_ART = {
 // actually written and tuned against, before Sonnet 5 made 'high' adaptive
 // reasoning the default and started eating these same ceilings.
 //
-// NOT supported on every model: Claude Haiku 4.5 is not in the effort-capable
-// model list and returns a 400 if output_config is present at all, so this
-// only ever attaches for callers on claude-sonnet-5 (the default). Callers
-// passing the haiku model string must leave `effort` unset — see the
-// per-call-site notes at each callClaudeChat(...) that omits it.
+// Until v3.363 this was gated to the default model because Claude Haiku 4.5
+// returned a 400 on output_config. Haiku 5.5 accepts effort (and needs it,
+// since it thinks by default), so the gate is gone.
 async function callClaudeChat(apiKey, systemPrompt, messages, maxTokens, model, effort){
   const resolvedModel = model || AI_MODEL_DEFAULT;
   const payload = {
@@ -40152,7 +40162,9 @@ async function callClaudeChat(apiKey, systemPrompt, messages, maxTokens, model, 
     system: systemPrompt,
     messages: messages,
   };
-  if(effort && resolvedModel === AI_MODEL_DEFAULT){
+  // Every model this app calls accepts effort since v3.363 (Haiku 4.5, which
+  // 400'd on it, is gone), so it attaches whenever a caller passes one.
+  if(effort){
     payload.output_config = {effort};
   }
   return anthropicRequest(apiKey, payload, 45000);
@@ -43037,7 +43049,7 @@ async function generateWeeklyRecap(stats){
     const {result} = await aiCachedCall(
       'weekly-recap',
       aiFingerprint([JSON.stringify(stats), prompt]),
-      ()=> callClaudeChat(apiKey, prompt, [{role:'user', content:'Give me my weekly check-in.'}], 300, 'claude-haiku-4-5-20251001'),
+      ()=> callClaudeChat(apiKey, prompt, [{role:'user', content:'Give me my weekly check-in.'}], 1500, AI_MODEL_FAST, 'low'),
       8 * 24 * 60 * 60 * 1000   // a week's recap shouldn't outlive the week
     );
     return (result || '').trim();
@@ -43086,7 +43098,7 @@ async function generateWeeklyNutritionDigest(stats){
     const {result} = await aiCachedCall(
       'weekly-nutrition-digest',
       aiFingerprint([JSON.stringify(stats), prompt]),
-      ()=> callClaudeChat(apiKey, prompt, [{role:'user', content:'Give me my weekly nutrition check-in.'}], 300, 'claude-haiku-4-5-20251001'),
+      ()=> callClaudeChat(apiKey, prompt, [{role:'user', content:'Give me my weekly nutrition check-in.'}], 1500, AI_MODEL_FAST, 'low'),
       8 * 24 * 60 * 60 * 1000
     );
     return (result || '').trim();

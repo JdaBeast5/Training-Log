@@ -12,6 +12,9 @@
 // fields) don't touch anything this app sends.
 // v3.362 — Claude Sonnet 5 -> Sonnet 5.5 (same price) for every call that
 // doesn't name a model, via one AI_MODEL_DEFAULT const.
+// v3.363 — Claude Haiku 4.5 -> Haiku 5.5 on the six quick calls, via
+// AI_MODEL_FAST. Haiku 5.5 thinks by default and thinking spends from
+// max_tokens, so each call sends effort 'low' and a raised ceiling (>= 1024).
 const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
@@ -29,7 +32,7 @@ function harness(extraChunks){
       const next = window.__queue.shift();
       return next || { ok: true, status: 200, headers: { get: ()=> null }, json: async ()=> ({ content: [{ type: 'text', text: 'ok' }], stop_reason: 'end_turn' }) };
     };
-  `, [extractConst(src, 'AI_MODEL_DEFAULT'), extractConst(src, 'AI_RETRY_STATUSES'), extractConst(src, 'AI_MAX_ATTEMPTS'), extractFunction(src, 'aiSleep'),
+  `, [extractConst(src, 'AI_MODEL_DEFAULT'), extractConst(src, 'AI_MODEL_FAST'), extractConst(src, 'AI_RETRY_STATUSES'), extractConst(src, 'AI_MAX_ATTEMPTS'), extractFunction(src, 'aiSleep'),
       extractFunction(src, 'anthropicRequest'), extractFunction(src, 'callClaudeChat'), extractFunction(src, 'callClaudeVision'),
       extractFunction(src, 'validateApiKey'), ...(extraChunks || [])]);
   const sent = () => JSON.parse(JSON.stringify(window.__sent));
@@ -67,6 +70,31 @@ test('REAL invocation (v3.362): chat and vision default to claude-sonnet-5-5, wi
   assert.strictEqual(vision.model, 'claude-sonnet-5-5');
   assert.strictEqual(chat.output_config.effort, 'medium');
   assert.strictEqual((src.match(/'claude-sonnet-5'/g) || []).length, 0, 'no call left on Sonnet 5');
+});
+
+test('sabotage anchor (v3.363): exactly six real calls name AI_MODEL_FAST, each with low effort and a ceiling >= 1024', (assert)=>{
+  // Line-based: a comment that quotes a call can't count as one.
+  const code = src.split('\n').filter(l => !/^\s*(\/\/|\*)/.test(l)).join('\n');
+  const calls = [...code.matchAll(/callClaude(Chat|Vision)\(([^;]*?), (\d+), AI_MODEL_FAST(?:, '(\w+)')?\)/g)];
+  assert.strictEqual(calls.length, 6, 'daily nudge, describe-a-meal, label photo, food photos, two weekly check-ins');
+  for(const c of calls){
+    assert.strictEqual(c[4], 'low', `effort on ${c[0].slice(0, 60)}`);
+    assert.ok(Number(c[3]) >= 1024, `max_tokens ${c[3]} leaves room for thinking`);
+  }
+  assert.strictEqual((src.match(/claude-haiku-4-5/g) || []).length, 0, 'no call left on Haiku 4.5');
+});
+
+test('REAL invocation (v3.363): chat and vision send claude-haiku-5-5 with effort when called the way the fast call sites call them', async (assert)=>{
+  const h = harness();
+  await h.window.callClaudeChat('k', 'sys', [{ role: 'user', content: 'hi' }], 1500, h.window.eval('AI_MODEL_FAST'), 'low');
+  await h.window.callClaudeVision('k', ['AAAA'], 'read the label', 2048, h.window.eval('AI_MODEL_FAST'), 'low');
+  await h.window.callClaudeVision('k', ['AAAA'], 'compare', 400);
+  const [chat, vision, plain] = h.sent().map(r => r.body);
+  for(const b of [chat, vision]){
+    assert.strictEqual(b.model, 'claude-haiku-5-5');
+    assert.strictEqual(b.output_config.effort, 'low');
+  }
+  assert.strictEqual(plain.output_config, undefined, 'a vision call that passes no effort sends no output_config');
 });
 
 run();
