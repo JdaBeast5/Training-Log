@@ -372,9 +372,12 @@
   .wrap{max-width:640px; margin:0 auto; padding:calc(22px + env(safe-area-inset-top, 0px)) 18px 4px;}
   header{padding:8px 0 18px;}
   .eyebrow-row{display:flex; align-items:center; gap:7px;}
+  /* v3.386: the app icon's mark (the plate, its lit seventh and bore) at
+     header size — the hub ring is dropped, it can't resolve at 14px. */
   .brand-mark{
-    display:inline-flex; width:14px; height:14px; flex:0 0 auto; color:var(--plate-blue); opacity:0.85;
+    display:inline-flex; width:14px; height:14px; flex:0 0 auto; color:var(--text);
   }
+  .brand-mark-lit{stroke:var(--plate-red);}
   .brand-mark svg{width:100%; height:100%;}
   /* [TASTESKILL ROLLOUT, v3.278] The eyebrow names the scope (whose log, which
      goal) beside the product mark, so it keeps its job but stops shouting:
@@ -5029,7 +5032,7 @@
 <div class="wrap">
   <header>
     <div class="eyebrow-row">
-      <span class="brand-mark"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="1.2" y="8" width="2.4" height="4" rx="1"/><rect x="16.4" y="8" width="2.4" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg></span>
+      <span class="brand-mark"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke-width="2.6"><path d="M15.90 6.23 A7 7 0 1 1 9.27 3.04" stroke="currentColor"/><path class="brand-mark-lit" d="M10.00 3.00 A7 7 0 0 1 15.47 5.64"/><circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none"/></svg></span>
       <div class="eyebrow" id="headerEyebrow">Training Log</div>
     </div>
     <h1 id="viewTitle">Today</h1>
@@ -6875,7 +6878,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.385';
+const APP_VERSION = '3.386';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7837,6 +7840,9 @@ const WHATS_NEW = {
   ]},
   '3.385': { headline: 'Launch animation', points: [
     'Opening the app draws its new mark, then fades into Today. It follows your phone\'s light or dark setting, and Reduce Motion shows it without the animation.',
+  ]},
+  '3.386': { headline: 'Matching header mark', points: [
+    'The small mark beside Training Log on Today is the new plate, matching the app icon.',
   ]},
 };
 

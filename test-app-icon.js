@@ -14,6 +14,10 @@
 // in Chromium against simulated Default, Dark, Tinted and Grayscale tiles.
 //
 // icon.svg is the 1024 master the PNGs are rendered from.
+//
+// v3.386 — The header's brand mark (beside "Training Log" on Today) is the
+// same plate instead of the old barbell: rim in the text colour, the lit
+// seventh in --plate-red, the bore. The hub ring is left out at 14px.
 const fs = require('fs');
 const path = require('path');
 const { makeRunner } = require('./testHelpers.js');
@@ -51,6 +55,17 @@ test('the master is the plate: a lit seventh of the rim, cut cleanly from the re
   assert.match(svg, /stroke="url\(#acc\)"/, 'the lit seventh carries the accent');
   assert.doesNotMatch(svg, /<text|filter=|feGaussianBlur/, 'no text, no baked glow (the system adds its own effects)');
   assert.match(svg, /<rect width="1024" height="1024" fill="url\(#base\)"\/>/, 'full-bleed, opaque background');
+});
+
+test('REAL markup (v3.386): the header mark is the plate — rim, lit seventh, bore — not the old barbell', (assert)=>{
+  const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+  const marks = html.match(/<span class="brand-mark">[\s\S]*?<\/span>/g) || [];
+  assert.strictEqual(marks.length, 1, 'anchor: the one header mark');
+  assert.match(marks[0], /<path class="brand-mark-lit" d="M10\.00 3\.00 A7 7 0 0 1 15\.47 5\.64"\/>/, 'the lit seventh, from the top');
+  assert.match(marks[0], /A7 7 0 1 1 9\.27 3\.04/, 'the rest of the rim, cut from it');
+  assert.match(marks[0], /<circle cx="10" cy="10" r="1\.5"/, 'the bore');
+  assert.doesNotMatch(marks[0], /<rect/, 'no barbell plates left');
+  assert.match(html, /\.brand-mark-lit\{stroke:var\(--plate-red\);\}/);
 });
 
 run();
