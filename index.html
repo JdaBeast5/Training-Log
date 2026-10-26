@@ -6619,7 +6619,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.316';
+const APP_VERSION = '3.317';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7415,6 +7415,8 @@ const WHATS_NEW = {
     'Notes under an exercise name, like "added for your body goal", "swapped from" and "Custom", are now one calm grey instead of four colours.',
   ]},  '3.316': { headline: 'Behind the scenes', points: [
     'Removed old Gym mode styling for set rows, which Gym mode replaced with set chips.',
+  ]},  '3.317': { headline: 'Shorter program overviews', points: [
+    'Thirteen program overviews on Today are about 40% shorter, with the same key facts: the weekly plan, who it suits and what sets it apart.',
   ]},
 };
 
@@ -8153,7 +8155,7 @@ const programs = {
   // behind it. Volume is the driver; the rep range on the main lift is here
   // for specificity and for the rest prescription it triggers.
   strength: {
-    label: 'Strength & Size', short: 'Upper/lower strength + hypertrophy', overview: 'A four-day upper/lower split built to train strength and size as two separate jobs in the same week rather than splitting the difference on both. The first two sessions are heavy and low-rep on the main lifts; the next two shift to higher-rep accessory work for muscle growth. Rest and active-recovery days round out the week without extra lifting. Good fit if you want a genuine, well-rounded intermediate program that builds a bigger total AND a bigger physique in just four days a week — less per-lift frequency and accessory pump volume than Powerbuilding\'s five-day split, but a real time-savings if four days is what you actually have.',
+    label: 'Strength & Size', short: 'Upper/lower strength + hypertrophy', overview: 'A four-day upper/lower split that trains strength and size as separate jobs: two heavy, low-rep days on the main lifts, then two higher-rep accessory days for growth. Rest and active recovery fill the rest of the week. Pick it for a bigger total and a bigger physique on four days — less volume per lift than Powerbuilding\'s five-day split, but a day shorter.',
     days: {
       d1: {
         label:'Day 1', sub:'Upper · Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
@@ -8229,7 +8231,7 @@ const programs = {
   },
 
   bodybuilding: {
-    label: 'Bodybuilding', short: 'Body-part split, higher volume & isolation', overview: 'A classic body-part split — five lifting days across the week, each targeting a specific muscle group or pairing (chest/triceps, back/biceps, shoulders/abs, legs, and a dedicated arms-and-detail day) with high accessory volume and isolation work. Every muscle group gets hit at least twice a week rather than the traditional once, closing the frequency gap that hurts a lot of old-school bro-splits. Best fit if your goal is visible size and shape more than a numbers-driven total — more time under tension, more angles per muscle, less focus on the big three lifts specifically.',
+    label: 'Bodybuilding', short: 'Body-part split, higher volume & isolation', overview: 'A five-day body-part split — chest/triceps, back/biceps, shoulders/abs, legs, and an arms-and-detail day — with high accessory volume and isolation work. Every muscle is trained at least twice a week, not the old-school once. Pick it if visible size and shape matter more to you than your total on the big three.',
     days: {
       d1: {
         label:'Day 1', sub:'Chest & Triceps', plate:'p-red', plateNum:'25', duration:'~55 min',
@@ -8312,7 +8314,7 @@ const programs = {
   },
 
   oly: {
-    label: 'Olympic Lifting', short: 'Snatch, clean & jerk technique + strength', overview: 'Built around the two competition lifts — snatch and clean & jerk — trained as technical skills under low fatigue rather than ground out for reps. Pulls, squats, and power variations carry the actual strength work around them, so the competition lifts stay sharp instead of getting sloppy under accumulated fatigue. A technique-primer day and dedicated variation days round out the week. This is the right fit if you specifically want to get better at Olympic lifting (or a strength sport that uses it), not a general "get stronger" program — it assumes some comfort with the lifts already or a coach to learn the positions from.',
+    label: 'Olympic Lifting', short: 'Snatch, clean & jerk technique + strength', overview: 'Built around the snatch and clean & jerk, practised as technical skills while fresh rather than ground out for reps. Pulls, squats and power variations carry the strength work, with a technique-primer day and variation days. For getting better at Olympic lifting specifically, not general strength — it assumes some comfort with the lifts or a coach to learn the positions from.',
     days: {
       d1: {
         label:'Day 1', sub:'Snatch + Pull Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
@@ -8393,7 +8395,7 @@ const programs = {
   },
 
   athletic: {
-    label: 'Athletic / Plyo', short: 'Explosive power, plyometrics & conditioning', overview: 'Trains explosive power and speed the way it actually needs to be trained — low volume, full recovery between sets, quality over accumulation. Lower- and upper-body power days (jumps, throws, sprints) run twice each across the week, with a dedicated conditioning-and-agility day rounding things out. This isn\'t a hypertrophy or endurance program in disguise; the whole point is force output, not fatigue. Fits best if you\'re an athlete (or training like one) who needs to move fast and explosively — sprinting, jumping, change of direction — more than you need bigger muscles or a bigger total.',
+    label: 'Athletic / Plyo', short: 'Explosive power, plyometrics & conditioning', overview: 'Explosive power and speed, trained the way they need to be: low volume, full rest between sets, quality over fatigue. Lower- and upper-body power days (jumps, throws, sprints) run twice each, plus a conditioning-and-agility day. For athletes who need to sprint, jump and change direction fast more than they need bigger muscles or a bigger total.',
     days: {
       d1: {
         label:'Day 1', sub:'Lower Power', plate:'p-red', plateNum:'25', duration:'~55 min',
@@ -8451,17 +8453,17 @@ const programs = {
   },
 
   combat: {
-    label: 'Boxing / Kickboxing', short: 'Pick your martial art style below — bag rounds + strength', overview: 'A container for six martial-art styles — Kickboxing, Boxing, Muay Thai, MMA Striking, Taekwondo, and Tai Chi — each with its own genuinely different conditioning, drill work, and injury profile rather than one blended striking template. A boxer\'s neck and shoulder demands are not a kickboxer\'s hip mobility demands, and neither is Tai Chi\'s emphasis on balance and breath over output, so this program deliberately does not pretend one plan fits all six. Pick a style below to see its actual program and description; the training itself only really starts once you\'ve chosen one. Whichever you pick, expect real conditioning and drill work, not sparring instruction — none of these teach you to actually fight safely.',
+    label: 'Boxing / Kickboxing', short: 'Pick your martial art style below — bag rounds + strength', overview: 'Six martial-art styles — Kickboxing, Boxing, Muay Thai, MMA Striking, Taekwondo and Tai Chi — each with its own conditioning, drills and injury profile rather than one blended template. Pick a style below to see its program; training starts once you choose. Expect conditioning and drill work, not sparring instruction: none of these teach you to fight safely.',
     days: {} // populated at runtime from COMBAT_STYLES based on the selected martial art
   },
 
   cycling: {
-    label: 'Cycling', short: 'Pick Road or Mountain below — polarized ride training + strength', overview: 'A container for two cycling disciplines — Road and Mountain — each built around a different intensity structure and skill set rather than one generic "ride your bike" plan. Road is FTP-and-interval structured power work on pavement; Mountain adds technical trail skill and grip/upper-body endurance for the terrain road riding never demands. Pick a style below to see its actual program and description — the two share a training backbone but genuinely differ in what they emphasize.',
+    label: 'Cycling', short: 'Pick Road or Mountain below — polarized ride training + strength', overview: 'Two disciplines, Road and Mountain, each with its own intensity structure and skills. Road is structured FTP and interval power work; Mountain adds technical trail skill and grip and upper-body endurance. Pick a style below to see its program — they share a training backbone but differ in emphasis.',
     days: {} // populated at runtime from CYCLING_STYLES based on the selected discipline
   },
 
   core: {
-    label: 'Core & Stability', short: 'Abs, obliques & lower-back stabilizers', overview: 'A specialization program for the trunk, built on training it for what it actually does — resisting movement, not producing it. Days rotate through anti-extension/spine stability, rotational power and anti-rotation work, loaded carries for anti-lateral flexion, and dedicated lower-back stabilizer work. It\'s deliberately narrow and loaded — barbell carries, cable anti-rotation, weighted stability work — meant to bolt onto another program, not replace one; if you want a bodyweight, breath-driven practice instead, Pilates is the better fit. Good fit if you\'ve got a weak link in trunk stability specifically, whether that\'s for lifting, sport, or just day-to-day back health.',
+    label: 'Core & Stability', short: 'Abs, obliques & lower-back stabilizers', overview: 'Trains the trunk for its real job — resisting movement — through anti-extension, anti-rotation and rotational power, loaded carries, and lower-back stabilizer days. It\'s narrow and loaded (barbell carries, cable anti-rotation), meant to bolt onto another program, not replace one; for a bodyweight, breath-led practice, choose Pilates. Pick it if trunk stability is your weak link, for lifting, sport or everyday back health.',
     days: {
       d1: {
         label:'Day 1', sub:'Anti-Extension & Spine Stability', plate:'p-red', plateNum:'25', duration:'~40 min',
@@ -8522,7 +8524,7 @@ const programs = {
   },
 
   bodyweight: {
-    label: 'Bodyweight', short: 'No gym needed — anywhere, minimal equipment', overview: 'A genuine full-body strength program built entirely around bodyweight leverage and single-limb variations instead of external load — no gym, no equipment, train anywhere. Push, pull, and leg days are followed by a full-body conditioning day and a dedicated core-and-mobility day, so nothing gets neglected just because there\'s no barbell involved. Progression comes from harder leverage and unilateral variations, not just more reps. The right fit if you travel a lot, don\'t have gym access, or just prefer training with nothing but your own bodyweight — genuinely capable of building real strength, not just a placeholder until you get back to a gym.',
+    label: 'Bodyweight', short: 'No gym needed — anywhere, minimal equipment', overview: 'A full-body strength program built on leverage and single-limb variations instead of external load — no gym or equipment needed. Push, pull and leg days are followed by a conditioning day and a core-and-mobility day, and progression comes from harder variations, not just more reps. For travel, no gym access, or training with your bodyweight by choice — it builds real strength, not a stopgap.',
     days: {
       d1: {
         label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -8598,7 +8600,7 @@ const programs = {
   },
 
   jumprope: {
-    label: 'Jump Rope', short: 'Rope conditioning — fast, portable, no gym', overview: 'Rope skill and cardio conditioning built as a genuine progression — basic bounce and footwork patterns first, building toward double-unders and power variations — rather than treating jump rope as a warm-up filler. A HIIT-interval day and an endurance test round out the week alongside dedicated speed-and-footwork work. It\'s fast, portable, and needs almost nothing but a rope and floor space. Good fit if you want serious cardio conditioning without a treadmill or bike, or if you\'re specifically building the footwork and coordination that carries over to combat sports and other rope-heavy training.',
+    label: 'Jump Rope', short: 'Rope conditioning — fast, portable, no gym', overview: 'Rope skill and cardio as a progression: basic bounce and footwork first, building to double-unders and power variations. HIIT intervals, speed-and-footwork work and an endurance test fill the week, with nothing needed but a rope and floor space. For serious cardio without a treadmill or bike, or footwork and coordination that carry over to combat sports.',
     days: {
       d1: {
         label:'Day 1', sub:'Basic Endurance', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -8680,7 +8682,7 @@ const programs = {
   // a full range improves ROM on its own, which is why the strength programs
   // in this app do not need bolted-on stretching to be complete.
   mobility: {
-    label: 'Mobility & Flexibility', short: 'Joint prep, range of motion & recovery', overview: 'Static and controlled range-of-motion work targeting the joints that limit most people — hips, ankles, shoulders, thoracic spine, and the posterior chain — held long enough to actually change tissue rather than just feel loosened for the moment. A full-body flow day and an active-recovery flow round things out. This isn\'t a strength program and isn\'t meant to replace one; it\'s built to sit alongside whatever else you\'re training, or to run on its own during a deload or recovery block. Good fit if stiffness or restricted range is actually limiting your lifts or your day-to-day movement, not just something to stretch idly.',
+    label: 'Mobility & Flexibility', short: 'Joint prep, range of motion & recovery', overview: 'Static and controlled range-of-motion work for the joints that limit most people — hips, ankles, shoulders, thoracic spine and posterior chain — held long enough to change tissue, plus a full-body flow and an active-recovery flow. It\'s not a strength program: run it alongside one, or on its own during a deload. For when stiffness is limiting your lifts or everyday movement.',
     days: {
       d1: {
         label:'Day 1', sub:'Hips & Ankles', plate:'p-red', plateNum:'25', duration:'~30 min',
@@ -8747,7 +8749,7 @@ const programs = {
   // approach it is named for. Do not add tempo/threshold volume to "fill it
   // out": the small threshold share is the design, not a gap.
   running: {
-    label: 'Running / Endurance', short: 'Jack Daniels-style paced running progression', overview: 'A polarized running program — most of the week easy, two genuinely hard sessions (tempo and intervals), one long run — paired with a heavy lifting day that\'s actually heavy enough to move the needle on running economy, not just token strength work. Paces are structured Jack Daniels-style rather than run-by-feel, so easy days stay easy and hard days stay hard. A recovery run doubles as a lighter strength day late in the week. Fits best if you\'re training for a race or a real endurance goal and want a structured plan, not just "go run some miles."',
+    label: 'Running / Endurance', short: 'Jack Daniels-style paced running progression', overview: 'Polarized running: mostly easy miles, two hard sessions (tempo and intervals) and a long run, with paces set Jack Daniels-style so easy days stay easy. A heavy lifting day improves running economy, and a recovery run doubles as a lighter strength day. For training toward a race or endurance goal with a structured plan.',
     days: {
       d1: {
         label:'Day 1', sub:'Easy Run + Strides', plate:'p-red', plateNum:'25', duration:'~35 min',
@@ -8811,7 +8813,7 @@ const programs = {
   },
 
   calisthenics: {
-    label: 'Calisthenics / Gymnastics', short: 'Skill work — muscle-ups, levers, handstands, L-sits', overview: 'Builds toward real gymnastic strength skills — muscle-ups, levers, handstands, L-sits — through actual progressions rather than just attempting the end skill and hoping. Push and pull skill days are trained separately from straight-arm static-hold work, with a dedicated core/L-sit progression day and an explosive-legs day rounding out the week. A skill-practice-and-mobility day keeps the harder positions (handstands especially) honest. Good fit if you\'re chasing a specific bodyweight skill and want the actual prerequisite strength built in the right order, not a generic bodyweight-fitness program with a few advanced moves bolted on.',
+    label: 'Calisthenics / Gymnastics', short: 'Skill work — muscle-ups, levers, handstands, L-sits', overview: 'Progressions toward muscle-ups, levers, handstands and L-sits, building the prerequisite strength in order instead of attempting the end skill and hoping. Push and pull skill days are separate from straight-arm static holds, with core/L-sit, explosive-legs and skill-and-mobility days. For chasing a specific bodyweight skill, not general bodyweight fitness.',
     days: {
       d1: {
         label:'Day 1', sub:'Push Skills', plate:'p-red', plateNum:'25', duration:'~40 min',
@@ -8894,7 +8896,7 @@ const programs = {
   // the bodybuilding program is held to; applying that here would misread
   // a correctly specific program as under-dosed.
   powerlifting: {
-    label: 'Powerlifting', short: 'Max-strength squat, bench & deadlift cycle', overview: 'Squat, bench, and deadlift each get their own dedicated training day at competition-relevant rep ranges, with accessory work chosen specifically for carryover to the big three rather than for general size. Two additional accessory-and-volume days round out the week without diluting focus on the main lifts. This is judged by your total, not by how much total work you did — it\'s built for someone training toward a number, not a look. Best fit if you\'re training for a powerlifting meet (or just want a strength-first program organized the way meet prep actually works).',
+    label: 'Powerlifting', short: 'Max-strength squat, bench & deadlift cycle', overview: 'Squat, bench and deadlift each get a dedicated day at competition rep ranges, with accessories chosen for carryover to the big three, plus two accessory-and-volume days. It\'s judged by your total, not by how much work you did. For meet prep, or a strength-first program organized the way meet prep works.',
     days: {
       d1: {
         label:'Day 1', sub:'Squat Focus', plate:'p-red', plateNum:'25', duration:'~55 min',
