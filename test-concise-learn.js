@@ -26,6 +26,7 @@ const DONE = [
   'RUNNING_TECHNIQUE_DETAILS', // v3.339
   'HYROX_TECHNIQUE_DETAILS', // v3.340
   'PILATES_TECHNIQUE_DETAILS', // v3.341
+  'YOGA_TECHNIQUE_DETAILS', // v3.342
 ];
 
 const MUST_KEEP = [
@@ -42,6 +43,8 @@ const MUST_KEEP = [
   /152kg/, /102kg/, /200m/, /10 feet/, /9 feet/, /time penalty/, /can't be dropped mid-effort/,
   // v3.341
   /never the neck/, /raise the legs or bend the knees/, /hands support the head/,
+  // v3.342
+  /never on the knee/, /never turn your head/, /not the neck/, /shoulder irritation/,
 ];
 
 function learn(){
