@@ -4749,6 +4749,11 @@
      truth (and come back with Edit). Skip hides the whole ramp for today. Literal orange rgba(), as everywhere in
      this gym-mode block (see the rgba consolidation guard). */
   .warmup-chips{display:none;}
+  /* v3.401 (owner: "only keep the ramp in the gym mode"): outside gym mode the
+     ramp — loggable rows, read-only table or the "warm up first" nudge — is
+     not shown at all. Its data is untouched; gym mode shows it as above. */
+  body:not(.gym-mode) #exerciseList .warmup-strip,
+  body:not(.gym-mode) #exerciseList .warmup-box{display:none;}
   body.gym-mode .exercise-block.open > .warmup-chips{display:block; padding:2px 0 14px;}
   .warmup-chips-head{display:flex; align-items:center; gap:4px; margin:0 0 8px;}
   .warmup-chips-title{flex:1 1 auto; font-size:13px; font-weight:600; color:var(--plate-orange);}
@@ -6947,7 +6952,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.400';
+const APP_VERSION = '3.401';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7954,6 +7959,9 @@ const WHATS_NEW = {
   ]},
   '3.400': { headline: 'Snappier pull to refresh', points: [
     'Pull to refresh now follows your finger reliably on iPhone and reloads sooner after you let go.',
+  ]},
+  '3.401': { headline: 'Warm-ups live in gym mode', points: [
+    'The warm-up ramp now shows only in gym mode; the regular workout list goes straight to your sets.',
   ]},
 };
 

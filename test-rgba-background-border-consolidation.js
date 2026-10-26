@@ -169,7 +169,11 @@ test('REMOVED (v3.300): .voice-feedback no longer exists — no rule, base or Gy
 
 test('REAL CASCADE: .warmup-box background+border (orange) resolve to the exact pre-conversion literals', (assert)=>{
   // Declared twice: the base rule and its Gym Mode override.
-  assert.strictEqual(countRuleOpenings(src, '.warmup-box'), 2, '.warmup-box must be declared exactly twice: the base rule and its Gym Mode override');
+  // 2026-10-26 (v3.401): plus a third, visibility-only rule that hides the
+  // ramp outside gym mode. It may set display:none and nothing else, so the
+  // colour accounting below is unaffected.
+  assert.strictEqual(countRuleOpenings(src, '.warmup-box'), 3, '.warmup-box: base rule, Gym Mode override, v3.401 visibility rule');
+  assert.match(src, /body:not\(\.gym-mode\) #exerciseList \.warmup-box\{display:none;\}/, 'the third rule is visibility only');
   const block = extractRuleBlock(src, '.warmup-box');
   assert.doesNotMatch(block, /rgba\(255,\s*122,\s*51,/, 'the literal orange rgba() must be gone');
   const resolved = resolveVars(block);
