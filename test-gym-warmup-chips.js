@@ -127,4 +127,25 @@ test('REAL CSSOM: gym mode only; the rows hide behind the chips unless editing; 
   assert.ok(parseInt(declared('.warmup-chips-head .link-btn', 'min-height'), 10) >= 44);
 });
 
+// v3.394: "Same as Last Time" is a quiet link in gym mode. Checked on the
+// COMPUTED style of the real button inside .set-actions in body.gym-mode, so a
+// later or more specific rule overriding it would fail this.
+test('REAL computed style (v3.394): in gym mode Same as Last Time is a link (no fill, no border, 44px), outside it a button', (assert)=>{
+  const at = gym => {
+    const { window } = new JSDOM(`<style>${CSS.replace(/\/\*[\s\S]*?\*\//g, '')}</style><body class="${gym ? 'gym-mode' : ''}"><div class="set-actions"><button class="same-as-last-btn">↻ Same as Last Time</button></div></body>`);
+    return window.getComputedStyle(window.document.querySelector('.same-as-last-btn'));
+  };
+  const g = at(true);
+  assert.strictEqual(g.borderTopWidth, '0px');
+  assert.match(g.backgroundColor + ' ' + g.backgroundImage, /transparent|rgba\(0, 0, 0, 0\)|none/);
+  assert.strictEqual(g.minHeight, '44px');
+  assert.strictEqual(g.width, 'auto');
+  const n = at(false);
+  assert.strictEqual(g.paddingTop, '0px');
+  // Anchor on padding: jsdom cannot resolve the base rule's border shorthand
+  // (it holds var()), so a border check here would test jsdom, not the app.
+  assert.strictEqual(n.paddingTop, '7px', 'anchor: the normal Today button keeps its button padding');
+  assert.notStrictEqual(n.minHeight, '44px');
+});
+
 run();

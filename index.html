@@ -4627,6 +4627,13 @@
     min-height:52px; font-size:15px; width:100%;
     border-radius:14px; margin-top:8px;
   }
+  /* v3.394: in gym mode "Same as Last Time" is a quiet link under the
+     working-set chips, not a full-width button between them and the rest of
+     the exercise: the chips and the dock do the logging there. */
+  body.gym-mode .set-actions .same-as-last-btn{
+    width:auto; flex:0 0 auto; min-height:44px; margin:0; padding:0 4px;
+    background:none; border:0; border-radius:0; font-size:15px; text-align:left;
+  }
   body.gym-mode .exercise-block, body.gym-mode .sets-block{box-shadow:none;}
   /* v3.28. These were `background:transparent` — no fill, no border, no
      shadow — so everything that was not the current exercise was text floating
@@ -6928,7 +6935,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.393';
+const APP_VERSION = '3.394';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7914,6 +7921,9 @@ const WHATS_NEW = {
   ]},
   '3.393': { headline: 'Log button walks the warm-ups', points: [
     'In gym mode the Log button logs each warm-up step first, in orange with Undo, then your working sets.',
+  ]},
+  '3.394': { headline: 'Quieter Same as Last Time in gym mode', points: [
+    'In gym mode, Same as Last Time is a small link under your sets instead of a full-width button.',
   ]},
 };
 
