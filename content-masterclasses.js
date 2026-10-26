@@ -234,7 +234,7 @@ const SWIM_STROKE_DETAILS = {
     'Execution: swing the straight arm up and over above the shoulder, turning the hand to enter pinky-first in line with that shoulder.',
     'Whole-body integration: the straight-arm recovery works because it\'s above the water, where drag doesn\'t matter; bending just adds effort.',
     'Common mistake: entering directly overhead, in line with the ear, which twists shoulder and torso and disrupts rotation.',
-    'Coaching insight: picture a clock with your head at 12: the arm travels from 6 to 12 in one plane, never drifting to 1 or 11.',
+    'Coaching insight: picture a clock, head at 12: the arm travels from 6 to 12 in one plane, never drifting toward 1 or 11.',
   ]},
   'Body Rotation & Timing': {icon:'rotationTiming', video:'backstroke body rotation timing technique', points:[
     'Setup: as one arm pulls and the other recovers, hips and shoulders rotate together toward the pulling side, as in freestyle.',
