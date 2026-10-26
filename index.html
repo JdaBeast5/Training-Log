@@ -6624,7 +6624,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.322';
+const APP_VERSION = '3.323';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7432,6 +7432,8 @@ const WHATS_NEW = {
     'The thirteen medically modified programs have shorter overviews. Every clearance step, limit and warning sign is still there.',
   ]},  '3.322': { headline: 'Progress shows green', points: [
     'A heavier lift, a higher estimated max or a longer distance now shows in green, not red.',
+  ]},  '3.323': { headline: 'Shorter days-per-week notes', points: [
+    'The notes for each days-per-week choice in Strength & Size, Bodybuilding, Olympic Lifting, Powerlifting and Powerbuilding are about half as long.',
   ]},
 };
 
@@ -14568,7 +14570,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   strength: {
     1: {
       short: 'One full-body session — the floor, not the ideal',
-      overview: 'A single weekly full-body session covering every major pattern — squat, hinge, horizontal push, horizontal pull — so nothing gets skipped outright if one day is genuinely all you have. Real frequency research (ACSM 2026/Currier et al., the same citation this program leans on elsewhere) finds training a muscle group twice a week beats once for both strength and hypertrophy, so if a 2nd day ever becomes possible, that single change would do more for your results than anything else in this plan.',
+      overview: 'One full-body session covering squat, hinge, push and pull, so nothing is skipped when one day is all you have. Training each muscle twice a week beats once, so a second day would help more than anything else.',
       days: {
         d1: { label:'Day 1', sub:'Full-Body Foundation', plate:'p-red', plateNum:'25', duration:'~65 min',
           exercises:[
@@ -14597,7 +14599,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Two full-body sessions a week, not a fragmented split',
-      overview: 'Two full-body sessions, each leading with a different big lift, so every major pattern still gets trained twice a week — the frequency floor real muscle-frequency research actually supports. An upper/lower split would only give each muscle group one weekly session with just two days total; alternating full-body sessions gives every pattern the 2x/week hit that matters more for strength and hypertrophy than which specific split you use.',
+      overview: 'Two full-body sessions, each led by a different big lift, so every pattern is trained twice a week. With two days, an upper/lower split would hit each muscle only once.',
       days: {
         d1: { label:'Day 1', sub:'Full Body A', plate:'p-red', plateNum:'25', duration:'~60 min',
           exercises:[
@@ -14630,7 +14632,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Three full-body sessions — squat, hinge, and pump-focused',
-      overview: 'Three full-body sessions, each built around a different lift so the same movement is never maxed out two days running, while every major pattern still gets trained three times a week — still full-body rather than a 3-way split, since a split at this frequency would drop each muscle back down to a single weekly session.',
+      overview: 'Three full-body sessions, each built around a different lift so nothing is maxed two days running. Every pattern is trained three times a week; a three-way split would drop that to once.',
       days: {
         d1: { label:'Day 1', sub:'Full Body — Squat Focus', plate:'p-red', plateNum:'25', duration:'~60 min',
           exercises:[
@@ -14672,7 +14674,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // selection matches exactly what already shipped, unchanged.
     5: {
       short: 'Upper/lower strength + hypertrophy, plus a dedicated accessory day',
-      overview: 'The same upper/lower strength-and-hypertrophy split as the default 4-day plan, plus a 5th day dedicated to what four heavy compound-lift days leave short — hamstrings, rear delts, and arms — rather than adding a 3rd near-max upper or lower session on top of the four you\'re already doing.',
+      overview: 'The 4-day upper/lower plan plus a fifth day for what heavy compound days leave short: hamstrings, rear delts and arms. It adds volume without a third near-max upper or lower session.',
       days: {
         d1: { label:'Day 1', sub:'Upper · Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -14729,7 +14731,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     6: {
       short: 'Upper/lower ×2 plus two accessory/conditioning days',
-      overview: 'The same upper/lower strength and hypertrophy days as lower frequencies, unchanged, with two ADDED days covering weak points and conditioning instead of a 3rd heavy upper and lower session. Repeating the same near-maximal lift a 3rd time in a week, on the same joints, with less recovery between attempts, is exactly where overuse risk shows up — so the extra training time goes into what four hard days leave short, not a copy of what they already cover.',
+      overview: 'The same upper/lower days, plus two days for weak points and conditioning. A third heavy upper and lower session would repeat near-max lifts on the same joints with less recovery, where overuse risk shows up.',
       days: {
         d1: { label:'Day 1', sub:'Upper · Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -14793,7 +14795,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'Six training days plus one deliberately easy recovery day',
-      overview: 'The same six days as the 6-day plan, completely unchanged — but the week does NOT add an 8th kind of hard session on top of an already-full 6 days. What was the lone rest/cardio slot becomes an explicit mobility-and-easy-cardio day instead: even training every single day, real programming still needs one day where nothing is loaded near failure. This is that day, framed honestly rather than dressed up as more training than it is.',
+      overview: 'The 6-day plan unchanged, with the rest slot turned into easy cardio and mobility. Even training daily, one day should load nothing near failure.',
       days: {
         d1: { label:'Day 1', sub:'Upper · Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -14859,7 +14861,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   bodybuilding: {
     1: {
       short: 'One full-body hypertrophy circuit — the floor, not the ideal',
-      overview: 'A single higher-volume full-body session, still bodybuilding-flavored (moderate-high reps, real isolation work) but structured full-body rather than a body-part split — a split at this frequency would leave most muscle groups untouched for a full week. If a 2nd day ever becomes possible, moving toward the 2-day plan would raise every muscle group\'s weekly frequency more than any other single change here.',
+      overview: 'One higher-volume full-body session, still bodybuilding style with moderate-high reps and isolation work. A split at one day would leave most muscles untrained all week; a second day would help most.',
       days: {
         d1: { label:'Day 1', sub:'Full-Body Hypertrophy Circuit', plate:'p-red', plateNum:'25', duration:'~65 min',
           exercises:[
@@ -14888,7 +14890,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Two full-body hypertrophy sessions a week',
-      overview: 'Two full-body sessions rather than a one-and-done body-part split — with only two days total, a true split would train each muscle group just once a week, the exact frequency gap this app\'s own citations argue against. Still bodybuilding-flavored throughout: moderate-high reps, real isolation accessories, not a powerlifting-style two-day plan wearing this program\'s name.',
+      overview: 'Two full-body sessions, because a split over two days trains each muscle only once a week. Still bodybuilding style: moderate-high reps and isolation accessories.',
       days: {
         d1: { label:'Day 1', sub:'Full Body A', plate:'p-red', plateNum:'25', duration:'~60 min',
           exercises:[
@@ -14921,7 +14923,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Classic Push/Pull/Legs, once through',
-      overview: 'The classic 3-day Push/Pull/Legs split — the most recognizable bodybuilding template at this frequency, and a fair choice for adherence even though a frequency purist would lean full-body instead (PPL at 3 days trains each muscle group once a week, same as any other 3-way split; full-body x3 would hit everything twice). If pure results-per-hour matters more to you than a familiar split, the 3-day full-body plan under Strength & Size trains at higher frequency for the same time investment.',
+      overview: 'Classic Push/Pull/Legs: familiar and easy to stick with, though it trains each muscle once a week. For more results per hour, Strength & Size\'s 3-day full-body plan trains everything twice.',
       days: {
         d1: { label:'Day 1', sub:'Push', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -14959,7 +14961,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Upper/lower ×2, bodybuilding-flavored',
-      overview: 'Upper/lower, twice through — higher frequency than the default 5-day body-part split, at the cost of some exercise variety per muscle group. Still moderate-high rep, isolation-leaning throughout, same as this program\'s identity everywhere else; the difference from a true body-part split is purely in how the same total weekly volume gets grouped into sessions.',
+      overview: 'Upper/lower twice through: more frequency than the 5-day body-part split, with a little less exercise variety per muscle. Same moderate-high reps and isolation work.',
       days: {
         d1: { label:'Day 1', sub:'Upper A', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -15005,7 +15007,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.bodybuilding), used as-is.
     6: {
       short: 'Push/Pull/Legs ×2 — the standard advanced bodybuilding split',
-      overview: 'Push/Pull/Legs, twice through — the standard high-frequency bodybuilding template at 6 days, genuinely training every muscle group twice a week with real exercise variety between the A and B session for each pattern, not a repeat of the same session. Each PPL round trains different exercises for the same pattern (e.g. Push A leads with a flat press, Push B with an incline press) specifically so nothing gets maxed out twice in the same way.',
+      overview: 'Push/Pull/Legs twice through, the standard advanced split: every muscle twice a week, with different exercises in the A and B sessions (a flat press one day, incline the next).',
       days: {
         d1: { label:'Day 1', sub:'Push A', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -15062,7 +15064,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'Push/Pull/Legs ×2 plus one deliberately easy recovery day',
-      overview: 'The same six Push/Pull/Legs ×2 days as the 6-day plan, completely unchanged — but the week does NOT add a 3rd round of PPL on top of an already-full 6 days. What was the lone rest/cardio slot becomes an explicit mobility-and-easy-cardio day instead: even training every single day, real programming still needs one day where nothing is loaded near failure. This is that day, framed honestly rather than dressed up as more training than it is.',
+      overview: 'The 6-day Push/Pull/Legs plan unchanged, with the rest slot turned into easy cardio and mobility rather than a third round. Even training daily, one day should load nothing near failure.',
       days: {
         d1: { label:'Day 1', sub:'Push A', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -15133,7 +15135,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   oly: {
     1: {
       short: 'One session touching both lifts — the genuine floor for this sport',
-      overview: 'A single weekly session touching both the snatch and the clean & jerk at moderate volume, since a full week only gets one shot at each. Be honest about what this can deliver: this is coaching-school consensus, not RCT evidence (weightlifting programming has no ACSM-equivalent position stand), but it consistently holds that technical skill benefits from frequent practice more than raw volume — one session a week is real training, but genuinely the wrong frequency to develop technique quickly. If a 2nd day ever becomes possible, splitting the two lifts into their own sessions would help more than anything else here.',
+      overview: 'One session touching both the snatch and the clean & jerk at moderate volume. Coaching consensus (not trial evidence) says technique improves with frequent practice, so a second day, splitting the lifts, would help most.',
       days: {
         d1: { label:'Day 1', sub:'Full Session — Snatch + Clean & Jerk', plate:'p-red', plateNum:'25', duration:'~70 min',
           exercises:[
@@ -15159,7 +15161,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Snatch day and Clean & Jerk day, split for real focus on each',
-      overview: 'The two competition lifts each get their own session instead of being crammed together — snatch gets real focused practice, clean & jerk gets its own. Still light on total frequency for a technical sport (coaching consensus, not RCT evidence, favors more frequent touches for skill acquisition), but a real improvement over one combined session.',
+      overview: 'The snatch and the clean & jerk each get their own session for focused practice. Coaching consensus would call that light for a technical sport, but it is a real step up from one combined day.',
       days: {
         d1: { label:'Day 1', sub:'Snatch + Pull Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -15191,7 +15193,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Snatch, Clean & Jerk, and a technique/strength consolidation day',
-      overview: 'Snatch and clean & jerk each keep their own dedicated day, with a 3rd day blending lighter technical pulls from both lifts with core work — real added practice without the fatigue cost of a 3rd near-maximal session. As with every count in this program, this leans on coaching consensus rather than RCT evidence — weightlifting programming has no ACSM-equivalent position stand to cite.',
+      overview: 'A snatch day and a clean & jerk day, plus a third day of lighter technical pulls and core: more practice, which coaching consensus favours, without a third near-max session.',
       days: {
         d1: { label:'Day 1', sub:'Snatch + Pull Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -15229,7 +15231,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'Snatch and Clean & Jerk days, each with a dedicated variation day',
-      overview: 'The two competition lifts each get both a technique-focused day and a variation day (power versions, balance/squat work) — real added exposure to each lift\'s positions without stacking two maximal-effort snatch or clean & jerk sessions back to back. As with every count in this program, this leans on coaching consensus rather than RCT evidence — weightlifting programming has no ACSM-equivalent position stand to cite.',
+      overview: 'Each competition lift gets a technique day and a variation day (power versions, squats and balance work), adding exposure, which coaching consensus favours, without back-to-back max sessions.',
       days: {
         d1: { label:'Day 1', sub:'Snatch + Pull Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -15275,7 +15277,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.oly), used as-is.
     6: {
       short: 'The full 5-day program plus a light technical-touch day',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of deliberately light technical touches — lower-percentage singles and doubles on both lifts, focused purely on positions. Unlike a hypertrophy program, Olympic lifting genuinely benefits from more frequent skill practice (coaching consensus, not RCT evidence) — but heavy technical work 6 days a week would be real CNS and joint overuse, so this stays deliberately light rather than adding another near-maximal session.',
+      overview: 'The 5-day program plus a light sixth day of low-percentage singles and doubles on positions. More practice helps technique (coaching consensus), but heavy lifting six days a week would mean overuse, so it stays light.',
       days: {
         d1: { label:'Day 1', sub:'Snatch + Pull Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -15330,7 +15332,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, with the recovery argument still winning on the rest day',
-      overview: 'The same six days as the 6-day plan, completely unchanged. Olympic lifting has a real, genuine argument (coaching consensus, not RCT evidence — this program is upfront about that at every count) for training technique more often than most programs would ever recommend — but even so, this program still keeps one truly bar-free day. CNS and joint recovery from technical lifting isn\'t optional, no matter how light the reps would be, so the frequency-for-skill argument does not win out here.',
+      overview: 'The 6-day plan unchanged, keeping one day with no barbell at all. Coaching consensus favours frequent practice, but joints and the nervous system still need that day.',
       days: {
         d1: { label:'Day 1', sub:'Snatch + Pull Strength', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -15395,7 +15397,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   powerlifting: {
     1: {
       short: 'Full-body, all three lifts, lighter — one shot at everything',
-      overview: 'One session touching all three competition lifts, since a single day can\'t dedicate real focus to each. Deadlift volume stays capped even here — real powerlifting programming (5/3/1, Sheiko, GZCL) treats it differently from squat and bench because its per-rep systemic fatigue cost is highest of the three, so it\'s one top set here, not three.',
+      overview: 'One session touching all three lifts, lighter. Deadlift stays at one top set because it is the most fatiguing of the three per rep.',
       days: {
         d1: { label:'Day 1', sub:'Full-Body — All Three Lifts', plate:'p-red', plateNum:'25', duration:'~65 min',
           exercises:[
@@ -15421,7 +15423,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Two full-power sessions — Squat+Bench led, Deadlift+Bench led',
-      overview: 'Two sessions rather than three single-lift days — with only two days, dedicating a whole session to just one lift would leave the other two badly under-trained. Squat leads one session, deadlift leads the other, and bench appears in both since it tolerates more frequency than the other two.',
+      overview: 'Two sessions, one led by squat and one by deadlift, with bench in both since it tolerates the most frequency. Single-lift days would leave two lifts under-trained.',
       days: {
         d1: { label:'Day 1', sub:'Squat + Bench', plate:'p-red', plateNum:'25', duration:'~60 min',
           exercises:[
@@ -15451,7 +15453,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Classic 3-day — one lift, one day, no dilution',
-      overview: 'The classic minimalist powerlifting template — squat, bench, and deadlift each get their own full day, no accessory-only days diluting focus. Real, well-established structure at this frequency, not a scaled-down version of the 5-day plan.',
+      overview: 'The classic three-day template: squat, bench and deadlift each get their own full day, with no accessory-only days diluting focus.',
       days: {
         d1: { label:'Day 1', sub:'Squat Focus', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -15489,7 +15491,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'The big three, plus dedicated bench volume',
-      overview: 'Squat, bench, and deadlift each keep their own day, plus a 4th day of bench accessory volume — bench tolerates more frequency than squat or deadlift, so it\'s the natural lift to add a 2nd session for rather than risking a 2nd max-effort squat or deadlift day.',
+      overview: 'A day each for squat, bench and deadlift, plus a bench volume day. Bench handles extra frequency best, so it gets the second session instead of another heavy squat or deadlift.',
       days: {
         d1: { label:'Day 1', sub:'Squat Focus', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -15535,7 +15537,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.powerlifting), used as-is.
     6: {
       short: 'The full 5-day program plus a speed & technique day',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of sub-maximal speed and technique work across all three lifts (real powerlifting concept — Westside-style speed work, Sheiko-style technique volume) rather than a 2nd max-effort session on an already-heavy lift. Deadlift in particular stays sub-maximal here on purpose — it\'s the lift real programming is most conservative about repeating heavy in the same week.',
+      overview: 'The 5-day program plus a sixth day of sub-maximal speed and technique work on all three lifts. Deadlift stays light that day on purpose, since it is the riskiest lift to repeat heavy.',
       days: {
         d1: { label:'Day 1', sub:'Squat Focus', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -15591,7 +15593,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, plus one deliberately easy recovery day',
-      overview: 'The same six days as the 6-day plan, completely unchanged — but the week does NOT add an 8th kind of hard session on top of an already-full 6 days. What was the lone rest/mobility slot becomes explicit light cardio and mobility instead: even training every single day, real programming still needs one day where nothing is loaded near failure.',
+      overview: 'The 6-day plan unchanged, with the rest slot turned into light cardio and mobility. Even training daily, one day should load nothing near failure.',
       days: {
         d1: { label:'Day 1', sub:'Squat Focus', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -15649,7 +15651,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
   powerbuilding: {
     1: {
       short: 'Full-body, squat-led — the floor for this program\'s "one heavy lift + accessories" identity',
-      overview: 'This program\'s identity everywhere else is one heavy barbell lift leading into accessory volume — at one day a week, that identity is preserved by making squat the lead (it recruits the most total muscle mass of the three big lifts) and choosing accessories that cover the rest of the body, rather than abandoning the format for a generic full-body day.',
+      overview: 'One full-body day that keeps the program\'s format: a heavy squat first, since it works the most muscle, then accessories that cover the rest of the body.',
       days: {
         d1: { label:'Day 1', sub:'Squat-Led Full Body', plate:'p-red', plateNum:'25', duration:'~65 min',
           exercises:[
@@ -15676,7 +15678,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     2: {
       short: 'Two full-body sessions, Squat+Bench led and Deadlift+OHP led',
-      overview: 'Two sessions, each led by a different heavy lift with accessories chosen to cover the rest of the body — Squat+Bench on one day, Deadlift+Overhead Press on the other, so both days stay genuinely full-body rather than upper/lower fragments.',
+      overview: 'Two full-body days, each led by heavy lifts with accessories to cover the rest: squat and bench one day, deadlift and overhead press the other.',
       days: {
         d1: { label:'Day 1', sub:'Squat + Bench Led', plate:'p-red', plateNum:'25', duration:'~60 min',
           exercises:[
@@ -15708,7 +15710,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     3: {
       short: 'Squat, Bench, and Deadlift each lead their own day',
-      overview: 'Three of the program\'s four heavy-lift days — Squat, Bench, Deadlift — each keeping their own accessory work. Overhead Press is the one lift that doesn\'t fit at this frequency; it returns at 4 days and up.',
+      overview: 'Squat, bench and deadlift each lead their own day with accessories. Overhead press returns at four days and up.',
       days: {
         d1: { label:'Day 1', sub:'Squat + Legs', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -15749,7 +15751,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     4: {
       short: 'All four heavy lifts, no pump day yet',
-      overview: 'Squat, Bench, Deadlift, and Overhead Press each get their own full day exactly as in the default 5-day program — the only thing missing is the dedicated Accessory Pump day, which returns at 6 days and up as real added volume rather than being squeezed in here at the cost of a heavy-lift day.',
+      overview: 'Squat, bench, deadlift and overhead press each get their full day, as in the 5-day plan. Only the pump day is missing; it returns at six days and up.',
       days: {
         d1: { label:'Day 1', sub:'Squat + Legs', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -15799,7 +15801,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     // (DAYS_PER_WEEK_ORIGINAL.powerbuilding), used as-is.
     6: {
       short: 'The full 5-day program plus a 2nd arms & weak-points day',
-      overview: 'The same 5 training days as the default program, unchanged, plus a 2nd accessory day covering arms, rear delts, and hamstrings — extending this program\'s own established finding (see the Accessory Pump Day\'s in-code notes) that those groups were the real volume gap, rather than adding a 2nd heavy squat, bench, deadlift, or overhead press session on top of an already-full week of top sets.',
+      overview: 'The 5-day program plus a second accessory day for arms, rear delts and hamstrings, where volume falls short, rather than another heavy top-set day.',
       days: {
         d1: { label:'Day 1', sub:'Squat + Legs', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[
@@ -15863,7 +15865,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     },
     7: {
       short: 'The 6-day plan, plus one deliberately easy recovery day',
-      overview: 'The same six days as the 6-day plan, completely unchanged — but the week does NOT add an 8th kind of hard session on top of an already-full 6 days. What was the lone rest/cardio slot becomes explicit light mobility instead: even training every single day, real programming still needs one day where nothing is loaded near failure.',
+      overview: 'The 6-day plan unchanged, with the rest slot turned into light mobility. Even training daily, one day should load nothing near failure.',
       days: {
         d1: { label:'Day 1', sub:'Squat + Legs', plate:'p-red', plateNum:'25', duration:'~55 min',
           exercises:[

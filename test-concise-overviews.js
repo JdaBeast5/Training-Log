@@ -13,6 +13,13 @@
 //     per entry below) — a shorter overview that dropped "none of these teach
 //     you to fight safely" would be a worse one, not a more concise one.
 // Each batch adds its entries to MUST_KEEP.
+//
+// v3.323+ (owner: "overall just less writing and less redundancy in the app
+// with its writing"): the 222 day-count variant overviews (shown in place of
+// the main overview once a days-per-week is picked) are rewritten the same
+// way, per program, to at most 45 words. VARIANTS_DONE lists the programs
+// rewritten so far. Their per-program rules (distinct per count, oly's
+// "coaching consensus" honesty) stay in test-configurable-training-days.js.
 const { readIndexSource, extractConst, extractFunction, runSandbox, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
@@ -81,6 +88,21 @@ const MUST_KEEP = {
   'MEDICAL_STYLES.rehabLowerback': [/neutral spine/, /McGill/, /saddle numbness/, /seek care immediately/],
 };
 
+const VARIANTS_DONE = [
+  // v3.323
+  'strength', 'bodybuilding', 'oly', 'powerlifting', 'powerbuilding',
+];
+
+function variants(){
+  const [out] = runSandbox([extractConst(src, 'PROGRAM_DAY_COUNT_VARIANTS')], `
+    const out = {};
+    (function walk(o, path){ for(const [k, v] of Object.entries(o)){ if(v && typeof v === 'object'){
+      if(typeof v.overview === 'string' && v.days) out[path.concat(k).join('.')] = v.overview; else walk(v, path.concat(k)); } } })(PROGRAM_DAY_COUNT_VARIANTS, []);
+    __capture.push(JSON.parse(JSON.stringify(out)));
+  `);
+  return out;
+}
+
 function entries(){
   const chunks = [
     extractConst(src, 'programs'), extractConst(src, 'CUSTOM_PROGRAM_PREFIX'), extractFunction(src, 'isCustomProgramKey'),
@@ -111,6 +133,19 @@ test('REAL data: the point each overview must keep survived the cut', (assert)=>
   const lost = [];
   for(const [k, patterns] of Object.entries(MUST_KEEP)) for(const p of patterns) if(!p.test(all[k])) lost.push(`${k}: ${p}`);
   assert.deepStrictEqual(lost, []);
+});
+
+test('REAL data (v3.323+): day-count variant overviews of the rewritten programs are at most 45 words', (assert)=>{
+  const all = variants();
+  assert.strictEqual(Object.keys(all).length, 222, 'anchor: the real 222 day-count variants');
+  const done = Object.keys(all).filter(p => VARIANTS_DONE.includes(p.split('.')[0]) || VARIANTS_DONE.includes(p.split('.').slice(0, 2).join('.')));
+  assert.strictEqual(done.length, VARIANTS_DONE.length * 6, 'anchor: six variants per listed program');
+  assert.deepStrictEqual(done.map(p => [p, all[p].split(/\s+/).length]).filter(([, n]) => n > 45), []);
+});
+
+test('REAL data (v3.323+): no overview tells the user to read the code or the app\u2019s own citations', (assert)=>{
+  const texts = [...Object.values(variants()), ...Object.values(entries())];
+  assert.deepStrictEqual(texts.filter(t => /in-code|this app's own citations|the same citation this program/i.test(t)), []);
 });
 
 run();
