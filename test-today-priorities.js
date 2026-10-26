@@ -8,6 +8,10 @@
 // list showed both — and they disagreed: Readiness's single-flag note says
 // "not a reason to change the plan on its own", the Sleep row said "consider
 // trimming today's session".
+// v3.381 — The Deload-week row is gone. The day header already reads
+// "Week 5 of 5 · Deload" from the same isDeloadWeek() (manual deloads too),
+// the session time says "(deload)", the sets are already cut and the chips
+// suggest the lighter weights; the row repeated all of it as a paragraph.
 const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const { test, run } = makeRunner('test-today-priorities.js');
@@ -38,6 +42,15 @@ test('REAL invocation (v3.380): with a short night, the list says it once, throu
   const rows = rowsOf(w);
   assert.strictEqual(rows.length, 1);
   assert.match(rows[0], /Slept 5h/);
+});
+
+test('REAL source (v3.381): no deload row; the day header carries the deload week from the same check', (assert)=>{
+  assert.ok(!SOURCES.includes('getDeloadInsight'));
+  assert.doesNotMatch(src, /function getDeloadInsight\(/);
+  assert.match(extractFunction(src, 'mesocyclePhaseTag'), /Week \$\{cyclePos\} of \$\{DELOAD_CYCLE_WEEKS\} · Deload/);
+  const render = extractFunction(src, 'renderWorkout');
+  assert.match(render, /const inDeloadWeek = await isDeloadWeek\(\);/, 'the header asks isDeloadWeek(), which includes the manual toggle');
+  assert.match(render, /mesocyclePhaseTag\(cyclePos, inDeloadWeek\)/);
 });
 
 run();

@@ -20,8 +20,9 @@ const EMOJI = /\p{Extended_Pictographic}/gu;
 const code = s => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
 
 // 2026-10-26 (v3.380): getSleepInsight was removed (Readiness covers short
-// sleep; test-today-priorities.js), so the list is six getters now.
-const INSIGHT_GETTERS = ['getDeloadInsight', 'getStaleRestingRegionInsight', 'getWeighInReminderInsight',
+// sleep; test-today-priorities.js), and getDeloadInsight in v3.381 (the day
+// header already shows the deload week).
+const INSIGHT_GETTERS = ['getStaleRestingRegionInsight', 'getWeighInReminderInsight',
   'getWaterPaceInsight', 'getSessionHeadsUpInsight', 'getFoundationalStackNudgeInsight'];
 
 test('REAL markup: no emoji anywhere in the Today screen\'s static markup (header, nav, the tab, both floating buttons)', (assert)=>{

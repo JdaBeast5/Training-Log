@@ -6789,7 +6789,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.380';
+const APP_VERSION = '3.381';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7736,6 +7736,9 @@ const WHATS_NEW = {
   ]},
   '3.380': { headline: 'Fewer repeats in Today\'s Priorities', points: [
     'Short sleep shows once, in the Readiness row, instead of also as a separate sleep row with different advice.',
+  ]},
+  '3.381': { headline: 'Fewer repeats in Today\'s Priorities', points: [
+    'The deload-week row is gone: the day header already shows the deload week, and the suggested weights already account for it.',
   ]},
 };
 
@@ -13137,12 +13140,11 @@ async function getPregnancyHeatInsight(){
   return '<b>Hot Yoga while pregnant.</b> ACOG advises avoiding exercise in excessive heat during pregnancy, especially in the first trimester. The Flow style covers the same poses without the heated room. Worth raising with your OB or midwife before your next session.';
 }
 
-async function getDeloadInsight(){
-  const isDeload = await isDeloadWeek();
-  if(!isDeload) return null;
-  const week = await getMesocycleWeek();
-  return `<b>Deload week (week ${week}):</b> A planned lighter week — sets are already trimmed below (roughly 40-50% less volume), and working weights should come down another ~10-20% on top of that. This combination is what actually lets the last month of hard training turn into progress instead of just accumulated fatigue — cutting weight alone while keeping full volume is one of the most common ways a deload fails to do its job.`;
-}
+// v3.381: the Deload-week row (getDeloadInsight) was removed from Today's
+// Priorities. The day header already says "Week 5 of 5 · Deload" (from the
+// same isDeloadWeek(), so a manual deload too), the session time reads
+// "(deload)", the sets are already cut, and the chips suggest the lighter
+// weights — the row only repeated all of that as a paragraph.
 
 // --- Stale resting-region check-in: Care lets you mark a region as resting,
 // but nothing ever prompted you back to it — it could sit there indefinitely
@@ -13377,8 +13379,8 @@ async function renderTodayInsights(){
   const el = document.getElementById('todayInsightsList');
   if(!card || !el) return;
 
-  const [deload, cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge, cycleNutrition] = await Promise.all([
-    getDeloadInsight(), getCycleInsight(),
+  const [cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge, cycleNutrition] = await Promise.all([
+    getCycleInsight(),
     getStaleRestingRegionInsight(), getWeighInReminderInsight(), getWaterPaceInsight(), getSessionHeadsUpInsight(),
     getDeficitGuardrailInsight(), getPregnancyHeatInsight(), getBackupReminderInsight(),
     getReadinessInsight(), getFoundationalStackNudgeInsight(), getCyclePhaseNutritionInsight(),
@@ -13398,9 +13400,8 @@ async function renderTodayInsights(){
   // readiness sits directly under the safety item and above the session heads-up.
   // It is the one row that answers "should I train hard today", which is the
   // question the heads-up and everything below it are all downstream of — and
-  // it synthesises the deload row further down, so reading it first makes that
-  // land as detail rather than as new information. (It used to synthesise a
-  // sleep row too; that row was removed in v3.380 as a duplicate of it.)
+  // it synthesised the sleep and deload rows that used to sit below it (both
+  // removed as duplicates, v3.380 and v3.381).
   // stackNudge sits directly under cycle: it's the same context (a flagged
   // condition or, per that row, the current cycle phase) turned into an
   // actionable pointer, so reading them back to back keeps cause and
@@ -13410,7 +13411,7 @@ async function renderTodayInsights(){
   // half instead of the training/supplement halves. All three reading
   // together as one group keeps every angle on "what does this phase mean
   // for me" adjacent, rather than nutrition being the one orphaned elsewhere.
-  const items = [pregnancyHeat, readiness, sessionHeadsUp, deficit, deload, cycle, stackNudge, cycleNutrition, staleRegion, weighIn, waterPace, backup].filter(Boolean);
+  const items = [pregnancyHeat, readiness, sessionHeadsUp, deficit, cycle, stackNudge, cycleNutrition, staleRegion, weighIn, waterPace, backup].filter(Boolean);
   if(items.length === 0){
     card.style.display = 'none';
     return;
