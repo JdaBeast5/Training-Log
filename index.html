@@ -4627,6 +4627,13 @@
     min-height:52px; font-size:15px; width:100%;
     border-radius:14px; margin-top:8px;
   }
+  /* v3.394: in gym mode "Same as Last Time" is a quiet link under the
+     working-set chips, not a full-width button between them and the rest of
+     the exercise: the chips and the dock do the logging there. */
+  body.gym-mode .set-actions .same-as-last-btn{
+    width:auto; flex:0 0 auto; min-height:44px; margin:0; padding:0 4px;
+    background:none; border:0; border-radius:0; font-size:15px; text-align:left;
+  }
   body.gym-mode .exercise-block, body.gym-mode .sets-block{box-shadow:none;}
   /* v3.28. These were `background:transparent` — no fill, no border, no
      shadow — so everything that was not the current exercise was text floating
@@ -4715,6 +4722,7 @@
   /* [GYM SET CHIPS, v3.301] The dock's Log button: the session's next set. */
   .gym-dock .gym-log-btn{flex:1 1 auto; width:auto; min-width:0; min-height:56px; margin:0; padding:0 14px; font-size:17px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .gym-dock .gym-log-btn[hidden]{display:none;}
+  .gym-dock .gym-log-btn.is-warmup{background:var(--plate-orange); box-shadow:none;} /* v3.393: a warm-up step */
   /* The open exercise's sets as big chips, two to a row (HIG workouts: large
      numerals, minimal text). Logging is the chips and the set sheet, so the
      cramped field rows are not shown in gym mode; they stay in the page as
@@ -4723,6 +4731,22 @@
   body.gym-mode .exercise-block.open > .set-chips{display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:4px 0 16px;}
   body.gym-mode .exercise-block.open > .set-chips .set-chip{max-width:none; min-height:76px; border-radius:22px; font-size:26px; font-weight:600;}
   body.gym-mode .set-chip-tag{font-size:13px;}
+  /* [GYM WARM-UP CHIPS, v3.392] Gym mode only: the warm-up ramp as a row of
+     orange chips ABOVE the working sets, in the order they are done, instead
+     of field rows below them. The rows stay in the page as the source of
+     truth (and come back with Edit). Skip hides the whole ramp for today. Literal orange rgba(), as everywhere in
+     this gym-mode block (see the rgba consolidation guard). */
+  .warmup-chips{display:none;}
+  body.gym-mode .exercise-block.open > .warmup-chips{display:block; padding:2px 0 14px;}
+  .warmup-chips-head{display:flex; align-items:center; gap:4px; margin:0 0 8px;}
+  .warmup-chips-title{flex:1 1 auto; font-size:13px; font-weight:600; color:var(--plate-orange);}
+  .warmup-chips-head .link-btn{min-height:44px; padding:0 10px; font-size:15px;}
+  .warmup-chips-row{display:grid; grid-template-columns:repeat(auto-fit, minmax(64px, 1fr)); gap:8px;}
+  .warmup-chips .set-chip{max-width:none; min-height:56px; border-radius:18px; font-size:18px; font-weight:600;
+    background:rgba(255,122,51,.12); border-color:rgba(255,122,51,.35); color:var(--plate-orange);}
+  .warmup-chips .set-chip.is-done{background:rgba(255,122,51,.06); border-color:transparent; color:var(--text-muted); text-decoration:line-through;}
+  .warmup-chips .set-chip.is-ready{background:var(--plate-orange); border-color:transparent; color:#fff;}
+  body.gym-mode .exercise-block:not(.warmup-editing) .warmup-strip{display:none;}
   body.gym-mode .set-chip-trend{font-size:18px;}
   body.gym-mode .sets-block > .set-row{display:none;}
   /* v3.316: the gym-mode styling for the parts of those rows (the field
@@ -6911,7 +6935,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.391';
+const APP_VERSION = '3.395';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7891,6 +7915,18 @@ const WHATS_NEW = {
   ]},
   '3.391': { headline: 'Rest days stay rest days', points: [
     'A rest day no longer shows the last training day\'s lift in Up next.',
+  ]},
+  '3.392': { headline: 'Warm-ups first in gym mode', points: [
+    'In gym mode the warm-up ramp is a row of chips above your working sets. Tap a step when it\'s done, or Skip the whole ramp.',
+  ]},
+  '3.393': { headline: 'Log button walks the warm-ups', points: [
+    'In gym mode the Log button logs each warm-up step first, in orange with Undo, then your working sets.',
+  ]},
+  '3.394': { headline: 'Quieter Same as Last Time in gym mode', points: [
+    'In gym mode, Same as Last Time is a small link under your sets instead of a full-width button.',
+  ]},
+  '3.395': { headline: 'Sets that match your program', points: [
+    'When your last session of a lift was in another program, today\'s sets now start from one working weight at today\'s reps, instead of copying that program\'s set-by-set pattern.',
   ]},
 };
 
@@ -26603,6 +26639,27 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
   return {direction:null, html:''};
 }
 
+// [v3.395] Which of last session's sets a set slot starts from. From this
+// program's own history: the matching set, as always (set 2 from set 2). From
+// ANOTHER program (the cross-program fallback), set-by-set copying carries that
+// program's shape into this one — a pyramid 135×10 … 275×4 became the five
+// "suggestions" for a 5×5 Squat. So every slot starts from one working set: the
+// heaviest set that reached today's bottom rep, at today's reps. None reached
+// it → no basis (an honest empty field beats a weight you have never done for
+// those reps). Sets without a weight (bodyweight, timed) keep the old copy.
+function priorSetForSlot(prior, setIdx, ex, crossProgram){
+  if(!prior || !Array.isArray(prior.sets)) return null;
+  const own = prior.sets[setIdx] || null;
+  if(!crossProgram) return own;
+  const logged = prior.sets.filter(st => st && st.weight != null && st.reps != null);
+  if(!logged.length) return own;
+  const bottom = parseBottomRep(ex.sets);
+  const reaching = bottom == null ? logged : logged.filter(st => st.reps >= bottom);
+  if(!reaching.length) return null;
+  const basis = reaching.reduce((a, st) => st.weight > a.weight ? st : a);
+  return {weight: basis.weight, reps: bottom != null ? bottom : basis.reps};
+}
+
 function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, priorTop, rpeCtx){
   if(!priorSet || priorSet.weight == null) return null;
 
@@ -27611,10 +27668,11 @@ async function renderWorkout(){
         // placeholder; the ramp builders take lb. toCanonicalLb is the inverse
         // and skipping it silently ramps a kg user off a number 2.2x too big.
         const todayFirstSet = todayEntry && todayEntry.sets && todayEntry.sets[0];
-        const suggestedFirst = computeSuggestedSet(
-          (prior && prior.sets[0]) ? prior.sets[0] : null,
-          signal, inDeloadWeek, exCategory, ex, priorTop, rpeCtx);
-        const rampBasis = chooseRampBasis(todayFirstSet, suggestedFirst, priorTop);
+        // v3.395: from the same slot basis the fields use; from another
+        // program, its fallback is that basis too, not that program's top set.
+        const firstBasis = priorSetForSlot(prior, 0, ex, priorIsCrossProgram);
+        const suggestedFirst = computeSuggestedSet(firstBasis, signal, inDeloadWeek, exCategory, ex, priorTop, rpeCtx);
+        const rampBasis = chooseRampBasis(todayFirstSet, suggestedFirst, priorIsCrossProgram ? (firstBasis || priorTop) : priorTop);
         if(rampBasis && rampBasis.weight >= minWeight){
           // The name goes in so the steps can be snapped to what this person can
           // actually load, the same way the working-set suggestion already is.
@@ -27702,7 +27760,7 @@ async function renderWorkout(){
       // array back into one string, same output as before this change.
       setRowHtmlArr = Array.from({length: setCount}).map((_,setIdx)=>{
         const savedSet = todayEntry && todayEntry.sets[setIdx] ? todayEntry.sets[setIdx] : null;
-        const placeholderSet = prior && prior.sets[setIdx] ? prior.sets[setIdx] : null;
+        const placeholderSet = priorSetForSlot(prior, setIdx, ex, priorIsCrossProgram); // v3.395
         // What the field ghosts: the progression verdict when there is one,
         // otherwise last session's own number exactly as before. Never applied
         // to a set that already has a logged value — a saved set shows what was
@@ -29569,11 +29627,68 @@ function renderSetChips(blockEl, glowRow){
   strip.hidden = rows.length === 0;
 }
 
+// [GYM WARM-UP CHIPS, v3.392] The loggable ramp (.warmup-set-row, rendered
+// when warm-up sets are on) as chips before the working-set chips. Read fresh
+// from the rows each time, like the set chips. Tapping a chip ticks the real
+// row's checkbox (its own change handler saves), and again unticks it; Edit
+// shows the rows; Skip hides every step for today through the same
+// warmupsSkipped list a swipe writes. With every step hidden, the row offers
+// the way back instead.
+function renderWarmupChips(blockEl){
+  const rows = [...blockEl.querySelectorAll('.warmup-strip .warmup-set-row')];
+  const strip = blockEl.querySelector('.warmup-strip');
+  const restore = strip && strip.querySelector('.warmup-restore-btn');
+  let box = blockEl.querySelector(':scope > .warmup-chips');
+  if(!rows.length && !restore){ if(box) box.remove(); return; }
+  if(!box){
+    box = document.createElement('div');
+    box.className = 'warmup-chips';
+    blockEl.querySelector(':scope > .set-chips').before(box);
+  }
+  const editing = blockEl.classList.contains('warmup-editing');
+  box.innerHTML = rows.length
+    ? `<div class="warmup-chips-head"><span class="warmup-chips-title">Warm-up · not counted</span>
+        <button type="button" class="link-btn warmup-chips-edit" aria-expanded="${editing}">${editing ? 'Done' : 'Edit'}</button>
+        ${strip && strip._skipAll ? '<button type="button" class="link-btn warmup-chips-skip">Skip</button>' : ''}</div>
+       <div class="warmup-chips-row" role="group" aria-label="Warm-up steps"></div>`
+    : `<div class="warmup-chips-head"><span class="warmup-chips-title">Warm-up skipped</span>
+        <button type="button" class="link-btn warmup-chips-restore">Restore</button></div>`;
+  const row = box.querySelector('.warmup-chips-row');
+  let readyGiven = false;
+  rows.forEach(r => {
+    const done = !!(r.querySelector('.warmup-done') || {}).checked;
+    const w = (r.querySelector('.warmup-weight') || {}).value || '';
+    const reps = (r.querySelector('.warmup-reps') || {}).value || '';
+    const label = r.dataset.stepLabel || '';
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    const ready = !done && !readyGiven;
+    if(ready) readyGiven = true;
+    chip.className = 'set-chip warmup-chip ' + (done ? 'is-done' : ready ? 'is-ready' : 'is-pending');
+    chip.dataset.stepIdx = r.dataset.stepIdx;
+    chip.textContent = w && reps ? `${w}×${reps}` : (w || reps || label);
+    chip.setAttribute('aria-label', `Warm-up ${label}: ${w} ${weightUnit} × ${reps}${done ? ', done, tap to undo' : ', tap to mark done'}`);
+    chip.addEventListener('click', () => {
+      const cb = r.querySelector('.warmup-done');
+      if(!cb) return;
+      cb.checked = !cb.checked;
+      cb.dispatchEvent(new Event('change', {bubbles:true}));
+      renderWarmupChips(blockEl);
+      if(typeof refreshGymLogBtn === 'function') refreshGymLogBtn(); // v3.393: the dock follows
+    });
+    row.appendChild(chip);
+  });
+  const on = (sel, fn) => { const b = box.querySelector(sel); if(b) b.addEventListener('click', fn); };
+  on('.warmup-chips-edit', () => { blockEl.classList.toggle('warmup-editing'); renderWarmupChips(blockEl); });
+  on('.warmup-chips-skip', () => strip._skipAll());
+  on('.warmup-chips-restore', () => { if(restore) restore.click(); });
+}
+
 function renderAllSetChips(){
   const list = document.getElementById('exerciseList');
   if(!list) return;
   const glow = findNextSetRow(list).row;
-  list.querySelectorAll(':scope > .exercise-block').forEach(b => { renderSetChips(b, glow); renderExerciseLogger(b); });
+  list.querySelectorAll(':scope > .exercise-block').forEach(b => { renderSetChips(b, glow); renderWarmupChips(b); renderExerciseLogger(b); });
   refreshGymLogBtn();
 }
 
@@ -29585,7 +29700,7 @@ function refreshGymLogBtn(){
   const list = document.getElementById('exerciseList');
   if(!btn || !list) return;
   const next = findNextSetRow(list).row;
-  const chip = list.querySelector('.set-chip.is-next');
+  let chip = list.querySelector('.set-chip.is-next');
   btn.hidden = !next;
   if(!next) return;
   // In gym mode the open exercise follows the next set (one open at a time),
@@ -29598,12 +29713,54 @@ function refreshGymLogBtn(){
       setExerciseBlockOpen(block, true);
     }
   }
+  // v3.393: warm-ups first. While this exercise has a warm-up step left and no
+  // working set logged yet, the button logs that step (orange), and the
+  // working chip waits to glow until the ramp is done or skipped.
+  const warm = gymModeActive ? pendingWarmupChip(next.closest('.exercise-block')) : null;
+  btn.classList.toggle('is-warmup', !!warm);
+  if(warm){
+    list.querySelectorAll('.set-chip.is-next').forEach(c => c.classList.remove('is-next'));
+    btn.textContent = `Log ${warm.textContent}`;
+    btn.setAttribute('aria-label', warm.getAttribute('aria-label').replace(', tap to mark done', '') + ', log it');
+    return;
+  }
+  // The ramp just finished: the glow comes back, on the chip renderSetChips
+  // would give it (the next set's, when it is loggable).
+  if(!chip){
+    const own = list.querySelector(`.set-chip[data-ex-idx="${next.dataset.exIdx}"][data-set-idx="${next.dataset.setIdx}"]`);
+    if(own && own.dataset.loggable){ own.classList.add('is-next'); chip = own; }
+  }
   const label = chip ? (chip.querySelector('.set-chip-val') || {}).textContent : '';
   btn.textContent = label ? `Log ${label}` : 'Log set';
   btn.setAttribute('aria-label', chip ? chip.getAttribute('aria-label').replace(', tap to log', '') + ', log it' : 'Log the next set');
 }
+// The warm-up step the dock logs next: the ready chip, but only while none of
+// the exercise's working sets is logged (once you are into them, the ramp is
+// behind you whether or not every step was ticked).
+function pendingWarmupChip(block){
+  if(!block) return null;
+  const warm = block.querySelector(':scope > .warmup-chips .set-chip.is-ready');
+  if(!warm) return null;
+  const started = [...block.querySelectorAll('.sets-block .set-row[data-set-idx] .ex-reps')].some(r => r.value !== '');
+  return started ? null : warm;
+}
+
 document.getElementById('gymLogBtn').addEventListener('click', ()=>{
   const list = document.getElementById('exerciseList');
+  const nextRow = list && findNextSetRow(list).row;
+  const block = nextRow && nextRow.closest('.exercise-block');
+  const warm = gymModeActive ? pendingWarmupChip(block) : null;
+  if(warm){
+    const step = warm.dataset.stepIdx, label = warm.textContent;
+    warm.click();
+    refreshGymLogBtn();
+    showUndoToast(`Logged warm-up ${label}`, ()=>{
+      const again = block.querySelector(`:scope > .warmup-chips .set-chip[data-step-idx="${step}"]`);
+      if(again && again.classList.contains('is-done')) again.click();
+      refreshGymLogBtn();
+    });
+    return;
+  }
   const chip = list && list.querySelector('.set-chip.is-next');
   if(chip){ chip.click(); return; }
   const next = list && findNextSetRow(list).row;
@@ -29904,6 +30061,7 @@ function enterGymMode(opts){
   // scrolling decision below.
   showView('today', {scrollTop:false});
   openFirstIncompleteExercise();
+  renderAllSetChips(); // v3.393: the Log button and glow know about warm-ups only in gym mode
   refreshGymDock();
 
   // The wake lock, one signal earlier than before. `noteWorkoutActivity` still
@@ -29936,6 +30094,7 @@ function exitGymMode(){
   // true for 280ms would let a set logged in that window re-enter the mode
   // being left.
   gymModeActive = false;
+  renderAllSetChips(); // v3.393: give the working set back its glow (warm-ups are gym-only)
   const leaveMs = gymLeaveDuration();
   if(leaveMs === 0){
     finishGymLeave();
@@ -30728,6 +30887,27 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
     }
 
     makeSwipeable(setRow, ()=> deleteSet(setRow));
+  }
+
+  // v3.392: gym mode's "Skip" hides the whole ramp for today — every step's
+  // label into warmupsSkipped, with the same snapshot Undo hideWarmupStep uses.
+  const warmupStrip = block.querySelector('.warmup-strip');
+  if(warmupStrip && warmupStrip.querySelector('.warmup-set-row')){
+    warmupStrip._skipAll = async ()=>{
+      const key = exKey(activeProgram, activeDay, exIdx, subVariant);
+      let snapshot = null;
+      try{ const item = await window.storage.get(key); snapshot = (item && item.value) ? item.value : null; }catch(e){}
+      const labels = [...warmupStrip.querySelectorAll('.warmup-set-row')].map(r=> r.dataset.stepLabel).filter(Boolean);
+      const log = await getExLog(activeDay, exIdx, subVariant);
+      const entry = log.find(e=> e.date === selectedLogDate);
+      const already = (entry && Array.isArray(entry.warmupsSkipped)) ? entry.warmupsSkipped : [];
+      await saveExWarmupSkipped(activeDay, exIdx, already.concat(labels), subVariant);
+      await renderWorkout();
+      showUndoToast('Warm-up skipped', async ()=>{
+        if(snapshot != null){ try{ await window.storage.set(key, snapshot); }catch(e){} }
+        renderWorkout();
+      });
+    };
   }
 
   const warmupRestoreBtn = block.querySelector('.warmup-restore-btn');
