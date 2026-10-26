@@ -3501,6 +3501,17 @@
     background:none; border:none; font-size:0; cursor:pointer; padding:2px; color:var(--text-muted); line-height:1;
     display:inline-flex; align-items:center; justify-content:center;
   }
+  /* v3.350 (audit): .fi-duplicate's ::after is its drawn pencil (below), and
+     that rule overrode the shared 44px hit-area ::after, shrinking the real
+     tap area to about 14x14 (the button itself collapses to 4x4 at
+     font-size:0). A 22px box with the hit area on ::before restores it to
+     the same footprint as the star beside it. */
+  .fi-duplicate{min-width:22px; min-height:22px;}
+  .fi-duplicate::before{
+    content:''; position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:calc(100% + 8px); height:44px;
+  }
 
   /* Masterclass index rows. Secondary/navigational, so they follow the
      .reorder-btn side of the two-tier hierarchy in HANDOFF §9 — flat with a
@@ -6624,7 +6635,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.349';
+const APP_VERSION = '3.350';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7486,6 +7497,8 @@ const WHATS_NEW = {
     'The boxing, kickboxing, Muay Thai, MMA, taekwondo and tai chi masterclass is about 45% shorter.',
   ]},  '3.349': { headline: 'Shorter Learn: watersports', points: [
     'The surfing, skimboarding, wakeboarding, kitesurfing, SUP and kayaking masterclass is about 45% shorter, with every safety point kept.',
+  ]},  '3.350': { headline: 'Easier to tap', points: [
+    'The pencil on a food row (duplicate and edit) has a full-size tap area again.',
   ]},
 };
 
