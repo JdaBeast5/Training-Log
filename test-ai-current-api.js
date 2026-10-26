@@ -15,6 +15,12 @@
 // v3.363 — Claude Haiku 4.5 -> Haiku 5.5 on the six quick calls, via
 // AI_MODEL_FAST. Haiku 5.5 thinks by default and thinking spends from
 // max_tokens, so each call sends effort 'low' and a raised ceiling (>= 1024).
+// v3.364 — Sonnet 5.5 calls send fallbacks:'default' (beta
+// server-side-fallback-2026-07-01) so a classifier decline can be re-run on
+// another model; Haiku 5.5 has no server-side fallback and never gets it. A
+// refusal is checked before content is read, so partial text is never shown
+// as an answer. If the API rejects the beta field, the request is sent once
+// more without it.
 const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
@@ -32,7 +38,7 @@ function harness(extraChunks){
       const next = window.__queue.shift();
       return next || { ok: true, status: 200, headers: { get: ()=> null }, json: async ()=> ({ content: [{ type: 'text', text: 'ok' }], stop_reason: 'end_turn' }) };
     };
-  `, [extractConst(src, 'AI_MODEL_DEFAULT'), extractConst(src, 'AI_MODEL_FAST'), extractConst(src, 'AI_RETRY_STATUSES'), extractConst(src, 'AI_MAX_ATTEMPTS'), extractFunction(src, 'aiSleep'),
+  `, [extractConst(src, 'AI_MODEL_DEFAULT'), extractConst(src, 'AI_MODEL_FAST'), extractConst(src, 'AI_FALLBACK_BETA'), extractFunction(src, 'withRefusalFallback'), extractConst(src, 'AI_RETRY_STATUSES'), extractConst(src, 'AI_MAX_ATTEMPTS'), extractFunction(src, 'aiSleep'),
       extractFunction(src, 'anthropicRequest'), extractFunction(src, 'callClaudeChat'), extractFunction(src, 'callClaudeVision'),
       extractFunction(src, 'validateApiKey'), ...(extraChunks || [])]);
   const sent = () => JSON.parse(JSON.stringify(window.__sent));
@@ -95,6 +101,53 @@ test('REAL invocation (v3.363): chat and vision send claude-haiku-5-5 with effor
     assert.strictEqual(b.output_config.effort, 'low');
   }
   assert.strictEqual(plain.output_config, undefined, 'a vision call that passes no effort sends no output_config');
+});
+
+test('REAL invocation (v3.364): Sonnet calls carry fallbacks:default and the beta header; Haiku calls carry neither', async (assert)=>{
+  const h = harness();
+  await h.window.callClaudeChat('k', 'sys', [{ role: 'user', content: 'hi' }], 1000, undefined, 'medium');
+  await h.window.callClaudeVision('k', ['AAAA'], 'look', 1000);
+  await h.window.callClaudeChat('k', 'sys', [{ role: 'user', content: 'hi' }], 1500, 'claude-haiku-5-5', 'low');
+  await h.window.callClaudeVision('k', ['AAAA'], 'label', 2048, 'claude-haiku-5-5', 'low');
+  const [chat, vision, fastChat, fastVision] = h.sent();
+  for(const r of [chat, vision]){
+    assert.strictEqual(r.body.fallbacks, 'default');
+    assert.strictEqual(r.headers['anthropic-beta'], 'server-side-fallback-2026-07-01');
+  }
+  for(const r of [fastChat, fastVision]){
+    assert.ok(!('fallbacks' in r.body), 'Haiku 5.5: a fallback list is a 400 and default does nothing');
+    assert.ok(!('anthropic-beta' in r.headers));
+  }
+});
+
+test('REAL invocation (v3.364): a refusal with partial text is an error, not an answer', async (assert)=>{
+  const h = harness();
+  h.queue(ok([{ type: 'text', text: 'Here is how to' }], { stop_reason: 'refusal', stop_details: { type: 'refusal', category: 'general_harms' } }));
+  let msg = '';
+  try{ await h.window.callClaudeChat('k', 'sys', [{ role: 'user', content: 'hi' }], 1000); }catch(e){ msg = e.message; }
+  assert.match(msg, /declined/);
+  assert.strictEqual(h.sent().length, 1, 'a refusal is not retried by the client');
+});
+
+test('REAL invocation (v3.364): if the API rejects the fallback field, the same request goes once more without it', async (assert)=>{
+  const h = harness();
+  h.queue(err(400, 'fallbacks: Extra inputs are not permitted'));
+  h.queue(ok([{ type: 'text', text: 'the answer' }]));
+  const reply = await h.window.callClaudeChat('k', 'sys', [{ role: 'user', content: 'hi' }], 1000, undefined, 'medium');
+  assert.strictEqual(reply, 'the answer');
+  const [first, second] = h.sent();
+  assert.strictEqual(first.body.fallbacks, 'default');
+  assert.ok(!('fallbacks' in second.body) && !('anthropic-beta' in second.headers), 'second try has neither');
+  assert.strictEqual(second.body.output_config.effort, 'medium', 'everything else unchanged');
+});
+
+test('REAL invocation (v3.364): any other 400 is still an error, with no extra request', async (assert)=>{
+  const h = harness();
+  h.queue(err(400, 'messages: text content blocks must be non-empty'));
+  let msg = '';
+  try{ await h.window.callClaudeChat('k', 'sys', [{ role: 'user', content: 'hi' }], 1000); }catch(e){ msg = e.message; }
+  assert.match(msg, /non-empty/);
+  assert.strictEqual(h.sent().length, 1);
 });
 
 run();

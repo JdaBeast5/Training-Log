@@ -65,6 +65,9 @@ const callClaudeChatSrc = extractFunction(src, 'callClaudeChat');
 const anthropicRequestSrc = extractFunction(src, 'anthropicRequest');
 const aiSleepSrc = extractFunction(src, 'aiSleep');
 const aiMaxAttemptsSrc = extractConst(src, 'AI_MAX_ATTEMPTS');
+// 2026-10-26 (v3.364): calls to the default model add the refusal fallback,
+// so the request path needs its beta name and helper too.
+const aiFallbackSrc = extractConst(src, 'AI_FALLBACK_BETA') + '\n' + extractFunction(src, 'withRefusalFallback');
 // 2026-10-26 (v3.362): the default model lives in AI_MODEL_DEFAULT now.
 const aiModelDefaultSrc = extractConst(src, 'AI_MODEL_DEFAULT');
 const aiKeySetupPromptSrc = extractFunction(src, 'aiKeySetupPrompt');
@@ -156,7 +159,7 @@ const scriptChunks = [
   'let expandedSupplementNames = new Set();',
   buildDsldIngredientsHtmlSrc, runDsldSearchSrc, renderDsldSearchResultsSrc, dsldInputWiringSrc,
   setCardOpenStateSrc, headerToggleWiringSrc,
-  aiModelDefaultSrc, aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
+  aiModelDefaultSrc, aiFallbackSrc, aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
   aiKeySetupPromptSrc, getApiKeySrc,
   supplementDescriptionLengthInstructionSrc, buildSupplementInsightPromptSrc, generateAiSupplementInsightSrc,
   saveSupplementAiInsightSrc, requestSupplementAiInsightSrc, requestDsldSearchAiInsightSrc,

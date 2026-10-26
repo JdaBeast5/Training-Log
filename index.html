@@ -6694,7 +6694,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.363';
+const APP_VERSION = '3.364';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7590,6 +7590,9 @@ const WHATS_NEW = {
   ]},
   '3.363': { headline: 'Faster, cheaper quick AI', points: [
     'Quick AI features (meal descriptions, label and food photos, check-ins) use Claude Haiku 5.5.',
+  ]},
+  '3.364': { headline: 'Fewer dead-end AI answers', points: [
+    'If the AI declines a request, it is retried on another model automatically where possible, and a partial answer is never shown as a full one.',
   ]},
 };
 
@@ -39746,6 +39749,14 @@ async function aiCachedCall(feature, fingerprint, fn, maxAgeMs, opts){
 // doesn't name one. Its effort levels were recalibrated, so callers keep
 // passing effort explicitly rather than relying on the default (high).
 const AI_MODEL_DEFAULT = 'claude-sonnet-5-5';
+// v3.364: when Sonnet 5.5's safety classifiers decline a request, the API can
+// re-run it on another model in the same call (fallbacks:'default', which
+// routes by refusal category). Claude API only, Sonnet only: Haiku 5.5 has no
+// server-side fallback, so it never gets the field.
+const AI_FALLBACK_BETA = 'server-side-fallback-2026-07-01';
+function withRefusalFallback(payload){
+  return payload.model === AI_MODEL_DEFAULT ? Object.assign(payload, { fallbacks: 'default' }) : payload;
+}
 // v3.363: Claude Haiku 5.5 for the quick, high-volume calls (daily nudge,
 // weekly check-ins, describe-a-meal, label and food photos). About a tenth of
 // Haiku 4.5's price, and better at following the JSON shapes these prompts
@@ -39777,6 +39788,7 @@ async function anthropicRequest(apiKey, payload, timeoutMs){
           'anthropic-version': '2026-10-21',
           'content-type': 'application/json',
           'anthropic-dangerous-direct-browser-access': 'true',
+          ...(payload.fallbacks ? { 'anthropic-beta': AI_FALLBACK_BETA } : {}),
         },
         body: JSON.stringify(payload),
         signal: controller.signal,
@@ -39796,6 +39808,12 @@ async function anthropicRequest(apiKey, payload, timeoutMs){
 
     if(response.ok){
       const data = await response.json();
+      // v3.364: a decline is an HTTP 200 with stop_reason 'refusal', and any
+      // text before it is a partial answer — never show it as a whole one.
+      // Checked before reading content, not only when content is empty.
+      if(data.stop_reason === 'refusal'){
+        throw new Error('No answer came back — the model declined to answer that. Try rephrasing.');
+      }
       // EVERY text block, joined — not the first one.
       // claude-sonnet-5 runs ADAPTIVE THINKING BY DEFAULT (it is the documented
       // change from sonnet-4-6, where a request with no `thinking` field ran
@@ -39816,9 +39834,7 @@ async function anthropicRequest(apiKey, payload, timeoutMs){
         const used = (data.usage && data.usage.output_tokens) || 0;
         const reason = data.stop_reason === 'max_tokens'
           ? `the ${used ? used + '-token ' : ''}limit was reached before any answer was written — this is a budget problem, not a prompt problem`
-          : data.stop_reason === 'refusal'
-            ? 'the model declined to answer that'
-            : `the response came back with no text (stop reason: ${data.stop_reason || 'unknown'})`;
+          : `the response came back with no text (stop reason: ${data.stop_reason || 'unknown'})`;
         throw new Error(`No answer came back — ${reason}.`);
       }
       return text;
@@ -39837,6 +39853,14 @@ async function anthropicRequest(apiKey, payload, timeoutMs){
 
     const errBody = await response.json().catch(()=>({}));
     const apiMsg = errBody && errBody.error && errBody.error.message;
+    // v3.364: the refusal fallback is a beta field. If the API ever rejects
+    // it, drop it and send the same request once more rather than break every
+    // feature that uses the default model.
+    if(response.status === 400 && payload.fallbacks && /fallback|beta/i.test(apiMsg || '')){
+      delete payload.fallbacks;
+      attempt--;
+      continue;
+    }
     // Friendlier phrasing for the handful of statuses a user can actually
     // do something about; anything else falls through to the API's own text.
     if(response.status === 401 || response.status === 403){
@@ -39862,7 +39886,7 @@ async function callClaudeVision(apiKey, imageBase64List, promptText, maxTokens, 
   // 60s rather than the chat path's 45s: vision payloads carry image data
   // and legitimately take longer, especially the multi-frame form-feedback
   // and before/after photo-comparison calls.
-  return anthropicRequest(apiKey, {
+  return anthropicRequest(apiKey, withRefusalFallback({
     model: model || AI_MODEL_DEFAULT,
     // 3000, not 1024. See the note on the chat path: on claude-sonnet-5 the
     // ceiling covers thinking AND the answer, and a form critique is exactly
@@ -39871,7 +39895,7 @@ async function callClaudeVision(apiKey, imageBase64List, promptText, maxTokens, 
     max_tokens: maxTokens || 3000,
     messages: [{ role:'user', content }],
     ...(effort ? { output_config: {effort} } : {}),
-  }, 60000);
+  }), 60000);
 }
 
 
@@ -40167,7 +40191,7 @@ async function callClaudeChat(apiKey, systemPrompt, messages, maxTokens, model, 
   if(effort){
     payload.output_config = {effort};
   }
-  return anthropicRequest(apiKey, payload, 45000);
+  return anthropicRequest(apiKey, withRefusalFallback(payload), 45000);
 }
 
 

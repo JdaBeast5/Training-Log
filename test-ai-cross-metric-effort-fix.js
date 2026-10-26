@@ -30,6 +30,9 @@ const callClaudeChatSrc = extractFunction(src, 'callClaudeChat');
 const anthropicRequestSrc = extractFunction(src, 'anthropicRequest');
 const aiSleepSrc = extractFunction(src, 'aiSleep');
 const aiMaxAttemptsSrc = extractConst(src, 'AI_MAX_ATTEMPTS');
+// 2026-10-26 (v3.364): calls to the default model add the refusal fallback,
+// so the request path needs its beta name and helper too.
+const aiFallbackSrc = extractConst(src, 'AI_FALLBACK_BETA') + '\n' + extractFunction(src, 'withRefusalFallback');
 // 2026-10-26 (v3.362): the default model is the AI_MODEL_DEFAULT const now
 // (claude-sonnet-5-5), so the harness loads it.
 const aiModelDefaultSrc = extractConst(src, 'AI_MODEL_DEFAULT');
@@ -50,7 +53,7 @@ function setupCallClaudeChat(){
     };
   `;
   const { window } = runJsdom('', globalsSetup, [
-    aiModelDefaultSrc, aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
+    aiModelDefaultSrc, aiFallbackSrc, aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
     'window.__capturedRequests = [];',
   ]);
   window.__capturedRequests = captured;
@@ -138,7 +141,7 @@ function setupGenerate(dataLineCount){
     };
   `;
   const { window, document } = runJsdom(bodyHtml, globalsSetup, [
-    aiModelDefaultSrc, aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
+    aiModelDefaultSrc, aiFallbackSrc, aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
     aiPromptVersionSrc, aiFingerprintSrc, aiCachedCallSrc,
     escapeHtmlSrc, aiKeySetupPromptSrc, getApiKeySrc,
     contextStub(dataLineCount),

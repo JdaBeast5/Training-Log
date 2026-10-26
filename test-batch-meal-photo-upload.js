@@ -37,6 +37,9 @@ test('the real #photoLogInput markup carries the multiple attribute', (assert)=>
 // --- behavioral: handlePhotoLogUpload / renderPhotoLogResult / renderPhotoPreviewRow ---
 
 const aiMaxAttemptsSrc = extractConst(src, 'AI_MAX_ATTEMPTS');
+// 2026-10-26 (v3.364): calls to the default model add the refusal fallback,
+// so the request path needs its beta name and helper too.
+const aiFallbackSrc = [extractConst(src, 'AI_MODEL_DEFAULT'), extractConst(src, 'AI_FALLBACK_BETA'), extractFunction(src, 'withRefusalFallback')].join('\n');
 const aiRetryStatusesSrc = extractConst(src, 'AI_RETRY_STATUSES');
 // 2026-10-26 (v3.363): food photos name the AI_MODEL_FAST const (claude-haiku-5-5).
 const aiModelFastSrc = extractConst(src, 'AI_MODEL_FAST');
@@ -110,7 +113,7 @@ function setup(responsesByPhotoData){
   `;
   const { window, document } = runJsdom(bodyHtml, globalsSetup, [
     stubs,
-    aiModelFastSrc, aiMaxAttemptsSrc, aiRetryStatusesSrc, aiSleepSrc, anthropicRequestSrc, callClaudeVisionSrc,
+    aiModelFastSrc, aiFallbackSrc, aiMaxAttemptsSrc, aiRetryStatusesSrc, aiSleepSrc, anthropicRequestSrc, callClaudeVisionSrc,
     fileToBase64Src, getApiKeySrc, escapeHtmlSrc, aiKeySetupPromptSrc,
     foodMacroFieldsSrc, foodQtyMaxSrc, foodRowTotalTextSrc,
     buildFoodResultRowsSrc, buildFoodResultRowSrc, wireFoodResultRowsSrc,
