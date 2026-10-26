@@ -10,7 +10,7 @@
 // hand, directly in the static button markup.
 //
 // ICONS.trash itself redraws the same trash artwork shared by
-// .fi-delete::after / .ex-delete-custom-btn::after / .swipe-delete-bg::after
+// .fi-delete::before / .ex-delete-custom-btn::after / .swipe-delete-bg::after
 // at the ICONS object's own 24x24/stroke-2.2 convention — the same
 // treatment 'edit' already got, so every "delete" affordance in the app
 // (mask-image buttons and icon+text alike) reads as one glyph family.

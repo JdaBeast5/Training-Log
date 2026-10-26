@@ -1170,7 +1170,7 @@ const OLY_TECHNIQUE_DETAILS = {
     'Execution: squat to full depth with elbows high and torso vertical; forward lean here mirrors the fault that dumps a clean forward.',
     'Whole-body integration: it builds the strength to stand up from a heavy clean, as overhead squats do for the snatch.',
     'Common mistake: elbows dropping as it gets heavy, collapsing the rack and loading the wrists and lower back instead of legs and upper back.',
-    'Coaching insight: if you can clean more than you can front squat, the pull\'s momentum is masking a strength gap the front squat exposes.',
+    'Coaching insight: your front squat should clearly out-lift your clean. If the two are close, standing up from the catch is what limits your clean.',
   ]},
 };
 

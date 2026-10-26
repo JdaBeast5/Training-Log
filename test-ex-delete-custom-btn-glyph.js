@@ -11,7 +11,7 @@
 // any existing hit-area-extension group, so there is no earlier ::after
 // rule to reuse/collide with here — this is a plain, self-contained glyph
 // rule. It intentionally reuses the EXACT SAME trash artwork as
-// .fi-delete::after (test-fi-icon-glyphs.js) rather than drawing a second
+// .fi-delete::before (::after until v3.374; test-fi-icon-glyphs.js) rather than drawing a second
 // trash can, matching how .plate-btn::after reuses the header brand mark's
 // barbell verbatim. This file's de-duplication check proves that reuse is
 // real (one drawing, referenced twice), not two near-identical copies that
@@ -62,7 +62,7 @@ test('sabotage-relevant: the trash SVG artwork is genuinely REUSED from .fi-dele
   // This fragment (the SVG's opening tag through the lid path's start) is
   // unique to the hand-drawn trash glyph and appears exactly once per FULL
   // mask-image declaration. If the artwork were truly shared (one drawing,
-  // referenced by .fi-delete::after, .ex-delete-custom-btn::after, AND
+  // referenced by .fi-delete::before, .ex-delete-custom-btn::after, AND
   // .swipe-delete-bg::after — the third reuse added later by
   // test-swipe-delete-bg-glyph.js — each declaring both -webkit-mask-image
   // and mask-image), this fragment must occur exactly 6 times in the whole

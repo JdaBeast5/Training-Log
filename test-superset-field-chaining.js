@@ -89,7 +89,7 @@ function buildPair(topSetLabels, bottomSetLabels){
     window.wireExerciseMember = ()=>{};
     window.watchSetChips = ()=>{}; // v3.298: the set-chip strip's row watcher, irrelevant to the weave
     window.escapeHtml = s => String(s); // v3.304: each member's actions are labelled with its (escaped) name
-  `, [
+  `, [extractFunction(src, 'exLoggerHtml') /* 2026-10-26 (v3.376): the open pair's logger */,
     assembleSupersetPairSrc,
     `
       const topPiece = ${JSON.stringify(fakePiece(0, 'DB Curl', topSetLabels))};

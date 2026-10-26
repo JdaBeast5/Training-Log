@@ -649,6 +649,17 @@
   .up-next .up-next-go{margin-top:10px; font-size:16px;}
   .up-next.is-done .up-next-fields, .up-next.is-done .up-next-go{display:none;}
   body.gym-mode .up-next{display:none;} /* gym mode has its own focused flow */
+  /* [v3.376] An open exercise's own logger: the Up next panel, minus the
+     header (the exercise header above already names the lift). */
+  .ex-logger{margin:2px 0 14px;}
+  .ex-logger .up-next-fields{margin-top:10px;}
+  /* The reps tile's hint is the prescribed range ("10-12"): five mono glyphs
+     at 22px clipped in a third of a 390px-wide card, here and in Up next.
+     Typed reps are one or two digits, so only the hint is set smaller. */
+  .up-next .up-next-field input::placeholder{font-size:17px;}
+  /* The raw set rows are the source of truth, not the interface: chips, this
+     logger and the set sheet do the logging, as in gym mode. */
+  #exerciseList .sets-block > .set-row{display:none;}
 
   .reorder-arrows{
     display:flex; gap:2px; margin-top:2px;
@@ -1077,8 +1088,12 @@
     margin:0 -13px; padding:2px 13px;
   }
 
+  /* v3.376: no 76px indent. It lined the rows up under the exercise name; the
+     rows are hidden now (the open exercise logs through its own logger), and
+     what is left — actions, warm-up, notes, badges, Technique — runs the full
+     width of the card, aligned with the chips and the logger above it. */
   .sets-block{
-    display:flex; flex-direction:column; gap:6px; padding:4px 0 4px 76px;
+    display:flex; flex-direction:column; gap:6px; padding:4px 0;
   }
   .set-row{
     overflow:hidden; border-radius:var(--radius-sm);
@@ -1170,24 +1185,24 @@
   }
   .same-as-last-btn:active{transform:scale(0.98);}
   .session-summary{
-    display:flex; gap:14px; padding:4px 0 2px 76px; font-size:11.5px; color:var(--text-muted);
+    display:flex; gap:14px; padding:4px 0 2px; font-size:11.5px; color:var(--text-muted);
   }
   .session-summary b{color:var(--text); font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
   .progress-hint{
-    padding:2px 0 2px 76px; font-size:11.5px; color:var(--text-muted); font-family:var(--font-mono); font-variant-numeric:tabular-nums;
+    padding:2px 0; font-size:11.5px; color:var(--text-muted); font-family:var(--font-mono); font-variant-numeric:tabular-nums;
   }
   .progress-badge{
-    margin:4px 0 2px 76px; padding:7px 10px; background:rgba(var(--plate-yellow-rgb),0.12); border:1px solid rgba(var(--plate-yellow-rgb),0.38);
+    margin:4px 0 2px; padding:7px 10px; background:rgba(var(--plate-yellow-rgb),0.12); border:1px solid rgba(var(--plate-yellow-rgb),0.38);
     border-radius:var(--radius-sm); font-size:12px; color:var(--plate-yellow); line-height:1.4;
     box-shadow:var(--rim), 0 4px 12px -7px rgba(var(--plate-yellow-rgb),0.35);
   }
   .progress-badge-decrease{
-    margin:4px 0 2px 76px; padding:7px 10px; background:rgba(230,126,34,0.12); border:1px solid rgba(230,126,34,0.38);
+    margin:4px 0 2px; padding:7px 10px; background:rgba(230,126,34,0.12); border:1px solid rgba(230,126,34,0.38);
     border-radius:var(--radius-sm); font-size:12px; color:#E67E22; line-height:1.4;
     box-shadow:var(--rim), 0 4px 12px -7px rgba(230,126,34,0.35);
   }
   .progress-badge-deload{
-    margin:4px 0 2px 76px; padding:7px 10px; background:rgba(var(--plate-red-rgb),0.12); border:1px solid rgba(var(--plate-red-rgb),0.38);
+    margin:4px 0 2px; padding:7px 10px; background:rgba(var(--plate-red-rgb),0.12); border:1px solid rgba(var(--plate-red-rgb),0.38);
     border-radius:var(--radius-sm); font-size:12px; color:var(--plate-red); line-height:1.4;
     box-shadow:var(--rim), 0 4px 12px -7px rgba(var(--plate-red-rgb),0.35);
   }
@@ -1233,7 +1248,7 @@
   .set-row-content{flex-wrap:wrap;}
 
   /* No left margin any more: both of these now render INSIDE `.sets-block`,
-     which already carries the 76px column. */
+     which sets their column. */
   .warmup-box{
     margin:4px 0 8px; padding:9px 11px; background:rgba(var(--plate-orange-rgb),0.08); border:1px solid rgba(var(--plate-orange-rgb),0.28);
     border-radius:var(--radius-sm); font-size:12px; color:var(--text); line-height:1.6;
@@ -1249,7 +1264,7 @@
      A 4-set exercise with a 3-step ramp should read as SEVEN set lines — three
      orange, four plain — not as a bordered table sitting on top of four rows.
      So the strip has no border and no background of its own: it is the same
-     76px column the sets block uses, and the only thing marking its rows out
+     column the sets block uses, and the only thing marking its rows out
      is the colour on each one.
 
      [STABILIZATION PHASE C4] Checked: box-vs-strip is a deliberate choice
@@ -1550,6 +1565,57 @@
     border-bottom:1px solid var(--line-bright); font-size:11px; color:var(--text-muted);
   }
   .settings-section > div + div{margin-top:14px;}
+  /* ── v3.377: Settings as an iOS inset-grouped list ─────────────────────────
+     Header (small, muted, no rule) → one rounded group of rows with hairlines
+     between them → footer note. Everything that lands in a group — switch
+     prefs, picker prefs, the rest-alert row, the jump row and the cards moved
+     in at startup (AI, App Health Check, Import Health Data, a finished
+     profile) — is drawn as a row, not as a card inside a sheet. */
+  .settings-section > .care-label:first-child{border-bottom:0; padding:0 16px; margin-bottom:6px; font-size:13px;}
+  .settings-group{position:relative; background:var(--surface2); border:1px solid var(--line); border-radius:14px; overflow:hidden;}
+  .settings-group > [id$="Slot"]{display:contents;}
+  .settings-group > [id$="Slot"] > *, .settings-group > #settingsNotifyRow, .settings-group > .settings-jump{
+    margin:0; padding:10px 16px; border-top:1px solid var(--line);
+  }
+  /* The first row's hairline would double the group's own border: covered. */
+  .settings-group::before{content:''; position:absolute; z-index:1; top:0; left:0; right:0; height:1px; background:var(--surface2);}
+  .settings-group .field-note{font-size:12.5px; margin:2px 0 4px;}
+  .settings-section > .settings-group + .field-note{margin-top:6px; padding:0 16px; font-size:12.5px;}
+  .settings-group .care-label{margin:6px 0 0;}
+  /* A switch row's title already says what it does; the label above it
+     ("Warm-up ramp" over "Build the ramp in as sets I can log") doubled it. */
+  .settings-group > [id$="Slot"] > [id^="pref"]:has(> .save-to-library-label) > .care-label{display:none;}
+  /* Picker rows: the label is the row title, the value sits on the right. */
+  .settings-group > [id$="Slot"] > [id^="pref"]:has(> select){display:grid; grid-template-columns:1fr auto; align-items:center; column-gap:12px;}
+  .settings-group > [id$="Slot"] > [id^="pref"]:has(> select) > .care-label{margin:0; font-size:15px; color:var(--text); white-space:nowrap;}
+  .settings-group > [id$="Slot"] > [id^="pref"]:has(> select) > .field-note{grid-column:1 / -1;}
+  .settings-panel-body .settings-group select{
+    width:auto; max-width:190px; min-height:44px; margin:0; padding:0 18px 0 0; background-color:transparent; border:0; box-shadow:none;
+    font-size:15px; color:var(--text-muted); text-align:right; text-align-last:right; -webkit-appearance:none; appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 16' fill='none' stroke='%238B929B' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2 6l3-3 3 3M2 10l3 3 3-3'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right center; background-size:9px 14px;
+  }
+  /* The rest-alert action reads as a blue action row, not a boxed button. */
+  #settingsNotifyRow > .care-label{margin:0; font-size:15px; color:var(--text);}
+  .settings-group #settingsNotifyBtn{width:100%; min-height:44px; margin:0; padding:0; background:none; border:0; box-shadow:none; color:var(--plate-blue); text-align:left; font-size:15px; font-weight:400;}
+  /* Jump and card rows. */
+  .settings-group .settings-jump{display:flex; width:100%; min-height:44px; background:transparent; border-left:0; border-right:0; border-bottom:0; border-radius:0; box-shadow:none; font-size:15px;}
+  .settings-panel-body .settings-group .card{background:transparent; border-left:0; border-right:0; border-bottom:0; border-radius:0; box-shadow:none;}
+  .settings-group .card .card-title{font-size:15px; font-weight:500; margin:0; min-height:24px;}
+  /* Rows start at one edge: the cards' icons would indent three rows past the
+     plain ones, and their chevrons go grey like every other disclosure row. */
+  .settings-group .card .card-icon{display:none;}
+  .settings-group .card .ex-chevron{color:var(--text-muted);}
+  .settings-group .card .nutrition-summary{margin:2px 0;}
+  /* A row's one-line summary is for when it is closed; open, the detail
+     below says the same thing at length (and for AI, "Key saved — AI
+     features ready" sat right above the "Connected" row). */
+  .settings-group .card:has(> .nutrition-header.open) > .nutrition-summary{display:none;}
+  /* A group whose only slot has received nothing (the profile, before it is
+     set up) would draw as an empty outline. */
+  .settings-group:has(> [id$="Slot"]:only-child:empty){display:none;}
+  .settings-group:has(> #settingsProfileSlot > *) > #settingsProfileSetup{display:none;}
+  .settings-group .card .expand-wrap > div{padding-left:0;}
   .settings-jump{
     display:flex; align-items:center; justify-content:space-between; width:100%;
     background:var(--surface2); border:1px solid var(--line-bright); border-radius:var(--radius-sm);
@@ -1612,7 +1678,7 @@
   }
   .food-add-pop.active{transform:translate(-50%,-10px) scale(1); opacity:1;}
 
-  .ex-details{margin:6px 0 2px 76px;}
+  .ex-details{margin:6px 0 2px;}
   .ex-details summary{
     list-style:none; cursor:pointer; display:flex; align-items:center; gap:5px;
     font-size:11.5px; color:var(--plate-blue); font-weight:600;
@@ -2269,7 +2335,7 @@
     position:absolute; inset:0; background:var(--plate-red); display:flex; align-items:center;
     justify-content:flex-end; padding-right:18px; color:#fff; font-size:0; cursor:pointer;
   }
-  /* Same trash artwork as .fi-delete::after / .ex-delete-custom-btn::after
+  /* Same trash artwork as .fi-delete::before / .ex-delete-custom-btn::after
      (see those rules for the shared drawing), reused verbatim for a third
      time rather than drawn again — one "delete this" glyph across every
      affordance in the app that means it. Sized to 18px (vs. those buttons'
@@ -3210,6 +3276,17 @@
   }
   .set-note-btn:active{transform:scale(0.9);}
   .set-note-btn.has-note{border-color:var(--plate-yellow); color:var(--plate-yellow);}
+  /* v3.375: a drawn note icon instead of a typed "+" (no note) or the memo emoji (has a
+     note). The yellow .has-note colour is what says a note exists; ::after
+     stays the 44px hit area. */
+  .set-note-btn::before{
+    content:''; width:14px; height:14px; background:currentColor;
+    -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+    -webkit-mask-position:center; mask-position:center;
+    -webkit-mask-size:contain; mask-size:contain;
+    -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4.5%203.5h11v9l-4%204h-7Z%27%2F%3E%3Cpath%20d%3D%27M11.5%2016.5v-4h4%27%2F%3E%3Cline%20x1%3D%277.5%27%20y1%3D%277%27%20x2%3D%2712.5%27%20y2%3D%277%27%2F%3E%3Cline%20x1%3D%277.5%27%20y1%3D%2710%27%20x2%3D%2710.5%27%20y2%3D%2710%27%2F%3E%3C%2Fsvg%3E");
+    mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2020%2020%27%20fill%3D%27none%27%20stroke%3D%27black%27%20stroke-width%3D%271.6%27%20stroke-linecap%3D%27round%27%20stroke-linejoin%3D%27round%27%3E%3Cpath%20d%3D%27M4.5%203.5h11v9l-4%204h-7Z%27%2F%3E%3Cpath%20d%3D%27M11.5%2016.5v-4h4%27%2F%3E%3Cline%20x1%3D%277.5%27%20y1%3D%277%27%20x2%3D%2712.5%27%20y2%3D%277%27%2F%3E%3Cline%20x1%3D%277.5%27%20y1%3D%2710%27%20x2%3D%2710.5%27%20y2%3D%2710%27%2F%3E%3C%2Fsvg%3E");
+  }
   .set-note-wrap{
     display:none; flex-basis:100%; margin-top:7px;
   }
@@ -3398,7 +3475,7 @@
 
   .ex-caution{
     margin-top:4px; padding:6px 10px; background:rgba(var(--plate-red-rgb),0.1); border:1px solid rgba(var(--plate-red-rgb),0.32);
-    border-radius:var(--radius-sm); font-size:11.5px; color:var(--plate-red); margin-left:76px;
+    border-radius:var(--radius-sm); font-size:11.5px; color:var(--plate-red);
     box-shadow:var(--rim), 0 4px 12px -7px rgba(var(--plate-red-rgb),0.32);
   }
   .ex-ai-tailor-btn{
@@ -3901,8 +3978,8 @@
   }
 
   /* The food-row "remove from My Foods" button. It shares its base class,
-     .fi-star, with the adjacent favourite-star toggle (★/☆ — plain
-     typography, not an emoji, deliberately left alone) rather than having
+     .fi-star, with the adjacent favourite-star toggle (drawn on
+     .fi-fav::before since v3.360) rather than having
      one of its own, so font-size:0 can't go on .fi-star itself without
      also blanking the star. .fi-delete is a second class added to just
      this button's markup for that reason: same specificity as .fi-star,
@@ -3911,12 +3988,16 @@
      star toggle. */
   .fi-delete{
     font-size:0; display:inline-flex; align-items:center; justify-content:center;
+    min-width:22px; min-height:22px;
   }
   /* Same trash artwork as .ex-delete-custom-btn::after below, reused
      verbatim rather than drawn twice — one "remove this" glyph for the
      whole app, matching how the plate-calculator glyph reuses the header
-     brand mark's barbell rather than being its own drawing. */
-  .fi-delete::after{
+     brand mark's barbell rather than being its own drawing.
+     v3.374: on ::before, not ::after. As ::after it overrode .fi-star::after,
+     the shared 44px hit area, leaving a 13x14 tap target (measured with
+     elementFromPoint) — the collision v3.350 fixed for the pencil. */
+  .fi-delete::before{
     content:''; display:block; width:14px; height:14px;
     background:currentColor;
     -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
@@ -3929,7 +4010,7 @@
   /* The custom-exercise-row delete button. Not part of any existing
      hit-area-extension group (unlike .fi-duplicate/.fi-star above), so
      nothing to reuse here — a plain, self-contained glyph rule. Same
-     trash artwork as .fi-delete::after above. */
+     trash artwork as .fi-delete::before above. */
   .ex-delete-custom-btn::after{
     content:''; display:block; width:14px; height:14px;
     background:currentColor;
@@ -5260,7 +5341,7 @@
         <div id="prefLoadMode">
           <label class="care-label">Load suggestions</label>
           <select id="loadModeSelect" class="care-input" aria-label="How suggested weights are calculated">
-            <option value="progression">Double progression (default)</option>
+            <option value="progression">Double progression</option>
             <option value="rpe">RPE targets</option>
           </select>
           <div class="history-hint field-note" id="loadModeNote"></div>
@@ -5739,10 +5820,10 @@
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="8" height="8" rx="1"/><line x1="10" y1="1.6" x2="10" y2="6"/><line x1="10" y1="14" x2="10" y2="18.4"/><line x1="1.6" y1="10" x2="6" y2="10"/><line x1="14" y1="10" x2="18.4" y2="10"/></svg></span>AI Features Setup</span>
       <span class="ex-chevron" aria-hidden="true" id="aiSettingsChevron">›</span>
     </div>
-    <div class="nutrition-summary" id="aiSettingsSummary">Powers Snap a Meal + Coaching video review</div>
+    <div class="nutrition-summary" id="aiSettingsSummary">Coach chat, meal photos, form feedback and more</div>
     <div class="expand-wrap" id="aiSettingsExpandWrap"><div>
       <div class="care-disclaimer" style="margin-top:10px;">
-        Photo meal logging and video form coaching call Anthropic's API directly from your phone using your own key — nothing routes through me. Get a free key at <b>console.anthropic.com</b>, paste it below. It's stored only on this device. Each photo/video review costs a small amount on your own Anthropic account (a few cents at most).
+        The coach, meal photos, form feedback and the other AI features call Anthropic's API straight from this device with your own key; nothing passes through anyone else. Get a key at <b>console.anthropic.com</b> and paste it below. It stays on this device. Each request costs a small amount on your Anthropic account.
       </div>
       <label class="care-label">Your Anthropic API Key</label>
       <div id="aiKeySetupState">
@@ -6393,35 +6474,47 @@
          The optional integration and the maintenance tools are last: both are
          set-up-once, and one of them contains the destructive actions. -->
 
+    <!-- v3.377: each section is an iOS inset group — header, one rounded group
+         of rows (.settings-group), then any footer note below it. The slots
+         are display:contents inside the group, so the rows they receive at
+         startup sit directly in it. -->
     <div class="settings-section">
       <label class="care-label">During a workout</label>
-      <div id="settingsWorkoutSlot"></div>
-      <div id="settingsNotifyRow">
-        <label class="care-label">Rest alerts</label>
-        <button type="button" class="switch-profile-btn" id="settingsNotifyBtn">Allow notifications when rest is over</button>
-        <div class="history-hint field-note" id="settingsNotifyNote"></div>
+      <div class="settings-group">
+        <div id="settingsWorkoutSlot"></div>
+        <div id="settingsNotifyRow">
+          <label class="care-label">Rest alerts</label>
+          <button type="button" class="switch-profile-btn" id="settingsNotifyBtn">Allow notifications when rest is over</button>
+          <div class="history-hint field-note" id="settingsNotifyNote"></div>
+        </div>
       </div>
     </div>
 
     <div class="settings-section">
       <label class="care-label">Units &amp; suggestions</label>
-      <div id="settingsUnitsSlot"></div>
+      <div class="settings-group"><div id="settingsUnitsSlot"></div></div>
     </div>
 
     <div class="settings-section">
       <label class="care-label">You</label>
+      <!-- v3.379: until the profile is set up it lives on Today, not here, and
+           this section had nothing in it but its footer. The row goes to it;
+           once the finished profile moves into the slot, the row hides. -->
+      <div class="settings-group">
+        <button type="button" class="settings-jump" id="settingsProfileSetup" data-jump-to="profileCard"><span>Set up your profile</span><span>›</span></button>
+        <div id="settingsProfileSlot"></div>
+      </div>
       <div class="history-hint field-note">Your units, dietary restrictions, equipment and health conditions, all in one place.</div>
-      <div id="settingsProfileSlot"></div>
     </div>
 
     <div class="settings-section">
       <label class="care-label">AI features</label>
-      <div id="settingsAiSlot"></div>
+      <div class="settings-group"><div id="settingsAiSlot"></div></div>
     </div>
 
     <div class="settings-section">
       <label class="care-label">Data &amp; maintenance</label>
-      <div class="history-hint field-note">Your data lives only in this browser. An export is the only copy outside it.</div>
+      <div class="settings-group">
       <button type="button" class="settings-jump" data-jump-to="exportDataBtn"><span>Backup &amp; restore your data</span><span>›</span></button>
       <!-- App Health Check and Import Health Data used to live on the Log
            tab, mixed into the same scroll as daily weight/food/sleep
@@ -6432,6 +6525,8 @@
            to scroll to something now living inside it would just hide its
            own target. -->
       <div id="settingsMaintenanceSlot"></div>
+      </div>
+      <div class="history-hint field-note">Your data lives only in this browser. An export is the only copy outside it.</div>
     </div>
 </div>
     </div>
@@ -6694,7 +6789,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.371';
+const APP_VERSION = '3.379';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7614,6 +7709,30 @@ const WHATS_NEW = {
   ]},
   '3.371': { headline: 'Cleaner coach context', points: [
     'Error notices in coach chat are no longer sent to the coach as if it had said them.',
+  ]},
+  '3.372': { headline: 'Olympic lifting fix', points: [
+    'The Front Squat coaching tip in Olympic Lifting now reads the right way round: your front squat should out-lift your clean.',
+  ]},
+  '3.373': { headline: 'Favourites for VoiceOver', points: [
+    'VoiceOver now hears whether a food is saved to favourites after you tap the star.',
+  ]},
+  '3.374': { headline: 'Easier to tap', points: [
+    'The remove button on your own foods has a full-size tap area, like the buttons next to it.',
+  ]},
+  '3.375': { headline: 'Drawn note icon', points: [
+    'The set note button shows a drawn note icon, yellow when a set has a note.',
+  ]},
+  '3.376': { headline: 'Every exercise logs like Up next', points: [
+    'Open any exercise and it logs the way the Up next card does: big weight, reps and RPE tiles with one Log set button, instead of rows of small fields.',
+  ]},
+  '3.377': { headline: 'Settings, tidied', points: [
+    'Settings is laid out like iOS Settings: each section is one rounded group of rows, with the explanation under each.',
+  ]},
+  '3.378': { headline: 'Clearer AI setup', points: [
+    'The AI setup row says what AI does in the app now, and simply reads Connected once your key is saved.',
+  ]},
+  '3.379': { headline: 'Profile from Settings', points: [
+    'Settings has a Set up your profile row until your profile is filled in.',
   ]},
 };
 
@@ -27479,7 +27598,7 @@ async function renderWorkout(){
               <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input ex-reps${sugClass}" aria-label="Set ${setIdx+1} reps" placeholder="${repsPlaceholder}" value="${savedSet && savedSet.reps!=null ? savedSet.reps : ''}">
               <input type="number" inputmode="decimal" enterkeyhint="next" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${setIdx+1} RPE, 5 to 10" placeholder="${placeholderSet && placeholderSet.rpe!=null ? placeholderSet.rpe : 'RPE'}" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
               <button type="button" class="set-drop-btn${savedSet && savedSet.drops && savedSet.drops.length ? ' has-drops' : ''}" aria-label="Add a drop set under set ${setIdx+1}"></button>
-              <button type="button" class="set-note-btn${savedSet && savedSet.note ? ' has-note' : ''}" aria-label="${savedSet && savedSet.note ? 'Edit note on set '+(setIdx+1) : 'Add a note to set '+(setIdx+1)}" aria-expanded="false">${savedSet && savedSet.note ? '\u{1F4DD}' : '+'}</button>
+              <button type="button" class="set-note-btn${savedSet && savedSet.note ? ' has-note' : ''}" aria-label="${savedSet && savedSet.note ? 'Edit note on set '+(setIdx+1) : 'Add a note to set '+(setIdx+1)}" aria-expanded="false"></button>
               <button type="button" class="set-next-btn" aria-label="Move to the next field — the following set, or straight into the paired superset exercise">→</button>
               <span class="set-status"></span>
               <div class="set-drop-wrap${savedSet && savedSet.drops && savedSet.drops.length ? ' open' : ''}">${buildDropRowsHtml(savedSet && savedSet.drops, setIdx, showWeight)}</div>
@@ -27586,6 +27705,7 @@ async function renderWorkout(){
       <div class="set-chips" role="group"></div>
       <div class="expand-wrap" id="exSetsPanel${i}">
         <div>
+          ${exLoggerHtml()}
           ${piece.cautionHtml}
           ${trackingHtml}
           ${piece.detailsHtml}
@@ -27636,6 +27756,7 @@ async function renderWorkout(){
       <div class="set-chips" role="group"></div>
       <div class="expand-wrap" id="exSetsPanel${t}">
         <div>
+          ${exLoggerHtml()}
           <div class="sets-block" data-day="${activeDay}" data-idx="${t}">
             ${actionsHtml(topPiece)}
             ${actionsHtml(bottomPiece)}
@@ -29037,10 +29158,18 @@ function renderUpNext(){
   const chip = list.querySelector(`.set-chip[data-ex-idx="${n.row.dataset.exIdx}"][data-set-idx="${n.row.dataset.setIdx}"]`);
   const why = document.getElementById('upNextWhy');
   if(why){ why.textContent = (chip && chip._values && chip._values.why) || ''; why.hidden = !why.textContent; }
+  fillSetLogger(card, n, chip, target);
+  card.dataset.rowKey = `${n.row.dataset.exIdx}:${n.row.dataset.setIdx}`;
+}
+
+// Fills a logger's tiles (Up next's, or an open exercise's since v3.376) for
+// the set `n` points at: the chip's set-to-set call first, else the row's own
+// suggestion, else the set just logged for the same exercise carried forward.
+function fillSetLogger(panel, n, chip, target){
   for(const field of ['weight', 'distance', 'reps', 'rpe']){
     const src = n.row.querySelector('.ex-' + field);
-    const label = card.querySelector(`.up-next-field[data-field="${field}"]`);
-    const input = document.getElementById('upNext' + field[0].toUpperCase() + field.slice(1));
+    const label = panel.querySelector(`.up-next-field[data-field="${field}"]`);
+    const input = label.querySelector('input');
     label.hidden = !src;
     if(!src) continue;
     // The app's own suggestion first; failing that, carry forward the set just
@@ -29054,8 +29183,14 @@ function renderUpNext(){
     input.placeholder = field === 'reps' && range ? range : ''; // v3.292: no '–' filler — the label already names the tile
   }
   const unit = n.row.querySelector('.ex-weight');
-  if(unit) document.getElementById('upNextWeightUnit').textContent = /^\d/.test(unit.placeholder) ? weightUnit : unit.placeholder;
-  card.dataset.rowKey = `${n.row.dataset.exIdx}:${n.row.dataset.setIdx}`;
+  if(unit) panel.querySelector('.up-next-field[data-field="weight"] small').textContent = /^\d/.test(unit.placeholder) ? weightUnit : unit.placeholder;
+}
+
+// What a logger's tiles hold now, by field.
+function readSetLogger(panel){
+  const values = {};
+  for(const field of ['weight', 'distance', 'rpe', 'reps']) values[field] = panel.querySelector(`.up-next-field[data-field="${field}"] input`).value;
+  return values;
 }
 
 // Logging writes into the REAL row and fires its own change events, reps last
@@ -29065,14 +29200,75 @@ function logUpNext(){
   const list = document.getElementById('exerciseList');
   const n = list ? findNextSetRow(list) : {row:null};
   if(!n.row) return false;
-  const reps = document.getElementById('upNextReps').value;
-  if(reps === ''){ document.getElementById('upNextReps').focus(); return false; }
-  const values = {};
-  for(const field of ['weight', 'distance', 'rpe', 'reps']) values[field] = document.getElementById('upNext' + field[0].toUpperCase() + field.slice(1)).value;
+  const values = readSetLogger(document.getElementById('upNext'));
+  if(values.reps === ''){ document.getElementById('upNextReps').focus(); return false; }
   writeSetToRow(n.row, values);
   renderUpNext();
   return true;
 }
+
+// [v3.376] Every open exercise logs the way "Up next" does: its own next set
+// as big tiles and one Log set button, in place of the raw set rows (which
+// stay in the page, hidden, as the source of truth, the way gym mode already
+// treats them). It lives inside the exercise's expand-wrap, so it opens and
+// closes with the exercise. Tiles refill only when the set they point at
+// changes, so a weight typed before the reps survives every re-render.
+function exLoggerHtml(){
+  return `<div class="up-next ex-logger" hidden>
+    <div class="up-next-label ex-logger-label"></div>
+    <div class="up-next-why ex-logger-why" hidden></div>
+    <div class="up-next-fields">
+      <label class="up-next-field" data-field="weight"><small>lb</small><input type="number" inputmode="decimal" aria-label="Weight"></label>
+      <label class="up-next-field" data-field="distance"><small>m</small><input type="number" inputmode="decimal" step="0.01" min="0" aria-label="Distance"></label>
+      <label class="up-next-field" data-field="reps"><small>Reps</small><input type="number" inputmode="numeric" aria-label="Reps"></label>
+      <label class="up-next-field" data-field="rpe"><small>RPE</small><input type="number" inputmode="decimal" step="0.5" min="5" max="10" aria-label="RPE, 5 to 10"></label>
+    </div>
+    <button type="button" class="save-btn up-next-go ex-logger-go">Log set</button>
+  </div>`;
+}
+
+function renderExerciseLogger(blockEl){
+  const panel = blockEl.querySelector('.ex-logger');
+  if(!panel) return;
+  const n = findNextSetRow(blockEl);
+  if(!n.row){ panel.hidden = true; panel.dataset.rowKey = ''; return; }
+  panel.hidden = false;
+  // A superset names whose set it is; a single exercise is named in its header.
+  const isPair = blockEl.classList.contains('superset-pair');
+  panel.querySelector('.ex-logger-label').textContent = `${isPair ? n.name.trim() + ' · s' : 'S'}et ${n.setNum} of ${n.setCount}`;
+  const key = `${n.row.dataset.exIdx}:${n.row.dataset.setIdx}`;
+  const name = n.name.trim();
+  for(const f of ['weight', 'distance', 'reps', 'rpe']){
+    const input = panel.querySelector(`.up-next-field[data-field="${f}"] input`);
+    input.setAttribute('aria-label', `${f === 'rpe' ? 'RPE, 5 to 10' : f[0].toUpperCase() + f.slice(1)} for ${name} set ${n.setNum}`);
+  }
+  if(panel.dataset.rowKey === key) return;
+  const chip = blockEl.querySelector(`.set-chip[data-ex-idx="${n.row.dataset.exIdx}"][data-set-idx="${n.row.dataset.setIdx}"]`);
+  const owner = n.row.closest('.superset-member') || blockEl.querySelector(`.exercise input[type=checkbox][data-idx="${n.row.dataset.exIdx}"]`);
+  const header = owner && (owner.closest('.exercise') || owner);
+  const target = (header && header.querySelector('.ex-sets > span')) || blockEl.querySelector('.ex-sets > span');
+  fillSetLogger(panel, n, chip, target);
+  const why = panel.querySelector('.ex-logger-why');
+  why.textContent = (chip && chip._values && chip._values.why) || '';
+  why.hidden = !why.textContent;
+  panel.dataset.rowKey = key;
+}
+
+// Logs through commitSet, like a chip tap: same row write, same Undo.
+function logExerciseLogger(panel){
+  const block = panel.closest('.exercise-block');
+  const n = block ? findNextSetRow(block) : {row:null};
+  if(!n.row) return false;
+  const values = readSetLogger(panel);
+  if(values.reps === ''){ panel.querySelector('.up-next-field[data-field="reps"] input').focus(); return false; }
+  panel.dataset.rowKey = '';
+  commitSet(n.row, values);
+  return true;
+}
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest && e.target.closest('.ex-logger-go');
+  if(btn) logExerciseLogger(btn.closest('.ex-logger'));
+});
 
 // Writes a set into a REAL row and fires the row's own change events: weight,
 // distance and RPE first, reps last, so the row becomes a "real set" (rest
@@ -29230,7 +29426,7 @@ function renderAllSetChips(){
   const list = document.getElementById('exerciseList');
   if(!list) return;
   const glow = findNextSetRow(list).row;
-  list.querySelectorAll(':scope > .exercise-block').forEach(b => renderSetChips(b, glow));
+  list.querySelectorAll(':scope > .exercise-block').forEach(b => { renderSetChips(b, glow); renderExerciseLogger(b); });
   refreshGymLogBtn();
 }
 
@@ -30345,7 +30541,6 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       if(nInput) nInput.addEventListener('input', ()=>{
         const has = nInput.value.trim() !== '';
         noteBtn.classList.toggle('has-note', has);
-        noteBtn.textContent = has ? '\u{1F4DD}' : '+';
       });
     }
     rpeInput.addEventListener('change', save);
@@ -30469,7 +30664,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
         <input type="number" inputmode="numeric" enterkeyhint="next" class="ex-input ex-reps" aria-label="Set ${newIdx+1} reps" placeholder="${getSetFieldUnit(ex.sets)}" value="">
         <input type="number" inputmode="decimal" enterkeyhint="next" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${newIdx+1} RPE, 5 to 10" placeholder="RPE" value="">
         <button type="button" class="set-drop-btn" aria-label="Add a drop set under set ${newIdx+1}"></button>
-        <button type="button" class="set-note-btn" aria-label="Add a note to set ${newIdx+1}" aria-expanded="false">+</button>
+        <button type="button" class="set-note-btn" aria-label="Add a note to set ${newIdx+1}" aria-expanded="false"></button>
         <span class="set-status"></span>
         <div class="set-drop-wrap"></div>
         <div class="set-note-wrap">
@@ -35327,7 +35522,11 @@ function buildFoodItemBtn(item, showCategory){
   starBtn.addEventListener('click', async (e)=>{
     e.stopPropagation();
     await toggleFavorite(item);
-    starBtn.classList.toggle('favorited', isFavorited(item.name));
+    const nowFavorited = isFavorited(item.name);
+    starBtn.classList.toggle('favorited', nowFavorited);
+    // v3.373: the state VoiceOver reads follows the tap too, not just the look.
+    starBtn.setAttribute('aria-pressed', nowFavorited ? 'true' : 'false');
+    starBtn.setAttribute('aria-label', `${nowFavorited ? 'Remove' : 'Add'} ${item.name} ${nowFavorited ? 'from' : 'to'} favourites`);
     if(activeCat === '★ Favorites') renderFoodItems();
   });
   if(isCustom){
@@ -39655,12 +39854,13 @@ async function saveApiKey(key){
 function showApiKeyConnected(){
   document.getElementById('aiKeySetupState').style.display = 'none';
   document.getElementById('aiKeyConnectedState').style.display = 'flex';
-  document.getElementById('aiSettingsSummary').textContent = 'Key saved — AI features ready';
+  // v3.378: the row's closed summary; the Connected row inside says the rest.
+  document.getElementById('aiSettingsSummary').textContent = 'Connected';
 }
 function showApiKeySetup(){
   document.getElementById('aiKeySetupState').style.display = '';
   document.getElementById('aiKeyConnectedState').style.display = 'none';
-  document.getElementById('aiSettingsSummary').textContent = 'Powers Snap a Meal + Coaching video review';
+  document.getElementById('aiSettingsSummary').textContent = 'Coach chat, meal photos, form feedback and more';
 }
 
 // --- Shared Anthropic transport ----------------------------------------
@@ -44276,7 +44476,7 @@ const ICONS = {
   // CSS glyph, so the app's two "edit" affordances read as one icon.
   edit:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 4 19.4 8.2 8.2 19.4 3.4 20.6 4.6 15.8Z"/><line x1="12.7" y1="6.5" x2="16.9" y2="10.7"/></svg>',
   trend: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 10.5 13 14 21 5"/><polyline points="15 5 21 5 21 11"/></svg>',
-  // Same trash artwork as .fi-delete::after / .ex-delete-custom-btn::after /
+  // Same trash artwork as .fi-delete::before / .ex-delete-custom-btn::after /
   // .swipe-delete-bg::after, redrawn at this object's 24x24/stroke-2.2
   // convention (same treatment 'edit' already got above) rather than the
   // 20x20/stroke-1.6 mask convention, so every "delete" affordance in the

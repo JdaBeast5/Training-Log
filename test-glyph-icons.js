@@ -100,6 +100,8 @@ test('REAL invocation (v3.360): buildFoodItemBtn renders an empty fi-fav toggle 
   assert.strictEqual(star.classList.contains('favorited'), false);
   star.click(); await new Promise(r => setTimeout(r, 0));
   assert.strictEqual(star.classList.contains('favorited'), true, 'filled after favouriting');
+  // 2026-10-26 (v3.373): the accessible state follows the tap (test-flagged-fixes.js).
+  assert.strictEqual(star.getAttribute('aria-pressed'), 'true');
   assert.strictEqual(star.textContent, '', 'the click handler does not write a glyph back');
   star.click(); await new Promise(r => setTimeout(r, 0));
   assert.strictEqual(star.classList.contains('favorited'), false);

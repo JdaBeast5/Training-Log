@@ -146,3 +146,36 @@ All of these share the tested request path, and most have their own suites.
 - the favourite star's `aria-pressed`/`aria-label` aren't updated on tap (pre-existing);
 - `.fi-delete::after` draws the trash glyph and so overrides the shared 44px hit area (the same collision v3.350 fixed for the pencil);
 - the set note button still uses a 📝 emoji.
+
+## Addendum 6: flagged items, the exercise logger and Settings (v3.372–v3.379)
+PR #35 was merged (v3.371 live; the Pages deploy succeeded). This batch is on `claude/taste-skill-v2`, restarted from `Branch-1`, and **not yet live**: it needs a new PR and merge.
+
+**Flagged items**, tested in `test-flagged-fixes.js`:
+- **v3.372:** Olympic Lifting's Front Squat insight now reads the right way round: the front squat should out-lift the clean, and when the two are close the recovery is the limiter.
+- **v3.373:** the food favourite star updates `aria-pressed` and its label on tap.
+- **v3.374:** the custom-food trash icon moved to `::before`. Its tap area was 13×14, now 30×44 (Chromium `elementFromPoint`).
+- **v3.375:** the set note button draws a note icon instead of "+" or 📝.
+
+**v3.376: every open exercise logs like Up next.** Owner: "I want each exercise to look like the first of the day."
+- Each open exercise's `expand-wrap` starts with `exLoggerHtml()`: "Set N of M", big weight/reps/RPE tiles and Log set. Supersets name the lift.
+- The logger is filled by `fillSetLogger`, shared with Up next and extracted from `renderUpNext`. It logs through `commitSet`, the same row write and Undo as a chip tap.
+- Tiles refill only when the target set changes (`panel.dataset.rowKey`), so typed values survive re-renders.
+- `#exerciseList .sets-block > .set-row{display:none}`: the raw rows are hidden on Today too, as gym mode already did. They remain the source of truth.
+- The 76px name-column indent is gone from sets-block, summaries, badges, cautions and Technique.
+- The rep-range hint (`::placeholder`) is 17px so "10-12" fits, including on Up next.
+- Gym mode shows no extra loggers (they carry `.up-next`).
+- Covered by `test-exercise-logger.js`.
+- **Trade-off, same as gym mode:** with the rows hidden, there is no swipe-to-delete for a set. Drops, notes and clearing go through the set sheet (long-press a chip).
+
+**v3.377–v3.379: Settings is an iOS inset-grouped list** (`test-settings-grouped.js`):
+- **Structure:** each section is a header, one `.settings-group`, then footer notes. Slots are `display:contents`, so reparented cards become rows.
+- **Switch rows** drop their duplicate label.
+- **Pickers** are rows with the value on the right. The "(default)" suffix was dropped from Double progression.
+- **Card rows:** no icons, grey chevrons, and the summary hides while the row is open.
+- **AI row wording** is current; with a key saved, the summary reads "Connected".
+- **"You":** a "Set up your profile" jump row until the profile moves in.
+- The `:has()` rules are checked as declared (jsdom can't match `:has()`) and verified in Chromium.
+
+**Testing note:** Chromium screenshots must block service workers (`serviceWorkers:'block'`), or the SW serves a stale `index.html`.
+
+**Still unverified:** a real iPhone/Safari; the live Claude API.
