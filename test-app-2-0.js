@@ -31,6 +31,9 @@
 // v3.312 — Analysis's three group headers join the disclosure rows: 15.5px
 // bold title, 44px target, the same drawn muted chevron (down open, right
 // collapsed). Before: an 11px muted label with a small text glyph.
+// v3.314 — Exercise Progress rows: figures in the text face (was mono), "Best"
+// plain (was a yellow 🏆 badge), "ready to go up" the chips' green ↑ (was a
+// yellow ⬆).
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -180,6 +183,31 @@ test('REAL invocation + CSSOM (v3.312): Analysis group headers are 44px disclosu
   assert.strictEqual(cs(chev).transform, 'rotate(-45deg)', 'collapsed: points right');
   assert.ok(doc.getElementById('c1').classList.contains('group-collapsed'), 'anchor: the real collapse ran');
   assert.strictEqual(header.querySelector('span:not(.analysis-group-header-chevron)').textContent, 'Body & Health Trends', 'the jump rail still reads the label');
+});
+
+test('REAL invocation + CSSOM (v3.314): Exercise Progress rows carry no emoji, a plain Best, and the chips\u2019 green up arrow', async (assert)=>{
+  const raw = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
+  const { window } = runJsdom(`<style>${raw}</style><div id="exerciseProgress"></div>`, `
+    var weightUnit = 'lb';
+    const fmtWeight = lb => lb + ' lb', toDisplayWeight = lb => lb;
+    const readExCorpus = async () => [1];
+    const groupCorpusByExercise = () => [{name:'Bench Press', exDef:{sets:'3×5'}, log:[{sets:[{weight:180, reps:5}]}, {sets:[{weight:185, reps:5}]}]}];
+    const topSetOf = e => e.sets[0], maxWeightEver = () => 185, volumeOf = () => 2775, estimated1RM = () => 216;
+    const describeExercisePlaces = () => 'Strength · Day 1', reconstructAllPRs = async () => [];
+    const renderCollapsibleList = (el, items) => { el.innerHTML = items.join(''); }, icon = () => '';`,
+    [extractFunction(src, 'escapeHtml'), extractFunction(src, 'trimUnitNum'), extractFunction(src, 'parseTopRep'), extractFunction(src, 'renderExerciseProgress'),
+     'window.__done = renderExerciseProgress();']);
+  await window.__done;
+  const el = window.document.getElementById('exerciseProgress');
+  const best = el.querySelector('.prog-best'), ready = el.querySelector('.prog-ready');
+  assert.ok(best && ready, 'anchor: the real row rendered, ready to progress');
+  assert.strictEqual(best.textContent, 'Best 185 lb');
+  assert.strictEqual(ready.textContent.trim(), '↑ Ready to go up next session');
+  assert.doesNotMatch(el.textContent, /\u{1F3C6}|⬆/u, 'no trophy, no heavy arrow');
+  const cs = sel => window.getComputedStyle(el.querySelector(sel));
+  assert.strictEqual(cs('.prog-stats').fontFamily, 'var(--font-sans)');
+  assert.strictEqual(cs('.prog-best').color, 'var(--text)');
+  assert.strictEqual(cs('.prog-ready').color, 'var(--plate-green)', 'same green as the chips\u2019 up arrow');
 });
 
 run();

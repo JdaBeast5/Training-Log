@@ -2920,10 +2920,13 @@
   .prog-top{display:flex; justify-content:space-between; align-items:baseline;}
   .prog-name{font-size:13.5px; font-weight:600;}
   .prog-day{font-size:11px; color:var(--text-muted); font-family:var(--font-sans);}
-  .prog-stats{display:flex; justify-content:space-between; margin-top:4px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);}
+  /* v3.314 (2.0): figures in the text face with tabular numbers, like the set
+     chips (was mono); Best is a quiet fact, not a yellow badge; "ready to go
+     up" is the chips' green ↑. */
+  .prog-stats{display:flex; justify-content:space-between; gap:12px; margin-top:4px; font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:13px; color:var(--text-muted);}
   .prog-current{color:var(--text); font-weight:600;}
-  .prog-best{color:var(--plate-yellow); font-size:11.5px; font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
-  .prog-ready{color:var(--plate-yellow); font-size:11.5px; margin-top:3px; font-family:var(--font-sans);}
+  .prog-best{color:var(--text); font-weight:500; white-space:nowrap;}
+  .prog-ready{color:var(--plate-green); font-size:13px; font-weight:500; margin-top:4px; font-family:var(--font-sans);}
 
   .history-hint{font-size:12px; color:var(--text-muted); margin-bottom:14px; line-height:1.4;}
   .history-hint.nutrient-inline-note{margin-top:-6px; margin-bottom:12px;}
@@ -6730,7 +6733,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.313';
+const APP_VERSION = '3.314';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7520,6 +7523,8 @@ const WHATS_NEW = {
     'The three Analysis sections open and close from full-size rows, like History and Learn.',
   ]},  '3.313': { headline: 'Tidier Analysis', points: [
     'The date range for body and health trends now hides with its section instead of sitting on its own.',
+  ]},  '3.314': { headline: 'Exercise Progress, cleaner', points: [
+    'Progress rows use the same type as your sets, Best is shown plainly, and "ready to go up" uses the same green arrow as your sets.',
   ]},
 };
 
@@ -39384,8 +39389,9 @@ async function renderExerciseProgress(){
     const deltaWLb = (r.sessionCount > 1 && r.first && r.latest && r.first.weight!=null && r.latest.weight!=null) ? (r.latest.weight - r.first.weight) : null;
     const deltaHtml = deltaWLb==null ? '' :
       `<span class="${deltaWLb>0?'w-up':deltaWLb<0?'w-down':'w-flat'}">${deltaWLb>0?'+':''}${trimUnitNum(toDisplayWeight(deltaWLb))} ${weightUnit} since first log</span>`;
-    const readyHtml = r.readyToProgress ? `<div class="prog-ready">⬆ Ready to move up in weight next session</div>` : '';
-    const bestHtml = r.bestEver!=null ? `<span class="prog-best">🏆 Best: ${fmtWeight(r.bestEver)}</span>` : '';
+    // v3.314: the same ↑ the set chips use for "go up", and no trophy emoji.
+    const readyHtml = r.readyToProgress ? `<div class="prog-ready"><span aria-hidden="true">↑</span> Ready to go up next session</div>` : '';
+    const bestHtml = r.bestEver!=null ? `<span class="prog-best">Best ${fmtWeight(r.bestEver)}</span>` : '';
     return `
       <div class="prog-row">
         <div class="prog-top">
