@@ -34,6 +34,12 @@ const callClaudeChatSrc = extractFunction(src, 'callClaudeChat');
 const anthropicRequestSrc = extractFunction(src, 'anthropicRequest');
 const aiSleepSrc = extractFunction(src, 'aiSleep');
 const aiMaxAttemptsSrc = extractConst(src, 'AI_MAX_ATTEMPTS');
+// 2026-10-26 (v3.364): calls to the default model add the refusal fallback,
+// so the request path needs its beta name and helper too.
+const aiFallbackSrc = [extractConst(src, 'AI_FALLBACK_BETA') + '\n' + extractFunction(src, 'withRefusalFallback'), extractConst(src, 'AI_JSON_SCHEMAS'), extractFunction(src, 'aiOutputConfig')].join('\n');
+// 2026-10-26 (v3.365): ...plus the structured-output helper and schemas.
+// 2026-10-26 (v3.362): the default model lives in AI_MODEL_DEFAULT now.
+const aiModelDefaultSrc = extractConst(src, 'AI_MODEL_DEFAULT');
 const escapeHtmlSrc = extractFunction(src, 'escapeHtml');
 const aiKeySetupPromptSrc = extractFunction(src, 'aiKeySetupPrompt');
 const getApiKeySrc = extractFunction(src, 'getApiKey');
@@ -181,7 +187,7 @@ function setupSubmit({ apiKey = 'fake-key', profileOverrides = {} } = {}){
     window.renderMySupplements = async ()=>{};
   `;
   const { window, document } = runJsdom(bodyHtml, globalsSetup, [
-    aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
+    aiModelDefaultSrc, aiFallbackSrc, aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
     escapeHtmlSrc, aiKeySetupPromptSrc, getApiKeySrc,
     goalLabelsSrc, persistentConditionsSrc, describeDietaryFlagsSrc, activeConditionKeysSrc,
     supplementEvidenceLabelsSrc, renderSupplementCardsSrc,

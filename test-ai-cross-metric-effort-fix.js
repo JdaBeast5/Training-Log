@@ -30,6 +30,13 @@ const callClaudeChatSrc = extractFunction(src, 'callClaudeChat');
 const anthropicRequestSrc = extractFunction(src, 'anthropicRequest');
 const aiSleepSrc = extractFunction(src, 'aiSleep');
 const aiMaxAttemptsSrc = extractConst(src, 'AI_MAX_ATTEMPTS');
+// 2026-10-26 (v3.364): calls to the default model add the refusal fallback,
+// so the request path needs its beta name and helper too.
+const aiFallbackSrc = [extractConst(src, 'AI_FALLBACK_BETA') + '\n' + extractFunction(src, 'withRefusalFallback'), extractConst(src, 'AI_JSON_SCHEMAS'), extractFunction(src, 'aiOutputConfig')].join('\n');
+// 2026-10-26 (v3.365): ...plus the structured-output helper and schemas.
+// 2026-10-26 (v3.362): the default model is the AI_MODEL_DEFAULT const now
+// (claude-sonnet-5-5), so the harness loads it.
+const aiModelDefaultSrc = extractConst(src, 'AI_MODEL_DEFAULT');
 
 // A minimal, real-shaped Claude Messages API response — enough for
 // anthropicRequest's own "every text block, joined" logic to resolve a
@@ -47,21 +54,21 @@ function setupCallClaudeChat(){
     };
   `;
   const { window } = runJsdom('', globalsSetup, [
-    aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
+    aiModelDefaultSrc, aiFallbackSrc, aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
     'window.__capturedRequests = [];',
   ]);
   window.__capturedRequests = captured;
   return { window, captured };
 }
 
-test('REAL invocation: callClaudeChat attaches output_config.effort for claude-sonnet-5 when effort is passed', async (assert)=>{
+test('REAL invocation: callClaudeChat attaches output_config.effort for the default model (claude-sonnet-5-5 since v3.362) when effort is passed', async (assert)=>{
   const { window, captured } = setupCallClaudeChat();
   window.__fakeResponse = fakeApiResponse('PUSH\n\nSome analysis.');
   await window.callClaudeChat('fake-key', 'system prompt', [{role:'user', content:'hi'}], 5000, undefined, 'medium');
 
   assert.strictEqual(captured.length, 1, 'exactly one request must have been sent');
   const body = captured[0];
-  assert.strictEqual(body.model, 'claude-sonnet-5', 'must default to claude-sonnet-5 when no model is passed');
+  assert.strictEqual(body.model, 'claude-sonnet-5-5', 'must default to claude-sonnet-5-5 (v3.362) when no model is passed');
   assert.strictEqual(body.max_tokens, 5000, 'max_tokens must still be the hard ceiling — effort narrows likely usage, it does not replace this');
   // JSON.stringify round-trip, not assert.deepStrictEqual: body.output_config
   // was parsed by jsdom's OWN realm-local JSON.parse (inside window.fetch),
@@ -79,13 +86,17 @@ test('sabotage-relevant: callClaudeChat does NOT attach output_config when no ef
   assert.strictEqual(captured[0].output_config, undefined, 'callers that pass no effort must not get output_config at all, not an effort:undefined key');
 });
 
-test('REAL invocation: callClaudeChat does NOT attach output_config for a non-sonnet-5 model even when effort is passed — Haiku 4.5 returns a 400 if output_config is present at all', async (assert)=>{
+// 2026-10-26 (v3.363): the model gate this test guarded is gone on purpose.
+// Haiku 4.5 (which 400'd on output_config) was replaced by Haiku 5.5, which
+// accepts effort and needs it because it thinks by default. The test now
+// proves the opposite: the fast model DOES get the effort it is passed.
+test('REAL invocation: callClaudeChat attaches output_config.effort for the fast model too (claude-haiku-5-5, v3.363)', async (assert)=>{
   const { window, captured } = setupCallClaudeChat();
   window.__fakeResponse = fakeApiResponse('a plain reply');
-  await window.callClaudeChat('fake-key', 'system prompt', [{role:'user', content:'hi'}], 1200, 'claude-haiku-4-5-20251001', 'medium');
+  await window.callClaudeChat('fake-key', 'system prompt', [{role:'user', content:'hi'}], 1200, 'claude-haiku-5-5', 'low');
 
-  assert.strictEqual(captured[0].model, 'claude-haiku-4-5-20251001');
-  assert.strictEqual(captured[0].output_config, undefined, 'a caller accidentally passing effort for a non-effort-capable model must not crash the request — the guard has to actually filter it out, not just rely on callers remembering');
+  assert.strictEqual(captured[0].model, 'claude-haiku-5-5');
+  assert.strictEqual(JSON.stringify(captured[0].output_config), JSON.stringify({effort: 'low'}));
 });
 
 // --- generateCrossMetricInsights: the real call site this fix exists for ---
@@ -131,7 +142,7 @@ function setupGenerate(dataLineCount){
     };
   `;
   const { window, document } = runJsdom(bodyHtml, globalsSetup, [
-    aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
+    aiModelDefaultSrc, aiFallbackSrc, aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
     aiPromptVersionSrc, aiFingerprintSrc, aiCachedCallSrc,
     escapeHtmlSrc, aiKeySetupPromptSrc, getApiKeySrc,
     contextStub(dataLineCount),

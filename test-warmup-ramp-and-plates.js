@@ -32,33 +32,16 @@ const chunks = [
   extractFunction(src, 'visibleRampSteps'),
   extractFunction(src, 'buildWarmupRamp'),
   extractFunction(src, 'buildGenericWarmupRamp'),
-  extractFunction(src, 'calcPlatesPerSide'),
-  extractFunction(src, 'formatPlateResult'),
 ];
 
 const { test, run } = makeRunner('test-warmup-ramp-and-plates.js');
 
-test('calcPlatesPerSide(225) is bar + two 45s per side — the textbook plate-math fact', (assert)=>{
-  const [result] = runSandbox(chunks, `__capture.push(calcPlatesPerSide(225, undefined, undefined));`);
-  assert.strictEqual(result.bar, 45);
-  assert.strictEqual(result.perSide, 90);
-  assert.deepStrictEqual(result.breakdown, [{plate:45, count:2}]);
-  assert.strictEqual(result.leftover, 0);
-});
-
-test('calcPlatesPerSide below the bar returns tooLight, not a negative breakdown', (assert)=>{
-  const [result] = runSandbox(chunks, `__capture.push(calcPlatesPerSide(40, undefined, undefined));`);
-  assert.deepStrictEqual(result, {tooLight:true, bar:45});
-});
-
-test('calcPlatesPerSide leaves an honest leftover when the plate set cannot hit the target exactly', (assert)=>{
-  // 143 lb: bar 45, perSide 49. Greedy from [45,35,25,10,5,2.5]: one 45
-  // leaves 4, which only the 2.5 satisfies (one of them), leaving a genuine
-  // 1.5 lb the plate set can't close — verified numerically, not guessed.
-  const [result] = runSandbox(chunks, `__capture.push(calcPlatesPerSide(143, undefined, undefined));`);
-  assert.strictEqual(result.perSide, 49);
-  assert.deepStrictEqual(result.breakdown, [{plate:45, count:1}, {plate:2.5, count:1}]);
-  assert.strictEqual(result.leftover, 1.5);
+// v3.300 (owner request): the plate calculator and voice set logging were removed with the set chips.
+// The three calcPlatesPerSide tests went with the calculator (its only user).
+// Loadability is still the job of getEquipment + snapToLoadable, tested below.
+test('REMOVED (v3.300): calcPlatesPerSide and formatPlateResult are gone; snapToLoadable remains', (assert)=>{
+  assert.ok(!/function calcPlatesPerSide\b|function formatPlateResult\b/.test(src));
+  assert.ok(/function snapToLoadable\b/.test(src));
 });
 
 test('getEquipment falls back to commercial-gym defaults when no profile is saved', (assert)=>{

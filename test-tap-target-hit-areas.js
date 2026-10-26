@@ -88,14 +88,17 @@ test('REAL CSS: the Group A ::after rule gives all four new controls a full 44x4
 
 // ── 2. Group B addition: the working-set row's icon buttons ────────────────
 
-test('REAL CSS: .plate-btn/.voice-log-btn/.set-drop-btn/.set-note-btn get position:relative and a 44px-tall hit area extended by the row\'s real 6px gap', (assert)=>{
-  const posRule = ruleFor('.plate-btn');
-  assert.ok(posRule, '.plate-btn must appear in a position:relative rule');
+// v3.300 (owner request): the plate calculator and voice set logging were removed with the set chips.
+// The plate and voice buttons left the row; the drop-set and note buttons
+// keep the same hit areas, in the same shared rule.
+test('REAL CSS: .set-drop-btn/.set-note-btn get position:relative and a 44px-tall hit area extended by the row\'s real 6px gap', (assert)=>{
+  const posRule = ruleFor('.set-drop-btn');
+  assert.ok(posRule, '.set-drop-btn must appear in a position:relative rule');
   assert.strictEqual(posRule.style.position, 'relative');
   const members = posRule.selectorText.split(',').map(s=> s.trim());
-  assert.deepStrictEqual(members, ['.plate-btn', '.voice-log-btn', '.set-drop-btn', '.set-note-btn']);
+  assert.deepStrictEqual(members, ['.set-drop-btn', '.set-note-btn']);
 
-  for(const cls of ['.plate-btn', '.voice-log-btn', '.set-drop-btn', '.set-note-btn']){
+  for(const cls of ['.set-drop-btn', '.set-note-btn']){
     const rule = ruleFor(`${cls}::after`);
     assert.ok(rule, `${cls}::after must have its own rule`);
     assert.strictEqual(rule.style.width, 'calc(100% + 6px)', `${cls}::after width must use the row's real 6px gap, not a guessed number`);
@@ -103,7 +106,7 @@ test('REAL CSS: .plate-btn/.voice-log-btn/.set-drop-btn/.set-note-btn get positi
   }
 });
 
-test('REAL MARKUP: the real working-set row template emits plate-btn/voice-log-btn immediately after the RPE input, then set-drop-btn, then set-note-btn — the exact adjacency the 6px-gap CSS comment claims', (assert)=>{
+test('REAL MARKUP: the real working-set row template emits set-drop-btn right after the RPE input, then set-note-btn — the adjacency the 6px-gap CSS comment claims (v3.300: no plate/voice button between them any more)', (assert)=>{
   const rowStart = src.indexOf('<div class="set-row swipe-item" data-set-idx="${setIdx}" data-ex-idx="${i}">');
   assert.ok(rowStart !== -1, 'sanity: the real set-row template must be found');
   const rowEnd = src.indexOf('<button class="add-set-btn"', rowStart);
@@ -111,23 +114,18 @@ test('REAL MARKUP: the real working-set row template emits plate-btn/voice-log-b
   const rowTemplate = src.slice(rowStart, rowEnd);
 
   const rpeAt = rowTemplate.indexOf('class="ex-input ex-rpe"');
-  const plateAt = rowTemplate.indexOf('class="plate-btn"');
-  const voiceAt = rowTemplate.indexOf('class="voice-log-btn"');
   const dropAt = rowTemplate.indexOf('class="set-drop-btn');
   const noteAt = rowTemplate.indexOf('class="set-note-btn');
   const statusAt = rowTemplate.indexOf('class="set-status"');
 
   assert.ok(rpeAt !== -1 && dropAt !== -1 && noteAt !== -1 && statusAt !== -1, 'sanity: all real anchors must be found in the real template');
-  assert.ok(plateAt !== -1 || voiceAt !== -1, 'sanity: at least one of plate-btn/voice-log-btn (they are mutually exclusive in real markup) must be found');
-  const firstButtonAt = plateAt !== -1 ? plateAt : voiceAt;
-
-  assert.ok(rpeAt < firstButtonAt, 'RPE input comes before the plate/voice button');
-  assert.ok(firstButtonAt < dropAt, 'plate/voice button comes before the drop-set button');
+  assert.ok(!/class="(plate-btn|voice-log-btn)"/.test(rowTemplate), 'the removed buttons are gone from the row');
+  assert.ok(rpeAt < dropAt, 'RPE input comes before the drop-set button');
   assert.ok(dropAt < noteAt, 'drop-set button comes before the note button');
   assert.ok(noteAt < statusAt, 'note button comes before the (non-interactive) status span');
 });
 
-test('sabotage-relevant: the second, dynamically-added set-row template (used when "+ Add set" is pressed) carries the SAME four classes — both templates must stay in sync for the CSS fix to cover every row, not just the first render', (assert)=>{
+test('sabotage-relevant: the second, dynamically-added set-row template (used when "+ Add set" is pressed) carries the SAME classes — both templates must stay in sync for the CSS fix to cover every row, not just the first render', (assert)=>{
   // This is a DIFFERENT code path from the initial-render template above
   // (`div.innerHTML =`, built by hand in wireSetsBlock's add-set handler,
   // not the `.map(...)` in the render function) — found by its own anchor,
@@ -139,8 +137,7 @@ test('sabotage-relevant: the second, dynamically-added set-row template (used wh
   assert.ok(dynamicEnd !== -1, 'sanity: template must have a terminating backtick-semicolon');
   const dynamicTemplate = src.slice(dynamicStart, dynamicEnd);
 
-  assert.ok(dynamicTemplate.includes('class="plate-btn"') || dynamicTemplate.includes('class="voice-log-btn"'),
-    'dynamic template: plate-btn or voice-log-btn present');
+  assert.ok(!/class="(plate-btn|voice-log-btn)"/.test(dynamicTemplate), 'dynamic template: the removed buttons are gone too (v3.300)');
   assert.ok(dynamicTemplate.includes('class="set-drop-btn"'), 'dynamic template: set-drop-btn present');
   assert.ok(dynamicTemplate.includes('class="set-note-btn"'), 'dynamic template: set-note-btn present');
 });

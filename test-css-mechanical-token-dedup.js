@@ -144,16 +144,22 @@ test('REAL CASCADE: .ex-input:focus, .program-select:focus, .care-input:focus ea
 });
 
 // ── Gym-panel gradient: 4 real call sites ───────────────────────────────
-test('sabotage-relevant: var(--gym-panel-gradient) appears at exactly 4 real call sites', (assert)=>{
+// v3.300 (owner request): the plate calculator and voice set logging were removed with the set chips.
+// Its result panel was one of the four sites; three remain.
+// 2026-10-26 (v3.316): 3 -> 1. The gym-mode set-row well and note field were
+// removed with the rest of the gym-mode set-row styling (gym mode hides those
+// rows behind the set chips; see test-gym-mode-audit-fixes.js). The warm-up
+// box is the token's one remaining call site.
+test('sabotage-relevant: var(--gym-panel-gradient) appears at exactly 1 real call site', (assert)=>{
   const count = (src.match(/var\(--gym-panel-gradient\)/g) || []).length;
-  assert.strictEqual(count, 4, `expected 4 usage sites, found ${count}`);
+  assert.strictEqual(count, 1, `expected 1 usage site, found ${count}`);
 });
 
-test('REAL CASCADE: body.gym-mode .set-row-content, .set-note-input, .plate-result, .warmup-box all resolve to the exact pre-conversion gradient literal', (assert)=>{
+test('REAL CASCADE: body.gym-mode .warmup-box resolves to the exact pre-conversion gradient literal (the set-row well and note field were removed in v3.316)', (assert)=>{
   const grad = extractCustomProp(rootBlock, 'gym-panel-gradient');
   assert.strictEqual(grad, 'linear-gradient(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%)', 'sanity: token holds the known pre-conversion literal');
 
-  for(const selector of ['body.gym-mode .set-row-content', 'body.gym-mode .set-note-input', 'body.gym-mode .plate-result', 'body.gym-mode .warmup-box']){
+  for(const selector of ['body.gym-mode .warmup-box']){
     const block = extractRuleBlock(src, selector);
     const resolved = resolveToken(block, 'gym-panel-gradient', grad);
     assert.ok(resolved.includes(`background:${grad};`), `${selector} must resolve to the exact pre-conversion gradient, got: ${resolved}`);
@@ -240,9 +246,11 @@ test('sabotage-relevant: --glass-blur and --nav-glass-bg are each declared exact
   assert.ok(rootBlock.includes('--nav-glass-bg:'), 'must live in :root');
 });
 
-test('sabotage-relevant: var(--glass-blur) appears at exactly 8 real occurrences (4 sites x 2 prefixed declarations each), var(--nav-glass-bg) at exactly 3', (assert)=>{
-  assert.strictEqual((src.match(/var\(--glass-blur\)/g) || []).length, 8);
-  assert.strictEqual((src.match(/var\(--nav-glass-bg\)/g) || []).length, 3);
+// v3.299: +1 site for each token — the set sheet (Option 2's logger) is fixed
+// chrome made of the same glass as the tab bar (see test-set-sheet.js).
+test('sabotage-relevant: var(--glass-blur) appears at exactly 10 real occurrences (5 sites x 2 prefixed declarations each), var(--nav-glass-bg) at exactly 4', (assert)=>{
+  assert.strictEqual((src.match(/var\(--glass-blur\)/g) || []).length, 10);
+  assert.strictEqual((src.match(/var\(--nav-glass-bg\)/g) || []).length, 4);
 });
 
 test('REAL CASCADE: .nav-pills, .status-scrim, and .analysis-index all resolve to the exact pre-conversion background + backdrop-filter pair', (assert)=>{

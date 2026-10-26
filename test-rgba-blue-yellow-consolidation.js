@@ -179,14 +179,18 @@ test('REAL CASCADE: .day-insight background+border (blue) resolve to the exact p
   assert.match(resolved, /border:1px solid rgba\(91,124,255,0\.28\);/, 'resolved border must byte-match the original literal');
 });
 
-test('REAL CASCADE: .exercise-block.superset-pair (yellow) resolves to the exact pre-conversion literal — a superset pair is now ONE physical block (its rows woven together, see renderWorkout) rather than two blocks joined by a connector strip, so this is one rule instead of two, and the connector\'s own former background is gone along with the connector element itself (the pair\'s replacement, .superset-banner, is a plain label with no fill of its own)', (assert)=>{
+// v3.304 (owner: "clean up the yellow tags, find a better way to show it's a
+// superset"): the pair lost its yellow tint and edge — a neutral rail links the
+// two exercises and a small label names the pairing. This test used to pin the
+// yellow tint's resolved literal; it now pins that the tint is gone.
+test('REMOVED (v3.304): .exercise-block.superset-pair carries no yellow tint or edge — was: REAL CASCADE: .exercise-block.superset-pair (yellow) resolves to the exact pre-conversion literal — a superset pair is now ONE physical block (its rows woven together, see renderWorkout) rather than two blocks joined by a connector strip, so this is one rule instead of two, and the connector\'s own former background is gone along with the connector element itself (the pair\'s replacement, .superset-banner, is a plain label with no fill of its own)', (assert)=>{
   const pairBlock = extractRuleBlock(src, '.exercise-block.superset-pair');
   // Declared twice by design: the base rule here plus one Gym Mode override
   // rule (re-seating the accent inside the pop-out panel — verified
   // separately below as untouched). extractRuleBlock always returns the
   // FIRST match in source order, which is this base (non-Gym-Mode) rule.
   assert.strictEqual(countRuleOpenings(src, '.exercise-block.superset-pair'), 2, '.superset-pair must be declared exactly twice: the base rule plus the one Gym Mode override');
-  assert.match(resolveVars(pairBlock), /background:rgba\(245,197,24,0\.08\);/, 'superset-pair background must byte-match the original per-half literal — the two exercise blocks merged into one, the tint did not change');
+  assert.doesNotMatch(pairBlock, /plate-yellow|background|border-left/, 'no yellow, no tint, no coloured edge');
 });
 
 test('REAL CASCADE: .sub-option.selected gradient+border-color (blue) resolve to the exact pre-conversion literals', (assert)=>{

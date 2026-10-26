@@ -53,11 +53,31 @@ test('checks the box and fires a real change event when every set is complete', 
   assert.strictEqual(document.defaultView.__testResult.changeFired, true, 'must dispatch a real change event, not just flip the property');
 });
 
-test('does nothing when RPE is missing on one set, even if weight and reps are filled everywhere', (assert)=>{
+// v3.302 (owner: "RPE is optional"): the set chips log weight and reps in
+// one tap, so requiring RPE meant no exercise ever ticked itself off. This
+// test used to assert the opposite (no tick without RPE on every set).
+test('ticks the exercise when weight and reps are filled on every set, even with RPE empty on one', (assert)=>{
   const { document } = runJsdom(
     buildFixture(
       setRowHtml({weight: 185, reps: 5, rpe: 8}) +
       setRowHtml({weight: 185, reps: 5, rpe: ''})
+    ),
+    '',
+    [fnSrc, `
+      var row = document.getElementById('row');
+      var block = document.getElementById('block');
+      checkAllSetsCompleteAndAutoCheck(row, block, 0);
+      window.__testResult = row.querySelector('input[type=checkbox]').checked;
+    `]
+  );
+  assert.strictEqual(document.defaultView.__testResult, true);
+});
+
+test('still does nothing while any set is missing its reps (RPE optional does not mean reps optional)', (assert)=>{
+  const { document } = runJsdom(
+    buildFixture(
+      setRowHtml({weight: 185, reps: 5, rpe: 8}) +
+      setRowHtml({weight: 185, reps: '', rpe: ''})
     ),
     '',
     [fnSrc, `

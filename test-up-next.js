@@ -19,7 +19,8 @@ const { readIndexSource, extractFunction, extractElementById, runJsdom, makeRunn
 
 const { test, run } = makeRunner('test-up-next.js');
 const src = readIndexSource();
-const FNS = ['findNextSetRow', 'numericPlaceholder', 'renderUpNext', 'logUpNext'].map(n => extractFunction(src, n));
+// v3.298: logUpNext writes through writeSetToRow, shared with the set chips.
+const FNS = ['findNextSetRow', 'numericPlaceholder', 'renderUpNext', 'logUpNext', 'writeSetToRow'].map(n => extractFunction(src, n));
 
 // One row, shaped like renderWorkout's .set-row template.
 function row(exIdx, setIdx, owner, {w = 'lb', r = 'reps', rpe = 'RPE', wv = '', rv = '', rpev = ''} = {}){

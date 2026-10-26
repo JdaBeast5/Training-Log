@@ -87,6 +87,8 @@ function buildPair(topSetLabels, bottomSetLabels){
     // scoping tests (test-auto-check-sets.js and friends).
     window.wireSetsBlock = ()=>{};
     window.wireExerciseMember = ()=>{};
+    window.watchSetChips = ()=>{}; // v3.298: the set-chip strip's row watcher, irrelevant to the weave
+    window.escapeHtml = s => String(s); // v3.304: each member's actions are labelled with its (escaped) name
   `, [
     assembleSupersetPairSrc,
     `

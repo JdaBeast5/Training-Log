@@ -160,21 +160,15 @@ test('REAL CASCADE: .supplement-streak gradient+border (green) resolve to the ex
   assert.match(resolved, /border:1px solid rgba\(50,215,75,0\.32\);/, 'resolved border must byte-match the original literal border');
 });
 
-test('REAL CASCADE: .voice-feedback background+border (red) resolve to the exact pre-conversion literals', (assert)=>{
-  // Declared twice by design: the base rule here, plus a Gym Mode sizing
-  // override (`body.gym-mode .voice-feedback{...}`) that this pass must not
-  // touch — verified separately below. extractRuleBlock always returns the
-  // FIRST match in source order, which is this base (non-Gym-Mode) rule.
-  assert.strictEqual(countRuleOpenings(src, '.voice-feedback'), 2, '.voice-feedback must be declared exactly twice: the base rule and its Gym Mode override');
-  const block = extractRuleBlock(src, '.voice-feedback');
-  assert.doesNotMatch(block, /rgba\(255,\s*69,\s*58,/, 'the literal red rgba() must be gone');
-  const resolved = resolveVars(block);
-  assert.match(resolved, /background:rgba\(255,69,58,0\.1\);/, 'resolved background must byte-match the original literal');
-  assert.match(resolved, /border:1px solid rgba\(255,69,58,0\.3\);/, 'resolved border must byte-match the original literal');
+// v3.300 (owner request): the plate calculator and voice set logging were removed with the set chips.
+// .voice-feedback (voice set logging's result line) went with it; this test
+// used to check its consolidated red. It now checks nothing reintroduced it.
+test('REMOVED (v3.300): .voice-feedback no longer exists — no rule, base or Gym Mode', (assert)=>{
+  assert.strictEqual(countRuleOpenings(src, '.voice-feedback'), 0);
 });
 
 test('REAL CASCADE: .warmup-box background+border (orange) resolve to the exact pre-conversion literals', (assert)=>{
-  // Same Gym-Mode-override shape as .voice-feedback above.
+  // Declared twice: the base rule and its Gym Mode override.
   assert.strictEqual(countRuleOpenings(src, '.warmup-box'), 2, '.warmup-box must be declared exactly twice: the base rule and its Gym Mode override');
   const block = extractRuleBlock(src, '.warmup-box');
   assert.doesNotMatch(block, /rgba\(255,\s*122,\s*51,/, 'the literal orange rgba() must be gone');
@@ -235,11 +229,15 @@ test('REAL CASCADE: .care-banner-urgent and .app-banner-urgent (red) resolve to 
 });
 
 // ── Gym Mode must stay untouched ────────────────────────────────────────
-test('regression guard: Gym Mode keeps its own literal orange/teal rgba() values, not converted to var() by this pass', (assert)=>{
+// 2026-10-26 (v3.316): Gym Mode's literal teal sites were all on its drop-set
+// rows, removed with the rest of the gym-mode set-row styling (gym mode hides
+// set rows; see test-gym-mode-audit-fixes.js), so the teal-literal floor is
+// gone. Neither colour may be converted to var() inside Gym Mode, still.
+test('regression guard: Gym Mode keeps its own literal orange rgba() values, and neither orange nor teal is converted to var() there', (assert)=>{
   const orangeLiterals = (gymBlock.match(/rgba\(255,\s*122,\s*51,/g) || []).length;
   const tealLiterals = (gymBlock.match(/rgba\(47,\s*184,\s*196,/g) || []).length;
   assert.ok(orangeLiterals >= 3, `Gym Mode should still hold real literal orange rgba() sites, found ${orangeLiterals}`);
-  assert.ok(tealLiterals >= 3, `Gym Mode should still hold real literal teal rgba() sites, found ${tealLiterals}`);
+  assert.strictEqual(tealLiterals, 0, `the gym-mode drop rows (the only teal literal sites) were removed in v3.316, found ${tealLiterals}`);
   const orangeVarUse = (gymBlock.match(/rgba\(var\(--plate-orange-rgb\)/g) || []).length;
   const tealVarUse = (gymBlock.match(/rgba\(var\(--plate-teal-rgb\)/g) || []).length;
   assert.strictEqual(orangeVarUse, 0, 'this pass must not have touched Gym Mode\'s orange literals');

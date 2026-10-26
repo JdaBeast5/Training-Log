@@ -163,7 +163,8 @@ test('range=30 with zero entries in range and NO text filter gets a range-specif
   const note = document.querySelector('#historyList .empty-note');
   assert.ok(note);
   assert.match(note.textContent, /last 30 days/);
-  assert.doesNotMatch(note.textContent, /once you start tracking/, 'must not show the true first-run message when the account actually has data, just not in this range');
+  // v3.296 (concise copy): the first-run message now reads "…will show up here by month"; same role.
+  assert.doesNotMatch(note.textContent, /will show up here by month/, 'must not show the true first-run message when the account actually has data, just not in this range');
 });
 
 test('a truly empty account (buildDayLog returns nothing at all) still shows the original first-run message, regardless of the selected range', async (assert)=>{
@@ -171,7 +172,7 @@ test('a truly empty account (buildDayLog returns nothing at all) still shows the
   document.getElementById('historyExportRange').value = '30';
   await window.renderHistory();
   const note = document.querySelector('#historyList .empty-note');
-  assert.match(note.textContent, /once you start tracking/);
+  assert.match(note.textContent, /will show up here by month/); // v3.296 wording, same first-run message
 });
 
 // --- REAL invocation: the actual change listener --------------------------

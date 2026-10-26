@@ -35,7 +35,8 @@ function only(selector){
   if(found.length !== 1) throw new Error(`expected exactly one "${selector}" rule, found ${found.length}`);
   return found[0].style;
 }
-const LABELS = ['.superset-banner', '.superset-pair .set-row-owner', '.warmup-box .warmup-title', '.warmup-strip .warmup-title'];
+// v3.304: the yellow .superset-banner became a small neutral .superset-tag.
+const LABELS = ['.superset-tag', '.superset-pair .set-row-owner', '.warmup-box .warmup-title', '.warmup-strip .warmup-title'];
 
 test('REAL CSSOM: every warm-up/superset label is sentence case, untracked and at least 11px (house floor)', (assert)=>{
   for(const sel of LABELS){
@@ -47,10 +48,10 @@ test('REAL CSSOM: every warm-up/superset label is sentence case, untracked and a
   }
 });
 
-test('REAL CSSOM: the superset banner is in the text face and no ::before injects a glyph into it', (assert)=>{
-  assert.ok(!/Mono|monospace/.test(only('.superset-banner').getPropertyValue('font-family')), 'banner must use the text face');
-  const before = rules().filter(r => /\.superset-banner::before/.test(r.selectorText));
-  assert.strictEqual(before.length, 0, 'the ::before that injected ⚡ must be gone');
+test('REAL CSSOM: the superset label is in the text face, neutral, and draws its link glyph rather than injecting an emoji', (assert)=>{
+  assert.ok(!/Mono|monospace/.test(only('.superset-tag').getPropertyValue('font-family')), 'label must use the text face');
+  assert.strictEqual(only('.superset-tag').getPropertyValue('color'), 'var(--text-muted)', 'neutral, not yellow (v3.304)');
+  assert.strictEqual(rules().filter(r => /\.superset-(banner|tag)::before/.test(r.selectorText)).length, 0, 'no ::before glyph on the label itself');
 });
 
 test('REAL CSSOM: the warm-up box has no shadow of its own, but keeps its pale tint and same-hue border (a notice)', (assert)=>{
@@ -82,11 +83,12 @@ test('REAL invocation: buildWarmupNudgeHtml tags its prose row as a note for eve
   }
 });
 
-test('REAL source site: renderWorkout writes the superset banner in sentence case (site anchored to exactly one occurrence)', (assert)=>{
-  const lines = extractFunction(src, 'renderWorkout').split('\n').filter(l => l.includes('class="superset-banner"'));
-  assert.strictEqual(lines.length, 1, `expected one superset-banner site in renderWorkout, found ${lines.length}`);
-  const text = lines[0].replace(/^.*class="superset-banner">/, '').replace(/<\/div>.*$/, '');
-  assert.strictEqual(text, 'Superset — straight into the next exercise, no rest between');
+// v3.304: the banner is now a short label; same sentence case, same meaning.
+test('REAL source site: renderWorkout writes the superset label in sentence case (site anchored to exactly one occurrence)', (assert)=>{
+  const lines = extractFunction(src, 'renderWorkout').split('\n').filter(l => l.includes('class="superset-tag"'));
+  assert.strictEqual(lines.length, 1, `expected one superset-tag site in renderWorkout, found ${lines.length}`);
+  const text = lines[0].replace(/^.*<\/span>/, '').replace(/<\/div>.*$/, '');
+  assert.strictEqual(text, 'Superset · no rest between');
 });
 
 run();

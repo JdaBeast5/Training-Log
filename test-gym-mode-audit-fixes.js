@@ -12,7 +12,8 @@
 //    two-open state instead of fixing it.
 // 3. .plate-result/.voice-feedback/.set-note-input kept the normal-mode flat
 //    --surface2 fill in gym mode, unlike every other panel (.set-row-content,
-//    .warmup-box), which already use the dark well gradient.
+//    .warmup-box), which already use the dark well gradient. (All but the
+//    warm-up box have since been removed: v3.300 and v3.316, below.)
 // 4. The exercise-complete checkbox was 30x30px in gym mode, well under
 //    every other control deliberately sized up for the mode's sweaty-hands/
 //    glance-and-tap use case (48-56px+).
@@ -103,29 +104,33 @@ test('regression guard: nothing open opens the first incomplete exercise, unchan
 
 // --- Finding 3: dark-well reskin for plate/voice/note panels ---------------
 
-test('sabotage-relevant: .plate-result, .voice-feedback, and .set-note-input all get a real dark gradient background in Gym Mode, not the normal-mode flat fill', (assert)=>{
-  const plateBlock = extractRuleBlock(src, 'body.gym-mode .plate-result');
-  const voiceBlock = extractRuleBlock(src, 'body.gym-mode .voice-feedback');
-  const noteBlock = extractRuleBlock(src, 'body.gym-mode .set-note-input');
-  // .plate-result and .set-note-input were later (a separate, purely-
-  // mechanical dedup pass — see test-css-mechanical-token-dedup.js) swapped
-  // from their own literal linear-gradient(170deg, ...) to the shared
-  // var(--gym-panel-gradient) token, which resolves to the exact same
-  // gradient — 4 sites (including .warmup-box and body.gym-mode
-  // .set-row-content, not asserted here) had copy-pasted it verbatim.
-  // .voice-feedback is a genuinely different, red-tinted recipe and was
-  // untouched by that pass, so it still carries its own literal.
-  const rootBlock = extractRuleBlock(src, ':root');
-  assert.match(rootBlock, /--gym-panel-gradient:linear-gradient\(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%\);/, 'sanity: the token .plate-result/.set-note-input now resolve through still holds the real gradient');
-  assert.match(plateBlock, /background:var\(--gym-panel-gradient\);/, '.plate-result must get a real gradient (via the shared token), not var(--surface2)');
-  assert.match(voiceBlock, /linear-gradient\(170deg/, '.voice-feedback must get a real gradient');
-  assert.match(noteBlock, /background:var\(--gym-panel-gradient\);/, '.set-note-input must get a real gradient (via the shared token)');
-});
-
-test('regression guard: .set-note-input keeps its existing gym-mode sizing (min-height/font-size) — this fix only touches color, not layout', (assert)=>{
-  const noteBlock = extractRuleBlock(src, 'body.gym-mode .set-note-input');
-  assert.match(noteBlock, /min-height:48px/, 'the pre-existing sizing bump must survive this change');
-  assert.match(noteBlock, /font-size:15px/);
+// v3.300 (owner request): the plate calculator and voice set logging were removed with the set chips.
+// .plate-result and .voice-feedback went with them.
+// 2026-10-26 (v3.316): .set-note-input's gym-mode rule went too, with the rest
+// of the gym-mode styling for set rows: since v3.301 gym mode hides every
+// set row (logging is the chips and the set sheet), so none of it could show.
+// The two tests that pinned the note field's gradient and sizing became the
+// one below, which pins WHY the rules were dead and that the warm-up box,
+// which IS shown, keeps the dark well. Confirmed in Chromium: computed styles
+// of all 3,109 rendered elements in gym mode, each exercise opened in turn,
+// were identical before and after the removal.
+const fs = require('fs');
+const path = require('path');
+const { JSDOM } = require('jsdom');
+test('REAL CSSOM (v3.316): gym mode hides every set row, the removed rules left nothing behind, and the warm-up box keeps the dark well', (assert)=>{
+  assert.ok(!/\.plate-result|\.voice-feedback/.test(src), 'no leftover rules for the removed panels');
+  const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+  const css = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
+  for(const sel of ['.set-row', '.set-row-content', '.set-num', '.set-note-btn', '.set-next-btn', '.set-status', '.set-note-input', '.drop-set-row', '.drop-step-label', '.drop-hang', '.set-drop-btn']){
+    assert.ok(!new RegExp('body\\.gym-mode ' + sel.replace('.', '\\.') + '[\\s{:]').test(css), `no gym-mode rule left for ${sel}`);
+  }
+  const { window } = new JSDOM(`<style>${css}</style><body class="gym-mode">
+    <div class="sets-block"><div class="set-row swipe-item"><div class="swipe-content set-row-content"><input class="set-note-input"></div></div></div>
+    <div class="warmup-box" id="w"></div></body>`);
+  const cs = sel => window.getComputedStyle(window.document.querySelector(sel));
+  assert.strictEqual(cs('.sets-block > .set-row').display, 'none', 'the set rows are hidden in gym mode — why their styling was dead');
+  assert.match(css.match(/body\.gym-mode \.warmup-box\{[^}]*\}/)[0], /background:var\(--gym-panel-gradient\);/, 'the warm-up box keeps the dark well');
+  assert.match(css, /--gym-panel-gradient:linear-gradient\(170deg, #181C22 0%, #0F1216 62%, #0B0D11 100%\);/, 'the token still holds the real gradient');
 });
 
 // --- Finding 4: bigger completion checkbox ----------------------------------

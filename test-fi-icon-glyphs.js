@@ -59,6 +59,9 @@ test('regression guard: .fi-star (the favourite-star toggle) still declares its 
   assert.doesNotMatch(fiStarSrc, /font-size:0/, '.fi-star itself must never collapse to 0 — that would also blank the star toggle, which shares this base class with the delete button');
 });
 
+// 2026-10-26 (v3.360): the favourite toggle itself now also carries .fi-fav
+// and draws its star (test-glyph-icons.js). The two .fi-star checks here still
+// hold for the shared base class, which v3.360 deliberately left untouched.
 test('REAL invocation: a real CSS cascade leaves a plain .fi-star (favourite toggle, no .fi-delete class) at its real 18px, showing the actual star character', (assert)=>{
   const dom = new JSDOM(`<!DOCTYPE html><style>${fiStarSrc}\n${fiDeleteSrc}</style>
     <body><button class="fi-star" type="button" aria-pressed="false" aria-label="Add Chicken Breast to favourites">☆</button></body>`);
@@ -95,7 +98,9 @@ test('REAL invocation: the real buildFoodItemBtn template still keeps the raw em
 });
 
 test('sabotage-relevant: the delete button markup carries exactly one fi-star-classed sibling ahead of it (the star toggle) so the existing querySelectorAll(\'.fi-star\')[1] lookup still resolves to the delete button, not the star', (assert)=>{
-  const starToggleRe = /<button class="fi-star \$\{favorited\?'favorited':''\}"/;
+  // 2026-10-26 (v3.360): the toggle gained a second class, fi-fav, for its
+  // drawn star (test-glyph-icons.js); it is still the first .fi-star button.
+  const starToggleRe = /<button class="fi-star fi-fav \$\{favorited\?'favorited':''\}"/;
   assert.match(src, starToggleRe, 'the favourite-star toggle must still be the first .fi-star-classed button in the row, so index [0] is the star and [1] is still the delete button after this change');
 });
 

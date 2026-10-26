@@ -230,7 +230,13 @@ test('SABOTAGE ANCHOR: every path that opens or closes an exercise row goes thro
   // real direct call sites. If this count drifts, some path now hand-writes
   // the class dance instead and aria-expanded goes stale there — this
   // number is what makes that visible instead of silent.
-  assert.strictEqual(countCallSites(src, 'setExerciseBlockOpen'), 7);
+  // v3.298: +1 — tapping a set chip that is not one-tap loggable opens its
+  // exercise at that set, through the same helper (so aria-expanded follows).
+  // v3.299: the set chip now opens the set sheet instead; the sheet's "Drop
+  // set" opens the exercise (same helper) — still +1 over the original 7.
+  // v3.301: +2 — in gym mode the open exercise follows the next set (close
+  // the others, open that one), through the same helper.
+  assert.strictEqual(countCallSites(src, 'setExerciseBlockOpen'), 10);
   assert.strictEqual(src.includes('setExerciseUnitOpen'), false, 'the old pairing wrapper must be gone entirely, not just uncalled');
   // And the old hand-written form is gone from all of them.
   assert.strictEqual(src.includes("row.querySelector('.expand-wrap').classList.toggle('open')"), false);

@@ -37,7 +37,13 @@ test('the real #photoLogInput markup carries the multiple attribute', (assert)=>
 // --- behavioral: handlePhotoLogUpload / renderPhotoLogResult / renderPhotoPreviewRow ---
 
 const aiMaxAttemptsSrc = extractConst(src, 'AI_MAX_ATTEMPTS');
+// 2026-10-26 (v3.364): calls to the default model add the refusal fallback,
+// so the request path needs its beta name and helper too.
+const aiFallbackSrc = [[extractConst(src, 'AI_MODEL_DEFAULT'), extractConst(src, 'AI_FALLBACK_BETA'), extractFunction(src, 'withRefusalFallback')].join('\n'), extractConst(src, 'AI_JSON_SCHEMAS'), extractFunction(src, 'aiOutputConfig')].join('\n');
+// 2026-10-26 (v3.365): ...plus the structured-output helper and schemas.
 const aiRetryStatusesSrc = extractConst(src, 'AI_RETRY_STATUSES');
+// 2026-10-26 (v3.363): food photos name the AI_MODEL_FAST const (claude-haiku-5-5).
+const aiModelFastSrc = extractConst(src, 'AI_MODEL_FAST');
 const aiSleepSrc = extractFunction(src, 'aiSleep');
 const anthropicRequestSrc = extractFunction(src, 'anthropicRequest');
 const callClaudeVisionSrc = extractFunction(src, 'callClaudeVision');
@@ -108,7 +114,7 @@ function setup(responsesByPhotoData){
   `;
   const { window, document } = runJsdom(bodyHtml, globalsSetup, [
     stubs,
-    aiMaxAttemptsSrc, aiRetryStatusesSrc, aiSleepSrc, anthropicRequestSrc, callClaudeVisionSrc,
+    aiModelFastSrc, aiFallbackSrc, aiMaxAttemptsSrc, aiRetryStatusesSrc, aiSleepSrc, anthropicRequestSrc, callClaudeVisionSrc,
     fileToBase64Src, getApiKeySrc, escapeHtmlSrc, aiKeySetupPromptSrc,
     foodMacroFieldsSrc, foodQtyMaxSrc, foodRowTotalTextSrc,
     buildFoodResultRowsSrc, buildFoodResultRowSrc, wireFoodResultRowsSrc,
@@ -152,6 +158,13 @@ test('REAL invocation: three photos in one batch produce exactly three independe
   captured.forEach(body=>{
     assert.strictEqual(body.messages[0].content.length, 2, 'each request must carry exactly one image block plus the text prompt, not multiple images stacked into a single call');
     assert.strictEqual(body.messages[0].content[0].type, 'image');
+    // v3.363: Haiku 5.5 at low effort, with room for its thinking.
+    assert.strictEqual(body.model, 'claude-haiku-5-5');
+    assert.strictEqual(body.output_config.effort, 'low');
+    assert.ok(body.max_tokens >= 2048, 'thinking spends from max_tokens');
+    // v3.366: structured output, so the reply always parses.
+    assert.strictEqual(body.output_config.format.type, 'json_schema');
+    assert.deepStrictEqual(Object.keys(body.output_config.format.schema.properties), ['items']);
   });
   const sentImages = captured.map(b=> Buffer.from(b.messages[0].content[0].source.data, 'base64').toString()).sort();
   assert.deepStrictEqual(sentImages, ['photoA','photoB','photoC'], 'each request must actually carry that specific photo\'s own data, not a shared/wrong one');
