@@ -39,7 +39,9 @@ const fiDuplicateSrc = extractRuleBlock(src, '.fi-duplicate');
 const fiDuplicateAfterSrc = extractRuleBlock(src, '.fi-duplicate::after');
 const fiStarSrc = extractRuleBlock(src, '.fi-star');
 const fiDeleteSrc = extractRuleBlock(src, '.fi-delete');
-const fiDeleteAfterSrc = extractRuleBlock(src, '.fi-delete::after');
+// 2026-10-26 (v3.374): the trash glyph moved to ::before so ::after stays
+// the shared 44px hit area (test-flagged-fixes.js).
+const fiDeleteAfterSrc = extractRuleBlock(src, '.fi-delete::before');
 
 test('sabotage-relevant: .fi-duplicate now declares font-size:0, not the old raw-emoji font-size', (assert)=>{
   assert.match(fiDuplicateSrc, /font-size:0;/, 'the button must collapse the emoji text itself');
@@ -84,7 +86,7 @@ test('sabotage-relevant: the .fi-duplicate::after rule carries a real pencil SVG
   assert.match(fiDuplicateAfterSrc, /width:14px; height:14px/, 'the glyph must have a real, non-zero rendered size');
 });
 
-test('sabotage-relevant: the .fi-delete::after rule carries a real trash SVG mask-image, not an empty/placeholder one', (assert)=>{
+test('sabotage-relevant: the .fi-delete::before rule (::after until v3.374) carries a real trash SVG mask-image, not an empty/placeholder one', (assert)=>{
   assert.match(fiDeleteAfterSrc, /mask-image:url\("data:image\/svg\+xml,/, 'a real inline SVG mask must be declared');
   assert.match(fiDeleteAfterSrc, /M7\.3%206V4\.3a1%201%200%200%201%201-1h3\.4/, 'must be the actual trash-can lid path');
   assert.match(fiDeleteAfterSrc, /width:14px; height:14px/, 'the glyph must have a real, non-zero rendered size');

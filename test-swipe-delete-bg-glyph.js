@@ -14,7 +14,7 @@
 // ::after mask-image draws the real currentColor glyph.
 //
 // This is the THIRD reuse of the exact same trash artwork already shared by
-// .fi-delete::after and .ex-delete-custom-btn::after — verbatim, not
+// .fi-delete::before and .ex-delete-custom-btn::after — verbatim, not
 // redrawn a third time, matching how .plate-btn::after's barbell glyph is
 // reused rather than redrawn wherever it appears. Sized to 18px rather than
 // those two buttons' 14px, matching the old raw-emoji font-size this
@@ -64,7 +64,7 @@ test('sabotage-relevant: the ::after rule carries a real trash SVG mask-image, n
 
 test('sabotage-relevant: the trash SVG artwork is genuinely REUSED a third time, not redrawn as a new copy', (assert)=>{
   // Same anchor fragment test-ex-delete-custom-btn-glyph.js uses to prove
-  // its own reuse from .fi-delete::after. With this fix adding a THIRD
+  // its own reuse from .fi-delete::before. With this fix adding a THIRD
   // consumer (.swipe-delete-bg::after), the real total across the whole
   // file must now be 6 (2 declarations x 3 buttons/elements), not the 4
   // it was before this change.

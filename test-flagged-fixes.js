@@ -10,6 +10,10 @@
 // v3.373 — The food favourite star updated its look on tap but not
 // aria-pressed or its "Add … to favourites" label, so VoiceOver kept reading
 // the old state.
+// v3.374 — The custom-food trash button drew its icon on ::after, which
+// overrode .fi-star::after, the shared 44px hit area: a 13x14 tap target in
+// Chromium (elementFromPoint), next to a 30x44 pencil. The icon is on ::before
+// now, the same fix v3.350 made for the pencil.
 const { readIndexSource, extractConst, extractFunction, runSandbox, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
@@ -42,6 +46,30 @@ test('REAL invocation (v3.373): tapping the favourite star flips aria-pressed an
   star.click(); await new Promise(r => setTimeout(r, 0));
   assert.strictEqual(star.getAttribute('aria-pressed'), 'false');
   assert.strictEqual(star.getAttribute('aria-label'), 'Add Chicken Breast to favourites');
+});
+
+const fs = require('fs');
+const path = require('path');
+const { JSDOM } = require('jsdom');
+const CSS = [...fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8').matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+const { window: cssWin } = new JSDOM(`<style>${CSS.replace(/\/\*[\s\S]*?\*\//g, '')}</style>`);
+function declared(selector, prop){
+  let val = '';
+  for(const sheet of cssWin.document.styleSheets) for(const rule of sheet.cssRules){
+    if(rule.selectorText && rule.selectorText.split(',').map(x => x.trim()).includes(selector)){
+      const v = rule.style.getPropertyValue(prop); if(v) val = v;
+    }
+  }
+  return val;
+}
+
+test('REAL CSSOM (v3.374): the trash icon is on ::before, and nothing on .fi-delete::after shrinks the shared hit area', (assert)=>{
+  assert.match(declared('.fi-delete::before', 'mask-image') || declared('.fi-delete::before', '-webkit-mask-image'), /data:image\/svg\+xml/);
+  assert.strictEqual(declared('.fi-delete::before', 'width'), '14px');
+  assert.strictEqual(declared('.fi-delete::after', 'width'), '', 'no rule of its own on ::after');
+  assert.strictEqual(declared('.fi-star::after', 'height'), '44px', 'the shared hit area it now gets');
+  assert.strictEqual(declared('.fi-delete', 'min-width'), '22px');
+  assert.strictEqual(declared('.fi-delete', 'min-height'), '22px');
 });
 
 run();
