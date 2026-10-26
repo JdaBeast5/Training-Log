@@ -279,3 +279,29 @@ Owner (screenshots of Rest / Cardio and Full Rest showing "Squat 0/23"): "the re
   - Day 1 then Day 3 (seeded page, real plate taps): the card is hidden, and the rest note leads.
   - Every day rendered after Day 1: only d3 and d7 (the rest days) hide the card.
 - **Flagged, not fixed:** on a rest day the card still shows "Full session" / "Gym mode", "+ Add custom exercise" and "Adapt this session", all of which are workout controls. The rest branch never renders custom exercises, so adding one on a rest day saves it but shows nothing.
+
+## Addendum 13: agreed next work (NOT started), gym-mode warm-up flow, and the 5×5 chip finding
+The owner ran low on session budget. This addendum records the decisions; the code is unchanged.
+
+### Gym-mode warm-up flow (owner approved; build as 3 separate increments, GYM MODE ONLY)
+The owner's problem: "jumping around between bottom of the screen then top then next".
+- **Current order:** working-set chips → a full-width "Same as Last Time" → the ramp title and note → orange warm-up rows with checkboxes. The dock's Log button skips warm-ups (`refreshGymLogBtn` and `findNextSetRow` only see `.set-row`).
+- **Mock:** a Playwright DOM-injection mock of the agreed design is the script `gym-mock.js` in the previous session's scratchpad. It doesn't persist, so rebuild it if you need a picture.
+
+Increments:
+1. **Warm-up chips:** in gym mode, the ramp becomes orange chips above the working chips, under the label "Warm-up · not counted". Order: Bar, 40%, 60%, 80%.
+   - Tapping a chip edits its weight and reps, like the set sheet does.
+   - `.warmup-strip` rows are hidden in gym mode but stay the source of truth, with the same storage (`saveExWarmupSet`, `todayEntry.warmups`).
+   - A single "Skip warm-up" control skips the whole ramp (owner's choice), reusing the `warmupsSkipped` mechanism for all steps.
+2. **Dock Log button:** walks the undone warm-up steps first ("Log 45×8", orange), then the working sets. The glow follows it, with Undo the same as a chip.
+   - No rest timer after a warm-up step (owner accepted).
+   - Today's "Up next" card and the per-exercise logger do not include warm-ups (owner: gym mode only).
+3. **"Same as Last Time":** in gym mode, a small text link under the working chips instead of the full-width button.
+
+### Investigated: 5×5 Squat chips showing 135×10, 185×10, 225×8, 275×4, 275×4
+- **Cause:** in `renderWorkout` each set row's placeholder is `prior.sets[setIdx]`, set by set, adjusted by `computeSuggestedSet`. `prior` can come from another program (the owner's button read "Same as Last Time (Strength & Size)", i.e. `priorIsCrossProgram`).
+  - So a 5×5 copies the other program's pyramid, set by set: its reps (10/10/8/4/4) and its weights.
+  - Nothing reconciles the copy with today's prescription (5 reps × 5 sets at one working weight).
+- **Proposed fix (not done; a progression-engine behavior change, so test first):** when `prior` is cross-program, or its set shape doesn't match the current prescription, derive every working set from one basis: the top set via `computeSuggestedSet`, with reps from the current prescription.
+  - Keep the per-set copy only when the shape matches.
+  - Needs a REAL-invocation test with a cross-program pyramid prior, and a sabotage check.
