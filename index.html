@@ -6635,7 +6635,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.352';
+const APP_VERSION = '3.353';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7503,6 +7503,8 @@ const WHATS_NEW = {
     'The rest timer is hidden from screen readers while it is not running.',
   ]},  '3.352': { headline: 'Clearer empty lists', points: [
     'Empty food, grocery and supplement lists no longer point you "below" when what you tap is above.',
+  ]},  '3.353': { headline: 'Cleaner PR timeline', points: [
+    'Personal records in History drop their emoji, matching Exercise Progress.',
   ]},
 };
 
@@ -39487,6 +39489,9 @@ async function renderPrTimeline(){
     return;
   }
 
+  // v3.353 (audit): no 💪 / 🏆 prefix — emoji aren't the app's icons, and
+  // Exercise Progress dropped its trophy in v3.314; the 'strength PR' tag
+  // still tells the two kinds apart.
   const rowHtmls = events.map(ev=>{
     const d = new Date(ev.date+'T00:00:00');
     const dateLabel = d.toLocaleDateString('en-US',{month:'short', day:'numeric'});
@@ -39495,7 +39500,7 @@ async function renderPrTimeline(){
       <div class="pr-row">
         <div class="pr-date">${dateLabel}</div>
         <div class="pr-body">
-          <div class="prt-ex-name">${isStrength ? '💪' : '🏆'} <button type="button" class="xlink" data-search-for="${escapeHtml(ev.name)}">${escapeHtml(ev.name)}<span class="xlink-chev" aria-hidden="true">›</span></button>${isStrength ? ' <span class="pr-type-tag">strength PR</span>' : ''}</div>
+          <div class="prt-ex-name"><button type="button" class="xlink" data-search-for="${escapeHtml(ev.name)}">${escapeHtml(ev.name)}<span class="xlink-chev" aria-hidden="true">›</span></button>${isStrength ? ' <span class="pr-type-tag">strength PR</span>' : ''}</div>
           <div class="pr-day-label">${escapeHtml(ev.dayLabel)}${isStrength && ev.e1rm ? ` · Est. 1RM ~${fmtWeight(ev.e1rm)}` : ''}</div>
         </div>
         <div class="pr-stat">${fmtWeight(ev.weight)}${ev.reps!=null ? ` × ${ev.reps}` : ''}</div>

@@ -65,4 +65,20 @@ test('REAL source (v3.352): empty states no longer send you below to controls th
   assert.ok(lines.some(l => /log how you\\?.re feeling above/.test(l)), 'the correct "above" in Care stays');
 });
 
+test('REAL invocation (v3.353): PR timeline rows carry no emoji; the strength PR tag still marks the kind', async (assert)=>{
+  const { window } = runJsdom('<div id="prTimeline"></div>', `
+    const fmtWeight = lb => lb + ' lb';
+    const reconstructAllPRs = async () => [
+      {date:'2026-10-25', name:'Bench Press', type:'weight', dayLabel:'Day 1', weight:185, reps:5},
+      {date:'2026-10-20', name:'Back Squat', type:'strength', dayLabel:'Day 2', weight:225, reps:3, e1rm:245}];
+    const renderCollapsibleList = (el, items) => { el.innerHTML = items.join(''); };`,
+    [extractFunction(src, 'escapeHtml'), extractFunction(src, 'renderPrTimeline'), 'window.__done = renderPrTimeline();']);
+  await window.__done;
+  const rows = [...window.document.querySelectorAll('#prTimeline .pr-row')];
+  assert.strictEqual(rows.length, 2, 'anchor: the real rows rendered');
+  assert.doesNotMatch(window.document.getElementById('prTimeline').textContent, /\p{Extended_Pictographic}/u);
+  assert.strictEqual(rows[1].querySelector('.pr-type-tag').textContent, 'strength PR');
+  assert.strictEqual(rows[0].querySelector('.prt-ex-name .xlink').textContent.replace('›', '').trim(), 'Bench Press');
+});
+
 run();
