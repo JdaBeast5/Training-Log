@@ -5720,7 +5720,7 @@
          right above it, not a standalone body-health trend. -->
     <div class="card" id="mealTimingCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.5"/><path d="M10 6v4l3 2"/></svg></span>Meal Timing</div>
-      <div class="history-hint">Days with a meal soon after training and a post-meal glucose reading after it. A readout of what you logged, not cause and effect.</div>
+      <div class="history-hint">Days with a meal soon after training and a post-meal glucose reading. What you logged, not cause and effect.</div>
       <div id="mealTimingContent"></div>
     </div>
 
@@ -5743,7 +5743,7 @@
 
     <div class="card" id="bodyMetricsCard" style="display:none;">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7.5" width="16" height="5.5" rx="1"/><line x1="6" y1="7.5" x2="6" y2="10.2"/><line x1="10" y1="7.5" x2="10" y2="10.2"/><line x1="14" y1="7.5" x2="14" y2="10.2"/></svg></span>Measurement Context</div>
-      <div class="history-hint">What your measurements mean for health, and where you're changing. Appears once you log measurements.</div>
+      <div class="history-hint">What your measurements mean for health, and where you're changing.</div>
       <div id="bodyMetricsContent"></div>
     </div>
 
@@ -5815,13 +5815,13 @@
 
     <div class="card" data-autohide>
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l2.5 1.5"/></svg></span>Rest Between Sets</div>
-      <div class="history-hint">The rest you actually took, by session — it drifts without anyone deciding. Appears after a few sessions with the timer on.</div>
+      <div class="history-hint">The rest you actually took, by session — it drifts without anyone deciding.</div>
       <div id="restTrendContent"></div>
     </div>
 
     <div class="card" data-autohide>
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h2M15 10h2"/><rect x="5" y="7" width="2.5" height="6" rx="0.8"/><rect x="12.5" y="7" width="2.5" height="6" rx="0.8"/><line x1="7.5" y1="10" x2="12.5" y2="10"/></svg></span>Strength Context</div>
-      <div class="history-hint">Your estimated maxes as multiples of bodyweight, and against each other. Appears once you've logged the main barbell lifts.</div>
+      <div class="history-hint">Your estimated maxes as multiples of bodyweight, and against each other.</div>
       <div id="strengthContextContent"></div>
     </div>
 
@@ -6624,7 +6624,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.331';
+const APP_VERSION = '3.332';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7450,6 +7450,8 @@ const WHATS_NEW = {
     'The 40 longest rest-day and program-day notes are about a third shorter, with every number and safety sign kept.',
   ]},  '3.331': { headline: 'Shorter day notes, done', points: [
     'The rest of the long rest-day and program-day notes are shorter too, with every safety point kept.',
+  ]},  '3.332': { headline: 'Tighter Analysis notes', points: [
+    'Analysis cards drop the "appears once…" lines you only see once a card has already appeared, and the strength note is shorter.',
   ]},
 };
 
@@ -39184,10 +39186,12 @@ async function renderStrengthContext(){
   // which is the exact failure this card is shaped to avoid.
   el.innerHTML = lifts + balanceHtml
     + '<div class="history-hint field-note" style="margin-top:10px;">'
-    + 'Your numbers against your own bodyweight and each other — not anyone else. '
-    + 'Falling outside a typical range is common, and often just limb length. '
+    // v3.332: tightened (owner: less writing); the three facts stay — you vs
+    // you, outside the range is common (limb length), and the population
+    // source is competitive lifters, not the general public.
+    + 'Compared with your own bodyweight, not anyone else. Falling outside a typical range is common, often just limb length. '
     + (bw ? '' : 'Add your bodyweight in your profile to see the multiples. ')
-    + 'For population data, see Latella et al. (J Sci Med Sport, 2024): percentiles from ~810,000 drug-tested powerlifting results — a competitive population, not a general one.'
+    + 'Population data: Latella et al. (J Sci Med Sport, 2024), ~810,000 drug-tested powerlifting results — competitive lifters, not the general public.'
     + '</div>'
     // Both of these are about e1RM and neither knew the other existed. The
     // multiple above is a number; the PR timeline is the session it came out

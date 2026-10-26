@@ -15,6 +15,9 @@
 // v3.295: Log — food search, water and sleep tips, condition cards, photos (27 strings, 41% fewer).
 // v3.296: Analysis + History — card intros, empty states, rest/strength/waist notes (31 strings, 39% fewer).
 // v3.297: Care, Coach, Learn — disclaimers, form feedback, masterclass intros (35 strings, 42% fewer).
+// v3.332: Analysis again — "Appears once…" clauses dropped (those cards are
+// hidden until they have data, so the line was only ever read once moot),
+// and the Strength Context closing note tightened (its own test below).
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -69,6 +72,10 @@ const NOTES = [
   ['Daily average of all readings', 22, [/rough trend/]],
   ['Weekly average RPE', 20, [/overreaching/]],
   ['Every logged day by month', 20, [/Green is progress, red is down/]],
+  // v3.332
+  ['What your measurements mean for health', 11, [/where you're changing/]],
+  ['The rest you actually took', 14, [/drifts/]],
+  ['Your estimated maxes as multiples', 11, [/bodyweight/]],
   // v3.297: Care, Coach, Learn
   ["This isn't a diagnosis", 46, [/doctor or physical therapist/, /flag symptoms/, /quiet exercises/]],
   ['Uses your Anthropic API key', 24, [/AI Features Setup/, /Not medical advice/, /coach or doctor/]],
@@ -116,6 +123,17 @@ test('sabotage anchors: the long versions are gone (one per area)', (assert)=>{
                    'masterclass-level walkthrough', '60 seconds is a real ceiling', 'quiet down exercises that might aggravate']){
     assert.ok(!src.includes(old), `still present: ${old}`);
   }
+});
+
+test('REAL markup + source (v3.332): no Analysis card hint says when it appears; the Strength Context note keeps its three facts', (assert)=>{
+  const view = document.getElementById('analysisView');
+  assert.ok(view, 'anchor: the real Analysis markup');
+  const appears = [...view.querySelectorAll('.history-hint')].map(e => e.textContent).filter(t => /\bAppears (once|after)\b/.test(t));
+  assert.deepStrictEqual(appears, []);
+  const note = src.slice(src.indexOf("'Compared with your own bodyweight"), src.indexOf("not the general public.'") + 25);
+  assert.ok(note.length > 50, 'anchor: the real closing note');
+  for(const fact of [/not anyone else/, /limb length/, /Latella/, /810,000/, /competitive lifters, not the general public/]) assert.match(note, fact);
+  assert.ok(words(note.replace(/\(bw[^)]*\)/, '')) <= 45, 'tightened');
 });
 
 run();
