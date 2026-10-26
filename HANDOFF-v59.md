@@ -229,3 +229,15 @@ Owner: a more luxurious, more fitting glyph and a launch animation that follows 
 **v3.386, header mark:** the 14px brand mark beside "Training Log" is the same plate (no hub ring at that size).
 
 **Not done:** iOS `apple-touch-startup-image` (per-device static launch images shown before the HTML parses). iOS still shows its own blank screen for that first moment.
+
+## Addendum 9: smoother launch (v3.387)
+PR #37 was merged (v3.386 live). Owner: "make the starting animation more smooth".
+- **Causes:**
+  - The mark drew itself with `stroke-dashoffset`, which isn't composited, so it stuttered while the app's large script parsed.
+  - The phases ran at different speeds, and the bore bounced with an overshoot curve.
+- **Now:**
+  - Four stacked `<svg class="launch-layer">` (rim, lit, hub, bore) animate transform and opacity only (`will-change`).
+  - They share one gentle ease-out, `cubic-bezier(.33,1,.68,1)`, with no overshoot: the rim turns in from -60°, the lit seventh orbits from -160° and settles, the hub and bore scale in.
+  - The page holds 1.35s, then fades over 0.55s with a slight lift.
+- **Tested:** `test-launch.js` asserts the transform/opacity-only keyframe and the curve (sabotage-checked with the old overshoot).
+- **Checked in Chromium:** frames every 100ms show even, decaying motion, settled by ~0.9s.
