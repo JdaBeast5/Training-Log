@@ -30,6 +30,7 @@ const DONE = [
   'CALISTHENICS_TECHNIQUE_DETAILS', // v3.343
   'CYCLING_TECHNIQUE_DETAILS', // v3.344
   'GRAPPLE_TECHNIQUE_DETAILS', // v3.345
+  'CLIMB_TECHNIQUE_DETAILS', // v3.346
 ];
 
 const MUST_KEEP = [
@@ -54,6 +55,8 @@ const MUST_KEEP = [
   /0\.883/, /25-35°/, /80-100 rpm/, /brake before, not during/, /knee pain/,
   // v3.345
   /without ever turning your back/, /ankle-lock counter/, /not cranking the neck/,
+  // v3.346
+  /A2 pulley/, /cranking monos or two-finger pockets cold/, /years of healthy tendon loading/,
 ];
 
 function learn(){
