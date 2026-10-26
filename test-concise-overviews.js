@@ -99,6 +99,8 @@ const VARIANTS_DONE = [
   'desk', 'pilates', 'boxingsc', 'hyrox', 'grappling',
   // v3.327
   'cycling.road', 'cycling.mountain', 'combat.kickboxing', 'combat.boxing', 'combat.muayThai',
+  // v3.328
+  'combat.mma', 'combat.taekwondo', 'combat.taiChi', 'yoga.flow', 'yoga.hot', 'yoga.couples',
 ];
 
 function variants(){

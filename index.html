@@ -6624,7 +6624,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.327';
+const APP_VERSION = '3.328';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7442,6 +7442,8 @@ const WHATS_NEW = {
     'Desk Worker, Pilates, Boxing S&C, Hyrox and BJJ too.',
   ]},  '3.327': { headline: 'Shorter days-per-week notes, continued', points: [
     'Road and Mountain cycling, Kickboxing, Boxing and Muay Thai too.',
+  ]},  '3.328': { headline: 'Shorter days-per-week notes, continued', points: [
+    'MMA, Taekwondo, Tai Chi and the three yoga styles too.',
   ]},
 };
 
@@ -21173,7 +21175,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     mma: {
       1: {
         short: 'Boxing combos + takedown defense basics — the floor for this program',
-        overview: 'One session combining boxing combos and takedown defense at reduced volume, since a full week only gets one shot at the standup-to-ground transition this program is actually built around. The rest of the ranges (kicks/clinch, ground-and-pound, full combos) wait for a higher frequency.',
+        overview: 'One session of boxing combos and takedown defense at reduced volume: the standup-to-ground transition this style is built around. Other ranges wait for more days.',
         days: {
           d1: { label:'Day 1', sub:'Boxing Combos + Takedown Defense Basics', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -21198,7 +21200,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Boxing Combos + Takedown Defense and Kicks & Clinch, dedicated days',
-        overview: 'Boxing combos/takedown defense and kicks/clinch each get their own full session — real cross-range training at the lowest frequency that still touches both, rather than picking one range and ignoring the transitions between them.',
+        overview: 'A boxing-and-takedown-defense session and a kicks-and-clinch session, so training crosses ranges instead of picking one.',
         days: {
           d1: { label:'Day 1', sub:'Boxing Combos + Takedown Defense', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -21232,7 +21234,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Boxing Combos + Takedown Defense, Kicks & Clinch, and Conditioning Finisher',
-        overview: 'Three of this program\'s five sessions each get their own day — standup striking, kicks/clinch, and the conditioning finisher — covering multiple ranges even at this frequency, which is the whole point of an MMA-specific program over a single-range one.',
+        overview: 'Standup striking, kicks and clinch, and the conditioning finisher: several ranges, the point of an MMA program.',
         days: {
           d1: { label:'Day 1', sub:'Boxing Combos + Takedown Defense', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -21271,7 +21273,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Boxing Combos + Takedown Defense, Kicks & Clinch, Ground & Pound, and Full Combos',
-        overview: 'Four of this program\'s five sessions each get their own day. Conditioning Finisher is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        overview: 'Four of the five sessions get their own day. The conditioning finisher returns at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Boxing Combos + Takedown Defense', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -21319,7 +21321,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // (COMBAT_STYLES.mma), used as-is.
       6: {
         short: 'The full 5-day program plus extra aerobic conditioning & mobility',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra aerobic conditioning and mobility — not a 2nd Ground & Pound or sprawl-heavy day. This program\'s own overview already names aerobic recovery as one of the three metabolic demands MMA genuinely conflicts between; the extra day trains exactly that instead of adding more high-impact ground work.',
+        overview: 'The 5-day program plus aerobic conditioning and mobility, not another ground-and-pound or sprawl day: it trains the recovery MMA demands without more high-impact work.',
         days: {
           d1: { label:'Day 1', sub:'Boxing Combos + Takedown Defense', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -21375,7 +21377,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says MMA demands range of motion in every direction, even at 7 days selected.',
+        overview: 'The 6-day plan unchanged, and the rest and mobility day stays: MMA demands range of motion in every direction.',
         days: {
           d1: { label:'Day 1', sub:'Boxing Combos + Takedown Defense', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -21433,7 +21435,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     taekwondo: {
       1: {
         short: 'Roundhouse + side kick basics — the floor for this program',
-        overview: 'One session combining roundhouse and side kick work at reduced volume, since a full week only gets one shot. Even here, this program\'s own reasoning still holds: hip mobility and balance drive kick performance more than the number of kicks thrown, so the rest day below matters as much as this one.',
+        overview: 'One session of roundhouse and side kicks at reduced volume. Hip mobility and balance drive kicking more than the number of kicks, so the rest day matters as much.',
         days: {
           d1: { label:'Day 1', sub:'Roundhouse + Side Kick Basics', plate:'p-red', plateNum:'25', duration:'~35 min',
             exercises:[
@@ -21458,7 +21460,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Roundhouse & Power Kicks and Side Kick & Footwork, dedicated days',
-        overview: 'Roundhouse/power kicks and side kick/footwork each get their own full session — two of the core kicking patterns this program builds toward spinning and jumping kicks from, at the lowest frequency that still trains both.',
+        overview: 'A roundhouse-and-power-kicks session and a side-kick-and-footwork session: the base for spinning and jumping kicks later.',
         days: {
           d1: { label:'Day 1', sub:'Roundhouse & Power Kicks', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -21492,7 +21494,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Roundhouse & Power Kicks, Side Kick & Footwork, and Kick Endurance Finisher',
-        overview: 'Three of this program\'s five sessions each get their own day — roundhouse/power kicks, side kick/footwork, and the kick endurance finisher, the foundational trio this program\'s spinning and jumping kick work eventually builds on, even at this frequency.',
+        overview: 'Roundhouse and power kicks, side kicks and footwork, and the kick-endurance finisher.',
         days: {
           d1: { label:'Day 1', sub:'Roundhouse & Power Kicks', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -21532,7 +21534,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Roundhouse & Power Kicks, Side Kick & Footwork, Axe Kick & Flexibility, and Spinning Kicks & Power',
-        overview: 'Four of this program\'s five sessions each get their own day. Kick Endurance Finisher is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        overview: 'Four of the five sessions get their own day. The kick-endurance finisher returns at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Roundhouse & Power Kicks', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -21582,7 +21584,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // (COMBAT_STYLES.taekwondo), used as-is.
       6: {
         short: 'The full 5-day program plus extra flexibility & footwork',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra flexibility and footwork — not a 2nd high-kick power day. This program\'s own reasoning already says kick height and speed are built on rest/flexibility days more than on the bag, so the extra day leans directly into that, rather than adding a 3rd kicking session that would just add fatigue.',
+        overview: 'The 5-day program plus flexibility and footwork, not another high-kick power day: kick height and speed come from flexibility more than the bag.',
         days: {
           d1: { label:'Day 1', sub:'Roundhouse & Power Kicks', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -21641,7 +21643,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Mobility slot stays real: this program\'s own note already says kick height and speed are built here more than on the bag, even at 7 days selected.',
+        overview: 'The 6-day plan unchanged, and the rest and mobility day stays: that\'s where kick height and speed are built.',
         days: {
           d1: { label:'Day 1', sub:'Roundhouse & Power Kicks', plate:'p-red', plateNum:'25', duration:'~55 min',
             exercises:[
@@ -21711,7 +21713,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     taiChi: {
       1: {
         short: 'Standing meditation + form basics — the floor for this program',
-        overview: 'One session combining standing meditation and opening form work at reduced volume, since a full week only gets one shot. Both of these are fully solo-practicable — unlike Push Hands, which needs a partner and isn\'t assumed available at the lowest frequency.',
+        overview: 'One session of standing meditation and opening form work at reduced volume, both done solo; push hands needs a partner, so it isn\'t assumed yet.',
         days: {
           d1: { label:'Day 1', sub:'Standing Meditation + Form Basics', plate:'p-red', plateNum:'25', duration:'~30 min',
             exercises:[
@@ -21736,7 +21738,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Standing Meditation & Rooting and Form Practice · Cardinal Techniques, dedicated days',
-        overview: 'Standing meditation/rooting and cardinal-technique form practice each get their own full session — both fully solo-practicable, at the lowest frequency that still trains both.',
+        overview: 'Standing meditation and rooting, and cardinal-technique form practice, each get a solo session.',
         days: {
           d1: { label:'Day 1', sub:'Standing Meditation & Rooting', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -21769,7 +21771,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Standing Meditation & Rooting, Form Practice · Cardinal Techniques, and Full Form Flow',
-        overview: 'Three of this program\'s five sessions each get their own day — meditation, cardinal-technique form, and full form flow, all fully solo-practicable. Push Hands & Sensitivity waits for a higher frequency, since that one genuinely needs a training partner rather than something to solve alone.',
+        overview: 'Meditation, cardinal-technique form and full form flow, all solo. Push hands waits for more days, since it needs a partner.',
         days: {
           d1: { label:'Day 1', sub:'Standing Meditation & Rooting', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -21808,7 +21810,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Standing Meditation, Form Practice, Push Hands & Sensitivity, and Stance & Leg Strength',
-        overview: 'Four of this program\'s five sessions each get their own day, now including Push Hands & Sensitivity — a training partner is assumed available at this frequency. Full Form Flow is the one thing that doesn\'t fit; it returns at 6 days and up.',
+        overview: 'Four of the five sessions, now including push hands, so a training partner is assumed. Full form flow returns at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Standing Meditation & Rooting', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -21854,7 +21856,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // (COMBAT_STYLES.taiChi), used as-is.
       6: {
         short: 'The full 5-day program plus extra standing meditation & breath work',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra standing meditation and breath work. Unlike every other combat style in this rollout, this isn\'t a deliberately lower-toll substitute for something harder — this program\'s own overview says low output IS the method, and real trial evidence in older adults backs frequent, gentle practice for balance and fall-risk reduction specifically.',
+        overview: 'The 5-day program plus extra standing meditation and breath work. Low output is the method, and trials in older adults back frequent gentle practice for balance and fall risk.',
         days: {
           d1: { label:'Day 1', sub:'Standing Meditation & Rooting', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -21909,7 +21911,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. Even in a program built for frequent gentle practice, the actual rest day stays real: this program\'s own note already says hip and ankle mobility is what keeps the low stances sustainable long-term, even at 7 days selected.',
+        overview: 'The 6-day plan unchanged, and the rest day stays: hip and ankle mobility keeps the low stances sustainable.',
         days: {
           d1: { label:'Day 1', sub:'Standing Meditation & Rooting', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -23499,7 +23501,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     flow: {
       1: {
         short: 'Vinyasa + Power basics — the floor for this program',
-        overview: 'One session combining Vinyasa Flow and Power Yoga at reduced volume, since a full week only gets one shot. These are this program\'s own two highest-intensity flow styles — real measured data across vinyasa sequence types found sun-salutation and standing sequences run meaningfully harder than restorative sequences, so even at the lowest frequency, these two stay the priority.',
+        overview: 'One session combining Vinyasa and Power Yoga at reduced volume: the two most demanding styles, so they come first.',
         days: {
           d1: { label:'Day 1', sub:'Vinyasa + Power Basics', plate:'p-red', plateNum:'25', duration:'~25 min',
             exercises:[
@@ -23524,7 +23526,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Vinyasa Flow and Power Yoga, dedicated days',
-        overview: 'Vinyasa Flow and Power Yoga each get their own full session — this program\'s own two highest-intensity styles, at the lowest frequency that still trains both.',
+        overview: 'Vinyasa Flow and Power Yoga each get their own session.',
         days: {
           d1: { label:'Day 1', sub:'Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -23558,7 +23560,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Vinyasa Flow, Power Yoga, and Restorative Yoga',
-        overview: 'Three of this program\'s five sessions each get their own day — Vinyasa Flow and Power Yoga at the high-intensity end, and Restorative Yoga closing the week at the opposite end, the same spectrum this program is built around, even at this frequency.',
+        overview: 'Vinyasa and Power Yoga at the demanding end, and Restorative Yoga closing the week at the gentle end.',
         days: {
           d1: { label:'Day 1', sub:'Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -23598,7 +23600,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Vinyasa Flow, Power Yoga, Hatha Flow, and Yin Yoga',
-        overview: 'Four of this program\'s five sessions each get their own day. Restorative Yoga is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        overview: 'Four of the five sessions get their own day. Restorative Yoga returns at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -23648,7 +23650,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // (YOGA_STYLES.flow), used as-is.
       6: {
         short: 'The full 5-day program plus extra balance & breath integration',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra balance and breath work — not a 2nd Vinyasa or Power session. This program\'s own citation found even its hardest sequences measure as genuinely moderate-intensity, not high-intensity cardio; the extra day stays gentle rather than adding a harder session that would run against that finding.',
+        overview: 'The 5-day program plus extra balance and breath work, not another Vinyasa or Power session; even the hardest sequences are moderate intensity, so it stays gentle.',
         days: {
           d1: { label:'Day 1', sub:'Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -23707,7 +23709,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The full-rest slot stays real: this program\'s own note already says no mat time is needed on a rest day, even at 7 days selected.',
+        overview: 'The 6-day plan unchanged, with a full rest day: no mat time needed.',
         days: {
           d1: { label:'Day 1', sub:'Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~40 min',
             exercises:[
@@ -23768,7 +23770,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     hot: {
       1: {
         short: 'Hot Vinyasa + Hot Power basics — the floor for this program',
-        overview: 'One session combining Hot Vinyasa Flow and Hot Power Flow at reduced volume, since a full week only gets one shot. These are this program\'s own two highest-intensity heated sessions — even at the lowest frequency, the same hydration and pacing cautions apply.',
+        overview: 'One session combining Hot Vinyasa and Hot Power Flow at reduced volume. The same hydration and pacing cautions apply.',
         days: {
           d1: { label:'Day 1', sub:'Hot Vinyasa + Power Basics', plate:'p-red', plateNum:'25', duration:'~30 min',
             note:'Room typically 95-105°F. Drink ~16oz of water in the two hours before class and sip (don\'t chug) throughout — the excess sweating here is real dehydration risk, not just discomfort.',
@@ -23794,7 +23796,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Hot Vinyasa Flow and Hot Power Flow, dedicated days',
-        overview: 'Hot Vinyasa Flow and Hot Power Flow each get their own full session — this program\'s own two highest-intensity heated styles, at the lowest frequency that still trains both.',
+        overview: 'Hot Vinyasa and Hot Power Flow each get their own session, with the same hydration and pacing cautions.',
         days: {
           d1: { label:'Day 1', sub:'Hot Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~45 min',
             note:'Room typically 95-105°F. Drink ~16oz of water in the two hours before class and sip (don\'t chug) throughout — the excess sweating here is real dehydration risk, not just discomfort.',
@@ -23830,7 +23832,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Hot Vinyasa Flow, Hot Power Flow, and Cool-Room Recovery',
-        overview: 'Three of this program\'s five sessions each get their own day — Hot Vinyasa and Hot Power at the heated end, and Cool-Room Recovery closing the week to balance out the heat exposure, even at this frequency.',
+        overview: 'Hot Vinyasa and Hot Power, plus a cool-room recovery day to balance the heat exposure.',
         days: {
           d1: { label:'Day 1', sub:'Hot Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~45 min',
             note:'Room typically 95-105°F. Drink ~16oz of water in the two hours before class and sip (don\'t chug) throughout — the excess sweating here is real dehydration risk, not just discomfort.',
@@ -23873,7 +23875,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Hot Vinyasa Flow, Hot Power Flow, Hot Hatha & Alignment, and Warm Yin',
-        overview: 'Four of this program\'s five sessions each get their own day. Cool-Room Recovery is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        overview: 'Four of the five sessions get their own day. Cool-room recovery returns at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Hot Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~45 min',
             note:'Room typically 95-105°F. Drink ~16oz of water in the two hours before class and sip (don\'t chug) throughout — the excess sweating here is real dehydration risk, not just discomfort.',
@@ -23927,7 +23929,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // (YOGA_STYLES.hot), used as-is.
       6: {
         short: 'The full 5-day program plus extra cool-room balance & breath',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra cool-room balance and breath work — not a 3rd heated session. This program\'s own citation found hot yoga doesn\'t clearly out-perform non-heated yoga even with regular practice; the extra day stays unheated rather than adding more cardiovascular/heat strain that the research doesn\'t show a real benefit for.',
+        overview: 'The 5-day program plus cool-room balance and breath work, not a third heated session: heat adds strain without a proven extra benefit.',
         days: {
           d1: { label:'Day 1', sub:'Hot Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~45 min',
             note:'Room typically 95-105°F. Drink ~16oz of water in the two hours before class and sip (don\'t chug) throughout — the excess sweating here is real dehydration risk, not just discomfort.',
@@ -23992,7 +23994,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Hydration Reset slot stays real: this program\'s own note already says two heated sessions back to back is real cumulative heat and fluid stress, even at 7 days selected.',
+        overview: 'The 6-day plan unchanged, with the rest and hydration day kept: back-to-back heated sessions build up heat and fluid stress.',
         days: {
           d1: { label:'Day 1', sub:'Hot Vinyasa Flow', plate:'p-red', plateNum:'25', duration:'~45 min',
             note:'Room typically 95-105°F. Drink ~16oz of water in the two hours before class and sip (don\'t chug) throughout — the excess sweating here is real dehydration risk, not just discomfort.',
@@ -24059,7 +24061,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
     couples: {
       1: {
         short: 'Trust & Connection + Partner Strength basics — the floor for this program',
-        overview: 'One session combining Trust & Connection and Partner Strength & Counterbalance at reduced volume, since a full week only gets one shot. These are this program\'s own two opening pillars — connection first, then shared strength — and this program\'s own non-negotiable rule (the person being stretched sets the depth, always) applies just as much at the lowest frequency as at any other.',
+        overview: 'One session of trust and connection, then partner strength and counterbalance, at reduced volume. The rule still holds: the person being stretched sets the depth.',
         days: {
           d1: { label:'Day 1', sub:'Trust & Connection + Partner Strength Basics', plate:'p-red', plateNum:'25', duration:'~25 min',
             note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality.',
@@ -24085,7 +24087,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       2: {
         short: 'Trust & Connection Warm-Up and Partner Strength & Counterbalance, dedicated days',
-        overview: 'Trust & Connection Warm-Up and Partner Strength & Counterbalance each get their own full session — this program\'s own two opening pillars, at the lowest frequency that still trains both.',
+        overview: 'A trust-and-connection session and a partner strength-and-counterbalance session.',
         days: {
           d1: { label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
             note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality. Move at whichever partner\'s pace is slower; this isn\'t a session to rush.',
@@ -24119,7 +24121,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       3: {
         short: 'Trust & Connection Warm-Up, Partner Strength & Counterbalance, and Partner Restorative & Breath',
-        overview: 'Three of this program\'s five sessions each get their own day — connection and shared strength opening the week, and Partner Restorative & Breath closing it, the same arc this program is built around, even at this frequency.',
+        overview: 'Connection and shared strength open the week, and partner restorative and breath work closes it.',
         days: {
           d1: { label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
             note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality. Move at whichever partner\'s pace is slower; this isn\'t a session to rush.',
@@ -24160,7 +24162,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       4: {
         short: 'Trust & Connection, Partner Strength & Counterbalance, Assisted Flexibility, and Partner Balance & Flow',
-        overview: 'Four of this program\'s five sessions each get their own day. Partner Restorative & Breath is the one thing that doesn\'t fit at this frequency; it returns at 6 days and up.',
+        overview: 'Four of the five sessions get their own day. Partner restorative and breath returns at six days and up.',
         days: {
           d1: { label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
             note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality. Move at whichever partner\'s pace is slower; this isn\'t a session to rush.',
@@ -24210,7 +24212,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       // (YOGA_STYLES.couples), used as-is.
       6: {
         short: 'The full 5-day program plus extra partner connection & mobility',
-        overview: 'The same 5 training days as the default program, unchanged, plus a 6th day of extra partner connection and mobility work — not a 2nd counterbalance/strength session. This program\'s own non-negotiable rule (the person being stretched sets the depth, always) matters just as much on an extra day as on any other, so the extra day stays gentle rather than adding more shared load.',
+        overview: 'The 5-day program plus gentle partner connection and mobility, not more shared load; the person being stretched still sets the depth.',
         days: {
           d1: { label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
             note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality. Move at whichever partner\'s pace is slower; this isn\'t a session to rush.',
@@ -24271,7 +24273,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
       },
       7: {
         short: 'The 6-day plan, plus one genuinely non-negotiable rest day',
-        overview: 'The same six days as the 6-day plan, completely unchanged — the week does NOT add an 8th kind of session on top of an already-full 6 days. The Rest/Connection Walk slot stays real: this program\'s own note already says a shared rest day counts as part of the practice too, even at 7 days selected.',
+        overview: 'The 6-day plan unchanged, with the rest day kept as a shared walk, which counts as part of the practice too.',
         days: {
           d1: { label:'Day 1', sub:'Trust & Connection Warm-Up', plate:'p-red', plateNum:'25', duration:'~35 min',
             note:'Sit back-to-back to start — literally feeling each other\'s breath is the actual warm-up here, not a formality. Move at whichever partner\'s pace is slower; this isn\'t a session to rush.',
