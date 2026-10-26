@@ -95,4 +95,16 @@ test('REAL source (v3.354): Week Over Week has no unit on an empty protein value
   assert.strictEqual(expr(142), '142g');
 });
 
+test('REAL CSSOM (v3.355): Log text fields and placeholders use the text face; typed numbers stay mono', (assert)=>{
+  const raw = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
+  const { window } = new JSDOM(`<style>${raw}</style><div class="weight-input-row">
+    <input type="text" id="groceryAddInput"><input type="text" id="mySupplementAddInput"><input type="number" id="weightInput"></div>`);
+  const ff = id => window.getComputedStyle(window.document.getElementById(id)).fontFamily;
+  assert.strictEqual(ff('groceryAddInput'), 'var(--font-sans)');
+  assert.strictEqual(ff('mySupplementAddInput'), 'var(--font-sans)');
+  assert.strictEqual(ff('weightInput'), 'var(--font-mono)', 'a typed weight stays in the figure face');
+  assert.strictEqual(declared('.weight-input-row input::placeholder', 'font-family'), 'var(--font-sans)');
+  assert.ok(/id="groceryAddInput"[^>]*|type="text" id="groceryAddInput"/.test(src) && src.includes('class="weight-input-row"'), 'anchor: the real markup uses these classes');
+});
+
 run();

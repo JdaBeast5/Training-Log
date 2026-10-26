@@ -1725,6 +1725,11 @@
     flex:1; background:var(--surface2); border:1px solid var(--line); color:var(--text);
     border-radius:var(--radius-sm); padding:10px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:14px;
   }
+  /* v3.355 (audit): mono is for the numbers you type, not words. The two
+     text fields here (grocery item, supplement name) and every placeholder
+     use the text face, like the app's other 31 text fields. */
+  .weight-input-row input[type=text]{font-family:var(--font-sans); font-variant-numeric:normal;}
+  .weight-input-row input::placeholder{font-family:var(--font-sans);}
   /* v3.309 (2.0): every inline submit (Log, Add) is the app's primary — the
      blue-to-purple pill, compact and without the glow — not a green button. */
   .weight-input-row button{
@@ -6635,7 +6640,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.354';
+const APP_VERSION = '3.355';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7507,6 +7512,8 @@ const WHATS_NEW = {
     'Personal records in History drop their emoji, matching Exercise Progress.',
   ]},  '3.354': { headline: 'Tidier Week Over Week', points: [
     'Week Over Week no longer shows a stray “g” with no protein data, and its weight change column fits on one line.',
+  ]},  '3.355': { headline: 'Consistent text fields', points: [
+    'Grocery and supplement fields, and placeholders like “Weight today”, use the same type as the rest of the app; the numbers you enter stay in the figure face.',
   ]},
 };
 
