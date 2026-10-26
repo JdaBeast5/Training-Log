@@ -21,11 +21,15 @@ const CONSTS = ['POSE_DETAILS', 'SWIM_STROKE_DETAILS', 'CLIMB_TECHNIQUE_DETAILS'
 
 const DONE = [
   'POSE_DETAILS', // v3.336
+  'STRENGTH_TECHNIQUE_DETAILS', // v3.337
 ];
 
 const MUST_KEEP = [
   // v3.336 — posing: no safety content; the scoring facts each pose turns on
   /never stand square/, /symmetry/, /exhale sharply and completely/, /glute-hamstring tie-in/,
+  // v3.337 — strength
+  /knees caving in/, /linked to knee strain/, /butt wink/, /needs mobility work, not pushing through/,
+  /elbows tucked about 45-75°/, /impingement/, /lower back over-arching|lower back over-arch/, /Valsalva/,
 ];
 
 function learn(){
