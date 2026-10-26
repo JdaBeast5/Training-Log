@@ -6694,7 +6694,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.372';
+const APP_VERSION = '3.373';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7617,6 +7617,9 @@ const WHATS_NEW = {
   ]},
   '3.372': { headline: 'Olympic lifting fix', points: [
     'The Front Squat coaching tip in Olympic Lifting now reads the right way round: your front squat should out-lift your clean.',
+  ]},
+  '3.373': { headline: 'Favourites for VoiceOver', points: [
+    'VoiceOver now hears whether a food is saved to favourites after you tap the star.',
   ]},
 };
 
@@ -35330,7 +35333,11 @@ function buildFoodItemBtn(item, showCategory){
   starBtn.addEventListener('click', async (e)=>{
     e.stopPropagation();
     await toggleFavorite(item);
-    starBtn.classList.toggle('favorited', isFavorited(item.name));
+    const nowFavorited = isFavorited(item.name);
+    starBtn.classList.toggle('favorited', nowFavorited);
+    // v3.373: the state VoiceOver reads follows the tap too, not just the look.
+    starBtn.setAttribute('aria-pressed', nowFavorited ? 'true' : 'false');
+    starBtn.setAttribute('aria-label', `${nowFavorited ? 'Remove' : 'Add'} ${item.name} ${nowFavorited ? 'from' : 'to'} favourites`);
     if(activeCat === '★ Favorites') renderFoodItems();
   });
   if(isCustom){
