@@ -82,4 +82,76 @@ test('REAL CSSOM (v3.404): the Sources label is set apart from the approach line
   assert.strictEqual(window.getComputedStyle(window.document.querySelector('.source-cites-eyebrow')).marginTop, '12px');
 });
 
+// v3.405 — Formatting. The group header's `.posing-class summary` rule also
+// matched every technique's nested <summary>, so each technique row showed
+// two chevrons and a rule. Now: one drawn chevron per row; the group's own word
+// dropped from the technique name ("Squat: Bracing & Setup" -> "Bracing &
+// Setup" under "The Squat…", data-name keeps the full name for search); point
+// labels in bold, capitalised, no bullets; glass icon tiles; the exercise
+// list's ▸ glyph replaced by a drawn chevron; shorter card titles and hints.
+const { runJsdom } = require('./testHelpers.js');
+const MC_CHUNKS = ['MASTERCLASS_LIBRARY'].map(n => extractConst(src, n));
+function renderCard(cardId){
+  const consts = ['POSE_DETAILS','SWIM_STROKE_DETAILS','CLIMB_TECHNIQUE_DETAILS','WATERSPORTS_TECHNIQUE_DETAILS','COMBAT_TECHNIQUE_DETAILS','GRAPPLE_TECHNIQUE_DETAILS',
+    'OLY_TECHNIQUE_DETAILS','STRENGTH_TECHNIQUE_DETAILS','RUNNING_TECHNIQUE_DETAILS','HYROX_TECHNIQUE_DETAILS','PILATES_TECHNIQUE_DETAILS','YOGA_TECHNIQUE_DETAILS',
+    'CALISTHENICS_TECHNIQUE_DETAILS','CYCLING_TECHNIQUE_DETAILS','STRENGTH_TECHNIQUE_GROUPS','CATEGORY_ICONS'].map(n => extractConst(src, n));
+  const { window } = runJsdom('<div id="strengthTechniquesList"></div><div id="watersportsTechniquesList"></div>', '', [...consts,
+    extractConst(src, 'WATERSPORTS_TECHNIQUE_GROUPS'), extractConst(src, 'WATERSPORTS_ICONS'),
+    ...MC_CHUNKS.map(c => c.replace(/render:\(\)=>render\w+\(\),?/g, '')), extractFunction(src, 'renderMasterclassTechniques'), extractFunction(src, 'renderWatersportsTechniques'),
+    cardId === 'watersports' ? 'renderWatersportsTechniques();' : `renderMasterclassTechniques('${cardId}');`]);
+  return window.document;
+}
+
+test('REAL invocation (v3.405): a technique row has ONE chevron (CSS) and drops the group word from its name, keeping the full name for search', (assert)=>{
+  const doc = renderCard('strengthTechniquesCard');
+  const rows = [...doc.querySelectorAll('#strengthTechniquesList .pose-row')];
+  assert.strictEqual(rows.length, 16, 'anchor: the real 16 strength techniques');
+  assert.strictEqual(doc.querySelectorAll('#strengthTechniquesList .pose-row .ex-chevron').length, 0, 'no text chevron');
+  const first = rows[0].querySelector('.pose-name');
+  assert.strictEqual(first.textContent, 'Bracing & Setup');
+  assert.strictEqual(first.dataset.name, 'Squat: Bracing & Setup');
+  const names = [...doc.querySelectorAll('#strengthTechniquesList .pose-name')];
+  assert.ok(names.some(n => n.textContent.startsWith('Bench Press:')), 'a prefix the group title does not contain is kept');
+});
+
+test('REAL invocation (v3.405): points lead with a bold, capitalised label — in the shared AND the watersports renderer', (assert)=>{
+  for(const card of ['strengthTechniquesCard', 'watersports']){
+    const doc = renderCard(card);
+    const li = doc.querySelector('.pose-detail li');
+    assert.ok(['Setup'].includes(li.querySelector('strong').textContent), card);
+    assert.match(li.textContent, /^Setup [A-Z]/, card + ': capitalised after the label');
+    assert.strictEqual(doc.querySelectorAll('.pose-row .ex-chevron').length, 0, card);
+    assert.ok(doc.querySelector('.pose-name').dataset.name, card + ': data-name');
+  }
+});
+
+test('REAL source (v3.405): search lands on a technique by its FULL name, not the shortened label', (assert)=>{
+  assert.match(extractFunction(src, 'openMasterclassTechnique'), /\(el\.dataset\.name \|\| el\.textContent \|\| ''\)\.trim\(\) === techniqueName/);
+});
+
+test('REAL CSSOM (v3.405): one chevron per row, group rule scoped to its own row, no bullets, glass tiles, no ▸ glyph', (assert)=>{
+  const { window } = new JSDOM(`<style>${CSS}</style><details class="posing-class" open><summary id="g">G</summary>
+    <details class="pose-detail-wrap" open><summary class="pose-row" id="r"><div class="pose-icon" id="i"></div><div class="pose-name">N</div></summary>
+    <div class="pose-detail"><ul id="u"><li>x</li></ul></div></details></details><details class="ex-details" open><summary id="e">Cues</summary></details>`);
+  const cs = (id, pseudo) => window.getComputedStyle(window.document.getElementById(id), pseudo);
+  assert.notStrictEqual(cs('r').minHeight, '44px', 'the technique row no longer takes the group row style');
+  assert.strictEqual(cs('g').minHeight, '44px', 'the group row keeps it');
+  // jsdom does not expand the list-style shorthand, so this one is read as declared.
+  assert.match(CSS, /\.pose-detail ul\{[^}]*list-style:none/);
+  assert.match(CSS, /\.pose-icon\{[^}]*background:var\(--glass-fill\)/);
+  assert.match(CSS, /\.pose-row::after\{content:'';/);
+  assert.doesNotMatch(CSS, /\.ex-details summary::before\{[^}]*content:'▸'/);
+});
+
+test('REAL markup (v3.405): shorter Learn card titles and hints', (assert)=>{
+  const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+  assert.doesNotMatch(html, /Recently Trained — Review Technique/);
+  assert.doesNotMatch(html, /180 spm/);
+  const doc = new JSDOM(html).window.document;
+  const hints = [...doc.querySelectorAll('#learnView .history-hint')].map(h => h.textContent);
+  assert.ok(hints.length >= 15, 'anchor: the real hints');
+  const over = hints.filter(h => h.split(/\s+/).length > 17);
+  assert.deepStrictEqual(over, []);
+});
+
 run();

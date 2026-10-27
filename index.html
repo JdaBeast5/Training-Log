@@ -1712,10 +1712,12 @@
     padding:2px 0;
   }
   .ex-details summary::-webkit-details-marker{display:none;}
+  /* v3.405: a drawn chevron (was the ▸ glyph), like every other disclosure. */
   .ex-details summary::before{
-    content:'▸'; font-size:10px; transition:transform .15s var(--ease-smooth); display:inline-block;
+    content:''; width:5px; height:5px; margin:0 3px 0 1px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor;
+    transform:rotate(-45deg); transition:transform .15s var(--ease-smooth); display:inline-block; flex:0 0 auto;
   }
-  .ex-details[open] summary::before{transform:rotate(90deg);}
+  .ex-details[open] summary::before{transform:rotate(45deg);}
   .ex-detail-body{
     display:flex; gap:12px; margin-top:8px; padding:12px; background:var(--row-fill);
     border-radius:var(--radius-md); border:1px solid var(--line);
@@ -1963,30 +1965,37 @@
   /* v3.310 (2.0, Apple HIG disclosure rows): a muted chevron that turns down
      when open (was a blue ▸), the count in the text face beside it, 44px rows.
      Shared with History's month groups below. */
-  .posing-class summary{
+  /* v3.405: `> summary` — the group's row style was also matching every
+     technique's own nested <summary>, giving each a second chevron and rule. */
+  .posing-class > summary{
     list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px;
     padding:12px 0; min-height:44px; border-bottom:1px solid var(--line-soft);
     font-weight:600; font-size:15px;
   }
-  .posing-class summary::-webkit-details-marker{display:none;}
-  .posing-class summary::after{content:''; flex:0 0 auto; width:7px; height:7px; margin:0 3px 0 10px; border-right:2px solid var(--text-muted); border-bottom:2px solid var(--text-muted); transform:rotate(-45deg); transition:transform 0.24s var(--ease-smooth);}
-  .posing-class[open] summary::after{transform:rotate(45deg);}
+  .posing-class > summary::-webkit-details-marker{display:none;}
+  .posing-class > summary::after{content:''; flex:0 0 auto; width:7px; height:7px; margin:0 3px 0 10px; border-right:2px solid var(--text-muted); border-bottom:2px solid var(--text-muted); transform:rotate(-45deg); transition:transform 0.24s var(--ease-smooth);}
+  .posing-class[open] > summary::after{transform:rotate(45deg);}
+  .pose-detail-wrap > summary{list-style:none;}
+  .pose-detail-wrap > summary::-webkit-details-marker{display:none;}
+  .pose-row::after{content:''; flex:0 0 auto; width:6px; height:6px; margin:0 4px 0 6px; border-right:1.5px solid var(--text-muted); border-bottom:1.5px solid var(--text-muted); transform:rotate(-45deg); transition:transform 0.24s var(--ease-smooth);}
+  .pose-detail-wrap[open] > .pose-row::after{transform:rotate(45deg);}
   .posing-class-note{font-size:12px; color:var(--text-muted); padding:8px 0 4px; line-height:1.4;}
   .pose-row{
     display:flex; align-items:center; gap:12px; padding:10px 0; cursor:pointer; border-bottom:1px solid var(--line-soft);
   }
   .pose-row:last-child{border-bottom:none;}
   .pose-icon{
-    flex:0 0 auto; width:36px; height:36px; color:var(--text-muted); background:var(--surface2);
-    border-radius:var(--radius-sm); padding:4px; border:1px solid var(--line);
+    flex:0 0 auto; width:36px; height:36px; color:var(--text-muted); background:var(--glass-fill);
+    border-radius:var(--radius-sm); padding:4px; border:1px solid var(--glass-hair);
   }
   .pose-icon svg{width:100%; height:100%;}
   .pose-name{font-weight:500; font-size:13.5px; flex:1;}
   .pose-detail{
     padding:2px 0 12px 48px; font-size:12.5px; color:var(--text-muted); line-height:1.5;
   }
-  .pose-detail ul{margin:0; padding-left:16px;}
-  .pose-detail li{margin-bottom:5px;}
+  .pose-detail ul{margin:0; padding-left:0; list-style:none;} /* v3.405: the bold label leads each point, not a bullet */
+  .pose-detail li{margin-bottom:8px;}
+  .pose-detail li strong{color:var(--text); font-weight:600;}
   .nutrition-header .ex-chevron{transition:transform 0.28s var(--ease-smooth);}
   .nutrition-header.open .ex-chevron{transform:rotate(90deg);}
   .nutrition-summary{
@@ -6381,7 +6390,7 @@
     </div>
 
     <div class="card" id="recentlyTrainedCard" style="display:none">
-      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a7.5 7.5 0 1 0 7.5 7.5"/><path d="M10 6v4l2.5 2.5"/></svg></span>Recently Trained — Review Technique</div>
+      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a7.5 7.5 0 1 0 7.5 7.5"/><path d="M10 6v4l2.5 2.5"/></svg></span>Recently Trained</div>
       <div class="history-hint">Cues and form videos for what you've logged lately.</div>
       <div id="recentlyTrainedList"></div>
     </div>
@@ -6394,43 +6403,43 @@
 
     <div class="card" id="runningTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="14.5" cy="4" r="1.8"/><path d="M12 7 L9 10 L11 12 L9.5 17 L6 19"/><path d="M11 12 L15 13 L17.5 17"/><path d="M9 10 L5.5 8.5"/></svg></span>Running Form Fundamentals</div>
-      <div class="history-hint">Posture, cadence, hip drive and terrain, phase by phase — with what research says about cadence, not the "180 spm" myth.</div>
+      <div class="history-hint">Posture, cadence, hip drive and terrain, phase by phase.</div>
       <div id="runningTechniquesList"></div>
     </div>
 
     <div class="card" id="hyroxTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 L5 14 H11 L9 22 L20 9 H14 Z"/></svg></span>Hyrox Fundamentals</div>
-      <div class="history-hint">Compromised running, sleds, carries and wall balls, phase by phase — built on real race distances, weights and targets.</div>
+      <div class="history-hint">Compromised running, sleds, carries and wall balls, at race standards.</div>
       <div id="hyroxTechniquesList"></div>
     </div>
 
     <div class="card" id="pilatesTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="4" r="1.8"/><path d="M10 6.5 L10 12"/><path d="M6 9 L14 9"/><path d="M10 12 L6.5 17"/><path d="M10 12 L13.5 17"/></svg></span>Pilates Fundamentals</div>
-      <div class="history-hint">Breath, core and the classical mat sequence, phase by phase — from Joseph Pilates' original method.</div>
+      <div class="history-hint">Breath, core and the classical mat sequence.</div>
       <div id="pilatesTechniquesList"></div>
     </div>
 
     <div class="card" id="yogaTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="4.5" r="1.8"/><path d="M10 7 L10 11"/><path d="M10 11 L5.5 15.5"/><path d="M10 11 L14.5 15.5"/><path d="M6.5 8.5 L4 6.5"/><path d="M13.5 8.5 L16 6.5"/></svg></span>Yoga Pose Fundamentals</div>
-      <div class="history-hint">Standing poses, breath, folds, backbends and balance, phase by phase — the same alignment for all three styles.</div>
+      <div class="history-hint">Standing poses, breath, folds, backbends and balance.</div>
       <div id="yogaTechniquesList"></div>
     </div>
 
     <div class="card" id="calisthenicsTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="4" r="1.8"/><path d="M10 6.5 L10 10.5"/><path d="M6 8 L14 8"/><path d="M10 10.5 L6.5 16"/><path d="M10 10.5 L13.5 16"/></svg></span>Calisthenics & Bodyweight Fundamentals</div>
-      <div class="history-hint">Push/pull progressions, holds and leg skills, phase by phase — including the strength you need first for skills like the muscle-up.</div>
+      <div class="history-hint">Push and pull progressions, holds and leg skills.</div>
       <div id="calisthenicsTechniquesList"></div>
     </div>
 
     <div class="card" id="cyclingTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="15" r="3"/><circle cx="15" cy="15" r="3"/><path d="M5 15 L9 7 L13 7 M9 7 L15 15 M9 7 L12 11"/></svg></span>Cycling Fundamentals</div>
-      <div class="history-hint">Bike fit, pedaling, cornering and pacing, phase by phase — from verified bike-fit formulas.</div>
+      <div class="history-hint">Bike fit, pedaling, cornering and pacing.</div>
       <div id="cyclingTechniquesList"></div>
     </div>
 
     <div class="card" id="posingCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h7v3.6a3.5 3.5 0 0 1-7 0Z"/><path d="M6.5 4H3.2v1a3 3 0 0 0 3 3M13.5 4h3.3v1a3 3 0 0 1-3 3"/><line x1="10" y1="10.6" x2="10" y2="13.5"/><line x1="7.2" y1="17" x2="12.8" y2="17"/><line x1="8.2" y1="13.5" x2="11.8" y2="13.5"/></svg></span>Posing Practice</div>
-      <div class="history-hint">Physique classes and their mandatory poses, with key points for each.</div>
+      <div class="history-hint">Each physique class and its mandatory poses.</div>
       <div id="posingClassList"></div>
     </div>
 
@@ -6442,7 +6451,7 @@
 
     <div class="card" id="climbTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 16 7.5 6 11 12 13 9 18 16Z"/></svg></span>Climbing Techniques</div>
-      <div class="history-hint">Movement, every major hand grip, footwork and advanced body positioning.</div>
+      <div class="history-hint">Movement, grips, footwork and body positioning.</div>
       <div id="climbTechniquesList"></div>
     </div>
 
@@ -6466,7 +6475,7 @@
 
     <div class="card" id="olyTechniquesCard" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="10" x2="18" y2="10"/><rect x="1" y="8" width="2" height="4" rx="0.5"/><rect x="17" y="8" width="2" height="4" rx="0.5"/><circle cx="10" cy="4" r="2"/><line x1="10" y1="6" x2="10" y2="10"/></svg></span>Olympic Lifting Technique</div>
-      <div class="history-hint">The snatch and clean & jerk, phase by phase, plus the pulls and strength work behind them.</div>
+      <div class="history-hint">The snatch and clean & jerk, phase by phase, plus the pulls.</div>
       <div id="olyTechniquesList"></div>
     </div>
 
@@ -6971,7 +6980,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.404';
+const APP_VERSION = '3.405';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7990,6 +7999,9 @@ const WHATS_NEW = {
   ]},
   '3.404': { headline: 'Shorter citations', points: [
     'Research & Sources now shows each program\'s approach in one line and short, linked citations instead of the full records.',
+  ]},
+  '3.405': { headline: 'Cleaner Learn layout', points: [
+    'Masterclass rows have one arrow and shorter names, coaching points lead with a bold label, and Learn\'s card titles and hints are shorter.',
   ]},
 };
 
@@ -12272,14 +12284,15 @@ function renderWatersportsTechniques(){
     const techRows = grp.poses.map((techName)=>{
       const detail = WATERSPORTS_TECHNIQUE_DETAILS[techName];
       const iconSvg = detail ? WATERSPORTS_ICONS[detail.icon] : '';
-      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
+      // v3.405: the same row markup as the shared masterclass renderer — bold
+      // point labels, one CSS chevron, data-name for search.
+      const pointsHtml = detail ? detail.points.map(p=>{ const m = p.match(/^([A-Z][A-Za-z /&-]{2,40}): (.*)$/); return m ? `<li><strong>${m[1]}</strong> ${m[2].charAt(0).toUpperCase()}${m[2].slice(1)}</li>` : `<li>${p}</li>`; }).join('') : '';
       const query = encodeURIComponent(detail && detail.video ? detail.video : `${techName} watersports technique tutorial`);
       return `
         <details class="pose-detail-wrap">
           <summary class="pose-row">
             <div class="pose-icon">${iconSvg}</div>
-            <div class="pose-name">${techName}</div>
-            <span class="ex-chevron" aria-hidden="true">›</span>
+            <div class="pose-name" data-name="${techName.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}">${techName}</div>
           </summary>
           <div class="pose-detail">
             <ul>${pointsHtml}</ul>
@@ -14005,14 +14018,19 @@ function renderMasterclassTechniques(cardId){
     const itemRows = grp.poses.map((itemName)=>{
       const detail = details[itemName];
       const iconSvg = iconCfg.mode === 'fixed' ? iconCfg.svg : (detail ? iconCfg.icons[detail.icon] : '');
-      const pointsHtml = detail ? detail.points.map(p=>`<li>${p}</li>`).join('') : '';
+      // v3.405: each point's label in bold ("Setup", "Common mistake"…), and the
+      // group's own word dropped from the name ("Squat: Bracing & Setup" reads
+      // "Bracing & Setup" under "The Squat…"); data-name keeps the full name
+      // for search. One chevron, drawn in CSS like the group rows.
+      const pointsHtml = detail ? detail.points.map(p=>{ const m = p.match(/^([A-Z][A-Za-z /&-]{2,40}): (.*)$/); return m ? `<li><strong>${m[1]}</strong> ${m[2].charAt(0).toUpperCase()}${m[2].slice(1)}</li>` : `<li>${p}</li>`; }).join('') : '';
+      const prefix = itemName.includes(': ') ? itemName.slice(0, itemName.indexOf(': ')) : '';
+      const shownName = prefix && groupName.toLowerCase().includes(prefix.toLowerCase()) ? itemName.slice(prefix.length + 2) : itemName;
       const query = encodeURIComponent(detail && detail.video ? detail.video : `${itemName} ${cfg.fallbackQuerySuffix}`);
       return `
         <details class="pose-detail-wrap">
           <summary class="pose-row">
             <div class="pose-icon">${iconSvg}</div>
-            <div class="pose-name">${itemName}</div>
-            <span class="ex-chevron" aria-hidden="true">›</span>
+            <div class="pose-name" data-name="${itemName.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}">${shownName}</div>
           </summary>
           <div class="pose-detail">
             <ul>${pointsHtml}</ul>
@@ -14071,7 +14089,7 @@ function openMasterclassTechnique(cardId, techniqueName){
       const card = document.getElementById(cardId);
       if(!card) return;
       const nameEl = [...card.querySelectorAll('.pose-name')]
-        .find(el=> (el.textContent || '').trim() === techniqueName);
+        .find(el=> (el.dataset.name || el.textContent || '').trim() === techniqueName); // v3.405: shown names may drop the group's word
       if(!nameEl) return;
       const row = nameEl.closest('details.pose-detail-wrap');
       const group = nameEl.closest('details.posing-class');
@@ -14269,7 +14287,7 @@ function renderExerciseLibraryHint(){
   const el = document.getElementById('exerciseLibraryHint');
   if(!el) return;
   const n = Object.keys(exerciseInfo).length;
-  el.textContent = `Search all ${n} exercises — cues and a form video for each.`;
+  el.textContent = `${n} exercises, each with cues and a form video.`;
 }
 
 // [RECENTLY TRAINED] -------------------------------------------------------
