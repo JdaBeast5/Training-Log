@@ -45,9 +45,11 @@ test('formatShortDate includes the year for a date in a different year', (assert
   assert.strictEqual(label, 'Mar 15, 2020');
 });
 
-test('fmtWeekLabel formats a Monday-start range using the known 2026-06-29 Monday', (assert)=>{
+// 2026-10-27 (v3.438): Week Over Week's column head reads "Week of", so the
+// label is the Monday alone (the range wrapped to two lines).
+test('fmtWeekLabel formats the known 2026-06-29 Monday as the week\'s start', (assert)=>{
   const [label] = runSandbox(allChunks(), `__capture.push(fmtWeekLabel('2026-06-29'));`);
-  assert.strictEqual(label, 'Jun 29 – Jul 5');
+  assert.strictEqual(label, 'Jun 29');
 });
 
 test('fmtMonthLabel formats a YYYY-MM key as full month + year', (assert)=>{

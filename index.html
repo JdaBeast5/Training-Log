@@ -3089,6 +3089,11 @@
   .week-col.label{flex:1.4; text-align:left;}
   .week-col .w-val{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:14.5px; font-weight:700; letter-spacing:-0.01em;}
   .week-col .w-label{font-size:11px; color:var(--text-muted); margin-top:2px;}
+  /* v3.438: column names live in the header row; in data rows they stay for
+     screen readers only. */
+  .week-row:not(.week-head) .w-label{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+  .week-row.week-head{padding:8px 0 6px;}
+  .week-row.week-head .w-label{margin:0;}
   .week-col .w-date{font-size:12.5px; font-weight:600; font-family:var(--font-sans);}
   .w-up{color:var(--plate-red);}
   .w-down{color:var(--plate-green);}
@@ -7018,7 +7023,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.437';
+const APP_VERSION = '3.438';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8136,6 +8141,9 @@ const WHATS_NEW = {
   ]},
   '3.437': { headline: 'Calmer Analysis notes', points: [
     'On Analysis, plain notes under a chart are just text; only good news and warnings get a coloured box.',
+  ]},
+  '3.438': { headline: 'Week Over Week as a table', points: [
+    'Week Over Week names its columns once at the top, and each week reads on a single line.',
   ]},
 };
 
@@ -39173,11 +39181,10 @@ function isInCurrentCalendarWeek(dateKey){
   return d >= new Date(monday+'T00:00:00') && d < weekEnd;
 }
 
+// v3.438: the week's start ("Oct 26"), under a "Week of" column head. The
+// full "Oct 26 – Nov 1" range wrapped to two lines in its column.
 function fmtWeekLabel(mondayStr){
-  const start = parseDateKey(mondayStr);
-  const end = new Date(start); end.setDate(end.getDate()+6);
-  const opts = {month:'short', day:'numeric'};
-  return `${formatDate(start, opts)} – ${formatDate(end, opts)}`;
+  return formatDate(parseDateKey(mondayStr), {month:'short', day:'numeric'});
 }
 
 // [DATA ACCESS (fetch*)] --------------------------------------------------------
@@ -46146,7 +46153,18 @@ async function renderAnalysis(){
     return;
   }
 
-  tableEl.innerHTML = rows.map((r, idx)=>{
+  // v3.438: the column names once, in a header row; each row keeps its own
+  // labels for screen readers (visually hidden) and names its week by start.
+  const weekHeadHtml = rows.some(r=> r.hasData) ? `
+      <div class="week-row week-head" aria-hidden="true">
+        <div class="week-col label"><div class="w-label">Week of</div></div>
+        <div class="week-col"><div class="w-label">Workouts</div></div>
+        <div class="week-col"><div class="w-label">Avg cal</div></div>
+        <div class="week-col"><div class="w-label">Protein</div></div>
+        <div class="week-col"><div class="w-label">Weight</div></div>
+        <div class="week-col"><div class="w-label">Change</div></div>
+      </div>` : '';
+  tableEl.innerHTML = weekHeadHtml + rows.map((r, idx)=>{
     if(!r.hasData) return '';
     const prevWeek = rows[idx+1];
     let deltaHtml = '<span class="w-flat">—</span>';

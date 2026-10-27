@@ -89,4 +89,28 @@ test('REAL CSSOM (v3.437): a neutral note on Analysis has no box; good and warni
   assert.match(CSS, /#analysisView \.goal-feedback-neutral\{background:none; border:none;/);
 });
 
+// v3.438 — Week Over Week as a table. Every row repeated "Workouts / Avg Cal /
+// Avg Pro / Weight / Change" under its five numbers, and its "Oct 26 –
+// Nov 1" date wrapped to two lines. The column names now sit once in a
+// header row; in the rows they stay for screen readers only; each row names
+// its week by its start date.
+test('REAL invocation (v3.438): a week is named by its start date, on one line', (assert)=>{
+  const { window } = runJsdom('', '', [extractFunction(src, 'parseDateKey'), extractFunction(src, 'formatDate'), extractFunction(src, 'fmtWeekLabel'),
+    "window.__l = fmtWeekLabel('2026-10-26');"]);
+  assert.strictEqual(window.__l, 'Oct 26');
+});
+
+test('REAL source + CSSOM (v3.438): one header row; row labels visually hidden, header labels shown', (assert)=>{
+  const fn = extractFunction(src, 'renderAnalysis');
+  assert.match(fn, /tableEl\.innerHTML = weekHeadHtml \+ rows\.map/);
+  assert.match(fn, /<div class="week-row week-head" aria-hidden="true">/);
+  for(const l of ['Week of', 'Workouts', 'Avg cal', 'Protein', 'Weight', 'Change']) assert.ok(fn.includes(`<div class="w-label">${l}</div>`), l);
+  const { window } = new JSDOM(`<style>${CSS}</style><div class="week-row week-head"><div class="week-col"><div class="w-label" id="h">Workouts</div></div></div>
+    <div class="week-row"><div class="week-col"><div class="w-val">3</div><div class="w-label" id="r">Workouts</div></div></div>`);
+  const cs = id => window.getComputedStyle(window.document.getElementById(id));
+  assert.strictEqual(cs('r').position, 'absolute');
+  assert.strictEqual(cs('r').width, '1px');
+  assert.notStrictEqual(cs('h').position, 'absolute', 'the header shows its labels');
+});
+
 run();
