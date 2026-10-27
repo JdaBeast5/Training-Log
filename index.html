@@ -3551,6 +3551,11 @@
   .resting-chip button{
     background:none; border:none; color:var(--plate-red); font-size:14px; cursor:pointer; padding:0; line-height:1;
   }
+  /* v3.449: the region reads as a name and the ✕ as a quiet action. Both were
+     red (and the name underlined) inside the yellow caution border; the
+     border alone says "resting". */
+  .resting-chip .link-btn{color:var(--text); text-decoration:none; font-weight:600;}
+  .resting-chip .clear-resting{color:var(--text-muted);}
 
   .care-log-item{
     padding:10px 0; border-bottom:1px solid var(--line-soft); font-size:12.5px;
@@ -7043,7 +7048,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.448';
+const APP_VERSION = '3.449';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8194,6 +8199,9 @@ const WHATS_NEW = {
   ]},
   '3.448': { headline: 'One date per day', points: [
     'The PR timeline shows each day\'s date once, on its first record.',
+  ]},
+  '3.449': { headline: 'Calmer resting chip', points: [
+    'Care\'s resting areas read as plain names with a quiet clear button inside their caution outline.',
   ]},
 };
 
