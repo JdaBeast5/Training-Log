@@ -83,7 +83,8 @@ function firstDeclared(selector, prop){
 }
 test('REAL CSSOM (v3.399): the secondary controls inside cards are translucent; the deliberate solids are not touched', (assert)=>{
   assert.strictEqual(CONTROLS.length, 23, 'anchor: the audited list');
-  for(const sel of CONTROLS) assert.strictEqual(firstDeclared(sel, 'background'), 'var(--row-fill)', sel);
+  // 2026-10-27 (v3.403): these moved on to the cards' glass (test below).
+  for(const sel of CONTROLS) assert.match(firstDeclared(sel, 'background'), /^var\(--(row|glass)-fill\)$/, sel);
   assert.doesNotMatch(declared('.food-cat-btn.active', 'background'), /row-fill/, 'the selected category stays blue');
   assert.doesNotMatch(declared('.ex-suggest', 'background') || 'var(--surface2)', /row-fill/, 'a floating menu stays opaque');
 });
@@ -106,6 +107,21 @@ test('REAL CSSOM (v3.402): fields and pickers wear the glass — fill, hairline,
   assert.strictEqual(declared('.program-select', 'box-shadow'), '', 'the picker keeps v3.283\'s no-shadow rule');
   assert.strictEqual(declared('.care-input:focus', 'box-shadow'), 'var(--rim), var(--focus-ring-glow)', 'focus keeps its ring, loses the dark inset');
   assert.doesNotMatch(CSS, /gradient\(160deg, var\(--surface2\)/, 'no gradient starts on the opaque surface any more');
+});
+
+// v3.403 — The same in-card buttons and chips, plus .settings-jump where it
+// sits in a card (Analysis's "See the sessions these came from"; it was still
+// opaque --surface2 — the earlier audit ran with that Analysis group closed),
+// wear the cards' glass like the fields, with the glass hairline where their
+// edge was the opaque --line. Inside the settings sheet .settings-jump stays a
+// transparent row. No shadow is added (v3.283).
+test('REAL CSSOM (v3.403): in-card buttons and chips wear the glass; settings rows stay transparent; no opaque --line edge left on them', (assert)=>{
+  for(const sel of [...CONTROLS, '.settings-jump']){
+    assert.strictEqual(firstDeclared(sel, 'background'), 'var(--glass-fill)', sel);
+    assert.doesNotMatch(firstDeclared(sel, 'border'), /var\(--line\)/, sel + ' edge');
+  }
+  assert.strictEqual(declared('.settings-group .settings-jump', 'background'), 'transparent');
+  assert.strictEqual(declared('.food-cat-btn.active', 'background') === 'var(--glass-fill)', false, 'the selected category stays blue');
 });
 
 run();
