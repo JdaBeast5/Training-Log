@@ -24,10 +24,12 @@ const { test, run } = makeRunner('test-flagged-fixes.js');
 
 test('REAL content (v3.372): the oly Front Squat insight says the front squat should out-lift the clean', (assert)=>{
   const [points] = runSandbox([extractConst(src, 'OLY_TECHNIQUE_DETAILS')], `__capture.push(OLY_TECHNIQUE_DETAILS['Front Squat (Clean Recovery Strength)'].points);`);
-  assert.strictEqual(points.length, 5, 'anchor: the real technique, five points');
-  const insight = points.find(p => /^Coaching insight:/.test(p));
-  assert.match(insight, /front squat should clearly out-lift your clean/);
-  assert.match(insight, /standing up from the catch is what limits your clean/);
+  // 2026-10-27 (v3.407): three points per technique now (test-concise-learn);
+  // the insight is carried by Execution and Common mistake, same direction.
+  assert.strictEqual(points.length, 3, 'anchor: the real technique, three points');
+  const text = points.join(' ');
+  assert.match(text, /front squat should clearly out-lift your clean/);
+  assert.match(text, /if it barely beats your clean, recovery is your limit/);
   assert.doesNotMatch(src, /masking a strength gap/, 'the backwards wording is gone everywhere');
 });
 

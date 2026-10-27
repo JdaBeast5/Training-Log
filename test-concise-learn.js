@@ -44,6 +44,7 @@ const DONE = [
 // below still has to survive), and the group titles and notes get shorter.
 const THREE = [
   'STRENGTH_TECHNIQUE_DETAILS', // v3.406
+  'OLY_TECHNIQUE_DETAILS', // v3.407
 ];
 
 const MUST_KEEP = [
