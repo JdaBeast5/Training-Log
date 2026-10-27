@@ -519,3 +519,19 @@ Owner: "Care." Same method as addenda 20–22. Tests are in `test-care-2-0.js`, 
   - The check-in tiles touch each other, with no gap between them.
   - Coach's reviews still use the mono date. Do that in the Coach pass.
 - **Verified in Chromium:** Care at 390px with seed2 (no check-ins) and seed3, no page errors.
+
+## Addendum 24: Coach tab 2.0 (v3.454–v3.457)
+Owner: "Now the coach tab with our skills." Same method as before. Tests are in `test-coach-2-0.js`, each sabotage-checked. Card order is unchanged, as `test-coach-tab-order` pins it.
+- **v3.454 (a flow bug):** the `coachVideoInput` change handler reads `coachExerciseInput` and `coachFocusInput` the moment a clip is chosen. Those fields sat below the upload button, so uploading first sent "this movement" with no focus. The fields now come before the button.
+- **v3.455:**
+  - The chat card's hint repeated the empty conversation line (which the floating chat shares), so the hint is gone.
+  - `renderCoachChatLog` shows `#coachChatClear` only when there's a conversation.
+- **v3.456:**
+  - `renderCoach` hides the Past Reviews card until there is a review.
+  - `#coachView .care-log-date` is in the text face, matching Care in v3.451.
+- **v3.457:**
+  - While no API key is saved, `#coachKeySetup` ("Add your API key") appears under the top note. It's a `.custom-toggle` in the link colour with `data-jump-to="aiSettingsCard"`, the route `aiKeySetupPrompt` uses. In Chromium it opens Settings with AI Features Setup open.
+  - It sits outside `.care-disclaimer` because `test-concise-copy` word-counts that note.
+  - A follow-up commit was folded into the v3.457 commit before pushing, so the version-per-change rule holds.
+- **Left as is:** the Supplement Recommendations disclaimer, which is safety copy.
+- **Verified in Chromium** with seed3 and no key, no page errors.
