@@ -486,3 +486,20 @@ Owner: "Now go through Analysis tab same thing." This was a refinement on the in
   - The RPE chart draws a flat line when RPE never changed (a range of 0). That's harmless, but a band or a y-axis hint would read better.
   - The detector's app-wide contrast and glow findings from addendum 20 still stand.
 - **Verified in Chromium:** Analysis with every group open at 390px, using seed2, with no page errors.
+
+## Addendum 22: History tab 2.0 (v3.443–v3.448)
+Owner: "Now the history tab." Same skills and method as addenda 20–21. Tests are in `test-history-2-0.js`, one section per version, each sabotage-checked. Reviewed with `.taste-skill/seed2.html`.
+- **v3.443:** the Day-by-Day Log card (calendar and month list) now comes first, then the PR timeline, then Saved Weeks. It used to come last.
+- **v3.444:** in `buildHistoryDayCardHtml`, each logged exercise is a two-line grid (`.day-ex-row.day-ex-logged`).
+  - Line one: the name, with any changes right-aligned. Line two: sets and volume.
+  - A flat delta prints nothing; before, it printed "— —". The weight line gets the same treatment.
+  - `.day-card-date` uses the text face.
+  - Saved Weeks' plain `.day-ex-row` keeps its flex layout.
+- **v3.445:** the log hint no longer says "Green is progress" above a legend where green means "Trained". `test-concise-copy` was updated with a dated note.
+- **v3.446:** `#historyExportRange` also filters the list, so it and `#historySearch` share `.history-filter-row`. `#historyExportBtn` (Print) moved after `#historyList`.
+- **v3.447:** `renderSavedWeeks` hides its card until a week has been saved.
+- **v3.448:** in the PR timeline, a day's repeated date gets `.pr-date.is-repeat{color:transparent}`. The repeats stay in the markup for screen readers.
+- **Flagged, not changed:**
+  - Month rows use a right-pointing chevron, though they open in place (a disclosure).
+  - The class `delta-up` means "good direction", not "went up": a weight drop is styled `delta-up`. It's a naming oddity, not a bug, but confusing.
+- **Verified in Chromium:** History at 390px with seed2, no page errors.
