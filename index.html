@@ -6419,13 +6419,14 @@
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5.2" width="10.8" height="9.6" rx="1.5"/><path d="M12.8 8.4 17.8 6v8l-5-2.4Z"/></svg></span>Get Form Feedback</div>
       <div class="history-hint">Coaching for your <b id="coachPersonaLabel">Strength & Size</b> style. Record a full working set from the side or a 3/4 angle; the coach checks whether your form holds up across the set. Keep it under 60 seconds — longer clips fail on iPhone.</div>
       <div class="privacy-note">Your clip goes straight to Anthropic with your own key — no other server. Only the written feedback is saved; the video never is.</div>
-      <input type="file" id="coachVideoInput" accept="video/*" style="display:none" aria-label="Video of your set">
-      <button class="photo-log-btn" id="coachVideoBtn"><svg class="btn-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="10.5" height="9" rx="1.5"/><path d="M13 8.6 17.5 6v8L13 11.4Z"/></svg>Upload or record a clip</button>
       <label class="care-label" for="coachExerciseInput">What exercise/movement is this?</label>
       <input type="text" id="coachExerciseInput" class="care-input" placeholder="e.g. Back Squat, Jab-Cross Combo, Front Double Biceps" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="coachExerciseSuggest">
       <div id="coachExerciseSuggest" class="ex-suggest" role="listbox" aria-label="Matching exercises" style="display:none"></div>
       <label class="care-label" for="coachFocusInput">Anything specific you want checked? (optional)</label>
       <input type="text" id="coachFocusInput" class="care-input" placeholder="e.g. my knee caving in, bar path">
+      <!-- v3.454: name the movement first; choosing a clip starts the review at once and reads these fields then (they sat below the button). -->
+      <input type="file" id="coachVideoInput" accept="video/*" style="display:none" aria-label="Video of your set">
+      <button class="photo-log-btn" id="coachVideoBtn"><svg class="btn-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="10.5" height="9" rx="1.5"/><path d="M13 8.6 17.5 6v8L13 11.4Z"/></svg>Upload or record a clip</button>
       <div id="coachResult"></div>
     </div>
 
@@ -7061,7 +7062,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.453';
+const APP_VERSION = '3.454';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8227,6 +8228,9 @@ const WHATS_NEW = {
   ]},
   '3.453': { headline: 'Care cards when they have something', points: [
     'Care\'s Pain Trend and Check-In History appear once you\'ve logged check-ins, instead of empty cards.',
+  ]},
+  '3.454': { headline: 'Name the movement first', points: [
+    'In Coach, you say which exercise it is before choosing the clip, which is when the review starts.',
   ]},
 };
 
