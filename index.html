@@ -1802,6 +1802,8 @@
      Now the ends share the first line under the chart's two edges, and the
      summary gets its own line in the text face. One class for all five
      (was .rpe-trend-labels on three and the same rule inline on two). */
+  /* v3.436: the target as a quiet dashed reference line across the chart. */
+  .trend-target{stroke:var(--text-muted); stroke-width:1.2; stroke-dasharray:5 5; opacity:0.7; vector-effect:non-scaling-stroke;}
   .trend-labels{
     display:grid; grid-template-columns:auto auto; grid-template-areas:"start end" "sum sum";
     column-gap:12px; row-gap:4px; margin-top:6px;
@@ -7011,7 +7013,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.435';
+const APP_VERSION = '3.436';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8123,6 +8125,9 @@ const WHATS_NEW = {
   ]},
   '3.435': { headline: 'Cleaner chart footers', points: [
     'Under each Analysis chart, the start and end values sit at the two edges and the summary gets its own readable line.',
+  ]},
+  '3.436': { headline: 'Targets on the charts', points: [
+    'Nutrition, Sleep and Water charts draw your target as a dashed line, so the gap to it is visible at a glance.',
   ]},
 };
 
@@ -39315,9 +39320,13 @@ function renderDayValueTrend(elId, dayTotals, opts){
   }
   const recent = dates;
   const values = recent.map(d=> dayTotals[d]);
-  const min = Math.min(...values), max = Math.max(...values);
+  // v3.436: the target joins the scale so its line is always on the chart.
+  const hasTarget = !!opts.target;
+  const scaleVals = hasTarget ? [...values, opts.target] : values;
+  const min = Math.min(...scaleVals), max = Math.max(...scaleVals);
   const range = (max-min) || 1;
   const w = 600, h = 70, pad = 8;
+  const targetY = hasTarget ? h - pad - ((opts.target-min)/range) * (h-2*pad) : null;
   const pts = recent.map((d,i)=>{
     const x = pad + (i/(recent.length-1)) * (w-2*pad);
     const y = h - pad - ((values[i]-min)/range) * (h-2*pad);
@@ -39336,6 +39345,7 @@ function renderDayValueTrend(elId, dayTotals, opts){
         </linearGradient>
       </defs>
       <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#grad-${elId})"/>
+      ${hasTarget ? `<line class="trend-target" x1="${pad}" y1="${targetY}" x2="${w-pad}" y2="${targetY}"/>` : ''}
       <polyline fill="none" stroke="${opts.color}" stroke-width="2.5" points="${pts}"/>
     </svg>
     <div class="trend-labels">
