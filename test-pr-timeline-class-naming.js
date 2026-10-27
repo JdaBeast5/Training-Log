@@ -17,7 +17,7 @@
 // (PR Timeline) to remove the collision outright, leaving the print
 // report's .pr-ex-name (covered separately by test-analysis-export.js)
 // untouched.
-const { readIndexSource, extractFunction, runJsdom, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractConst, extractFunction, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
 const { test, run } = makeRunner('test-pr-timeline-class-naming.js');
@@ -56,7 +56,7 @@ test('REAL invocation: renderPrTimeline, given one real logged PR, renders a row
     `var programs = { strength: { label:'Strength & Size', days: { d1: { exercises: [ {name:'Back Squat'} ] } } } };`,
     `var weightUnit = 'lb';`,
     `const LB_PER_KG = 0.453592;`,
-    extractFunction(src, 'escapeHtml'),
+    extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon'),
     extractFunction(src, 'toDisplayWeight'),
     extractFunction(src, 'trimUnitNum'),
     extractFunction(src, 'fmtWeight'),

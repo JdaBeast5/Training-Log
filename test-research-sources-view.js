@@ -34,7 +34,7 @@ function extractBasisToggleListener(source){
 const researchSourcesCardHtml = extractElementById(src, 'researchSourcesCard');
 
 const baseChunks = [
-  extractFunction(src, 'escapeHtml'),
+  extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon'),
   extractConst(src, 'programs'),
   extractConst(src, 'CUSTOM_PROGRAM_PREFIX'),
   extractFunction(src, 'isCustomProgramKey'),

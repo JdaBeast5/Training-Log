@@ -1109,6 +1109,9 @@
     flex:0 0 auto; font-size:13px; color:var(--plate-blue); transition:transform 0.28s var(--ease-smooth); margin-left:6px;
   }
   .exercise-block.open .ex-chevron{transform:rotate(90deg);}
+  /* v3.421: the drawn chevron (ICONS.chevron) is the whole box, so a row's
+     align-items:center centres the line itself, not a text line box. */
+  .ex-chevron > svg, .chev > svg{display:block;}
   .exercise-block.open:not(.superset-pair){
     background:linear-gradient(180deg, rgba(var(--plate-blue-rgb),0.06), rgba(var(--plate-blue-rgb),0.015) 60%, transparent);
     border-radius:var(--radius-sm);
@@ -1892,8 +1895,9 @@
     background:none; border:none; color:var(--text-muted); font-size:11.5px; text-decoration:underline;
     cursor:pointer; font-family:var(--font-sans); padding:0; width:100%; text-align:left; white-space:normal; line-height:1.4;
   }
-  .show-more-btn::after{content:'⌄'; font-size:12px; transition:transform 0.28s var(--ease-smooth);}
-  .show-more-btn.expanded::after{transform:rotate(180deg);}
+  /* v3.421: a drawn chevron (was the '⌄' glyph), same 1.6px line as ICONS.chevron. */
+  .show-more-btn::after{content:''; display:inline-block; width:6px; height:6px; margin:0 2px 3px 6px; border-right:1.6px solid currentColor; border-bottom:1.6px solid currentColor; transform:rotate(45deg); transition:transform 0.28s var(--ease-smooth);}
+  .show-more-btn.expanded::after{transform:translateY(3px) rotate(225deg);}
 
   /* Collapsible card header.
      .card-title lays out with `gap`, which separates the icon from the label
@@ -2771,8 +2775,8 @@
   /* Rotates to point right when collapsed, down when expanded — the same
      '›' glyph used elsewhere in the app (see .xlink-chev), rotated with CSS
      rather than swapped for a second glyph so the transition animates. */
-  /* v3.312: drawn, like .month-group's — the '›' text stays in the markup
-     (aria-hidden) but is not painted. Down when open, right when collapsed. */
+  /* v3.312: drawn, like .month-group's. Down when open, right when collapsed.
+     v3.421: the unpainted '›' text it used to carry is gone from the markup. */
   .analysis-group-header-chevron{
     display:inline-block; flex:0 0 auto; width:7px; height:7px; margin:0 3px 0 10px;
     font-size:0; color:transparent; overflow:hidden;
@@ -3034,8 +3038,9 @@
   }
   .program-select:focus{outline:none; border-color:var(--plate-blue); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.06) inset, 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.5), var(--focus-ring-glow);}
   .program-select-wrap::after{
-    content:'▾'; position:absolute; right:14px; top:50%; transform:translateY(-50%);
-    color:var(--plate-blue); font-size:14px; pointer-events:none;
+    /* v3.421: a drawn chevron (was the '▾' glyph), same 1.6px line as ICONS.chevron. */
+    content:''; position:absolute; right:16px; top:50%; width:6px; height:6px; transform:translateY(-70%) rotate(45deg);
+    border-right:1.6px solid var(--plate-blue); border-bottom:1.6px solid var(--plate-blue); pointer-events:none;
   }
   .program-select-desc{
     font-size:12px; color:var(--text-muted); margin:0 0 12px; line-height:1.45;
@@ -5196,24 +5201,24 @@
          off the same .at-end class the scroller's own fade already uses —
          no new JS state, just a second consumer of a toggle that already
          exists. -->
-    <button type="button" class="nav-rail-chevron" id="navRailChevron" aria-label="Show more tabs">›</button>
+    <button type="button" class="nav-rail-chevron" id="navRailChevron" aria-label="Show more tabs"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></button>
   </div>
 
   <div class="log-date-bar" id="logDateBar" style="display:none">
-    <button class="log-date-nav" id="logDatePrev" aria-label="Previous day">‹</button>
+    <button class="log-date-nav" id="logDatePrev" aria-label="Previous day"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="15 5.5 8.5 12 15 18.5"/></svg></button>
     <button class="log-date-label-wrap" id="logDateLabelBtn">
       <span class="log-date-label-text" id="logDateLabelText">Today</span>
     </button>
-    <button class="log-date-nav" id="logDateNext" aria-label="Next day">›</button>
+    <button class="log-date-nav" id="logDateNext" aria-label="Next day"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></button>
     <button class="log-date-today-btn" id="logDateToday" style="display:none;">Today</button>
   </div>
 
   <div class="calendar-modal-overlay" id="calendarModalOverlay" role="dialog" aria-modal="true" aria-labelledby="calendarMonthLabel">
     <div class="calendar-modal-sheet">
       <div class="calendar-modal-header">
-        <button class="calendar-nav-btn" id="calendarPrevMonth" aria-label="Previous month">‹</button>
+        <button class="calendar-nav-btn" id="calendarPrevMonth" aria-label="Previous month"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="15 5.5 8.5 12 15 18.5"/></svg></button>
         <div class="calendar-modal-title" id="calendarMonthLabel"></div>
-        <button class="calendar-nav-btn" id="calendarNextMonth" aria-label="Next month">›</button>
+        <button class="calendar-nav-btn" id="calendarNextMonth" aria-label="Next month"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></button>
       </div>
       <div class="calendar-weekday-row">
         <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
@@ -5360,7 +5365,7 @@
   <div class="card">
     <div class="card-title nutrition-header" id="programHeader">
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.2" y="8" width="2.6" height="4" rx="1"/><rect x="16.2" y="8" width="2.6" height="4" rx="1"/><line x1="4" y1="10" x2="16" y2="10"/><rect x="4.6" y="6.3" width="2" height="7.4" rx="0.6"/><rect x="13.4" y="6.3" width="2" height="7.4" rx="0.6"/></svg></span>Training Style</span>
-      <span class="ex-chevron" aria-hidden="true" id="programChevron">›</span>
+      <span class="ex-chevron" aria-hidden="true" id="programChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
     </div>
     <div class="program-select-wrap">
       <select class="program-select" id="programSelector" aria-label="Training program"></select>
@@ -5373,7 +5378,7 @@
          this is based on" below — only the default state differs (open
          here, closed there), which the shared listener doesn't care about. -->
     <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="programOverviewPanel">
-      <span class="chev" aria-hidden="true">›</span> Overview
+      <span class="chev" aria-hidden="true"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span> Overview
     </button>
     <div class="smooth-toggle open" id="programOverviewPanel"><div>
       <div class="program-intro program-overview" id="programOverview"></div>
@@ -5402,7 +5407,7 @@
     <select class="program-select" id="martialArtSelector" aria-label="Martial art style"></select>
     <div class="program-select-desc" id="martialArtDesc"></div>
     <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="martialArtOverviewPanel">
-      <span class="chev" aria-hidden="true">›</span> Overview
+      <span class="chev" aria-hidden="true"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span> Overview
     </button>
     <div class="smooth-toggle open" id="martialArtOverviewPanel"><div>
       <div class="program-intro program-overview" id="martialArtOverview"></div>
@@ -5415,7 +5420,7 @@
     <select class="program-select" id="cyclingSelector" aria-label="Cycling style"></select>
     <div class="program-select-desc" id="cyclingDesc"></div>
     <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="cyclingOverviewPanel">
-      <span class="chev" aria-hidden="true">›</span> Overview
+      <span class="chev" aria-hidden="true"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span> Overview
     </button>
     <div class="smooth-toggle open" id="cyclingOverviewPanel"><div>
       <div class="program-intro program-overview" id="cyclingOverview"></div>
@@ -5428,7 +5433,7 @@
     <select class="program-select" id="watersportsSelector" aria-label="Watersports style"></select>
     <div class="program-select-desc" id="watersportsDesc"></div>
     <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="watersportsOverviewPanel">
-      <span class="chev" aria-hidden="true">›</span> Overview
+      <span class="chev" aria-hidden="true"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span> Overview
     </button>
     <div class="smooth-toggle open" id="watersportsOverviewPanel"><div>
       <div class="program-intro program-overview" id="watersportsOverview"></div>
@@ -5441,7 +5446,7 @@
     <select class="program-select" id="yogaSelector" aria-label="Yoga style"></select>
     <div class="program-select-desc" id="yogaDesc"></div>
     <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="yogaOverviewPanel">
-      <span class="chev" aria-hidden="true">›</span> Overview
+      <span class="chev" aria-hidden="true"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span> Overview
     </button>
     <div class="smooth-toggle open" id="yogaOverviewPanel"><div>
       <div class="program-intro program-overview" id="yogaOverview"></div>
@@ -5454,7 +5459,7 @@
     <select class="program-select" id="medicalSelector" aria-label="Medical program"></select>
     <div class="program-select-desc" id="medicalDesc"></div>
     <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="medicalOverviewPanel">
-      <span class="chev" aria-hidden="true">›</span> Overview
+      <span class="chev" aria-hidden="true"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span> Overview
     </button>
     <div class="smooth-toggle open" id="medicalOverviewPanel"><div>
       <div class="program-intro program-overview" id="medicalOverview"></div>
@@ -5473,7 +5478,7 @@
   <div class="card" id="profileCard">
     <div class="card-title nutrition-header" id="profileHeader">
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.5" r="3.3"/><path d="M3.5 17c0-3.8 2.9-6.2 6.5-6.2s6.5 2.4 6.5 6.2"/></svg></span>Your Profile</span>
-      <span class="ex-chevron" aria-hidden="true" id="profileChevron">›</span>
+      <span class="ex-chevron" aria-hidden="true" id="profileChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
     </div>
     <div class="nutrition-summary" id="profileSummary">Tap to set up — personalizes your nutrition targets and program recommendation</div>
     <div class="expand-wrap" id="profileExpandWrap"><div>
@@ -5671,7 +5676,7 @@
 
     <div class="card-title nutrition-header" id="nutritionHeader">
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg></span>Today's Nutrition</span>
-      <span class="ex-chevron" aria-hidden="true" id="nutritionChevron">›</span>
+      <span class="ex-chevron" aria-hidden="true" id="nutritionChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
     </div>
 
     <div class="targets-strip">
@@ -5882,7 +5887,7 @@
   <div class="card" id="mySupplementsCard">
     <div class="card-title nutrition-header" id="mySupplementsHeader">
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="15" height="6" rx="3"/><line x1="10" y1="7" x2="10" y2="13"/></svg></span>My Supplements</span>
-      <span class="ex-chevron" aria-hidden="true" id="mySupplementsChevron">›</span>
+      <span class="ex-chevron" aria-hidden="true" id="mySupplementsChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
     </div>
     <div class="nutrition-summary" id="mySupplementsSummary">Track what you take each day. Known supplements show their evidence tier.</div>
     <div class="expand-wrap" id="mySupplementsExpandWrap"><div>
@@ -5904,7 +5909,7 @@
   <div class="card">
     <div class="card-title nutrition-header" id="measureHeader">
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7.5" width="16" height="5.5" rx="1"/><line x1="6" y1="7.5" x2="6" y2="10.2"/><line x1="10" y1="7.5" x2="10" y2="10.2"/><line x1="14" y1="7.5" x2="14" y2="10.2"/></svg></span>Body Measurements</span>
-      <span class="ex-chevron" aria-hidden="true" id="measureChevron">›</span>
+      <span class="ex-chevron" aria-hidden="true" id="measureChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
     </div>
     <div class="nutrition-summary" id="measureSummary">Tap to log — track waist, chest, arms, and more over time</div>
     <div class="expand-wrap" id="measureExpandWrap"><div>
@@ -5929,7 +5934,7 @@
   <div class="card">
     <div class="card-title nutrition-header" id="photosHeader">
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="16" height="10.5" rx="2"/><path d="M7 6 8.4 3.6h3.2L14 6"/><circle cx="10" cy="11.2" r="3.2"/></svg></span>Progress Photos</span>
-      <span class="ex-chevron" aria-hidden="true" id="photosChevron">›</span>
+      <span class="ex-chevron" aria-hidden="true" id="photosChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
     </div>
     <div class="nutrition-summary" id="photosSummary">What the scale and tape can't show</div>
     <div class="expand-wrap" id="photosExpandWrap"><div>
@@ -5955,7 +5960,7 @@
   <div class="card" id="cycleCard" style="display:none">
     <div class="card-title nutrition-header" id="cycleHeader">
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.2 10.6A6 6 0 1 1 9.4 3 5 5 0 0 0 14.2 10.6Z"/></svg></span>Cycle Tracking</span>
-      <span class="ex-chevron" aria-hidden="true" id="cycleChevron">›</span>
+      <span class="ex-chevron" aria-hidden="true" id="cycleChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
     </div>
     <div class="nutrition-summary" id="cycleSummary">Optional — tap to set up and see what to expect this phase</div>
     <div class="expand-wrap" id="cycleExpandWrap"><div>
@@ -5978,7 +5983,7 @@
   <div class="card" id="diagCard">
     <div class="card-title nutrition-header" id="diagHeader">
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5a7.5 7.5 0 1 0 7.5 7.5"/><path d="M10 6v4l2.5 2.5"/></svg></span>App Health Check</span>
-      <span class="ex-chevron" aria-hidden="true" id="diagChevron">›</span>
+      <span class="ex-chevron" aria-hidden="true" id="diagChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
     </div>
     <div class="nutrition-summary" id="diagSummaryLine">Version, offline support and storage</div>
     <div class="expand-wrap" id="diagExpandWrap">
@@ -5993,7 +5998,7 @@
   <div class="card" id="healthImportCard">
     <div class="card-title nutrition-header" id="healthImportHeader">
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3l2-5 3 8 2-4h4"/></svg></span>Import Health Data</span>
-      <span class="ex-chevron" aria-hidden="true" id="healthImportChevron">›</span>
+      <span class="ex-chevron" aria-hidden="true" id="healthImportChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
     </div>
     <div class="nutrition-summary" id="healthImportSummaryLine">Steps, resting HR and HRV from a CSV export</div>
     <div class="expand-wrap" id="healthImportExpandWrap">
@@ -6010,7 +6015,7 @@
   <div class="card" id="aiSettingsCard">
     <div class="card-title nutrition-header" id="aiSettingsHeader">
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="8" height="8" rx="1"/><line x1="10" y1="1.6" x2="10" y2="6"/><line x1="10" y1="14" x2="10" y2="18.4"/><line x1="1.6" y1="10" x2="6" y2="10"/><line x1="14" y1="10" x2="18.4" y2="10"/></svg></span>AI Features Setup</span>
-      <span class="ex-chevron" aria-hidden="true" id="aiSettingsChevron">›</span>
+      <span class="ex-chevron" aria-hidden="true" id="aiSettingsChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
     </div>
     <div class="nutrition-summary" id="aiSettingsSummary">Coach chat, meal photos, form feedback and more</div>
     <div class="expand-wrap" id="aiSettingsExpandWrap"><div>
@@ -6047,7 +6052,7 @@
 
     <button type="button" class="analysis-group-header" data-group="insights" aria-expanded="true">
       <span>Insights &amp; Program Fit</span>
-      <span class="analysis-group-header-chevron" aria-hidden="true">›</span>
+      <span class="analysis-group-header-chevron" aria-hidden="true"></span>
     </button>
     <div class="history-hint" style="margin:-4px 2px 12px;">Trends over time. For what needs attention now, see Today's Priorities.</div>
 
@@ -6081,7 +6086,7 @@
 
     <button type="button" class="analysis-group-header" data-group="body-health" aria-expanded="false">
       <span>Body &amp; Health Trends</span>
-      <span class="analysis-group-header-chevron" aria-hidden="true">›</span>
+      <span class="analysis-group-header-chevron" aria-hidden="true"></span>
     </button>
 
     <div class="card" id="bodyMetricsCard" style="display:none;">
@@ -6142,7 +6147,7 @@
 
     <button type="button" class="analysis-group-header" data-group="training" aria-expanded="false">
       <span>Training Trends</span>
-      <span class="analysis-group-header-chevron" aria-hidden="true">›</span>
+      <span class="analysis-group-header-chevron" aria-hidden="true"></span>
     </button>
 
     <div class="card" data-autohide>
@@ -6202,15 +6207,15 @@
     <div class="card">
       <div class="card-title nutrition-header" id="historyLogHeader">
         <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.2 6.2a1 1 0 0 1 1-1h3.8l1.4 1.8h8.4a1 1 0 0 1 1 1v7.8a1 1 0 0 1-1 1H3.2a1 1 0 0 1-1-1Z"/></svg></span>Day-by-Day Log</span>
-        <span class="ex-chevron" aria-hidden="true" id="historyLogChevron">›</span>
+        <span class="ex-chevron" aria-hidden="true" id="historyLogChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
       </div>
       <div class="expand-wrap" id="historyLogExpandWrap"><div>
       <div class="history-hint">Every logged day by month — tap one to open it. Green is progress, red is down from last time.</div>
       <div id="historyHeatmap" style="display:none">
         <div class="calendar-modal-header">
-          <button type="button" class="calendar-nav-btn" id="historyHeatmapPrevMonth" aria-label="Previous month">‹</button>
+          <button type="button" class="calendar-nav-btn" id="historyHeatmapPrevMonth" aria-label="Previous month"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="15 5.5 8.5 12 15 18.5"/></svg></button>
           <div class="calendar-modal-title" id="historyHeatmapMonthLabel"></div>
-          <button type="button" class="calendar-nav-btn" id="historyHeatmapNextMonth" aria-label="Next month">›</button>
+          <button type="button" class="calendar-nav-btn" id="historyHeatmapNextMonth" aria-label="Next month"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></button>
         </div>
         <div class="calendar-weekday-row">
           <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
@@ -6371,7 +6376,7 @@
       <div class="history-hint">Based on your goal, program and profile. Ask something specific, or leave it blank.</div>
 
       <button type="button" class="program-basis-toggle" id="foundationalStackToggle" aria-expanded="false" aria-controls="foundationalStackResult">
-        <span class="chev" aria-hidden="true">›</span> View foundational stack
+        <span class="chev" aria-hidden="true"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span> View foundational stack
       </button>
       <div class="smooth-toggle" id="foundationalStackResult"><div></div></div>
 
@@ -6693,7 +6698,7 @@
            this section had nothing in it but its footer. The row goes to it;
            once the finished profile moves into the slot, the row hides. -->
       <div class="settings-group">
-        <button type="button" class="settings-jump" id="settingsProfileSetup" data-jump-to="profileCard"><span>Set up your profile</span><span>›</span></button>
+        <button type="button" class="settings-jump" id="settingsProfileSetup" data-jump-to="profileCard"><span>Set up your profile</span><span><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span></button>
         <div id="settingsProfileSlot"></div>
       </div>
       <div class="history-hint field-note">Your units, dietary restrictions, equipment and health conditions, all in one place.</div>
@@ -6707,7 +6712,7 @@
     <div class="settings-section">
       <label class="care-label">Data &amp; maintenance</label>
       <div class="settings-group">
-      <button type="button" class="settings-jump" data-jump-to="exportDataBtn"><span>Backup &amp; restore your data</span><span>›</span></button>
+      <button type="button" class="settings-jump" data-jump-to="exportDataBtn"><span>Backup &amp; restore your data</span><span><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span></button>
       <!-- App Health Check and Import Health Data used to live on the Log
            tab, mixed into the same scroll as daily weight/food/sleep
            logging — two maintenance tools with no daily-use reason to be
@@ -6793,9 +6798,9 @@
       <button class="sub-modal-close" id="navMoreClose">Done</button>
     </div>
     <div class="nav-more-list">
-      <button class="nav-pill nav-more-item" id="navCare"><span class="nav-more-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 16.5s-6-3.6-6-8a3.3 3.3 0 0 1 6-1.9 3.3 3.3 0 0 1 6 1.9c0 4.4-6 8-6 8Z"/></svg></span><span class="nav-more-text"><span class="nav-more-label">Care</span><span class="nav-more-desc">Pain check-ins, resting areas, stretches</span></span><span class="nav-more-chev" aria-hidden="true">›</span></button>
-      <button class="nav-pill nav-more-item" id="navCoach"><span class="nav-more-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h12v8H9l-4 3v-3H4z"/></svg></span><span class="nav-more-text"><span class="nav-more-label">Coach</span><span class="nav-more-desc">Form feedback, chat, supplements</span></span><span class="nav-more-chev" aria-hidden="true">›</span></button>
-      <button class="nav-pill nav-more-item" id="navLearn"><span class="nav-more-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 4.5c2.5-1 4.5-.6 6.5.8v10.2c-2-1.4-4-1.8-6.5-.8zM16.5 4.5c-2.5-1-4.5-.6-6.5.8v10.2c2-1.4 4-1.8 6.5-.8z"/></svg></span><span class="nav-more-text"><span class="nav-more-label">Learn</span><span class="nav-more-desc">Exercise library, masterclasses, research</span></span><span class="nav-more-chev" aria-hidden="true">›</span></button>
+      <button class="nav-pill nav-more-item" id="navCare"><span class="nav-more-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 16.5s-6-3.6-6-8a3.3 3.3 0 0 1 6-1.9 3.3 3.3 0 0 1 6 1.9c0 4.4-6 8-6 8Z"/></svg></span><span class="nav-more-text"><span class="nav-more-label">Care</span><span class="nav-more-desc">Pain check-ins, resting areas, stretches</span></span><span class="nav-more-chev" aria-hidden="true"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span></button>
+      <button class="nav-pill nav-more-item" id="navCoach"><span class="nav-more-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5h12v8H9l-4 3v-3H4z"/></svg></span><span class="nav-more-text"><span class="nav-more-label">Coach</span><span class="nav-more-desc">Form feedback, chat, supplements</span></span><span class="nav-more-chev" aria-hidden="true"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span></button>
+      <button class="nav-pill nav-more-item" id="navLearn"><span class="nav-more-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 4.5c2.5-1 4.5-.6 6.5.8v10.2c-2-1.4-4-1.8-6.5-.8zM16.5 4.5c-2.5-1-4.5-.6-6.5.8v10.2c2-1.4 4-1.8 6.5-.8z"/></svg></span><span class="nav-more-text"><span class="nav-more-label">Learn</span><span class="nav-more-desc">Exercise library, masterclasses, research</span></span><span class="nav-more-chev" aria-hidden="true"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span></button>
     </div>
   </div>
 </div>
@@ -6981,7 +6986,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.420';
+const APP_VERSION = '3.421';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7529,7 +7534,7 @@ const WHATS_NEW = {
     'Strength Context, Volume Trend, and the other Training Trends cards keep their own fixed windows on purpose — those exist for specific reasons documented at each one, not because nobody had gotten to them yet.',
   ]},
   '3.238': { headline: 'Day-by-Day Log\'s calendar now flips one month at a time', points: [
-    'The History tab\'s calendar used to show three months stacked on top of each other. It now shows one month at once, with the same ‹ › arrows as the calendar you get from tapping the date on Today/Log — tapping a trained/rest/no-training day jumps straight to that day\'s entry below, not just its month.',
+    'The History tab\'s calendar used to show three months stacked on top of each other. It now shows one month at once, with the same arrows as the calendar you get from tapping the date on Today/Log — tapping a trained/rest/no-training day jumps straight to that day\'s entry below, not just its month.',
   ]},
   '3.239': { headline: 'Snap a Meal now takes multiple photos at once', points: [
     'The photo picker used to only take one meal photo at a time. Now you can select several — each is analyzed on its own so portion estimates stay accurate, and everything found across all of them lands in one editable list you can add in one go.',
@@ -8048,6 +8053,9 @@ const WHATS_NEW = {
   ]},
   '3.420': { headline: 'Glass close button in Learn', points: [
     'The Close this masterclass button now matches the glass look.',
+  ]},
+  '3.421': { headline: 'One chevron', points: [
+    'Every arrow and disclosure chevron is now the same drawn line, instead of text characters that changed shape with each font size.',
   ]},
 };
 
@@ -10403,7 +10411,7 @@ function buildBasisHtml(u, intro, eyebrow){
         ${escapeHtml(u.limits)}
       </div>
       <button type="button" class="program-basis-toggle" aria-expanded="false" aria-controls="${id}">
-        <span class="chev" aria-hidden="true">›</span> What this is based on
+        <span class="chev" aria-hidden="true">${icon('chevron')}</span> What this is based on
       </button>
       <div class="smooth-toggle" id="${id}"><div>
         <div class="program-basis">${escapeHtml(u.basis)}</div>
@@ -14248,7 +14256,7 @@ function buildSourceRowHtml(label, source, eyebrow, nested){
     <div class="source-row${nested ? ' source-row-nested' : ''}">
       <button type="button" class="program-basis-toggle" aria-expanded="false" aria-controls="${id}">
         <span>${escapeHtml(label)}</span>
-        <span class="chev" aria-hidden="true">›</span>
+        <span class="chev" aria-hidden="true">${icon('chevron')}</span>
       </button>
       <div class="smooth-toggle" id="${id}"><div>
         <div class="program-panel">
@@ -14317,7 +14325,7 @@ function renderMasterclassIndex(){
     const meta = isMine ? 'In your program' : (open ? 'Open · tap to close' : '');
     return `<button class="masterclass-index-btn${isMine ? ' current' : ''}${open && !isMine ? ' opened' : ''}" data-card="${cardId}" aria-expanded="${open ? 'true' : 'false'}">
       <span>${escapeHtml(MASTERCLASS_LIBRARY[cardId].label)}</span>
-      <span class="mc-index-meta">${meta}<span class="ex-chevron" aria-hidden="true">\u203a</span></span>
+      <span class="mc-index-meta">${meta}<span class="ex-chevron" aria-hidden="true">${icon('chevron')}</span></span>
     </button>`;
   }).join('');
   el.querySelectorAll('.masterclass-index-btn').forEach(btn=>{
@@ -14414,7 +14422,7 @@ function updateMasterclassLinkBtn(){
     return;
   }
   btn.style.display = '';
-  btn.innerHTML = `View "${mc.label}" in Learn <span class="ex-chevron" aria-hidden="true">›</span>`;
+  btn.innerHTML = `View "${mc.label}" in Learn <span class="ex-chevron" aria-hidden="true">${icon('chevron')}</span>`;
   btn.onclick = ()=>{
     // scrollTop:false — this link owns where the page lands (the specific
     // masterclass card, below), so switchView must not also send it to the top.
@@ -25042,7 +25050,7 @@ function renderDaysPerWeekWarning(){
   el.style.display = '';
   el.innerHTML = `
     <button type="button" class="program-basis-toggle" aria-expanded="true" aria-controls="${id}">
-      <span class="chev" aria-hidden="true">›</span> ⚠️ Heads up
+      <span class="chev" aria-hidden="true">${icon('chevron')}</span> ⚠️ Heads up
     </button>
     <div class="smooth-toggle open" id="${id}"><div>
       <div class="history-hint field-note">${escapeHtml('Most programs need at least one full rest day. The extra days are accessory and conditioning work, not repeats of your hardest sessions — listen to your body.')}</div>
@@ -28005,7 +28013,7 @@ async function renderWorkout(){
         </div>
         <div class="ex-sets"><span class="${ex.__overridden ? 'ex-sets-overridden' : ''}" ${ex.__overridden ? 'title="You changed this from the program default"' : ''}>${escapeHtml(ex.sets)}</span></div>
         ${ex.isCustom ? `<button class="ex-delete-custom-btn" aria-label="Remove custom exercise ${escapeHtml(ex.name)}">🗑️</button>` : ''}
-        <span class="ex-chevron" aria-hidden="true">›</span>
+        <span class="ex-chevron" aria-hidden="true">${icon('chevron')}</span>
     `;
 
     exercisePieces[i] = {
@@ -36019,7 +36027,7 @@ function buildRestaurantBtn(brand){
       <div class="fi-name">${brand}</div>
       <div class="fi-macro">${itemCount} item${itemCount===1?'':'s'}</div>
     </div>
-    <span class="ex-chevron" aria-hidden="true">›</span>
+    <span class="ex-chevron" aria-hidden="true">${icon('chevron')}</span>
   `;
   btn.addEventListener('click', ()=>{ activeRestaurant = brand; renderFoodItems(); });
   return btn;
@@ -36144,7 +36152,7 @@ function renderFoodItems(){
     if(activeRestaurant){
       const backBtn = document.createElement('button');
       backBtn.className = 'back-btn';
-      backBtn.innerHTML = `‹ All Restaurants`;
+      backBtn.innerHTML = `${icon('chevronLeft')} All Restaurants`;
       backBtn.addEventListener('click', ()=>{ activeRestaurant = null; renderFoodItems(); });
       itemsEl.appendChild(backBtn);
       const menuItems = sortByUsage(foodLibrary.Restaurants[activeRestaurant]).filter(item=> !shouldHideItem(item.name)).map(item=>buildFoodItemBtn(item, false));
@@ -36585,7 +36593,7 @@ function renderFoodLog(){
       return buildSwipeItem(
         `<div class="food-log-item" role="button" tabindex="0" aria-expanded="false" aria-controls="flDetail${i}">
           <div class="fl-name">${escapeHtml(item.name)}</div>
-          <div class="fl-macro">${item.cal} cal<span class="fl-chevron" aria-hidden="true">›</span></div>
+          <div class="fl-macro">${item.cal} cal<span class="fl-chevron" aria-hidden="true">${icon('chevron')}</span></div>
           <div class="qty-stepper">
             <button type="button" class="qty-btn" data-step="-1"${q <= 1 ? ' disabled' : ''}
               aria-label="One less portion of ${label}">−</button>
@@ -40078,7 +40086,7 @@ async function renderStrengthContext(){
     // Both of these are about e1RM and neither knew the other existed. The
     // multiple above is a number; the PR timeline is the session it came out
     // of, which is the part worth looking at.
-    + '<button type="button" class="settings-jump" data-jump-to="prTimeline"><span>See the sessions these came from</span><span>›</span></button>';
+    + '<button type="button" class="settings-jump" data-jump-to="prTimeline"><span>See the sessions these came from</span><span>' + icon('chevron') + '</span></button>';
 }
 
 // [EXERCISE HISTORY IS NAME-SCOPED] --------------------------------------------
@@ -40206,7 +40214,7 @@ async function renderExerciseProgress(){
     return `
       <div class="prog-row">
         <div class="prog-top">
-          <div class="prog-name"><button type="button" class="xlink" data-search-for="${escapeHtml(r.name)}">${escapeHtml(r.name)}<span class="xlink-chev" aria-hidden="true">›</span></button></div>
+          <div class="prog-name"><button type="button" class="xlink" data-search-for="${escapeHtml(r.name)}">${escapeHtml(r.name)}<span class="xlink-chev" aria-hidden="true">${icon('chevron')}</span></button></div>
           <div class="prog-day">${escapeHtml(r.dayLabel)}</div>
         </div>
         <div class="prog-stats">
@@ -40316,7 +40324,7 @@ async function renderPrTimeline(){
       <div class="pr-row">
         <div class="pr-date">${dateLabel}</div>
         <div class="pr-body">
-          <div class="prt-ex-name"><button type="button" class="xlink" data-search-for="${escapeHtml(ev.name)}">${escapeHtml(ev.name)}<span class="xlink-chev" aria-hidden="true">›</span></button>${isStrength ? ' <span class="pr-type-tag">strength PR</span>' : ''}</div>
+          <div class="prt-ex-name"><button type="button" class="xlink" data-search-for="${escapeHtml(ev.name)}">${escapeHtml(ev.name)}<span class="xlink-chev" aria-hidden="true">${icon('chevron')}</span></button>${isStrength ? ' <span class="pr-type-tag">strength PR</span>' : ''}</div>
           <div class="pr-day-label">${escapeHtml(ev.dayLabel)}${isStrength && ev.e1rm ? ` · Est. 1RM ~${fmtWeight(ev.e1rm)}` : ''}</div>
         </div>
         <div class="pr-stat">${fmtWeight(ev.weight)}${ev.reps!=null ? ` × ${ev.reps}` : ''}</div>
@@ -44109,7 +44117,7 @@ async function renderVolumeTrend(){
     return `
       <div class="vol-row">
         <div class="vol-row-top">
-          <span class="vol-group-name"><button type="button" class="xlink" data-search-for="${escapeHtml(g)}">${escapeHtml(g)}<span class="xlink-chev" aria-hidden="true">›</span></button></span>
+          <span class="vol-group-name"><button type="button" class="xlink" data-search-for="${escapeHtml(g)}">${escapeHtml(g)}<span class="xlink-chev" aria-hidden="true">${icon('chevron')}</span></button></span>
           ${deltaHtml}
         </div>
         <div class="vol-bar-track"><div class="vol-bar-fill" style="width:${Math.min(100,(thisWeek/maxVal)*100)}%"></div></div>
@@ -44999,6 +45007,12 @@ const ICONS = {
   // visually verified there; redrawing it introduces new, unverified risk
   // for zero benefit). Used by My Supplements' per-row "ask your coach"
   // button, so the same shape means the same action everywhere it appears.
+  // v3.421: the one chevron. Every ‹ › disclosure, navigation and date arrow
+  // draws this (it was the text glyph, a different shape in every font size
+  // and weight it sat in). The stroke does not scale: 1.6px at any size, so
+  // an 11px row chevron and a 17px rail arrow read as one family.
+  chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg>',
+  chevronLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="15 5.5 8.5 12 15 18.5"/></svg>',
   chat: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 5.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8l-4 3v-3H4.5a2 2 0 0 1-2-2Z"/></svg>',
 };
 
@@ -46456,7 +46470,7 @@ function renderGlobalSearchResults(query){
     html += sections.map(s=>
       `<button type="button" class="gsearch-hit" data-jump-to="${escapeHtml(s.id)}">`
       + `<span>${escapeHtml(s.title)}</span>`
-      + `<span class="gsearch-hit-tab">${escapeHtml(s.tabLabel)} \u203a</span></button>`
+      + `<span class="gsearch-hit-tab">${escapeHtml(s.tabLabel)} ${icon('chevron')}</span></button>`
     ).join('');
     // Sections and techniques (below) used to cap at their LIMIT with no sign
     // anything was left out \u2014 silent, unlike exercises, which have always
@@ -46477,7 +46491,7 @@ function renderGlobalSearchResults(query){
     html += techniques.map(t=>
       `<button type="button" class="gsearch-hit" data-technique-card="${escapeHtml(t.cardId)}" data-technique-name="${escapeHtml(t.name)}">`
       + `<span>${escapeHtml(t.name)}</span>`
-      + `<span class="gsearch-hit-tab">${escapeHtml(t.masterclassLabel)} \u203a</span></button>`
+      + `<span class="gsearch-hit-tab">${escapeHtml(t.masterclassLabel)} ${icon('chevron')}</span></button>`
     ).join('');
     if(allTechniques.length > techniques.length){
       html += `<div class="history-hint">Showing ${techniques.length} of ${allTechniques.length} matching techniques \u2014 try a more specific search.</div>`;

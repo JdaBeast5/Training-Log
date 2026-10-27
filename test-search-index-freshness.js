@@ -54,7 +54,7 @@ const searchFnChunks = [
   extractConst(src, 'GLOBAL_SEARCH_EXERCISE_LIMIT'),
   extractConst(src, 'GLOBAL_SEARCH_SECTION_LIMIT'),
   extractConst(src, 'GLOBAL_SEARCH_TECHNIQUE_LIMIT'),
-  extractFunction(src, 'escapeHtml'),
+  extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon'),
   extractFunction(src, 'renderGlobalSearchResults'),
 ];
 
@@ -132,6 +132,7 @@ const masterclassChunks = [
   extractConst(src, 'MASTERCLASS_LIBRARY'),
   extractConst(src, 'PROGRAM_MASTERCLASS'),
   extractFunction(src, 'escapeHtml'),
+  extractConst(src, 'ICONS'), extractFunction(src, 'icon'), // v3.421: the index chevron is drawn
   extractFunction(src, 'isProgramOwnedMasterclass'),
   extractFunction(src, 'isMasterclassOpen'),
   extractFunction(src, 'closeMasterclass'),
@@ -162,7 +163,9 @@ test('REAL invocation: opening a masterclass FROM ITS OWN INDEX BUTTON immediate
   assert.ok(before, 'index must render a real button for swimStylesCard');
   assert.strictEqual(before.getAttribute('aria-expanded'), 'false', 'starts closed');
   assert.strictEqual(before.classList.contains('opened'), false);
-  assert.strictEqual(before.querySelector('.mc-index-meta').textContent.trim(), '›', 'no "Open · tap to close" text yet (only the decorative chevron)');
+  // 2026-10-27 (v3.421): the chevron is drawn (an svg), so the meta has no text at all.
+  assert.strictEqual(before.querySelector('.mc-index-meta').textContent.trim(), '', 'no "Open · tap to close" text yet (only the decorative chevron)');
+  assert.ok(before.querySelector('.mc-index-meta .ex-chevron svg'), 'the drawn chevron');
 
   before.click(); // toggleMasterclass -> openMasterclass, since it starts closed
 
@@ -190,7 +193,7 @@ test('REAL invocation: closing that same masterclass (already-covered path, lock
   const closedBtn = swimBtn(document);
   assert.strictEqual(closedBtn.getAttribute('aria-expanded'), 'false');
   assert.strictEqual(closedBtn.classList.contains('opened'), false);
-  assert.strictEqual(closedBtn.querySelector('.mc-index-meta').textContent.trim(), '›');
+  assert.strictEqual(closedBtn.querySelector('.mc-index-meta').textContent.trim(), '');
 });
 
 test('sabotage-relevant: openMasterclass contains exactly one real call to renderMasterclassIndex(), matching closeMasterclass\'s own existing call — not zero (the bug) and not merely mentioned in a comment', (assert)=>{

@@ -52,7 +52,7 @@ test('REAL data (v3.404): the approach lines are plain — short, no internal na
 });
 
 function render(key, isStyle){
-  const [html] = runSandbox([extractFunction(src, 'escapeHtml'), 'var sourcePanelSeq = 0;', extractFunction(src, 'buildSourceCitesHtml'), extractFunction(src, 'buildSourceRowHtml')],
+  const [html] = runSandbox([extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon'), 'var sourcePanelSeq = 0;', extractFunction(src, 'buildSourceCitesHtml'), extractFunction(src, 'buildSourceRowHtml')],
     `__capture.push(buildSourceRowHtml('X', ${JSON.stringify(SOURCES[key])}, 'Approach', ${isStyle}));`);
   return new JSDOM(html).window.document;
 }

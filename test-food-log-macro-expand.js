@@ -16,7 +16,7 @@ const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } =
 
 const src = readIndexSource();
 const foodQtyMaxSrc = extractConst(src, 'FOOD_QTY_MAX');
-const escapeHtmlSrc = extractFunction(src, 'escapeHtml');
+const escapeHtmlSrc = extractFunction(src, 'escapeHtml') + '\n' + extractConst(src, 'ICONS') + '\n' + extractFunction(src, 'icon');
 const buildSwipeItemSrc = extractFunction(src, 'buildSwipeItem');
 const makeSwipeableSrc = extractFunction(src, 'makeSwipeable');
 const computeTodaysFoodTotalsSrc = extractFunction(src, 'computeTodaysFoodTotals');

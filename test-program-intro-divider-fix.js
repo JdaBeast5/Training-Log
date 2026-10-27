@@ -20,7 +20,7 @@
 // Confirmed via `git log -p -L` that both rules were added in the same
 // commit, and confirmed via `grep` that no existing test asserted on either
 // rule before this fix — this really was dead, unexercised CSS.
-const { readIndexSource, extractFunction, extractElementByClass, runSandbox, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractConst, extractFunction, extractElementByClass, runSandbox, makeRunner } = require('./testHelpers.js');
 const { JSDOM } = require('jsdom');
 
 const src = readIndexSource();
@@ -79,7 +79,7 @@ test('the surviving .program-intro rule is the "spec plate" one (margin:0, no bo
 // list's spacing is its own eyebrow's margin, checked in test-learn-rework.js.
 test('REAL invocation: buildSourceRowHtml renders the school paragraph undivided, then the short-citation list', (assert)=>{
   const [html] = runSandbox(
-    [extractFunction(src, 'escapeHtml'), 'var sourcePanelSeq = 0;', extractFunction(src, 'buildSourceCitesHtml'), extractFunction(src, 'buildSourceRowHtml')],
+    [extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon'), 'var sourcePanelSeq = 0;', extractFunction(src, 'buildSourceCitesHtml'), extractFunction(src, 'buildSourceRowHtml')],
     "__capture.push(buildSourceRowHtml('Test Program', {school:'Some Methodology', primary:'Some Citation, J. et al.', cites:[{text:'Citation et al. · J Test, 2024', doi:'10.1/x'}]}, 'Approach', false));"
   );
   assert.match(html, /<p class="program-intro">Some Methodology<\/p>/, 'expected the real school paragraph markup');
@@ -94,7 +94,7 @@ test('REAL invocation: buildSourceRowHtml renders the school paragraph undivided
 });
 
 test('REAL invocation: buildBasisHtml (the live per-program provenance panel) also resolves the fixed, undivided .program-intro style', (assert)=>{
-  const escapeHtmlSrc = extractFunction(src, 'escapeHtml');
+  const escapeHtmlSrc = extractFunction(src, 'escapeHtml') + '\n' + extractConst(src, 'ICONS') + '\n' + extractFunction(src, 'icon');
   const buildBasisHtmlSrc = extractFunction(src, 'buildBasisHtml');
   const [html] = runSandbox(
     [escapeHtmlSrc, 'var programPanelSeq = 0;', buildBasisHtmlSrc],

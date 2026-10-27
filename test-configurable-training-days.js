@@ -1381,7 +1381,7 @@ test('the Profile card ships an (initially hidden) daysPerWeekWarning container 
 });
 
 const warningDomChunks = [
-  extractFunction(src, 'escapeHtml'),
+  extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon'),
   ...pureChunks,
   'var daysPerWeekPref = null;',
   'var activeProgram = "strength";',
