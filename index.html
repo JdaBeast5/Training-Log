@@ -5135,7 +5135,7 @@
 </div>
 
 <div class="pull-refresh-indicator" id="pullRefreshIndicator">
-  <div class="pull-refresh-spinner" id="pullRefreshSpinner">↓</div>
+  <div class="pull-refresh-spinner" id="pullRefreshSpinner"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M12 5v14 M6.5 13.5 12 19l5.5-5.5"/></svg></div>
   <div class="pull-refresh-label" id="pullRefreshLabel">Pull to refresh</div>
 </div>
 
@@ -6988,7 +6988,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.425';
+const APP_VERSION = '3.426';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7148,7 +7148,7 @@ const WHATS_NEW = {
     'Wraps up the citation-sourcing project started back at v3.106 — every program now has either a real, verified source or an honest, explicit note about why it doesn\'t.',
   ]},
   '3.134': { headline: 'Tapping an exercise name now opens it, not "Swap"', points: [
-    'The swap-exercise action used to be bound to almost the entire name text, so a normal tap to expand a set often opened "Swap Exercise" instead. It\'s now bound to just the small ⇄ icon, which also got a bit more room to tap accurately.',
+    'The swap-exercise action used to be bound to almost the entire name text, so a normal tap to expand a set often opened "Swap Exercise" instead. It\'s now bound to just the small swap icon, which also got a bit more room to tap accurately.',
   ]},
   '3.135': { headline: 'The rest timer no longer jumps the gun on a half-typed set', points: [
     'Typing just a weight (before reps was filled in) used to immediately start the rest-timer countdown and pop the "Switch to gym mode?" offer — both meant for a set you\'d actually finished. Now they wait until a set has everything it needs (weight and/or distance, plus reps) before reacting. Nothing about saving as you type changed — this only holds back those two on-screen interruptions until the set is real.',
@@ -7741,7 +7741,7 @@ const WHATS_NEW = {
     'Disclaimers, form-feedback tips and Learn intros keep every safety note in about 40% fewer words.',
   ]},  '3.298': { headline: 'Set chips: log a set in one tap', points: [
     'Every exercise now shows its sets as chips, no need to open it. Green is logged.',
-    'Your next set is filled in with the recommended weight (↑ when it\'s time to go up). Tap it once to log it; Undo is right there.',
+    'Your next set is filled in with the recommended weight (with an up arrow when it\'s time to go up). Tap it once to log it; Undo is right there.',
   ]},  '3.299': { headline: 'Adjust a set with + and −', points: [
     'Tap any other set, or press and hold one, to open a quick logger: big + and − for weight (in steps you can load) and reps, and tap an RPE.',
     'Add a note or a drop set from there too. Logged sets can be edited or cleared, with Undo.',
@@ -7754,7 +7754,7 @@ const WHATS_NEW = {
   ]},  '3.302': { headline: 'RPE is optional', points: [
     'An exercise now checks itself off once every set has its weight and reps. RPE is there when you want it.',
   ]},  '3.303': { headline: 'Up or stay, set by set', points: [
-    'After each set, your next one says whether to go up (↑) or stay (=), based on your reps and RPE. Hit the top of your range without a grind and it adds a step.',
+    'After each set, your next one says whether to go up or stay, based on your reps and RPE. Hit the top of your range without a grind and it adds a step.',
     'The reason shows on Up next and in the quick logger.',
   ]},  '3.304': { headline: 'Cleaner exercise list', points: [
     'The yellow calorie tags are off every exercise (your session total is still at the top).',
@@ -8070,6 +8070,9 @@ const WHATS_NEW = {
   ]},
   '3.425': { headline: 'Drawn celebration marks', points: [
     'PRs, streaks, finished sessions and the share card show a drawn trophy, flame or flag instead of an emoji; cycle phases go by their name.',
+  ]},
+  '3.426': { headline: 'Drawn arrows', points: [
+    'The set chips\' up and down marks, the swap icon, pull-to-refresh and the day-reorder buttons are drawn; buttons like Same as Last Time and Export now drop their arrow characters.',
   ]},
 };
 
@@ -13325,7 +13328,7 @@ function renderStorageBanner(){
         Export now, then free some space. Progress photos take up far more room than anything else here.
       </div>
       <div class="app-banner-actions">
-        <button type="button" class="app-banner-btn app-banner-btn-primary" id="storageBannerExport">↓ Export now</button>
+        <button type="button" class="app-banner-btn app-banner-btn-primary" id="storageBannerExport">Export now</button>
         <button type="button" class="app-banner-btn" id="storageBannerPhotos">Manage photos</button>
       </div>
     </div>
@@ -25342,12 +25345,12 @@ function renderTabs(){
       const arrows = document.createElement('div');
       arrows.className = 'reorder-arrows';
       const left = document.createElement('button');
-      left.textContent = '◀';
+      left.innerHTML = icon('chevronLeft');
       left.setAttribute('aria-label', `Move ${d.label} earlier`);
       left.disabled = idx===0;
       left.onclick = (e)=>{ e.stopPropagation(); moveDay(idx,-1); };
       const right = document.createElement('button');
-      right.textContent = '▶';
+      right.innerHTML = icon('chevron');
       right.setAttribute('aria-label', `Move ${d.label} later`);
       right.disabled = idx===dayOrder.length-1;
       right.onclick = (e)=>{ e.stopPropagation(); moveDay(idx,1); };
@@ -26505,7 +26508,7 @@ function analyzeProgressionSignal(pastSessions, ex, category){
     if(allHighRpe && noProgress){
       return {
         type: 'deload',
-        message: `🔻 RPE has run 9+ for 3 straight sessions with no rep or weight gain — a 10-20% deload this week likely does more for growth than pushing through (sustained near-max effort without progress signals fatigue outpacing recovery).`
+        message: `RPE has run 9+ for 3 straight sessions with no rep or weight gain — a 10-20% deload this week likely does more for growth than pushing through (sustained near-max effort without progress signals fatigue outpacing recovery).`
       };
     }
   }
@@ -26518,7 +26521,7 @@ function analyzeProgressionSignal(pastSessions, ex, category){
     const dropAmt = Math.max(getLoadIncrement(category), Math.round(s0.weight*0.075/2.5)*2.5);
     return {
       type: 'decrease',
-      message: `⬇ Reps dropped to ${s0.reps} last time (below your ${bottomRepTarget}-rep floor) at ${fmtWeight(s0.weight)} — drop to ~${fmtWeight(s0.weight-dropAmt)} next session to rebuild clean volume in range.`
+      message: `Reps dropped to ${s0.reps} last time (below your ${bottomRepTarget}-rep floor) at ${fmtWeight(s0.weight)} — drop to ~${fmtWeight(s0.weight-dropAmt)} next session to rebuild clean volume in range.`
     };
   }
 
@@ -26532,7 +26535,7 @@ function analyzeProgressionSignal(pastSessions, ex, category){
     const bump = getLoadIncrement(category);
     return {
       type: 'increase',
-      message: `⬆ Hit ${topRepTarget}+ reps at ${fmtWeight(s0.weight)} for 2 sessions straight — add ${fmtWeight(bump)} next time (double-progression: you've outgrown this rep range at this weight).`
+      message: `Hit ${topRepTarget}+ reps at ${fmtWeight(s0.weight)} for 2 sessions straight — add ${fmtWeight(bump)} next time (double-progression: you've outgrown this rep range at this weight).`
     };
   }
 
@@ -26772,7 +26775,7 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
   }
   if(signal){
     if(inDeloadWeek && signal.type==='increase'){
-      return {direction:'down', html:`<div class="progress-badge-deload">🔻 Deload week — sets are already reduced below; hold at a reduced load here too rather than chasing the jump this would normally suggest.</div>`};
+      return {direction:'down', html:`<div class="progress-badge-deload">Deload week — sets are already reduced below; hold at a reduced load here too rather than chasing the jump this would normally suggest.</div>`};
     }
     // The automatic RPE-plateau deload signal (analyzeProgressionSignal's
     // Signal 1) has no idea whether a deload week is already happening —
@@ -26782,7 +26785,7 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
     // for exactly that reason. Acknowledges the two agree instead of
     // repeating the recommendation redundantly.
     if(inDeloadWeek && signal.type==='deload'){
-      return {direction:'down', html:`<div class="progress-badge-deload">🔻 Deload week — and the data backs it up: RPE has run 9+ for 3 straight sessions with no rep or weight gain. Good timing; sets are already reduced below.</div>`};
+      return {direction:'down', html:`<div class="progress-badge-deload">Deload week — and the data backs it up: RPE has run 9+ for 3 straight sessions with no rep or weight gain. Good timing; sets are already reduced below.</div>`};
     }
     const badgeClass = signal.type==='increase' ? 'progress-badge' : signal.type==='decrease' ? 'progress-badge-decrease' : 'progress-badge-deload';
     return {
@@ -26791,10 +26794,10 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
     };
   }
   if(inDeloadWeek && priorTop && priorTop.weight!=null){
-    return {direction:'down', html:`<div class="progress-hint">🔻 Deload week — sets are already reduced. Last top set ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'}${note}; go about 10-20% lighter today.</div>`};
+    return {direction:'down', html:`<div class="progress-hint">Deload week — sets are already reduced. Last top set ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'}${note}; go about 10-20% lighter today.</div>`};
   }
   if(priorTop && priorTop.reps!=null && topRep!=null && priorTop.reps >= topRep){
-    return {direction:'up', html:`<div class="progress-badge">⬆ Hit ${priorTop.reps} reps last time at ${priorTop.weight!=null ? fmtWeight(priorTop.weight) : '?'}${note} — try adding weight today</div>`};
+    return {direction:'up', html:`<div class="progress-badge">Hit ${priorTop.reps} reps last time at ${priorTop.weight!=null ? fmtWeight(priorTop.weight) : '?'}${note} — try adding weight today</div>`};
   }
   if(priorTop && priorTop.weight!=null){
     return {direction:'flat', html:`<div class="progress-hint">Last top set: ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'} reps${note}</div>`};
@@ -27858,7 +27861,7 @@ async function renderWorkout(){
           // screen to act on.
           const hiddenCount = skipped.length;
           const restoreHtml = hiddenCount
-            ? `<button type="button" class="warmup-restore-btn">↺ Restore ${hiddenCount} hidden step${hiddenCount===1?'':'s'}</button>`
+            ? `<button type="button" class="warmup-restore-btn">Restore ${hiddenCount} hidden step${hiddenCount===1?'':'s'}</button>`
             : '';
           // Says what it was built from. A ramp that silently changed basis
           // between sessions would look like the app forgetting your numbers.
@@ -27915,7 +27918,7 @@ async function renderWorkout(){
       // trigger for any exercise with alternatives.
       const historyBtnHtml = `<button type="button" class="ex-history-btn" data-idx="${i}" aria-label="See all history for ${escapeHtml(ex.name)}">${icon('trend')} History</button>`
         + `<button type="button" class="ex-edit-btn" data-idx="${i}" aria-label="Edit the prescription for ${escapeHtml(ex.name)}">${icon('edit')} Edit</button>`;
-      sameAsLastHtml = (prior ? `<button type="button" class="same-as-last-btn" data-idx="${i}">↻ Same as Last Time${priorIsCrossProgram ? ` (${escapeHtml(programLabelFor(priorSourceProgram))})` : ''}</button>` : '') + historyBtnHtml;
+      sameAsLastHtml = (prior ? `<button type="button" class="same-as-last-btn" data-idx="${i}">Same as Last Time${priorIsCrossProgram ? ` (${escapeHtml(programLabelFor(priorSourceProgram))})` : ''}</button>` : '') + historyBtnHtml;
       // Kept as an ARRAY, not joined into one string here: a superset pair
       // needs to interleave THIS exercise's rows with its partner's (top set
       // 1, bottom set 1, top set 2, ...) after both are built — see the
@@ -27967,7 +27970,7 @@ async function renderWorkout(){
               <input type="number" inputmode="decimal" enterkeyhint="next" step="0.5" min="5" max="10" class="ex-input ex-rpe" aria-label="Set ${setIdx+1} RPE, 5 to 10" placeholder="${placeholderSet && placeholderSet.rpe!=null ? placeholderSet.rpe : 'RPE'}" value="${savedSet && savedSet.rpe!=null ? savedSet.rpe : ''}">
               <button type="button" class="set-drop-btn${savedSet && savedSet.drops && savedSet.drops.length ? ' has-drops' : ''}" aria-label="Add a drop set under set ${setIdx+1}"></button>
               <button type="button" class="set-note-btn${savedSet && savedSet.note ? ' has-note' : ''}" aria-label="${savedSet && savedSet.note ? 'Edit note on set '+(setIdx+1) : 'Add a note to set '+(setIdx+1)}" aria-expanded="false"></button>
-              <button type="button" class="set-next-btn" aria-label="Move to the next field — the following set, or straight into the paired superset exercise">→</button>
+              <button type="button" class="set-next-btn" aria-label="Move to the next field — the following set, or straight into the paired superset exercise">${icon('chevron')}</button>
               <span class="set-status"></span>
               <div class="set-drop-wrap${savedSet && savedSet.drops && savedSet.drops.length ? ' open' : ''}">${buildDropRowsHtml(savedSet && savedSet.drops, setIdx, showWeight)}</div>
               <div class="set-note-wrap${savedSet && savedSet.note ? ' open' : ''}">
@@ -28016,8 +28019,8 @@ async function renderWorkout(){
 
     const subBaseName = ex.__originalName || ex.name;
     const hasSubs = !!EXERCISE_SUBS[subBaseName];
-    const subTagHtml = ex.__isSubbed ? `<span class="super-tag sub-tag">⇄ Swapped from ${escapeHtml(ex.__originalName)}</span>` : '';
-    const swapIconHtml = hasSubs ? ' <span class="ex-swap-icon">⇄</span>' : '';
+    const subTagHtml = ex.__isSubbed ? `<span class="super-tag sub-tag">Swapped from ${escapeHtml(ex.__originalName)}</span>` : '';
+    const swapIconHtml = hasSubs ? ` <span class="ex-swap-icon">${icon('swap')}</span>` : '';
 
     const headerInnerHtml = `
         <input type="checkbox" data-idx="${i}" ${checked} aria-label="Mark ${escapeHtml(ex.name)} complete">
@@ -29803,7 +29806,7 @@ function renderSetChips(blockEl, glowRow){
     if(loggable) chip.dataset.loggable = '1';
     chip.innerHTML = (isPair ? `<span class="set-chip-tag">${escapeHtml(setChipOwnerTag(row))}</span>` : '')
       + `<span class="set-chip-val">${escapeHtml(label || (target ? '×' + target : 'Set ' + setNum))}</span>`
-      + (v.trend ? `<span class="set-chip-trend is-${v.trend}" aria-hidden="true">${v.trend === 'up' ? '↑' : v.trend === 'same' ? '=' : '↓'}</span>` : '');
+      + (v.trend ? `<span class="set-chip-trend is-${v.trend}" aria-hidden="true">${icon(v.trend === 'up' ? 'arrowUp' : v.trend === 'same' ? 'equals' : 'arrowDown')}</span>` : '');
     // RPE is not on the chip (four sets fit one line without it); it is spoken, and shown in the sheet.
     chip.setAttribute('aria-label', `${owner}, set ${setNum}: ${label || (target ? 'target ' + target + ' reps' : 'not logged')}${v.done && v.rpe ? ' at RPE ' + v.rpe : ''}`
       + (v.done ? ', logged' : loggable ? ', tap to log' : ', tap to enter')
@@ -36989,7 +36992,7 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
       indicator.style.transform = 'translateY(0px)';
       spinner.classList.remove('past-threshold');
       spinner.classList.add('spinning');
-      spinner.textContent = '↻';
+      spinner.innerHTML = icon('refresh');
       label.textContent = 'Refreshing…';
 
       // If a field is mid-edit (e.g. a weight typed but not yet confirmed),
@@ -39934,7 +39937,7 @@ async function renderRestTrend(){
     return;
   }
   const body = rows.slice().reverse().map(r=>
-    `<div class="diag-row${r.short ? '' : ' diag-good'}"><span class="diag-icon">${r.short ? 'ℹ️' : '•'}</span>`
+    `<div class="diag-row${r.short ? '' : ' diag-good'}"><span class="diag-icon">${r.short ? icon('info') : ''}</span>`
     + `<span><b>${new Date(r.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</b><span class="diag-detail">`
     + `${fmtRest(r.median)} typical rest across ${r.count} set${r.count === 1 ? '' : 's'}`
     + (r.short ? ` — shorter than your usual ${fmtRest(usual)}.` : '')
@@ -40094,7 +40097,7 @@ async function renderStrengthContext(){
   const lifts = found.map(l=>{
     const e = e1rms[l.key];
     const mult = bodyweightMultiple(e, bw);
-    return `<div class="diag-row diag-good"><span class="diag-icon">•</span><span><b>${escapeHtml(l.label)}</b>`
+    return `<div class="diag-row diag-good"><span class="diag-icon"></span><span><b>${escapeHtml(l.label)}</b>`
       + `<span class="diag-detail">Estimated max ${trimUnitNum(toDisplayWeight(e))} ${escapeHtml(unit)}`
       + (mult != null ? ` · ${mult.toFixed(2)}× bodyweight` : '')
       + `</span></span></div>`;
@@ -40108,7 +40111,7 @@ async function renderStrengthContext(){
   const balanceHtml = balance.length === 0 ? '' :
     '<div class="history-hint field-note" style="margin-top:10px;"><b>How your lifts sit relative to each other</b></div>'
     + balance.map(b=>
-        `<div class="diag-row${b.inRange ? ' diag-good' : ''}"><span class="diag-icon">${b.inRange ? icon('check') : 'ℹ️'}</span>`
+        `<div class="diag-row${b.inRange ? ' diag-good' : ''}"><span class="diag-icon">${b.inRange ? icon('check') : icon('info')}</span>`
         + `<span><b>${escapeHtml(b.label)}</b><span class="diag-detail">`
         + `${b.ratio.toFixed(2)} — typical range ${b.low.toFixed(2)}–${b.high.toFixed(2)}. ${escapeHtml(b.note)}`
         + `</span></span></div>`).join('');
@@ -40250,7 +40253,7 @@ async function renderExerciseProgress(){
     const deltaHtml = deltaWLb==null ? '' :
       `<span class="${deltaWLb>0?'perf-up':deltaWLb<0?'perf-down':'w-flat'}">${deltaWLb>0?'+':''}${trimUnitNum(toDisplayWeight(deltaWLb))} ${weightUnit} since first log</span>`;
     // v3.314: the same ↑ the set chips use for "go up", and no trophy emoji.
-    const readyHtml = r.readyToProgress ? `<div class="prog-ready"><span aria-hidden="true">↑</span> Ready to go up next session</div>` : '';
+    const readyHtml = r.readyToProgress ? `<div class="prog-ready">${icon('arrowUp')} Ready to go up next session</div>` : '';
     const bestHtml = r.bestEver!=null ? `<span class="prog-best">Best ${fmtWeight(r.bestEver)}</span>` : '';
     return `
       <div class="prog-row">
@@ -44440,20 +44443,20 @@ function computeGoalFeedback(profile, weightEntries, measureEntries){
   const weightDeltaAbsDisp = weightDelta!=null ? trimUnitNum(Math.abs(toDisplayWeight(weightDelta))) : null;
 
   if(goal === 'lose'){
-    if(weightDelta!=null && weightDelta <= -1) return {status:'on-track', text:`⬇ Weight down ${weightDeltaAbsDisp} ${weightUnit} over ~${weeks} weeks — tracking well against your fat-loss goal.`};
-    if(waistDelta!=null && waistDelta <= -0.5) return {status:'on-track', text:`⬇ Waist down ${Math.abs(waistDelta)}" over ~${weeks} weeks, even if the scale hasn't moved much — a good sign for fat loss specifically.`};
+    if(weightDelta!=null && weightDelta <= -1) return {status:'on-track', text:`Weight down ${weightDeltaAbsDisp} ${weightUnit} over ~${weeks} weeks — tracking well against your fat-loss goal.`};
+    if(waistDelta!=null && waistDelta <= -0.5) return {status:'on-track', text:`Waist down ${Math.abs(waistDelta)}" over ~${weeks} weeks, even if the scale hasn't moved much — a good sign for fat loss specifically.`};
     if(weightDelta!=null) return {status:'stalled', text:`Weight has barely moved (${weightDelta>=0?'+':''}${weightDeltaDisp} ${weightUnit}) over ~${weeks} weeks despite a fat-loss goal — worth auditing calorie intake or activity level.`};
     return null;
   }
   if(goal === 'gain'){
-    if(weightDelta!=null && weightDelta >= 1) return {status:'on-track', text:`⬆ Weight up ${weightDeltaDisp} ${weightUnit} over ~${weeks} weeks — solid progress toward your muscle-gain goal.`};
-    if(armsDelta!=null && armsDelta >= 0.25) return {status:'on-track', text:`⬆ Arms up ${armsDelta}" over ~${weeks} weeks — real growth, even if the scale hasn't moved much yet.`};
+    if(weightDelta!=null && weightDelta >= 1) return {status:'on-track', text:`Weight up ${weightDeltaDisp} ${weightUnit} over ~${weeks} weeks — solid progress toward your muscle-gain goal.`};
+    if(armsDelta!=null && armsDelta >= 0.25) return {status:'on-track', text:`Arms up ${armsDelta}" over ~${weeks} weeks — real growth, even if the scale hasn't moved much yet.`};
     if(weightDelta!=null) return {status:'stalled', text:`Weight has barely moved (${weightDelta>=0?'+':''}${weightDeltaDisp} ${weightUnit}) over ~${weeks} weeks despite a muscle-gain goal — you may need a larger calorie surplus.`};
     return null;
   }
   if(goal === 'leanbulk'){
     if(weightDelta!=null && weightDelta >= 0.5 && (waistDelta==null || waistDelta <= 0.5)){
-      return {status:'on-track', text:`⬆ Weight up ${weightDeltaDisp} ${weightUnit} over ~${weeks} weeks with your waist staying about where it was — that's the lean-bulk signature (the surplus is going toward muscle, not just padding).`};
+      return {status:'on-track', text:`Weight up ${weightDeltaDisp} ${weightUnit} over ~${weeks} weeks with your waist staying about where it was — that's the lean-bulk signature (the surplus is going toward muscle, not just padding).`};
     }
     if(weightDelta!=null && waistDelta!=null && waistDelta > 0.5 && weightDelta > 0){
       return {status:'caution', text:`Waist is up ${waistDelta}" alongside the weight gain over ~${weeks} weeks — a bigger jump than a lean bulk usually wants. Worth trimming the surplus back down a bit.`};
@@ -45059,6 +45062,14 @@ const ICONS = {
   trophy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5.5a4 4 0 0 1-8 0Z M8 6.5H5.5v.8a3.2 3.2 0 0 0 2.9 3.2 M16 6.5h2.5v.8a3.2 3.2 0 0 1-2.9 3.2 M12 13.5v7 M8.5 20.5h7"/></svg>',
   flame: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c3.2 3 5.5 6 5.5 9.8a5.5 5.5 0 0 1-11 0c0-2.4 1-4.3 2.4-5.8.1 1.8.8 3 1.9 3.6-.1-2.9.3-5.4 1.2-7.6Z"/></svg>',
   flag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4 M6 4.5c2-1.2 4-1.2 6 0s4 1.2 6 0v8c-2 1.2-4 1.2-6 0s-4-1.2-6 0"/></svg>',
+  // v3.426: the small marks that were text arrows and symbols (↑ ↓ = ↻ ⇄ ℹ️),
+  // on the chevron's non-scaling 1.6px line.
+  arrowUp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M12 19V5 M6.5 10.5 12 5l5.5 5.5"/></svg>',
+  arrowDown: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M12 5v14 M6.5 13.5 12 19l5.5-5.5"/></svg>',
+  equals: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M6 9.5h12 M6 14.5h12"/></svg>',
+  refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M19 12a7 7 0 1 1-2.05-4.95 M19 4.5v4h-4"/></svg>',
+  swap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M4.5 8h14 M15 4.5 18.5 8 15 11.5 M19.5 16h-14 M9 12.5 5.5 16 9 19.5"/></svg>',
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 1 0 0-17Z M12 11v5.5 M12 7.8v.1"/></svg>',
   // v3.422: the close mark, the same line as the chevron (was the ✕ glyph).
   close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5"/></svg>',
   chevronLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="15 5.5 8.5 12 15 18.5"/></svg>',
@@ -45282,8 +45293,8 @@ async function openExerciseEditor(ex, srcIndex){
     <div class="exedit-section">
       <div class="equip-sublabel">Position in the day</div>
       <div class="exedit-actions">
-        <button type="button" class="app-banner-btn" id="exEditUp">↑ Move earlier</button>
-        <button type="button" class="app-banner-btn" id="exEditDown">↓ Move later</button>
+        <button type="button" class="app-banner-btn" id="exEditUp">Move earlier</button>
+        <button type="button" class="app-banner-btn" id="exEditDown">Move later</button>
       </div>
       <div class="history-hint field-note">Order matters — the first compounds of a day are the ones accumulation adds sets to.</div>
     </div>
@@ -47100,7 +47111,7 @@ bootMark('scriptEnd');
     rail.style.display = '';
     el.innerHTML = `
       <div class="app-banner app-banner-info" role="status">
-        <div class="app-banner-title">↻ Update ready</div>
+        <div class="app-banner-title">Update ready</div>
         <div class="app-banner-body">A newer version of the app has been downloaded. Reloading takes a second — finish logging your current set first if you're mid-workout.</div>
         <div class="app-banner-actions">
           <button type="button" class="app-banner-btn app-banner-btn-primary" id="updateReloadBtn">Reload now</button>

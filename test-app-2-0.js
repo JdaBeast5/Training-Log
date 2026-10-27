@@ -207,7 +207,8 @@ test('REAL invocation + CSSOM (v3.314): Exercise Progress rows carry no emoji, a
   const best = el.querySelector('.prog-best'), ready = el.querySelector('.prog-ready');
   assert.ok(best && ready, 'anchor: the real row rendered, ready to progress');
   assert.strictEqual(best.textContent, 'Best 185 lb');
-  assert.strictEqual(ready.textContent.trim(), '↑ Ready to go up next session');
+  // 2026-10-27 (v3.426): the up mark is drawn (icon('arrowUp'); stubbed here), no ↑ character.
+  assert.strictEqual(ready.textContent.trim(), 'Ready to go up next session');
   assert.doesNotMatch(el.textContent, /\u{1F3C6}|⬆/u, 'no trophy, no heavy arrow');
   const cs = sel => window.getComputedStyle(el.querySelector(sel));
   assert.strictEqual(cs('.prog-stats').fontFamily, 'var(--font-sans)');

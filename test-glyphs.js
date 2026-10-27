@@ -185,14 +185,10 @@ const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]/u;
 const NOT_PAINTED = [/<div class="swipe-delete-bg">🗑️<\/div>/, /class="ex-delete-custom-btn"[^>]*>🗑️</, /class="fi-duplicate"[^>]*>✏️</, /class="fi-star fi-delete"[^>]*>🗑️</, /btn\.textContent = '🎤';/];
 const CATEGORY_KEYS = /'★ Favorites'|'📁 My Foods'|\(★\|📁\)/;
 const emojiLines = () => uncommented.split('\n').filter(l => EMOJI.test(l) && !NOT_PAINTED.some(r => r.test(l)) && !CATEGORY_KEYS.test(l)).map(l => l.trim());
-// The next increments' sites, by version. Each one empties its own list.
-const PENDING = {
-  'v3.426 arrows': [/text:`(⬇|⬆) /, /message: `(🔻|⬇|⬆) /, /class="progress-(badge|badge-deload|hint)">(🔻|⬆) /],
-};
-test('REAL source (v3.424): no decorative emoji left; what is left is unpainted, a stored key, or a later increment\'s', (assert)=>{
-  const pending = Object.values(PENDING).flat();
-  assert.deepStrictEqual(emojiLines().filter(l => !pending.some(r => r.test(l))), []);
-  assert.ok(emojiLines().length > 0, 'anchor: the pending sites are seen (the scan reaches them)');
+test('REAL source (v3.424): no decorative emoji left; what is left is unpainted or a stored key', (assert)=>{
+  // 2026-10-27 (v3.426): v3.425/v3.426 cleared the sites this test listed as pending.
+  assert.deepStrictEqual(emojiLines(), []);
+  assert.ok(uncommented.split('\n').some(l => NOT_PAINTED.some(r => r.test(l))), 'anchor: the unpainted sites are seen (the scan reaches them)');
 });
 
 test('REAL invocation (v3.424): the thriving verdict and the evidence labels are words', (assert)=>{
@@ -254,6 +250,41 @@ test('REAL source (v3.425): no per-phase emoji; the recommendation draws its ver
   assert.match(src, /\{cls:'goal-feedback-good', icon:icon\('check'\)/);
   assert.match(src, /\{cls:'goal-feedback-warn', icon:icon\('warning'\)/);
   assert.match(src, /\{cls:'goal-feedback-neutral', icon:'', label:/);
+});
+
+// v3.426 — Arrows and symbols. Controls and status marks that were text
+// characters draw ICONS: the set chips' trend (↑ ↓ = → arrowUp / arrowDown /
+// equals), Exercise Progress's "Ready to go up", the swap mark (⇄), the
+// pull-to-refresh arrow and spinner (↓ ↻), the day-reorder buttons (◀ ▶ →
+// the chevrons), the set row's Next key (→ chevron) and the rest-trend's
+// short-rest flag (ℹ️ → info). Buttons and titles whose word already says it
+// drop the character (Same as Last Time, Restore, Export now, Move
+// earlier/later, Update ready, Swapped from, the progression and on-track
+// messages' 🔻 ⬇ ⬆). Prose arrows that are notation stay ("Settings → AI
+// Features Setup", "180 → 175 lb").
+const MARKS = /[↑↓⬆⬇➡↻↺⇄◀▶🔻ℹ•]/u;
+test('REAL source (v3.426): no arrow or symbol character stands in for an icon', (assert)=>{
+  const hits = uncommented.split('\n').filter(l => MARKS.test(l));
+  assert.deepStrictEqual(hits, []);
+  assert.ok(uncommented.split('\n').some(l => / → /.test(l)), 'anchor: notation arrows in prose are kept and seen');
+});
+
+test('REAL ICONS (v3.426): the small marks share the chevron\'s line', (assert)=>{
+  for(const name of ['arrowUp', 'arrowDown', 'equals', 'refresh', 'swap', 'info']){
+    const doc = new JSDOM(ICONS[name]).window.document;
+    assert.strictEqual(doc.querySelector('svg').getAttribute('stroke-width'), '1.6', name);
+    assert.strictEqual(doc.querySelector('path').getAttribute('vector-effect'), 'non-scaling-stroke', name);
+  }
+});
+
+test('REAL markup + source (v3.426): the pull arrow is drawn, the spinner swaps to the drawn refresh mark, reorder uses the chevrons', (assert)=>{
+  const doc = new JSDOM(html).window.document;
+  const sp = doc.getElementById('pullRefreshSpinner');
+  assert.strictEqual(sp.textContent.trim(), '');
+  assert.strictEqual(sp.querySelector('path').getAttribute('d'), new JSDOM(ICONS.arrowDown).window.document.querySelector('path').getAttribute('d'));
+  assert.match(src, /spinner\.innerHTML = icon\('refresh'\);/);
+  assert.match(src, /left\.innerHTML = icon\('chevronLeft'\);/);
+  assert.match(src, /right\.innerHTML = icon\('chevron'\);/);
 });
 
 run();

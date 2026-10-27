@@ -22,7 +22,7 @@
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
-const { readIndexSource, extractFunction, runJsdom, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractConst, extractFunction, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const { test, run } = makeRunner('test-set-chips.js');
 const src = readIndexSource();
@@ -34,6 +34,9 @@ const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRo
   'renderWarmupChips',
   // v3.303: the set-to-set recommendation and what it needs.
   'trimUnitNum', 'parseTopRep', 'parseBottomRep', 'recommendNextSet', 'setSheetWeightStep'].map(n => extractFunction(src, n));
+// 2026-10-27 (v3.426): the chips' trend marks are drawn (ICONS.arrowUp/arrowDown/equals).
+FNS.push(extractConst(src, 'ICONS'), extractFunction(src, 'icon'));
+const UP = 'M12 19V5 M6.5 10.5 12 5l5.5 5.5', DOWN = 'M12 5v14 M6.5 13.5 12 19l5.5-5.5'; // ICONS.arrowUp / arrowDown
 // The one delegated click listener, taken whole from its comment to its close.
 const CLICK = (()=>{
   const a = src.indexOf('// One delegated listener for every strip');
@@ -88,7 +91,7 @@ test('REAL invocation: logged sets show what was done; each exercise has one rea
   // v3.303: the set after one logged today takes the set-to-set call — 8 reps
   // (top of 6-8) at RPE 7 -> up one 5 lb step, reps back to the bottom (6).
   assert.deepStrictEqual(ui.describe(1), ['done:135×8', 'ready next:140×6', 'pending:140×6'], 'the call carries through the plan');
-  assert.strictEqual(ui.chips(1)[1].querySelector('.set-chip-trend').textContent, '↑');
+  assert.strictEqual(ui.chips(1)[1].querySelector('.set-chip-trend path').getAttribute('d'), UP);
   assert.match(ui.chips(1)[1].getAttribute('aria-label'), /Go up 5 — 8 reps at RPE 7 last set/);
   assert.deepStrictEqual(ui.describe(2), ['ready:95×10', 'pending:95×10'], 'its own suggestion, ready but not the glowing one');
   assert.strictEqual(ui.window.document.querySelectorAll('.set-chip.is-next').length, 1, 'exactly one glow');
@@ -99,9 +102,9 @@ test('REAL invocation: the recommendation is the chip — the progression engine
     + block(1, 'Bench', '3×5', row(1, 0, 'Bench', {wp:'160', rp:'5', sug:'deload'})));
   const up = ui.chips(0)[0], down = ui.chips(1)[0];
   assert.strictEqual(up.querySelector('.set-chip-val').textContent, '230×5');
-  assert.strictEqual(up.querySelector('.set-chip-trend').textContent, '↑');
+  assert.strictEqual(up.querySelector('.set-chip-trend path').getAttribute('d'), UP);
   assert.match(up.getAttribute('aria-label'), /suggested increase/);
-  assert.strictEqual(down.querySelector('.set-chip-trend').textContent, '↓');
+  assert.strictEqual(down.querySelector('.set-chip-trend path').getAttribute('d'), DOWN);
   assert.match(down.getAttribute('aria-label'), /lighter weight/);
 });
 
