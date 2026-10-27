@@ -535,3 +535,12 @@ Owner: "Now the coach tab with our skills." Same method as before. Tests are in 
   - A follow-up commit was folded into the v3.457 commit before pushing, so the version-per-change rule holds.
 - **Left as is:** the Supplement Recommendations disclaimer, which is safety copy.
 - **Verified in Chromium** with seed3 and no key, no page errors.
+
+## Addendum 25: Learn tab 2.0 (v3.458–v3.461)
+Owner: "Let's do it" (the Learn pass, the last tab without one). Same method. Tests are in `test-learn-2-0.js`, one section per version, each sabotage-checked. Card order is unchanged; `test-learn-tab-card-order.js` pins All Masterclasses last.
+- **v3.458:** Research & Sources (about 55 rows) now uses the persistent collapsible-card pattern (`researchSourcesHeader` / `researchSourcesExpandWrap`, `'researchSources'` in `PERSISTENT_CARDS`) and is closed by default. The hint stays outside the wrap so the closed card still says what it holds. Learn at 390px went from 11,012px to about 2,000px tall. `test-history-log-collapse.js`'s exact `PERSISTENT_CARDS` list was updated with a dated note.
+- **v3.459:** the All Masterclasses index uses plain 44px hairline rows (`.masterclass-index-btn`), matching the technique groups above it. It had been 13 boxed tiles inside a card. Your program's row is now marked only by its blue "In your program" note, which moved to the text face (it was mono, on a tinted, glowing tile). Dated updates went into `test-fields-translucent` (a `FILLED` subset), `test-label-floor`, and `test-neutral-rgba-consolidation` (white count 89 → 85).
+- **v3.460:** a scoped `:has()` rule drops the hint's 14px margin while the list is closed. The closed card had been bottom-heavy.
+- **v3.461:** the Research & Sources rows (`#researchSourcesList .program-basis-toggle`) are the same plain rows. A style's rows stay indented 14px under its program. A closed panel adds no gap (`.smooth-toggle.open` carries the margin). The white count went 85 → 84.
+- **Noted, not changed:** the Recently Trained rows put the chevron first, before a pull/push tag. Every other list on Learn puts it at the end. Leave that for a separate decision, since `.ex-details` rows are shared with Today.
+- **Verified in Chromium** at 390px with seed3: closed, opened, and the header restoring its state. No page errors.
