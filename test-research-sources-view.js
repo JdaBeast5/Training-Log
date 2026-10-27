@@ -47,6 +47,8 @@ const baseChunks = [
   extractConst(src, 'YOGA_STYLES'),
   extractConst(src, 'CONTAINER_STYLE_GROUPS'),
   'let sourcePanelSeq = 0;', // module-level counter buildSourceRowHtml increments; not a const, so extractConst can't pull it
+  // 2026-10-27 (v3.404): the panel's citations come from buildSourceCitesHtml.
+  extractFunction(src, 'buildSourceCitesHtml'),
   extractFunction(src, 'buildSourceRowHtml'),
   extractFunction(src, 'renderResearchSources'),
   extractBasisToggleListener(src),
@@ -68,7 +70,8 @@ test('REAL invocation: every top-level row shows the real program label, and one
   const { document } = setup();
   const list = document.getElementById('researchSourcesList');
   assert.ok(list.textContent.includes('Strength & Size'), 'the real programs.strength.label must appear as a row label');
-  assert.ok(list.innerHTML.includes('doi:10.1249/MSS.0000000000003897'), 'the real ACSM 2026 DOI text (PROGRAM_SOURCES.strength.primary) must be present in the rendered markup');
+  // 2026-10-27 (v3.404): the short citation links the DOI instead of printing the full record.
+  assert.ok(list.innerHTML.includes('https://doi.org/10.1249/MSS.0000000000003897'), 'the real ACSM 2026 DOI must be linked in the rendered markup');
 });
 
 test('REAL invocation: a container program (Combat) is immediately followed by one nested row per style in COMBAT_STYLES, each carrying its own real citation', (assert)=>{
@@ -84,7 +87,8 @@ test('REAL invocation: a container program (Combat) is immediately followed by o
   assert.strictEqual(nested.length, 6, 'COMBAT_STYLES has 6 styles (kickboxing, boxing, muayThai, mma, taekwondo, taiChi) — each must render as its own nested row under Combat');
   const labels = nested.map(n => n.querySelector('.program-basis-toggle').textContent.trim());
   assert.ok(labels.some(l => l.includes('Boxing')), 'the Boxing style row must be present with its real label');
-  assert.ok(combatGroup.textContent.includes('18:1'), 'a nested style panel should carry real citation text specific to that style (STYLE_SOURCES.boxing\'s activity-to-rest ratio finding), not just the container');
+  // 2026-10-27 (v3.404): short citations — the Boxing panel names its own paper, not the container's note.
+  assert.ok(combatGroup.textContent.includes('Slimani et al.'), 'a nested style panel should carry its own style-specific citation (STYLE_SOURCES.boxing), not just the container');
 });
 
 test('REAL invocation: clicking a row toggle expands its real citation panel via the SAME delegated click handler the per-program panel already uses — no second listener was added for this', (assert)=>{
@@ -101,7 +105,8 @@ test('REAL invocation: clicking a row toggle expands its real citation panel via
   btn.click();
   assert.strictEqual(btn.getAttribute('aria-expanded'), 'true', 'clicking must flip aria-expanded to true');
   assert.strictEqual(panel.classList.contains('open'), true, 'clicking must add .open to the smooth-toggle panel so it actually becomes visible (grid-template-rows animation)');
-  assert.ok(panel.textContent.includes('doi:10.1249/MSS.0000000000003897'), 'the expanded panel must contain the real citation text, not a placeholder');
+  // 2026-10-27 (v3.404)
+  assert.ok(panel.textContent.includes('ACSM Position Stand · Med Sci Sports Exerc, 2026'), 'the expanded panel must contain the real short citation, not a placeholder');
 
   btn.click();
   assert.strictEqual(btn.getAttribute('aria-expanded'), 'false', 'clicking again must collapse it back');
@@ -112,7 +117,8 @@ test('sabotage-relevant: editorNote text is deliberately NEVER rendered, even th
   const { document } = setup();
   const list = document.getElementById('researchSourcesList');
   // PROGRAM_SOURCES.strength.school IS meant to render.
-  assert.ok(list.textContent.includes('Upper/lower split with the week divided'), 'school text (meant to render) must be present');
+  // 2026-10-27 (v3.404): the approach line was rewritten in plain words.
+  assert.ok(list.textContent.includes('An upper/lower split with heavy, low-rep days'), 'school text (meant to render) must be present');
   // PROGRAM_SOURCES.strength.editorNote is meant to stay internal-only —
   // this exact phrase only exists in that field.
   assert.ok(!list.textContent.includes('The >=10 weekly sets figure is per MUSCLE GROUP'), 'editorNote text must never reach the rendered DOM — it is written for whoever edits the file, not for a user reading this card');
@@ -127,7 +133,10 @@ test('REAL invocation: citation text containing special characters is actually e
   // proof is structural: no unescaped "<" or ">" from any citation's prose
   // (several entries include comparisons like ">=80%") should ever produce
   // a stray element in the panel content.
-  assert.ok(list.innerHTML.includes('&gt;='), 'a literal ">=" appearing inside cited prose (e.g. ">=80% 1RM") must be HTML-escaped to &gt;=, proving escapeHtml actually ran on citation text rather than being trusted raw');
+  // 2026-10-27 (v3.404): primary (with its ">=") is no longer rendered; the
+  // short citations carry the same proof through "McGill & Karpowicz".
+  assert.ok(list.innerHTML.includes('McGill &amp; Karpowicz'), 'a literal "&" in a short citation must be HTML-escaped to &amp;, proving escapeHtml actually ran on citation text rather than being trusted raw');
+  assert.ok(!list.innerHTML.includes('McGill & Karpowicz'));
 });
 
 run();

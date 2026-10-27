@@ -3921,6 +3921,12 @@
     background:var(--glass-fill); font-size:12.5px; font-weight:500; padding:10px 12px;
   }
   #researchSourcesList .smooth-toggle{ margin-bottom:10px; }
+  /* v3.404: short citations, one per line, linked where there is a DOI. */
+  #researchSourcesList .source-cites-eyebrow{ margin-top:12px; }
+  #researchSourcesList .source-cites{ list-style:none; margin:4px 0 0; padding:0; display:flex; flex-direction:column; gap:6px; }
+  #researchSourcesList .source-cites li{ font-size:13px; line-height:1.4; color:var(--text-muted); }
+  #researchSourcesList .source-cites a{ color:var(--plate-blue); text-decoration:none; }
+  #researchSourcesList .source-cite-note{ margin:8px 0 0; font-size:13px; line-height:1.4; color:var(--text-muted); }
   #researchSourcesList .source-program-group{ margin-bottom:4px; }
 
   /* ==================================================================
@@ -6466,7 +6472,7 @@
 
     <div class="card" id="researchSourcesCard">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3.5h8.5L16 7v9.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1Z"/><path d="M12.5 3.5V7H16"/><line x1="6.5" y1="10" x2="13" y2="10"/><line x1="6.5" y1="13" x2="13" y2="13"/></svg></span>Research &amp; Sources</div>
-      <div class="history-hint">The cited research behind every program — tap one for its source.</div>
+      <div class="history-hint">The research each program is built on.</div>
       <div id="researchSourcesList"></div>
     </div>
 
@@ -6965,7 +6971,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.403';
+const APP_VERSION = '3.404';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7981,6 +7987,9 @@ const WHATS_NEW = {
   ]},
   '3.403': { headline: 'Glass buttons and rows', points: [
     'Buttons, chips and rows inside cards — Learn\'s sources, Analysis links, food categories and more — now share the cards\' frosted glass.',
+  ]},
+  '3.404': { headline: 'Shorter citations', points: [
+    'Research & Sources now shows each program\'s approach in one line and short, linked citations instead of the full records.',
   ]},
 };
 
@@ -14181,10 +14190,24 @@ function buildSourceRowHtml(label, source, eyebrow, nested){
         <div class="program-panel">
           <div class="program-panel-eyebrow">${escapeHtml(eyebrow)}</div>
           <p class="program-intro">${escapeHtml(source.school)}</p>
-          <p class="program-intro"><strong>Cited source — </strong>${escapeHtml(source.primary)}</p>
+          ${buildSourceCitesHtml(source)}
         </div>
       </div></div>
     </div>`;
+}
+
+// v3.404: the panel shows the SHORT citations (`cites`: "Author et al. ·
+// Journal, year", linked to doi.org when there is a DOI) or, where an entry
+// deliberately has no single source, its one-line `citeNote`. `primary` stays
+// in the data as the full, audited record (test-citation-audit) but is no
+// longer rendered: it reads as 100-400 words of findings and editing notes.
+function buildSourceCitesHtml(source){
+  if(source.cites && source.cites.length){
+    return `<div class="program-panel-eyebrow source-cites-eyebrow">Sources</div><ul class="source-cites">${source.cites.map(c=> c.doi
+      ? `<li><a href="https://doi.org/${encodeURI(c.doi)}" target="_blank" rel="noopener">${escapeHtml(c.text)}</a></li>`
+      : `<li>${escapeHtml(c.text)}</li>`).join('')}</ul>`;
+  }
+  return source.citeNote ? `<p class="source-cite-note">${escapeHtml(source.citeNote)}</p>` : '';
 }
 
 // The "what did you build this on" answer for every program in the app, in
@@ -14203,11 +14226,11 @@ function renderResearchSources(){
   // inside it — a container's own row and its styles' rows are siblings
   // within the same group, not nested inside each other's markup.
   el.innerHTML = keys.map(key=>{
-    const ownRow = buildSourceRowHtml(programs[key].label, PROGRAM_SOURCES[key], 'About this program', false);
+    const ownRow = buildSourceRowHtml(programs[key].label, PROGRAM_SOURCES[key], 'Approach', false);
     const styleGroup = CONTAINER_STYLE_GROUPS[key];
     const styleRows = styleGroup
       ? Object.keys(styleGroup).map(styleKey=>
-          buildSourceRowHtml(styleGroup[styleKey].label, STYLE_SOURCES[styleKey], 'About this style', true)
+          buildSourceRowHtml(styleGroup[styleKey].label, STYLE_SOURCES[styleKey], 'Approach', true)
         ).join('')
       : '';
     return `<div class="source-program-group">${ownRow}${styleRows}</div>`;
