@@ -8,7 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
-const { makeRunner, readIndexSource, extractFunction, runJsdom } = require('./testHelpers.js');
+const { makeRunner, readIndexSource, extractFunction, extractConst, runJsdom } = require('./testHelpers.js');
 
 const { test, run } = makeRunner('test-history-2-0.js');
 const src = readIndexSource();
@@ -110,6 +110,25 @@ test('REAL invocation (v3.447): no saved weeks, no card; one saved week, the car
   const one = await savedWeeks([{weekStart:'2026-10-19', program:'Strength', workoutsCount:3, avgWeight:180, avgCal:2100, avgSleep:7}]);
   assert.strictEqual(one.getElementById('c').style.display, '');
   assert.match(one.getElementById('savedWeeksList').textContent, /3 workouts/);
+});
+
+// v3.448 — One date per day in the PR timeline. Three PRs on one day printed
+// "Oct 24" three times down the date column; the repeats are now transparent
+// (still in the markup, so a screen reader hears each row's date).
+test('REAL invocation (v3.448): a day\'s date shows on its first PR only', async (assert)=>{
+  const { window } = runJsdom('<div id="prTimeline"></div>', `
+    const fmtWeight = lb => lb + ' lb';
+    const reconstructAllPRs = async () => [
+      {date:'2026-10-24', name:'Lat Pulldown', type:'weight', dayLabel:'Day 1', weight:80, reps:8},
+      {date:'2026-10-24', name:'Barbell Row', type:'weight', dayLabel:'Day 1', weight:115, reps:8},
+      {date:'2026-10-20', name:'Bench Press', type:'weight', dayLabel:'Day 1', weight:155, reps:8}];
+    const renderCollapsibleList = (el, items) => { el.innerHTML = items.join(''); };`,
+    [extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon'), extractFunction(src, 'renderPrTimeline'), 'window.__done = renderPrTimeline();']);
+  await window.__done;
+  const dates = [...window.document.querySelectorAll('#prTimeline .pr-date')];
+  assert.deepStrictEqual(dates.map(d => d.textContent), ['Oct 24', 'Oct 24', 'Oct 20'], 'every row keeps its date in the markup');
+  assert.deepStrictEqual(dates.map(d => d.classList.contains('is-repeat')), [false, true, false]);
+  assert.match(CSS, /\.pr-date\.is-repeat\{color:transparent;\}/);
 });
 
 run();
