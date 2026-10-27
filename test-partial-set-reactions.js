@@ -56,6 +56,7 @@ function globalsFor(isDistance){
     window.isDistanceExercise = ()=> ${isDistance};
     window.isBarbellExercise = ()=> false;
     window.escapeHtml = (s)=> String(s);
+    window.icon = (n)=> '<svg data-icon="'+n+'"></svg>'; // 2026-10-27 (v3.422): a saved set shows the drawn check
     window.saveExSet = async ()=> ({isPR:false});
     window.getFallbackPriorEntry = async ()=> null;
     window.renderWorkout = async ()=>{};

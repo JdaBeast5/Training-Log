@@ -6575,7 +6575,7 @@
       </div>
     </button>
     <button class="rt-add" id="restTimerAdd" aria-label="Add 15 seconds to rest timer">+15s</button>
-    <button class="rt-close" id="restTimerClose" aria-label="Close rest timer">✕</button>
+    <button class="rt-close" id="restTimerClose" aria-label="Close rest timer"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5"/></svg></button>
   </div>
   <div class="rest-timer-expand" id="restTimerPanel"><div>
     <div class="rest-timer-panel-tier" id="restTimerPanelTier"></div>
@@ -6833,7 +6833,7 @@
   <div class="coach-fab-panel" id="coachFabPanel" role="dialog" aria-modal="true" aria-label="Ask your coach">
     <div class="coach-fab-header">
       <span><span aria-hidden="true">💬</span> Ask Your Coach</span>
-      <button class="coach-fab-close" id="coachFabClose" aria-label="Close coach chat">✕</button>
+      <button class="coach-fab-close" id="coachFabClose" aria-label="Close coach chat"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5"/></svg></button>
     </div>
     <div class="coach-chat-log" id="floatingChatLog"></div>
     <div class="coach-chat-input-row">
@@ -6986,7 +6986,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.421';
+const APP_VERSION = '3.422';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7223,7 +7223,7 @@ const WHATS_NEW = {
     'It now sits below the tab bar instead of on top of it, using the same layering the Analysis section index already gets right one tab over.',
   ]},
   '3.154': { headline: 'Fixed Care’s "Mark as resting" falsely confirming when no region was picked', points: [
-    'Logging a check-in without picking a body region still showed a "Mark as resting" button. Tapping it flipped to "Marked as resting ✓" even though there was no region to actually record — so it never showed up in Today\'s exercise cautions or the stale check-in reminder, with nothing in the UI hinting that.',
+    'Logging a check-in without picking a body region still showed a "Mark as resting" button. Tapping it flipped to "Marked as resting" even though there was no region to actually record — so it never showed up in Today\'s exercise cautions or the stale check-in reminder, with nothing in the UI hinting that.',
     'The button now only appears once a real region is picked, so it can\'t confirm something it never saved.',
   ]},
   '3.155': { headline: 'Fixed the Analysis section index landing you under itself', points: [
@@ -7267,9 +7267,9 @@ const WHATS_NEW = {
     'A calorie or macro count in the "current / target" numbers could wrap onto two lines once it hit four digits, throwing that row out of line with the others. It now stays on one line, growing sideways instead of splitting.',
     'The one date picker in the app (Cycle Tracking) rendered its calendar control in the browser\'s default light theme and sat 2px taller than the field below it — both now match the rest of the app\'s always-dark styling and line up cleanly.',
   ]},
-  '3.164': { headline: 'Easier to tap: set buttons, the "stop resting" ✕, and two close buttons', points: [
+  '3.164': { headline: 'Easier to tap: set buttons, the "stop resting" button, and two close buttons', points: [
     'The plate calculator, voice log, drop-set, and note buttons on every logged set were drawn small on purpose to fit the row — but the tappable area was exactly that small too, so a slightly-off tap could miss and hit the wrong one.',
-    'Same fix for the ✕ that clears a body region under Care\'s "Currently Resting," and for the Settings and AI Coach panel close buttons.',
+    'Same fix for the button that clears a body region under Care\'s "Currently Resting," and for the Settings and AI Coach panel close buttons.',
     'All of it is an invisible tap-area change, not a visual one — nothing looks any different.',
   ]},
   '3.165': { headline: 'Fixed the day-title bar sitting at the top of the screen all the time', points: [
@@ -7546,7 +7546,7 @@ const WHATS_NEW = {
     'Logging a full exercise\'s worth of sets shows a one-time "Switch to gym mode?" card. Navigating to Log, Analysis, or History before answering it used to leave that card floating on screen there too, on top of unrelated content (covering the Sleep card on Log, sitting inside the calendar grid on History). It now closes automatically the moment you leave Today, the same way the sticky day-title bar already did.',
   ]},
   '3.242': { headline: 'Fixed profile fields silently rejecting an entered 0', points: [
-    'Saving your profile with age, height (ft), or weight set to 0 used to quietly keep the OLD value instead — the save still said "Saved ✓," but the number you actually typed never took. Entering 0 on purpose now saves as 0; leaving a field genuinely blank still keeps what was there before.',
+    'Saving your profile with age, height (ft), or weight set to 0 used to quietly keep the OLD value instead — the save still said "Saved," but the number you actually typed never took. Entering 0 on purpose now saves as 0; leaving a field genuinely blank still keeps what was there before.',
   ]},
   '3.243': { headline: 'Fixed a negative age silently skewing your calorie target', points: [
     'The profile form accepted a negative age (e.g. a stray "-" while editing) with no warning, and it fed straight into the calorie-target formula — not a crash, just a quietly wrong number. Age now falls back to your previous value if what\'s entered isn\'t a real, non-negative age.',
@@ -7575,7 +7575,7 @@ const WHATS_NEW = {
     'Every card in Supplement Recommendations — both the AI-generated ones and the Foundational Stack — now has a "+ Add to my supplements" button that sends it straight to the My Supplements tracker on the Log tab, so you don\'t have to retype the name.',
   ]},
   '3.251': { headline: 'Supplement Recommendations polish: real "already added" state, smoother reveal', points: [
-    'An item already in My Supplements now shows as "Added ✓" the moment a card renders — a fresh Foundational Stack open or a brand new AI request — instead of only right after you click it.',
+    'An item already in My Supplements now shows as "Added" the moment a card renders — a fresh Foundational Stack open or a brand new AI request — instead of only right after you click it.',
     '"View foundational stack" now expands with the same smooth animated reveal and chevron the rest of the app uses for optional detail (Body Measurements, Progress Photos, "What this is based on"), instead of a plain text toggle.',
   ]},
   '3.252': { headline: 'My Supplements: a link back to recommendations, interaction notes, and Ask Your Coach', points: [
@@ -7861,7 +7861,7 @@ const WHATS_NEW = {
   ]},  '3.355': { headline: 'Consistent text fields', points: [
     'Grocery and supplement fields, and placeholders like “Weight today”, use the same type as the rest of the app; the numbers you enter stay in the figure face.',
   ]},  '3.356': { headline: 'Sheets close the same way', points: [
-    'Every sheet now closes with Done or Cancel at the top right, like Settings, instead of a small ✕.',
+    'Every sheet now closes with Done or Cancel at the top right, like Settings, instead of a small close mark.',
   ]},  '3.357': { headline: 'Easier to read', points: [
     'Day labels in the day strip and superset tags on set chips have more contrast.',
   ]},
@@ -8056,6 +8056,9 @@ const WHATS_NEW = {
   ]},
   '3.421': { headline: 'One chevron', points: [
     'Every arrow and disclosure chevron is now the same drawn line, instead of text characters that changed shape with each font size.',
+  ]},
+  '3.422': { headline: 'Plain status words, drawn close marks', points: [
+    'Status messages say Saved, Logged or Added without a tick character, a saved set shows a drawn tick, and close buttons use a drawn cross.',
   ]},
 };
 
@@ -27536,14 +27539,14 @@ async function renderWorkout(){
       <div class="rest-note">${day.note}</div>
       <label class="rest-done-row">
         <input type="checkbox" id="restDoneCheckbox" ${restDone ? 'checked' : ''}>
-        <span id="restDoneLabel">${restDone ? `Marked as done for ${dateLabel} ✓` : `Mark ${dateLabel}'s rest day as done`}</span>
+        <span id="restDoneLabel">${restDone ? `Marked as done for ${dateLabel}` : `Mark ${dateLabel}'s rest day as done`}</span>
       </label>
     `;
     document.getElementById('restDoneCheckbox').addEventListener('change', async (e)=>{
       const done = e.target.checked;
       try{ await window.storage.set(restKey, JSON.stringify({done})); }catch(err){}
       if(done) recordActivity(selectedLogDate).then(renderStreak);
-      document.getElementById('restDoneLabel').textContent = done ? `Marked as done for ${dateLabel} ✓` : `Mark ${dateLabel}'s rest day as done`;
+      document.getElementById('restDoneLabel').textContent = done ? `Marked as done for ${dateLabel}` : `Mark ${dateLabel}'s rest day as done`;
     });
     document.getElementById('sessionCalTotal').textContent = '';
     // v3.391: the list now has no set rows, so this hides "Up next". Without
@@ -30534,7 +30537,7 @@ function showWhatsNewConfirm(entries){
   rail.style.display = '';
   el.innerHTML = `
     <div class="app-banner app-banner-info" role="status">
-      <div class="app-banner-title">✓ Updated to v${escapeHtml(APP_VERSION)}</div>
+      <div class="app-banner-title">Updated to v${escapeHtml(APP_VERSION)}</div>
       <div class="app-banner-actions">
         <button type="button" class="app-banner-btn app-banner-btn-primary" id="whatsNewMoreInfoBtn">More info</button>
         <button type="button" class="app-banner-btn" id="whatsNewConfirmDismissBtn">Dismiss</button>
@@ -30882,9 +30885,10 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
         triggerCelebration('🏆', 'New PR!', `${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`, true,
           {icon:'🏆', headline:'NEW PR', detail:`${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`});
       } else {
-        statusEl.textContent = '✓';
+        // v3.422: the drawn check (was the ✓ glyph).
+        statusEl.innerHTML = icon('check');
         statusEl.className = 'set-status set-status-saved';
-        setTimeout(()=>{ if(statusEl.textContent==='✓') statusEl.textContent=''; }, 2000);
+        setTimeout(()=>{ if(statusEl.classList.contains('set-status-saved')) statusEl.textContent=''; }, 2000);
       }
       // Update volume/1RM/prior-session hint in place, without wiping the checkmark we just set
       await refreshSessionSummary(row, exIdx, ex);
@@ -33003,7 +33007,7 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
     }
   }
 
-  document.getElementById('pfStatus').textContent = 'Saved ✓';
+  document.getElementById('pfStatus').textContent = 'Saved';
   setTimeout(()=>{
     document.getElementById('pfStatus').textContent = '';
     document.getElementById('profileHeader').classList.remove('open');
@@ -33107,7 +33111,7 @@ document.getElementById('exportDataBtn').addEventListener('click', async ()=>{
     try{ await window.storage.set('last-backup', getTodayKey()); }catch(e){}
     try{ renderTodayInsights(); }catch(e){}
 
-    btn.textContent = '✓ Downloaded';
+    btn.textContent = 'Downloaded';
     setTimeout(()=> btn.textContent = originalText, 2000);
   }catch(e){
     btn.textContent = 'Export failed — try again';
@@ -34363,7 +34367,7 @@ If what they're in the mood for is fundamentally incompatible with their dietary
         const recipe = recipeFinderResults[idx];
         if(!recipe) return;
         await addFoodToLog({name: recipe.name, cal: recipe.cal, pro: recipe.pro, fat: recipe.fat, carb: recipe.carb}, recipeFinderQtys[idx] || 1);
-        btn.textContent = 'Logged ✓';
+        btn.textContent = 'Logged';
         btn.disabled = true;
       });
     });
@@ -34372,7 +34376,7 @@ If what they're in the mood for is fundamentally incompatible with their dietary
         const recipe = recipeFinderResults[Number(btn.dataset.idx)];
         if(!recipe || !recipe.ingredients) return;
         await addGroceryItems(recipe.ingredients);
-        btn.textContent = '✓ Added to grocery list';
+        btn.textContent = 'Added to grocery list';
         btn.disabled = true;
       });
     });
@@ -35157,7 +35161,7 @@ async function renderDsldSearchResults(){
       if(!r) return;
       const freqSelect = document.getElementById('mySupplementFrequencySelect');
       await addMySupplement(r.name, freqSelect ? freqSelect.value : 'daily', {ingredients: r.ingredients, aiInsight: r.aiInsight});
-      btn.textContent = 'Added ✓';
+      btn.textContent = 'Added';
       btn.disabled = true;
     });
   });
@@ -35408,7 +35412,7 @@ function renderDescribeResult(resultEl, input){
     for(let i = 0; i < describeFoodParsedItems.length; i++){
       await addFoodToLog(describeFoodParsedItems[i], describeFoodQtys[i] || 1);
     }
-    resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added ✓</div>`;
+    resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added</div>`;
     input.value = '';
     document.getElementById('describeFoodForm').classList.remove('open');
   });
@@ -35417,7 +35421,7 @@ function renderDescribeResult(resultEl, input){
       const match = similar.find(f=> f.name === btn.dataset.name);
       if(!match) return;
       await addFoodToLog(match);
-      resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added ✓</div>`;
+      resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added</div>`;
       input.value = '';
       document.getElementById('describeFoodForm').classList.remove('open');
     });
@@ -36818,7 +36822,7 @@ document.getElementById('addCustom').addEventListener('click', async ()=>{
   document.getElementById('cFolate').value='';
   document.getElementById('customForm').classList.remove('open');
   document.getElementById('moreNutrientsForm').classList.remove('open');
-  status.textContent = saveToLibrary ? 'Added & saved to My Foods ✓' : 'Added';
+  status.textContent = saveToLibrary ? 'Added & saved to My Foods' : 'Added';
   setTimeout(()=>status.textContent='',2000);
 });
 
@@ -36865,7 +36869,7 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
     if([parsed.sodium, parsed.fiber, parsed.calcium, parsed.iron, parsed.potassium, parsed.folate].some(v=> v != null)){
       document.getElementById('moreNutrientsForm').classList.add('open');
     }
-    status.textContent = 'Filled in from label — check it over, then tap Add Item ✓';
+    status.textContent = 'Filled in from label — check it over, then tap Add Item';
   }catch(err){
     status.textContent = `Couldn't read that label: ${err.message}. Try again or enter it manually.`;
   }
@@ -37202,10 +37206,10 @@ document.getElementById('saveWeight').addEventListener('click', async ()=>{
       loadFoodLog(); // refresh macro bars against the new targets
       const changedMeaningfully = oldWeight && Math.abs(w - oldWeight) >= toCanonicalLb(1);
       statusEl.textContent = changedMeaningfully
-        ? `Logged ✓ — nutrition & water targets updated for your new weight (${fmtWeight(w)})`
-        : 'Logged ✓';
+        ? `Logged — nutrition & water targets updated for your new weight (${fmtWeight(w)})`
+        : 'Logged';
     } else {
-      statusEl.textContent = `Logged for ${formatLogDateLabel(selectedLogDate)} ✓ — a more recent weigh-in is already on record, so today's targets are unchanged`;
+      statusEl.textContent = `Logged for ${formatLogDateLabel(selectedLogDate)} — a more recent weigh-in is already on record, so today's targets are unchanged`;
     }
     setTimeout(()=>{ statusEl.textContent = ''; }, 3000);
   }catch(e){}
@@ -37277,7 +37281,7 @@ document.getElementById('saveBP').addEventListener('click', async ()=>{
     const cat = categorizeBP(systolic, diastolic);
     statusEl.textContent = cat.urgent
       ? `Logged — ${systolic}/${diastolic} is in crisis range. Please seek medical attention if this is accurate and you haven't already.`
-      : `Logged ✓ — ${cat.label}`;
+      : `Logged — ${cat.label}`;
     statusEl.classList.toggle('warn', cat.urgent);
     setTimeout(()=>{ statusEl.textContent = ''; statusEl.classList.remove('warn'); }, cat.urgent ? 8000 : 3000);
   }catch(e){}
@@ -37348,7 +37352,7 @@ document.getElementById('saveGlucose').addEventListener('click', async ()=>{
     input.value = '';
     loadGlucose();
     const cat = categorizeGlucose(value, context);
-    statusEl.textContent = cat.urgent ? `Logged — ${cat.hint}` : `Logged ✓ — ${cat.label}`;
+    statusEl.textContent = cat.urgent ? `Logged — ${cat.hint}` : `Logged — ${cat.label}`;
     statusEl.classList.toggle('warn', cat.urgent);
     setTimeout(()=>{ statusEl.textContent = ''; statusEl.classList.remove('warn'); }, cat.urgent ? 8000 : 3000);
   }catch(e){}
@@ -37865,7 +37869,7 @@ document.getElementById('photoInput').addEventListener('change', async (e)=>{
     const index = await getPhotoIndex();
     index.push({id, date});
     await setPhotoIndex(index);
-    statusEl.textContent = 'Saved ✓';
+    statusEl.textContent = 'Saved';
     setTimeout(()=>{ statusEl.textContent = ''; }, 1500);
     loadProgressPhotos();
     renderStorageUsage();
@@ -38021,7 +38025,7 @@ document.getElementById('saveCycle').addEventListener('click', async ()=>{
   if(!lastPeriod){ status.textContent = 'Enter a date first'; return; }
   try{
     await window.storage.set('cycle-data', JSON.stringify({lastPeriod, cycleLength}));
-    status.textContent = 'Saved ✓';
+    status.textContent = 'Saved';
     setTimeout(()=> status.textContent = '', 2000);
     renderCycleTracking();
     renderTodayInsights();
@@ -38091,7 +38095,7 @@ document.getElementById('saveMeasurements').addEventListener('click', async ()=>
     await window.storage.set('measurements-log', JSON.stringify(entries));
     ['mWaist','mChest','mArms','mThighs','mHips','mNeck'].forEach(id=> document.getElementById(id).value = '');
     loadMeasurements();
-    document.getElementById('measureStatus').textContent = 'Saved ✓';
+    document.getElementById('measureStatus').textContent = 'Saved';
     setTimeout(()=> document.getElementById('measureStatus').textContent = '', 2000);
   }catch(e){}
 });
@@ -40855,7 +40859,7 @@ function renderPhotoLogResult(resultEl, previewUrls, failedCount){
       for(let i = 0; i < photoLogParsedItems.length; i++){
         await addFoodToLog(photoLogParsedItems[i], photoLogQtys[i] || 1);
       }
-      resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added ✓</div>`;
+      resultEl.innerHTML = `<div class="status-msg" style="color:var(--plate-green)">Added</div>`;
     });
   }
 }
@@ -41682,7 +41686,7 @@ function renderSupplementCards(items, alreadyTracked){
       <div class="photo-result-item"><span><b>Frequency:</b> ${escapeHtml((SUPPLEMENT_FREQUENCY_META[r.frequency] || SUPPLEMENT_FREQUENCY_META.daily).label)}</span></div>
       <div class="photo-result-item"><span><b>Timing:</b> ${escapeHtml(r.timing || '—')}</span></div>
       ${r.caution ? `<div class="care-banner care-banner-caution" style="margin-top:8px;">${escapeHtml(r.caution)}</div>` : ''}
-      <button type="button" class="supplement-add-btn" data-idx="${i}" ${isTracked ? 'disabled' : ''}>${isTracked ? 'Added ✓' : '+ Add to my supplements'}</button>
+      <button type="button" class="supplement-add-btn" data-idx="${i}" ${isTracked ? 'disabled' : ''}>${isTracked ? 'Added' : '+ Add to my supplements'}</button>
     </div>
   `;
   }).join('');
@@ -41705,7 +41709,7 @@ function wireSupplementAddButtons(containerEl, items){
       // response that omits or mis-types one falls back to 'daily' inside
       // addMySupplement itself, same as a manually-typed add would).
       await addMySupplement(item.name, item.frequency);
-      btn.textContent = 'Added ✓';
+      btn.textContent = 'Added';
       btn.disabled = true;
     });
   });
@@ -43206,7 +43210,7 @@ async function downloadCareSummary(){
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    if(btn){ btn.textContent = '✓ Saved'; setTimeout(()=>{ btn.textContent = original; }, 2000); }
+    if(btn){ btn.textContent = 'Saved'; setTimeout(()=>{ btn.textContent = original; }, 2000); }
   }catch(e){
     if(btn){ btn.textContent = 'Could not save — try again'; setTimeout(()=>{ btn.textContent = original; }, 2500); }
   }
@@ -43230,7 +43234,7 @@ async function renderCare(){
     restEl.innerHTML = `<div class="empty-note">${icon('check')} Nothing marked as resting — you're clear to train everything.</div>`;
   }else{
     restEl.innerHTML = resting.map(r=>`
-      <span class="resting-chip"><button type="button" class="link-btn" data-care-area="${escapeHtml(r)}" aria-label="Show stretches for ${escapeHtml(r)}">${escapeHtml(r)}</button> <button data-region="${escapeHtml(r)}" class="clear-resting" aria-label="Stop resting ${escapeHtml(r)}">✕</button></span>
+      <span class="resting-chip"><button type="button" class="link-btn" data-care-area="${escapeHtml(r)}" aria-label="Show stretches for ${escapeHtml(r)}">${escapeHtml(r)}</button> <button data-region="${escapeHtml(r)}" class="clear-resting" aria-label="Stop resting ${escapeHtml(r)}">${icon('close')}</button></span>
     `).join('') + `<div class="history-hint" style="margin-top:10px;">Exercises that load these areas show a caution flag on Today until you clear them.</div>`;
     restEl.querySelectorAll('.clear-resting').forEach(btn=>{
       btn.addEventListener('click', async ()=>{
@@ -43350,7 +43354,7 @@ document.getElementById('careSubmit').addEventListener('click', async ()=>{
       if(region) await addRestingRegion(region);
       renderCare();
       renderTodayInsights();
-      markBtn.textContent = 'Marked as resting ✓';
+      markBtn.textContent = 'Marked as resting';
       markBtn.disabled = true;
     });
   }
@@ -44026,8 +44030,8 @@ async function archiveCurrentWeek(){
   const digestBlocks = [aiRecap, aiNutritionDigest].filter(Boolean)
     .map(text=> `<div class="day-insight" style="margin:10px 0;">${escapeHtml(text)}</div>`).join('');
   status.innerHTML = digestBlocks
-    ? `${digestBlocks}Week saved — back to Day 1 for a fresh start ✓`
-    : 'Week saved — back to Day 1 for a fresh start ✓';
+    ? `${digestBlocks}Week saved — back to Day 1 for a fresh start`
+    : 'Week saved — back to Day 1 for a fresh start';
 
   // Share card: workouts + program are always known: the third row prefers
   // sleep (most directly "how was your week"), falling back to weight, then
@@ -45012,6 +45016,8 @@ const ICONS = {
   // and weight it sat in). The stroke does not scale: 1.6px at any size, so
   // an 11px row chevron and a 17px rail arrow read as one family.
   chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg>',
+  // v3.422: the close mark, the same line as the chevron (was the ✕ glyph).
+  close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5"/></svg>',
   chevronLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="15 5.5 8.5 12 15 18.5"/></svg>',
   chat: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 5.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8l-4 3v-3H4.5a2 2 0 0 1-2-2Z"/></svg>',
 };

@@ -78,4 +78,48 @@ test('REAL CSS (v3.421): Show more and the program picker draw their chevrons wi
   for(const id of ['a', 'b']) assert.strictEqual(window.getComputedStyle(window.document.getElementById(id)).display, 'block', id);
 });
 
+// v3.422 — Ticks and crosses. A status message already says Saved, Logged or
+// Added; the ✓ after it was a glyph standing in for an icon. It is gone, and
+// the word carries it. The one place the tick IS the message (a set row's
+// "saved" flash, no word beside it) draws ICONS.check. The ✕ close buttons
+// (rest timer, coach chat, Care's stop-resting) draw ICONS.close, the same
+// 1.6px line as the chevron.
+test('REAL source (v3.422): no ✓ or ✕ is rendered anywhere — status words carry it, marks are drawn', (assert)=>{
+  const hits = uncommented.split('\n').filter(l => /[✓✕]/.test(l));
+  assert.deepStrictEqual(hits, []);
+  assert.ok(/✓/.test(html) && /✕/.test(html), 'anchor: comments naming the old glyphs survive the strip');
+});
+
+test('REAL ICONS (v3.422): the close mark is the chevron\'s line — 1.6px, round, non-scaling', (assert)=>{
+  const doc = new JSDOM(ICONS.close).window.document;
+  assert.strictEqual(doc.querySelector('svg').getAttribute('stroke-width'), '1.6');
+  assert.strictEqual(doc.querySelector('svg').getAttribute('stroke-linecap'), 'round');
+  assert.strictEqual(doc.querySelector('path').getAttribute('vector-effect'), 'non-scaling-stroke');
+});
+
+test('REAL markup + template (v3.422): the close buttons draw ICONS.close and keep their names', (assert)=>{
+  const [closeOut] = runSandbox([extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon')], "__capture.push(icon('close'));");
+  const outer = s => new JSDOM(s).window.document.querySelector('svg').outerHTML;
+  const doc = new JSDOM(html).window.document;
+  for(const [id, name] of [['restTimerClose', 'Close rest timer'], ['coachFabClose', 'Close coach chat']]){
+    const b = doc.getElementById(id);
+    assert.strictEqual(b.getAttribute('aria-label'), name);
+    assert.strictEqual(b.textContent.trim(), '', id + ': no glyph');
+    assert.strictEqual(b.querySelector('svg').outerHTML, outer(closeOut), id);
+  }
+  // Care's chip: the real template line, evaluated.
+  const line = src.split('\n').find(l => l.includes('class="resting-chip"'));
+  const [chip] = runSandbox([extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon')],
+    "const r = 'Knee'; __capture.push(`" + line.trim() + "`);");
+  const clear = new JSDOM(chip).window.document.querySelector('.clear-resting');
+  assert.strictEqual(clear.getAttribute('aria-label'), 'Stop resting Knee');
+  assert.strictEqual(clear.querySelector('svg').outerHTML, outer(closeOut));
+});
+
+test('REAL source (v3.422): a saved set flashes the drawn check, and clears it by state, not by comparing a glyph', (assert)=>{
+  const fn = extractFunction(src, 'wireSetRow');
+  assert.strictEqual((fn.match(/statusEl\.innerHTML = icon\('check'\);/g) || []).length, 1);
+  assert.match(fn, /if\(statusEl\.classList\.contains\('set-status-saved'\)\) statusEl\.textContent='';/);
+});
+
 run();
