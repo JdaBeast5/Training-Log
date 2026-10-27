@@ -3139,8 +3139,9 @@
 
   .day-card{padding:12px 0; border-bottom:1px solid var(--line-soft);}
   .day-card:last-child{border-bottom:none;}
+  /* v3.444: a date reads in the text face (it was mono). */
   .day-card-date{
-    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px; font-weight:600; color:var(--text);
+    font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:13px; font-weight:600; color:var(--text);
     margin-bottom:6px;
   }
   .day-card-program{font-weight:500; color:var(--text-muted); font-size:11px;}
@@ -3157,6 +3158,12 @@
   .delta-down{color:var(--plate-red); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11.5px;}
   .delta-flat{color:var(--text-muted); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11.5px;}
   .day-ex-vol{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted);}
+  /* v3.444: a logged exercise is two lines — name and changes, then sets. */
+  .day-ex-row.day-ex-logged{display:grid; grid-template-columns:1fr auto; column-gap:10px; row-gap:1px; padding:5px 0;}
+  .day-ex-logged .day-ex-name{grid-column:1; font-size:13.5px;}
+  .day-ex-logged .day-ex-changes{grid-column:2; justify-self:end; display:flex; gap:8px; white-space:nowrap;}
+  .day-ex-logged > :not(.day-ex-name):not(.day-ex-changes){grid-column:1 / -1;}
+  .day-ex-logged .day-ex-sets{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);}
 
   .app-footer{
     text-align:center; padding:24px 0 8px; font-size:11px; color:#4A5057;
@@ -7028,7 +7035,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.443';
+const APP_VERSION = '3.444';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8164,6 +8171,9 @@ const WHATS_NEW = {
   ]},
   '3.443': { headline: 'Your log first', points: [
     'History opens on the Day-by-Day Log; records and saved weeks follow.',
+  ]},
+  '3.444': { headline: 'Readable history days', points: [
+    'Each exercise in History shows its name and any change on one line, with the sets underneath; no more stray dashes.',
   ]},
 };
 
@@ -43773,7 +43783,7 @@ function buildHistoryDayCardHtml(date){
   const day = dayMap[date];
   if(!day) return '';
   const weightRow = day.weight != null
-    ? `<div class="day-weight-row">Weight ${fmtWeight(day.weight)} ${deltaSpan(toDisplayWeight(day.weightDelta), ' '+weightUnit, 'down')}</div>`
+    ? `<div class="day-weight-row">Weight ${fmtWeight(day.weight)} ${day.weightDelta ? deltaSpan(toDisplayWeight(day.weightDelta), ' '+weightUnit, 'down') : ''}</div>`
     : '';
   const restRow = day.restFollowed
     ? `<div class="day-weight-row">Rest day — followed as planned</div>`
@@ -43806,14 +43816,16 @@ function buildHistoryDayCardHtml(date){
     // visual bulk in this list. showDayLabel falls back to per-row
     // display only in the rare case a day mixes labels.
     const dayLabelHtml = showDayLabel ? `<span class="day-ex-day">${escapeHtml(ex.dayLabel)}</span>` : '';
+    // v3.444: name and what changed on the first line, the sets and volume
+    // under it. A change that didn't happen prints nothing (it printed "— —").
+    const changes = [weightDeltaHtml, repsDeltaHtml].filter(h=> !h.includes('delta-flat')).join(' ');
     return `
-          <div class="day-ex-row">
+          <div class="day-ex-row day-ex-logged">
             <span class="day-ex-name">${escapeHtml(ex.name)}</span>
+            <span class="day-ex-changes">${changes}</span>
             ${dayLabelHtml}
-            <span>${setsStr}</span>
-            <span class="day-ex-vol">Vol ${ex.volume.toLocaleString()}</span>
+            <span class="day-ex-sets">${setsStr} <span class="day-ex-vol">· Vol ${ex.volume.toLocaleString()}</span></span>
             ${notesHtml}
-            ${weightDeltaHtml} ${repsDeltaHtml}
           </div>
         `;
   }).join('');
