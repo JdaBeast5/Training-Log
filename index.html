@@ -6832,7 +6832,7 @@
   <div class="coach-fab-backdrop" id="coachFabBackdrop"></div>
   <div class="coach-fab-panel" id="coachFabPanel" role="dialog" aria-modal="true" aria-label="Ask your coach">
     <div class="coach-fab-header">
-      <span><span aria-hidden="true">💬</span> Ask Your Coach</span>
+      <span>Ask Your Coach</span>
       <button class="coach-fab-close" id="coachFabClose" aria-label="Close coach chat"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5"/></svg></button>
     </div>
     <div class="coach-chat-log" id="floatingChatLog"></div>
@@ -6986,7 +6986,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.423';
+const APP_VERSION = '3.424';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7275,10 +7275,10 @@ const WHATS_NEW = {
   '3.165': { headline: 'Fixed the day-title bar sitting at the top of the screen all the time', points: [
     'A fix a few versions back for the condensed "Day 1 — Upper · Strength" bar left it not quite fully hidden — it sat faintly behind the tab bar the whole time instead of only appearing once you scrolled past the real title. It\'s properly tucked away again now until it\'s actually needed.',
     'Tapping it now takes you straight back to the real day title, instead of just sitting there.',
-    'Also fixed in Gym Mode: the warm-up ramp\'s plate-calculator button was showing both the barbell icon and a 🏋️ emoji stacked on top of each other. Just the icon now, matching every other button in the mode.',
+    'Also fixed in Gym Mode: the warm-up ramp\'s plate-calculator button was showing both the barbell icon and a barbell emoji stacked on top of each other. Just the icon now, matching every other button in the mode.',
   ]},
   '3.166': { headline: 'Replaced the microphone emoji with a matching icon everywhere', points: [
-    'The voice-log button showed a raw 🎤 emoji outside of Gym Mode — full-colour and a different shape on every phone, unlike the clean icon Gym Mode already used for it. Now it\'s the same simple mic icon everywhere, on every set-logging row and the food-description voice button.',
+    'The voice-log button showed a raw microphone emoji outside of Gym Mode — full-colour and a different shape on every phone, unlike the clean icon Gym Mode already used for it. Now it\'s the same simple mic icon everywhere, on every set-logging row and the food-description voice button.',
   ]},
   '3.167': { headline: 'Learn tab: your stuff first, the full index below it', points: [
     'Exercise Library, Recently Trained, and your program\'s own masterclass card now sit above "All Masterclasses" instead of below it — so what\'s actually relevant to you shows up first, and the browse-everything index is there when you want it, further down.',
@@ -7288,7 +7288,7 @@ const WHATS_NEW = {
     'The "Last 30 days / 90 days / Last year / All time" dropdown above that list used to only affect the printed workout report — picking a range did nothing to what was actually shown on screen. It now scopes the visible list too, and still works together with the exercise-name search box (e.g. "last 30 days" and "deadlift" at once).',
   ]},
   '3.169': { headline: 'Replaced the weightlifter emoji with a matching icon everywhere', points: [
-    'The plate-calculator button showed a raw 🏋️ emoji outside of Gym Mode — full-colour and a different shape on every phone, unlike the clean barbell icon Gym Mode already used for it. Now it\'s the same simple icon everywhere, matching the fix already made for the voice-log button\'s mic icon.',
+    'The plate-calculator button showed a raw barbell emoji outside of Gym Mode — full-colour and a different shape on every phone, unlike the clean barbell icon Gym Mode already used for it. Now it\'s the same simple icon everywhere, matching the fix already made for the voice-log button\'s mic icon.',
   ]},
   '3.170': { headline: 'Replaced five more raw emoji icons with clean vector glyphs', points: [
     'The food-search "duplicate & edit" and "remove from My Foods" buttons, the custom-exercise delete button, and the per-exercise History/Edit buttons all used to show full-colour vendor emoji (a pencil, a trash can, a trending-up chart) that looked different on every phone. They now draw the same simple line icons everywhere, matching the earlier fix to the plate-calculator and voice-log buttons.',
@@ -7300,7 +7300,7 @@ const WHATS_NEW = {
     'Closed out the last two colors (blue and yellow) from that same background/border cleanup — purely internal, nothing should look any different.',
   ]},
   '3.173': { headline: 'Replaced two more raw emoji icons with clean vector glyphs', points: [
-    'The swipe-to-delete red reveal behind every swipeable row (sets, warm-up steps, weight/water/BP/glucose logs, and more) and the Settings "Delete all my data" button both showed a full-colour 🗑️ emoji that looked different on every phone. They now draw the same simple trash icon already used by the custom-exercise delete button and the food-search "remove" button.',
+    'The swipe-to-delete red reveal behind every swipeable row (sets, warm-up steps, weight/water/BP/glucose logs, and more) and the Settings "Delete all my data" button both showed a full-colour trash-can emoji that looked different on every phone. They now draw the same simple trash icon already used by the custom-exercise delete button and the food-search "remove" button.',
   ]},
   '3.174': { headline: 'More internal color consistency cleanup', points: [
     'Continued the earlier glow/background/border color cleanup (v3.92-3.172) to the app\'s white and black overlay tones — purely internal, nothing should look any different.',
@@ -8062,6 +8062,9 @@ const WHATS_NEW = {
   ]},
   '3.423': { headline: 'Drawn warning marks', points: [
     'Warnings show a drawn warning icon instead of a text character; plain-text notices just say it in words.',
+  ]},
+  '3.424': { headline: 'Fewer emoji', points: [
+    'Buttons, titles and notes no longer start with an emoji; the words say it, and drawn icons stay where an icon helps.',
   ]},
 };
 
@@ -13553,7 +13556,7 @@ function computeDeficitGuardrail(avgIntake, targetCal, tdee, goal){
   if(underTarget >= 250){
     return {
       level: 'moderate',
-      text: `🍽️ <b>Under target:</b> averaging ${Math.round(avgIntake)} cal against your ${targetCal} target — about ${Math.round(underTarget)} short per day. Your target already has the deficit built in, so eating under it stacks a second one on top.`
+      text: `<b>Under target:</b> averaging ${Math.round(avgIntake)} cal against your ${targetCal} target — about ${Math.round(underTarget)} short per day. Your target already has the deficit built in, so eating under it stacks a second one on top.`
     };
   }
   return null;
@@ -14524,9 +14527,9 @@ async function renderProgramSelector(trendStatus){
   // First, because it is theirs and they should not have to scroll past thirty
   // of ours to find it.
   if(customKeys.length){
-    html += `<optgroup label="✏️ Your programs">${customKeys.map(optionHtml).join('')}</optgroup>`;
+    html += `<optgroup label="Your programs">${customKeys.map(optionHtml).join('')}</optgroup>`;
   }
-  html += `<optgroup label="🎯 Best fit for your goal">${topKeys.map(optionHtml).join('')}</optgroup>`;
+  html += `<optgroup label="Best fit for your goal">${topKeys.map(optionHtml).join('')}</optgroup>`;
   if(restKeys.length){
     html += `<optgroup label="Show more programs">${restKeys.map(optionHtml).join('')}</optgroup>`;
   }
@@ -26607,7 +26610,7 @@ function buildProgramFitInsight(trend){
   }
   if(increaseRatio >= 0.5 && troubleRatio < 0.15){
     return {status:'thriving', text:
-      `💪 ${trend.increase} of ${trend.total} tracked exercises are hitting clean double-progression signals right now, with very little fatigue showing up elsewhere. That's a strong, program-wide sign the current volume and intensity are a good match for you — and a real signal (not just a hunch) that you may be ready for more challenge, whether that's more volume here or stepping up to a harder program.`
+      `${trend.increase} of ${trend.total} tracked exercises are hitting clean double-progression signals right now, with very little fatigue showing up elsewhere. That's a strong, program-wide sign the current volume and intensity are a good match for you — and a real signal (not just a hunch) that you may be ready for more challenge, whether that's more volume here or stepping up to a harder program.`
     };
   }
   return null; // mixed picture, no confident program-wide verdict — better to stay quiet than force one
@@ -28289,7 +28292,7 @@ async function renderWorkout(){
           aiTailorBtn.outerHTML = `<div class="goal-feedback-neutral" style="margin-top:8px;">${escapeHtml(reply.trim())}</div>`;
         }catch(err){
           aiTailorBtn.disabled = false;
-          aiTailorBtn.textContent = '✨ Tailor to what I logged';
+          aiTailorBtn.textContent = 'Tailor to what I logged';
           aiTailorBtn.insertAdjacentHTML('afterend', `<div class="care-banner care-banner-caution" style="margin-top:8px;">Couldn't get tailored advice right now — try again in a moment.</div>`);
         }
       });
@@ -32852,7 +32855,7 @@ async function renderProgramRec(trendStatus){
     : '';
   el.innerHTML = `
     <div class="program-rec-banner">
-      💡 Recommended for your goal: <b>${progLabel}</b><br>${rec.why}${styleLine}
+       Recommended for your goal: <b>${progLabel}</b><br>${rec.why}${styleLine}
       <div class="program-rec-actions">
         <button class="program-rec-btn" id="switchToRecBtn">Switch to ${progLabel}</button>
         <button class="program-rec-btn program-rec-btn-secondary" id="stickWithCurrentBtn">Stick with current</button>
@@ -34193,7 +34196,7 @@ function renderBarcodeResult(item, fromCache){
   const servingSuffix = item.servingDesc ? ` (${escapeHtml(item.servingDesc)})` : '';
   resultEl.innerHTML = `
     <div class="photo-result-card">
-      <div class="photo-result-title">${fromCache ? '📦 Already in My Foods — no lookup needed' : '📦 Found it'}</div>
+      <div class="photo-result-title">${fromCache ? 'Already in My Foods — no lookup needed' : 'Found it'}</div>
       <div class="photo-result-item">
         <span>${escapeHtml(item.name)} — ${item.cal} cal, ${item.pro}p/${item.fat}f/${item.carb}c${servingSuffix}</span>
         <button class="fl-remove" style="color:var(--plate-green); font-size:18px;" id="barcodeAddBtn" aria-label="Add ${escapeHtml(item.name)} to today's log">+</button>
@@ -34345,12 +34348,12 @@ If what they're in the mood for is fundamentally incompatible with their dietary
 
     const cardsHtml = recipeFinderResults.map((r,i)=> `
       <div class="photo-result-card">
-        <div class="photo-result-title">🍳 ${escapeHtml(r.name)}</div>
+        <div class="photo-result-title">${escapeHtml(r.name)}</div>
         <div class="history-hint recipe-desc">${escapeHtml(r.description || '')}</div>
         <div class="photo-result-item"><span>${r.cal} cal · ${r.pro}g protein · ${r.fat}g fat · ${r.carb}g carbs (per serving, estimated)</span></div>
         ${buildFoodResultRow(r, i, recipeFinderQtys, {})}
         <div class="recipe-card-actions">
-          <a class="recipe-link-btn" href="${buildRecipeSearchUrl(r.name)}" target="_blank" rel="noopener">🔗 Find this recipe</a>
+          <a class="recipe-link-btn" href="${buildRecipeSearchUrl(r.name)}" target="_blank" rel="noopener">Find this recipe</a>
           <button type="button" class="recipe-log-btn" data-idx="${i}">+ Log to ${logDayLabel()}</button>
         </div>
         ${(r.ingredients && r.ingredients.length) ? `<button type="button" class="recipe-grocery-btn" data-idx="${i}">Add ${r.ingredients.length} ingredients to grocery list</button>` : ''}
@@ -34837,7 +34840,7 @@ async function renderMySupplements(){
       if(expanded){
         const ingredientsHtml = buildDsldIngredientsHtml(item.ingredients);
         const insightHtml = item.aiInsight
-          ? `<span class="supplement-ai-insight"><b>✨ AI insight:</b> ${escapeHtml(item.aiInsight)}<span class="supplement-ai-disclaimer">Not medical advice — a real-time AI read, not this app's hand-vetted evidence table.</span></span>`
+          ? `<span class="supplement-ai-insight"><b>AI insight:</b> ${escapeHtml(item.aiInsight)}<span class="supplement-ai-disclaimer">Not medical advice — a real-time AI read, not this app's hand-vetted evidence table.</span></span>`
           : `<button type="button" class="supplement-ai-insight-btn">Get AI insight</button>`;
         detailHtml = `${ingredientsHtml}${insightHtml}`;
       }
@@ -34851,7 +34854,7 @@ async function renderMySupplements(){
       let summaryHtml;
       if(item.aiInsight){
         const firstSentence = `${escapeHtml(item.aiInsight.split('. ')[0])}${item.aiInsight.includes('. ') ? '.' : ''}`;
-        summaryHtml = expanded ? '✨ AI insight' : `✨ ${firstSentence}`;
+        summaryHtml = expanded ? 'AI insight' : firstSentence;
       } else {
         summaryHtml = 'Not curated here — tap for ingredients or an AI read.';
       }
@@ -35021,7 +35024,7 @@ async function requestSupplementAiInsight(btn, name, ingredients){
     await saveSupplementAiInsight(name, insight);
   }catch(err){
     btn.disabled = false;
-    btn.textContent = '✨ Get AI insight';
+    btn.textContent = 'Get AI insight';
     const errEl = document.createElement('div');
     errEl.className = 'care-banner care-banner-caution';
     errEl.style.marginTop = '6px';
@@ -35052,7 +35055,7 @@ async function requestDsldSearchAiInsight(btn, r){
     await renderDsldSearchResults();
   }catch(err){
     btn.disabled = false;
-    btn.textContent = '✨ Preview AI insight';
+    btn.textContent = 'Preview AI insight';
     const errEl = document.createElement('div');
     errEl.className = 'care-banner care-banner-caution';
     errEl.style.marginTop = '6px';
@@ -35141,7 +35144,7 @@ async function renderDsldSearchResults(){
       ${buildDsldIngredientsHtml(r.ingredients)}
       <div class="care-disclaimer" style="margin-top:6px;">Not evaluated here — not medical advice. Ask your coach before starting anything new.</div>
       ${r.aiInsight
-        ? `<span class="supplement-ai-insight"><b>✨ AI insight:</b> ${escapeHtml(r.aiInsight)}<span class="supplement-ai-disclaimer">Not medical advice — a real-time AI read, not this app's hand-vetted evidence table.</span></span>`
+        ? `<span class="supplement-ai-insight"><b>AI insight:</b> ${escapeHtml(r.aiInsight)}<span class="supplement-ai-disclaimer">Not medical advice — a real-time AI read, not this app's hand-vetted evidence table.</span></span>`
         : `<button type="button" class="supplement-ai-insight-btn dsld-preview-ai-insight-btn" data-idx="${i}">Preview AI insight</button>`}
       <button type="button" class="supplement-add-btn dsld-unmatched-add-btn" data-idx="${i}">+ Add to my supplements</button>
     </div>
@@ -36142,7 +36145,7 @@ function renderFoodItems(){
     } else if(!usdaIsCurrent){
       const searchBtn = document.createElement('button');
       searchBtn.className = 'usda-search-btn';
-      searchBtn.innerHTML = `🔍 Search USDA database for "${escapeHtml(currentSearchTerm)}"`;
+      searchBtn.innerHTML = `Search USDA database for "${escapeHtml(currentSearchTerm)}"`;
       searchBtn.addEventListener('click', ()=> runUsdaSearch(currentSearchTerm));
       itemsEl.appendChild(searchBtn);
     } else if(localMatches.length === 0){
@@ -36198,7 +36201,7 @@ function updateHideAvoidedToggleVisibility(){
     || Object.values(flags).some(Boolean);
   btn.style.display = hasAnyRestriction ? '' : 'none';
   btn.classList.toggle('active', hideAvoidedFoods);
-  btn.textContent = hideAvoidedFoods ? '🙈 Hiding foods that don\'t fit' : '🙈 Hide foods that don\'t fit';
+  btn.textContent = hideAvoidedFoods ? 'Hiding foods that don\'t fit' : 'Hide foods that don\'t fit';
 }
 
 document.getElementById('hideAvoidedToggle').addEventListener('click', async ()=>{
@@ -36399,14 +36402,14 @@ function renderMealSuggestions(){
 
   const singlesHtml = singles.length ? `
     <div class="photo-result-card">
-      <div class="photo-result-title">🎯 Protein-efficient picks</div>
+      <div class="photo-result-title">Protein-efficient picks</div>
       ${singles.map(itemRow).join('')}
     </div>
   ` : '';
 
   const combosHtml = combos.map((pair, i)=> `
     <div class="photo-result-card">
-      <div class="photo-result-title">🍽️ Combo ${i+1}</div>
+      <div class="photo-result-title">Combo ${i+1}</div>
       ${pair.map(itemRow).join('')}
     </div>
   `).join('');
@@ -36549,7 +36552,7 @@ async function updateRepeatYesterdayVisibility(){
     const priorDay = dateKeyMinusDays(selectedLogDate, 1);
     const res = await window.storage.get(`foodlog:${priorDay}`);
     const priorLog = res && res.value ? JSON.parse(res.value) : [];
-    btn.textContent = isBackdating() ? `🔁 Repeat ${formatLogDateLabel(priorDay)}` : '🔁 Repeat yesterday';
+    btn.textContent = isBackdating() ? `Repeat ${formatLogDateLabel(priorDay)}` : 'Repeat yesterday';
     btn.style.display = priorLog.length > 0 ? '' : 'none';
   }catch(e){
     btn.style.display = 'none';
@@ -37802,7 +37805,7 @@ async function runPhotoComparison(beforeId, afterId){
     ]);
     const prompt = `These are two progress photos of the same person, taken at different times, for a fitness tracking app. Describe ONLY genuinely visible, objective physical changes relevant to training — muscle definition, visible body composition shifts, posture, or muscular development in specific areas. Do not estimate weight or body fat percentage (photos alone can't support that), do not make attractiveness judgments, and don't lean flattering or critical — stay descriptive and neutral, the way a coach noting training-relevant changes would. If the angle, lighting, or pose make it hard to say anything meaningful, say that plainly instead of guessing. End with a brief reminder that a two-photo comparison is one data point — lighting and pose affect how visible changes look, and the weight/measurement trends already tracked in this app are a more reliable read on actual progress over time. Keep the whole response to about 4-6 sentences.`;
     const raw = await callClaudeVision(apiKey, [beforeB64, afterB64], prompt, 400);
-    resultEl.innerHTML = `<div class="photo-result-card"><div class="photo-result-title">🤖 AI Comparison</div><div class="care-log-detail">${escapeHtml(raw.trim())}</div></div>`;
+    resultEl.innerHTML = `<div class="photo-result-card"><div class="photo-result-title">AI Comparison</div><div class="care-log-detail">${escapeHtml(raw.trim())}</div></div>`;
   }catch(err){
     resultEl.innerHTML = `<div class="care-banner care-banner-caution">Couldn't run that comparison: ${err.message}. Try again.</div>`;
   }
@@ -41649,10 +41652,10 @@ function getCoachPersona(){
 // Foundational Stack preset (FOUNDATIONAL_SUPPLEMENT_STACK) — same card
 // shape either way, so the two never look like two different features.
 const SUPPLEMENT_EVIDENCE_LABELS = {
-  'well-established': '✅ Well-established',
-  'promising': '🔬 Promising',
-  'mixed': '⚖️ Mixed evidence',
-  'limited': '❔ Limited evidence',
+  'well-established': 'Well-established',
+  'promising': 'Promising',
+  'mixed': 'Mixed evidence',
+  'limited': 'Limited evidence',
 };
 
 // Required check-ins per frequency, and its display label — shared by My
@@ -42697,7 +42700,7 @@ function buildReliefHtml(region){
   }).join('');
   return `
     <div class="care-relief">
-      <div class="care-relief-title">🌱 Gentle movements that may help right now:</div>
+      <div class="care-relief-title">Gentle movements that may help right now:</div>
       <ul>${items}</ul>
       <div class="care-relief-note">Stop if any of these cause sharp pain — general, low-risk ideas, not a treatment plan. Full routines are in the Recovery & Rehab style.</div>
     </div>
@@ -43607,10 +43610,10 @@ function buildHistoryDayCardHtml(date){
   const day = dayMap[date];
   if(!day) return '';
   const weightRow = day.weight != null
-    ? `<div class="day-weight-row">⚖️ ${fmtWeight(day.weight)} ${deltaSpan(toDisplayWeight(day.weightDelta), ' '+weightUnit, 'down')}</div>`
+    ? `<div class="day-weight-row">Weight ${fmtWeight(day.weight)} ${deltaSpan(toDisplayWeight(day.weightDelta), ' '+weightUnit, 'down')}</div>`
     : '';
   const restRow = day.restFollowed
-    ? `<div class="day-weight-row">😌 Rest day — followed as planned</div>`
+    ? `<div class="day-weight-row">Rest day — followed as planned</div>`
     : '';
   const dayLabelSet = new Set(day.exercises.map(ex=>ex.dayLabel));
   const uniformDayLabel = dayLabelSet.size === 1 ? day.exercises[0].dayLabel
@@ -44431,7 +44434,7 @@ function computeGoalFeedback(profile, weightEntries, measureEntries){
   }
   if(goal === 'recomp'){
     if(waistDelta!=null && waistDelta<-0.25 && armsDelta!=null && armsDelta>0.1){
-      return {status:'on-track', text:`🎯 Waist down ${Math.abs(waistDelta)}" and arms up ${armsDelta}" over ~${weeks} weeks — that's the recomp signature (down in the middle, up in the muscle), even with the scale barely moving.`};
+      return {status:'on-track', text:`Waist down ${Math.abs(waistDelta)}" and arms up ${armsDelta}" over ~${weeks} weeks — that's the recomp signature (down in the middle, up in the muscle), even with the scale barely moving.`};
     }
     if(weightDelta!=null && Math.abs(weightDelta)<=2 && waistDelta==null && armsDelta==null){
       return {status:'neutral', text:`Weight is fairly stable over ~${weeks} weeks — log a waist and arm measurement too, since recomp progress is exactly what the scale alone can't show.`};
@@ -46466,7 +46469,7 @@ function renderGlobalSearchResults(query){
   const techniques = allTechniques.slice(0, GLOBAL_SEARCH_TECHNIQUE_LIMIT);
 
   if(sections.length === 0 && shownEx.length === 0 && techniques.length === 0){
-    el.innerHTML = '<div class="empty-note">\uD83D\uDD0D Nothing matches that \u2014 try a broader term.</div>';
+    el.innerHTML = '<div class="empty-note">Nothing matches that \u2014 try a broader term.</div>';
     return;
   }
 

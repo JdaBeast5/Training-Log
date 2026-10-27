@@ -16,15 +16,34 @@ const { readIndexSource, extractConst, extractFunction, runSandbox, makeRunner }
 const { test, run } = makeRunner('test-glyphs.js');
 const src = readIndexSource();
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
-// Comments may still name the old glyphs; nothing that renders may.
-const uncommented = html.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '').split('\n').filter(l => !/^\s*\/\//.test(l)).join('\n');
+// Comments may still name the old glyphs; nothing that renders may. Stripped
+// line by line: a whole-file /\*...\*/ regex starts inside accept="image/*"
+// and swallows most of the file (it did, until 2026-10-27).
+function stripComments(text){
+  const out = []; let inBlock = false, inHtml = false;
+  for(let l of text.split('\n')){
+    if(inBlock){ const e = l.indexOf('*/'); if(e === -1) continue; l = l.slice(e + 2); inBlock = false; }
+    if(inHtml){ const e = l.indexOf('-->'); if(e === -1) continue; l = l.slice(e + 3); inHtml = false; }
+    l = l.replace(/(^|\s)\/\*.*?\*\//g, '$1').replace(/<!--.*?-->/g, '');
+    if(/^\s*\/\//.test(l)) continue;
+    const b = l.search(/(^|\s)\/\*/); if(b !== -1){ inBlock = true; l = l.slice(0, b); }
+    const h = l.indexOf('<!--'); if(h !== -1){ inHtml = true; l = l.slice(0, h); }
+    out.push(l);
+  }
+  return out.join('\n');
+}
+const uncommented = stripComments(html);
 const [ICONS, chevronOut, leftOut] = runSandbox([extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon')],
   "__capture.push(ICONS, icon('chevron'), icon('chevronLeft'));");
 
 test('REAL source (v3.421): no ‹ › ⌄ ▾ glyph is rendered anywhere — markup, CSS content, or JS strings', (assert)=>{
   const hits = uncommented.split('\n').filter(l => /[‹›⌄▾]|\\u203[9a]|&[lr]saquo;/.test(l));
   assert.deepStrictEqual(hits, []);
-  assert.ok(/[‹›]/.test(html), 'anchor: the comments that explain the change are still there (the strip is not eating everything)');
+  assert.ok(/[‹›]/.test(html), 'anchor: the comments that explain the change are still there');
+  // Sabotage anchors: the strip keeps real code from across the whole file.
+  assert.ok(uncommented.length > html.length * 0.6, 'the strip keeps most of the file');
+  for(const probe of ['id="logDatePrev"', 'function renderMasterclassIndex', 'function buildCareResultHtml', 'function wireSetRow', 'function formatReadiness'])
+    assert.ok(uncommented.includes(probe), probe);
 });
 
 test('REAL ICONS (v3.421): one chevron, both directions, same line — round caps, a 1.6px stroke that does not scale with size', (assert)=>{
@@ -150,6 +169,39 @@ test('REAL invocation (v3.423): Care\'s urgent banner draws the warning inside i
   const b = new JSDOM(html).window.document.querySelector('.care-banner-urgent b');
   assert.ok(isWarning(b.querySelector('svg')));
   assert.match(b.textContent.trim(), /^Please get this looked at/);
+});
+
+// v3.424 — Decorative emoji. Buttons, titles, notes and verdicts opened with
+// an emoji (✨ AI insight, 🔁 Repeat yesterday, 🔍 Search USDA, 📦 Found it,
+// 🙈, 🔗, 🍳, 🍽️, 🎯, 🤖, 💡, 🌱, 😌, ⚖️, 💬, the program picker's group
+// labels, the supplement evidence labels). The words already said it.
+// Left on purpose: emoji that are not painted (font-size:0 under a drawn
+// mask, kept in markup by earlier decisions — test-swipe-delete-bg-glyph,
+// test-fi-icon-glyphs, test-ex-delete-custom-btn-glyph; the voice button's
+// is also its accessible name), and the food-category KEYS ('★ Favorites',
+// '📁 My Foods'), which are stored state and never shown (the button label
+// strips them).
+const EMOJI = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}]/u;
+const NOT_PAINTED = [/<div class="swipe-delete-bg">🗑️<\/div>/, /class="ex-delete-custom-btn"[^>]*>🗑️</, /class="fi-duplicate"[^>]*>✏️</, /class="fi-star fi-delete"[^>]*>🗑️</, /btn\.textContent = '🎤';/];
+const CATEGORY_KEYS = /'★ Favorites'|'📁 My Foods'|\(★\|📁\)/;
+const emojiLines = () => uncommented.split('\n').filter(l => EMOJI.test(l) && !NOT_PAINTED.some(r => r.test(l)) && !CATEGORY_KEYS.test(l)).map(l => l.trim());
+// The next increments' sites, by version. Each one empties its own list.
+const PENDING = {
+  'v3.425 celebrations, PR, cycle phases, recommendation': [/triggerCelebration\('/, /\{icon:'(🔥|🏆)'/, /'🏆 PR'/, /icon:'(🩸|🌱|☀️|🌙)'/, /icon:'(💪|🔻|➡)', label/, /icon:'🏁'/, /id="celebrateIcon">💪</],
+  'v3.426 arrows': [/text:`(⬇|⬆) /, /message: `(🔻|⬇|⬆) /, /class="progress-(badge|badge-deload|hint)">(🔻|⬆) /],
+};
+test('REAL source (v3.424): no decorative emoji left; what is left is unpainted, a stored key, or a later increment\'s', (assert)=>{
+  const pending = Object.values(PENDING).flat();
+  assert.deepStrictEqual(emojiLines().filter(l => !pending.some(r => r.test(l))), []);
+  assert.ok(emojiLines().length > 0, 'anchor: the pending sites are seen (the scan reaches them)');
+});
+
+test('REAL invocation (v3.424): the thriving verdict and the evidence labels are words', (assert)=>{
+  const [fit, labels] = runSandbox([...ICON_CHUNKS, extractConst(src, 'PROGRAM_FIT_MIN_SAMPLE'), extractFunction(src, 'buildProgramFitInsight'), extractConst(src, 'SUPPLEMENT_EVIDENCE_LABELS')],
+    '__capture.push(buildProgramFitInsight({increase:3, decrease:0, deload:0, hold:1, total:4}), SUPPLEMENT_EVIDENCE_LABELS);');
+  assert.strictEqual(fit.status, 'thriving');
+  assert.match(fit.text, /^3 of 4 tracked exercises/);
+  assert.deepStrictEqual(Object.values(labels), ['Well-established', 'Promising', 'Mixed evidence', 'Limited evidence']);
 });
 
 run();

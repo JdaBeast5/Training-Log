@@ -1058,7 +1058,8 @@ test('REAL invocation: clicking "Get AI insight" with a real key calls the real 
   assert.match(stored[0].aiInsight, /Modest, preliminary evidence/, 'the real AI response text must be persisted onto the real tracked entry');
 
   const html = document.getElementById('mySupplementsList').innerHTML;
-  assert.match(html, /✨ AI insight/, 'the real insight must render, clearly labeled');
+  // 2026-10-27 (v3.424): the label no longer opens with an emoji.
+  assert.match(html, /<b>AI insight:<\/b>/, 'the real insight must render, clearly labeled');
   assert.match(html, /Modest, preliminary evidence/);
   assert.match(html, /Not medical advice — a real-time AI read/, 'the real disclaimer distinguishing this from the curated table must render alongside it');
 });
@@ -1069,7 +1070,7 @@ test('REAL invocation: an item with a real AI insight already saved shows a real
   }) + otherGlobals(), scriptChunks);
   await window.renderMySupplements();
   const collapsedHtml = document.getElementById('mySupplementsList').innerHTML;
-  assert.match(collapsedHtml, /✨ Modest, preliminary evidence at best\./, 'the real first sentence of the saved insight must show collapsed — a real description existing must never still read as "nothing here"');
+  assert.match(collapsedHtml, /Modest, preliminary evidence at best\./, 'the real first sentence of the saved insight must show collapsed — a real description existing must never still read as "nothing here"');
   assert.doesNotMatch(collapsedHtml, /This exact product has not itself been studied/, 'only the first sentence shows collapsed, not the full text — same truncation rule a curated match already follows');
   assert.doesNotMatch(collapsedHtml, /Not curated here/, 'the generic no-description label must not show once a real insight exists');
 });
@@ -1176,7 +1177,7 @@ test('REAL invocation: clicking "Preview AI insight" with a real key calls the A
 
   assert.strictEqual(window.storage.__store['my-supplements'], undefined, 'nothing must be written to storage from a preview alone — the item has not been added yet');
   const html = document.getElementById('dsldSearchResults').innerHTML;
-  assert.match(html, /✨ AI insight/, 'the real insight must render directly in the search card');
+  assert.match(html, /<b>AI insight:<\/b>/, 'the real insight must render directly in the search card');
   assert.match(html, /Modest, preliminary evidence/);
   assert.doesNotMatch(html, /dsld-preview-ai-insight-btn/, 'the button must be replaced by the text, not sit alongside it');
 });
