@@ -6569,9 +6569,13 @@
     </div>
 
     <div class="card" id="researchSourcesCard">
-      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3.5h8.5L16 7v9.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1Z"/><path d="M12.5 3.5V7H16"/><line x1="6.5" y1="10" x2="13" y2="10"/><line x1="6.5" y1="13" x2="13" y2="13"/></svg></span>Research &amp; Sources</div>
+      <div class="card-title nutrition-header" id="researchSourcesHeader">
+        <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3.5h8.5L16 7v9.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1Z"/><path d="M12.5 3.5V7H16"/><line x1="6.5" y1="10" x2="13" y2="10"/><line x1="6.5" y1="13" x2="13" y2="13"/></svg></span>Research &amp; Sources</span>
+        <span class="ex-chevron" aria-hidden="true" id="researchSourcesChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
+      </div>
       <div class="history-hint">The research each program is built on.</div>
-      <div id="researchSourcesList"></div>
+      <!-- v3.458: closed by default — 55 rows that sat between your masterclass and the index of all of them. -->
+      <div class="expand-wrap" id="researchSourcesExpandWrap"><div><div id="researchSourcesList"></div></div></div>
     </div>
 
     <!-- Masterclass index. Every masterclass card above is gated on the
@@ -7069,7 +7073,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.457';
+const APP_VERSION = '3.458';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8247,6 +8251,9 @@ const WHATS_NEW = {
   ]},
   '3.457': { headline: 'Add your key from Coach', points: [
     'Without an API key saved, Coach\'s note offers Add your API key right there, instead of only after something fails.',
+  ]},
+  '3.458': { headline: 'Shorter Learn', points: [
+    'Learn\'s Research & Sources starts closed, so the masterclasses are a short scroll away.',
   ]},
 };
 
@@ -26464,6 +26471,13 @@ document.getElementById('historyLogHeader').addEventListener('click', ()=>{
   setCardOpenState('historyLog', isOpen);
 });
 
+// v3.458: Learn's Research & Sources, the same wiring.
+document.getElementById('researchSourcesHeader').addEventListener('click', ()=>{
+  const isOpen = document.getElementById('researchSourcesHeader').classList.toggle('open');
+  document.getElementById('researchSourcesExpandWrap').classList.toggle('open');
+  setCardOpenState('researchSources', isOpen);
+});
+
 // History filter. Debounced because renderHistory rebuilds the whole day log
 // from storage on every call, and firing that per keystroke on a phone makes
 // typing feel laggy. 220ms is below the threshold where the delay reads as the
@@ -31688,7 +31702,8 @@ function isDistanceExercise(exName){
 // checking off today's supplements is a daily-use interaction, not a
 // rarely-touched settings panel, so hiding it by default would be a real
 // visibility regression for the existing tracked list.
-const PERSISTENT_CARDS = ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings', 'program', 'healthImport', 'diag', 'historyLog', 'mySupplements'];
+// 'researchSources' (v3.458): Learn's Research & Sources, default closed like the rest.
+const PERSISTENT_CARDS = ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings', 'program', 'healthImport', 'diag', 'historyLog', 'mySupplements', 'researchSources'];
 async function getCardOpenState(key){
   // An explicit stored choice always wins. Only when NOTHING has ever
   // been stored does this fall back to a default — Nutrition and the

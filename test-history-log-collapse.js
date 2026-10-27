@@ -73,7 +73,8 @@ test('sabotage-relevant: PERSISTENT_CARDS includes historyLog exactly once, alon
   // card-collapse coverage) — updated here rather than left as a stale
   // exact-match failure, same precedent this suite already follows for a
   // real, intentional shape change.
-  assert.deepStrictEqual(arr, ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings', 'program', 'healthImport', 'diag', 'historyLog', 'mySupplements']);
+  // 2026-10-27 (v3.458): Learn's Research & Sources joined (test-learn-2-0.js).
+  assert.deepStrictEqual(arr, ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings', 'program', 'healthImport', 'diag', 'historyLog', 'mySupplements', 'researchSources']);
 });
 
 test('the real Day-by-Day Log header/wrap markup uses the established collapsible-card pattern, not a bespoke one', (assert)=>{
