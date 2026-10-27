@@ -92,4 +92,24 @@ test('REAL markup (v3.446): range + search share the filter row above the list; 
   assert.strictEqual(q.marginTop, '0px');
 });
 
+// v3.447 — Saved Weeks appears once there is a saved week. Empty, it was a
+// whole card saying "nothing yet" (the save button lives on Day 7 itself);
+// Analysis hides its empty cards the same way.
+async function savedWeeks(archive){
+  const { window } = runJsdom('<div class="card" id="c"><div id="savedWeeksList"></div></div>', `
+    window.getWeekArchive = async ()=> ${JSON.stringify(archive)};
+    window.buildSwipeItem = h => h; window.renderCollapsibleList = (el, items)=>{ el.innerHTML = items.join(''); };
+    window.wireSwipeDeleteList = ()=>{}; window.fmtDayLabel = d => d; window.fmtWeight = v => v + ' lb';`,
+    [extractFunction(src, 'renderSavedWeeks'), 'window.__done = renderSavedWeeks();']);
+  await window.__done;
+  return window.document;
+}
+test('REAL invocation (v3.447): no saved weeks, no card; one saved week, the card shows it', async (assert)=>{
+  const empty = await savedWeeks([]);
+  assert.strictEqual(empty.getElementById('c').style.display, 'none');
+  const one = await savedWeeks([{weekStart:'2026-10-19', program:'Strength', workoutsCount:3, avgWeight:180, avgCal:2100, avgSleep:7}]);
+  assert.strictEqual(one.getElementById('c').style.display, '');
+  assert.match(one.getElementById('savedWeeksList').textContent, /3 workouts/);
+});
+
 run();

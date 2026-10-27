@@ -7042,7 +7042,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.446';
+const APP_VERSION = '3.447';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8187,6 +8187,9 @@ const WHATS_NEW = {
   ]},
   '3.446': { headline: 'Filters together', points: [
     'History\'s date range and exercise filter share one row above the list, and Print workout report moved below it.',
+  ]},
+  '3.447': { headline: 'Saved Weeks when you have one', points: [
+    'History\'s Saved Weeks card appears once you\'ve saved a week.',
   ]},
 };
 
@@ -43646,6 +43649,10 @@ function deltaSpan(value, unit, goodDirection){
 async function renderSavedWeeks(){
   const el = document.getElementById('savedWeeksList');
   const archive = await getWeekArchive();
+  // v3.447: the card appears once there is a saved week. Empty, it was a whole
+  // card saying "nothing yet"; the save button lives on Day 7 itself.
+  const card = el.closest('.card');
+  if(card) card.style.display = archive.length ? '' : 'none';
   if(archive.length === 0){
     el.innerHTML = '<div class="empty-note">No saved weeks yet — tap "Save this week & start fresh" on Day 7.</div>';
     return;
