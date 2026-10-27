@@ -128,4 +128,29 @@ test('REAL markup + CSSOM (v3.432): Reset sits beside the total, outside the add
   assert.doesNotMatch(CSS, /\.water-reset\{[^}]*flex:/, 'no longer sized like a row button');
 });
 
+// v3.433 — Supplements' add row. Name, how-often and Add shared one line, so
+// the name field was 111px and its placeholder read "Add a suppl". The name
+// now has the first line; how often and Add share the second. The empty
+// state's "Get supplement recommendations" was a one-off small flat-blue
+// banner button; it is Log's secondary pill (as "+ Add custom item").
+test('REAL CSSOM (v3.433): the supplement name takes the full first line; the row wraps', (assert)=>{
+  const CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
+  const wrap = doc.getElementById('mySupplementsExpandWrap').outerHTML;
+  const { window } = new JSDOM(`<style>${CSS}</style>${wrap}`);
+  const row = window.document.querySelector('#mySupplementsExpandWrap .weight-input-row');
+  assert.strictEqual(window.getComputedStyle(row).flexWrap, 'wrap');
+  assert.strictEqual(window.getComputedStyle(window.document.getElementById('mySupplementAddInput')).flexBasis, '100%');
+  assert.strictEqual(window.document.getElementById('mySupplementFrequencySelect').style.flex.split(' ')[0], '1', 'how often shares the second line');
+});
+
+test('REAL invocation (v3.433): the empty tracker offers recommendations as the secondary pill, still linked', async (assert)=>{
+  const { window } = runJsdom('<div id="mySupplementsList"></div>', 'window.loadMySupplements = async ()=> [];',
+    [extractFunction(src, 'renderMySupplements'), 'window.__done = renderMySupplements();']);
+  await window.__done;
+  const btn = window.document.querySelector('#mySupplementsList [data-jump-to="supplementRecommendationsCard"]');
+  assert.ok(btn, 'still links to the recommendations card');
+  assert.ok(btn.classList.contains('custom-toggle'));
+  assert.strictEqual(window.document.querySelector('#mySupplementsList .app-banner-btn'), null);
+});
+
 run();

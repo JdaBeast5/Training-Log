@@ -1856,6 +1856,11 @@
      text fields here (grocery item, supplement name) and every placeholder
      use the text face, like the app's other 31 text fields. */
   .weight-input-row input[type=text]{font-family:var(--font-sans); font-variant-numeric:normal;}
+  /* v3.433: the supplement name gets the whole first line (its placeholder was
+     cut to "Add a suppl"); how often and Add share the second. */
+  #mySupplementsExpandWrap .weight-input-row{flex-wrap:wrap;}
+  #mySupplementAddInput{flex:1 1 100%;}
+  .supplement-recs-link{margin-top:10px;}
   .weight-input-row input::placeholder{font-family:var(--font-sans);}
   /* v3.309 (2.0): every inline submit (Log, Add) is the app's primary — the
      blue-to-purple pill, compact and without the glow — not a green button. */
@@ -5903,7 +5908,7 @@
     <div class="expand-wrap" id="mySupplementsExpandWrap"><div>
       <div class="weight-input-row">
         <input type="text" id="mySupplementAddInput" class="care-input" placeholder="Add a supplement (e.g. Creatine)" aria-label="Add a supplement" autocomplete="off">
-        <select id="mySupplementFrequencySelect" class="care-input" style="flex:0 0 116px; padding-left:8px;" aria-label="How often">
+        <select id="mySupplementFrequencySelect" class="care-input" style="flex:1; padding-left:8px;" aria-label="How often">
           <option value="daily">Daily</option>
           <option value="twice-daily">Twice daily</option>
           <option value="weekly">Weekly</option>
@@ -6996,7 +7001,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.432';
+const APP_VERSION = '3.433';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8099,6 +8104,9 @@ const WHATS_NEW = {
   ]},
   '3.432': { headline: 'Water reset, undoable', points: [
     'Water\'s Reset is a quiet action beside the day\'s total, and it can be undone.',
+  ]},
+  '3.433': { headline: 'Roomier supplement entry', points: [
+    'Adding a supplement gives its name the full line, and the recommendations link matches the other buttons.',
   ]},
 };
 
@@ -34851,9 +34859,7 @@ async function renderMySupplements(){
     // idea Supplement Recommendations exists.
     el.innerHTML = `
       <div class="empty-note">Nothing here yet — add what you actually take.</div>
-      <div class="app-banner-actions" style="justify-content:center;">
-        <button type="button" class="app-banner-btn app-banner-btn-primary" data-jump-to="supplementRecommendationsCard">Get supplement recommendations</button>
-      </div>
+      <button type="button" class="custom-toggle supplement-recs-link" data-jump-to="supplementRecommendationsCard">Get supplement recommendations</button>
     `;
     return;
   }
