@@ -3980,20 +3980,22 @@
      a normal list row instead of the small-caps "what this is based on"
      affordance it renders as everywhere else, so the override is scoped to
      this card's own list and leaves that original look untouched. */
+  /* v3.461 (Learn 2.0): plain list rows like the masterclass index (v3.459),
+     not boxed tiles; a style's rows stay indented under its program. */
   #researchSourcesList .program-basis-toggle{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
-    width:100%; margin-top:0; margin-bottom:8px; padding:12px 14px; min-height:44px;
-    border-radius:var(--radius-md);
-    background:var(--glass-fill); border:1px solid rgba(var(--surface-white-rgb),0.07);
-    font-family:var(--font-sans); font-size:13.5px; font-weight:600;
+    width:100%; margin:0; padding:12px 0; min-height:44px;
+    border-radius:0;
+    background:none; border:none; border-bottom:1px solid var(--line-soft);
+    font-family:var(--font-sans); font-size:15px; font-weight:600;
     text-transform:none; letter-spacing:-0.005em; color:var(--text);
   }
-  #researchSourcesList .program-basis-toggle:active{ color:var(--text); transform:scale(0.98); }
+  #researchSourcesList .program-basis-toggle:active{ color:var(--text); opacity:0.6; }
   #researchSourcesList .source-row-nested{ margin-left:14px; }
   #researchSourcesList .source-row-nested .program-basis-toggle{
-    background:var(--glass-fill); font-size:12.5px; font-weight:500; padding:10px 12px;
+    font-size:14px; font-weight:500;
   }
-  #researchSourcesList .smooth-toggle{ margin-bottom:10px; }
+  #researchSourcesList .smooth-toggle.open{ margin-bottom:10px; }
   /* v3.404: short citations, one per line, linked where there is a DOI. */
   #researchSourcesList .source-cites-eyebrow{ margin-top:12px; }
   #researchSourcesList .source-cites{ list-style:none; margin:4px 0 0; padding:0; display:flex; flex-direction:column; gap:6px; }
@@ -7067,7 +7069,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.460';
+const APP_VERSION = '3.461';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8254,6 +8256,9 @@ const WHATS_NEW = {
   ]},
   '3.460': { headline: 'Tidier Research card', points: [
     'A closed Research & Sources card no longer leaves a gap under its hint.',
+  ]},
+  '3.461': { headline: 'Sources as a list', points: [
+    'Learn\'s Research & Sources opens to a plain list, like the masterclass index.',
   ]},
 };
 

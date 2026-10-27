@@ -94,4 +94,26 @@ test('REAL CSSOM (v3.460): the hint has no bottom margin while the list is close
   assert.strictEqual(mb(page(false), 'other'), '14px', 'other hints keep theirs');
 });
 
+// v3.461 — Research & Sources as a list too. Opened, it was ~55 boxed tiles
+// (a style's tiles boxed again inside its program's). They are now the same
+// plain rows as the masterclass index; a style's rows stay indented.
+test('REAL CSSOM (v3.461): a source row is a plain 44px row, no box; nested rows indent; closed panels add no gap', (assert)=>{
+  const { window } = new JSDOM(`<style>${CSS}</style><div id="researchSourcesList"><div class="source-program-group">
+    <div class="source-row"><button class="program-basis-toggle" id="p">Boxing</button><div class="smooth-toggle" id="t"><div></div></div></div>
+    <div class="source-row source-row-nested" id="nr"><button class="program-basis-toggle" id="n">Muay Thai</button><div class="smooth-toggle open" id="o"><div></div></div></div>
+  </div></div><button class="program-basis-toggle" id="elsewhere">Based on</button>`);
+  const cs = id => window.getComputedStyle(window.document.getElementById(id));
+  assert.strictEqual(cs('p').paddingLeft, '0px');
+  assert.strictEqual(cs('p').minHeight, '44px');
+  assert.strictEqual(cs('p').marginBottom, '0px');
+  assert.strictEqual(cs('p').fontSize, '15px');
+  assert.strictEqual(cs('n').fontSize, '14px');
+  assert.strictEqual(cs('nr').marginLeft, '14px', 'a style sits under its program');
+  assert.strictEqual(cs('t').marginBottom, '0px', 'a closed panel leaves no gap between rows');
+  assert.strictEqual(cs('o').marginBottom, '10px');
+  assert.strictEqual(cs('elsewhere').paddingTop, '4px', 'the toggle elsewhere keeps its own look');
+  assert.match(CSS, /#researchSourcesList \.program-basis-toggle\{[^}]*background:none; border:none; border-bottom:1px solid var\(--line-soft\);/);
+  assert.doesNotMatch(CSS, /#researchSourcesList \.source-row-nested \.program-basis-toggle\{[^}]*background/);
+});
+
 run();
