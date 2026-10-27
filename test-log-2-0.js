@@ -26,7 +26,8 @@ test('REAL markup (v3.428): the day\'s food log is the first thing in the nutrit
   for(const id of ['foodSearchInput', 'foodItems', 'customToggle']) assert.ok(before(log, doc.getElementById(id)), 'the log comes before ' + id);
   assert.ok(before(doc.getElementById('repeatYesterdayBtn'), log), 'Repeat yesterday stays with it, above the list');
   const firstLabel = wrap.querySelector('.section-label');
-  assert.strictEqual(firstLabel.textContent.trim(), 'Today');
+  // 2026-10-27 (v3.434): labelled "Eaten" (the date bar names the day).
+  assert.strictEqual(firstLabel.textContent.trim(), 'Eaten');
 });
 
 // v3.429 — Targets once. A strip of four targets (2169 / 128g / 65g / 268g)
@@ -151,6 +152,23 @@ test('REAL invocation (v3.433): the empty tracker offers recommendations as the 
   assert.ok(btn, 'still links to the recommendations card');
   assert.ok(btn.classList.contains('custom-toggle'));
   assert.strictEqual(window.document.querySelector('#mySupplementsList .app-banner-btn'), null);
+});
+
+// v3.434 — Copy (impeccable clarify: say it once, no instructions the
+// control already gives). "Today's Nutrition" and its "Today" label sat
+// under a date bar that already names the day, and read wrong while
+// backdating; the card is "Nutrition", the list "Eaten", the empty note
+// drops "today". Body Measurements' "Tap to log —" goes. Grocery's empty
+// note names the Recipes action plainly.
+test('REAL markup + invocation (v3.434): Log copy says each thing once and is right on any date', (assert)=>{
+  const title = doc.getElementById('nutritionHeader').textContent.replace(/\s+/g, ' ').trim();
+  assert.strictEqual(title, 'Nutrition');
+  assert.strictEqual(doc.getElementById('measureSummary').textContent, 'Waist, chest, arms and more, over time');
+  const logView = doc.getElementById('logView').textContent;
+  assert.doesNotMatch(logView, /Tap to log|Today's Nutrition/);
+  const { window } = runJsdom('<div id="foodLogList"></div>', 'window.todaysFoodLog = []; window.computeTodaysFoodTotals = ()=>({}); window.updateBars = ()=>{}; window.renderMedicalNutrientBars = ()=>{}; window.renderTodayInsights = ()=>{}; window.updateRepeatYesterdayVisibility = ()=>{};', [extractFunction(src, 'renderFoodLog'), 'renderFoodLog();']);
+  assert.strictEqual(window.document.getElementById('foodLogList').textContent, 'Nothing logged yet. Tap + on a food below to add it.');
+  assert.doesNotMatch(extractFunction(src, 'loadMeasurements'), /Tap to log/);
 });
 
 run();

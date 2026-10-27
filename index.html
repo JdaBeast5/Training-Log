@@ -5686,7 +5686,7 @@
   <div class="card">
 
     <div class="card-title nutrition-header" id="nutritionHeader">
-      <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg></span>Today's Nutrition</span>
+      <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg></span>Nutrition</span>
       <span class="ex-chevron" aria-hidden="true" id="nutritionChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
     </div>
 
@@ -5722,7 +5722,7 @@
     <div class="expand-wrap" id="nutritionExpandWrap"><div>
       <!-- v3.428: what you have eaten comes first, under the totals it adds up to;
            adding and browsing follow. It sat below the whole food library. -->
-      <div class="section-label">Today</div>
+      <div class="section-label">Eaten</div>
       <button class="reorder-btn" id="repeatYesterdayBtn" style="display:none; margin-bottom:10px;">Repeat yesterday</button>
       <div class="food-log-list" id="foodLogList"></div>
 
@@ -5926,7 +5926,7 @@
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7.5" width="16" height="5.5" rx="1"/><line x1="6" y1="7.5" x2="6" y2="10.2"/><line x1="10" y1="7.5" x2="10" y2="10.2"/><line x1="14" y1="7.5" x2="14" y2="10.2"/></svg></span>Body Measurements</span>
       <span class="ex-chevron" aria-hidden="true" id="measureChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
     </div>
-    <div class="nutrition-summary" id="measureSummary">Tap to log — track waist, chest, arms, and more over time</div>
+    <div class="nutrition-summary" id="measureSummary">Waist, chest, arms and more, over time</div>
     <div class="expand-wrap" id="measureExpandWrap"><div>
       <div class="profile-row-2">
         <div><label class="care-label" for="mWaist">Waist (in)</label><input type="number" inputmode="decimal" step="0.1" id="mWaist" class="care-input"></div>
@@ -7001,7 +7001,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.433';
+const APP_VERSION = '3.434';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8107,6 +8107,9 @@ const WHATS_NEW = {
   ]},
   '3.433': { headline: 'Roomier supplement entry', points: [
     'Adding a supplement gives its name the full line, and the recommendations link matches the other buttons.',
+  ]},
+  '3.434': { headline: 'Clearer Log wording', points: [
+    'The nutrition card is titled Nutrition, its list is Eaten, and Log\'s hints drop instructions the buttons already give.',
   ]},
 };
 
@@ -34508,7 +34511,7 @@ async function renderGroceryList(){
   const list = await loadGroceryList();
   const clearBtn = document.getElementById('groceryClearCheckedBtn');
   if(list.length === 0){
-    el.innerHTML = '<div class="empty-note">Nothing here yet — add an item, or tap "Add ingredients" on a Recipe Finder result.</div>';
+    el.innerHTML = '<div class="empty-note">Nothing here yet. Add an item, or a recipe\'s ingredients from Recipes.</div>';
     if(clearBtn) clearBtn.style.display = 'none';
     return;
   }
@@ -36675,7 +36678,7 @@ function computeTodaysFoodTotals(){
 function renderFoodLog(){
   const listEl = document.getElementById('foodLogList');
   if(todaysFoodLog.length === 0){
-    listEl.innerHTML = '<div class="empty-note">Nothing logged yet today — tap + on a food to add it.</div>';
+    listEl.innerHTML = '<div class="empty-note">Nothing logged yet. Tap + on a food below to add it.</div>';
   } else {
     const itemHtmls = todaysFoodLog.map((item, i)=>{
       const q = item.qty || 1;
@@ -38145,7 +38148,7 @@ async function loadMeasurements(){
     if(res && res.value) entries = JSON.parse(res.value);
     if(entries.length===0){
       listEl.innerHTML = '';
-      summaryEl.textContent = 'Tap to log — track waist, chest, arms, and more over time';
+      summaryEl.textContent = 'Waist, chest, arms and more, over time';
       return;
     }
     entries.sort((a,b)=> new Date(b.date) - new Date(a.date));
@@ -38154,7 +38157,7 @@ async function loadMeasurements(){
     if(latest.waist) parts.push(`Waist ${latest.waist}"`);
     if(latest.chest) parts.push(`Chest ${latest.chest}"`);
     if(latest.arms) parts.push(`Arms ${latest.arms}"`);
-    summaryEl.textContent = parts.length ? `Latest: ${parts.join(' · ')}` : 'Tap to log your measurements';
+    summaryEl.textContent = parts.length ? `Latest: ${parts.join(' · ')}` : 'Waist, chest, arms and more, over time';
     const sorted = entries;
     const itemHtmls = sorted.map(e=> buildSwipeItem(
       `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${[e.waist&&`W:${e.waist}`, e.chest&&`C:${e.chest}`, e.arms&&`A:${e.arms}`].filter(Boolean).join(' ')}"</span></div>`

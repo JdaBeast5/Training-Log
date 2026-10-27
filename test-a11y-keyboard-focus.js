@@ -434,7 +434,8 @@ test('REAL DOM: a card header lifted straight out of index.html has both its ico
   assert.strictEqual(svg.getAttribute('aria-hidden'), 'true', 'the icon duplicates the text beside it, so it is hidden');
   assert.ok(chevron, 'sanity: this header really does carry a chevron');
   assert.strictEqual(chevron.getAttribute('aria-hidden'), 'true', 'the chevron is a pure visual state indicator');
-  assert.ok(header.textContent.includes("Today's Nutrition"), 'the real text label is still there to be read');
+  // 2026-10-27 (v3.434): titled "Nutrition" (the date bar above names the day).
+  assert.ok(header.textContent.includes("Nutrition"), 'the real text label is still there to be read');
 });
 
 test('REAL DOM: the app-header brand mark and the search pill icon are hidden — both sit next to (or inside) something already labelled', (assert)=>{
