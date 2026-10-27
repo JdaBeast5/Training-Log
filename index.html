@@ -3580,12 +3580,20 @@
   .care-pattern-row:last-child{ border-bottom:none; }
   .care-pattern-name{ font-size:13px; font-weight:600; color:var(--text); }
   .care-log-pain{color:var(--plate-red); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11px;}
+  /* v3.451: a check-in's pain is coloured by how bad it is (every one was red,
+     2/10 included), like the slider it was logged on; the date in the text
+     face with the pain at the row's end; Edit without the underline. */
+  #careView .care-log-date{display:flex; justify-content:space-between; align-items:baseline; font-family:var(--font-sans); font-size:13px;}
+  #careView .care-log-pain{font-size:12.5px; font-weight:600;}
+  .care-log-pain.is-low{color:var(--text-muted);}
+  .care-log-pain.is-mid{color:var(--plate-yellow);}
+  .care-log-pain.is-high{color:var(--plate-red);}
   /* Edit is deliberately a quiet text affordance rather than a second solid
      button: the row's primary gesture is still swipe-to-delete, and two
      competing buttons on a 12.5px row is how a list stops being scannable. */
   .care-log-edit{
     background:none; border:none; color:var(--plate-blue); font-size:11.5px; font-weight:600;
-    font-family:var(--font-sans); padding:4px 0 0; cursor:pointer; text-decoration:underline;
+    font-family:var(--font-sans); padding:4px 0 0; cursor:pointer; text-decoration:none;
   }
   /* Only ever visible while backdating, so it is allowed to be loud. Silence
      here is the failure mode — a check-in filed to the wrong day reads as
@@ -7051,7 +7059,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.450';
+const APP_VERSION = '3.451';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8208,6 +8216,9 @@ const WHATS_NEW = {
   ]},
   '3.450': { headline: 'Stretches read as rows', points: [
     'Care\'s stretch and strengthening moves read as rows you open, not as blue links.',
+  ]},
+  '3.451': { headline: 'Pain coloured by how bad it is', points: [
+    'Care\'s check-ins colour pain by severity (not everything red), with the date and pain on one tidy line.',
   ]},
 };
 
@@ -43490,7 +43501,7 @@ async function renderCare(){
     const sorted = [...log].sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'));
     const itemHtmls = sorted.map(e=> buildSwipeItem(`
       <div class="care-log-item">
-        <div class="care-log-date">${fmtDayLabel(e.date)} <span class="care-log-pain">${e.pain}/10</span></div>
+        <div class="care-log-date">${fmtDayLabel(e.date)} <span class="care-log-pain ${e.pain >= 7 ? 'is-high' : e.pain >= 4 ? 'is-mid' : 'is-low'}">${e.pain}/10</span></div>
         <div class="care-log-detail">${e.exercise ? `During: ${escapeHtml(e.exercise)} · ` : ''}${SENSATION_LABELS[e.sensation] || ''} ${e.region ? `· ${escapeHtml(e.region)}` : ''}</div>
         ${e.note ? `<div class="care-log-detail">${escapeHtml(e.note)}</div>` : ''}
         <button class="care-log-edit" aria-label="Edit check-in from ${escapeHtml(fmtDayLabel(e.date))}">Edit</button>

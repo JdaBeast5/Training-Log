@@ -44,4 +44,28 @@ test('REAL invocation + CSSOM (v3.450): a stretch row\'s name is in the text col
   assert.notStrictEqual(w.getComputedStyle(w.document.getElementById('cues')).color, 'var(--text)', 'the Cues toggle is unchanged');
 });
 
+// v3.451 — Check-in rows. Every check-in's pain was red, 2/10 included. It
+// now takes the slider's scale: muted up to 3, yellow 4–6, red 7+. The date
+// reads in the text face with the pain at the row's end, and Edit loses its
+// underline (a quiet text action, as its own comment intends).
+test('REAL source (v3.451): the check-in pain colour follows its severity', (assert)=>{
+  const fn = extractFunction(src, 'renderCare');
+  const m = fn.match(/<span class="care-log-pain \$\{(e\.pain >= 7 \? 'is-high' : e\.pain >= 4 \? 'is-mid' : 'is-low')\}">/);
+  assert.ok(m, 'the real class expression');
+  const cls = new Function('e', 'return ' + m[1] + ';');
+  assert.deepStrictEqual([1, 3, 4, 6, 7, 10].map(pain => cls({pain})), ['is-low', 'is-low', 'is-mid', 'is-mid', 'is-high', 'is-high']);
+});
+
+test('REAL CSSOM (v3.451): severity colours; date row in the text face with pain at its end; Edit not underlined', (assert)=>{
+  const { window } = new JSDOM(`<style>${CSS}</style><div id="careView"><div class="care-log-date" id="d">Mon, Oct 26 <span class="care-log-pain is-low" id="l">2/10</span></div>
+    <span class="care-log-pain is-mid" id="m">5/10</span><span class="care-log-pain is-high" id="h">8/10</span><button class="care-log-edit" id="e">Edit</button></div>`);
+  const cs = id => window.getComputedStyle(window.document.getElementById(id));
+  assert.strictEqual(cs('l').color, 'var(--text-muted)');
+  assert.strictEqual(cs('m').color, 'var(--plate-yellow)');
+  assert.strictEqual(cs('h').color, 'var(--plate-red)');
+  assert.strictEqual(cs('d').fontFamily, 'var(--font-sans)');
+  assert.strictEqual(cs('d').justifyContent, 'space-between');
+  assert.strictEqual(cs('e').textDecoration, 'none');
+});
+
 run();
