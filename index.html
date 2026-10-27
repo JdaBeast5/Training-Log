@@ -6232,18 +6232,8 @@
   </div>
 
   <div id="historyView" style="display:none">
-    <div class="card">
-      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h7v3.6a3.5 3.5 0 0 1-7 0Z"/><path d="M6.5 4H3.2v1a3 3 0 0 0 3 3M13.5 4h3.3v1a3 3 0 0 1-3 3"/><line x1="10" y1="10.6" x2="10" y2="13.5"/><line x1="7.2" y1="17" x2="12.8" y2="17"/><line x1="8.2" y1="13.5" x2="11.8" y2="13.5"/></svg></span>Personal Records Timeline</div>
-      <div class="history-hint">Every PR you've hit, newest first.</div>
-      <div id="prTimeline"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="2.5" x2="5" y2="17.5"/><path d="M5 3.2h9.5l-2.4 3 2.4 3H5"/></svg></span>Saved Weeks</div>
-      <div class="history-hint">Snapshots you've manually saved at the end of a training week.</div>
-      <div id="savedWeeksList"></div>
-    </div>
-
+    <!-- v3.443: the day-by-day log is what History is for, so it leads;
+         records and saved weeks follow (it sat last, under both). -->
     <div class="card">
       <div class="card-title nutrition-header" id="historyLogHeader">
         <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.2 6.2a1 1 0 0 1 1-1h3.8l1.4 1.8h8.4a1 1 0 0 1 1 1v7.8a1 1 0 0 1-1 1H3.2a1 1 0 0 1-1-1Z"/></svg></span>Day-by-Day Log</span>
@@ -6281,6 +6271,18 @@
       <div id="historyList"></div>
       </div></div>
     </div>
+    <div class="card">
+      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h7v3.6a3.5 3.5 0 0 1-7 0Z"/><path d="M6.5 4H3.2v1a3 3 0 0 0 3 3M13.5 4h3.3v1a3 3 0 0 1-3 3"/><line x1="10" y1="10.6" x2="10" y2="13.5"/><line x1="7.2" y1="17" x2="12.8" y2="17"/><line x1="8.2" y1="13.5" x2="11.8" y2="13.5"/></svg></span>Personal Records Timeline</div>
+      <div class="history-hint">Every PR you've hit, newest first.</div>
+      <div id="prTimeline"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="2.5" x2="5" y2="17.5"/><path d="M5 3.2h9.5l-2.4 3 2.4 3H5"/></svg></span>Saved Weeks</div>
+      <div class="history-hint">Snapshots you've manually saved at the end of a training week.</div>
+      <div id="savedWeeksList"></div>
+    </div>
+
   </div>
 
   <div id="careView" style="display:none">
@@ -7026,7 +7028,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.442';
+const APP_VERSION = '3.443';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8159,6 +8161,9 @@ const WHATS_NEW = {
   ]},
   '3.442': { headline: 'Show 1 more', points: [
     'A list with one hidden row now says Show 1 more, not Show 1 more exercises.',
+  ]},
+  '3.443': { headline: 'Your log first', points: [
+    'History opens on the Day-by-Day Log; records and saved weeks follow.',
   ]},
 };
 
