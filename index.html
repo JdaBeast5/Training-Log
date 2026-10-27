@@ -1821,6 +1821,9 @@
   .trend-labels > :nth-child(2):not([class]), .trend-labels > :nth-child(2)[class=""]{color:var(--text);}
   .care-details{margin:0 0 10px 0;}
   .care-details summary{display:flex; align-items:center; gap:8px;}
+  /* v3.450: a stretch is a row you open, not a link — its name in the text
+     colour (it took .ex-details' link blue, meant for the small "Cues" toggle). */
+  .care-details > summary{color:var(--text); font-weight:500; font-size:14px; min-height:36px;}
   .care-type-tag{
     font-size:11px; font-weight:700;
     padding:2px 7px; border-radius:var(--radius-md); flex:0 0 auto;
@@ -7048,7 +7051,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.449';
+const APP_VERSION = '3.450';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8202,6 +8205,9 @@ const WHATS_NEW = {
   ]},
   '3.449': { headline: 'Calmer resting chip', points: [
     'Care\'s resting areas read as plain names with a quiet clear button inside their caution outline.',
+  ]},
+  '3.450': { headline: 'Stretches read as rows', points: [
+    'Care\'s stretch and strengthening moves read as rows you open, not as blue links.',
   ]},
 };
 

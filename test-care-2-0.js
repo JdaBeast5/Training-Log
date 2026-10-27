@@ -30,4 +30,18 @@ test('REAL CSSOM (v3.449): the resting chip\'s name is text-coloured and not und
   assert.match(CSS, /\.resting-chip\{[^}]*border:1px solid var\(--plate-yellow\)/, 'the caution border is kept');
 });
 
+// v3.450 — A stretch is a row you open. Its name took .ex-details' link blue
+// (meant for the exercise list's small "Cues" toggle), so a list of
+// stretches read as a list of links.
+test('REAL invocation + CSSOM (v3.450): a stretch row\'s name is in the text colour; the exercise list\'s Cues toggle keeps its blue', (assert)=>{
+  const { window } = runJsdom('<div id="o"></div>', `window.exerciseInfo = {'Pendulum Swings': {cues:['Let the arm hang'], videoQuery:'pendulum'}};`,
+    [extractFunction(src, 'escapeHtml'), extractConst(src, 'CARE_TYPE_TAG'),
+     extractFunction(src, 'buildCareItemHtml'), "document.getElementById('o').innerHTML = buildCareItemHtml('Pendulum Swings');"]);
+  const row = window.document.querySelector('details.care-details > summary');
+  assert.ok(row, 'anchor: the real stretch row');
+  const { window: w } = new JSDOM(`<style>${CSS}</style>${window.document.getElementById('o').innerHTML}<details class="ex-details"><summary id="cues">Cues</summary></details>`);
+  assert.strictEqual(w.getComputedStyle(w.document.querySelector('.care-details > summary')).color, 'var(--text)');
+  assert.notStrictEqual(w.getComputedStyle(w.document.getElementById('cues')).color, 'var(--text)', 'the Cues toggle is unchanged');
+});
+
 run();
