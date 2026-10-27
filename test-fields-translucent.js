@@ -71,6 +71,11 @@ const CONTROLS = ['.water-btn', '#researchSourcesList .program-basis-toggle', '#
   '.same-as-last-btn', '.ex-history-btn', '.ex-edit-btn', '.masterclass-link-btn', '.food-cat-btn', '.analysis-index-chip', '.masterclass-index-btn',
   '.reorder-arrows button', '.describe-similar-btn', '.qty-stepper', '.describe-save-btn', '.recipe-link-btn', '.equip-plate', '.set-note-btn',
   '.compare-cancel-btn', '.resting-chip', '.set-drop-btn', '.mesocycle-phase-tag', '.user-pick-btn', '#describeFoodVoiceSlot .voice-log-btn'];
+// 2026-10-27 (v3.459, v3.461): Learn's masterclass index and Research &
+// Sources rows became plain list rows with no fill at all (test-learn-2-0.js);
+// the test below asserts that instead.
+const UNFILLED = ['.masterclass-index-btn', '#researchSourcesList .program-basis-toggle'];
+const FILLED = CONTROLS.filter(x => !UNFILLED.includes(x) && x !== '#researchSourcesList .source-row-nested .program-basis-toggle');
 // The FIRST rule for each selector (where the fill lives); later rules for the
 // same selector are state or layout tweaks.
 function firstDeclared(selector, prop){
@@ -84,7 +89,8 @@ function firstDeclared(selector, prop){
 test('REAL CSSOM (v3.399): the secondary controls inside cards are translucent; the deliberate solids are not touched', (assert)=>{
   assert.strictEqual(CONTROLS.length, 23, 'anchor: the audited list');
   // 2026-10-27 (v3.403): these moved on to the cards' glass (test below).
-  for(const sel of CONTROLS) assert.match(firstDeclared(sel, 'background'), /^var\(--(row|glass)-fill\)$/, sel);
+  for(const sel of FILLED) assert.match(firstDeclared(sel, 'background'), /^var\(--(row|glass)-fill\)$/, sel);
+  for(const sel of UNFILLED) assert.strictEqual(firstDeclared(sel, 'background'), 'none', sel);
   assert.doesNotMatch(declared('.food-cat-btn.active', 'background'), /row-fill/, 'the selected category stays blue');
   assert.doesNotMatch(declared('.ex-suggest', 'background') || 'var(--surface2)', /row-fill/, 'a floating menu stays opaque');
 });
@@ -116,7 +122,7 @@ test('REAL CSSOM (v3.402): fields and pickers wear the glass — fill, hairline,
 // edge was the opaque --line. Inside the settings sheet .settings-jump stays a
 // transparent row. No shadow is added (v3.283).
 test('REAL CSSOM (v3.403): in-card buttons and chips wear the glass; settings rows stay transparent; no opaque --line edge left on them', (assert)=>{
-  for(const sel of [...CONTROLS, '.settings-jump']){
+  for(const sel of [...FILLED, '.settings-jump']){
     assert.strictEqual(firstDeclared(sel, 'background'), 'var(--glass-fill)', sel);
     assert.doesNotMatch(firstDeclared(sel, 'border'), /var\(--line\)/, sel + ' edge');
   }

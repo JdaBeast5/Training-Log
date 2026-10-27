@@ -59,7 +59,10 @@ test('REAL CSSOM: no rule outside the named exceptions sets text under 11px', (a
 test('REAL CSSOM: the swept labels read in the text face; figure labels keep mono numerals', (assert)=>{
   const ff = sel => allRules().find(r => r.selectorText === sel).style.getPropertyValue('font-family');
   for(const s of ['.section-label', '.prog-day', '.program-basis-toggle', '.tabs-header .hint', '.calendar-weekday-row span']) assert.strictEqual(ff(s), 'var(--font-sans)', s);
-  for(const s of ['.whats-new-version', '.masterclass-index-btn .mc-index-meta']) assert.strictEqual(ff(s), 'var(--font-mono)', s);
+  assert.strictEqual(ff('.whats-new-version'), 'var(--font-mono)');
+  // 2026-10-27 (v3.459): the index note is words ("In your program"), not a
+  // figure, so it moved to the text face (test-learn-2-0.js).
+  assert.strictEqual(ff('.masterclass-index-btn .mc-index-meta'), 'var(--font-sans)');
 });
 
 test('REAL markup: the two labels whose Title Case surfaced are sentence case', (assert)=>{

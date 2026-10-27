@@ -3125,6 +3125,9 @@
   .prog-ready{color:var(--plate-green); font-size:13px; font-weight:500; margin-top:4px; font-family:var(--font-sans);}
 
   .history-hint{font-size:12px; color:var(--text-muted); margin-bottom:14px; line-height:1.4;}
+  /* v3.460: Learn's Research & Sources keeps its hint outside the closed list
+     (v3.458), so the hint's gap sat under it with nothing below. */
+  #researchSourcesCard .history-hint:has(+ .expand-wrap:not(.open)){margin-bottom:0;}
   .history-hint.nutrient-inline-note{margin-top:-6px; margin-bottom:12px;}
   .history-hint.subtle{opacity:0.75;}
   .history-hint.recipe-desc{margin:2px 0 8px;}
@@ -3773,25 +3776,20 @@
     width:calc(100% + 8px); height:44px;
   }
 
-  /* Masterclass index rows. Secondary/navigational, so they follow the
-     .reorder-btn side of the two-tier hierarchy in HANDOFF §9 — flat with a
-     border, no glow. The one matching the active program is the exception
-     and gets the translucent-tint treatment (gradient + tinted border +
-     inset sheen + colored ambient glow) so it reads as "yours" without
-     being promoted to a primary action. */
+  /* Masterclass index rows.
+     v3.459 (Learn 2.0): plain list rows, the same as the technique
+     groups above them (.posing-class > summary): a hairline under each, 44px,
+     no box. A stack of 13 boxed tiles inside a card read as 13 buttons. */
   .masterclass-index-btn{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     width:100%; text-align:left; cursor:pointer;
-    padding:12px 14px; margin-bottom:8px; border-radius:var(--radius-md);
-    background:var(--glass-fill); border:1px solid rgba(var(--surface-white-rgb),0.07);
-    color:var(--text); font-family:var(--font-sans); font-size:13.5px; font-weight:600;
+    padding:12px 0; min-height:44px; margin:0; border-radius:0;
+    background:none; border:none; border-bottom:1px solid var(--line-soft);
+    color:var(--text); font-family:var(--font-sans); font-size:15px; font-weight:600;
     letter-spacing:-0.005em;
-    box-shadow:inset 0 1px 0 rgba(var(--surface-white-rgb),0.04);
-    transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth),
-               box-shadow 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
+    transition:opacity 0.15s var(--ease-smooth);
   }
-  .masterclass-index-btn:active{ transform:scale(0.98); }
-  .masterclass-index-btn.opened{ border-color:rgba(var(--surface-white-rgb),0.16); }
+  .masterclass-index-btn:active{ opacity:0.6; }
   .masterclass-index-btn.opened .ex-chevron{ transform:rotate(90deg); display:inline-block; }
   /* v3.420: glass, like the other in-card buttons (v3.403); it sits at the foot of an open masterclass card. */
   .masterclass-close-btn{
@@ -3966,15 +3964,11 @@
   .warmup-foot{
     margin:0 0 2px; font-size:11px; color:var(--text-muted); line-height:1.4;
   }
-  .masterclass-index-btn.current{
-    background:linear-gradient(160deg, rgba(var(--plate-blue-rgb),0.14), rgba(var(--plate-blue-rgb),0.05));
-    border-color:rgba(var(--plate-blue-rgb),0.32);
-    box-shadow:inset 0 1px 0 rgba(var(--surface-white-rgb),0.08), 0 8px 20px -14px rgba(var(--plate-blue-rgb),0.45);
-  }
+  /* v3.459: yours is marked by its note, in blue, not by a tinted tile. */
   .masterclass-index-btn .mc-index-meta{
     display:inline-flex; align-items:center; gap:6px; flex:0 0 auto;
-    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
-    font-size:11px; font-weight:600;
+    font-family:var(--font-sans);
+    font-size:13px; font-weight:500;
     color:var(--text-muted);
   }
   .masterclass-index-btn.current .mc-index-meta{ color:var(--plate-blue); }
@@ -3986,20 +3980,22 @@
      a normal list row instead of the small-caps "what this is based on"
      affordance it renders as everywhere else, so the override is scoped to
      this card's own list and leaves that original look untouched. */
+  /* v3.461 (Learn 2.0): plain list rows like the masterclass index (v3.459),
+     not boxed tiles; a style's rows stay indented under its program. */
   #researchSourcesList .program-basis-toggle{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
-    width:100%; margin-top:0; margin-bottom:8px; padding:12px 14px; min-height:44px;
-    border-radius:var(--radius-md);
-    background:var(--glass-fill); border:1px solid rgba(var(--surface-white-rgb),0.07);
-    font-family:var(--font-sans); font-size:13.5px; font-weight:600;
+    width:100%; margin:0; padding:12px 0; min-height:44px;
+    border-radius:0;
+    background:none; border:none; border-bottom:1px solid var(--line-soft);
+    font-family:var(--font-sans); font-size:15px; font-weight:600;
     text-transform:none; letter-spacing:-0.005em; color:var(--text);
   }
-  #researchSourcesList .program-basis-toggle:active{ color:var(--text); transform:scale(0.98); }
+  #researchSourcesList .program-basis-toggle:active{ color:var(--text); opacity:0.6; }
   #researchSourcesList .source-row-nested{ margin-left:14px; }
   #researchSourcesList .source-row-nested .program-basis-toggle{
-    background:var(--glass-fill); font-size:12.5px; font-weight:500; padding:10px 12px;
+    font-size:14px; font-weight:500;
   }
-  #researchSourcesList .smooth-toggle{ margin-bottom:10px; }
+  #researchSourcesList .smooth-toggle.open{ margin-bottom:10px; }
   /* v3.404: short citations, one per line, linked where there is a DOI. */
   #researchSourcesList .source-cites-eyebrow{ margin-top:12px; }
   #researchSourcesList .source-cites{ list-style:none; margin:4px 0 0; padding:0; display:flex; flex-direction:column; gap:6px; }
@@ -6569,9 +6565,13 @@
     </div>
 
     <div class="card" id="researchSourcesCard">
-      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3.5h8.5L16 7v9.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1Z"/><path d="M12.5 3.5V7H16"/><line x1="6.5" y1="10" x2="13" y2="10"/><line x1="6.5" y1="13" x2="13" y2="13"/></svg></span>Research &amp; Sources</div>
+      <div class="card-title nutrition-header" id="researchSourcesHeader">
+        <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3.5h8.5L16 7v9.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1Z"/><path d="M12.5 3.5V7H16"/><line x1="6.5" y1="10" x2="13" y2="10"/><line x1="6.5" y1="13" x2="13" y2="13"/></svg></span>Research &amp; Sources</span>
+        <span class="ex-chevron" aria-hidden="true" id="researchSourcesChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
+      </div>
       <div class="history-hint">The research each program is built on.</div>
-      <div id="researchSourcesList"></div>
+      <!-- v3.458: closed by default — 55 rows that sat between your masterclass and the index of all of them. -->
+      <div class="expand-wrap" id="researchSourcesExpandWrap"><div><div id="researchSourcesList"></div></div></div>
     </div>
 
     <!-- Masterclass index. Every masterclass card above is gated on the
@@ -7069,7 +7069,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.457';
+const APP_VERSION = '3.461';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8247,6 +8247,18 @@ const WHATS_NEW = {
   ]},
   '3.457': { headline: 'Add your key from Coach', points: [
     'Without an API key saved, Coach\'s note offers Add your API key right there, instead of only after something fails.',
+  ]},
+  '3.458': { headline: 'Shorter Learn', points: [
+    'Learn\'s Research & Sources starts closed, so the masterclasses are a short scroll away.',
+  ]},
+  '3.459': { headline: 'Masterclasses as a list', points: [
+    'Learn\'s masterclass index is a plain list, like the technique groups above it.',
+  ]},
+  '3.460': { headline: 'Tidier Research card', points: [
+    'A closed Research & Sources card no longer leaves a gap under its hint.',
+  ]},
+  '3.461': { headline: 'Sources as a list', points: [
+    'Learn\'s Research & Sources opens to a plain list, like the masterclass index.',
   ]},
 };
 
@@ -26464,6 +26476,13 @@ document.getElementById('historyLogHeader').addEventListener('click', ()=>{
   setCardOpenState('historyLog', isOpen);
 });
 
+// v3.458: Learn's Research & Sources, the same wiring.
+document.getElementById('researchSourcesHeader').addEventListener('click', ()=>{
+  const isOpen = document.getElementById('researchSourcesHeader').classList.toggle('open');
+  document.getElementById('researchSourcesExpandWrap').classList.toggle('open');
+  setCardOpenState('researchSources', isOpen);
+});
+
 // History filter. Debounced because renderHistory rebuilds the whole day log
 // from storage on every call, and firing that per keystroke on a phone makes
 // typing feel laggy. 220ms is below the threshold where the delay reads as the
@@ -31688,7 +31707,8 @@ function isDistanceExercise(exName){
 // checking off today's supplements is a daily-use interaction, not a
 // rarely-touched settings panel, so hiding it by default would be a real
 // visibility regression for the existing tracked list.
-const PERSISTENT_CARDS = ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings', 'program', 'healthImport', 'diag', 'historyLog', 'mySupplements'];
+// 'researchSources' (v3.458): Learn's Research & Sources, default closed like the rest.
+const PERSISTENT_CARDS = ['nutrition', 'measure', 'photos', 'cycle', 'aiSettings', 'program', 'healthImport', 'diag', 'historyLog', 'mySupplements', 'researchSources'];
 async function getCardOpenState(key){
   // An explicit stored choice always wins. Only when NOTHING has ever
   // been stored does this fall back to a default — Nutrition and the
