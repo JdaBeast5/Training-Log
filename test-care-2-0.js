@@ -68,4 +68,14 @@ test('REAL CSSOM (v3.451): severity colours; date row in the text face with pain
   assert.strictEqual(cs('e').textDecoration, 'none');
 });
 
+// v3.452 — "Save a summary for an appointment" borrowed "Mark … as resting"'s
+// flat blue button; it is an occasional action, so Log's secondary pill.
+test('REAL markup (v3.452): the appointment summary is the secondary pill, still hidden until there are check-ins', (assert)=>{
+  const btn = doc.getElementById('careExport');
+  assert.ok(btn.classList.contains('custom-toggle'));
+  assert.strictEqual(btn.classList.contains('care-rest-btn'), false);
+  assert.strictEqual(btn.style.display, 'none');
+  assert.strictEqual(btn.textContent, 'Save a summary for an appointment');
+});
+
 run();
