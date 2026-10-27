@@ -74,4 +74,19 @@ test('REAL CSS (v3.436): the target line is quiet — muted, dashed, a fixed hai
   assert.match(CSS, /\.trend-target\{stroke:var\(--text-muted\); stroke-width:1\.2; stroke-dasharray:5 5;[^}]*vector-effect:non-scaling-stroke;\}/);
 });
 
+// v3.437 — Fewer boxes. Every Analysis chart ended in a tinted, glowing box,
+// including plain neutral notes ("Averaging 89% of your hydration target").
+// With a box under everything the box meant nothing. On Analysis a neutral
+// note is now a plain sentence; good and warning keep their tint.
+test('REAL CSSOM (v3.437): a neutral note on Analysis has no box; good and warning keep theirs; neutral elsewhere is untouched', (assert)=>{
+  const { window } = new JSDOM(`<style>${CSS}</style><div id="analysisView"><div class="goal-feedback-neutral" id="n">x</div><div class="goal-feedback-warn" id="w">x</div><div class="goal-feedback-good" id="g">x</div></div><div id="logView"><div class="goal-feedback-neutral" id="o">x</div></div>`);
+  const cs = id => window.getComputedStyle(window.document.getElementById(id));
+  assert.strictEqual(cs('n').paddingLeft, '0px');
+  assert.strictEqual(cs('n').boxShadow, 'none');
+  assert.strictEqual(cs('w').paddingLeft, '12px', 'a warning keeps its box');
+  assert.strictEqual(cs('g').paddingLeft, '12px', 'a good verdict keeps its box');
+  assert.strictEqual(cs('o').paddingLeft, '12px', 'outside Analysis the neutral box stays');
+  assert.match(CSS, /#analysisView \.goal-feedback-neutral\{background:none; border:none;/);
+});
+
 run();

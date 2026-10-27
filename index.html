@@ -898,6 +898,11 @@
     border-radius:var(--radius-sm); font-size:12.5px; line-height:1.5; color:var(--plate-yellow);
     box-shadow:var(--rim), 0 4px 14px -8px rgba(var(--plate-yellow-rgb),0.35);
   }
+  /* v3.437: on Analysis a neutral note is just the sentence under its chart —
+     only good and warning earn a tinted box, so the box itself means
+     something. (Elsewhere, e.g. AI replies on Today and Log, the neutral
+     box still frames the reply.) */
+  #analysisView .goal-feedback-neutral{background:none; border:none; box-shadow:none; padding:0; font-size:13px; color:var(--text);}
 
   /* Smooth expand/collapse without JS height calculation — height + fade together */
   .expand-wrap{
@@ -7013,7 +7018,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.436';
+const APP_VERSION = '3.437';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8128,6 +8133,9 @@ const WHATS_NEW = {
   ]},
   '3.436': { headline: 'Targets on the charts', points: [
     'Nutrition, Sleep and Water charts draw your target as a dashed line, so the gap to it is visible at a glance.',
+  ]},
+  '3.437': { headline: 'Calmer Analysis notes', points: [
+    'On Analysis, plain notes under a chart are just text; only good news and warnings get a coloured box.',
   ]},
 };
 
