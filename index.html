@@ -1822,7 +1822,7 @@
   }
   .macro-input-row{display:flex; gap:8px; margin-top:14px;}
   .macro-input-row input{
-    width:100%; background:var(--row-fill); border:1px solid var(--line); color:var(--text);
+    width:100%; background:var(--glass-fill); border:1px solid var(--glass-hair); box-shadow:var(--rim); color:var(--text);
     border-radius:var(--radius-sm); padding:9px 6px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:13px; text-align:center;
   }
   .save-btn{
@@ -1840,7 +1840,7 @@
 
   .weight-input-row{display:flex; gap:8px;}
   .weight-input-row input{
-    flex:1; background:var(--row-fill); border:1px solid var(--line); color:var(--text);
+    flex:1; background:var(--glass-fill); border:1px solid var(--glass-hair); box-shadow:var(--rim); color:var(--text);
     border-radius:var(--radius-sm); padding:10px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:14px;
   }
   /* v3.355 (audit): mono is for the numbers you type, not words. The two
@@ -2833,7 +2833,7 @@
   /* [GLOBAL SEARCH] */
   .gsearch-input{
     width:100%; box-sizing:border-box; margin-bottom:10px;
-    background:var(--row-fill); border:1px solid var(--line-bright);
+    background:var(--glass-fill); border:1px solid var(--glass-hair); box-shadow:var(--rim);
     border-radius:var(--radius-sm); color:var(--text);
     font-family:var(--font-sans); font-size:16px; padding:12px 14px;
   }
@@ -3012,7 +3012,7 @@
   .program-select-wrap{position:relative; z-index:1; margin:8px 0 0;}
   .program-select{
     width:100%; appearance:none; -webkit-appearance:none;
-    background:linear-gradient(160deg, var(--surface2), rgba(var(--surface-white-rgb),0.02)); border:1px solid var(--line); color:var(--text);
+    background:var(--glass-fill); border:1px solid var(--glass-hair); color:var(--text);
     border-radius:var(--radius-md); padding:12px 36px 12px 14px;
     font-family:var(--font-sans); font-size:14.5px; font-weight:700; letter-spacing:-0.01em;
     cursor:pointer;
@@ -3188,13 +3188,21 @@
      search, the History export picker, the custom-exercise form) is filled
      with the translucent --row-fill rather than opaque --surface2, so the
      aura reads through like it does on the cards and list rows around them. */
+  /* v3.402 (owner: fields on Analysis/History/Care/Coach/Learn "not quite
+     there"): --row-fill made the fields translucent but they still read as
+     dark recessed slabs beside the frosted glass of the cards and buttons. The
+     fields now wear the same glass: --glass-fill, the --glass-hair edge and
+     the --rim highlight, in place of the dark inset shadow. .program-select
+     (Care's area picker, Training Style) joins them — its gradient started
+     at opaque --surface2 — without the highlight: v3.283 took every shadow
+     off resting pickers (test-today-no-glow). .ex-input keeps --row-fill. */
   .care-input{
-    width:100%; background:var(--row-fill); border:1px solid var(--line); color:var(--text);
+    width:100%; background:var(--glass-fill); border:1px solid var(--glass-hair); color:var(--text);
     border-radius:var(--radius-sm); padding:10px; font-family:var(--font-sans); font-size:13.5px;
-    box-shadow:0 1px 3px rgba(var(--overlay-black-rgb),0.25) inset;
+    box-shadow:var(--rim);
     transition:border-color 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
   }
-  .care-input:focus{outline:none; border-color:var(--plate-blue); box-shadow:0 1px 3px rgba(var(--overlay-black-rgb),0.25) inset, var(--focus-ring-glow);}
+  .care-input:focus{outline:none; border-color:var(--plate-blue); box-shadow:var(--rim), var(--focus-ring-glow);}
   /* type=date carries its own UA-drawn internal layout (the day/month/year segments
      plus the calendar-icon button) that adds height .care-input's shared padding doesn't
      account for — 2px taller than the identically-padded number input sitting right below
@@ -3337,8 +3345,8 @@
   .set-note-wrap.open{display:block; animation:noteReveal 0.22s var(--ease-smooth) both;}
   @keyframes noteReveal{ from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);} }
   .set-note-input{
-    width:100%; box-sizing:border-box; background:var(--row-fill); color:var(--text);
-    border:1px solid var(--line); border-radius:var(--radius-sm);
+    width:100%; box-sizing:border-box; background:var(--glass-fill); color:var(--text); box-shadow:var(--rim);
+    border:1px solid var(--glass-hair); border-radius:var(--radius-sm);
     padding:7px 10px; font-size:12.5px; font-family:var(--font-sans);
   }
   .set-note-input::placeholder{color:var(--text-muted); opacity:0.8;}
@@ -3415,7 +3423,7 @@
   }
   .history-export-row{display:flex; gap:8px; margin:12px 0 4px;}
   .history-export-select{
-    flex:0 0 auto; padding:9px 10px; background:var(--row-fill); border:1px solid var(--line);
+    flex:0 0 auto; padding:9px 10px; background:var(--glass-fill); border:1px solid var(--glass-hair); box-shadow:var(--rim);
     border-radius:var(--radius-md); color:var(--text); font-size:12.5px; font-family:var(--font-sans);
   }
   .history-export-btn{flex:1; margin-top:0; width:auto;}
@@ -3567,7 +3575,7 @@
     .food-log-item .fl-chevron{transition:none;}
   }
   .food-search-input{
-    width:100%; background:var(--row-fill); border:1px solid var(--line); color:var(--text);
+    width:100%; background:var(--glass-fill); border:1px solid var(--glass-hair); box-shadow:var(--rim); color:var(--text);
     border-radius:var(--radius-md); padding:11px 14px; font-family:var(--font-sans); font-size:13.5px; margin-bottom:10px;
   }
   .food-search-input::placeholder{color:var(--text-muted);}
@@ -3654,7 +3662,7 @@
   .adapt-workout-toggle:active{transform:scale(0.98); border-color:rgba(var(--plate-blue-rgb),0.55);}
   .custom-form{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
   .custom-form input[type=text]{
-    background:var(--row-fill); border:1px solid var(--line); color:var(--text);
+    background:var(--glass-fill); border:1px solid var(--glass-hair); box-shadow:var(--rim); color:var(--text);
     border-radius:var(--radius-sm); padding:10px; font-family:var(--font-sans); font-size:13.5px;
   }
   .save-to-library-label{
@@ -6952,7 +6960,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.401';
+const APP_VERSION = '3.402';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -7962,6 +7970,9 @@ const WHATS_NEW = {
   ]},
   '3.401': { headline: 'Warm-ups live in gym mode', points: [
     'The warm-up ramp now shows only in gym mode; the regular workout list goes straight to your sets.',
+  ]},
+  '3.402': { headline: 'Glass fields', points: [
+    'Text fields and pickers on every tab now have the same frosted glass as the cards around them.',
   ]},
 };
 

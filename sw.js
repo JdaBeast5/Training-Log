@@ -192,7 +192,7 @@
 // background/border/gradient rgba() literals (red/green/orange/teal/purple).
 // Purely internal (same computed colors); doesn't touch this file directly,
 // but the version still has to move.
-const VERSION = '3.401';
+const VERSION = '3.402';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the

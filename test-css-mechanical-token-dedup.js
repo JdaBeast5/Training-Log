@@ -140,7 +140,10 @@ test('REAL CASCADE: .ex-input:focus, .program-select:focus, .care-input:focus ea
   assert.strictEqual(prog, '.program-select:focus{outline:none; border-color:var(--plate-blue); box-shadow:0 1px 0 rgba(var(--surface-white-rgb),0.06) inset, 0 4px 14px -8px rgba(var(--plate-blue-rgb),0.5), 0 0 0 3px rgba(var(--plate-blue-rgb),0.15);}');
 
   const care = resolveToken(extractRuleBlock(src, '.care-input:focus'), 'focus-ring-glow', glow);
-  assert.strictEqual(care, '.care-input:focus{outline:none; border-color:var(--plate-blue); box-shadow:0 1px 3px rgba(var(--overlay-black-rgb),0.25) inset, 0 0 0 3px rgba(var(--plate-blue-rgb),0.15);}');
+  // 2026-10-27 (v3.402): the dark inset layer became var(--rim), the glass
+  // highlight the fields now wear (test-fields-translucent.js); the focus ring
+  // layer this test is about still resolves to the same literal.
+  assert.strictEqual(care, '.care-input:focus{outline:none; border-color:var(--plate-blue); box-shadow:var(--rim), 0 0 0 3px rgba(var(--plate-blue-rgb),0.15);}');
 });
 
 // ── Gym-panel gradient: 4 real call sites ───────────────────────────────

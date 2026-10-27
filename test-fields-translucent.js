@@ -40,8 +40,10 @@ test('REAL CSSOM (v3.396): the rest-day row has the same 14px below it as above 
 // (every tab) found no opaque entry field left.
 const FIELDS = ['.care-input', '.food-search-input', '.weight-input-row input', '.macro-input-row input', '.history-export-select',
   '.ex-input', '.set-note-input', '.gsearch-input', '.custom-form input[type=text]'];
-test('REAL CSSOM (v3.397): every entry field is filled with the translucent --row-fill, not opaque --surface2', (assert)=>{
-  for(const sel of FIELDS) assert.strictEqual(declared(sel, 'background'), 'var(--row-fill)', sel);
+// 2026-10-27 (v3.402): the fields moved on from --row-fill to the cards' glass
+// (see the v3.402 test below); only the hidden set-row .ex-input keeps it.
+test('REAL CSSOM (v3.397): every entry field is translucent, never opaque --surface2', (assert)=>{
+  for(const sel of FIELDS) assert.match(declared(sel, 'background'), /^var\(--(row|glass)-fill\)$/, sel);
   assert.match(html.match(/--row-fill:([^;]+);/)[1], /rgba\(var\(--surface-white-rgb\),\s*\.045\)/, 'anchor: the token is translucent');
 });
 
@@ -84,6 +86,26 @@ test('REAL CSSOM (v3.399): the secondary controls inside cards are translucent; 
   for(const sel of CONTROLS) assert.strictEqual(firstDeclared(sel, 'background'), 'var(--row-fill)', sel);
   assert.doesNotMatch(declared('.food-cat-btn.active', 'background'), /row-fill/, 'the selected category stays blue');
   assert.doesNotMatch(declared('.ex-suggest', 'background') || 'var(--surface2)', /row-fill/, 'a floating menu stays opaque');
+});
+
+// v3.402 (owner: fields on Analysis/History/Care/Coach/Learn "not quite
+// there"). Translucent, but they read as dark recessed slabs beside the
+// frosted cards and buttons (a 4.5% fill plus a dark inset shadow). They now
+// wear the cards' glass: --glass-fill, the --glass-hair edge, the --rim
+// highlight. .program-select (Care's area picker, Training Style) was missed by
+// the computed-colour audit because its gradient STARTED at opaque --surface2.
+const GLASS_FIELDS = ['.care-input', '.food-search-input', '.weight-input-row input', '.macro-input-row input', '.history-export-select',
+  '.set-note-input', '.gsearch-input', '.custom-form input[type=text]', '.program-select'];
+test('REAL CSSOM (v3.402): fields and pickers wear the glass — fill, hairline, highlight; no dark inset; no opaque gradient', (assert)=>{
+  for(const sel of GLASS_FIELDS){
+    assert.strictEqual(declared(sel, 'background'), 'var(--glass-fill)', sel);
+    assert.match(declared(sel, 'border'), /var\(--glass-hair\)/, sel + ' edge');
+    if(sel !== '.program-select') assert.strictEqual(declared(sel, 'box-shadow'), 'var(--rim)', sel + ' highlight');
+  }
+  assert.strictEqual(declared('.ex-input', 'background'), 'var(--row-fill)', 'the set-row fields are unchanged');
+  assert.strictEqual(declared('.program-select', 'box-shadow'), '', 'the picker keeps v3.283\'s no-shadow rule');
+  assert.strictEqual(declared('.care-input:focus', 'box-shadow'), 'var(--rim), var(--focus-ring-glow)', 'focus keeps its ring, loses the dark inset');
+  assert.doesNotMatch(CSS, /gradient\(160deg, var\(--surface2\)/, 'no gradient starts on the opaque surface any more');
 });
 
 run();
