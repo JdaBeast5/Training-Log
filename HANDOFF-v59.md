@@ -391,3 +391,54 @@ Owner: "fix the writing and formatting per our skills in the Learn tab… shorte
   - **Watch:** pinned phrases must not start a point. The data is capitalised and the regexes are lowercase. Data starts each point capitalised after the label, and the renderer capitalises it anyway.
 - **v3.420:** "Close this masterclass" is glass.
 - **Verified in Chromium:** all 14 masterclasses open, each technique row has exactly three points, no text chevrons, no page errors.
+
+## Addendum 19: glyphs (v3.421–v3.427)
+Owner: "Also fix the glyphs according to our new skills." The rules applied: impeccable's craft floor (no Unicode glyph or emoji standing in for an icon system; icons drawn, one family, one stroke) and taste's app-screens rules (no icon in a box repeated down a list; no coloured icon per category). All covered by `test-glyphs.js`, one section per version, each sabotage-checked.
+- **v3.421, the chevron:**
+  - `ICONS.chevron` / `chevronLeft` (24 grid, `vector-effect:non-scaling-stroke`, 1.6px at any size) replace about 50 text ‹ › sites: rows, disclosure toggles, date and month arrows, the tab-rail hint, search hits and Settings rows.
+  - Static markup embeds exactly what `icon()` returns; the test compares them.
+  - Show more's ⌄ and the program picker's ▾ are 1.6px border chevrons. `.ex-chevron > svg, .chev > svg{display:block}` centres the line in its row.
+  - Tests that render these templates now load `ICONS`/`icon` (about a dozen dated additions).
+- **v3.422, ticks and crosses:**
+  - Status strings drop the ✓; the word carries it ("Saved", "Logged", "Added").
+  - A saved set's flash draws `ICONS.check` and clears by `.set-status-saved`, not by comparing the glyph.
+  - The ✕ close buttons (rest timer, coach chat, Care's stop-resting) draw `ICONS.close`.
+- **v3.423, warnings:**
+  - Markup warnings draw `ICONS.warning`: Analysis verdicts, the avoid-list flag, Care's urgent and photo-consent banners, program fit, readiness. This mirrors how the good verdicts already drew `ICONS.check`.
+  - Plain-text warnings drop the glyph: program `short` descriptions, the storage banner title, textContent notices.
+  - Readiness: a note has no mark.
+- **v3.424, decorative emoji:**
+  - Removed from buttons, titles, notes and verdicts.
+  - **Kept on purpose:**
+    - Emoji that are never painted (font-size:0 under a drawn mask: `.swipe-delete-bg`, `.ex-delete-custom-btn`, `.fi-duplicate`, `.fi-delete`, the describe-food voice button). Earlier tests pin them in markup, and the voice button's emoji is its only accessible name.
+    - The stored food-category keys `'★ Favorites'` / `'📁 My Foods'`; the label strips them.
+- **v3.425, celebrations:**
+  - `ICONS.trophy` / `flame` / `flag` are one path each, 1.8 on the 24 grid: the card icons' line.
+  - `triggerCelebration(iconName, …)` draws the named icon in the banner's gold.
+  - The share card strokes the same path on its canvas through `celebrationIconPath` (Path2D; a polyline becomes M/L).
+  - Cycle phases lost their per-phase emoji. The recovery recommendation draws check or warning; Maintain has no mark.
+- **v3.426, arrows and marks:**
+  - Drawn now: the set-chip trend (`arrowUp` / `arrowDown` / `equals`), "Ready to go up", the swap mark, the pull-to-refresh arrow and spinner (`refresh`), the day-reorder buttons (the chevrons), the set row's Next key, and the rest trend's short-rest flag (`info`).
+  - Characters dropped from buttons whose words already say it: Same as Last Time, Restore, Export now, Move earlier/later, Update ready, Swapped from, and the progression and on-track messages.
+  - Notation arrows in prose stay ("Settings → AI Features Setup", "180 → 175 lb"), as do the AI prompt strings.
+- **v3.427, masterclass rows:**
+  - The seven cards that put one category icon on every row in a boxed 36px tile now draw none (`{mode:'none'}`; the `fixed` branch is gone).
+  - Per-technique pictograms stand unboxed at 24px. `.pose-icon svg *{stroke-width:1.5px; vector-effect:non-scaling-stroke}` holds them all to one line, overriding their own 1.8–2.4.
+  - Points indent under the name only when there is a pictogram (`:has`).
+- **Watch:**
+  - **Comment stripping:** a whole-file `/\*[\s\S]*?\*\//` regex starts matching inside `accept="image/*"` and swallows about 1 MB of index.html. Use the line-based `stripComments` in `test-glyphs.js`.
+  - **Parameter shadowing:** `triggerCelebration`'s parameter was renamed to `iconName` because it shadowed `icon()`.
+- **Not done; flagged:**
+  - **Chrome icon strokes:** header search 1.8, nav-more 1.6, card icons and settings cog 1.5 on a 20 grid. That's close, but not normalized.
+  - **`ICONS` stroke conventions:**
+    - check / warning / error / edit / trend / trash: 2.2–2.5 on a 24 grid.
+    - chevron / close / arrows: non-scaling 1.6.
+    - celebration marks: 1.8.
+    - One shared weight would be a follow-up.
+  - **Accessibility:** the unpainted trash emoji in `.swipe-delete-bg` has no `aria-hidden`, so a screen reader may announce "wastebasket".
+- **Verified in Chromium:**
+  - Date bar, rows, masterclass index, Show more and the program picker.
+  - Rest timer close, verdict and urgent banners, and the PR banner.
+  - Share card PNG.
+  - Swap mark, pull arrow, and the swim/strength technique rows.
+  - No page errors.
