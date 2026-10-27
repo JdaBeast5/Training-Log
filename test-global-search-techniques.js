@@ -108,7 +108,7 @@ const searchFnChunks = [
   extractConst(src, 'GLOBAL_SEARCH_EXERCISE_LIMIT'),
   extractConst(src, 'GLOBAL_SEARCH_SECTION_LIMIT'),
   extractConst(src, 'GLOBAL_SEARCH_TECHNIQUE_LIMIT'),
-  extractFunction(src, 'escapeHtml'),
+  extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon'),
   extractFunction(src, 'renderGlobalSearchResults'),
 ];
 const searchStubGlobals = `
@@ -168,7 +168,7 @@ test('REAL invocation: openMasterclassTechnique gets to Learn, opens the masterc
     extractFunction(src, 'renderWatersportsTechniques'),
     extractFunction(src, 'isProgramOwnedMasterclass'),
     extractFunction(src, 'isMasterclassOpen'),
-    extractFunction(src, 'escapeHtml'),
+    extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon'),
     extractFunction(src, 'renderMasterclassIndex'), // openMasterclass now re-renders the index too (search-and-index-freshness fix) — a real dependency of the function under test, not a stub
     extractFunction(src, 'openMasterclass'),
     extractFunction(src, 'openMasterclassTechnique'),

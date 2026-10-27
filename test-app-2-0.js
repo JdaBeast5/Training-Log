@@ -142,7 +142,9 @@ test('REAL CSSOM (v3.310): disclosure rows end in a muted chevron that turns dow
   const cs = (sel, pseudo) => window.getComputedStyle(window.document.querySelector(sel), pseudo);
   for(const id of ['#m', '#p']) assert.strictEqual(cs(`${id} summary`).minHeight, '44px', id);
   const raw = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
-  for(const sel of ['.month-group summary::after', '.posing-class summary::after']){
+  // 2026-10-27 (v3.405): the masterclass group rule is scoped to its own row
+  // (`> summary`) so it no longer also styles each technique's summary.
+  for(const sel of ['.month-group summary::after', '.posing-class > summary::after']){
     const r = raw.match(new RegExp(sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\{[^}]*\\}'))[0];
     assert.doesNotMatch(r, /▸|plate-blue/, `${sel}: no blue triangle`);
     assert.match(r, /border-right:2px solid var\(--text-muted\)[\s\S]*rotate\(-45deg\)/, `${sel}: a muted chevron pointing right`);
@@ -205,7 +207,8 @@ test('REAL invocation + CSSOM (v3.314): Exercise Progress rows carry no emoji, a
   const best = el.querySelector('.prog-best'), ready = el.querySelector('.prog-ready');
   assert.ok(best && ready, 'anchor: the real row rendered, ready to progress');
   assert.strictEqual(best.textContent, 'Best 185 lb');
-  assert.strictEqual(ready.textContent.trim(), '↑ Ready to go up next session');
+  // 2026-10-27 (v3.426): the up mark is drawn (icon('arrowUp'); stubbed here), no ↑ character.
+  assert.strictEqual(ready.textContent.trim(), 'Ready to go up next session');
   assert.doesNotMatch(el.textContent, /\u{1F3C6}|⬆/u, 'no trophy, no heavy arrow');
   const cs = sel => window.getComputedStyle(el.querySelector(sel));
   assert.strictEqual(cs('.prog-stats').fontFamily, 'var(--font-sans)');

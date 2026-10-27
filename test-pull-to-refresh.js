@@ -8,7 +8,7 @@
 // (preventDefault) so the page does not bounce under it; sideways swipes are
 // left alone. Mouse/pen keep pointer events. The reload waits 150ms (was
 // 500ms) — enough for a blurred field's change handler to save locally.
-const { readIndexSource, extractIIFE, extractElementById, runJsdom, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractConst, extractFunction, extractIIFE, extractElementById, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const { test, run } = makeRunner('test-pull-to-refresh.js');
 const src = readIndexSource();
@@ -18,7 +18,8 @@ function mount({ scrollY = 0 } = {}){
     window.__timers = [];
     window.setTimeout = (fn, ms) => { window.__timers.push(ms); return 0; }; // the reload itself never runs
     Object.defineProperty(window, 'scrollY', { value: ${scrollY}, configurable: true });
-  `, [extractIIFE(src, 'pullToRefresh'), 'pullToRefresh();']);
+  `, [extractConst(src, 'ICONS'), extractFunction(src, 'icon'), // 2026-10-27 (v3.426): the spinner draws ICONS.refresh
+    extractIIFE(src, 'pullToRefresh'), 'pullToRefresh();']);
   const doc = window.document;
   const ev = (type, props, target = doc.body) => {
     const e = new window.Event(type, { bubbles: true, cancelable: true });

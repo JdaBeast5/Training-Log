@@ -17,7 +17,7 @@
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
-const { readIndexSource, extractFunction, runJsdom, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractConst, extractFunction, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const { test, run } = makeRunner('test-exercise-logger.js');
 const src = readIndexSource();
@@ -27,6 +27,8 @@ const FNS = ['escapeHtml', 'findNextSetRow', 'numericPlaceholder', 'writeSetToRo
   'exLoggerHtml', 'fillSetLogger', 'readSetLogger', 'renderExerciseLogger', 'logExerciseLogger',
   // 2026-10-26 (v3.392): renderAllSetChips also draws gym mode's warm-up chips.
   'renderWarmupChips'].map(n => extractFunction(src, n));
+// 2026-10-27 (v3.426): the chips' trend marks are drawn (ICONS.arrowUp/arrowDown/equals).
+FNS.push(extractConst(src, 'ICONS'), extractFunction(src, 'icon'));
 
 function row(exIdx, setIdx, owner, {wp = 'lb', rp = 'reps', wv = '', rv = '', rpev = ''} = {}){
   return `<div class="set-row" data-set-idx="${setIdx}" data-ex-idx="${exIdx}"><span class="set-row-owner">${owner}</span>

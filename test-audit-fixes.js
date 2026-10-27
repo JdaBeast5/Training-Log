@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
-const { readIndexSource, extractFunction, extractElementById, extractIIFE, runJsdom, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractConst, extractFunction, extractElementById, extractIIFE, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const { test, run } = makeRunner('test-audit-fixes.js');
 const src = readIndexSource();
@@ -72,7 +72,7 @@ test('REAL invocation (v3.353): PR timeline rows carry no emoji; the strength PR
       {date:'2026-10-25', name:'Bench Press', type:'weight', dayLabel:'Day 1', weight:185, reps:5},
       {date:'2026-10-20', name:'Back Squat', type:'strength', dayLabel:'Day 2', weight:225, reps:3, e1rm:245}];
     const renderCollapsibleList = (el, items) => { el.innerHTML = items.join(''); };`,
-    [extractFunction(src, 'escapeHtml'), extractFunction(src, 'renderPrTimeline'), 'window.__done = renderPrTimeline();']);
+    [extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon'), extractFunction(src, 'renderPrTimeline'), 'window.__done = renderPrTimeline();']);
   await window.__done;
   const rows = [...window.document.querySelectorAll('#prTimeline .pr-row')];
   assert.strictEqual(rows.length, 2, 'anchor: the real rows rendered');

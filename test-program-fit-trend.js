@@ -92,6 +92,7 @@ test('no signal (hold) when nothing meaningful changed and RPE is not maxed', (a
 
 const insightChunks = [
   extractConst(src, 'PROGRAM_FIT_MIN_SAMPLE'),
+  extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon'), // 2026-10-27 (v3.423): the overreaching verdict draws ICONS.warning
   extractFunction(src, 'buildProgramFitInsight'),
 ];
 

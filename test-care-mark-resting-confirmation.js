@@ -44,7 +44,8 @@ const exerciseInfoStub = `var exerciseInfo = {
 
 function render(sensation, region, pain){
   const [html] = runSandbox(
-    [exerciseInfoStub, escapeHtmlSrc, sensationLabelsSrc, redFlagSrc, regionReliefSrc, buildReliefHtmlSrc, buildCareResultHtmlSrc],
+    // 2026-10-27 (v3.423): the urgent banner draws ICONS.warning.
+    [exerciseInfoStub, escapeHtmlSrc, extractConst(src, 'ICONS'), extractFunction(src, 'icon'), sensationLabelsSrc, redFlagSrc, regionReliefSrc, buildReliefHtmlSrc, buildCareResultHtmlSrc],
     `__capture.push(buildCareResultHtml(${JSON.stringify(sensation)}, ${JSON.stringify(region)}, ${JSON.stringify(pain)}));`
   );
   return html;

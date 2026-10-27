@@ -20,7 +20,7 @@
 // Confirmed via `git log -p -L` that both rules were added in the same
 // commit, and confirmed via `grep` that no existing test asserted on either
 // rule before this fix — this really was dead, unexercised CSS.
-const { readIndexSource, extractFunction, extractElementByClass, runSandbox, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractConst, extractFunction, extractElementByClass, runSandbox, makeRunner } = require('./testHelpers.js');
 const { JSDOM } = require('jsdom');
 
 const src = readIndexSource();
@@ -73,38 +73,28 @@ test('the surviving .program-intro rule is the "spec plate" one (margin:0, no bo
   assert.doesNotMatch(block, /padding-top/, 'the removed rule\'s padding-top must actually be gone, not just shadowed');
 });
 
-test('REAL invocation: buildSourceRowHtml renders two adjacent .program-intro paragraphs (school, then cited source) with NO divider or top padding between them, through the real extracted markup and real extracted CSS', (assert)=>{
-  const escapeHtmlSrc = extractFunction(src, 'escapeHtml');
-  const buildSourceRowHtmlSrc = extractFunction(src, 'buildSourceRowHtml');
+// 2026-10-27 (v3.404): Research & Sources no longer renders the cited-source
+// paragraph — the short citations follow the school line as a "Sources" list
+// (buildSourceCitesHtml). The school paragraph keeps the undivided style; the
+// list's spacing is its own eyebrow's margin, checked in test-learn-rework.js.
+test('REAL invocation: buildSourceRowHtml renders the school paragraph undivided, then the short-citation list', (assert)=>{
   const [html] = runSandbox(
-    [escapeHtmlSrc, 'var sourcePanelSeq = 0;', buildSourceRowHtmlSrc],
-    "__capture.push(buildSourceRowHtml('Test Program', {school:'Some Methodology', primary:'Some Citation, J. et al.'}, 'About this program', false));"
+    [extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon'), 'var sourcePanelSeq = 0;', extractFunction(src, 'buildSourceCitesHtml'), extractFunction(src, 'buildSourceRowHtml')],
+    "__capture.push(buildSourceRowHtml('Test Program', {school:'Some Methodology', primary:'Some Citation, J. et al.', cites:[{text:'Citation et al. · J Test, 2024', doi:'10.1/x'}]}, 'Approach', false));"
   );
   assert.match(html, /<p class="program-intro">Some Methodology<\/p>/, 'expected the real school paragraph markup');
-  assert.match(html, /<p class="program-intro"><strong>Cited source — <\/strong>Some Citation/, 'expected the real cited-source paragraph markup');
-
+  assert.match(html, /<ul class="source-cites"><li><a href="https:\/\/doi.org\/10.1\/x"[^>]*>Citation et al. · J Test, 2024<\/a><\/li><\/ul>/, 'expected the short-citation list');
+  assert.doesNotMatch(html, /Some Citation, J\./, 'the full record is not rendered');
   const introCss = extractRuleBlock(src, '.program-intro');
   const siblingCss = (src.match(/\.program-intro \+ \.program-intro\{[^}]*\}/) || [])[0];
-  assert.ok(siblingCss, 'expected to find the real .program-intro + .program-intro rule in source');
-  const [schoolStyle, citedStyle] = computedStylesFor([introCss, siblingCss], html, 'p.program-intro');
-  // jsdom's getComputedStyle doesn't collapse border-*-width to 0 just
-  // because border-*-style computes to 'none' (real browsers report the used
-  // value, 0px; jsdom reports the raw initial value instead) — borderTopStyle
-  // is the real, portable signal that no border actually renders. The old,
-  // now-removed rule explicitly set border-top:...solid...; a real
-  // regression would show up here as borderTopStyle === 'solid'.
+  const [schoolStyle] = computedStylesFor([introCss, siblingCss], html, 'p.program-intro');
   assert.strictEqual(schoolStyle.borderTopStyle, 'none', 'school paragraph must not have a border-top divider');
   assert.strictEqual(schoolStyle.paddingTop, '0', 'school paragraph must not have leftover top padding');
-  assert.strictEqual(schoolStyle.marginTop, '0px', 'school paragraph (the first of the pair, no preceding .program-intro sibling) must NOT pick up the adjacent-sibling spacing');
-  assert.strictEqual(citedStyle.borderTopStyle, 'none', 'cited-source paragraph (the one directly under the school line) must not have a border-top divider');
-  assert.strictEqual(citedStyle.paddingTop, '0', 'cited-source paragraph must not have leftover top padding');
-  // The actual fix this round: previously 0px (margin:0 on both, nothing
-  // else), which read as one run-on block instead of two distinct lines.
-  assert.strictEqual(citedStyle.marginTop, '8px', 'cited-source paragraph (the SECOND of the pair, directly after a .program-intro sibling) must now get real breathing room via the adjacent-sibling rule');
+  assert.strictEqual(schoolStyle.marginTop, '0px');
 });
 
 test('REAL invocation: buildBasisHtml (the live per-program provenance panel) also resolves the fixed, undivided .program-intro style', (assert)=>{
-  const escapeHtmlSrc = extractFunction(src, 'escapeHtml');
+  const escapeHtmlSrc = extractFunction(src, 'escapeHtml') + '\n' + extractConst(src, 'ICONS') + '\n' + extractFunction(src, 'icon');
   const buildBasisHtmlSrc = extractFunction(src, 'buildBasisHtml');
   const [html] = runSandbox(
     [escapeHtmlSrc, 'var programPanelSeq = 0;', buildBasisHtmlSrc],

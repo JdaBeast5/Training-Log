@@ -61,6 +61,7 @@ const chunks = [
   extractFunction(src, 'computeItemViolation'),
   extractFunction(src, 'foodRowTotalText'),
   `function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }`,
+  extractConst(src, 'ICONS'), extractFunction(src, 'icon'), // 2026-10-27 (v3.423): the avoid flag draws ICONS.warning
   extractFunction(src, 'buildFoodResultRow'),
 ];
 

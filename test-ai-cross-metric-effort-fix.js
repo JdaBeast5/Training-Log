@@ -144,7 +144,8 @@ function setupGenerate(dataLineCount){
   const { window, document } = runJsdom(bodyHtml, globalsSetup, [
     aiModelDefaultSrc, aiFallbackSrc, aiMaxAttemptsSrc, aiSleepSrc, anthropicRequestSrc, callClaudeChatSrc,
     aiPromptVersionSrc, aiFingerprintSrc, aiCachedCallSrc,
-    escapeHtmlSrc, aiKeySetupPromptSrc, getApiKeySrc,
+    escapeHtmlSrc, extractConst(src, 'ICONS'), extractFunction(src, 'icon'), // 2026-10-27 (v3.425): the PUSH banner draws ICONS.check
+    aiKeySetupPromptSrc, getApiKeySrc,
     contextStub(dataLineCount),
     generateCrossMetricInsightsSrc,
     'window.__capturedRequests = [];',

@@ -354,3 +354,91 @@ Owner (Rest / Cardio screenshot): "Fix the spacing for the fields, also check al
   - `body:not(.gym-mode) #exerciseList .warmup-strip/.warmup-box{display:none}` hides the loggable rows, the read-only table and the nudge everywhere outside gym mode.
   - Saved data and the `warmupSetsEnabled` setting are unchanged.
   - The rgba consolidation guard now counts three `.warmup-box` rules (dated note).
+
+## Addendum 17: fields, buttons and rows wear the cards' glass (v3.402–v3.403)
+Owner: fields on Analysis, History, Care, Coach and Learn were "not quite there".
+- **Finding:** the computed fills were already translucent (`--row-fill`, 4.5% white). Visually, though, the fields read as dark recessed slabs next to the frosted `--glass-fill` cards and buttons. Two surfaces really were opaque, and both slipped past the v3.396 audit:
+  - `.program-select` (Care's area picker, Training Style): its gradient started at `--surface2`, and the audit skipped gradients.
+  - `.settings-jump` on Analysis: the audit ran with that group collapsed.
+- **v3.402, fields:**
+  - The fields take `--glass-fill`, a `--glass-hair` edge and a `--rim` highlight, in place of the dark inset. That covers `.care-input` (and its focus state), the food search, the weight and macro rows, the History export picker, set notes, global search and the custom-exercise form.
+  - `.program-select` gets the glass fill and edge but no highlight; that follows v3.283's no-shadow rule, which `test-today-no-glow` enforces.
+  - `.ex-input` (set rows, hidden on Today) keeps `--row-fill`.
+  - Dated test updates: the `care-input:focus` cascade string, white rgba total 90→89, black 64→62.
+- **v3.403, controls:**
+  - v3.399's 23 in-card controls, plus `.settings-jump`, take `--glass-fill`, and their opaque `--line` edges (18 of them) become `--glass-hair`.
+  - `.settings-group .settings-jump` stays transparent inside the sheet.
+- **Rule of thumb now:** anything you tap or type in inside a card wears the card's glass. Swipe list rows keep `--row-fill`. Floating layers stay opaque.
+- **Audit for next time:** open every collapsible first (including `.analysis-group-header.collapsed`), and check `background-image` for gradients that start on opaque tokens as well as `background-color`.
+
+## Addendum 18: Learn tab rework (v3.404–v3.420)
+Owner: "fix the writing and formatting per our skills in the Learn tab… shorten the citations, make the content more concise like the rest of the app." The rules applied come from impeccable's clarify guide (say each idea once; help text adds something rather than restating the heading; consistent terms; as short as possible without losing meaning).
+- **v3.404, Research & Sources:**
+  - Each of the 55 `PROGRAM_SOURCES`/`STYLE_SOURCES` entries in `content-citations.js` gains `cites`: at most three entries, each "Author et al. · Journal, year", linked to doi.org when there is a DOI. Entries with deliberately no single source get a one-line `citeNote` instead.
+  - `primary` stays the full audited record (`test-citation-audit`) but is no longer rendered. It ran 100–400 words of findings, editing notes and "NOW SOURCED…" process text.
+  - `school` (now shown as "Approach") was rewritten in plain words. Four lines had leaked internal names (`COMBAT_STYLES` and similar).
+  - `test-learn-rework.js` checks every DOI and first author or body against `primary`.
+- **v3.405, formatting:**
+  - The group rule `.posing-class summary` also matched each technique's nested summary, causing double chevrons and rules. It's now scoped to `> summary`.
+  - Technique rows have a single CSS chevron. Names drop the group's own word when the group title contains it, and `data-name` keeps the full name for `openMasterclassTechnique`.
+  - Points render with a bold, capitalised label and no bullets. Icon tiles are glass. The exercise list's ▸ glyph is now a drawn chevron.
+  - "Recently Trained" title and nine shorter hints.
+  - The standalone watersports renderer has the same markup; it stays standalone because two tests extract it alone.
+- **v3.406–v3.419, content:** all 14 masterclasses (274 techniques) went from five points to three (Setup, Execution, Common mistake), each at most 18 words with its label. Group titles and notes are shorter.
+  - Every `MUST_KEEP` safety phrase in `test-concise-learn.js` still holds, and the `THREE` list there now has to contain every sport.
+  - `test-flagged-fixes` keeps the front-squat insight, carried by the Execution and Common mistake points (dated note).
+  - Tooling (not committed): the scratchpad `mc/mc.py` parses JS string literals to swap `points` arrays and group keys and notes. `mc/ship.sh` updates `THREE`, bumps, runs the suite gated on its exit code, and commits; it refuses to bump a version already in `WHATS_NEW`.
+  - **Watch:** pinned phrases must not start a point. The data is capitalised and the regexes are lowercase. Data starts each point capitalised after the label, and the renderer capitalises it anyway.
+- **v3.420:** "Close this masterclass" is glass.
+- **Verified in Chromium:** all 14 masterclasses open, each technique row has exactly three points, no text chevrons, no page errors.
+
+## Addendum 19: glyphs (v3.421–v3.427)
+Owner: "Also fix the glyphs according to our new skills." The rules applied: impeccable's craft floor (no Unicode glyph or emoji standing in for an icon system; icons drawn, one family, one stroke) and taste's app-screens rules (no icon in a box repeated down a list; no coloured icon per category). All covered by `test-glyphs.js`, one section per version, each sabotage-checked.
+- **v3.421, the chevron:**
+  - `ICONS.chevron` / `chevronLeft` (24 grid, `vector-effect:non-scaling-stroke`, 1.6px at any size) replace about 50 text ‹ › sites: rows, disclosure toggles, date and month arrows, the tab-rail hint, search hits and Settings rows.
+  - Static markup embeds exactly what `icon()` returns; the test compares them.
+  - Show more's ⌄ and the program picker's ▾ are 1.6px border chevrons. `.ex-chevron > svg, .chev > svg{display:block}` centres the line in its row.
+  - Tests that render these templates now load `ICONS`/`icon` (about a dozen dated additions).
+- **v3.422, ticks and crosses:**
+  - Status strings drop the ✓; the word carries it ("Saved", "Logged", "Added").
+  - A saved set's flash draws `ICONS.check` and clears by `.set-status-saved`, not by comparing the glyph.
+  - The ✕ close buttons (rest timer, coach chat, Care's stop-resting) draw `ICONS.close`.
+- **v3.423, warnings:**
+  - Markup warnings draw `ICONS.warning`: Analysis verdicts, the avoid-list flag, Care's urgent and photo-consent banners, program fit, readiness. This mirrors how the good verdicts already drew `ICONS.check`.
+  - Plain-text warnings drop the glyph: program `short` descriptions, the storage banner title, textContent notices.
+  - Readiness: a note has no mark.
+- **v3.424, decorative emoji:**
+  - Removed from buttons, titles, notes and verdicts.
+  - **Kept on purpose:**
+    - Emoji that are never painted (font-size:0 under a drawn mask: `.swipe-delete-bg`, `.ex-delete-custom-btn`, `.fi-duplicate`, `.fi-delete`, the describe-food voice button). Earlier tests pin them in markup, and the voice button's emoji is its only accessible name.
+    - The stored food-category keys `'★ Favorites'` / `'📁 My Foods'`; the label strips them.
+- **v3.425, celebrations:**
+  - `ICONS.trophy` / `flame` / `flag` are one path each, 1.8 on the 24 grid: the card icons' line.
+  - `triggerCelebration(iconName, …)` draws the named icon in the banner's gold.
+  - The share card strokes the same path on its canvas through `celebrationIconPath` (Path2D; a polyline becomes M/L).
+  - Cycle phases lost their per-phase emoji. The recovery recommendation draws check or warning; Maintain has no mark.
+- **v3.426, arrows and marks:**
+  - Drawn now: the set-chip trend (`arrowUp` / `arrowDown` / `equals`), "Ready to go up", the swap mark, the pull-to-refresh arrow and spinner (`refresh`), the day-reorder buttons (the chevrons), the set row's Next key, and the rest trend's short-rest flag (`info`).
+  - Characters dropped from buttons whose words already say it: Same as Last Time, Restore, Export now, Move earlier/later, Update ready, Swapped from, and the progression and on-track messages.
+  - Notation arrows in prose stay ("Settings → AI Features Setup", "180 → 175 lb"), as do the AI prompt strings.
+- **v3.427, masterclass rows:**
+  - The seven cards that put one category icon on every row in a boxed 36px tile now draw none (`{mode:'none'}`; the `fixed` branch is gone).
+  - Per-technique pictograms stand unboxed at 24px. `.pose-icon svg *{stroke-width:1.5px; vector-effect:non-scaling-stroke}` holds them all to one line, overriding their own 1.8–2.4.
+  - Points indent under the name only when there is a pictogram (`:has`).
+- **Watch:**
+  - **Comment stripping:** a whole-file `/\*[\s\S]*?\*\//` regex starts matching inside `accept="image/*"` and swallows about 1 MB of index.html. Use the line-based `stripComments` in `test-glyphs.js`.
+  - **Parameter shadowing:** `triggerCelebration`'s parameter was renamed to `iconName` because it shadowed `icon()`.
+- **Not done; flagged:**
+  - **Chrome icon strokes:** header search 1.8, nav-more 1.6, card icons and settings cog 1.5 on a 20 grid. That's close, but not normalized.
+  - **`ICONS` stroke conventions:**
+    - check / warning / error / edit / trend / trash: 2.2–2.5 on a 24 grid.
+    - chevron / close / arrows: non-scaling 1.6.
+    - celebration marks: 1.8.
+    - One shared weight would be a follow-up.
+  - **Accessibility:** the unpainted trash emoji in `.swipe-delete-bg` has no `aria-hidden`, so a screen reader may announce "wastebasket".
+- **Verified in Chromium:**
+  - Date bar, rows, masterclass index, Show more and the program picker.
+  - Rest timer close, verdict and urgent banners, and the PR banner.
+  - Share card PNG.
+  - Swap mark, pull arrow, and the swim/strength technique rows.
+  - No page errors.
