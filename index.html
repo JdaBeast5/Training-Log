@@ -1779,6 +1779,7 @@
     display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line-soft);
   }
   .pr-row:last-child{border-bottom:none;}
+  .pr-date.is-repeat{color:transparent;}
   .pr-date{
     font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted); flex:0 0 66px;
   }
@@ -3139,8 +3140,9 @@
 
   .day-card{padding:12px 0; border-bottom:1px solid var(--line-soft);}
   .day-card:last-child{border-bottom:none;}
+  /* v3.444: a date reads in the text face (it was mono). */
   .day-card-date{
-    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12.5px; font-weight:600; color:var(--text);
+    font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:13px; font-weight:600; color:var(--text);
     margin-bottom:6px;
   }
   .day-card-program{font-weight:500; color:var(--text-muted); font-size:11px;}
@@ -3157,6 +3159,12 @@
   .delta-down{color:var(--plate-red); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11.5px;}
   .delta-flat{color:var(--text-muted); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11.5px;}
   .day-ex-vol{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11px; color:var(--text-muted);}
+  /* v3.444: a logged exercise is two lines — name and changes, then sets. */
+  .day-ex-row.day-ex-logged{display:grid; grid-template-columns:1fr auto; column-gap:10px; row-gap:1px; padding:5px 0;}
+  .day-ex-logged .day-ex-name{grid-column:1; font-size:13.5px;}
+  .day-ex-logged .day-ex-changes{grid-column:2; justify-self:end; display:flex; gap:8px; white-space:nowrap;}
+  .day-ex-logged > :not(.day-ex-name):not(.day-ex-changes){grid-column:1 / -1;}
+  .day-ex-logged .day-ex-sets{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);}
 
   .app-footer{
     text-align:center; padding:24px 0 8px; font-size:11px; color:#4A5057;
@@ -3481,6 +3489,8 @@
   }
   .history-export-btn{flex:1; margin-top:0; width:auto;}
   .history-search{margin:10px 0 4px; width:100%; box-sizing:border-box;}
+  .history-filter-row .history-search{margin:0; flex:1; min-width:0;}
+  .history-print-btn{width:100%; margin-top:14px;}
   .history-search-status{
     font-family:var(--font-mono); font-variant-numeric:tabular-nums;
     font-size:11.5px; color:var(--text-muted); margin-bottom:8px; min-height:0;
@@ -6232,25 +6242,18 @@
   </div>
 
   <div id="historyView" style="display:none">
-    <div class="card">
-      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h7v3.6a3.5 3.5 0 0 1-7 0Z"/><path d="M6.5 4H3.2v1a3 3 0 0 0 3 3M13.5 4h3.3v1a3 3 0 0 1-3 3"/><line x1="10" y1="10.6" x2="10" y2="13.5"/><line x1="7.2" y1="17" x2="12.8" y2="17"/><line x1="8.2" y1="13.5" x2="11.8" y2="13.5"/></svg></span>Personal Records Timeline</div>
-      <div class="history-hint">Every PR you've hit, newest first.</div>
-      <div id="prTimeline"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="2.5" x2="5" y2="17.5"/><path d="M5 3.2h9.5l-2.4 3 2.4 3H5"/></svg></span>Saved Weeks</div>
-      <div class="history-hint">Snapshots you've manually saved at the end of a training week.</div>
-      <div id="savedWeeksList"></div>
-    </div>
-
+    <!-- v3.443: the day-by-day log is what History is for, so it leads;
+         records and saved weeks follow (it sat last, under both). -->
     <div class="card">
       <div class="card-title nutrition-header" id="historyLogHeader">
         <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.2 6.2a1 1 0 0 1 1-1h3.8l1.4 1.8h8.4a1 1 0 0 1 1 1v7.8a1 1 0 0 1-1 1H3.2a1 1 0 0 1-1-1Z"/></svg></span>Day-by-Day Log</span>
         <span class="ex-chevron" aria-hidden="true" id="historyLogChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
       </div>
       <div class="expand-wrap" id="historyLogExpandWrap"><div>
-      <div class="history-hint">Every logged day by month — tap one to open it. Green is progress, red is down from last time.</div>
+      <!-- v3.445: the calendar's own legend says green is "Trained"; the hint
+           named green twice for two things. The day rows' colours are named
+           where they appear. -->
+      <div class="history-hint">Every logged day by month. In a day, green is up on last time, red is down.</div>
       <div id="historyHeatmap" style="display:none">
         <div class="calendar-modal-header">
           <button type="button" class="calendar-nav-btn" id="historyHeatmapPrevMonth" aria-label="Previous month"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="15 5.5 8.5 12 15 18.5"/></svg></button>
@@ -6267,20 +6270,34 @@
           <span><i class="calendar-cell-dot mark-off"></i>No training</span>
         </div>
       </div>
-      <div class="history-export-row">
+      <div class="history-export-row history-filter-row">
         <select id="historyExportRange" class="history-export-select" aria-label="Date range">
           <option value="30">Last 30 days</option>
           <option value="90">Last 90 days</option>
           <option value="365">Last year</option>
           <option value="all">All time</option>
         </select>
-        <button type="button" class="switch-profile-btn history-export-btn" id="historyExportBtn">Print workout report</button>
+        <input type="search" id="historySearch" class="care-input history-search" placeholder="Filter by exercise" aria-label="Filter history by exercise name" autocomplete="off">
       </div>
-      <input type="search" id="historySearch" class="care-input history-search" placeholder="Filter by exercise, e.g. deadlift" aria-label="Filter history by exercise name" autocomplete="off">
       <div id="historySearchStatus" class="history-search-status"></div>
       <div id="historyList"></div>
+      <!-- v3.446: the range and the search both filter the list, so they share
+           one row above it; printing is an occasional action, after the list. -->
+      <button type="button" class="switch-profile-btn history-export-btn history-print-btn" id="historyExportBtn">Print workout report</button>
       </div></div>
     </div>
+    <div class="card">
+      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h7v3.6a3.5 3.5 0 0 1-7 0Z"/><path d="M6.5 4H3.2v1a3 3 0 0 0 3 3M13.5 4h3.3v1a3 3 0 0 1-3 3"/><line x1="10" y1="10.6" x2="10" y2="13.5"/><line x1="7.2" y1="17" x2="12.8" y2="17"/><line x1="8.2" y1="13.5" x2="11.8" y2="13.5"/></svg></span>Personal Records Timeline</div>
+      <div class="history-hint">Every PR you've hit, newest first.</div>
+      <div id="prTimeline"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="2.5" x2="5" y2="17.5"/><path d="M5 3.2h9.5l-2.4 3 2.4 3H5"/></svg></span>Saved Weeks</div>
+      <div class="history-hint">Snapshots you've manually saved at the end of a training week.</div>
+      <div id="savedWeeksList"></div>
+    </div>
+
   </div>
 
   <div id="careView" style="display:none">
@@ -7026,7 +7043,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.442';
+const APP_VERSION = '3.448';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8159,6 +8176,24 @@ const WHATS_NEW = {
   ]},
   '3.442': { headline: 'Show 1 more', points: [
     'A list with one hidden row now says Show 1 more, not Show 1 more exercises.',
+  ]},
+  '3.443': { headline: 'Your log first', points: [
+    'History opens on the Day-by-Day Log; records and saved weeks follow.',
+  ]},
+  '3.444': { headline: 'Readable history days', points: [
+    'Each exercise in History shows its name and any change on one line, with the sets underneath; no more stray dashes.',
+  ]},
+  '3.445': { headline: 'One meaning for green', points: [
+    'History\'s hint no longer says green means progress right above a calendar where green means you trained.',
+  ]},
+  '3.446': { headline: 'Filters together', points: [
+    'History\'s date range and exercise filter share one row above the list, and Print workout report moved below it.',
+  ]},
+  '3.447': { headline: 'Saved Weeks when you have one', points: [
+    'History\'s Saved Weeks card appears once you\'ve saved a week.',
+  ]},
+  '3.448': { headline: 'One date per day', points: [
+    'The PR timeline shows each day\'s date once, on its first record.',
   ]},
 };
 
@@ -40484,13 +40519,16 @@ async function renderPrTimeline(){
   // v3.353 (audit): no 💪 / 🏆 prefix — emoji aren't the app's icons, and
   // Exercise Progress dropped its trophy in v3.314; the 'strength PR' tag
   // still tells the two kinds apart.
-  const rowHtmls = events.map(ev=>{
+  const rowHtmls = events.map((ev, i)=>{
     const d = new Date(ev.date+'T00:00:00');
     const dateLabel = d.toLocaleDateString('en-US',{month:'short', day:'numeric'});
     const isStrength = ev.type === 'strength';
+    // v3.448: a day's date shows on its first PR only (three PRs on one day
+    // printed "Oct 24" three times); repeats stay readable to screen readers.
+    const sameDay = i > 0 && events[i-1].date === ev.date;
     return `
       <div class="pr-row">
-        <div class="pr-date">${dateLabel}</div>
+        <div class="pr-date${sameDay ? ' is-repeat' : ''}">${dateLabel}</div>
         <div class="pr-body">
           <div class="prt-ex-name"><button type="button" class="xlink" data-search-for="${escapeHtml(ev.name)}">${escapeHtml(ev.name)}<span class="xlink-chev" aria-hidden="true">${icon('chevron')}</span></button>${isStrength ? ' <span class="pr-type-tag">strength PR</span>' : ''}</div>
           <div class="pr-day-label">${escapeHtml(ev.dayLabel)}${isStrength && ev.e1rm ? ` · Est. 1RM ~${fmtWeight(ev.e1rm)}` : ''}</div>
@@ -43618,6 +43656,10 @@ function deltaSpan(value, unit, goodDirection){
 async function renderSavedWeeks(){
   const el = document.getElementById('savedWeeksList');
   const archive = await getWeekArchive();
+  // v3.447: the card appears once there is a saved week. Empty, it was a whole
+  // card saying "nothing yet"; the save button lives on Day 7 itself.
+  const card = el.closest('.card');
+  if(card) card.style.display = archive.length ? '' : 'none';
   if(archive.length === 0){
     el.innerHTML = '<div class="empty-note">No saved weeks yet — tap "Save this week & start fresh" on Day 7.</div>';
     return;
@@ -43768,7 +43810,7 @@ function buildHistoryDayCardHtml(date){
   const day = dayMap[date];
   if(!day) return '';
   const weightRow = day.weight != null
-    ? `<div class="day-weight-row">Weight ${fmtWeight(day.weight)} ${deltaSpan(toDisplayWeight(day.weightDelta), ' '+weightUnit, 'down')}</div>`
+    ? `<div class="day-weight-row">Weight ${fmtWeight(day.weight)} ${day.weightDelta ? deltaSpan(toDisplayWeight(day.weightDelta), ' '+weightUnit, 'down') : ''}</div>`
     : '';
   const restRow = day.restFollowed
     ? `<div class="day-weight-row">Rest day — followed as planned</div>`
@@ -43801,14 +43843,16 @@ function buildHistoryDayCardHtml(date){
     // visual bulk in this list. showDayLabel falls back to per-row
     // display only in the rare case a day mixes labels.
     const dayLabelHtml = showDayLabel ? `<span class="day-ex-day">${escapeHtml(ex.dayLabel)}</span>` : '';
+    // v3.444: name and what changed on the first line, the sets and volume
+    // under it. A change that didn't happen prints nothing (it printed "— —").
+    const changes = [weightDeltaHtml, repsDeltaHtml].filter(h=> !h.includes('delta-flat')).join(' ');
     return `
-          <div class="day-ex-row">
+          <div class="day-ex-row day-ex-logged">
             <span class="day-ex-name">${escapeHtml(ex.name)}</span>
+            <span class="day-ex-changes">${changes}</span>
             ${dayLabelHtml}
-            <span>${setsStr}</span>
-            <span class="day-ex-vol">Vol ${ex.volume.toLocaleString()}</span>
+            <span class="day-ex-sets">${setsStr} <span class="day-ex-vol">· Vol ${ex.volume.toLocaleString()}</span></span>
             ${notesHtml}
-            ${weightDeltaHtml} ${repsDeltaHtml}
           </div>
         `;
   }).join('');
