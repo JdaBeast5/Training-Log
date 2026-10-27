@@ -75,4 +75,21 @@ test('REAL markup (v3.445): the hint and the calendar legend no longer claim gre
   assert.match(card.querySelector('.calendar-legend').textContent, /Trained/, 'anchor: the legend it clashed with');
 });
 
+// v3.446 — Filters together, print last. The range picker (which also
+// filters the list — test-history-date-range-filter.js) sat beside "Print
+// workout report", and the exercise search on its own line below. The two
+// filters now share one row above the list; Print follows the list.
+test('REAL markup (v3.446): range + search share the filter row above the list; Print comes after it', (assert)=>{
+  const row = doc.getElementById('historyExportRange').closest('.history-filter-row');
+  assert.ok(row && row.contains(doc.getElementById('historySearch')), 'the two filters share a row');
+  assert.strictEqual(row.contains(doc.getElementById('historyExportBtn')), false);
+  const list = doc.getElementById('historyList'), btn = doc.getElementById('historyExportBtn');
+  assert.ok(list.compareDocumentPosition(btn) & doc.defaultView.Node.DOCUMENT_POSITION_FOLLOWING, 'Print after the list');
+  assert.ok(row.compareDocumentPosition(list) & doc.defaultView.Node.DOCUMENT_POSITION_FOLLOWING, 'filters before the list');
+  const { window } = new JSDOM(`<style>${CSS}</style><div class="history-export-row history-filter-row"><select class="history-export-select"></select><input class="care-input history-search" id="q"></div>`);
+  const q = window.getComputedStyle(window.document.getElementById('q'));
+  assert.strictEqual(q.minWidth, '0px');
+  assert.strictEqual(q.marginTop, '0px');
+});
+
 run();
