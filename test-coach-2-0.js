@@ -28,4 +28,30 @@ test('REAL markup + source (v3.454): the exercise and focus fields come before t
   assert.match(handler, /getElementById\('coachFocusInput'\)\.value/);
 });
 
+// v3.455 — Ask Your Coach said one thing twice: a hint ("Ask about training,
+// nutrition or recovery — the coach already knows your goal and program")
+// over an empty conversation saying the same. The empty conversation (shared
+// with the floating chat) keeps it. "Clear conversation" shows only when there
+// is one.
+function chat(history){
+  const { window } = runJsdom('<div id="coachChatLog"></div><div id="floatingChatLog"></div><button id="coachChatClear">Clear conversation</button>',
+    `var coachChatHistory = ${JSON.stringify(history)};`, [extractFunction(src, 'escapeHtml'), extractFunction(src, 'renderCoachChatLog'), 'renderCoachChatLog();']);
+  return window.document;
+}
+test('REAL invocation (v3.455): Clear is hidden on an empty conversation and shown once there is one; both logs render', (assert)=>{
+  const empty = chat([]);
+  assert.strictEqual(empty.getElementById('coachChatClear').style.display, 'none');
+  assert.match(empty.getElementById('coachChatLog').textContent, /Ask something about your training/);
+  assert.match(empty.getElementById('floatingChatLog').textContent, /Ask something about your training/);
+  const some = chat([{role:'user', content:'How much protein?'}, {role:'assistant', content:'About 1.6 g/kg.'}]);
+  assert.strictEqual(some.getElementById('coachChatClear').style.display, '');
+  assert.strictEqual(some.querySelectorAll('#coachChatLog .coach-chat-bubble').length, 2);
+  assert.strictEqual(some.querySelectorAll('#floatingChatLog .coach-chat-bubble').length, 2);
+});
+
+test('REAL markup (v3.455): the chat card no longer repeats the empty conversation\'s line as a hint', (assert)=>{
+  const card = doc.getElementById('coachChatLog').closest('.card');
+  assert.strictEqual(card.querySelector('.history-hint'), null);
+});
+
 run();
