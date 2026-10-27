@@ -3583,6 +3583,8 @@
   /* v3.451: a check-in's pain is coloured by how bad it is (every one was red,
      2/10 included), like the slider it was logged on; the date in the text
      face with the pain at the row's end; Edit without the underline. */
+  /* v3.456: Coach's past reviews share the row; its date reads in the text face too. */
+  #coachView .care-log-date{font-family:var(--font-sans); font-size:13px;}
   #careView .care-log-date{display:flex; justify-content:space-between; align-items:baseline; font-family:var(--font-sans); font-size:13px;}
   #careView .care-log-pain{font-size:12.5px; font-weight:600;}
   .care-log-pain.is-low{color:var(--text-muted);}
@@ -7063,7 +7065,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.455';
+const APP_VERSION = '3.456';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8235,6 +8237,9 @@ const WHATS_NEW = {
   ]},
   '3.455': { headline: 'Quieter coach chat', points: [
     'Ask Your Coach says what to ask once, and Clear conversation only appears when there\'s a conversation.',
+  ]},
+  '3.456': { headline: 'Past Reviews when you have one', points: [
+    'Coach\'s Past Reviews appears once you\'ve had a form review, with dates in the normal text face.',
   ]},
 };
 
@@ -42513,6 +42518,10 @@ async function renderCoach(){
 
   const log = await getCoachLog();
   const listEl = document.getElementById('coachHistoryList');
+  // v3.456: Past Reviews appears once there is a review (empty, it was a whole
+  // card saying so; the form right above is where one comes from).
+  const reviewsCard = listEl && listEl.closest('.card');
+  if(reviewsCard) reviewsCard.style.display = log.length ? '' : 'none';
   if(log.length === 0){
     listEl.innerHTML = '<div class="empty-note">No reviews yet — record a set above to get feedback on your form.</div>';
   }else{

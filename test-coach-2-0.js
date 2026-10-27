@@ -54,4 +54,29 @@ test('REAL markup (v3.455): the chat card no longer repeats the empty conversati
   assert.strictEqual(card.querySelector('.history-hint'), null);
 });
 
+// v3.456 — Past Reviews appears once there is a review; empty, it was a whole
+// card saying so, right under the form a review comes from. Its dates read in
+// the text face (Care's check-ins did in v3.451; the two share the row class).
+async function coach(log){
+  const { window } = runJsdom('<b id="coachPersonaLabel"></b><div class="card" id="c"><div id="coachHistoryList"></div></div>', `
+    window.activeProgram = 'strength'; window.programs = {strength:{label:'Strength'}};
+    window.getCoachLog = async ()=> ${JSON.stringify(log)}; window.loadCoachChatHistory = async ()=>{}; window.renderCoachChatLog = ()=>{};
+    window.buildSwipeItem = h => h; window.renderCollapsibleList = (el, items)=>{ el.innerHTML = items.join(''); };
+    window.wireSwipeDeleteList = ()=>{}; window.fmtDayLabel = d => d;`,
+    [extractFunction(src, 'escapeHtml'), extractFunction(src, 'renderCoach'), 'window.__done = renderCoach();']);
+  await window.__done;
+  return window.document;
+}
+test('REAL invocation (v3.456): no reviews, no card; one review, the card shows it', async (assert)=>{
+  assert.strictEqual((await coach([])).getElementById('c').style.display, 'none');
+  const one = await coach([{date:'2026-10-24', program:'Strength', exercise:'Back Squat', feedback:'Depth is good.'}]);
+  assert.strictEqual(one.getElementById('c').style.display, '');
+  assert.match(one.getElementById('coachHistoryList').textContent, /Back Squat/);
+});
+
+test('REAL CSSOM (v3.456): a past review\'s date is in the text face', (assert)=>{
+  const { window } = new JSDOM(`<style>${CSS}</style><div id="coachView"><div class="care-log-date" id="d">Sat, Oct 24</div></div>`);
+  assert.strictEqual(window.getComputedStyle(window.document.getElementById('d')).fontFamily, 'var(--font-sans)');
+});
+
 run();
