@@ -56,6 +56,7 @@ const THREE = [
   'SWIM_STROKE_DETAILS', // v3.416
   'COMBAT_TECHNIQUE_DETAILS', // v3.417
   'POSE_DETAILS', // v3.418
+  'WATERSPORTS_TECHNIQUE_DETAILS', // v3.419
 ];
 
 const MUST_KEEP = [
@@ -110,7 +111,8 @@ test('REAL data: every technique has labelled points — five, or three (Setup, 
 
 test('REAL data (v3.406+): the three-point sports read like the app\'s cues — at most 18 words a point', (assert)=>{
   const all = learn();
-  assert.ok(THREE.length >= 1, 'anchor');
+  // 2026-10-27 (v3.419): every sport is three-point now; a new one must be too.
+  assert.deepStrictEqual([...THREE].sort(), [...CONSTS].sort(), 'all 14 sports are three-point');
   const long = THREE.flatMap(c => Object.entries(all[c]).flatMap(([name, t]) => t.points.filter(p => p.split(/\s+/).length > 18).map(p => `${c} / ${name}: ${p}`)));
   assert.deepStrictEqual(long, []);
 });
