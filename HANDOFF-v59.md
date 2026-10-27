@@ -370,3 +370,24 @@ Owner: fields on Analysis, History, Care, Coach and Learn were "not quite there"
   - `.settings-group .settings-jump` stays transparent inside the sheet.
 - **Rule of thumb now:** anything you tap or type in inside a card wears the card's glass. Swipe list rows keep `--row-fill`. Floating layers stay opaque.
 - **Audit for next time:** open every collapsible first (including `.analysis-group-header.collapsed`), and check `background-image` for gradients that start on opaque tokens as well as `background-color`.
+
+## Addendum 18: Learn tab rework (v3.404–v3.420)
+Owner: "fix the writing and formatting per our skills in the Learn tab… shorten the citations, make the content more concise like the rest of the app." The rules applied come from impeccable's clarify guide (say each idea once; help text adds something rather than restating the heading; consistent terms; as short as possible without losing meaning).
+- **v3.404, Research & Sources:**
+  - Each of the 55 `PROGRAM_SOURCES`/`STYLE_SOURCES` entries in `content-citations.js` gains `cites`: at most three entries, each "Author et al. · Journal, year", linked to doi.org when there is a DOI. Entries with deliberately no single source get a one-line `citeNote` instead.
+  - `primary` stays the full audited record (`test-citation-audit`) but is no longer rendered. It ran 100–400 words of findings, editing notes and "NOW SOURCED…" process text.
+  - `school` (now shown as "Approach") was rewritten in plain words. Four lines had leaked internal names (`COMBAT_STYLES` and similar).
+  - `test-learn-rework.js` checks every DOI and first author or body against `primary`.
+- **v3.405, formatting:**
+  - The group rule `.posing-class summary` also matched each technique's nested summary, causing double chevrons and rules. It's now scoped to `> summary`.
+  - Technique rows have a single CSS chevron. Names drop the group's own word when the group title contains it, and `data-name` keeps the full name for `openMasterclassTechnique`.
+  - Points render with a bold, capitalised label and no bullets. Icon tiles are glass. The exercise list's ▸ glyph is now a drawn chevron.
+  - "Recently Trained" title and nine shorter hints.
+  - The standalone watersports renderer has the same markup; it stays standalone because two tests extract it alone.
+- **v3.406–v3.419, content:** all 14 masterclasses (274 techniques) went from five points to three (Setup, Execution, Common mistake), each at most 18 words with its label. Group titles and notes are shorter.
+  - Every `MUST_KEEP` safety phrase in `test-concise-learn.js` still holds, and the `THREE` list there now has to contain every sport.
+  - `test-flagged-fixes` keeps the front-squat insight, carried by the Execution and Common mistake points (dated note).
+  - Tooling (not committed): the scratchpad `mc/mc.py` parses JS string literals to swap `points` arrays and group keys and notes. `mc/ship.sh` updates `THREE`, bumps, runs the suite gated on its exit code, and commits; it refuses to bump a version already in `WHATS_NEW`.
+  - **Watch:** pinned phrases must not start a point. The data is capitalised and the regexes are lowercase. Data starts each point capitalised after the label, and the renderer capitalises it anyway.
+- **v3.420:** "Close this masterclass" is glass.
+- **Verified in Chromium:** all 14 masterclasses open, each technique row has exactly three points, no text chevrons, no page errors.
