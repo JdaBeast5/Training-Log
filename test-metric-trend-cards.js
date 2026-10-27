@@ -86,6 +86,19 @@ test('renderSparkline renders a real sparkline with first/last values and a week
   assert.match(el.textContent, /gain|loss/, 'a weekly-rate insight must render once there are 4+ entries');
 });
 
+// v3.441 — the weekly-rate note states the pace in plain words and no longer
+// points back to Goal Progress Check (the card right above it says that).
+test('REAL invocation (v3.441): the weight note reads "About N lb a week loss over this window."', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, otherGlobals, scriptChunks);
+  window.renderSparkline([
+    {date:'2026-08-01', weight:185}, {date:'2026-08-08', weight:183},
+    {date:'2026-08-15', weight:181}, {date:'2026-08-22', weight:179},
+  ]);
+  const note = document.querySelector('#weightChart .goal-feedback-neutral').textContent;
+  assert.match(note, /^About 2 lb a week loss over this window\.$/);
+  assert.doesNotMatch(note, /Goal Progress Check|\//);
+});
+
 test('renderSparkline chart sorts by date rather than assuming input order', async (assert)=>{
   const { document, window } = runJsdom(bodyHtml, otherGlobals, scriptChunks);
   window.renderSparkline([

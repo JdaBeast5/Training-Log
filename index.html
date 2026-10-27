@@ -898,6 +898,11 @@
     border-radius:var(--radius-sm); font-size:12.5px; line-height:1.5; color:var(--plate-yellow);
     box-shadow:var(--rim), 0 4px 14px -8px rgba(var(--plate-yellow-rgb),0.35);
   }
+  /* v3.437: on Analysis a neutral note is just the sentence under its chart —
+     only good and warning earn a tinted box, so the box itself means
+     something. (Elsewhere, e.g. AI replies on Today and Log, the neutral
+     box still frames the reply.) */
+  #analysisView .goal-feedback-neutral{background:none; border:none; box-shadow:none; padding:0; font-size:13px; color:var(--text);}
 
   /* Smooth expand/collapse without JS height calculation — height + fade together */
   .expand-wrap{
@@ -1797,10 +1802,22 @@
   .pr-stat{
     font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:15px; letter-spacing:-0.01em; color:var(--plate-yellow); font-weight:700; flex:0 0 auto; text-align:right;
   }
-  .rpe-trend-labels{
-    display:flex; justify-content:space-between; margin-top:8px; font-family:var(--font-mono); font-variant-numeric:tabular-nums;
-    font-size:12px; color:var(--text-muted);
+  /* v3.435: every sparkline's footer (start · summary · end). The summary sat
+     squeezed between the two end values and wrapped them ("1560 / cal").
+     Now the ends share the first line under the chart's two edges, and the
+     summary gets its own line in the text face. One class for all five
+     (was .rpe-trend-labels on three and the same rule inline on two). */
+  /* v3.436: the target as a quiet dashed reference line across the chart. */
+  .trend-target{stroke:var(--text-muted); stroke-width:1.2; stroke-dasharray:5 5; opacity:0.7; vector-effect:non-scaling-stroke;}
+  .trend-labels{
+    display:grid; grid-template-columns:auto auto; grid-template-areas:"start end" "sum sum";
+    column-gap:12px; row-gap:4px; margin-top:6px;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);
   }
+  .trend-labels > :nth-child(1){grid-area:start; white-space:nowrap;}
+  .trend-labels > :nth-child(3){grid-area:end; justify-self:end; white-space:nowrap;}
+  .trend-labels > :nth-child(2){grid-area:sum; font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:13px;}
+  .trend-labels > :nth-child(2):not([class]), .trend-labels > :nth-child(2)[class=""]{color:var(--text);}
   .care-details{margin:0 0 10px 0;}
   .care-details summary{display:flex; align-items:center; gap:8px;}
   .care-type-tag{
@@ -2383,7 +2400,8 @@
   .vol-bar-fill{position:relative; height:100%; background:var(--cta-gradient-blue); border-radius:5px; transition:width 0.5s var(--ease-smooth);}
   .vol-bar-fill::after{content:''; position:absolute; inset:0; border-radius:5px; background:var(--shine-gloss);}
   .vol-bar-labels{display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-top:4px; font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
-  .vol-landmark{font-size:11px; margin-top:6px; font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
+  /* v3.439: a sentence, so the text face (it was mono, like the figures above it). */
+  .vol-landmark{font-size:12.5px; line-height:1.4; margin-top:6px; font-family:var(--font-sans); font-variant-numeric:tabular-nums;}
   .vol-landmark-within{color:var(--plate-green);}
   .vol-landmark-below{color:var(--plate-yellow);}
   .vol-landmark-above{color:#4FC3F7;}
@@ -3072,6 +3090,11 @@
   .week-col.label{flex:1.4; text-align:left;}
   .week-col .w-val{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:14.5px; font-weight:700; letter-spacing:-0.01em;}
   .week-col .w-label{font-size:11px; color:var(--text-muted); margin-top:2px;}
+  /* v3.438: column names live in the header row; in data rows they stay for
+     screen readers only. */
+  .week-row:not(.week-head) .w-label{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+  .week-row.week-head{padding:8px 0 6px;}
+  .week-row.week-head .w-label{margin:0;}
   .week-col .w-date{font-size:12.5px; font-weight:600; font-family:var(--font-sans);}
   .w-up{color:var(--plate-red);}
   .w-down{color:var(--plate-green);}
@@ -6058,8 +6081,6 @@
          tab for an index to be worth having. -->
     <nav class="analysis-index" id="analysisIndex" aria-label="Jump to a section of this tab" style="display:none"></nav>
 
-    <button type="button" class="switch-profile-btn history-export-btn" id="analysisExportBtn" style="display:none; margin-bottom:12px;">Print analysis snapshot</button>
-
     <div class="card" id="analysisFirstRun" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 6.5v4M10 13.3v.2"/></svg></span>Nothing to analyse yet</div>
       <div class="history-hint">Charts appear as you log: a weight trend after two weigh-ins, volume after a session, pace after a distance.</div>
@@ -6204,6 +6225,10 @@
       <div class="history-hint">Weekly average RPE. A steady climb with no rest is the earliest sign of overreaching, before performance drops.</div>
       <div id="rpeTrend"></div>
     </div>
+
+    <!-- v3.440: an occasional action, so after the analysis rather than above
+         every card (it took the top slot under the jump rail). -->
+    <button type="button" class="switch-profile-btn history-export-btn" id="analysisExportBtn" style="display:none; margin:4px 0 12px;">Print analysis snapshot</button>
   </div>
 
   <div id="historyView" style="display:none">
@@ -7001,7 +7026,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.434';
+const APP_VERSION = '3.442';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8110,6 +8135,30 @@ const WHATS_NEW = {
   ]},
   '3.434': { headline: 'Clearer Log wording', points: [
     'The nutrition card is titled Nutrition, its list is Eaten, and Log\'s hints drop instructions the buttons already give.',
+  ]},
+  '3.435': { headline: 'Cleaner chart footers', points: [
+    'Under each Analysis chart, the start and end values sit at the two edges and the summary gets its own readable line.',
+  ]},
+  '3.436': { headline: 'Targets on the charts', points: [
+    'Nutrition, Sleep and Water charts draw your target as a dashed line, so the gap to it is visible at a glance.',
+  ]},
+  '3.437': { headline: 'Calmer Analysis notes', points: [
+    'On Analysis, plain notes under a chart are just text; only good news and warnings get a coloured box.',
+  ]},
+  '3.438': { headline: 'Week Over Week as a table', points: [
+    'Week Over Week names its columns once at the top, and each week reads on a single line.',
+  ]},
+  '3.439': { headline: 'Tidier volume and strength notes', points: [
+    'Weekly Volume\'s notes read in the normal text face, and Strength Context\'s lifts line up with the card.',
+  ]},
+  '3.440': { headline: 'Print at the end', points: [
+    'Print analysis snapshot moved from the top of Analysis to the end of it.',
+  ]},
+  '3.441': { headline: 'Plainer Analysis wording', points: [
+    'RPE says No change instead of a bare 0, and the weight trend states its weekly pace without pointing elsewhere.',
+  ]},
+  '3.442': { headline: 'Show 1 more', points: [
+    'A list with one hidden row now says Show 1 more, not Show 1 more exercises.',
   ]},
 };
 
@@ -30503,7 +30552,7 @@ async function openExerciseHistory(exIdx, ex){
         <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#gradExHistory)"/>
         <polyline fill="none" stroke="var(--plate-green)" stroke-width="2.5" points="${pts}"/>
       </svg>
-      <div class="rpe-trend-labels">
+      <div class="trend-labels">
         <span>${trimUnitNum(toDisplayWeight(first))} ${weightUnit}</span>
         <span class="${cls}">${delta>=0?'+':''}${trimUnitNum(delta)} ${weightUnit} over ${e1rmSeries.length} sessions</span>
         <span>${trimUnitNum(toDisplayWeight(last))} ${weightUnit}</span>
@@ -39147,11 +39196,10 @@ function isInCurrentCalendarWeek(dateKey){
   return d >= new Date(monday+'T00:00:00') && d < weekEnd;
 }
 
+// v3.438: the week's start ("Oct 26"), under a "Week of" column head. The
+// full "Oct 26 – Nov 1" range wrapped to two lines in its column.
 function fmtWeekLabel(mondayStr){
-  const start = parseDateKey(mondayStr);
-  const end = new Date(start); end.setDate(end.getDate()+6);
-  const opts = {month:'short', day:'numeric'};
-  return `${formatDate(start, opts)} – ${formatDate(end, opts)}`;
+  return formatDate(parseDateKey(mondayStr), {month:'short', day:'numeric'});
 }
 
 // [DATA ACCESS (fetch*)] --------------------------------------------------------
@@ -39302,16 +39350,20 @@ function renderDayValueTrend(elId, dayTotals, opts){
   }
   const recent = dates;
   const values = recent.map(d=> dayTotals[d]);
-  const min = Math.min(...values), max = Math.max(...values);
+  // v3.436: the target joins the scale so its line is always on the chart.
+  const hasTarget = !!opts.target;
+  const scaleVals = hasTarget ? [...values, opts.target] : values;
+  const min = Math.min(...scaleVals), max = Math.max(...scaleVals);
   const range = (max-min) || 1;
   const w = 600, h = 70, pad = 8;
+  const targetY = hasTarget ? h - pad - ((opts.target-min)/range) * (h-2*pad) : null;
   const pts = recent.map((d,i)=>{
     const x = pad + (i/(recent.length-1)) * (w-2*pad);
     const y = h - pad - ((values[i]-min)/range) * (h-2*pad);
     return `${x},${y}`;
   }).join(' ');
   const avg = values.reduce((a,b)=>a+b,0)/values.length;
-  const targetNote = opts.target ? ` (target ${opts.formatValue(opts.target)})` : '';
+  const targetNote = opts.target ? ` · target ${opts.formatValue(opts.target)}` : '';
   const insight = opts.insight ? opts.insight(values, avg, opts.target) : null;
   const insightHtml = insight ? `<div class="${insight.status==='good'?'goal-feedback-good':insight.status==='warn'?'goal-feedback-warn':'goal-feedback-neutral'}" style="margin-top:10px;">${insight.text}</div>` : '';
   el.innerHTML = `
@@ -39323,11 +39375,12 @@ function renderDayValueTrend(elId, dayTotals, opts){
         </linearGradient>
       </defs>
       <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#grad-${elId})"/>
+      ${hasTarget ? `<line class="trend-target" x1="${pad}" y1="${targetY}" x2="${w-pad}" y2="${targetY}"/>` : ''}
       <polyline fill="none" stroke="${opts.color}" stroke-width="2.5" points="${pts}"/>
     </svg>
-    <div style="display:flex; justify-content:space-between; margin-top:8px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);">
+    <div class="trend-labels">
       <span>${opts.formatValue(values[0])}</span>
-      <span>Avg: ${opts.formatValue(avg)}${targetNote} over ${recent.length} days</span>
+      <span>Avg ${opts.formatValue(avg)}${targetNote} · ${recent.length} days</span>
       <span>${opts.formatValue(values[values.length-1])}</span>
     </div>
     ${insightHtml}
@@ -39571,9 +39624,11 @@ function renderSparkline(entries){
   if(sorted.length >= 4){
     let text, status;
     if(Math.abs(perWeek) < 0.15){
-      status = 'neutral'; text = `Roughly flat — averaging under ${perWeekDisplay || '0.1'} ${weightUnit}/week of change over this window. (Goal Progress Check above reads whether that's expected for your goal.)`;
+      status = 'neutral'; text = `Roughly flat: under ${perWeekDisplay || '0.1'} ${weightUnit} a week of change over this window.`;
     } else {
-      status = 'neutral'; text = `Averaging about ${perWeekDisplay} ${weightUnit}/week ${perWeek>0?'gain':'loss'} over this window. (Goal Progress Check above reads whether that pace fits your goal.)`;
+      // v3.441: the pointer back to Goal Progress Check went; that card sits
+      // right above and says whether the pace suits the goal.
+      status = 'neutral'; text = `About ${perWeekDisplay} ${weightUnit} a week ${perWeek>0?'gain':'loss'} over this window.`;
     }
     insightHtml = `<div class="${status==='good'?'goal-feedback-good':status==='warn'?'goal-feedback-warn':'goal-feedback-neutral'}" style="margin-top:10px;">${text}</div>`;
   }
@@ -39588,7 +39643,7 @@ function renderSparkline(entries){
       <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#gradWeightTrend)"/>
       <polyline fill="none" stroke="#5B7CFF" stroke-width="2.5" points="${pts}"/>
     </svg>
-    <div style="display:flex; justify-content:space-between; margin-top:8px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);">
+    <div class="trend-labels">
       <span>${fmtWeight(sorted[0].weight)}</span>
       <span class="${deltaClass}">${deltaSign}${deltaDisplay} ${weightUnit} over ${sorted.length} entries</span>
       <span>${fmtWeight(sorted[sorted.length-1].weight)}</span>
@@ -39644,9 +39699,12 @@ function renderCollapsibleList(container, itemHtmls, visibleCount, noun){
   }
   const batchesHtml = batches.map((b, i)=>{
     const wrapId = `${container.id}-more-${i}`;
+    // v3.442: the nouns are plural ('weigh-ins', 'exercises'), so a single
+    // hidden row read "Show 1 more exercises"; one row is just "Show 1 more".
+    const what = b.items.length === 1 ? '' : ` ${noun}`;
     const label = b.remainingAfter > 0
-      ? `Show ${b.items.length} more ${noun} (${b.items.length + b.remainingAfter} total)`
-      : `Show ${b.items.length} more ${noun}`;
+      ? `Show ${b.items.length} more${what} (${b.items.length + b.remainingAfter} total)`
+      : `Show ${b.items.length} more${what}`;
     return `
       <div class="expand-wrap" id="${wrapId}"><div>${b.items.join('')}</div></div>
       <button class="show-more-btn" id="${wrapId}-btn" data-collapsed-label="${label}"${i > 0 ? ' style="display:none"' : ''}>${label}</button>
@@ -40161,7 +40219,9 @@ async function renderStrengthContext(){
   const lifts = found.map(l=>{
     const e = e1rms[l.key];
     const mult = bodyweightMultiple(e, bw);
-    return `<div class="diag-row diag-good"><span class="diag-icon"></span><span><b>${escapeHtml(l.label)}</b>`
+    // v3.439: no icon column — every lift row had an empty one (its '•' went in
+    // v3.426), indenting the list against the card for nothing.
+    return `<div class="diag-row diag-good"><span><b>${escapeHtml(l.label)}</b>`
       + `<span class="diag-detail">Estimated max ${trimUnitNum(toDisplayWeight(e))} ${escapeHtml(unit)}`
       + (mult != null ? ` · ${mult.toFixed(2)}× bodyweight` : '')
       + `</span></span></div>`;
@@ -44397,7 +44457,7 @@ async function renderCardioTrend(){
       <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#gradCardioTrend)"/>
       <polyline fill="none" stroke="var(--plate-teal)" stroke-width="2.5" points="${pts}"/>
     </svg>
-    <div class="rpe-trend-labels">
+    <div class="trend-labels">
       <span>${fmtDistance(first.metres)}</span>
       <span class="${deltaClass}">${distPct!=null ? `${distPct>=0?'+':''}${distPct}%` : 'new'} over ${withData.length} weeks</span>
       <span>${fmtDistance(last.metres)}</span>
@@ -44441,7 +44501,8 @@ async function renderRpeTrend(){
   } else if(delta < -0.5){
     insightHtml = `<div class="goal-feedback-good" style="margin-top:10px;">${icon('check')} Average RPE has dropped ${deltaSign}${delta} — sessions are feeling easier for the same work, a good sign of real recovery and adaptation.</div>`;
   } else {
-    insightHtml = `<div class="goal-feedback-neutral" style="margin-top:10px;">RPE has stayed fairly steady (${deltaSign}${delta}) — effort is tracking consistently with output, no fatigue flag here.</div>`;
+    // v3.441: no bare "(0)" — say how much it moved, or that it didn't.
+    insightHtml = `<div class="goal-feedback-neutral" style="margin-top:10px;">RPE has held steady${delta ? ` (${deltaSign}${delta})` : ''}: effort is tracking with output, no fatigue flag.</div>`;
   }
 
   el.innerHTML = `
@@ -44455,9 +44516,9 @@ async function renderRpeTrend(){
       <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#gradRpeTrend)"/>
       <polyline fill="none" stroke="#4FC3F7" stroke-width="2.5" points="${pts}"/>
     </svg>
-    <div class="rpe-trend-labels">
+    <div class="trend-labels">
       <span>RPE ${withData[0].avg.toFixed(1)}</span>
-      <span class="${deltaClass}">${deltaSign}${delta} over ${withData.length} weeks</span>
+      <span class="${deltaClass}">${delta ? `${deltaSign}${delta} RPE` : 'No change'} over ${withData.length} weeks</span>
       <span>RPE ${withData[withData.length-1].avg.toFixed(1)}</span>
     </div>
     ${insightHtml}
@@ -46115,7 +46176,18 @@ async function renderAnalysis(){
     return;
   }
 
-  tableEl.innerHTML = rows.map((r, idx)=>{
+  // v3.438: the column names once, in a header row; each row keeps its own
+  // labels for screen readers (visually hidden) and names its week by start.
+  const weekHeadHtml = rows.some(r=> r.hasData) ? `
+      <div class="week-row week-head" aria-hidden="true">
+        <div class="week-col label"><div class="w-label">Week of</div></div>
+        <div class="week-col"><div class="w-label">Workouts</div></div>
+        <div class="week-col"><div class="w-label">Avg cal</div></div>
+        <div class="week-col"><div class="w-label">Protein</div></div>
+        <div class="week-col"><div class="w-label">Weight</div></div>
+        <div class="week-col"><div class="w-label">Change</div></div>
+      </div>` : '';
+  tableEl.innerHTML = weekHeadHtml + rows.map((r, idx)=>{
     if(!r.hasData) return '';
     const prevWeek = rows[idx+1];
     let deltaHtml = '<span class="w-flat">—</span>';

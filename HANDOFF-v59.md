@@ -465,3 +465,24 @@ Owner: "go through the whole Log tab, and use our skills … to make it a 2.0 ve
   - Pre-existing, app-wide findings: the `#5b7cff` accent at 3.6–3.8:1 on `#2d2d2f` and under white text, and the coloured glow shadows from the glass/glow system (v3.29x).
   - Not touched here. They are a design-system decision for their own thread.
 - **Verified in Chromium:** the Log tab top to bottom at 390px, with no page errors.
+
+## Addendum 21: Analysis tab 2.0 (v3.435–v3.442)
+Owner: "Now go through Analysis tab same thing." This was a refinement on the incumbent system, using the same skills as addendum 20 plus dataviz (reference lines, labels once). Tests are in `test-analysis-2-0.js`, one section per version, each sabotage-checked.
+- **Data for review:** `.taste-skill/seed2.html` (git-ignored) seeds 28 days of weight, sleep, food and water, and ten Day-1 sessions. With it Analysis shows 12 cards; the old seed showed 5.
+- **v3.435:** one sparkline footer, `.trend-labels`, used by the day-value trend, Weight, RPE, Cardio and the exercise-history 1RM.
+  - It replaces `.rpe-trend-labels` on three of them and the same rule written inline on two.
+  - It's a grid: the start and end values sit under the chart's edges, and the summary has its own line in the text face.
+  - The day-value summary reads "Avg X · target Y · N days"; `test-analysis-trend-range` was updated with a dated note.
+- **v3.436:** `renderDayValueTrend` draws a dashed `.trend-target` line at the target, and the target joins the scale. Nutrition, Sleep and Water get it; no target (Care's pain trend) means no line.
+- **v3.437:** `#analysisView .goal-feedback-neutral` has no box. Good and warn keep theirs, and neutral boxes outside Analysis (the AI replies) are unchanged.
+- **v3.438:** Week Over Week names its columns once in a `.week-head` row.
+  - In the data rows, `.w-label` is visually hidden but still read by screen readers.
+  - `fmtWeekLabel` returns the Monday alone, under "Week of"; `test-date-label-formatters` was updated with a dated note.
+- **v3.439:** `.vol-landmark` is in the text face at 12.5px, and Strength Context's lift rows lose the empty icon column (an indent left over from v3.426).
+- **v3.440:** "Print analysis snapshot" moved from under the jump rail to the end of `#analysisView`. Group collapse only touches `.card` and `.history-export-row`, so the button isn't swept up.
+- **v3.441:** RPE says "No change" instead of a bare 0, and the weight note reads "About N lb a week loss over this window.", without the parenthetical pointing back to Goal Progress Check.
+- **v3.442:** `renderCollapsibleList` drops the plural noun for a single hidden row ("Show 1 more"). It's shared, so every tab's lists get the fix.
+- **Not done, noted:**
+  - The RPE chart draws a flat line when RPE never changed (a range of 0). That's harmless, but a band or a y-axis hint would read better.
+  - The detector's app-wide contrast and glow findings from addendum 20 still stand.
+- **Verified in Chromium:** Analysis with every group open at 390px, using seed2, with no page errors.

@@ -1,4 +1,5 @@
 'use strict';
+// 2026-10-27 (v3.435): the footer's day count reads "· N days" (was "over N days").
 // Behavioral coverage for the Analysis tab's new #analysisTrendRange
 // selector (7/30/90/all-time — new feature). One selector scopes the six
 // Body & Health Trends cards (Weight, Nutrition, Sleep, Water, Blood
@@ -112,7 +113,7 @@ test('opts.rangeDays=null ("all time") includes every logged day, not just the l
   for(let i=0; i<20; i++) dayTotals[daysAgoKey(i)] = i;
   window.renderDayValueTrend('waterChart', dayTotals, { label:'water', color:'#000', formatValue: v=>String(v), rangeDays: null });
   const el = document.getElementById('waterChart');
-  assert.match(el.textContent, /over 20 days/, 'all 20 logged days must be included when rangeDays is explicitly null (all time), not capped at 16');
+  assert.match(el.textContent, /· 20 days/, 'all 20 logged days must be included when rangeDays is explicitly null (all time), not capped at 16');
 });
 
 test('a legacy caller that never passes opts.rangeDays (e.g. Care tab\'s renderPainTrend) keeps the original last-16-days cap, unaffected by the selector', async (assert)=>{
@@ -130,7 +131,7 @@ test('a legacy caller that never passes opts.rangeDays (e.g. Care tab\'s renderP
   for(let i=0; i<20; i++) dayTotals[daysAgoKey(i)] = i; // all 20 days are within the last 20 days, well inside a 7-day cutoff
   window.renderDayValueTrend('waterChart', dayTotals, { label:'water', color:'#000', formatValue: v=>String(v) }); // no rangeDays passed
   const el = document.getElementById('waterChart');
-  assert.match(el.textContent, /over 16 days/, 'must keep the original last-16 cap (16 of the 20 days), proving the "7" sitting in the selector was never consulted');
+  assert.match(el.textContent, /· 16 days/, 'must keep the original last-16 cap (16 of the 20 days), proving the "7" sitting in the selector was never consulted');
 });
 
 test('opts.rangeDays present but no data survives the cutoff shows a "widen the range" message, distinct from "log at least two"', async (assert)=>{
@@ -218,7 +219,7 @@ test('renderNutritionTrend reads the live #analysisTrendRange value: range=7 exc
   });
   const el = document.getElementById('nutritionChart');
   assert.doesNotMatch(el.textContent, /9999/);
-  assert.match(el.textContent, /over 2 days/);
+  assert.match(el.textContent, /· 2 days/);
 });
 
 test('switching the live select from 7 to all and re-rendering picks up the previously-excluded entry', async (assert)=>{
@@ -234,11 +235,11 @@ test('switching the live select from 7 to all and re-rendering picks up the prev
   const sel = document.getElementById('analysisTrendRange');
   sel.value = '7';
   window.renderNutritionTrend(foodDays);
-  assert.match(document.getElementById('nutritionChart').textContent, /over 2 days/);
+  assert.match(document.getElementById('nutritionChart').textContent, /· 2 days/);
 
   sel.value = 'all';
   window.renderNutritionTrend(foodDays);
-  assert.match(document.getElementById('nutritionChart').textContent, /over 3 days/, 'switching the selector to all time must surface the previously out-of-range entry on the next render');
+  assert.match(document.getElementById('nutritionChart').textContent, /· 3 days/, 'switching the selector to all time must surface the previously out-of-range entry on the next render');
 });
 
 // =========================== REAL invocation: the change listener ===========
