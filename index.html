@@ -1821,6 +1821,9 @@
   .trend-labels > :nth-child(2):not([class]), .trend-labels > :nth-child(2)[class=""]{color:var(--text);}
   .care-details{margin:0 0 10px 0;}
   .care-details summary{display:flex; align-items:center; gap:8px;}
+  /* v3.450: a stretch is a row you open, not a link — its name in the text
+     colour (it took .ex-details' link blue, meant for the small "Cues" toggle). */
+  .care-details > summary{color:var(--text); font-weight:500; font-size:14px; min-height:36px;}
   .care-type-tag{
     font-size:11px; font-weight:700;
     padding:2px 7px; border-radius:var(--radius-md); flex:0 0 auto;
@@ -3218,6 +3221,8 @@
   .care-disclaimer-card{background:none; border:0; box-shadow:none; padding:0;}
   .care-disclaimer-card .care-disclaimer{margin-bottom:0;}
   .care-disclaimer{font-size:13px; line-height:1.5; color:var(--text-muted);}
+  .custom-toggle.coach-key-link{margin:8px 0 14px; color:var(--plate-blue); font-weight:600;}
+  .custom-toggle.coach-key-link[hidden]{display:none;}
   .care-disclaimer b{color:var(--text);}
 
   .coach-chat-log{
@@ -3551,6 +3556,11 @@
   .resting-chip button{
     background:none; border:none; color:var(--plate-red); font-size:14px; cursor:pointer; padding:0; line-height:1;
   }
+  /* v3.449: the region reads as a name and the ✕ as a quiet action. Both were
+     red (and the name underlined) inside the yellow caution border; the
+     border alone says "resting". */
+  .resting-chip .link-btn{color:var(--text); text-decoration:none; font-weight:600;}
+  .resting-chip .clear-resting{color:var(--text-muted);}
 
   .care-log-item{
     padding:10px 0; border-bottom:1px solid var(--line-soft); font-size:12.5px;
@@ -3572,12 +3582,22 @@
   .care-pattern-row:last-child{ border-bottom:none; }
   .care-pattern-name{ font-size:13px; font-weight:600; color:var(--text); }
   .care-log-pain{color:var(--plate-red); font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:11px;}
+  /* v3.451: a check-in's pain is coloured by how bad it is (every one was red,
+     2/10 included), like the slider it was logged on; the date in the text
+     face with the pain at the row's end; Edit without the underline. */
+  /* v3.456: Coach's past reviews share the row; its date reads in the text face too. */
+  #coachView .care-log-date{font-family:var(--font-sans); font-size:13px;}
+  #careView .care-log-date{display:flex; justify-content:space-between; align-items:baseline; font-family:var(--font-sans); font-size:13px;}
+  #careView .care-log-pain{font-size:12.5px; font-weight:600;}
+  .care-log-pain.is-low{color:var(--text-muted);}
+  .care-log-pain.is-mid{color:var(--plate-yellow);}
+  .care-log-pain.is-high{color:var(--plate-red);}
   /* Edit is deliberately a quiet text affordance rather than a second solid
      button: the row's primary gesture is still swipe-to-delete, and two
      competing buttons on a 12.5px row is how a list stops being scannable. */
   .care-log-edit{
     background:none; border:none; color:var(--plate-blue); font-size:11.5px; font-weight:600;
-    font-family:var(--font-sans); padding:4px 0 0; cursor:pointer; text-decoration:underline;
+    font-family:var(--font-sans); padding:4px 0 0; cursor:pointer; text-decoration:none;
   }
   /* Only ever visible while backdating, so it is allowed to be loud. Silence
      here is the failure mode — a check-in filed to the wrong day reads as
@@ -6380,7 +6400,9 @@
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3.6" width="12" height="14.8" rx="1.5"/><rect x="7" y="2" width="6" height="3" rx="1"/><line x1="7" y1="9" x2="13" y2="9"/><line x1="7" y1="12.3" x2="13" y2="12.3"/><line x1="7" y1="15.6" x2="11" y2="15.6"/></svg></span>Check-In History</div>
       <div id="carePatternList"></div>
       <div id="careLogList"></div>
-      <button class="care-rest-btn" id="careExport" style="display:none; width:100%; margin-top:14px;">Save a summary for an appointment</button>
+      <!-- v3.452: an occasional action, so the secondary pill (as Log's "+ Add
+           custom item"); it borrowed "Mark … as resting"'s flat blue button. -->
+      <button type="button" class="custom-toggle" id="careExport" style="display:none; margin-top:14px;">Save a summary for an appointment</button>
       <div id="careExportNote" class="history-hint" style="display:none; margin-top:8px;">Plain text: your check-ins, worst and latest pain per area, and what you're resting. Saved to your device; nothing is sent.</div>
     </div>
   </div>
@@ -6390,6 +6412,8 @@
       <div class="care-disclaimer">
         Uses your Anthropic API key (Settings → AI Features Setup). Not medical advice, and not a substitute for an in-person coach or doctor.
       </div>
+      <!-- v3.457: with no key saved, the way to add one, here — not only after an AI action has failed. -->
+      <button type="button" class="custom-toggle coach-key-link" id="coachKeySetup" data-jump-to="aiSettingsCard" hidden>Add your API key</button>
     </div>
 
     <!-- Get Form Feedback / Past Reviews moved ahead of Ask Your Coach:
@@ -6401,13 +6425,14 @@
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5.2" width="10.8" height="9.6" rx="1.5"/><path d="M12.8 8.4 17.8 6v8l-5-2.4Z"/></svg></span>Get Form Feedback</div>
       <div class="history-hint">Coaching for your <b id="coachPersonaLabel">Strength & Size</b> style. Record a full working set from the side or a 3/4 angle; the coach checks whether your form holds up across the set. Keep it under 60 seconds — longer clips fail on iPhone.</div>
       <div class="privacy-note">Your clip goes straight to Anthropic with your own key — no other server. Only the written feedback is saved; the video never is.</div>
-      <input type="file" id="coachVideoInput" accept="video/*" style="display:none" aria-label="Video of your set">
-      <button class="photo-log-btn" id="coachVideoBtn"><svg class="btn-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="10.5" height="9" rx="1.5"/><path d="M13 8.6 17.5 6v8L13 11.4Z"/></svg>Upload or record a clip</button>
       <label class="care-label" for="coachExerciseInput">What exercise/movement is this?</label>
       <input type="text" id="coachExerciseInput" class="care-input" placeholder="e.g. Back Squat, Jab-Cross Combo, Front Double Biceps" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="coachExerciseSuggest">
       <div id="coachExerciseSuggest" class="ex-suggest" role="listbox" aria-label="Matching exercises" style="display:none"></div>
       <label class="care-label" for="coachFocusInput">Anything specific you want checked? (optional)</label>
       <input type="text" id="coachFocusInput" class="care-input" placeholder="e.g. my knee caving in, bar path">
+      <!-- v3.454: name the movement first; choosing a clip starts the review at once and reads these fields then (they sat below the button). -->
+      <input type="file" id="coachVideoInput" accept="video/*" style="display:none" aria-label="Video of your set">
+      <button class="photo-log-btn" id="coachVideoBtn"><svg class="btn-icon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5.5" width="10.5" height="9" rx="1.5"/><path d="M13 8.6 17.5 6v8L13 11.4Z"/></svg>Upload or record a clip</button>
       <div id="coachResult"></div>
     </div>
 
@@ -6418,7 +6443,8 @@
 
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 5.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8l-4 3v-3H4.5a2 2 0 0 1-2-2Z"/></svg></span>Ask Your Coach</div>
-      <div class="history-hint">Ask about training, nutrition or recovery — the coach already knows your goal and program.</div>
+      <!-- v3.455: the empty conversation says what to ask (and is shared with
+           the floating chat); a hint above it said the same thing again. -->
       <div id="coachChatLog" class="coach-chat-log"></div>
       <div class="coach-chat-input-row">
         <input type="text" id="coachChatInput" class="care-input" placeholder="Ask something…" aria-label="Message your coach">
@@ -7043,7 +7069,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.448';
+const APP_VERSION = '3.457';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8194,6 +8220,33 @@ const WHATS_NEW = {
   ]},
   '3.448': { headline: 'One date per day', points: [
     'The PR timeline shows each day\'s date once, on its first record.',
+  ]},
+  '3.449': { headline: 'Calmer resting chip', points: [
+    'Care\'s resting areas read as plain names with a quiet clear button inside their caution outline.',
+  ]},
+  '3.450': { headline: 'Stretches read as rows', points: [
+    'Care\'s stretch and strengthening moves read as rows you open, not as blue links.',
+  ]},
+  '3.451': { headline: 'Pain coloured by how bad it is', points: [
+    'Care\'s check-ins colour pain by severity (not everything red), with the date and pain on one tidy line.',
+  ]},
+  '3.452': { headline: 'Quieter appointment button', points: [
+    'Care\'s Save a summary for an appointment uses the same quiet button as other occasional actions.',
+  ]},
+  '3.453': { headline: 'Care cards when they have something', points: [
+    'Care\'s Pain Trend and Check-In History appear once you\'ve logged check-ins, instead of empty cards.',
+  ]},
+  '3.454': { headline: 'Name the movement first', points: [
+    'In Coach, you say which exercise it is before choosing the clip, which is when the review starts.',
+  ]},
+  '3.455': { headline: 'Quieter coach chat', points: [
+    'Ask Your Coach says what to ask once, and Clear conversation only appears when there\'s a conversation.',
+  ]},
+  '3.456': { headline: 'Past Reviews when you have one', points: [
+    'Coach\'s Past Reviews appears once you\'ve had a form review, with dates in the normal text face.',
+  ]},
+  '3.457': { headline: 'Add your key from Coach', points: [
+    'Without an API key saved, Coach\'s note offers Add your API key right there, instead of only after something fails.',
   ]},
 };
 
@@ -41750,8 +41803,14 @@ function renderCoachChatLog(){
     if(!log) return;
     if(coachChatHistory.length === 0){
       log.innerHTML = '<div class="coach-chat-empty">Ask something about your training, nutrition, or recovery — your goal and active program are already part of the conversation.</div>';
-      return;
     }
+  });
+  // v3.455: Clear only when there is a conversation to clear.
+  const clearBtn = document.getElementById('coachChatClear');
+  if(clearBtn) clearBtn.style.display = coachChatHistory.length ? '' : 'none';
+  ['coachChatLog', 'floatingChatLog'].forEach(id=>{
+    const log = document.getElementById(id);
+    if(!log || coachChatHistory.length === 0) return;
     log.innerHTML = coachChatHistory.map(m=>
       `<div class="coach-chat-bubble ${m.role==='user' ? 'user' : 'assistant'}">${escapeHtml(m.content)}</div>`
     ).join('');
@@ -42458,6 +42517,8 @@ async function saveCoachEntry(entry){
 }
 
 async function renderCoach(){
+  const keyLink = document.getElementById('coachKeySetup');
+  if(keyLink) keyLink.hidden = !!(await getApiKey());
   const persona = activeProgram === 'combat' ? COMBAT_STYLES[activeMartialArt].label : programs[activeProgram].label;
   document.getElementById('coachPersonaLabel').textContent = persona;
 
@@ -42466,6 +42527,10 @@ async function renderCoach(){
 
   const log = await getCoachLog();
   const listEl = document.getElementById('coachHistoryList');
+  // v3.456: Past Reviews appears once there is a review (empty, it was a whole
+  // card saying so; the form right above is where one comes from).
+  const reviewsCard = listEl && listEl.closest('.card');
+  if(reviewsCard) reviewsCard.style.display = log.length ? '' : 'none';
   if(log.length === 0){
     listEl.innerHTML = '<div class="empty-note">No reviews yet — record a set above to get feedback on your form.</div>';
   }else{
@@ -43429,7 +43494,15 @@ async function renderCare(){
   careRenderedLog = log;
   renderCareLogDayNote();
   // Reuses the log just fetched above instead of re-reading the same key.
-  renderPainTrend(await fetchPainDays(log));
+  const painDays = await fetchPainDays(log);
+  // v3.453: Pain Trend appears once there are two days to draw, Check-In
+  // History once there is a check-in; empty, each was a whole card saying so
+  // (Saved Weeks and Analysis hide their empty cards the same way).
+  const painCard = document.getElementById('painChart') && document.getElementById('painChart').closest('.card');
+  if(painCard) painCard.style.display = Object.keys(painDays).length >= 2 ? '' : 'none';
+  const historyCard = listEl && listEl.closest('.card');
+  if(historyCard) historyCard.style.display = log.length ? '' : 'none';
+  renderPainTrend(painDays);
 
   // Resting regions
   if(resting.length === 0){
@@ -43476,7 +43549,7 @@ async function renderCare(){
     const sorted = [...log].sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'));
     const itemHtmls = sorted.map(e=> buildSwipeItem(`
       <div class="care-log-item">
-        <div class="care-log-date">${fmtDayLabel(e.date)} <span class="care-log-pain">${e.pain}/10</span></div>
+        <div class="care-log-date">${fmtDayLabel(e.date)} <span class="care-log-pain ${e.pain >= 7 ? 'is-high' : e.pain >= 4 ? 'is-mid' : 'is-low'}">${e.pain}/10</span></div>
         <div class="care-log-detail">${e.exercise ? `During: ${escapeHtml(e.exercise)} · ` : ''}${SENSATION_LABELS[e.sensation] || ''} ${e.region ? `· ${escapeHtml(e.region)}` : ''}</div>
         ${e.note ? `<div class="care-log-detail">${escapeHtml(e.note)}</div>` : ''}
         <button class="care-log-edit" aria-label="Edit check-in from ${escapeHtml(fmtDayLabel(e.date))}">Edit</button>

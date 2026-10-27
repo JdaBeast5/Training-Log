@@ -503,3 +503,35 @@ Owner: "Now the history tab." Same skills and method as addenda 20–21. Tests a
   - Month rows use a right-pointing chevron, though they open in place (a disclosure).
   - The class `delta-up` means "good direction", not "went up": a weight drop is styled `delta-up`. It's a naming oddity, not a bug, but confusing.
 - **Verified in Chromium:** History at 390px with seed2, no page errors.
+
+## Addendum 23: Care tab 2.0 (v3.449–v3.453)
+Owner: "Care." Same method as addenda 20–22. Tests are in `test-care-2-0.js`, one section per version, each sabotage-checked. Reviewed with `.taste-skill/seed3.html` (git-ignored): seed2 plus four check-ins and a resting Shoulder.
+- **Left as is:** the top disclaimer. It was trimmed in an earlier pass, and `test-concise-copy` pins its safety phrases and its 46-word cap.
+- **v3.449:** in the resting chip, `.resting-chip .link-btn` uses the text colour with no underline, and `.clear-resting` is muted. Both were red inside the yellow caution border; the border stays.
+- **v3.450:** `.care-details > summary` (stretch rows) uses the text colour at 14px. It had been inheriting `.ex-details`' link blue, which belongs to the small "Cues" toggle.
+- **v3.451:** check-in pain is coloured by severity.
+  - `.care-log-pain.is-low/.is-mid/.is-high`: muted up to 3, yellow for 4–6, red for 7 and above.
+  - `#careView .care-log-date` is in the text face, with the pain at the row's end. `.care-log-edit` loses its underline.
+  - This is scoped to Care, because Coach's past reviews share `.care-log-item` / `.care-log-date`.
+- **v3.452:** `#careExport` ("Save a summary for an appointment") uses the `.custom-toggle` secondary pill. It had borrowed `.care-rest-btn`, the button "Mark … as resting" uses.
+- **v3.453:** `renderCare` hides the Pain Trend card until there are 2 days of data, and the Check-In History card until there is 1 check-in.
+- **Noted, not changed:**
+  - The check-in tiles touch each other, with no gap between them.
+  - Coach's reviews still use the mono date. Do that in the Coach pass.
+- **Verified in Chromium:** Care at 390px with seed2 (no check-ins) and seed3, no page errors.
+
+## Addendum 24: Coach tab 2.0 (v3.454–v3.457)
+Owner: "Now the coach tab with our skills." Same method as before. Tests are in `test-coach-2-0.js`, each sabotage-checked. Card order is unchanged, as `test-coach-tab-order` pins it.
+- **v3.454 (a flow bug):** the `coachVideoInput` change handler reads `coachExerciseInput` and `coachFocusInput` the moment a clip is chosen. Those fields sat below the upload button, so uploading first sent "this movement" with no focus. The fields now come before the button.
+- **v3.455:**
+  - The chat card's hint repeated the empty conversation line (which the floating chat shares), so the hint is gone.
+  - `renderCoachChatLog` shows `#coachChatClear` only when there's a conversation.
+- **v3.456:**
+  - `renderCoach` hides the Past Reviews card until there is a review.
+  - `#coachView .care-log-date` is in the text face, matching Care in v3.451.
+- **v3.457:**
+  - While no API key is saved, `#coachKeySetup` ("Add your API key") appears under the top note. It's a `.custom-toggle` in the link colour with `data-jump-to="aiSettingsCard"`, the route `aiKeySetupPrompt` uses. In Chromium it opens Settings with AI Features Setup open.
+  - It sits outside `.care-disclaimer` because `test-concise-copy` word-counts that note.
+  - A follow-up commit was folded into the v3.457 commit before pushing, so the version-per-change rule holds.
+- **Left as is:** the Supplement Recommendations disclaimer, which is safety copy.
+- **Verified in Chromium** with seed3 and no key, no page errors.
