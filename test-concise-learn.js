@@ -36,6 +36,16 @@ const DONE = [
   'WATERSPORTS_TECHNIQUE_DETAILS', // v3.349
 ];
 
+// 2026-10-27 (v3.406+, owner: "make the content more concise like the rest of
+// the app"): one sport per version moves from five points to THREE — Setup,
+// Execution, Common mistake — at the length of the app's exercise cues (at most
+// 18 words with the label). Whole-body integration and the Coaching/Judging
+// insight are folded in where they carried something (every MUST_KEEP phrase
+// below still has to survive), and the group titles and notes get shorter.
+const THREE = [
+  'STRENGTH_TECHNIQUE_DETAILS', // v3.406
+];
+
 const MUST_KEEP = [
   // v3.336 — posing: no safety content; the scoring facts each pose turns on
   /never stand square/, /symmetry/, /exhale sharply and completely/, /glute-hamstring tie-in/,
@@ -74,16 +84,23 @@ function learn(){
 }
 const label = p => (p.match(/^([A-Z][A-Za-z /&-]{2,40}):/) || [])[1];
 
-test('REAL data: every technique keeps five labelled points (structure unchanged)', (assert)=>{
+test('REAL data: every technique has labelled points — five, or three (Setup, Execution, Common mistake) once its sport is in THREE', (assert)=>{
   const all = learn();
   const techniques = Object.values(all).flatMap(o => Object.values(o));
   assert.strictEqual(techniques.length, 274, 'anchor: the real 274 techniques');
-  assert.deepStrictEqual(techniques.filter(t => t.points.length !== 5).length, 0);
   assert.deepStrictEqual(techniques.flatMap(t => t.points).filter(p => !label(p)), []);
-  for(const t of techniques){
+  for(const c of CONSTS) for(const [name, t] of Object.entries(all[c])){
     const labels = t.points.map(label);
-    assert.strictEqual(labels[0], 'Setup'); assert.strictEqual(labels[1], 'Execution'); assert.strictEqual(labels[3], 'Common mistake');
+    if(THREE.includes(c)) assert.deepStrictEqual(labels, ['Setup', 'Execution', 'Common mistake'], `${c} / ${name}`);
+    else { assert.strictEqual(labels.length, 5, `${c} / ${name}`); assert.strictEqual(labels[0], 'Setup'); assert.strictEqual(labels[1], 'Execution'); assert.strictEqual(labels[3], 'Common mistake'); }
   }
+});
+
+test('REAL data (v3.406+): the three-point sports read like the app\'s cues — at most 18 words a point', (assert)=>{
+  const all = learn();
+  assert.ok(THREE.length >= 1, 'anchor');
+  const long = THREE.flatMap(c => Object.entries(all[c]).flatMap(([name, t]) => t.points.filter(p => p.split(/\s+/).length > 18).map(p => `${c} / ${name}: ${p}`)));
+  assert.deepStrictEqual(long, []);
 });
 
 test('REAL data: rewritten sports have no point over 25 words — all 14 since v3.349', (assert)=>{
