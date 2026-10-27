@@ -101,4 +101,15 @@ test('REAL CSSOM (v3.430): the slot is hidden until needed', (assert)=>{
   assert.strictEqual(window.getComputedStyle(slot).display, 'block');
 });
 
+// v3.431 — Rows fit the card. A number input keeps an intrinsic minimum
+// width, so Bodyweight's and Sleep's Log buttons ran 13px past the card's
+// inner edge (measured in Chromium: button right 362 vs inner edge 349; the
+// grocery row, a text input, fit). The row's inputs may now shrink.
+test('REAL CSSOM (v3.431): the add-row inputs may shrink below their intrinsic width', (assert)=>{
+  const CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
+  const { window } = new JSDOM(`<style>${CSS}</style><div class="weight-input-row"><input type="number" id="w"><input type="text" id="t"><button>Log</button></div>`);
+  for(const id of ['w', 't']) assert.strictEqual(window.getComputedStyle(window.document.getElementById(id)).minWidth, '0px', id);
+  for(const id of ['weightInput', 'sleepInput']) assert.ok(doc.getElementById(id).closest('.weight-input-row'), 'anchor: ' + id + ' sits in the row');
+});
+
 run();

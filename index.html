@@ -1846,8 +1846,10 @@
   .save-btn[disabled]:active{transform:none;}
 
   .weight-input-row{display:flex; gap:8px;}
+  /* v3.431: min-width:0 — a number input keeps an intrinsic minimum width
+     (~250px), so Bodyweight's and Sleep's Log button ran 13px past the card. */
   .weight-input-row input{
-    flex:1; background:var(--glass-fill); border:1px solid var(--glass-hair); box-shadow:var(--rim); color:var(--text);
+    flex:1; min-width:0; background:var(--glass-fill); border:1px solid var(--glass-hair); box-shadow:var(--rim); color:var(--text);
     border-radius:var(--radius-sm); padding:10px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:14px;
   }
   /* v3.355 (audit): mono is for the numbers you type, not words. The two
@@ -6992,7 +6994,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.430';
+const APP_VERSION = '3.431';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8089,6 +8091,9 @@ const WHATS_NEW = {
   ]},
   '3.430': { headline: 'Quieter food search', points: [
     'The add-your-own-key line under food search only appears once the shared search limit is actually hit.',
+  ]},
+  '3.431': { headline: 'Rows that fit', points: [
+    'Bodyweight\'s and Sleep\'s Log buttons no longer run past the edge of their card.',
   ]},
 };
 
