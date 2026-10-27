@@ -61,7 +61,9 @@ test('REAL source (v3.352): empty states no longer send you below to controls th
   assert.ok(lines.length > 20, 'anchor: the real empty states');
   const wrong = lines.filter(l => /tap an item below|add items below|actually take below/.test(l));
   assert.deepStrictEqual(wrong, []);
-  for(const fixed of ['tap + on a food to add it', 'add an item, or tap', 'add what you actually take.']) assert.ok(lines.some(l => l.includes(fixed)), fixed);
+  // 2026-10-27 (v3.434): the food log now sits ABOVE the food library (v3.428), so
+  // "below" is right there; Grocery's note was reworded.
+  for(const fixed of ['Tap + on a food below to add it', 'Add an item, or a recipe', 'add what you actually take.']) assert.ok(lines.some(l => l.includes(fixed)), fixed);
   assert.ok(lines.some(l => /log how you\\?.re feeling above/.test(l)), 'the correct "above" in Care stays');
 });
 

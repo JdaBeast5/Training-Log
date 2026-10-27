@@ -67,7 +67,7 @@ test('REAL markup: the two labels whose Title Case surfaced are sentence case', 
   const log = new JSDOM(`<body>${extractElementById(src, 'logView')}</body>`).window.document;
   const texts = [...log.querySelectorAll('.section-label, .targets-strip .t-label, .t-label')].map(e => e.textContent.trim());
   assert.ok(texts.includes('Add a food'), texts.join(' | '));
-  assert.ok(texts.includes('Cal target'), texts.join(' | '));
+  // 2026-10-27 (v3.429): the targets strip (and its 'Cal target' label) became the calories-left figure.
   assert.ok(!texts.includes('Add a Food') && !texts.includes('Cal Target'));
 });
 

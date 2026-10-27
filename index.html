@@ -1846,14 +1846,21 @@
   .save-btn[disabled]:active{transform:none;}
 
   .weight-input-row{display:flex; gap:8px;}
+  /* v3.431: min-width:0 — a number input keeps an intrinsic minimum width
+     (~250px), so Bodyweight's and Sleep's Log button ran 13px past the card. */
   .weight-input-row input{
-    flex:1; background:var(--glass-fill); border:1px solid var(--glass-hair); box-shadow:var(--rim); color:var(--text);
+    flex:1; min-width:0; background:var(--glass-fill); border:1px solid var(--glass-hair); box-shadow:var(--rim); color:var(--text);
     border-radius:var(--radius-sm); padding:10px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:14px;
   }
   /* v3.355 (audit): mono is for the numbers you type, not words. The two
      text fields here (grocery item, supplement name) and every placeholder
      use the text face, like the app's other 31 text fields. */
   .weight-input-row input[type=text]{font-family:var(--font-sans); font-variant-numeric:normal;}
+  /* v3.433: the supplement name gets the whole first line (its placeholder was
+     cut to "Add a suppl"); how often and Add share the second. */
+  #mySupplementsExpandWrap .weight-input-row{flex-wrap:wrap;}
+  #mySupplementAddInput{flex:1 1 100%;}
+  .supplement-recs-link{margin-top:10px;}
   .weight-input-row input::placeholder{font-family:var(--font-sans);}
   /* v3.309 (2.0): every inline submit (Log, Add) is the app's primary — the
      blue-to-purple pill, compact and without the glow — not a green button. */
@@ -1893,6 +1900,8 @@
   }
   .usda-search-btn:active, .dsld-search-btn:active{transform:scale(0.98);}
   .usda-key-upgrade{margin-top:10px;}
+  /* v3.430: hidden until a search hits the shared key's limit (runUsdaSearch). */
+  #usdaKeySettingsSlot:not(.is-needed){display:none;}
   .usda-key-upgrade-toggle{
     background:none; border:none; color:var(--text-muted); font-size:11.5px; text-decoration:underline;
     cursor:pointer; font-family:var(--font-sans); padding:0; width:100%; text-align:left; white-space:normal; line-height:1.4;
@@ -2426,15 +2435,14 @@
     overflow:hidden;
   }
 
-  .water-reset{color:var(--text-muted); flex:0.6;}
+  .water-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px;}
+  .water-reset{background:none; border:none; padding:10px 0 10px 12px; margin:-10px 0; color:var(--text-muted); font:inherit; font-size:13px; cursor:pointer;}
 
-  .targets-strip{
-    display:flex; justify-content:space-between; text-align:center;
-    background:var(--row-fill); border-radius:var(--radius-md); padding:12px 6px; margin:8px 0 14px;
-  }
-  .targets-strip div{flex:1;}
-  .targets-strip .t-val{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-weight:700; font-size:16.5px; letter-spacing:-0.01em;}
-  .targets-strip .t-label{font-size:11px; color:var(--text-muted); margin-top:2px;}
+  /* v3.429: the nutrition card's one big figure (was .targets-strip). */
+  .cal-hero{display:flex; align-items:baseline; gap:8px; margin:12px 0 18px;}
+  .cal-hero-num{font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:34px; font-weight:700; letter-spacing:-0.03em; line-height:1; color:var(--text);}
+  .cal-hero-unit{font-size:13px; color:var(--text-muted);}
+  .cal-hero.is-over .cal-hero-num{color:var(--plate-yellow);}
 
   /* A button that reads as part of a sentence, for offering an action inside
      explanatory prose. `font:inherit` rather than a size, so it tracks whatever
@@ -5678,15 +5686,15 @@
   <div class="card">
 
     <div class="card-title nutrition-header" id="nutritionHeader">
-      <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg></span>Today's Nutrition</span>
+      <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg></span>Nutrition</span>
       <span class="ex-chevron" aria-hidden="true" id="nutritionChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
     </div>
 
-    <div class="targets-strip">
-      <div><div class="t-val" id="tvCal">2650</div><div class="t-label">Cal target</div></div>
-      <div><div class="t-val" id="tvPro">240g</div><div class="t-label">Protein</div></div>
-      <div><div class="t-val" id="tvFat">75g</div><div class="t-label">Fat</div></div>
-      <div><div class="t-val" id="tvCarb">250g</div><div class="t-label">Carbs</div></div>
+    <!-- v3.429: one figure that answers "how much is left", in place of a strip
+         of four targets the bars below repeated. Each bar carries its own target. -->
+    <div class="cal-hero" id="calHero" data-eaten="0">
+      <span class="cal-hero-num" id="calHeroNum">2650</span>
+      <span class="cal-hero-unit" id="calHeroUnit">cal left of 2650</span>
     </div>
     <div class="history-hint" id="calorieFloorNote" style="display:none"></div>
     <div class="macro-row">
@@ -5697,21 +5705,28 @@
     <div class="macro-row">
       <div class="macro-label">Protein</div>
       <div class="macro-bar-track"><div class="macro-bar-fill" id="barPro" style="background:var(--plate-teal);width:0%"></div></div>
-      <div class="macro-val" id="valPro">0 / 240</div>
+      <div class="macro-val" id="valPro">0 / 240g</div>
     </div>
     <div class="macro-row">
       <div class="macro-label">Fat</div>
       <div class="macro-bar-track"><div class="macro-bar-fill" id="barFat" style="background:var(--plate-yellow);width:0%"></div></div>
-      <div class="macro-val" id="valFat">0 / 75</div>
+      <div class="macro-val" id="valFat">0 / 75g</div>
     </div>
     <div class="macro-row">
       <div class="macro-label">Carbs</div>
       <div class="macro-bar-track"><div class="macro-bar-fill" id="barCarb" style="background:var(--plate-blue);width:0%"></div></div>
-      <div class="macro-val" id="valCarb">0 / 250</div>
+      <div class="macro-val" id="valCarb">0 / 250g</div>
     </div>
     <div id="medicalNutrientBars" style="display:none"></div>
 
     <div class="expand-wrap" id="nutritionExpandWrap"><div>
+      <!-- v3.428: what you have eaten comes first, under the totals it adds up to;
+           adding and browsing follow. It sat below the whole food library. -->
+      <div class="section-label">Eaten</div>
+      <button class="reorder-btn" id="repeatYesterdayBtn" style="display:none; margin-bottom:10px;">Repeat yesterday</button>
+      <div class="food-log-list" id="foodLogList"></div>
+
+      <div class="section-divider"></div>
       <div class="section-label">Add a food</div>
       <input type="text" id="foodSearchInput" class="food-search-input" placeholder="Search any food or restaurant..." aria-label="Search any food or restaurant">
       <div id="usdaKeySettingsSlot"></div>
@@ -5782,10 +5797,6 @@
       </div></div>
       <div class="status-msg" id="nutritionStatus"></div>
 
-      <div class="section-divider"></div>
-      <div class="section-label">Today</div>
-      <button class="reorder-btn" id="repeatYesterdayBtn" style="display:none; margin-bottom:10px;">Repeat yesterday</button>
-      <div class="food-log-list" id="foodLogList"></div>
     </div></div>
   </div>
 
@@ -5801,13 +5812,14 @@
 
   <div class="card">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5c2.5 3.5 5.5 7.2 5.5 10.5a5.5 5.5 0 0 1-11 0c0-3.3 3-7 5.5-10.5Z"/></svg></span>Water</div>
-    <div class="water-value-line" id="waterValText">0 / 128 oz</div>
+    <!-- v3.432: Reset is a quiet action beside the total it clears, with Undo,
+         not a fourth button the same weight as the three that add water. -->
+    <div class="water-head"><div class="water-value-line" id="waterValText">0 / 128 oz</div><button type="button" class="water-reset" id="waterReset">Reset</button></div>
     <div class="macro-bar-track"><div class="macro-bar-fill" id="barWater" style="background:#4FC3F7;width:0%"></div></div>
     <div class="water-btn-row">
       <button class="water-btn" data-oz="8" aria-label="Log 8 ounces of water">+8oz</button>
       <button class="water-btn" data-oz="16" aria-label="Log 16 ounces of water">+16oz</button>
       <button class="water-btn" data-oz="24" aria-label="Log 24 ounces of water">+24oz</button>
-      <button class="water-btn water-reset" id="waterReset">Reset</button>
     </div>
     <button class="usda-key-upgrade-toggle" id="waterTipsToggle" style="margin-top:8px;">Water tips & benefits</button>
     <div class="smooth-toggle" id="waterTipsContent"><div>
@@ -5896,7 +5908,7 @@
     <div class="expand-wrap" id="mySupplementsExpandWrap"><div>
       <div class="weight-input-row">
         <input type="text" id="mySupplementAddInput" class="care-input" placeholder="Add a supplement (e.g. Creatine)" aria-label="Add a supplement" autocomplete="off">
-        <select id="mySupplementFrequencySelect" class="care-input" style="flex:0 0 116px; padding-left:8px;" aria-label="How often">
+        <select id="mySupplementFrequencySelect" class="care-input" style="flex:1; padding-left:8px;" aria-label="How often">
           <option value="daily">Daily</option>
           <option value="twice-daily">Twice daily</option>
           <option value="weekly">Weekly</option>
@@ -5914,7 +5926,7 @@
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7.5" width="16" height="5.5" rx="1"/><line x1="6" y1="7.5" x2="6" y2="10.2"/><line x1="10" y1="7.5" x2="10" y2="10.2"/><line x1="14" y1="7.5" x2="14" y2="10.2"/></svg></span>Body Measurements</span>
       <span class="ex-chevron" aria-hidden="true" id="measureChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
     </div>
-    <div class="nutrition-summary" id="measureSummary">Tap to log — track waist, chest, arms, and more over time</div>
+    <div class="nutrition-summary" id="measureSummary">Waist, chest, arms and more, over time</div>
     <div class="expand-wrap" id="measureExpandWrap"><div>
       <div class="profile-row-2">
         <div><label class="care-label" for="mWaist">Waist (in)</label><input type="number" inputmode="decimal" step="0.1" id="mWaist" class="care-input"></div>
@@ -6989,7 +7001,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.427';
+const APP_VERSION = '3.434';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8077,6 +8089,27 @@ const WHATS_NEW = {
   ]},
   '3.427': { headline: 'Plain technique rows', points: [
     'Learn\'s technique rows drop the repeated icon tiles; a technique\'s own pictogram stands unboxed on one line weight.',
+  ]},
+  '3.428': { headline: 'What you ate, first', points: [
+    'On Log, the foods you\'ve logged now sit right under the day\'s totals, above search and the food library.',
+  ]},
+  '3.429': { headline: 'Calories left, at a glance', points: [
+    'The nutrition card leads with how many calories you have left (or are over); each macro bar shows its own target, in grams.',
+  ]},
+  '3.430': { headline: 'Quieter food search', points: [
+    'The add-your-own-key line under food search only appears once the shared search limit is actually hit.',
+  ]},
+  '3.431': { headline: 'Rows that fit', points: [
+    'Bodyweight\'s and Sleep\'s Log buttons no longer run past the edge of their card.',
+  ]},
+  '3.432': { headline: 'Water reset, undoable', points: [
+    'Water\'s Reset is a quiet action beside the day\'s total, and it can be undone.',
+  ]},
+  '3.433': { headline: 'Roomier supplement entry', points: [
+    'Adding a supplement gives its name the full line, and the recommendations link matches the other buttons.',
+  ]},
+  '3.434': { headline: 'Clearer Log wording', points: [
+    'The nutrition card is titled Nutrition, its list is Eaten, and Log\'s hints drop instructions the buttons already give.',
   ]},
 };
 
@@ -32919,10 +32952,7 @@ async function renderProgramRec(trendStatus){
 }
 
 function applyTargetsToUI(){
-  document.getElementById('tvCal').textContent = targets.cal;
-  document.getElementById('tvPro').textContent = targets.pro + 'g';
-  document.getElementById('tvFat').textContent = targets.fat + 'g';
-  document.getElementById('tvCarb').textContent = targets.carb + 'g';
+  renderCalHero();
   const floorNote = document.getElementById('calorieFloorNote');
   if(targets.isFloored){
     floorNote.style.display = '';
@@ -33529,9 +33559,16 @@ document.querySelectorAll('.water-btn[data-oz]').forEach(btn=>{
 });
 
 document.getElementById('waterReset').addEventListener('click', async ()=>{
+  const before = await getWaterIntake();
   await saveWaterIntake(0);
   renderWater();
   renderTodayInsights();
+  // v3.432: one tap cleared the day's total for good.
+  if(before > 0) showUndoToast('Water reset', async ()=>{
+    await saveWaterIntake(before);
+    renderWater();
+    renderTodayInsights();
+  });
 });
 
 document.getElementById('waterTipsToggle').addEventListener('click', ()=>{
@@ -34474,7 +34511,7 @@ async function renderGroceryList(){
   const list = await loadGroceryList();
   const clearBtn = document.getElementById('groceryClearCheckedBtn');
   if(list.length === 0){
-    el.innerHTML = '<div class="empty-note">Nothing here yet — add an item, or tap "Add ingredients" on a Recipe Finder result.</div>';
+    el.innerHTML = '<div class="empty-note">Nothing here yet. Add an item, or a recipe\'s ingredients from Recipes.</div>';
     if(clearBtn) clearBtn.style.display = 'none';
     return;
   }
@@ -34825,9 +34862,7 @@ async function renderMySupplements(){
     // idea Supplement Recommendations exists.
     el.innerHTML = `
       <div class="empty-note">Nothing here yet — add what you actually take.</div>
-      <div class="app-banner-actions" style="justify-content:center;">
-        <button type="button" class="app-banner-btn app-banner-btn-primary" data-jump-to="supplementRecommendationsCard">Get supplement recommendations</button>
-      </div>
+      <button type="button" class="custom-toggle supplement-recs-link" data-jump-to="supplementRecommendationsCard">Get supplement recommendations</button>
     `;
     return;
   }
@@ -36130,6 +36165,12 @@ async function runUsdaSearch(term){
   }catch(e){
     usdaSearchError = e.message || 'USDA lookup failed — check your connection and try again.';
     usdaResults = [];
+    // v3.430: the "add your own key" offer appears once the shared key's limit
+    // is actually hit — as buildUsdaKeyUpgradePrompt's own comment always said.
+    if(/rate limit/i.test(usdaSearchError)){
+      const slot = document.getElementById('usdaKeySettingsSlot');
+      if(slot) slot.classList.add('is-needed');
+    }
   }
   usdaSearchedTerm = term; // mark attempted regardless of outcome, so retry/search-button logic is unambiguous
   usdaSearchLoading = false;
@@ -36637,7 +36678,7 @@ function computeTodaysFoodTotals(){
 function renderFoodLog(){
   const listEl = document.getElementById('foodLogList');
   if(todaysFoodLog.length === 0){
-    listEl.innerHTML = '<div class="empty-note">Nothing logged yet today — tap + on a food to add it.</div>';
+    listEl.innerHTML = '<div class="empty-note">Nothing logged yet. Tap + on a food below to add it.</div>';
   } else {
     const itemHtmls = todaysFoodLog.map((item, i)=>{
       const q = item.qty || 1;
@@ -36725,16 +36766,31 @@ function renderMedicalNutrientBars(totals){
   }).join('') + `<div class="history-hint subtle">Only as good as what's entered: scanned labels are close, AI photo and home-cooked estimates are rough for these nutrients. A guide, never a replacement for bloodwork your care team orders.</div>`;
 }
 
+// v3.429: calories left (or over) against today's target. The eaten total
+// rides on the element (updateBars writes it) so a target change alone can
+// redraw it.
+function renderCalHero(){
+  const hero = document.getElementById('calHero');
+  if(!hero) return;
+  const eaten = Number(hero.dataset.eaten) || 0;
+  const left = Math.round(targets.cal - eaten);
+  hero.classList.toggle('is-over', left < 0);
+  document.getElementById('calHeroNum').textContent = Math.abs(left);
+  document.getElementById('calHeroUnit').textContent = `cal ${left < 0 ? 'over' : 'left of'} ${targets.cal}`;
+}
+
 function updateBars(v){
   const cal = Number(v.cal)||0, pro=Number(v.pro)||0, fat=Number(v.fat)||0, carb=Number(v.carb)||0;
+  const hero = document.getElementById('calHero');
+  if(hero){ hero.dataset.eaten = cal; renderCalHero(); }
   document.getElementById('barCal').style.width = Math.min(100,(cal/targets.cal)*100)+'%';
   document.getElementById('barPro').style.width = Math.min(100,(pro/targets.pro)*100)+'%';
   document.getElementById('barFat').style.width = Math.min(100,(fat/targets.fat)*100)+'%';
   document.getElementById('barCarb').style.width = Math.min(100,(carb/targets.carb)*100)+'%';
   document.getElementById('valCal').textContent = `${cal} / ${targets.cal}`;
-  document.getElementById('valPro').textContent = `${pro} / ${targets.pro}`;
-  document.getElementById('valFat').textContent = `${fat} / ${targets.fat}`;
-  document.getElementById('valCarb').textContent = `${carb} / ${targets.carb}`;
+  document.getElementById('valPro').textContent = `${pro} / ${targets.pro}g`;
+  document.getElementById('valFat').textContent = `${fat} / ${targets.fat}g`;
+  document.getElementById('valCarb').textContent = `${carb} / ${targets.carb}g`;
 }
 
 document.getElementById('nutritionHeader').addEventListener('click', ()=>{
@@ -38092,7 +38148,7 @@ async function loadMeasurements(){
     if(res && res.value) entries = JSON.parse(res.value);
     if(entries.length===0){
       listEl.innerHTML = '';
-      summaryEl.textContent = 'Tap to log — track waist, chest, arms, and more over time';
+      summaryEl.textContent = 'Waist, chest, arms and more, over time';
       return;
     }
     entries.sort((a,b)=> new Date(b.date) - new Date(a.date));
@@ -38101,7 +38157,7 @@ async function loadMeasurements(){
     if(latest.waist) parts.push(`Waist ${latest.waist}"`);
     if(latest.chest) parts.push(`Chest ${latest.chest}"`);
     if(latest.arms) parts.push(`Arms ${latest.arms}"`);
-    summaryEl.textContent = parts.length ? `Latest: ${parts.join(' · ')}` : 'Tap to log your measurements';
+    summaryEl.textContent = parts.length ? `Latest: ${parts.join(' · ')}` : 'Waist, chest, arms and more, over time';
     const sorted = entries;
     const itemHtmls = sorted.map(e=> buildSwipeItem(
       `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${[e.waist&&`W:${e.waist}`, e.chest&&`C:${e.chest}`, e.arms&&`A:${e.arms}`].filter(Boolean).join(' ')}"</span></div>`
