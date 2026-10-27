@@ -2400,7 +2400,8 @@
   .vol-bar-fill{position:relative; height:100%; background:var(--cta-gradient-blue); border-radius:5px; transition:width 0.5s var(--ease-smooth);}
   .vol-bar-fill::after{content:''; position:absolute; inset:0; border-radius:5px; background:var(--shine-gloss);}
   .vol-bar-labels{display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-top:4px; font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
-  .vol-landmark{font-size:11px; margin-top:6px; font-family:var(--font-mono); font-variant-numeric:tabular-nums;}
+  /* v3.439: a sentence, so the text face (it was mono, like the figures above it). */
+  .vol-landmark{font-size:12.5px; line-height:1.4; margin-top:6px; font-family:var(--font-sans); font-variant-numeric:tabular-nums;}
   .vol-landmark-within{color:var(--plate-green);}
   .vol-landmark-below{color:var(--plate-yellow);}
   .vol-landmark-above{color:#4FC3F7;}
@@ -7023,7 +7024,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.438';
+const APP_VERSION = '3.439';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8144,6 +8145,9 @@ const WHATS_NEW = {
   ]},
   '3.438': { headline: 'Week Over Week as a table', points: [
     'Week Over Week names its columns once at the top, and each week reads on a single line.',
+  ]},
+  '3.439': { headline: 'Tidier volume and strength notes', points: [
+    'Weekly Volume\'s notes read in the normal text face, and Strength Context\'s lifts line up with the card.',
   ]},
 };
 
@@ -40199,7 +40203,9 @@ async function renderStrengthContext(){
   const lifts = found.map(l=>{
     const e = e1rms[l.key];
     const mult = bodyweightMultiple(e, bw);
-    return `<div class="diag-row diag-good"><span class="diag-icon"></span><span><b>${escapeHtml(l.label)}</b>`
+    // v3.439: no icon column — every lift row had an empty one (its '•' went in
+    // v3.426), indenting the list against the card for nothing.
+    return `<div class="diag-row diag-good"><span><b>${escapeHtml(l.label)}</b>`
       + `<span class="diag-detail">Estimated max ${trimUnitNum(toDisplayWeight(e))} ${escapeHtml(unit)}`
       + (mult != null ? ` · ${mult.toFixed(2)}× bodyweight` : '')
       + `</span></span></div>`;

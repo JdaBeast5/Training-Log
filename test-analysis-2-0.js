@@ -113,4 +113,23 @@ test('REAL source + CSSOM (v3.438): one header row; row labels visually hidden, 
   assert.notStrictEqual(cs('h').position, 'absolute', 'the header shows its labels');
 });
 
+// v3.439 — Text in the text face, no empty indent. Weekly Volume's notes ("6
+// sets/wk — below the typical 10-20 range for growth") were sentences set
+// in mono at 11px; they take the text face. Strength Context's lift rows
+// each carried an empty icon column (their '•' went in v3.426), indenting
+// the list against the card.
+test('REAL CSSOM (v3.439): Weekly Volume\'s notes are in the text face at a readable size', (assert)=>{
+  const { window } = new JSDOM(`<style>${CSS}</style><div class="vol-landmark" id="v">6 sets/wk</div>`);
+  const cs = window.getComputedStyle(window.document.getElementById('v'));
+  assert.strictEqual(cs.fontFamily, 'var(--font-sans)');
+  assert.strictEqual(cs.fontSize, '12.5px');
+});
+
+test('REAL source (v3.439): a Strength Context lift row has no empty icon column; the ratio rows keep theirs', (assert)=>{
+  const fn = extractFunction(src, 'renderStrengthContext');
+  assert.doesNotMatch(fn, /<span class="diag-icon"><\/span>/);
+  assert.match(fn, /return `<div class="diag-row diag-good"><span><b>\$\{escapeHtml\(l\.label\)\}<\/b>`/);
+  assert.match(fn, /<span class="diag-icon">\$\{b\.inRange \? icon\('check'\) : icon\('info'\)\}<\/span>/, 'the ratio rows still mark in or out of range');
+});
+
 run();
