@@ -7061,7 +7061,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.452';
+const APP_VERSION = '3.453';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8224,6 +8224,9 @@ const WHATS_NEW = {
   ]},
   '3.452': { headline: 'Quieter appointment button', points: [
     'Care\'s Save a summary for an appointment uses the same quiet button as other occasional actions.',
+  ]},
+  '3.453': { headline: 'Care cards when they have something', points: [
+    'Care\'s Pain Trend and Check-In History appear once you\'ve logged check-ins, instead of empty cards.',
   ]},
 };
 
@@ -43459,7 +43462,15 @@ async function renderCare(){
   careRenderedLog = log;
   renderCareLogDayNote();
   // Reuses the log just fetched above instead of re-reading the same key.
-  renderPainTrend(await fetchPainDays(log));
+  const painDays = await fetchPainDays(log);
+  // v3.453: Pain Trend appears once there are two days to draw, Check-In
+  // History once there is a check-in; empty, each was a whole card saying so
+  // (Saved Weeks and Analysis hide their empty cards the same way).
+  const painCard = document.getElementById('painChart') && document.getElementById('painChart').closest('.card');
+  if(painCard) painCard.style.display = Object.keys(painDays).length >= 2 ? '' : 'none';
+  const historyCard = listEl && listEl.closest('.card');
+  if(historyCard) historyCard.style.display = log.length ? '' : 'none';
+  renderPainTrend(painDays);
 
   // Resting regions
   if(resting.length === 0){

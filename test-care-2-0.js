@@ -78,4 +78,32 @@ test('REAL markup (v3.452): the appointment summary is the secondary pill, still
   assert.strictEqual(btn.textContent, 'Save a summary for an appointment');
 });
 
+// v3.453 — Pain Trend appears once there are two days to draw, Check-In
+// History once there is a check-in. Empty, each was a whole card saying so;
+// Saved Weeks and Analysis hide their empty cards the same way.
+async function care(log){
+  const { window } = runJsdom(`<div class="card" id="painCard"><div id="painChart"></div></div><div id="restingRegions"></div>
+    <div class="card" id="histCard"><div id="careLogList"></div><button id="careExport"></button><div id="careExportNote"></div></div><div id="carePatterns"></div>`, `
+    window.getInjuryLog = async ()=> ${JSON.stringify(log)}; window.getRestingRegions = async ()=> [];
+    window.renderCareLogDayNote = ()=>{}; window.renderPainTrend = ()=>{}; window.buildSwipeItem = h => h;
+    window.renderCollapsibleList = (el, items)=>{ el.innerHTML = items.join(''); }; window.wireSwipeDeleteList = ()=>{};
+    window.fmtDayLabel = d => d; window.summarisePainByExercise = ()=> []; window.renderTodayInsights = ()=>{};
+    window.SENSATION_LABELS = {ache:'Ache'}; window.icon = ()=> '';`,
+    [extractFunction(src, 'escapeHtml'), extractFunction(src, 'fetchPainDays'), extractFunction(src, 'renderCare'), 'window.__done = renderCare();']);
+  await window.__done;
+  return window.document;
+}
+const CHECK = (date, pain) => ({date, exercise:'Bench Press', sensation:'ache', region:'Shoulder', pain, note:''});
+test('REAL invocation (v3.453): no check-ins, neither card; one check-in, the history only; two days, the trend too', async (assert)=>{
+  const none = await care([]);
+  assert.strictEqual(none.getElementById('painCard').style.display, 'none');
+  assert.strictEqual(none.getElementById('histCard').style.display, 'none');
+  const one = await care([CHECK('2026-10-20', 4)]);
+  assert.strictEqual(one.getElementById('painCard').style.display, 'none', 'one day is not a trend');
+  assert.strictEqual(one.getElementById('histCard').style.display, '');
+  const two = await care([CHECK('2026-10-20', 4), CHECK('2026-10-22', 3)]);
+  assert.strictEqual(two.getElementById('painCard').style.display, '');
+  assert.strictEqual(two.getElementById('histCard').style.display, '');
+});
+
 run();
