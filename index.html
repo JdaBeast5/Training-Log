@@ -1383,6 +1383,8 @@
   }
   .celebrate-share-btn:active{transform:scale(0.96);}
   .celebrate-icon{font-size:40px; line-height:1; margin-bottom:8px; animation:celebrate-icon-pop 0.5s var(--ease-spring);}
+  /* v3.425: the drawn mark takes the banner's gold edge (the emoji brought its own colours). */
+  .celebrate-icon{color:var(--plate-yellow);}
   .celebrate-text{font-family:var(--font-sans); font-size:20px; font-weight:800; letter-spacing:-0.02em; color:var(--text);}
   .celebrate-sub{font-size:13px; color:var(--text-muted); margin-top:4px;}
   @keyframes celebrate-icon-pop{ 0%{transform:scale(0.4) rotate(-15deg);} 60%{transform:scale(1.2) rotate(8deg);} 100%{transform:scale(1) rotate(0);} }
@@ -6514,7 +6516,7 @@
 </div>
 
 <div class="celebrate-banner" id="celebrateBanner">
-  <div class="celebrate-icon" id="celebrateIcon">💪</div>
+  <div class="celebrate-icon" id="celebrateIcon"></div>
   <div class="celebrate-text" id="celebrateText">Session complete!</div>
   <div class="celebrate-sub" id="celebrateSub"></div>
   <button type="button" class="celebrate-share-btn" id="celebrateShareBtn" style="display:none">Share</button>
@@ -6986,7 +6988,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.424';
+const APP_VERSION = '3.425';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8065,6 +8067,9 @@ const WHATS_NEW = {
   ]},
   '3.424': { headline: 'Fewer emoji', points: [
     'Buttons, titles and notes no longer start with an emoji; the words say it, and drawn icons stay where an icon helps.',
+  ]},
+  '3.425': { headline: 'Drawn celebration marks', points: [
+    'PRs, streaks, finished sessions and the share card show a drawn trophy, flame or flag instead of an emoji; cycle phases go by their name.',
   ]},
 };
 
@@ -13117,8 +13122,8 @@ async function checkStreakMilestone(streak){
     void badgeEl.offsetWidth;
     badgeEl.classList.add('streak-pulse');
   }
-  triggerCelebration('🔥', `${streak}-day streak!`, 'Consistency is what actually builds results — nice work.', true,
-    {icon:'🔥', headline:`${streak}-DAY STREAK`, detail:'Consistency is what actually builds results.'});
+  triggerCelebration('flame', `${streak}-day streak!`, 'Consistency is what actually builds results — nice work.', true,
+    {icon:'flame', headline:`${streak}-DAY STREAK`, detail:'Consistency is what actually builds results.'});
 }
 
 // Animates a number counting up/down to its new value instead of snapping
@@ -13190,7 +13195,7 @@ async function getCycleInsight(){
   const {phase} = computeCyclePhase(data.lastPeriod, data.cycleLength);
   // v3.382: one row per phase — training, then food — where there used to be
   // two rows (this and getCyclePhaseNutritionInsight) each naming the phase.
-  return `${phase.icon} <b>${phase.name}:</b> ${phase.training} <b>Food:</b> ${phase.nutrition} <button type="button" class="link-btn" data-jump-to="nutritionHeader">Open nutrition →</button>`;
+  return `<b>${phase.name}:</b> ${phase.training} <b>Food:</b> ${phase.nutrition} <button type="button" class="link-btn" data-jump-to="nutritionHeader">Open nutrition →</button>`;
 }
 
 
@@ -14484,7 +14489,7 @@ function wireCustomProgramUI(){
     await saveActiveProgram();
     await renderProgramSelector();
     renderWorkout();
-    triggerCelebration('✏️', 'Program created', res.def.label + ' — add exercises to each day to fill it in.', false);
+    triggerCelebration('check', 'Program created', res.def.label + ' — add exercises to each day to fill it in.', false);
   });
 
   // Delegated: the rows are re-rendered whenever the selector is, so a handler
@@ -14603,9 +14608,9 @@ async function renderProgramSelector(trendStatus){
     renderMedicalNutrientBars(computeTodaysFoodTotals());
     toggleConditionTrackerCards();
     if(wasGraduatingBariatric){
-      triggerCelebration('🎓', "You've graduated!", `Welcome to ${programs[activeProgram].label} — everything you built in Rebuilding goes with you from here.`, true);
+      triggerCelebration('trophy', "You've graduated!", `Welcome to ${programs[activeProgram].label} — everything you built in Rebuilding goes with you from here.`, true);
     } else if(wasLeavingRehab){
-      triggerCelebration('✅', 'Welcome back!', `Moving on to ${programs[activeProgram].label} — nice work getting back to full training.`, true);
+      triggerCelebration('check', 'Welcome back!', `Moving on to ${programs[activeProgram].label} — nice work getting back to full training.`, true);
     }
     // The banner needs to react to a manual program switch too, not just
     // its own "Switch to X" button — otherwise switching manually to the
@@ -14932,13 +14937,13 @@ function renderMedicalSelector(){
     // instead of a program switch — see the matching "leaving via the
     // program picker" cases in renderProgramSelector()'s onchange.
     if(prev === 'bariatricEarly' && activeMedicalStyle === 'bariatricRebuilding'){
-      triggerCelebration('💪', 'Rebuilding Phase!', "A real milestone — keep leaning on your team's clearance as you build back up.", true);
+      triggerCelebration('flag', 'Rebuilding Phase!', "A real milestone — keep leaning on your team's clearance as you build back up.", true);
     } else if(prev === 'bariatricRebuilding' && activeMedicalStyle !== 'bariatricRebuilding' && activeMedicalStyle !== 'bariatricEarly'){
-      triggerCelebration('🎓', "You've graduated!", "Everything you built in Rebuilding goes with you from here.", true);
+      triggerCelebration('trophy', "You've graduated!", "Everything you built in Rebuilding goes with you from here.", true);
     } else if(prev === 'prenatal' && activeMedicalStyle === 'postpartum'){
-      triggerCelebration('👶', 'Congratulations!', "Take this at whatever pace your body and your OB or midwife's clearance actually support — there's no rush back.", true);
+      triggerCelebration('check', 'Congratulations!', "Take this at whatever pace your body and your OB or midwife's clearance actually support — there's no rush back.", true);
     } else if(prev.startsWith('rehab') && !activeMedicalStyle.startsWith('rehab')){
-      triggerCelebration('✅', 'Welcome back!', 'Nice work getting back to full training.', true);
+      triggerCelebration('check', 'Welcome back!', 'Nice work getting back to full training.', true);
     }
   };
 }
@@ -28239,7 +28244,7 @@ async function renderWorkout(){
         // confetti burst are already built, and the one moment in the app that
         // has genuinely earned them is the last set of a session logged on a
         // screen stripped down to nothing but the work.
-        triggerCelebration('💪', 'Session complete!', `${day.label} — ${day.sub}`, gymModeActive);
+        triggerCelebration('flag', 'Session complete!', `${day.label} — ${day.sub}`, gymModeActive);
         maybeShowTodayStandout();
         // The second way out of gym mode. This branch is already gated to the
         // actual completing click — a re-render never fires a checkbox 'change'
@@ -28413,9 +28418,10 @@ function spawnConfetti(count){
   setTimeout(()=> pieces.forEach(p=> p.remove()), 2200);
 }
 
-function triggerCelebration(icon, text, sub, big, shareData){
+function triggerCelebration(iconName, text, sub, big, shareData){
   const banner = document.getElementById('celebrateBanner');
-  document.getElementById('celebrateIcon').textContent = icon;
+  // v3.425: an ICONS name (it was an emoji typed as text).
+  document.getElementById('celebrateIcon').innerHTML = icon(iconName);
   document.getElementById('celebrateText').textContent = text;
   document.getElementById('celebrateSub').textContent = sub || '';
 
@@ -28469,6 +28475,21 @@ function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight){
   return lines.length;
 }
 
+// The ICONS entry's outline as one SVG path string, for a canvas Path2D
+// (a polyline's points become M/L commands).
+function celebrationIconPath(name){
+  const svg = ICONS[name];
+  if(!svg) return '';
+  const parts = [];
+  svg.replace(/ d="([^"]+)"/g, (_, d)=>{ parts.push(d); return ''; });
+  svg.replace(/ points="([^"]+)"/g, (_, pts)=>{
+    const n = pts.trim().split(/[\s,]+/);
+    parts.push('M' + n.slice(0, 2).join(' ') + n.slice(2).reduce((a, v, i)=> a + (i % 2 ? ' ' + v : ' L' + v), ''));
+    return '';
+  });
+  return parts.join(' ');
+}
+
 function buildShareCardBlob(cardData){
   const W = 1080, H = 1080;
   const canvas = document.createElement('canvas');
@@ -28497,8 +28518,18 @@ function buildShareCardBlob(cardData){
   const iconY = hasStats ? 0.24 : 0.34;
   const headlineY = hasStats ? 0.40 : 0.50;
 
-  ctx.font = hasStats ? '140px sans-serif' : '160px sans-serif';
-  ctx.fillText(cardData.icon, W/2, H*iconY);
+  // v3.425: the same drawn mark as the banner (it was an emoji at 140-160px),
+  // stroked from its ICONS path at the celebration gold.
+  const iconPx = hasStats ? 160 : 200;
+  const iconPath = celebrationIconPath(cardData.icon);
+  if(iconPath){
+    ctx.save();
+    ctx.translate(W/2 - iconPx/2, H*iconY - iconPx/2);
+    ctx.scale(iconPx/24, iconPx/24);
+    ctx.strokeStyle = '#F5C518'; ctx.lineWidth = 1.8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.stroke(new Path2D(iconPath));
+    ctx.restore();
+  }
 
   ctx.fillStyle = '#F3F4F6';
   ctx.font = '800 ' + (hasStats ? '66px' : '74px') + ' Geist, sans-serif';
@@ -30886,10 +30917,10 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       // felt off" on a set you never performed doesn't invent a logged set.
       if(weightValRaw === '' && rInput.value === '' && distValRaw === ''){ statusEl.textContent = ''; statusEl.className='set-status'; return; }
       if(result.isPR && await isPastPrNotificationWindow()){
-        statusEl.textContent = '🏆 PR';
+        statusEl.innerHTML = icon('trophy') + ' PR';
         statusEl.className = 'set-status set-status-pr';
-        triggerCelebration('🏆', 'New PR!', `${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`, true,
-          {icon:'🏆', headline:'NEW PR', detail:`${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`});
+        triggerCelebration('trophy', 'New PR!', `${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`, true,
+          {icon:'trophy', headline:'NEW PR', detail:`${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`});
       } else {
         // v3.422: the drawn check (was the ✓ glyph).
         statusEl.innerHTML = icon('check');
@@ -37896,7 +37927,7 @@ document.getElementById('photoInput').addEventListener('change', async (e)=>{
 // automatic workout/nutrition modifier. Individual variation is significant.
 const CYCLE_PHASES = [
   {
-    key:'menstrual', name:'Menstrual Phase', icon:'🩸',
+    key:'menstrual', name:'Menstrual Phase',
     hormones:'Estrogen and progesterone are both at their lowest point.',
     physical:'Many people notice cramping, fatigue, or lower energy in the first day or two, often easing as the phase goes on. Blood loss means iron-rich foods (red meat, spinach, lentils) are worth prioritizing.',
     mental:'Mood dips are common right at the start for some, often lifting by day 3-4 — but this varies a lot person to person.',
@@ -37904,7 +37935,7 @@ const CYCLE_PHASES = [
     nutrition:'No major macro shift needed — just make sure iron and overall calorie intake stay adequate.',
   },
   {
-    key:'follicular', name:'Follicular Phase', icon:'🌱',
+    key:'follicular', name:'Follicular Phase',
     hormones:'Estrogen rises steadily through this phase while progesterone stays low.',
     physical:'Often the best window for recovery and tissue repair — many report their best strength, endurance, and energy here.',
     mental:'Often elevated mood, motivation, and confidence as estrogen climbs.',
@@ -37912,7 +37943,7 @@ const CYCLE_PHASES = [
     nutrition:'Standard training nutrition applies well — the body handles carbohydrates efficiently here.',
   },
   {
-    key:'ovulation', name:'Ovulation', icon:'☀️',
+    key:'ovulation', name:'Ovulation',
     hormones:'Estrogen peaks and LH surges, with a small testosterone bump — a brief 1-2 day window.',
     physical:'Often peak strength and power output for many — but research also shows a small, real increase in ligament laxity (notably ACL) around this window.',
     mental:'Often peak confidence and sociability for many people.',
@@ -37920,7 +37951,7 @@ const CYCLE_PHASES = [
     nutrition:'No major shift needed — normal fueling and hydration.',
   },
   {
-    key:'luteal', name:'Luteal Phase', icon:'🌙',
+    key:'luteal', name:'Luteal Phase',
     hormones:'Progesterone rises then falls; estrogen has a smaller secondary rise before both drop ahead of the next period.',
     physical:'Resting body temperature rises slightly, which can make heat and endurance work feel harder. Recovery may take a bit longer, and increased appetite is common — driven by progesterone, not a lack of willpower.',
     mental:'PMS-type symptoms (irritability, low mood, anxiety) are common for many in the last several days of this phase, though far from universal.',
@@ -37949,7 +37980,7 @@ function computeCyclePhase(lastPeriodStr, cycleLength){
 function buildPhaseCardHtml(phase, isCurrent){
   return `
     <div class="cycle-phase-card">
-      <div class="cycle-phase-title">${phase.icon} ${phase.name} ${isCurrent ? '<span style="color:var(--plate-blue); font-size:11px;">— you are here</span>' : ''}</div>
+      <div class="cycle-phase-title">${phase.name} ${isCurrent ? '<span style="color:var(--plate-blue); font-size:11px;">— you are here</span>' : ''}</div>
       <div class="cycle-phase-section"><b>Hormones:</b> ${phase.hormones}</div>
       <div class="cycle-phase-section"><b>Physical:</b> ${phase.physical}</div>
       <div class="cycle-phase-section"><b>Mental:</b> ${phase.mental}</div>
@@ -37996,10 +38027,10 @@ async function renderCycleTracking(){
     document.getElementById('cycleLastPeriod').value = data.lastPeriod;
     document.getElementById('cycleLength').value = data.cycleLength;
     const {dayInCycle, phase, dayRangeLabel} = computeCyclePhase(data.lastPeriod, data.cycleLength);
-    summaryEl.innerHTML = `<b>Day ${dayInCycle}</b> · ${phase.icon} ${phase.name}`;
+    summaryEl.innerHTML = `<b>Day ${dayInCycle}</b> · ${phase.name}`;
     currentEl.innerHTML = `
       <div class="cycle-current-banner">
-        <div class="cycle-current-title">${phase.icon} ${phase.name} — Day ${dayInCycle}</div>
+        <div class="cycle-current-title">${phase.name} — Day ${dayInCycle}</div>
         <div class="cycle-current-day">${dayRangeLabel} of an estimated ${data.cycleLength}-day cycle</div>
         ${buildPhaseCardHtml(phase, false)}
       </div>
@@ -41259,10 +41290,10 @@ Respond in exactly this format. First line only the word PUSH, MAINTAIN, or DELO
     if(recMatch){
       const rec = recMatch[1].toUpperCase();
       narrative = recMatch[2].trim();
-      const recStyle = rec === 'PUSH' ? {cls:'goal-feedback-good', icon:'💪', label:'Push — recovery signals support training harder'}
-        : rec === 'DELOAD' ? {cls:'goal-feedback-warn', icon:'🔻', label:'Deload — the data supports backing off, not pushing through'}
-        : {cls:'goal-feedback-neutral', icon:'➡', label:'Maintain — mixed or insufficient signal to justify a change'};
-      recHtml = `<div class="${recStyle.cls}" style="font-weight:700; margin-bottom:10px;">${recStyle.icon} ${recStyle.label}</div>`;
+      const recStyle = rec === 'PUSH' ? {cls:'goal-feedback-good', icon:icon('check'), label:'Push — recovery signals support training harder'}
+        : rec === 'DELOAD' ? {cls:'goal-feedback-warn', icon:icon('warning'), label:'Deload — the data supports backing off, not pushing through'}
+        : {cls:'goal-feedback-neutral', icon:'', label:'Maintain — mixed or insufficient signal to justify a change'};
+      recHtml = `<div class="${recStyle.cls}" style="font-weight:700; margin-bottom:10px;">${recStyle.icon ? recStyle.icon + ' ' : ''}${recStyle.label}</div>`;
     }
     // Say so when the answer came from cache. Silently re-showing an
     // identical analysis reads as the button not working; naming it as
@@ -44056,7 +44087,7 @@ async function archiveCurrentWeek(){
   shareWrap.style.display = '';
   const freshShareBtn = shareBtn.cloneNode(true);
   shareBtn.parentNode.replaceChild(freshShareBtn, shareBtn);
-  freshShareBtn.addEventListener('click', ()=> shareCelebrationCard({icon:'🏁', headline:'WEEK COMPLETE', stats: shareStats}, 'weekShareBtn'));
+  freshShareBtn.addEventListener('click', ()=> shareCelebrationCard({icon:'flag', headline:'WEEK COMPLETE', stats: shareStats}, 'weekShareBtn'));
 
   setTimeout(async ()=>{
     activeDay = 'd1';
@@ -45022,6 +45053,12 @@ const ICONS = {
   // and weight it sat in). The stroke does not scale: 1.6px at any size, so
   // an 11px row chevron and a 17px rail arrow read as one family.
   chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg>',
+  // v3.425: the celebration marks (were 🏆 🔥 🏁 🎓 💪 👶 ✏️ ✅ emoji), drawn on
+  // the card icons' line (1.5 at 20px = 1.8 at 24). One path each, so the
+  // share card can stroke the same shape on its canvas (celebrationIconPath).
+  trophy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v5.5a4 4 0 0 1-8 0Z M8 6.5H5.5v.8a3.2 3.2 0 0 0 2.9 3.2 M16 6.5h2.5v.8a3.2 3.2 0 0 1-2.9 3.2 M12 13.5v7 M8.5 20.5h7"/></svg>',
+  flame: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c3.2 3 5.5 6 5.5 9.8a5.5 5.5 0 0 1-11 0c0-2.4 1-4.3 2.4-5.8.1 1.8.8 3 1.9 3.6-.1-2.9.3-5.4 1.2-7.6Z"/></svg>',
+  flag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4 M6 4.5c2-1.2 4-1.2 6 0s4 1.2 6 0v8c-2 1.2-4 1.2-6 0s-4-1.2-6 0"/></svg>',
   // v3.422: the close mark, the same line as the chevron (was the ✕ glyph).
   close: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path vector-effect="non-scaling-stroke" d="M6.5 6.5 17.5 17.5M17.5 6.5 6.5 17.5"/></svg>',
   chevronLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="15 5.5 8.5 12 15 18.5"/></svg>',

@@ -68,12 +68,13 @@ for(const {fn, desc} of CONVERTED_SITES){
   });
 }
 
-test('deliberately NOT converted: triggerCelebration\'s icon argument stays plain text (assigned via .textContent, cannot hold markup)', (assert)=>{
+// 2026-10-27 (v3.425): converted after all. The emoji was typed as text
+// because textContent cannot hold markup; triggerCelebration now takes an
+// ICONS name and draws it with innerHTML (test-glyphs.js covers it).
+test('v3.425: triggerCelebration draws an ICONS name, no longer an emoji as text', (assert)=>{
   const fnSrc = extractFunction(src, 'triggerCelebration');
-  assert.ok(fnSrc.includes('.textContent = icon'), 'triggerCelebration must still assign its icon via textContent');
-  // The call sites passing '✅' are outside this function (in
-  // checkStreakMilestone-adjacent callers) — confirmed separately by
-  // grep, not re-asserted here since this function itself is untouched.
+  assert.ok(fnSrc.includes("getElementById('celebrateIcon').innerHTML = icon(iconName)"), 'draws the named icon');
+  assert.ok(!fnSrc.includes('.textContent = icon'), 'no emoji-as-text path left');
 });
 
 run();

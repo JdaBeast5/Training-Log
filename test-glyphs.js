@@ -187,7 +187,6 @@ const CATEGORY_KEYS = /'★ Favorites'|'📁 My Foods'|\(★\|📁\)/;
 const emojiLines = () => uncommented.split('\n').filter(l => EMOJI.test(l) && !NOT_PAINTED.some(r => r.test(l)) && !CATEGORY_KEYS.test(l)).map(l => l.trim());
 // The next increments' sites, by version. Each one empties its own list.
 const PENDING = {
-  'v3.425 celebrations, PR, cycle phases, recommendation': [/triggerCelebration\('/, /\{icon:'(🔥|🏆)'/, /'🏆 PR'/, /icon:'(🩸|🌱|☀️|🌙)'/, /icon:'(💪|🔻|➡)', label/, /icon:'🏁'/, /id="celebrateIcon">💪</],
   'v3.426 arrows': [/text:`(⬇|⬆) /, /message: `(🔻|⬇|⬆) /, /class="progress-(badge|badge-deload|hint)">(🔻|⬆) /],
 };
 test('REAL source (v3.424): no decorative emoji left; what is left is unpainted, a stored key, or a later increment\'s', (assert)=>{
@@ -202,6 +201,59 @@ test('REAL invocation (v3.424): the thriving verdict and the evidence labels are
   assert.strictEqual(fit.status, 'thriving');
   assert.match(fit.text, /^3 of 4 tracked exercises/);
   assert.deepStrictEqual(Object.values(labels), ['Well-established', 'Promising', 'Mixed evidence', 'Limited evidence']);
+});
+
+// v3.425 — Celebrations and the rest. The celebration banner, the share card
+// and a set's PR flash showed an emoji as the icon (🏆 🔥 🏁 🎓 💪 👶 ✏️ ✅).
+// They draw ICONS.trophy / flame / flag / check now, in the banner's gold,
+// and the share card strokes the same path on its canvas. The cycle phases'
+// per-phase emoji (🩸 🌱 ☀️ 🌙 — a coloured icon per category) are gone; the
+// phase name says it. The recovery recommendation draws check / warning like
+// the other verdicts (v3.423), and Maintain has no mark.
+const CELEBRATE = ['trophy', 'flame', 'flag'];
+test('REAL ICONS (v3.425): trophy, flame and flag are one path each, on the card icons\' line', (assert)=>{
+  for(const name of CELEBRATE){
+    const doc = new JSDOM(ICONS[name]).window.document;
+    assert.strictEqual(doc.querySelector('svg').getAttribute('stroke-width'), '1.8', name);
+    assert.strictEqual(doc.querySelectorAll('path').length, 1, name);
+    assert.strictEqual(doc.querySelectorAll('svg > :not(path)').length, 0, name);
+  }
+});
+
+test('REAL invocation (v3.425): every celebration names a drawn icon; the banner draws it', (assert)=>{
+  const names = [...src.matchAll(/triggerCelebration\('([^']+)'/g)].map(m => m[1]);
+  assert.ok(names.length >= 10, 'anchor: the real call sites');
+  const shared = [...src.matchAll(/\{icon:'([^']+)', headline:/g)].map(m => m[1]);
+  assert.ok(shared.length >= 3, 'anchor: the share-card data');
+  for(const n of [...names, ...shared]) assert.ok(ICONS[n], n + ' is an ICONS name');
+  const { runJsdom } = require('./testHelpers.js');
+  const { window } = runJsdom('<div id="celebrateBanner"><div id="celebrateIcon"></div><div id="celebrateText"></div><div id="celebrateSub"></div><button id="celebrateShareBtn"></button></div>',
+    'window.spawnConfetti = ()=>{}; window.celebrateTimeout = null; window.shareCelebrationCard = ()=>{};',
+    [...ICON_CHUNKS, 'var celebrateTimeout = null;', extractFunction(src, 'triggerCelebration'), "triggerCelebration('trophy', 'New PR!', 'Bench', true);"]);
+  const svg = window.document.querySelector('#celebrateIcon svg');
+  assert.ok(svg, 'a drawn icon');
+  assert.strictEqual(window.document.getElementById('celebrateIcon').textContent, '');
+  assert.strictEqual(svg.querySelector('path').getAttribute('d'), new JSDOM(ICONS.trophy).window.document.querySelector('path').getAttribute('d'));
+});
+
+test('REAL invocation (v3.425): the share card strokes the icon\'s own outline — paths as-is, a polyline as M/L', (assert)=>{
+  const [trophy, check, none] = runSandbox([...ICON_CHUNKS, extractFunction(src, 'celebrationIconPath')],
+    "__capture.push(celebrationIconPath('trophy'), celebrationIconPath('check'), celebrationIconPath('nope'));");
+  assert.strictEqual(trophy, new JSDOM(ICONS.trophy).window.document.querySelector('path').getAttribute('d'));
+  assert.strictEqual(check, 'M4 13 L9 18 L20 6');
+  assert.strictEqual(none, '');
+  const fn = extractFunction(src, 'buildShareCardBlob');
+  assert.match(fn, /ctx\.stroke\(new Path2D\(iconPath\)\)/);
+  assert.doesNotMatch(fn, /fillText\(cardData\.icon/);
+});
+
+test('REAL source (v3.425): no per-phase emoji; the recommendation draws its verdict mark', (assert)=>{
+  const phases = extractConst(src, 'CYCLE_PHASES');
+  assert.doesNotMatch(phases, /icon:/);
+  assert.doesNotMatch(src, /phase\.icon/);
+  assert.match(src, /\{cls:'goal-feedback-good', icon:icon\('check'\)/);
+  assert.match(src, /\{cls:'goal-feedback-warn', icon:icon\('warning'\)/);
+  assert.match(src, /\{cls:'goal-feedback-neutral', icon:'', label:/);
 });
 
 run();
