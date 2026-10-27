@@ -3724,9 +3724,10 @@
   .masterclass-index-btn:active{ transform:scale(0.98); }
   .masterclass-index-btn.opened{ border-color:rgba(var(--surface-white-rgb),0.16); }
   .masterclass-index-btn.opened .ex-chevron{ transform:rotate(90deg); display:inline-block; }
+  /* v3.420: glass, like the other in-card buttons (v3.403); it sits at the foot of an open masterclass card. */
   .masterclass-close-btn{
-    width:100%; margin-top:14px; padding:10px; background:var(--surface2);
-    border:1px solid var(--line); border-radius:var(--radius-md);
+    width:100%; margin-top:14px; padding:10px; background:var(--glass-fill);
+    border:1px solid var(--glass-hair); border-radius:var(--radius-md);
     color:var(--text-muted); font-size:12.5px; font-weight:600; cursor:pointer;
     font-family:var(--font-sans); letter-spacing:-0.005em;
   }
@@ -6980,7 +6981,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.419';
+const APP_VERSION = '3.420';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8044,6 +8045,9 @@ const WHATS_NEW = {
   ]},
   '3.419': { headline: 'Shorter Watersports Techniques masterclass', points: [
     'Watersports Techniques now gives three short points per technique: setup, how to do it, and the common mistake.',
+  ]},
+  '3.420': { headline: 'Glass close button in Learn', points: [
+    'The Close this masterclass button now matches the glass look.',
   ]},
 };
 

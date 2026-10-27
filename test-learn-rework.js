@@ -154,4 +154,15 @@ test('REAL markup (v3.405): shorter Learn card titles and hints', (assert)=>{
   assert.deepStrictEqual(over, []);
 });
 
+// v3.406-v3.419 rewrote every masterclass to three short points per technique
+// (test-concise-learn.js). v3.420 — "Close this masterclass", at the foot of
+// an opened masterclass card, was still opaque --surface2: glass now, like the
+// other in-card buttons.
+test('REAL CSSOM (v3.420): the masterclass close button is glass', (assert)=>{
+  const raw = CSS;
+  const rule = raw.match(/\.masterclass-close-btn\{[^}]*\}/)[0];
+  assert.match(rule, /background:var\(--glass-fill\)/);
+  assert.doesNotMatch(rule, /var\(--surface2\)/);
+});
+
 run();
