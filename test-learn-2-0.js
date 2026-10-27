@@ -83,4 +83,15 @@ test('REAL invocation (v3.459): every masterclass gets a row; only yours carries
   assert.deepStrictEqual(rows.map(r => r.classList.contains('current')), [false, true, false]);
 });
 
+// v3.460 — No gap under a closed card. The hint's 14px margin sat under it
+// with the list closed, leaving the card bottom-heavy (36px under the hint,
+// 22px over the title). It goes while the list is closed.
+test('REAL CSSOM (v3.460): the hint has no bottom margin while the list is closed, its usual margin while open', (assert)=>{
+  const page = open => new JSDOM(`<style>${CSS}</style><div class="card" id="researchSourcesCard"><div class="history-hint" id="h">x</div><!-- note --><div class="expand-wrap${open ? ' open' : ''}"><div></div></div></div><div class="history-hint" id="other">y</div>`).window;
+  const mb = (w, id) => w.getComputedStyle(w.document.getElementById(id)).marginBottom;
+  assert.strictEqual(mb(page(false), 'h'), '0px');
+  assert.strictEqual(mb(page(true), 'h'), '14px');
+  assert.strictEqual(mb(page(false), 'other'), '14px', 'other hints keep theirs');
+});
+
 run();

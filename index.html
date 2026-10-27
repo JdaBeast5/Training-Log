@@ -3125,6 +3125,9 @@
   .prog-ready{color:var(--plate-green); font-size:13px; font-weight:500; margin-top:4px; font-family:var(--font-sans);}
 
   .history-hint{font-size:12px; color:var(--text-muted); margin-bottom:14px; line-height:1.4;}
+  /* v3.460: Learn's Research & Sources keeps its hint outside the closed list
+     (v3.458), so the hint's gap sat under it with nothing below. */
+  #researchSourcesCard .history-hint:has(+ .expand-wrap:not(.open)){margin-bottom:0;}
   .history-hint.nutrient-inline-note{margin-top:-6px; margin-bottom:12px;}
   .history-hint.subtle{opacity:0.75;}
   .history-hint.recipe-desc{margin:2px 0 8px;}
@@ -7064,7 +7067,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.459';
+const APP_VERSION = '3.460';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8248,6 +8251,9 @@ const WHATS_NEW = {
   ]},
   '3.459': { headline: 'Masterclasses as a list', points: [
     'Learn\'s masterclass index is a plain list, like the technique groups above it.',
+  ]},
+  '3.460': { headline: 'Tidier Research card', points: [
+    'A closed Research & Sources card no longer leaves a gap under its hint.',
   ]},
 };
 
