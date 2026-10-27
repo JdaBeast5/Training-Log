@@ -6247,7 +6247,10 @@
         <span class="ex-chevron" aria-hidden="true" id="historyLogChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
       </div>
       <div class="expand-wrap" id="historyLogExpandWrap"><div>
-      <div class="history-hint">Every logged day by month — tap one to open it. Green is progress, red is down from last time.</div>
+      <!-- v3.445: the calendar's own legend says green is "Trained"; the hint
+           named green twice for two things. The day rows' colours are named
+           where they appear. -->
+      <div class="history-hint">Every logged day by month. In a day, green is up on last time, red is down.</div>
       <div id="historyHeatmap" style="display:none">
         <div class="calendar-modal-header">
           <button type="button" class="calendar-nav-btn" id="historyHeatmapPrevMonth" aria-label="Previous month"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="15 5.5 8.5 12 15 18.5"/></svg></button>
@@ -7035,7 +7038,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.444';
+const APP_VERSION = '3.445';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8174,6 +8177,9 @@ const WHATS_NEW = {
   ]},
   '3.444': { headline: 'Readable history days', points: [
     'Each exercise in History shows its name and any change on one line, with the sets underneath; no more stray dashes.',
+  ]},
+  '3.445': { headline: 'One meaning for green', points: [
+    'History\'s hint no longer says green means progress right above a calendar where green means you trained.',
   ]},
 };
 

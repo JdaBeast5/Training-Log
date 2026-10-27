@@ -71,7 +71,7 @@ const NOTES = [
   ['Charts systolic', 24, [/AHA/, /diastolic/]],
   ['Daily average of all readings', 22, [/rough trend/]],
   ['Weekly average RPE', 20, [/overreaching/]],
-  ['Every logged day by month', 20, [/Green is progress, red is down/]],
+  ['Every logged day by month', 20, [/In a day, green is up on last time, red is down/]], // 2026-10-27 (v3.445): no clash with the calendar's green "Trained"
   // v3.332
   ['What your measurements mean for health', 11, [/where you're changing/]],
   ['The rest you actually took', 14, [/drifts/]],

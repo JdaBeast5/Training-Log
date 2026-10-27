@@ -64,4 +64,15 @@ test('REAL CSSOM (v3.444): two-line grid; changes right-aligned on the first lin
   assert.match(CSS, /\.day-ex-logged > :not\(\.day-ex-name\):not\(\.day-ex-changes\)\{grid-column:1 \/ -1;\}/);
 });
 
+// v3.445 — One meaning for green. The hint said "Green is progress, red is
+// down from last time" directly above a calendar whose legend says green is
+// "Trained". The hint now scopes its colours to the day rows.
+test('REAL markup (v3.445): the hint and the calendar legend no longer claim green for two things', (assert)=>{
+  const card = doc.getElementById('historyLogExpandWrap');
+  const hint = card.querySelector('.history-hint').textContent;
+  assert.strictEqual(hint, 'Every logged day by month. In a day, green is up on last time, red is down.');
+  assert.doesNotMatch(hint, /Green is progress/);
+  assert.match(card.querySelector('.calendar-legend').textContent, /Trained/, 'anchor: the legend it clashed with');
+});
+
 run();
