@@ -1797,10 +1797,20 @@
   .pr-stat{
     font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:15px; letter-spacing:-0.01em; color:var(--plate-yellow); font-weight:700; flex:0 0 auto; text-align:right;
   }
-  .rpe-trend-labels{
-    display:flex; justify-content:space-between; margin-top:8px; font-family:var(--font-mono); font-variant-numeric:tabular-nums;
-    font-size:12px; color:var(--text-muted);
+  /* v3.435: every sparkline's footer (start · summary · end). The summary sat
+     squeezed between the two end values and wrapped them ("1560 / cal").
+     Now the ends share the first line under the chart's two edges, and the
+     summary gets its own line in the text face. One class for all five
+     (was .rpe-trend-labels on three and the same rule inline on two). */
+  .trend-labels{
+    display:grid; grid-template-columns:auto auto; grid-template-areas:"start end" "sum sum";
+    column-gap:12px; row-gap:4px; margin-top:6px;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);
   }
+  .trend-labels > :nth-child(1){grid-area:start; white-space:nowrap;}
+  .trend-labels > :nth-child(3){grid-area:end; justify-self:end; white-space:nowrap;}
+  .trend-labels > :nth-child(2){grid-area:sum; font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:13px;}
+  .trend-labels > :nth-child(2):not([class]), .trend-labels > :nth-child(2)[class=""]{color:var(--text);}
   .care-details{margin:0 0 10px 0;}
   .care-details summary{display:flex; align-items:center; gap:8px;}
   .care-type-tag{
@@ -7001,7 +7011,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.434';
+const APP_VERSION = '3.435';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8110,6 +8120,9 @@ const WHATS_NEW = {
   ]},
   '3.434': { headline: 'Clearer Log wording', points: [
     'The nutrition card is titled Nutrition, its list is Eaten, and Log\'s hints drop instructions the buttons already give.',
+  ]},
+  '3.435': { headline: 'Cleaner chart footers', points: [
+    'Under each Analysis chart, the start and end values sit at the two edges and the summary gets its own readable line.',
   ]},
 };
 
@@ -30503,7 +30516,7 @@ async function openExerciseHistory(exIdx, ex){
         <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#gradExHistory)"/>
         <polyline fill="none" stroke="var(--plate-green)" stroke-width="2.5" points="${pts}"/>
       </svg>
-      <div class="rpe-trend-labels">
+      <div class="trend-labels">
         <span>${trimUnitNum(toDisplayWeight(first))} ${weightUnit}</span>
         <span class="${cls}">${delta>=0?'+':''}${trimUnitNum(delta)} ${weightUnit} over ${e1rmSeries.length} sessions</span>
         <span>${trimUnitNum(toDisplayWeight(last))} ${weightUnit}</span>
@@ -39311,7 +39324,7 @@ function renderDayValueTrend(elId, dayTotals, opts){
     return `${x},${y}`;
   }).join(' ');
   const avg = values.reduce((a,b)=>a+b,0)/values.length;
-  const targetNote = opts.target ? ` (target ${opts.formatValue(opts.target)})` : '';
+  const targetNote = opts.target ? ` · target ${opts.formatValue(opts.target)}` : '';
   const insight = opts.insight ? opts.insight(values, avg, opts.target) : null;
   const insightHtml = insight ? `<div class="${insight.status==='good'?'goal-feedback-good':insight.status==='warn'?'goal-feedback-warn':'goal-feedback-neutral'}" style="margin-top:10px;">${insight.text}</div>` : '';
   el.innerHTML = `
@@ -39325,9 +39338,9 @@ function renderDayValueTrend(elId, dayTotals, opts){
       <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#grad-${elId})"/>
       <polyline fill="none" stroke="${opts.color}" stroke-width="2.5" points="${pts}"/>
     </svg>
-    <div style="display:flex; justify-content:space-between; margin-top:8px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);">
+    <div class="trend-labels">
       <span>${opts.formatValue(values[0])}</span>
-      <span>Avg: ${opts.formatValue(avg)}${targetNote} over ${recent.length} days</span>
+      <span>Avg ${opts.formatValue(avg)}${targetNote} · ${recent.length} days</span>
       <span>${opts.formatValue(values[values.length-1])}</span>
     </div>
     ${insightHtml}
@@ -39588,7 +39601,7 @@ function renderSparkline(entries){
       <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#gradWeightTrend)"/>
       <polyline fill="none" stroke="#5B7CFF" stroke-width="2.5" points="${pts}"/>
     </svg>
-    <div style="display:flex; justify-content:space-between; margin-top:8px; font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-size:12px; color:var(--text-muted);">
+    <div class="trend-labels">
       <span>${fmtWeight(sorted[0].weight)}</span>
       <span class="${deltaClass}">${deltaSign}${deltaDisplay} ${weightUnit} over ${sorted.length} entries</span>
       <span>${fmtWeight(sorted[sorted.length-1].weight)}</span>
@@ -44397,7 +44410,7 @@ async function renderCardioTrend(){
       <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#gradCardioTrend)"/>
       <polyline fill="none" stroke="var(--plate-teal)" stroke-width="2.5" points="${pts}"/>
     </svg>
-    <div class="rpe-trend-labels">
+    <div class="trend-labels">
       <span>${fmtDistance(first.metres)}</span>
       <span class="${deltaClass}">${distPct!=null ? `${distPct>=0?'+':''}${distPct}%` : 'new'} over ${withData.length} weeks</span>
       <span>${fmtDistance(last.metres)}</span>
@@ -44455,7 +44468,7 @@ async function renderRpeTrend(){
       <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#gradRpeTrend)"/>
       <polyline fill="none" stroke="#4FC3F7" stroke-width="2.5" points="${pts}"/>
     </svg>
-    <div class="rpe-trend-labels">
+    <div class="trend-labels">
       <span>RPE ${withData[0].avg.toFixed(1)}</span>
       <span class="${deltaClass}">${deltaSign}${delta} over ${withData.length} weeks</span>
       <span>RPE ${withData[withData.length-1].avg.toFixed(1)}</span>
