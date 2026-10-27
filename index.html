@@ -6081,8 +6081,6 @@
          tab for an index to be worth having. -->
     <nav class="analysis-index" id="analysisIndex" aria-label="Jump to a section of this tab" style="display:none"></nav>
 
-    <button type="button" class="switch-profile-btn history-export-btn" id="analysisExportBtn" style="display:none; margin-bottom:12px;">Print analysis snapshot</button>
-
     <div class="card" id="analysisFirstRun" style="display:none">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 6.5v4M10 13.3v.2"/></svg></span>Nothing to analyse yet</div>
       <div class="history-hint">Charts appear as you log: a weight trend after two weigh-ins, volume after a session, pace after a distance.</div>
@@ -6227,6 +6225,10 @@
       <div class="history-hint">Weekly average RPE. A steady climb with no rest is the earliest sign of overreaching, before performance drops.</div>
       <div id="rpeTrend"></div>
     </div>
+
+    <!-- v3.440: an occasional action, so after the analysis rather than above
+         every card (it took the top slot under the jump rail). -->
+    <button type="button" class="switch-profile-btn history-export-btn" id="analysisExportBtn" style="display:none; margin:4px 0 12px;">Print analysis snapshot</button>
   </div>
 
   <div id="historyView" style="display:none">
@@ -7024,7 +7026,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.439';
+const APP_VERSION = '3.440';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8148,6 +8150,9 @@ const WHATS_NEW = {
   ]},
   '3.439': { headline: 'Tidier volume and strength notes', points: [
     'Weekly Volume\'s notes read in the normal text face, and Strength Context\'s lifts line up with the card.',
+  ]},
+  '3.440': { headline: 'Print at the end', points: [
+    'Print analysis snapshot moved from the top of Analysis to the end of it.',
   ]},
 };
 

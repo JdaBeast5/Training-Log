@@ -17,6 +17,7 @@ const { makeRunner, readIndexSource, extractFunction, runJsdom } = require('./te
 const { test, run } = makeRunner('test-analysis-2-0.js');
 const src = readIndexSource();
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
+const doc = new JSDOM(html).window.document;
 const CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
 
 test('REAL source (v3.435): one footer class for every sparkline; no inline copy, no old class', (assert)=>{
@@ -130,6 +131,20 @@ test('REAL source (v3.439): a Strength Context lift row has no empty icon column
   assert.doesNotMatch(fn, /<span class="diag-icon"><\/span>/);
   assert.match(fn, /return `<div class="diag-row diag-good"><span><b>\$\{escapeHtml\(l\.label\)\}<\/b>`/);
   assert.match(fn, /<span class="diag-icon">\$\{b\.inRange \? icon\('check'\) : icon\('info'\)\}<\/span>/, 'the ratio rows still mark in or out of range');
+});
+
+// v3.440 — "Print analysis snapshot" took the top slot, under the jump rail
+// and above every card. It is an occasional action; it now follows the last
+// card.
+test('REAL markup (v3.440): the print button is the last thing on Analysis, after every card', (assert)=>{
+  const view = doc.getElementById('analysisView');
+  const btn = doc.getElementById('analysisExportBtn');
+  assert.ok(view.contains(btn));
+  assert.strictEqual(view.lastElementChild, btn);
+  const cards = view.querySelectorAll('.card');
+  assert.strictEqual(cards.length, 19, 'anchor: the real 19 Analysis cards');
+  for(const c of cards) assert.ok(c.compareDocumentPosition(btn) & doc.defaultView.Node.DOCUMENT_POSITION_FOLLOWING, (c.id || 'a card') + ' comes first');
+  assert.strictEqual(btn.classList.contains('card'), false, 'not swept up by group collapse');
 });
 
 run();
