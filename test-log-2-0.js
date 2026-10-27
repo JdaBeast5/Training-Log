@@ -70,4 +70,35 @@ test('REAL markup + CSS (v3.429): no targets strip; the figure is the card\'s on
   assert.match(html, /\.cal-hero\.is-over \.cal-hero-num\{color:var\(--plate-yellow\);\}/);
 });
 
+// v3.430 — The food-search key offer. "Food search is on (shared key) · Add
+// your own key" sat as an underlined line between the search field and the
+// quick-add tiles for everyone, always. buildUsdaKeyUpgradePrompt's own
+// comment said it should only appear once the shared key's limit is hit;
+// now it does.
+function usdaSearch(error){
+  const { window } = runJsdom('<div id="usdaKeySettingsSlot"></div><div id="foodItems"></div>',
+    `window.renderFoodItems = ()=>{}; window.searchUsdaFoods = async ()=>{ ${error ? `throw new Error(${JSON.stringify(error)});` : 'return [];'} };
+     var usdaResults = [], usdaSearchedTerm = null, usdaSearchLoading = false, usdaSearchError = null;`,
+    [extractFunction(src, 'runUsdaSearch'), "window.__done = runUsdaSearch('oats');"]);
+  return window;
+}
+test('REAL invocation (v3.430): the key offer appears after a rate-limit error, and not otherwise', async (assert)=>{
+  const limited = usdaSearch('USDA rate limit hit — try again in a bit, or add a free personal key for a much higher limit.');
+  await limited.__done;
+  assert.ok(limited.document.getElementById('usdaKeySettingsSlot').classList.contains('is-needed'));
+  for(const other of [null, 'USDA lookup failed (500)']){
+    const w = usdaSearch(other); await w.__done;
+    assert.strictEqual(w.document.getElementById('usdaKeySettingsSlot').classList.contains('is-needed'), false, String(other));
+  }
+});
+
+test('REAL CSSOM (v3.430): the slot is hidden until needed', (assert)=>{
+  const CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
+  const { window } = new JSDOM(`<style>${CSS}</style><div id="usdaKeySettingsSlot"><div class="usda-key-upgrade">x</div></div>`);
+  const slot = window.document.getElementById('usdaKeySettingsSlot');
+  assert.strictEqual(window.getComputedStyle(slot).display, 'none');
+  slot.classList.add('is-needed');
+  assert.strictEqual(window.getComputedStyle(slot).display, 'block');
+});
+
 run();

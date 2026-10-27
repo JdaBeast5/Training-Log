@@ -1893,6 +1893,8 @@
   }
   .usda-search-btn:active, .dsld-search-btn:active{transform:scale(0.98);}
   .usda-key-upgrade{margin-top:10px;}
+  /* v3.430: hidden until a search hits the shared key's limit (runUsdaSearch). */
+  #usdaKeySettingsSlot:not(.is-needed){display:none;}
   .usda-key-upgrade-toggle{
     background:none; border:none; color:var(--text-muted); font-size:11.5px; text-decoration:underline;
     cursor:pointer; font-family:var(--font-sans); padding:0; width:100%; text-align:left; white-space:normal; line-height:1.4;
@@ -6990,7 +6992,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.429';
+const APP_VERSION = '3.430';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8084,6 +8086,9 @@ const WHATS_NEW = {
   ]},
   '3.429': { headline: 'Calories left, at a glance', points: [
     'The nutrition card leads with how many calories you have left (or are over); each macro bar shows its own target, in grams.',
+  ]},
+  '3.430': { headline: 'Quieter food search', points: [
+    'The add-your-own-key line under food search only appears once the shared search limit is actually hit.',
   ]},
 };
 
@@ -36134,6 +36139,12 @@ async function runUsdaSearch(term){
   }catch(e){
     usdaSearchError = e.message || 'USDA lookup failed — check your connection and try again.';
     usdaResults = [];
+    // v3.430: the "add your own key" offer appears once the shared key's limit
+    // is actually hit — as buildUsdaKeyUpgradePrompt's own comment always said.
+    if(/rate limit/i.test(usdaSearchError)){
+      const slot = document.getElementById('usdaKeySettingsSlot');
+      if(slot) slot.classList.add('is-needed');
+    }
   }
   usdaSearchedTerm = term; // mark attempted regardless of outcome, so retry/search-button logic is unambiguous
   usdaSearchLoading = false;
