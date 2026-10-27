@@ -354,3 +354,19 @@ Owner (Rest / Cardio screenshot): "Fix the spacing for the fields, also check al
   - `body:not(.gym-mode) #exerciseList .warmup-strip/.warmup-box{display:none}` hides the loggable rows, the read-only table and the nudge everywhere outside gym mode.
   - Saved data and the `warmupSetsEnabled` setting are unchanged.
   - The rgba consolidation guard now counts three `.warmup-box` rules (dated note).
+
+## Addendum 17: fields, buttons and rows wear the cards' glass (v3.402–v3.403)
+Owner: fields on Analysis, History, Care, Coach and Learn were "not quite there".
+- **Finding:** the computed fills were already translucent (`--row-fill`, 4.5% white). Visually, though, the fields read as dark recessed slabs next to the frosted `--glass-fill` cards and buttons. Two surfaces really were opaque, and both slipped past the v3.396 audit:
+  - `.program-select` (Care's area picker, Training Style): its gradient started at `--surface2`, and the audit skipped gradients.
+  - `.settings-jump` on Analysis: the audit ran with that group collapsed.
+- **v3.402, fields:**
+  - The fields take `--glass-fill`, a `--glass-hair` edge and a `--rim` highlight, in place of the dark inset. That covers `.care-input` (and its focus state), the food search, the weight and macro rows, the History export picker, set notes, global search and the custom-exercise form.
+  - `.program-select` gets the glass fill and edge but no highlight; that follows v3.283's no-shadow rule, which `test-today-no-glow` enforces.
+  - `.ex-input` (set rows, hidden on Today) keeps `--row-fill`.
+  - Dated test updates: the `care-input:focus` cascade string, white rgba total 90→89, black 64→62.
+- **v3.403, controls:**
+  - v3.399's 23 in-card controls, plus `.settings-jump`, take `--glass-fill`, and their opaque `--line` edges (18 of them) become `--glass-hair`.
+  - `.settings-group .settings-jump` stays transparent inside the sheet.
+- **Rule of thumb now:** anything you tap or type in inside a card wears the card's glass. Swipe list rows keep `--row-fill`. Floating layers stay opaque.
+- **Audit for next time:** open every collapsible first (including `.analysis-group-header.collapsed`), and check `background-image` for gradients that start on opaque tokens as well as `background-color`.
