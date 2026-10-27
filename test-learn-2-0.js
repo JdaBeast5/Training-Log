@@ -18,6 +18,7 @@ const { test, run } = makeRunner('test-learn-2-0.js');
 const src = readIndexSource();
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 const doc = new JSDOM(html).window.document;
+const CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
 
 test('REAL markup (v3.458): a collapsible header and an expand-wrap holding the list; the hint stays outside it', (assert)=>{
   const header = doc.getElementById('researchSourcesHeader');
@@ -50,6 +51,36 @@ test('REAL source (v3.458): the header toggles both and stores the choice, like 
   assert.match(h, /researchSourcesHeader'\)\.classList\.toggle\('open'\)/);
   assert.match(h, /researchSourcesExpandWrap'\)\.classList\.toggle\('open'\)/);
   assert.match(h, /setCardOpenState\('researchSources', isOpen\)/);
+});
+
+// v3.459 — The masterclass index as a list. Thirteen boxed, bordered tiles
+// sat inside the card, under technique groups that are plain hairline rows.
+// They are now rows too; yours is marked by a blue "In your program" note in
+// the text face (it was mono, on a tinted, glowing tile).
+test('REAL CSSOM (v3.459): an index row is a plain 44px row with a hairline, no box; the note is in the text face', (assert)=>{
+  const { window } = new JSDOM(`<style>${CSS}</style><button class="masterclass-index-btn current" id="b"><span>Strength</span><span class="mc-index-meta" id="m">In your program</span></button>`);
+  const cs = id => window.getComputedStyle(window.document.getElementById(id));
+  assert.strictEqual(cs('b').backgroundImage, 'none', 'no tinted tile for yours');
+  assert.strictEqual(cs('b').borderTopStyle, 'none');
+  // jsdom drops a border shorthand holding var(); read it as declared.
+  assert.match(CSS, /\.masterclass-index-btn\{[^}]*background:none; border:none; border-bottom:1px solid var\(--line-soft\);/);
+  assert.strictEqual(cs('b').paddingLeft, '0px', 'aligned to the card, like the rows above');
+  assert.strictEqual(cs('b').minHeight, '44px');
+  assert.strictEqual(cs('b').boxShadow, '');
+  assert.strictEqual(cs('m').fontFamily, 'var(--font-sans)');
+  assert.match(CSS, /\.masterclass-index-btn\.current \.mc-index-meta\{ color:var\(--plate-blue\); \}/);
+});
+
+test('REAL invocation (v3.459): every masterclass gets a row; only yours carries the note', (assert)=>{
+  const { window } = runJsdom('<div id="masterclassIndex"></div>', `
+    window.MASTERCLASS_LIBRARY = {a:{label:'Posing Practice'}, b:{label:'Strength Training Fundamentals'}, c:{label:'Cycling'}};
+    window.PROGRAM_MASTERCLASS = {s:{cardId:'b'}}; window.activeProgram = 's';
+    window.isMasterclassOpen = id => id === 'c'; window.toggleMasterclass = ()=>{};`,
+    [extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon'), extractFunction(src, 'renderMasterclassIndex'), 'renderMasterclassIndex();']);
+  const rows = [...window.document.querySelectorAll('#masterclassIndex .masterclass-index-btn')];
+  assert.strictEqual(rows.length, 3);
+  assert.deepStrictEqual(rows.map(r => r.querySelector('.mc-index-meta').textContent.trim()), ['', 'In your program', 'Open · tap to close']);
+  assert.deepStrictEqual(rows.map(r => r.classList.contains('current')), [false, true, false]);
 });
 
 run();

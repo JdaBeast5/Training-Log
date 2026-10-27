@@ -3773,25 +3773,20 @@
     width:calc(100% + 8px); height:44px;
   }
 
-  /* Masterclass index rows. Secondary/navigational, so they follow the
-     .reorder-btn side of the two-tier hierarchy in HANDOFF §9 — flat with a
-     border, no glow. The one matching the active program is the exception
-     and gets the translucent-tint treatment (gradient + tinted border +
-     inset sheen + colored ambient glow) so it reads as "yours" without
-     being promoted to a primary action. */
+  /* Masterclass index rows.
+     v3.459 (Learn 2.0): plain list rows, the same as the technique
+     groups above them (.posing-class > summary): a hairline under each, 44px,
+     no box. A stack of 13 boxed tiles inside a card read as 13 buttons. */
   .masterclass-index-btn{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
     width:100%; text-align:left; cursor:pointer;
-    padding:12px 14px; margin-bottom:8px; border-radius:var(--radius-md);
-    background:var(--glass-fill); border:1px solid rgba(var(--surface-white-rgb),0.07);
-    color:var(--text); font-family:var(--font-sans); font-size:13.5px; font-weight:600;
+    padding:12px 0; min-height:44px; margin:0; border-radius:0;
+    background:none; border:none; border-bottom:1px solid var(--line-soft);
+    color:var(--text); font-family:var(--font-sans); font-size:15px; font-weight:600;
     letter-spacing:-0.005em;
-    box-shadow:inset 0 1px 0 rgba(var(--surface-white-rgb),0.04);
-    transition:background 0.2s var(--ease-smooth), border-color 0.2s var(--ease-smooth),
-               box-shadow 0.2s var(--ease-smooth), transform 0.15s var(--ease-smooth);
+    transition:opacity 0.15s var(--ease-smooth);
   }
-  .masterclass-index-btn:active{ transform:scale(0.98); }
-  .masterclass-index-btn.opened{ border-color:rgba(var(--surface-white-rgb),0.16); }
+  .masterclass-index-btn:active{ opacity:0.6; }
   .masterclass-index-btn.opened .ex-chevron{ transform:rotate(90deg); display:inline-block; }
   /* v3.420: glass, like the other in-card buttons (v3.403); it sits at the foot of an open masterclass card. */
   .masterclass-close-btn{
@@ -3966,15 +3961,11 @@
   .warmup-foot{
     margin:0 0 2px; font-size:11px; color:var(--text-muted); line-height:1.4;
   }
-  .masterclass-index-btn.current{
-    background:linear-gradient(160deg, rgba(var(--plate-blue-rgb),0.14), rgba(var(--plate-blue-rgb),0.05));
-    border-color:rgba(var(--plate-blue-rgb),0.32);
-    box-shadow:inset 0 1px 0 rgba(var(--surface-white-rgb),0.08), 0 8px 20px -14px rgba(var(--plate-blue-rgb),0.45);
-  }
+  /* v3.459: yours is marked by its note, in blue, not by a tinted tile. */
   .masterclass-index-btn .mc-index-meta{
     display:inline-flex; align-items:center; gap:6px; flex:0 0 auto;
-    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
-    font-size:11px; font-weight:600;
+    font-family:var(--font-sans);
+    font-size:13px; font-weight:500;
     color:var(--text-muted);
   }
   .masterclass-index-btn.current .mc-index-meta{ color:var(--plate-blue); }
@@ -7073,7 +7064,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.458';
+const APP_VERSION = '3.459';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8254,6 +8245,9 @@ const WHATS_NEW = {
   ]},
   '3.458': { headline: 'Shorter Learn', points: [
     'Learn\'s Research & Sources starts closed, so the masterclasses are a short scroll away.',
+  ]},
+  '3.459': { headline: 'Masterclasses as a list', points: [
+    'Learn\'s masterclass index is a plain list, like the technique groups above it.',
   ]},
 };
 
