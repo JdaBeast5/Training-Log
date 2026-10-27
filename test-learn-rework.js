@@ -138,7 +138,8 @@ test('REAL CSSOM (v3.405): one chevron per row, group rule scoped to its own row
   assert.strictEqual(cs('g').minHeight, '44px', 'the group row keeps it');
   // jsdom does not expand the list-style shorthand, so this one is read as declared.
   assert.match(CSS, /\.pose-detail ul\{[^}]*list-style:none/);
-  assert.match(CSS, /\.pose-icon\{[^}]*background:var\(--glass-fill\)/);
+  // 2026-10-27 (v3.427): the tiles were unboxed (test-glyphs.js) — no fill at all now.
+  assert.doesNotMatch(CSS, /\.pose-icon\{[^}]*background:/);
   assert.match(CSS, /\.pose-row::after\{content:'';/);
   assert.doesNotMatch(CSS, /\.ex-details summary::before\{[^}]*content:'▸'/);
 });

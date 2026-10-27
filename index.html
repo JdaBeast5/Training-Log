@@ -1990,15 +1990,16 @@
     display:flex; align-items:center; gap:12px; padding:10px 0; cursor:pointer; border-bottom:1px solid var(--line-soft);
   }
   .pose-row:last-child{border-bottom:none;}
-  .pose-icon{
-    flex:0 0 auto; width:36px; height:36px; color:var(--text-muted); background:var(--glass-fill);
-    border-radius:var(--radius-sm); padding:4px; border:1px solid var(--glass-hair);
-  }
+  /* v3.427: a plain pictogram, no tile (a box per row down a list), every
+     pictogram on one 1.5px line whatever its own stroke-width said. */
+  .pose-icon{flex:0 0 auto; width:24px; height:24px; color:var(--text-muted);}
   .pose-icon svg{width:100%; height:100%;}
+  .pose-icon svg *{stroke-width:1.5px; vector-effect:non-scaling-stroke;}
   .pose-name{font-weight:500; font-size:13.5px; flex:1;}
   .pose-detail{
-    padding:2px 0 12px 48px; font-size:12.5px; color:var(--text-muted); line-height:1.5;
+    padding:2px 0 12px 0; font-size:12.5px; color:var(--text-muted); line-height:1.5;
   }
+  .pose-detail-wrap:has(> .pose-row > .pose-icon) > .pose-detail{padding-left:36px;} /* v3.427: under the name, past the 24px pictogram and its 12px gap */
   .pose-detail ul{margin:0; padding-left:0; list-style:none;} /* v3.405: the bold label leads each point, not a bullet */
   .pose-detail li{margin-bottom:8px;}
   .pose-detail li strong{color:var(--text); font-weight:600;}
@@ -6988,7 +6989,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.426';
+const APP_VERSION = '3.427';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8073,6 +8074,9 @@ const WHATS_NEW = {
   ]},
   '3.426': { headline: 'Drawn arrows', points: [
     'The set chips\' up and down marks, the swap icon, pull-to-refresh and the day-reorder buttons are drawn; buttons like Same as Last Time and Export now drop their arrow characters.',
+  ]},
+  '3.427': { headline: 'Plain technique rows', points: [
+    'Learn\'s technique rows drop the repeated icon tiles; a technique\'s own pictogram stands unboxed on one line weight.',
   ]},
 };
 
@@ -12362,7 +12366,7 @@ function renderWatersportsTechniques(){
       return `
         <details class="pose-detail-wrap">
           <summary class="pose-row">
-            <div class="pose-icon">${iconSvg}</div>
+            ${iconSvg ? `<div class="pose-icon">${iconSvg}</div>` : ''}
             <div class="pose-name" data-name="${techName.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}">${techName}</div>
           </summary>
           <div class="pose-detail">
@@ -12468,7 +12472,7 @@ function toggleOlyTechniquesCard(){
 
 // Thin wrapper — the real implementation is the shared renderMasterclassTechniques
 // (see MASTERCLASS_LIBRARY above), which reads strengthTechniquesCard's shape
-// (fixed CATEGORY_ICONS.barbell icon, no per-technique video field) from that
+// (no per-row icon since v3.427, was a fixed CATEGORY_ICONS.barbell, no per-technique video field) from that
 // same registry.
 function renderStrengthTechniques(){
   renderMasterclassTechniques('strengthTechniquesCard');
@@ -12503,7 +12507,7 @@ function toggleStrengthTechniquesCard(){
 
 // Thin wrapper — the real implementation is the shared renderMasterclassTechniques
 // (see MASTERCLASS_LIBRARY above), which reads runningTechniquesCard's shape
-// (fixed CATEGORY_ICONS.pulse icon) from that same registry.
+// (no per-row icon since v3.427, was a fixed CATEGORY_ICONS.pulse) from that same registry.
 function renderRunningTechniques(){
   renderMasterclassTechniques('runningTechniquesCard');
 }
@@ -12531,7 +12535,7 @@ function toggleRunningTechniquesCard(){
 
 // Thin wrapper — the real implementation is the shared renderMasterclassTechniques
 // (see MASTERCLASS_LIBRARY above), which reads hyroxTechniquesCard's shape
-// (fixed CATEGORY_ICONS.bolt icon) from that same registry.
+// (no per-row icon since v3.427, was a fixed CATEGORY_ICONS.bolt) from that same registry.
 function renderHyroxTechniques(){
   renderMasterclassTechniques('hyroxTechniquesCard');
 }
@@ -12556,7 +12560,7 @@ function toggleHyroxTechniquesCard(){
 
 // Thin wrapper — the real implementation is the shared renderMasterclassTechniques
 // (see MASTERCLASS_LIBRARY above), which reads pilatesTechniquesCard's shape
-// (fixed CATEGORY_ICONS.core icon) from that same registry.
+// (no per-row icon since v3.427, was a fixed CATEGORY_ICONS.core) from that same registry.
 function renderPilatesTechniques(){
   renderMasterclassTechniques('pilatesTechniquesCard');
 }
@@ -12582,7 +12586,7 @@ function togglePilatesTechniquesCard(){
 
 // Thin wrapper — the real implementation is the shared renderMasterclassTechniques
 // (see MASTERCLASS_LIBRARY above), which reads yogaTechniquesCard's shape
-// (fixed CATEGORY_ICONS.core icon) from that same registry.
+// (no per-row icon since v3.427, was a fixed CATEGORY_ICONS.core) from that same registry.
 function renderYogaTechniques(){
   renderMasterclassTechniques('yogaTechniquesCard');
 }
@@ -12609,7 +12613,7 @@ function toggleYogaTechniquesCard(){
 
 // Thin wrapper — the real implementation is the shared renderMasterclassTechniques
 // (see MASTERCLASS_LIBRARY above), which reads calisthenicsTechniquesCard's
-// shape (fixed CATEGORY_ICONS.barbell icon) from that same registry.
+// shape (no per-row icon since v3.427, was a fixed CATEGORY_ICONS.barbell) from that same registry.
 function renderCalisthenicsTechniques(){
   renderMasterclassTechniques('calisthenicsTechniquesCard');
 }
@@ -12636,7 +12640,7 @@ function toggleCalisthenicsTechniquesCard(){
 
 // Thin wrapper — the real implementation is the shared renderMasterclassTechniques
 // (see MASTERCLASS_LIBRARY above), which reads cyclingTechniquesCard's shape
-// (fixed CATEGORY_ICONS.pulse icon) from that same registry.
+// (no per-row icon since v3.427, was a fixed CATEGORY_ICONS.pulse) from that same registry.
 function renderCyclingTechniques(){
   renderMasterclassTechniques('cyclingTechniquesCard');
 }
@@ -14016,7 +14020,8 @@ async function isDeloadWeek(){
 // .posing-class/.pose-detail-wrap markup, same Object.keys(groups).map(...)
 // shape, same detail.video-or-fallback query logic — the only real
 // differences were which DOM id/GROUPS/DETAILS/ICONS const each one used,
-// whether the icon was per-technique or one fixed CATEGORY_ICONS svg, and
+// whether the icon was per-technique or one fixed CATEGORY_ICONS svg (v3.427:
+// now none), and
 // the noun used in the "N technique(s)" count). renderMasterclassTechniques
 // is the one shared implementation; the 13 original functions became
 // one-line wrappers around it. renderWatersportsTechniques was deliberately
@@ -14049,19 +14054,19 @@ const MASTERCLASS_LIBRARY = {
   olyTechniquesCard:        {label:'Olympic Lifting Technique',              render:()=>renderOlyTechniques(),        details:OLY_TECHNIQUE_DETAILS,
     listElId:'olyTechniquesList', groups:()=>OLY_TECHNIQUE_GROUPS, icon:()=>({mode:'perTechnique', icons:OLY_ICONS}), itemNoun:'technique', fallbackQuerySuffix:'olympic weightlifting technique tutorial'},
   strengthTechniquesCard:   {label:'Strength Training Fundamentals',         render:()=>renderStrengthTechniques(),   details:STRENGTH_TECHNIQUE_DETAILS,
-    listElId:'strengthTechniquesList', groups:()=>STRENGTH_TECHNIQUE_GROUPS, icon:()=>({mode:'fixed', svg:CATEGORY_ICONS.barbell}), itemNoun:'technique', fallbackQuerySuffix:'proper technique tutorial'},
+    listElId:'strengthTechniquesList', groups:()=>STRENGTH_TECHNIQUE_GROUPS, icon:()=>({mode:'none'}), itemNoun:'technique', fallbackQuerySuffix:'proper technique tutorial'},
   runningTechniquesCard:    {label:'Running Form Fundamentals',              render:()=>renderRunningTechniques(),    details:RUNNING_TECHNIQUE_DETAILS,
-    listElId:'runningTechniquesList', groups:()=>RUNNING_TECHNIQUE_GROUPS, icon:()=>({mode:'fixed', svg:CATEGORY_ICONS.pulse}), itemNoun:'technique', fallbackQuerySuffix:'proper running technique tutorial'},
+    listElId:'runningTechniquesList', groups:()=>RUNNING_TECHNIQUE_GROUPS, icon:()=>({mode:'none'}), itemNoun:'technique', fallbackQuerySuffix:'proper running technique tutorial'},
   hyroxTechniquesCard:      {label:'Hyrox Fundamentals',                     render:()=>renderHyroxTechniques(),      details:HYROX_TECHNIQUE_DETAILS,
-    listElId:'hyroxTechniquesList', groups:()=>HYROX_TECHNIQUE_GROUPS, icon:()=>({mode:'fixed', svg:CATEGORY_ICONS.bolt}), itemNoun:'technique', fallbackQuerySuffix:'Hyrox technique tutorial'},
+    listElId:'hyroxTechniquesList', groups:()=>HYROX_TECHNIQUE_GROUPS, icon:()=>({mode:'none'}), itemNoun:'technique', fallbackQuerySuffix:'Hyrox technique tutorial'},
   pilatesTechniquesCard:    {label:'Pilates Fundamentals',                   render:()=>renderPilatesTechniques(),    details:PILATES_TECHNIQUE_DETAILS,
-    listElId:'pilatesTechniquesList', groups:()=>PILATES_TECHNIQUE_GROUPS, icon:()=>({mode:'fixed', svg:CATEGORY_ICONS.core}), itemNoun:'technique', fallbackQuerySuffix:'Pilates technique tutorial'},
+    listElId:'pilatesTechniquesList', groups:()=>PILATES_TECHNIQUE_GROUPS, icon:()=>({mode:'none'}), itemNoun:'technique', fallbackQuerySuffix:'Pilates technique tutorial'},
   yogaTechniquesCard:       {label:'Yoga Pose Fundamentals',                 render:()=>renderYogaTechniques(),       details:YOGA_TECHNIQUE_DETAILS,
-    listElId:'yogaTechniquesList', groups:()=>YOGA_TECHNIQUE_GROUPS, icon:()=>({mode:'fixed', svg:CATEGORY_ICONS.core}), itemNoun:'technique', fallbackQuerySuffix:'yoga alignment tutorial'},
+    listElId:'yogaTechniquesList', groups:()=>YOGA_TECHNIQUE_GROUPS, icon:()=>({mode:'none'}), itemNoun:'technique', fallbackQuerySuffix:'yoga alignment tutorial'},
   calisthenicsTechniquesCard:{label:'Calisthenics & Bodyweight Fundamentals',render:()=>renderCalisthenicsTechniques(),details:CALISTHENICS_TECHNIQUE_DETAILS,
-    listElId:'calisthenicsTechniquesList', groups:()=>CALISTHENICS_TECHNIQUE_GROUPS, icon:()=>({mode:'fixed', svg:CATEGORY_ICONS.barbell}), itemNoun:'technique', fallbackQuerySuffix:'calisthenics progression tutorial'},
+    listElId:'calisthenicsTechniquesList', groups:()=>CALISTHENICS_TECHNIQUE_GROUPS, icon:()=>({mode:'none'}), itemNoun:'technique', fallbackQuerySuffix:'calisthenics progression tutorial'},
   cyclingTechniquesCard:    {label:'Cycling Fundamentals',                   render:()=>renderCyclingTechniques(),    details:CYCLING_TECHNIQUE_DETAILS,
-    listElId:'cyclingTechniquesList', groups:()=>CYCLING_TECHNIQUE_GROUPS, icon:()=>({mode:'fixed', svg:CATEGORY_ICONS.pulse}), itemNoun:'technique', fallbackQuerySuffix:'cycling technique tutorial'},
+    listElId:'cyclingTechniquesList', groups:()=>CYCLING_TECHNIQUE_GROUPS, icon:()=>({mode:'none'}), itemNoun:'technique', fallbackQuerySuffix:'cycling technique tutorial'},
 };
 
 // The one shared masterclass-card renderer, replacing 13 near-identical
@@ -14088,7 +14093,10 @@ function renderMasterclassTechniques(cardId){
     const grp = groups[groupName];
     const itemRows = grp.poses.map((itemName)=>{
       const detail = details[itemName];
-      const iconSvg = iconCfg.mode === 'fixed' ? iconCfg.svg : (detail ? iconCfg.icons[detail.icon] : '');
+      // v3.427: only a technique's own pictogram is drawn. The cards that put
+      // one category icon on every row ({mode:'none'} now) show none: the
+      // same mark down a list says nothing the card title does not.
+      const iconSvg = iconCfg.mode === 'perTechnique' && detail ? (iconCfg.icons[detail.icon] || '') : '';
       // v3.405: each point's label in bold ("Setup", "Common mistake"…), and the
       // group's own word dropped from the name ("Squat: Bracing & Setup" reads
       // "Bracing & Setup" under "The Squat…"); data-name keeps the full name
@@ -14100,7 +14108,7 @@ function renderMasterclassTechniques(cardId){
       return `
         <details class="pose-detail-wrap">
           <summary class="pose-row">
-            <div class="pose-icon">${iconSvg}</div>
+            ${iconSvg ? `<div class="pose-icon">${iconSvg}</div>` : ''}
             <div class="pose-name" data-name="${itemName.replace(/&/g, '&amp;').replace(/"/g, '&quot;')}">${shownName}</div>
           </summary>
           <div class="pose-detail">

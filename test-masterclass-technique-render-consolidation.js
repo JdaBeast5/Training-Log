@@ -108,7 +108,9 @@ test('REAL invocation: renderMasterclassTechniques("combatTechniquesCard") rende
   assert.ok(firstIcon, 'combatTechniquesCard also uses per-technique icons (COMBAT_ICONS[detail.icon])');
 });
 
-test('REAL invocation: renderMasterclassTechniques("pilatesTechniquesCard") renders every technique with ONE FIXED CATEGORY_ICONS.core icon on every row, not a per-technique lookup', (assert)=>{
+// 2026-10-27 (v3.427): the fixed-icon cards (one CATEGORY_ICONS mark on every
+// row) now draw none — {mode:'none'}; see test-glyphs.js.
+test('REAL invocation: renderMasterclassTechniques("pilatesTechniquesCard") renders every technique, with no icon on any row (v3.427: was one fixed CATEGORY_ICONS.core on every row)', (assert)=>{
   const { document } = runJsdom(
     '<div id="pilatesTechniquesList"></div>',
     '',
@@ -119,10 +121,8 @@ test('REAL invocation: renderMasterclassTechniques("pilatesTechniquesCard") rend
   ))));
   const itemEls = document.querySelectorAll('#pilatesTechniquesList details.pose-detail-wrap');
   assert.strictEqual(itemEls.length, expected.itemCount, `expected all ${expected.itemCount} Pilates techniques rendered`);
-  const iconHtmls = [...document.querySelectorAll('#pilatesTechniquesList .pose-icon')].map(el=> el.innerHTML);
-  assert.ok(iconHtmls.length >= 2, 'sabotage-relevant: need at least 2 rows to prove the icon is genuinely fixed, not coincidentally identical for one row');
-  const allSame = iconHtmls.every(h=> h === iconHtmls[0]);
-  assert.strictEqual(allSame, true, 'every row on pilatesTechniquesCard must render the exact same fixed CATEGORY_ICONS.core icon — this is the shape-B branch of the shared function (icon.mode === "fixed"), distinct from swim/combat above');
+  assert.ok(itemEls.length >= 2, 'sabotage-relevant: more than one row, so "none on any row" means something');
+  assert.strictEqual(document.querySelectorAll('#pilatesTechniquesList .pose-icon').length, 0, 'no repeated category icon down the list');
 });
 
 test('REAL invocation: renderMasterclassTechniques("posingCard") renders every bodybuilding class/pose with the "pose" noun (not "technique"), matching the original renderPosingClasses exactly', (assert)=>{

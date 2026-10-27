@@ -287,4 +287,52 @@ test('REAL markup + source (v3.426): the pull arrow is drawn, the spinner swaps 
   assert.match(src, /right\.innerHTML = icon\('chevron'\);/);
 });
 
+// v3.427 — Masterclass rows. Seven cards (strength, running, Hyrox, Pilates,
+// yoga, calisthenics, cycling) put the same category icon on every row, in a
+// boxed 36px tile; the rest boxed each technique's own pictogram, drawn at
+// strokes from 1.8 to 2.4. Now the repeated icon is gone ({mode:'none'}), a
+// technique's own pictogram stands unboxed at 24px, and every pictogram is
+// held to one 1.5px line by CSS.
+function renderTechniques(listId, call){
+  const { runJsdom } = require('./testHelpers.js');
+  const consts = ['POSE_DETAILS','SWIM_STROKE_DETAILS','CLIMB_TECHNIQUE_DETAILS','WATERSPORTS_TECHNIQUE_DETAILS','COMBAT_TECHNIQUE_DETAILS','GRAPPLE_TECHNIQUE_DETAILS',
+    'OLY_TECHNIQUE_DETAILS','STRENGTH_TECHNIQUE_DETAILS','RUNNING_TECHNIQUE_DETAILS','HYROX_TECHNIQUE_DETAILS','PILATES_TECHNIQUE_DETAILS','YOGA_TECHNIQUE_DETAILS',
+    'CALISTHENICS_TECHNIQUE_DETAILS','CYCLING_TECHNIQUE_DETAILS','STRENGTH_TECHNIQUE_GROUPS','CATEGORY_ICONS','SWIM_STROKES','SWIM_ICONS',
+    'WATERSPORTS_TECHNIQUE_GROUPS','WATERSPORTS_ICONS'].map(n => extractConst(src, n));
+  const lib = extractConst(src, 'MASTERCLASS_LIBRARY').replace(/render:\(\)=>render\w+\(\),?/g, '');
+  const { window } = runJsdom(`<div id="${listId}"></div>`, '', [...consts, lib, extractFunction(src, 'renderMasterclassTechniques'), extractFunction(src, 'renderWatersportsTechniques'), call]);
+  return window.document;
+}
+
+test('REAL source (v3.427): no masterclass repeats one icon down its rows', (assert)=>{
+  const lib = extractConst(src, 'MASTERCLASS_LIBRARY');
+  assert.doesNotMatch(lib, /mode:'fixed'/);
+  assert.strictEqual((lib.match(/icon:\(\)=>\(\{mode:'none'\}\)/g) || []).length, 7, 'the seven cards that did');
+});
+
+test('REAL invocation (v3.427): strength rows have no icon; swim and watersports rows keep their own pictogram', (assert)=>{
+  const strength = renderTechniques('strengthTechniquesList', "renderMasterclassTechniques('strengthTechniquesCard');");
+  assert.ok(strength.querySelectorAll('.pose-row').length >= 10, 'anchor: the real rows');
+  assert.strictEqual(strength.querySelectorAll('.pose-icon').length, 0);
+  const swim = renderTechniques('swimStylesList', "renderMasterclassTechniques('swimStylesCard');");
+  const rows = swim.querySelectorAll('.pose-row');
+  assert.ok(rows.length >= 5);
+  assert.strictEqual(swim.querySelectorAll('.pose-row > .pose-icon svg').length, rows.length, 'one pictogram per technique');
+  const ws = renderTechniques('watersportsTechniquesList', 'renderWatersportsTechniques();');
+  assert.ok(ws.querySelector('.pose-row > .pose-icon svg'), 'the watersports renderer too');
+});
+
+test('REAL CSS (v3.427): the pictogram is unboxed, 24px, one 1.5px non-scaling line; its points sit under the name', (assert)=>{
+  const { window } = new JSDOM(`<style>${CSS}</style><details class="pose-detail-wrap" open><summary class="pose-row"><div class="pose-icon" id="i"><svg><path id="p" stroke-width="2.4"/></svg></div><div class="pose-name">N</div></summary><div class="pose-detail" id="d1"></div></details>
+    <details class="pose-detail-wrap" open><summary class="pose-row"><div class="pose-name">N</div></summary><div class="pose-detail" id="d2"></div></details>`);
+  const cs = id => window.getComputedStyle(window.document.getElementById(id));
+  assert.strictEqual(cs('i').width, '24px');
+  assert.match(CSS, /\.pose-icon\{flex:0 0 auto; width:24px; height:24px; color:var\(--text-muted\);\}/, 'no fill, border or padding');
+  assert.strictEqual(cs('p').strokeWidth, '1.5px', 'the CSS line beats the drawing\'s own stroke-width');
+  assert.match(CSS, /\.pose-icon svg \*\{stroke-width:1\.5px; vector-effect:non-scaling-stroke;\}/);
+  // jsdom does not evaluate :has(); the rule is read as declared.
+  assert.match(CSS, /\.pose-detail-wrap:has\(> \.pose-row > \.pose-icon\) > \.pose-detail\{padding-left:36px;\}/);
+  assert.strictEqual(cs('d2').paddingLeft, '0px', 'no pictogram, no indent');
+});
+
 run();
