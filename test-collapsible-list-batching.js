@@ -129,4 +129,16 @@ test('sabotage-relevant: ALL 30 rows are real, present, distinct DOM elements up
   });
 });
 
+// v3.442 — one hidden row: the plural noun read "Show 1 more exercises".
+test('REAL invocation (v3.442): a single hidden row reads "Show 1 more", without the plural noun', (assert)=>{
+  const { document } = runJsdom('<div id="list"></div>', '', [
+    batchSizeSrc, renderCollapsibleListSrc,
+    `renderCollapsibleList(document.getElementById('list'), ${JSON.stringify(items(4))}, 3, 'exercises');`
+  ]);
+  const btn = document.querySelector('#list .show-more-btn');
+  assert.strictEqual(btn.textContent, 'Show 1 more');
+  btn.click(); btn.click();
+  assert.strictEqual(btn.textContent, 'Show 1 more', 'collapsing restores the same label');
+});
+
 run();

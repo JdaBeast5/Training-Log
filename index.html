@@ -7026,7 +7026,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.441';
+const APP_VERSION = '3.442';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8156,6 +8156,9 @@ const WHATS_NEW = {
   ]},
   '3.441': { headline: 'Plainer Analysis wording', points: [
     'RPE says No change instead of a bare 0, and the weight trend states its weekly pace without pointing elsewhere.',
+  ]},
+  '3.442': { headline: 'Show 1 more', points: [
+    'A list with one hidden row now says Show 1 more, not Show 1 more exercises.',
   ]},
 };
 
@@ -39696,9 +39699,12 @@ function renderCollapsibleList(container, itemHtmls, visibleCount, noun){
   }
   const batchesHtml = batches.map((b, i)=>{
     const wrapId = `${container.id}-more-${i}`;
+    // v3.442: the nouns are plural ('weigh-ins', 'exercises'), so a single
+    // hidden row read "Show 1 more exercises"; one row is just "Show 1 more".
+    const what = b.items.length === 1 ? '' : ` ${noun}`;
     const label = b.remainingAfter > 0
-      ? `Show ${b.items.length} more ${noun} (${b.items.length + b.remainingAfter} total)`
-      : `Show ${b.items.length} more ${noun}`;
+      ? `Show ${b.items.length} more${what} (${b.items.length + b.remainingAfter} total)`
+      : `Show ${b.items.length} more${what}`;
     return `
       <div class="expand-wrap" id="${wrapId}"><div>${b.items.join('')}</div></div>
       <button class="show-more-btn" id="${wrapId}-btn" data-collapsed-label="${label}"${i > 0 ? ' style="display:none"' : ''}>${label}</button>
