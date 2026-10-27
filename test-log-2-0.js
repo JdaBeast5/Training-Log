@@ -112,4 +112,20 @@ test('REAL CSSOM (v3.431): the add-row inputs may shrink below their intrinsic w
   for(const id of ['weightInput', 'sleepInput']) assert.ok(doc.getElementById(id).closest('.weight-input-row'), 'anchor: ' + id + ' sits in the row');
 });
 
+// v3.432 — Water's Reset. It was a fourth button in the +8/+16/+24oz row, the
+// same size and fill as the three that add water, and cleared the day for
+// good. It is now a quiet text action beside the total, with Undo
+// (test-water-log.js).
+test('REAL markup + CSSOM (v3.432): Reset sits beside the total, outside the add row, without a button fill', (assert)=>{
+  const reset = doc.getElementById('waterReset');
+  assert.strictEqual(reset.closest('.water-btn-row'), null);
+  assert.ok(reset.closest('.water-head').contains(doc.getElementById('waterValText')));
+  assert.strictEqual(reset.classList.contains('water-btn'), false);
+  assert.strictEqual(doc.querySelectorAll('.water-btn-row .water-btn[data-oz]').length, 3, 'anchor: the three add buttons');
+  const CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
+  // jsdom does not expand the background/border shorthands; read as declared.
+  assert.match(CSS, /\.water-reset\{background:none; border:none;/);
+  assert.doesNotMatch(CSS, /\.water-reset\{[^}]*flex:/, 'no longer sized like a row button');
+});
+
 run();

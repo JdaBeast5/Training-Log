@@ -61,6 +61,7 @@ function otherGlobals(opts){
     window.selectedLogDate = ${JSON.stringify(opts.selectedLogDate || '2026-08-10')};
     window.userProfile = { weight: ${opts.profileWeight != null ? opts.profileWeight : 150}, activity: ${opts.activity != null ? opts.activity : 1.2} };
     window.renderTodayInsights = ()=>{};
+    window.__undo = null; window.showUndoToast = (msg, fn)=>{ window.__undo = {msg, fn}; }; // 2026-10-27 (v3.432): Reset offers Undo
   `;
 }
 
@@ -166,6 +167,27 @@ test('REAL invocation: Reset only affects the current date, not other days\' sto
   await new Promise(r=> setTimeout(r, 20));
   assert.strictEqual(window.storage.__store['water:2026-08-10'], '0');
   assert.strictEqual(window.storage.__store['water:2026-08-05'], '64', 'Reset must not touch a different day\'s total');
+});
+
+// v3.432 — Reset offers Undo (it cleared the day's total for good), and only
+// when there was something to clear.
+test('REAL invocation (v3.432): Reset offers Undo, which puts the total back', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({'water:2026-08-10': '80'}) + otherGlobals(), scriptChunks);
+  document.getElementById('waterReset').click();
+  await new Promise(r=> setTimeout(r, 20));
+  assert.strictEqual(window.storage.__store['water:2026-08-10'], '0');
+  assert.ok(window.__undo, 'Undo offered');
+  assert.strictEqual(window.__undo.msg, 'Water reset');
+  await window.__undo.fn();
+  assert.strictEqual(window.storage.__store['water:2026-08-10'], '80');
+  assert.strictEqual(document.getElementById('waterValText').textContent, '80 / 90 oz');
+});
+
+test('REAL invocation (v3.432): nothing to reset, no Undo', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({}) + otherGlobals(), scriptChunks);
+  document.getElementById('waterReset').click();
+  await new Promise(r=> setTimeout(r, 20));
+  assert.strictEqual(window.__undo, null);
 });
 
 run();
