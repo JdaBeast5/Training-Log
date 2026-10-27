@@ -2428,13 +2428,11 @@
 
   .water-reset{color:var(--text-muted); flex:0.6;}
 
-  .targets-strip{
-    display:flex; justify-content:space-between; text-align:center;
-    background:var(--row-fill); border-radius:var(--radius-md); padding:12px 6px; margin:8px 0 14px;
-  }
-  .targets-strip div{flex:1;}
-  .targets-strip .t-val{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-weight:700; font-size:16.5px; letter-spacing:-0.01em;}
-  .targets-strip .t-label{font-size:11px; color:var(--text-muted); margin-top:2px;}
+  /* v3.429: the nutrition card's one big figure (was .targets-strip). */
+  .cal-hero{display:flex; align-items:baseline; gap:8px; margin:12px 0 18px;}
+  .cal-hero-num{font-family:var(--font-sans); font-variant-numeric:tabular-nums; font-size:34px; font-weight:700; letter-spacing:-0.03em; line-height:1; color:var(--text);}
+  .cal-hero-unit{font-size:13px; color:var(--text-muted);}
+  .cal-hero.is-over .cal-hero-num{color:var(--plate-yellow);}
 
   /* A button that reads as part of a sentence, for offering an action inside
      explanatory prose. `font:inherit` rather than a size, so it tracks whatever
@@ -5682,11 +5680,11 @@
       <span class="ex-chevron" aria-hidden="true" id="nutritionChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
     </div>
 
-    <div class="targets-strip">
-      <div><div class="t-val" id="tvCal">2650</div><div class="t-label">Cal target</div></div>
-      <div><div class="t-val" id="tvPro">240g</div><div class="t-label">Protein</div></div>
-      <div><div class="t-val" id="tvFat">75g</div><div class="t-label">Fat</div></div>
-      <div><div class="t-val" id="tvCarb">250g</div><div class="t-label">Carbs</div></div>
+    <!-- v3.429: one figure that answers "how much is left", in place of a strip
+         of four targets the bars below repeated. Each bar carries its own target. -->
+    <div class="cal-hero" id="calHero" data-eaten="0">
+      <span class="cal-hero-num" id="calHeroNum">2650</span>
+      <span class="cal-hero-unit" id="calHeroUnit">cal left of 2650</span>
     </div>
     <div class="history-hint" id="calorieFloorNote" style="display:none"></div>
     <div class="macro-row">
@@ -5697,17 +5695,17 @@
     <div class="macro-row">
       <div class="macro-label">Protein</div>
       <div class="macro-bar-track"><div class="macro-bar-fill" id="barPro" style="background:var(--plate-teal);width:0%"></div></div>
-      <div class="macro-val" id="valPro">0 / 240</div>
+      <div class="macro-val" id="valPro">0 / 240g</div>
     </div>
     <div class="macro-row">
       <div class="macro-label">Fat</div>
       <div class="macro-bar-track"><div class="macro-bar-fill" id="barFat" style="background:var(--plate-yellow);width:0%"></div></div>
-      <div class="macro-val" id="valFat">0 / 75</div>
+      <div class="macro-val" id="valFat">0 / 75g</div>
     </div>
     <div class="macro-row">
       <div class="macro-label">Carbs</div>
       <div class="macro-bar-track"><div class="macro-bar-fill" id="barCarb" style="background:var(--plate-blue);width:0%"></div></div>
-      <div class="macro-val" id="valCarb">0 / 250</div>
+      <div class="macro-val" id="valCarb">0 / 250g</div>
     </div>
     <div id="medicalNutrientBars" style="display:none"></div>
 
@@ -6992,7 +6990,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.428';
+const APP_VERSION = '3.429';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8083,6 +8081,9 @@ const WHATS_NEW = {
   ]},
   '3.428': { headline: 'What you ate, first', points: [
     'On Log, the foods you\'ve logged now sit right under the day\'s totals, above search and the food library.',
+  ]},
+  '3.429': { headline: 'Calories left, at a glance', points: [
+    'The nutrition card leads with how many calories you have left (or are over); each macro bar shows its own target, in grams.',
   ]},
 };
 
@@ -32925,10 +32926,7 @@ async function renderProgramRec(trendStatus){
 }
 
 function applyTargetsToUI(){
-  document.getElementById('tvCal').textContent = targets.cal;
-  document.getElementById('tvPro').textContent = targets.pro + 'g';
-  document.getElementById('tvFat').textContent = targets.fat + 'g';
-  document.getElementById('tvCarb').textContent = targets.carb + 'g';
+  renderCalHero();
   const floorNote = document.getElementById('calorieFloorNote');
   if(targets.isFloored){
     floorNote.style.display = '';
@@ -36731,16 +36729,31 @@ function renderMedicalNutrientBars(totals){
   }).join('') + `<div class="history-hint subtle">Only as good as what's entered: scanned labels are close, AI photo and home-cooked estimates are rough for these nutrients. A guide, never a replacement for bloodwork your care team orders.</div>`;
 }
 
+// v3.429: calories left (or over) against today's target. The eaten total
+// rides on the element (updateBars writes it) so a target change alone can
+// redraw it.
+function renderCalHero(){
+  const hero = document.getElementById('calHero');
+  if(!hero) return;
+  const eaten = Number(hero.dataset.eaten) || 0;
+  const left = Math.round(targets.cal - eaten);
+  hero.classList.toggle('is-over', left < 0);
+  document.getElementById('calHeroNum').textContent = Math.abs(left);
+  document.getElementById('calHeroUnit').textContent = `cal ${left < 0 ? 'over' : 'left of'} ${targets.cal}`;
+}
+
 function updateBars(v){
   const cal = Number(v.cal)||0, pro=Number(v.pro)||0, fat=Number(v.fat)||0, carb=Number(v.carb)||0;
+  const hero = document.getElementById('calHero');
+  if(hero){ hero.dataset.eaten = cal; renderCalHero(); }
   document.getElementById('barCal').style.width = Math.min(100,(cal/targets.cal)*100)+'%';
   document.getElementById('barPro').style.width = Math.min(100,(pro/targets.pro)*100)+'%';
   document.getElementById('barFat').style.width = Math.min(100,(fat/targets.fat)*100)+'%';
   document.getElementById('barCarb').style.width = Math.min(100,(carb/targets.carb)*100)+'%';
   document.getElementById('valCal').textContent = `${cal} / ${targets.cal}`;
-  document.getElementById('valPro').textContent = `${pro} / ${targets.pro}`;
-  document.getElementById('valFat').textContent = `${fat} / ${targets.fat}`;
-  document.getElementById('valCarb').textContent = `${carb} / ${targets.carb}`;
+  document.getElementById('valPro').textContent = `${pro} / ${targets.pro}g`;
+  document.getElementById('valFat').textContent = `${fat} / ${targets.fat}g`;
+  document.getElementById('valCarb').textContent = `${carb} / ${targets.carb}g`;
 }
 
 document.getElementById('nutritionHeader').addEventListener('click', ()=>{
