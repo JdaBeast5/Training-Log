@@ -147,4 +147,18 @@ test('REAL markup (v3.440): the print button is the last thing on Analysis, afte
   assert.strictEqual(btn.classList.contains('card'), false, 'not swept up by group collapse');
 });
 
+// v3.441 — Copy. Average RPE read "0 over 5 weeks" and "fairly steady (0)":
+// a bare zero with no unit. It says "No change", and the note drops the
+// zero. (The weight note's wording is covered in test-metric-trend-cards.js.)
+test('REAL source (v3.441): the RPE footer and note never print a bare 0', (assert)=>{
+  const fn = extractFunction(src, 'renderRpeTrend');
+  assert.match(fn, /\$\{delta \? `\$\{deltaSign\}\$\{delta\} RPE` : 'No change'\} over \$\{withData\.length\} weeks/);
+  assert.match(fn, /RPE has held steady\$\{delta \? ` \(\$\{deltaSign\}\$\{delta\}\)` : ''\}: effort is tracking with output, no fatigue flag\./);
+  // The two real expressions, evaluated.
+  const foot = new Function('delta', 'deltaSign', 'n', "return `${delta ? `${deltaSign}${delta} RPE` : 'No change'} over ${n} weeks`;");
+  assert.strictEqual(foot(0, '', 5), 'No change over 5 weeks');
+  assert.strictEqual(foot(0.4, '+', 5), '+0.4 RPE over 5 weeks');
+  assert.doesNotMatch(fn, /fairly steady \(/);
+});
+
 run();

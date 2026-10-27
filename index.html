@@ -7026,7 +7026,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.440';
+const APP_VERSION = '3.441';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8153,6 +8153,9 @@ const WHATS_NEW = {
   ]},
   '3.440': { headline: 'Print at the end', points: [
     'Print analysis snapshot moved from the top of Analysis to the end of it.',
+  ]},
+  '3.441': { headline: 'Plainer Analysis wording', points: [
+    'RPE says No change instead of a bare 0, and the weight trend states its weekly pace without pointing elsewhere.',
   ]},
 };
 
@@ -39618,9 +39621,11 @@ function renderSparkline(entries){
   if(sorted.length >= 4){
     let text, status;
     if(Math.abs(perWeek) < 0.15){
-      status = 'neutral'; text = `Roughly flat — averaging under ${perWeekDisplay || '0.1'} ${weightUnit}/week of change over this window. (Goal Progress Check above reads whether that's expected for your goal.)`;
+      status = 'neutral'; text = `Roughly flat: under ${perWeekDisplay || '0.1'} ${weightUnit} a week of change over this window.`;
     } else {
-      status = 'neutral'; text = `Averaging about ${perWeekDisplay} ${weightUnit}/week ${perWeek>0?'gain':'loss'} over this window. (Goal Progress Check above reads whether that pace fits your goal.)`;
+      // v3.441: the pointer back to Goal Progress Check went; that card sits
+      // right above and says whether the pace suits the goal.
+      status = 'neutral'; text = `About ${perWeekDisplay} ${weightUnit} a week ${perWeek>0?'gain':'loss'} over this window.`;
     }
     insightHtml = `<div class="${status==='good'?'goal-feedback-good':status==='warn'?'goal-feedback-warn':'goal-feedback-neutral'}" style="margin-top:10px;">${text}</div>`;
   }
@@ -44490,7 +44495,8 @@ async function renderRpeTrend(){
   } else if(delta < -0.5){
     insightHtml = `<div class="goal-feedback-good" style="margin-top:10px;">${icon('check')} Average RPE has dropped ${deltaSign}${delta} — sessions are feeling easier for the same work, a good sign of real recovery and adaptation.</div>`;
   } else {
-    insightHtml = `<div class="goal-feedback-neutral" style="margin-top:10px;">RPE has stayed fairly steady (${deltaSign}${delta}) — effort is tracking consistently with output, no fatigue flag here.</div>`;
+    // v3.441: no bare "(0)" — say how much it moved, or that it didn't.
+    insightHtml = `<div class="goal-feedback-neutral" style="margin-top:10px;">RPE has held steady${delta ? ` (${deltaSign}${delta})` : ''}: effort is tracking with output, no fatigue flag.</div>`;
   }
 
   el.innerHTML = `
@@ -44506,7 +44512,7 @@ async function renderRpeTrend(){
     </svg>
     <div class="trend-labels">
       <span>RPE ${withData[0].avg.toFixed(1)}</span>
-      <span class="${deltaClass}">${deltaSign}${delta} over ${withData.length} weeks</span>
+      <span class="${deltaClass}">${delta ? `${deltaSign}${delta} RPE` : 'No change'} over ${withData.length} weeks</span>
       <span>RPE ${withData[withData.length-1].avg.toFixed(1)}</span>
     </div>
     ${insightHtml}
