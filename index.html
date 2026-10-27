@@ -3221,6 +3221,8 @@
   .care-disclaimer-card{background:none; border:0; box-shadow:none; padding:0;}
   .care-disclaimer-card .care-disclaimer{margin-bottom:0;}
   .care-disclaimer{font-size:13px; line-height:1.5; color:var(--text-muted);}
+  .custom-toggle.coach-key-link{margin:8px 0 14px; color:var(--plate-blue); font-weight:600;}
+  .custom-toggle.coach-key-link[hidden]{display:none;}
   .care-disclaimer b{color:var(--text);}
 
   .coach-chat-log{
@@ -6410,6 +6412,8 @@
       <div class="care-disclaimer">
         Uses your Anthropic API key (Settings → AI Features Setup). Not medical advice, and not a substitute for an in-person coach or doctor.
       </div>
+      <!-- v3.457: with no key saved, the way to add one, here — not only after an AI action has failed. -->
+      <button type="button" class="custom-toggle coach-key-link" id="coachKeySetup" data-jump-to="aiSettingsCard" hidden>Add your API key</button>
     </div>
 
     <!-- Get Form Feedback / Past Reviews moved ahead of Ask Your Coach:
@@ -7065,7 +7069,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.456';
+const APP_VERSION = '3.457';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8240,6 +8244,9 @@ const WHATS_NEW = {
   ]},
   '3.456': { headline: 'Past Reviews when you have one', points: [
     'Coach\'s Past Reviews appears once you\'ve had a form review, with dates in the normal text face.',
+  ]},
+  '3.457': { headline: 'Add your key from Coach', points: [
+    'Without an API key saved, Coach\'s note offers Add your API key right there, instead of only after something fails.',
   ]},
 };
 
@@ -42510,6 +42517,8 @@ async function saveCoachEntry(entry){
 }
 
 async function renderCoach(){
+  const keyLink = document.getElementById('coachKeySetup');
+  if(keyLink) keyLink.hidden = !!(await getApiKey());
   const persona = activeProgram === 'combat' ? COMBAT_STYLES[activeMartialArt].label : programs[activeProgram].label;
   document.getElementById('coachPersonaLabel').textContent = persona;
 

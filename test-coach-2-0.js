@@ -57,13 +57,13 @@ test('REAL markup (v3.455): the chat card no longer repeats the empty conversati
 // v3.456 — Past Reviews appears once there is a review; empty, it was a whole
 // card saying so, right under the form a review comes from. Its dates read in
 // the text face (Care's check-ins did in v3.451; the two share the row class).
-async function coach(log){
-  const { window } = runJsdom('<b id="coachPersonaLabel"></b><div class="card" id="c"><div id="coachHistoryList"></div></div>', `
-    window.activeProgram = 'strength'; window.programs = {strength:{label:'Strength'}};
+async function coach(log, key){
+  const { window } = runJsdom('<button id="coachKeySetup" hidden></button><b id="coachPersonaLabel"></b><div class="card" id="c"><div id="coachHistoryList"></div></div>', `
+    window.activeProgram = 'strength'; window.programs = {strength:{label:'Strength'}}; window.getApiKey = async ()=> window.__key || '';
     window.getCoachLog = async ()=> ${JSON.stringify(log)}; window.loadCoachChatHistory = async ()=>{}; window.renderCoachChatLog = ()=>{};
     window.buildSwipeItem = h => h; window.renderCollapsibleList = (el, items)=>{ el.innerHTML = items.join(''); };
     window.wireSwipeDeleteList = ()=>{}; window.fmtDayLabel = d => d;`,
-    [extractFunction(src, 'escapeHtml'), extractFunction(src, 'renderCoach'), 'window.__done = renderCoach();']);
+    [extractFunction(src, 'escapeHtml'), `window.__key = ${JSON.stringify(key || '')};`, extractFunction(src, 'renderCoach'), 'window.__done = renderCoach();']);
   await window.__done;
   return window.document;
 }
@@ -77,6 +77,32 @@ test('REAL invocation (v3.456): no reviews, no card; one review, the card shows 
 test('REAL CSSOM (v3.456): a past review\'s date is in the text face', (assert)=>{
   const { window } = new JSDOM(`<style>${CSS}</style><div id="coachView"><div class="care-log-date" id="d">Sat, Oct 24</div></div>`);
   assert.strictEqual(window.getComputedStyle(window.document.getElementById('d')).fontFamily, 'var(--font-sans)');
+});
+
+// v3.457 — No key, a way to add one. With no API key saved, every AI action
+// on the tab failed and only then offered "Take me there"; the top note just
+// named the menu path. The note now carries "Add your API key" (the same
+// data-jump-to="aiSettingsCard" route aiKeySetupPrompt uses) while no key is
+// saved, and drops it once one is.
+test('REAL invocation (v3.457): "Add your API key" shows with no key and hides with one', async (assert)=>{
+  assert.strictEqual((await coach([])).getElementById('coachKeySetup').hidden, false);
+  assert.strictEqual((await coach([], 'sk-ant-xxx')).getElementById('coachKeySetup').hidden, true);
+});
+
+test('REAL markup (v3.457): the link sits in the top note and routes to the AI key setting', (assert)=>{
+  const link = doc.getElementById('coachKeySetup');
+  assert.ok(link.closest('.care-disclaimer-card'));
+  assert.strictEqual(link.getAttribute('data-jump-to'), 'aiSettingsCard');
+  assert.ok(doc.getElementById('aiSettingsCard'), 'anchor: the target exists');
+  assert.ok(link.hasAttribute('hidden'), 'hidden until renderCoach decides');
+});
+
+test('REAL CSSOM (v3.457): the key button is the secondary pill in the link colour, set apart from the note, and gone when hidden', (assert)=>{
+  const { window } = new JSDOM(`<style>${CSS}</style><button class="custom-toggle coach-key-link" id="k">Add your API key</button><button class="custom-toggle coach-key-link" id="h" hidden>x</button>`);
+  const cs = id => window.getComputedStyle(window.document.getElementById(id));
+  assert.strictEqual(cs('k').color, 'var(--plate-blue)');
+  assert.strictEqual(cs('k').marginTop, '8px');
+  assert.strictEqual(cs('h').display, 'none');
 });
 
 run();
