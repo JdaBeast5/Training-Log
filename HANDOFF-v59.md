@@ -442,3 +442,26 @@ Owner: "Also fix the glyphs according to our new skills." The rules applied: imp
   - Share card PNG.
   - Swap mark, pull arrow, and the swim/strength technique rows.
   - No page errors.
+
+## Addendum 20: Log tab 2.0 (v3.428–v3.434)
+Owner: "go through the whole Log tab, and use our skills … to make it a 2.0 version of it." This was a refinement on the incumbent glass system (impeccable: SCOPED_EXISTING_ALLOWED; there is still no PRODUCT.md). The critique drew on impeccable's critique and clarify guides, taste's app-screens rules and HIG. Tests are in `test-log-2-0.js`, one section per version, each sabotage-checked.
+- **v3.428:** the day's food log ("Eaten", Repeat yesterday, `#foodLogList`) moved from the very bottom of the nutrition card to the top of its expandable part. It now comes before search, quick-add, the library and the custom form.
+- **v3.429:** the `.targets-strip` is gone; the four bars repeated its numbers.
+  - `#calHero` shows calories left, or over (in yellow), of the day's target, at 34px.
+  - The protein, fat and carb bars read "52 / 150g".
+  - `renderCalHero()` redraws from `data-eaten`, which `updateBars` writes, so `applyTargetsToUI` alone keeps it right.
+- **v3.430:** `#usdaKeySettingsSlot` (the "Food search is on (shared key) · Add your own key" line) is hidden until `runUsdaSearch` catches a rate-limit error. That is what `buildUsdaKeyUpgradePrompt`'s comment always said; it had been appended unconditionally.
+- **v3.431:** `.weight-input-row input{min-width:0}`. Number inputs keep an intrinsic ~250px minimum, so Bodyweight's and Sleep's Log buttons ran 13px past the card (measured in Chromium).
+- **v3.432:** Water's Reset moved out of the +oz row into `.water-head`, as a quiet text action beside the total. It offers Undo (`showUndoToast`) when there was something to clear; `test-water-log.js` covers it.
+- **v3.433:** the Supplements add row wraps.
+  - The name takes the full first line (its placeholder had been cut to "Add a suppl"); how often and Add share the second.
+  - The empty tracker's recommendations button is the `.custom-toggle` secondary pill.
+- **v3.434, copy:**
+  - The card is now "Nutrition" (the date bar names the day; "Today's" was wrong while backdating).
+  - The list is now "Eaten", and the empty note now reads "Nothing logged yet. Tap + on a food below to add it." Since v3.428 the foods really are below, so `test-audit-fixes`' v3.352 rule still holds; its pinned phrases were updated with a dated note.
+  - Body Measurements drops "Tap to log —". Grocery's empty note names Recipes.
+- **Left as is, on purpose:** empty notes stay centred (the app-wide `.empty-note` convention). The quick-add tiles and the food library are unchanged.
+- **Detector** (`impeccable detect`, run once at the end):
+  - Pre-existing, app-wide findings: the `#5b7cff` accent at 3.6–3.8:1 on `#2d2d2f` and under white text, and the coloured glow shadows from the glass/glow system (v3.29x).
+  - Not touched here. They are a design-system decision for their own thread.
+- **Verified in Chromium:** the Log tab top to bottom at 390px, with no page errors.
