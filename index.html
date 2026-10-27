@@ -5712,6 +5712,13 @@
     <div id="medicalNutrientBars" style="display:none"></div>
 
     <div class="expand-wrap" id="nutritionExpandWrap"><div>
+      <!-- v3.428: what you have eaten comes first, under the totals it adds up to;
+           adding and browsing follow. It sat below the whole food library. -->
+      <div class="section-label">Today</div>
+      <button class="reorder-btn" id="repeatYesterdayBtn" style="display:none; margin-bottom:10px;">Repeat yesterday</button>
+      <div class="food-log-list" id="foodLogList"></div>
+
+      <div class="section-divider"></div>
       <div class="section-label">Add a food</div>
       <input type="text" id="foodSearchInput" class="food-search-input" placeholder="Search any food or restaurant..." aria-label="Search any food or restaurant">
       <div id="usdaKeySettingsSlot"></div>
@@ -5782,10 +5789,6 @@
       </div></div>
       <div class="status-msg" id="nutritionStatus"></div>
 
-      <div class="section-divider"></div>
-      <div class="section-label">Today</div>
-      <button class="reorder-btn" id="repeatYesterdayBtn" style="display:none; margin-bottom:10px;">Repeat yesterday</button>
-      <div class="food-log-list" id="foodLogList"></div>
     </div></div>
   </div>
 
@@ -6989,7 +6992,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.427';
+const APP_VERSION = '3.428';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8077,6 +8080,9 @@ const WHATS_NEW = {
   ]},
   '3.427': { headline: 'Plain technique rows', points: [
     'Learn\'s technique rows drop the repeated icon tiles; a technique\'s own pictogram stands unboxed on one line weight.',
+  ]},
+  '3.428': { headline: 'What you ate, first', points: [
+    'On Log, the foods you\'ve logged now sit right under the day\'s totals, above search and the food library.',
   ]},
 };
 
