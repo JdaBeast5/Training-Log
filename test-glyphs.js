@@ -122,4 +122,34 @@ test('REAL source (v3.422): a saved set flashes the drawn check, and clears it b
   assert.match(fn, /if\(statusEl\.classList\.contains\('set-status-saved'\)\) statusEl\.textContent='';/);
 });
 
+// v3.423 — Warnings. ⚠/⚠️ prefixed ~30 warnings. Where the warning is markup
+// (Analysis verdicts, the avoid-list flag, Care's urgent banner, readiness)
+// it draws ICONS.warning, the same way the "good" verdicts already draw
+// ICONS.check. Where it is plain text (program descriptions, a banner title,
+// textContent notices) the words carry it and the glyph is gone.
+test('REAL source (v3.423): no ⚠ is rendered anywhere', (assert)=>{
+  assert.deepStrictEqual(uncommented.split('\n').filter(l => /⚠/.test(l)), []);
+});
+
+const ICON_CHUNKS = [extractFunction(src, 'escapeHtml'), extractConst(src, 'ICONS'), extractFunction(src, 'icon')];
+const isWarning = el => !!el && el.innerHTML === new JSDOM(ICONS.warning).window.document.querySelector('svg').innerHTML;
+test('REAL invocation (v3.423): the overreaching verdict and a readiness warning lead with the drawn warning; a readiness note has no mark', (assert)=>{
+  const [fit, warn, note] = runSandbox([...ICON_CHUNKS, extractConst(src, 'PROGRAM_FIT_MIN_SAMPLE'), extractFunction(src, 'buildProgramFitInsight'), extractFunction(src, 'formatReadiness')],
+    `__capture.push(buildProgramFitInsight({increase:0, decrease:2, deload:1, hold:1, total:4}),
+      formatReadiness({level:'caution', flags:[{text:'short sleep'}]}), formatReadiness({level:'note', flags:[{text:'short sleep'}]}));`);
+  const fitDoc = new JSDOM(fit.text).window.document;
+  assert.ok(isWarning(fitDoc.body.firstElementChild), 'the verdict opens with ICONS.warning');
+  assert.ok(isWarning(new JSDOM(warn.icon).window.document.querySelector('svg')));
+  assert.strictEqual(note.icon, '');
+});
+
+test('REAL invocation (v3.423): Care\'s urgent banner draws the warning inside its bold line', (assert)=>{
+  const html = runSandbox([...ICON_CHUNKS, 'var exerciseInfo = {};', extractConst(src, 'SENSATION_LABELS'), extractConst(src, 'RED_FLAG_SENSATIONS'),
+    extractConst(src, 'REGION_RELIEF'), extractFunction(src, 'buildReliefHtml'), extractFunction(src, 'buildCareResultHtml')],
+    "__capture.push(buildCareResultHtml('numb', 'Knee', 8));")[0];
+  const b = new JSDOM(html).window.document.querySelector('.care-banner-urgent b');
+  assert.ok(isWarning(b.querySelector('svg')));
+  assert.match(b.textContent.trim(), /^Please get this looked at/);
+});
+
 run();
