@@ -6019,6 +6019,11 @@
         <div><label class="care-label" for="mHips">Hips (in)</label><input type="number" inputmode="decimal" step="0.1" id="mHips" class="care-input"></div>
         <div><label class="care-label" for="mNeck">Neck (in)</label><input type="number" inputmode="decimal" step="0.1" id="mNeck" class="care-input"></div>
       </div>
+      <!-- v3.473: optional, from whatever you measure with (a smart scale,
+           calipers, a DEXA scan). The app never estimates it. -->
+      <div class="profile-row-2">
+        <div><label class="care-label" for="mBodyFat">Body fat (%)</label><input type="number" inputmode="decimal" step="0.1" min="2" max="70" id="mBodyFat" class="care-input" placeholder="Optional"></div>
+      </div>
       <button class="save-btn" id="saveMeasurements">Log measurements</button>
       <div class="status-msg" id="measureStatus"></div>
       <div class="weight-list" id="measureList"></div>
@@ -7099,7 +7104,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.472';
+const APP_VERSION = '3.473';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8322,6 +8327,9 @@ const WHATS_NEW = {
   ]},
   '3.472': { headline: 'When you\'ll reach your goal', points: [
     'With a goal weight set, Weight Trend draws it and says when your current pace gets there.',
+  ]},
+  '3.473': { headline: 'Body fat', points: [
+    'Measurements has an optional body-fat field, for a reading from your scale, calipers or a scan.',
   ]},
 };
 
@@ -38384,6 +38392,22 @@ document.getElementById('saveCycle').addEventListener('click', async ()=>{
 });
 
 // [BODY MEASUREMENTS] -----------------------------------------------------------
+// v3.473: a list row's figures. The tape's (in inches) share one closing ",
+// as they always did; a body-fat reading follows in its own unit, and an
+// entry with only body fat shows no stray ".
+function measureRowText(e){
+  const tape = [e.waist&&`W:${e.waist}`, e.chest&&`C:${e.chest}`, e.arms&&`A:${e.arms}`].filter(Boolean).join(' ');
+  const parts = [];
+  if(tape) parts.push(`${tape}"`);
+  if(e.bodyFat) parts.push(`${e.bodyFat}% fat`);
+  return parts.join(' · ');
+}
+// v3.473: the body-fat field to a number, or null for blank or out-of-range.
+function readBodyFat(rawValue){
+  const n = Number(rawValue);
+  return rawValue !== '' && Number.isFinite(n) && n >= 2 && n <= 70 ? n : null;
+}
+
 async function loadMeasurements(){
   const listEl = document.getElementById('measureList');
   const summaryEl = document.getElementById('measureSummary');
@@ -38402,10 +38426,11 @@ async function loadMeasurements(){
     if(latest.waist) parts.push(`Waist ${latest.waist}"`);
     if(latest.chest) parts.push(`Chest ${latest.chest}"`);
     if(latest.arms) parts.push(`Arms ${latest.arms}"`);
+    if(latest.bodyFat) parts.push(`Body fat ${latest.bodyFat}%`);
     summaryEl.textContent = parts.length ? `Latest: ${parts.join(' · ')}` : 'Waist, chest, arms and more, over time';
     const sorted = entries;
     const itemHtmls = sorted.map(e=> buildSwipeItem(
-      `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${[e.waist&&`W:${e.waist}`, e.chest&&`C:${e.chest}`, e.arms&&`A:${e.arms}`].filter(Boolean).join(' ')}"</span></div>`
+      `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${measureRowText(e)}</span></div>`
     ));
     renderCollapsibleList(listEl, itemHtmls, 3, 'entries');
     // The sharpest of the seven: matching on `date` alone deleted every
@@ -38429,8 +38454,9 @@ document.getElementById('saveMeasurements').addEventListener('click', async ()=>
     thighs: document.getElementById('mThighs').value || null,
     hips: document.getElementById('mHips').value || null,
     neck: document.getElementById('mNeck').value || null,
+    bodyFat: readBodyFat(document.getElementById('mBodyFat').value),
   };
-  if(!entry.waist && !entry.chest && !entry.arms && !entry.thighs && !entry.hips && !entry.neck){
+  if(!entry.waist && !entry.chest && !entry.arms && !entry.thighs && !entry.hips && !entry.neck && !entry.bodyFat){
     document.getElementById('measureStatus').textContent = 'Enter at least one measurement';
     return;
   }
@@ -38442,7 +38468,7 @@ document.getElementById('saveMeasurements').addEventListener('click', async ()=>
     }catch(e){ entries = []; }
     entries.push(entry);
     await window.storage.set('measurements-log', JSON.stringify(entries));
-    ['mWaist','mChest','mArms','mThighs','mHips','mNeck'].forEach(id=> document.getElementById(id).value = '');
+    ['mWaist','mChest','mArms','mThighs','mHips','mNeck','mBodyFat'].forEach(id=> document.getElementById(id).value = '');
     loadMeasurements();
     document.getElementById('measureStatus').textContent = 'Saved';
     setTimeout(()=> document.getElementById('measureStatus').textContent = '', 2000);
