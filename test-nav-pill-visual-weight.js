@@ -62,8 +62,13 @@ test('regression guard: .nav-pill tap height and type are unchanged; v3.288 only
 // only FILLED, coloured pill in the rail (white text on the CTA blue, blue border).
 test('regression guard: .nav-pill.active is still distinct — the one filled pill (white, concept A) — and does not glow', (assert)=>{
   const block = extractRuleBlock(src, '.nav-pill.active');
-  assert.match(block, /background:#fff;/, 'the active tab is the white pill');
-  assert.match(block, /color:#000;/);
+  // 2026-10-28 (v3.478): through tokens, white/black in the dark :root (the
+  // light appearance makes it the ink pill; test-light-mode.js).
+  assert.match(block, /background:var\(--pill-active-bg\);/, 'the active tab is the filled pill');
+  assert.match(block, /color:var\(--pill-active-ink\);/);
+  const root = src.slice(src.indexOf(':root{'), src.indexOf('\n  }', src.indexOf(':root{')));
+  assert.match(root, /--pill-active-bg:#fff;/, 'white in the dark design');
+  assert.match(root, /--pill-active-ink:#000;/);
   assert.doesNotMatch(block, /box-shadow/, 'no glow on the active pill');
 });
 

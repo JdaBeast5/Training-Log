@@ -39,7 +39,10 @@ test('REAL CSSOM: the bar is fixed to the bottom safe area as a floating glass p
   assert.strictEqual(b.getPropertyValue('top'), 'auto');
   assert.strictEqual(b.getPropertyValue('border-radius'), 'var(--radius-pill)');
   assert.match(b.getPropertyValue('backdrop-filter') || b.getPropertyValue('-webkit-backdrop-filter'), /glass-blur/, 'fixed chrome may blur');
-  assert.match(rule('.nav-pill.active').getPropertyValue('background'), /^(#fff|rgb\(255, 255, 255\))$/, 'the selected tab is the white pill');
+  // 2026-10-28 (v3.478): the pill reads its colour from a token (white here,
+  // ink in the light appearance; test-light-mode.js).
+  assert.strictEqual(rule('.nav-pill.active').getPropertyValue('background'), 'var(--pill-active-bg)');
+  assert.strictEqual(rule(':root').getPropertyValue('--pill-active-bg').trim(), '#fff', 'the selected tab is the white pill');
 });
 
 test('REAL markup: the bar holds exactly the five destinations, Today first; search is in the header with a name', (assert)=>{

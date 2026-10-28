@@ -281,6 +281,10 @@
     --radius-lg:18px;
     --radius-pill:20px;
     --radius-pill-lg:30px;
+    /* v3.478: the selected tab pill (.nav-pill.active) — white on the dark
+       glass bar, ink on the light one. */
+    --pill-active-bg:#fff;
+    --pill-active-ink:#000;
   }
   /* v3.477: light appearance, following the phone (owner: "Follow the phone").
      Only the tokens change; the dark values above stay the design of record.
@@ -319,6 +323,8 @@
       --elev-3:var(--rim), 0 24px 48px -16px rgba(var(--overlay-black-rgb),0.18);
       --nav-glass-bg:rgba(var(--surface-rgb),0.78);
       --gym-panel-gradient:linear-gradient(170deg, #FFFFFF 0%, #F6F6F9 62%, #F0F0F4 100%);
+      --pill-active-bg:#111216;
+      --pill-active-ink:#FFFFFF;
     }
   }
   *{box-sizing:border-box; margin:0; padding:0;}
@@ -2968,7 +2974,7 @@
   .gsearch-hit-text{ display:flex; flex-direction:column; gap:2px; min-width:0; }
   .gsearch-hit-tab{ color:var(--text-muted); font-size:12.5px; }
   .gsearch-hit-chev{ color:var(--text-muted); flex:0 0 auto; display:flex; }
-  .nav-pill.active{background:#fff; border-color:#fff; color:#000;} /* v3.288: the selected tab is the one white pill in the glass bar (concept A) */
+  .nav-pill.active{background:var(--pill-active-bg); border-color:var(--pill-active-bg); color:var(--pill-active-ink);} /* v3.288: the selected tab is the one white pill in the glass bar (concept A); v3.478: through tokens, so in light mode it is the one ink pill */
   /* Tab-layout audit (v3.160, option #2): Care/Coach/Learn's home now, a
      vertical list inside navMoreOverlay instead of horizontal pills in the
      rail. These buttons keep the base .nav-pill class (same colors, same
@@ -7144,7 +7150,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.477';
+const APP_VERSION = '3.478';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8382,6 +8388,9 @@ const WHATS_NEW = {
   ]},
   '3.477': { headline: 'Light mode', points: [
     'The app follows your phone: light when iOS is in light mode, dark otherwise.',
+  ]},
+  '3.478': { headline: 'Visible tab in light mode', points: [
+    'In light mode, the selected tab is a dark pill so it stands out.',
   ]},
 };
 

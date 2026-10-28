@@ -58,4 +58,16 @@ test('REAL markup (v3.477): the browser chrome follows the appearance', (assert)
   assert.deepStrictEqual(metas, [['(prefers-color-scheme: dark)', '#050507'], ['(prefers-color-scheme: light)', tok(lightRoots[0], '--bg')]]);
 });
 
+// v3.478 — The selected tab. It was the one white pill in the glass bar —
+// literal #fff, so on the light bar it all but disappeared. Its colours are
+// tokens now: white on black in the dark design, ink on white in light.
+test('REAL CSSOM (v3.478): the active tab pill is ink in light mode and still reads', (assert)=>{
+  const light = lightRoots[0];
+  assert.strictEqual(tok(darkRoot, '--pill-active-bg'), '#fff');
+  assert.strictEqual(tok(light, '--pill-active-bg'), '#111216');
+  assert.strictEqual(tok(light, '--pill-active-ink'), '#FFFFFF');
+  assert.ok(contrast(tok(light, '--pill-active-ink'), tok(light, '--pill-active-bg')) >= 4.5, 'label on pill');
+  assert.ok(contrast(tok(light, '--pill-active-bg'), tok(light, '--bg')) >= 3, 'pill against the page');
+});
+
 run();
