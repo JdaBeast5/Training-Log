@@ -78,4 +78,24 @@ test('REAL CSSOM (v3.466): no box, a hairline under each row, a 15px name and a 
   assert.match(CSS, /\.gsearch-hit\{[^}]*border:none; border-bottom:1px solid var\(--line-soft\);/);
 });
 
+// v3.470 — The chevron at the row's end. Exercise rows (search, Learn's
+// Recently Trained) and Care's stretches share .care-details, whose chevron
+// led the row like the small "Cues" toggle's. A row now ends with it, muted,
+// like every other list; the Cues toggle keeps its own.
+test('REAL CSSOM (v3.470): a .care-details row puts its chevron last and muted; the Cues toggle keeps it first', (assert)=>{
+  // jsdom computes no pseudo-elements; read the declared rules from the real CSSOM.
+  const { window } = new JSDOM(`<style>${CSS}</style>`);
+  const rules = [...window.document.styleSheets[0].cssRules].filter(r => r.selectorText);
+  const rule = sel => rules.filter(r => r.selectorText.split(/,\s*/).includes(sel));
+  const row = rule('.care-details > summary::before');
+  assert.strictEqual(row.length, 1, 'anchor: one row rule');
+  assert.strictEqual(row[0].style.order, '1', 'after the name');
+  assert.strictEqual(row[0].style.marginLeft, 'auto', 'pushed to the row end');
+  assert.strictEqual(row[0].style.width, '7px');
+  assert.strictEqual(row[0].style.color, 'var(--text-muted)');
+  const cues = rule('.ex-details summary::before');
+  assert.strictEqual(cues.length, 1, 'anchor: the Cues toggle rule');
+  assert.strictEqual(cues[0].style.order, '', 'the Cues toggle keeps its leading chevron');
+});
+
 run();

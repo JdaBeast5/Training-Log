@@ -1835,6 +1835,14 @@
   /* v3.450: a stretch is a row you open, not a link — its name in the text
      colour (it took .ex-details' link blue, meant for the small "Cues" toggle). */
   .care-details > summary{color:var(--text); font-weight:500; font-size:14px; min-height:36px;}
+  /* v3.470: a row's chevron sits at its end, muted, at the list rows' size
+     (.posing-class, .month-group) — Learn's Recently Trained, search's
+     exercises and Care's stretches put it first, the small "Cues" toggle's
+     way. The Cues toggle (.ex-details alone) keeps its leading chevron. */
+  .care-details > summary::before{
+    order:1; margin:0 3px 0 auto; width:7px; height:7px;
+    border-right-width:2px; border-bottom-width:2px; color:var(--text-muted);
+  }
   .care-type-tag{
     font-size:11px; font-weight:700;
     padding:2px 7px; border-radius:var(--radius-md); flex:0 0 auto;
@@ -7085,7 +7093,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.469';
+const APP_VERSION = '3.470';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8299,6 +8307,9 @@ const WHATS_NEW = {
   ]},
   '3.469': { headline: 'No stray indent', points: [
     'In My Supplements, More no longer starts indented when it wraps.',
+  ]},
+  '3.470': { headline: 'Chevrons at the end', points: [
+    'Exercise and stretch rows put their arrow at the end, like every other list.',
   ]},
 };
 
