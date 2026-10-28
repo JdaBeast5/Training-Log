@@ -7080,7 +7080,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.462';
+const APP_VERSION = '3.463';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8273,6 +8273,9 @@ const WHATS_NEW = {
   ]},
   '3.462': { headline: 'Roomier supplements', points: [
     'My Supplements\' rows have room inside and space between them.',
+  ]},
+  '3.463': { headline: 'One priority up front', points: [
+    'Today\'s Priorities shows the most important note; the rest fold behind Show more.',
   ]},
 };
 
@@ -13933,7 +13936,11 @@ async function renderTodayInsights(){
   card.style.display = '';
   // v3.383: each row swipes away for the rest of today, with Undo — the shared
   // swipe-to-delete row (buildSwipeItem + makeSwipeable), like every other list.
-  el.innerHTML = items.map(id => buildSwipeItem(`<div class="today-insight-row" data-priority="${id}">${rows[id]}</div>`)).join('');
+  // v3.463: the top row shows, the rest fold behind "Show N more" (the shared
+  // collapsible list). Three or four boxed paragraphs used to push the
+  // workout below the fold; the order above already puts the one that
+  // matters most first, and a safety row (pregnancyHeat) always leads.
+  renderCollapsibleList(el, items.map(id => buildSwipeItem(`<div class="today-insight-row" data-priority="${id}">${rows[id]}</div>`)), 1, 'priorities');
   el.querySelectorAll('.swipe-item').forEach(item => {
     const id = item.querySelector('[data-priority]').dataset.priority;
     item.querySelector('.swipe-delete-bg').setAttribute('aria-label', 'Hide until tomorrow');
