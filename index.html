@@ -7104,7 +7104,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.474';
+const APP_VERSION = '3.475';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8333,6 +8333,9 @@ const WHATS_NEW = {
   ]},
   '3.474': { headline: 'Lean and fat mass', points: [
     'With a body-fat reading near a weigh-in, Analysis shows your lean and fat mass and how each has moved.',
+  ]},
+  '3.475': { headline: 'Week stats in one place', points: [
+    'Saved Weeks\' averages now come from one shared function (no visible change).',
   ]},
 };
 
@@ -44412,20 +44415,19 @@ async function generateWeeklyNutritionDigest(stats){
   }
 }
 
-async function archiveCurrentWeek(){
-  const btn = document.getElementById('archiveWeekBtn');
-  const status = document.getElementById('archiveWeekStatus');
-  btn.disabled = true;
-
-  const todayMonday = mondayOf(getTodayKey());
-  const weekEnd = new Date(todayMonday+'T00:00:00'); weekEnd.setDate(weekEnd.getDate()+7);
+// v3.475: one week's averages, Monday to Sunday, from what was logged. Lifted
+// out of archiveCurrentWeek unchanged so the Monday recap on Today (v3.476)
+// reads the same numbers a saved week does. A null average means nothing of
+// that kind was logged that week.
+async function computeWeekStats(weekStartKey){
+  const weekEnd = new Date(weekStartKey+'T00:00:00'); weekEnd.setDate(weekEnd.getDate()+7);
   const inThisWeek = (dateStr)=>{
     const d = new Date(dateStr+'T00:00:00');
-    return d >= new Date(todayMonday+'T00:00:00') && d < weekEnd;
+    return d >= new Date(weekStartKey+'T00:00:00') && d < weekEnd;
   };
 
-  const [weightEntries, workoutDates, foodDays, waterDays, trendStatus] = await Promise.all([
-    fetchAllWeightEntries(), fetchWorkoutDates(), fetchFoodDays(), fetchWaterDays(), getCurrentTrendStatus()
+  const [weightEntries, workoutDates, foodDays, waterDays] = await Promise.all([
+    fetchAllWeightEntries(), fetchWorkoutDates(), fetchFoodDays(), fetchWaterDays()
   ]);
 
   const weekWeights = weightEntries.filter(e=>inThisWeek(e.date));
@@ -44447,6 +44449,19 @@ async function archiveCurrentWeek(){
   }catch(e){}
   const weekSleep = sleepEntries.filter(e=>inThisWeek(e.date));
   const avgSleep = weekSleep.length ? +(weekSleep.reduce((s,e)=>s+Number(e.hours),0)/weekSleep.length).toFixed(1) : null;
+
+  return {avgWeight, workoutsCount, daysLogged, avgCal, avgPro, avgFat, avgCarb, avgWater, avgSleep};
+}
+
+async function archiveCurrentWeek(){
+  const btn = document.getElementById('archiveWeekBtn');
+  const status = document.getElementById('archiveWeekStatus');
+  btn.disabled = true;
+
+  const todayMonday = mondayOf(getTodayKey());
+  const [{avgWeight, workoutsCount, daysLogged, avgCal, avgPro, avgFat, avgCarb, avgWater, avgSleep}, trendStatus] = await Promise.all([
+    computeWeekStats(todayMonday), getCurrentTrendStatus()
+  ]);
 
   const archive = await getWeekArchive();
   status.textContent = 'Saving your week…';
