@@ -7085,7 +7085,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.467';
+const APP_VERSION = '3.468';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8293,6 +8293,9 @@ const WHATS_NEW = {
   ]},
   '3.467': { headline: 'Cleaner first launch', points: [
     'A first launch shows just the create-profile form.',
+  ]},
+  '3.468': { headline: 'Accurate header line', points: [
+    'The line under Today\'s title no longer claims a 7-day split or 45–60 minute sessions.',
   ]},
 };
 
@@ -32955,7 +32958,10 @@ function renderHeader(){
   const p = userProfile;
   if(p.name){
     document.getElementById('headerEyebrow').textContent = `${p.name} · ${GOAL_LABELS[p.goal] || ''} program`;
-    document.getElementById('headerSub').textContent = `7-day split · ${p.heightFt}'${p.heightIn}" · ${fmtWeight(p.weight)} · ${(GOAL_LABELS[p.goal]||'').toLowerCase()} · 45-60 min sessions`;
+    // v3.468: no "7-day split" or "45-60 min sessions". Both were fixed text,
+    // wrong for most programs (a 4-day upper/lower estimating ~74 min); the
+    // workout card shows the real day and its estimate.
+    document.getElementById('headerSub').textContent = `${p.heightFt}'${p.heightIn}" · ${fmtWeight(p.weight)} · ${(GOAL_LABELS[p.goal]||'').toLowerCase()}`;
   } else {
     document.getElementById('headerEyebrow').textContent = 'Training Log';
     document.getElementById('headerSub').textContent = 'Set up your profile below to personalize this';

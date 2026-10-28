@@ -106,4 +106,17 @@ test('REAL source, comments stripped: renderWorkout publishes the day\'s plate c
   for(const c of classes) assert.match(src, new RegExp(`--plate-${c.slice(2)}:#`), `--plate-${c.slice(2)} must exist`);
 });
 
+// v3.468 (owner: "Let's do them all", after a review): the line under the
+// title said "7-day split · … · 45-60 min sessions" for every profile — fixed
+// text, wrong on a 4-day upper/lower estimating ~74 min. It now says only
+// what the profile holds.
+test('REAL invocation (v3.468): the header line carries the profile, not a fixed split or session length', (assert)=>{
+  const { window } = runJsdom('<div id="headerEyebrow"></div><div id="headerSub"></div>',
+    'var userProfile = {name:"Jordan", goal:"recomp", heightFt:5, heightIn:11, weight:182}; function fmtWeight(w){ return w + " lb"; }',
+    [extractConst(src, 'GOAL_LABELS'), extractFunction(src, 'renderHeader'), 'renderHeader();']);
+  const sub = window.document.getElementById('headerSub').textContent;
+  assert.match(sub, /^5'11" · 182 lb · /);
+  assert.doesNotMatch(sub, /split|min sessions/);
+});
+
 run();
