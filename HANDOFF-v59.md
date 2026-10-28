@@ -544,3 +544,14 @@ Owner: "Let's do it" (the Learn pass, the last tab without one). Same method. Te
 - **v3.461:** the Research & Sources rows (`#researchSourcesList .program-basis-toggle`) are the same plain rows. A style's rows stay indented 14px under its program. A closed panel adds no gap (`.smooth-toggle.open` carries the margin). The white count went 85 → 84.
 - **Noted, not changed:** the Recently Trained rows put the chevron first, before a pull/push tag. Every other list on Learn puts it at the end. Leave that for a separate decision: those rows come from `buildExerciseSearchResultHtml`, which the Exercise Library search results share.
 - **Verified in Chromium** at 390px with seed3: closed, opened, and the header restoring its state. No page errors.
+
+## Addendum 26: My Supplements spacing (v3.462)
+Owner, from a phone screenshot: "Fix the spacing for the supplements."
+- **Cause:** My Supplements' rows are swipe tiles, and since v3.388 `.swipe-content` carries a translucent `--row-fill`. The `.supplement-row` inside kept its old edge-to-edge padding (`10px 0`). The check therefore sat on the tile's left edge and the ask button on its right edge, both centred on long paragraphs, and the tiles were 2px apart.
+- **Fix:** rules scoped to `#mySupplementsList`, following `#todayInsightsList .swipe-item`:
+  - tiles get a 12px radius and an 8px gap, with none after the last;
+  - rows get `14px 12px 14px 14px` padding and `align-items:flex-start`, so the check and ask button sit on the name line;
+  - the name wrap gets `flex:1`.
+  The bariatric checklist also uses `.supplement-row`, but it is a plain list and is untouched.
+- **Test:** `test-log-2-0.js` (v3.462), sabotage-checked.
+- **Noted, not changed:** when "More" wraps onto its own line, its 4px left margin shows as a small indent.
