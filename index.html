@@ -7080,7 +7080,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.464';
+const APP_VERSION = '3.465';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8279,6 +8279,9 @@ const WHATS_NEW = {
   ]},
   '3.464': { headline: 'Shorter adapt button', points: [
     'Today\'s adapt button reads in one line.',
+  ]},
+  '3.465': { headline: 'Exercises first in search', points: [
+    'Search lists exercises before masterclass techniques.',
   ]},
 };
 
@@ -46839,6 +46842,20 @@ function renderGlobalSearchResults(query){
       html += `<div class="history-hint">Showing ${sections.length} of ${allSections.length} matching sections \u2014 try a more specific search.</div>`;
     }
   }
+  // v3.465: exercises before techniques. "squat" listed nine masterclass
+  // techniques before Back Squat; an exercise is what a search almost always
+  // means, and techniques follow.
+  if(shownEx.length){
+    html += '<div class="gsearch-group">Exercises</div>';
+    // The SAME builder the Learn tab's search uses. It returns a self-contained
+    // <details> needing no wiring, so the technique cues and the form-video link
+    // open in place — there is nowhere else to send someone that would tell them
+    // more, and a second renderer for the same object is a second thing to fix.
+    html += shownEx.map(buildExerciseSearchResultHtml).join('');
+    if(exercises.length > shownEx.length){
+      html += `<div class="history-hint">Showing ${shownEx.length} of ${exercises.length} matching exercises \u2014 try a more specific search.</div>`;
+    }
+  }
   if(techniques.length){
     html += '<div class="gsearch-group">Techniques</div>';
     // data-technique-card + data-technique-name, not a bespoke handler here
@@ -46852,17 +46869,6 @@ function renderGlobalSearchResults(query){
     ).join('');
     if(allTechniques.length > techniques.length){
       html += `<div class="history-hint">Showing ${techniques.length} of ${allTechniques.length} matching techniques \u2014 try a more specific search.</div>`;
-    }
-  }
-  if(shownEx.length){
-    html += '<div class="gsearch-group">Exercises</div>';
-    // The SAME builder the Learn tab's search uses. It returns a self-contained
-    // <details> needing no wiring, so the technique cues and the form-video link
-    // open in place — there is nowhere else to send someone that would tell them
-    // more, and a second renderer for the same object is a second thing to fix.
-    html += shownEx.map(buildExerciseSearchResultHtml).join('');
-    if(exercises.length > shownEx.length){
-      html += `<div class="history-hint">Showing ${shownEx.length} of ${exercises.length} matching exercises \u2014 try a more specific search.</div>`;
     }
   }
   el.innerHTML = html;
