@@ -62,10 +62,10 @@
 const { readIndexSource, makeRunner } = require('./testHelpers.js');
 
 // 2026-10-28 (v3.477): the light appearance redefines some of these tokens
-// inside @media (prefers-color-scheme: light){ :root{…} }. Every check here is
+// inside @media (prefers-color-scheme: light){ body:not(.gym-mode){…} }. Every check here is
 // about the dark design of record, so that one block is left out of the text
 // this suite counts in (test-light-mode.js covers it).
-const LIGHT_BLOCK = /  @media \(prefers-color-scheme: light\)\{\n    :root\{[\s\S]*?\n    \}\n  \}\n/;
+const LIGHT_BLOCK = /  @media \(prefers-color-scheme: light\)\{\n[\s\S]*?    body:not\(\.gym-mode\)\{[\s\S]*?\n    \}\n  \}\n/; // v3.480: on body
 const rawSrc = readIndexSource();
 if(!LIGHT_BLOCK.test(rawSrc)) throw new Error('anchor: the light token block was not found');
 const src = rawSrc.replace(LIGHT_BLOCK, '');

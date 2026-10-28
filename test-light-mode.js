@@ -22,7 +22,7 @@ const CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).joi
 const { window } = new JSDOM(`<style>${CSS}</style>`);
 const rules = [...window.document.styleSheets[0].cssRules];
 const lightRoots = rules.filter(r => r.media && /prefers-color-scheme:\s*light/.test(r.media.mediaText))
-  .flatMap(r => [...r.cssRules]).filter(r => r.selectorText === ':root');
+  .flatMap(r => [...r.cssRules]).filter(r => r.selectorText === 'body:not(.gym-mode)'); // v3.480: on body, not :root
 const darkRoot = rules.find(r => r.selectorText === ':root');
 const tok = (rule, name) => rule.style.getPropertyValue(name).trim();
 
@@ -30,7 +30,7 @@ function hexRgb(h){ const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255,
 function lum([r, g, b]){ const f = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b); }
 function contrast(a, b){ const [x, y] = [lum(hexRgb(a)), lum(hexRgb(b))].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); }
 
-test('REAL CSSOM (v3.477): one light block on :root, which switches color-scheme and redefines only existing tokens', (assert)=>{
+test('REAL CSSOM (v3.477): one light block, which switches color-scheme and redefines only existing tokens', (assert)=>{
   assert.strictEqual(lightRoots.length, 1);
   const light = lightRoots[0];
   assert.strictEqual(tok(light, 'color-scheme'), 'light');
@@ -86,6 +86,20 @@ test('REAL CSSOM (v3.479): every accent reads at 4.5:1 on the light page and on 
     }
     assert.strictEqual(tok(light, `--plate-${a}-rgb`), '', `${a}'s rgb twin is untouched`);
   }
+});
+
+// v3.480 — Gym mode stays dark. It is a hand-tuned black screen (its own
+// background, glows and literal shadows), and with light tokens inside it came
+// out half white. The light block applies to body:not(.gym-mode), so gym mode
+// inherits the dark tokens from :root whatever the phone is set to.
+test('REAL CSSOM (v3.480): the light tokens apply to everything but gym mode, which keeps the dark :root values', (assert)=>{
+  const blocks = rules.filter(r => r.media && /prefers-color-scheme:\s*light/.test(r.media.mediaText)).flatMap(r => [...r.cssRules]);
+  assert.deepStrictEqual(blocks.filter(r => /--bg/.test(r.cssText)).map(r => r.selectorText), ['body:not(.gym-mode)']);
+  const { window: w } = new JSDOM('<body class="gym-mode"></body>');
+  assert.strictEqual(w.document.body.matches('body:not(.gym-mode)'), false, 'a gym-mode body does not take the light tokens');
+  w.document.body.className = '';
+  assert.strictEqual(w.document.body.matches('body:not(.gym-mode)'), true);
+  assert.match(CSS, /body\.gym-mode\{\s*background:#000;/, 'anchor: gym mode\'s own black ground');
 });
 
 run();

@@ -171,9 +171,10 @@ test(':root now declares color-scheme:dark, matching the fact that this app has 
     const selectors = [...body.matchAll(/([^{}]+)\{/g)].map(x => x[1].trim());
     // 2026-10-28 (v3.477): the app follows the phone's appearance (owner:
     // "Follow the phone"). The second allowed branch is the light token block
-    // on :root, which must also switch color-scheme to light so the form
+    // (on body), which must also switch color-scheme to light so the form
     // controls it draws match (test-light-mode.js).
-    const isTokenBlock = selectors.length === 1 && selectors[0] === ':root' && /color-scheme:light/.test(body);
+    // (v3.480: on body:not(.gym-mode), so gym mode keeps the dark tokens.)
+    const isTokenBlock = selectors.length === 1 && selectors[0] === 'body:not(.gym-mode)' && /color-scheme:light/.test(body);
     assert.ok(selectors.length && (isTokenBlock || selectors.every(sel => sel.split(',').every(x => x.trim().startsWith('.launch')))), `a prefers-color-scheme block styles only the launch page, or is the light token block: ${selectors.join(' | ')}`);
   }
   assert.ok(at.length >= 1, 'anchor: the launch page\'s light branch exists');

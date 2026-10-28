@@ -295,7 +295,10 @@
      Shadows soften, and the coloured aura dims to what the launch screen's
      light appearance already uses. */
   @media (prefers-color-scheme: light){
-    :root{
+    /* v3.480: on body, and not in gym mode. Gym mode is a hand-tuned black
+       screen (its own background, glows and literal shadows); it keeps the
+       dark tokens, inherited from :root, whatever the phone is set to. */
+    body:not(.gym-mode){
       color-scheme:light;
       --bg:#F2F2F5;
       --aura:
@@ -7160,7 +7163,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.479';
+const APP_VERSION = '3.480';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8404,6 +8407,9 @@ const WHATS_NEW = {
   ]},
   '3.479': { headline: 'Readable colours in light mode', points: [
     'In light mode, coloured text (PRs, warnings, gains) is a deeper shade so it reads on white.',
+  ]},
+  '3.480': { headline: 'Gym mode stays dark', points: [
+    'Gym mode keeps its dark screen even when your phone is in light mode.',
   ]},
 };
 
