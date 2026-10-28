@@ -830,7 +830,7 @@
   .supplement-name-wrap .supplement-benefit{font-size:11.5px; color:var(--text-muted); font-weight:400;}
   .supplement-name-wrap .supplement-frequency{font-size:11.5px; color:var(--plate-blue); font-weight:600;}
   .supplement-benefit-toggle{
-    background:none; border:none; padding:0; margin-left:4px; font-size:11.5px; font-weight:600; color:var(--plate-blue);
+    background:none; border:none; padding:0; margin:0; font-size:11.5px; font-weight:600; color:var(--plate-blue);
     cursor:pointer; font-family:var(--font-sans); text-decoration:underline; text-underline-offset:2px;
   }
   .supplement-benefit-toggle:active{opacity:0.6;}
@@ -7085,7 +7085,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.468';
+const APP_VERSION = '3.469';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8296,6 +8296,9 @@ const WHATS_NEW = {
   ]},
   '3.468': { headline: 'Accurate header line', points: [
     'The line under Today\'s title no longer claims a 7-day split or 45–60 minute sessions.',
+  ]},
+  '3.469': { headline: 'No stray indent', points: [
+    'In My Supplements, More no longer starts indented when it wraps.',
   ]},
 };
 
@@ -35106,7 +35109,9 @@ async function renderMySupplements(){
       const detailHtml = expanded
         ? `<span class="supplement-benefit-detail">${escapeHtml(info.why)}<br><b>Typical dose:</b> ${escapeHtml(info.typicalDose || '—')}<br><b>Timing:</b> ${escapeHtml(info.timing || '—')}${info.caution ? `<br><b>Caution:</b> ${escapeHtml(info.caution)}` : ''}</span>`
         : '';
-      parts.push(`<span class="supplement-benefit">${expanded ? evidenceLabel : firstSentence}${toggleBtn}${detailHtml}</span>`);
+      // v3.469: a space, not a margin, before More — a margin stayed as an
+      // indent when More wrapped onto a line of its own.
+      parts.push(`<span class="supplement-benefit">${expanded ? evidenceLabel : firstSentence} ${toggleBtn}${detailHtml}</span>`);
     } else {
       // No curated evidence-graded match. Real label ingredients (when a
       // DSLD add carried them) are still plain fact, never a claim about
@@ -35140,7 +35145,7 @@ async function renderMySupplements(){
       } else {
         summaryHtml = 'Not curated here — tap for ingredients or an AI read.';
       }
-      parts.push(`<span class="supplement-benefit">${summaryHtml}${toggleBtn}${detailHtml}</span>`);
+      parts.push(`<span class="supplement-benefit">${summaryHtml} ${toggleBtn}${detailHtml}</span>`);
     }
     if(frequency !== 'daily'){
       const progress = meta.requiredCount > 1 ? ` — ${count}/${meta.requiredCount} today` : '';
