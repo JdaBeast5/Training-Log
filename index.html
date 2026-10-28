@@ -7104,7 +7104,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.473';
+const APP_VERSION = '3.474';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8330,6 +8330,9 @@ const WHATS_NEW = {
   ]},
   '3.473': { headline: 'Body fat', points: [
     'Measurements has an optional body-fat field, for a reading from your scale, calipers or a scan.',
+  ]},
+  '3.474': { headline: 'Lean and fat mass', points: [
+    'With a body-fat reading near a weigh-in, Analysis shows your lean and fat mass and how each has moved.',
   ]},
 };
 
@@ -45033,12 +45036,58 @@ function recogniseMeasurementProgress(profile, deltas){
   return null;
 }
 
-function buildBodyMetricsHtml(profile, measureEntries){
+// v3.474: lean and fat mass from the body-fat readings in Measurements
+// (v3.473), each paired with a weigh-in from the same day or up to 3 days
+// either side (the nearest). Readings with no weigh-in near them are left
+// out rather than paired with a stale profile weight. Returns the latest
+// pairing and, when there's an earlier one at least 14 days before it, the
+// change in each. null with nothing to pair.
+const BODY_COMP_PAIR_DAYS = 3;
+function computeBodyComposition(measureEntries, weightEntries){
+  const dayOf = k => new Date(k+'T00:00:00').getTime() / 86400000;
+  const weighIns = (weightEntries||[]).filter(e=> e && Number(e.weight) > 0);
+  const pairs = (measureEntries||[])
+    .filter(e=> e && Number(e.bodyFat) > 0)
+    .map(e=>{
+      const near = weighIns
+        .map(w=> ({w, gap: Math.abs(dayOf(w.date) - dayOf(e.date))}))
+        .filter(x=> x.gap <= BODY_COMP_PAIR_DAYS)
+        .sort((a,b)=> a.gap - b.gap)[0];
+      if(!near) return null;
+      const weight = Number(near.w.weight), bf = Number(e.bodyFat);
+      const fat = weight * bf / 100;
+      return {date:e.date, bodyFat:bf, weight, fat, lean: weight - fat};
+    })
+    .filter(Boolean)
+    .sort((a,b)=> a.date.localeCompare(b.date));
+  if(pairs.length === 0) return null;
+  const latest = pairs[pairs.length-1];
+  const earlier = pairs.filter(p=> dayOf(latest.date) - dayOf(p.date) >= 14)[0] || null;
+  return {latest, since: earlier ? {date: earlier.date, lean: latest.lean - earlier.lean, fat: latest.fat - earlier.fat} : null};
+}
+
+function bodyCompositionHtml(comp){
+  if(!comp) return '';
+  const {latest, since} = comp;
+  const day = k => formatDate(parseDateKey(k), {month:'short', day:'numeric'});
+  const signed = lb => `${lb > 0 ? '+' : lb < 0 ? '−' : ''}${fmtWeight(Math.abs(lb))}`;
+  const change = since ? `<br>Since ${day(since.date)}: lean ${signed(since.lean)}, fat ${signed(since.fat)}.` : '';
+  return `
+      <div style="margin-bottom:12px;">
+        <div class="goal-feedback-neutral"><b>About ${fmtWeight(latest.lean)} lean, ${fmtWeight(latest.fat)} fat</b> at ${latest.bodyFat}% body fat and ${fmtWeight(latest.weight)} (${day(latest.date)}).${change}</div>
+        <div class="history-hint" style="margin-top:8px;">From your body-fat readings in Measurements, each with a weigh-in from within ${BODY_COMP_PAIR_DAYS} days. Home scales and calipers can be off by several points; the direction over weeks says more than any one number.</div>
+      </div>`;
+}
+
+function buildBodyMetricsHtml(profile, measureEntries, weightEntries){
   const whtr = computeWaistToHeight(profile, measureEntries);
   const deltas = computeMeasurementDeltas(measureEntries, GOAL_FEEDBACK_LOOKBACK_DAYS);
-  if(!whtr && deltas.length === 0) return null;
+  const comp = computeBodyComposition(measureEntries, weightEntries);
+  if(!whtr && deltas.length === 0 && !comp) return null;
 
   const blocks = [];
+
+  if(comp) blocks.push(bodyCompositionHtml(comp));
 
   if(whtr){
     const heightFt = Math.floor(whtr.heightInches/12);
@@ -45080,8 +45129,8 @@ async function renderBodyMetrics(){
   const card = document.getElementById('bodyMetricsCard');
   const el = document.getElementById('bodyMetricsContent');
   if(!card || !el) return;
-  const measureEntries = await fetchAllMeasurements();
-  const html = buildBodyMetricsHtml(userProfile, measureEntries);
+  const [measureEntries, weightEntries] = await Promise.all([fetchAllMeasurements(), fetchAllWeightEntries()]);
+  const html = buildBodyMetricsHtml(userProfile, measureEntries, weightEntries);
   // Hidden entirely rather than shown empty: someone who has never opened the
   // measurements card should not find a body-composition panel waiting for them
   // on a tab they came to for training data.

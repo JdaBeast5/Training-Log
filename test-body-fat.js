@@ -61,4 +61,53 @@ test('REAL invocation (v3.473): an empty form still asks for at least one measur
   assert.strictEqual(w.document.getElementById('measureStatus').textContent, 'Enter at least one measurement');
 });
 
+// v3.474 — Lean and fat mass. Analysis' Body Metrics turns each body-fat
+// reading into lean and fat mass, using a weigh-in from within 3 days (the
+// nearest), and says how each moved since a reading at least two weeks
+// earlier. A reading with no weigh-in near it is left out, not paired with a
+// stale profile weight.
+function comp(){
+  return runJsdom('<div id="out"></div>', "var weightUnit = 'lb'; var LB_PER_KG = 0.453592;",
+    ['parseDateKey', 'formatDate', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'computeBodyComposition', 'bodyCompositionHtml'].map(n => extractFunction(src, n))
+      .concat([require('./testHelpers.js').extractConst(src, 'BODY_COMP_PAIR_DAYS')])).window;
+}
+
+test('REAL invocation (v3.474): each reading pairs with the nearest weigh-in within 3 days; the change runs from one at least 14 days back', (assert)=>{
+  const w = comp();
+  const r = w.computeBodyComposition(
+    [{date:'2026-09-28', bodyFat:20}, {date:'2026-10-20', bodyFat:19}, {date:'2026-10-26', bodyFat:18}, {date:'2026-10-27', waist:'32'}],
+    [{date:'2026-09-30', weight:184}, {date:'2026-10-19', weight:181}, {date:'2026-10-25', weight:180}, {date:'2026-10-27', weight:179}]);
+  assert.strictEqual(r.latest.date, '2026-10-26');
+  assert.strictEqual(r.latest.weight, 180, 'Oct 25 and Oct 27 are both a day away; the first found nearest wins');
+  assert.strictEqual(r.latest.fat, 32.4);
+  assert.ok(Math.abs(r.latest.lean - 147.6) < 1e-9);
+  assert.strictEqual(r.since.date, '2026-09-28', 'Oct 20 is only 6 days back');
+  assert.ok(Math.abs(r.since.fat - (32.4 - 36.8)) < 1e-9, 'Sep 28 pairs with Sep 30 (2 days)');
+  assert.ok(Math.abs(r.since.lean - (147.6 - 147.2)) < 1e-9);
+});
+
+test('REAL invocation (v3.474): no weigh-in near a reading, or no readings, means nothing to show', (assert)=>{
+  const w = comp();
+  assert.strictEqual(w.computeBodyComposition([{date:'2026-10-26', bodyFat:18}], [{date:'2026-10-10', weight:180}]), null);
+  assert.strictEqual(w.computeBodyComposition([{date:'2026-10-26', waist:'32'}], [{date:'2026-10-26', weight:180}]), null);
+  assert.strictEqual(w.bodyCompositionHtml(null), '');
+});
+
+test('REAL invocation (v3.474): the block says lean and fat, the reading behind them, and each one\'s change', (assert)=>{
+  const w = comp();
+  const html = w.bodyCompositionHtml(w.computeBodyComposition(
+    [{date:'2026-09-28', bodyFat:20}, {date:'2026-10-26', bodyFat:18}], [{date:'2026-09-28', weight:184}, {date:'2026-10-26', weight:180}]));
+  w.document.getElementById('out').innerHTML = html;
+  const text = w.document.querySelector('.goal-feedback-neutral').textContent;
+  assert.strictEqual(text, 'About 147.6 lb lean, 32.4 lb fat at 18% body fat and 180 lb (Oct 26).Since Sep 28: lean +0.4 lb, fat −4.4 lb.');
+  assert.match(w.document.querySelector('.history-hint').textContent, /off by several points/);
+});
+
+test('REAL source (v3.474): Body Metrics fetches weigh-ins and leads with the composition block', (assert)=>{
+  assert.match(extractFunction(src, 'renderBodyMetrics'), /Promise\.all\(\[fetchAllMeasurements\(\), fetchAllWeightEntries\(\)\]\)/);
+  const build = extractFunction(src, 'buildBodyMetricsHtml');
+  assert.match(build, /if\(!whtr && deltas\.length === 0 && !comp\) return null;/, 'a body-fat reading alone is enough to show the card');
+  assert.ok(build.indexOf('bodyCompositionHtml(comp)') < build.indexOf('if(whtr){'), 'composition first');
+});
+
 run();
