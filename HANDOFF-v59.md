@@ -601,3 +601,22 @@ Owner: "Let's do them all", covering the additions suggested in the review. One 
   - Tests: `test-weekly-recap.js`.
 - **Noted, not changed:** Measurement Context's change rows still use ▲/▼ text glyphs (`buildBodyMetricsHtml`). The glyph pass missed them.
 - **Not started: light mode.** `:root` documents the app as dark-only (`color-scheme:dark`), and the owner-chosen glass direction (concept A) assumes a black page. It needs a decision from the owner before any work.
+
+## Addendum 29: Light mode, following the phone (v3.477–v3.481)
+Owner chose "Follow the phone": light when iOS is light, dark otherwise, with no setting. One change per version. Tests are in `test-light-mode.js`, which reads the light block from the real CSSOM and computes contrast (jsdom can't match `prefers-color-scheme`).
+- **The rule for this work:** the light block holds only tokens. Every light-specific colour is a token with its dark value in `:root` (the design of record) and an override in `@media (prefers-color-scheme: light){ body:not(.gym-mode){…} }`. No component rules go in the media block.
+- **v3.477 Token layer:**
+  - `color-scheme:light`, a light `--bg/--surface/--text/--line`, a dimmed `--aura` and softer `--elev-*`.
+  - `--surface-white-rgb` becomes ink (17,18,22), so every tint and hairline goes dark. Glass, sheens and the nav glass are built on `--surface-rgb` (white in light).
+  - There are two `theme-color` metas, one per scheme.
+  - Six suites assumed a single `:root` or pinned counts. Each now skips or strips the light block, or records it in the count history (dated notes): glass-cards, glass-controls, tab-bar, token-dedup, launch, neutral-rgba.
+- **v3.478:** `.nav-pill.active` reads `--pill-active-bg/--pill-active-ink`: white/black in dark, ink/white in light.
+- **v3.479:** light shades for `--plate-red/orange/yellow/green/teal/purple/blue`, each at 4.5:1 or better on page and card. The `-rgb` twins stay bright, since they only tint and glow.
+- **v3.480:** the light block's selector is `body:not(.gym-mode)`, so gym mode keeps its dark tokens and hand-tuned black screen.
+- **v3.481:** `--rest-timer-fill`, `--float-panel-fill` (`.gym-offer`) and `--well-fill` (`.up-next-field`) are tokens holding the old literals in dark, white panels and an ink-tint well in light. `.gym-dock` keeps its literal because it is gym-mode only.
+- **Verified in Chromium** (`colorScheme:'light'`) on every tab, Settings, search, More, coach chat, exercise history, the gym offer and gym mode. No page errors.
+- **Unverified on device, and the first thing to check:** `apple-mobile-web-app-status-bar-style` is `black-translucent`, which gives iOS white status-bar text, and it can't vary by scheme. On the light page the clock and battery may be hard to read in the installed PWA. If so, the options are:
+  - keep a dark band behind the status bar in light mode;
+  - switch to `default`, which changes the dark layout under the notch.
+  The owner should decide after seeing it.
+- **Left as is:** the dark modal scrims (`rgba(10,11,13,…)`) also darken the light page, which is normal behind a sheet.
