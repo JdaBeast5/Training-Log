@@ -7085,7 +7085,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.466';
+const APP_VERSION = '3.467';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8291,6 +8291,9 @@ const WHATS_NEW = {
   '3.466': { headline: 'Search as a list', points: [
     'Search results are plain rows, each showing where it lives underneath.',
   ]},
+  '3.467': { headline: 'Cleaner first launch', points: [
+    'A first launch shows just the create-profile form.',
+  ]},
 };
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -8961,8 +8964,12 @@ function showUserPicker(){
   document.getElementById('userPickerCancelBtn').style.display = activeUserId ? '' : 'none';
   const listEl = document.getElementById('userPickerList');
   const users = getUserList();
+  // v3.467: on a first launch there is nothing to pick, so neither the list
+  // nor the "— or —" between it and the create form shows; it read as a
+  // choice with one side missing.
+  document.querySelector('#userPickerOverlay .user-picker-divider').hidden = users.length === 0;
   if(users.length === 0){
-    listEl.innerHTML = '<div class="empty-note">No profiles on this device yet — create the first one below.</div>';
+    listEl.innerHTML = '';
   }else{
     listEl.innerHTML = users.map(u=>`<button class="user-pick-btn" data-id="${escapeHtml(u.id)}">${escapeHtml(u.name)}</button>`).join('');
     listEl.querySelectorAll('.user-pick-btn').forEach(btn=>{
