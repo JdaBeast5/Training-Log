@@ -5609,6 +5609,12 @@
             </select>
           </div>
         </div>
+        <!-- v3.471: optional. Analysis draws it on the weight trend and says
+             when the current pace gets there. Blank means no goal. -->
+        <div>
+          <label class="care-label" for="pfGoalWeight">Goal weight (<span id="pfGoalWeightUnitLabel">lb</span>)</label>
+          <input type="number" inputmode="decimal" step="0.1" id="pfGoalWeight" class="care-input" placeholder="Optional">
+        </div>
 
         <div id="prefDistanceUnit">
           <label class="care-label">Distance unit</label>
@@ -7093,7 +7099,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.470';
+const APP_VERSION = '3.471';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8310,6 +8316,9 @@ const WHATS_NEW = {
   ]},
   '3.470': { headline: 'Chevrons at the end', points: [
     'Exercise and stretch rows put their arrow at the end, like every other list.',
+  ]},
+  '3.471': { headline: 'Goal weight', points: [
+    'Your Profile has an optional goal weight.',
   ]},
 };
 
@@ -32103,6 +32112,8 @@ function applyWeightUnitToUI(){
   if(distSelect) distSelect.value = distanceUnit;
   const label = document.getElementById('pfWeightUnitLabel');
   if(label) label.textContent = weightUnit;
+  const goalLabel = document.getElementById('pfGoalWeightUnitLabel');
+  if(goalLabel) goalLabel.textContent = weightUnit;
   const weightInputEl = document.getElementById('weightInput');
   // aria-label overrides the placeholder for assistive tech, so it has to move
   // with the unit too — otherwise a kg user is told "lb".
@@ -33198,6 +33209,7 @@ function populateProfileForm(){
   document.getElementById('pfHeightFt').value = p.heightFt || '';
   document.getElementById('pfHeightIn').value = p.heightIn || '';
   document.getElementById('pfWeight').value = p.weight ? trimUnitNum(toDisplayWeight(p.weight)) : '';
+  document.getElementById('pfGoalWeight').value = p.goalWeight ? trimUnitNum(toDisplayWeight(p.goalWeight)) : '';
   document.getElementById('pfActivity').value = p.activity;
   document.getElementById('pfGoal').value = p.goal;
   document.getElementById('pfCycleTrackingEnabled').checked = p.cycleTrackingEnabled !== false;
@@ -33235,6 +33247,12 @@ document.getElementById('pfBodyGoal').addEventListener('change', (e)=> renderBod
 // telling the user their profile now holds a nonsensical number. Same
 // "blank keeps the old value" rule the save handler already uses, extended
 // to any value that isn't a real (non-negative) age.
+// v3.471: the goal weight field, in the display unit, to canonical lb or null.
+function readGoalWeight(rawValue){
+  const n = Number(rawValue);
+  return rawValue !== '' && Number.isFinite(n) && n > 0 ? toCanonicalLb(rawValue) : null;
+}
+
 function readValidAge(rawValue, fallback){
   if(rawValue === '') return fallback;
   const n = Number(rawValue);
@@ -33259,6 +33277,9 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
     heightFt: document.getElementById('pfHeightFt').value !== '' ? Number(document.getElementById('pfHeightFt').value) : userProfile.heightFt,
     heightIn: Number(document.getElementById('pfHeightIn').value) || 0,
     weight: document.getElementById('pfWeight').value ? toCanonicalLb(document.getElementById('pfWeight').value) : userProfile.weight,
+    // v3.471: optional, so blank clears it (unlike weight, where blank keeps
+    // the old value); anything that isn't a positive number is no goal.
+    goalWeight: readGoalWeight(document.getElementById('pfGoalWeight').value),
     activity: Number(document.getElementById('pfActivity').value),
     goal: document.getElementById('pfGoal').value,
     bodyGoal: document.getElementById('pfBodyGoal').value,
