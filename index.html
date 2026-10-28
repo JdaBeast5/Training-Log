@@ -5400,7 +5400,7 @@
          is general advice; above the list they pushed the first set row
          ~1130px down. Gym mode, today's standout and the voice tip stay up top. -->
     <div class="session-extras">
-      <button class="adapt-workout-toggle" id="adaptWorkoutBtn">Only have limited equipment or time today? Adapt this session</button>
+      <button class="adapt-workout-toggle" id="adaptWorkoutBtn">Adapt for limited equipment or time</button>
       <div id="adaptWorkoutPanel" class="smooth-toggle"><div>
         <input type="text" id="adaptWorkoutInput" class="care-input" placeholder="e.g. only dumbbells, no equipment at all, 20 minutes, traveling with just resistance bands" aria-label="What you have available today">
         <button class="save-btn" id="adaptWorkoutSubmit">Get adapted session</button>
@@ -7080,7 +7080,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.463';
+const APP_VERSION = '3.464';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8276,6 +8276,9 @@ const WHATS_NEW = {
   ]},
   '3.463': { headline: 'One priority up front', points: [
     'Today\'s Priorities shows the most important note; the rest fold behind Show more.',
+  ]},
+  '3.464': { headline: 'Shorter adapt button', points: [
+    'Today\'s adapt button reads in one line.',
   ]},
 };
 
