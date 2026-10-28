@@ -555,3 +555,19 @@ Owner, from a phone screenshot: "Fix the spacing for the supplements."
   The bariatric checklist also uses `.supplement-row`, but it is a plain list and is untouched.
 - **Test:** `test-log-2-0.js` (v3.462), sabotage-checked.
 - **Noted, not changed:** when "More" wraps onto its own line, its 4px left margin shows as a small indent.
+
+## Addendum 27: Review follow-ups — Today, search, first launch, bugs (v3.463–v3.470)
+Owner: "Let's do them all", after a review listing what was left. One change per version, each with a sabotage-checked test.
+- **v3.463 (Today):** Today's Priorities shows its top row; the rest fold behind "Show N more" (the shared `renderCollapsibleList`). The safety row (pregnancyHeat) still leads, and folded rows still swipe away. The card stays above the workout, as `test-today-session-first.js` requires. Three tests' harnesses now load `renderCollapsibleList` (dated notes).
+- **v3.464 (Today):** the adapt button reads "Adapt for limited equipment or time". It used to be a two-line question.
+- **v3.465 (search):** results go Go to → Exercises → Techniques. "squat" had listed nine techniques before Back Squat.
+- **v3.466 (search):** `.gsearch-hit` is a plain row. The name sits over its source (`.gsearch-hit-text` / `.gsearch-hit-tab`), with a separate `.gsearch-hit-chev`. `test-translucent-lists` was updated with a dated note.
+- **v3.467 (first launch):** with no profiles, the user picker shows no empty-list note and hides the "— or —" divider.
+- **v3.468 (bug):** `renderHeader`'s subtitle no longer hard-codes "7-day split" and "45-60 min sessions".
+- **v3.469 (bug):** "More" in My Supplements follows a space instead of a 4px margin, so it no longer indents when it wraps.
+- **v3.470 (bug):** `.care-details > summary::before` sits at the row's end, muted and 7px. This covers search's and Learn's exercise rows and Care's stretches. The small "Cues" toggle keeps its leading chevron.
+- **Considered and left as is, each for a recorded reason:**
+  - The Priorities hint: `test-concise-copy` pins its 14-word budget and its pointer to Analysis.
+  - The day-strip colours: each is that day's identity colour, shared with the workout header. Changing them would be a redesign.
+  - The `.duration-tag` mono face: pinned as a figure in `test-label-floor`.
+  - The create-profile button: it is the app's standard `.save-btn` primary. My review was wrong to call it leftover.
