@@ -2906,15 +2906,20 @@
     border-bottom:1px solid var(--line);
   }
   .gsearch-group:first-child{ margin-top:0; }
+  /* v3.466: plain rows, like Learn's lists (v3.459): name, then where it
+     lives underneath, a hairline under each. They were boxed tiles with the
+     source squeezed into an 11px column beside a wrapping name. */
   .gsearch-hit{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
-    width:100%; text-align:left; background:var(--row-fill);
-    border:1px solid var(--line); border-radius:var(--radius-sm);
-    color:var(--text); font-family:var(--font-sans); font-size:13px;
-    padding:11px 13px; margin-top:6px; cursor:pointer; box-shadow:var(--rim);
+    width:100%; min-height:52px; text-align:left; background:none;
+    border:none; border-bottom:1px solid var(--line-soft); border-radius:0;
+    color:var(--text); font-family:var(--font-sans); font-size:15px;
+    padding:10px 0; margin:0; cursor:pointer;
   }
-  .gsearch-hit:active{ transform:scale(0.99); }
-  .gsearch-hit-tab{ color:var(--text-muted); font-size:11px; flex:0 0 auto; }
+  .gsearch-hit:active{ opacity:0.6; }
+  .gsearch-hit-text{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .gsearch-hit-tab{ color:var(--text-muted); font-size:12.5px; }
+  .gsearch-hit-chev{ color:var(--text-muted); flex:0 0 auto; display:flex; }
   .nav-pill.active{background:#fff; border-color:#fff; color:#000;} /* v3.288: the selected tab is the one white pill in the glass bar (concept A) */
   /* Tab-layout audit (v3.160, option #2): Care/Coach/Learn's home now, a
      vertical list inside navMoreOverlay instead of horizontal pills in the
@@ -7080,7 +7085,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.465';
+const APP_VERSION = '3.466';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8282,6 +8287,9 @@ const WHATS_NEW = {
   ]},
   '3.465': { headline: 'Exercises first in search', points: [
     'Search lists exercises before masterclass techniques.',
+  ]},
+  '3.466': { headline: 'Search as a list', points: [
+    'Search results are plain rows, each showing where it lives underneath.',
   ]},
 };
 
@@ -46829,8 +46837,8 @@ function renderGlobalSearchResults(query){
     // scrolls the card. One mechanism, already tested, already fixed once.
     html += sections.map(s=>
       `<button type="button" class="gsearch-hit" data-jump-to="${escapeHtml(s.id)}">`
-      + `<span>${escapeHtml(s.title)}</span>`
-      + `<span class="gsearch-hit-tab">${escapeHtml(s.tabLabel)} ${icon('chevron')}</span></button>`
+      + `<span class="gsearch-hit-text"><span>${escapeHtml(s.title)}</span><span class="gsearch-hit-tab">${escapeHtml(s.tabLabel)}</span></span>`
+      + `<span class="gsearch-hit-chev" aria-hidden="true">${icon('chevron')}</span></button>`
     ).join('');
     // Sections and techniques (below) used to cap at their LIMIT with no sign
     // anything was left out \u2014 silent, unlike exercises, which have always
@@ -46864,8 +46872,8 @@ function renderGlobalSearchResults(query){
     // to open AND which row inside it, where a section only ever needed one id.
     html += techniques.map(t=>
       `<button type="button" class="gsearch-hit" data-technique-card="${escapeHtml(t.cardId)}" data-technique-name="${escapeHtml(t.name)}">`
-      + `<span>${escapeHtml(t.name)}</span>`
-      + `<span class="gsearch-hit-tab">${escapeHtml(t.masterclassLabel)} ${icon('chevron')}</span></button>`
+      + `<span class="gsearch-hit-text"><span>${escapeHtml(t.name)}</span><span class="gsearch-hit-tab">${escapeHtml(t.masterclassLabel)}</span></span>`
+      + `<span class="gsearch-hit-chev" aria-hidden="true">${icon('chevron')}</span></button>`
     ).join('');
     if(allTechniques.length > techniques.length){
       html += `<div class="history-hint">Showing ${techniques.length} of ${allTechniques.length} matching techniques \u2014 try a more specific search.</div>`;
