@@ -7104,7 +7104,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.475';
+const APP_VERSION = '3.476';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8336,6 +8336,9 @@ const WHATS_NEW = {
   ]},
   '3.475': { headline: 'Week stats in one place', points: [
     'Saved Weeks\' averages now come from one shared function (no visible change).',
+  ]},
+  '3.476': { headline: 'Monday recap', points: [
+    'On Mondays, Today\'s Priorities sums up last week: workouts, food, sleep and weight.',
   ]},
 };
 
@@ -13955,16 +13958,41 @@ async function getReadinessInsight(){
   return `${f.icon ? f.icon + ' ' : ''}<b>Readiness:</b> ${f.text}`;
 }
 
+// v3.476: on Mondays, last week in one line — the same numbers a saved week
+// keeps (computeWeekStats), facts only. Weight compares the week's average
+// with the week before's, so one heavy morning doesn't read as a gain.
+// Averages say how many days they come from when it wasn't all seven.
+async function getWeeklyRecapInsight(){
+  const today = getTodayKey();
+  if(parseDateKey(today).getDay() !== 1) return null;
+  const [last, before] = await Promise.all([
+    computeWeekStats(dateKeyMinusDays(today, 7)), computeWeekStats(dateKeyMinusDays(today, 14)),
+  ]);
+  const parts = [];
+  if(last.workoutsCount) parts.push(`${last.workoutsCount} workout${last.workoutsCount === 1 ? '' : 's'}`);
+  if(last.avgCal != null){
+    const days = last.daysLogged < 7 ? ` (${last.daysLogged} day${last.daysLogged === 1 ? '' : 's'} logged)` : '';
+    parts.push(`${last.avgCal.toLocaleString('en-US')} cal and ${last.avgPro} g protein a day${days}`);
+  }
+  if(last.avgSleep != null) parts.push(`${last.avgSleep} h sleep a night`);
+  if(last.avgWeight != null && before.avgWeight != null){
+    const d = +(last.avgWeight - before.avgWeight).toFixed(1);
+    parts.push(d === 0 ? 'average weight unchanged' : `average weight ${d > 0 ? '+' : '−'}${fmtWeight(Math.abs(d))}`);
+  }
+  if(parts.length === 0) return null;
+  return `<b>Last week:</b> ${parts.join(' · ')}.`;
+}
+
 async function renderTodayInsights(){
   const card = document.getElementById('todayInsightsCard');
   const el = document.getElementById('todayInsightsList');
   if(!card || !el) return;
 
-  const [cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge] = await Promise.all([
+  const [cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge, weeklyRecap] = await Promise.all([
     getCycleInsight(),
     getStaleRestingRegionInsight(), getWeighInReminderInsight(), getWaterPaceInsight(), getSessionHeadsUpInsight(),
     getDeficitGuardrailInsight(), getPregnancyHeatInsight(), getBackupReminderInsight(),
-    getReadinessInsight(), getFoundationalStackNudgeInsight(),
+    getReadinessInsight(), getFoundationalStackNudgeInsight(), getWeeklyRecapInsight(),
   ]);
 
   // deficit sits second: under the session heads-up (which is about the next
@@ -13989,8 +14017,10 @@ async function renderTodayInsights(){
   // recommendation adjacent rather than scattered across the list.
   // The cycle row carries the phase's food advice too since v3.382 (it was
   // a separate cycleNutrition row naming the same phase a second time).
-  const rows = {pregnancyHeat, readiness, sessionHeadsUp, deficit, cycle, stackNudge, staleRegion, weighIn, waterPace, backup};
-  const order = ['pregnancyHeat', 'readiness', 'sessionHeadsUp', 'deficit', 'cycle', 'stackNudge', 'staleRegion', 'weighIn', 'waterPace', 'backup'];
+  // weeklyRecap (Mondays, v3.476) sits under the session heads-up: it looks
+  // back where everything above it is about today, and above the nudges.
+  const rows = {pregnancyHeat, readiness, sessionHeadsUp, weeklyRecap, deficit, cycle, stackNudge, staleRegion, weighIn, waterPace, backup};
+  const order = ['pregnancyHeat', 'readiness', 'sessionHeadsUp', 'weeklyRecap', 'deficit', 'cycle', 'stackNudge', 'staleRegion', 'weighIn', 'waterPace', 'backup'];
   const hidden = await getHiddenPriorities();
   const items = order.filter(id => rows[id] && !hidden.includes(id));
   if(items.length === 0){

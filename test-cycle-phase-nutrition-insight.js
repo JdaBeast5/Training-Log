@@ -131,6 +131,7 @@ const OTHER_INSIGHT_STUBS = `
   async function getBackupReminderInsight(){ return null; }
   async function getReadinessInsight(){ return null; }
   async function getFoundationalStackNudgeInsight(){ return null; }
+  async function getWeeklyRecapInsight(){ return null; } // 2026-10-28 (v3.476): Monday recap (test-weekly-recap.js)
 `;
 
 const wiringBodyHtml = `
