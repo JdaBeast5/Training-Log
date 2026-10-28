@@ -836,6 +836,17 @@
   .supplement-benefit-toggle:active{opacity:0.6;}
   .supplement-benefit-detail{display:block; margin-top:4px; color:var(--text-muted);}
   .supplement-benefit-detail b{color:var(--text);}
+  /* v3.462: My Supplements' rows are swipe tiles with a fill (v3.388), but the
+     row kept its edge-to-edge list padding, so the check sat on the tile's
+     left edge and the tiles were 2px apart. Padding inside, a gap between
+     (as #todayInsightsList's), and the check and ask button on the first
+     line rather than floating mid-paragraph. The bariatric checklist's plain
+     rows are untouched. */
+  #mySupplementsList .swipe-item{border-radius:var(--radius-md); margin-bottom:8px;}
+  #mySupplementsList .swipe-item:last-child{margin-bottom:0;}
+  #mySupplementsList .supplement-row{align-items:flex-start; gap:12px; padding:14px 12px 14px 14px;}
+  #mySupplementsList .supplement-name-wrap{flex:1 1 auto; gap:4px;}
+  #mySupplementsList .supplement-name-wrap .supplement-benefit{line-height:1.45;}
   .supplement-ingredients{display:block; font-size:11.5px; color:var(--text-muted); margin-top:4px;}
   .supplement-ingredients b{color:var(--text);}
   .supplement-ai-insight{display:block; margin-top:6px; color:var(--text-muted);}
@@ -7069,7 +7080,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.461';
+const APP_VERSION = '3.462';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8259,6 +8270,9 @@ const WHATS_NEW = {
   ]},
   '3.461': { headline: 'Sources as a list', points: [
     'Learn\'s Research & Sources opens to a plain list, like the masterclass index.',
+  ]},
+  '3.462': { headline: 'Roomier supplements', points: [
+    'My Supplements\' rows have room inside and space between them.',
   ]},
 };
 
