@@ -7099,7 +7099,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.471';
+const APP_VERSION = '3.472';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8319,6 +8319,9 @@ const WHATS_NEW = {
   ]},
   '3.471': { headline: 'Goal weight', points: [
     'Your Profile has an optional goal weight.',
+  ]},
+  '3.472': { headline: 'When you\'ll reach your goal', points: [
+    'With a goal weight set, Weight Trend draws it and says when your current pace gets there.',
   ]},
 };
 
@@ -39785,6 +39788,25 @@ async function renderMealTimingInsight(){
   el.innerHTML = rows + comparisonHtml;
 }
 
+// v3.472: one sentence on the goal weight (Your Profile, v3.471), from the
+// trend's own weekly pace. Says when the pace gets there, or that it is
+// heading the other way; no date when the pace is flat or the date is more
+// than two years out. '' with no goal.
+function describeGoalPace(lastLb, goalLb, perWeekLb, lastDateKey){
+  if(!goalLb) return '';
+  const goal = fmtWeight(goalLb);
+  const remaining = goalLb - lastLb;
+  if(Math.abs(remaining) <= 0.5) return `You're at your ${goal} goal.`;
+  if(Math.abs(perWeekLb) < 0.15) return `${fmtWeight(Math.abs(remaining))} to your ${goal} goal.`;
+  if(Math.sign(remaining) !== Math.sign(perWeekLb)) return `Moving away from your ${goal} goal.`;
+  const days = Math.round(remaining / perWeekLb * 7);
+  if(days > 730) return `${fmtWeight(Math.abs(remaining))} to your ${goal} goal; over two years at this pace.`;
+  const when = parseDateKey(lastDateKey);
+  when.setDate(when.getDate() + days);
+  const opts = when.getFullYear() === new Date().getFullYear() ? {month:'short', day:'numeric'} : {month:'short', day:'numeric', year:'numeric'};
+  return `At this pace, ${goal} around ${formatDate(when, opts)}.`;
+}
+
 function renderSparkline(entries){
   const el = document.getElementById('weightChart');
   const rangeDays = getAnalysisTrendRangeDays();
@@ -39797,9 +39819,14 @@ function renderSparkline(entries){
   }
   const sorted = [...inRange].sort((a,b)=> new Date(a.date)-new Date(b.date));
   const weights = sorted.map(e=>e.weight);
-  const min = Math.min(...weights), max = Math.max(...weights);
+  // v3.472: the goal joins the scale, so its line is always on the chart (as
+  // the nutrition targets do, v3.436).
+  const goalLb = (typeof userProfile !== 'undefined' && userProfile.goalWeight) || null;
+  const scale = goalLb ? [...weights, goalLb] : weights;
+  const min = Math.min(...scale), max = Math.max(...scale);
   const range = (max-min) || 1;
   const w = 600, h = 70, pad = 8;
+  const goalY = goalLb ? h - pad - ((goalLb-min)/range) * (h-2*pad) : null;
   const pts = sorted.map((e,i)=>{
     const x = pad + (i/(sorted.length-1)) * (w-2*pad);
     const y = h - pad - ((e.weight-min)/range) * (h-2*pad);
@@ -39823,6 +39850,8 @@ function renderSparkline(entries){
       // right above and says whether the pace suits the goal.
       status = 'neutral'; text = `About ${perWeekDisplay} ${weightUnit} a week ${perWeek>0?'gain':'loss'} over this window.`;
     }
+    const goalNote = describeGoalPace(sorted[sorted.length-1].weight, goalLb, perWeek, sorted[sorted.length-1].date);
+    if(goalNote) text += ` ${goalNote}`;
     insightHtml = `<div class="${status==='good'?'goal-feedback-good':status==='warn'?'goal-feedback-warn':'goal-feedback-neutral'}" style="margin-top:10px;">${text}</div>`;
   }
   el.innerHTML = `
@@ -39835,6 +39864,7 @@ function renderSparkline(entries){
       </defs>
       <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#gradWeightTrend)"/>
       <polyline fill="none" stroke="#5B7CFF" stroke-width="2.5" points="${pts}"/>
+      ${goalY == null ? '' : `<line class="trend-target" x1="${pad}" x2="${w-pad}" y1="${goalY}" y2="${goalY}"/>`}
     </svg>
     <div class="trend-labels">
       <span>${fmtWeight(sorted[0].weight)}</span>
