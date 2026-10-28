@@ -89,7 +89,10 @@ test('REAL CSS: dark uses the app\'s own background; light, Increase Contrast an
 });
 
 test('REAL CSS (v3.387): the launch animates transform and opacity only, on one gentle ease-out, with no overshoot', (assert)=>{
-  const launchCss = CSS.slice(CSS.indexOf('.launch{'), CSS.indexOf('@media (prefers-color-scheme: light)'));
+  // 2026-10-28 (v3.477): the app's own light token block now comes first in
+  // the file, so the slice ends at the launch's light block, after .launch{.
+  const launchStart = CSS.indexOf('.launch{');
+  const launchCss = CSS.slice(launchStart, CSS.indexOf('@media (prefers-color-scheme: light)', launchStart));
   assert.doesNotMatch(launchCss, /stroke-dash/, 'nothing is drawn with stroke dashes any more');
   const frames = CSS.match(/@keyframes launch\w+\{[^}]*\}\}/g) || [];
   assert.deepStrictEqual(frames, ['@keyframes launchSettle{to{opacity:1; transform:none;}}'], 'one keyframe, compositor-friendly properties only');

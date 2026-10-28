@@ -24,7 +24,9 @@ const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 const { document } = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).window;
 function allRules(){
   const out = [];
-  const walk = list => { for(const r of list){ if(r.type === 1) out.push(r); else if(r.cssRules) walk(r.cssRules); } };
+  // 2026-10-28 (v3.477): the light appearance's token block is skipped — this
+  // suite checks the dark design of record (test-light-mode.js covers light).
+  const walk = list => { for(const r of list){ if(r.type === 1) out.push(r); else if(r.cssRules && !(r.media && /prefers-color-scheme:\s*light/.test(r.media.mediaText))) walk(r.cssRules); } };
   for(const s of document.styleSheets) walk(s.cssRules);
   return out;
 }

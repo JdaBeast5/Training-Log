@@ -15,7 +15,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Training Log">
-<meta name="theme-color" content="#050507">
+<meta name="theme-color" content="#050507" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F2F2F5" media="(prefers-color-scheme: light)">
 <link rel="manifest" href="./manifest.json">
 <!-- Fonts are self-hosted from ./fonts/ (fontsource variable builds, latin
      subset, OFL — licence beside them) so they are same-origin, precached by
@@ -280,6 +281,45 @@
     --radius-lg:18px;
     --radius-pill:20px;
     --radius-pill-lg:30px;
+  }
+  /* v3.477: light appearance, following the phone (owner: "Follow the phone").
+     Only the tokens change; the dark values above stay the design of record.
+     --surface-white-rgb is the colour of every translucent tint and hairline,
+     so on a light page it becomes ink (dark tints, dark hairlines); the glass
+     itself, and the sheens that catch the light along its top edge, are
+     white: those are built on --surface-rgb, which is white here.
+     Shadows soften, and the coloured aura dims to what the launch screen's
+     light appearance already uses. */
+  @media (prefers-color-scheme: light){
+    :root{
+      color-scheme:light;
+      --bg:#F2F2F5;
+      --aura:
+        radial-gradient(420px 380px at 88% -6%, rgba(var(--plate-red-rgb),.14), transparent 70%),
+        radial-gradient(380px 360px at -12% 32%, rgba(var(--plate-blue-rgb),.12), transparent 70%),
+        radial-gradient(520px 440px at 62% 112%, rgba(var(--plate-purple-rgb),.10), transparent 70%);
+      --surface-white-rgb:17,18,22;
+      --glass-fill:linear-gradient(160deg, rgba(var(--surface-rgb),.90), rgba(var(--surface-rgb),.74));
+      --glass-hair:rgba(var(--surface-white-rgb),.08);
+      --row-fill:rgba(var(--surface-white-rgb),.04);
+      --glass-shine:inset 0 1px 0 rgba(var(--surface-rgb),.9);
+      --glass-shadow:0 20px 40px -24px rgba(var(--overlay-black-rgb),.18);
+      --surface:#FFFFFF;
+      --surface2:#F4F4F7;
+      --surface-rgb:255,255,255;
+      --surface2-rgb:244,244,247;
+      --line:#E3E4E8;
+      --line-bright:#CDD0D6;
+      --text:#111216;
+      --text-muted:#62666E;
+      --sheen:rgba(var(--surface-rgb),.7);
+      --sheen-strong:rgba(var(--surface-rgb),.9);
+      --elev-1:var(--rim), 0 2px 6px -2px rgba(var(--overlay-black-rgb),0.10);
+      --elev-2:var(--rim), 0 14px 32px -12px rgba(var(--overlay-black-rgb),0.14);
+      --elev-3:var(--rim), 0 24px 48px -16px rgba(var(--overlay-black-rgb),0.18);
+      --nav-glass-bg:rgba(var(--surface-rgb),0.78);
+      --gym-panel-gradient:linear-gradient(170deg, #FFFFFF 0%, #F6F6F9 62%, #F0F0F4 100%);
+    }
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   html{
@@ -7104,7 +7144,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.476';
+const APP_VERSION = '3.477';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8339,6 +8379,9 @@ const WHATS_NEW = {
   ]},
   '3.476': { headline: 'Monday recap', points: [
     'On Mondays, Today\'s Priorities sums up last week: workouts, food, sleep and weight.',
+  ]},
+  '3.477': { headline: 'Light mode', points: [
+    'The app follows your phone: light when iOS is in light mode, dark otherwise.',
   ]},
 };
 
