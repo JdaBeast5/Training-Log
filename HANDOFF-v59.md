@@ -571,3 +571,33 @@ Owner: "Let's do them all", after a review listing what was left. One change per
   - The day-strip colours: each is that day's identity colour, shared with the workout header. Changing them would be a redesign.
   - The `.duration-tag` mono face: pinned as a figure in `test-label-floor`.
   - The create-profile button: it is the app's standard `.save-btn` primary. My review was wrong to call it leftover.
+
+## Addendum 28: New features — goal weight, body fat, weekly recap (v3.471–v3.476)
+Owner: "Let's do them all", covering the additions suggested in the review. One change per version, each with a sabotage-checked test.
+- **v3.471 Goal weight field:**
+  - `#pfGoalWeight` sits in Your Profile, beside Weight, with its unit label synced.
+  - `readGoalWeight` stores lb; blank or nonsense means no goal (null).
+  - The `#pfSave` handler rebuilds `userProfile` from the form, so `goalWeight` is listed there explicitly.
+  - Harness updates with dated notes: `test-profile-save-zero-value`, `test-cycle-tracking-opt-out`.
+  - Tests: `test-goal-weight.js`.
+- **v3.472 Goal on Weight Trend:**
+  - `renderSparkline` draws `line.trend-target` at the goal, and the goal joins the scale (as nutrition targets do, v3.436).
+  - `describeGoalPace` appends one sentence: at the goal / "N to your goal" when the pace is flat / moving away / a projected date, with the year when it differs, and no date past two years.
+  - Two trend harnesses load it (dated notes).
+- **v3.473 Body fat field:**
+  - `#mBodyFat` in Measurements; optional, 2–70%. The app never estimates it.
+  - A body-fat reading alone is enough to save.
+  - `measureRowText` renders a list row. Tape-only rows are unchanged; a row with only thigh/hip/neck values no longer shows a lone `"`.
+  - Tests: `test-body-fat.js`.
+- **v3.474 Lean and fat mass:**
+  - `computeBodyComposition` pairs each reading with the nearest weigh-in within `BODY_COMP_PAIR_DAYS` (3). It never falls back to the profile weight.
+  - It reports the change since a reading at least 14 days earlier.
+  - `bodyCompositionHtml` leads Measurement Context (`bodyMetricsCard`), with a note that home readings can be off by several points.
+- **v3.475 Refactor (no behaviour change):** `archiveCurrentWeek`'s inline averages became `computeWeekStats(weekStart)`.
+- **v3.476 Weekly recap:**
+  - `getWeeklyRecapInsight`: on Mondays only, a Priorities row with last week's workouts, average cal and protein ("(N days logged)" when under 7), sleep, and average weight against the week before.
+  - It is ordered after `sessionHeadsUp`.
+  - Two insight harnesses stub it (dated notes).
+  - Tests: `test-weekly-recap.js`.
+- **Noted, not changed:** Measurement Context's change rows still use ▲/▼ text glyphs (`buildBodyMetricsHtml`). The glyph pass missed them.
+- **Not started: light mode.** `:root` documents the app as dark-only (`color-scheme:dark`), and the owner-chosen glass direction (concept A) assumes a black page. It needs a decision from the owner before any work.
