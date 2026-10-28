@@ -102,4 +102,26 @@ test('REAL CSSOM (v3.480): the light tokens apply to everything but gym mode, wh
   assert.match(CSS, /body\.gym-mode\{\s*background:#000;/, 'anchor: gym mode\'s own black ground');
 });
 
+// v3.481 — Floating panels and wells. The rest timer and the gym-mode offer
+// were literal dark gradients (dark text on a dark panel in light mode); the
+// Up next fields' wells were a black tint (grey slabs on white). All three
+// are tokens: the dark :root holds the values those rules held, light lifts
+// them to white panels and an ink-tint well.
+test('REAL CSSOM (v3.481): the rest timer, the gym offer and the Up next wells read their fill from tokens, light in light mode', (assert)=>{
+  const decl = (sel, prop) => rules.filter(r => r.selectorText === sel).map(r => r.style.getPropertyValue(prop)).find(Boolean) || '';
+  assert.strictEqual(decl('.rest-timer', 'background'), 'var(--rest-timer-fill)');
+  assert.strictEqual(decl('.gym-offer', 'background'), 'var(--float-panel-fill)');
+  assert.strictEqual(decl('.up-next-field', 'background'), 'var(--well-fill)');
+  assert.match(tok(darkRoot, '--rest-timer-fill'), /rgba\(45,\s*49,\s*55,\s*0\.86\)/, 'dark: the value the rule held');
+  assert.match(tok(darkRoot, '--float-panel-fill'), /rgba\(38,\s*42,\s*49,\s*0\.94\)/);
+  assert.match(tok(darkRoot, '--well-fill'), /overlay-black-rgb/);
+  const light = lightRoots[0];
+  for(const t of ['--rest-timer-fill', '--float-panel-fill']) assert.match(tok(light, t), /var\(--surface-rgb\)/, `${t} is white in light`);
+  assert.match(tok(light, '--well-fill'), /var\(--surface-white-rgb\)/, 'the well is an ink tint in light');
+  const all = []; const walk = list => { for(const r of list){ if(r.type === 1) all.push(r); else if(r.cssRules) walk(r.cssRules); } }; walk(rules);
+  // .gym-dock only exists in gym mode, which keeps the dark design (v3.480).
+  const leftovers = all.filter(r => r.selectorText !== ':root' && r.selectorText !== 'body:not(.gym-mode)' && r.selectorText !== '.gym-dock' && /rgba\((45, ?49, ?55|38, ?42, ?49)/.test(r.cssText)).map(r => r.selectorText);
+  assert.deepStrictEqual(leftovers, [], 'no literal panel colour left in a rule');
+});
+
 run();

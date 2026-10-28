@@ -285,6 +285,12 @@
        glass bar, ink on the light one. */
     --pill-active-bg:#fff;
     --pill-active-ink:#000;
+    /* v3.481: the floating panels (rest timer, the gym-mode offer) and the
+       recessed wells of the Up next fields, as tokens so light mode can
+       lift them; these are the values those rules held. */
+    --rest-timer-fill:linear-gradient(160deg, rgba(45,49,55,0.86), rgba(26,29,33,0.86));
+    --float-panel-fill:linear-gradient(165deg, rgba(38,42,49,0.94), rgba(20,22,26,0.94));
+    --well-fill:rgba(var(--overlay-black-rgb),.30);
   }
   /* v3.477: light appearance, following the phone (owner: "Follow the phone").
      Only the tokens change; the dark values above stay the design of record.
@@ -338,6 +344,11 @@
       --plate-teal:#0B7480;
       --plate-purple:#8436D6;
       --plate-blue:#3A57E0;
+      /* v3.481: white panels, and wells as a light ink tint rather than a
+         black one (which read as grey slabs). */
+      --rest-timer-fill:linear-gradient(160deg, rgba(var(--surface-rgb),0.92), rgba(var(--surface2-rgb),0.92));
+      --float-panel-fill:linear-gradient(165deg, rgba(var(--surface-rgb),0.96), rgba(var(--surface2-rgb),0.96));
+      --well-fill:rgba(var(--surface-white-rgb),.05);
     }
   }
   *{box-sizing:border-box; margin:0; padding:0;}
@@ -712,7 +723,7 @@
      edge; a third ring of hairlines was noise), one size step smaller, and a
      tight fields→button gap so the inputs and Log set read as one group. */
   .up-next-fields{display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:8px; margin-top:16px;}
-  .up-next-field{display:flex; flex-direction:column; gap:1px; padding:8px 12px 9px; border-radius:14px; background:rgba(var(--overlay-black-rgb),.30); border:1px solid transparent;}
+  .up-next-field{display:flex; flex-direction:column; gap:1px; padding:8px 12px 9px; border-radius:14px; background:var(--well-fill); border:1px solid transparent;}
   .up-next-field[hidden]{display:none;}
   .up-next-field small{font-size:12px; color:var(--text-muted);}
   /* 22px !important: the global `input{font-size:16px !important}` (iOS zoom guard) would
@@ -1476,7 +1487,7 @@
   .rest-timer{
     position:fixed; bottom:calc(var(--above-bar) + 12px); left:50%; transform:translateX(-50%) translateY(16px) scale(0.92);
     width:var(--rest-timer-collapsed-w, 208px); max-width:calc(100vw - 32px);
-    background:linear-gradient(160deg, rgba(45,49,55,0.86), rgba(26,29,33,0.86));
+    background:var(--rest-timer-fill);
     backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border:1px solid rgba(var(--plate-blue-rgb),0.5); border-radius:36px;
     padding:10px 18px; z-index:50; overflow:hidden;
@@ -4991,7 +5002,7 @@
     position:fixed; left:50%; bottom:calc(var(--above-bar) + 104px); z-index:60; /* v3.288: same 92px gap over the rest timer, now measured from the tab bar */
     transform:translateX(-50%) translateY(12px);
     width:min(380px, calc(100vw - 28px));
-    background:linear-gradient(165deg, rgba(38,42,49,0.94), rgba(20,22,26,0.94));
+    background:var(--float-panel-fill);
     backdrop-filter:blur(26px) saturate(170%);
     -webkit-backdrop-filter:blur(26px) saturate(170%);
     border:1px solid rgba(var(--surface-white-rgb),0.1); border-radius:22px;
@@ -7163,7 +7174,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.480';
+const APP_VERSION = '3.481';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8410,6 +8421,9 @@ const WHATS_NEW = {
   ]},
   '3.480': { headline: 'Gym mode stays dark', points: [
     'Gym mode keeps its dark screen even when your phone is in light mode.',
+  ]},
+  '3.481': { headline: 'Light panels', points: [
+    'In light mode, the rest timer, the gym-mode prompt and the Up next fields are light too.',
   ]},
 };
 
