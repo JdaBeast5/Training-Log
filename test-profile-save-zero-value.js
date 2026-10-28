@@ -40,10 +40,13 @@ const toCanonicalLbSrc = extractFunction(src, 'toCanonicalLb');
 // fix (negative-age validation, see test-profile-age-validation.js) — not
 // under test here, but the handler now throws without it defined.
 const readValidAgeSrc = extractFunction(src, 'readValidAge');
+// 2026-10-28 (v3.471): the handler reads the new goal weight field too
+// (test-goal-weight.js covers it).
+const readGoalWeightSrc = extractFunction(src, 'readGoalWeight');
 const pfSaveWiringSrc = extractClickWiring(src, 'pfSave');
 
 const FIELD_IDS = [
-  'pfName', 'pfAge', 'pfGender', 'pfHeightFt', 'pfHeightIn', 'pfWeight',
+  'pfName', 'pfAge', 'pfGender', 'pfHeightFt', 'pfHeightIn', 'pfWeight', 'pfGoalWeight',
   'pfActivity', 'pfGoal', 'pfBodyGoal', 'pfCycleTrackingEnabled', 'pfGlutenFree', 'pfDairyFree',
   'pfNutFree', 'pfHalal', 'pfKosher', 'pfAvoidFoods', 'pfDietaryPreference',
 ];
@@ -96,7 +99,7 @@ const stubGlobals = `
 `;
 
 async function saveWith(fieldValues){
-  const { document, window } = runJsdom(buildBodyHtml(), stubGlobals, [toCanonicalLbSrc, readValidAgeSrc, pfSaveWiringSrc]);
+  const { document, window } = runJsdom(buildBodyHtml(), stubGlobals, [toCanonicalLbSrc, readValidAgeSrc, readGoalWeightSrc, pfSaveWiringSrc]);
   for(const [id, value] of Object.entries(fieldValues)){
     document.getElementById(id).value = value;
   }

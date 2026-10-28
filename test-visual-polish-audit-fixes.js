@@ -169,7 +169,13 @@ test(':root now declares color-scheme:dark, matching the fact that this app has 
     while(depth && i < withoutComments.length){ if(withoutComments[i] === '{') depth++; else if(withoutComments[i] === '}') depth--; i++; }
     const body = withoutComments.slice(m.index + m[0].length, i - 1);
     const selectors = [...body.matchAll(/([^{}]+)\{/g)].map(x => x[1].trim());
-    assert.ok(selectors.length && selectors.every(sel => sel.split(',').every(x => x.trim().startsWith('.launch'))), `a prefers-color-scheme block styles only the launch page: ${selectors.join(' | ')}`);
+    // 2026-10-28 (v3.477): the app follows the phone's appearance (owner:
+    // "Follow the phone"). The second allowed branch is the light token block
+    // (on body), which must also switch color-scheme to light so the form
+    // controls it draws match (test-light-mode.js).
+    // (v3.480: on body:not(.gym-mode), so gym mode keeps the dark tokens.)
+    const isTokenBlock = selectors.length === 1 && selectors[0] === 'body:not(.gym-mode)' && /color-scheme:light/.test(body);
+    assert.ok(selectors.length && (isTokenBlock || selectors.every(sel => sel.split(',').every(x => x.trim().startsWith('.launch')))), `a prefers-color-scheme block styles only the launch page, or is the light token block: ${selectors.join(' | ')}`);
   }
   assert.ok(at.length >= 1, 'anchor: the launch page\'s light branch exists');
   const block = extractRuleBlock(src, ':root');

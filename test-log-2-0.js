@@ -171,4 +171,25 @@ test('REAL markup + invocation (v3.434): Log copy says each thing once and is ri
   assert.doesNotMatch(extractFunction(src, 'loadMeasurements'), /Tap to log/);
 });
 
+// v3.462 (owner, screenshot: "Fix the spacing for the supplements"). My
+// Supplements' rows are filled swipe tiles, but each row kept edge-to-edge
+// list padding: the check sat on the tile's left edge, the ask button on its
+// right, both floated mid-paragraph, and the tiles were 2px apart.
+const SUPP_CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
+test('REAL CSSOM (v3.462): a supplement tile has padding inside, a gap below, and its controls on the first line; the bariatric rows are untouched', (assert)=>{
+  const { window } = new JSDOM(`<style>${SUPP_CSS}</style>
+    <div id="mySupplementsList"><div class="swipe-item" id="a"><div class="swipe-content"><div class="supplement-row" id="r"><span class="supplement-check"></span><span class="supplement-name-wrap supplement-label" id="w"><span>Zinc</span><span class="supplement-benefit">Promising</span></span><button class="supplement-ask-btn"></button></div></div></div><div class="swipe-item" id="b"></div></div>
+    <div class="supplement-row" id="plain"><span class="supplement-check"></span><span class="supplement-label">Take with food</span></div>`);
+  const cs = id => window.getComputedStyle(window.document.getElementById(id));
+  assert.strictEqual(cs('r').paddingLeft, '14px', 'the check clears the tile edge');
+  assert.strictEqual(cs('r').paddingRight, '12px');
+  assert.strictEqual(cs('r').paddingTop, '14px');
+  assert.strictEqual(cs('r').alignItems, 'flex-start', 'check and ask button sit on the name line');
+  assert.strictEqual(cs('a').marginBottom, '8px', 'tiles are spaced, not 2px apart');
+  assert.strictEqual(cs('b').marginBottom, '0px', 'no trailing gap after the last');
+  assert.strictEqual(cs('w').flexGrow, '1');
+  assert.strictEqual(cs('plain').paddingLeft, '0px', 'the bariatric checklist keeps its list rows');
+  assert.strictEqual(cs('plain').alignItems, 'center');
+});
+
 run();

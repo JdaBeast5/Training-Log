@@ -61,7 +61,14 @@
 // (independently confirmed against the diff, not re-derived from it).
 const { readIndexSource, makeRunner } = require('./testHelpers.js');
 
-const src = readIndexSource();
+// 2026-10-28 (v3.477): the light appearance redefines some of these tokens
+// inside @media (prefers-color-scheme: light){ body:not(.gym-mode){…} }. Every check here is
+// about the dark design of record, so that one block is left out of the text
+// this suite counts in (test-light-mode.js covers it).
+const LIGHT_BLOCK = /  @media \(prefers-color-scheme: light\)\{\n[\s\S]*?    body:not\(\.gym-mode\)\{[\s\S]*?\n    \}\n  \}\n/; // v3.480: on body
+const rawSrc = readIndexSource();
+if(!LIGHT_BLOCK.test(rawSrc)) throw new Error('anchor: the light token block was not found');
+const src = rawSrc.replace(LIGHT_BLOCK, '');
 const { test, run } = makeRunner('test-css-mechanical-token-dedup.js');
 
 function extractRuleBlock(source, selector){

@@ -544,3 +544,79 @@ Owner: "Let's do it" (the Learn pass, the last tab without one). Same method. Te
 - **v3.461:** the Research & Sources rows (`#researchSourcesList .program-basis-toggle`) are the same plain rows. A style's rows stay indented 14px under its program. A closed panel adds no gap (`.smooth-toggle.open` carries the margin). The white count went 85 → 84.
 - **Noted, not changed:** the Recently Trained rows put the chevron first, before a pull/push tag. Every other list on Learn puts it at the end. Leave that for a separate decision: those rows come from `buildExerciseSearchResultHtml`, which the Exercise Library search results share.
 - **Verified in Chromium** at 390px with seed3: closed, opened, and the header restoring its state. No page errors.
+
+## Addendum 26: My Supplements spacing (v3.462)
+Owner, from a phone screenshot: "Fix the spacing for the supplements."
+- **Cause:** My Supplements' rows are swipe tiles, and since v3.388 `.swipe-content` carries a translucent `--row-fill`. The `.supplement-row` inside kept its old edge-to-edge padding (`10px 0`). The check therefore sat on the tile's left edge and the ask button on its right edge, both centred on long paragraphs, and the tiles were 2px apart.
+- **Fix:** rules scoped to `#mySupplementsList`, following `#todayInsightsList .swipe-item`:
+  - tiles get a 12px radius and an 8px gap, with none after the last;
+  - rows get `14px 12px 14px 14px` padding and `align-items:flex-start`, so the check and ask button sit on the name line;
+  - the name wrap gets `flex:1`.
+  The bariatric checklist also uses `.supplement-row`, but it is a plain list and is untouched.
+- **Test:** `test-log-2-0.js` (v3.462), sabotage-checked.
+- **Noted, not changed:** when "More" wraps onto its own line, its 4px left margin shows as a small indent.
+
+## Addendum 27: Review follow-ups — Today, search, first launch, bugs (v3.463–v3.470)
+Owner: "Let's do them all", after a review listing what was left. One change per version, each with a sabotage-checked test.
+- **v3.463 (Today):** Today's Priorities shows its top row; the rest fold behind "Show N more" (the shared `renderCollapsibleList`). The safety row (pregnancyHeat) still leads, and folded rows still swipe away. The card stays above the workout, as `test-today-session-first.js` requires. Three tests' harnesses now load `renderCollapsibleList` (dated notes).
+- **v3.464 (Today):** the adapt button reads "Adapt for limited equipment or time". It used to be a two-line question.
+- **v3.465 (search):** results go Go to → Exercises → Techniques. "squat" had listed nine techniques before Back Squat.
+- **v3.466 (search):** `.gsearch-hit` is a plain row. The name sits over its source (`.gsearch-hit-text` / `.gsearch-hit-tab`), with a separate `.gsearch-hit-chev`. `test-translucent-lists` was updated with a dated note.
+- **v3.467 (first launch):** with no profiles, the user picker shows no empty-list note and hides the "— or —" divider.
+- **v3.468 (bug):** `renderHeader`'s subtitle no longer hard-codes "7-day split" and "45-60 min sessions".
+- **v3.469 (bug):** "More" in My Supplements follows a space instead of a 4px margin, so it no longer indents when it wraps.
+- **v3.470 (bug):** `.care-details > summary::before` sits at the row's end, muted and 7px. This covers search's and Learn's exercise rows and Care's stretches. The small "Cues" toggle keeps its leading chevron.
+- **Considered and left as is, each for a recorded reason:**
+  - The Priorities hint: `test-concise-copy` pins its 14-word budget and its pointer to Analysis.
+  - The day-strip colours: each is that day's identity colour, shared with the workout header. Changing them would be a redesign.
+  - The `.duration-tag` mono face: pinned as a figure in `test-label-floor`.
+  - The create-profile button: it is the app's standard `.save-btn` primary. My review was wrong to call it leftover.
+
+## Addendum 28: New features — goal weight, body fat, weekly recap (v3.471–v3.476)
+Owner: "Let's do them all", covering the additions suggested in the review. One change per version, each with a sabotage-checked test.
+- **v3.471 Goal weight field:**
+  - `#pfGoalWeight` sits in Your Profile, beside Weight, with its unit label synced.
+  - `readGoalWeight` stores lb; blank or nonsense means no goal (null).
+  - The `#pfSave` handler rebuilds `userProfile` from the form, so `goalWeight` is listed there explicitly.
+  - Harness updates with dated notes: `test-profile-save-zero-value`, `test-cycle-tracking-opt-out`.
+  - Tests: `test-goal-weight.js`.
+- **v3.472 Goal on Weight Trend:**
+  - `renderSparkline` draws `line.trend-target` at the goal, and the goal joins the scale (as nutrition targets do, v3.436).
+  - `describeGoalPace` appends one sentence: at the goal / "N to your goal" when the pace is flat / moving away / a projected date, with the year when it differs, and no date past two years.
+  - Two trend harnesses load it (dated notes).
+- **v3.473 Body fat field:**
+  - `#mBodyFat` in Measurements; optional, 2–70%. The app never estimates it.
+  - A body-fat reading alone is enough to save.
+  - `measureRowText` renders a list row. Tape-only rows are unchanged; a row with only thigh/hip/neck values no longer shows a lone `"`.
+  - Tests: `test-body-fat.js`.
+- **v3.474 Lean and fat mass:**
+  - `computeBodyComposition` pairs each reading with the nearest weigh-in within `BODY_COMP_PAIR_DAYS` (3). It never falls back to the profile weight.
+  - It reports the change since a reading at least 14 days earlier.
+  - `bodyCompositionHtml` leads Measurement Context (`bodyMetricsCard`), with a note that home readings can be off by several points.
+- **v3.475 Refactor (no behaviour change):** `archiveCurrentWeek`'s inline averages became `computeWeekStats(weekStart)`.
+- **v3.476 Weekly recap:**
+  - `getWeeklyRecapInsight`: on Mondays only, a Priorities row with last week's workouts, average cal and protein ("(N days logged)" when under 7), sleep, and average weight against the week before.
+  - It is ordered after `sessionHeadsUp`.
+  - Two insight harnesses stub it (dated notes).
+  - Tests: `test-weekly-recap.js`.
+- **Noted, not changed:** Measurement Context's change rows still use ▲/▼ text glyphs (`buildBodyMetricsHtml`). The glyph pass missed them.
+- **Not started: light mode.** `:root` documents the app as dark-only (`color-scheme:dark`), and the owner-chosen glass direction (concept A) assumes a black page. It needs a decision from the owner before any work.
+
+## Addendum 29: Light mode, following the phone (v3.477–v3.481)
+Owner chose "Follow the phone": light when iOS is light, dark otherwise, with no setting. One change per version. Tests are in `test-light-mode.js`, which reads the light block from the real CSSOM and computes contrast (jsdom can't match `prefers-color-scheme`).
+- **The rule for this work:** the light block holds only tokens. Every light-specific colour is a token with its dark value in `:root` (the design of record) and an override in `@media (prefers-color-scheme: light){ body:not(.gym-mode){…} }`. No component rules go in the media block.
+- **v3.477 Token layer:**
+  - `color-scheme:light`, a light `--bg/--surface/--text/--line`, a dimmed `--aura` and softer `--elev-*`.
+  - `--surface-white-rgb` becomes ink (17,18,22), so every tint and hairline goes dark. Glass, sheens and the nav glass are built on `--surface-rgb` (white in light).
+  - There are two `theme-color` metas, one per scheme.
+  - Six suites assumed a single `:root` or pinned counts. Each now skips or strips the light block, or records it in the count history (dated notes): glass-cards, glass-controls, tab-bar, token-dedup, launch, neutral-rgba.
+- **v3.478:** `.nav-pill.active` reads `--pill-active-bg/--pill-active-ink`: white/black in dark, ink/white in light.
+- **v3.479:** light shades for `--plate-red/orange/yellow/green/teal/purple/blue`, each at 4.5:1 or better on page and card. The `-rgb` twins stay bright, since they only tint and glow.
+- **v3.480:** the light block's selector is `body:not(.gym-mode)`, so gym mode keeps its dark tokens and hand-tuned black screen.
+- **v3.481:** `--rest-timer-fill`, `--float-panel-fill` (`.gym-offer`) and `--well-fill` (`.up-next-field`) are tokens holding the old literals in dark, white panels and an ink-tint well in light. `.gym-dock` keeps its literal because it is gym-mode only.
+- **Verified in Chromium** (`colorScheme:'light'`) on every tab, Settings, search, More, coach chat, exercise history, the gym offer and gym mode. No page errors.
+- **Unverified on device, and the first thing to check:** `apple-mobile-web-app-status-bar-style` is `black-translucent`, which gives iOS white status-bar text, and it can't vary by scheme. On the light page the clock and battery may be hard to read in the installed PWA. If so, the options are:
+  - keep a dark band behind the status bar in light mode;
+  - switch to `default`, which changes the dark layout under the notch.
+  The owner should decide after seeing it.
+- **Left as is:** the dark modal scrims (`rgba(10,11,13,…)`) also darken the light page, which is normal behind a sheet.

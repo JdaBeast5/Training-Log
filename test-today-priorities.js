@@ -34,7 +34,9 @@ function mount(rows, stored){
     window.__store = ${JSON.stringify(stored || {})};
     window.storage = { get: async k => k in window.__store ? { value: window.__store[k] } : null, set: async (k, v) => { window.__store[k] = v; } };
     function showUndoToast(msg, fn){ window.__toast = msg; window.__undo = fn; }
-  `, [stubs, extractFunction(src, 'getTodayKey'), ...['getHiddenPriorities', 'setHiddenPriorities', 'buildSwipeItem', 'makeSwipeable'].map(n => extractFunction(src, n)), renderSrc]);
+  // 2026-10-28 (v3.463): the renderer folds rows after the first into the
+  // shared collapsible list, so the real one (and its batch size) loads too.
+  `, [stubs, extractFunction(src, 'getTodayKey'), extractConst(src, 'COLLAPSIBLE_LIST_BATCH_SIZE'), ...['getHiddenPriorities', 'setHiddenPriorities', 'buildSwipeItem', 'makeSwipeable', 'renderCollapsibleList'].map(n => extractFunction(src, n)), renderSrc]);
   return window;
 }
 const rowsOf = w => [...w.document.querySelectorAll('#todayInsightsList .today-insight-row')].map(r => r.textContent.trim());
@@ -86,7 +88,8 @@ const swipeAway = async (w, id) => { w.document.querySelector(`[data-priority="$
 test('REAL invocation (v3.383): every row is a swipe item whose action is labelled for what it does', async (assert)=>{
   const w = mount({ getWaterPaceInsight: '<b>Hydration check:</b> 20/96 oz', getBackupReminderInsight: '<b>Back up.</b>' });
   await w.renderTodayInsights();
-  const items = [...w.document.querySelectorAll('#todayInsightsList > .swipe-item')];
+  // 2026-10-28 (v3.463): rows after the first sit in the fold, one level down.
+  const items = [...w.document.querySelectorAll('#todayInsightsList .swipe-item')];
   assert.strictEqual(items.length, 2);
   assert.deepStrictEqual(items.map(i => i.querySelector('.today-insight-row').dataset.priority), ['waterPace', 'backup'], 'in the list\'s order');
   for(const i of items) assert.strictEqual(i.querySelector('.swipe-delete-bg').getAttribute('aria-label'), 'Hide until tomorrow');
@@ -113,6 +116,31 @@ test('REAL invocation (v3.383): a row hidden on another day shows again; hiding 
   assert.deepStrictEqual(rowsOf(w), ['Hydration check: 20/96 oz'], 'yesterday\'s hide has expired');
   await swipeAway(w, 'waterPace');
   assert.strictEqual(w.document.getElementById('todayInsightsCard').style.display, 'none');
+});
+
+// v3.463 — One priority up front. Three or four boxed paragraphs sat above the
+// workout (they stay above it: test-today-session-first.js); now the first
+// shows and the rest fold behind "Show N more". The list's order already puts
+// the most important first, and the safety row always leads.
+test('REAL invocation (v3.463): the top row shows, the rest fold behind Show N more, and every row still swipes', async (assert)=>{
+  const w = mount({ getPregnancyHeatInsight: '<b>Heat.</b>', getReadinessInsight: '<b>Readiness:</b> ok', getWaterPaceInsight: '<b>Water</b>', getBackupReminderInsight: '<b>Back up.</b>' });
+  await w.renderTodayInsights();
+  const list = w.document.getElementById('todayInsightsList');
+  const shown = [...list.children].filter(c => c.classList.contains('swipe-item'));
+  assert.strictEqual(shown.length, 1, 'one row up front');
+  assert.strictEqual(shown[0].querySelector('[data-priority]').dataset.priority, 'pregnancyHeat', 'the safety row leads');
+  const fold = list.querySelector('.expand-wrap');
+  assert.ok(fold && !fold.classList.contains('open'), 'the rest start folded');
+  assert.strictEqual(fold.querySelectorAll('.swipe-item').length, 3);
+  assert.strictEqual(list.querySelector('.show-more-btn').textContent, 'Show 3 more priorities');
+  assert.strictEqual(list.querySelectorAll('.swipe-delete-bg[aria-label="Hide until tomorrow"]').length, 4, 'folded rows still swipe away');
+});
+
+test('REAL invocation (v3.463): a single priority has no fold', async (assert)=>{
+  const w = mount({ getBackupReminderInsight: '<b>Back up.</b>' });
+  await w.renderTodayInsights();
+  assert.strictEqual(w.document.querySelector('#todayInsightsList .show-more-btn'), null);
+  assert.deepStrictEqual(rowsOf(w), ['Back up.']);
 });
 
 run();

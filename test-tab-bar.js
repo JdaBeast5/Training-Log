@@ -24,7 +24,9 @@ const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 const { document } = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).window;
 function allRules(){
   const out = [];
-  const walk = list => { for(const r of list){ if(r.type === 1) out.push(r); else if(r.cssRules) walk(r.cssRules); } };
+  // 2026-10-28 (v3.477): the light appearance's token block is skipped — this
+  // suite checks the dark design of record (test-light-mode.js covers light).
+  const walk = list => { for(const r of list){ if(r.type === 1) out.push(r); else if(r.cssRules && !(r.media && /prefers-color-scheme:\s*light/.test(r.media.mediaText))) walk(r.cssRules); } };
   for(const s of document.styleSheets) walk(s.cssRules);
   return out;
 }
@@ -37,7 +39,10 @@ test('REAL CSSOM: the bar is fixed to the bottom safe area as a floating glass p
   assert.strictEqual(b.getPropertyValue('top'), 'auto');
   assert.strictEqual(b.getPropertyValue('border-radius'), 'var(--radius-pill)');
   assert.match(b.getPropertyValue('backdrop-filter') || b.getPropertyValue('-webkit-backdrop-filter'), /glass-blur/, 'fixed chrome may blur');
-  assert.match(rule('.nav-pill.active').getPropertyValue('background'), /^(#fff|rgb\(255, 255, 255\))$/, 'the selected tab is the white pill');
+  // 2026-10-28 (v3.478): the pill reads its colour from a token (white here,
+  // ink in the light appearance; test-light-mode.js).
+  assert.strictEqual(rule('.nav-pill.active').getPropertyValue('background'), 'var(--pill-active-bg)');
+  assert.strictEqual(rule(':root').getPropertyValue('--pill-active-bg').trim(), '#fff', 'the selected tab is the white pill');
 });
 
 test('REAL markup: the bar holds exactly the five destinations, Today first; search is in the header with a name', (assert)=>{

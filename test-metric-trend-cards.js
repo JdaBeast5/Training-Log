@@ -22,7 +22,9 @@ const computeWaterTargetSrc = extractFunction(src, 'computeWaterTarget');
 const renderWaterTrendSrc = extractFunction(src, 'renderWaterTrend');
 const renderBPTrendSrc = extractFunction(src, 'renderBPTrend');
 const renderGlucoseTrendSrc = extractFunction(src, 'renderGlucoseTrend');
-const renderSparklineSrc = extractFunction(src, 'renderSparkline');
+// 2026-10-28 (v3.472): renderSparkline adds the goal weight sentence through
+// describeGoalPace (test-goal-weight.js), so it and its date helpers load too.
+const renderSparklineSrc = ['parseDateKey', 'formatDate', 'describeGoalPace', 'renderSparkline'].map(n => extractFunction(src, n)).join('\n');
 const toDisplayWeightSrc = extractFunction(src, 'toDisplayWeight');
 const trimUnitNumSrc = extractFunction(src, 'trimUnitNum');
 const fmtWeightSrc = extractFunction(src, 'fmtWeight');

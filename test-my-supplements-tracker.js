@@ -1253,4 +1253,22 @@ test('REAL invocation: a real network error during preview re-enables the button
   assert.match(document.getElementById('dsldSearchResults').textContent, /Couldn't get an insight/, 'a real, visible error must appear, not a silent failure');
 });
 
+// v3.469 (owner, from a phone screenshot): when "More" wrapped onto a line
+// of its own it sat 4px in from the text above, from its margin-left. A plain
+// space now separates it from the sentence; at a line break the space goes.
+test('REAL invocation (v3.469): More follows its sentence after a space, with no margin of its own, curated or not', async (assert)=>{
+  const { document, window } = runJsdom(bodyHtml, storageGlobals({
+    'my-supplements': JSON.stringify(['creatine monohydrate', 'My Custom Blend XYZ']),
+  }) + otherGlobals(), scriptChunks);
+  await window.renderMySupplements();
+  const toggles = [...document.querySelectorAll('#mySupplementsList .supplement-benefit-toggle')];
+  assert.strictEqual(toggles.length, 2);
+  for(const t of toggles){
+    const before = t.previousSibling;
+    assert.ok(before && before.nodeType === 3 && / $/.test(before.textContent), 'a space before More: ' + JSON.stringify(before && before.textContent.slice(-12)));
+  }
+  const css = require('fs').readFileSync(require('path').join(__dirname, 'index.html'), 'utf8');
+  assert.match(css, /\.supplement-benefit-toggle\{\s*background:none; border:none; padding:0; margin:0;/);
+});
+
 run();

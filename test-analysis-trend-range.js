@@ -31,7 +31,9 @@ const dateKeyMinusDaysSrc = extractFunction(src, 'dateKeyMinusDays');
 const getAnalysisTrendRangeDaysSrc = extractFunction(src, 'getAnalysisTrendRangeDays');
 const filterDatesByRangeSrc = extractFunction(src, 'filterDatesByRange');
 const renderDayValueTrendSrc = extractFunction(src, 'renderDayValueTrend');
-const renderSparklineSrc = extractFunction(src, 'renderSparkline');
+// 2026-10-28 (v3.472): renderSparkline adds the goal weight sentence through
+// describeGoalPace (test-goal-weight.js), so it and its date helpers load too.
+const renderSparklineSrc = ['parseDateKey', 'formatDate', 'describeGoalPace', 'renderSparkline'].map(n => extractFunction(src, n)).join('\n');
 const averageByDaySrc = extractFunction(src, 'averageByDay');
 const renderNutritionTrendSrc = extractFunction(src, 'renderNutritionTrend');
 const renderWaterTrendSrc = extractFunction(src, 'renderWaterTrend');

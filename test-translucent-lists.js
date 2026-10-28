@@ -85,7 +85,8 @@ test('REAL invocation (v3.388): a tap below the drag threshold uncovers nothing'
 });
 
 test('REAL CSSOM (v3.389): every in-card list tile uses the translucent row fill; floating layers stay opaque', (assert)=>{
-  for(const sel of ['.food-item-btn', '.gsearch-hit', '.sub-option', '.photo-result-card', '.ex-detail-body', '.custom-program-box',
+  // 2026-10-28 (v3.466): .gsearch-hit became a plain row with no fill (test-search-2-0.js).
+  for(const sel of ['.food-item-btn', '.sub-option', '.photo-result-card', '.ex-detail-body', '.custom-program-box',
                     '.cycle-phase-card', '.care-relief', '.rest-done-row', '.exh-stats > div']){ // 2026-10-27 (v3.429): .targets-strip removed (test-log-2-0.js)
     assert.strictEqual(declared(sel, 'background'), 'var(--row-fill)', sel);
   }

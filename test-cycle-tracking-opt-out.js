@@ -129,6 +129,7 @@ const populateBodyHtml = `
   <select id="pfGender"><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select>
   <input type="number" id="pfHeightFt"> <input type="number" id="pfHeightIn">
   <input type="number" id="pfWeight">
+  <input type="number" id="pfGoalWeight"><!-- 2026-10-28 (v3.471): goal weight field (test-goal-weight.js) -->
   <select id="pfActivity"></select>
   <select id="pfGoal"></select>
   <div id="pfCycleTrackingRow" style="display:none;"><input type="checkbox" id="pfCycleTrackingEnabled"></div>
@@ -171,7 +172,7 @@ test('sabotage-relevant: populateProfileForm hides the real row for a non-female
 
 const saveBodyHtml = `
   <input id="pfName"><input id="pfAge"><select id="pfGender"><option value="female" selected></option></select>
-  <input id="pfHeightFt"><input id="pfHeightIn"><input id="pfWeight">
+  <input id="pfHeightFt"><input id="pfHeightIn"><input id="pfWeight"><input id="pfGoalWeight">
   <select id="pfActivity"><option value="1.2" selected></option></select>
   <select id="pfGoal"><option value="maintain" selected></option></select>
   <select id="pfBodyGoal"><option value="" selected></option></select>
@@ -209,6 +210,8 @@ const saveStubGlobals = `
   function renderFoodItems(){}
   function toCanonicalLb(v){ return Number(v); }
   function readValidAge(raw, fallback){ return raw === '' ? fallback : Number(raw); }
+  // 2026-10-28 (v3.471): the handler reads the goal weight field too.
+  function readGoalWeight(raw){ return raw === '' ? null : Number(raw); }
 `;
 
 test('REAL invocation: pfSave persists an explicit opt-out (unchecked box) into userProfile.cycleTrackingEnabled', async (assert)=>{

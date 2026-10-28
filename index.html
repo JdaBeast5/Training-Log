@@ -15,7 +15,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Training Log">
-<meta name="theme-color" content="#050507">
+<meta name="theme-color" content="#050507" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F2F2F5" media="(prefers-color-scheme: light)">
 <link rel="manifest" href="./manifest.json">
 <!-- Fonts are self-hosted from ./fonts/ (fontsource variable builds, latin
      subset, OFL — licence beside them) so they are same-origin, precached by
@@ -280,6 +281,75 @@
     --radius-lg:18px;
     --radius-pill:20px;
     --radius-pill-lg:30px;
+    /* v3.478: the selected tab pill (.nav-pill.active) — white on the dark
+       glass bar, ink on the light one. */
+    --pill-active-bg:#fff;
+    --pill-active-ink:#000;
+    /* v3.481: the floating panels (rest timer, the gym-mode offer) and the
+       recessed wells of the Up next fields, as tokens so light mode can
+       lift them; these are the values those rules held. */
+    --rest-timer-fill:linear-gradient(160deg, rgba(45,49,55,0.86), rgba(26,29,33,0.86));
+    --float-panel-fill:linear-gradient(165deg, rgba(38,42,49,0.94), rgba(20,22,26,0.94));
+    --well-fill:rgba(var(--overlay-black-rgb),.30);
+  }
+  /* v3.477: light appearance, following the phone (owner: "Follow the phone").
+     Only the tokens change; the dark values above stay the design of record.
+     --surface-white-rgb is the colour of every translucent tint and hairline,
+     so on a light page it becomes ink (dark tints, dark hairlines); the glass
+     itself, and the sheens that catch the light along its top edge, are
+     white: those are built on --surface-rgb, which is white here.
+     Shadows soften, and the coloured aura dims to what the launch screen's
+     light appearance already uses. */
+  @media (prefers-color-scheme: light){
+    /* v3.480: on body, and not in gym mode. Gym mode is a hand-tuned black
+       screen (its own background, glows and literal shadows); it keeps the
+       dark tokens, inherited from :root, whatever the phone is set to. */
+    body:not(.gym-mode){
+      color-scheme:light;
+      --bg:#F2F2F5;
+      --aura:
+        radial-gradient(420px 380px at 88% -6%, rgba(var(--plate-red-rgb),.14), transparent 70%),
+        radial-gradient(380px 360px at -12% 32%, rgba(var(--plate-blue-rgb),.12), transparent 70%),
+        radial-gradient(520px 440px at 62% 112%, rgba(var(--plate-purple-rgb),.10), transparent 70%);
+      --surface-white-rgb:17,18,22;
+      --glass-fill:linear-gradient(160deg, rgba(var(--surface-rgb),.90), rgba(var(--surface-rgb),.74));
+      --glass-hair:rgba(var(--surface-white-rgb),.08);
+      --row-fill:rgba(var(--surface-white-rgb),.04);
+      --glass-shine:inset 0 1px 0 rgba(var(--surface-rgb),.9);
+      --glass-shadow:0 20px 40px -24px rgba(var(--overlay-black-rgb),.18);
+      --surface:#FFFFFF;
+      --surface2:#F4F4F7;
+      --surface-rgb:255,255,255;
+      --surface2-rgb:244,244,247;
+      --line:#E3E4E8;
+      --line-bright:#CDD0D6;
+      --text:#111216;
+      --text-muted:#62666E;
+      --sheen:rgba(var(--surface-rgb),.7);
+      --sheen-strong:rgba(var(--surface-rgb),.9);
+      --elev-1:var(--rim), 0 2px 6px -2px rgba(var(--overlay-black-rgb),0.10);
+      --elev-2:var(--rim), 0 14px 32px -12px rgba(var(--overlay-black-rgb),0.14);
+      --elev-3:var(--rim), 0 24px 48px -16px rgba(var(--overlay-black-rgb),0.18);
+      --nav-glass-bg:rgba(var(--surface-rgb),0.78);
+      --gym-panel-gradient:linear-gradient(170deg, #FFFFFF 0%, #F6F6F9 62%, #F0F0F4 100%);
+      --pill-active-bg:#111216;
+      --pill-active-ink:#FFFFFF;
+      /* v3.479: the accents darken so text in them reads on white and on the
+         page (4.5:1 on both; the bright dark-mode yellow was 1.6:1 on white).
+         Their -rgb twins stay bright: they only tint and glow. */
+      --plate-red:#D70015;
+      --plate-orange:#B04400;
+      --plate-yellow:#8F6200;
+      --plate-green:#187A33;
+      --plate-teal:#0B7480;
+      --plate-purple:#8436D6;
+      --plate-blue:#3A57E0;
+      /* v3.481: white panels, and wells as a light ink tint rather than a
+         black one (which read as grey slabs). */
+      --rest-timer-fill:linear-gradient(160deg, rgba(var(--surface-rgb),0.92), rgba(var(--surface2-rgb),0.92));
+      --float-panel-fill:linear-gradient(165deg, rgba(var(--surface-rgb),0.96), rgba(var(--surface2-rgb),0.96));
+      --well-fill:rgba(var(--surface-white-rgb),.05);
+    }
   }
   *{box-sizing:border-box; margin:0; padding:0;}
   html{
@@ -653,7 +723,7 @@
      edge; a third ring of hairlines was noise), one size step smaller, and a
      tight fields→button gap so the inputs and Log set read as one group. */
   .up-next-fields{display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:8px; margin-top:16px;}
-  .up-next-field{display:flex; flex-direction:column; gap:1px; padding:8px 12px 9px; border-radius:14px; background:rgba(var(--overlay-black-rgb),.30); border:1px solid transparent;}
+  .up-next-field{display:flex; flex-direction:column; gap:1px; padding:8px 12px 9px; border-radius:14px; background:var(--well-fill); border:1px solid transparent;}
   .up-next-field[hidden]{display:none;}
   .up-next-field small{font-size:12px; color:var(--text-muted);}
   /* 22px !important: the global `input{font-size:16px !important}` (iOS zoom guard) would
@@ -830,12 +900,23 @@
   .supplement-name-wrap .supplement-benefit{font-size:11.5px; color:var(--text-muted); font-weight:400;}
   .supplement-name-wrap .supplement-frequency{font-size:11.5px; color:var(--plate-blue); font-weight:600;}
   .supplement-benefit-toggle{
-    background:none; border:none; padding:0; margin-left:4px; font-size:11.5px; font-weight:600; color:var(--plate-blue);
+    background:none; border:none; padding:0; margin:0; font-size:11.5px; font-weight:600; color:var(--plate-blue);
     cursor:pointer; font-family:var(--font-sans); text-decoration:underline; text-underline-offset:2px;
   }
   .supplement-benefit-toggle:active{opacity:0.6;}
   .supplement-benefit-detail{display:block; margin-top:4px; color:var(--text-muted);}
   .supplement-benefit-detail b{color:var(--text);}
+  /* v3.462: My Supplements' rows are swipe tiles with a fill (v3.388), but the
+     row kept its edge-to-edge list padding, so the check sat on the tile's
+     left edge and the tiles were 2px apart. Padding inside, a gap between
+     (as #todayInsightsList's), and the check and ask button on the first
+     line rather than floating mid-paragraph. The bariatric checklist's plain
+     rows are untouched. */
+  #mySupplementsList .swipe-item{border-radius:var(--radius-md); margin-bottom:8px;}
+  #mySupplementsList .swipe-item:last-child{margin-bottom:0;}
+  #mySupplementsList .supplement-row{align-items:flex-start; gap:12px; padding:14px 12px 14px 14px;}
+  #mySupplementsList .supplement-name-wrap{flex:1 1 auto; gap:4px;}
+  #mySupplementsList .supplement-name-wrap .supplement-benefit{line-height:1.45;}
   .supplement-ingredients{display:block; font-size:11.5px; color:var(--text-muted); margin-top:4px;}
   .supplement-ingredients b{color:var(--text);}
   .supplement-ai-insight{display:block; margin-top:6px; color:var(--text-muted);}
@@ -1406,7 +1487,7 @@
   .rest-timer{
     position:fixed; bottom:calc(var(--above-bar) + 12px); left:50%; transform:translateX(-50%) translateY(16px) scale(0.92);
     width:var(--rest-timer-collapsed-w, 208px); max-width:calc(100vw - 32px);
-    background:linear-gradient(160deg, rgba(45,49,55,0.86), rgba(26,29,33,0.86));
+    background:var(--rest-timer-fill);
     backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border:1px solid rgba(var(--plate-blue-rgb),0.5); border-radius:36px;
     padding:10px 18px; z-index:50; overflow:hidden;
@@ -1824,6 +1905,14 @@
   /* v3.450: a stretch is a row you open, not a link — its name in the text
      colour (it took .ex-details' link blue, meant for the small "Cues" toggle). */
   .care-details > summary{color:var(--text); font-weight:500; font-size:14px; min-height:36px;}
+  /* v3.470: a row's chevron sits at its end, muted, at the list rows' size
+     (.posing-class, .month-group) — Learn's Recently Trained, search's
+     exercises and Care's stretches put it first, the small "Cues" toggle's
+     way. The Cues toggle (.ex-details alone) keeps its leading chevron. */
+  .care-details > summary::before{
+    order:1; margin:0 3px 0 auto; width:7px; height:7px;
+    border-right-width:2px; border-bottom-width:2px; color:var(--text-muted);
+  }
   .care-type-tag{
     font-size:11px; font-weight:700;
     padding:2px 7px; border-radius:var(--radius-md); flex:0 0 auto;
@@ -2895,16 +2984,21 @@
     border-bottom:1px solid var(--line);
   }
   .gsearch-group:first-child{ margin-top:0; }
+  /* v3.466: plain rows, like Learn's lists (v3.459): name, then where it
+     lives underneath, a hairline under each. They were boxed tiles with the
+     source squeezed into an 11px column beside a wrapping name. */
   .gsearch-hit{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
-    width:100%; text-align:left; background:var(--row-fill);
-    border:1px solid var(--line); border-radius:var(--radius-sm);
-    color:var(--text); font-family:var(--font-sans); font-size:13px;
-    padding:11px 13px; margin-top:6px; cursor:pointer; box-shadow:var(--rim);
+    width:100%; min-height:52px; text-align:left; background:none;
+    border:none; border-bottom:1px solid var(--line-soft); border-radius:0;
+    color:var(--text); font-family:var(--font-sans); font-size:15px;
+    padding:10px 0; margin:0; cursor:pointer;
   }
-  .gsearch-hit:active{ transform:scale(0.99); }
-  .gsearch-hit-tab{ color:var(--text-muted); font-size:11px; flex:0 0 auto; }
-  .nav-pill.active{background:#fff; border-color:#fff; color:#000;} /* v3.288: the selected tab is the one white pill in the glass bar (concept A) */
+  .gsearch-hit:active{ opacity:0.6; }
+  .gsearch-hit-text{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+  .gsearch-hit-tab{ color:var(--text-muted); font-size:12.5px; }
+  .gsearch-hit-chev{ color:var(--text-muted); flex:0 0 auto; display:flex; }
+  .nav-pill.active{background:var(--pill-active-bg); border-color:var(--pill-active-bg); color:var(--pill-active-ink);} /* v3.288: the selected tab is the one white pill in the glass bar (concept A); v3.478: through tokens, so in light mode it is the one ink pill */
   /* Tab-layout audit (v3.160, option #2): Care/Coach/Learn's home now, a
      vertical list inside navMoreOverlay instead of horizontal pills in the
      rail. These buttons keep the base .nav-pill class (same colors, same
@@ -4908,7 +5002,7 @@
     position:fixed; left:50%; bottom:calc(var(--above-bar) + 104px); z-index:60; /* v3.288: same 92px gap over the rest timer, now measured from the tab bar */
     transform:translateX(-50%) translateY(12px);
     width:min(380px, calc(100vw - 28px));
-    background:linear-gradient(165deg, rgba(38,42,49,0.94), rgba(20,22,26,0.94));
+    background:var(--float-panel-fill);
     backdrop-filter:blur(26px) saturate(170%);
     -webkit-backdrop-filter:blur(26px) saturate(170%);
     border:1px solid rgba(var(--surface-white-rgb),0.1); border-radius:22px;
@@ -5389,7 +5483,7 @@
          is general advice; above the list they pushed the first set row
          ~1130px down. Gym mode, today's standout and the voice tip stay up top. -->
     <div class="session-extras">
-      <button class="adapt-workout-toggle" id="adaptWorkoutBtn">Only have limited equipment or time today? Adapt this session</button>
+      <button class="adapt-workout-toggle" id="adaptWorkoutBtn">Adapt for limited equipment or time</button>
       <div id="adaptWorkoutPanel" class="smooth-toggle"><div>
         <input type="text" id="adaptWorkoutInput" class="care-input" placeholder="e.g. only dumbbells, no equipment at all, 20 minutes, traveling with just resistance bands" aria-label="What you have available today">
         <button class="save-btn" id="adaptWorkoutSubmit">Get adapted session</button>
@@ -5584,6 +5678,12 @@
               <option value="kg">kg</option>
             </select>
           </div>
+        </div>
+        <!-- v3.471: optional. Analysis draws it on the weight trend and says
+             when the current pace gets there. Blank means no goal. -->
+        <div>
+          <label class="care-label" for="pfGoalWeight">Goal weight (<span id="pfGoalWeightUnitLabel">lb</span>)</label>
+          <input type="number" inputmode="decimal" step="0.1" id="pfGoalWeight" class="care-input" placeholder="Optional">
         </div>
 
         <div id="prefDistanceUnit">
@@ -5988,6 +6088,11 @@
       <div class="profile-row-2">
         <div><label class="care-label" for="mHips">Hips (in)</label><input type="number" inputmode="decimal" step="0.1" id="mHips" class="care-input"></div>
         <div><label class="care-label" for="mNeck">Neck (in)</label><input type="number" inputmode="decimal" step="0.1" id="mNeck" class="care-input"></div>
+      </div>
+      <!-- v3.473: optional, from whatever you measure with (a smart scale,
+           calipers, a DEXA scan). The app never estimates it. -->
+      <div class="profile-row-2">
+        <div><label class="care-label" for="mBodyFat">Body fat (%)</label><input type="number" inputmode="decimal" step="0.1" min="2" max="70" id="mBodyFat" class="care-input" placeholder="Optional"></div>
       </div>
       <button class="save-btn" id="saveMeasurements">Log measurements</button>
       <div class="status-msg" id="measureStatus"></div>
@@ -7069,7 +7174,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.461';
+const APP_VERSION = '3.481';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8260,6 +8365,66 @@ const WHATS_NEW = {
   '3.461': { headline: 'Sources as a list', points: [
     'Learn\'s Research & Sources opens to a plain list, like the masterclass index.',
   ]},
+  '3.462': { headline: 'Roomier supplements', points: [
+    'My Supplements\' rows have room inside and space between them.',
+  ]},
+  '3.463': { headline: 'One priority up front', points: [
+    'Today\'s Priorities shows the most important note; the rest fold behind Show more.',
+  ]},
+  '3.464': { headline: 'Shorter adapt button', points: [
+    'Today\'s adapt button reads in one line.',
+  ]},
+  '3.465': { headline: 'Exercises first in search', points: [
+    'Search lists exercises before masterclass techniques.',
+  ]},
+  '3.466': { headline: 'Search as a list', points: [
+    'Search results are plain rows, each showing where it lives underneath.',
+  ]},
+  '3.467': { headline: 'Cleaner first launch', points: [
+    'A first launch shows just the create-profile form.',
+  ]},
+  '3.468': { headline: 'Accurate header line', points: [
+    'The line under Today\'s title no longer claims a 7-day split or 45–60 minute sessions.',
+  ]},
+  '3.469': { headline: 'No stray indent', points: [
+    'In My Supplements, More no longer starts indented when it wraps.',
+  ]},
+  '3.470': { headline: 'Chevrons at the end', points: [
+    'Exercise and stretch rows put their arrow at the end, like every other list.',
+  ]},
+  '3.471': { headline: 'Goal weight', points: [
+    'Your Profile has an optional goal weight.',
+  ]},
+  '3.472': { headline: 'When you\'ll reach your goal', points: [
+    'With a goal weight set, Weight Trend draws it and says when your current pace gets there.',
+  ]},
+  '3.473': { headline: 'Body fat', points: [
+    'Measurements has an optional body-fat field, for a reading from your scale, calipers or a scan.',
+  ]},
+  '3.474': { headline: 'Lean and fat mass', points: [
+    'With a body-fat reading near a weigh-in, Analysis shows your lean and fat mass and how each has moved.',
+  ]},
+  '3.475': { headline: 'Week stats in one place', points: [
+    'Saved Weeks\' averages now come from one shared function (no visible change).',
+  ]},
+  '3.476': { headline: 'Monday recap', points: [
+    'On Mondays, Today\'s Priorities sums up last week: workouts, food, sleep and weight.',
+  ]},
+  '3.477': { headline: 'Light mode', points: [
+    'The app follows your phone: light when iOS is in light mode, dark otherwise.',
+  ]},
+  '3.478': { headline: 'Visible tab in light mode', points: [
+    'In light mode, the selected tab is a dark pill so it stands out.',
+  ]},
+  '3.479': { headline: 'Readable colours in light mode', points: [
+    'In light mode, coloured text (PRs, warnings, gains) is a deeper shade so it reads on white.',
+  ]},
+  '3.480': { headline: 'Gym mode stays dark', points: [
+    'Gym mode keeps its dark screen even when your phone is in light mode.',
+  ]},
+  '3.481': { headline: 'Light panels', points: [
+    'In light mode, the rest timer, the gym-mode prompt and the Up next fields are light too.',
+  ]},
 };
 
 // [PHOTO BLOB STORE] -----------------------------------------------------------
@@ -8930,8 +9095,12 @@ function showUserPicker(){
   document.getElementById('userPickerCancelBtn').style.display = activeUserId ? '' : 'none';
   const listEl = document.getElementById('userPickerList');
   const users = getUserList();
+  // v3.467: on a first launch there is nothing to pick, so neither the list
+  // nor the "— or —" between it and the create form shows; it read as a
+  // choice with one side missing.
+  document.querySelector('#userPickerOverlay .user-picker-divider').hidden = users.length === 0;
   if(users.length === 0){
-    listEl.innerHTML = '<div class="empty-note">No profiles on this device yet — create the first one below.</div>';
+    listEl.innerHTML = '';
   }else{
     listEl.innerHTML = users.map(u=>`<button class="user-pick-btn" data-id="${escapeHtml(u.id)}">${escapeHtml(u.name)}</button>`).join('');
     listEl.querySelectorAll('.user-pick-btn').forEach(btn=>{
@@ -13874,16 +14043,41 @@ async function getReadinessInsight(){
   return `${f.icon ? f.icon + ' ' : ''}<b>Readiness:</b> ${f.text}`;
 }
 
+// v3.476: on Mondays, last week in one line — the same numbers a saved week
+// keeps (computeWeekStats), facts only. Weight compares the week's average
+// with the week before's, so one heavy morning doesn't read as a gain.
+// Averages say how many days they come from when it wasn't all seven.
+async function getWeeklyRecapInsight(){
+  const today = getTodayKey();
+  if(parseDateKey(today).getDay() !== 1) return null;
+  const [last, before] = await Promise.all([
+    computeWeekStats(dateKeyMinusDays(today, 7)), computeWeekStats(dateKeyMinusDays(today, 14)),
+  ]);
+  const parts = [];
+  if(last.workoutsCount) parts.push(`${last.workoutsCount} workout${last.workoutsCount === 1 ? '' : 's'}`);
+  if(last.avgCal != null){
+    const days = last.daysLogged < 7 ? ` (${last.daysLogged} day${last.daysLogged === 1 ? '' : 's'} logged)` : '';
+    parts.push(`${last.avgCal.toLocaleString('en-US')} cal and ${last.avgPro} g protein a day${days}`);
+  }
+  if(last.avgSleep != null) parts.push(`${last.avgSleep} h sleep a night`);
+  if(last.avgWeight != null && before.avgWeight != null){
+    const d = +(last.avgWeight - before.avgWeight).toFixed(1);
+    parts.push(d === 0 ? 'average weight unchanged' : `average weight ${d > 0 ? '+' : '−'}${fmtWeight(Math.abs(d))}`);
+  }
+  if(parts.length === 0) return null;
+  return `<b>Last week:</b> ${parts.join(' · ')}.`;
+}
+
 async function renderTodayInsights(){
   const card = document.getElementById('todayInsightsCard');
   const el = document.getElementById('todayInsightsList');
   if(!card || !el) return;
 
-  const [cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge] = await Promise.all([
+  const [cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge, weeklyRecap] = await Promise.all([
     getCycleInsight(),
     getStaleRestingRegionInsight(), getWeighInReminderInsight(), getWaterPaceInsight(), getSessionHeadsUpInsight(),
     getDeficitGuardrailInsight(), getPregnancyHeatInsight(), getBackupReminderInsight(),
-    getReadinessInsight(), getFoundationalStackNudgeInsight(),
+    getReadinessInsight(), getFoundationalStackNudgeInsight(), getWeeklyRecapInsight(),
   ]);
 
   // deficit sits second: under the session heads-up (which is about the next
@@ -13908,8 +14102,10 @@ async function renderTodayInsights(){
   // recommendation adjacent rather than scattered across the list.
   // The cycle row carries the phase's food advice too since v3.382 (it was
   // a separate cycleNutrition row naming the same phase a second time).
-  const rows = {pregnancyHeat, readiness, sessionHeadsUp, deficit, cycle, stackNudge, staleRegion, weighIn, waterPace, backup};
-  const order = ['pregnancyHeat', 'readiness', 'sessionHeadsUp', 'deficit', 'cycle', 'stackNudge', 'staleRegion', 'weighIn', 'waterPace', 'backup'];
+  // weeklyRecap (Mondays, v3.476) sits under the session heads-up: it looks
+  // back where everything above it is about today, and above the nudges.
+  const rows = {pregnancyHeat, readiness, sessionHeadsUp, weeklyRecap, deficit, cycle, stackNudge, staleRegion, weighIn, waterPace, backup};
+  const order = ['pregnancyHeat', 'readiness', 'sessionHeadsUp', 'weeklyRecap', 'deficit', 'cycle', 'stackNudge', 'staleRegion', 'weighIn', 'waterPace', 'backup'];
   const hidden = await getHiddenPriorities();
   const items = order.filter(id => rows[id] && !hidden.includes(id));
   if(items.length === 0){
@@ -13919,7 +14115,11 @@ async function renderTodayInsights(){
   card.style.display = '';
   // v3.383: each row swipes away for the rest of today, with Undo — the shared
   // swipe-to-delete row (buildSwipeItem + makeSwipeable), like every other list.
-  el.innerHTML = items.map(id => buildSwipeItem(`<div class="today-insight-row" data-priority="${id}">${rows[id]}</div>`)).join('');
+  // v3.463: the top row shows, the rest fold behind "Show N more" (the shared
+  // collapsible list). Three or four boxed paragraphs used to push the
+  // workout below the fold; the order above already puts the one that
+  // matters most first, and a safety row (pregnancyHeat) always leads.
+  renderCollapsibleList(el, items.map(id => buildSwipeItem(`<div class="today-insight-row" data-priority="${id}">${rows[id]}</div>`)), 1, 'priorities');
   el.querySelectorAll('.swipe-item').forEach(item => {
     const id = item.querySelector('[data-priority]').dataset.priority;
     item.querySelector('.swipe-delete-bg').setAttribute('aria-label', 'Hide until tomorrow');
@@ -32044,6 +32244,8 @@ function applyWeightUnitToUI(){
   if(distSelect) distSelect.value = distanceUnit;
   const label = document.getElementById('pfWeightUnitLabel');
   if(label) label.textContent = weightUnit;
+  const goalLabel = document.getElementById('pfGoalWeightUnitLabel');
+  if(goalLabel) goalLabel.textContent = weightUnit;
   const weightInputEl = document.getElementById('weightInput');
   // aria-label overrides the placeholder for assistive tech, so it has to move
   // with the unit too — otherwise a kg user is told "lb".
@@ -32913,7 +33115,10 @@ function renderHeader(){
   const p = userProfile;
   if(p.name){
     document.getElementById('headerEyebrow').textContent = `${p.name} · ${GOAL_LABELS[p.goal] || ''} program`;
-    document.getElementById('headerSub').textContent = `7-day split · ${p.heightFt}'${p.heightIn}" · ${fmtWeight(p.weight)} · ${(GOAL_LABELS[p.goal]||'').toLowerCase()} · 45-60 min sessions`;
+    // v3.468: no "7-day split" or "45-60 min sessions". Both were fixed text,
+    // wrong for most programs (a 4-day upper/lower estimating ~74 min); the
+    // workout card shows the real day and its estimate.
+    document.getElementById('headerSub').textContent = `${p.heightFt}'${p.heightIn}" · ${fmtWeight(p.weight)} · ${(GOAL_LABELS[p.goal]||'').toLowerCase()}`;
   } else {
     document.getElementById('headerEyebrow').textContent = 'Training Log';
     document.getElementById('headerSub').textContent = 'Set up your profile below to personalize this';
@@ -33136,6 +33341,7 @@ function populateProfileForm(){
   document.getElementById('pfHeightFt').value = p.heightFt || '';
   document.getElementById('pfHeightIn').value = p.heightIn || '';
   document.getElementById('pfWeight').value = p.weight ? trimUnitNum(toDisplayWeight(p.weight)) : '';
+  document.getElementById('pfGoalWeight').value = p.goalWeight ? trimUnitNum(toDisplayWeight(p.goalWeight)) : '';
   document.getElementById('pfActivity').value = p.activity;
   document.getElementById('pfGoal').value = p.goal;
   document.getElementById('pfCycleTrackingEnabled').checked = p.cycleTrackingEnabled !== false;
@@ -33173,6 +33379,12 @@ document.getElementById('pfBodyGoal').addEventListener('change', (e)=> renderBod
 // telling the user their profile now holds a nonsensical number. Same
 // "blank keeps the old value" rule the save handler already uses, extended
 // to any value that isn't a real (non-negative) age.
+// v3.471: the goal weight field, in the display unit, to canonical lb or null.
+function readGoalWeight(rawValue){
+  const n = Number(rawValue);
+  return rawValue !== '' && Number.isFinite(n) && n > 0 ? toCanonicalLb(rawValue) : null;
+}
+
 function readValidAge(rawValue, fallback){
   if(rawValue === '') return fallback;
   const n = Number(rawValue);
@@ -33197,6 +33409,9 @@ document.getElementById('pfSave').addEventListener('click', async ()=>{
     heightFt: document.getElementById('pfHeightFt').value !== '' ? Number(document.getElementById('pfHeightFt').value) : userProfile.heightFt,
     heightIn: Number(document.getElementById('pfHeightIn').value) || 0,
     weight: document.getElementById('pfWeight').value ? toCanonicalLb(document.getElementById('pfWeight').value) : userProfile.weight,
+    // v3.471: optional, so blank clears it (unlike weight, where blank keeps
+    // the old value); anything that isn't a positive number is no goal.
+    goalWeight: readGoalWeight(document.getElementById('pfGoalWeight').value),
     activity: Number(document.getElementById('pfActivity').value),
     goal: document.getElementById('pfGoal').value,
     bodyGoal: document.getElementById('pfBodyGoal').value,
@@ -35058,7 +35273,9 @@ async function renderMySupplements(){
       const detailHtml = expanded
         ? `<span class="supplement-benefit-detail">${escapeHtml(info.why)}<br><b>Typical dose:</b> ${escapeHtml(info.typicalDose || '—')}<br><b>Timing:</b> ${escapeHtml(info.timing || '—')}${info.caution ? `<br><b>Caution:</b> ${escapeHtml(info.caution)}` : ''}</span>`
         : '';
-      parts.push(`<span class="supplement-benefit">${expanded ? evidenceLabel : firstSentence}${toggleBtn}${detailHtml}</span>`);
+      // v3.469: a space, not a margin, before More — a margin stayed as an
+      // indent when More wrapped onto a line of its own.
+      parts.push(`<span class="supplement-benefit">${expanded ? evidenceLabel : firstSentence} ${toggleBtn}${detailHtml}</span>`);
     } else {
       // No curated evidence-graded match. Real label ingredients (when a
       // DSLD add carried them) are still plain fact, never a claim about
@@ -35092,7 +35309,7 @@ async function renderMySupplements(){
       } else {
         summaryHtml = 'Not curated here — tap for ingredients or an AI read.';
       }
-      parts.push(`<span class="supplement-benefit">${summaryHtml}${toggleBtn}${detailHtml}</span>`);
+      parts.push(`<span class="supplement-benefit">${summaryHtml} ${toggleBtn}${detailHtml}</span>`);
     }
     if(frequency !== 'daily'){
       const progress = meta.requiredCount > 1 ? ` — ${count}/${meta.requiredCount} today` : '';
@@ -38296,6 +38513,22 @@ document.getElementById('saveCycle').addEventListener('click', async ()=>{
 });
 
 // [BODY MEASUREMENTS] -----------------------------------------------------------
+// v3.473: a list row's figures. The tape's (in inches) share one closing ",
+// as they always did; a body-fat reading follows in its own unit, and an
+// entry with only body fat shows no stray ".
+function measureRowText(e){
+  const tape = [e.waist&&`W:${e.waist}`, e.chest&&`C:${e.chest}`, e.arms&&`A:${e.arms}`].filter(Boolean).join(' ');
+  const parts = [];
+  if(tape) parts.push(`${tape}"`);
+  if(e.bodyFat) parts.push(`${e.bodyFat}% fat`);
+  return parts.join(' · ');
+}
+// v3.473: the body-fat field to a number, or null for blank or out-of-range.
+function readBodyFat(rawValue){
+  const n = Number(rawValue);
+  return rawValue !== '' && Number.isFinite(n) && n >= 2 && n <= 70 ? n : null;
+}
+
 async function loadMeasurements(){
   const listEl = document.getElementById('measureList');
   const summaryEl = document.getElementById('measureSummary');
@@ -38314,10 +38547,11 @@ async function loadMeasurements(){
     if(latest.waist) parts.push(`Waist ${latest.waist}"`);
     if(latest.chest) parts.push(`Chest ${latest.chest}"`);
     if(latest.arms) parts.push(`Arms ${latest.arms}"`);
+    if(latest.bodyFat) parts.push(`Body fat ${latest.bodyFat}%`);
     summaryEl.textContent = parts.length ? `Latest: ${parts.join(' · ')}` : 'Waist, chest, arms and more, over time';
     const sorted = entries;
     const itemHtmls = sorted.map(e=> buildSwipeItem(
-      `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${[e.waist&&`W:${e.waist}`, e.chest&&`C:${e.chest}`, e.arms&&`A:${e.arms}`].filter(Boolean).join(' ')}"</span></div>`
+      `<div class="weight-item"><span>${new Date(e.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span><span>${measureRowText(e)}</span></div>`
     ));
     renderCollapsibleList(listEl, itemHtmls, 3, 'entries');
     // The sharpest of the seven: matching on `date` alone deleted every
@@ -38341,8 +38575,9 @@ document.getElementById('saveMeasurements').addEventListener('click', async ()=>
     thighs: document.getElementById('mThighs').value || null,
     hips: document.getElementById('mHips').value || null,
     neck: document.getElementById('mNeck').value || null,
+    bodyFat: readBodyFat(document.getElementById('mBodyFat').value),
   };
-  if(!entry.waist && !entry.chest && !entry.arms && !entry.thighs && !entry.hips && !entry.neck){
+  if(!entry.waist && !entry.chest && !entry.arms && !entry.thighs && !entry.hips && !entry.neck && !entry.bodyFat){
     document.getElementById('measureStatus').textContent = 'Enter at least one measurement';
     return;
   }
@@ -38354,7 +38589,7 @@ document.getElementById('saveMeasurements').addEventListener('click', async ()=>
     }catch(e){ entries = []; }
     entries.push(entry);
     await window.storage.set('measurements-log', JSON.stringify(entries));
-    ['mWaist','mChest','mArms','mThighs','mHips','mNeck'].forEach(id=> document.getElementById(id).value = '');
+    ['mWaist','mChest','mArms','mThighs','mHips','mNeck','mBodyFat'].forEach(id=> document.getElementById(id).value = '');
     loadMeasurements();
     document.getElementById('measureStatus').textContent = 'Saved';
     setTimeout(()=> document.getElementById('measureStatus').textContent = '', 2000);
@@ -39700,6 +39935,25 @@ async function renderMealTimingInsight(){
   el.innerHTML = rows + comparisonHtml;
 }
 
+// v3.472: one sentence on the goal weight (Your Profile, v3.471), from the
+// trend's own weekly pace. Says when the pace gets there, or that it is
+// heading the other way; no date when the pace is flat or the date is more
+// than two years out. '' with no goal.
+function describeGoalPace(lastLb, goalLb, perWeekLb, lastDateKey){
+  if(!goalLb) return '';
+  const goal = fmtWeight(goalLb);
+  const remaining = goalLb - lastLb;
+  if(Math.abs(remaining) <= 0.5) return `You're at your ${goal} goal.`;
+  if(Math.abs(perWeekLb) < 0.15) return `${fmtWeight(Math.abs(remaining))} to your ${goal} goal.`;
+  if(Math.sign(remaining) !== Math.sign(perWeekLb)) return `Moving away from your ${goal} goal.`;
+  const days = Math.round(remaining / perWeekLb * 7);
+  if(days > 730) return `${fmtWeight(Math.abs(remaining))} to your ${goal} goal; over two years at this pace.`;
+  const when = parseDateKey(lastDateKey);
+  when.setDate(when.getDate() + days);
+  const opts = when.getFullYear() === new Date().getFullYear() ? {month:'short', day:'numeric'} : {month:'short', day:'numeric', year:'numeric'};
+  return `At this pace, ${goal} around ${formatDate(when, opts)}.`;
+}
+
 function renderSparkline(entries){
   const el = document.getElementById('weightChart');
   const rangeDays = getAnalysisTrendRangeDays();
@@ -39712,9 +39966,14 @@ function renderSparkline(entries){
   }
   const sorted = [...inRange].sort((a,b)=> new Date(a.date)-new Date(b.date));
   const weights = sorted.map(e=>e.weight);
-  const min = Math.min(...weights), max = Math.max(...weights);
+  // v3.472: the goal joins the scale, so its line is always on the chart (as
+  // the nutrition targets do, v3.436).
+  const goalLb = (typeof userProfile !== 'undefined' && userProfile.goalWeight) || null;
+  const scale = goalLb ? [...weights, goalLb] : weights;
+  const min = Math.min(...scale), max = Math.max(...scale);
   const range = (max-min) || 1;
   const w = 600, h = 70, pad = 8;
+  const goalY = goalLb ? h - pad - ((goalLb-min)/range) * (h-2*pad) : null;
   const pts = sorted.map((e,i)=>{
     const x = pad + (i/(sorted.length-1)) * (w-2*pad);
     const y = h - pad - ((e.weight-min)/range) * (h-2*pad);
@@ -39738,6 +39997,8 @@ function renderSparkline(entries){
       // right above and says whether the pace suits the goal.
       status = 'neutral'; text = `About ${perWeekDisplay} ${weightUnit} a week ${perWeek>0?'gain':'loss'} over this window.`;
     }
+    const goalNote = describeGoalPace(sorted[sorted.length-1].weight, goalLb, perWeek, sorted[sorted.length-1].date);
+    if(goalNote) text += ` ${goalNote}`;
     insightHtml = `<div class="${status==='good'?'goal-feedback-good':status==='warn'?'goal-feedback-warn':'goal-feedback-neutral'}" style="margin-top:10px;">${text}</div>`;
   }
   el.innerHTML = `
@@ -39750,6 +40011,7 @@ function renderSparkline(entries){
       </defs>
       <polygon points="${pad},${h} ${pts} ${w-pad},${h}" fill="url(#gradWeightTrend)"/>
       <polyline fill="none" stroke="#5B7CFF" stroke-width="2.5" points="${pts}"/>
+      ${goalY == null ? '' : `<line class="trend-target" x1="${pad}" x2="${w-pad}" y1="${goalY}" y2="${goalY}"/>`}
     </svg>
     <div class="trend-labels">
       <span>${fmtWeight(sorted[0].weight)}</span>
@@ -44268,20 +44530,19 @@ async function generateWeeklyNutritionDigest(stats){
   }
 }
 
-async function archiveCurrentWeek(){
-  const btn = document.getElementById('archiveWeekBtn');
-  const status = document.getElementById('archiveWeekStatus');
-  btn.disabled = true;
-
-  const todayMonday = mondayOf(getTodayKey());
-  const weekEnd = new Date(todayMonday+'T00:00:00'); weekEnd.setDate(weekEnd.getDate()+7);
+// v3.475: one week's averages, Monday to Sunday, from what was logged. Lifted
+// out of archiveCurrentWeek unchanged so the Monday recap on Today (v3.476)
+// reads the same numbers a saved week does. A null average means nothing of
+// that kind was logged that week.
+async function computeWeekStats(weekStartKey){
+  const weekEnd = new Date(weekStartKey+'T00:00:00'); weekEnd.setDate(weekEnd.getDate()+7);
   const inThisWeek = (dateStr)=>{
     const d = new Date(dateStr+'T00:00:00');
-    return d >= new Date(todayMonday+'T00:00:00') && d < weekEnd;
+    return d >= new Date(weekStartKey+'T00:00:00') && d < weekEnd;
   };
 
-  const [weightEntries, workoutDates, foodDays, waterDays, trendStatus] = await Promise.all([
-    fetchAllWeightEntries(), fetchWorkoutDates(), fetchFoodDays(), fetchWaterDays(), getCurrentTrendStatus()
+  const [weightEntries, workoutDates, foodDays, waterDays] = await Promise.all([
+    fetchAllWeightEntries(), fetchWorkoutDates(), fetchFoodDays(), fetchWaterDays()
   ]);
 
   const weekWeights = weightEntries.filter(e=>inThisWeek(e.date));
@@ -44303,6 +44564,19 @@ async function archiveCurrentWeek(){
   }catch(e){}
   const weekSleep = sleepEntries.filter(e=>inThisWeek(e.date));
   const avgSleep = weekSleep.length ? +(weekSleep.reduce((s,e)=>s+Number(e.hours),0)/weekSleep.length).toFixed(1) : null;
+
+  return {avgWeight, workoutsCount, daysLogged, avgCal, avgPro, avgFat, avgCarb, avgWater, avgSleep};
+}
+
+async function archiveCurrentWeek(){
+  const btn = document.getElementById('archiveWeekBtn');
+  const status = document.getElementById('archiveWeekStatus');
+  btn.disabled = true;
+
+  const todayMonday = mondayOf(getTodayKey());
+  const [{avgWeight, workoutsCount, daysLogged, avgCal, avgPro, avgFat, avgCarb, avgWater, avgSleep}, trendStatus] = await Promise.all([
+    computeWeekStats(todayMonday), getCurrentTrendStatus()
+  ]);
 
   const archive = await getWeekArchive();
   status.textContent = 'Saving your week…';
@@ -44892,12 +45166,58 @@ function recogniseMeasurementProgress(profile, deltas){
   return null;
 }
 
-function buildBodyMetricsHtml(profile, measureEntries){
+// v3.474: lean and fat mass from the body-fat readings in Measurements
+// (v3.473), each paired with a weigh-in from the same day or up to 3 days
+// either side (the nearest). Readings with no weigh-in near them are left
+// out rather than paired with a stale profile weight. Returns the latest
+// pairing and, when there's an earlier one at least 14 days before it, the
+// change in each. null with nothing to pair.
+const BODY_COMP_PAIR_DAYS = 3;
+function computeBodyComposition(measureEntries, weightEntries){
+  const dayOf = k => new Date(k+'T00:00:00').getTime() / 86400000;
+  const weighIns = (weightEntries||[]).filter(e=> e && Number(e.weight) > 0);
+  const pairs = (measureEntries||[])
+    .filter(e=> e && Number(e.bodyFat) > 0)
+    .map(e=>{
+      const near = weighIns
+        .map(w=> ({w, gap: Math.abs(dayOf(w.date) - dayOf(e.date))}))
+        .filter(x=> x.gap <= BODY_COMP_PAIR_DAYS)
+        .sort((a,b)=> a.gap - b.gap)[0];
+      if(!near) return null;
+      const weight = Number(near.w.weight), bf = Number(e.bodyFat);
+      const fat = weight * bf / 100;
+      return {date:e.date, bodyFat:bf, weight, fat, lean: weight - fat};
+    })
+    .filter(Boolean)
+    .sort((a,b)=> a.date.localeCompare(b.date));
+  if(pairs.length === 0) return null;
+  const latest = pairs[pairs.length-1];
+  const earlier = pairs.filter(p=> dayOf(latest.date) - dayOf(p.date) >= 14)[0] || null;
+  return {latest, since: earlier ? {date: earlier.date, lean: latest.lean - earlier.lean, fat: latest.fat - earlier.fat} : null};
+}
+
+function bodyCompositionHtml(comp){
+  if(!comp) return '';
+  const {latest, since} = comp;
+  const day = k => formatDate(parseDateKey(k), {month:'short', day:'numeric'});
+  const signed = lb => `${lb > 0 ? '+' : lb < 0 ? '−' : ''}${fmtWeight(Math.abs(lb))}`;
+  const change = since ? `<br>Since ${day(since.date)}: lean ${signed(since.lean)}, fat ${signed(since.fat)}.` : '';
+  return `
+      <div style="margin-bottom:12px;">
+        <div class="goal-feedback-neutral"><b>About ${fmtWeight(latest.lean)} lean, ${fmtWeight(latest.fat)} fat</b> at ${latest.bodyFat}% body fat and ${fmtWeight(latest.weight)} (${day(latest.date)}).${change}</div>
+        <div class="history-hint" style="margin-top:8px;">From your body-fat readings in Measurements, each with a weigh-in from within ${BODY_COMP_PAIR_DAYS} days. Home scales and calipers can be off by several points; the direction over weeks says more than any one number.</div>
+      </div>`;
+}
+
+function buildBodyMetricsHtml(profile, measureEntries, weightEntries){
   const whtr = computeWaistToHeight(profile, measureEntries);
   const deltas = computeMeasurementDeltas(measureEntries, GOAL_FEEDBACK_LOOKBACK_DAYS);
-  if(!whtr && deltas.length === 0) return null;
+  const comp = computeBodyComposition(measureEntries, weightEntries);
+  if(!whtr && deltas.length === 0 && !comp) return null;
 
   const blocks = [];
+
+  if(comp) blocks.push(bodyCompositionHtml(comp));
 
   if(whtr){
     const heightFt = Math.floor(whtr.heightInches/12);
@@ -44939,8 +45259,8 @@ async function renderBodyMetrics(){
   const card = document.getElementById('bodyMetricsCard');
   const el = document.getElementById('bodyMetricsContent');
   if(!card || !el) return;
-  const measureEntries = await fetchAllMeasurements();
-  const html = buildBodyMetricsHtml(userProfile, measureEntries);
+  const [measureEntries, weightEntries] = await Promise.all([fetchAllMeasurements(), fetchAllWeightEntries()]);
+  const html = buildBodyMetricsHtml(userProfile, measureEntries, weightEntries);
   // Hidden entirely rather than shown empty: someone who has never opened the
   // measurements card should not find a body-composition panel waiting for them
   // on a tab they came to for training data.
@@ -46802,8 +47122,8 @@ function renderGlobalSearchResults(query){
     // scrolls the card. One mechanism, already tested, already fixed once.
     html += sections.map(s=>
       `<button type="button" class="gsearch-hit" data-jump-to="${escapeHtml(s.id)}">`
-      + `<span>${escapeHtml(s.title)}</span>`
-      + `<span class="gsearch-hit-tab">${escapeHtml(s.tabLabel)} ${icon('chevron')}</span></button>`
+      + `<span class="gsearch-hit-text"><span>${escapeHtml(s.title)}</span><span class="gsearch-hit-tab">${escapeHtml(s.tabLabel)}</span></span>`
+      + `<span class="gsearch-hit-chev" aria-hidden="true">${icon('chevron')}</span></button>`
     ).join('');
     // Sections and techniques (below) used to cap at their LIMIT with no sign
     // anything was left out \u2014 silent, unlike exercises, which have always
@@ -46815,21 +47135,9 @@ function renderGlobalSearchResults(query){
       html += `<div class="history-hint">Showing ${sections.length} of ${allSections.length} matching sections \u2014 try a more specific search.</div>`;
     }
   }
-  if(techniques.length){
-    html += '<div class="gsearch-group">Techniques</div>';
-    // data-technique-card + data-technique-name, not a bespoke handler here
-    // either \u2014 same delegated-on-document shape as data-jump-to, just with a
-    // second piece of addressing info since a technique needs BOTH which card
-    // to open AND which row inside it, where a section only ever needed one id.
-    html += techniques.map(t=>
-      `<button type="button" class="gsearch-hit" data-technique-card="${escapeHtml(t.cardId)}" data-technique-name="${escapeHtml(t.name)}">`
-      + `<span>${escapeHtml(t.name)}</span>`
-      + `<span class="gsearch-hit-tab">${escapeHtml(t.masterclassLabel)} ${icon('chevron')}</span></button>`
-    ).join('');
-    if(allTechniques.length > techniques.length){
-      html += `<div class="history-hint">Showing ${techniques.length} of ${allTechniques.length} matching techniques \u2014 try a more specific search.</div>`;
-    }
-  }
+  // v3.465: exercises before techniques. "squat" listed nine masterclass
+  // techniques before Back Squat; an exercise is what a search almost always
+  // means, and techniques follow.
   if(shownEx.length){
     html += '<div class="gsearch-group">Exercises</div>';
     // The SAME builder the Learn tab's search uses. It returns a self-contained
@@ -46839,6 +47147,21 @@ function renderGlobalSearchResults(query){
     html += shownEx.map(buildExerciseSearchResultHtml).join('');
     if(exercises.length > shownEx.length){
       html += `<div class="history-hint">Showing ${shownEx.length} of ${exercises.length} matching exercises \u2014 try a more specific search.</div>`;
+    }
+  }
+  if(techniques.length){
+    html += '<div class="gsearch-group">Techniques</div>';
+    // data-technique-card + data-technique-name, not a bespoke handler here
+    // either \u2014 same delegated-on-document shape as data-jump-to, just with a
+    // second piece of addressing info since a technique needs BOTH which card
+    // to open AND which row inside it, where a section only ever needed one id.
+    html += techniques.map(t=>
+      `<button type="button" class="gsearch-hit" data-technique-card="${escapeHtml(t.cardId)}" data-technique-name="${escapeHtml(t.name)}">`
+      + `<span class="gsearch-hit-text"><span>${escapeHtml(t.name)}</span><span class="gsearch-hit-tab">${escapeHtml(t.masterclassLabel)}</span></span>`
+      + `<span class="gsearch-hit-chev" aria-hidden="true">${icon('chevron')}</span></button>`
+    ).join('');
+    if(allTechniques.length > techniques.length){
+      html += `<div class="history-hint">Showing ${techniques.length} of ${allTechniques.length} matching techniques \u2014 try a more specific search.</div>`;
     }
   }
   el.innerHTML = html;

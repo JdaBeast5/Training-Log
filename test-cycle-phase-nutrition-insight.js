@@ -30,8 +30,10 @@ const computeCyclePhaseSrc = extractFunction(src, 'computeCyclePhase');
 const getTodayKeySrc = extractFunction(src, 'getTodayKey');
 // 2026-10-26 (v3.383): each row is a swipe item that hides until tomorrow, so
 // the renderer brings its hidden-rows store and the shared swipe row with it.
-const renderTodayInsightsSrc = ['renderTodayInsights', 'getHiddenPriorities', 'setHiddenPriorities', 'buildSwipeItem', 'makeSwipeable']
-  .map(n => extractFunction(src, n)).join('\n');
+// 2026-10-28 (v3.463): renderTodayInsights folds rows after the first into
+// the shared collapsible list, so the real one and its batch size load too.
+const renderTodayInsightsSrc = ['renderTodayInsights', 'getHiddenPriorities', 'setHiddenPriorities', 'buildSwipeItem', 'makeSwipeable', 'renderCollapsibleList']
+  .map(n => extractFunction(src, n)).join('\n') + '\n' + extractConst(src, 'COLLAPSIBLE_LIST_BATCH_SIZE');
 
 const { test, run } = makeRunner('test-cycle-phase-nutrition-insight.js');
 
@@ -129,6 +131,7 @@ const OTHER_INSIGHT_STUBS = `
   async function getBackupReminderInsight(){ return null; }
   async function getReadinessInsight(){ return null; }
   async function getFoundationalStackNudgeInsight(){ return null; }
+  async function getWeeklyRecapInsight(){ return null; } // 2026-10-28 (v3.476): Monday recap (test-weekly-recap.js)
 `;
 
 const wiringBodyHtml = `
