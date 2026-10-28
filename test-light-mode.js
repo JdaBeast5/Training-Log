@@ -70,4 +70,22 @@ test('REAL CSSOM (v3.478): the active tab pill is ink in light mode and still re
   assert.ok(contrast(tok(light, '--pill-active-bg'), tok(light, '--bg')) >= 3, 'pill against the page');
 });
 
+// v3.479 — Accents as text. Yellow, green, orange, teal and even red and blue
+// fell under 4.5:1 on white (yellow 1.6:1: History's PR weights, the warning
+// notes). In light mode each accent is a deeper shade; the -rgb twins stay
+// bright because they only tint and glow.
+test('REAL CSSOM (v3.479): every accent reads at 4.5:1 on the light page and on a light card', (assert)=>{
+  const light = lightRoots[0];
+  const accents = ['red', 'orange', 'yellow', 'green', 'teal', 'purple', 'blue'];
+  for(const a of accents){
+    const hex = tok(light, `--plate-${a}`);
+    assert.match(hex, /^#[0-9A-Fa-f]{6}$/, a);
+    assert.notStrictEqual(hex, tok(darkRoot, `--plate-${a}`), `${a} has its own light shade`);
+    for(const [back, name] of [[tok(light, '--bg'), 'page'], [tok(light, '--surface'), 'card']]){
+      assert.ok(contrast(hex, back) >= 4.5, `${a} on ${name}: ${contrast(hex, back).toFixed(2)}:1`);
+    }
+    assert.strictEqual(tok(light, `--plate-${a}-rgb`), '', `${a}'s rgb twin is untouched`);
+  }
+});
+
 run();

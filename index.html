@@ -325,6 +325,16 @@
       --gym-panel-gradient:linear-gradient(170deg, #FFFFFF 0%, #F6F6F9 62%, #F0F0F4 100%);
       --pill-active-bg:#111216;
       --pill-active-ink:#FFFFFF;
+      /* v3.479: the accents darken so text in them reads on white and on the
+         page (4.5:1 on both; the bright dark-mode yellow was 1.6:1 on white).
+         Their -rgb twins stay bright: they only tint and glow. */
+      --plate-red:#D70015;
+      --plate-orange:#B04400;
+      --plate-yellow:#8F6200;
+      --plate-green:#187A33;
+      --plate-teal:#0B7480;
+      --plate-purple:#8436D6;
+      --plate-blue:#3A57E0;
     }
   }
   *{box-sizing:border-box; margin:0; padding:0;}
@@ -7150,7 +7160,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.478';
+const APP_VERSION = '3.479';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8391,6 +8401,9 @@ const WHATS_NEW = {
   ]},
   '3.478': { headline: 'Visible tab in light mode', points: [
     'In light mode, the selected tab is a dark pill so it stands out.',
+  ]},
+  '3.479': { headline: 'Readable colours in light mode', points: [
+    'In light mode, coloured text (PRs, warnings, gains) is a deeper shade so it reads on white.',
   ]},
 };
 
