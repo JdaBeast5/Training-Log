@@ -620,3 +620,13 @@ Owner chose "Follow the phone": light when iOS is light, dark otherwise, with no
   - switch to `default`, which changes the dark layout under the notch.
   The owner should decide after seeing it.
 - **Left as is:** the dark modal scrims (`rgba(10,11,13,…)`) also darken the light page, which is normal behind a sheet.
+
+## Addendum 30: Translucent Analysis jump rail (v3.482)
+Owner, from a phone screenshot: "Make the bar at the top translucent." This is the sticky `.analysis-index` chip rail, which read as a solid black strip.
+- **Token:** `.analysis-index` now uses its own `--index-glass-bg`: 30% dark, or 40% white in light mode. It had been using `--nav-glass-bg` at 72%. The blur is unchanged. The token-dedup test was updated with a dated note.
+- **Root cause found on the way:**
+  - `.view-enter` (the tab fade-in, `will-change:opacity, transform`) stayed on the active view forever. That made the view a backdrop root, so the rail's `backdrop-filter` blurred nothing; it was only a tint, which is why it had to be nearly opaque.
+  - `clearViewEnter`, wired in `switchView`, now removes the class on the view's own `viewFadeIn` `animationend`. Card animations bubbling up don't trigger it, and reduced motion still fires the event (0.01ms).
+  - Five harnesses that load `switchView` now also load the helper (dated notes).
+- **Side effect to watch on device:** any other `backdrop-filter` inside a view (none known) now blurs for real too.
+- **Verified in Chromium** in both schemes, scrolled under the rail. Tests: `test-analysis-index-visual-weight.js`.
