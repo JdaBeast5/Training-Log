@@ -69,4 +69,40 @@ test('regression guard: .nav-pill itself is completely untouched by this change 
   assert.match(block, /padding:10px 10px;/, '.nav-pill padding is the v3.288 tab-bar value; its 10px vertical padding (tap height) is unchanged');
 });
 
+// v3.482 (owner, from a phone screenshot: "Make the bar at the top
+// translucent"). The sticky jump rail used the nav bar's glass (72% near-
+// black), which over the dark page read as a solid band. It has its own,
+// much lighter glass, keeping the blur that holds the chips legible.
+test('REAL source (v3.482): the jump rail is light glass (30% dark, 40% white in light mode) and keeps its blur', (assert)=>{
+  const block = extractRuleBlock(src, '.analysis-index');
+  assert.match(block, /background:var\(--index-glass-bg\);/);
+  assert.match(block, /backdrop-filter:var\(--glass-blur\);/, 'still blurred');
+  const root = src.slice(src.indexOf(':root{'), src.indexOf('\n  }', src.indexOf(':root{')));
+  const alpha = Number((root.match(/--index-glass-bg:rgba\(10,11,13,([\d.]+)\);/) || [])[1]);
+  const navAlpha = Number((root.match(/--nav-glass-bg:rgba\(10,11,13,([\d.]+)\);/) || [])[1]);
+  assert.strictEqual(alpha, 0.30);
+  assert.ok(alpha < navAlpha / 2, 'well under the nav bar\'s glass');
+  assert.match(src, /body:not\(\.gym-mode\)\{[\s\S]*?--index-glass-bg:rgba\(var\(--surface-rgb\),0\.40\);/, 'its light-mode value');
+});
+
+// v3.482, part two: the glass only worked once the view stopped holding
+// will-change. .view-enter (the tab fade-in, will-change:opacity, transform)
+// stayed on the active view after the fade, making it a backdrop root; the
+// rail's backdrop-filter then had nothing to blur. It comes off when the
+// fade-in ends — and only then, not when a card's own animation ends.
+test('REAL invocation (v3.482): .view-enter comes off when the view\'s fade-in ends, not a card\'s', (assert)=>{
+  const { runJsdom, extractFunction } = require('./testHelpers.js');
+  const { window } = runJsdom('<div id="v" class="view-enter"><div class="card" id="c"></div></div>', '',
+    [extractFunction(src, 'clearViewEnter'), "document.getElementById('v').addEventListener('animationend', clearViewEnter);"]);
+  const v = window.document.getElementById('v'), c = window.document.getElementById('c');
+  const end = (el, name) => { const e = new window.Event('animationend', {bubbles:true}); e.animationName = name; el.dispatchEvent(e); };
+  end(c, 'cardRise');
+  assert.ok(v.classList.contains('view-enter'), 'a card finishing leaves it');
+  end(v, 'somethingElse');
+  assert.ok(v.classList.contains('view-enter'), 'another animation on the view leaves it');
+  end(v, 'viewFadeIn');
+  assert.strictEqual(v.classList.contains('view-enter'), false, 'the fade-in finishing removes it');
+  assert.match(extractFunction(src, 'switchView'), /viewEl\.addEventListener\('animationend', clearViewEnter\);/, 'switchView (behind showView) wires it');
+});
+
 run();

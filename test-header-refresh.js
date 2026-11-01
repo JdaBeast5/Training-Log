@@ -90,7 +90,8 @@ test('REAL invocation: switchView sets the large title to the view you switched 
     var STAGGER_MAX_STEPS = 6, STAGGER_STEP_MS = 40;
     function closeNavMoreOverlay(){} function hideGymOffer(){} function renderLogDateBar(){}
     Element.prototype.scrollIntoView = function(){};`,
-    [extractConst(src, 'MOVED_TO_MORE'), extractFunction(src, 'switchView'), 'window.__seen = [];' + keys.map(k => `try{ switchView('${k}'); }catch(e){ window.__err = e.message; } window.__seen.push(document.getElementById('viewTitle').textContent);`).join('\n')]);
+  // 2026-10-28 (v3.482): switchView wires clearViewEnter (test-analysis-index-visual-weight.js).
+    [extractConst(src, 'MOVED_TO_MORE'), extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'switchView'), 'window.__seen = [];' + keys.map(k => `try{ switchView('${k}'); }catch(e){ window.__err = e.message; } window.__seen.push(document.getElementById('viewTitle').textContent);`).join('\n')]);
   assert.ok(!window.__err, window.__err);
   assert.deepStrictEqual(Array.from(window.__seen), ['Today','Log','Analysis','History','Care','Coach','Learn']);
 });

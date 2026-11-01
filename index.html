@@ -291,6 +291,8 @@
     --rest-timer-fill:linear-gradient(160deg, rgba(45,49,55,0.86), rgba(26,29,33,0.86));
     --float-panel-fill:linear-gradient(165deg, rgba(38,42,49,0.94), rgba(20,22,26,0.94));
     --well-fill:rgba(var(--overlay-black-rgb),.30);
+    /* v3.482: the Analysis jump rail's glass — see .analysis-index. */
+    --index-glass-bg:rgba(10,11,13,0.30);
   }
   /* v3.477: light appearance, following the phone (owner: "Follow the phone").
      Only the tokens change; the dark values above stay the design of record.
@@ -349,6 +351,7 @@
       --rest-timer-fill:linear-gradient(160deg, rgba(var(--surface-rgb),0.92), rgba(var(--surface2-rgb),0.92));
       --float-panel-fill:linear-gradient(165deg, rgba(var(--surface-rgb),0.96), rgba(var(--surface2-rgb),0.96));
       --well-fill:rgba(var(--surface-white-rgb),.05);
+      --index-glass-bg:rgba(var(--surface-rgb),0.40);
     }
   }
   *{box-sizing:border-box; margin:0; padding:0;}
@@ -2804,7 +2807,10 @@
     position:sticky;
     top:env(safe-area-inset-top, 0px); /* v3.288: the rail moved to the bottom, nothing to sit below */
     z-index:25;
-    background:var(--nav-glass-bg);
+    /* v3.482 (owner: "Make the bar at the top translucent"): its own, much
+       lighter glass. At the nav bar's 72% it read as a solid black band
+       across the page; the blur alone keeps the chips legible over cards. */
+    background:var(--index-glass-bg);
     backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
   }
   .analysis-index::-webkit-scrollbar{display:none;}
@@ -7174,7 +7180,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.481';
+const APP_VERSION = '3.482';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8424,6 +8430,9 @@ const WHATS_NEW = {
   ]},
   '3.481': { headline: 'Light panels', points: [
     'In light mode, the rest timer, the gym-mode prompt and the Up next fields are light too.',
+  ]},
+  '3.482': { headline: 'Translucent jump bar', points: [
+    'Analysis\' jump bar at the top is now see-through frosted glass instead of a solid black strip.',
   ]},
 };
 
@@ -38596,6 +38605,15 @@ document.getElementById('saveMeasurements').addEventListener('click', async ()=>
   }catch(e){}
 });
 
+// v3.482: .view-enter comes off once its fade-in has played. It carries
+// will-change:opacity, transform, and left on it made the whole view a
+// backdrop root, so the sticky Analysis jump rail's backdrop-filter had
+// nothing to blur: its glass read as a flat tint, legible only while it was
+// 72% opaque. Card animations bubble animationend too, hence the checks.
+function clearViewEnter(e){
+  if(e.target === e.currentTarget && e.animationName === 'viewFadeIn') e.currentTarget.classList.remove('view-enter');
+}
+
 // opts.scrollTop — defaults to true. Switching tabs while scrolled halfway
 // down one used to drop you at that same offset in the next tab, which on
 // the long tabs (Learn, Analysis) meant landing in the middle of a card with
@@ -38646,6 +38664,7 @@ function switchView(active, opts){
       cards.forEach(c=> c.classList.remove('card-stagger'));
       void viewEl.offsetWidth; // force reflow so the animations restart every time
       viewEl.classList.add('view-enter');
+      viewEl.addEventListener('animationend', clearViewEnter); // same function every time, so added once
       if(!reduceMotion){
         cards.forEach((c,i)=>{
           c.style.animationDelay = (Math.min(i, STAGGER_MAX_STEPS) * STAGGER_STEP_MS)+'ms';
