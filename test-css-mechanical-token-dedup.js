@@ -262,7 +262,8 @@ test('sabotage-relevant: var(--glass-blur) appears at exactly 10 real occurrence
   assert.strictEqual((src.match(/var\(--glass-blur\)/g) || []).length, 10);
   // 2026-10-28 (v3.482): .analysis-index moved to its own lighter --index-glass-bg
   // (test-analysis-index-visual-weight.js).
-  assert.strictEqual((src.match(/var\(--nav-glass-bg\)/g) || []).length, 3);
+  // 2026-11-02 (v3.483): .status-scrim joined the rail on --index-glass-bg.
+  assert.strictEqual((src.match(/var\(--nav-glass-bg\)/g) || []).length, 2);
 });
 
 test('REAL CASCADE: .nav-pills, .status-scrim, and .analysis-index all resolve to the exact pre-conversion background + backdrop-filter pair', (assert)=>{
@@ -272,7 +273,8 @@ test('REAL CASCADE: .nav-pills, .status-scrim, and .analysis-index all resolve t
   assert.strictEqual(navBg, 'rgba(10,11,13,0.72)', 'sanity: token holds the known pre-conversion literal');
 
   // 2026-10-28 (v3.482): .analysis-index left this pair for its own lighter glass.
-  for(const selector of ['.nav-pills', '.status-scrim']){
+  // 2026-11-02 (v3.483): .status-scrim moved to --index-glass-bg too.
+  for(const selector of ['.nav-pills']){
     let block = extractRuleBlock(src, selector);
     block = resolveToken(block, 'glass-blur', blur);
     block = resolveToken(block, 'nav-glass-bg', navBg);

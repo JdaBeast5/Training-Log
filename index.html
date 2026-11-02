@@ -2697,7 +2697,9 @@
     position:fixed; top:0; left:0; right:0;
     height:env(safe-area-inset-top, 0px);
     z-index:31; pointer-events:none;
-    background:var(--nav-glass-bg);
+    /* v3.483: the jump rail's lighter glass (v3.482), so the two strips at the
+       top of a scrolled page read as one material. */
+    background:var(--index-glass-bg);
     backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
   }
   /* Seven pills are about 540px of content in roughly 354px of phone, so Care,
@@ -3669,6 +3671,13 @@
     padding:10px 0; border-bottom:1px solid var(--line-soft); font-size:12.5px;
   }
   .care-log-item:last-child{border-bottom:none;}
+  /* v3.485: Care's check-ins and Coach's past reviews are swipe tiles with a
+     fill (v3.388) whose rows kept edge-to-edge list padding: the text sat on
+     the tile's edge and the tiles were 2px apart. The same fix as My
+     Supplements (v3.462). */
+  #careLogList .swipe-item, #coachHistoryList .swipe-item{border-radius:var(--radius-md); margin-bottom:8px;}
+  #careLogList .swipe-item:last-child, #coachHistoryList .swipe-item:last-child{margin-bottom:0;}
+  #careLogList .care-log-item, #coachHistoryList .care-log-item{padding:12px 14px; border-bottom:none;}
   .care-log-date{font-family:var(--font-mono); font-variant-numeric:tabular-nums; font-weight:600; font-size:11.5px; color:var(--text);}
   .care-log-detail{color:var(--text-muted); margin-top:3px; line-height:1.4;}
   .care-pattern-title{
@@ -7180,7 +7189,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.482';
+const APP_VERSION = '3.487';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8433,6 +8442,21 @@ const WHATS_NEW = {
   ]},
   '3.482': { headline: 'Translucent jump bar', points: [
     'Analysis\' jump bar at the top is now see-through frosted glass instead of a solid black strip.',
+  ]},
+  '3.483': { headline: 'Lighter status strip', points: [
+    'The strip behind the clock and battery matches the translucent jump bar.',
+  ]},
+  '3.484': { headline: 'Drawn arrows in Measurement Context', points: [
+    'Measurement changes use the app\'s drawn arrows instead of text triangles.',
+  ]},
+  '3.485': { headline: 'Roomier check-ins', points: [
+    'Care\'s check-ins and Coach\'s past reviews have room inside and space between them.',
+  ]},
+  '3.486': { headline: 'Steady RPE reads as steady', points: [
+    'Average RPE draws unchanged effort mid-chart instead of along the bottom.',
+  ]},
+  '3.487': { headline: 'Clearer for screen readers', points: [
+    'Swipe-to-delete strips and the meal mic button are named for what they do, not read out as emoji.',
   ]},
 };
 
@@ -35944,6 +35968,7 @@ function initDescribeFoodVoice(){
   btn.type = 'button';
   btn.className = 'voice-log-btn';
   btn.title = 'Speak your description';
+  btn.setAttribute('aria-label', 'Speak your description'); // v3.487: its only name was the emoji below
   btn.textContent = '🎤';
   slot.appendChild(btn);
 
@@ -37473,6 +37498,14 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
 function makeSwipeable(itemEl, onDelete){
   const content = itemEl.querySelector('.swipe-content');
   const deleteBg = itemEl.querySelector('.swipe-delete-bg');
+  // v3.487: the revealed strip is a real control (tapping it deletes), and its
+  // only text was the 🗑️ kept as a fallback name, read out as "wastebasket"
+  // on every row. A button named for what it does; a caller's own label
+  // (Today's Priorities: "Hide until tomorrow") is kept.
+  if(deleteBg){
+    deleteBg.setAttribute('role', 'button');
+    if(!deleteBg.hasAttribute('aria-label')) deleteBg.setAttribute('aria-label', 'Delete');
+  }
   let startX = 0, currentX = 0, dragging = false, openOffset = 0, activePointerId = null;
   // How far a pointer has to move horizontally before this counts as a real
   // swipe rather than a tap. Below this, nothing happens at all — deliberately,
@@ -44910,13 +44943,18 @@ async function renderRpeTrend(){
   const w = 600, h = 70, pad = 8;
   const min = Math.min(...withData.map(d=>d.avg));
   const max = Math.max(...withData.map(d=>d.avg));
-  const range = (max-min) || 1;
+  // v3.486: the scale spans at least 1 RPE, centred on the data. With
+  // every week the same, the old (max-min)||1 put the line along the chart's
+  // floor, where it read as zero or missing; and a 0.2 wobble filled the
+  // whole height. A range of 1 or more scales exactly as before.
+  const range = Math.max(max-min, 1);
+  const lo = (min+max)/2 - range/2;
 
   // Build points only across weeks that actually have data, evenly spaced,
   // so a gap week doesn't compress or distort the line.
   const pts = withData.map((d,i)=>{
     const x = pad + (i/(withData.length-1 || 1)) * (w-2*pad);
-    const y = h - pad - ((d.avg-min)/range) * (h-2*pad);
+    const y = h - pad - ((d.avg-lo)/range) * (h-2*pad);
     return `${x},${y}`;
   }).join(' ');
 
@@ -45257,9 +45295,11 @@ function buildBodyMetricsHtml(profile, measureEntries, weightEntries){
 
   if(deltas.length){
     const rows = deltas.map(d=>{
-      const arrow = d.delta > 0 ? '▲' : d.delta < 0 ? '▼' : '·';
+      // v3.484: the drawn arrows (v3.424), not ▲/▼ text glyphs; the sign
+      // already says it, so no change shows just the number, not a dot.
+      const arrow = d.delta > 0 ? `${icon('arrowUp')} ` : d.delta < 0 ? `${icon('arrowDown')} ` : '';
       const sign = d.delta > 0 ? '+' : '';
-      return `<div class="day-ex-row"><span class="day-ex-name">${d.label}</span><span>${d.latest}"</span><span class="day-ex-vol">${arrow} ${sign}${d.delta}"</span></div>`;
+      return `<div class="day-ex-row"><span class="day-ex-name">${d.label}</span><span>${d.latest}"</span><span class="day-ex-vol">${arrow}${sign}${d.delta}"</span></div>`;
     }).join('');
     blocks.push(`
       <div>

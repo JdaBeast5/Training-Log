@@ -161,4 +161,24 @@ test('REAL source (v3.441): the RPE footer and note never print a bare 0', (asse
   assert.doesNotMatch(fn, /fairly steady \(/);
 });
 
+// v3.486 (flagged in addendum 21): Average RPE drew an unchanged week-to-week
+// effort as a line along the chart's floor — (max-min)||1 with min at the
+// bottom — so steady effort read as zero or missing. The scale now spans at
+// least 1 RPE, centred on the data: steady sits mid-chart, a 0.2 wobble no
+// longer fills the height, and a range of 1+ scales as before.
+async function rpeYs(avgs){
+  const { window } = runJsdom('<div id="rpeTrend"></div>', `
+    window.computeWeeklyRpeAvg = async () => ${JSON.stringify(avgs.map((avg, i) => ({weekStart:'w' + i, label:'W' + i, avg})))};
+    window.icon = () => '';`, [extractFunction(src, 'renderRpeTrend'), 'window.__done = renderRpeTrend();']);
+  await window.__done;
+  const line = window.document.querySelector('#rpeTrend polyline');
+  return line.getAttribute('points').split(' ').map(p => +(+p.split(',')[1]).toFixed(2));
+}
+test('REAL invocation (v3.486): steady RPE sits mid-chart; a small wobble stays small; a wide range fills the chart as before', async (assert)=>{
+  assert.deepStrictEqual(await rpeYs([7, 7, 7]), [35, 35, 35], 'h=70: the middle, not the floor (62)');
+  const wobble = await rpeYs([7, 7.2]);
+  assert.ok(Math.abs(wobble[0] - wobble[1]) < 12, `0.2 RPE moves the line ${Math.abs(wobble[0] - wobble[1])}px, not the full 54`);
+  assert.deepStrictEqual(await rpeYs([6, 8]), [62, 8], 'a 2-RPE range spans pad to pad, unchanged');
+});
+
 run();

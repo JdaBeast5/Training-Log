@@ -105,4 +105,14 @@ test('REAL invocation (v3.482): .view-enter comes off when the view\'s fade-in e
   assert.match(extractFunction(src, 'switchView'), /viewEl\.addEventListener\('animationend', clearViewEnter\);/, 'switchView (behind showView) wires it');
 });
 
+// v3.483 — The strip behind the clock and battery (.status-scrim) takes the
+// rail's lighter glass, so the two strips at the top of a scrolled page read
+// as one material; the bottom tab bar keeps the heavier glass.
+test('REAL source (v3.483): the status-bar strip and the jump rail share --index-glass-bg; the tab bar keeps --nav-glass-bg', (assert)=>{
+  const scrim = extractRuleBlock(src, '.status-scrim');
+  assert.match(scrim, /background:var\(--index-glass-bg\);/);
+  assert.match(scrim, /backdrop-filter:var\(--glass-blur\);/, 'still blurred');
+  assert.match(extractRuleBlock(src, '.nav-pills'), /background:var\(--nav-glass-bg\);/);
+});
+
 run();

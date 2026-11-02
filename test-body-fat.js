@@ -110,4 +110,28 @@ test('REAL source (v3.474): Body Metrics fetches weigh-ins and leads with the co
   assert.ok(build.indexOf('bodyCompositionHtml(comp)') < build.indexOf('if(whtr){'), 'composition first');
 });
 
+// v3.484 (flagged in addendum 28): Measurement Context's change rows used the
+// ▲/▼ text glyphs the glyph pass (v3.421–427) replaced everywhere else. They
+// use the drawn arrows now; an unchanged measurement shows just its number.
+test('REAL invocation (v3.484): change rows use drawn arrows, no text triangles, nothing for no change', (assert)=>{
+  const { extractConst } = require('./testHelpers.js');
+  const { window } = runJsdom('<div id="out"></div>', `
+    window.getTodayKey = () => '2026-10-28'; var GOAL_FEEDBACK_LOOKBACK_DAYS = 42; var weightUnit = 'lb'; var LB_PER_KG = 0.453592;`,
+    [extractConst(src, 'ICONS'), extractConst(src, 'MEASURE_FIELDS'), extractConst(src, 'BODY_COMP_PAIR_DAYS'),
+     ...['escapeHtml', 'icon', 'parseDateKey', 'formatDate', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'heightInchesOf', 'computeWaistToHeight', 'computeMeasurementDeltas',
+         'recogniseMeasurementProgress', 'computeBodyComposition', 'bodyCompositionHtml', 'buildBodyMetricsHtml'].map(n => extractFunction(src, n)),
+     `document.getElementById('out').innerHTML = buildBodyMetricsHtml({goal:'maintain'}, [
+        {date:'2026-09-28', waist:'34', arms:'15', chest:'40'}, {date:'2026-10-26', waist:'33.2', arms:'15.5', chest:'40'}], []);`]);
+  const rows = [...window.document.querySelectorAll('#out .day-ex-row')];
+  const byName = n => rows.find(r => r.querySelector('.day-ex-name').textContent === n).querySelector('.day-ex-vol');
+  assert.strictEqual(rows.length, 3, 'anchor: waist, chest, arms');
+  assert.doesNotMatch(window.document.getElementById('out').textContent, /[▲▼]/);
+  assert.ok(byName('Waist').querySelector('svg[aria-hidden="true"] path[d*="12 19"]'), 'waist down: the down arrow');
+  assert.strictEqual(byName('Waist').textContent.trim(), '-0.8"');
+  assert.ok(byName('Arms').querySelector('svg path[d^="M12 19V5"]'), 'arms up: the up arrow');
+  assert.strictEqual(byName('Arms').textContent.trim(), '+0.5"');
+  assert.strictEqual(byName('Chest').querySelector('svg'), null, 'no change: no arrow');
+  assert.strictEqual(byName('Chest').textContent.trim(), '0"');
+});
+
 run();
