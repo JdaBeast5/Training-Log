@@ -644,3 +644,8 @@ Owner: "Yes, get this started", covering the status-bar strip and the small fixe
   - The iOS status-bar text in light mode (device check).
   - Day-strip colours (kept).
   - The Priorities hint (kept, because of its 14-word budget).
+
+## Addendum 32: Device confirmation (2026-11-02)
+On the owner's iPhone, after v3.487 went live:
+- **The status-bar strip** (`.status-scrim`, v3.483) reads as the same translucent glass as the jump rail. Confirmed.
+- **Light mode status bar:** the clock and battery are readable with the phone in light mode. This closes the open question from addendum 29 (`black-translucent` status-bar style); no dark band or meta change is needed.
