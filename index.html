@@ -7182,7 +7182,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.483';
+const APP_VERSION = '3.484';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8438,6 +8438,9 @@ const WHATS_NEW = {
   ]},
   '3.483': { headline: 'Lighter status strip', points: [
     'The strip behind the clock and battery matches the translucent jump bar.',
+  ]},
+  '3.484': { headline: 'Drawn arrows in Measurement Context', points: [
+    'Measurement changes use the app\'s drawn arrows instead of text triangles.',
   ]},
 };
 
@@ -45262,9 +45265,11 @@ function buildBodyMetricsHtml(profile, measureEntries, weightEntries){
 
   if(deltas.length){
     const rows = deltas.map(d=>{
-      const arrow = d.delta > 0 ? '▲' : d.delta < 0 ? '▼' : '·';
+      // v3.484: the drawn arrows (v3.424), not ▲/▼ text glyphs; the sign
+      // already says it, so no change shows just the number, not a dot.
+      const arrow = d.delta > 0 ? `${icon('arrowUp')} ` : d.delta < 0 ? `${icon('arrowDown')} ` : '';
       const sign = d.delta > 0 ? '+' : '';
-      return `<div class="day-ex-row"><span class="day-ex-name">${d.label}</span><span>${d.latest}"</span><span class="day-ex-vol">${arrow} ${sign}${d.delta}"</span></div>`;
+      return `<div class="day-ex-row"><span class="day-ex-name">${d.label}</span><span>${d.latest}"</span><span class="day-ex-vol">${arrow}${sign}${d.delta}"</span></div>`;
     }).join('');
     blocks.push(`
       <div>
