@@ -106,4 +106,21 @@ test('REAL invocation (v3.453): no check-ins, neither card; one check-in, the hi
   assert.strictEqual(two.getElementById('histCard').style.display, '');
 });
 
+// v3.485 (flagged in addendum 23): the check-in tiles touched, 2px apart, and
+// their text sat on the tile's edge — the swipe tile's fill (v3.388) around a
+// row that kept edge-to-edge list padding. Coach's past reviews share the
+// row. Padding inside, 8px between, as My Supplements (v3.462).
+test('REAL CSSOM (v3.485): check-in and past-review tiles have padding inside and a gap between; other log rows are untouched', (assert)=>{
+  const { window } = new JSDOM(`<style>${CSS}</style>
+    <div id="careLogList"><div class="swipe-item" id="a"><div class="swipe-content"><div class="care-log-item" id="r">x</div></div></div><div class="swipe-item" id="b"></div></div>
+    <div id="coachHistoryList"><div class="swipe-item" id="c"><div class="swipe-content"><div class="care-log-item" id="q">y</div></div></div><div class="swipe-item"></div></div>
+    <div class="care-log-item" id="plain">z</div>`);
+  const cs = id => window.getComputedStyle(window.document.getElementById(id));
+  for(const id of ['r', 'q']){ assert.strictEqual(cs(id).paddingLeft, '14px', id); assert.strictEqual(cs(id).paddingTop, '12px', id); }
+  assert.strictEqual(cs('a').marginBottom, '8px');
+  assert.strictEqual(cs('c').marginBottom, '8px');
+  assert.strictEqual(cs('b').marginBottom, '0px', 'no gap after the last');
+  assert.strictEqual(cs('plain').paddingLeft, '0px', 'a log row outside these lists keeps its list padding');
+});
+
 run();
