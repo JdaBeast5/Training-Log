@@ -9,7 +9,8 @@
 const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
-const switchViewSrc = extractFunction(src, 'switchView');
+// 2026-10-28 (v3.482): switchView wires clearViewEnter (test-analysis-index-visual-weight.js).
+const switchViewSrc = extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'switchView');
 const staggerMaxSrc = extractConst(src, 'STAGGER_MAX_STEPS');
 const staggerStepSrc = extractConst(src, 'STAGGER_STEP_MS');
 // Tab-layout audit (v3.160): switchView reads this to decide when the

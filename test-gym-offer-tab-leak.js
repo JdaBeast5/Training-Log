@@ -36,7 +36,8 @@ function buildBodyHtml(){
 }
 
 function setup(){
-  const switchViewSrc = extractFunction(src, 'switchView');
+  // 2026-10-28 (v3.482): switchView wires clearViewEnter (test-analysis-index-visual-weight.js).
+  const switchViewSrc = extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'switchView');
   const hideGymOfferSrc = extractFunction(src, 'hideGymOffer');
   const globals = [
     "const MOVED_TO_MORE = ['care', 'coach', 'learn'];",
