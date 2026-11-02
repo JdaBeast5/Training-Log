@@ -7189,7 +7189,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.485';
+const APP_VERSION = '3.486';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8451,6 +8451,9 @@ const WHATS_NEW = {
   ]},
   '3.485': { headline: 'Roomier check-ins', points: [
     'Care\'s check-ins and Coach\'s past reviews have room inside and space between them.',
+  ]},
+  '3.486': { headline: 'Steady RPE reads as steady', points: [
+    'Average RPE draws unchanged effort mid-chart instead of along the bottom.',
   ]},
 };
 
@@ -44928,13 +44931,18 @@ async function renderRpeTrend(){
   const w = 600, h = 70, pad = 8;
   const min = Math.min(...withData.map(d=>d.avg));
   const max = Math.max(...withData.map(d=>d.avg));
-  const range = (max-min) || 1;
+  // v3.486: the scale spans at least 1 RPE, centred on the data. With
+  // every week the same, the old (max-min)||1 put the line along the chart's
+  // floor, where it read as zero or missing; and a 0.2 wobble filled the
+  // whole height. A range of 1 or more scales exactly as before.
+  const range = Math.max(max-min, 1);
+  const lo = (min+max)/2 - range/2;
 
   // Build points only across weeks that actually have data, evenly spaced,
   // so a gap week doesn't compress or distort the line.
   const pts = withData.map((d,i)=>{
     const x = pad + (i/(withData.length-1 || 1)) * (w-2*pad);
-    const y = h - pad - ((d.avg-min)/range) * (h-2*pad);
+    const y = h - pad - ((d.avg-lo)/range) * (h-2*pad);
     return `${x},${y}`;
   }).join(' ');
 
