@@ -7189,7 +7189,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.486';
+const APP_VERSION = '3.487';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8454,6 +8454,9 @@ const WHATS_NEW = {
   ]},
   '3.486': { headline: 'Steady RPE reads as steady', points: [
     'Average RPE draws unchanged effort mid-chart instead of along the bottom.',
+  ]},
+  '3.487': { headline: 'Clearer for screen readers', points: [
+    'Swipe-to-delete strips and the meal mic button are named for what they do, not read out as emoji.',
   ]},
 };
 
@@ -35965,6 +35968,7 @@ function initDescribeFoodVoice(){
   btn.type = 'button';
   btn.className = 'voice-log-btn';
   btn.title = 'Speak your description';
+  btn.setAttribute('aria-label', 'Speak your description'); // v3.487: its only name was the emoji below
   btn.textContent = '🎤';
   slot.appendChild(btn);
 
@@ -37494,6 +37498,14 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
 function makeSwipeable(itemEl, onDelete){
   const content = itemEl.querySelector('.swipe-content');
   const deleteBg = itemEl.querySelector('.swipe-delete-bg');
+  // v3.487: the revealed strip is a real control (tapping it deletes), and its
+  // only text was the 🗑️ kept as a fallback name, read out as "wastebasket"
+  // on every row. A button named for what it does; a caller's own label
+  // (Today's Priorities: "Hide until tomorrow") is kept.
+  if(deleteBg){
+    deleteBg.setAttribute('role', 'button');
+    if(!deleteBg.hasAttribute('aria-label')) deleteBg.setAttribute('aria-label', 'Delete');
+  }
   let startX = 0, currentX = 0, dragging = false, openOffset = 0, activePointerId = null;
   // How far a pointer has to move horizontally before this counts as a real
   // swipe rather than a tap. Below this, nothing happens at all — deliberately,
