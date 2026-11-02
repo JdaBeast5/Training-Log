@@ -630,3 +630,17 @@ Owner, from a phone screenshot: "Make the bar at the top translucent." This is t
   - Five harnesses that load `switchView` now also load the helper (dated notes).
 - **Side effect to watch on device:** any other `backdrop-filter` inside a view (none known) now blurs for real too.
 - **Verified in Chromium** in both schemes, scrolled under the rail. Tests: `test-analysis-index-visual-weight.js`.
+
+## Addendum 31: Open-items batch (v3.483–v3.487)
+Owner: "Yes, get this started", covering the status-bar strip and the small fixes flagged in earlier addenda. One change per version, each with a sabotage-checked test.
+- **v3.483:** `.status-scrim` uses `--index-glass-bg`, the jump rail's lighter glass (v3.482). The tab bar keeps `--nav-glass-bg`, which now has 2 uses (token-dedup test updated with a dated note). This can't be seen in desktop Chromium (zero safe-area inset), so check it on device.
+- **v3.484:** Measurement Context's change rows use `icon('arrowUp'/'arrowDown')` instead of ▲/▼. No change shows only the number. Test: `test-body-fat.js`.
+- **History month chevron (flag withdrawn):** it already rotates, right when closed and down when open, measured in Chromium. Nothing changed.
+- **v3.485:** `#careLogList` and `#coachHistoryList` tiles get 12px/14px padding and an 8px gap, as My Supplements did (v3.462). Other `.care-log-item` rows are untouched. Test: `test-care-2-0.js`.
+- **v3.486:** `renderRpeTrend` makes its scale span at least 1 RPE, centred on the data. Steady effort sits mid-chart instead of on the floor; ranges of 1 RPE or more are unchanged. Test: `test-analysis-2-0.js`.
+- **v3.487:** `makeSwipeable` gives every `.swipe-delete-bg` `role="button"` and `aria-label="Delete"`, keeping a caller's own label (Priorities). Describe a Meal's mic button gets an `aria-label`. The emoji stay as the fallback that earlier tests pin. Test: `test-a11y-emoji-names.js`.
+  - Note: a comment that quoted the mic emoji tripped `test-glyphs`' emoji scan, the known comment-quotes-a-literal trap. Reworded.
+- **Still the owner's call:**
+  - The iOS status-bar text in light mode (device check).
+  - Day-strip colours (kept).
+  - The Priorities hint (kept, because of its 14-word budget).
