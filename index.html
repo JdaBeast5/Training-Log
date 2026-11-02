@@ -2697,7 +2697,9 @@
     position:fixed; top:0; left:0; right:0;
     height:env(safe-area-inset-top, 0px);
     z-index:31; pointer-events:none;
-    background:var(--nav-glass-bg);
+    /* v3.483: the jump rail's lighter glass (v3.482), so the two strips at the
+       top of a scrolled page read as one material. */
+    background:var(--index-glass-bg);
     backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
   }
   /* Seven pills are about 540px of content in roughly 354px of phone, so Care,
@@ -7180,7 +7182,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.482';
+const APP_VERSION = '3.483';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8433,6 +8435,9 @@ const WHATS_NEW = {
   ]},
   '3.482': { headline: 'Translucent jump bar', points: [
     'Analysis\' jump bar at the top is now see-through frosted glass instead of a solid black strip.',
+  ]},
+  '3.483': { headline: 'Lighter status strip', points: [
+    'The strip behind the clock and battery matches the translucent jump bar.',
   ]},
 };
 
