@@ -351,4 +351,38 @@ test('REAL source (v3.505): sheets are panels in a pane, never across the fold',
   assert.ok(!/--open-col2/.test(outside), 'phones keep the bottom sheets');
 });
 
+// v3.506 — Gym mode, open: the rest timer is a big ring in the left pane. With
+// the exercise pinned on the right, the left pane is where the eyes go
+// between sets; the timer there is pane-wide with a 128px ring, a 34px clock
+// and a broad +15s. Phone and cover screen keep the 56px pill.
+// Real-browser result (Chromium, 904x678): timer 22..428 above the dock (12px
+// clear), ring 128px, clock 34px; at 402x874 the timer is the 168px pill with
+// a 56px ring and 15px clock, unchanged. No errors.
+const GYM_OPEN = 'body.gym-mode:has(#exerciseList > .exercise-block.open)';
+test('REAL formulas (v3.506): the timer fills the left pane less a 12px margin each side, 12px clear of the dock', (assert)=>{
+  const v = { vw:904, '--wrap-max':decl(':root', '--wrap-max'), '--pane-gap':decl(':root', '--pane-gap') };
+  v['--gym-wrap-left'] = decl('body.gym-mode', '--gym-wrap-left');
+  v['--gym-col-w'] = decl('body.gym-mode', '--gym-col-w');
+  const colW = px('var(--gym-col-w)', v), w = px(decl(GYM_OPEN + ' .rest-timer', 'width'), v);
+  assert.equal(colW - w, 24);
+  assert.equal(decl(GYM_OPEN + ' .rest-timer', 'left'), 'calc(var(--gym-wrap-left) + 10px + var(--gym-col-w) / 2)', 'still centred on the pane');
+  const lifted = /^calc\((\d+)px \+ env\(safe-area-inset-bottom, 0px\)\)$/.exec(decl(GYM_OPEN + ' .rest-timer', 'bottom'))[1];
+  const phone = /body\.gym-mode \.rest-timer\{bottom:calc\((\d+)px \+ env/.exec(src)[1];
+  assert.equal(lifted - phone, 8, 'the phone gym timer\'s 4px gap above the dock becomes 12px');
+});
+
+test('REAL source (v3.506): a 128px ring, 34px clock and broad +15s, only in the open gym layout', (assert)=>{
+  assert.equal(decl(GYM_OPEN + ' .rest-timer-ring', 'width'), '128px');
+  assert.equal(decl(GYM_OPEN + ' .rest-timer-ring', 'height'), '128px');
+  assert.equal(decl(GYM_OPEN + ' .rest-timer-ring', 'overflow'), 'visible', 'its glow is not clipped square');
+  assert.ok(OPEN.includes(GYM_OPEN + ' .rest-timer-ring-wrap,\n    ' + GYM_OPEN + ' .rest-timer-ring{ width:128px; height:128px; }'), 'the ring\'s button grows with it');
+  assert.equal(decl(GYM_OPEN + ' .rest-timer.expanded .rest-timer-ring-wrap', 'transform'), 'none', 'no 1.18x on top when expanded');
+  assert.equal(decl(GYM_OPEN + ' .rest-timer-time', 'font-size'), '34px');
+  assert.equal(decl(GYM_OPEN + ' .rest-timer .rt-add', 'min-height'), '64px');
+  assert.equal(decl(GYM_OPEN + ' .rest-timer .rt-close', 'min-height'), '56px');
+  const outside = src.replace(RAW[OPEN], '').replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.match(outside, /\.rest-timer-ring\{position:absolute; inset:0; width:56px; height:56px;/, 'the phone ring stays 56px');
+  assert.ok(!/rest-timer-ring\{ width:128px/.test(outside), 'nothing outside the open block grows it');
+});
+
 run();

@@ -5512,9 +5512,30 @@
     body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer{
       left:calc(var(--gym-wrap-left) + 10px + var(--gym-col-w) / 2);
       max-width:var(--gym-col-w);
+      /* v3.506, the big rest ring (below): pane-wide, 12px clear of the dock. */
+      width:calc(var(--gym-col-w) - 24px); border-radius:32px; padding:16px 22px;
+      bottom:calc(104px + env(safe-area-inset-bottom, 0px));
     }
+    /* THE BIG REST RING (v3.506): with the exercise pinned on the right, the
+       left pane is where the eyes go between sets, so the rest timer there
+       is a pane-wide panel with a 128px ring and a clock you can read from a
+       bench away, and +15s becomes a broad target. Its pieces and behaviour
+       are the phone timer's; only the size changes. Its width and lift are in
+       the timer's placement rule above. */
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer-row{ gap:18px; }
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer-ring-wrap,
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer-ring{ width:128px; height:128px; }
+    /* The ring's glow, scaled up, would be clipped square by the SVG's box. */
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer-ring{ overflow:visible; }
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer.expanded .rest-timer-ring-wrap{ transform:none; }
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer-time{ font-size:34px; }
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer .rt-add{
+      flex:1 1 auto; min-height:64px; border-radius:20px; font-size:20px;
+      background:rgba(var(--plate-green-rgb),0.12);
+    }
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer .rt-close{ min-width:56px; min-height:56px; font-size:22px; }
   }
-  /* [HINGE] (v3.496, passport foldables) ------------------------------------
+  /* [HINGE] (v3.496, passport foldables)------------------------------------
      Where the browser reports the fold itself (two side-by-side segments,
      env(viewport-segment-*) giving each one's edges), the split doesn't
      estimate the crease as the middle of a centred column: the page spans
@@ -7549,7 +7570,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.505';
+const APP_VERSION = '3.506';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8871,6 +8892,9 @@ const WHATS_NEW = {
   ]},
   '3.505': { headline: 'Sheets open in a pane when unfolded', points: [
     'Unfolded, search, history, the set editor and other sheets open as a panel on one side instead of across the fold, so the screen you came from stays in view.',
+  ]},
+  '3.506': { headline: 'A big rest timer in gym mode when unfolded', points: [
+    'Unfolded in gym mode, the rest timer becomes a large ring beside your exercise, readable from the bench, with a bigger +15s button.',
   ]},
 };
 
