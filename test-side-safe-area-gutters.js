@@ -73,8 +73,11 @@ function resolve(expr, env, vars){
 const wrap = ruleBlock('.wrap');
 const wrapVars = {};
 for(const name of ['--wrap-side-margin', '--gutter-l', '--gutter-r']) wrapVars[name] = decl(wrap, name);
-// The phone-width column, declared on .wrap.
-wrapVars['--wrap-max'] = decl(wrap, '--wrap-max');
+// The phone-width column. 2026-11-03 (v3.490): moved to :root so things
+// outside .wrap can line up with it (test-duo-open-posture-layout.js); the
+// open-posture layout overrides it in a media query, and these cases are all
+// phone-sized, so the base :root value applies.
+wrapVars['--wrap-max'] = decl(ruleBlock(':root', '--wrap-max:640px'), '--wrap-max');
 function gutters(env){
   // Custom properties resolve lazily against each other, same as the browser.
   const vars = {...wrapVars};

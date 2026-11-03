@@ -78,7 +78,10 @@ test('REAL markup: the moved pickers sit between the workout card and Keep In Mi
   const document = freshToday();
   const children = [...document.getElementById('todayView').children];
   const idx = el => children.indexOf(el);
-  const order = [document.getElementById('workoutCard'), styleCard(document), ...MOVED_IDS.map(id => document.getElementById(id))].map(idx);
+  // 2026-11-03 (v3.490): the day rail and workout card share one session pane
+  // (.today-session-pane), its own column on an open foldable
+  // (test-duo-open-posture-layout.js); the pane is the direct child now.
+  const order = [document.getElementById('workoutCard').closest('.today-session-pane'), styleCard(document), ...MOVED_IDS.map(id => document.getElementById(id))].map(idx);
   for(let i = 1; i < order.length; i++){
     assert.strictEqual(order[i], order[i - 1] + 1, 'the Training Style card and its siblings must follow the workout card directly, in their old order');
   }
