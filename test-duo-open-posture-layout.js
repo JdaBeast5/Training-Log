@@ -181,10 +181,12 @@ test('every tab is either a split view or held to the phone column when open —
   const m = /const views = (\{[^}]*\});/.exec(extractFunction(src, 'switchView'));
   const viewIds = Object.values(vm.runInNewContext('(' + m[1] + ')'));
   assert.equal(viewIds.length, 7);
-  const singleRule = /\n\s*((?:#\w+View,\s*)*#\w+View)\s*\{([^}]*)\}/.exec(wide);
-  assert.ok(singleRule, 'expected a rule listing the non-split views');
-  assert.equal(decl(singleRule[2], 'max-width'), 'calc(640px - 36px)', 'the phone column\'s content width');
-  const held = singleRule[1].split(/,\s*/).map(x=> x.slice(1));
+  // 2026-11-03 (v3.504): every tab now has its own open layout, so the
+  // phone-column list is gone; if one comes back it must still hold views to
+  // the phone column's width.
+  const singleRule = /\n\s*((?:#\w+View,\s*)*#\w+View)\s*\{([^}]*max-width[^}]*)\}/.exec(wide);
+  if(singleRule) assert.equal(decl(singleRule[2], 'max-width'), 'calc(640px - 36px)', 'the phone column\'s content width');
+  const held = singleRule ? singleRule[1].split(/,\s*/).map(x=> x.slice(1)) : [];
   const { document } = runJsdom(viewIds.map(id=> extractElementById(src, id)).join(''), '', []);
   // 2026-11-03 (v3.502): a third kind — a view with its own grid rule in the
   // open block (Analysis as a dashboard, test-open-screen-2-0.js).

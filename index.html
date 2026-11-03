@@ -5356,7 +5356,8 @@
      right-hand cards. 24 auto rows is headroom; empty or hidden children take
      no space. Row gap 0 because .card carries its own margin-bottom.
 
-     A tab without a split keeps the phone column it was designed in. */
+     Since v3.504 every tab has its own open layout: a split (Today, Log,
+     History, Learn, Coach, Care) or a dashboard grid (Analysis). */
   /* v3.496: or wherever the browser reports a fold between two side-by-side
      screen segments (Chrome on Android's Viewport Segments, for a passport
      foldable half-open like a book), at any width. Still at least 560 tall,
@@ -5382,9 +5383,6 @@
     .exercise-detail-card, .history-day-card{ order:-1; }
     .history-day-card:not([hidden]){ display:block; }
     #historyHeatmapGrid .calendar-cell.is-shown{ box-shadow:inset 0 0 0 2px var(--plate-blue); }
-    #careView{
-      max-width:calc(640px - 36px); margin-left:auto; margin-right:auto;
-    }
     /* ANALYSIS AS A DASHBOARD (v3.502): two charts to a row, one each side of
        the fold, so sleep sits beside training load instead of a screen away.
        Group headers, hints, the jump rail and Print span both columns; every
@@ -6764,14 +6762,14 @@
 
   </div>
 
-  <div id="careView" style="display:none">
+  <div id="careView" class="posture-split" style="display:none">
     <div class="card care-disclaimer-card">
       <div class="care-disclaimer">
         <b>This isn't a diagnosis.</b> It can't examine you or say what's injured or how long healing takes — a doctor or physical therapist can. It can keep a record for your appointment, flag symptoms that need prompt care, and quiet exercises that might aggravate the area.
       </div>
     </div>
 
-    <div class="card">
+    <div class="card split-primary"><!-- v3.504: the left pane on an open foldable -->
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.6"/><line x1="10" y1="6.4" x2="10" y2="13.6"/><line x1="6.4" y1="10" x2="13.6" y2="10"/></svg></span>Log How You're Feeling</div>
       <div class="care-form">
         <label class="care-label" for="careExercise">What were you doing?</label>
@@ -7517,7 +7515,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.503';
+const APP_VERSION = '3.504';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8833,6 +8831,9 @@ const WHATS_NEW = {
   ]},
   '3.503': { headline: 'Coach side by side when unfolded', points: [
     'Unfolded, Coach keeps the conversation on the left, with form feedback and past reviews on the right.',
+  ]},
+  '3.504': { headline: 'Care side by side when unfolded', points: [
+    'Unfolded, Care keeps the check-in form on the left, with what you\'re resting, your pain trend and stretches on the right.',
   ]},
 };
 

@@ -280,4 +280,17 @@ test('REAL markup (v3.503): Coach is a split view whose one primary is the Ask Y
   assert.ok(!/#coachView[,{]/.test(OPEN), 'no longer held to the phone column');
 });
 
+// v3.504 — Care: the check-in form is the left pane; what you are resting,
+// the pain trend, stretches and history stack on the right. With it, every
+// tab has its own open layout.
+test('REAL markup (v3.504): Care is a split view led by the check-in form; no tab is left in the phone column', (assert)=>{
+  const doc = runJsdom(extractElementById(src, 'careView'), '', []).window.document;
+  const view = doc.getElementById('careView');
+  assert.ok(view.classList.contains('posture-split'));
+  const primaries = view.querySelectorAll(':scope > .split-primary');
+  assert.strictEqual(primaries.length, 1);
+  assert.match(primaries[0].querySelector('.card-title').textContent, /Log How You.re Feeling/);
+  assert.ok(!/#\w+View\s*\{[^}]*max-width:calc\(640px - 36px\)/.test(OPEN), 'the phone-column list is gone');
+});
+
 run();
