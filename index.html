@@ -5472,6 +5472,46 @@
       grid-template-columns:calc(var(--hinge-l) - 12px - 10px) minmax(0, 1fr);
     }
   }
+  /* [TABLETOP] (v3.497, passport foldables) ---------------------------------
+     A passport foldable half-folded on a bench, fold horizontal, reports two
+     stacked segments. In gym mode the page no longer runs across the fold:
+     the exercise list ends at it and gets the upright top half, and the flat
+     bottom half becomes the control surface, with the rest timer just below
+     the fold and the dock filling the rest (a big Log target to reach for
+     between sets). --fold-top/--fold-bottom are the fold's two edges (equal
+     on a seamless screen).
+
+     Under 760 wide and portrait-shaped, which is what a passport is in this
+     posture (about 610-700 wide): that keeps it clear of the open-posture
+     layouts and the sideways gym rail. Phones never report segments; Safari
+     doesn't know the feature, so it never matches. */
+  @media (vertical-viewport-segments: 2) and (max-width:759px) and (orientation:portrait){
+    body.gym-mode{
+      --fold-top:env(viewport-segment-bottom 0 0, 50vh);
+      --fold-bottom:env(viewport-segment-top 0 1, 50vh);
+    }
+    body.gym-mode .wrap{
+      /* The page can scroll the list up to the fold, no further: below it is
+         the control surface. */
+      padding-bottom:calc(100vh - var(--fold-top) + 12px);
+    }
+    /* The dock covers the whole bottom half, so nothing from the page shows
+       below the fold. The rest timer sits in a slot inside it, between the
+       clock and Log, drawn above the dock (it is normally below it). */
+    body.gym-mode .gym-dock{
+      top:calc(var(--fold-bottom) + 10px);
+      bottom:calc(10px + env(safe-area-inset-bottom, 0px));
+      margin-bottom:0;
+      flex-direction:column; align-items:stretch; justify-content:space-between;
+      gap:12px; padding:16px;
+    }
+    body.gym-mode .gym-dock-meta{ flex:0 0 auto; display:flex; align-items:baseline; justify-content:space-between; }
+    body.gym-mode .gym-dock .gym-log-btn{ flex:1 1 auto; min-height:72px; margin-top:84px; font-size:22px; }
+    body.gym-mode .rest-timer{
+      top:calc(var(--fold-bottom) + 10px + 16px + 28px + 12px); bottom:auto; z-index:60;
+    }
+    body.gym-mode .gym-exit-btn{ min-height:48px; }
+  }
 </style>
 </head>
 <body>
@@ -7423,7 +7463,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.496';
+const APP_VERSION = '3.497';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8718,6 +8758,9 @@ const WHATS_NEW = {
   ]},
   '3.496': { headline: 'Split on the real fold', points: [
     'On Android passport foldables, when the phone reports where its fold is, the two panes line up exactly on either side of it.',
+  ]},
+  '3.497': { headline: 'Tabletop gym mode', points: [
+    'Half-fold an Android passport foldable on a bench in gym mode: your exercise stays upright on the top half, and the bottom half becomes the controls, with a big Log button.',
   ]},
 };
 

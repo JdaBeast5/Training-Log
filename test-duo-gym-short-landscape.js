@@ -154,7 +154,12 @@ test('the rest timer centres on the list area, fits it, and sits above the botto
 test('the rail slides in from the side; upright phones keep the slide-up', (assert)=>{
   // 2026-11-03 (v3.495): the finishing exit slides out sideways too.
   assert.equal(decl(rule(SHORT, '.gym-dock, body.gym-leaving .gym-dock, body.gym-finishing .gym-dock'), 'transform'), 'translateX(160%)');
-  const outside = src.replace(SHORT.raw, '');
+  // 2026-11-03 (v3.497): the tabletop block (stacked viewport segments, a
+  // portrait passport foldable half-folded) also turns the dock into a
+  // column; it never applies to an upright phone either, so it is set aside
+  // too (test-foldable-tabletop.js).
+  const tabletop = blocks.find(b=> /vertical-viewport-segments: 2/.test(b.condition));
+  const outside = src.replace(SHORT.raw, '').replace(tabletop ? tabletop.raw : '', '');
   assert.ok(outside.length < src.length);
   assert.match(outside, /\.gym-dock\{\s*opacity:0; transform:translateY\(160%\)/, 'the base (upright) hidden state is untouched');
   for(const re of [/--gym-rail-w/, /flex-direction:column; align-items:stretch; justify-content:space-between/]){
