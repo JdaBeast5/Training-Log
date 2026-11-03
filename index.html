@@ -4350,6 +4350,11 @@
   /* The tab's own outline would trace its invisible bounding box (the plate
      plus its label), so the ring is moved onto the plate disc that the eye
      actually reads as the control. */
+  /* v3.507: a dialog container is focused only to hold focus inside it (the
+     set editor on open; the focus trap, for a dialog with nothing focusable).
+     It is not a control, and [tabindex] above drew a ring round the whole
+     sheet. Its buttons and fields keep theirs. */
+  [role="dialog"]:focus-visible{ outline:none; }
   .tab:focus-visible{ outline:none; }
   .tab:focus-visible .plate{
     outline:2px solid var(--focus-ring-color);
@@ -7570,7 +7575,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.506';
+const APP_VERSION = '3.507';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8895,6 +8900,9 @@ const WHATS_NEW = {
   ]},
   '3.506': { headline: 'A big rest timer in gym mode when unfolded', points: [
     'Unfolded in gym mode, the rest timer becomes a large ring beside your exercise, readable from the bench, with a bigger +15s button.',
+  ]},
+  '3.507': { headline: 'No outline round the set editor', points: [
+    'Opening the set editor no longer draws a blue line round the whole sheet. Its buttons still show focus when you use a keyboard.',
   ]},
 };
 
