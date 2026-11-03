@@ -698,3 +698,40 @@ Owner: "Combine with the thread about iPhone Duo optimization … also allow the
 - **Flagged, not fixed:**
   - On an open screen, the floating tab bar and the log-date bar still span both panes across the crease.
   - Analysis, History, Care, Coach and Learn stay in the phone column when open, as the Duo branch decided.
+
+## Addendum 34: Open-screen 2.0 (v3.498–v3.506)
+Owner, after a brainstorm on what the unfolded screen could look like: "let's do them all that we can with the usage we have tonight and we'll continue tomorrow with what we can't." One version per idea, all inside the `[OPEN POSTURE]` block (plus `[HINGE]` for the fold geometry) except two runtime pieces. Tests: `test-open-screen-2-0.js` (23 tests, sabotage-checked per version).
+- **v3.498: floating chrome in the left pane.**
+  - The tab bar, date bar, rest timer, undo toast and gym-mode offer sit on the left pane instead of across the fold.
+  - A sidebar was considered and rejected: it would leave the session pane about 300pt wide.
+  - The tokens are `--open-col-left`/`--open-col-w`, held in the block's single `:root`. `[HINGE]` restates them from the fold. This closes Addendum 33's first flag.
+- **v3.499: Today's details pane.**
+  - `#exerciseDetailCard` leads the right pane with the current exercise's last 5 sessions (via the shared `buildExerciseHistoryHtml`, also used by the history sheet), its cues and its form video.
+  - It follows Up next until you open an exercise, then stays pinned to that one until the day changes.
+  - It is hidden unless `isOpenPosture()`.
+- **v3.500: History master-detail.** The Day-by-Day Log is the left pane. Tapping a day or a heatmap cell shows it in `#historyDayCard` on the right (`showHistoryDayPane`), and the latest day shows by default.
+- **v3.501: Learn master-detail.**
+  - `arrangeLearnForPosture()` moves the library, Recently Trained and index cards into a runtime `#learnNavPane`, and puts them back when folded. The static markup and card order are unchanged.
+  - Its first call is deferred with `setTimeout(…,0)`. `OPEN_POSTURE_QUERY` is declared further down the script, so reading it at load is a TDZ error.
+- **v3.502: Analysis as a dashboard.** Two cards to a row, done in CSS only. Group headers and non-cards span both columns, so the sibling-based group collapse is untouched.
+- **v3.503 Coach, v3.504 Care.**
+  - Both are split views: the Ask Your Coach card and the check-in form are the left panes.
+  - Every tab now has its own open layout, and the phone-column list is gone, which closes Addendum 33's second flag.
+- **v3.505: sheets in a pane.**
+  - Sub-modal and calendar sheets and the set editor become panels in the right pane: all corners rounded, 12px off the bottom.
+  - More opens over the tab bar in the left pane.
+  - In gym mode, the set editor opens in the left pane, opposite the pinned exercise.
+  - New tokens `--open-col2-left`/`--open-col2-w` (`[HINGE]`: 12px past the fold's far edge).
+  - The rgba white count in `test-neutral-rgba-consolidation.js` goes from 87 to 88, for the panel's bottom hairline.
+- **v3.506: the big rest ring.** In open gym mode with an exercise pinned, the rest timer is pane-wide, with a 128px ring, a 34px clock, a 64px-tall +15s and 12px clearance above the dock. The ring SVG gets `overflow:visible`; otherwise its scaled glow clips to a visible square.
+- **Verified in Chromium:**
+  - At 904×678, plus fold emulation (centred, and an off-centre 30px gap at 500–530): every layout above, folding and unfolding (detail pane, Learn restore), sheet geometry (search and set editor 464–886, or 542–886 on the hinge; More 18–440; gym set editor 10–440 or 10–488), and the ring.
+  - At 402×874, the phone is unchanged: timer pill, 56px ring, bottom sheets.
+  - No page errors.
+- **Not built (needs the owner's call, for the next session):**
+  - **Front-screen quick-log view.** The browser can't tell a passport's cover screen from a phone, so a "cover-only" view would really be a phone-layout change.
+  - **Cover in landscape, two-up Log or Analysis.** The phone column is capped at 640px, which makes two charts about 290px each. It would need landscape to widen the column for every tab.
+  - **Tabletop extensions:** the rest timer outside gym mode, and Coach video capture on the bottom half. Low value relative to risk. Undecided.
+- **Unverified on a device:** all of it. In particular, sheets panelled while the on-screen keyboard is up (search, set editor) on a real foldable, and the Learn DOM move when a fold happens mid-scroll.
+- **Flagged, not fixed:** the set editor shows a blue focus outline around the whole sheet when opened programmatically (seen in the open-screen screenshot; it is the same element on a phone). Probably the global `:focus-visible` ring on `tabindex="-1"`.
+- **Not live:** v3.488–v3.506 are on `claude/taste-skill-v2` only, waiting for the owner's yes.
