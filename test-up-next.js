@@ -36,7 +36,9 @@ function block(sets, rowsHtml, ticked = false){
 }
 function mount(listHtml){
   const { window } = runJsdom(extractElementById(src, 'upNext') + `<div id="exerciseList">${listHtml}</div>`,
-    'var weightUnit = "lb";', [...FNS, 'window.__render = renderUpNext; window.__log = logUpNext; window.__find = findNextSetRow;']);
+    // 2026-11-03 (v3.499): renderUpNext steers the open-screen details pane
+    // unless pinned; pinned here, since that pane is not what this tests.
+    'var weightUnit = "lb"; var exerciseDetailPinned = true;', [...FNS, 'window.__render = renderUpNext; window.__log = logUpNext; window.__find = findNextSetRow;']);
   const $ = id => window.document.getElementById(id);
   return { window, $, render: () => window.__render(), log: () => window.__log() };
 }
@@ -146,6 +148,7 @@ test('REAL invocation (v3.391): switching from a training day to a rest day hide
   const { window } = runJsdom(extractElementById(src, 'upNext') + `<div id="exerciseList">${block('5×5', [0,1,2,3,4].map(i => row(0, i, 'Squat')).join(''))}</div>
     <div id="dayDuration"></div><div id="mesocyclePhaseTag"></div><div id="sessionCalTotal"></div>`, `
     var weightUnit = 'lb', selectedLogDate = '2026-10-26', activeProgram = 'p', activeDay = 7;
+    var exerciseDetailPinned = true; // 2026-11-03 (v3.499): see mount()
     window.storage = { get: async () => null, set: async () => {} };
     function formatLogDateLabel(){ return 'Today'; }
     function recordActivity(){ return Promise.resolve(); } function renderStreak(){}

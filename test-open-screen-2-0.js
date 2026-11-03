@@ -13,7 +13,7 @@
 // jsdom evaluates no media queries; the real rules are read from index.html
 // and their formulas evaluated. Real-browser result (Chromium, 904x678): bar
 // 18..440, date bar 18..440, rest timer centred at 229; slab/cover unchanged.
-const { readIndexSource, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractFunction, extractConst, extractElementById, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
 const { test, run } = makeRunner('test-open-screen-2-0.js');
@@ -86,6 +86,69 @@ test('REAL formulas (v3.498): with a reported fold, the pane is measured from th
 test('REAL source (v3.498): none of this applies on a phone — every rule lives inside the open-posture block', (assert)=>{
   const outside = src.replace(RAW[OPEN], '').replace(RAW[HINGE], '');
   for(const re of [/--open-col-w/, /\.nav-pills\{\s*left:var\(--open-col-left\)/]) assert.ok(!re.test(outside.replace(/\/\*[\s\S]*?\*\//g, '')), `${re} outside the open layouts`);
+});
+
+// v3.499 — Today's right pane leads with the exercise you're on (open screen
+// only): its history (the same builder as the history sheet, latest five
+// sessions), cues and form video. It follows Up next until you open an
+// exercise yourself, then stays on yours until the day changes.
+const HIST_FNS = ['escapeHtml', 'normalizeExEntry', 'subVariantOf', 'topSetOf', 'estimated1RM', 'toDisplayWeight', 'trimUnitNum', 'distanceOf', 'dropVolumeOf', 'volumeOf', 'parseDateKey', 'formatDate', 'formatShortDate', 'toDisplayDistance', 'buildExerciseHistoryHtml'];
+function detailWindow(open){
+  const sessions = Array.from({length:8}, (_, i) => ({ date:`2026-10-${String(27 - i * 3).padStart(2, '0')}`, sets:[{weight:150 - i * 5, reps:8}, {weight:150 - i * 5, reps:7}] }));
+  const html = extractElementById(src, 'exerciseDetailCard');
+  const { window } = runJsdom(html, `
+    var weightUnit = 'lb', distanceUnit = 'mi', activeDay = 'd1', LB_PER_KG = 0.453592, M_PER_MI = 1609.344, M_PER_KM = 1000;
+    window.__open = ${open};
+    function isOpenPosture(){ return window.__open; }
+    async function getExLog(){ return ${JSON.stringify(sessions)}; }
+    var exerciseInfo = { 'Bench Press': { cues:['Shoulder blades back', 'Bar to lower chest', 'Drive feet'], videoQuery:'bench press form' } };`,
+    [...HIST_FNS.map(n => { try{ return extractFunction(src, n); }catch(e){ return ''; } }),
+     ...['metresPerDisplayUnit'].map(n => { try{ return extractFunction(src, n); }catch(e){ return ''; } }),
+     `var exerciseDetailByIdx = {}; var exerciseDetailIdx = null; var exerciseDetailPinned = false; var exerciseDetailDay = null;`,
+     extractFunction(src, 'focusExerciseDetail'), extractFunction(src, 'renderExerciseDetail'),
+     "exerciseDetailByIdx['0'] = {name:'Bench Press'}; exerciseDetailByIdx['2'] = {name:'Overhead Press'};"]);
+  return window;
+}
+const settle = () => new Promise(r => setTimeout(r, 30));
+
+test('REAL invocation (v3.499): open, the pane shows the focused exercise — stats, last five sessions, cues, form video', async (assert)=>{
+  const w = detailWindow(true);
+  w.focusExerciseDetail('0', false); await settle();
+  const card = w.document.getElementById('exerciseDetailCard');
+  assert.strictEqual(card.hidden, false);
+  assert.strictEqual(w.document.getElementById('exerciseDetailTitle').textContent, 'Bench Press');
+  assert.strictEqual(card.querySelectorAll('.exh-row').length, 5, 'the latest five of eight sessions');
+  assert.match(card.textContent, /Last 5 sessions/);
+  assert.strictEqual(card.querySelector('.exh-stats b').textContent, '8', 'the stats still count every session');
+  assert.strictEqual(card.querySelectorAll('.ex-cues li').length, 3);
+  assert.match(card.querySelector('.ex-video-link').getAttribute('href'), /bench%20press%20form/);
+});
+
+test('REAL invocation (v3.499): on a phone (not open) nothing renders and the card stays hidden', async (assert)=>{
+  const w = detailWindow(false);
+  w.focusExerciseDetail('0', false); await settle();
+  assert.strictEqual(w.document.getElementById('exerciseDetailCard').hidden, true);
+  assert.strictEqual(w.document.getElementById('exerciseDetailBody').innerHTML, '');
+});
+
+test('REAL invocation (v3.499): opening an exercise pins it; Up next no longer steers until the day changes', async (assert)=>{
+  const w = detailWindow(true);
+  w.focusExerciseDetail('2', true); await settle();
+  assert.strictEqual(w.document.getElementById('exerciseDetailTitle').textContent, 'Overhead Press');
+  assert.strictEqual(w.eval('exerciseDetailPinned'), true);
+  assert.match(extractFunction(src, 'renderUpNext'), /if\(!exerciseDetailPinned\) focusExerciseDetail\(n\.row\.dataset\.exIdx, false\);/, 'Up next only steers while unpinned');
+  assert.match(extractFunction(src, 'renderWorkout'), /if\(exerciseDetailDay !== activeDay\)\{ exerciseDetailDay = activeDay; exerciseDetailPinned = false; exerciseDetailIdx = null; \}/, 'a new day unpins');
+  assert.match(extractFunction(src, 'toggleExerciseBlockFromHeader'), /focusExerciseDetail\(idxEl\.dataset\.exIdx, true\)/, 'opening an exercise pins it');
+});
+
+test('REAL source (v3.499): the sheet and the pane share one builder; the card heads the right column only when open', (assert)=>{
+  assert.match(extractFunction(src, 'openExerciseHistory'), /body\.innerHTML = await buildExerciseHistoryHtml\(exIdx, ex\);/);
+  assert.match(OPEN, /\.exercise-detail-card\{ order:-1; \}/);
+  assert.match(src, /\.exercise-detail-card\[hidden\]\{display:none;\}/);
+  const today = runJsdom(extractElementById(src, 'todayView'), '', []).window.document;
+  const card = today.getElementById('exerciseDetailCard');
+  assert.strictEqual(card.parentElement.id, 'todayView', 'a direct child, so gym mode hides it with the other Today cards');
+  assert.strictEqual(card.nextElementSibling.id, 'profileCardPermanentSlot');
 });
 
 run();

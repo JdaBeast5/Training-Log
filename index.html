@@ -666,6 +666,7 @@
      pending (faint ghost of the suggestion). */
   .set-chips{display:flex; flex-wrap:wrap; gap:6px; padding:0 0 14px;}
   .set-chips[hidden]{display:none;}
+  .exercise-detail-card[hidden]{display:none;} /* v3.499: phones, and until there is an exercise to show */
   .set-chip{
     flex:1 0 auto; min-width:56px; max-width:132px; min-height:44px; padding:0 8px; border-radius:14px; white-space:nowrap;
     display:inline-flex; align-items:center; justify-content:center; gap:3px;
@@ -5376,6 +5377,8 @@
     }
     .posture-split > *{ grid-column:2; }
     .posture-split > .split-primary{ grid-column:1; grid-row:1 / -1; }
+    /* v3.499: the exercise you are on heads the right column. */
+    .exercise-detail-card{ order:-1; }
     #analysisView, #historyView, #careView, #coachView, #learnView{
       max-width:calc(640px - 36px); margin-left:auto; margin-right:auto;
     }
@@ -6134,6 +6137,13 @@
       <button class="switch-profile-btn" id="deleteAllDataBtn" style="color:var(--plate-red); border-color:rgba(255,69,58,0.3);"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="7" x2="19" y2="7"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M7 7l1 12.2a1 1 0 0 0 1 .8h6a1 1 0 0 0 1-.8L17 7"/><line x1="10" y1="11" x2="10" y2="16"/><line x1="14" y1="11" x2="14" y2="16"/></svg> Delete all my data (this profile, permanently)</button>
       <div class="status-msg" id="deleteAllDataStatus"></div>
     </div></div>
+  </div>
+  <!-- v3.499: the open-screen details pane (renderExerciseDetail). Hidden on
+       phones; on an unfolded foldable it heads the right column. -->
+  <div class="card exercise-detail-card" id="exerciseDetailCard" hidden>
+    <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,14 7,9.3 10.8,12 18,4.5"/><circle cx="18" cy="4.5" r="1.3" fill="currentColor"/></svg></span><span id="exerciseDetailTitle"></span></div>
+    <div class="history-hint">Your history with this lift. Open another exercise to see it here.</div>
+    <div id="exerciseDetailBody"></div>
   </div>
   <div id="profileCardPermanentSlot"></div>
 
@@ -7483,7 +7493,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.498';
+const APP_VERSION = '3.499';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8784,6 +8794,9 @@ const WHATS_NEW = {
   ]},
   '3.498': { headline: 'Bars stay on one side when unfolded', points: [
     'Unfolded, the tab bar, date bar and rest timer sit in the left pane instead of stretching across the fold.',
+  ]},
+  '3.499': { headline: 'Exercise details when unfolded', points: [
+    'Unfolded, Today\'s right side shows the exercise you\'re on: your recent sessions, your estimated 1RM trend, cues and the form video. Open another exercise to see it there.',
   ]},
 };
 
@@ -28229,6 +28242,11 @@ function isOpenPosture(){
 // the list while the pane kept showing the old one.
 function toggleExerciseBlockFromHeader(blockEl){
   const opening = !blockEl.classList.contains('open');
+  // v3.499: opening an exercise also shows it in the open-screen details pane.
+  if(opening && typeof focusExerciseDetail === 'function'){
+    const idxEl = blockEl.querySelector('[data-ex-idx]');
+    if(idxEl) focusExerciseDetail(idxEl.dataset.exIdx, true);
+  }
   if(opening && gymModeActive && isOpenPosture()){
     document.querySelectorAll('#exerciseList > .exercise-block.open').forEach(b=> setExerciseBlockOpen(b, false));
   }
@@ -28293,6 +28311,8 @@ function renderArchiveWeekVisibility(){
 
 async function renderWorkout(){
   const day = dayDefs[activeDay];
+  // v3.499: a new day lets the details pane follow Up next again.
+  if(exerciseDetailDay !== activeDay){ exerciseDetailDay = activeDay; exerciseDetailPinned = false; exerciseDetailIdx = null; }
   renderTodayInsights(); // fire-and-forget — session heads-up depends on activeDay/activeProgram, both already updated by now
   renderArchiveWeekVisibility(); // day-count-independent -- see #archiveWeekWrap's HTML comment
   document.getElementById('dayHeroEyebrow').textContent = day.label;
@@ -29112,6 +29132,7 @@ async function renderWorkout(){
       openExerciseEditor(ex, ex.__srcIndex);
     });
 
+    exerciseDetailByIdx[exIdx] = ex; // v3.499: for the open-screen details pane
     const histBtn = blockEl.querySelector(`.set-actions[data-ex-idx="${exIdx}"] .ex-history-btn`);
     if(histBtn) histBtn.addEventListener('click', (e)=>{
       e.stopPropagation();
@@ -30337,6 +30358,7 @@ function renderUpNext(){
   if(why){ why.textContent = (chip && chip._values && chip._values.why) || ''; why.hidden = !why.textContent; }
   fillSetLogger(card, n, chip, target);
   card.dataset.rowKey = `${n.row.dataset.exIdx}:${n.row.dataset.setIdx}`;
+  if(!exerciseDetailPinned) focusExerciseDetail(n.row.dataset.exIdx, false); // v3.499
 }
 
 // Fills a logger's tiles (Up next's, or an open exercise's since v3.376) for
@@ -31196,7 +31218,12 @@ async function openExerciseHistory(exIdx, ex){
   title.textContent = ex.name;
   body.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div><div class="skeleton-line" style="width:58%"></div></div>';
   overlay.classList.add('active');
+  body.innerHTML = await buildExerciseHistoryHtml(exIdx, ex);
+}
 
+// v3.499: what the exercise history sheet shows, as HTML, so the open-screen
+// details pane on Today (renderExerciseDetail) shows the same thing.
+async function buildExerciseHistoryHtml(exIdx, ex, opts){
   const log = await getExLog(activeDay, exIdx, subVariantOf(ex));
   const sessions = (log || [])
     .map(normalizeExEntry)
@@ -31204,8 +31231,7 @@ async function openExerciseHistory(exIdx, ex){
     .sort((a,b)=> new Date(b.date+'T00:00:00') - new Date(a.date+'T00:00:00'));
 
   if(sessions.length === 0){
-    body.innerHTML = '<div class="empty-note">Nothing logged for this exercise yet.</div>';
-    return;
+    return '<div class="empty-note">Nothing logged for this exercise yet.</div>';
   }
 
   // Oldest-first for anything that reads as a trend; the session list below
@@ -31268,7 +31294,9 @@ async function openExerciseHistory(exIdx, ex){
     </div>
   `;
 
-  const rowsHtml = sessions.map(e=>{
+  // opts.maxRows: the details pane shows the latest few; the sheet shows all.
+  const listed = opts && opts.maxRows ? sessions.slice(0, opts.maxRows) : sessions;
+  const rowsHtml = listed.map(e=>{
     const setsStr = (e.sets||[])
       .filter(s=> s.weight!=null || s.reps!=null || s.distance!=null)
       .map(s=>{
@@ -31294,7 +31322,52 @@ async function openExerciseHistory(exIdx, ex){
     `;
   }).join('');
 
-  body.innerHTML = statsHtml + chartHtml + `<div class="exh-section-label">Every session</div>` + rowsHtml;
+  const label = listed.length < sessions.length ? `Last ${listed.length} sessions` : 'Every session';
+  return statsHtml + chartHtml + `<div class="exh-section-label">${label}</div>` + rowsHtml;
+}
+
+
+// [EXERCISE DETAIL] (v3.499, open screen) -------------------------------------
+// On an unfolded foldable, Today's right pane leads with the exercise you are
+// on: its history (the same sessions, best and estimated-1RM trend as the
+// history sheet), its cues and its form video. It follows Up next as you log,
+// until you open an exercise yourself; then it stays on yours until you change
+// day. Phones never render it: the card stays hidden and nothing is fetched.
+const exerciseDetailByIdx = {};   // render index -> exercise, filled by renderWorkout
+let exerciseDetailIdx = null;
+let exerciseDetailPinned = false;
+let exerciseDetailDay = null;
+
+function focusExerciseDetail(exIdx, pinned){
+  if(exIdx == null || exIdx === '') return;
+  if(pinned) exerciseDetailPinned = true;
+  if(String(exIdx) === String(exerciseDetailIdx) && document.getElementById('exerciseDetailCard') && !document.getElementById('exerciseDetailCard').hidden) return;
+  exerciseDetailIdx = String(exIdx);
+  renderExerciseDetail();
+}
+
+async function renderExerciseDetail(){
+  const card = document.getElementById('exerciseDetailCard');
+  if(!card) return;
+  const ex = exerciseDetailIdx != null ? exerciseDetailByIdx[exerciseDetailIdx] : null;
+  if(!ex || !isOpenPosture()){ card.hidden = true; return; }
+  card.hidden = false;
+  document.getElementById('exerciseDetailTitle').textContent = ex.name;
+  const info = (typeof exerciseInfo !== 'undefined' && exerciseInfo[ex.name]) || null;
+  const cuesHtml = info && info.cues && info.cues.length
+    ? `<div class="exh-section-label">Cues</div><ul class="ex-cues">${info.cues.map(c=> `<li>${escapeHtml(c)}</li>`).join('')}</ul>`
+      + `<a class="ex-video-link" href="https://www.youtube.com/results?search_query=${encodeURIComponent(info.videoQuery || ex.name + ' proper form')}" target="_blank" rel="noopener">Watch form video</a>`
+    : '';
+  const shownIdx = exerciseDetailIdx;
+  const historyHtml = await buildExerciseHistoryHtml(Number(shownIdx), ex, {maxRows:5});
+  if(shownIdx !== exerciseDetailIdx) return; // another exercise was focused while this one loaded
+  document.getElementById('exerciseDetailBody').innerHTML = historyHtml + cuesHtml;
+}
+// Folding or unfolding shows or hides it straight away, not at the next set.
+if(window.matchMedia){
+  const mq = window.matchMedia(OPEN_POSTURE_QUERY);
+  if(mq.addEventListener) mq.addEventListener('change', ()=> renderExerciseDetail());
+  else if(mq.addListener) mq.addListener(()=> renderExerciseDetail());
 }
 
 function closeExerciseHistory(){

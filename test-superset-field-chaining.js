@@ -57,6 +57,9 @@ const setExerciseBlockOpenSrc = [
   extractFunction(src, 'isOpenPosture'),
   extractFunction(src, 'toggleExerciseBlockFromHeader'),
   'var gymModeActive = false;',
+  // 2026-11-03 (v3.499): the render loop records each exercise for the
+  // open-screen details pane (test-open-screen-2-0.js).
+  'var exerciseDetailByIdx = {};',
 ].join('\n');
 const allMemberCheckboxesCheckedSrc = extractFunction(src, 'allMemberCheckboxesChecked');
 const nextExerciseBlockSrc = extractFunction(src, 'nextExerciseBlock');
