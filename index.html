@@ -7273,7 +7273,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.491';
+const APP_VERSION = '3.492';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8553,6 +8553,9 @@ const WHATS_NEW = {
   ]},
   '3.491': { headline: 'Log in two panes on foldables', points: [
     'Unfold an iPhone Duo or passport foldable on Log and nutrition sits on the left, with water, bodyweight, sleep and the rest on the right.',
+  ]},
+  '3.492': { headline: 'Keep your place when you unfold', points: [
+    'Fold or unfold mid-workout and the exercise or card you were looking at stays put on screen. Rotating a regular phone works the same way.',
   ]},
 };
 
@@ -39474,6 +39477,104 @@ document.getElementById('calendarNextMonth').addEventListener('click', ()=>{
 // deep link validating against a second copy is exactly how a new tab ends up
 // reachable from one route and not the other.
 const VIEW_KEYS = ['today','log','analysis','history','care','coach','learn'];
+
+// [POSTURE CONTINUITY] (v3.492, from the Duo branch's 3.274) -------------------
+// Folding or unfolding a foldable reaches a page as nothing but a resize, but
+// a big one: between the cover screen (~420-470pt) and the open screen
+// (~860-900pt, where Today and Log split into two panes) nearly every card
+// moves, and the same scrollY lands somewhere else entirely. Native apps keep
+// your place across that, so this does too: it remembers what you were
+// looking at and puts it back where it was on screen. Done explicitly rather
+// than left to browser scroll anchoring, which picks its own anchor node and
+// was not built for a reflow that moves content between columns.
+//
+// The anchor is the innermost card or exercise row crossing the line just
+// under the top chrome (what you are reading) or, if that line falls in a
+// gap, the next one down. When both panes cross the line, the left one wins:
+// that is the split's primary (the session, the food log).
+const POSTURE_ANCHOR_SELECTOR = '.card, .exercise-block';
+// Width change that counts as a posture change. A keyboard only changes
+// height, and nothing short of a fold or a rotation moves width this far.
+const POSTURE_WIDTH_DELTA = 100;
+
+function findPostureAnchor(root, lineY){
+  const candidates = [...root.querySelectorAll(POSTURE_ANCHOR_SELECTOR)]
+    .map(el=> ({el, r:el.getBoundingClientRect()}))
+    .filter(c=> c.r.height > 0);
+  const crosses = c=> c.r.top <= lineY && c.r.bottom > lineY;
+  // Innermost: drop any crossing candidate that contains another crossing one
+  // (the workout card, when an exercise row inside it is what is on the line).
+  const crossing = candidates.filter(c=> crosses(c) && !candidates.some(d=> d !== c && crosses(d) && c.el.contains(d.el)));
+  if(crossing.length){
+    crossing.sort((a, b)=> a.r.left - b.r.left);
+    return {el:crossing[0].el, top:crossing[0].r.top};
+  }
+  const below = candidates.filter(c=> c.r.top > lineY);
+  if(!below.length) return null;
+  below.sort((a, b)=> (a.r.top - b.r.top) || (a.r.left - b.r.left));
+  return {el:below[0].el, top:below[0].r.top};
+}
+
+(function wirePostureContinuity(){
+  let anchor = null;
+  let anchorWidth = window.innerWidth;
+  let captureTimer = 0, restoreFrame = 0;
+
+  // The reading line: just under the top chrome. The tab bar sits at the
+  // bottom now (v3.288), so that is the status-bar strip, or the Analysis
+  // jump rail once it has stuck to the top.
+  function readingLine(view){
+    const scrim = document.querySelector('.status-scrim');
+    let top = scrim ? Math.max(0, scrim.getBoundingClientRect().bottom) : 0;
+    const rail = view.querySelector('.analysis-index');
+    if(rail){
+      const r = rail.getBoundingClientRect();
+      if(r.height > 0 && r.top <= top + 1) top = Math.max(top, r.bottom);
+    }
+    return top + 8;
+  }
+  function capture(){
+    // Width already moved but the resize handler has not run yet (a scroll
+    // event from the reflow can arrive first): measuring now would replace
+    // the pre-fold anchor with a post-fold one and restore nothing.
+    if(Math.abs(window.innerWidth - anchorWidth) >= POSTURE_WIDTH_DELTA) return;
+    const view = VIEW_KEYS.map(k=> document.getElementById(k + 'View')).find(v=> v && v.style.display !== 'none');
+    if(!view) return;
+    anchor = findPostureAnchor(view, readingLine(view));
+  }
+  // Settled positions only: after scrolling stops, and after a tap's
+  // expand/collapse animation has had time to land.
+  function scheduleCapture(delay){
+    clearTimeout(captureTimer);
+    captureTimer = setTimeout(capture, delay);
+  }
+  window.addEventListener('scroll', ()=> scheduleCapture(120), {passive:true});
+  document.addEventListener('pointerup', ()=> scheduleCapture(450), {passive:true});
+
+  window.addEventListener('resize', ()=>{
+    if(Math.abs(window.innerWidth - anchorWidth) < POSTURE_WIDTH_DELTA) return;
+    const saved = anchor;
+    clearTimeout(captureTimer);
+    cancelAnimationFrame(restoreFrame);
+    restoreFrame = requestAnimationFrame(()=>{
+      // An open sheet holds the page in place itself (body.scroll-locked) and
+      // restores its own offset on close; moving the page under it would
+      // fight that.
+      if(saved && saved.el.isConnected && !document.body.classList.contains('scroll-locked')){
+        const r = saved.el.getBoundingClientRect();
+        // Instant: html{scroll-behavior:smooth} would otherwise glide there,
+        // and the point is that you never see the page move.
+        if(r.height > 0){
+          try{ window.scrollBy({top:r.top - saved.top, left:0, behavior:'instant'}); }
+          catch(e){ window.scrollBy(0, r.top - saved.top); }
+        }
+      }
+      anchorWidth = window.innerWidth;
+      capture();
+    });
+  }, {passive:true});
+  capture();
+})();
 
 // Manifest `shortcuts` entries are just URLs, so a shortcut can only land
 // somewhere useful if the app reads where it was asked to go. `?view=log`
