@@ -5361,7 +5361,12 @@
      so it can never meet the short-landscape gym rail (max-height:559px).
      Safari doesn't know the feature, so for it that alternative is false. */
   @media (min-width:760px) and (min-height:560px), (horizontal-viewport-segments: 2) and (min-height:560px){
-    :root{ --wrap-max:1080px; --pane-gap:24px; }
+    :root{
+      --wrap-max:1080px; --pane-gap:24px;
+      /* v3.498: the left column's edge and width, for the chrome below. */
+      --open-col-left:calc(max(0px, (100vw - var(--wrap-max)) / 2) + 18px);
+      --open-col-w:calc((min(100vw, var(--wrap-max)) - 36px - var(--pane-gap)) / 2);
+    }
     .posture-split{
       display:grid;
       grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
@@ -5379,6 +5384,20 @@
     .sticky-day-header{
       left:max(0px, (100vw - var(--wrap-max)) / 2);
       right:calc(50vw + var(--pane-gap) / 2);
+    }
+    /* OPEN CHROME (v3.498): the bars that float over the page stay in the
+       left pane instead of stretching across the fold. A sidebar was the
+       first idea, but at ~116px it would leave the session pane about 300pt
+       wide, narrower than a phone; so the familiar bottom bar keeps its
+       shape, a pane wide. The date bar, rest timer, undo toast and the
+       gym-mode offer follow it. --open-col-left/--open-col-w are the left
+       column's edge and width (the [HINGE] block restates them on the fold).
+       Gym mode has no tab bar, and positions its own dock and timer. */
+    .nav-pills{ left:var(--open-col-left); right:auto; width:var(--open-col-w); }
+    .log-date-bar{ max-width:var(--open-col-w); }
+    body:not(.gym-mode) .rest-timer, .undo-toast, .gym-offer{
+      left:calc(var(--open-col-left) + var(--open-col-w) / 2);
+      max-width:var(--open-col-w);
     }
     body.gym-mode #todayView{ display:block; }
     /* GYM MODE, OPEN (v3.493, from the Duo branch's 3.275): the session list |
@@ -5464,6 +5483,7 @@
       grid-template-columns:calc(var(--hinge-l) - 12px - var(--gutter-l)) minmax(0, 1fr);
     }
     .sticky-day-header{ left:0; right:calc(100vw - var(--hinge-l) + 12px); }
+    :root{ --open-col-left:var(--gutter-l, 18px); --open-col-w:calc(var(--hinge-l) - 12px - 18px); }
     body.gym-mode{
       --gym-wrap-left:0px;
       --gym-col-w:calc(var(--hinge-l) - 12px - 10px);
@@ -7463,7 +7483,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.497';
+const APP_VERSION = '3.498';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8761,6 +8781,9 @@ const WHATS_NEW = {
   ]},
   '3.497': { headline: 'Tabletop gym mode', points: [
     'Half-fold an Android passport foldable on a bench in gym mode: your exercise stays upright on the top half, and the bottom half becomes the controls, with a big Log button.',
+  ]},
+  '3.498': { headline: 'Bars stay on one side when unfolded', points: [
+    'Unfolded, the tab bar, date bar and rest timer sit in the left pane instead of stretching across the fold.',
   ]},
 };
 
