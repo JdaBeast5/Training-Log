@@ -5182,6 +5182,64 @@
                transform 0.5s var(--ease-smooth) 0.5s;
   }
 
+  /* [SHORT LANDSCAPE] (v3.495, from the Duo branch's 3.277) -----------------
+     Gym mode on any screen turned sideways that is too short for the open
+     layout: a foldable's cover screen sideways (~680x460pt) and a slab phone
+     (~874x402pt). Possible since v3.488 unlocked rotation. Laid out as on a
+     portrait phone, the dock across the bottom covered the open exercise,
+     leaving a set row or two usable at a time.
+
+     So the dock turns into a slim rail down the right edge: clock and
+     progress at the top, the Log button filling the middle as a tall target,
+     Exit at the bottom. The exercise list gets the screen's full height
+     beside it. The rest timer centres on the list area at the bottom. Body
+     padding reserves the rail and the side safe areas, which is why .wrap's
+     own sides drop back to gym mode's plain 10px here (keeping both would
+     count an inset twice).
+
+     max-height:559px is the open-posture gate's min-height minus one, so the
+     two can never both apply. Portrait screens of any size never match. */
+  @media (orientation:landscape) and (max-height:559px){
+    body.gym-mode{
+      --gym-rail-w:116px;
+      --gym-pad-l:env(safe-area-inset-left, 0px);
+      --gym-pad-r:calc(var(--gym-rail-w) + 20px + env(safe-area-inset-right, 0px));
+      padding-left:var(--gym-pad-l);
+      padding-right:var(--gym-pad-r);
+    }
+    body.gym-mode .wrap{
+      padding-left:10px; padding-right:10px;
+      /* Only the rest timer is at the bottom now, not the dock as well. */
+      padding-bottom:calc(110px + env(safe-area-inset-bottom, 0px));
+    }
+    body.gym-mode .gym-dock{
+      left:auto; right:calc(10px + env(safe-area-inset-right, 0px));
+      top:calc(10px + env(safe-area-inset-top, 0px));
+      bottom:calc(10px + env(safe-area-inset-bottom, 0px));
+      margin-bottom:0;
+      width:var(--gym-rail-w);
+      flex-direction:column; align-items:stretch; justify-content:space-between;
+      gap:10px; padding:16px 10px 10px; text-align:center;
+    }
+    /* 22px fits the longest clock, "9:59:59", in the rail. */
+    body.gym-mode .gym-clock{ font-size:22px; }
+    body.gym-mode .gym-dock-meta{ flex:0 0 auto; }
+    /* The Log button takes the rail's free height: a tall target, with its
+       label ("Log 130x8") wrapping inside rather than cut off. */
+    body.gym-mode .gym-dock .gym-log-btn{
+      flex:1 1 auto; min-height:0; padding:8px; font-size:15px;
+      white-space:normal; text-overflow:clip; line-height:1.25;
+    }
+    body.gym-mode .gym-exit-btn{ padding:0 10px; }
+    /* In and out from the side the rail lives on, not up from the bottom. */
+    .gym-dock, body.gym-leaving .gym-dock, body.gym-finishing .gym-dock{ transform:translateX(160%); }
+    body.gym-mode .rest-timer{
+      bottom:calc(10px + env(safe-area-inset-bottom, 0px));
+      left:calc((var(--gym-pad-l) + 100vw - var(--gym-pad-r)) / 2);
+      max-width:calc(100vw - var(--gym-pad-l) - var(--gym-pad-r) - 20px);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce){
     .gym-offer{transition:opacity 0.01ms;}
     .gym-dock, body.gym-leaving .gym-dock{transition:none;}
@@ -7333,7 +7391,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.494';
+const APP_VERSION = '3.495';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8622,6 +8680,9 @@ const WHATS_NEW = {
   ]},
   '3.494': { headline: 'Tap to switch exercises when unfolded', points: [
     'In gym mode on an unfolded foldable, tapping an exercise in your list moves it into the big panel on the right.',
+  ]},
+  '3.495': { headline: 'Gym mode sideways', points: [
+    'Turn your phone or a foldable\'s cover screen sideways in gym mode and the clock, Log and Exit move into a slim bar on the right, so your exercise gets the full height.',
   ]},
 };
 
