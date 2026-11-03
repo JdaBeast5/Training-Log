@@ -268,4 +268,16 @@ test('REAL markup (v3.502): every Analysis group header and non-card stays a dir
   assert.strictEqual(doc.querySelectorAll('#analysisView .posture-split, #analysisView .split-primary').length, 0);
 });
 
+// v3.503 — Coach: the conversation is the left pane on the open screen; form
+// feedback, past reviews and supplements stack on the right.
+test('REAL markup (v3.503): Coach is a split view whose one primary is the Ask Your Coach card', (assert)=>{
+  const doc = runJsdom(extractElementById(src, 'coachView'), '', []).window.document;
+  const view = doc.getElementById('coachView');
+  assert.ok(view.classList.contains('posture-split'));
+  const primaries = view.querySelectorAll(':scope > .split-primary');
+  assert.strictEqual(primaries.length, 1);
+  assert.match(primaries[0].querySelector('.card-title').textContent, /Ask Your Coach/);
+  assert.ok(!/#coachView[,{]/.test(OPEN), 'no longer held to the phone column');
+});
+
 run();
