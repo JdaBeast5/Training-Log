@@ -7333,7 +7333,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.493';
+const APP_VERSION = '3.494';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8619,6 +8619,9 @@ const WHATS_NEW = {
   ]},
   '3.493': { headline: 'Gym mode in two panes on foldables', points: [
     'Unfold in gym mode and your session list sits on the left with the clock, while the exercise you\'re on stays pinned on the right at full height.',
+  ]},
+  '3.494': { headline: 'Tap to switch exercises when unfolded', points: [
+    'In gym mode on an unfolded foldable, tapping an exercise in your list moves it into the big panel on the right.',
   ]},
 };
 
@@ -28047,6 +28050,29 @@ function renderDayInsight(day){
 // state was a class, but `aria-expanded` has to agree with that class at every
 // one of them or a screen reader is told the row is shut while it is visibly
 // open. One function, so there is exactly one place that can be wrong.
+// v3.494 (from the Duo branch's 3.276): the open-posture condition the
+// stylesheet's [OPEN POSTURE] @media block uses, for the one place JS has to
+// know which layout is on screen. Kept as the exact same string (test-duo-gym-
+// tap-to-switch.js fails if the two drift apart) and read live through
+// matchMedia, so a fold or unfold is picked up the moment it happens.
+const OPEN_POSTURE_QUERY = '(min-width:760px) and (min-height:560px)';
+function isOpenPosture(){
+  return !!(window.matchMedia && window.matchMedia(OPEN_POSTURE_QUERY).matches);
+}
+
+// Tapping an exercise header. Everywhere else it toggles just that exercise,
+// as it always has. In gym mode on an open foldable the right pane shows ONE
+// exercise, so opening another is a switch: the current one closes and the
+// tapped one takes the pane. Without this the tapped exercise expanded inside
+// the list while the pane kept showing the old one.
+function toggleExerciseBlockFromHeader(blockEl){
+  const opening = !blockEl.classList.contains('open');
+  if(opening && gymModeActive && isOpenPosture()){
+    document.querySelectorAll('#exerciseList > .exercise-block.open').forEach(b=> setExerciseBlockOpen(b, false));
+  }
+  setExerciseBlockOpen(blockEl, opening);
+}
+
 function setExerciseBlockOpen(block, isOpen){
   if(!block) return;
   block.classList.toggle('open', isOpen);
@@ -28899,7 +28925,7 @@ async function renderWorkout(){
     }
 
     exerciseHeader.addEventListener('click', ()=>{
-      setExerciseBlockOpen(blockEl, !blockEl.classList.contains('open'));
+      toggleExerciseBlockFromHeader(blockEl);
     });
 
     // Bound to the swap ICON specifically, not the whole .ex-name text — the
