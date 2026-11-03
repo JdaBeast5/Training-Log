@@ -24,7 +24,7 @@
 // renderTabs/renderFoodCats) against jsdom and asserts on resulting DOM state
 // and document.activeElement — never string-matching the source for behavior.
 const {
-  readIndexSource, extractFunction, extractElementById,
+  readIndexSource, extractFunction, extractConst, extractElementById,
   countCallSites, runJsdom, makeRunner,
 } = require('./testHelpers.js');
 
@@ -40,7 +40,16 @@ function extractBetween(label, startAnchor, endAnchor){
 
 // ── Real source under test ──────────────────────────────────────────────────
 
-const openHelperSrc = extractFunction(src, 'setExerciseBlockOpen');
+// 2026-11-03 (v3.494): the header listener calls toggleExerciseBlockFromHeader
+// (the open-posture gym-mode switch, test-duo-gym-tap-to-switch.js), so the
+// REAL function and its posture check come along. Not gym mode here.
+const openHelperSrc = [
+  extractFunction(src, 'setExerciseBlockOpen'),
+  extractConst(src, 'OPEN_POSTURE_QUERY'),
+  extractFunction(src, 'isOpenPosture'),
+  extractFunction(src, 'toggleExerciseBlockFromHeader'),
+  'var gymModeActive = false;',
+].join('\n');
 const nextExerciseBlockSrc = extractFunction(src, 'nextExerciseBlock');
 
 // The exercise row's real markup template, lifted whole out of renderWorkout
@@ -238,7 +247,11 @@ test('SABOTAGE ANCHOR: every path that opens or closes an exercise row goes thro
   // set" opens the exercise (same helper) — still +1 over the original 7.
   // v3.301: +2 — in gym mode the open exercise follows the next set (close
   // the others, open that one), through the same helper.
-  assert.strictEqual(countCallSites(src, 'setExerciseBlockOpen'), 10);
+  // 2026-11-03 (v3.494): 10 -> 11. The header toggle moved into
+  // toggleExerciseBlockFromHeader, which adds a call: closing the other open
+  // exercise when gym mode on an open foldable switches its pane
+  // (test-duo-gym-tap-to-switch.js).
+  assert.strictEqual(countCallSites(src, 'setExerciseBlockOpen'), 11);
   assert.strictEqual(src.includes('setExerciseUnitOpen'), false, 'the old pairing wrapper must be gone entirely, not just uncalled');
   // And the old hand-written form is gone from all of them.
   assert.strictEqual(src.includes("row.querySelector('.expand-wrap').classList.toggle('open')"), false);

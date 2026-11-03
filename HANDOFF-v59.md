@@ -644,3 +644,106 @@ Owner: "Yes, get this started", covering the status-bar strip and the small fixe
   - The iOS status-bar text in light mode (device check).
   - Day-strip colours (kept).
   - The Priorities hint (kept, because of its 14-word budget).
+
+## Addendum 32: Device confirmation (2026-11-02)
+On the owner's iPhone, after v3.487 went live:
+- **The status-bar strip** (`.status-scrim`, v3.483) reads as the same translucent glass as the jump rail. Confirmed.
+- **Light mode status bar:** the clock and battery are readable with the phone in light mode. This closes the open question from addendum 29 (`black-translucent` status-bar style); no dark band or meta change is needed.
+
+## Addendum 33: Foldables, iPhone Duo port plus passport foldables (v3.488–v3.497)
+Owner: "Combine with the thread about iPhone Duo optimization … also allow the new form factor for the passport foldables."
+
+- **The Duo work:** it was on `claude/iphone-duo-form-factor` (HANDOFF-v51 there) and never merged. It sat 282 commits behind `Branch-1` with colliding version numbers (3.270–3.277). Each of its eight increments was re-implemented against the current app and renumbered, rather than merged. That branch is superseded; it was left in place, not deleted.
+- **Passport foldables** (Galaxy Z Fold 8 wide, Huawei Pura X Max, reported Apple/Oppo/Honor models):
+  - They open to 4:3–14:10, wider than tall, about 860–1000 × 610–700pt. That's the open Duo's shape, so the Duo's size-driven layout already covers them.
+  - Their cover screens (10:16, about 420–460pt wide) keep the phone layout.
+  - New for them: Chrome on Android reports the fold itself (Viewport Segments). The Device Posture API wasn't available in the bundled Chromium, so it isn't used.
+
+| Ver | Change | Ported from | Test |
+|---|---|---|---|
+| 3.488 | `manifest.json` orientation `any` | Duo 3.270 | `test-duo-orientation-unlock.js` |
+| 3.489 | Side safe areas: `.wrap` `--gutter-l/-r`, floating tab bar `left/right` + inset (new: the bar is fixed at the bottom now), FABs, sticky day header, `.analysis-index`, gym `.wrap`/dock | Duo 3.271 | `test-side-safe-area-gutters.js` (formulas evaluated) |
+| 3.490 | `[OPEN POSTURE]` `(min-width:760px) and (min-height:560px)`. Today: `.today-session-pane.split-primary` (day rail + workout card). Other tabs stay in the phone column. `--wrap-max` is on `:root`. | Duo 3.272 | `test-duo-open-posture-layout.js` (gate includes passport sizes) |
+| 3.491 | Log: the nutrition card is the split primary | Duo 3.273 | `test-duo-open-posture-log-split.js` |
+| 3.492 | `wirePostureContinuity`/`findPostureAnchor`. The reading line is now under `.status-scrim`, or under the Analysis jump rail once it sticks (new: the tab bar is at the bottom). | Duo 3.274 | `test-duo-posture-continuity.js` |
+| 3.493 | Gym mode open: list on the left, open exercise pinned on the right. Dock (now with Log) and rest timer under the list. | Duo 3.275 | `test-duo-gym-mode-open-split.js` |
+| 3.494 | `OPEN_POSTURE_QUERY`/`isOpenPosture`/`toggleExerciseBlockFromHeader`: tap to switch the pane | Duo 3.276 | `test-duo-gym-tap-to-switch.js` |
+| 3.495 | `[SHORT LANDSCAPE]` gym rail. New: the Log button fills the rail (wraps), and the finishing exit slides sideways. | Duo 3.277 | `test-duo-gym-short-landscape.js` |
+| 3.496 | `[HINGE]` (new). The open gate gains the alternative `(horizontal-viewport-segments: 2) and (min-height:560px)` in both CSS and `OPEN_POSTURE_QUERY`. With a reported side-by-side fold, the page spans the screen and the columns end 12px before and start 12px after `env(viewport-segment-right 0 0)`/`env(viewport-segment-left 1 0)`. Gym columns and the dock follow. | — | `test-foldable-hinge.js` |
+| 3.497 | `[TABLETOP]` (new): `(vertical-viewport-segments: 2) and (max-width:759px) and (orientation:portrait)`, gym mode only. The list ends at the fold. The dock covers the bottom half, with the rest timer in a slot inside it (z-index 60) and a big Log button. | — | `test-foldable-tabletop.js` (exhaustive overlap check) |
+
+- **Harness updates, all with dated notes:**
+  - test-today-session-first (the session pane is the direct child now)
+  - test-analysis-index-visual-weight (gutter-token padding)
+  - test-glass-cards, test-glass-controls, test-tab-bar: their CSSOM walkers skip the open-posture and segment blocks
+  - test-a11y-keyboard-focus (`setExerciseBlockOpen` call sites 10 → 11), test-exercise-swap-tap-target, test-superset-field-chaining: they load the real toggle
+- **Verified in Chromium:**
+  - Phone sizes are pixel-identical to before; the geometry was diffed.
+  - Open layout at 890×626, 861×609 and 904×678.
+  - Fold continuity: an exercise stays at 200px through cover → open → cover, and scrollY returns exactly.
+  - Tap-to-switch.
+  - Sideways rail at 874×402 and 691×432.
+  - Fold emulation through CDP `Emulation.setDeviceMetricsOverride({displayFeature})`, with `--enable-experimental-web-platform-features`, `isMobile`. Results:
+    - centred fold → 440/464;
+    - off-centre fold with a 30px gap (500–530) → 488/542;
+    - a 700-wide book posture → split at 338/362;
+    - tabletop at 609×861 with the fold at 430 → dock 440–851, timer 496–574, Log 581–774.
+  - Gotcha: Playwright's `page.screenshot` re-applies its own viewport and drops the fold emulation. Use CDP `Page.captureScreenshot`.
+  - Final sweep: 10 shapes × 5 tabs + gym mode, 0 page errors, no horizontal scroll.
+- **Unverified on any real device:**
+  - Real CSS viewport sizes on the Duo, Fold 8 wide or Pura X Max, against the 760/560 gate.
+  - Whether these Android browsers report segments when flat-open. Expected: only when half-folded, which is when the hinge layouts matter.
+  - Whether iOS honours manifest `orientation`.
+  - Everything listed in the Duo branch's HANDOFF-v51 §5 still applies, e.g. sticky right pane plus the on-screen keyboard in Safari, and a fold while a sheet is open.
+- **Flagged, not fixed:**
+  - On an open screen, the floating tab bar and the log-date bar still span both panes across the crease.
+  - Analysis, History, Care, Coach and Learn stay in the phone column when open, as the Duo branch decided.
+
+## Addendum 34: Open-screen 2.0 (v3.498–v3.506)
+Owner, after a brainstorm on what the unfolded screen could look like: "let's do them all that we can with the usage we have tonight and we'll continue tomorrow with what we can't." One version per idea, all inside the `[OPEN POSTURE]` block (plus `[HINGE]` for the fold geometry) except two runtime pieces. Tests: `test-open-screen-2-0.js` (23 tests, sabotage-checked per version).
+- **v3.498: floating chrome in the left pane.**
+  - The tab bar, date bar, rest timer, undo toast and gym-mode offer sit on the left pane instead of across the fold.
+  - A sidebar was considered and rejected: it would leave the session pane about 300pt wide.
+  - The tokens are `--open-col-left`/`--open-col-w`, held in the block's single `:root`. `[HINGE]` restates them from the fold. This closes Addendum 33's first flag.
+- **v3.499: Today's details pane.**
+  - `#exerciseDetailCard` leads the right pane with the current exercise's last 5 sessions (via the shared `buildExerciseHistoryHtml`, also used by the history sheet), its cues and its form video.
+  - It follows Up next until you open an exercise, then stays pinned to that one until the day changes.
+  - It is hidden unless `isOpenPosture()`.
+- **v3.500: History master-detail.** The Day-by-Day Log is the left pane. Tapping a day or a heatmap cell shows it in `#historyDayCard` on the right (`showHistoryDayPane`), and the latest day shows by default.
+- **v3.501: Learn master-detail.**
+  - `arrangeLearnForPosture()` moves the library, Recently Trained and index cards into a runtime `#learnNavPane`, and puts them back when folded. The static markup and card order are unchanged.
+  - Its first call is deferred with `setTimeout(…,0)`. `OPEN_POSTURE_QUERY` is declared further down the script, so reading it at load is a TDZ error.
+- **v3.502: Analysis as a dashboard.** Two cards to a row, done in CSS only. Group headers and non-cards span both columns, so the sibling-based group collapse is untouched.
+- **v3.503 Coach, v3.504 Care.**
+  - Both are split views: the Ask Your Coach card and the check-in form are the left panes.
+  - Every tab now has its own open layout, and the phone-column list is gone, which closes Addendum 33's second flag.
+- **v3.505: sheets in a pane.**
+  - Sub-modal and calendar sheets and the set editor become panels in the right pane: all corners rounded, 12px off the bottom.
+  - More opens over the tab bar in the left pane.
+  - In gym mode, the set editor opens in the left pane, opposite the pinned exercise.
+  - New tokens `--open-col2-left`/`--open-col2-w` (`[HINGE]`: 12px past the fold's far edge).
+  - The rgba white count in `test-neutral-rgba-consolidation.js` goes from 87 to 88, for the panel's bottom hairline.
+- **v3.506: the big rest ring.** In open gym mode with an exercise pinned, the rest timer is pane-wide, with a 128px ring, a 34px clock, a 64px-tall +15s and 12px clearance above the dock. The ring SVG gets `overflow:visible`; otherwise its scaled glow clips to a visible square.
+- **Verified in Chromium:**
+  - At 904×678, plus fold emulation (centred, and an off-centre 30px gap at 500–530): every layout above, folding and unfolding (detail pane, Learn restore), sheet geometry (search and set editor 464–886, or 542–886 on the hinge; More 18–440; gym set editor 10–440 or 10–488), and the ring.
+  - At 402×874, the phone is unchanged: timer pill, 56px ring, bottom sheets.
+  - No page errors.
+- **Not built (needs the owner's call, for the next session):**
+  - **Front-screen quick-log view.** The browser can't tell a passport's cover screen from a phone, so a "cover-only" view would really be a phone-layout change.
+  - **Cover in landscape, two-up Log or Analysis.** The phone column is capped at 640px, which makes two charts about 290px each. It would need landscape to widen the column for every tab.
+  - **Tabletop extensions:** the rest timer outside gym mode, and Coach video capture on the bottom half. Low value relative to risk. Undecided.
+- **Unverified on a device:** all of it. In particular, sheets panelled while the on-screen keyboard is up (search, set editor) on a real foldable, and the Learn DOM move when a fold happens mid-scroll.
+- **Flagged, not fixed:** the set editor shows a blue focus outline around the whole sheet when opened programmatically (seen in the open-screen screenshot; it is the same element on a phone). Probably the global `:focus-visible` ring on `tabindex="-1"`.
+- **Not live:** v3.488–v3.506 are on `claude/taste-skill-v2` only, waiting for the owner's yes.
+
+## Addendum 35: Owner decisions, and the focus ring (v3.507)
+- **Declined (2026-11-03), so don't build these:**
+  - A front-screen quick-log view: leave the cover screen as it is.
+  - A two-up landscape layout on the cover.
+  - The tabletop extras: the rest timer outside gym mode, and Coach capture.
+- **v3.507: the focus ring flagged in Addendum 34 is fixed.**
+  - The cause: `openSetSheet()` focuses the sheet itself (`tabindex="-1"`), and the keyboard rule `[tabindex]:focus-visible` drew a 2px ring round the whole sheet.
+  - The fix: `[role="dialog"]:focus-visible{ outline:none; }`, placed after that rule. It is a dialog-only fix, so the day picker's roving `tabindex=-1` tabs (ring on `.plate`) and every control inside a dialog keep their rings.
+  - Test: `test-dialog-focus-ring.js`.
+  - Chromium check: the sheet is `:focus-visible` with no outline, and Tab to Cancel shows the 2px ring.
+- **Still not live:** v3.488–v3.507.

@@ -38,7 +38,9 @@ const contrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y
 const rootVar = name => (src.match(new RegExp(`${name}:(#[0-9A-Fa-f]{6});`)) || [])[1];
 
 test('sabotage anchor (v3.358): all 5 form-video links lost the typed ▶, none were missed or duplicated', (assert)=>{
-  assert.strictEqual((src.match(/rel="noopener">Watch form video<\/a>/g) || []).length, 5);
+  // 2026-11-03 (v3.499): 5 -> 6, the open-screen exercise details pane links
+  // the form video too (test-open-screen-2-0.js).
+  assert.strictEqual((src.match(/rel="noopener">Watch form video<\/a>/g) || []).length, 6);
   assert.strictEqual((src.match(/▶ Watch form video/g) || []).length, 0);
 });
 

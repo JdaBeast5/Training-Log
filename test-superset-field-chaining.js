@@ -27,7 +27,7 @@
 // suite already gives other non-top-level declarations it needs to test in
 // isolation (see extractIIFE in testHelpers.js for the same idea applied to
 // named IIFEs).
-const { readIndexSource, extractFunction, runJsdom, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
 const { test, run } = makeRunner('test-superset-field-chaining.js');
@@ -48,7 +48,19 @@ function extractNestedFunction(source, signature){
   return source.slice(start, i + 1);
 }
 
-const setExerciseBlockOpenSrc = extractFunction(src, 'setExerciseBlockOpen');
+// 2026-11-03 (v3.494): the header listener calls toggleExerciseBlockFromHeader
+// (the open-posture gym-mode switch, test-duo-gym-tap-to-switch.js), so the
+// REAL function and its posture check come along. Not gym mode here.
+const setExerciseBlockOpenSrc = [
+  extractFunction(src, 'setExerciseBlockOpen'),
+  extractConst(src, 'OPEN_POSTURE_QUERY'),
+  extractFunction(src, 'isOpenPosture'),
+  extractFunction(src, 'toggleExerciseBlockFromHeader'),
+  'var gymModeActive = false;',
+  // 2026-11-03 (v3.499): the render loop records each exercise for the
+  // open-screen details pane (test-open-screen-2-0.js).
+  'var exerciseDetailByIdx = {};',
+].join('\n');
 const allMemberCheckboxesCheckedSrc = extractFunction(src, 'allMemberCheckboxesChecked');
 const nextExerciseBlockSrc = extractFunction(src, 'nextExerciseBlock');
 const assembleSupersetPairSrc = extractNestedFunction(src, 'function assembleSupersetPair(topPiece, bottomPiece){');

@@ -285,6 +285,10 @@
        glass bar, ink on the light one. */
     --pill-active-bg:#fff;
     --pill-active-ink:#000;
+    /* v3.490: the page column's width. On :root rather than .wrap so things
+       positioned outside .wrap (.sticky-day-header) can line up with it; the
+       open-posture layout widens it. */
+    --wrap-max:640px;
     /* v3.481: the floating panels (rest timer, the gym-mode offer) and the
        recessed wells of the Up next fields, as tokens so light mode can
        lift them; these are the values those rules held. */
@@ -453,7 +457,21 @@
      real phone that printed "13:20" across the Body Measurements title. Requires
      viewport-fit=cover on the viewport meta, or env() resolves to 0 — which is
      why the three safe-area rules already in this file were doing nothing. */
-  .wrap{max-width:640px; margin:0 auto; padding:calc(22px + env(safe-area-inset-top, 0px)) 18px 4px;}
+  /* v3.489 (foldables, from the Duo branch's 3.271): SIDE GUTTERS FOLLOW THE
+     SIDE SAFE AREAS. 18px was safe while the manifest locked portrait, where
+     the side insets are zero. Rotated, or on a foldable whose insets differ
+     left and right, the sensor housing sits in one side's inset, so each side
+     takes the larger of 18px and its OWN inset, counting only the part the
+     column's centring margin doesn't already clear (a 640px column centred on
+     an 874px landscape phone sits 117px in, clear of a 59px inset). Full-bleed
+     children (.analysis-index) bleed out by the same tokens. */
+  .wrap{
+    --wrap-side-margin:max(0px, (100vw - var(--wrap-max)) / 2);
+    --gutter-l:max(18px, env(safe-area-inset-left, 0px) - var(--wrap-side-margin));
+    --gutter-r:max(18px, env(safe-area-inset-right, 0px) - var(--wrap-side-margin));
+    max-width:var(--wrap-max); margin:0 auto;
+    padding:calc(22px + env(safe-area-inset-top, 0px)) var(--gutter-r) 4px var(--gutter-l);
+  }
   header{padding:8px 0 18px;}
   .eyebrow-row{display:flex; align-items:center; gap:8px;}
   /* v3.386: the app icon's mark (the plate, its lit seventh and bore) at
@@ -648,6 +666,8 @@
      pending (faint ghost of the suggestion). */
   .set-chips{display:flex; flex-wrap:wrap; gap:6px; padding:0 0 14px;}
   .set-chips[hidden]{display:none;}
+  .exercise-detail-card[hidden], .history-day-card[hidden]{display:none;}
+  .history-day-card{display:none;} /* v3.500: shown only by the open-posture layout */ /* v3.499: phones, and until there is an exercise to show */
   .set-chip{
     flex:1 0 auto; min-width:56px; max-width:132px; min-height:44px; padding:0 8px; border-radius:14px; white-space:nowrap;
     display:inline-flex; align-items:center; justify-content:center; gap:3px;
@@ -1427,7 +1447,7 @@
     top:env(safe-area-inset-top, 0px); /* v3.288: the rail moved to the bottom */
     background:rgba(var(--surface2-rgb),0.72); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border-bottom:1px solid var(--line-soft);
-    padding:12px 16px;
+    padding:12px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px)); /* v3.489: clear side insets */
     display:flex; align-items:center; gap:8px;
     cursor:pointer;
     /* -100% alone is relative to THIS element's own ~44.8px height, not to
@@ -2350,6 +2370,10 @@
        touch entirely to our own pointer handling rather than the browser's
        native scroll/zoom gestures is a clean tradeoff, not a compromise. */
     touch-action:none;
+    /* v3.489: the side safe area as MARGIN, not folded into right/left:
+       wireCoachFabDrag writes left/right inline as a plain px gap, and a
+       margin on both sides applies to whichever it set. Zero upright. */
+    margin:0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
   }
   .coach-fab.tucked{opacity:0; transform:scale(0.3); pointer-events:none; transition:transform 0.3s var(--ease-smooth), opacity 0.22s var(--ease-smooth);}
   /* Live drag feedback: no transition (position must track the pointer with
@@ -2359,6 +2383,10 @@
   .coach-fab.dragging{
     transition:none; transform:scale(1.08);
     box-shadow:0 20px 40px -12px rgba(var(--overlay-black-rgb),0.85); /* deeper neutral lift = "picked up" (v3.283) */
+    /* v3.489: margin off while dragging: the drag reads the rendered rect
+       (margin included) and writes it back, so a margin would make the
+       button jump sideways by the inset under the finger. */
+    margin:0;
   }
   .coach-fab span{position:relative; z-index:1; display:flex;}
   /* v3.285: the app's own chat-bubble outline (ICONS.chat's path) instead of a 💬 emoji */
@@ -2373,7 +2401,7 @@
      legible at a glance without needing to tap it first to find out what it
      does — this is a jump-to-safety control, not a decorative icon. */
   .today-fab{
-    position:fixed; bottom:calc(var(--above-bar) + 12px); left:18px; z-index:70; overflow:hidden;
+    position:fixed; bottom:calc(var(--above-bar) + 12px); left:calc(18px + env(safe-area-inset-left, 0px)); z-index:70; overflow:hidden; /* v3.489: clears a side inset */
     display:flex; align-items:center; height:44px; padding:0 18px;
     border-radius:var(--radius-pill); border:1px solid rgba(var(--surface-white-rgb),0.28);
     background:var(--plate-yellow); color:#1a1a1a;
@@ -2633,7 +2661,8 @@
        from this element and now means "how much the bottom bar covers": body
        padding and the two floating buttons clear it with that measured number. */
     position:fixed; top:auto; z-index:30;
-    left:12px; right:12px; bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);
+    /* v3.489: the floating bar clears each side's safe area on its own. */
+    left:calc(12px + env(safe-area-inset-left, 0px)); right:calc(12px + env(safe-area-inset-right, 0px)); bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);
     border-radius:var(--radius-pill); border:1px solid var(--glass-hair);
     box-shadow:0 20px 40px -14px rgba(var(--overlay-black-rgb),0.75);
     overflow:hidden;
@@ -2791,7 +2820,8 @@
      of promising sections that autohide has already removed. */
   .analysis-index{
     display:flex; gap:6px; overflow-x:auto; scrollbar-width:none;
-    margin:0 -18px 14px; padding:4px 18px 6px;
+    margin:0 calc(-1 * var(--gutter-r)) 14px calc(-1 * var(--gutter-l)); /* v3.489: the gutter tokens */
+    padding:4px var(--gutter-r) 6px var(--gutter-l);
     /* STICKS BELOW THE NAV RAIL. An index that only exists at the top of the
        tab is as far away as the nav bar used to be once you are fifteen cards
        down — the exact problem the sticky rail was added to solve, one level
@@ -4320,6 +4350,11 @@
   /* The tab's own outline would trace its invisible bounding box (the plate
      plus its label), so the ring is moved onto the plate disc that the eye
      actually reads as the control. */
+  /* v3.507: a dialog container is focused only to hold focus inside it (the
+     set editor on open; the focus trap, for a dialog with nothing focusable).
+     It is not a control, and [tabindex] above drew a ring round the whole
+     sheet. Its buttons and fields keep theirs. */
+  [role="dialog"]:focus-visible{ outline:none; }
   .tab:focus-visible{ outline:none; }
   .tab:focus-visible .plate{
     outline:2px solid var(--focus-ring-color);
@@ -4634,7 +4669,10 @@
   body.gym-mode #workoutCard::before{display:none;}
   body.gym-mode .wrap{
     padding-top:calc(12px + env(safe-area-inset-top, 0px));
-    padding-left:10px; padding-right:10px;
+    /* v3.489: 10px, or more where a side safe area reaches past the centred
+       column — .wrap's gutter rule at gym mode's tighter minimum. */
+    padding-left:max(10px, env(safe-area-inset-left, 0px) - var(--wrap-side-margin));
+    padding-right:max(10px, env(safe-area-inset-right, 0px) - var(--wrap-side-margin));
     /* Clears the floating dock AND the rest timer sitting above it. */
     padding-bottom:calc(208px + env(safe-area-inset-bottom, 0px));
   }
@@ -4881,7 +4919,7 @@
      z-index 55: above .rest-timer at 50, which it must never be covered by, and
      below the 60+ band the overlays use, which must always be able to cover it. */
   .gym-dock{
-    position:fixed; left:10px; right:10px; bottom:10px; z-index:55;
+    position:fixed; left:calc(10px + env(safe-area-inset-left, 0px)); right:calc(10px + env(safe-area-inset-right, 0px)); bottom:10px; z-index:55; /* v3.489: side insets */
     display:flex; align-items:center; gap:14px;
     padding:12px 12px 12px 20px;
     margin-bottom:env(safe-area-inset-bottom, 0px);
@@ -5151,6 +5189,64 @@
                transform 0.5s var(--ease-smooth) 0.5s;
   }
 
+  /* [SHORT LANDSCAPE] (v3.495, from the Duo branch's 3.277) -----------------
+     Gym mode on any screen turned sideways that is too short for the open
+     layout: a foldable's cover screen sideways (~680x460pt) and a slab phone
+     (~874x402pt). Possible since v3.488 unlocked rotation. Laid out as on a
+     portrait phone, the dock across the bottom covered the open exercise,
+     leaving a set row or two usable at a time.
+
+     So the dock turns into a slim rail down the right edge: clock and
+     progress at the top, the Log button filling the middle as a tall target,
+     Exit at the bottom. The exercise list gets the screen's full height
+     beside it. The rest timer centres on the list area at the bottom. Body
+     padding reserves the rail and the side safe areas, which is why .wrap's
+     own sides drop back to gym mode's plain 10px here (keeping both would
+     count an inset twice).
+
+     max-height:559px is the open-posture gate's min-height minus one, so the
+     two can never both apply. Portrait screens of any size never match. */
+  @media (orientation:landscape) and (max-height:559px){
+    body.gym-mode{
+      --gym-rail-w:116px;
+      --gym-pad-l:env(safe-area-inset-left, 0px);
+      --gym-pad-r:calc(var(--gym-rail-w) + 20px + env(safe-area-inset-right, 0px));
+      padding-left:var(--gym-pad-l);
+      padding-right:var(--gym-pad-r);
+    }
+    body.gym-mode .wrap{
+      padding-left:10px; padding-right:10px;
+      /* Only the rest timer is at the bottom now, not the dock as well. */
+      padding-bottom:calc(110px + env(safe-area-inset-bottom, 0px));
+    }
+    body.gym-mode .gym-dock{
+      left:auto; right:calc(10px + env(safe-area-inset-right, 0px));
+      top:calc(10px + env(safe-area-inset-top, 0px));
+      bottom:calc(10px + env(safe-area-inset-bottom, 0px));
+      margin-bottom:0;
+      width:var(--gym-rail-w);
+      flex-direction:column; align-items:stretch; justify-content:space-between;
+      gap:10px; padding:16px 10px 10px; text-align:center;
+    }
+    /* 22px fits the longest clock, "9:59:59", in the rail. */
+    body.gym-mode .gym-clock{ font-size:22px; }
+    body.gym-mode .gym-dock-meta{ flex:0 0 auto; }
+    /* The Log button takes the rail's free height: a tall target, with its
+       label ("Log 130x8") wrapping inside rather than cut off. */
+    body.gym-mode .gym-dock .gym-log-btn{
+      flex:1 1 auto; min-height:0; padding:8px; font-size:15px;
+      white-space:normal; text-overflow:clip; line-height:1.25;
+    }
+    body.gym-mode .gym-exit-btn{ padding:0 10px; }
+    /* In and out from the side the rail lives on, not up from the bottom. */
+    .gym-dock, body.gym-leaving .gym-dock, body.gym-finishing .gym-dock{ transform:translateX(160%); }
+    body.gym-mode .rest-timer{
+      bottom:calc(10px + env(safe-area-inset-bottom, 0px));
+      left:calc((var(--gym-pad-l) + 100vw - var(--gym-pad-r)) / 2);
+      max-width:calc(100vw - var(--gym-pad-l) - var(--gym-pad-r) - 20px);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce){
     .gym-offer{transition:opacity 0.01ms;}
     .gym-dock, body.gym-leaving .gym-dock{transition:none;}
@@ -5243,6 +5339,276 @@
     .launch-layer{opacity:1; transform:none; animation:none;}
     .launch.is-out .launch-mark{transform:none;}
     .launch{transition-duration:.2s;}
+  }
+  /* [OPEN POSTURE] (v3.490, from the Duo branch's 3.272) ------------------
+     An unfolded foldable is wider than tall: about 890x626pt on the iPhone
+     Duo, and similar on passport foldables (4:3 to 14:10). Safari gives a page
+     no fold or hinge API, so all it sees is a resize. Stretching the phone
+     column to that width ran every card across the crease. So at this size
+     the page widens and a .posture-split tab splits in two: its
+     .split-primary (on Today, the day picker and the session; on Log since
+     v3.491, the nutrition card) on the left,
+     everything else stacked on the right. Each half is about a phone's width,
+     so cards keep the proportions they were designed at, and with two equal
+     columns the gutter falls on the crease.
+
+     The height condition keeps a slab phone in landscape (~400pt tall) on the
+     single column; a cover screen (~420-470pt wide) never matches.
+
+     Rows: the primary spans every explicit row, ending in a 1fr track; grid
+     gives a spanning item's extra height to the flexible track it crosses, so
+     a long primary grows that last row instead of opening gaps between the
+     right-hand cards. 24 auto rows is headroom; empty or hidden children take
+     no space. Row gap 0 because .card carries its own margin-bottom.
+
+     Since v3.504 every tab has its own open layout: a split (Today, Log,
+     History, Learn, Coach, Care) or a dashboard grid (Analysis). */
+  /* v3.496: or wherever the browser reports a fold between two side-by-side
+     screen segments (Chrome on Android's Viewport Segments, for a passport
+     foldable half-open like a book), at any width. Still at least 560 tall,
+     so it can never meet the short-landscape gym rail (max-height:559px).
+     Safari doesn't know the feature, so for it that alternative is false. */
+  @media (min-width:760px) and (min-height:560px), (horizontal-viewport-segments: 2) and (min-height:560px){
+    :root{
+      --wrap-max:1080px; --pane-gap:24px;
+      /* v3.498: the left column's edge and width, for the chrome below. */
+      --open-col-left:calc(max(0px, (100vw - var(--wrap-max)) / 2) + 18px);
+      --open-col-w:calc((min(100vw, var(--wrap-max)) - 36px - var(--pane-gap)) / 2);
+      /* v3.505: the right column's, for sheets. */
+      --open-col2-left:calc(var(--open-col-left) + var(--open-col-w) + var(--pane-gap));
+      --open-col2-w:var(--open-col-w);
+    }
+    .posture-split{
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows:repeat(24, auto) 1fr;
+      column-gap:var(--pane-gap);
+      align-items:start;
+    }
+    .posture-split > *{ grid-column:2; }
+    .posture-split > .split-primary{ grid-column:1; grid-row:1 / -1; }
+    /* v3.499: the exercise you are on heads the right column. */
+    .exercise-detail-card, .history-day-card{ order:-1; }
+    .history-day-card:not([hidden]){ display:block; }
+    #historyHeatmapGrid .calendar-cell.is-shown{ box-shadow:inset 0 0 0 2px var(--plate-blue); }
+    /* ANALYSIS AS A DASHBOARD (v3.502): two charts to a row, one each side of
+       the fold, so sleep sits beside training load instead of a screen away.
+       Group headers, hints, the jump rail and Print span both columns; every
+       card takes one. Collapsed or hidden cards take no cell (they are
+       display:none), so the group collapse, which walks siblings, is
+       untouched: nothing moves in the DOM. */
+    #analysisView{
+      display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
+      column-gap:var(--pane-gap); align-items:start;
+    }
+    #analysisView > *{ grid-column:1 / -1; }
+    #analysisView > .card{ grid-column:auto; }
+    #analysisView > #analysisFirstRun{ grid-column:1 / -1; }
+    /* Belongs to the session, so it spans the session pane rather than the
+       whole screen: from the column's left edge to the crease gutter. */
+    .sticky-day-header{
+      left:max(0px, (100vw - var(--wrap-max)) / 2);
+      right:calc(50vw + var(--pane-gap) / 2);
+    }
+    /* OPEN CHROME (v3.498): the bars that float over the page stay in the
+       left pane instead of stretching across the fold. A sidebar was the
+       first idea, but at ~116px it would leave the session pane about 300pt
+       wide, narrower than a phone; so the familiar bottom bar keeps its
+       shape, a pane wide. The date bar, rest timer, undo toast and the
+       gym-mode offer follow it. --open-col-left/--open-col-w are the left
+       column's edge and width (the [HINGE] block restates them on the fold).
+       Gym mode has no tab bar, and positions its own dock and timer. */
+    .nav-pills{ left:var(--open-col-left); right:auto; width:var(--open-col-w); }
+    .log-date-bar{ max-width:var(--open-col-w); }
+    body:not(.gym-mode) .rest-timer, .undo-toast, .gym-offer{
+      left:calc(var(--open-col-left) + var(--open-col-w) / 2);
+      max-width:var(--open-col-w);
+    }
+    /* SHEETS IN A PANE (v3.505): a bottom sheet as wide as the open screen
+       ran across the fold and covered both panes. Here a sheet is a panel in
+       the right pane, rounded on all four corners and lifted off the bottom
+       edge, so the left pane (the session, the list you came from) stays in
+       view. More rises over the tab bar it came from, in the left pane. The
+       set editor opens opposite what it edits: right of the session, but in
+       gym mode, where the pinned exercise is the right pane, on the left.
+       --open-col2-left/--open-col2-w are the right column's edge and width. */
+    .sub-modal-overlay, .calendar-modal-overlay{ justify-content:flex-start; padding-left:var(--open-col2-left); }
+    #navMoreOverlay{ padding-left:var(--open-col-left); }
+    .sub-modal-sheet, .calendar-modal-sheet{
+      width:var(--open-col2-w); max-width:none;
+      margin-bottom:calc(12px + env(safe-area-inset-bottom, 0px));
+      border-radius:var(--radius-lg); border-bottom:1px solid rgba(var(--surface-white-rgb),0.07);
+      max-height:calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+      transform:translateY(calc(100% + 24px));
+    }
+    .sub-modal-sheet{ padding-bottom:20px; }
+    .calendar-modal-sheet{ padding-bottom:18px; }
+    #navMoreOverlay .sub-modal-sheet{ width:var(--open-col-w); }
+    .set-sheet{
+      left:var(--open-col2-left); right:auto; width:var(--open-col2-w); max-width:none; margin:0;
+      bottom:calc(12px + env(safe-area-inset-bottom, 0px));
+      border-radius:28px; border:1px solid var(--glass-hair);
+      padding-bottom:18px;
+      transform:translateY(calc(100% + 24px));
+    }
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .set-sheet{
+      left:calc(var(--gym-wrap-left) + 10px); width:var(--gym-col-w);
+    }
+    body.gym-mode #todayView{ display:block; }
+    /* GYM MODE, OPEN (v3.493, from the Duo branch's 3.275): the session list |
+       the exercise you are on. Gym mode hides everything but the session, so
+       Today's own split would leave an empty half. Instead the exercise list
+       splits: the quiet list down the left, the open exercise on the right,
+       pinned in view while the list scrolls under it. Same nodes and the same
+       .open rule as the phone: checking an exercise off already opens the
+       next one, which here means it takes over the right pane.
+
+       The dock (clock, progress, Log, Exit) and the rest timer move under the
+       left pane, so the exercise you are logging gets the screen's full
+       height. --gym-col-w/--gym-wrap-left restate gym mode's column geometry
+       (10px sides, the pane gap) for those fixed elements, which live
+       outside .wrap and cannot measure it. */
+    body.gym-mode{
+      --gym-wrap-left:max(0px, (100vw - var(--wrap-max)) / 2);
+      --gym-col-w:calc((min(100vw, var(--wrap-max)) - 20px - var(--pane-gap)) / 2);
+    }
+    body.gym-mode #exerciseList{
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
+      /* The 1fr-tail trick again: the pinned panel's height goes to the last
+         track, not into gaps between list rows. */
+      grid-template-rows:repeat(40, auto) 1fr;
+      column-gap:var(--pane-gap);
+      align-items:start;
+    }
+    /* Rows' 7px top and bottom margins collapse to one gap in block layout;
+       grid items' margins never collapse, so the top one goes, keeping the
+       rhythm and the first row level with the panel. */
+    body.gym-mode #exerciseList > *{ grid-column:1; margin-top:0; }
+    body.gym-mode #exerciseList > .exercise-block.open{
+      grid-column:2; grid-row:1 / -1;
+      position:sticky; top:calc(12px + env(safe-area-inset-top, 0px));
+      margin:0;
+      /* A long exercise (warm-up ramp plus sets) can be taller than the
+         screen. Pinned, its bottom would be unreachable until the end of the
+         list, so it scrolls inside itself instead. */
+      max-height:calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+      overflow-y:auto; overscroll-behavior:contain;
+    }
+    /* One opened on the cover screen can be open alongside another when you
+       unfold. Two pinned panels would stack on each other; any after the
+       first stay in the list, expanded in place, until one is closed. */
+    body.gym-mode #exerciseList > .exercise-block.open ~ .exercise-block.open{
+      grid-column:1; grid-row:auto;
+      position:relative; top:auto; max-height:none; overflow:visible;
+      margin:14px 0;
+    }
+    /* Nothing open (closed, or the session is done): one centred phone-width
+       list, not a list beside an empty pane. */
+    body.gym-mode #exerciseList:not(:has(> .exercise-block.open)){
+      display:block; max-width:calc(640px - 20px); margin-left:auto; margin-right:auto;
+    }
+    /* Only while the right pane is occupied; otherwise the dock and timer
+       span and centre on the screen as on a phone. */
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .gym-dock{
+      left:calc(var(--gym-wrap-left) + 10px + env(safe-area-inset-left, 0px));
+      right:calc(100vw - var(--gym-wrap-left) - 10px - var(--gym-col-w));
+    }
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer{
+      left:calc(var(--gym-wrap-left) + 10px + var(--gym-col-w) / 2);
+      max-width:var(--gym-col-w);
+      /* v3.506, the big rest ring (below): pane-wide, 12px clear of the dock. */
+      width:calc(var(--gym-col-w) - 24px); border-radius:32px; padding:16px 22px;
+      bottom:calc(104px + env(safe-area-inset-bottom, 0px));
+    }
+    /* THE BIG REST RING (v3.506): with the exercise pinned on the right, the
+       left pane is where the eyes go between sets, so the rest timer there
+       is a pane-wide panel with a 128px ring and a clock you can read from a
+       bench away, and +15s becomes a broad target. Its pieces and behaviour
+       are the phone timer's; only the size changes. Its width and lift are in
+       the timer's placement rule above. */
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer-row{ gap:18px; }
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer-ring-wrap,
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer-ring{ width:128px; height:128px; }
+    /* The ring's glow, scaled up, would be clipped square by the SVG's box. */
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer-ring{ overflow:visible; }
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer.expanded .rest-timer-ring-wrap{ transform:none; }
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer-time{ font-size:34px; }
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer .rt-add{
+      flex:1 1 auto; min-height:64px; border-radius:20px; font-size:20px;
+      background:rgba(var(--plate-green-rgb),0.12);
+    }
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer .rt-close{ min-width:56px; min-height:56px; font-size:22px; }
+  }
+  /* [HINGE] (v3.496, passport foldables)------------------------------------
+     Where the browser reports the fold itself (two side-by-side segments,
+     env(viewport-segment-*) giving each one's edges), the split doesn't
+     estimate the crease as the middle of a centred column: the page spans
+     the screen, the left column ends 12px short of the fold, and the right
+     one starts 12px past it. A fold that isn't centred, or a hinge with a
+     physical gap, still gets nothing laid across it. --hinge-l/--hinge-r are
+     the fold's two edges (equal on a seamless screen). */
+  @media (horizontal-viewport-segments: 2) and (min-height:560px){
+    :root{
+      --hinge-l:env(viewport-segment-right 0 0, 50vw);
+      --hinge-r:env(viewport-segment-left 1 0, 50vw);
+      --wrap-max:100vw;
+      --pane-gap:calc(var(--hinge-r) - var(--hinge-l) + 24px);
+    }
+    .posture-split{
+      grid-template-columns:calc(var(--hinge-l) - 12px - var(--gutter-l)) minmax(0, 1fr);
+    }
+    .sticky-day-header{ left:0; right:calc(100vw - var(--hinge-l) + 12px); }
+    :root{ --open-col-left:var(--gutter-l, 18px); --open-col-w:calc(var(--hinge-l) - 12px - 18px);
+      --open-col2-left:calc(var(--hinge-r) + 12px); --open-col2-w:calc(100vw - var(--hinge-r) - 12px - var(--gutter-r, 18px)); }
+    body.gym-mode{
+      --gym-wrap-left:0px;
+      --gym-col-w:calc(var(--hinge-l) - 12px - 10px);
+    }
+    body.gym-mode #exerciseList{
+      grid-template-columns:calc(var(--hinge-l) - 12px - 10px) minmax(0, 1fr);
+    }
+    #analysisView{ grid-template-columns:calc(var(--hinge-l) - 12px - var(--gutter-l)) minmax(0, 1fr); } /* v3.502 */
+  }
+  /* [TABLETOP] (v3.497, passport foldables) ---------------------------------
+     A passport foldable half-folded on a bench, fold horizontal, reports two
+     stacked segments. In gym mode the page no longer runs across the fold:
+     the exercise list ends at it and gets the upright top half, and the flat
+     bottom half becomes the control surface, with the rest timer just below
+     the fold and the dock filling the rest (a big Log target to reach for
+     between sets). --fold-top/--fold-bottom are the fold's two edges (equal
+     on a seamless screen).
+
+     Under 760 wide and portrait-shaped, which is what a passport is in this
+     posture (about 610-700 wide): that keeps it clear of the open-posture
+     layouts and the sideways gym rail. Phones never report segments; Safari
+     doesn't know the feature, so it never matches. */
+  @media (vertical-viewport-segments: 2) and (max-width:759px) and (orientation:portrait){
+    body.gym-mode{
+      --fold-top:env(viewport-segment-bottom 0 0, 50vh);
+      --fold-bottom:env(viewport-segment-top 0 1, 50vh);
+    }
+    body.gym-mode .wrap{
+      /* The page can scroll the list up to the fold, no further: below it is
+         the control surface. */
+      padding-bottom:calc(100vh - var(--fold-top) + 12px);
+    }
+    /* The dock covers the whole bottom half, so nothing from the page shows
+       below the fold. The rest timer sits in a slot inside it, between the
+       clock and Log, drawn above the dock (it is normally below it). */
+    body.gym-mode .gym-dock{
+      top:calc(var(--fold-bottom) + 10px);
+      bottom:calc(10px + env(safe-area-inset-bottom, 0px));
+      margin-bottom:0;
+      flex-direction:column; align-items:stretch; justify-content:space-between;
+      gap:12px; padding:16px;
+    }
+    body.gym-mode .gym-dock-meta{ flex:0 0 auto; display:flex; align-items:baseline; justify-content:space-between; }
+    body.gym-mode .gym-dock .gym-log-btn{ flex:1 1 auto; min-height:72px; margin-top:84px; font-size:22px; }
+    body.gym-mode .rest-timer{
+      top:calc(var(--fold-bottom) + 10px + 16px + 28px + 12px); bottom:auto; z-index:60;
+    }
+    body.gym-mode .gym-exit-btn{ min-height:48px; }
   }
 </style>
 </head>
@@ -5402,7 +5768,7 @@
     </div>
   </div>
 
-  <div id="todayView">
+  <div id="todayView" class="posture-split">
   <div class="card" id="onboardingCard" style="display:none">
     <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5c2 2 3 5.5 3 8 0 2.2-1.2 4.2-3 6-1.8-1.8-3-3.8-3-6 0-2.5 1-6 3-8Z"/><circle cx="10" cy="8.5" r="1.3"/><path d="M7.3 13.5 5.5 17M12.7 13.5 14.5 17"/></svg></span>Getting Started</div>
     <div id="onboardingRows"></div>
@@ -5417,6 +5783,10 @@
 
   <div id="programRecommendation"></div>
 
+  <!-- v3.490: the day picker and the session, as one unit: a block among the
+       rest on a phone, its own pane beside the rest on an unfolded foldable
+       (see [OPEN POSTURE]). -->
+  <div class="today-session-pane split-primary">
   <div class="tabs-header">
     <div class="hint">Tap a day to view it</div>
     <button class="reorder-btn" id="reorderToggle">Reorder days</button>
@@ -5525,6 +5895,7 @@
       </div>
     </div>
   </div>
+  </div><!-- /.today-session-pane -->
 
   <!-- Set-once program choice sits BELOW the session, not above it. The day
        rail and workout card answer what Today is opened for ("what's next in
@@ -5842,12 +6213,20 @@
       <div class="status-msg" id="deleteAllDataStatus"></div>
     </div></div>
   </div>
+  <!-- v3.499: the open-screen details pane (renderExerciseDetail). Hidden on
+       phones; on an unfolded foldable it heads the right column. -->
+  <div class="card exercise-detail-card" id="exerciseDetailCard" hidden>
+    <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,14 7,9.3 10.8,12 18,4.5"/><circle cx="18" cy="4.5" r="1.3" fill="currentColor"/></svg></span><span id="exerciseDetailTitle"></span></div>
+    <div class="history-hint">Your history with this lift. Open another exercise to see it here.</div>
+    <div id="exerciseDetailBody"></div>
+  </div>
   <div id="profileCardPermanentSlot"></div>
 
   </div>
 
-  <div id="logView" style="display:none">
-  <div class="card">
+  <div id="logView" class="posture-split" style="display:none">
+  <!-- v3.491 split-primary: the left pane on an unfolded foldable ([OPEN POSTURE]). -->
+  <div class="card split-primary">
 
     <div class="card-title nutrition-header" id="nutritionHeader">
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg></span>Nutrition</span>
@@ -6377,10 +6756,11 @@
     <button type="button" class="switch-profile-btn history-export-btn" id="analysisExportBtn" style="display:none; margin:4px 0 12px;">Print analysis snapshot</button>
   </div>
 
-  <div id="historyView" style="display:none">
+  <div id="historyView" class="posture-split" style="display:none">
     <!-- v3.443: the day-by-day log is what History is for, so it leads;
-         records and saved weeks follow (it sat last, under both). -->
-    <div class="card">
+         records and saved weeks follow (it sat last, under both).
+         v3.500: it is the left pane on an open foldable ([OPEN POSTURE]). -->
+    <div class="card split-primary">
       <div class="card-title nutrition-header" id="historyLogHeader">
         <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.2 6.2a1 1 0 0 1 1-1h3.8l1.4 1.8h8.4a1 1 0 0 1 1 1v7.8a1 1 0 0 1-1 1H3.2a1 1 0 0 1-1-1Z"/></svg></span>Day-by-Day Log</span>
         <span class="ex-chevron" aria-hidden="true" id="historyLogChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
@@ -6422,6 +6802,12 @@
       <button type="button" class="switch-profile-btn history-export-btn history-print-btn" id="historyExportBtn">Print workout report</button>
       </div></div>
     </div>
+    <!-- v3.500: the open-screen day pane (showHistoryDayPane). Hidden on
+         phones, where a tapped day scrolls the list instead. -->
+    <div class="card history-day-card" id="historyDayCard" hidden>
+      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="13" rx="2"/><line x1="3" y1="8" x2="17" y2="8"/><line x1="7" y1="2.5" x2="7" y2="5.5"/><line x1="13" y1="2.5" x2="13" y2="5.5"/></svg></span><span id="historyDayTitle">Day</span></div>
+      <div id="historyDayBody"></div>
+    </div>
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h7v3.6a3.5 3.5 0 0 1-7 0Z"/><path d="M6.5 4H3.2v1a3 3 0 0 0 3 3M13.5 4h3.3v1a3 3 0 0 1-3 3"/><line x1="10" y1="10.6" x2="10" y2="13.5"/><line x1="7.2" y1="17" x2="12.8" y2="17"/><line x1="8.2" y1="13.5" x2="11.8" y2="13.5"/></svg></span>Personal Records Timeline</div>
       <div class="history-hint">Every PR you've hit, newest first.</div>
@@ -6436,14 +6822,14 @@
 
   </div>
 
-  <div id="careView" style="display:none">
+  <div id="careView" class="posture-split" style="display:none">
     <div class="card care-disclaimer-card">
       <div class="care-disclaimer">
         <b>This isn't a diagnosis.</b> It can't examine you or say what's injured or how long healing takes — a doctor or physical therapist can. It can keep a record for your appointment, flag symptoms that need prompt care, and quiet exercises that might aggravate the area.
       </div>
     </div>
 
-    <div class="card">
+    <div class="card split-primary"><!-- v3.504: the left pane on an open foldable -->
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7.6"/><line x1="10" y1="6.4" x2="10" y2="13.6"/><line x1="6.4" y1="10" x2="13.6" y2="10"/></svg></span>Log How You're Feeling</div>
       <div class="care-form">
         <label class="care-label" for="careExercise">What were you doing?</label>
@@ -6523,7 +6909,7 @@
     </div>
   </div>
 
-  <div id="coachView" style="display:none">
+  <div id="coachView" class="posture-split" style="display:none">
     <div class="card care-disclaimer-card">
       <div class="care-disclaimer">
         Uses your Anthropic API key (Settings → AI Features Setup). Not medical advice, and not a substitute for an in-person coach or doctor.
@@ -6557,7 +6943,7 @@
       <div id="coachHistoryList"></div>
     </div>
 
-    <div class="card">
+    <div class="card split-primary"><!-- v3.503: the left pane on an open foldable -->
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 5.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H8l-4 3v-3H4.5a2 2 0 0 1-2-2Z"/></svg></span>Ask Your Coach</div>
       <!-- v3.455: the empty conversation says what to ask (and is shared with
            the floating chat); a hint above it said the same thing again. -->
@@ -6586,7 +6972,7 @@
     </div>
   </div>
 
-  <div id="learnView" style="display:none">
+  <div id="learnView" class="posture-split" style="display:none">
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.6" cy="8.6" r="6"/><line x1="13" y1="13" x2="17.8" y2="17.8"/></svg></span>Exercise Library</div>
       <div class="history-hint" id="exerciseLibraryHint">Search every exercise — cues and a form video for each.</div>
@@ -7189,7 +7575,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.487';
+const APP_VERSION = '3.507';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8457,6 +8843,66 @@ const WHATS_NEW = {
   ]},
   '3.487': { headline: 'Clearer for screen readers', points: [
     'Swipe-to-delete strips and the meal mic button are named for what they do, not read out as emoji.',
+  ]},
+  '3.488': { headline: 'Ready for foldables', points: [
+    'The app is no longer locked to portrait, so it fills an unfolded iPhone Duo or passport foldable, and still works as usual on a regular phone.',
+  ]},
+  '3.489': { headline: 'Clear of the camera, sideways', points: [
+    'Turned sideways or on a foldable, the page edges, tab bar and buttons keep clear of the camera and rounded corners on each side.',
+  ]},
+  '3.490': { headline: 'Today in two panes on foldables', points: [
+    'Unfold an iPhone Duo or passport foldable and Today splits in two: your session on the left, priorities and the rest on the right. On a regular phone or a cover screen, Today looks the same.',
+  ]},
+  '3.491': { headline: 'Log in two panes on foldables', points: [
+    'Unfold an iPhone Duo or passport foldable on Log and nutrition sits on the left, with water, bodyweight, sleep and the rest on the right.',
+  ]},
+  '3.492': { headline: 'Keep your place when you unfold', points: [
+    'Fold or unfold mid-workout and the exercise or card you were looking at stays put on screen. Rotating a regular phone works the same way.',
+  ]},
+  '3.493': { headline: 'Gym mode in two panes on foldables', points: [
+    'Unfold in gym mode and your session list sits on the left with the clock, while the exercise you\'re on stays pinned on the right at full height.',
+  ]},
+  '3.494': { headline: 'Tap to switch exercises when unfolded', points: [
+    'In gym mode on an unfolded foldable, tapping an exercise in your list moves it into the big panel on the right.',
+  ]},
+  '3.495': { headline: 'Gym mode sideways', points: [
+    'Turn your phone or a foldable\'s cover screen sideways in gym mode and the clock, Log and Exit move into a slim bar on the right, so your exercise gets the full height.',
+  ]},
+  '3.496': { headline: 'Split on the real fold', points: [
+    'On Android passport foldables, when the phone reports where its fold is, the two panes line up exactly on either side of it.',
+  ]},
+  '3.497': { headline: 'Tabletop gym mode', points: [
+    'Half-fold an Android passport foldable on a bench in gym mode: your exercise stays upright on the top half, and the bottom half becomes the controls, with a big Log button.',
+  ]},
+  '3.498': { headline: 'Bars stay on one side when unfolded', points: [
+    'Unfolded, the tab bar, date bar and rest timer sit in the left pane instead of stretching across the fold.',
+  ]},
+  '3.499': { headline: 'Exercise details when unfolded', points: [
+    'Unfolded, Today\'s right side shows the exercise you\'re on: your recent sessions, your estimated 1RM trend, cues and the form video. Open another exercise to see it there.',
+  ]},
+  '3.500': { headline: 'History side by side when unfolded', points: [
+    'Unfolded, History shows the calendar on the left; tap a day to see that workout on the right.',
+  ]},
+  '3.501': { headline: 'Learn side by side when unfolded', points: [
+    'Unfolded, Learn shows the exercise library, Recently Trained and all masterclasses on the left, and the lesson you open on the right.',
+  ]},
+  '3.502': { headline: 'Analysis dashboard when unfolded', points: [
+    'Unfolded, Analysis lays its charts out two to a row, so you can compare them side by side.',
+  ]},
+  '3.503': { headline: 'Coach side by side when unfolded', points: [
+    'Unfolded, Coach keeps the conversation on the left, with form feedback and past reviews on the right.',
+  ]},
+  '3.504': { headline: 'Care side by side when unfolded', points: [
+    'Unfolded, Care keeps the check-in form on the left, with what you\'re resting, your pain trend and stretches on the right.',
+  ]},
+  '3.505': { headline: 'Sheets open in a pane when unfolded', points: [
+    'Unfolded, search, history, the set editor and other sheets open as a panel on one side instead of across the fold, so the screen you came from stays in view.',
+  ]},
+  '3.506': { headline: 'A big rest timer in gym mode when unfolded', points: [
+    'Unfolded in gym mode, the rest timer becomes a large ring beside your exercise, readable from the bench, with a bigger +15s button.',
+  ]},
+  '3.507': { headline: 'No outline round the set editor', points: [
+    'Opening the set editor no longer draws a blue line round the whole sheet. Its buttons still show focus when you use a keyboard.',
   ]},
 };
 
@@ -14620,6 +15066,47 @@ function closeMasterclass(cardId){
   const index = document.getElementById('masterclassIndex');
   if(index) index.scrollIntoView({behavior:'smooth', block:'start'});
 }
+
+// [LEARN, OPEN] (v3.501) --------------------------------------------------------
+// On an unfolded foldable Learn reads like a library: what you choose from
+// (the exercise search, Recently Trained and the masterclass index) down the
+// left, the lesson you opened on the right. The left pane only exists while
+// open: it is built here and the three cards move into it, then they go back
+// to their places when you fold, so the phone order (pinned by
+// test-learn-tab-card-order.js) never changes. Their listeners move with them.
+function arrangeLearnForPosture(){
+  const view = document.getElementById('learnView');
+  const search = document.getElementById('exerciseSearchInput');
+  const indexList = document.getElementById('masterclassIndex');
+  const recent = document.getElementById('recentlyTrainedCard');
+  if(!view || !search || !indexList || !recent) return;
+  const lib = search.closest('.card'), index = indexList.closest('.card');
+  let pane = document.getElementById('learnNavPane');
+  if(isOpenPosture()){
+    if(!pane){
+      pane = document.createElement('div');
+      pane.id = 'learnNavPane';
+      pane.className = 'learn-nav-pane split-primary';
+      view.insertBefore(pane, view.firstChild);
+    }
+    [lib, recent, index].forEach(c=> pane.appendChild(c));
+  } else if(pane){
+    view.insertBefore(lib, pane);
+    view.insertBefore(recent, pane);
+    view.appendChild(index);
+    pane.remove();
+  }
+}
+// Deferred to after the script has run: OPEN_POSTURE_QUERY is declared
+// further down, and reading it here at load would throw.
+setTimeout(()=>{
+  arrangeLearnForPosture();
+  if(window.matchMedia){
+    const learnMq = window.matchMedia(OPEN_POSTURE_QUERY);
+    if(learnMq.addEventListener) learnMq.addEventListener('change', arrangeLearnForPosture);
+    else if(learnMq.addListener) learnMq.addListener(arrangeLearnForPosture);
+  }
+}, 0);
 
 function toggleMasterclass(cardId){
   if(isMasterclassOpen(cardId) && !isProgramOwnedMasterclass(cardId)) closeMasterclass(cardId);
@@ -27885,6 +28372,34 @@ function renderDayInsight(day){
 // state was a class, but `aria-expanded` has to agree with that class at every
 // one of them or a screen reader is told the row is shut while it is visibly
 // open. One function, so there is exactly one place that can be wrong.
+// v3.494 (from the Duo branch's 3.276): the open-posture condition the
+// stylesheet's [OPEN POSTURE] @media block uses, for the one place JS has to
+// know which layout is on screen. Kept as the exact same string (test-duo-gym-
+// tap-to-switch.js fails if the two drift apart) and read live through
+// matchMedia, so a fold or unfold is picked up the moment it happens.
+const OPEN_POSTURE_QUERY = '(min-width:760px) and (min-height:560px), (horizontal-viewport-segments: 2) and (min-height:560px)';
+function isOpenPosture(){
+  return !!(window.matchMedia && window.matchMedia(OPEN_POSTURE_QUERY).matches);
+}
+
+// Tapping an exercise header. Everywhere else it toggles just that exercise,
+// as it always has. In gym mode on an open foldable the right pane shows ONE
+// exercise, so opening another is a switch: the current one closes and the
+// tapped one takes the pane. Without this the tapped exercise expanded inside
+// the list while the pane kept showing the old one.
+function toggleExerciseBlockFromHeader(blockEl){
+  const opening = !blockEl.classList.contains('open');
+  // v3.499: opening an exercise also shows it in the open-screen details pane.
+  if(opening && typeof focusExerciseDetail === 'function'){
+    const idxEl = blockEl.querySelector('[data-ex-idx]');
+    if(idxEl) focusExerciseDetail(idxEl.dataset.exIdx, true);
+  }
+  if(opening && gymModeActive && isOpenPosture()){
+    document.querySelectorAll('#exerciseList > .exercise-block.open').forEach(b=> setExerciseBlockOpen(b, false));
+  }
+  setExerciseBlockOpen(blockEl, opening);
+}
+
 function setExerciseBlockOpen(block, isOpen){
   if(!block) return;
   block.classList.toggle('open', isOpen);
@@ -27943,6 +28458,8 @@ function renderArchiveWeekVisibility(){
 
 async function renderWorkout(){
   const day = dayDefs[activeDay];
+  // v3.499: a new day lets the details pane follow Up next again.
+  if(exerciseDetailDay !== activeDay){ exerciseDetailDay = activeDay; exerciseDetailPinned = false; exerciseDetailIdx = null; }
   renderTodayInsights(); // fire-and-forget — session heads-up depends on activeDay/activeProgram, both already updated by now
   renderArchiveWeekVisibility(); // day-count-independent -- see #archiveWeekWrap's HTML comment
   document.getElementById('dayHeroEyebrow').textContent = day.label;
@@ -28737,7 +29254,7 @@ async function renderWorkout(){
     }
 
     exerciseHeader.addEventListener('click', ()=>{
-      setExerciseBlockOpen(blockEl, !blockEl.classList.contains('open'));
+      toggleExerciseBlockFromHeader(blockEl);
     });
 
     // Bound to the swap ICON specifically, not the whole .ex-name text — the
@@ -28762,6 +29279,7 @@ async function renderWorkout(){
       openExerciseEditor(ex, ex.__srcIndex);
     });
 
+    exerciseDetailByIdx[exIdx] = ex; // v3.499: for the open-screen details pane
     const histBtn = blockEl.querySelector(`.set-actions[data-ex-idx="${exIdx}"] .ex-history-btn`);
     if(histBtn) histBtn.addEventListener('click', (e)=>{
       e.stopPropagation();
@@ -29987,6 +30505,7 @@ function renderUpNext(){
   if(why){ why.textContent = (chip && chip._values && chip._values.why) || ''; why.hidden = !why.textContent; }
   fillSetLogger(card, n, chip, target);
   card.dataset.rowKey = `${n.row.dataset.exIdx}:${n.row.dataset.setIdx}`;
+  if(!exerciseDetailPinned) focusExerciseDetail(n.row.dataset.exIdx, false); // v3.499
 }
 
 // Fills a logger's tiles (Up next's, or an open exercise's since v3.376) for
@@ -30846,7 +31365,12 @@ async function openExerciseHistory(exIdx, ex){
   title.textContent = ex.name;
   body.innerHTML = '<div class="skeleton-wrap"><div class="skeleton-line" style="width:70%"></div><div class="skeleton-line" style="width:45%"></div><div class="skeleton-line" style="width:58%"></div></div>';
   overlay.classList.add('active');
+  body.innerHTML = await buildExerciseHistoryHtml(exIdx, ex);
+}
 
+// v3.499: what the exercise history sheet shows, as HTML, so the open-screen
+// details pane on Today (renderExerciseDetail) shows the same thing.
+async function buildExerciseHistoryHtml(exIdx, ex, opts){
   const log = await getExLog(activeDay, exIdx, subVariantOf(ex));
   const sessions = (log || [])
     .map(normalizeExEntry)
@@ -30854,8 +31378,7 @@ async function openExerciseHistory(exIdx, ex){
     .sort((a,b)=> new Date(b.date+'T00:00:00') - new Date(a.date+'T00:00:00'));
 
   if(sessions.length === 0){
-    body.innerHTML = '<div class="empty-note">Nothing logged for this exercise yet.</div>';
-    return;
+    return '<div class="empty-note">Nothing logged for this exercise yet.</div>';
   }
 
   // Oldest-first for anything that reads as a trend; the session list below
@@ -30918,7 +31441,9 @@ async function openExerciseHistory(exIdx, ex){
     </div>
   `;
 
-  const rowsHtml = sessions.map(e=>{
+  // opts.maxRows: the details pane shows the latest few; the sheet shows all.
+  const listed = opts && opts.maxRows ? sessions.slice(0, opts.maxRows) : sessions;
+  const rowsHtml = listed.map(e=>{
     const setsStr = (e.sets||[])
       .filter(s=> s.weight!=null || s.reps!=null || s.distance!=null)
       .map(s=>{
@@ -30944,7 +31469,52 @@ async function openExerciseHistory(exIdx, ex){
     `;
   }).join('');
 
-  body.innerHTML = statsHtml + chartHtml + `<div class="exh-section-label">Every session</div>` + rowsHtml;
+  const label = listed.length < sessions.length ? `Last ${listed.length} sessions` : 'Every session';
+  return statsHtml + chartHtml + `<div class="exh-section-label">${label}</div>` + rowsHtml;
+}
+
+
+// [EXERCISE DETAIL] (v3.499, open screen) -------------------------------------
+// On an unfolded foldable, Today's right pane leads with the exercise you are
+// on: its history (the same sessions, best and estimated-1RM trend as the
+// history sheet), its cues and its form video. It follows Up next as you log,
+// until you open an exercise yourself; then it stays on yours until you change
+// day. Phones never render it: the card stays hidden and nothing is fetched.
+const exerciseDetailByIdx = {};   // render index -> exercise, filled by renderWorkout
+let exerciseDetailIdx = null;
+let exerciseDetailPinned = false;
+let exerciseDetailDay = null;
+
+function focusExerciseDetail(exIdx, pinned){
+  if(exIdx == null || exIdx === '') return;
+  if(pinned) exerciseDetailPinned = true;
+  if(String(exIdx) === String(exerciseDetailIdx) && document.getElementById('exerciseDetailCard') && !document.getElementById('exerciseDetailCard').hidden) return;
+  exerciseDetailIdx = String(exIdx);
+  renderExerciseDetail();
+}
+
+async function renderExerciseDetail(){
+  const card = document.getElementById('exerciseDetailCard');
+  if(!card) return;
+  const ex = exerciseDetailIdx != null ? exerciseDetailByIdx[exerciseDetailIdx] : null;
+  if(!ex || !isOpenPosture()){ card.hidden = true; return; }
+  card.hidden = false;
+  document.getElementById('exerciseDetailTitle').textContent = ex.name;
+  const info = (typeof exerciseInfo !== 'undefined' && exerciseInfo[ex.name]) || null;
+  const cuesHtml = info && info.cues && info.cues.length
+    ? `<div class="exh-section-label">Cues</div><ul class="ex-cues">${info.cues.map(c=> `<li>${escapeHtml(c)}</li>`).join('')}</ul>`
+      + `<a class="ex-video-link" href="https://www.youtube.com/results?search_query=${encodeURIComponent(info.videoQuery || ex.name + ' proper form')}" target="_blank" rel="noopener">Watch form video</a>`
+    : '';
+  const shownIdx = exerciseDetailIdx;
+  const historyHtml = await buildExerciseHistoryHtml(Number(shownIdx), ex, {maxRows:5});
+  if(shownIdx !== exerciseDetailIdx) return; // another exercise was focused while this one loaded
+  document.getElementById('exerciseDetailBody').innerHTML = historyHtml + cuesHtml;
+}
+// Folding or unfolding shows or hides it straight away, not at the next set.
+if(window.matchMedia){
+  const mq = window.matchMedia(OPEN_POSTURE_QUERY);
+  if(mq.addEventListener) mq.addEventListener('change', ()=> renderExerciseDetail());
+  else if(mq.addListener) mq.addListener(()=> renderExerciseDetail());
 }
 
 function closeExerciseHistory(){
@@ -39298,6 +39868,8 @@ document.getElementById('historyHeatmapNextMonth').addEventListener('click', ()=
 // exact day was filtered out by the exercise-name search but the month
 // still has other matches).
 function jumpToHistoryDay(dateKey){
+  // v3.500: on an open foldable the day opens in the right pane instead.
+  if(showHistoryDayPane(dateKey)) return;
   const monthKey = dateKey.slice(0,7);
   const details = document.querySelector(`#historyList details.month-group[data-month="${monthKey}"]`);
   if(!details) return; // filtered out by the current exercise search, or no entries that month
@@ -39307,6 +39879,22 @@ function jumpToHistoryDay(dateKey){
   }
   const dayCard = details.querySelector(`.day-card[data-date="${dateKey}"]`);
   (dayCard || details).scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// v3.500 (open screen): History's right pane shows one day — the same card the
+// list builds (buildHistoryDayCardHtml) — so a tapped day on the calendar
+// opens beside it instead of scrolling the list away. Returns false where
+// there is no pane (a phone) or nothing logged that day, so the caller falls
+// back to scrolling the list.
+function showHistoryDayPane(dateKey){
+  const card = document.getElementById('historyDayCard');
+  if(!card || !isOpenPosture() || !_historyDayMap || !_historyDayMap[dateKey]) return false;
+  document.getElementById('historyDayTitle').textContent = fmtDayLabel(dateKey);
+  document.getElementById('historyDayBody').innerHTML = buildHistoryDayCardHtml(dateKey);
+  card.hidden = false;
+  card.dataset.date = dateKey;
+  document.querySelectorAll('#historyHeatmapGrid [data-jump-date]').forEach(c=> c.classList.toggle('is-shown', c.dataset.jumpDate === dateKey));
+  return true;
 }
 
 function renderCalendarGrid(){
@@ -39378,6 +39966,104 @@ document.getElementById('calendarNextMonth').addEventListener('click', ()=>{
 // deep link validating against a second copy is exactly how a new tab ends up
 // reachable from one route and not the other.
 const VIEW_KEYS = ['today','log','analysis','history','care','coach','learn'];
+
+// [POSTURE CONTINUITY] (v3.492, from the Duo branch's 3.274) -------------------
+// Folding or unfolding a foldable reaches a page as nothing but a resize, but
+// a big one: between the cover screen (~420-470pt) and the open screen
+// (~860-900pt, where Today and Log split into two panes) nearly every card
+// moves, and the same scrollY lands somewhere else entirely. Native apps keep
+// your place across that, so this does too: it remembers what you were
+// looking at and puts it back where it was on screen. Done explicitly rather
+// than left to browser scroll anchoring, which picks its own anchor node and
+// was not built for a reflow that moves content between columns.
+//
+// The anchor is the innermost card or exercise row crossing the line just
+// under the top chrome (what you are reading) or, if that line falls in a
+// gap, the next one down. When both panes cross the line, the left one wins:
+// that is the split's primary (the session, the food log).
+const POSTURE_ANCHOR_SELECTOR = '.card, .exercise-block';
+// Width change that counts as a posture change. A keyboard only changes
+// height, and nothing short of a fold or a rotation moves width this far.
+const POSTURE_WIDTH_DELTA = 100;
+
+function findPostureAnchor(root, lineY){
+  const candidates = [...root.querySelectorAll(POSTURE_ANCHOR_SELECTOR)]
+    .map(el=> ({el, r:el.getBoundingClientRect()}))
+    .filter(c=> c.r.height > 0);
+  const crosses = c=> c.r.top <= lineY && c.r.bottom > lineY;
+  // Innermost: drop any crossing candidate that contains another crossing one
+  // (the workout card, when an exercise row inside it is what is on the line).
+  const crossing = candidates.filter(c=> crosses(c) && !candidates.some(d=> d !== c && crosses(d) && c.el.contains(d.el)));
+  if(crossing.length){
+    crossing.sort((a, b)=> a.r.left - b.r.left);
+    return {el:crossing[0].el, top:crossing[0].r.top};
+  }
+  const below = candidates.filter(c=> c.r.top > lineY);
+  if(!below.length) return null;
+  below.sort((a, b)=> (a.r.top - b.r.top) || (a.r.left - b.r.left));
+  return {el:below[0].el, top:below[0].r.top};
+}
+
+(function wirePostureContinuity(){
+  let anchor = null;
+  let anchorWidth = window.innerWidth;
+  let captureTimer = 0, restoreFrame = 0;
+
+  // The reading line: just under the top chrome. The tab bar sits at the
+  // bottom now (v3.288), so that is the status-bar strip, or the Analysis
+  // jump rail once it has stuck to the top.
+  function readingLine(view){
+    const scrim = document.querySelector('.status-scrim');
+    let top = scrim ? Math.max(0, scrim.getBoundingClientRect().bottom) : 0;
+    const rail = view.querySelector('.analysis-index');
+    if(rail){
+      const r = rail.getBoundingClientRect();
+      if(r.height > 0 && r.top <= top + 1) top = Math.max(top, r.bottom);
+    }
+    return top + 8;
+  }
+  function capture(){
+    // Width already moved but the resize handler has not run yet (a scroll
+    // event from the reflow can arrive first): measuring now would replace
+    // the pre-fold anchor with a post-fold one and restore nothing.
+    if(Math.abs(window.innerWidth - anchorWidth) >= POSTURE_WIDTH_DELTA) return;
+    const view = VIEW_KEYS.map(k=> document.getElementById(k + 'View')).find(v=> v && v.style.display !== 'none');
+    if(!view) return;
+    anchor = findPostureAnchor(view, readingLine(view));
+  }
+  // Settled positions only: after scrolling stops, and after a tap's
+  // expand/collapse animation has had time to land.
+  function scheduleCapture(delay){
+    clearTimeout(captureTimer);
+    captureTimer = setTimeout(capture, delay);
+  }
+  window.addEventListener('scroll', ()=> scheduleCapture(120), {passive:true});
+  document.addEventListener('pointerup', ()=> scheduleCapture(450), {passive:true});
+
+  window.addEventListener('resize', ()=>{
+    if(Math.abs(window.innerWidth - anchorWidth) < POSTURE_WIDTH_DELTA) return;
+    const saved = anchor;
+    clearTimeout(captureTimer);
+    cancelAnimationFrame(restoreFrame);
+    restoreFrame = requestAnimationFrame(()=>{
+      // An open sheet holds the page in place itself (body.scroll-locked) and
+      // restores its own offset on close; moving the page under it would
+      // fight that.
+      if(saved && saved.el.isConnected && !document.body.classList.contains('scroll-locked')){
+        const r = saved.el.getBoundingClientRect();
+        // Instant: html{scroll-behavior:smooth} would otherwise glide there,
+        // and the point is that you never see the page move.
+        if(r.height > 0){
+          try{ window.scrollBy({top:r.top - saved.top, left:0, behavior:'instant'}); }
+          catch(e){ window.scrollBy(0, r.top - saved.top); }
+        }
+      }
+      anchorWidth = window.innerWidth;
+      capture();
+    });
+  }, {passive:true});
+  capture();
+})();
 
 // Manifest `shortcuts` entries are just URLs, so a shortcut can only land
 // somewhere useful if the app reads where it was asked to go. `?view=log`
@@ -44195,6 +44881,11 @@ async function renderHistory(){
     d.addEventListener('toggle', ()=>{ if(d.open) fillHistoryMonth(d); });
     if(d.open) fillHistoryMonth(d); // nothing opens one by default today; correct if that changes
   });
+  // v3.500: unfolded, the day pane starts on the day it last showed, else the
+  // most recent logged day.
+  const shown = document.getElementById('historyDayCard');
+  const keep = shown && shown.dataset.date && dayMap[shown.dataset.date] ? shown.dataset.date : null;
+  showHistoryDayPane(keep || Object.keys(dayMap).sort().pop() || '');
 }
 
 // Held between renderHistory() and fillHistoryMonth(). Rebuilt on every

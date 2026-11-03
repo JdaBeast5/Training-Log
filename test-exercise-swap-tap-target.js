@@ -55,11 +55,15 @@ const wiringSrc = extractBetween(
 // snippet above therefore calls it, so the REAL helper source is pulled in
 // alongside rather than stubbed — a stub here would let the helper break
 // without this test noticing.
+// 2026-11-03 (v3.494): the header listener calls toggleExerciseBlockFromHeader
+// (the open-posture gym-mode switch, test-duo-gym-tap-to-switch.js), which sits
+// with its posture check just above setExerciseBlockOpen, so the slice starts
+// there. gymModeActive is false: this test is about the normal (non-gym) tap.
 const openHelperSrc = extractBetween(
   'setExerciseBlockOpen helper',
-  'function setExerciseBlockOpen(block, isOpen){',
+  "const OPEN_POSTURE_QUERY = '",
   '\nasync function renderWorkout(){'
-);
+) + '\nvar gymModeActive = false;';
 
 function buildFixture(){
   return `

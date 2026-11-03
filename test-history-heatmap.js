@@ -13,6 +13,10 @@
 const { readIndexSource, extractFunction, extractConst, extractElementById, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
+// 2026-11-03 (v3.500): jumpToHistoryDay first offers the day to the open-
+// screen pane (showHistoryDayPane), which declines on a phone; loaded for
+// real with isOpenPosture() false (test-open-screen-2-0.js covers the pane).
+const JUMP_SRC = [extractFunction(src, 'showHistoryDayPane'), 'function isOpenPosture(){ return false; }', extractFunction(src, 'jumpToHistoryDay')].join('\n');
 const historyViewHtml = extractElementById(src, 'historyView');
 
 const baseChunks = [
@@ -197,7 +201,7 @@ test('jumpToHistoryDay opens the matching month group, fills it, and scrolls to 
     window.__fillCalls = [];
     window.fillHistoryMonth = (details)=>{ window.__fillCalls.push(details.dataset.month); };
   `;
-  const { document, window } = runJsdom(historyViewHtml, stubFill, [extractFunction(src, 'jumpToHistoryDay')]);
+  const { document, window } = runJsdom(historyViewHtml, stubFill, [JUMP_SRC]);
   const details = document.createElement('details');
   details.className = 'month-group';
   details.dataset.month = '2026-06';
@@ -222,7 +226,7 @@ test('jumpToHistoryDay opens the matching month group, fills it, and scrolls to 
 
 test('jumpToHistoryDay falls back to scrolling the month group when the exact day card is not present (e.g. filtered out by search)', (assert)=>{
   const stubFill = `window.fillHistoryMonth = ()=>{};`;
-  const { document, window } = runJsdom(historyViewHtml, stubFill, [extractFunction(src, 'jumpToHistoryDay')]);
+  const { document, window } = runJsdom(historyViewHtml, stubFill, [JUMP_SRC]);
   const details = document.createElement('details');
   details.className = 'month-group';
   details.dataset.month = '2026-06';
@@ -236,13 +240,13 @@ test('jumpToHistoryDay falls back to scrolling the month group when the exact da
 });
 
 test('jumpToHistoryDay does nothing (no throw) when the month is not present — e.g. filtered out', (assert)=>{
-  const { window } = runJsdom(historyViewHtml, 'window.fillHistoryMonth = ()=>{};', [extractFunction(src, 'jumpToHistoryDay')]);
+  const { window } = runJsdom(historyViewHtml, 'window.fillHistoryMonth = ()=>{};', [JUMP_SRC]);
   assert.doesNotThrow(()=> window.jumpToHistoryDay('1999-01-01'));
 });
 
 test('jumpToHistoryDay does not re-fill an already-open, already-filled month (avoids a redundant render)', (assert)=>{
   const stubFill = `window.fillHistoryMonth = ()=>{ window.__calls = (window.__calls||0) + 1; };`;
-  const { document, window } = runJsdom(historyViewHtml, stubFill, [extractFunction(src, 'jumpToHistoryDay')]);
+  const { document, window } = runJsdom(historyViewHtml, stubFill, [JUMP_SRC]);
   const details = document.createElement('details');
   details.className = 'month-group';
   details.dataset.month = '2026-06';
