@@ -126,7 +126,12 @@ test('real positionProfileCard still lands the profile card in the right-hand fl
 test('the gate matches the open Duo and nothing a phone does', (assert)=>{
   // Supports exactly the feature types the gate is allowed to use; anything
   // else (an orientation or max- query) fails loudly instead of being ignored.
-  const features = GATE.split(/\s+and\s+/).map(f=> /^\((min-width|min-height):(\d+)px\)$/.exec(f));
+  // 2026-11-03 (v3.496): the gate has a second alternative, the fold the
+  // browser reports itself (side-by-side viewport segments); it is checked
+  // exactly in test-foldable-hinge.js. The size alternative is evaluated here.
+  const [sizeAlt, ...rest] = GATE.split(/\s*,\s*/);
+  assert.deepEqual(rest, ['(horizontal-viewport-segments: 2) and (min-height:560px)']);
+  const features = sizeAlt.split(/\s+and\s+/).map(f=> /^\((min-width|min-height):(\d+)px\)$/.exec(f));
   assert.ok(features.every(Boolean), `unexpected gate syntax: ${GATE}`);
   const matches = (w, h)=> features.every(([, feat, v])=> (feat === 'min-width' ? w : h) >= Number(v));
   assert.ok(matches(890, 626), 'unfolded Duo, natural hold');

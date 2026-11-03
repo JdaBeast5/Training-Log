@@ -5355,7 +5355,12 @@
      no space. Row gap 0 because .card carries its own margin-bottom.
 
      A tab without a split keeps the phone column it was designed in. */
-  @media (min-width:760px) and (min-height:560px){
+  /* v3.496: or wherever the browser reports a fold between two side-by-side
+     screen segments (Chrome on Android's Viewport Segments, for a passport
+     foldable half-open like a book), at any width. Still at least 560 tall,
+     so it can never meet the short-landscape gym rail (max-height:559px).
+     Safari doesn't know the feature, so for it that alternative is false. */
+  @media (min-width:760px) and (min-height:560px), (horizontal-viewport-segments: 2) and (min-height:560px){
     :root{ --wrap-max:1080px; --pane-gap:24px; }
     .posture-split{
       display:grid;
@@ -5438,6 +5443,33 @@
     body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer{
       left:calc(var(--gym-wrap-left) + 10px + var(--gym-col-w) / 2);
       max-width:var(--gym-col-w);
+    }
+  }
+  /* [HINGE] (v3.496, passport foldables) ------------------------------------
+     Where the browser reports the fold itself (two side-by-side segments,
+     env(viewport-segment-*) giving each one's edges), the split doesn't
+     estimate the crease as the middle of a centred column: the page spans
+     the screen, the left column ends 12px short of the fold, and the right
+     one starts 12px past it. A fold that isn't centred, or a hinge with a
+     physical gap, still gets nothing laid across it. --hinge-l/--hinge-r are
+     the fold's two edges (equal on a seamless screen). */
+  @media (horizontal-viewport-segments: 2) and (min-height:560px){
+    :root{
+      --hinge-l:env(viewport-segment-right 0 0, 50vw);
+      --hinge-r:env(viewport-segment-left 1 0, 50vw);
+      --wrap-max:100vw;
+      --pane-gap:calc(var(--hinge-r) - var(--hinge-l) + 24px);
+    }
+    .posture-split{
+      grid-template-columns:calc(var(--hinge-l) - 12px - var(--gutter-l)) minmax(0, 1fr);
+    }
+    .sticky-day-header{ left:0; right:calc(100vw - var(--hinge-l) + 12px); }
+    body.gym-mode{
+      --gym-wrap-left:0px;
+      --gym-col-w:calc(var(--hinge-l) - 12px - 10px);
+    }
+    body.gym-mode #exerciseList{
+      grid-template-columns:calc(var(--hinge-l) - 12px - 10px) minmax(0, 1fr);
     }
   }
 </style>
@@ -7391,7 +7423,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.495';
+const APP_VERSION = '3.496';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8683,6 +8715,9 @@ const WHATS_NEW = {
   ]},
   '3.495': { headline: 'Gym mode sideways', points: [
     'Turn your phone or a foldable\'s cover screen sideways in gym mode and the clock, Log and Exit move into a slim bar on the right, so your exercise gets the full height.',
+  ]},
+  '3.496': { headline: 'Split on the real fold', points: [
+    'On Android passport foldables, when the phone reports where its fold is, the two panes line up exactly on either side of it.',
   ]},
 };
 
@@ -28116,7 +28151,7 @@ function renderDayInsight(day){
 // know which layout is on screen. Kept as the exact same string (test-duo-gym-
 // tap-to-switch.js fails if the two drift apart) and read live through
 // matchMedia, so a fold or unfold is picked up the moment it happens.
-const OPEN_POSTURE_QUERY = '(min-width:760px) and (min-height:560px)';
+const OPEN_POSTURE_QUERY = '(min-width:760px) and (min-height:560px), (horizontal-viewport-segments: 2) and (min-height:560px)';
 function isOpenPosture(){
   return !!(window.matchMedia && window.matchMedia(OPEN_POSTURE_QUERY).matches);
 }

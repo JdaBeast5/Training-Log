@@ -72,8 +72,16 @@ function vars(vw, inset){
   return v;
 }
 // Gate evaluation supporting exactly orientation / min- / max- height+width.
+// 2026-11-03 (v3.496): the open gate has a second alternative, a fold the
+// browser reports (side-by-side viewport segments) with min-height:560px. The
+// overlap test checks BOTH alternatives, assuming the fold is reported: the
+// segments feature itself is treated as true.
 function matches(condition, w, h){
+  return condition.split(/\s*,\s*/).some(alt=> matchesAlt(alt, w, h));
+}
+function matchesAlt(condition, w, h){
   return condition.split(/\s+and\s+/).every(f=>{
+    if(f === '(horizontal-viewport-segments: 2)') return true;
     const m = /^\((orientation):(landscape|portrait)\)$|^\((min|max)-(width|height):(\d+)px\)$/.exec(f);
     if(!m) throw new Error('unsupported media feature ' + f);
     if(m[1]) return (w > h) === (m[2] === 'landscape');

@@ -26,7 +26,7 @@ function allRules(){
   // suite checks the dark design of record (test-light-mode.js covers light).
   // 2026-11-03 (v3.490): likewise the open-posture block, which widens
   // --wrap-max on an unfolded foldable (test-duo-open-posture-layout.js).
-  const walk = list => { for(const r of list){ if(r.type === 1) out.push(r); else if(r.cssRules && !(r.media && /prefers-color-scheme:\s*light|min-width:\s*760px/.test(r.media.mediaText))) walk(r.cssRules); } };
+  const walk = list => { for(const r of list){ if(r.type === 1) out.push(r); else if(r.cssRules && !(r.media && /prefers-color-scheme:\s*light|min-width:\s*760px|viewport-segments/.test(r.media.mediaText))) walk(r.cssRules); } };
   for(const s of document.styleSheets) walk(s.cssRules);
   return out;
 }

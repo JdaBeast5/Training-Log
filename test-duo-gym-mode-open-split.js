@@ -155,7 +155,12 @@ test('nothing open: the list falls back to one centred phone-width column', (ass
 });
 
 test('phones are untouched: every new gym rule exists only inside the open-posture block', (assert)=>{
-  const outside = src.replace(wideRaw, '');
+  // 2026-11-03 (v3.496): the [HINGE] block (side-by-side viewport segments,
+  // only where a browser reports a fold) restates the gym columns against the
+  // fold, so it is taken out too (test-foldable-hinge.js).
+  const hingeStart = src.indexOf('  @media (horizontal-viewport-segments: 2) and (min-height:560px){');
+  const hingeRaw = hingeStart < 0 ? '' : src.slice(hingeStart, src.indexOf('\n  }\n', src.indexOf('body.gym-mode #exerciseList{', hingeStart)) + 4);
+  const outside = src.replace(wideRaw, '').replace(hingeRaw, '');
   assert.ok(outside.length < src.length, 'the open-posture block must actually be removed before checking what is left');
   for(const re of [/#exerciseList\s*\{[^}]*display:grid/, /--gym-col-w/, /\.exercise-block\.open\s*\{[^}]*position:sticky/]){
     assert.ok(!re.test(outside), `${re} found outside the open-posture block — it would apply on phones`);
