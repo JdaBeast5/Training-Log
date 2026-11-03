@@ -735,3 +735,15 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
 - **Unverified on a device:** all of it. In particular, sheets panelled while the on-screen keyboard is up (search, set editor) on a real foldable, and the Learn DOM move when a fold happens mid-scroll.
 - **Flagged, not fixed:** the set editor shows a blue focus outline around the whole sheet when opened programmatically (seen in the open-screen screenshot; it is the same element on a phone). Probably the global `:focus-visible` ring on `tabindex="-1"`.
 - **Not live:** v3.488–v3.506 are on `claude/taste-skill-v2` only, waiting for the owner's yes.
+
+## Addendum 35: Owner decisions, and the focus ring (v3.507)
+- **Declined (2026-11-03), so don't build these:**
+  - A front-screen quick-log view: leave the cover screen as it is.
+  - A two-up landscape layout on the cover.
+  - The tabletop extras: the rest timer outside gym mode, and Coach capture.
+- **v3.507: the focus ring flagged in Addendum 34 is fixed.**
+  - The cause: `openSetSheet()` focuses the sheet itself (`tabindex="-1"`), and the keyboard rule `[tabindex]:focus-visible` drew a 2px ring round the whole sheet.
+  - The fix: `[role="dialog"]:focus-visible{ outline:none; }`, placed after that rule. It is a dialog-only fix, so the day picker's roving `tabindex=-1` tabs (ring on `.plate`) and every control inside a dialog keep their rings.
+  - Test: `test-dialog-focus-ring.js`.
+  - Chromium check: the sheet is `:focus-visible` with no outline, and Tab to Cancel shows the 2px ring.
+- **Still not live:** v3.488–v3.507.
