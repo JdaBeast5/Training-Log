@@ -5281,7 +5281,8 @@
      no fold or hinge API, so all it sees is a resize. Stretching the phone
      column to that width ran every card across the crease. So at this size
      the page widens and a .posture-split tab splits in two: its
-     .split-primary (on Today, the day picker and the session) on the left,
+     .split-primary (on Today, the day picker and the session; on Log since
+     v3.491, the nutrition card) on the left,
      everything else stacked on the right. Each half is about a phone's width,
      so cards keep the proportions they were designed at, and with two equal
      columns the gutter falls on the crease.
@@ -5307,7 +5308,7 @@
     }
     .posture-split > *{ grid-column:2; }
     .posture-split > .split-primary{ grid-column:1; grid-row:1 / -1; }
-    #logView, #analysisView, #historyView, #careView, #coachView, #learnView{
+    #analysisView, #historyView, #careView, #coachView, #learnView{
       max-width:calc(640px - 36px); margin-left:auto; margin-right:auto;
     }
     /* Belongs to the session, so it spans the session pane rather than the
@@ -5928,8 +5929,9 @@
 
   </div>
 
-  <div id="logView" style="display:none">
-  <div class="card">
+  <div id="logView" class="posture-split" style="display:none">
+  <!-- v3.491 split-primary: the left pane on an unfolded foldable ([OPEN POSTURE]). -->
+  <div class="card split-primary">
 
     <div class="card-title nutrition-header" id="nutritionHeader">
       <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="4"/><circle cx="10" cy="10" r="1" fill="currentColor"/></svg></span>Nutrition</span>
@@ -7271,7 +7273,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.490';
+const APP_VERSION = '3.491';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8548,6 +8550,9 @@ const WHATS_NEW = {
   ]},
   '3.490': { headline: 'Today in two panes on foldables', points: [
     'Unfold an iPhone Duo or passport foldable and Today splits in two: your session on the left, priorities and the rest on the right. On a regular phone or a cover screen, Today looks the same.',
+  ]},
+  '3.491': { headline: 'Log in two panes on foldables', points: [
+    'Unfold an iPhone Duo or passport foldable on Log and nutrition sits on the left, with water, bodyweight, sleep and the rest on the right.',
   ]},
 };
 
