@@ -31,7 +31,9 @@ const parseDateKeySrc = extractFunction(src, 'parseDateKey');
 const formatDateSrc = extractFunction(src, 'formatDate');
 const formatShortDateSrc = extractFunction(src, 'formatShortDate');
 const fmtMonthLabelSrc = extractFunction(src, 'fmtMonthLabel');
-const renderHistorySrc = extractFunction(src, 'renderHistory');
+// 2026-11-03 (v3.500): renderHistory ends by offering the latest day to the
+// open-screen pane (showHistoryDayPane), which declines on a phone.
+const renderHistorySrc = [extractFunction(src, 'showHistoryDayPane'), 'function isOpenPosture(){ return false; }', extractFunction(src, 'renderHistory')].join('\n');
 
 // document.getElementById('historyExportRange').addEventListener('change', ...)
 // is a top-level statement, not a named function/const. Extracted the same

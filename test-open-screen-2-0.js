@@ -143,12 +143,63 @@ test('REAL invocation (v3.499): opening an exercise pins it; Up next no longer s
 
 test('REAL source (v3.499): the sheet and the pane share one builder; the card heads the right column only when open', (assert)=>{
   assert.match(extractFunction(src, 'openExerciseHistory'), /body\.innerHTML = await buildExerciseHistoryHtml\(exIdx, ex\);/);
-  assert.match(OPEN, /\.exercise-detail-card\{ order:-1; \}/);
-  assert.match(src, /\.exercise-detail-card\[hidden\]\{display:none;\}/);
+  assert.match(OPEN, /\.exercise-detail-card, \.history-day-card\{ order:-1; \}/); // v3.500 shares it
+  assert.match(src, /\.exercise-detail-card\[hidden\], \.history-day-card\[hidden\]\{display:none;\}/);
   const today = runJsdom(extractElementById(src, 'todayView'), '', []).window.document;
   const card = today.getElementById('exerciseDetailCard');
   assert.strictEqual(card.parentElement.id, 'todayView', 'a direct child, so gym mode hides it with the other Today cards');
   assert.strictEqual(card.nextElementSibling.id, 'profileCardPermanentSlot');
+});
+
+// v3.500 — History as master-detail. Unfolded, the Day-by-Day Log (calendar
+// and list) is the left pane and a day pane heads the right one: tapping a day
+// on the calendar shows that day's card there (the list's own builder),
+// marked on the calendar, instead of scrolling the list away. It starts on
+// the most recent logged day. On a phone the tap scrolls the list as before.
+function historyWindow(open){
+  const day = { weight:180.1, weightDelta:0, exercises:[{name:'Lat Pulldown', dayLabel:'Strength · Day 1', volume:1725, deltaWeight:0, deltaReps:0, sets:[{weight:75, reps:8}]}] };
+  const { window } = runJsdom(extractElementById(src, 'historyView'), `
+    window.__open = ${open};
+    function isOpenPosture(){ return window.__open; }
+    var weightUnit = 'lb', distanceUnit = 'km';
+    window.toDisplayWeight = v => v; window.trimUnitNum = v => String(v); window.fmtWeight = v => v + ' lb'; window.toDisplayDistance = v => v;
+    var _historyDayMap = { '2026-10-21': ${JSON.stringify(day)}, '2026-10-24': ${JSON.stringify(day)} };
+    window.fillHistoryMonth = ()=>{};`,
+    [...['escapeHtml', 'parseDateKey', 'formatDate', 'fmtDayLabel', 'deltaSpan', 'buildHistoryDayCardHtml', 'showHistoryDayPane', 'jumpToHistoryDay'].map(n => extractFunction(src, n)),
+     "document.getElementById('historyHeatmapGrid').innerHTML = '<button data-jump-date=\"2026-10-21\"></button><button data-jump-date=\"2026-10-24\"></button>';"]);
+  return window;
+}
+
+test('REAL invocation (v3.500): open, a tapped day fills the right pane, marked on the calendar; the list does not scroll', (assert)=>{
+  const w = historyWindow(true);
+  let scrolled = false; w.Element.prototype.scrollIntoView = ()=>{ scrolled = true; };
+  w.jumpToHistoryDay('2026-10-21');
+  const card = w.document.getElementById('historyDayCard');
+  assert.strictEqual(card.hidden, false);
+  assert.strictEqual(card.dataset.date, '2026-10-21');
+  assert.match(w.document.getElementById('historyDayTitle').textContent, /Oct 21/);
+  assert.ok(card.querySelector('.day-ex-row.day-ex-logged'), 'the same day card the list builds');
+  assert.deepStrictEqual([...w.document.querySelectorAll('#historyHeatmapGrid .is-shown')].map(b => b.dataset.jumpDate), ['2026-10-21']);
+  assert.strictEqual(scrolled, false);
+});
+
+test('REAL invocation (v3.500): on a phone, or for a day with nothing logged, the pane declines and the list path runs', (assert)=>{
+  const phone = historyWindow(false);
+  assert.strictEqual(phone.showHistoryDayPane('2026-10-21'), false);
+  assert.strictEqual(phone.document.getElementById('historyDayCard').hidden, true);
+  const open = historyWindow(true);
+  assert.strictEqual(open.showHistoryDayPane('2026-10-22'), false, 'nothing logged that day');
+});
+
+test('REAL source (v3.500): History is a split view led by the log; the day pane is CSS-gated to the open layout and starts on the latest day', (assert)=>{
+  const doc = runJsdom(extractElementById(src, 'historyView'), '', []).window.document;
+  const view = doc.getElementById('historyView');
+  assert.ok(view.classList.contains('posture-split'));
+  assert.ok(view.querySelector(':scope > .split-primary #historyLogHeader'), 'the Day-by-Day Log is the primary');
+  assert.match(src, /\.history-day-card\{display:none;\}/, 'hidden on phones by CSS, whatever JS does');
+  assert.match(OPEN, /\.history-day-card:not\(\[hidden\]\)\{ display:block; \}/);
+  assert.match(extractFunction(src, 'renderHistory'), /showHistoryDayPane\(keep \|\| Object\.keys\(dayMap\)\.sort\(\)\.pop\(\) \|\| ''\);/);
+  assert.ok(!/#historyView,/.test(OPEN), 'no longer held to the phone column');
 });
 
 run();

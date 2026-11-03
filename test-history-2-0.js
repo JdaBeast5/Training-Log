@@ -17,7 +17,9 @@ const doc = new JSDOM(html).window.document;
 const CSS = [...html.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n').replace(/\/\*[\s\S]*?\*\//g, '');
 
 test('REAL markup (v3.443): Day-by-Day Log first, then the PR timeline, then Saved Weeks', (assert)=>{
-  const cards = [...doc.getElementById('historyView').children].filter(c => c.classList.contains('card'));
+  // 2026-11-03 (v3.500): the open-screen day pane (#historyDayCard) is never
+  // shown on a phone, so the phone order is counted without it (test-open-screen-2-0.js).
+  const cards = [...doc.getElementById('historyView').children].filter(c => c.classList.contains('card') && c.id !== 'historyDayCard');
   assert.strictEqual(cards.length, 3, 'anchor: the real three cards');
   assert.ok(cards[0].querySelector('#historyLogHeader') && cards[0].querySelector('#historyList'), 'the log leads');
   assert.ok(cards[1].querySelector('#prTimeline'));

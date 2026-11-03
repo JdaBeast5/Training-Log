@@ -666,7 +666,8 @@
      pending (faint ghost of the suggestion). */
   .set-chips{display:flex; flex-wrap:wrap; gap:6px; padding:0 0 14px;}
   .set-chips[hidden]{display:none;}
-  .exercise-detail-card[hidden]{display:none;} /* v3.499: phones, and until there is an exercise to show */
+  .exercise-detail-card[hidden], .history-day-card[hidden]{display:none;}
+  .history-day-card{display:none;} /* v3.500: shown only by the open-posture layout */ /* v3.499: phones, and until there is an exercise to show */
   .set-chip{
     flex:1 0 auto; min-width:56px; max-width:132px; min-height:44px; padding:0 8px; border-radius:14px; white-space:nowrap;
     display:inline-flex; align-items:center; justify-content:center; gap:3px;
@@ -5378,8 +5379,10 @@
     .posture-split > *{ grid-column:2; }
     .posture-split > .split-primary{ grid-column:1; grid-row:1 / -1; }
     /* v3.499: the exercise you are on heads the right column. */
-    .exercise-detail-card{ order:-1; }
-    #analysisView, #historyView, #careView, #coachView, #learnView{
+    .exercise-detail-card, .history-day-card{ order:-1; }
+    .history-day-card:not([hidden]){ display:block; }
+    #historyHeatmapGrid .calendar-cell.is-shown{ box-shadow:inset 0 0 0 2px var(--plate-blue); }
+    #analysisView, #careView, #coachView, #learnView{
       max-width:calc(640px - 36px); margin-left:auto; margin-right:auto;
     }
     /* Belongs to the session, so it spans the session pane rather than the
@@ -6681,10 +6684,11 @@
     <button type="button" class="switch-profile-btn history-export-btn" id="analysisExportBtn" style="display:none; margin:4px 0 12px;">Print analysis snapshot</button>
   </div>
 
-  <div id="historyView" style="display:none">
+  <div id="historyView" class="posture-split" style="display:none">
     <!-- v3.443: the day-by-day log is what History is for, so it leads;
-         records and saved weeks follow (it sat last, under both). -->
-    <div class="card">
+         records and saved weeks follow (it sat last, under both).
+         v3.500: it is the left pane on an open foldable ([OPEN POSTURE]). -->
+    <div class="card split-primary">
       <div class="card-title nutrition-header" id="historyLogHeader">
         <span><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.2 6.2a1 1 0 0 1 1-1h3.8l1.4 1.8h8.4a1 1 0 0 1 1 1v7.8a1 1 0 0 1-1 1H3.2a1 1 0 0 1-1-1Z"/></svg></span>Day-by-Day Log</span>
         <span class="ex-chevron" aria-hidden="true" id="historyLogChevron"><svg width="1em" height="1em" style="display:inline-block;vertical-align:-0.125em;flex:0 0 auto" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline vector-effect="non-scaling-stroke" points="9 5.5 15.5 12 9 18.5"/></svg></span>
@@ -6725,6 +6729,12 @@
            one row above it; printing is an occasional action, after the list. -->
       <button type="button" class="switch-profile-btn history-export-btn history-print-btn" id="historyExportBtn">Print workout report</button>
       </div></div>
+    </div>
+    <!-- v3.500: the open-screen day pane (showHistoryDayPane). Hidden on
+         phones, where a tapped day scrolls the list instead. -->
+    <div class="card history-day-card" id="historyDayCard" hidden>
+      <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="13" rx="2"/><line x1="3" y1="8" x2="17" y2="8"/><line x1="7" y1="2.5" x2="7" y2="5.5"/><line x1="13" y1="2.5" x2="13" y2="5.5"/></svg></span><span id="historyDayTitle">Day</span></div>
+      <div id="historyDayBody"></div>
     </div>
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h7v3.6a3.5 3.5 0 0 1-7 0Z"/><path d="M6.5 4H3.2v1a3 3 0 0 0 3 3M13.5 4h3.3v1a3 3 0 0 1-3 3"/><line x1="10" y1="10.6" x2="10" y2="13.5"/><line x1="7.2" y1="17" x2="12.8" y2="17"/><line x1="8.2" y1="13.5" x2="11.8" y2="13.5"/></svg></span>Personal Records Timeline</div>
@@ -7493,7 +7503,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.499';
+const APP_VERSION = '3.500';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8797,6 +8807,9 @@ const WHATS_NEW = {
   ]},
   '3.499': { headline: 'Exercise details when unfolded', points: [
     'Unfolded, Today\'s right side shows the exercise you\'re on: your recent sessions, your estimated 1RM trend, cues and the form video. Open another exercise to see it there.',
+  ]},
+  '3.500': { headline: 'History side by side when unfolded', points: [
+    'Unfolded, History shows the calendar on the left; tap a day to see that workout on the right.',
   ]},
 };
 
@@ -39721,6 +39734,8 @@ document.getElementById('historyHeatmapNextMonth').addEventListener('click', ()=
 // exact day was filtered out by the exercise-name search but the month
 // still has other matches).
 function jumpToHistoryDay(dateKey){
+  // v3.500: on an open foldable the day opens in the right pane instead.
+  if(showHistoryDayPane(dateKey)) return;
   const monthKey = dateKey.slice(0,7);
   const details = document.querySelector(`#historyList details.month-group[data-month="${monthKey}"]`);
   if(!details) return; // filtered out by the current exercise search, or no entries that month
@@ -39730,6 +39745,22 @@ function jumpToHistoryDay(dateKey){
   }
   const dayCard = details.querySelector(`.day-card[data-date="${dateKey}"]`);
   (dayCard || details).scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// v3.500 (open screen): History's right pane shows one day — the same card the
+// list builds (buildHistoryDayCardHtml) — so a tapped day on the calendar
+// opens beside it instead of scrolling the list away. Returns false where
+// there is no pane (a phone) or nothing logged that day, so the caller falls
+// back to scrolling the list.
+function showHistoryDayPane(dateKey){
+  const card = document.getElementById('historyDayCard');
+  if(!card || !isOpenPosture() || !_historyDayMap || !_historyDayMap[dateKey]) return false;
+  document.getElementById('historyDayTitle').textContent = fmtDayLabel(dateKey);
+  document.getElementById('historyDayBody').innerHTML = buildHistoryDayCardHtml(dateKey);
+  card.hidden = false;
+  card.dataset.date = dateKey;
+  document.querySelectorAll('#historyHeatmapGrid [data-jump-date]').forEach(c=> c.classList.toggle('is-shown', c.dataset.jumpDate === dateKey));
+  return true;
 }
 
 function renderCalendarGrid(){
@@ -44716,6 +44747,11 @@ async function renderHistory(){
     d.addEventListener('toggle', ()=>{ if(d.open) fillHistoryMonth(d); });
     if(d.open) fillHistoryMonth(d); // nothing opens one by default today; correct if that changes
   });
+  // v3.500: unfolded, the day pane starts on the day it last showed, else the
+  // most recent logged day.
+  const shown = document.getElementById('historyDayCard');
+  const keep = shown && shown.dataset.date && dayMap[shown.dataset.date] ? shown.dataset.date : null;
+  showHistoryDayPane(keep || Object.keys(dayMap).sort().pop() || '');
 }
 
 // Held between renderHistory() and fillHistoryMonth(). Rebuilt on every
