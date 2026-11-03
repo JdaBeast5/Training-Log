@@ -453,7 +453,22 @@
      real phone that printed "13:20" across the Body Measurements title. Requires
      viewport-fit=cover on the viewport meta, or env() resolves to 0 — which is
      why the three safe-area rules already in this file were doing nothing. */
-  .wrap{max-width:640px; margin:0 auto; padding:calc(22px + env(safe-area-inset-top, 0px)) 18px 4px;}
+  /* v3.489 (foldables, from the Duo branch's 3.271): SIDE GUTTERS FOLLOW THE
+     SIDE SAFE AREAS. 18px was safe while the manifest locked portrait, where
+     the side insets are zero. Rotated, or on a foldable whose insets differ
+     left and right, the sensor housing sits in one side's inset, so each side
+     takes the larger of 18px and its OWN inset, counting only the part the
+     column's centring margin doesn't already clear (a 640px column centred on
+     an 874px landscape phone sits 117px in, clear of a 59px inset). Full-bleed
+     children (.analysis-index) bleed out by the same tokens. */
+  .wrap{
+    --wrap-max:640px;
+    --wrap-side-margin:max(0px, (100vw - var(--wrap-max)) / 2);
+    --gutter-l:max(18px, env(safe-area-inset-left, 0px) - var(--wrap-side-margin));
+    --gutter-r:max(18px, env(safe-area-inset-right, 0px) - var(--wrap-side-margin));
+    max-width:var(--wrap-max); margin:0 auto;
+    padding:calc(22px + env(safe-area-inset-top, 0px)) var(--gutter-r) 4px var(--gutter-l);
+  }
   header{padding:8px 0 18px;}
   .eyebrow-row{display:flex; align-items:center; gap:8px;}
   /* v3.386: the app icon's mark (the plate, its lit seventh and bore) at
@@ -1427,7 +1442,7 @@
     top:env(safe-area-inset-top, 0px); /* v3.288: the rail moved to the bottom */
     background:rgba(var(--surface2-rgb),0.72); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border-bottom:1px solid var(--line-soft);
-    padding:12px 16px;
+    padding:12px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px)); /* v3.489: clear side insets */
     display:flex; align-items:center; gap:8px;
     cursor:pointer;
     /* -100% alone is relative to THIS element's own ~44.8px height, not to
@@ -2350,6 +2365,10 @@
        touch entirely to our own pointer handling rather than the browser's
        native scroll/zoom gestures is a clean tradeoff, not a compromise. */
     touch-action:none;
+    /* v3.489: the side safe area as MARGIN, not folded into right/left:
+       wireCoachFabDrag writes left/right inline as a plain px gap, and a
+       margin on both sides applies to whichever it set. Zero upright. */
+    margin:0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
   }
   .coach-fab.tucked{opacity:0; transform:scale(0.3); pointer-events:none; transition:transform 0.3s var(--ease-smooth), opacity 0.22s var(--ease-smooth);}
   /* Live drag feedback: no transition (position must track the pointer with
@@ -2359,6 +2378,10 @@
   .coach-fab.dragging{
     transition:none; transform:scale(1.08);
     box-shadow:0 20px 40px -12px rgba(var(--overlay-black-rgb),0.85); /* deeper neutral lift = "picked up" (v3.283) */
+    /* v3.489: margin off while dragging: the drag reads the rendered rect
+       (margin included) and writes it back, so a margin would make the
+       button jump sideways by the inset under the finger. */
+    margin:0;
   }
   .coach-fab span{position:relative; z-index:1; display:flex;}
   /* v3.285: the app's own chat-bubble outline (ICONS.chat's path) instead of a 💬 emoji */
@@ -2373,7 +2396,7 @@
      legible at a glance without needing to tap it first to find out what it
      does — this is a jump-to-safety control, not a decorative icon. */
   .today-fab{
-    position:fixed; bottom:calc(var(--above-bar) + 12px); left:18px; z-index:70; overflow:hidden;
+    position:fixed; bottom:calc(var(--above-bar) + 12px); left:calc(18px + env(safe-area-inset-left, 0px)); z-index:70; overflow:hidden; /* v3.489: clears a side inset */
     display:flex; align-items:center; height:44px; padding:0 18px;
     border-radius:var(--radius-pill); border:1px solid rgba(var(--surface-white-rgb),0.28);
     background:var(--plate-yellow); color:#1a1a1a;
@@ -2633,7 +2656,8 @@
        from this element and now means "how much the bottom bar covers": body
        padding and the two floating buttons clear it with that measured number. */
     position:fixed; top:auto; z-index:30;
-    left:12px; right:12px; bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);
+    /* v3.489: the floating bar clears each side's safe area on its own. */
+    left:calc(12px + env(safe-area-inset-left, 0px)); right:calc(12px + env(safe-area-inset-right, 0px)); bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);
     border-radius:var(--radius-pill); border:1px solid var(--glass-hair);
     box-shadow:0 20px 40px -14px rgba(var(--overlay-black-rgb),0.75);
     overflow:hidden;
@@ -2791,7 +2815,8 @@
      of promising sections that autohide has already removed. */
   .analysis-index{
     display:flex; gap:6px; overflow-x:auto; scrollbar-width:none;
-    margin:0 -18px 14px; padding:4px 18px 6px;
+    margin:0 calc(-1 * var(--gutter-r)) 14px calc(-1 * var(--gutter-l)); /* v3.489: the gutter tokens */
+    padding:4px var(--gutter-r) 6px var(--gutter-l);
     /* STICKS BELOW THE NAV RAIL. An index that only exists at the top of the
        tab is as far away as the nav bar used to be once you are fifteen cards
        down — the exact problem the sticky rail was added to solve, one level
@@ -4634,7 +4659,10 @@
   body.gym-mode #workoutCard::before{display:none;}
   body.gym-mode .wrap{
     padding-top:calc(12px + env(safe-area-inset-top, 0px));
-    padding-left:10px; padding-right:10px;
+    /* v3.489: 10px, or more where a side safe area reaches past the centred
+       column — .wrap's gutter rule at gym mode's tighter minimum. */
+    padding-left:max(10px, env(safe-area-inset-left, 0px) - var(--wrap-side-margin));
+    padding-right:max(10px, env(safe-area-inset-right, 0px) - var(--wrap-side-margin));
     /* Clears the floating dock AND the rest timer sitting above it. */
     padding-bottom:calc(208px + env(safe-area-inset-bottom, 0px));
   }
@@ -4881,7 +4909,7 @@
      z-index 55: above .rest-timer at 50, which it must never be covered by, and
      below the 60+ band the overlays use, which must always be able to cover it. */
   .gym-dock{
-    position:fixed; left:10px; right:10px; bottom:10px; z-index:55;
+    position:fixed; left:calc(10px + env(safe-area-inset-left, 0px)); right:calc(10px + env(safe-area-inset-right, 0px)); bottom:10px; z-index:55; /* v3.489: side insets */
     display:flex; align-items:center; gap:14px;
     padding:12px 12px 12px 20px;
     margin-bottom:env(safe-area-inset-bottom, 0px);
@@ -7189,7 +7217,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.488';
+const APP_VERSION = '3.489';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8460,6 +8488,9 @@ const WHATS_NEW = {
   ]},
   '3.488': { headline: 'Ready for foldables', points: [
     'The app is no longer locked to portrait, so it fills an unfolded iPhone Duo or passport foldable, and still works as usual on a regular phone.',
+  ]},
+  '3.489': { headline: 'Clear of the camera, sideways', points: [
+    'Turned sideways or on a foldable, the page edges, tab bar and buttons keep clear of the camera and rounded corners on each side.',
   ]},
 };
 
