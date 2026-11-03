@@ -243,4 +243,29 @@ test('REAL source (v3.501): Learn is a split view; the first arrangement waits f
   assert.ok(!/#learnView\{/.test(OPEN), 'no longer held to the phone column');
 });
 
+// v3.502 — Analysis as a dashboard: two cards to a row on the open screen,
+// one each side of the fold (or of the reported fold). Group headers, hints,
+// the jump rail and Print span both columns. CSS only — no DOM moves, so the
+// sibling-walking group collapse is untouched. Real-browser result (904x678):
+// every visible card at x=18 or x=464, 422 wide.
+test('REAL source (v3.502): a two-column grid on the open screen; cards take a column, everything else spans', (assert)=>{
+  assert.equal(decl('#analysisView', 'display'), 'grid');
+  assert.equal(decl('#analysisView', 'grid-template-columns'), 'minmax(0, 1fr) minmax(0, 1fr)');
+  assert.equal(decl('#analysisView', 'column-gap'), 'var(--pane-gap)', 'the same gap as the split, so it sits on the fold');
+  assert.equal(decl('#analysisView > *', 'grid-column'), '1 / -1');
+  assert.equal(decl('#analysisView > .card', 'grid-column'), 'auto');
+  assert.ok(!/#analysisView,/.test(OPEN), 'no longer held to the phone column');
+  const hingeCols = decl('#analysisView', 'grid-template-columns', HINGE);
+  const v = { vw:904, foldL:500, '--hinge-l':'env(viewport-segment-right 0 0, 50vw)', '--gutter-l':'18px' };
+  assert.equal(18 + px(hingeCols.split(' minmax')[0], v), 488, 'with a reported fold at 500 the left column ends 12px short of it');
+});
+
+test('REAL markup (v3.502): every Analysis group header and non-card stays a direct child, so it spans; no wrapper was added', (assert)=>{
+  const doc = runJsdom(extractElementById(src, 'analysisView'), '', []).window.document;
+  const kids = [...doc.getElementById('analysisView').children];
+  assert.ok(kids.filter(k => k.classList.contains('analysis-group-header')).length >= 3, 'anchor: the real group headers');
+  assert.ok(kids.filter(k => k.classList.contains('card')).length >= 15, 'the cards are direct children, as the collapse expects');
+  assert.strictEqual(doc.querySelectorAll('#analysisView .posture-split, #analysisView .split-primary').length, 0);
+});
+
 run();

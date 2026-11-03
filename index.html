@@ -5382,9 +5382,22 @@
     .exercise-detail-card, .history-day-card{ order:-1; }
     .history-day-card:not([hidden]){ display:block; }
     #historyHeatmapGrid .calendar-cell.is-shown{ box-shadow:inset 0 0 0 2px var(--plate-blue); }
-    #analysisView, #careView, #coachView{
+    #careView, #coachView{
       max-width:calc(640px - 36px); margin-left:auto; margin-right:auto;
     }
+    /* ANALYSIS AS A DASHBOARD (v3.502): two charts to a row, one each side of
+       the fold, so sleep sits beside training load instead of a screen away.
+       Group headers, hints, the jump rail and Print span both columns; every
+       card takes one. Collapsed or hidden cards take no cell (they are
+       display:none), so the group collapse, which walks siblings, is
+       untouched: nothing moves in the DOM. */
+    #analysisView{
+      display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
+      column-gap:var(--pane-gap); align-items:start;
+    }
+    #analysisView > *{ grid-column:1 / -1; }
+    #analysisView > .card{ grid-column:auto; }
+    #analysisView > #analysisFirstRun{ grid-column:1 / -1; }
     /* Belongs to the session, so it spans the session pane rather than the
        whole screen: from the column's left edge to the crease gutter. */
     .sticky-day-header{
@@ -5497,6 +5510,7 @@
     body.gym-mode #exerciseList{
       grid-template-columns:calc(var(--hinge-l) - 12px - 10px) minmax(0, 1fr);
     }
+    #analysisView{ grid-template-columns:calc(var(--hinge-l) - 12px - var(--gutter-l)) minmax(0, 1fr); } /* v3.502 */
   }
   /* [TABLETOP] (v3.497, passport foldables) ---------------------------------
      A passport foldable half-folded on a bench, fold horizontal, reports two
@@ -7503,7 +7517,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.501';
+const APP_VERSION = '3.502';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8813,6 +8827,9 @@ const WHATS_NEW = {
   ]},
   '3.501': { headline: 'Learn side by side when unfolded', points: [
     'Unfolded, Learn shows the exercise library, Recently Trained and all masterclasses on the left, and the lesson you open on the right.',
+  ]},
+  '3.502': { headline: 'Analysis dashboard when unfolded', points: [
+    'Unfolded, Analysis lays its charts out two to a row, so you can compare them side by side.',
   ]},
 };
 

@@ -186,9 +186,13 @@ test('every tab is either a split view or held to the phone column when open —
   assert.equal(decl(singleRule[2], 'max-width'), 'calc(640px - 36px)', 'the phone column\'s content width');
   const held = singleRule[1].split(/,\s*/).map(x=> x.slice(1));
   const { document } = runJsdom(viewIds.map(id=> extractElementById(src, id)).join(''), '', []);
+  // 2026-11-03 (v3.502): a third kind — a view with its own grid rule in the
+  // open block (Analysis as a dashboard, test-open-screen-2-0.js).
+  const gridded = id => new RegExp('(?:^|[\\s}])#' + id + '\\s*\\{[^}]*display:grid').test(wide);
   for(const id of viewIds){
     const split = document.getElementById(id).classList.contains('posture-split');
-    assert.ok(split !== held.includes(id), `${id} must be exactly one of: split view, or in the phone-column list`);
+    const kinds = [split, held.includes(id), gridded(id)].filter(Boolean).length;
+    assert.ok(kinds === 1, `${id} must be exactly one of: split view, phone-column list, or its own open-screen grid`);
   }
 });
 
