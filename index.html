@@ -5317,10 +5317,70 @@
       left:max(0px, (100vw - var(--wrap-max)) / 2);
       right:calc(50vw + var(--pane-gap) / 2);
     }
-    /* Gym mode hides everything but the session; it keeps the phone column
-       until its own open-posture layout. */
-    body.gym-mode{ --wrap-max:640px; }
     body.gym-mode #todayView{ display:block; }
+    /* GYM MODE, OPEN (v3.493, from the Duo branch's 3.275): the session list |
+       the exercise you are on. Gym mode hides everything but the session, so
+       Today's own split would leave an empty half. Instead the exercise list
+       splits: the quiet list down the left, the open exercise on the right,
+       pinned in view while the list scrolls under it. Same nodes and the same
+       .open rule as the phone: checking an exercise off already opens the
+       next one, which here means it takes over the right pane.
+
+       The dock (clock, progress, Log, Exit) and the rest timer move under the
+       left pane, so the exercise you are logging gets the screen's full
+       height. --gym-col-w/--gym-wrap-left restate gym mode's column geometry
+       (10px sides, the pane gap) for those fixed elements, which live
+       outside .wrap and cannot measure it. */
+    body.gym-mode{
+      --gym-wrap-left:max(0px, (100vw - var(--wrap-max)) / 2);
+      --gym-col-w:calc((min(100vw, var(--wrap-max)) - 20px - var(--pane-gap)) / 2);
+    }
+    body.gym-mode #exerciseList{
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
+      /* The 1fr-tail trick again: the pinned panel's height goes to the last
+         track, not into gaps between list rows. */
+      grid-template-rows:repeat(40, auto) 1fr;
+      column-gap:var(--pane-gap);
+      align-items:start;
+    }
+    /* Rows' 7px top and bottom margins collapse to one gap in block layout;
+       grid items' margins never collapse, so the top one goes, keeping the
+       rhythm and the first row level with the panel. */
+    body.gym-mode #exerciseList > *{ grid-column:1; margin-top:0; }
+    body.gym-mode #exerciseList > .exercise-block.open{
+      grid-column:2; grid-row:1 / -1;
+      position:sticky; top:calc(12px + env(safe-area-inset-top, 0px));
+      margin:0;
+      /* A long exercise (warm-up ramp plus sets) can be taller than the
+         screen. Pinned, its bottom would be unreachable until the end of the
+         list, so it scrolls inside itself instead. */
+      max-height:calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+      overflow-y:auto; overscroll-behavior:contain;
+    }
+    /* One opened on the cover screen can be open alongside another when you
+       unfold. Two pinned panels would stack on each other; any after the
+       first stay in the list, expanded in place, until one is closed. */
+    body.gym-mode #exerciseList > .exercise-block.open ~ .exercise-block.open{
+      grid-column:1; grid-row:auto;
+      position:relative; top:auto; max-height:none; overflow:visible;
+      margin:14px 0;
+    }
+    /* Nothing open (closed, or the session is done): one centred phone-width
+       list, not a list beside an empty pane. */
+    body.gym-mode #exerciseList:not(:has(> .exercise-block.open)){
+      display:block; max-width:calc(640px - 20px); margin-left:auto; margin-right:auto;
+    }
+    /* Only while the right pane is occupied; otherwise the dock and timer
+       span and centre on the screen as on a phone. */
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .gym-dock{
+      left:calc(var(--gym-wrap-left) + 10px + env(safe-area-inset-left, 0px));
+      right:calc(100vw - var(--gym-wrap-left) - 10px - var(--gym-col-w));
+    }
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer{
+      left:calc(var(--gym-wrap-left) + 10px + var(--gym-col-w) / 2);
+      max-width:var(--gym-col-w);
+    }
   }
 </style>
 </head>
@@ -7273,7 +7333,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.492';
+const APP_VERSION = '3.493';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8556,6 +8616,9 @@ const WHATS_NEW = {
   ]},
   '3.492': { headline: 'Keep your place when you unfold', points: [
     'Fold or unfold mid-workout and the exercise or card you were looking at stays put on screen. Rotating a regular phone works the same way.',
+  ]},
+  '3.493': { headline: 'Gym mode in two panes on foldables', points: [
+    'Unfold in gym mode and your session list sits on the left with the clock, while the exercise you\'re on stays pinned on the right at full height.',
   ]},
 };
 
