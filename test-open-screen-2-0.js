@@ -202,4 +202,45 @@ test('REAL source (v3.500): History is a split view led by the log; the day pane
   assert.ok(!/#historyView,/.test(OPEN), 'no longer held to the phone column');
 });
 
+// v3.501 — Learn as a library. Unfolded, what you choose from (exercise
+// search, Recently Trained, the masterclass index) runs down the left and the
+// lesson you open is on the right. The left pane is built only while open;
+// the three cards move into it and return to their places on folding, so the
+// phone order (test-learn-tab-card-order.js) never changes.
+function learnWindow(){
+  const { window } = runJsdom(extractElementById(src, 'learnView'), 'window.__open = true; function isOpenPosture(){ return window.__open; }',
+    [extractFunction(src, 'arrangeLearnForPosture')]);
+  return window;
+}
+const learnOrder = d => [...d.getElementById('learnView').children].map(c => c.id || (c.querySelector('#exerciseSearchInput') ? 'library' : c.querySelector('#masterclassIndex') ? 'index' : c.className));
+
+test('REAL invocation (v3.501): open, the library, Recently Trained and the index form the left pane, in that order', (assert)=>{
+  const w = learnWindow();
+  const before = learnOrder(w.document);
+  assert.deepStrictEqual([before[0], before[1], before[before.length - 1]], ['library', 'recentlyTrainedCard', 'index'], 'anchor: the phone order');
+  w.arrangeLearnForPosture();
+  const pane = w.document.getElementById('learnNavPane');
+  assert.ok(pane && pane.classList.contains('split-primary') && w.document.getElementById('learnView').firstElementChild === pane);
+  assert.deepStrictEqual([...pane.children].map(c => c.id || (c.querySelector('#exerciseSearchInput') ? 'library' : 'index')), ['library', 'recentlyTrainedCard', 'index']);
+});
+
+test('REAL invocation (v3.501): folding puts every card back exactly where it was; unfolding again rebuilds the pane', (assert)=>{
+  const w = learnWindow();
+  const before = learnOrder(w.document);
+  w.arrangeLearnForPosture();
+  w.__open = false; w.arrangeLearnForPosture();
+  assert.deepStrictEqual(learnOrder(w.document), before);
+  assert.strictEqual(w.document.getElementById('learnNavPane'), null);
+  w.__open = true; w.arrangeLearnForPosture(); w.arrangeLearnForPosture();
+  assert.strictEqual(w.document.querySelectorAll('#learnNavPane').length, 1, 'idempotent: one pane');
+});
+
+test('REAL source (v3.501): Learn is a split view; the first arrangement waits for the whole script (OPEN_POSTURE_QUERY is declared later)', (assert)=>{
+  const doc = runJsdom(extractElementById(src, 'learnView'), '', []).window.document;
+  assert.ok(doc.getElementById('learnView').classList.contains('posture-split'));
+  assert.ok(src.indexOf('function arrangeLearnForPosture') < src.indexOf("const OPEN_POSTURE_QUERY = '"), 'anchor: it is defined before the query');
+  assert.match(src, /setTimeout\(\(\)=>\{\n  arrangeLearnForPosture\(\);/, 'so its first call is deferred');
+  assert.ok(!/#learnView\{/.test(OPEN), 'no longer held to the phone column');
+});
+
 run();

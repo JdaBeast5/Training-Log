@@ -5382,7 +5382,7 @@
     .exercise-detail-card, .history-day-card{ order:-1; }
     .history-day-card:not([hidden]){ display:block; }
     #historyHeatmapGrid .calendar-cell.is-shown{ box-shadow:inset 0 0 0 2px var(--plate-blue); }
-    #analysisView, #careView, #coachView, #learnView{
+    #analysisView, #careView, #coachView{
       max-width:calc(640px - 36px); margin-left:auto; margin-right:auto;
     }
     /* Belongs to the session, so it spans the session pane rather than the
@@ -6900,7 +6900,7 @@
     </div>
   </div>
 
-  <div id="learnView" style="display:none">
+  <div id="learnView" class="posture-split" style="display:none">
     <div class="card">
       <div class="card-title"><span class="card-icon"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.6" cy="8.6" r="6"/><line x1="13" y1="13" x2="17.8" y2="17.8"/></svg></span>Exercise Library</div>
       <div class="history-hint" id="exerciseLibraryHint">Search every exercise — cues and a form video for each.</div>
@@ -7503,7 +7503,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.500';
+const APP_VERSION = '3.501';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8810,6 +8810,9 @@ const WHATS_NEW = {
   ]},
   '3.500': { headline: 'History side by side when unfolded', points: [
     'Unfolded, History shows the calendar on the left; tap a day to see that workout on the right.',
+  ]},
+  '3.501': { headline: 'Learn side by side when unfolded', points: [
+    'Unfolded, Learn shows the exercise library, Recently Trained and all masterclasses on the left, and the lesson you open on the right.',
   ]},
 };
 
@@ -14973,6 +14976,47 @@ function closeMasterclass(cardId){
   const index = document.getElementById('masterclassIndex');
   if(index) index.scrollIntoView({behavior:'smooth', block:'start'});
 }
+
+// [LEARN, OPEN] (v3.501) --------------------------------------------------------
+// On an unfolded foldable Learn reads like a library: what you choose from
+// (the exercise search, Recently Trained and the masterclass index) down the
+// left, the lesson you opened on the right. The left pane only exists while
+// open: it is built here and the three cards move into it, then they go back
+// to their places when you fold, so the phone order (pinned by
+// test-learn-tab-card-order.js) never changes. Their listeners move with them.
+function arrangeLearnForPosture(){
+  const view = document.getElementById('learnView');
+  const search = document.getElementById('exerciseSearchInput');
+  const indexList = document.getElementById('masterclassIndex');
+  const recent = document.getElementById('recentlyTrainedCard');
+  if(!view || !search || !indexList || !recent) return;
+  const lib = search.closest('.card'), index = indexList.closest('.card');
+  let pane = document.getElementById('learnNavPane');
+  if(isOpenPosture()){
+    if(!pane){
+      pane = document.createElement('div');
+      pane.id = 'learnNavPane';
+      pane.className = 'learn-nav-pane split-primary';
+      view.insertBefore(pane, view.firstChild);
+    }
+    [lib, recent, index].forEach(c=> pane.appendChild(c));
+  } else if(pane){
+    view.insertBefore(lib, pane);
+    view.insertBefore(recent, pane);
+    view.appendChild(index);
+    pane.remove();
+  }
+}
+// Deferred to after the script has run: OPEN_POSTURE_QUERY is declared
+// further down, and reading it here at load would throw.
+setTimeout(()=>{
+  arrangeLearnForPosture();
+  if(window.matchMedia){
+    const learnMq = window.matchMedia(OPEN_POSTURE_QUERY);
+    if(learnMq.addEventListener) learnMq.addEventListener('change', arrangeLearnForPosture);
+    else if(learnMq.addListener) learnMq.addListener(arrangeLearnForPosture);
+  }
+}, 0);
 
 function toggleMasterclass(cardId){
   if(isMasterclassOpen(cardId) && !isProgramOwnedMasterclass(cardId)) closeMasterclass(cardId);
