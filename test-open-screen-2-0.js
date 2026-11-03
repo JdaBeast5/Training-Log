@@ -46,6 +46,7 @@ function px(expr, v){
   let e = expr;
   for(let i = 0; i < 8 && /var\(/.test(e); i++) e = e.replace(/var\((--[\w-]+)(?:,\s*([^)]+))?\)/g, (_, n, fb)=>{ if(n in v) return '(' + v[n] + ')'; if(fb) return fb; throw new Error('unresolved ' + n); });
   e = e.replace(/env\(viewport-segment-right 0 0, 50vw\)/g, String(v.foldL))
+       .replace(/env\(viewport-segment-left 1 0, 50vw\)/g, String(v.foldR))
        .replace(/(\d+(?:\.\d+)?)vw/g, (_, n)=> String(v.vw * n / 100))
        .replace(/(\d+(?:\.\d+)?)px/g, '$1').replace(/\bcalc\(/g, '(').replace(/\bmax\(/g, 'Math.max(').replace(/\bmin\(/g, 'Math.min(');
   if(/[a-z]/i.test(e.replace(/Math\.(max|min)/g, ''))) throw new Error('could not resolve ' + expr + ' -> ' + e);
@@ -291,6 +292,63 @@ test('REAL markup (v3.504): Care is a split view led by the check-in form; no ta
   assert.strictEqual(primaries.length, 1);
   assert.match(primaries[0].querySelector('.card-title').textContent, /Log How You.re Feeling/);
   assert.ok(!/#\w+View\s*\{[^}]*max-width:calc\(640px - 36px\)/.test(OPEN), 'the phone-column list is gone');
+});
+
+// v3.505 — Sheets sit in a pane on the open screen. A bottom sheet as wide as
+// the screen ran across the fold; now a sheet is a panel in the right pane,
+// lifted off the bottom edge with all four corners rounded. More rises over
+// the tab bar in the left pane. The set editor opens opposite what it edits:
+// right of the session, but left of gym mode's pinned exercise.
+// Real-browser result (Chromium, 904x678): search and set editor 464..886,
+// More 18..440, gym set editor 10..440 beside the exercise at 464; with a
+// 30px hinge at 500, search 542..886 and gym set editor 10..488. No errors.
+function col2(vw){
+  const v = openVars(vw);
+  v['--open-col2-left'] = decl(':root', '--open-col2-left');
+  v['--open-col2-w'] = decl(':root', '--open-col2-w');
+  return v;
+}
+test('REAL formulas (v3.505): the right column mirrors the left one about the middle of the page', (assert)=>{
+  for(const vw of [861, 904, 1366]){
+    const v = col2(vw);
+    const l1 = px('var(--open-col-left)', v), w1 = px('var(--open-col-w)', v);
+    const l2 = px('var(--open-col2-left)', v), w2 = px('var(--open-col2-w)', v);
+    assert.equal(w2, w1, `same width (${vw})`);
+    assert.equal(l2 + w2, vw - l1, `the same margin on the right (${vw})`);
+    assert.equal(l2 - (l1 + w1), 24, `the pane gap between them (${vw})`);
+  }
+});
+
+test('REAL formulas (v3.505): with a reported fold, the right column starts 12px past its far edge', (assert)=>{
+  const v = { vw:904, foldL:500, foldR:530, '--hinge-l':'env(viewport-segment-right 0 0, 50vw)', '--hinge-r':'env(viewport-segment-left 1 0, 50vw)' };
+  const l = px(decl(':root', '--open-col2-left', HINGE), v), w = px(decl(':root', '--open-col2-w', HINGE), v);
+  assert.equal(l, 542);
+  assert.equal(l + w, 904 - 18, 'to the page gutter');
+});
+
+test('REAL source (v3.505): sheets are panels in a pane, never across the fold', (assert)=>{
+  for(const ov of ['.sub-modal-overlay, .calendar-modal-overlay']){
+    assert.equal(decl(ov, 'justify-content'), 'flex-start');
+    assert.equal(decl(ov, 'padding-left'), 'var(--open-col2-left)');
+  }
+  const sheet = '.sub-modal-sheet, .calendar-modal-sheet';
+  assert.equal(decl(sheet, 'width'), 'var(--open-col2-w)');
+  assert.equal(decl(sheet, 'max-width'), 'none');
+  assert.equal(decl(sheet, 'border-radius'), 'var(--radius-lg)', 'all four corners');
+  assert.match(decl(sheet, 'margin-bottom'), /^calc\(12px \+ env\(safe-area-inset-bottom/, 'lifted off the edge');
+  assert.match(decl(sheet, 'transform'), /translateY\(calc\(100% \+ 24px\)\)/, 'closed, it clears the bottom edge completely');
+  assert.equal(decl('#navMoreOverlay', 'padding-left'), 'var(--open-col-left)', 'More, over the tab bar');
+  assert.equal(decl('#navMoreOverlay .sub-modal-sheet', 'width'), 'var(--open-col-w)');
+  assert.equal(decl('.set-sheet', 'left'), 'var(--open-col2-left)');
+  assert.equal(decl('.set-sheet', 'width'), 'var(--open-col2-w)');
+  assert.equal(decl('.set-sheet', 'right'), 'auto');
+  assert.equal(decl('.set-sheet', 'border-radius'), '28px');
+  const gym = 'body.gym-mode:has(#exerciseList > .exercise-block.open) .set-sheet';
+  assert.equal(decl(gym, 'left'), 'calc(var(--gym-wrap-left) + 10px)', 'gym mode: the left pane');
+  assert.equal(decl(gym, 'width'), 'var(--gym-col-w)');
+  assert.equal(decl('body.gym-mode #exerciseList > .exercise-block.open', 'grid-column'), '2', 'which is opposite the pinned exercise');
+  const outside = src.replace(RAW[OPEN], '').replace(RAW[HINGE], '').replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.ok(!/--open-col2/.test(outside), 'phones keep the bottom sheets');
 });
 
 run();

@@ -5369,6 +5369,9 @@
       /* v3.498: the left column's edge and width, for the chrome below. */
       --open-col-left:calc(max(0px, (100vw - var(--wrap-max)) / 2) + 18px);
       --open-col-w:calc((min(100vw, var(--wrap-max)) - 36px - var(--pane-gap)) / 2);
+      /* v3.505: the right column's, for sheets. */
+      --open-col2-left:calc(var(--open-col-left) + var(--open-col-w) + var(--pane-gap));
+      --open-col2-w:var(--open-col-w);
     }
     .posture-split{
       display:grid;
@@ -5415,6 +5418,36 @@
     body:not(.gym-mode) .rest-timer, .undo-toast, .gym-offer{
       left:calc(var(--open-col-left) + var(--open-col-w) / 2);
       max-width:var(--open-col-w);
+    }
+    /* SHEETS IN A PANE (v3.505): a bottom sheet as wide as the open screen
+       ran across the fold and covered both panes. Here a sheet is a panel in
+       the right pane, rounded on all four corners and lifted off the bottom
+       edge, so the left pane (the session, the list you came from) stays in
+       view. More rises over the tab bar it came from, in the left pane. The
+       set editor opens opposite what it edits: right of the session, but in
+       gym mode, where the pinned exercise is the right pane, on the left.
+       --open-col2-left/--open-col2-w are the right column's edge and width. */
+    .sub-modal-overlay, .calendar-modal-overlay{ justify-content:flex-start; padding-left:var(--open-col2-left); }
+    #navMoreOverlay{ padding-left:var(--open-col-left); }
+    .sub-modal-sheet, .calendar-modal-sheet{
+      width:var(--open-col2-w); max-width:none;
+      margin-bottom:calc(12px + env(safe-area-inset-bottom, 0px));
+      border-radius:var(--radius-lg); border-bottom:1px solid rgba(var(--surface-white-rgb),0.07);
+      max-height:calc(100dvh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+      transform:translateY(calc(100% + 24px));
+    }
+    .sub-modal-sheet{ padding-bottom:20px; }
+    .calendar-modal-sheet{ padding-bottom:18px; }
+    #navMoreOverlay .sub-modal-sheet{ width:var(--open-col-w); }
+    .set-sheet{
+      left:var(--open-col2-left); right:auto; width:var(--open-col2-w); max-width:none; margin:0;
+      bottom:calc(12px + env(safe-area-inset-bottom, 0px));
+      border-radius:28px; border:1px solid var(--glass-hair);
+      padding-bottom:18px;
+      transform:translateY(calc(100% + 24px));
+    }
+    body.gym-mode:has(#exerciseList > .exercise-block.open) .set-sheet{
+      left:calc(var(--gym-wrap-left) + 10px); width:var(--gym-col-w);
     }
     body.gym-mode #todayView{ display:block; }
     /* GYM MODE, OPEN (v3.493, from the Duo branch's 3.275): the session list |
@@ -5500,7 +5533,8 @@
       grid-template-columns:calc(var(--hinge-l) - 12px - var(--gutter-l)) minmax(0, 1fr);
     }
     .sticky-day-header{ left:0; right:calc(100vw - var(--hinge-l) + 12px); }
-    :root{ --open-col-left:var(--gutter-l, 18px); --open-col-w:calc(var(--hinge-l) - 12px - 18px); }
+    :root{ --open-col-left:var(--gutter-l, 18px); --open-col-w:calc(var(--hinge-l) - 12px - 18px);
+      --open-col2-left:calc(var(--hinge-r) + 12px); --open-col2-w:calc(100vw - var(--hinge-r) - 12px - var(--gutter-r, 18px)); }
     body.gym-mode{
       --gym-wrap-left:0px;
       --gym-col-w:calc(var(--hinge-l) - 12px - 10px);
@@ -7515,7 +7549,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.504';
+const APP_VERSION = '3.505';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8834,6 +8868,9 @@ const WHATS_NEW = {
   ]},
   '3.504': { headline: 'Care side by side when unfolded', points: [
     'Unfolded, Care keeps the check-in form on the left, with what you\'re resting, your pain trend and stretches on the right.',
+  ]},
+  '3.505': { headline: 'Sheets open in a pane when unfolded', points: [
+    'Unfolded, search, history, the set editor and other sheets open as a panel on one side instead of across the fold, so the screen you came from stays in view.',
   ]},
 };
 
