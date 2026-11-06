@@ -847,3 +847,40 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
   - A squat is posed from world segment angles, with feet planted, neutral gaze, shorts, and quads and glutes glowing.
   - Proven in headless Chromium (SwiftShader).
 - **v3.510–v3.511 (the 2D drawn figure) are on the branch, not live.** The 3D work will supersede them; retire them when it ships rather than shipping both.
+
+## Addendum 40: 3D anatomical exercise demos (v3.513)
+- **What shipped:**
+  - Squat, bench press and deadlift (8 exercise names in `ANATOMY_LIFTS`).
+  - Demos play in Technique & focus, and at the head of the open-screen details pane.
+  - v3.510's 2D engine and `test-exercise-demo.js` are removed; the 2D figure never went live.
+- **How it works:**
+  - Files: `assets/anatomy/anatomy.js` (ES module) + `human-v1.glb` + `assets/vendor/three-0.170.0.module.min.js`, imported only on first use.
+  - The glb comes from `tools/anatomy/mh2glb.py`: MakeHuman CC0 body, rig and weights, plus 12 baked muscle maps.
+  - The engine has its own small glb reader (no GLTFLoader) and a `Rig` with world-aligned rest frames and two-bone IK.
+  - **Squat:** hips descend to parallel; the torso is solved so the bar stays over mid-foot.
+  - **Deadlift:** the bar path runs floor to lockout; a secant search finds the hip height.
+  - **Bench:** supine on a 43 cm pad, J bar path, elbows at about 45°.
+  - **Neutral spine:** the pelvis takes 85% of the lean. A progressive spread rounded the back; this was caught by measurement and is now a test.
+  - **Muscle glow:** activation uniforms × baked maps, kept off the shorts, scaled by effort through the rep (lower, pause, drive, top).
+  - **One shared canvas:** `stage.show()` moves it between demos and keeps the rep running when the same lift re-renders.
+  - Under Reduce Motion it is drawn still mid-rep. It says so where WebGL can't run.
+  - `sw.js` holds the assets in `ASSET_CACHE = 'training-log-assets-v1'` (activate never deletes it), precached best-effort and served cache-first.
+- **Cost:** about 1.2–3.5 ms solve per frame (desktop: 0.3–1.2 ms). The download is about 1.85 MB once (692 KB three.js, 1.15 MB glb), then offline.
+- **Tests:** `test-anatomy-3d.js` (11, sabotage-checked) loads the real module and model in Node and checks:
+  - feet planted and hands on the bar for every frame of every lift;
+  - bone lengths kept;
+  - bar over mid-foot;
+  - deadlift starts on the floor with hips above the knees;
+  - squat reaches parallel;
+  - bench locks out over the shoulders and touches the chest;
+  - neutral spine (curve within 6° of standing);
+  - the timeline, glue, Reduce Motion, the failure message, and `sw.js` caching.
+
+  `test-open-screen-2-0.js` v3.511 is updated.
+- **Verified in Chromium (SwiftShader):** cards at 402×874 and the pane at 904×678. Two frames apart differ, so it animates. No errors.
+- **Next (owner: "start with the main ones and then expand program by program"):** add the owner's current program's lifts next, one version per lift.
+  - Overhead press: standing, bar path over mid-foot.
+  - Barbell row, pull-up (needs a hanging root), RDL (reuse the deadlift hinge with near-straight knees), hip thrust.
+  - Then gym-mode placement: the upper half when half-folded, atop the pinned exercise when unfolded.
+- **Polish ideas:** cues synced to the rep phase; a front/side toggle; Draco or quantized glb to halve the download; tank top or styling options.
+- **Unverified on a device:** frame rate and battery on the Duo, and iOS Safari behaviour for `import()` of the module from the PWA.
