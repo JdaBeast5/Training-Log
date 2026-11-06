@@ -104,7 +104,8 @@ function homeHarness(onToday, reduce){
     function showView(k){ window.__calls.push('show:' + k); }
     window.matchMedia = q => ({ matches: ${reduce ? 'true' : 'false'} && /reduce/.test(q) });
     window.scrollTo = (o) => window.__calls.push('scroll:' + JSON.stringify(o));
-  `, [extractFunction(src, 'goHome'), `document.getElementById('brandHome').addEventListener('click', goHome);`]);
+  // 2026-11-06 (v3.509): goHome scrolls through scrollAppToTop (it also resets an open foldable's panes).
+  `, [extractFunction(src, 'scrollAppToTop'), extractFunction(src, 'goHome'), `document.getElementById('brandHome').addEventListener('click', goHome);`]);
   window.document.getElementById('brandHome').click();
   return [...window.__calls]; // copied out of the jsdom realm for deepStrictEqual
 }

@@ -5444,6 +5444,50 @@
     }
     .posture-split > *{ grid-column:2; }
     .posture-split > .split-primary{ grid-column:1; grid-row:1 / -1; }
+    /* TWO PANES THAT SCROLL ON THEIR OWN (v3.509, owner on the Duo: "I want
+       the two sides to be able to be scrolled through separately on each
+       tab, right now they move together"). While a split tab is showing, the
+       page stops scrolling: the column is the screen's height, the header and
+       date bar stay put, and the tab fills the rest. The tab scrolls itself,
+       which moves the right pane; the left pane (.split-primary) is pinned to
+       its top and scrolls inside itself. Nothing moves in the DOM.
+       - The tab is a size container, so the left pane can be measured from
+         its height (cqh), ending 12px above the tab bar that floats over it.
+       - The tab reaches out over the page gutters and pads back in, so card
+         shadows are not clipped at its scroll edges.
+       - The footer (the version line) sits under the right pane, clear of
+         the tab bar; its fixed height is what the left pane's sum assumes.
+       - Gym mode keeps its own layout, and Analysis (one two-column
+         dashboard, not two panes) keeps scrolling the page. */
+    body:not(.gym-mode):has(.wrap > .posture-split:not([style*="none"])){ padding-bottom:0; }
+    body:not(.gym-mode):has(.wrap > .posture-split:not([style*="none"])) .wrap{
+      height:100dvh; display:flex; flex-direction:column; padding-bottom:0;
+    }
+    body:not(.gym-mode) .wrap > *{ flex:none; }
+    body:not(.gym-mode) .wrap > .posture-split{
+      flex:1 1 auto; min-height:0; container-type:size;
+      overflow-y:auto; overscroll-behavior-y:contain;
+      margin:0 calc(-1 * var(--gutter-r)) 0 calc(-1 * var(--gutter-l));
+      padding:0 var(--gutter-r) 0 var(--gutter-l);
+    }
+    /* Room at the end of the right pane for the coach button, as a grid item
+       rather than the tab's bottom padding: the pinned left pane can't go
+       past the grid's own bottom, so padding outside it would push the pane
+       up as the right side reached its end. */
+    body:not(.gym-mode) .wrap > .posture-split::after{
+      content:''; grid-column:2; height:calc(var(--above-bar) + 40px);
+    }
+    body:not(.gym-mode) .posture-split > .split-primary{
+      position:sticky; top:0; z-index:1;
+      /* Ends 12px above the tab bar. 100cqh is the tab's height; the tab
+         ends the footer's 20px + inset above the screen's foot, and the bar's
+         top is --above-bar above it. So 100cqh - (above-bar - 20 - inset) - 12. */
+      max-height:calc(100cqh - var(--above-bar) + env(safe-area-inset-bottom, 0px) + 8px);
+      overflow-y:auto; overscroll-behavior-y:contain;
+    }
+    body:not(.gym-mode):has(.wrap > .posture-split:not([style*="none"])) .app-footer{
+      height:calc(20px + env(safe-area-inset-bottom, 0px)); padding:3px 0 0; text-align:right;
+    }
     /* v3.499: the exercise you are on heads the right column. */
     .exercise-detail-card, .history-day-card{ order:-1; }
     .history-day-card:not([hidden]){ display:block; }
@@ -7633,7 +7677,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.508';
+const APP_VERSION = '3.509';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8964,6 +9008,9 @@ const WHATS_NEW = {
   ]},
   '3.508': { headline: 'Wider on the iPhone Duo\'s front screen', points: [
     'On the Duo\'s front screen, the page now uses the full width below the clock instead of leaving an empty strip down the right side.',
+  ]},
+  '3.509': { headline: 'Each side scrolls on its own when unfolded', points: [
+    'Unfolded, the left and right sides of Today, Log, History, Care, Coach and Learn scroll separately instead of moving together.',
   ]},
 };
 
@@ -31276,10 +31323,7 @@ function enterGymMode(opts){
   // Only on a deliberate press. Auto-entering scrolls nowhere, because the
   // person is looking at a set they just logged and yanking the page to the top
   // underneath them is worse than any amount of chrome.
-  if(o.scroll){
-    try{ window.scrollTo({top:0, left:0, behavior:'instant'}); }
-    catch(e){ window.scrollTo(0,0); }
-  }
+  if(o.scroll) scrollAppToTop('instant');
 
   if(o.persist !== false) persistGymSession();
 }
@@ -38053,6 +38097,12 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
   function begin(x, y, target){
     if(target && target.closest && target.closest('.swipe-content')) return; // don't fight with swipe-to-delete
     if(getScrollTop() > SCROLL_TOLERANCE) return;
+    // v3.509: on an open foldable the split tabs' panes scroll by themselves
+    // while the page stays at the top, so a pull inside a pane that is
+    // scrolled down is that pane scrolling back, not a pull to refresh.
+    for(let el = target; el && el !== document.body; el = el.parentElement){
+      if(el.scrollTop > SCROLL_TOLERANCE) return;
+    }
     startY = y; startX = x;
     dragging = true;
     currentPull = 0;
@@ -39411,10 +39461,7 @@ function switchView(active, opts){
   // pixels of the tab you just left is slower and more disorienting than
   // simply arriving. 'instant' is explicit because 'auto' resolves to the
   // inherited smooth behaviour rather than overriding it.
-  if(scrollToTop){
-    try{ window.scrollTo({top:0, left:0, behavior:'instant'}); }
-    catch(e){ window.scrollTo(0,0); }
-  }
+  if(scrollToTop) scrollAppToTop('instant');
 }
 
 // --- Background scroll lock -------------------------------------------
@@ -40065,6 +40112,25 @@ function findPostureAnchor(root, lineY){
   return {el:below[0].el, top:below[0].r.top};
 }
 
+// v3.509: the scrolls that move the app's content: the page's, and on an open
+// foldable a split tab's and its left pane's ([OPEN POSTURE], TWO PANES THAT
+// SCROLL ON THEIR OWN). Not a card's sideways rail.
+function isAppScroll(target){
+  return target === document || target === document.documentElement || target === document.body
+    || !!(target && target.classList && (target.classList.contains('posture-split')
+      || (target.classList.contains('split-primary') && target.parentElement && target.parentElement.classList.contains('posture-split'))));
+}
+// The nearest of those that actually scrolls el; the page when nothing does.
+function appScrollerOf(el){
+  for(let n = el && el.parentElement; n && n !== document.body; n = n.parentElement){
+    if(isAppScroll(n) && n.scrollHeight > n.clientHeight + 1){
+      const oy = getComputedStyle(n).overflowY;
+      if(oy === 'auto' || oy === 'scroll') return n;
+    }
+  }
+  return window;
+}
+
 (function wirePostureContinuity(){
   let anchor = null;
   let anchorWidth = window.innerWidth;
@@ -40098,7 +40164,9 @@ function findPostureAnchor(root, lineY){
     clearTimeout(captureTimer);
     captureTimer = setTimeout(capture, delay);
   }
-  window.addEventListener('scroll', ()=> scheduleCapture(120), {passive:true});
+  // v3.509: the page, or on an open foldable a split tab's own panes, which
+  // scroll by themselves there (captured, since element scrolls don't bubble).
+  document.addEventListener('scroll', (e)=>{ if(isAppScroll(e.target)) scheduleCapture(120); }, {passive:true, capture:true});
   document.addEventListener('pointerup', ()=> scheduleCapture(450), {passive:true});
 
   window.addEventListener('resize', ()=>{
@@ -40114,9 +40182,11 @@ function findPostureAnchor(root, lineY){
         const r = saved.el.getBoundingClientRect();
         // Instant: html{scroll-behavior:smooth} would otherwise glide there,
         // and the point is that you never see the page move.
+        // v3.509: whichever scrolls it: the page, or unfolded, its pane.
         if(r.height > 0){
-          try{ window.scrollBy({top:r.top - saved.top, left:0, behavior:'instant'}); }
-          catch(e){ window.scrollBy(0, r.top - saved.top); }
+          const scroller = appScrollerOf(saved.el);
+          try{ scroller.scrollBy({top:r.top - saved.top, left:0, behavior:'instant'}); }
+          catch(e){ scroller.scrollBy(0, r.top - saved.top); }
         }
       }
       anchorWidth = window.innerWidth;
@@ -40281,13 +40351,24 @@ function showView(key, opts){
 // Today through showView, exactly like the Today tab (which lands at the
 // top); already on Today, it glides to the top, the way tapping the iPhone
 // status bar does — instantly under Reduce Motion.
+// v3.509: to the top of the app. The page, and on an open foldable the split
+// tabs' own two panes too, which scroll by themselves there ([OPEN POSTURE],
+// TWO PANES THAT SCROLL ON THEIR OWN); elsewhere they don't scroll and their
+// scrollTop is already 0. 'instant' is explicit because 'auto' would inherit
+// html{scroll-behavior:smooth}.
+function scrollAppToTop(behavior){
+  const opts = {top:0, left:0, behavior};
+  for(const el of [window, ...document.querySelectorAll('.posture-split, .posture-split > .split-primary')]){
+    try{ el.scrollTo(opts); }catch(e){ try{ el.scrollTo(0, 0); }catch(e2){} }
+  }
+}
+
 function goHome(){
   closeNavMoreOverlay();
   const onToday = document.getElementById('navToday').classList.contains('active');
   if(!onToday){ showView('today'); return 'switched'; }
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  try{ window.scrollTo({top:0, left:0, behavior: reduce ? 'instant' : 'smooth'}); }
-  catch(e){ window.scrollTo(0, 0); }
+  scrollAppToTop(reduce ? 'instant' : 'smooth');
   return 'scrolled';
 }
 document.getElementById('brandHome').addEventListener('click', goHome);
@@ -48281,7 +48362,9 @@ function syncOverflowFade(rail){
   const fab = document.getElementById('coachFab');
   if(!fab) return;
   let idle = null;
-  window.addEventListener('scroll', ()=>{
+  // v3.509: the page, or unfolded, a split tab's panes (isAppScroll).
+  document.addEventListener('scroll', (ev)=>{
+    if(!isAppScroll(ev.target)) return;
     // Never tuck it out from under an open panel — the class sets
     // pointer-events:none, and a button that stops responding mid-tap is worse
     // than one that sits over a paragraph.
@@ -48289,7 +48372,7 @@ function syncOverflowFade(rail){
     fab.classList.add('tucked');
     if(idle) clearTimeout(idle);
     idle = setTimeout(()=> fab.classList.remove('tucked'), 650);
-  }, {passive:true});
+  }, {passive:true, capture:true});
 })();
 
 // --- Coach FAB drag-to-reposition -------------------------------------------

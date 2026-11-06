@@ -78,6 +78,9 @@ function setup({ width = 466, posture = 'folded', scrollY = 0 } = {}){
     extractConst(src, 'VIEW_KEYS'),
     extractConst(src, 'POSTURE_ANCHOR_SELECTOR'),
     extractConst(src, 'POSTURE_WIDTH_DELTA'),
+    // 2026-11-06 (v3.509): the IIFE listens for the page's and the panes' scrolls
+    // (isAppScroll) and restores through whichever scrolls the anchor (appScrollerOf).
+    extractFunction(src, 'isAppScroll'), extractFunction(src, 'appScrollerOf'),
     extractFunction(src, 'findPostureAnchor'),
     extractIIFE(src, 'wirePostureContinuity'),
     'wirePostureContinuity();',
@@ -116,6 +119,9 @@ test('a line in a gap anchors on the next element down; zero-height (hidden) one
   assert.ok(window.findPostureAnchor(document.getElementById('todayView'), 5000) === null);
 });
 
+// 2026-11-06 (v3.509): page scrolls are dispatched at the document, where a
+// browser fires them (they bubble to window); the IIFE now listens there in the
+// capture phase so it also hears an open foldable's panes scrolling.
 // ── wirePostureContinuity ─────────────────────────────────────────────────
 
 test('unfolding keeps the exercise you were on at the same spot on screen', async (assert)=>{
@@ -144,7 +150,7 @@ test('a keyboard-sized resize (width barely moves) does nothing', async (assert)
 test('a reflow scroll event that beats the resize event cannot overwrite the pre-fold anchor', async (assert)=>{
   const { window, document } = setup({ scrollY: 540 });
   window.innerWidth = 890; window.__posture = 'open';
-  window.dispatchEvent(new window.Event('scroll'));
+  document.dispatchEvent(new window.Event('scroll', {bubbles:true}));
   await settle(160); // the debounced capture fires here, before any resize
   window.dispatchEvent(new window.Event('resize'));
   window.__flushFrames();
@@ -154,7 +160,7 @@ test('a reflow scroll event that beats the resize event cannot overwrite the pre
 test('anchor follows the person: after scrolling, the NEW position is what gets kept', async (assert)=>{
   const { window, document } = setup({ scrollY: 540 });
   window.__scrollY = 1800; // cardB (1836) now the first thing under the line
-  window.dispatchEvent(new window.Event('scroll'));
+  document.dispatchEvent(new window.Event('scroll', {bubbles:true}));
   await settle(160);
   fold(window, 890, 'open'); window.__flushFrames();
   assert.equal(topOf(document, 'cardB'), 36);
@@ -172,7 +178,7 @@ test('only the visible tab is considered (hidden Log content is never the anchor
   document.getElementById('todayView').style.display = 'none';
   document.getElementById('logView').style.display = '';
   window.__scrollY = 0;
-  window.dispatchEvent(new window.Event('scroll'));
+  document.dispatchEvent(new window.Event('scroll', {bubbles:true}));
   return settle(160).then(()=>{
     fold(window, 890, 'open'); window.__flushFrames();
     // logCard is at the same place in both postures, so nothing needs to move.
@@ -196,7 +202,7 @@ test('on Analysis with the jump rail stuck to the top, the anchor is the card un
   window.__layouts.open.underRail = [18, 400, 415, 200];
   const origRect = window.Element.prototype.getBoundingClientRect;
   window.Element.prototype.getBoundingClientRect = function(){ const r = origRect.call(this); if(this.id === 'rail'){ const b = window.__layouts[window.__posture].rail; return {left:b[0], top:b[1], right:b[0]+b[2], bottom:b[1]+b[3], width:b[2], height:b[3]}; } return r; };
-  window.dispatchEvent(new window.Event('scroll'));
+  document.dispatchEvent(new window.Event('scroll', {bubbles:true}));
   await settle(160);
   fold(window, 890, 'open'); window.__flushFrames();
   assert.equal(topOf(document, 'underRail'), 104, 'the card under the rail keeps its place');
