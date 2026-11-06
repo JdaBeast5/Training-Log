@@ -38,3 +38,13 @@ upperarm01 about Z by -side*44deg brings the A-pose arms to the sides.
 - Keyframes per exercise from biomechanics (bar over mid-foot, joint ranges).
 - Asset budget: three.module.js + three.core.js (~2.1 MB unminified) + glb
   (~1 MB, draco/quantize later); cached by sw.js for offline.
+
+## v3.513: shipped
+- `mh2glb.py` now bakes 12 muscle maps (soft weights; `_M0` quads, hamstrings,
+  glutes, calves; `_M1` pecs, front delts, triceps, biceps; `_M2` lats, traps,
+  erectors, abs) as normalized-byte VEC4 attributes, names in `extras.muscles`.
+  Output ships as `assets/anatomy/human-v1.glb` (bump the file name when it changes).
+  Build: `MH_DATA=<mh>/makehuman/data MH_TARGETS=<targets> python3 mh2glb.py human-v1.glb`.
+- The runtime is `assets/anatomy/anatomy.js` (own glb reader, Rig with two-bone
+  IK, per-lift mechanics); `preview.html` renders it for screenshots
+  (`liftshot.js` pattern: serve the repo root, open tools/anatomy/preview.html).

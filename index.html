@@ -1841,27 +1841,24 @@
   }
   .ex-icon svg{width:100%; height:100%;}
   .ex-detail-content{flex:1; min-width:0;}
-  /* v3.510 [EXERCISE DEMO]: the drawn demo, full width above the cues. Body in
-     the text colour, the far-side limbs a step back, the working muscles in the
-     app's blue; kit in the hairline greys. Colours are tokens, so it follows
-     light mode too. */
+  /* v3.513 [ANATOMY 3D]: the demo stage, full width above the cues. A quiet
+     spotlit floor behind the athlete; the canvas (shared, moved between
+     demos) fills it, and a demo that isn't playing shows its Play button. */
   .ex-detail-body.has-demo{flex-direction:column; gap:10px;}
-  .ex-demo-wrap{margin:0;}
-  .ex-demo{display:block; width:100%; max-width:360px; height:auto; aspect-ratio:4 / 3; margin:0 auto;}
-  .ex-demo .ground{stroke:var(--line); stroke-width:1.5;}
-  .ex-demo .kit{stroke:var(--text-muted); opacity:.55; stroke-width:4; fill:none; stroke-linecap:round;}
-  .ex-demo .bone, .ex-demo .lit, .ex-demo .cable{fill:none; stroke-linecap:round; stroke-linejoin:round;}
-  /* Solid mixes, not opacity: translucent limbs would darken where they meet. */
-  .ex-demo .bone{stroke:color-mix(in srgb, var(--text) 84%, var(--surface2));}
-  .ex-demo .bone.far{stroke:color-mix(in srgb, var(--text) 34%, var(--surface2));}
-  .ex-demo .lit{stroke:var(--plate-blue);}
-  .ex-demo .lit.far{stroke:color-mix(in srgb, var(--plate-blue) 55%, var(--surface2));}
-  .ex-demo .b-torso{stroke-width:12;} .ex-demo .b-th{stroke-width:9;} .ex-demo .b-sh{stroke-width:7;}
-  .ex-demo .b-ft{stroke-width:5;} .ex-demo .b-ua{stroke-width:7;} .ex-demo .b-fa{stroke-width:6;} .ex-demo .b-neck{stroke-width:5;}
-  .ex-demo .head{fill:color-mix(in srgb, var(--text) 84%, var(--surface2));}
-  .ex-demo .plate{fill:var(--surface2); stroke:var(--text-muted); stroke-width:2.5;}
-  .ex-demo .db{fill:var(--text-muted);} .ex-demo .db.far{fill:color-mix(in srgb, var(--text-muted) 50%, var(--surface2));}
-  .ex-demo .cable{stroke:var(--text-muted); stroke-width:1.3;}
+  .ex-anatomy{margin:0;}
+  .ex-anatomy-stage{
+    position:relative; display:grid; place-items:center; width:100%; max-width:440px; margin:0 auto;
+    aspect-ratio:4 / 3; border-radius:var(--radius-md); overflow:hidden;
+    background:radial-gradient(60% 55% at 50% 72%, color-mix(in srgb, var(--plate-blue) 14%, transparent), transparent 70%);
+  }
+  .ex-anatomy-stage canvas{position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:pan-y;}
+  .ex-anatomy-play{
+    min-height:44px; padding:0 18px; border-radius:var(--radius-pill); border:1px solid var(--glass-hair);
+    background:var(--glass-fill); color:var(--text); font:600 14px var(--font-sans); cursor:pointer;
+  }
+  .ex-anatomy.is-playing .ex-anatomy-play, .ex-anatomy.is-unavailable .ex-anatomy-play{display:none;}
+  .ex-anatomy.is-loading .ex-anatomy-play{opacity:.55;}
+  .ex-anatomy.is-unavailable .ex-anatomy-stage{font-size:12.5px; color:var(--text-muted); padding:0 16px; text-align:center;}
   .ex-demo-caption{display:flex; align-items:center; justify-content:center; gap:7px; margin-top:4px; font-size:12px; color:var(--text-muted);}
   .ex-demo-swatch{width:14px; height:5px; border-radius:3px; background:var(--plate-blue); flex:0 0 auto;}
   .ex-cues{list-style:none; display:flex; flex-direction:column; gap:6px;}
@@ -7642,7 +7639,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.512';
+const APP_VERSION = '3.513';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8985,6 +8982,9 @@ const WHATS_NEW = {
   ]},
   '3.512': { headline: 'Back to the narrower front screen', points: [
     'On the iPhone Duo\'s front screen, the page keeps clear of the clock and status column on the right again, as it did before v3.508.',
+  ]},
+  '3.513': { headline: 'Watch a 3D athlete do the lift', points: [
+    'Open Technique & focus on the squat, bench press or deadlift to watch a 3D athlete perform it with correct form, the working muscles lighting up through each rep. Drag to turn them around. More lifts are coming, program by program.',
   ]},
 };
 
@@ -13685,253 +13685,77 @@ const EXERCISE_MOVE = {
   'Cat-Cow Mobility':'mobility',
 };
 
-// [EXERCISE DEMO] (v3.510, owner: "show how the exercise is done natively
-// instead of just linking it externally"). A figure drawn in the app loops the
-// movement, side on, with the working muscles lit and the bar, dumbbells,
-// bench or cable drawn. Offline, no video, no licence. Each motion is two key
-// poses (the start and the working position) given as segment angles; frames
-// between them are eased, the figure is pinned where it holds still (feet,
-// hands on a bar, hips on a bench), and a second contact (toes in a push-up)
-// is kept on the floor by turning the body about the pin. The SVG animates
-// each segment's path with SMIL, so nothing runs in JS once it is drawn;
-// under Reduce Motion it is drawn still, in the working position.
-// It is hidden from screen readers: it illustrates the cues and the muscle
-// caption beside it, which are read as text (the app's rule for every SVG).
-// Only exercises a motion shows faithfully are mapped (EXERCISE_DEMO); the
-// rest keep the video link alone, since EXERCISE_MOVE's patterns are too broad
-// to animate (its "squat" includes leg curls, its "hinge" hip thrusts).
-// Angles in degrees: 0 = up, 90 = forward (the way the figure faces), 180 = down, 270 = back.
-const DEMO_BONES = { torso:34, neck:10.5, ua:19, fa:17, th:26, sh:26, ft:9 };
-const DEMO_GROUND = 112;
-// One pose: absolute segment angles. Far limbs (ua2, fa2, th2, sh2, ft2) default to the near ones.
-// pin: which joint holds still ('A' ankle, 'W' wrist, 'H' hip, 'A2' far ankle) and where.
-const DEMO_MOTIONS = {
-  backSquat: { label:'Squat', works:'Quads · glutes', muscles:['th','th2','glute'], kit:['barBack'], pin:{joint:'A', at:[78, 109]}, dur:3.2,
-    poses:[ {torso:4, ua:215, fa:345, th:178, sh:182},
-            {torso:42, ua:225, fa:355, th:96, sh:208} ] },
-  frontSquat: { label:'Front squat', works:'Quads · glutes · upper back', muscles:['th','th2','glute'], kit:['barFront'], pin:{joint:'A', at:[78, 109]}, dur:3.2,
-    poses:[ {torso:2, ua:110, fa:330, th:178, sh:182},
-            {torso:24, ua:120, fa:345, th:94, sh:212} ] },
-  bodyweightSquat: { label:'Bodyweight squat', works:'Quads · glutes', muscles:['th','th2','glute'], kit:[], pin:{joint:'A', at:[78, 109]}, dur:2.6,
-    poses:[ {torso:3, ua:178, fa:180, th:178, sh:182},
-            {torso:38, ua:92, fa:92, th:96, sh:208} ] },
-  deadlift: { label:'Deadlift', works:'Glutes · hamstrings · back', muscles:['th','th2','glute','back'], kit:['barHands'], pin:{joint:'A', at:[80, 109]}, dur:3.4,
-    poses:[ {torso:2, ua:182, fa:182, th:178, sh:182},
-            {torso:72, ua:178, fa:178, th:122, sh:194} ] },
-  rdl: { label:'Romanian deadlift', works:'Hamstrings · glutes', muscles:['th','th2','glute'], kit:['barHands'], pin:{joint:'A', at:[80, 109]}, dur:3.2,
-    poses:[ {torso:2, ua:182, fa:182, th:178, sh:182},
-            {torso:80, ua:178, fa:178, th:160, sh:186} ] },
-  hipThrust: { label:'Hip thrust', works:'Glutes', muscles:['glute','th','th2'], kit:['bench', 'barHip'], pin:{joint:'S', at:[40, 79]}, dur:2.8,
-    poses:[ {torso:300, ua:120, fa:120, th:70, sh:168},
-            {torso:270, ua:92, fa:92, th:98, sh:180} ] },
-  benchPress: { label:'Bench press', works:'Chest · triceps · front delts', muscles:['ua','ua2','chest'], kit:['benchFlat', 'barHands'], pin:{joint:'H', at:[100, 84]}, dur:2.8,
-    poses:[ {torso:270, ua:2, fa:2, th:88, sh:172, ft:100},
-            {torso:270, ua:150, fa:8, th:88, sh:172, ft:100} ] },
-  pushUp: { label:'Push-up', works:'Chest · triceps · core', muscles:['ua','ua2','chest'], kit:[], pin:{joint:'W', at:[40, 110]}, contact:{joint:'T', y:110}, dur:2.6,
-    poses:[ {torso:280, ua:180, fa:180, th:100, sh:100, ft:150},
-            {torso:272, ua:110, fa:253, th:92, sh:92, ft:150} ] },
-  overheadPress: { label:'Overhead press', works:'Shoulders · triceps', muscles:['ua','ua2'], kit:['barHands'], pin:{joint:'A', at:[78, 109]}, dur:2.8,
-    poses:[ {torso:356, ua:158, fa:8, th:180, sh:180},
-            {torso:2, ua:2, fa:2, th:180, sh:180} ] },
-  overheadPressDb: { label:'Dumbbell shoulder press', works:'Shoulders · triceps', muscles:['ua','ua2'], kit:['dbHands'], pin:{joint:'A', at:[78, 109]}, dur:2.8,
-    poses:[ {torso:356, ua:158, fa:8, th:180, sh:180},
-            {torso:2, ua:2, fa:2, th:180, sh:180} ] },
-  pullUp: { label:'Pull-up', works:'Lats · biceps', muscles:['ua','ua2','back'], kit:['pullBar'], pin:{joint:'W', at:[84, 16]}, dur:3.0, noGround:true,
-    poses:[ {torso:2, ua:4, fa:2, th:178, sh:196},
-            {torso:12, ua:150, fa:12, th:170, sh:200} ] },
-  latPulldown: { label:'Lat pulldown', works:'Lats · biceps', muscles:['ua','ua2','back'], kit:['seat', 'cableTop'], pin:{joint:'H', at:[72, 84]}, dur:2.8,
-    poses:[ {torso:350, ua:12, fa:8, th:92, sh:180},
-            {torso:345, ua:160, fa:14, th:92, sh:180} ] },
-  barbellRow: { label:'Barbell row', works:'Upper back · lats', muscles:['ua','ua2','back'], kit:['barHands'], pin:{joint:'A', at:[80, 109]}, dur:2.8,
-    poses:[ {torso:68, ua:180, fa:180, th:160, sh:188},
-            {torso:66, ua:244, fa:172, th:160, sh:188} ] },
-  cableRow: { label:'Seated cable row', works:'Upper back · lats', muscles:['ua','ua2','back'], kit:['seatLow', 'cableFront'], pin:{joint:'H', at:[60, 96]}, dur:2.8,
-    poses:[ {torso:22, ua:96, fa:92, th:86, sh:118},
-            {torso:358, ua:228, fa:96, th:86, sh:118} ] },
-  curl: { label:'Curl', works:'Biceps', muscles:['ua','ua2'], kit:['dbHands'], pin:{joint:'A', at:[78, 109]}, dur:2.6,
-    poses:[ {torso:0, ua:182, fa:182, th:180, sh:180},
-            {torso:0, ua:174, fa:28, th:180, sh:180} ] },
-  pushdown: { label:'Triceps pushdown', works:'Triceps', muscles:['ua','ua2'], kit:['cableHigh'], pin:{joint:'A', at:[74, 109]}, dur:2.4,
-    poses:[ {torso:10, ua:176, fa:70, th:180, sh:180},
-            {torso:10, ua:178, fa:178, th:180, sh:180} ] },
-  calfRaise: { label:'Calf raise', works:'Calves', muscles:['sh','sh2'], kit:[], pin:{joint:'T', at:[90, 110]}, dur:2.2,
-    poses:[ {torso:0, ua:180, fa:180, th:180, sh:180, ft:92},
-            {torso:0, ua:180, fa:180, th:180, sh:180, ft:140} ] },
-  splitSquat: { label:'Bulgarian split squat', works:'Quads · glutes', muscles:['th','glute'], kit:['benchBack'], pin:{joint:'A', at:[92, 109]}, dur:3.0,
-    poses:[ {torso:4, ua:180, fa:180, th:170, sh:184, th2:206, sh2:250, ft2:300},
-            {torso:14, ua:180, fa:180, th:104, sh:196, th2:180, sh2:270, ft2:300} ] },
-  carry: { label:'Carry', works:'Grip · core', muscles:['fa','fa2','core'], kit:['dbHands'], pin:{joint:'H', at:[80, 60]}, dur:1.4,
-    poses:[ {torso:0, ua:180, fa:180, th:160, sh:186, th2:202, sh2:210},
-            {torso:0, ua:180, fa:180, th:202, sh:210, th2:160, sh2:186} ] },
-  plank: { label:'Plank', works:'Core', muscles:['core'], kit:[], pin:{joint:'T', at:[130, 110]}, contact:{joint:'E', y:110}, dur:4.0,
-    poses:[ {torso:281, ua:180, fa:272, th:101, sh:101, ft:150},
-            {torso:279, ua:180, fa:272, th:99, sh:99, ft:150} ] },
-  jumpSquat: { label:'Jump squat', works:'Quads · glutes', muscles:['th','th2','glute'], kit:[], pin:{joint:'A', at:[78, 109]}, dur:1.8,
-    poses:[ {torso:38, ua:230, fa:220, th:100, sh:206, lift:0},
-            {torso:2, ua:20, fa:16, th:182, sh:180, ft:150, lift:-14} ] },
+// [ANATOMY 3D] (v3.513, owner: "a human animation showing anatomically
+// correct movements for each exercise … official and professional", replacing
+// v3.510's drawn figure: "it shouldn't be stick figures"). The engine, the
+// model and Three.js live in ./assets (the owner allowed asset files beside
+// index.html, cached by sw.js): assets/anatomy/anatomy.js solves each lift's
+// mechanics per frame on a CC0 anatomical human (MakeHuman) and lights the
+// working muscles. It is imported only when a demo is opened, and one canvas
+// is shared, moved to whichever demo is playing. Exercises are added program
+// by program; the rest keep their icon and video link until theirs exists.
+const ANATOMY_LIFTS = {
+  'Squat':'squat', 'Back Squat':'squat', 'Pause Squat':'squat',
+  'Bench Press':'bench', 'Flat Bench Press':'bench', 'Close-Grip Bench Press':'bench',
+  'Deadlift':'deadlift', 'Deficit Deadlift':'deadlift',
 };
-
-const demoRad = d => d * Math.PI / 180;
-const demoDir = (a, len) => [Math.sin(demoRad(a)) * len, -Math.cos(demoRad(a)) * len];
-const demoAdd = (p, v) => [p[0] + v[0], p[1] + v[1]];
-
-function demoJoints(pose){
-  const b = DEMO_BONES, g = k => pose[k + '2'] != null ? pose[k + '2'] : pose[k];
-  const H = [0, 0];
-  const S = demoAdd(H, demoDir(pose.torso, b.torso));
-  const head = demoAdd(S, demoDir(pose.head != null ? pose.head : pose.torso, b.neck));
-  const E = demoAdd(S, demoDir(pose.ua, b.ua)), W = demoAdd(E, demoDir(pose.fa, b.fa));
-  const E2 = demoAdd(S, demoDir(g('ua'), b.ua)), W2 = demoAdd(E2, demoDir(g('fa'), b.fa));
-  const K = demoAdd(H, demoDir(pose.th, b.th)), A = demoAdd(K, demoDir(pose.sh, b.sh)), T = demoAdd(A, demoDir(pose.ft != null ? pose.ft : 90, b.ft));
-  const K2 = demoAdd(H, demoDir(g('th'), b.th)), A2 = demoAdd(K2, demoDir(g('sh'), b.sh)), T2 = demoAdd(A2, demoDir(g('ft') != null ? g('ft') : 90, b.ft));
-  return { H, S, head, E, W, E2, W2, K, A, T, K2, A2, T2, torsoA: pose.torso };
-}
-function demoPlace(motion, pose){
-  const j = demoJoints(pose);
-  const p = j[motion.pin.joint];
-  const off = [motion.pin.at[0] - p[0], motion.pin.at[1] - p[1] + (pose.lift || 0)];
-  for(const k of Object.keys(j)) if(Array.isArray(j[k])) j[k] = demoAdd(j[k], off);
-  // A second contact (toes in a push-up, elbows in a plank): turn the body
-  // about the pinned joint until that one rests on the floor too.
-  if(motion.contact){
-    const c = motion.pin.at, rot = (q, th) => { const s = Math.sin(th), co = Math.cos(th), dx = q[0] - c[0], dy = q[1] - c[1]; return [c[0] + dx * co - dy * s, c[1] + dx * s + dy * co]; };
-    const f = th => rot(j[motion.contact.joint], th)[1] - motion.contact.y;
-    let lo = -0.8, hi = 0.8;
-    if(f(lo) * f(hi) <= 0){
-      for(let i = 0; i < 40; i++){ const mid = (lo + hi) / 2; if(f(lo) * f(mid) <= 0) hi = mid; else lo = mid; }
-      const th = (lo + hi) / 2;
-      for(const k of Object.keys(j)) if(Array.isArray(j[k])) j[k] = rot(j[k], th);
-      j.torsoA += th * 180 / Math.PI;
-    }
-  }
-  return j;
-}
-// Angles take the short way round (350 to 10 is 20 degrees, not 340).
-function demoLerpAngle(a, b, t){ let d = ((b - a + 540) % 360) - 180; return a + d * t; }
-function demoPoseAt(motion, t){
-  const [A, B] = motion.poses;
-  const p = (1 - Math.cos(2 * Math.PI * t)) / 2;
-  const out = {};
-  for(const k of new Set([...Object.keys(A), ...Object.keys(B)])){
-    const a = A[k] != null ? A[k] : (k.endsWith('2') ? A[k.slice(0, -1)] : null);
-    const bb = B[k] != null ? B[k] : (k.endsWith('2') ? B[k.slice(0, -1)] : null);
-    if(a == null && bb == null) continue;
-    if(k === 'lift') out[k] = (a || 0) + ((bb || 0) - (a || 0)) * p;
-    else out[k] = demoLerpAngle(a != null ? a : bb, bb != null ? bb : a, p);
-  }
-  return out;
-}
-const demoFx = n => Math.round(n * 10) / 10;
-const demoPt = p => demoFx(p[0]) + ' ' + demoFx(p[1]);
-const demoPoly = (...ps) => 'M' + ps.map(demoPt).join('L');
-
-// What each frame draws: one straight segment per bone, plus kit.
-const DEMO_SEGS = [
-  ['th2', 'H', 'K2'], ['sh2', 'K2', 'A2'], ['ft2', 'A2', 'T2'], ['ua2', 'S', 'E2'], ['fa2', 'E2', 'W2'],
-  ['torso', 'H', 'S'], ['neck', 'S', 'head'],
-  ['th', 'H', 'K'], ['sh', 'K', 'A'], ['ft', 'A', 'T'], ['ua', 'S', 'E'], ['fa', 'E', 'W'],
-];
-const demoSlice = (a, b, f0, f1) => demoPoly(demoAdd(a, [(b[0] - a[0]) * f0, (b[1] - a[1]) * f0]), demoAdd(a, [(b[0] - a[0]) * f1, (b[1] - a[1]) * f1]));
-function demoParts(motion, j){
-  const parts = {};
-  for(const [k, a, b] of DEMO_SEGS) parts[k] = demoPoly(j[a], j[b]);
-  parts.chest = demoSlice(j.S, j.H, 0.08, 0.42);
-  parts.back = demoSlice(j.S, j.H, 0.1, 0.8);
-  parts.core = demoSlice(j.H, j.S, 0.12, 0.55);
-  parts.glute = demoSlice(j.H, j.S, 0, 0.18);
-  parts.head = j.head.concat([7]);
-  for(const k of motion.kit){
-    if(k === 'barBack') parts.plate = demoAdd(j.S, demoDir(j.torsoA - 90, 5)).concat([9]);
-    if(k === 'barFront') parts.plate = demoAdd(j.S, demoDir(j.torsoA + 90, 5)).concat([9]);
-    if(k === 'barHands') parts.plate = j.W.concat([10]);
-    if(k === 'barHip') parts.plate = demoAdd(j.H, [0, -10]).concat([9]);
-    if(k === 'dbHands'){ parts.db = j.W.concat([5]); parts.db2 = j.W2.concat([5]); }
-    if(k === 'cableTop') parts.cable = demoPoly(j.W, [j.W[0] + 4, 6]);
-    if(k === 'cableHigh') parts.cable = demoPoly(j.W, [118, 6]);
-    if(k === 'cableFront') parts.cable = demoPoly(j.W, [148, 94]);
-  }
-  return parts;
-}
-// Fixed kit: drawn once. Each with its box [x0, y0, x1, y1], for framing.
-const DEMO_KIT_BOX = { bench:[14,82,50,112], benchFlat:[50,92,116,112], benchBack:[16,88,46,112], pullBar:[52,14,116,14],
-  seat:[52,92,88,112], seatLow:[36,104,76,104], cableTop:[60,6,128,6], cableHigh:[60,6,128,6], cableFront:[148,40,148,112] };
-function demoStatic(motion){
-  const out = [];
-  for(const k of motion.kit){
-    if(k === 'bench') out.push('<path class="kit" d="M14 82h36M22 82v30M42 82v30"/>');
-    if(k === 'benchFlat') out.push('<path class="kit" d="M50 92h66M58 92v20M108 92v20"/>');
-    if(k === 'benchBack') out.push('<path class="kit" d="M16 88h30M24 88v24M40 88v24"/>');
-    if(k === 'pullBar') out.push('<path class="kit" d="M52 14h64"/>');
-    if(k === 'seat') out.push('<path class="kit" d="M52 92h36M70 92v20"/>');
-    if(k === 'seatLow') out.push('<path class="kit" d="M36 104h40"/>');
-    if(k === 'cableTop' || k === 'cableHigh') out.push('<path class="kit" d="M60 6h68"/>');
-    if(k === 'cableFront') out.push('<path class="kit" d="M148 40v72"/>');
-  }
-  return out.join('');
-}
-
-function buildDemoSvg(motion, opts = {}){
-  const N = 24, frames = [];
-  for(let i = 0; i <= N; i++) frames.push(demoParts(motion, demoPlace(motion, demoPoseAt(motion, (i % N) / N))));
-  const stillT = opts.still ? (opts.t != null ? opts.t : 0.5) : null;
-  const still = opts.still ? demoParts(motion, demoPlace(motion, demoPoseAt(motion, stillT))) : null;
-  const dur = motion.dur + 's';
-  const anim = (attr, vals) => still ? '' : `<animate attributeName="${attr}" values="${vals.join(';')}" dur="${dur}" repeatCount="indefinite"/>`;
-  const pathOf = (key, cls) => `<path class="${cls}" d="${still ? still[key] : frames[0][key]}">${anim('d', frames.map(f => f[key]))}</path>`;
-  const circleOf = (key, cls) => {
-    const c = still ? still[key] : frames[0][key];
-    return `<circle class="${cls}" cx="${demoFx(c[0])}" cy="${demoFx(c[1])}" r="${c[2]}">${anim('cx', frames.map(f => demoFx(f[key][0])))}${anim('cy', frames.map(f => demoFx(f[key][1])))}</circle>`;
-  };
-  const has = k => frames[0][k] != null;
-  const lit = new Set(motion.muscles);
-  const seg = k => pathOf(k, 'bone b-' + k.replace(/2$/, '') + (k.endsWith('2') ? ' far' : '')) + (lit.has(k) ? pathOf(k, 'lit b-' + k.replace(/2$/, '') + (k.endsWith('2') ? ' far' : '')) : '');
-  const body = [
-    seg('th2'), seg('sh2'), seg('ft2'), seg('ua2'), seg('fa2'), has('db2') ? circleOf('db2', 'db far') : '',
-    seg('torso'), ...['glute', 'back', 'chest', 'core'].filter(m => lit.has(m)).map(m => pathOf(m, 'lit b-torso')),
-    has('plate') && !motion.kit.includes('barHands') ? circleOf('plate', 'plate') : '',
-    seg('neck'), circleOf('head', 'head'),
-    seg('th'), seg('sh'), seg('ft'),
-    seg('ua'), seg('fa'),
-    has('plate') && motion.kit.includes('barHands') ? circleOf('plate', 'plate') : '',
-    has('db') ? circleOf('db', 'db') : '', has('cable') ? pathOf('cable', 'cable') : '',
-  ];
-  // Framed to the motion's whole range (every frame, its kit, the floor), 4:3.
-  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-  const take = (x, y, r = 0) => { x0 = Math.min(x0, x - r); y0 = Math.min(y0, y - r); x1 = Math.max(x1, x + r); y1 = Math.max(y1, y + r); };
-  for(let i = 0; i < N; i++){
-    const j = demoPlace(motion, demoPoseAt(motion, i / N));
-    for(const k of Object.keys(j)) if(Array.isArray(j[k])) take(j[k][0], j[k][1], k === 'head' ? 7 : 5);
-    const pl = frames[i].plate; if(pl) take(pl[0], pl[1], pl[2] + 2);
-  }
-  for(const k of motion.kit) if(DEMO_KIT_BOX[k]){ const b = DEMO_KIT_BOX[k]; take(b[0], b[1], 3); take(b[2], b[3], 3); }
-  if(!motion.noGround) take((x0 + x1) / 2, DEMO_GROUND, 1);
-  const m = 6; x0 -= m; y0 -= m; x1 += m; y1 += m;
-  let w = x1 - x0, h = y1 - y0;
-  if(w / h < 4 / 3){ const nw = h * 4 / 3; x0 -= (nw - w) / 2; w = nw; } else { const nh = w * 3 / 4; y0 -= (nh - h) / 2; h = nh; }
-  const ground = motion.noGround ? '' : `<path class="ground" d="M${demoFx(x0)} ${DEMO_GROUND}H${demoFx(x0 + w)}"/>`;
-  return `<svg class="ex-demo" viewBox="${demoFx(x0)} ${demoFx(y0)} ${demoFx(w)} ${demoFx(h)}" aria-hidden="true" data-motion="${motion.label}">`
-    + ground + demoStatic(motion) + body.join('') + '</svg>';
-}
-
-// Exercise -> motion, only where the motion shows that exercise as it is done.
-const EXERCISE_DEMO = {
-  'Squat':'backSquat', 'Back Squat':'backSquat', 'Pause Squat':'backSquat', 'Front Squat':'frontSquat',
-  'Bodyweight Squat':'bodyweightSquat', 'Jump Squat':'jumpSquat', 'Bulgarian Split Squat':'splitSquat',
-  'Deadlift':'deadlift', 'Deficit Deadlift':'deadlift', 'Romanian Deadlift':'rdl', 'Hip Thrust':'hipThrust',
-  'Bench Press':'benchPress', 'Flat Bench Press':'benchPress', 'Close-Grip Bench Press':'benchPress', 'Push-up':'pushUp',
-  'Overhead Press':'overheadPress', 'DB Shoulder Press':'overheadPressDb',
-  'Pull-ups (or assisted)':'pullUp', 'Chin-up':'pullUp', 'Lat Pulldown':'latPulldown',
-  'Barbell Row':'barbellRow', 'Cable Row':'cableRow', 'Seated Cable Row':'cableRow',
-  'DB Curl':'curl', 'Hammer Curl':'curl', 'Triceps Pushdown':'pushdown', 'Rope Pushdown':'pushdown',
-  'Calf Raise':'calfRaise', 'Standing Calf Raise':'calfRaise', "Farmer's Carry":'carry', 'Plank':'plank',
-};
-// The demo block for an exercise, or '' when it has none.
+const ANATOMY_WORKS = { squat:'Quads · glutes', bench:'Chest · triceps · front delts', deadlift:'Glutes · hamstrings · back' };
+const ANATOMY_MODULE_URL = './assets/anatomy/anatomy.js';
+const ANATOMY_GLB_URL = './assets/anatomy/human-v1.glb';
+// The demo block for an exercise, or '' when it has none yet.
 function buildExerciseDemoHtml(name){
-  const motion = DEMO_MOTIONS[EXERCISE_DEMO[name]];
-  if(!motion) return '';
-  const still = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  return `<figure class="ex-demo-wrap">${buildDemoSvg(motion, {still})}<figcaption class="ex-demo-caption"><span class="ex-demo-swatch" aria-hidden="true"></span>${escapeHtml(motion.works)}</figcaption></figure>`;
+  const lift = ANATOMY_LIFTS[name];
+  if(!lift) return '';
+  return `<figure class="ex-anatomy" data-lift="${lift}"><div class="ex-anatomy-stage">`
+    + `<button type="button" class="ex-anatomy-play">Play demo</button></div>`
+    + `<figcaption class="ex-demo-caption"><span class="ex-demo-swatch" aria-hidden="true"></span>${escapeHtml(ANATOMY_WORKS[lift])}</figcaption></figure>`;
 }
+let anatomyStagePromise = null, anatomyActive = null, anatomyObserver = null;
+function loadAnatomyStage(){
+  if(!anatomyStagePromise){
+    const accent = (getComputedStyle(document.documentElement).getPropertyValue('--plate-blue') || '').trim() || '#3d7bff';
+    anatomyStagePromise = import(ANATOMY_MODULE_URL)
+      .then(m => m.createStage({ glbUrl: ANATOMY_GLB_URL, accent }))
+      .catch(e => { anatomyStagePromise = null; throw e; });
+  }
+  return anatomyStagePromise;
+}
+// Play this demo: the shared canvas moves here; the one it left shows its
+// Play button again. Under Reduce Motion it is drawn still, mid-rep.
+async function mountAnatomy(fig){
+  if(!fig || !fig.isConnected) return;
+  const stageEl = fig.querySelector('.ex-anatomy-stage');
+  fig.classList.add('is-loading');
+  try{
+    const stage = await loadAnatomyStage();
+    if(!fig.isConnected) return;
+    if(anatomyActive && anatomyActive !== fig) anatomyActive.classList.remove('is-playing');
+    const still = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    stage.show(stageEl, fig.dataset.lift, { still });
+    anatomyActive = fig;
+    fig.classList.add('is-playing');
+    // Draw only while it can be seen.
+    if('IntersectionObserver' in window){
+      if(anatomyObserver) anatomyObserver.disconnect();
+      anatomyObserver = new IntersectionObserver(es => es.forEach(e => stage.setVisible(e.isIntersecting)));
+      anatomyObserver.observe(stageEl);
+    }
+  }catch(e){
+    fig.classList.add('is-unavailable');
+    stageEl.textContent = 'The 3D demo can\'t run on this device.';
+  }finally{
+    fig.classList.remove('is-loading');
+  }
+}
+// Opening Technique & focus plays its demo; so does the Play button.
+document.addEventListener('toggle', (e)=>{
+  const d = e.target;
+  if(d && d.tagName === 'DETAILS' && d.open){ const fig = d.querySelector('.ex-anatomy'); if(fig) mountAnatomy(fig); }
+}, true);
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest && e.target.closest('.ex-anatomy-play');
+  if(btn) mountAnatomy(btn.closest('.ex-anatomy'));
+});
 
 
 // --- Exercise substitution system ------------------------------------------
@@ -28623,8 +28447,8 @@ function buildDetailsHtml(ex){
   const iconSvg = getExerciseIcon(ex.name, info.category);
   const query = encodeURIComponent(info.videoQuery || `${ex.name} proper form`);
   const cuesHtml = info.cues.map(c=>`<li>${escapeHtml(c)}</li>`).join('');
-  // v3.510: where the exercise has a drawn demo it leads the panel, above the
-  // cues, in place of the small pattern icon; the video stays as a link.
+  // v3.510/v3.513: where the exercise has a 3D demo it leads the panel, above
+  // the cues, in place of the small pattern icon; the video stays as a link.
   const demoHtml = buildExerciseDemoHtml(ex.name);
   return `
     <details class="ex-details">
@@ -31838,8 +31662,11 @@ async function renderExerciseDetail(){
   const shownIdx = exerciseDetailIdx;
   const historyHtml = await buildExerciseHistoryHtml(Number(shownIdx), ex, {maxRows:5});
   if(shownIdx !== exerciseDetailIdx) return; // another exercise was focused while this one loaded
-  // v3.511: the drawn demo heads the pane, where the exercise has one.
+  // v3.511/v3.513: the 3D demo heads the pane, where the exercise has one.
   document.getElementById('exerciseDetailBody').innerHTML = buildExerciseDemoHtml(ex.name) + historyHtml + cuesHtml;
+  // v3.513: the pane is already open, so its demo plays straight away.
+  const paneDemo = document.querySelector('#exerciseDetailBody .ex-anatomy');
+  if(paneDemo) mountAnatomy(paneDemo);
 }
 // Folding or unfolding shows or hides it straight away, not at the next set.
 if(window.matchMedia){

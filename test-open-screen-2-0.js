@@ -94,8 +94,12 @@ test('REAL source (v3.498): none of this applies on a phone — every rule lives
 // sessions), cues and form video. It follows Up next until you open an
 // exercise yourself, then stays on yours until the day changes.
 const HIST_FNS = ['escapeHtml', 'normalizeExEntry', 'subVariantOf', 'topSetOf', 'estimated1RM', 'toDisplayWeight', 'trimUnitNum', 'distanceOf', 'dropVolumeOf', 'volumeOf', 'parseDateKey', 'formatDate', 'formatShortDate', 'toDisplayDistance', 'buildExerciseHistoryHtml'];
-const DEMO_SRC = [...['DEMO_BONES', 'DEMO_GROUND', 'DEMO_MOTIONS', 'DEMO_SEGS', 'DEMO_KIT_BOX', 'EXERCISE_DEMO', 'demoRad', 'demoDir', 'demoAdd', 'demoFx', 'demoPt', 'demoPoly', 'demoSlice'].map(n => extractConst(src, n)),
-  ...['demoJoints', 'demoPlace', 'demoLerpAngle', 'demoPoseAt', 'demoParts', 'demoStatic', 'buildDemoSvg', 'buildExerciseDemoHtml'].map(n => extractFunction(src, n))];
+// 2026-11-06 (v3.513): the pane's demo is the 3D one ([ANATOMY 3D]); its glue
+// is loaded, with the stage stubbed at loadAnatomyStage (test-anatomy-3d.js).
+const DEMO_SRC = [...['ANATOMY_LIFTS', 'ANATOMY_WORKS', 'ANATOMY_MODULE_URL', 'ANATOMY_GLB_URL'].map(n => extractConst(src, n)),
+  'var anatomyStagePromise = null, anatomyActive = null, anatomyObserver = null; window.__mounted = [];',
+  extractFunction(src, 'buildExerciseDemoHtml'),
+  'function mountAnatomy(fig){ window.__mounted.push(fig.dataset.lift); }'];
 function detailWindow(open){
   const sessions = Array.from({length:8}, (_, i) => ({ date:`2026-10-${String(27 - i * 3).padStart(2, '0')}`, sets:[{weight:150 - i * 5, reps:8}, {weight:150 - i * 5, reps:7}] }));
   const html = extractElementById(src, 'exerciseDetailCard');
@@ -107,7 +111,7 @@ function detailWindow(open){
     var exerciseInfo = { 'Bench Press': { cues:['Shoulder blades back', 'Bar to lower chest', 'Drive feet'], videoQuery:'bench press form' } };`,
     [...HIST_FNS.map(n => { try{ return extractFunction(src, n); }catch(e){ return ''; } }),
      ...['metresPerDisplayUnit'].map(n => { try{ return extractFunction(src, n); }catch(e){ return ''; } }),
-     // 2026-11-06 (v3.511): the pane leads with the drawn demo ([EXERCISE DEMO]).
+     // 2026-11-06 (v3.511, v3.513): the pane leads with the exercise demo.
      ...DEMO_SRC,
      `var exerciseDetailByIdx = {}; var exerciseDetailIdx = null; var exerciseDetailPinned = false; var exerciseDetailDay = null;`,
      extractFunction(src, 'focusExerciseDetail'), extractFunction(src, 'renderExerciseDetail'),
@@ -487,28 +491,28 @@ test('REAL invocation (v3.509): which scrolls count as the app\'s, and which one
   assert.strictEqual(w.appScrollerOf(inPane), d.getElementById('logPane'), 'left pane: the pane');
 });
 
-// v3.511 — The details pane on the open screen leads with the drawn demo of the
-// exercise you're on ([EXERCISE DEMO], test-exercise-demo.js), above its
-// history and cues; an exercise without one shows the pane as before.
-// Real-browser result (Chromium, 904x678): Bench Press's demo heads the right
-// pane at 422px wide, animating; Lat Pulldown's when it is opened; no errors.
-test('REAL invocation (v3.511): the pane leads with the exercise\'s demo, then its history and cues', async (assert)=>{
+// v3.511 — The details pane on the open screen leads with the exercise's demo,
+// above its history and cues; an exercise without one shows the pane as before.
+// 2026-11-06 (v3.513): the demo is the 3D one, and since the pane is already
+// open it plays straight away (mountAnatomy).
+// Real-browser result (Chromium, 904x678): the pane heads with the demo; no errors.
+test('REAL invocation (v3.511, v3.513): the pane leads with the exercise\'s 3D demo and plays it, then its history and cues', async (assert)=>{
   const w = detailWindow(true);
   w.focusExerciseDetail('0', false);
   await w.renderExerciseDetail();
   const body = w.document.getElementById('exerciseDetailBody');
   assert.strictEqual(body.firstElementChild.tagName, 'FIGURE');
-  assert.ok(body.firstElementChild.querySelector('svg.ex-demo'));
+  assert.strictEqual(body.firstElementChild.dataset.lift, 'bench');
   assert.strictEqual(body.firstElementChild.querySelector('.ex-demo-caption').textContent, 'Chest · triceps · front delts');
+  assert.ok(w.__mounted.length >= 1 && w.__mounted.every(l => l === 'bench'), 'played at once');
   assert.ok(body.querySelector('.ex-cues'), 'the cues follow');
   assert.ok(body.querySelector('figure + *'), 'and the history');
-  w.focusExerciseDetail('2', false);
-  await w.renderExerciseDetail();
-  assert.match(body.querySelector('svg.ex-demo').getAttribute('data-motion'), /^Overhead press$/, 'follows the exercise');
+  const before = w.__mounted.length;
   w.exerciseDetailByIdx['3'] = {name:'Leg Curl'};
   w.focusExerciseDetail('3', false);
   await w.renderExerciseDetail();
-  assert.strictEqual(body.querySelector('figure'), null, 'no demo: none drawn');
+  assert.strictEqual(body.querySelector('figure'), null, 'no demo yet: none drawn');
+  assert.strictEqual(w.__mounted.length, before, 'and nothing played');
 });
 
 run();
