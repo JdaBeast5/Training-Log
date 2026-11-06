@@ -794,3 +794,37 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
   - iOS Safari nested-scroll feel: momentum, and whether a pull at the top of a pane bounces the page.
   - `:has()` / `cqh` behaviour in the installed PWA.
 - **Flagged, not fixed:** the right pane's cards clip with a hard edge at its top under the date bar/header when scrolled. A fade mask would soften it, if the owner wants.
+
+## Addendum 38: Drawn exercise demos (v3.510–v3.511)
+- **Owner:** "take a look at the app smart gym and its optimization for the duo … especially how to show how the exercise is done natively instead of just linking it externally".
+  - SmartGym (8.1, Oct 2026) does two things relevant here: it lays itself out for each Duo pose (in seated pose the lower half is a live dashboard of heart rate, calories, zones and controls), and it shows 3D animations with the worked muscles highlighted.
+  - The owner chose a drawn, animated figure, placed first in Today and the exercise cards.
+- **`[EXERCISE DEMO]`** (after `EXERCISE_MOVE`):
+  - 21 motions (`DEMO_MOTIONS`), each two key poses given as absolute segment angles, eased over 24 frames.
+  - Each motion is pinned at the joint that holds still. An optional second contact is solved by rotating the body about the pin (push-up toes, plank elbows).
+  - Output is one SVG per demo, with SMIL `<animate>` on each segment's path and joint, auto-framed 4:3. It is drawn still in the working position under Reduce Motion, and is `aria-hidden` (the cues and the muscle caption are text).
+  - Colours are tokens, using solid `color-mix` rather than opacity so limbs don't darken where they overlap. Light mode follows.
+- **`EXERCISE_DEMO`** maps 31 exercises explicitly. `EXERCISE_MOVE`'s 19 patterns are too broad to animate: its "squat" includes Leg Curl, "hinge" includes Hip Thrust, "corePlank" includes hangboards.
+  - Unmapped exercises keep the small pattern icon.
+  - The YouTube link stays as a secondary link everywhere.
+- **Placement:**
+  - v3.510: the exercise card's Technique & focus (`buildDetailsHtml`).
+  - v3.511: the head of Today's details pane on the open screen (`renderExerciseDetail`).
+- **Tests:** `test-exercise-demo.js` (7) covers:
+  - map integrity against `exerciseInfo`;
+  - bone lengths constant across every frame of every motion;
+  - pins holding and contacts on the floor;
+  - a seamless loop and the exact animate count;
+  - Reduce Motion;
+  - card markup;
+  - tokens.
+
+  `test-open-screen-2-0.js` gained one test for v3.511.
+- **Verified in Chromium:** at 402×874 (dark and light) and 904×678, the forearm's on-screen position moves between readings, so SMIL is running; Reduce Motion produces no `<animate>`.
+- **Unverified:**
+  - Smoothness and CPU cost of SMIL on iPhone. Closed `<details>` aren't rendered; an IntersectionObserver pause (`svg.pauseAnimations()`) is the fallback if it costs battery.
+- **Next candidates** (each its own version; the owner picked Today/cards first):
+  - more motions (incline DB press, lateral raise in front view, leg press, cable curl, dips);
+  - the Learn library page;
+  - gym mode: the demo in the upper half when half-folded, and atop the pinned exercise when unfolded.
+- **Flagged, not fixed:** `EXERCISE_MOVE` has 242 entries while the library header says 321 exercises. Some exercises may have no pattern icon. Not checked.
