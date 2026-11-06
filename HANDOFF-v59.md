@@ -747,3 +747,24 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
   - Test: `test-dialog-focus-ring.js`.
   - Chromium check: the sheet is `:focus-visible` with no outline, and Tab to Cancel shows the 2px ring.
 - **Still not live:** v3.488–v3.507.
+
+## Addendum 36: The Duo's cover screen, stretched (v3.508)
+- **First real-device finding (owner's iPhone Duo, 2026-11-06).** Upright, the cover reports a right safe-area inset of about 82pt for its status column: the camera, then the clock at about 85pt, then Wi-Fi and a battery ring ending about 148pt down. v3.489's side gutters cleared that inset for the full height of the page, so content stopped at 376 of 458pt, with an empty strip all the way down.
+- **The change:**
+  - Every side-clearing rule now reads `--side-l`/`--side-r`. These are the real insets sideways (in the main `:root`), where the housing does run the full height, and zero upright.
+  - A new `[SIDE STATUS COLUMN]` block (`@media (orientation: portrait)`, placed just before `[OPEN POSTURE]` so it comes after the gym rules it overrides) clears the status block itself:
+    - the header reaches 160px down, so the first card starts below the clock column; its title width and search/settings buttons are exactly where they were;
+    - gym mode's list starts at 168px;
+    - `.status-col-scrim` adds a patch of the status strip's glass behind the clock column.
+  - `--status-col-h` is `min(160px, (left + right inset) × 100)`, which makes it 0 wherever there is no side inset. Phones are unaffected.
+- **Verified in Chromium** with `Emulation.setSafeAreaInsetsOverride`:
+  - Duo cover at 458×900 (insets: top 10, right 82): cards go from 18–376 to 18–440, and the tab bar and gym dock widen to match.
+  - A 402×874 phone, and an 874×402 landscape phone with 59/59 insets: geometry identical before and after.
+- **Tests:** `test-side-status-column.js` (7 tests). Dated notes in six older tests:
+  - their CSSOM walkers skip `(orientation: portrait)`;
+  - `--glass-blur` count 10 → 12;
+  - the gutter test resolves the new tokens.
+- **Unverified on the device:**
+  - The 160px depth was read off the owner's screenshot at an assumed 3×.
+  - Whether the cover reports any other insets.
+  - Tradeoff to confirm with the owner: in gym mode the first card starts about 146pt lower than before.
