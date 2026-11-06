@@ -258,8 +258,10 @@ test('sabotage-relevant: --glass-blur and --nav-glass-bg are each declared exact
 
 // v3.299: +1 site for each token — the set sheet (Option 2's logger) is fixed
 // chrome made of the same glass as the tab bar (see test-set-sheet.js).
-test('sabotage-relevant: var(--glass-blur) appears at exactly 10 real occurrences (5 sites x 2 prefixed declarations each), var(--nav-glass-bg) at exactly 4', (assert)=>{
-  assert.strictEqual((src.match(/var\(--glass-blur\)/g) || []).length, 10);
+test('sabotage-relevant: var(--glass-blur) appears at exactly 12 real occurrences (6 sites x 2 prefixed declarations each), var(--nav-glass-bg) at exactly 4', (assert)=>{
+  // 2026-11-06 (v3.508): +1 site, the side status column's patch of the status
+  // strip's glass on the iPhone Duo cover (test-side-status-column.js).
+  assert.strictEqual((src.match(/var\(--glass-blur\)/g) || []).length, 12);
   // 2026-10-28 (v3.482): .analysis-index moved to its own lighter --index-glass-bg
   // (test-analysis-index-visual-weight.js).
   // 2026-11-02 (v3.483): .status-scrim joined the rail on --index-glass-bg.

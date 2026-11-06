@@ -57,6 +57,8 @@
      work if ever wanted, not touched here.
   */
   :root{
+    /* v3.508: the side insets that block content; zero upright ([SIDE STATUS COLUMN]). */
+    --side-l:env(safe-area-inset-left, 0px); --side-r:env(safe-area-inset-right, 0px);
     /* This app has never had a light theme (no prefers-color-scheme handling, no
        data-theme toggle) — it's dark, full stop. Without this, native form chrome
        the app doesn't otherwise style (the date-input calendar affordance/popup,
@@ -465,10 +467,21 @@
      column's centring margin doesn't already clear (a 640px column centred on
      an 874px landscape phone sits 117px in, clear of a 59px inset). Full-bleed
      children (.analysis-index) bleed out by the same tokens. */
+  /* v3.508 (iPhone Duo, from the owner's cover-screen screenshots): THE SIDE
+     INSETS ONLY BLOCK SIDEWAYS. Rotated, a side inset is the sensor housing
+     and runs the full height, so content clears all of it (v3.489, above).
+     Upright, the only side inset is the Duo cover's status column (clock,
+     Wi-Fi, battery), which sits in a block at the top of one edge: clearing
+     it top to bottom left a 60pt-plus strip empty down the whole page. So
+     --side-l/--side-r, which every side-clearing rule reads, are the insets
+     sideways and zero upright, and [SIDE STATUS COLUMN] (below) clears the
+     status block itself. Phones report no side inset upright, so nothing
+     changes for them. The tokens live in the main :root; the upright zero
+     is in [SIDE STATUS COLUMN]. */
   .wrap{
     --wrap-side-margin:max(0px, (100vw - var(--wrap-max)) / 2);
-    --gutter-l:max(18px, env(safe-area-inset-left, 0px) - var(--wrap-side-margin));
-    --gutter-r:max(18px, env(safe-area-inset-right, 0px) - var(--wrap-side-margin));
+    --gutter-l:max(18px, var(--side-l) - var(--wrap-side-margin));
+    --gutter-r:max(18px, var(--side-r) - var(--wrap-side-margin));
     max-width:var(--wrap-max); margin:0 auto;
     padding:calc(22px + env(safe-area-inset-top, 0px)) var(--gutter-r) 4px var(--gutter-l);
   }
@@ -1447,7 +1460,7 @@
     top:env(safe-area-inset-top, 0px); /* v3.288: the rail moved to the bottom */
     background:rgba(var(--surface2-rgb),0.72); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border-bottom:1px solid var(--line-soft);
-    padding:12px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px)); /* v3.489: clear side insets */
+    padding:12px max(16px, var(--side-r)) 12px max(16px, var(--side-l)); /* v3.489: clear side insets */
     display:flex; align-items:center; gap:8px;
     cursor:pointer;
     /* -100% alone is relative to THIS element's own ~44.8px height, not to
@@ -2373,7 +2386,7 @@
     /* v3.489: the side safe area as MARGIN, not folded into right/left:
        wireCoachFabDrag writes left/right inline as a plain px gap, and a
        margin on both sides applies to whichever it set. Zero upright. */
-    margin:0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
+    margin:0 var(--side-r) 0 var(--side-l);
   }
   .coach-fab.tucked{opacity:0; transform:scale(0.3); pointer-events:none; transition:transform 0.3s var(--ease-smooth), opacity 0.22s var(--ease-smooth);}
   /* Live drag feedback: no transition (position must track the pointer with
@@ -2401,7 +2414,7 @@
      legible at a glance without needing to tap it first to find out what it
      does — this is a jump-to-safety control, not a decorative icon. */
   .today-fab{
-    position:fixed; bottom:calc(var(--above-bar) + 12px); left:calc(18px + env(safe-area-inset-left, 0px)); z-index:70; overflow:hidden; /* v3.489: clears a side inset */
+    position:fixed; bottom:calc(var(--above-bar) + 12px); left:calc(18px + var(--side-l)); z-index:70; overflow:hidden; /* v3.489: clears a side inset */
     display:flex; align-items:center; height:44px; padding:0 18px;
     border-radius:var(--radius-pill); border:1px solid rgba(var(--surface-white-rgb),0.28);
     background:var(--plate-yellow); color:#1a1a1a;
@@ -2662,7 +2675,7 @@
        padding and the two floating buttons clear it with that measured number. */
     position:fixed; top:auto; z-index:30;
     /* v3.489: the floating bar clears each side's safe area on its own. */
-    left:calc(12px + env(safe-area-inset-left, 0px)); right:calc(12px + env(safe-area-inset-right, 0px)); bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);
+    left:calc(12px + var(--side-l)); right:calc(12px + var(--side-r)); bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);
     border-radius:var(--radius-pill); border:1px solid var(--glass-hair);
     box-shadow:0 20px 40px -14px rgba(var(--overlay-black-rgb),0.75);
     overflow:hidden;
@@ -4671,8 +4684,8 @@
     padding-top:calc(12px + env(safe-area-inset-top, 0px));
     /* v3.489: 10px, or more where a side safe area reaches past the centred
        column — .wrap's gutter rule at gym mode's tighter minimum. */
-    padding-left:max(10px, env(safe-area-inset-left, 0px) - var(--wrap-side-margin));
-    padding-right:max(10px, env(safe-area-inset-right, 0px) - var(--wrap-side-margin));
+    padding-left:max(10px, var(--side-l) - var(--wrap-side-margin));
+    padding-right:max(10px, var(--side-r) - var(--wrap-side-margin));
     /* Clears the floating dock AND the rest timer sitting above it. */
     padding-bottom:calc(208px + env(safe-area-inset-bottom, 0px));
   }
@@ -4919,7 +4932,7 @@
      z-index 55: above .rest-timer at 50, which it must never be covered by, and
      below the 60+ band the overlays use, which must always be able to cover it. */
   .gym-dock{
-    position:fixed; left:calc(10px + env(safe-area-inset-left, 0px)); right:calc(10px + env(safe-area-inset-right, 0px)); bottom:10px; z-index:55; /* v3.489: side insets */
+    position:fixed; left:calc(10px + var(--side-l)); right:calc(10px + var(--side-r)); bottom:10px; z-index:55; /* v3.489: side insets */
     display:flex; align-items:center; gap:14px;
     padding:12px 12px 12px 20px;
     margin-bottom:env(safe-area-inset-bottom, 0px);
@@ -5340,6 +5353,50 @@
     .launch.is-out .launch-mark{transform:none;}
     .launch{transition-duration:.2s;}
   }
+  /* [SIDE STATUS COLUMN] (v3.508, iPhone Duo cover screen). Upright, the
+     page now runs under the side inset (--side-l/--side-r are zeroed here),
+     so the status block at the top of that column is cleared on its own:
+     - the large-title header keeps clear of the column beside it, and is
+       tall enough that the first card starts below the block (gym mode has
+       no header, so its list starts there instead);
+     - a patch of the status strip's glass sits behind the block, so content
+       scrolled up under the clock stays out of its way, as the strip does on
+       other iPhones.
+     --status-col-h is the block's depth: about 150pt on the Duo (clock at
+     85pt, battery ring ending at 148pt in the owner's screenshot) plus a
+     margin. min() turns it to 0 on any screen with no side inset, so this
+     whole block is inert on phones. Not on a real device yet.
+     One block, placed after the gym-mode rules it overrides; the scrim is
+     hidden outside it. */
+  .status-col-scrim{ display:none; }
+  @media (orientation: portrait){
+    :root{
+      --side-l:0px; --side-r:0px;
+      --status-col-h:min(160px, calc((env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px)) * 100));
+    }
+    header{
+      padding-left:max(0px, env(safe-area-inset-left, 0px) - 18px); padding-right:max(0px, env(safe-area-inset-right, 0px) - 18px);
+      min-height:calc(var(--status-col-h) - 22px - env(safe-area-inset-top, 0px));
+    }
+    /* The search and settings buttons are placed from the header's edge, not
+       inside its padding, so they take the column's width themselves and stay
+       where they were, beside it. Less 18px: the page's own gutter, which
+       the inset used to replace rather than add to. */
+    .settings-cog{ right:max(0px, env(safe-area-inset-right, 0px) - 18px); }
+    .header-search{ right:calc(50px + max(0px, env(safe-area-inset-right, 0px) - 18px)); }
+    .status-col-scrim{
+      display:block; position:fixed; top:0; right:0; z-index:31; pointer-events:none;
+      width:env(safe-area-inset-right, 0px); height:var(--status-col-h);
+      border-bottom-left-radius:22px;
+      background:var(--index-glass-bg);
+      backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+    }
+    /* Gym mode has no header, so its list starts below the block instead
+       (after gym mode's own .wrap rule, which this overrides upright). */
+    body.gym-mode .wrap{
+      padding-top:max(calc(12px + env(safe-area-inset-top, 0px)), calc(var(--status-col-h) + 8px));
+    }
+  }
   /* [OPEN POSTURE] (v3.490, from the Duo branch's 3.272) ------------------
      An unfolded foldable is wider than tall: about 890x626pt on the iPhone
      Duo, and similar on passport foldables (4:3 to 14:10). Safari gives a page
@@ -5511,7 +5568,7 @@
     /* Only while the right pane is occupied; otherwise the dock and timer
        span and centre on the screen as on a phone. */
     body.gym-mode:has(#exerciseList > .exercise-block.open) .gym-dock{
-      left:calc(var(--gym-wrap-left) + 10px + env(safe-area-inset-left, 0px));
+      left:calc(var(--gym-wrap-left) + 10px + var(--side-l));
       right:calc(100vw - var(--gym-wrap-left) - 10px - var(--gym-col-w));
     }
     body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer{
@@ -5704,6 +5761,7 @@
   </div>
 
   <div class="status-scrim" aria-hidden="true"></div>
+  <div class="status-col-scrim" aria-hidden="true"></div> <!-- v3.508: [SIDE STATUS COLUMN] -->
 
   <!-- HANDOFF v32: .nav-pills is now the sticky positioning shell only.
        .nav-pills-scroll (below) is the actual horizontally-scrolling row —
@@ -7575,7 +7633,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.507';
+const APP_VERSION = '3.508';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8903,6 +8961,9 @@ const WHATS_NEW = {
   ]},
   '3.507': { headline: 'No outline round the set editor', points: [
     'Opening the set editor no longer draws a blue line round the whole sheet. Its buttons still show focus when you use a keyboard.',
+  ]},
+  '3.508': { headline: 'Wider on the iPhone Duo\'s front screen', points: [
+    'On the Duo\'s front screen, the page now uses the full width below the clock instead of leaving an empty strip down the right side.',
   ]},
 };
 
