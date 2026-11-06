@@ -768,3 +768,29 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
   - The 160px depth was read off the owner's screenshot at an assumed 3×.
   - Whether the cover reports any other insets.
   - Tradeoff to confirm with the owner: in gym mode the first card starts about 146pt lower than before.
+
+## Addendum 37: Two panes that scroll on their own (v3.509)
+- **Owner, on the Duo unfolded:** "I want the two sides to be able to be scrolled through separately on each tab, right now they move together".
+- **CSS (inside `[OPEN POSTURE]`):**
+  - While a split tab shows (`body:not(.gym-mode):has(.wrap > .posture-split:not([style*="none"]))`), the body loses its bottom padding and `.wrap` becomes a 100dvh flex column.
+  - The tab (`.posture-split`) is the flex child that scrolls, and a size container.
+  - Its `.split-primary` is `position:sticky; top:0` with its own `overflow-y:auto` and `overscroll-behavior-y: contain`. Its `max-height` is measured in `cqh` so it ends 12px above the tab bar.
+  - The room for the coach button is a grid spacer (`::after`, column 2), not padding: padding outside the grid would push the pinned pane up at the end.
+  - The footer sits under the right pane at a fixed `20px + inset`, which the pane formula assumes.
+  - Analysis (a dashboard, not two panes) and gym mode keep scrolling the page.
+- **JS:**
+  - `scrollAppToTop(behavior)` replaces three copies of `window.scrollTo(0,0)` (switchView, goHome, entering gym mode) and also resets every split tab and its pane.
+  - Pull to refresh doesn't start inside a scrolled-down pane.
+  - Fold continuity captures scrolls via `isAppScroll` in the capture phase, and restores through `appScrollerOf` (the pane or tab that scrolls the anchor, else the page).
+  - The coach button's tuck listens the same way.
+- **Verified in Chromium at 904×678:**
+  - Page scroll range is 0 on all six split tabs.
+  - Scrolling either side leaves the other where it was.
+  - Panes end at 603, with the bar at 615.
+  - With a 500–530 hinge: pane 18–488, right side from 542.
+  - Analysis, gym mode and a 402×874 phone are unchanged.
+- **Tests:** `test-open-screen-2-0.js` (+5) and `test-pull-to-refresh.js` (+1). Seven harnesses gained the new helpers, with dated notes. The continuity test now dispatches scroll at the document, as browsers do.
+- **Unverified on a device:**
+  - iOS Safari nested-scroll feel: momentum, and whether a pull at the top of a pane bounces the page.
+  - `:has()` / `cqh` behaviour in the installed PWA.
+- **Flagged, not fixed:** the right pane's cards clip with a hard edge at its top under the date bar/header when scrolled. A fade mask would soften it, if the owner wants.
