@@ -828,3 +828,22 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
   - the Learn library page;
   - gym mode: the demo in the upper half when half-folded, and atop the pinned exercise when unfolded.
 - **Flagged, not fixed:** `EXERCISE_MOVE` has 242 entries while the library header says 321 exercises. Some exercises may have no pattern icon. Not checked.
+
+## Addendum 39: Revert, motion skills, and the 3D anatomy route (2026-11-06)
+- **v3.512 reverts v3.508.**
+  - Owner: the Duo's status cluster in the corner is intrusive, so the cover screen keeps clear of the side inset top to bottom again.
+  - Geometry was re-measured identical to before v3.508 (cards 18–376 on a 458-wide cover with an 82pt right inset).
+  - The open screen was never changed by v3.508: landscape kept the full insets.
+  - The What's New history keeps the 3.508 entry.
+- **Skills:**
+  - Vendored seven of Emil Kowalski's motion skills (MIT, markdown only, unmodified, commit c8a7962): animate, animation-performance, animation-vocabulary, choreograph, find-animation-opportunities, improve-animations, review-animations. These come from the owner's UI/UX skills guide (pasqualepillitteri.it/en/news/576).
+  - img2threejs (Apache-2.0, a 7.5 MB Python pipeline) was not installed. Rigging a character to move needs a plugin it doesn't ship, and vendoring it would publish it on Pages.
+- **Owner decisions:**
+  - Exercise demos become an in-app 3D human, "anatomically correct … official and professional", not a stick figure.
+  - Asset files beside index.html are now allowed: an assets folder, still no build step, cached by sw.js. This is an explicit exception to CLAUDE.md's single-file rule. Record it in CLAUDE.md when the first asset ships.
+- **The spike:**
+  - Lives in `tools/anatomy/` (see its README).
+  - MakeHuman CC0 body, rig and weights are converted to a ~1 MB rigged glb, rendered by Three.js 0.187.
+  - A squat is posed from world segment angles, with feet planted, neutral gaze, shorts, and quads and glutes glowing.
+  - Proven in headless Chromium (SwiftShader).
+- **v3.510–v3.511 (the 2D drawn figure) are on the branch, not live.** The 3D work will supersede them; retire them when it ships rather than shipping both.
