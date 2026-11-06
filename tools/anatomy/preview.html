@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#101217}#host{width:480px}</style></head>
+<body><div id="host"></div><script type="module">
+import { createStage, LIFTS, repPhase } from '../../assets/anatomy/anatomy.js';
+const stage = await createStage({ glbUrl: '../../assets/anatomy/human-v1.glb' });
+window.__stage = stage; window.__LIFTS = LIFTS; window.__repPhase = repPhase;
+window.__shot = (lift, u, yaw) => {
+  const host = document.getElementById('host'); stage.show(host, lift, { still: true }); stage.hide();
+  stage.poseAt(lift, u, 0.9); stage.placeCamera(lift, yaw || 0);
+  stage.renderer.render(stage.scene, stage.camera); return stage.renderer.domElement.toDataURL('image/png');
+};
+window.__ready = true;
+</script></body></html>

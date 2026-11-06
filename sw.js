@@ -192,7 +192,7 @@
 // background/border/gradient rgba() literals (red/green/orange/teal/purple).
 // Purely internal (same computed colors); doesn't touch this file directly,
 // but the version still has to move.
-const VERSION = '3.509';
+const VERSION = '3.513';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the
@@ -232,6 +232,19 @@ const PRECACHE_OPTIONAL = [
   './fonts/geist-mono-latin-wght-normal.woff2',
 ];
 
+// v3.513 [ANATOMY 3D]: the 3D exercise demos' files (Three.js, the engine, the
+// body). About 2 MB, so they live in their OWN cache that a release does not
+// clear: each file name carries its version, so a new one is a new name and
+// the old entry is simply never asked for again. Fetched into it in the
+// background on install (best-effort, skipped when already there), so the
+// demos work offline before one has ever been opened; served cache-first.
+const ASSET_CACHE = 'training-log-assets-v1';
+const ANATOMY_ASSETS = [
+  './assets/vendor/three-0.170.0.module.min.js',
+  './assets/anatomy/anatomy.js',
+  './assets/anatomy/human-v1.glb',
+];
+
 self.addEventListener('install', (event)=>{
   event.waitUntil((async ()=>{
     const cache = await caches.open(CACHE);
@@ -250,6 +263,18 @@ self.addEventListener('install', (event)=>{
         if(res && res.ok) await cache.put(u, res);
       }catch(e){ /* deliberately swallowed — see above */ }
     }));
+
+    // The demos' files: best-effort, never blocking the install.
+    try{
+      const assets = await caches.open(ASSET_CACHE);
+      await Promise.all(ANATOMY_ASSETS.map(async (u)=>{
+        if(await assets.match(u)) return;
+        try{
+          const res = await fetch(new Request(u, {cache:'reload'}));
+          if(res && res.ok) await assets.put(u, res);
+        }catch(e){ /* offline at install: fetched on first use instead */ }
+      }));
+    }catch(e){}
   })());
   // NOT self.skipWaiting() here. The new worker waits until the page asks for
   // it (see the message handler), so an update can never swap the app out from
@@ -336,6 +361,23 @@ self.addEventListener('fetch', (event)=>{
           'Training Log is offline and no cached copy is available yet. Reconnect once and it will work offline from then on.',
           {status:503, headers:{'Content-Type':'text/plain; charset=utf-8'}}
         );
+      }
+    })());
+    return;
+  }
+
+  // The demos' versioned files: cache-first in their own long-lived cache.
+  if(url.pathname.includes('/assets/')){
+    event.respondWith((async ()=>{
+      const assets = await caches.open(ASSET_CACHE);
+      const hit = await assets.match(req, {ignoreSearch:true});
+      if(hit) return hit;
+      try{
+        const fresh = await fetch(req);
+        if(fresh && fresh.ok && fresh.type === 'basic') assets.put(req, fresh.clone());
+        return fresh;
+      }catch(e){
+        return new Response('', {status:504});
       }
     })());
     return;

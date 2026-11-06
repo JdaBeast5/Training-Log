@@ -57,8 +57,6 @@
      work if ever wanted, not touched here.
   */
   :root{
-    /* v3.508: the side insets that block content; zero upright ([SIDE STATUS COLUMN]). */
-    --side-l:env(safe-area-inset-left, 0px); --side-r:env(safe-area-inset-right, 0px);
     /* This app has never had a light theme (no prefers-color-scheme handling, no
        data-theme toggle) — it's dark, full stop. Without this, native form chrome
        the app doesn't otherwise style (the date-input calendar affordance/popup,
@@ -467,21 +465,10 @@
      column's centring margin doesn't already clear (a 640px column centred on
      an 874px landscape phone sits 117px in, clear of a 59px inset). Full-bleed
      children (.analysis-index) bleed out by the same tokens. */
-  /* v3.508 (iPhone Duo, from the owner's cover-screen screenshots): THE SIDE
-     INSETS ONLY BLOCK SIDEWAYS. Rotated, a side inset is the sensor housing
-     and runs the full height, so content clears all of it (v3.489, above).
-     Upright, the only side inset is the Duo cover's status column (clock,
-     Wi-Fi, battery), which sits in a block at the top of one edge: clearing
-     it top to bottom left a 60pt-plus strip empty down the whole page. So
-     --side-l/--side-r, which every side-clearing rule reads, are the insets
-     sideways and zero upright, and [SIDE STATUS COLUMN] (below) clears the
-     status block itself. Phones report no side inset upright, so nothing
-     changes for them. The tokens live in the main :root; the upright zero
-     is in [SIDE STATUS COLUMN]. */
   .wrap{
     --wrap-side-margin:max(0px, (100vw - var(--wrap-max)) / 2);
-    --gutter-l:max(18px, var(--side-l) - var(--wrap-side-margin));
-    --gutter-r:max(18px, var(--side-r) - var(--wrap-side-margin));
+    --gutter-l:max(18px, env(safe-area-inset-left, 0px) - var(--wrap-side-margin));
+    --gutter-r:max(18px, env(safe-area-inset-right, 0px) - var(--wrap-side-margin));
     max-width:var(--wrap-max); margin:0 auto;
     padding:calc(22px + env(safe-area-inset-top, 0px)) var(--gutter-r) 4px var(--gutter-l);
   }
@@ -1460,7 +1447,7 @@
     top:env(safe-area-inset-top, 0px); /* v3.288: the rail moved to the bottom */
     background:rgba(var(--surface2-rgb),0.72); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border-bottom:1px solid var(--line-soft);
-    padding:12px max(16px, var(--side-r)) 12px max(16px, var(--side-l)); /* v3.489: clear side insets */
+    padding:12px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px)); /* v3.489: clear side insets */
     display:flex; align-items:center; gap:8px;
     cursor:pointer;
     /* -100% alone is relative to THIS element's own ~44.8px height, not to
@@ -1854,6 +1841,26 @@
   }
   .ex-icon svg{width:100%; height:100%;}
   .ex-detail-content{flex:1; min-width:0;}
+  /* v3.513 [ANATOMY 3D]: the demo stage, full width above the cues. A quiet
+     spotlit floor behind the athlete; the canvas (shared, moved between
+     demos) fills it, and a demo that isn't playing shows its Play button. */
+  .ex-detail-body.has-demo{flex-direction:column; gap:10px;}
+  .ex-anatomy{margin:0;}
+  .ex-anatomy-stage{
+    position:relative; display:grid; place-items:center; width:100%; max-width:440px; margin:0 auto;
+    aspect-ratio:4 / 3; border-radius:var(--radius-md); overflow:hidden;
+    background:radial-gradient(60% 55% at 50% 72%, color-mix(in srgb, var(--plate-blue) 14%, transparent), transparent 70%);
+  }
+  .ex-anatomy-stage canvas{position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:pan-y;}
+  .ex-anatomy-play{
+    min-height:44px; padding:0 18px; border-radius:var(--radius-pill); border:1px solid var(--glass-hair);
+    background:var(--glass-fill); color:var(--text); font:600 14px var(--font-sans); cursor:pointer;
+  }
+  .ex-anatomy.is-playing .ex-anatomy-play, .ex-anatomy.is-unavailable .ex-anatomy-play{display:none;}
+  .ex-anatomy.is-loading .ex-anatomy-play{opacity:.55;}
+  .ex-anatomy.is-unavailable .ex-anatomy-stage{font-size:12.5px; color:var(--text-muted); padding:0 16px; text-align:center;}
+  .ex-demo-caption{display:flex; align-items:center; justify-content:center; gap:7px; margin-top:4px; font-size:12px; color:var(--text-muted);}
+  .ex-demo-swatch{width:14px; height:5px; border-radius:3px; background:var(--plate-blue); flex:0 0 auto;}
   .ex-cues{list-style:none; display:flex; flex-direction:column; gap:6px;}
   .ex-cues li{
     font-size:12.5px; line-height:1.45; color:var(--text); padding-left:14px; position:relative;
@@ -2386,7 +2393,7 @@
     /* v3.489: the side safe area as MARGIN, not folded into right/left:
        wireCoachFabDrag writes left/right inline as a plain px gap, and a
        margin on both sides applies to whichever it set. Zero upright. */
-    margin:0 var(--side-r) 0 var(--side-l);
+    margin:0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
   }
   .coach-fab.tucked{opacity:0; transform:scale(0.3); pointer-events:none; transition:transform 0.3s var(--ease-smooth), opacity 0.22s var(--ease-smooth);}
   /* Live drag feedback: no transition (position must track the pointer with
@@ -2414,7 +2421,7 @@
      legible at a glance without needing to tap it first to find out what it
      does — this is a jump-to-safety control, not a decorative icon. */
   .today-fab{
-    position:fixed; bottom:calc(var(--above-bar) + 12px); left:calc(18px + var(--side-l)); z-index:70; overflow:hidden; /* v3.489: clears a side inset */
+    position:fixed; bottom:calc(var(--above-bar) + 12px); left:calc(18px + env(safe-area-inset-left, 0px)); z-index:70; overflow:hidden; /* v3.489: clears a side inset */
     display:flex; align-items:center; height:44px; padding:0 18px;
     border-radius:var(--radius-pill); border:1px solid rgba(var(--surface-white-rgb),0.28);
     background:var(--plate-yellow); color:#1a1a1a;
@@ -2675,7 +2682,7 @@
        padding and the two floating buttons clear it with that measured number. */
     position:fixed; top:auto; z-index:30;
     /* v3.489: the floating bar clears each side's safe area on its own. */
-    left:calc(12px + var(--side-l)); right:calc(12px + var(--side-r)); bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);
+    left:calc(12px + env(safe-area-inset-left, 0px)); right:calc(12px + env(safe-area-inset-right, 0px)); bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);
     border-radius:var(--radius-pill); border:1px solid var(--glass-hair);
     box-shadow:0 20px 40px -14px rgba(var(--overlay-black-rgb),0.75);
     overflow:hidden;
@@ -4684,8 +4691,8 @@
     padding-top:calc(12px + env(safe-area-inset-top, 0px));
     /* v3.489: 10px, or more where a side safe area reaches past the centred
        column — .wrap's gutter rule at gym mode's tighter minimum. */
-    padding-left:max(10px, var(--side-l) - var(--wrap-side-margin));
-    padding-right:max(10px, var(--side-r) - var(--wrap-side-margin));
+    padding-left:max(10px, env(safe-area-inset-left, 0px) - var(--wrap-side-margin));
+    padding-right:max(10px, env(safe-area-inset-right, 0px) - var(--wrap-side-margin));
     /* Clears the floating dock AND the rest timer sitting above it. */
     padding-bottom:calc(208px + env(safe-area-inset-bottom, 0px));
   }
@@ -4932,7 +4939,7 @@
      z-index 55: above .rest-timer at 50, which it must never be covered by, and
      below the 60+ band the overlays use, which must always be able to cover it. */
   .gym-dock{
-    position:fixed; left:calc(10px + var(--side-l)); right:calc(10px + var(--side-r)); bottom:10px; z-index:55; /* v3.489: side insets */
+    position:fixed; left:calc(10px + env(safe-area-inset-left, 0px)); right:calc(10px + env(safe-area-inset-right, 0px)); bottom:10px; z-index:55; /* v3.489: side insets */
     display:flex; align-items:center; gap:14px;
     padding:12px 12px 12px 20px;
     margin-bottom:env(safe-area-inset-bottom, 0px);
@@ -5353,50 +5360,6 @@
     .launch.is-out .launch-mark{transform:none;}
     .launch{transition-duration:.2s;}
   }
-  /* [SIDE STATUS COLUMN] (v3.508, iPhone Duo cover screen). Upright, the
-     page now runs under the side inset (--side-l/--side-r are zeroed here),
-     so the status block at the top of that column is cleared on its own:
-     - the large-title header keeps clear of the column beside it, and is
-       tall enough that the first card starts below the block (gym mode has
-       no header, so its list starts there instead);
-     - a patch of the status strip's glass sits behind the block, so content
-       scrolled up under the clock stays out of its way, as the strip does on
-       other iPhones.
-     --status-col-h is the block's depth: about 150pt on the Duo (clock at
-     85pt, battery ring ending at 148pt in the owner's screenshot) plus a
-     margin. min() turns it to 0 on any screen with no side inset, so this
-     whole block is inert on phones. Not on a real device yet.
-     One block, placed after the gym-mode rules it overrides; the scrim is
-     hidden outside it. */
-  .status-col-scrim{ display:none; }
-  @media (orientation: portrait){
-    :root{
-      --side-l:0px; --side-r:0px;
-      --status-col-h:min(160px, calc((env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px)) * 100));
-    }
-    header{
-      padding-left:max(0px, env(safe-area-inset-left, 0px) - 18px); padding-right:max(0px, env(safe-area-inset-right, 0px) - 18px);
-      min-height:calc(var(--status-col-h) - 22px - env(safe-area-inset-top, 0px));
-    }
-    /* The search and settings buttons are placed from the header's edge, not
-       inside its padding, so they take the column's width themselves and stay
-       where they were, beside it. Less 18px: the page's own gutter, which
-       the inset used to replace rather than add to. */
-    .settings-cog{ right:max(0px, env(safe-area-inset-right, 0px) - 18px); }
-    .header-search{ right:calc(50px + max(0px, env(safe-area-inset-right, 0px) - 18px)); }
-    .status-col-scrim{
-      display:block; position:fixed; top:0; right:0; z-index:31; pointer-events:none;
-      width:env(safe-area-inset-right, 0px); height:var(--status-col-h);
-      border-bottom-left-radius:22px;
-      background:var(--index-glass-bg);
-      backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
-    }
-    /* Gym mode has no header, so its list starts below the block instead
-       (after gym mode's own .wrap rule, which this overrides upright). */
-    body.gym-mode .wrap{
-      padding-top:max(calc(12px + env(safe-area-inset-top, 0px)), calc(var(--status-col-h) + 8px));
-    }
-  }
   /* [OPEN POSTURE] (v3.490, from the Duo branch's 3.272) ------------------
      An unfolded foldable is wider than tall: about 890x626pt on the iPhone
      Duo, and similar on passport foldables (4:3 to 14:10). Safari gives a page
@@ -5612,7 +5575,7 @@
     /* Only while the right pane is occupied; otherwise the dock and timer
        span and centre on the screen as on a phone. */
     body.gym-mode:has(#exerciseList > .exercise-block.open) .gym-dock{
-      left:calc(var(--gym-wrap-left) + 10px + var(--side-l));
+      left:calc(var(--gym-wrap-left) + 10px + env(safe-area-inset-left, 0px));
       right:calc(100vw - var(--gym-wrap-left) - 10px - var(--gym-col-w));
     }
     body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer{
@@ -5805,7 +5768,6 @@
   </div>
 
   <div class="status-scrim" aria-hidden="true"></div>
-  <div class="status-col-scrim" aria-hidden="true"></div> <!-- v3.508: [SIDE STATUS COLUMN] -->
 
   <!-- HANDOFF v32: .nav-pills is now the sticky positioning shell only.
        .nav-pills-scroll (below) is the actual horizontally-scrolling row —
@@ -7677,7 +7639,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.509';
+const APP_VERSION = '3.513';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -9011,6 +8973,18 @@ const WHATS_NEW = {
   ]},
   '3.509': { headline: 'Each side scrolls on its own when unfolded', points: [
     'Unfolded, the left and right sides of Today, Log, History, Care, Coach and Learn scroll separately instead of moving together.',
+  ]},
+  '3.510': { headline: 'See how the exercise is done', points: [
+    'Open Technique & focus on a lift like the squat, bench or row to watch an animated demo of the movement, with the muscles it works lit up. It works offline.',
+  ]},
+  '3.511': { headline: 'The demo leads the exercise pane when unfolded', points: [
+    'Unfolded, the panel beside your session opens with the animated demo of the exercise you\'re on, above its history and cues.',
+  ]},
+  '3.512': { headline: 'Back to the narrower front screen', points: [
+    'On the iPhone Duo\'s front screen, the page keeps clear of the clock and status column on the right again, as it did before v3.508.',
+  ]},
+  '3.513': { headline: 'Watch a 3D athlete do the lift', points: [
+    'Open Technique & focus on the squat, bench press or deadlift to watch a 3D athlete perform it with correct form, the working muscles lighting up through each rep. Drag to turn them around. More lifts are coming, program by program.',
   ]},
 };
 
@@ -13710,6 +13684,78 @@ const EXERCISE_MOVE = {
   'Sprint Intervals':'cardio', 'Agility Ladder':'cardio', 'Incline Walk':'cardio', 'Jump Rope (warm-up)':'cardio',
   'Cat-Cow Mobility':'mobility',
 };
+
+// [ANATOMY 3D] (v3.513, owner: "a human animation showing anatomically
+// correct movements for each exercise … official and professional", replacing
+// v3.510's drawn figure: "it shouldn't be stick figures"). The engine, the
+// model and Three.js live in ./assets (the owner allowed asset files beside
+// index.html, cached by sw.js): assets/anatomy/anatomy.js solves each lift's
+// mechanics per frame on a CC0 anatomical human (MakeHuman) and lights the
+// working muscles. It is imported only when a demo is opened, and one canvas
+// is shared, moved to whichever demo is playing. Exercises are added program
+// by program; the rest keep their icon and video link until theirs exists.
+const ANATOMY_LIFTS = {
+  'Squat':'squat', 'Back Squat':'squat', 'Pause Squat':'squat',
+  'Bench Press':'bench', 'Flat Bench Press':'bench', 'Close-Grip Bench Press':'bench',
+  'Deadlift':'deadlift', 'Deficit Deadlift':'deadlift',
+};
+const ANATOMY_WORKS = { squat:'Quads · glutes', bench:'Chest · triceps · front delts', deadlift:'Glutes · hamstrings · back' };
+const ANATOMY_MODULE_URL = './assets/anatomy/anatomy.js';
+const ANATOMY_GLB_URL = './assets/anatomy/human-v1.glb';
+// The demo block for an exercise, or '' when it has none yet.
+function buildExerciseDemoHtml(name){
+  const lift = ANATOMY_LIFTS[name];
+  if(!lift) return '';
+  return `<figure class="ex-anatomy" data-lift="${lift}"><div class="ex-anatomy-stage">`
+    + `<button type="button" class="ex-anatomy-play">Play demo</button></div>`
+    + `<figcaption class="ex-demo-caption"><span class="ex-demo-swatch" aria-hidden="true"></span>${escapeHtml(ANATOMY_WORKS[lift])}</figcaption></figure>`;
+}
+let anatomyStagePromise = null, anatomyActive = null, anatomyObserver = null;
+function loadAnatomyStage(){
+  if(!anatomyStagePromise){
+    const accent = (getComputedStyle(document.documentElement).getPropertyValue('--plate-blue') || '').trim() || '#3d7bff';
+    anatomyStagePromise = import(ANATOMY_MODULE_URL)
+      .then(m => m.createStage({ glbUrl: ANATOMY_GLB_URL, accent }))
+      .catch(e => { anatomyStagePromise = null; throw e; });
+  }
+  return anatomyStagePromise;
+}
+// Play this demo: the shared canvas moves here; the one it left shows its
+// Play button again. Under Reduce Motion it is drawn still, mid-rep.
+async function mountAnatomy(fig){
+  if(!fig || !fig.isConnected) return;
+  const stageEl = fig.querySelector('.ex-anatomy-stage');
+  fig.classList.add('is-loading');
+  try{
+    const stage = await loadAnatomyStage();
+    if(!fig.isConnected) return;
+    if(anatomyActive && anatomyActive !== fig) anatomyActive.classList.remove('is-playing');
+    const still = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    stage.show(stageEl, fig.dataset.lift, { still });
+    anatomyActive = fig;
+    fig.classList.add('is-playing');
+    // Draw only while it can be seen.
+    if('IntersectionObserver' in window){
+      if(anatomyObserver) anatomyObserver.disconnect();
+      anatomyObserver = new IntersectionObserver(es => es.forEach(e => stage.setVisible(e.isIntersecting)));
+      anatomyObserver.observe(stageEl);
+    }
+  }catch(e){
+    fig.classList.add('is-unavailable');
+    stageEl.textContent = 'The 3D demo can\'t run on this device.';
+  }finally{
+    fig.classList.remove('is-loading');
+  }
+}
+// Opening Technique & focus plays its demo; so does the Play button.
+document.addEventListener('toggle', (e)=>{
+  const d = e.target;
+  if(d && d.tagName === 'DETAILS' && d.open){ const fig = d.querySelector('.ex-anatomy'); if(fig) mountAnatomy(fig); }
+}, true);
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest && e.target.closest('.ex-anatomy-play');
+  if(btn) mountAnatomy(btn.closest('.ex-anatomy'));
+});
 
 
 // --- Exercise substitution system ------------------------------------------
@@ -28401,11 +28447,14 @@ function buildDetailsHtml(ex){
   const iconSvg = getExerciseIcon(ex.name, info.category);
   const query = encodeURIComponent(info.videoQuery || `${ex.name} proper form`);
   const cuesHtml = info.cues.map(c=>`<li>${escapeHtml(c)}</li>`).join('');
+  // v3.510/v3.513: where the exercise has a 3D demo it leads the panel, above
+  // the cues, in place of the small pattern icon; the video stays as a link.
+  const demoHtml = buildExerciseDemoHtml(ex.name);
   return `
     <details class="ex-details">
       <summary>Technique & focus</summary>
-      <div class="ex-detail-body">
-        <div class="ex-icon">${iconSvg}</div>
+      <div class="ex-detail-body${demoHtml ? ' has-demo' : ''}">
+        ${demoHtml || `<div class="ex-icon">${iconSvg}</div>`}
         <div class="ex-detail-content">
           <ul class="ex-cues">${cuesHtml}</ul>
           <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">Watch form video</a>
@@ -31613,7 +31662,11 @@ async function renderExerciseDetail(){
   const shownIdx = exerciseDetailIdx;
   const historyHtml = await buildExerciseHistoryHtml(Number(shownIdx), ex, {maxRows:5});
   if(shownIdx !== exerciseDetailIdx) return; // another exercise was focused while this one loaded
-  document.getElementById('exerciseDetailBody').innerHTML = historyHtml + cuesHtml;
+  // v3.511/v3.513: the 3D demo heads the pane, where the exercise has one.
+  document.getElementById('exerciseDetailBody').innerHTML = buildExerciseDemoHtml(ex.name) + historyHtml + cuesHtml;
+  // v3.513: the pane is already open, so its demo plays straight away.
+  const paneDemo = document.querySelector('#exerciseDetailBody .ex-anatomy');
+  if(paneDemo) mountAnatomy(paneDemo);
 }
 // Folding or unfolding shows or hides it straight away, not at the next set.
 if(window.matchMedia){

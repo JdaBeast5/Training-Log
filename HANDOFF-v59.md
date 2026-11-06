@@ -794,3 +794,93 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
   - iOS Safari nested-scroll feel: momentum, and whether a pull at the top of a pane bounces the page.
   - `:has()` / `cqh` behaviour in the installed PWA.
 - **Flagged, not fixed:** the right pane's cards clip with a hard edge at its top under the date bar/header when scrolled. A fade mask would soften it, if the owner wants.
+
+## Addendum 38: Drawn exercise demos (v3.510–v3.511)
+- **Owner:** "take a look at the app smart gym and its optimization for the duo … especially how to show how the exercise is done natively instead of just linking it externally".
+  - SmartGym (8.1, Oct 2026) does two things relevant here: it lays itself out for each Duo pose (in seated pose the lower half is a live dashboard of heart rate, calories, zones and controls), and it shows 3D animations with the worked muscles highlighted.
+  - The owner chose a drawn, animated figure, placed first in Today and the exercise cards.
+- **`[EXERCISE DEMO]`** (after `EXERCISE_MOVE`):
+  - 21 motions (`DEMO_MOTIONS`), each two key poses given as absolute segment angles, eased over 24 frames.
+  - Each motion is pinned at the joint that holds still. An optional second contact is solved by rotating the body about the pin (push-up toes, plank elbows).
+  - Output is one SVG per demo, with SMIL `<animate>` on each segment's path and joint, auto-framed 4:3. It is drawn still in the working position under Reduce Motion, and is `aria-hidden` (the cues and the muscle caption are text).
+  - Colours are tokens, using solid `color-mix` rather than opacity so limbs don't darken where they overlap. Light mode follows.
+- **`EXERCISE_DEMO`** maps 31 exercises explicitly. `EXERCISE_MOVE`'s 19 patterns are too broad to animate: its "squat" includes Leg Curl, "hinge" includes Hip Thrust, "corePlank" includes hangboards.
+  - Unmapped exercises keep the small pattern icon.
+  - The YouTube link stays as a secondary link everywhere.
+- **Placement:**
+  - v3.510: the exercise card's Technique & focus (`buildDetailsHtml`).
+  - v3.511: the head of Today's details pane on the open screen (`renderExerciseDetail`).
+- **Tests:** `test-exercise-demo.js` (7) covers:
+  - map integrity against `exerciseInfo`;
+  - bone lengths constant across every frame of every motion;
+  - pins holding and contacts on the floor;
+  - a seamless loop and the exact animate count;
+  - Reduce Motion;
+  - card markup;
+  - tokens.
+
+  `test-open-screen-2-0.js` gained one test for v3.511.
+- **Verified in Chromium:** at 402×874 (dark and light) and 904×678, the forearm's on-screen position moves between readings, so SMIL is running; Reduce Motion produces no `<animate>`.
+- **Unverified:**
+  - Smoothness and CPU cost of SMIL on iPhone. Closed `<details>` aren't rendered; an IntersectionObserver pause (`svg.pauseAnimations()`) is the fallback if it costs battery.
+- **Next candidates** (each its own version; the owner picked Today/cards first):
+  - more motions (incline DB press, lateral raise in front view, leg press, cable curl, dips);
+  - the Learn library page;
+  - gym mode: the demo in the upper half when half-folded, and atop the pinned exercise when unfolded.
+- **Flagged, not fixed:** `EXERCISE_MOVE` has 242 entries while the library header says 321 exercises. Some exercises may have no pattern icon. Not checked.
+
+## Addendum 39: Revert, motion skills, and the 3D anatomy route (2026-11-06)
+- **v3.512 reverts v3.508.**
+  - Owner: the Duo's status cluster in the corner is intrusive, so the cover screen keeps clear of the side inset top to bottom again.
+  - Geometry was re-measured identical to before v3.508 (cards 18–376 on a 458-wide cover with an 82pt right inset).
+  - The open screen was never changed by v3.508: landscape kept the full insets.
+  - The What's New history keeps the 3.508 entry.
+- **Skills:**
+  - Vendored seven of Emil Kowalski's motion skills (MIT, markdown only, unmodified, commit c8a7962): animate, animation-performance, animation-vocabulary, choreograph, find-animation-opportunities, improve-animations, review-animations. These come from the owner's UI/UX skills guide (pasqualepillitteri.it/en/news/576).
+  - img2threejs (Apache-2.0, a 7.5 MB Python pipeline) was not installed. Rigging a character to move needs a plugin it doesn't ship, and vendoring it would publish it on Pages.
+- **Owner decisions:**
+  - Exercise demos become an in-app 3D human, "anatomically correct … official and professional", not a stick figure.
+  - Asset files beside index.html are now allowed: an assets folder, still no build step, cached by sw.js. This is an explicit exception to CLAUDE.md's single-file rule. Record it in CLAUDE.md when the first asset ships.
+- **The spike:**
+  - Lives in `tools/anatomy/` (see its README).
+  - MakeHuman CC0 body, rig and weights are converted to a ~1 MB rigged glb, rendered by Three.js 0.187.
+  - A squat is posed from world segment angles, with feet planted, neutral gaze, shorts, and quads and glutes glowing.
+  - Proven in headless Chromium (SwiftShader).
+- **v3.510–v3.511 (the 2D drawn figure) are on the branch, not live.** The 3D work will supersede them; retire them when it ships rather than shipping both.
+
+## Addendum 40: 3D anatomical exercise demos (v3.513)
+- **What shipped:**
+  - Squat, bench press and deadlift (8 exercise names in `ANATOMY_LIFTS`).
+  - Demos play in Technique & focus, and at the head of the open-screen details pane.
+  - v3.510's 2D engine and `test-exercise-demo.js` are removed; the 2D figure never went live.
+- **How it works:**
+  - Files: `assets/anatomy/anatomy.js` (ES module) + `human-v1.glb` + `assets/vendor/three-0.170.0.module.min.js`, imported only on first use.
+  - The glb comes from `tools/anatomy/mh2glb.py`: MakeHuman CC0 body, rig and weights, plus 12 baked muscle maps.
+  - The engine has its own small glb reader (no GLTFLoader) and a `Rig` with world-aligned rest frames and two-bone IK.
+  - **Squat:** hips descend to parallel; the torso is solved so the bar stays over mid-foot.
+  - **Deadlift:** the bar path runs floor to lockout; a secant search finds the hip height.
+  - **Bench:** supine on a 43 cm pad, J bar path, elbows at about 45°.
+  - **Neutral spine:** the pelvis takes 85% of the lean. A progressive spread rounded the back; this was caught by measurement and is now a test.
+  - **Muscle glow:** activation uniforms × baked maps, kept off the shorts, scaled by effort through the rep (lower, pause, drive, top).
+  - **One shared canvas:** `stage.show()` moves it between demos and keeps the rep running when the same lift re-renders.
+  - Under Reduce Motion it is drawn still mid-rep. It says so where WebGL can't run.
+  - `sw.js` holds the assets in `ASSET_CACHE = 'training-log-assets-v1'` (activate never deletes it), precached best-effort and served cache-first.
+- **Cost:** about 1.2–3.5 ms solve per frame (desktop: 0.3–1.2 ms). The download is about 1.85 MB once (692 KB three.js, 1.15 MB glb), then offline.
+- **Tests:** `test-anatomy-3d.js` (11, sabotage-checked) loads the real module and model in Node and checks:
+  - feet planted and hands on the bar for every frame of every lift;
+  - bone lengths kept;
+  - bar over mid-foot;
+  - deadlift starts on the floor with hips above the knees;
+  - squat reaches parallel;
+  - bench locks out over the shoulders and touches the chest;
+  - neutral spine (curve within 6° of standing);
+  - the timeline, glue, Reduce Motion, the failure message, and `sw.js` caching.
+
+  `test-open-screen-2-0.js` v3.511 is updated.
+- **Verified in Chromium (SwiftShader):** cards at 402×874 and the pane at 904×678. Two frames apart differ, so it animates. No errors.
+- **Next (owner: "start with the main ones and then expand program by program"):** add the owner's current program's lifts next, one version per lift.
+  - Overhead press: standing, bar path over mid-foot.
+  - Barbell row, pull-up (needs a hanging root), RDL (reuse the deadlift hinge with near-straight knees), hip thrust.
+  - Then gym-mode placement: the upper half when half-folded, atop the pinned exercise when unfolded.
+- **Polish ideas:** cues synced to the rep phase; a front/side toggle; Draco or quantized glb to halve the download; tank top or styling options.
+- **Unverified on a device:** frame rate and battery on the Duo, and iOS Safari behaviour for `import()` of the module from the PWA.

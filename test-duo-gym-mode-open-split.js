@@ -65,9 +65,6 @@ function geometry(vw, vh){
   const vars = { vw, vh, '--wrap-max': decl(root, '--wrap-max'), '--pane-gap': decl(root, '--pane-gap') };
   vars['--gym-wrap-left'] = gymVars('--gym-wrap-left');
   vars['--gym-col-w'] = gymVars('--gym-col-w');
-  // 2026-11-06 (v3.508): side insets now arrive through --side-l/--side-r
-  // (test-side-status-column.js); this model has no insets, as before.
-  vars['--side-l'] = '0px'; vars['--side-r'] = '0px';
   return vars;
 }
 const PANE = 'body.gym-mode #exerciseList > .exercise-block.open';

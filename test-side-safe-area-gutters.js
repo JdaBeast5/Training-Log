@@ -57,11 +57,6 @@ function resolve(expr, env, vars){
   let e = expr;
   for(let i = 0; i < 6 && /var\(/.test(e); i++){
     e = e.replace(/var\((--[\w-]+)\)/g, (_, name)=>{
-      // 2026-11-06 (v3.508): every rule here reads the side insets through
-      // --side-l/--side-r, which are the real insets sideways (the main :root)
-      // and zero upright. These cases model a device on its side, so they take
-      // the :root value; upright is test-side-status-column.js.
-      if(!(name in vars) && name in SIDE_TOKENS) return '(' + SIDE_TOKENS[name] + ')';
       if(!(name in vars)) throw new Error(`unresolved ${name}`);
       return '(' + vars[name] + ')';
     });
@@ -75,11 +70,6 @@ function resolve(expr, env, vars){
   return Function('return (' + e + ')')();
 }
 
-const SIDE_TOKENS = {};
-{
-  const root = src.slice(src.indexOf('  :root{\n'));
-  for(const n of ['--side-l', '--side-r']) SIDE_TOKENS[n] = new RegExp(n + ':([^;]+);').exec(root)[1].trim();
-}
 const wrap = ruleBlock('.wrap');
 const wrapVars = {};
 for(const name of ['--wrap-side-margin', '--gutter-l', '--gutter-r']) wrapVars[name] = decl(wrap, name);
@@ -156,9 +146,7 @@ test('today FAB, sticky day header and gym dock clear the side insets', (assert)
 });
 
 test('gym mode keeps its tighter 10px sides, but still clears a side inset', (assert)=>{
-  // 2026-11-06 (v3.508): the upright [SIDE STATUS COLUMN] block has its own
-  // body.gym-mode .wrap (padding-top only); this is the base one, with the sides.
-  const b = ruleBlock('body.gym-mode .wrap', 'padding-bottom:calc(208px');
+  const b = ruleBlock('body.gym-mode .wrap', 'padding-top');
   const env = {vw:430, left:40, right:24};
   const g = gutters(env);
   assert.equal(resolve(decl(b, 'padding-left'), env, g.vars), 40);
