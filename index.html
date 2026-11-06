@@ -7700,7 +7700,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.510';
+const APP_VERSION = '3.511';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -9037,6 +9037,9 @@ const WHATS_NEW = {
   ]},
   '3.510': { headline: 'See how the exercise is done', points: [
     'Open Technique & focus on a lift like the squat, bench or row to watch an animated demo of the movement, with the muscles it works lit up. It works offline.',
+  ]},
+  '3.511': { headline: 'The demo leads the exercise pane when unfolded', points: [
+    'Unfolded, the panel beside your session opens with the animated demo of the exercise you\'re on, above its history and cues.',
   ]},
 };
 
@@ -31890,7 +31893,8 @@ async function renderExerciseDetail(){
   const shownIdx = exerciseDetailIdx;
   const historyHtml = await buildExerciseHistoryHtml(Number(shownIdx), ex, {maxRows:5});
   if(shownIdx !== exerciseDetailIdx) return; // another exercise was focused while this one loaded
-  document.getElementById('exerciseDetailBody').innerHTML = historyHtml + cuesHtml;
+  // v3.511: the drawn demo heads the pane, where the exercise has one.
+  document.getElementById('exerciseDetailBody').innerHTML = buildExerciseDemoHtml(ex.name) + historyHtml + cuesHtml;
 }
 // Folding or unfolding shows or hides it straight away, not at the next set.
 if(window.matchMedia){
