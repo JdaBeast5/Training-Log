@@ -25,7 +25,10 @@ const { document } = new JSDOM(html.replace(/<script[\s\S]*?<\/script>/g, '')).w
 
 function allRules(){
   const out = [];
-  const walk = list => { for(const r of list){ if(r.type === 1) out.push(r); else if(r.cssRules) walk(r.cssRules); } };
+  // 2026-11-06 (v3.508): skip the upright [SIDE STATUS COLUMN] block, which zeroes
+  // the side-inset tokens and moves the header buttons only on a screen with a
+  // side status column (test-side-status-column.js).
+  const walk = list => { for(const r of list){ if(r.type === 1) out.push(r); else if(r.cssRules && !(r.media && /^\(orientation:\s*portrait\)$/.test(r.media.mediaText))) walk(r.cssRules); } };
   for(const s of document.styleSheets) walk(s.cssRules);
   return out;
 }

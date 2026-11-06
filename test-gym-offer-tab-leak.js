@@ -37,7 +37,8 @@ function buildBodyHtml(){
 
 function setup(){
   // 2026-10-28 (v3.482): switchView wires clearViewEnter (test-analysis-index-visual-weight.js).
-  const switchViewSrc = extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'switchView');
+// 2026-11-06 (v3.509): switchView scrolls to the top through scrollAppToTop, which also resets an open foldable's two panes.
+  const switchViewSrc = extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'scrollAppToTop') + '\n' + extractFunction(src, 'switchView');
   const hideGymOfferSrc = extractFunction(src, 'hideGymOffer');
   const globals = [
     "const MOVED_TO_MORE = ['care', 'coach', 'learn'];",

@@ -88,7 +88,8 @@ const movedToMoreSrc = extractConst(src, 'MOVED_TO_MORE');
 const staggerMaxSrc = extractConst(src, 'STAGGER_MAX_STEPS');
 const staggerStepSrc = extractConst(src, 'STAGGER_STEP_MS');
 // 2026-10-28 (v3.482): switchView wires clearViewEnter (test-analysis-index-visual-weight.js).
-const switchViewSrc = extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'switchView');
+// 2026-11-06 (v3.509): switchView scrolls to the top through scrollAppToTop, which also resets an open foldable's two panes.
+const switchViewSrc = extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'scrollAppToTop') + '\n' + extractFunction(src, 'switchView');
 const hideGymOfferSrc = extractFunction(src, 'hideGymOffer');
 const closeNavMoreOverlaySrc = extractFunction(src, 'closeNavMoreOverlay');
 const showViewWiringSrc = extractStatement(src, 'VIEW_KEYS.forEach(key=>{');

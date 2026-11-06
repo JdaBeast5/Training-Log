@@ -91,7 +91,8 @@ test('REAL invocation: switchView sets the large title to the view you switched 
     function closeNavMoreOverlay(){} function hideGymOffer(){} function renderLogDateBar(){}
     Element.prototype.scrollIntoView = function(){};`,
   // 2026-10-28 (v3.482): switchView wires clearViewEnter (test-analysis-index-visual-weight.js).
-    [extractConst(src, 'MOVED_TO_MORE'), extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'switchView'), 'window.__seen = [];' + keys.map(k => `try{ switchView('${k}'); }catch(e){ window.__err = e.message; } window.__seen.push(document.getElementById('viewTitle').textContent);`).join('\n')]);
+// 2026-11-06 (v3.509): switchView scrolls to the top through scrollAppToTop, which also resets an open foldable's two panes.
+    [extractConst(src, 'MOVED_TO_MORE'), extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'scrollAppToTop') + '\n' + extractFunction(src, 'switchView'), 'window.__seen = [];' + keys.map(k => `try{ switchView('${k}'); }catch(e){ window.__err = e.message; } window.__seen.push(document.getElementById('viewTitle').textContent);`).join('\n')]);
   assert.ok(!window.__err, window.__err);
   assert.deepStrictEqual(Array.from(window.__seen), ['Today','Log','Analysis','History','Care','Coach','Learn']);
 });

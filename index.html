@@ -57,6 +57,8 @@
      work if ever wanted, not touched here.
   */
   :root{
+    /* v3.508: the side insets that block content; zero upright ([SIDE STATUS COLUMN]). */
+    --side-l:env(safe-area-inset-left, 0px); --side-r:env(safe-area-inset-right, 0px);
     /* This app has never had a light theme (no prefers-color-scheme handling, no
        data-theme toggle) — it's dark, full stop. Without this, native form chrome
        the app doesn't otherwise style (the date-input calendar affordance/popup,
@@ -465,10 +467,21 @@
      column's centring margin doesn't already clear (a 640px column centred on
      an 874px landscape phone sits 117px in, clear of a 59px inset). Full-bleed
      children (.analysis-index) bleed out by the same tokens. */
+  /* v3.508 (iPhone Duo, from the owner's cover-screen screenshots): THE SIDE
+     INSETS ONLY BLOCK SIDEWAYS. Rotated, a side inset is the sensor housing
+     and runs the full height, so content clears all of it (v3.489, above).
+     Upright, the only side inset is the Duo cover's status column (clock,
+     Wi-Fi, battery), which sits in a block at the top of one edge: clearing
+     it top to bottom left a 60pt-plus strip empty down the whole page. So
+     --side-l/--side-r, which every side-clearing rule reads, are the insets
+     sideways and zero upright, and [SIDE STATUS COLUMN] (below) clears the
+     status block itself. Phones report no side inset upright, so nothing
+     changes for them. The tokens live in the main :root; the upright zero
+     is in [SIDE STATUS COLUMN]. */
   .wrap{
     --wrap-side-margin:max(0px, (100vw - var(--wrap-max)) / 2);
-    --gutter-l:max(18px, env(safe-area-inset-left, 0px) - var(--wrap-side-margin));
-    --gutter-r:max(18px, env(safe-area-inset-right, 0px) - var(--wrap-side-margin));
+    --gutter-l:max(18px, var(--side-l) - var(--wrap-side-margin));
+    --gutter-r:max(18px, var(--side-r) - var(--wrap-side-margin));
     max-width:var(--wrap-max); margin:0 auto;
     padding:calc(22px + env(safe-area-inset-top, 0px)) var(--gutter-r) 4px var(--gutter-l);
   }
@@ -1447,7 +1460,7 @@
     top:env(safe-area-inset-top, 0px); /* v3.288: the rail moved to the bottom */
     background:rgba(var(--surface2-rgb),0.72); backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
     border-bottom:1px solid var(--line-soft);
-    padding:12px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px)); /* v3.489: clear side insets */
+    padding:12px max(16px, var(--side-r)) 12px max(16px, var(--side-l)); /* v3.489: clear side insets */
     display:flex; align-items:center; gap:8px;
     cursor:pointer;
     /* -100% alone is relative to THIS element's own ~44.8px height, not to
@@ -2373,7 +2386,7 @@
     /* v3.489: the side safe area as MARGIN, not folded into right/left:
        wireCoachFabDrag writes left/right inline as a plain px gap, and a
        margin on both sides applies to whichever it set. Zero upright. */
-    margin:0 env(safe-area-inset-right, 0px) 0 env(safe-area-inset-left, 0px);
+    margin:0 var(--side-r) 0 var(--side-l);
   }
   .coach-fab.tucked{opacity:0; transform:scale(0.3); pointer-events:none; transition:transform 0.3s var(--ease-smooth), opacity 0.22s var(--ease-smooth);}
   /* Live drag feedback: no transition (position must track the pointer with
@@ -2401,7 +2414,7 @@
      legible at a glance without needing to tap it first to find out what it
      does — this is a jump-to-safety control, not a decorative icon. */
   .today-fab{
-    position:fixed; bottom:calc(var(--above-bar) + 12px); left:calc(18px + env(safe-area-inset-left, 0px)); z-index:70; overflow:hidden; /* v3.489: clears a side inset */
+    position:fixed; bottom:calc(var(--above-bar) + 12px); left:calc(18px + var(--side-l)); z-index:70; overflow:hidden; /* v3.489: clears a side inset */
     display:flex; align-items:center; height:44px; padding:0 18px;
     border-radius:var(--radius-pill); border:1px solid rgba(var(--surface-white-rgb),0.28);
     background:var(--plate-yellow); color:#1a1a1a;
@@ -2662,7 +2675,7 @@
        padding and the two floating buttons clear it with that measured number. */
     position:fixed; top:auto; z-index:30;
     /* v3.489: the floating bar clears each side's safe area on its own. */
-    left:calc(12px + env(safe-area-inset-left, 0px)); right:calc(12px + env(safe-area-inset-right, 0px)); bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);
+    left:calc(12px + var(--side-l)); right:calc(12px + var(--side-r)); bottom:calc(env(safe-area-inset-bottom, 0px) + 10px);
     border-radius:var(--radius-pill); border:1px solid var(--glass-hair);
     box-shadow:0 20px 40px -14px rgba(var(--overlay-black-rgb),0.75);
     overflow:hidden;
@@ -4671,8 +4684,8 @@
     padding-top:calc(12px + env(safe-area-inset-top, 0px));
     /* v3.489: 10px, or more where a side safe area reaches past the centred
        column — .wrap's gutter rule at gym mode's tighter minimum. */
-    padding-left:max(10px, env(safe-area-inset-left, 0px) - var(--wrap-side-margin));
-    padding-right:max(10px, env(safe-area-inset-right, 0px) - var(--wrap-side-margin));
+    padding-left:max(10px, var(--side-l) - var(--wrap-side-margin));
+    padding-right:max(10px, var(--side-r) - var(--wrap-side-margin));
     /* Clears the floating dock AND the rest timer sitting above it. */
     padding-bottom:calc(208px + env(safe-area-inset-bottom, 0px));
   }
@@ -4919,7 +4932,7 @@
      z-index 55: above .rest-timer at 50, which it must never be covered by, and
      below the 60+ band the overlays use, which must always be able to cover it. */
   .gym-dock{
-    position:fixed; left:calc(10px + env(safe-area-inset-left, 0px)); right:calc(10px + env(safe-area-inset-right, 0px)); bottom:10px; z-index:55; /* v3.489: side insets */
+    position:fixed; left:calc(10px + var(--side-l)); right:calc(10px + var(--side-r)); bottom:10px; z-index:55; /* v3.489: side insets */
     display:flex; align-items:center; gap:14px;
     padding:12px 12px 12px 20px;
     margin-bottom:env(safe-area-inset-bottom, 0px);
@@ -5340,6 +5353,50 @@
     .launch.is-out .launch-mark{transform:none;}
     .launch{transition-duration:.2s;}
   }
+  /* [SIDE STATUS COLUMN] (v3.508, iPhone Duo cover screen). Upright, the
+     page now runs under the side inset (--side-l/--side-r are zeroed here),
+     so the status block at the top of that column is cleared on its own:
+     - the large-title header keeps clear of the column beside it, and is
+       tall enough that the first card starts below the block (gym mode has
+       no header, so its list starts there instead);
+     - a patch of the status strip's glass sits behind the block, so content
+       scrolled up under the clock stays out of its way, as the strip does on
+       other iPhones.
+     --status-col-h is the block's depth: about 150pt on the Duo (clock at
+     85pt, battery ring ending at 148pt in the owner's screenshot) plus a
+     margin. min() turns it to 0 on any screen with no side inset, so this
+     whole block is inert on phones. Not on a real device yet.
+     One block, placed after the gym-mode rules it overrides; the scrim is
+     hidden outside it. */
+  .status-col-scrim{ display:none; }
+  @media (orientation: portrait){
+    :root{
+      --side-l:0px; --side-r:0px;
+      --status-col-h:min(160px, calc((env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px)) * 100));
+    }
+    header{
+      padding-left:max(0px, env(safe-area-inset-left, 0px) - 18px); padding-right:max(0px, env(safe-area-inset-right, 0px) - 18px);
+      min-height:calc(var(--status-col-h) - 22px - env(safe-area-inset-top, 0px));
+    }
+    /* The search and settings buttons are placed from the header's edge, not
+       inside its padding, so they take the column's width themselves and stay
+       where they were, beside it. Less 18px: the page's own gutter, which
+       the inset used to replace rather than add to. */
+    .settings-cog{ right:max(0px, env(safe-area-inset-right, 0px) - 18px); }
+    .header-search{ right:calc(50px + max(0px, env(safe-area-inset-right, 0px) - 18px)); }
+    .status-col-scrim{
+      display:block; position:fixed; top:0; right:0; z-index:31; pointer-events:none;
+      width:env(safe-area-inset-right, 0px); height:var(--status-col-h);
+      border-bottom-left-radius:22px;
+      background:var(--index-glass-bg);
+      backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur);
+    }
+    /* Gym mode has no header, so its list starts below the block instead
+       (after gym mode's own .wrap rule, which this overrides upright). */
+    body.gym-mode .wrap{
+      padding-top:max(calc(12px + env(safe-area-inset-top, 0px)), calc(var(--status-col-h) + 8px));
+    }
+  }
   /* [OPEN POSTURE] (v3.490, from the Duo branch's 3.272) ------------------
      An unfolded foldable is wider than tall: about 890x626pt on the iPhone
      Duo, and similar on passport foldables (4:3 to 14:10). Safari gives a page
@@ -5387,6 +5444,50 @@
     }
     .posture-split > *{ grid-column:2; }
     .posture-split > .split-primary{ grid-column:1; grid-row:1 / -1; }
+    /* TWO PANES THAT SCROLL ON THEIR OWN (v3.509, owner on the Duo: "I want
+       the two sides to be able to be scrolled through separately on each
+       tab, right now they move together"). While a split tab is showing, the
+       page stops scrolling: the column is the screen's height, the header and
+       date bar stay put, and the tab fills the rest. The tab scrolls itself,
+       which moves the right pane; the left pane (.split-primary) is pinned to
+       its top and scrolls inside itself. Nothing moves in the DOM.
+       - The tab is a size container, so the left pane can be measured from
+         its height (cqh), ending 12px above the tab bar that floats over it.
+       - The tab reaches out over the page gutters and pads back in, so card
+         shadows are not clipped at its scroll edges.
+       - The footer (the version line) sits under the right pane, clear of
+         the tab bar; its fixed height is what the left pane's sum assumes.
+       - Gym mode keeps its own layout, and Analysis (one two-column
+         dashboard, not two panes) keeps scrolling the page. */
+    body:not(.gym-mode):has(.wrap > .posture-split:not([style*="none"])){ padding-bottom:0; }
+    body:not(.gym-mode):has(.wrap > .posture-split:not([style*="none"])) .wrap{
+      height:100dvh; display:flex; flex-direction:column; padding-bottom:0;
+    }
+    body:not(.gym-mode) .wrap > *{ flex:none; }
+    body:not(.gym-mode) .wrap > .posture-split{
+      flex:1 1 auto; min-height:0; container-type:size;
+      overflow-y:auto; overscroll-behavior-y:contain;
+      margin:0 calc(-1 * var(--gutter-r)) 0 calc(-1 * var(--gutter-l));
+      padding:0 var(--gutter-r) 0 var(--gutter-l);
+    }
+    /* Room at the end of the right pane for the coach button, as a grid item
+       rather than the tab's bottom padding: the pinned left pane can't go
+       past the grid's own bottom, so padding outside it would push the pane
+       up as the right side reached its end. */
+    body:not(.gym-mode) .wrap > .posture-split::after{
+      content:''; grid-column:2; height:calc(var(--above-bar) + 40px);
+    }
+    body:not(.gym-mode) .posture-split > .split-primary{
+      position:sticky; top:0; z-index:1;
+      /* Ends 12px above the tab bar. 100cqh is the tab's height; the tab
+         ends the footer's 20px + inset above the screen's foot, and the bar's
+         top is --above-bar above it. So 100cqh - (above-bar - 20 - inset) - 12. */
+      max-height:calc(100cqh - var(--above-bar) + env(safe-area-inset-bottom, 0px) + 8px);
+      overflow-y:auto; overscroll-behavior-y:contain;
+    }
+    body:not(.gym-mode):has(.wrap > .posture-split:not([style*="none"])) .app-footer{
+      height:calc(20px + env(safe-area-inset-bottom, 0px)); padding:3px 0 0; text-align:right;
+    }
     /* v3.499: the exercise you are on heads the right column. */
     .exercise-detail-card, .history-day-card{ order:-1; }
     .history-day-card:not([hidden]){ display:block; }
@@ -5511,7 +5612,7 @@
     /* Only while the right pane is occupied; otherwise the dock and timer
        span and centre on the screen as on a phone. */
     body.gym-mode:has(#exerciseList > .exercise-block.open) .gym-dock{
-      left:calc(var(--gym-wrap-left) + 10px + env(safe-area-inset-left, 0px));
+      left:calc(var(--gym-wrap-left) + 10px + var(--side-l));
       right:calc(100vw - var(--gym-wrap-left) - 10px - var(--gym-col-w));
     }
     body.gym-mode:has(#exerciseList > .exercise-block.open) .rest-timer{
@@ -5704,6 +5805,7 @@
   </div>
 
   <div class="status-scrim" aria-hidden="true"></div>
+  <div class="status-col-scrim" aria-hidden="true"></div> <!-- v3.508: [SIDE STATUS COLUMN] -->
 
   <!-- HANDOFF v32: .nav-pills is now the sticky positioning shell only.
        .nav-pills-scroll (below) is the actual horizontally-scrolling row —
@@ -7575,7 +7677,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.507';
+const APP_VERSION = '3.509';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8903,6 +9005,12 @@ const WHATS_NEW = {
   ]},
   '3.507': { headline: 'No outline round the set editor', points: [
     'Opening the set editor no longer draws a blue line round the whole sheet. Its buttons still show focus when you use a keyboard.',
+  ]},
+  '3.508': { headline: 'Wider on the iPhone Duo\'s front screen', points: [
+    'On the Duo\'s front screen, the page now uses the full width below the clock instead of leaving an empty strip down the right side.',
+  ]},
+  '3.509': { headline: 'Each side scrolls on its own when unfolded', points: [
+    'Unfolded, the left and right sides of Today, Log, History, Care, Coach and Learn scroll separately instead of moving together.',
   ]},
 };
 
@@ -31215,10 +31323,7 @@ function enterGymMode(opts){
   // Only on a deliberate press. Auto-entering scrolls nowhere, because the
   // person is looking at a set they just logged and yanking the page to the top
   // underneath them is worse than any amount of chrome.
-  if(o.scroll){
-    try{ window.scrollTo({top:0, left:0, behavior:'instant'}); }
-    catch(e){ window.scrollTo(0,0); }
-  }
+  if(o.scroll) scrollAppToTop('instant');
 
   if(o.persist !== false) persistGymSession();
 }
@@ -37992,6 +38097,12 @@ document.getElementById('scanLabelInput').addEventListener('change', async (e)=>
   function begin(x, y, target){
     if(target && target.closest && target.closest('.swipe-content')) return; // don't fight with swipe-to-delete
     if(getScrollTop() > SCROLL_TOLERANCE) return;
+    // v3.509: on an open foldable the split tabs' panes scroll by themselves
+    // while the page stays at the top, so a pull inside a pane that is
+    // scrolled down is that pane scrolling back, not a pull to refresh.
+    for(let el = target; el && el !== document.body; el = el.parentElement){
+      if(el.scrollTop > SCROLL_TOLERANCE) return;
+    }
     startY = y; startX = x;
     dragging = true;
     currentPull = 0;
@@ -39350,10 +39461,7 @@ function switchView(active, opts){
   // pixels of the tab you just left is slower and more disorienting than
   // simply arriving. 'instant' is explicit because 'auto' resolves to the
   // inherited smooth behaviour rather than overriding it.
-  if(scrollToTop){
-    try{ window.scrollTo({top:0, left:0, behavior:'instant'}); }
-    catch(e){ window.scrollTo(0,0); }
-  }
+  if(scrollToTop) scrollAppToTop('instant');
 }
 
 // --- Background scroll lock -------------------------------------------
@@ -40004,6 +40112,25 @@ function findPostureAnchor(root, lineY){
   return {el:below[0].el, top:below[0].r.top};
 }
 
+// v3.509: the scrolls that move the app's content: the page's, and on an open
+// foldable a split tab's and its left pane's ([OPEN POSTURE], TWO PANES THAT
+// SCROLL ON THEIR OWN). Not a card's sideways rail.
+function isAppScroll(target){
+  return target === document || target === document.documentElement || target === document.body
+    || !!(target && target.classList && (target.classList.contains('posture-split')
+      || (target.classList.contains('split-primary') && target.parentElement && target.parentElement.classList.contains('posture-split'))));
+}
+// The nearest of those that actually scrolls el; the page when nothing does.
+function appScrollerOf(el){
+  for(let n = el && el.parentElement; n && n !== document.body; n = n.parentElement){
+    if(isAppScroll(n) && n.scrollHeight > n.clientHeight + 1){
+      const oy = getComputedStyle(n).overflowY;
+      if(oy === 'auto' || oy === 'scroll') return n;
+    }
+  }
+  return window;
+}
+
 (function wirePostureContinuity(){
   let anchor = null;
   let anchorWidth = window.innerWidth;
@@ -40037,7 +40164,9 @@ function findPostureAnchor(root, lineY){
     clearTimeout(captureTimer);
     captureTimer = setTimeout(capture, delay);
   }
-  window.addEventListener('scroll', ()=> scheduleCapture(120), {passive:true});
+  // v3.509: the page, or on an open foldable a split tab's own panes, which
+  // scroll by themselves there (captured, since element scrolls don't bubble).
+  document.addEventListener('scroll', (e)=>{ if(isAppScroll(e.target)) scheduleCapture(120); }, {passive:true, capture:true});
   document.addEventListener('pointerup', ()=> scheduleCapture(450), {passive:true});
 
   window.addEventListener('resize', ()=>{
@@ -40053,9 +40182,11 @@ function findPostureAnchor(root, lineY){
         const r = saved.el.getBoundingClientRect();
         // Instant: html{scroll-behavior:smooth} would otherwise glide there,
         // and the point is that you never see the page move.
+        // v3.509: whichever scrolls it: the page, or unfolded, its pane.
         if(r.height > 0){
-          try{ window.scrollBy({top:r.top - saved.top, left:0, behavior:'instant'}); }
-          catch(e){ window.scrollBy(0, r.top - saved.top); }
+          const scroller = appScrollerOf(saved.el);
+          try{ scroller.scrollBy({top:r.top - saved.top, left:0, behavior:'instant'}); }
+          catch(e){ scroller.scrollBy(0, r.top - saved.top); }
         }
       }
       anchorWidth = window.innerWidth;
@@ -40220,13 +40351,24 @@ function showView(key, opts){
 // Today through showView, exactly like the Today tab (which lands at the
 // top); already on Today, it glides to the top, the way tapping the iPhone
 // status bar does — instantly under Reduce Motion.
+// v3.509: to the top of the app. The page, and on an open foldable the split
+// tabs' own two panes too, which scroll by themselves there ([OPEN POSTURE],
+// TWO PANES THAT SCROLL ON THEIR OWN); elsewhere they don't scroll and their
+// scrollTop is already 0. 'instant' is explicit because 'auto' would inherit
+// html{scroll-behavior:smooth}.
+function scrollAppToTop(behavior){
+  const opts = {top:0, left:0, behavior};
+  for(const el of [window, ...document.querySelectorAll('.posture-split, .posture-split > .split-primary')]){
+    try{ el.scrollTo(opts); }catch(e){ try{ el.scrollTo(0, 0); }catch(e2){} }
+  }
+}
+
 function goHome(){
   closeNavMoreOverlay();
   const onToday = document.getElementById('navToday').classList.contains('active');
   if(!onToday){ showView('today'); return 'switched'; }
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  try{ window.scrollTo({top:0, left:0, behavior: reduce ? 'instant' : 'smooth'}); }
-  catch(e){ window.scrollTo(0, 0); }
+  scrollAppToTop(reduce ? 'instant' : 'smooth');
   return 'scrolled';
 }
 document.getElementById('brandHome').addEventListener('click', goHome);
@@ -48220,7 +48362,9 @@ function syncOverflowFade(rail){
   const fab = document.getElementById('coachFab');
   if(!fab) return;
   let idle = null;
-  window.addEventListener('scroll', ()=>{
+  // v3.509: the page, or unfolded, a split tab's panes (isAppScroll).
+  document.addEventListener('scroll', (ev)=>{
+    if(!isAppScroll(ev.target)) return;
     // Never tuck it out from under an open panel — the class sets
     // pointer-events:none, and a button that stops responding mid-tap is worse
     // than one that sits over a paragraph.
@@ -48228,7 +48372,7 @@ function syncOverflowFade(rail){
     fab.classList.add('tucked');
     if(idle) clearTimeout(idle);
     idle = setTimeout(()=> fab.classList.remove('tucked'), 650);
-  }, {passive:true});
+  }, {passive:true, capture:true});
 })();
 
 // --- Coach FAB drag-to-reposition -------------------------------------------

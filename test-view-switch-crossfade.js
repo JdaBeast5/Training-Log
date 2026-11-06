@@ -10,7 +10,8 @@ const { readIndexSource, extractFunction, extractConst, runJsdom, makeRunner } =
 
 const src = readIndexSource();
 // 2026-10-28 (v3.482): switchView wires clearViewEnter (test-analysis-index-visual-weight.js).
-const switchViewSrc = extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'switchView');
+// 2026-11-06 (v3.509): switchView scrolls to the top through scrollAppToTop, which also resets an open foldable's two panes.
+const switchViewSrc = extractFunction(src, 'clearViewEnter') + '\n' + extractFunction(src, 'scrollAppToTop') + '\n' + extractFunction(src, 'switchView');
 const staggerMaxSrc = extractConst(src, 'STAGGER_MAX_STEPS');
 const staggerStepSrc = extractConst(src, 'STAGGER_STEP_MS');
 // Tab-layout audit (v3.160): switchView reads this to decide when the

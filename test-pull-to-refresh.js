@@ -13,8 +13,9 @@ const { readIndexSource, extractConst, extractFunction, extractIIFE, extractElem
 const { test, run } = makeRunner('test-pull-to-refresh.js');
 const src = readIndexSource();
 
-function mount({ scrollY = 0 } = {}){
-  const { window } = runJsdom(extractElementById(src, 'pullRefreshIndicator') + '<div id="row" class="swipe-content"></div><input id="field">', `
+// 2026-11-06 (v3.509): extra markup for the open-foldable pane case below.
+function mount({ scrollY = 0, extra = '' } = {}){
+  const { window } = runJsdom(extractElementById(src, 'pullRefreshIndicator') + '<div id="row" class="swipe-content"></div><input id="field">' + extra, `
     window.__timers = [];
     window.setTimeout = (fn, ms) => { window.__timers.push(ms); return 0; }; // the reload itself never runs
     Object.defineProperty(window, 'scrollY', { value: ${scrollY}, configurable: true });
@@ -84,6 +85,29 @@ test('REAL source: touchmove is registered non-passive (so it may claim the pull
   assert.match(fn, /addEventListener\('touchmove', [^\n]*\{passive:false\}\)/);
   assert.strictEqual((fn.match(/pointerType !== 'touch'/g) || []).length, 4, 'pointerdown, move, up, cancel');
   assert.match(fn, /const RELOAD_DELAY = 150;/);
+});
+
+// v3.509 — On an open foldable the split tabs' panes scroll by themselves and
+// the page stays at the top. A pull inside a pane that is scrolled down is the
+// pane scrolling back up, not a refresh; at the top of the pane it still is.
+test('REAL invocation (v3.509): inside a scrolled-down pane a pull is the pane scrolling, not a refresh; at its top it refreshes', (assert)=>{
+  const html = '<div class="posture-split" id="view"><div class="split-primary" id="pane"><p id="inner">x</p></div></div>';
+  const down = mount({ extra: html });
+  Object.defineProperty(down.doc.getElementById('pane'), 'scrollTop', { value: 240, configurable: true });
+  down.touch('touchstart', 100, 100, down.doc.getElementById('inner'));
+  assert.strictEqual(down.touch('touchmove', 100, 220).defaultPrevented, false, 'not claimed');
+  down.touch('touchend');
+  assert.strictEqual(down.window.__timers.length, 0, 'no refresh');
+  const viewDown = mount({ extra: html });
+  Object.defineProperty(viewDown.doc.getElementById('view'), 'scrollTop', { value: 90, configurable: true });
+  viewDown.touch('touchstart', 100, 100, viewDown.doc.getElementById('inner'));
+  viewDown.touch('touchmove', 100, 220); viewDown.touch('touchend');
+  assert.strictEqual(viewDown.window.__timers.length, 0, 'nor when the tab itself is scrolled');
+  const top = mount({ extra: html });
+  top.touch('touchstart', 100, 100, top.doc.getElementById('inner'));
+  assert.strictEqual(top.touch('touchmove', 100, 220).defaultPrevented, true);
+  top.touch('touchend');
+  assert.deepStrictEqual([...top.window.__timers], [150], 'at the top it still refreshes');
 });
 
 run();

@@ -385,4 +385,102 @@ test('REAL source (v3.506): a 128px ring, 34px clock and broad +15s, only in the
   assert.ok(!/rest-timer-ring\{ width:128px/.test(outside), 'nothing outside the open block grows it');
 });
 
+// v3.509 — Two panes that scroll on their own (owner on the Duo: "I want the
+// two sides to be able to be scrolled through separately on each tab, right
+// now they move together"). While a split tab shows on the open screen, the
+// page is the screen's height and doesn't scroll; the tab scrolls itself (the
+// right pane) and its left pane is pinned to its top, scrolling inside itself.
+// Real-browser result (Chromium, 904x678): on Today, Log, History, Care,
+// Coach and Learn the page's scroll range is 0; scrolling the tab leaves the
+// left pane where it was, and scrolling the pane leaves the tab where it was;
+// every left pane ends at 603, 12px above the tab bar at 615; scrolled to the
+// end, the pinned pane stays put. Analysis still scrolls the page; gym mode
+// and a 402x874 phone are unchanged (body padding 149px, views not scrollers).
+const SPLIT = 'body:not(.gym-mode) .wrap > .posture-split';
+const PANE = 'body:not(.gym-mode) .posture-split > .split-primary';
+const SHOWING = 'body:not(.gym-mode):has(.wrap > .posture-split:not([style*="none"]))';
+test('REAL source (v3.509): the page is held to the screen only while a split tab shows, and never in gym mode', (assert)=>{
+  assert.equal(decl(SHOWING, 'padding-bottom'), '0');
+  assert.equal(decl(SHOWING + ' .wrap', 'height'), '100dvh');
+  assert.equal(decl(SHOWING + ' .wrap', 'flex-direction'), 'column');
+  assert.equal(decl(SPLIT, 'overflow-y'), 'auto');
+  assert.equal(decl(SPLIT, 'min-height'), '0');
+  assert.equal(decl(SPLIT, 'container-type'), 'size');
+  assert.equal(decl(PANE, 'position'), 'sticky');
+  assert.equal(decl(PANE, 'top'), '0');
+  assert.equal(decl(PANE, 'overflow-y'), 'auto');
+  assert.equal(decl(PANE, 'overscroll-behavior-y'), 'contain', 'the end of the left pane never drags the right one along');
+  assert.ok(!/#analysisView\s*\{[^}]*overflow/.test(OPEN), 'Analysis keeps scrolling the page');
+  const outside = src.replace(RAW[OPEN], '').replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.ok(!/split-primary\{[^}]*position:sticky/.test(outside) && !/container-type:size/.test(outside), 'phones keep one scrolling page');
+});
+
+test('REAL formulas (v3.509): every left pane ends 12px above the tab bar, whatever the header height or bottom inset', (assert)=>{
+  const footerH = decl(SHOWING + ' .app-footer', 'height');
+  const paneMax = decl(PANE, 'max-height');
+  const aboveBar = /--above-bar:([^;]+);/.exec(src)[1].trim();
+  for(const [vh, top, inset, rail] of [[678, 170, 0, 53], [626, 110, 0, 53], [703, 193, 20, 64]]){
+    const env = s => s.replace(/env\(safe-area-inset-bottom, 0px\)/g, String(inset));
+    const v = { vw:904, '--nav-rail-h':rail + 'px' };
+    const bar = px(env(aboveBar), v);
+    const footer = px(env(footerH), v);
+    const tabH = vh - top - footer;                       // the tab fills what the header and footer leave
+    const pane = px(env(paneMax).replace(/100cqh/g, String(tabH) + 'px'), { ...v, '--above-bar':bar + 'px' });
+    assert.equal(top + pane, vh - bar - 12, `${vh}/${top}/${inset}`);
+  }
+});
+
+test('REAL source (v3.509): the room under the right pane is a grid item, so the pinned pane is never pushed up at the end', (assert)=>{
+  assert.equal(decl(SPLIT + '::after', 'grid-column'), '2');
+  assert.equal(decl(SPLIT + '::after', 'height'), 'calc(var(--above-bar) + 40px)');
+  assert.equal(decl(SPLIT, 'padding'), '0 var(--gutter-r) 0 var(--gutter-l)', 'no bottom padding outside the grid');
+  assert.equal(decl(SPLIT, 'margin'), '0 calc(-1 * var(--gutter-r)) 0 calc(-1 * var(--gutter-l))', 'out over the gutters, so shadows are not clipped');
+});
+
+function scrollWindow(){
+  const views = ['today', 'log', 'history', 'care', 'coach', 'learn'].map(k => `<div id="${k}View" class="posture-split"><div class="card split-primary" id="${k}Pane"></div><div class="card" id="${k}Right"></div></div>`).join('');
+  const { window } = runJsdom(views + '<div id="analysisView"><div class="card" id="anaCard"></div></div>', `
+    window.__calls = [];
+    window.scrollTo = o => window.__calls.push('window:' + o.behavior);
+    Element.prototype.scrollTo = function(o){ window.__calls.push(this.id + ':' + o.behavior); };`,
+    [extractFunction(src, 'scrollAppToTop'), extractFunction(src, 'isAppScroll'), extractFunction(src, 'appScrollerOf')]);
+  return window;
+}
+test('REAL invocation (v3.509): to the top means the page and both panes of every split tab; never a card or Analysis', (assert)=>{
+  const w = scrollWindow();
+  w.scrollAppToTop('instant');
+  assert.ok(w.__calls.includes('window:instant'));
+  for(const k of ['today', 'log', 'history', 'care', 'coach', 'learn']){
+    assert.ok(w.__calls.includes(`${k}View:instant`), k + ' tab');
+    assert.ok(w.__calls.includes(`${k}Pane:instant`), k + ' left pane');
+    assert.ok(!w.__calls.includes(`${k}Right:instant`));
+  }
+  assert.ok(!w.__calls.some(c => c.startsWith('ana')));
+  assert.strictEqual(w.__calls.length, 13);
+  w.__calls.length = 0; w.scrollAppToTop('smooth');
+  assert.ok(w.__calls.every(c => c.endsWith(':smooth')), 'the behaviour passes through');
+  for(const site of ['goHome', 'switchView']) assert.match(extractFunction(src, site), /scrollAppToTop\(/, site + ' uses it');
+  assert.strictEqual((src.match(/window\.scrollTo\(\{top:0, left:0/g) || []).length, 0, 'no copy of the old page-only scroll is left');
+});
+
+test('REAL invocation (v3.509): which scrolls count as the app\'s, and which one a fold restores through', (assert)=>{
+  const w = scrollWindow();
+  const d = w.document;
+  assert.ok(w.isAppScroll(d));
+  assert.ok(w.isAppScroll(d.getElementById('logView')));
+  assert.ok(w.isAppScroll(d.getElementById('logPane')));
+  assert.ok(!w.isAppScroll(d.getElementById('logRight')), 'a card is not');
+  assert.ok(!w.isAppScroll(d.getElementById('anaCard')));
+  const card = d.getElementById('logRight'), inPane = d.createElement('p');
+  d.getElementById('logPane').appendChild(inPane);
+  assert.strictEqual(w.appScrollerOf(card), w, 'nothing scrolls (a phone): the page');
+  for(const id of ['logView', 'logPane']){
+    const el = d.getElementById(id);
+    Object.defineProperty(el, 'scrollHeight', { value: 2000 }); Object.defineProperty(el, 'clientHeight', { value: 500 });
+    el.style.overflowY = 'auto';
+  }
+  assert.strictEqual(w.appScrollerOf(card), d.getElementById('logView'), 'right pane: the tab');
+  assert.strictEqual(w.appScrollerOf(inPane), d.getElementById('logPane'), 'left pane: the pane');
+});
+
 run();
