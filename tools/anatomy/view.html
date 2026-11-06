@@ -1,0 +1,78 @@
+<!doctype html><html><head><style>html,body{margin:0;background:#0b0c10}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script></head>
+<body><script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const W=480,H=640; const r=new THREE.WebGLRenderer({antialias:true}); r.setSize(W,H); r.setPixelRatio(1); r.outputColorSpace=THREE.SRGBColorSpace; r.toneMapping=THREE.ACESFilmicToneMapping; r.shadowMap.enabled=true; document.body.appendChild(r.domElement);
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x0b0c10);
+const cam=new THREE.PerspectiveCamera(30,W/H,0.1,50);
+scene.add(new THREE.HemisphereLight(0xbfd4ff,0x202028,0.9));
+const key=new THREE.DirectionalLight(0xffffff,2.2); key.position.set(2,4,3); key.castShadow=true; key.shadow.mapSize.set(1024,1024); scene.add(key);
+const rim=new THREE.DirectionalLight(0x7aa2ff,1.6); rim.position.set(-3,2,-3); scene.add(rim);
+const floor=new THREE.Mesh(new THREE.CircleGeometry(1.4,64),new THREE.MeshStandardMaterial({color:0x15171c,roughness:1})); floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
+const g=await new GLTFLoader().loadAsync('./human.glb'); const model=g.scene; scene.add(model);
+let mesh; model.traverse(o=>{ if(o.isSkinnedMesh){ mesh=o; o.castShadow=true; window.__mesh=o; }});
+const box=new THREE.Box3().setFromObject(model); model.position.y-=box.min.y;
+
+{ const geo=mesh.geometry, pos=geo.attributes.position, nor=geo.attributes.normal, ji=geo.attributes.skinIndex, wi=geo.attributes.skinWeight;
+  const names=mesh.skeleton.bones.map(b=>b.name);
+  const n=pos.count, col=new Float32Array(n*3), glow=new Float32Array(n);
+  const skin=new THREE.Color(0xd9cfc6), short=new THREE.Color(0x23262d);
+  const wOf=(i,pred)=>{ let w=0; for(let k=0;k<4;k++){ if(pred(names[ji.getComponent(i,k)])) w+=wi.getComponent(i,k);} return w; };
+  let ymin=Infinity,ymax=-Infinity; for(let i=0;i<n;i++){ const y=pos.getY(i); ymin=Math.min(ymin,y); ymax=Math.max(ymax,y); }
+  const H=ymax-ymin, Y=i=>(pos.getY(i)-ymin)/H;
+  for(let i=0;i<n;i++){
+    const y=Y(i), nz=nor.getZ(i);
+    const isShort = y>0.43 && y<0.585 && wOf(i,b=>/upperarm|lowerarm|wrist|finger|metacarpal|hand/.test(b))<0.2;
+    const c = isShort ? short : skin;
+    col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b;
+    const thigh=wOf(i,b=>/^upperleg/.test(b)), glute=wOf(i,b=>/pelvis|upperleg01/.test(b));
+    let g=0;
+    if(thigh>0.5 && nz>0.15 && y<0.5 && y>0.3) g=Math.min(1,(nz-0.15)*2.2);           // quads, front of thigh
+    if(glute>0.4 && nz<-0.25 && y>0.46 && y<0.56) g=Math.max(g,Math.min(1,(-nz-0.25)*2)); // glutes
+    glow[i]=g;
+  }
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3)); geo.setAttribute('glow',new THREE.BufferAttribute(glow,1));
+  const mat=new THREE.MeshPhysicalMaterial({vertexColors:true,roughness:.62,metalness:0,sheen:.4,sheenRoughness:.8,sheenColor:new THREE.Color(0x8899aa)});
+  window.__pulse={value:0.7};
+  mat.onBeforeCompile=(sh)=>{ sh.uniforms.uPulse=window.__pulse; sh.uniforms.uGlowCol={value:new THREE.Color(0x3d7bff)};
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nattribute float glow; varying float vGlow;').replace('#include <begin_vertex>','#include <begin_vertex>\nvGlow=glow;');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying float vGlow; uniform float uPulse; uniform vec3 uGlowCol;')
+      .replace('#include <color_fragment>','#include <color_fragment>\ndiffuseColor.rgb=mix(diffuseColor.rgb,uGlowCol,vGlow*0.55);')
+      .replace('#include <emissivemap_fragment>','#include <emissivemap_fragment>\ntotalEmissiveRadiance+=uGlowCol*vGlow*uPulse*0.55;'); };
+  mesh.material=mat; }
+window.__bones=Object.fromEntries(mesh.skeleton.bones.map(b=>[b.name,b])); window.__model=model; window.__THREE=THREE;
+window.__shot=(view)=>{ const d=3.6; if(view==='side'){cam.position.set(d,0.95,0);} else {cam.position.set(0,0.95,d);} cam.lookAt(0,0.85,0); model.updateMatrixWorld(true); r.render(scene,cam); return r.domElement.toDataURL('image/png'); };
+
+const rest = {}; for(const [n,b] of Object.entries(window.__bones)) rest[n]=b.quaternion.clone();
+const D=Math.PI/180, X=new THREE.Vector3(1,0,0), Z=new THREE.Vector3(0,0,1), Y=new THREE.Vector3(0,1,0);
+const q=(ax,deg)=>new THREE.Quaternion().setFromAxisAngle(ax,deg*D);
+const B=new Proxy(window.__bones,{get:(t,k)=>t[String(k).replace(/\./g,'')]});
+const footRest = new THREE.Vector3();
+model.updateMatrixWorld(true); B['foot.L'].getWorldPosition(footRest);
+const basePos = model.position.clone();
+// World-angle pose: torso lean (fwd +), thigh (deg forward from straight down), shin (deg back from straight down),
+// shoulder flexion (deg forward from hanging), elbow flexion.
+window.__pose = (p)=>{
+  for(const [n,b] of Object.entries(B)) b.quaternion.copy(rest[n]);
+  const L=p.torso||0, th=p.thigh||0, sh=p.shin||0;
+  B['root'].quaternion.copy(q(X, L*0.35));            // pelvis tilts with the lean
+  B['spine05'].quaternion.copy(q(X, L*0.65));          // the rest through the spine
+  B['neck01'].quaternion.copy(q(X, -L*0.55));          // eyes stay level-ish: a neutral gaze
+  for(const s of ['L','R']){
+    B['upperleg01.'+s].quaternion.copy(q(X, -th - L*0.35));
+    B['lowerleg01.'+s].quaternion.copy(q(X, sh + th));
+    B['foot.'+s].quaternion.copy(q(X, -sh));
+    // A-pose -> arms down by the sides (about Z), then flex forward (about X) in world terms.
+    const side = s==='L' ? 1 : -1;
+    const down = q(Z, -side*(p.armDown!=null?p.armDown:48));
+    const flex = q(X, -(p.shoulder||0) - L);           // world flexion, minus the torso's lean
+    B['upperarm01.'+s].quaternion.copy(flex.multiply(down));
+    B['lowerarm01.'+s].quaternion.copy(q(X, -(p.elbow||0)));
+  }
+  model.position.copy(basePos); model.updateMatrixWorld(true);
+  const f=new THREE.Vector3(); B['foot.L'].getWorldPosition(f);
+  model.position.add(footRest.clone().sub(f)); model.updateMatrixWorld(true);
+};
+window.__ready=true; console.log('box', JSON.stringify(box));
+</script></body></html>
