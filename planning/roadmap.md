@@ -136,3 +136,27 @@ Theme 7 sits above theme 8 despite the lower score. Readiness is seen every trai
 - **Now (ready, BL-01 to BL-26):** safety, then correctness, then the first step of each bar-raiser. All are render-time or read-only, with no stored-data change.
 - **Owner decisions (BL-27 to BL-40):** each is one version once approved. Each has a one-line question in `backlog.md`.
 - **Process:** one item per build run, as a PR into `Branch-1`, following `planning/toolchain.md` §6. Nothing goes live without the owner's yes.
+
+---
+
+## Business priorities
+Added by the business-manager, 2026-11-07, against v3.514. Reasoning and evidence are in `planning/business.md` §5–7; items are in `planning/backlog.md` → "Business (BIZ)". These are re-rank requests for the project-manager, not edits to the table above.
+
+**North star:** weekly active trainers, meaning people who log at least 2 training sessions in a calendar week (business.md §4). Today the scores above weight "impact on the owner's daily use". For a public product, activation and data trust matter as much, because a stranger who never logs a first set, or loses a month of logs, never reaches any of the bar-raisers.
+
+**Requested build order:**
+1. **Safety stays first** (BL-01 to BL-06). It's also the prerequisite for any public listing (BIZ-15).
+2. **First launch next, ahead of the bar-raisers (BL-16 onward):** BIZ-02 (one name, asked once), BIZ-01 (3-question quick start), BIZ-03 (placeholder calorie target labelled), BIZ-05 (first-set load hint). Each is small and render-time; BIZ-01 is the largest.
+3. **Data trust:** BIZ-04 (first backup nudge after 3 sessions) and BL-22 (CSV export) move up. BIZ-10 (install hint) sits with them, because a Safari-tab user is the most at risk of losing data.
+4. **Honesty and presentation, slotted between larger items:** BIZ-06 (AI entry points say they need a key), BIZ-07 (truthful metadata and README), then BIZ-17 (the first screen says what the app is; ship it after BIZ-07 so they match), and BIZ-09 (on-device first-month summary).
+5. **Theme 8 (portability) should rank above its score.** For switchers from Strong and Hevy, import (BL-29) is the door in and export (BL-22) is the trust signal. Recommend the owner approves BL-29.
+6. **Hold new verticals.** Lifting first, food second; nothing new beyond the backlog until weekly active trainers can be measured (business.md §5.7).
+
+**Owner decisions, in priority order** (each has its question and a recommendation in the backlog):
+1. BIZ-12: go public (Play first via the Capacitor build) and under what name. Unlocks BIZ-08 and BIZ-16.
+2. BIZ-16: a plain-language privacy policy page.
+3. BIZ-15: clinical acknowledgement and claims review before any listing.
+4. BIZ-11: "free core, no ads" as a public commitment.
+5. BIZ-08: the app's address on share cards.
+6. BIZ-13: off-device backup (own iCloud or Drive first).
+7. BIZ-14: hosted AI (recommend not yet).

@@ -837,7 +837,8 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Why:** PR, streak and weekly share cards end with the text "TRAINING LOG" (`buildShareCardBlob`, 29510) and share text with no URL (~29620). Every share is a referral that can't be followed. The marketing-manager owns share moments; this item only adds the link.
 - **Change:** a `PUBLIC_APP_URL` constant beside `APP_VERSION` (7622). It's drawn under "TRAINING LOG" on the card and appended to `shareText`.
 - **Acceptance criteria:** the share text passed to a stubbed `navigator.share` ends with `PUBLIC_APP_URL`, and the card canvas receives a `fillText` call with it (stub-counted: 1).
-- **Test plan:** extend the share-card coverage with a stub canvas. Sabotage: drop the append.
+- **Test plan:** new `test-share-card-url.js`, with the real `buildShareCardBlob` and share handler, a stub canvas and a stub `navigator.share`. Sabotage: drop the append, and the share-text assertion must fail.
+- **Files:** `index.html` (7622, 29510, ~29620), `sw.js`, the test.
 - **Risk:** it advertises the app's public address on every share, before the owner has decided to go public (BIZ-12).
 - **Status:** needs-owner. **Question:** "Put the app's public web address on every share card and share message?" **Recommendation:** yes, once BIZ-12 settles the address (GitHub Pages now, the store link later).
 
@@ -845,13 +846,24 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Why:** with no store listing, a generic name and an empty README, nobody can find the app (business.md §5.1). The Capacitor track creates the store build; the business needs the owner's decision to list it.
 - **Change:** none in code until answered. The answer unlocks BIZ-08 and BIZ-16 and the marketing launch plan.
 - **Acceptance criteria:** the owner's answer is recorded in `planning/business.md` §6.
+- **Test plan:** none; a decision, not code.
+- **Files:** `planning/business.md`.
+- **Risk:** going public turns the clinical programs into a health-claim question (BIZ-15) and requires a privacy policy (BIZ-16). Neither should lag the listing.
 - **Status:** needs-owner. **Question:** "Do you want Training Log public (Google Play first via the Capacitor build, then the App Store), and do you keep the name 'Training Log' or let marketing propose an ownable one?" **Recommendation:** Play first (Android is the Capacitor track's target, and the Play fee is one-time); let marketing propose names before the listing.
 
 ### BIZ-16: A privacy policy page
 - **Why:** store listings for apps handling health data require a privacy policy (business.md §6). Ours would be unusually short and strong: logs stay on device; food queries go to USDA and Open Food Facts; AI calls go to Anthropic only with your own key; no analytics.
 - **Change:** a static `privacy.html` beside `index.html`. Text only, linked from Settings and the README.
-- **Acceptance criteria:** every third-party host the app can contact (grep of `fetch(` targets) is named in the page. Checked by a test that greps the real `fetch` URLs.
-- **Risk:** legal text. The owner must approve the wording.
+- **Acceptance criteria:**
+  1. Every third-party host the app can contact (the hosts in the real `fetch(` call expressions in `index.html`, comments excluded) is named in `privacy.html`.
+  2. `privacy.html` contains no analytics or tracking script tag (count 0).
+  3. Settings has one link whose `href` is `privacy.html`.
+- **Test plan:** new `test-privacy-policy-hosts.js`: parse the real `fetch(` targets out of `index.html`, then load `privacy.html` in jsdom and assert each host appears in its text. Sabotage: add a fake `fetch('https://example.org')` to the extracted source, and criterion 1 must fail.
+- **Files:** `privacy.html` (new), `index.html` (Settings link), `README.md`, `sw.js` (version; precache the page), the test.
+- **Risk:**
+  - Legal text. The owner must approve the wording.
+  - A second HTML file beside `index.html` is a new file, which CLAUDE.md asks the owner to confirm.
+  - The page drifts when a new host is added; criterion 1 catches that.
 - **Status:** needs-owner. **Question:** "Publish a plain-language privacy policy listing exactly which services the app talks to?" **Recommendation:** yes. It's required for a listing and it's a selling point.
 
 ### BIZ-15: Clinical-content review and disclaimer before any public listing
@@ -863,7 +875,15 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - BL-01 to BL-06 ship first.
   - Then a single-screen acknowledgement the first time a clinical program is chosen: "Use this with your care team's clearance."
   - Plus a review of every `basis` string for claims that read as medical advice.
-- **Acceptance criteria:** choosing any `MEDICAL_STYLES` key the first time shows the acknowledgement, once (stored with `window.storage`).
+- **Acceptance criteria:**
+  1. Choosing any `MEDICAL_STYLES` key (11352) for the first time shows the acknowledgement.
+  2. After it's acknowledged, choosing the same or another clinical program doesn't show it again (stored with `window.storage`).
+  3. Choosing a non-clinical program never shows it.
+- **Test plan:** new `test-clinical-ack.js`, with the real program-switch path (`saveActiveProgram`, 14888) and a stub `window.storage`. Sabotage: skip the stored flag, and criterion 2 must fail.
+- **Files:** `index.html` (11352, 14888, program picker), `sw.js`, the test. The `basis` review touches `content-citations.js` and program `basis` strings only after the owner decides who reviews them.
+- **Risk:**
+  - Health-claim and legal wording; the owner (or a clinician) must approve it.
+  - One extra tap on clinical programs, once. Guarded by `test-program-recommendation.js`.
 - **Status:** needs-owner. **Question:** "Before going public, add a one-time care-team acknowledgement to clinical programs and have their claims reviewed (by you or a clinician)?" **Recommendation:** yes. Keep the programs, because they're a differentiator no competitor has.
 
 ### BIZ-11: Business model
@@ -872,6 +892,10 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - Running costs exist only for hosted AI and sync.
   - Category subscriptions reportedly convert well, but only through store billing (business.md §3; RevenueCat 2025 via Athletech News, secondary).
 - **Change:** none until answered.
+- **Acceptance criteria:** the owner's answer is recorded in `planning/business.md` §3, and BIZ-07's README copy matches it.
+- **Test plan:** none; a decision, not code.
+- **Files:** `planning/business.md`.
+- **Risk:** a public "free forever" promise is hard to take back. Scope it to the core (logging, programs, progression).
 - **Status:** needs-owner. **Question:** "Commit publicly to 'free core, no ads, ever', with any future paid tier limited to things that cost money to run (hosted AI, encrypted sync)?" **Recommendation:** yes. Decide on a paid tier only after the store build has 90 days of retention data.
 
 ### BIZ-13: Off-device backup or sync
@@ -879,10 +903,33 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - One lost phone loses everything (business.md §5.3).
   - BIZ-04 and BL-22 reduce the risk, but they're manual.
   - A real fix moves data off the device: an export to the user's own iCloud or Drive through the share sheet, or encrypted sync on a server.
-- **Change:** none until answered.
+- **Change:** none until answered. If the own-cloud option is chosen, a follow-up item extends the existing JSON export (`exportDataBtn` 6248, handler 34159) to hand the file to the share sheet (`navigator.share` with a `File`), so the user can save it to iCloud Drive or Google Drive.
+- **Acceptance criteria:** the owner's answer is recorded in `planning/business.md` §5.3. The follow-up item writes its own jsdom criteria.
+- **Test plan:** none until answered.
+- **Files:** `planning/business.md`; later `index.html` (34159).
+- **Risk:** any server option changes where user data goes and breaks the "your logs stay on your phone" promise.
 - **Status:** needs-owner. **Question:** "Should the app offer automatic backup off the device, either to your own iCloud or Google Drive (no server of ours) or to an encrypted sync service (needs a server and accounts)?" **Recommendation:** own-cloud file export first (no server, privacy promise intact); a sync service only alongside BIZ-11's paid tier.
 
 ### BIZ-14: Hosted AI for people without a key
 - **Why:** the AI features need the user's own Anthropic key (6630), which blocks almost every new user (business.md §5.4). Hosting them needs a server, a key we pay for, and abuse limits.
 - **Change:** none until answered. BIZ-06 makes the current state honest in the meantime.
+- **Acceptance criteria:** the owner's answer is recorded in `planning/business.md` §3.
+- **Test plan:** none; a decision, not code.
+- **Files:** `planning/business.md`.
+- **Risk:** recurring API cost, abuse limits, and user prompts (food photos, health data) going to a server we run. That breaks the privacy promise unless it's clearly opt-in.
 - **Status:** needs-owner. **Question:** "Run the AI features on a server we pay for, so users don't need their own key?" **Recommendation:** not yet. Revisit with BIZ-11 once retention is known. Today AI is a power-user extra, not the core.
+
+### BIZ-17: The first screen says what the app is
+- **Why:** a stranger's first screen is "Training Log · Who's training? · Create a new profile" (`userPickerOverlay`, 5701–5712), with no line on what the app does or why it's worth a name (Playwright first-launch walk, business.md §5.2). The promise in business.md §1 is true at v3.514 and costs one line.
+- **Change:**
+  - Add one line under `#userPickerTitle`: "Proven programs that tell you what to lift next, one tap per set. Free, no ads, no account, and your logs stay on your phone."
+  - `showUserPicker` (9637) shows it only when `getUserList()` is empty, the same condition that already hides the divider (v3.467). Switching between existing profiles is unchanged.
+  - Copy only. If `planning/marketing.md` has settled wording by build time, its copy wins on tone; the line must stay factually true.
+- **Acceptance criteria:**
+  1. With an empty user list, `showUserPicker()` leaves the promise line visible and its text contains "your logs stay on your phone".
+  2. With one or more users, the line is hidden.
+  3. The divider's existing behaviour is unchanged in both states.
+- **Test plan:** extend `test-first-launch.js`, with the real overlay markup and the real `showUserPicker`. Sabotage: drop the empty-list condition, and criterion 2 must fail.
+- **Files:** `index.html` (5701–5712, 9637–9652), `sw.js`, the test.
+- **Risk:** low. Picker layout at 402×874; check it in Playwright. Ship after BIZ-07 so the page metadata and the first screen say the same thing.
+- **Status:** ready

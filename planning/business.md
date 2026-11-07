@@ -120,7 +120,7 @@ Walked in Playwright at 402×874 in a fresh context (scripts in the session scra
 - **The calorie target is a placeholder shown as fact.** The Log tab says "2169 cal left of 2169" before any height, weight or age has been entered. That's the default profile (30 years, 5'8", 160 lb; `userProfile` 32397) run through `computeTargets` (32973), and nothing says it's an estimate.
 - **Analysis after one session** leads with "AI Cross-Metric Insights: Generate insights", which needs an API key, while Training Trends sits collapsed below it.
 - **The good news:** no console errors, a 347 ms load on localhost, no external requests on first launch, and one-tap logging after the first set.
-- **Items:** BIZ-01 (3-question quick start), BIZ-02 (one name, asked once), BIZ-03 (an honest placeholder target), BIZ-05 (first-set load hint).
+- **Items:** BIZ-01 (3-question quick start), BIZ-02 (one name, asked once), BIZ-03 (an honest placeholder target), BIZ-05 (first-set load hint), BIZ-17 (the first screen says what the app is).
 
 ### 3. One lost phone loses everything (data trust)
 - **Evidence:**
@@ -194,7 +194,7 @@ The full text is in `planning/roadmap.md` → "Business priorities".
 1. Keep safety first (BL-01 to BL-06). It's also the legal prerequisite for going public.
 2. Pull the first-launch items (BIZ-01 to BIZ-03, BIZ-05) ahead of the bar-raisers (BL-16 onward). Activation multiplies everything else.
 3. Pull data trust forward: BIZ-04 and BL-22, and approve BL-29.
-4. BIZ-06 to BIZ-10 are small and ready; slot them between larger items.
+4. BIZ-06, BIZ-07, BIZ-09, BIZ-10 and BIZ-17 are small and ready; slot them between larger items.
 5. Owner decisions in this order: BIZ-12 (go public?), BIZ-16 (privacy policy), BIZ-15 (clinical review), BIZ-11 (model), BIZ-13 (sync), BIZ-14 (hosted AI).
 
 ---
