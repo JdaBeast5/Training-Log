@@ -294,3 +294,135 @@ All three use the same 90 KB Archivo file at different widths (68%, 125% and 100
 2. Is the session count ("47") the right bib number, or should it be the program week ("Wk 3")?
 3. Does "Chalklog" survive a bib-led card, or does that argue for "Liftnext"?
 4. Is "Finished 58:12" too close to a race claim for a lifting session?
+
+---
+
+## 6. Marketing review
+
+Owner: marketing-manager. Written 2026-11-07 against **v3.514**, after reading §0 to §5, all nine renders in `tools/design/directions/renders/`, `marketing.md`, `summit.md` (R1 to R6) and `pitch.md`. Line numbers are `index.html` at v3.514; re-grep before building. Outside claims carry a source (listed at the end of this section). Where I describe a competitor's look from general familiarity rather than a source, I say so.
+
+### 6.1 What the viral apps actually own
+
+Each app that people can name from a thumbnail owns at least one of three things. Very few own all three.
+
+| App | A format you can name without the logo | A ritual that recurs | One constant colour or shape |
+|---|---|---|---|
+| Strava | The route line on a map, and since 2025 a transparent **Stats Sticker** laid over your own photo in Instagram Stories ([Strava support](https://support.strava.com/en-us/articles/17718841-how-do-i-share-my-strava-activity-to-instagram-stories-as-a-transparent-sticker); [BikeRadar](https://www.bikeradar.com/news/strava-sticker-stats-spring-2025-updates)) | Every activity, plus Year in Sport each December | Orange, every time |
+| Spotify Wrapped | A sequence of story cards | Once a year, the same week, for everyone at once (500M shares on day one, marketing §3.1) | None: the palette changes every year, so the **ritual** carries recall |
+| Duolingo | The flame and the owl | Daily streak (marketing §3.1) | Green plus the owl |
+| BeReal | The two-camera inset: you know it's BeReal with the logo covered | One random daily window, which is also what wore out once it became predictable ([Wikipedia](https://en.wikipedia.org/wiki/BeReal); [Platformer](https://platformer.news/how-bereal-missed-its-moment)) | The format is the brand |
+| WHOOP | The recovery percentage in green, yellow or red. No official card spec was found; its Year in Review sharing leans on screenshots plus photos (search, 2026-11-07) | Daily recovery | Black with traffic-light state (observation) |
+| Hevy | Generated "shareables" with a dark, white or **transparent** background to lay over a gym photo or video ([Hevy](https://www.hevyapp.com/features/shareable/)) | Every workout | Weak: a blue accent and a stats grid (observation) |
+| Strong | Not a share brand (observation) | — | — |
+| Ladder, Future | Coach-led: the coach's face and the team are the brand; Ladder's teams are the community ([Fortune](https://www.fortune.com/2024/12/10/strength-training-ladder-app-users-growth)) | Team programs and coach drops | Dark premium (observation) |
+| Oura | The ring and the readiness number (observation) | Morning score | The ring |
+| Gentler Streak | A soft character and rest-aware activity path. Rest days keep the streak, the same idea as MKT-01 ([App Store](https://apps.apple.com/us/app/gentler-streak-fitness-tracker/id1576857102)) | Daily | Its pastel palette (observation) |
+
+Two lessons for us:
+1. **In strength training, the dominant story format is stats laid over your own gym photo** (Strava's sticker, Hevy's transparent background). A standalone poster competes with that habit, it doesn't ride it.
+2. **Recall comes from a constant: a colour (Strava), a shape (BeReal, Oura) or a dated ritual (Wrapped).** A varies its colour by day, so it needs a constant somewhere else.
+
+### 6.2 What the renders show (my own read)
+
+- **A card (`a-card.png`):** handsome and true. The loaded bar is the one ownable element. The bottom half is the three-number grid every workout app ships. At thumbnail size it reads as "red sports poster": Nike or Ladder territory, not ours.
+- **B card (`b-card.png`):** the most distinctive object and the most honest data. At thumbnail it reads as a court diagram, so a stranger doesn't know it's a workout. Its wordmark sits at about y = 1737, which fails MKT-03's criterion 2 (all text between y = 250 and 1700).
+- **C card (`c-card.png`):** the only one that stops a thumb. A bib is an object people already post, and "47" begs "47 what?". But **with the logo covered, a stranger says "a race" (running), not "a lifting app".** The rendered bib has no barbell on it, so nothing says lifting. It's the right frame with the wrong cue.
+- **Two honesty problems in the C card that §2.3 and the `c-card.html` head comment don't mention, found in the code:**
+  1. **"Session 47" counted from `activity-dates` stops counting after two years.** `recordActivity` prunes that key to 730 days (`ACTIVITY_DATES_RETENTION_DAYS`, 13906). Someone training four days a week would plateau at about 416, and their number would never rise again. The most loyal users would carry a wrong number. The count must come from the set log (`readExCorpus`, 41014: distinct dates with a logged set), not from `activity-dates`.
+  2. **"Finished 58:12" has no data behind it for most sessions.** Seconds exist only in Gym mode (`gymElapsedMs`, 30312), which UX-17 may retire. Outside it, the only timing is `workout-time:{date}`, the first and last set's clock time at minute resolution (`recordWorkoutTime`, 13943). So outside Gym mode "58:12" would be made up.
+- **Today screens:** A's 160 on red is the strongest App Store frame of the set. B's maple light mode is the calmest screen, but it's subdued in a store grid. C's bib Today is striking, but it's the one screen that the C language reaches.
+
+### 6.3 Scores (out of 10, as rendered; the hybrid is A in the app plus the bib story card)
+
+| Criterion | A · Plate & Press | B · Court | C · Race Bib | Hybrid (A + bib card) |
+|---|---|---|---|---|
+| 1. Recognisable at thumbnail with the logo covered | 4 | 5 | 5 | 6 |
+| 2. Share-card pull (a lifter posts it, a stranger taps it) | 5 | 4 | 7 | 7 |
+| 3. App Store screenshot strength | 7 | 6 | 6 | 8 |
+| 4. Distinct from Strong, Hevy, WHOOP and Strava | 6 | 8 | 7 | 7 |
+| 5. Brand colour and name recall | 4 | 7 | 5 | 5 |
+| 6. Fit with the honesty principles | 8 | 9 | 6 | 7 |
+| **Total (of 60)** | **34** | **39** | **36** | **40** |
+| Hybrid with the two edge moves (§6.5), projected | | | | **48** (8, 8, 8, 8, 7, 9) |
+
+**Why, briefly:**
+- **1. Recognisable.** A is the condensed-type-on-colour cluster (§1.3). B is distinctive but not legibly about lifting. C is legible as a bib, but a running one. The hybrid gains a point because a stranger who installs finds the same inks and type. For reference, I'd put Strava, BeReal and Wrapped at about 9, WHOOP at about 7, Hevy at about 4 and Strong at about 2 (judgement, not measured).
+- **2. Pull.** The bib works from session 1 and needs no record, which is the right engine for honest frequency. Nobody can tap an image in a story, though: pull to an install needs the address on the card (BIZ-08) and a name that resolves to something.
+- **3. Screenshots.** The hybrid gets A's Today, rest and Progress frames, plus a bib-on-a-story frame for storyboard frame 6 (marketing §4.2). C alone can't fill six frames.
+- **4. Distinct.** None of the four comparators uses full-bleed plate ink, a court or a bib. B is the furthest from all four.
+- **5. Recall.** The day ink varies on A and on the bib's ground. B's one court green is the only built-in constant. The hybrid scores 5 until it gets a constant (§6.5).
+- **6. Honesty.** A and B make no claim the code can't back up once R1 holds. The rendered C claims a race-style time and a session count that the data can't hold up (§6.2). Both are fixable, which is why the projection is 9.
+
+### 6.4 The engineer's four questions
+
+1. **Does the bib beat A's grid for MKT-03?** **Yes, for the story format, with three conditions.** The square stays A's grid for messages.
+   - **Put the loaded bar on the bib,** under the number. A bar with plates in the day's inks is what turns "a race" into "a lifting session", and it's the asset marketing already ranked first (summit §1.3).
+   - **Move the name into the bib's sponsor strip.** Real bibs print the event and its sponsor; ours prints "Chalklog" and, once BIZ-08 is approved, the address. All text then sits between y = 250 and 1620, with nothing in the bottom 300 px.
+   - **Build it first as the session card (MKT-04),** then reuse the frame for PR, consistency and block cards. A stamp marks each of those (the ticket-wallet raise): "Heaviest weight yet", "8 weeks in a row", "Block complete". A stamp only lands when the real rule fires (R6, MKT-01), so the frame never claims anything.
+2. **Session count ("47") or program week ("Wk 3")?** **The count, but only counted from the set log.**
+   - It's personal, it always goes up, it marks every session, and it creates the milestone ritual in §6.5. "Wk 3" is the same for everyone on the program and resets every block, so it already belongs in the event band, where the render puts it.
+   - Label it exactly: "No. 47 · your 47th training day on the log". It's a count of training days with a logged set, so two sessions on one day are one, and the label must not say "session".
+   - Count it from distinct set dates in `readExCorpus`, not from `activity-dates` (730-day prune, §6.2).
+3. **Does "Chalklog" survive a bib-led card, or does it argue for "Liftnext"?** **It survives, and the bib makes it stronger.**
+   - A bib's top band is where the event's name goes. "CHALKLOG" there reads as the lifter's own event. "Chalk" is the one word that says lifting, not running, which is the bib's weak spot.
+   - "Liftnext" in that slot reads as an instruction, not an event, and it sits in the crowded "Lift…" field (marketing §2.1).
+4. **Is "Finished 58:12" too close to a race claim?** **Yes. Drop it.**
+   - A clock to the second frames a lifting session as a race against time. Lifting doesn't reward a faster session: cutting rest to "beat your time" trains worse, and the app's own rest timer says so.
+   - And the data mostly isn't there: seconds exist only in Gym mode (§6.2).
+   - Put "58 min" in the tab row instead, from the first to the last set in `workout-time:{date}` (or the Gym clock if it ran), and only when it's known. Lead the bib with a lifting-native "chip": the top set ("Bench 160 × 6, 6, 5, 5"), which the render already has.
+
+### 6.5 Verdict: can the hybrid stand next to viral apps?
+
+**Blunt answer: as rendered, no. It's the best card of the three, not yet a brand.**
+- It has a format, the bib, but a borrowed one: until the bib says lifting, a stranger credits it to running.
+- It has a ritual only once a year (Year in Lifting).
+- It has no constant: the colour changes every day, and the ring mark is small and generic (it reads as a loading spinner or a target).
+- **And no design survives zero distribution.** The card can't make anyone install until it carries an address (BIZ-08) and a name that resolves (MKT-09). Today a stranger who searches for "Chalklog" finds nothing. That isn't a design gap, but it caps every score above.
+
+**The edge, in two moves.** Both are on-device `<canvas>` work in the single file, with no ads, no server and no claim the code can't back.
+
+**Move 1: "Your number" (the signature mechanic and the ritual).**
+- Every training day gets the next number, for life: the bib number. It's shown on the in-app finish screen (UX-09) and on every bib card.
+- **Milestone bibs** at 10, 25, 50, 100, 250, 500 and 1,000 get a stamp ("No. 100"). Those are the posting moments, and they reach everyone who keeps training, at any strength level. That's the honest alternative to a record, which fires rarely and favours beginners.
+- Year in Lifting becomes "the wall of your bibs: No. 112 to No. 268".
+- "I'm on No. 212" is a sentence lifters can say to each other. It's the same loss-free motivation as MKT-01's weekly streak: a number only goes up, so missing a day costs nothing.
+- Truth: counted from the set log, never stored as a free-standing counter, so deleting a session corrects it. No body data.
+
+**Move 2: "Pin it on" (the format strangers can name).**
+- From the bib card, "Pin on a photo" opens the phone's own photo picker. The bib is drawn tilted, with four pins, onto the chosen photo, or as a transparent PNG to lay over a story. That's how lifters already post (Strava's sticker and Hevy's transparent shareables, §6.1), and a pinned bib is how people actually wear a real one.
+- After a few hundred posts, a tilted white bib with a loaded bar, pinned to a gym photo, is the thing a stranger can name with the logo covered.
+- Privacy: the photo is read into a canvas in memory and never stored, sent or analysed. It's only offered from the card the person opened, and never suggested.
+
+**The constant that both moves need:** the bib itself, white Tyvek with black Archivo numerals and the loaded bar, on every card, whatever the day's ground. Optionally (an asset, so the owner decides) the mark changes from the ring to the **plate stripe**, the five plate inks side by side as a bar end seen edge-on. That gives recall without giving up A's coloured days.
+
+**Projected with both moves** (§6.3, last row): about 48 of 60. That's competitive with Hevy's and Strava's share surfaces for lifters. It's still short of Strava's and Wrapped's reach, which come from network size and a decade of ritual, not design.
+
+**If the owner prefers one constant colour instead:** B's court green is the only direction with built-in recall, and the bib prints well on it. I'd still choose the hybrid plus the two moves: A's coloured cover is the best working screen, and the bib makes the constant a shape instead of a colour.
+
+### 6.6 Does this change the naming recommendation?
+
+**No. It strengthens "Chalklog" and makes the decision more urgent.**
+- On a bib, the name sits in the event band, where "chalk" anchors a running object to lifting (§6.4, question 3).
+- Every bib shared before the name resolves somewhere is wasted reach. So `chalklog.app` and the clearance check (MKT-09, D7) should be decided before MKT-16 ships, not at the store launch.
+- The CHALK-family trademark caveat (marketing §2.1) still stands. The fallback is still "Liftnext".
+
+### 6.7 Backlog
+
+Added to `planning/backlog.md` under Marketing:
+- **MKT-16:** the session bib card. Ready, after MKT-03 and MKT-04.
+- **MKT-17:** "Your number", with milestone stamps. Ready, after MKT-16.
+- **MKT-18:** pin the bib on a photo, on the device. Ready, after MKT-16.
+- **MKT-19:** the plate-stripe mark and icon. Needs the owner (an asset, decided with D7).
+
+**Corrections for the engineer** (not edited here):
+- The `c-card.html` head comment says the bib number comes "from activity dates". It must come from the set log.
+- B's wordmark sits outside the story safe zone.
+
+### 6.8 Couldn't verify
+
+- No share counts exist for Hevy's or Strava's cards. "Stats over your own photo is the dominant format" rests on both apps shipping it, not on measured shares.
+- WHOOP's card design: no official spec was found.
+- Thumbnail recognisability scores are my judgement, not a test. A proposed experiment, **E7** (for marketing §5), is the cheap honest check: show five soft-launch testers each card at 120 px with the wordmark covered, and ask "what app is this, and what sport?"
+- Clipboard and Web Share of a transparent PNG into Instagram Stories from an iOS PWA are untested. The flattened photo composite is the safe default.
+
+**Sources for this section:** [Strava Stats Sticker (support)](https://support.strava.com/en-us/articles/17718841-how-do-i-share-my-strava-activity-to-instagram-stories-as-a-transparent-sticker); [BikeRadar on Sticker Stats](https://www.bikeradar.com/news/strava-sticker-stats-spring-2025-updates); [Hevy shareables](https://www.hevyapp.com/features/shareable/); [Gentler Streak, App Store](https://apps.apple.com/us/app/gentler-streak-fitness-tracker/id1576857102); [BeReal, Wikipedia](https://en.wikipedia.org/wiki/BeReal); [Platformer: how BeReal missed its moment](https://platformer.news/how-bereal-missed-its-moment); [Fortune on Ladder](https://www.fortune.com/2024/12/10/strength-training-ladder-app-users-growth); Spotify Wrapped and Duolingo figures as cited in `marketing.md` §3.1.

@@ -1170,6 +1170,85 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Risk:** it weakens "no tracking" as a claim, even if only slightly.
 - **Status:** needs-owner. **Question:** "Add a `ref` tag to share links so the store consoles can show which share moments bring installs (the app stores nothing)?" **Recommendation:** no for now. Use store-console totals and tester interviews until there's enough volume for it to matter.
 
+### MKT-16: The session bib card (the story layout for finished sessions)
+- **Why:** the design review (`planning/design-directions.md` §5 and §6) picked the race bib as the story-card format, because it's the only one of the three directions that stops a thumb in a feed, and it works from session 1 with no record needed. The rendered bib (`tools/design/directions/renders/c-card.png`) has three gaps that this item closes:
+  - nothing on it says lifting, so a stranger reads it as a running race;
+  - "Finished 58:12" is a race-style claim, and outside Gym mode there's no seconds data behind it (`gymElapsedMs`, 30312; `recordWorkoutTime` is minute-resolution, 13943);
+  - its number came from `activity-dates`, which is pruned to 730 days (13906), so the number would stop rising after two years.
+- **Change:**
+  - A `'bib'` story layout inside `buildShareCardBlob` (MKT-03's `format` argument), used by MKT-04's session share. The square format keeps A's grid. Drawn on `<canvas>`: no new asset beyond UX-02's Archivo file (fallback: Geist).
+  - **Ground:** the session day's plate ink. **Bib:** white, rotated 2.5°, four pin holes, the event band in ink with the program name and week ("STRENGTH & SIZE · WK 3") and the date.
+  - **The number:** the training-day number from MKT-17's builder, captioned "your 47th training day on the log". Until MKT-17 ships, the count of distinct dates with a logged set in `readExCorpus` (41014).
+  - **The loaded bar,** drawn under the number from the lead lift's top set, using UX-07's plate maths in the day's inks, heaviest plate against the collar.
+  - **The lead lift line:** the lift, its sets ("160 lb × 6, 6, 5, 5") and the honest progression line from the real progression note (BL-08). No "→ 165" unless the engine says so.
+  - **Tear-off tabs:** sets, lifts, and either total load lifted or "58 min". Minutes come from `workout-time:{date}` (first to last set) or the Gym clock if it ran, and are left out when unknown. **No "Finished", no mm:ss.**
+  - **The sponsor strip** at the bib's foot: the mark, "Chalklog" (or "Training Log" until MKT-09), and BIZ-08's address once approved.
+  - All text between y = 250 and 1620. No body data. No card for `MEDICAL_STYLES` programs.
+- **Acceptance criteria:**
+  1. With a fixture of 3 years of sets on 4 dates a week, the bib number equals the number of distinct set dates in the fixture (about 624), not the `activity-dates` length (at most 731).
+  2. Every `fillText` y in the bib layout is between 250 and 1620 (stub-recorded).
+  3. No `fillText` string matches `/Finished|\d+:\d\d/`. With no `workout-time` key and no Gym clock, no "min" tab is drawn.
+  4. The bar's plate rectangles, read from the stub context, run heaviest to lightest from the collar outward, for 160 lb on a 45 lb bar (45, 10, 2.5).
+  5. With a `MEDICAL_STYLES` program active, no share data is built.
+  6. No `fillText` string contains a body-weight, calorie or sleep value.
+- **Test plan:** new `test-bib-card.js` with the real `buildShareCardBlob`, `readExCorpus`, the progression-note function and a recording stub 2D context. Then Playwright PNGs on red, blue, yellow, green and white days, attached to the PR. Sabotage: count from `activity-dates`, and criterion 1 must fail; draw "Finished 58:12", and criterion 3 must fail.
+- **Files:** `index.html` (29468–29640, 41014, the UX-07 plate helper), `sw.js`, the test.
+- **Risk:** visual, and the white bib on a white-plate day. Give the bib an ink hairline on white grounds; the design-engineer reviews the PNGs.
+- **Tools:** `Skill: impeccable` (`polish`) on the rendered PNGs.
+- **Status:** ready (after MKT-03 and MKT-04)
+
+### MKT-17: "Your number": a lifetime training-day number, with milestone bibs
+- **Why:**
+  - A PR fires rarely, and mostly for beginners. A streak can break. Viral apps own a recurring ritual (Duolingo's streak, Wrapped's December; `design-directions.md` §6.1).
+  - A number that only goes up gives every lifter, at any strength, a true posting moment at 10, 25, 50, 100, 250, 500 and 1,000, and a sentence lifters can say ("I'm on No. 212").
+  - It's honest by construction: it counts days with a logged set, and nothing else.
+- **Change:**
+  - A pure builder, `trainingDayNumber(corpus, dateKey)`, returns the count of distinct set dates up to and including `dateKey`, from `readExCorpus`. It's never stored as a free-standing counter, so deleting a session corrects it.
+  - The finish screen (UX-09; until then, the session-complete banner) shows "No. 47".
+  - On a milestone date, the bib card gets a stamp ("No. 100") and the banner offers share. Celebrated once per milestone, through `window.storage` key `number-last-celebrated` (namespaced, no schema bump).
+  - Year in Lifting (MKT-06b) adds "the wall of your bibs": the year's first and last numbers and a grid of small bibs in each day's ink.
+  - No confetti (F9). No reminders, and nothing that mentions a gap.
+- **Acceptance criteria:**
+  1. With sets on 99 distinct dates, logging a set on a new date returns 100 and fires exactly one milestone celebration; a second set the same day fires none.
+  2. Two sessions on one date count once.
+  3. Deleting every set from one date lowers the number by one on the next render.
+  4. Number 101 fires no celebration.
+  5. With a `MEDICAL_STYLES` program active, the number shows in the app but no share data is built.
+- **Test plan:** new `test-training-day-number.js` with the real `readExCorpus` over stub storage and a fixed `getTodayKey`. Sabotage: read `activity-dates` with a 730-day prune, and criterion 1 must fail for a three-year fixture.
+- **Files:** `index.html` (near 13989 and 41014; the session-complete path, 29263), `sw.js`, the test.
+- **Risk:** `readExCorpus` drops keys whose program day no longer exists (`parseExKey`, 40940), so a deleted custom program lowers the number. That's truthful ("days on the log"), but the What's New line should say the number counts what's on the log.
+- **Status:** ready (after MKT-16)
+
+### MKT-18: Pin the bib on your own photo, made on the device
+- **Why:** in strength training, the dominant story format is stats over your own gym photo: Strava's transparent Stats Sticker and Hevy's transparent shareables (`design-directions.md` §6.1). A tilted bib pinned onto a gym photo is the format a stranger can learn to name with the logo covered, and it's how people wear a real bib.
+- **Change:**
+  - On the bib card, a "Pin on a photo" button opens `<input type="file" accept="image/*">` (the phone's own picker).
+  - The photo is drawn to a 1080×1920 canvas (cover-fit), then the bib at 70% scale, tilted, with four pins.
+  - It shares through `shareCelebrationCard`.
+  - The photo is never written to storage, never sent, and never analysed. The object URL is revoked after drawing.
+  - It's only offered from a card the person has already opened. Never suggested, never in Priorities.
+- **Acceptance criteria:**
+  1. With a stub file, the canvas receives exactly one `drawImage` for the photo, then the bib draw calls.
+  2. `fetch` is called 0 times, and `window.storage.set` is called 0 times during the flow (stub-counted).
+  3. `URL.revokeObjectURL` is called once for the created URL.
+  4. Cancelling the picker leaves the card unchanged and shares nothing.
+- **Test plan:** new `test-bib-photo.js` with the real handler, a stub `File`/`Image` and a recording canvas. Sabotage: persist the photo to storage, and criterion 2 must fail.
+- **Files:** `index.html` (the share path near 29609 and MKT-16's layout), `sw.js`, the test.
+- **Risk:** body images. The photo is the person's own choice, made and shared on the device, the same stance as MKT-08. A transparent-PNG option (clipboard or share) is untested on iOS Safari, so the flattened composite is the default; test the other on a real iPhone before offering it.
+- **Status:** ready (after MKT-16)
+
+### MKT-19: The mark: a plate stripe in place of the ring
+- **Why:**
+  - Recall comes from a constant (Strava's orange, Oura's ring; `design-directions.md` §6.1). Plate & Press changes colour every day.
+  - The current ring-with-one-segment mark (from `icon-512.png`) reads as a spinner or a target at 16 px, and it says nothing about lifting.
+  - The five plate inks side by side, as a bar end seen edge-on, would be a mark no competitor has. It ties every coloured day back to one shape.
+- **Change:** none until answered. If yes: a new icon set (an asset, so it needs the owner, as in summit R4), and the card mark drawn as canvas rectangles in MKT-03, MKT-16 and the sponsor strip. Decided with the name (D7, MKT-09).
+- **Acceptance criteria:** the owner's answer is recorded in `planning/marketing.md` §2.4. The follow-up item writes its own criteria (canvas draw calls, the manifest icon sizes).
+- **Test plan:** none until answered.
+- **Files:** later `icon-*.png`, the manifest, `index.html` (the card mark).
+- **Risk:** the colour code differs between kg and lb plates (the app already maps both). The mark uses the five ink colours only, not plate weights, so it stays true in either unit.
+- **Status:** needs-owner. **Question:** "Redraw the app icon and card mark as a stripe of the five plate colours, decided together with the name?" **Recommendation:** yes, at the same time as MKT-09, so the icon, name and cards change in one version.
+
 ---
 
 ## Design (UX): added by design-engineer, 2026-11-07
