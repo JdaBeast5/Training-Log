@@ -1,4 +1,12 @@
-# Backlog: Training Log
+# Backlog
+
+**Alignment round (2026-11-07, live v3.516).** Re-checked after the seven pre-D1 reviews; the reconciled position is `planning/alignment/consensus.md`. Changes in this file are marked "Alignment note (2026-11-07)". The app's display name is Liftnext (`APP_NAME`, v3.515). The **public name is open** (the owner decides; `planning/naming.md` is input), so items say "the app's name" and read `APP_NAME`, never a literal. New IDs this round:
+- BL-05b, BL-50, the BL-41–49 placeholder;
+- UX-01b;
+- MKT-03b, MKT-20;
+- BIZ-18a, BIZ-25, BIZ-26;
+- TOOL-01, DOC-01.
+
 
 Owner: project-manager. Written 2026-11-07 against **v3.514**. The baseline was green: `check.sh` passed and 198/198 `test-*.js` suites passed. Line numbers are `index.html` at v3.514 unless a file is named. **Every build run re-greps them before editing:** each shipped item shifts the lines below it.
 
@@ -19,7 +27,7 @@ Item lines add only extra tools.
 
 **Order:** ready items first, in build order (BL-01 to BL-26), then `needs-owner` items in priority order (BL-27 to BL-40). A needs-owner item, once approved, slots in after whatever ready item is in flight.
 
-**Summit note (summit 2026-11-07):** the build order is now the **Unified build sequence** at the top of `planning/roadmap.md`, not file order. The reasons are in `planning/summit.md`. Items below carry "Summit note:" lines where the summit merged, split, re-ordered or constrained them. No item was renumbered, deleted or rewritten.
+**Summit note (summit 2026-11-07):** the build order is now the **Unified build sequence** at the top of `planning/roadmap.md` (revised in the alignment round), not file order. Items outside that sequence, such as TOOL-01 and DOC-01, are never picked by the loop. The reasons are in `planning/summit.md`. Items below carry "Summit note:" lines where the summit merged, split, re-ordered or constrained them. No item was renumbered, deleted or rewritten.
 
 Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program-audit.md` → "Source keys". Research links are in `planning/research.md`.
 
@@ -39,18 +47,22 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Change:**
   - Add a `VOLUME_MODIFIER_PROGRAMS = new Set(['strength','bodybuilding','powerbuilding','powerlifting'])` constant next to `COMPOUND_CATEGORIES` (26721).
   - Add a `program` argument to `applyGoalVolume` (26659) and `applyAccumulation` (26747). Gate inside each, so tests can call the real functions. `applyAccumulationAccessory` (26834) already takes `program`; gate it too.
-  - Custom programs (`isCustomProgramKey`, 14735) **keep today's behaviour**, so this item changes nothing outside the four built-ins.
+  - Custom programs (`isCustomProgramKey`, 14735) **keep today's behaviour**.
+  - **This changes 21 built-in programs, not only the clinical ones.** At v3.516 goal volume and accumulation also add sets on `oly`, `climbing`, `bodyweight`, `calisthenics`, `boxingsc`, `jumprope`, `hyrox`, `grappling`, `running` and `swimming` (build-automator, measured with the real functions). All of that stops. The allowlist is the audit's SAF-1 list; the owner confirms it before this item merges (consensus decision 6). If he adds a program, add it to the Set and to criterion 2.
+  - The What's New entry says so plainly: "Goal-based extra sets now apply only to Strength & Size, Bodybuilding, Powerbuilding and Powerlifting. Other programs keep their written set counts."
   - In `applyGoalVolume`, exercises in the `jump` category are never changed.
   - `applyDeloadVolumeReduction` (26842) is untouched: deload still applies everywhere.
 - **Acceptance criteria:**
-  1. For every day of every `MEDICAL_STYLES` key (11352), and of `senior`, `pilates`, `mobility`, `desk`, `yoga`, `core`, `athletic`, `combat`, `watersports`: × goals {gain, leanbulk, performance} × weeks 1–4, the `sets` string after all three modifiers equals the authored string.
+  1. For every built-in program key **not** in `VOLUME_MODIFIER_PROGRAMS` (21 of the 25 `programs` keys: iterate `Object.keys(programs)`, don't hard-code), every style of every `*_STYLES` program (all `MEDICAL_STYLES` keys, 11352, plus the combat, cycling, watersports and yoga styles), **and every `PROGRAM_DAY_COUNT_VARIANTS` day (16196)** × goals {gain, leanbulk, performance} × weeks 1–4: the `sets` string after all three modifiers equals the authored string. The test asserts the program count it iterated (21) so that a new program can't slip past.
   2. `strength` d1 with goal gain, week 3 still gains sets exactly as it does today. Assert one known exercise's `sets` before and after.
   3. Athletic d4 Depth Jump stays `4×5` under goal gain.
   4. A custom program key gets the same output as today.
   5. `renderWorkout` passes `activeProgram` to all three call sites. Count 3 real call expressions carrying `activeProgram`, ignoring comments.
 - **Test plan:** new `test-volume-modifier-gate.js`. Extract the real `applyGoalVolume`, `goalVolumeAdjustment`, `applyAccumulation`, `applyAccumulationAccessory`, `cycleWeekOf`, set-string helpers, `programs`, `MEDICAL_STYLES` and the other `*_STYLES`, plus `exerciseInfo` from `content-exercises.js`. Sabotage: remove the gate, and criterion 1 must fail.
 - **Files:** `index.html` (26659, 26747, 26834, 28610, 28634–28635), `sw.js`, the new test.
+- **Alignment note (2026-11-07):** spec gap fixed (build-automator B1, exercise-auditor N6). The old line "changes nothing outside the four built-ins" was wrong; see Change. Criterion 1 now covers every other built-in and its variants.
 - **Risk:**
+  - Sport and skill programs (Olympic, Climbing, Calisthenics, ...) stop gaining goal and accumulation sets. That's intended, but visible to anyone on them, so the What's New line names it.
   - Accumulation behaviour on the four lifting programs. Guarded by `test-accumulation-accessory-add.js` and `test-mesocycle-phase-tag.js`.
   - `applyGoalVolume` has no prior test; this item adds the first.
   - The phase tag will still read "Accumulation" on gated programs. Flag it; don't fix it here.
@@ -66,14 +78,23 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
     - `null` for categories `oly`, `jump` and `throw`. The RPE path is then skipped, falling back to double progression, and the badge shows "Technique lift: stop each set with 2–3 clean reps left."
     - `min(weekTarget, 7)` (RIR ≥ 3) when `program === 'medical'` or `'senior'`. Prenatal and postpartum are `MEDICAL_STYLES` keys, so they're covered.
   - `rpeCtx` (28766) gains `program: activeProgram`.
+  - `renderLoadModeNote` (~32899) also reads `RPE_BY_CYCLE_WEEK[`. Route it through `rpeTargetFor` (with the active program), so the note never shows a week target the cap overrides.
+  - **The clinical load gate (SAF-8, folded in by the alignment round).** For `medical` (every `MEDICAL_STYLES` key, prenatal and postpartum included) and `senior`, `analyzeProgressionSignal` (~27483):
+    - signals an increase only when logged RPE is ≤ 7 in **both** qualifying sessions;
+    - uses the smallest loadable jump (`snapToLoadable`'s step for that equipment), never the category increment;
+    - with no RPE logged, shows no number: the badge reads "If both sessions felt comfortable, try the smallest jump."
 - **Acceptance criteria:**
   1. With `loadSuggestionMode='rpe'`, medical/hypertension, week 4: the badge shows `RPE 7` and the suggested load equals `loadForRpeTarget(e1rm, reps, 7)`.
   2. With `oly` Snatch, week 4: `loadForRpeTarget` is called **0** times (stub-counted). `computeSuggestedSet` returns the double-progression result, and the badge contains "Technique lift".
   3. Strength program Back Squat, week 4: still RPE 9.
   4. Deload week: RPE 6 everywhere.
-  5. `RPE_BY_CYCLE_WEEK[` is read only inside `rpeTargetFor` and `targetRpeForWeek` (real-code count).
-- **Test plan:** new `test-rpe-safety-caps.js`, with a real invocation of `buildProgressBadge` and `computeSuggestedSet`. Sabotage: drop the cap.
-- **Files:** `index.html` (27409–27413, 27742–27760, 27812–27836, 28766), `sw.js`, the test.
+  5. `RPE_BY_CYCLE_WEEK[` is read only inside `rpeTargetFor` and `targetRpeForWeek` (real-code count, comments excluded). `renderLoadModeNote`'s read goes through `rpeTargetFor`.
+  6. Hypertension Seated Cable Row 2×12, two sessions at the top rep with RPE 8: no increase. The same at RPE 7: an increase equal to the smallest loadable jump (computed by the real `snapToLoadable`, not hard-coded).
+  7. The same slot with no RPE logged: no number in the badge, and the text contains "felt comfortable".
+  8. Strength program Back Squat with the same logs at RPE 8.5: still increases by the category increment (unchanged).
+- **Test plan:** new `test-rpe-safety-caps.js`, with a real invocation of `buildProgressBadge`, `computeSuggestedSet` and `analyzeProgressionSignal`. Sabotage: drop the cap, and criterion 1 must fail; drop the clinical load branch, and criterion 6 must fail.
+- **Files:** `index.html` (27409–27413, 27483–27545, 27742–27760, 27812–27836, 28766, ~32899), `sw.js`, the test.
+- **Alignment note (2026-11-07):** SAF-8 folded in (exercise-auditor B2; owner decision 7 confirms "smallest step after two sessions at RPE ≤ 7" rather than no load suggestions). The promise becomes "never adds sets; load rises only in the smallest steps when sets felt easy". BL-08 and BL-24 must keep criteria 6–8 passing.
 - **Risk:** RPE badge rendering. Guarded by `test-progress-badge-rpe-teal.js`, `test-today-workout-emoji.js` and `test-deload-signal-week-awareness.js`.
 - **Status:** ready
 
@@ -129,11 +150,15 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Change:** in `content-exercises.js:237` (`'Depth Jump'` cues), add:
   - "Box 30–45 cm (12–18 in), no higher.";
   - "Prerequisite: land a 30 cm drop 3×5 with knees over toes and no inward collapse first."
+  - "First 4 weeks: do Drop Landing 3×5 instead." (Alignment round, exercise-auditor N5: the prerequisite belongs before the jumps, so it goes in the cue rather than an appended drill.)
 
   Set counts are unchanged.
-- **Acceptance criteria:** the rendered technique cues for Depth Jump (the real `exerciseInfo`, through the real cue renderer) contain "30–45 cm" and "Prerequisite". Every program's Depth Jump `sets` string is unchanged.
-- **Test plan:** extend `test-concise-cues.js`, or add `test-safety-cues.js`, shared with BL-06. Sabotage: revert the cue.
-- **Files:** `content-exercises.js`, `sw.js` (version and precache), the test.
+- **Acceptance criteria:**
+  1. The rendered technique cues for Depth Jump (the real `exerciseInfo`, through the real cue renderer) contain "30–45 cm", "Prerequisite" and "Drop Landing".
+  2. **Every occurrence** of Depth Jump is covered: the test walks `programs`, every `*_STYLES` style and every `PROGRAM_DAY_COUNT_VARIANTS` day, collects each Depth Jump slot (about 21 at v3.516; assert the count it found is ≥ 20 rather than a hard number), and checks that each resolves to the updated cue entry.
+  3. Every Depth Jump `sets` string is unchanged.
+- **Test plan:** add `test-safety-cues.js`, shared with BL-06. **Update the pin in `test-concise-cues.js`** (964 cues, 321 exercises at v3.516) to the new total. That change is part of this item, not a drive-by, so name it in the PR. Sabotage: revert the cue.
+- **Files:** `content-exercises.js`, `sw.js` (**version bump only**: `content-exercises.js`'s own header says never to precache it; the versioned cache name refreshes it), `test-safety-cues.js`, `test-concise-cues.js` (pin only).
 - **Risk:** cue-length rules. Guarded by `test-concise-cues.js`.
 - **Summit note (summit 2026-11-07):** Ship BL-05 and BL-06 as **one version**: same file, same new `test-safety-cues.js`, both safety cue text. Mark both done together.
 - **Status:** ready
@@ -152,6 +177,18 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:** cue-length caps. Guarded by `test-concise-cues.js`.
 - **Summit note (summit 2026-11-07):** Merged into BL-05's version (see BL-05).
 - **Status:** merged into BL-05 (summit 2026-11-07): ships in BL-05's version; mark done with it
+
+### BL-05b: The Neck Bridges cue says coach-only, otherwise isometrics (SAF-4, cue part)
+- **Why:** Neck Bridges ("bridge onto the top of your head") are prescribed unsupervised at grappling d6 (`index.html` ~11048) and in five grappling day-count variants (~21274, 21312, 21355, 21405, 21456): **6 occurrences**. No trial supports either option for injury prevention [PRAC]. Replacing the slot (BL-35) needs a migration and the owner's yes; the cue can change today with no slot or history change (exercise-auditor B1).
+- **Change:** in `content-exercises.js` (`'Neck Bridges'`, ~350), make the first cue: "Only with a coach; otherwise do 4-way neck isometrics, 15 s each way at 50% effort." Shorten or drop one existing cue if needed to keep the entry within `test-concise-cues.js`'s length rules. No slot, name, category or set change.
+- **Acceptance criteria:**
+  1. The rendered cue list for Neck Bridges (the real `exerciseInfo`, through the real cue renderer) starts with the new line.
+  2. The test walks `programs.grappling` and every grappling `PROGRAM_DAY_COUNT_VARIANTS` day, finds **6** Neck Bridges slots, and checks that each resolves to that entry.
+  3. Every Neck Bridges `sets` string and every `exKey` is unchanged.
+- **Test plan:** extend `test-safety-cues.js` (created by BL-05). Update `test-concise-cues.js`'s cue-count pin if the total changes, and name it in the PR. Sabotage: revert the cue, and criterion 1 must fail.
+- **Files:** `content-exercises.js`, `sw.js` (version bump only), `test-safety-cues.js`, `test-concise-cues.js` (pin only).
+- **Risk:** cue-length caps (`test-concise-cues.js`). BL-04's substitute for Neck Bridges stays as it is.
+- **Status:** ready
 
 ## Ready: correctness of what exists (audit High, then Medium)
 
@@ -197,6 +234,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 
   The cross-program fallback (`priorSetForSlot`, 27799) must keep its single-basis behaviour.
 - **Summit note (summit 2026-11-07):** UX-06, UX-09, UX-10 and UX-11 print this rule in large type, and the mock-ups already depict it (Barbell Row 8, 8, 7, 7 holds at 135). It must merge before any of them (summit R1).
+- **Alignment note (2026-11-07):** inherits BL-02's clinical load gate (SAF-8). For `medical` and `senior`, the all-set rule applies **and** RPE ≤ 7 in both sessions, with the smallest jump. Add a criterion: hypertension Seated Cable Row with all sets at the top at RPE 8 doesn't increase. BL-02's criteria 6–8 must still pass.
 - **Status:** ready
 
 ### BL-09: Readiness compares weekly RPE to the week's own target (H-7)
@@ -230,6 +268,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (row render near 28750–29030), `sw.js`, the test.
 - **Risk:** row layout at 402 px. Guarded by `test-workout-card-type-scale.js`, `test-label-floor.js` and `test-tap-target-hit-areas.js`.
 - **Tools:** `impeccable clarify`, `apple-hig` (type floor).
+- **Alignment note (2026-11-07, design-engineer):** "2–3 RIR (last set 1–2)" is jargon on a 150 px cover read from a metre away. `targetRirLabel` returns `{short, words}`: `short` is the label above, and `words` is plain English ("Stop 2–3 reps short; last set 1–2"; "Stop 3+ reps short; speed over grind"). The row shows `short` with `words` as its accessible name, and the cover (UX-06a) shows `words`. Add one criterion per class for `words`.
 - **Summit note (summit 2026-11-07):** This is the **single effort vocabulary** (summit R7). The cover, the row, the rest steppers (UX-08), the first-set hint (BIZ-05) and the badge all read `targetRirLabel` / `rpeTargetFor`. Note that week 3 is RPE 8.5 (`RPE_BY_CYCLE_WEEK`, 27409), so RPE-mode wording follows `rpeTargetFor`, not a hard-coded "RIR 2".
 - **Status:** ready
 
@@ -424,6 +463,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:** the Analysis card. Guarded by `test-analysis-2-0.js`, `test-analysis-collapse.js` and `test-analysis-export.js` (which reads the rendered cards).
 - **Tools:** `dataviz`.
 - **Summit note (summit 2026-11-07):** Build it **once**, to `design-vision.md` §3.6 (summit R8): fractional figures shown with decimals, a "10+" floor [ACSM26] with no ceiling drawn, grey under the floor, the day's ink inside it. UX-10 then *moves* this renderer rather than redrawing it. No "add sets" advice here; that's BL-31 or BL-39.
+- **Alignment note (2026-11-07, exercise-auditor N3):** the ink fill **stops growing at the floor**: a muscle at 10 and a muscle at 25 show the same full bar. Above about 20 fractional sets, show one neutral line: "More isn't needed; returns get smaller [PEL]." Add a criterion: fixtures at 10 and at 25 sets render equal fill widths, and the 25 case shows the line.
 - **Status:** ready
 
 ### BL-21: HRV joins readiness, against your own baseline
@@ -490,6 +530,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Test plan:** extend `test-all-set-double-progression.js`. Sabotage: ignore the e1RM.
 - **Files:** `index.html` (27463–27470, 27500–27530, 27836), `sw.js`, the test.
 - **Risk:** same guards as BL-08, plus `test-warmup-ramp-and-plates.js` for snapping.
+- **Alignment note (2026-11-07):** the strength-scaled increment never applies to `medical` or `senior`: they keep BL-02's smallest loadable jump. Add a criterion asserting it (an e1RM of 200 on hypertension Seated Cable Row still gets the smallest jump).
 - **Status:** ready
 
 ### BL-25: Exercise cue corrections (L-1, audit §4)
@@ -613,12 +654,13 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Status:** needs-owner. **Question:** "Use RPE-adjusted e1RM everywhere (your e1RM charts and PRs will shift up), or only for RPE-mode load targets?"
 
 ### BL-35: Replace Neck Bridges with a 4-way neck isometric (SAF-4)
-- **Why:** Neck Bridges, "bridge onto the top of your head", unsupervised, at grappling d6 (11042, 21268). No trial supports either option for injury prevention [PRAC].
-- **Change:** rename the slot to "4-Way Neck Isometric (hand or band)", 4 directions × 15 s each at about 50% effort, with a new `exerciseInfo` entry.
-- **Acceptance criteria:** the grappling d6 slot renders the new name and cues, and the old slot's history stays reachable.
+- **Why:** Neck Bridges, "bridge onto the top of your head", unsupervised. They appear **6 times**: grappling d6 (~11048) and five grappling day-count variants (~21274, 21312, 21355, 21405, 21456). No trial supports either option for injury prevention [PRAC]. BL-05b fixes the cue in Phase 0; this item replaces the exercise.
+- **Change:** rename every one of the 6 slots to "4-Way Neck Isometric (hand or band)", 4 directions × 15 s each at about 50% effort, with a new `exerciseInfo` entry. Old neck-bridge sets are archived through `SCHEMA_VERSION` / `runMigrations()` (the recommended answer), not shown under the new name.
+- **Acceptance criteria:** all 6 slots (counted by walking `programs.grappling` and its variants) render the new name and cues; no slot still names Neck Bridges; and the old slots' history stays reachable in the archive.
 - **Test plan:** new test, plus a migration test if chosen.
 - **Risk:** history is keyed by position, so the old neck-bridge log would show under the new name.
-- **Status:** needs-owner. **Question:** "Swap Neck Bridges for a neck isometric in the same slot, and should your past neck-bridge sets carry over or be archived?"
+- **Alignment note (2026-11-07):** sequenced directly after Phase 0 (roadmap slot 8) once approved, not at the tail of Phase 4 (exercise-auditor B1).
+- **Status:** needs-owner. **Question:** "Swap Neck Bridges for a neck isometric in all 6 grappling slots, and should your past neck-bridge sets carry over or be archived?" **Recommendation:** yes; archive them.
 
 ### BL-36: Add a "Drop Landing" progression to the ACL-risk watersports days (SAF-5, part 2)
 - **Why:** landing prerequisites come before depth jumps [PRAC]. Wakeboarding's own basis cites a 42% ACL-tear rate.
@@ -626,7 +668,8 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Acceptance criteria:** the last exercise on those days is Drop Landing, and the earlier `exKey`s are unchanged.
 - **Test plan:** extend `test-watersports-program.js`.
 - **Risk:** sessions get about 4 minutes longer.
-- **Status:** needs-owner. **Question:** "Append a drop-landing drill to wakeboarding Day 1 and kite Day 2 (about +4 min)?"
+- **Alignment note (2026-11-07):** the prerequisite *rule* now lives in BL-05's Depth Jump cue ("first 4 weeks: do Drop Landing 3×5 instead"), because an appended drill comes **after** the depth jumps, the wrong order for a prerequisite (exercise-auditor N5). This item only makes the drill loggable. Sequenced at roadmap slot 9 once approved.
+- **Status:** needs-owner. **Question:** "Append a drop-landing drill to wakeboarding Day 1 and kite Day 2 (about +4 min), so the landing practice the Depth Jump cue asks for can be logged?"
 
 ### BL-37: Rebuild the low day-count variants (H-3)
 - **Why:** Bodybuilding 3-day doses chest at 3 sets a week and glutes at 0. Powerlifting 3-day trains each lift 1×/wk [ACSM26][PEL][FREQ19].
@@ -634,6 +677,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Acceptance criteria:** computed weekly sets meet the H-3 targets (chest 9, back 12, ...) in a test using BL-20's ledger.
 - **Risk:** this rewrites variant slots, so it needs `SCHEMA_VERSION` (7623) / `runMigrations()` (9070) for any history on those variants.
 - **Summit note (summit 2026-11-07):** Priority rises: BIZ-01's quick start may route a 3-day "gain" stranger to Bodybuilding 3-day, which the audit scores F (summit F5, R9).
+- **Alignment note (2026-11-07, exercise-auditor B3):** summit R9's guard only covers quick-start "gain" with 3 days or fewer, so a stranger who picks the program by hand still lands on an F. BL-37 and BL-38 are now part of the **Phase 3 hard gate** before any public step (roadmap slots 74–75), unless the owner records an alternative, such as hiding the 2–4 day bodybuilding variants.
 - **Status:** needs-owner. **Question:** "Rewrite the 2-, 3- and 4-day Bodybuilding and 3-day Powerlifting variants (slot changes; past logs on those variants need a migration)?"
 
 ### BL-38: Bodybuilding d6 becomes "Upper Detail", plus appends (H-4)
@@ -664,15 +708,37 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 
 ---
 
+## Added in the alignment round (2026-11-07)
+
+### BL-50: The AI prompts know the clinical style (SAF-9)
+- **Why:** Cross-Metric Insights must answer PUSH, MAINTAIN or DELOAD (`index.html` ~42583). Both that prompt and the coach chat (~42670) receive only "Active program: Medically Modified", never the style (prenatal, ACL, hypertension) or its tolerance rule. So it can tell a prenatal or ACL user to PUSH (program-audit.md, Alignment addendum, SAF-9).
+- **Change (prompt text only):**
+  - Both prompts include `MEDICAL_STYLES[activeMedicalStyle].label` when `activeProgram === 'medical'`.
+  - For medical styles, the insights prompt limits the verdict to MAINTAIN or DELOAD and adds "check with your care team". The coach chat's system text says the same.
+  - **Leave `output_config.effort`, `max_tokens` and the rest of the payload untouched** (CLAUDE.md fragile area).
+- **Acceptance criteria:**
+  1. With `activeProgram='medical'` and the hypertension style, the real `generateCrossMetricInsights` call (with `fetch` stubbed at the network boundary) sends a prompt containing the hypertension style's label and "MAINTAIN or DELOAD", and doesn't offer PUSH.
+  2. With the strength program, the prompt text is byte-identical to today's (a before/after snapshot).
+  3. The coach chat payload for a medical style contains the style label and "care team".
+  4. `test-ai-cross-metric-effort-fix.js` passes unchanged: `effort:'medium'`, `max_tokens:5000`, one `fetch` per call.
+- **Test plan:** new `test-ai-clinical-context.js`, with `fetch` stubbed as in `test-ai-cross-metric-effort-fix.js`. Sabotage: drop the style label, and criterion 1 must fail.
+- **Files:** `index.html` (~42536–42680), `sw.js`, the test.
+- **Risk:** the AI path is a CLAUDE.md fragile area ("fixed, unverified against the live API"). Only the prompt strings change. Must land before any public step and before hosted AI (BIZ-14).
+- **Tools:** `Skill: claude-api` (prompt wording only); `security-review` (it touches `fetch`).
+- **Status:** ready
+
 ## Parked or later (not yet itemised)
 - **M-8:** `calf` and `isolation-leg` categories. These shift `MUSCLE_GROUP_MAP` history groupings, so they need the owner. BL-03 and BL-04 cover the safety half now.
 - **L-3:** check whether "Squat (Speed)", "Bench Press (Speed)" and "Deadlift (Light/Technique)" have `exerciseInfo` entries.
-- **Program extensions:**
-  - H-8 progression ladders;
-  - Powerlifting top single and peak block;
-  - Olympic % bands and a miss counter;
-  - athletic performance metrics;
-  - running, cycling and swimming volume progression.
+- **Program extensions: IDs BL-41 to BL-49 are reserved** (alignment round). The exercise-auditor itemises them before Phase 2 ends, so they don't drift (exercise-auditor N7). Four program classes score F for progression until then:
+  - BL-41 (placeholder): Powerlifting top single at RPE 8 with −10% back-offs, plus a meet-peak block;
+  - BL-42 (placeholder): Olympic % bands and a miss counter;
+  - BL-43 (placeholder): running, cycling and swimming volume progression (scored F, with no item yet);
+  - BL-44 (placeholder): bodyweight progression ladders (H-8, second half);
+  - BL-45 (placeholder): athletic jump and sprint metrics;
+  - BL-46 to BL-49: unassigned.
+
+  None is buildable until the auditor writes it in full with Status `ready` or `needs-owner`.
 - **Health importer:** keep SDNN and rMSSD apart (found in BL-21's check).
 - **Out of scope:** lock-screen or watch logging, which belongs to the Capacitor track (CLAUDE.md); exercise demos (parked by the owner).
 
@@ -791,6 +857,9 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - Analysis order. Guarded by `test-analysis-2-0.js`, `test-analysis-collapse.js` and `test-coach-2-0.js`.
   - Don't touch the "fixed, unverified live" AI internals (CLAUDE.md).
 - **Summit note (summit 2026-11-07):** This item owns "the AI card sorts below the evidence". UX-10 relies on it and doesn't repeat it (summit §1.4). Ships before UX-10.
+- **Alignment note (2026-11-07, business-manager B1):** "your logs stay on your phone" is false for AI users unless it's disclosed. `generateCrossMetricInsights` (~42536) sends body weight, nutrition, sleep, water, RPE, pain check-ins and PRs to Anthropic with the user's key. So this item also adds, **at each AI entry point and in the key prompt (`aiKeySetupPrompt`)**, one line saying what that feature sends and to whom. For example, insights: "Sends your recent weight, food, sleep, effort, pain check-ins and PRs to Anthropic using your key." Photo and Describe: "Sends the photo or text to Anthropic using your key." Coach: "Sends your message and a summary of your training to Anthropic using your key."
+  - **Extra criterion:** one jsdom assertion per entry point (insights button area, Photo, Describe, Coach intro, key prompt) that its disclosure line is present and names "Anthropic".
+  - The payload stays untouched (criterion 3).
 - **Status:** ready
 
 ### BIZ-07: Truthful page metadata, manifest description and README
@@ -855,7 +924,11 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Test plan:** new `test-share-card-url.js`, with the real `buildShareCardBlob` and share handler, a stub canvas and a stub `navigator.share`. Sabotage: drop the append, and the share-text assertion must fail.
 - **Files:** `index.html` (7622, 29510, ~29620), `sw.js`, the test.
 - **Risk:** it advertises the app's public address on every share, before the owner has decided to go public (BIZ-12).
-- **Status:** needs-owner. **Question:** "Put the app's public web address on every share card and share message?" **Recommendation:** yes, once BIZ-12 settles the address (GitHub Pages now, the store link later).
+- **Alignment note (2026-11-07, marketing-manager B2):**
+  - The printed address must be permanent: the app's own domain (for example the `.app` for the chosen name), forwarded by the registrar with an HTTPS 301 to the current app. **Never `jdabeast5.github.io/Training-Log`**, which prints the old name and a personal handle on images nobody can edit later.
+  - **Don't** attach the domain to the app's repo as a GitHub Pages custom domain. That changes the app's origin, and localStorage and IndexedDB (every log and photo) don't follow an origin change. Moving the origin is its own item, BIZ-25.
+  - The card text is drawn under the mark and the name (`APP_NAME`), not under "TRAINING LOG".
+- **Status:** needs-owner. **Question:** "Put the app's own forwarded web address (not the GitHub Pages URL) on every share card and share message?" **Recommendation:** yes, once the name and its domain are settled; Phase 5, after the Phase 3 gate.
 
 ### BIZ-12: Go public: where, and under what name
 - **Why:** with no store listing, a generic name and an empty README, nobody can find the app (business.md §5.1). The Capacitor track creates the store build; the business needs the owner's decision to list it.
@@ -864,16 +937,16 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Test plan:** none; a decision, not code.
 - **Files:** `planning/business.md`.
 - **Risk:** going public turns the clinical programs into a health-claim question (BIZ-15) and requires a privacy policy (BIZ-16). Neither should lag the listing.
-- **Status:** needs-owner. **Question:** "Do you want Training Log public (Google Play first via the Capacitor build, then the App Store), and do you keep the name 'Training Log' or let marketing propose an ownable one?" **Recommendation:** Play first (Android is the Capacitor track's target, and the Play fee is one-time); let marketing propose names before the listing.
+- **Status:** needs-owner. **Question:** "Do you want the app public after Phase 3 and its gates (web first, then Google Play via the Capacitor build, then the App Store), under the name you settle from `planning/naming.md`?" **Recommendation:** yes, in that order. The name decision itself is MKT-09 / consensus decision 10. Personal Play account, with founding members as the 12 testers for 14 days (business.md §6).
 
 ### BIZ-16: A privacy policy page
 - **Why:** store listings for apps handling health data require a privacy policy (business.md §6). Ours would be unusually short and strong: logs stay on device; food queries go to USDA and Open Food Facts; AI calls go to Anthropic only with your own key; no analytics.
 - **Change:** a static `privacy.html` beside `index.html`. Text only, linked from Settings and the README.
 - **Acceptance criteria:**
-  1. Every third-party host the app can contact (the hosts in the real `fetch(` call expressions in `index.html`, comments excluded) is named in `privacy.html`.
+  1. Every `https://` host literal in `index.html` (comments excluded) is classified in the test as either **"the app contacts"** or **"links you open"** (for example youtube.com, google.com and doi.org). Every "the app contacts" host is named in `privacy.html`, with what is sent to it. The hosts reached through constants (`USDA_API_BASE` ~35042, `DSLD_API_BASE` ~35792) and by `<script src>` (the barcode library from `cdn.jsdelivr.net` and `unpkg.com`, ~35227) are included. The Anthropic row names the health categories that Cross-Metric Insights sends (BIZ-06). *(Alignment round, business-manager B2: a `fetch(`-only parse finds just `api.anthropic.com` at v3.516.)*
   2. `privacy.html` contains no analytics or tracking script tag (count 0).
   3. Settings has one link whose `href` is `privacy.html`.
-- **Test plan:** new `test-privacy-policy-hosts.js`: parse the real `fetch(` targets out of `index.html`, then load `privacy.html` in jsdom and assert each host appears in its text. Sabotage: add a fake `fetch('https://example.org')` to the extracted source, and criterion 1 must fail.
+- **Test plan:** new `test-privacy-policy-hosts.js`: collect every `https://` host literal from `index.html` (comments excluded), require each to be in the test's classification table (an unclassified host fails), then load `privacy.html` in jsdom and assert each "the app contacts" host appears in its text. Sabotage: add a fake `'https://example.org/api'` constant to the extracted source, and the test must fail.
 - **Files:** `privacy.html` (new), `index.html` (Settings link), `README.md`, `sw.js` (version; precache the page), the test.
 - **Risk:**
   - Legal text. The owner must approve the wording.
@@ -890,16 +963,19 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - BL-01 to BL-06 ship first.
   - Then a single-screen acknowledgement the first time a clinical program is chosen: "Use this with your care team's clearance."
   - Plus a review of every `basis` string for claims that read as medical advice.
+  - **Widened in the alignment round (business-manager):** the review covers every user-facing string in clinical programs, tips and nutrient notes. Examples: "reduces fall risk" (~33229), "lower blood pressure" (~11468), "reduces neural tube defect risk" (~34530).
+  - The "Watch form video" link, which opens an unfiltered YouTube search (~44136, 44161), is dropped or replaced on care and rehab items.
 - **Acceptance criteria:**
   1. Choosing any `MEDICAL_STYLES` key (11352) for the first time shows the acknowledgement.
   2. After it's acknowledged, choosing the same or another clinical program doesn't show it again (stored with `window.storage`).
   3. Choosing a non-clinical program never shows it.
+  4. *(Alignment round)* No "Watch form video" link renders on a `MEDICAL_STYLES` exercise or a Care item (DOM count 0).
 - **Test plan:** new `test-clinical-ack.js`, with the real program-switch path (`saveActiveProgram`, 14888) and a stub `window.storage`. Sabotage: skip the stored flag, and criterion 2 must fail.
 - **Files:** `index.html` (11352, 14888, program picker), `sw.js`, the test. The `basis` review touches `content-citations.js` and program `basis` strings only after the owner decides who reviews them.
 - **Risk:**
   - Health-claim and legal wording; the owner (or a clinician) must approve it.
   - One extra tap on clinical programs, once. Guarded by `test-program-recommendation.js`.
-- **Status:** needs-owner. **Question:** "Before going public, add a one-time care-team acknowledgement to clinical programs and have their claims reviewed (by you or a clinician)?" **Recommendation:** yes. Keep the programs, because they're a differentiator no competitor has.
+- **Status:** needs-owner. **Question:** "Before going public, add a one-time care-team acknowledgement to clinical programs and have their claims, tips and nutrient notes reviewed, by a clinician?" **Recommendation:** yes, a paid clinician before listing. Keep the programs, because they're a differentiator no competitor has.
 
 ### BIZ-11: Business model
 - **Why:**
@@ -958,6 +1034,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Test plan:** extend `test-first-launch.js`, with the real overlay markup and the real `showUserPicker`. Sabotage: drop the empty-list condition, and criterion 2 must fail.
 - **Files:** `index.html` (5701–5712, 9637–9652), `sw.js`, the test.
 - **Risk:** low. Picker layout at 402×874; check it in Playwright. Ship after BIZ-07 so the page metadata and the first screen say the same thing.
+- **Alignment note (2026-11-07, business-manager B1):** the clause "your logs stay on your phone" is only true because BIZ-06 discloses what each AI feature sends. BIZ-06 is sequenced first (roadmap slot 55 vs 68). If BIZ-06's disclosure criterion hasn't merged, the line ends "…and your logs stay on your phone unless you use AI with your own key."
 - **Status:** ready
 
 
@@ -991,20 +1068,32 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - The free/paid line (business.md §3.3) only protects users and the brand if it's public **before** anyone could be affected, so it can never look retroactive (§3.4).
   - Today nothing in the app or the README says what is free or why.
 - **Change:**
-  - One short "What's free" note in Settings (near the privacy link from BIZ-16), with the same text in the README and in MKT-14's landing page: "Everything that runs on your phone is free, forever, with no ads. If we ever add a paid plan, it will only cover things that run on our servers, like AI without your own key or cloud sync, and anyone who trained with Chalklog before then gets a founding price for as long as they stay subscribed."
+  - One short "What's free" note in Settings (near the privacy link from BIZ-16), with the same text in the README and in MKT-14's landing page. The text is business.md §3.4's revised wording, with `{name}` filled from `APP_NAME` once the owner settles the public name: "Everything {name} does on your phone is free, forever, with no ads, including every program that comes with the app. We may fix or retire a feature for safety, but we will never put it behind a payment. If we ever add a paid plan, it will only cover things that run on our servers, like AI without your own key or cloud sync, and anyone who trained with {name} before then gets a founding price for as long as they stay subscribed. Coaches may one day pay to manage clients or sell programs they wrote; their clients and everyone else keep everything above for free."
+  - *(Alignment round:* the older "if it runs on your phone, it's free" line is dropped, because it would make a paid coach program a broken promise; business.md §3.4.)
   - Copy only; nothing is gated.
   - Marketing owns tone (marketing.md §2). This item owns the facts.
 - **Acceptance criteria:**
   1. The Settings note exists in the parsed `index.html` and contains "free, forever" and "no ads".
   2. The note's text equals the README's "What's free" paragraph (normalised whitespace), so the two can't drift.
   3. The note contains no price, no currency symbol and no date (regex count 0) until BIZ-21 sets them.
-  4. No element in the free-list areas (the set sheet, program picker, history, export) carries a lock, upgrade or "Pro" label (DOM query count 0). That's a guard against future quota creep.
+  4. *(Split out to BIZ-18a, which ships early as its own ready version.)* This item keeps BIZ-18a's test passing.
 - **Test plan:** new `test-whats-free.js`, which parses the real `index.html` and `README.md`. Sabotage: change one word in the README paragraph, and criterion 2 must fail.
 - **Files:** `index.html` (Settings), `README.md`, `sw.js`, the test; later `about.html` (MKT-14).
 - **Risk:**
   - It's a public commitment with consumer-promise implications, so the owner must approve the exact words.
   - Ship it after BIZ-07 and BIZ-16 so all three say the same thing.
-- **Status:** needs-owner. **Question:** "Publish this exact 'What's free' paragraph in the app, the README and the landing page at public launch?" **Recommendation:** yes, at launch (Phase 5) and not before. The promise is what makes it safe for early users to commit years of logs.
+- **Status:** needs-owner. **Question:** "Publish business.md §3.4's 'What's free' paragraph (with the safety clause and the coach sentence) in the app, the README and the landing page at public launch?" **Recommendation:** yes, at launch (Phase 5) and not before. The promise is what makes it safe for early users to commit years of logs.
+
+### BIZ-18a: The free-list guard test
+- **Why:** BIZ-18's criterion 4 (no lock, upgrade or "Pro" label in free areas) only protects the free list if it runs on **every** later build. Inside a needs-owner Phase 5 item it would run on none (business-manager, non-blocking; roadmap "Business priorities" asked for it).
+- **Change:** test only. No copy, no markup, and nothing the person sees. The version still bumps (`automation.md` §4 step 9). The What's New entry says honestly that nothing visible changed: "Behind the scenes: a check that keeps everything you use today free."
+- **Acceptance criteria:**
+  1. Rendering the real Today, set sheet, program picker, History, Food, Analysis and export controls in jsdom finds 0 elements whose text, `aria-label`, class or `data-*` attribute matches `/\b(pro|premium|upgrade|unlock|locked)\b/i` or a lock glyph (🔒), apart from an explicit allowlist (for example "progress" or "program", which the word-boundary regex shouldn't hit anyway; the test lists any exception it allows).
+  2. 0 elements carry `disabled` with a reason mentioning payment.
+- **Test plan:** new `test-free-list-guard.js`. Sabotage: inject a `<span class="pro-badge">Pro</span>` into the program picker markup, and criterion 1 must fail.
+- **Files:** `sw.js` (version), `index.html` (`APP_VERSION` and the `WHATS_NEW` entry only), the test.
+- **Risk:** false positives on words like "progress" or "protein". The word-boundary regex and the named allowlist handle them; the test prints any match.
+- **Status:** ready
 
 ### BIZ-20: The founding-member promise
 - **Why:**
@@ -1023,7 +1112,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - It's a money promise that has to be honoured for years.
   - On-device proof can be faked by editing data. That's accepted as a small cost.
   - The store offer mechanics (Apple offer codes, Google Play offers) aren't verified here.
-- **Status:** needs-owner. **Question:** "Promise a founding price (half of list, locked while subscribed) to everyone who trains with Chalklog before the subscription is announced, and announce the promise at public launch?" **Recommendation:** yes. Offer no lifetime plan on hosted AI.
+- **Status:** needs-owner. **Question:** "Promise a founding price (half of list, locked while subscribed, on the server-run subscription only) to everyone who trains with the app before the subscription is announced, and announce the promise at public launch?" **Recommendation:** yes. Offer no lifetime plan on hosted AI. Coach programs and the coach plan are priced separately (business.md §3.4, §3.8).
 
 ### BIZ-21: Switch the subscription on by metrics, not by a date
 - **Why:**
@@ -1107,6 +1196,31 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 
 ---
 
+### BIZ-25: Move the app to its own origin, with export and import
+- **Why:** the app lives at `jdabeast5.github.io/Training-Log`. Pointing a custom domain at it (or moving hosts) changes the origin, and localStorage and IndexedDB, which hold every log and progress photo, don't follow. Installed copies would open empty (marketing-manager B2).
+- **Change:** none until answered. If yes, the follow-up item writes its own criteria. The outline:
+  - the old origin shows a one-time "We've moved" sheet with a full backup export (the existing JSON backup already includes photos, ~34215);
+  - the new origin offers import on first launch;
+  - nothing is deleted at the old origin.
+- **Acceptance criteria:** the owner's answer is recorded here.
+- **Test plan:** none until answered.
+- **Files:** later `index.html`, `sw.js`.
+- **Risk:** data loss if done wrong. Never set a Pages custom domain on the app's repo as a side effect of BIZ-08.
+- **Status:** needs-owner. **Question:** "Do you ever want the app itself to live at its own domain (an origin move that needs an export-and-import step), or keep it where it is with the domain only forwarding to it?" **Recommendation:** forward only, for now. Revisit at the store launch.
+
+### BIZ-26: The barcode library loads with an integrity hash
+- **Why:** the barcode library runs from `cdn.jsdelivr.net` and `unpkg.com` by `<script src>` (~35227) with no Subresource Integrity, in a page that holds health data. A compromised CDN file would run with full access to every log (business-manager, non-blocking).
+- **Change:** pin the exact version URL on both CDNs and add `integrity="sha384-…"` plus `crossorigin="anonymous"` to the loader. First check that both CDNs serve byte-identical files for that version; if they don't, each URL gets its own hash. No other loading change.
+- **Acceptance criteria:**
+  1. Every `<script>` element the barcode loader creates (the real loader, run in jsdom with `document.createElement` observed) has a non-empty `integrity` attribute starting `sha384-` and `crossorigin="anonymous"`.
+  2. Each pinned URL contains an exact version (no `@latest`, no bare major).
+  3. The fallback order between the two CDNs is unchanged.
+- **Test plan:** new `test-barcode-sri.js`. Sabotage: drop the `integrity` attribute, and criterion 1 must fail. The PR records the hash computation (command and output) and a Playwright check that a real barcode scan still loads the library.
+- **Files:** `index.html` (~35227), `sw.js`, the test.
+- **Risk:** a wrong hash silently disables barcode scanning. Guarded by the Playwright load check and the existing barcode tests.
+- **Tools:** `security-review`.
+- **Status:** ready
+
 ## Marketing (MKT): added by marketing-manager, 2026-11-07
 
 Written against **v3.514**. Evidence and the share-moment design for every item are in `planning/marketing.md` (§0, §1 and §3), from a Playwright walk (Chromium, 402×874, a fresh context plus `/.taste-skill/seed3.html`) and cards rendered with the real `buildShareCardBlob`. Line numbers are `index.html` at v3.514. **Re-grep them before editing.** The same rules and default `Tools:` apply as for every BL item. BIZ-08 (the address on cards) and BIZ-17 (the first-screen promise) are business items; nothing here duplicates them. Ready items are listed first, in suggested build order, then needs-owner items in priority order.
@@ -1161,29 +1275,45 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Change:**
   - `buildShareCardBlob(cardData, format)`: `format` is `'story'` (1080×1920, the new default) or `'square'` (today's layout, unchanged).
   - In story format, keep the icon, headline, detail and stats between y = 250 and y = 1620 (clear of the story UI at the top and bottom).
-  - Draw the ring mark (the icon's ring with its one coloured segment, as canvas arcs, not an image file) above a wordmark at the bottom. Leave a reserved line under it for BIZ-08's address.
-  - The file name becomes `training-log-<kind>-<YYYY-MM-DD>.png`.
+  - Draw the **Sash mark** (the shipped v3.516 icon: the five plate inks as one band on a `--ground` tile) as canvas rectangles, not an image file, at the bottom. **No wordmark in this version.** The `'TRAINING LOG'` footer text (~29608) is removed, not replaced. A reserved line stays under the mark for the wordmark (MKT-03b) and BIZ-08's address.
+  - The file name is `${appSlug()}-<kind>-<YYYY-MM-DD>.png` (`liftnext-pr-2026-11-30.png` at v3.516). This item adds the one helper `appSlug()` beside `APP_NAME` (7622): `APP_NAME` lower-cased, with spaces as hyphens. MKT-20 reuses it for the backup file.
   - Colour and type follow `planning/design-vision.md` §3: a flat ink ground with no gradient or glow, the session day's spot ink as the one colour, Archivo for the big figure if UX-02 is approved, else Geist. If the vision's own card items land first, this item only adds the format and the mark to them.
 - **Acceptance criteria:**
   1. With a stub canvas, `buildShareCardBlob(card)` sets `canvas.width === 1080` and `canvas.height === 1920`; with `'square'`, 1080×1080.
   2. In story format, every `fillText` call's y is between 250 and 1700 (stub-recorded).
-  3. The mark is drawn: at least one `arc` call (stub-counted) in both formats.
+  3. The Sash mark is drawn in both formats: exactly five `fillRect` calls inside the mark's box, whose `fillStyle`s equal the five target `--spot-*` inks from UX-01 (stub-recorded, in order).
   4. The square format's `fillText` calls equal today's for the same `cardData`, except the footer (record before and after; sabotage-anchored).
+  5. No `fillText` string equals or contains "TRAINING LOG", "Training Log" or `APP_NAME` (in any case) in this version.
+  6. The card's ground and spot ink come from `dayInk(id)` (UX-01b) for the session's day.
 - **Test plan:** new `test-share-card-format.js`, with the real `buildShareCardBlob`, `wrapCanvasText` and `celebrationIconPath`, and a recording stub 2D context. Then render real PNGs in Playwright for the PR, streak and week cards in both formats and attach them to the PR. Sabotage: drop the format switch, and criterion 1 must fail.
 - **Files:** `index.html` (29468–29640), `sw.js`, the test.
-- **Risk:** visual. The design-engineer reviews the rendered PNGs. If the owner renames the app (MKT-09), only the wordmark string changes.
-- **Tools:** `Skill: impeccable` (`polish`) on the rendered cards.
-- **Summit note (summit 2026-11-07):** Draw it in the Plate & Press world from day one (flat ink ground, the day's spot ink, no gold glow), so cards are never redone (summit §1.4). It's on the Year in Lifting lane (roadmap build 11).
-- **Status:** ready
+- **Risk:** visual. The design-engineer reviews the rendered PNGs. The name never appears in this version, so a rename can't strand printed cards.
+- **Tools:** `Skill: impeccable` (`polish`, Markdown fallback only until the owner approves the engine) on the rendered cards.
+- **Alignment note (2026-11-07):** the ring mark is replaced by the Sash mark (MKT-19 shipped as the icon in v3.516). **No wordmark until the public name is confirmed** (market-researcher B1, marketing-manager B1). The wordmark is MKT-03b. Builds the story frame (safe zones, mark tile, sponsor strip) so the bib (MKT-16) reuses it. Ships after UX-01b and, if approved, UX-02. Year in Lifting 2026 carries no address (consensus decision 16).
+- **Summit note (summit 2026-11-07):** Draw it in the Plate & Press world from day one (flat ink ground, the day's spot ink, no gold glow), so cards are never redone (summit §1.4). It's on the Year in Lifting lane (roadmap slot 17).
+- **Status:** ready (after UX-01b)
+
+### MKT-03b: The wordmark on cards, once the name is confirmed
+- **Why:** MKT-03 ships the mark alone so the Year in Lifting lane never waits on the name (consensus G1). Once the owner confirms the public name (after the USPTO knockout and buying its domain; marketing.md §2.1, §4.3), cards add it.
+- **Change:** draw `APP_NAME` beside the Sash mark in the reserved line. Per marketing.md §3.4: one word, in capitals only beside the mark; on story cards the event band reads `[mark] NAME · PROGRAM · WK n`. Never a figure that reads as an instruction (no "NAME: 160").
+- **Acceptance criteria:**
+  1. Exactly one `fillText` call carries `APP_NAME.toUpperCase()`, and its x and y are inside the mark's row (stub-recorded).
+  2. Changing `APP_NAME` in the extracted source changes the drawn text (no literal name in the card code: a real-code count of the literal is 0).
+  3. All MKT-03 criteria, except 5, still pass.
+- **Test plan:** extend `test-share-card-format.js`. Sabotage: hard-code "LIFTNEXT", and criterion 2 must fail.
+- **Files:** `index.html` (the card builder), `sw.js`, the test.
+- **Risk:** prints the name on images nobody can recall. That's why it waits for the owner.
+- **Status:** needs-owner. **Question:** "Is the public name confirmed (USPTO knockout done, domain bought), so cards can print it?"
 
 ### MKT-04: Share a finished session
 - **Why:** finishing a session is the most frequent earned moment (every training day), and its celebration (`triggerCelebration('flag', 'Session complete!', …)`, 29263) has no share button. PR and streak celebrations already pass `shareData`.
 - **Change:**
-  - Pass `shareData` to that call: `{icon:'flag', headline:'SESSION COMPLETE', stats:[…]}`, with the day label ("Upper · Strength"), sets logged today on that day, total load (sum of weight × reps, shown with `fmtWeight`), and "PRs: n" when there was at least one.
+  - Pass `shareData` to that call: `{icon:'flag', headline:'SESSION COMPLETE', stats:[…]}`, with the day label ("Upper · Strength"), sets logged today on that day, the number of lifts, minutes when known (`workout-time:{date}` or the Gym clock; left out when unknown), and "PRs: n" when there was at least one.
+  - **No total load by default** (alignment round: exercise-auditor N1, marketing-manager). Tonnage rewards extra easy sets [ROB24][PEL]. The pure builder may still return `load` for a later opt-in, but it isn't in `stats`.
   - No share data when `activeProgram` is a `MEDICAL_STYLES` key.
 - **Acceptance criteria:**
   1. Completing the last exercise of a day with 18 logged sets calls `triggerCelebration` with `shareData.stats` containing `{value:'18', label:'SETS'}`.
-  2. The load row equals the sum of weight × reps over that day's logged sets (computed from the fixture, not hard-coded).
+  2. The `stats` labels are exactly {SETS, LIFTS, MIN} (MIN only when the fixture has a `workout-time` entry), plus PRs when present. No label matches /LOAD|VOLUME|LB|KG/.
   3. With a `MEDICAL_STYLES` program active, `shareData` is undefined.
   4. `triggerCelebration` is still called exactly once per completing click (count real calls).
 - **Test plan:** new `test-session-share.js`, driving the real checkbox `change` handler in jsdom with stub storage. Sabotage: drop `shareData`, and criterion 1 must fail.
@@ -1213,12 +1343,12 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Why:** annual recaps are the largest share event in consumer apps: Spotify reports 500 million Wrapped shares in about 24 hours (company-reported, marketing.md §3.1). Strava's "Year in Sport" is the fitness version, but it's for subscribers only. A free, private, on-device version is on-brand and recurs every December.
 - **Change:**
   - From 1 December to 15 January, with at least 8 training dates in the year: one row in Today's Priorities ("Your 2026 in lifting is ready") and an entry in History.
-  - It opens a short sequence of 4–5 story cards (MKT-03's format), each with its own share button: sessions and weeks trained; total sets and load lifted; the biggest e1RM gain (lift and amount); the most-trained muscle group (from the existing muscle mapping); the longest weekly streak (MKT-01).
+  - It opens a short sequence of 4–5 story cards (MKT-03's format), each with its own share button: sessions and weeks trained; total sets (total load lifted only as a small secondary line, never the headline figure; alignment round, exercise-auditor N1); the biggest e1RM gain (lift and amount); the most-trained muscle group (from the existing muscle mapping); the longest weekly streak (MKT-01).
   - All computed on the device from `activity-dates`, `week-archive` and the set history. No body weight, food or health data on any card.
   - Rendered as a view section using existing patterns (`VIEW_RENDERERS`/`showView`, `expand-wrap`); no new view framework.
   - "Hide" is stored with `window.storage` (`recap-<year>-dismissed`).
 - **Acceptance criteria:**
-  1. With a fixture year of 120 training dates, the computed recap's `sessions === 120`, and the total sets and load equal sums over the fixture.
+  1. With a fixture year of 120 training dates, the computed recap's `sessions === 120`, and the total sets and load equal sums over the fixture. No card's largest `fillText` (by font size) is the load figure.
   2. On 30 November: no Priorities row. On 1 December: the row. On 16 January: none.
   3. With 7 training dates in the year: no row.
   4. No card's `fillText` text contains a body-weight, calorie or sleep value (stub-recorded).
@@ -1231,6 +1361,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
   - Time-critical: to land in December 2026 it needs to ship by 30 November.
 - **Tools:** `Skill: dataviz` for any chart on the cards.
 - **Summit note (summit 2026-11-07):** Ship as two versions. **06a** is the computation, the Priorities row and one summary card; target merged by 30 November (roadmap build 12). **06b** is the remaining cards, after MKT-01. Constraints: "biggest e1RM gain" excludes `oly`/`jump`/`throw` (Epley isn't valid there, SAF-2). No share buttons while a `MEDICAL_STYLES` program is active. Record wording per summit R6. If 06a slips, nothing else moves (summit R5).
+- **Alignment note (2026-11-07):** 06a is roadmap slot 19. The 2026 cards carry the mark, the name only if it's confirmed by then (MKT-03b), and **no address** (the Phase 3 gate stays; December 2026 is a dogfood run, and December 2027 is the public moment). **06b has no "wall of bibs":** that moves to the 2027 recap, because MKT-16 ships after 06b.
 - **Status:** ready (after MKT-03)
 
 ### MKT-07: PR and progress cards show the gain
@@ -1266,12 +1397,14 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 
 ### MKT-09: The public name
 - **Why:** "Training Log" is a category description. The App Store already lists Training Tracker, TrainLog, LiftLog, StrengthLog, Workout Log and Lift Notes (marketing.md §2.1). It can't be owned in search or as a trademark.
-- **Change:** none until answered. If yes: one version changes the manifest `name`/`short_name`, `<title>`, `apple-mobile-web-app-title`, the share-card wordmark and the What's New text ("Training Log is now Chalklog. Same app, same data."). Storage keys keep the `trainingLog_` prefix: never rename namespaced keys.
+- **Change:** the display rename **shipped as v3.515** (Training Log → Liftnext: manifest `name`/`short_name`, `<title>`, `apple-mobile-web-app-title`, `APP_NAME`; storage keys unchanged, guarded by `test-app-rename.js`). What remains:
+  - **The public-name decision.** Four "NextLift" fitness apps were found, three launched in 2026, one with nearly our pitch; a NEXTLIFT filing is reported in class 28 (research.md §11, marketing.md §2.1). `planning/naming.md` proposes alternatives. The owner keeps Liftnext (after a free USPTO knockout in classes 9, 41 and 42 and buying its `.app` domain) or adopts a new name.
+  - **If the name changes:** one version changes the same strings as v3.515 did, plus What's New ("Liftnext is now <name>. Same app, same data."). It ships at roadmap slot 15, **before** MKT-03b can print a name. Storage keys keep the `trainingLog_` prefix, and the `training-log-v` cache names stay: never rename namespaced keys.
 - **Acceptance criteria:** the owner's answer is recorded in `planning/marketing.md` §2.1. The follow-up item writes its own criteria, including "no localStorage key changes".
 - **Test plan:** none until answered.
 - **Files:** `planning/marketing.md`; later `manifest.json`, `index.html` head, `sw.js`.
 - **Risk:** a domain costs money, and the name needs a trademark clearance check. A rename confuses existing installs unless What's New explains it.
-- **Status:** needs-owner. **Question:** "Rename the public app to 'Chalklog' (store title 'Chalklog: Training Log'), after buying chalklog.app and a USPTO clearance search, with 'Liftnext' as the fallback?" **Recommendation:** yes. Decide before the store listing (BIZ-12), not after it.
+- **Status:** display rename done (v3.515). The rest is needs-owner. **Question:** "Keep 'Liftnext' (after a USPTO knockout and buying its `.app` domain), or adopt the name from `planning/naming.md`?" **Recommendation:** decide before MKT-03b; until then cards carry the mark only. Never attach the domain to the app's repo as a Pages custom domain (BIZ-25).
 
 ### MKT-10: Share a program as a link
 - **Why:** people pass programs to training partners. A link that opens the app with the program ready to import is a referral that carries real value, and it needs no server: the program goes in the URL fragment (`#p=…`), which browsers never send to the server.
@@ -1334,12 +1467,14 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
   - its number came from `activity-dates`, which is pruned to 730 days (13906), so the number would stop rising after two years.
 - **Change:**
   - A `'bib'` story layout inside `buildShareCardBlob` (MKT-03's `format` argument), used by MKT-04's session share. The square format keeps A's grid. Drawn on `<canvas>`: no new asset beyond UX-02's Archivo file (fallback: Geist).
-  - **Ground:** the session day's plate ink. **Bib:** white, rotated 2.5°, four pin holes, the event band in ink with the program name and week ("STRENGTH & SIZE · WK 3") and the date.
+  - **Ground:** the session day's plate ink, from `dayInk` (UX-01b). **Bib:** white, rotated 2.5°, four pin holes, and **one** event band in ink (marketing.md §3.4): `[Sash tile] NAME · PROGRAM · WK n` and the date, where NAME is `APP_NAME` only once MKT-03b has shipped (otherwise the tile alone).
   - **The number:** the training-day number from MKT-17's builder, captioned "your 47th training day on the log". Until MKT-17 ships, the count of distinct dates with a logged set in `readExCorpus` (41014).
   - **The loaded bar,** drawn under the number from the lead lift's top set, using UX-07's plate maths in the day's inks, heaviest plate against the collar.
   - **The lead lift line:** the lift, its sets ("160 lb × 6, 6, 5, 5") and the honest progression line from the real progression note (BL-08). No "→ 165" unless the engine says so.
-  - **Tear-off tabs:** sets, lifts, and either total load lifted or "58 min". Minutes come from `workout-time:{date}` (first to last set) or the Gym clock if it ran, and are left out when unknown. **No "Finished", no mm:ss.**
-  - **The sponsor strip** at the bib's foot: the mark, "Chalklog" (or "Training Log" until MKT-09), and BIZ-08's address once approved.
+  - **Tear-off tabs:** sets (the default, first tab), lifts, and "58 min". **No total load** (exercise-auditor N1). Minutes come from `workout-time:{date}` (first to last set) or the Gym clock if it ran, and are left out when unknown. **No "Finished", no mm:ss.**
+  - **The big figure is "No. 47"**, never a load, so nothing reads as "lift next: 160".
+  - **The loaded bar is mandatory on barbell days.** With "chalk" gone, it's the bib's only lifting signal (marketing.md §3.4).
+  - **The sponsor strip** at the bib's foot carries only BIZ-08's address, once approved; until then it's empty.
   - All text between y = 250 and 1620. No body data. No card for `MEDICAL_STYLES` programs.
 - **Acceptance criteria:**
   1. With a fixture of 3 years of sets on 4 dates a week, the bib number equals the number of distinct set dates in the fixture (about 624), not the `activity-dates` length (at most 731).
@@ -1348,10 +1483,12 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
   4. The bar's plate rectangles, read from the stub context, run heaviest to lightest from the collar outward, for 160 lb on a 45 lb bar (45, 10, 2.5).
   5. With a `MEDICAL_STYLES` program active, no share data is built.
   6. No `fillText` string contains a body-weight, calorie or sleep value.
+  7. *(Alignment round)* No tab label matches /LOAD|VOLUME/; the first tab is SETS. On a barbell day, the bar's plate rectangles are drawn (count > 0).
 - **Test plan:** new `test-bib-card.js` with the real `buildShareCardBlob`, `readExCorpus`, the progression-note function and a recording stub 2D context. Then Playwright PNGs on red, blue, yellow, green and white days, attached to the PR. Sabotage: count from `activity-dates`, and criterion 1 must fail; draw "Finished 58:12", and criterion 3 must fail.
 - **Files:** `index.html` (29468–29640, 41014, the UX-07 plate helper), `sw.js`, the test.
 - **Risk:** visual, and the white bib on a white-plate day. Give the bib an ink hairline on white grounds; the design-engineer reviews the PNGs.
-- **Tools:** `Skill: impeccable` (`polish`) on the rendered PNGs.
+- **Tools:** `Skill: impeccable` (`polish`, Markdown fallback) on the rendered PNGs; TOOL-01's harness for the PNGs; `Skill: review-animations` isn't needed (static).
+- **Alignment note (2026-11-07):** placed at roadmap slot 51, directly after MKT-04 and UX-09a (market-researcher, marketing-manager B3). There's no market evidence yet that lifters read a bib as lifting (market-researcher), so it's labelled a bet; marketing.md §5's E7 tests it.
 - **Status:** ready (after MKT-03 and MKT-04)
 
 ### MKT-17: "Your number": a lifetime training-day number, with milestone bibs
@@ -1363,17 +1500,20 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
   - A pure builder, `trainingDayNumber(corpus, dateKey)`, returns the count of distinct set dates up to and including `dateKey`, from `readExCorpus`. It's never stored as a free-standing counter, so deleting a session corrects it.
   - The finish screen (UX-09; until then, the session-complete banner) shows "No. 47".
   - On a milestone date, the bib card gets a stamp ("No. 100") and the banner offers share. Celebrated once per milestone, through `window.storage` key `number-last-celebrated` (namespaced, no schema bump).
-  - Year in Lifting (MKT-06b) adds "the wall of your bibs": the year's first and last numbers and a grid of small bibs in each day's ink.
+  - "The wall of your bibs" (the year's first and last numbers and a grid of small bibs) goes to the **2027** Year in Lifting, not MKT-06b, which ships months before this item (alignment round).
   - No confetti (F9). No reminders, and nothing that mentions a gap.
+  - *(Alignment round, exercise-auditor N2)* No "N days to your next number" countdown anywhere. No milestone prompt while readiness shows the no-rest-day warning (`READINESS_DAYS_NO_REST`). The What's New line says "it counts days on the log, not how hard you went".
 - **Acceptance criteria:**
   1. With sets on 99 distinct dates, logging a set on a new date returns 100 and fires exactly one milestone celebration; a second set the same day fires none.
   2. Two sessions on one date count once.
   3. Deleting every set from one date lowers the number by one on the next render.
   4. Number 101 fires no celebration.
   5. With a `MEDICAL_STYLES` program active, the number shows in the app but no share data is built.
+  6. With the readiness no-rest warning active on a milestone date, no milestone prompt or share offer appears. No rendered string matches /\bto (your )?next\b|\d+ (days|sessions) to\b/i.
 - **Test plan:** new `test-training-day-number.js` with the real `readExCorpus` over stub storage and a fixed `getTodayKey`. Sabotage: read `activity-dates` with a 730-day prune, and criterion 1 must fail for a three-year fixture.
 - **Files:** `index.html` (near 13989 and 41014; the session-complete path, 29263), `sw.js`, the test.
 - **Risk:** `readExCorpus` drops keys whose program day no longer exists (`parseExKey`, 40940), so a deleted custom program lowers the number. That's truthful ("days on the log"), but the What's New line should say the number counts what's on the log.
+- **Tools:** default; TOOL-01's harness for the banner and the stamp.
 - **Status:** ready (after MKT-16)
 
 ### MKT-18: Pin the bib on your own photo, made on the device
@@ -1392,6 +1532,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Test plan:** new `test-bib-photo.js` with the real handler, a stub `File`/`Image` and a recording canvas. Sabotage: persist the photo to storage, and criterion 2 must fail.
 - **Files:** `index.html` (the share path near 29609 and MKT-16's layout), `sw.js`, the test.
 - **Risk:** body images. The photo is the person's own choice, made and shared on the device, the same stance as MKT-08. A transparent-PNG option (clipboard or share) is untested on iOS Safari, so the flattened composite is the default; test the other on a real iPhone before offering it.
+- **Tools:** `security-review` (a file input), plus TOOL-01's harness for the composite.
 - **Status:** ready (after MKT-16)
 
 ### MKT-19: The mark: a plate stripe in place of the ring
@@ -1404,7 +1545,25 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Test plan:** none until answered.
 - **Files:** later `icon-*.png`, the manifest, `index.html` (the card mark).
 - **Risk:** the colour code differs between kg and lb plates (the app already maps both). The mark uses the five ink colours only, not plate weights, so it stays true in either unit.
-- **Status:** needs-owner. **Question:** "Redraw the app icon and card mark as a stripe of the five plate colours, decided together with the name?" **Recommendation:** yes, at the same time as MKT-09, so the icon, name and cards change in one version.
+- **Tools:** none further (shipped).
+- **Alignment note (2026-11-07):** the owner chose option B, **"Sash"** (`tools/design/icon/`), shipped in **v3.516** as the home-screen icon, the header mark and the launch. The mark doesn't depend on the name. The card mark folds into MKT-03, which draws it as five canvas rectangles in the target `--spot-*` inks. UX-01 adds a test that the mark's literal hexes equal those inks.
+- **Status:** done (v3.516)
+
+### MKT-20: Card and backup file names follow the app's name
+- **Why:** at v3.516, saved cards are named `training-log.png` (`index.html:29623`) and backups `training-log-backup-<name>-<date>.json` (34223): the old name, on files people keep. `test-app-rename.js` only looks for the mixed-case "Training Log", so it missed these and the upper-case `'TRAINING LOG'` card footer (29608) (marketing-manager).
+- **Change:**
+  - Reuse MKT-03's `appSlug()` (consolidation: one place, so a future rename changes every file name at once). The backup file becomes `${appSlug()}-backup-<name>-<YYYY-MM-DD>.json`.
+  - MKT-03 (slot 17, earlier) already renames the card file and removes the `'TRAINING LOG'` footer. If MKT-03 hasn't merged when this is built, this item renames the card file too, and allowlists the footer line in criterion 4 with a dated comment naming MKT-03.
+  - The `training-log-v` cache names, the `trainingLog_` storage keys and the backup's JSON contents are unchanged.
+- **Acceptance criteria:**
+  1. The real backup handler (stubbed `URL.createObjectURL` and anchor click) sets `download` to a name starting with `appSlug() + '-backup-'` and ending `.json`.
+  2. The real share path, with `File` stubbed, names the file starting with `appSlug() + '-'` (no `training-log` left).
+  3. Importing a backup file named the **old** way still works (the real import handler, with a fixture called `training-log-backup-me-2026-11-01.json`): import never reads the filename.
+  4. `test-app-rename.js` is extended to fail on any non-comment string literal containing `Training Log`, `TRAINING LOG` or `training-log` in `index.html`, apart from an explicit allowlist: the `training-log-v` cache prefix and the What's New history.
+- **Test plan:** extend `test-app-rename.js` (criterion 4), plus new `test-app-file-names.js` (criteria 1–3). Sabotage: restore the `training-log-backup-` literal, and criteria 1 and 4 must fail.
+- **Files:** `index.html` (~34223; ~29623 only if MKT-03 hasn't merged), `sw.js`, `test-app-rename.js`, the new test.
+- **Risk:** people who sort backups by file name see a new prefix. The What's New line says so: "Backups and shared images are now named <name>-…; old backups still restore."
+- **Status:** ready
 
 ---
 
@@ -1417,8 +1576,15 @@ Written against **v3.514**. The vision, the world (*Plate & Press*) and the reas
 - Each screen switches whole in one version. Tokens land first as aliases, so no version leaves a screen half old, half new.
 - Tap counts never rise. Logging the ready set stays one tap, asserted in a test.
 - Accessibility is kept or improved: 4.5:1 text contrast (3:1 for 24 px and up) in light and dark, 44 pt targets, a VoiceOver name on every control, and Reduce Motion turning every animation into an instant state change.
-- **Visual check per item:** Playwright Chromium at 402×874 and 904×678, light and dark, on `/.taste-skill/seed3.html`, compared side by side with the item's mock-up render. Screenshots are attached to the PR. Then `impeccable detect --json` over `index.html`: no new contrast findings.
-- **Extra tools for every UX item:** `Skill: impeccable` (`polish`, and `audit` for contrast), `Skill: apple-hig` (targets, tab bar, sheets), and `Skill: review-animations` for anything that moves.
+- **Visual check per item (revised in the alignment round):**
+  - Run TOOL-01's harness (`tools/visual/`): a seeded fixture, a frozen `Date`, the launch preset as played, fonts awaited, and a Reduce Motion pass, over its fixed state matrix (4 views × light/dark × 402/904, plus Gym mode, the rest state and the first-run sheet).
+  - Chromium always, plus WebKit once D10 approves it (required from UX-03 on).
+  - Compare with the item's mock-up render **and with the parent commit**.
+  - One contact-sheet PNG goes in the PR (committed under `tools/visual/sheets/` if the owner approves decision 12; otherwise attached as a description).
+  - Contrast: UX-01's WCAG test, plus axe-core once D10 approves it. `impeccable detect` runs only if the owner approves the downloaded engine (consensus decision 4).
+- **Tap parity (alignment round, market-researcher):** "log the ready set" and "log a recent food" are counted in `test-tap-counts.js` (created by UX-06a, extended by UX-13). No UX item may raise either count. UX-17 waits until parity holds on the owner's phone.
+- **Extra tools for every UX item:** `Skill: impeccable` (`polish`, and `audit` for contrast; Markdown fallback only in build runs until the owner approves the engine), `Skill: apple-hig` (targets, tab bar, sheets), and `Skill: review-animations` for anything that moves. Each item's `Tools:` line names what it adds.
+- **Mock-ups:** until the design-engineer re-renders `tools/design/{today,pr,progress,recap}.html` and `directions/a-today.html` (alignment round, design-engineer B4), **the item text and the summit notes beat the pictures**. Known wrong in the renders: "Intensification", "Readiness 72", "+5 lb on your best", "→ 165", "165 × 5", the 20-set ledger ceiling, "Add 2 sets each", and "2 reps in reserve".
 
 Ready items are listed in build order, then needs-owner items.
 
@@ -1431,11 +1597,35 @@ Ready items are listed in build order, then needs-owner items.
 - **Acceptance criteria:**
   1. Every new token is defined in both the dark `:root` and the light block. The test parses the real `<style>` with jsdom's CSSOM, not by string match.
   2. For every spot ink, the **target** values (from the comment) give `--on-*` against `--spot-*` ≥ 4.5:1, white against `--deep-*` ≥ 4.5:1, and `--text`, `--text-2` and `--text-3` against `--ground` ≥ 4.5:1 in both themes. Computed with a real WCAG luminance function in the test.
-  3. Playwright: screenshots of all four views at 402×874 and 904×678, light and dark, are pixel-identical to the v3.514 baseline.
+  3. TOOL-01's harness: every state in its matrix is pixel-identical to the **parent commit** (not "the v3.514 baseline", which is stale).
+  4. *(Alignment round, design-engineer)* The Sash mark's literal hexes (header mark and launch, `index.html` ~5320 area, and the icon source in `tools/design/icon/`) equal the five target `--spot-*` values recorded in the comments. Parse the real markup; don't string-match the whole file.
 - **Test plan:** new `test-design-tokens-v2.js`. Sabotage: delete one token from the light block, and criterion 1 must fail; set `--spot-red` to `#E0352B` (4.4:1), and criterion 2 must fail.
 - **Files:** `index.html` (59, 309), `sw.js`, the test.
 - **Risk:** low. Guarded by `test-css-mechanical-token-dedup.js`.
-- **Summit note (summit 2026-11-07):** Moved to the front of Phase 1 (roadmap build 8). It changes nothing visible, and every later piece of BL/BIZ/MKT markup is then written once in the new vocabulary (summit R1). Pixel-identity criterion 3 is Playwright PR evidence, not a `check.sh` suite.
+- **Summit note (summit 2026-11-07):** Moved to the front of Phase 1 (now roadmap slot 11). It changes nothing visible, and every later piece of BL/BIZ/MKT markup is then written once in the new vocabulary (summit R1). Pixel-identity criterion 3 is harness PR evidence, not a `check.sh` suite.
+- **Tools:** TOOL-01's harness.
+- **Status:** ready (after TOOL-01)
+
+### UX-01b: `dayInk(id)`: one day-to-ink rule, with no visible change
+- **Why:**
+  - `getDayPlateClass` (`index.html` ~26219) ignores each day's `plate` field and colours days by **position** from seven hues (`VIVID_PLATE_CLASSES`, ~26218: red, blue, yellow, green, purple, orange, teal). For example, Strength & Size Day 5 "Lower · Hypertrophy" is purple today, while its data says `p-green` / `10`.
+  - Plate & Press, the icon, the bib and the plate stack all mean the five plate inks.
+  - MKT-03 (slot 17), MKT-06a and MKT-16 print "the day's ink" long before UX-05 (slot 42), and no test covers the current rule (design-engineer B1).
+- **Change:**
+  - Add one pure helper, `dayInk(dayOrId, program)`. It returns one of `'red' | 'blue' | 'yellow' | 'green' | 'white' | 'off'`:
+    - from the day's own `plate` field (`p-red` → `red`, …, `p-white` → `white`);
+    - rest days → `off`;
+    - a missing or unknown plate (custom programs, or `p-purple` etc. if any data carries them) → the ink at `index % 4` over red, blue, yellow, green, so inks **repeat** in programs of 5+ days rather than turning grey.
+  - Nothing calls it yet apart from its test. `getDayPlateClass` and `--day-hue` are unchanged in this version.
+  - The rule is the owner's (consensus decision 9; recommended: the plate code). If he chooses "seven distinct hues" instead, this item is rewritten before it's built.
+- **Acceptance criteria:**
+  1. For every day of every built-in program, its `PROGRAM_DAY_COUNT_VARIANTS` days and every `*_STYLES` style, `dayInk` returns one of the six values, and equals the mapping of the day's `plate` field when the field is one of the five inks.
+  2. Strength & Size Day 5 returns `green` (it returns purple through today's `getDayPlateClass`; the test records both, so the difference is documented).
+  3. A rest day returns `off`. A custom program day with no `plate` returns an ink by its index, and never throws.
+  4. No rendered DOM changes: `getDayPlateClass`'s outputs for all days are identical before and after (snapshot).
+- **Test plan:** new `test-day-ink.js` (UX-05 extends it later). Sabotage: return `'red'` for everything, and criterion 1 must fail on Day 2.
+- **Files:** `index.html` (a new helper beside ~26219), `sw.js`, the test.
+- **Risk:** none visible. The What's New line says so honestly.
 - **Status:** ready
 
 ### UX-02: Ship the Archivo display face beside index.html
@@ -1451,6 +1641,8 @@ Ready items are listed in build order, then needs-owner items.
 - **Test plan:** new `test-display-font.js`. Sabotage: misspell the file name, and criterion 2 must fail.
 - **Files:** `fonts/`, `index.html` (29–34), `sw.js`, the test.
 - **Risk:** first load is 90 KB heavier. `font-display: swap` keeps the text visible.
+- **Tools:** default; TOOL-01's harness (fonts awaited).
+- **Alignment note (2026-11-07):** sequenced at roadmap slot 16, **before MKT-03**, if approved, so the Year in Lifting cards and the app share one typeface from the start (design-engineer). CLAUDE.md says "no assets ship now", but `fonts/` (Geist) and the `content-*.js` files do ship; that wording is the owner's to fix (flagged by skills-orchestrator and build-automator, not edited here).
 - **Status:** needs-owner. **Question:** "Ship one 90 KB display font file (Archivo, open licence) beside the app for the big numbers and headlines?" **Recommendation:** yes. It's the single biggest visual lift per byte, and MKT-03's cards use it too.
 
 ### UX-03: Flat ground everywhere: retire the halos, glass and gradient buttons
@@ -1458,14 +1650,23 @@ Ready items are listed in build order, then needs-owner items.
 - **Change:**
   - Switch the UX-01 aliases for ground, surfaces, rules and text to their target values.
   - Cards become `--surface-1` with a 1 px `--rule` and no blur. Gradient buttons become flat: the primary is ink (`--text` on `--ground`), and the day-coloured one is `--spot` on `--on-spot`.
-  - Gym mode's hand-tuned `.exercise-block.open` literal shadow stays untouched (CLAUDE.md).
+  - Gym mode's hand-tuned `.exercise-block.open` literal shadow stays untouched (CLAUDE.md). **Gym mode is out of scope** until UX-17.
+  - *(Alignment round, design-engineer B2)* Also in scope:
+    - the 14 `radial-gradient` halo backgrounds, including `--aura`;
+    - the launch's aura (dark) and its literal halos on `#F3F0EA` (light): the launch ground becomes `--ground`;
+    - the violet gradient on "Create my profile";
+    - `manifest.json` `background_color`/`theme_color` (`#121417`) and the `theme-color` metas (`index.html:18–19`, `#050507` / `#F2F2F5`), which must match `--ground` in each theme.
 - **Acceptance criteria:**
   1. In jsdom on the real markup, no element's inline or stylesheet `background` uses `--cta-gradient-*`. Count real rules in the CSSOM.
   2. `backdrop-filter` remains only on the sheet scrim and the tab bar's under-layer, if any: the CSSOM count is 2 or fewer, and the test names the rules allowed.
   3. The UX-01 contrast test passes against the live values now.
-  4. Playwright on all four views, light and dark: `impeccable detect` reports no new low-contrast findings compared with v3.514.
-- **Test plan:** extend `test-design-tokens-v2.js`. Sabotage: restore one gradient button rule, and criterion 1 must fail.
-- **Files:** `index.html` (CSS only), `sw.js`, the test.
+  4. ~~`impeccable detect`~~ *(replaced in the alignment round)*: the harness's contrast pass (axe-core once D10 approves it; until then UX-01's WCAG function over the computed colours of every text node in the matrix) reports no new contrast failure compared with the parent commit.
+  5. No CSSOM rule outside Gym mode's allowlisted selectors has a `background` or `background-image` containing `radial-gradient` (real CSSOM count, comments excluded).
+  6. The launch overlay's computed background equals `--ground` in both themes, and the "Create my profile" button has no gradient.
+  7. `manifest.json`'s `theme_color` and `background_color`, and both `theme-color` metas, equal the target `--ground` of their theme.
+- **Test plan:** extend `test-design-tokens-v2.js`. Sabotage: restore one gradient button rule, and criterion 1 must fail; restore one halo, and criterion 5 must fail.
+- **Files:** `index.html` (CSS, the launch markup, the `theme-color` metas), `manifest.json`, `sw.js`, the test. (`automation.md` §4 step 11 must stage `manifest.json`: consensus F12.)
+- **Tools:** TOOL-01's harness with **WebKit** (D10); `Skill: impeccable` (`audit`, Markdown fallback). After it merges, **the owner looks on his phone before the next UX item builds on it.**
 - **Risk:** visual, everywhere at once. That's why it's one version on its own and easy to revert. Guarded by `test-css-mechanical-token-dedup.js` and the `--rim` notes in CLAUDE.md.
 - **Status:** ready
 
@@ -1484,18 +1685,24 @@ Ready items are listed in build order, then needs-owner items.
 - **Test plan:** extend `test-tab-bar.js`, with a dated note (2026-11-07) that the labels changed on purpose: Log to Food, Analysis to Progress. Sabotage: leave `aria-current` on the previous tab, and criterion 2 must fail.
 - **Files:** `index.html` (5758–5771 and the nav CSS), `sw.js`, `test-tab-bar.js`.
 - **Risk:** muscle memory for the two renamed labels. The positions don't change. Guarded by `test-gym-offer-tab-leak.js` and `test-coach-tab-order.js`.
+- **Tools:** `Skill: apple-hig` (tab bar); TOOL-01's harness.
 - **Status:** ready
 
 ### UX-05: The day sets the ink
 - **Why:** each program day already carries a plate (`plate:'p-red'`, 9716 onward), and `renderWorkout` already publishes `--day-hue` on `#workoutCard` (28537). The new world needs three values per day: `--spot`, `--on-spot` and `--spot-deep`. It also needs them on `<body>`, because the cover, the rest field, the finish screen and the charts all use them.
-- **Change:** beside the `--day-hue` line (28537), publish `--spot`, `--on-spot` and `--spot-deep` on `document.body` from `getDayPlateClass(activeDay)` (26213). Map them through one table: `p-red` → red, and so on; `p-off` and `p-white` → their own; any unknown class → `off`. `--day-hue` stays, for the rules that still read it.
+- **Change (rewritten in the alignment round against `dayInk`, design-engineer B1):**
+  - Beside the `--day-hue` line (28537), publish `--spot`, `--on-spot` and `--spot-deep` on `document.body` from **`dayInk(activeDay)`** (UX-01b), not from `getDayPlateClass`.
+  - Re-point the live `--plate-*` tokens (`#FF453A`, `#5B7CFF`, … at ~104–112) and the day-picker discs to the spot inks via `dayInk`, so the cover's red and the disc's red are the same red. Otherwise two reds show on one screen (`#D42F25` and `#FF453A`).
+  - `getDayPlateClass` becomes a thin wrapper over `dayInk` (consolidation), so there's one rule. `--day-hue` stays, for the rules that still read it.
 - **Acceptance criteria:**
-  1. For every day of every built-in program, after the real `renderWorkout`, `document.body.style.getPropertyValue('--spot')` names the plate token matching that day's `plate`, and `--on-spot` names its pair.
-  2. An unknown plate class falls back to `off` without throwing.
-  3. `--day-hue` on `#workoutCard` is unchanged (existing behaviour).
-- **Test plan:** new `test-day-ink.js`, with the real `renderWorkout` path or the extracted helper plus `getDayPlateClass` and `programs`. Sabotage: always publish red, and criterion 1 must fail on Day 2.
-- **Files:** `index.html` (26213, 28537), `sw.js`, the test.
-- **Risk:** low. Nothing visible reads the new values until UX-06.
+  1. For every day of every built-in program (and its variants), after the real `renderWorkout`, `document.body.style.getPropertyValue('--spot')` is `var(--spot-<dayInk(day)>)`, and `--on-spot` names its pair.
+  2. `getDayPlateClass(id)` equals `'p-' + dayInk(id)` for every day (one rule).
+  3. Each `--plate-*` token's computed value equals its `--spot-*` target in both themes (CSSOM).
+  4. `--day-hue` on `#workoutCard` is unchanged (existing behaviour).
+- **Test plan:** extend `test-day-ink.js` (from UX-01b). Sabotage: publish from the day's position instead of `dayInk`, and criterion 1 must fail on Strength & Size Day 5.
+- **Files:** `index.html` (~26213–26230, 28537, the `--plate-*` tokens ~104–112), `sw.js`, the test.
+- **Risk:** the day-picker discs and any rule reading `--plate-*` change colour on days 5–7, which now repeat inks. It's visible, and that's intended (consensus decision 9). Guarded by `test-a11y-keyboard-focus.js` and `test-header-refresh.js`, the two suites that touch the current rule.
+- **Tools:** TOOL-01's harness.
 - **Status:** ready
 
 ### UX-06: Today's cover: the next set, huge, in the day's ink
@@ -1522,6 +1729,14 @@ Ready items are listed in build order, then needs-owner items.
 - **Files:** `index.html` (5873–5894, `renderUpNext` 30545, the up-next CSS 726–760), `sw.js`, the test.
 - **Risk:** Today's layout is the most-used screen. Guarded by `test-set-chips.js`, `test-today-priorities.js`, `test-gym-set-chips.js` and `test-superset-chips.js`.
 - **Summit note (summit 2026-11-07):** Ship as **two versions**. **06a:** the cover, numeral, Log button, chips, and fields behind "adjust". **06b:** the day picker collapsing into the headline sheet. 06a adds three criteria: (i) a first-ever exercise shows BIZ-05's hint and the target reps, not an empty numeral; (ii) with a resting region that flags the cover lift (e.g. Shoulder → Bench Press, `CATEGORY_TO_REGIONS` 43895), the cover shows the existing caution and substitute; (iii) effort words come from BL-10 (summit R7). No numeric readiness score (summit F2). Keep `#headerEyebrow` (BIZ-02).
+- **Alignment note (2026-11-07):** `design-directions.md` §5's additions, copied in as 06a criteria:
+  - (iv) **no state colour sits on a spot field**: no warning, success or error colour is a computed `color` or `background` of any descendant of the cover (CSSOM over the real markup);
+  - (v) **in dark mode, a yellow day's cover uses the deep ink**: the cover background is `--spot-deep`-based, with white text at ≥ 4.5:1;
+  - (vi) **meta text on spot fields is at least 15 px** (computed `font-size` of every text node in the cover except the numeral and headline);
+  - (vii) **a 16 px or larger gap between Log and adjust** (harness `getBoundingClientRect`);
+  - (viii) **tap parity**: create `test-tap-counts.js`, counting the real clicks to log the ready set from a fresh Today. The count is ≤ the parent commit's count (1 today).
+  - The cover's effort line shows BL-10's `words` form, not the `short` label.
+- **Tools:** TOOL-01's harness (WebKit); `Skill: apple-hig`; `Skill: review-animations` for the "adjust" expand.
 - **Status:** ready (after BL-08, BL-10 and BIZ-05)
 
 ### UX-07: The plate stack beside the load
@@ -1534,9 +1749,12 @@ Ready items are listed in build order, then needs-owner items.
   2. With a custom equipment profile without 2.5 lb plates, 160 → `[45, 10]` with remainder 2.5.
   3. No plate stack renders for a dumbbell, cable or bodyweight lift (Lat Pulldown, DB Curl).
   4. The caption text equals the plates joined with " · ", followed by " each side".
+  5. *(Alignment round, `design-directions.md` §5)* In the rendered SVG, plates run **heaviest against the inner collar**, lightest outward (read the `x` order of the plate rects for 160 lb: 45, 10, 2.5).
+  6. On the cover, the bar is drawn full width: the bar element's width equals the cover's content width (harness `getBoundingClientRect`, ±1 px).
 - **Test plan:** new `test-plate-stack.js`, with the real `platesPerSide`, `getEquipment` and `isBarbellExercise`. Sabotage: drop the bar subtraction, and criterion 1 must fail.
 - **Files:** `index.html` (new function beside 31769, cover markup), `sw.js`, the test.
 - **Risk:** a kg user's colour mapping. Tested by a kg case in criterion 2's sibling.
+- **Tools:** TOOL-01's harness; `Skill: dataviz` isn't needed (a diagram, not a chart).
 - **Status:** ready
 
 ### UX-08: Rest takes over the cover, with the next set's adjusters
@@ -1554,6 +1772,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Test plan:** new `test-rest-cover.js`, plus `test-superset-rest-timer-suppression.js` and `test-backdating-rest-timer-suppression.js` unchanged. Sabotage: make "Reps left: 2" write 2 as RPE, and criterion 3 must fail.
 - **Files:** `index.html` (29976 onward, the cover markup and CSS), `sw.js`, the test.
 - **Risk:** the timer is load-bearing mid-session. Wake lock and notifications are untouched.
+- **Tools:** `Skill: review-animations` (the `scaleX` drain); `Skill: animation-performance` (composite-only); TOOL-01's harness (rest state, Reduce Motion pass).
 - **Status:** ready
 
 ### UX-09: Finish screen, with the PR moment
@@ -1577,6 +1796,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Files:** `index.html` (near 29438 and 30980), `sw.js`, the test.
 - **Risk:** an extra sheet at the end of every session. It's dismissed with one tap, and it replaces the toast instead of adding to it.
 - **Summit note (summit 2026-11-07):** Ship as **two versions**. **09a:** the sheet, totals, "Next time" rows, Share (calling MKT-04's builder) and Done. **09b:** the flood and its motion. The Next-time rows print `computeSuggestedSet`, so BL-08 must have merged. Fix the mock-up first: Bench 4×4–6 at 5, 5, 5, 5 **holds** at 160 (summit F7). Record copy per summit R6: 160×5 over 155×8 is "Heaviest weight yet", not "your best" (e1RM 186.7 vs 196.3). On `MEDICAL_STYLES` programs: no flood, no trophy, no Share.
+- **Tools:** 09a: TOOL-01's harness, `Skill: apple-hig` (sheets). 09b: `Skill: animate` and `Skill: review-animations` (the `clip-path` flood), `Skill: animation-performance`.
 - **Status:** ready (after BL-08 and MKT-04)
 
 ### UX-10: Progress leads with the answer
@@ -1616,6 +1836,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Files:** `index.html` (45284–45470 region, Today view init), `sw.js`, `test-weekly-recap.js`.
 - **Risk:** a new interruption once a week. It's dismissible, and MKT-02's privacy rules apply to the share.
 - **Summit note (summit 2026-11-07):** Share is hidden while a `MEDICAL_STYLES` program is active. "New bests" uses summit R6 wording. Define a **first-week variant**: done against planned, and what week 2 brings, never "0 weeks" (summit §1.2). MKT-05 later adds the block-complete variant to this sheet.
+- **Tools:** TOOL-01's harness; `Skill: dataviz` (the week strip); `Skill: apple-hig` (sheets).
 - **Status:** ready
 
 ### UX-12: History as a month of plate blocks
@@ -1627,10 +1848,12 @@ Ready items are listed in build order, then needs-owner items.
   3. Existing History edit and delete tests pass unchanged.
 - **Test plan:** new `test-history-month.js`. Sabotage: key blocks by the weekday instead of the date, and criterion 1 must fail.
 - **Files:** `index.html` (44884 onward), `sw.js`, the test.
+- **Tools:** TOOL-01's harness; `Skill: dataviz` (the month grid).
+- **Alignment note (2026-11-07):** moved from slot 58 to slot 44, before the cover, so History is in the new materials before Today's cover lands (design-engineer B2). Block inks come from `dayInk`.
 - **Status:** ready
 
 ### UX-13: Food in the world's ink
-- **Why:** the Food view is the last screen in the old look after UX-03. Its flows are good and stay; only the surface changes. Recents (BL-18) slot in on top when they ship.
+- **Why:** Food is the most frequent touch in the app, and after UX-03 it would otherwise sit in the old layout beside a rebuilt Today. Its flows are good and stay; only the surface changes. *(Alignment round:* moved to slot 43, before the cover. The food lane (BIZ-03, BL-18, BL-19, BL-16, BL-17) ships at the end of Phase 1, so recents and the placeholder line already exist when this is built.)
 - **Change:** the macro rings become one ruled row of four figures (calories, protein, carbs, fat), with the remaining figure as the lead. Search, barcode, Snap a Meal and Describe It become one row of standard buttons. Food rows are two-line ruled rows using the existing `buildFoodResultRow`. No flow, storage or API changes.
 - **Acceptance criteria:**
   1. The remaining-calorie figure equals target minus the logged sum for the seeded day (real `computeTargets` and the food log).
@@ -1639,7 +1862,9 @@ Ready items are listed in build order, then needs-owner items.
 - **Test plan:** new `test-food-view-summary.js`. Sabotage: drop one entry from the sum, and criterion 1 must fail.
 - **Files:** `index.html` (Log view markup and CSS), `sw.js`, the test.
 - **Summit note (summit 2026-11-07):** Keep BIZ-03's placeholder line and BL-18's recents row, each asserted in this item's test.
-- **Status:** ready
+- **Alignment note (2026-11-07):** both are now asserted **unconditionally**, not "if present", because they merge before this item. Extra criterion: extend `test-tap-counts.js` (from UX-06a; if UX-06a hasn't shipped, this item creates it) with "log a recent food". The count is ≤ the parent commit's.
+- **Tools:** TOOL-01's harness; `Skill: apple-hig`; `Skill: dataviz` for the macro row.
+- **Status:** ready (after BL-18)
 
 ### UX-14: The unfolded screen: session and lift side by side
 - **Why:** unfolded (904×678), Today already puts the lift's history on the right (`renders` of the incumbent). In the new world the left pane is the cover and session, and the right pane is the selected lift: its plate stack, e1RM line and last five sessions. Tapping a session row switches the right pane, with no navigation.
@@ -1651,6 +1876,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Test plan:** new `test-unfolded-today.js`, plus Playwright at 904×678 light and dark. Sabotage: render the chart for the first exercise always, and criterion 1 must fail.
 - **Files:** `index.html`, `sw.js`, the test.
 - **Summit note (summit 2026-11-07):** Moved up to follow UX-10 (roadmap build 40): the owner uses a Duo daily, so the unfolded Today can't wait for Phase 4. For testability, drive the two panes from a `matchMedia` listener that sets a class, because jsdom can't evaluate container queries (summit §1.7).
+- **Tools:** TOOL-01's harness at 904×678 (WebKit, because container queries are the risk); `Skill: dataviz`.
 - **Status:** ready
 
 ### UX-15: Retire the legacy look's leftovers
@@ -1663,6 +1889,8 @@ Ready items are listed in build order, then needs-owner items.
 - **Files:** `index.html` (CSS only), `sw.js`, the test.
 - **Risk:** CSS that only applies in a rare state. The sweep must cover each state, and the PR lists which states it rendered.
 - **Summit note (summit 2026-11-07):** Always last among the UX items. It includes `.confetti-piece` once UX-09 has replaced the toast (summit F9). The PR lists every state rendered; the pixel-identity criterion is Playwright PR evidence.
+- **Tools:** TOOL-01's harness (its full state matrix is the sweep's state list).
+- **Alignment note (2026-11-07):** runs after UX-17 if the owner approves that. Must ship before any Phase 5 step, so the retired confetti isn't a post-launch removal (business-manager B3).
 - **Status:** ready
 
 ### UX-16: The coach button moves into the header
@@ -1673,9 +1901,46 @@ Ready items are listed in build order, then needs-owner items.
   2. No element is `position: fixed` over the content area apart from the tab bar, toast and sheets (a CSSOM check over the real markup).
 - **Test plan:** new `test-coach-header-button.js`. Sabotage: re-add the fixed position, and criterion 2 must fail.
 - **Risk:** it drops a feature: the draggable button and its remembered side.
+- **Tools:** `Skill: apple-hig` (header controls); TOOL-01's harness.
 - **Status:** needs-owner. **Question:** "Move the floating chat button into the header (it stops covering content, but you can no longer drag it)?" **Recommendation:** yes.
 
 ### UX-17: Retire Gym mode once Today is the session
 - **Why:** after UX-06 to UX-08, Today is gym mode: the next set huge, one tap, rest on the cover. Keeping both doubles the surface to maintain, and gym mode's tests guard a second implementation.
 - **Change:** none until answered. If yes, a later version removes the toggle and the gym-only rendering. Its tests move to the shared Today paths, with dated notes.
-- **Status:** needs-owner. **Question:** "Once the new Today ships, remove the separate Gym mode, since Today will do its job?" **Recommendation:** yes, but only after two weeks of real use of the new Today on your phone.
+- **Tools:** TOOL-01's harness; `test-tap-counts.js` must pass unchanged.
+- **Alignment note (2026-11-07):** waits for **tap parity** (market-researcher): Today must log the ready set in no more taps than Gym mode, confirmed in `test-tap-counts.js` and on the owner's phone. It must **ship or be dropped before any Phase 5 public step**, so retiring Gym mode never lands as a post-launch take-away (business-manager B3).
+- **Status:** needs-owner. **Question:** "Once the new Today ships and matches Gym mode's tap counts, remove the separate Gym mode?" **Recommendation:** yes, after two weeks of real use of the new Today on your phone, and before going public.
+
+---
+
+## Tooling and docs outside the build loop (alignment round, 2026-11-07)
+
+The loop never picks these: they aren't in the roadmap's numbered sequence, and they change neither `index.html` nor `sw.js`, so they bump no version and can't collide with the open auto-PR (consensus C3). Each is its own PR into `Branch-1`, merged by the owner.
+
+### TOOL-01: The visual harness
+- **Why:** UX-01's pixel-identity criterion isn't deterministic today: there's a cold-launch animation, clock-dependent copy (the "Hydration check … behind pace for this time of day" line), the empty-profile first-run sheet, and no committed seed. Screenshots also go to the scratchpad, so the owner approves a redesign he never sees (design-engineer B3).
+- **Change:** `tools/visual/`, a Playwright script with:
+  - a committed seeded fixture (Jordan, Strength & Size, Bench history);
+  - a frozen `Date`;
+  - the launch-played preset;
+  - `document.fonts.ready` awaited;
+  - a Reduce Motion pass;
+  - a fixed state matrix: Today, Food, Progress and History × light/dark × 402×874 and 904×678, plus Gym mode, the rest state and the first-run sheet.
+
+  Output: one contact-sheet PNG (about 0.3 MB), plus a per-state diff against a given base commit. Chromium now; WebKit once D10 approves it. No change to the app.
+- **Acceptance criteria:**
+  1. Two runs on the same commit produce byte-identical PNGs for every state (determinism).
+  2. A run against a commit that changes one CSS colour reports a diff in exactly the states that show it.
+  3. The script makes no network request outside `localhost` (route-blocked and counted).
+- **Test plan:** the PR shows criteria 1–3 run for real; `tools/visual/README.md` gives the one command.
+- **Files:** `tools/visual/` only.
+- **Risk:** none to the app. It's a dev tool, published on Pages with the rest of `tools/` (consensus O5).
+- **Owner:** design-engineer builds it; the owner merges it **before roadmap slot 11 (UX-01)**.
+- **Status:** ready (design-engineer tooling PR; not picked by the build loop)
+
+### DOC-01: PRODUCT.md takes the chosen name
+- **Why:** `PRODUCT.md:36` still says "Name: 'Training Log' (an open question for a public launch, BIZ-12)". Design skills read it as context.
+- **Change:** one line, once the owner settles the public name (consensus decision 10): the name, plus "display name since v3.515; storage keys unchanged". Also correct "no assets" if the owner rewords CLAUDE.md's asset note (`fonts/` ships).
+- **Acceptance criteria:** `PRODUCT.md` names the same string as `APP_NAME` in `index.html`.
+- **Files:** `PRODUCT.md`.
+- **Status:** needs-owner (waits for the name). Done by the design-engineer in a docs PR, not by the loop.

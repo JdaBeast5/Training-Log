@@ -1,117 +1,181 @@
-# Roadmap: Training Log
+# Roadmap
 
-## Unified build sequence (agent summit, 2026-11-07)
+The app shows **Liftnext** as its display name (`APP_NAME`, v3.515). The public name is **open**: the owner decides, with `planning/naming.md` as input. This file says "the app's name" wherever the answer matters.
 
-This is the one order every build run follows. It supersedes the "Requested build order" under Business priorities below, and the order sections in `design-vision.md` §7, `marketing.md` §6 and `program-audit.md` §6. The reasons are in `planning/summit.md` §2 (R1–R11).
+## Unified build sequence (agent summit, revised by the pre-D1 alignment round, 2026-11-07)
+
+This is the one order every build run follows. It supersedes the "Requested build order" under Business priorities below, and the order sections in `design-vision.md` §7, `marketing.md` §6 and `program-audit.md` §6.
+- The summit's reasons are in `planning/summit.md` §2 (R1–R11).
+- The alignment round's changes, and why, are in `planning/alignment/consensus.md` (d).
 
 **Ground rules:**
 - One item is one version, and one PR is open at a time (`automation.md` §1).
-- The pace equals the owner's merge rate. There are **60 ready builds** in total; at one merge a day (an assumption, not a promise) that's about two months.
-- `needs-owner` items slot in where they're marked, once they're approved.
+- A run takes the first slot, in this order, whose item is `ready` and not `done` (`automation.md` §4 step 5).
+- Slots marked **†** are `needs-owner`. The loop skips them until the owner approves, then builds them in the slot where they sit. That's why approved safety and program items sit early.
+- The pace equals the owner's merge rate. There are **69 ready builds**. At one merge a day (an assumption, not a promise), that's about ten weeks.
 
-**Before build 1:**
-- `planning/` is merged into `Branch-1` (`automation.md` §1, Prerequisite).
-- `automation.md` §4 step 5 is changed from "first `ready` item in file order" to "first `ready` item in this sequence". That's a planning-only PR by the build-automator.
+**Before slot 1** (see `consensus.md` (f)):
+- The owner's actions:
+  - branch protection and deny rules;
+  - a dedicated builder checkout;
+  - the agent file aligned with `automation.md`;
+  - decisions 1–7.
+- The build-automator's `automation.md` fixes:
+  - step 11 stages the item's `Files:`;
+  - the merged-PR skip;
+  - the step-1 guard;
+  - the impeccable fallback.
+- `planning/` and `.claude/agents/` are merged into `Branch-1` (D1).
 
-### Phase 0: Safety (6 builds)
-1. BL-01: program gate on goal volume and block accumulation
-2. BL-02: RPE caps on clinical programs; RPE mode off for technique lifts
+**Outside the loop** (tooling or docs only: no `index.html` or `sw.js` change, no version bump, so no collision with the open auto-PR):
+- **TOOL-01, the visual harness.** Built by the design-engineer and merged by the owner **before slot 11**.
+- **The mock-up re-renders** (summit R1, design-engineer B4), before slot 39.
+- **DOC-01:** PRODUCT.md takes the chosen name, once the owner decides it.
+
+### Phase 0: Safety (7 builds, plus 2 if D4 is approved)
+1. BL-01: program gate on goal volume and block accumulation. The allowlist is named, and the test covers every other built-in program and variant.
+2. BL-02: RPE caps on clinical programs; RPE mode off for technique lifts; **the clinical load gate (SAF-8)**
 3. BL-03: per-exercise region override
 4. BL-04: exercise-specific substitutes
-5. **BL-05 + BL-06, merged into one version:** the safety cues (one `test-safety-cues.js`)
-6. BL-13: the cycle card stops prescribing phase-based training
+5. **BL-05 + BL-06, one version:** the safety cues, including the Depth Jump **Drop Landing rule**, across all ~21 occurrences
+6. **BL-05b:** the Neck Bridges cue says coach-only, otherwise isometrics (all 6 occurrences)
+7. BL-13: the cycle card stops prescribing phase-based training
+8. † BL-35: replace Neck Bridges with a 4-way neck isometric (D4; old sets archived)
+9. † BL-36: Drop Landing as a loggable drill on the ACL-risk watersports days (D4)
 
-### Phase 1: Engine truth, foundation, and the Year in Lifting lane (18 builds)
-7. BL-08: all-set double progression. Every redesign screen prints this, so it goes first.
-8. **UX-01: design tokens as aliases (no visual change), moved up** so every later piece of markup is written once, in the new vocabulary
-9. BL-07: the performance goal no longer cuts strength-tier work
-10. MKT-02: no body data on share cards *(Year in Lifting lane)*
-11. MKT-03: story-format cards with the mark, drawn in the Plate & Press world from day one *(lane)*
-12. **MKT-06a: the Year in Lifting computation plus one summary card.** Target: merged by **30 November** *(lane)*
-13. BL-10: a target RIR on every prescription (the single effort vocabulary, summit R7)
-14. BL-15: the decrease signal waits for two short sessions
-15. BL-24: increments scale with strength
-16. BL-09: readiness compared with the week's own RPE target
-17. BL-23: one-tap early deload when overreaching
-18. BL-14: unit-aware rest times
-19. BL-26: the plateau message names the stall
-20. BL-11: rep and time progression for bodyweight work
-21. MKT-01: consistency counts training weeks
-22. **MKT-06b: the remaining Year in Lifting cards.** Target: mid-December; the window runs to 15 January.
-23. BL-12: copy that matches the code
-24. BL-25: exercise cue corrections
+### Phase 1: Engine truth, foundation, the Year in Lifting lane, and the food lane (24 builds, plus 3 if approved)
+10. BL-08: all-set double progression (inherits the clinical load rule)
+11. UX-01: design tokens as aliases (no visual change). After TOOL-01; the baseline is the parent commit.
+12. **UX-01b:** `dayInk(id)`, the one day-to-ink rule (no visual change)
+13. BL-07: the performance goal no longer cuts strength-tier work
+14. MKT-02: no body data on share cards *(Year in Lifting lane)*
+15. † MKT-09: the rename, **only if the owner picks a name other than Liftnext** *(lane)*
+16. † UX-02: the Archivo display face (D2), so the cards never change typeface *(lane)*
+17. MKT-03: story-format cards with the **Sash mark and no wordmark** *(lane)*
+18. † MKT-03b: the wordmark, once the name is confirmed *(lane)*
+19. **MKT-06a: the Year in Lifting computation plus one summary card.** Target: merged by **30 November** *(lane; summit R5: if it slips, nothing else moves)*
+20. BL-10: a target RIR on every prescription, with a short form and a words form
+21. BL-15: the decrease signal waits for two short sessions
+22. BL-24: increments scale with strength (inherits the clinical load rule)
+23. BL-09: readiness compared with the week's own RPE target
+24. BL-23: one-tap early deload when overreaching
+25. BL-14: unit-aware rest times
+26. BL-26: the plateau message names the stall
+27. BL-11: rep and time progression for bodyweight work
+28. MKT-01: consistency counts training weeks
+29. **MKT-06b: the remaining Year in Lifting cards** (no wall of bibs). Target: mid-December; the window runs to 15 January.
+30. BL-12: copy that matches the code
+31. BL-25: exercise cue corrections
+32. **BIZ-18a:** the free-list guard test (no lock, upgrade or "Pro" label in free areas)
+33. **MKT-20:** card and backup file names follow `APP_NAME`
+- **The food lane (moved up from #44 and #51–54; market-researcher B2):**
+34. BIZ-03: placeholder calorie targets are labelled
+35. BL-18: one-tap recent foods
+36. BL-19: "Add from yesterday"
+37. BL-16: trend weight (needs D10's paper-lookup for the Hacker's Diet citation, or ships with it marked unverified in the plan only)
+38. BL-17: expenditure estimated from your logs (starts BL-27's three-week data clock)
 
-### Phase 2: Redesign core, the session (16 builds, plus UX-02 if approved)
-25. BIZ-05: the first-set hint (pulled forward; it is also the cover's empty state)
-26. *(UX-02: the Archivo display face, if the owner approves D2)*
-27. UX-03: flat ground everywhere
-28. UX-04: the tab bar
-29. UX-05: the day sets the ink
-30. **UX-06a:** the cover: numeral, Log button, chips, and fields behind "adjust"; with the empty state and the resting-region caution
-31. **UX-06b:** the day picker collapses into the headline sheet
-32. UX-07: the plate stack
-33. UX-08: rest takes over the cover
-34. MKT-04: session share data, as a named builder that UX-09 reuses
-35. **UX-09a:** the finish sheet: totals, "Next time", Share, Done
-36. **UX-09b:** the PR flood and its motion; none on clinical programs
-37. BIZ-06: AI entry points say they need a key, and the AI card sorts below Trends
-38. BL-20: the per-muscle ledger, fractional, built to design-vision §3.6
-39. UX-10: Progress leads with the answer
-40. UX-14: the unfolded two-pane Today (moved up: the owner uses a Duo daily)
-41. UX-11: the weekly recap sheet with the week strip
-- *Owner-approved here:* UX-16 (the coach button into the header).
+### Phase 2: Redesign core. Every tab in the new materials before the cover (21 builds, plus 3 if approved)
+**Before slot 39:** the mock-ups are re-rendered, and Playwright WebKit is approved (D10). **After slot 40 (UX-03), the owner looks on device before the next UX item builds on it.**
 
-### Phase 3: The first week, data trust, and food speed (11 builds)
-**Hard gate:** all of Phase 3 is merged before any Phase 5 public step.
+39. BIZ-05: the first-set hint (also the cover's empty state)
+40. UX-03: flat ground everywhere, including the halos, the launch, "Create my profile", the manifest and `theme-color`. Gym mode is out of scope.
+41. UX-04: the tab bar
+42. UX-05: the day sets the ink (reads `dayInk`; re-points `--plate-*`)
+43. **UX-13: Food in the world's ink** (moved from #59; asserts recents and BIZ-03's line, and tap parity)
+44. **UX-12: History as a month of plate blocks** (moved from #58)
+45. **UX-06a:** the cover: numeral, Log button, chips, and fields behind "adjust" (tap parity)
+46. **UX-06b:** the day picker collapses into the headline sheet
+47. UX-07: the plate stack
+48. UX-08: rest takes over the cover
+49. MKT-04: session share data (sets, lifts, minutes; no total load by default), as a named builder that UX-09 reuses
+50. **UX-09a:** the finish sheet: totals, "Next time", Share, Done
+51. **MKT-16:** the session bib card *(moved in; the owner's chosen edge)*
+52. **MKT-17:** "Your number"
+53. **MKT-18:** pin the bib on your own photo
+54. **UX-09b:** the PR flood and its motion; none on clinical programs
+55. BIZ-06: AI entry points say they need a key, **and what each sends and to whom**; the AI card sorts below Trends
+56. BL-20: the per-muscle ledger, fractional; the ink fill stops at the floor
+57. † BL-33: deloads count only weeks you trained (D3)
+58. † BL-31: weekly ±1 set per muscle from your performance (D3)
+59. UX-10: Progress leads with the answer
+60. UX-14: the unfolded two-pane Today
+61. UX-11: the weekly recap sheet with the week strip
+62. † UX-16: the coach button into the header (D2)
 
-42. BIZ-02: one name, asked once
-43. BIZ-01: the three-question quick start, with summit R9's routing guard
-44. BIZ-03: placeholder calorie targets are labelled
-45. BIZ-04: the first backup reminder after 3 sessions
-46. BIZ-10: the Add to Home Screen hint
-47. BIZ-07: truthful metadata, manifest and README
-48. BIZ-17: the first screen says what the app is
-49. BL-22: export workouts as CSV
-50. BIZ-09: the first-month summary in Diagnostics
-51. BL-18: one-tap recent foods
-52. BL-19: "Add from yesterday"
-- *Owner-approved here:* BL-28 (saved meals), and BL-29 (import from Strong or Hevy).
+### Phase 3: The first week, data trust, and the launch gates (11 builds, plus 4 if approved)
+**Hard gate:** before any Phase 5 public step:
+- all of Phase 3 is merged, **including BL-37 and BL-38** (or an alternative the owner records for the 2–4-day bodybuilding variants);
+- **UX-17 has shipped or been dropped.**
 
-### Phase 4: Bar-raisers and growth moments (8 builds, plus approved owner items)
-53. BL-16: trend weight
-54. BL-17: expenditure estimated from your logs
-55. BL-21: HRV against your own baseline
-56. MKT-07: PR and progress cards show the gain, with the record's kind named (summit R6)
-57. MKT-05: block complete, as a variant of UX-11's recap sheet
-58. UX-12: History as a month of plate blocks
-59. UX-13: Food in the world's ink (keeps BIZ-03's line and BL-18's recents)
-60. UX-15: the dead-CSS sweep (always last among the UX items; includes the retired confetti)
-- *Owner-approved here, in this order:* BL-33, BL-34, BL-31, BL-32, BL-27, then BL-36, BL-39, BL-40, BL-35, BL-37, BL-38 (one migration per version), and UX-17 (two weeks after UX-06).
+63. BIZ-02: one name, asked once
+64. BIZ-01: the three-question quick start, with summit R9's routing guard
+65. BIZ-04: the first backup reminder after 3 sessions
+66. BIZ-10: the Add to Home Screen hint
+67. BIZ-07: truthful metadata, manifest and README
+68. BIZ-17: the first screen says what the app is (its privacy clause matches BIZ-06's disclosure)
+69. BL-22: export workouts as CSV
+70. BIZ-09: the first-month summary in Diagnostics
+71. BIZ-19: "Training since" (reuses MKT-17's corpus pass)
+72. **BL-50:** AI prompts know the clinical style (SAF-9)
+73. **BIZ-26:** the barcode library loads with an integrity hash
+74. † BL-37: rebuild the low day-count variants (D4; migration)
+75. † BL-38: Bodybuilding d6 "Upper Detail" (D4; migration)
+76. † BL-28: saved meals (D5)
+77. † BL-29: import from Strong or Hevy (D6)
 
-### Phase 5: Public launch (owner-gated; about 8 builds after the owner says yes)
-- **Decisions (no code):** BIZ-12 (go public), BIZ-11 (model), MKT-09 (name and icon), MKT-12 (comparison pages), MKT-13 (launch posts).
+### Phase 4: Bar-raisers and growth moments (4 builds, plus approved owner items)
+78. BL-21: HRV against your own baseline (needs D10's paper-lookup for Plews 2013)
+79. MKT-07: PR and progress cards show the gain, with the record's kind named (summit R6)
+80. MKT-05: block complete, as a variant of UX-11's recap sheet
+81. † BL-34: RPE-adjusted e1RM for RPE-mode targets only (D3)
+82. † BL-32: one-tap "make today easier" (D3)
+83. † BL-27: weekly calorie check-in, applied only on Accept (D5; after BL-17 has 3 weeks of data)
+84. † BL-39: append-only accessory volume (D4)
+85. † BL-40: hypertension isometrics and medical notes (D4)
+86. † UX-17: retire Gym mode. Two weeks after UX-06a, once tap parity is confirmed on device; it ships or is dropped before Phase 5.
+87. UX-15: the dead-CSS sweep (always the last UX item; it runs after UX-17 if that's approved)
+88. BL-41 to BL-49: program extensions, itemised by the exercise-auditor before Phase 2 ends. These are powerlifting top single plus peak, Olympic % bands and a miss counter, running/cycling/swimming volume progression, and bodyweight ladders. They're placeholders, not buildable yet.
+
+### Phase 5: Public launch (owner-gated; about 9 builds after the owner says yes)
+- **Decisions (no code):**
+  - BIZ-12 (go public);
+  - BIZ-11 (the model);
+  - the public name (`naming.md`; MKT-09 is now only the decision);
+  - MKT-12 (comparison pages);
+  - MKT-13 (launch posts).
 - **Builds:**
-  - BIZ-15: the clinical acknowledgement;
-  - BIZ-16: `privacy.html`;
+  - BIZ-15: the clinical acknowledgement, plus a review of all clinical, tip and nutrient copy;
+  - BIZ-16: `privacy.html`, listing every host;
   - MKT-14: `about.html`;
-  - BIZ-08: the address on cards;
-  - MKT-09: the rename;
+  - BIZ-18: "What's free" (`business.md` §3.4 wording);
+  - BIZ-08: the address on cards (a forwarded domain, never `github.io`);
+  - † BIZ-25: move the app's origin, only if the owner wants it, with export and import;
   - the BIZ-13 follow-up: own-cloud backup through the share sheet;
   - MKT-10: program links;
   - MKT-11: friend challenges;
   - MKT-08: side-by-side progress photos (deferred here; ready).
 - **Not code here:** the store listing itself belongs to the Capacitor track.
+- **Last owner decisions:** BIZ-23 and BIZ-24 (the coach plan and coach programs). No work before BIZ-21's T4.
 
 ### Merged, split, dropped
 - **Merged:**
   - BL-06 into BL-05;
+  - SAF-8 into BL-02;
   - MKT-04's stats builder into UX-09;
   - MKT-05 into UX-11 (as a variant);
-  - UX-10's "AI insights moves below the evidence" clause into BIZ-06.
+  - UX-10's "AI insights moves below the evidence" clause into BIZ-06;
+  - MKT-19's card mark into MKT-03.
 - **Split:**
-  - UX-06 → 06a / 06b;
-  - UX-09 → 09a / 09b;
-  - MKT-06 → 06a / 06b.
+  - UX-06 into 06a and 06b;
+  - UX-09 into 09a and 09b;
+  - MKT-06 into 06a and 06b;
+  - UX-01 into 01 and 01b;
+  - MKT-03 into 03 and 03b;
+  - BIZ-18's criterion 4 into BIZ-18a.
+- **Shipped before D1:**
+  - MKT-09's display rename (v3.515);
+  - MKT-19's Sash icon (v3.516).
 - **Dropped from the mock-ups** (no item, no evidence):
   - the numeric "Readiness 72";
   - "Add 2 sets each";
@@ -121,7 +185,8 @@ This is the one order every build run follows. It supersedes the "Requested buil
   - MKT-15 (no attribution);
   - BIZ-14 (no hosted AI yet);
   - a sync server;
-  - program extensions until after Phase 2.
+  - the wall of bibs (to the 2027 recap);
+  - total load as a card's default number.
 
 ---
 
@@ -133,7 +198,7 @@ Inputs:
 - `planning/toolchain.md` (skills-orchestrator, 2026-11-07);
 - `HANDOFF-v59.md` through Addendum 41.
 
-All three planning inputs were written against v3.514, the current code, so none is stale.
+All three planning inputs were written against v3.514. **Alignment round (2026-11-07, v3.516):** v3.515 and v3.516 changed only the display name and the icon, with no program logic, so the themes below still hold. The line numbers have drifted by a few lines; re-grep them. The sequence above was revised per `planning/alignment/consensus.md`.
 
 **Mission (owner, 2026-11-07):** "the best tracking app and the best workout plans according to the most up to date studies and proven workouts." Every theme below either makes tracking faster or more trustworthy, or makes the programming measurably better. Exercise demos stay parked (HANDOFF-v59 Addendum 41).
 
@@ -164,7 +229,7 @@ Scores run 1–5. Impact is impact on the owner's daily use; confidence is in th
 
 | Rank | Theme | I | C | E | Score | Backlog |
 |---|---|---|---|---|---|---|
-| 1 | **Program safety gates** | 4 | 5 | 5 | 100 (forced first) | BL-01 to BL-06, BL-13, BL-35, BL-36 |
+| 1 | **Program safety gates** | 4 | 5 | 5 | 100 (forced first) | BL-01 to BL-06, BL-05b, BL-13, BL-35, BL-36, BL-50 |
 | 2 | **Progression engine correctness** | 5 | 4 | 4 | 80 | BL-07 to BL-11, BL-15, BL-24, BL-34 |
 | 3 | **Effort and volume programming** (RIR, per-muscle ledger, set autoregulation) | 5 | 4 | 3 | 60 | BL-12, BL-20, BL-30, BL-31 |
 | 4 | **Nutrition you can trust** (trend weight, adaptive expenditure) | 4 | 4 | 3 | 48 | BL-16, BL-17, BL-27 |
@@ -181,7 +246,7 @@ Theme 7 sits above theme 8 despite the lower score. Readiness is seen every trai
   - RPE mode can prescribe RPE 9 to hypertension clients and on snatches (SAF-2).
   - Resting-region flags miss fingers, neck, calves and the knee on leg curls (SAF-3).
 - **Benchmark:** no competitor programs clinical populations, so there is no best app to copy. The closest is Juggernaut AI's autoregulation, which has no clinical gating ([SensAI compare](https://www.sensai.fit/blog/juggernaut-ai-vs-rp-hypertrophy-vs-alpha-progression-2026)).
-- **How we go one better:** a visible, test-enforced promise, "this plan never auto-increases". It's backed by a jsdom test over every `MEDICAL_STYLES` day (11352) × goal × week. Clinical plans then follow their own tolerance-based `basis` text [AHA23][PREG19] (audit source keys).
+- **How we go one better:** a visible, test-enforced promise: "this plan never adds sets; load rises only in the smallest steps when sets felt easy". (Revised in the alignment round: BL-01 gates sets only, so SAF-8's load gate is folded into BL-02.) It's backed by a jsdom test over every `MEDICAL_STYLES` day (11352) × goal × week, plus BL-02's load-signal test. Clinical plans then follow their own tolerance-based `basis` text [AHA23][PREG19] (audit source keys).
 
 ### 2. Progression engine correctness
 - **Problem:**
