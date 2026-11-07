@@ -282,7 +282,16 @@ Added by the business-manager, 2026-11-07, against v3.514. Reasoning and evidenc
 1. BIZ-12: go public (Play first via the Capacitor build) and under what name. Unlocks BIZ-08 and BIZ-16.
 2. BIZ-16: a plain-language privacy policy page.
 3. BIZ-15: clinical acknowledgement and claims review before any listing.
-4. BIZ-11: "free core, no ads" as a public commitment.
+4. BIZ-11: the free/paid line (the owner has chosen "free at launch, subscription later"; business.md §3).
 5. BIZ-08: the app's address on share cards.
 6. BIZ-13: off-device backup (own iCloud or Drive first).
-7. BIZ-14: hosted AI (recommend not yet).
+7. BIZ-18, BIZ-20: the "What's free" note and the founding promise, published together at launch.
+8. BIZ-21, BIZ-22: the switch-on triggers and the payment path.
+9. BIZ-14: hosted AI (recommend not yet; it's the first subscription candidate).
+
+**Revised money model (business-manager, 2026-11-07, after the owner chose "free at launch, subscription later").** Re-rank requests for the project-manager:
+- **Nothing in the build sequence moves for money.** There's no billing or server code until BIZ-21's six triggers hold (business.md §3.5). This replaces summit R3's "90 days of retention data" rule; please note it in R3.
+- **Add BIZ-19 (ready, small) to Phase 2 or 3,** after MKT-17 if possible so they share one corpus pass. It's the on-device "Training since" date that makes founding-member eligibility provable without accounts.
+- **Phase 5 gains BIZ-18 once approved:** the "What's free" note ships with BIZ-16 and MKT-14, so the promise is public before any paid plan exists.
+- **Guard the free list in every later item:** no quotas, locks or "Pro" labels on logging, programs, progression, history, charts, food, backups or BYO-key AI. BIZ-18 criterion 4 tests for it.
+- **The Capacitor dependency:** store billing (BIZ-22, path A) needs the native build to support it. That effort is owned elsewhere; this is recorded only so nothing here waits on it by mistake.

@@ -112,8 +112,11 @@ Five signature moments, rendered at iPhone size in dark and light (`tools/design
 
 ## The business
 
-- **Free core forever, no ads:** logging, programs, progression, food, and backup to your own cloud (BIZ-11, BIZ-13).
-- **Paid only for things that cost money to run:** hosted AI (so no key is needed) and encrypted sync, sold through the store builds. Priced under MacroFactor's $71.99/yr. **No billing code until 90 days of store retention data** (business.md §3).
+- **Free at launch, a subscription later (your call, 2026-11-07).** The rule: **if it runs on your phone, it's free forever, with no ads and no quotas.** That covers logging, programs, progression, history and charts, food, backup to your own cloud, and AI with your own key (BIZ-11, BIZ-13).
+- **The subscription only ever holds new things that run on our servers:** hosted AI (no key needed) and cloud sync. Nothing free is ever taken back; that's how MyFitnessPal (2022) and Strava (2020) got burned (business.md §3.2).
+- **Founding members:** everyone who trains with us before the subscription is announced gets a founding price, locked while they stay subscribed (BIZ-20).
+- **Switch-on is by metrics, not a date:** retention, scale, demand, a good paid feature, and a working payment path (BIZ-21). Play billing comes first, through the Capacitor build (BIZ-22).
+- **Pricing:** priced against Hevy ($23.99/yr) and Strong ($29.99/yr) for sync, and kept under MacroFactor ($71.99/yr) for the full plan (business.md §3.7; third-party prices).
 - **North star: weekly active trainers,** people logging ≥2 sessions a week (business.md §4). The category's day-30 retention is 3–8% (business.md §4). An app you use on a schedule should beat that by a wide margin.
 - **Distribution:** web now, Google Play first through the Capacitor build, then the App Store. Store fees are about $25 one-time for Play and $99/yr for Apple; check before paying (business.md §6).
 
@@ -151,7 +154,7 @@ At one merge a day (your pace, an assumption) that's about two months of ready w
 - **Name:** Chalklog. In-app rename shipped on the working branch as v3.515, display name only, with storage keys unchanged. The domain and USPTO check (D7) are still to do before the name is used publicly.
 - **Design:** Plate & Press for the app, plus the hybrid edge additions: the race bib as the story card, "Your number", "Pin it on", and the bib with the loaded bar as the constant (design-directions.md §5–§6, MKT-16 to MKT-18).
 - **Icon:** approved, as a stripe of the five plate colours used as both the icon and the card mark (MKT-19).
-- **Money (D9, revised):** free at launch, with a subscription later. The business manager is reworking the model to fit (business.md).
+- **Money (D9, revised):** free at launch, with a subscription later. The business manager has reworked the model (business.md §3). Our view: it's sound if the line is drawn now. D9 below asks the follow-ups.
 - **Still open:** D1–D6, D8 and D10.
 
 
@@ -165,7 +168,7 @@ At one merge a day (your pace, an assumption) that's about two months of ready w
 | **D6** | Strong/Hevy import into a separate "Imported" archive feeding PRs and e1RM (BL-29); one dated, sourced comparison page (MKT-12)? | **Yes**, and send one real export file | The switchers' door |
 | **D7** | Rename publicly to **Chalklog** ("Chalklog: Training Log") after buying `chalklog.app` and a USPTO check, with Liftnext as the fallback; redraw the icon flat (MKT-09)? | **Yes**; the rename ships in Phase 5 and storage keys never change | Store listing, card wordmark, launch |
 | **D8** | Go public after Phase 3: web now, Play then App Store (BIZ-12), with a privacy page (BIZ-16), landing page (MKT-14), clinical acknowledgement and claims review (BIZ-15), the address on cards (BIZ-08) and launch posts (MKT-13)? | **Yes, in that order** | Phase 5 |
-| **D9** | Money and links: "free core, no ads, ever" (BIZ-11); hosted AI (BIZ-14); off-device backup (BIZ-13); ref tags (MKT-15); program links and challenges (MKT-10, MKT-11)? | BIZ-11 **yes**; BIZ-14 **not yet**; BIZ-13 **own cloud via the share sheet, no server**; MKT-15 **no**; MKT-10 and MKT-11 **yes, after BIZ-08** | The business model and serverless sharing |
+| **D9** (revised) | You chose **free at launch, a subscription later**. Follow-ups: adopt the line "on the phone = free forever, no ads, no quotas; only new server-run extras in a subscription", with on-device analytics staying free (BIZ-11), published at launch (BIZ-18)? A founding price for early users (BIZ-20)? Switch on by six metrics, not a date (BIZ-21)? Play billing first (BIZ-22)? Plus hosted AI (BIZ-14), own-cloud backup (BIZ-13), ref tags (MKT-15), program links and challenges (MKT-10, MKT-11)? | **Yes** to the line, announced at public launch. **Yes** to a founding price of half the list price, locked while subscribed, with no lifetime plan on hosted AI. **Yes** to metric triggers (day-30 retention of at least 16% for 3 cohorts, plus T2–T6), with no billing code before then. **Play billing first**, with web payments only if iPhone PWA demand is large. BIZ-14 **not yet**: it's the first subscription candidate, beta-tested free with founding members first, and BYO-key AI stays free. BIZ-13 **own cloud via the share sheet, free forever**. MKT-15 **no**. MKT-10 and MKT-11 **yes, after BIZ-08** | A model that can earn later without breaking trust; serverless sharing |
 | **D10** | Approve tools: paper-lookup, axe-core (devDependency), Playwright WebKit, a `ship-increment` skill, and the `Skill` tool for three agents? | **Yes**; the rest of toolchain §7 is optional | Verified citations; Safari-engine and accessibility checks for the redesign |
 
 ---
