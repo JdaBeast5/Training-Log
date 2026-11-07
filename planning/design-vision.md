@@ -4,11 +4,16 @@ Owner: design-engineer. Written 2026-11-07 against **v3.514**. Inputs: the owner
 
 Mock-ups: `tools/design/*.html`, sharing `tools/design/world.css`. Renders: `tools/design/renders/`. Nothing in `tools/design/` is loaded by the app.
 
+> **Status, 2026-11-07 (pre-D1 alignment, live v3.516).** The app is named **Liftnext** (v3.515) and wears the **Sash** icon, header mark and launch (v3.516). The owner chose Plate & Press for the app, with the race bib as the share card (`design-directions.md` §5–§6). The build order is `roadmap.md`'s unified sequence, not §7 below. Known gaps, tracked in `planning/alignment/design-engineer.md`:
+> - **The day ink is not the data plate in live code.** `getDayPlateClass` (`index.html` ~26219) colours days by position from seven hues (`VIVID_PLATE_CLASSES`: red, blue, yellow, green, purple, orange, teal), ignoring each day's `plate` field. §2 and §3.2 below describe the intended rule, which still has to be decided and built (before MKT-03 and UX-05).
+> - **R1 mock-up corrections are still open** in `today.html`, `pr.html`, `progress.html` and `recap.html` (listed in §5). The renders are not a spec until they're fixed; the backlog text and summit notes win.
+> - Line numbers below are `index.html` at v3.514; re-grep before building.
+
 ---
 
 ## 1. North star
 
-**Training Log should feel like a coach handing you a loaded bar: the next set, already in plate colours, one tap from done.**
+**Liftnext should feel like a coach handing you a loaded bar: the next set, already in plate colours, one tap from done.**
 
 At the bar, between sets, the phone is a glance from a bench a metre away. The screen answers one question in under a second ("what do I lift now?") in type you can read without picking the phone up, in the colour of the plates you're about to load. Everything else (the program, the reasons, the history) is one step behind that answer, quiet, ruled, and exact.
 
@@ -53,7 +58,7 @@ A lifter under gym fluorescents or in a dim garage, phone on a bench, glancing b
 ### 3.2 Colour: ink ground plus five spot inks
 - **Ground and surfaces:** true neutral ink, not navy (`--ground #0C0C0D`, `--surface-1 #151516`, `--surface-2 #1E1E20`, rules `#29292C`). Light: chalk paper (`#F3F3F1`) with white surfaces. No gradients on grounds, buttons, cards or text. No glass, no blur, except the native-feeling sheet scrim.
 - **Spot inks** (the plate code): red 25 kg / 55 lb, blue 20 kg / 45 lb, yellow 15 kg / 35 lb, green 10 kg / 25 lb, white 5 kg / 10 lb, and an "off" grey for rest days. Each is printed as a **flat field** with its own on-colour (`--on-red` etc.), checked for 4.5:1 text contrast.
-- **The day sets the spot.** Each program day already carries a plate. That plate becomes `--spot` for the whole session: the Today cover field, the Log button, the rest field, the PR flood, the day's line in charts. One day, one ink. Two inks never compete on one screen except in the week strip and multi-day charts, where they are the data.
+- **The day sets the spot.** Each program day already carries a plate in its data (`plate`, `plateNum`). *(2026-11-07: the live app doesn't use it yet; see the status note at the top.)* That plate becomes `--spot` for the whole session: the Today cover field, the Log button, the rest field, the PR flood, the day's line in charts. One day, one ink. Two inks never compete on one screen except in the week strip and multi-day charts, where they are the data.
 - **State colours** sit on top only where they mean something: `--positive` for a best or a progression, `--negative` for a regression or a missed target, `--warning` for a caution. Good/bad, never up/down.
 - Retired: `--cta-gradient-*`, the violet chat FAB, blurred plate halos, glass fills.
 
@@ -69,6 +74,11 @@ Printed, not lit. Flat fields of ink, 1px rules, one tone step between surfaces.
 
 ### 3.5 Iconography
 One authored outline set, 1.75 stroke, 22–24 px, round caps, drawn in SVG (the incumbent's per-day pictograms survive as the day mark). No emoji anywhere in the UI (the incumbent puts emoji in program day labels; they move out of chrome into nothing).
+
+### 3.5a The mark and the launch (added 2026-11-07)
+- **Sash** (v3.516): the five inks as one rising band on an ink tile (`tools/design/icon/`, option B). It is the constant the daily colour lacks, and it belongs to this world: flat inks, no text, no glow, parted by ground so red and blue survive Tinted and Grayscale.
+- Its fills are literal hex in the header mark and the launch (`#D42F25`, `#2C5BD8`, `#F2C200`, `#1E9E4A`, `#E6E6E2`, tile `#0C0C0D`). They equal the target `--spot-*` and `--ground` values. When UX-01 lands, a test should hold them equal, so the mark and the day inks never drift apart.
+- **The launch still sits on the old world:** the dark launch paints `var(--aura)` (red, blue and violet halos) over `#050507`, the light launch two radial halos on `#F3F0EA`, and `manifest.json` says `#121417`. In this world the launch is the mark on flat `--ground` (`#0C0C0D` / `#F3F3F1`), and the manifest and `theme-color` match it. That belongs to UX-03.
 
 ### 3.6 Data visualisation
 - **Lines are the data** (raise from the court markings): 2 px straight lines, no area fill, no markers except the last point and a marked PR. One hue per chart, the day's spot ink or ink-grey; comparison series in `--text-3`.
@@ -119,6 +129,12 @@ Changes:
 4. **Progress.** `tools/design/progress.html` → `renders/progress-dark.png`, `renders/progress-light.png`.
 5. **The weekly recap.** `tools/design/recap.html` → `renders/recap-dark.png`.
 
+**Pending corrections (R1 plus my own, 2026-11-07). The renders above are not a spec until these are made; the backlog text and summit notes win:**
+- `today.html:79` "Intensification" → "Week 3 of 5" only. `today.html:112` "Readiness 72" → no score; the resting-shoulder caution and its substitute on the cover.
+- Effort words (F8): `today.html:88` "stop 2 reps short (RIR 2)", `log-set.html:86` "Reps left" and `directions/a-today.html:69` "2 reps in reserve" must all print what BL-10's `targetRirLabel` returns for a strength-tier compound ("2–3 RIR (last set 1–2)"), or the RPE-mode `rpeTargetFor` (week 3 is RPE 8.5, `RPE_BY_CYCLE_WEEK`). My own "fixed" a-today string matches neither.
+- `pr.html:67` "+5 lb on your best, 155 × 8" → "Heaviest weight yet: +5 lb over 155" (F6, e1RM 186.7 < 196.3). `pr.html:82` "All 4 sets hit 5 … 165" → holds at 160 until all four sets reach 6 (F7).
+- `progress.html:78` and `recap.html:78` "165 × 5" → holds at 160 (F7). `progress.html:80–90`: no 20 ceiling, "10+" floor, fractional counts, grey under the floor, and no "Add 2 sets each" link (R8).
+
 Content in every mock-up is the app's own: Strength & Size (`programs.strength`), Day 1 Upper · Strength on the red 25 plate, Bench Press 4×4–6 leading, seeded history (Jordan, Bench 155×8 → e1RM 196 lb). Loads are computed from the app's own rules (Epley e1RM, RPE target table). Figures not in the seed (body weight trend, per-muscle sets) are plausible sample data, marked as such in each file.
 
 ---
@@ -139,7 +155,7 @@ Content in every mock-up is the app's own: Strength & Size (`programs.strength`)
 
 ## 7. How it ships
 
-As 17 staged items, `UX-01` to `UX-17`, at the end of `planning/backlog.md`. One version each, behind the same data and behaviour. The app is never half-redesigned: tokens arrive first as aliases (no visual change), then one version flattens the whole app at once, then each screen switches whole.
+As 17 staged items, `UX-01` to `UX-17`, at the end of `planning/backlog.md`. *(2026-11-07: the order and splits below are superseded by `roadmap.md`'s unified sequence, builds 8 and 25–60: UX-06 and UX-09 are split into a/b, UX-14 moved up after UX-10, and UX-12, UX-13 and UX-15 come last.)* One version each, behind the same data and behaviour. The app is never half-redesigned: tokens arrive first as aliases (no visual change), then one version flattens the whole app at once, then each screen switches whole. *(2026-11-07: under the unified sequence this promise doesn't hold yet. Today switches at build 30, while Food and History wait until builds 58–59 and Gym mode keeps its glow until UX-17. That's about four weeks of mixed screens at one merge a day. The fix is proposed in `planning/alignment/design-engineer.md`.)*
 
 | Step | Item | What changes | Status |
 |---|---|---|---|
@@ -166,6 +182,7 @@ Without UX-02, every item still ships: `--font-display` falls back to Geist 800 
 Constraints held: single file, no build step, `APP_VERSION` = `sw.js VERSION` per item, jsdom tests plus a Playwright visual check per item, Reduce Motion, 44 pt targets, AA contrast and VoiceOver names kept or improved. Share-card visuals belong to the marketing items (MKT-03, MKT-07); the design-engineer reviews their renders against this world.
 
 ## 8. Open questions for the owner
+*(2026-11-07: 1–4 are bundled into the owner's D2 in `pitch.md`, still open. 5 is answered: the owner chose Plate & Press.)*
 1. Ship the Archivo display face (90 KB woff2, OFL) beside `index.html`? (UX-02)
 2. Move the floating chat button into the header, losing its drag? (UX-16)
 3. Retire Gym mode once the new Today replaces it? (UX-17)

@@ -8,6 +8,8 @@ Owner: design-engineer. Written 2026-11-07 against **v3.514**, after the summit.
 - draws the same two screens in all three worlds (§3);
 - compares them and recommends one (§4, §5).
 
+> **Status, 2026-11-07 (pre-D1 alignment, live v3.516).** Decided by the owner: Plate & Press in the app, the bib as the story card (§5, §6). The name is **Liftnext**, not Chalklog, so the "Fit with Chalklog" lines in §2 and question 3 in §5 are history. The Sash icon (MKT-19, option B) shipped in v3.516. The R1 corrections are **still not made** in `tools/design/{today,pr,progress,recap}.html`, and the effort string I called fixed in `directions/a-today.html` is wrong too (see the §1.2 table). Sections 0–5 are the design-engineer's; §6 is the marketing-manager's and isn't edited here.
+
 **Inputs:**
 - the planning files: `design-vision.md`, `summit.md` (R1), `marketing.md`, `pitch.md` and `backlog.md` (UX-01 to UX-17);
 - the original renders in `tools/design/renders/`;
@@ -55,7 +57,7 @@ Court (B) is the strong runner-up if the owner would rather have one calm, stabl
 | `today-*.png` | "Readiness 72" (no such feature is planned) | Fixed in `directions/a-today.html` |
 | `today-*.png` | "Intensification" (new phase copy, F3) | Fixed: "Week 3 of 5" only |
 | `today-*.png` | Header chat icon (UX-16 needs the owner) | Removed |
-| `today-*.png` | The effort label came from more than one source (F8) | One string: "2 reps in reserve" |
+| `today-*.png` | The effort label came from more than one source (F8) | **Not fixed (2026-11-07).** "2 reps in reserve" isn't what BL-10's `targetRirLabel` returns ("2–3 RIR (last set 1–2)" for a strength-tier compound), and week 3 in RPE mode is RPE 8.5. The cover must print the BL-10 / `rpeTargetFor` string |
 | `pr-dark.png` | Bench "→ 165" and "+5 lb on your best" (F6, F7) | Not re-rendered here. `pr.html` still carries it |
 | **`recap-dark.png`** | **"Bench asks for 165 × 5" — the same F7 error, which R1 didn't list** | **New. `recap.html` must hold at 160 too** |
 | `progress-dark.png` | Ledger band, colours and "Add 2 sets each" (R1.5) | Not re-rendered here. `progress.html` still carries it |
@@ -148,7 +150,7 @@ The rut was kept off the list: the paper training notebook, which is the literal
   - one lane per lift, one stroke per set, the stroke's length being the reps against the top of the range;
   - strokes below the top are outlined.
   - The card is honest data-ink. It's calm and distinctive, but quieter in a feed than C.
-- **Fit with "Chalklog":** the best of the three. Lines on a field are literally chalked.
+- **Fit with "Chalklog":** the best of the three. Lines on a field are literally chalked. *(History: the name is now Liftnext.)*
 
 ### 2.3 Direction C, "Race Bib": the competitor number
 
@@ -175,7 +177,7 @@ The rut was kept off the list: the paper training notebook, which is the literal
   - A bib is an object lifters and runners already photograph and post. Hyrox, CrossFit and meets all use them.
   - It works from **session 1**: no record needed, so every session can be shared truthfully, and first-week users (activation) have something worth posting.
   - Year in Lifting becomes "a wall of your bibs".
-- **Fit with "Chalklog":** weaker. A bib says "event", not "chalk". It would suit "Liftnext" just as well.
+- **Fit with "Chalklog":** weaker. A bib says "event", not "chalk". It would suit "Liftnext" just as well. *(History: Liftnext was chosen, and the bib was adopted as the card.)*
 
 ---
 
@@ -271,7 +273,7 @@ All three use the same 90 KB Archivo file at different widths (68%, 125% and 100
    - No new asset, and no change to the app's UX items.
 
 **What changes in the plan (proposals; the backlog isn't edited in this pass):**
-- **Before UX-06:** correct `tools/design/{pr,recap,progress}.html` per R1, including the newly found recap error ("165 × 5" → hold at 160).
+- **Before UX-06:** correct `tools/design/{pr,recap,progress}.html` per R1, including the newly found recap error ("165 × 5" → hold at 160). *(2026-11-07: still open, plus `today.html` and the a-today effort string. The UX-05/06/07 additions below never reached `backlog.md`, so the build loop won't see them; see `planning/alignment/design-engineer.md`.)*
 - **UX-05 / UX-06:**
   - add "state colour never sits on a spot field" and a dark-mode deep-ink cover;
   - meta text on spot fields at 15 px or more;
@@ -292,7 +294,7 @@ All three use the same 90 KB Archivo file at different widths (68%, 125% and 100
 **For the marketing-manager's review:**
 1. Does the bib card beat A's grid card for MKT-03?
 2. Is the session count ("47") the right bib number, or should it be the program week ("Wk 3")?
-3. Does "Chalklog" survive a bib-led card, or does that argue for "Liftnext"?
+3. Does "Chalklog" survive a bib-led card, or does that argue for "Liftnext"? *(Answered: the owner chose Liftnext.)*
 4. Is "Finished 58:12" too close to a race claim for a lifting session?
 
 ---
