@@ -147,6 +147,14 @@ At one merge a day (your pace, an assumption) that's about two months of ready w
 
 ## Decisions only you can make
 
+### Owner's answers, 2026-11-07
+- **Name:** Chalklog. In-app rename shipped on the working branch as v3.515, display name only, with storage keys unchanged. The domain and USPTO check (D7) are still to do before the name is used publicly.
+- **Design:** Plate & Press for the app, plus the hybrid edge additions: the race bib as the story card, "Your number", "Pin it on", and the bib with the loaded bar as the constant (design-directions.md §5–§6, MKT-16 to MKT-18).
+- **Icon:** approved, as a stripe of the five plate colours used as both the icon and the card mark (MKT-19).
+- **Money (D9, revised):** free at launch, with a subscription later. The business manager is reworking the model to fit (business.md).
+- **Still open:** D1–D6, D8 and D10.
+
+
 | # | Question | Recommended | Unblocks |
 |---|---|---|---|
 | **D1** | Merge `planning/` and start the build loop (7:17, 13:17 and 20:17 ET), reviewing about one PR a day? | **Yes** | Every build. Year in Lifting by 30 Nov needs about 12 merges. |
