@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Weekly recap (Plate &amp; Press mock-up)</title>
+<link rel="stylesheet" href="world.css">
+<!-- Monday-morning sheet for the week just finished (Strength & Size, week 3 of 5, Oct 26 – Nov 1).
+     The strip spells the week in each day's plate ink: filled = trained, outlined and struck = missed,
+     off-grey = planned rest. Days and plates are programs.strength d1–d7. The Bench best is the PR
+     mock-up's; set counts are the prescribed sets of the days trained (20+16+20+15); time is sample data; the Squat figure is sample data.
+     The share card is the same composition, so what you share looks like what you saw. -->
+<style>
+  .top{display:flex; justify-content:space-between; align-items:center; height:48px; padding:0 10px 0 var(--gutter);}
+  .top .meta{font-weight:500;}
+  h1{font-size:56px; padding:6px var(--gutter) 0; max-width:9ch;}
+  .strip{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; padding:24px var(--gutter) 0;}
+  .blk{height:128px; border-radius:8px; position:relative; display:flex; align-items:flex-end; justify-content:center; padding-bottom:10px; font-weight:700; font-size:15px;}
+  .blk.red{background:var(--spot-red); color:var(--on-red);}
+  .blk.blue{background:var(--spot-blue); color:var(--on-blue);}
+  .blk.white{background:var(--spot-white); color:var(--on-white); box-shadow:inset 0 0 0 1.5px var(--rule-strong);}
+  .blk.yellow{background:var(--spot-yellow); color:var(--on-yellow);}
+  .blk.green{background:var(--spot-green); color:var(--on-green);}
+  .blk.missed{border:2px solid var(--text-3); color:var(--text-2); background:repeating-linear-gradient(135deg, transparent 0 9px, var(--rule) 9px 10px);}
+  .blk.rest{background:var(--spot-off); color:var(--on-off);}
+  .days{display:grid; grid-template-columns:repeat(7,1fr); gap:6px; padding:8px var(--gutter) 0; font-size:var(--fs-caption); color:var(--text-2); text-align:center;}
+  .key{padding:10px var(--gutter) 0; font-size:var(--fs-meta); color:var(--text-2);}
+
+  .figs{display:grid; grid-template-columns:repeat(3,1fr); margin:22px var(--gutter) 0; border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);}
+  .figs > div{padding:12px 0;}
+  .figs > div + div{padding-left:16px; border-left:1px solid var(--rule);}
+  .figs .fig{font-size:var(--fs-figure-m); line-height:1;}
+  .figs .u{font-family:var(--font-text); font-size:var(--fs-meta); color:var(--text-2); font-weight:500; margin-left:3px;}
+  .figs .lbl{font-size:var(--fs-meta); color:var(--text-2); margin-top:6px;}
+
+  .bests{padding:18px var(--gutter) 0;}
+  .bests h2{font-size:var(--fs-lead); font-weight:600; margin-bottom:6px;}
+  .bests li{min-height:52px;}
+  .bests .sw{width:10px; height:28px; border-radius:3px; flex:none;}
+  .bests .name{font-weight:600;}
+  .bests .sub{font-size:var(--fs-meta); color:var(--text-2);}
+  .bests .v{margin-left:auto; text-align:right; white-space:nowrap;}
+  .bests .v .fig{font-size:22px;}
+  .bests .v .u{font-size:var(--fs-caption); color:var(--text-3); margin-left:2px;}
+  .coach{padding:16px var(--gutter) 0; font-size:var(--fs-body); line-height:1.45;}
+  .coach b{font-weight:600;}
+
+  .acts{position:absolute; left:var(--gutter); right:var(--gutter); bottom:34px; display:grid; grid-template-columns:1fr 1.4fr; gap:10px;}
+  .acts .btn-quiet{border:1px solid var(--rule);}
+  .acts .primary{background:var(--text); color:var(--ground);}
+</style>
+</head>
+<body>
+
+<div class="status" aria-hidden="true"><span>7:02</span><span class="dots"><svg class="i" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19" r=".8" fill="currentColor"/></svg><span class="bat"></span></span></div>
+<div class="top"><span class="meta">Oct 26 – Nov 1 · Strength &amp; Size</span><button class="icon-btn" aria-label="Close"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+<h1 class="display">Week 3, done</h1>
+
+<div class="strip" role="img" aria-label="Monday Upper Strength trained, Tuesday Lower Strength trained, Wednesday cardio done, Thursday Upper Hypertrophy trained, Friday Lower Hypertrophy trained, Saturday Active Recovery missed, Sunday rest">
+  <div class="blk red">25</div><div class="blk blue">20</div><div class="blk white">—</div><div class="blk yellow">15</div><div class="blk green">10</div><div class="blk missed">5</div><div class="blk rest">OFF</div>
+</div>
+<div class="days" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+<p class="key">Saturday's active recovery was skipped. Everything else ran as planned.</p>
+
+<div class="figs">
+  <div><div class="fig">5<span class="u">/ 6</span></div><div class="lbl">Sessions</div></div>
+  <div><div class="fig">71</div><div class="lbl">Hard sets</div></div>
+  <div><div class="fig">238<span class="u">min</span></div><div class="lbl">Time</div></div>
+</div>
+
+<section class="bests">
+  <h2>New bests</h2>
+  <ul class="rows">
+    <li><span class="sw" style="background:var(--spot-red)"></span><div><div class="name">Bench Press</div><div class="sub">Heaviest yet, was 155</div></div><div class="v"><span class="fig">160 × 5</span></div></li>
+    <li><span class="sw" style="background:var(--spot-blue)"></span><div><div class="name">Squat</div><div class="sub">Estimated max, +6 lb</div></div><div class="v"><span class="fig">271</span><span class="u">lb</span></div></li>
+  </ul>
+</section>
+<p class="coach"><b>Next: week 4 of 5,</b> the last hard week before the deload. Bench asks for 165 × 5.</p>
+
+<div class="acts">
+  <button class="btn btn-quiet"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Share</button>
+  <button class="btn primary">Done</button>
+</div>
+<div class="home-ind" aria-hidden="true"></div>
+</body>
+</html>

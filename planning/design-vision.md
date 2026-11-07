@@ -58,7 +58,7 @@ A lifter under gym fluorescents or in a dim garage, phone on a bench, glancing b
 - Retired: `--cta-gradient-*`, the violet chat FAB, blurred plate halos, glass fills.
 
 ### 3.3 Type
-- **Display:** Archivo (variable, width 62–125, weight 100–900, OFL, self-hosted beside the app as `fonts/archivo-latin-wdth-wght.woff2`, 90 KB). Used only for screen headlines and big figures, at 68% width (condensed) or 84% (semi). It is a grotesque with real competition-number energy; its width axis is the press move.
+- **Display:** Archivo (variable, width 62–125, weight 100–900, OFL, to be self-hosted beside the app as `fonts/archivo-latin-wdth-wght-v1.woff2` if the owner approves UX-02; 90 KB). Used only for screen headlines and big figures, at 68% width (condensed) or 84% (semi). It is a grotesque with real competition-number energy; its width axis is the press move.
 - **Text:** Geist (already shipped). Everything you read in sentences, labels, lists and controls.
 - **Figures:** tabular lining figures everywhere; units smaller and grey ("160 lb").
 - **Scale:** caption 12, meta 13, body 16, lead 18, title 22, headline 40 (display, condensed), sibling figure 34, answer figure 64, **cover numeral 150–176** (the next set only). The cover numeral is the one deliberate exception to the taste-skill "nothing over 48" app rule: it is read from a metre away, mid-set, and it is the screen's single answer.
@@ -78,7 +78,7 @@ One authored outline set, 1.75 stroke, 22–24 px, round caps, drawn in SVG (the
 - **The week strip:** seven blocks in their plate inks; done = filled, planned = outlined, missed = outlined with a rule through, rest = off-grey.
 
 ### 3.7 The signature move: the plate stack
-Wherever the next set's load is shown big, the bar is drawn beside it **loaded with the actual plates per side, in their competition colours and relative sizes** (from the existing plate calculator, `~31753`). 160 lb reads as a blue 45 and a white 10 and a 2.5 change plate. A lifter recognises the load before they read the number, and loads the bar without opening the plate calculator. It's functional (it replaces a tap) and only this product has it.
+Wherever the next set's load is shown big, the bar is drawn beside it **loaded with the actual plates per side, in their competition colours and relative sizes**. The plates come from the person's own equipment profile (`getEquipment`, `BARBELL_STANDARDS` at `index.html:32700`, lb set 45/35/25/10/5/2.5) through a new greedy `platesPerSide` (UX-07). The old plate calculator is gone: only its comment survives at 31752 (flagged, not fixed). Colour by size: 45 lb blue (20 kg), 35 yellow (15 kg), 25 green (10 kg), 10 white (5 kg), 55 red (25 kg); change plates steel. 160 lb reads as a blue 45 and a white 10 and a 2.5 change plate. A lifter recognises the load before they read the number, and loads the bar without opening the plate calculator. It's functional (it replaces a tap) and only this product has it.
 
 ### 3.8 Motion
 Tokens (Emil Kowalski): `--ease-out cubic-bezier(.23,1,.32,1)`, `--ease-in-out cubic-bezier(.77,0,.175,1)`, `--ease-drawer cubic-bezier(.32,.72,0,1)`; durations press 120, UI 220, sheet 420, moment 700 ms.
@@ -103,8 +103,8 @@ The five destinations stay (they're tested and they're right), renamed to say wh
 | more | More | **More** | Care, Coach, Learn, Settings |
 
 Changes:
-- **Today becomes the session.** The cover (day field + next set + plate stack) on top; the session's remaining work as a ruled list of exercises with set chips; Today's Priorities moves under the session, collapsed to one line ("2 notes · Readiness: shoulder resting"). The profile prompt, Training Style and Keep In Mind cards move to More (Training Style) and Progress (insights). Gym mode becomes unnecessary as a separate mode: the new Today *is* gym mode. It stays as a toggle until the owner approves retiring it.
-- **The floating chat button** goes into the header as a plain icon (it covers content today; see the 402 renders).
+- **Today becomes the session.** The cover (day field + next set + plate stack) on top; the session's remaining work as a ruled list of exercises with set chips; Today's Priorities moves under the session, collapsed to one line ("2 notes · Readiness: shoulder resting"). The profile prompt, Training Style and Keep In Mind cards move to More (Training Style) and Progress (insights). Gym mode becomes unnecessary as a separate mode: the new Today *is* gym mode. It stays as a toggle until the owner approves retiring it (UX-17).
+- **The floating chat button** goes into the header as a plain icon (it covers content today; see the 402 renders). That drops its drag, so it waits for the owner (UX-16).
 - **Progress** leads with one lift's strength line and the weekly per-muscle ledger; the AI insights card moves below the evidence, with its key requirement stated (BIZ-06).
 - **The tab bar** becomes opaque with a hairline, labels always on, the active tab in ink (not a white pill on glass).
 - **Unfolded (904×678, the Duo inner screen):** two panes. Left, the session (cover + list). Right, the selected exercise's history and plate stack (the incumbent already shows the lift's history there; it keeps that job).
@@ -139,11 +139,43 @@ Content in every mock-up is the app's own: Strength & Size (`programs.strength`)
 
 ## 7. How it ships
 
-The transformation lands as staged `UX-nn` items in `planning/backlog.md`, tokens first, then one screen per version, behind the same data and behaviour. The app is never half-redesigned in a broken state: every step leaves every screen coherent, because new tokens are introduced as aliases of the old ones first, and each screen switches whole.
+As 17 staged items, `UX-01` to `UX-17`, at the end of `planning/backlog.md`. One version each, behind the same data and behaviour. The app is never half-redesigned: tokens arrive first as aliases (no visual change), then one version flattens the whole app at once, then each screen switches whole.
 
-Constraints held: single file, no build step, `APP_VERSION` = `sw.js VERSION` per item, jsdom tests plus a Playwright visual check per item, Reduce Motion, 44 pt targets, AA contrast and VoiceOver names kept or improved. One item needs the owner: shipping the Archivo font file beside `index.html` (an asset, UX-02).
+| Step | Item | What changes | Status |
+|---|---|---|---|
+| 1 | UX-01 | Token set v2 as aliases; contrast of the target values tested | ready |
+| 2 | UX-02 | Archivo display font file beside `index.html`, cached by `sw.js` | **needs-owner** (asset) |
+| 3 | UX-03 | Flat ground everywhere: halos, glass and gradient buttons go | ready |
+| 4 | UX-04 | Tab bar: opaque, icons and labels; Log → Food, Analysis → Progress (IDs and routing unchanged) | ready |
+| 5 | UX-05 | The day publishes `--spot`, `--on-spot`, `--spot-deep` | ready |
+| 6 | UX-06 | Today's cover: the next set huge, one Log button, chips | ready |
+| 7 | UX-07 | The plate stack (new `platesPerSide`) | ready |
+| 8 | UX-08 | Rest on the cover; steppers and "reps left" (stored as RPE) | ready |
+| 9 | UX-09 | Finish screen with the PR flood and "Next time" | ready |
+| 10 | UX-10 | Progress leads with the strength line (then BL-20's ledger) | ready |
+| 11 | UX-11 | Weekly recap sheet with the week strip | ready |
+| 12 | UX-12 | History as a month of plate blocks | ready |
+| 13 | UX-13 | Food in the world's ink | ready |
+| 14 | UX-14 | Unfolded two-pane Today (904×678) | ready |
+| 15 | UX-15 | Dead CSS sweep of the old look | ready |
+| 16 | UX-16 | Coach button into the header (drops the draggable FAB) | **needs-owner** (drops a feature) |
+| 17 | UX-17 | Retire Gym mode once Today does its job | **needs-owner** (drops a feature) |
+
+Without UX-02, every item still ships: `--font-display` falls back to Geist 800 and the cover numeral drops to about 120 px.
+
+Constraints held: single file, no build step, `APP_VERSION` = `sw.js VERSION` per item, jsdom tests plus a Playwright visual check per item, Reduce Motion, 44 pt targets, AA contrast and VoiceOver names kept or improved. Share-card visuals belong to the marketing items (MKT-03, MKT-07); the design-engineer reviews their renders against this world.
 
 ## 8. Open questions for the owner
-1. Ship the Archivo display face (90 KB woff2, OFL) beside `index.html`? Without it, the cover numeral falls back to Geist at weight 800, which works but loses the press move (UX-02).
-2. Rename the tabs Log → Food and Analysis → Progress? (UX-03; routing keys unchanged.)
-3. Retire Gym mode once the new Today replaces it? (Not itemised until answered; it would drop a feature.)
+1. Ship the Archivo display face (90 KB woff2, OFL) beside `index.html`? (UX-02)
+2. Move the floating chat button into the header, losing its drag? (UX-16)
+3. Retire Gym mode once the new Today replaces it? (UX-17)
+4. `PRODUCT.md` was inferred from the planning files, not from an interview with you. Please confirm or correct it.
+5. The concept roll assigned a different world (sports-hall floor markings). This vision kept the plate world because it's already in the app's data and the earlier run committed it. Say so if you'd rather see the alternative.
+
+## 9. Self-critique of the mock-ups (what to watch when building)
+- **The cover numeral is the one rule broken on purpose** (app screens normally cap figures at 40–48 px). It is justified only while it is the single answer on the screen. If a second huge number appears on Today, one of them is wrong.
+- **Red is the hardest ink.** At `#D42F25`, white is 4.9:1. Any tint over the red (the chip fills) must be re-checked; the first mock-up's tinted ready chip was 4.1:1 and was fixed by keeping it transparent with a border.
+- **White plates on chalk** vanish in light mode. They need a rim (`--rule-strong` inset), as a real white plate has.
+- **The ledger needs words.** Done versus planned isn't readable from the bars alone, so the sentence above the bars says it and carries the action.
+- **Sample data** in the mock-ups is labelled in each file's head comment: readiness, other lifts' loads, the session totals and the per-muscle sets. Only the program structure, the plate code and the Bench history come from the app and its seed.
+- `impeccable detect` on the mock-ups is clean except: Geist flagged as overused (kept, because it already ships and is the text face only), row and stepper padding (deliberate: 64 px steppers fill edge to edge), and the hatched missed day (state, not decoration).

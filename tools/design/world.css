@@ -53,7 +53,7 @@
     color-scheme:light;
     --ground:#F3F3F1; --surface-1:#FFFFFF; --surface-2:#E9E9E6; --rule:#DADAD6; --rule-strong:#C4C4BF;
     --text:#111112; --text-2:#52524E; --text-3:#686863;
-    --positive:#14803C; --negative:#C8321F; --warning:#A86A00;
+    --positive:#14803C; --negative:#C8321F; --warning:#8F5A00;
     --scrim:rgba(17,17,18,.35);
     --float-shadow:0 18px 40px -20px rgba(17,17,18,.28);
     --spot-off:#2E2E31;
@@ -63,7 +63,7 @@
   color-scheme:light;
   --ground:#F3F3F1; --surface-1:#FFFFFF; --surface-2:#E9E9E6; --rule:#DADAD6; --rule-strong:#C4C4BF;
   --text:#111112; --text-2:#52524E; --text-3:#686863;
-  --positive:#14803C; --negative:#C8321F; --warning:#A86A00;
+  --positive:#14803C; --negative:#C8321F; --warning:#8F5A00;
   --scrim:rgba(17,17,18,.35); --float-shadow:0 18px 40px -20px rgba(17,17,18,.28);
 }
 
@@ -115,7 +115,7 @@ svg.i{width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.75
 
 /* Ruled list */
 .rows{list-style:none;}
-.rows > li{display:flex; align-items:center; min-height:48px; border-bottom:1px solid var(--rule); gap:12px;}
+.rows > li{display:flex; align-items:center; min-height:48px; padding:10px 0; border-bottom:1px solid var(--rule); gap:12px;}
 .rows > li:first-child{border-top:1px solid var(--rule);}
 .meta{font-size:var(--fs-meta); color:var(--text-2);}
 .cap{font-size:var(--fs-caption); color:var(--text-3);}
