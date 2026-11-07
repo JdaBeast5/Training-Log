@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>C · Race Bib: Today, the next set</title>
+<link rel="stylesheet" href="base.css">
+<!-- Direction C, "Race Bib": the competitor number you pin on. The next set's load IS the bib number; the event band
+     carries the day's plate colour (data, from programs.strength d1, red 25); each set is a perforated tear-off tab,
+     and a logged set is stamped, never removed (state is kept, as on a used coupon).
+     Content and progression as A: Bench 4×4-6, holding at 160 until all 4 sets reach 6 (BL-08); effort
+     "2 reps in reserve" (BL-10); plates per side 45 + 10 + 2.5.
+     Sample data: last session 160 × 5,5,5,4; set 1 today 160 × 5; other lifts' loads. -->
+<style>
+  :root{--band:#D42F25; --on-band:#fff; --ground:#E6E6E1; --sheet:#FFFFFF; --ink:#111110; --ink-2:#55554F; --perf:#85857E; --hole:#E6E6E1; --stamp:#B8261D;}
+  @media (prefers-color-scheme:dark){:root{--ground:#000; --sheet:#151514; --ink:#F4F4EF; --ink-2:#A9A9A2; --perf:#74746E; --hole:#000; --stamp:#FF6B5E;}}
+  body{background:var(--ground); color:var(--ink); font-family:'Geist',sans-serif;}
+  .phone{background:var(--ground);}
+  .bibnum{font-family:'Archivo',sans-serif; font-stretch:100%; font-weight:900; font-variant-numeric:tabular-nums lining-nums; letter-spacing:-.02em;}
+  .band{background:var(--band); color:var(--on-band); padding:0 20px 12px;}
+  .band .status{margin:0 -20px;}
+  .band .ev{display:flex; justify-content:space-between; align-items:center; height:44px; margin-right:-10px;}
+  .band .ev b{font-size:13px; font-weight:700; letter-spacing:.08em;}
+  .daybtn{display:flex; align-items:center; gap:2px; height:44px; padding:0 10px; font-size:13px; font-weight:600;}
+  .daybtn svg{width:16px; height:16px;}
+  .band h1{font-family:'Archivo',sans-serif; font-stretch:100%; font-weight:800; font-size:30px; line-height:1;}
+  .sheet{background:var(--sheet); position:relative; padding:18px 20px 0;}
+  .hole{position:absolute; width:12px; height:12px; border-radius:6px; background:var(--hole); box-shadow:inset 0 0 0 2px var(--perf);}
+  .h1{left:12px; top:12px;} .h2{right:12px; top:12px;} .h3{left:12px; bottom:80px;} .h4{right:12px; bottom:80px;}
+  .who{display:flex; justify-content:space-between; align-items:baseline; padding:0 14px;}
+  .who h2{font-size:20px; font-weight:700;}
+  .who span{font-size:13px; font-weight:600;}
+  .num{display:flex; justify-content:center; align-items:flex-end; gap:12px; margin-top:6px;}
+  .num .w{font-size:144px; line-height:.8;}
+  .num .side{display:flex; flex-direction:column; align-items:flex-start; padding-bottom:2px;}
+  .num .x{font-size:52px; line-height:.9;}
+  .num .u{font-family:'Geist',sans-serif; font-size:17px; font-weight:700;}
+  .rx{text-align:center; font-size:13px; color:var(--ink-2); margin-top:6px;}
+  .strip{display:flex; align-items:center; justify-content:center; gap:14px; margin:10px 0 0; padding:8px 0 14px;}
+  .strip svg{height:46px; width:120px; flex:none;}
+  .strip p{font-size:12px; font-weight:600; line-height:1.3;}
+  .strip p span{display:block; color:var(--ink-2); font-weight:500;}
+  /* Perforation + tear-off set tabs */
+  .perf{position:relative; height:0; border-top:2px dashed var(--perf); margin:0 -20px;}
+  .perf::before,.perf::after{content:''; position:absolute; top:-9px; width:16px; height:16px; border-radius:8px; background:var(--ground);}
+  .perf::before{left:-8px;} .perf::after{right:-8px;}
+  .tabs{display:grid; grid-template-columns:repeat(4,1fr); margin:0 -20px;}
+  .tab-set{height:64px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; border-left:2px dashed var(--perf); font-weight:700; font-size:15px; position:relative;}
+  .tab-set:first-child{border-left:0;}
+  .tab-set small{font-size:11px; font-weight:500; color:var(--ink-2);}
+  .tab-set.done{color:var(--stamp);}
+  .tab-set.done .st{position:absolute; inset:9px 12px; border:2px solid var(--stamp); border-radius:6px; transform:rotate(-4deg);}
+  .tab-set.done small{color:var(--stamp);}
+  .tab-set.live{background:var(--ink); color:var(--sheet);}
+  .tab-set.live small{color:var(--sheet); opacity:.8;}
+  .why{margin:14px 20px 0; font-size:13px; line-height:1.35;}
+  .why b{font-weight:700;}
+  .log{margin:12px 20px 0; display:grid; grid-template-columns:1fr 56px; gap:10px;}
+  .log .go{height:56px; border-radius:10px; background:var(--band); color:var(--on-band); font-weight:700; font-size:18px; display:flex; align-items:center; justify-content:center; gap:10px;}
+  .log .go .bibnum{font-size:19px; font-stretch:100%;}
+  .adj{height:56px; border-radius:10px; border:2px solid var(--ink); display:grid; place-items:center;}
+  .then{margin:18px 20px 0; display:flex; justify-content:space-between; align-items:baseline;}
+  .then h3{font-size:17px; font-weight:700;} .then span{font-size:13px; color:var(--ink-2);}
+  ul{list-style:none; margin:6px 20px 0;}
+  li{display:flex; align-items:center; gap:12px; min-height:60px; border-top:1px solid var(--perf);}
+  li .n{font-weight:600;} li .s{font-size:13px; color:var(--ink-2);}
+  li .ld{margin-left:auto; font-size:24px;}
+  .tabbar{background:var(--sheet); border-top:1px solid var(--perf);}
+  .tab{color:var(--ink-2);} .tab[aria-current]{color:var(--ink);}
+  .tab[aria-current] .fillable{fill:currentColor;}
+  .home-ind{color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="phone">
+  <header class="band">
+    <div class="status" aria-hidden="true"><span>9:41</span><span class="dots"><svg class="i" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/></svg><span class="bat"></span></span></div>
+    <div class="ev"><b>STRENGTH &amp; SIZE · WEEK 3 OF 5</b><button class="daybtn" aria-label="Change day">Day 1<svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div>
+    <h1>Upper Strength</h1>
+  </header>
+  <section class="sheet" aria-label="Next set">
+    <span class="hole h1" aria-hidden="true"></span><span class="hole h2" aria-hidden="true"></span><span class="hole h3" aria-hidden="true"></span><span class="hole h4" aria-hidden="true"></span>
+    <div class="who"><h2>Bench Press</h2><span>Set 2 of 4</span></div>
+    <div class="num bibnum" aria-label="160 pounds for 5 reps"><span class="w">160</span><span class="side"><span class="u">lb</span><span class="x">×5</span></span></div>
+    <p class="rx">4 × 4–6 · 2 reps in reserve</p>
+    <div class="strip" aria-label="Load per side: one 45, one 10, one 2.5">
+      <svg viewBox="0 0 120 46" aria-hidden="true">
+        <g stroke="var(--ink)" stroke-width="2">
+          <rect x="1" y="19" width="70" height="8" rx="1.5" fill="#BDBDB8"/>
+          <rect x="68" y="21" width="51" height="4" fill="#BDBDB8"/>
+          <rect x="64" y="12" width="5" height="22" rx="1" fill="var(--ink)"/>
+          <rect x="49" y="1" width="15" height="44" rx="2" fill="#2C5BD8"/>
+          <rect x="39" y="7" width="10" height="32" rx="2" fill="#E6E6E2"/>
+          <rect x="34" y="12" width="5" height="22" rx="1.5" fill="#8B8B88"/>
+        </g>
+      </svg>
+      <p>45 · 10 · 2.5 each side<span>45 lb bar</span></p>
+    </div>
+    <div class="perf" aria-hidden="true"></div>
+    <div class="tabs" role="list" aria-label="Bench Press sets">
+      <button class="tab-set done" role="listitem" aria-label="Set 1 logged, 160 by 5"><span class="st" aria-hidden="true"></span>160×5<small>Set 1 done</small></button>
+      <button class="tab-set live" role="listitem" aria-label="Set 2, ready">160×5<small>Set 2 now</small></button>
+      <button class="tab-set" role="listitem" aria-label="Set 3">Set 3<small>4–6</small></button>
+      <button class="tab-set" role="listitem" aria-label="Set 4">Set 4<small>4–6</small></button>
+    </div>
+  </section>
+  <div class="perf" aria-hidden="true" style="margin:0"></div>
+  <p class="why"><b>Holding at 160</b> until all 4 sets reach 6. Last time 5, 5, 5, 4.</p>
+  <div class="log"><button class="go">Log set <span class="bibnum">160 × 5</span></button><button class="adj" aria-label="Adjust weight, reps or effort"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
+  <div class="then"><h3>Then</h3><span>5 exercises · about 45 min</span></div>
+  <ul>
+    <li><div><div class="n">Barbell Row</div><div class="s">4 × 6–8 · last 8, 8, 7, 7</div></div><span class="ld bibnum">135</span></li>
+    <li><div><div class="n">Overhead Press</div><div class="s">3 × 8–10 · all sets hit 10: add weight</div></div><span class="ld bibnum">100</span></li>
+  </ul>
+  <nav class="tabbar" aria-label="Sections">
+    <a class="tab" aria-current="page"><svg class="i" viewBox="0 0 24 24"><rect class="fillable" x="3" y="10" width="3" height="4" rx="1"/><rect class="fillable" x="18" y="10" width="3" height="4" rx="1"/><rect class="fillable" x="6" y="6" width="3" height="12" rx="1"/><rect class="fillable" x="15" y="6" width="3" height="12" rx="1"/><path d="M9 12h6"/></svg>Today</a>
+    <a class="tab"><svg class="i" viewBox="0 0 24 24"><path d="M7 3v7a2 2 0 0 0 4 0V3M9 10v11M16 21V3c2.5 1 3.5 4 3.5 7H16"/></svg>Food</a>
+    <a class="tab"><svg class="i" viewBox="0 0 24 24"><path d="M3 20h18M5 16l5-5 4 3 6-7"/></svg>Progress</a>
+    <a class="tab"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>History</a>
+    <a class="tab"><svg class="i" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="19" cy="12" r="1.3" fill="currentColor"/></svg>More</a>
+  </nav>
+  <div class="home-ind" aria-hidden="true"></div>
+</div>
+</body>
+</html>

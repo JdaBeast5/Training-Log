@@ -1,0 +1,124 @@
+/* Training Log redesign: "Plate & Press" world, shared by the mock-ups in tools/design/.
+   These are the proposed v2 design tokens (UX-01 in planning/backlog.md). The mock-ups are
+   static HTML/CSS prototypes, not app code; nothing here is loaded by index.html. */
+
+@font-face{
+  font-family:'Archivo'; font-style:normal; font-weight:100 900; font-stretch:62% 125%; font-display:swap;
+  src:url(./fonts/archivo-latin-wdth-wght.woff2) format('woff2');
+}
+@font-face{
+  font-family:'Geist'; font-style:normal; font-weight:100 900; font-display:swap;
+  src:url(../../fonts/geist-latin-wght-normal.woff2) format('woff2');
+}
+
+:root{
+  color-scheme:dark;
+  /* Type */
+  --font-display:'Archivo','Geist',-apple-system,sans-serif;  /* headlines and big figures only */
+  --font-text:'Geist',-apple-system,BlinkMacSystemFont,sans-serif;
+  --fs-caption:12px; --fs-meta:13px; --fs-body:16px; --fs-lead:18px; --fs-title:22px;
+  --fs-head:40px;      /* screen headline, display face, condensed */
+  --fs-figure-m:34px;  /* sibling figures */
+  --fs-figure-l:64px;  /* the answer figure on a screen */
+  --fs-figure-xl:176px;/* the cover numeral: the next set */
+  --wdth-cond:68%; --wdth-semi:84%;
+
+  /* Ink (dark) */
+  --ground:#0C0C0D; --surface-1:#151516; --surface-2:#1E1E20; --rule:#29292C; --rule-strong:#3A3A3E;
+  --text:#F2F2F0; --text-2:#A6A6A2; --text-3:#82827E;
+  --positive:#3CCB6A; --negative:#FF6B5E; --warning:#F0B43C;
+  --scrim:rgba(0,0,0,.55);
+  --float-shadow:0 18px 40px -18px rgba(0,0,0,.7);
+
+  /* Spot inks: the Olympic plate colours, used as flat fields (the day's cover) and as each day's data hue */
+  --spot-red:#D42F25;   /* 4.9:1 with white */    --on-red:#FFFFFF;
+  --spot-blue:#2C5BD8;   --on-blue:#FFFFFF;
+  --spot-yellow:#F2C200; --on-yellow:#0C0C0D;
+  --spot-green:#1E9E4A;  --on-green:#0C0C0D;
+  --spot-white:#E6E6E2;  --on-white:#0C0C0D;
+  --spot-off:#3A3A3D;    --on-off:#FFFFFF;
+  /* Deep inks: the same plate pressed darker. The spent part of the rest field; white text holds 4.5:1 on both layers. */
+  --deep-red:#6E1712; --deep-blue:#16306F; --deep-yellow:#6B5600; --deep-green:#0E4D24;
+
+  /* Space (4pt grid), radius */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px; --s12:48px; --s16:64px;
+  --gutter:20px; --r-control:14px; --r-sheet:28px;
+
+  /* Motion */
+  --ease-out:cubic-bezier(.23,1,.32,1); --ease-in-out:cubic-bezier(.77,0,.175,1); --ease-drawer:cubic-bezier(.32,.72,0,1);
+  --dur-press:120ms; --dur-ui:220ms; --dur-sheet:420ms; --dur-moment:700ms;
+}
+@media (prefers-color-scheme:light){
+  :root:not([data-theme="dark"]){
+    color-scheme:light;
+    --ground:#F3F3F1; --surface-1:#FFFFFF; --surface-2:#E9E9E6; --rule:#DADAD6; --rule-strong:#C4C4BF;
+    --text:#111112; --text-2:#52524E; --text-3:#686863;
+    --positive:#14803C; --negative:#C8321F; --warning:#8F5A00;
+    --scrim:rgba(17,17,18,.35);
+    --float-shadow:0 18px 40px -20px rgba(17,17,18,.28);
+    --spot-off:#2E2E31;
+  }
+}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --ground:#F3F3F1; --surface-1:#FFFFFF; --surface-2:#E9E9E6; --rule:#DADAD6; --rule-strong:#C4C4BF;
+  --text:#111112; --text-2:#52524E; --text-3:#686863;
+  --positive:#14803C; --negative:#C8321F; --warning:#8F5A00;
+  --scrim:rgba(17,17,18,.35); --float-shadow:0 18px 40px -20px rgba(17,17,18,.28);
+}
+
+/* The day sets the spot */
+.day-red{--spot:var(--spot-red); --on-spot:var(--on-red); --spot-deep:var(--deep-red);}
+.day-blue{--spot:var(--spot-blue); --on-spot:var(--on-blue); --spot-deep:var(--deep-blue);}
+.day-yellow{--spot:var(--spot-yellow); --on-spot:var(--on-yellow); --spot-deep:var(--deep-yellow);}
+.day-green{--spot:var(--spot-green); --on-spot:var(--on-green); --spot-deep:var(--deep-green);}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%;}
+body{
+  width:402px; height:874px; overflow:hidden; position:relative;
+  background:var(--ground); color:var(--text);
+  font-family:var(--font-text); font-size:var(--fs-body); line-height:1.4;
+  -webkit-font-smoothing:antialiased; font-variant-numeric:tabular-nums;
+}
+body.tall{height:auto; overflow:visible;}
+::selection{background:var(--spot, var(--spot-red)); color:var(--on-spot, #fff);}
+button{font:inherit; color:inherit; background:none; border:0; cursor:pointer;}
+svg.i{width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round; flex:none;}
+
+.display{font-family:var(--font-display); font-stretch:var(--wdth-cond); font-weight:800; letter-spacing:-0.01em; line-height:.92;}
+.fig{font-family:var(--font-display); font-stretch:var(--wdth-semi); font-weight:700; font-variant-numeric:tabular-nums lining-nums; letter-spacing:-0.01em;}
+
+/* Status bar (device chrome, drawn only so the render reads at true size) */
+.status{height:54px; display:flex; align-items:center; justify-content:space-between; padding:14px 30px 0 34px; font-weight:600; font-size:16px;}
+.status .dots{display:flex; gap:6px; align-items:center;}
+.status .bat{width:26px; height:12px; border:1.5px solid currentColor; border-radius:4px; opacity:.9; position:relative;}
+.status .bat::after{content:''; position:absolute; inset:1.5px; right:5px; background:currentColor; border-radius:1.5px;}
+.home-ind{position:absolute; left:50%; bottom:8px; width:140px; height:5px; border-radius:3px; background:var(--text); transform:translateX(-50%); opacity:.9; z-index:30;}
+
+/* Header actions */
+.icon-btn{width:44px; height:44px; border-radius:22px; display:grid; place-items:center;}
+
+/* Tab bar: opaque, hairline, labels always shown */
+.tabbar{position:absolute; left:0; right:0; bottom:0; height:84px; background:var(--surface-1); border-top:1px solid var(--rule);
+  display:grid; grid-template-columns:repeat(5,1fr); padding:6px 6px 0; z-index:20;}
+.tab{display:flex; flex-direction:column; align-items:center; gap:3px; min-height:48px; padding-top:4px; font-size:11px; font-weight:500; color:var(--text-3); letter-spacing:.01em;}
+.tab svg.i{width:24px; height:24px;}
+.tab[aria-current="page"]{color:var(--text);}
+.tab[aria-current="page"] svg .fillable{fill:currentColor;}
+
+/* Buttons */
+.btn{height:56px; border-radius:var(--r-control); display:flex; align-items:center; justify-content:center; gap:10px; font-weight:600; font-size:17px; padding:0 20px;}
+.btn-ink{background:var(--ground); color:var(--text);}
+.btn-quiet{background:var(--surface-2); color:var(--text);}
+.btn-line{border:1.5px solid currentColor;}
+
+/* Ruled list */
+.rows{list-style:none;}
+.rows > li{display:flex; align-items:center; min-height:48px; padding:10px 0; border-bottom:1px solid var(--rule); gap:12px;}
+.rows > li:first-child{border-top:1px solid var(--rule);}
+.meta{font-size:var(--fs-meta); color:var(--text-2);}
+.cap{font-size:var(--fs-caption); color:var(--text-3);}
+.num{font-variant-numeric:tabular-nums; text-align:right;}
+.pos{color:var(--positive);} .neg{color:var(--negative);} .warn{color:var(--warning);}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}

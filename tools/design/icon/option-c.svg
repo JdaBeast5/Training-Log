@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Option C, "Swatch": the plate code printed as a label on chalk paper. Five equal plates side by side,
+       weight order left to right (25 red, 20 blue, 15 yellow, 10 green, 5 white), held in an ink frame with
+       ink rules between them, so the white plate has an edge on paper and on any day-ink card.
+       Flat chalk ground, no gradient, no glow, no text. -->
+  <rect width="1024" height="1024" fill="#F3F3F1"/>
+  <rect x="212" y="232" width="600" height="560" rx="36" fill="#0C0C0D"/>
+  <rect x="238" y="258" width="95.2" height="508" rx="12" fill="#D42F25"/>
+  <rect x="351.2" y="258" width="95.2" height="508" rx="6" fill="#2C5BD8"/>
+  <rect x="464.4" y="258" width="95.2" height="508" rx="6" fill="#F2C200"/>
+  <rect x="577.6" y="258" width="95.2" height="508" rx="6" fill="#1E9E4A"/>
+  <rect x="690.8" y="258" width="95.2" height="508" rx="12" fill="#E6E6E2"/>
+</svg>
