@@ -13,6 +13,8 @@ The owner's mission (2026-11-07): "the best tracking app and the best workout pl
 | `business.md` | business-manager | Strategy, model, funnel, what blocks success; BIZ-nn backlog items |
 | `marketing.md` | marketing-manager | Brand, built-in virality and share moments, store and launch, experiments; MKT-nn items |
 | `design-vision.md` (+ `tools/design/`) | design-engineer | The high-end redesign vision, mock-ups, staged UX-nn items |
+| `summit.md` | project-manager (chair) | The 2026-11-07 cross-review of all eight agents and its resolutions (R1–R11) |
+| `pitch.md` | project-manager (chair) | The owner-facing pitch: promise, plan, and the decisions only the owner can make |
 
 Flow: research + audit + business + marketing + design vision → roadmap → backlog → build runs (one item per run, as a PR) → owner review → live.
 

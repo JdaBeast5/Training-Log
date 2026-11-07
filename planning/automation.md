@@ -91,7 +91,7 @@ Work in the builder's checkout. Keep scratch output (baseline logs, screenshots)
 - **Red baseline means stop.** Don't fix anything. Open a blocker PR (§5.1).
 
 ### Step 5: Pick
-- Take the **first** item in `planning/backlog.md` (as on `origin/Branch-1`) whose status is `ready`, in file order. Skip:
+- Take the next item in the **Unified build sequence** at the top of `planning/roadmap.md` (as on `origin/Branch-1`): the first one, in sequence order, whose entry in `planning/backlog.md` is `ready` and not yet `done`. (Changed after the 2026-11-07 summit; file order no longer decides. Where an item ships as two versions, take its next unshipped part.) Skip:
   - `needs-owner`, `blocked`, `parked` and `done`;
   - `ready (after BL-xx)` items whose BL-xx isn't `done` on `origin/Branch-1`;
   - items whose last auto-PR was closed without merging (§7.3).

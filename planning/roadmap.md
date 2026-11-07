@@ -1,5 +1,130 @@
 # Roadmap: Training Log
 
+## Unified build sequence (agent summit, 2026-11-07)
+
+This is the one order every build run follows. It supersedes the "Requested build order" under Business priorities below, and the order sections in `design-vision.md` §7, `marketing.md` §6 and `program-audit.md` §6. The reasons are in `planning/summit.md` §2 (R1–R11).
+
+**Ground rules:**
+- One item is one version, and one PR is open at a time (`automation.md` §1).
+- The pace equals the owner's merge rate. There are **60 ready builds** in total; at one merge a day (an assumption, not a promise) that's about two months.
+- `needs-owner` items slot in where they're marked, once they're approved.
+
+**Before build 1:**
+- `planning/` is merged into `Branch-1` (`automation.md` §1, Prerequisite).
+- `automation.md` §4 step 5 is changed from "first `ready` item in file order" to "first `ready` item in this sequence". That's a planning-only PR by the build-automator.
+
+### Phase 0: Safety (6 builds)
+1. BL-01: program gate on goal volume and block accumulation
+2. BL-02: RPE caps on clinical programs; RPE mode off for technique lifts
+3. BL-03: per-exercise region override
+4. BL-04: exercise-specific substitutes
+5. **BL-05 + BL-06, merged into one version:** the safety cues (one `test-safety-cues.js`)
+6. BL-13: the cycle card stops prescribing phase-based training
+
+### Phase 1: Engine truth, foundation, and the Year in Lifting lane (18 builds)
+7. BL-08: all-set double progression. Every redesign screen prints this, so it goes first.
+8. **UX-01: design tokens as aliases (no visual change), moved up** so every later piece of markup is written once, in the new vocabulary
+9. BL-07: the performance goal no longer cuts strength-tier work
+10. MKT-02: no body data on share cards *(Year in Lifting lane)*
+11. MKT-03: story-format cards with the mark, drawn in the Plate & Press world from day one *(lane)*
+12. **MKT-06a: the Year in Lifting computation plus one summary card.** Target: merged by **30 November** *(lane)*
+13. BL-10: a target RIR on every prescription (the single effort vocabulary, summit R7)
+14. BL-15: the decrease signal waits for two short sessions
+15. BL-24: increments scale with strength
+16. BL-09: readiness compared with the week's own RPE target
+17. BL-23: one-tap early deload when overreaching
+18. BL-14: unit-aware rest times
+19. BL-26: the plateau message names the stall
+20. BL-11: rep and time progression for bodyweight work
+21. MKT-01: consistency counts training weeks
+22. **MKT-06b: the remaining Year in Lifting cards.** Target: mid-December; the window runs to 15 January.
+23. BL-12: copy that matches the code
+24. BL-25: exercise cue corrections
+
+### Phase 2: Redesign core, the session (16 builds, plus UX-02 if approved)
+25. BIZ-05: the first-set hint (pulled forward; it is also the cover's empty state)
+26. *(UX-02: the Archivo display face, if the owner approves D2)*
+27. UX-03: flat ground everywhere
+28. UX-04: the tab bar
+29. UX-05: the day sets the ink
+30. **UX-06a:** the cover: numeral, Log button, chips, and fields behind "adjust"; with the empty state and the resting-region caution
+31. **UX-06b:** the day picker collapses into the headline sheet
+32. UX-07: the plate stack
+33. UX-08: rest takes over the cover
+34. MKT-04: session share data, as a named builder that UX-09 reuses
+35. **UX-09a:** the finish sheet: totals, "Next time", Share, Done
+36. **UX-09b:** the PR flood and its motion; none on clinical programs
+37. BIZ-06: AI entry points say they need a key, and the AI card sorts below Trends
+38. BL-20: the per-muscle ledger, fractional, built to design-vision §3.6
+39. UX-10: Progress leads with the answer
+40. UX-14: the unfolded two-pane Today (moved up: the owner uses a Duo daily)
+41. UX-11: the weekly recap sheet with the week strip
+- *Owner-approved here:* UX-16 (the coach button into the header).
+
+### Phase 3: The first week, data trust, and food speed (11 builds)
+**Hard gate:** all of Phase 3 is merged before any Phase 5 public step.
+
+42. BIZ-02: one name, asked once
+43. BIZ-01: the three-question quick start, with summit R9's routing guard
+44. BIZ-03: placeholder calorie targets are labelled
+45. BIZ-04: the first backup reminder after 3 sessions
+46. BIZ-10: the Add to Home Screen hint
+47. BIZ-07: truthful metadata, manifest and README
+48. BIZ-17: the first screen says what the app is
+49. BL-22: export workouts as CSV
+50. BIZ-09: the first-month summary in Diagnostics
+51. BL-18: one-tap recent foods
+52. BL-19: "Add from yesterday"
+- *Owner-approved here:* BL-28 (saved meals), and BL-29 (import from Strong or Hevy).
+
+### Phase 4: Bar-raisers and growth moments (8 builds, plus approved owner items)
+53. BL-16: trend weight
+54. BL-17: expenditure estimated from your logs
+55. BL-21: HRV against your own baseline
+56. MKT-07: PR and progress cards show the gain, with the record's kind named (summit R6)
+57. MKT-05: block complete, as a variant of UX-11's recap sheet
+58. UX-12: History as a month of plate blocks
+59. UX-13: Food in the world's ink (keeps BIZ-03's line and BL-18's recents)
+60. UX-15: the dead-CSS sweep (always last among the UX items; includes the retired confetti)
+- *Owner-approved here, in this order:* BL-33, BL-34, BL-31, BL-32, BL-27, then BL-36, BL-39, BL-40, BL-35, BL-37, BL-38 (one migration per version), and UX-17 (two weeks after UX-06).
+
+### Phase 5: Public launch (owner-gated; about 8 builds after the owner says yes)
+- **Decisions (no code):** BIZ-12 (go public), BIZ-11 (model), MKT-09 (name and icon), MKT-12 (comparison pages), MKT-13 (launch posts).
+- **Builds:**
+  - BIZ-15: the clinical acknowledgement;
+  - BIZ-16: `privacy.html`;
+  - MKT-14: `about.html`;
+  - BIZ-08: the address on cards;
+  - MKT-09: the rename;
+  - the BIZ-13 follow-up: own-cloud backup through the share sheet;
+  - MKT-10: program links;
+  - MKT-11: friend challenges;
+  - MKT-08: side-by-side progress photos (deferred here; ready).
+- **Not code here:** the store listing itself belongs to the Capacitor track.
+
+### Merged, split, dropped
+- **Merged:**
+  - BL-06 into BL-05;
+  - MKT-04's stats builder into UX-09;
+  - MKT-05 into UX-11 (as a variant);
+  - UX-10's "AI insights moves below the evidence" clause into BIZ-06.
+- **Split:**
+  - UX-06 → 06a / 06b;
+  - UX-09 → 09a / 09b;
+  - MKT-06 → 06a / 06b.
+- **Dropped from the mock-ups** (no item, no evidence):
+  - the numeric "Readiness 72";
+  - "Add 2 sets each";
+  - the 20-set ceiling on the ledger band.
+- **Deferred or recommended "no":**
+  - BL-30 (the ledger stays in Progress);
+  - MKT-15 (no attribution);
+  - BIZ-14 (no hosted AI yet);
+  - a sync server;
+  - program extensions until after Phase 2.
+
+---
+
 Owner: project-manager. Written 2026-11-07 against **v3.514** (`index.html:7622`, `sw.js` `VERSION` matches). Line numbers below are `index.html` at v3.514 unless a file is named.
 
 Inputs:
@@ -23,6 +148,7 @@ All three planning inputs were written against v3.514, the current code, so none
 | Readiness: HRV imported but unused | Confirmed. `computeReadiness` (46843) takes no HRV input. HRV lands in `hrv-log` (46960). **New finding:** the importer maps both `rmssd` and `sdnn` to the same `hrv` series (46962). These are different metrics. A personal-baseline comparison is safe only while one source is used consistently. | BL-21 compares against the person's own baseline. The SDNN/rMSSD mix is flagged in BL-21's risk and is **not** fixed there. |
 | CSV export / import: missing | Confirmed. Only a JSON backup exists (`exportDataBtn` 6248, handler 34159). The only CSV handling is the health importer (`parseHealthCsv` 47037). | BL-22 adds export; BL-29 adds import (needs-owner). |
 | Trend weight and adaptive TDEE: missing | Confirmed. `renderSparkline` (40795) computes pace first-to-last; `computeTargets` (32973) is static Mifflin–St Jeor × activity. | BL-16 and BL-17 are ready; BL-27 needs the owner. |
+| Plate calculator: "Has it" (~31753) | Found at the summit (2026-11-07): **gone.** Only its comment and `BARBELL_EXERCISES` / `isBarbellExercise` survive (31752–31769). There is no per-side maths. | UX-07's plate stack (`platesPerSide`) restores it, with zero taps. |
 | RIR targets | Confirmed missing in the default mode. RIR appears only inside RPE mode (`rirFromRpe` 27393, badge 27756). | BL-12 |
 
 Other facts found while checking, recorded as flags rather than fixed:

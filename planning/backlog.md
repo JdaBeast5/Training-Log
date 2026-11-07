@@ -19,6 +19,8 @@ Item lines add only extra tools.
 
 **Order:** ready items first, in build order (BL-01 to BL-26), then `needs-owner` items in priority order (BL-27 to BL-40). A needs-owner item, once approved, slots in after whatever ready item is in flight.
 
+**Summit note (summit 2026-11-07):** the build order is now the **Unified build sequence** at the top of `planning/roadmap.md`, not file order. The reasons are in `planning/summit.md`. Items below carry "Summit note:" lines where the summit merged, split, re-ordered or constrained them. No item was renumbered, deleted or rewritten.
+
 Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program-audit.md` → "Source keys". Research links are in `planning/research.md`.
 
 ---
@@ -133,6 +135,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Test plan:** extend `test-concise-cues.js`, or add `test-safety-cues.js`, shared with BL-06. Sabotage: revert the cue.
 - **Files:** `content-exercises.js`, `sw.js` (version and precache), the test.
 - **Risk:** cue-length rules. Guarded by `test-concise-cues.js`.
+- **Summit note (summit 2026-11-07):** Ship BL-05 and BL-06 as **one version**: same file, same new `test-safety-cues.js`, both safety cue text. Mark both done together.
 - **Status:** ready
 
 ### BL-06: Release rule on partner submission and clinch drills (SAF-6)
@@ -147,7 +150,8 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Test plan:** `test-safety-cues.js` (with BL-05). Sabotage: drop one cue.
 - **Files:** `content-exercises.js`, `sw.js`, the test.
 - **Risk:** cue-length caps. Guarded by `test-concise-cues.js`.
-- **Status:** ready
+- **Summit note (summit 2026-11-07):** Merged into BL-05's version (see BL-05).
+- **Status:** merged into BL-05 (summit 2026-11-07): ships in BL-05's version; mark done with it
 
 ## Ready: correctness of what exists (audit High, then Medium)
 
@@ -192,6 +196,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - `test-backdating-rest-timer-suppression.js`, `test-superset-rest-timer-suppression.js`, `test-superset-shared-sets-block-wiring.js`.
 
   The cross-program fallback (`priorSetForSlot`, 27799) must keep its single-basis behaviour.
+- **Summit note (summit 2026-11-07):** UX-06, UX-09, UX-10 and UX-11 print this rule in large type, and the mock-ups already depict it (Barbell Row 8, 8, 7, 7 holds at 135). It must merge before any of them (summit R1).
 - **Status:** ready
 
 ### BL-09: Readiness compares weekly RPE to the week's own target (H-7)
@@ -225,6 +230,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (row render near 28750–29030), `sw.js`, the test.
 - **Risk:** row layout at 402 px. Guarded by `test-workout-card-type-scale.js`, `test-label-floor.js` and `test-tap-target-hit-areas.js`.
 - **Tools:** `impeccable clarify`, `apple-hig` (type floor).
+- **Summit note (summit 2026-11-07):** This is the **single effort vocabulary** (summit R7). The cover, the row, the rest steppers (UX-08), the first-set hint (BIZ-05) and the badge all read `targetRirLabel` / `rpeTargetFor`. Note that week 3 is RPE 8.5 (`RPE_BY_CYCLE_WEEK`, 27409), so RPE-mode wording follows `rpeTargetFor`, not a hard-coded "RIR 2".
 - **Status:** ready
 
 ### BL-11: Rep and time progression for bodyweight and timed work (H-8, part 1)
@@ -417,6 +423,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (45233–45270, 45482–45550), `sw.js`, the test.
 - **Risk:** the Analysis card. Guarded by `test-analysis-2-0.js`, `test-analysis-collapse.js` and `test-analysis-export.js` (which reads the rendered cards).
 - **Tools:** `dataviz`.
+- **Summit note (summit 2026-11-07):** Build it **once**, to `design-vision.md` §3.6 (summit R8): fractional figures shown with decimals, a "10+" floor [ACSM26] with no ceiling drawn, grey under the floor, the day's ink inside it. UX-10 then *moves* this renderer rather than redrawing it. No "add sets" advice here; that's BL-31 or BL-39.
 - **Status:** ready
 
 ### BL-21: HRV joins readiness, against your own baseline
@@ -564,6 +571,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Test plan:** extend `test-muscle-ledger.js`.
 - **Risk:** Today is the owner's most-seen screen.
 - **Tools:** `impeccable layout`, `dataviz`.
+- **Summit note (summit 2026-11-07):** The summit recommends **no**: keep the ledger in Progress. Today keeps one answer per screen (design-vision §9; summit R8).
 - **Status:** needs-owner. **Question:** "Do you want a per-muscle sets-this-week strip on Today, or keep it in Analysis only?"
 
 ### BL-31: Weekly ±1-set rule per muscle, from your own performance
@@ -625,6 +633,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Change:** the audit's H-3 layouts: Bodybuilding 3-day becomes Full Body A/B/C, Bodybuilding 4-day gets appends, and Powerlifting 3-day gets a heavy main lift plus a volume lift each day.
 - **Acceptance criteria:** computed weekly sets meet the H-3 targets (chest 9, back 12, ...) in a test using BL-20's ledger.
 - **Risk:** this rewrites variant slots, so it needs `SCHEMA_VERSION` (7623) / `runMigrations()` (9070) for any history on those variants.
+- **Summit note (summit 2026-11-07):** Priority rises: BIZ-01's quick start may route a 3-day "gain" stranger to Bodybuilding 3-day, which the audit scores F (summit F5, R9).
 - **Status:** needs-owner. **Question:** "Rewrite the 2-, 3- and 4-day Bodybuilding and 3-day Powerlifting variants (slot changes; past logs on those variants need a migration)?"
 
 ### BL-38: Bodybuilding d6 becomes "Upper Detail", plus appends (H-4)
@@ -696,6 +705,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Risk:**
   - First-launch flow. Guarded by `test-first-launch.js`, `test-program-recommendation.js` and `test-configurable-training-days.js`.
   - `location.reload()` in `switchToUser` (9626): the quick start must run after the reload. Use the empty profile name as the trigger, not in-memory state.
+- **Summit note (summit 2026-11-07):** Routing guard (summit R9). The "gym" answer filters to lifting programs. A "gain" answer with 3 days or fewer must not land on Bodybuilding 3-day until BL-37 ships. The PR attaches the real `recommendProgram` table (goal × days × location). With today's scores, gain → bodybuilding 95 and lose → jumprope 95 (33544–33545). If this can't be done with existing keys, stop and mark needs-owner. Units (lb/kg) aren't asked here; that's flagged, not in scope.
 - **Status:** ready
 
 ### BIZ-02: The name typed at "Who's training?" fills the profile name
@@ -708,6 +718,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Test plan:** extend `test-first-launch.js`. Sabotage: remove the fill, and criterion 1 must fail.
 - **Files:** `index.html` (9629, 32405–32412, 33783–33792, 33895), `sw.js`, the test.
 - **Risk:** low. Multi-user devices are guarded by `test-first-launch.js`. If BIZ-01 ships first, this is its natural first step; don't merge the two into one version.
+- **Summit note (summit 2026-11-07):** UX-06 must keep `#headerEyebrow`, or update `test-first-launch.js` deliberately with a dated note.
 - **Status:** ready
 
 ### BIZ-03: Placeholder calorie targets say they are placeholders
@@ -723,6 +734,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Test plan:** new `test-placeholder-targets.js`, with the real `computeTargets` and the real render function behind 37820. Sabotage: always hide the line, and criterion 1 must fail.
 - **Files:** `index.html` (6284, 32397–32412, 32973, ~37820), `sw.js`, the test.
 - **Risk:** nutrition hero layout. Guarded by `test-nutrition-default-open.js` and `test-nutrition-macro-bar-colors.js`.
+- **Summit note (summit 2026-11-07):** UX-13's Food summary must keep this line (add it to UX-13's checks).
 - **Status:** ready
 
 ### BIZ-04: First backup reminder after 3 sessions, not 10
@@ -753,7 +765,8 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Test plan:** extend `test-set-sheet.js`, with the real sheet open function. Sabotage: drop the history check, and criterion 2 must fail.
 - **Files:** `index.html` (set sheet markup and its open function; grep `setSheetTitle`), `sw.js`, the test.
 - **Risk:** low. If BL-10 changes the RIR wording first, reuse its string. Don't write a second one.
-- **Status:** ready
+- **Summit note (summit 2026-11-07):** Pulled into Phase 2, before UX-06a. One string, shown in two places: the set sheet **and** the cover's empty state on a first-ever exercise. It reuses BL-10's wording (summit §1.2, R7).
+- **Status:** ready (after BL-10)
 
 ### BIZ-06: AI entry points say they need a key before the tap
 - **Why:**
@@ -777,6 +790,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Risk:**
   - Analysis order. Guarded by `test-analysis-2-0.js`, `test-analysis-collapse.js` and `test-coach-2-0.js`.
   - Don't touch the "fixed, unverified live" AI internals (CLAUDE.md).
+- **Summit note (summit 2026-11-07):** This item owns "the AI card sorts below the evidence". UX-10 relies on it and doesn't repeat it (summit §1.4). Ships before UX-10.
 - **Status:** ready
 
 ### BIZ-07: Truthful page metadata, manifest description and README
@@ -965,6 +979,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Risk:**
   - Changes a visible number people may be attached to. The What's New line must say why: "Your streak now counts training weeks, so rest days never break it."
   - Today's Priorities and the weekly recap may read the streak. Guarded by `test-streak.js`, `test-weekly-recap.js` and `test-today-priorities.js`.
+- **Summit note (summit 2026-11-07):** Preferred implementation: a new namespaced key, `week-streak-last-celebrated`, through `window.storage`, with the old key left alone. That avoids a `SCHEMA_VERSION` bump just to reset a celebration counter (summit §1.7). The streak number lives in UX-11's strip; no confetti.
 - **Status:** ready
 
 ### MKT-02: Share cards carry no body data by default
@@ -1001,6 +1016,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Files:** `index.html` (29468–29640), `sw.js`, the test.
 - **Risk:** visual. The design-engineer reviews the rendered PNGs. If the owner renames the app (MKT-09), only the wordmark string changes.
 - **Tools:** `Skill: impeccable` (`polish`) on the rendered cards.
+- **Summit note (summit 2026-11-07):** Draw it in the Plate & Press world from day one (flat ink ground, the day's spot ink, no gold glow), so cards are never redone (summit §1.4). It's on the Year in Lifting lane (roadmap build 11).
 - **Status:** ready
 
 ### MKT-04: Share a finished session
@@ -1016,6 +1032,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Test plan:** new `test-session-share.js`, driving the real checkbox `change` handler in jsdom with stub storage. Sabotage: drop `shareData`, and criterion 1 must fail.
 - **Files:** `index.html` (29240–29270), `sw.js`, the test.
 - **Risk:** the 5-second banner hold applies whenever there's share data (29464), so the session banner stays up longer. That's intended; check it doesn't cover gym mode's exit control in Playwright.
+- **Summit note (summit 2026-11-07):** Put the stats in a named pure builder (e.g. `sessionShareStats`) that UX-09's Share calls. Ship directly before UX-09a, so only the banner wiring is temporary (summit §1.4).
 - **Status:** ready
 
 ### MKT-05: Share a finished training block
@@ -1032,7 +1049,8 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Test plan:** new `test-block-complete-share.js` with the real `archiveCurrentWeek` path, `cycleWeekOf` and stub storage. Sabotage: fire on every week, and criterion 2 must fail.
 - **Files:** `index.html` (26723, 41641, 45414–45480), `sw.js`, the test.
 - **Risk:** the end-of-week flow already shows a status line and a week share button. Keep one share button visible at a time; check in Playwright.
-- **Status:** ready
+- **Summit note (summit 2026-11-07):** Render it as the **last-week variant of UX-11's recap sheet**, not a separate celebration, so there aren't two interruptions on one Monday (summit §1.4). Record wording follows summit R6.
+- **Status:** ready (after UX-11)
 
 ### MKT-06: Year in Lifting (an annual recap, on device)
 - **Why:** annual recaps are the largest share event in consumer apps: Spotify reports 500 million Wrapped shares in about 24 hours (company-reported, marketing.md §3.1). Strava's "Year in Sport" is the fitness version, but it's for subscribers only. A free, private, on-device version is on-brand and recurs every December.
@@ -1055,7 +1073,8 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
   - Depends on MKT-03 for the format. Ship MKT-03 first.
   - Time-critical: to land in December 2026 it needs to ship by 30 November.
 - **Tools:** `Skill: dataviz` for any chart on the cards.
-- **Status:** ready
+- **Summit note (summit 2026-11-07):** Ship as two versions. **06a** is the computation, the Priorities row and one summary card; target merged by 30 November (roadmap build 12). **06b** is the remaining cards, after MKT-01. Constraints: "biggest e1RM gain" excludes `oly`/`jump`/`throw` (Epley isn't valid there, SAF-2). No share buttons while a `MEDICAL_STYLES` program is active. Record wording per summit R6. If 06a slips, nothing else moves (summit R5).
+- **Status:** ready (after MKT-03)
 
 ### MKT-07: PR and progress cards show the gain
 - **Why:** "Bench Press — 225 lb" (the PR card, 31988) is a number. "+10 lb on bench, was 215" is a story, and it's less identifying. There's also no way to share long-term progress on a lift, the "before and after" that lifters actually post.
@@ -1069,6 +1088,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Test plan:** new `test-pr-gain-card.js` with the real `saveExSet` PR path and the e1RM helpers. Sabotage: drop the previous best lookup, and criterion 1 must fail.
 - **Files:** `index.html` (31980–31990, the lift-history view, 29510), `sw.js`, the test.
 - **Risk:** the PR path is hot. Guarded by the existing PR tests; run them all.
+- **Summit note (summit 2026-11-07):** Name the kind of record (summit R6): "Heaviest weight yet: +10 lb over 215" for a weight record; "best" or "strongest" only for an e1RM record. No share for `MEDICAL_STYLES` programs.
 - **Status:** ready
 
 ### MKT-08: Side-by-side progress photos, made on the device
@@ -1084,7 +1104,8 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Test plan:** new `test-photo-side-by-side.js` with the real Progress Photos markup and handler, stub images and canvas. Sabotage: draw one image, and criterion 1 must fail.
 - **Files:** `index.html` (6543–6565 and the Progress Photos handlers), `sw.js`, the test.
 - **Risk:** body images. Keep the privacy note at 6556 accurate: the side-by-side image is made on the device and shared only by the person.
-- **Status:** ready
+- **Summit note (summit 2026-11-07):** Deferred to Phase 5. Body images have the lowest mission value of the share moments, and the item stays as written.
+- **Status:** parked (summit 2026-11-07): deferred to Phase 5; return to ready when Phase 4 is done
 
 ### MKT-09: The public name
 - **Why:** "Training Log" is a category description. The App Store already lists Training Tracker, TrainLog, LiftLog, StrengthLog, Workout Log and Lift Notes (marketing.md §2.1). It can't be owned in search or as a trademark.
@@ -1178,6 +1199,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Test plan:** new `test-design-tokens-v2.js`. Sabotage: delete one token from the light block, and criterion 1 must fail; set `--spot-red` to `#E0352B` (4.4:1), and criterion 2 must fail.
 - **Files:** `index.html` (59, 309), `sw.js`, the test.
 - **Risk:** low. Guarded by `test-css-mechanical-token-dedup.js`.
+- **Summit note (summit 2026-11-07):** Moved to the front of Phase 1 (roadmap build 8). It changes nothing visible, and every later piece of BL/BIZ/MKT markup is then written once in the new vocabulary (summit R1). Pixel-identity criterion 3 is Playwright PR evidence, not a `check.sh` suite.
 - **Status:** ready
 
 ### UX-02: Ship the Archivo display face beside index.html
@@ -1263,7 +1285,8 @@ Ready items are listed in build order, then needs-owner items.
 - **Test plan:** new `test-today-cover.js`, plus `test-set-chips.js` unchanged and passing. Sabotage: make the button log the first chip instead of the ready chip, and criterion 1 must fail.
 - **Files:** `index.html` (5873–5894, `renderUpNext` 30545, the up-next CSS 726–760), `sw.js`, the test.
 - **Risk:** Today's layout is the most-used screen. Guarded by `test-set-chips.js`, `test-today-priorities.js`, `test-gym-set-chips.js` and `test-superset-chips.js`.
-- **Status:** ready
+- **Summit note (summit 2026-11-07):** Ship as **two versions**. **06a:** the cover, numeral, Log button, chips, and fields behind "adjust". **06b:** the day picker collapsing into the headline sheet. 06a adds three criteria: (i) a first-ever exercise shows BIZ-05's hint and the target reps, not an empty numeral; (ii) with a resting region that flags the cover lift (e.g. Shoulder → Bench Press, `CATEGORY_TO_REGIONS` 43895), the cover shows the existing caution and substitute; (iii) effort words come from BL-10 (summit R7). No numeric readiness score (summit F2). Keep `#headerEyebrow` (BIZ-02).
+- **Status:** ready (after BL-08, BL-10 and BIZ-05)
 
 ### UX-07: The plate stack beside the load
 - **Why:** the signature move. A lifter reads the bar's load as plates before reading the number, then loads the bar without doing sums. The old plate calculator is gone (only its comment remains at 31752; flagged, not fixed).
@@ -1317,7 +1340,8 @@ Ready items are listed in build order, then needs-owner items.
 - **Test plan:** new `test-finish-sheet.js`. Sabotage: compare against the first set instead of the top set, and criterion 1 must fail.
 - **Files:** `index.html` (near 29438 and 30980), `sw.js`, the test.
 - **Risk:** an extra sheet at the end of every session. It's dismissed with one tap, and it replaces the toast instead of adding to it.
-- **Status:** ready
+- **Summit note (summit 2026-11-07):** Ship as **two versions**. **09a:** the sheet, totals, "Next time" rows, Share (calling MKT-04's builder) and Done. **09b:** the flood and its motion. The Next-time rows print `computeSuggestedSet`, so BL-08 must have merged. Fix the mock-up first: Bench 4×4–6 at 5, 5, 5, 5 **holds** at 160 (summit F7). Record copy per summit R6: 160×5 over 155×8 is "Heaviest weight yet", not "your best" (e1RM 186.7 vs 196.3). On `MEDICAL_STYLES` programs: no flood, no trophy, no Share.
+- **Status:** ready (after BL-08 and MKT-04)
 
 ### UX-10: Progress leads with the answer
 - **Why:** Analysis opens on an AI button that needs a key (BIZ-06) and 13 collapsible cards. "Am I getting stronger?" should be answered first (`renders/progress-dark.png`).
@@ -1334,7 +1358,8 @@ Ready items are listed in build order, then needs-owner items.
 - **Files:** `index.html` (the analysis view markup and its renderer in `VIEW_RENDERERS` 40257), `sw.js`, the test.
 - **Tools:** `Skill: dataviz`.
 - **Risk:** Analysis has many guarded behaviours. This item only adds a block above them.
-- **Status:** ready
+- **Summit note (summit 2026-11-07):** The "AI insights moves below the evidence" clause is owned by BIZ-06; don't re-implement it. The ledger slot moves BL-20's renderer (summit R8). It ships after BL-20 and BIZ-06.
+- **Status:** ready (after BL-20 and BIZ-06)
 
 ### UX-11: The weekly recap as a sheet, with the week strip
 - **Why:** the week is the unit of training. The recap is currently an Analysis card and a share card. It should be a Monday moment people keep (`renders/recap-dark.png`).
@@ -1354,6 +1379,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Test plan:** extend `test-weekly-recap.js`, with a dated note. Sabotage: mark rest days as missed, and criterion 1 must fail.
 - **Files:** `index.html` (45284–45470 region, Today view init), `sw.js`, `test-weekly-recap.js`.
 - **Risk:** a new interruption once a week. It's dismissible, and MKT-02's privacy rules apply to the share.
+- **Summit note (summit 2026-11-07):** Share is hidden while a `MEDICAL_STYLES` program is active. "New bests" uses summit R6 wording. Define a **first-week variant**: done against planned, and what week 2 brings, never "0 weeks" (summit §1.2). MKT-05 later adds the block-complete variant to this sheet.
 - **Status:** ready
 
 ### UX-12: History as a month of plate blocks
@@ -1376,6 +1402,7 @@ Ready items are listed in build order, then needs-owner items.
   3. Existing food logging tests (search, barcode, repeat yesterday) pass unchanged.
 - **Test plan:** new `test-food-view-summary.js`. Sabotage: drop one entry from the sum, and criterion 1 must fail.
 - **Files:** `index.html` (Log view markup and CSS), `sw.js`, the test.
+- **Summit note (summit 2026-11-07):** Keep BIZ-03's placeholder line and BL-18's recents row, each asserted in this item's test.
 - **Status:** ready
 
 ### UX-14: The unfolded screen: session and lift side by side
@@ -1387,6 +1414,7 @@ Ready items are listed in build order, then needs-owner items.
   3. `test-foldable-tabletop.js` passes unchanged.
 - **Test plan:** new `test-unfolded-today.js`, plus Playwright at 904×678 light and dark. Sabotage: render the chart for the first exercise always, and criterion 1 must fail.
 - **Files:** `index.html`, `sw.js`, the test.
+- **Summit note (summit 2026-11-07):** Moved up to follow UX-10 (roadmap build 40): the owner uses a Duo daily, so the unfolded Today can't wait for Phase 4. For testability, drive the two panes from a `matchMedia` listener that sets a class, because jsdom can't evaluate container queries (summit §1.7).
 - **Status:** ready
 
 ### UX-15: Retire the legacy look's leftovers
@@ -1398,6 +1426,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Test plan:** new `test-dead-css-sweep.js`. Sabotage: delete a rule that does match (the rest timer's), and criterion 2 must fail.
 - **Files:** `index.html` (CSS only), `sw.js`, the test.
 - **Risk:** CSS that only applies in a rare state. The sweep must cover each state, and the PR lists which states it rendered.
+- **Summit note (summit 2026-11-07):** Always last among the UX items. It includes `.confetti-piece` once UX-09 has replaced the toast (summit F9). The PR lists every state rendered; the pixel-identity criterion is Playwright PR evidence.
 - **Status:** ready
 
 ### UX-16: The coach button moves into the header
