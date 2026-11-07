@@ -21,6 +21,12 @@
 // composited, on one gentle ease-out: the rim turns in, the lit seventh
 // orbits round and settles, the hub and bore ease in. No overshoot. Frames
 // every 100ms in Chromium show even, decaying motion, settled by ~0.9s.
+//
+// 2026-11-07 (v3.516): the mark is now the Liftnext icon ("Sash"). Six layers
+// instead of four: the ink tile eases in, then the five plate bands slide
+// along their rising line into place, heaviest first, 70ms apart, clipped by
+// the container's rounded square. Same single keyframe, same ease, same
+// timings and exits; the geometry check now compares against the new icon.
 const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
@@ -46,9 +52,13 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
 test('REAL markup: the launch is the first thing in <body>, hidden from assistive tech, and draws the icon\'s geometry', (assert)=>{
   assert.match(bodyStart, /^<body>\s*<!--[\s\S]*?-->\s*<div class="launch" id="launch" aria-hidden="true">/);
   const layers = [...markup.matchAll(/<svg class="launch-layer launch-(\w+)" viewBox="0 0 1024 1024" aria-hidden="true">/g)].map(m => m[1]);
-  assert.deepStrictEqual(layers, ['rim', 'lit', 'hub', 'bore'], 'v3.387: four stacked layers, each hidden from assistive tech');
+  assert.deepStrictEqual(layers, ['tile', 'b25', 'b20', 'b15', 'b10', 'b5'], 'v3.516: the tile and five bands, heaviest first, each hidden from assistive tech');
   const icon = fs.readFileSync(path.join(__dirname, 'icon.svg'), 'utf8');
-  for(const d of [...markup.matchAll(/ d="([^"]+)"/g)].map(m => m[1])) assert.ok(icon.includes(d), `same arc as icon.svg: ${d}`);
+  assert.ok(icon.includes('<rect width="1024" height="1024" fill="#0C0C0D"/>') && markup.includes('<rect width="1024" height="1024" fill="#0C0C0D"/>'), 'same ink ground as icon.svg');
+  const bandsOf = t => [...t.matchAll(/<rect x="-400" y="(\d+)" width="1824" height="84" fill="(#[0-9A-F]{6})"/g)].map(m => m[1] + m[2]);
+  assert.strictEqual(bandsOf(markup).length, 5, 'anchor: five bands drawn');
+  assert.deepStrictEqual(bandsOf(markup), bandsOf(icon), 'each band at the icon\'s place, in the icon\'s ink');
+  assert.strictEqual((markup.match(/transform="rotate\(-30 512 512\)"/g) || []).length, 5, 'on the icon\'s rising line');
 });
 
 test('REAL invocation: a cold launch plays, a tap skips it, and it removes itself', async (assert)=>{
@@ -81,7 +91,7 @@ test('REAL invocation: without a tap it fades on its own once drawn — sooner u
 
 test('REAL CSS: dark uses the app\'s own background; light, Increase Contrast and Reduce Motion each have their branch', (assert)=>{
   assert.match(CSS, /\.launch\{[^}]*background:var\(--aura\), var\(--bg\)/);
-  assert.match(CSS, /@media \(prefers-color-scheme: light\)\{\s*\.launch\{[^}]*#F3F0EA[^}]*--launch-ink:#1B1A20/);
+  assert.match(CSS, /@media \(prefers-color-scheme: light\)\{\s*\.launch\{[^}]*#F3F0EA/);
   assert.match(CSS, /@media \(prefers-contrast: more\)\{\s*\.launch\{background:var\(--bg\);\}/);
   const reduce = CSS.slice(CSS.indexOf('@media (prefers-reduced-motion: reduce){\n    .launch-layer'));
   assert.match(reduce, /\.launch-layer\{opacity:1; transform:none; animation:none;\}/, 'the mark is shown finished, not animated');
@@ -96,8 +106,14 @@ test('REAL CSS (v3.387): the launch animates transform and opacity only, on one 
   assert.doesNotMatch(launchCss, /stroke-dash/, 'nothing is drawn with stroke dashes any more');
   const frames = CSS.match(/@keyframes launch\w+\{[^}]*\}\}/g) || [];
   assert.deepStrictEqual(frames, ['@keyframes launchSettle{to{opacity:1; transform:none;}}'], 'one keyframe, compositor-friendly properties only');
-  const anims = [...launchCss.matchAll(/\.launch-(rim|lit|hub|bore)\{transform:([^;]+); animation:launchSettle ([\d.]+)s (cubic-bezier\([^)]+\))/g)];
-  assert.strictEqual(anims.length, 4, 'anchor: all four layers');
+  const anims = [...launchCss.matchAll(/\.launch-(tile|b25|b20|b15|b10|b5)\{transform:([^;]+); animation:launchSettle ([\d.]+)s (cubic-bezier\([^)]+\)) ([\d.]+)s/g)];
+  assert.strictEqual(anims.length, 6, 'anchor: all six layers');
+  // v3.516: the bands slide in heaviest first, evenly staggered, and every
+  // layer has settled before the launch's 1.35s hold ends.
+  const bandDelays = anims.slice(1).map(a => +a[5]);
+  for(let i = 1; i < bandDelays.length; i++) assert.ok(Math.abs(bandDelays[i] - bandDelays[i-1] - 0.07) < 1e-9, 'bands 70ms apart');
+  for(const a of anims) assert.ok(+a[3] + +a[5] <= 1.35, `${a[1]}: settled within the 1.35s hold`);
+  assert.match(launchCss, /\.launch-mark\{[^}]*border-radius:22\.5%; overflow:hidden/, 'the tile\'s rounded square clips the bands');
   for(const a of anims){
     assert.strictEqual(a[4], 'cubic-bezier(.33,1,.68,1)', `${a[1]}: the same gentle ease-out`);
     for(const n of a[4].match(/[\d.]+/g).map(Number)) assert.ok(n <= 1, `${a[1]}: no control point past 1, so no overshoot`);
