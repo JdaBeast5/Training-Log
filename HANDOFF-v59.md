@@ -901,3 +901,27 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
   - CLAUDE.md notes the assets exception is now unused.
 - **If demos return:** the owner's preferred route is AI-generated video, made offline per exercise, with our engine's tested motion as a motion reference where the model supports it. Zoom and highlight would be an in-app layer, and every clip reviewed against a form checklist before shipping. It needs the owner's provider account and key (request_credential) and their go-ahead.
 - **Next:** the owner wants to revisit the app's original mission before more features.
+
+## Addendum 42: agents, planning, rename and icon (v3.515–v3.516, 2026-11-07)
+
+**Live on Branch-1 (PR #55; only the app commits were cherry-picked from `claude/taste-skill-v2`):**
+- **v3.515:** the display name is **Liftnext**, read from `APP_NAME` (index.html, next to `APP_VERSION`). "Chalklog" was the first pick and was dropped the same day, before release, because several "Chalk" fitness apps exist. Storage keys, the `training-log-v*` cache prefix and the backup format are deliberately unchanged. Test: `test-app-rename.js`.
+- **v3.516:** a new icon, "Sash": the five plate inks as one rising band on #0C0C0D. `icon.svg` and every PNG were regenerated with Playwright and PIL; all are RGB except the RGBA monochrome. The header mark is the same sash on a 24px clipped tile. The launch builds the icon: the tile, then the five bands slide in along their line, transform/opacity only, clipped by `.launch-mark{border-radius:22.5%; overflow:hidden}`. `test-app-icon.js` and `test-launch.js` were rewritten with dated notes; sabotage-checked.
+
+**Known misses, not fixed (now backlog MKT-20 / MKT-03):**
+- The share-card canvas still prints `TRAINING LOG` (index.html ~29608) and saves `training-log.png`.
+- Backup files are still named `training-log-backup-…`.
+- The v3.515 rename test only matched mixed case.
+
+**Name reopened:** "NextLift" is a live 2026 fitness app (two of them on the App Store), and a NEXTLIFT trademark is pending. A naming specialist is writing `planning/naming.md`. Owner decision D7 stands until then. Don't put the name on any share card (MKT-03b) until it's settled.
+
+**Planning (branch `claude/taste-skill-v2` only, NOT on Branch-1 until D1):**
+- Eight project agents in `.claude/agents/`.
+- `planning/` holds research, audit, toolchain, roadmap (69 ready builds), backlog, automation, business (free forever on the phone, later Pro for server features, coach plan), marketing, design-vision ("Plate & Press"), design-directions (race-bib share card), summit, pitch, and `alignment/`, the pre-D1 sign-off from all seven reviewers.
+- `alignment/consensus.md` holds the agreed position, the blocking items (F1–F18, O1–O7, G1–G10) and the owner decision list.
+
+**Warnings for whoever is next:**
+- Nothing technically stops an unattended run from merging. Branch protection (O1) is the owner's to set; don't start the build loop before it.
+- The shared checkout has been committing other agents' half-done edits as WIP. The builder needs its own checkout (O2).
+- `.claude/agents/build-automator.md` and `planning/automation.md` disagree on pick order and branch names (O3).
+- An iPhone home-screen web app only takes a new name or icon when it's re-added, and removing it can delete its data. Always tell the owner to export a backup first.
