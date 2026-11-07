@@ -5,7 +5,7 @@ A personal fitness tracking PWA: single-file `index.html`, zero build step, a se
 
 ## Hard constraints — do not violate
 - **No build step.** Everything lives in `index.html` (inline `<style>`/`<script>`) plus `sw.js`. Don't introduce bundlers, frameworks, or a build pipeline as part of "cleanup."
-  - **One owner-approved exception (2026-11-06): `assets/`** for the 3D exercise demos: vendored, pre-built files only (Three.js `assets/vendor/`, the anatomy engine `assets/anatomy/anatomy.js`, the model `assets/anatomy/human-v<N>.glb`), loaded on demand with `import()`, cached by `sw.js` in its own long-lived `ASSET_CACHE`. File names carry their version; a changed file gets a new name. Still no bundler or build step; the model is regenerated with `tools/anatomy/mh2glb.py` (dev tooling, not shipped). App UI and logic still live in `index.html`.
+  - **Owner-approved exception, currently unused:** asset files beside `index.html` were allowed (2026-11-06) for the 3D exercise demos (v3.513). Those demos were removed in v3.514 (2026-11-07) and no assets ship now. `sw.js` deletes their old cache (`RETIRED_CACHES`), and their dev tooling stays in `tools/anatomy/`. If assets return (for example, generated exercise videos), confirm with the owner first, give the files versioned names, and cache them in a cache of their own.
 - **`APP_VERSION` in `index.html` must always equal `VERSION` in `sw.js`.** Bump both together, every change. Run `check.sh` — it enforces this.
 - **`sw.js` is a real file to edit directly, not something to paste inline.** Past sessions repeatedly had it arrive as inline document text instead of an actual file edit — don't do that.
 - **Preserve established architectural conventions, don't relitigate them:**
