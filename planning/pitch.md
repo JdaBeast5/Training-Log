@@ -151,6 +151,22 @@ At one merge a day (your pace, an assumption) that's about ten weeks of ready wo
 ## Decisions only you can make
 
 ### Owner's answers, 2026-11-07
+- **Second round (owner, 2026-11-07, "1-13 yes, Platestep"):** the name is **Platestep** (naming.md; built as v3.517, awaiting the owner's go-live). Decisions 1–13 of the consensus list are approved:
+  - O1 branch protection;
+  - O2 a dedicated builder checkout and the 3-a-day schedule;
+  - O3 the agent file follows automation.md (applied);
+  - O4 no impeccable engine in unattended runs;
+  - D1 merge planning and `.claude/agents/`;
+  - D11 BL-01 allowlist;
+  - D12 the clinical smallest-step load rule;
+  - D4 BL-35/36 after Phase 0, BL-37/38 before going public, old neck-bridge sets archived;
+  - D13 plate-colour days;
+  - D2 Archivo before cards, plus the coach button, plus Gym mode retired once tap counts match;
+  - D14 contact sheets with UX PRs;
+  - D15 sets as the card's lead number;
+  - D16 Year in Lifting 2026 with no address.
+
+  Still open: D3, D5, D6, D8, D9 follow-ups, D10. Owner to do: buy platestep.app and platestep.com, run a USPTO search, and turn on branch protection.
 - **Name:** Liftnext. Chalklog was chosen first, then dropped the same day because several "Chalk" fitness apps exist. The rename shipped as v3.515, display name only. **Since reopened (alignment round):** four "NextLift" fitness apps were found, three launched in 2026 and one with nearly our pitch. A naming specialist is writing `naming.md`, and the public name is open until you decide (D7 below). Until then, cards carry the Sash mark and no wordmark. Marketing's note still applies to whichever name you choose: on a bib card the name must read as the brand (an event band), never as an instruction.
 - **Design:** Plate & Press for the app, plus the hybrid edge additions: the race bib as the story card, "Your number", "Pin it on", and the bib with the loaded bar as the constant (design-directions.md §5–§6, MKT-16 to MKT-18).
 - **Icon:** option B, "Sash" (tools/design/icon/), shipped as v3.516: the home-screen icon, the header mark and the launch. It doesn't depend on the name (MKT-19 done).
