@@ -20,13 +20,14 @@
 // DOM state — the same "extract real markup and function source" approach
 // as every other Tier 2 test here, applied to a state this harness can
 // actually construct deterministically.
-const { readIndexSource, extractFunction, extractElementById, runJsdom, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractFunction, extractConst, extractElementById, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
 const analysisViewHtml = extractElementById(src, 'analysisView');
 
 const scriptChunks = [
   'var userProfile = null;', // real default is a large object this test doesn't need; only .name is read
+  extractConst(src, 'APP_NAME'), // v3.515: the report title reads the app name
   extractFunction(src, 'escapeHtml'),
   extractFunction(src, 'getTodayKey'),
   extractFunction(src, 'parseDateKey'),
