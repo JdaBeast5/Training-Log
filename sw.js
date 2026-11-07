@@ -192,7 +192,7 @@
 // background/border/gradient rgba() literals (red/green/orange/teal/purple).
 // Purely internal (same computed colors); doesn't touch this file directly,
 // but the version still has to move.
-const VERSION = '3.516';
+const VERSION = '3.517';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the
@@ -338,7 +338,7 @@ self.addEventListener('fetch', (event)=>{
         // rather than styled HTML, because if the shell isn't cached then no
         // stylesheet is either and a half-rendered page reads as a crash.
         return cached || new Response(
-          'Liftnext is offline and no cached copy is available yet. Reconnect once and it will work offline from then on.',
+          'Platestep is offline and no cached copy is available yet. Reconnect once and it will work offline from then on.',
           {status:503, headers:{'Content-Type':'text/plain; charset=utf-8'}}
         );
       }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Liftnext</title>
+<title>Platestep</title>
 <!-- iOS ignores the manifest icons for a home-screen bookmark and reads ONLY
      apple-touch-icon. Without these, Safari falls back to a screenshot or the
      first letter of the title — which is why the saved app showed a bare "T". -->
@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Liftnext">
+<meta name="apple-mobile-web-app-title" content="Platestep">
 <meta name="theme-color" content="#050507" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#F2F2F5" media="(prefers-color-scheme: light)">
 <link rel="manifest" href="./manifest.json">
@@ -486,7 +486,7 @@
   .brand-mark::before{content:''; position:absolute; top:50%; left:50%; width:44px; height:44px; transform:translate(-50%,-50%);}
   .brand-mark:active{transform:scale(.88);}
   .brand-mark svg{width:100%; height:100%;}
-  /* v3.516: the mark is the Liftnext icon in small — the five plate inks as a
+  /* v3.516: the mark is the app icon in small — the five plate inks as a
      sash on its own ink tile (the sash only reads inside its square). */
   /* [TASTESKILL ROLLOUT, v3.278] The eyebrow names the scope (whose log, which
      goal) beside the product mark, so it keeps its job but stops shouting:
@@ -5302,7 +5302,7 @@
   /* v3.387: smoother — layers move with transform and opacity only
      (composited, so they keep their frame rate while the app's script
      loads), on one gentle ease-out with no overshoot.
-     v3.516: the mark is the Liftnext icon. The ink tile eases in, then the
+     v3.516: the mark is the app icon. The ink tile eases in, then the
      five plate bands slide along their own rising line into place, heaviest
      first, 70ms apart. The tile's rounded square (22.5%, the icon's corner)
      clips them on the container, so the clip costs no paint per frame. */
@@ -5652,7 +5652,7 @@
 </head>
 <body>
 <!-- v3.385: launch, once per cold launch, then it dissolves into the app.
-     v3.516: the mark is the Liftnext icon — the ink tile eases in and the
+     v3.516: the mark is the app icon — the ink tile eases in and the
      five plate bands slide into place along their rising line, heaviest
      first. Its page matches the system appearance (dark: the app's own
      background and aura, so the hand-off is seamless; light: porcelain);
@@ -5696,7 +5696,7 @@
 </script>
 <div class="user-picker-overlay" id="userPickerOverlay" role="dialog" aria-modal="true" aria-labelledby="userPickerTitle">
   <div class="user-picker-box">
-    <div class="eyebrow">Liftnext</div>
+    <div class="eyebrow">Platestep</div>
     <h2 class="user-picker-title" id="userPickerTitle">Who's training?</h2>
     <div id="userPickerList" class="user-picker-list"></div>
     <div class="user-picker-divider">— or —</div>
@@ -5716,7 +5716,7 @@
   <header>
     <div class="eyebrow-row">
       <button type="button" class="brand-mark" id="brandHome" aria-label="Today, back to top"><svg aria-hidden="true" viewBox="0 0 24 24"><defs><clipPath id="brandMarkTile"><rect width="24" height="24" rx="5.4"/></clipPath></defs><g clip-path="url(#brandMarkTile)"><rect width="24" height="24" fill="#0C0C0D"/><g transform="rotate(-30 12 12)"><rect x="-10" y="6" width="44" height="2.1" fill="#D42F25"/><rect x="-10" y="8.5" width="44" height="2.1" fill="#2C5BD8"/><rect x="-10" y="11" width="44" height="2.1" fill="#F2C200"/><rect x="-10" y="13.5" width="44" height="2.1" fill="#1E9E4A"/><rect x="-10" y="16" width="44" height="2.1" fill="#E6E6E2"/></g></g></svg></button>
-      <div class="eyebrow" id="headerEyebrow">Liftnext</div>
+      <div class="eyebrow" id="headerEyebrow">Platestep</div>
     </div>
     <h1 id="viewTitle">Today</h1>
     <div class="sub" id="headerSub">Set up your profile below to personalize this</div>
@@ -7615,11 +7615,13 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.516';
-// v3.515: the app is called Liftnext (owner, 2026-11-07; Chalklog was picked first and dropped the same day, before release, because several "Chalk" fitness apps exist). Display name only:
+const APP_VERSION = '3.517';
+// v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
+// same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
+// turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
 // storage keys, cache names and backup format keep their training-log names,
 // so nothing stored on a phone changes. Every on-screen name reads this.
-const APP_NAME = 'Liftnext';
+const APP_NAME = 'Platestep';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8974,6 +8976,9 @@ const WHATS_NEW = {
   ]},
   '3.516': { headline: 'A new icon', points: [
     'The five plate colours as one band, on the home screen and beside the name on Today. Your home-screen icon updates when you add the app again; export a backup in Settings first.',
+  ]},
+  '3.517': { headline: 'The app is now called Platestep', points: [
+    'One plate at a time. Same app, same data, new name, now on share cards and saved files too. The label under your home-screen icon changes only if you add the app again; export a backup in Settings first.',
   ]},
 };
 
@@ -29605,7 +29610,7 @@ function buildShareCardBlob(cardData){
 
   ctx.fillStyle = '#8B929B';
   ctx.font = '600 26px Geist, sans-serif';
-  ctx.fillText('TRAINING LOG', W/2, H*0.92);
+  ctx.fillText(APP_NAME.toUpperCase(), W/2, H*0.92); // v3.517: was a hard-coded 'TRAINING LOG'
 
   return new Promise(resolve=>{
     canvas.toBlob(blob=> resolve(blob), 'image/png');
@@ -29620,7 +29625,7 @@ async function shareCelebrationCard(cardData, btnId){
   try{
     const blob = await buildShareCardBlob(cardData);
     if(!blob) throw new Error('card generation failed');
-    const file = new File([blob], 'training-log.png', {type:'image/png'});
+    const file = new File([blob], `${APP_NAME.toLowerCase()}.png`, {type:'image/png'});
     // detail-style cards (PR, streak) vs stats-table cards (weekly summary)
     // need different share text — stats has no .detail to fall back on.
     const detailText = cardData.detail || (cardData.stats ? cardData.stats.map(s=> `${s.label}: ${s.value}`).join(', ') : '');
@@ -34220,7 +34225,7 @@ document.getElementById('exportDataBtn').addEventListener('click', async ()=>{
     const a = document.createElement('a');
     const dateStamp = getTodayKey();
     a.href = url;
-    a.download = `training-log-backup-${(userProfile.name||'me').toLowerCase().replace(/\s+/g,'-')}-${dateStamp}.json`;
+    a.download = `${APP_NAME.toLowerCase()}-backup-${(userProfile.name||'me').toLowerCase().replace(/\s+/g,'-')}-${dateStamp}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

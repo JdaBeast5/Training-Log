@@ -1,6 +1,6 @@
 {
-  "name": "Liftnext",
-  "short_name": "Liftnext",
+  "name": "Platestep",
+  "short_name": "Platestep",
   "description": "Personal fitness tracking — 22 training programs, nutrition tracking, and AI coaching, all in one place.",
   "start_url": "./index.html",
   "scope": "./",
