@@ -1,0 +1,156 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#0d0f14}#host{width:960px}</style></head>
+<body><div id="host"></div>
+<script type="module">
+// Render study (2026-11-07): three visual directions for the exercise demos,
+// on the real engine (poses, kit, muscle maps) with the v2 athletic body.
+//   A studio  — lifelike athlete: skin, buzz cut, training top and shorts,
+//               studio light with image-based reflections, a lifting platform.
+//   B reveal  — translucent skin, the working muscles seen through it, fibrous.
+//   C ecorche — the anatomical figure: every muscle shown with its fibres,
+//               the working ones lit; tendon and fascia between.
+import * as THREE from '../../../assets/vendor/three-0.170.0.module.min.js';
+import { createStage, LIFTS, MUSCLE_ORDER, repPhase } from '../../../assets/anatomy/anatomy.js';
+import { RoomEnvironment } from './RoomEnvironment.js';
+
+const stage = await createStage({ glbUrl: './human-v2.glb' });
+const { renderer, scene, mesh, camera } = stage;
+renderer.setPixelRatio(1);
+const host = document.getElementById('host');
+stage.show(host, 'squat', { still: true }); stage.hide();
+renderer.setSize(960, 720, false); camera.aspect = 4 / 3; camera.updateProjectionMatrix();
+const pmrem = new THREE.PMREMGenerator(renderer);
+const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+const geo = mesh.geometry;
+const baseMat = mesh.material;
+
+// ── Regions for clothing and hair, from the bind pose ──
+const pos = geo.attributes.position, nor = geo.attributes.normal, ji = geo.attributes.skinIndex, wi = geo.attributes.skinWeight;
+const names = mesh.skeleton.bones.map(b => b.name);
+let ymax = 0; for(let i = 0; i < pos.count; i++) ymax = Math.max(ymax, pos.getY(i));
+const W = (i, rx) => { let w = 0; for(let k = 0; k < 4; k++) if(rx.test(names[ji.getComponent(i, k)])) w += wi.getComponent(i, k); return w; };
+const region = new Float32Array(pos.count); // 0 skin, 1 shorts, 2 top, 3 hair
+for(let i = 0; i < pos.count; i++){
+  const y = pos.getY(i) / ymax, x = Math.abs(pos.getX(i)), nz = nor.getZ(i), ny = nor.getY(i);
+  const arm = W(i, /upperarm|lowerarm|wrist|finger|metacarpal|shoulder01/);
+  const headW = W(i, /^(head|jaw|eye|oris|oculi|levator|orbicularis|special|temporalis|tongue)/);
+  const trunk = W(i, /^(spine|clavicle|breast|root|pelvis)/);
+  if(y > 0.47 && y < 0.58 && arm < 0.2) region[i] = 1;                                   // shorts
+  else if(y >= 0.6 && y < 0.8 && arm < 0.12 && trunk > 0.6 && !(y > 0.755 && x < 0.075 && nz > 0.3)) region[i] = 2; // tank top, scoop neck
+  else if(headW > 0.6 && y > 0.952 && nz < 0.35 && Math.abs(pos.getX(i)) < 0.085) region[i] = 3; // buzz cut, scalp only
+}
+geo.setAttribute('region', new THREE.BufferAttribute(region, 1));
+
+// Shared shader bits: muscle maps in, per-muscle fibre striation out.
+const FIBRE = `
+  float fibreAt(vec3 p, vec4 m0, vec4 m1, vec4 m2){
+    float ax = abs(p.x);
+    float s = 0.0, w = 0.0;
+    // legs, erectors, abs: fibres run up and down
+    float vert = sin(820.0 * (p.x * 0.8 + p.z * 0.6) + 2.0 * sin(p.y * 55.0));
+    float limbW = m0.x + m0.y + m0.z + m0.w + m2.z + m2.w;
+    s += vert * limbW; w += limbW;
+    // pecs: fan toward the armpit
+    s += sin(760.0 * (p.y * 0.9 + ax * 0.45)) * m1.x; w += m1.x;
+    // delts, triceps, biceps (A-pose arms, about 45 degrees down)
+    float armS = sin(820.0 * (p.y * 0.7 - ax * 0.7 + p.z * 0.4));
+    float armW = m1.y + m1.z + m1.w; s += armS * armW; w += armW;
+    // lats rise toward the armpit; traps fan from the neck
+    s += sin(760.0 * (p.y * 0.55 + ax * 0.85)) * m2.x; w += m2.x;
+    s += sin(760.0 * (p.y * 0.8 - ax * 0.6)) * m2.y; w += m2.y;
+    float f = w > 0.001 ? s / w : 0.0;
+    // abs: tendinous bands across the six-pack
+    float band = smoothstep(0.42, 0.5, abs(fract(p.y * 15.0) - 0.5));
+    return 0.5 + f * 0.22 - band * m2.w * 0.6;
+  }`;
+function patch(mat, fragHead, fragColor, fragEmissive, alphaExpr){
+  const u = stage.uniforms;
+  mat.onBeforeCompile = sh => {
+    Object.assign(sh.uniforms, u);
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nattribute vec4 muscle0; attribute vec4 muscle1; attribute vec4 muscle2; attribute float region; uniform vec4 uA0; uniform vec4 uA1; uniform vec4 uA2; varying float vLit; varying vec4 vM0; varying vec4 vM1; varying vec4 vM2; varying vec3 vRest; varying float vRegion;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvLit = clamp(dot(muscle0, uA0) + dot(muscle1, uA1) + dot(muscle2, uA2), 0.0, 1.0); vM0 = muscle0; vM1 = muscle1; vM2 = muscle2; vRest = position; vRegion = region;');
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vLit; varying vec4 vM0; varying vec4 vM1; varying vec4 vM2; varying vec3 vRest; varying float vRegion; uniform vec3 uAccent;' + FIBRE + fragHead)
+      .replace('#include <color_fragment>', '#include <color_fragment>\n' + fragColor)
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n' + fragEmissive)
+      + '';
+    if(alphaExpr) sh.fragmentShader = sh.fragmentShader.replace('#include <output_fragment>', '#include <output_fragment>').replace('#include <opaque_fragment>', '#include <opaque_fragment>\n' + alphaExpr);
+  };
+  mat.customProgramCacheKey = () => mat.name;
+  return mat;
+}
+
+// A — studio realism
+const skinA = patch(new THREE.MeshPhysicalMaterial({ name: 'A', roughness: 0.5, sheen: 0.3, sheenRoughness: 0.5, sheenColor: new THREE.Color(0xd98a6a), clearcoat: 0.06, clearcoatRoughness: 0.55 }), 'float vSkinMask = 1.0;',
+  `// Clothing and hair as clean analytic edges on the bind pose (metres, standing).
+   vec3 p = vRest; float ax = abs(p.x);
+   float shorts = smoothstep(0.80, 0.815, p.y) * (1.0 - smoothstep(1.005, 1.02, p.y)) * (1.0 - smoothstep(0.24, 0.26, ax));
+   float scoop = step(0.02, p.z) * smoothstep(1.325, 1.34, p.y + 0.9 * max(0.0, 0.075 - ax));
+   float top = smoothstep(1.045, 1.06, p.y) * (1.0 - smoothstep(1.405, 1.42, p.y)) * (1.0 - smoothstep(0.155, 0.17, ax)) * (1.0 - scoop);
+   float hair = smoothstep(1.655, 1.67, p.y - 0.55 * max(0.0, p.z - 0.02)) * (1.0 - smoothstep(0.072, 0.082, ax));
+   vec3 c = vec3(0.47, 0.30, 0.21);
+   c = mix(c, vec3(0.085, 0.10, 0.135), top);
+   c = mix(c, vec3(0.03, 0.032, 0.038), shorts);
+   c = mix(c, vec3(0.045, 0.033, 0.025), hair);
+   float isSkin = (1.0 - top) * (1.0 - shorts) * (1.0 - hair);
+   diffuseColor.rgb = mix(c, c * vec3(1.08, 0.96, 0.94), vLit * isSkin);
+   vSkinMask = isSkin;`,
+  `totalEmissiveRadiance += uAccent * vLit * vSkinMask * 0.10;`);
+
+// B — anatomy reveal: inner muscles (working only) under a glass skin
+const muscleB = patch(new THREE.MeshStandardMaterial({ name: 'B1', roughness: 0.45 }),
+  '', `float any = clamp(vLit * 1.6, 0.0, 1.0); if(any < 0.08) discard;
+   float f = fibreAt(vRest, vM0, vM1, vM2);
+   diffuseColor.rgb = mix(vec3(0.42, 0.06, 0.07), vec3(0.95, 0.32, 0.30), f * 0.55 + any * 0.35);`,
+  `totalEmissiveRadiance += vec3(0.9, 0.2, 0.18) * vLit * 0.35;`);
+const skinB = patch(new THREE.MeshPhysicalMaterial({ name: 'B2', roughness: 0.15, metalness: 0, transparent: true, depthWrite: false, clearcoat: 1, clearcoatRoughness: 0.15 }),
+  '', `diffuseColor.rgb = vec3(0.75, 0.85, 1.0);`, ``,
+  `float fr = pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2.2); gl_FragColor.a = mix(0.06, 0.62, fr); gl_FragColor.rgb += vec3(0.25, 0.4, 0.75) * fr * 0.6;`);
+
+// C — écorché
+const skinC = patch(new THREE.MeshStandardMaterial({ name: 'C', roughness: 0.42 }), '',
+  `float mus = clamp(dot(vM0, vec4(1.0)) + dot(vM1, vec4(1.0)) + dot(vM2, vec4(1.0)), 0.0, 1.0);
+   float f = fibreAt(vRest, vM0, vM1, vM2);
+   vec3 rest = vec3(0.45, 0.13, 0.12), work = vec3(0.93, 0.27, 0.22), fascia = vec3(0.86, 0.80, 0.72);
+   vec3 musc = mix(rest, work, clamp(vLit * 1.5, 0.0, 1.0)) * (0.72 + 0.4 * f);
+   vec3 c = mix(fascia * (0.9 + 0.1 * f), musc, smoothstep(0.08, 0.35, mus));
+   if(vRegion > 2.5) c = fascia * 0.9;
+   diffuseColor.rgb = c;`,
+  `totalEmissiveRadiance += vec3(1.0, 0.35, 0.25) * vLit * 0.22;`);
+
+// The inner mesh for B shares the skeleton.
+const inner = new THREE.SkinnedMesh(geo, muscleB); inner.bind(mesh.skeleton, mesh.bindMatrix); inner.frustumCulled = false; inner.visible = false; scene.add(inner);
+
+// Platform for A
+const platform = new THREE.Group();
+const wood = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.04, 2.4), new THREE.MeshStandardMaterial({ color: 0x4a3524, roughness: 0.75 }));
+const rubberM = new THREE.MeshStandardMaterial({ color: 0x15161a, roughness: 0.95 });
+const l = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.04, 2.4), rubberM), r2 = l.clone(); l.position.x = -0.9; r2.position.x = 0.9;
+platform.add(wood, l, r2); platform.position.y = -0.02; platform.traverse(o => { if(o.isMesh) o.receiveShadow = true; }); platform.visible = false; scene.add(platform);
+
+const bgFor = { A: [0x1c1f26, 0x07080a], B: [0x0a1428, 0x020408], C: [0x231a17, 0x0b0807] };
+function setDirection(d){
+  inner.visible = d === 'B'; platform.visible = d === 'A';
+  mesh.material = d === 'A' ? skinA : d === 'B' ? skinB : skinC;
+  mesh.renderOrder = d === 'B' ? 2 : 0;
+  scene.environment = d === 'A' ? envTex : d === 'C' ? envTex : null;
+  scene.environmentIntensity = d === 'A' ? 0.4 : 0.3;
+  const [top, bottom] = bgFor[d];
+  const c = document.createElement('canvas'); c.width = 2; c.height = 256; const g = c.getContext('2d');
+  const grd = g.createLinearGradient(0, 0, 0, 256); grd.addColorStop(0, '#' + top.toString(16).padStart(6, '0')); grd.addColorStop(1, '#' + bottom.toString(16).padStart(6, '0'));
+  g.fillStyle = grd; g.fillRect(0, 0, 2, 256);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; scene.background = t;
+  renderer.toneMappingExposure = d === 'B' ? 1.15 : 1.0;
+}
+window.__render = (d, lift, u, yaw, effort = 0.95) => {
+  setDirection(d);
+  stage.poseAt(lift, u, effort); stage.placeCamera(lift, yaw || 0);
+  renderer.render(scene, camera);
+  return renderer.domElement.toDataURL('image/png');
+};
+// A frame at time t (seconds) into the lift's own rep timeline.
+window.__renderT = (d, lift, t, yaw) => { const { u, effort } = repPhase(LIFTS[lift], t); return window.__render(d, lift, u, yaw, effort); };
+window.__tempo = lift => LIFTS[lift].tempo.reduce((a, b) => a + b, 0);
+window.__ready = true;
+</script></body></html>

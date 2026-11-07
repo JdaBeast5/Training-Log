@@ -6,6 +6,11 @@ MH = os.environ.get('MH_DATA', os.path.join(os.path.dirname(__file__), 'mh', 'ma
 TG = os.environ.get('MH_TARGETS', os.path.join(os.path.dirname(__file__), 'targets'))
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), 'human.glb')
 TARGETS = [('universal-male-young-maxmuscle-averageweight', 0.7), ('universal-male-young-maxmuscle-minweight', 0.3), ('caucasian-male-young', 1.0)]
+# v2 (render study, 2026-11-07): per-limb athletic definition and a V-taper. MH_BODY=v2.
+# Needs the armslegs/*-muscle-incr and bodyshapes-elvs-man-trapezoid targets in MH_TARGETS.
+if os.environ.get('MH_BODY') == 'v2':
+    TARGETS = [('universal-male-young-maxmuscle-averageweight', 0.55), ('universal-male-young-maxmuscle-minweight', 0.45), ('caucasian-male-young', 1.0)] + \
+        [(f'{s}-{p}-muscle-incr', 0.85) for s in 'lr' for p in ('upperarm', 'upperarm-shoulder', 'upperleg', 'lowerleg', 'lowerarm')] + [('bodyshapes-elvs-man-trapezoid', 0.6)]
 
 verts, faces = [], []
 group = None
