@@ -31,12 +31,14 @@
   --float-shadow:0 18px 40px -18px rgba(0,0,0,.7);
 
   /* Spot inks: the Olympic plate colours, used as flat fields (the day's cover) and as each day's data hue */
-  --spot-red:#E0352B;    --on-red:#FFFFFF;
+  --spot-red:#D42F25;   /* 4.9:1 with white */    --on-red:#FFFFFF;
   --spot-blue:#2C5BD8;   --on-blue:#FFFFFF;
   --spot-yellow:#F2C200; --on-yellow:#0C0C0D;
   --spot-green:#1E9E4A;  --on-green:#0C0C0D;
   --spot-white:#E6E6E2;  --on-white:#0C0C0D;
   --spot-off:#3A3A3D;    --on-off:#FFFFFF;
+  /* Deep inks: the same plate pressed darker. The spent part of the rest field; white text holds 4.5:1 on both layers. */
+  --deep-red:#6E1712; --deep-blue:#16306F; --deep-yellow:#6B5600; --deep-green:#0E4D24;
 
   /* Space (4pt grid), radius */
   --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px; --s12:48px; --s16:64px;
@@ -66,10 +68,10 @@
 }
 
 /* The day sets the spot */
-.day-red{--spot:var(--spot-red); --on-spot:var(--on-red);}
-.day-blue{--spot:var(--spot-blue); --on-spot:var(--on-blue);}
-.day-yellow{--spot:var(--spot-yellow); --on-spot:var(--on-yellow);}
-.day-green{--spot:var(--spot-green); --on-spot:var(--on-green);}
+.day-red{--spot:var(--spot-red); --on-spot:var(--on-red); --spot-deep:var(--deep-red);}
+.day-blue{--spot:var(--spot-blue); --on-spot:var(--on-blue); --spot-deep:var(--deep-blue);}
+.day-yellow{--spot:var(--spot-yellow); --on-spot:var(--on-yellow); --spot-deep:var(--deep-yellow);}
+.day-green{--spot:var(--spot-green); --on-spot:var(--on-green); --spot-deep:var(--deep-green);}
 
 *{box-sizing:border-box; margin:0; padding:0;}
 html,body{height:100%;}

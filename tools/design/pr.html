@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Workout complete, with a PR (Plate &amp; Press mock-up)</title>
+<link rel="stylesheet" href="world.css">
+<!-- State: Day 1 Upper · Strength finished. Bench 160 × 5 beats the heaviest previous top set (155 × 8,
+     Oct 24): a 'weight' PR as reconstructAllPRs() defines it. The flood is the day ink, entering once as a
+     clip-path circle from the Log button (700 ms ease-out); Reduce Motion: a cut.
+     Next-time lines follow double progression (all sets at the top of the range → add the smallest jump).
+     Session totals are sample data computed from the prescribed sets (20 sets). -->
+<style>
+  body{background:var(--ground);}
+  .flood{background:var(--spot); color:var(--on-spot); padding:0 var(--gutter) 22px;}
+  .flood .status{margin:0 calc(var(--gutter) * -1);}
+  .top{display:flex; justify-content:flex-end; height:44px; margin-right:-10px;}
+  .flood h1{font-size:var(--fs-head); margin-top:0;}
+  .row{display:flex; align-items:flex-end; justify-content:space-between; margin-top:18px;}
+  .numeral{display:flex; align-items:baseline; gap:6px;}
+  .numeral .w{font-size:150px; line-height:.8; font-weight:800; font-stretch:68%; letter-spacing:-.025em;}
+  .numeral .u{font-family:var(--font-text); font-size:var(--fs-lead); font-weight:600;}
+  .numeral .x{font-size:56px; line-height:.8; font-weight:700; font-stretch:68%; margin-left:4px;}
+  .stack{display:flex; align-items:center; height:112px;}
+  .stack .collar{width:6px; height:30px; background:#1B1B1D; border-radius:2px;}
+  .stack .plate{width:15px; border-radius:3px; border:2px solid #0C0C0D; margin-left:-2px;}
+  .p45{height:112px; background:var(--spot-blue);} .p10{height:62px; background:var(--spot-white);} .p2{height:36px; width:8px!important; background:#8B8B88;}
+  .stack .sleeve{width:16px; height:14px; background:#BDBDB8; border:2px solid #0C0C0D; border-left:0; border-radius:0 3px 3px 0; margin-left:-2px;}
+  .was{margin-top:18px; font-size:var(--fs-body); font-weight:600;}
+  .was span{font-weight:400;}
+
+  .done{padding:20px var(--gutter) 0;}
+  .done h2{font-size:var(--fs-title); font-weight:600;}
+  .figs{display:grid; grid-template-columns:repeat(3,1fr); margin-top:14px; border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);}
+  .figs > div{padding:12px 0 12px;}
+  .figs > div + div{padding-left:16px; border-left:1px solid var(--rule);}
+  .figs .fig{font-size:30px; line-height:1;}
+  .figs .lbl{font-size:var(--fs-meta); color:var(--text-2); margin-top:6px;}
+  .figs .u{font-size:var(--fs-meta); color:var(--text-2); font-family:var(--font-text); font-weight:500; margin-left:3px;}
+
+  .nt{padding:18px var(--gutter) 0;}
+  .nt h3{font-size:var(--fs-lead); font-weight:600; margin-bottom:8px;}
+  .nt li{min-height:54px; align-items:center;}
+  .nt .name{font-weight:600;}
+  .nt .why{font-size:var(--fs-meta); color:var(--text-2);}
+  .nt .to{margin-left:auto; text-align:right; white-space:nowrap;}
+  .nt .to .fig{font-size:22px;}
+  .nt .to .u{font-size:var(--fs-caption); color:var(--text-3); margin-left:2px;}
+
+  .acts{position:absolute; left:var(--gutter); right:var(--gutter); bottom:34px; display:grid; grid-template-columns:1fr 1.4fr; gap:10px;}
+  .acts .btn-quiet{border:1px solid var(--rule);}
+  .acts .primary{background:var(--text); color:var(--ground);}
+</style>
+</head>
+<body class="day-red">
+
+<header class="flood">
+  <div class="status" aria-hidden="true"><span>10:31</span><span class="dots"><svg class="i" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19" r=".8" fill="currentColor"/></svg><span class="bat"></span></span></div>
+  <div class="top"><button class="icon-btn" aria-label="Close"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <h1 class="display">Heaviest bench yet</h1>
+  <div class="row">
+    <div class="numeral display" aria-label="160 pounds for 5 reps">
+      <span class="w">160</span><span class="u">lb</span><span class="x">×5</span>
+    </div>
+    <div class="stack" aria-hidden="true"><span class="collar"></span><span class="plate p45"></span><span class="plate p10"></span><span class="plate p2"></span><span class="sleeve"></span></div>
+  </div>
+  <p class="was">+5 lb <span>on your best, 155 × 8 on Oct 24</span></p>
+</header>
+
+<section class="done">
+  <h2>Day 1 · Upper Strength, done</h2>
+  <div class="figs">
+    <div><div class="fig">20<span class="u">/ 20</span></div><div class="lbl">Sets</div></div>
+    <div><div class="fig">52<span class="u">min</span></div><div class="lbl">Time</div></div>
+    <div><div class="fig">16,740<span class="u">lb</span></div><div class="lbl">Volume</div></div>
+  </div>
+</section>
+
+<section class="nt">
+  <h3>Next time</h3>
+  <ul class="rows">
+    <li><div><div class="name">Bench Press</div><div class="why">All 4 sets hit 5 at 2 reps left</div></div><div class="to"><span class="fig pos">165</span><span class="u">lb</span></div></li>
+    <li><div><div class="name">Overhead Press</div><div class="why">3 × 10 reached: top of the range</div></div><div class="to"><span class="fig pos">105</span><span class="u">lb</span></div></li>
+    <li><div><div class="name">Barbell Row</div><div class="why">Set 4 stopped at 7: same weight</div></div><div class="to"><span class="fig">135</span><span class="u">lb</span></div></li>
+  </ul>
+</section>
+
+<div class="acts">
+  <button class="btn btn-quiet"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>Share</button>
+  <button class="btn primary">Done</button>
+</div>
+<div class="home-ind" aria-hidden="true"></div>
+</body>
+</html>

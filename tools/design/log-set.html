@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Logging a set, then resting (Plate &amp; Press mock-up)</title>
+<link rel="stylesheet" href="world.css">
+<!-- State: Bench Press set 2 of 4 just logged at 160 × 5 (one tap on the cover's Log button).
+     Rest: Bench is 4×4-6, the strength rep tier → getDefaultRestSeconds gives 240 s; 96 s have run.
+     The rest field is the cover itself, draining right to left (transform: scaleX on the bright layer,
+     linear over the rest length). Reduce Motion: a static fill and the number only. -->
+<style>
+  .rest{position:relative; background:var(--spot-deep); color:#fff; height:440px; overflow:hidden;}
+  .rest .fill{position:absolute; inset:0; background:var(--spot); transform-origin:left center; transform:scaleX(.6);}
+  .rest .in{position:relative; padding:0 var(--gutter);}
+  .rest .status{margin:0 calc(var(--gutter) * -1);}
+  .pin{display:flex; align-items:center; justify-content:space-between; height:48px; font-size:var(--fs-meta); font-weight:600;}
+  .pin .acts{display:flex; gap:8px;}
+  .pill-btn{height:44px; padding:0 16px; border-radius:22px; border:1.5px solid rgba(255,255,255,.85); font-weight:600; font-size:15px; display:flex; align-items:center;}
+  .rest h1{font-size:var(--fs-head); margin-top:18px;}
+  .clock{font-size:176px; line-height:.8; font-weight:800; font-stretch:68%; letter-spacing:-.025em; margin-top:22px;}
+  .of{font-size:var(--fs-body); font-weight:600; margin-top:14px;}
+  .logged{display:flex; gap:8px; margin-top:22px;}
+  .logged .chip{height:36px; padding:0 12px; border-radius:10px; display:flex; align-items:center; gap:6px; font-weight:600; font-size:14px; background:rgba(0,0,0,.28);}
+  .logged .chip.next{background:transparent; border:2px solid #fff;}
+  .logged .chip.todo{background:transparent; border:1.5px solid rgba(255,255,255,.55);}
+  .logged svg.i{width:15px; height:15px; stroke-width:2.6;}
+
+  .next{padding:22px var(--gutter) 0;}
+  .next-head{display:flex; justify-content:space-between; align-items:baseline;}
+  .next-head h2{font-size:var(--fs-title); font-weight:600;}
+  .next-head .meta{white-space:nowrap;}
+  .steppers{display:grid; grid-template-columns:1.25fr 1fr; gap:10px; margin-top:16px;}
+  .stepper{display:grid; grid-template-columns:44px 1fr 44px; align-items:center; height:64px; border-radius:var(--r-control); background:var(--surface-1); border:1px solid var(--rule);}
+  .stepper button{height:64px; display:grid; place-items:center; color:var(--text-2);}
+  .stepper .v{text-align:center;}
+  .stepper .v .fig{font-size:30px; line-height:1;}
+  .stepper .v .u{display:block; font-size:var(--fs-caption); color:var(--text-2); margin-top:3px;}
+  .seg{display:grid; grid-template-columns:auto repeat(4,1fr); align-items:center; gap:6px; margin-top:10px;}
+  .seg .lbl{font-size:var(--fs-meta); color:var(--text-2); padding-right:6px;}
+  .seg button{height:44px; border-radius:12px; background:var(--surface-1); border:1px solid var(--rule); font-weight:600; font-size:15px;}
+  .seg button[aria-pressed="true"]{background:var(--text); color:var(--ground); border-color:var(--text);}
+  .go{margin-top:14px; width:100%; background:var(--spot); color:var(--on-spot); font-size:18px;}
+  .go .fig{font-size:20px; font-stretch:84%;}
+
+  .toast{position:absolute; left:12px; right:12px; bottom:96px; height:52px; border-radius:16px; background:var(--text); color:var(--ground);
+    display:flex; align-items:center; padding:0 6px 0 16px; gap:10px; font-size:15px; box-shadow:var(--float-shadow); z-index:25;}
+  .toast b{font-weight:600;}
+  .toast button{margin-left:auto; height:44px; padding:0 14px; font-weight:700; color:var(--ground);}
+</style>
+</head>
+<body class="day-red">
+
+<section class="rest" aria-label="Rest timer">
+  <div class="fill" aria-hidden="true"></div>
+  <div class="in">
+    <div class="status" aria-hidden="true"><span>9:44</span><span class="dots"><svg class="i" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19" r=".8" fill="currentColor"/></svg><span class="bat"></span></span></div>
+    <div class="pin"><span>Bench Press · Set 2 of 4 done</span>
+      <span class="acts"><button class="pill-btn" aria-label="Add 30 seconds">+30 s</button><button class="pill-btn">Skip</button></span></div>
+    <h1 class="display">Rest</h1>
+    <div class="clock display" role="timer" aria-label="2 minutes 24 seconds of rest left">2:24</div>
+    <p class="of">of 4:00 · heavy sets rest longer</p>
+    <div class="logged" aria-label="Bench Press sets">
+      <span class="chip"><svg class="i" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>160×5</span>
+      <span class="chip"><svg class="i" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>160×5</span>
+      <span class="chip next">160×5</span>
+      <span class="chip todo">160×5</span>
+    </div>
+  </div>
+</section>
+
+<section class="next" aria-label="Next set">
+  <div class="next-head"><h2>Next: set 3</h2><span class="meta">Last time 155 × 8</span></div>
+  <div class="steppers">
+    <div class="stepper" role="group" aria-label="Weight">
+      <button aria-label="5 pounds less"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+      <div class="v"><span class="fig">160</span><span class="u">lb</span></div>
+      <button aria-label="5 pounds more"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg></button>
+    </div>
+    <div class="stepper" role="group" aria-label="Reps">
+      <button aria-label="One rep fewer"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+      <div class="v"><span class="fig">5</span><span class="u">reps</span></div>
+      <button aria-label="One rep more"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></svg></button>
+    </div>
+  </div>
+  <div class="seg" role="group" aria-label="Reps left in the tank">
+    <span class="lbl">Reps left</span>
+    <button aria-pressed="false">3+</button><button aria-pressed="true">2</button><button aria-pressed="false">1</button><button aria-pressed="false">0</button>
+  </div>
+  <button class="btn go">Log set <span class="fig">160 × 5</span></button>
+</section>
+
+<div class="toast" role="status"><svg class="i" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M5 12l5 5 9-10"/></svg><span><b>Set 2 logged.</b> 160 × 5</span><button>Undo</button></div>
+
+<nav class="tabbar" aria-label="Sections">
+  <a class="tab" aria-current="page"><svg class="i" viewBox="0 0 24 24"><rect class="fillable" x="3" y="10" width="3" height="4" rx="1"/><rect class="fillable" x="18" y="10" width="3" height="4" rx="1"/><rect class="fillable" x="6" y="6" width="3" height="12" rx="1"/><rect class="fillable" x="15" y="6" width="3" height="12" rx="1"/><path d="M9 12h6"/></svg>Today</a>
+  <a class="tab"><svg class="i" viewBox="0 0 24 24"><path d="M7 3v7a2 2 0 0 0 4 0V3M9 10v11M16 21V3c2.5 1 3.5 4 3.5 7H16"/></svg>Food</a>
+  <a class="tab"><svg class="i" viewBox="0 0 24 24"><path d="M3 20h18M5 16l5-5 4 3 6-7"/></svg>Progress</a>
+  <a class="tab"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>History</a>
+  <a class="tab"><svg class="i" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="19" cy="12" r="1.3" fill="currentColor"/></svg>More</a>
+</nav>
+<div class="home-ind" aria-hidden="true"></div>
+</body>
+</html>

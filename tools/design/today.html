@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Today: the next set (Plate &amp; Press mock-up)</title>
+<link rel="stylesheet" href="world.css">
+<!-- Content: programs.strength d1 (Upper · Strength, red 25 plate). Bench 4×4-6 leads.
+     Load: seeded best 155×8 → Epley e1RM 196 lb; 5 reps at RPE 8 (RIR 2) → 196/(1+7/30) = 159 → 160 lb.
+     Plates per side from the app's lb set [45,35,25,10,5,2.5]: (160-45)/2 = 57.5 = 45 + 10 + 2.5.
+     Other loads and readiness are sample data. -->
+<style>
+  .cover{background:var(--spot); color:var(--on-spot); padding:0 var(--gutter) 22px; position:relative;}
+  .cover .status{margin:0 calc(var(--gutter) * -1);}
+  .bar-top{display:flex; align-items:center; justify-content:space-between; height:48px; margin:2px -10px 0 0;}
+  .bar-top .where{font-size:var(--fs-meta); font-weight:500; }
+  .bar-top .acts{display:flex;}
+  .day-head{font-size:var(--fs-head); margin-top:6px;}
+  .lift{display:flex; align-items:baseline; justify-content:space-between; margin-top:26px; gap:12px;}
+  .lift h2{font-size:var(--fs-title); font-weight:600; letter-spacing:-.01em;}
+  .lift .of{font-size:var(--fs-meta); font-weight:500;  white-space:nowrap;}
+  .rx{font-size:var(--fs-meta);  margin-top:2px;}
+
+  .answer{display:flex; align-items:flex-end; justify-content:space-between; margin-top:10px; gap:8px;}
+  .numeral{display:flex; align-items:baseline; gap:6px;}
+  .numeral .w{font-size:150px; line-height:.8; letter-spacing:-.025em; font-weight:800; font-stretch:68%;}
+  .numeral .u{font-family:var(--font-text); font-size:var(--fs-lead); font-weight:600; }
+  .numeral .x{font-size:56px; line-height:.8; font-weight:700; font-stretch:68%; margin-left:4px;}
+
+  /* The plate stack: one sleeve, plates per side, competition colours, relative diameters */
+  .stack{display:flex; align-items:center; justify-content:flex-end; height:112px; margin-bottom:2px;}
+  .stack .collar{width:6px; height:34px; background:#1B1B1D; border-radius:2px;}
+  .stack .plate{width:15px; border-radius:3px; border:2px solid #0C0C0D; margin-left:-2px;}
+  .p45{height:112px; background:var(--spot-blue);}
+  .p35{height:100px; background:var(--spot-yellow);}
+  .p25{height:86px; background:var(--spot-green);}
+  .p10{height:62px; background:var(--spot-white);}
+  .p5{height:46px; background:#8B8B88; width:10px!important;}
+  .p2{height:36px; background:#8B8B88; width:8px!important;}
+  .stack .sleeve{width:16px; height:14px; background:#BDBDB8; border:2px solid #0C0C0D; border-left:0; border-radius:0 3px 3px 0; margin-left:-2px;}
+  .plates-cap{font-size:var(--fs-caption); font-weight:600; white-space:nowrap;  text-align:right; margin-top:6px;}
+
+  .log{margin-top:20px; display:grid; grid-template-columns:1fr 56px; gap:10px;}
+  .log .btn-ink{font-size:18px; background:#0C0C0D; color:#fff;}
+  .log .btn-ink .fig{font-size:20px; font-stretch:84%;}
+  .adjust{width:56px; height:56px; border-radius:var(--r-control); border:1.5px solid currentColor; display:grid; place-items:center;}
+
+  .chips{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px;}
+  .chip{height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:6px; font-weight:600; font-size:15px; font-variant-numeric:tabular-nums;}
+  .chip.done{background:rgba(12,12,13,.24);}
+  .chip.ready{border:2px solid #0C0C0D; background:rgba(255,255,255,.14);}
+  .chip.todo{border:1.5px solid rgba(255,255,255,.5); opacity:.9;}
+  .chip svg.i{width:16px; height:16px; stroke-width:2.5;}
+
+  .note{display:flex; align-items:center; gap:10px; padding:14px var(--gutter); border-bottom:1px solid var(--rule); font-size:var(--fs-meta); color:var(--text-2);}
+  .note b{color:var(--text); font-weight:600;}
+  .note .dot{width:8px; height:8px; border-radius:4px; background:var(--warning); flex:none;}
+  .note svg{margin-left:auto; color:var(--text-3);}
+
+  .section{padding:22px var(--gutter) 8px; display:flex; justify-content:space-between; align-items:baseline;}
+  .section h3{font-size:var(--fs-lead); font-weight:600;}
+  .section .meta{font-size:var(--fs-meta);}
+  .ex{padding:0 var(--gutter);}
+  .ex li{min-height:64px;}
+  .ex .name{font-weight:600;}
+  .ex .sub{font-size:var(--fs-meta); color:var(--text-2); margin-top:1px;}
+  .ex .load{margin-left:auto; text-align:right;}
+  .ex .load .fig{font-size:22px; font-stretch:84%;}
+  .ex .load .unit{font-size:var(--fs-caption); color:var(--text-3); margin-left:2px;}
+  .ex .chev{color:var(--text-3); width:18px; height:18px;}
+  .ss{font-size:var(--fs-caption); color:var(--text-3); padding:10px 0 0; border:0!important; min-height:0!important;}
+</style>
+</head>
+<body class="day-red">
+
+<header class="cover">
+  <div class="status" aria-hidden="true"><span>9:41</span><span class="dots"><svg class="i" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19" r=".8" fill="currentColor"/></svg><span class="bat"></span></span></div>
+  <div class="bar-top">
+    <span class="where">Strength &amp; Size · Week 3 of 5 · Intensification</span>
+    <div class="acts">
+      <button class="icon-btn" aria-label="Ask the coach"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg></button>
+      <button class="icon-btn" aria-label="Settings"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>
+    </div>
+  </div>
+  <h1 class="display day-head">Day 1 · Upper Strength</h1>
+
+  <div class="lift"><h2>Bench Press</h2><span class="of">Set 2 of 4</span></div>
+  <p class="rx">4 × 4–6 · stop 2 reps short (RIR 2)</p>
+
+  <div class="answer">
+    <div class="numeral display" aria-label="160 pounds for 5 reps">
+      <span class="w">160</span><span class="u">lb</span><span class="x">×5</span>
+    </div>
+    <div>
+      <div class="stack" aria-hidden="true"><span class="collar"></span><span class="plate p45"></span><span class="plate p10"></span><span class="plate p2"></span><span class="sleeve"></span></div>
+      <p class="plates-cap">45 · 10 · 2.5<br>each side</p>
+    </div>
+  </div>
+
+  <div class="log">
+    <button class="btn btn-ink">Log set <span class="fig">160 × 5</span></button>
+    <button class="adjust" aria-label="Adjust weight, reps or effort"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
+  </div>
+  <div class="chips" role="list" aria-label="Bench Press sets">
+    <div class="chip done" role="listitem"><svg class="i" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>160×5</div>
+    <div class="chip ready" role="listitem">160×5</div>
+    <div class="chip todo" role="listitem">160×5</div>
+    <div class="chip todo" role="listitem">160×5</div>
+  </div>
+</header>
+
+<div class="note"><span class="dot"></span><span><b>Readiness 72.</b> Shoulder still resting: pressing stays at RIR 2.</span><svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></div>
+
+<div class="section"><h3>Then</h3><span class="meta">5 exercises · ~45 min left</span></div>
+<ul class="rows ex">
+  <li><div><div class="name">Barbell Row</div><div class="sub">4 × 6–8 · last 135 × 8, 8, 7, 7</div></div><div class="load"><span class="fig">135</span><span class="unit">lb</span></div><svg class="i chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></li>
+  <li><div><div class="name">Overhead Press</div><div class="sub">3 × 8–10 · all sets hit 10: add weight</div></div><div class="load"><span class="fig pos">100</span><span class="unit">lb</span></div><svg class="i chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></li>
+  <li><div><div class="name">Lat Pulldown</div><div class="sub">3 × 10–12 · last 120 × 12, 11, 10</div></div><div class="load"><span class="fig">120</span><span class="unit">lb</span></div><svg class="i chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></li>
+  <li class="ss">Superset, no rest between</li>
+  <li><div><div class="name">DB Curl + Triceps Pushdown</div><div class="sub">3 × 10–12 each</div></div><div class="load"><span class="fig">30</span><span class="unit">lb</span></div><svg class="i chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></li>
+</ul>
+
+<nav class="tabbar" aria-label="Sections">
+  <a class="tab" aria-current="page"><svg class="i" viewBox="0 0 24 24"><rect class="fillable" x="3" y="10" width="3" height="4" rx="1"/><rect class="fillable" x="18" y="10" width="3" height="4" rx="1"/><rect class="fillable" x="6" y="6" width="3" height="12" rx="1"/><rect class="fillable" x="15" y="6" width="3" height="12" rx="1"/><path d="M9 12h6"/></svg>Today</a>
+  <a class="tab"><svg class="i" viewBox="0 0 24 24"><path d="M7 3v7a2 2 0 0 0 4 0V3M9 10v11M16 21V3c2.5 1 3.5 4 3.5 7H16"/></svg>Food</a>
+  <a class="tab"><svg class="i" viewBox="0 0 24 24"><path d="M3 20h18M5 16l5-5 4 3 6-7"/></svg>Progress</a>
+  <a class="tab"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>History</a>
+  <a class="tab"><svg class="i" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="19" cy="12" r="1.3" fill="currentColor"/></svg>More</a>
+</nav>
+<div class="home-ind" aria-hidden="true"></div>
+</body>
+</html>
