@@ -49,8 +49,8 @@ test('REAL invocation: renderHeader shows the name as typed, not force-uppercase
      'userProfile = {}; renderHeader(); window.__empty = document.getElementById("headerEyebrow").textContent;']);
   assert.ok(window.__named.startsWith('Jordan · '), window.__named);
   assert.ok(/ program$/.test(window.__named), window.__named);
-  // v3.515: the product is now Chalklog; the fallback reads APP_NAME.
-  assert.strictEqual(window.__empty, 'Chalklog');
+  // v3.515: the product is now Liftnext; the fallback reads APP_NAME.
+  assert.strictEqual(window.__empty, 'Liftnext');
 });
 
 test('REAL invocation: renderStreak draws a flame outline (aria-hidden), no emoji, the count in its own span, then animates in place', async (assert)=>{

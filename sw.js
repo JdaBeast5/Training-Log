@@ -338,7 +338,7 @@ self.addEventListener('fetch', (event)=>{
         // rather than styled HTML, because if the shell isn't cached then no
         // stylesheet is either and a half-rendered page reads as a crash.
         return cached || new Response(
-          'Chalklog is offline and no cached copy is available yet. Reconnect once and it will work offline from then on.',
+          'Liftnext is offline and no cached copy is available yet. Reconnect once and it will work offline from then on.',
           {status:503, headers:{'Content-Type':'text/plain; charset=utf-8'}}
         );
       }

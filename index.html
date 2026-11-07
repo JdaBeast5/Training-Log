@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Chalklog</title>
+<title>Liftnext</title>
 <!-- iOS ignores the manifest icons for a home-screen bookmark and reads ONLY
      apple-touch-icon. Without these, Safari falls back to a screenshot or the
      first letter of the title — which is why the saved app showed a bare "T". -->
@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Chalklog">
+<meta name="apple-mobile-web-app-title" content="Liftnext">
 <meta name="theme-color" content="#050507" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#F2F2F5" media="(prefers-color-scheme: light)">
 <link rel="manifest" href="./manifest.json">
@@ -5700,7 +5700,7 @@
 </script>
 <div class="user-picker-overlay" id="userPickerOverlay" role="dialog" aria-modal="true" aria-labelledby="userPickerTitle">
   <div class="user-picker-box">
-    <div class="eyebrow">Chalklog</div>
+    <div class="eyebrow">Liftnext</div>
     <h2 class="user-picker-title" id="userPickerTitle">Who's training?</h2>
     <div id="userPickerList" class="user-picker-list"></div>
     <div class="user-picker-divider">— or —</div>
@@ -5720,7 +5720,7 @@
   <header>
     <div class="eyebrow-row">
       <button type="button" class="brand-mark" id="brandHome" aria-label="Today, back to top"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke-width="2.6"><path d="M15.90 6.23 A7 7 0 1 1 9.27 3.04" stroke="currentColor"/><path class="brand-mark-lit" d="M10.00 3.00 A7 7 0 0 1 15.47 5.64"/><circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none"/></svg></button>
-      <div class="eyebrow" id="headerEyebrow">Chalklog</div>
+      <div class="eyebrow" id="headerEyebrow">Liftnext</div>
     </div>
     <h1 id="viewTitle">Today</h1>
     <div class="sub" id="headerSub">Set up your profile below to personalize this</div>
@@ -7620,10 +7620,10 @@ function bootMark(name){
 
 // [STORAGE] ------------------------------------------------------------------
 const APP_VERSION = '3.515';
-// v3.515: the app is called Chalklog (owner, 2026-11-07). Display name only:
+// v3.515: the app is called Liftnext (owner, 2026-11-07; Chalklog was picked first and dropped the same day, before release, because several "Chalk" fitness apps exist). Display name only:
 // storage keys, cache names and backup format keep their training-log names,
 // so nothing stored on a phone changes. Every on-screen name reads this.
-const APP_NAME = 'Chalklog';
+const APP_NAME = 'Liftnext';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8973,7 +8973,7 @@ const WHATS_NEW = {
   '3.514': { headline: 'Exercise demos removed for now', points: [
     'The 3D exercise demos are gone while we rethink them. Technique & focus shows the cues and the form-video link again, and the demo files are cleared from your phone.',
   ]},
-  '3.515': { headline: 'Training Log is now Chalklog', points: [
+  '3.515': { headline: 'Training Log is now Liftnext', points: [
     'Same app, same data, new name. The label under your home-screen icon keeps the old name; changing it means adding the app to your home screen again, so export a backup in Settings first.',
   ]},
 };
