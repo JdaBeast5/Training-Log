@@ -42,6 +42,10 @@ Owner: business-manager. Written 2026-11-07 against **v3.514** (`APP_VERSION`, `
 
 Every clause is true at v3.514. The privacy clause is "your **logs** stay on your phone", not "nothing leaves your phone": food search goes to USDA and Open Food Facts, and the AI features go to Anthropic with the user's key (6630).
 
+**Two conditions found in the alignment round (2026-11-07, v3.516):**
+- **The privacy clause needs its exception said where it applies.** The AI features do send logs: Cross-Metric Insights (`generateCrossMetricInsights`, `index.html:42536`) sends body weight, nutrition, sleep, water, RPE, pain check-ins and PRs to Anthropic when the user taps it with their own key. The clause stays true by default only if every AI entry point says what it sends before the first use (an extension of BIZ-06). Otherwise the public line becomes "…and your logs stay on your phone unless you use AI with your own key."
+- **"Proven programs" holds only for established programs at a proper dose.** The program audit found the low day-count variants under-dosed (H-3; BL-37 is needs-owner). Until BL-37 ships, public copy should say "programs built on published research, with the sources shown in the app" (marketing.md §2's own fallback).
+
 ---
 
 ## 2. Positioning against the five named competitors

@@ -258,6 +258,7 @@ Low effort, made from the app itself. One post a week where the owner already ha
 | E4 | A Year in Lifting recap brings back lapsed users in December | MKT-06 | Store-console weekly actives in December vs. November | Store consoles (aggregate) |
 | E5 | A promise line on the first screen raises profile creation | BIZ-17 (business) | Testers who create a profile vs. close the app | Moderated tests with 5–10 strangers: watch, don't count |
 | E6 | "Liftnext" is remembered and spelled right | MKT-09 (shipped v3.515) | Can a tester name the app a week later, and type it as one word into a search box? | Ask them. Cheap, honest, no data |
+| E7 | A stranger reads the bib as lifting, not running (a bet: no market evidence yet that lifters want a bib, alignment 2026-11-07) | MKT-16 | Of 5–10 strangers shown the bib PNG with the name covered, how many say "gym" or "lifting" when asked which sport? | Show printed or on-screen PNGs in person. No data collected |
 
 ---
 
