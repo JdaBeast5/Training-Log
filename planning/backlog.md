@@ -1062,6 +1062,49 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - The 2026 Play fee changes are reported but unverified here.
 - **Status:** needs-owner. **Question:** "Plan on Play billing first, once the Capacitor build supports it, with web payments only if many users are on the iPhone PWA and there's no iOS build; and do you also want a 'support us' link now, with nothing locked?" **Recommendation:** yes to Play first, and no billing or server code before BIZ-21's triggers. The support link is optional; it's honest only if it says it pays for nothing extra.
 
+### BIZ-23: The coach plan: the coach pays, the clients are free
+- **Why:**
+  - The owner approved the three-layer model on 2026-11-07 ("Love it"): free on the phone, Liftnext Pro for server features, and revenue that never touches the free app (business.md §0, §3.8).
+  - Coaches already pay for this job: Hevy Coach is listed from about $25/mo with clients free, and TrueCoach is reported at $29.98–164.98/mo by client count (third-party sources, business.md §3.8; they conflict and are unverified on the vendors' pages).
+  - It's the one paid product where the payer (the coach) is never the ordinary user, so it can't erode the free list.
+- **Change:** none in code until answered and until Liftnext Pro's server exists (BIZ-21 T4). When built, it's a server-backed feature that ordinary users never see: a coach invites a client; the client opts in and chooses what to share; the coach writes and adjusts the client's program.
+- **Acceptance criteria:**
+  1. Now: the owner's answer is recorded in business.md §3.8.
+  2. When built, a jsdom test (stubbed `fetch`, stub `window.storage`) proves:
+     - with no coach link, rendering Today, the set sheet, the program picker, History and export makes no network call (stub-counted: 0) and shows no coach or upgrade element (DOM query count 0);
+     - a client's sharing defaults to training logs only: body weight, food, sleep, BP, glucose, cycle and care data are excluded from the outgoing payload until each is switched on;
+     - after the coach link ends, every `ex:` key and the last program version are still present (storage-key snapshot before and after) and the program still renders.
+- **Test plan:** none until approved. Then a new `test-coach-link.js` over the real render paths, with the sabotage "include body weight in the default payload" failing criterion 2.
+- **Files:** `planning/business.md` now. Later a server outside `index.html` (owner decision) plus `index.html` and `sw.js`, and the privacy page (BIZ-16).
+- **Risk:**
+  - Accounts, a server, money and a contract with each coach.
+  - Client health data on our server brings the FTC Health Breach Notification Rule (amended 2024, names fitness apps) and Washington's My Health My Data Act into play (business.md §3.8; law-firm summaries, needs counsel).
+  - Store rules on how a coach's subscription is bought (Apple 3.1.3(d) covers one-to-one services; a software plan may still need in-app purchase).
+  - It would break the "no account" claim for clients who opt in, so the privacy page must say so.
+- **Status:** needs-owner. **Question:** "Plan a coach plan (coach pays, clients free, client chooses what to share and keeps everything if they leave), built only after Liftnext Pro's server has run cleanly?" **Recommendation:** yes as the plan of record, no work before BIZ-21 T4, and a privacy-law review before any client data reaches a server.
+
+### BIZ-24: Coach programs: paid programs from real coaches, with a revenue share
+- **Why:**
+  - The third layer of the owner-approved model (business.md §3.8). Coaches earn from their work, and users get more choice, without anything we built becoming paid.
+  - Precedent: Boostcamp keeps a free coach-program library and puts about 32 of 132 coach programs behind Pro, some sold one-time (Boostcamp's own pages; revenue-share terms not public).
+  - The earlier free-list wording ("every program … and any added later", "if it runs on your phone, it's free") would have made this a broken promise. business.md §3.3 and §3.4 now say "everything we build", and it isn't published yet.
+- **Change:** none in code until answered. When built: a coach program is imported like a custom program and labelled with its author; it runs on the free engine (progression, deloads, substitutions); purchase goes through store billing in store builds.
+- **Acceptance criteria:**
+  1. Now: the owner's answer is recorded in business.md §3.8.
+  2. When built, a jsdom test proves:
+     - every built-in key in `programs` renders in the picker with no price, lock or "Pro" element (DOM query count 0), with or without any coach program installed;
+     - a bought coach program is still present and renders after the purchase record is removed (it's kept once bought), and it's included in the JSON export;
+     - a coach program whose `basis` or notes contain a listed health-claim term ("treats", "cures", "prevents injury", "rehab", "safe for") is rejected on import, and a coach program in a clinical style (`MEDICAL_STYLES`) is rejected;
+     - BL-01's goal-volume gate and BL-02's RPE caps apply to a coach program exactly as to a built-in one (same real functions).
+- **Test plan:** none until approved. Then a new `test-coach-programs.js` with the real picker render, the real program-switch path (`saveActiveProgram`) and the real export; sabotage: label one built-in program "Pro", and the first check must fail.
+- **Files:** `planning/business.md` now. Later `index.html`, `sw.js`, the test; the purchase check lives on the Pro server.
+- **Risk:**
+  - Money, contracts and revenue-share terms with each coach; tax reporting on payouts (not researched here).
+  - Store fees come off the top (Apple 3.1.1 for digital content, Play Billing).
+  - Liability for third-party programming: we publish it, so it must meet our safety bar and make no health claims (BIZ-15).
+  - A bought program lives in the user's own data and can be copied. That's accepted.
+- **Status:** needs-owner. **Question:** "Allow paid programs written by real coaches, with a revenue share, under these rules: built-in programs stay free forever and never move into the store, bought programs are kept, no clinical programs from third parties, and our safety gates apply?" **Recommendation:** yes as the plan of record, after public launch and BIZ-21's triggers; the last of the three layers to build.
+
 ---
 
 ## Marketing (MKT): added by marketing-manager, 2026-11-07

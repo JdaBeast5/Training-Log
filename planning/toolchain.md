@@ -260,7 +260,7 @@ exercise-auditor ──┘   (roadmap)                       (one item/run)     
 ## 8. Guardrails so no agent can merge or deploy (proposed, needs the owner)
 
 Today "never merge" is a sentence in each agent file and in the run prompt. Nothing enforces it. Proposed, for the owner to apply (agents may not change settings):
-1. **`.claude/settings.json` deny rules** (project-level, so they bind the main session and every subagent): `mcp__github__merge_pull_request`, `mcp__github__update_pull_request_branch`, `Bash(gh pr merge:*)`, `Bash(git push origin Branch-1:*)`, `Bash(git push origin HEAD:Branch-1:*)`, `Bash(git push --force:*)`. Prefix rules can be evaded by other spellings, so this is a seatbelt, not a lock.
+1. **`.claude/settings.json` deny rules** (project-level, so they bind the main session and every subagent): `mcp__github__merge_pull_request`, `Bash(gh pr merge:*)`, `Bash(git push origin Branch-1:*)`, `Bash(git push origin HEAD:Branch-1:*)`, `Bash(git push --force:*)`. Prefix rules can be evaded by other spellings, so this is a seatbelt, not a lock.
 2. **The lock: GitHub branch protection on `Branch-1`** (owner, in repo settings): require a pull request; block force pushes and deletion; do not allow auto-merge. If Claude's GitHub access uses the owner's own token, protection can't tell Claude from the owner, so rule 1 still matters.
 3. Not verified here: whether this environment's git proxy already refuses pushes to `Branch-1`. No push was attempted.
 
