@@ -10,7 +10,14 @@ The owner's mission (2026-11-07): "the best tracking app and the best workout pl
 | `backlog.md` | project-manager | One-version items with acceptance criteria, test plan, risk, status |
 | `toolchain.md` | skills-orchestrator | Which skills and tools each agent uses; vetted additions |
 | `automation.md`, `build-log.md` | build-automator | The scheduled build loop and what each run shipped |
+| `business.md` | business-manager | Strategy, model, funnel, what blocks success; BIZ-nn backlog items |
+| `marketing.md` | marketing-manager | Brand, built-in virality and share moments, store and launch, experiments; MKT-nn items |
+| `design-vision.md` (+ `tools/design/`) | design-engineer | The high-end redesign vision, mock-ups, staged UX-nn items |
 
-Flow: research + audit → roadmap → backlog → build runs (one item per run, as a PR) → owner review → live.
+Flow: research + audit + business + marketing + design vision → roadmap → backlog → build runs (one item per run, as a PR) → owner review → live.
 
 Nothing goes live without the owner's explicit yes.
+
+Owner's mandates (2026-11-07):
+- **Business and marketing:** "anything he sees that needs fixing and optimizing, goes". Their items are `ready`, except money, user-data, legal, privacy or health-claim items, which are `needs-owner`.
+- **Design engineer:** a full redesign mandate ("even if … the app is no longer recognizable"), delivered in tested, shippable increments.
