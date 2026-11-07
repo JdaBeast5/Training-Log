@@ -44,12 +44,13 @@ test('REAL CSSOM: h1 is the large view title (34px, 750) and the eyebrow is sent
 test('REAL invocation: renderHeader shows the name as typed, not force-uppercased; falls back to the product name with no profile', (assert)=>{
   const { window } = runJsdom('<div id="headerEyebrow"></div><div id="headerSub"></div>',
     'var userProfile = {name:"Jordan", goal:"recomp", heightFt:5, heightIn:10, weight:180}; function fmtWeight(w){ return w + " lb"; }',
-    [extractConst(src, 'GOAL_LABELS'), extractFunction(src, 'renderHeader'),
+    [extractConst(src, 'GOAL_LABELS'), extractConst(src, 'APP_NAME'), extractFunction(src, 'renderHeader'),
      'renderHeader(); window.__named = document.getElementById("headerEyebrow").textContent;',
      'userProfile = {}; renderHeader(); window.__empty = document.getElementById("headerEyebrow").textContent;']);
   assert.ok(window.__named.startsWith('Jordan · '), window.__named);
   assert.ok(/ program$/.test(window.__named), window.__named);
-  assert.strictEqual(window.__empty, 'Training Log');
+  // v3.515: the product is now Liftnext; the fallback reads APP_NAME.
+  assert.strictEqual(window.__empty, 'Liftnext');
 });
 
 test('REAL invocation: renderStreak draws a flame outline (aria-hidden), no emoji, the count in its own span, then animates in place', async (assert)=>{

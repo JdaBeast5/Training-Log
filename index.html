@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Training Log</title>
+<title>Liftnext</title>
 <!-- iOS ignores the manifest icons for a home-screen bookmark and reads ONLY
      apple-touch-icon. Without these, Safari falls back to a screenshot or the
      first letter of the title — which is why the saved app showed a bare "T". -->
@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Training Log">
+<meta name="apple-mobile-web-app-title" content="Liftnext">
 <meta name="theme-color" content="#050507" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#F2F2F5" media="(prefers-color-scheme: light)">
 <link rel="manifest" href="./manifest.json">
@@ -485,8 +485,9 @@
   }
   .brand-mark::before{content:''; position:absolute; top:50%; left:50%; width:44px; height:44px; transform:translate(-50%,-50%);}
   .brand-mark:active{transform:scale(.88);}
-  .brand-mark-lit{stroke:var(--plate-red);}
   .brand-mark svg{width:100%; height:100%;}
+  /* v3.516: the mark is the Liftnext icon in small — the five plate inks as a
+     sash on its own ink tile (the sash only reads inside its square). */
   /* [TASTESKILL ROLLOUT, v3.278] The eyebrow names the scope (whose log, which
      goal) beside the product mark, so it keeps its job but stops shouting:
      sentence case as the person typed their name, text face, 12px, no
@@ -5296,42 +5297,35 @@
   .launch{
     position:fixed; inset:0; z-index:2147483000; display:flex; align-items:center; justify-content:center;
     background:var(--aura), var(--bg); transition:opacity .55s cubic-bezier(.4,0,.2,1);
-    --launch-ink:#F6F3EE; --launch-ink-2:rgba(246,243,238,.62);
   }
   .launch.is-out{opacity:0; pointer-events:none;}
-  /* v3.387: smoother. The mark used to DRAW (stroke-dashoffset), which runs
-     on the main thread and stuttered while the app's script loaded, in
-     phases with different speeds and a bouncing bore. Now four stacked
-     layers move with transform and opacity only — composited, so they keep
-     their frame rate under load — on one gentle ease-out (easeOutCubic, so
-     speed decays evenly instead of whipping then crawling): the rim turns
-     in from 60° back, the lit seventh orbits round the ring and
-     decelerates into place, the hub and bore settle. No overshoot. */
-  .launch-mark{position:relative; width:112px; height:112px; transition:transform .55s cubic-bezier(.22,1,.36,1);}
+  /* v3.387: smoother — layers move with transform and opacity only
+     (composited, so they keep their frame rate while the app's script
+     loads), on one gentle ease-out with no overshoot.
+     v3.516: the mark is the Liftnext icon. The ink tile eases in, then the
+     five plate bands slide along their own rising line into place, heaviest
+     first, 70ms apart. The tile's rounded square (22.5%, the icon's corner)
+     clips them on the container, so the clip costs no paint per frame. */
+  .launch-mark{position:relative; width:112px; height:112px; border-radius:22.5%; overflow:hidden; transition:transform .55s cubic-bezier(.22,1,.36,1);}
   .launch.is-out .launch-mark{transform:scale(1.05);}
-  .launch-layer{position:absolute; inset:0; width:100%; height:100%; overflow:visible; opacity:0; will-change:transform, opacity;}
-  .launch-rim path, .launch-lit path{fill:none; stroke-width:104;}
-  .launch-rim path{stroke:var(--launch-ink);}
-  .launch-lit path{stroke:url(#launchAcc);}
-  .launch-hub circle{fill:none; stroke:var(--launch-ink-2); stroke-width:38;}
-  .launch-bore circle{fill:var(--launch-ink);}
-  .launch-rim{transform:rotate(-60deg) scale(.92); animation:launchSettle 1.1s cubic-bezier(.33,1,.68,1) .05s forwards;}
-  .launch-lit{transform:rotate(-160deg); animation:launchSettle 1.2s cubic-bezier(.33,1,.68,1) .1s forwards;}
-  .launch-hub{transform:scale(.8); animation:launchSettle .9s cubic-bezier(.33,1,.68,1) .25s forwards;}
-  .launch-bore{transform:scale(.6); animation:launchSettle .8s cubic-bezier(.33,1,.68,1) .45s forwards;}
+  .launch-layer{position:absolute; inset:0; width:100%; height:100%; opacity:0; will-change:transform, opacity;}
+  .launch-tile{transform:scale(.92); animation:launchSettle .7s cubic-bezier(.33,1,.68,1) .05s forwards;}
+  .launch-b25{transform:translate(-69%,40%); animation:launchSettle .9s cubic-bezier(.33,1,.68,1) .15s forwards;}
+  .launch-b20{transform:translate(-69%,40%); animation:launchSettle .9s cubic-bezier(.33,1,.68,1) .22s forwards;}
+  .launch-b15{transform:translate(-69%,40%); animation:launchSettle .9s cubic-bezier(.33,1,.68,1) .29s forwards;}
+  .launch-b10{transform:translate(-69%,40%); animation:launchSettle .9s cubic-bezier(.33,1,.68,1) .36s forwards;}
+  .launch-b5{transform:translate(-69%,40%); animation:launchSettle .9s cubic-bezier(.33,1,.68,1) .43s forwards;}
   @keyframes launchSettle{to{opacity:1; transform:none;}}
-  /* Light appearance: a porcelain page and a graphite mark (platinum would
-     vanish on it). The app behind is dark-only, so the hand-off is a fade. */
+  /* Light appearance: a porcelain page; the mark keeps its own ink tile, as
+     on the home screen. The app behind is dark-only, so the hand-off is a fade. */
   @media (prefers-color-scheme: light){
     .launch{
       background:radial-gradient(420px 380px at 88% -6%, rgba(var(--plate-red-rgb),.14), transparent 70%),
                  radial-gradient(380px 360px at -12% 32%, rgba(var(--plate-blue-rgb),.12), transparent 70%), #F3F0EA;
-      --launch-ink:#1B1A20; --launch-ink-2:rgba(27,26,32,.42);
     }
   }
   @media (prefers-contrast: more){
     .launch{background:var(--bg);}
-    .launch-hub circle{stroke:var(--launch-ink);}
   }
   @media (prefers-contrast: more) and (prefers-color-scheme: light){ .launch{background:#FFFFFF;} }
   /* Reduce Motion: the finished mark, and a cross-fade out. */
@@ -5657,22 +5651,24 @@
 </style>
 </head>
 <body>
-<!-- v3.385: launch. The app's mark draws itself once per cold launch, then
-     dissolves into the app: the rim turns into place, the lit seventh orbits
-     round and settles on it, the hub and bore ease in (v3.387). Its
-     page matches the system appearance (dark: the app's own background and
-     aura, so the hand-off is seamless; light: porcelain with a graphite
-     mark); Increase Contrast drops the aura; Reduce Motion shows the finished
-     mark and cross-fades. A tap skips it. Grayscale is a system filter the
-     mark is built for (its parts differ by luminance, not hue). -->
+<!-- v3.385: launch, once per cold launch, then it dissolves into the app.
+     v3.516: the mark is the Liftnext icon — the ink tile eases in and the
+     five plate bands slide into place along their rising line, heaviest
+     first. Its page matches the system appearance (dark: the app's own
+     background and aura, so the hand-off is seamless; light: porcelain);
+     Increase Contrast drops the aura; Reduce Motion shows the finished mark
+     and cross-fades. A tap skips it. Grayscale is a system filter the mark is
+     built for (its bands are parted by the ground, not by hue alone). -->
 <div class="launch" id="launch" aria-hidden="true">
-  <!-- v3.387: four stacked layers, animated with transform and opacity only
-       (composited, so they keep moving while the app's script loads). -->
+  <!-- Stacked layers, animated with transform and opacity only (composited,
+       so they keep moving while the app's script loads). -->
   <div class="launch-mark">
-    <svg class="launch-layer launch-rim" viewBox="0 0 1024 1024" aria-hidden="true"><path d="M754.8 335.8 A300 300 0 1 1 498.4 212.3"/></svg>
-    <svg class="launch-layer launch-lit" viewBox="0 0 1024 1024" aria-hidden="true"><defs><linearGradient id="launchAcc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF6A3D"/><stop offset="1" stop-color="#FF2D55"/></linearGradient></defs><path d="M512.0 212.0 A300 300 0 0 1 746.5 325.0"/></svg>
-    <svg class="launch-layer launch-hub" viewBox="0 0 1024 1024" aria-hidden="true"><circle cx="512" cy="512" r="132"/></svg>
-    <svg class="launch-layer launch-bore" viewBox="0 0 1024 1024" aria-hidden="true"><circle cx="512" cy="512" r="46"/></svg>
+    <svg class="launch-layer launch-tile" viewBox="0 0 1024 1024" aria-hidden="true"><rect width="1024" height="1024" fill="#0C0C0D"/></svg>
+    <svg class="launch-layer launch-b25" viewBox="0 0 1024 1024" aria-hidden="true"><rect x="-400" y="266" width="1824" height="84" fill="#D42F25" transform="rotate(-30 512 512)"/></svg>
+    <svg class="launch-layer launch-b20" viewBox="0 0 1024 1024" aria-hidden="true"><rect x="-400" y="368" width="1824" height="84" fill="#2C5BD8" transform="rotate(-30 512 512)"/></svg>
+    <svg class="launch-layer launch-b15" viewBox="0 0 1024 1024" aria-hidden="true"><rect x="-400" y="470" width="1824" height="84" fill="#F2C200" transform="rotate(-30 512 512)"/></svg>
+    <svg class="launch-layer launch-b10" viewBox="0 0 1024 1024" aria-hidden="true"><rect x="-400" y="572" width="1824" height="84" fill="#1E9E4A" transform="rotate(-30 512 512)"/></svg>
+    <svg class="launch-layer launch-b5" viewBox="0 0 1024 1024" aria-hidden="true"><rect x="-400" y="674" width="1824" height="84" fill="#E6E6E2" transform="rotate(-30 512 512)"/></svg>
   </div>
 </div>
 <script>
@@ -5700,7 +5696,7 @@
 </script>
 <div class="user-picker-overlay" id="userPickerOverlay" role="dialog" aria-modal="true" aria-labelledby="userPickerTitle">
   <div class="user-picker-box">
-    <div class="eyebrow">Training Log</div>
+    <div class="eyebrow">Liftnext</div>
     <h2 class="user-picker-title" id="userPickerTitle">Who's training?</h2>
     <div id="userPickerList" class="user-picker-list"></div>
     <div class="user-picker-divider">— or —</div>
@@ -5719,8 +5715,8 @@
 <div class="wrap">
   <header>
     <div class="eyebrow-row">
-      <button type="button" class="brand-mark" id="brandHome" aria-label="Today, back to top"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke-width="2.6"><path d="M15.90 6.23 A7 7 0 1 1 9.27 3.04" stroke="currentColor"/><path class="brand-mark-lit" d="M10.00 3.00 A7 7 0 0 1 15.47 5.64"/><circle cx="10" cy="10" r="1.5" fill="currentColor" stroke="none"/></svg></button>
-      <div class="eyebrow" id="headerEyebrow">Training Log</div>
+      <button type="button" class="brand-mark" id="brandHome" aria-label="Today, back to top"><svg aria-hidden="true" viewBox="0 0 24 24"><defs><clipPath id="brandMarkTile"><rect width="24" height="24" rx="5.4"/></clipPath></defs><g clip-path="url(#brandMarkTile)"><rect width="24" height="24" fill="#0C0C0D"/><g transform="rotate(-30 12 12)"><rect x="-10" y="6" width="44" height="2.1" fill="#D42F25"/><rect x="-10" y="8.5" width="44" height="2.1" fill="#2C5BD8"/><rect x="-10" y="11" width="44" height="2.1" fill="#F2C200"/><rect x="-10" y="13.5" width="44" height="2.1" fill="#1E9E4A"/><rect x="-10" y="16" width="44" height="2.1" fill="#E6E6E2"/></g></g></svg></button>
+      <div class="eyebrow" id="headerEyebrow">Liftnext</div>
     </div>
     <h1 id="viewTitle">Today</h1>
     <div class="sub" id="headerSub">Set up your profile below to personalize this</div>
@@ -7619,7 +7615,11 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.514';
+const APP_VERSION = '3.516';
+// v3.515: the app is called Liftnext (owner, 2026-11-07; Chalklog was picked first and dropped the same day, before release, because several "Chalk" fitness apps exist). Display name only:
+// storage keys, cache names and backup format keep their training-log names,
+// so nothing stored on a phone changes. Every on-screen name reads this.
+const APP_NAME = 'Liftnext';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8968,6 +8968,12 @@ const WHATS_NEW = {
   ]},
   '3.514': { headline: 'Exercise demos removed for now', points: [
     'The 3D exercise demos are gone while we rethink them. Technique & focus shows the cues and the form-video link again, and the demo files are cleared from your phone.',
+  ]},
+  '3.515': { headline: 'Training Log is now Liftnext', points: [
+    'Same app, same data, new name. The label under your home-screen icon keeps the old name; changing it means adding the app to your home screen again, so export a backup in Settings first.',
+  ]},
+  '3.516': { headline: 'A new icon', points: [
+    'The five plate colours as one band, on the home screen and beside the name on Today. Your home-screen icon updates when you add the app again; export a backup in Settings first.',
   ]},
 };
 
@@ -29620,7 +29626,7 @@ async function shareCelebrationCard(cardData, btnId){
     const detailText = cardData.detail || (cardData.stats ? cardData.stats.map(s=> `${s.label}: ${s.value}`).join(', ') : '');
     const shareText = detailText ? `${cardData.headline} — ${detailText}` : cardData.headline;
     if(navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({files:[file], text: shareText, title:'Training Log'});
+      await navigator.share({files:[file], text: shareText, title:APP_NAME});
     } else {
       // No Web Share support for files (older Safari, most desktop
       // browsers) — open the image in a new tab so a long-press/right-click
@@ -33786,7 +33792,7 @@ function renderHeader(){
     // workout card shows the real day and its estimate.
     document.getElementById('headerSub').textContent = `${p.heightFt}'${p.heightIn}" · ${fmtWeight(p.weight)} · ${(GOAL_LABELS[p.goal]||'').toLowerCase()}`;
   } else {
-    document.getElementById('headerEyebrow').textContent = 'Training Log';
+    document.getElementById('headerEyebrow').textContent = APP_NAME;
     document.getElementById('headerSub').textContent = 'Set up your profile below to personalize this';
   }
 }
@@ -34256,7 +34262,7 @@ document.getElementById('importDataInput').addEventListener('change', async (e)=
   }
 
   if(!parsed || typeof parsed.data !== 'object' || parsed.data === null){
-    statusEl.textContent = 'That doesn\'t look like a Training Log backup file (missing expected data).';
+    statusEl.textContent = `That doesn't look like a ${APP_NAME} backup file (missing expected data).`;
     return;
   }
 
@@ -45083,7 +45089,7 @@ async function buildPrintReport(rangeDays){
   const name = (userProfile && userProfile.name) ? escapeHtml(userProfile.name) : '';
   const headerHtml = `
     <div class="pr-header">
-      <h1>Training Log — Workout Report</h1>
+      <h1>${APP_NAME} — Workout Report</h1>
       <div class="pr-meta">${name ? name + ' · ' : ''}${rangeLabel} · ${dates.length} session${dates.length===1?'':'s'} · Generated ${formatShortDate(getTodayKey())}</div>
     </div>
   `;
@@ -45132,7 +45138,7 @@ async function buildProgramPrintReport(){
   }
   const headerHtml = `
     <div class="pr-header">
-      <h1>Training Log — ${escapeHtml(prog.label)}</h1>
+      <h1>${APP_NAME} — ${escapeHtml(prog.label)}</h1>
       <div class="pr-meta">${prog.short ? escapeHtml(prog.short) + ' · ' : ''}Generated ${formatShortDate(getTodayKey())}</div>
     </div>
   `;
@@ -45179,7 +45185,7 @@ function buildAnalysisPrintReport(){
   const name = (userProfile && userProfile.name) ? escapeHtml(userProfile.name) : '';
   const headerHtml = `
     <div class="pr-header">
-      <h1>Training Log — Analysis Snapshot</h1>
+      <h1>${APP_NAME} — Analysis Snapshot</h1>
       <div class="pr-meta">${name ? name + ' · ' : ''}Generated ${formatShortDate(getTodayKey())}</div>
     </div>
   `;
@@ -46266,7 +46272,7 @@ function verifyBackupFile(text){
     return {ok:false, error:"This file is JSON but not a backup — the top level isn't an object."};
   }
   if(!parsed.data || typeof parsed.data !== 'object'){
-    return {ok:false, error:"No `data` section. This is not a Training Log backup, or it was truncated before it finished writing."};
+    return {ok:false, error:`No \`data\` section. This is not a ${APP_NAME} backup, or it was truncated before it finished writing.`};
   }
 
   const keys = Object.keys(parsed.data);
@@ -47545,7 +47551,7 @@ if(activeUserId){
   (async function init(){
     bootMark('initStart');
     await runMigrations();
-    document.getElementById('appFooter').textContent = `Training Log v${APP_VERSION} · schema v${SCHEMA_VERSION}`;
+    document.getElementById('appFooter').textContent = `${APP_NAME} v${APP_VERSION} · schema v${SCHEMA_VERSION}`;
 
     await loadWeightUnit();
     await loadDistanceUnit();

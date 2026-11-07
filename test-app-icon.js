@@ -15,7 +15,7 @@
 //
 // icon.svg is the 1024 master the PNGs are rendered from.
 //
-// v3.386 — The header's brand mark (beside "Training Log" on Today) is the
+// v3.386 — The header's brand mark (beside the app name on Today) is the
 // same plate instead of the old barbell: rim in the text colour, the lit
 // seventh in --plate-red, the bore. The hub ring is left out at 14px.
 //
@@ -56,24 +56,35 @@ test('every icon the app references is the right size, and every home-screen/app
   assert.deepStrictEqual(manifest.icons.map(i => i.purpose), ['any', 'any', 'maskable', 'monochrome']);
 });
 
-test('the master is the plate: a lit seventh of the rim, cut cleanly from the rest, and no text', (assert)=>{
+// 2026-11-07 (v3.516): the plate-ring icon is replaced by the Liftnext "Sash"
+// (owner picked option B, tools/design/icon/). The two tests below replace the
+// v3.384 ring and v3.386 header-plate checks; the iOS rules above still hold.
+const INKS = ['#D42F25', '#2C5BD8', '#F2C200', '#1E9E4A', '#E6E6E2'];
+function bands(svg){
+  return [...svg.matchAll(/<rect x="[-\d.]+" y="([\d.]+)" width="[\d.]+" height="([\d.]+)" fill="(#[0-9A-F]{6})"\/>/g)]
+    .map(m => ({ y: +m[1], h: +m[2], fill: m[3] }));
+}
+
+test('REAL master (v3.516): five plate inks in weight order, parted by ground-coloured gaps, on an opaque ground; no text, gradient or glow', (assert)=>{
   const svg = fs.readFileSync(path.join(__dirname, 'icon.svg'), 'utf8');
   assert.match(svg, /viewBox="0 0 1024 1024"/);
-  assert.strictEqual((svg.match(/stroke-width="104"/g) || []).length, 2, 'the rim in two pieces: platinum and the lit seventh');
-  assert.match(svg, /stroke="url\(#acc\)"/, 'the lit seventh carries the accent');
-  assert.doesNotMatch(svg, /<text|filter=|feGaussianBlur/, 'no text, no baked glow (the system adds its own effects)');
-  assert.match(svg, /<rect width="1024" height="1024" fill="url\(#base\)"\/>/, 'full-bleed, opaque background');
+  assert.match(svg, /<rect width="1024" height="1024" fill="#0C0C0D"\/>/, 'full-bleed, opaque ground');
+  const b = bands(svg);
+  assert.deepStrictEqual(b.map(x => x.fill), INKS, 'each ink once, heaviest plate on top');
+  for(let i = 1; i < b.length; i++) assert.ok(b[i].y > b[i-1].y + b[i-1].h, 'band ' + i + ' never touches the one above (luminance separation)');
+  assert.doesNotMatch(svg, /<text|filter=|feGaussianBlur|Gradient/, 'no text, no gradient, no baked glow');
 });
 
-test('REAL markup (v3.386): the header mark is the plate — rim, lit seventh, bore — not the old barbell', (assert)=>{
+test('REAL markup (v3.516): the header mark is the same sash on its ink tile, decorative only', (assert)=>{
   const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
   const marks = html.match(/<button type="button" class="brand-mark" id="brandHome"[^>]*>[\s\S]*?<\/button>/g) || [];
   assert.strictEqual(marks.length, 1, 'anchor: the one header mark');
-  assert.match(marks[0], /<path class="brand-mark-lit" d="M10\.00 3\.00 A7 7 0 0 1 15\.47 5\.64"\/>/, 'the lit seventh, from the top');
-  assert.match(marks[0], /A7 7 0 1 1 9\.27 3\.04/, 'the rest of the rim, cut from it');
-  assert.match(marks[0], /<circle cx="10" cy="10" r="1\.5"/, 'the bore');
-  assert.doesNotMatch(marks[0], /<rect/, 'no barbell plates left');
-  assert.match(html, /\.brand-mark-lit\{stroke:var\(--plate-red\);\}/);
+  assert.match(marks[0], /<svg aria-hidden="true"/);
+  assert.match(marks[0], /<clipPath id="brandMarkTile"><rect width="24" height="24" rx="5\.4"\/><\/clipPath>/, 'the rounded tile');
+  assert.deepStrictEqual(bands(marks[0]).map(x => x.fill), INKS, 'the same five inks, same order');
+  assert.doesNotMatch(marks[0], /brand-mark-lit|<circle/, 'nothing of the old plate left');
+  assert.doesNotMatch(html, /\.brand-mark-lit\{/, 'its style is gone too');
+  assert.strictEqual((html.match(/id="brandMarkTile"/g) || []).length, 1, 'clip id is unique on the page');
 });
 
 test('REAL markup + CSSOM (v3.390): the mark is a labelled button, 20px, with a 44px tap area and no box of its own', (assert)=>{

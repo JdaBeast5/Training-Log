@@ -1,6 +1,6 @@
 {
-  "name": "Training Log",
-  "short_name": "Training Log",
+  "name": "Liftnext",
+  "short_name": "Liftnext",
   "description": "Personal fitness tracking — 22 training programs, nutrition tracking, and AI coaching, all in one place.",
   "start_url": "./index.html",
   "scope": "./",
