@@ -1,6 +1,6 @@
 # Business: strategy, model, funnel, and what blocks success
 
-Owner: business-manager. Written 2026-11-07 against **v3.514** (`APP_VERSION`, `index.html:7622`). Line numbers are `index.html` at v3.514 unless a file is named. Inputs: `CLAUDE.md`, `HANDOFF-v59.md` (Addenda 39–41), every file in `planning/`, a first-launch walk in Playwright, and the web sources linked inline.
+Owner: business-manager. Written 2026-11-07 against **v3.514** (`APP_VERSION`, `index.html:7622`). Line numbers are `index.html` at v3.514 unless a file is named. **Revised 2026-11-07 against v3.516** (`APP_VERSION`, `index.html:7618`) for the pre-D1 alignment round: the app is now **Liftnext** (display name only; storage keys unchanged), and the owner approved the three-layer money model ("Love it"), so §3 now covers the coach plan and coach programs (§3.8, BIZ-23, BIZ-24). "Training Log" below means the same app under its old name. Inputs: `CLAUDE.md`, `HANDOFF-v59.md` (Addenda 39–41), every file in `planning/`, a first-launch walk in Playwright, and the web sources linked inline.
 
 **Mandate (owner):** make Training Log the most successful exercise-tracking and workout app in the world. "Anything he sees that needs fixing and optimizing, goes."
 
@@ -17,7 +17,12 @@ Owner: business-manager. Written 2026-11-07 against **v3.514** (`APP_VERSION`, `
    3. All data lives in one browser. The first backup nudge waits 10 sessions, and Safari ignores the persistence request.
    4. The AI features are wired into the most visible places, but they need the user's own Anthropic key, so for almost every stranger they are dead ends.
    5. There's no way to measure activation or retention, and nothing a user shares links back to the app.
-3. **Model (owner-decided 2026-11-07, revised): free at launch, a subscription later.** Our verdict is that it's sound if the line is drawn now. Everything that runs on the phone stays free forever, with no ads. Only new things that run on our servers (hosted AI, cloud sync) ever go into a subscription. Early users get a founding price. The switch-on is triggered by metrics, not a date, and Play billing comes first. Details in §3.
+3. **Model (owner-approved 2026-11-07: three layers, "Love it").**
+   1. **Free forever on the phone:** everything we build that runs on the device, with no ads and no quotas, including every built-in program.
+   2. **Liftnext Pro, later:** a subscription only for new things that run on our servers (hosted AI, cloud sync). Early users get a founding price. The switch-on is triggered by metrics, not a date, and Play billing comes first.
+   3. **Revenue that never touches the free app:** a coach plan where the coach pays and the clients stay free (BIZ-23), and paid programs written by real coaches with a revenue share (BIZ-24). The built-in programs stay free.
+
+   Details in §3; the coach layer is §3.8.
 4. **North star:** *weekly active trainers*, meaning people who log at least 2 training sessions in a calendar week (§4).
 
 ---
@@ -94,14 +99,18 @@ Prices are from `planning/research.md` §1 (dated snapshots, third-party sources
 
 ### 3.3 The line, decided now
 
-**The rule in one sentence:** *if it runs on your phone, it's free forever; if it runs on our servers, it may one day be part of a subscription.* No ads, ever, on either side. No selling or sharing of data, ever.
+**The rule in one sentence (revised for the three layers):** *everything we build that runs on your phone is free forever; only things that run on our servers can be in Liftnext Pro; and the only other things anyone pays for are a coach's own work: a coach's client plan (the coach pays) or a program a coach wrote and sells.* No ads, ever, on any layer. No selling or sharing of data, ever.
+
+**Why the sentence changed.** The earlier wording ("if it runs on your phone, it's free forever") would have made a paid coach program a broken promise, because a program runs on the phone. It was never published (BIZ-18 is still needs-owner), so fixing it now costs nothing. After launch it would have been a clawback.
+
+**What "free forever" promises, and what it doesn't.** It is a promise about **price**: nothing on this list will ever cost money or sit behind a lock, a quota or a "Pro" label. It is not a promise that every feature stays exactly as it is. We may still fix or retire something for safety or correctness (for example BL-35 replaces Neck Bridges, and BIZ-15's review may change clinical content), but anything retired is never brought back as a paid feature. The public wording in §3.4 says this in one clause, so a later safety fix can't be read as a clawback.
 
 **Free forever** (it runs on the device and costs nothing to run):
 
 | Area | What's included |
 |---|---|
 | Logging | Workouts, one-tap sets, the rest timer, plate math and warm-ups |
-| Programs | Every program, today's 25 and any added later. Progression, deloads, RPE and RIR targets, and substitutions |
+| Programs | Every built-in program, today's 25 and any we add later. Your own custom programs, and sharing them as links (MKT-10). Progression, deloads, RPE and RIR targets, and substitutions, which also apply to any coach program you add |
 | History and analysis | Full history with no time limit, PRs, e1RM, every chart and Analysis card computed on the device, Year in Lifting, "Your number" (MKT-06, MKT-17) |
 | Food | Search (USDA and Open Food Facts), barcode lookup, macro targets, trend weight and adaptive expenditure when they ship (BL-16, BL-17, BL-27) |
 | Health tracking | Sleep, water, blood pressure, glucose, cycle, supplements and care tracking, and the clinical programs |
@@ -111,10 +120,11 @@ Prices are from `planning/research.md` §1 (dated snapshots, third-party sources
 
 **No quotas** on routines, custom exercises, programs or history length.
 
-**Subscription candidates** (only once built, and only new things):
+**Liftnext Pro candidates** (only once built, and only new things):
 - **Hosted AI coaching**, with no key needed. Every request costs money. This is the first candidate, because BYO-key AI is the biggest dead end for new users today (§5.4).
 - **Cloud sync and automatic encrypted backup** on a server we run, across devices.
-- **Coach features (an idea, not a plan):** a coach sees and edits a client's program. It needs a server to share the data. If it ever exists, the coach pays and the client stays free.
+
+**Outside Pro, paid by someone other than the ordinary user** (§3.8): the coach plan (BIZ-23) and coach-written programs (BIZ-24).
 
 **"Advanced analytics": our honest view is to keep it free.** If a chart is computed on the phone, it costs nothing to run, and the paid apps' history limits are exactly the complaint we win on. The one exception is analysis that needs hosted AI (for example an AI monthly review), which belongs with hosted AI.
 
@@ -123,7 +133,8 @@ Prices are from `planning/research.md` §1 (dated snapshots, third-party sources
 - selling or sharing data;
 - paywalling anything on the free list;
 - cosmetic unlocks (they blur the one-sentence rule);
-- lifetime plans on hosted AI.
+- lifetime plans on hosted AI;
+- selling programs we wrote ourselves, or moving a built-in program into the coach store.
 
 ### 3.4 The founding-member promise
 
@@ -134,7 +145,7 @@ Prices are from `planning/research.md` §1 (dated snapshots, third-party sources
 2. **A founding price on the subscription, locked for as long as they stay subscribed.** The recommendation is half the list price. That's our proposal for the owner, not a market figure.
 3. No pressure: nobody is subscribed automatically. If the store build offers a trial, the screen states the price and the day it converts, in the same size as the offer.
 
-**What they don't get:** a lifetime plan on hosted AI (§3.2, item 3).
+**What they don't get:** a lifetime plan on hosted AI (§3.2, item 3). The founding price applies to Liftnext Pro only. Coach programs are priced by the coach who wrote them, and the coach plan is a business purchase (§3.8).
 
 **Proof without accounts:** the earliest logged set in the device's own log (`readExCorpus` over the `ex:` keys, `index.html` 41021).
 - Not `activity-dates`, which prunes after 730 days (`ACTIVITY_DATES_RETENTION_DAYS`, 13913).
@@ -144,7 +155,7 @@ Prices are from `planning/research.md` §1 (dated snapshots, third-party sources
 - BIZ-19 (ready) shows "Training since" from the same data now, so the date is visible long before it matters.
 
 **When to announce:**
-- **At public launch (Phase 5)**, in general terms, alongside the free list: in the README, the landing page (MKT-14), the store listing, the privacy page (BIZ-16) and an in-app "What's free" note (BIZ-18). The wording: "Everything that runs on your phone is free, forever, with no ads. If we ever add a paid plan, it will only cover things that run on our servers, and anyone who trained with Chalklog before then gets a founding price for as long as they stay subscribed."
+- **At public launch (Phase 5)**, in general terms, alongside the free list: in the README, the landing page (MKT-14), the store listing, the privacy page (BIZ-16) and an in-app "What's free" note (BIZ-18). The wording (revised 2026-11-07 for the name and the three layers; BIZ-18 must use this text, not its older Chalklog draft): "Everything Liftnext does on your phone is free, forever, with no ads, including every program that comes with the app. We may fix or retire a feature for safety, but we will never put it behind a payment. If we ever add a paid plan, it will only cover things that run on our servers, like AI without your own key or cloud sync, and anyone who trained with Liftnext before then gets a founding price for as long as they stay subscribed. Coaches may one day pay to manage clients or sell programs they wrote; their clients and everyone else keep everything above for free."
 - **Why then:** the promise has to exist before anyone could be affected, so it can never look retroactive. It also rewards the people who take a chance on a new app.
 - **The price and the date:** in What's New and on the landing page **at least 30 days before billing starts.** That's our own notice rule, not an industry figure.
 
@@ -210,6 +221,49 @@ US prices. Most come from third-party trackers and reviews, as research §1 expl
 - **Never price below the measured running cost.**
 - The final price is set at switch-on, not now.
 
+### 3.8 The third layer: revenue that never touches the free app
+
+**Owner (2026-11-07):** approved the three-layer model ("Love it"). This section turns "possibly a coach plan and paid coach programs" into two needs-owner items, **BIZ-23** and **BIZ-24**. Neither has code, a server or a contract yet, and neither should until the conditions below hold.
+
+**The test both must pass:** an ordinary user who never meets a coach loses nothing, sees no upsell in the free areas, and never needs an account.
+
+#### The coach plan (BIZ-23): the coach pays, the clients are free
+- **What it is:** a coach writes and adjusts programs for clients and sees their training logs. It needs a server, because two phones have to share data. A client joins by an invite, opting in to share; the coach pays a monthly plan.
+- **Market evidence (third-party, unverified on the vendors' own pages):**
+  - **Hevy Coach** is listed from about **$25 a month**, with clients using Hevy free ([Capterra](https://www.capterra.com/p/155784/fitbot/), [Coachway](https://coachway.io/articles/hevy-coach-vs-truecoach/)). This is the same "coach pays, client free" shape, from a direct competitor (research §1).
+  - **TrueCoach** is reported at $29.98/mo for up to 5 clients, $69.98 for 20 and $164.98 for 50, with 5% on payments it collects ([FitBudd, Oct 2026](https://www.fitbudd.com/insights/truecoach-pricing-explained-plans-costs-and-what-coaches-actually-pay?c84a98fb_page=5); a competitor's blog, and Capterra lists a different starting price).
+  - So coaches already pay $25–165 a month for this job. **No price is proposed here.** It's set from the measured server cost and the owner's call, when and if the plan exists.
+- **The guardrails (these become acceptance criteria when it's built):**
+  1. **Clients pay nothing and need nothing they don't already have**, beyond joining the coach by an invite.
+  2. **Opt-in, scoped sharing.** The client chooses what the coach sees. Training logs are the default; body weight, food, sleep, BP, glucose, cycle and care data are off unless the client turns each one on. The client can stop sharing at any time, and the coach's copy is deleted.
+  3. **Leaving costs the client nothing.** If the coach stops paying or the client leaves, the client keeps every log and the last version of every program on the phone. Only the live link to the coach ends.
+  4. **No coach upsell in the free areas.** Nothing in the set sheet, the program picker, History or export advertises coaching.
+  5. **Payments between coach and client stay outside the app.** We sell the coach a tool, not a cut of their coaching. That avoids holding client money.
+- **Store rules:** Apple lets apps for real-time one-to-one services, fitness training among them, take payment outside in-app purchase (guideline 3.1.3(d), as quoted on [Apple's developer forums](https://developer.apple.com/forums/thread/723322); the live guideline text wasn't opened). A coach's *software* subscription bought in the app is a different case and may need in-app purchase. Check both stores' current rules before building.
+- **Privacy and law:** the moment client data reaches our server, the app is covered by rules it avoids today:
+  - the FTC's amended Health Breach Notification Rule, in force since 29 July 2024, which names diet and fitness apps and treats unauthorised sharing as a breach ([Covington](https://www.insideprivacy.com/health-privacy/ftc-issues-final-rule-to-expand-scope-of-the-health-breach-notification-rule/), [Jones Day](https://jonesday.com/en/insights/2024/07/ftc-issues-final-health-breach-notification-rule); law-firm summaries);
+  - Washington's My Health My Data Act, which law firms read as reaching fitness and wellness data, with consent rules of its own ([Perkins Coie](https://perkinscoie.com/en/trending-now/topics/my-health-my-data-mhmd.html), [Holland & Knight](https://www.hklaw.com/en/insights/publications/2023/05/washington-state-imposes-far-reaching-privacy-obligations); interpretive, not settled).
+  
+  That makes the coach plan a legal and privacy decision first and a revenue decision second.
+- **When:** not before Liftnext Pro's server exists and has run cleanly (BIZ-21 T4), because it shares that server, the accounts and the privacy page.
+
+#### Coach programs (BIZ-24): real coaches, revenue share, built-in programs stay free
+- **What it is:** a qualified coach publishes a program in Liftnext's program format; users can buy it; the coach gets a share of the net revenue. Once bought, it runs on the phone like any program and uses the free engine (progression, deloads, substitutions).
+- **Market evidence:** **Boostcamp** keeps a free library of coach programs and puts about 32 of 132 coach programs behind Pro, with some sold one-time ([Boostcamp program library](https://www.boostcamp.app/features/program-library), [Boostcamp Pro](https://boostcamp.app/pro)). Its revenue-share terms aren't public; no source found. **No revenue-share percentage is proposed here.** It's a contract term for the owner.
+- **Why this doesn't break the free promise:** the free list promises everything *we build*. A coach's program is the coach's work, sold by the coach. The built-in programs, the user's own custom programs and link sharing of custom programs (MKT-10) stay free.
+- **The guardrails:**
+  1. **No built-in program ever moves into the store,** and we never sell programs we wrote ourselves (§3.3, Rejected).
+  2. **Bought means kept.** A bought program stays on the phone and in the JSON backup, even if the coach leaves or the store closes.
+  3. **Same safety bar as built-in programs.** Every coach program passes the BL-01/BL-02 gates and the program audit's checks, and makes no health claims. **No clinical, prenatal, postpartum, rehab or hypertension programs from third parties**, because the liability sits with us (BIZ-15).
+  4. **Store billing for digital content.** A program bought in a store build is digital content, so expect in-app purchase on iOS (guideline 3.1.1, not opened here) and Play Billing on Android. The store's fee comes off the top, before the coach's share.
+  5. **No upsell in the free areas.** The program picker lists built-in programs first and labels coach programs as such; no lock icons appear on anything free (BIZ-18 criterion 4).
+- **An honest limit:** a single-file app can't stop a bought program from being copied, because it lives in the user's own data. Accept that, as Boostcamp-style libraries implicitly do; the price buys the coach's work and updates, not secrecy.
+- **When:** after public launch and after BIZ-21's triggers, because it needs payments, contracts and tax handling for payouts. It's the least urgent of the three layers.
+
+#### What this changes elsewhere
+- **BIZ-18's public wording** must use the §3.4 text, not its older draft (which names Chalklog and says nothing of coaches).
+- **MKT-10 (program links)** stays free for custom programs. When coach programs exist, a coach program shares as a link to the coach's page, not as its full contents. That's a rule for the future store, not a restriction on MKT-10 today.
+
 ---
 
 ## 4. North-star metric and the funnel
@@ -245,7 +299,7 @@ Impact = how much it limits weekly active trainers once the app is public. Each 
   - `README.md` is one line: `# Training-Log`. The public repo is the only landing page.
   - `index.html` has a `<title>` but no `<meta name="description">` and no Open Graph tags (head, lines 4–27). A shared link previews blank.
   - `manifest.json` says "22 training programs … and AI coaching". The code has **25** keys in `programs` (counted in the live page). AI coaching needs the user's own paid key.
-  - "Training Log" is a generic, descriptive name, which is hard to own in store search. Brand belongs to the marketing-manager; it's flagged here only because it gates the store launch.
+  - ~~"Training Log" is a generic, descriptive name.~~ **Resolved at v3.515:** the display name is now Liftnext (`manifest.json` `name`). The domain and USPTO check are still open before public use (pitch.md, Owner's answers). The manifest `description` still says "22 training programs … and AI coaching" at v3.516, so BIZ-07 is still needed.
   - Lock-screen and watch logging can't exist in a PWA (research §7). The Capacitor effort owns that.
 - **Items:** BIZ-07 (truthful metadata and README), BIZ-10 (install hint), BIZ-12 (go public: where and under what name).
 
@@ -313,6 +367,7 @@ Do these in order. Each step depends on the one before.
 2. **Store listings through the Capacitor track** (owned elsewhere; plan around it only):
    - Google Play and the App Store need a privacy policy, a support contact and developer accounts ($25 one-time for Play, $99/yr for Apple, per their public developer pages; check before paying). These need the owner (BIZ-12, BIZ-16).
    - Store presence also brings what a PWA can't have: lock-screen logging, Health Connect and HealthKit sync (roadmap theme 7, research §7).
+   - **Plan two to three weeks for Play's tester gate.** Google's help page says a personal developer account created after November 2023 must run a closed test with at least 12 opted-in testers for 14 days before it can request production access ([Google Play Console Help](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en-GB); secondary sources differ on the exact account cutoff date). An organisation account isn't subject to it. The first founding members are the natural testers, recruited honestly (no paid tester services).
 3. **Search:**
    - One plain landing page (GitHub Pages already serves the app).
    - Target the switching intents: "Strong alternative free", "Hevy free alternative", "free workout app no ads". These are proposed queries, not measured volumes.
@@ -335,6 +390,7 @@ The full text is in `planning/roadmap.md` → "Business priorities".
 4. BIZ-06, BIZ-07, BIZ-09, BIZ-10 and BIZ-17 are small and ready; slot them between larger items.
 5. Owner decisions in this order: BIZ-12 (go public?), BIZ-16 (privacy policy), BIZ-15 (clinical review), BIZ-11 and BIZ-18 (adopt the free/paid line publicly), BIZ-20 (founding promise), BIZ-13 (own-cloud backup), BIZ-21 (switch-on triggers), BIZ-22 (payment path), BIZ-14 (hosted AI, the first subscription candidate).
 6. BIZ-19 (a "Training since" date from the log) is ready and small. It makes founding eligibility visible long before it matters.
+7. The coach layer (BIZ-23 coach plan, BIZ-24 coach programs) is last. Both need the server, accounts, a privacy review and contracts, and neither changes anything in the build sequence. The one thing it changes now is BIZ-18's public wording (§3.4).
 
 ---
 
@@ -347,4 +403,6 @@ The full text is in `planning/roadmap.md` → "Business priorities".
 - **Precedent cases (§3.2):** the MyFitnessPal and Strava changes are confirmed by several news outlets. The Oura reaction is a forum anecdote. Fitbod's grandfathered legacy price comes from a competitor's blog.
 - **Apple and web purchases:** the guideline 3.1.1 risk comes from developer forum reports, not from the guideline text. The US link-out rules are still in litigation.
 - **Competitor prices:** these are `planning/research.md` snapshots, and several conflict between sources.
+- **Coach market (§3.8):** Hevy Coach and TrueCoach prices come from Capterra and a competitor's blog, and they conflict. Boostcamp's revenue share is not public. The health-data laws (FTC HBNR, Washington MHMDA) are from law-firm summaries; how they apply to Liftnext is a question for counsel, not this file.
+- **Play's 12-tester rule:** from Google's help page as surfaced in search; the account cutoff date differs between sources.
 - **Playwright walk:** Chromium at 402×874, not iOS Safari. Install, persistence and share-sheet behaviour on an iPhone are unverified.

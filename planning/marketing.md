@@ -1,6 +1,6 @@
 # Marketing: brand, built-in virality, store and launch, experiments
 
-Owner: marketing-manager. Written 2026-11-07 against **v3.514** (`APP_VERSION`, `index.html:7622`). Line numbers are `index.html` at v3.514. **Re-grep them before building anything.** Builds on `planning/business.md` (the promise, the funnel, BIZ-01 to BIZ-16) and `planning/research.md`. `planning/design-vision.md` ("Plate & Press") owns visuals; this file owns the words and the share moments, and §2.4 aligns the two.
+Owner: marketing-manager. Written 2026-11-07 against **v3.514** (`APP_VERSION`, `index.html:7622`). Line numbers are `index.html` at v3.514. **Re-grep them before building anything.** **Updated 2026-11-07 (pre-D1 alignment) for v3.516:** the owner named the app **Liftnext** (v3.515, display name only; Chalklog was dropped the same day because several "Chalk" fitness apps exist) and chose the **"Sash"** icon (v3.516). §0.4, §2.1, §2.4, §3.4, §4.1, §4.3 and §5 reflect that. Builds on `planning/business.md` (the promise, the funnel, BIZ-01 to BIZ-16) and `planning/research.md`. `planning/design-vision.md` ("Plate & Press") owns visuals; this file owns the words and the share moments, and §2.4 aligns the two.
 
 **Mandate (owner):** make Training Log the most viral and most successful workout tracker in the world. "Anything he sees that needs fixing and optimizing, goes."
 
@@ -13,7 +13,7 @@ Owner: marketing-manager. Written 2026-11-07 against **v3.514** (`APP_VERSION`, 
 1. **The streak works against the program.** It counts consecutive calendar days (`computeStreak`, 13989). The first celebration fires at 7 days in a row (`STREAK_MILESTONES`, 14008). Readiness warns "6 days without a rest day" one day earlier (`READINESS_DAYS_NO_REST = 6`, 46836). Someone following a 3–5 day plan never earns a streak card, and the only person who does has just been told to rest. **Fix: a weekly consistency streak** (MKT-01). It's the most important share moment and it matches the business north star (weekly active trainers, business.md §4).
 2. **Share cards exist but aren't built for where people share.** PR, streak and week cards are 1080×1080 squares (`buildShareCardBlob`, 29510) with plain "TRAINING LOG" text and no link. Instagram and WhatsApp stories are 9:16. The week card can fall back to **average body weight** (45463), which puts a sensitive number on a public image without asking. **Fix: private-by-default card content (MKT-02) and story-format cards with the real brand mark (MKT-03).**
 3. **The biggest moments have no card:** a finished session (29263), a finished training block, and a year of lifting. **Fix: session (MKT-04), block (MKT-05) and "Year in Lifting" (MKT-06) cards**, all rendered on the device.
-4. **The name can't be owned.** "Training Log" is a description. The App Store already has Training Tracker, TrainLog, LiftLog, StrengthLog, Workout Log and Lift Notes. **Recommendation: rename to "Chalklog", keeping "Training Log" as the descriptor** (§2.1). Needs the owner (MKT-09).
+4. **The name is decided: Liftnext** (owner, v3.515). What's left is owning it: buy `liftnext.app` and run a trademark knockout search **before the name appears on any share card** (MKT-03), and use `liftnext.app`, never the `github.io` URL, as the address on cards (§2.1, §4.3). The store title is "Liftnext: Training Log".
 5. **Invite links and friend challenges can work without a server.** The payload goes in the URL fragment, which browsers never send to the server. This depends on the public address (BIZ-08 / BIZ-12), so it needs the owner (MKT-10, MKT-11).
 
 ---
@@ -33,6 +33,8 @@ Walked in Playwright Chromium at 402×874, scale factor 2: a fresh context, then
 | Share fallback | With no Web Share for files, it opens the PNG in a new tab (29630) | Fine. Desktop users can save the image |
 | What's New | Mostly user-facing, but some headlines are internal ("Cleaner button gradients", "More consistent glow effects", 3.92–3.93) | Voice guidance in §2.3: lead with what the person can now do |
 
+**Since this walk (v3.515 to v3.516):** the home-screen name, title and header now say Liftnext, and the icon and header mark are the Sash. The share cards, the first-screen gradient and the What's New voice are unchanged.
+
 **What's good and should be protected:** no console errors, no network requests on first launch, real one-tap logging, a celebration banner that already offers a share button (`triggerCelebration`, 29438) with a sensible 5-second hold, an AbortError-aware share path, and a privacy note on Progress Photos that tells the truth (6556).
 
 ---
@@ -49,15 +51,27 @@ Availability was checked on 2026-11-07. Domains: RDAP lookups through rdap.org (
 
 | Option | Meaning | `.app` domain | Store conflicts found | Trademark signals | Verdict |
 |---|---|---|---|---|---|
-| **Chalklog** | Chalk is what a lifter puts on before a heavy set, and what a coach writes the day's work in on the board. It reads as "the log" without being generic | `chalklog.app` **available**; `chalklog.com` registered 2026-06-08 | None found for "Chalklog" or "Chalk Log" ([search](https://alternativeto.net/software/liftlog-liam-morrow/)) | No CHALKLOG mark found. CHALK, CHALK UP and CHALKOLOGY marks exist in other contexts ([chalk 97310379](https://markinton.com/trademark/chalk-97310379), [CHALKOLOGY](https://gleanmark.com/trademark/uspto-88065562)), so a clearance check is needed | **Recommended.** 8 letters, fits under the icon, sounds like the gym |
-| **Liftnext** | The promise in one word: what to lift next | `liftnext.app` and `liftnext.fit` **available**; `.com` registered 2017 | None found | No LIFTNEXT mark found ([search](https://markinton.com/trademark/liftlog-99587187)) | Strong second. More literal, and closer to the crowded "Lift…" field (LiftLog, Liftlog+, Lift Notes) |
+| Chalklog | Chalk is what a lifter puts on before a heavy set | `chalklog.app` available; `chalklog.com` registered 2026-06-08 | The owner found several "Chalk" fitness apps | CHALK-family marks exist | **Dropped by the owner, 2026-11-07** (before release) |
+| **Liftnext** | The promise in one word: what to lift next | Re-checked 2026-11-07 (RDAP): `liftnext.app`, `liftnext.fit`, `liftnext.io`, `getliftnext.com` **available**; `liftnext.com` registered 2017-07-24 (HiChina nameservers, no website answers) | None found in web search ([search 2026-11-07](https://apps.apple.com/app/id6760911569) returned only LiftUp, LiftXP, Liftz, LiftBuddy) | No LIFTNEXT record found in web search. **Crowded LIFT- family:** LIFT ([76541387](https://gleanmark.com/trademark/uspto-76541387); Lift, Inc., [portfolio](https://trademarkdir.com/owner/lift-inc)), LIFT PLUS, LIFTIX, LIFTSHIFT | **Chosen by the owner, shipped v3.515.** Clearance steps in the decision below |
 | Overload (Overload Log) | Progressive overload | `overloadlog.app` available | Not checked in depth; a common word in fitness | Common word; weak | Not recommended: too generic |
 | Next Set / NextSet | The next set | `nextrep.app` taken | At least four "Next Set" apps ([search](https://apps.apple.com/app/id6758898625)) | — | Rejected |
 | Setwise, Barwise, Liftmark, Platecraft, Platebook | — | All registered | Setwise is a live paid app ([listing](https://apps.apple.com/mx/app/setwise-training-performance/id6757760643)) | — | Rejected |
 | Iron Ledger, Lift Ledger | — | `repledger.app` registered | IronLedger and IronPulse: Lift Ledger exist ([iphoneaddict](https://iphoneaddict.fr/apps/forme-sante/ironledger-139.html)) | — | Rejected |
-| **Keep "Training Log"** | — | `traininglog.app` registered 2026-06-06 | Many near-duplicates | Descriptive; likely unregistrable | Fallback only: keep it as the **descriptor** ("Chalklog: Training Log") |
+| Keep "Training Log" | — | `traininglog.app` registered 2026-06-06 | Many near-duplicates | Descriptive; likely unregistrable | Kept as the **descriptor** in the store title ("Liftnext: Training Log") |
 
-**Recommendation (needs-owner, MKT-09):** rename the public product **Chalklog**, with the store title "Chalklog: Training Log". The descriptor keeps the search phrase, and the people who installed "Training Log" still recognise it. Before spending anything: register `chalklog.app` (about the price of a domain), and run a USPTO search (or have an attorney check) in classes 9 and 41. If the clearance check turns up a conflict, fall back to **Liftnext**. The PWA's `short_name` and the home-screen label change in one version, with a What's New line ("Training Log is now Chalklog. Same app, same data.").
+**Decision (owner, 2026-11-07): Liftnext.** Shipped in v3.515 as a display name only (`APP_NAME`, `<title>`, manifest, What's New). Storage keys, cache names and the backup format keep their `training-log` names. Store title: **"Liftnext: Training Log"** (22 characters): the descriptor keeps the search phrase, and people who installed "Training Log" still recognise it.
+
+**Owning the name, in this order (each is `needs-owner`: it costs money or is a legal step):**
+1. **Domain, this week.** Buy `liftnext.app` (one registration, roughly the price of any `.app` domain; `.app` is HTTPS-only, so the registrar's forwarding must support HTTPS). Turn on WHOIS privacy. Optionally `liftnext.fit`. Don't chase `liftnext.com` (held since 2017).
+2. **Point it without moving the app.** Forward `liftnext.app` with an HTTPS 301 to the current app URL (or, later, to a landing page). **Don't set a GitHub Pages custom domain on the app's repo yet:** that changes the app's origin, and `localStorage` and IndexedDB (every log and photo) don't follow an origin change. Installed copies would be stranded on the old origin. Moving the app itself is a separate owner decision with a planned export-and-import path (backup already includes photos, `index.html` ~34215).
+3. **Knockout search before the name goes on a card (free, about 30 minutes):** USPTO Trademark Search (tmsearch.uspto.gov) for LIFTNEXT, LIFT NEXT and live LIFT- marks in classes 9 (downloadable software), 41 (fitness instruction) and 42 (non-downloadable software); EUIPO eSearch and the WIPO Global Brand Database for the same. Search the App Store and Play on a phone (web search isn't the stores' own search). Record the result here.
+4. **Before the store listing (BIZ-12):** decide whether to file. USPTO charges per class (check the current fee schedule on uspto.gov); class 9 first. An attorney clearance opinion is worth it if the knockout search shows any live LIFT- mark for fitness software. This plan is not legal advice.
+
+**Name rules (Liftnext reads as an instruction):**
+- Always one word, capital L only: **Liftnext**. Never "LiftNext", "Lift Next" or "lift next" as the name.
+- In caps (event band, card footer), the wordmark always sits **beside the Sash mark**, never alone, so it reads as a brand, not an imperative.
+- Never set the wordmark directly above or before a load or a lift ("LIFTNEXT 165 LB" reads as "lift next: 165 lb"). On a bib, the big figure is the training-day number ("No. 47"), never a weight.
+- Use the pun once, on purpose: the subtitle "Know what to lift next". Don't stack it with the name in the same line on cards.
 
 ### 2.2 The one-line promise
 
@@ -90,11 +104,11 @@ A good coach in a quiet gym: specific, short, a little dry, never shouty.
 
 The design-engineer's vision ("Plate & Press", design-vision.md §3) landed while this file was being written, and it owns visuals. Today there are three unrelated accents: the icon's red-orange segment, the cards' gold `#F5C518` with a radial glow, and the first screen's blue-to-purple gradient. The vision retires the gradients, the glow and the violet. Marketing's brand rules, consistent with it:
 
-- **The mark:** keep the icon's ring with its one coloured segment. It reads as "progress through a cycle", works at 16 px, and should replace the plain "TRAINING LOG" text on every card (MKT-03).
+- **The mark (superseded 2026-11-07):** the owner chose **"Sash"** (v3.516): the five plate inks as one band, on its own ink tile (`tools/design/icon/option-b.svg`; the header mark at `index.html` ~489 notes the sash only reads inside its square). This settles MKT-19. On cards, draw the **tile with the sash**, not the bare sash, beside the Liftnext wordmark. The ring mark is retired. Cards today still print "TRAINING LOG" (`buildShareCardBlob`, `index.html:29608`) and save as `training-log.png` (29623); MKT-03 replaces both.
 - **Ground:** flat neutral ink (`#0C0C0D`) in dark, chalk paper (`#F3F3F1`) in light, with no gradients (design-vision §3.2). Share cards use the dark ground.
 - **Colour on cards = the day's spot ink** (the plate colour of the session's day), the same rule the vision applies to the PR flood. Gold retires with the glow. A block or year card, which spans days, uses ink-grey with the week strip in plate colours as data.
 - **Type:** Archivo condensed for the big figure and headline if the owner approves the font file (the vision's UX-02), otherwise Geist; Geist for everything else; tabular figures.
-- **Name fit:** the vision's concept roll lists "the box's chalk whiteboard" and the light ground is "chalk paper". "Chalklog" (§2.1) fits that world without forcing it.
+- **Name fit:** with Chalklog gone, nothing in the name ties a bib to lifting (design-directions §6.4 Q3 relied on "chalk" for that). The lifting signal must now come from the **Sash's plate inks and the loaded bar on the bib**; the bar is mandatory on the session bib, not decoration (§3.4).
 
 ---
 
@@ -134,6 +148,15 @@ The design-engineer's vision ("Plate & Press", design-vision.md §3) landed whil
 
 **What not to build:** a public profile, a feed, likes, contact-book import, "X people are training now" counters (fake social proof without a server), or notifications that guilt someone about a broken streak.
 
+### 3.4 The bib under the Liftnext name (MKT-16 to MKT-18; added 2026-11-07)
+
+The owner chose the race bib as the story card (pitch.md, "Owner's answers"). With the name now Liftnext:
+- **Event band:** one tracked-caps line, as on a real bib: **[Sash tile] LIFTNEXT · STRENGTH & SIZE · WK 3**. The name takes the event slot (the owner's suggestion), framed by the mark so it reads as the event's name. Program and week follow in the same line (design-directions §2.3 allows one tracked-caps line). If it doesn't fit at 1080 px, program and week drop to a sentence-case line under the band; the name and mark stay in the band.
+- **Sponsor strip** (the bib's foot): the address only, once there is one (BIZ-08). The name appears once per card, not twice.
+- **The big figure** is "No. 47" (MKT-17), never a load, so the band never reads "lift next: 160".
+- **The loaded bar is mandatory** whenever the lead lift is a barbell lift: it's what says "lifting, not running" now that "chalk" is gone. For days with no barbell lift, the bib shows the lead lift's top set line in its place; no invented bar.
+- **"Year in Lifting"** stays the recap's name: descriptive, and not Spotify's "Wrapped" or Strava's "Year in Sport". The "wall of bibs" is for the 2027 recap: MKT-06b ships mid-December, before MKT-16 exists in the roadmap.
+
 ---
 
 ## 4. Store and launch
@@ -142,15 +165,15 @@ The store listing waits on the owner's go-public decision (BIZ-12) and the Capac
 
 ### 4.1 Listing copy (draft)
 
-Assumes the rename. Replace "Chalklog" with "Training Log" if the owner keeps the name.
+Uses the owner's name, Liftnext (v3.515).
 
-- **App name (30):** Chalklog: Training Log
+- **App name (30):** Liftnext: Training Log
 - **Subtitle (App Store, 30):** Know what to lift next
 - **Short description (Play, 80):** Proven programs, one-tap logging and progression. Free, no ads, no account.
-- **Promotional text (App Store, 170):** Pick a program and Chalklog tells you the weight and reps for every set, and when to add more. One tap logs it. Free, with no ads and no account.
+- **Promotional text (App Store, 170):** Pick a program and Liftnext tells you the weight and reps for every set, and when to add more. One tap logs it. Free, with no ads and no account.
 - **Keywords (App Store, 100):** `workout,gym,log,lifting,strength,program,progressive overload,weightlifting,tracker,powerlifting,5x5`. Check the length, and drop any that are another company's mark.
 - **Long description (both):**
-  > Chalklog is a training plan and a logbook in one. Pick from 25 programs built on published research, and every set comes with a target weight and reps. Log it with one tap. When you've earned it, Chalklog adds weight; when you're stalling, it tells you, and it schedules deloads on its own.
+  > Liftnext is a training plan and a logbook in one. Pick from 25 programs built on published research, and every set comes with a target weight and reps. Log it with one tap. When you've earned it, Liftnext adds weight; when you're stalling, it tells you, and it schedules deloads on its own.
   >
   > • Programs for strength, size, powerlifting, home training and more, with the sources shown in the app
   > • One-tap set logging, plate maths, warm-up sets and a rest timer
@@ -180,9 +203,16 @@ Real screens from the seeded profile with one caption line each, set in the bran
 
 All public posting needs the owner (MKT-13): it publishes under his name and commits to a public address.
 
+**Sequencing rule (added 2026-11-07): nothing points strangers at the app before there's an address that will never change, and nothing carries an address before a stranger can succeed there.**
+- **Before MKT-03 merges (roadmap build 11):** `liftnext.app` is bought and the knockout search is done (§2.1, steps 1 and 3). MKT-03 puts the Liftnext wordmark on every card; it must not advertise a name we don't hold the domain for.
+- **The card address (BIZ-08) is `liftnext.app`, never the `github.io` URL.** Shared images can't be edited later, and the `github.io` URL carries the old repo name and the owner's GitHub handle.
+- **BIZ-08 stays behind the Phase 3 gate** (roadmap Phase 5). So the December 2026 Year in Lifting cards (MKT-06a/b) carry the name and mark but **no address**. That's deliberate: strangers shouldn't land on a first launch that BIZ-01 to BIZ-03 and BIZ-17 haven't fixed. December 2026 is a dogfood run with the owner and friends; the public recap moment is December 2027.
+- **No launch post (MKT-13) before** `liftnext.app` resolves to a page that installs (MKT-14 or the README), the privacy page (BIZ-16) is live, and the Phase 3 gate holds.
+- **Program links and challenges (MKT-10, MKT-11)** are built on `PUBLIC_APP_URL`, so they come after BIZ-08, as the owner already said (D9).
+
 | Step | Where | How, inside the rules |
 |---|---|---|
-| 0. Ready | README as the landing page (BIZ-07), privacy page (BIZ-16), share links (BIZ-08), the first-launch fixes (BIZ-01 to BIZ-03) | Don't launch before the first-launch fixes. A stranger's first session is the launch |
+| 0. Ready | `liftnext.app` owned and forwarding (§2.1); README as the landing page (BIZ-07), privacy page (BIZ-16), share links (BIZ-08), the first-launch fixes (BIZ-01 to BIZ-03) | Don't launch before the first-launch fixes. A stranger's first session is the launch |
 | 1. Soft launch | Friends who lift: 10–20 people, using the app for 4 weeks | Ask them in person what confused them. That's the only "analytics" (§5) |
 | 2. Communities | **r/Fitness:** only in "Self-Promotion Saturday" or the monthly apps thread; the rules wiki says posting your own content without asking the moderators first gets a permanent ban ([r/Fitness rules mirror](https://reddit.rtrace.io/r/Fitness/wiki/intro), unofficial copy; check the live sidebar). **r/weightlifting** has a "Self Promotional Saturday" ([mirror](https://lr.psf.lt/r/weightlifting/comments/1ipwpsd/self_promotional_saturday)). **r/xxfitness** has a biweekly self-promotion thread ([mirror](https://lr.sudovanilla.org/r/xxfitness/comments/1frpacj/biweekly_self_promotion_thread_sell_yourself_and)). **r/PWA**, **r/SideProject** and **r/webdev** for the no-build-step single-file story | Disclose that you made it, every time. Post in the designated thread only. Answer questions; don't cross-post the same text. Read each sidebar on the day: these rules were checked through unofficial mirrors |
 | 3. Product Hunt | One launch, on a Tuesday–Thursday | Lead with "free, no ads, no account, your data stays on your phone". No upvote requests to friends (it breaks PH's rules and it's fake social proof) |
@@ -225,7 +255,7 @@ Low effort, made from the app itself. One post a week where the owner already ha
 | E3 | A link on the card brings installs | BIZ-08 | Store-console installs from web referrals; GitHub Pages has no analytics | Store consoles only. Optionally `?ref=card` in the URL, stripped on load and never stored (needs the owner because it's attribution: MKT-15) |
 | E4 | A Year in Lifting recap brings back lapsed users in December | MKT-06 | Store-console weekly actives in December vs. November | Store consoles (aggregate) |
 | E5 | A promise line on the first screen raises profile creation | BIZ-17 (business) | Testers who create a profile vs. close the app | Moderated tests with 5–10 strangers: watch, don't count |
-| E6 | "Rename to Chalklog" improves recall | MKT-09 | Can a tester name the app a week later? | Ask them. Cheap, honest, no data |
+| E6 | "Liftnext" is remembered and spelled right | MKT-09 (shipped v3.515) | Can a tester name the app a week later, and type it as one word into a search box? | Ask them. Cheap, honest, no data |
 
 ---
 
@@ -234,7 +264,9 @@ Low effort, made from the app itself. One post a week where the owner already ha
 Appended to `planning/backlog.md` under "Marketing (MKT)". Ready items first, in suggested build order:
 
 - **Ready:** MKT-01 weekly consistency streak; MKT-02 no body data on share cards by default; MKT-03 story-format cards with the brand mark; MKT-04 session-complete card; MKT-05 block-complete card; MKT-06 Year in Lifting; MKT-07 PR and progress cards show the gain; MKT-08 side-by-side progress photos on device.
-- **Needs owner:** MKT-09 the name; MKT-10 share a program by link; MKT-11 friend challenges by link; MKT-12 competitor names in copy and pages; MKT-13 public launch posts and creator outreach; MKT-14 a landing page file; MKT-15 any referral attribution.
+- **Bib (owner-approved design, 2026-11-07):** MKT-16 session bib, MKT-17 "Your number", MKT-18 pin it on a photo. Not yet placed in `roadmap.md`.
+- **Settled by the owner:** MKT-09 the name (Liftnext, v3.515; domain and trademark steps still open, §2.1); MKT-19 the mark (Sash icon, v3.516; the card mark folds into MKT-03).
+- **Needs owner:** MKT-10 share a program by link; MKT-11 friend challenges by link; MKT-12 competitor names in copy and pages; MKT-13 public launch posts and creator outreach; MKT-14 a landing page file; MKT-15 any referral attribution.
 
 BIZ-08 (the address on cards) is the prerequisite for the referral value of every card. MKT items don't duplicate it: MKT-03 leaves a footer slot for it.
 
@@ -242,7 +274,7 @@ BIZ-08 (the address on cards) is the prerequisite for the referral value of ever
 
 ## 7. Couldn't verify
 
-- **Trademarks:** web search only; USPTO and EUIPO weren't queried directly. CHALK-family marks exist in unknown classes.
+- **Trademarks:** web search only; USPTO and EUIPO weren't queried directly. No LIFTNEXT record turned up (2026-11-07), but several live LIFT- marks exist in classes not checked.
 - **Domains:** RDAP through rdap.org on 2026-11-07. A domain can be registered between now and purchase.
 - **App Store searches:** web search, not the store's own search, which ranks differently by country.
 - **Reddit rules:** read through unofficial mirrors; they may be out of date.
@@ -259,5 +291,6 @@ BIZ-08 (the address on cards) is the prerequisite for the referral value of ever
 - [Duolingo: how streaks keep learners committed](https://blog.duolingo.com/how-streaks-keep-duolingo-learners-committed-to-their-language-goals)
 - [Duolingo: improving the streak](https://blog.duolingo.com/improving-the-streak)
 - App Store listings: [Training Tracker – Gym Log](https://apps.apple.com/app/id6752959007), [StrengthLog](https://apps.apple.com/app/apple-store/id1434229662), [Setwise](https://apps.apple.com/mx/app/setwise-training-performance/id6757760643), [NextSet](https://apps.apple.com/app/id6758898625), [Lift Notes](https://apps.apple.com/us/app/id6753324391), [TrainLog](https://appgoblin.info/apps/6779832543), [IronLedger](https://iphoneaddict.fr/apps/forme-sante/ironledger-139.html), [Liftlog](https://alternativeto.net/software/liftlog-liam-morrow/)
-- Trademark search results: [LIFTLOG 99587187](https://markinton.com/trademark/liftlog-99587187), [CHALK 97310379](https://markinton.com/trademark/chalk-97310379), [CHALKOLOGY](https://gleanmark.com/trademark/uspto-88065562)
+- Trademark search results: [LIFTLOG 99587187](https://markinton.com/trademark/liftlog-99587187), [CHALK 97310379](https://markinton.com/trademark/chalk-97310379), [CHALKOLOGY](https://gleanmark.com/trademark/uspto-88065562), [LIFT 76541387](https://gleanmark.com/trademark/uspto-76541387), [Lift, Inc. portfolio](https://trademarkdir.com/owner/lift-inc), [LIFT PLUS](https://www.trademarkelite.com/trademark/trademark-detail/86284598/LIFT-PLUS), [LIFTIX](https://markinton.com/trademark/liftix-98948850), [LIFTSHIFT](https://trademarkdir.com/trademark/liftshift-99462736)
+- Liftnext store search (web, 2026-11-07), nearest names only: [LiftUp](https://apps.apple.com/app/id6760911569), [LiftXP](https://mwm.ai/apps/liftxp-ranked-gym-tracker/6791541944), [Liftz](https://www.producthunt.com/p/liftz-your-gym-buddy/liftz)
 - Reddit rules (unofficial mirrors): [r/Fitness](https://reddit.rtrace.io/r/Fitness/wiki/intro), [r/weightlifting](https://lr.psf.lt/r/weightlifting/comments/1ipwpsd/self_promotional_saturday), [r/xxfitness](https://lr.sudovanilla.org/r/xxfitness/comments/1frpacj/biweekly_self_promotion_thread_sell_yourself_and)

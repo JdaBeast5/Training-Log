@@ -2,6 +2,8 @@
 
 Prepared by the market-researcher agent on **2026-11-07**. Training Log was checked at **v3.514** (`APP_VERSION`, `index.html:7622`). Line numbers refer to `index.html` at that version.
 
+**Re-checked 2026-11-07 at v3.516 (pre-D1 alignment round).** The app now displays as **Liftnext** (`<title>`, manifest; storage keys unchanged), so "Training Log" below means the same app. Line numbers have drifted by a few lines since v3.514 (e.g. `APP_VERSION` is now 7618, down 4, `VOLUME_LANDMARKS` 45259, `computeReadiness` 46849). Three verdicts were wrong and are corrected in place, marked *(corrected 2026-11-07)*: the plate calculator is gone, a whole-day "Repeat yesterday" exists, and coarse per-category volume ranges exist. The name check is new in §11.
+
 ## How this was gathered, and what to trust
 
 - **Method:** web search only (standard mode). No App Store or Google Play page was fetched directly, so every rating below comes from a third-party tracker, a review, or the developer's own site. Each number carries the snapshot date its source gave. Where sources disagreed, the range is shown.
@@ -14,9 +16,9 @@ Prepared by the market-researcher agent on **2026-11-07**. Training Log was chec
 ## Summary: the five biggest opportunities
 
 1. **Adaptive expenditure and a smoothed trend weight.** This is MacroFactor's core differentiator: it re-estimates TDEE weekly from logged intake plus a trended weight and adjusts targets at a check-in. Training Log sets calories once from Mifflin–St Jeor × an activity factor (`computeTargets`, 32973). It draws raw weigh-ins with a first-to-last pace (`renderSparkline`, 40795). **Status: missing.** It matters most to the person who also logs food daily, which Training Log already asks of them.
-2. **Per-muscle weekly volume that reacts to feedback.** RP Hypertrophy (about $35/month) and Juggernaut AI (about $35/month) adjust next week's sets from soreness, pump, joint pain and performance. Alpha Progression and MacroFactor Workouts paywall similar ideas. Training Log already has free double progression, RPE-based loads and a stall-triggered deload. It also counts weekly sets by muscle (`renderVolumeTrend`, 45482). It has no set targets per muscle and asks for no feedback. **Status: weaker.** Doing this free and with the reason shown is a clear way to beat the paid apps.
+2. **Per-muscle weekly volume that reacts to feedback.** RP Hypertrophy (about $35/month) and Juggernaut AI (about $35/month) adjust next week's sets from soreness, pump, joint pain and performance. Alpha Progression and MacroFactor Workouts paywall similar ideas. Training Log already has free double progression, RPE-based loads and a stall-triggered deload. It also counts weekly sets (`renderVolumeTrend`, 45482) against coarse ranges per **category group** (`VOLUME_LANDMARKS`, 45253), so chest and side delts share one number *(corrected 2026-11-07)*. It has no per-muscle targets and asks for no feedback. **Status: weaker.** Doing this free and with the reason shown is a clear way to beat the paid apps.
 3. **Readiness built for lifters.** Athlytic and WHOOP users complain that HRV-based recovery ignores muscle fatigue, and WHOOP's Strength Trainer is described as hard to use. Training Log imports HRV (`parseHealthCsv`, 47037; HRV alias at 46959), but `computeReadiness` (46843) never reads it. Today readiness only raises flags; it doesn't change the session. **Status: weaker.**
-4. **Faster food logging: recents, copy a meal or day, saved meals.** MacroFactor competes on counted taps (its "Food Logging Speed Index"). MyFitnessPal's most-cited complaint is that barcode scanning is paywalled. Training Log already has free barcode lookup (Open Food Facts, `lookupBarcode`, 35155), USDA search, Snap a Meal and Describe It. No recents list, copy-yesterday or saved-meal shortcut turned up in a grep. **Status: missing.**
+4. **Faster food logging: recents, copy a meal or day, saved meals.** MacroFactor competes on counted taps (its "Food Logging Speed Index"). MyFitnessPal's most-cited complaint is that barcode scanning is paywalled. Training Log already has free barcode lookup (Open Food Facts, `lookupBarcode`, 35155), USDA search, Snap a Meal and Describe It. A whole-day "Repeat yesterday" exists, but only while the viewed day is still empty (`repeatYesterdayBtn` 6313, `updateRepeatYesterdayVisibility` 37668) *(corrected 2026-11-07)*. There is no recents list, no saved meals, and food entries carry no meal slot. **Status: mostly missing.**
 5. **Data portability: import from Strong and Hevy, export as CSV.** Switching friction keeps people in their current app; reviews say CSV fidelity matters to people leaving Strong. Training Log has a full JSON backup (34217), but there is no CSV export and no importer for other apps. **Status: missing.** This is cheap to build, and it's the only way to win people with years of logs elsewhere.
 
 ---
@@ -119,16 +121,16 @@ Key: ✔ has it · ◐ partial or paid-only · ✘ missing · ? not verified.
 | 1-tap set from previous/plan | ✔ | ✔ | ✔ | ✔ | ✔ | ✔ | — | ◐ (WHOOP ST) | **✔** 30776 |
 | Auto rest timer | ✔ | ✔ | ? | ? | ✘ (no rests prescribed) | ? | — | — | **✔** 29976 |
 | Warm-up calculator | ◐ Pro | ? | ? | ? | ? | ? | — | — | **✔** 28099 |
-| Plate calculator | ? | ✔ | ? | ? | ? | ? | — | — | **✔** ~31753 |
+| Plate calculator | ? | ✔ | ? | ? | ? | ? | — | — | **✘** gone; only `BARBELL_EXERCISES` survives (~31752). UX-07 restores it *(corrected 2026-11-07)* |
 | Auto progression suggestions | ◐ Pro (Trainer) | ✘ | ✔ | ◐ Pro | ✔ | ✔ | — | — | **✔ free** 27477, 30740 |
-| Feedback-driven weekly volume | ✘ | ✘ | ◐ (recovery model) | ? | ✔ | ? | — | — | **◐** sets counted 45482, no targets or feedback |
+| Feedback-driven weekly volume | ✘ | ✘ | ◐ (recovery model) | ? | ✔ | ? | — | — | **◐** sets counted 45482 against coarse category ranges (45253); no per-muscle targets, no feedback |
 | Planned deload / mesocycles | ◐ | ✘ | ✘ | ✔ | ✔ | ? | — | — | **✔** 14915, 26842 |
 | Program library | ✔ (Trainer) | templates | generated | ✔ | 45+ | ✔ | — | — | **✔** ~24 programs (9682) + custom (14745) |
 | PRs and e1RM history | ✔ | ✔ | ✔ | ✔ | ? | ✔ | — | — | **✔** 41682, 27431 |
 | Lock-screen / watch logging | ✔ Live Activity, Wear OS | ✔ Watch | ✔ | ? | ? | ◐ beta | — | ✔ band | **✘** (PWA) |
 | Barcode (free) | — | — | — | — | — | ✔ (paid app) | ✔ | — | **✔** 35155 |
 | AI photo meal logging | — | — | — | — | — | ◐ beta | ? | — | **✔** (own API key) 42250 |
-| Recents / copy meal / saved meals | — | — | — | — | — | ✔ | ✔ | — | **✘** |
+| Recents / copy meal / saved meals | — | — | — | — | — | ✔ | ✔ | — | **◐** whole-day Repeat yesterday only (6313); no recents or saved meals *(corrected 2026-11-07)* |
 | Adaptive TDEE + trend weight | — | — | — | — | — | ✔ | ✘ | — | **✘** 32973, 40795 |
 | Readiness score | — | — | ◐ | — | — | — | — | ✔ | **◐** 46843 (no HRV) |
 | Wearable sync | ✔ | ✔ | ✔ | ? | ? | ✔ | ✔ | ✔ | **◐** manual CSV (6610–6615) |
@@ -175,18 +177,19 @@ Training Log has all of these.
 |---|---|---|
 | One-tap set logging with Undo | **Has it** | Set chips: `renderSetChips` 30776, `logSetChip` 30988, `commitSet` 30980 |
 | Auto rest timer, notifications, screen awake | **Has it** | 29679, `startRestTimer` 29976, notifications 29809–29900, wake lock 30095 |
-| Warm-up ramp and plate math | **Has it** | `buildWarmupRamp` 28099, `BARBELL_EXERCISES` / plate calculator ~31753 |
+| Warm-up ramp | **Has it** | `buildWarmupRamp` 28099 |
+| Plate math | **Missing** *(corrected 2026-11-07)* | The calculator is gone; only its comment and `BARBELL_EXERCISES` / `isBarbellExercise` survive (31752–31769). UX-07's plate stack restores it. |
 | Progression engine (session and set) | **Has it** (free, which beats Hevy, Alpha Progression and RP on price) | `analyzeProgressionSignal` 27477, `loadForRpeTarget` 27395, `recommendNextSet` 30740 |
 | Deloads and mesocycles | **Has it** | `getMesocycleWeek` 14904, `isDeloadWeek` 14915, `applyDeloadVolumeReduction` 26842, manual override 30183 |
 | Exercise substitution | **Has it** | `suggestSubstitute` 43928 |
 | Programs and recommendation | **Has it** | `programs` 9682 (~24 authored programs), custom programs 14745, `recommendProgram` 33662, program fit 27557, days-per-week 25952 |
 | PRs, exercise history | **Has it** | `renderPrTimeline` 41682, `openExerciseHistory` 31422 |
-| Weekly volume per muscle | **Weaker** | `renderVolumeTrend` 45482 counts sets and volume against last week. There are no per-muscle set targets or ranges, and no soreness, pump or joint feedback feeding back into the plan. |
+| Weekly volume per muscle | **Weaker** | `renderVolumeTrend` 45482 counts sets and volume against last week. Ranges exist only per category group (`VOLUME_LANDMARKS` 45253, `MUSCLE_GROUP_MAP` 45233) *(corrected 2026-11-07)*. There are no per-muscle targets, no fractional counting, and no soreness, pump or joint feedback feeding back into the plan. |
 | Gym mode / foldable layouts | **Has it** (unusual) | `enterGymMode` 31243 |
 | Lock-screen / watch logging | **Missing** | A PWA can't add a Live Activity or watch app. The Capacitor effort is out of scope here (CLAUDE.md). |
 | Food search, barcode, photo, describe | **Has it** | USDA 35129, Open Food Facts barcode 35155 (free, where MFP charges), Snap a Meal 42250 / 8172, Describe It + voice 36554 / 36597, dietary filters 36797 |
 | Remaining-macro meal suggestions | **Has it** | `computeRemainingMacros` 37455, `buildMealSuggestions` 37468 |
-| Recents, copy meal or day, saved meals | **Missing** | Only My Foods (custom or cached items, 35002–35023) |
+| Recents, copy meal or day, saved meals | **Weaker** *(corrected 2026-11-07)* | Whole-day "Repeat yesterday" (6313, 37668), shown only while the day is empty. My Foods (35002–35023). No recents, no saved meals, no meal slots. |
 | Calorie targets | **Weaker** | Static Mifflin–St Jeor × activity (`computeTargets` 32973) with a deficit guardrail (`computeDeficitGuardrail` 14446). Never re-estimated from intake against the weight trend. |
 | Weight trend | **Weaker** | `renderSparkline` 40795 plots raw weigh-ins; pace is first-to-last over the range. No smoothed trend, so one water-heavy weigh-in swings it. Goal-date projection 34049 / ~40776. |
 | Body fat, measurements, progress photos | **Has it** | `readBodyFat` 39208, `loadMeasurements` 39213, `computeMeasurementDeltas` 45976, photos 6549 / IndexedDB 8996 |
@@ -232,7 +235,7 @@ Ranked by expected impact for someone training 3–6 days a week. Each item ship
 | 1 | **Per-muscle weekly set targets, with a 10-second post-session check-in** (soreness, joint pain, "could you do more?") that nudges next week's sets ±1 per muscle within a range | Hits every session for a 3–6 day lifter. Turns `renderVolumeTrend` (45482) from a report into a plan. RP charges ~$35/mo for this. | **vs RP:** free; skip "pump" (critics say beginners can't judge it); use performance (reps at load, already in `analyzeProgressionSignal`) as the main signal and feedback as a modifier; show the reason in one line, as `recommendNextSet` already does; cap changes inside the program's own range. |
 | 2 | **Trend weight (EMA) plus adaptive expenditure with a weekly check-in** | Pace and calorie targets are wrong for anyone whose TDEE differs from Mifflin × activity, and Training Log already collects both inputs. | **vs MacroFactor:** free; show the maths ("intake 2,410 avg, trend −0.4 lb/wk → expenditure ≈ 2,600"); fall back to `computeTargets` until 14 days of data; keep `computeDeficitGuardrail`; flag low-logging weeks rather than silently trusting them. |
 | 3 | **Readiness v2: HRV against a personal baseline, plus recent training load and soreness** → an actual session adjustment (e.g. "cap RPE 8 today" or "drop the last set"), wired into the set suggestions | Fixes the top complaint about Athlytic and WHOOP (they ignore muscle fatigue), and uses data already imported (46959). | **vs WHOOP and Athlytic:** it knows the actual sets, RPE and soreness, not wrist motion; the suggestion lands in the set chips, not a separate score you have to interpret. |
-| 4 | **Food logging speed: recents, "copy yesterday's breakfast", saved meals** | Daily, several times a day. MacroFactor's whole pitch is tap count. | **vs MacroFactor:** free with barcode and photo; publish our own tap counts for the common tasks in a test, so speed can't regress unnoticed. |
+| 4 | **Food logging speed: recents, single items from yesterday (extending Repeat yesterday, BL-19), saved meals** (there are no meal slots, so "yesterday's breakfast" has nothing to key on) | Daily, several times a day. MacroFactor's whole pitch is tap count. | **vs MacroFactor:** free with barcode and photo; publish our own tap counts for the common tasks in a test, so speed can't regress unnoticed. |
 | 5 | **CSV import from Strong and Hevy; CSV export** | One-off, but it's what lets someone with years of history switch. | **vs Hevy:** map exercise names to our library with a review step for unmatched ones; keep PRs and e1RM history intact (`reconstructAllPRs` 41641); export in a Strong-compatible layout so leaving is easy too, which builds trust. |
 | 6 | **Plateau playbook** (beyond the RPE ≥ 9 deload signal): after N stalled sessions, offer a rep-range shift, a substitution (`suggestSubstitute` 43928) or a micro-load | Long-term progression is Fitbod's main complaint. | **vs Fitbod and Alpha Progression:** explain the stall from the logs and offer a choice, not a silent change. |
 | 7 | **Lock-screen presence** | Hevy and Strong users rate it highly. | Not achievable in the PWA. It belongs to the separate Capacitor track; flagged only, out of scope here. |
@@ -255,3 +258,22 @@ Deliberately not recommended:
   - Whether Hevy has an Apple Watch app wasn't confirmed (only Wear OS appeared).
 - **Prices:** these conflict between sources (Fitbod, Bevel, RP) and should be checked before being quoted.
 - **Training Log:** "missing" verdicts come from greps of `index.html` v3.514 (e.g. no recents, copy-meal or CSV export found). A feature named differently could have been missed.
+
+---
+
+## 11. Name check: "Liftnext" (2026-11-07)
+
+Method: Apple's iTunes Search API (US store, queried directly 2026-11-07) for `liftnext`, `lift next`, `nextlift`, `next lift`; web searches for app listings, the domain and trademarks. Google Play was not searched directly.
+
+| Finding | Source | Verified? |
+|---|---|---|
+| No App Store app named exactly "Liftnext" or "Lift Next" | iTunes Search API, US | yes, as of 2026-11-07 |
+| **"NextLift" by Jordan Moffitt** (Health & Fitness, released 2026-09-21, v1.1.2 on 2026-10-29, free). Its listing: "connects your training, meals, recovery and progress", "leave with a clear next step" progression from effort ratings, barcode, dictated meals, saved meals, Apple Health readiness. That is our pitch, under the same two words reversed. | [App Store](https://apps.apple.com/us/app/nextlift/id6793723607) | yes (listing text via the API); 0 ratings |
+| **"NextLift: Barbell Tracker"** by Ross Poulton (released 2026-06-18, updated 2026-10-25). "No accounts, no subscriptions"; on-device. The API showed $0.99; a search snippet said $3.99. | [App Store](https://apps.apple.com/us/app/nextlift-barbell-tracker/id6780114731), [Mergeek](https://mergeek.com/latest/eBGqKWdxa2BWLvlO) | listing yes; price conflicts |
+| **"NextLift"** by AutoFit LLC (2026-01-13; a Hebrew coaching-client app). Package `com.autofit.nextlift` suggests an Android build. | [App Store](https://apps.apple.com/us/app/nextlift/id6757437818), [AppGoblin](https://appgoblin.info/apps/com.autofit.nextlift/keywords/discovery) | listing yes; Android unverified |
+| "Next Lifting" by park jaeeun (coach-member app, 2026-03-16) | [App Store](https://apps.apple.com/us/app/next-lifting/id6759361658) | yes |
+| NEXTLIFT trademark, serial 98603476, pending, **class 28** (sporting goods), filed 2024-06-16 | [markinton](https://markinton.com/trademark/nextlift-98603476) | aggregator only; check USPTO TSDR |
+| No LIFTNEXT mark found in classes 9 or 41 | web search only | **not a clearance search** |
+| `liftnext.com` registered 2017 | `marketing.md` §2.1 | not re-checked |
+
+**Read:** the exact spelling is free, but a search for "liftnext" on a phone will autocorrect or match toward "NextLift", where four fitness apps sit, three launched in 2026 and one with nearly our exact all-in-one positioning. This is a closer collision than the "Chalk" apps that retired Chalklog.

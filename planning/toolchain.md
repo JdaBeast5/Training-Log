@@ -1,6 +1,8 @@
 # Toolchain
 
-Owner: skills-orchestrator. Written 2026-11-07. This file maps each agent's work to the skills and tools it should use, and lists vetted additions. **Nothing here is installed yet.** Every addition is `recommended` until the owner says yes. After that, it is vendored unmodified with a `VENDORED.md`, following the existing ones.
+Owner: skills-orchestrator. Written 2026-11-07; **updated 2026-11-07 for the pre-D1 alignment round** (live is v3.516, display name Liftnext, design direction Plate & Press; see `planning/alignment/skills-orchestrator.md`). This file maps each agent's work to the skills and tools it should use, and lists vetted additions. **None of the §3 additions is installed yet** (D10 is still open). Every addition is `recommended` until the owner says yes. After that, it is vendored unmodified with a `VENDORED.md`, following the existing ones.
+
+**When D10 is actually needed:** not for D1. Phase 0 (builds 1–6) needs only what is installed: `check.sh`, the jsdom suites, `code-review`, Playwright Chromium. paper-lookup is needed before the three unverified citations reach the app (summit Phase 1 row). Playwright WebKit and axe-core are needed before Phase 2 (build 25, the redesign). Without them Phase 2 still runs, but on Chromium only, and each PR must say so.
 
 Status key: `installed` (in the repo now) · `recommended` (vetted, waiting for the owner) · `approved` · `rejected` (with the reason).
 
@@ -12,11 +14,13 @@ Status key: `installed` (in the repo now) · `recommended` (vetted, waiting for 
 
 | Skill | Source, commit, licence | Runs code? | Use it for |
 |---|---|---|---|
-| `impeccable` | pbakaus/impeccable `9fa16a0`, Apache-2.0 | Has a downloaded `scripts/impeccable` binary, **which is never run** (see its VENDORED.md). The Markdown fallback is used instead. | UI work: `audit`, `critique`, `polish`, `distill`, `harden`, `clarify`, `typeset`, `layout` |
+| `impeccable` | pbakaus/impeccable `9fa16a0`, Apache-2.0 | `scripts/impeccable` is a launcher that **downloads a ~21 MB engine binary from GitHub releases** (sha256-checked) and runs it. Its VENDORED.md says it is never run, **but it has been**: the engine 0.1.17 sits in `/root/.impeccable/bin/` (downloaded 2026-10-27), it ran an update check on 2026-11-07 (it reports upstream 4.8.0), and it wrote `.impeccable/questions/` (gitignored) during the design-engineer session. SKILL.md step 1 tells every invocation to run it. **Until the owner decides (alignment file, Q1), build runs use the Markdown fallback only** and do not run `scripts/impeccable`. | UI work: `audit`, `critique`, `polish`, `distill`, `harden`, `clarify`, `typeset`, `layout` |
 | `taste-skill` (design-taste-frontend) | Leonxlnx/taste-skill `12af471`, MIT | Node scripts (`inspect.mjs`, `lint.mjs`, …) that drive a real browser. Output goes to `.taste-skill/` (gitignored). | App-screen rules in `references/app-screens.md`. The owner's exceptions are in its VENDORED.md. |
 | `minimalist-skill`, `soft-skill` | Leonxlnx/taste-skill-classics `5e08c93`, MIT | No | Opt-in only. Use just the parts the VENDORED.md lists. |
 | `apple-hig` | ebuntario/apple-hig `c434b91`, MIT | No (`bin/` and `setup` were not copied) | iPhone PWA conventions: 44pt targets, sheets, tab bars, safe areas, Reduce Motion, VoiceOver |
-| `animate`, `animation-performance`, `animation-vocabulary`, `choreograph`, `find-animation-opportunities`, `improve-animations`, `review-animations` | emilkowalski/skills `c8a7962`, MIT | No | Motion work. Exercise demos are parked, so these are mostly for review and feedback motion. |
+| `animate`, `animation-performance`, `animation-vocabulary`, `choreograph`, `find-animation-opportunities`, `improve-animations`, `review-animations` | emilkowalski/skills `c8a7962`, MIT | No | Motion work. The exercise demos were removed in v3.514, so these are for feedback motion and the UX-09b PR moment (`review-animations`, `animation-performance`). |
+
+**Superseded project exceptions (read this before any VENDORED.md).** The "How this project uses it" notes in `impeccable/`, `apple-hig/` and `taste-skill/` VENDORED.md still describe the old **glass & glow** look (concept A): glass on chrome, the Up next ring, the day-hue gradient title, Geist as the face. The owner has since chosen **Plate & Press** (`pitch.md`, Owner's answers), and UX-03, UX-04, UX-15 and MKT-19 remove exactly those things. **For any UI item, `design-vision.md` and the item's acceptance criteria win over those VENDORED notes.** The notes need rewriting (owner's OK; the skill files themselves stay unmodified).
 
 ### Session built-in skills (available in every Claude Code session)
 - **`code-review`**: correctness review of a diff or PR. Use it **without `--fix`**, because an auto-fix pass invites drive-by changes.
@@ -33,21 +37,23 @@ Status key: `installed` (in the repo now) · `recommended` (vetted, waiting for 
 ### Stack tools
 - **Tests:**
   - `bash check.sh` (version parity, among other checks);
-  - `node test-*.js` (about 190 jsdom suites through `testHelpers.js`);
+  - `node test-*.js` (199 jsdom suites at v3.516, through `testHelpers.js`);
   - `jsdom ^30` is the only devDependency.
 - **Real browser:**
   - Playwright CLI 1.63, installed globally, with **Chromium only** in `/opt/pw-browsers`;
   - no WebKit binary is installed.
-- **GitHub:** the GitHub MCP tools (branch, PR, review, checks) and `gh`.
-- **App data APIs already in `index.html`:**
-  - USDA FoodData Central (`index.html:35028–35131`; DEMO_KEY by default, with an upgrade prompt for a personal key);
-  - Open Food Facts barcode lookup (`index.html:35151–35203`);
-  - NIH DSLD for supplements (`index.html:35775`);
+- **GitHub:** the GitHub MCP tools (branch, PR, review, checks). These exist **only in the main session**: no agent's `tools:` line lists any `mcp__github__*` tool. `gh` is installed but **not authenticated** here (`gh auth status`: the GH_TOKEN login fails, checked 2026-11-07), so PRs go through the MCP tools.
+- **App data APIs already in `index.html`** (line numbers at v3.516):
+  - USDA FoodData Central (`index.html:35037–35140`; DEMO_KEY by default, with an upgrade prompt for a personal key);
+  - Open Food Facts barcode lookup (`index.html:35157–35210`);
+  - NIH DSLD for supplements (`index.html:35781`);
   - Anthropic Messages API, with the owner's own key.
 - **Evidence in the app:** `content-citations.js` (`PROGRAM_SOURCES`, 84 DOIs) and `test-citation-audit.js`, which checks that every entry has a citation attempt.
 
-### A gap to know about: three agents have no `Skill` tool
-`market-researcher`, `exercise-auditor` and `project-manager` list no `Skill` tool, so they can't invoke a skill by name. Until the owner decides whether to add `Skill` to their `tools:` line, they use a skill by **reading its `SKILL.md` and references with `Read`** and following them by hand. The toolkits below are written that way. Only `build-automator` (and the main session) can call `Skill`.
+### Agent tool lines, as they are now (checked 2026-11-07)
+- **`Skill` was added to `market-researcher`, `exercise-auditor` and `project-manager` in commit `9a277fd`, before the owner approved it.** D10 still lists it as a question, so it is a retroactive approval. If the owner says no, revert those three `tools:` lines. Every agent except skills-orchestrator now has `Skill`.
+- `market-researcher` and `exercise-auditor` have `Write` but **not `Edit`**, so fixing a stale line means rewriting their whole file (438 lines for `program-audit.md`). Adding `Edit` is recommended (owner's call).
+- **No agent and no setting technically blocks a merge or a push to `Branch-1`.** Subagents can't reach the GitHub MCP merge tool (not in any `tools:` line), but every agent has `Bash`, and the scheduled loop runs in the **main session**, which has `merge_pull_request`. There is no `.claude/settings.json`. "Never merge" is enforced by instructions only. See §8.
 
 ---
 
@@ -90,7 +96,8 @@ Status key: `installed` (in the repo now) · `recommended` (vetted, waiting for 
 |---|---|---|
 | 0. Session readiness | `session-start-hook` (once, with the owner's OK) | Make cloud sessions able to run `check.sh` and the suites from the start. |
 | 1. Baseline | `bash check.sh`; `for f in test-*.js; do node "$f"; done` | Record the pass counts. Stop if anything is red. |
-| 2. Design the change (UI items) | `Skill: impeccable` with the item's verb (`polish`, `distill`, `harden`, `clarify`, `layout`, `typeset`); `taste-skill`'s app-screen rules; `apple-hig` | Read the project exceptions in each VENDORED.md first. "The brief wins." |
+| 1b. Pick | `planning/roadmap.md` **Unified build sequence**, as on `origin/Branch-1` (`automation.md` §4 step 5) | Not "top `ready` item in backlog file order". `.claude/agents/build-automator.md` step 3 still says file order; `automation.md` wins until that file is fixed. |
+| 2. Design the change (UI items) | `Skill: impeccable` with the item's verb (`polish`, `distill`, `harden`, `clarify`, `layout`, `typeset`), **Markdown fallback only: don't run `scripts/impeccable`** (§1); `taste-skill`'s app-screen rules; `apple-hig` | `design-vision.md` (Plate & Press) and the item's criteria win over the glass-era VENDORED notes (§1). "The brief wins." |
 | 2. Design the change (charts or Analysis) | `Skill: dataviz` | Keep it consistent with the existing chart tokens. |
 | 2. Design the change (motion) | `review-animations`, `animation-performance` | Feedback motion only. Nothing animates on load (taste-skill exception). |
 | 2. Design the change (AI features) | `Skill: claude-api` | Keep the `effort` and `max_tokens` fix described in CLAUDE.md. |
@@ -100,8 +107,25 @@ Status key: `installed` (in the repo now) · `recommended` (vetted, waiting for 
 | 5. Real browser | Playwright Chromium (`/opt/pw-browsers`) at 402×874 (iPhone) and 904×678 (Duo, unfolded); `Skill: run` | Take screenshots into the scratchpad. Use Playwright WebKit for a Safari-engine check, if approved. It is still not a device. |
 | 6. Verify before claiming | `verification-before-completion` (recommended, §3), or the same rule by hand | Re-run `check.sh` and every suite **after** the version bump. Paste the counts into the log. |
 | 7. Review | `Skill: code-review` (medium, no `--fix`); `Skill: security-review` when the item touches `fetch`, keys, storage, import/export or the service worker | Fix only findings that belong to this item. Flag anything else in `build-log.md`. |
-| 8. PR | GitHub MCP: `create_pull_request` into `Branch-1`; `subscribe_pr_activity` | Never merge. Never push to `Branch-1`. |
-| 9. Schedule | `create_trigger` / `send_later` (see `planning/automation.md`) | One open auto-PR at a time. |
+| 8. PR | GitHub MCP: `create_pull_request` into `Branch-1`; `subscribe_pr_activity` | **Main session only** (the scheduled run). Spawned as a subagent, build-automator has no MCP tools and `gh` is unauthenticated, so it can push a branch but cannot open the PR. Never merge. Never push to `Branch-1`. |
+| 9. Schedule | `create_trigger` / `send_later` (see `planning/automation.md`) | One open auto-PR at a time. Main session only. |
+
+### design-engineer → `planning/design-vision.md`, `UX-nn` items
+
+| Step | Tool | How |
+|---|---|---|
+| Vision and mock-ups | `impeccable` (`critique`, `layout`, `typeset`; Markdown fallback), `taste-skill` app-screens, `apple-hig`, Playwright Chromium screenshots into `tools/design/` | Plate & Press is the brief. The glass-era VENDORED notes are superseded (§1). |
+| Motion (UX-09b PR moment) | `review-animations`, `animation-performance` | Reduce Motion path is an acceptance criterion, not a polish step. |
+| Charts (UX-10, UX-11, BL-20) | `Skill: dataviz` | — |
+| Implementation | **Through the build loop only.** | A design-engineer PR outside the loop would collide on `APP_VERSION`/`WHATS_NEW` with the one open auto-PR (`automation.md` §1.3). |
+
+### business-manager, marketing-manager → `planning/business.md`, `planning/marketing.md`
+
+| Step | Tool | How |
+|---|---|---|
+| Market and growth evidence | `WebSearch`, `WebFetch` | Date every figure; label vendor statistics as such. |
+| Claims check (BIZ-15, MKT-12, store copy) | Read `program-audit.md` source keys; ask the exercise-auditor | No health claim without a cited source. |
+| Share cards (MKT-03 to MKT-19) | Their items' `Tools:` lines name `impeccable`, `dataviz`, Playwright | Built by the loop, not by these agents. |
 
 ### skills-orchestrator → this file
 
@@ -127,7 +151,7 @@ Vetting method: shallow clone into `scratchpad/vet/<owner_repo>/`, read SKILL.md
 | 5 | **superpowers**: `verification-before-completion` and `systematic-debugging` only (obra/superpowers) | build-automator | MIT · `22f0b46` (2026-11-03) · very active | Both are Markdown. `systematic-debugging` ships `find-polluter.sh`, a test-bisection script, which should be run only when needed and after reading it. | `recommended` for these **two skills only**. Their rules match CLAUDE.md ("actually execute them, don't reason that they'd pass"). **The full plugin is `rejected`:** its SessionStart hook injects a workflow on every session, and its brainstorming, worktree and plan skills would compete with CLAUDE.md and the planning flow. |
 | 6 | **Playwright WebKit browser** (`playwright install webkit`, matching the CLI's 1.63) | build-automator step 5, market-researcher | Apache-2.0 | Downloads a browser binary from Playwright's CDN. No change to the app. | `recommended` (**needs-owner**). It's the closest thing to iOS Safari we can run here: it catches `-webkit-` and `backdrop-filter` differences. It **doesn't** replace on-device checks. CLAUDE.md's "unverified on device" notes stay. |
 | 7 | **free-exercise-db** (yuhonas), reference data | exercise-auditor | Unlicense · `f00c92c` (2026-09-27) · 876 exercises | Static JSON. Read at dev time; nothing fetched by the app. | `recommended` **as an audit cross-check only.** See the provenance flag in §5. Don't ship its images or instructions in the app without the owner's decision. |
-| 8 | **Project-owned skill `ship-increment`**, written by us with `skill-creator` | build-automator | Ours | Markdown that writes down the recipe for one version: baseline, implement, jsdom test, sabotage, bump both versions, What's New, full suite, PR. | `recommended` (**needs-owner**). It makes the CLAUDE.md discipline a reusable skill instead of a paragraph each scheduled prompt has to repeat. It must point back to CLAUDE.md, not copy it, so there's one source of truth. |
+| 8 | **Project-owned skill `ship-increment`**, written by us with `skill-creator` | build-automator | Ours | Markdown recipe for one version. | **`rejected` (withdrawn by skills-orchestrator, 2026-11-07 alignment round).** Since this was proposed, `automation.md` §4 became the full per-run recipe, and the scheduled prompt already points at it. A skill would be a third copy beside CLAUDE.md and `automation.md` §4, and the second copy (`.claude/agents/build-automator.md`) has already drifted from §4 (pick order, branch name). Fix the drift instead. Remove it from D10. |
 
 ### Rejected (vetted and not recommended)
 
@@ -193,7 +217,7 @@ Vetting method: shallow clone into `scratchpad/vet/<owner_repo>/`, read SKILL.md
 4. **Toolchain check** (skills-orchestrator). Before the first build run, and whenever the backlog gains a new kind of work, confirm the `Tools:` lines name installed tools. Propose an addition here if one is missing, and wait for the owner.
 5. **Build run** (build-automator, scheduled, one item per run). Each run:
    - syncs and runs the **baseline** (stops if red);
-   - picks the top `ready` item;
+   - picks the next `ready` item in the roadmap's Unified build sequence;
    - designs with the named skill (`impeccable <verb>`, apple-hig, dataviz, claude-api);
    - implements in `index.html` and `sw.js`;
    - writes a jsdom test with a **sabotage check**, adding axe if approved;
@@ -218,7 +242,7 @@ exercise-auditor ──┘   (roadmap)                       (one item/run)     
 
 ## 7. Red flags and open questions for the owner
 
-1. **The `Skill` tool is missing** from market-researcher, exercise-auditor and project-manager. Should it be added? Until then, they read SKILL.md files directly.
+1. **The `Skill` tool for market-researcher, exercise-auditor and project-manager** was already added (commit `9a277fd`) before approval. D10 now asks the owner to keep it or revert it.
 2. **Unpinned remote instructions or code** are the main risk in this ecosystem. The guide cites Snyk's ToxicSkills research: prompt injection in 36% of the skills it sampled. That figure comes from a vendor, but it shows the scale of the problem. This is why Vercel's live-fetch wrapper and AccessLint's `npx @latest` were rejected.
 3. **Auto-fixing skills** (`simplify`, `code-review --fix`, `accessibility-fix`-style tools) conflict with "no drive-by fixes". Use them review-only, scoped to the item's own diff.
 4. **Network:** WebFetch couldn't resolve `fdc.nal.usda.gov` or `openfoodfacts.github.io` here. OpenAlex needs a key. The USDA DEMO_KEY was rate-limited. Research and audit runs should expect gaps and label them.
@@ -230,8 +254,15 @@ exercise-auditor ──┘   (roadmap)                       (one item/run)     
    4. ux-heuristics;
    5. superpowers' two skills;
    6. Playwright WebKit;
-   7. a `ship-increment` project skill;
+   7. ~~a `ship-increment` project skill~~ (withdrawn, §3 #8);
    8. an OpenAlex key.
+
+## 8. Guardrails so no agent can merge or deploy (proposed, needs the owner)
+
+Today "never merge" is a sentence in each agent file and in the run prompt. Nothing enforces it. Proposed, for the owner to apply (agents may not change settings):
+1. **`.claude/settings.json` deny rules** (project-level, so they bind the main session and every subagent): `mcp__github__merge_pull_request`, `mcp__github__update_pull_request_branch`, `Bash(gh pr merge:*)`, `Bash(git push origin Branch-1:*)`, `Bash(git push origin HEAD:Branch-1:*)`, `Bash(git push --force:*)`. Prefix rules can be evaded by other spellings, so this is a seatbelt, not a lock.
+2. **The lock: GitHub branch protection on `Branch-1`** (owner, in repo settings): require a pull request; block force pushes and deletion; do not allow auto-merge. If Claude's GitHub access uses the owner's own token, protection can't tell Claude from the owner, so rule 1 still matters.
+3. Not verified here: whether this environment's git proxy already refuses pushes to `Branch-1`. No push was attempted.
 
 ## Sources
 - UI/UX skills guide (local copy read): https://pasqualepillitteri.it/en/news/576/claude-code-skills-design-uiux-guide

@@ -2,6 +2,8 @@
 
 Owner: exercise-auditor. Scope: every program in `index.html` (`programs`, the `*_STYLES` sub-programs and `PROGRAM_DAY_COUNT_VARIANTS`), the exercise library (`exerciseInfo` in `content-exercises.js`, `EXERCISE_MOVE`, `SUBSTITUTION_MAP`), and the progression, deload, RPE, e1RM, warm-up, rest, readiness and goal-volume logic.
 
+**Status (2026-11-07, alignment round):** re-checked against live v3.516 (the Liftnext rename and the Sash icon only; no program logic changed, and line numbers hold within a few lines). §6 is superseded by the unified build sequence in `planning/roadmap.md`. Scope corrections and two new safety findings (SAF-8, SAF-9) are in the **Alignment addendum** at the end.
+
 ## How this audit was done
 - **Numbers are computed, not estimated.** Node evaluated the real `programs`, `*_STYLES`, `PROGRAM_DAY_COUNT_VARIANTS` and `exerciseInfo` objects. Weekly sets per muscle use **fractional counting** (primary mover 1 set, meaningful synergist 0.5), the method that fit best in Pelland et al. Tables show it as `direct / fractional / days per week`.
 - **Real functions.** The modifier findings (SAF-1, H-1) come from running the actual `applyGoalVolume` and `applyAccumulation` source pulled out of `index.html`, not from reading it.
@@ -423,7 +425,7 @@ So it extends existing patterns rather than adding a new layer. Ship it as small
 
 ---
 
-## 6. Build order (one version each, per CLAUDE.md)
+## 6. Build order (superseded: see the unified sequence in `planning/roadmap.md`; kept for reference)
 1. SAF-1: program-class gate on goal volume and accumulation (render-time, no data change).
 2. SAF-2: RPE caps for medical/senior/prenatal; RPE mode off for oly/jump/throw.
 3. SAF-3: exercise region override map.
@@ -436,3 +438,44 @@ So it extends existing patterns rather than adding a new layer. Ship it as small
 10. **Needs-owner (slot changes, migrations):** SAF-4 neck bridge swap, SAF-5 drop-landing slot, H-3 low-day variants, H-4 bodybuilding d6, M-5 renames, M-8 categories.
 11. **Append-only content (owner approves the longer sessions):** H-6, M-7, M-9.
 12. H-8 bodyweight progression ladders, then the §5 volume ledger and set autoregulation.
+
+---
+
+## Alignment addendum (2026-11-07, v3.516)
+
+**Scope corrections:**
+- **SAF-4:** Neck Bridges appear **6 times**, not once: grappling d6 (`index.html:11048`) plus five grappling day-count variants (21274, 21312, 21355, 21405, 21456). Every occurrence needs the same fix.
+- **SAF-5:** Depth Jump appears about **20 times**: the 4 default days plus the athletic (17687–17785), skimboarding, wakeboarding and kite (23937–24568) variants.
+  - The cue fix (BL-05) covers all of them.
+  - The prerequisite belongs in that cue: "first 4 weeks: do Drop Landing 3×5 instead". An appended drill (BL-36) would come *after* the depth jumps, which is the wrong order for a prerequisite.
+- **SAF-1 test scope:** iterate `PROGRAM_DAY_COUNT_VARIANTS` days too (senior, athletic, combat, watersports), not only the default days.
+
+### SAF-8 (medium): Load increases are not gated on clinical programs
+**What's wrong.**
+- SAF-1 gates sets only. `analyzeProgressionSignal` (27483) has no program check. It suggests "+increment" after two sessions at the top rep with logged RPE ≤8.5, or with no RPE logged.
+- This applies to the 13 medical slots without `noWeight`. For example, Seated Cable Row appears in the obesity, hypertension, diabetes, osteoporosis, prenatal, postpartum and shoulder-rehab styles.
+- So "this plan never auto-increases" would be untrue after SAF-1 alone.
+
+**Evidence.** Progressive loading is appropriate in clinical plans, but at moderate effort, prescribed by tolerance [AHA23][PREG19]. An RPE 8.5 threshold contradicts SAF-2's cap of 6–7.
+
+**Exact change** (fold into BL-02). For `MEDICAL_STYLES`, senior and prenatal:
+- the increase signal requires logged RPE ≤7 in both sessions; with no RPE logged, no number is shown, only "if both sessions felt comfortable, try the smallest jump";
+- the increment is the smallest loadable jump;
+- BL-08 and BL-24 inherit this rule.
+
+The promise wording becomes: "never adds sets; load rises only in the smallest steps when sets felt easy".
+
+**Test:** a real invocation on hypertension Seated Cable Row 2×12 at RPE 8 gives no increase; at RPE 7 it gives the smallest jump.
+
+### SAF-9 (medium): AI prompts don't know the clinical style
+**What's wrong.**
+- Cross-Metric Insights (42583) must answer PUSH, MAINTAIN or DELOAD. The coach chat (42670) and that prompt both receive only "Active program: Medically Modified".
+- Neither receives the style (prenatal, ACL, hypertension) or the tolerance rule.
+
+**Exact change (prompt text only):**
+- Pass `MEDICAL_STYLES[activeMedicalStyle].label` to both prompts.
+- For medical styles, limit the verdict to MAINTAIN or DELOAD and add "check with your care team".
+- Leave `output_config.effort`, `max_tokens` and the payload untouched (CLAUDE.md fragile area); `test-ai-cross-metric-effort-fix.js` must still pass.
+- Land it before any public step and before hosted AI (BIZ-14).
+
+**Still unverified:** Pelland et al.'s publication year (2025 vs 2026). Check it with paper-lookup once D10 is approved.
