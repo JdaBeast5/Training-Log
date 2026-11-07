@@ -139,6 +139,8 @@ No agent disagrees with Phase 0 coming first, BL-08 coming before the redesign, 
 
 ## (e) Owner decisions, in the order they unblock D1
 
+The labels in `pitch.md`'s table are: 1–4 = O1–O4; 5 = D1; 6 = D11; 7 = D12; 8 = D4; 9 = D13; 10 = D7 (replaced); 11 = D2; 12 = D14; 13 = D10; 14 = D3; 15 = D15; 16 = D16; 17 = D5 and D6; 18 = D8; 19–20 = D9's follow-ups.
+
 Each has a recommended answer.
 
 **Before D1 (the loop can't safely start without these):**
