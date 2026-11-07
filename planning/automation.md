@@ -1,6 +1,6 @@
 # Automation: the scheduled build loop
 
-Owner: build-automator. Written 2026-11-07 against **v3.514** (baseline green: `check.sh` passed, 198/198 `test-*.js` suites, about 70 s).
+Owner: build-automator. Written 2026-11-07 against v3.514. Re-baselined 2026-11-07 (pre-D1 alignment) against **v3.516** on `origin/Branch-1` and `claude/taste-skill-v2` (identical app code): `check.sh` passed, 199/199 `test-*.js` suites, about 100 s.
 
 This is the operating manual for the scheduled runs. Each run takes **one** `ready` item from `planning/backlog.md` and ships it as **one** tested version in **one** pull request into `Branch-1`. The owner decides what goes live.
 
@@ -19,7 +19,7 @@ This is the operating manual for the scheduled runs. Each run takes **one** `rea
 
 ### Prerequisite before the first scheduled run
 
-The `planning/` files, including this one, must be merged into `Branch-1`. Runs read their instructions from `origin/Branch-1`, not from whatever branch the builder happens to have checked out. Until that merge, the run prompt has nothing to read and the run stops at step 1.
+The `planning/` files, including this one, and `.claude/agents/` (the run prompt names `.claude/agents/build-automator.md`) must be merged into `Branch-1`; as of 2026-11-07 neither is on `origin/Branch-1`. Runs read their instructions from `origin/Branch-1`, not from whatever branch the builder happens to have checked out. Until that merge, the run prompt has nothing to read and the run stops at step 1.
 
 ---
 
@@ -76,7 +76,7 @@ Work in the builder's checkout. Keep scratch output (baseline logs, screenshots)
 
 ### Step 2: Gate on open PRs (stop politely)
 - List open PRs on `JdaBeast5/Training-Log` with `list_pull_requests` (`state: open`, `base: Branch-1`). Look for any head branch that starts with `claude/auto-`.
-- **If one is open:** do step 3 (the inbox) only. Then end with the "waiting" report from §6, for example `PR #61 (v3.515, BL-01) is still waiting for your review. No new work started.` Change nothing else.
+- **If one is open:** do step 3 (the inbox) only. Then end with the "waiting" report from §6, for example `PR #61 (v3.517, BL-01) is still waiting for your review. No new work started.` Change nothing else.
 - Also look at auto-PRs **closed without merging** since the last merged one. For each one, the item goes back to the owner (§7.3); it is not retried.
 
 ### Step 3: Inbox (owner answers)
@@ -118,7 +118,7 @@ Work in the builder's checkout. Keep scratch output (baseline logs, screenshots)
 - If the test passes with the change removed, it is proving itself, not the code. Rewrite it. This counts toward the two-attempt limit (§5).
 
 ### Step 9: Bump the version (by hand; the bump helper isn't in the repo)
-1. Next version = current `origin/Branch-1` version + 0.001 (for example `3.514` → `3.515`). Read it with `grep -o "const APP_VERSION = '[^']*'" index.html`.
+1. Next version = current `origin/Branch-1` version + 0.001 (for example `3.516` → `3.517`). Read it with `grep -o "const APP_VERSION = '[^']*'" index.html | head -1`, as `check.sh` does: a second, regex match of that text exists further down `index.html`.
 2. `index.html`: `const APP_VERSION = '<new>';`
 3. `sw.js`: `const VERSION = '<new>';`. Edit the real file directly, never as pasted inline text.
 4. `index.html` `WHATS_NEW`: append one entry **at the end** of the object, in the existing shape:
@@ -193,9 +193,9 @@ One row per run that made a branch: each shipped PR and each blocker PR. "Waitin
 | Date (ET) | `2026-11-08 07:17` |
 | Item | `BL-01` plus a short title |
 | Outcome | `shipped`, `blocked`, or `needs-owner` |
-| Version | `3.515`, or `—` for a blocker |
+| Version | `3.517`, or `—` for a blocker |
 | PR | `#61` |
-| Suites before → after | `198/198 → 199/199` |
+| Suites before → after | `199/199 → 200/200` |
 | New/extended test | `test-volume-modifier-gate.js` (assertion count) |
 | Sabotage | What was reverted → which assertions failed, or `n/a` |
 | Attempts | `1`, or `2` (plus `+1 abandoned` if step 1 discarded leftovers) |
