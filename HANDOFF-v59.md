@@ -884,3 +884,20 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
   - Then gym-mode placement: the upper half when half-folded, atop the pinned exercise when unfolded.
 - **Polish ideas:** cues synced to the rep phase; a front/side toggle; Draco or quantized glb to halve the download; tank top or styling options.
 - **Unverified on a device:** frame rate and battery on the Duo, and iOS Safari behaviour for `import()` of the module from the PWA.
+
+## Addendum 41: Render study, then the demos removed (2026-11-07)
+- **Render study** (`tools/anatomy/study/`, committed 210fbb7):
+  - img2threejs was judged the guide's best skill for lifelike 3D characters, with its plugin-character for rigged, animated characters from a GLB plus a reference photo.
+  - Three looks were rendered on the real engine with a more athletic v2 body (`mh2glb.py MH_BODY=v2`): A studio athlete, B anatomy reveal (glass skin, striated working muscles), C écorché.
+- **Owner's verdict:**
+  - Wants realism, "like watching someone real working out", with a slight zoom onto the working muscle and the tension area highlighted.
+  - Pointed out a real defect: in v3.513 the bar sat through the wrist, not in the hand. The IK targeted the wrist joint at the bar, and the tests only checked that.
+  - Decided: "Let's remove them for now and pivot, I think I've lost sight of the original mission of this app".
+- **v3.514 removes the demos:**
+  - The `[ANATOMY 3D]` glue and CSS are gone; `buildDetailsHtml` and `renderExerciseDetail` are restored to their pre-v3.510 shape (icon, cues and video link; history and cues).
+  - `assets/` is deleted.
+  - `sw.js` drops the asset precache and route, and its `RETIRED_CACHES` deletes `training-log-assets-v1` on activate.
+  - Tests: `test-exercise-demos-removed.js` (3, sabotage-checked; runs the real activate handler against a stub cache store). `test-anatomy-3d.js` is removed; the open-screen v3.511 test is rewritten.
+  - CLAUDE.md notes the assets exception is now unused.
+- **If demos return:** the owner's preferred route is AI-generated video, made offline per exercise, with our engine's tested motion as a motion reference where the model supports it. Zoom and highlight would be an in-app layer, and every clip reviewed against a form checklist before shipping. It needs the owner's provider account and key (request_credential) and their go-ahead.
+- **Next:** the owner wants to revisit the app's original mission before more features.
