@@ -933,3 +933,218 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Files:** `index.html` (5701–5712, 9637–9652), `sw.js`, the test.
 - **Risk:** low. Picker layout at 402×874; check it in Playwright. Ship after BIZ-07 so the page metadata and the first screen say the same thing.
 - **Status:** ready
+
+---
+
+## Marketing (MKT): added by marketing-manager, 2026-11-07
+
+Written against **v3.514**. Evidence and the share-moment design for every item are in `planning/marketing.md` (§0, §1 and §3), from a Playwright walk (Chromium, 402×874, a fresh context plus `/.taste-skill/seed3.html`) and cards rendered with the real `buildShareCardBlob`. Line numbers are `index.html` at v3.514. **Re-grep them before editing.** The same rules and default `Tools:` apply as for every BL item. BIZ-08 (the address on cards) and BIZ-17 (the first-screen promise) are business items; nothing here duplicates them. Ready items are listed first, in suggested build order, then needs-owner items in priority order.
+
+**Rules every MKT share item keeps:** cards are drawn on the device by the existing `buildShareCardBlob` (29510) and leave only through `shareCelebrationCard` (29609), so through the system share sheet the person taps. No new storage keys unless an item says so. Nothing is sent anywhere. No body weight, intake, sleep, heart rate, cycle, pain or condition data on a card by default. Clinical programs (`MEDICAL_STYLES`, 11352) never get a share button.
+
+### MKT-01: Consistency counts training weeks, not consecutive days
+- **Why:**
+  - `computeStreak` (13989) counts consecutive calendar days with a logged set. The first celebration and share card fire at 7 in a row (`STREAK_MILESTONES`, 14008).
+  - Readiness warns "6 days without a rest day" one day earlier (`READINESS_DAYS_NO_REST = 6`, 46836). So the app tells you to rest, then throws confetti for not resting.
+  - Anyone following a 3–5 day program can never reach the first milestone, so the main consistency share moment never happens for them.
+  - Weekly consistency matches the north star: weekly active trainers, at least 2 sessions a week (business.md §4).
+- **Change:**
+  - Add `computeWeekStreak()` beside `computeStreak`, reading the same `activity-dates`. A week (Monday to Sunday, local) counts when it has at least `max(2, daysPerWeekPref − 1)` training dates, or 2 when the preference is unset. One missed planned day doesn't break it. The current week counts as alive until it ends (the same "still alive until midnight" rule `computeStreak` documents).
+  - Milestones become weeks: `[4, 8, 12, 26, 52]`. The celebration reads "8 weeks in a row" with the sub "Rest days included." The card headline is "8 WEEKS IN A ROW".
+  - The streak badge (`renderStreak`, 14057) shows weeks ("8 wk").
+  - Reuse the `streak-last-celebrated` key; on first run, migrate it with `SCHEMA_VERSION`/`runMigrations()` to 0 so no old day-count blocks a week milestone.
+  - `computeStreak` stays: it has another caller at 42680 (re-grep). It just no longer drives milestones or the badge.
+- **Acceptance criteria:**
+  1. Training dates on Mon/Wed/Fri for 4 consecutive weeks, with `daysPerWeekPref = 3`: `computeWeekStreak()` returns 4, and the 4-week celebration fires once.
+  2. 7 consecutive training days and nothing before: no celebration (the old 7-day milestone is gone).
+  3. A week with 1 training date, with the preference unset: the streak resets to 0 at the end of that week, not during it.
+  4. A rest day never breaks the streak inside a qualifying week.
+  5. A second render after a milestone doesn't celebrate it again.
+- **Test plan:** extend `test-streak.js` with the real `computeStreak`, the new `computeWeekStreak`, `checkStreakMilestone` and a stub storage with fixed dates (stub `getTodayKey`). Sabotage: count consecutive days again, and criteria 1 and 2 must fail.
+- **Files:** `index.html` (13910–14070, 25950, the migration list), `sw.js`, the test.
+- **Risk:**
+  - Changes a visible number people may be attached to. The What's New line must say why: "Your streak now counts training weeks, so rest days never break it."
+  - Today's Priorities and the weekly recap may read the streak. Guarded by `test-streak.js`, `test-weekly-recap.js` and `test-today-priorities.js`.
+- **Status:** ready
+
+### MKT-02: Share cards carry no body data by default
+- **Why:** the week card's third row falls back from average sleep to **average body weight**, then **average intake** (`archiveCurrentWeek`, 45459–45464). Body weight is the most sensitive number in the app, and it lands on a public image without the person choosing it. Sleep is also health data.
+- **Change:**
+  - The week card's third row becomes training-only: "PRs THIS WEEK" when there was at least one, else "SETS" (total logged sets that week). Sleep, weight and intake rows are removed from the card.
+  - Share text follows the card (it's built from `stats` in `shareCelebrationCard`, 29617).
+  - No setting is added in this item. If people ask for body stats on cards, that's a later opt-in item.
+- **Acceptance criteria:**
+  1. With weight, intake and sleep all logged that week, the `stats` passed to `shareCelebrationCard` contain no label in {AVG WEIGHT, AVG INTAKE, AVG SLEEP}.
+  2. With 2 PRs that week, the third row is `{value:'2', label:'PRs THIS WEEK'}`; with none, it's the set count.
+  3. The share text passed to a stubbed `navigator.share` contains no weight unit next to "AVG".
+- **Test plan:** new `test-share-card-privacy.js`. Run the real `archiveCurrentWeek` share-stat path with stub storage, and capture the click handler's `cardData` through a stubbed `shareCelebrationCard`. Sabotage: restore the weight fallback, and criterion 1 must fail.
+- **Files:** `index.html` (45450–45472), `sw.js`, the test.
+- **Risk:** low. Guarded by `test-archive-week-visibility.js` and `test-week-progress.js`.
+- **Status:** ready
+
+### MKT-03: Story-format share cards with the app's mark
+- **Why:**
+  - Cards are 1080×1080 (`buildShareCardBlob`, 29510). Instagram and WhatsApp stories, where achievement shares mostly go, are 9:16, so a square gets letterboxed.
+  - The footer is the plain text "TRAINING LOG". The icon's ring mark, the most recognisable brand asset, appears nowhere on a card.
+- **Change:**
+  - `buildShareCardBlob(cardData, format)`: `format` is `'story'` (1080×1920, the new default) or `'square'` (today's layout, unchanged).
+  - In story format, keep the icon, headline, detail and stats between y = 250 and y = 1620 (clear of the story UI at the top and bottom).
+  - Draw the ring mark (the icon's ring with its one coloured segment, as canvas arcs, not an image file) above a wordmark at the bottom. Leave a reserved line under it for BIZ-08's address.
+  - The file name becomes `training-log-<kind>-<YYYY-MM-DD>.png`.
+  - Colour and type follow `planning/design-vision.md` §3: a flat ink ground with no gradient or glow, the session day's spot ink as the one colour, Archivo for the big figure if UX-02 is approved, else Geist. If the vision's own card items land first, this item only adds the format and the mark to them.
+- **Acceptance criteria:**
+  1. With a stub canvas, `buildShareCardBlob(card)` sets `canvas.width === 1080` and `canvas.height === 1920`; with `'square'`, 1080×1080.
+  2. In story format, every `fillText` call's y is between 250 and 1700 (stub-recorded).
+  3. The mark is drawn: at least one `arc` call (stub-counted) in both formats.
+  4. The square format's `fillText` calls equal today's for the same `cardData`, except the footer (record before and after; sabotage-anchored).
+- **Test plan:** new `test-share-card-format.js`, with the real `buildShareCardBlob`, `wrapCanvasText` and `celebrationIconPath`, and a recording stub 2D context. Then render real PNGs in Playwright for the PR, streak and week cards in both formats and attach them to the PR. Sabotage: drop the format switch, and criterion 1 must fail.
+- **Files:** `index.html` (29468–29640), `sw.js`, the test.
+- **Risk:** visual. The design-engineer reviews the rendered PNGs. If the owner renames the app (MKT-09), only the wordmark string changes.
+- **Tools:** `Skill: impeccable` (`polish`) on the rendered cards.
+- **Status:** ready
+
+### MKT-04: Share a finished session
+- **Why:** finishing a session is the most frequent earned moment (every training day), and its celebration (`triggerCelebration('flag', 'Session complete!', …)`, 29263) has no share button. PR and streak celebrations already pass `shareData`.
+- **Change:**
+  - Pass `shareData` to that call: `{icon:'flag', headline:'SESSION COMPLETE', stats:[…]}`, with the day label ("Upper · Strength"), sets logged today on that day, total load (sum of weight × reps, shown with `fmtWeight`), and "PRs: n" when there was at least one.
+  - No share data when `activeProgram` is a `MEDICAL_STYLES` key.
+- **Acceptance criteria:**
+  1. Completing the last exercise of a day with 18 logged sets calls `triggerCelebration` with `shareData.stats` containing `{value:'18', label:'SETS'}`.
+  2. The load row equals the sum of weight × reps over that day's logged sets (computed from the fixture, not hard-coded).
+  3. With a `MEDICAL_STYLES` program active, `shareData` is undefined.
+  4. `triggerCelebration` is still called exactly once per completing click (count real calls).
+- **Test plan:** new `test-session-share.js`, driving the real checkbox `change` handler in jsdom with stub storage. Sabotage: drop `shareData`, and criterion 1 must fail.
+- **Files:** `index.html` (29240–29270), `sw.js`, the test.
+- **Risk:** the 5-second banner hold applies whenever there's share data (29464), so the session banner stays up longer. That's intended; check it doesn't cover gym mode's exit control in Playwright.
+- **Status:** ready
+
+### MKT-05: Share a finished training block
+- **Why:** finishing a 4–6 week block is the moment lifters actually post ("finished my first block of…"). The app knows when a block ends (`cycleWeekOf`, 26723, and `isDeloadWeek`, 14915) but marks it with nothing. Graduation celebrations exist only for rehab and postpartum programs (15590, 15921), which must not get a share button.
+- **Change:**
+  - When `archiveCurrentWeek` (45414) archives the last week of a cycle, show a celebration ("Block complete") with share data: program name, "5 weeks", sessions done out of planned, and the top 3 e1RM gains across the block (from `reconstructAllPRs`, 41641, or the existing e1RM helpers).
+  - Never for `MEDICAL_STYLES` keys or custom programs with no cycle.
+  - The existing graduation celebrations stay as they are, without share data.
+- **Acceptance criteria:**
+  1. Archiving week 5 of a 5-week Strength cycle triggers one celebration with `shareData.headline === 'BLOCK COMPLETE'`.
+  2. Archiving week 3 of 5 triggers none.
+  3. The top-gain rows are sorted by gain, at most 3, and computed from the fixture's sets.
+  4. A `MEDICAL_STYLES` program's last week triggers no share data.
+- **Test plan:** new `test-block-complete-share.js` with the real `archiveCurrentWeek` path, `cycleWeekOf` and stub storage. Sabotage: fire on every week, and criterion 2 must fail.
+- **Files:** `index.html` (26723, 41641, 45414–45480), `sw.js`, the test.
+- **Risk:** the end-of-week flow already shows a status line and a week share button. Keep one share button visible at a time; check in Playwright.
+- **Status:** ready
+
+### MKT-06: Year in Lifting (an annual recap, on device)
+- **Why:** annual recaps are the largest share event in consumer apps: Spotify reports 500 million Wrapped shares in about 24 hours (company-reported, marketing.md §3.1). Strava's "Year in Sport" is the fitness version, but it's for subscribers only. A free, private, on-device version is on-brand and recurs every December.
+- **Change:**
+  - From 1 December to 15 January, with at least 8 training dates in the year: one row in Today's Priorities ("Your 2026 in lifting is ready") and an entry in History.
+  - It opens a short sequence of 4–5 story cards (MKT-03's format), each with its own share button: sessions and weeks trained; total sets and load lifted; the biggest e1RM gain (lift and amount); the most-trained muscle group (from the existing muscle mapping); the longest weekly streak (MKT-01).
+  - All computed on the device from `activity-dates`, `week-archive` and the set history. No body weight, food or health data on any card.
+  - Rendered as a view section using existing patterns (`VIEW_RENDERERS`/`showView`, `expand-wrap`); no new view framework.
+  - "Hide" is stored with `window.storage` (`recap-<year>-dismissed`).
+- **Acceptance criteria:**
+  1. With a fixture year of 120 training dates, the computed recap's `sessions === 120`, and the total sets and load equal sums over the fixture.
+  2. On 30 November: no Priorities row. On 1 December: the row. On 16 January: none.
+  3. With 7 training dates in the year: no row.
+  4. No card's `fillText` text contains a body-weight, calorie or sleep value (stub-recorded).
+  5. Computing the recap calls no `fetch` (stub-counted: 0).
+- **Test plan:** new `test-year-recap.js`, with the real recap builder and the real Priorities insight function, a stub storage and a fixed date. Sabotage: count calendar days instead of training dates, and criterion 1 must fail.
+- **Files:** `index.html` (Today's Priorities near `getWeeklyRecapInsight` 14595 and `renderTodayInsights` 14615; History; 41641), `sw.js`, the test.
+- **Risk:**
+  - Larger than one usual increment. If it can't ship as one tested version, split it: (a) the computation and one summary card, (b) the remaining cards. Each its own version.
+  - Depends on MKT-03 for the format. Ship MKT-03 first.
+  - Time-critical: to land in December 2026 it needs to ship by 30 November.
+- **Tools:** `Skill: dataviz` for any chart on the cards.
+- **Status:** ready
+
+### MKT-07: PR and progress cards show the gain
+- **Why:** "Bench Press — 225 lb" (the PR card, 31988) is a number. "+10 lb on bench, was 215" is a story, and it's less identifying. There's also no way to share long-term progress on a lift, the "before and after" that lifters actually post.
+- **Change:**
+  - The PR card's detail adds the previous best: "Bench Press — 225 lb · +10 lb (was 215 lb)". When there's no previous best, it stays as today.
+  - On a lift's history, a "Share progress" button builds a card: "Squat e1RM 225 → 275 lb in 12 weeks", with a sparkline drawn on the canvas. It spans the first logged e1RM in the selected range to the current best.
+- **Acceptance criteria:**
+  1. With a previous best of 215 and a new 225 PR, the `shareData.detail` contains "+10" and "215".
+  2. A first-ever PR (no previous best) produces today's text exactly.
+  3. The progress card's numbers equal the first and best e1RM from the fixture, using the app's real e1RM function.
+- **Test plan:** new `test-pr-gain-card.js` with the real `saveExSet` PR path and the e1RM helpers. Sabotage: drop the previous best lookup, and criterion 1 must fail.
+- **Files:** `index.html` (31980–31990, the lift-history view, 29510), `sw.js`, the test.
+- **Risk:** the PR path is hot. Guarded by the existing PR tests; run them all.
+- **Status:** ready
+
+### MKT-08: Side-by-side progress photos, made on the device
+- **Why:** Progress Photos (6543) can only be compared by sending both photos to an AI with your own key ("Compare with AI", 6561). People mostly want the simple thing: two dated photos side by side, saved or sent by them. That needs no network at all.
+- **Change:**
+  - Next to "Compare with AI", a "Side by side" button builds a 1080×1350 image from the two selected photos, each labelled with its date, plus the small mark. Nothing else: no weight, no numbers.
+  - It opens the share sheet through the same path as the cards.
+  - Never suggested anywhere else (no Priorities row, no celebration). Body images are opt-in only.
+- **Acceptance criteria:**
+  1. With two photos selected, the stub canvas receives two `drawImage` calls and two date `fillText` calls.
+  2. No `fetch` is called (stub-counted: 0).
+  3. With fewer than two photos, the button is disabled.
+- **Test plan:** new `test-photo-side-by-side.js` with the real Progress Photos markup and handler, stub images and canvas. Sabotage: draw one image, and criterion 1 must fail.
+- **Files:** `index.html` (6543–6565 and the Progress Photos handlers), `sw.js`, the test.
+- **Risk:** body images. Keep the privacy note at 6556 accurate: the side-by-side image is made on the device and shared only by the person.
+- **Status:** ready
+
+### MKT-09: The public name
+- **Why:** "Training Log" is a category description. The App Store already lists Training Tracker, TrainLog, LiftLog, StrengthLog, Workout Log and Lift Notes (marketing.md §2.1). It can't be owned in search or as a trademark.
+- **Change:** none until answered. If yes: one version changes the manifest `name`/`short_name`, `<title>`, `apple-mobile-web-app-title`, the share-card wordmark and the What's New text ("Training Log is now Chalklog. Same app, same data."). Storage keys keep the `trainingLog_` prefix: never rename namespaced keys.
+- **Acceptance criteria:** the owner's answer is recorded in `planning/marketing.md` §2.1. The follow-up item writes its own criteria, including "no localStorage key changes".
+- **Test plan:** none until answered.
+- **Files:** `planning/marketing.md`; later `manifest.json`, `index.html` head, `sw.js`.
+- **Risk:** a domain costs money, and the name needs a trademark clearance check. A rename confuses existing installs unless What's New explains it.
+- **Status:** needs-owner. **Question:** "Rename the public app to 'Chalklog' (store title 'Chalklog: Training Log'), after buying chalklog.app and a USPTO clearance search, with 'Liftnext' as the fallback?" **Recommendation:** yes. Decide before the store listing (BIZ-12), not after it.
+
+### MKT-10: Share a program as a link
+- **Why:** people pass programs to training partners. A link that opens the app with the program ready to import is a referral that carries real value, and it needs no server: the program goes in the URL fragment (`#p=…`), which browsers never send to the server.
+- **Change (if approved):** "Share this program" on custom programs builds `PUBLIC_APP_URL + '#p=' + base64url(JSON)`. On load, the app reads the fragment (following the `launchViewFromUrl` pattern, 40172), validates it against the custom-program shape, shows a preview and imports only after a tap. The fragment is stripped after reading.
+- **Acceptance criteria:** a round trip reproduces the program exactly; a malformed or oversized payload is rejected with a message and writes nothing; nothing is imported without the confirm tap.
+- **Test plan:** new `test-program-link.js` with the real encode, decode and validate functions. Sabotage: skip validation, and the malformed case must fail.
+- **Files:** `index.html` (custom programs near 14735 and 15471; 40172), `sw.js`, the test.
+- **Risk:** the URL is untrusted input (`Skill: security-review`). It depends on the public address (BIZ-08, BIZ-12).
+- **Status:** needs-owner. **Question:** "Allow custom programs to be shared as links that carry the program in the link itself (no server), once the app has a public address?" **Recommendation:** yes, after BIZ-08.
+
+### MKT-11: Friend challenges by link, with no server
+- **Why:** in a randomized trial, social comparison raised exercise-class attendance about 90% over arms without comparison, while support alone did not beat control ([Zhang et al. 2016](https://pmc.ncbi.nlm.nih.gov/articles/PMC5008041/)). A challenge can work with no server: the link carries the rule, each person tracks it on their own phone, and the comparison happens in the chat they already use, with each person's result card.
+- **Change (if approved):** from the consistency card, "Challenge a friend" builds a fragment link: `#c=` with a start date, length in weeks, and target sessions per week. Opening it shows the challenge and an "I'm in" button, stored with `window.storage`. At the end, a result card ("Challenge done: 4/4 weeks") with a share button. No leaderboard and no names in the link.
+- **Acceptance criteria:** the link round-trips; progress is computed from `activity-dates` within the challenge window; a malformed link is rejected and writes nothing.
+- **Test plan:** new `test-challenge-link.js`. Sabotage: count dates outside the window.
+- **Files:** `index.html`, `sw.js`, the test.
+- **Risk:** depends on BIZ-08 and MKT-01. Keep it opt-in and guilt-free: no reminders that shame a missed week.
+- **Status:** needs-owner. **Question:** "Add friend challenges that work through shared links, with no server, no accounts and no leaderboard?" **Recommendation:** yes, after MKT-01 and BIZ-08.
+
+### MKT-12: Competitor names in store copy and search pages
+- **Why:** the highest-intent searches are switching searches ("Strong alternative", "Hevy free alternative"; business.md §6). Writing pages or keywords around them uses other companies' trademarks.
+- **Change:** none until answered. If yes: factual comparison pages on the landing site (MKT-14) only, never in store keywords (stores restrict competitor names in metadata), with prices dated and sourced.
+- **Acceptance criteria:** the owner's answer is recorded in `planning/marketing.md` §4.4.
+- **Test plan:** none; a decision.
+- **Files:** `planning/marketing.md`.
+- **Risk:** trademark and comparative-advertising claims. Every claim must be checkable on the date it's published.
+- **Status:** needs-owner. **Question:** "May we publish factual comparison pages that name Strong, Hevy and others (never in store keywords)?" **Recommendation:** yes, for one page with dated, sourced facts, and only after the CSV import (BL-29) exists, because that's what a switcher needs.
+
+### MKT-13: Public launch posts and creator outreach
+- **Why:** nobody can find the app (business.md §5.1). The launch plan (marketing.md §4.3) uses Product Hunt, the self-promotion threads of r/Fitness, r/weightlifting and r/xxfitness, r/PWA and r/SideProject, and evidence-based strength creators.
+- **Change:** none in code. The posts go out under the owner's name.
+- **Acceptance criteria:** the owner's answer is recorded in `planning/marketing.md` §4.3.
+- **Test plan:** none; a decision.
+- **Files:** `planning/marketing.md`.
+- **Risk:** community rules (each sub's sidebar on the day), and the first impression: don't launch before BIZ-01 to BIZ-03 and BIZ-17 ship.
+- **Status:** needs-owner. **Question:** "After the first-launch fixes ship, may we launch publicly (Product Hunt plus the designated self-promotion threads) and contact creators, with no paid placements?" **Recommendation:** yes, after BIZ-12 and BIZ-16.
+
+### MKT-14: A landing page file
+- **Why:** the README is the only landing page, and a GitHub repo page converts badly for people who don't use GitHub. The app itself is the Pages root.
+- **Change:** none until answered. If yes: one static `about.html` beside `index.html` (no framework, no analytics, no third-party fonts), with the promise, screenshots, install steps and privacy facts. Not precached by `sw.js`.
+- **Acceptance criteria:** the owner's answer is recorded here.
+- **Test plan:** the follow-up item adds a test that the page makes no third-party requests.
+- **Files:** later `about.html`, `README.md`.
+- **Risk:** a new file beside `index.html`, which CLAUDE.md restricts. That's why it needs the owner.
+- **Status:** needs-owner. **Question:** "Add one static landing page file (`about.html`) beside the app?" **Recommendation:** yes, alongside the privacy page (BIZ-16), so both live in the same place.
+
+### MKT-15: Any referral attribution
+- **Why:** to learn which share moments bring people in, the share link would need to say where it came from (`?ref=pr`, `?ref=week`). That's attribution, which is tracking in kind even if nothing is stored.
+- **Change:** none until answered. If yes: the share URL carries `ref`; the app strips it on load and stores nothing; only the store consoles' aggregate referrer reports see it.
+- **Acceptance criteria:** the owner's answer is recorded in `planning/marketing.md` §5.
+- **Test plan:** the follow-up item tests that `ref` is stripped and never written to storage (snapshot the keys).
+- **Files:** `planning/marketing.md`.
+- **Risk:** it weakens "no tracking" as a claim, even if only slightly.
+- **Status:** needs-owner. **Question:** "Add a `ref` tag to share links so the store consoles can show which share moments bring installs (the app stores nothing)?" **Recommendation:** no for now. Use store-console totals and tester interviews until there's enough volume for it to matter.
