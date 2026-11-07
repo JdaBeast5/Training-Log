@@ -811,6 +811,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Test plan:** new `test-metadata-truth.js`, which parses the real `index.html` head and `manifest.json` and counts real `programs` keys. Sabotage: put "22" back, and criterion 2 must fail.
 - **Files:** `index.html` (head 4–27), `manifest.json`, `README.md`, `sw.js` (version), the test.
 - **Risk:** `test-icon-manifest-paths.js` reads the manifest; keep the icons untouched.
+- **Business note (2026-11-07, revised model):** the owner chose "free at launch, subscription later". "Free, no ads" stays true and stays in the copy. The README must not say "free forever" about everything, and must not mention a future subscription, until BIZ-18 is approved. BIZ-18 then adds the exact line from business.md §3.3.
 - **Status:** ready
 
 ### BIZ-09: First-month summary in Diagnostics, on device only
@@ -902,15 +903,21 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 
 ### BIZ-11: Business model
 - **Why:**
-  - Free with no ads is the positioning (research §4 complaints).
-  - Running costs exist only for hosted AI and sync.
-  - Category subscriptions reportedly convert well, but only through store billing (business.md §3; RevenueCat 2025 via Athletech News, secondary).
-- **Change:** none until answered.
-- **Acceptance criteria:** the owner's answer is recorded in `planning/business.md` §3, and BIZ-07's README copy matches it.
+  - **Owner's answer (2026-11-07):** "income will eventually be the goal, but we can start with free and then go to subscription down the line" (`pitch.md`, "Owner's answers").
+  - The reworked model is in business.md §3.
+  - **The risk to manage** is taking back or paywalling what free users already have. MyFitnessPal's barcode scanner (2022) and Strava's leaderboards and routes (2020) are the cases (business.md §3.2, with sources).
+- **Change:** none in code. This item now records the model; the public wording is BIZ-18. The rule:
+  - Everything that runs on the phone is free forever, with no ads and no quotas.
+  - Only new, server-run things (hosted AI, cloud sync) can ever be in a subscription.
+  - A founding price goes to everyone who trained before it's announced (BIZ-20).
+  - Switch-on is by metrics, not a date (BIZ-21), and Play billing comes first (BIZ-22).
+- **Acceptance criteria:** the owner's answer to the question below is recorded in business.md §3. BIZ-07's README copy and BIZ-18's in-app copy match it word for word.
 - **Test plan:** none; a decision, not code.
-- **Files:** `planning/business.md`.
-- **Risk:** a public "free forever" promise is hard to take back. Scope it to the core (logging, programs, progression).
-- **Status:** needs-owner. **Question:** "Commit publicly to 'free core, no ads, ever', with any future paid tier limited to things that cost money to run (hosted AI, encrypted sync)?" **Recommendation:** yes. Decide on a paid tier only after the store build has 90 days of retention data.
+- **Files:** `planning/business.md`, `planning/pitch.md` (D9).
+- **Risk:**
+  - Once published, the free list can't shrink without breaking a promise. That's the point.
+  - Coach features, if they ever exist, must stay additive (the coach pays; the client stays free).
+- **Status:** needs-owner. **Question:** "Adopt business.md §3.3 as the rule: everything on the phone free forever with no ads, and only new server-run extras (hosted AI, cloud sync) ever in a subscription; and keep on-device 'advanced analytics' free?" **Recommendation:** yes to all three. On-device charts cost nothing to run, and the paid apps' history limits are the complaint we win on.
 
 ### BIZ-13: Off-device backup or sync
 - **Why:**
@@ -922,7 +929,8 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Test plan:** none until answered.
 - **Files:** `planning/business.md`; later `index.html` (34159).
 - **Risk:** any server option changes where user data goes and breaks the "your logs stay on your phone" promise.
-- **Status:** needs-owner. **Question:** "Should the app offer automatic backup off the device, either to your own iCloud or Google Drive (no server of ours) or to an encrypted sync service (needs a server and accounts)?" **Recommendation:** own-cloud file export first (no server, privacy promise intact); a sync service only alongside BIZ-11's paid tier.
+- **Business note (2026-11-07, revised model):** own-cloud backup through the share sheet runs on the phone, so it's on the free-forever list (business.md §3.3) and pricing doesn't block it. A sync service on our server is a subscription candidate and waits for BIZ-21's triggers.
+- **Status:** needs-owner. **Question:** "Should the app offer automatic backup off the device, either to your own iCloud or Google Drive (no server of ours) or to an encrypted sync service (needs a server and accounts)?" **Recommendation:** own-cloud file export first, free forever (no server, privacy promise intact). A sync service only as part of the future subscription (BIZ-21, BIZ-22).
 
 ### BIZ-14: Hosted AI for people without a key
 - **Why:** the AI features need the user's own Anthropic key (6630), which blocks almost every new user (business.md §5.4). Hosting them needs a server, a key we pay for, and abuse limits.
@@ -931,7 +939,11 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Test plan:** none; a decision, not code.
 - **Files:** `planning/business.md`.
 - **Risk:** recurring API cost, abuse limits, and user prompts (food photos, health data) going to a server we run. That breaks the privacy promise unless it's clearly opt-in.
-- **Status:** needs-owner. **Question:** "Run the AI features on a server we pay for, so users don't need their own key?" **Recommendation:** not yet. Revisit with BIZ-11 once retention is known. Today AI is a power-user extra, not the core.
+- **Business note (2026-11-07, revised model):**
+  - Hosted AI is the **first subscription candidate** (business.md §3.3).
+  - It's also the only feature where a "lifetime" plan would be an open-ended cost, so it never gets one (§3.2).
+  - Bring-your-own-key AI stays free forever, after hosted AI exists too. Removing it would be the clawback §3.2 warns against.
+- **Status:** needs-owner. **Question:** "Run the AI features on a server we pay for, so users don't need their own key?" **Recommendation:** not yet. Build it only when BIZ-21's triggers T1–T3 hold. Beta-test it free with founding members to measure the cost per user (T4), then make it the core of the subscription.
 
 ### BIZ-17: The first screen says what the app is
 - **Why:** a stranger's first screen is "Training Log · Who's training? · Create a new profile" (`userPickerOverlay`, 5701–5712), with no line on what the app does or why it's worth a name (Playwright first-launch walk, business.md §5.2). The promise in business.md §1 is true at v3.514 and costs one line.
@@ -947,6 +959,108 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Files:** `index.html` (5701–5712, 9637–9652), `sw.js`, the test.
 - **Risk:** low. Picker layout at 402×874; check it in Playwright. Ship after BIZ-07 so the page metadata and the first screen say the same thing.
 - **Status:** ready
+
+
+### BIZ-19: "Training since" date from the log, on the device
+- **Why:**
+  - The founding-member promise (BIZ-20, business.md §3.4) needs proof of when someone started, and there are no accounts.
+  - The log already holds that proof: the earliest dated set in the `ex:` keys.
+  - `activity-dates` can't be used, because it prunes after 730 days (`ACTIVITY_DATES_RETENTION_DAYS`, 13913 at v3.515).
+  - Showing the date now makes eligibility visible long before it matters, and it's a quiet, true line about the lifter's own history. It's a date, not a badge, and nothing is sent anywhere.
+- **Change:**
+  - Add a pure helper, `earliestTrainingDate(corpus)`, that returns the smallest `date` among entries with at least one set, from `readExCorpus` (41021 at v3.515).
+  - Show one line beside the backup controls (`exportDataBtn`, 6248): "Training since <Month YYYY>. This date travels with your backup."
+  - With no logged sets, show nothing.
+  - No new storage key, and no write.
+  - If MKT-17 has shipped, reuse its corpus pass rather than writing a second walk.
+- **Acceptance criteria:**
+  1. A corpus with sets dated 2024-03-05, 2025-01-02 and 2026-11-01 renders "Training since March 2024".
+  2. An `activity-dates` fixture whose earliest date is later (pruned) doesn't change the result. The line reads from the log only.
+  3. With an empty corpus, the line isn't in the DOM.
+  4. Restoring a JSON backup that holds the 2024 entries into an empty profile renders the same line. Use the real import handler.
+  5. No `fetch`, `sendBeacon` or `XMLHttpRequest` call happens during the render (stub-counted: 0), and no new storage key is written (snapshot the keys before and after).
+- **Test plan:** new `test-training-since.js`, with the real `readExCorpus`, `normalizeExEntry`, the new helper and the real render path over stub `window.storage`. Sabotage: read `activity-dates` instead, and criterion 2 must fail.
+- **Files:** `index.html` (6248 area, 41021, the settings render path; re-grep), `sw.js`, the test.
+- **Risk:**
+  - `readExCorpus` drops keys whose program day no longer exists (`parseExKey`), so a deleted custom program can make the date later than the truth. Say "on your log" in the What's New line, as MKT-17 does.
+  - Settings layout at 402×874; check it in Playwright.
+- **Status:** ready
+
+### BIZ-18: "What's free" in writing: README, landing page and one in-app note
+- **Why:**
+  - The free/paid line (business.md §3.3) only protects users and the brand if it's public **before** anyone could be affected, so it can never look retroactive (§3.4).
+  - Today nothing in the app or the README says what is free or why.
+- **Change:**
+  - One short "What's free" note in Settings (near the privacy link from BIZ-16), with the same text in the README and in MKT-14's landing page: "Everything that runs on your phone is free, forever, with no ads. If we ever add a paid plan, it will only cover things that run on our servers, like AI without your own key or cloud sync, and anyone who trained with Chalklog before then gets a founding price for as long as they stay subscribed."
+  - Copy only; nothing is gated.
+  - Marketing owns tone (marketing.md §2). This item owns the facts.
+- **Acceptance criteria:**
+  1. The Settings note exists in the parsed `index.html` and contains "free, forever" and "no ads".
+  2. The note's text equals the README's "What's free" paragraph (normalised whitespace), so the two can't drift.
+  3. The note contains no price, no currency symbol and no date (regex count 0) until BIZ-21 sets them.
+  4. No element in the free-list areas (the set sheet, program picker, history, export) carries a lock, upgrade or "Pro" label (DOM query count 0). That's a guard against future quota creep.
+- **Test plan:** new `test-whats-free.js`, which parses the real `index.html` and `README.md`. Sabotage: change one word in the README paragraph, and criterion 2 must fail.
+- **Files:** `index.html` (Settings), `README.md`, `sw.js`, the test; later `about.html` (MKT-14).
+- **Risk:**
+  - It's a public commitment with consumer-promise implications, so the owner must approve the exact words.
+  - Ship it after BIZ-07 and BIZ-16 so all three say the same thing.
+- **Status:** needs-owner. **Question:** "Publish this exact 'What's free' paragraph in the app, the README and the landing page at public launch?" **Recommendation:** yes, at launch (Phase 5) and not before. The promise is what makes it safe for early users to commit years of logs.
+
+### BIZ-20: The founding-member promise
+- **Why:**
+  - Early users carry the risk of a new app, and grandfathering is the pattern that keeps them on side when pricing starts. Fitbod's 2026 price rise reportedly spared legacy subscribers (business.md §3.2; competitor-sourced, unverified).
+  - The opposite, new terms for people already there, is what drew complaints for Oura in 2021 (§3.2).
+- **Change:** none in code until a subscription exists. The promise:
+  - Everyone who logs a training session before the subscription is announced gets a **founding price, recommended at half the list price, locked for as long as they stay subscribed.**
+  - They keep everything on the free list, like everyone else.
+  - There's no lifetime plan on hosted AI.
+  - Eligibility is read on the device from the earliest logged set (BIZ-19). At switch-on it's applied through the store's own offer mechanism (BIZ-22).
+  - Announced in general terms at launch (BIZ-18). The price and date are announced at least 30 days before billing starts.
+- **Acceptance criteria:** the owner's answer is recorded in business.md §3.4. When billing is built, its item adds jsdom criteria for eligibility from `earliestTrainingDate` against the announcement cutoff.
+- **Test plan:** none until billing exists.
+- **Files:** `planning/business.md`.
+- **Risk:**
+  - It's a money promise that has to be honoured for years.
+  - On-device proof can be faked by editing data. That's accepted as a small cost.
+  - The store offer mechanics (Apple offer codes, Google Play offers) aren't verified here.
+- **Status:** needs-owner. **Question:** "Promise a founding price (half of list, locked while subscribed) to everyone who trains with Chalklog before the subscription is announced, and announce the promise at public launch?" **Recommendation:** yes. Offer no lifetime plan on hosted AI.
+
+### BIZ-21: Switch the subscription on by metrics, not by a date
+- **Why:**
+  - Charging before retention is proven, or before the paid thing is good, risks the clawback and the review damage in business.md §3.2.
+  - The earlier rule ("no billing code until 90 days of retention data", summit R3) said when to look, not what the data has to show.
+- **Change:** none in code. The owner checks business.md §3.5 monthly, and the subscription switches on only when **all** of these hold:
+  - **T1:** day-30 retention of at least 16% for 3 monthly cohorts in a row. That's twice the category's upper published figure.
+  - **T2:** active users are enough to cover the measured running cost at a conservative paying share.
+  - **T3:** people ask for sync or no-key AI unprompted, month after month.
+  - **T4:** the paid feature is built and beta-tested, its cost per user is measured, and the privacy page is updated.
+  - **T5:** roadmap Phases 0–2 are shipped, and nothing on the free list had to move.
+  - **T6:** the payment path works in the store sandbox.
+- **Acceptance criteria:** the owner's answer is recorded in business.md §3.5, along with a monthly check line (date, T1–T6 yes or no, with the numbers).
+- **Test plan:** none; a decision, not code.
+- **Files:** `planning/business.md`, `planning/roadmap.md`.
+- **Risk:**
+  - T1 and T2 depend on the store consoles. With no analytics, a PWA-only audience is invisible.
+  - The 16% threshold is our proposal, not an industry benchmark.
+- **Status:** needs-owner. **Question:** "Replace '90 days of data' with the six triggers in business.md §3.5, and agree that no billing code is written until they all hold?" **Recommendation:** yes.
+
+### BIZ-22: The payment path
+- **Why:**
+  - The app has no server and no accounts. Any paid feature (hosted AI, sync) needs a server anyway, and that's where the purchase check has to live (business.md §3.6).
+  - Store billing comes through the native build, which the Capacitor effort owns. This item only records the dependency.
+- **Change:** none in code. The options, with fee levels and sources, are in business.md §3.6:
+  - **A:** store billing (Play first);
+  - **B:** web payments with our own licence check;
+  - **C:** both;
+  - **D:** a voluntary support link now, with nothing locked.
+- **Acceptance criteria:** the owner's answer is recorded in business.md §3.6.
+- **Test plan:** none; a decision, not code.
+- **Files:** `planning/business.md`.
+- **Risk:**
+  - Accounts, money, contracts, tax, and a server that user data goes to (for opt-in users).
+  - Web purchases unlocking an iOS store app risk App Review rejection (guideline 3.1.1, from developer reports).
+  - The 2026 Play fee changes are reported but unverified here.
+- **Status:** needs-owner. **Question:** "Plan on Play billing first, once the Capacitor build supports it, with web payments only if many users are on the iPhone PWA and there's no iOS build; and do you also want a 'support us' link now, with nothing locked?" **Recommendation:** yes to Play first, and no billing or server code before BIZ-21's triggers. The support link is optional; it's honest only if it says it pays for nothing extra.
 
 ---
 

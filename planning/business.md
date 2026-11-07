@@ -17,7 +17,7 @@ Owner: business-manager. Written 2026-11-07 against **v3.514** (`APP_VERSION`, `
    3. All data lives in one browser. The first backup nudge waits 10 sessions, and Safari ignores the persistence request.
    4. The AI features are wired into the most visible places, but they need the user's own Anthropic key, so for almost every stranger they are dead ends.
    5. There's no way to measure activation or retention, and nothing a user shares links back to the app.
-3. **Recommended model:** a free core forever with no ads. Pay only for things that cost money to run (hosted AI, sync), and decide that only after the store launch shows retention. Details in §3.
+3. **Model (owner-decided 2026-11-07, revised): free at launch, a subscription later.** Our verdict is that it's sound if the line is drawn now. Everything that runs on the phone stays free forever, with no ads. Only new things that run on our servers (hosted AI, cloud sync) ever go into a subscription. Early users get a founding price. The switch-on is triggered by metrics, not a date, and Play billing comes first. Details in §3.
 4. **North star:** *weekly active trainers*, meaning people who log at least 2 training sessions in a calendar week (§4).
 
 ---
@@ -60,17 +60,155 @@ Prices are from `planning/research.md` §1 (dated snapshots, third-party sources
 
 ---
 
-## 3. Business model options
+## 3. Business model: free at launch, a subscription later
 
-| Model | Fits the architecture? | Evidence | Verdict |
+**Owner's decision (2026-11-07, `pitch.md` → "Owner's answers"):** "income will eventually be the goal, but we can start with free and then go to subscription down the line." The owner asked "what do you guys think?" This section is the answer, and the rules that make the plan work. It replaces the earlier "free core, decide later" table. Revised 2026-11-07 against v3.515.
+
+### 3.1 Verdict: sound, if the line is drawn now
+
+**The plan is sound,** for four reasons:
+- **Free is the wedge.** The paid apps charge for progression and limit history (research §1, §3), and MyFitnessPal's paywalled barcode is still the most-cited single feature in its negative reviews (research §1, third-party). "The free tier is the whole app" is our positioning (§2).
+- **Free costs us almost nothing.** There's no server. The only fixed costs are store developer accounts: $25 once for Play and $99 a year for Apple (consistent across secondary sources, e.g. [playcode.io](https://playcode.io/blog/how-much-does-it-cost-to-publish-an-app); confirm on the stores' own pages before paying).
+- **The things worth paying for need a server anyway.** Hosted AI (no key needed) and cloud sync are the only features with a real running cost, and neither exists yet. So nothing could be sold today even if we wanted to. The subscription arrives with the server, and not before.
+- **Users get to judge the product before it asks for money.** That is how we earn the trust that a subscription later depends on.
+
+**It works only on one condition:** the free/paid line is fixed now, written down publicly at launch, and the subscription only ever holds **new things that run on our servers**. Nothing a free user has ever had moves behind it.
+
+**What to expect, honestly:**
+- With no accounts and no analytics, we will know little about who uses the app. The only channel to every user is the app itself (What's New). The switch-on has to be announced there.
+- The subscription will pay for running costs first. Whether it becomes real income depends on retention and scale we can't measure yet. No revenue forecast appears here, because there is no data to base one on.
+
+### 3.2 The ways this usually goes wrong
+
+1. **Taking back or paywalling what free users already have.** This is the big one. People judge the change against what they had yesterday, not against the market price.
+   - **MyFitnessPal, 2022:** announced in August that barcode scanning would need Premium from 1 October 2022 ([Droid-Life](https://www.droid-life.com/2022/08/24/myfitnesspal-puts-barcode-scanner-behind-premium-paywall/), [Digital Trends](https://digitaltrends.com/phones/myfitnesspal-barcode-scanning-not-free-premium-subscription), [The Verge via Slashdot](https://news.slashdot.org/story/22/08/25/1955238/myfitnesspal-paywalls-barcode-scanner-that-made-counting-calories-easy)). Four years on, a 2026 review analysis still found the barcode scanner the single most-named feature in its negative reviews ([unstar](https://unstar.app/blog/is-myfitnesspal-premium-worth-it-paywall-app-reviews-2026); a third-party blog).
+   - **Strava, 18 May 2020:** free users lost segment leaderboards beyond the top 10, and creating or editing routes moved to the subscription ([DC Rainmaker](https://dcrainmaker.com/2020/05/strava-leaderboard-reduces.html), [BikeRadar](https://www.bikeradar.com/news/strava-leaderboards-routes-subscription/), [Cyclingnews](https://www.cyclingnews.com/news/stravas-latest-update-makes-leaderboards-a-paid-for-feature)).
+   - **Our guard:** the free list in §3.3 is frozen. Nothing on it ever moves. Bring-your-own-key AI stays free after hosted AI exists.
+2. **Shrinking the free tier by quota instead of removal.** Limits on routines, custom exercises or months of history are the same clawback in disguise. Hevy's free tier allows 4 routines, 7 custom exercises and 3 months of stats; Strong's allows 3 templates (research §1, third-party sources). That works for them because they started that way. For us, adding a quota later would be taking something away.
+   - **Our guard:** no counts or time limits on anything on the free list, ever. A weak paid tier is not a reason to squeeze the free one; make the paid thing better instead.
+3. **Promises the running costs can't carry, or new terms for existing customers.**
+   - A "lifetime" plan for hosted AI is an open-ended cost: every lifetime buyer keeps costing money each month.
+   - **Oura, 2021:** the Gen3 ring came with a paid membership, and lifetime membership went only to existing owners who upgraded at launch ([Engadget](https://www.engadget.com/oura-ring-version-3-150032257.html), [Android Authority](https://androidauthority.com/oura-ring-3-3039812)). Users on forums called the switch "jarring" ([TrainerRoad forum](https://www.trainerroad.com/forum/t/oura-ring-any-users/13744/68); anecdotal).
+   - **The better pattern:** when Fitbod raised its price in 2026, existing subscribers reportedly kept their old $12.99/mo or $79.99/yr ([SensAI](https://www.sensai.fit/blog/fitbod-review-2026); a competitor's blog, so unverified). That is grandfathering, and our founding promise (§3.4) is built on it.
+   - **Our guard:** no lifetime plan on anything with a per-use cost. Price changes never apply to people already subscribed.
+
+### 3.3 The line, decided now
+
+**The rule in one sentence:** *if it runs on your phone, it's free forever; if it runs on our servers, it may one day be part of a subscription.* No ads, ever, on either side. No selling or sharing of data, ever.
+
+**Free forever** (it runs on the device and costs nothing to run):
+
+| Area | What's included |
+|---|---|
+| Logging | Workouts, one-tap sets, the rest timer, plate math and warm-ups |
+| Programs | Every program, today's 25 and any added later. Progression, deloads, RPE and RIR targets, and substitutions |
+| History and analysis | Full history with no time limit, PRs, e1RM, every chart and Analysis card computed on the device, Year in Lifting, "Your number" (MKT-06, MKT-17) |
+| Food | Search (USDA and Open Food Facts), barcode lookup, macro targets, trend weight and adaptive expenditure when they ship (BL-16, BL-17, BL-27) |
+| Health tracking | Sleep, water, blood pressure, glucose, cycle, supplements and care tracking, and the clinical programs |
+| Your data | JSON backup and restore, CSV export (BL-22), Strong and Hevy import (BL-29), and backup to your own iCloud or Drive through the share sheet (BIZ-13) |
+| Sharing | Share cards, program links and challenges (MKT-10, MKT-11) |
+| AI with your own key | You pay Anthropic directly, so it costs us nothing. It stays after hosted AI exists, and it's the escape valve for heavy AI users |
+
+**No quotas** on routines, custom exercises, programs or history length.
+
+**Subscription candidates** (only once built, and only new things):
+- **Hosted AI coaching**, with no key needed. Every request costs money. This is the first candidate, because BYO-key AI is the biggest dead end for new users today (§5.4).
+- **Cloud sync and automatic encrypted backup** on a server we run, across devices.
+- **Coach features (an idea, not a plan):** a coach sees and edits a client's program. It needs a server to share the data. If it ever exists, the coach pays and the client stays free.
+
+**"Advanced analytics": our honest view is to keep it free.** If a chart is computed on the phone, it costs nothing to run, and the paid apps' history limits are exactly the complaint we win on. The one exception is analysis that needs hosted AI (for example an AI monthly review), which belongs with hosted AI.
+
+**Rejected:**
+- ads;
+- selling or sharing data;
+- paywalling anything on the free list;
+- cosmetic unlocks (they blur the one-sentence rule);
+- lifetime plans on hosted AI.
+
+### 3.4 The founding-member promise
+
+**Who:** everyone who logs a training session before the subscription is announced.
+
+**What they get:**
+1. Everything on the free list, forever. That's true for everyone, but it's stated in the promise anyway.
+2. **A founding price on the subscription, locked for as long as they stay subscribed.** The recommendation is half the list price. That's our proposal for the owner, not a market figure.
+3. No pressure: nobody is subscribed automatically. If the store build offers a trial, the screen states the price and the day it converts, in the same size as the offer.
+
+**What they don't get:** a lifetime plan on hosted AI (§3.2, item 3).
+
+**Proof without accounts:** the earliest logged set in the device's own log (`readExCorpus` over the `ex:` keys, `index.html` 41021).
+- Not `activity-dates`, which prunes after 730 days (`ACTIVITY_DATES_RETENTION_DAYS`, 13913).
+- The proof travels with the JSON backup, so it survives a new phone.
+- It can be faked by editing data. We accept that: being generous to the odd cheater costs little.
+- At switch-on the app reads the date locally and applies the offer through the store's own offer mechanism (Apple and Google both have discount offers; the details aren't verified here).
+- BIZ-19 (ready) shows "Training since" from the same data now, so the date is visible long before it matters.
+
+**When to announce:**
+- **At public launch (Phase 5)**, in general terms, alongside the free list: in the README, the landing page (MKT-14), the store listing, the privacy page (BIZ-16) and an in-app "What's free" note (BIZ-18). The wording: "Everything that runs on your phone is free, forever, with no ads. If we ever add a paid plan, it will only cover things that run on our servers, and anyone who trained with Chalklog before then gets a founding price for as long as they stay subscribed."
+- **Why then:** the promise has to exist before anyone could be affected, so it can never look retroactive. It also rewards the people who take a chance on a new app.
+- **The price and the date:** in What's New and on the landing page **at least 30 days before billing starts.** That's our own notice rule, not an industry figure.
+
+### 3.5 Trigger metrics for switching the subscription on
+
+**No calendar date.** The subscription switches on only when **all** of these hold. The owner checks them monthly, from the store consoles, BIZ-09 tester reports and measured costs.
+
+| # | Trigger | How it's measured | Threshold (our proposal) |
 |---|---|---|---|
-| **Free, no ads (today)** | Yes | Paywalls and ads on basics are the most-cited complaints across MyFitnessPal, Cronometer and Lose It! (research §4) | **Keep it for the core. It's the positioning.** |
-| **Ads** | Yes | Full-screen ads interrupting logging are a recurring complaint (Cronometer, Lose It!; research §4) | **Reject.** It would destroy the main advantage |
-| **One-time purchase / "supporter" unlock** | Only through a store (the Capacitor track) | Hevy sells a $74.99 lifetime option (research §1) | Possible later, for cosmetic or convenience extras only. Needs the owner (store accounts, money) |
-| **Freemium subscription** | Needs accounts and store billing | Health and fitness apps reportedly convert a median 39.9% of trials to paid, and roughly 2× better on iOS than Android (RevenueCat 2025 via [Athletech News](https://athletechnews.com/fitness-apps-monetizable-winner-take-all-or-most/); primary report at [revenuecat.com](https://revenuecat.com/state-of-subscription-apps-2025) not opened; secondary figures conflict). About two-thirds of category subscribers reportedly pick annual plans (secondary, unverified) | Only for things with a running cost: **hosted AI** (no own key) and **sync/backup**. Never for logging, programs or progression |
-| **Bring your own key (today, for AI)** | Yes | — | Fine for the owner and power users. For strangers it's a dead end (blocker 4) |
+| T1 | **Retention is proven** | Play Console retention for new-install cohorts | Day-30 retention at least **twice** the category's upper published figure (8%, Adjust via [Business of Apps](https://businessofapps.com/data/health-fitness-app-benchmarks), secondary), so 16% or more, for **3 monthly cohorts in a row** |
+| T2 | **There's enough scale to fund a server** | Console active users × a conservative paying share × net price, against the measured monthly server and AI cost | It covers the running cost with margin. The owner sets the paying-share assumption. Plan on a low single-digit percentage: that's an assumption, not a benchmark |
+| T3 | **People ask for it unprompted** | Store reviews, support email and GitHub issues asking for sync or for AI without a key | A recurring request, month after month, with a count recorded each month |
+| T4 | **The paid thing exists and is good** | Hosted AI or sync is built, beta-tested free with founding members, its cost per active user measured, and the privacy page updated | All four done |
+| T5 | **The free core is finished** | Phases 0–2 of the roadmap shipped, and nothing on the free list needed to move | Yes |
+| T6 | **The payment path works** | §3.6 is in place and tested in the store's sandbox | Yes |
 
-**Recommendation (needs the owner, BIZ-11):** stay free with no ads. Ship to the stores through the Capacitor effort first. Measure retention through the store consoles. Only then consider an optional paid tier ("Training Log Plus": hosted AI with no key, plus encrypted backup), priced under MacroFactor's $71.99/yr. Don't build any billing until real users exist.
+**Not triggers:** a date, needing money, or a competitor raising prices. These replace the earlier rule "no billing code until 90 days of retention data" (summit R3). T1 is stricter and says what the data has to show.
+
+### 3.6 The technical constraint, plainly
+
+**Today:** no server, no accounts, one file. That's no obstacle to being free. It's the whole obstacle to charging.
+
+**The key point:** everything we'd charge for (hosted AI, sync) needs a server anyway, and the payment check lives on that same server. The subscription can't arrive before a server does. The server is itself an owner decision, because data leaves the phone for people who opt in (BIZ-13, BIZ-14). The PWA stays free, complete and serverless for everyone who doesn't.
+
+| Path | What it needs | Fees (level, as verified) | Who it reaches |
+|---|---|---|---|
+| **A. Store billing in the native app** | The Capacitor build with Play Billing (and Apple in-app purchase if an iOS build ever exists). **The Capacitor effort owns that, and this team only records the dependency.** Plus our server to verify purchases and unlock the server features, and the developer accounts | **Google Play:** 15% on auto-renewing subscriptions ([Google help page](https://support.google.com/googleplay/android-developer/answer/112622), via search; the page wouldn't load from this session). After the Epic settlement, a US, UK and EEA rate of 10% service plus 5% billing is reported from 30 June 2026 ([TechCrunch](https://techcrunch.com/2026/03/04/google-settles-with-epic-games-drops-its-play-store-commissions-to-20/), [Adapty](https://adapty.io/blog/google-play-billing-changes-subscriptions-fees)); **unverified**, and dates differ between reports. **Apple:** 15% under the Small Business Program (under $1M a year); otherwise 30% in a subscriber's first year and 15% after ([MacRumors](https://www.macrumors.com/2020/11/18/apple-drops-app-store-fees/), [RevenueCat](https://revenuecat.com/blog/engineering/small-business-program)); check Apple's current terms | Android users of the store build. iPhone users only if an iOS store build exists; today the owner's own iPhone runs the PWA |
+| **B. Web payments** | A card processor, accounts (email sign-in), our server with a licence check, and sales-tax and VAT handling (merchant-of-record services exist; their fees aren't verified here) | Stripe's US card rate is 2.9% + 30¢ ([NerdWallet](https://www.nerdwallet.com/business/software/learn/stripe-fees), secondary; Stripe's page wasn't opened) | PWA users, including iPhone home-screen users, with no store needed. **But** an iOS store app that unlocks features bought on the web risks rejection under App Review guideline 3.1.1 unless in-app purchase is offered too (developer reports on [Apple's forums](https://developer.apple.com/forums/thread/828238); the guideline text wasn't opened). In the US, the rules on linking out are still in court: the April 2025 order in Epic v. Apple ([MacRumors](https://www.macrumors.com/2025/04/30/apple-app-store-anti-steering-injunction-violation)) was narrowed on appeal in December 2025 ([AppleInsider](https://appleinsider.com/articles/25/12/11/appeals-court-amends-order-to-let-apple-resume-third-party-commissions)) |
+| **C. Both** | A and B, with one entitlement record on our server | Both of the above | Everyone. It's the most work |
+| **D. A voluntary "support us" link now** | A payment account only (GitHub Sponsors or similar). No server, and nothing locked | Not verified | Anyone who wants to give. A store build may have to sell tips through its own billing (unverified) |
+
+**Recommendation:**
+- **A, Play first,** once the Capacitor track supports billing. That matches BIZ-12 (Play first).
+- Keep the PWA free and complete.
+- Add B only if a large share of users turn out to be iPhone PWA users and there's still no iOS build.
+- D is optional and the owner's call. It doesn't conflict with "free"; the honest framing is "this pays for nothing extra".
+- **Write no billing or server code before the triggers in §3.5.** Server and billing code would live outside `index.html`. The single file only calls the server for people who opt in. That changes the "no server, no account" claim for them, so the privacy page must say so.
+
+### 3.7 Price anchors
+
+US prices. Most come from third-party trackers and reviews, as research §1 explains. **Re-check them on the store's checkout screen before quoting any of them publicly.**
+
+| App | Monthly | Yearly | Lifetime | What the money buys | Source and status |
+|---|---|---|---|---|---|
+| **Hevy Pro** | $2.99 (a $3.99 listing also exists) | $23.99 | $74.99 | Limits lifted, plus the Trainer | [recurdash](https://recurdash.com/subscription-pricing/hevy) (says it checked hevy.com, Jul 2026), [apppricinglab](https://apppricinglab.com/iap/apple/1458862350). Third-party, consistent |
+| **Strong PRO** | $4.99 | $29.99 (also $19.99 for 6 months) | $99.99 "Forever" (one storefront shows $79.99) | Unlimited templates, plus charts | [App Store listing](https://apps.apple.com/app/id464254577) via search, [SensAI, Oct 2026](https://www.sensai.fit/blog/strong-app-review-2026). Mostly consistent |
+| **Fitbod** | $15.99 (legacy $12.99) | $95.99 (legacy $79.99) | Not corroborated | Generated workouts | [SensAI 2026](https://www.sensai.fit/blog/fitbod-review-2026), [apppricinglab](https://www.apppricinglab.com/iap/apple/1041517543). Competitor-written; **partly unverified** |
+| **MacroFactor** | $11.99 | $71.99 (also $47.99 for 6 months); the bundle with Workouts is $89.99/yr | None | Adaptive nutrition; no free tier | [App Store listing](https://apps.apple.com/gb/app/id1553503471) via search, [MacroFactor help](https://help.macrofactorapp.com/en/articles/393-how-macrofactor-subscriptions-and-bundles-work) |
+| **MyFitnessPal Premium** | $19.99 | $79.99 | — | Barcode and more | Reported in 2022 ([Droid-Life](https://www.droid-life.com/2022/08/24/myfitnesspal-puts-barcode-scanner-behind-premium-paywall/)); research §1 has the same figures. **Current price unverified** |
+| **RP Hypertrophy** | $34.99 | $299.99 | — | Feedback-driven training blocks | research §1 (Oct 2026, third-party). **Unverified** |
+| **WHOOP** | Membership | — | — | Wearable plus app | **Price unverified** |
+
+**What the anchors say:**
+- The logbook Pros (Hevy $23.99/yr, Strong $29.99/yr) sell what we give away free.
+- The specialist coaches (MacroFactor $71.99/yr, Fitbod $95.99/yr) sell running intelligence.
+- Our paid plan sells only the server features.
+
+**Proposal (not evidence):**
+- **One plan, annual-first, with a monthly option.**
+- **Sync and backup alone** would sit in the logbook band, about $20–30 a year.
+- **Hosted AI** is priced from the measured cost per active user (T4), with a fair-use allowance stated in plain numbers. Heavy users can keep using their own key for free.
+- **Stay under MacroFactor's $71.99/yr** for the full plan.
+- **Never price below the measured running cost.**
+- The final price is set at switch-on, not now.
 
 ---
 
@@ -195,7 +333,8 @@ The full text is in `planning/roadmap.md` → "Business priorities".
 2. Pull the first-launch items (BIZ-01 to BIZ-03, BIZ-05) ahead of the bar-raisers (BL-16 onward). Activation multiplies everything else.
 3. Pull data trust forward: BIZ-04 and BL-22, and approve BL-29.
 4. BIZ-06, BIZ-07, BIZ-09, BIZ-10 and BIZ-17 are small and ready; slot them between larger items.
-5. Owner decisions in this order: BIZ-12 (go public?), BIZ-16 (privacy policy), BIZ-15 (clinical review), BIZ-11 (model), BIZ-13 (sync), BIZ-14 (hosted AI).
+5. Owner decisions in this order: BIZ-12 (go public?), BIZ-16 (privacy policy), BIZ-15 (clinical review), BIZ-11 and BIZ-18 (adopt the free/paid line publicly), BIZ-20 (founding promise), BIZ-13 (own-cloud backup), BIZ-21 (switch-on triggers), BIZ-22 (payment path), BIZ-14 (hosted AI, the first subscription candidate).
+6. BIZ-19 (a "Training since" date from the log) is ready and small. It makes founding eligibility visible long before it matters.
 
 ---
 
@@ -204,6 +343,8 @@ The full text is in `planning/roadmap.md` → "Business priorities".
 - **Retention benchmarks:** secondary summaries of AppsFlyer and Adjust. No primary report was opened.
 - **RevenueCat 2025 trial-to-paid median (39.9%):** from Athletech News coverage. The primary page wasn't opened, and other sources disagree (35%, 62%).
 - **Safari home-screen exemption from the 7-day cap:** from secondary reporting and a WebKit bug thread. The WebKit blog post itself wasn't found.
-- **Store fees:** stated from general knowledge of the public developer programs. Check them before the owner pays.
+- **Store fees:** the developer accounts ($25 Play, $99/yr Apple) and the commission levels in §3.6 come from secondary sources. Google's help page couldn't be opened from this session, and the 2026 post-Epic Play rates are reported with differing dates. Check both stores' own pages before deciding on a price.
+- **Precedent cases (§3.2):** the MyFitnessPal and Strava changes are confirmed by several news outlets. The Oura reaction is a forum anecdote. Fitbod's grandfathered legacy price comes from a competitor's blog.
+- **Apple and web purchases:** the guideline 3.1.1 risk comes from developer forum reports, not from the guideline text. The US link-out rules are still in litigation.
 - **Competitor prices:** these are `planning/research.md` snapshots, and several conflict between sources.
 - **Playwright walk:** Chromium at 402×874, not iOS Safari. Install, persistence and share-sheet behaviour on an iPhone are unverified.
