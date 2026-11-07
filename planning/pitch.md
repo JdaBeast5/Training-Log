@@ -151,9 +151,9 @@ At one merge a day (your pace, an assumption) that's about two months of ready w
 ## Decisions only you can make
 
 ### Owner's answers, 2026-11-07
-- **Name:** Chalklog. In-app rename shipped on the working branch as v3.515, display name only, with storage keys unchanged. The domain and USPTO check (D7) are still to do before the name is used publicly.
+- **Name:** Liftnext. Chalklog was chosen first, then dropped the same day because several "Chalk" fitness apps exist. The rename ships as v3.515 on the working branch, display name only. The domain and USPTO check are still to do before the name is used publicly. Marketing's note: on a bib card, Liftnext can read as an instruction, so the card copy should frame it as the brand (for example, a "LIFTNEXT" event band).
 - **Design:** Plate & Press for the app, plus the hybrid edge additions: the race bib as the story card, "Your number", "Pin it on", and the bib with the loaded bar as the constant (design-directions.md §5–§6, MKT-16 to MKT-18).
-- **Icon:** approved, as a stripe of the five plate colours used as both the icon and the card mark (MKT-19).
+- **Icon:** option B, "Sash" (tools/design/icon/), shipped on the working branch as v3.516: the home-screen icon, the header mark and the launch.
 - **Money (D9, revised):** free at launch, with a subscription later. The business manager has reworked the model (business.md §3). Our view: it's sound if the line is drawn now. D9 below asks the follow-ups.
 - **Still open:** D1–D6, D8 and D10.
 
