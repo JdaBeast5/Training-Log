@@ -666,3 +666,223 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - running, cycling and swimming volume progression.
 - **Health importer:** keep SDNN and rMSSD apart (found in BL-21's check).
 - **Out of scope:** lock-screen or watch logging, which belongs to the Capacitor track (CLAUDE.md); exercise demos (parked by the owner).
+
+---
+
+## Business (BIZ): added by business-manager, 2026-11-07
+
+Written against **v3.514**. Evidence for every item is in `planning/business.md` §5, from a Playwright first-launch walk (Chromium, 402×874, fresh context) and the code. Line numbers are `index.html` at v3.514. **Re-grep them before editing.** The same rules and default `Tools:` apply as for every BL item above. Ready items are listed first, in suggested build order, then needs-owner items in priority order.
+
+### BIZ-01: A three-question quick start before the first workout
+- **Why:**
+  - A fresh profile opens on "Upper · Strength, Week 1 of 5 · Accumulation, ~63 min, 0/26 sets", with Bench Press 4×4-6 first. No goal, days or experience has been asked (`activeProgram = 'strength'`, 13053).
+  - `recommendProgram` (33662) and `PROGRAM_DAY_COUNT_VARIANTS` (via `daysPerWeekPref`, 25950) already exist, but only after the long profile form is filled in.
+  - Activation (the first set logged) multiplies every later metric (business.md §4).
+- **Change:**
+  - After `createNewUser` (9629) on a device with no prior profile, the picker shows three single-tap steps, using fields that already exist:
+    1. Goal: the existing `goal` options;
+    2. Training days per week: 2–6, saved with `saveDaysPerWeekPref` (25963);
+    3. "Where do you train": gym or home/bodyweight, mapped to the existing equipment and program keys.
+  - On finish, apply `recommendProgram(userProfile)` through the existing program-switch path (`saveActiveProgram`, 14888) and save the profile with `saveProfile` (32412).
+  - "Skip" keeps today's behaviour exactly.
+  - No new storage keys and no new abstraction: extend the picker overlay (5701).
+- **Acceptance criteria:**
+  1. With an empty user list, creating a profile shows quick-start step 1. With an existing user list, switching users shows no quick start.
+  2. Choosing goal "lose", 3 days and "home" sets `userProfile.goal === 'lose'` and `daysPerWeekPref === 3`, and sets `activeProgram` to exactly what `recommendProgram` returns for that profile. Assert against the real function's return, not a hard-coded key.
+  3. "Skip" leaves `activeProgram === 'strength'` and `daysPerWeekPref === null`, as today.
+  4. The quick start writes only the existing keys (`profile`, `days-per-week-pref`, the active-program key). Snapshot the storage keys before and after.
+- **Test plan:** new `test-quick-start.js`, run in jsdom with the real `createNewUser`, `showUserPicker`, `recommendProgram`, `scoreAllPrograms` and `saveDaysPerWeekPref`. Sabotage: skip the `recommendProgram` call, and criterion 2 must fail.
+- **Files:** `index.html` (5701–5712, 9629–9665, 14888, 25963, 32412, 33662), `sw.js`, the test.
+- **Risk:**
+  - First-launch flow. Guarded by `test-first-launch.js`, `test-program-recommendation.js` and `test-configurable-training-days.js`.
+  - `location.reload()` in `switchToUser` (9626): the quick start must run after the reload. Use the empty profile name as the trigger, not in-memory state.
+- **Status:** ready
+
+### BIZ-02: The name typed at "Who's training?" fills the profile name
+- **Why:** after creating "Alex", the header still says "Set up your profile below to personalize this" (`renderHeader`, 33790), and Getting Started's "Set up your profile" stays unticked (33895). The picker name goes into the user list (`createNewUser` 9629), never into `userProfile.name`. So the app asks for the name twice.
+- **Change:** when a profile loads with an empty `userProfile.name` and the active user-list entry has a name, use that name. Write it once through the existing `saveProfile` path. Nothing else changes.
+- **Acceptance criteria:**
+  1. After creating "Alex", `userProfile.name === 'Alex'` and `#headerEyebrow` contains "Alex".
+  2. A profile whose name was already set to something else keeps it.
+  3. The Getting Started row "Set up your profile" renders `.done`.
+- **Test plan:** extend `test-first-launch.js`. Sabotage: remove the fill, and criterion 1 must fail.
+- **Files:** `index.html` (9629, 32405–32412, 33783–33792, 33895), `sw.js`, the test.
+- **Risk:** low. Multi-user devices are guarded by `test-first-launch.js`. If BIZ-01 ships first, this is its natural first step; don't merge the two into one version.
+- **Status:** ready
+
+### BIZ-03: Placeholder calorie targets say they are placeholders
+- **Why:** before any height, weight or age is entered, the Log tab shows "2169 cal left of 2169" as if it were the user's own target. It's `computeTargets` (32973) run on the defaults (30 years, 5'8", 160 lb; `userProfile` 32397). A number that looks personal but isn't is a trust problem for the people who log food (business.md §5.2).
+- **Change:**
+  - When the profile has never been saved, add one line under the calorie hero (`calHeroUnit`, 37820): "Estimate for a 30-year-old, 5'8", 160 lb. Add yours in Profile."
+  - Values come from `userProfile`, so the line can't drift from the defaults.
+  - The targets themselves don't change.
+- **Acceptance criteria:**
+  1. With no saved profile, the line renders and contains "Estimate".
+  2. After `saveProfile` with real values, the line is gone.
+  3. The calorie number is unchanged in both states. Assert it equals `computeTargets(userProfile).cal`.
+- **Test plan:** new `test-placeholder-targets.js`, with the real `computeTargets` and the real render function behind 37820. Sabotage: always hide the line, and criterion 1 must fail.
+- **Files:** `index.html` (6284, 32397–32412, 32973, ~37820), `sw.js`, the test.
+- **Risk:** nutrition hero layout. Guarded by `test-nutrition-default-open.js` and `test-nutrition-macro-bar-colors.js`.
+- **Status:** ready
+
+### BIZ-04: First backup reminder after 3 sessions, not 10
+- **Why:**
+  - All data lives in one browser with no second copy (comment at 14310).
+  - The first reminder waits for `BACKUP_NUDGE_FIRST = 10` sessions (14320).
+  - `navigator.storage.persist()` is a no-op on Safari (14295), and Playwright saw `persisted() === false` on first launch.
+  - Three sessions is the first point where a new user has a program week worth losing.
+- **Change:** `BACKUP_NUDGE_FIRST` goes from 10 to 3. `BACKUP_NUDGE_REPEAT` and the copy are unchanged.
+- **Acceptance criteria:**
+  1. With `activity-dates` holding 3 dates and no `last-backup`, `getBackupReminderInsight()` returns text containing "Nothing here is backed up yet".
+  2. With 2 dates, it returns `null`.
+  3. With a `last-backup` and 19 later dates, it returns `null`; with 20, it returns the repeat text (unchanged behaviour).
+- **Test plan:** new `test-backup-reminder.js`, with a real invocation against a stub `window.storage`. Sabotage: set it back to 10, and criterion 1 must fail.
+- **Files:** `index.html` (14320), `sw.js`, the test.
+- **Risk:** one more Today's Priorities row for new users. Guarded by `test-today-priorities.js`.
+- **Status:** ready
+
+### BIZ-05: A starting-load hint on an exercise's very first set
+- **Why:** on a first-ever set the sheet opens with empty lb and reps fields, and nothing says how to choose a weight (Playwright, Bench Press set 1). After one entry the app suggests well (95×6 led to 100×4 with Undo). Only the very first set lacks guidance.
+- **Change:**
+  - When an exercise has no history, the set sheet's target line (under "Target 4×4-6") adds: "First time: pick a weight you could lift for about 3 more reps than the target."
+  - This is the same RIR language as BL-10. Copy only: no load number, no new logic.
+- **Acceptance criteria:**
+  1. Opening the sheet for an exercise with no logged sets shows the hint.
+  2. Once one set is logged for that exercise, the hint is absent.
+  3. Gym mode's sheet behaves the same.
+- **Test plan:** extend `test-set-sheet.js`, with the real sheet open function. Sabotage: drop the history check, and criterion 2 must fail.
+- **Files:** `index.html` (set sheet markup and its open function; grep `setSheetTitle`), `sw.js`, the test.
+- **Risk:** low. If BL-10 changes the RIR wording first, reuse its string. Don't write a second one.
+- **Status:** ready
+
+### BIZ-06: AI entry points say they need a key before the tap
+- **Why:**
+  - Several prominent entry points all need the user's own Anthropic key (6630), which strangers won't have:
+    - the coach button on every screen (`coachFab`, 7458);
+    - the first Analysis card, "Generate insights" (6665);
+    - Photo and Describe among the first five food buttons.
+  - Today, each one says so only after the tap (`aiKeySetupPrompt`).
+  - The core value (programs, progression) is what should lead.
+- **Change:** when `getApiKey()` (41733) resolves empty:
+  - the "Generate insights" button reads "Add an AI key to use this";
+  - the AI card sorts below Training Trends in Analysis;
+  - the Coach panel's intro line says "Needs your Anthropic key (Settings)".
+  - With a key, nothing changes. No feature is removed.
+- **Acceptance criteria:**
+  1. With no key, the insights button text contains "key", and the Training Trends group precedes the AI card in DOM order.
+  2. With a stub key, the button reads "Generate insights" and the order is as today.
+  3. `generateCrossMetricInsights`'s request payload is untouched. Count one real `fetch` per call with a key, as in `test-ai-cross-metric-effort-fix.js`.
+- **Test plan:** new `test-ai-entry-honesty.js`. Sabotage: ignore the key state, and criterion 1 must fail.
+- **Files:** `index.html` (6630, 6665, 7458, 41733, Analysis card order), `sw.js`, the test.
+- **Risk:**
+  - Analysis order. Guarded by `test-analysis-2-0.js`, `test-analysis-collapse.js` and `test-coach-2-0.js`.
+  - Don't touch the "fixed, unverified live" AI internals (CLAUDE.md).
+- **Status:** ready
+
+### BIZ-07: Truthful page metadata, manifest description and README
+- **Why:**
+  - `manifest.json` says "22 training programs … and AI coaching". The live page has 25 `programs` keys, and AI coaching needs the user's own paid key.
+  - `index.html` has no `<meta name="description">` and no Open Graph tags (lines 4–27), so shared links preview blank.
+  - `README.md` is one line, and the public repo is the only landing page.
+- **Change:**
+  - Add a meta description and `og:title`, `og:description` and `og:image` (the existing `icon-512.png`).
+  - Use the business.md §1 promise: "Proven programs that tell you what to lift next, one tap per set. Free, no ads, no account, and your logs stay on your phone."
+  - The manifest description drops the hard-coded count and the AI headline.
+  - The README gets that promise, how to install to the home screen, and the privacy facts (logs on device; food search goes to USDA and Open Food Facts; AI only with your own key).
+  - Coordinate wording with `planning/marketing.md` if it exists by build time. Its copy wins on tone; this item owns only the factual accuracy.
+- **Acceptance criteria:**
+  1. `meta[name=description]` and `meta[property="og:title"]` exist in the parsed document.
+  2. The manifest description contains no digit-count of programs, or a count that equals `Object.keys(programs).length` from the real `programs` object.
+  3. No metadata string contains "AI coaching" without "your own key".
+- **Test plan:** new `test-metadata-truth.js`, which parses the real `index.html` head and `manifest.json` and counts real `programs` keys. Sabotage: put "22" back, and criterion 2 must fail.
+- **Files:** `index.html` (head 4–27), `manifest.json`, `README.md`, `sw.js` (version), the test.
+- **Risk:** `test-icon-manifest-paths.js` reads the manifest; keep the icons untouched.
+- **Status:** ready
+
+### BIZ-09: First-month summary in Diagnostics, on device only
+- **Why:** there's no way to know whether the app activates and retains anyone, and adding analytics would break the privacy promise (business.md §4). The data needed is already stored: the `has-logged-first-set` milestone, `activity-dates` and `last-backup`. A tester or the owner can read the result off the screen and report it by hand.
+- **Change:**
+  - Add one row to the existing diagnostics output (`runDiagnostics`, 46529): "First set: <date> · sessions in first 7 days: n · first 30 days: n · last backup: <date or never>".
+  - Computed from existing keys. Nothing is sent anywhere, and no new key is written.
+- **Acceptance criteria:**
+  1. With `activity-dates` = 5 dates within 7 days of the first, the row reads "first 7 days: 5".
+  2. With no activity, the row reads "No sessions yet".
+  3. No `fetch`, `sendBeacon` or `XMLHttpRequest` is called during diagnostics (stub-counted: 0).
+- **Test plan:** extend the diagnostics coverage in a new `test-diagnostics-first-month.js`, with the real `runDiagnostics` and a stub storage. Sabotage: count from the wrong start date, and criterion 1 must fail.
+- **Files:** `index.html` (46529 and its helpers), `sw.js`, the test.
+- **Risk:** low; read-only.
+- **Status:** ready
+
+### BIZ-10: A one-time "Add to Home Screen" hint for browser-tab users
+- **Why:**
+  - Someone using the app in a Safari tab gets no install prompt. That's the case most exposed to Safari's 7-day storage cap: home-screen apps reportedly keep their own counter ([Search Engine Land](https://searchengineland.com/what-safaris-7-day-cap-on-script-writeable-storage-means-for-pwa-developers-332519); secondary).
+  - Installing also gives the full-screen app the owner designed for.
+  - No `beforeinstallprompt` or home-screen copy exists (grep: 0 matches).
+- **Change:**
+  - When `matchMedia('(display-mode: standalone)')` is false and `navigator.standalone !== true`, Today's Priorities shows one row: "Install it: Share → Add to Home Screen. It keeps your log safer and opens full screen."
+  - It shows after the first logged set, once. "Hide" is stored with `window.storage` (an existing pattern, like `onboarding-dismissed`).
+- **Acceptance criteria:**
+  1. Not standalone, with a first set logged and not dismissed: the row renders.
+  2. Standalone: no row.
+  3. After Hide, no row on the next render.
+  4. Before the first set: no row.
+- **Test plan:** new `test-install-hint.js`, with the real insight function and stubbed `matchMedia`. Sabotage: drop the standalone check, and criterion 2 must fail.
+- **Files:** `index.html` (`renderTodayInsights` 14615 and a new `get…Insight` beside `getBackupReminderInsight` 14323), `sw.js`, the test.
+- **Risk:**
+  - Today's Priorities ordering. Guarded by `test-today-priorities.js`.
+  - Don't show it inside the Capacitor build. Standalone detection covers that; verify in the test.
+- **Status:** ready
+
+### BIZ-08: Share cards carry the app's address
+- **Why:** PR, streak and weekly share cards end with the text "TRAINING LOG" (`buildShareCardBlob`, 29510) and share text with no URL (~29620). Every share is a referral that can't be followed. The marketing-manager owns share moments; this item only adds the link.
+- **Change:** a `PUBLIC_APP_URL` constant beside `APP_VERSION` (7622). It's drawn under "TRAINING LOG" on the card and appended to `shareText`.
+- **Acceptance criteria:** the share text passed to a stubbed `navigator.share` ends with `PUBLIC_APP_URL`, and the card canvas receives a `fillText` call with it (stub-counted: 1).
+- **Test plan:** extend the share-card coverage with a stub canvas. Sabotage: drop the append.
+- **Risk:** it advertises the app's public address on every share, before the owner has decided to go public (BIZ-12).
+- **Status:** needs-owner. **Question:** "Put the app's public web address on every share card and share message?" **Recommendation:** yes, once BIZ-12 settles the address (GitHub Pages now, the store link later).
+
+### BIZ-12: Go public: where, and under what name
+- **Why:** with no store listing, a generic name and an empty README, nobody can find the app (business.md §5.1). The Capacitor track creates the store build; the business needs the owner's decision to list it.
+- **Change:** none in code until answered. The answer unlocks BIZ-08 and BIZ-16 and the marketing launch plan.
+- **Acceptance criteria:** the owner's answer is recorded in `planning/business.md` §6.
+- **Status:** needs-owner. **Question:** "Do you want Training Log public (Google Play first via the Capacitor build, then the App Store), and do you keep the name 'Training Log' or let marketing propose an ownable one?" **Recommendation:** Play first (Android is the Capacitor track's target, and the Play fee is one-time); let marketing propose names before the listing.
+
+### BIZ-16: A privacy policy page
+- **Why:** store listings for apps handling health data require a privacy policy (business.md §6). Ours would be unusually short and strong: logs stay on device; food queries go to USDA and Open Food Facts; AI calls go to Anthropic only with your own key; no analytics.
+- **Change:** a static `privacy.html` beside `index.html`. Text only, linked from Settings and the README.
+- **Acceptance criteria:** every third-party host the app can contact (grep of `fetch(` targets) is named in the page. Checked by a test that greps the real `fetch` URLs.
+- **Risk:** legal text. The owner must approve the wording.
+- **Status:** needs-owner. **Question:** "Publish a plain-language privacy policy listing exactly which services the app talks to?" **Recommendation:** yes. It's required for a listing and it's a selling point.
+
+### BIZ-15: Clinical-content review and disclaimer before any public listing
+- **Why:**
+  - Medical, prenatal, postpartum and hypertension plans make health-related prescriptions. SAF-1 and SAF-2 showed automatic volume and RPE reaching them (BL-01, BL-02 fix that).
+  - Cycle advice cites a named author (6575).
+  - In a public store, these are health-claim and liability questions.
+- **Change:**
+  - BL-01 to BL-06 ship first.
+  - Then a single-screen acknowledgement the first time a clinical program is chosen: "Use this with your care team's clearance."
+  - Plus a review of every `basis` string for claims that read as medical advice.
+- **Acceptance criteria:** choosing any `MEDICAL_STYLES` key the first time shows the acknowledgement, once (stored with `window.storage`).
+- **Status:** needs-owner. **Question:** "Before going public, add a one-time care-team acknowledgement to clinical programs and have their claims reviewed (by you or a clinician)?" **Recommendation:** yes. Keep the programs, because they're a differentiator no competitor has.
+
+### BIZ-11: Business model
+- **Why:**
+  - Free with no ads is the positioning (research §4 complaints).
+  - Running costs exist only for hosted AI and sync.
+  - Category subscriptions reportedly convert well, but only through store billing (business.md §3; RevenueCat 2025 via Athletech News, secondary).
+- **Change:** none until answered.
+- **Status:** needs-owner. **Question:** "Commit publicly to 'free core, no ads, ever', with any future paid tier limited to things that cost money to run (hosted AI, encrypted sync)?" **Recommendation:** yes. Decide on a paid tier only after the store build has 90 days of retention data.
+
+### BIZ-13: Off-device backup or sync
+- **Why:**
+  - One lost phone loses everything (business.md §5.3).
+  - BIZ-04 and BL-22 reduce the risk, but they're manual.
+  - A real fix moves data off the device: an export to the user's own iCloud or Drive through the share sheet, or encrypted sync on a server.
+- **Change:** none until answered.
+- **Status:** needs-owner. **Question:** "Should the app offer automatic backup off the device, either to your own iCloud or Google Drive (no server of ours) or to an encrypted sync service (needs a server and accounts)?" **Recommendation:** own-cloud file export first (no server, privacy promise intact); a sync service only alongside BIZ-11's paid tier.
+
+### BIZ-14: Hosted AI for people without a key
+- **Why:** the AI features need the user's own Anthropic key (6630), which blocks almost every new user (business.md §5.4). Hosting them needs a server, a key we pay for, and abuse limits.
+- **Change:** none until answered. BIZ-06 makes the current state honest in the meantime.
+- **Status:** needs-owner. **Question:** "Run the AI features on a server we pay for, so users don't need their own key?" **Recommendation:** not yet. Revisit with BIZ-11 once retention is known. Today AI is a power-user extra, not the core.
