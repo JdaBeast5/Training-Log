@@ -1,0 +1,19 @@
+/* Shared device chrome and font files for the three direction mock-ups (A, B, C).
+   Static HTML/CSS prototypes for planning/design-directions.md. Nothing here is loaded by index.html. */
+@font-face{font-family:'Archivo'; font-style:normal; font-weight:100 900; font-stretch:62% 125%; font-display:block;
+  src:url(../fonts/archivo-latin-wdth-wght.woff2) format('woff2');}
+@font-face{font-family:'Geist'; font-style:normal; font-weight:100 900; font-display:block;
+  src:url(../../../fonts/geist-latin-wght-normal.woff2) format('woff2');}
+*{box-sizing:border-box; margin:0; padding:0;}
+button{font:inherit; color:inherit; background:none; border:0; cursor:pointer;}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+svg.i{width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round; flex:none;}
+.phone{width:402px; height:874px; overflow:hidden; position:relative; -webkit-font-smoothing:antialiased; font-variant-numeric:tabular-nums;}
+.status{height:54px; display:flex; align-items:center; justify-content:space-between; padding:14px 30px 0 34px; font:600 16px/1 'Geist',sans-serif;}
+.status .dots{display:flex; gap:6px; align-items:center;}
+.status .bat{width:26px; height:12px; border:1.5px solid currentColor; border-radius:4px; position:relative;}
+.status .bat::after{content:''; position:absolute; inset:1.5px; right:5px; background:currentColor; border-radius:1.5px;}
+.home-ind{position:absolute; left:50%; bottom:8px; width:140px; height:5px; border-radius:3px; background:currentColor; transform:translateX(-50%); z-index:30;}
+.tabbar{position:absolute; left:0; right:0; bottom:0; height:84px; display:grid; grid-template-columns:repeat(5,1fr); padding:6px 6px 0; z-index:20;}
+.tab{display:flex; flex-direction:column; align-items:center; gap:3px; min-height:48px; padding-top:4px; font:500 11px/1.2 'Geist',sans-serif; letter-spacing:.01em;}
+.tab svg.i{width:24px; height:24px;}
