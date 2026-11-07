@@ -1841,26 +1841,6 @@
   }
   .ex-icon svg{width:100%; height:100%;}
   .ex-detail-content{flex:1; min-width:0;}
-  /* v3.513 [ANATOMY 3D]: the demo stage, full width above the cues. A quiet
-     spotlit floor behind the athlete; the canvas (shared, moved between
-     demos) fills it, and a demo that isn't playing shows its Play button. */
-  .ex-detail-body.has-demo{flex-direction:column; gap:10px;}
-  .ex-anatomy{margin:0;}
-  .ex-anatomy-stage{
-    position:relative; display:grid; place-items:center; width:100%; max-width:440px; margin:0 auto;
-    aspect-ratio:4 / 3; border-radius:var(--radius-md); overflow:hidden;
-    background:radial-gradient(60% 55% at 50% 72%, color-mix(in srgb, var(--plate-blue) 14%, transparent), transparent 70%);
-  }
-  .ex-anatomy-stage canvas{position:absolute; inset:0; width:100%; height:100%; display:block; touch-action:pan-y;}
-  .ex-anatomy-play{
-    min-height:44px; padding:0 18px; border-radius:var(--radius-pill); border:1px solid var(--glass-hair);
-    background:var(--glass-fill); color:var(--text); font:600 14px var(--font-sans); cursor:pointer;
-  }
-  .ex-anatomy.is-playing .ex-anatomy-play, .ex-anatomy.is-unavailable .ex-anatomy-play{display:none;}
-  .ex-anatomy.is-loading .ex-anatomy-play{opacity:.55;}
-  .ex-anatomy.is-unavailable .ex-anatomy-stage{font-size:12.5px; color:var(--text-muted); padding:0 16px; text-align:center;}
-  .ex-demo-caption{display:flex; align-items:center; justify-content:center; gap:7px; margin-top:4px; font-size:12px; color:var(--text-muted);}
-  .ex-demo-swatch{width:14px; height:5px; border-radius:3px; background:var(--plate-blue); flex:0 0 auto;}
   .ex-cues{list-style:none; display:flex; flex-direction:column; gap:6px;}
   .ex-cues li{
     font-size:12.5px; line-height:1.45; color:var(--text); padding-left:14px; position:relative;
@@ -7639,7 +7619,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.513';
+const APP_VERSION = '3.514';
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -8985,6 +8965,9 @@ const WHATS_NEW = {
   ]},
   '3.513': { headline: 'Watch a 3D athlete do the lift', points: [
     'Open Technique & focus on the squat, bench press or deadlift to watch a 3D athlete perform it with correct form, the working muscles lighting up through each rep. Drag to turn them around. More lifts are coming, program by program.',
+  ]},
+  '3.514': { headline: 'Exercise demos removed for now', points: [
+    'The 3D exercise demos are gone while we rethink them. Technique & focus shows the cues and the form-video link again, and the demo files are cleared from your phone.',
   ]},
 };
 
@@ -13685,77 +13668,6 @@ const EXERCISE_MOVE = {
   'Cat-Cow Mobility':'mobility',
 };
 
-// [ANATOMY 3D] (v3.513, owner: "a human animation showing anatomically
-// correct movements for each exercise … official and professional", replacing
-// v3.510's drawn figure: "it shouldn't be stick figures"). The engine, the
-// model and Three.js live in ./assets (the owner allowed asset files beside
-// index.html, cached by sw.js): assets/anatomy/anatomy.js solves each lift's
-// mechanics per frame on a CC0 anatomical human (MakeHuman) and lights the
-// working muscles. It is imported only when a demo is opened, and one canvas
-// is shared, moved to whichever demo is playing. Exercises are added program
-// by program; the rest keep their icon and video link until theirs exists.
-const ANATOMY_LIFTS = {
-  'Squat':'squat', 'Back Squat':'squat', 'Pause Squat':'squat',
-  'Bench Press':'bench', 'Flat Bench Press':'bench', 'Close-Grip Bench Press':'bench',
-  'Deadlift':'deadlift', 'Deficit Deadlift':'deadlift',
-};
-const ANATOMY_WORKS = { squat:'Quads · glutes', bench:'Chest · triceps · front delts', deadlift:'Glutes · hamstrings · back' };
-const ANATOMY_MODULE_URL = './assets/anatomy/anatomy.js';
-const ANATOMY_GLB_URL = './assets/anatomy/human-v1.glb';
-// The demo block for an exercise, or '' when it has none yet.
-function buildExerciseDemoHtml(name){
-  const lift = ANATOMY_LIFTS[name];
-  if(!lift) return '';
-  return `<figure class="ex-anatomy" data-lift="${lift}"><div class="ex-anatomy-stage">`
-    + `<button type="button" class="ex-anatomy-play">Play demo</button></div>`
-    + `<figcaption class="ex-demo-caption"><span class="ex-demo-swatch" aria-hidden="true"></span>${escapeHtml(ANATOMY_WORKS[lift])}</figcaption></figure>`;
-}
-let anatomyStagePromise = null, anatomyActive = null, anatomyObserver = null;
-function loadAnatomyStage(){
-  if(!anatomyStagePromise){
-    const accent = (getComputedStyle(document.documentElement).getPropertyValue('--plate-blue') || '').trim() || '#3d7bff';
-    anatomyStagePromise = import(ANATOMY_MODULE_URL)
-      .then(m => m.createStage({ glbUrl: ANATOMY_GLB_URL, accent }))
-      .catch(e => { anatomyStagePromise = null; throw e; });
-  }
-  return anatomyStagePromise;
-}
-// Play this demo: the shared canvas moves here; the one it left shows its
-// Play button again. Under Reduce Motion it is drawn still, mid-rep.
-async function mountAnatomy(fig){
-  if(!fig || !fig.isConnected) return;
-  const stageEl = fig.querySelector('.ex-anatomy-stage');
-  fig.classList.add('is-loading');
-  try{
-    const stage = await loadAnatomyStage();
-    if(!fig.isConnected) return;
-    if(anatomyActive && anatomyActive !== fig) anatomyActive.classList.remove('is-playing');
-    const still = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-    stage.show(stageEl, fig.dataset.lift, { still });
-    anatomyActive = fig;
-    fig.classList.add('is-playing');
-    // Draw only while it can be seen.
-    if('IntersectionObserver' in window){
-      if(anatomyObserver) anatomyObserver.disconnect();
-      anatomyObserver = new IntersectionObserver(es => es.forEach(e => stage.setVisible(e.isIntersecting)));
-      anatomyObserver.observe(stageEl);
-    }
-  }catch(e){
-    fig.classList.add('is-unavailable');
-    stageEl.textContent = 'The 3D demo can\'t run on this device.';
-  }finally{
-    fig.classList.remove('is-loading');
-  }
-}
-// Opening Technique & focus plays its demo; so does the Play button.
-document.addEventListener('toggle', (e)=>{
-  const d = e.target;
-  if(d && d.tagName === 'DETAILS' && d.open){ const fig = d.querySelector('.ex-anatomy'); if(fig) mountAnatomy(fig); }
-}, true);
-document.addEventListener('click', (e)=>{
-  const btn = e.target.closest && e.target.closest('.ex-anatomy-play');
-  if(btn) mountAnatomy(btn.closest('.ex-anatomy'));
-});
 
 
 // --- Exercise substitution system ------------------------------------------
@@ -28447,14 +28359,11 @@ function buildDetailsHtml(ex){
   const iconSvg = getExerciseIcon(ex.name, info.category);
   const query = encodeURIComponent(info.videoQuery || `${ex.name} proper form`);
   const cuesHtml = info.cues.map(c=>`<li>${escapeHtml(c)}</li>`).join('');
-  // v3.510/v3.513: where the exercise has a 3D demo it leads the panel, above
-  // the cues, in place of the small pattern icon; the video stays as a link.
-  const demoHtml = buildExerciseDemoHtml(ex.name);
   return `
     <details class="ex-details">
       <summary>Technique & focus</summary>
-      <div class="ex-detail-body${demoHtml ? ' has-demo' : ''}">
-        ${demoHtml || `<div class="ex-icon">${iconSvg}</div>`}
+      <div class="ex-detail-body">
+        <div class="ex-icon">${iconSvg}</div>
         <div class="ex-detail-content">
           <ul class="ex-cues">${cuesHtml}</ul>
           <a class="ex-video-link" href="https://www.youtube.com/results?search_query=${query}" target="_blank" rel="noopener">Watch form video</a>
@@ -31662,11 +31571,7 @@ async function renderExerciseDetail(){
   const shownIdx = exerciseDetailIdx;
   const historyHtml = await buildExerciseHistoryHtml(Number(shownIdx), ex, {maxRows:5});
   if(shownIdx !== exerciseDetailIdx) return; // another exercise was focused while this one loaded
-  // v3.511/v3.513: the 3D demo heads the pane, where the exercise has one.
-  document.getElementById('exerciseDetailBody').innerHTML = buildExerciseDemoHtml(ex.name) + historyHtml + cuesHtml;
-  // v3.513: the pane is already open, so its demo plays straight away.
-  const paneDemo = document.querySelector('#exerciseDetailBody .ex-anatomy');
-  if(paneDemo) mountAnatomy(paneDemo);
+  document.getElementById('exerciseDetailBody').innerHTML = historyHtml + cuesHtml;
 }
 // Folding or unfolding shows or hides it straight away, not at the next set.
 if(window.matchMedia){
