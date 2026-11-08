@@ -8,7 +8,17 @@
       "Bash(git push -u origin Branch-1:*)",
       "Bash(git push origin HEAD:Branch-1:*)",
       "Bash(git push --force:*)",
-      "Bash(git push -f:*)"
+      "Bash(git push -f:*)",
+      "Bash(gh api -X PUT:*)",
+      "Bash(gh api -XPUT:*)",
+      "Bash(gh api --method PUT:*)",
+      "Bash(gh api --method=PUT:*)",
+      "Bash(gh api graphql:*)",
+      "Bash(curl -X PUT:*)",
+      "Bash(curl -XPUT:*)",
+      "Bash(curl --request PUT:*)",
+      "Bash(git push origin +Branch-1:*)",
+      "Bash(git push origin HEAD:refs/heads/Branch-1:*)"
     ]
   }
 }
