@@ -8,10 +8,12 @@
 - TOOL-01, DOC-01.
 
 
+**Spec refresh (2026-11-08, against v3.518, after PR #63).** The next 15 slots of the Unified build sequence after BL-01 (roadmap slots 2–16: BL-02, BL-03, BL-04, BL-05 with BL-06, BL-05b, BL-13, BL-35, BL-36, BL-08, UX-01, UX-01b, BL-07, MKT-02, MKT-09, UX-02) were re-grepped against `index.html` at **v3.518**. In those items, line numbers are v3.518's, each criterion is written to be checked by a real invocation (or, where `renderWorkout` can't be driven in jsdom, by a real-call count), and `Files:` names every existing test that needs re-pinning, found by reading the suites that extract the touched functions. Each changed item ends with a "Spec refresh (2026-11-08)" line. Owner decisions already given in `pitch.md` (D2, D4, D11–D13) are applied to statuses. The builder's PR #63 flags became BL-65 to BL-67 (and BL-02 criterion 9). Items further down still carry v3.514 numbers: re-grep them.
+
 Owner: project-manager. Written 2026-11-07 against **v3.514**. The baseline was green: `check.sh` passed and 198/198 `test-*.js` suites passed. Line numbers are `index.html` at v3.514 unless a file is named. **Every build run re-greps them before editing:** each shipped item shifts the lines below it.
 
 **Rules for every item** (CLAUDE.md, `planning/toolchain.md` §5–6):
-- One item = one version. `APP_VERSION` (7622) and `sw.js` `VERSION` are bumped together, plus a `WHATS_NEW` entry (7634).
+- One item = one version. `APP_VERSION` (7618 at v3.518) and `sw.js` `VERSION` (195) are bumped together, plus a `WHATS_NEW` entry (7636, appended at the end of the object).
 - One new or extended `test-*.js`, using the real functions extracted from `index.html` through `testHelpers.js`.
 - A sabotage check: revert the change and watch the test fail.
 - Count real invocations, not text matches.
@@ -66,87 +68,120 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - Accumulation behaviour on the four lifting programs. Guarded by `test-accumulation-accessory-add.js` and `test-mesocycle-phase-tag.js`.
   - `applyGoalVolume` has no prior test; this item adds the first.
   - The phase tag will still read "Accumulation" on gated programs. Flag it; don't fix it here.
+- **Build note (v3.518, PR #63):** `applyAccumulationAccessory` is gated by a tested invariant (every `ACCUMULATION_ACCESSORY_POOL` key is in `VOLUME_MODIFIER_PROGRAMS`) rather than an in-function check, which would have broken `test-accumulation-accessory-add.js`. The builder's other flags are BL-02 criterion 9, BL-65, BL-66 and BL-67. Line numbers above are v3.514's: `applyGoalVolume` is at 26673 and `VOLUME_MODIFIER_PROGRAMS` at 26750 in v3.518.
 - **Status:** done (v3.518, PR #63)
 
 ### BL-02: RPE caps for clinical programs; RPE mode off for technique lifts (SAF-2)
-- **Why:** `RPE_BY_CYCLE_WEEK` (27409) reaches RPE 9 in week 4 for any exercise with an e1RM.
+- **Why:** `RPE_BY_CYCLE_WEEK` (27446) reaches RPE 9 in week 4 for any exercise with an e1RM.
   - The hypertension plan says to avoid near-maximal lifts [AHA23].
   - A 5×2 snatch at RPE 9 is about 91% of an Epley e1RM, which isn't valid for technical lifts [ACSM26][PRAC].
-  - The target is computed twice, separately: `buildProgressBadge` 27746 and `computeSuggestedSet` 27825.
+  - The target is read in three places, separately: `buildProgressBadge` (27783), `computeSuggestedSet` (27862) and `renderLoadModeNote` (32930), plus `targetRpeForWeek` (27448).
+  - **Builder flag, PR #63 (folded in here):** after BL-01 the week ramp (7.5 → 9) still runs on the clinical and prenatal plans in RPE mode, although they no longer gain block sets. This item is the fix; criterion 9 covers every clinical style by iteration.
 - **Change:**
-  - One helper, `rpeTargetFor(week, inDeload, program, category)`, used by both sites (consolidation). It returns:
+  - One helper, `rpeTargetFor(week, inDeload, program, category)`, beside `targetRpeForWeek` (27448), used by all three sites (consolidation). It returns:
     - `null` for categories `oly`, `jump` and `throw`. The RPE path is then skipped, falling back to double progression, and the badge shows "Technique lift: stop each set with 2–3 clean reps left."
-    - `min(weekTarget, 7)` (RIR ≥ 3) when `program === 'medical'` or `'senior'`. Prenatal and postpartum are `MEDICAL_STYLES` keys, so they're covered.
-  - `rpeCtx` (28766) gains `program: activeProgram`.
-  - `renderLoadModeNote` (~32899) also reads `RPE_BY_CYCLE_WEEK[`. Route it through `rpeTargetFor` (with the active program), so the note never shows a week target the cap overrides.
-  - **The clinical load gate (SAF-8, folded in by the alignment round).** For `medical` (every `MEDICAL_STYLES` key, prenatal and postpartum included) and `senior`, `analyzeProgressionSignal` (~27483):
+    - the deload value (`RPE_BY_CYCLE_WEEK[DELOAD_CYCLE_WEEKS]`, 6) when `inDeload`;
+    - `min(weekTarget, 7)` (RIR ≥ 3) when `program === 'medical'` or `'senior'`. Prenatal and postpartum are `MEDICAL_STYLES` keys (11366), so they're covered;
+    - otherwise `targetRpeForWeek(week)`.
+  - `rpeCtx` (28803) gains `program: activeProgram` and `category: exCategory`, so `buildProgressBadge` and `computeSuggestedSet` can pass both.
+  - `renderLoadModeNote` (32923) reads its target through `rpeTargetFor(week, false, activeProgram, null)`, so the Settings note never shows a week target the cap overrides.
+  - **The clinical load gate (SAF-8, folded in by the alignment round; owner decision D12).** `analyzeProgressionSignal` (27514) gains a fourth argument, `program`, passed at **all three** call sites: `getSessionHeadsUpInsight` (14555), `computeProgramFitTrend` (27614) and `renderWorkout` (28804), so the heads-up, the fit check and the badge agree. For `medical` (every `MEDICAL_STYLES` key) and `senior`, signal 3 (27548–27561):
     - signals an increase only when logged RPE is ≤ 7 in **both** qualifying sessions;
-    - uses the smallest loadable jump (`snapToLoadable`'s step for that equipment), never the category increment;
-    - with no RPE logged, shows no number: the badge reads "If both sessions felt comfortable, try the smallest jump."
-- **Acceptance criteria:**
-  1. With `loadSuggestionMode='rpe'`, medical/hypertension, week 4: the badge shows `RPE 7` and the suggested load equals `loadForRpeTarget(e1rm, reps, 7)`.
-  2. With `oly` Snatch, week 4: `loadForRpeTarget` is called **0** times (stub-counted). `computeSuggestedSet` returns the double-progression result, and the badge contains "Technique lift".
-  3. Strength program Back Squat, week 4: still RPE 9.
-  4. Deload week: RPE 6 everywhere.
-  5. `RPE_BY_CYCLE_WEEK[` is read only inside `rpeTargetFor` and `targetRpeForWeek` (real-code count, comments excluded). `renderLoadModeNote`'s read goes through `rpeTargetFor`.
-  6. Hypertension Seated Cable Row 2×12, two sessions at the top rep with RPE 8: no increase. The same at RPE 7: an increase equal to the smallest loadable jump (computed by the real `snapToLoadable`, not hard-coded).
-  7. The same slot with no RPE logged: no number in the badge, and the text contains "felt comfortable".
-  8. Strength program Back Squat with the same logs at RPE 8.5: still increases by the category increment (unchanged).
-- **Test plan:** new `test-rpe-safety-caps.js`, with a real invocation of `buildProgressBadge`, `computeSuggestedSet` and `analyzeProgressionSignal`. Sabotage: drop the cap, and criterion 1 must fail; drop the clinical load branch, and criterion 6 must fail.
-- **Files:** `index.html` (27409–27413, 27483–27545, 27742–27760, 27812–27836, 28766, ~32899), `sw.js`, the test.
-- **Alignment note (2026-11-07):** SAF-8 folded in (exercise-auditor B2; owner decision 7 confirms "smallest step after two sessions at RPE ≤ 7" rather than no load suggestions). The promise becomes "never adds sets; load rises only in the smallest steps when sets felt easy". BL-08 and BL-24 must keep criteria 6–8 passing.
-- **Risk:** RPE badge rendering. Guarded by `test-progress-badge-rpe-teal.js`, `test-today-workout-emoji.js` and `test-deload-signal-week-awareness.js`.
+    - uses the smallest loadable jump instead of `getLoadIncrement(category)`: for a barbell, `2 × smallest plate` (the step `snapToLoadable`, 32777, uses); for dumbbells, `getEquipment().dbIncrement`; for machines, cables and everything else `snapToLoadable` has no model for: **no number** (owner, 2026-11-08, option (a) on PR #65). The suggestion reads "try the smallest step your machine allows" and shows no target weight. `snapToLoadable` returns machine and cable weights unchanged, so the app has no step it could honestly show there. Compute it inside the clinical branch only, so the nine suites that extract `analyzeProgressionSignal` without a program never reach it;
+    - with no RPE logged in either session, returns `{type:'increase', clinicalNoRpe:true, message:'If both sessions felt comfortable, try the smallest jump.'}`. `computeSuggestedSet` returns `null` for that signal (no number in the field).
+- **Acceptance criteria** (all real invocations of the extracted functions; the sandbox defines `activeProgram`, `loadSuggestionMode`, `weightUnit` and the equipment state):
+  1. `loadSuggestionMode='rpe'`, program `medical`, hypertension style, week 4, `rpeCtx={e1rm:200, week:4, program:'medical', category:'pull'}`: `buildProgressBadge(...).html` contains `RPE 7`, and `computeSuggestedSet(...).weight` equals `snapToLoadable(toDisplayWeight(loadForRpeTarget(200, reps, 7)), name, 'down')`.
+  2. Program `oly`, Snatch (category `oly`), week 4, RPE mode: a counting stub of `loadForRpeTarget` records **0** calls across `buildProgressBadge` and `computeSuggestedSet`. `computeSuggestedSet` returns the double-progression result (`reason !== 'rpe'`), and the badge contains "Technique lift".
+  3. Program `strength`, Back Squat (`squat`), week 4: `rpeTargetFor` returns 9 and the badge shows `RPE 9`.
+  4. Deload week: `rpeTargetFor` returns 6 for strength, medical, senior and any category except the three technique ones (which stay `null`).
+  5. `RPE_BY_CYCLE_WEEK[` is read only inside `rpeTargetFor` and `targetRpeForWeek`: count real read expressions in the extracted source with comments stripped (today: 4 reads, in `targetRpeForWeek`, `buildProgressBadge`, `computeSuggestedSet`, `renderLoadModeNote`).
+  6. `renderLoadModeNote(4)` in jsdom (real `#loadModeSelect`/`#loadModeNote` markup, `loadSuggestionMode='rpe'`, `activeProgram='medical'`): the note reads "targets RPE 7". With `activeProgram='strength'`: "targets RPE 9".
+  7. Hypertension Seated Cable Row `2×12` (`MEDICAL_STYLES.hypertension` d1; category `pull`, a cable), two past sessions `{weight:60, reps:12, avgRpe:8}`: `analyzeProgressionSignal(sessions, ex, 'pull', 'medical')` is not an increase. The same at `avgRpe:7`: an increase. On this cable the increase carries **no target weight**, and the badge or suggestion text contains "smallest step your machine allows" (owner answer (a), 2026-11-08). A barbell name passed with program `medical` (synthetic: no clinical or senior day has a barbell lift at v3.518; use `Back Squat`) increases by `2 × getEquipment().plates.at(-1)`.
+  8. The same Seated Cable Row with `avgRpe:null` in both sessions: the signal has `clinicalNoRpe:true`, its message contains "felt comfortable" and no digit, and `computeSuggestedSet` returns `null`.
+  9. *(Builder flag, PR #63.)* For every key of `MEDICAL_STYLES` (iterate; assert the count, 13 at v3.518) and for `senior`, weeks 1–4: `rpeTargetFor(week, false, program, 'push') <= 7`.
+  10. Strength program Back Squat with the same two sessions at RPE 8.5 and `program='strength'`: still increases by `getLoadIncrement('squat')` (unchanged).
+  11. The three `analyzeProgressionSignal(` call sites pass a fourth argument (count 3 real call expressions in the source with comments stripped).
+- **Test plan:** new `test-rpe-safety-caps.js`. Extract the real `rpeTargetFor`, `targetRpeForWeek`, `cycleWeekOf`, `RPE_BY_CYCLE_WEEK`, `DELOAD_CYCLE_WEEKS`, `loadForRpeTarget`, `rirFromRpe`, `buildProgressBadge`, `computeSuggestedSet`, `analyzeProgressionSignal`, `getLoadIncrement`, `CATEGORY_LOAD_INCREMENT`, `snapToLoadable`, `getEquipment`, `BARBELL_STANDARDS`, `DUMBBELL_DEFAULTS`, `BARBELL_EXERCISES`, `isBarbellExercise`, `isDumbbellExercise`, `parseTopRep`, `parseBottomRep`, `renderLoadModeNote`, plus `MEDICAL_STYLES`. Sabotage: drop the cap, and criteria 1 and 9 must fail; drop the clinical load branch, and criterion 7 must fail.
+- **Files:**
+  - `index.html`: `RPE_BY_CYCLE_WEEK`/`targetRpeForWeek` 27446–27450 (new helper beside them); `analyzeProgressionSignal` 27514–27564; `buildProgressBadge` 27779–27832; `computeSuggestedSet` 27849–27936; `rpeCtx` 28803; call sites 14555, 27614, 28804; `renderLoadModeNote` 32923–32939.
+  - `sw.js` (version), `test-rpe-safety-caps.js` (new).
+  - **Re-pins (existing tests that extract `buildProgressBadge`):** `test-today-workout-emoji.js` (its RPE-badge case stubs `targetRpeForWeek`; add an `rpeTargetFor` stub returning 8) and `test-deload-signal-week-awareness.js` (its deload-week cases pass `inDeloadWeek:true`; add the real `rpeTargetFor`, `targetRpeForWeek` and `cycleWeekOf` to its chunks). Name both in the PR as re-pins, not drive-bys.
+- **Alignment note (2026-11-07):** SAF-8 folded in (exercise-auditor B2; owner decision 7 confirms "smallest step after two sessions at RPE ≤ 7" rather than no load suggestions). The promise becomes "never adds sets; load rises only in the smallest steps when sets felt easy". BL-08 and BL-24 must keep criteria 7, 8 and 10 passing.
+- **Risk:**
+  - RPE badge rendering. Guarded by `test-progress-badge-rpe-teal.js`, `test-today-workout-emoji.js` and `test-deload-signal-week-awareness.js`.
+  - The progression signal. Guarded by `test-program-fit-trend.js` (calls `analyzeProgressionSignal` with three arguments: it must keep passing unchanged) and the eight suites that stub it.
+- **Spec refresh (2026-11-08):** line numbers re-grepped at v3.518; the third and fourth `analyzeProgressionSignal` call sites, the `renderLoadModeNote` criterion, the PR #63 ramp flag (criterion 9) and the two re-pins were added. Scope unchanged.
 - **Status:** ready
 
+### BL-68: Backups leave out saved API keys
+- **Why:** "Export data" copies every stored key, including `ai-api-key` (the user's Anthropic key) and `usda-api-key`, into the JSON in plain text (export handler, `exportDataBtn`, about 34196 at v3.518). A backup that lands in a cloud folder, an email or a shared drive leaks a key billed to the user. This was found while drafting the privacy page (PR #66); the owner chose to exclude the keys on 2026-11-08.
+- **Change:**
+  - The export skips `ai-api-key` and `usda-api-key`, plus any future key whose name ends in `-api-key`.
+  - The import leaves any keys already on the device untouched; a backup can't carry one in.
+  - Settings' export row adds one line: "API keys aren't included; enter them again after restoring."
+  - What's New says so.
+- **Acceptance criteria:**
+  1. A real export run over a fixture `window.storage` holding both keys plus normal data gives JSON with neither key name, and every other key still present (anchor: the count of exported keys equals stored keys minus 2).
+  2. A real import of a backup that contains a key (an older export) doesn't overwrite a key already on the device, and doesn't add one either. State it plainly in the What's New entry.
+  3. The privacy page draft (planning/launch-copy/privacy.md) no longer needs the "backup includes your keys" disclosure. Note it in the PR.
+- **Test plan:** new `test-backup-excludes-keys.js` (real handler, stubbed storage and Blob); sabotage by removing the filter.
+- **Files:** `index.html` (export and import handlers, the Settings hint), `sw.js` (`VERSION`), the new test, `test-import-backup-full-replace.js` (check and re-pin if the import change touches its fixture).
+- **Risk:** someone restoring onto a new phone has to paste their keys again. That's intended.
+- **Status:** ready (owner, 2026-11-08). Safety and privacy; slot 2a.
+
 ### BL-03: Per-exercise body-region override for resting-region flags (SAF-3, part 1)
-- **Why:** `CATEGORY_TO_REGIONS` (43894) misses several loads:
+- **Why:** `CATEGORY_TO_REGIONS` (43931) misses several loads:
   - Neck Bridges (`core`) never flag Neck.
   - Hangboard (`pull`) never flags Hands/Fingers.
   - Calf Raise and Eccentric Heel Drop (`arms`) flag Elbow/Wrist instead of Ankle/Foot.
   - Leg Curl and Nordic Curl (`hinge`) never flag Knee.
 - **Change:**
-  - Add `EXERCISE_REGION_OVERRIDE`, with exactly the audit's map:
+  - Add `EXERCISE_REGION_OVERRIDE` beside `CATEGORY_TO_REGIONS`, with exactly the audit's map (every name below is an `exerciseInfo` key in `content-exercises.js` at v3.518; the region labels are the Care labels, ~45961):
     - Neck Bridges → Neck, Upper Back.
     - Hangboard Max Hang, Hangboard Repeaters, Lock-off Hold → Hands/Fingers, Elbow/Wrist, Shoulder.
     - Calf Raise, Standing Calf Raise, Eccentric Heel Drop, Tibialis Raise → Ankle/Foot, Shins.
     - Leg Curl, Nordic Curl → Knee, Hip.
     - Wall Balls, Sled Push → Knee, Lower Back.
-  - One helper, `regionsForExercise(name, category)`, replaces both direct lookups: the session heads-up at 14535 and the row caution at 29023.
+  - One helper, `regionsForExercise(name, category)`: the override when the name has one, else `CATEGORY_TO_REGIONS[category] || []`. It replaces both direct lookups: the session heads-up in `getSessionHeadsUpInsight` (14549) and the row caution in `renderWorkout` (29060).
+  - Both sites already run after `applyExerciseSubs`, so a substituted exercise is looked up by its own name.
   - Categories are unchanged (M-8 is BL-40).
-- **Acceptance criteria:**
-  1. With "Hands/Fingers" resting, the row for Hangboard Max Hang renders `.ex-caution`.
-  2. With "Ankle/Foot" resting, Eccentric Heel Drop renders a caution, and with "Elbow/Wrist" resting it does **not**.
-  3. With "Knee" resting, Leg Curl renders a caution.
-  4. Bench Press is unchanged.
-  5. There is exactly 1 real `CATEGORY_TO_REGIONS[` lookup (inside the helper) and 2 real `regionsForExercise(` call sites.
-- **Test plan:** new `test-region-override.js`: the real helper, plus the real `CATEGORY_TO_REGIONS` and the override map. Sabotage: empty the override map.
-- **Files:** `index.html` (43894, 14535, 29023), `sw.js`, the test.
-- **Risk:** `CATEGORY_TO_REGIONS` has no test today. Care flows are guarded by `test-care-2-0.js` and `test-resting-region-since-tracking.js`.
+- **Acceptance criteria** (real invocations of the extracted helper with the real maps and the real `exerciseInfo`):
+  1. `regionsForExercise('Hangboard Max Hang', exerciseInfo['Hangboard Max Hang'].category)` includes `Hands/Fingers`.
+  2. Eccentric Heel Drop's regions include `Ankle/Foot` and do **not** include `Elbow/Wrist`.
+  3. Leg Curl's regions include `Knee`; Neck Bridges' include `Neck`.
+  4. Bench Press returns exactly `CATEGORY_TO_REGIONS.push` (unchanged), and an unknown category returns `[]`.
+  5. Every key of `EXERCISE_REGION_OVERRIDE` is an `exerciseInfo` key (no typo can silently disable an override).
+  6. There is exactly 1 real `CATEGORY_TO_REGIONS[` read in the source (inside the helper) and exactly 2 real `regionsForExercise(` call sites, one in `getSessionHeadsUpInsight` and one in `renderWorkout` (comments stripped, definition excluded).
+- **Test plan:** new `test-region-override.js`. Sabotage: empty the override map, and criteria 1–3 must fail. *(`renderWorkout` is too entangled to drive whole in jsdom, as `test-today-workout-emoji.js` notes; criterion 6 pins the wiring.)*
+- **Files:** `index.html` (43931–43939 plus the new map and helper; 14549; 29060), `sw.js`, `test-region-override.js` (new). No existing test reads `CATEGORY_TO_REGIONS` (checked at v3.518), so no re-pins are expected; the full suite run confirms it.
+- **Risk:** `CATEGORY_TO_REGIONS` has no test today. Care flows are guarded by `test-care-2-0.js` and `test-resting-region-since-tracking.js`. More rows will show a caution for people with a resting region; that's the point, and the What's New line says so.
+- **Spec refresh (2026-11-08):** line numbers re-grepped at v3.518; criteria moved from a rendered row (not drivable in jsdom) to the real helper plus a wiring count; criterion 5 added. Scope unchanged.
 - **Status:** ready
 
 ### BL-04: Exercise-specific substitutes for the overridden exercises (SAF-3, part 2)
-- **Why:** `suggestSubstitute` (43928) picks by category. That means a resting Achilles gets "Wrist Flexor Stretch" for a heel drop (the `arms` alts at 43918), and a hangboard gets "Chest-Supported Row".
-- **Change:** an `EXERCISE_SUBSTITUTE_OVERRIDE`, consulted first in `suggestSubstitute(category, name)`:
-  - heel drop and calf raises → "Isometric Calf Hold (wall-supported)", why: "keeps the tendon loaded without movement";
-  - the three hangboard entries → "Feet-on Hang (open hand)";
+- **Why:** `suggestSubstitute` (43965) picks by category from `SUBSTITUTION_MAP` (43948). That means a resting Achilles gets "Wrist Flexor Stretch" for a heel drop (the `arms` alts), and a hangboard gets "Chest-Supported Row".
+- **Change:** an `EXERCISE_SUBSTITUTE_OVERRIDE` beside `SUBSTITUTION_MAP`, consulted first in `suggestSubstitute(category, currentExName)` (the signature already takes the name; both callers, the row caution at 29064 and the AI "Tailor" prompt at 29345, already pass `ex.name`):
+  - Eccentric Heel Drop, Calf Raise, Standing Calf Raise → "Isometric Calf Hold (wall-supported)", why: "keeps the tendon loaded without movement";
+  - Hangboard Max Hang, Hangboard Repeaters, Lock-off Hold → "Feet-on Hang (open hand)";
   - Neck Bridges → "Neck Isometric (hand resistance)".
-- **Acceptance criteria:**
-  1. `suggestSubstitute('arms','Eccentric Heel Drop').name === 'Isometric Calf Hold (wall-supported)'`.
-  2. `suggestSubstitute('arms','DB Curl')` is unchanged.
-  3. The rendered caution for a heel drop with Ankle/Foot resting contains "Isometric Calf Hold".
-- **Test plan:** extend `test-exercise-substitution.js`. Sabotage: remove the override lookup.
-- **Files:** `index.html` (43911–43933), `sw.js`, the test.
-- **Risk:** existing substitution suggestions. Guarded by `test-exercise-substitution.js`.
-- **Status:** ready
+- **Acceptance criteria** (real `suggestSubstitute` with the real maps):
+  1. `suggestSubstitute('arms','Eccentric Heel Drop').name === 'Isometric Calf Hold (wall-supported)'`, and its `why` is the override's.
+  2. `suggestSubstitute('pull','Hangboard Repeaters').name === 'Feet-on Hang (open hand)'`; `suggestSubstitute('core','Neck Bridges').name === 'Neck Isometric (hand resistance)'`.
+  3. `suggestSubstitute('arms','DB Curl')` deep-equals today's result (`{name:'Wrist Flexor Stretch', why:'lighter loading for a sensitive elbow or wrist'}`).
+  4. Every override key is an `exerciseInfo` key.
+  5. Both `suggestSubstitute(` call sites pass `ex.name` as the second argument (count 2 real calls, comments stripped).
+- **Test plan:** extend `test-region-override.js` (created by BL-03; same feature). *Spec refresh: the old plan named `test-exercise-substitution.js`, but that file covers `EXERCISE_SUBS` swap keys, a different system, and nothing tests `suggestSubstitute` today.* Sabotage: remove the override lookup, and criteria 1–2 must fail.
+- **Files:** `index.html` (43948–43970), `sw.js`, `test-region-override.js`. `test-superset-field-chaining.js` stubs `suggestSubstitute` and needs no change.
+- **Risk:** existing category suggestions (criterion 3 pins them). The AI tailor prompt (29345) now names the specific substitute; its payload shape is unchanged.
+- **Spec refresh (2026-11-08):** line numbers re-grepped at v3.518; test file corrected; criteria 2, 4, 5 added; the calf raises were named explicitly (the old text said "heel drop and calf raises"). Scope unchanged.
+- **Status:** ready (after BL-03)
 
 ### BL-05: Depth Jump prerequisite and box height in the cue (SAF-5, part 1)
-- **Why:** Depth Jump appears with no box height or landing prerequisite:
-  - Athletic d4 (9980);
-  - skimboarding d6 (12604);
-  - wakeboarding d1 (12620), a sport whose own `basis` cites a 42% ACL-tear rate;
-  - kite d2 (12687).
+- **Why:** Depth Jump appears with no box height or landing prerequisite, in **20 slots** at v3.518 (counted by walking `programs`, every `*_STYLES` style and every `PROGRAM_DAY_COUNT_VARIANTS` day):
+  - Athletic d4 (`index.html` 9994) and its 4-, 6- and 7-day variants;
+  - skimboarding d6 (12618), wakeboarding d1 (12634), a sport whose own `basis` cites a 42% ACL-tear rate, and kite d2 (12701), plus their day-count variants.
 
-  Day-level `note` renders only on rest days (28566), so the audit's "first 4 weeks note" has no render path. The cue is the reliable place.
+  Day-level `note` renders only on rest days, so the audit's "first 4 weeks note" has no render path. The cue is the reliable place.
 - **Change:** in `content-exercises.js:237` (`'Depth Jump'` cues), add:
   - "Box 30–45 cm (12–18 in), no higher.";
   - "Prerequisite: land a 30 cm drop 3×5 with knees over toes and no inward collapse first."
@@ -154,88 +189,105 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 
   Set counts are unchanged.
 - **Acceptance criteria:**
-  1. The rendered technique cues for Depth Jump (the real `exerciseInfo`, through the real cue renderer) contain "30–45 cm", "Prerequisite" and "Drop Landing".
-  2. **Every occurrence** of Depth Jump is covered: the test walks `programs`, every `*_STYLES` style and every `PROGRAM_DAY_COUNT_VARIANTS` day, collects each Depth Jump slot (about 21 at v3.516; assert the count it found is ≥ 20 rather than a hard number), and checks that each resolves to the updated cue entry.
-  3. Every Depth Jump `sets` string is unchanged.
-- **Test plan:** add `test-safety-cues.js`, shared with BL-06. **Update the pin in `test-concise-cues.js`** (964 cues, 321 exercises at v3.516) to the new total. That change is part of this item, not a drive-by, so name it in the PR. Sabotage: revert the cue.
-- **Files:** `content-exercises.js`, `sw.js` (**version bump only**: `content-exercises.js`'s own header says never to precache it; the versioned cache name refreshes it), `test-safety-cues.js`, `test-concise-cues.js` (pin only).
-- **Risk:** cue-length rules. Guarded by `test-concise-cues.js`.
+  1. The real `buildDetailsHtml({name:'Depth Jump'})` (`index.html` 28393; the cue renderer `test-exercise-demos-removed.js` already drives, with `getExerciseIcon` stubbed) renders `li` text containing "30–45 cm", "Prerequisite" and "Drop Landing".
+  2. **Every occurrence** is covered: the test walks `programs`, every `*_STYLES` style and every `PROGRAM_DAY_COUNT_VARIANTS` day (the walker in `test-volume-modifier-gate.js` is the pattern), collects each Depth Jump slot, asserts the count it found is ≥ 20, and checks that each resolves to the updated `exerciseInfo` entry.
+  3. Every Depth Jump `sets` string is unchanged (`4×5` on Athletic and its variants, `3×5` on the watersports days).
+  4. Every new cue is ≤ 24 words (the `test-concise-cues.js` rule).
+- **Test plan:** add `test-safety-cues.js`, shared with BL-06. **Update the pin in `test-concise-cues.js`** (`321 exercises, 964 cues` at v3.518, line 42–45) to 321 and 970 (+3 here, +3 from BL-06). That change is part of this item, not a drive-by, so name it in the PR. Sabotage: revert the cue.
+- **Files:** `content-exercises.js` (237, plus 9, 346, 347 for BL-06), `sw.js` (**version bump only**: `content-exercises.js`'s own header says never to precache it; the versioned cache name refreshes it), `index.html` (`APP_VERSION` and `WHATS_NEW` only), `test-safety-cues.js` (new), `test-concise-cues.js` (pin only).
+- **Risk:** cue-length rules. Guarded by `test-concise-cues.js` (no cue over 24 words, and its `MUST_KEEP` phrases).
 - **Summit note (summit 2026-11-07):** Ship BL-05 and BL-06 as **one version**: same file, same new `test-safety-cues.js`, both safety cue text. Mark both done together.
+- **Spec refresh (2026-11-08):** the slot count is exact (20, not "about 21"); the renderer is named (`buildDetailsHtml`); `index.html` added to `Files:` for the version bump; the cue-count pin's target computed. Scope unchanged.
 - **Status:** ready
 
 ### BL-06: Release rule on partner submission and clinch drills (SAF-6)
 - **Why:** these cues describe applying a choke or armbar with no release rule:
-  - Rear Naked Choke Drill (`content-exercises.js:346`);
-  - Armbar from Guard Drill (347);
-  - Clinch Knee Drills (9), which don't say to use pads.
+  - Rear Naked Choke Drill (`content-exercises.js:346`; 4 slots: grappling d5 and its 4-, 6- and 7-day variants);
+  - Armbar from Guard Drill (347; the same 4 slots);
+  - Clinch Knee Drills (9; 12 slots across Muay Thai and MMA and their variants), which don't say to use pads.
 - **Change:** add one cue to each:
-  - "Drill at 30–50% pressure; your partner taps or says tap, you release instantly.";
-  - "Knees go into a pad your partner holds, at controlled speed."
-- **Acceptance criteria:** each of the three rendered cue lists contains its new line. The cue counts of every other exercise are unchanged.
-- **Test plan:** `test-safety-cues.js` (with BL-05). Sabotage: drop one cue.
-- **Files:** `content-exercises.js`, `sw.js`, the test.
+  - Rear Naked Choke Drill and Armbar from Guard Drill: "Drill at 30–50% pressure; your partner taps or says tap, you release instantly.";
+  - Clinch Knee Drills: "Knees go into a pad your partner holds, at controlled speed."
+- **Acceptance criteria:**
+  1. Each of the three cue lists, rendered through the real `buildDetailsHtml`, contains its new line.
+  2. The cue counts of every other exercise are unchanged (snapshot all `exerciseInfo` cue counts before; compare after, excluding the four entries BL-05 and BL-06 edit).
+- **Test plan:** `test-safety-cues.js` (with BL-05). Sabotage: drop one cue, and criterion 1 must fail.
+- **Files:** as BL-05 (one version).
 - **Risk:** cue-length caps. Guarded by `test-concise-cues.js`.
 - **Summit note (summit 2026-11-07):** Merged into BL-05's version (see BL-05).
+- **Spec refresh (2026-11-08):** slot counts added (walked at v3.518). Scope unchanged.
 - **Status:** merged into BL-05 (summit 2026-11-07): ships in BL-05's version; mark done with it
 
 ### BL-05b: The Neck Bridges cue says coach-only, otherwise isometrics (SAF-4, cue part)
-- **Why:** Neck Bridges ("bridge onto the top of your head") are prescribed unsupervised at grappling d6 (`index.html` ~11048) and in five grappling day-count variants (~21274, 21312, 21355, 21405, 21456): **6 occurrences**. No trial supports either option for injury prevention [PRAC]. Replacing the slot (BL-35) needs a migration and the owner's yes; the cue can change today with no slot or history change (exercise-auditor B1).
-- **Change:** in `content-exercises.js` (`'Neck Bridges'`, ~350), make the first cue: "Only with a coach; otherwise do 4-way neck isometrics, 15 s each way at 50% effort." Shorten or drop one existing cue if needed to keep the entry within `test-concise-cues.js`'s length rules. No slot, name, category or set change.
+- **Why:** Neck Bridges ("bridge onto the top of your head") are prescribed unsupervised at grappling d6 (`index.html` 11056) and in five grappling day-count variants (21282, 21320, 21363, 21413, 21464; the 2-, 3-, 4-, 6- and 7-day variants, at d3, d4, d5, d6, d6): **6 occurrences**. No trial supports either option for injury prevention [PRAC]. Replacing the slot (BL-35) needs a migration; the cue can change today with no slot or history change (exercise-auditor B1).
+- **Change:** in `content-exercises.js:350` (`'Neck Bridges'`), add a new first cue: "Only with a coach; otherwise do 4-way neck isometrics, 15 s each way at 50% effort." **Keep the second cue as it is:** it carries the `MUST_KEEP` phrase "only as far as feels stable and pain-free" that `test-concise-cues.js` pins. No per-entry cue cap exists, so nothing else needs dropping. No slot, name, category or set change.
 - **Acceptance criteria:**
-  1. The rendered cue list for Neck Bridges (the real `exerciseInfo`, through the real cue renderer) starts with the new line.
-  2. The test walks `programs.grappling` and every grappling `PROGRAM_DAY_COUNT_VARIANTS` day, finds **6** Neck Bridges slots, and checks that each resolves to that entry.
-  3. Every Neck Bridges `sets` string and every `exKey` is unchanged.
-- **Test plan:** extend `test-safety-cues.js` (created by BL-05). Update `test-concise-cues.js`'s cue-count pin if the total changes, and name it in the PR. Sabotage: revert the cue, and criterion 1 must fail.
-- **Files:** `content-exercises.js`, `sw.js` (version bump only), `test-safety-cues.js`, `test-concise-cues.js` (pin only).
-- **Risk:** cue-length caps (`test-concise-cues.js`). BL-04's substitute for Neck Bridges stays as it is.
-- **Status:** ready
+  1. The real `buildDetailsHtml({name:'Neck Bridges'})` renders a cue list whose first `li` is the new line.
+  2. The test walks `programs.grappling` and every grappling `PROGRAM_DAY_COUNT_VARIANTS` day, finds exactly **6** Neck Bridges slots, and checks that each resolves to that entry.
+  3. Every Neck Bridges `sets` string (`3×8`) and every slot's index is unchanged.
+- **Test plan:** extend `test-safety-cues.js` (created by BL-05). Update `test-concise-cues.js`'s cue-count pin from 970 to 971, and name it in the PR. Sabotage: revert the cue, and criterion 1 must fail.
+- **Files:** `content-exercises.js` (350), `sw.js` (version bump only), `index.html` (`APP_VERSION` and `WHATS_NEW` only), `test-safety-cues.js`, `test-concise-cues.js` (pin only).
+- **Risk:** cue-length caps and the `MUST_KEEP` phrase (`test-concise-cues.js`). BL-04's substitute for Neck Bridges stays as it is.
+- **Spec refresh (2026-11-08):** lines re-grepped at v3.518; the `MUST_KEEP` trap named; the pin target computed (assumes BL-05 merged first, as the sequence says). Scope unchanged.
+- **Status:** ready (after BL-05)
 
 ## Ready: correctness of what exists (audit High, then Medium)
 
 ### BL-07: The performance goal no longer cuts strength-tier work (H-1)
 - **Why:** `applyGoalVolume` caps compounds at 3 sets for `performance`:
   - Powerlifting Squat 5×5 → 3×5;
-  - Snatch 5×2 → 3×2.
+  - Strength & Size Bench Press 4×4–6 → 3×4–6.
 
-  Yet `PROGRAM_FIT_SCORES.performance` (33543) ranks oly 85 and powerlifting 70. The stand's 2–3 sets is a minimum, not a sport ceiling [ACSM26]; accumulated heavy volume drives strength [PEL].
-- **Change:** in the `strength` branch of `applyGoalVolume` (26681–26689), skip when `getRepRangeTier(ex.sets) === 'strength'` (27678) **or** the program is `powerlifting`, `oly` or `powerbuilding`. This uses BL-01's `program` argument.
-- **Acceptance criteria:**
-  1. With goal performance: powerlifting d1 Squat stays `5×5`; oly Snatch stays `5×2`.
-  2. Strength & Size: an 8–12 compound at 4 sets → 3 sets, unchanged from today.
-- **Test plan:** extend `test-volume-modifier-gate.js`. Sabotage: remove the skip.
-- **Files:** `index.html` (26659–26691), `sw.js`, the test.
-- **Risk:** depends on BL-01 shipping first. Same guards.
-- **Status:** ready (after BL-01)
+  Yet `PROGRAM_FIT_SCORES.performance` (33586) ranks powerlifting 70. The stand's 2–3 sets is a minimum, not a sport ceiling [ACSM26]; accumulated heavy volume drives strength [PEL].
+- **Change:** in the `strength` branch of `applyGoalVolume` (26699–26708), skip when `getRepRangeTier(ex.sets) === 'strength'` (27715) **or** the program is `powerlifting` or `powerbuilding`.
+  - *Spec refresh (2026-11-08):* the old text also listed `oly`. Since BL-01 (v3.518), `applyGoalVolume` returns early for every program outside `VOLUME_MODIFIER_PROGRAMS`, `oly` included, so Olympic Snatch already keeps 5×2 and an `oly` clause would be dead code. Dropped; no behaviour change.
+- **Acceptance criteria** (the real `applyGoalVolume` with the real program tables, as `test-volume-modifier-gate.js` runs it):
+  1. Goal performance, powerlifting d1 (`index.html` 10470): Squat stays `5×5`. (At v3.518 it becomes `3×5`, so this criterion fails before the change.)
+  2. Goal performance, Strength & Size d1: Bench Press `4×4-6` (strength tier) stays `4×4-6`; Barbell Row `4×6-8` (hypertrophy tier) still becomes `3×6-8`.
+  3. Goal performance, every powerbuilding day: no exercise's set count falls.
+  4. Goal gain is unchanged on all four lifting programs (snapshot every day before and after).
+- **Test plan:** extend `test-volume-modifier-gate.js` (add `getRepRangeTier` to its chunks). Sabotage: remove the skip, and criteria 1–3 must fail.
+- **Files:** `index.html` (26673–26712), `sw.js`, `test-volume-modifier-gate.js`. No other suite extracts `applyGoalVolume` (checked at v3.518).
+- **Risk:** depends on BL-01 (done, v3.518). Strength & Size users on goal performance keep more sets on their heavy lifts; the What's New line says so.
+- **Status:** ready
 
 ### BL-08: Double progression requires every working set at the top of the range (H-2)
 - **Why:**
-  - `buildPastSessions` (27530) keeps only `topSetOf` (27150). A 4×4–6 with sets of 6, 5, 4, 4 therefore says "add 10 lb".
-  - The app's own tip (33105) says "on all sets".
+  - `buildPastSessions` (`index.html` 27567) keeps only `topSetOf` (27187). A 4×4–6 with sets of 6, 5, 4, 4 therefore says "add 10 lb".
+  - The app's own tip (33142) says "on all sets".
   - Coached double progression (GZCLP, Helms) needs all sets at the top of the range [PRAC]. Hevy Trainer does the same (research §3).
 - **Change:**
-  - `buildPastSessions` adds `minRepsAtTop`: the minimum reps across the sets logged at the top weight.
-  - `analyzeProgressionSignal` (27477), signal 3: increase when `minRepsAtTop >= topRep` at the same load, either:
-    - in 1 session with average RPE ≤ 8; or
+  - `buildPastSessions` adds `minRepsAtTop`: the minimum reps across the sets logged at the top weight. Compute it inline (no new helper), so the seven suites that stub or extract `buildPastSessions` keep their sandboxes.
+  - `analyzeProgressionSignal` (27514), signal 3 (27548–27561): increase when `minRepsAtTop >= topRep` at the same load, either:
+    - in the most recent session alone with average RPE ≤ 8; or
     - in 2 consecutive sessions when RPE wasn't logged.
-  - `computeSuggestedSet` branch 4 (27892–27896) and the matching `buildProgressBadge` branch (27783) both require all sets at the top. They need `priorTop` plus the prior entry's sets, passed from 28749.
-  - `recommendNextSet` (30740) is set-to-set and stays as it is.
-- **Acceptance criteria:**
-  1. Pyramid case, prior session sets {6, 5, 4, 4} at 185 on `4×4-6`: signal ≠ increase, `computeSuggestedSet` returns `null` or the same weight, and the badge doesn't say "add".
-  2. All sets {6, 6, 6, 6} at RPE 8 in one session: increase.
+
+    The `pastSessions.length < 2` early return (27515) must let the one-session RPE path through. A session without `minRepsAtTop` (a hand-built fixture, or an entry with no weighted sets) never counts as "all sets at the top".
+  - `computeSuggestedSet` branch 4 (27929–27933) and the matching `buildProgressBadge` branch ("Hit N reps last time … try adding weight today", 27819–27821) both require all sets at the top. They need the prior entry's sets as well as `priorTop`: pass `prior` (in scope at 28782) from the two `computeSuggestedSet` calls (28890, 28985) and the `buildProgressBadge` call (28813).
+  - `recommendNextSet` (30777) is set-to-set and stays as it is.
+  - **Inherits BL-02's clinical gate** (BL-02 ships first): for `medical` and `senior`, the all-set rule applies **and** RPE ≤ 7 in both sessions, with the smallest jump.
+- **Acceptance criteria** (real `buildPastSessions`, `analyzeProgressionSignal`, `computeSuggestedSet` and `buildProgressBadge` with fixture logs):
+  1. Pyramid case, prior session sets {6, 5, 4, 4} at 185 on `4×4-6`: `buildPastSessions` gives `minRepsAtTop: 4`; the signal isn't an increase; `computeSuggestedSet` returns `null` or the same weight; and the badge html doesn't contain "add" or "try adding".
+  2. All sets {6, 6, 6, 6} at RPE 8, one past session: increase.
   3. Two sessions of {6, 6, 6, 6} with no RPE: increase.
-  4. One session with no RPE: no increase.
-- **Test plan:** new `test-all-set-double-progression.js`, calling the real three functions with fixture logs. Sabotage: revert to `topSetOf`. Re-run the 9 suites that already extract `analyzeProgressionSignal` (listed under Risk).
-- **Files:** `index.html` (27477–27545, 27742–27800, 27812–27900, 28749), `sw.js`, the test.
+  4. One session of {6, 6, 6, 6} with no RPE: no increase.
+  5. *(Alignment round.)* Hypertension Seated Cable Row `2×12`, all sets at 12 at RPE 8 in two sessions, program `medical`: no increase. BL-02's criteria 7, 8 and 10 still pass.
+- **Test plan:** new `test-all-set-double-progression.js`. Sabotage: revert to the top-set rule, and criterion 1 must fail. Re-run the nine suites that extract or stub `analyzeProgressionSignal` (under Risk).
+- **Files:**
+  - `index.html`: 27514–27564, 27567–27580, 27779–27832, 27849–27936, 28782–28813, 28890, 28985.
+  - `sw.js`, `test-all-set-double-progression.js` (new).
+  - **Re-pin:** `test-program-fit-trend.js` lines 36–46 ("increase: top-of-range hit for 2 sessions straight") builds sessions without `minRepsAtTop`, so it stops being an increase under the new rule. Add `minRepsAtTop` to its two fixtures (equal to `reps`) and name it in the PR. Its "fewer than 2 past sessions" case (one session, RPE 8, reps 10 on `3x8-10`, no `minRepsAtTop`) must stay `null`, which the "never counts" rule above guarantees.
 - **Risk:** progression is the most-tested area. Guards:
   - `test-program-fit-trend.js`, `test-deload-signal-week-awareness.js`;
   - `test-auto-check-sets.js`, `test-set-next-button.js`, `test-partial-set-reactions.js`;
   - `test-fallback-entry-consolidation.js`;
-  - `test-backdating-rest-timer-suppression.js`, `test-superset-rest-timer-suppression.js`, `test-superset-shared-sets-block-wiring.js`.
+  - `test-backdating-rest-timer-suppression.js`, `test-superset-rest-timer-suppression.js`, `test-superset-shared-sets-block-wiring.js` (these seven stub `analyzeProgressionSignal` and `buildPastSessions`, so they only fail if a call signature they stub is removed).
 
-  The cross-program fallback (`priorSetForSlot`, 27799) must keep its single-basis behaviour.
+  The cross-program fallback (`priorSetForSlot`, 27836) must keep its single-basis behaviour.
 - **Summit note (summit 2026-11-07):** UX-06, UX-09, UX-10 and UX-11 print this rule in large type, and the mock-ups already depict it (Barbell Row 8, 8, 7, 7 holds at 135). It must merge before any of them (summit R1).
-- **Alignment note (2026-11-07):** inherits BL-02's clinical load gate (SAF-8). For `medical` and `senior`, the all-set rule applies **and** RPE ≤ 7 in both sessions, with the smallest jump. Add a criterion: hypertension Seated Cable Row with all sets at the top at RPE 8 doesn't increase. BL-02's criteria 6–8 must still pass.
-- **Status:** ready
+- **Alignment note (2026-11-07):** inherits BL-02's clinical load gate (SAF-8); criterion 5.
+- **Spec refresh (2026-11-08):** lines re-grepped at v3.518; the one-session early return, the missing-field rule, the three call sites that need `prior`, and the `test-program-fit-trend.js` re-pin were added. Scope unchanged.
+- **Status:** ready (after BL-02)
 
 ### BL-09: Readiness compares weekly RPE to the week's own target (H-7)
 - **Why:** `READINESS_RPE_HIGH = 8.5` (46835), but RPE mode prescribes 8.5 in week 3 and 9 in week 4. Doing exactly what's prescribed gets flagged as fatigue.
@@ -307,12 +359,16 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Status:** ready
 
 ### BL-13: The menstrual-cycle card stops prescribing phase-based training (SAF-7)
-- **Why:** `CYCLE_PHASES[*].training` (39056, 39064, 39072, 39080) presents the follicular phase as "a strong window" and suggests testing heavy lifts at ovulation. An umbrella review finds no consistent phase effect [MC23].
-- **Change:** each `training` line becomes "Research shows no reliable phase effect on strength or muscle gain. Train to your plan and adjust to how you feel on the day." The symptom, hormone and nutrition text is kept.
-- **Acceptance criteria:** all four rendered phase cards show the new line. `nutrition` and `physical` are unchanged.
-- **Test plan:** extend `test-cycle-phase.js`. Sabotage: restore one line.
-- **Files:** `index.html` (39050–39085), `sw.js`, the test.
-- **Risk:** cycle-phase insights. Guarded by `test-cycle-phase.js`, `test-cycle-phase-nutrition-insight.js` and `test-supplement-condition-cycle-nudge.js`.
+- **Why:** `CYCLE_PHASES[*].training` (`index.html` 39093, 39101, 39109, 39117) presents the follicular phase as "a strong window" and suggests testing heavy lifts at ovulation. An umbrella review finds no consistent phase effect [MC23].
+- **Change:** each `training` line becomes "Research shows no reliable phase effect on strength or muscle gain. Train to your plan and adjust to how you feel on the day." The symptom, hormone, mental and nutrition text is kept. The line shows in two places, both reading `phase.training`: the phase cards (`buildPhaseCardHtml`, 39139) and the Today cycle row (`getCycleInsight`, 14115).
+- **Acceptance criteria:**
+  1. For each of the four phases, the real `buildPhaseCardHtml(phase, false)` renders a "Training:" section with the new line, and no card contains "strong window" or "test a heavy lift".
+  2. `hormones`, `physical`, `mental` and `nutrition` are byte-identical to v3.518 for all four phases (snapshot).
+  3. The real `getCycleInsight()` (as `test-today-priorities.js` already drives it) returns a row containing the new line and still containing its `<b>Food:</b>` advice.
+- **Test plan:** extend `test-cycle-phase.js` (it already extracts `CYCLE_PHASES`). Sabotage: restore one line, and criterion 1 must fail.
+- **Files:** `index.html` (39087–39122), `sw.js`, `test-cycle-phase.js`. **Re-pin:** `test-today-priorities.js` line 80 asserts the luteal row contains "technique work and moderate intensity", the text this item removes; change it to the new line and name it in the PR.
+- **Risk:** cycle-phase insights. Guarded by `test-cycle-phase.js`, `test-cycle-phase-nutrition-insight.js`, `test-supplement-condition-cycle-nudge.js` and `test-today-priorities.js`.
+- **Spec refresh (2026-11-08):** lines re-grepped at v3.518; both render paths named; the `test-today-priorities.js` re-pin found. Scope unchanged.
 - **Status:** ready
 
 ### BL-14: Unit-aware rest times (M-1)
@@ -654,22 +710,44 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Status:** needs-owner. **Question:** "Use RPE-adjusted e1RM everywhere (your e1RM charts and PRs will shift up), or only for RPE-mode load targets?"
 
 ### BL-35: Replace Neck Bridges with a 4-way neck isometric (SAF-4)
-- **Why:** Neck Bridges, "bridge onto the top of your head", unsupervised. They appear **6 times**: grappling d6 (~11048) and five grappling day-count variants (~21274, 21312, 21355, 21405, 21456). No trial supports either option for injury prevention [PRAC]. BL-05b fixes the cue in Phase 0; this item replaces the exercise.
-- **Change:** rename every one of the 6 slots to "4-Way Neck Isometric (hand or band)", 4 directions × 15 s each at about 50% effort, with a new `exerciseInfo` entry. Old neck-bridge sets are archived through `SCHEMA_VERSION` / `runMigrations()` (the recommended answer), not shown under the new name.
-- **Acceptance criteria:** all 6 slots (counted by walking `programs.grappling` and its variants) render the new name and cues; no slot still names Neck Bridges; and the old slots' history stays reachable in the archive.
-- **Test plan:** new test, plus a migration test if chosen.
-- **Risk:** history is keyed by position, so the old neck-bridge log would show under the new name.
+- **Why:** Neck Bridges, "bridge onto the top of your head", unsupervised. They appear **6 times**: grappling d6 (`index.html` 11056) and five grappling day-count variants (21282, 21320, 21363, 21413, 21464). No trial supports either option for injury prevention [PRAC]. BL-05b fixes the cue in Phase 0; this item replaces the exercise.
+- **Change:** rename every one of the 6 slots to "4-Way Neck Isometric (hand or band)", 4 directions × 15 s each at about 50% effort, with a new `exerciseInfo` entry in `content-exercises.js`. Old neck-bridge sets are **not moved** (owner, 2026-11-08, option (b)): the isometric logs under its own `:sub:<slug>` key with fresh history, and the old sets stay at the plain key, reachable through the substitute picker.
+- **Spec gap found in the 2026-11-08 refresh (why this is `needs-owner` again):** the archive can't be done as written.
+  - Exercise logs carry no exercise name: an entry is `{date, sets}` (`index.html` 28234), and the dated `workout:` record holds only check-box booleans (29237).
+  - The slot key is `ex:grappling:<day>:<idx>` (`exKey`, 27027), with **no day-count segment**. The same key means different exercises in different variants: `d5` is Neck Bridges in the 4-day variant but the Rear Naked Choke / Armbar day in the base program.
+  - So a `runMigrations()` step (`SCHEMA_VERSION` 8 at 7625) can't tell which stored logs were neck bridges. Moving every key at those positions would archive other exercises' history; moving none leaves the old sets under the new name (`readExCorpus` names history by the current slot).
+- **Options for the owner:**
+  - (a) Archive only the logs at the Neck Bridges position **of the day count selected at migration time**. Logs made under a different day count stay where they are and may show under the new name.
+  - (b) Move nothing. The new isometric logs to its own variant key (the `:sub:<slug>` suffix `exKey` already uses for substitutes), so it starts with a fresh history and the old sets stay at the plain key, reachable by switching the slot back through the existing substitute picker (Neck Bridges stays in `EXERCISE_SUBS` as the alternative). No migration, no data-shape change.
+- **Acceptance criteria (for either option):**
+  1. All 6 slots (counted by walking `programs.grappling` and its `PROGRAM_DAY_COUNT_VARIANTS`) render the new name, and the real `buildDetailsHtml` renders its cues; no slot still names Neck Bridges.
+  2. Each slot's index and `sets`-string shape (`4×15s`-style time prescription, `noWeight:true`) is fixed by the test.
+  3. (a) A real `runMigrations()` run over a fixture with logs at the 4-day `d5` neck position **and** at the base `d5` RNC position archives only the one matching the stored day count. (b) The real `exKey` for the new slot differs from the old plain key, and a fixture log at the old key is still returned for Neck Bridges through the substitute path.
+  4. `test-concise-cues.js`'s pin moves to 322 exercises (+1) and the matching cue total.
+- **Test plan:** new `test-neck-isometric-swap.js`; for (a), a migration test in the same file.
+- **Files:** `content-exercises.js` (new entry; 350 stays for history), `index.html` (11056, 21282, 21320, 21363, 21413, 21464; for (a) also `SCHEMA_VERSION` 7625 and `runMigrations` 9084; for (b) `EXERCISE_SUBS` 13709), `sw.js`, the test, `test-concise-cues.js` (pin), `test-configurable-training-days.js` (line 820 checks that Neck Bridges is **absent** from the grappling 6-day d7; it passes either way, but it should name the new exercise so the guard keeps its meaning).
+- **Risk:** history is keyed by position, so the old neck-bridge log could show under the new name (option (a)'s residue). BL-04's Neck Bridges substitute becomes moot.
 - **Alignment note (2026-11-07):** sequenced directly after Phase 0 (roadmap slot 8) once approved, not at the tail of Phase 4 (exercise-auditor B1).
-- **Status:** needs-owner. **Question:** "Swap Neck Bridges for a neck isometric in all 6 grappling slots, and should your past neck-bridge sets carry over or be archived?" **Recommendation:** yes; archive them.
+- **Status:** ready. Owner chose **(b)** on 2026-11-08: move nothing; fresh history for the isometric. Build only the (b) parts below; ignore everything marked (a).
 
 ### BL-36: Add a "Drop Landing" progression to the ACL-risk watersports days (SAF-5, part 2)
 - **Why:** landing prerequisites come before depth jumps [PRAC]. Wakeboarding's own basis cites a 42% ACL-tear rate.
-- **Change:** append "Drop Landing (stick it) 3×5" to the end of wakeboarding d1 and kite d2. Appending is safe for history.
-- **Acceptance criteria:** the last exercise on those days is Drop Landing, and the earlier `exKey`s are unchanged.
-- **Test plan:** extend `test-watersports-program.js`.
-- **Risk:** sessions get about 4 minutes longer.
-- **Alignment note (2026-11-07):** the prerequisite *rule* now lives in BL-05's Depth Jump cue ("first 4 weeks: do Drop Landing 3×5 instead"), because an appended drill comes **after** the depth jumps, the wrong order for a prerequisite (exercise-auditor N5). This item only makes the drill loggable. Sequenced at roadmap slot 9 once approved.
-- **Status:** needs-owner. **Question:** "Append a drop-landing drill to wakeboarding Day 1 and kite Day 2 (about +4 min), so the landing practice the Depth Jump cue asks for can be logged?"
+- **Change:**
+  - Append `{name:'Drop Landing (stick it)', sets:'3×5', noWeight:true}` to the end of `WATERSPORTS_STYLES.wakeboarding.days.d1` (Depth Jump at `index.html` 12634) and `WATERSPORTS_STYLES.kiteAssisted.days.d2` (12701). Appending is safe for history on those day sets.
+  - Add a `'Drop Landing (stick it)'` entry to `content-exercises.js` (category `jump`, so BL-01's jump rule never adds goal sets to it), with ≤ 24-word cues. `test-watersports-program.js` requires every exercise to resolve to a real library entry.
+  - Optionally add it to `EXERCISE_MOVE` (13603) for its icon; without an entry it falls back like any unlisted exercise.
+- **Acceptance criteria:**
+  1. The last exercise of those two base days is Drop Landing; every earlier exercise's name, `sets` and index is unchanged.
+  2. The real `buildDetailsHtml({name:'Drop Landing (stick it)'})` renders its cues.
+  3. The 10 day-count variant days that also carry Depth Jump (wakeboarding 2/3/4/6/7-day d1; kite 2-day d3 and 3/4/6/7-day d2) are **unchanged** in this version (asserted, so the scope is explicit).
+- **Test plan:** extend `test-watersports-program.js`. Update `test-concise-cues.js`'s pin (+1 exercise, + its cue count) and name it in the PR. Sabotage: drop the append, and criterion 1 must fail.
+- **Files:** `index.html` (12634 area, 12701 area), `content-exercises.js` (new entry), `sw.js`, `test-watersports-program.js`, `test-concise-cues.js` (pin).
+- **Risk:**
+  - Sessions get about 4 minutes longer.
+  - Appended slot indexes are not unique across day-count variants (`exKey` has no day-count segment), so a person who later switches day count may see another exercise's history at that index. That's existing behaviour for every appended slot, not new here.
+- **Alignment note (2026-11-07):** the prerequisite *rule* now lives in BL-05's Depth Jump cue ("first 4 weeks: do Drop Landing 3×5 instead"), because an appended drill comes **after** the depth jumps, the wrong order for a prerequisite (exercise-auditor N5). This item only makes the drill loggable.
+- **Spec refresh (2026-11-08):** owner decision D4 (2026-11-07) approved this item, so it's `ready` at roadmap slot 9. Added: the library entry, the `jump` category, the `Files:` re-pin and criterion 3. **Open for the owner, not blocking:** the item names only the base days, so people on another day count get the cue but no loggable drill. Covering the 10 variant days would be a follow-up item.
+- **Status:** ready
 
 ### BL-37: Rebuild the low day-count variants (H-3)
 - **Why:** Bodybuilding 3-day doses chest at 3 sets a week and glutes at 0. Powerlifting 3-day trains each lift 1×/wk [ACSM26][PEL][FREQ19].
@@ -726,6 +804,56 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:** the AI path is a CLAUDE.md fragile area ("fixed, unverified against the live API"). Only the prompt strings change. Must land before any public step and before hosted AI (BIZ-14).
 - **Tools:** `Skill: claude-api` (prompt wording only); `security-review` (it touches `fetch`).
 - **Status:** ready
+
+## Added in the spec refresh (2026-11-08): the builder's PR #63 flags
+
+The builder's "Flagged, not fixed" notes on PR #63 (BL-01, v3.518), as small items. The RPE-ramp flag folded into BL-02 (its criterion 9) rather than becoming an item. Roadmap slots: BL-65 at 13a and BL-66 at 13b (after BL-07, so the coach's wording covers both BL-01 and BL-07); BL-67 runs outside the loop.
+
+### BL-65: The coach's volume line matches the program gate (BL-01 follow-up)
+- **Why:** builder flag, PR #63 (v3.518). `buildCoachChatContext` (`index.html` 42701) builds its volume line (42858–42868) from the goal alone. With goal "gain" on any of the 21 gated programs it tells Claude "the app is adding one set per exercise to their sessions", which has been false since BL-01; with goal "performance" it says compounds are capped at 3 sets, also false there. A coach told the app adds volume may advise against extra work the person actually needs, or explain a set count they don't see.
+- **Change:**
+  - Move the line into one pure helper, `goalVolumeContextLine(goal, program)`, beside `goalVolumeAdjustment` (26661). `buildCoachChatContext` calls it once.
+  - When `!volumeModifiersApply(program)` (26752) and the goal is gain, lean bulk or performance: "Training volume: this program keeps its written set counts; the app doesn't add or cap sets by goal here. Don't assume extra goal volume."
+  - On the four lifting programs and custom programs the text is unchanged, except that the performance line says what BL-07 made true: compounds in the hypertrophy rep range are capped at 3 working sets; heavy (≤ 5-rep) work and powerlifting and powerbuilding keep their sets.
+  - The lose/recomp line is unchanged. Nothing else in the payload changes (CLAUDE.md fragile area: no `fetch`, `max_tokens` or `effort` change).
+- **Acceptance criteria** (real invocations of the helper):
+  1. `goalVolumeContextLine('gain','oly')`, `('gain','medical')` and `('performance','climbing')` contain "keeps its written set counts" and not "adding one set".
+  2. `goalVolumeContextLine('gain','strength')` is byte-identical to v3.518's hypertrophy line (copied into the test as the snapshot), and so is a custom program key's.
+  3. `('performance','strength')` mentions the hypertrophy-range cap and that heavy work keeps its sets.
+  4. `('lose', <any program>)` equals v3.518's lose/recomp line; `('maintain','strength')` is `''`.
+  5. `buildCoachChatContext` makes exactly 1 real `goalVolumeContextLine(` call, passing `activeProgram`, and contains no "adding one set" literal of its own (comments stripped).
+- **Test plan:** extend `test-coach-chat-context.js`. Sabotage: drop the gate check, and criterion 1 must fail.
+- **Files:** `index.html` (26661 area for the helper; 42858–42868), `sw.js`, `test-coach-chat-context.js`.
+- **Risk:** the AI path is a CLAUDE.md fragile area; only the prompt string changes. Guarded by `test-ai-cross-metric-effort-fix.js` and `test-coach-chat-context.js`.
+- **Tools:** `Skill: claude-api` (prompt wording only).
+- **Status:** ready (after BL-07)
+
+### BL-66: The phase tag stops saying "Accumulation" where no block sets are added (BL-01 follow-up)
+- **Why:** builder flag, PR #63 (v3.518), foreseen in BL-01's Risk line. `mesocyclePhaseTag` (`index.html` 26774) labels weeks 1–4 "Week N of 5 · Accumulation" on every program. Its own comment says it names a phase only when `applyAccumulation` really implements it (26768–26773), and since BL-01 `applyAccumulation` does nothing on the 21 gated programs. The tag now makes the claim the comment forbids.
+- **Change:**
+  - `mesocyclePhaseTag(cyclePos, inDeloadWeek, program)`: outside a deload week, when `!volumeModifiersApply(program)`, the text is "Week N of 5" with no phase word. Deload weeks keep "· Deload" everywhere (deload still runs on every program).
+  - The one call site, `renderWorkout` (28710), passes `activeProgram`.
+- **Acceptance criteria** (real `mesocyclePhaseTag` with the real `volumeModifiersApply`, `VOLUME_MODIFIER_PROGRAMS`, `isCustomProgramKey`, `DELOAD_CYCLE_WEEKS`):
+  1. `(3, false, 'medical')` → text `Week 3 of 5`, class `mesocycle-phase-tag`.
+  2. `(3, false, 'strength')` and a custom program key → `Week 3 of 5 · Accumulation` (unchanged).
+  3. `(5, true, 'medical')` → `Week 5 of 5 · Deload`, class `mesocycle-phase-tag deload` (unchanged).
+  4. Every program in `Object.keys(programs)` outside the allowlist gets no "Accumulation" in weeks 1–4 (iterate; assert 21).
+  5. `renderWorkout` makes exactly 1 real `mesocyclePhaseTag(` call, and it passes `activeProgram`.
+- **Test plan:** extend `test-mesocycle-phase-tag.js`. Sabotage: drop the program check, and criteria 1 and 4 must fail.
+- **Files:** `index.html` (26774–26777, 28710), `sw.js`, `test-mesocycle-phase-tag.js`. **Re-pin:** `test-today-priorities.js` line 66 asserts the literal call `mesocyclePhaseTag(cyclePos, inDeloadWeek)`, which the new third argument breaks; update it to the three-argument form and name it in the PR.
+- **Risk:** the day header. Guarded by `test-mesocycle-phase-tag.js`, `test-session-actions.js`, `test-up-next.js` and `test-today-priorities.js`.
+- **Status:** ready
+
+### BL-67: Guard: no exercise substitute crosses the jump category (BL-01 follow-up)
+- **Why:** builder flag, PR #63 (v3.518). BL-01's jump rule in `applyGoalVolume` (`index.html` 26682–26684) reads `exerciseInfo[ex.name]` for the **authored** name, because goal volume runs (28647) before `applyExerciseSubs` (28720). If a slot's substitute had a different category, a jump substituted into a squat slot could take a goal set, and a squat substituted into a jump slot would lose one. At v3.518 **no `EXERCISE_SUBS` pair crosses the jump boundary** (checked with the real tables: 0 pairs), so nothing is wrong today. This item makes sure it stays that way, rather than moving the modifiers after substitution (a wider change with no current benefit).
+- **Change:** test only. One data-integrity case in `test-exercise-substitution.js`, which already checks `EXERCISE_SUBS`: for every original and each of its alternatives, `(category === 'jump')` must be equal on both sides, using the real `exerciseInfo`. The failure message says what to do: either drop the pair, or move the jump check after substitution (`ex.__originalName` tells the two apart).
+- **Acceptance criteria:**
+  1. The new case passes at the current tables, and asserts that it compared at least 1 pair (so an empty table can't pass it).
+  2. Sabotage: add a temporary `'Box Jump': ['Back Squat']` entry to the extracted table in the test, and the case fails naming that pair.
+- **Test plan:** as above.
+- **Files:** `test-exercise-substitution.js` only. No `index.html` or `sw.js` change and no version bump, so it runs **outside the build loop** (like TOOL-01): any planning or tooling PR may carry it.
+- **Risk:** none to the app.
+- **Status:** ready (outside the loop)
 
 ## Parked or later (not yet itemised)
 - **M-8:** `calf` and `isolation-leg` categories. These shift `MUSCLE_GROUP_MAP` history groupings, so they need the owner. BL-03 and BL-04 cover the safety half now.
@@ -1254,18 +1382,25 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Status:** ready
 
 ### MKT-02: Share cards carry no body data by default
-- **Why:** the week card's third row falls back from average sleep to **average body weight**, then **average intake** (`archiveCurrentWeek`, 45459–45464). Body weight is the most sensitive number in the app, and it lands on a public image without the person choosing it. Sleep is also health data.
+- **Why:** the week card's third row falls back from average sleep to **average body weight**, then **average intake** (`archiveCurrentWeek`, `index.html` 45451; the rows at 45499–45501). Body weight is the most sensitive number in the app, and it lands on a public image without the person choosing it. Sleep is also health data.
 - **Change:**
-  - The week card's third row becomes training-only: "PRs THIS WEEK" when there was at least one, else "SETS" (total logged sets that week). Sleep, weight and intake rows are removed from the card.
-  - Share text follows the card (it's built from `stats` in `shareCelebrationCard`, 29617).
+  - The week card's third row becomes training-only: "PRs THIS WEEK" when there was at least one, else "SETS" (total logged sets that week). Sleep, weight and intake rows are removed from the card. (Owner decision D15: sets lead the cards.)
+  - **Where the numbers come from (no second implementation):** PRs are the events from the existing `reconstructAllPRs()` (41678) dated inside the week; sets are the logged sets of `readExCorpus()` (41051) entries dated inside the week. Put both in one small async helper, `weekShareTrainingStats(weekStartKey)`, beside `computeWeekStats` (45417). Don't add them to `computeWeekStats` itself: `test-weekly-recap.js` runs `computeWeekStats` without the exercise corpus in its sandbox.
+  - `archiveCurrentWeek` must stay free of inline `reduce(`: `test-weekly-recap.js` (line 46) pins that, so the summing lives in the helper.
+  - Share text follows the card (it's built from `stats` in `shareCelebrationCard`, 29646).
+  - The archived `weekStats` record (with `avgWeight`, `avgSleep`) is unchanged; only the share card changes.
   - No setting is added in this item. If people ask for body stats on cards, that's a later opt-in item.
 - **Acceptance criteria:**
-  1. With weight, intake and sleep all logged that week, the `stats` passed to `shareCelebrationCard` contain no label in {AVG WEIGHT, AVG INTAKE, AVG SLEEP}.
-  2. With 2 PRs that week, the third row is `{value:'2', label:'PRs THIS WEEK'}`; with none, it's the set count.
-  3. The share text passed to a stubbed `navigator.share` contains no weight unit next to "AVG".
-- **Test plan:** new `test-share-card-privacy.js`. Run the real `archiveCurrentWeek` share-stat path with stub storage, and capture the click handler's `cardData` through a stubbed `shareCelebrationCard`. Sabotage: restore the weight fallback, and criterion 1 must fail.
-- **Files:** `index.html` (45450–45472), `sw.js`, the test.
-- **Risk:** low. Guarded by `test-archive-week-visibility.js` and `test-week-progress.js`.
+  1. With weight, intake and sleep all logged that week, the `stats` passed to a stubbed `shareCelebrationCard` (captured by clicking the real `#weekShareBtn` after the real `archiveCurrentWeek` runs with stub storage and stubbed AI digests) contain no label in {AVG WEIGHT, AVG INTAKE, AVG SLEEP}.
+  2. With 2 PR events dated in the week (stubbed `reconstructAllPRs`), the third row is `{value:'2', label:'PRs THIS WEEK'}`; with none, it's `{value:'<n>', label:'SETS'}` where n is the fixture's set count (a real `weekShareTrainingStats` over a stubbed `readExCorpus`).
+  3. With no logged sets and no PRs, the card has its two rows only (WORKOUTS, PROGRAM).
+  4. `archiveCurrentWeek` still calls `computeWeekStats(todayMonday)` and contains no `reduce(` (the existing `test-weekly-recap.js` pin keeps passing).
+- **Test plan:** new `test-share-card-privacy.js`. Sabotage: restore the weight fallback, and criterion 1 must fail.
+- **Files:** `index.html` (45417 area for the helper; 45451–45508), `sw.js`, `test-share-card-privacy.js` (new).
+- **Risk:**
+  - Low. Guarded by `test-archive-week-visibility.js`, `test-week-progress.js` and `test-weekly-recap.js`.
+  - `reconstructAllPRs` counts an exercise's first logged session as a record (its running max starts empty), so a week that starts a new program can show several "PRs". That's the PR timeline's own definition; the card reuses it rather than inventing a second one. Flag it to MKT-07, which names the record's kind.
+- **Spec refresh (2026-11-08):** lines re-grepped at v3.518; the data sources (`reconstructAllPRs`, `readExCorpus`) named, the `test-weekly-recap.js` constraints found, criterion 3 added. Scope unchanged.
 - **Status:** ready
 
 ### MKT-03: Story-format share cards with the app's mark
@@ -1397,14 +1532,17 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 
 ### MKT-09: The public name
 - **Why:** "Training Log" is a category description. The App Store already lists Training Tracker, TrainLog, LiftLog, StrengthLog, Workout Log and Lift Notes (marketing.md §2.1). It can't be owned in search or as a trademark.
-- **Change:** the display rename **shipped as v3.515** (Training Log → Liftnext: manifest `name`/`short_name`, `<title>`, `apple-mobile-web-app-title`, `APP_NAME`; storage keys unchanged, guarded by `test-app-rename.js`). What remains:
-  - **The public-name decision.** Four "NextLift" fitness apps were found, three launched in 2026, one with nearly our pitch; a NEXTLIFT filing is reported in class 28 (research.md §11, marketing.md §2.1). `planning/naming.md` proposes alternatives. The owner keeps Liftnext (after a free USPTO knockout in classes 9, 41 and 42 and buying its `.app` domain) or adopts a new name.
-  - **If the name changes:** one version changes the same strings as v3.515 did, plus What's New ("Liftnext is now <name>. Same app, same data."). It ships at roadmap slot 15, **before** MKT-03b can print a name. Storage keys keep the `trainingLog_` prefix, and the `training-log-v` cache names stay: never rename namespaced keys.
-- **Acceptance criteria:** the owner's answer is recorded in `planning/marketing.md` §2.1. The follow-up item writes its own criteria, including "no localStorage key changes".
-- **Test plan:** none until answered.
-- **Files:** `planning/marketing.md`; later `manifest.json`, `index.html` head, `sw.js`.
-- **Risk:** a domain costs money, and the name needs a trademark clearance check. A rename confuses existing installs unless What's New explains it.
-- **Status:** display rename done (v3.515). The rest is needs-owner. **Question:** "Keep 'Liftnext' (after a USPTO knockout and buying its `.app` domain), or adopt the name from `planning/naming.md`?" **Recommendation:** decide before MKT-03b; until then cards carry the mark only. Never attach the domain to the app's repo as a Pages custom domain (BIZ-25).
+- **Change:** the display rename **shipped as v3.515** (Training Log → Liftnext). The owner then chose **Platestep** (second round of answers, 2026-11-07, `pitch.md`), which **shipped as v3.517**: `APP_NAME = 'Platestep'` (`index.html` 7624), manifest, `<title>` and `apple-mobile-web-app-title`, with storage keys and the `training-log-v` cache names unchanged (guarded by `test-app-rename.js`). That was this item's roadmap slot 15 ("only if the owner picks a name other than Liftnext").
+- **What remains, outside the build loop:**
+  - Record the answer in `planning/marketing.md` §2.1 (it still reads as open at 2026-11-08). Planning-only.
+  - The USPTO knockout search (owner to do, per `pitch.md`). CLAUDE.md (2026-11-08) records that the owner holds `platestep.app` and `platestep.com`; never set either as a Pages custom domain (BIZ-25).
+  - MKT-03b (the wordmark) stays `needs-owner` until the owner confirms the knockout is clear.
+- **Acceptance criteria:** met for the rename by v3.517 (`APP_NAME` equals the manifest `name`; no localStorage key changed: `test-app-rename.js`).
+- **Test plan:** none further.
+- **Files:** `planning/marketing.md` (record only).
+- **Risk:** none further in the loop. Home-screen installs keep their old label until re-added; the v3.517 What's New told the owner to export a backup first (CLAUDE.md, "Home-screen installs").
+- **Spec refresh (2026-11-08):** status brought up to date with the owner's second-round answer and v3.517. The loop skips slot 15.
+- **Status:** done (v3.517). The trademark check is the owner's; MKT-03b carries the remaining question.
 
 ### MKT-10: Share a program as a link
 - **Why:** people pass programs to training partners. A link that opens the app with the program ready to import is a referral that carries real value, and it needs no server: the program goes in the URL fragment (`#p=…`), which browsers never send to the server.
@@ -1591,59 +1729,69 @@ Ready items are listed in build order, then needs-owner items.
 ### UX-01: Design tokens v2, introduced as aliases (no visual change)
 - **Why:** every later UX item needs one vocabulary: ground, surfaces, rules, text, spot inks and their on-colours, deep inks, type scale, radii and motion. Introducing them as aliases of today's values first means the switch can happen screen by screen without a broken middle state.
 - **Change:**
-  - Add the token set from `tools/design/world.css` (`--ground`, `--surface-1/2`, `--rule`, `--rule-strong`, `--text-2/3`, `--spot-*`, `--on-*`, `--deep-*`, `--fs-*`, `--r-control`, `--r-sheet`, `--dur-*`, `--ease-out`/`--ease-in-out`/`--ease-drawer`) to `:root` (59) and the light block (309).
+  - Add the token set from `tools/design/world.css` (`--ground`, `--surface-1/2`, `--rule`, `--rule-strong`, `--text-2/3`, `--spot-*`, `--on-*`, `--deep-*`, `--fs-*`, `--r-control`, `--r-sheet`, `--dur-*`, `--ease-out`/`--ease-in-out`/`--ease-drawer`) to the dark `:root` (`index.html` 59) **and** to the light block, which at v3.518 is the rule `body:not(.gym-mode)` inside `@media (prefers-color-scheme: light)` (309–313), not a `:root` rule.
   - In this version each new token **points at the existing value** (`--ground: var(--bg)` and so on). The new values are recorded in a comment beside each, for the later items.
+  - **Why both blocks need every alias:** a custom property holding `var(--bg)` is resolved where it's declared and then inherited as a value. An alias declared only on `:root` would carry the dark `--bg` into light mode on `body`. Redeclaring each alias in the light rule makes it re-resolve there.
+  - None of the new names exists in `index.html` at v3.518 (grepped), so nothing collides. `--text` already exists and is not redefined.
   - Nothing reads the new tokens yet.
 - **Acceptance criteria:**
-  1. Every new token is defined in both the dark `:root` and the light block. The test parses the real `<style>` with jsdom's CSSOM, not by string match.
-  2. For every spot ink, the **target** values (from the comment) give `--on-*` against `--spot-*` ≥ 4.5:1, white against `--deep-*` ≥ 4.5:1, and `--text`, `--text-2` and `--text-3` against `--ground` ≥ 4.5:1 in both themes. Computed with a real WCAG luminance function in the test.
-  3. TOOL-01's harness: every state in its matrix is pixel-identical to the **parent commit** (not "the v3.514 baseline", which is stale).
-  4. *(Alignment round, design-engineer)* The Sash mark's literal hexes (header mark and launch, `index.html` ~5320 area, and the icon source in `tools/design/icon/`) equal the five target `--spot-*` values recorded in the comments. Parse the real markup; don't string-match the whole file.
-- **Test plan:** new `test-design-tokens-v2.js`. Sabotage: delete one token from the light block, and criterion 1 must fail; set `--spot-red` to `#E0352B` (4.4:1), and criterion 2 must fail.
-- **Files:** `index.html` (59, 309), `sw.js`, the test.
-- **Risk:** low. Guarded by `test-css-mechanical-token-dedup.js`.
+  1. Every new token is defined in both the dark `:root` rule and the light `body:not(.gym-mode)` rule. The test parses the real `<style>` with jsdom's CSSOM, the way `test-light-mode.js` finds both rules, not by string match.
+  2. For every spot ink, the **target** values (from the comment) give `--on-*` against `--spot-*` ≥ 4.5:1, white against `--deep-*` ≥ 4.5:1, and `--text`, `--text-2` and `--text-3` against `--ground` ≥ 4.5:1 in both themes. Computed with a real WCAG luminance function in the test (`test-light-mode.js` has one to copy).
+  3. TOOL-01's harness (`node tools/visual/harness.js --base <parent commit>`): every state in its matrix is pixel-identical to the **parent commit**. PR evidence, not a `check.sh` suite.
+  4. *(Alignment round, design-engineer)* The Sash mark's literal hexes equal the five target `--spot-*` values recorded in the comments: the header mark (`#brandHome` svg, 5718) and the five launch layers (`.launch-b25` … `.launch-b5`, 5667–5671), parsed from the real markup with jsdom, plus `tools/design/icon/option-b.svg`.
+  5. `test-light-mode.js`'s rule that every light token also exists in the dark `:root` still passes (it will, if criterion 1 does).
+- **Test plan:** new `test-design-tokens-v2.js`. Sabotage: delete one token from the light rule, and criterion 1 must fail; set `--spot-red`'s target to `#E0352B` (4.4:1), and criterion 2 must fail.
+- **Files:** `index.html` (59 onward, 309–313 onward), `sw.js`, `test-design-tokens-v2.js` (new). PR artefact: the harness contact sheet (D14).
+- **Risk:** low. Guarded by `test-css-mechanical-token-dedup.js` and `test-light-mode.js` (one light rule; every light token exists in the dark root).
 - **Summit note (summit 2026-11-07):** Moved to the front of Phase 1 (now roadmap slot 11). It changes nothing visible, and every later piece of BL/BIZ/MKT markup is then written once in the new vocabulary (summit R1). Pixel-identity criterion 3 is harness PR evidence, not a `check.sh` suite.
 - **Tools:** TOOL-01's harness.
-- **Status:** ready (after TOOL-01)
+- **Spec refresh (2026-11-08):** the light block is a `body:not(.gym-mode)` rule (since v3.480), and the alias-inheritance trap is spelled out; mark lines re-grepped at v3.518; TOOL-01 is merged (`tools/visual/`), so the "after TOOL-01" condition is met. Scope unchanged.
+- **Status:** ready
 
 ### UX-01b: `dayInk(id)`: one day-to-ink rule, with no visible change
 - **Why:**
-  - `getDayPlateClass` (`index.html` ~26219) ignores each day's `plate` field and colours days by **position** from seven hues (`VIVID_PLATE_CLASSES`, ~26218: red, blue, yellow, green, purple, orange, teal). For example, Strength & Size Day 5 "Lower · Hypertrophy" is purple today, while its data says `p-green` / `10`.
+  - `getDayPlateClass` (`index.html` 26227) ignores each day's `plate` field and colours days by **position** from seven hues (`VIVID_PLATE_CLASSES`, 26226: red, blue, yellow, green, purple, orange, teal). For example, Strength & Size Day 5 "Lower · Hypertrophy" is purple today, while its data says `p-green`.
   - Plate & Press, the icon, the bib and the plate stack all mean the five plate inks.
   - MKT-03 (slot 17), MKT-06a and MKT-16 print "the day's ink" long before UX-05 (slot 42), and no test covers the current rule (design-engineer B1).
 - **Change:**
-  - Add one pure helper, `dayInk(dayOrId, program)`. It returns one of `'red' | 'blue' | 'yellow' | 'green' | 'white' | 'off'`:
-    - from the day's own `plate` field (`p-red` → `red`, …, `p-white` → `white`);
+  - Add one pure helper beside `getDayPlateClass`, `dayInk(dayOrId, program)`. It returns one of `'red' | 'blue' | 'yellow' | 'green' | 'white' | 'off'`:
+    - from the day's own `plate` field (`p-red` → `red`, …, `p-white` → `white`, `p-off` → `off`);
     - rest days → `off`;
-    - a missing or unknown plate (custom programs, or `p-purple` etc. if any data carries them) → the ink at `index % 4` over red, blue, yellow, green, so inks **repeat** in programs of 5+ days rather than turning grey.
+    - a missing or unknown plate (custom programs) → the ink at `index % 4` over red, blue, yellow, green, so inks **repeat** in programs of 5+ days rather than turning grey.
+  - At v3.518 every one of the 1,904 built-in day entries (programs, styles and day-count variants) has a `plate`, using only `p-red`, `p-blue`, `p-yellow`, `p-green`, `p-white` and `p-off` (walked with the real tables). The fallback is for custom programs only.
   - Nothing calls it yet apart from its test. `getDayPlateClass` and `--day-hue` are unchanged in this version.
-  - The rule is the owner's (consensus decision 9; recommended: the plate code). If he chooses "seven distinct hues" instead, this item is rewritten before it's built.
+  - The rule is the owner's: decision D13 (2026-11-07) chose the plate code.
 - **Acceptance criteria:**
-  1. For every day of every built-in program, its `PROGRAM_DAY_COUNT_VARIANTS` days and every `*_STYLES` style, `dayInk` returns one of the six values, and equals the mapping of the day's `plate` field when the field is one of the five inks.
-  2. Strength & Size Day 5 returns `green` (it returns purple through today's `getDayPlateClass`; the test records both, so the difference is documented).
+  1. For every day of every built-in program, its `PROGRAM_DAY_COUNT_VARIANTS` days (16204) and every `*_STYLES` style, the real `dayInk` returns one of the six values and equals the mapping of the day's `plate` field. The test asserts it visited ≥ 1,900 days.
+  2. Strength & Size Day 5 returns `green`, while the real `getDayPlateClass` (it reads the globals `dayDefs` and `dayOrder`; set them to `programs.strength.days` and its keys) returns `p-purple` for it; the test records both, so the difference is documented.
   3. A rest day returns `off`. A custom program day with no `plate` returns an ink by its index, and never throws.
-  4. No rendered DOM changes: `getDayPlateClass`'s outputs for all days are identical before and after (snapshot).
+  4. No rendered DOM changes: the real `getDayPlateClass` outputs for all strength days are identical before and after (snapshot), and `getDayPlateClass`'s source is byte-identical to v3.518.
 - **Test plan:** new `test-day-ink.js` (UX-05 extends it later). Sabotage: return `'red'` for everything, and criterion 1 must fail on Day 2.
-- **Files:** `index.html` (a new helper beside ~26219), `sw.js`, the test.
+- **Files:** `index.html` (a new helper beside 26226–26234), `sw.js`, `test-day-ink.js` (new). `test-a11y-keyboard-focus.js` and `test-header-refresh.js` extract `getDayPlateClass` and are unaffected.
 - **Risk:** none visible. The What's New line says so honestly.
+- **Spec refresh (2026-11-08):** lines re-grepped at v3.518; the plate inventory measured; D13 recorded. Scope unchanged.
 - **Status:** ready
 
 ### UX-02: Ship the Archivo display face beside index.html
 - **Why:** the cover numeral, the screen headlines and the share cards (MKT-03) are drawn in Archivo, condensed through its width axis. Its width axis is also the "press" move when a set is logged. Geist at 800 is the fallback and works, but it's wider, so the cover numeral would have to shrink to about 120 px.
 - **Change:**
-  - Copy `tools/design/fonts/archivo-latin-wdth-wght.woff2` (90 KB, OFL; licence `tools/design/fonts/OFL-Archivo.txt`) to `fonts/archivo-latin-wdth-wght-v1.woff2`, with the licence beside it.
-  - Add an `@font-face` beside the Geist ones (29–34) and `--font-display: 'Archivo', 'Geist', ...`.
-  - `sw.js` caches the font file in its own versioned cache, as CLAUDE.md asks for assets.
+  - Copy `tools/design/fonts/archivo-latin-wdth-wght.woff2` (90 KB, OFL; licence `tools/design/fonts/OFL-Archivo.txt`) to `fonts/archivo-latin-wdth-wght-v1.woff2`, with the licence beside it as `fonts/OFL-Archivo.txt` (as `fonts/OFL-Geist.txt` is).
+  - Add one `@font-face` for `'Archivo'` (variable `font-weight` and `font-stretch` ranges, `font-display: swap`) beside the two Geist ones (`index.html` 29–38; the Geist preload link is at 27), and `--font-display: 'Archivo', 'Geist', ...` beside `--font-sans`.
+  - **Caching follows the Geist precedent, not a cache of its own** *(spec refresh, 2026-11-08)*: add the URL to `sw.js` `PRECACHE_OPTIONAL` (222–233), where the Geist files are. CLAUDE.md (updated 2026-11-08) lists the self-hosted fonts as files that ship and are "precached as optional entries"; its "cache of their own" rule is for media assets. The old spec's separate cache would also fail the existing `test-self-hosted-fonts.js` case "every @font-face file is in PRECACHE_OPTIONAL" (line 126).
+  - **No `<link rel="preload">`** for it: `test-self-hosted-fonts.js` (line 120) pins exactly one font preload (Geist), and nothing visible uses the face until UX-03 and MKT-03.
 - **Acceptance criteria:**
-  1. `sw.js`'s install handler (real function, stubbed `caches`) adds the font URL to a cache whose name carries the version.
-  2. The `@font-face` `src` URL resolves to a file that exists in the repo (test reads the path from the real CSSOM).
-  3. Offline in Playwright: after one online load, with the network blocked, `document.fonts.check('800 64px Archivo')` is true.
-- **Test plan:** new `test-display-font.js`. Sabotage: misspell the file name, and criterion 2 must fail.
-- **Files:** `fonts/`, `index.html` (29–34), `sw.js`, the test.
-- **Risk:** first load is 90 KB heavier. `font-display: swap` keeps the text visible.
+  1. The real CSSOM has exactly one `@font-face` with family `Archivo`; its `src` is under `./fonts/`, resolves to a file on disk whose first four bytes are `wOF2`; its weight range covers 800 and its stretch range covers 68%–100%.
+  2. `sw.js`'s `PRECACHE_OPTIONAL` contains the URL and `PRECACHE_ESSENTIAL` doesn't (the existing test's rule, extended to every face).
+  3. The real `sw.js` install handler (run with a stubbed `caches` and `fetch`) requests the Archivo URL.
+  4. `--font-display` resolves on `:root` and names `'Archivo'` first.
+  5. PR evidence, not a suite: offline in Playwright, after one online load with the network blocked, `document.fonts.check('800 64px Archivo')` is true.
+- **Test plan:** extend `test-self-hosted-fonts.js` (it already parses the real CSSOM and `PRECACHE_OPTIONAL`; it replaces the old plan's new `test-display-font.js`). Sabotage: misspell the file name, and criterion 1 must fail.
+- **Files:** `fonts/archivo-latin-wdth-wght-v1.woff2` and `fonts/OFL-Archivo.txt` (new), `index.html` (29–38; `--font-sans` at 68), `sw.js` (`PRECACHE_OPTIONAL` and version), `test-self-hosted-fonts.js`.
+- **Risk:** first load is 90 KB heavier, once. `font-display: swap` keeps the text visible. The existing font guards (`test-self-hosted-fonts.js`, `test-icon-manifest-paths.js`, which also parses `PRECACHE_OPTIONAL`) must stay green.
 - **Tools:** default; TOOL-01's harness (fonts awaited).
-- **Alignment note (2026-11-07):** sequenced at roadmap slot 16, **before MKT-03**, if approved, so the Year in Lifting cards and the app share one typeface from the start (design-engineer). CLAUDE.md says "no assets ship now", but `fonts/` (Geist) and the `content-*.js` files do ship; that wording is the owner's to fix (flagged by skills-orchestrator and build-automator, not edited here).
-- **Status:** needs-owner. **Question:** "Ship one 90 KB display font file (Archivo, open licence) beside the app for the big numbers and headlines?" **Recommendation:** yes. It's the single biggest visual lift per byte, and MKT-03's cards use it too.
+- **Alignment note (2026-11-07):** sequenced at roadmap slot 16, **before MKT-03**, so the Year in Lifting cards and the app share one typeface from the start (design-engineer).
+- **Spec refresh (2026-11-08):** approved by the owner (D2, 2026-11-07: "Archivo before cards"), and CLAUDE.md's "no new runtime files without the owner's OK" is satisfied by that answer. Caching and test file changed to match the Geist precedent and the existing font test; no change to what ships or what the owner sees.
+- **Status:** ready
 
 ### UX-03: Flat ground everywhere: retire the halos, glass and gradient buttons
 - **Why:** the most "generated" parts of today's look are the blurred plate halos behind the header, the glass card fills with `backdrop-filter` (37 uses) and the gradient call-to-action buttons (`--cta-gradient-*`, 18 uses; the violet "Generate insights" and "Log set" buttons). Removing them app-wide in one version makes every screen coherent before any screen is rebuilt.
@@ -1936,7 +2084,7 @@ The loop never picks these: they aren't in the roadmap's numbered sequence, and 
 - **Files:** `tools/visual/` only.
 - **Risk:** none to the app. It's a dev tool, published on Pages with the rest of `tools/` (consensus O5).
 - **Owner:** design-engineer builds it; the owner merges it **before roadmap slot 11 (UX-01)**.
-- **Status:** ready (design-engineer tooling PR; not picked by the build loop)
+- **Status:** done (merged into `Branch-1`: commits 5581084 and b5055c7, `tools/visual/`; noted in the 2026-11-08 spec refresh)
 
 ### DOC-01: PRODUCT.md takes the chosen name
 - **Why:** `PRODUCT.md:36` still says "Name: 'Training Log' (an open question for a public launch, BIZ-12)". Design skills read it as context.
