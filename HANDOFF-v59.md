@@ -1003,3 +1003,12 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
 - **Test:** `test-region-override.js` grows from 11 to 17 cases. Sabotage-checked. Live render confirmed the area-aware swaps.
 - **Unverified:** not tried on an iPhone.
 - **Open question:** Goblet March is offered only for a resting shoulder.
+
+## Addendum 50: BL-71 (v3.525, PR #89, 2026-11-08)
+- **What:**
+  - `EXERCISE_SUBSTITUTE_OVERRIDE` values may be ordered lists; `suggestSubstitute` takes the first whose `for` covers every hit area.
+  - Carries: `[SUB_VEST_CARRY, SUB_BIRD_DOG]`. `SUB_GOBLET_MARCH` is retired.
+  - The caution escapes the swap name and reason.
+- **Test:** `test-region-override.js` grows from 17 to 20 cases, including a frozen v3.524 snapshot for the non-carry swaps. Sabotage-checked. The live render matches.
+- **Unverified:** not tried on an iPhone.
+- **Next in the build order:** BL-05 + BL-06, the safety cues.
