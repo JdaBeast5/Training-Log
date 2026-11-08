@@ -151,6 +151,15 @@ At one merge a day (your pace, an assumption) that's about ten weeks of ready wo
 ## Decisions only you can make
 
 ### Owner's answers, 2026-11-07
+- **Third round (owner, 2026-11-08, "1-6 yes, clinician"):** approved as recommended:
+  - **D3:** BL-31 and BL-33 yes; BL-34 for RPE-mode targets only; BL-32 as a one-tap "make today easier"; BL-30 no.
+  - **D5:** yes; BL-27 after 3 weeks of BL-17 data.
+  - **D6:** yes. The owner may send a Strong or Hevy export.
+  - **D8:** yes, in order, after Phase 3 and its gates.
+  - **D9 follow-ups (a)–(d):** yes.
+  - **D9(e):** a **clinician** reviews the clinical copy.
+  - **D10:** yes.
+  - Still open: **D9(f)**, a personal or organisation Play account (the owner is weighing an LLC). PR #32 (old Duo branch) is closed as superseded.
 - **Second round (owner, 2026-11-07, "1-13 yes, Platestep"):** the name is **Platestep** (naming.md; built as v3.517, awaiting the owner's go-live). Decisions 1–13 of the consensus list are approved:
   - O1 branch protection;
   - O2 a dedicated builder checkout and the 3-a-day schedule;
