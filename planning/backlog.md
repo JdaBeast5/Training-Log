@@ -111,7 +111,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - RPE badge rendering. Guarded by `test-progress-badge-rpe-teal.js`, `test-today-workout-emoji.js` and `test-deload-signal-week-awareness.js`.
   - The progression signal. Guarded by `test-program-fit-trend.js` (calls `analyzeProgressionSignal` with three arguments: it must keep passing unchanged) and the eight suites that stub it.
 - **Spec refresh (2026-11-08):** line numbers re-grepped at v3.518; the third and fourth `analyzeProgressionSignal` call sites, the `renderLoadModeNote` criterion, the PR #63 ramp flag (criterion 9) and the two re-pins were added. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.519, PR #72)
 
 ### BL-68: Backups leave out saved API keys
 - **Why:** "Export data" copies every stored key, including `ai-api-key` (the user's Anthropic key) and `usda-api-key`, into the JSON in plain text (export handler, `exportDataBtn`, about 34196 at v3.518). A backup that lands in a cloud folder, an email or a shared drive leaks a key billed to the user. This was found while drafting the privacy page (PR #66); the owner chose to exclude the keys on 2026-11-08.

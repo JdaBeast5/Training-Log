@@ -938,3 +938,21 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
   - The phase tag still reads "Accumulation" on gated programs.
   - The RPE week ramp still runs on clinical and prenatal programs (BL-02).
   - The jump check reads the authored name, before substitutions.
+
+## Addendum 44: build loop, BL-02 (v3.519, PR #72, 2026-11-08)
+- **First attempt** (2026-11-07 evening): stopped with draft blocker PR #65. Criterion 6 asked for "the smallest loadable jump via `snapToLoadable`", which has no step for cables and machines. The owner answered (a), no number. #65 was closed and BL-02 was re-specified in PR #70.
+- **What shipped:**
+  - `rpeTargetFor(week, inDeload, program, category)` is the only place an RPE target is decided: badge, suggested weight and Settings note. It returns `null` for oly, jump and throw; 6 on deload; at most 7 on medical and senior.
+  - `analyzeProgressionSignal` takes a 4th argument, `program`, at all 3 call sites. For medical and senior, an increase needs two sessions at RPE ≤ 7. The step is 2 × the smallest plate (barbell) or the dumbbell increment; cables and machines get no number. With no RPE logged, it returns `clinicalNoRpe` and no number.
+  - `rpeCtx` carries `program` and `category`.
+  - Code-review fix: the one-session "add weight" fallback (computeSuggestedSet step 4, and the badge) is skipped on clinical plans, so it can't bypass the gate.
+- **Test:** `test-rpe-safety-caps.js`, 13 cases. Suites went from 200 to 201. Re-pin: `test-today-workout-emoji.js` stubs `rpeTargetFor`.
+- **Sabotage:** each of the 4 mechanisms fails its criteria when removed.
+- **Harness:** 20 of 26 states are identical; the 904-wide states differ only in the version footer.
+- **Unverified:** not tried on an iPhone.
+- **Flagged, not fixed:**
+  - RPE mode on clinical plans follows the e1RM at RPE 7, not the two-session rule (a possible follow-up for the owner).
+  - When only one session has an RPE logged, there's no prompt.
+  - Rounding up from an off-grid weight can add slightly more than one step.
+  - The Settings note on Olympic shows a week RPE.
+  - Custom programs with clinical exercises get no cap.

@@ -7615,7 +7615,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.518';
+const APP_VERSION = '3.519';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -8982,6 +8982,10 @@ const WHATS_NEW = {
   ]},
   '3.518': { headline: 'Extra goal sets only on lifting programs', points: [
     'Extra sets from your goal and from the training block now apply only to Strength & Size, Bodybuilding, Powerbuilding, Powerlifting and programs you build yourself. Other programs keep their written set counts, including the clinical, prenatal, sport and skill plans. Jumps never get extra sets.',
+  ]},
+  '3.519': { headline: 'Safer effort targets on clinical plans', points: [
+    'On the clinical plans (including prenatal and postpartum) and Senior, the RPE target now stops at 7, about 3 reps left, every week. The suggestion to add weight waits for two sessions at RPE 7 or easier and adds only your smallest plate or dumbbell step; on cables and machines, try the smallest step the machine allows.',
+    'Olympic lifts, jumps and throws no longer get an RPE weight target. Stop each set with 2–3 clean reps left instead.',
   ]},
 };
 
@@ -14552,7 +14556,7 @@ async function getSessionHeadsUpInsight(){
     if(!flagged){
       const log = await getExLog(activeDay, idx, subVariantOf(ex));
       const pastSessions = buildPastSessions(log);
-      const signal = analyzeProgressionSignal(pastSessions, ex, info.category);
+      const signal = analyzeProgressionSignal(pastSessions, ex, info.category, activeProgram);
       if(signal && (signal.type==='decrease' || signal.type==='deload')) flagged = true;
     }
     if(flagged) flaggedCount++;
@@ -27449,6 +27453,24 @@ function targetRpeForWeek(week){
   return RPE_BY_CYCLE_WEEK[cycleWeekOf(week)] ?? 8;
 }
 
+// v3.519 (BL-02, audit SAF-2): the ONE place a target RPE is decided. The
+// badge, the suggested weight and the Settings note all ask this, so they
+// can't disagree.
+//   - Technique lifts (oly, jump, throw) get no RPE target at all (null): an
+//     Epley e1RM isn't valid for a 2-rep snatch, so those fall back to double
+//     progression and the "stop with 2-3 clean reps left" rule.
+//   - Deload weeks: RPE 6 everywhere else.
+//   - Clinical plans (every MEDICAL_STYLES style, prenatal and postpartum
+//     included) and Senior stop at RPE 7 (3+ reps in reserve); near-maximal
+//     sets are what those plans tell people to avoid.
+function rpeTargetFor(week, inDeload, program, category){
+  if(category === 'oly' || category === 'jump' || category === 'throw') return null;
+  if(inDeload) return RPE_BY_CYCLE_WEEK[DELOAD_CYCLE_WEEKS];
+  const weekTarget = targetRpeForWeek(week);
+  if(program === 'medical' || program === 'senior') return Math.min(weekTarget, 7);
+  return weekTarget;
+}
+
 // The best e1RM from RECENT sessions, not all-time. An all-time best from
 // eighteen months ago describes someone who no longer exists, and prescribing
 // from it would hand out loads that can't be hit — the exact failure that makes
@@ -27511,7 +27533,7 @@ function getLoadIncrement(category){
 // Only ever looks at PAST sessions (today's date is always excluded by the
 // caller passing a log already filtered/sorted) so it never reacts to a set
 // you're mid-way through logging right now.
-function analyzeProgressionSignal(pastSessions, ex, category){
+function analyzeProgressionSignal(pastSessions, ex, category, program){
   if(!pastSessions || pastSessions.length < 2) return null;
   const topRepTarget = parseTopRep(ex.sets);
   const bottomRepTarget = parseBottomRep(ex.sets);
@@ -27550,6 +27572,35 @@ function analyzeProgressionSignal(pastSessions, ex, category){
   // effort to get there.
   const sameWeight = s0.weight!=null && s1.weight!=null && s0.weight === s1.weight;
   const metTopBoth = s0.reps!=null && s1.reps!=null && s0.reps >= topRepTarget && s1.reps >= topRepTarget;
+
+  // v3.519 (BL-02, SAF-8, owner decision D12): the clinical load gate. On the
+  // clinical plans and Senior, load rises only after two sessions at RPE 7 or
+  // easier, and only by the smallest step the equipment model knows: 2 x the
+  // smallest plate on a barbell, the dumbbell increment on dumbbells. Cables
+  // and machines have no model (snapToLoadable leaves them alone), so the app
+  // names no number there (owner, 2026-11-08, option (a) on PR #65). With no
+  // RPE logged in either session there's nothing to judge "easy" by, so it
+  // asks instead of prescribing. Steps are in the display unit.
+  if(program === 'medical' || program === 'senior'){
+    if(!(sameWeight && metTopBoth)) return null;
+    if(s0.avgRpe == null && s1.avgRpe == null){
+      return {type:'increase', clinical:true, clinicalNoRpe:true, loadStep:null,
+              message:'If both sessions felt comfortable, try the smallest jump.'};
+    }
+    const easyBoth = s0.avgRpe != null && s1.avgRpe != null && s0.avgRpe <= 7 && s1.avgRpe <= 7;
+    if(!easyBoth) return null;
+    const eq = getEquipment();
+    const loadStep = isBarbellExercise(ex.name) ? 2 * eq.plates[eq.plates.length - 1]
+                   : isDumbbellExercise(ex.name) ? eq.dbIncrement
+                   : null;
+    return {
+      type: 'increase', clinical: true, loadStep,
+      message: loadStep != null
+        ? `Hit ${topRepTarget}+ reps at ${fmtWeight(s0.weight)} for 2 sessions at RPE 7 or easier — add the smallest step, ${trimUnitNum(loadStep)} ${weightUnit}, next time.`
+        : `Hit ${topRepTarget}+ reps at ${fmtWeight(s0.weight)} for 2 sessions at RPE 7 or easier — next time, try the smallest step your machine allows.`
+    };
+  }
+
   const rpeRoomToSpare = (s0.avgRpe==null || s0.avgRpe <= 8.5) && (s1.avgRpe==null || s1.avgRpe <= 8.5);
   if(sameWeight && metTopBoth && rpeRoomToSpare){
     const bump = getLoadIncrement(category);
@@ -27611,7 +27662,7 @@ async function computeProgramFitTrend(){
       const pastSessions = buildPastSessions(log);
       if(pastSessions.length < 2) continue; // same minimum-data bar the per-exercise signal itself requires
       total++;
-      const signal = analyzeProgressionSignal(pastSessions, ex, info.category);
+      const signal = analyzeProgressionSignal(pastSessions, ex, info.category, activeProgram);
       if(signal && signal.type==='increase') increase++;
       else if(signal && signal.type==='decrease') decrease++;
       else if(signal && signal.type==='deload') deload++;
@@ -27780,10 +27831,19 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
   const note = sourceNote || '';
 
   // RPE mode owns the badge as well as the placeholder — see computeSuggestedSet.
-  const rpeTargetRpe = inDeloadWeek ? RPE_BY_CYCLE_WEEK[DELOAD_CYCLE_WEEKS] : (rpeCtx ? targetRpeForWeek(rpeCtx.week) : null);
-  const rpeBadgeTarget = (loadSuggestionMode === 'rpe' && rpeCtx && rpeCtx.e1rm != null)
+  // v3.519 (BL-02): the target comes from rpeTargetFor, so clinical caps and
+  // the technique-lift exclusion apply here exactly as in computeSuggestedSet.
+  const rpeTargetRpe = rpeCtx ? rpeTargetFor(rpeCtx.week, inDeloadWeek, rpeCtx.program, rpeCtx.category) : null;
+  const rpeBadgeTarget = (loadSuggestionMode === 'rpe' && rpeCtx && rpeCtx.e1rm != null && rpeTargetRpe != null)
     ? loadForRpeTarget(rpeCtx.e1rm, parseBottomRep(ex.sets), rpeTargetRpe)
     : null;
+  // RPE mode on a technique lift: no RPE target exists, so the badge is the
+  // double-progression one plus the rule that replaces the target.
+  if(loadSuggestionMode === 'rpe' && rpeCtx && rpeCtx.e1rm != null && rpeTargetRpe == null){
+    const base = buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx: null, sourceNote});
+    return {direction: base.direction,
+            html: base.html + `<div class="progress-hint">Technique lift: stop each set with 2–3 clean reps left.</div>`};
+  }
 
   if(rpeBadgeTarget != null){
     const rir = rirFromRpe(rpeTargetRpe);
@@ -27816,7 +27876,11 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
   if(inDeloadWeek && priorTop && priorTop.weight!=null){
     return {direction:'down', html:`<div class="progress-hint">Deload week — sets are already reduced. Last top set ${fmtWeight(priorTop.weight)} × ${priorTop.reps ?? '?'}${note}; go about 10-20% lighter today.</div>`};
   }
-  if(priorTop && priorTop.reps!=null && topRep!=null && priorTop.reps >= topRep){
+  // v3.519 (BL-02): on the clinical plans and Senior, one session at the top
+  // of the range isn't enough; only the clinical load gate (two sessions at
+  // RPE 7 or easier, analyzeProgressionSignal) may suggest more weight.
+  const clinicalPlan = rpeCtx && (rpeCtx.program === 'medical' || rpeCtx.program === 'senior');
+  if(!clinicalPlan && priorTop && priorTop.reps!=null && topRep!=null && priorTop.reps >= topRep){
     return {direction:'up', html:`<div class="progress-badge">Hit ${priorTop.reps} reps last time at ${priorTop.weight!=null ? fmtWeight(priorTop.weight) : '?'}${note} — try adding weight today</div>`};
   }
   if(priorTop && priorTop.weight!=null){
@@ -27857,9 +27921,12 @@ function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, prior
   // brand-new exercise, or a time/distance prescription with no rep count —
   // it falls through to double progression rather than guessing, so switching
   // the mode on can never leave an exercise with no suggestion at all.
-  if(rpeCtx && loadSuggestionMode === 'rpe' && rpeCtx.e1rm != null){
+  // v3.519 (BL-02): rpeTargetFor caps clinical plans at RPE 7 and returns null
+  // for technique lifts, which then take the double-progression chain below.
+  const targetRpe = (rpeCtx && loadSuggestionMode === 'rpe' && rpeCtx.e1rm != null)
+    ? rpeTargetFor(rpeCtx.week, inDeloadWeek, rpeCtx.program, rpeCtx.category) : null;
+  if(targetRpe != null){
     const repTarget = parseBottomRep(ex.sets);
-    const targetRpe = inDeloadWeek ? RPE_BY_CYCLE_WEEK[DELOAD_CYCLE_WEEKS] : targetRpeForWeek(rpeCtx.week);
     const lb = loadForRpeTarget(rpeCtx.e1rm, repTarget, targetRpe);
     if(lb != null){
       const display = toDisplayWeight(lb);
@@ -27906,6 +27973,13 @@ function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, prior
   }
   // 2. An explicit signal.
   if(signal){
+    // v3.519 (BL-02): the clinical load gate. No RPE logged, or a cable or
+    // machine the equipment model can't step: no number, the badge text says
+    // what to do. Otherwise the smallest loadable step, already in display units.
+    if(signal.type === 'increase' && signal.clinical){
+      if(signal.clinicalNoRpe || signal.loadStep == null) return null;
+      return {weight: snap(toDisplayWeight(priorSet.weight) + signal.loadStep, 'up'), reps: bottomRep, reason:'increase'};
+    }
     if(signal.type === 'increase'){
       // Double progression: the load goes up, so reps restart at the bottom of
       // the prescribed range rather than carrying last session's top-end count.
@@ -27928,8 +28002,10 @@ function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, prior
   }
   // 4. One session at the top of the range — not enough for the two-session
   // signal, but the badge already says "try adding weight today" here, so the
-  // field agrees with it.
-  if(priorTop && priorTop.reps != null && topRep != null && priorTop.reps >= topRep){
+  // field agrees with it. v3.519 (BL-02): not on the clinical plans or Senior,
+  // where only the clinical load gate may raise the weight (badge agrees).
+  const clinicalPlan = rpeCtx && (rpeCtx.program === 'medical' || rpeCtx.program === 'senior');
+  if(!clinicalPlan && priorTop && priorTop.reps != null && topRep != null && priorTop.reps >= topRep){
     return {weight: snap(bump(priorSet.weight, increment), 'up'), reps: bottomRep, reason:'increase'};
   }
   // 5. Nothing to suggest — the field ghosts last time's number, as before.
@@ -28800,8 +28876,8 @@ async function renderWorkout(){
       // Built once per exercise rather than per set row — recentBestE1RM walks
       // the session list, and doing that inside the row loop would repeat it
       // for every set of every exercise on the day.
-      const rpeCtx = {e1rm: recentBestE1RM(pastSessions), week: mesoWeek};
-      const signal = analyzeProgressionSignal(pastSessions, ex, exCategory);
+      const rpeCtx = {e1rm: recentBestE1RM(pastSessions), week: mesoWeek, program: activeProgram, category: exCategory};
+      const signal = analyzeProgressionSignal(pastSessions, ex, exCategory, activeProgram);
       const sourceNote = priorIsCrossProgram ? ` <span style="opacity:0.7; font-weight:400;">— ${escapeHtml(programLabelFor(priorSourceProgram))}</span>` : '';
 
       // Progression badges, the warm-up ramp, and the volume/1RM summary are
@@ -32927,7 +33003,9 @@ function renderLoadModeNote(week){
   if(!note) return;
   if(loadSuggestionMode === 'rpe'){
     const pos = week != null ? cycleWeekOf(week) : null;
-    const rpe = pos != null ? (RPE_BY_CYCLE_WEEK[pos] ?? 8) : null;
+    // v3.519 (BL-02): through rpeTargetFor, so the note never shows a week
+    // target the clinical cap overrides.
+    const rpe = pos != null ? rpeTargetFor(week, false, activeProgram, null) : null;
     const rir = rpe != null ? rirFromRpe(rpe) : null;
     note.innerHTML = `Suggested weights come from your recent estimated 1RM and a target effort, so a bad week automatically suggests less.`
       + (rpe != null ? ` <b>Week ${pos} of the block targets RPE ${rpe}</b> — about ${rir} rep${rir===1?'':'s'} left in the tank on the last set.` : '')
