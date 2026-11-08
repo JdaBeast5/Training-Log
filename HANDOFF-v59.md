@@ -975,3 +975,13 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
   - There's no cap when the latest session has no weight.
   - Backdating uses a later session as "last".
   - The program check is repeated caller-side.
+
+## Addendum 47: BL-03 (v3.522, PR #77, 2026-11-08)
+- **What:** `EXERCISE_REGION_OVERRIDE` (12 exercises, the audit's map) and `regionsForExercise(name, category)`, used by the heads-up and the row caution. Overridden exercises show no category-based swap in the caution or the AI-tailor prompt; BL-04 adds exercise-specific swaps.
+- **Test:** `test-region-override.js`, 7 cases. Suites went from 202 to 203. Sabotage-checked.
+- **Live check:** Strength d2 with Knee resting flags Leg Curl; with Ankle/Foot resting, it flags Calf Raise.
+- **Unverified:** not tried on an iPhone.
+- **Open questions for the owner and the auditor:**
+  - Sled Push and Wall Balls lose their ankle and shin flags.
+  - Tibialis Raise warns on Shins, but Care recommends it for Shins.
+  - Sled Pull has no override.
