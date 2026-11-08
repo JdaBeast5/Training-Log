@@ -265,7 +265,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Test plan:** extend `test-region-override.js`; replace its three Goblet March references (constants list, criterion 2, the area-fit case). Live check: Core d4 with each area resting.
 - **Files:** `index.html` (`SUB_*`, `EXERCISE_SUBSTITUTE_OVERRIDE`, `suggestSubstitute`, `WHATS_NEW`, `APP_VERSION`), `sw.js`, `test-region-override.js`.
 - **Risk:** the suitcase carry's anti-lean intent has no hands-free equivalent (accepted: swaps are temporary). A heavy vest loads the traps, so the name says light-ish and offers a backpack. [PRAC]
-- **Status:** ready (owner yes 2026-11-08: "the carry swap you recommend" = option (a), the exercise auditor's recommendation). Slot 4a, before BL-05.
+- **Status:** done (v3.525, PR #89)
 
 ### BL-72: Stable history keys for custom, body-goal and bonus exercises
 - **Why:**
