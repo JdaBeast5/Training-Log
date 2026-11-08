@@ -151,6 +151,14 @@ At one merge a day (your pace, an assumption) that's about ten weeks of ready wo
 ## Decisions only you can make
 
 ### Owner's answers, 2026-11-07
+- **Fourth round (owner, 2026-11-08, in the builder session):** "61 a, 51 a, rpe c, 56 a, 59 a, 52 a, 46 b, 47 b, play a, but there will be an LLC before full launch, name a, plus-items yes, 25 forward":
+  - **BL-61, BL-51, BL-56, BL-59, BL-52:** yes, as written (the exercise auditor's fold-ins).
+  - **RPE mode on clinical plans (PR #72 flag):** option (c), at most one smallest step per session. New item **BL-69**, slot 2b.
+  - **BL-46, BL-47:** no (parked); the RPE text stays.
+  - **D9(f):** a **personal** Play account now, with founding members as the 12 testers. **An LLC will exist before full launch.** Google Play can transfer an app between developer accounts, so the listing can move to the LLC's account then.
+  - **Name:** Platestep is confirmed (the USPTO knockout is clear), so MKT-03b is ready.
+  - **D9's other items:** yes as recommended. BIZ-13: own cloud via the share sheet, free forever. BIZ-14: not yet. MKT-15: no. MKT-10 and MKT-11: yes, after BIZ-08. BIZ-23 and BIZ-24: plan of record, no work before BIZ-21's T4.
+  - **BIZ-25:** forward only; the app's origin doesn't move.
 - **Third round (owner, 2026-11-08, "1-6 yes, clinician"):** approved as recommended:
   - **D3:** BL-31 and BL-33 yes; BL-34 for RPE-mode targets only; BL-32 as a one-tap "make today easier"; BL-30 no.
   - **D5:** yes; BL-27 after 3 weeks of BL-17 data.
