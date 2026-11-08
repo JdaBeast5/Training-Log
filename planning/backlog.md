@@ -12,6 +12,13 @@
 
 **Spec refresh (2026-11-08, against v3.518, after PR #63).** The next 15 slots of the Unified build sequence after BL-01 (roadmap slots 2–16: BL-02, BL-03, BL-04, BL-05 with BL-06, BL-05b, BL-13, BL-35, BL-36, BL-08, UX-01, UX-01b, BL-07, MKT-02, MKT-09, UX-02) were re-grepped against `index.html` at **v3.518**. In those items, line numbers are v3.518's, each criterion is written to be checked by a real invocation (or, where `renderWorkout` can't be driven in jsdom, by a real-call count), and `Files:` names every existing test that needs re-pinning, found by reading the suites that extract the touched functions. Each changed item ends with a "Spec refresh (2026-11-08)" line. Owner decisions already given in `pitch.md` (D2, D4, D11–D13) are applied to statuses. The builder's PR #63 flags became BL-65 to BL-67 (and BL-02 criterion 9). Items further down still carry v3.514 numbers: re-grep them.
 
+**Spec refresh (2026-11-08, against v3.524, after PR #83).** The project manager flagged BL-37 to BL-40 as too thin for the unattended builder. They are now written to the full format (Why, Change, real-invocation Acceptance criteria, Test plan, Files with re-pins and guards, Risk, Tools), with every line number re-grepped at **v3.524**, and their approved scope (D4) kept. BL-37 and BL-38 stay `ready (after BL-52)` in the Phase 3 gate. Their migration attributes entries only by BL-51's `n` stamp under BL-52's variant-scoped keys, and never moves an unstamped entry. Three things found in the refresh apply beyond these items:
+- appending to a day moves the history of the custom, body-goal and bonus exercises after it, because `renderWorkout` keys them by render index (28778, 28857);
+- a stored substitute selection applies to whatever exercise now sits at its index (`applyExerciseSubs`, 27085);
+- new exercises in an overridden category need `EXERCISE_REGION_OVERRIDE`, or a resting region isn't flagged.
+
+BL-39 and BL-40 each carry one non-blocking owner option; the default is the approved scope.
+
 Owner: project-manager. Written 2026-11-07 against **v3.514**. The baseline was green: `check.sh` passed and 198/198 `test-*.js` suites passed. Line numbers are `index.html` at v3.514 unless a file is named. **Every build run re-greps them before editing:** each shipped item shifts the lines below it.
 
 **Rules for every item** (CLAUDE.md, `planning/toolchain.md` §5–6):
@@ -852,39 +859,360 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Status:** ready
 
 ### BL-37: Rebuild the low day-count variants (H-3)
-- **Why:** Bodybuilding 3-day doses chest at 3 sets a week and glutes at 0. Powerlifting 3-day trains each lift 1×/wk [ACSM26][PEL][FREQ19].
-- **Change:** the audit's H-3 layouts: Bodybuilding 3-day becomes Full Body A/B/C, Bodybuilding 4-day gets appends, and Powerlifting 3-day gets a heavy main lift plus a volume lift each day.
-- **Acceptance criteria:** computed weekly sets meet the H-3 targets (chest 9, back 12, ...) in a test using BL-20's ledger.
-- **Risk:** this rewrites variant slots, so it needs `SCHEMA_VERSION` (7623) / `runMigrations()` (9070) for any history on those variants.
+- **Why:**
+  - Measured on the real `PROGRAM_DAY_COUNT_VARIANTS` (16231) at v3.524, direct sets per week:
+    - **Bodybuilding 3-day** (16586) is Push/Pull/Legs once through: chest 3, lats 3, hamstrings 2, glutes 0. Every muscle is trained 1×/wk.
+    - **Bodybuilding 2-day** (16553): hamstrings 0, side delts 2.
+    - **Bodybuilding 4-day** (16624): lats 3, upper back 3, rear delts 0.
+    - **Powerlifting 3-day** (17116): squat, bench and deadlift each 1×/wk.
+  - Hypertrophy needs about 10 or more sets per muscle per week [ACSM26]. The dose-response is steepest from low to moderate volume [PEL]. With few sessions, spreading volume across them adds volume [FREQ19]. Strength gains track frequency even after volume is accounted for [PEL].
+  - The file's own comment above `PROGRAM_DAY_COUNT_VARIANTS` (16207–16230) says "every LOW day count below is full-body"; Bodybuilding 3-day isn't.
+- **Change** (four variants; every other variant and every base program is untouched):
+  - **Bodybuilding 3-day → Full Body A/B/C.** Training days stay `d1`, `d3` and `d5`; the rest days, plates and notes are unchanged. No supersets.
+
+    | Day | `sub`, `duration` | Exercises (name, `sets`) |
+    |---|---|---|
+    | d1 | 'Full Body A', '~60 min' | Flat Bench Press 3×8-12; Squat 3×8-12; Lat Pulldown 4×10-12; Seated Leg Curl 3×10-12; Lateral Raise 3×12-20; DB Curl 3×10-15 |
+    | d3 | 'Full Body B', '~65 min' | Romanian Deadlift 3×8-12; Incline DB Press 3×8-12; Cable Row 4×10-12; Bulgarian Split Squat 3×8-12/leg; Overhead Triceps Extension 3×10-15; DB Curl 3×10-15 |
+    | d5 | 'Full Body C', '~60 min' | Leg Press 3×10-15; Pull-ups (or assisted) 4×6-12; Cable Fly 3×12-15; Lateral Raise 3×12-20; Triceps Pushdown 3×12-15; Calf Raise 3×10-15 |
+
+    - Week: chest 9 (3×/wk), back 12 (lats and upper back, 3×), quads 9 (3×), hamstrings 6 (2×), side delts 6 (2×), biceps 6 (2×), triceps 6 (2×), calves 3. That meets H-3's targets.
+    - Bulgarian Split Squat sits on d3, not d5, because `ACCUMULATION_ACCESSORY_POOL.bodybuilding.d5` (26868) appends Bulgarian Split Squat on peak weeks. The pool is keyed by `dayId`, so it applies to variant days too, and a day must not carry it twice. `d1`'s pool pick (Skull Crushers) doesn't duplicate anything on Full Body A.
+    - `short`: 'Three full-body sessions, every muscle two or three times a week'.
+    - `overview` (36 words): 'Three full-body sessions, A, B and C, so every major muscle is trained two or three times a week with 6 to 12 hard sets each. Still bodybuilding style: moderate-high reps and plenty of isolation work.'
+  - **Bodybuilding 4-day (append only):**
+    - d4 'Upper B' gains Lat Pulldown 3×10-12, then Face Pull 2×15-20. Duration '~65 min'.
+    - d5 'Lower B' gains Seated Leg Curl 3×10-12. Duration '~60 min'.
+    - Week: lats 6 (2×), rear delts 2, hamstrings 8 (2×).
+  - **Bodybuilding 2-day (append only):** the audit gave no layout for 2-day, so this is the auditor's design within D4's approved scope. The owner can see it in the PR.
+    - d1 'Full Body A' gains Seated Leg Curl 3×10-12. Duration '~65 min'.
+    - d3 'Full Body B' gains Romanian Deadlift 3×8-12, then Lateral Raise 2×12-20. Duration '~70 min'.
+    - Week: hamstrings 6 (2×), side delts 4 (2×).
+  - **Powerlifting 3-day → one heavy lift plus one volume lift each day.** Slot 1 of each day is replaced; slots 0, 2 and 3 keep their name and `sets`.
+    - d1 `sub` 'Squat Heavy + Bench Volume', '~60 min': Squat 5×5; **Bench Press 3×6** (was Pause Squat 3×3); Leg Press 3×8-10; Weighted Sit-up 3×12.
+    - d3 `sub` 'Bench Heavy + Deadlift Volume', '~60 min': Bench Press 5×5; **Deadlift 3×3** (was Close-Grip Bench Press 3×5); Barbell Row 4×6-8; Triceps Pushdown 3×10-12.
+    - d5 `sub` 'Deadlift Heavy + Squat Volume', '~65 min': Deadlift 5×3; **Squat 3×5** (was Deficit Deadlift 3×3); Romanian Deadlift 3×8; Hanging Leg Raise 3×10-12.
+    - Each volume slot has its own history key, so it calibrates its own load rather than inheriting the heavy day's.
+    - `short`: 'Three days: one lift heavy, one for volume, each lift twice a week'.
+    - `overview` (41 words): 'Three days, each with one lift heavy and a second lift for volume, so squat, bench and deadlift each get two sessions a week. Keep the volume lift at about 70-75% of your heavy weight: fast reps, never a grind.'
+  - **New library entry: `Seated Leg Curl`** (BL-38 and BL-39 reuse it; if one of them builds first, that item adds it and the others assert it exists):
+    - In `content-exercises.js`, beside `'Leg Curl'` (line 258). Use the same `category` that `'Leg Curl'` has at build time (BL-59 may have moved it from `hinge` to `isolation-leg`). Three cues, each 24 words or fewer:
+      - 'Line your knees up with the machine's pivot and lock the thigh pad down firmly.'
+      - 'Curl to full bend, then lower slowly all the way to straight legs; the stretched position is what this version adds.'
+      - 'Lean your chest slightly forward for a deeper hamstring stretch, keeping your hips on the seat.'
+    - `EXERCISE_MOVE` (13630): `'Seated Leg Curl':'squat'`, the same icon as `'Leg Curl'` (13692).
+    - `EXERCISE_SUBS` (13736): `'Seated Leg Curl': ['Leg Curl', 'Nordic Curl']`.
+    - **Safety:** add `EXERCISE_REGION_OVERRIDE` (44107) `'Seated Leg Curl'` with the same regions as `'Leg Curl'` (`['Knee','Hip']`), and `EXERCISE_SUBSTITUTE_OVERRIDE` (44184) `'Seated Leg Curl': null`, as `'Leg Curl'` has. Without them, a resting knee isn't flagged.
+    - `EXERCISE_MUSCLES` (BL-20): `p:['hamstrings']`.
+    - Why a new name rather than a second "Leg Curl": seated beats lying for hamstring growth because of the stretched hip position [LEN], and the base Bodybuilding d5 (BL-38) already has a "Leg Curl".
+  - **Migration** (owner D4: one migration per version). `SCHEMA_VERSION` (7632) goes up by one from whatever BL-52 shipped; expected 10. The new `if(version < N)` block goes after the v8 comment (9409–9414) and before the final write (9416–9424), wrapped in `try{}catch(e){}` like its siblings.
+    - **Scope:** only BL-52's variant-scoped keys for the four changed variants: Bodybuilding v2, v3 and v4 and Powerlifting v3. Build every key with BL-52's real key function (`exKeyForLocation`, 27144, with BL-52's variant field), never a hand-written string, so the block follows whatever shape BL-52 shipped. Base-program keys, legacy (pre-BL-52) keys and every other variant are never read or written.
+    - **Expected names per day:** `[...new built-ins, ...body-goal focus, ...custom, accumulation accessory]`. This is the same order `renderWorkout` builds (28778) and keys by render index (28857).
+      - Focus: the real `getBodyGoalFocusExercises` (32570) with the new day object. Read the profile from `'user-profile'` in its own `try`, as the v5 block does (9316–9320).
+      - Custom: `getCustomExercises` (32559).
+      - Accessory: `ACCUMULATION_ACCESSORY_POOL[program][dayId]` (26868).
+    - **Rule per stored entry**, applied to plain and `:sub:` keys alike. Read the whole scope first, then write.
+      1. No `n` (BL-51's name stamp) → stays. It can't be attributed.
+      2. `n` equals the expected name at its own index → stays.
+      3. Else, if a slot in the same variant expects `n` → move it there. Prefer the same day, then the first match in d1…d7 order. Move to the target's plain key.
+      4. Else → stays. BL-51's `entriesForExercise` ignores it for suggestions, and History lists it under `n`.
+      - **Move mechanics:** append to the target, sort by date, then remove from the source.
+        - If the target already holds an entry with the same date and the same `n`, the move already happened (a re-run after a crash): just remove it from the source.
+        - Same date, different `n` → the entry stays, so `saveExSet`'s date lookup never sees two entries for one date.
+      - Rule 3 also carries custom, focus and accessory history past the longer days: a custom exercise at old index 4 on Bodybuilding 3-day d1 moves to index 6.
+      - The block is idempotent: every moved entry lands where rule 2 keeps it.
+    - **Substitute selections:** on each changed day, delete the `subSelectionKey` (27066, BL-52 shape) at every index whose authored name changed, using the frozen old layout below. A stale selection would otherwise swap the new exercise: `applyExerciseSubs` (27085) applies any stored name without checking it against `EXERCISE_SUBS`. The `:sub:` logs themselves are kept by the rule above.
+    - **Frozen old layouts** (a literal in the block, because by then `PROGRAM_DAY_COUNT_VARIANTS` already holds the new ones):
+      - BB v2: d1 [Flat Bench Press, Squat, Lat Pulldown, Lateral Raise]; d3 [Incline DB Press, Leg Press, Cable Row, DB Curl, Triceps Pushdown].
+      - BB v3: d1 [Flat Bench Press, Overhead Press, Lateral Raise, Triceps Pushdown]; d3 [Lat Pulldown, Cable Row, DB Curl, Face Pull]; d5 [Squat, Leg Press, Leg Curl, Calf Raise].
+      - BB v4: d4 [Incline DB Press, Cable Row, Lateral Raise, Triceps Pushdown]; d5 [Leg Press, Hip Thrust, Leg Extension, Calf Raise].
+      - PL v3: d1 [Squat, Pause Squat, Leg Press, Weighted Sit-up]; d3 [Bench Press, Close-Grip Bench Press, Barbell Row, Triceps Pushdown]; d5 [Deadlift, Deficit Deadlift, Romanian Deadlift, Hanging Leg Raise].
+    - **Not migrated, by design:**
+      - Exercise overrides: `exOverrideKey` (46888) has no variant segment, and `applyExOverrides` (46914) already drops an override whose stored name no longer matches.
+      - `workout:` check-box records and the current week's `weekCheckedKey` (26163): dated or weekly, not history.
+    - **Prompt a backup export first,** as BL-52 does.
+  - `WHATS_NEW` (7643, appended last): 'Stronger 2-, 3- and 4-day Bodybuilding plans, and a new 3-day Powerlifting week'. Bullets:
+    - 'Bodybuilding 3-day is now three full-body sessions, so every muscle gets two or three workouts a week instead of one.'
+    - 'Bodybuilding 2- and 4-day add hamstring, back and shoulder work at the end of some days.'
+    - 'Powerlifting 3-day trains squat, bench and deadlift twice a week each: one heavy day, one lighter volume day.'
+    - 'Your logged sets move with their exercise wherever the app can tell which exercise they were.'
+- **Acceptance criteria** (real data and real functions via `testHelpers.js`):
+  1. **Layouts:** for the four variants, each day's `(name, sets)` list deep-equals the tables above. Bodybuilding 1-, 6- and 7-day, Powerlifting 1-, 2-, 4-, 6- and 7-day, and every base program are byte-identical to a v3.524 JSON snapshot taken in the test.
+  2. **Ledger:** using the real `EXERCISE_MUSCLES` (BL-20) and `parseSetCount` (26451) over the real variant days, direct primary sets and training days per week are at least:
+     - BB 3-day: chest 9/3, back (lats ∪ upper back, each set counted once) 12/3, quads 9/3, hamstrings 6/2, side delts 6/2, biceps 6/2, triceps 6/2;
+     - BB 4-day: lats 6/2, rear delts 2, hamstrings 8/2;
+     - BB 2-day: hamstrings 6/2, side delts 4/2.
+  3. **Frequency:** in PL 3-day, Squat, Bench Press and Deadlift each appear on exactly 2 training days.
+  4. **Library:** the real `buildDetailsHtml({name:'Seated Leg Curl'})` (28531) renders its 3 cues. With Knee resting, `regionsForExercise('Seated Leg Curl', …)` contains `Knee`, and `suggestSubstitute` returns `null`, matching `Leg Curl`.
+  5. **Migration** (real `runMigrations` over a fixture store using BL-52's key shapes and BL-51's `n`):
+     - (a) an `n:'Squat'` entry at BB v3 d5 idx 0 moves to v3 d1 idx 1;
+     - (b) an `n:'Overhead Press'` entry at v3 d1 idx 1 stays;
+     - (c) an entry without `n` anywhere in scope is byte-identical afterwards;
+     - (d) base keys (`ex:bodybuilding:d1:0`) and v6 keys are byte-identical;
+     - (e) with `custom-ex:bodybuilding:d1 = [{name:'Dips'}]`, an `n:'Dips'` entry at v3 d1 idx 4 moves to idx 6;
+     - (f) a selection `'DB Shoulder Press'` at v3 d1 idx 1 is deleted, while `'Incline DB Press'` at v3 d1 idx 0 (unchanged Flat Bench Press) is kept;
+     - (g) a same-date, different-`n` collision leaves the entry in place;
+     - (h) running the block twice (with `meta:schemaVersion` reset between runs) leaves an identical store;
+     - (i) PL v3 `n:'Pause Squat'` entries stay at d1 idx 1, and `n:'Squat'` entries at d1 idx 0 stay.
+  6. **End to end:** after migration, BL-51's real `entriesForExercise` on the v3 d1 idx 1 log returns only the moved Squat entries, so the real `computeSuggestedSet` (27970) bases the Squat row on Squat, never on Overhead Press.
+- **Test plan:** new `test-low-day-variants.js`.
+  - Criteria 1–4 run on the extracted constants. Criteria 5–6 run the real `runMigrations` in a vm sandbox with stubbed `window.storage`, the pattern `test-custom-exercise-style-scoping.js` uses (lines 32 and 104–110).
+  - Sabotage 1: drop the `n` check (move unstamped entries too) → 5(c) fails.
+  - Sabotage 2: skip rule 3 → 5(a) and 6 fail.
+- **Files:**
+  - `index.html`: 16553–16668 (BB 2-, 3- and 4-day), 17116–17153 (PL 3-day), 7632 (`SCHEMA_VERSION`), 9111–9425 (`runMigrations`), 13630 (`EXERCISE_MOVE`), 13736 (`EXERCISE_SUBS`), 44107 and 44184 (region and substitute overrides), `EXERCISE_MUSCLES` (BL-20), 7625 (`APP_VERSION`), 7643 (`WHATS_NEW`).
+  - `content-exercises.js` (new entry), `sw.js` (`VERSION`), the new test.
+  - **Re-pins:**
+    - `test-concise-cues.js`: +1 exercise and +3 cues on whatever the pin is at build time (321/964 at v3.524);
+    - `test-region-override.js`: the override key count (18 at v3.524) +1, and its sub/region key-equality case (line 154) gains the name;
+    - BL-20's `test-muscle-ledger.js` coverage assertion (the new name needs an `EXERCISE_MUSCLES` entry);
+    - BL-52's `test-variant-history-keys.js`, if it pins `SCHEMA_VERSION`.
+  - **Guards (run them; expected unchanged):**
+    - `test-configurable-training-days.js` (training-day counts, distinct overviews);
+    - `test-concise-overviews.js` (222 variants, at most 45 words);
+    - `test-exercise-substitution.js` (2 distinct alternates per `EXERCISE_SUBS` entry);
+    - `test-accumulation-accessory-add.js`, `test-volume-modifier-gate.js`, `test-superset-all-programs-coverage.js`;
+    - `test-custom-exercise-style-scoping.js`: it runs the real `runMigrations` without these globals, so the new block's `try` must swallow the missing references;
+    - `test-import-backup-full-replace.js`.
+- **Risk:**
+  - A stored-data migration on the history store, limited to four variants' keys and to entries BL-51 stamped. Unstamped entries never move.
+  - Sessions get longer on the 2-day (+10 min) and 4-day (+5–10 min) plans.
+  - PL 3-day d5 is a heavy hinge day (Deadlift 5×3, then Romanian Deadlift 3×8, with Squat between them); the cues already cover bracing.
+  - Exercise overrides on a changed index are dropped (existing name-guard), so the user re-applies them.
+- **Tools:** `code-review` at high (migration on the history store).
 - **Summit note (summit 2026-11-07):** Priority rises: BIZ-01's quick start may route a 3-day "gain" stranger to Bodybuilding 3-day, which the audit scores F (summit F5, R9).
 - **Alignment note (2026-11-07, exercise-auditor B3):** summit R9's guard only covers quick-start "gain" with 3 days or fewer, so a stranger who picks the program by hand still lands on an F. BL-37 and BL-38 are now part of the **Phase 3 hard gate** before any public step (roadmap slots 74–75), unless the owner records an alternative, such as hiding the 2–4 day bodybuilding variants.
-- **Status:** ready (after BL-52) (owner yes 2026-11-07, D4: before going public; one migration per version). Stays in the **Phase 3 hard gate**. It waits for BL-52's variant-scoped keys, because `exKey` has no day-count segment and its migration can't otherwise tell which stored logs belong to these variants (the same gap that sent BL-35 back to the owner). Re-grep every line number before building. *Original question:* "Rewrite the 2-, 3- and 4-day Bodybuilding and 3-day Powerlifting variants (slot changes; past logs on those variants need a migration)?"
+- **Spec refresh (2026-11-08, against v3.524):**
+  - Re-grepped; written out in full: exact layouts, the library entry and its region safety, and the migration designed on BL-52's variant keys.
+  - Found in the refresh:
+    - `renderWorkout` keys custom, body-goal and bonus exercises by render index after the built-ins (28778, 28857), so a longer day moves their history unless the migration carries it (rule 3).
+    - A stored substitute selection applies to whatever now sits at its index (`applyExerciseSubs` 27085), so changed indexes clear theirs.
+    - The audit's "Seated Leg Curl" didn't exist in the library.
+- **Status:** ready (after BL-52) (owner yes 2026-11-07, D4: before going public; one migration per version). Stays in the **Phase 3 hard gate**. It waits for BL-52's variant-scoped keys, because `exKey` (27054) has no day-count segment and its migration can't otherwise tell which stored logs belong to these variants (the same gap that sent BL-35 back to the owner). Re-grep every line number before building. *Original question:* "Rewrite the 2-, 3- and 4-day Bodybuilding and 3-day Powerlifting variants (slot changes; past logs on those variants need a migration)?"
 
 ### BL-38: Bodybuilding d6 becomes "Upper Detail", plus appends (H-4)
-- **Why:** chest, quads and lats get 1×/wk despite the program's claim. Side delts get about 4 sets [FREQ19][PEL].
-- **Change:** the audit's H-4 rebuild of d6, plus the appends to d4 and d5.
-- **Acceptance criteria:** chest, quads, lats and delts each 2×/wk, measured by the ledger.
-- **Risk:** d6 slots are replaced, so a migration is needed. BL-12 fixes the copy in the meantime.
-- **Status:** ready (after BL-52) (owner yes 2026-11-07, D4: before going public; one migration per version). Stays in the **Phase 3 hard gate**. Waits for BL-52 for the same reason as BL-37. *Original question:* "Replace Bodybuilding Day 6 with the 'Upper Detail' day (slot changes, needs a migration)?"
+- **Why:**
+  - The base Bodybuilding overview (9830) says "Every muscle is trained at least twice a week". By direct sets, chest (10 sets), quads (10), lats (4) and side delts (4) are each trained 1×/wk, and calves get 4 sets [FREQ19][PEL][ACSM26].
+  - BL-12 fixes the copy first (slot 30). This item fixes the program.
+- **Change** (base `programs.bodybuilding` only, 9829; the day-count variants are untouched):
+  - **d6 rebuilt** (9895–9904). `label`, `plate` and `plateNum` unchanged; `sub` 'Upper Detail'; `duration` '~65 min'. Exercises in this order:
+    - Incline DB Press 3×8-12
+    - Lat Pulldown 3×10-12
+    - Lateral Raise 4×12-20
+    - Overhead Triceps Extension 3×10-12
+    - Incline DB Curl 3×10-12
+    - Standing Calf Raise 3×10-15
+    - Incline Walk 20 min (`noWeight:true`)
+  - **d4 append** (9856): a second 'Lateral Raise' entry, 2×15-20. Duration '~55 min'.
+  - **d5 append** (9866): Seated Leg Curl 3×10-12, a lengthened-position curl [LEN]. Duration '~65 min'. It replaces the hamstring work d6 loses. The library entry comes from BL-37; if BL-38 builds first, add it exactly as BL-37 specifies.
+  - **New library entry `Incline DB Curl`** (`content-exercises.js`, beside `'DB Curl'` at 234; `category:'arms'`):
+    - Cues, each 24 words or fewer:
+      - 'Set the bench at 45-60° and let your arms hang straight down behind your body.'
+      - 'Curl without letting your elbows drift forward, then lower all the way to a full stretch every rep.'
+      - 'Go lighter than your standing curl; the stretched start makes the bottom of each rep much harder.'
+    - `EXERCISE_MOVE` `'Incline DB Curl':'curl'` (as `'DB Curl'`, 13696).
+    - `EXERCISE_SUBS` `'Incline DB Curl': ['DB Curl', 'Cable Curl']`.
+    - `EXERCISE_MUSCLES` `p:['biceps']`.
+  - **Rewrite the code comment above d6** (9877–9894): it argues for d6's Cable Row and Romanian Deadlift, which this removes. The new comment gives the H-4 reasoning and this item's measured result.
+  - **Overview** (9830, on top of BL-12's text): 'an arms-and-detail day' → 'an upper-body detail day'. BL-12's frequency sentence → 'Chest, back, shoulders and arms are trained twice a week; legs get one big session.' It stays at most 70 words and 3–5 sentences.
+  - **Migration** (one version, one `SCHEMA_VERSION` step, expected 11 after BL-37's 10). Reuse BL-37's relocation helper and rules unchanged, with this scope and frozen old layout:
+    - **Scope:** base Bodybuilding plain keys for d4, d5 and d6 only (`exKeyForLocation` with no variant).
+    - **Old layout:**
+      - d4 [Overhead Press, Lateral Raise, Rear Delt Fly, Cable Crunch, Hanging Leg Raise];
+      - d5 [Squat, Romanian Deadlift, Leg Press, Leg Extension, Leg Curl, Calf Raise];
+      - d6 [Cable Row, Romanian Deadlift, EZ Bar Curl, Rope Pushdown, Incline Walk].
+    - **Results:**
+      - `n:'Incline Walk'` at d6 idx 4 → d6 idx 6;
+      - `n:'Romanian Deadlift'` at d6 idx 1 → d5 idx 1;
+      - `n` Cable Row, EZ Bar Curl or Rope Pushdown → stay;
+      - custom, focus or accessory entries move by name past the longer days (d4 +1, d5 +1, d6 +2);
+      - selections at d6 idx 0–6 are cleared where the name changed.
+    - **Legacy (unstamped) entries never move.** They're the one case BL-37 doesn't have. Today BL-51 keeps unstamped entries for suggestions under the program's own day count, so legacy Cable Row sets at `ex:bodybuilding:d6:0` would feed the new Incline DB Press.
+      - Fix it at read time, with no stored change: a constant `LEGACY_SLOT_NAMES` beside BL-51's `entriesForExercise`, mapping a plain slot key to the name its legacy entries belong to:
+        - `ex:bodybuilding:d6:0`–`4` → the five old d6 names;
+        - `ex:bodybuilding:d4:5`, `d5:6`, `d6:5` and `d6:6` → `null`. These were trailing custom, focus or bonus slots, so the owner of the entry is unknown.
+      - Wherever BL-51 reads `e.n` (filtering and History labels), read `e.n ?? LEGACY_SLOT_NAMES[key]`. `undefined` keeps today's behaviour. `null` never matches a suggestion, and the entry is labelled by the slot as today.
+      - BL-39 and BL-40 extend the same constant.
+  - `WHATS_NEW`: 'Bodybuilding Day 6 is now an upper-body detail day'. Bullets:
+    - 'Chest, back, shoulders and arms now get a second session each week.'
+    - 'Extra side-delt sets on Day 4 and a seated leg curl on Day 5.'
+    - 'Your old Day 6 sets stay in History under their own names.'
+- **Acceptance criteria:**
+  1. **Layout:** d6 deep-equals the list above. d4 and d5 equal their v3.524 lists plus the one appended entry each (every earlier `(name, sets)` and index unchanged). d1 and d2, and every Bodybuilding variant, are byte-identical to v3.524.
+  2. **Ledger** (real `EXERCISE_MUSCLES` and `parseSetCount`, base week), direct sets/training days:
+     - chest ≥10/2, lats ≥7/2, side delts ≥10/2, biceps ≥9/2, triceps ≥9/2, calves ≥7/2;
+     - quads and hamstrings each on exactly 1 training day (d5), asserted so the copy below stays true.
+     - **Correction to the old criterion:** H-4's layout doesn't train quads twice (d6 has no leg work), and hamstrings and upper back move from 2× to 1× because d6 loses its Romanian Deadlift and Cable Row. Frequency matters little once weekly volume is equal [FREQ19], so the layout is kept as approved and the copy says it honestly.
+  3. **Overview:** the rendered overview contains 'twice a week' and 'legs get one big session', and no longer contains 'Every muscle is trained at least twice a week'.
+  4. **Library:** the real `buildDetailsHtml` renders 3 cues for Incline DB Curl (and for Seated Leg Curl, if this item added it).
+  5. **Migration** (real `runMigrations`, fixture store):
+     - (a) and (b): the Incline Walk and Romanian Deadlift moves above;
+     - (c) an unstamped entry at `ex:bodybuilding:d6:0` is byte-identical afterwards;
+     - (d) variant keys are byte-identical;
+     - (e) idempotent on a second run.
+  6. **Read-time legacy rule:** with the default day count, an unstamped `ex:bodybuilding:d6:0` log gives the Incline DB Press row no "try adding weight" badge and no ghost load (real `buildProgressBadge` and `computeSuggestedSet` through `entriesForExercise`). An unstamped entry at `d4:5` gives the second Lateral Raise row nothing either.
+- **Test plan:** new `test-bodybuilding-upper-detail.js`. Sabotage: remove `LEGACY_SLOT_NAMES['ex:bodybuilding:d6:0']` → criterion 6 fails.
+- **Files:**
+  - `index.html`: 9829–9910, 7632, the `runMigrations` block (after BL-37's), BL-51's `entriesForExercise` and its label reads, `EXERCISE_MOVE`, `EXERCISE_SUBS`, `EXERCISE_MUSCLES`, `APP_VERSION`, `WHATS_NEW`.
+  - `content-exercises.js`, `sw.js`, the new test.
+  - **Re-pins:**
+    - `test-concise-cues.js` (+1 exercise, +3 cues; +2/+6 if Seated Leg Curl is added here);
+    - `test-superset-all-programs-coverage.js` (line 77's anchor; it should stay identical, because no superTag is added, but confirm);
+    - `test-concise-overviews.js` (`MUST_KEEP['programs.bodybuilding']`, whatever BL-12 left it as: keep /five-day/ and pin /legs get one big session/);
+    - `test-muscle-ledger.js` (coverage);
+    - BL-12's `test-copy-truth.js` (it pins the overview sentence this item replaces).
+  - **Guards:**
+    - `test-configurable-training-days.js` (line 90: `DAYS_PER_WEEK_ORIGINAL.bodybuilding` equals `programs.bodybuilding`);
+    - `test-accumulation-accessory-add.js` (line 105: no pool pick duplicates its day: d4 DB Shoulder Press, d5 Bulgarian Split Squat, d6 Hammer Curl);
+    - `test-program-overview.js`;
+    - BL-51's `test-history-name-stamp.js`.
+- **Risk:**
+  - d6 goes from ~40 to ~65 min.
+  - Hamstrings and upper back drop to 1×/wk, and quads stay at 1× (criterion 2).
+  - A migration on base-program keys, limited to stamped entries.
+  - The read-time map assumes unstamped base-key entries were logged on the 5-day default, the same assumption BL-51 makes.
+- **Tools:** `code-review` at high (history and progression path).
+- **Spec refresh (2026-11-08, against v3.524):**
+  - Re-grepped and written out in full.
+  - The "quads 2×/wk" criterion was wrong for H-4's own layout and is corrected (criterion 2).
+  - Found in the refresh: "Incline DB Curl" wasn't in the library, and unstamped legacy entries on the replaced slots would feed the new exercises' suggestions under the default day count. That's fixed at read time, with no stored change.
+- **Status:** ready (after BL-52) (owner yes 2026-11-07, D4: before going public; one migration per version). Stays in the **Phase 3 hard gate**. Waits for BL-52 for the same reason as BL-37, and builds after BL-37, whose relocation helper it reuses. *Original question:* "Replace Bodybuilding Day 6 with the 'Upper Detail' day (slot changes, needs a migration)?"
 
 ### BL-39: Append-only accessory volume: Strength & Size, Powerbuilding, Powerlifting (H-6, M-9)
-- **Why:** Strength & Size runs chest 8, side delts 3 and hamstrings 6 at 1×/wk. Powerbuilding runs lats 3 and side delts 3 [ACSM26][LEN].
-- **Change:** the audit's appends:
-  - Strength & Size: d1 Lateral Raise; d4 Cable Fly and Overhead Triceps Extension; d5 Seated Leg Curl.
-  - Powerbuilding: d4 Pull-ups; d6 Incline DB Press and Lateral Raise.
-  - Powerlifting: d5 Face Pull.
-- **Acceptance criteria:** the appended exercises are last on their days, all earlier `exKey`s are unchanged, and the ledger totals match the audit.
-- **Risk:** about +6 minutes per affected session.
-- **Status:** ready (owner yes 2026-11-07, D4: the appends). *Original question:* "Append these accessories to your lifting programs (about +6 min on the affected days)?"
+- **Why:**
+  - **Strength & Size** (9753), direct sets per week: chest 8, side delts 3, triceps 3, hamstrings 6 at 1×/wk.
+  - **Powerbuilding** (10568): lats 3, side delts 3.
+  - **Powerlifting** (10494): no rear-delt or upper-back isolation.
+  - About 10+ sets per muscle for hypertrophy [ACSM26]. Lengthened-position choices (overhead triceps, seated leg curl) grow more [LEN].
+- **Change** (append only, base programs only; every day-count variant is untouched):
+  - **Strength & Size:**
+    - d1 (9759–9764) + Lateral Raise 3×12-20; '~60 min'.
+    - d4 (9784–9789) + Cable Fly 2×12-15, then Overhead Triceps Extension 3×10-12; '~65 min'.
+    - d5 (9806–9810) + Seated Leg Curl 3×10-12; '~60 min'.
+  - **Powerbuilding:**
+    - d4 (10598–10602) + Pull-ups (or assisted) 3×6-10 (the library name; the audit wrote "Pull-ups"); '~60 min'.
+    - d6 (10629–10634) + Incline DB Press 3×8-12, then Lateral Raise 3×15-20; '~55 min'.
+  - **Powerlifting:** d5 (10531–10534) + Face Pull 3×15; '~55 min'.
+  - Seated Leg Curl comes from BL-37. If this builds first, add it exactly as BL-37 specifies.
+  - **Read-time guard (no stored change):** extend BL-38's `LEGACY_SLOT_NAMES` with `null` for each newly built-in index:
+    - `ex:strength:d1:6`, `ex:strength:d4:6`, `ex:strength:d4:7`, `ex:strength:d5:5`;
+    - `ex:powerbuilding:d4:5`, `ex:powerbuilding:d6:6`, `ex:powerbuilding:d6:7`;
+    - `ex:powerlifting:d5:4`.
+    - Until now those indexes held custom, body-goal or bonus exercises. `ex:strength:d1:6` is also the Strength 1-day variant's Triceps Pushdown, and the bonus Cable Fly on peak weeks (`ACCUMULATION_ACCESSORY_POOL.strength.d1`, 26868). Unstamped entries there must not feed the new exercises.
+  - `WHATS_NEW`: 'More shoulder, chest, back and hamstring work in Strength & Size, Powerbuilding and Powerlifting'. Bullets:
+    - 'A few exercises are added at the end of some days, about 5 minutes each.'
+    - 'Nothing before them changes.'
+- **Acceptance criteria:**
+  1. **Layout:** on each of the 6 affected days, the appended entries are last, in the order above, with exactly those `sets`. Every earlier `(name, sets)` and its index is unchanged (snapshot), and so are the unaffected days and all variants. Counted by walking `programs`: 8 appended entries in total.
+  2. **Ledger deltas** (real `EXERCISE_MUSCLES` and `parseSetCount`, before vs after; robust to BL-20's mapping):
+     - Strength & Size: chest +2, side delts +3, triceps +3, hamstrings +3, with hamstrings on at least 2 training days; absolute chest ≥10 and hamstrings ≥9.
+     - Powerbuilding: lats +3, chest +3, side delts +3.
+     - Powerlifting: rear delts +3.
+  3. **Suggestions:** with the default day count, the real `computeSuggestedSet` and `buildProgressBadge` (through `entriesForExercise`) give the new Strength d1 Lateral Raise row nothing from:
+     - an unstamped Cable Fly log at `ex:strength:d1:6`;
+     - an `n:'Cable Fly'` entry there.
+  4. **No duplicates:** no `ACCUMULATION_ACCESSORY_POOL` pick duplicates an exercise now on its day.
+- **Test plan:** new `test-accessory-appends.js`. Sabotage: drop `LEGACY_SLOT_NAMES['ex:strength:d1:6']` → criterion 3 (unstamped case) fails.
+- **Files:**
+  - `index.html`: 9753–9827, 10494–10552, 10568–10640, BL-38's `LEGACY_SLOT_NAMES`, `APP_VERSION` (7625), `WHATS_NEW` (7643).
+  - `sw.js`, the new test.
+  - **Re-pins:**
+    - `test-superset-all-programs-coverage.js` (line 77): unchanged, since no superTag is added. Strength d4's Lateral Raise + Face Pull pair stays adjacent because the appends come after Face Pull.
+    - `test-concise-cues.js`, only if Seated Leg Curl is added here.
+  - **Guards:**
+    - `test-accumulation-accessory-add.js` (line 105);
+    - `test-configurable-training-days.js` (byte-identical `DAYS_PER_WEEK_ORIGINAL`);
+    - `test-volume-modifier-gate.js` (these programs are in `VOLUME_MODIFIER_PROGRAMS`, so goal and accumulation sets apply to the appends too);
+    - `test-lb-per-kg-consolidation.js` (it pins `parseEstimatedMinutes` on Back Squat only);
+    - `test-muscle-ledger.js`.
+- **Risk:**
+  - About +5 min on each of the 6 days.
+  - **History of custom, body-goal and bonus exercises on these 6 days:** `renderWorkout` keys them after the built-ins by render index (28778, 28857). Each append moves them one index along, so their earlier sets stop showing on their rows. The data isn't lost, and History lists it by name.
+  - Accumulation (+1–2 sets) also applies to the appends on peak weeks.
+- **Open for the owner (not blocking; the default is (a)):** the history move in Risk.
+  - (a) Ship as approved: no migration, and those exercises start a fresh visible history on these days.
+  - (b) Add one `SCHEMA_VERSION` step running BL-37's relocation helper over these 6 base days, so name-stamped sets move with their exercise. Unstamped sets don't move.
+  - The auditor recommends (b): it moves only what BL-51 stamped, and BL-37 has already built and tested the helper.
+- **Spec refresh (2026-11-08, against v3.524):**
+  - Re-grepped.
+  - Exact sets, durations and names (Pull-ups (or assisted), Seated Leg Curl).
+  - Found in the refresh: appending is **not** fully history-safe here. The audit's rule missed the custom, body-goal and bonus slots that sit after the built-ins. Hence the read-time guard, and option (b) for the owner.
+- **Status:** ready (owner yes 2026-11-07, D4: the appends). Slot 84. *Original question:* "Append these accessories to your lifting programs (about +6 min on the affected days)?"
 
 ### BL-40: Hypertension isometrics and medical progression notes (M-7)
-- **Why:** isometric wall squats ranked first for lowering resting BP [BP23]. LIFTMOR found supervised heavy loading safe in low bone mass [LIFT18]. Heavy slow resistance matches eccentric training for Achilles, with better adherence [ACH15].
+- **Why:**
+  - **Hypertension:** isometric training ranked first for lowering resting blood pressure (about −8/−4 mmHg), and the wall squat was the top single exercise, in a network meta-analysis of 270 RCTs [BP23] (Edwards et al. 2023, BJSM 57:1317, doi 10.1136/bjsports-2022-106503).
+  - **Osteoporosis:** supervised heavy resistance and impact training (5×5 at over 80–85% 1RM, twice a week for 8 months) was safe and raised spine and hip bone density in postmenopausal women with low bone mass [LIFT18] (Watson et al. 2018, JBMR 33:211, doi 10.1002/jbmr.3284).
+  - **Achilles:** heavy slow resistance matched eccentric training for mid-portion Achilles tendinopathy at 12 and 52 weeks, with better compliance: 92% vs 78% [ACH15] (Beyer et al. 2015, AJSM 43:1704, doi 10.1177/0363546515584760).
+  - The app's osteoporosis plan stays on bodyweight work and never names a path to load. Its own `editorNote` (`content-citations.js` 338) says so.
 - **Change:**
-  - Append "Wall Squat (isometric) 4×2 min" to hypertension d5, with the cue "Breathe throughout; no breath-holding".
-  - Add text notes to the osteoporosis and Achilles `basis`/`limits`.
-- **Acceptance criteria:** the appended exercise is last on d5, earlier keys are unchanged, and the new text renders.
-- **Risk:** a clinical plan's content changes.
-- **Status:** ready (owner yes 2026-11-07, D4: the appends). Its clinical text is also in scope for the clinician's review before listing (BIZ-15, D9(e)). *Original question:* "Add an isometric wall-squat block to the hypertension plan, and supervised-progression notes to the osteoporosis and Achilles plans?"
+  - **Hypertension d5** (`MEDICAL_STYLES.hypertension`, 11454; d5 at 11485–11493): append `{name:'Wall Squat (isometric)', sets:'4×2 min (rest 1-2 min)', noWeight:true}`. Duration '~30 min' → '~40 min'.
+  - **New library entry** `'Wall Squat (isometric)'` in `content-exercises.js`:
+    - `category:'core'`: a static hold. It isn't a warm-up or compound pattern, so it gets no ramp and no accumulation, matching BL-59's rule for holds.
+    - Cues, each 24 words or fewer:
+      - 'Back flat on the wall, slide down until your knees bend about 90°, or stay higher if that is too hard.'
+      - 'Breathe throughout; no breath-holding. The last 30 seconds should feel hard, never strained.'
+      - 'Stop for chest pain, dizziness or a headache. If you can't hold 2 minutes, slide higher rather than stopping early.'
+    - `EXERCISE_MOVE` `'Wall Squat (isometric)':'squat'`.
+    - **Safety:** `EXERCISE_REGION_OVERRIDE` `['Knee','Hip']` and `EXERCISE_SUBSTITUTE_OVERRIDE` `null`. With `core` alone, a resting knee wouldn't be flagged.
+  - **Text** (`USER_TEXT`, 11217; rendered by `buildBasisHtml`, 11360):
+    - hypertension `basis` (11298) + ' Isometric holds such as the wall squat lowered resting blood pressure the most in a 2023 analysis of 270 trials; those trials used about three sessions a week.'
+    - osteoporosis `basis` (11302) + ' A 2018 trial (LIFTMOR) found closely supervised heavy lifting, 5 sets of 5 at about 80-85% of maximum, was safe and raised spine and hip bone density in women with low bone mass.'
+    - osteoporosis `limits` (11303) + ' Heavier lifting can come later, but only with a physio or trained coach supervising; don't add load on your own.'
+    - rehabAchilles `basis` (11318) + ' A 2015 trial found heavy slow calf raises (3 seconds up, 3 down, 3 times a week, building from 15 reps toward 6 as the weight rises) worked as well as heel drops, and people stuck with them better. Ask your PT whether that suits you.'
+    - Update the comment at 11355–11356 that names the longest `limits` strings: osteoporosis becomes the longest.
+  - **Sources** (`content-citations.js` `STYLE_SOURCES`; each `cites` stays at most 3, the rule `test-learn-rework.js` checks at line 31):
+    - hypertension (324) + `{text:'Edwards et al. · Br J Sports Med, 2023', doi:'10.1136/bjsports-2022-106503'}`;
+    - osteoporosis (338) + `{text:'Watson et al. · J Bone Miner Res, 2018', doi:'10.1002/jbmr.3284'}`;
+    - rehabAchilles (394) + `{text:'Beyer et al. · Am J Sports Med, 2015', doi:'10.1177/0363546515584760'}`.
+  - **No auto-progression:** BL-01's gate (`VOLUME_MODIFIER_PROGRAMS`) and BL-02's clinical caps already exclude medical styles. Nothing here adds load.
+  - **Read-time guard:** extend `LEGACY_SLOT_NAMES` with `'ex:medical:hypertension:d5:3': null`. Index 3 held only custom exercises until now.
+  - `WHATS_NEW`: 'Hypertension plan: a wall-squat hold, and clearer next steps for bone and Achilles plans'. Bullets:
+    - 'A 4 × 2-minute wall squat ends Day 5. Breathe throughout.'
+    - 'The osteoporosis and Achilles plans now explain the supervised next step and what it's based on.'
+- **Acceptance criteria:**
+  1. **Layout:** the wall squat is the last exercise on hypertension d5. The three earlier `(name, sets)` and indexes are unchanged, and every other `MEDICAL_STYLES` day is byte-identical to v3.524.
+  2. **Real render:**
+     - `renderProgramSource()` (11341), with `activeProgram='medical'` and each of the three styles, renders the new sentences.
+     - The osteoporosis limits text sits in the never-collapsed `.program-limits`; the basis sentences sit inside the collapsed `.program-basis`.
+     - The rendered text contains no "cure" or "treat" wording.
+  3. **Library:**
+     - The real `buildDetailsHtml({name:'Wall Squat (isometric)'})` renders 3 cues, one containing 'no breath-holding'.
+     - With Knee resting, the real region lookup flags it and `suggestSubstitute` returns `null`.
+  4. **Gates:** for every goal and weeks 1–4, the real `applyGoalVolume`, `applyAccumulation` and `applyAccumulationAccessory` leave the wall squat at '4×2 min (rest 1-2 min)'. Only deload changes it.
+  5. **Sources:** the research-sources view lists the three new cites with their DOIs.
+- **Test plan:**
+  - New `test-medical-progression-notes.js` (jsdom for criterion 2; extracted constants for the rest).
+  - Sabotage 1: remove the region override → criterion 3 fails.
+  - Sabotage 2: drop the limits sentence → criterion 2 fails.
+- **Files:**
+  - `index.html`: 11298–11319, 11355–11356, 11485–11493, `EXERCISE_MOVE` (13630), 44107, 44184, `LEGACY_SLOT_NAMES`, `APP_VERSION`, `WHATS_NEW`.
+  - `content-exercises.js`, `content-citations.js` (324, 338, 394), `sw.js`, the new test.
+  - **Re-pins:**
+    - `test-concise-cues.js` (+1 exercise, +3 cues; add /no breath-holding/ to its `MUST_KEEP`);
+    - `test-region-override.js` (key count +1, plus the key-equality case);
+    - `test-research-sources-view.js` and `test-learn-rework.js`, if either pins cite counts.
+  - **Guards:**
+    - `test-volume-modifier-gate.js` (walks every `MEDICAL_STYLES` day × goal × week);
+    - `test-rpe-safety-caps.js` (hypertension);
+    - `test-concise-day-notes.js` (d5's note is unchanged);
+    - `test-concise-overviews.js` (the hypertension overview is unchanged);
+    - `test-citation-audit.js`.
+- **Risk:**
+  - A clinical plan's content and clinical copy change. **The cue, the three `USER_TEXT` sentences and the wall squat itself are on the clinician's review list before listing** (BIZ-15, D9(e)).
+  - Isometric holds raise blood pressure during the hold. The trial populations were mostly unmedicated or controlled hypertension, so the existing clearance text in `limits` ("Get clearance before starting") stays first.
+  - Rest timer: before BL-14 (slot 25), '4×2 min' reads as a 2-rep strength set (`getRepRangeTier`, 27811) and gets 240 s. After BL-14 it falls to the `core` default of 90 s, inside the 1–2 min the text gives.
+  - Custom exercises on hypertension d5 move one index (as in BL-39).
+- **Open for the owner (not blocking; the default is (a)):**
+  1. Dose:
+     - (a) d5 only, as approved: 1×/wk, below the trials' ~3×/wk.
+     - (b) Also append it to d2 and d6, so it runs 3×/wk, the trial dose. The auditor recommends (b). Under (a), the basis sentence's "those trials used about three sessions a week" keeps the copy honest.
+  2. The same custom-exercise history choice as BL-39's: (a) none, or (b) a relocation step.
+- **Spec refresh (2026-11-08, against v3.524):**
+  - Re-grepped.
+  - Exact text, the library entry and its region safety, sources with checked DOIs, and the gate criterion.
+  - Found in the refresh: no "Wall Squat" existed in the library, and a `core` hold would not flag a resting knee.
+- **Status:** ready (owner yes 2026-11-07, D4: the appends). Slot 85. Its clinical text is also in scope for the clinician's review before listing (BIZ-15, D9(e)). *Original question:* "Add an isometric wall-squat block to the hypertension plan, and supervised-progression notes to the osteoporosis and Achilles plans?"
 
 ---
 
