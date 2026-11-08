@@ -131,6 +131,24 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:** someone restoring onto a new phone has to paste their keys again. That's intended.
 - **Status:** ready (owner, 2026-11-08). Safety and privacy; slot 2a.
 
+### BL-69: Clinical RPE-mode loads rise at most one smallest step per session (PR #72 follow-up)
+- **Why:** on the clinical plans and Senior in RPE mode, `computeSuggestedSet` and `buildProgressBadge` suggest `loadForRpeTarget(e1rm, reps, 7)` from `recentBestE1RM`. One strong session lifts the e1RM, so the suggested load can jump by several plates, past the "smallest steps only" rule (D12) that progression mode now follows (v3.519). Flagged on PR #72; the owner chose option (c) on 2026-11-08.
+- **Change:**
+  - One helper, `smallestLoadStep(exName)`: `2 × smallest plate` for a barbell, `getEquipment().dbIncrement` for dumbbells, `null` for everything `snapToLoadable` has no model for. The clinical branch of `analyzeProgressionSignal` uses it in place of its inline step (consolidation; still called only inside that branch).
+  - On `medical` and `senior` in RPE mode, the RPE-7 load is capped at last session's top-set weight plus `smallestLoadStep`. With no step (cables, machines), it's capped at last session's weight, and the badge adds "try the smallest step your machine allows" when the RPE-7 load is higher. Loads below the cap, the RPE 7 target and the deload are unchanged. With no prior weight, it behaves as today.
+  - Other programs are unchanged.
+- **Acceptance criteria:**
+  1. Medical, RPE mode, Back Squat, last top set 135 lb, an e1RM whose RPE-7 load is about 175: the suggestion and the badge both show `135 + 2 × smallest plate`, not 175.
+  2. The same with an RPE-7 load below 135: the RPE-7 load, snapped down as today.
+  3. Seated Cable Row, last top set 60, RPE-7 load 75: the suggestion is 60, and the badge contains "smallest step your machine allows".
+  4. A dumbbell lift (`DB Bench Press`) caps at last weight + `dbIncrement`.
+  5. Strength and the other programs: uncapped (same numbers as v3.519).
+  6. `smallestLoadStep(` has exactly 2 real call sites with comments stripped: the clinical branch and the cap.
+- **Test plan:** extend `test-rpe-safety-caps.js`. Sabotage: remove the cap, and criteria 1 and 3 must fail.
+- **Files:** `index.html` (`analyzeProgressionSignal` clinical branch, `buildProgressBadge`, `computeSuggestedSet`), `sw.js`, `test-rpe-safety-caps.js`.
+- **Risk:** the RPE badge on clinical plans. Guarded by `test-rpe-safety-caps.js` and `test-progress-badge-rpe-teal.js`.
+- **Status:** ready (owner 2026-11-08: "rpe c"). Slot 2b, right after BL-68.
+
 ### BL-03: Per-exercise body-region override for resting-region flags (SAF-3, part 1)
 - **Why:** `CATEGORY_TO_REGIONS` (43931) misses several loads:
   - Neck Bridges (`core`) never flag Neck.
@@ -903,7 +921,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Risk:** the progression path everywhere. The suites above guard it.
 - **Tools:** `code-review` at high (progression path).
 - **Fold-in (2026-11-08):** line numbers moved to v3.518. Status changed from ready to needs-owner, because a stored data shape changes. The `saveExSet` PR check and the byte-identical set criterion (6) were added.
-- **Status:** needs-owner. **Question:** "Save the exercise's name on each new log entry (one extra field, no migration, in backups), so the app stops suggesting weights from a different exercise that shared the slot?" **Recommendation:** yes. This is a safety fix; build it at slot 9a, before BL-08.
+- **Status:** ready (owner yes 2026-11-08: "51 a"). Slot 9a, before BL-08.
 
 ### BL-52: Variant- and style-scoped history keys, with a migration (S-1, D-2, part 2)
 - **Why:**
@@ -924,7 +942,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Files:** `index.html` (7625, 9084, 27027–27045, 27117, 40977), `sw.js`, the test. **Re-pins:** `test-custom-exercise-style-scoping.js`, `test-import-backup-full-replace.js` and `test-whats-new.js` read `SCHEMA_VERSION` or `runMigrations`. `test-cross-program-history.js` and `test-watersports-program.js` call the key functions.
 - **Risk:** a stored-data migration on the history store. A backup export is prompted first. Needs BL-51 shipped and some weeks of `n`-stamped data to be worth it.
 - **Fold-in (2026-11-08):** placed before BL-37 (slot 73a), so the variant rebuild's own migration can attribute entries by name.
-- **Status:** needs-owner. **Question:** "Give each day-count option and yoga style its own history, moving only entries we can attribute by name?" **Recommendation:** yes, but only after BL-51 has stamped names for a few weeks, and before BL-37.
+- **Status:** ready (after BL-51) (owner yes 2026-11-08: "52 a"; build only once BL-51 has stamped names for a few weeks, and before BL-37). Slot 73a.
 
 ### BL-53: Medical history reaches History, PRs and volume; the watersports fallback key (D-1, D-12)
 - **Why:**
@@ -1011,7 +1029,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Test plan:** new `test-noweight-consistency.js` (a slot sweep over `programs` plus the variant tables, and one real `wireSetsBlock` case). Sabotage: drop one slot's flag.
 - **Files:** `index.html` (program data 10034–10420 and the day-count variant tables), `sw.js`, the test. **Guards:** `test-partial-set-reactions.js:136` (reps alone finish a `noWeight` set), `test-configurable-training-days.js` and `test-volume-modifier-gate.js` (both walk the program data).
 - **Risk:** an owner who logs weighted push-ups in the Bodyweight program loses the field there. That's the owner's call. Placed before BL-11 (slot 26a), because BL-11's rep progression applies to rows without a weight.
-- **Status:** needs-owner. **Question:** "Remove the weight box from bodyweight moves in Core, Bodyweight and Jump Rope (Calisthenics keeps it for weighted dips and pull-ups)?" **Recommendation:** yes.
+- **Status:** ready (owner yes 2026-11-08: "56 a"). Slot 26a, before BL-11.
 
 ### BL-57: The rest parser reads trailing multipliers, per-side mobility and swim repeats correctly (D-6, D-11; after BL-14)
 - **Why:**
@@ -1086,7 +1104,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Test plan:** new `test-category-corrections.js`, with the real `MUSCLE_GROUP_MAP`, `applyAccumulation` (26780) and `CATEGORY_TO_REGIONS`. Sabotage: restore Deep Squat Hold to `squat`.
 - **Files:** `content-exercises.js`, `index.html` (45270), `sw.js`, the test. **Guards:** `test-accumulation-accessory-add.js`, `test-volume-modifier-gate.js` (the jump-category rule) and the three search suites that read `MUSCLE_GROUP_MAP` (`test-global-search-techniques.js`, `test-search-2-0.js`, `test-search-index-freshness.js`).
 - **Risk:** past weeks' Analysis group totals change (read-time; no stored data changes). Placed before BL-20 (slot 55a), so the ledger ships on the corrected categories.
-- **Status:** needs-owner (with M-8). **Question:** "Re-file mobility holds and band shoulder work so they stop counting as leg, chest or core training volume?" **Recommendation:** yes, before the per-muscle ledger (BL-20) ships.
+- **Status:** ready (owner yes 2026-11-08: "59 a", with M-8). Slot 55a, before BL-20.
 
 ### BL-60: Substitutes that keep the same muscle and joint (D-9)
 - **Why:**
@@ -1129,7 +1147,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Files:** `index.html` (the slots above), `content-exercises.js` (277; Jump Squat's entry), `sw.js`, the test. **Re-pin:** `test-concise-cues.js` only if the Jump Squat line is added as a fourth cue. Rewrite an existing cue instead, and the 964 count holds. **Guards:** `test-configurable-training-days.js:489–510` (Single-Leg Bound stays off the surfing and skimboarding extra days).
 - **Risk:** prescriptions change in 2 programs plus their variants. That's visible, so the What's New line names it.
 - **Fold-in (2026-11-08):** line numbers moved to v3.518; counted 45 Single-Leg Bound slots and 9 Jump Squat `3×12-15` slots.
-- **Status:** needs-owner. **Question:** "Change Jump Squat in Bodyweight and Calisthenics from 12-15 to 6-8 reps, and make Single-Leg Bound a true one-leg hop?" **Recommendation:** yes. It's a landing-safety fix; slot 6c.
+- **Status:** ready (owner yes 2026-11-08: "61 a", as written). Slot 6c.
 
 ### BL-62: Clinical dose and position wording (S-4, S-5, C-3)
 - **Why:**
@@ -1254,7 +1272,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
   - `CYCLING_STYLES` and their day-count variants are swapped at runtime (`applyDaysPerWeekProgramData` 26002), so the transform must key on the exercise name, not the day.
   - The interval-string parse must not break `parseEstimatedMinutes`. Assert that the estimate for "2×20 min" is 41 (confirmed against the round-count branch at 26474).
 - **Tools:** none extra.
-- **Status:** needs-owner. **Question:** "Store an FTP number and show watt targets, with a retest prompt every 6 weeks?" **Recommendation:** yes, if you ride with a power meter or a smart trainer; otherwise leave it (the RPE text stays).
+- **Status:** parked (owner no 2026-11-08: "46 b"; the RPE text stays).
 
 ### BL-47: Swimming CSS anchor and set progression
 - **Why:**
@@ -1283,7 +1301,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Files:** `index.html` (the Swimming card; the same render-time transform as BL-46, shared rather than duplicated), `sw.js`, the test.
 - **Risk:** as BL-46. Ship BL-46 first so the transform exists, then extend it.
 - **Tools:** none extra.
-- **Status:** needs-owner (after BL-46 and BL-57). **Question:** "Ask for a 400 m and a 200 m time to set swim pace targets?" **Recommendation:** yes, if you swim laps regularly.
+- **Status:** parked (owner no 2026-11-08: "47 b").
 
 ### BL-48: The deload week also shortens duration-only cardio
 - **Why:**
@@ -1584,7 +1602,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Files:** `planning/business.md`; later `index.html` (34159).
 - **Risk:** any server option changes where user data goes and breaks the "your logs stay on your phone" promise.
 - **Business note (2026-11-07, revised model):** own-cloud backup through the share sheet runs on the phone, so it's on the free-forever list (business.md §3.3) and pricing doesn't block it. A sync service on our server is a subscription candidate and waits for BIZ-21's triggers.
-- **Status:** needs-owner. **Question:** "Should the app offer automatic backup off the device, either to your own iCloud or Google Drive (no server of ours) or to an encrypted sync service (needs a server and accounts)?" **Recommendation:** own-cloud file export first, free forever (no server, privacy promise intact). A sync service only as part of the future subscription (BIZ-21, BIZ-22).
+- **Status:** answered (owner yes 2026-11-08, "plus-items yes"): own-cloud file export through the share sheet first, free forever; a sync service only as part of the future subscription (BIZ-21, BIZ-22). The follow-up build item is still to be written (project-manager) and recorded in business.md §5.3.
 
 ### BIZ-14: Hosted AI for people without a key
 - **Why:** the AI features need the user's own Anthropic key (6630), which blocks almost every new user (business.md §5.4). Hosting them needs a server, a key we pay for, and abuse limits.
@@ -1597,7 +1615,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - Hosted AI is the **first subscription candidate** (business.md §3.3).
   - It's also the only feature where a "lifetime" plan would be an open-ended cost, so it never gets one (§3.2).
   - Bring-your-own-key AI stays free forever, after hosted AI exists too. Removing it would be the clawback §3.2 warns against.
-- **Status:** needs-owner. **Question:** "Run the AI features on a server we pay for, so users don't need their own key?" **Recommendation:** not yet. Build it only when BIZ-21's triggers T1–T3 hold. Beta-test it free with founding members to measure the cost per user (T4), then make it the core of the subscription.
+- **Status:** parked (owner 2026-11-08, "plus-items yes": not yet). Build only when BIZ-21's T1–T3 hold; beta it free with founding members to measure T4.
 
 ### BIZ-17: The first screen says what the app is
 - **Why:** a stranger's first screen is "Training Log · Who's training? · Create a new profile" (`userPickerOverlay`, 5701–5712), with no line on what the app does or why it's worth a name (Playwright first-launch walk, business.md §5.2). The promise in business.md §1 is true at v3.514 and costs one line.
@@ -1748,7 +1766,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - Client health data on our server brings the FTC Health Breach Notification Rule (amended 2024, names fitness apps) and Washington's My Health My Data Act into play (business.md §3.8; law-firm summaries, needs counsel).
   - Store rules on how a coach's subscription is bought (Apple 3.1.3(d) covers one-to-one services; a software plan may still need in-app purchase).
   - It would break the "no account" claim for clients who opt in, so the privacy page must say so.
-- **Status:** needs-owner. **Question:** "Plan a coach plan (coach pays, clients free, client chooses what to share and keeps everything if they leave), built only after Liftnext Pro's server has run cleanly?" **Recommendation:** yes as the plan of record, no work before BIZ-21 T4, and a privacy-law review before any client data reaches a server.
+- **Status:** plan of record (owner yes 2026-11-08, "plus-items yes"). No work before BIZ-21's T4; a privacy-law review before any client data reaches a server.
 
 ### BIZ-24: Coach programs: paid programs from real coaches, with a revenue share
 - **Why:**
@@ -1770,7 +1788,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - Store fees come off the top (Apple 3.1.1 for digital content, Play Billing).
   - Liability for third-party programming: we publish it, so it must meet our safety bar and make no health claims (BIZ-15).
   - A bought program lives in the user's own data and can be copied. That's accepted.
-- **Status:** needs-owner. **Question:** "Allow paid programs written by real coaches, with a revenue share, under these rules: built-in programs stay free forever and never move into the store, bought programs are kept, no clinical programs from third parties, and our safety gates apply?" **Recommendation:** yes as the plan of record, after public launch and BIZ-21's triggers; the last of the three layers to build.
+- **Status:** plan of record (owner yes 2026-11-08, "plus-items yes"). After public launch and BIZ-21's triggers; the last of the three layers.
 
 ---
 
@@ -1784,7 +1802,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Test plan:** none until answered.
 - **Files:** later `index.html`, `sw.js`.
 - **Risk:** data loss if done wrong. Never set a Pages custom domain on the app's repo as a side effect of BIZ-08.
-- **Status:** needs-owner. **Question:** "Do you ever want the app itself to live at its own domain (an origin move that needs an export-and-import step), or keep it where it is with the domain only forwarding to it?" **Recommendation:** forward only, for now. Revisit at the store launch.
+- **Status:** parked (owner 2026-11-08: "25 forward". The domains only forward to the app; the origin doesn't move. Revisit at the store launch.)
 
 ### BIZ-26: The barcode library loads with an integrity hash
 - **Why:** the barcode library runs from `cdn.jsdelivr.net` and `unpkg.com` by `<script src>` (~35227) with no Subresource Integrity, in a page that holds health data. A compromised CDN file would run with full access to every log (business-manager, non-blocking).
@@ -1888,7 +1906,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Test plan:** extend `test-share-card-format.js`. Sabotage: hard-code "LIFTNEXT", and criterion 2 must fail.
 - **Files:** `index.html` (the card builder), `sw.js`, the test.
 - **Risk:** prints the name on images nobody can recall. That's why it waits for the owner.
-- **Status:** needs-owner. **Question:** "Is the public name confirmed (USPTO knockout done, domain bought), so cards can print it?"
+- **Status:** ready (after MKT-03) (owner 2026-11-08: "name a": Platestep is confirmed, the USPTO knockout is clear and the domains are held).
 
 ### MKT-04: Share a finished session
 - **Why:** finishing a session is the most frequent earned moment (every training day), and its celebration (`triggerCelebration('flag', 'Session complete!', …)`, 29263) has no share button. PR and streak celebrations already pass `shareData`.
@@ -2001,7 +2019,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Test plan:** new `test-program-link.js` with the real encode, decode and validate functions. Sabotage: skip validation, and the malformed case must fail.
 - **Files:** `index.html` (custom programs near 14735 and 15471; 40172), `sw.js`, the test.
 - **Risk:** the URL is untrusted input (`Skill: security-review`). It depends on the public address (BIZ-08, BIZ-12).
-- **Status:** needs-owner. **Question:** "Allow custom programs to be shared as links that carry the program in the link itself (no server), once the app has a public address?" **Recommendation:** yes, after BIZ-08.
+- **Status:** ready (after BIZ-08) (owner yes 2026-11-08, "plus-items yes").
 
 ### MKT-11: Friend challenges by link, with no server
 - **Why:** in a randomized trial, social comparison raised exercise-class attendance about 90% over arms without comparison, while support alone did not beat control ([Zhang et al. 2016](https://pmc.ncbi.nlm.nih.gov/articles/PMC5008041/)). A challenge can work with no server: the link carries the rule, each person tracks it on their own phone, and the comparison happens in the chat they already use, with each person's result card.
@@ -2010,7 +2028,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Test plan:** new `test-challenge-link.js`. Sabotage: count dates outside the window.
 - **Files:** `index.html`, `sw.js`, the test.
 - **Risk:** depends on BIZ-08 and MKT-01. Keep it opt-in and guilt-free: no reminders that shame a missed week.
-- **Status:** needs-owner. **Question:** "Add friend challenges that work through shared links, with no server, no accounts and no leaderboard?" **Recommendation:** yes, after MKT-01 and BIZ-08.
+- **Status:** ready (after BIZ-08) (owner yes 2026-11-08, "plus-items yes"; also after MKT-01).
 
 ### MKT-12: Competitor names in store copy and search pages
 - **Why:** the highest-intent searches are switching searches ("Strong alternative", "Hevy free alternative"; business.md §6). Writing pages or keywords around them uses other companies' trademarks.
@@ -2046,7 +2064,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Test plan:** the follow-up item tests that `ref` is stripped and never written to storage (snapshot the keys).
 - **Files:** `planning/marketing.md`.
 - **Risk:** it weakens "no tracking" as a claim, even if only slightly.
-- **Status:** needs-owner. **Question:** "Add a `ref` tag to share links so the store consoles can show which share moments bring installs (the app stores nothing)?" **Recommendation:** no for now. Use store-console totals and tester interviews until there's enough volume for it to matter.
+- **Status:** parked (owner no 2026-11-08, "plus-items yes": no attribution for now).
 
 ### MKT-16: The session bib card (the story layout for finished sessions)
 - **Why:** the design review (`planning/design-directions.md` §5 and §6) picked the race bib as the story-card format, because it's the only one of the three directions that stops a thumb in a feed, and it works from session 1 with no record needed. The rendered bib (`tools/design/directions/renders/c-card.png`) has three gaps that this item closes:
