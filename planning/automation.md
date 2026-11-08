@@ -107,6 +107,7 @@ Work in the builder's own dedicated checkout (§1.1), never in a checkout anothe
 - Take the next item in the **Unified build sequence** at the top of `planning/roadmap.md` (as on `origin/Branch-1`): the first one, in sequence order, whose entry in `planning/backlog.md` is `ready` and not yet `done`. (Changed after the 2026-11-07 summit; file order no longer decides. Where an item ships as two versions, take its next unshipped part.) Skip:
   - `needs-owner`, `blocked`, `parked` and `done`;
   - `ready (after BL-xx)` items whose BL-xx isn't `done` on `origin/Branch-1`;
+  - any item whose status carries a condition that isn't met yet (for example `ready (after the Phase 3 gate)` or `no sooner than 21 days after …`), reading the condition literally; when unsure, treat it as not met;
   - items whose last auto-PR was closed without merging (§7.3);
   - **items that already have a merged auto-PR,** whatever `backlog.md` says. List closed PRs into `Branch-1` (`list_pull_requests`, `state: closed`) and treat an item as shipped if any PR with head `claude/auto-<item-id>` or `claude/auto-<item-id>-<n>` has `merged_at` set. (The `done` status only arrives with the step-13 record commit, which a cut-off run may never have written.) If `backlog.md` on `origin/Branch-1` doesn't yet say `done` for it, note `<BL-id> shipped in PR #<n> but not marked done` in the run report's Flagged line; the next PR's record commit marks it.
 - If none is ready, stop and report `Nothing ready`. Don't invent work, and don't promote a `needs-owner` item on your own.

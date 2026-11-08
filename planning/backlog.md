@@ -839,14 +839,14 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:** this rewrites variant slots, so it needs `SCHEMA_VERSION` (7623) / `runMigrations()` (9070) for any history on those variants.
 - **Summit note (summit 2026-11-07):** Priority rises: BIZ-01's quick start may route a 3-day "gain" stranger to Bodybuilding 3-day, which the audit scores F (summit F5, R9).
 - **Alignment note (2026-11-07, exercise-auditor B3):** summit R9's guard only covers quick-start "gain" with 3 days or fewer, so a stranger who picks the program by hand still lands on an F. BL-37 and BL-38 are now part of the **Phase 3 hard gate** before any public step (roadmap slots 74–75), unless the owner records an alternative, such as hiding the 2–4 day bodybuilding variants.
-- **Status:** needs-owner. **Question:** "Rewrite the 2-, 3- and 4-day Bodybuilding and 3-day Powerlifting variants (slot changes; past logs on those variants need a migration)?"
+- **Status:** ready (after BL-52) (owner yes 2026-11-07, D4: before going public; one migration per version). Stays in the **Phase 3 hard gate**. It waits for BL-52's variant-scoped keys, because `exKey` has no day-count segment and its migration can't otherwise tell which stored logs belong to these variants (the same gap that sent BL-35 back to the owner). Re-grep every line number before building. *Original question:* "Rewrite the 2-, 3- and 4-day Bodybuilding and 3-day Powerlifting variants (slot changes; past logs on those variants need a migration)?"
 
 ### BL-38: Bodybuilding d6 becomes "Upper Detail", plus appends (H-4)
 - **Why:** chest, quads and lats get 1×/wk despite the program's claim. Side delts get about 4 sets [FREQ19][PEL].
 - **Change:** the audit's H-4 rebuild of d6, plus the appends to d4 and d5.
 - **Acceptance criteria:** chest, quads, lats and delts each 2×/wk, measured by the ledger.
 - **Risk:** d6 slots are replaced, so a migration is needed. BL-12 fixes the copy in the meantime.
-- **Status:** needs-owner. **Question:** "Replace Bodybuilding Day 6 with the 'Upper Detail' day (slot changes, needs a migration)?"
+- **Status:** ready (after BL-52) (owner yes 2026-11-07, D4: before going public; one migration per version). Stays in the **Phase 3 hard gate**. Waits for BL-52 for the same reason as BL-37. *Original question:* "Replace Bodybuilding Day 6 with the 'Upper Detail' day (slot changes, needs a migration)?"
 
 ### BL-39: Append-only accessory volume: Strength & Size, Powerbuilding, Powerlifting (H-6, M-9)
 - **Why:** Strength & Size runs chest 8, side delts 3 and hamstrings 6 at 1×/wk. Powerbuilding runs lats 3 and side delts 3 [ACSM26][LEN].
@@ -856,7 +856,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - Powerlifting: d5 Face Pull.
 - **Acceptance criteria:** the appended exercises are last on their days, all earlier `exKey`s are unchanged, and the ledger totals match the audit.
 - **Risk:** about +6 minutes per affected session.
-- **Status:** needs-owner. **Question:** "Append these accessories to your lifting programs (about +6 min on the affected days)?"
+- **Status:** ready (owner yes 2026-11-07, D4: the appends). *Original question:* "Append these accessories to your lifting programs (about +6 min on the affected days)?"
 
 ### BL-40: Hypertension isometrics and medical progression notes (M-7)
 - **Why:** isometric wall squats ranked first for lowering resting BP [BP23]. LIFTMOR found supervised heavy loading safe in low bone mass [LIFT18]. Heavy slow resistance matches eccentric training for Achilles, with better adherence [ACH15].
@@ -865,7 +865,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - Add text notes to the osteoporosis and Achilles `basis`/`limits`.
 - **Acceptance criteria:** the appended exercise is last on d5, earlier keys are unchanged, and the new text renders.
 - **Risk:** a clinical plan's content changes.
-- **Status:** needs-owner. **Question:** "Add an isometric wall-squat block to the hypertension plan, and supervised-progression notes to the osteoporosis and Achilles plans?"
+- **Status:** ready (owner yes 2026-11-07, D4: the appends). Its clinical text is also in scope for the clinician's review before listing (BIZ-15, D9(e)). *Original question:* "Add an isometric wall-squat block to the hypertension plan, and supervised-progression notes to the osteoporosis and Achilles plans?"
 
 ---
 
@@ -2593,14 +2593,18 @@ Ready items are listed in build order, then needs-owner items.
 - **Test plan:** new `test-coach-header-button.js`. Sabotage: re-add the fixed position, and criterion 2 must fail.
 - **Risk:** it drops a feature: the draggable button and its remembered side.
 - **Tools:** `Skill: apple-hig` (header controls); TOOL-01's harness.
-- **Status:** needs-owner. **Question:** "Move the floating chat button into the header (it stops covering content, but you can no longer drag it)?" **Recommendation:** yes.
+- **Status:** ready (owner yes 2026-11-07, D2). The owner accepted losing the drag and its remembered side. *Original question:* "Move the floating chat button into the header (it stops covering content, but you can no longer drag it)?"
 
 ### UX-17: Retire Gym mode once Today is the session
 - **Why:** after UX-06 to UX-08, Today is gym mode: the next set huge, one tap, rest on the cover. Keeping both doubles the surface to maintain, and gym mode's tests guard a second implementation.
-- **Change:** none until answered. If yes, a later version removes the toggle and the gym-only rendering. Its tests move to the shared Today paths, with dated notes.
+- **Change** (owner yes 2026-11-07, D2): one version removes the Gym mode toggle and the gym-only rendering. Its tests move to the shared Today paths, with dated notes.
+- **Acceptance criteria:**
+  1. The rendered Settings and Today markup contain no Gym mode toggle (DOM count 0).
+  2. `test-tap-counts.js` passes unchanged, so Today logs the ready set in no more taps than Gym mode did.
+  3. A stored Gym mode preference from an older version is ignored without error, and Today renders normally.
 - **Tools:** TOOL-01's harness; `test-tap-counts.js` must pass unchanged.
 - **Alignment note (2026-11-07):** waits for **tap parity** (market-researcher): Today must log the ready set in no more taps than Gym mode, confirmed in `test-tap-counts.js` and on the owner's phone. It must **ship or be dropped before any Phase 5 public step**, so retiring Gym mode never lands as a post-launch take-away (business-manager B3).
-- **Status:** needs-owner. **Question:** "Once the new Today ships and matches Gym mode's tap counts, remove the separate Gym mode?" **Recommendation:** yes, after two weeks of real use of the new Today on your phone, and before going public.
+- **Status:** ready (after UX-06a, no sooner than 14 days after UX-06a's merge, and once the owner records that tap parity holds on his phone) (owner yes 2026-11-07, D2). It ships or is dropped before any Phase 5 public step. *Original question:* "Once the new Today ships and matches Gym mode's tap counts, remove the separate Gym mode?"
 
 ---
 

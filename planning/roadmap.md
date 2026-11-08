@@ -24,6 +24,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
   - **D8 and D9 (a)–(e):** Phase 5's builds now have numbered slots (89–98). BIZ-15, BIZ-16, MKT-14, BIZ-18 and BIZ-08 are ready **behind the Phase 3 gate**; BIZ-15's copy review is done by a paid clinician (D9(e)), outside the loop, before any listing. BIZ-12, MKT-13, BIZ-20, BIZ-21 and BIZ-22 are decisions with no code; they're marked `answered` and recorded in `business.md` §3.4–3.6 and §6 and `marketing.md` §4.3–4.4.
   - **D10:** approved: paper-lookup now, Playwright WebKit and axe-core before Phase 2, the `Skill` tool kept for its three agents, and `Edit` for the market-researcher and exercise-auditor. Noted only: the owner changes the `.claude/` files himself. Until he does, the slot-37 and slot-78 citation checks and the slot-39 WebKit check still wait on the tools being present.
   - **Count:** net **+7 ready** in Phases 2–4 (slots 57, 58, 76, 77, 81, 82, 83) on top of the 83 above, plus 6 Phase 5 builds that are ready but gated.
+- **Second-round approvals applied (2026-11-08, from the owner's 2026-11-07 "1-13 yes"):** D4's BL-37 and BL-38 (slots 74–75, after BL-52, still in the Phase 3 gate), BL-39 and BL-40 (slots 84–85), and D2's UX-16 (slot 62) and UX-17 (slot 86, with its two-week and on-device conditions) are now ready. Slot 8's stale † is cleared (BL-35 is ready, option (b)). Net **+7 ready** more.
 
 **Before slot 1** (see `consensus.md` (f)):
 - The owner's actions:
@@ -58,7 +59,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
    - 6b. **BL-64:** cue contradictions: Chair Pose knees, Good Morning, Front Lever, Hammer Curl, Hanging Leg Raise *(audit fold-in)*
    - 6c. **BL-61:** plyometric prescriptions match their cues: Jump Squat 6-8, Single-Leg Bound per leg *(audit fold-in; owner yes 2026-11-08)*
 7. BL-13: the cycle card stops prescribing phase-based training
-8. † BL-35: replace Neck Bridges with a 4-way neck isometric (D4 approved; **back to needs-owner on the archive method**, see the backlog item)
+8. BL-35: replace Neck Bridges with a 4-way neck isometric (D4 approved; archive method settled 2026-11-08: option (b), move nothing, fresh history for the isometric)
 9. BL-36: Drop Landing as a loggable drill on the ACL-risk watersports days (D4 approved 2026-11-07; ready)
 
 ### Phase 1: Engine truth, foundation, the Year in Lifting lane, and the food lane (33 builds, plus 7 if approved)
@@ -137,7 +138,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 59. UX-10: Progress leads with the answer
 60. UX-14: the unfolded two-pane Today
 61. UX-11: the weekly recap sheet with the week strip
-62. † UX-16: the coach button into the header (D2)
+62. UX-16: the coach button into the header *(owner yes 2026-11-07, D2)*
 
 ### Phase 3: The first week, data trust, and the launch gates (11 builds, plus 5 if approved)
 **Hard gate:** before any Phase 5 public step:
@@ -156,8 +157,8 @@ This is the one order every build run follows. It supersedes the "Requested buil
 72. **BL-50:** AI prompts know the clinical style (SAF-9)
 73. **BIZ-26:** the barcode library loads with an integrity hash
 73a. **BL-52:** variant- and style-scoped history keys, with a migration *(audit fold-in; owner yes 2026-11-08; after BL-51 has stamped names for some weeks, and before BL-37 so its migration can attribute entries)*
-74. † BL-37: rebuild the low day-count variants (D4; migration)
-75. † BL-38: Bodybuilding d6 "Upper Detail" (D4; migration)
+74. BL-37: rebuild the low day-count variants *(owner yes 2026-11-07, D4; migration; after BL-52)*
+75. BL-38: Bodybuilding d6 "Upper Detail" *(owner yes 2026-11-07, D4; migration; after BL-52)*
 76. BL-28: saved meals *(owner yes 2026-11-08, D5)*
 77. BL-29: import from Strong or Hevy into a separate "Imported" archive *(owner yes 2026-11-08, D6)*
 
@@ -168,9 +169,9 @@ This is the one order every build run follows. It supersedes the "Requested buil
 81. BL-34: RPE-adjusted e1RM for RPE-mode targets only; PR history stays put *(owner yes 2026-11-08, D3)*
 82. BL-32: one-tap "make today easier", never automatic *(owner yes 2026-11-08, D3; after BL-21)*
 83. BL-27: weekly calorie check-in, applied only on Accept *(owner yes 2026-11-08, D5; no sooner than 21 days after BL-17's merge)*
-84. † BL-39: append-only accessory volume (D4)
-85. † BL-40: hypertension isometrics and medical notes (D4)
-86. † UX-17: retire Gym mode. Two weeks after UX-06a, once tap parity is confirmed on device; it ships or is dropped before Phase 5.
+84. BL-39: append-only accessory volume *(owner yes 2026-11-07, D4)*
+85. BL-40: hypertension isometrics and medical notes *(owner yes 2026-11-07, D4)*
+86. UX-17: retire Gym mode *(owner yes 2026-11-07, D2)*. Two weeks after UX-06a, once the owner records tap parity on device; it ships or is dropped before Phase 5.
 87. UX-15: the dead-CSS sweep (always the last UX item; it runs after UX-17 if that's approved)
 88. BL-41, BL-42, BL-44 and BL-45: program extensions, itemised by the exercise-auditor before Phase 2 ends. These are the powerlifting top single plus peak, Olympic % bands and a miss counter, bodyweight ladders, and athletic metrics. They're placeholders, not buildable yet. (BL-43, BL-46, BL-47 and BL-48 are written and slotted at 24a and 38a–c; BL-49 is unassigned.)
 
