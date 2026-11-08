@@ -7622,7 +7622,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.523';
+const APP_VERSION = '3.524';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9006,6 +9006,9 @@ const WHATS_NEW = {
   '3.523': { headline: 'Smarter resting-area warnings', points: [
     'Sled pushes and sled pulls now also warn for a resting ankle, foot or shins, wall balls for the ankle, foot, shoulder and wrist, and carries and hanging leg raises for your grip, elbow and shoulder.',
     'When an exercise is one of Care\'s own relief moves for the area you\'re resting, like tibialis raises for shins or bird dogs for the lower back, the warning now says to keep it light and pain-free instead of telling you to skip it.',
+  ]},
+  '3.524': { headline: 'Better swaps for resting areas', points: [
+    'When a resting area flags an exercise, the suggested swap now fits that exercise and the area you\'re resting: an isometric calf hold for calf raises and heel drops, a feet-on hang for hangboard work when only your fingers are resting, a neck isometric for neck bridges, and lying leg raises for hanging leg raises when it\'s your grip, elbow or shoulder. Where no single swap fits, none is shown.',
   ]},
 };
 
@@ -29203,10 +29206,9 @@ async function renderWorkout(){
         cautionHtml = `<div class="ex-caution ex-caution-relief">${icon('info')} You marked ${regionBtns} as resting. This is one of Care's gentle relief moves for ${areaWord}: keep it light and pain-free (mild discomfort at most, about 3/10, settled by next morning), and stop if it hurts.</div>`;
       } else if(hitRegions.length){
         hitRegionsForRow = hitRegions;
-        // v3.522 (BL-03): a category swap would target the wrong body part for
-        // an overridden exercise (a wrist stretch for a heel drop). None until
-        // BL-04 adds exercise-specific substitutes.
-        const sub = EXERCISE_REGION_OVERRIDE[ex.name] ? null : suggestSubstitute(info.category, ex.name);
+        // v3.524 (BL-04): suggestSubstitute knows the exercise-specific swaps
+        // (and returns none for an overridden exercise without one).
+        const sub = suggestSubstitute(info.category, ex.name, hitRegions);
         const swapHtml = sub ? ` Try <b>${sub.name}</b> instead — ${sub.why}.` : '';
         cautionHtml = `<div class="ex-caution">${icon('warning')} You marked ${regionBtns} as resting — consider skipping or lightening this one.${swapHtml} Clear it in Care when you're ready. <button type="button" class="ex-ai-tailor-btn">Tailor to what I logged</button></div>`;
       }
@@ -29487,7 +29489,7 @@ async function renderWorkout(){
             : `They've marked ${piece.hitRegionsForRow.join(' & ')} as currently resting, but no specific symptom detail is on file.`;
           const persona = getCoachPersona();
           const info = exerciseInfo[ex.name];
-          const sub = EXERCISE_REGION_OVERRIDE[ex.name] ? null : suggestSubstitute(info.category, ex.name); // v3.522 (BL-03), as the caution above
+          const sub = suggestSubstitute(info.category, ex.name, piece.hitRegionsForRow);
           const prompt = `You are ${persona}. Someone is looking at "${ex.name}" in today's workout, which loads a region they've marked as resting. ${symptomLine} The app's default suggestion is "${sub ? sub.name : 'no direct substitute on file'}". Give a short, specific take (2-3 sentences, no headers or markdown) on whether that default substitute actually makes sense given what they described, or whether something else would be more appropriate — tied to the actual symptom, not generic category advice. You are not a doctor — if what they described sounds like it needs an in-person evaluation (sharp pain, numbness, a pop/snap, or anything not clearly improving), say so plainly rather than just suggesting an exercise swap.`;
           // effort:'medium' — this is a short 2-3 sentence take, not a task
           // that needs Sonnet 5's default 'high' adaptive reasoning depth.
@@ -44143,9 +44145,10 @@ function isReliefForAllHits(name, hitRegions){
 }
 
 // --- Injury-aware substitution: turns the resting-region caution from a
-// passive warning into an actual suggestion. Kept at the category level
-// (rather than a per-exercise map, which would need hundreds of entries
-// across 14 programs) since the joint/tissue stressed is driven mainly by
+// passive warning into an actual suggestion. Mostly kept at the category level
+// (a full per-exercise map would need hundreds of entries); since v3.524 the
+// exercises in EXERCISE_REGION_OVERRIDE take EXERCISE_SUBSTITUTE_OVERRIDE
+// first (below), since the joint/tissue stressed is driven mainly by
 // the movement pattern itself. Each alternative deliberately reduces load,
 // range, or impact on the affected area rather than just being "a different
 // exercise" — e.g. isometric holds avoid joint movement entirely, which is
@@ -44167,7 +44170,36 @@ const SUBSTITUTION_MAP = {
   cardio: {alts:['Walking','Calf Stretch'], why:'keeps you moving at low impact'},
 };
 
-function suggestSubstitute(category, currentExName){
+// v3.524 (BL-04, SAF-3 part 2): exercise-specific swaps for every exercise in
+// EXERCISE_REGION_OVERRIDE, whose category swap would target the wrong body
+// part (a wrist stretch for a heel drop). Each swap lists the resting areas it
+// is a fit FOR; it's offered only when every resting area the exercise hits is
+// on that list (a feet-on hang still hangs from the shoulder, so it's no swap
+// for a resting shoulder). `null` means no single swap fits.
+const SUB_CALF_HOLD    = {name:'Isometric Calf Hold (wall-supported)', why:'keeps the tendon loaded without movement', for:['Ankle/Foot','Shins']};
+const SUB_FEET_ON_HANG = {name:'Feet-on Hang (open hand)', why:'your feet take part of the load off the fingers', for:['Hands/Fingers']};
+const SUB_NECK_ISO     = {name:'Neck Isometric (hand resistance)', why:'loads the neck without bridging onto it', for:['Neck','Upper Back']};
+const SUB_GOBLET_MARCH = {name:'Goblet March (light, close grip)', why:'keeps the carry pattern without the arms hanging under load', for:['Shoulder']};
+const SUB_LYING_RAISE  = {name:'Lying Leg Raise (floor)', why:'trains the same hip flexion with no hanging on your grip or shoulders', for:['Hands/Fingers','Elbow/Wrist','Shoulder']};
+const EXERCISE_SUBSTITUTE_OVERRIDE = {
+  'Eccentric Heel Drop': SUB_CALF_HOLD, 'Calf Raise': SUB_CALF_HOLD, 'Standing Calf Raise': SUB_CALF_HOLD,
+  'Hangboard Max Hang': SUB_FEET_ON_HANG, 'Hangboard Repeaters': SUB_FEET_ON_HANG, 'Lock-off Hold': SUB_FEET_ON_HANG,
+  'Neck Bridges': SUB_NECK_ISO,
+  "Farmer's Carry": SUB_GOBLET_MARCH, 'Farmers Carry (Heavy)': SUB_GOBLET_MARCH, 'Suitcase Carry': SUB_GOBLET_MARCH,
+  'Hanging Leg Raise': SUB_LYING_RAISE, 'Toes-to-Bar': SUB_LYING_RAISE,
+  'Sled Push': null, 'Sled Pull': null, 'Wall Balls': null,
+  'Leg Curl': null, 'Nordic Curl': null, 'Tibialis Raise': null,
+};
+
+// `hitRegions` (optional): the resting areas this exercise hits. Category swaps
+// are unchanged; an exercise-specific one needs every hit area on its `for`.
+function suggestSubstitute(category, currentExName, hitRegions){
+  if(Object.prototype.hasOwnProperty.call(EXERCISE_SUBSTITUTE_OVERRIDE, currentExName)){
+    const own = EXERCISE_SUBSTITUTE_OVERRIDE[currentExName];
+    if(!own) return null;
+    if(Array.isArray(hitRegions) && !hitRegions.every(r=> own.for.includes(r))) return null;
+    return {name: own.name, why: own.why};
+  }
   const sub = SUBSTITUTION_MAP[category];
   if(!sub) return null;
   const pick = sub.alts.find(a=> a !== currentExName) || sub.alts[0];
