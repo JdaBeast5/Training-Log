@@ -53,6 +53,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 3. BL-03: per-exercise region override
    - 3a. **BL-70: region fixes after BL-03:** wider Sled Push and Wall Balls, Sled Pull plus 5 carries and hangs, relief-aware cautions, heel drop as Ankle/Foot relief (owner 2026-11-08, auditor recommendation; before BL-04)
 4. BL-04: exercise-specific substitutes
+   - 4a. **BL-71:** carry swaps by resting area: vest or backpack walk for grip, elbow and shoulder; Bird Dog for the lower back *(BL-04 follow-up; owner chose (a), 2026-11-08)*
 5. **BL-05 + BL-06, one version:** the safety cues, including the Depth Jump **Drop Landing rule**, across all 20 occurrences (counted at v3.518)
 6. **BL-05b:** the Neck Bridges cue says coach-only, otherwise isometrics (all 6 occurrences)
    - 6a. **BL-62:** clinical dose and position wording: per-leg Achilles and ACL doses, side-lying breathing in pregnancy, Sandbag Lunges per leg *(audit fold-in, 2026-11-08)*

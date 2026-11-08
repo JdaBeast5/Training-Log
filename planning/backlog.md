@@ -234,6 +234,25 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - Add criterion 6: with Hangboard Repeaters' region resting, the real caution path offers "Feet-on Hang (open hand)". With Sled Push's, it offers no swap.
 - **Status:** done (v3.524, PR #81)
 
+### BL-71: Carry swaps by resting area (BL-04 follow-up)
+- **Why:** since v3.524, carries ("Farmer's Carry", 'Farmers Carry (Heavy)', 'Suitcase Carry') offer `SUB_GOBLET_MARCH` only when Shoulder is the resting area. A goblet hold still grips a load and loads the spine, so a resting grip, elbow or lower back gets no swap. The owner asked the exercise auditor on 2026-11-08.
+- **Change (auditor's option a):**
+  - `EXERCISE_SUBSTITUTE_OVERRIDE` values may be an **ordered list** of `SUB_*`. `suggestSubstitute` takes the first whose `for` covers every hit area; none fits → `null`. Single-SUB entries behave exactly as today.
+  - `SUB_VEST_CARRY = {name:'Vest or Backpack Walk (hands free)', why:'keeps the braced walk under load with nothing in your hands', for:['Hands/Fingers','Elbow/Wrist','Shoulder']}`.
+  - `SUB_BIRD_DOG = {name:'Bird Dog', why:"keeps the bracing with no load on your spine, and it's one of Care's own lower-back moves", for:['Lower Back']}`.
+  - All three carries: `[SUB_VEST_CARRY, SUB_BIRD_DOG]`. `SUB_GOBLET_MARCH` is retired.
+  - Swap names stay free of `&` and `<` (they're inserted as HTML in the caution).
+- **Acceptance criteria** (real `suggestSubstitute` with the real maps):
+  1. Farmer's Carry with Hands/Fingers, with Elbow/Wrist, and with Shoulder resting → "Vest or Backpack Walk (hands free)".
+  2. Farmer's Carry with Lower Back → "Bird Dog".
+  3. Hands/Fingers + Lower Back → `null` (Bird Dog loads the hands; a vest loads the spine).
+  4. Every other override entry returns exactly what v3.524 returns (snapshot over the 18 exercises × each single resting area).
+  5. Sabotage anchor: with the list path removed (only the first entry considered), criterion 2 fails.
+- **Test plan:** extend `test-region-override.js`; replace its three Goblet March references (constants list, criterion 2, the area-fit case). Live check: Core d4 with each area resting.
+- **Files:** `index.html` (`SUB_*`, `EXERCISE_SUBSTITUTE_OVERRIDE`, `suggestSubstitute`, `WHATS_NEW`, `APP_VERSION`), `sw.js`, `test-region-override.js`.
+- **Risk:** the suitcase carry's anti-lean intent has no hands-free equivalent (accepted: swaps are temporary). A heavy vest loads the traps, so the name says light-ish and offers a backpack. [PRAC]
+- **Status:** ready (owner yes 2026-11-08: "the carry swap you recommend" = option (a), the exercise auditor's recommendation). Slot 4a, before BL-05.
+
 ### BL-05: Depth Jump prerequisite and box height in the cue (SAF-5, part 1)
 - **Why:** Depth Jump appears with no box height or landing prerequisite, in **20 slots** at v3.518 (counted by walking `programs`, every `*_STYLES` style and every `PROGRAM_DAY_COUNT_VARIANTS` day):
   - Athletic d4 (`index.html` 9994) and its 4-, 6- and 7-day variants;
