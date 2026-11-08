@@ -13,7 +13,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 - A run takes the first slot, in this order, whose item is `ready` and not `done` (`automation.md` §4 step 5).
 - Slots marked **†** are `needs-owner`. The loop skips them until the owner approves, then builds them in the slot where they sit. That's why approved safety and program items sit early.
 - The pace equals the owner's merge rate. There are **69 ready builds**. At one merge a day (an assumption, not a promise), that's about ten weeks.
-- **Spec refresh (2026-11-08):** net +3 to that count (BL-01 done; BL-36, UX-02, BL-51 and BL-52 ready). Slots 2–16 were re-specified against v3.518 in `backlog.md`. The owner's third-round answers (D3, D5, D6, D8, 2026-11-08) are **not yet applied** to item statuses; that's a separate planning pass.
+- **Spec refresh (2026-11-08):** net +3 to that count (BL-01 done; BL-36, UX-02, BL-65 and BL-66 ready). Slots 2–16 were re-specified against v3.518 in `backlog.md`. The owner's third-round answers (D3, D5, D6, D8, 2026-11-08) are **not yet applied** to item statuses; that's a separate planning pass.
 
 **Before slot 1** (see `consensus.md` (f)):
 - The owner's actions:
@@ -32,7 +32,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 - **TOOL-01, the visual harness.** Built by the design-engineer and merged by the owner **before slot 11**. **Done** (`tools/visual/` is on `Branch-1`).
 - **The mock-up re-renders** (summit R1, design-engineer B4), before slot 39.
 - **DOC-01:** PRODUCT.md takes the chosen name, once the owner decides it.
-- **BL-53:** a test-only guard that no exercise substitute crosses the jump category (PR #63 flag; added 2026-11-08). Any planning or tooling PR may carry it.
+- **BL-67:** a test-only guard that no exercise substitute crosses the jump category (PR #63 flag; added 2026-11-08). Any planning or tooling PR may carry it.
 
 ### Phase 0: Safety (7 builds, plus 2 if D4 is approved)
 1. BL-01: program gate on goal volume and block accumulation. The allowlist is named, and the test covers every other built-in program and variant. **Done (v3.518, PR #63).**
@@ -50,8 +50,8 @@ This is the one order every build run follows. It supersedes the "Requested buil
 11. UX-01: design tokens as aliases (no visual change). After TOOL-01; the baseline is the parent commit.
 12. **UX-01b:** `dayInk(id)`, the one day-to-ink rule (no visual change)
 13. BL-07: the performance goal no longer cuts strength-tier work
-13a. **BL-51:** the coach's volume line matches the program gate *(PR #63 flag; added 2026-11-08)*
-13b. **BL-52:** the phase tag drops "Accumulation" where no block sets are added *(PR #63 flag; added 2026-11-08)*
+13a. **BL-65:** the coach's volume line matches the program gate *(PR #63 flag; added 2026-11-08)*
+13b. **BL-66:** the phase tag drops "Accumulation" where no block sets are added *(PR #63 flag; added 2026-11-08)*
 14. MKT-02: no body data on share cards *(Year in Lifting lane)*
 15. MKT-09: the rename, **only if the owner picks a name other than Liftnext** *(lane)*. **Done (v3.517, Platestep).** The loop skips it.
 16. UX-02: the Archivo display face (D2 approved 2026-11-07; ready), so the cards never change typeface *(lane)*

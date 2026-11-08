@@ -8,7 +8,7 @@
 - TOOL-01, DOC-01.
 
 
-**Spec refresh (2026-11-08, against v3.518, after PR #63).** The next 15 slots of the Unified build sequence after BL-01 (roadmap slots 2–16: BL-02, BL-03, BL-04, BL-05 with BL-06, BL-05b, BL-13, BL-35, BL-36, BL-08, UX-01, UX-01b, BL-07, MKT-02, MKT-09, UX-02) were re-grepped against `index.html` at **v3.518**. In those items, line numbers are v3.518's, each criterion is written to be checked by a real invocation (or, where `renderWorkout` can't be driven in jsdom, by a real-call count), and `Files:` names every existing test that needs re-pinning, found by reading the suites that extract the touched functions. Each changed item ends with a "Spec refresh (2026-11-08)" line. Owner decisions already given in `pitch.md` (D2, D4, D11–D13) are applied to statuses. The builder's PR #63 flags became BL-51 to BL-53 (and BL-02 criterion 9). Items further down still carry v3.514 numbers: re-grep them.
+**Spec refresh (2026-11-08, against v3.518, after PR #63).** The next 15 slots of the Unified build sequence after BL-01 (roadmap slots 2–16: BL-02, BL-03, BL-04, BL-05 with BL-06, BL-05b, BL-13, BL-35, BL-36, BL-08, UX-01, UX-01b, BL-07, MKT-02, MKT-09, UX-02) were re-grepped against `index.html` at **v3.518**. In those items, line numbers are v3.518's, each criterion is written to be checked by a real invocation (or, where `renderWorkout` can't be driven in jsdom, by a real-call count), and `Files:` names every existing test that needs re-pinning, found by reading the suites that extract the touched functions. Each changed item ends with a "Spec refresh (2026-11-08)" line. Owner decisions already given in `pitch.md` (D2, D4, D11–D13) are applied to statuses. The builder's PR #63 flags became BL-65 to BL-67 (and BL-02 criterion 9). Items further down still carry v3.514 numbers: re-grep them.
 
 Owner: project-manager. Written 2026-11-07 against **v3.514**. The baseline was green: `check.sh` passed and 198/198 `test-*.js` suites passed. Line numbers are `index.html` at v3.514 unless a file is named. **Every build run re-greps them before editing:** each shipped item shifts the lines below it.
 
@@ -68,7 +68,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - Accumulation behaviour on the four lifting programs. Guarded by `test-accumulation-accessory-add.js` and `test-mesocycle-phase-tag.js`.
   - `applyGoalVolume` has no prior test; this item adds the first.
   - The phase tag will still read "Accumulation" on gated programs. Flag it; don't fix it here.
-- **Build note (v3.518, PR #63):** `applyAccumulationAccessory` is gated by a tested invariant (every `ACCUMULATION_ACCESSORY_POOL` key is in `VOLUME_MODIFIER_PROGRAMS`) rather than an in-function check, which would have broken `test-accumulation-accessory-add.js`. The builder's other flags are BL-02 criterion 9, BL-51, BL-52 and BL-53. Line numbers above are v3.514's: `applyGoalVolume` is at 26673 and `VOLUME_MODIFIER_PROGRAMS` at 26750 in v3.518.
+- **Build note (v3.518, PR #63):** `applyAccumulationAccessory` is gated by a tested invariant (every `ACCUMULATION_ACCESSORY_POOL` key is in `VOLUME_MODIFIER_PROGRAMS`) rather than an in-function check, which would have broken `test-accumulation-accessory-add.js`. The builder's other flags are BL-02 criterion 9, BL-65, BL-66 and BL-67. Line numbers above are v3.514's: `applyGoalVolume` is at 26673 and `VOLUME_MODIFIER_PROGRAMS` at 26750 in v3.518.
 - **Status:** done (v3.518, PR #63)
 
 ### BL-02: RPE caps for clinical programs; RPE mode off for technique lifts (SAF-2)
@@ -87,7 +87,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - `renderLoadModeNote` (32923) reads its target through `rpeTargetFor(week, false, activeProgram, null)`, so the Settings note never shows a week target the cap overrides.
   - **The clinical load gate (SAF-8, folded in by the alignment round; owner decision D12).** `analyzeProgressionSignal` (27514) gains a fourth argument, `program`, passed at **all three** call sites: `getSessionHeadsUpInsight` (14555), `computeProgramFitTrend` (27614) and `renderWorkout` (28804), so the heads-up, the fit check and the badge agree. For `medical` (every `MEDICAL_STYLES` key) and `senior`, signal 3 (27548–27561):
     - signals an increase only when logged RPE is ≤ 7 in **both** qualifying sessions;
-    - uses the smallest loadable jump instead of `getLoadIncrement(category)`: for a barbell, `2 × smallest plate` (the step `snapToLoadable`, 32777, uses); for dumbbells, `getEquipment().dbIncrement`; for machines, cables and everything else `snapToLoadable` has no model for, 5 lb / 2.5 kg (one stack pin). *Spec refresh (2026-11-08): `snapToLoadable` returns machine and cable weights unchanged, so the original "`snapToLoadable`'s step" had no value for the hypertension plan's Seated Cable Row. The pin step is the planner's reading of D12's "smallest step"; flagged in the refresh PR.* Compute it inside the clinical branch only, so the nine suites that extract `analyzeProgressionSignal` without a program never reach it;
+    - uses the smallest loadable jump instead of `getLoadIncrement(category)`: for a barbell, `2 × smallest plate` (the step `snapToLoadable`, 32777, uses); for dumbbells, `getEquipment().dbIncrement`; for machines, cables and everything else `snapToLoadable` has no model for: **pending, awaiting owner answer on PR #65 (options a–d)**. `snapToLoadable` returns machine and cable weights unchanged, so it gives no step there; the builder asked the owner in draft PR #65 whether to show (a) no number, "try the smallest step your machine allows", (b) a fixed 2.5 lb / 1 kg, (c) a new stack-step setting, or (d) today's 5 lb. Compute it inside the clinical branch only, so the nine suites that extract `analyzeProgressionSignal` without a program never reach it;
     - with no RPE logged in either session, returns `{type:'increase', clinicalNoRpe:true, message:'If both sessions felt comfortable, try the smallest jump.'}`. `computeSuggestedSet` returns `null` for that signal (no number in the field).
 - **Acceptance criteria** (all real invocations of the extracted functions; the sandbox defines `activeProgram`, `loadSuggestionMode`, `weightUnit` and the equipment state):
   1. `loadSuggestionMode='rpe'`, program `medical`, hypertension style, week 4, `rpeCtx={e1rm:200, week:4, program:'medical', category:'pull'}`: `buildProgressBadge(...).html` contains `RPE 7`, and `computeSuggestedSet(...).weight` equals `snapToLoadable(toDisplayWeight(loadForRpeTarget(200, reps, 7)), name, 'down')`.
@@ -96,7 +96,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   4. Deload week: `rpeTargetFor` returns 6 for strength, medical, senior and any category except the three technique ones (which stay `null`).
   5. `RPE_BY_CYCLE_WEEK[` is read only inside `rpeTargetFor` and `targetRpeForWeek`: count real read expressions in the extracted source with comments stripped (today: 4 reads, in `targetRpeForWeek`, `buildProgressBadge`, `computeSuggestedSet`, `renderLoadModeNote`).
   6. `renderLoadModeNote(4)` in jsdom (real `#loadModeSelect`/`#loadModeNote` markup, `loadSuggestionMode='rpe'`, `activeProgram='medical'`): the note reads "targets RPE 7". With `activeProgram='strength'`: "targets RPE 9".
-  7. Hypertension Seated Cable Row `2×12` (`MEDICAL_STYLES.hypertension` d1; category `pull`, a cable), two past sessions `{weight:60, reps:12, avgRpe:8}`: `analyzeProgressionSignal(sessions, ex, 'pull', 'medical')` is not an increase. The same at `avgRpe:7`: an increase whose message names `fmtWeight(5)` (the pin step), not `getLoadIncrement('pull')`'s value computed through the real function. A barbell name passed with program `medical` (synthetic: no clinical or senior day has a barbell lift at v3.518; use `Back Squat`) increases by `2 × getEquipment().plates.at(-1)`.
+  7. Hypertension Seated Cable Row `2×12` (`MEDICAL_STYLES.hypertension` d1; category `pull`, a cable), two past sessions `{weight:60, reps:12, avgRpe:8}`: `analyzeProgressionSignal(sessions, ex, 'pull', 'medical')` is not an increase. The same at `avgRpe:7`: an increase. **The size and wording of that increase on a cable or machine are pending: awaiting owner answer on PR #65 (options a–d).** The builder writes this half of the criterion from the owner's answer. A barbell name passed with program `medical` (synthetic: no clinical or senior day has a barbell lift at v3.518; use `Back Squat`) increases by `2 × getEquipment().plates.at(-1)`.
   8. The same Seated Cable Row with `avgRpe:null` in both sessions: the signal has `clinicalNoRpe:true`, its message contains "felt comfortable" and no digit, and `computeSuggestedSet` returns `null`.
   9. *(Builder flag, PR #63.)* For every key of `MEDICAL_STYLES` (iterate; assert the count, 13 at v3.518) and for `senior`, weeks 1–4: `rpeTargetFor(week, false, program, 'push') <= 7`.
   10. Strength program Back Squat with the same two sessions at RPE 8.5 and `program='strength'`: still increases by `getLoadIncrement('squat')` (unchanged).
@@ -110,7 +110,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:**
   - RPE badge rendering. Guarded by `test-progress-badge-rpe-teal.js`, `test-today-workout-emoji.js` and `test-deload-signal-week-awareness.js`.
   - The progression signal. Guarded by `test-program-fit-trend.js` (calls `analyzeProgressionSignal` with three arguments: it must keep passing unchanged) and the eight suites that stub it.
-- **Spec refresh (2026-11-08):** line numbers re-grepped at v3.518; the third and fourth `analyzeProgressionSignal` call sites, the `renderLoadModeNote` criterion, the machine step, the PR #63 ramp flag (criterion 9) and the two re-pins were added. Scope unchanged.
+- **Spec refresh (2026-11-08):** line numbers re-grepped at v3.518; the third and fourth `analyzeProgressionSignal` call sites, the `renderLoadModeNote` criterion, the PR #63 ramp flag (criterion 9) and the two re-pins were added. Scope unchanged.
 - **Status:** ready
 
 ### BL-03: Per-exercise body-region override for resting-region flags (SAF-3, part 1)
@@ -791,9 +791,9 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 
 ## Added in the spec refresh (2026-11-08): the builder's PR #63 flags
 
-The builder's "Flagged, not fixed" notes on PR #63 (BL-01, v3.518), as small items. The RPE-ramp flag folded into BL-02 (its criterion 9) rather than becoming an item. Roadmap slots: BL-51 at 13a and BL-52 at 13b (after BL-07, so the coach's wording covers both BL-01 and BL-07); BL-53 runs outside the loop.
+The builder's "Flagged, not fixed" notes on PR #63 (BL-01, v3.518), as small items. The RPE-ramp flag folded into BL-02 (its criterion 9) rather than becoming an item. Roadmap slots: BL-65 at 13a and BL-66 at 13b (after BL-07, so the coach's wording covers both BL-01 and BL-07); BL-67 runs outside the loop.
 
-### BL-51: The coach's volume line matches the program gate (BL-01 follow-up)
+### BL-65: The coach's volume line matches the program gate (BL-01 follow-up)
 - **Why:** builder flag, PR #63 (v3.518). `buildCoachChatContext` (`index.html` 42701) builds its volume line (42858–42868) from the goal alone. With goal "gain" on any of the 21 gated programs it tells Claude "the app is adding one set per exercise to their sessions", which has been false since BL-01; with goal "performance" it says compounds are capped at 3 sets, also false there. A coach told the app adds volume may advise against extra work the person actually needs, or explain a set count they don't see.
 - **Change:**
   - Move the line into one pure helper, `goalVolumeContextLine(goal, program)`, beside `goalVolumeAdjustment` (26661). `buildCoachChatContext` calls it once.
@@ -812,7 +812,7 @@ The builder's "Flagged, not fixed" notes on PR #63 (BL-01, v3.518), as small ite
 - **Tools:** `Skill: claude-api` (prompt wording only).
 - **Status:** ready (after BL-07)
 
-### BL-52: The phase tag stops saying "Accumulation" where no block sets are added (BL-01 follow-up)
+### BL-66: The phase tag stops saying "Accumulation" where no block sets are added (BL-01 follow-up)
 - **Why:** builder flag, PR #63 (v3.518), foreseen in BL-01's Risk line. `mesocyclePhaseTag` (`index.html` 26774) labels weeks 1–4 "Week N of 5 · Accumulation" on every program. Its own comment says it names a phase only when `applyAccumulation` really implements it (26768–26773), and since BL-01 `applyAccumulation` does nothing on the 21 gated programs. The tag now makes the claim the comment forbids.
 - **Change:**
   - `mesocyclePhaseTag(cyclePos, inDeloadWeek, program)`: outside a deload week, when `!volumeModifiersApply(program)`, the text is "Week N of 5" with no phase word. Deload weeks keep "· Deload" everywhere (deload still runs on every program).
@@ -828,7 +828,7 @@ The builder's "Flagged, not fixed" notes on PR #63 (BL-01, v3.518), as small ite
 - **Risk:** the day header. Guarded by `test-mesocycle-phase-tag.js`, `test-session-actions.js`, `test-up-next.js` and `test-today-priorities.js`.
 - **Status:** ready
 
-### BL-53: Guard: no exercise substitute crosses the jump category (BL-01 follow-up)
+### BL-67: Guard: no exercise substitute crosses the jump category (BL-01 follow-up)
 - **Why:** builder flag, PR #63 (v3.518). BL-01's jump rule in `applyGoalVolume` (`index.html` 26682–26684) reads `exerciseInfo[ex.name]` for the **authored** name, because goal volume runs (28647) before `applyExerciseSubs` (28720). If a slot's substitute had a different category, a jump substituted into a squat slot could take a goal set, and a squat substituted into a jump slot would lose one. At v3.518 **no `EXERCISE_SUBS` pair crosses the jump boundary** (checked with the real tables: 0 pairs), so nothing is wrong today. This item makes sure it stays that way, rather than moving the modifiers after substitution (a wider change with no current benefit).
 - **Change:** test only. One data-integrity case in `test-exercise-substitution.js`, which already checks `EXERCISE_SUBS`: for every original and each of its alternatives, `(category === 'jump')` must be equal on both sides, using the real `exerciseInfo`. The failure message says what to do: either drop the pair, or move the jump check after substitution (`ex.__originalName` tells the two apart).
 - **Acceptance criteria:**
