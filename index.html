@@ -7616,7 +7616,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.521';
+const APP_VERSION = '3.522';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -8993,6 +8993,9 @@ const WHATS_NEW = {
   ]},
   '3.521': { headline: 'Smaller weight jumps in RPE mode', points: [
     'On the clinical plans and Senior with RPE-based suggestions, the suggested weight now goes up by one small step at most each session: your smallest plates on a barbell, your dumbbell step on dumbbells. On cables and machines it stays at last time\'s weight; try the smallest step the machine allows.',
+  ]},
+  '3.522': { headline: 'Resting-area warnings catch more lifts', points: [
+    'When you mark a body area as resting in Care, these exercises now warn for the part they actually load: calf raises and heel drops for ankle, foot and shins (not elbow and wrist), leg curls and Nordic curls for the knee, hangboard work for the fingers, neck bridges for the neck, and wall balls and sled pushes for the knee and lower back. On these, the warning doesn\'t suggest a swap yet.',
   ]},
 };
 
@@ -14557,7 +14560,7 @@ async function getSessionHeadsUpInsight(){
 
     let flagged = false;
     if(restingRegions.length){
-      const exRegions = CATEGORY_TO_REGIONS[info.category] || [];
+      const exRegions = regionsForExercise(ex.name, info.category);
       if(exRegions.some(r=> restingRegions.includes(r))) flagged = true;
     }
     if(!flagged){
@@ -29179,11 +29182,14 @@ async function renderWorkout(){
     let cautionHtml = '';
     let hitRegionsForRow = [];
     if(info && restingRegions.length){
-      const exRegions = CATEGORY_TO_REGIONS[info.category] || [];
+      const exRegions = regionsForExercise(ex.name, info.category);
       const hitRegions = exRegions.filter(r=> restingRegions.includes(r));
       if(hitRegions.length){
         hitRegionsForRow = hitRegions;
-        const sub = suggestSubstitute(info.category, ex.name);
+        // v3.522 (BL-03): a category swap would target the wrong body part for
+        // an overridden exercise (a wrist stretch for a heel drop). None until
+        // BL-04 adds exercise-specific substitutes.
+        const sub = EXERCISE_REGION_OVERRIDE[ex.name] ? null : suggestSubstitute(info.category, ex.name);
         const swapHtml = sub ? ` Try <b>${sub.name}</b> instead — ${sub.why}.` : '';
         cautionHtml = `<div class="ex-caution">${icon('warning')} You marked ${hitRegions.map(r=> `<button type="button" class="link-btn" data-care-area="${escapeHtml(r)}" aria-label="Show stretches for ${escapeHtml(r)}">${escapeHtml(r)}</button>`).join(' & ')} as resting — consider skipping or lightening this one.${swapHtml} Clear it in Care when you're ready. <button type="button" class="ex-ai-tailor-btn">Tailor to what I logged</button></div>`;
       }
@@ -29464,7 +29470,7 @@ async function renderWorkout(){
             : `They've marked ${piece.hitRegionsForRow.join(' & ')} as currently resting, but no specific symptom detail is on file.`;
           const persona = getCoachPersona();
           const info = exerciseInfo[ex.name];
-          const sub = suggestSubstitute(info.category, ex.name);
+          const sub = EXERCISE_REGION_OVERRIDE[ex.name] ? null : suggestSubstitute(info.category, ex.name); // v3.522 (BL-03), as the caution above
           const prompt = `You are ${persona}. Someone is looking at "${ex.name}" in today's workout, which loads a region they've marked as resting. ${symptomLine} The app's default suggestion is "${sub ? sub.name : 'no direct substitute on file'}". Give a short, specific take (2-3 sentences, no headers or markdown) on whether that default substitute actually makes sense given what they described, or whether something else would be more appropriate — tied to the actual symptom, not generic category advice. You are not a doctor — if what they described sounds like it needs an in-person evaluation (sharp pain, numbness, a pop/snap, or anything not clearly improving), say so plainly rather than just suggesting an exercise swap.`;
           // effort:'medium' — this is a short 2-3 sentence take, not a task
           // that needs Sonnet 5's default 'high' adaptive reasoning depth.
@@ -44073,6 +44079,32 @@ const CATEGORY_TO_REGIONS = {
   throw:['Shoulder'], punch:['Shoulder','Elbow/Wrist'], kick:['Hip','Knee','Ankle/Foot'],
   cardio:['Ankle/Foot','Knee','Shins','IT Band/Outer Thigh'],
 };
+
+// v3.522 (BL-03, audit SAF-3): exercises whose category points at the wrong
+// body region. Neck Bridges are `core` but load the neck; hangboard work is
+// `pull` but loads the fingers; calf work is `arms` but loads the ankle; leg
+// curls are `hinge` but load the knee. These names win over their category.
+// Every key must be an exerciseInfo key (test-region-override.js checks it).
+const EXERCISE_REGION_OVERRIDE = {
+  'Neck Bridges':        ['Neck','Upper Back'],
+  'Hangboard Max Hang':  ['Hands/Fingers','Elbow/Wrist','Shoulder'],
+  'Hangboard Repeaters': ['Hands/Fingers','Elbow/Wrist','Shoulder'],
+  'Lock-off Hold':       ['Hands/Fingers','Elbow/Wrist','Shoulder'],
+  'Calf Raise':          ['Ankle/Foot','Shins'],
+  'Standing Calf Raise': ['Ankle/Foot','Shins'],
+  'Eccentric Heel Drop': ['Ankle/Foot','Shins'],
+  'Tibialis Raise':      ['Ankle/Foot','Shins'],
+  'Leg Curl':            ['Knee','Hip'],
+  'Nordic Curl':         ['Knee','Hip'],
+  'Wall Balls':          ['Knee','Lower Back'],
+  'Sled Push':           ['Knee','Lower Back'],
+};
+
+// The one place an exercise's body regions are decided (the session heads-up
+// and the per-row caution both ask this).
+function regionsForExercise(name, category){
+  return EXERCISE_REGION_OVERRIDE[name] || CATEGORY_TO_REGIONS[category] || [];
+}
 
 // --- Injury-aware substitution: turns the resting-region caution from a
 // passive warning into an actual suggestion. Kept at the category level
