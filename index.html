@@ -7616,7 +7616,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.520';
+const APP_VERSION = '3.521';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -8990,6 +8990,9 @@ const WHATS_NEW = {
   ]},
   '3.520': { headline: 'Backups leave out your API keys', points: [
     'Exported backups no longer include your saved AI or USDA keys, so a backup file in the cloud or an email can\'t leak them. Restoring a backup never changes the keys on this phone, so after restoring onto a new phone, enter them again in Settings.',
+  ]},
+  '3.521': { headline: 'Smaller weight jumps in RPE mode', points: [
+    'On the clinical plans and Senior with RPE-based suggestions, the suggested weight now goes up by one small step at most each session: your smallest plates on a barbell, your dumbbell step on dumbbells. On cables and machines it stays at last time\'s weight; try the smallest step the machine allows.',
   ]},
 };
 
@@ -27467,6 +27470,31 @@ function targetRpeForWeek(week){
 //   - Clinical plans (every MEDICAL_STYLES style, prenatal and postpartum
 //     included) and Senior stop at RPE 7 (3+ reps in reserve); near-maximal
 //     sets are what those plans tell people to avoid.
+// v3.521 (BL-69): the smallest load step the equipment model knows, in the
+// display unit: 2 x the smallest plate on a barbell, the dumbbell increment on
+// dumbbells, null for cables, machines and anything snapToLoadable has no
+// model for. Shared by the clinical load gate (analyzeProgressionSignal) and
+// the clinical RPE-mode cap (capClinicalRpeLoad).
+function smallestLoadStep(exName){
+  const eq = getEquipment();
+  if(isBarbellExercise(exName)) return 2 * eq.plates[eq.plates.length - 1];
+  if(isDumbbellExercise(exName)) return eq.dbIncrement;
+  return null;
+}
+
+// v3.521 (BL-69, owner "rpe c"): on the clinical plans and Senior in RPE mode,
+// the RPE-7 load may rise at most one smallest step above last session's top
+// set (no rise at all on cables and machines), and never above it in a deload
+// week. `display` is the snapped RPE load in the display unit. Callers only
+// call this for medical/senior.
+function capClinicalRpeLoad(display, exName, priorTop, inDeload){
+  if(display == null || !priorTop || !(priorTop.weight > 0)) return {weight: display, capped: false};
+  const step = inDeload ? 0 : smallestLoadStep(exName);
+  const cap = snapToLoadable(toDisplayWeight(priorTop.weight) + (step || 0), exName, 'down');
+  if(display <= cap) return {weight: display, capped: false};
+  return {weight: cap, capped: true, noStep: !inDeload && step == null, deload: !!inDeload};
+}
+
 function rpeTargetFor(week, inDeload, program, category){
   if(category === 'oly' || category === 'jump' || category === 'throw') return null;
   if(inDeload) return RPE_BY_CYCLE_WEEK[DELOAD_CYCLE_WEEKS];
@@ -27593,10 +27621,7 @@ function analyzeProgressionSignal(pastSessions, ex, category, program){
     }
     const easyBoth = s0.avgRpe != null && s1.avgRpe != null && s0.avgRpe <= 7 && s1.avgRpe <= 7;
     if(!easyBoth) return null;
-    const eq = getEquipment();
-    const loadStep = isBarbellExercise(ex.name) ? 2 * eq.plates[eq.plates.length - 1]
-                   : isDumbbellExercise(ex.name) ? eq.dbIncrement
-                   : null;
+    const loadStep = smallestLoadStep(ex.name);
     return {
       type: 'increase', clinical: true, loadStep,
       message: loadStep != null
@@ -27852,9 +27877,21 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
   if(rpeBadgeTarget != null){
     const rir = rirFromRpe(rpeTargetRpe);
     const shown = snapToLoadable(toDisplayWeight(rpeBadgeTarget), ex.name, 'down');
+    const head = `<div class="progress-badge-rpe">${inDeloadWeek ? 'Deload week' : `Week ${cycleWeekOf(rpeCtx.week)}`} target: <b>RPE ${rpeTargetRpe}</b> — about ${rir} rep${rir===1?'':'s'} left at the end. `;
+    // v3.521 (BL-69): same cap as computeSuggestedSet, so badge and field agree.
+    if(rpeCtx.program === 'medical' || rpeCtx.program === 'senior'){
+      const c = capClinicalRpeLoad(shown, ex.name, priorTop, inDeloadWeek);
+      if(c.capped){
+        const w = `<b>${trimUnitNum(c.weight)} ${weightUnit}</b>`;
+        const tail = c.deload ? `Stay at or under last time's ${w}${note}.`
+                   : c.noStep ? `Stay at ${w}, or try the smallest step your machine allows${note}.`
+                   : `Go up one small step at most: ${w}${note}.`;
+        return {direction: 'rpe', html: head + tail + `</div>`};
+      }
+    }
     return {
       direction: 'rpe',
-      html: `<div class="progress-badge-rpe">${inDeloadWeek ? 'Deload week' : `Week ${cycleWeekOf(rpeCtx.week)}`} target: <b>RPE ${rpeTargetRpe}</b> — about ${rir} rep${rir===1?'':'s'} left at the end. From your recent best that's around <b>${trimUnitNum(shown)} ${weightUnit}</b>${note}.</div>`,
+      html: head + `From your recent best that's around <b>${trimUnitNum(shown)} ${weightUnit}</b>${note}.</div>`,
     };
   }
   if(signal){
@@ -27938,6 +27975,11 @@ function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, prior
       // rounding up past it turns "leave 2 in the tank" into a set that
       // doesn't. The equipment model already knows what is loadable.
       const snapped = snapToLoadable(display, ex.name, 'down');
+      // v3.521 (BL-69): clinical plans rise at most one smallest step per session.
+      if(rpeCtx.program === 'medical' || rpeCtx.program === 'senior'){
+        const c = capClinicalRpeLoad(snapped, ex.name, priorTop, inDeloadWeek);
+        return {weight: c.weight, reps: repTarget, reason: 'rpe', targetRpe, capped: c.capped};
+      }
       return {weight: snapped, reps: repTarget, reason: 'rpe', targetRpe};
     }
   }

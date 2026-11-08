@@ -21,7 +21,7 @@ const { test, run } = makeRunner('test-rpe-safety-caps.js');
 const FN_NAMES = ['cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor', 'rirFromRpe', 'loadForRpeTarget',
   'getLoadIncrement', 'parseTopRep', 'parseBottomRep', 'analyzeProgressionSignal', 'buildProgressBadge',
   'computeSuggestedSet', 'roundToIncrement', 'snapToLoadable', 'getEquipment', 'isBarbellExercise',
-  'isDumbbellExercise', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight'];
+  'isDumbbellExercise', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'smallestLoadStep', 'capClinicalRpeLoad'];
 const CONST_NAMES = ['DELOAD_CYCLE_WEEKS', 'RPE_BY_CYCLE_WEEK', 'CATEGORY_LOAD_INCREMENT', 'MEDICAL_STYLES',
   'BARBELL_STANDARDS', 'DUMBBELL_DEFAULTS', 'BARBELL_EXERCISES', 'LB_PER_KG'];
 
@@ -47,8 +47,10 @@ test('criterion 1: hypertension (medical) week 4 in RPE mode: badge shows RPE 7,
     const ex = ${JSON.stringify(CABLE)};
     const ok = MEDICAL_STYLES.hypertension && Object.values(MEDICAL_STYLES.hypertension.days).some(d => (d.exercises||[]).some(e => e.name === ex.name && e.sets === ex.sets));
     const rpeCtx = {e1rm: 200, week: 4, program: 'medical', category: 'pull'};
-    const badge = buildProgressBadge({ex, signal: null, inDeloadWeek: false, priorTop: {weight: 60, reps: 12}, topRep: 12, rpeCtx, sourceNote: ''});
-    const sug = computeSuggestedSet({weight: 60, reps: 12}, null, false, 'pull', ex, {weight: 60, reps: 12}, rpeCtx);
+    // priorTop null: no prior top set, so BL-69's one-step cap doesn't apply
+    // (covered by the BL-69 cases below) and this pins the plain RPE-7 load.
+    const badge = buildProgressBadge({ex, signal: null, inDeloadWeek: false, priorTop: null, topRep: 12, rpeCtx, sourceNote: ''});
+    const sug = computeSuggestedSet({weight: 60, reps: 12}, null, false, 'pull', ex, null, rpeCtx);
     const expected = snapToLoadable(toDisplayWeight(__realLF(200, parseBottomRep(ex.sets), 7)), ex.name, 'down');
     __capture.push({ok, html: badge.html, sug, expected});
   `);
@@ -260,6 +262,84 @@ test('criterion 11: all three analyzeProgressionSignal( call sites pass a fourth
     assert.strictEqual(a.length, 4, 'four arguments: ' + a.join(', '));
     assert.strictEqual(a[3], 'activeProgram');
   }
+});
+
+// ---- v3.521 (BL-69, owner "rpe c"): clinical RPE-mode loads rise at most one
+// smallest step per session. e1RM 245 at 5 reps, RPE 7 (n = 8): 245/(1+8/30) ≈ 193.
+function rpeCase(program, name, sets, e1rm, priorWeight, category, inDeload){
+  return sbx(`
+    loadSuggestionMode = 'rpe';
+    const ex = {name: ${JSON.stringify(name)}, sets: ${JSON.stringify(sets)}};
+    const prior = ${priorWeight == null ? 'null' : `{weight: ${priorWeight}, reps: parseBottomRep(ex.sets)}`};
+    const rpeCtx = {e1rm: ${e1rm}, week: 4, program: ${JSON.stringify(program)}, category: ${JSON.stringify(category)}};
+    const dl = ${inDeload ? 'true' : 'false'};
+    const sug = computeSuggestedSet(prior || {weight: 100, reps: 5}, null, dl, rpeCtx.category, ex, prior, rpeCtx);
+    const badge = buildProgressBadge({ex, signal: null, inDeloadWeek: dl, priorTop: prior, topRep: 5, rpeCtx, sourceNote: ''});
+    const raw = snapToLoadable(toDisplayWeight(__realLF(${e1rm}, parseBottomRep(ex.sets), rpeTargetFor(4, dl, rpeCtx.program, rpeCtx.category))), ex.name, 'down');
+    const eq = getEquipment();
+    __capture.push({sug, html: badge.html, raw, plateStep: 2 * eq.plates.at(-1), db: eq.dbIncrement});
+  `);
+}
+
+test('BL-69 criterion 1: medical Back Squat, last top set 135, RPE-7 load ~190: suggestion and badge both show 135 + 2 × smallest plate', (assert)=>{
+  const r = rpeCase('medical', 'Back Squat', '3×5', 245, 135, 'squat');
+  assert.ok(r.raw > 170, 'premise: the uncapped RPE-7 load is well above one step: ' + r.raw);
+  assert.strictEqual(r.sug.weight, 135 + r.plateStep);
+  assert.strictEqual(r.sug.capped, true);
+  const shownWeights = (r.html.match(/<b>[^<]* lb<\/b>/g) || []);
+  assert.deepStrictEqual(shownWeights, ['<b>' + (135 + r.plateStep) + ' lb</b>'], 'the only weight in the badge is the capped one');
+  assert.ok(r.html.includes('RPE 7'));
+});
+
+test('BL-69 criterion 2: an RPE-7 load below last weight + step is unchanged (snapped down as today)', (assert)=>{
+  const r = rpeCase('medical', 'Back Squat', '3×5', 245, 225, 'squat');
+  assert.strictEqual(r.sug.weight, r.raw);
+  assert.strictEqual(r.sug.capped, false);
+  assert.ok(r.html.includes('<b>' + r.raw + ' lb</b>'), r.html);
+});
+
+test('BL-69 criterion 3: cable row, last 60, RPE-7 load above it: stays 60 and the badge names the machine step', (assert)=>{
+  const r = rpeCase('medical', 'Seated Cable Row', '2×12', 120, 60, 'pull');
+  assert.ok(r.raw > 60, 'premise: ' + r.raw);
+  assert.strictEqual(r.sug.weight, 60);
+  assert.ok(r.html.includes('smallest step your machine allows'), r.html);
+  assert.ok(r.html.includes('<b>60 lb</b>'), r.html);
+});
+
+test('BL-69 criterion 4: a dumbbell lift on Senior caps at last weight + the dumbbell increment', (assert)=>{
+  const r = rpeCase('senior', 'DB Bench Press', '3×10', 120, 40, 'push');
+  assert.ok(r.raw > 40 + r.db, 'premise: ' + r.raw);
+  assert.strictEqual(r.sug.weight, 40 + r.db);
+});
+
+test('BL-69 criterion 5: Strength is uncapped (same number as v3.519)', (assert)=>{
+  const r = rpeCase('strength', 'Back Squat', '3×5', 245, 135, 'squat');
+  assert.strictEqual(r.sug.weight, r.raw);
+  assert.ok(!('capped' in r.sug));
+  assert.ok(r.html.includes('<b>' + r.raw + ' lb</b>'), r.html);
+});
+
+test('BL-69 review: in a deload week the cap is last session\'s weight, never a step up, and the badge says so', (assert)=>{
+  const r = rpeCase('medical', 'Back Squat', '3×5', 320, 135, 'squat', true);
+  assert.ok(r.raw > 135, 'premise: the deload RPE-6 load from an inflated e1RM is above last time: ' + r.raw);
+  assert.strictEqual(r.sug.weight, 135);
+  assert.ok(r.html.includes("Stay at or under last time's <b>135 lb</b>"), r.html);
+  assert.ok(!/Go up/.test(r.html), r.html);
+});
+
+test('BL-69 review: a logged weight of 0 does not anchor the cap (behaves as no prior weight)', (assert)=>{
+  const r = rpeCase('senior', 'Back Squat', '3×5', 245, 0, 'squat');
+  assert.strictEqual(r.sug.weight, r.raw);
+});
+
+test('BL-69 criterion 6: smallestLoadStep( has exactly 2 real call sites (the clinical gate and the cap), comments stripped', (assert)=>{
+  const code = stripLineComments(indexOnly);
+  const all = (code.match(/\bsmallestLoadStep\s*\(/g) || []).length;
+  const decl = (code.match(/function\s+smallestLoadStep\s*\(/g) || []).length;
+  assert.strictEqual(decl, 1);
+  assert.strictEqual(all - decl, 2);
+  assert.ok(/\bsmallestLoadStep\s*\(/.test(stripLineComments(extractFunction(src, 'analyzeProgressionSignal'))));
+  assert.ok(/\bsmallestLoadStep\s*\(/.test(stripLineComments(extractFunction(src, 'capClinicalRpeLoad'))));
 });
 
 run();
