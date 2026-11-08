@@ -985,3 +985,11 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
   - Sled Push and Wall Balls lose their ankle and shin flags.
   - Tibialis Raise warns on Shins, but Care recommends it for Shins.
   - Sled Pull has no override.
+
+## Addendum 48: BL-70 (v3.523, PR #79, 2026-11-08)
+- **What:** `EXERCISE_REGION_OVERRIDE` now has 18 keys: Sled Push and Wall Balls are widened; Sled Pull, the 3 carries, Hanging Leg Raise and Toes-to-Bar are added.
+- **Relief moves:** `isReliefForAllHits(name, hits)`. A relief move on its own resting region gets a `.ex-caution-relief` note (blue, info icon, no swap, no Tailor), and the heads-up doesn't count it.
+- **Heel drop:** `REGION_RELIEF['Ankle/Foot']` gains Eccentric Heel Drop, and `CARE_TYPE_TAG` tags it `strengthen`.
+- **Test:** `test-region-override.js` grows from 7 to 11 cases. Sabotage-checked. Live render: Core d1 with Lower Back resting shows 4 red boxes plus Bird Dog in blue, and the heads-up says 4.
+- **Unverified:** not tried on an iPhone.
+- **Next:** BL-04, now ready, adds per-exercise substitutes, including for the carries and hangs, and replaces the v3.522 no-swap guard.
