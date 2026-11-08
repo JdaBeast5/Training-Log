@@ -171,3 +171,75 @@ From [§865.09](https://www.flsenate.gov/Laws/Statutes/2025/865.09):
 - **Insurance-type and other restricted words** outside chapter 655: not read.
 - **Google Play's DSA trader display:** Google's exact current rule wasn't found. The Play facts above come from its developer-account help page.
 - **Trust effect of a seller/app mismatch:** my judgement; no study was found.
+
+---
+
+## 7. JdaBeast options (2026-11-08)
+
+The owner asked to consider parent names built on his handle, **JdaBeast**; his GitHub account is `JdaBeast5`. The structure is unchanged: a Florida parent LLC with Platestep as a fictitious name, and possibly a subsidiary later.
+
+**Method** (same as §2, run 2026-11-08):
+- **Domains:** `.com` via Verisign RDAP; `.co` via DNS-over-HTTPS (NXDOMAIN means not delegated).
+- **App Store:** iTunes Search API, both `attribute=softwareDeveloper` and plain term, for `jdabeast`, `jda beast`, `j da beast`, `jdabeast5`, `jdb holdings`, `jdb studios` and `jda holdings`.
+- **Companies and trademarks:** web searches; OpenCorporates still needs an API key.
+- **Social handles:** each profile URL compared with a nonsense handle as a baseline.
+- **Sunbiz:** still blocked; the steps are below.
+- **Not a clearance.**
+
+### 7.1 Variants and evidence
+
+| # | Name | .com | .co | App Store seller or developer | Companies / trademarks (web) | Verdict |
+|---|---|---|---|---|---|---|
+| 1 | JdaBeast LLC | `jdabeast.com` **free** | NX | none (searches return JD Sports, unrelated) | No company or person found under "JdaBeast", "JDA Beast" or "jdabeast5". No JDABEAST mark found | Usable, see §7.2 |
+| 2 | JdaBeast Labs LLC | `jdabeastlabs.com` free | NX | none | none found | Usable. "Labs" next to an app with clinical programs hints at a laboratory |
+| 3 | **JdaBeast Studios LLC** | `jdabeaststudios.com` free | NX | none | none found | **Best of the handle options** |
+| 4 | JdaBeast Holdings LLC | `jdabeastholdings.com` free | NX | none | **Echoes "Beast Holdings, LLC"**, which holds BEAST GAMES and BEAST LINE marks in class 9. It's associated with MrBeast (my knowledge; confirm in TSDR) | Avoid: the closest echo of the biggest BEAST owner |
+| 5 | JdaBeast Ventures LLC | `jdabeastventures.com` free | NX | none | none found | Usable. "Ventures" reads as investing |
+| 6 | JdaBeast Works LLC | `jdabeastworks.com` free | NX | none | none found | Usable |
+| 7 | JDA Beast LLC (styled) | as #1 | NX | none | **"JDA" is JDA Software**, now Blue Yonder (supply-chain software). A JDA class 9 word mark shows as cancelled on one aggregator, but Blue Yonder pages still call "JDA" its trademark ([trademarkdir](https://trademarkdir.com/owner/jda-software-group-inc), [Business Wire](https://www.businesswire.com/news/home/20200211005664/en/JDA-Software-Announces-Company-Name-Change-to-Blue-Yonder)) | Avoid the spaced "JDA" styling |
+| 8 | JDB Holdings LLC | `jdbholdings.com` **taken 2015** | NX | none (DBS and JD Bank apps only) | Florida mirrors show **Jdb 2, LLC; Jdb 4, LLC; Jdb 8, LLC** (Lady Lake) and JDBC Holdings Inc. (Key Largo). Several JDB marks are on file (markinton 85336442, 98328533, 99581323) | Weak: crowded initials, nothing to own |
+| 9 | JDB Studios LLC | `jdbstudios.com` free | NX | none | JDB Media LLC (AZ) and JDB Marketing exist | Weak: initials carry no meaning |
+| 10 | JDA Holdings LLC | `jdaholdings.com` **taken 2012** | NX | The search surfaces Blue Yonder (ex-JDA) | JDA Software, as #7 | Out |
+
+**The BEAST family** (web, aggregators), which matters for any "…Beast" name:
+- Beast Holdings, LLC: BEAST GAMES and BEAST LINE, class 9.
+- Beast Industries LLC: BEASTLY, class 9, registered.
+- BODY BEAST: a Beachbody fitness programme.
+- BEAST MODE.
+- BEAST HQ Ltd: a live BEAST mark for gym and personal-training services, class 41.
+- A pending BEAST application in classes 9 and 42 (Biomechanics Consulting and Research LLC), with a final refusal on 2026-04-29.
+- Sources: [markinton BEAST MODE](https://markinton.com/trademark/beast-mode-99400871), [BODY BEAST](https://markinton.com/trademark/body-beast-85068277), [BEAST GAMES](https://markinton.com/trademark/beast-games-97884438), [justia BEAST 98132827](https://trademarks.justia.com/981/32/beast-98132827.html).
+
+**Handles** (baseline: a nonsense handle returns 404 on YouTube and X):
+- **YouTube `@jdabeast` exists** (an empty channel titled "jdabeast"; owner unknown).
+- **X `@jdabeast` exists** (owner unknown).
+- TikTok returns 200 even for nonsense handles, so it couldn't be judged. Instagram redirects to login.
+- GitHub user lookups are blocked in this session.
+- If those two accounts aren't the owner's, the bare handle isn't his on two major networks. That may be why GitHub has the "5".
+
+**Sunbiz steps for these names:** as §4.2. Search by entity name for `JdaBeast`, `Jda Beast`, `JDA Beast`, `JdaBeast Studios`, `JDB Holdings` and `JDB Studios`. Capital letters and spaces don't make a name distinguishable in practice: treat `JdaBeast` and `JDA Beast` as one name. Look at the alphabetical neighbours of each result.
+
+### 7.2 Honest assessment of a handle-based parent name
+
+| Test | JdaBeast (best form: JdaBeast Studios LLC) | Ironwright LLC |
+|---|---|---|
+| **App Store seller line** | Every product page reads "Seller: JdaBeast Studios LLC" beside a Health & Fitness app that includes rehab, prenatal and postpartum, hypertension and seniors programs. "Beast" says extreme, bro training: the opposite of the plain, evidence-cited voice (PRODUCT.md) and the careful trainee the clinical programs serve. To a stranger deciding whether to trust a subscription, it reads as a personal gamer tag. | Reads as a maker. Neutral to positive beside clinical content. |
+| **Spell after hearing once** | Poor. Heard as "Jay the Beast", "JD Beast", "Jay Da Beast" or "J.D.A. Beast", with no way to tell the capitals or spacing. | Fair. The main slip is "Ironright". |
+| **Unrelated future businesses** | Works for a creator or media business; awkward for property, consulting, B2B or anything formal. | Works across almost anything. |
+| **Privacy** | Ties the LLC's public Florida record (principal address, plus a manager's name and address in each annual report, §605.0212) to his public handle. Anyone who knows the handle can find the filing, and the reverse. The `github.io` address already shows `JdaBeast5`, but the plan (marketing.md §4.3) is to replace it with `platestep.app` on everything public. A JdaBeast LLC would make the link permanent on every store page and receipt. | No link to the handle. The manager's name is still public in Florida, as it is for any LLC. |
+| **Trademark strength** | JDABEAST as a whole is distinctive (a coined compound). But it sits in a crowded, high-profile BEAST field, with large class 9 owners and fitness-class registrations, so any filing in fitness classes invites an objection. A parent name doesn't need a mark of its own (the mark that matters is PLATESTEP), so this is a secondary point. | IRON- is crowded in fitness, but IRONWRIGHT itself had no hits. Also secondary, for the same reason. |
+| **Domains** | Every `jdabeast*.com` and `.co` is unregistered: the strongest domain position of any parent candidate so far. | `.com` parked; holdings and group `.com` free. |
+
+### 7.3 Recommendation
+- **The best JdaBeast option is "JdaBeast Studios LLC".** "Studios" frames the handle as a maker of apps and media. Its `.com` and `.co` are unregistered. It avoids the "Beast Holdings" echo (#4), the JDA Software collision (#7, #10) and the faint laboratory hint of "Labs" next to clinical programs (#2).
+- **I would not choose it over Ironwright.** It fails on the seller line beside clinical programs, on spelling after hearing, and on privacy. Those are the three tests that matter most for a company that sells a health-adjacent subscription to strangers. Its domains are its only clear win.
+- **If the owner wants the handle in the business anyway,** keep the parent as Ironwright LLC. Register "JdaBeast" as a second fictitious name of the parent for any creator or social-media work. That keeps the handle off the App Store seller line and off the main company record. The fictitious-name filing still lists the registrant's address (§865.09(3)), so the link exists in the fictitious-name records, just not on store pages.
+- **If he chooses JdaBeast Studios LLC regardless:** run the Sunbiz and USPTO checks above, confirm he owns or can get `@jdabeast` on YouTube and X, and still put "Platestep" as the Google Play developer name, which Google allows. Apple will show the legal name whatever he does.
+
+**What couldn't be verified (beyond §6):**
+- Who owns `@jdabeast` on YouTube and X.
+- TikTok and Instagram handles.
+- GitHub (blocked in this session).
+- Sunbiz, for every name in this section.
+- Whether "Beast Holdings, LLC" is MrBeast's company: my knowledge; confirm in USPTO TSDR.
+- The live status of the JDA mark.
