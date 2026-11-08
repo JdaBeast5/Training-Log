@@ -10,6 +10,9 @@
 //   --base <rev>    also shoot <rev> and report a per-state diff against it
 //   --out <dir>     output root (default tools/visual/out)
 //   --only <ids>    comma-separated state ids, for a quick look at a few
+//   --store         store-screenshot mode: shoot the store-* frames at 440x956
+//                   DPR 3 and compose the Apple (1320x2868) and Play (1080x1920)
+//                   images (planning/store/screenshots.md). Output in <out>/store/
 //
 // Output (all under --out, which is gitignored):
 //   <label>/<state>.png      one PNG per state (label = "worktree" or a short sha)
@@ -18,6 +21,7 @@
 //                            when --base is given)
 //   diff/<state>.png         base vs head diff image, changed states only
 //   diff/report.json         per-state result: same | changed (pixels) | missing
+//   store/...                --store only: capture/, apple/, play/, contact-sheet.png
 //
 // Determinism comes from: a committed fixture (fixture.json, Jordan on
 // Strength & Size with Bench history), a frozen Date, the launch animation
@@ -53,6 +57,70 @@ const VIEWS = [
   ['history', 'history'],
 ];
 
+// ---- Store mode (--store) ------------------------------------------------------
+// planning/store/screenshots.md. Shot at the 6.9" iPhone logical size, 440x956
+// at DPR 3, which is exactly Apple's 1320x2868. Play's 1080x1920 is composed
+// from the same capture (2868/1320 is over Play's 2:1 limit, so it can't be
+// reused as-is).
+const STORE = {
+  viewport: { width: 440, height: 956 }, dpr: 3,
+  apple: { width: 1320, height: 2868, band: 516, pad: 64, font: 92, radius: 60 },
+  play: { width: 1080, height: 1920, band: 300, pad: 44, font: 60, radius: 36 },
+  ground: '#0b0b0e', ink: '#f5f5f7', accent: '#ff453a', // near-black; Day 1's plate red as a hairline
+};
+
+// In-page steps for the store frames. Each runs after boot, before the settle,
+// and only calls the app's own functions or the elements a user would tap.
+// Scrolls put the target just under the sticky header.
+const STORE_STEPS = {
+  // The day's workout card leads, with the first exercise open.
+  today: () => {
+    const first = document.querySelector('#exerciseList > .exercise-block');
+    if(first && !first.classList.contains('open')) setExerciseBlockOpen(first, true);
+    return 'workoutCard';
+  },
+  // Overhead Press (slot 2) open, so its double-progression badge reads.
+  progression: () => {
+    const idx = document.querySelector('#exerciseList [data-ex-idx="2"]');
+    const block = idx && idx.closest('.exercise-block');
+    if(!block) throw new Error('store-progression: no exercise block for slot 2');
+    if(!block.classList.contains('open')) setExerciseBlockOpen(block, true);
+    return block;
+  },
+  // The Training Style card: overview (open by default), the program
+  // description and "What this is based on" opened, as two taps would.
+  program: () => {
+    const head = document.getElementById('programHeader');
+    const wrap = document.getElementById('programExpandWrap');
+    if(wrap && !wrap.classList.contains('open')) head.click();
+    const basis = document.querySelector('#programSourceNote .program-basis-toggle[aria-expanded="false"]');
+    if(basis) basis.click();
+    return head.closest('.card');
+  },
+  // Training Trends open (seeded), scrolled to Exercise Progress. (The PR
+  // timeline the storyboard names lives on History, not Analysis.)
+  progress: () => document.getElementById('exerciseProgress').closest('.card'),
+  // Settings, at the backup and restore rows.
+  backup: () => {
+    document.getElementById('settingsCog').click();
+    return document.querySelector('#settingsOverlay [data-jump-to="exportDataBtn"]').closest('.settings-section');
+  },
+};
+
+function buildStoreStates(){
+  const base = { group: 'store', theme: 'dark', size: 'store', viewport: STORE.viewport, dpr: STORE.dpr, motion: 'no-preference', fixture: 'store' };
+  return [
+    { ...base, n: 1, id: 'store-today', caption: 'Tells you what to lift next', view: 'today', step: 'today' },
+    { ...base, n: 2, id: 'store-gym', caption: 'One tap logs the set', view: 'today', gym: true },
+    { ...base, n: 3, id: 'store-progression', caption: 'Adds weight when you earn it', view: 'today', step: 'progression' },
+    { ...base, n: 4, id: 'store-program', caption: 'Programs that show their sources', view: 'today', step: 'program' },
+    { ...base, n: 5, id: 'store-progress', caption: 'Every record, every week', view: 'analysis', step: 'progress',
+      storage: { 'analysis-group-collapsed:insights': 'true', 'analysis-group-collapsed:body-health': 'true', 'analysis-group-collapsed:training': 'false' } },
+    { ...base, n: 6, id: 'store-deload', caption: 'Deload weeks are planned in', view: 'today', step: 'today', fixture: 'store-deload' },
+    { ...base, n: 7, id: 'store-backup', caption: 'Your log stays on your phone', view: 'today', step: 'backup' },
+  ];
+}
+
 // ---- The state matrix ------------------------------------------------------
 function buildStates(){
   const states = [];
@@ -79,7 +147,7 @@ function buildStates(){
 
 // ---- CLI -------------------------------------------------------------------
 function parseArgs(argv){
-  const a = { rev: null, base: null, out: path.join(HERE, 'out'), only: null };
+  const a = { rev: null, base: null, out: path.join(HERE, 'out'), only: null, store: false };
   for(let i = 0; i < argv.length; i++){
     const k = argv[i];
     const v = () => { const x = argv[++i]; if(x === undefined) throw new Error(`${k} needs a value`); return x; };
@@ -87,7 +155,8 @@ function parseArgs(argv){
     else if(k === '--base') a.base = v();
     else if(k === '--out') a.out = path.resolve(v());
     else if(k === '--only') a.only = v().split(',').map(s => s.trim()).filter(Boolean);
-    else if(k === '-h' || k === '--help'){ console.log(fs.readFileSync(__filename, 'utf8').split('\n').slice(1, 21).join('\n')); process.exit(0); }
+    else if(k === '--store') a.store = true;
+    else if(k === '-h' || k === '--help'){ console.log(fs.readFileSync(__filename, 'utf8').split('\n').slice(1, 25).join('\n')); process.exit(0); }
     else throw new Error(`unknown option ${k}`);
   }
   return a;
@@ -146,6 +215,8 @@ function seedFor(state, fixture, appVersion){
     // Resting after Bench set 2: 2:30 left of 4:00. restoreRestTimer resumes it.
     seed[ns + 'rest-timer-state'] = JSON.stringify({ endsAt: FROZEN_NOW + 150 * 1000, total: 240 });
   }
+  // Store frames only: window.storage preferences (e.g. Analysis groups).
+  if(state.storage) for(const [k, v] of Object.entries(state.storage)) seed[ns + k] = v;
   return seed;
 }
 
@@ -197,7 +268,56 @@ async function settle(page){
   await page.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
 }
 
-async function shootAll({ dir, label }, states, outRoot, fixture){
+// A store frame's step: let the boot render finish, run the step in the page,
+// then bring what it returns (an element or an id) to the top of the screen,
+// just under whatever sticky bars sit there.
+async function runStoreStep(page, state){
+  await settle(page);
+  const fn = STORE_STEPS[state.step];
+  if(!fn) throw new Error(`${state.id}: unknown store step ${state.step}`);
+  await page.evaluate(`(() => {
+    const t = (${fn})();
+    const el = typeof t === 'string' ? document.getElementById(t) : t;
+    if(!el) throw new Error(${JSON.stringify(state.id)} + ': store step found no target');
+    window.__storeTarget = el;
+  })()`);
+  await settle(page);
+  // Two passes: scrolling can reveal a sticky bar (Today's compact day title)
+  // that wasn't there before, so the second pass measures again.
+  for(let pass = 0; pass < 2; pass++){
+    await page.evaluate(() => {
+      const el = window.__storeTarget;
+      // A target inside a scrolling panel (Settings) is centred in that panel.
+      let box = el.parentElement;
+      while(box && box !== document.body){
+        const oy = getComputedStyle(box).overflowY;
+        if((oy === 'auto' || oy === 'scroll') && box.scrollHeight > box.clientHeight) break;
+        box = box.parentElement;
+      }
+      if(box && box !== document.body){
+        const r = el.getBoundingClientRect(), b = box.getBoundingClientRect();
+        box.scrollTop += (r.top - b.top) - (box.clientHeight - r.height) / 2;
+        return;
+      }
+      // Otherwise the page scrolls, and the target sits below the lowest
+      // sticky or fixed bar pinned to the top of the screen.
+      let under = 0;
+      for(const n of document.querySelectorAll('body *')){
+        const cs = getComputedStyle(n);
+        if(cs.position !== 'sticky' && cs.position !== 'fixed') continue;
+        if(cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity === 0) continue;
+        const r = n.getBoundingClientRect();
+        if(r.height > 0 && r.height < 200 && r.top <= 1 && r.bottom > 0 && r.width > innerWidth / 2) under = Math.max(under, r.bottom);
+      }
+      const top = el.getBoundingClientRect().top + scrollY - under - 12;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
+    });
+    await settle(page);
+  }
+  await page.evaluate(() => { delete window.__storeTarget; });
+}
+
+async function shootAll({ dir, label }, states, outRoot, fixtures){
   const server = await serve(dir);
   const origin = `http://127.0.0.1:${server.address().port}`;
   const appVersion = appVersionOf(dir);
@@ -213,7 +333,7 @@ async function shootAll({ dir, label }, states, outRoot, fixture){
     for(const state of states){
       const t0 = Date.now();
       const context = await browser.newContext({
-        viewport: SIZES[state.size], deviceScaleFactor: DPR, isMobile: false, hasTouch: true,
+        viewport: state.viewport || SIZES[state.size], deviceScaleFactor: state.dpr || DPR, isMobile: false, hasTouch: true,
         colorScheme: state.theme, reducedMotion: state.motion, forcedColors: 'none',
         timezoneId: TIMEZONE, locale: LOCALE, serviceWorkers: 'block',
       });
@@ -227,7 +347,7 @@ async function shootAll({ dir, label }, states, outRoot, fixture){
       });
       // WebSockets don't go through route(); none are expected, but count them too.
       context.on('page', p => p.on('websocket', ws => run.blocked.push({ state: state.id, url: ws.url() })));
-      await context.addInitScript(initScript, { seed: seedFor(state, fixture, appVersion) });
+      await context.addInitScript(initScript, { seed: seedFor(state, fixtures[state.fixture || 'default'], appVersion) });
       const page = await context.newPage();
       await page.clock.setFixedTime(FROZEN_NOW);
       page.on('pageerror', e => run.pageErrors.push({ state: state.id, message: String(e.message || e) }));
@@ -240,6 +360,7 @@ async function shootAll({ dir, label }, states, outRoot, fixture){
         if(state.gym) await page.waitForSelector('body.gym-mode', { timeout: 10000 });
         if(state.rest) await page.waitForSelector('#restTimer.active', { timeout: 10000 });
       }
+      if(state.step) await runStoreStep(page, state);
       await settle(page);
       const file = path.join(outDir, `${state.id}.png`);
       await page.screenshot({ path: file, animations: 'disabled', caret: 'hide', scale: 'device' });
@@ -358,16 +479,163 @@ async function contactSheet(states, headDir, file, meta, report){
   return fs.statSync(file).size;
 }
 
+// ---- Store frames: caption composite and contact sheet ------------------------
+// Both stores' images are drawn by Chromium from the 1320x2868 capture: the
+// caption in a band at the top on an opaque near-black ground, the capture
+// scaled into the rest with rounded corners. No network, no image deps. The
+// caption is set in Geist, the app's own font, read from the shot's fonts/.
+function fontFace(dir){
+  const f = path.join(dir, 'fonts', 'geist-latin-wght-normal.woff2');
+  return fs.existsSync(f)
+    ? `@font-face{font-family:"StoreCaption";src:url(data:font/woff2;base64,${fs.readFileSync(f).toString('base64')}) format("woff2");font-weight:100 900}`
+    : '';
+}
+
+function storeFrameHtml(spec, caption, capture, face){
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  // The capture is fitted into the space under the band, keeping its ratio.
+  const h = spec.height - spec.band - spec.pad;
+  const w = Math.round(h * STORE.apple.width / STORE.apple.height);
+  return `<!doctype html><html><head><style>${face}
+    *{box-sizing:border-box;margin:0}
+    html,body{width:${spec.width}px;height:${spec.height}px;background:${STORE.ground};overflow:hidden}
+    body{font-family:"StoreCaption","DejaVu Sans",sans-serif;color:${STORE.ink}}
+    .band{height:${spec.band}px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 ${spec.pad}px;gap:${Math.round(spec.font * 0.42)}px}
+    .rule{width:${Math.round(spec.font * 0.9)}px;height:${Math.max(3, Math.round(spec.font / 18))}px;border-radius:2px;background:${STORE.accent}}
+    h1{font-size:${spec.font}px;font-weight:700;line-height:1.06;letter-spacing:-0.025em;text-align:center;text-wrap:balance;max-width:${spec.width - spec.pad * 2}px}
+    .shot{display:block;margin:0 auto;width:${w}px;height:${h}px;border-radius:${spec.radius}px;
+      box-shadow:0 0 0 ${Math.max(2, Math.round(spec.radius / 20))}px rgba(255,255,255,0.14)}
+  </style></head><body><div class="band"><div class="rule"></div><h1>${esc(caption)}</h1></div>
+  <img class="shot" src="${capture}"></body></html>`;
+}
+
+async function composeStore(states, captureDir, outRoot, face){
+  const made = { apple: [], play: [] };
+  const browser = await chromium.launch({ args: ['--force-color-profile=srgb', '--font-render-hinting=none', '--disable-lcd-text'] });
+  try{
+    for(const store of ['apple', 'play']){
+      const spec = STORE[store];
+      const dir = path.join(outRoot, store);
+      fs.rmSync(dir, { recursive: true, force: true });
+      fs.mkdirSync(dir, { recursive: true });
+      const context = await browser.newContext({ viewport: { width: spec.width, height: spec.height }, deviceScaleFactor: 1 });
+      await context.route('**/*', r => (r.request().url().startsWith('data:') ? r.continue() : r.abort()));
+      const page = await context.newPage();
+      for(const s of states){
+        await page.setContent(storeFrameHtml(spec, s.caption, dataUrl(path.join(captureDir, `${s.id}.png`)), face), { waitUntil: 'load' });
+        await page.evaluate(async () => { await document.fonts.ready; await Promise.all([...document.images].map(i => i.decode())); });
+        const file = path.join(dir, `${String(s.n).padStart(2, '0')}-${s.id}.png`);
+        // An opaque page and omitBackground off: Chromium writes no alpha, which
+        // Play requires. Checked below, not assumed.
+        await page.screenshot({ path: file, omitBackground: false });
+        const info = pngInfo(file);
+        if(info.width !== spec.width || info.height !== spec.height) throw new Error(`${file}: ${info.width}x${info.height}, want ${spec.width}x${spec.height}`);
+        if(info.alpha) throw new Error(`${file}: has an alpha channel (PNG colour type ${info.colorType})`);
+        made[store].push({ id: s.id, file, ...info });
+      }
+      await context.close();
+    }
+  }finally{ await browser.close(); }
+  return made;
+}
+
+// Width, height and colour type from a PNG's IHDR (types 4 and 6 carry alpha).
+function pngInfo(file){
+  const b = fs.readFileSync(file);
+  if(b.readUInt32BE(12) !== 0x49484452) throw new Error(`${file}: not a PNG`);
+  const colorType = b[25];
+  return { width: b.readUInt32BE(16), height: b.readUInt32BE(20), colorType, alpha: colorType === 4 || colorType === 6, bytes: b.length };
+}
+
+async function storeContactSheet(states, made, file, meta){
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const row = (store, title, w) => `<section><h2>${esc(title)}</h2><div class="row">${made[store].map((m, i) =>
+    `<figure style="width:${w}px"><img style="width:${w}px" src="${dataUrl(m.file)}"><figcaption>${i + 1}. ${esc(states[i].caption)}<br><span>${esc(m.id)}</span></figcaption></figure>`).join('')}</div></section>`;
+  const html = `<!doctype html><html><head><style>
+    *{box-sizing:border-box;margin:0}
+    body{background:#16161a;color:#e8e8ec;font:12px/1.3 "DejaVu Sans",sans-serif;padding:16px;width:${SHEET_WIDTH + 260}px}
+    h1{font-size:15px;font-weight:600;margin-bottom:2px} .meta{color:#9a9aa4;margin-bottom:6px}
+    h2{font-size:12px;font-weight:600;color:#c4c4cc;margin:14px 0 6px}
+    .row{display:flex;flex-wrap:wrap;gap:10px}
+    figure{display:flex;flex-direction:column;gap:4px}
+    img{display:block;border:1px solid #2c2c33;border-radius:3px}
+    figcaption{color:#c4c4cc;font-size:10px} figcaption span{color:#8a8a94}
+  </style></head><body>
+  <h1>Platestep store frames: ${esc(meta.label)} (v${esc(meta.appVersion)})</h1>
+  <div class="meta">${esc(meta.line)}</div>
+  ${row('apple', 'App Store, iPhone 6.9": 1320×2868 PNG', 160)}
+  ${row('play', 'Google Play, phone: 1080×1920 PNG, no alpha', 160)}
+  </body></html>`;
+  const browser = await chromium.launch({ args: ['--force-color-profile=srgb', '--font-render-hinting=none', '--disable-lcd-text'] });
+  try{
+    const context = await browser.newContext({ viewport: { width: SHEET_WIDTH + 260, height: 900 }, deviceScaleFactor: 1 });
+    await context.route('**/*', r => (r.request().url().startsWith('data:') ? r.continue() : r.abort()));
+    const page = await context.newPage();
+    await page.setContent(html, { waitUntil: 'load' });
+    await page.evaluate(() => Promise.all([...document.images].map(i => i.decode())));
+    await page.screenshot({ path: file, fullPage: true });
+  }finally{ await browser.close(); }
+  return fs.statSync(file).size;
+}
+
+async function mainStore(args, fixtures){
+  if(args.base) throw new Error('--store does not diff; shoot each side with --store [--rev <commit>] and compare the folders');
+  let states = buildStoreStates();
+  if(args.only){
+    const unknown = args.only.filter(id => !states.some(s => s.id === id));
+    if(unknown.length) throw new Error(`unknown store frame id(s): ${unknown.join(', ')}`);
+    states = states.filter(s => args.only.includes(s.id));
+  }
+  const root = path.join(args.out, 'store');
+  fs.mkdirSync(root, { recursive: true });
+  const head = args.rev ? snapshot(args.rev) : { dir: ROOT, label: 'worktree', temp: false };
+  try{
+    console.log(`store mode: shooting ${head.label} (${states.length} frames, ${STORE.viewport.width}x${STORE.viewport.height} @${STORE.dpr})`);
+    const H = await shootAll({ dir: head.dir, label: 'capture' }, states, root, fixtures);
+    const blocked = H.run.blocked.length;
+    const made = await composeStore(states, H.outDir, root, fontFace(head.dir));
+    const line = `${states.length} frames · frozen ${H.run.frozenNow} (${TIMEZONE}) · Chromium · ${STORE.viewport.width}×${STORE.viewport.height} @${STORE.dpr}`
+      + ` · ${head.label}${head.sha ? ' ' + head.sha.slice(0, 8) : ''} · outbound requests blocked: ${blocked}`;
+    const sheet = path.join(root, 'contact-sheet.png');
+    const bytes = await storeContactSheet(states, made, sheet, { label: head.label, appVersion: H.run.appVersion, line });
+    fs.writeFileSync(path.join(root, 'store.json'), JSON.stringify({
+      label: head.label, appVersion: H.run.appVersion,
+      frames: states.map((s, i) => ({ n: s.n, id: s.id, caption: s.caption, apple: path.relative(root, made.apple[i].file), play: path.relative(root, made.play[i].file) })),
+    }, null, 1) + '\n');
+
+    console.log('');
+    console.log(`captures:      ${states.length} -> ${path.relative(process.cwd(), H.outDir)}/ (1320x2868)`);
+    console.log(`apple:         ${made.apple.length} -> ${path.relative(process.cwd(), path.join(root, 'apple'))}/ (1320x2868)`);
+    console.log(`play:          ${made.play.length} -> ${path.relative(process.cwd(), path.join(root, 'play'))}/ (1080x1920, no alpha)`);
+    console.log(`local requests: ${H.run.localRequests}`);
+    console.log(`outbound requests blocked: ${blocked}`);
+    for(const b of H.run.blocked) console.log(`  BLOCKED ${b.state}: ${b.url}`);
+    if(H.run.pageErrors.length){ console.log(`page errors: ${H.run.pageErrors.length}`); for(const e of H.run.pageErrors) console.log(`  ${e.state}: ${e.message}`); }
+    console.log(`contact sheet: ${path.relative(process.cwd(), sheet)} (${(bytes / 1e6).toFixed(2)} MB)`);
+    if(blocked > 0) process.exitCode = 2;
+  }finally{
+    if(head.temp) fs.rmSync(head.dir, { recursive: true, force: true });
+  }
+}
+
 // ---- Main ----------------------------------------------------------------------
 async function main(){
   const args = parseArgs(process.argv.slice(2));
+  const readFixture = name => JSON.parse(fs.readFileSync(path.join(HERE, name), 'utf8'));
+  if(args.store){
+    return mainStore(args, {
+      default: readFixture('fixture.json'),
+      store: readFixture('fixture-store.json'),
+      'store-deload': readFixture('fixture-store-deload.json'),
+    });
+  }
   let states = buildStates();
   if(args.only){
     const unknown = args.only.filter(id => !states.some(s => s.id === id));
     if(unknown.length) throw new Error(`unknown state id(s): ${unknown.join(', ')}`);
     states = states.filter(s => args.only.includes(s.id));
   }
-  const fixture = JSON.parse(fs.readFileSync(path.join(HERE, 'fixture.json'), 'utf8'));
+  const fixtures = { default: readFixture('fixture.json') };
   fs.mkdirSync(args.out, { recursive: true });
 
   const head = args.rev ? snapshot(args.rev) : { dir: ROOT, label: 'worktree', temp: false };
@@ -376,11 +644,11 @@ async function main(){
   if(base) base.label = `base-${base.label}`;
   try{
     console.log(`shooting ${head.label} (${states.length} states)`);
-    const H = await shootAll(head, states, args.out, fixture);
+    const H = await shootAll(head, states, args.out, fixtures);
     let B = null, report = null;
     if(base){
       console.log(`shooting base ${base.label}`);
-      B = await shootAll(base, states, args.out, fixture);
+      B = await shootAll(base, states, args.out, fixtures);
       report = await diffStates(states, H.outDir, B.outDir, path.join(args.out, 'diff'));
     }
 
