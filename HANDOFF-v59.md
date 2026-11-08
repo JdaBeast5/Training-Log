@@ -993,3 +993,13 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
 - **Test:** `test-region-override.js` grows from 7 to 11 cases. Sabotage-checked. Live render: Core d1 with Lower Back resting shows 4 red boxes plus Bird Dog in blue, and the heads-up says 4.
 - **Unverified:** not tried on an iPhone.
 - **Next:** BL-04, now ready, adds per-exercise substitutes, including for the carries and hangs, and replaces the v3.522 no-swap guard.
+
+## Addendum 49: BL-04 (v3.524, PR #81, 2026-11-08)
+- **What:** `EXERCISE_SUBSTITUTE_OVERRIDE` lists the same 18 exercises as `EXERCISE_REGION_OVERRIDE` (a test enforces it). Values are `SUB_*` constants with `{name, why, for}`, or `null`.
+- **`suggestSubstitute(category, name, hitRegions)`:**
+  - The exercise's own swap comes first, and only if every hit area is in its `for` list. Otherwise the result is `null`.
+  - The category map applies only to exercises outside the override.
+  - The caution and the AI Tailor both pass the hit areas.
+- **Test:** `test-region-override.js` grows from 11 to 17 cases. Sabotage-checked. Live render confirmed the area-aware swaps.
+- **Unverified:** not tried on an iPhone.
+- **Open question:** Goblet March is offered only for a resting shoulder.

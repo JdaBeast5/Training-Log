@@ -16,6 +16,10 @@ const indexOnly = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 const { test, run } = makeRunner('test-region-override.js');
 
 const chunks = [
+  extractConst(src, 'SUBSTITUTION_MAP'),
+  ...['SUB_CALF_HOLD','SUB_FEET_ON_HANG','SUB_NECK_ISO','SUB_GOBLET_MARCH','SUB_LYING_RAISE'].map(n => extractConst(src, n)),
+  extractConst(src, 'EXERCISE_SUBSTITUTE_OVERRIDE'),
+  extractFunction(src, 'suggestSubstitute'),
   extractConst(src, 'REGION_RELIEF'),
   extractFunction(src, 'isReliefForAllHits'),
   extractConst(src, 'exerciseInfo'),
@@ -84,14 +88,6 @@ test('criterion 6: one CATEGORY_TO_REGIONS[ read (in the helper); regionsForExer
   }
 });
 
-test('review: in renderWorkout, every category swap lookup skips overridden exercises (no wrong-body-part swap before BL-04)', (assert)=>{
-  const body = stripLineComments(extractFunction(src, 'renderWorkout'));
-  const swaps = (body.match(/\bsuggestSubstitute\s*\(/g) || []).length;
-  const guarded = (body.match(/EXERCISE_REGION_OVERRIDE\[ex\.name\]\s*\?\s*null\s*:\s*suggestSubstitute\s*\(/g) || []).length;
-  assert.strictEqual(swaps, 2, 'the caution swap and the AI-tailor prompt');
-  assert.strictEqual(guarded, swaps);
-});
-
 // ---- v3.523 (BL-70): wider overrides, more twins, relief-aware cautions.
 test('BL-70 criterion 1: Sled Push gains Ankle/Foot and Shins; Wall Balls gains Shoulder, Elbow/Wrist and Ankle/Foot', (assert)=>{
   const push = regionsOf('Sled Push'), balls = regionsOf('Wall Balls');
@@ -131,6 +127,71 @@ test('BL-70 criterion 5: the row caution and the heads-up each call isReliefForA
   assert.ok(reliefBranch.includes("gentle relief moves for ${areaWord}: keep it light and pain-free"), 'relief text');
   assert.ok(reliefBranch.includes('ex-caution-relief') && reliefBranch.includes("icon('info')"), 'distinct, non-warning look');
   assert.ok(!/suggestSubstitute|consider skipping|ex-ai-tailor-btn|hitRegionsForRow\s*=/.test(reliefBranch), 'no swap, no "consider skipping", no AI tailor');
+});
+
+// ---- v3.524 (BL-04): exercise-specific substitutes.
+const subOf = (cat, name) => sbx(`__capture.push(suggestSubstitute(${JSON.stringify(cat)}, ${JSON.stringify(name)}));`);
+
+test('BL-04 criterion 1: Eccentric Heel Drop gets the isometric calf hold, with its own reason', (assert)=>{
+  assert.deepStrictEqual(subOf('arms', 'Eccentric Heel Drop'), {name: 'Isometric Calf Hold (wall-supported)', why: 'keeps the tendon loaded without movement'});
+  for(const n of ['Calf Raise', 'Standing Calf Raise']) assert.strictEqual(subOf('arms', n).name, 'Isometric Calf Hold (wall-supported)', n);
+});
+
+test('BL-04 criterion 2: hangboard → Feet-on Hang; Neck Bridges → Neck Isometric; carries → Goblet March; hanging raises → Lying Leg Raise', (assert)=>{
+  assert.strictEqual(subOf('pull', 'Hangboard Repeaters').name, 'Feet-on Hang (open hand)');
+  assert.strictEqual(subOf('core', 'Neck Bridges').name, 'Neck Isometric (hand resistance)');
+  for(const n of ["Farmer's Carry", 'Farmers Carry (Heavy)', 'Suitcase Carry']) assert.strictEqual(subOf('core', n).name, 'Goblet March (light, close grip)', n);
+  for(const n of ['Hanging Leg Raise', 'Toes-to-Bar']) assert.strictEqual(subOf('core', n).name, 'Lying Leg Raise (floor)', n);
+});
+
+test('BL-04 criterion 3: an ordinary exercise keeps its category swap exactly as before', (assert)=>{
+  assert.deepStrictEqual(subOf('arms', 'DB Curl'), {name: 'Wrist Flexor Stretch', why: 'lighter loading for a sensitive elbow or wrist'});
+  assert.deepStrictEqual(subOf('squat', 'Back Squat'), {name: 'Wall Sit', why: 'reduces knee shear force and spinal loading'});
+  assert.strictEqual(subOf('not-a-category', 'Mystery Move'), null);
+});
+
+test('BL-04 criterion 4: the substitute map and the region map list exactly the same exercises (both directions), all real', (assert)=>{
+  const r = sbx(`__capture.push({sub: Object.keys(EXERCISE_SUBSTITUTE_OVERRIDE).sort(), reg: Object.keys(EXERCISE_REGION_OVERRIDE).sort(),
+    unknown: Object.keys(EXERCISE_SUBSTITUTE_OVERRIDE).filter(k => !exerciseInfo[k])});`);
+  assert.deepStrictEqual(r.sub, r.reg);
+  assert.deepStrictEqual(r.unknown, []);
+});
+
+test('BL-04 review: an exercise-specific swap is offered only when it fits EVERY resting area hit', (assert)=>{
+  const r = sbx(`__capture.push({
+    hangFingers: suggestSubstitute('pull', 'Hangboard Repeaters', ['Hands/Fingers']),
+    hangShoulder: suggestSubstitute('pull', 'Hangboard Repeaters', ['Shoulder']),
+    raiseGrip: suggestSubstitute('core', 'Hanging Leg Raise', ['Hands/Fingers','Shoulder']),
+    raiseBack: suggestSubstitute('core', 'Hanging Leg Raise', ['Lower Back']),
+    carryGrip: suggestSubstitute('core', "Farmer's Carry", ['Hands/Fingers']),
+    carryShoulder: suggestSubstitute('core', "Farmer's Carry", ['Shoulder']),
+    calfAnkle: suggestSubstitute('arms', 'Calf Raise', ['Ankle/Foot','Shins']),
+    squatKnee: suggestSubstitute('squat', 'Back Squat', ['Knee']),
+  });`);
+  assert.strictEqual(r.hangFingers.name, 'Feet-on Hang (open hand)');
+  assert.strictEqual(r.hangShoulder, null, 'a feet-on hang still hangs from the shoulder');
+  assert.strictEqual(r.raiseGrip.name, 'Lying Leg Raise (floor)');
+  assert.strictEqual(r.raiseBack, null, 'a floor leg raise loads the lower back');
+  assert.strictEqual(r.carryGrip, null, 'a goblet march still grips a load');
+  assert.strictEqual(r.carryShoulder.name, 'Goblet March (light, close grip)');
+  assert.strictEqual(r.calfAnkle.name, 'Isometric Calf Hold (wall-supported)');
+  assert.strictEqual(r.squatKnee.name, 'Wall Sit', 'category swaps ignore the hit list');
+});
+
+test('BL-04 criterion 5: both suggestSubstitute( call sites pass ex.name, with no leftover v3.522 guard', (assert)=>{
+  const code = stripLineComments(indexOnly);
+  const calls = [...code.matchAll(/\bsuggestSubstitute\s*\(([^)]*)\)/g)].filter(m => !/function\s+$/.test(code.slice(Math.max(0, m.index - 20), m.index)));
+  assert.strictEqual(calls.length, 2);
+  const third = calls.map(m => m[1].split(',').map(x => x.trim()));
+  for(const a of third) assert.strictEqual(a[1], 'ex.name');
+  assert.deepStrictEqual(third.map(a => a[2]).sort(), ['hitRegions', 'piece.hitRegionsForRow'], 'both pass the resting areas hit');
+  assert.ok(!/EXERCISE_REGION_OVERRIDE\[ex\.name\]\s*\?\s*null/.test(code), 'the call-site guard is gone (suggestSubstitute decides)');
+});
+
+test('BL-04 criterion 6: Sled Push, Sled Pull, Wall Balls and the other overridden exercises without their own swap get none, never a category swap', (assert)=>{
+  for(const [cat, n] of [['cardio', 'Sled Push'], ['cardio', 'Sled Pull'], ['cardio', 'Wall Balls'], ['hinge', 'Leg Curl'], ['hinge', 'Nordic Curl'], ['core', 'Tibialis Raise']]){
+    assert.strictEqual(subOf(cat, n), null, n);
+  }
 });
 
 run();
