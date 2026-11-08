@@ -19,6 +19,13 @@
 
 BL-39 and BL-40 each carry one non-blocking owner option; the default is the approved scope.
 
+**Owner's answers on PR #86 (2026-11-08, "1 yes, 2b, 3b"), applied:**
+- **New items:** BL-72 (stable history keys for custom, body-goal and bonus exercises, with a migration) and BL-73 (a stored substitute applies only if it's listed for that exercise), at roadmap slots 8a and 8b. BL-36 to BL-40 are now `ready (after BL-72)`.
+- **BL-39 and BL-40:** each gains a relocation migration step (option (b)).
+- **BL-40:** the wall squat runs on d2, d5 and d6 (option (b)).
+- **Found while specifying BL-72:** built-in rows are keyed by render index too, so overrides that remove or reorder exercises, and trimmed warm-up units, shift history. That's BL-74, `needs-owner`.
+- **BL-52's line reference** is fixed (7625 → 7632).
+
 Owner: project-manager. Written 2026-11-07 against **v3.514**. The baseline was green: `check.sh` passed and 198/198 `test-*.js` suites passed. Line numbers are `index.html` at v3.514 unless a file is named. **Every build run re-greps them before editing:** each shipped item shifts the lines below it.
 
 **Rules for every item** (CLAUDE.md, `planning/toolchain.md` §5–6):
@@ -259,6 +266,112 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (`SUB_*`, `EXERCISE_SUBSTITUTE_OVERRIDE`, `suggestSubstitute`, `WHATS_NEW`, `APP_VERSION`), `sw.js`, `test-region-override.js`.
 - **Risk:** the suitcase carry's anti-lean intent has no hands-free equivalent (accepted: swaps are temporary). A heavy vest loads the traps, so the name says light-ish and offers a backpack. [PRAC]
 - **Status:** ready (owner yes 2026-11-08: "the carry swap you recommend" = option (a), the exercise auditor's recommendation). Slot 4a, before BL-05.
+
+### BL-72: Stable history keys for custom, body-goal and bonus exercises
+- **Why:**
+  - `renderWorkout` (28700) builds `[...day.exercises, ...focus, ...custom]` (28778–28779), and `applyAccumulationAccessory` (26895) appends the bonus exercise after them on peak weeks. Every row's history key is `exKey(program, dayId, <render index>)` (27054).
+    - Reads: `getExLog`, 28860.
+    - Fallback lookup: 28884.
+    - Writes: `saveExSet` 28446 and the set-row handlers at 32029, 32062, 32077, 32116, 32161 and 32212.
+    - The substitute picker: 27274, 27300–27302.
+  - So a custom, body-goal or bonus exercise's history key depends on how many exercises come before it. It moves, and its earlier sets stop showing on its row, whenever:
+    - a built-in exercise is added to the day (BL-36 to BL-40 all do this);
+    - the body goal changes, so the number of focus exercises changes;
+    - a custom exercise is added or removed ahead of the bonus exercise.
+  - The data isn't lost; it is no longer read by its own row. Worse, the slot it sits in may later belong to a new built-in exercise, which then reads it.
+  - Owner, 2026-11-08: "1 yes": protect this history before any exercise is added to a day.
+- **Change:**
+  - **One resolver** beside `exKey` (27054): `slotIdOf(ex, i)`.
+    - `ex.isCustom` → `'c-' + slugifyExerciseName(ex.name)` (27041).
+    - `ex.isBodyGoalFocus` → `'f-' + slug`.
+    - `ex.accumulatedAccessory` → `'a-' + slug`.
+    - Otherwise `i`, unchanged.
+    - The prefixes keep a custom "Cable Fly" and the bonus Cable Fly apart. `exKey` and `subSelectionKey` (27066) already template `idx` as a string, so they take the result unchanged, giving keys like `ex:strength:d1:c-dips` and `ex:strength:d1:a-cable-fly:sub:<slug>`.
+  - **Every call site that passes a row's render index passes `slotIdOf(ex, i)` instead.** Classify each `exKey`, `getExLog` and `saveExSet` call by reading it: 14580, 27274, 27300–27302, 27706, 28860, 28884, 31621, 31899, 32029, 32062, 32077, 32116, 32128, 32161, 32212, 32337, 32341.
+    - Inside `saveExSet` and the record helpers (28370–28497), `idx` arrives already resolved, so they don't change.
+    - The rows carry `data-ex-idx` (29148, 29182, 29261, 29298, 29306). Keep that as the render index for DOM lookup, and resolve the slot id from `renderExercises[exIdx]` at the call.
+  - **Migration:** `SCHEMA_VERSION` (7632) 8 → **9**. A new `if(version < 9)` block after the v8 comment (9409–9414), in its own `try{}catch(e){}`, with a backup export prompted first (as BL-52).
+    - **Days covered:** every day that can have trailing rows:
+      - each stored `custom-ex:` key (`customExStorageKey`, 32552; it carries the style for combat, cycling, watersports and medical);
+      - every day of a program in `FOCUS_ELIGIBLE_PROGRAMS` (32539);
+      - every day in `ACCUMULATION_ACCESSORY_POOL` (26868).
+    - **Day length `L`:** the number of authored exercises the day has **under the layout active at migration time**: the stored `'days-per-week-pref'` (25995) via `PROGRAM_DAY_COUNT_VARIANTS`, and the stored style for container programs. Use the current day length, so nothing is lost (owner).
+    - **Trailing order:** `[...focus, ...custom, accessory]` at `L, L+1, …`, the order `renderWorkout` uses.
+      - Focus: the real `getBodyGoalFocusExercises` (32570), with the profile read from `'user-profile'` in its own `try` (as 9316–9320).
+      - Custom: that key's stored list.
+      - Accessory: the pool entry, if any.
+    - **Move:** for each trailing name `k` at position `L+k`:
+      - move the log at the positional key to `slotIdOf`'s stable key;
+      - move its `:sub:<slug>` siblings to the stable key with the same suffix;
+      - move its `exercise-sub:` selection.
+    - **Mechanics (idempotent, crash-safe):**
+      - Read the source. If it's empty, skip.
+      - Merge into the target, adding only entries whose date isn't already there, and sort by date. Write the target, **then** delete the source.
+      - A re-run after a crash between the two writes merges nothing new and finishes the delete. A clean re-run finds no sources.
+      - Positions below `L` (built-in rows) are never read or written.
+    - **Not moved, by design:**
+      - positional logs from a day count or style that isn't active at migration time (they can't be attributed; they stay, unread by these rows, as today);
+      - weekly check-box state;
+      - overrides (`ex-override:`, 46888; already name-guarded by `applyExOverrides`, 46914).
+  - **Not in scope (flagged):** `parseExKey` (41139) returns `null` for any index past the authored day, so custom and bonus logs never reached `readExCorpus` (41213), History or PRs. That's true today, before this item, and stays true here. A follow-up could teach `parseExKey` the `c-`, `f-` and `a-` ids.
+  - `WHATS_NEW`: 'Your own exercises keep their history'. Bullets:
+    - 'Custom exercises, goal-focus extras and bonus exercises now keep their logged sets even when a day's built-in exercises change.'
+    - 'Existing sets are moved to the new storage once, on this update.'
+- **Acceptance criteria:**
+  1. **Real `slotIdOf`:** a custom 'Dips' → `'c-dips'`, a focus exercise → `'f-…'`, the bonus Cable Fly → `'a-cable-fly'`, and a built-in at render index 3 → `3`.
+  2. **Real-call count** (`renderWorkout` can't be driven in jsdom): in the extracted `renderWorkout` and `wireSetsBlock` sources, with line comments stripped, every `exKey(`, `getExLog(` and `saveExSet(` call takes its index from `slotIdOf(`. Assert the exact call count, so a new unresolved call fails.
+  3. **Reads:** the real `getExLog` for a custom 'Dips' row on strength d1 reads `ex:strength:d1:c-dips`.
+  4. **Migration** (real `runMigrations` over a fixture store; strength, pref unset, d1 `L = 6`, profile body goal giving one focus exercise, custom `[Dips]`):
+     - (a) logs at `d1:6`, `d1:7` and `d1:8` move to the `f-`, `c-dips` and `a-cable-fly` keys, and a `d1:8:sub:<slug>` log and its selection move with them;
+     - (b) `d1:0`–`d1:5` are byte-identical;
+     - (c) a second run is a no-op;
+     - (d) crash simulation (target written, source still present): the run merges without duplicates and deletes the source;
+     - (e) with `'days-per-week-pref'` = 3, `L` comes from the 3-day variant;
+     - (f) a `custom-ex:medical:hypertension:d5` list uses that style's d5 length.
+  5. **The point of it:** after migration, with a 7th built-in exercise added to the fixture's strength d1, the real `getExLog` for the Dips row still returns its moved history.
+- **Test plan:** new `test-stable-trailing-keys.js`, with the migration run as `test-custom-exercise-style-scoping.js` does (lines 32, 104–110).
+  - Sabotage 1: make `slotIdOf` return `i` for custom rows → criteria 3 and 5 fail.
+  - Sabotage 2: delete the source before writing the target → 4(d) loses entries.
+- **Files:**
+  - `index.html`: 7632, 9111–9425, 27041–27070, 27202, 27274–27302, 28700–28900, 31621, 31899, 32029–32341, `APP_VERSION` (7625), `WHATS_NEW` (7643).
+  - `sw.js`, the new test.
+  - **Guards (run; re-pin only if one breaks):**
+    - `test-exercise-substitution.js` and `test-watersports-program.js` (they call the key functions);
+    - the seven `wireSetsBlock` suites (`test-auto-check-sets.js`, `test-set-next-button.js`, `test-partial-set-reactions.js`, `test-fallback-entry-consolidation.js`, `test-backdating-rest-timer-suppression.js`, `test-superset-rest-timer-suppression.js`, `test-superset-shared-sets-block-wiring.js`);
+    - `test-accumulation-accessory-add.js`, `test-custom-exercise-style-scoping.js`, `test-import-backup-full-replace.js`, `test-cross-program-history.js`, `test-next-set-recommendation.js`, `test-set-chips.js`.
+- **Risk:**
+  - A stored-data migration on the history store.
+  - If the body goal or the custom list changed after a set was logged, that set sits at a position the current order doesn't predict, and may move to a neighbour's stable key. Rare; it's the same position the app reads today.
+  - Every later item that bumps `SCHEMA_VERSION` moves up one (expected: BL-52 10, BL-37 11, BL-38 12, BL-39 13, BL-40 14).
+- **Tools:** `code-review` at high (history keys and migration).
+- **Status:** ready (owner yes 2026-11-08: "1 yes"; this changes stored data, and the owner approved it explicitly). Roadmap slot 8a, before BL-36.
+
+### BL-73: A stored substitute only applies if it's a listed substitute for that exercise
+- **Why:** `applyExerciseSubs` (27085) applies any name stored at a slot's selection key (27091) whenever the slot's current exercise is in `EXERCISE_SUBS`. It never checks that the stored name is one of that exercise's alternatives. If a slot's exercise changes (BL-35's rename, BL-37 and BL-38's rebuilds, or any future edit), an old choice, such as 'DB Shoulder Press' picked for Overhead Press, silently replaces the new exercise. The picker (27270–27302) only ever stores `EXERCISE_SUBS` alternatives, so a valid choice always passes the check. Owner, 2026-11-08: cover this ("1 yes").
+- **Change:** at 27094 (the `if(subName && subName !== ex.name)` test), apply only when `(EXERCISE_SUBS[ex.name] || []).includes(subName)`. This is read-time only; nothing stored is deleted, so if the exercise ever returns, the old choice applies again.
+- **Acceptance criteria** (real `applyExerciseSubs` with the real `EXERCISE_SUBS`):
+  1. A stored 'Front Squat' at a slot whose exercise is 'Bench Press' is **not** applied (the name stays 'Bench Press', with no `__isSubbed`).
+  2. A stored 'Incline DB Press' for 'Bench Press' **is** applied, exactly as at v3.524.
+  3. The existing cases in `test-exercise-substitution.js` (custom and focus rows skipped; not-in-map skipped) are unchanged.
+- **Test plan:** extend `test-exercise-substitution.js`. Sabotage: remove the `includes` check → criterion 1 fails.
+- **Files:** `index.html` (27085–27100, `APP_VERSION`, `WHATS_NEW`), `sw.js`, `test-exercise-substitution.js`.
+- **Risk:** if a later item edits `EXERCISE_SUBS` (BL-60), a previously chosen substitute that's no longer listed stops applying. The row shows the default exercise, and the substitute's history stays under its `:sub:` key. That's intended: the list was changed for a reason.
+- **Status:** ready (owner yes 2026-11-08: "1 yes", problem 2). Roadmap slot 8b, right after BL-72.
+
+### BL-74: History keys follow the authored position, not the rendered one (found while specifying BL-72)
+- **Why:**
+  - Built-in rows are keyed by **render** index too (28860).
+  - The program builder's overrides can **remove** or **reorder** a day's exercises (`applyExOverrides`, 46914–46947). Session-length trimming can drop a whole warm-up or cool-down unit from anywhere in the day (`applySessionLengthLimit`, 26915; pass 2).
+  - Either way, every later exercise reads and writes the next exercise's history. For example, removing exercise 1 makes exercise 2 log onto exercise 1's key.
+  - `__srcIndex` (28779) already records each row's authored position. Only the exercise editor uses it (29529).
+- **Change:** `slotIdOf` (BL-72) returns `ex.__srcIndex` for built-in rows instead of `i`. That's one line.
+- **Why needs-owner:** anyone who has already removed or reordered an exercise, or trains with a shortened session, has sets stored under the shifted keys. Switching makes the right history show from now on, but past sets logged while shifted stay under the wrong exercise's key. A migration can't tell them apart before BL-51's name stamps exist.
+- **Options:**
+  - (a) Switch now; past shifted sets stay where they are (BL-51's name filter later hides them from suggestions).
+  - (b) Switch after BL-51 has stamped names for a few weeks, and add a relocation step (BL-37's helper) for stamped entries.
+  - The auditor recommends (a): the bug writes new wrong data every session until it's fixed.
+- **Acceptance criteria (either option):** with an override removing d1's exercise 1, the real `getExLog` for exercise 2 reads `…:d1:2`, not `…:d1:1`. With a trimmed warm-up unit, the main exercise keeps its authored key.
+- **Status:** needs-owner.
 
 ### BL-05: Depth Jump prerequisite and box height in the cue (SAF-5, part 1)
 - **Why:** Depth Jump appears with no box height or landing prerequisite, in **20 slots** at v3.518 (counted by walking `programs`, every `*_STYLES` style and every `PROGRAM_DAY_COUNT_VARIANTS` day):
@@ -856,7 +969,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - Appended slot indexes are not unique across day-count variants (`exKey` has no day-count segment), so a person who later switches day count may see another exercise's history at that index. That's existing behaviour for every appended slot, not new here.
 - **Alignment note (2026-11-07):** the prerequisite *rule* now lives in BL-05's Depth Jump cue ("first 4 weeks: do Drop Landing 3×5 instead"), because an appended drill comes **after** the depth jumps, the wrong order for a prerequisite (exercise-auditor N5). This item only makes the drill loggable.
 - **Spec refresh (2026-11-08):** owner decision D4 (2026-11-07) approved this item, so it's `ready` at roadmap slot 9. Added: the library entry, the `jump` category, the `Files:` re-pin and criterion 3. **Open for the owner, not blocking:** the item names only the base days, so people on another day count get the cue but no loggable drill. Covering the 10 variant days would be a follow-up item.
-- **Status:** ready
+- **Status:** ready (after BL-72) (owner 2026-11-08: BL-72 protects custom, body-goal and bonus history before any exercise is added to a day).
 
 ### BL-37: Rebuild the low day-count variants (H-3)
 - **Why:**
@@ -905,21 +1018,21 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
     - **Safety:** add `EXERCISE_REGION_OVERRIDE` (44107) `'Seated Leg Curl'` with the same regions as `'Leg Curl'` (`['Knee','Hip']`), and `EXERCISE_SUBSTITUTE_OVERRIDE` (44184) `'Seated Leg Curl': null`, as `'Leg Curl'` has. Without them, a resting knee isn't flagged.
     - `EXERCISE_MUSCLES` (BL-20): `p:['hamstrings']`.
     - Why a new name rather than a second "Leg Curl": seated beats lying for hamstring growth because of the stretched hip position [LEN], and the base Bodybuilding d5 (BL-38) already has a "Leg Curl".
-  - **Migration** (owner D4: one migration per version). `SCHEMA_VERSION` (7632) goes up by one from whatever BL-52 shipped; expected 10. The new `if(version < N)` block goes after the v8 comment (9409–9414) and before the final write (9416–9424), wrapped in `try{}catch(e){}` like its siblings.
+  - **Migration** (owner D4: one migration per version). `SCHEMA_VERSION` (7632) goes up by one from whatever BL-52 shipped; expected 11 (BL-72 9, BL-52 10). The new `if(version < N)` block goes after the v8 comment (9409–9414) and before the final write (9416–9424), wrapped in `try{}catch(e){}` like its siblings.
     - **Scope:** only BL-52's variant-scoped keys for the four changed variants: Bodybuilding v2, v3 and v4 and Powerlifting v3. Build every key with BL-52's real key function (`exKeyForLocation`, 27144, with BL-52's variant field), never a hand-written string, so the block follows whatever shape BL-52 shipped. Base-program keys, legacy (pre-BL-52) keys and every other variant are never read or written.
-    - **Expected names per day:** `[...new built-ins, ...body-goal focus, ...custom, accumulation accessory]`. This is the same order `renderWorkout` builds (28778) and keys by render index (28857).
+    - **Expected names per day:** the new built-ins by index, plus the day's body-goal focus, custom and bonus exercises at their BL-72 stable keys (`slotIdOf`: `f-`, `c-` and `a-<slug>`).
       - Focus: the real `getBodyGoalFocusExercises` (32570) with the new day object. Read the profile from `'user-profile'` in its own `try`, as the v5 block does (9316–9320).
       - Custom: `getCustomExercises` (32559).
       - Accessory: `ACCUMULATION_ACCESSORY_POOL[program][dayId]` (26868).
     - **Rule per stored entry**, applied to plain and `:sub:` keys alike. Read the whole scope first, then write.
       1. No `n` (BL-51's name stamp) → stays. It can't be attributed.
       2. `n` equals the expected name at its own index → stays.
-      3. Else, if a slot in the same variant expects `n` → move it there. Prefer the same day, then the first match in d1…d7 order. Move to the target's plain key.
+      3. Else, if a slot in the same variant expects `n` → move it there. Prefer the same day, then the first match in d1…d7 order. Move to the target's plain key, or to its stable key for a custom, focus or bonus name.
       4. Else → stays. BL-51's `entriesForExercise` ignores it for suggestions, and History lists it under `n`.
       - **Move mechanics:** append to the target, sort by date, then remove from the source.
         - If the target already holds an entry with the same date and the same `n`, the move already happened (a re-run after a crash): just remove it from the source.
         - Same date, different `n` → the entry stays, so `saveExSet`'s date lookup never sees two entries for one date.
-      - Rule 3 also carries custom, focus and accessory history past the longer days: a custom exercise at old index 4 on Bodybuilding 3-day d1 moves to index 6.
+      - After BL-72, nothing new lands at positions past the built-ins. Rule 3's stable-key targets only sweep strays: name-stamped custom, focus or bonus entries that BL-72 couldn't attribute (logged under another day count).
       - The block is idempotent: every moved entry lands where rule 2 keeps it.
     - **Substitute selections:** on each changed day, delete the `subSelectionKey` (27066, BL-52 shape) at every index whose authored name changed, using the frozen old layout below. A stale selection would otherwise swap the new exercise: `applyExerciseSubs` (27085) applies any stored name without checking it against `EXERCISE_SUBS`. The `:sub:` logs themselves are kept by the rule above.
     - **Frozen old layouts** (a literal in the block, because by then `PROGRAM_DAY_COUNT_VARIANTS` already holds the new ones):
@@ -949,7 +1062,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
      - (b) an `n:'Overhead Press'` entry at v3 d1 idx 1 stays;
      - (c) an entry without `n` anywhere in scope is byte-identical afterwards;
      - (d) base keys (`ex:bodybuilding:d1:0`) and v6 keys are byte-identical;
-     - (e) with `custom-ex:bodybuilding:d1 = [{name:'Dips'}]`, an `n:'Dips'` entry at v3 d1 idx 4 moves to idx 6;
+     - (e) with `custom-ex:bodybuilding:d1 = [{name:'Dips'}]`, a stray `n:'Dips'` entry at v3 d1 idx 4 moves to the BL-72 stable key `…:d1:c-dips`;
      - (f) a selection `'DB Shoulder Press'` at v3 d1 idx 1 is deleted, while `'Incline DB Press'` at v3 d1 idx 0 (unchanged Flat Bench Press) is kept;
      - (g) a same-date, different-`n` collision leaves the entry in place;
      - (h) running the block twice (with `meta:schemaVersion` reset between runs) leaves an identical store;
@@ -985,10 +1098,10 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Spec refresh (2026-11-08, against v3.524):**
   - Re-grepped; written out in full: exact layouts, the library entry and its region safety, and the migration designed on BL-52's variant keys.
   - Found in the refresh:
-    - `renderWorkout` keys custom, body-goal and bonus exercises by render index after the built-ins (28778, 28857), so a longer day moves their history unless the migration carries it (rule 3).
+    - `renderWorkout` keys custom, body-goal and bonus exercises by render index after the built-ins (28778, 28857), so a longer day moved their history. The owner approved BL-72 (2026-11-08) to fix that first.
     - A stored substitute selection applies to whatever now sits at its index (`applyExerciseSubs` 27085), so changed indexes clear theirs.
     - The audit's "Seated Leg Curl" didn't exist in the library.
-- **Status:** ready (after BL-52) (owner yes 2026-11-07, D4: before going public; one migration per version). Stays in the **Phase 3 hard gate**. It waits for BL-52's variant-scoped keys, because `exKey` (27054) has no day-count segment and its migration can't otherwise tell which stored logs belong to these variants (the same gap that sent BL-35 back to the owner). Re-grep every line number before building. *Original question:* "Rewrite the 2-, 3- and 4-day Bodybuilding and 3-day Powerlifting variants (slot changes; past logs on those variants need a migration)?"
+- **Status:** ready (after BL-72, BL-52) (owner yes 2026-11-07, D4: before going public; one migration per version). Stays in the **Phase 3 hard gate**. It waits for BL-72 (stable keys for the custom, focus and bonus rows) and for BL-52's variant-scoped keys, because `exKey` (27054) has no day-count segment and its migration can't otherwise tell which stored logs belong to these variants (the same gap that sent BL-35 back to the owner). Re-grep every line number before building. *Original question:* "Rewrite the 2-, 3- and 4-day Bodybuilding and 3-day Powerlifting variants (slot changes; past logs on those variants need a migration)?"
 
 ### BL-38: Bodybuilding d6 becomes "Upper Detail", plus appends (H-4)
 - **Why:**
@@ -1015,7 +1128,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
     - `EXERCISE_MUSCLES` `p:['biceps']`.
   - **Rewrite the code comment above d6** (9877–9894): it argues for d6's Cable Row and Romanian Deadlift, which this removes. The new comment gives the H-4 reasoning and this item's measured result.
   - **Overview** (9830, on top of BL-12's text): 'an arms-and-detail day' → 'an upper-body detail day'. BL-12's frequency sentence → 'Chest, back, shoulders and arms are trained twice a week; legs get one big session.' It stays at most 70 words and 3–5 sentences.
-  - **Migration** (one version, one `SCHEMA_VERSION` step, expected 11 after BL-37's 10). Reuse BL-37's relocation helper and rules unchanged, with this scope and frozen old layout:
+  - **Migration** (one version, one `SCHEMA_VERSION` step, expected 12 after BL-37's 11). Reuse BL-37's relocation helper and rules unchanged, with this scope and frozen old layout:
     - **Scope:** base Bodybuilding plain keys for d4, d5 and d6 only (`exKeyForLocation` with no variant).
     - **Old layout:**
       - d4 [Overhead Press, Lateral Raise, Rear Delt Fly, Cable Crunch, Hanging Leg Raise];
@@ -1025,7 +1138,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
       - `n:'Incline Walk'` at d6 idx 4 → d6 idx 6;
       - `n:'Romanian Deadlift'` at d6 idx 1 → d5 idx 1;
       - `n` Cable Row, EZ Bar Curl or Rope Pushdown → stay;
-      - custom, focus or accessory entries move by name past the longer days (d4 +1, d5 +1, d6 +2);
+      - stray name-stamped custom, focus or bonus entries at the newly built-in indexes move to their BL-72 stable keys;
       - selections at d6 idx 0–6 are cleared where the name changed.
     - **Legacy (unstamped) entries never move.** They're the one case BL-37 doesn't have. Today BL-51 keeps unstamped entries for suggestions under the program's own day count, so legacy Cable Row sets at `ex:bodybuilding:d6:0` would feed the new Incline DB Press.
       - Fix it at read time, with no stored change: a constant `LEGACY_SLOT_NAMES` beside BL-51's `entriesForExercise`, mapping a plain slot key to the name its legacy entries belong to:
@@ -1076,7 +1189,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - Re-grepped and written out in full.
   - The "quads 2×/wk" criterion was wrong for H-4's own layout and is corrected (criterion 2).
   - Found in the refresh: "Incline DB Curl" wasn't in the library, and unstamped legacy entries on the replaced slots would feed the new exercises' suggestions under the default day count. That's fixed at read time, with no stored change.
-- **Status:** ready (after BL-52) (owner yes 2026-11-07, D4: before going public; one migration per version). Stays in the **Phase 3 hard gate**. Waits for BL-52 for the same reason as BL-37, and builds after BL-37, whose relocation helper it reuses. *Original question:* "Replace Bodybuilding Day 6 with the 'Upper Detail' day (slot changes, needs a migration)?"
+- **Status:** ready (after BL-72, BL-52) (owner yes 2026-11-07, D4: before going public; one migration per version). Stays in the **Phase 3 hard gate**. Waits for BL-72 and BL-52 for the same reasons as BL-37, and builds after BL-37, whose relocation helper it reuses. *Original question:* "Replace Bodybuilding Day 6 with the 'Upper Detail' day (slot changes, needs a migration)?"
 
 ### BL-39: Append-only accessory volume: Strength & Size, Powerbuilding, Powerlifting (H-6, M-9)
 - **Why:**
@@ -1127,17 +1240,18 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
     - `test-muscle-ledger.js`.
 - **Risk:**
   - About +5 min on each of the 6 days.
-  - **History of custom, body-goal and bonus exercises on these 6 days:** `renderWorkout` keys them after the built-ins by render index (28778, 28857). Each append moves them one index along, so their earlier sets stop showing on their rows. The data isn't lost, and History lists it by name.
+  - **History of custom, body-goal and bonus exercises:** BL-72 (built first) gives them stable keys, so these appends no longer move them.
   - Accumulation (+1–2 sets) also applies to the appends on peak weeks.
-- **Open for the owner (not blocking; the default is (a)):** the history move in Risk.
-  - (a) Ship as approved: no migration, and those exercises start a fresh visible history on these days.
-  - (b) Add one `SCHEMA_VERSION` step running BL-37's relocation helper over these 6 base days, so name-stamped sets move with their exercise. Unstamped sets don't move.
-  - The auditor recommends (b): it moves only what BL-51 stamped, and BL-37 has already built and tested the helper.
+- **Migration (owner 2026-11-08: option (b)):** one `SCHEMA_VERSION` step (expected 13) runs BL-37's relocation helper, unchanged, over these 6 base days, so name-stamped sets move with their exercise. Unstamped sets never move.
+  - **Scope:** the plain keys of strength d1, d4, d5; powerbuilding d4, d6; powerlifting d5.
+  - **What it moves in practice:** name-stamped entries sitting at the newly built-in indexes (listed under the read-time guard) whose `n` isn't the appended exercise. Each goes to the slot or BL-72 stable key that expects its `n`.
+  - **Dependency:** this needs BL-51's name stamps (`n`), and BL-37's helper.
+  - **Added criterion 5:** with a fixture of an `n:'Cable Fly'` entry at `ex:strength:d1:6` and an unstamped one, the real `runMigrations` moves the first to `ex:strength:d1:a-cable-fly`, leaves the second byte-identical, and is a no-op on a second run.
 - **Spec refresh (2026-11-08, against v3.524):**
   - Re-grepped.
   - Exact sets, durations and names (Pull-ups (or assisted), Seated Leg Curl).
-  - Found in the refresh: appending is **not** fully history-safe here. The audit's rule missed the custom, body-goal and bonus slots that sit after the built-ins. Hence the read-time guard, and option (b) for the owner.
-- **Status:** ready (owner yes 2026-11-07, D4: the appends). Slot 84. *Original question:* "Append these accessories to your lifting programs (about +6 min on the affected days)?"
+  - Found in the refresh: appending is **not** fully history-safe here. The audit's rule missed the custom, body-goal and bonus slots that sit after the built-ins. Hence the read-time guard; the owner chose BL-72 plus option (b) on 2026-11-08.
+- **Status:** ready (after BL-72; its migration step needs BL-51's name stamps and BL-37's helper) (owner yes 2026-11-07, D4: the appends; 2026-11-08: option (b)). Slot 84. *Original question:* "Append these accessories to your lifting programs (about +6 min on the affected days)?"
 
 ### BL-40: Hypertension isometrics and medical progression notes (M-7)
 - **Why:**
@@ -1146,7 +1260,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - **Achilles:** heavy slow resistance matched eccentric training for mid-portion Achilles tendinopathy at 12 and 52 weeks, with better compliance: 92% vs 78% [ACH15] (Beyer et al. 2015, AJSM 43:1704, doi 10.1177/0363546515584760).
   - The app's osteoporosis plan stays on bodyweight work and never names a path to load. Its own `editorNote` (`content-citations.js` 338) says so.
 - **Change:**
-  - **Hypertension d5** (`MEDICAL_STYLES.hypertension`, 11454; d5 at 11485–11493): append `{name:'Wall Squat (isometric)', sets:'4×2 min (rest 1-2 min)', noWeight:true}`. Duration '~30 min' → '~40 min'.
+  - **Hypertension d2, d5 and d6** (`MEDICAL_STYLES.hypertension`, 11454; d2 11465–11473, d5 11485–11493, d6 11494–11500): append `{name:'Wall Squat (isometric)', sets:'4×2 min (rest 1-2 min)', noWeight:true}` as the last exercise of each, so it runs three times a week, the trials' dose (owner 2026-11-08, option (b); Edwards et al. 2023). Durations: d2 and d5 '~30 min' → '~40 min'; d6 '~20 min' → '~30 min'.
   - **New library entry** `'Wall Squat (isometric)'` in `content-exercises.js`:
     - `category:'core'`: a static hold. It isn't a warm-up or compound pattern, so it gets no ramp and no accumulation, matching BL-59's rule for holds.
     - Cues, each 24 words or fewer:
@@ -1156,7 +1270,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
     - `EXERCISE_MOVE` `'Wall Squat (isometric)':'squat'`.
     - **Safety:** `EXERCISE_REGION_OVERRIDE` `['Knee','Hip']` and `EXERCISE_SUBSTITUTE_OVERRIDE` `null`. With `core` alone, a resting knee wouldn't be flagged.
   - **Text** (`USER_TEXT`, 11217; rendered by `buildBasisHtml`, 11360):
-    - hypertension `basis` (11298) + ' Isometric holds such as the wall squat lowered resting blood pressure the most in a 2023 analysis of 270 trials; those trials used about three sessions a week.'
+    - hypertension `basis` (11298) + ' Isometric holds such as the wall squat lowered resting blood pressure the most in a 2023 analysis of 270 trials. This plan uses them three times a week, as those trials did.'
     - osteoporosis `basis` (11302) + ' A 2018 trial (LIFTMOR) found closely supervised heavy lifting, 5 sets of 5 at about 80-85% of maximum, was safe and raised spine and hip bone density in women with low bone mass.'
     - osteoporosis `limits` (11303) + ' Heavier lifting can come later, but only with a physio or trained coach supervising; don't add load on your own.'
     - rehabAchilles `basis` (11318) + ' A 2015 trial found heavy slow calf raises (3 seconds up, 3 down, 3 times a week, building from 15 reps toward 6 as the weight rises) worked as well as heel drops, and people stuck with them better. Ask your PT whether that suits you.'
@@ -1166,12 +1280,13 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
     - osteoporosis (338) + `{text:'Watson et al. · J Bone Miner Res, 2018', doi:'10.1002/jbmr.3284'}`;
     - rehabAchilles (394) + `{text:'Beyer et al. · Am J Sports Med, 2015', doi:'10.1177/0363546515584760'}`.
   - **No auto-progression:** BL-01's gate (`VOLUME_MODIFIER_PROGRAMS`) and BL-02's clinical caps already exclude medical styles. Nothing here adds load.
-  - **Read-time guard:** extend `LEGACY_SLOT_NAMES` with `'ex:medical:hypertension:d5:3': null`. Index 3 held only custom exercises until now.
+  - **Read-time guard:** extend `LEGACY_SLOT_NAMES` with `null` for `'ex:medical:hypertension:d2:3'`, `'…:d5:3'` and `'…:d6:2'`. Those indexes held only custom exercises until now.
+  - **Migration (owner 2026-11-08: option (b)):** one `SCHEMA_VERSION` step (expected 14) runs BL-37's relocation helper over hypertension d2, d5 and d6 (plain medical-style keys), so name-stamped sets at those three indexes move to their custom exercise's BL-72 stable key. Unstamped sets never move. It needs BL-51's name stamps.
   - `WHATS_NEW`: 'Hypertension plan: a wall-squat hold, and clearer next steps for bone and Achilles plans'. Bullets:
-    - 'A 4 × 2-minute wall squat ends Day 5. Breathe throughout.'
+    - 'A 4 × 2-minute wall squat ends Days 2, 5 and 6. Breathe throughout.'
     - 'The osteoporosis and Achilles plans now explain the supervised next step and what it's based on.'
 - **Acceptance criteria:**
-  1. **Layout:** the wall squat is the last exercise on hypertension d5. The three earlier `(name, sets)` and indexes are unchanged, and every other `MEDICAL_STYLES` day is byte-identical to v3.524.
+  1. **Layout:** the wall squat is the last exercise on hypertension d2, d5 and d6 (3 occurrences, counted by walking the style). Every earlier `(name, sets)` and index on those days is unchanged, and every other `MEDICAL_STYLES` day is byte-identical to v3.524.
   2. **Real render:**
      - `renderProgramSource()` (11341), with `activeProgram='medical'` and each of the three styles, renders the new sentences.
      - The osteoporosis limits text sits in the never-collapsed `.program-limits`; the basis sentences sit inside the collapsed `.program-basis`.
@@ -1186,7 +1301,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - Sabotage 1: remove the region override → criterion 3 fails.
   - Sabotage 2: drop the limits sentence → criterion 2 fails.
 - **Files:**
-  - `index.html`: 11298–11319, 11355–11356, 11485–11493, `EXERCISE_MOVE` (13630), 44107, 44184, `LEGACY_SLOT_NAMES`, `APP_VERSION`, `WHATS_NEW`.
+  - `index.html`: 11298–11319, 11355–11356, 11465–11500, `EXERCISE_MOVE` (13630), 44107, 44184, `LEGACY_SLOT_NAMES`, `APP_VERSION`, `WHATS_NEW`.
   - `content-exercises.js`, `content-citations.js` (324, 338, 394), `sw.js`, the new test.
   - **Re-pins:**
     - `test-concise-cues.js` (+1 exercise, +3 cues; add /no breath-holding/ to its `MUST_KEEP`);
@@ -1202,17 +1317,13 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - A clinical plan's content and clinical copy change. **The cue, the three `USER_TEXT` sentences and the wall squat itself are on the clinician's review list before listing** (BIZ-15, D9(e)).
   - Isometric holds raise blood pressure during the hold. The trial populations were mostly unmedicated or controlled hypertension, so the existing clearance text in `limits` ("Get clearance before starting") stays first.
   - Rest timer: before BL-14 (slot 25), '4×2 min' reads as a 2-rep strength set (`getRepRangeTier`, 27811) and gets 240 s. After BL-14 it falls to the `core` default of 90 s, inside the 1–2 min the text gives.
-  - Custom exercises on hypertension d5 move one index (as in BL-39).
-- **Open for the owner (not blocking; the default is (a)):**
-  1. Dose:
-     - (a) d5 only, as approved: 1×/wk, below the trials' ~3×/wk.
-     - (b) Also append it to d2 and d6, so it runs 3×/wk, the trial dose. The auditor recommends (b). Under (a), the basis sentence's "those trials used about three sessions a week" keeps the copy honest.
-  2. The same custom-exercise history choice as BL-39's: (a) none, or (b) a relocation step.
+  - Three sessions a week of isometric holds is the trial dose; the existing clearance text still comes first.
+- **Owner (2026-11-08):** dose option (b), three times a week on d2, d5 and d6; history option (b), the relocation step above.
 - **Spec refresh (2026-11-08, against v3.524):**
   - Re-grepped.
   - Exact text, the library entry and its region safety, sources with checked DOIs, and the gate criterion.
   - Found in the refresh: no "Wall Squat" existed in the library, and a `core` hold would not flag a resting knee.
-- **Status:** ready (owner yes 2026-11-07, D4: the appends). Slot 85. Its clinical text is also in scope for the clinician's review before listing (BIZ-15, D9(e)). *Original question:* "Add an isometric wall-squat block to the hypertension plan, and supervised-progression notes to the osteoporosis and Achilles plans?"
+- **Status:** ready (after BL-72; its migration step needs BL-51's name stamps and BL-37's helper) (owner yes 2026-11-07, D4: the appends; 2026-11-08: dose (b), history (b)). Slot 85. Its clinical text is also in scope for the clinician's review before listing (BIZ-15, D9(e)). *Original question:* "Add an isometric wall-squat block to the hypertension plan, and supervised-progression notes to the osteoporosis and Achilles plans?"
 
 ---
 
@@ -1341,7 +1452,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Change:**
   - Variant days write `ex:<program>[:<style>]:v<N>:<dayId>:<idx>` when `daysPerWeekPref` selects a variant. Yoga gains a style segment (`ex:yoga:<style>:…`).
   - `exKey` (27027), `subSelectionKey` (27040), `parseExKey` and `exKeyForLocation` (27117) learn both shapes.
-  - A `SCHEMA_VERSION` (7625, now 8) bump, with a `runMigrations()` (9084) step that **copies nothing it can't attribute**:
+  - A `SCHEMA_VERSION` (7632; 8 at v3.524, 9 after BL-72, so expected 10) bump, with a `runMigrations()` (9084) step that **copies nothing it can't attribute**:
     - entries with `n` move to the key whose slot holds that name;
     - legacy entries stay where they are.
 - **Acceptance criteria:**
@@ -1349,7 +1460,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
   2. Legacy entries are byte-identical after migration.
   3. `parseExKey` labels a v6 combat key with the v6 day's exercise.
 - **Test plan:** new `test-variant-history-keys.js`, with the real `runMigrations` over a fixture store. Sabotage: drop the `n` check, and criterion 2 must fail.
-- **Files:** `index.html` (7625, 9084, 27027–27045, 27117, 40977), `sw.js`, the test. **Re-pins:** `test-custom-exercise-style-scoping.js`, `test-import-backup-full-replace.js` and `test-whats-new.js` read `SCHEMA_VERSION` or `runMigrations`. `test-cross-program-history.js` and `test-watersports-program.js` call the key functions.
+- **Files:** `index.html` (7632, 9084, 27027–27045, 27117, 40977), `sw.js`, the test. **Re-pins:** `test-custom-exercise-style-scoping.js`, `test-import-backup-full-replace.js` and `test-whats-new.js` read `SCHEMA_VERSION` or `runMigrations`. `test-cross-program-history.js` and `test-watersports-program.js` call the key functions.
 - **Risk:** a stored-data migration on the history store. A backup export is prompted first. Needs BL-51 shipped and some weeks of `n`-stamped data to be worth it.
 - **Fold-in (2026-11-08):** placed before BL-37 (slot 73a), so the variant rebuild's own migration can attribute entries by name.
 - **Status:** ready (after BL-51) (owner yes 2026-11-08: "52 a"; build only once BL-51 has stamped names for a few weeks, and before BL-37). Slot 73a.

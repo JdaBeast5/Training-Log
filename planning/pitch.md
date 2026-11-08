@@ -151,6 +151,10 @@ At one merge a day (your pace, an assumption) that's about ten weeks of ready wo
 ## Decisions only you can make
 
 ### Owner's answers, 2026-11-07
+- **Sixth round (owner, 2026-11-08, on PR #86, "1 yes, 2b, 3b"):**
+  - **1 yes:** protect the history of custom, body-goal and bonus exercises before any exercise is added to a day. New item **BL-72** (stable keys plus a migration; slot 8a, before BL-36), and **BL-73** (a stored substitute only applies if it's listed for that exercise; slot 8b). BL-36 to BL-40 now wait for BL-72. Found while specifying it: **BL-74**, built-in rows shift too when exercises are removed or reordered (needs-owner; the auditor recommends option (a), switch now).
+  - **2b:** BL-39 and BL-40 each add a relocation migration step (BL-37's helper), so name-stamped sets move with their exercise. This needs BL-51's name stamps.
+  - **3b:** the hypertension wall squat runs three times a week, on Days 2, 5 and 6 (Edwards et al. 2023), and the basis text says so.
 - **Support email (owner, 2026-11-08):** `support@platestep.com` is the customer-facing address. Use it for the privacy page, store listings, landing page and launch posts. Don't put it in the app's code until a build item says so.
 - **Fifth round (owner, 2026-11-08, on the exercise auditor's recommendation for the PR #77 questions):** "Q1 yes / Q2 c / Q3 yes / heel drop yes". New item **BL-70**, slot 3a: widen Sled Push and Wall Balls; add Sled Pull, the three carries, Hanging Leg Raise and Toes-to-Bar; relief-aware caution wording; Eccentric Heel Drop becomes Ankle/Foot relief. BL-04 gains substitutes for the carries and hanging raises.
 - **Fourth round (owner, 2026-11-08, in the builder session):** "61 a, 51 a, rpe c, 56 a, 59 a, 52 a, 46 b, 47 b, play a, but there will be an LLC before full launch, name a, plus-items yes, 25 forward":
