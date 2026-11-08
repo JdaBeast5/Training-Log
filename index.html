@@ -3756,6 +3756,12 @@
     border-radius:var(--radius-sm); font-size:11.5px; color:var(--plate-red);
     box-shadow:var(--rim), 0 4px 12px -7px rgba(var(--plate-red-rgb),0.32);
   }
+  /* v3.523 (BL-70): a relief move on its own resting region. Advice, not a
+     warning: neutral blue instead of the red caution, and an info icon. */
+  .ex-caution.ex-caution-relief{
+    background:rgba(var(--plate-blue-rgb),0.08); border-color:rgba(var(--plate-blue-rgb),0.28); color:var(--text-muted);
+    box-shadow:var(--rim);
+  }
   .ex-ai-tailor-btn{
     display:block; margin-top:6px; background:none; border:none; color:var(--plate-blue); font-size:11px; font-weight:600;
     text-decoration:underline; cursor:pointer; padding:0; font-family:var(--font-sans);
@@ -7616,7 +7622,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.522';
+const APP_VERSION = '3.523';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -8996,6 +9002,10 @@ const WHATS_NEW = {
   ]},
   '3.522': { headline: 'Resting-area warnings catch more lifts', points: [
     'When you mark a body area as resting in Care, these exercises now warn for the part they actually load: calf raises and heel drops for ankle, foot and shins (not elbow and wrist), leg curls and Nordic curls for the knee, hangboard work for the fingers, neck bridges for the neck, and wall balls and sled pushes for the knee and lower back. On these, the warning doesn\'t suggest a swap yet.',
+  ]},
+  '3.523': { headline: 'Smarter resting-area warnings', points: [
+    'Sled pushes and sled pulls now also warn for a resting ankle, foot or shins, wall balls for the ankle, foot, shoulder and wrist, and carries and hanging leg raises for your grip, elbow and shoulder.',
+    'When an exercise is one of Care\'s own relief moves for the area you\'re resting, like tibialis raises for shins or bird dogs for the lower back, the warning now says to keep it light and pain-free instead of telling you to skip it.',
   ]},
 };
 
@@ -14560,8 +14570,8 @@ async function getSessionHeadsUpInsight(){
 
     let flagged = false;
     if(restingRegions.length){
-      const exRegions = regionsForExercise(ex.name, info.category);
-      if(exRegions.some(r=> restingRegions.includes(r))) flagged = true;
+      const hits = regionsForExercise(ex.name, info.category).filter(r=> restingRegions.includes(r));
+      if(hits.length && !isReliefForAllHits(ex.name, hits)) flagged = true; // v3.523 (BL-70): relief moves aren't flagged
     }
     if(!flagged){
       const log = await getExLog(activeDay, idx, subVariantOf(ex));
@@ -29184,14 +29194,21 @@ async function renderWorkout(){
     if(info && restingRegions.length){
       const exRegions = regionsForExercise(ex.name, info.category);
       const hitRegions = exRegions.filter(r=> restingRegions.includes(r));
-      if(hitRegions.length){
+      const regionBtns = hitRegions.length ? hitRegions.map(r=> `<button type="button" class="link-btn" data-care-area="${escapeHtml(r)}" aria-label="Show stretches for ${escapeHtml(r)}">${escapeHtml(r)}</button>`).join(' & ') : '';
+      if(hitRegions.length && isReliefForAllHits(ex.name, hitRegions)){
+        // v3.523 (BL-70): one of Care's relief moves for this region. Advice,
+        // not a warning: no swap, and no AI "Tailor" (its prompt argues swaps).
+        // The heads-up doesn't count these rows, and they don't look like one.
+        const areaWord = hitRegions.length === 1 ? 'that area' : 'those areas';
+        cautionHtml = `<div class="ex-caution ex-caution-relief">${icon('info')} You marked ${regionBtns} as resting. This is one of Care's gentle relief moves for ${areaWord}: keep it light and pain-free (mild discomfort at most, about 3/10, settled by next morning), and stop if it hurts.</div>`;
+      } else if(hitRegions.length){
         hitRegionsForRow = hitRegions;
         // v3.522 (BL-03): a category swap would target the wrong body part for
         // an overridden exercise (a wrist stretch for a heel drop). None until
         // BL-04 adds exercise-specific substitutes.
         const sub = EXERCISE_REGION_OVERRIDE[ex.name] ? null : suggestSubstitute(info.category, ex.name);
         const swapHtml = sub ? ` Try <b>${sub.name}</b> instead — ${sub.why}.` : '';
-        cautionHtml = `<div class="ex-caution">${icon('warning')} You marked ${hitRegions.map(r=> `<button type="button" class="link-btn" data-care-area="${escapeHtml(r)}" aria-label="Show stretches for ${escapeHtml(r)}">${escapeHtml(r)}</button>`).join(' & ')} as resting — consider skipping or lightening this one.${swapHtml} Clear it in Care when you're ready. <button type="button" class="ex-ai-tailor-btn">Tailor to what I logged</button></div>`;
+        cautionHtml = `<div class="ex-caution">${icon('warning')} You marked ${regionBtns} as resting — consider skipping or lightening this one.${swapHtml} Clear it in Care when you're ready. <button type="button" class="ex-ai-tailor-btn">Tailor to what I logged</button></div>`;
       }
     }
 
@@ -44096,14 +44113,33 @@ const EXERCISE_REGION_OVERRIDE = {
   'Tibialis Raise':      ['Ankle/Foot','Shins'],
   'Leg Curl':            ['Knee','Hip'],
   'Nordic Curl':         ['Knee','Hip'],
-  'Wall Balls':          ['Knee','Lower Back'],
-  'Sled Push':           ['Knee','Lower Back'],
+  // v3.523 (BL-70, owner 2026-11-08 on the exercise auditor's advice): an
+  // override REPLACES the category's regions, so each list is everything the
+  // movement loads. Sled and wall-ball work also loads ankle, calf and shin.
+  'Wall Balls':          ['Knee','Hip','Lower Back','Shoulder','Elbow/Wrist','Ankle/Foot'],
+  'Sled Push':           ['Knee','Hip','Ankle/Foot','Shins','Lower Back'],
+  'Sled Pull':           ['Knee','Hip','Ankle/Foot','Shins','Lower Back','Hands/Fingers','Elbow/Wrist'],
+  // Grip- and hang-limited moves filed as `core`, which flags only Lower Back.
+  "Farmer's Carry":        ['Hands/Fingers','Elbow/Wrist','Shoulder','Lower Back'],
+  'Farmers Carry (Heavy)': ['Hands/Fingers','Elbow/Wrist','Shoulder','Lower Back'],
+  'Suitcase Carry':        ['Hands/Fingers','Elbow/Wrist','Shoulder','Lower Back'],
+  'Hanging Leg Raise':     ['Hands/Fingers','Elbow/Wrist','Shoulder','Lower Back'],
+  'Toes-to-Bar':           ['Hands/Fingers','Elbow/Wrist','Shoulder','Lower Back'],
 };
 
 // The one place an exercise's body regions are decided (the session heads-up
 // and the per-row caution both ask this).
 function regionsForExercise(name, category){
   return EXERCISE_REGION_OVERRIDE[name] || CATEGORY_TO_REGIONS[category] || [];
+}
+
+// v3.523 (BL-70, option (c)): true when the exercise is one of Care's own
+// relief moves for EVERY region it hit (Tibialis Raise for Shins, Bird Dog for
+// Lower Back). Those keep a caution, but a "keep it light and pain-free" one,
+// not "consider skipping": graded, symptom-limited loading is the advice for
+// these regions, not complete rest.
+function isReliefForAllHits(name, hitRegions){
+  return hitRegions.length > 0 && hitRegions.every(r=> (REGION_RELIEF[r] || []).includes(name));
 }
 
 // --- Injury-aware substitution: turns the resting-region caution from a
@@ -44172,7 +44208,7 @@ const REGION_RELIEF = {
   'IT Band/Outer Thigh': ['Foam Rolling IT Band','Standing IT Band Stretch','Clamshell','Side-Lying Hip Abduction'],
   'Knee': ['Quad Set','Straight Leg Raise','Terminal Knee Extension','Hamstring Stretch'],
   'Shins': ['Calf Stretch','Tibialis Raise','Ankle Dorsiflexion Stretch','Ankle Circles'],
-  'Ankle/Foot': ['Ankle Circles','Ankle Dorsiflexion Stretch','Single-Leg Balance','Calf Stretch'],
+  'Ankle/Foot': ['Ankle Circles','Ankle Dorsiflexion Stretch','Single-Leg Balance','Calf Stretch','Eccentric Heel Drop'], // heel drop: v3.523 (BL-70), the Achilles plan's own rehab move
   'Neck': ['Chin Tucks','Neck Rotation Stretch','Upper Trap Stretch','Levator Scapulae Stretch'],
   'Headache/Tension': ['Upper Trap Stretch','Suboccipital Release','Chin Tucks','Diaphragmatic Breathing'],
   'Jaw/TMJ': ['Jaw Relaxation/Rest Position','TMJ Self-Massage (Masseter Release)','Controlled Jaw Opening (Goldfish Exercise)','Chin Tucks'],
@@ -44304,7 +44340,7 @@ const CARE_TYPE_TAG = {
   'Pelvic Tilt':'mobility', 'Cat-Cow Mobility':'mobility', 'Bird Dog':'strengthen', 'Child\'s Pose Breathing':'mobility',
   'Clamshell':'strengthen', 'Glute Bridge':'strengthen', 'Pigeon Pose':'stretch', 'World\'s Greatest Stretch':'mobility',
   'Quad Set':'strengthen', 'Straight Leg Raise':'strengthen', 'Terminal Knee Extension':'strengthen', 'Hamstring Stretch':'stretch',
-  'Ankle Circles':'mobility', 'Ankle Dorsiflexion Stretch':'stretch', 'Single-Leg Balance':'strengthen', 'Calf Stretch':'stretch',
+  'Ankle Circles':'mobility', 'Ankle Dorsiflexion Stretch':'stretch', 'Single-Leg Balance':'strengthen', 'Calf Stretch':'stretch', 'Eccentric Heel Drop':'strengthen',
   'Chin Tucks':'strengthen', 'Neck Rotation Stretch':'stretch', 'Upper Trap Stretch':'stretch', 'Levator Scapulae Stretch':'stretch',
   'Diaphragmatic Breathing':'mobility', 'Walking':'mobility', 'Foam Rolling Full Body':'mobility',
   'Thoracic Extension Over Foam Roller':'mobility', 'Prone Y-T-W Raises':'strengthen', 'Doorway Pec Stretch':'stretch',

@@ -16,6 +16,8 @@ const indexOnly = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
 const { test, run } = makeRunner('test-region-override.js');
 
 const chunks = [
+  extractConst(src, 'REGION_RELIEF'),
+  extractFunction(src, 'isReliefForAllHits'),
   extractConst(src, 'exerciseInfo'),
   extractConst(src, 'CATEGORY_TO_REGIONS'),
   extractConst(src, 'EXERCISE_REGION_OVERRIDE'),
@@ -57,7 +59,7 @@ test('criterion 4: Bench Press returns exactly CATEGORY_TO_REGIONS.push; an unkn
 test('criterion 5: every EXERCISE_REGION_OVERRIDE key is an exerciseInfo key, and every region is a real Care region', (assert)=>{
   const r = sbx(`__capture.push({keys: Object.keys(EXERCISE_REGION_OVERRIDE), missing: Object.keys(EXERCISE_REGION_OVERRIDE).filter(k => !exerciseInfo[k]),
     regions: [...new Set(Object.values(EXERCISE_REGION_OVERRIDE).flat())]});`);
-  assert.strictEqual(r.keys.length, 12, 'the audit\'s 12 exercises');
+  assert.strictEqual(r.keys.length, 18, 'the audit\'s 12 plus BL-70\'s 6 (v3.523)');
   assert.deepStrictEqual(r.missing, []);
   // The Care region picker's own option labels (the strings resting regions are stored as).
   const picker = indexOnly.slice(indexOnly.indexOf('<select id="careRegion"'), indexOnly.indexOf('</select>', indexOnly.indexOf('<select id="careRegion"')));
@@ -88,6 +90,47 @@ test('review: in renderWorkout, every category swap lookup skips overridden exer
   const guarded = (body.match(/EXERCISE_REGION_OVERRIDE\[ex\.name\]\s*\?\s*null\s*:\s*suggestSubstitute\s*\(/g) || []).length;
   assert.strictEqual(swaps, 2, 'the caution swap and the AI-tailor prompt');
   assert.strictEqual(guarded, swaps);
+});
+
+// ---- v3.523 (BL-70): wider overrides, more twins, relief-aware cautions.
+test('BL-70 criterion 1: Sled Push gains Ankle/Foot and Shins; Wall Balls gains Shoulder, Elbow/Wrist and Ankle/Foot', (assert)=>{
+  const push = regionsOf('Sled Push'), balls = regionsOf('Wall Balls');
+  for(const r of ['Knee','Hip','Ankle/Foot','Shins','Lower Back']) assert.ok(push.includes(r), 'Sled Push ' + r);
+  for(const r of ['Knee','Hip','Lower Back','Shoulder','Elbow/Wrist','Ankle/Foot']) assert.ok(balls.includes(r), 'Wall Balls ' + r);
+});
+
+test('BL-70 criterion 2: Sled Pull, the three carries and the two hanging raises flag Hands/Fingers', (assert)=>{
+  for(const n of ['Sled Pull', "Farmer's Carry", 'Farmers Carry (Heavy)', 'Suitcase Carry', 'Hanging Leg Raise', 'Toes-to-Bar']){
+    const r = regionsOf(n);
+    assert.ok(r.includes('Hands/Fingers') && r.includes('Elbow/Wrist'), n + ': ' + r.join(','));
+  }
+});
+
+test('BL-70 criteria 3-4: isReliefForAllHits is true only when the move relieves EVERY hit region', (assert)=>{
+  const r = sbx(`__capture.push([
+    isReliefForAllHits('Tibialis Raise', ['Shins']),
+    isReliefForAllHits('Tibialis Raise', ['Shins','Ankle/Foot']),
+    isReliefForAllHits('Bird Dog', ['Lower Back']),
+    isReliefForAllHits('Back Squat', ['Knee']),
+    isReliefForAllHits('Eccentric Heel Drop', ['Ankle/Foot']),
+    isReliefForAllHits('Bird Dog', []),
+  ]);`);
+  assert.deepStrictEqual(r, [true, false, true, false, true, false]);
+});
+
+test('BL-70 criterion 5: the row caution and the heads-up each call isReliefForAllHits once; the relief wording is in renderWorkout', (assert)=>{
+  const code = stripLineComments(indexOnly);
+  const all = (code.match(/\bisReliefForAllHits\s*\(/g) || []).length - (code.match(/function\s+isReliefForAllHits\s*\(/g) || []).length;
+  assert.strictEqual(all, 2);
+  for(const fn of ['getSessionHeadsUpInsight', 'renderWorkout'])
+    assert.strictEqual((stripLineComments(extractFunction(src, fn)).match(/\bisReliefForAllHits\s*\(/g) || []).length, 1, fn);
+  const rw = extractFunction(src, 'renderWorkout');
+  // renderWorkout can't be driven whole in jsdom (see the header); the live
+  // Playwright check in the PR renders these rows. Here: the branch's content.
+  const reliefBranch = rw.slice(rw.indexOf('isReliefForAllHits('), rw.indexOf('} else if(hitRegions.length){'));
+  assert.ok(reliefBranch.includes("gentle relief moves for ${areaWord}: keep it light and pain-free"), 'relief text');
+  assert.ok(reliefBranch.includes('ex-caution-relief') && reliefBranch.includes("icon('info')"), 'distinct, non-warning look');
+  assert.ok(!/suggestSubstitute|consider skipping|ex-ai-tailor-btn|hitRegionsForRow\s*=/.test(reliefBranch), 'no swap, no "consider skipping", no AI tailor');
 });
 
 run();
