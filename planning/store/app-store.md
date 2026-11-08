@@ -181,7 +181,7 @@ Rest days no longer break your streak
 Your training log stays on your phone. Questions or problems: https://platestep.app/support
 ```
 The first store release has no What's New (Apple shows it from the second version on). Before that, the promotional text carries any launch note.
-(The support URL is a placeholder until `platestep.app` is owned; see `landing-page.md`.)
+(Support contact: `support@platestep.com`, the owner's customer-facing address, 2026-11-08. Apple's Support URL field needs a web page, so it points at the landing page's support link once that page exists; see `landing-page.md`.)
 
 ---
 
