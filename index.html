@@ -6242,6 +6242,7 @@
       <div id="storageUsageMeter"></div>
       <button class="switch-profile-btn" id="printProgramBtn">Print my program (full week, on paper)</button>
       <button class="switch-profile-btn" id="exportDataBtn">Export my data (backup as JSON)</button>
+      <div class="history-hint field-note" id="exportKeysNote">API keys aren't included; enter them again after restoring.</div>
       <button class="switch-profile-btn" id="importDataBtn">Import backup (restore from JSON)</button>
       <input type="file" id="importDataInput" accept="application/json,.json" style="display:none" aria-label="Choose a backup file to import">
       <div class="status-msg" id="importDataStatus"></div>
@@ -7615,7 +7616,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.519';
+const APP_VERSION = '3.520';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -8986,6 +8987,9 @@ const WHATS_NEW = {
   '3.519': { headline: 'Safer effort targets on clinical plans', points: [
     'On the clinical plans (including prenatal and postpartum) and Senior, the RPE target now stops at 7, about 3 reps left, every week. The suggestion to add weight waits for two sessions at RPE 7 or easier and adds only your smallest plate or dumbbell step; on cables and machines, try the smallest step the machine allows.',
     'Olympic lifts, jumps and throws no longer get an RPE weight target. Stop each set with 2–3 clean reps left instead.',
+  ]},
+  '3.520': { headline: 'Backups leave out your API keys', points: [
+    'Exported backups no longer include your saved AI or USDA keys, so a backup file in the cloud or an email can\'t leak them. Restoring a backup never changes the keys on this phone, so after restoring onto a new phone, enter them again in Settings.',
   ]},
 };
 
@@ -34271,6 +34275,14 @@ document.getElementById('onboardingDismiss').addEventListener('click', async ()=
   try{ await window.storage.set('onboarding-dismissed', '1'); }catch(e){}
 });
 
+// v3.520 (BL-68): saved API keys (ai-api-key, usda-api-key, and any future
+// "*-api-key") never leave the device in a backup file, and a backup can never
+// overwrite, remove or add one. A backup lands in cloud folders, email and
+// shared drives; a key in it is billed to the user.
+function isApiKeyStorageKey(key){
+  return /-api-key$/.test(String(key));
+}
+
 document.getElementById('exportDataBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('exportDataBtn');
   const originalText = btn.textContent;
@@ -34283,6 +34295,7 @@ document.getElementById('exportDataBtn').addEventListener('click', async ()=>{
 
     const data = {};
     for(const k of keys){
+      if(isApiKeyStorageKey(k)) continue; // v3.520 (BL-68)
       try{
         const item = await window.storage.get(k);
         if(item && item.value !== undefined) data[k] = item.value;
@@ -34375,8 +34388,11 @@ document.getElementById('importDataInput').addEventListener('change', async (e)=
     return;
   }
 
-  const keyCount = Object.keys(parsed.data).length;
-  if(keyCount === 0){
+  // v3.520 (BL-68): an older backup may still carry API keys; they're ignored.
+  const restoreEntries = Object.entries(parsed.data).filter(([k])=> !isApiKeyStorageKey(k));
+  const keyCount = restoreEntries.length;
+  const hasPhotos = !!(parsed.photos && typeof parsed.photos === 'object' && Object.keys(parsed.photos).length);
+  if(keyCount === 0 && !hasPhotos){
     statusEl.textContent = 'That backup file has no data in it — nothing to restore.';
     return;
   }
@@ -34391,7 +34407,7 @@ document.getElementById('importDataInput').addEventListener('change', async (e)=
   const profileNote = parsed.profileName ? ` for "${parsed.profileName}"` : '';
   const confirmed = confirm(
     `Restore backup${profileNote} (${keyCount} item${keyCount===1?'':'s'}, exported ${parsed.exportedAt ? new Date(parsed.exportedAt).toLocaleDateString() : 'unknown date'})?\n\n`+
-    `This REPLACES everything currently stored on this device for this profile — training log, nutrition, measurements, everything. This can't be undone.${schemaNote}`
+    `This REPLACES everything currently stored on this device for this profile — training log, nutrition, measurements, everything. This can't be undone. Saved API keys on this device are kept; any keys in the file are ignored.${schemaNote}`
   );
   if(!confirmed) return;
 
@@ -34412,13 +34428,14 @@ document.getElementById('importDataInput').addEventListener('change', async (e)=
     const existingRes = await window.storage.list('');
     const existingKeys = (existingRes && existingRes.keys) || [];
     for(const key of existingKeys){
+      if(isApiKeyStorageKey(key)) continue; // v3.520 (BL-68): keys stay on the device
       try{ await window.storage.delete(key); }catch(e){}
     }
   }catch(e){}
 
   statusEl.textContent = 'Restoring…';
   let restored = 0, failed = 0;
-  for(const [key, value] of Object.entries(parsed.data)){
+  for(const [key, value] of restoreEntries){
     try{
       await window.storage.set(key, value);
       restored++;

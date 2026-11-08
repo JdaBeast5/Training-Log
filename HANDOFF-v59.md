@@ -956,3 +956,13 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
   - Rounding up from an off-grid weight can add slightly more than one step.
   - The Settings note on Olympic shows a week RPE.
   - Custom programs with clinical exercises get no cap.
+
+## Addendum 45: BL-68 (v3.520, PR #74, 2026-11-08)
+- **What:** one helper, `isApiKeyStorageKey` (matches `/-api-key$/`), with 3 call sites. Export skips those keys. Import filters them out of the file (`restoreEntries`) and keeps the device's own keys through the pre-restore wipe; the confirm says so. Settings has an `#exportKeysNote` line under Export. Review fix: a keys-only backup that carries photos still restores the photos.
+- **Test:** `test-backup-excludes-keys.js`, 6 cases, running the real handlers extracted by anchor. Re-pin: `test-import-backup-full-replace.js` (the helper in its sandbox; its ordering anchor is now `of restoreEntries`). Suites went from 201 to 202.
+- **Reviews:** the security review found nothing; ignoring imported keys also blocks key-swapping via a crafted backup.
+- **Unverified:** not tried on an iPhone.
+- **Flagged, not fixed:**
+  - `privacy.md` still discloses keys in backups (needs a planning edit).
+  - The backup checker counts keys and doesn't warn about them in old files.
+  - Secrets are matched by name suffix only.

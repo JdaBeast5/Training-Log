@@ -17,7 +17,7 @@
 // logic, matching the precedent test-program-cycle-start-backfill.js and
 // test-sticky-day-header-overlap.js already established for snippets/inline
 // event wiring extractFunction can't reach by name.
-const { readIndexSource, runSandboxAsync, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractFunction, runSandboxAsync, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
 const { test, run } = makeRunner('test-import-backup-full-replace.js');
@@ -34,7 +34,8 @@ test('sabotage-relevant: the extracted snippet is the real import handler and ac
   assert.match(HANDLER_BODY, /window\.storage\.delete\(key\)/, 'must delete existing keys as part of the restore');
   assert.match(HANDLER_BODY, /photoDelete\(entry\.id\)/, 'must delete existing photo blobs as part of the restore');
   const deleteLoopIdx = HANDLER_BODY.indexOf('window.storage.delete(key)');
-  const restoreLoopIdx = HANDLER_BODY.indexOf("Object.entries(parsed.data)");
+  // v3.520 (BL-68): the restore loop walks restoreEntries (parsed.data minus API keys).
+  const restoreLoopIdx = HANDLER_BODY.indexOf("of restoreEntries");
   assert.ok(deleteLoopIdx !== -1 && restoreLoopIdx !== -1 && deleteLoopIdx < restoreLoopIdx, 'the clearing step must run BEFORE the backup data is written, not after (an after-the-fact clear would wipe out the just-restored data)');
 });
 
@@ -64,6 +65,8 @@ function baseGlobals(seedStore, seedPhotoIds){
     var __reloaded = false;
     var __statusEl = {textContent: ''};
     var document = { getElementById: (id)=> __statusEl };
+
+    ${extractFunction(src, 'isApiKeyStorageKey')}
 
     async function runImportHandler(e){
       ${HANDLER_BODY}
