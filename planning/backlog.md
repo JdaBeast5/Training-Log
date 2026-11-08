@@ -96,7 +96,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (27409–27413, 27483–27545, 27742–27760, 27812–27836, 28766, ~32899), `sw.js`, the test.
 - **Alignment note (2026-11-07):** SAF-8 folded in (exercise-auditor B2; owner decision 7 confirms "smallest step after two sessions at RPE ≤ 7" rather than no load suggestions). The promise becomes "never adds sets; load rises only in the smallest steps when sets felt easy". BL-08 and BL-24 must keep criteria 6–8 passing.
 - **Risk:** RPE badge rendering. Guarded by `test-progress-badge-rpe-teal.js`, `test-today-workout-emoji.js` and `test-deload-signal-week-awareness.js`.
-- **Status:** ready
+- **Status:** needs-owner (build run 2026-11-07, blocker PR). **Question:** "Criterion 6 asks for the smallest loadable jump computed by `snapToLoadable`, but `snapToLoadable` only knows barbells (smallest plate pair) and dumbbells (the dumbbell increment). For cables, machines and everything else it returns the weight unchanged, so there is no step to compute, and the criterion's own example (hypertension d2 Seated Cable Row) is a cable. On clinical and senior programs, what should a load increase be for kit the app can't model? (a) no number: the badge says \"try the smallest step your machine allows\" (recommended: no new stored data, matches criterion 7); (b) a fixed smallest step, e.g. 2.5 lb / 1 kg; (c) a new stack-step setting in Equipment (new stored key, bigger item); (d) the category increment (5 lb for pull)."
 
 ### BL-03: Per-exercise body-region override for resting-region flags (SAF-3, part 1)
 - **Why:** `CATEGORY_TO_REGIONS` (43894) misses several loads:
