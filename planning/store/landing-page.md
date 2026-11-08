@@ -96,7 +96,7 @@ When the Play listing is live, add a third column: "Or get it on Google Play" wi
 - Sash mark · "Platestep"
 - `Privacy` → `{PRIVACY_URL}` (placeholder until BIZ-16 ships)
 - `What's free` → `#free`
-- `Support` → `{SUPPORT_URL_OR_EMAIL}` (needed for the App Store listing too; the owner chooses an address that doesn't expose a personal inbox)
+- `Support` → `mailto:support@platestep.com` (owner, 2026-11-08: the customer-facing address; also the App Store and Play support contact)
 - `Changelog` → the app's What's New (optional)
 - One line: *Platestep is a training log and planner, not medical advice.*
 - `© 2026 {OWNER_OR_LLC_NAME}` (the owner is weighing an LLC, D9(f))

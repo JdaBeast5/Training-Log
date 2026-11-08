@@ -34,7 +34,7 @@ Owner: marketing-manager. Written 2026-11-08 against **v3.517** (`APP_NAME = 'Pl
 
 ## Launch-week assembly checklist
 
-1. **Fill the placeholders:** `{APP_URL}` (the app's current address; never move its origin), `{PRIVACY_URL}` (BIZ-16), `{SUPPORT_URL_OR_EMAIL}`, `{WHATS_FREE_URL}`, `{POST_DATE}`, `{APP_VERSION}`, `{OWNER_OR_LLC_NAME}`, `{CHECK_DATE}`.
+1. **Fill the placeholders:** `{APP_URL}` (the app's current address; never move its origin), `{PRIVACY_URL}` (BIZ-16), ~~`{SUPPORT_URL_OR_EMAIL}`~~ now `support@platestep.com` (owner, 2026-11-08), `{WHATS_FREE_URL}`, `{POST_DATE}`, `{APP_VERSION}`, `{OWNER_OR_LLC_NAME}`, `{CHECK_DATE}`.
 2. **Paste the "What's free" paragraph verbatim** from `planning/launch-copy/whats-free.md` (business manager, BIZ-18) into both store descriptions and the landing page, replacing the placeholder line.
 3. **Re-run the claim check** (`app-store.md` §9) against that day's `index.html`. Change the copy if a threshold or feature moved.
 4. **Re-count every field** (the one-line `node -e` in `app-store.md` §9). Any edit changes the counts.

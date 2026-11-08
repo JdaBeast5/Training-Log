@@ -174,7 +174,7 @@ The post must only promise what the bodyweight programs actually do. Before post
 - Every cell carries a source link and the date it was checked. Prices are listed as "US price on {CHECK_DATE}". A competitor's change makes our page wrong, so re-check quarterly and show the date at the top.
 - Facts, not adjectives. No "best", no "better than", no star ratings, no review quotes about competitors.
 - A **"Where they're ahead"** section, written in good faith. It's the most credible part of the page.
-- A corrections line: "Something here out of date? Tell us at {SUPPORT_URL_OR_EMAIL} and we'll fix it within a week."
+- A corrections line: "Something here out of date? Tell us at support@platestep.com and we'll fix it within a week."
 - No "alternative to X" keyword stuffing in the title, headings or URL.
 
 **Sections:**

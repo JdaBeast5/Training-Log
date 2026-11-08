@@ -6,7 +6,7 @@
 
 ---
 
-**Who we are:** Platestep is made by [OWNER'S LLC, legal name and registered address]. Questions about privacy: [CONTACT EMAIL OR FORM].
+**Who we are:** Platestep is made by [OWNER'S LLC, legal name and registered address]. Questions about privacy: support@platestep.com.
 **Effective date:** [DATE OF PUBLICATION]
 
 ## The short version
@@ -128,7 +128,7 @@ If a future version sends anything new anywhere, this page will say so before th
 ## Contact
 
 [OWNER'S LLC LEGAL NAME]
-[CONTACT EMAIL OR FORM]
+support@platestep.com
 [POSTAL ADDRESS, IF COUNSEL ADVISES ONE]
 
 ---
