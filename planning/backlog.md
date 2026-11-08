@@ -383,7 +383,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Test plan:** update `test-region-override.js` (the shoulder expectations from BL-04's area-fit case and BL-71's criteria). Sabotage: put Shoulder back, and criterion 1 fails.
 - **Files:** `index.html` (`SUB_VEST_CARRY`, `WHATS_NEW`, `APP_VERSION`), `sw.js`, `test-region-override.js`.
 - **Risk:** carries with a resting shoulder now show a caution with no swap. That's intended.
-- **Status:** ready (owner 2026-11-08: "I'll let you recommend it and go"; recommendation: no swap for a resting shoulder). Slot 4b.
+- **Status:** done (v3.526, PR #90)
 
 ### BL-05: Depth Jump prerequisite and box height in the cue (SAF-5, part 1)
 - **Why:** Depth Jump appears with no box height or landing prerequisite, in **20 slots** at v3.518 (counted by walking `programs`, every `*_STYLES` style and every `PROGRAM_DAY_COUNT_VARIANTS` day):
