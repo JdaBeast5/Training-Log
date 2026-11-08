@@ -99,6 +99,17 @@ const LIFTS = {
   ],
 };
 
+// One session of a lift: the same top set across sets, the last set one rep
+// short and a touch harder. A realistic log.
+function setsFor(top, reps, n){
+  const sets = [];
+  for(let i = 0; i < n; i++){
+    const r = i === n - 1 && reps > 4 ? reps - 1 : reps;
+    sets.push({ weight: top, reps: r, rpe: i === n - 1 ? 9 : 8 });
+  }
+  return sets;
+}
+
 const ex = {};      // key -> [{date, sets}]
 const workout = {}; // workout:{date}:strength:{day} -> {idx:true}
 const activity = new Set();
@@ -110,14 +121,7 @@ for(let wk = 0; wk < WEEKS; wk++){
     const date = addDays(monday, off);
     const done = {};
     LIFTS[day].forEach((lift, idx) => {
-      const top = lift.w[wk];
-      const reps = lift.reps[wk];
-      const sets = [];
-      for(let i = 0; i < lift.n; i++){
-        // Same top set across sets, last set one rep short: a realistic log.
-        const r = i === lift.n - 1 && reps > 4 ? reps - 1 : reps;
-        sets.push({ weight: top, reps: r, rpe: i === lift.n - 1 ? 9 : 8 });
-      }
+      const sets = setsFor(lift.w[wk], lift.reps[wk], lift.n);
       const key = `ex:strength:${day}:${idx}`;
       (ex[key] = ex[key] || []).push({ date, sets });
       done[idx] = true;
@@ -178,8 +182,37 @@ s[`water:${TODAY}`] = '64';
 s['food-favorites'] = JSON.stringify([MEALS[2]]);
 
 // ---- Write ----------------------------------------------------------------
-const out = { ...raw };
-for(const k of Object.keys(s).sort()) out[PFX + k] = s[k];
-const file = path.join(__dirname, 'fixture.json');
-fs.writeFileSync(file, JSON.stringify(out, null, 1) + '\n');
-console.log(`wrote ${path.relative(process.cwd(), file)}: ${Object.keys(out).length} keys`);
+function write(name, seed){
+  const out = { ...raw };
+  for(const k of Object.keys(seed).sort()) out[PFX + k] = seed[k];
+  const file = path.join(__dirname, name);
+  fs.writeFileSync(file, JSON.stringify(out, null, 1) + '\n');
+  console.log(`wrote ${path.relative(process.cwd(), file)}: ${Object.keys(out).length} keys`);
+}
+
+// The default fixture. Every default-mode state shoots from this one, so it
+// must not change when the store seeds below do.
+write('fixture.json', s);
+
+// ---- Store seeds (harness.js --store; planning/store/screenshots.md) -------
+// Two changes, each in its own file so fixture.json stays byte-identical.
+//
+// 1. fixture-store.json (frame 3, "Adds weight when you earn it"): Overhead
+//    Press (Day 1 slot 2, 3x8-10) goes 105x9 -> 105x10 in week 7 (19 Oct), so
+//    its last two sessions both top the range at 105 lb with RPE to spare and
+//    the double-progression badge fires. Bench is left alone: the other states
+//    rely on its stalled-week story.
+const OHP_KEY = 'ex:strength:d1:2';
+const OHP_WEEK = 6; // 0-based: week 7, Monday 19 Oct
+const ohp = LIFTS.d1[2];
+const store = { ...s };
+store[OHP_KEY] = JSON.stringify(ex[OHP_KEY].map(e => (
+  e.date === addDays(FIRST_MONDAY, OHP_WEEK * 7) ? { date: e.date, sets: setsFor(ohp.w[OHP_WEEK], 10, ohp.n) } : e
+)));
+write('fixture-store.json', store);
+
+// 2. fixture-store-deload.json (frame 6, "Deload weeks are planned in"): the
+//    store seed with the mesocycle started a week earlier (31 Aug), so the
+//    frozen Monday falls in week 10, the cycle's deload week (5 of 5), not
+//    week 9 (4 of 5, Accumulation).
+write('fixture-store-deload.json', { ...store, 'program-cycle-start': '2026-08-31' });

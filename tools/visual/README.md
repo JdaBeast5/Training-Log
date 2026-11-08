@@ -28,9 +28,48 @@ Other options: `--rev <commit>` shoots a commit instead of the working tree, `--
 - **Extras at 402×874, in dark and light:** Gym mode (`gym-*`, 23 minutes into a session), the rest timer (`rest-*`, 2:30 left of 4:00 after Bench set 2), and the first-run sheet (`firstrun-*`, an empty device).
 - **Reduce Motion pass:** `today`, `gym`, `rest` and `firstrun` at 402×874 dark, with `prefers-reduced-motion: reduce` emulated (ids end `-rm`).
 
+## Store mode (`--store`)
+
+```
+node tools/visual/harness.js --store
+```
+
+This shoots the App Store and Google Play screenshots in `planning/store/screenshots.md`. It doesn't touch the default mode: its states, fixture and output are separate, and a default run gives the same bytes with or without this mode in the file.
+
+- **Capture:** each `store-*` frame is shot at **440×956 with DPR 3**, which is exactly Apple's 6.9" size, **1320×2868**. It uses dark theme and the same frozen clock, seeded randomness, blocked network and settle as the default mode.
+- **Apple:** the caption goes in a band at the top (516 px), on an opaque near-black ground with a short Day 1 plate-red rule. The capture is scaled into the space below with rounded corners. Output is a 1320×2868 PNG.
+- **Play:** the same composite at **1080×1920**, with a 300 px band. The PNG has no alpha channel (colour type 2). The run reads each PNG's header and fails if the size is wrong or an alpha channel survives. The Apple capture can't be reused here because 2868:1320 is over Play's 2:1 limit.
+- **Caption font:** Geist, the app's own font, loaded as a data URL from the shot's `fonts/`. The storyboard asks for Archivo, but the repo has no Archivo file and fetching one would be a network call, so the font is the marketing manager's call.
+
+| # | Frame id | Caption | What's on screen |
+|---|---|---|---|
+| 1 | `store-today` | Tells you what to lift next | Today, scrolled to the workout card (phase, Up next, Bench open). The header streak is out of frame. |
+| 2 | `store-gym` | One tap logs the set | Gym mode on Bench, as in `gym-dark-402`. |
+| 3 | `store-progression` | Adds weight when you earn it | Overhead Press open. Its badge reads "Hit 10+ reps at 105 lb for 2 sessions straight — add 5 lb next time". |
+| 4 | `store-program` | Programs that show their sources | The Training Style card: overview, program description and "What this is based on" (ACSM's 2026 guidelines). No clinical program in frame. |
+| 5 | `store-progress` | Every record, every week | Analysis with Insights collapsed and Training Trends open (seeded `analysis-group-collapsed:*`), scrolled to Exercise Progress. The PR timeline named in the storyboard is on History, not Analysis. |
+| 6 | `store-deload` | Deload weeks are planned in | Today in "Week 5 of 5 · Deload", with Bench cut to 3×4-6. |
+| 7 | `store-backup` | Your log stays on your phone | Settings, at Data & maintenance, with "Your data lives only in this browser". |
+
+Frame 8 (`store-bib`) waits for MKT-16 and MKT-17.
+
+**Two store seeds,** both written by `make-fixture.js` alongside an unchanged `fixture.json`:
+- `fixture-store.json` gives Overhead Press (Day 1 slot 2, 8-10 reps) 105×10 instead of 105×9 in week 7 (19 October). Its last two sessions then both top the range, so the double-progression badge fires. Bench is left as it was.
+- `fixture-store-deload.json` is the store seed with `program-cycle-start` moved to 31 August. The frozen Monday then falls in week 10, which is the cycle's deload week.
+
+Each frame's in-page step (in `STORE_STEPS`) only calls the app's own functions or taps what a user would tap. It then scrolls the target to just under the sticky bars, or centres it inside a scrolling panel. `--only store-today,store-deload` and `--rev <commit>` work. `--base` doesn't: shoot each side and compare the folders.
+
+| Path | What |
+|---|---|
+| `out/store/capture/<id>.png` | The raw 1320×2868 capture. |
+| `out/store/apple/NN-<id>.png` | The App Store frame, 1320×2868. |
+| `out/store/play/NN-<id>.png` | The Play frame, 1080×1920, no alpha. |
+| `out/store/contact-sheet.png` | Both stores' frames on one sheet. |
+| `out/store/store.json` | Frame order, captions and file names. |
+
 ## Why two runs give the same bytes
 
-- **Fixture:** `fixture.json` is the committed seed. Jordan, 31, on a lean bulk, has run Strength & Size since 7 September 2026, with eight weeks of history. Bench Press has the richest log, and today's Day 1 is in progress with two Bench sets logged. `make-fixture.js` generated the file deterministically. Edit that script, then rerun `node tools/visual/make-fixture.js`; don't hand-edit the JSON. `whats-new-last-seen` is filled with the shot commit's `APP_VERSION`, so What's New never opens over a state.
+- **Fixture:** `fixture.json` is the committed seed (store mode adds two variants of it, above). Jordan, 31, on a lean bulk, has run Strength & Size since 7 September 2026, with eight weeks of history. Bench Press has the richest log, and today's Day 1 is in progress with two Bench sets logged. `make-fixture.js` generated the file deterministically. Edit that script, then rerun `node tools/visual/make-fixture.js`; don't hand-edit the JSON. `whats-new-last-seen` is filled with the shot commit's `APP_VERSION`, so What's New never opens over a state.
 - **Clock:** `Date` is frozen at Monday 2 November 2026, 18:10, America/New_York (`page.clock.setFixedTime`). Timers still run, so the gym clock and rest countdown hold still. The locale is `en-US`.
 - **Launch:** the launch-played preset (`sessionStorage['launch-played']`) is set, so the cold-launch mark never plays.
 - **Randomness:** `Math.random` is seeded (mulberry32).
