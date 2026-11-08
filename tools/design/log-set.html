@@ -8,20 +8,23 @@
 <!-- State: Bench Press set 2 of 4 just logged at 160 × 5 (one tap on the cover's Log button).
      Rest: Bench is 4×4-6, the strength rep tier → getDefaultRestSeconds gives 240 s; 96 s have run.
      The rest field is the cover itself, draining right to left (transform: scaleX on the bright layer,
-     linear over the rest length). Reduce Motion: a static fill and the number only. -->
+     linear over the rest length). Reduce Motion: a static fill and the number only.
+     Corrected 2026-11-08 for gate G4: meta text on the field at 15 px (design-directions §5); later sets say "Set 3",
+     "Set 4" as on the cover; "Last time" matches the Today mock-up (160 × 5, 5, 5, 4); the "Reps left" choices
+     sit inside BL-10's strength-tier words ("Stop 2–3 reps short; last set 1–2"), labelled with them below. -->
 <style>
   .rest{position:relative; background:var(--spot-deep); color:#fff; height:440px; overflow:hidden;}
   .rest .fill{position:absolute; inset:0; background:var(--spot); transform-origin:left center; transform:scaleX(.6);}
   .rest .in{position:relative; padding:0 var(--gutter);}
   .rest .status{margin:0 calc(var(--gutter) * -1);}
-  .pin{display:flex; align-items:center; justify-content:space-between; height:48px; font-size:var(--fs-meta); font-weight:600;}
+  .pin{display:flex; align-items:center; justify-content:space-between; height:48px; font-size:15px; font-weight:600;}
   .pin .acts{display:flex; gap:8px;}
   .pill-btn{height:44px; padding:0 16px; border-radius:22px; border:1.5px solid rgba(255,255,255,.85); font-weight:600; font-size:15px; display:flex; align-items:center;}
   .rest h1{font-size:var(--fs-head); margin-top:18px;}
   .clock{font-size:176px; line-height:.8; font-weight:800; font-stretch:68%; letter-spacing:-.025em; margin-top:22px;}
   .of{font-size:var(--fs-body); font-weight:600; margin-top:14px;}
   .logged{display:flex; gap:8px; margin-top:22px;}
-  .logged .chip{height:36px; padding:0 12px; border-radius:10px; display:flex; align-items:center; gap:6px; font-weight:600; font-size:14px; background:rgba(0,0,0,.28);}
+  .logged .chip{height:36px; padding:0 12px; border-radius:10px; display:flex; align-items:center; gap:6px; font-weight:600; font-size:15px; background:rgba(0,0,0,.28);}
   .logged .chip.next{background:transparent; border:2px solid #fff;}
   .logged .chip.todo{background:transparent; border:1.5px solid rgba(255,255,255,.55);}
   .logged svg.i{width:15px; height:15px; stroke-width:2.6;}
@@ -55,7 +58,7 @@
   <div class="fill" aria-hidden="true"></div>
   <div class="in">
     <div class="status" aria-hidden="true"><span>9:44</span><span class="dots"><svg class="i" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19" r=".8" fill="currentColor"/></svg><span class="bat"></span></span></div>
-    <div class="pin"><span>Bench Press · Set 2 of 4 done</span>
+    <div class="pin"><span>Bench Press · Set 2 done</span>
       <span class="acts"><button class="pill-btn" aria-label="Add 30 seconds">+30 s</button><button class="pill-btn">Skip</button></span></div>
     <h1 class="display">Rest</h1>
     <div class="clock display" role="timer" aria-label="2 minutes 24 seconds of rest left">2:24</div>
@@ -63,14 +66,14 @@
     <div class="logged" aria-label="Bench Press sets">
       <span class="chip"><svg class="i" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>160×5</span>
       <span class="chip"><svg class="i" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>160×5</span>
-      <span class="chip next">160×5</span>
-      <span class="chip todo">160×5</span>
+      <span class="chip next">Set 3</span>
+      <span class="chip todo">Set 4</span>
     </div>
   </div>
 </section>
 
 <section class="next" aria-label="Next set">
-  <div class="next-head"><h2>Next: set 3</h2><span class="meta">Last time 155 × 8</span></div>
+  <div class="next-head"><h2>Next: set 3</h2><span class="meta">Last time 160 × 5</span></div>
   <div class="steppers">
     <div class="stepper" role="group" aria-label="Weight">
       <button aria-label="5 pounds less"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
@@ -87,6 +90,7 @@
     <span class="lbl">Reps left</span>
     <button aria-pressed="false">3+</button><button aria-pressed="true">2</button><button aria-pressed="false">1</button><button aria-pressed="false">0</button>
   </div>
+  <p class="cap" style="margin-top:8px">Aim: stop 2–3 reps short; last set 1–2</p>
   <button class="btn go">Log set <span class="fig">160 × 5</span></button>
 </section>
 

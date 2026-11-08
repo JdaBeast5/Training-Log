@@ -7,8 +7,13 @@
 <link rel="stylesheet" href="world.css">
 <!-- The screen's one question: am I getting stronger, and is the plan's dose right?
      Bench line: the seeded 10 sessions (171 → 196 lb estimated max, Epley, heaviest set each session),
-     drawn in Day 1's ink because Bench lives on the red day. The per-muscle ledger is BL-20/BL-30's
-     sample data: direct sets this week (Mon–Thu) against the ~10–20 sets/week band [ACSM26][PEL]. -->
+     drawn in Day 1's ink because Bench lives on the red day (dayInk 'red'). The 160 × 5 that follows Oct 24 is a
+     heavier weight but a lower e1RM (186.7), so the line will dip that day; it is drawn honestly when it does (F6).
+     The per-muscle ledger follows BL-20 and design-vision §3.6, as corrected by summit R1.5 / R8 (2026-11-08, gate G4):
+     fractional counting (primary 1, synergist 0.5), a 10+ floor [ACSM26] with no 20 ceiling [PEL], grey under the
+     floor and the day's ink at or above it, the fill capped at the floor, no state colour on the numbers, and no
+     "Add 2 sets each" (an unapproved BL-31 prescription; side delts' real fix is BL-39, an append to the program).
+     Per-muscle numbers are sample data for Mon–Thu of week 3. -->
 <style>
   .head{padding:0 var(--gutter); display:flex; align-items:flex-end; justify-content:space-between; height:64px;}
   .head h1{font-size:var(--fs-head);}
@@ -39,11 +44,12 @@
   .ledger .m{font-size:15px;}
   .ledger .n{text-align:right; font-weight:600; font-variant-numeric:tabular-nums;}
   .track{position:relative; height:10px;}
-  .track .band{position:absolute; top:-3px; bottom:-3px; left:33.3%; width:33.3%; border-left:1px dashed var(--rule-strong); border-right:1px dashed var(--rule-strong); background:color-mix(in srgb, var(--text) 5%, transparent);}
-  .track .bar{position:absolute; left:0; top:2px; height:6px; border-radius:3px; background:var(--text);}
+  /* The track is 0 → the 10-set floor; the fill stops growing at the floor (BL-20 alignment note, exercise-auditor N3).
+     No ceiling is drawn: past 10 there are diminishing returns, not a cap [PEL]. */
+  .track{background:color-mix(in srgb, var(--text) 7%, transparent); border-radius:3px; height:6px; margin:2px 0; border-right:2px solid var(--text-2);}
+  .track .bar{position:absolute; left:0; top:0; height:6px; border-radius:3px; background:var(--spot);}
   .track .bar.under{background:var(--text-3);}
-  .track .plan{position:absolute; top:2px; height:6px; border-radius:0 3px 3px 0; border:1.5px solid var(--text-2); border-left:0;}
-  .ledger .n.short{color:var(--warning);}
+  .track .plan{position:absolute; top:0; height:6px; border-radius:0 3px 3px 0; border:1.5px solid var(--text-2); border-left:0;}
   .foot{padding:10px var(--gutter) 0; font-size:var(--fs-meta); color:var(--text-2);}
   .scale{display:grid; grid-template-columns:92px 1fr 34px; gap:12px; padding:6px var(--gutter) 0;}
   .scale .ticks{position:relative; height:14px; font-size:var(--fs-caption); color:var(--text-3);}
@@ -75,19 +81,18 @@
   <text class="endlbl" x="314" y="22" text-anchor="end">196</text>
   <text x="34" y="172">Sep 15</text><text x="187" y="172" text-anchor="middle">Oct 2</text><text x="340" y="172" text-anchor="end">Oct 24</text>
 </svg>
-<p class="why">Gaining about 4 lb a week. Next session asks for 165 × 5.</p>
+<p class="why">Next session 160 × 5, held there until all 4 sets reach 6.</p>
 
-<div class="sec"><h2>Sets per muscle this week</h2><span class="meta">10–20 band</span></div>
-<p class="foot" style="padding:0 var(--gutter) 10px">Solid is done, outline is still planned. Side delts, hamstrings and arms finish under 10. <a style="color:var(--text);font-weight:600;text-decoration:underline;text-underline-offset:3px">Add 2 sets each</a></p>
-<ul class="ledger" aria-label="Direct sets per muscle this week, done plus planned, against a 10 to 20 set band">
-  <li><span class="m">Chest</span><span class="track"><span class="band"></span><span class="bar under" style="width:26.7%"></span></span><span class="n short">8</span></li>
-  <li><span class="m">Back</span><span class="track"><span class="band"></span><span class="bar" style="width:46.7%"></span></span><span class="n">14</span></li>
-  <li><span class="m">Side delts</span><span class="track"><span class="band"></span><span class="bar under" style="width:10.0%"></span></span><span class="n short">3</span></li>
-  <li><span class="m">Quads</span><span class="track"><span class="band"></span><span class="bar" style="width:23.3%"></span><span class="plan" style="left:23.3%;width:20.0%"></span></span><span class="n">13</span></li>
-  <li><span class="m">Hamstrings</span><span class="track"><span class="band"></span><span class="bar under" style="width:20.0%"></span><span class="plan" style="left:20.0%;width:10.0%"></span></span><span class="n short">9</span></li>
-  <li><span class="m">Arms</span><span class="track"><span class="band"></span><span class="bar under" style="width:20.0%"></span></span><span class="n short">6</span></li>
+<div class="sec"><h2>Sets per muscle this week</h2><span class="meta">Floor 10+ a week</span></div>
+<p class="foot" style="padding:0 var(--gutter) 10px">Solid is done, outline planned. Synergist sets count half.</p>
+<ul class="ledger" aria-label="Fractional sets per muscle this week, done plus planned, against a floor of 10 sets">
+  <li><span class="m">Chest</span><span class="track"><span class="bar under" style="width:85%"></span><span class="plan" style="left:85%;width:15%"></span></span><span class="n">8.5</span></li>
+  <li><span class="m">Upper back</span><span class="track"><span class="bar" style="width:100%"></span></span><span class="n">12</span></li>
+  <li><span class="m">Side delts</span><span class="track"><span class="bar under" style="width:15%"></span></span><span class="n">1.5</span></li>
+  <li><span class="m">Quads</span><span class="track"><span class="bar under" style="width:60%"></span><span class="plan" style="left:60%;width:40%"></span></span><span class="n">6</span></li>
+  <li><span class="m">Hamstrings</span><span class="track"><span class="bar under" style="width:45%"></span><span class="plan" style="left:45%;width:30%"></span></span><span class="n">4.5</span></li>
 </ul>
-<div class="scale"><span></span><span class="ticks"><span style="left:0">0</span><span style="left:33.3%">10</span><span style="left:66.6%">20</span><span style="left:100%">30</span></span><span></span></div>
+<div class="scale"><span></span><span class="ticks"><span style="left:0">0</span><span style="left:50%">5</span><span style="left:100%">10+</span></span><span></span></div>
 
 <nav class="tabbar" aria-label="Sections">
   <a class="tab"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="10" width="3" height="4" rx="1"/><rect x="18" y="10" width="3" height="4" rx="1"/><rect x="6" y="6" width="3" height="12" rx="1"/><rect x="15" y="6" width="3" height="12" rx="1"/><path d="M9 12h6"/></svg>Today</a>

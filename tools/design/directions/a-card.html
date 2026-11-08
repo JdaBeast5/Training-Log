@@ -4,11 +4,16 @@
 <meta charset="utf-8">
 <title>A · Plate &amp; Press: session-complete story card (1080×1920)</title>
 <link rel="stylesheet" href="../world.css">
-<!-- Story card, drawn on the device (MKT-03/MKT-04). No body data (MKT-02): sets, lifts, time and load lifted only.
+<!-- Direction A's session card. Since the owner chose the bib as the story card (design-directions §5, MKT-16), this grid
+     is the square card for messages; drawn here at story size for comparison. Drawn on the device (MKT-03/MKT-04).
+     No body data (MKT-02). Updated 2026-11-08 for gate G4: the figures lead with sets, then lifts and minutes; total
+     load is off by default (D15; the old third figure was "17.0 k lb Lifted"). The foot is the Sash tile beside the
+     wordmark Platestep (naming.md, owner 2026-11-07); no address yet (BIZ-08 is behind the Phase 3 gate, D16).
      Safe zones: key content stays between y=250 and y=1620 (Instagram/WhatsApp chrome).
-     Progression truth: Bench holds at 160 until all 4 sets reach 6 (BL-08); today 6, 6, 5, 5 = 2 of 4 at the top.
+     Progression truth: Bench holds at 160 until all 4 sets reach 6 (BL-08); today 5, 6, 6, 5 (set 1 was 160 × 5, as on the Today
+     mock-up) = 2 of 4 at the top.
      No record is claimed: 160 was already lifted last session, so it is neither a weight nor an e1RM record.
-     Sample data: today's reps, session time, total load lifted, session count. Name "Chalklog" pending owner (D7). -->
+     Sample data: today's reps, session time. -->
 <style>
   body{width:1080px; height:1920px; background:#0C0C0D; color:#F2F2F0; overflow:hidden; position:relative;}
   .field{background:var(--spot-red); color:#fff; padding:250px 84px 60px;}
@@ -35,6 +40,7 @@
   .stats p{font-size:32px; color:#A6A6A2; margin-top:10px;}
   .foot{position:absolute; left:84px; right:84px; top:1650px; display:flex; align-items:center; gap:22px; font-size:42px; font-weight:600;}
   .foot svg{width:72px; height:72px;}
+  .foot svg{border-radius:16px; box-shadow:0 0 0 2px #3A3A3E;}
 </style>
 </head>
 <body>
@@ -58,19 +64,19 @@
     </svg>
   </div>
   <div class="lift"><h2>Bench Press</h2><span class="fig">160<small>lb · 45 · 10 · 2.5 a side</small></span></div>
-  <div class="reps" aria-label="Reps per set: 6, 6, 5, 5"><span class="top">6</span><span class="top">6</span><span class="under">5</span><span class="under">5</span></div>
+  <div class="reps" aria-label="Reps per set: 5, 6, 6, 5"><span class="under">5</span><span class="top">6</span><span class="top">6</span><span class="under">5</span></div>
   <p class="note"><b>2 of 4 sets at the top of 4–6.</b> Two more and it’s 165.</p>
 </section>
 <section class="ink">
   <div class="stats">
     <div><div class="fig">20</div><p>Sets</p></div>
+    <div><div class="fig">6</div><p>Lifts</p></div>
     <div><div class="fig">58<small>min</small></div><p>Time</p></div>
-    <div><div class="fig">17.0<small>k lb</small></div><p>Lifted</p></div>
   </div>
 </section>
 <div class="foot">
-  <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M73.7 32.8A30 30 0 1 1 49.8 20" fill="none" stroke="#F2F2F0" stroke-width="10"/><path d="M50 20A30 30 0 0 1 72.9 31.6" fill="none" stroke="#D42F25" stroke-width="10"/><circle cx="50" cy="50" r="5" fill="#F2F2F0"/></svg>
-  Chalklog
+  <svg viewBox="0 0 24 24" aria-hidden="true"><defs><clipPath id="sash-t"><rect width="24" height="24" rx="5.4"/></clipPath></defs><g clip-path="url(#sash-t)"><rect width="24" height="24" fill="#0C0C0D"/><g transform="rotate(-30 12 12)"><rect x="-10" y="6" width="44" height="2.1" fill="#D42F25"/><rect x="-10" y="8.5" width="44" height="2.1" fill="#2C5BD8"/><rect x="-10" y="11" width="44" height="2.1" fill="#F2C200"/><rect x="-10" y="13.5" width="44" height="2.1" fill="#1E9E4A"/><rect x="-10" y="16" width="44" height="2.1" fill="#E6E6E2"/></g></g></svg>
+  Platestep
 </div>
 </body>
 </html>

@@ -5,45 +5,18 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>A · Plate &amp; Press, R1-corrected: Today, the next set</title>
 <link rel="stylesheet" href="../world.css">
-<!-- Direction A: Plate & Press with summit R1 applied.
-     R1 fixes on this screen: no "Readiness 72" (F2); no "Intensification" phase name (F3); the effort label is one
-     string, "2 reps in reserve" (BL-10 targetRirLabel, F8); the reason line holds at 160 until all 4 sets reach 6
-     (BL-08 all-set double progression, F7); no header chat icon (UX-16 is needs-owner).
-     Content: programs.strength d1 (Upper · Strength, red 25 plate), Bench Press 4×4-6.
-     Plates per side, lb set [45,35,25,10,5,2.5]: (160-45)/2 = 57.5 = 45 + 10 + 2.5.
+<!-- Direction A: Plate & Press, the chosen app world. Same cover as tools/design/today.html (shared CSS in world.css),
+     re-rendered 2026-11-08 for consensus gate G4. Corrections on this screen:
+     - effort words: the 2026-11-07 string "2 reps in reserve" matched neither BL-10 nor RPE mode. Now BL-10's
+       targetRirLabel `words` for a strength-tier compound in default mode: "Stop 2–3 reps short; last set 1–2".
+       (RPE mode would print rpeTargetFor's week-3 target, RPE 8.5.) F8;
+     - no "Readiness 72" (F2), no "Intensification" (F3), holding at 160 until all 4 sets reach 6 (BL-08, F7);
+     - the coach button is back in the header beside Settings (UX-16, approved in D2); the day picker is the headline (UX-06b);
+     - design-directions §5: meta text 15 px on the field, 16 px between Log and adjust, no state colour on the field,
+       Log button top above y = 480, full-width bar with the 45 against the inner collar.
+     Content: programs.strength d1 (Upper · Strength, p-red → dayInk 'red'), Bench Press 4×4-6.
      Sample data (not from the seed): last session 160 × 5,5,5,4; set 1 today 160 × 5; other lifts' loads. -->
 <style>
-  .cover{background:var(--spot); color:var(--on-spot); padding:0 var(--gutter) 20px;}
-  .cover .status{margin:0 calc(var(--gutter) * -1);}
-  .bar-top{display:flex; align-items:center; justify-content:space-between; height:44px; margin-right:-10px;}
-  .where{font-size:var(--fs-meta); font-weight:500;}
-  .daybtn{display:flex; align-items:center; gap:2px; height:44px; padding:0 10px; font-size:var(--fs-meta); font-weight:600;}
-  .daybtn svg{width:16px; height:16px;}
-  h1{font-size:var(--fs-head); margin-top:4px;}
-  .lift{display:flex; align-items:baseline; justify-content:space-between; margin-top:22px;}
-  .lift h2{font-size:var(--fs-title); font-weight:600; letter-spacing:-.01em;}
-  .lift .of{font-size:var(--fs-meta); font-weight:600;}
-  .rx{font-size:var(--fs-meta); margin-top:2px;}
-  .numeral{display:flex; align-items:baseline; gap:6px; margin-top:12px;}
-  .numeral .w{font-size:150px; line-height:.8; letter-spacing:-.025em; font-weight:800; font-stretch:68%;}
-  .numeral .u{font-family:var(--font-text); font-size:var(--fs-lead); font-weight:600;}
-  .numeral .x{font-size:60px; line-height:.8; font-weight:700; font-stretch:68%; margin-left:6px;}
-  /* The loaded bar, full width: sleeve, collar, plates per side in competition colours and relative diameters */
-  .bar{position:relative; height:92px; margin-top:16px;}
-  .bar svg{width:100%; height:100%; display:block; overflow:visible;}
-  .bar-cap{display:flex; justify-content:space-between; font-size:var(--fs-caption); font-weight:600; margin-top:4px;}
-  .why{margin-top:12px; font-size:var(--fs-meta); line-height:1.35; padding-top:10px; border-top:1px solid rgba(255,255,255,.45);}
-  .why b{font-weight:600;}
-  .log{margin-top:14px; display:grid; grid-template-columns:1fr 56px; gap:10px;}
-  .log .btn{background:#0C0C0D; color:#fff; font-size:18px;}
-  .log .btn .fig{font-size:20px;}
-  .adjust{width:56px; height:56px; border-radius:var(--r-control); border:1.5px solid currentColor; display:grid; place-items:center;}
-  .chips{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px;}
-  .chip{height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:4px; font-weight:600; font-size:14px;}
-  .chip.done{background:#0C0C0D; color:#fff;}
-  .chip.ready{border:2.5px solid #fff;}
-  .chip.todo{border:1.5px dashed rgba(255,255,255,.85);}
-  .chip svg.i{width:15px; height:15px; stroke-width:2.6;}
   .section{padding:18px var(--gutter) 6px; display:flex; justify-content:space-between; align-items:baseline;}
   .section h3{font-size:var(--fs-lead); font-weight:600;}
   .ex{padding:0 var(--gutter);}
@@ -54,38 +27,39 @@
   .ex .load .fig{font-size:22px;}
   .ex .load .unit{font-size:var(--fs-caption); color:var(--text-3); margin-left:2px;}
   .ex .chev{color:var(--text-3); width:18px; height:18px;}
-  .home-ind{background:var(--text);}
 </style>
 </head>
 <body class="day-red">
 <header class="cover">
-  <div class="status" aria-hidden="true"><span>9:41</span><span class="dots"><svg class="i" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/></svg><span class="bat"></span></span></div>
+  <div class="status" aria-hidden="true"><span>9:41</span><span class="dots"><svg class="i" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19" r=".8" fill="currentColor"/></svg><span class="bat"></span></span></div>
   <div class="bar-top">
     <span class="where">Strength &amp; Size · Week 3 of 5</span>
-    <button class="daybtn" aria-label="Change day">Day 1<svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div class="acts">
+      <button class="icon-btn" aria-label="Ask the coach"><svg class="i" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg></button>
+      <button class="icon-btn" aria-label="Settings"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg></button>
+    </div>
   </div>
-  <h1 class="display">Upper Strength</h1>
+  <button class="dayhead" aria-label="Day 1, Upper Strength, change day"><h1 class="display">Upper Strength</h1><svg class="i" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
   <div class="lift"><h2>Bench Press</h2><span class="of">Set 2 of 4</span></div>
-  <p class="rx">4 × 4–6 · 2 reps in reserve</p>
+  <p class="rx">4 × 4–6 · Stop 2–3 reps short; last set 1–2</p>
   <div class="numeral display" aria-label="160 pounds for 5 reps"><span class="w">160</span><span class="u">lb</span><span class="x">×5</span></div>
   <div class="bar" aria-label="Load per side: one 45, one 10, one 2.5">
-    <svg viewBox="0 0 362 92" aria-hidden="true">
-      <rect x="1" y="39" width="117" height="14" rx="2" fill="#BDBDB8" stroke="#0C0C0D" stroke-width="2"/>
-      <rect x="244" y="39" width="117" height="14" rx="2" fill="#BDBDB8" stroke="#0C0C0D" stroke-width="2"/>
-      <rect x="116" y="42" width="130" height="8" fill="#BDBDB8" stroke="#0C0C0D" stroke-width="2"/>
-      <rect x="110" y="30" width="8" height="32" rx="1" fill="#1B1B1D"/><rect x="244" y="30" width="8" height="32" rx="1" fill="#1B1B1D"/>
-      <rect x="86" y="0" width="24" height="92" rx="3" fill="#2C5BD8" stroke="#0C0C0D" stroke-width="2"/>
-      <rect x="70" y="12" width="16" height="68" rx="3" fill="#E6E6E2" stroke="#0C0C0D" stroke-width="2"/>
-      <rect x="62" y="24" width="8" height="44" rx="2" fill="#8B8B88" stroke="#0C0C0D" stroke-width="2"/>
-      <rect x="55" y="34" width="7" height="24" rx="1" fill="#1B1B1D"/>
-      <rect x="252" y="0" width="24" height="92" rx="3" fill="#2C5BD8" stroke="#0C0C0D" stroke-width="2"/>
-      <rect x="276" y="12" width="16" height="68" rx="3" fill="#E6E6E2" stroke="#0C0C0D" stroke-width="2"/>
-      <rect x="292" y="24" width="8" height="44" rx="2" fill="#8B8B88" stroke="#0C0C0D" stroke-width="2"/>
-      <rect x="300" y="34" width="7" height="24" rx="1" fill="#1B1B1D"/>
+    <svg viewBox="0 0 362 80" aria-hidden="true">
+      <rect x="1" y="34" width="117" height="12" rx="2" fill="#BDBDB8" stroke="#0C0C0D" stroke-width="2"/>
+      <rect x="244" y="34" width="117" height="12" rx="2" fill="#BDBDB8" stroke="#0C0C0D" stroke-width="2"/>
+      <rect x="116" y="36.5" width="130" height="7" fill="#BDBDB8" stroke="#0C0C0D" stroke-width="2"/>
+      <rect x="110" y="26" width="8" height="28" rx="1" fill="#1B1B1D"/><rect x="244" y="26" width="8" height="28" rx="1" fill="#1B1B1D"/>
+      <rect class="plate" data-lb="45" x="86" y="1" width="24" height="78" rx="3" fill="#2C5BD8" stroke="#0C0C0D" stroke-width="2"/>
+      <rect class="plate" data-lb="10" x="70" y="11" width="16" height="58" rx="3" fill="#E6E6E2" stroke="#0C0C0D" stroke-width="2"/>
+      <rect class="plate" data-lb="2.5" x="62" y="21" width="8" height="38" rx="2" fill="#8B8B88" stroke="#0C0C0D" stroke-width="2"/>
+      <rect x="55" y="30" width="7" height="20" rx="1" fill="#1B1B1D"/>
+      <rect class="plate" data-lb="45" x="252" y="1" width="24" height="78" rx="3" fill="#2C5BD8" stroke="#0C0C0D" stroke-width="2"/>
+      <rect class="plate" data-lb="10" x="276" y="11" width="16" height="58" rx="3" fill="#E6E6E2" stroke="#0C0C0D" stroke-width="2"/>
+      <rect class="plate" data-lb="2.5" x="292" y="21" width="8" height="38" rx="2" fill="#8B8B88" stroke="#0C0C0D" stroke-width="2"/>
+      <rect x="300" y="30" width="7" height="20" rx="1" fill="#1B1B1D"/>
     </svg>
   </div>
   <div class="bar-cap"><span>45 · 10 · 2.5 each side</span><span>45 lb bar</span></div>
-  <p class="why"><b>Holding at 160</b> until all 4 sets reach 6. Last time 5, 5, 5, 4.</p>
   <div class="log">
     <button class="btn">Log set <span class="fig">160 × 5</span></button>
     <button class="adjust" aria-label="Adjust weight, reps or effort"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button>
@@ -96,11 +70,13 @@
     <div class="chip todo" role="listitem" aria-label="Set 3">Set 3</div>
     <div class="chip todo" role="listitem" aria-label="Set 4">Set 4</div>
   </div>
+  <p class="why"><b>Holding at 160</b> until all 4 sets reach 6. <span style="white-space:nowrap">Last time 5, 5, 5, 4.</span></p>
 </header>
 <div class="section"><h3>Then</h3><span class="meta">5 exercises · about 45 min</span></div>
 <ul class="rows ex">
   <li><div><div class="name">Barbell Row</div><div class="sub">4 × 6–8 · last 135 × 8, 8, 7, 7</div></div><div class="load"><span class="fig">135</span><span class="unit">lb</span></div><svg class="i chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></li>
-  <li><div><div class="name">Overhead Press</div><div class="sub">3 × 8–10 · all sets hit 10: add weight</div></div><div class="load"><span class="fig pos">100</span><span class="unit">lb</span></div><svg class="i chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></li>
+  <li><div><div class="name">Overhead Press</div><div class="sub">3 × 8–10 · last 95 × 10, 10, 10</div></div><div class="load"><span class="fig">100</span><span class="unit">lb</span></div><svg class="i chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></li>
+  <li><div><div class="name">Lat Pulldown</div><div class="sub">3 × 10–12 · last 120 × 12, 11, 10</div></div><div class="load"><span class="fig">120</span><span class="unit">lb</span></div><svg class="i chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></li>
 </ul>
 <nav class="tabbar" aria-label="Sections">
   <a class="tab" aria-current="page"><svg class="i" viewBox="0 0 24 24"><rect class="fillable" x="3" y="10" width="3" height="4" rx="1"/><rect class="fillable" x="18" y="10" width="3" height="4" rx="1"/><rect class="fillable" x="6" y="6" width="3" height="12" rx="1"/><rect class="fillable" x="15" y="6" width="3" height="12" rx="1"/><path d="M9 12h6"/></svg>Today</a>
