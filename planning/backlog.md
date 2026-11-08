@@ -176,7 +176,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (43931–43939 plus the new map and helper; 14549; 29060), `sw.js`, `test-region-override.js` (new). No existing test reads `CATEGORY_TO_REGIONS` (checked at v3.518), so no re-pins are expected; the full suite run confirms it.
 - **Risk:** `CATEGORY_TO_REGIONS` has no test today. Care flows are guarded by `test-care-2-0.js` and `test-resting-region-since-tracking.js`. More rows will show a caution for people with a resting region; that's the point, and the What's New line says so.
 - **Spec refresh (2026-11-08):** line numbers re-grepped at v3.518; criteria moved from a rendered row (not drivable in jsdom) to the real helper plus a wiring count; criterion 5 added. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.522, PR #77)
 
 ### BL-04: Exercise-specific substitutes for the overridden exercises (SAF-3, part 2)
 - **Why:** `suggestSubstitute` (43965) picks by category from `SUBSTITUTION_MAP` (43948). That means a resting Achilles gets "Wrist Flexor Stretch" for a heel drop (the `arms` alts), and a hangboard gets "Chest-Supported Row".
