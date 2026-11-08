@@ -66,7 +66,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - Accumulation behaviour on the four lifting programs. Guarded by `test-accumulation-accessory-add.js` and `test-mesocycle-phase-tag.js`.
   - `applyGoalVolume` has no prior test; this item adds the first.
   - The phase tag will still read "Accumulation" on gated programs. Flag it; don't fix it here.
-- **Status:** ready
+- **Status:** done (v3.518, PR #63)
 
 ### BL-02: RPE caps for clinical programs; RPE mode off for technique lifts (SAF-2)
 - **Why:** `RPE_BY_CYCLE_WEEK` (27409) reaches RPE 9 in week 4 for any exercise with an e1RM.
