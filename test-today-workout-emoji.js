@@ -88,7 +88,7 @@ test('REAL invocation: updateSessionCalorieTotal writes the running total with n
 test('REAL invocation: buildProgressBadge\'s RPE target badge leads with the week, not an emoji', (assert)=>{
   const { window } = runJsdom('', `
     var RPE_BY_CYCLE_WEEK = {5: 6}; var DELOAD_CYCLE_WEEKS = 5; var loadSuggestionMode = 'rpe'; var weightUnit = 'lb';
-    function targetRpeForWeek(){ return 8; } function loadForRpeTarget(){ return 200; } function parseBottomRep(){ return 5; }
+    function targetRpeForWeek(){ return 8; } function rpeTargetFor(){ return 8; } function loadForRpeTarget(){ return 200; } function parseBottomRep(){ return 5; }
     function rirFromRpe(){ return 2; } function snapToLoadable(x){ return x; } function toDisplayWeight(x){ return x; }
     function cycleWeekOf(){ return 2; } function trimUnitNum(x){ return String(x); }`,
     [extractFunction(src, 'buildProgressBadge'),
