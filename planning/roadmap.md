@@ -14,6 +14,8 @@ This is the one order every build run follows. It supersedes the "Requested buil
 - Slots marked **†** are `needs-owner`. The loop skips them until the owner approves, then builds them in the slot where they sit. That's why approved safety and program items sit early.
 - The pace equals the owner's merge rate. There are **69 ready builds**. At one merge a day (an assumption, not a promise), that's about ten weeks.
 - **Spec refresh (2026-11-08):** net +3 to that count (BL-01 done; BL-36, UX-02, BL-65 and BL-66 ready). Slots 2–16 were re-specified against v3.518 in `backlog.md`. The owner's third-round answers (D3, D5, D6, D8, 2026-11-08) are **not yet applied** to item statuses; that's a separate planning pass.
+- **Audit fold-in (2026-11-08):** the exercise-auditor's 18 items (PR #68) are slotted below, with no existing slot renumbered or moved. Net **+11 ready** (BL-43, BL-48, BL-53, BL-54, BL-55, BL-57, BL-58, BL-60, BL-62, BL-63, BL-64), so there are now **83 ready builds**. Seven more are † (BL-46, BL-47, BL-51, BL-52, BL-56, BL-59, BL-61). Specs are in `backlog.md` → "Added from the exercise-consistency audit".
+  - **Date risk:** 24 ready builds now sit before MKT-06a (slot 19), counting slot 8 as ready per the backlog. To merge it by **30 November** takes about 1.1 merges a day from 8 November; at one a day it lands around 3 December. Summit R5 says nothing else moves if it slips. The owner can accept that, or move BL-55 and BL-63 (13c, 13d) to just after slot 19.
 
 **Before slot 1** (see `consensus.md` (f)):
 - The owner's actions:
@@ -34,7 +36,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 - **DOC-01:** PRODUCT.md takes the chosen name, once the owner decides it.
 - **BL-67:** a test-only guard that no exercise substitute crosses the jump category (PR #63 flag; added 2026-11-08). Any planning or tooling PR may carry it.
 
-### Phase 0: Safety (7 builds, plus 2 if D4 is approved)
+### Phase 0: Safety (9 builds, plus 2 if D4 is approved, plus 1 if approved)
 1. BL-01: program gate on goal volume and block accumulation. The allowlist is named, and the test covers every other built-in program and variant. **Done (v3.518, PR #63).**
 2. BL-02: RPE caps on clinical programs; RPE mode off for technique lifts; **the clinical load gate (SAF-8)**
    - 2a. **BL-68: backups leave out saved API keys** (owner, 2026-11-08)
@@ -42,35 +44,49 @@ This is the one order every build run follows. It supersedes the "Requested buil
 4. BL-04: exercise-specific substitutes
 5. **BL-05 + BL-06, one version:** the safety cues, including the Depth Jump **Drop Landing rule**, across all 20 occurrences (counted at v3.518)
 6. **BL-05b:** the Neck Bridges cue says coach-only, otherwise isometrics (all 6 occurrences)
+   - 6a. **BL-62:** clinical dose and position wording: per-leg Achilles and ACL doses, side-lying breathing in pregnancy, Sandbag Lunges per leg *(audit fold-in, 2026-11-08)*
+   - 6b. **BL-64:** cue contradictions: Chair Pose knees, Good Morning, Front Lever, Hammer Curl, Hanging Leg Raise *(audit fold-in)*
+   - 6c. † **BL-61:** plyometric prescriptions match their cues: Jump Squat 6-8, Single-Leg Bound per leg *(audit fold-in; needs-owner)*
 7. BL-13: the cycle card stops prescribing phase-based training
 8. † BL-35: replace Neck Bridges with a 4-way neck isometric (D4 approved; **back to needs-owner on the archive method**, see the backlog item)
 9. BL-36: Drop Landing as a loggable drill on the ACL-risk watersports days (D4 approved 2026-11-07; ready)
 
-### Phase 1: Engine truth, foundation, the Year in Lifting lane, and the food lane (24 builds, plus 3 if approved)
+### Phase 1: Engine truth, foundation, the Year in Lifting lane, and the food lane (33 builds, plus 7 if approved)
+- **History truth, first** *(audit fold-in, 2026-11-08)*:
+  - 9a. † **BL-51:** new log entries record the exercise name; suggestions ignore another exercise's entries. This fixes wrong-weight suggestions across lifts, and must ship before BL-08 *(needs-owner: adds a stored field)*
+  - 9b. **BL-53:** medical history reaches History, PRs and volume; the watersports fallback key
 10. BL-08: all-set double progression (inherits the clinical load rule)
 11. UX-01: design tokens as aliases (no visual change). After TOOL-01; the baseline is the parent commit.
 12. **UX-01b:** `dayInk(id)`, the one day-to-ink rule (no visual change)
 13. BL-07: the performance goal no longer cuts strength-tier work
 13a. **BL-65:** the coach's volume line matches the program gate *(PR #63 flag; added 2026-11-08)*
 13b. **BL-66:** the phase tag drops "Accumulation" where no block sets are added *(PR #63 flag; added 2026-11-08)*
+13c. **BL-55:** cardio rows ask for a distance only when distance is the measure, and it never blocks a finished set *(audit fold-in)*
+13d. **BL-63:** the time shown on Today counts the work, not just the rest *(audit fold-in)*
 14. MKT-02: no body data on share cards *(Year in Lifting lane)*
 15. MKT-09: the rename, **only if the owner picks a name other than Liftnext** *(lane)*. **Done (v3.517, Platestep).** The loop skips it.
 16. UX-02: the Archivo display face (D2 approved 2026-11-07; ready), so the cards never change typeface *(lane)*
 17. MKT-03: story-format cards with the **Sash mark and no wordmark** *(lane)*
 18. † MKT-03b: the wordmark, once the name is confirmed *(lane)*
 19. **MKT-06a: the Year in Lifting computation plus one summary card.** Target: merged by **30 November** *(lane; summit R5: if it slips, nothing else moves)*
+19a. **BL-54:** one exercise, one name in History, PRs and the warm-up fallback (Back Squat = Squat, and so on) *(audit fold-in; after MKT-06a so its date holds, before MKT-06b)*
 20. BL-10: a target RIR on every prescription, with a short form and a words form
 21. BL-15: the decrease signal waits for two short sessions
 22. BL-24: increments scale with strength (inherits the clinical load rule)
+22a. **BL-58:** library entries for the Light and Speed variants (technique flag, no load push); prune orphans *(audit fold-in)*
 23. BL-09: readiness compared with the week's own RPE target
 24. BL-23: one-tap early deload when overreaching
+24a. **BL-48:** the deload week also shortens duration-only cardio *(audit fold-in)*
 25. BL-14: unit-aware rest times
+25a. **BL-57:** the rest parser reads trailing multipliers, per-side mobility and swim repeats *(audit fold-in; on top of BL-14)*
 26. BL-26: the plateau message names the stall
+26a. † **BL-56:** `noWeight` on moves that never take load, load on the ones that do *(audit fold-in; needs-owner; before BL-11)*
 27. BL-11: rep and time progression for bodyweight work
 28. MKT-01: consistency counts training weeks
 29. **MKT-06b: the remaining Year in Lifting cards** (no wall of bibs). Target: mid-December; the window runs to 15 January.
 30. BL-12: copy that matches the code
 31. BL-25: exercise cue corrections
+31a. **BL-60:** substitutes that keep the same muscle and joint *(audit fold-in)*
 32. **BIZ-18a:** the free-list guard test (no lock, upgrade or "Pro" label in free areas)
 33. **MKT-20:** card and backup file names follow `APP_NAME`
 - **The food lane (moved up from #44 and #51–54; market-researcher B2):**
@@ -79,8 +95,12 @@ This is the one order every build run follows. It supersedes the "Requested buil
 36. BL-19: "Add from yesterday"
 37. BL-16: trend weight (needs D10's paper-lookup for the Hacker's Diet citation, or ships with it marked unverified in the plan only)
 38. BL-17: expenditure estimated from your logs (starts BL-27's three-week data clock)
+- **Endurance progression** *(audit fold-in; the running, cycling and swimming F grades)*:
+  - 38a. **BL-43:** running progression from your own logged distance (the 30-day single-run cap)
+  - 38b. † **BL-46:** cycling FTP anchor, retest and interval progression *(needs-owner)*
+  - 38c. † **BL-47:** swimming CSS anchor and set progression *(needs-owner; after BL-46 and BL-57)*
 
-### Phase 2: Redesign core. Every tab in the new materials before the cover (21 builds, plus 3 if approved)
+### Phase 2: Redesign core. Every tab in the new materials before the cover (21 builds, plus 4 if approved)
 **Before slot 39:** the mock-ups are re-rendered, and Playwright WebKit is approved (D10). **After slot 40 (UX-03), the owner looks on device before the next UX item builds on it.**
 
 39. BIZ-05: the first-set hint (also the cover's empty state)
@@ -100,6 +120,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 53. **MKT-18:** pin the bib on your own photo
 54. **UX-09b:** the PR flood and its motion; none on clinical programs
 55. BIZ-06: AI entry points say they need a key, **and what each sends and to whom**; the AI card sorts below Trends
+55a. † **BL-59:** category corrections that feed the muscle ledger, with M-8 *(audit fold-in; needs-owner; before BL-20)*
 56. BL-20: the per-muscle ledger, fractional; the ink fill stops at the floor
 57. † BL-33: deloads count only weeks you trained (D3)
 58. † BL-31: weekly ±1 set per muscle from your performance (D3)
@@ -108,7 +129,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 61. UX-11: the weekly recap sheet with the week strip
 62. † UX-16: the coach button into the header (D2)
 
-### Phase 3: The first week, data trust, and the launch gates (11 builds, plus 4 if approved)
+### Phase 3: The first week, data trust, and the launch gates (11 builds, plus 5 if approved)
 **Hard gate:** before any Phase 5 public step:
 - all of Phase 3 is merged, **including BL-37 and BL-38** (or an alternative the owner records for the 2–4-day bodybuilding variants);
 - **UX-17 has shipped or been dropped.**
@@ -124,6 +145,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 71. BIZ-19: "Training since" (reuses MKT-17's corpus pass)
 72. **BL-50:** AI prompts know the clinical style (SAF-9)
 73. **BIZ-26:** the barcode library loads with an integrity hash
+73a. † **BL-52:** variant- and style-scoped history keys, with a migration *(audit fold-in; needs-owner; after BL-51 has stamped names for some weeks, and before BL-37 so its migration can attribute entries)*
 74. † BL-37: rebuild the low day-count variants (D4; migration)
 75. † BL-38: Bodybuilding d6 "Upper Detail" (D4; migration)
 76. † BL-28: saved meals (D5)
@@ -140,7 +162,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 85. † BL-40: hypertension isometrics and medical notes (D4)
 86. † UX-17: retire Gym mode. Two weeks after UX-06a, once tap parity is confirmed on device; it ships or is dropped before Phase 5.
 87. UX-15: the dead-CSS sweep (always the last UX item; it runs after UX-17 if that's approved)
-88. BL-41 to BL-49: program extensions, itemised by the exercise-auditor before Phase 2 ends. These are powerlifting top single plus peak, Olympic % bands and a miss counter, running/cycling/swimming volume progression, and bodyweight ladders. They're placeholders, not buildable yet.
+88. BL-41, BL-42, BL-44 and BL-45: program extensions, itemised by the exercise-auditor before Phase 2 ends. These are the powerlifting top single plus peak, Olympic % bands and a miss counter, bodyweight ladders, and athletic metrics. They're placeholders, not buildable yet. (BL-43, BL-46, BL-47 and BL-48 are written and slotted at 24a and 38a–c; BL-49 is unassigned.)
 
 ### Phase 5: Public launch (owner-gated; about 9 builds after the owner says yes)
 - **Decisions (no code):**
@@ -234,14 +256,14 @@ Scores run 1–5. Impact is impact on the owner's daily use; confidence is in th
 
 | Rank | Theme | I | C | E | Score | Backlog |
 |---|---|---|---|---|---|---|
-| 1 | **Program safety gates** | 4 | 5 | 5 | 100 (forced first) | BL-01 to BL-06, BL-05b, BL-13, BL-35, BL-36, BL-50 |
-| 2 | **Progression engine correctness** | 5 | 4 | 4 | 80 | BL-07 to BL-11, BL-15, BL-24, BL-34 |
+| 1 | **Program safety gates** | 4 | 5 | 5 | 100 (forced first) | BL-01 to BL-06, BL-05b, BL-13, BL-35, BL-36, BL-50, BL-51, BL-61, BL-62 |
+| 2 | **Progression engine correctness** | 5 | 4 | 4 | 80 | BL-07 to BL-11, BL-15, BL-24, BL-34, BL-58 |
 | 3 | **Effort and volume programming** (RIR, per-muscle ledger, set autoregulation) | 5 | 4 | 3 | 60 | BL-12, BL-20, BL-30, BL-31 |
 | 4 | **Nutrition you can trust** (trend weight, adaptive expenditure) | 4 | 4 | 3 | 48 | BL-16, BL-17, BL-27 |
 | 5 | **Logging speed** (food) | 4 | 4 | 3 | 48 | BL-18, BL-19, BL-28 |
-| 6 | **Program quality** (dose, frequency, selection, copy truth) | 4 | 4 | 2 | 32 | BL-14, BL-26, BL-37 to BL-40 |
+| 6 | **Program quality** (dose, frequency, selection, copy truth) | 4 | 4 | 2 | 32 | BL-14, BL-26, BL-37 to BL-40, BL-43, BL-46 to BL-48, BL-56, BL-57, BL-59, BL-60, BL-64 |
 | 7 | **Recovery that understands lifting** | 3 | 3 | 3 | 27 | BL-21, BL-23, BL-32, BL-33 |
-| 8 | **Portability and reliability** | 2 | 5 | 3 | 30 | BL-22, BL-29 |
+| 8 | **Portability and reliability** (including history truth) | 2 | 5 | 3 | 30 | BL-22, BL-29, BL-52 to BL-55, BL-63 |
 
 Theme 7 sits above theme 8 despite the lower score. Readiness is seen every training day; import and export are one-off.
 
@@ -307,7 +329,7 @@ Theme 7 sits above theme 8 despite the lower score. Readiness is seen every trai
   - Powerlifting top single at RPE 8 with −10% back-offs, plus a meet-peak block;
   - Olympic % bands and a miss counter;
   - athletic jump/sprint metrics;
-  - running and cycling volume progression;
+  - running, cycling and swimming progression (now itemised as BL-43, BL-46, BL-47 and BL-48; audit fold-in, 2026-11-08);
   - bodyweight progression ladders (H-8 second half);
   - a plateau playbook (research #6).
 

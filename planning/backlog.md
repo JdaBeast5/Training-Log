@@ -8,6 +8,8 @@
 - TOOL-01, DOC-01.
 
 
+**Audit fold-in (2026-11-08, against v3.518).** The exercise-auditor's 18 items from `planning/backlog-additions-2026-11-08.md` (PR #68) now live here, in the section "Added from the exercise-consistency audit": BL-43, BL-46 to BL-48, and BL-51 to BL-64. Their line numbers are re-grepped at v3.518, and their `Files:` lines name the suites to re-pin. BL-51 became `needs-owner`, because it adds a stored field. Their slots are in `roadmap.md`'s Unified build sequence.
+
 **Spec refresh (2026-11-08, against v3.518, after PR #63).** The next 15 slots of the Unified build sequence after BL-01 (roadmap slots 2–16: BL-02, BL-03, BL-04, BL-05 with BL-06, BL-05b, BL-13, BL-35, BL-36, BL-08, UX-01, UX-01b, BL-07, MKT-02, MKT-09, UX-02) were re-grepped against `index.html` at **v3.518**. In those items, line numbers are v3.518's, each criterion is written to be checked by a real invocation (or, where `renderWorkout` can't be driven in jsdom, by a real-call count), and `Files:` names every existing test that needs re-pinning, found by reading the suites that extract the touched functions. Each changed item ends with a "Spec refresh (2026-11-08)" line. Owner decisions already given in `pitch.md` (D2, D4, D11–D13) are applied to statuses. The builder's PR #63 flags became BL-65 to BL-67 (and BL-02 criterion 9). Items further down still carry v3.514 numbers: re-grep them.
 
 Owner: project-manager. Written 2026-11-07 against **v3.514**. The baseline was green: `check.sh` passed and 198/198 `test-*.js` suites passed. Line numbers are `index.html` at v3.514 unless a file is named. **Every build run re-greps them before editing:** each shipped item shifts the lines below it.
@@ -855,18 +857,466 @@ The builder's "Flagged, not fixed" notes on PR #63 (BL-01, v3.518), as small ite
 - **Risk:** none to the app.
 - **Status:** ready (outside the loop)
 
+## Added from the exercise-consistency audit (2026-11-08)
+
+The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 2026-11-08. The evidence for each is in `planning/exercise-consistency-audit.md` (finding IDs S-x, D-x, C-x); source keys are there and in `planning/program-audit.md`. The auditor wrote them against v3.517. **Here every line number is re-grepped against `index.html` v3.518** (`origin/Branch-1` a502c29; BL-02 not yet merged), and every `Files:` line names the existing suites that extract or pin what the item touches. Those suites were found by grepping the 200 `test-*.js` files for each touched function or literal and reading their assertions. All 200 passed, and `check.sh` passed, at v3.518 before this fold-in.
+
+**Fold-in changes to the auditor's text** (each also noted in its item as "Fold-in (2026-11-08)"):
+- **BL-51** is marked `needs-owner`. It adds a field (`n`) to every new log entry, and this file's rule is that anything changing the owner's stored data shape asks first. It's additive like `distance` and `note` (no migration, no `SCHEMA_VERSION` bump), and the recommendation is yes. Its slot (9a) is right after Phase 0, so it builds the moment it's approved.
+- **BL-48:** there's no `deloaded` marker to add. The "(deload)" suffix on the duration line (28704) already keys off `inDeloadWeek`.
+- **BL-55:** the Analysis distance card (45650) also calls `isDistanceExercise`, so it must pass the sets string too.
+- **BL-62:** the prenatal position fix rewrites the existing first cue instead of adding a fourth, so `test-concise-cues.js`'s exact cue count (964) holds. The Sandbag Lunges change covers all 7 occurrences, including the Hyrox day-count variants.
+- **BL-63:** no existing suite tests `applySessionLengthLimit` (`test-session-actions.js` is CSS and layout only). Criterion 4 becomes a new real-function case. `test-lb-per-kg-consolidation.js` pins Back Squat 3×5 at 109 kcal through `parseEstimatedMinutes`, so it needs re-pinning.
+- **BL-64** stays its own version rather than merging into BL-25 (one item, one version). Both edit Front Lever Hold (cx:171), so whichever builds second re-reads that entry.
+- **BL-57:** `getDefaultRestSeconds` gains a dependency on `EXERCISE_MOVE`. Seven suites extract the real function, so each needs the constant in its chunks, or the read must be guarded with `typeof`.
+
+### BL-51: New log entries record the exercise name, and suggestions ignore another exercise's entries (S-1, D-2, part 1)
+- **Why:**
+  - History keys are positional (`exKey`, `index.html` 27027). Day-count variants reuse `d1…d7` and the slot indexes, and yoga styles share `ex:yoga:` keys (`getExerciseLocationIndex` 27112 says so).
+  - Measured by the auditor: strength 54/120, bodybuilding 81/94 and powerbuilding 47/112 variant slots read a different exercise's log at the same key. Yoga has 40/72 cross-style collisions.
+  - Example: bodybuilding 6-day d5 slot 0 Incline DB Press reads Squat history, and suggests "try adding weight" from the squat load.
+  - Entries store only `{date, sets}` (`normalizeExEntry` 27170, `saveExSet` 28308), so nothing can tell them apart today.
+- **Change** (no migration, no key change):
+  - `saveExSet` (28308) adds `n: <exercise name>` to each **new** entry: the slot's current `ex.name`, or the substitute's name for `:sub:` keys. The same additive rule as `distance` and `note` (28333–28340).
+  - `normalizeExEntry` (27170) keeps `n` when present.
+  - One helper, `entriesForExercise(log, name)`. It keeps entries with `n === name`. It keeps legacy entries (no `n`) **only when** `daysPerWeekPref == null` (25964, the program's own default) and, for yoga, `activeYogaStyle === 'flow'` (15810). Legacy entries anywhere else are ambiguous, so suggestions leave them out.
+  - Callers: the `getExLog` (27175) reads that feed `buildPastSessions` (27567), `priorSetForSlot` (27836), `computeSuggestedSet` (27849), `buildProgressBadge` (27779), the heads-up (14553), the fit check (27610), `renderWorkout` (28722), and the `priorMax` PR check inside `saveExSet` (28316–28322).
+  - History and Analysis still show every entry (no data hidden), labelled by `n` when present.
+- **Acceptance criteria:**
+  1. With a stored `ex:bodybuilding:d5:0` log of Squat entries (no `n`) and day count 6 active, the Incline DB Press row shows no "try adding weight" badge and no ghost load.
+  2. With the default day count, the same legacy log feeds the Squat row exactly as today.
+  3. A new set logged on that row writes an entry with `n:'Incline DB Press'`, and the next render uses it.
+  4. A pre-existing entry with `n:'Squat'` at that key is ignored on the Incline row under any day count.
+  5. The History view still lists every entry (count unchanged).
+  6. A new set's stored `sets[i]` object is byte-identical to v3.518's (only the entry gains `n`).
+- **Test plan:** new `test-history-name-stamp.js`. Use the real `saveExSet`, `normalizeExEntry`, `getExLog`, `entriesForExercise`, `buildPastSessions`, `buildProgressBadge` and `computeSuggestedSet`, with stubbed storage. No existing suite extracts the real `saveExSet`, so this is its first test. Sabotage: make `entriesForExercise` return the whole log, and criterion 1 must fail.
+- **Files:**
+  - `index.html`: 27170, 27175, 27567, 27779–27936, 28308–28345, the call sites 14553, 27610 and 28722.
+  - `sw.js`, the new test.
+  - **Guards (expected unchanged; run them and re-pin only if one breaks):**
+    - `test-cross-program-history.js` and `test-cross-program-sets.js` (`priorSetForSlot`);
+    - `test-next-set-recommendation.js` and `test-set-chips.js`;
+    - `test-exercise-substitution.js`;
+    - `test-import-backup-full-replace.js` (must round-trip `n`);
+    - `test-configurable-training-days.js` (`daysPerWeekPref`);
+    - the seven `wireSetsBlock` suites that stub `saveExSet` (`test-auto-check-sets.js`, `test-set-next-button.js`, `test-partial-set-reactions.js`, `test-fallback-entry-consolidation.js`, `test-backdating-rest-timer-suppression.js`, `test-superset-rest-timer-suppression.js`, `test-superset-shared-sets-block-wiring.js`).
+- **Risk:** the progression path everywhere. The suites above guard it.
+- **Tools:** `code-review` at high (progression path).
+- **Fold-in (2026-11-08):** line numbers moved to v3.518. Status changed from ready to needs-owner, because a stored data shape changes. The `saveExSet` PR check and the byte-identical set criterion (6) were added.
+- **Status:** needs-owner. **Question:** "Save the exercise's name on each new log entry (one extra field, no migration, in backups), so the app stops suggesting weights from a different exercise that shared the slot?" **Recommendation:** yes. This is a safety fix; build it at slot 9a, before BL-08.
+
+### BL-52: Variant- and style-scoped history keys, with a migration (S-1, D-2, part 2)
+- **Why:**
+  - BL-51 stops the wrong suggestions, but legacy logs under a variant stay ambiguous.
+  - `parseExKey` (40977) resolves combat, cycling and watersports keys against the default style days, not the active variant.
+  - Only a key change fixes the labels for good.
+- **Change:**
+  - Variant days write `ex:<program>[:<style>]:v<N>:<dayId>:<idx>` when `daysPerWeekPref` selects a variant. Yoga gains a style segment (`ex:yoga:<style>:…`).
+  - `exKey` (27027), `subSelectionKey` (27040), `parseExKey` and `exKeyForLocation` (27117) learn both shapes.
+  - A `SCHEMA_VERSION` (7625, now 8) bump, with a `runMigrations()` (9084) step that **copies nothing it can't attribute**:
+    - entries with `n` move to the key whose slot holds that name;
+    - legacy entries stay where they are.
+- **Acceptance criteria:**
+  1. Migrating a store with `n`-stamped entries for two day counts produces two keys, each matching its slot's name.
+  2. Legacy entries are byte-identical after migration.
+  3. `parseExKey` labels a v6 combat key with the v6 day's exercise.
+- **Test plan:** new `test-variant-history-keys.js`, with the real `runMigrations` over a fixture store. Sabotage: drop the `n` check, and criterion 2 must fail.
+- **Files:** `index.html` (7625, 9084, 27027–27045, 27117, 40977), `sw.js`, the test. **Re-pins:** `test-custom-exercise-style-scoping.js`, `test-import-backup-full-replace.js` and `test-whats-new.js` read `SCHEMA_VERSION` or `runMigrations`. `test-cross-program-history.js` and `test-watersports-program.js` call the key functions.
+- **Risk:** a stored-data migration on the history store. A backup export is prompted first. Needs BL-51 shipped and some weeks of `n`-stamped data to be worth it.
+- **Fold-in (2026-11-08):** placed before BL-37 (slot 73a), so the variant rebuild's own migration can attribute entries by name.
+- **Status:** needs-owner. **Question:** "Give each day-count option and yoga style its own history, moving only entries we can attribute by name?" **Recommendation:** yes, but only after BL-51 has stamped names for a few weeks, and before BL-37.
+
+### BL-53: Medical history reaches History, PRs and volume; the watersports fallback key (D-1, D-12)
+- **Why:**
+  - `parseExKey('ex:medical:hypertension:d2:0')` returns `null`. At v3.518, `parseExKey` (40977) has combat, cycling and watersports branches but no medical one. So every medical, prenatal, postpartum and rehab log is missing from PRs, `groupCorpusByExercise` (41524), weekly volume and the weekly-RPE readiness input, including the signals BL-02's clinical gate relies on.
+  - `exKeyForLocation` (27117) has combat, cycling and medical branches but no watersports one. The cross-program warm-up fallback therefore builds `ex:watersports:d1:0`, which is never written.
+- **Change:**
+  - Add a `medical` branch to `parseExKey` that mirrors the combat one, using `MEDICAL_STYLES[style].days` (11366), with the label `${programs.medical.label} (${styleDef.label}) · ${dayDef.label}`.
+  - Add a `watersports` branch to `exKeyForLocation`.
+- **Acceptance criteria:**
+  1. `parseExKey('ex:medical:hypertension:d2:0').exDef.name === 'Seated Cable Row'`.
+  2. `readExCorpus` (41051) with one medical key returns 1 entry.
+  3. `exKeyForLocation({program:'watersports', style:'surfing', dayId:'d1', idx:0}) === 'ex:watersports:surfing:d1:0'`.
+  4. Combat, cycling, watersports and plain keys parse exactly as before (table test).
+- **Test plan:** new `test-parse-ex-key-styles.js`, with real functions. Sabotage: remove the medical branch, and criterion 1 fails.
+- **Files:** `index.html` (40977–41050, 27117–27122), `sw.js`, the test. **Guards (no re-pin expected):** `test-pr-timeline.js`, `test-pr-timeline-class-naming.js`, `test-fetch-day-statuses.js`, `test-watersports-program.js` (its line 336 parses a watersports key) and `test-cross-program-history.js` (the only suite that extracts `exKeyForLocation`).
+- **Risk:** medical users will now see their logs in the PR and volume views. That's intended, and the What's New line says so.
+- **Fold-in (2026-11-08):** line numbers moved to v3.518. Both gaps re-confirmed in the source.
+- **Status:** ready
+
+### BL-54: One exercise, one name in History, PRs and the warm-up fallback (D-3)
+- **Why:** the same lift under two names splits grouping:
+
+  | Name | Other name |
+  |---|---|
+  | Squat (68 slots) | Back Squat (17) |
+  | Bench Press (58) | Flat Bench Press (7) |
+  | Seated Cable Row (49) | Cable Row (18); bodybuilding uses both (d2 9820, d6 9871) |
+  | Farmer's Carry (51) | Farmers Carry (Heavy) (9) |
+  | Standing Calf Raise (16) | Calf Raise (40) |
+
+  Switching between the Olympic or Hyrox program and Strength & Size loses "last time", the warm-up basis and a single PR line.
+- **Change:**
+  - `EXERCISE_CANONICAL = {'Back Squat':'Squat', 'Flat Bench Press':'Bench Press', 'Cable Row':'Seated Cable Row', 'Farmers Carry (Heavy)':"Farmer's Carry", 'Calf Raise':'Standing Calf Raise'}` and `canonicalExName(n)`.
+  - Used **only** in `groupCorpusByExercise` (41524) and `getExerciseLocationIndex` (27090).
+  - Slot names, cues, `EXERCISE_SUBS` (13709), keys and logs are unchanged.
+- **Acceptance criteria:**
+  1. A corpus with one Back Squat entry (oly) and one Squat entry (strength) gives one group named "Squat", with 2 entries and both day labels.
+  2. The cross-program warm-up fallback for strength d2 Squat finds an oly Back Squat log.
+  3. Without aliased names, the output is identical to today.
+- **Test plan:** extend `test-cross-program-history.js` and `test-pr-timeline.js` with real functions. Sabotage: empty the map.
+- **Files:** `index.html` (41524, 27090, the new const beside `EXERCISE_SUBS` 13709), `sw.js`, tests. **Re-pin likely:** `test-pr-timeline-class-naming.js:87` asserts `/Back Squat/` in the rendered PR row, and its fixture's only exercise is Back Squat, so the row will now read "Squat". `test-pr-timeline.js` uses Back Squat in two programs; it asserts dates and weights, not names, so it's expected to pass. Also run `test-app-2-0.js` and `test-performance-delta-colours.js` (both extract `groupCorpusByExercise`).
+- **Risk:** PR timelines merge. A heavier Back Squat PR from the Olympic program now counts for Squat, which is right for the same bar.
+- **Fold-in (2026-11-08):** line numbers moved to v3.518; the re-pin was found. Placed after MKT-06a (slot 19a), so the Year in Lifting deadline isn't pushed back; MKT-06b gets the merged names.
+- **Status:** ready
+
+### BL-55: Cardio rows show a distance field only when distance is the measure, and it never blocks a finished set (D-5)
+- **Why:**
+  - `isDistanceExercise` (32584) is "category is cardio". The real-set check (`hasRequiredDistance`, 32044) requires a distance. So the rest timer and the gym-mode offer never fire on Burpees (29 slots), Battle Ropes (39), Wall Balls (13), Burpee Broad Jumps (9), Agility Ladder, every Jump Rope drill (82) and the jump-rope warm-up (105) until a distance is typed.
+  - At least 147 cardio slots prescribe no distance at all.
+- **Change:**
+  - `isDistanceExercise(exName, setsStr)` is true when the prescription contains a distance unit (`\d\s*(m|yd|km|mi)\b`), or the name matches `/Run|Jog|Ride|Spin|Swim|Walk|Row|SkiErg|Sled|Strides|Repeats/`.
+  - All three callers pass the sets string: `renderWorkout` 28767, `wireSetsBlock` 31871, and the Analysis weekly-distance card 45650 (`exDef.sets`).
+  - `hasRequiredDistance` is dropped from `isRealSet` (32044–32045): reps or minutes alone complete a cardio set. The distance stays optional and is still saved.
+- **Acceptance criteria:**
+  1. Burpees `4×10`: no distance input renders. Logging reps starts the rest timer (`startRestTimer` stub called once).
+  2. `400m Repeats`: the distance input renders, and logging the time alone starts the timer.
+  3. `Easy Run 25-30 min` keeps its distance field and pace display.
+  4. The Analysis weekly distance is unchanged for the same corpus.
+- **Test plan:** new `test-cardio-distance-gate.js`, with the real `wireSetsBlock` and `isDistanceExercise` in jsdom. Sabotage: restore the old predicate, and criterion 1 fails.
+- **Files:** `index.html` (32584, 28767, 31871, 32040–32046, 45650), `sw.js`, the test. **Guards:** `test-partial-set-reactions.js` (lines 147–170: distance alone must still not fire, and distance plus reps must fire; both stay true) and the six other `wireSetsBlock` suites (they stub `isDistanceExercise = ()=> false`, so the new argument is harmless). `test-exercise-logger.js` asserts the Up Next logger hides distance on a lift, so run it.
+- **Risk:** the pace and distance display and the cardio Analysis card. The suites above guard it.
+- **Fold-in (2026-11-08):** line numbers moved to v3.518. The third caller (45650) was added.
+- **Status:** ready
+
+### BL-56: `noWeight` on moves that never take load, and load on the ones that do (D-4)
+- **Why:**
+  - At least 98 slots of pure bodyweight moves show a weight field. Examples:
+    - Core d1 (`index.html` 10040–10043): Bird Dog, Dead Bug, Side Plank and McGill Curl-up;
+    - the Bodyweight program (10095): Glute Bridge, Bodyweight Squat, Jump Squat, Push-up to Plank and Bicycle Crunch;
+    - Jump Rope Bodyweight Squat (15 slots) and Single-Leg Bound (12).
+  - The Bodyweight program's push, pull and leg moves show one too, against its "no equipment" overview.
+  - A weight is required before the set counts (`hasRequiredWeight`, 32043), so the rest timer doesn't start.
+  - 17 exercises are `noWeight` in some slots and not in others.
+  - Wall Balls (a loaded ball) and Sled Pull are `noWeight`, while Sled Push isn't.
+- **Change** (slot field only; keys and logs unchanged):
+  - Add `noWeight:true` to every slot of Bird Dog, Dead Bug, Side Plank, McGill Curl-up, Glute Bridge (Bodyweight program), Bodyweight Squat, Jump Squat, Push-up to Plank, Bicycle Crunch and Single-Leg Bound.
+  - In the **Bodyweight** program and its variants, add it to Push-up, Pike, Decline Push-up, Triceps Dip, Inverted Row, Chin-up, Pull-ups (or assisted), Nordic Curl, Bulgarian Split Squat and Calf Raise.
+  - Remove `noWeight` from Wall Balls and Sled Pull.
+  - **Calisthenics** keeps load fields on Dip, Pull-up and Muscle-up (weighted calisthenics is normal).
+- **Acceptance criteria:**
+  1. A real walk of every slot: none of the listed exercises in the listed programs lacks `noWeight`.
+  2. Bodyweight d1 Push-up renders no weight input, and reps alone start the rest timer.
+  3. Old entries with a weight still show it in History.
+- **Test plan:** new `test-noweight-consistency.js` (a slot sweep over `programs` plus the variant tables, and one real `wireSetsBlock` case). Sabotage: drop one slot's flag.
+- **Files:** `index.html` (program data 10034–10420 and the day-count variant tables), `sw.js`, the test. **Guards:** `test-partial-set-reactions.js:136` (reps alone finish a `noWeight` set), `test-configurable-training-days.js` and `test-volume-modifier-gate.js` (both walk the program data).
+- **Risk:** an owner who logs weighted push-ups in the Bodyweight program loses the field there. That's the owner's call. Placed before BL-11 (slot 26a), because BL-11's rep progression applies to rows without a weight.
+- **Status:** needs-owner. **Question:** "Remove the weight box from bodyweight moves in Core, Bodyweight and Jump Rope (Calisthenics keeps it for weighted dips and pull-ups)?" **Recommendation:** yes.
+
+### BL-57: The rest parser reads trailing multipliers, per-side mobility and swim repeats correctly (D-6, D-11; after BL-14)
+- **Why:**
+  - `getRepRangeTier` (27715) reads the first number after `×`, while `parseSetCount` (26424) already understands "N reps ×M". With the real `getDefaultRestSeconds` (27726):
+    - 61 slots (`5 breaths ×3`, `6 reps ×3`, `3-5 min ×3`: yoga Flow and Hot, and all Tai Chi) get **240 s**;
+    - about 100 slots of `2×5/side` mobility and technique drills (Hip CARs ×31, Shoulder CARs, World's Greatest Stretch, Pilates Saw, grappling passes, takedowns and submission drills) get 240 s;
+    - Single-Leg Bound gets 90 s at `3×6/leg` but 240 s at `3×5/leg`;
+    - `8×100m` swim gets 60 s, against its own cue's 15–30 s.
+  - BL-14 (slot 25) fixes unit suffixes (`6×2min`, `6×40yd`). It doesn't fix trailing multipliers, per-side drills or swim repeats.
+- **Change** (inside `getRepRangeTier` / `getDefaultRestSeconds`, on top of BL-14's unit branch):
+  1. A trailing multiplier (`/^\d+(-\d+)?\s*(reps?|breaths?|min)[^×]*×\s*\d+\s*$/`) → tier `null`; rest 30 s for breaths and forms, 60 s otherwise.
+  2. Category `core` or `shoulder` with `noWeight`, or a name in the mobility set (`EXERCISE_MOVE[name] === 'mobility'`, 13603) → never the strength tier; rest 45 s.
+  3. Category `jump` → 90 s fixed (120 s for Depth Jump and Trap Bar Jump Squat).
+  4. Swim repeats (`\d+×(\d+)m` with a swim name): ≤ 200 m → 20 s; 201–400 m → 30 s.
+  5. `getRestReasonLabel` (27740) mirrors every branch.
+- **Acceptance criteria:** `getDefaultRestSeconds` returns:
+  - Downward Dog `5 breaths ×3` → 30;
+  - Hip CARs `2×5/side` → 45;
+  - Single-Leg Bound `3×5/leg` and `3×6/leg` → 90, both;
+  - Swim Intervals `8×100m` → 20;
+  - Bench Press `4×4-6` → 240 (unchanged);
+  - Lateral Raise `3×12-15` → BL-14's value (unchanged by this item).
+
+  The label agrees with the number in each case.
+- **Test plan:** new `test-rest-tier-parsing.js`, with real functions over a table, plus a full-slot sweep asserting that no `core` or `shoulder` `noWeight` slot gets 240. Sabotage: remove branch 1.
+- **Files:** `index.html` (27715–27746), `sw.js`, the test. **Re-pins:** the seven suites that extract the real `getDefaultRestSeconds` and `getRestReasonLabel` must also load `EXERCISE_MOVE`, or the new read must be guarded with `typeof EXERCISE_MOVE !== 'undefined'` (prefer the guard; then no suite changes). The suites are `test-auto-check-sets.js`, `test-backdating-rest-timer-suppression.js`, `test-fallback-entry-consolidation.js`, `test-partial-set-reactions.js`, `test-set-next-button.js`, `test-superset-rest-timer-suppression.js` and `test-superset-shared-sets-block-wiring.js`. `test-lb-per-kg-consolidation.js` extracts `getDefaultRestSeconds` for the calorie estimate; its Back Squat 3×5 case is unchanged.
+- **Risk:** the rest timer for every program, and the time estimate (rest feeds `parseEstimatedMinutes`). The superset and backdating rest-suppression suites guard it.
+- **Fold-in (2026-11-08):** line numbers moved to v3.518. The `EXERCISE_MOVE` dependency and the seven suites were found. Placed straight after BL-14 (slot 25a).
+- **Status:** ready (after BL-14)
+
+### BL-58: Library entries for the Light and Speed variants; prune orphans (D-7, C-1, C-2; closes L-3)
+- **Why:**
+  - 7 names in 14 slots have no `exerciseInfo`: Squat (Speed) (e.g. 17221), Bench Press (Speed), Deadlift (Light/Technique), Snatch (Light), Clean & Jerk (Light), Sprint Intervals (Sub-Max) and Handstand Hold (wall) (Light). They get no cues, no category, no ledger counting, and a 5 lb default increment that pushes load on speed work.
+  - 6 orphan cycling entries are referenced nowhere (`content-exercises.js` 150–157).
+  - `EXERCISE_MOVE` (13603) has 3 duplicate keys, and 85 slot names have no icon key.
+- **Change:**
+  - Add entries with the base lift's category and three cues each, plus `technique:true`, which BL-02's technique rule reads (no load-increase signal):
+    - Speed lifts: "50–60% of your working max; move it as fast as you can; stop if bar speed drops".
+    - Light Olympic lifts: "about 70%; technique only; no misses".
+  - Delete the 6 orphan entries.
+  - Remove the duplicate `EXERCISE_MOVE` keys.
+  - Add move keys for the 85 names, using existing `MOVEMENT_ICONS` (13087) keys only.
+- **Acceptance criteria:**
+  1. Every slot name has an `exerciseInfo` entry (full-slot sweep).
+  2. `Squat (Speed)` maps to Legs (Quads) in the ledger.
+  3. `analyzeProgressionSignal` (27514) never returns `increase` for a `technique:true` entry.
+  4. No `exerciseInfo` key is unreferenced by slots, `EXERCISE_SUBS`, `SUBSTITUTION_MAP` (43948) or `REGION_RELIEF` (43996).
+- **Test plan:** new `test-exercise-library-coverage.js` (the sweeps), plus a real-function progression case. Sabotage: delete one new entry.
+- **Files:** `content-exercises.js`, `index.html` (13603–13700, `analyzeProgressionSignal` 27514), `sw.js`, the test. **Re-pin:** `test-concise-cues.js:42–45` pins exactly 321 exercises and 964 cues. This item adds 7 entries (21 cues) and deletes 6 (count their cues at build time), so update both numbers and say why in the PR. Its 24-word cap applies to the new cues. Also run `test-accumulation-accessory-add.js` and `test-volume-modifier-gate.js` (both read `exerciseInfo` categories).
+- **Risk:** content only, apart from the technique flag. If BL-02's technique branch has landed, reuse it; otherwise add the flag check here.
+- **Fold-in (2026-11-08):** line numbers moved to v3.518; the `test-concise-cues.js` re-pin was found. Placed after BL-24 (slot 22a), because both touch the load increment.
+- **Status:** ready (after BL-02)
+
+### BL-59: Category corrections that feed the muscle ledger (D-8, with M-8)
+- **Why:**
+  - Band External Rotation (50 slots), Scapular Retraction (40) and Band Pull-Apart (7) count as **Core**.
+  - Deep Squat Hold (27), Chair Pose, Horse Stance Hold and Bow Stance Transitions count as **Quads** sets, and they're eligible for accumulation.
+  - Chaturanga (yoga) counts as **Chest & Shoulders**, with a +5 lb increment.
+  - Wall Slides, Shoulder CARs and Band Dislocates count as Chest & Shoulders hypertrophy work.
+  - Sprawl Drills count as Posterior Chain compound work.
+  - The per-muscle ledger (BL-20) inherits all of this.
+- **Change:** recategorise:
+  - rotator-cuff and scapular moves → `shoulder`;
+  - mobility holds and yoga or Tai Chi stances → `core`;
+  - Sprawl Drills → `kick`.
+
+  Land it in the same version as M-8's `calf` and `isolation-leg` categories, so `MUSCLE_GROUP_MAP` (45270) changes once.
+- **Acceptance criteria:**
+  1. Ledger fixture: a Mobility week of Deep Squat Holds adds 0 Quads sets.
+  2. Accumulation never selects a recategorised exercise.
+  3. Region flags: Band External Rotation flags Shoulder.
+- **Test plan:** new `test-category-corrections.js`, with the real `MUSCLE_GROUP_MAP`, `applyAccumulation` (26780) and `CATEGORY_TO_REGIONS`. Sabotage: restore Deep Squat Hold to `squat`.
+- **Files:** `content-exercises.js`, `index.html` (45270), `sw.js`, the test. **Guards:** `test-accumulation-accessory-add.js`, `test-volume-modifier-gate.js` (the jump-category rule) and the three search suites that read `MUSCLE_GROUP_MAP` (`test-global-search-techniques.js`, `test-search-2-0.js`, `test-search-index-freshness.js`).
+- **Risk:** past weeks' Analysis group totals change (read-time; no stored data changes). Placed before BL-20 (slot 55a), so the ledger ships on the corrected categories.
+- **Status:** needs-owner (with M-8). **Question:** "Re-file mobility holds and band shoulder work so they stop counting as leg, chest or core training volume?" **Recommendation:** yes, before the per-muscle ledger (BL-20) ships.
+
+### BL-60: Substitutes that keep the same muscle and joint (D-9)
+- **Why:**
+  - In `EXERCISE_SUBS` (13709), Tibialis Raise → Standing Calf Raise / Calf Raise is the antagonist (13814).
+  - Calf Raise and Standing Calf Raise → Leg Press puts a knee-and-hip compound in a calf slot (13772, 13780).
+  - Farmers Carry (Heavy) → Sandbag Lunges goes from a carry to a lunge (13804).
+  - `SUBSTITUTION_MAP` (43948) names 10 alternatives without `exerciseInfo`, so they show no cues when swapped in.
+- **Change:**
+  - Tibialis Raise → ['Heel Walk', 'Banded Dorsiflexion'].
+  - Calf Raise → ['Standing Calf Raise', 'Single-Leg Calf Raise'].
+  - Standing Calf Raise → ['Calf Raise', 'Single-Leg Calf Raise'].
+  - Farmers Carry (Heavy) → ['Suitcase Carry', "Farmer's Carry"].
+  - Add `exerciseInfo` entries (category plus 3 cues) for the new names and the 10 `SUBSTITUTION_MAP` alternatives.
+  - Stored substitute selections keep working: `applyExerciseSubs` (27058) applies the stored name regardless of the list.
+- **Acceptance criteria:**
+  1. Every `EXERCISE_SUBS` target shares the original's `MUSCLE_GROUP_MAP` group (sweep), except listed and justified pairs (Close-Grip Bench ↔ Dip; Olympic pulls → Deadlift).
+  2. Every `SUBSTITUTION_MAP` alternative has an entry.
+  3. A stored selection of "Leg Press" on a Calf Raise slot still renders and logs to its `:sub:leg-press` key.
+- **Test plan:** extend `test-exercise-substitution.js`. Sabotage: restore the Tibialis pair.
+- **Files:** `index.html` (13709–13830, 43948), `content-exercises.js`, `sw.js`, the test. **Re-pin:** `test-concise-cues.js:42–45` (exercise and cue counts rise by the new entries). **Guards:** BL-67's no-jump-crossing case in `test-exercise-substitution.js` (no new pair involves a jump) and `test-warmup-ramp-and-plates.js` (Leg Press ramps, unaffected).
+- **Risk:** the existing substitution and swap tests guard it. Placed after BL-25 (slot 31a), with the other content fixes.
+- **Fold-in (2026-11-08):** line numbers moved to v3.518; the cue-count re-pin was found.
+- **Status:** ready
+
+### BL-61: Plyometric prescriptions match their cues (S-2, S-3)
+- **Why:**
+  - "Single-Leg Bound" is cued as an alternate-leg bound (`content-exercises.js` 277). It's prescribed `/leg`, `/side` or bare (running d6 10373, running variants 19296 and 19344: `3×6`), across 45 slots, and shows a weight field in 12 of them.
+  - Jump Squat `3×12-15` (bodyweight d5 10151, calisthenics d5 10422, and 7 variant slots 17961–18325) contradicts its "reset each rep for max power" cue, and gets 60 s rest.
+  - Fatigued plyometric landings are the injury mechanism the program's own SAF-5 work guards against [PRAC].
+- **Change:**
+  - Single-Leg Bound cue 1: "Hop forward off one leg and land on the **same** leg; stick each landing for a beat, knee over toes, no cave-in."
+  - All its prescriptions become `/leg` (bare `3×6` → `3×6/leg`; `/side` → `/leg`). `noWeight` comes from BL-56.
+  - Jump Squat `3×12-15` → `3×6-8` in all 9 slots, plus the cue line "Stop the set when landings get loud or knees cave."
+  - Names and slot positions are unchanged (safe for history).
+- **Acceptance criteria:**
+  1. A sweep: every Single-Leg Bound prescription matches `/\/leg$/`.
+  2. No `jump`-category prescription has a top rep above 8.
+  3. The rest from BL-57 is 90 s for both (if BL-57 has shipped; otherwise assert BL-57's case is unaffected).
+- **Test plan:** new `test-plyo-prescriptions.js` (the sweeps over `programs` and the variant tables, with real `parseTopRep`). Sabotage: restore one `3×12-15`.
+- **Files:** `index.html` (the slots above), `content-exercises.js` (277; Jump Squat's entry), `sw.js`, the test. **Re-pin:** `test-concise-cues.js` only if the Jump Squat line is added as a fourth cue. Rewrite an existing cue instead, and the 964 count holds. **Guards:** `test-configurable-training-days.js:489–510` (Single-Leg Bound stays off the surfing and skimboarding extra days).
+- **Risk:** prescriptions change in 2 programs plus their variants. That's visible, so the What's New line names it.
+- **Fold-in (2026-11-08):** line numbers moved to v3.518; counted 45 Single-Leg Bound slots and 9 Jump Squat `3×12-15` slots.
+- **Status:** needs-owner. **Question:** "Change Jump Squat in Bodyweight and Calisthenics from 12-15 to 6-8 reps, and make Single-Leg Bound a true one-leg hop?" **Recommendation:** yes. It's a landing-safety fix; slot 6c.
+
+### BL-62: Clinical dose and position wording (S-4, S-5, C-3)
+- **Why:**
+  - Achilles heel drops are `3×15 (straight-knee, 3s eccentric lower)`, with no per-leg dose (`index.html` 12017, 12037, 12045, and the bent-knee twins).
+  - ACL `Straight Leg Raise 3×12` (11985) has the same gap.
+  - Prenatal `Diaphragmatic Breathing` is cued "Lie down…" (`content-exercises.js` 79), while the plan's own Standing Pelvic Tilt cue says to avoid prolonged lying on your back in pregnancy [PREG19].
+  - Hyrox `Sandbag Lunges 4×20` and `3×20` don't say whether that's total or per leg (11001, 11014, and the variants 21110, 21156, 21171, 21210, 21225).
+- **Change** (text only):
+  - `3×15/leg (straight-knee, 3s eccentric lower)`, and the bent-knee twin.
+  - `Straight Leg Raise 3×12/leg` in ACL and rehabGeneral.
+  - Diaphragmatic Breathing cue 1 is rewritten (count unchanged): "Sit tall or lie down (on your side if pregnant), one hand on your chest, one on your belly; let the belly rise more than the chest."
+  - `Sandbag Lunges 4×20 (10/leg)` and `3×20 (10/leg)`, all 7 occurrences.
+  - The Achilles day note (12015) is unchanged; `test-concise-day-notes.js:21` pins its wording.
+- **Acceptance criteria:**
+  1. Real `parseSetCount` and `getRepRangeTier` results are unchanged for each edited string (table test).
+  2. BL-01's authored-equals-rendered test (`test-volume-modifier-gate.js`) still passes, using the new authored strings.
+  3. No prenatal day's cues contain "Lie down" without a side-lying option (sweep over the prenatal style's exercises).
+- **Test plan:** extend `test-concise-cues.js` with a table test (the cue stays ≤ 24 words, per its existing cap).
+- **Files:** `index.html` (11985, 12017–12047, 11001, 11014, 21110–21225), `content-exercises.js` (79), `sw.js`, the test. **Guards:** `test-concise-day-notes.js`, `test-configurable-training-days.js:807` (Sandbag Lunges by name; unaffected).
+- **Risk:** clinical-content wording. BIZ-15's clinician review should see it.
+- **Fold-in (2026-11-08):** line numbers moved to v3.518. The Hyrox variant rows were added. The prenatal fix is a rewrite, not a fourth cue, so the cue count holds.
+- **Status:** ready
+
+### BL-63: The time shown on Today counts the work, not just the rest (D-10, C-5)
+- **Why:**
+  - Today's `~N min` (28708) comes from `parseEstimatedMinutes` (26464) through `unitMinutes` (26585). It counts a distance interval as `count × rest`: `8×100m` swim = 8 min (confirmed: no `min` or `s` match, so it's 8 × 60 s), `4×200m` = 4 min, `6×400m` = 6 min, `6×500m` row = 6 min. Lifting sets count rest only.
+  - The auditor measured 251 of 1,065 days showing under 0.6× their authored duration (Hyrox d6 is about 18 vs ~45).
+  - The 30/45-minute session length (`SESSION_LENGTH_OPTIONS` 26542, `applySessionLengthLimit` 26889) trims against this number, so capped sessions overrun.
+  - The authored `duration` is shown only on rest days (28585).
+- **Change** (inside `parseEstimatedMinutes`, plus one day-level allowance in `totalMinutesForUnits` 26589):
+  1. Distance sets: work time from a per-activity pace (run 6 min/km; row 2:05/500 m; ski 2:10/500 m; swim 2:00/100 m; sled and carry 0.5 min per 20 m), plus rest.
+  2. Rep sets: add 3 s per rep (top of the range; ×2 for `/side` or `/leg`).
+  3. One warm-up ramp allowance of 4 min per day, for the first `WARMUP_ELIGIBLE_CATEGORIES` (27690) compound.
+
+  The authored `duration` is left alone (no data change). It's documented as a reference only.
+- **Acceptance criteria:**
+  1. `parseEstimatedMinutes({sets:'8×100m', name:'Swim Intervals (100s)'})` is 18 ± 2.
+  2. The Strength d1 total is within ±15% of its authored ~55.
+  3. The share of days under 0.6× authored drops below 5% (a full sweep in the test).
+  4. A real `applySessionLengthLimit(exercises, 30)` on Strength d1 still keeps the protected main unit, and its `estimatedMinutes` ≤ 30 + one unit. That's a new case: no suite covers the cap today.
+- **Test plan:** new `test-session-time-estimate.js`, with the real `parseEstimatedMinutes`, `parseSetCount`, `getDefaultRestSeconds`, `unitMinutes`, `totalMinutesForUnits`, `groupIntoUnits` and `applySessionLengthLimit`, plus the sweep. Sabotage: remove the distance branch, and criterion 1 fails.
+- **Files:** `index.html` (26464–26515, 26583–26592, 26889 onward), `sw.js`, the test. **Re-pin:** `test-lb-per-kg-consolidation.js:32–36` asserts `estimateExerciseCalories` for Back Squat 3×5 at 200 lb = 109 kcal, and that runs through `parseEstimatedMinutes` (26521). The rep-time branch raises it, so re-capture the value from the real function and name it in the PR. The session calorie total on Today moves too; say so in What's New.
+- **Risk:** how much the session-length cap trims changes for every program. Placed with BL-55 early in Phase 1 (slot 13d).
+- **Fold-in (2026-11-08):** line numbers moved to v3.518. Criterion 4 was rewritten, because the suite it named tests layout, not the cap. The calorie re-pin was found.
+- **Status:** ready
+
+### BL-64: Cue contradictions (C-4)
+- **Why:** these cues contradict the app's own squat cues, or the evidence:
+  - Chair Pose (`content-exercises.js` 21) and Partner Chair Pose (50) say knees must not pass the toes [FRY03];
+  - Good Morning (180) says "keep the bar path close to your body";
+  - Front Lever Hold (171) says "hips slightly tucked";
+  - Hammer Curl (241) puts the forearm emphasis on tempo;
+  - Hanging Leg Raise (242) says the eccentric is "where the core works hardest".
+- **Change** (text only, each a rewrite of the existing cue, so counts hold):
+  - Chair and Partner Chair: "Let the knees travel forward as far as your heels stay down."
+  - Good Morning: "Hinge until your torso nears parallel or your back starts to round, whichever comes first."
+  - Front Lever: "Too hard? Tuck the knees to the chest and extend one leg as you progress."
+  - Hammer Curl: "The neutral grip shifts work to the brachioradialis; keep the tempo you use for other curls."
+  - Hanging Leg Raise: "Lower under control to a full hang."
+- **Acceptance criteria:** the new strings render in `buildDetailsHtml` (28393). The phrase "not past" is absent from every squat-pattern cue (sweep).
+- **Test plan:** extend `test-concise-cues.js` (its 321/964 counts and 24-word cap must still pass unchanged). Sabotage: restore the Chair Pose cue.
+- **Files:** `content-exercises.js`, `sw.js` (version), the test. **Guards:** `test-concise-cues.js` (`MUST_KEEP` safety phrases), `test-masterclass-technique-render-consolidation.js`.
+- **Risk:** none beyond copy. BL-25 also edits Front Lever Hold (filler cues): whichever ships second re-reads entry 171.
+- **Fold-in (2026-11-08):** kept as its own version, not merged into BL-25 (one item, one version). Slot 6b, with the Phase 0 cue work.
+- **Status:** ready
+
+### BL-43: Running progression from your own logged distance
+- **Why:**
+  - Running scores **F** for progression (program-audit scorecard). `Easy Run 25-30 min`, `Long Run 45-60 min` and `400m Repeats 6×400m` never change.
+  - The deload week doesn't touch duration-only rows (BL-48).
+  - Current evidence points at the *single-session spike*, not the weekly 10% rule. A run more than 10% longer than the longest run of the previous 30 days raised overuse-injury rates (about +64% for 10–30%), while week-to-week change didn't [FRA25].
+  - An easy-dominant (about 80/20) distribution is the supported default [SS14].
+- **Change** (render-time suggestions only; the block clock is `DELOAD_CYCLE_WEEKS` 14917 and `cycleWeekOf` 26756):
+  1. **`longestRunLast30Days()`**, read from the existing cardio corpus. Running-category names: Easy Run, Long Run, Tempo Run, Recovery Jog, Warm-up Jog, Cool-down Jog, Strides, 400m Repeats. Reuse `readExCorpus` (41051) and `groupCorpusByExercise` (41524); don't add a new reader.
+  2. **Long Run badge**, weeks 1–4: "Today's cap: X km (10% over your longest run in 30 days)". X = 1.10 × that longest run, snapped to 0.5 km or 0.25 mi. With no logged run, show the authored minutes only.
+  3. **400m Repeats**, double progression on count before pace. 4 → 5 → 6 → 8 reps across build weeks, when every rep in the last session was within 3 s of the session's first rep. Above 8, suggest "move to 800s or 1 km reps" (text only). Coaching basis [PRAC].
+  4. **Tempo Run**: +2 min per build week from the authored 20, capped at 30 min. Week 5 (deload) uses the authored value.
+  5. **Weekly intensity check** on the Running Analysis card (`renderCardioTrend` 45685): minutes logged at Tempo or Repeats vs the total. Show "Hard share this week: N%" with the target "about 20%" [SS14]. Display only.
+- **Acceptance criteria:**
+  1. With logs whose longest run in the last 30 days is 10.0 km, the Long Run badge on a week-2 render reads 11.0 km. With the longest on day 31 only, the badge falls back to the authored text.
+  2. 400m Repeats with a last session of 6 reps, all within 3 s, suggests 8. With one rep 5 s slower, it suggests 6 (hold).
+  3. In a deload week, no cap or increase is shown, and BL-48's reduction applies.
+  4. Nothing here writes an `ex:` key or a log entry. Snapshot the storage keys before and after a render.
+  5. Non-running programs render byte-identical.
+- **Test plan:** new `test-running-progression.js`. Use the real `readExCorpus` with a stubbed `window.storage`, the real badge builder, and a fake clock. Sabotage: drop the 30-day window, and criterion 1's day-31 case must fail.
+- **Files:** `index.html` (badge builder near `buildProgressBadge` 27779; the Analysis cardio card 45633–45700), `sw.js`, the test. **Guards:** the suites that extract `readExCorpus` (`test-app-2-0.js`, `test-fetch-day-statuses.js`, `test-history-date-range-filter.js`, `test-performance-delta-colours.js`, `test-pr-timeline.js`, `test-pr-timeline-class-naming.js`), plus `test-deload-signal-week-awareness.js` and `test-today-workout-emoji.js` (both extract `buildProgressBadge`).
+- **Risk:** the cardio corpus shape (distance in metres, minutes in reps). Don't touch `isDistanceExercise` here (that's BL-55). Ship after BL-48 and BL-55 (slot 38a).
+- **Tools:** none extra.
+- **Status:** ready (after BL-48)
+
+### BL-46: Cycling FTP anchor, retest, and interval progression
+- **Why:**
+  - Cycling scores **F** for progression. `FTP Intervals 3×10 min`, `Hill Repeats 6×5 min` and `Long Ride 90-120 min` are fixed, and the FTP cue (`content-exercises.js` 143) tells the rider to ride "at your FTP", while the app never stores one.
+  - Power zones as a % of FTP, with FTP estimated as 95% of a 20-min test, are standard practice [AC].
+  - A polarised distribution is the evidence-supported default [SS14].
+- **Change:**
+  1. **FTP preference** in `window.storage` (`cycling-ftp-w`), with an optional value in watts and an optional `ftp-tested` date. It's set from a small field on the Cycling program card (an existing `expand-wrap` pattern; `renderCyclingSelector` 15704).
+  2. **Targets.** With an FTP set, interval rows show watt targets:
+     - FTP Intervals 95–105%;
+     - Hill Repeats 88–94% (sweet spot);
+     - Sprint Intervals (Bike) "max";
+     - Endurance and Long Ride ≤ 75%.
+
+     Without one, keep the RPE text.
+  3. **Retest prompt** in week 1 of a block when `ftp-tested` is older than 6 weeks: "20-min test today: FTP = 95% of average power" [AC]. The rider enters a number; nothing is automatic.
+  4. **Time-in-zone progression** across build weeks 1–4:
+     - FTP Intervals 3×10 → 3×12 → 2×20 → 3×15 min;
+     - Hill Repeats 6×5 → 7×5 → 8×5 → 6×6;
+     - Long Ride +15 min per week, capped at the authored upper bound + 30 min.
+
+     Week 5 uses the BL-48 deload.
+  5. Mountain style: Standing Climb Repeats 6×3 → 7×3 → 8×3 → 6×4. Technical Trail Ride is unchanged (a skill session).
+- **Acceptance criteria:**
+  1. FTP 250 W: the FTP Intervals row shows "238–263 W", and Hill Repeats shows "220–235 W".
+  2. A week-3 render: FTP Intervals reads "2×20 min". Week 5 reads the deload value.
+  3. `ftp-tested` 43 days old in week 1 shows the retest prompt; 41 days old doesn't.
+  4. Without an FTP, the rows render the authored text exactly.
+  5. The progression is a render-time string transform like `applyAccumulation` (26780). It never writes an exercise slot, so the `exKey`s are unchanged.
+- **Test plan:** new `test-cycling-ftp.js`, with the real render-time transforms and a stubbed storage. Sabotage: remove the week mapping, and criterion 2 fails.
+- **Files:** `index.html` (`CYCLING_STYLES` 12419, `renderCyclingSelector` 15704, a render-time transform beside `applyAccumulation` 26780), `sw.js`, the test. **Guards:** `test-volume-modifier-gate.js` and `test-accumulation-accessory-add.js` (extract `applyAccumulation`), `test-lb-per-kg-consolidation.js` (extracts `parseEstimatedMinutes`).
+- **Risk:**
+  - `CYCLING_STYLES` and their day-count variants are swapped at runtime (`applyDaysPerWeekProgramData` 26002), so the transform must key on the exercise name, not the day.
+  - The interval-string parse must not break `parseEstimatedMinutes`. Assert that the estimate for "2×20 min" is 41 (confirmed against the round-count branch at 26474).
+- **Tools:** none extra.
+- **Status:** needs-owner. **Question:** "Store an FTP number and show watt targets, with a retest prompt every 6 weeks?" **Recommendation:** yes, if you ride with a power meter or a smart trainer; otherwise leave it (the RPE text stays).
+
+### BL-47: Swimming CSS anchor and set progression
+- **Why:**
+  - Swimming scores **F** for progression: Threshold Swim Set 4×200m and Swim Intervals 8×100m never change.
+  - The timer gives 60 s of rest where the cue says 15–30 s (audit D-11; fixed in BL-57).
+  - Critical swim speed (CSS), from a 400 m and a 200 m time trial, is a validated threshold index [WAK92]. It's the swimming equivalent of FTP.
+- **Change:**
+  1. **CSS preference** in `window.storage`: T400 and T200 in seconds, plus the test date. CSS pace per 100 m = (T400 − T200) / 2.
+  2. **Targets:**
+     - Threshold Swim Set: "at CSS pace (m:ss/100m), 20 s rest";
+     - Swim Intervals: "CSS − 3–5 s/100m, 15–20 s rest";
+     - Easy and Long Swim: "CSS + 10–15 s/100m".
+  3. **Progression** across build weeks 1–4:
+     - Threshold 4×200 → 5×200 → 6×200 → 4×300;
+     - Intervals 8×100 → 10×100 → 12×100 → 8×100 on 5 s less rest.
+
+     Week 5: the BL-48 deload.
+  4. **Retest prompt** in week 1 when the CSS test is older than 6 weeks: "Swim 400 m, then 200 m, all-out, with 5–10 min easy between".
+  5. **Rest timer:** delivered by BL-57, which owns the rest parser. This item only depends on it.
+- **Acceptance criteria:**
+  1. T400 = 6:00 and T200 = 2:50 gives CSS 1:35/100m, and the Threshold row shows "1:35/100m".
+  2. Week 2: Threshold reads "5×200m".
+  3. Without CSS stored, the authored text is unchanged.
+  4. No slot or key changes (the same snapshot check as BL-43).
+- **Test plan:** new `test-swimming-css.js`. Sabotage: swap T400 and T200, and criterion 1 must fail.
+- **Files:** `index.html` (the Swimming card; the same render-time transform as BL-46, shared rather than duplicated), `sw.js`, the test.
+- **Risk:** as BL-46. Ship BL-46 first so the transform exists, then extend it.
+- **Tools:** none extra.
+- **Status:** needs-owner (after BL-46 and BL-57). **Question:** "Ask for a 400 m and a 200 m time to set swim pace targets?" **Recommendation:** yes, if you swim laps regularly.
+
+### BL-48: The deload week also shortens duration-only cardio
+- **Why:**
+  - `applyDeloadVolumeReduction` (26879) changes only strings with a leading set count (`hasNumericSetPrefix` 26550). In week 5, `6×400m` becomes 3×400m, but `Long Run 45-60 min`, `Long Ride (Zone 2) 90-120 min`, `Endurance Ride 45-60 min` and `Long Swim 30-45 min` stay full length.
+  - So the deload cuts the intervals and keeps the biggest aerobic load. A deload typically cuts volume by about 30–50% [BELL23].
+- **Change:**
+  - In the deload branch only, rows whose `sets` is a pure duration (`/^\d+(\s*-\s*\d+)?\s*min\b/`) and whose category is `cardio` get their minutes × 0.7, rounded to 5. Warm-up and cool-down rows are excluded (`isWarmupOrCooldownUnit` 26600 already defines them).
+  - `applyDeloadVolumeReduction(exercises, program)` gains the program, passed from its one call site (`renderWorkout` 28665), so `medical` days keep their authored durations.
+  - The duration line's "(deload)" suffix (28704) already keys off `inDeloadWeek`, so no marker is needed.
+- **Acceptance criteria:**
+  1. Week 5: running d5 `Long Run 45-60 min` renders `30-40 min`, and road d6 `Long Ride (Zone 2) 90-120 min` renders `65-85 min`.
+  2. Warm-up Jog `10 min` is unchanged.
+  3. Weeks 1–4 are byte-identical to today.
+  4. Lifting rows are unchanged (assert one Squat 4×4-6 against `test-mesocycle-phase-tag.js`'s expectations).
+  5. A medical `Walking 20-30 min` row is unchanged in week 5.
+- **Test plan:** new `test-deload-duration-cardio.js`, with the real `applyDeloadVolumeReduction`, `hasNumericSetPrefix`, `parseSetCount` and `replaceSetCount`. No suite extracts `applyDeloadVolumeReduction` today. Sabotage: remove the duration branch.
+- **Files:** `index.html` (26879–26887, 28665), `sw.js`, the test. **Guards:** `test-deload-signal-week-awareness.js`, `test-manual-deload-override.js`, `test-mesocycle-phase-tag.js`.
+- **Risk:** medical styles have walking rows; the program argument excludes them, in keeping with BL-01's clinical stance. Placed after BL-23 (slot 24a), with the other deload work.
+- **Fold-in (2026-11-08):** line numbers moved to v3.518. The `deloaded` marker was dropped (the suffix already exists). The medical exclusion became a program argument and criterion 5.
+- **Tools:** none extra.
+- **Status:** ready
+
 ## Parked or later (not yet itemised)
-- **M-8:** `calf` and `isolation-leg` categories. These shift `MUSCLE_GROUP_MAP` history groupings, so they need the owner. BL-03 and BL-04 cover the safety half now.
-- **L-3:** check whether "Squat (Speed)", "Bench Press (Speed)" and "Deadlift (Light/Technique)" have `exerciseInfo` entries.
-- **Program extensions: IDs BL-41 to BL-49 are reserved** (alignment round). The exercise-auditor itemises them before Phase 2 ends, so they don't drift (exercise-auditor N7). Four program classes score F for progression until then:
+- **M-8:** `calf` and `isolation-leg` categories. These shift `MUSCLE_GROUP_MAP` history groupings, so they need the owner. They now ship with BL-59 (needs-owner). BL-03 and BL-04 cover the safety half.
+- **L-3:** closed into BL-58. At v3.518, "Squat (Speed)", "Bench Press (Speed)" and "Deadlift (Light/Technique)" have no `exerciseInfo` entries.
+- **Program extensions, reserved IDs:**
   - BL-41 (placeholder): Powerlifting top single at RPE 8 with −10% back-offs, plus a meet-peak block;
   - BL-42 (placeholder): Olympic % bands and a miss counter;
-  - BL-43 (placeholder): running, cycling and swimming volume progression (scored F, with no item yet);
   - BL-44 (placeholder): bodyweight progression ladders (H-8, second half);
   - BL-45 (placeholder): athletic jump and sprint metrics;
-  - BL-46 to BL-49: unassigned.
+  - BL-49: unassigned.
 
-  None is buildable until the auditor writes it in full with Status `ready` or `needs-owner`.
+  None of these is buildable until the auditor writes it in full. **BL-43, BL-46, BL-47 and BL-48 are now written** (running, cycling, swimming and the endurance deload); see the audit section above.
 - **Health importer:** keep SDNN and rMSSD apart (found in BL-21's check).
 - **Out of scope:** lock-screen or watch logging, which belongs to the Capacitor track (CLAUDE.md); exercise demos (parked by the owner).
 
