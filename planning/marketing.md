@@ -203,6 +203,8 @@ Real screens from the seeded profile with one caption line each, set in the bran
 
 ### 4.3 Launch plan
 
+**Owner's answer (2026-11-08, D8):** yes to the launch posts and creator outreach (MKT-13), with no paid placements, under the sequencing rule below and after Phase 3 and its gates; web first, then Play, then the App Store.
+
 All public posting needs the owner (MKT-13): it publishes under his name and commits to a public address.
 
 **Sequencing rule (added 2026-11-07): nothing points strangers at the app before there's an address that will never change, and nothing carries an address before a stranger can succeed there.**
@@ -222,6 +224,8 @@ All public posting needs the owner (MKT-13): it publishes under his name and com
 | 5. December | "Year in Lifting" (MKT-06) | The yearly recurring launch moment, if MKT-06 ships by 1 December |
 
 ### 4.4 Search and the landing page
+
+**Owner's answers (2026-11-08):** the landing page `about.html` is approved (MKT-14, D8). **One** dated, sourced comparison page that names other apps is approved (MKT-12, D6), as `compare.html`, after the CSV import (BL-29); competitor names stay out of store keywords and store copy.
 
 - **Today the README is the landing page** (BIZ-07 owns its facts). Marketing's copy for it: the promise, three screenshots, "Open it in Safari → Share → Add to Home Screen", and the privacy facts.
 - **A real landing page** (one static `about.html`, or the Pages root with the app at `/app/`) is a structural change to a single-file app, so it needs the owner (MKT-14). Recommendation: one static file, no framework, no analytics, no web fonts beyond the self-hosted ones.

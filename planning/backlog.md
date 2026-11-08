@@ -682,18 +682,22 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 
 ## Needs owner (in priority order)
 
+**Owner's third round applied (2026-11-08, "1-6 yes, clinician"; `pitch.md` → "Owner's answers", third round, and its decision table).** BL-27, BL-28, BL-29, BL-31, BL-32, BL-33 and BL-34 below are now `ready` or `ready (after …)`, and BL-30 is `parked`. BL-32 and BL-34 were re-scoped to the answers. The section keeps its name so no link breaks; each item's own `Status:` line is what the loop reads. Their slots are in `roadmap.md`'s Unified build sequence.
+
 ### BL-27: Weekly calorie check-in that can update your target
 - **Why:** this turns BL-17's estimate into MacroFactor's core loop (research #2).
 - **Change:**
   - On the first day of each week, if `estimateExpenditure` is valid and differs from `computeTargets().tdee` by ≥ 100 cal, Today shows "Update your calorie target to X?"
   - Accepting stores an override under a new key, `nutrition-target-override`, which `computeTargets` (32973) respects.
   - `computeDeficitGuardrail` (14446) still applies.
+  - **Owner condition (D5, 2026-11-08): three weeks of BL-17 data.** The prompt is offered only when `estimateExpenditure` is valid **and** its window spans at least 21 days. And the build itself waits until BL-17 has been merged on `origin/Branch-1` for at least 21 days, so the owner has three weeks of the read-only estimate to judge before it can move a target.
 - **Acceptance criteria:**
   1. Accepting writes the key, and `computeTargets` returns the new calories.
   2. Declining writes nothing.
   3. The guardrail still fires below 70% of the estimate.
-- **Test plan:** new `test-calorie-checkin.js`. **Risk:** a new stored key, and targets everywhere change. **Files:** `index.html`, `sw.js`, the test.
-- **Status:** needs-owner. **Question:** "May the app store a calorie-target override from your logged intake and trend weight, offered once a week and only applied when you tap Accept?"
+  4. A valid estimate whose window spans 14–20 days shows no prompt (DOM count 0); the same fixture extended to 21 days shows it (count 1).
+- **Test plan:** new `test-calorie-checkin.js`. Sabotage: drop the 21-day span check, and criterion 4 must fail. **Risk:** a new stored key (approved, D5), and targets everywhere change. **Files:** `index.html`, `sw.js`, the test.
+- **Status:** ready (after BL-17, and no sooner than 21 days after BL-17's merge) (owner yes 2026-11-08, D5). A run that picks it first checks BL-17's merge date on `origin/Branch-1`; if it's under 21 days, skip it as if it weren't ready.
 
 ### BL-28: Saved meals
 - **Why:** MacroFactor and Cronometer offer saved meals (research §5). There's no equivalent here. "My Foods" (`custom-foods`, 35002) holds single items only.
@@ -703,21 +707,27 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Acceptance criteria:**
   1. Saving 3 items and re-adding the meal adds 3 entries with the same macros.
   2. Deleting a meal leaves the logged days untouched.
+  3. *(Owner yes, 2026-11-08)* A JSON backup made with one saved meal, restored into an empty store, gives back the same `saved-meals` value.
 - **Test plan:** new `test-saved-meals.js`. **Risk:** a new stored shape, and the backup/restore round-trip. **Files:** `index.html`, `sw.js`, the test.
-- **Status:** needs-owner. **Question:** "OK to add a new saved-meals list (new stored data, included in backups), shown inside My Foods?"
+- **Status:** ready (owner yes 2026-11-08, D5). The new `saved-meals` key is approved; criterion 3 checks it survives backup and restore.
 
 ### BL-29: Import history from Strong or Hevy CSV
 - **Why:** this is what lets someone with years of history switch (research #5).
 - **Constraint:** history is keyed by program slot position (`exKey` 26990), so imported sets have no natural slot.
-- **Change:**
+- **Change** (re-scoped to the owner's answer, D6, 2026-11-08: a **separate "Imported" archive** that feeds PRs and e1RM, never the program slots):
   - A parser for the CSV.
   - A review screen mapping names to `exerciseInfo`, with unmatched names listed.
-  - Writes go to the slots the owner chooses.
-  - PRs are rebuilt with `reconstructAllPRs` (41641).
-- **Acceptance criteria:** a sample file maps known names, and lists unknown names without writing them.
-- **Test plan:** `test-strong-hevy-import.js` against a real exported sample.
-- **Risk:** this writes into existing logs, which is data shape and migration territory. Strong's and Hevy's exact CSV formats are unverified.
-- **Status:** needs-owner. **Question:** "Should imported history attach to matching exercises in your current program's slots, or live in a separate 'Imported' archive that only feeds PRs and e1RM charts? Can you share one real export file to test against?"
+  - Matched sets are written to a separate, namespaced archive (for example `imported:<exercise-slug>`), in the same `{date, sets}` entry shape the `ex:` logs use. **Nothing is written to any `ex:` slot key**, so progression, suggestions and the deload clock (which read slot logs) never see imported sets.
+  - `readExCorpus` (41211 at v3.523) also reads the archive, labelled "Imported (Strong)" or "Imported (Hevy)", so `groupCorpusByExercise` (41684), `reconstructAllPRs` (41838) and the e1RM charts pick it up through the existing path. No parallel PR or chart code.
+  - The archive is included in the JSON backup, and one "Remove imported history" action deletes every `imported:` key and nothing else.
+- **Acceptance criteria:**
+  1. A sample file maps known names, and lists unknown names without writing them.
+  2. After an import, the count of `ex:` keys and their values are byte-identical to before.
+  3. An imported set heavier than any logged set for the same exercise appears as a PR event from `reconstructAllPRs`, with the "Imported" label.
+  4. "Remove imported history" leaves 0 `imported:` keys, and `reconstructAllPRs` returns the pre-import events.
+- **Test plan:** `test-strong-hevy-import.js`. The fixture is a few rows cut from a real export if the owner has sent one (trimmed, with nothing personal beyond exercise names, dates and sets, since the repo is public). If none has arrived, the fixture follows the column headers documented by Strong's and Hevy's own help pages, cited in the test, and the PR says "not yet checked against a real export". Sabotage: write the matched sets to the slot key, and criterion 2 must fail.
+- **Risk:** a new stored archive (approved, D6) and a new reader in `readExCorpus`, so every corpus consumer sees more entries. Guarded by `test-pr-timeline.js` and the corpus suites that extract `readExCorpus`; re-grep them. Strong's and Hevy's exact CSV formats are unverified.
+- **Status:** ready (owner yes 2026-11-08, D6: a separate "Imported" archive). The owner may send one Strong or Hevy export file to test against.
 
 ### BL-30: The per-muscle ledger on Today
 - **Why:** seeing "Chest 6 / 10" before leaving the gym is the audit's §5 differentiator against Fitbod. It builds on BL-20.
@@ -727,7 +737,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:** Today is the owner's most-seen screen.
 - **Tools:** `impeccable layout`, `dataviz`.
 - **Summit note (summit 2026-11-07):** The summit recommends **no**: keep the ledger in Progress. Today keeps one answer per screen (design-vision §9; summit R8).
-- **Status:** needs-owner. **Question:** "Do you want a per-muscle sets-this-week strip on Today, or keep it in Analysis only?"
+- **Status:** parked (owner no 2026-11-08, D3). The ledger stays in Progress (BL-20); Today keeps one answer per screen.
 
 ### BL-31: Weekly ±1-set rule per muscle, from your own performance
 - **Why:** this is RP's core feature, at $34.99 a month (research §1). Here it's free and performance-driven [PEL][ROB24].
@@ -741,15 +751,23 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   2. Medical programs are untouched.
 - **Test plan:** new `test-muscle-set-autoreg.js`.
 - **Risk:** this stacks with accumulation, deload and session-length trimming.
-- **Status:** needs-owner. **Question:** "May the app add or remove one set per muscle each week based on how your logged sets went, capped at +4 per block and shown with its reason?"
+- **Status:** ready (after BL-20) (owner yes 2026-11-08, D3). Each added or removed set is shown with its reason, as the owner was asked. Slot 58, after the ledger (BL-20) and BL-33.
 
 ### BL-32: Readiness changes the session, not just the note
 - **Why:** research #3: "the suggestion lands in the set chips". This builds on BL-09 and BL-21.
-- **Change:** when readiness is `caution`, today's RPE target is capped at 8 and the badge says why.
-- **Acceptance criteria:** with caution, RPE mode week 4 shows RPE 8 and the reason.
-- **Test plan:** extend `test-readiness-hrv.js`.
-- **Risk:** suggested loads change on bad-sleep days.
-- **Status:** needs-owner. **Question:** "On a 'caution' readiness day, should suggested loads drop automatically (cap at RPE 8), or only show a one-tap 'make today easier' option?"
+- **Change** (re-scoped to the owner's answer, D3, 2026-11-08: **a one-tap option, never automatic**):
+  - When `computeReadiness` (47085 at v3.523) returns `caution` for today, the readiness note (`formatReadiness`, 47126) carries one "Make today easier" button. Nothing about the session changes until it's tapped.
+  - Tapping stores today's date key in `window.storage` (for example `easier-day`). While that equals today, the day's RPE target from `rpeTargetFor` (27511) is capped at 8 at render time, so RPE-mode loads (`computeSuggestedSet`, 27967) follow it, and the badge says why: "Capped at RPE 8: you chose an easier day (<the readiness flags>)". Lower targets, such as BL-02's clinical caps and the deload week, stay as they are.
+  - The choice lapses on its own the next day. An "Undo" on the same note clears it for today.
+- **Acceptance criteria:**
+  1. With `caution`, RPE mode, week 4 (RPE 9) and no tap: the badge shows RPE 9 and the note shows the button (count 1).
+  2. After a real click on the button: the badge shows RPE 8 and the reason, and `window.storage` holds today's date key.
+  3. With the stored key set to yesterday: RPE 9 again.
+  4. With readiness `good` or `note`: no button (count 0).
+  5. A clinical day already capped at 7 stays at 7 after the tap.
+- **Test plan:** extend `test-readiness-hrv.js` (BL-21's suite), with the real `computeReadiness`, `formatReadiness`, `rpeTargetFor` and a stub `window.storage`. Sabotage: apply the cap whenever readiness is `caution`, without the stored key, and criterion 1 must fail.
+- **Risk:** the readiness note's layout and Today's Priorities. Suggested loads change only on a day the owner taps the button. Guarded by `test-rpe-safety-caps.js` (clinical caps) and BL-21's suite.
+- **Status:** ready (after BL-21) (owner yes 2026-11-08, D3: one-tap "make today easier", not automatic).
 
 ### BL-33: Deload clock counts only weeks you actually trained (M-6, part 1)
 - **Why:** `getMesocycleWeek` (14904) counts calendar weeks from `program-cycle-start`. A week off still advances the block toward the deload [BELL23].
@@ -757,15 +775,22 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Acceptance criteria:** with a fixture of 2 trained weeks, 1 empty week and 1 trained week, it is week 4, not week 5.
 - **Test plan:** extend `test-program-cycle-start-backfill.js`.
 - **Risk:** the owner's current week number may jump on the day it ships.
-- **Status:** needs-owner. **Question:** "Should weeks with fewer than 2 workouts stop counting toward your 5-week block? Your current week number may change the day this ships."
+- **Status:** ready (owner yes 2026-11-08, D3). The owner accepted that the current week number may change the day this ships; the What's New line says so. Slot 57, right after the ledger.
 
 ### BL-34: e1RM uses logged RPE (M-4)
 - **Why:** `estimated1RM` (27431) treats every set as taken to failure. 100×8 @ RPE 7 is about 10% under.
-- **Change:** e1RM = w × (1 + (reps + 10 − RPE)/30) when RPE is logged.
-- **Acceptance criteria:** 100×8 @ RPE 7 gives 137 (vs 127 today).
-- **Test plan:** extend `test-pr-timeline.js`.
-- **Risk:** every e1RM chart and PR shifts. Guarded by `test-pr-timeline.js` and `test-performance-delta-colours.js`.
-- **Status:** needs-owner. **Question:** "Use RPE-adjusted e1RM everywhere (your e1RM charts and PRs will shift up), or only for RPE-mode load targets?"
+- **Change** (re-scoped to the owner's answer, D3, 2026-11-08: **RPE-mode load targets only; PR history and e1RM charts stay put**):
+  - `buildPastSessions` (27660 at v3.523) also returns the top set's own logged `rpe` (an added field; nothing else changes shape).
+  - `recentBestE1RM` (27525), which only feeds RPE mode's `rpeCtx.e1rm` (28938), uses e1RM = w × (1 + (reps + 10 − RPE)/30) when that RPE is logged (6–10), with the same 15-rep ceiling `loadForRpeTarget` (27456) enforces. Without a logged RPE it falls back to `estimated1RM`.
+  - `estimated1RM` (27535) itself is **unchanged**, so `reconstructAllPRs`, the e1RM charts and every other caller (29171, 31634, 31901, 41603, 41765, 41857 at v3.523) give the same numbers as before.
+- **Acceptance criteria:**
+  1. `recentBestE1RM` over one session with a top set of 100×8 @ RPE 7 returns 137; the same set with no RPE returns 127.
+  2. `estimated1RM(100, 8)` still returns 127.
+  3. `reconstructAllPRs` over a fixture whose sets carry RPE returns the same events (dates, types and `e1rm` values) as before the change.
+  4. In RPE mode, week 2 (RPE 8), a prior top set of 100×8 @ RPE 7 gives a suggested 8-rep load from the adjusted e1RM (137), not from 127.
+- **Test plan:** new `test-rpe-adjusted-e1rm.js`, with the real `buildPastSessions`, `recentBestE1RM`, `estimated1RM`, `loadForRpeTarget` and `reconstructAllPRs`. Sabotage: put the RPE adjustment inside `estimated1RM`, and criterion 3 must fail.
+- **Risk:** RPE-mode load targets rise for anyone who logs RPE below 10. Guarded by `test-rpe-safety-caps.js` (clinical caps still bound the target), `test-progress-badge-rpe-teal.js`, `test-pr-timeline.js` and `test-performance-delta-colours.js`.
+- **Status:** ready (owner yes 2026-11-08, D3: RPE-mode targets only; PR history stays put).
 
 ### BL-35: Replace Neck Bridges with a 4-way neck isometric (SAF-4)
 - **Why:** Neck Bridges, "bridge onto the top of your head", unsupervised. They appear **6 times**: grappling d6 (`index.html` 11056) and five grappling day-count variants (21282, 21320, 21363, 21413, 21464). No trial supports either option for injury prevention [PRAC]. BL-05b fixes the cue in Phase 0; this item replaces the exercise.
@@ -1562,7 +1587,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - The printed address must be permanent: the app's own domain (for example the `.app` for the chosen name), forwarded by the registrar with an HTTPS 301 to the current app. **Never `jdabeast5.github.io/Training-Log`**, which prints the old name and a personal handle on images nobody can edit later.
   - **Don't** attach the domain to the app's repo as a GitHub Pages custom domain. That changes the app's origin, and localStorage and IndexedDB (every log and photo) don't follow an origin change. Moving the origin is its own item, BIZ-25.
   - The card text is drawn under the mark and the name (`APP_NAME`), not under "TRAINING LOG".
-- **Status:** needs-owner. **Question:** "Put the app's own forwarded web address (not the GitHub Pages URL) on every share card and share message?" **Recommendation:** yes, once the name and its domain are settled; Phase 5, after the Phase 3 gate.
+- **Status:** ready (after the Phase 3 gate, and once the owner confirms the forwarded domain) (owner yes 2026-11-08, D8). The name is settled (Platestep). `PUBLIC_APP_URL` is the owner's forwarded domain (for example `platestep.app`); until the owner records that it is bought and forwards with an HTTPS 301, a run skips this item. Roadmap slot 93.
 
 ### BIZ-12: Go public: where, and under what name
 - **Why:** with no store listing, a generic name and an empty README, nobody can find the app (business.md §5.1). The Capacitor track creates the store build; the business needs the owner's decision to list it.
@@ -1571,7 +1596,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Test plan:** none; a decision, not code.
 - **Files:** `planning/business.md`.
 - **Risk:** going public turns the clinical programs into a health-claim question (BIZ-15) and requires a privacy policy (BIZ-16). Neither should lag the listing.
-- **Status:** needs-owner. **Question:** "Do you want the app public after Phase 3 and its gates (web first, then Google Play via the Capacitor build, then the App Store), under the name you settle from `planning/naming.md`?" **Recommendation:** yes, in that order. The name decision itself is MKT-09 / consensus decision 10. Personal Play account, with founding members as the 12 testers for 14 days (business.md §6).
+- **Status:** answered (owner yes 2026-11-08, D8: public after Phase 3 and its gates; web first, then Play, then the App Store, in that order). No code; the answer is recorded in `business.md` §6. *Original question:* "Do you want the app public after Phase 3 and its gates (web first, then Google Play via the Capacitor build, then the App Store), under the name you settle from `planning/naming.md`?" **Recommendation:** yes, in that order. The name decision itself is MKT-09 / consensus decision 10. Personal Play account, with founding members as the 12 testers for 14 days (business.md §6).
 
 ### BIZ-16: A privacy policy page
 - **Why:** store listings for apps handling health data require a privacy policy (business.md §6). Ours would be unusually short and strong: logs stay on device; food queries go to USDA and Open Food Facts; AI calls go to Anthropic only with your own key; no analytics.
@@ -1586,7 +1611,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - Legal text. The owner must approve the wording.
   - A second HTML file beside `index.html` is a new file, which CLAUDE.md asks the owner to confirm.
   - The page drifts when a new host is added; criterion 1 catches that.
-- **Status:** needs-owner. **Question:** "Publish a plain-language privacy policy listing exactly which services the app talks to?" **Recommendation:** yes. It's required for a listing and it's a selling point.
+- **Status:** ready (after the Phase 3 gate) (owner yes 2026-11-08, D8). The new `privacy.html` file is approved with it; the owner approves the exact wording in the PR review. Roadmap slot 90.
 
 ### BIZ-15: Clinical-content review and disclaimer before any public listing
 - **Why:**
@@ -1609,7 +1634,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Risk:**
   - Health-claim and legal wording; the owner (or a clinician) must approve it.
   - One extra tap on clinical programs, once. Guarded by `test-program-recommendation.js`.
-- **Status:** needs-owner. **Question:** "Before going public, add a one-time care-team acknowledgement to clinical programs and have their claims, tips and nutrient notes reviewed, by a clinician?" **Recommendation:** yes, a paid clinician before listing. Keep the programs, because they're a differentiator no competitor has.
+- **Status:** ready (after the Phase 3 gate) (owner yes 2026-11-08, D8 and D9(e): **a paid clinician reviews the clinical copy** before any listing). The build ships the acknowledgement and criterion 4. The clinician's review is the owner's step, outside the loop; any wording changes it asks for become their own item, and BIZ-12's store step waits for it. Roadmap slot 89. *Original question:* "Before going public, add a one-time care-team acknowledgement to clinical programs and have their claims, tips and nutrient notes reviewed, by a clinician?" **Recommendation:** yes, a paid clinician before listing. Keep the programs, because they're a differentiator no competitor has.
 
 ### BIZ-11: Business model
 - **Why:**
@@ -1716,7 +1741,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Risk:**
   - It's a public commitment with consumer-promise implications, so the owner must approve the exact words.
   - Ship it after BIZ-07 and BIZ-16 so all three say the same thing.
-- **Status:** needs-owner. **Question:** "Publish business.md §3.4's 'What's free' paragraph (with the safety clause and the coach sentence) in the app, the README and the landing page at public launch?" **Recommendation:** yes, at launch (Phase 5) and not before. The promise is what makes it safe for early users to commit years of logs.
+- **Status:** ready (after BIZ-16 and MKT-14) (owner yes 2026-11-08, D9(a)). At public launch (Phase 5) and not before; `{name}` is filled from `APP_NAME` (Platestep). Roadmap slot 92.
 
 ### BIZ-18a: The free-list guard test
 - **Why:** BIZ-18's criterion 4 (no lock, upgrade or "Pro" label in free areas) only protects the free list if it runs on **every** later build. Inside a needs-owner Phase 5 item it would run on none (business-manager, non-blocking; roadmap "Business priorities" asked for it).
@@ -1746,7 +1771,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - It's a money promise that has to be honoured for years.
   - On-device proof can be faked by editing data. That's accepted as a small cost.
   - The store offer mechanics (Apple offer codes, Google Play offers) aren't verified here.
-- **Status:** needs-owner. **Question:** "Promise a founding price (half of list, locked while subscribed, on the server-run subscription only) to everyone who trains with the app before the subscription is announced, and announce the promise at public launch?" **Recommendation:** yes. Offer no lifetime plan on hosted AI. Coach programs and the coach plan are priced separately (business.md §3.4, §3.8).
+- **Status:** answered (owner yes 2026-11-08, D9(b): half the list price, locked while subscribed, on the server-run subscription only; no lifetime plan on hosted AI). No code until billing exists; the answer is recorded in `business.md` §3.4. *Original question:* "Promise a founding price (half of list, locked while subscribed, on the server-run subscription only) to everyone who trains with the app before the subscription is announced, and announce the promise at public launch?" **Recommendation:** yes. Offer no lifetime plan on hosted AI. Coach programs and the coach plan are priced separately (business.md §3.4, §3.8).
 
 ### BIZ-21: Switch the subscription on by metrics, not by a date
 - **Why:**
@@ -1765,7 +1790,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
 - **Risk:**
   - T1 and T2 depend on the store consoles. With no analytics, a PWA-only audience is invisible.
   - The 16% threshold is our proposal, not an industry benchmark.
-- **Status:** needs-owner. **Question:** "Replace '90 days of data' with the six triggers in business.md §3.5, and agree that no billing code is written until they all hold?" **Recommendation:** yes.
+- **Status:** answered (owner yes 2026-11-08, D9(c)): the six triggers replace "90 days of data", and no billing code is written until they all hold. Recorded in `business.md` §3.5; the monthly check line starts once a store console has data.
 
 ### BIZ-22: The payment path
 - **Why:**
@@ -1783,7 +1808,7 @@ Written against **v3.514**. Evidence for every item is in `planning/business.md`
   - Accounts, money, contracts, tax, and a server that user data goes to (for opt-in users).
   - Web purchases unlocking an iOS store app risk App Review rejection (guideline 3.1.1, from developer reports).
   - The 2026 Play fee changes are reported but unverified here.
-- **Status:** needs-owner. **Question:** "Plan on Play billing first, once the Capacitor build supports it, with web payments only if many users are on the iPhone PWA and there's no iOS build; and do you also want a 'support us' link now, with nothing locked?" **Recommendation:** yes to Play first, and no billing or server code before BIZ-21's triggers. The support link is optional; it's honest only if it says it pays for nothing extra.
+- **Status:** answered (owner yes 2026-11-08, D9(d): Play billing first; web payments only if iPhone PWA demand is large; no billing or server code before BIZ-21's triggers). Recorded in `business.md` §3.6. The optional "support us" link (path D) was not separately answered and stays off. *Original question:* "Plan on Play billing first, once the Capacitor build supports it, with web payments only if many users are on the iPhone PWA and there's no iOS build; and do you also want a 'support us' link now, with nothing locked?" **Recommendation:** yes to Play first, and no billing or server code before BIZ-21's triggers. The support link is optional; it's honest only if it says it pays for nothing extra.
 
 ### BIZ-23: The coach plan: the coach pays, the clients are free
 - **Why:**
@@ -2070,12 +2095,20 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 
 ### MKT-12: Competitor names in store copy and search pages
 - **Why:** the highest-intent searches are switching searches ("Strong alternative", "Hevy free alternative"; business.md §6). Writing pages or keywords around them uses other companies' trademarks.
-- **Change:** none until answered. If yes: factual comparison pages on the landing site (MKT-14) only, never in store keywords (stores restrict competitor names in metadata), with prices dated and sourced.
-- **Acceptance criteria:** the owner's answer is recorded in `planning/marketing.md` §4.4.
-- **Test plan:** none; a decision.
-- **Files:** `planning/marketing.md`.
+- **Change** (owner yes 2026-11-08, D6: **one** dated, sourced comparison page):
+  - One static `compare.html` beside `about.html` (MKT-14), linked from it. Same rules as MKT-14: no framework, no analytics, no third-party requests, not precached by `sw.js`.
+  - A table of factual rows (price, free tier, progression, per-muscle volume, CSV import and export, account required). Each row about another app carries the date it was checked and a link to its source (the app's own pricing or help page where possible). Our own rows cite the feature in the app.
+  - A "Checked on" date at the top. Competitor names appear only on this page: never in store keywords or store copy (stores restrict competitor names in metadata).
+  - It leads with the switcher's question, how to bring your history (BL-29), so it ships only after the import exists.
+- **Acceptance criteria:**
+  1. `compare.html` parses in jsdom and has one comparison table. Every `<tr>` in its body that names another app has a `<time datetime>` and at least one `<a href="https://…">`.
+  2. The page has 0 `<script src>` and 0 `<link href>` pointing at another host.
+  3. `about.html` has one link whose `href` is `compare.html`.
+  4. The `manifest.json` description and `index.html`'s `<meta name="description">` and `og:` tags contain none of the compared apps' names (count 0). (The store-listing fields themselves belong to the Capacitor track; `planning/store/app-store.md` already rules competitor names out.)
+- **Test plan:** new `test-compare-page.js`. Sabotage: drop one row's `<time>`, and criterion 1 must fail.
+- **Files:** `compare.html` (new, approved with D6), `about.html` (link), `sw.js` (version), `index.html` (`APP_VERSION` and `WHATS_NEW` only), the test; the answer is noted in `planning/marketing.md` §4.4.
 - **Risk:** trademark and comparative-advertising claims. Every claim must be checkable on the date it's published.
-- **Status:** needs-owner. **Question:** "May we publish factual comparison pages that name Strong, Hevy and others (never in store keywords)?" **Recommendation:** yes, for one page with dated, sourced facts, and only after the CSV import (BL-29) exists, because that's what a switcher needs.
+- **Status:** ready (after BL-29 and MKT-14) (owner yes 2026-11-08, D6: one dated, sourced comparison page). Roadmap slot 97. *Original question:* "May we publish factual comparison pages that name Strong, Hevy and others (never in store keywords)?" **Recommendation:** yes, for one page with dated, sourced facts, and only after the CSV import (BL-29) exists, because that's what a switcher needs.
 
 ### MKT-13: Public launch posts and creator outreach
 - **Why:** nobody can find the app (business.md §5.1). The launch plan (marketing.md §4.3) uses Product Hunt, the self-promotion threads of r/Fitness, r/weightlifting and r/xxfitness, r/PWA and r/SideProject, and evidence-based strength creators.
@@ -2084,16 +2117,20 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Test plan:** none; a decision.
 - **Files:** `planning/marketing.md`.
 - **Risk:** community rules (each sub's sidebar on the day), and the first impression: don't launch before BIZ-01 to BIZ-03 and BIZ-17 ship.
-- **Status:** needs-owner. **Question:** "After the first-launch fixes ship, may we launch publicly (Product Hunt plus the designated self-promotion threads) and contact creators, with no paid placements?" **Recommendation:** yes, after BIZ-12 and BIZ-16.
+- **Status:** answered (owner yes 2026-11-08, D8). No code: the posts go out under the owner's name, after BIZ-12's web step, BIZ-16 and MKT-14, and under marketing.md §4.3's sequencing rule. Recorded in `marketing.md` §4.3. *Original question:* "After the first-launch fixes ship, may we launch publicly (Product Hunt plus the designated self-promotion threads) and contact creators, with no paid placements?" **Recommendation:** yes, after BIZ-12 and BIZ-16.
 
 ### MKT-14: A landing page file
 - **Why:** the README is the only landing page, and a GitHub repo page converts badly for people who don't use GitHub. The app itself is the Pages root.
-- **Change:** none until answered. If yes: one static `about.html` beside `index.html` (no framework, no analytics, no third-party fonts), with the promise, screenshots, install steps and privacy facts. Not precached by `sw.js`.
-- **Acceptance criteria:** the owner's answer is recorded here.
-- **Test plan:** the follow-up item adds a test that the page makes no third-party requests.
-- **Files:** later `about.html`, `README.md`.
+- **Change** (owner yes 2026-11-08, D8): one static `about.html` beside `index.html` (no framework, no analytics, no third-party fonts), with the promise, screenshots, install steps and privacy facts. Not precached by `sw.js`. BIZ-18 later adds its "What's free" paragraph here, and MKT-12 its comparison link.
+- **Acceptance criteria:**
+  1. `about.html` parses in jsdom, and its `<title>` and first heading contain `APP_NAME`'s value read from `index.html`.
+  2. 0 `<script src>`, `<link href>` or `<img src>` pointing at another host, and 0 analytics or tracking script tags.
+  3. It links to `index.html` (the app) and `privacy.html` (BIZ-16), one each.
+  4. `sw.js`'s precache list doesn't include `about.html`.
+- **Test plan:** new `test-landing-page.js`. Sabotage: add a Google Fonts `<link>`, and criterion 2 must fail.
+- **Files:** `about.html` (new), `README.md` (link), `sw.js` (version), `index.html` (`APP_VERSION` and `WHATS_NEW` only), the test.
 - **Risk:** a new file beside `index.html`, which CLAUDE.md restricts. That's why it needs the owner.
-- **Status:** needs-owner. **Question:** "Add one static landing page file (`about.html`) beside the app?" **Recommendation:** yes, alongside the privacy page (BIZ-16), so both live in the same place.
+- **Status:** ready (after BIZ-16) (owner yes 2026-11-08, D8). The new `about.html` file is approved with it. Roadmap slot 91.
 
 ### MKT-15: Any referral attribution
 - **Why:** to learn which share moments bring people in, the share link would need to say where it came from (`?ref=pr`, `?ref=week`). That's attribution, which is tracking in kind even if nothing is stored.

@@ -13,9 +13,17 @@ This is the one order every build run follows. It supersedes the "Requested buil
 - A run takes the first slot, in this order, whose item is `ready` and not `done` (`automation.md` §4 step 5).
 - Slots marked **†** are `needs-owner`. The loop skips them until the owner approves, then builds them in the slot where they sit. That's why approved safety and program items sit early.
 - The pace equals the owner's merge rate. There are **69 ready builds**. At one merge a day (an assumption, not a promise), that's about ten weeks.
-- **Spec refresh (2026-11-08):** net +3 to that count (BL-01 done; BL-36, UX-02, BL-65 and BL-66 ready). Slots 2–16 were re-specified against v3.518 in `backlog.md`. The owner's third-round answers (D3, D5, D6, D8, 2026-11-08) are **not yet applied** to item statuses; that's a separate planning pass.
+- **Spec refresh (2026-11-08):** net +3 to that count (BL-01 done; BL-36, UX-02, BL-65 and BL-66 ready). Slots 2–16 were re-specified against v3.518 in `backlog.md`. The owner's third-round answers (D3, D5, D6, D8, 2026-11-08) are applied in the bullet "Third round applied" below.
 - **Audit fold-in (2026-11-08):** the exercise-auditor's 18 items (PR #68) are slotted below, with no existing slot renumbered or moved. Net **+11 ready** (BL-43, BL-48, BL-53, BL-54, BL-55, BL-57, BL-58, BL-60, BL-62, BL-63, BL-64), so there are now **83 ready builds**. Seven more are † (BL-46, BL-47, BL-51, BL-52, BL-56, BL-59, BL-61). Specs are in `backlog.md` → "Added from the exercise-consistency audit".
   - **Date risk:** 24 ready builds now sit before MKT-06a (slot 19), counting slot 8 as ready per the backlog. To merge it by **30 November** takes about 1.1 merges a day from 8 November; at one a day it lands around 3 December. Summit R5 says nothing else moves if it slips. The owner can accept that, or move BL-55 and BL-63 (13c, 13d) to just after slot 19.
+  - **Accepted (owner, 2026-11-08):** MKT-06a landing **around 3 December** is fine. Nothing is re-ordered for it: BL-55 and BL-63 stay at 13c and 13d. The 30 November date stays as the stretch target, and MKT-06's Priorities row still runs 1 December to 15 January, so a 3 December merge loses only the first two days of the window.
+- **Third round applied (2026-11-08, "1-6 yes, clinician"; `pitch.md` → "Owner's answers", third round):**
+  - **D3:** BL-33 (slot 57) and BL-31 (slot 58) are ready. BL-34 (slot 81) is ready, re-scoped to RPE-mode load targets only, so PR history and e1RM charts don't move. BL-32 (slot 82) is ready as a one-tap "make today easier", never automatic. BL-30 is parked (owner no).
+  - **D5:** BL-28 (slot 76) is ready. BL-27 (slot 83) is ready after BL-17, and no sooner than 21 days after BL-17's merge (three weeks of its data).
+  - **D6:** BL-29 (slot 77) is ready, as a separate "Imported" archive that feeds PRs and e1RM. MKT-12 is now one build, a dated and sourced `compare.html` (slot 97, after BL-29 and MKT-14). The owner may send a Strong or Hevy export to test against.
+  - **D8 and D9 (a)–(e):** Phase 5's builds now have numbered slots (89–98). BIZ-15, BIZ-16, MKT-14, BIZ-18 and BIZ-08 are ready **behind the Phase 3 gate**; BIZ-15's copy review is done by a paid clinician (D9(e)), outside the loop, before any listing. BIZ-12, MKT-13, BIZ-20, BIZ-21 and BIZ-22 are decisions with no code; they're marked `answered` and recorded in `business.md` §3.4–3.6 and §6 and `marketing.md` §4.3–4.4.
+  - **D10:** approved: paper-lookup now, Playwright WebKit and axe-core before Phase 2, the `Skill` tool kept for its three agents, and `Edit` for the market-researcher and exercise-auditor. Noted only: the owner changes the `.claude/` files himself. Until he does, the slot-37 and slot-78 citation checks and the slot-39 WebKit check still wait on the tools being present.
+  - **Count:** net **+7 ready** in Phases 2–4 (slots 57, 58, 76, 77, 81, 82, 83) on top of the 83 above, plus 6 Phase 5 builds that are ready but gated.
 
 **Before slot 1** (see `consensus.md` (f)):
 - The owner's actions:
@@ -124,8 +132,8 @@ This is the one order every build run follows. It supersedes the "Requested buil
 55. BIZ-06: AI entry points say they need a key, **and what each sends and to whom**; the AI card sorts below Trends
 55a. **BL-59:** category corrections that feed the muscle ledger, with M-8 *(audit fold-in; owner yes 2026-11-08; before BL-20)*
 56. BL-20: the per-muscle ledger, fractional; the ink fill stops at the floor
-57. † BL-33: deloads count only weeks you trained (D3)
-58. † BL-31: weekly ±1 set per muscle from your performance (D3)
+57. BL-33: deloads count only weeks you trained *(owner yes 2026-11-08, D3)*
+58. BL-31: weekly ±1 set per muscle from your performance *(owner yes 2026-11-08, D3; after BL-20)*
 59. UX-10: Progress leads with the answer
 60. UX-14: the unfolded two-pane Today
 61. UX-11: the weekly recap sheet with the week strip
@@ -150,42 +158,46 @@ This is the one order every build run follows. It supersedes the "Requested buil
 73a. **BL-52:** variant- and style-scoped history keys, with a migration *(audit fold-in; owner yes 2026-11-08; after BL-51 has stamped names for some weeks, and before BL-37 so its migration can attribute entries)*
 74. † BL-37: rebuild the low day-count variants (D4; migration)
 75. † BL-38: Bodybuilding d6 "Upper Detail" (D4; migration)
-76. † BL-28: saved meals (D5)
-77. † BL-29: import from Strong or Hevy (D6)
+76. BL-28: saved meals *(owner yes 2026-11-08, D5)*
+77. BL-29: import from Strong or Hevy into a separate "Imported" archive *(owner yes 2026-11-08, D6)*
 
 ### Phase 4: Bar-raisers and growth moments (4 builds, plus approved owner items)
 78. BL-21: HRV against your own baseline (needs D10's paper-lookup for Plews 2013)
 79. MKT-07: PR and progress cards show the gain, with the record's kind named (summit R6)
 80. MKT-05: block complete, as a variant of UX-11's recap sheet
-81. † BL-34: RPE-adjusted e1RM for RPE-mode targets only (D3)
-82. † BL-32: one-tap "make today easier" (D3)
-83. † BL-27: weekly calorie check-in, applied only on Accept (D5; after BL-17 has 3 weeks of data)
+81. BL-34: RPE-adjusted e1RM for RPE-mode targets only; PR history stays put *(owner yes 2026-11-08, D3)*
+82. BL-32: one-tap "make today easier", never automatic *(owner yes 2026-11-08, D3; after BL-21)*
+83. BL-27: weekly calorie check-in, applied only on Accept *(owner yes 2026-11-08, D5; no sooner than 21 days after BL-17's merge)*
 84. † BL-39: append-only accessory volume (D4)
 85. † BL-40: hypertension isometrics and medical notes (D4)
 86. † UX-17: retire Gym mode. Two weeks after UX-06a, once tap parity is confirmed on device; it ships or is dropped before Phase 5.
 87. UX-15: the dead-CSS sweep (always the last UX item; it runs after UX-17 if that's approved)
 88. BL-41, BL-42, BL-44 and BL-45: program extensions, itemised by the exercise-auditor before Phase 2 ends. These are the powerlifting top single plus peak, Olympic % bands and a miss counter, bodyweight ladders, and athletic metrics. They're placeholders, not buildable yet. (BL-43, BL-46, BL-47 and BL-48 are written and slotted at 24a and 38a–c; BL-49 is unassigned.)
 
-### Phase 5: Public launch (owner-gated; about 9 builds after the owner says yes)
-- **Decisions (no code):**
-  - BIZ-12 (go public);
+### Phase 5: Public launch (owner yes 2026-11-08, D8: after Phase 3 and its gates; web first, then Play, then the App Store)
+**Every slot below waits for the Phase 3 hard gate** (all of Phase 3 merged, including BL-37 and BL-38, and UX-17 shipped or dropped). Until it holds, a run skips slots 89–98 as if they weren't ready. Slots 89–98 are new numbers (2026-11-08); nothing above was renumbered.
+- **Decisions (no code), answered 2026-11-08:**
+  - BIZ-12: go public, web first, then Play, then the App Store (D8);
   - BIZ-11 (the model);
-  - the public name (`naming.md`; MKT-09 is now only the decision);
-  - MKT-12 (comparison pages);
-  - MKT-13 (launch posts).
+  - the public name: Platestep (`naming.md`; MKT-09 done);
+  - MKT-13: launch posts and creator outreach, no paid placements (D8);
+  - BIZ-20, BIZ-21, BIZ-22: the founding price, the six switch-on triggers, Play billing first (D9 (b)–(d)).
 - **Builds:**
-  - BIZ-15: the clinical acknowledgement, plus a review of all clinical, tip and nutrient copy;
-  - BIZ-16: `privacy.html`, listing every host;
-  - MKT-14: `about.html`;
-  - BIZ-18: "What's free" (`business.md` §3.4 wording);
-  - BIZ-08: the address on cards (a forwarded domain, never `github.io`);
-  - ~~BIZ-25: move the app's origin~~ (parked: owner chose forward only, 2026-11-08);
-  - the BIZ-13 follow-up: own-cloud backup through the share sheet;
-  - MKT-10: program links;
-  - MKT-11: friend challenges;
-  - MKT-08: side-by-side progress photos (deferred here; ready).
+
+89. BIZ-15: the clinical acknowledgement and no form-video links on clinical items. A paid clinician reviews all clinical, tip and nutrient copy (D9(e)), outside the loop and before any listing.
+90. BIZ-16: `privacy.html`, listing every host
+91. MKT-14: `about.html` *(after BIZ-16)*
+92. BIZ-18: "What's free" (`business.md` §3.4 wording) *(after BIZ-16 and MKT-14)*
+93. BIZ-08: the address on cards (a forwarded domain, never `github.io`) *(also waits for the owner to confirm the domain forwards)*
+94. MKT-10: program links *(after BIZ-08)*
+95. MKT-11: friend challenges *(after BIZ-08 and MKT-01)*
+96. MKT-08: side-by-side progress photos *(parked until Phase 4 is done, then ready)*
+97. MKT-12: one dated, sourced comparison page, `compare.html` *(owner yes 2026-11-08, D6; after BL-29 and MKT-14)*
+
+- ~~BIZ-25: move the app's origin~~ (parked: owner chose forward only, 2026-11-08);
+- the BIZ-13 follow-up: own-cloud backup through the share sheet (no item written yet; it gets slot 98 when it is).
 - **Not code here:** the store listing itself belongs to the Capacitor track.
-- **Last owner decisions:** BIZ-23 and BIZ-24 (the coach plan and coach programs). No work before BIZ-21's T4.
+- **Last owner decisions:** BIZ-23 and BIZ-24 (the coach plan and coach programs) are plan of record; no work before BIZ-21's T4.
 
 ### Merged, split, dropped
 - **Merged:**
@@ -210,7 +222,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
   - "Add 2 sets each";
   - the 20-set ceiling on the ledger band.
 - **Deferred or recommended "no":**
-  - BL-30 (the ledger stays in Progress);
+  - BL-30 (the ledger stays in Progress; parked, owner no 2026-11-08, D3);
   - MKT-15 (no attribution);
   - BIZ-14 (no hosted AI yet);
   - a sync server;

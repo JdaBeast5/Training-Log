@@ -142,6 +142,8 @@ Prices are from `planning/research.md` §1 (dated snapshots, third-party sources
 
 ### 3.4 The founding-member promise
 
+**Owner's answer (2026-11-08, D9(b), third round in `pitch.md`):** yes, as recommended. Half the list price, locked while subscribed, on the server-run subscription only, with no lifetime plan on hosted AI. Announced in general terms at public launch (BIZ-18). Closes BIZ-20's decision; no code until billing exists.
+
 **Who:** everyone who logs a training session before the subscription is announced.
 
 **What they get:**
@@ -165,6 +167,8 @@ Prices are from `planning/research.md` §1 (dated snapshots, third-party sources
 
 ### 3.5 Trigger metrics for switching the subscription on
 
+**Owner's answer (2026-11-08, D9(c)):** yes. The six triggers below replace "90 days of data", and no billing code is written until all of them hold (BIZ-21). The monthly check line (date, T1–T6 yes or no, with the numbers) starts once a store console has data.
+
 **No calendar date.** The subscription switches on only when **all** of these hold. The owner checks them monthly, from the store consoles, BIZ-09 tester reports and measured costs.
 
 | # | Trigger | How it's measured | Threshold (our proposal) |
@@ -179,6 +183,8 @@ Prices are from `planning/research.md` §1 (dated snapshots, third-party sources
 **Not triggers:** a date, needing money, or a competitor raising prices. These replace the earlier rule "no billing code until 90 days of retention data" (summit R3). T1 is stricter and says what the data has to show.
 
 ### 3.6 The technical constraint, plainly
+
+**Owner's answer (2026-11-08, D9(d)):** path A, Play billing first, once the Capacitor build supports it; web payments only if iPhone PWA demand turns out to be large; no billing or server code before §3.5's triggers (BIZ-22). The optional support link (path D) wasn't separately answered and stays off. **D9(f)**, the Play account type: see `pitch.md`'s fourth round (a personal account now; an LLC before full launch, with the listing transferred to it then).
 
 **Today:** no server, no accounts, one file. That's no obstacle to being free. It's the whole obstacle to charging.
 
@@ -360,6 +366,8 @@ Walked in Playwright at 402×874 in a fresh context (scripts in the session scra
 ---
 
 ## 6. Distribution plan
+
+**Owner's answer (2026-11-08, D8):** yes. Go public after roadmap Phase 3 **and its gates** (BL-37 and BL-38, AI prompts that know clinical plans, the AI disclosure, UX-17 shipped or dropped): **web first, then Google Play, then the App Store**, in that order, under the name Platestep. With it: the privacy page (BIZ-16), the landing page (MKT-14), the clinical acknowledgement and a paid clinician's review of the clinical copy (BIZ-15, D9(e)), the address on cards (BIZ-08) and the launch posts (MKT-13). This closes BIZ-12.
 
 Do these in order. Each step depends on the one before.
 
