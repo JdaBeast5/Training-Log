@@ -925,3 +925,16 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
 - The shared checkout has been committing other agents' half-done edits as WIP. The builder needs its own checkout (O2).
 - `.claude/agents/build-automator.md` and `planning/automation.md` disagree on pick order and branch names (O3).
 - An iPhone home-screen web app only takes a new name or icon when it's re-added, and removing it can delete its data. Always tell the owner to export a backup first.
+
+## Addendum 43: first build-loop run, BL-01 (v3.518, PR #63, 2026-11-08)
+- **What:** goal volume and block accumulation add sets only on `VOLUME_MODIFIER_PROGRAMS` (strength, bodybuilding, powerbuilding, powerlifting) and custom programs, via `volumeModifiersApply(program)` inside `applyGoalVolume` and `applyAccumulation`. `renderWorkout` passes `activeProgram` to all three modifiers. Goal volume never raises a jump-category exercise. Deload is unchanged. A missing program key means no modifiers.
+- **Accessory:** `applyAccumulationAccessory` is gated by its pool, not by an in-function check. The test pins "every pool key is in the allowlist". An in-function gate broke `test-accumulation-accessory-add.js`, which isn't on BL-01's `Files:` line. This is raised in the PR for the owner.
+- **Test:** `test-volume-modifier-gate.js`, 7 cases: all 21 gated programs × styles × day-count variants × 3 goals × 4 weeks, a positive control, strength d1 pinned to v3.517 output, Depth Jump, custom, the pool invariant, and 3 real call sites. Suites went from 199 to 200, all green.
+- **Sabotage:** removing the gate, removing the jump rule, or dropping `activeProgram` from a call each fails the matching criterion.
+- **Cross-check:** output on the four lifting programs and custom programs is identical to v3.517 in all 2,741 day × goal × week combos.
+- **Unverified:** not tried on an iPhone.
+- **Flagged, not fixed:**
+  - The AI coach prompt (~42859) still claims goal sets on gated programs.
+  - The phase tag still reads "Accumulation" on gated programs.
+  - The RPE week ramp still runs on clinical and prenatal programs (BL-02).
+  - The jump check reads the authored name, before substitutions.

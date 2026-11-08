@@ -7615,7 +7615,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.517';
+const APP_VERSION = '3.518';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -8979,6 +8979,9 @@ const WHATS_NEW = {
   ]},
   '3.517': { headline: 'The app is now called Platestep', points: [
     'One plate at a time. Same app, same data, new name, now on share cards and saved files too. The label under your home-screen icon changes only if you add the app again; export a backup in Settings first.',
+  ]},
+  '3.518': { headline: 'Extra goal sets only on lifting programs', points: [
+    'Extra sets from your goal and from the training block now apply only to Strength & Size, Bodybuilding, Powerbuilding, Powerlifting and programs you build yourself. Other programs keep their written set counts, including the clinical, prenatal, sport and skill plans. Jumps never get extra sets.',
   ]},
 };
 
@@ -26667,12 +26670,18 @@ function goalVolumeAdjustment(goal){
   return null;  // lose / recomp / maintain — see the note above
 }
 
-function applyGoalVolume(exercises, goal){
+function applyGoalVolume(exercises, goal, program){
+  // v3.518 (BL-01): only the four lifting programs, and custom programs,
+  // take goal-based sets. See VOLUME_MODIFIER_PROGRAMS.
+  if(!volumeModifiersApply(program)) return exercises;
   const adj = goalVolumeAdjustment(goal);
   if(!adj) return exercises;
 
   return exercises.map(ex=>{
     if(!hasNumericSetPrefix(ex.sets)) return ex;
+    const info = exerciseInfo[ex.name];
+    // Plyometric sets are dosed by landings, not by a hypertrophy target.
+    if(info && info.category === 'jump') return ex;
     const current = parseSetCount(ex.sets);
     if(!current) return ex;
 
@@ -26694,7 +26703,6 @@ function applyGoalVolume(exercises, goal){
     // lifts early in the session". Isolation and accessory work is left
     // exactly as the program wrote it, since trimming that would quietly
     // strip a session down rather than sharpen it.
-    const info = exerciseInfo[ex.name];
     const isCompound = info && WARMUP_ELIGIBLE_CATEGORIES.includes(info.category);
     if(!isCompound || current <= 3) return ex;
     return {...ex, sets: replaceSetCount(ex.sets, 3), volumeNote: adj.label};
@@ -26731,6 +26739,20 @@ const ACCUMULATION_ADDS = {1: 0, 2: 1, 3: 2, 4: 2}; // cycle week -> how many ex
 // time and recovery without moving the lift the block is built around.
 const COMPOUND_CATEGORIES = new Set(['squat', 'hinge', 'push', 'pull', 'oly', 'lunge']);
 
+// v3.518 (BL-01, audit SAF-1): the programs that goal volume and block
+// accumulation may add sets to. Every other built-in program (clinical,
+// prenatal, sport and skill plans) keeps the set counts it was written with:
+// those are dosed by tolerance or by skill practice, not by a hypertrophy set
+// target. Custom programs keep the pre-v3.518 behaviour, except that
+// applyGoalVolume never raises a jump-category exercise anywhere. A missing program
+// means no modifiers, so a caller that forgets to pass one gets the authored
+// sets, never extra ones. Deload (applyDeloadVolumeReduction) is not gated.
+const VOLUME_MODIFIER_PROGRAMS = new Set(['strength','bodybuilding','powerbuilding','powerlifting']);
+
+function volumeModifiersApply(program){
+  return VOLUME_MODIFIER_PROGRAMS.has(program) || isCustomProgramKey(program);
+}
+
 function cycleWeekOf(week){
   // 1-indexed position inside the 5-week block: weeks 1..5, 6..10, and so on.
   return ((week - 1) % DELOAD_CYCLE_WEEKS) + 1;
@@ -26755,7 +26777,8 @@ function mesocyclePhaseTag(cyclePos, inDeloadWeek){
     : {text: `Week ${cyclePos} of ${DELOAD_CYCLE_WEEKS} · Accumulation`, className: 'mesocycle-phase-tag'};
 }
 
-function applyAccumulation(exercises, week){
+function applyAccumulation(exercises, week, program){
+  if(!volumeModifiersApply(program)) return exercises; // v3.518 (BL-01)
   const pos = cycleWeekOf(week);
   const adds = ACCUMULATION_ADDS[pos] || 0;
   if(adds === 0) return exercises;
@@ -26843,6 +26866,9 @@ const ACCUMULATION_ACCESSORY_POOL = {
 };
 
 function applyAccumulationAccessory(exercises, week, program, dayId){
+  // v3.518 (BL-01): gated by the pool itself. Every key of
+  // ACCUMULATION_ACCESSORY_POOL must be in VOLUME_MODIFIER_PROGRAMS
+  // (test-volume-modifier-gate.js), so no other program gets a bonus.
   const pos = cycleWeekOf(week);
   if((ACCUMULATION_ADDS[pos] || 0) < 2) return exercises; // only the peak weeks
   const bonus = (ACCUMULATION_ACCESSORY_POOL[program] || {})[dayId];
@@ -28618,7 +28644,7 @@ async function renderWorkout(){
   // adjusted baseline: a deload week reduces whatever the goal called for,
   // and session-length trimming caps the result. Ordering it last instead
   // would let a hypertrophy bump silently undo a deload.
-  fullExercises = applyGoalVolume(fullExercises, userProfile.goal);
+  fullExercises = applyGoalVolume(fullExercises, userProfile.goal, activeProgram);
 
   // Deload weeks reduce actual set volume, not just suggest a lighter
   // weight — applied here, before session-length trimming, so a deload
@@ -28642,7 +28668,7 @@ async function renderWorkout(){
     // the deload), but branching rather than sequencing makes that explicit —
     // stacking an accumulation bump on top of a deload reduction would produce
     // a "lighter" week with more sets than the one before it.
-    fullExercises = applyAccumulation(fullExercises, mesoWeek);
+    fullExercises = applyAccumulation(fullExercises, mesoWeek, activeProgram);
     fullExercises = applyAccumulationAccessory(fullExercises, mesoWeek, activeProgram, activeDay);
   }
 
