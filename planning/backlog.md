@@ -209,7 +209,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:**
   - **More cautions:** carries and hanging raises appear in about 100 program slots and will now warn on grip, elbow and shoulder. The What's New line says so.
   - **Fewer swaps:** overridden exercises show no category swap (v3.522 guard). That removes the current Bird Dog suggestion on carries and hangs and "Walking" on Sled Pull, until BL-04 adds theirs.
-- **Status:** ready (owner 2026-11-08: "Q1 yes / Q2 c / Q3 yes / heel drop yes"). Slot 3a, before BL-04.
+- **Status:** done (v3.523, PR #79)
 
 ### BL-04: Exercise-specific substitutes for the overridden exercises (SAF-3, part 2)
 - **Why:** `suggestSubstitute` (43965) picks by category from `SUBSTITUTION_MAP` (43948). That means a resting Achilles gets "Wrist Flexor Stretch" for a heel drop (the `arms` alts), and a hangboard gets "Chest-Supported Row".
