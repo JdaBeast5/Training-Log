@@ -63,7 +63,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 8. BL-35: replace Neck Bridges with a 4-way neck isometric (D4 approved; archive method settled 2026-11-08: option (b), move nothing, fresh history for the isometric)
    - 8a. **BL-72:** stable history keys for custom, body-goal and bonus exercises, with a migration (`SCHEMA_VERSION` 9). It must ship before any built-in exercise is added to a day *(owner yes 2026-11-08, "1 yes")*
    - 8b. **BL-73:** a stored substitute only applies if it's listed for that exercise *(owner yes 2026-11-08)*
-   - 8c. †**BL-74:** history keys follow the authored position, so removed or reordered exercises and trimmed warm-ups stop shifting history *(needs-owner; found while specifying BL-72)*
+   - 8c. **BL-74:** history keys follow the authored position, so removed or reordered exercises and trimmed warm-ups stop shifting history *(owner (a) 2026-11-08; after BL-72; found while specifying BL-72)*
 9. BL-36: Drop Landing as a loggable drill on the ACL-risk watersports days (D4 approved 2026-11-07; ready after BL-72)
 
 ### Phase 1: Engine truth, foundation, the Year in Lifting lane, and the food lane (33 builds, plus 7 if approved)
