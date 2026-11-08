@@ -232,7 +232,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - Since v3.522 (BL-03), both call sites set `sub = null` for any name in `EXERCISE_REGION_OVERRIDE`. Replace that guard with "the exercise's own substitute if it has one, else none". Never use the category swap for an overridden exercise.
   - Relief-matched rows (BL-70) still show no swap.
   - Add criterion 6: with Hangboard Repeaters' region resting, the real caution path offers "Feet-on Hang (open hand)". With Sled Push's, it offers no swap.
-- **Status:** ready (after BL-70)
+- **Status:** done (v3.524, PR #81)
 
 ### BL-05: Depth Jump prerequisite and box height in the cue (SAF-5, part 1)
 - **Why:** Depth Jump appears with no box height or landing prerequisite, in **20 slots** at v3.518 (counted by walking `programs`, every `*_STYLES` style and every `PROGRAM_DAY_COUNT_VARIANTS` day):
