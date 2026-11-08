@@ -129,7 +129,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Test plan:** new `test-backup-excludes-keys.js` (real handler, stubbed storage and Blob); sabotage by removing the filter.
 - **Files:** `index.html` (export and import handlers, the Settings hint), `sw.js` (`VERSION`), the new test, `test-import-backup-full-replace.js` (check and re-pin if the import change touches its fixture).
 - **Risk:** someone restoring onto a new phone has to paste their keys again. That's intended.
-- **Status:** ready (owner, 2026-11-08). Safety and privacy; slot 2a.
+- **Status:** done (v3.520, PR #74)
 
 ### BL-69: Clinical RPE-mode loads rise at most one smallest step per session (PR #72 follow-up)
 - **Why:** on the clinical plans and Senior in RPE mode, `computeSuggestedSet` and `buildProgressBadge` suggest `loadForRpeTarget(e1rm, reps, 7)` from `recentBestE1RM`. One strong session lifts the e1RM, so the suggested load can jump by several plates, past the "smallest steps only" rule (D12) that progression mode now follows (v3.519). Flagged on PR #72; the owner chose option (c) on 2026-11-08.
