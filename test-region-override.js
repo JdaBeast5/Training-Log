@@ -173,7 +173,7 @@ test('BL-04 review: an exercise-specific swap is offered only when it fits EVERY
   assert.strictEqual(r.raiseGrip.name, 'Lying Leg Raise (floor)');
   assert.strictEqual(r.raiseBack, null, 'a floor leg raise loads the lower back');
   assert.strictEqual(r.carryHandsAndBack, null, 'no single carry swap fits hands AND lower back (v3.525)');
-  assert.strictEqual(r.carryShoulder.name, 'Vest or Backpack Walk (hands free)');
+  assert.strictEqual(r.carryShoulder, null, 'v3.526 (BL-75): a loaded vest or backpack presses on the shoulder');
   assert.strictEqual(r.calfAnkle.name, 'Isometric Calf Hold (wall-supported)');
   assert.strictEqual(r.squatKnee.name, 'Wall Sit', 'category swaps ignore the hit list');
 });
@@ -195,13 +195,19 @@ test('BL-04 criterion 6: Sled Push, Sled Pull, Wall Balls and the other overridd
 });
 
 // ---- v3.525 (BL-71): carry swaps by resting area (owner option a).
-test('BL-71 criteria 1-3: carries pick their swap by resting area; hands + lower back gets none', (assert)=>{
+test('BL-71 criteria 1-3 (as amended by BL-75, v3.526): carries pick their swap by resting area; a resting shoulder or hands + lower back gets none', (assert)=>{
   const r = sbx(`const c = ["Farmer's Carry", 'Farmers Carry (Heavy)', 'Suitcase Carry']; __capture.push(c.map(n => [
     suggestSubstitute('core', n, ['Hands/Fingers']), suggestSubstitute('core', n, ['Elbow/Wrist']),
-    suggestSubstitute('core', n, ['Shoulder']), suggestSubstitute('core', n, ['Hands/Fingers','Elbow/Wrist','Shoulder']),
-    suggestSubstitute('core', n, ['Lower Back']), suggestSubstitute('core', n, ['Hands/Fingers','Lower Back'])]));`);
+    suggestSubstitute('core', n, ['Hands/Fingers','Elbow/Wrist']), suggestSubstitute('core', n, ['Shoulder']),
+    suggestSubstitute('core', n, ['Lower Back']), suggestSubstitute('core', n, ['Hands/Fingers','Lower Back']),
+    suggestSubstitute('core', n, ['Hands/Fingers','Shoulder']),
+    suggestSubstitute('core', n, ['Elbow/Wrist','Shoulder']), suggestSubstitute('core', n, ['Hands/Fingers','Elbow/Wrist','Shoulder']),
+    suggestSubstitute('core', n, ['Shoulder','Lower Back'])]));`);
   for(const row of r){
-    for(const k of [0,1,2,3]) assert.strictEqual(row[k].name, 'Vest or Backpack Walk (hands free)');
+    for(const k of [0,1,2]) assert.strictEqual(row[k].name, 'Vest or Backpack Walk (hands free)');
+    assert.strictEqual(row[3], null, 'BL-75: no swap for a resting shoulder');
+    assert.strictEqual(row[6], null, 'BL-75: hands + shoulder');
+    for(const k of [7,8,9]) assert.strictEqual(row[k], null, 'BL-75: any combination with a resting shoulder gets none (' + k + ')');
     assert.deepStrictEqual(row[4], {name: 'Bird Dog', why: "keeps the bracing with no load on your spine, and it's one of Care's own lower-back moves"});
     assert.strictEqual(row[5], null);
   }
