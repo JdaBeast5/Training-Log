@@ -37,6 +37,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 ### Phase 0: Safety (7 builds, plus 2 if D4 is approved)
 1. BL-01: program gate on goal volume and block accumulation. The allowlist is named, and the test covers every other built-in program and variant. **Done (v3.518, PR #63).**
 2. BL-02: RPE caps on clinical programs; RPE mode off for technique lifts; **the clinical load gate (SAF-8)**
+   - 2a. **BL-68: backups leave out saved API keys** (owner, 2026-11-08)
 3. BL-03: per-exercise region override
 4. BL-04: exercise-specific substitutes
 5. **BL-05 + BL-06, one version:** the safety cues, including the Depth Jump **Drop Landing rule**, across all 20 occurrences (counted at v3.518)

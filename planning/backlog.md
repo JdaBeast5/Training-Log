@@ -87,7 +87,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - `renderLoadModeNote` (32923) reads its target through `rpeTargetFor(week, false, activeProgram, null)`, so the Settings note never shows a week target the cap overrides.
   - **The clinical load gate (SAF-8, folded in by the alignment round; owner decision D12).** `analyzeProgressionSignal` (27514) gains a fourth argument, `program`, passed at **all three** call sites: `getSessionHeadsUpInsight` (14555), `computeProgramFitTrend` (27614) and `renderWorkout` (28804), so the heads-up, the fit check and the badge agree. For `medical` (every `MEDICAL_STYLES` key) and `senior`, signal 3 (27548–27561):
     - signals an increase only when logged RPE is ≤ 7 in **both** qualifying sessions;
-    - uses the smallest loadable jump instead of `getLoadIncrement(category)`: for a barbell, `2 × smallest plate` (the step `snapToLoadable`, 32777, uses); for dumbbells, `getEquipment().dbIncrement`; for machines, cables and everything else `snapToLoadable` has no model for: **pending, awaiting owner answer on PR #65 (options a–d)**. `snapToLoadable` returns machine and cable weights unchanged, so it gives no step there; the builder asked the owner in draft PR #65 whether to show (a) no number, "try the smallest step your machine allows", (b) a fixed 2.5 lb / 1 kg, (c) a new stack-step setting, or (d) today's 5 lb. Compute it inside the clinical branch only, so the nine suites that extract `analyzeProgressionSignal` without a program never reach it;
+    - uses the smallest loadable jump instead of `getLoadIncrement(category)`: for a barbell, `2 × smallest plate` (the step `snapToLoadable`, 32777, uses); for dumbbells, `getEquipment().dbIncrement`; for machines, cables and everything else `snapToLoadable` has no model for: **no number** (owner, 2026-11-08, option (a) on PR #65). The suggestion reads "try the smallest step your machine allows" and shows no target weight. `snapToLoadable` returns machine and cable weights unchanged, so the app has no step it could honestly show there. Compute it inside the clinical branch only, so the nine suites that extract `analyzeProgressionSignal` without a program never reach it;
     - with no RPE logged in either session, returns `{type:'increase', clinicalNoRpe:true, message:'If both sessions felt comfortable, try the smallest jump.'}`. `computeSuggestedSet` returns `null` for that signal (no number in the field).
 - **Acceptance criteria** (all real invocations of the extracted functions; the sandbox defines `activeProgram`, `loadSuggestionMode`, `weightUnit` and the equipment state):
   1. `loadSuggestionMode='rpe'`, program `medical`, hypertension style, week 4, `rpeCtx={e1rm:200, week:4, program:'medical', category:'pull'}`: `buildProgressBadge(...).html` contains `RPE 7`, and `computeSuggestedSet(...).weight` equals `snapToLoadable(toDisplayWeight(loadForRpeTarget(200, reps, 7)), name, 'down')`.
@@ -96,7 +96,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   4. Deload week: `rpeTargetFor` returns 6 for strength, medical, senior and any category except the three technique ones (which stay `null`).
   5. `RPE_BY_CYCLE_WEEK[` is read only inside `rpeTargetFor` and `targetRpeForWeek`: count real read expressions in the extracted source with comments stripped (today: 4 reads, in `targetRpeForWeek`, `buildProgressBadge`, `computeSuggestedSet`, `renderLoadModeNote`).
   6. `renderLoadModeNote(4)` in jsdom (real `#loadModeSelect`/`#loadModeNote` markup, `loadSuggestionMode='rpe'`, `activeProgram='medical'`): the note reads "targets RPE 7". With `activeProgram='strength'`: "targets RPE 9".
-  7. Hypertension Seated Cable Row `2×12` (`MEDICAL_STYLES.hypertension` d1; category `pull`, a cable), two past sessions `{weight:60, reps:12, avgRpe:8}`: `analyzeProgressionSignal(sessions, ex, 'pull', 'medical')` is not an increase. The same at `avgRpe:7`: an increase. **The size and wording of that increase on a cable or machine are pending: awaiting owner answer on PR #65 (options a–d).** The builder writes this half of the criterion from the owner's answer. A barbell name passed with program `medical` (synthetic: no clinical or senior day has a barbell lift at v3.518; use `Back Squat`) increases by `2 × getEquipment().plates.at(-1)`.
+  7. Hypertension Seated Cable Row `2×12` (`MEDICAL_STYLES.hypertension` d1; category `pull`, a cable), two past sessions `{weight:60, reps:12, avgRpe:8}`: `analyzeProgressionSignal(sessions, ex, 'pull', 'medical')` is not an increase. The same at `avgRpe:7`: an increase. On this cable the increase carries **no target weight**, and the badge or suggestion text contains "smallest step your machine allows" (owner answer (a), 2026-11-08). A barbell name passed with program `medical` (synthetic: no clinical or senior day has a barbell lift at v3.518; use `Back Squat`) increases by `2 × getEquipment().plates.at(-1)`.
   8. The same Seated Cable Row with `avgRpe:null` in both sessions: the signal has `clinicalNoRpe:true`, its message contains "felt comfortable" and no digit, and `computeSuggestedSet` returns `null`.
   9. *(Builder flag, PR #63.)* For every key of `MEDICAL_STYLES` (iterate; assert the count, 13 at v3.518) and for `senior`, weeks 1–4: `rpeTargetFor(week, false, program, 'push') <= 7`.
   10. Strength program Back Squat with the same two sessions at RPE 8.5 and `program='strength'`: still increases by `getLoadIncrement('squat')` (unchanged).
@@ -112,6 +112,22 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - The progression signal. Guarded by `test-program-fit-trend.js` (calls `analyzeProgressionSignal` with three arguments: it must keep passing unchanged) and the eight suites that stub it.
 - **Spec refresh (2026-11-08):** line numbers re-grepped at v3.518; the third and fourth `analyzeProgressionSignal` call sites, the `renderLoadModeNote` criterion, the PR #63 ramp flag (criterion 9) and the two re-pins were added. Scope unchanged.
 - **Status:** ready
+
+### BL-68: Backups leave out saved API keys
+- **Why:** "Export data" copies every stored key, including `ai-api-key` (the user's Anthropic key) and `usda-api-key`, into the JSON in plain text (export handler, `exportDataBtn`, about 34196 at v3.518). A backup that lands in a cloud folder, an email or a shared drive leaks a key billed to the user. This was found while drafting the privacy page (PR #66); the owner chose to exclude the keys on 2026-11-08.
+- **Change:**
+  - The export skips `ai-api-key` and `usda-api-key`, plus any future key whose name ends in `-api-key`.
+  - The import leaves any keys already on the device untouched; a backup can't carry one in.
+  - Settings' export row adds one line: "API keys aren't included; enter them again after restoring."
+  - What's New says so.
+- **Acceptance criteria:**
+  1. A real export run over a fixture `window.storage` holding both keys plus normal data gives JSON with neither key name, and every other key still present (anchor: the count of exported keys equals stored keys minus 2).
+  2. A real import of a backup that contains a key (an older export) doesn't overwrite a key already on the device, and doesn't add one either. State it plainly in the What's New entry.
+  3. The privacy page draft (planning/launch-copy/privacy.md) no longer needs the "backup includes your keys" disclosure. Note it in the PR.
+- **Test plan:** new `test-backup-excludes-keys.js` (real handler, stubbed storage and Blob); sabotage by removing the filter.
+- **Files:** `index.html` (export and import handlers, the Settings hint), `sw.js` (`VERSION`), the new test, `test-import-backup-full-replace.js` (check and re-pin if the import change touches its fixture).
+- **Risk:** someone restoring onto a new phone has to paste their keys again. That's intended.
+- **Status:** ready (owner, 2026-11-08). Safety and privacy; slot 2a.
 
 ### BL-03: Per-exercise body-region override for resting-region flags (SAF-3, part 1)
 - **Why:** `CATEGORY_TO_REGIONS` (43931) misses several loads:
@@ -695,7 +711,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 
 ### BL-35: Replace Neck Bridges with a 4-way neck isometric (SAF-4)
 - **Why:** Neck Bridges, "bridge onto the top of your head", unsupervised. They appear **6 times**: grappling d6 (`index.html` 11056) and five grappling day-count variants (21282, 21320, 21363, 21413, 21464). No trial supports either option for injury prevention [PRAC]. BL-05b fixes the cue in Phase 0; this item replaces the exercise.
-- **Change:** rename every one of the 6 slots to "4-Way Neck Isometric (hand or band)", 4 directions × 15 s each at about 50% effort, with a new `exerciseInfo` entry in `content-exercises.js`. Old neck-bridge sets are archived (owner decision D4, 2026-11-07), not shown under the new name.
+- **Change:** rename every one of the 6 slots to "4-Way Neck Isometric (hand or band)", 4 directions × 15 s each at about 50% effort, with a new `exerciseInfo` entry in `content-exercises.js`. Old neck-bridge sets are **not moved** (owner, 2026-11-08, option (b)): the isometric logs under its own `:sub:<slug>` key with fresh history, and the old sets stay at the plain key, reachable through the substitute picker.
 - **Spec gap found in the 2026-11-08 refresh (why this is `needs-owner` again):** the archive can't be done as written.
   - Exercise logs carry no exercise name: an entry is `{date, sets}` (`index.html` 28234), and the dated `workout:` record holds only check-box booleans (29237).
   - The slot key is `ex:grappling:<day>:<idx>` (`exKey`, 27027), with **no day-count segment**. The same key means different exercises in different variants: `d5` is Neck Bridges in the 4-day variant but the Rear Naked Choke / Armbar day in the base program.
@@ -712,7 +728,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `content-exercises.js` (new entry; 350 stays for history), `index.html` (11056, 21282, 21320, 21363, 21413, 21464; for (a) also `SCHEMA_VERSION` 7625 and `runMigrations` 9084; for (b) `EXERCISE_SUBS` 13709), `sw.js`, the test, `test-concise-cues.js` (pin), `test-configurable-training-days.js` (line 820 checks that Neck Bridges is **absent** from the grappling 6-day d7; it passes either way, but it should name the new exercise so the guard keeps its meaning).
 - **Risk:** history is keyed by position, so the old neck-bridge log could show under the new name (option (a)'s residue). BL-04's Neck Bridges substitute becomes moot.
 - **Alignment note (2026-11-07):** sequenced directly after Phase 0 (roadmap slot 8) once approved, not at the tail of Phase 4 (exercise-auditor B1).
-- **Status:** needs-owner. **Question:** "You approved archiving your old neck-bridge sets, but the app can't tell them apart from other exercises at the same position in other day counts. Archive only the ones from the day count you use now (a), or leave all old sets in place and start the isometric with fresh history (b)?" **Recommendation:** (b): nothing moves, nothing can be lost, and the old sets stay one tap away.
+- **Status:** ready. Owner chose **(b)** on 2026-11-08: move nothing; fresh history for the isometric. Build only the (b) parts below; ignore everything marked (a).
 
 ### BL-36: Add a "Drop Landing" progression to the ACL-risk watersports days (SAF-5, part 2)
 - **Why:** landing prerequisites come before depth jumps [PRAC]. Wakeboarding's own basis cites a 42% ACL-tear rate.
