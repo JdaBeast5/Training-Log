@@ -33,7 +33,7 @@ The free, private training app that coaches you like the paid ones: about 25 aut
 - Asset files beside `index.html` need the owner's approval (CLAUDE.md).
 
 ## Brand Commitments
-- Name: "Training Log" (an open question for a public launch, BIZ-12).
+- Name: "Platestep" (display name since v3.515/v3.517; storage keys unchanged).
 - Voice: plain, direct, evidence-cited; no hype, no social feed, no ads.
 - Self-hosted Geist and Geist Mono already ship (`fonts/`).
 
