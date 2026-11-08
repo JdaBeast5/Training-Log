@@ -151,6 +151,7 @@ At one merge a day (your pace, an assumption) that's about ten weeks of ready wo
 ## Decisions only you can make
 
 ### Owner's answers, 2026-11-07
+- **Fifth round (owner, 2026-11-08, on the exercise auditor's recommendation for the PR #77 questions):** "Q1 yes / Q2 c / Q3 yes / heel drop yes". New item **BL-70**, slot 3a: widen Sled Push and Wall Balls; add Sled Pull, the three carries, Hanging Leg Raise and Toes-to-Bar; relief-aware caution wording; Eccentric Heel Drop becomes Ankle/Foot relief. BL-04 gains substitutes for the carries and hanging raises.
 - **Fourth round (owner, 2026-11-08, in the builder session):** "61 a, 51 a, rpe c, 56 a, 59 a, 52 a, 46 b, 47 b, play a, but there will be an LLC before full launch, name a, plus-items yes, 25 forward":
   - **BL-61, BL-51, BL-56, BL-59, BL-52:** yes, as written (the exercise auditor's fold-ins).
   - **RPE mode on clinical plans (PR #72 flag):** option (c), at most one smallest step per session. New item **BL-69**, slot 2b.

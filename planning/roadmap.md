@@ -42,6 +42,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
    - 2a. **BL-68: backups leave out saved API keys** (owner, 2026-11-08)
    - 2b. **BL-69: clinical RPE-mode loads rise at most one smallest step per session** (owner "rpe c", 2026-11-08; PR #72 follow-up)
 3. BL-03: per-exercise region override
+   - 3a. **BL-70: region fixes after BL-03:** wider Sled Push and Wall Balls, Sled Pull plus 5 carries and hangs, relief-aware cautions, heel drop as Ankle/Foot relief (owner 2026-11-08, auditor recommendation; before BL-04)
 4. BL-04: exercise-specific substitutes
 5. **BL-05 + BL-06, one version:** the safety cues, including the Depth Jump **Drop Landing rule**, across all 20 occurrences (counted at v3.518)
 6. **BL-05b:** the Neck Bridges cue says coach-only, otherwise isometrics (all 6 occurrences)

@@ -178,6 +178,39 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Spec refresh (2026-11-08):** line numbers re-grepped at v3.518; criteria moved from a rendered row (not drivable in jsdom) to the real helper plus a wiring count; criterion 5 added. Scope unchanged.
 - **Status:** done (v3.522, PR #77)
 
+### BL-70: Region fixes after BL-03: wider overrides, more twins, relief-aware cautions (SAF-3, part 1b)
+- **Why:** follow-ups from PR #77, answered by the owner on 2026-11-08 on the exercise auditor's recommendation ("Q1 yes / Q2 c / Q3 yes / heel drop yes").
+  - `EXERCISE_REGION_OVERRIDE` replaces the category regions instead of adding to them. So Sled Push and Wall Balls (category `cardio`) stopped warning for Ankle/Foot and Shins.
+  - Sled Pull and other grip- or hang-limited moves are still filed as `core`, which flags only Lower Back.
+  - Several Care relief moves warn on the very region they relieve. Tibialis Raise warns on Shins; Pelvic Tilt, Cat-Cow Mobility, Bird Dog and Child's Pose Breathing warn on Lower Back; Glute Bridge warns on Hip. The Achilles plan's Eccentric Heel Drop gets "consider skipping" when Ankle/Foot is resting.
+- **Change:**
+  - **Q1, override widened.** `'Sled Push': ['Knee','Hip','Ankle/Foot','Shins','Lower Back']`; `'Wall Balls': ['Knee','Hip','Lower Back','Shoulder','Elbow/Wrist','Ankle/Foot']` [PRAC].
+  - **Q3, new overrides.**
+    - `'Sled Pull': ['Knee','Hip','Ankle/Foot','Shins','Lower Back','Hands/Fingers','Elbow/Wrist']`.
+    - `"Farmer's Carry"`, `'Farmers Carry (Heavy)'`, `'Suitcase Carry'`, `'Hanging Leg Raise'`, `'Toes-to-Bar'`: `['Hands/Fingers','Elbow/Wrist','Shoulder','Lower Back']`.
+    - That makes 18 keys in total.
+  - **Q2 (c), relief-aware wording.**
+    - One helper, `isReliefForAllHits(name, hitRegions)`: true when every hit region `r` has `REGION_RELIEF[r]` including `name`.
+    - When it's true, the row caution reads: "You marked <regions> as resting. This is also one of its gentle relief moves: keep it light and pain-free (mild discomfort at most, about 3/10, settled by next morning), and stop if it hurts." There's no swap and no "consider skipping".
+    - Otherwise today's wording applies.
+    - The session heads-up doesn't count relief-matched rows as flagged.
+    - Region arrays are unchanged; Tibialis Raise keeps `['Ankle/Foot','Shins']` ([ACH15]; Silbernagel 2007 pain-monitoring model).
+  - **Heel drop, data.** Add `'Eccentric Heel Drop'` to `REGION_RELIEF['Ankle/Foot']`.
+  - No stored data and no migration.
+- **Acceptance criteria** (real `regionsForExercise`, `isReliefForAllHits`, maps and `exerciseInfo`):
+  1. Sled Push's regions include Ankle/Foot and Shins; Wall Balls' include Shoulder, Elbow/Wrist and Ankle/Foot.
+  2. Sled Pull and the 5 carries and hangs include Hands/Fingers; every override key is an `exerciseInfo` key; the override has 18 keys.
+  3. `isReliefForAllHits('Tibialis Raise', ['Shins'])` is true; `('Tibialis Raise', ['Shins','Ankle/Foot'])` is false (Ankle/Foot's list doesn't include it); `('Bird Dog', ['Lower Back'])` is true; `('Back Squat', ['Knee'])` is false.
+  4. `isReliefForAllHits('Eccentric Heel Drop', ['Ankle/Foot'])` is true.
+  5. Wiring: the row caution and the heads-up each call `isReliefForAllHits(` once (2 real calls, comments stripped), and the relief text is in the caution branch.
+  6. `test-region-override.js` criterion 5 (keys and regions valid) still passes with 18 keys.
+- **Test plan:** extend `test-region-override.js`. Live check: Playwright on a day with Bird Dog or Tibialis Raise and the matching region resting shows the relief wording and no swap. Sabotage: restore the old Sled Push array and criterion 1 fails; make `isReliefForAllHits` return false and criteria 3–4 fail.
+- **Files:** `index.html` (`EXERCISE_REGION_OVERRIDE`, `REGION_RELIEF`, the new helper, the row caution in `renderWorkout`, `getSessionHeadsUpInsight`), `sw.js`, `test-region-override.js`.
+- **Risk:**
+  - **More cautions:** carries and hanging raises appear in about 100 program slots and will now warn on grip, elbow and shoulder. The What's New line says so.
+  - **Fewer swaps:** overridden exercises show no category swap (v3.522 guard). That removes the current Bird Dog suggestion on carries and hangs and "Walking" on Sled Pull, until BL-04 adds theirs.
+- **Status:** ready (owner 2026-11-08: "Q1 yes / Q2 c / Q3 yes / heel drop yes"). Slot 3a, before BL-04.
+
 ### BL-04: Exercise-specific substitutes for the overridden exercises (SAF-3, part 2)
 - **Why:** `suggestSubstitute` (43965) picks by category from `SUBSTITUTION_MAP` (43948). That means a resting Achilles gets "Wrist Flexor Stretch" for a heel drop (the `arms` alts), and a hangboard gets "Chest-Supported Row".
 - **Change:** an `EXERCISE_SUBSTITUTE_OVERRIDE` beside `SUBSTITUTION_MAP`, consulted first in `suggestSubstitute(category, currentExName)` (the signature already takes the name; both callers, the row caution at 29064 and the AI "Tailor" prompt at 29345, already pass `ex.name`):
@@ -194,7 +227,12 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (43948–43970), `sw.js`, `test-region-override.js`. `test-superset-field-chaining.js` stubs `suggestSubstitute` and needs no change.
 - **Risk:** existing category suggestions (criterion 3 pins them). The AI tailor prompt (29345) now names the specific substitute; its payload shape is unchanged.
 - **Spec refresh (2026-11-08):** line numbers re-grepped at v3.518; test file corrected; criteria 2, 4, 5 added; the calf raises were named explicitly (the old text said "heel drop and calf raises"). Scope unchanged.
-- **Status:** ready (after BL-03)
+- **Owner addition (2026-11-08, with BL-70's Q3):**
+  - Two more substitute overrides: `"Farmer's Carry"`, `'Farmers Carry (Heavy)'` and `'Suitcase Carry'` → "Goblet March (light, close grip)"; `'Hanging Leg Raise'` and `'Toes-to-Bar'` → "Lying Leg Raise (floor)". Sled Push, Sled Pull and Wall Balls get none, since they load too many regions for one swap.
+  - Since v3.522 (BL-03), both call sites set `sub = null` for any name in `EXERCISE_REGION_OVERRIDE`. Replace that guard with "the exercise's own substitute if it has one, else none". Never use the category swap for an overridden exercise.
+  - Relief-matched rows (BL-70) still show no swap.
+  - Add criterion 6: with Hangboard Repeaters' region resting, the real caution path offers "Feet-on Hang (open hand)". With Sled Push's, it offers no swap.
+- **Status:** ready (after BL-70)
 
 ### BL-05: Depth Jump prerequisite and box height in the cue (SAF-5, part 1)
 - **Why:** Depth Jump appears with no box height or landing prerequisite, in **20 slots** at v3.518 (counted by walking `programs`, every `*_STYLES` style and every `PROGRAM_DAY_COUNT_VARIANTS` day):
