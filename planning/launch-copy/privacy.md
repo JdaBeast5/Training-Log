@@ -106,7 +106,9 @@ Some buttons open another website in your browser. The app sends nothing to that
 
 Settings → **Export my data (backup as JSON)** (`index.html:6244`) downloads one file containing everything stored for the current profile, including progress photos (`index.html:34170`–`34245`). You can restore it with **Import backup** (`index.html:6245`) on any device, or open it in any text editor.
 
-**Keep the backup file private.** It contains everything you've logged, and **if you saved an Anthropic or USDA key, the key is in the file too**, because the export copies every stored item (`index.html:34174`–`34186`). Treat it like a password.
+**Your API keys stay on your phone.** Since v3.520, the backup file leaves out your saved Anthropic and USDA keys, and any other saved API key (`isApiKeyStorageKey`, `index.html:34282`; export skip at `34298`). Restoring a backup never changes the keys already on the device (`index.html:34392`, `34431`), so after restoring onto a new phone you enter them again. Settings says so under the Export button (`index.html:6245`).
+
+**Keep the backup file private anyway.** It still contains everything you've logged. Backups exported before v3.520 do include your keys: delete old copies, or replace the keys.
 
 ## Delete your data
 
@@ -166,6 +168,6 @@ There's no analytics, ads or crash-reporting host anywhere in the shipped files.
 
 1. **Health conditions are labelled "stored only on this device"** (`index.html:6211`), but Supplement recommendations sends the flagged conditions to Anthropic (`index.html:43387`–`43391`). The label is true of storage but reads as "never sent". BIZ-06's per-entry-point disclosure should cover Supplement recommendations, and the label could add "...and sent to Anthropic only if you ask for AI supplement recommendations".
 2. **The form-feedback note says "Your clip goes straight to Anthropic"** (`index.html:6969`). What's actually sent is 8 still frames extracted on the phone (`index.html:43833`). The note overstates what leaves the device; it's not a privacy leak.
-3. **The JSON backup contains the user's API keys** (`ai-api-key`, `usda-api-key`), because the export copies every stored key (`index.html:34174`–`34186`). The privacy page says so. A build item could leave keys out of the export, or warn about them at export time. That changes what the backup contains, so it's an owner decision.
+3. ~~**The JSON backup contains the user's API keys.**~~ **Resolved in v3.520** (BL-68, PR #74): the export leaves out every `*-api-key`, and a restore never changes the device's keys. The "Export your data" section above is updated. Still open: backups exported before v3.520 contain keys, and "Check a backup file" doesn't warn about that (flagged on PR #74).
 4. **Two AI calls fire without a tap on an AI control** (weekly check-ins, session-complete note). Both are disclosed above. BIZ-06 should name them in the key prompt, because they have no entry-point button to carry a disclosure line.
 5. **The barcode library loads without Subresource Integrity** (`index.html:35243`, the script tag has no `integrity` attribute), as already noted in `planning/alignment/business-manager.md` §3. This isn't a privacy-page claim, but counsel may ask about it.
