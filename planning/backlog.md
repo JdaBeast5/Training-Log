@@ -371,7 +371,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - (b) Switch after BL-51 has stamped names for a few weeks, and add a relocation step (BL-37's helper) for stamped entries.
   - The auditor recommends (a): the bug writes new wrong data every session until it's fixed.
 - **Acceptance criteria (either option):** with an override removing d1's exercise 1, the real `getExLog` for exercise 2 reads `…:d1:2`, not `…:d1:1`. With a trimmed warm-up unit, the main exercise keeps its authored key.
-- **Status:** needs-owner.
+- **Status:** ready (after BL-72; owner chose **(a)** on 2026-11-08: switch now, past shifted sets stay where they are). Build as soon as BL-72 has merged.
 
 ### BL-05: Depth Jump prerequisite and box height in the cue (SAF-5, part 1)
 - **Why:** Depth Jump appears with no box height or landing prerequisite, in **20 slots** at v3.518 (counted by walking `programs`, every `*_STYLES` style and every `PROGRAM_DAY_COUNT_VARIANTS` day):
