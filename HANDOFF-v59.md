@@ -966,3 +966,12 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
   - `privacy.md` still discloses keys in backups (needs a planning edit).
   - The backup checker counts keys and doesn't warn about them in old files.
   - Secrets are matched by name suffix only.
+
+## Addendum 46: BL-69 (v3.521, PR #76, 2026-11-08)
+- **What:** `smallestLoadStep(exName)` (barbell 2 × smallest plate, dumbbell increment, otherwise null) and `capClinicalRpeLoad(display, exName, priorTop, inDeload)`. On medical and senior in RPE mode, both the badge and the suggestion cap the RPE load at last top set + step, with no rise on cables or machines, and at last weight in deload weeks. The clinical gate in `analyzeProgressionSignal` now uses `smallestLoadStep`.
+- **Test:** `test-rpe-safety-caps.js` grows from 13 to 21 cases; BL-02's criterion 1 now uses `priorTop: null`. Sabotage-checked.
+- **Unverified:** not tried on an iPhone.
+- **Flagged, not fixed:**
+  - There's no cap when the latest session has no weight.
+  - Backdating uses a later session as "last".
+  - The program check is repeated caller-side.

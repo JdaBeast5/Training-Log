@@ -147,7 +147,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Test plan:** extend `test-rpe-safety-caps.js`. Sabotage: remove the cap, and criteria 1 and 3 must fail.
 - **Files:** `index.html` (`analyzeProgressionSignal` clinical branch, `buildProgressBadge`, `computeSuggestedSet`), `sw.js`, `test-rpe-safety-caps.js`.
 - **Risk:** the RPE badge on clinical plans. Guarded by `test-rpe-safety-caps.js` and `test-progress-badge-rpe-teal.js`.
-- **Status:** ready (owner 2026-11-08: "rpe c"). Slot 2b, right after BL-68.
+- **Status:** done (v3.521, PR #76)
 
 ### BL-03: Per-exercise body-region override for resting-region flags (SAF-3, part 1)
 - **Why:** `CATEGORY_TO_REGIONS` (43931) misses several loads:
