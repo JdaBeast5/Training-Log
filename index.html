@@ -7622,7 +7622,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.525';
+const APP_VERSION = '3.526';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9012,6 +9012,9 @@ const WHATS_NEW = {
   ]},
   '3.525': { headline: 'Better carry swaps for resting areas', points: [
     'If your grip, elbow or shoulder is resting, carries now suggest a hands-free vest or backpack walk. If your lower back is resting, they suggest Bird Dog, one of Care\'s own lower-back moves.',
+  ]},
+  '3.526': { headline: 'No carry swap for a resting shoulder', points: [
+    'If your shoulder is resting, carries now just show the warning, without suggesting the vest or backpack walk: a loaded vest or backpack still presses on your shoulders.',
   ]},
 };
 
@@ -44183,9 +44186,12 @@ const SUB_CALF_HOLD    = {name:'Isometric Calf Hold (wall-supported)', why:'keep
 const SUB_FEET_ON_HANG = {name:'Feet-on Hang (open hand)', why:'your feet take part of the load off the fingers', for:['Hands/Fingers']};
 const SUB_NECK_ISO     = {name:'Neck Isometric (hand resistance)', why:'loads the neck without bridging onto it', for:['Neck','Upper Back']};
 // v3.525 (BL-71, owner option (a) on the exercise auditor's advice): carries
-// swap by resting area. Hands-free walk for grip, elbow or shoulder; Bird Dog
+// swap by resting area. Hands-free walk for grip or elbow (shoulder dropped in
+// v3.526, BL-75); Bird Dog
 // (one of Care's own lower-back moves) for the lower back.
-const SUB_VEST_CARRY = {name:'Vest or Backpack Walk (hands free)', why:'keeps the braced walk under load with nothing in your hands', for:['Hands/Fingers','Elbow/Wrist','Shoulder']};
+// v3.526 (BL-75): not for a resting shoulder. A loaded vest or backpack presses
+// on the shoulders through its straps, so a resting shoulder gets no swap.
+const SUB_VEST_CARRY = {name:'Vest or Backpack Walk (hands free)', why:'keeps the braced walk under load with nothing in your hands', for:['Hands/Fingers','Elbow/Wrist']};
 const SUB_BIRD_DOG   = {name:'Bird Dog', why:"keeps the bracing with no load on your spine, and it's one of Care's own lower-back moves", for:['Lower Back']};
 const SUB_LYING_RAISE  = {name:'Lying Leg Raise (floor)', why:'trains the same hip flexion with no hanging on your grip or shoulders', for:['Hands/Fingers','Elbow/Wrist','Shoulder']};
 const EXERCISE_SUBSTITUTE_OVERRIDE = {

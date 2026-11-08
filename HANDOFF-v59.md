@@ -1012,3 +1012,9 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
 - **Test:** `test-region-override.js` grows from 17 to 20 cases, including a frozen v3.524 snapshot for the non-carry swaps. Sabotage-checked. The live render matches.
 - **Unverified:** not tried on an iPhone.
 - **Next in the build order:** BL-05 + BL-06, the safety cues.
+
+## Addendum 51: BL-75 (v3.526, PR #90, 2026-11-08)
+- **What:** `SUB_VEST_CARRY.for` is now Hands/Fingers and Elbow/Wrist only. A carry with Shoulder among its resting areas shows the caution with no swap. The owner left the call to the builder.
+- **Test:** `test-region-override.js` covers every shoulder combination. Sabotage-checked. The live render matches.
+- **Unverified:** not tried on an iPhone.
+- **Next:** BL-05 + BL-06, the safety cues, at the 8:17 PM run.

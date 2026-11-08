@@ -373,6 +373,18 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Acceptance criteria (either option):** with an override removing d1's exercise 1, the real `getExLog` for exercise 2 reads `…:d1:2`, not `…:d1:1`. With a trimmed warm-up unit, the main exercise keeps its authored key.
 - **Status:** ready (after BL-72; owner chose **(a)** on 2026-11-08: switch now, past shifted sets stay where they are). Build as soon as BL-72 has merged.
 
+### BL-75: No carry swap for a resting shoulder (BL-71 follow-up)
+- **Why:** since v3.525, carries with only Shoulder resting suggest "Vest or Backpack Walk (hands free)", but a loaded vest or backpack presses on the shoulders and traps through its straps. Flagged on PR #89. The owner left it to the builder's recommendation on 2026-11-08 ("I'll let you recommend it and go"). The recommendation is no swap: the caution still shows, and nothing suggested loads the resting area. Bird Dog doesn't fit either, since it bears weight on the shoulders.
+- **Change:** `SUB_VEST_CARRY.for` becomes `['Hands/Fingers','Elbow/Wrist']`. A carry with Shoulder among the resting areas it hits gets no swap. Everything else is unchanged.
+- **Acceptance criteria** (real `suggestSubstitute`):
+  1. All three carries with `['Shoulder']` → `null`; with `['Hands/Fingers','Shoulder']` → `null`.
+  2. Hands/Fingers alone, Elbow/Wrist alone, or both → the vest walk. Lower Back → Bird Dog. Hands + Lower Back → `null` (as v3.525).
+  3. Non-carry swaps match the frozen v3.524 snapshot (existing test).
+- **Test plan:** update `test-region-override.js` (the shoulder expectations from BL-04's area-fit case and BL-71's criteria). Sabotage: put Shoulder back, and criterion 1 fails.
+- **Files:** `index.html` (`SUB_VEST_CARRY`, `WHATS_NEW`, `APP_VERSION`), `sw.js`, `test-region-override.js`.
+- **Risk:** carries with a resting shoulder now show a caution with no swap. That's intended.
+- **Status:** done (v3.526, PR #90)
+
 ### BL-05: Depth Jump prerequisite and box height in the cue (SAF-5, part 1)
 - **Why:** Depth Jump appears with no box height or landing prerequisite, in **20 slots** at v3.518 (counted by walking `programs`, every `*_STYLES` style and every `PROGRAM_DAY_COUNT_VARIANTS` day):
   - Athletic d4 (`index.html` 9994) and its 4-, 6- and 7-day variants;
