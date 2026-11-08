@@ -1,4 +1,4 @@
-/* Training Log redesign: "Plate & Press" world, shared by the mock-ups in tools/design/.
+/* Platestep redesign: "Plate & Press" world, shared by the mock-ups in tools/design/.
    These are the proposed v2 design tokens (UX-01 in planning/backlog.md). The mock-ups are
    static HTML/CSS prototypes, not app code; nothing here is loaded by index.html. */
 
@@ -122,3 +122,54 @@ svg.i{width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.75
 .num{font-variant-numeric:tabular-nums; text-align:right;}
 .pos{color:var(--positive);} .neg{color:var(--negative);} .warn{color:var(--warning);}
 .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap;}
+
+/* ---------------------------------------------------------------------------------------------
+   The Today cover (UX-06a / UX-07), shared by today.html, today-yellow.html and directions/a-today.html.
+   Rules from design-directions.md §5, carried as UX-06 criteria (iv)-(vii) and UX-07 criteria 5-6:
+   - no state colour (--positive / --negative / --warning) on the spot field: state is an icon and a word;
+   - meta text on the field is 15 px or more (only the headline and the numeral are display type);
+   - 16 px between Log and adjust, so a wet thumb doesn't hit adjust;
+   - the loaded bar runs the full content width, heaviest plate against the inner collar;
+   - the Log button's top edge sits above y = 480 at 402×874 (UX-06 criterion 5).
+   --cover / --on-cover / --cover-figure / --cover-action default to the day's spot; a yellow day in the
+   dark swaps to the deep ink below. */
+:root{--meta-on-spot:15px;}
+body{--cover:var(--spot); --on-cover:var(--on-spot); --cover-figure:var(--on-spot); --cover-action:#0C0C0D; --on-cover-action:#fff; --cover-line:rgba(255,255,255,.85);}
+/* A yellow day at night: #F2C200 full-bleed is the brightest thing in a dim gym. Dark mode prints the cover in
+   the deep ink, with the numeral in the spot ink (4.2:1, large text) and white text (7.2:1). */
+body.day-yellow{--cover:var(--deep-yellow); --on-cover:#fff; --cover-figure:var(--spot-yellow); --cover-action:var(--spot-yellow); --on-cover-action:#0C0C0D;}
+@media (prefers-color-scheme:light){
+  :root:not([data-theme="dark"]) body.day-yellow{--cover:var(--spot-yellow); --on-cover:var(--on-yellow); --cover-figure:var(--on-yellow); --cover-action:#0C0C0D; --on-cover-action:#fff; --cover-line:rgba(12,12,13,.7);}
+}
+.cover{background:var(--cover); color:var(--on-cover); padding:0 var(--gutter) 20px;}
+.cover .status{margin:0 calc(var(--gutter) * -1);}
+.cover .bar-top{display:flex; align-items:center; justify-content:space-between; height:44px; margin-right:-10px;}
+.cover .where{font-size:var(--meta-on-spot); font-weight:500;}
+.cover .acts{display:flex;}
+.cover .dayhead{display:flex; align-items:center; gap:6px; min-height:44px; margin-top:2px; text-align:left;}
+.cover .dayhead h1{font-size:var(--fs-head);}
+.cover .dayhead svg.i{width:22px; height:22px; stroke-width:2.25; margin-top:4px;}
+.cover .lift{display:flex; align-items:baseline; justify-content:space-between; margin-top:14px;}
+.cover .lift h2{font-size:var(--fs-title); font-weight:600; letter-spacing:-.01em;}
+.cover .lift .of{font-size:var(--meta-on-spot); font-weight:600; white-space:nowrap;}
+.cover .rx{font-size:var(--meta-on-spot); margin-top:2px;}
+.cover .numeral{display:flex; align-items:baseline; gap:6px; margin-top:10px; color:var(--cover-figure);}
+.cover .numeral .w{font-size:150px; line-height:.8; letter-spacing:-.025em; font-weight:800; font-stretch:68%;}
+.cover .numeral .u{font-family:var(--font-text); font-size:var(--fs-lead); font-weight:600;}
+.cover .numeral .x{font-size:60px; line-height:.8; font-weight:700; font-stretch:68%; margin-left:6px;}
+.cover .numeral .each{font-family:var(--font-text); font-size:var(--meta-on-spot); font-weight:600; color:var(--on-cover); margin-left:10px;}
+.cover .bar{height:80px; margin-top:12px;}
+.cover .bar svg{width:100%; height:100%; display:block; overflow:visible;}
+.cover .bar-cap{display:flex; justify-content:space-between; font-size:var(--meta-on-spot); font-weight:600; margin-top:4px;}
+.cover .log{margin-top:14px; display:grid; grid-template-columns:1fr 56px; gap:16px;}
+.cover .log .btn{background:var(--cover-action); color:var(--on-cover-action); font-size:18px;}
+.cover .log .btn .fig{font-size:20px;}
+.cover .adjust{width:56px; height:56px; border-radius:var(--r-control); border:1.5px solid currentColor; display:grid; place-items:center;}
+.cover .chips{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:10px;}
+.cover .chip{height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:4px; font-weight:600; font-size:var(--meta-on-spot); font-variant-numeric:tabular-nums;}
+.cover .chip.done{background:#0C0C0D; color:#fff;}
+.cover .chip.ready{border:2.5px solid currentColor;}
+.cover .chip.todo{border:1.5px dashed var(--cover-line);}
+.cover .chip svg.i{width:15px; height:15px; stroke-width:2.6;}
+.cover .why{margin-top:12px; font-size:var(--meta-on-spot); line-height:1.35;}
+.cover .why b{font-weight:600;}
