@@ -341,7 +341,8 @@ async function contactSheet(states, headDir, file, meta, report){
     figure{display:flex;flex-direction:column;gap:3px}
     img{display:block;border:1px solid #2c2c33;border-radius:3px}
     .p img{width:84px} .w img{width:178px}
-    figcaption{color:#9a9aa4;font-size:9px;white-space:nowrap}
+    .p{width:84px} .w{width:178px}
+    figcaption{color:#9a9aa4;font-size:9px;overflow-wrap:anywhere}
     .changed img{border:3px solid #ff2d55} .changed figcaption{color:#ff6b86}
   </style></head><body>
   <h1>Platestep visual harness: ${esc(meta.label)} (v${esc(meta.appVersion)})</h1>
@@ -386,7 +387,7 @@ async function main(){
     const blocked = H.run.blocked.length + (B ? B.run.blocked.length : 0);
     const errors = H.run.pageErrors.concat(B ? B.run.pageErrors : []);
     const line = `${states.length} states · frozen ${H.run.frozenNow} (${TIMEZONE}) · Chromium · DPR ${DPR}`
-      + ` · outbound requests blocked: ${blocked}` + (base ? ` · base ${base.label}` : '');
+      + ` · outbound requests blocked: ${blocked}` + (base ? ` · diff vs ${base.label.replace(/^base-/, '')}` : '');
     const sheet = path.join(args.out, 'contact-sheet.png');
     const bytes = await contactSheet(states, H.outDir, sheet, { label: head.label, appVersion: H.run.appVersion, line }, report);
 
