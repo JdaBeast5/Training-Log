@@ -1,6 +1,6 @@
 # Marketing: brand, built-in virality, store and launch, experiments
 
-Owner: marketing-manager. Written 2026-11-07 against **v3.514** (`APP_VERSION`, `index.html:7622`). Line numbers are `index.html` at v3.514. **Re-grep them before building anything.** **Updated 2026-11-07 (pre-D1 alignment) for v3.516:** the owner named the app **Liftnext** (v3.515, display name only; Chalklog was dropped the same day because several "Chalk" fitness apps exist) and chose the **"Sash"** icon (v3.516). §0.4, §2.1, §2.4, §3.4, §4.1, §4.3 and §5 reflect that. Builds on `planning/business.md` (the promise, the funnel, BIZ-01 to BIZ-16) and `planning/research.md`. `planning/design-vision.md` ("Plate & Press") owns visuals; this file owns the words and the share moments, and §2.4 aligns the two.
+Owner: marketing-manager. Written 2026-11-07 against **v3.514** (`APP_VERSION`, `index.html:7622`). Line numbers are `index.html` at v3.514. **Re-grep them before building anything.** **Updated 2026-11-08 (live v3.523):** the app is **Platestep** (owner, 2026-11-07, from `planning/naming.md`; shipped as v3.517, display name only), with the **"Sash"** icon (v3.516). The owner confirmed the name on 2026-11-08 (USPTO knockout clear) and holds `platestep.app` and `platestep.com`. The store copy now lives in `planning/store/` and the launch copy in `planning/launch-copy/`; the owner's decisions are in `pitch.md`, "Owner's answers". §0.4, §2.1, §2.2, §2.4, §3.3, §3.4, §4, §5 and §6 reflect that. The name history: Chalklog, then Liftnext, both dropped (§2.1). Builds on `planning/business.md` (the promise, the funnel, BIZ-01 to BIZ-16) and `planning/research.md`. `planning/design-vision.md` ("Plate & Press") owns visuals; this file owns the words and the share moments, and §2.4 aligns the two.
 
 **Mandate (owner):** make Training Log the most viral and most successful workout tracker in the world. "Anything he sees that needs fixing and optimizing, goes."
 
@@ -13,8 +13,8 @@ Owner: marketing-manager. Written 2026-11-07 against **v3.514** (`APP_VERSION`, 
 1. **The streak works against the program.** It counts consecutive calendar days (`computeStreak`, 13989). The first celebration fires at 7 days in a row (`STREAK_MILESTONES`, 14008). Readiness warns "6 days without a rest day" one day earlier (`READINESS_DAYS_NO_REST = 6`, 46836). Someone following a 3–5 day plan never earns a streak card, and the only person who does has just been told to rest. **Fix: a weekly consistency streak** (MKT-01). It's the most important share moment and it matches the business north star (weekly active trainers, business.md §4).
 2. **Share cards exist but aren't built for where people share.** PR, streak and week cards are 1080×1080 squares (`buildShareCardBlob`, 29510) with plain "TRAINING LOG" text and no link. Instagram and WhatsApp stories are 9:16. The week card can fall back to **average body weight** (45463), which puts a sensitive number on a public image without asking. **Fix: private-by-default card content (MKT-02) and story-format cards with the real brand mark (MKT-03).**
 3. **The biggest moments have no card:** a finished session (29263), a finished training block, and a year of lifting. **Fix: session (MKT-04), block (MKT-05) and "Year in Lifting" (MKT-06) cards**, all rendered on the device.
-4. **The name is decided: Liftnext** (owner, v3.515). What's left is owning it: buy `liftnext.app` and run a trademark knockout search **before the name appears on any share card** (MKT-03), and use `liftnext.app`, never the `github.io` URL, as the address on cards (§2.1, §4.3). The store title is "Liftnext: Training Log". Open risk: "NextLift", the same two words reversed, is a live 2026 App Store fitness app with a pitch close to ours (§2.1); the owner should confirm the name before cards print it.
-5. **Invite links and friend challenges can work without a server.** The payload goes in the URL fragment, which browsers never send to the server. This depends on the public address (BIZ-08 / BIZ-12), so it needs the owner (MKT-10, MKT-11).
+4. **The name is decided: Platestep** (owner, 2026-11-07; shipped v3.517; confirmed 2026-11-08 after a clear USPTO knockout). The owner holds `platestep.app` and `platestep.com`. They forward to the app only when the owner asks, and are never set as a GitHub Pages custom domain (§2.1). The wordmark can now go on cards (MKT-03b, after MKT-03). The address on cards (BIZ-08) will be `platestep.app`, never the `github.io` URL (§4.3). Store copy: `planning/store/`.
+5. **Invite links and friend challenges can work without a server.** The payload goes in the URL fragment, which browsers never send to the server. This depends on the public address (BIZ-08), so the owner approved both for after BIZ-08 ships (MKT-10, MKT-11; 2026-11-08).
 
 ---
 
@@ -33,7 +33,7 @@ Walked in Playwright Chromium at 402×874, scale factor 2: a fresh context, then
 | Share fallback | With no Web Share for files, it opens the PNG in a new tab (29630) | Fine. Desktop users can save the image |
 | What's New | Mostly user-facing, but some headlines are internal ("Cleaner button gradients", "More consistent glow effects", 3.92–3.93) | Voice guidance in §2.3: lead with what the person can now do |
 
-**Since this walk (v3.515 to v3.516):** the home-screen name, title and header now say Liftnext, and the icon and header mark are the Sash. The share cards, the first-screen gradient and the What's New voice are unchanged.
+**Since this walk (v3.515 to v3.517):** the home-screen name, title and header said Liftnext in v3.515–v3.516 and say **Platestep** from v3.517; the icon and header mark are the Sash (v3.516). The share cards, the first-screen gradient and the What's New voice were unchanged at that point (re-check against the live build: MKT-03 and later items change the cards).
 
 **What's good and should be protected:** no console errors, no network requests on first launch, real one-tap logging, a celebration banner that already offers a share button (`triggerCelebration`, 29438) with a sensible 5-second hold, an AbortError-aware share path, and a privacy note on Progress Photos that tells the truth (6556).
 
@@ -47,42 +47,42 @@ Walked in Playwright Chromium at 402×874, scale factor 2: a fresh context, then
 
 **What a good name needs here:** short (it must fit under an iPhone icon, about 12 characters), ownable in store search, a free `.app` domain, no conflict in class 9/41/42 marks as far as a search shows, and a meaning a lifter recognises.
 
-Availability was checked on 2026-11-07. Domains: RDAP lookups through rdap.org (no record means unregistered). Store and trademark: web search only. **No USPTO or EUIPO database was queried directly, and no lawyer was consulted.**
+**How the name was chosen (three rounds, 2026-11-07).** Availability for the first two rounds was checked through rdap.org and web search; the third round, `planning/naming.md`, used the registries' own RDAP servers and Apple's iTunes Search API. No round queried USPTO or EUIPO directly, and no lawyer was consulted; the owner reports a clear USPTO knockout for Platestep (below).
 
-| Option | Meaning | `.app` domain | Store conflicts found | Trademark signals | Verdict |
-|---|---|---|---|---|---|
-| Chalklog | Chalk is what a lifter puts on before a heavy set | `chalklog.app` available; `chalklog.com` registered 2026-06-08 | The owner found several "Chalk" fitness apps | CHALK-family marks exist | **Dropped by the owner, 2026-11-07** (before release) |
-| **Liftnext** | The promise in one word: what to lift next | Re-checked 2026-11-07 (RDAP): `liftnext.app`, `liftnext.fit`, `liftnext.io`, `getliftnext.com` **available**; `liftnext.com` registered 2017-07-24 (HiChina nameservers, no website answers) | No exact "Liftnext". **But the reversed name is taken in the same category:** "NextLift" by Jordan Moffitt (released 2026-09-21, an all-in-one training, meals and recovery pitch close to ours) and "NextLift" by AutoFit LLC (2026-01-13), both Health & Fitness (iTunes Search API, re-run by marketing 2026-11-07; research.md §11 lists two more) | No LIFTNEXT record found in web search. **Crowded LIFT- family:** LIFT ([76541387](https://gleanmark.com/trademark/uspto-76541387); Lift, Inc., [portfolio](https://trademarkdir.com/owner/lift-inc)), LIFT PLUS, LIFTIX, LIFTSHIFT | **Chosen by the owner, shipped v3.515.** Clearance steps in the decision below |
-| Overload (Overload Log) | Progressive overload | `overloadlog.app` available | Not checked in depth; a common word in fitness | Common word; weak | Not recommended: too generic |
-| Next Set / NextSet | The next set | `nextrep.app` taken | At least four "Next Set" apps ([search](https://apps.apple.com/app/id6758898625)) | — | Rejected |
-| Setwise, Barwise, Liftmark, Platecraft, Platebook | — | All registered | Setwise is a live paid app ([listing](https://apps.apple.com/mx/app/setwise-training-performance/id6757760643)) | — | Rejected |
-| Iron Ledger, Lift Ledger | — | `repledger.app` registered | IronLedger and IronPulse: Lift Ledger exist ([iphoneaddict](https://iphoneaddict.fr/apps/forme-sante/ironledger-139.html)) | — | Rejected |
-| Keep "Training Log" | — | `traininglog.app` registered 2026-06-06 | Many near-duplicates | Descriptive; likely unregistrable | Kept as the **descriptor** in the store title ("Liftnext: Training Log") |
+| Round | Name | Outcome | Why |
+|---|---|---|---|
+| 1 | Chalklog | **Dropped by the owner, 2026-11-07** (before release) | The owner found several "Chalk" fitness apps, and CHALK-family marks exist. `chalklog.com` was registered 2026-06-08 |
+| 2 | Liftnext | Shipped as v3.515–v3.516 (display name only), then **dropped** | The reversed name was taken in the same category: four App Store fitness apps called "NextLift" or "Next Lifting", one (Jordan Moffitt, 2026-09-21) with nearly our pitch, and a NEXTLIFT filing reported pending (research.md §11). A friend who searched "next lift" would land on a competitor. `liftnext.com` was held since 2017, the LIFT- mark family is crowded, and in caps the name read as an instruction ("LIFTNEXT 165 LB") |
+| 3 | **Platestep** | **Chosen by the owner, 2026-11-07; shipped v3.517; confirmed 2026-11-08** | `naming.md` screened 128 candidates. Platestep was the only one with both `platestep.app` and `platestep.com` unregistered that also passed every other test: no App Store, developer, Play, trademark-aggregator or open-web hit, 9 characters, spelled as heard, and no negative meaning in ES, FR, DE or PT (naming.md §3.1, §4). Runner-up: Plateward (its `.com` was taken) |
 
-**Decision (owner, 2026-11-07): Liftnext.** Shipped in v3.515 as a display name only (`APP_NAME`, `<title>`, manifest, What's New). Storage keys, cache names and the backup format keep their `training-log` names. Store title: **"Liftnext: Training Log"** (22 characters): the descriptor keeps the search phrase, and people who installed "Training Log" still recognise it.
+Other names from the first round, kept for the record: Overload Log (too generic), Next Set (four apps), Setwise, Barwise, Liftmark, Platecraft, Platebook (all registered; Setwise is a live app), Iron Ledger and Lift Ledger (live apps). Keeping "Training Log" was rejected as the name: `traininglog.app` was registered 2026-06-06, there are many near-duplicates, and it's likely unregistrable.
 
-**Owning the name, in this order (each is `needs-owner`: it costs money or is a legal step):**
-1. **Domain, this week.** Buy `liftnext.app` (one registration, roughly the price of any `.app` domain; `.app` is HTTPS-only, so the registrar's forwarding must support HTTPS). Turn on WHOIS privacy. Optionally `liftnext.fit`. Don't chase `liftnext.com` (held since 2017).
-2. **Point it without moving the app.** Forward `liftnext.app` with an HTTPS 301 to the current app URL (or, later, to a landing page). **Don't set a GitHub Pages custom domain on the app's repo yet:** that changes the app's origin, and `localStorage` and IndexedDB (every log and photo) don't follow an origin change. Installed copies would be stranded on the old origin. Moving the app itself is a separate owner decision with a planned export-and-import path (backup already includes photos, `index.html` ~34215).
-3. **Knockout search before the name goes on a card (free, about 30 minutes):** USPTO Trademark Search (tmsearch.uspto.gov) for LIFTNEXT, LIFT NEXT, **NEXTLIFT (a pending class 28 filing is reported, serial 98603476, research.md §11; check TSDR)** and live LIFT- marks in classes 9 (downloadable software), 41 (fitness instruction) and 42 (non-downloadable software); EUIPO eSearch and the WIPO Global Brand Database for the same. Search the App Store and Play on a phone (web search isn't the stores' own search). Record the result here.
-4. **Before the store listing (BIZ-12):** decide whether to file. USPTO charges per class (check the current fee schedule on uspto.gov); class 9 first. An attorney clearance opinion is worth it if the knockout search shows any live LIFT- mark for fitness software. This plan is not legal advice.
+**What the name says.** Progress one plate at a time: the plate is the brand's whole visual system (the Sash is five plates' inks, and the day's spot ink is the day's plate), and the step is the product's promise, an honest, earned next increment (naming.md §4). It's a noun, so on a bib it reads as the event's name, not an instruction, which fixes Liftnext's problem.
 
-**Open risk (raised at the pre-D1 alignment, 2026-11-07):** a reversed-word name in the same category with near-identical positioning is the closer collision. A friend who hears "Liftnext" and searches "next lift" lands on NextLift. That leaks exactly the word-of-mouth the share cards exist to create. Marketing's recommendation: the owner confirms or re-picks the name **before MKT-03 merges**; until then cards carry the Sash mark only, with no wordmark. If he re-picks, the next name round adds both word orders to the store search.
+**Decision (owner, 2026-11-07, second round of answers): Platestep.** Shipped in v3.517 as a display name only (`APP_NAME`, `<title>`, manifest, `apple-mobile-web-app-title`, What's New). Storage keys, cache names and the backup format keep their `training-log` names (`test-app-rename.js`). **Confirmed 2026-11-08** (fourth round, "name a"): the owner reports the USPTO knockout is clear, so MKT-03b (the wordmark on cards) is ready after MKT-03. Store title: see §4.1 (`planning/store/` chose "Platestep: Strength Training").
 
-**Name rules (Liftnext reads as an instruction):**
-- Always one word, capital L only: **Liftnext**. Never "LiftNext", "Lift Next" or "lift next" as the name.
-- In caps (event band, card footer), the wordmark always sits **beside the Sash mark**, never alone, so it reads as a brand, not an imperative.
-- Never set the wordmark directly above or before a load or a lift ("LIFTNEXT 165 LB" reads as "lift next: 165 lb"). On a bib, the big figure is the training-day number ("No. 47"), never a weight.
-- Use the pun once, on purpose: the subtitle "Know what to lift next". Don't stack it with the name in the same line on cards.
+**Owning the name, where it stands:**
+1. **Domains: held.** The owner holds `platestep.app` and `platestep.com` (CLAUDE.md, 2026-11-08). `platestep.fit` and `.io` were optional and aren't recorded as bought.
+2. **Forward only, and only when the owner asks.** When asked, forward with an HTTPS 301 to the app's current address (or later to a landing page). **Never set either domain as a GitHub Pages custom domain** on the app's repo: that changes the app's origin, and `localStorage` and IndexedDB (every log and photo) don't follow an origin change, so installed copies would open empty. The owner chose "forward" (BIZ-25 parked, 2026-11-08): the app's origin doesn't move; revisit at the store launch.
+3. **Knockout search: done by the owner** (reported clear, 2026-11-08). Marketing hasn't seen the search itself, so the classes and databases covered aren't recorded here (§7). EUIPO and WIPO weren't mentioned.
+4. **Filing:** not decided. Class 9 first if the owner files. An LLC will exist before full launch (pitch.md, fourth round), which may be the right applicant. This plan is not legal advice.
+5. **Social handles:** not checked (naming.md §6).
+
+**Name rules (Platestep):**
+- Always one word, capital P only: **Platestep**. Never "PlateStep", "Plate Step" or "plate step" as the name.
+- In caps (event band), the wordmark sits **beside the Sash mark**, and appears once per card.
+- On a bib, the big figure is the training-day number ("No. 47"), never a weight (§3.4).
+- Lead with the plate and the Sash, never with "step": "step" can suggest step counts or step aerobics, and "plate" can read as food (naming.md §3.1 risks). The loaded bar on the bib stays mandatory for that reason.
+- The subtitle "Tells you what to lift next" (the store's choice, §4.1) sits under the name; the old Liftnext pun rule no longer applies.
 
 ### 2.2 The one-line promise
 
 Business.md §1 wrote the promise. Every clause is true at v3.514, so marketing keeps it and adds shorter cuts for each surface:
 
 - **Full (README, landing page, store long description, first paragraph):** "Proven programs that tell you what to lift next, one tap per set. Free, no ads, no account, and your logs stay on your phone."
-- **Tagline (store subtitle, 30 characters):** "Lift what's next. Log in a tap." (31; use "Know what to lift next" at 22 if the store counts strictly.)
+- **Tagline (store subtitle, 30 characters):** **"Tells you what to lift next"** (27), as chosen in `planning/store/` (2026-11-08). It replaces this file's earlier drafts ("Lift what's next. Log in a tap.", "Know what to lift next"). The store files are the source of truth for every store field.
 - **First screen (wording for BIZ-17):** the full promise above is right. If it wraps past three lines at 402 px, use the shorter cut "Your training plan and logbook. Free, no ads, and your logs stay on your phone." It keeps BIZ-17's test phrase.
-- **Share-card footer:** the wordmark plus the address (BIZ-08), nothing else.
+- **Share cards:** the Sash mark and the Platestep wordmark once (MKT-03b), plus the address once BIZ-08 ships, nothing else. Year in Lifting 2026 carries no address (D16).
 
 **Words to avoid** (truth and health-claim rules):
 - "Safe", "injury-free", "rehab", "prevents", "treats" in any public copy. The clinical programs exist, but advertising them is a health claim (BIZ-15).
@@ -106,11 +106,11 @@ A good coach in a quiet gym: specific, short, a little dry, never shouty.
 
 The design-engineer's vision ("Plate & Press", design-vision.md §3) landed while this file was being written, and it owns visuals. Today there are three unrelated accents: the icon's red-orange segment, the cards' gold `#F5C518` with a radial glow, and the first screen's blue-to-purple gradient. The vision retires the gradients, the glow and the violet. Marketing's brand rules, consistent with it:
 
-- **The mark (superseded 2026-11-07):** the owner chose **"Sash"** (v3.516): the five plate inks as one band, on its own ink tile (`tools/design/icon/option-b.svg`; the header mark at `index.html` ~489 notes the sash only reads inside its square). This settles MKT-19. On cards, draw the **tile with the sash**, not the bare sash, beside the Liftnext wordmark. The ring mark is retired. Cards today still print "TRAINING LOG" (`buildShareCardBlob`, `index.html:29608`) and save as `training-log.png` (29623); MKT-03 replaces both.
+- **The mark (superseded 2026-11-07):** the owner chose **"Sash"** (v3.516): the five plate inks as one band, on its own ink tile (`tools/design/icon/option-b.svg`; the header mark at `index.html` ~489 notes the sash only reads inside its square). This settles MKT-19. On cards, draw the **tile with the sash**, not the bare sash, beside the Platestep wordmark (MKT-03b). The ring mark is retired. Cards today still print "TRAINING LOG" (`buildShareCardBlob`, `index.html:29608`) and save as `training-log.png` (29623); MKT-03 replaces both.
 - **Ground:** flat neutral ink (`#0C0C0D`) in dark, chalk paper (`#F3F3F1`) in light, with no gradients (design-vision §3.2). Share cards use the dark ground.
-- **Colour on cards = the day's spot ink** (the plate colour of the session's day), the same rule the vision applies to the PR flood. Gold retires with the glow. A block or year card, which spans days, uses ink-grey with the week strip in plate colours as data.
-- **Type:** Archivo condensed for the big figure and headline if the owner approves the font file (the vision's UX-02), otherwise Geist; Geist for everything else; tabular figures.
-- **Name fit:** with Chalklog gone, nothing in the name ties a bib to lifting (design-directions §6.4 Q3 relied on "chalk" for that). The lifting signal must now come from the **Sash's plate inks and the loaded bar on the bib**; the bar is mandatory on the session bib, not decoration (§3.4).
+- **Colour on cards = the day's spot ink** (the plate colour of the session's day, from `dayInk`; owner D13: each day takes its program's plate ink), the same rule the vision applies to the PR flood. Gold retires with the glow. A block or year card, which spans days, uses ink-grey with the week strip in plate colours as data.
+- **Type:** Archivo condensed for the big figure and headline (owner D2: Archivo ships before the cards, UX-02); Geist for everything else; tabular figures.
+- **Name fit:** "Platestep" carries the plate, which "chalk" (design-directions §6.4 Q3) and "Liftnext" didn't, and it matches the Sash: five plates' inks. It isn't enough on its own ("plate" can read as food, "step" as step counts), so the lifting signal still comes from the **Sash's plate inks and the loaded bar on the bib**; the bar is mandatory on the session bib, not decoration (§3.4).
 
 ---
 
@@ -138,11 +138,11 @@ The design-engineer's vision ("Plate & Press", design-vision.md §3) landed whil
 | # | Moment | Trigger (existing code) | What the card shows | Render | Privacy cost | Item |
 |---|---|---|---|---|---|---|
 | 1 | **PR** | `result.isPR` in `saveExSet` → `triggerCelebration('trophy', …)` (31988) | "NEW PR", the exercise, the new best, and the **gain over the previous best** ("+10 lb · was 215 lb") | Existing `buildShareCardBlob`, story format | Shows a lift weight, which the person chose to share. No body data | MKT-03, MKT-07 |
-| 2 | **Session complete** | `triggerCelebration('flag', 'Session complete!', …)` (29263), which has no share today | Day label ("Upper · Strength"), sets done, total load lifted, duration if timed, and any PRs that session | Same function, stats layout | Training numbers only | MKT-04 |
+| 2 | **Session complete** | `triggerCelebration('flag', 'Session complete!', …)` (29263), which has no share today | Day label ("Upper · Strength"), sets done, lifts, minutes if timed, and any PRs that session. **No total load** (owner D15: cards lead with sets, lifts and minutes; tonnage rewards junk volume) | Same function, stats layout | Training numbers only | MKT-04 |
 | 3 | **Consistency** | Today: 7/14/30… consecutive days. Proposed: **weeks in a row** with at least max(2, planned days − 1) sessions, or 2 when no plan is set (the business north-star floor) | "8 WEEKS IN A ROW", a 12-week strip of filled squares, "Rest days included" | Same function, with a week-strip drawn in canvas | None beyond training frequency | MKT-01 |
 | 4 | **Week complete** | `archiveCurrentWeek` share (45471) | Workouts, program, and **total sets or PRs this week** in place of weight/intake | Existing | Today: body weight or intake can appear by default. After MKT-02: none | MKT-02 |
 | 5 | **Block / program complete** | The last week of a mesocycle (`cycleWeekOf` returns the final week) is archived; the rehab and postpartum "graduation" celebrations (15590, 15921) stay **without** a share button | Program name, "Block complete: 5 weeks", sessions done out of planned, and the top 3 lift gains for the block | Same function, stats layout | Training numbers only. Clinical programs excluded | MKT-05 |
-| 6 | **Year in Lifting** (a "Wrapped") | From 1 December to 15 January, a row in Today's Priorities and an entry in History opens it. Only with at least 8 sessions logged that year | A sequence of 4–5 story cards: sessions and weeks trained; total sets and load lifted; biggest gain (lift and amount); most-trained muscle group; best consistency run. The person picks which to share | On-device from `activity-dates`, `week-archive` and `reconstructAllPRs` (41641). Nothing is computed on a server | Training numbers only. Body weight never appears | MKT-06 |
+| 6 | **Year in Lifting** (a "Wrapped") | From 1 December to 15 January, a row in Today's Priorities and an entry in History opens it. Only with at least 8 sessions logged that year | A sequence of 4–5 story cards: sessions and weeks trained; total sets (no total load, D15); biggest gain (lift and amount); most-trained muscle group; best consistency run. The person picks which to share | On-device from `activity-dates`, `week-archive` and `reconstructAllPRs` (41641). Nothing is computed on a server | Training numbers only. Body weight never appears | MKT-06 |
 | 7 | **Progress, before and after** | A "Show progress" action on any lift's history | "Squat e1RM: 225 → 275 lb in 12 weeks" with a sparkline | Canvas, stats layout plus a line | Training numbers only | MKT-07 |
 | 8 | **Progress photos, side by side** | Only from inside Progress Photos (6543), and never suggested | The two photos the person picks, with their dates, side by side. No numbers | Canvas compositing on the device. **Nothing is sent** (unlike "Compare with AI") | High: body images. Strictly opt-in, no nudges, no default watermark beyond the small mark | MKT-08 |
 | 9 | **Share a program** | "Share this program" on a custom program | A link that opens the app with the program ready to preview and import | Program JSON, compressed and base64url-encoded into the URL **fragment** (`#p=…`), which is never sent to the server. The existing `launchViewFromUrl` (40172) shows the URL-handling pattern | Low: it's a program, not a log. But a URL payload is an input to validate (security review) | MKT-10 (needs-owner) |
@@ -150,82 +150,67 @@ The design-engineer's vision ("Plate & Press", design-vision.md §3) landed whil
 
 **What not to build:** a public profile, a feed, likes, contact-book import, "X people are training now" counters (fake social proof without a server), or notifications that guilt someone about a broken streak.
 
-### 3.4 The bib under the Liftnext name (MKT-16 to MKT-18; added 2026-11-07)
+### 3.4 The bib under the Platestep name (MKT-16 to MKT-18; added 2026-11-07, updated 2026-11-08)
 
-The owner chose the race bib as the story card (pitch.md, "Owner's answers"). With the name now Liftnext:
-- **Event band:** one tracked-caps line, as on a real bib: **[Sash tile] LIFTNEXT · STRENGTH & SIZE · WK 3**. The name takes the event slot (the owner's suggestion), framed by the mark so it reads as the event's name. Program and week follow in the same line (design-directions §2.3 allows one tracked-caps line). If it doesn't fit at 1080 px, program and week drop to a sentence-case line under the band; the name and mark stay in the band.
-- **Sponsor strip** (the bib's foot): the address only, once there is one (BIZ-08). The name appears once per card, not twice.
-- **The big figure** is "No. 47" (MKT-17), never a load, so the band never reads "lift next: 160".
-- **The loaded bar is mandatory** whenever the lead lift is a barbell lift: it's what says "lifting, not running" now that "chalk" is gone. For days with no barbell lift, the bib shows the lead lift's top set line in its place; no invented bar.
+The owner chose the race bib as the story card (pitch.md, "Owner's answers"). These notes were first written for Liftnext; with the name now Platestep (and the design-engineer's rebuilt bib render, `tools/design/renders/c-card.png`, design-directions.md §3):
+- **Event band:** one tracked-caps line, as on a real bib: **[Sash tile] PLATESTEP · STRENGTH & SIZE · WK 3**. The name takes the event slot (the owner's suggestion), framed by the mark so it reads as the event's name. Program and week follow in the same line (design-directions §2.3 allows one tracked-caps line). If it doesn't fit at 1080 px, program and week drop to a sentence-case line under the band; the name and mark stay in the band. Until MKT-03b ships, the band carries the tile alone.
+- **The name appears once per card:** in the event band. No separate name and mark at the foot.
+- **Sponsor strip** (the bib's foot): the address only, once BIZ-08 ships. None on Year in Lifting 2026 (D16).
+- **The big figure** is "No. 47" (MKT-17), captioned "your 47th training day on the log", never a load. Platestep is a noun, so it doesn't read as an instruction the way "LIFTNEXT 160" did, but the rule stays: the bib's number is the training day.
+- **Sets lead, not tonnage (D15).** The tear-off tabs read sets · lifts · minutes (for example "20 sets · 6 lifts · 58 min"). Total load is off by default.
+- **The loaded bar is mandatory** whenever the lead lift is a barbell lift: it's what says "lifting, not running", and with Platestep it also keeps "step" from reading as step counts. For days with no barbell lift, the bib shows the lead lift's top set line in its place; no invented bar.
 - **"Year in Lifting"** stays the recap's name: descriptive, and not Spotify's "Wrapped" or Strava's "Year in Sport". The "wall of bibs" is for the 2027 recap: MKT-06b ships mid-December, before MKT-16 exists in the roadmap.
 
 ---
 
 ## 4. Store and launch
 
-The store listing waits on the owner's go-public decision (BIZ-12) and the Capacitor build (owned elsewhere). This is the copy and storyboard ready for that day.
+**Where the copy lives now (2026-11-08):**
+- **`planning/store/`** (marketing): the App Store and Google Play listings, the screenshot storyboard, the `platestep.app` landing page (MKT-14) and the launch posts (MKT-13, with the MKT-12 comparison-page outline). Its README has the launch-week assembly checklist and the platform limits it couldn't verify.
+- **`planning/launch-copy/`** (business): the privacy policy draft (BIZ-16), the "What's free" paragraph (BIZ-18), the AI disclosure lines (BIZ-06) and the claims list for the clinician (BIZ-15).
 
-### 4.1 Listing copy (draft)
+Those files are the source of truth for their copy; this section keeps only the decisions and the sequencing. **Nothing there is approved for publication**, and the owner's go-public order is decided (D8): after Phase 3 and its gates, web first, then Google Play, then the App Store. Play goes first through the Capacitor build (owned elsewhere), on a **personal** Play account with founding members as the 12 testers; an LLC will exist before full launch, and the listing can transfer to the LLC's account then (D9(f), pitch.md fourth round).
 
-Uses the owner's name, Liftnext (v3.515).
+### 4.1 Listing copy
 
-- **App name (30):** Liftnext: Training Log
-- **Subtitle (App Store, 30):** Know what to lift next
-- **Short description (Play, 80):** Proven programs, one-tap logging and progression. Free, no ads, no account.
-- **Promotional text (App Store, 170):** Pick a program and Liftnext tells you the weight and reps for every set, and when to add more. One tap logs it. Free, with no ads and no account.
-- **Keywords (App Store, 100):** `workout,gym,log,lifting,strength,program,progressive overload,weightlifting,tracker,powerlifting,5x5`. Check the length, and drop any that are another company's mark.
-- **Long description (both):**
-  > Liftnext is a training plan and a logbook in one. Pick from 25 programs built on published research, and every set comes with a target weight and reps. Log it with one tap. When you've earned it, Liftnext adds weight; when you're stalling, it tells you, and it schedules deloads on its own.
-  >
-  > • Programs for strength, size, powerlifting, home training and more, with the sources shown in the app
-  > • One-tap set logging, plate maths, warm-up sets and a rest timer
-  > • Progression and deloads, free
-  > • PRs, weekly consistency and training trends
-  > • Food logging with free barcode lookup (USDA and Open Food Facts)
-  > • Optional AI features with your own Anthropic key
-  >
-  > No ads. No account. Your logs stay on your phone. Export them any time.
+The Liftnext draft that was here ("Liftnext: Training Log", "Know what to lift next") is superseded by `planning/store/app-store.md` and `google-play.md`, drafted for Platestep against v3.517. The words chosen there:
+- **App Store name / Play title:** `Platestep: Strength Training` (28 of 30). It replaces both "Liftnext: Training Log" and naming.md's suggested "Platestep: Training Log".
+- **Subtitle (Apple):** `Tells you what to lift next` (27 of 30).
+- **Short description (Play):** `Tells you what to lift next: weight and reps for every set, logged in one tap.` (78 of 80).
+- **Rules the store copy adds:** no price words in names, subtitles, titles or screenshots (Apple 2.3.7; Play's title rules), so "Free" lives only in descriptions and the landing page; only shipped features; "Your training log is stored on your phone", never "no data leaves your phone" (food search and optional AI do send requests); the clinical programs aren't mentioned until the clinician review (D9(e), BIZ-15).
 
-  Every line must be re-checked against the shipped build before listing: "25 programs" (count `programs` keys, as BIZ-07 does) and "export" (BL-22 adds CSV; JSON export exists at 6248).
+### 4.2 Screenshot storyboard
 
-### 4.2 Screenshot storyboard (6 frames, 1290×2796 for iPhone, plus Play's 1080×1920)
+Superseded by `planning/store/screenshots.md`: **7 frames, plus an eighth (the bib) when MKT-16 ships**, shot from the visual harness's seeded fixture, delivered at 1320 × 2868 for Apple and 1080 × 1920 for Play. The old frame 6 ("Free. No ads. No account.") is dropped because Apple 2.3.7 bars prices in screenshots.
 
-Real screens from the seeded profile with one caption line each, set in the brand's ground and type. No fake reviews or ratings, and no device mock-ups showing other brands.
-
-1. **"Know what to lift next."** Today with the workout card leading: the target weight and reps on each set chip.
-2. **"One tap per set."** The set chips mid-session, with the next chip offering the progressed load.
-3. **"It adds weight when you've earned it."** The progression note after a strong session.
-4. **"25 programs, sources included."** The program picker with a cited `basis` line visible.
-5. **"See every PR and every week."** Analysis trends, plus the consistency strip.
-6. **"Free. No ads. No account."** The share card on a phone's story screen, with "Your logs stay on your phone" underneath.
-
-**Tooling:** the `app-store-screenshots` skill mentioned in the UI/UX guide could automate frames and captions. **Recommend it to the skills-orchestrator for vetting** (licence, pinned version, any network or install calls) rather than installing it. Until then, Playwright at 430×932 ×3 produces 1290×2796 captures directly.
+**Tooling:** the `app-store-screenshots` skill mentioned in the UI/UX guide could automate frames and captions. **Recommend it to the skills-orchestrator for vetting** (licence, pinned version, any network or install calls) rather than installing it. Until then, the harness's store mode (`screenshots.md` §3–§4) produces the captures.
 
 ### 4.3 Launch plan
 
 All public posting needs the owner (MKT-13): it publishes under his name and commits to a public address.
 
 **Sequencing rule (added 2026-11-07): nothing points strangers at the app before there's an address that will never change, and nothing carries an address before a stranger can succeed there.**
-- **Before MKT-03 merges (roadmap build 11):** the owner has confirmed the name against NextLift, `liftnext.app` is bought, and the knockout search is done (§2.1, steps 1 and 3). If any of the three is missing at build time, MKT-03 ships with the Sash mark and no wordmark, and the wordmark follows in its own version. MKT-03 puts the Liftnext wordmark on every card; it must not advertise a name we don't hold the domain for.
-- **The card address (BIZ-08) is `liftnext.app`, never the `github.io` URL.** Shared images can't be edited later, and the `github.io` URL carries the old repo name and the owner's GitHub handle.
-- **BIZ-08 stays behind the Phase 3 gate** (roadmap Phase 5). So the December 2026 Year in Lifting cards (MKT-06a/b) carry the name and mark but **no address**. That's deliberate: strangers shouldn't land on a first launch that BIZ-01 to BIZ-03 and BIZ-17 haven't fixed. December 2026 is a dogfood run with the owner and friends; the public recap moment is December 2027.
-- **No launch post (MKT-13) before** `liftnext.app` resolves to a page that installs (MKT-14 or the README), the privacy page (BIZ-16) is live, and the Phase 3 gate holds.
-- **Program links and challenges (MKT-10, MKT-11)** are built on `PUBLIC_APP_URL`, so they come after BIZ-08, as the owner already said (D9).
+- **The wordmark on cards (MKT-03b):** the conditions set here on 2026-11-07 (name confirmed, domain held, knockout done) were met on 2026-11-08 for Platestep. MKT-03 ships the Sash mark alone; MKT-03b adds the Platestep wordmark after it. (The open NextLift risk that held it back belonged to Liftnext and went with it.)
+- **The card address (BIZ-08) is `platestep.app`, never the `github.io` URL.** Shared images can't be edited later, and the `github.io` URL carries the old repo name and the owner's GitHub handle.
+- **The domains forward; the app's origin doesn't move.** `platestep.app` and `platestep.com` are forwarded (HTTPS 301 to the app's current address) **only when the owner asks**, and are never set as a GitHub Pages custom domain (BIZ-25 parked: "forward only", 2026-11-08). So BIZ-08's address works only once the owner has turned forwarding on.
+- **BIZ-08 stays behind the Phase 3 gate** (roadmap Phase 5). So the December 2026 Year in Lifting cards (MKT-06a/b) carry the mark (and the name, now confirmed) but **no address** (owner D16). That's deliberate: strangers shouldn't land on a first launch that BIZ-01 to BIZ-03 and BIZ-17 haven't fixed. December 2026 is a dogfood run with the owner and friends; the public recap moment is December 2027.
+- **No launch post (MKT-13) before** `platestep.app` forwards to something that installs (the app, or a landing page under MKT-14), the privacy page (BIZ-16) is live, and the Phase 3 gate holds.
+- **Program links and challenges (MKT-10, MKT-11):** the owner said yes (2026-11-08), after BIZ-08, since they're built on `PUBLIC_APP_URL`.
 
 | Step | Where | How, inside the rules |
 |---|---|---|
-| 0. Ready | `liftnext.app` owned and forwarding (§2.1); README as the landing page (BIZ-07), privacy page (BIZ-16), share links (BIZ-08), the first-launch fixes (BIZ-01 to BIZ-03) | Don't launch before the first-launch fixes. A stranger's first session is the launch |
-| 1. Soft launch | Friends who lift: 10–20 people, using the app for 4 weeks | Ask them in person what confused them. That's the only "analytics" (§5) |
-| 2. Communities | **r/Fitness:** only in "Self-Promotion Saturday" or the monthly apps thread; the rules wiki says posting your own content without asking the moderators first gets a permanent ban ([r/Fitness rules mirror](https://reddit.rtrace.io/r/Fitness/wiki/intro), unofficial copy; check the live sidebar). **r/weightlifting** has a "Self Promotional Saturday" ([mirror](https://lr.psf.lt/r/weightlifting/comments/1ipwpsd/self_promotional_saturday)). **r/xxfitness** has a biweekly self-promotion thread ([mirror](https://lr.sudovanilla.org/r/xxfitness/comments/1frpacj/biweekly_self_promotion_thread_sell_yourself_and)). **r/PWA**, **r/SideProject** and **r/webdev** for the no-build-step single-file story | Disclose that you made it, every time. Post in the designated thread only. Answer questions; don't cross-post the same text. Read each sidebar on the day: these rules were checked through unofficial mirrors |
-| 3. Product Hunt | One launch, on a Tuesday–Thursday | Lead with "free, no ads, no account, your data stays on your phone". No upvote requests to friends (it breaks PH's rules and it's fake social proof) |
+| 0. Ready | `platestep.app` forwarding (when the owner asks; §2.1); README or landing page (BIZ-07, MKT-14), privacy page (BIZ-16), "What's free" (BIZ-18), share links (BIZ-08), the first-launch fixes (BIZ-01 to BIZ-03) | Don't launch before the first-launch fixes. A stranger's first session is the launch |
+| 1. Soft launch | Friends who lift: 10–20 people, using the app for 4 weeks. On Play, the founding members are the 12 closed testers (D9(f)) | Ask them in person what confused them. That's the only "analytics" (§5) |
+| 2. Communities | The drafted posts are in `planning/store/launch-posts.md`: **r/weightroom** (its self-promotion rule wasn't found, so ask the moderators first), **r/Fitness** (designated self-promotion thread only; the rules wiki warns of a permanent ban for unasked self-promotion), **r/bodyweightfitness** (modmail first; the post goes only if Platestep qualifies). The earlier ideas, kept as options and not drafted: **r/weightlifting** ("Self Promotional Saturday", [mirror](https://lr.psf.lt/r/weightlifting/comments/1ipwpsd/self_promotional_saturday)), **r/xxfitness** (biweekly thread, [mirror](https://lr.sudovanilla.org/r/xxfitness/comments/1frpacj/biweekly_self_promotion_thread_sell_yourself_and)), **r/PWA**, **r/SideProject** and **r/webdev** for the single-file story | Disclose that you made it, every time. Post in the designated thread only. Answer questions; don't cross-post the same text. Read each sidebar on the day: these rules were checked through search results and unofficial mirrors |
+| 3. Product Hunt | One launch, on a Tuesday–Thursday; tagline "The strength app that tells you what to lift next" (`launch-posts.md` §4) | No upvote requests to friends (it breaks PH's rules and it's fake social proof) |
 | 4. Creators | Evidence-based strength and nutrition creators who already criticise paywalled basics | Offer nothing but the app and a short note. No paid placements (that costs money: needs the owner). If someone reviews it, ask that they disclose any relationship (FTC endorsement rules) |
-| 5. December | "Year in Lifting" (MKT-06) | The yearly recurring launch moment, if MKT-06 ships by 1 December |
+| 5. December | "Year in Lifting" (MKT-06) | The yearly recurring launch moment. 2026 is the dogfood run (no address, D16); 2027 is the public one |
 
 ### 4.4 Search and the landing page
 
-- **Today the README is the landing page** (BIZ-07 owns its facts). Marketing's copy for it: the promise, three screenshots, "Open it in Safari → Share → Add to Home Screen", and the privacy facts.
-- **A real landing page** (one static `about.html`, or the Pages root with the app at `/app/`) is a structural change to a single-file app, so it needs the owner (MKT-14). Recommendation: one static file, no framework, no analytics, no web fonts beyond the self-hosted ones.
-- **Target searches** (proposed, not measured): "free workout tracker no ads", "workout log app no account", "progressive overload app free", "5x5 tracker free", "workout app offline". Pages that name competitors ("Strong alternative") use third-party marks: needs the owner (MKT-12).
+- **Today the README is the landing page** (BIZ-07 owns its facts).
+- **A real landing page** is drafted in `planning/store/landing-page.md` (SEO head, hero "Tells you what to lift next.", three proof points, "What's free", install steps, footer). Building it is MKT-14, still `needs-owner`: one static file, no framework, no analytics, no cookies, no third-party requests, the self-hosted Archivo, not precached by `sw.js`. Its buttons link to the app's current address, never a new origin.
+- **Target searches** (proposed, not measured): "free workout tracker no ads", "workout log app no account", "progressive overload app free", "5x5 tracker free", "workout app offline". Pages that name competitors ("Strong alternative") use third-party marks: needs the owner (MKT-12; outline in `launch-posts.md` §6).
 - **On-page:** a meta description and OG tags (BIZ-07), an OG image made from a share card (1200×630), and `SoftwareApplication` structured data with `"offers": {"price": "0"}`. Don't mark up ratings we don't have.
 
 ### 4.5 Content calendar (first 8 weeks after go-public)
@@ -248,16 +233,16 @@ Low effort, made from the app itself. One post a week where the owner already ha
 
 ## 5. Growth experiments
 
-**No analytics, and none to be added without the owner.** Every measurement below uses either (a) the store consoles' aggregate numbers after a store launch (installs, retention, referrer), (b) the on-device first-month row (BIZ-09) read by testers and reported by hand, or (c) an opt-in "How did you hear about us?" asked once, kept on the device and shown in Diagnostics, never sent. Adding any counting that leaves the device is `needs-owner` (MKT-15).
+**No analytics, and none to be added without the owner.** Every measurement below uses either (a) the store consoles' aggregate numbers after a store launch (installs, retention, referrer), (b) the on-device first-month row (BIZ-09) read by testers and reported by hand, or (c) an opt-in "How did you hear about us?" asked once, kept on the device and shown in Diagnostics, never sent. Adding any counting that leaves the device is `needs-owner`; the owner said no to referral attribution for now (MKT-15 parked, 2026-11-08).
 
 | # | Hypothesis | Change | Metric | How to measure without tracking |
 |---|---|---|---|---|
 | E1 | A weekly streak gets more people a first consistency card than a daily one | MKT-01 | Share of testers who reach a 4-week milestone vs. a 7-day one in their first 6 weeks | BIZ-09's diagnostics row extended with "consistency milestone reached: date" (on device), read by testers |
 | E2 | Story-format cards get shared more than squares | MKT-03 | Testers' self-reported shares per milestone | Ask soft-launch testers. After the store launch, store-console referrals from share links |
-| E3 | A link on the card brings installs | BIZ-08 | Store-console installs from web referrals; GitHub Pages has no analytics | Store consoles only. Optionally `?ref=card` in the URL, stripped on load and never stored (needs the owner because it's attribution: MKT-15) |
+| E3 | A link on the card brings installs | BIZ-08 | Store-console installs from web referrals; GitHub Pages has no analytics | Store consoles only. The `?ref=card` tag once proposed here is out: the owner declined attribution (MKT-15 parked, 2026-11-08) |
 | E4 | A Year in Lifting recap brings back lapsed users in December | MKT-06 | Store-console weekly actives in December vs. November | Store consoles (aggregate) |
 | E5 | A promise line on the first screen raises profile creation | BIZ-17 (business) | Testers who create a profile vs. close the app | Moderated tests with 5–10 strangers: watch, don't count |
-| E6 | "Liftnext" is remembered and spelled right | MKT-09 (shipped v3.515) | Can a tester name the app a week later, and type it as one word into a search box? | Ask them. Cheap, honest, no data |
+| E6 | "Platestep" is remembered and spelled right | MKT-09 (shipped v3.517; v3.515's Liftnext was never tested this way) | Can a tester name the app a week later, and type it as one word into a search box (not "Plate Step" or "Platestepp")? | Ask them. Cheap, honest, no data |
 | E7 | A stranger reads the bib as lifting, not running (a bet: no market evidence yet that lifters want a bib, alignment 2026-11-07) | MKT-16 | Of 5–10 strangers shown the bib PNG with the name covered, how many say "gym" or "lifting" when asked which sport? | Show printed or on-screen PNGs in person. No data collected |
 
 ---
@@ -266,19 +251,23 @@ Low effort, made from the app itself. One post a week where the owner already ha
 
 Appended to `planning/backlog.md` under "Marketing (MKT)". Ready items first, in suggested build order:
 
-- **Ready:** MKT-01 weekly consistency streak; MKT-02 no body data on share cards by default; MKT-03 story-format cards with the brand mark; MKT-04 session-complete card; MKT-05 block-complete card; MKT-06 Year in Lifting; MKT-07 PR and progress cards show the gain; MKT-08 side-by-side progress photos on device.
-- **Bib (owner-approved design, 2026-11-07):** MKT-16 session bib, MKT-17 "Your number", MKT-18 pin it on a photo. Not yet placed in `roadmap.md`.
-- **Settled by the owner:** MKT-09 the name (Liftnext, v3.515; domain and trademark steps still open, §2.1); MKT-19 the mark (Sash icon, v3.516; the card mark folds into MKT-03).
-- **Needs owner:** MKT-10 share a program by link; MKT-11 friend challenges by link; MKT-12 competitor names in copy and pages; MKT-13 public launch posts and creator outreach; MKT-14 a landing page file; MKT-15 any referral attribution.
+Statuses as of 2026-11-08 (`backlog.md` is the source of truth):
 
-BIZ-08 (the address on cards) is the prerequisite for the referral value of every card. MKT items don't duplicate it: MKT-03 leaves a footer slot for it.
+- **Ready:** MKT-01 weekly consistency streak; MKT-02 no body data on share cards by default; MKT-03 story-format cards with the brand mark (after UX-01b); MKT-03b the Platestep wordmark on cards (after MKT-03; owner confirmed the name 2026-11-08); MKT-04 session-complete card; MKT-05 block-complete card (after UX-11); MKT-06 Year in Lifting (after MKT-03); MKT-07 PR and progress cards show the gain; MKT-20 card and backup file names follow the app's name.
+- **Bib (owner-approved design, 2026-11-07):** MKT-16 session bib (after MKT-03 and MKT-04), MKT-17 "Your number", MKT-18 pin it on a photo (both after MKT-16).
+- **Ready once BIZ-08 ships (owner yes, 2026-11-08):** MKT-10 share a program by link; MKT-11 friend challenges by link (also after MKT-01).
+- **Done:** MKT-09 the name (Liftnext v3.515, then Platestep v3.517; §2.1); MKT-19 the mark (Sash icon, v3.516; the card mark folds into MKT-03).
+- **Parked:** MKT-08 side-by-side progress photos (summit: Phase 5); MKT-15 referral attribution (owner no, 2026-11-08).
+- **Needs owner:** MKT-12 competitor names in copy and pages; MKT-13 public launch posts and creator outreach; MKT-14 a landing page file.
+
+BIZ-08 (the address on cards, `platestep.app`) is the prerequisite for the referral value of every card. MKT items don't duplicate it: MKT-03 leaves a footer slot for it.
 
 ---
 
 ## 7. Couldn't verify
 
-- **Trademarks:** web search only; USPTO and EUIPO weren't queried directly. No LIFTNEXT record turned up (2026-11-07), but several live LIFT- marks exist in classes not checked.
-- **Domains:** RDAP through rdap.org on 2026-11-07. A domain can be registered between now and purchase.
+- **Trademarks:** marketing searched the web only; USPTO and EUIPO weren't queried directly by this file. For Platestep, the owner reports a clear USPTO knockout (2026-11-08); the classes and databases it covered aren't recorded here, and EUIPO and WIPO weren't mentioned. (The 2026-11-07 Liftnext search is history: no LIFTNEXT record, a crowded LIFT- family.)
+- **Domains:** the owner holds `platestep.app` and `platestep.com` (CLAUDE.md, 2026-11-08). Marketing hasn't checked their forwarding, which stays off until he asks. `platestep.fit` and `.io` aren't recorded as bought.
 - **App Store searches:** web search, not the store's own search, which ranks differently by country.
 - **Reddit rules:** read through unofficial mirrors; they may be out of date.
 - **Spotify and Duolingo figures:** company-reported, and correlational where they concern retention.
@@ -295,5 +284,6 @@ BIZ-08 (the address on cards) is the prerequisite for the referral value of ever
 - [Duolingo: improving the streak](https://blog.duolingo.com/improving-the-streak)
 - App Store listings: [Training Tracker – Gym Log](https://apps.apple.com/app/id6752959007), [StrengthLog](https://apps.apple.com/app/apple-store/id1434229662), [Setwise](https://apps.apple.com/mx/app/setwise-training-performance/id6757760643), [NextSet](https://apps.apple.com/app/id6758898625), [Lift Notes](https://apps.apple.com/us/app/id6753324391), [TrainLog](https://appgoblin.info/apps/6779832543), [IronLedger](https://iphoneaddict.fr/apps/forme-sante/ironledger-139.html), [Liftlog](https://alternativeto.net/software/liftlog-liam-morrow/)
 - Trademark search results: [LIFTLOG 99587187](https://markinton.com/trademark/liftlog-99587187), [CHALK 97310379](https://markinton.com/trademark/chalk-97310379), [CHALKOLOGY](https://gleanmark.com/trademark/uspto-88065562), [LIFT 76541387](https://gleanmark.com/trademark/uspto-76541387), [Lift, Inc. portfolio](https://trademarkdir.com/owner/lift-inc), [LIFT PLUS](https://www.trademarkelite.com/trademark/trademark-detail/86284598/LIFT-PLUS), [LIFTIX](https://markinton.com/trademark/liftix-98948850), [LIFTSHIFT](https://trademarkdir.com/trademark/liftshift-99462736)
-- Liftnext store search (web, 2026-11-07), nearest names only: [LiftUp](https://apps.apple.com/app/id6760911569), [LiftXP](https://mwm.ai/apps/liftxp-ranked-gym-tracker/6791541944), [Liftz](https://www.producthunt.com/p/liftz-your-gym-buddy/liftz)
+- `planning/naming.md` (2026-11-07): the 128-candidate screen behind Platestep, with its own App Store, RDAP and trademark-aggregator checks and sources
+- Liftnext store search (web, 2026-11-07, history), nearest names only: [LiftUp](https://apps.apple.com/app/id6760911569), [LiftXP](https://mwm.ai/apps/liftxp-ranked-gym-tracker/6791541944), [Liftz](https://www.producthunt.com/p/liftz-your-gym-buddy/liftz)
 - Reddit rules (unofficial mirrors): [r/Fitness](https://reddit.rtrace.io/r/Fitness/wiki/intro), [r/weightlifting](https://lr.psf.lt/r/weightlifting/comments/1ipwpsd/self_promotional_saturday), [r/xxfitness](https://lr.sudovanilla.org/r/xxfitness/comments/1frpacj/biweekly_self_promotion_thread_sell_yourself_and)
