@@ -46,14 +46,14 @@ This is the one order every build run follows. It supersedes the "Requested buil
 6. **BL-05b:** the Neck Bridges cue says coach-only, otherwise isometrics (all 6 occurrences)
    - 6a. **BL-62:** clinical dose and position wording: per-leg Achilles and ACL doses, side-lying breathing in pregnancy, Sandbag Lunges per leg *(audit fold-in, 2026-11-08)*
    - 6b. **BL-64:** cue contradictions: Chair Pose knees, Good Morning, Front Lever, Hammer Curl, Hanging Leg Raise *(audit fold-in)*
-   - 6c. † **BL-61:** plyometric prescriptions match their cues: Jump Squat 6-8, Single-Leg Bound per leg *(audit fold-in; needs-owner)*
+   - 6c. **BL-61:** plyometric prescriptions match their cues: Jump Squat 6-8, Single-Leg Bound per leg *(audit fold-in; owner yes 2026-11-08)*
 7. BL-13: the cycle card stops prescribing phase-based training
-8. † BL-35: replace Neck Bridges with a 4-way neck isometric (D4 approved; **back to needs-owner on the archive method**, see the backlog item)
+8. BL-35: replace Neck Bridges with a 4-way neck isometric (D4 approved; **owner chose (b), 2026-11-08: nothing moves**, see the backlog item)
 9. BL-36: Drop Landing as a loggable drill on the ACL-risk watersports days (D4 approved 2026-11-07; ready)
 
 ### Phase 1: Engine truth, foundation, the Year in Lifting lane, and the food lane (33 builds, plus 7 if approved)
 - **History truth, first** *(audit fold-in, 2026-11-08)*:
-  - 9a. † **BL-51:** new log entries record the exercise name; suggestions ignore another exercise's entries. This fixes wrong-weight suggestions across lifts, and must ship before BL-08 *(needs-owner: adds a stored field)*
+  - 9a. **BL-51:** new log entries record the exercise name; suggestions ignore another exercise's entries. This fixes wrong-weight suggestions across lifts, and must ship before BL-08 *(needs-owner: adds a stored field)*
   - 9b. **BL-53:** medical history reaches History, PRs and volume; the watersports fallback key
 10. BL-08: all-set double progression (inherits the clinical load rule)
 11. UX-01: design tokens as aliases (no visual change). After TOOL-01; the baseline is the parent commit.
@@ -80,7 +80,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 25. BL-14: unit-aware rest times
 25a. **BL-57:** the rest parser reads trailing multipliers, per-side mobility and swim repeats *(audit fold-in; on top of BL-14)*
 26. BL-26: the plateau message names the stall
-26a. † **BL-56:** `noWeight` on moves that never take load, load on the ones that do *(audit fold-in; needs-owner; before BL-11)*
+26a. **BL-56:** `noWeight` on moves that never take load, load on the ones that do *(audit fold-in; owner yes 2026-11-08; before BL-11)*
 27. BL-11: rep and time progression for bodyweight work
 28. MKT-01: consistency counts training weeks
 29. **MKT-06b: the remaining Year in Lifting cards** (no wall of bibs). Target: mid-December; the window runs to 15 January.
@@ -97,8 +97,8 @@ This is the one order every build run follows. It supersedes the "Requested buil
 38. BL-17: expenditure estimated from your logs (starts BL-27's three-week data clock)
 - **Endurance progression** *(audit fold-in; the running, cycling and swimming F grades)*:
   - 38a. **BL-43:** running progression from your own logged distance (the 30-day single-run cap)
-  - 38b. † **BL-46:** cycling FTP anchor, retest and interval progression *(needs-owner)*
-  - 38c. † **BL-47:** swimming CSS anchor and set progression *(needs-owner; after BL-46 and BL-57)*
+  - 38b. **BL-46:** cycling FTP anchor, retest and interval progression *(owner yes 2026-11-08)*
+  - 38c. **BL-47:** swimming CSS anchor and set progression *(owner yes 2026-11-08; after BL-46 and BL-57)*
 
 ### Phase 2: Redesign core. Every tab in the new materials before the cover (21 builds, plus 4 if approved)
 **Before slot 39:** the mock-ups are re-rendered, and Playwright WebKit is approved (D10). **After slot 40 (UX-03), the owner looks on device before the next UX item builds on it.**
@@ -120,7 +120,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 53. **MKT-18:** pin the bib on your own photo
 54. **UX-09b:** the PR flood and its motion; none on clinical programs
 55. BIZ-06: AI entry points say they need a key, **and what each sends and to whom**; the AI card sorts below Trends
-55a. † **BL-59:** category corrections that feed the muscle ledger, with M-8 *(audit fold-in; needs-owner; before BL-20)*
+55a. **BL-59:** category corrections that feed the muscle ledger, with M-8 *(audit fold-in; owner yes 2026-11-08; before BL-20)*
 56. BL-20: the per-muscle ledger, fractional; the ink fill stops at the floor
 57. † BL-33: deloads count only weeks you trained (D3)
 58. † BL-31: weekly ±1 set per muscle from your performance (D3)
@@ -145,7 +145,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 71. BIZ-19: "Training since" (reuses MKT-17's corpus pass)
 72. **BL-50:** AI prompts know the clinical style (SAF-9)
 73. **BIZ-26:** the barcode library loads with an integrity hash
-73a. † **BL-52:** variant- and style-scoped history keys, with a migration *(audit fold-in; needs-owner; after BL-51 has stamped names for some weeks, and before BL-37 so its migration can attribute entries)*
+73a. **BL-52:** variant- and style-scoped history keys, with a migration *(audit fold-in; owner yes 2026-11-08; after BL-51 has stamped names for some weeks, and before BL-37 so its migration can attribute entries)*
 74. † BL-37: rebuild the low day-count variants (D4; migration)
 75. † BL-38: Bodybuilding d6 "Upper Detail" (D4; migration)
 76. † BL-28: saved meals (D5)

@@ -151,6 +151,12 @@ At one merge a day (your pace, an assumption) that's about ten weeks of ready wo
 ## Decisions only you can make
 
 ### Owner's answers, 2026-11-07
+- **Fourth round (owner, 2026-11-08):**
+  - BL-02 option (a): no number on cables and machines.
+  - BL-35 option (b): move nothing.
+  - BL-68: backups leave out API keys.
+  - Audit items BL-51, BL-61, BL-56, BL-46, BL-47, BL-59 and BL-52: all **yes**. BL-52 waits until BL-51 has stamped names for about 3 weeks.
+  - Year in Lifting (MKT-06a) moving to about **3 December** is accepted.
 - **Third round (owner, 2026-11-08, "1-6 yes, clinician"):** approved as recommended:
   - **D3:** BL-31 and BL-33 yes; BL-34 for RPE-mode targets only; BL-32 as a one-tap "make today easier"; BL-30 no.
   - **D5:** yes; BL-27 after 3 weeks of BL-17 data.

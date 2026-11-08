@@ -903,7 +903,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Risk:** the progression path everywhere. The suites above guard it.
 - **Tools:** `code-review` at high (progression path).
 - **Fold-in (2026-11-08):** line numbers moved to v3.518. Status changed from ready to needs-owner, because a stored data shape changes. The `saveExSet` PR check and the byte-identical set criterion (6) were added.
-- **Status:** needs-owner. **Question:** "Save the exercise's name on each new log entry (one extra field, no migration, in backups), so the app stops suggesting weights from a different exercise that shared the slot?" **Recommendation:** yes. This is a safety fix; build it at slot 9a, before BL-08.
+- **Status:** ready (owner, 2026-11-08: yes).
 
 ### BL-52: Variant- and style-scoped history keys, with a migration (S-1, D-2, part 2)
 - **Why:**
@@ -924,7 +924,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Files:** `index.html` (7625, 9084, 27027–27045, 27117, 40977), `sw.js`, the test. **Re-pins:** `test-custom-exercise-style-scoping.js`, `test-import-backup-full-replace.js` and `test-whats-new.js` read `SCHEMA_VERSION` or `runMigrations`. `test-cross-program-history.js` and `test-watersports-program.js` call the key functions.
 - **Risk:** a stored-data migration on the history store. A backup export is prompted first. Needs BL-51 shipped and some weeks of `n`-stamped data to be worth it.
 - **Fold-in (2026-11-08):** placed before BL-37 (slot 73a), so the variant rebuild's own migration can attribute entries by name.
-- **Status:** needs-owner. **Question:** "Give each day-count option and yoga style its own history, moving only entries we can attribute by name?" **Recommendation:** yes, but only after BL-51 has stamped names for a few weeks, and before BL-37.
+- **Status:** ready, but **not before BL-51 has shipped and stamped names for at least 3 weeks** (owner, 2026-11-08: yes). The builder skips it until then.
 
 ### BL-53: Medical history reaches History, PRs and volume; the watersports fallback key (D-1, D-12)
 - **Why:**
@@ -1011,7 +1011,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Test plan:** new `test-noweight-consistency.js` (a slot sweep over `programs` plus the variant tables, and one real `wireSetsBlock` case). Sabotage: drop one slot's flag.
 - **Files:** `index.html` (program data 10034–10420 and the day-count variant tables), `sw.js`, the test. **Guards:** `test-partial-set-reactions.js:136` (reps alone finish a `noWeight` set), `test-configurable-training-days.js` and `test-volume-modifier-gate.js` (both walk the program data).
 - **Risk:** an owner who logs weighted push-ups in the Bodyweight program loses the field there. That's the owner's call. Placed before BL-11 (slot 26a), because BL-11's rep progression applies to rows without a weight.
-- **Status:** needs-owner. **Question:** "Remove the weight box from bodyweight moves in Core, Bodyweight and Jump Rope (Calisthenics keeps it for weighted dips and pull-ups)?" **Recommendation:** yes.
+- **Status:** ready (owner, 2026-11-08: yes).
 
 ### BL-57: The rest parser reads trailing multipliers, per-side mobility and swim repeats correctly (D-6, D-11; after BL-14)
 - **Why:**
@@ -1086,7 +1086,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Test plan:** new `test-category-corrections.js`, with the real `MUSCLE_GROUP_MAP`, `applyAccumulation` (26780) and `CATEGORY_TO_REGIONS`. Sabotage: restore Deep Squat Hold to `squat`.
 - **Files:** `content-exercises.js`, `index.html` (45270), `sw.js`, the test. **Guards:** `test-accumulation-accessory-add.js`, `test-volume-modifier-gate.js` (the jump-category rule) and the three search suites that read `MUSCLE_GROUP_MAP` (`test-global-search-techniques.js`, `test-search-2-0.js`, `test-search-index-freshness.js`).
 - **Risk:** past weeks' Analysis group totals change (read-time; no stored data changes). Placed before BL-20 (slot 55a), so the ledger ships on the corrected categories.
-- **Status:** needs-owner (with M-8). **Question:** "Re-file mobility holds and band shoulder work so they stop counting as leg, chest or core training volume?" **Recommendation:** yes, before the per-muscle ledger (BL-20) ships.
+- **Status:** ready, with M-8 (owner, 2026-11-08: yes).
 
 ### BL-60: Substitutes that keep the same muscle and joint (D-9)
 - **Why:**
@@ -1129,7 +1129,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Files:** `index.html` (the slots above), `content-exercises.js` (277; Jump Squat's entry), `sw.js`, the test. **Re-pin:** `test-concise-cues.js` only if the Jump Squat line is added as a fourth cue. Rewrite an existing cue instead, and the 964 count holds. **Guards:** `test-configurable-training-days.js:489–510` (Single-Leg Bound stays off the surfing and skimboarding extra days).
 - **Risk:** prescriptions change in 2 programs plus their variants. That's visible, so the What's New line names it.
 - **Fold-in (2026-11-08):** line numbers moved to v3.518; counted 45 Single-Leg Bound slots and 9 Jump Squat `3×12-15` slots.
-- **Status:** needs-owner. **Question:** "Change Jump Squat in Bodyweight and Calisthenics from 12-15 to 6-8 reps, and make Single-Leg Bound a true one-leg hop?" **Recommendation:** yes. It's a landing-safety fix; slot 6c.
+- **Status:** ready (owner, 2026-11-08: yes).
 
 ### BL-62: Clinical dose and position wording (S-4, S-5, C-3)
 - **Why:**
@@ -1254,7 +1254,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
   - `CYCLING_STYLES` and their day-count variants are swapped at runtime (`applyDaysPerWeekProgramData` 26002), so the transform must key on the exercise name, not the day.
   - The interval-string parse must not break `parseEstimatedMinutes`. Assert that the estimate for "2×20 min" is 41 (confirmed against the round-count branch at 26474).
 - **Tools:** none extra.
-- **Status:** needs-owner. **Question:** "Store an FTP number and show watt targets, with a retest prompt every 6 weeks?" **Recommendation:** yes, if you ride with a power meter or a smart trainer; otherwise leave it (the RPE text stays).
+- **Status:** ready (owner, 2026-11-08: yes; build the FTP setting, watt targets and 6-week retest prompt).
 
 ### BL-47: Swimming CSS anchor and set progression
 - **Why:**
@@ -1283,7 +1283,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Files:** `index.html` (the Swimming card; the same render-time transform as BL-46, shared rather than duplicated), `sw.js`, the test.
 - **Risk:** as BL-46. Ship BL-46 first so the transform exists, then extend it.
 - **Tools:** none extra.
-- **Status:** needs-owner (after BL-46 and BL-57). **Question:** "Ask for a 400 m and a 200 m time to set swim pace targets?" **Recommendation:** yes, if you swim laps regularly.
+- **Status:** ready, after BL-46 and BL-57 (owner, 2026-11-08: yes).
 
 ### BL-48: The deload week also shortens duration-only cardio
 - **Why:**
