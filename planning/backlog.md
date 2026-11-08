@@ -251,7 +251,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Test plan:** extend `test-region-override.js`; replace its three Goblet March references (constants list, criterion 2, the area-fit case). Live check: Core d4 with each area resting.
 - **Files:** `index.html` (`SUB_*`, `EXERCISE_SUBSTITUTE_OVERRIDE`, `suggestSubstitute`, `WHATS_NEW`, `APP_VERSION`), `sw.js`, `test-region-override.js`.
 - **Risk:** the suitcase carry's anti-lean intent has no hands-free equivalent (accepted: swaps are temporary). A heavy vest loads the traps, so the name says light-ish and offers a backpack. [PRAC]
-- **Status:** needs-owner. **Question:** "Carry swaps by resting area: (a) vest or backpack walk for grip, elbow and shoulder, plus Bird Dog for the lower back (small code change); (b) the vest walk only, data change only, so the lower back keeps no swap; or keep v3.524 as is?" **Recommendation:** (a) (exercise auditor, 2026-11-08). Slot 4a.
+- **Status:** ready (owner yes 2026-11-08: "the carry swap you recommend" = option (a), the exercise auditor's recommendation). Slot 4a, before BL-05.
 
 ### BL-05: Depth Jump prerequisite and box height in the cue (SAF-5, part 1)
 - **Why:** Depth Jump appears with no box height or landing prerequisite, in **20 slots** at v3.518 (counted by walking `programs`, every `*_STYLES` style and every `PROGRAM_DAY_COUNT_VARIANTS` day):
