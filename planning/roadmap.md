@@ -27,6 +27,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
   - **D10:** approved: paper-lookup now, Playwright WebKit and axe-core before Phase 2, the `Skill` tool kept for its three agents, and `Edit` for the market-researcher and exercise-auditor. Noted only: the owner changes the `.claude/` files himself. Until he does, the slot-37 and slot-78 citation checks and the slot-39 WebKit check still wait on the tools being present.
   - **Count:** net **+7 ready** in Phases 2–4 (slots 57, 58, 76, 77, 81, 82, 83) on top of the 83 above, plus 6 Phase 5 builds that are ready but gated.
 - **Second-round approvals applied (2026-11-08, from the owner's 2026-11-07 "1-13 yes"):** D4's BL-37 and BL-38 (slots 74–75, after BL-52, still in the Phase 3 gate), BL-39 and BL-40 (slots 84–85), and D2's UX-16 (slot 62) and UX-17 (slot 86, with its two-week and on-device conditions) are now ready. Slot 8's stale † is cleared (BL-35 is ready, option (b)). Net **+7 ready** more.
+- **Program extensions written (2026-11-09):** the slot-88 placeholder is now 88a–88d (BL-41, BL-42, BL-44 and BL-45; specs in `backlog.md`). Net **+1 ready** (BL-44) and **3 more †** (BL-41, BL-42, BL-45), each with one owner question. No other slot moved.
 
 **Before slot 1** (see `consensus.md` (f)):
 - The owner's actions:
@@ -181,7 +182,11 @@ This is the one order every build run follows. It supersedes the "Requested buil
 85. BL-40: hypertension isometrics and medical notes *(owner yes 2026-11-07, D4; 2026-11-08: wall squat 3×/wk on d2, d5 and d6, plus a relocation step; after BL-72)*
 86. UX-17: retire Gym mode *(owner yes 2026-11-07, D2)*. Two weeks after UX-06a, once the owner records tap parity on device; it ships or is dropped before Phase 5.
 87. UX-15: the dead-CSS sweep (always the last UX item; it runs after UX-17 if that's approved)
-88. BL-41, BL-42, BL-44 and BL-45: program extensions, itemised by the exercise-auditor before Phase 2 ends. These are the powerlifting top single plus peak, Olympic % bands and a miss counter, bodyweight ladders, and athletic metrics. They're placeholders, not buildable yet. (BL-43, BL-46, BL-47 and BL-48 are written and slotted at 24a and 38a–c; BL-49 is unassigned.)
+88. **Program extensions** (written by the exercise-auditor 2026-11-09, against v3.528; full specs in `backlog.md` → "Program extensions"). BL-43, BL-46, BL-47 and BL-48 are written and slotted at 24a and 38a–c; BL-49 is unassigned.
+   - 88a. **BL-41** † : Powerlifting top single at RPE 8 with −10% back-offs (RPE mode only), then an optional meet peak from a stored meet date. Two versions, part 1 first. *(needs-owner: changes what set 1 means on three lifts, and stores a meet date; after BL-34)*
+   - 88b. **BL-42** † : Olympic % bands per lift from your best made lift, a miss counter, and a 0-rep set no longer counting as a PR. *(needs-owner: miss logging and the PR change; after BL-24, BL-51, BL-54)*
+   - 88c. **BL-44:** bodyweight progression ladders (H-8, part 2), with nine new library entries; rungs swap through the existing picker. *(ready (after Phase 3); after BL-11, BL-56, BL-60, BL-72, BL-73, BL-76)*
+   - 88d. **BL-45** † : Broad Jump distance, optional hand-timed sprint times, quality stop cues, and a ground-contact count on Athletic days. *(needs-owner: two new set fields; after BL-55, BL-61)*
 
 ### Phase 5: Public launch (owner yes 2026-11-08, D8: after Phase 3 and its gates; web first, then Play, then the App Store)
 **Every slot below waits for the Phase 3 hard gate** (all of Phase 3 merged, including BL-37 and BL-38, and UX-17 shipped or dropped). Until it holds, a run skips slots 89–98 as if they weren't ready. Slots 89–98 are new numbers (2026-11-08); nothing above was renumbered.
