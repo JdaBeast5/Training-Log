@@ -114,7 +114,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 37. BL-16: trend weight (needs D10's paper-lookup for the Hacker's Diet citation, or ships with it marked unverified in the plan only)
 38. BL-17: expenditure estimated from your logs (starts BL-27's three-week data clock)
 - **Endurance progression** *(audit fold-in; the running, cycling and swimming F grades)*:
-  - 38a. **BL-43:** running progression from your own logged distance (the 30-day single-run cap) **†** *(needs-owner since spec refresh 3: how 400 m repeats progress without per-rep times)*
+  - 38a. **BL-43:** running progression from your own logged distance (the 30-day single-run cap) *(owner (a) 2026-11-09: reps added once every prescribed rep is logged)*
   - 38b. ~~**BL-46:** cycling FTP anchor, retest and interval progression~~ *(parked: owner no, 2026-11-08)*
   - 38c. ~~**BL-47:** swimming CSS anchor and set progression~~ *(parked: owner no, 2026-11-08)*
 

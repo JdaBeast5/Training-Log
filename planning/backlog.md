@@ -1927,7 +1927,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Risk:** the cardio corpus shape (distance in metres, minutes in reps). Don't touch `isDistanceExercise` here (that's BL-55). Ship after BL-48 and BL-55 (slot 38a).
 - **Tools:** none extra.
 - **Spec refresh 3 (2026-11-09, against v3.528):** lines re-grepped; `test-rpe-safety-caps.js` and `test-emoji-check-icon-migration.js` added as guards. Found: the 400 m consistency rule reads per-rep times the app never records (see Change). Criteria 1, 3, 4 and 5 are buildable as written.
-- **Status:** needs-owner (was ready after BL-48). **Question:** "400m Repeats has nowhere to record each rep's time. Should the app (a) add reps when you've logged every prescribed rep, with no time check, or (b) first add a time box to each 400 m rep (a change to what's stored) and then use the 3-second rule?" **Recommendation: (a).** It ships now with no data change, matches how the app already progresses everything else (finish the prescription, then step up), and (b) can follow as its own item if the owner wants pace-based steps. Once answered, it's ready (after BL-48), in slot 38a.
+- **Status:** ready (after BL-48) (owner 2026-11-09: option **(a)**, add reps once every prescribed rep is logged; no per-rep time stored. Build only (a)'s criteria.)
 
 ### BL-46: Cycling FTP anchor, retest, and interval progression
 - **Why:**
