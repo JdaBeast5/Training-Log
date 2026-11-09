@@ -1026,3 +1026,9 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
 - **Test:** `test-safety-cues.js`, 6 cases. The `test-concise-cues.js` pin moves to 970. Suites went from 203 to 204. Sabotage-checked.
 - **Unverified:** not tried on an iPhone.
 - **Next:** BL-05b, the Neck Bridges cue (coach-only, otherwise isometrics). It must update this test's cue-count baseline.
+
+## Addendum 53: BL-05b (v3.528, PR #92, 2026-11-09)
+- **What:** Neck Bridges' first cue is now "Only with a coach; otherwise do 4-way neck isometrics, 15 s each way at 50% effort." This covers its 6 grappling slots. The pain-free `MUST_KEEP` cue is kept. The `test-concise-cues.js` pin moves to 971.
+- **Test:** `test-safety-cues.js` grows to 8 cases, with a shared `findSlots(name)` walker. Sabotage-checked.
+- **Unverified:** not tried on an iPhone.
+- **Next in order:** BL-62, then BL-64 and BL-61.

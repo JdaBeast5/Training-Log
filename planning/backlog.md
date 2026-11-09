@@ -438,7 +438,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `content-exercises.js` (350), `sw.js` (version bump only), `index.html` (`APP_VERSION` and `WHATS_NEW` only), `test-safety-cues.js`, `test-concise-cues.js` (pin only).
 - **Risk:** cue-length caps and the `MUST_KEEP` phrase (`test-concise-cues.js`). BL-04's substitute for Neck Bridges stays as it is.
 - **Spec refresh (2026-11-08):** lines re-grepped at v3.518; the `MUST_KEEP` trap named; the pin target computed (assumes BL-05 merged first, as the sequence says). Scope unchanged.
-- **Status:** ready (after BL-05)
+- **Status:** done (v3.528, PR #92)
 
 ## Ready: correctness of what exists (audit High, then Medium)
 
