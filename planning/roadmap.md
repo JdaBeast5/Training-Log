@@ -59,6 +59,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
    - 4b. **BL-75:** no carry swap for a resting shoulder (BL-71 follow-up; owner left it to the builder, 2026-11-08)
 5. **BL-05 + BL-06, one version:** the safety cues, including the Depth Jump **Drop Landing rule**, across all 20 occurrences (counted at v3.518)
 6. **BL-05b:** the Neck Bridges cue says coach-only, otherwise isometrics (all 6 occurrences)
+   - 6a0. **BL-76:** rep targets survive a per-limb or bracketed note (the parser fix before BL-62; owner 2026-11-09)
    - 6a. **BL-62:** clinical dose and position wording: per-leg Achilles and ACL doses, side-lying breathing in pregnancy, Sandbag Lunges per leg *(audit fold-in, 2026-11-08)*
    - 6b. **BL-64:** cue contradictions: Chair Pose knees, Good Morning, Front Lever, Hammer Curl, Hanging Leg Raise *(audit fold-in)*
    - 6c. **BL-61:** plyometric prescriptions match their cues: Jump Squat 6-8, Single-Leg Bound per leg *(audit fold-in; owner yes 2026-11-08)*

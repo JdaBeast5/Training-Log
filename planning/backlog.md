@@ -1837,6 +1837,19 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Fold-in (2026-11-08):** line numbers moved to v3.518; counted 45 Single-Leg Bound slots and 9 Jump Squat `3×12-15` slots.
 - **Status:** ready (owner yes 2026-11-08: "61 a", as written). Slot 6c.
 
+### BL-76: Rep targets survive a per-limb or bracketed note (parser fix before BL-62)
+- **Why:** `parseTopRep` and `parseBottomRep` (`index.html`, near `getSetFieldUnit`) read a fixed rep count only when it's the last thing in the string. `3×8/leg`, `3×10/side`, `4×20 (10/leg)` and `3×15 (straight-knee, 3s eccentric lower)` all return `null`. At v3.528, **167 weighted slots** in the built-in programs have no rep target for this reason (e.g. Bulgarian Split Squat `3×8/leg`, Pallof Press `3×10/side`, Cable Woodchopper `3×12/side`). With no rep target there are no progression badges, no next-set rep target and no RPE-mode load for them. Found while building BL-62 (blocker PR #98); the owner chose to fix it first on 2026-11-09 ("BL-62 a").
+- **Change:** in `parseTopRep` (and so `parseBottomRep`, which falls back to it), before the fixed-count patterns, strip one trailing bracketed note and then one trailing per-limb suffix: `/leg`, `/side`, `/arm`, `/hand`, `/direction`, optionally with spaces. Range strings already parse and are unaffected. Nothing else changes: units such as `20yd/side` or `30s/side` still have no rep target, because the count isn't a bare number.
+- **Acceptance criteria** (real `parseTopRep` / `parseBottomRep`):
+  1. Table: `3×8/leg` → 8; `3×10/side` → 10; `4×20 (10/leg)` → 20; `3×15 (straight-knee, 3s eccentric lower)` → 15; `3×10-12/leg` → 12/10 (unchanged); `3×10` → 10; `3×20yd/side` → null; `3×30s/side` → null; `Max 5` → null; `20 min` → null.
+  2. **No regressions:** for every `sets` string in `programs`, every `*_STYLES` style and every `PROGRAM_DAY_COUNT_VARIANTS` day, wherever v3.528's parser returned a number, the new one returns the same number (a frozen snapshot from v3.528).
+  3. Weighted slots (not `noWeight`) with a per-limb or bracketed note and a null top rep: 167 at v3.528, now only those whose count isn't a bare number (listed in the test).
+  4. The real `analyzeProgressionSignal` for Bulgarian Split Squat `3×8/leg`, with two sessions at 8 reps on the same weight, signals an increase. At v3.528 it returned `null`.
+- **Test plan:** new `test-rep-parse-qualifiers.js`. Sabotage: remove the suffix stripping, and criteria 1, 3 and 4 fail.
+- **Files:** `index.html` (`parseTopRep`, `WHATS_NEW`, `APP_VERSION`), `sw.js`, `test-rep-parse-qualifiers.js` (new).
+- **Risk:** about 167 exercises start showing progression suggestions they never showed. That's intended, and the What's New line says so. Guards: `test-program-fit-trend.js`, `test-rpe-safety-caps.js`, and the suites that read rep targets.
+- **Status:** ready (owner yes 2026-11-09: "BL-62 a, yes let's fix it"). Slot 6a0, right before BL-62.
+
 ### BL-62: Clinical dose and position wording (S-4, S-5, C-3)
 - **Why:**
   - Achilles heel drops are `3×15 (straight-knee, 3s eccentric lower)`, with no per-leg dose (`index.html` 12017, 12037, 12045, and the bent-knee twins).
@@ -1857,7 +1870,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Files:** `index.html` (11985, 12017–12047, 11001, 11014, 21110–21225), `content-exercises.js` (79), `sw.js`, the test. **Guards:** `test-concise-day-notes.js`, `test-configurable-training-days.js:807` (Sandbag Lunges by name; unaffected).
 - **Risk:** clinical-content wording. BIZ-15's clinician review should see it.
 - **Fold-in (2026-11-08):** line numbers moved to v3.518. The Hyrox variant rows were added. The prenatal fix is a rewrite, not a fourth cue, so the cue count holds.
-- **Status:** ready
+- **Status:** ready (after BL-76) (owner 2026-11-09: "BL-62 a": the parser fix ships first, then BL-62 as written). Builder notes for the exercise auditor stand: heel drops `3×15/leg` vs the affected-leg protocol, the two per-leg conventions, and the spec's breathing cue being 27 words (a 21-word version keeps its meaning).
 
 ### BL-63: The time shown on Today counts the work, not just the rest (D-10, C-5)
 - **Why:**
