@@ -84,12 +84,12 @@ This is the one order every build run follows. It supersedes the "Requested buil
 15. MKT-09: the rename, **only if the owner picks a name other than Liftnext** *(lane)*. **Done (v3.517, Platestep).** The loop skips it.
 16. UX-02: the Archivo display face (D2 approved 2026-11-07; ready), so the cards never change typeface *(lane)*
 17. MKT-03: story-format cards with the **Sash mark and no wordmark** *(lane)*
-18. MKT-03b: the wordmark *(lane; owner 2026-11-08: Platestep confirmed)*
+18. ~~MKT-03b: the wordmark~~ *(folded into MKT-03, owner 2026-11-09: keep the name)*
 19. **MKT-06a: the Year in Lifting computation plus one summary card.** Target: merged by **30 November** *(lane; summit R5: if it slips, nothing else moves)*
 19a. **BL-54:** one exercise, one name in History, PRs and the warm-up fallback (Back Squat = Squat, and so on) *(audit fold-in; after MKT-06a so its date holds, before MKT-06b)*
 20. BL-10: a target RIR on every prescription, with a short form and a words form
 21. BL-15: the decrease signal waits for two short sessions
-22. BL-24: increments scale with strength (inherits the clinical load rule) **†** *(needs-owner since spec refresh 2, 2026-11-09: the squat and deadlift floor; see `backlog.md`)*
+22. BL-24: increments scale with strength (inherits the clinical load rule) *(owner (a) 2026-11-09: 5 lb floors for squat and hinge)*
 22a. **BL-58:** library entries for the Light and Speed variants (technique flag, no load push); prune orphans *(audit fold-in)*
 23. BL-09: readiness compared with the week's own RPE target
 24. BL-23: one-tap early deload when overreaching

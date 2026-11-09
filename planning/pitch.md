@@ -151,6 +151,7 @@ At one merge a day (your pace, an assumption) that's about ten weeks of ready wo
 ## Decisions only you can make
 
 ### Owner's answers, 2026-11-07
+- **Owner (2026-11-09):** BL-24 option (a), 5 lb floors for squat and deadlift; MKT-03 keeps the PLATESTEP name beside the mark (MKT-03b folded in).
 - **BL-74 (owner, 2026-11-08):** (a), switch history keys to the authored position as soon as BL-72 lands.
 - **Sixth round (owner, 2026-11-08, on PR #86, "1 yes, 2b, 3b"):**
   - **1 yes:** protect the history of custom, body-goal and bonus exercises before any exercise is added to a day. New item **BL-72** (stable keys plus a migration; slot 8a, before BL-36), and **BL-73** (a stored substitute only applies if it's listed for that exercise; slot 8b). BL-36 to BL-40 now wait for BL-72. Found while specifying it: **BL-74**, built-in rows shift too when exercises are removed or reordered (needs-owner; the auditor recommends option (a), switch now).
