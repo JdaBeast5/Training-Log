@@ -1848,7 +1848,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Test plan:** new `test-rep-parse-qualifiers.js`. Sabotage: remove the suffix stripping, and criteria 1, 3 and 4 fail.
 - **Files:** `index.html` (`parseTopRep`, `WHATS_NEW`, `APP_VERSION`), `sw.js`, `test-rep-parse-qualifiers.js` (new).
 - **Risk:** about 167 exercises start showing progression suggestions they never showed. That's intended, and the What's New line says so. Guards: `test-program-fit-trend.js`, `test-rpe-safety-caps.js`, and the suites that read rep targets.
-- **Status:** ready (owner yes 2026-11-09: "BL-62 a, yes let's fix it"). Slot 6a0, right before BL-62.
+- **Status:** done (v3.529, PR #100)
 
 ### BL-62: Clinical dose and position wording (S-4, S-5, C-3)
 - **Why:**
