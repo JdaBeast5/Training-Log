@@ -151,6 +151,7 @@ At one merge a day (your pace, an assumption) that's about ten weeks of ready wo
 ## Decisions only you can make
 
 ### Owner's answers, 2026-11-07
+- **Owner (2026-11-09), spec refresh 3:** BL-43 (a). WebKit isn't a blocker: use Chromium, then a WebKit option in a later tooling PR. UX-05 recolours only the day discs and hue. MKT-20 is kept.
 - **Owner (2026-11-09):** BL-24 option (a), 5 lb floors for squat and deadlift; MKT-03 keeps the PLATESTEP name beside the mark (MKT-03b folded in).
 - **BL-74 (owner, 2026-11-08):** (a), switch history keys to the authored position as soon as BL-72 lands.
 - **Sixth round (owner, 2026-11-08, on PR #86, "1 yes, 2b, 3b"):**
