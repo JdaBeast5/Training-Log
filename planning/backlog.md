@@ -856,7 +856,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:** same guards as BL-08, plus `test-warmup-ramp-and-plates.js` for snapping. Under (a) the What's New line must say squat and deadlift steps drop to 5 lb for lighter lifters.
 - **Alignment note (2026-11-07):** the strength-scaled increment never applies to `medical` or `senior`: they keep BL-02's smallest loadable jump. Add a criterion asserting it (an e1RM of 200 on hypertension Seated Cable Row still gets the smallest jump).
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the e1RM source for each caller named; the two extracting suites found; the floor contradiction between criterion 2 and the kept table found and put to the owner. Scope otherwise unchanged.
-- **Status:** needs-owner (one question: should squat and deadlift steps start at 5 lb for lighter lifters? Recommend yes, option (a)). Slot 22 keeps its place; the loop skips it until answered.
+- **Status:** ready (owner 2026-11-09: option **(a)**, the `squat` and `hinge` floors drop to 5 lb; build with (a)'s criteria).
 
 ### BL-25: Exercise cue corrections (L-1, audit §4)
 - **Why:** these cues contradict the evidence:
@@ -2495,7 +2495,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Change:**
   - `buildShareCardBlob(cardData, format)`: `format` is `'story'` (1080×1920, the new default) or `'square'` (today's layout, unchanged).
   - In story format, keep the icon, headline, detail and stats between y = 250 and y = 1620 (clear of the story UI at the top and bottom).
-  - Draw the **Sash mark** (the shipped v3.516 icon: the five plate inks as one band on a `--ground` tile) as canvas rectangles, not an image file, at the bottom. **No wordmark in this version.** The `APP_NAME` footer text (29796) is removed, not replaced (see the owner option below). A reserved line stays under the mark for the wordmark (MKT-03b) and BIZ-08's address.
+  - Draw the **Sash mark** (the shipped v3.516 icon: the five plate inks as one band on a `--ground` tile) as canvas rectangles, not an image file, at the bottom. **The wordmark stays (owner, 2026-11-09: "keep the name").** MKT-03b is folded into this item: draw `APP_NAME.toUpperCase()` beside the mark in one row, which replaces the plain footer text (29796) so the name never disappears from cards. A reserved line stays under it for BIZ-08's address.
   - The file name is `${appSlug()}-<kind>-<YYYY-MM-DD>.png` (`platestep-pr-2026-11-30.png`; today it's `${APP_NAME.toLowerCase()}.png`, 29811). This item adds the one helper `appSlug()` beside `APP_NAME` (7631): `APP_NAME` lower-cased, with spaces as hyphens. MKT-20 reuses it for the backup file.
   - Colour and type follow `planning/design-vision.md` §3: a flat ink ground with no gradient or glow, the session day's spot ink as the one colour, Archivo for the big figure if UX-02 is approved, else Geist. If the vision's own card items land first, this item only adds the format and the mark to them.
 - **Acceptance criteria:**
@@ -2503,7 +2503,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
   2. In story format, every `fillText` call's y is between 250 and 1700 (stub-recorded).
   3. The Sash mark is drawn in both formats: exactly five `fillRect` calls inside the mark's box, whose `fillStyle`s equal the five target `--spot-*` inks from UX-01 (stub-recorded, in order).
   4. The square format's `fillText` calls equal today's for the same `cardData`, except the footer (record before and after; sabotage-anchored).
-  5. No `fillText` string equals or contains "TRAINING LOG", "Training Log" or `APP_NAME` (in any case) in this version.
+  5. No `fillText` string contains "TRAINING LOG" or "Training Log". Exactly one `fillText` call carries `APP_NAME.toUpperCase()`, its x and y are inside the mark's row (stub-recorded), and changing `APP_NAME` in the extracted source changes the drawn text (a real-code count of the literal name in the card code is 0). These are MKT-03b's criteria, folded in.
   6. The card's ground and spot ink come from the real `dayInk` (UX-01b): `dayInk(cardData.dayId ?? activeDay, activeProgram)`. A card with `dayId` for a `p-blue` day draws the blue spot ink (stub-recorded `fillStyle`).
   7. The icon is still drawn with `ctx.stroke(new Path2D(iconPath))` and never as `fillText(cardData.icon…)` (the existing `test-glyphs.js` pin, 241–243).
 - **Test plan:** new `test-share-card-format.js`, with the real `buildShareCardBlob`, `wrapCanvasText` and `celebrationIconPath`, and a recording stub 2D context. Then render real PNGs in Playwright for the PR, streak and week cards in both formats and attach them to the PR. Sabotage: drop the format switch, and criterion 1 must fail.
@@ -2517,7 +2517,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Alignment note (2026-11-07):** the ring mark is replaced by the Sash mark (MKT-19 shipped as the icon in v3.516). **No wordmark until the public name is confirmed** (market-researcher B1, marketing-manager B1). The wordmark is MKT-03b. Builds the story frame (safe zones, mark tile, sponsor strip) so the bib (MKT-16) reuses it. Ships after UX-01b and, if approved, UX-02. Year in Lifting 2026 carries no address (consensus decision 16).
 - **Summit note (summit 2026-11-07):** Draw it in the Plate & Press world from day one (flat ink ground, the day's spot ink, no gold glow), so cards are never redone (summit §1.4). It's on the Year in Lifting lane (roadmap slot 17).
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped. Found: the footer has drawn `APP_NAME` since v3.517 (the spec still described "TRAINING LOG"), so criterion 5 now breaks `test-app-rename.js`; both of its re-pins named. Criterion 6 says where the day comes from; criterion 7 keeps the `test-glyphs.js` pin. Scope unchanged; the name question is a non-blocking owner option.
-- **Status:** ready (after UX-01b; non-blocking owner option above)
+- **Status:** ready (after UX-01b; owner 2026-11-09: keep the name, MKT-03b folded in)
 
 ### MKT-03b: The wordmark on cards, once the name is confirmed
 - **Why:** MKT-03 ships the mark alone so the Year in Lifting lane never waits on the name (consensus G1). Once the owner confirms the public name (after the USPTO knockout and buying its domain; marketing.md §2.1, §4.3), cards add it.
@@ -2531,7 +2531,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Files:** `index.html` (`buildShareCardBlob`, 29704 at v3.527), `sw.js`, `test-share-card-format.js`, `test-app-rename.js` (re-pin back).
 - **Risk:** prints the name on images nobody can recall. That's why it waits for the owner.
 - **Spec refresh 2 (2026-11-09, against v3.527):** the card builder's line and the `test-app-rename.js` re-pin named. If the owner takes MKT-03's option, this item shrinks to the event band. Scope unchanged.
-- **Status:** ready (after MKT-03) (owner 2026-11-08: "name a": Platestep is confirmed, the USPTO knockout is clear and the domains are held).
+- **Status:** done-by MKT-03 (owner 2026-11-09: keep the name beside the mark from MKT-03 on; nothing left to build here).
 
 ### MKT-04: Share a finished session
 - **Why:** finishing a session is the most frequent earned moment (every training day), and its celebration (`triggerCelebration('flag', 'Session complete!', …)`, 29263) has no share button. PR and streak celebrations already pass `shareData`.
