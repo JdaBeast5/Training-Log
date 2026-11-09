@@ -7622,7 +7622,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.528';
+const APP_VERSION = '3.529';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9022,6 +9022,9 @@ const WHATS_NEW = {
   ]},
   '3.528': { headline: 'Neck bridges: coach only', points: [
     'Neck bridges now say to do them only with a coach. Otherwise, do 4-way neck isometrics: press your head into your hand front, back and to each side, 15 seconds each at half effort.',
+  ]},
+  '3.529': { headline: 'Progress tips for one-side exercises', points: [
+    'Exercises written per leg or per side, like Bulgarian split squats (3×8/leg) or Pallof presses (3×10/side), now get the same "add weight" tips, rep targets and RPE weight suggestions as every other lift. Before, the app couldn\'t read their rep count. Log the reps for one side.',
   ]},
 };
 
@@ -26422,6 +26425,15 @@ document.getElementById('reorderToggle').addEventListener('click', ()=>{
 // Parses the 868 hardcoded `sets:` strings, estimates duration/calories,
 // applies deload and session-length trimming.
 function parseTopRep(setsStr){
+  // v3.529 (BL-76): a note after the count ("3×8/leg", "3×10/side",
+  // "4×20 (10/leg)", "3×15 (straight-knee, 3s eccentric lower)") used to hide
+  // the rep target, switching off progression for that slot. Drop one
+  // trailing bracketed note, then one trailing per-limb suffix, BEFORE any
+  // matching, so a range inside a note ("3×10 (3-5s hold)") is never read as
+  // reps. A count with a unit ("20yd/side", "30s/side") still isn't reps.
+  // parseBottomRep strips the same way (kept inline: many suites extract these
+  // two functions on their own).
+  setsStr = setsStr.replace(/\s*\([^()]*\)\s*$/, '').replace(/\s*\/\s*(?:leg|side|arm|hand|direction)\s*$/i, '');
   const range = setsStr.match(/(\d+)\s*-\s*(\d+)/);
   if(range) return Number(range[2]);
   // The whole "NxM" form, anchored at both ends. Checked BEFORE the loose
@@ -26437,6 +26449,7 @@ function parseTopRep(setsStr){
 // Bottom of the prescribed rep range (e.g. "3×10-12" -> 10). For a fixed rep
 // scheme like "3×15" the bottom and top are the same number by design.
 function parseBottomRep(setsStr){
+  setsStr = setsStr.replace(/\s*\([^()]*\)\s*$/, '').replace(/\s*\/\s*(?:leg|side|arm|hand|direction)\s*$/i, ''); // v3.529 (BL-76), as parseTopRep
   const range = setsStr.match(/(\d+)\s*-\s*(\d+)/);
   if(range) return Number(range[1]);
   return parseTopRep(setsStr);
