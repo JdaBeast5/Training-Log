@@ -1071,3 +1071,10 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Warnings.**
   - Several sessions and agents share `/home/user/Training-Log`. Do work in your own `git worktree`, never in the builder's checkout.
   - Running many agents at once hits the 5-hour usage cap. Resume them with SendMessage after the reset instead of starting new ones.
+
+## Addendum 54: BL-76 (v3.529, PR #100, 2026-11-09)
+- **What:** `parseTopRep` and `parseBottomRep` strip one trailing `( … )` note and one `/leg|side|arm|hand|direction` suffix before matching. Weighted slots with no rep target went from 185 to 7 (carry distances).
+- **Test:** `test-rep-parse-qualifiers.js`, 4 cases, with a frozen v3.528 snapshot of 115 strings. Sabotage-checked.
+- **Unverified:** not tried on an iPhone.
+- **Flagged:** the Progress view's readiness isn't clinical-aware.
+- **Next:** BL-62, now `ready` since BL-76 is done.
