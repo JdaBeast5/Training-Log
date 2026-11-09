@@ -1018,3 +1018,11 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
 - **Test:** `test-region-override.js` covers every shoulder combination. Sabotage-checked. The live render matches.
 - **Unverified:** not tried on an iPhone.
 - **Next:** BL-05 + BL-06, the safety cues, at the 8:17 PM run.
+
+## Addendum 52: BL-05 + BL-06 (v3.527, PR #91, 2026-11-09 scheduled run)
+- **What:**
+  - Depth Jump's cues lead with the prerequisite (30 cm / 12 in drop 3×5), "First 4 weeks: Drop Landing 3×5" and a 30–45 cm box, then the how-to. This covers all 20 slots, with sets unchanged.
+  - Rear Naked Choke and Armbar drills have a release rule. Clinch Knee Drills go into a held pad.
+- **Test:** `test-safety-cues.js`, 6 cases. The `test-concise-cues.js` pin moves to 970. Suites went from 203 to 204. Sabotage-checked.
+- **Unverified:** not tried on an iPhone.
+- **Next:** BL-05b, the Neck Bridges cue (coach-only, otherwise isometrics). It must update this test's cue-count baseline.

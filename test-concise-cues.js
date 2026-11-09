@@ -39,10 +39,12 @@ function cues(){
   return out;
 }
 
-test('REAL data: no cue was dropped — 321 exercises, 964 cues', (assert)=>{
+// v3.527 (BL-05 + BL-06): +3 Depth Jump safety cues, +1 each on Rear Naked
+// Choke Drill, Armbar from Guard Drill and Clinch Knee Drills (964 -> 970).
+test('REAL data: no cue was dropped — 321 exercises, 970 cues', (assert)=>{
   const c = cues();
   assert.strictEqual(Object.keys(c).length, 321);
-  assert.strictEqual(Object.values(c).flat().length, 964);
+  assert.strictEqual(Object.values(c).flat().length, 970);
 });
 
 test('REAL data: cues over 24 words are down to ' + OVER_24_LEFT, (assert)=>{
