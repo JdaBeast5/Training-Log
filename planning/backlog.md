@@ -26,6 +26,12 @@ BL-39 and BL-40 each carry one non-blocking owner option; the default is the app
 - **Found while specifying BL-72:** built-in rows are keyed by render index too, so overrides that remove or reorder exercises, and trimmed warm-up units, shift history. That's BL-74, `needs-owner`.
 - **BL-52's line reference** is fixed (7625 → 7632).
 
+**Spec refresh 2 (2026-11-09, against v3.527, after PR #91).** The next stretch of the Unified build sequence after the safety block was re-grepped against `index.html` **v3.527** (`origin/Branch-1` 99b01bf): roadmap slots 8a–8c (BL-72, BL-73, BL-74) and 11–30 (UX-01, UX-01b, BL-07, BL-65, BL-66, BL-55, BL-63, MKT-02, UX-02, MKT-03, MKT-03b, MKT-06a, BL-54, BL-10, BL-15, BL-24, BL-58, BL-09, BL-23, BL-48, BL-14, BL-57, BL-26, BL-56, BL-11, MKT-01, MKT-06b, BL-12; MKT-09 is done). The baseline was green: `check.sh` passed and 204/204 `test-*.js` suites passed. In those items every line number is v3.527's, each criterion is a real invocation or a real-call count, and `Files:` names the suites that extract or stub what the item touches (found by grepping all 204 suites for each function and reading the matches). Each changed item ends with a "Spec refresh 2 (2026-11-09…)" line. Order and scope are unchanged, with these findings:
+- **BL-24 is now `needs-owner`:** its criterion 2 (+5 lb on a 135 lb squat) can't hold with the 10 lb floor its Change keeps. One question, with a recommendation.
+- **MKT-03** carries a non-blocking owner option: since v3.517 cards already print the confirmed name, which MKT-03 as written removes for one version.
+- **Re-pins found that the old specs missed:** BL-72 (seven `wireSetsBlock` sandboxes and `test-open-screen-2-0.js` need `slotIdOf`), BL-66 (`test-mesocycle-phase-tag.js`'s own two-argument fixtures), BL-15 (`test-program-fit-trend.js`'s one-session decrease case), BL-54 (four suites need the canonical-name map in their chunks), MKT-01 (`test-header-refresh.js`'s streak text), MKT-03 (`test-app-rename.js`, twice), and BL-23 and MKT-06a (two suites that hand-stub every Priorities getter).
+- **Spec gaps closed:** BL-72 missed the render-index read in `applyExerciseSubs`; BL-74 needs `?? i` for lists without `__srcIndex`; BL-55's name pattern needs the cardio gate (it matched Barbell Row); BL-09 now reads BL-02's `rpeTargetFor`; BL-11 can't use `buildPastSessions` (it drops weightless sets); BL-58's technique flag needs its own check (BL-02 has no flag); MKT-06's criteria are split between 06a and 06b.
+
 Owner: project-manager. Written 2026-11-07 against **v3.514**. The baseline was green: `check.sh` passed and 198/198 `test-*.js` suites passed. Line numbers are `index.html` at v3.514 unless a file is named. **Every build run re-greps them before editing:** each shipped item shifts the lines below it.
 
 **Rules for every item** (CLAUDE.md, `planning/toolchain.md` §5–6):
@@ -269,11 +275,12 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 
 ### BL-72: Stable history keys for custom, body-goal and bonus exercises
 - **Why:**
-  - `renderWorkout` (28700) builds `[...day.exercises, ...focus, ...custom]` (28778–28779), and `applyAccumulationAccessory` (26895) appends the bonus exercise after them on peak weeks. Every row's history key is `exKey(program, dayId, <render index>)` (27054).
-    - Reads: `getExLog`, 28860.
-    - Fallback lookup: 28884.
-    - Writes: `saveExSet` 28446 and the set-row handlers at 32029, 32062, 32077, 32116, 32161 and 32212.
-    - The substitute picker: 27274, 27300–27302.
+  - `renderWorkout` (28710) builds `[...day.exercises, ...focus, ...custom]` (28788–28789), and `applyAccumulationAccessory` (26905) appends the bonus exercise after them on peak weeks. Every row's history key is `exKey(program, dayId, <render index>)` (27064).
+    - Reads: `getExLog`, 28870.
+    - Fallback lookup: 28894.
+    - Writes: `saveExSet` 28456 and the set-row handlers at 32039, 32072, 32087, 32126, 32171 and 32222.
+    - The substitute picker (`openExerciseSubModal`, 27269): 27284, 27310–27312.
+    - The stored substitute read: `applyExerciseSubs` (27095) reads `subSelectionKey(program, dayId, i)` at 27101 by render index too. It skips custom and focus rows (27097) but **not** the bonus exercise, so a bonus exercise's swap is positional as well.
   - So a custom, body-goal or bonus exercise's history key depends on how many exercises come before it. It moves, and its earlier sets stop showing on its row, whenever:
     - a built-in exercise is added to the day (BL-36 to BL-40 all do this);
     - the body goal changes, so the number of focus exercises changes;
@@ -281,23 +288,24 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - The data isn't lost; it is no longer read by its own row. Worse, the slot it sits in may later belong to a new built-in exercise, which then reads it.
   - Owner, 2026-11-08: "1 yes": protect this history before any exercise is added to a day.
 - **Change:**
-  - **One resolver** beside `exKey` (27054): `slotIdOf(ex, i)`.
-    - `ex.isCustom` → `'c-' + slugifyExerciseName(ex.name)` (27041).
+  - **One resolver** beside `exKey` (27064): `slotIdOf(ex, i)`.
+    - `ex.isCustom` → `'c-' + slugifyExerciseName(ex.name)` (27051).
     - `ex.isBodyGoalFocus` → `'f-' + slug`.
     - `ex.accumulatedAccessory` → `'a-' + slug`.
     - Otherwise `i`, unchanged.
-    - The prefixes keep a custom "Cable Fly" and the bonus Cable Fly apart. `exKey` and `subSelectionKey` (27066) already template `idx` as a string, so they take the result unchanged, giving keys like `ex:strength:d1:c-dips` and `ex:strength:d1:a-cable-fly:sub:<slug>`.
-  - **Every call site that passes a row's render index passes `slotIdOf(ex, i)` instead.** Classify each `exKey`, `getExLog` and `saveExSet` call by reading it: 14580, 27274, 27300–27302, 27706, 28860, 28884, 31621, 31899, 32029, 32062, 32077, 32116, 32128, 32161, 32212, 32337, 32341.
-    - Inside `saveExSet` and the record helpers (28370–28497), `idx` arrives already resolved, so they don't change.
-    - The rows carry `data-ex-idx` (29148, 29182, 29261, 29298, 29306). Keep that as the render index for DOM lookup, and resolve the slot id from `renderExercises[exIdx]` at the call.
-  - **Migration:** `SCHEMA_VERSION` (7632) 8 → **9**. A new `if(version < 9)` block after the v8 comment (9409–9414), in its own `try{}catch(e){}`, with a backup export prompted first (as BL-52).
+    - The prefixes keep a custom "Cable Fly" and the bonus Cable Fly apart. `exKey` and `subSelectionKey` (27076) already template `idx` as a string, so they take the result unchanged, giving keys like `ex:strength:d1:c-dips` and `ex:strength:d1:a-cable-fly:sub:<slug>`.
+  - **Every call site that passes a row's render index passes `slotIdOf(ex, i)` instead.** Classify each `exKey`, `getExLog`, `saveExSet` and `subSelectionKey` call by reading it (v3.527): 14590 (`getSessionHeadsUpInsight`), 27101 (`applyExerciseSubs`), 27284 and 27310–27312 (`openExerciseSubModal`), 27716 (`computeProgramFitTrend`), 28870, 28894, 31631 (`buildExerciseHistoryHtml`), 31909 (`refreshSessionSummary`), and in `wireSetsBlock` (32019) 32039, 32072, 32087, 32126, 32138, 32171, 32222, 32347, 32351.
+    - 14590 and 27716 walk the authored `day.exercises` (built-in rows only), so `slotIdOf` returns `i` there; route them through it anyway so there is one rule.
+    - Inside `saveExSet` and the record helpers (28380–28507), `idx` arrives already resolved, so they don't change.
+    - The rows carry `data-ex-idx` (29158, 29192, 29271, 29308, 29316). Keep that as the render index for DOM lookup, and resolve the slot id from `renderExercises[exIdx]` at the call. `wireSetsBlock(row, exIdx, ex, …)` already has `ex`, so it calls `slotIdOf(ex, exIdx)`.
+  - **Migration:** `SCHEMA_VERSION` (7632) 8 → **9**. A new `if(version < 9)` block after the v8 comment (9419–9424), before the final `if(version < SCHEMA_VERSION)` block (9426), in its own `try{}catch(e){}`, with a backup export prompted first (as BL-52).
     - **Days covered:** every day that can have trailing rows:
-      - each stored `custom-ex:` key (`customExStorageKey`, 32552; it carries the style for combat, cycling, watersports and medical);
-      - every day of a program in `FOCUS_ELIGIBLE_PROGRAMS` (32539);
-      - every day in `ACCUMULATION_ACCESSORY_POOL` (26868).
-    - **Day length `L`:** the number of authored exercises the day has **under the layout active at migration time**: the stored `'days-per-week-pref'` (25995) via `PROGRAM_DAY_COUNT_VARIANTS`, and the stored style for container programs. Use the current day length, so nothing is lost (owner).
+      - each stored `custom-ex:` key (`customExStorageKey`, 32562; it carries the style for combat, cycling, watersports and medical);
+      - every day of a program in `FOCUS_ELIGIBLE_PROGRAMS` (32549);
+      - every day in `ACCUMULATION_ACCESSORY_POOL` (26878).
+    - **Day length `L`:** the number of authored exercises the day has **under the layout active at migration time**: the stored `'days-per-week-pref'` (26005) via `PROGRAM_DAY_COUNT_VARIANTS`, and the stored style for container programs. Use the current day length, so nothing is lost (owner).
     - **Trailing order:** `[...focus, ...custom, accessory]` at `L, L+1, …`, the order `renderWorkout` uses.
-      - Focus: the real `getBodyGoalFocusExercises` (32570), with the profile read from `'user-profile'` in its own `try` (as 9316–9320).
+      - Focus: the real `getBodyGoalFocusExercises` (32580), with the profile read from `'user-profile'` in its own `try` (as 9326–9330).
       - Custom: that key's stored list.
       - Accessory: the pool entry, if any.
     - **Move:** for each trailing name `k` at position `L+k`:
@@ -312,14 +320,15 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
     - **Not moved, by design:**
       - positional logs from a day count or style that isn't active at migration time (they can't be attributed; they stay, unread by these rows, as today);
       - weekly check-box state;
-      - overrides (`ex-override:`, 46888; already name-guarded by `applyExOverrides`, 46914).
-  - **Not in scope (flagged):** `parseExKey` (41139) returns `null` for any index past the authored day, so custom and bonus logs never reached `readExCorpus` (41213), History or PRs. That's true today, before this item, and stays true here. A follow-up could teach `parseExKey` the `c-`, `f-` and `a-` ids.
+      - overrides (`ex-override:`, `exOverrideKey` 46908; already name-guarded by `applyExOverrides`, 46934).
+  - **Not in scope (flagged):** `parseExKey` (41149) returns `null` for any index past the authored day, so custom and bonus logs never reached `readExCorpus` (41223), History or PRs. That's true today, before this item, and stays true here. A follow-up could teach `parseExKey` the `c-`, `f-` and `a-` ids.
   - `WHATS_NEW`: 'Your own exercises keep their history'. Bullets:
     - 'Custom exercises, goal-focus extras and bonus exercises now keep their logged sets even when a day's built-in exercises change.'
     - 'Existing sets are moved to the new storage once, on this update.'
 - **Acceptance criteria:**
   1. **Real `slotIdOf`:** a custom 'Dips' → `'c-dips'`, a focus exercise → `'f-…'`, the bonus Cable Fly → `'a-cable-fly'`, and a built-in at render index 3 → `3`.
-  2. **Real-call count** (`renderWorkout` can't be driven in jsdom): in the extracted `renderWorkout` and `wireSetsBlock` sources, with line comments stripped, every `exKey(`, `getExLog(` and `saveExSet(` call takes its index from `slotIdOf(`. Assert the exact call count, so a new unresolved call fails.
+  2. **Real-call count** (`renderWorkout` can't be driven in jsdom): in the extracted `renderWorkout`, `wireSetsBlock`, `applyExerciseSubs`, `openExerciseSubModal`, `buildExerciseHistoryHtml`, `refreshSessionSummary`, `getSessionHeadsUpInsight` and `computeProgramFitTrend` sources, with line comments stripped, every `exKey(`, `getExLog(`, `saveExSet(` and `subSelectionKey(` call takes its index from `slotIdOf(` (or a variable assigned from it in the same function). Assert the exact call count per function, so a new unresolved call fails.
+  2b. **Swap read:** the real `applyExerciseSubs` over `[...6 built-ins, bonus Cable Fly]` with a stored selection at `exercise-sub:strength:d1:a-cable-fly` applies it; one stored only at `…:d1:6` does not.
   3. **Reads:** the real `getExLog` for a custom 'Dips' row on strength d1 reads `ex:strength:d1:c-dips`.
   4. **Migration** (real `runMigrations` over a fixture store; strength, pref unset, d1 `L = 6`, profile body goal giving one focus exercise, custom `[Dips]`):
      - (a) logs at `d1:6`, `d1:7` and `d1:8` move to the `f-`, `c-dips` and `a-cable-fly` keys, and a `d1:8:sub:<slug>` log and its selection move with them;
@@ -329,48 +338,67 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
      - (e) with `'days-per-week-pref'` = 3, `L` comes from the 3-day variant;
      - (f) a `custom-ex:medical:hypertension:d5` list uses that style's d5 length.
   5. **The point of it:** after migration, with a 7th built-in exercise added to the fixture's strength d1, the real `getExLog` for the Dips row still returns its moved history.
-- **Test plan:** new `test-stable-trailing-keys.js`, with the migration run as `test-custom-exercise-style-scoping.js` does (lines 32, 104–110).
+- **Test plan:** new `test-stable-trailing-keys.js`, with the migration run as `test-custom-exercise-style-scoping.js` does (its sandbox at lines 95–115 stubs `SCHEMA_VERSION: 7`; the new test stubs 9).
   - Sabotage 1: make `slotIdOf` return `i` for custom rows → criteria 3 and 5 fail.
   - Sabotage 2: delete the source before writing the target → 4(d) loses entries.
 - **Files:**
-  - `index.html`: 7632, 9111–9425, 27041–27070, 27202, 27274–27302, 28700–28900, 31621, 31899, 32029–32341, `APP_VERSION` (7625), `WHATS_NEW` (7643).
+  - `index.html`: 7632, 9121–9435, 14565–14596, 27051–27108, 27212, 27269–27315, 27700–27725, 28710–28910, 31630–31640, 31908–31915, 32019–32351, `APP_VERSION` (7625), `WHATS_NEW` (7643).
   - `sw.js`, the new test.
+  - **Re-pin (these break when `wireSetsBlock` and `buildExerciseHistoryHtml` call `slotIdOf`, because their sandboxes stub the key functions and have no `slotIdOf`):**
+    - the seven `wireSetsBlock` suites: `test-auto-check-sets.js` (171), `test-set-next-button.js` (61), `test-partial-set-reactions.js` (51), `test-fallback-entry-consolidation.js` (42), `test-backdating-rest-timer-suppression.js` (60), `test-superset-rest-timer-suppression.js` (50), `test-superset-shared-sets-block-wiring.js` (54). Each stubs `window.exKey` at the line shown; add `window.slotIdOf = (ex, i)=> i;` beside it. That keeps every existing expectation (built-in rows resolve to `i`).
+    - `test-open-screen-2-0.js`: add `'slotIdOf'` and `'slugifyExerciseName'` to `HIST_FNS` (line 96), since it runs the real `buildExerciseHistoryHtml`.
+    - Name every re-pin in the PR.
   - **Guards (run; re-pin only if one breaks):**
     - `test-exercise-substitution.js` and `test-watersports-program.js` (they call the key functions);
-    - the seven `wireSetsBlock` suites (`test-auto-check-sets.js`, `test-set-next-button.js`, `test-partial-set-reactions.js`, `test-fallback-entry-consolidation.js`, `test-backdating-rest-timer-suppression.js`, `test-superset-rest-timer-suppression.js`, `test-superset-shared-sets-block-wiring.js`);
-    - `test-accumulation-accessory-add.js`, `test-custom-exercise-style-scoping.js`, `test-import-backup-full-replace.js`, `test-cross-program-history.js`, `test-next-set-recommendation.js`, `test-set-chips.js`.
+    - `test-superset-chips.js` (64–65) and `test-tap-target-hit-areas.js` (110) pin the `data-ex-idx` markup, which stays the render index;
+    - `test-region-override.js` (85, 121: call counts inside `getSessionHeadsUpInsight` and `renderWorkout`);
+    - `test-accumulation-accessory-add.js`, `test-custom-exercise-style-scoping.js` (its v7 migration sandbox stubs `SCHEMA_VERSION: 7`, so the v9 block runs there too; it must stay inside its own `try`), `test-import-backup-full-replace.js`, `test-backup-excludes-keys.js` (stubs `SCHEMA_VERSION = 8`), `test-cross-program-history.js`, `test-next-set-recommendation.js`, `test-set-chips.js`.
 - **Risk:**
   - A stored-data migration on the history store.
   - If the body goal or the custom list changed after a set was logged, that set sits at a position the current order doesn't predict, and may move to a neighbour's stable key. Rare; it's the same position the app reads today.
   - Every later item that bumps `SCHEMA_VERSION` moves up one (expected: BL-52 10, BL-37 11, BL-38 12, BL-39 13, BL-40 14).
 - **Tools:** `code-review` at high (history keys and migration).
+- **Spec refresh 2 (2026-11-09, against v3.527):** every line re-grepped at v3.527. Added the missed render-index read in `applyExerciseSubs` (27101; criterion 2b), the four enclosing functions to criterion 2's count, and the re-pins found by reading the suites: the seven `wireSetsBlock` sandboxes and `test-open-screen-2-0.js` need a `slotIdOf` stub or extract. Scope unchanged.
 - **Status:** ready (owner yes 2026-11-08: "1 yes"; this changes stored data, and the owner approved it explicitly). Roadmap slot 8a, before BL-36.
 
 ### BL-73: A stored substitute only applies if it's a listed substitute for that exercise
-- **Why:** `applyExerciseSubs` (27085) applies any name stored at a slot's selection key (27091) whenever the slot's current exercise is in `EXERCISE_SUBS`. It never checks that the stored name is one of that exercise's alternatives. If a slot's exercise changes (BL-35's rename, BL-37 and BL-38's rebuilds, or any future edit), an old choice, such as 'DB Shoulder Press' picked for Overhead Press, silently replaces the new exercise. The picker (27270–27302) only ever stores `EXERCISE_SUBS` alternatives, so a valid choice always passes the check. Owner, 2026-11-08: cover this ("1 yes").
-- **Change:** at 27094 (the `if(subName && subName !== ex.name)` test), apply only when `(EXERCISE_SUBS[ex.name] || []).includes(subName)`. This is read-time only; nothing stored is deleted, so if the exercise ever returns, the old choice applies again.
+- **Why:** `applyExerciseSubs` (27095) applies any name stored at a slot's selection key (27101) whenever the slot's current exercise is in `EXERCISE_SUBS`. It never checks that the stored name is one of that exercise's alternatives. If a slot's exercise changes (BL-35's rename, BL-37 and BL-38's rebuilds, or any future edit), an old choice, such as 'DB Shoulder Press' picked for Overhead Press, silently replaces the new exercise. The picker (`openExerciseSubModal`, 27269–27315) only ever stores `EXERCISE_SUBS` alternatives, so a valid choice always passes the check. Owner, 2026-11-08: cover this ("1 yes").
+- **Change:** at 27104 (the `if(subName && subName !== ex.name)` test), apply only when `(EXERCISE_SUBS[ex.name] || []).includes(subName)`. This is read-time only; nothing stored is deleted, so if the exercise ever returns, the old choice applies again.
 - **Acceptance criteria** (real `applyExerciseSubs` with the real `EXERCISE_SUBS`):
   1. A stored 'Front Squat' at a slot whose exercise is 'Bench Press' is **not** applied (the name stays 'Bench Press', with no `__isSubbed`).
   2. A stored 'Incline DB Press' for 'Bench Press' **is** applied, exactly as at v3.524.
   3. The existing cases in `test-exercise-substitution.js` (custom and focus rows skipped; not-in-map skipped) are unchanged.
 - **Test plan:** extend `test-exercise-substitution.js`. Sabotage: remove the `includes` check → criterion 1 fails.
-- **Files:** `index.html` (27085–27100, `APP_VERSION`, `WHATS_NEW`), `sw.js`, `test-exercise-substitution.js`.
+- **Files:** `index.html` (27095–27108, `APP_VERSION` 7625, `WHATS_NEW` 7643), `sw.js`, `test-exercise-substitution.js` (it already extracts `applyExerciseSubs`, `subSelectionKey` and `EXERCISE_SUBS`; at v3.527 `'Bench Press'` lists `['Incline DB Press', 'Push-up']`, 13768). Guards: `test-exercise-swap-tap-target.js`, `test-superset-field-chaining.js` (both stub `openExerciseSubModal`; unaffected).
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; BL-72 changes 27101's key to `slotIdOf`, so build this on top of BL-72's version of the function. Scope unchanged.
 - **Risk:** if a later item edits `EXERCISE_SUBS` (BL-60), a previously chosen substitute that's no longer listed stops applying. The row shows the default exercise, and the substitute's history stays under its `:sub:` key. That's intended: the list was changed for a reason.
 - **Status:** ready (owner yes 2026-11-08: "1 yes", problem 2). Roadmap slot 8b, right after BL-72.
 
 ### BL-74: History keys follow the authored position, not the rendered one (found while specifying BL-72)
 - **Why:**
-  - Built-in rows are keyed by **render** index too (28860).
-  - The program builder's overrides can **remove** or **reorder** a day's exercises (`applyExOverrides`, 46914–46947). Session-length trimming can drop a whole warm-up or cool-down unit from anywhere in the day (`applySessionLengthLimit`, 26915; pass 2).
+  - Built-in rows are keyed by **render** index too (28870).
+  - The program builder's overrides can **remove** or **reorder** a day's exercises (`applyExOverrides`, 46934–46967). Session-length trimming can drop a whole warm-up or cool-down unit from anywhere in the day (`applySessionLengthLimit`, 26926; pass 2).
   - Either way, every later exercise reads and writes the next exercise's history. For example, removing exercise 1 makes exercise 2 log onto exercise 1's key.
-  - `__srcIndex` (28779) already records each row's authored position. Only the exercise editor uses it (29529).
-- **Change:** `slotIdOf` (BL-72) returns `ex.__srcIndex` for built-in rows instead of `i`. That's one line.
+  - `__srcIndex` (28789) already records each row's authored position. Only the exercise editor uses it (29539).
+- **Change:** `slotIdOf` (BL-72) returns `ex.__srcIndex ?? i` for built-in rows instead of `i`. That's one line.
+  - The `?? i` matters: `getSessionHeadsUpInsight` (14576) and `computeProgramFitTrend` (27709) copy the authored `day.exercises` without `__srcIndex`, and there the loop index already is the authored position. Without the fallback their keys become `…:undefined`.
+  - Because BL-72 routes `applyExerciseSubs` (27101) and `openExerciseSubModal` (27310–27312) through `slotIdOf`, the stored swap follows the authored position too, so a row's swap and its history stay together.
+  - **Flagged, not in scope:** the weekly check-box state (`completed[i]`, `data-idx`, 28777) stays render-indexed. It resets weekly, so the harm is at most one week's ticks after an override.
 - **Why needs-owner:** anyone who has already removed or reordered an exercise, or trains with a shortened session, has sets stored under the shifted keys. Switching makes the right history show from now on, but past sets logged while shifted stay under the wrong exercise's key. A migration can't tell them apart before BL-51's name stamps exist.
 - **Options:**
   - (a) Switch now; past shifted sets stay where they are (BL-51's name filter later hides them from suggestions).
   - (b) Switch after BL-51 has stamped names for a few weeks, and add a relocation step (BL-37's helper) for stamped entries.
   - The auditor recommends (a): the bug writes new wrong data every session until it's fixed.
-- **Acceptance criteria (either option):** with an override removing d1's exercise 1, the real `getExLog` for exercise 2 reads `…:d1:2`, not `…:d1:1`. With a trimmed warm-up unit, the main exercise keeps its authored key.
+- **Acceptance criteria** (real `slotIdOf`, `exKey`, `getExLog`, `applyExOverrides`, `applySessionLengthLimit`):
+  1. With a real `applyExOverrides` removing strength d1's exercise 1, `slotIdOf` for the row now at render index 1 is `2`, and the real `getExLog` reads `ex:strength:d1:2`, not `…:d1:1`.
+  2. With a reorder override (exercise 3 given `order: 0`), the row rendered first resolves to `3`.
+  3. With a real `applySessionLengthLimit(…, 30)` that drops a leading warm-up unit, the main exercise keeps its authored key.
+  4. A row with no `__srcIndex` (the `getSessionHeadsUpInsight` copy) resolves to `i`.
+  5. BL-72's custom, focus and bonus prefixes still win over `__srcIndex`.
+- **Test plan:** extend `test-stable-trailing-keys.js` (BL-72's). Sabotage: drop `__srcIndex` (return `i`), and criteria 1–3 fail; drop `?? i`, and criterion 4 fails.
+- **Files:** `index.html` (`slotIdOf`, beside `exKey` 27064; `APP_VERSION` 7625; `WHATS_NEW` 7643), `sw.js`, `test-stable-trailing-keys.js`. Guards: everything BL-72 names, with its re-pinned `slotIdOf = (ex, i)=> i` stubs (they don't exercise this line).
+- **Risk:** the owner's past shifted sets stay under the shifted keys (option (a)). The What's New line says history now follows each exercise even after you remove or reorder one.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the `?? i` fallback, the swap-follows-history note, the check-box flag, and per-criterion real invocations added. Scope unchanged.
 - **Status:** ready (after BL-72; owner chose **(a)** on 2026-11-08: switch now, past shifted sets stay where they are). Build as soon as BL-72 has merged.
 
 ### BL-75: No carry swap for a resting shoulder (BL-71 follow-up)
@@ -447,17 +475,18 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - Powerlifting Squat 5×5 → 3×5;
   - Strength & Size Bench Press 4×4–6 → 3×4–6.
 
-  Yet `PROGRAM_FIT_SCORES.performance` (33586) ranks powerlifting 70. The stand's 2–3 sets is a minimum, not a sport ceiling [ACSM26]; accumulated heavy volume drives strength [PEL].
-- **Change:** in the `strength` branch of `applyGoalVolume` (26699–26708), skip when `getRepRangeTier(ex.sets) === 'strength'` (27715) **or** the program is `powerlifting` or `powerbuilding`.
+  Yet `PROGRAM_FIT_SCORES.performance` (33739) ranks powerlifting 70. The stand's 2–3 sets is a minimum, not a sport ceiling [ACSM26]; accumulated heavy volume drives strength [PEL].
+- **Change:** in the `strength` branch of `applyGoalVolume` (26743–26750, inside 26710–26751), skip when `getRepRangeTier(ex.sets) === 'strength'` (27821) **or** the program is `powerlifting` or `powerbuilding`.
   - *Spec refresh (2026-11-08):* the old text also listed `oly`. Since BL-01 (v3.518), `applyGoalVolume` returns early for every program outside `VOLUME_MODIFIER_PROGRAMS`, `oly` included, so Olympic Snatch already keeps 5×2 and an `oly` clause would be dead code. Dropped; no behaviour change.
 - **Acceptance criteria** (the real `applyGoalVolume` with the real program tables, as `test-volume-modifier-gate.js` runs it):
-  1. Goal performance, powerlifting d1 (`index.html` 10470): Squat stays `5×5`. (At v3.518 it becomes `3×5`, so this criterion fails before the change.)
+  1. Goal performance, powerlifting d1 (`index.html` 10507): Squat stays `5×5`. (At v3.518 it becomes `3×5`, so this criterion fails before the change.)
   2. Goal performance, Strength & Size d1: Bench Press `4×4-6` (strength tier) stays `4×4-6`; Barbell Row `4×6-8` (hypertrophy tier) still becomes `3×6-8`.
   3. Goal performance, every powerbuilding day: no exercise's set count falls.
   4. Goal gain is unchanged on all four lifting programs (snapshot every day before and after).
 - **Test plan:** extend `test-volume-modifier-gate.js` (add `getRepRangeTier` to its chunks). Sabotage: remove the skip, and criteria 1–3 must fail.
-- **Files:** `index.html` (26673–26712), `sw.js`, `test-volume-modifier-gate.js`. No other suite extracts `applyGoalVolume` (checked at v3.518).
+- **Files:** `index.html` (26710–26751), `sw.js`, `test-volume-modifier-gate.js`. No other suite extracts `applyGoalVolume` (re-checked at v3.527). `test-lb-per-kg-consolidation.js` extracts `getRepRangeTier` but isn't affected.
 - **Risk:** depends on BL-01 (done, v3.518). Strength & Size users on goal performance keep more sets on their heavy lifts; the What's New line says so.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped. Scope unchanged.
 - **Status:** ready
 
 ### BL-08: Double progression requires every working set at the top of the range (H-2)
@@ -499,23 +528,26 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Status:** ready (after BL-02)
 
 ### BL-09: Readiness compares weekly RPE to the week's own target (H-7)
-- **Why:** `READINESS_RPE_HIGH = 8.5` (46835), but RPE mode prescribes 8.5 in week 3 and 9 in week 4. Doing exactly what's prescribed gets flagged as fatigue.
+- **Why:** `READINESS_RPE_HIGH = 8.5` (47129), but RPE mode prescribes 8.5 in week 3 and 9 in week 4 (`RPE_BY_CYCLE_WEEK`, 27483). Doing exactly what's prescribed gets flagged as fatigue.
 - **Change:**
-  - `computeReadiness` (46843) takes `rpeTarget`. It flags when `weeklyRpe >= rpeTarget + 1.0` or `weeklyRpe >= 9.5`.
-  - `getReadinessInsight` (14560) passes `targetRpeForWeek(await getMesocycleWeek())`, or 6 in a deload week.
+  - `computeReadiness` (47137) takes `rpeTarget`. It flags when `weeklyRpe >= rpeTarget + 1.0` or `weeklyRpe >= 9.5`.
+  - `getReadinessInsight` (14611; the `computeReadiness` call is at 14623) passes `rpeTargetFor(await getMesocycleWeek(), await isDeloadWeek(), activeProgram)` (27524).
+  - *Spec refresh 2:* the old text said `targetRpeForWeek(…)`, "or 6 in a deload week". Since BL-02 (v3.519), `rpeTargetFor` is "the ONE place a target RPE is decided" (its comment, 27489): it already returns 6 in a deload week (manual deloads included, via `isDeloadWeek`, 14966) and caps the clinical plans and Senior at 7. Calling it keeps one effort vocabulary (summit R7). With no category argument it never returns `null`, so the technique-lift branch doesn't apply.
 - **Acceptance criteria:**
-  1. Week 4 (target 9) with weekly RPE 9.0: no `rpe` flag.
+  1. Real `computeReadiness`: week 4 (target 9) with weekly RPE 9.0: no `rpe` flag.
   2. Week 2 (target 8) with 9.2: flag.
   3. 9.6 in any week: flag.
   4. Without `rpeTarget`, falls back to today's 8.5 rule. The pure-function contract is kept.
-- **Test plan:** extend `test-today-priorities.js`, or add `test-readiness-rpe-target.js`, with a real `computeReadiness`. Sabotage: revert the threshold.
-- **Files:** `index.html` (46835–46860, 14560–14590), `sw.js`, the test.
+  5. Real `getReadinessInsight` with stubbed data sources, `getMesocycleWeek` → 4, `isDeloadWeek` → false and `activeProgram = 'medical'`: a weekly RPE of 8.0 is flagged (target 7), and with `'strength'` it isn't.
+- **Test plan:** new `test-readiness-rpe-target.js`, with the real `computeReadiness`, `getReadinessInsight`, `rpeTargetFor`, `targetRpeForWeek`, `cycleWeekOf`, `RPE_BY_CYCLE_WEEK` and `DELOAD_CYCLE_WEEKS`. (`test-today-priorities.js` mounts `getReadinessInsight` as a stub, so it can't host criterion 5.) Sabotage: revert the threshold, and criterion 1 fails.
+- **Files:** `index.html` (47125–47175, 14611–14640), `sw.js`, `test-readiness-rpe-target.js` (new). Guards: `test-today-priorities.js` (48–49 pin `computeReadiness`'s sleep rule and `READINESS_SLEEP_LOW = 6`; keep both), `test-cycle-phase-nutrition-insight.js` (132) and `test-supplement-condition-cycle-nudge.js` (243) stub `getReadinessInsight`, so they're unaffected.
 - **Risk:** Today priorities. Guarded by `test-today-priorities.js`.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the target now comes from BL-02's `rpeTargetFor`; criterion 5 and the test file decided. Scope unchanged: the flag still compares the week's RPE with the week's own target.
 - **Status:** ready
 
 ### BL-10: A target RIR on every prescription (H-5)
 - **Why:** in default mode "3×10–12" carries no effort target. Hypertrophy improves closer to failure while strength is flat across RIR [ROB24]; failure isn't required [REF23].
-- **Change:** a pure function, `targetRirLabel(ex, program)`. It reuses `getRepRangeTier` (27678), `COMPOUND_CATEGORIES` and the BL-02 program classes:
+- **Change:** a pure function, `targetRirLabel(ex, program)`. It reuses `getRepRangeTier` (27821), `COMPOUND_CATEGORIES` (26777) and BL-02's program classes (`medical` and `senior`, as `rpeTargetFor` reads them, 27524):
   - strength tier: "2–3 RIR (last set 1–2)";
   - hypertrophy compound: "1–3 RIR";
   - isolation: "0–2 RIR";
@@ -523,48 +555,64 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - medical or senior: "3–4 RIR";
   - no parseable reps: no label.
 
-  It renders as a small label beside the sets string in the exercise row. RPE mode keeps its own badge.
-- **Acceptance criteria:** one rendered row per class shows the exact label. Cardio and time-based rows show none. The label element has an accessible text equivalent ("reps in reserve").
+  It renders as a small label beside the sets string in the exercise row: the `.ex-sets` cell of `headerInnerHtml` in `renderWorkout` (29238). RPE mode keeps its own badge.
+  - *Spec refresh 2:* `renderWorkout` can't be driven in jsdom, so the markup comes from one small pure helper beside `targetRirLabel`, `rirLabelHtml(ex, program)`, which returns `''` or the label span. `renderWorkout` calls it once, inside `.ex-sets`.
+- **Acceptance criteria:**
+  1. Real `targetRirLabel` returns the exact `short` and `words` per class: Back Squat `5×5` (strength tier), Barbell Row `4×6-8` (hypertrophy compound), Lateral Raise `3×12-15` (isolation), Power Clean `5×3` (oly), Box Jump (jump), Bench Press on `'medical'` and on `'senior'`.
+  2. Cardio (`Easy Run 25-30 min`), timed (`Plank 3×45s`) and AMRAP rows return no label (`null` or empty `short`).
+  3. Real `rirLabelHtml`, parsed with jsdom, gives one element whose text is `short` and whose `aria-label` is `words` (the accessible equivalent says "reps", not "RIR").
+  4. Real-call count: the extracted `renderWorkout` (comments stripped) makes exactly 1 `rirLabelHtml(` call, inside the `.ex-sets` template.
 - **Test plan:** new `test-rir-target-label.js`: the pure function, plus the real row markup in jsdom. Sabotage: return `''`.
-- **Files:** `index.html` (row render near 28750–29030), `sw.js`, the test.
+- **Files:** `index.html` (helpers beside `getRepRangeTier` 27821; the `.ex-sets` cell at 29238), `sw.js`, `test-rir-target-label.js` (new). Guards: `test-workout-card-type-scale.js`, `test-label-floor.js`, `test-tap-target-hit-areas.js`; and the suites that pin `renderWorkout` source (`test-region-override.js`, `test-today-priorities.js`, `test-volume-modifier-gate.js`, `test-up-next.js`, `test-set-chips.js`), which must still pass.
 - **Risk:** row layout at 402 px. Guarded by `test-workout-card-type-scale.js`, `test-label-floor.js` and `test-tap-target-hit-areas.js`.
 - **Tools:** `impeccable clarify`, `apple-hig` (type floor).
 - **Alignment note (2026-11-07, design-engineer):** "2–3 RIR (last set 1–2)" is jargon on a 150 px cover read from a metre away. `targetRirLabel` returns `{short, words}`: `short` is the label above, and `words` is plain English ("Stop 2–3 reps short; last set 1–2"; "Stop 3+ reps short; speed over grind"). The row shows `short` with `words` as its accessible name, and the cover (UX-06a) shows `words`. Add one criterion per class for `words`.
 - **Summit note (summit 2026-11-07):** This is the **single effort vocabulary** (summit R7). The cover, the row, the rest steppers (UX-08), the first-set hint (BIZ-05) and the badge all read `targetRirLabel` / `rpeTargetFor`. Note that week 3 is RPE 8.5 (`RPE_BY_CYCLE_WEEK`, 27409), so RPE-mode wording follows `rpeTargetFor`, not a hard-coded "RIR 2".
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; criteria rewritten as real invocations of two pure helpers plus a real-call count, since the row itself can't be rendered in jsdom. The alignment note's `{short, words}` shape is folded into criteria 1 and 3. Scope unchanged.
 - **Status:** ready
 
 ### BL-11: Rep and time progression for bodyweight and timed work (H-8, part 1)
-- **Why:** `computeSuggestedSet` returns `null` when `weight == null` (27813). Bodyweight, Calisthenics, Core and Pilates therefore never progress. Progressive overload is the core recommendation [ACSM26].
-- **Change:** a weightless branch, `suggestRepProgression(pastSessions, ex)`. When every set reached the top of the range, or the hold time, in 2 consecutive sessions:
+- **Why:** `computeSuggestedSet` (27980) returns `null` when `weight == null` (27981). Bodyweight, Calisthenics, Core and Pilates therefore never progress. Progressive overload is the core recommendation [ACSM26].
+- **Change:** a weightless branch, `suggestRepProgression(log, ex, program)` (*spec refresh 2:* takes the raw log, not `pastSessions`; see the note under Files). When every set reached the top of the range, or the hold time, in 2 consecutive sessions:
   - suggest +1 rep per set, or +5 s for holds;
   - above 15 reps or 60 s, suggest a harder variant in words ("Ready for a harder variation"), without swapping anything.
 
   It is excluded for `medical` and `senior` (SAF-1 principle).
 - **Acceptance criteria:**
-  1. Push-up `4×8-12`, two sessions all at 12 reps: the reps placeholder suggests 13.
+  1. Real `suggestRepProgression(log, ex, program)` over a raw log: Push-up `4×8-12`, two past sessions with every set at 12 reps and no weight: suggests 13.
   2. Plank `3×45s`, two sessions at 45 s: suggests 50 s.
-  3. Medical program: no suggestion.
-  4. Weighted exercises: `computeSuggestedSet` output is unchanged.
+  3. Push-up at 16 reps in both sessions: no number, the words "Ready for a harder variation".
+  4. Medical and Senior: no suggestion.
+  5. One qualifying session only: no suggestion.
+  6. Weighted exercises: real `computeSuggestedSet` output is unchanged (snapshot over fixtures).
+  7. Real-call count: the reps placeholder expression in `renderWorkout` (29139) takes the suggestion when there is one, with exactly 1 `suggestRepProgression(` call in `renderWorkout` (comments stripped).
 - **Test plan:** new `test-bodyweight-progression.js`. Sabotage: remove the 2-session rule.
-- **Files:** `index.html` (27530, 27812, render near 28766), `sw.js`, the test.
-- **Risk:** set chips for bodyweight rows. Guarded by `test-set-chips.js` and `test-gym-set-chips.js`.
+- **Files:** `index.html` (a pure helper beside `computeSuggestedSet` 27980; the reps placeholder at 29139 in `renderWorkout`), `sw.js`, `test-bodyweight-progression.js` (new).
+- **Note:** `buildPastSessions` (27673) drops any session whose `topSetOf` (27224) finds no set, and `topSetOf` skips every set with `weight == null` (27227). So weightless sessions never reach it: the helper must read the log entries' `sets` directly (most recent two dates other than `selectedLogDate`, the same filter `buildPastSessions` uses), not through `buildPastSessions`. Don't change `buildPastSessions`: seven suites stub it.
+- **Risk:** set chips for bodyweight rows. Guarded by `test-set-chips.js` and `test-gym-set-chips.js`. BL-56 (slot 26a) marks more moves `noWeight` first, so more rows get this.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; criteria split into real invocations of the helper plus one real-call count (the row can't be rendered in jsdom); the `topSetOf` caveat added. Scope unchanged.
 - **Status:** ready
 
 ### BL-12: Copy that matches the code (H-4 copy, L-2, L-1 for in-app tips)
 - **Why:**
-  - The Bodybuilding overview (9789) says "Every muscle is trained at least twice a week". The computed dose is chest, quads and lats 1×/wk (H-4).
-  - The bodybuilding tip "Deload every 6-8 weeks" (33118) contradicts the 5-week engine (`DELOAD_CYCLE_WEEKS`, 14903) [BELL23].
-  - The sleep tip "Growth hormone release peaks in deep sleep, directly supporting repair" (33116) is unsupported (L-1).
-  - The bodybuilding insight (28421) says to "slow the eccentric", but 0.5–8 s reps grow similarly [DUR15].
+  - The Bodybuilding overview (`programs.bodybuilding.overview`, 9840) says "Every muscle is trained at least twice a week". The computed dose is chest, quads and lats 1×/wk (H-4).
+  - The bodybuilding tip "Deload every 6-8 weeks" (`TIPS_BY_PROGRAM.bodybuilding`, 33314) contradicts the 5-week engine (`DELOAD_CYCLE_WEEKS`, 14954) [BELL23].
+  - The sleep tip "Growth hormone release peaks in deep sleep, directly supporting repair" (33312, same list) is unsupported (L-1).
+  - The bodybuilding insight (`DEFAULT_INSIGHTS_BY_PROGRAM.bodybuilding`, 28606) says to "slow the eccentric down… for more growth stimulus", but 0.5–8 s reps grow similarly [DUR15].
 - **Change:** text only:
   - overview → "…Most muscles get one hard session a week plus indirect work; pick Strength & Size if you want each muscle twice.";
   - tip → "Deload every 4–6 weeks (the app schedules every 5th)";
   - sleep → "Sleep 7–9 hrs: short sleep lowers training performance and recovery.";
-  - insight → the audit's §4 rewrite.
-- **Acceptance criteria:** each of the four rendered strings matches its new text exactly, and the old phrases are absent from the real rendered DOM.
+  - insight → the audit's §4 rewrite (`program-audit.md` line 359): keep the first sentence; replace the eccentric sentence with "Rep speed from about 0.5-8 s grows muscle similarly; control the weight and take sets close to failure."
+- **Acceptance criteria:**
+  1. The real `programs.bodybuilding.overview`, `TIPS_BY_PROGRAM.bodybuilding` and `DEFAULT_INSIGHTS_BY_PROGRAM.bodybuilding` (extracted consts) contain the new text exactly.
+  2. The real `renderDayInsight` (28609) on a bodybuilding day with no matching `DAY_INSIGHT_RULES` pattern renders the new insight into `#dayInsight`, without "slow the eccentric".
+  3. "Every muscle is trained at least twice", "6-8 weeks" and "Growth hormone" appear nowhere in `index.html` outside comments (count real occurrences).
 - **Test plan:** new `test-copy-truth.js`. Sabotage: restore one old string.
-- **Files:** `index.html` (9789, 28421, 33116, 33118), `sw.js`, the test.
+- **Files:** `index.html` (9840, 28606, 33312, 33314), `sw.js`, `test-copy-truth.js` (new).
+- **Flagged, not in scope:** the `bodyweight` insight (28600) also says "slow the eccentric", but as an intensity lever without load, not a growth claim. Left alone.
 - **Risk:** overview length caps. Guarded by `test-concise-overviews.js` and `test-program-overview.js`.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; each string's container named; the audit rewrite quoted; criteria made real reads and one real render. Scope unchanged.
 - **Status:** ready
 
 ### BL-13: The menstrual-cycle card stops prescribing phase-based training (SAF-7)
@@ -581,21 +629,21 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Status:** ready
 
 ### BL-14: Unit-aware rest times (M-1)
-- **Why:** `getRepRangeTier` (27678) reads the first number after "×" as reps:
+- **Why:** `getRepRangeTier` (27821) reads the first number after "×" as reps:
   - Heavy Bag 6×2min → 240 s;
   - Sprint 6×40yd → 60 s;
   - max holds → 60 s.
 
-  Rest above 60 s helps hypertrophy slightly, with no added benefit beyond about 90 s [SING24]. Sprints and max holds need near-full recovery [PRAC]. The app's own Athletic tip (33132) says so.
+  Rest above 60 s helps hypertrophy slightly, with no added benefit beyond about 90 s [SING24]. Sprints and max holds need near-full recovery [PRAC]. The app's own plyometrics tip (`TIPS_BY_PROGRAM`, 33328: "Full recovery between reps") says so.
 - **Change:**
   - (a) `getRepRangeTier` returns `null` when the number is followed by `s|sec|min|m|yd|rounds|breaths|steps`.
-  - (b) `getDefaultRestSeconds` (27689) gets a unit branch:
+  - (b) `getDefaultRestSeconds` (27832) gets a unit branch:
     - rounds → 60 s (jump rope 45 s);
     - sprints ≤ 20 s or ≤ 40 yd → 120 s;
     - `pull`/`push`/`shoulder` holds in seconds → 120 s;
     - erg or run intervals → 90 s.
   - (c) Endurance tier: compound 60 → 120 s, isolation 60 → 75 s.
-  - `getRestReasonLabel` (27703) mirrors every branch.
+  - `getRestReasonLabel` (27846) mirrors every branch.
 - **Acceptance criteria:** the real function returns:
   - Heavy Bag `6×2min` → 60;
   - Sprint Intervals `6×40yd` → 120;
@@ -605,26 +653,29 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
   - Lateral Raise `3×15-20` → 75;
   - Back Squat `5×5` → 240, unchanged.
 
-  The label agrees with the number for each case.
+  The label agrees with the number for each case (real `getRestReasonLabel`, one distinct label per branch).
 - **Test plan:** new `test-rest-units.js`. Sabotage: drop the unit guard.
-- **Files:** `index.html` (27678–27712), `sw.js`, the test.
-- **Risk:** the rest timer. Guarded by `test-lb-per-kg-consolidation.js`, `test-set-next-button.js` and the superset rest-suppression suites.
+- **Files:** `index.html` (27821–27853), `sw.js`, `test-rest-units.js` (new).
+- **Risk:** the rest timer, and the session time estimate (`parseEstimatedMinutes`, 26501, reads `getDefaultRestSeconds`). Guards: the seven suites that extract the real `getDefaultRestSeconds` and `getRestReasonLabel` (`test-auto-check-sets.js`, `test-backdating-rest-timer-suppression.js`, `test-fallback-entry-consolidation.js`, `test-partial-set-reactions.js`, `test-set-next-button.js`, `test-superset-rest-timer-suppression.js`, `test-superset-shared-sets-block-wiring.js`) and `test-lb-per-kg-consolidation.js` (Back Squat 3×5 = 109 kcal through the rest time: strength tier, unchanged at 240 s, so it should hold). If the unit branch reads `exerciseInfo` categories it already has them in those sandboxes; if it reads anything new (a sprint name list), guard it with `typeof` as BL-57 does.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the tip reference corrected (the old 33132 line is the plyometrics tip at 33328); the seven extracting suites named. Scope unchanged.
 - **Status:** ready
 
 ### BL-15: The decrease signal waits for two short sessions (M-2)
-- **Why:** signal 2 in `analyzeProgressionSignal` (27500–27510) drops the load 7.5% after one session below the rep floor. Coached rules wait for repeated failure: Starting Strength resets after 3 stalls, and GZCLP changes the scheme first [PRAC].
+- **Why:** signal 2 in `analyzeProgressionSignal` (27616–27626) drops the load 7.5% after one session below the rep floor. Coached rules wait for repeated failure: Starting Strength resets after 3 stalls, and GZCLP changes the scheme first [PRAC].
 - **Change:**
   - Decrease only when `s0` **and** `s1` are both below the floor at the same or heavier load, or `s0.avgRpe >= 10`.
   - The drop is 5% for upper-body categories (`push`, `pull`, `shoulder`, `arms`) and 7.5% for lower body.
-  - `computeSuggestedSet` (27877–27882) uses the same figure.
+  - `computeSuggestedSet` (its decrease branch, 28060–28066) uses the same figure. Today both compute it separately (27621 and 28064, the same formula); after this item they must still agree.
 - **Acceptance criteria:**
-  1. One short session: no decrease.
-  2. Two short sessions on Bench at 200: decrease to `snapToLoadable(190)` or below.
+  1. Real `analyzeProgressionSignal`: one short session (s0 below the floor, s1 in range): no decrease.
+  2. Two short sessions on Bench at 200: decrease, and the real `computeSuggestedSet` returns `snapToLoadable(190, 'Bench Press', 'down')` or below.
   3. One short session at RPE 10: decrease.
-  4. The badge figure equals the field figure.
-- **Test plan:** extend `test-all-set-double-progression.js`. Sabotage: revert to the 1-session rule.
-- **Files:** `index.html` (27500–27510, 27877–27882), `sw.js`, the test.
-- **Risk:** same guards as BL-08.
+  4. The badge figure equals the field figure: the weight named in the real `buildProgressBadge` html equals `computeSuggestedSet`'s weight for the same fixture, for one upper-body and one lower-body lift.
+  5. Clinical plans keep their own gate: on `'medical'` the decrease rule is unchanged from v3.527 (BL-02's criteria in `test-rpe-safety-caps.js` still pass).
+- **Test plan:** extend `test-all-set-double-progression.js` (BL-08 creates it; if BL-08 hasn't merged, create `test-decrease-two-sessions.js` instead). Sabotage: revert to the 1-session rule, and criterion 1 fails.
+- **Files:** `index.html` (27616–27626, 28060–28066), `sw.js`, the test. **Re-pin:** `test-program-fit-trend.js` lines 59–68 ("decrease: reps fell below the rep floor…") feeds one short session (105×6 at RPE 9 after 100×9 at RPE 8, `3x8-10`) and expects `'decrease'`. Under this item that's no longer a decrease. Make the fixture two short sessions (for example s1 `{weight:105, reps:7, avgRpe:9}`), keep the expectation, and name it in the PR.
+- **Risk:** same guards as BL-08, plus `test-rpe-safety-caps.js` (extracts the real `analyzeProgressionSignal`, `computeSuggestedSet` and `buildProgressBadge`).
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; criteria made real invocations; the `test-program-fit-trend.js` re-pin found by running the logic against its fixture. Scope unchanged.
 - **Status:** ready
 
 ## Ready: first step of each bar-raiser
@@ -769,34 +820,43 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Status:** ready
 
 ### BL-23: One-tap early deload when the fit check says overreaching (M-6, part 2)
-- **Why:** consensus supports deloading early on fatigue signals [BELL23]. `buildProgramFitInsight` (27590) already detects `overreaching`, and `manualDeloadEnabled` (30181) already exists in Settings, two taps deep.
-- **Change:** when the program fit status is `overreaching` (27637), and this isn't a deload week, and manual deload is off, Today's priorities shows "Your logs suggest a deload. [Take it this week]". The button sets the same flag and storage key as `#manualDeloadToggle` (`manual-deload-pref`, 30198) and re-renders.
+- **Why:** consensus supports deloading early on fatigue signals [BELL23]. `buildProgramFitInsight` (27733) already detects `overreaching` (27741), `getCurrentTrendStatus` (27776) already returns that status, and `manualDeloadEnabled` (30375) already exists in Settings, two taps deep.
+- **Change:** when `getCurrentTrendStatus()` is `overreaching`, and `isDeloadWeek()` (14966) is false, and manual deload is off, Today's priorities (`renderTodayInsights`, 14667) shows "Your logs suggest a deload. [Take it this week]". The button sets the same flag and storage key as `#manualDeloadToggle` (`manual-deload-pref`, written at 30392 by the delegated handler 30389–30396) and re-renders. Reuse that handler's body (one small shared function both call), not a second copy of it.
 - **Acceptance criteria:**
-  1. Overreaching fixture: the row shows, and one click makes `manualDeloadEnabled === true` and stores `'1'`.
-  2. Thriving: no row.
-  3. Already a deload week: no row.
+  1. The real insight function with `getCurrentTrendStatus` stubbed to `'overreaching'`: the row shows; one real click on its button makes `manualDeloadEnabled === true`, stores `'1'` under `manual-deload-pref`, and calls `renderWorkout` once (stub).
+  2. `'thriving'` or `null`: no row.
+  3. `isDeloadWeek` → true: no row. `manualDeloadEnabled` already true: no row.
+  4. After the click, `#manualDeloadToggle` (if mounted) reads checked, via the real `applyManualDeloadPrefToUI`.
 - **Test plan:** extend `test-manual-deload-override.js`. Sabotage: skip the deload-week check.
-- **Files:** `index.html` (14616, 27590–27640, 30181–30200), `sw.js`, the test.
+- **Files:** `index.html` (Today's priorities near 14646–14735; 27733–27782 read only; 30375–30396), `sw.js`, `test-manual-deload-override.js`. **Re-pins if the row is a new getter in `renderTodayInsights` (14672–14676):** `test-cycle-phase-nutrition-insight.js` (its hand-written stubs, 125–140) and `test-supplement-condition-cycle-nudge.js` (230–245) define every other getter by name and run the real renderer, so each needs one `async function get…Insight(){ return null; }` line; name both in the PR. Guards: `test-today-priorities.js` (it builds its stubs from the real renderer's getter calls, line 30, so a new getter is stubbed automatically; the row also needs a place in the `order` list, 14704), `test-mesocycle-phase-tag.js` (reads `manualDeloadEnabled`), `test-today-emoji-free.js` (its getter list, 25–26, is a subset; optional to extend).
 - **Risk:** Today priorities ordering. Guarded by `test-today-priorities.js` and `test-manual-deload-override.js`.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; `getCurrentTrendStatus` named as the source, the shared toggle body asked for (no duplicate), criteria made real invocations, and the priority-getter suites that list every getter found. Scope unchanged.
 - **Status:** ready
 
 ### BL-24: Increments scale with strength (M-3)
-- **Why:** `CATEGORY_LOAD_INCREMENT` (27463) gives a fixed 10 lb on squat, hinge and oly. That's +7.4% on a 135 lb squat and +2.2% on a 455 lb one. Olympic lifts on a 10 lb Epley-based double progression scored **F** (audit scorecard) [PRAC].
+- **Why:** `CATEGORY_LOAD_INCREMENT` (27580) gives a fixed 10 lb on squat, hinge and oly. That's +7.4% on a 135 lb squat and +2.2% on a 455 lb one. Olympic lifts on a 10 lb Epley-based double progression scored **F** (audit scorecard) [PRAC].
 - **Change:**
-  - `getLoadIncrement(category, e1rm)` returns `max(table floor, e1rm × p)`, with p = 2.5% for lower body and 2% for upper compounds, snapped by `snapToLoadable` (32740).
+  - `getLoadIncrement(category, e1rm)` (27585) returns `max(table floor, e1rm × p)`, with p = 2.5% for lower body and 2% for upper compounds, snapped by `snapToLoadable` (32934).
   - Isolation stays at the floor.
   - The `oly` floor becomes 5 lb.
-  - Callers at 27504, 27518 and 27836 pass `recentBestE1RM`.
+  - **Owner question (spec refresh 2): the `squat` and `hinge` floors.** The spec contradicts itself. Criterion 2 wants a squat with e1RM 135 to get +5 lb, but with the table's 10 lb kept as the floor (the audit's M-3 text says "keep the current table as the floor"), max(10, 135 × 2.5%) = 10. With a 10 lb floor, no squat or deadlift step changes until e1RM passes about 600 lb (455 × 2.5% = 11.4 snaps to 10), so the item would change nothing for those lifts.
+    - (a) **Recommended:** the `squat` and `hinge` floors drop to 5 lb (the smallest two-plate jump with 2.5 lb plates). Lighter lifters get +5 lb steps, heavy lifters +10–15. Matches criterion 2 and the audit's complaint (+7.4% on a 135 lb squat).
+    - (b) Keep the 10 lb floor; drop criterion 2. Only `oly` changes in practice.
+    - Build with (a)'s criteria if the owner picks (a); with (b), criterion 2 becomes "+10 lb" and the What's New line says only Olympic steps changed.
+  - The three callers pass the e1RM: signal 2 (27621) and signal 3 (27661) pass `recentBestE1RM(pastSessions)` (27538); `computeSuggestedSet` (28012) passes `rpeCtx && rpeCtx.e1rm`, which `renderWorkout` builds from the same `recentBestE1RM(pastSessions)` (28951), so the badge and the field agree. With no e1RM, the floor applies.
 - **Acceptance criteria:**
-  1. Squat with e1RM 455 gets a +10 lb step (≈11.4, snapped).
-  2. Squat with e1RM 135 gets +5 lb.
-  3. Snatch gets +5 lb.
-  4. Lateral Raise stays at its table value.
-- **Test plan:** extend `test-all-set-double-progression.js`. Sabotage: ignore the e1RM.
-- **Files:** `index.html` (27463–27470, 27500–27530, 27836), `sw.js`, the test.
-- **Risk:** same guards as BL-08, plus `test-warmup-ramp-and-plates.js` for snapping.
+  1. Real `getLoadIncrement('squat', 455)` gives +10 lb (≈11.4, snapped).
+  2. `getLoadIncrement('squat', 135)` gives +5 lb.
+  3. `getLoadIncrement('oly', <any>)` gives +5 lb.
+  4. Lateral Raise (`shoulder`) stays at its table value with any e1RM.
+  5. `getLoadIncrement('squat')` with no e1RM returns the floor (5 under (a), 10 under (b)).
+  6. Real `analyzeProgressionSignal` and `computeSuggestedSet` for a squat with e1RM ≈ 455 name the same step (badge figure = field figure).
+- **Test plan:** extend `test-all-set-double-progression.js` (BL-08's; create `test-load-increment-scaling.js` if it doesn't exist yet). Sabotage: ignore the e1RM, and criterion 1 fails.
+- **Files:** `index.html` (27580–27587, 27616–27667, 28012), `sw.js`, the test. Two suites extract the real `getLoadIncrement` and `CATEGORY_LOAD_INCREMENT`: `test-rpe-safety-caps.js` (criterion 10 at 229–240 reads `getLoadIncrement('squat')` for its expectation, so it follows the new floor and should pass; if it fails, re-pin and name it) and `test-program-fit-trend.js` (21–22). If `getLoadIncrement` now calls `snapToLoadable`, both sandboxes need it: `test-rpe-safety-caps.js` already has it; `test-program-fit-trend.js` doesn't, so add it (and its equipment helpers) to that suite's chunks, or snap at the callers instead.
+- **Risk:** same guards as BL-08, plus `test-warmup-ramp-and-plates.js` for snapping. Under (a) the What's New line must say squat and deadlift steps drop to 5 lb for lighter lifters.
 - **Alignment note (2026-11-07):** the strength-scaled increment never applies to `medical` or `senior`: they keep BL-02's smallest loadable jump. Add a criterion asserting it (an e1RM of 200 on hypertension Seated Cable Row still gets the smallest jump).
-- **Status:** ready
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the e1RM source for each caller named; the two extracting suites found; the floor contradiction between criterion 2 and the kept table found and put to the owner. Scope otherwise unchanged.
+- **Status:** needs-owner (one question: should squat and deadlift steps start at 5 lb for lighter lifters? Recommend yes, option (a)). Slot 22 keeps its place; the loop skips it until answered.
 
 ### BL-25: Exercise cue corrections (L-1, audit §4)
 - **Why:** these cues contradict the evidence:
@@ -814,7 +874,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Status:** ready
 
 ### BL-26: Plateau message names the stall and offers choices
-- **Why:** long-term progression is Fitbod's top complaint (research §4). Today a stall is silent until the RPE-9 deload signal fires (27485–27497). GZCLP changes the rep scheme before cutting load [PRAC].
+- **Why:** long-term progression is Fitbod's top complaint (research §4). Today a stall is silent until the RPE-9 deload signal fires (signal 1 in `analyzeProgressionSignal`, 27602–27614). GZCLP changes the rep scheme before cutting load [PRAC].
 - **Change:** a new signal, `stall`, in `analyzeProgressionSignal`: 3 sessions at the same weight with `minRepsAtTop` not rising, and not RPE ≥ 9 (that's still `deload`). The badge offers three named options, as text:
   - "drop to the bottom of the range and add a set";
   - "swap variation (see substitutes)";
@@ -822,11 +882,15 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 
   Nothing changes automatically.
 - **Acceptance criteria:**
-  1. A fixture with 3 flat sessions gives `type 'stall'`, and the badge contains all three options.
+  1. Real `analyzeProgressionSignal` over 3 flat sessions (same weight, `minRepsAtTop` 6, 6, 6 on `4×6-8`, RPE 8) gives `type 'stall'`, and the real `buildProgressBadge` html contains all three options.
   2. 3 flat sessions at RPE 9+ still give `deload`.
+  3. Real `computeSuggestedSet` on a stall returns the same weight as last time (nothing changes automatically).
+  4. `computeProgramFitTrend` counts a stall as `hold` (its `else` branch, 27724), so the fit check's ratios are unchanged: assert with a real `buildProgramFitInsight` over the same counts.
+  5. Clinical plans: on `'medical'`, the same fixture gives `null`, as v3.527 (BL-02's gate returns before any new signal).
 - **Test plan:** extend `test-all-set-double-progression.js`. Sabotage: remove the RPE exclusion.
-- **Files:** `index.html` (27477–27545, 27742–27800), `sw.js`, the test.
-- **Risk:** same as BL-08. Depends on BL-08's `minRepsAtTop`.
+- **Files:** `index.html` (27594–27669, 27885–27978, 27980–28085), `sw.js`, the test. Guards: `test-rpe-safety-caps.js`, `test-deload-signal-week-awareness.js` and `test-today-workout-emoji.js` (they extract the real `buildProgressBadge`), `test-program-fit-trend.js`.
+- **Risk:** same as BL-08. Depends on BL-08's `minRepsAtTop`. The stall branch must sit after the clinical gate (27636–27654), so the clinical plans never see it.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; criteria 3–5 added as real invocations (the old two left the suggestion, the fit check and the clinical gate untested). Scope unchanged: still text only, no automatic change.
 - **Status:** ready (after BL-08)
 
 ---
@@ -1363,10 +1427,10 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 The builder's "Flagged, not fixed" notes on PR #63 (BL-01, v3.518), as small items. The RPE-ramp flag folded into BL-02 (its criterion 9) rather than becoming an item. Roadmap slots: BL-65 at 13a and BL-66 at 13b (after BL-07, so the coach's wording covers both BL-01 and BL-07); BL-67 runs outside the loop.
 
 ### BL-65: The coach's volume line matches the program gate (BL-01 follow-up)
-- **Why:** builder flag, PR #63 (v3.518). `buildCoachChatContext` (`index.html` 42701) builds its volume line (42858–42868) from the goal alone. With goal "gain" on any of the 21 gated programs it tells Claude "the app is adding one set per exercise to their sessions", which has been false since BL-01; with goal "performance" it says compounds are capped at 3 sets, also false there. A coach told the app adds volume may advise against extra work the person actually needs, or explain a set count they don't see.
+- **Why:** builder flag, PR #63 (v3.518). `buildCoachChatContext` (`index.html` 42873) builds its volume line (43030–43040; the three literals at 43034, 43036 and 43038) from the goal alone. With goal "gain" on any of the 21 gated programs it tells Claude "the app is adding one set per exercise to their sessions", which has been false since BL-01; with goal "performance" it says compounds are capped at 3 sets, also false there. A coach told the app adds volume may advise against extra work the person actually needs, or explain a set count they don't see.
 - **Change:**
-  - Move the line into one pure helper, `goalVolumeContextLine(goal, program)`, beside `goalVolumeAdjustment` (26661). `buildCoachChatContext` calls it once.
-  - When `!volumeModifiersApply(program)` (26752) and the goal is gain, lean bulk or performance: "Training volume: this program keeps its written set counts; the app doesn't add or cap sets by goal here. Don't assume extra goal volume."
+  - Move the line into one pure helper, `goalVolumeContextLine(goal, program)`, beside `goalVolumeAdjustment` (26698). `buildCoachChatContext` calls it once.
+  - When `!volumeModifiersApply(program)` (26789) and the goal is gain, lean bulk or performance: "Training volume: this program keeps its written set counts; the app doesn't add or cap sets by goal here. Don't assume extra goal volume."
   - On the four lifting programs and custom programs the text is unchanged, except that the performance line says what BL-07 made true: compounds in the hypertrophy rep range are capped at 3 working sets; heavy (≤ 5-rep) work and powerlifting and powerbuilding keep their sets.
   - The lose/recomp line is unchanged. Nothing else in the payload changes (CLAUDE.md fragile area: no `fetch`, `max_tokens` or `effort` change).
 - **Acceptance criteria** (real invocations of the helper):
@@ -1375,17 +1439,18 @@ The builder's "Flagged, not fixed" notes on PR #63 (BL-01, v3.518), as small ite
   3. `('performance','strength')` mentions the hypertrophy-range cap and that heavy work keeps its sets.
   4. `('lose', <any program>)` equals v3.518's lose/recomp line; `('maintain','strength')` is `''`.
   5. `buildCoachChatContext` makes exactly 1 real `goalVolumeContextLine(` call, passing `activeProgram`, and contains no "adding one set" literal of its own (comments stripped).
-- **Test plan:** extend `test-coach-chat-context.js`. Sabotage: drop the gate check, and criterion 1 must fail.
-- **Files:** `index.html` (26661 area for the helper; 42858–42868), `sw.js`, `test-coach-chat-context.js`.
+- **Test plan:** extend `test-coach-chat-context.js`. It extracts `coachChatApiMessages` and `sendCoachChatMessage` today, not `buildCoachChatContext`, so add `extractFunction(src, 'buildCoachChatContext')` for criterion 5 and run the helper with `goalVolumeAdjustment`, `volumeModifiersApply`, `VOLUME_MODIFIER_PROGRAMS` and `isCustomProgramKey` (14786) in its chunks. Sabotage: drop the gate check, and criterion 1 must fail.
+- **Files:** `index.html` (26698 area for the helper; 43030–43040), `sw.js`, `test-coach-chat-context.js`. No suite extracts `buildCoachChatContext` at v3.527, so nothing needs re-pinning.
 - **Risk:** the AI path is a CLAUDE.md fragile area; only the prompt string changes. Guarded by `test-ai-cross-metric-effort-fix.js` and `test-coach-chat-context.js`.
 - **Tools:** `Skill: claude-api` (prompt wording only).
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the test's missing extract named. Scope unchanged.
 - **Status:** ready (after BL-07)
 
 ### BL-66: The phase tag stops saying "Accumulation" where no block sets are added (BL-01 follow-up)
-- **Why:** builder flag, PR #63 (v3.518), foreseen in BL-01's Risk line. `mesocyclePhaseTag` (`index.html` 26774) labels weeks 1–4 "Week N of 5 · Accumulation" on every program. Its own comment says it names a phase only when `applyAccumulation` really implements it (26768–26773), and since BL-01 `applyAccumulation` does nothing on the 21 gated programs. The tag now makes the claim the comment forbids.
+- **Why:** builder flag, PR #63 (v3.518), foreseen in BL-01's Risk line. `mesocyclePhaseTag` (`index.html` 26811) labels weeks 1–4 "Week N of 5 · Accumulation" on every program. Its own comment says it names a phase only when `applyAccumulation` really implements it (26797–26810), and since BL-01 `applyAccumulation` does nothing on the 21 gated programs. The tag now makes the claim the comment forbids.
 - **Change:**
   - `mesocyclePhaseTag(cyclePos, inDeloadWeek, program)`: outside a deload week, when `!volumeModifiersApply(program)`, the text is "Week N of 5" with no phase word. Deload weeks keep "· Deload" everywhere (deload still runs on every program).
-  - The one call site, `renderWorkout` (28710), passes `activeProgram`.
+  - The one call site, `renderWorkout` (28858), passes `activeProgram`.
 - **Acceptance criteria** (real `mesocyclePhaseTag` with the real `volumeModifiersApply`, `VOLUME_MODIFIER_PROGRAMS`, `isCustomProgramKey`, `DELOAD_CYCLE_WEEKS`):
   1. `(3, false, 'medical')` → text `Week 3 of 5`, class `mesocycle-phase-tag`.
   2. `(3, false, 'strength')` and a custom program key → `Week 3 of 5 · Accumulation` (unchanged).
@@ -1393,8 +1458,12 @@ The builder's "Flagged, not fixed" notes on PR #63 (BL-01, v3.518), as small ite
   4. Every program in `Object.keys(programs)` outside the allowlist gets no "Accumulation" in weeks 1–4 (iterate; assert 21).
   5. `renderWorkout` makes exactly 1 real `mesocyclePhaseTag(` call, and it passes `activeProgram`.
 - **Test plan:** extend `test-mesocycle-phase-tag.js`. Sabotage: drop the program check, and criteria 1 and 4 must fail.
-- **Files:** `index.html` (26774–26777, 28710), `sw.js`, `test-mesocycle-phase-tag.js`. **Re-pin:** `test-today-priorities.js` line 66 asserts the literal call `mesocyclePhaseTag(cyclePos, inDeloadWeek)`, which the new third argument breaks; update it to the three-argument form and name it in the PR.
+- **Files:** `index.html` (26797–26815, 28858), `sw.js`, `test-mesocycle-phase-tag.js`. **Re-pins:**
+  - `test-mesocycle-phase-tag.js` itself: its `tagFor` helper (line 21) calls `mesocyclePhaseTag(cyclePos, inDeloadWeek)` with two arguments, and its chunks (13–16) hold only `DELOAD_CYCLE_WEEKS` and the function. With a missing program the new rule drops "Accumulation", so its week-1 and week-3 cases (24–34) fail. Pass `'strength'` from `tagFor`, and add `VOLUME_MODIFIER_PROGRAMS`, `volumeModifiersApply` and `isCustomProgramKey` to the chunks.
+  - `test-today-priorities.js` line 66 asserts the literal call `mesocyclePhaseTag(cyclePos, inDeloadWeek)`, which the new third argument breaks; update it to the three-argument form. Its line 63 pins the Deload template literal, so keep `Week ${cyclePos} of ${DELOAD_CYCLE_WEEKS} · Deload` written as is.
+  - Name both in the PR.
 - **Risk:** the day header. Guarded by `test-mesocycle-phase-tag.js`, `test-session-actions.js`, `test-up-next.js` and `test-today-priorities.js`.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the `test-mesocycle-phase-tag.js` re-pin found (its own fixtures call with two arguments). Scope unchanged.
 - **Status:** ready
 
 ### BL-67: Guard: no exercise substitute crosses the jump category (BL-01 follow-up)
@@ -1502,52 +1571,57 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
   |---|---|
   | Squat (68 slots) | Back Squat (17) |
   | Bench Press (58) | Flat Bench Press (7) |
-  | Seated Cable Row (49) | Cable Row (18); bodybuilding uses both (d2 9820, d6 9871) |
+  | Seated Cable Row (49) | Cable Row (19); bodybuilding uses both (d2 9857, d6 9908) |
   | Farmer's Carry (51) | Farmers Carry (Heavy) (9) |
-  | Standing Calf Raise (16) | Calf Raise (40) |
+  | Standing Calf Raise (17) | Calf Raise (40) |
 
   Switching between the Olympic or Hyrox program and Strength & Size loses "last time", the warm-up basis and a single PR line.
 - **Change:**
   - `EXERCISE_CANONICAL = {'Back Squat':'Squat', 'Flat Bench Press':'Bench Press', 'Cable Row':'Seated Cable Row', 'Farmers Carry (Heavy)':"Farmer's Carry", 'Calf Raise':'Standing Calf Raise'}` and `canonicalExName(n)`.
-  - Used **only** in `groupCorpusByExercise` (41524) and `getExerciseLocationIndex` (27090).
-  - Slot names, cues, `EXERCISE_SUBS` (13709), keys and logs are unchanged.
+  - Used **only** in `groupCorpusByExercise` (41696) and `getExerciseLocationIndex` (27127).
+  - Slot names, cues, `EXERCISE_SUBS` (13746), keys and logs are unchanged.
 - **Acceptance criteria:**
   1. A corpus with one Back Squat entry (oly) and one Squat entry (strength) gives one group named "Squat", with 2 entries and both day labels.
   2. The cross-program warm-up fallback for strength d2 Squat finds an oly Back Squat log.
   3. Without aliased names, the output is identical to today.
 - **Test plan:** extend `test-cross-program-history.js` and `test-pr-timeline.js` with real functions. Sabotage: empty the map.
-- **Files:** `index.html` (41524, 27090, the new const beside `EXERCISE_SUBS` 13709), `sw.js`, tests. **Re-pin likely:** `test-pr-timeline-class-naming.js:87` asserts `/Back Squat/` in the rendered PR row, and its fixture's only exercise is Back Squat, so the row will now read "Squat". `test-pr-timeline.js` uses Back Squat in two programs; it asserts dates and weights, not names, so it's expected to pass. Also run `test-app-2-0.js` and `test-performance-delta-colours.js` (both extract `groupCorpusByExercise`).
+- **Files:** `index.html` (41696, 27127, the new const beside `EXERCISE_SUBS` 13746), `sw.js`, `test-cross-program-history.js`, `test-pr-timeline.js`, `test-pr-timeline-class-naming.js` (re-pin below). **Re-pin likely:** `test-pr-timeline-class-naming.js:87` asserts `/Back Squat/` in the rendered PR row, and its fixture's only exercise is Back Squat, so the row will now read "Squat". `test-pr-timeline.js` uses Back Squat in two programs; it asserts dates and weights, not names, so it's expected to pass. **Re-pin (chunks):** four suites run the real functions and will throw on the new names unless `EXERCISE_CANONICAL` and `canonicalExName` join their chunks: `test-cross-program-history.js` (`buildChunks`, line 27), `test-watersports-program.js` (362), `test-pr-timeline.js` (33) and `test-pr-timeline-class-naming.js` (67). Name each in the PR. `test-app-2-0.js` (200) and `test-performance-delta-colours.js` (21) stub `groupCorpusByExercise`, so they're unaffected; run them anyway.
 - **Risk:** PR timelines merge. A heavier Back Squat PR from the Olympic program now counts for Squat, which is right for the same bar.
 - **Fold-in (2026-11-08):** line numbers moved to v3.518; the re-pin was found. Placed after MKT-06a (slot 19a), so the Year in Lifting deadline isn't pushed back; MKT-06b gets the merged names.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines and slot counts re-grepped; `test-watersports-program.js` added to the suites to run. Scope unchanged.
 - **Status:** ready
 
 ### BL-55: Cardio rows show a distance field only when distance is the measure, and it never blocks a finished set (D-5)
 - **Why:**
-  - `isDistanceExercise` (32584) is "category is cardio". The real-set check (`hasRequiredDistance`, 32044) requires a distance. So the rest timer and the gym-mode offer never fire on Burpees (29 slots), Battle Ropes (39), Wall Balls (13), Burpee Broad Jumps (9), Agility Ladder, every Jump Rope drill (82) and the jump-rope warm-up (105) until a distance is typed.
+  - `isDistanceExercise` (32741) is "category is cardio". The real-set check inside `wireSetsBlock` (`hasRequiredDistance`, 32201; `isRealSet`, 32202) requires a distance. So the rest timer and the gym-mode offer never fire on Burpees (29 slots), Battle Ropes (39), Wall Balls (13), Burpee Broad Jumps (9), Agility Ladder, every Jump Rope drill (82) and the jump-rope warm-up (105) until a distance is typed.
   - At least 147 cardio slots prescribe no distance at all.
 - **Change:**
-  - `isDistanceExercise(exName, setsStr)` is true when the prescription contains a distance unit (`\d\s*(m|yd|km|mi)\b`), or the name matches `/Run|Jog|Ride|Spin|Swim|Walk|Row|SkiErg|Sled|Strides|Repeats/`.
-  - All three callers pass the sets string: `renderWorkout` 28767, `wireSetsBlock` 31871, and the Analysis weekly-distance card 45650 (`exDef.sets`).
-  - `hasRequiredDistance` is dropped from `isRealSet` (32044–32045): reps or minutes alone complete a cardio set. The distance stays optional and is still saved.
+  - `isDistanceExercise(exName, setsStr)` is true when the exercise's category is `cardio` (today's rule, kept as a gate) **and** either the prescription contains a distance unit (`\d\s*(m|yd|km|mi)\b`) or the name matches `/Run|Jog|Ride|Spin|Swim|Walk|Row|SkiErg|Sled|Strides|Repeats/`.
+  - *Spec refresh 2:* the cardio gate is spelled out because the name pattern alone matches Barbell Row, Seated Cable Row, Upright Row and Farmer's Walk, which would grow a distance field. The title ("Cardio rows…") already scoped it to cardio.
+  - All three callers pass the sets string: `renderWorkout` 28915, `wireSetsBlock` 32028, and the Analysis weekly-distance card (`computeWeeklyCardio`, 45907; `exDef.sets`).
+  - `hasRequiredDistance` is dropped from `isRealSet` (32200–32202): reps or minutes alone complete a cardio set. The distance stays optional and is still saved.
+  - **Not changed, by design:** `checkAllSetsCompleteAndAutoCheck` (31993; the rule at 32006) still asks for a distance before it ticks the whole exercise off, whenever the row renders a distance field. With the new predicate that's only rows where distance is the measure (`400m Repeats`, runs), so a run logged with time only rests and counts as a set, but isn't ticked done until a distance is typed. Burpees and ropes lose the field, so they tick off on reps. Changing the tick rule is a separate item if the owner wants it.
 - **Acceptance criteria:**
   1. Burpees `4×10`: no distance input renders. Logging reps starts the rest timer (`startRestTimer` stub called once).
   2. `400m Repeats`: the distance input renders, and logging the time alone starts the timer.
   3. `Easy Run 25-30 min` keeps its distance field and pace display.
-  4. The Analysis weekly distance is unchanged for the same corpus.
+  4. The real `computeWeeklyCardio` (stubbed `readExCorpus`) gives the same metres as v3.527 for a corpus of Easy Run, 400m Repeats and Rowing entries with distances.
+  5. Real `isDistanceExercise` over every slot of `programs`: no non-cardio exercise returns true (sweep; asserts Barbell Row false), and every slot whose sets contain a distance unit returns true.
 - **Test plan:** new `test-cardio-distance-gate.js`, with the real `wireSetsBlock` and `isDistanceExercise` in jsdom. Sabotage: restore the old predicate, and criterion 1 fails.
-- **Files:** `index.html` (32584, 28767, 31871, 32040–32046, 45650), `sw.js`, the test. **Guards:** `test-partial-set-reactions.js` (lines 147–170: distance alone must still not fire, and distance plus reps must fire; both stay true) and the six other `wireSetsBlock` suites (they stub `isDistanceExercise = ()=> false`, so the new argument is harmless). `test-exercise-logger.js` asserts the Up Next logger hides distance on a lift, so run it.
+- **Files:** `index.html` (32741–32744, 28915, 32028, 32196–32203, 45907), `sw.js`, the test. **Guards:** `test-partial-set-reactions.js` (lines 147–170: distance alone must still not fire, and distance plus reps must fire; both stay true) and the six other `wireSetsBlock` suites (they stub `isDistanceExercise = ()=> false`, so the new argument is harmless). `test-exercise-logger.js` asserts the Up Next logger hides distance on a lift, so run it.
 - **Risk:** the pace and distance display and the cardio Analysis card. The suites above guard it.
 - **Fold-in (2026-11-08):** line numbers moved to v3.518. The third caller (45650) was added.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the cardio gate made explicit; the auto-tick rule noted as unchanged; criteria 4–5 made real invocations. `test-partial-set-reactions.js` 147–170 re-read: both cases still hold. Scope unchanged.
 - **Status:** ready
 
 ### BL-56: `noWeight` on moves that never take load, and load on the ones that do (D-4)
 - **Why:**
   - At least 98 slots of pure bodyweight moves show a weight field. Examples:
-    - Core d1 (`index.html` 10040–10043): Bird Dog, Dead Bug, Side Plank and McGill Curl-up;
-    - the Bodyweight program (10095): Glute Bridge, Bodyweight Squat, Jump Squat, Push-up to Plank and Bicycle Crunch;
+    - Core d1 (`index.html` 10077–10080): Bird Dog, Dead Bug, Side Plank and McGill Curl-up;
+    - the Bodyweight program (10132): Glute Bridge, Bodyweight Squat, Jump Squat, Push-up to Plank and Bicycle Crunch;
     - Jump Rope Bodyweight Squat (15 slots) and Single-Leg Bound (12).
   - The Bodyweight program's push, pull and leg moves show one too, against its "no equipment" overview.
-  - A weight is required before the set counts (`hasRequiredWeight`, 32043), so the rest timer doesn't start.
+  - A weight is required before the set counts (`hasRequiredWeight`, 32200), so the rest timer doesn't start.
   - 17 exercises are `noWeight` in some slots and not in others.
   - Wall Balls (a loaded ball) and Sled Pull are `noWeight`, while Sled Push isn't.
 - **Change** (slot field only; keys and logs unchanged):
@@ -1557,16 +1631,18 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
   - **Calisthenics** keeps load fields on Dip, Pull-up and Muscle-up (weighted calisthenics is normal).
 - **Acceptance criteria:**
   1. A real walk of every slot: none of the listed exercises in the listed programs lacks `noWeight`.
-  2. Bodyweight d1 Push-up renders no weight input, and reps alone start the rest timer.
-  3. Old entries with a weight still show it in History.
+  2. The real `wireSetsBlock` on a row built from the real Bodyweight d1 Push-up slot (its `noWeight` read from `programs`, not hand-written) with no `.ex-weight` input: reps alone start the rest timer (`startRestTimer` stub called once).
+  3. The real `buildExerciseHistoryHtml` over a stubbed log with an old weighted Push-up entry still prints the weight.
+  4. Sled Push, Sled Pull and Wall Balls agree: none is `noWeight` in any slot (sweep).
 - **Test plan:** new `test-noweight-consistency.js` (a slot sweep over `programs` plus the variant tables, and one real `wireSetsBlock` case). Sabotage: drop one slot's flag.
-- **Files:** `index.html` (program data 10034–10420 and the day-count variant tables), `sw.js`, the test. **Guards:** `test-partial-set-reactions.js:136` (reps alone finish a `noWeight` set), `test-configurable-training-days.js` and `test-volume-modifier-gate.js` (both walk the program data).
+- **Files:** `index.html` (program data: `core` 10071, `bodyweight` 10132, and every other program carrying the listed names; the day-count variants from 16241, notably `bodyweight` 17861 and `core` 18389; the `*_STYLES` tables), `sw.js`, the test. **Guards:** `test-partial-set-reactions.js:136` (reps alone finish a `noWeight` set), `test-configurable-training-days.js` and `test-volume-modifier-gate.js` (both walk the program data).
 - **Risk:** an owner who logs weighted push-ups in the Bodyweight program loses the field there. That's the owner's call. Placed before BL-11 (slot 26a), because BL-11's rep progression applies to rows without a weight.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; criteria 2–4 made real invocations (criterion 4 makes the Sled/Wall Balls change checkable). `test-partial-set-reactions.js:136` is still the reps-alone `noWeight` case. Scope unchanged.
 - **Status:** ready (owner yes 2026-11-08: "56 a"). Slot 26a, before BL-11.
 
 ### BL-57: The rest parser reads trailing multipliers, per-side mobility and swim repeats correctly (D-6, D-11; after BL-14)
 - **Why:**
-  - `getRepRangeTier` (27715) reads the first number after `×`, while `parseSetCount` (26424) already understands "N reps ×M". With the real `getDefaultRestSeconds` (27726):
+  - `getRepRangeTier` (27821) reads the first number after `×`, while `parseSetCount` (26461) already understands "N reps ×M". With the real `getDefaultRestSeconds` (27832):
     - 61 slots (`5 breaths ×3`, `6 reps ×3`, `3-5 min ×3`: yoga Flow and Hot, and all Tai Chi) get **240 s**;
     - about 100 slots of `2×5/side` mobility and technique drills (Hip CARs ×31, Shoulder CARs, World's Greatest Stretch, Pilates Saw, grappling passes, takedowns and submission drills) get 240 s;
     - Single-Leg Bound gets 90 s at `3×6/leg` but 240 s at `3×5/leg`;
@@ -1574,10 +1650,10 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
   - BL-14 (slot 25) fixes unit suffixes (`6×2min`, `6×40yd`). It doesn't fix trailing multipliers, per-side drills or swim repeats.
 - **Change** (inside `getRepRangeTier` / `getDefaultRestSeconds`, on top of BL-14's unit branch):
   1. A trailing multiplier (`/^\d+(-\d+)?\s*(reps?|breaths?|min)[^×]*×\s*\d+\s*$/`) → tier `null`; rest 30 s for breaths and forms, 60 s otherwise.
-  2. Category `core` or `shoulder` with `noWeight`, or a name in the mobility set (`EXERCISE_MOVE[name] === 'mobility'`, 13603) → never the strength tier; rest 45 s.
+  2. Category `core` or `shoulder` with `noWeight`, or a name in the mobility set (`EXERCISE_MOVE[name] === 'mobility'`, 13640; 27 names map to `'mobility'` at v3.527) → never the strength tier; rest 45 s.
   3. Category `jump` → 90 s fixed (120 s for Depth Jump and Trap Bar Jump Squat).
   4. Swim repeats (`\d+×(\d+)m` with a swim name): ≤ 200 m → 20 s; 201–400 m → 30 s.
-  5. `getRestReasonLabel` (27740) mirrors every branch.
+  5. `getRestReasonLabel` (27846) mirrors every branch.
 - **Acceptance criteria:** `getDefaultRestSeconds` returns:
   - Downward Dog `5 breaths ×3` → 30;
   - Hip CARs `2×5/side` → 45;
@@ -1588,33 +1664,35 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 
   The label agrees with the number in each case.
 - **Test plan:** new `test-rest-tier-parsing.js`, with real functions over a table, plus a full-slot sweep asserting that no `core` or `shoulder` `noWeight` slot gets 240. Sabotage: remove branch 1.
-- **Files:** `index.html` (27715–27746), `sw.js`, the test. **Re-pins:** the seven suites that extract the real `getDefaultRestSeconds` and `getRestReasonLabel` must also load `EXERCISE_MOVE`, or the new read must be guarded with `typeof EXERCISE_MOVE !== 'undefined'` (prefer the guard; then no suite changes). The suites are `test-auto-check-sets.js`, `test-backdating-rest-timer-suppression.js`, `test-fallback-entry-consolidation.js`, `test-partial-set-reactions.js`, `test-set-next-button.js`, `test-superset-rest-timer-suppression.js` and `test-superset-shared-sets-block-wiring.js`. `test-lb-per-kg-consolidation.js` extracts `getDefaultRestSeconds` for the calorie estimate; its Back Squat 3×5 case is unchanged.
+- **Files:** `index.html` (27821–27853), `sw.js`, the test. **Re-pins:** the seven suites that extract the real `getDefaultRestSeconds` and `getRestReasonLabel` must also load `EXERCISE_MOVE`, or the new read must be guarded with `typeof EXERCISE_MOVE !== 'undefined'` (prefer the guard; then no suite changes). The suites are `test-auto-check-sets.js`, `test-backdating-rest-timer-suppression.js`, `test-fallback-entry-consolidation.js`, `test-partial-set-reactions.js`, `test-set-next-button.js`, `test-superset-rest-timer-suppression.js` and `test-superset-shared-sets-block-wiring.js`. `test-lb-per-kg-consolidation.js` extracts `getDefaultRestSeconds` for the calorie estimate; its Back Squat 3×5 case is unchanged.
 - **Risk:** the rest timer for every program, and the time estimate (rest feeds `parseEstimatedMinutes`). The superset and backdating rest-suppression suites guard it.
 - **Fold-in (2026-11-08):** line numbers moved to v3.518. The `EXERCISE_MOVE` dependency and the seven suites were found. Placed straight after BL-14 (slot 25a).
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped. The seven suites are unchanged (each still extracts the real `getDefaultRestSeconds` and `getRestReasonLabel`); none extracts `EXERCISE_MOVE`, so the `typeof` guard stays the recommendation. Scope unchanged.
 - **Status:** ready (after BL-14)
 
 ### BL-58: Library entries for the Light and Speed variants; prune orphans (D-7, C-1, C-2; closes L-3)
 - **Why:**
-  - 7 names in 14 slots have no `exerciseInfo`: Squat (Speed) (e.g. 17221), Bench Press (Speed), Deadlift (Light/Technique), Snatch (Light), Clean & Jerk (Light), Sprint Intervals (Sub-Max) and Handstand Hold (wall) (Light). They get no cues, no category, no ledger counting, and a 5 lb default increment that pushes load on speed work.
-  - 6 orphan cycling entries are referenced nowhere (`content-exercises.js` 150–157).
-  - `EXERCISE_MOVE` (13603) has 3 duplicate keys, and 85 slot names have no icon key.
+  - 7 names in 14 slots have no `exerciseInfo`: Squat (Speed) (e.g. 17258), Bench Press (Speed), Deadlift (Light/Technique), Snatch (Light), Clean & Jerk (Light), Sprint Intervals (Sub-Max) and Handstand Hold (wall) (Light). They get no cues, no category, no ledger counting, and a 5 lb default increment that pushes load on speed work.
+  - 6 orphan cycling entries are referenced nowhere (`content-exercises.js`, in the cycling run at 148–158; identify them by the sweep, not by line).
+  - `EXERCISE_MOVE` (13640–13720) has 3 duplicate keys, and 85 slot names have no icon key.
 - **Change:**
   - Add entries with the base lift's category and three cues each, plus `technique:true`, which BL-02's technique rule reads (no load-increase signal):
     - Speed lifts: "50–60% of your working max; move it as fast as you can; stop if bar speed drops".
     - Light Olympic lifts: "about 70%; technique only; no misses".
   - Delete the 6 orphan entries.
   - Remove the duplicate `EXERCISE_MOVE` keys.
-  - Add move keys for the 85 names, using existing `MOVEMENT_ICONS` (13087) keys only.
+  - Add move keys for the 85 names, using existing `MOVEMENT_ICONS` (13124) keys only.
 - **Acceptance criteria:**
   1. Every slot name has an `exerciseInfo` entry (full-slot sweep).
   2. `Squat (Speed)` maps to Legs (Quads) in the ledger.
-  3. `analyzeProgressionSignal` (27514) never returns `increase` for a `technique:true` entry.
-  4. No `exerciseInfo` key is unreferenced by slots, `EXERCISE_SUBS`, `SUBSTITUTION_MAP` (43948) or `REGION_RELIEF` (43996).
+  3. The real `analyzeProgressionSignal` (27594) never returns `increase` for a `technique:true` entry (two sessions at the top of the range, RPE 7).
+  4. No `exerciseInfo` key is unreferenced by slots, `EXERCISE_SUBS`, `SUBSTITUTION_MAP` (44166) or `REGION_RELIEF` (44253).
 - **Test plan:** new `test-exercise-library-coverage.js` (the sweeps), plus a real-function progression case. Sabotage: delete one new entry.
-- **Files:** `content-exercises.js`, `index.html` (13603–13700, `analyzeProgressionSignal` 27514), `sw.js`, the test. **Re-pin:** `test-concise-cues.js:42–45` pins exactly 321 exercises and 964 cues. This item adds 7 entries (21 cues) and deletes 6 (count their cues at build time), so update both numbers and say why in the PR. Its 24-word cap applies to the new cues. Also run `test-accumulation-accessory-add.js` and `test-volume-modifier-gate.js` (both read `exerciseInfo` categories).
-- **Risk:** content only, apart from the technique flag. If BL-02's technique branch has landed, reuse it; otherwise add the flag check here.
+- **Files:** `content-exercises.js`, `index.html` (13640–13720, `analyzeProgressionSignal` 27594), `sw.js`, the test. **Re-pin:** `test-concise-cues.js:43–47` pins exactly 321 exercises and **970** cues at v3.527 (BL-05 + BL-06 added 6). BL-62, BL-64 and BL-25 may move it again before this builds: read the number at build time. This item adds 7 entries (21 cues) and deletes 6 (count their cues at build time), so update both numbers and say why in the PR. Its 24-word cap applies to the new cues. Also run `test-accumulation-accessory-add.js` and `test-volume-modifier-gate.js` (both read `exerciseInfo` categories).
+- **Risk:** content only, apart from the technique flag. BL-02 (v3.519) has landed, but it has no `technique` flag: its rule is by category (`rpeTargetFor`, 27524, returns `null` for `oly`, `jump` and `throw`). So add the flag check here: at the top of signal 3 in `analyzeProgressionSignal` (27628), `exerciseInfo[ex.name]?.technique` returns `null` instead of an increase. Speed Squat and Speed Bench keep their `squat`/`push` categories, so the category rule alone wouldn't cover them.
 - **Fold-in (2026-11-08):** line numbers moved to v3.518; the `test-concise-cues.js` re-pin was found. Placed after BL-24 (slot 22a), because both touch the load increment.
-- **Status:** ready (after BL-02)
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the cue-count pin is now 970; BL-02's landed rule read, so the flag check's place is named. Scope unchanged.
+- **Status:** ready (BL-02 done, v3.519)
 
 ### BL-59: Category corrections that feed the muscle ledger (D-8, with M-8)
 - **Why:**
@@ -1706,14 +1784,14 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 
 ### BL-63: The time shown on Today counts the work, not just the rest (D-10, C-5)
 - **Why:**
-  - Today's `~N min` (28708) comes from `parseEstimatedMinutes` (26464) through `unitMinutes` (26585). It counts a distance interval as `count × rest`: `8×100m` swim = 8 min (confirmed: no `min` or `s` match, so it's 8 × 60 s), `4×200m` = 4 min, `6×400m` = 6 min, `6×500m` row = 6 min. Lifting sets count rest only.
+  - Today's `~N min` (28856) comes from `parseEstimatedMinutes` (26501) through `unitMinutes` (26622). It counts a distance interval as `count × rest`: `8×100m` swim = 8 min (confirmed: no `min` or `s` match, so it's 8 × 60 s), `4×200m` = 4 min, `6×400m` = 6 min, `6×500m` row = 6 min. Lifting sets count rest only.
   - The auditor measured 251 of 1,065 days showing under 0.6× their authored duration (Hyrox d6 is about 18 vs ~45).
-  - The 30/45-minute session length (`SESSION_LENGTH_OPTIONS` 26542, `applySessionLengthLimit` 26889) trims against this number, so capped sessions overrun.
-  - The authored `duration` is shown only on rest days (28585).
-- **Change** (inside `parseEstimatedMinutes`, plus one day-level allowance in `totalMinutesForUnits` 26589):
+  - The 30/45-minute session length (`SESSION_LENGTH_OPTIONS` 26579, `applySessionLengthLimit` 26926) trims against this number, so capped sessions overrun.
+  - The authored `duration` is shown only on rest days (28733).
+- **Change** (inside `parseEstimatedMinutes`, plus one day-level allowance in `totalMinutesForUnits` 26626):
   1. Distance sets: work time from a per-activity pace (run 6 min/km; row 2:05/500 m; ski 2:10/500 m; swim 2:00/100 m; sled and carry 0.5 min per 20 m), plus rest.
   2. Rep sets: add 3 s per rep (top of the range; ×2 for `/side` or `/leg`).
-  3. One warm-up ramp allowance of 4 min per day, for the first `WARMUP_ELIGIBLE_CATEGORIES` (27690) compound.
+  3. One warm-up ramp allowance of 4 min per day, for the first `WARMUP_ELIGIBLE_CATEGORIES` (27796) compound.
 
   The authored `duration` is left alone (no data change). It's documented as a reference only.
 - **Acceptance criteria:**
@@ -1722,9 +1800,10 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
   3. The share of days under 0.6× authored drops below 5% (a full sweep in the test).
   4. A real `applySessionLengthLimit(exercises, 30)` on Strength d1 still keeps the protected main unit, and its `estimatedMinutes` ≤ 30 + one unit. That's a new case: no suite covers the cap today.
 - **Test plan:** new `test-session-time-estimate.js`, with the real `parseEstimatedMinutes`, `parseSetCount`, `getDefaultRestSeconds`, `unitMinutes`, `totalMinutesForUnits`, `groupIntoUnits` and `applySessionLengthLimit`, plus the sweep. Sabotage: remove the distance branch, and criterion 1 fails.
-- **Files:** `index.html` (26464–26515, 26583–26592, 26889 onward), `sw.js`, the test. **Re-pin:** `test-lb-per-kg-consolidation.js:32–36` asserts `estimateExerciseCalories` for Back Squat 3×5 at 200 lb = 109 kcal, and that runs through `parseEstimatedMinutes` (26521). The rep-time branch raises it, so re-capture the value from the real function and name it in the PR. The session calorie total on Today moves too; say so in What's New.
+- **Files:** `index.html` (26501–26553, 26620–26635, 26926 onward), `sw.js`, the test. **Re-pin:** `test-lb-per-kg-consolidation.js:32–36` asserts `estimateExerciseCalories` (26554) for Back Squat 3×5 at 200 lb = 109 kcal, and that runs through `parseEstimatedMinutes`. `test-today-workout-emoji.js` stubs `estimateExerciseCalories` (line 81), so it's unaffected. The rep-time branch raises it, so re-capture the value from the real function and name it in the PR. The session calorie total on Today moves too; say so in What's New.
 - **Risk:** how much the session-length cap trims changes for every program. Placed with BL-55 early in Phase 1 (slot 13d).
 - **Fold-in (2026-11-08):** line numbers moved to v3.518. Criterion 4 was rewritten, because the suite it named tests layout, not the cap. The calorie re-pin was found.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; still no suite extracts `applySessionLengthLimit`, `unitMinutes` or `totalMinutesForUnits`. Scope unchanged.
 - **Status:** ready
 
 ### BL-64: Cue contradictions (C-4)
@@ -1838,23 +1917,25 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 
 ### BL-48: The deload week also shortens duration-only cardio
 - **Why:**
-  - `applyDeloadVolumeReduction` (26879) changes only strings with a leading set count (`hasNumericSetPrefix` 26550). In week 5, `6×400m` becomes 3×400m, but `Long Run 45-60 min`, `Long Ride (Zone 2) 90-120 min`, `Endurance Ride 45-60 min` and `Long Swim 30-45 min` stay full length.
+  - `applyDeloadVolumeReduction` (26916) changes only strings with a leading set count (`hasNumericSetPrefix` 26587). In week 5, `6×400m` becomes 3×400m, but `Long Run 45-60 min`, `Long Ride (Zone 2) 90-120 min`, `Endurance Ride 45-60 min` and `Long Swim 30-45 min` stay full length.
   - So the deload cuts the intervals and keeps the biggest aerobic load. A deload typically cuts volume by about 30–50% [BELL23].
 - **Change:**
-  - In the deload branch only, rows whose `sets` is a pure duration (`/^\d+(\s*-\s*\d+)?\s*min\b/`) and whose category is `cardio` get their minutes × 0.7, rounded to 5. Warm-up and cool-down rows are excluded (`isWarmupOrCooldownUnit` 26600 already defines them).
-  - `applyDeloadVolumeReduction(exercises, program)` gains the program, passed from its one call site (`renderWorkout` 28665), so `medical` days keep their authored durations.
-  - The duration line's "(deload)" suffix (28704) already keys off `inDeloadWeek`, so no marker is needed.
+  - In the deload branch only, rows whose `sets` is a pure duration (`/^\d+(\s*-\s*\d+)?\s*min\b/`) and whose category is `cardio` get their minutes × 0.7, rounded to 5. Warm-up and cool-down rows are excluded (`isWarmupOrCooldownUnit` 26637 defines them for units; for a single row use the same name test it applies).
+  - `applyDeloadVolumeReduction(exercises, program)` gains the program, passed from its one call site (`renderWorkout` 28813), so `medical` days keep their authored durations.
+  - The duration line's "(deload)" suffix (28852) already keys off `inDeloadWeek`, so no marker is needed.
 - **Acceptance criteria:**
-  1. Week 5: running d5 `Long Run 45-60 min` renders `30-40 min`, and road d6 `Long Ride (Zone 2) 90-120 min` renders `65-85 min`.
+  1. The real `applyDeloadVolumeReduction` over the real running day holding `Long Run 45-60 min` (10390) returns `30-40 min`, and over road d6's `Long Ride (Zone 2) 90-120 min` (12489) returns `65-85 min`.
   2. Warm-up Jog `10 min` is unchanged.
   3. Weeks 1–4 are byte-identical to today.
-  4. Lifting rows are unchanged (assert one Squat 4×4-6 against `test-mesocycle-phase-tag.js`'s expectations).
-  5. A medical `Walking 20-30 min` row is unchanged in week 5.
+  4. Lifting rows reduce exactly as v3.527 does (Squat `4×4-6` → `2×4-6`, the existing ×0.55 rule).
+  5. A medical `Walking 20-30 min` row is unchanged in week 5 (program `'medical'`).
+  6. `renderWorkout` makes exactly 1 real `applyDeloadVolumeReduction(` call and passes `activeProgram` (comments stripped).
 - **Test plan:** new `test-deload-duration-cardio.js`, with the real `applyDeloadVolumeReduction`, `hasNumericSetPrefix`, `parseSetCount` and `replaceSetCount`. No suite extracts `applyDeloadVolumeReduction` today. Sabotage: remove the duration branch.
-- **Files:** `index.html` (26879–26887, 28665), `sw.js`, the test. **Guards:** `test-deload-signal-week-awareness.js`, `test-manual-deload-override.js`, `test-mesocycle-phase-tag.js`.
+- **Files:** `index.html` (26916–26924, 28813), `sw.js`, the test. No suite extracts `applyDeloadVolumeReduction` at v3.527. **Guards:** `test-deload-signal-week-awareness.js`, `test-manual-deload-override.js`, `test-mesocycle-phase-tag.js`.
 - **Risk:** medical styles have walking rows; the program argument excludes them, in keeping with BL-01's clinical stance. Placed after BL-23 (slot 24a), with the other deload work.
 - **Fold-in (2026-11-08):** line numbers moved to v3.518. The `deloaded` marker was dropped (the suffix already exists). The medical exclusion became a program argument and criterion 5.
 - **Tools:** none extra.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; criteria 1, 4 and 6 made real invocations (criterion 4 pointed at another suite's expectations). Scope unchanged.
 - **Status:** ready
 
 ## Parked or later (not yet itemised)
@@ -2358,37 +2439,39 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 
 ### MKT-01: Consistency counts training weeks, not consecutive days
 - **Why:**
-  - `computeStreak` (13989) counts consecutive calendar days with a logged set. The first celebration and share card fire at 7 in a row (`STREAK_MILESTONES`, 14008).
-  - Readiness warns "6 days without a rest day" one day earlier (`READINESS_DAYS_NO_REST = 6`, 46836). So the app tells you to rest, then throws confetti for not resting.
+  - `computeStreak` (14040) counts consecutive calendar days in `activity-dates` (written by `recordActivity`, 13961, from set saves at 28521 and session ticks at 28760). The first celebration and share card fire at 7 in a row (`STREAK_MILESTONES`, 14059).
+  - Readiness warns "6 days without a rest day" one day earlier (`READINESS_DAYS_NO_REST = 6`, 47130). So the app tells you to rest, then throws confetti for not resting.
   - Anyone following a 3–5 day program can never reach the first milestone, so the main consistency share moment never happens for them.
   - Weekly consistency matches the north star: weekly active trainers, at least 2 sessions a week (business.md §4).
 - **Change:**
   - Add `computeWeekStreak()` beside `computeStreak`, reading the same `activity-dates`. A week (Monday to Sunday, local) counts when it has at least `max(2, daysPerWeekPref − 1)` training dates, or 2 when the preference is unset. One missed planned day doesn't break it. The current week counts as alive until it ends (the same "still alive until midnight" rule `computeStreak` documents).
   - Milestones become weeks: `[4, 8, 12, 26, 52]`. The celebration reads "8 weeks in a row" with the sub "Rest days included." The card headline is "8 WEEKS IN A ROW".
-  - The streak badge (`renderStreak`, 14057) shows weeks ("8 wk").
-  - Reuse the `streak-last-celebrated` key; on first run, migrate it with `SCHEMA_VERSION`/`runMigrations()` to 0 so no old day-count blocks a week milestone.
-  - `computeStreak` stays: it has another caller at 42680 (re-grep). It just no longer drives milestones or the badge.
+  - The streak badge (`renderStreak`, 14108) shows weeks ("8 wk").
+  - **Celebration key (spec refresh 2: the summit note below decides it):** a new namespaced key, `week-streak-last-celebrated`, through `window.storage`. The old `streak-last-celebrated` is left alone. No `SCHEMA_VERSION` bump: BL-72 takes 9, and later items have numbers planned.
+  - `computeStreak` stays: its other caller is `buildCoachChatContext` (42889). It just no longer drives milestones or the badge.
+  - The days-per-week preference is read from `'days-per-week-pref'` (26005).
 - **Acceptance criteria:**
   1. Training dates on Mon/Wed/Fri for 4 consecutive weeks, with `daysPerWeekPref = 3`: `computeWeekStreak()` returns 4, and the 4-week celebration fires once.
   2. 7 consecutive training days and nothing before: no celebration (the old 7-day milestone is gone).
   3. A week with 1 training date, with the preference unset: the streak resets to 0 at the end of that week, not during it.
   4. A rest day never breaks the streak inside a qualifying week.
   5. A second render after a milestone doesn't celebrate it again.
-- **Test plan:** extend `test-streak.js` with the real `computeStreak`, the new `computeWeekStreak`, `checkStreakMilestone` and a stub storage with fixed dates (stub `getTodayKey`). Sabotage: count consecutive days again, and criteria 1 and 2 must fail.
-- **Files:** `index.html` (13910–14070, 25950, the migration list), `sw.js`, the test.
+- **Test plan:** extend `test-streak.js` with the real `computeStreak`, the new `computeWeekStreak`, `checkStreakMilestone` and a stub storage with fixed dates (stub `getTodayKey`, 13880). Sabotage: count consecutive days again, and criteria 1 and 2 must fail.
+- **Files:** `index.html` (14030–14130, 26005 read only), `sw.js`, `test-streak.js`. **Re-pin:** `test-header-refresh.js` lines 56–70 run the real `renderStreak` with only `computeStreak` and `checkStreakMilestone` stubbed and expect `'5 days streak'`. Once `renderStreak` reads `computeWeekStreak`, add that stub and change the expected text to the week form; name it in the PR. `test-up-next.js` (154) stubs `renderStreak` and `test-app-2-0.js` (66) checks only CSS, so both are unaffected.
 - **Risk:**
   - Changes a visible number people may be attached to. The What's New line must say why: "Your streak now counts training weeks, so rest days never break it."
   - Today's Priorities and the weekly recap may read the streak. Guarded by `test-streak.js`, `test-weekly-recap.js` and `test-today-priorities.js`.
 - **Summit note (summit 2026-11-07):** Preferred implementation: a new namespaced key, `week-streak-last-celebrated`, through `window.storage`, with the old key left alone. That avoids a `SCHEMA_VERSION` bump just to reset a celebration counter (summit §1.7). The streak number lives in UX-11's strip; no confetti.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the summit's key choice made the spec (it was a note beside a contradicting Change line); the `test-header-refresh.js` re-pin found. Scope unchanged.
 - **Status:** ready
 
 ### MKT-02: Share cards carry no body data by default
-- **Why:** the week card's third row falls back from average sleep to **average body weight**, then **average intake** (`archiveCurrentWeek`, `index.html` 45451; the rows at 45499–45501). Body weight is the most sensitive number in the app, and it lands on a public image without the person choosing it. Sleep is also health data.
+- **Why:** the week card's third row falls back from average sleep to **average body weight**, then **average intake** (`archiveCurrentWeek`, `index.html` 45708; the rows at 45756–45758). Body weight is the most sensitive number in the app, and it lands on a public image without the person choosing it. Sleep is also health data.
 - **Change:**
   - The week card's third row becomes training-only: "PRs THIS WEEK" when there was at least one, else "SETS" (total logged sets that week). Sleep, weight and intake rows are removed from the card. (Owner decision D15: sets lead the cards.)
-  - **Where the numbers come from (no second implementation):** PRs are the events from the existing `reconstructAllPRs()` (41678) dated inside the week; sets are the logged sets of `readExCorpus()` (41051) entries dated inside the week. Put both in one small async helper, `weekShareTrainingStats(weekStartKey)`, beside `computeWeekStats` (45417). Don't add them to `computeWeekStats` itself: `test-weekly-recap.js` runs `computeWeekStats` without the exercise corpus in its sandbox.
+  - **Where the numbers come from (no second implementation):** PRs are the events from the existing `reconstructAllPRs()` (41850) dated inside the week; sets are the logged sets of `readExCorpus()` (41223) entries dated inside the week. Put both in one small async helper, `weekShareTrainingStats(weekStartKey)`, beside `computeWeekStats` (45674). Don't add them to `computeWeekStats` itself: `test-weekly-recap.js` runs `computeWeekStats` without the exercise corpus in its sandbox.
   - `archiveCurrentWeek` must stay free of inline `reduce(`: `test-weekly-recap.js` (line 46) pins that, so the summing lives in the helper.
-  - Share text follows the card (it's built from `stats` in `shareCelebrationCard`, 29646).
+  - Share text follows the card (it's built from `stats` in `shareCelebrationCard`, 29803; the line is 29814).
   - The archived `weekStats` record (with `avgWeight`, `avgSleep`) is unchanged; only the share card changes.
   - No setting is added in this item. If people ask for body stats on cards, that's a later opt-in item.
 - **Acceptance criteria:**
@@ -2397,22 +2480,23 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
   3. With no logged sets and no PRs, the card has its two rows only (WORKOUTS, PROGRAM).
   4. `archiveCurrentWeek` still calls `computeWeekStats(todayMonday)` and contains no `reduce(` (the existing `test-weekly-recap.js` pin keeps passing).
 - **Test plan:** new `test-share-card-privacy.js`. Sabotage: restore the weight fallback, and criterion 1 must fail.
-- **Files:** `index.html` (45417 area for the helper; 45451–45508), `sw.js`, `test-share-card-privacy.js` (new).
+- **Files:** `index.html` (45674 area for the helper; 45708–45766; `#weekShareBtn` is at 5940 and rewired at 45761–45765), `sw.js`, `test-share-card-privacy.js` (new).
 - **Risk:**
   - Low. Guarded by `test-archive-week-visibility.js`, `test-week-progress.js` and `test-weekly-recap.js`.
   - `reconstructAllPRs` counts an exercise's first logged session as a record (its running max starts empty), so a week that starts a new program can show several "PRs". That's the PR timeline's own definition; the card reuses it rather than inventing a second one. Flag it to MKT-07, which names the record's kind.
 - **Spec refresh (2026-11-08):** lines re-grepped at v3.518; the data sources (`reconstructAllPRs`, `readExCorpus`) named, the `test-weekly-recap.js` constraints found, criterion 3 added. Scope unchanged.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; `test-weekly-recap.js` line 46 still pins "no `reduce(`" in `archiveCurrentWeek`, and `archiveCurrentWeek` still calls `computeWeekStats(todayMonday)` (45715). Scope unchanged.
 - **Status:** ready
 
 ### MKT-03: Story-format share cards with the app's mark
 - **Why:**
-  - Cards are 1080×1080 (`buildShareCardBlob`, 29510). Instagram and WhatsApp stories, where achievement shares mostly go, are 9:16, so a square gets letterboxed.
-  - The footer is the plain text "TRAINING LOG". The icon's ring mark, the most recognisable brand asset, appears nowhere on a card.
+  - Cards are 1080×1080 (`buildShareCardBlob`, 29704). Instagram and WhatsApp stories, where achievement shares mostly go, are 9:16, so a square gets letterboxed.
+  - The footer is the app's name in capitals as plain text (`ctx.fillText(APP_NAME.toUpperCase(), …)`, 29796, since v3.517; it said "TRAINING LOG" before). The icon's mark, the most recognisable brand asset, appears nowhere on a card.
 - **Change:**
   - `buildShareCardBlob(cardData, format)`: `format` is `'story'` (1080×1920, the new default) or `'square'` (today's layout, unchanged).
   - In story format, keep the icon, headline, detail and stats between y = 250 and y = 1620 (clear of the story UI at the top and bottom).
-  - Draw the **Sash mark** (the shipped v3.516 icon: the five plate inks as one band on a `--ground` tile) as canvas rectangles, not an image file, at the bottom. **No wordmark in this version.** The `'TRAINING LOG'` footer text (~29608) is removed, not replaced. A reserved line stays under the mark for the wordmark (MKT-03b) and BIZ-08's address.
-  - The file name is `${appSlug()}-<kind>-<YYYY-MM-DD>.png` (`liftnext-pr-2026-11-30.png` at v3.516). This item adds the one helper `appSlug()` beside `APP_NAME` (7622): `APP_NAME` lower-cased, with spaces as hyphens. MKT-20 reuses it for the backup file.
+  - Draw the **Sash mark** (the shipped v3.516 icon: the five plate inks as one band on a `--ground` tile) as canvas rectangles, not an image file, at the bottom. **No wordmark in this version.** The `APP_NAME` footer text (29796) is removed, not replaced (see the owner option below). A reserved line stays under the mark for the wordmark (MKT-03b) and BIZ-08's address.
+  - The file name is `${appSlug()}-<kind>-<YYYY-MM-DD>.png` (`platestep-pr-2026-11-30.png`; today it's `${APP_NAME.toLowerCase()}.png`, 29811). This item adds the one helper `appSlug()` beside `APP_NAME` (7631): `APP_NAME` lower-cased, with spaces as hyphens. MKT-20 reuses it for the backup file.
   - Colour and type follow `planning/design-vision.md` §3: a flat ink ground with no gradient or glow, the session day's spot ink as the one colour, Archivo for the big figure if UX-02 is approved, else Geist. If the vision's own card items land first, this item only adds the format and the mark to them.
 - **Acceptance criteria:**
   1. With a stub canvas, `buildShareCardBlob(card)` sets `canvas.width === 1080` and `canvas.height === 1920`; with `'square'`, 1080×1080.
@@ -2420,14 +2504,20 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
   3. The Sash mark is drawn in both formats: exactly five `fillRect` calls inside the mark's box, whose `fillStyle`s equal the five target `--spot-*` inks from UX-01 (stub-recorded, in order).
   4. The square format's `fillText` calls equal today's for the same `cardData`, except the footer (record before and after; sabotage-anchored).
   5. No `fillText` string equals or contains "TRAINING LOG", "Training Log" or `APP_NAME` (in any case) in this version.
-  6. The card's ground and spot ink come from `dayInk(id)` (UX-01b) for the session's day.
+  6. The card's ground and spot ink come from the real `dayInk` (UX-01b): `dayInk(cardData.dayId ?? activeDay, activeProgram)`. A card with `dayId` for a `p-blue` day draws the blue spot ink (stub-recorded `fillStyle`).
+  7. The icon is still drawn with `ctx.stroke(new Path2D(iconPath))` and never as `fillText(cardData.icon…)` (the existing `test-glyphs.js` pin, 241–243).
 - **Test plan:** new `test-share-card-format.js`, with the real `buildShareCardBlob`, `wrapCanvasText` and `celebrationIconPath`, and a recording stub 2D context. Then render real PNGs in Playwright for the PR, streak and week cards in both formats and attach them to the PR. Sabotage: drop the format switch, and criterion 1 must fail.
-- **Files:** `index.html` (29468–29640), `sw.js`, the test.
+- **Files:** `index.html` (7631 for `appSlug`; 29632–29830: `triggerCelebration`, `wrapCanvasText`, `celebrationIconPath`, `buildShareCardBlob`, `shareCelebrationCard`), `sw.js`, `test-share-card-format.js` (new). **Re-pins** (`test-app-rename.js` runs the real `buildShareCardBlob` with a recording canvas):
+  - its case at 85–90 asserts the card draws `'PLATESTEP'` ("the footer is the app name"). Criterion 5 removes that; change the case to assert the name is **not** drawn in this version (MKT-03b brings it back), keeping its "no old name" half.
+  - its case at 92–99 asserts the shared file is `` `${APP_NAME.toLowerCase()}.png` ``; change it to the `appSlug()` form. Its anchor (exactly 3 `new File([blob]` / `a.download =` lines) still holds.
+  - Name both in the PR. Guard: `test-glyphs.js` (241–243, the icon stroke pin).
+- **Owner option (non-blocking; default is the scope as written):** since v3.517 the card already prints "PLATESTEP", and the owner confirmed the name on 2026-11-08 (MKT-03b is ready). As written, MKT-03 removes the name and MKT-03b puts it back one version later, so cards go without the name for at least one day. Option: MKT-03 keeps the name, moved into the reserved line beside the mark (MKT-03b's criterion 1), and MKT-03b keeps only the event band. Then criterion 5 and the first re-pin above drop. The loop builds the default unless the owner picks the option first.
 - **Risk:** visual. The design-engineer reviews the rendered PNGs. The name never appears in this version, so a rename can't strand printed cards.
 - **Tools:** `Skill: impeccable` (`polish`, Markdown fallback only until the owner approves the engine) on the rendered cards.
 - **Alignment note (2026-11-07):** the ring mark is replaced by the Sash mark (MKT-19 shipped as the icon in v3.516). **No wordmark until the public name is confirmed** (market-researcher B1, marketing-manager B1). The wordmark is MKT-03b. Builds the story frame (safe zones, mark tile, sponsor strip) so the bib (MKT-16) reuses it. Ships after UX-01b and, if approved, UX-02. Year in Lifting 2026 carries no address (consensus decision 16).
 - **Summit note (summit 2026-11-07):** Draw it in the Plate & Press world from day one (flat ink ground, the day's spot ink, no gold glow), so cards are never redone (summit §1.4). It's on the Year in Lifting lane (roadmap slot 17).
-- **Status:** ready (after UX-01b)
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped. Found: the footer has drawn `APP_NAME` since v3.517 (the spec still described "TRAINING LOG"), so criterion 5 now breaks `test-app-rename.js`; both of its re-pins named. Criterion 6 says where the day comes from; criterion 7 keeps the `test-glyphs.js` pin. Scope unchanged; the name question is a non-blocking owner option.
+- **Status:** ready (after UX-01b; non-blocking owner option above)
 
 ### MKT-03b: The wordmark on cards, once the name is confirmed
 - **Why:** MKT-03 ships the mark alone so the Year in Lifting lane never waits on the name (consensus G1). Once the owner confirms the public name (after the USPTO knockout and buying its domain; marketing.md §2.1, §4.3), cards add it.
@@ -2436,9 +2526,11 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
   1. Exactly one `fillText` call carries `APP_NAME.toUpperCase()`, and its x and y are inside the mark's row (stub-recorded).
   2. Changing `APP_NAME` in the extracted source changes the drawn text (no literal name in the card code: a real-code count of the literal is 0).
   3. All MKT-03 criteria, except 5, still pass.
+  4. `test-app-rename.js`'s card case goes back to asserting the name is drawn (`'PLATESTEP'`), undoing MKT-03's re-pin; name it in the PR.
 - **Test plan:** extend `test-share-card-format.js`. Sabotage: hard-code "LIFTNEXT", and criterion 2 must fail.
-- **Files:** `index.html` (the card builder), `sw.js`, the test.
+- **Files:** `index.html` (`buildShareCardBlob`, 29704 at v3.527), `sw.js`, `test-share-card-format.js`, `test-app-rename.js` (re-pin back).
 - **Risk:** prints the name on images nobody can recall. That's why it waits for the owner.
+- **Spec refresh 2 (2026-11-09, against v3.527):** the card builder's line and the `test-app-rename.js` re-pin named. If the owner takes MKT-03's option, this item shrinks to the event band. Scope unchanged.
 - **Status:** ready (after MKT-03) (owner 2026-11-08: "name a": Platestep is confirmed, the USPTO knockout is clear and the domains are held).
 
 ### MKT-04: Share a finished session
@@ -2490,7 +2582,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
   4. No card's `fillText` text contains a body-weight, calorie or sleep value (stub-recorded).
   5. Computing the recap calls no `fetch` (stub-counted: 0).
 - **Test plan:** new `test-year-recap.js`, with the real recap builder and the real Priorities insight function, a stub storage and a fixed date. Sabotage: count calendar days instead of training dates, and criterion 1 must fail.
-- **Files:** `index.html` (Today's Priorities near `getWeeklyRecapInsight` 14595 and `renderTodayInsights` 14615; History; 41641), `sw.js`, the test.
+- **Files:** `index.html` (Today's Priorities near `getWeeklyRecapInsight` 14646 and `renderTodayInsights` 14667, its `order` list 14704; History; `reconstructAllPRs` 41850; `readExCorpus` 41223), `sw.js`, the test.
 - **Risk:**
   - Larger than one usual increment. If it can't ship as one tested version, split it: (a) the computation and one summary card, (b) the remaining cards. Each its own version.
   - Depends on MKT-03 for the format. Ship MKT-03 first.
@@ -2498,7 +2590,14 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Tools:** `Skill: dataviz` for any chart on the cards.
 - **Summit note (summit 2026-11-07):** Ship as two versions. **06a** is the computation, the Priorities row and one summary card; target merged by 30 November (roadmap build 12). **06b** is the remaining cards, after MKT-01. Constraints: "biggest e1RM gain" excludes `oly`/`jump`/`throw` (Epley isn't valid there, SAF-2). No share buttons while a `MEDICAL_STYLES` program is active. Record wording per summit R6. If 06a slips, nothing else moves (summit R5).
 - **Alignment note (2026-11-07):** 06a is roadmap slot 19. The 2026 cards carry the mark, the name only if it's confirmed by then (MKT-03b), and **no address** (the Phase 3 gate stays; December 2026 is a dogfood run, and December 2027 is the public moment). **06b has no "wall of bibs":** that moves to the 2027 recap, because MKT-16 ships after 06b.
-- **Status:** ready (after MKT-03)
+- **Spec refresh 2 (2026-11-09, against v3.527): the split, made buildable.** The summit split this item into two versions, but the criteria were written for the whole. Each version's criteria:
+  - **MKT-06a (slot 19):** a pure `computeYearRecap(year)` (training dates from `activity-dates`, total sets from `readExCorpus()`, total load as a secondary figure), `getYearRecapInsight()` (the Priorities row, between 1 December and 15 January, with ≥ 8 training dates, hidden by `recap-<year>-dismissed` through `window.storage`), and **one** summary story card through `buildShareCardBlob(…, 'story')` (MKT-03). Criteria 1, 2, 3, 5 above, plus criterion 4 for that one card, plus:
+    - 6a. The real `renderTodayInsights` with the new getter returning a row shows it in its `order` slot (state the slot in the PR); with `recap-2026-dismissed` stored, the real getter returns `null`.
+    - 7a. No share button while a `MEDICAL_STYLES` program is active (summit note).
+    - Test: new `test-year-recap.js`. **Re-pins:** `test-cycle-phase-nutrition-insight.js` (stubs at 125–140) and `test-supplement-condition-cycle-nudge.js` (230–245) hand-stub every Priorities getter and run the real renderer; add the new getter to both and name them in the PR. `test-today-priorities.js` stubs getters from the renderer's own calls (line 30), so it needs nothing.
+  - **MKT-06b (slot 29):** the remaining cards (weeks trained; biggest e1RM gain, excluding `oly`, `jump` and `throw`; most-trained muscle group; longest weekly streak from MKT-01's `computeWeekStreak`) and the History entry. Criterion 4 for every card, plus: 6b. the e1RM card never names an `oly`, `jump` or `throw` exercise (fixture with a big Snatch gain); 7b. the streak card's number equals the real `computeWeekStreak`'s longest run over the fixture year. Extends `test-year-recap.js`.
+  - The History entry moved to 06b because the summit's 06a list ("the computation, the Priorities row and one summary card") doesn't include it. Nothing else moved.
+- **Status:** ready (after MKT-03). MKT-06a at slot 19; MKT-06b at slot 29, after MKT-01.
 
 ### MKT-07: PR and progress cards show the gain
 - **Why:** "Bench Press — 225 lb" (the PR card, 31988) is a number. "+10 lb on bench, was 215" is a story, and it's less identifying. There's also no way to share long-term progress on a lift, the "before and after" that lifters actually post.
@@ -2751,7 +2850,7 @@ Ready items are listed in build order, then needs-owner items.
   1. Every new token is defined in both the dark `:root` rule and the light `body:not(.gym-mode)` rule. The test parses the real `<style>` with jsdom's CSSOM, the way `test-light-mode.js` finds both rules, not by string match.
   2. For every spot ink, the **target** values (from the comment) give `--on-*` against `--spot-*` ≥ 4.5:1, white against `--deep-*` ≥ 4.5:1, and `--text`, `--text-2` and `--text-3` against `--ground` ≥ 4.5:1 in both themes. Computed with a real WCAG luminance function in the test (`test-light-mode.js` has one to copy).
   3. TOOL-01's harness (`node tools/visual/harness.js --base <parent commit>`): every state in its matrix is pixel-identical to the **parent commit**. PR evidence, not a `check.sh` suite.
-  4. *(Alignment round, design-engineer)* The Sash mark's literal hexes equal the five target `--spot-*` values recorded in the comments: the header mark (`#brandHome` svg, 5718) and the five launch layers (`.launch-b25` … `.launch-b5`, 5667–5671), parsed from the real markup with jsdom, plus `tools/design/icon/option-b.svg`.
+  4. *(Alignment round, design-engineer)* The Sash mark's literal hexes equal the five target `--spot-*` values recorded in the comments: the header mark (`#brandHome` svg, 5724) and the five launch layers (`.launch-b25` … `.launch-b5`, 5673–5677), parsed from the real markup with jsdom, plus `tools/design/icon/option-b.svg`.
   5. `test-light-mode.js`'s rule that every light token also exists in the dark `:root` still passes (it will, if criterion 1 does).
 - **Test plan:** new `test-design-tokens-v2.js`. Sabotage: delete one token from the light rule, and criterion 1 must fail; set `--spot-red`'s target to `#E0352B` (4.4:1), and criterion 2 must fail.
 - **Files:** `index.html` (59 onward, 309–313 onward), `sw.js`, `test-design-tokens-v2.js` (new). PR artefact: the harness contact sheet (D14).
@@ -2759,11 +2858,12 @@ Ready items are listed in build order, then needs-owner items.
 - **Summit note (summit 2026-11-07):** Moved to the front of Phase 1 (now roadmap slot 11). It changes nothing visible, and every later piece of BL/BIZ/MKT markup is then written once in the new vocabulary (summit R1). Pixel-identity criterion 3 is harness PR evidence, not a `check.sh` suite.
 - **Tools:** TOOL-01's harness.
 - **Spec refresh (2026-11-08):** the light block is a `body:not(.gym-mode)` rule (since v3.480), and the alias-inheritance trap is spelled out; mark lines re-grepped at v3.518; TOOL-01 is merged (`tools/visual/`), so the "after TOOL-01" condition is met. Scope unchanged.
+- **Spec refresh 2 (2026-11-09, against v3.527):** the mark lines moved (5724, 5673–5677); `:root` (59), the light rule (309–313) and the `--font-sans` line (68) haven't moved. Guards re-checked: `test-light-mode.js`, `test-css-mechanical-token-dedup.js`, `test-app-icon.js` (reads the same mark hexes). Scope unchanged.
 - **Status:** ready
 
 ### UX-01b: `dayInk(id)`: one day-to-ink rule, with no visible change
 - **Why:**
-  - `getDayPlateClass` (`index.html` 26227) ignores each day's `plate` field and colours days by **position** from seven hues (`VIVID_PLATE_CLASSES`, 26226: red, blue, yellow, green, purple, orange, teal). For example, Strength & Size Day 5 "Lower · Hypertrophy" is purple today, while its data says `p-green`.
+  - `getDayPlateClass` (`index.html` 26264) ignores each day's `plate` field and colours days by **position** from seven hues (`VIVID_PLATE_CLASSES`, 26263: red, blue, yellow, green, purple, orange, teal). For example, Strength & Size Day 5 "Lower · Hypertrophy" is purple today, while its data says `p-green`.
   - Plate & Press, the icon, the bib and the plate stack all mean the five plate inks.
   - MKT-03 (slot 17), MKT-06a and MKT-16 print "the day's ink" long before UX-05 (slot 42), and no test covers the current rule (design-engineer B1).
 - **Change:**
@@ -2775,14 +2875,15 @@ Ready items are listed in build order, then needs-owner items.
   - Nothing calls it yet apart from its test. `getDayPlateClass` and `--day-hue` are unchanged in this version.
   - The rule is the owner's: decision D13 (2026-11-07) chose the plate code.
 - **Acceptance criteria:**
-  1. For every day of every built-in program, its `PROGRAM_DAY_COUNT_VARIANTS` days (16204) and every `*_STYLES` style, the real `dayInk` returns one of the six values and equals the mapping of the day's `plate` field. The test asserts it visited ≥ 1,900 days.
+  1. For every day of every built-in program, its `PROGRAM_DAY_COUNT_VARIANTS` days (16241) and every `*_STYLES` style, the real `dayInk` returns one of the six values and equals the mapping of the day's `plate` field. The test asserts it visited ≥ 1,900 days.
   2. Strength & Size Day 5 returns `green`, while the real `getDayPlateClass` (it reads the globals `dayDefs` and `dayOrder`; set them to `programs.strength.days` and its keys) returns `p-purple` for it; the test records both, so the difference is documented.
   3. A rest day returns `off`. A custom program day with no `plate` returns an ink by its index, and never throws.
-  4. No rendered DOM changes: the real `getDayPlateClass` outputs for all strength days are identical before and after (snapshot), and `getDayPlateClass`'s source is byte-identical to v3.518.
+  4. No rendered DOM changes: the real `getDayPlateClass` outputs for all strength days are identical before and after (snapshot), and `getDayPlateClass`'s source is byte-identical to the parent commit.
 - **Test plan:** new `test-day-ink.js` (UX-05 extends it later). Sabotage: return `'red'` for everything, and criterion 1 must fail on Day 2.
-- **Files:** `index.html` (a new helper beside 26226–26234), `sw.js`, `test-day-ink.js` (new). `test-a11y-keyboard-focus.js` and `test-header-refresh.js` extract `getDayPlateClass` and are unaffected.
+- **Files:** `index.html` (a new helper beside 26263–26271), `sw.js`, `test-day-ink.js` (new). `test-a11y-keyboard-focus.js` and `test-header-refresh.js` extract `getDayPlateClass` and are unaffected.
 - **Risk:** none visible. The What's New line says so honestly.
 - **Spec refresh (2026-11-08):** lines re-grepped at v3.518; the plate inventory measured; D13 recorded. Scope unchanged.
+- **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped. `getDayPlateClass` callers at v3.527: 26353 (day tabs), 28718, 28722, 28727 (`renderWorkout`); none changes here. The 1,904-day count was measured at v3.518; v3.519–v3.527 added no days, but the test asserts ≥ 1,900 rather than the exact figure. Scope unchanged.
 - **Status:** ready
 
 ### UX-02: Ship the Archivo display face beside index.html
@@ -2804,6 +2905,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Tools:** default; TOOL-01's harness (fonts awaited).
 - **Alignment note (2026-11-07):** sequenced at roadmap slot 16, **before MKT-03**, so the Year in Lifting cards and the app share one typeface from the start (design-engineer).
 - **Spec refresh (2026-11-08):** approved by the owner (D2, 2026-11-07: "Archivo before cards"), and CLAUDE.md's "no new runtime files without the owner's OK" is satisfied by that answer. Caching and test file changed to match the Geist precedent and the existing font test; no change to what ships or what the owner sees.
+- **Spec refresh 2 (2026-11-09, against v3.527):** nothing moved: the preload (27), the `@font-face` rules (29–38), `--font-sans` (68) and `sw.js` `PRECACHE_OPTIONAL` (222–233) are where this item says, and `tools/design/fonts/archivo-latin-wdth-wght.woff2` (90,104 bytes) and `OFL-Archivo.txt` exist. `test-self-hosted-fonts.js` lines 73, 120 and 126 are as cited.
 - **Status:** ready
 
 ### UX-03: Flat ground everywhere: retire the halos, glass and gradient buttons

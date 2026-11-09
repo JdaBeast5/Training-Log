@@ -14,6 +14,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 - Slots marked **†** are `needs-owner`. The loop skips them until the owner approves, then builds them in the slot where they sit. That's why approved safety and program items sit early.
 - The pace equals the owner's merge rate. There are **69 ready builds**. At one merge a day (an assumption, not a promise), that's about ten weeks.
 - **Spec refresh (2026-11-08):** net +3 to that count (BL-01 done; BL-36, UX-02, BL-65 and BL-66 ready). Slots 2–16 were re-specified against v3.518 in `backlog.md`. The owner's third-round answers (D3, D5, D6, D8, 2026-11-08) are applied in the bullet "Third round applied" below.
+- **Spec refresh 2 (2026-11-09):** slots 8a–8c and 11–30 were re-specified against v3.527 in `backlog.md`. No slot moved. Net **−1 ready**: BL-24 (slot 22) became `needs-owner` (its 10 lb floor contradicts its own criterion 2). MKT-03 (slot 17) stays ready with a non-blocking owner option.
 - **Audit fold-in (2026-11-08):** the exercise-auditor's 18 items (PR #68) are slotted below, with no existing slot renumbered or moved. Net **+11 ready** (BL-43, BL-48, BL-53, BL-54, BL-55, BL-57, BL-58, BL-60, BL-62, BL-63, BL-64), so there are now **83 ready builds**. Seven more are † (BL-46, BL-47, BL-51, BL-52, BL-56, BL-59, BL-61). Specs are in `backlog.md` → "Added from the exercise-consistency audit".
   - **Date risk:** 24 ready builds now sit before MKT-06a (slot 19), counting slot 8 as ready per the backlog. To merge it by **30 November** takes about 1.1 merges a day from 8 November; at one a day it lands around 3 December. Summit R5 says nothing else moves if it slips. The owner can accept that, or move BL-55 and BL-63 (13c, 13d) to just after slot 19.
   - **Accepted (owner, 2026-11-08):** MKT-06a landing **around 3 December** is fine. Nothing is re-ordered for it: BL-55 and BL-63 stay at 13c and 13d. The 30 November date stays as the stretch target, and MKT-06's Priorities row still runs 1 December to 15 January, so a 3 December merge loses only the first two days of the window.
@@ -88,7 +89,7 @@ This is the one order every build run follows. It supersedes the "Requested buil
 19a. **BL-54:** one exercise, one name in History, PRs and the warm-up fallback (Back Squat = Squat, and so on) *(audit fold-in; after MKT-06a so its date holds, before MKT-06b)*
 20. BL-10: a target RIR on every prescription, with a short form and a words form
 21. BL-15: the decrease signal waits for two short sessions
-22. BL-24: increments scale with strength (inherits the clinical load rule)
+22. BL-24: increments scale with strength (inherits the clinical load rule) **†** *(needs-owner since spec refresh 2, 2026-11-09: the squat and deadlift floor; see `backlog.md`)*
 22a. **BL-58:** library entries for the Light and Speed variants (technique flag, no load push); prune orphans *(audit fold-in)*
 23. BL-09: readiness compared with the week's own RPE target
 24. BL-23: one-tap early deload when overreaching

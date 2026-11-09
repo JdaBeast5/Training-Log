@@ -27,25 +27,27 @@ The `planning/` files, including this one, and `.claude/agents/` (the run prompt
 
 ---
 
-## 2. Cadence (proposed; the owner confirms)
+## 2. Cadence (set by the owner, from 2026-11-09)
 
-**Three runs a day, at 7:17 AM, 1:17 PM and 8:17 PM US-Eastern.**
+**Five runs a day, at 7:17 AM, 10:17 AM, 1:17 PM, 4:17 PM and 8:17 PM America/New_York, starting 2026-11-09.** The owner moved the loop from three runs to five. Before 2026-11-09 it was three (7:17 AM, 1:17 PM and 8:17 PM).
 
 | Run | Eastern | Pacific | Why this hour |
 |---|---|---|---|
 | Morning | 7:17 AM | 4:17 AM | A PR is usually waiting by the time the owner is up. |
-| Midday | 1:17 PM | 10:17 AM | Picks up anything merged in the morning. Just after the 6–9 AM Pacific busy window. |
+| Late morning | 10:17 AM | 7:17 AM | Picks up anything merged first thing. |
+| Midday | 1:17 PM | 10:17 AM | Picks up anything merged in the morning. |
+| Afternoon | 4:17 PM | 1:17 PM | Picks up anything merged over lunch. |
 | Evening | 8:17 PM | 5:17 PM | Picks up anything merged during the day. A PR is ready for an evening review. |
 
-- None of the three falls in 6–9 AM Pacific (9 AM–noon Eastern).
 - The minute is `:17`, not `:00` or `:30`, to avoid the top-of-hour rush.
-- In practice the loop moves at the owner's review speed. A run that finds a PR waiting costs a few tool calls and stops. Three slots a day means a merged PR waits at most about 11 hours for the next item.
+- The 10:17 AM run falls inside the 6–9 AM Pacific busy window (9 AM–noon Eastern) that the three-run schedule avoided. The owner chose the times; a run that hits a busy service retries at the next slot.
+- In practice the loop still moves at the owner's review speed. A run that finds a PR waiting costs a few tool calls and stops. With five slots, a merged PR waits at most about 11 hours overnight (8:17 PM to 7:17 AM) and at most 4 hours during the day.
 
 **Scheduled task, once the owner says yes** (build-automator creates it; nothing is created yet):
 
 - `create_trigger`, from inside the builder session, so it fires back into that session (mode 1). From any other session, pass `persistent_session_id` set to the builder's id (mode 2). Never `create_new_session_on_fire`: a fresh session would not have the repo.
 - `name`: `Training Log build run`
-- `cron_expression`: `CRON_TZ=America/New_York 17 7,13,20 * * *`
+- `cron_expression`: `CRON_TZ=America/New_York 17 7,10,13,16,20 * * *` (was `17 7,13,20 * * *` before 2026-11-09)
 - `initiation`: `human_request`
 - `prompt`: the text in §3, exactly.
 - Notifications can't be set on a task that fires into an existing session. §6 covers how the owner hears about a PR instead.
