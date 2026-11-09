@@ -151,6 +151,11 @@ At one merge a day (your pace, an assumption) that's about ten weeks of ready wo
 ## Decisions only you can make
 
 ### Owner's answers, 2026-11-07
+- **Owner (2026-11-09), program extensions (PR #99): "pull the PR fix forward, 41a, 42a, 45a":**
+  - **The 0-rep fix:** pulled forward as a new item, **BL-77** (slot 9c, right after BL-53). A set logged with 0 reps is a miss and never counts as a PR or best lift.
+  - **BL-41 (a):** the Powerlifting top single at RPE 8 with −10% back-offs in RPE mode, plus a stored meet date and a two-week taper. Ready after Phase 3, after BL-34 (slot 88a).
+  - **BL-42 (a):** Olympic % bands and a miss counter. A miss is logged as fewer reps than prescribed, with no new field, and the optional week-4 singles are included. Ready after Phase 3, after BL-77 (slot 88b).
+  - **BL-45 (a):** both optional set fields, jump distance and hand-timed sprint seconds. Ready after Phase 3 (slot 88d).
 - **Owner (2026-11-09), spec refresh 3:** BL-43 (a). WebKit isn't a blocker: use Chromium, then a WebKit option in a later tooling PR. UX-05 recolours only the day discs and hue. MKT-20 is kept.
 - **Owner (2026-11-09):** BL-24 option (a), 5 lb floors for squat and deadlift; MKT-03 keeps the PLATESTEP name beside the mark (MKT-03b folded in).
 - **BL-74 (owner, 2026-11-08):** (a), switch history keys to the authored position as soon as BL-72 lands.

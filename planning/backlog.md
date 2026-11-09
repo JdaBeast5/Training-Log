@@ -41,8 +41,8 @@ BL-39 and BL-40 each carry one non-blocking owner option; the default is the app
 - **Tooling:** WebKit isn't installed and the harness has no browser option; the harness also has no finish or recap state (UX-09a and UX-11 add them).
 
 **Program extensions written (2026-11-09, against v3.528, `origin/Branch-1` cf8985b).** The exercise-auditor replaced the BL-41–45 placeholder with four full items, in the section "Program extensions" (before "Parked or later"): BL-41 (the Powerlifting top single and meet peak), BL-42 (Olympic % bands and a miss counter), BL-44 (bodyweight progression ladders) and BL-45 (athletic jump and sprint metrics). The baseline was green: `check.sh` passed and 204/204 suites passed. They sit at roadmap slots 88a–88d. Findings:
-- **BL-44 is `ready (after Phase 3)`.** BL-41, BL-42 and BL-45 are `needs-owner`: each adds stored data or changes what a prescribed set means. There's one plain-words question in each item.
-- **Found in the code:** a set logged with 0 reps counts as a made lift today (`topSetOf`, `saveExSet`'s PR check, `reconstructAllPRs`, `maxWeightEver`), so a missed lift at a new weight shows as a PR. BL-42 fixes it as its first step, because its miss counter depends on it.
+- **BL-44 is `ready (after Phase 3)`.** BL-41, BL-42 and BL-45 were `needs-owner`. **Owner, 2026-11-09 (PR #99): "pull the PR fix forward, 41a, 42a, 45a"**, so all four are now ready after Phase 3.
+- **Found in the code:** a set logged with 0 reps counts as a made lift today (`topSetOf`, `saveExSet`'s PR check, `reconstructAllPRs`, `maxWeightEver`), so a missed lift at a new weight shows as a PR. That fix is now its own item, **BL-77** (`ready`, slot 9c), and it ships before BL-42.
 - **Audit correction:** H-8's push-up ladder put the incline before the knee push-up. The measured loads (Ebben et al. 2011) put the knee push-up lower, and BL-44 follows them.
 - **Dependency:** BL-41's top single needs BL-34 (slot 81). Without it, a single at RPE 8 is read as a 1-rep max and the suggested single ratchets down each week.
 
@@ -1636,6 +1636,43 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Fold-in (2026-11-08):** line numbers moved to v3.518. Both gaps re-confirmed in the source.
 - **Status:** ready
 
+### BL-77: A set logged with 0 reps is a miss, not a made lift (pulled forward from BL-42)
+- **Why:**
+  - Found while specifying BL-42, at v3.528. A set saved with a weight and 0 reps is treated as a made lift, so a missed lift at a new weight shows up as a PR. The set sheet allows 0 reps (`stepSetSheet` 31320, `Math.max(0, …)`). The readers that count it are:
+    - `topSetOf` (27227): it takes the heaviest set whatever its reps. It feeds `buildPastSessions` (27682), the badge's `priorTop` (28937), today's top set (29186, 31915), the exercise sheet's e1RM line (31649, 31691), the Analysis first/latest comparison (41773–41775), `reconstructAllPRs` (41869) and the progress-delta reader (45087–45091).
+    - `saveExSet` (28459): its `priorMax` loop (28468–28474) counts the set, and `isPR` (28529) is `w > priorMax` with no reps check.
+    - `maxWeightEver` (27557; read at 41778, "best ever").
+  - `estimated1RM` already returns `null` for `reps <= 0` (27552), so the e1RM is safe. Everything else in the list above isn't.
+  - Owner, 2026-11-09, on PR #99: "pull the PR fix forward". It ships early, independent of BL-42.
+- **Change** (read-time only; nothing stored changes):
+  1. `topSetOf` skips sets with `reps === 0`. A set with `reps == null` (weight-only logging) keeps today's behaviour.
+  2. `saveExSet`: the `priorMax` loop skips `reps === 0` sets, and `isPR` also requires `r !== 0`.
+  3. `maxWeightEver` skips `reps === 0` sets.
+  4. `reconstructAllPRs` and every other `topSetOf` caller follow through the helper, with no edits of their own.
+  5. The What's New line: "A set logged with 0 reps now counts as a miss: it no longer shows as a PR or your best lift."
+- **Acceptance criteria** (real invocations of the extracted functions):
+  1. `topSetOf({sets:[{weight:210,reps:0},{weight:200,reps:2}]})` returns the 200×2 set.
+  2. `topSetOf({sets:[{weight:210,reps:null}]})` still returns the 210 set, and `topSetOf({sets:[{weight:210,reps:0}]})` returns `null`.
+  3. Real `reconstructAllPRs` (stubbed `readExCorpus`) over one exercise with 200×2 and then a newer 210×0 records no event for the 210. With the newer entry at 210×1, it records a weight PR.
+  4. Real `saveExSet` (stubbed storage, not backdating) over a stored 200×2: logging 210×0 returns `isPR:false`, and logging 205×1 returns `isPR:true`. The stored 210×0 set is byte-identical to what v3.528 writes.
+  5. Real `maxWeightEver` over [200×2, 210×0] returns 200.
+  6. Real `buildPastSessions` over an entry [210×0, 200×2] gives a top set of 200×2. That means `analyzeProgressionSignal` reads the made lift, not the miss.
+- **Test plan:** new `test-zero-rep-miss.js`, with the real `topSetOf`, `maxWeightEver`, `saveExSet`, `reconstructAllPRs`, `groupCorpusByExercise`, `estimated1RM`, `buildPastSessions` and `normalizeExEntry`. Sabotage:
+  - remove the skip in `topSetOf`, and criteria 1, 3 and 6 fail;
+  - remove the `isPR` check, and criterion 4 fails.
+- **Files:**
+  - `index.html`: `topSetOf` 27227–27233, `maxWeightEver` 27557–27563, `saveExSet` 28468–28474 and 28529, `APP_VERSION` 7625, `WHATS_NEW` 7643.
+  - `sw.js` and the test.
+  - **Guards** (grep at v3.528 found no fixture with a 0-rep set, so no re-pin is expected; re-pin only if one breaks, and name it in the PR):
+    - the five `topSetOf` suites: `test-app-2-0.js`, `test-open-screen-2-0.js`, `test-performance-delta-colours.js`, `test-pr-timeline-class-naming.js`, `test-pr-timeline.js`;
+    - the six `reconstructAllPRs` suites (those, plus `test-audit-fixes.js` and `test-history-2-0.js`);
+    - `maxWeightEver`: `test-app-2-0.js` and `test-performance-delta-colours.js`;
+    - the nine `saveExSet` suites (seven stub it; `test-accumulation-accessory-add.js` and `test-fetch-day-statuses.js` reference it);
+    - the seven `wireSetsBlock` suites that stub `buildPastSessions`.
+- **Risk:** any 0-rep set already logged stops counting in History, PRs and Analysis. A PR built on a miss disappears. Stored data is untouched, and the What's New line says so. Placed at slot 9c, after BL-53, so that BL-08's all-set rule (slot 10) never reads a miss as a top set.
+- **Tools:** `code-review` at high (PR history).
+- **Status:** ready (owner yes 2026-11-09). Slot 9c.
+
 ### BL-54: One exercise, one name in History, PRs and the warm-up fallback (D-3)
 - **Why:** the same lift under two names splits grouping:
 
@@ -2048,7 +2085,7 @@ What these items keep, from decisions already made:
 - **RPE mode.** BL-41 is RPE mode only. BL-42 works in both modes, because `oly` has no RPE target.
 - **D15 (cards lead with sets, not tonnage).** Taper copy says "sets", never "volume load". Jump and sprint numbers stay off share cards and out of any total.
 
-Three of the four need the owner: BL-41, BL-42 and BL-45 add stored data or change what a prescribed set means. BL-44 is `ready (after Phase 3)`.
+All four are now ready after Phase 3. The owner answered "41a, 42a, 45a" on PR #99 (2026-11-09), and BL-42's 0-rep fix was pulled forward as **BL-77** (slot 9c).
 
 **Source keys for this section.** Several hosts couldn't be fetched this session: `www.ncbi.nlm.nih.gov`, `www.mdpi.com` and `www.frontiersin.org` don't resolve here. Figures marked "abstract" or "secondary" were read from search summaries, not full texts. The keys below are new; [ACSM26], [BELL23] and [PRAC] are `program-audit.md`'s.
 
@@ -2189,14 +2226,8 @@ Three of the four need the owner: BL-41, BL-42 and BL-45 add stored data or chan
   - Back-off sets show more weight in set 1 than the 5×5 lifter is used to. The What's New line says so, and it's RPE mode only.
   - The three signal call sites must agree, or the fit check will call Powerlifting under-progressing.
 - **Tools:** `code-review` at high (progression path).
-- **Why needs-owner:** part 1 changes what set 1 means on three lifts. The program data is untouched, but the prescription isn't. Part 2 stores a new key, the meet date.
-- **Owner question:** In RPE mode, should Powerlifting's main squat, bench and deadlift start with one heavy single at RPE 8, with the other sets 10% lighter? And may the app store a meet date, so that the last two weeks before it taper (fewer sets, still a heavy single, no lifting in the last 3 days)?
-  - (a) Both.
-  - (b) The single only.
-  - (c) Neither.
-
-  **Recommended: (a).**
-- **Status:** needs-owner (slot 88a: after Phase 3 once approved, and after BL-34)
+- **Owner answer (2026-11-09, PR #99, "41a"):** (a), both: the top single in RPE mode, plus the stored meet date (`pl-meet-date`) and the two-week taper. Build both parts as written, as two versions.
+- **Status:** ready (after Phase 3, after BL-34). Slot 88a.
 
 ### BL-42: Olympic % bands per lift, with a miss counter
 - **Why:**
@@ -2204,20 +2235,9 @@ Three of the four need the owner: BL-41, BL-42 and BL-45 add stored data or chan
   - Weightlifting is coached by percentage zones of the competition lifts. Prilepin's table pairs 70–80% with 3–6 reps per set, 80–90% with 2–4, and 90%+ with 1–2 [PRIL]. The program's own comment calls its doubles "coaching-school consensus" (9931–9941), and this item stays inside that.
   - Pulls without a catch can be loaded above the lift's own max [SUC15].
   - Coaches limit misses, because a missed lift rehearses a failed pattern. The rule thresholds here are practice; no published numbers were found [MISS].
-  - **Found while specifying (v3.528), a precondition.** A set logged with 0 reps counts as a made lift today:
-    - `topSetOf` (27227) takes the heaviest set whatever its reps;
-    - `saveExSet` flags `isPR` on `w > priorMax` (28529);
-    - `reconstructAllPRs` (41853) builds on `topSetOf`;
-    - `maxWeightEver` (27557, read at 41778) counts it too.
-
-    So a missed snatch at a new weight shows as a PR. The set sheet allows 0 reps (`stepSetSheet` 31320). The miss counter can't ship on top of that.
+  - **Precondition, done first: BL-77 (slot 9c).** Since BL-77, a 0-rep set is a miss and never a made lift (`topSetOf`, `saveExSet`'s PR check, `maxWeightEver`, and so `reconstructAllPRs`). BL-42's reference max and miss counter rely on that. The owner pulled it forward on 2026-11-09.
 - **Change:**
-  1. **A 0-rep set isn't a made lift.**
-     - `topSetOf` skips sets with `reps === 0`. Sets with `reps == null` (weight-only logging) keep today's behaviour.
-     - `saveExSet`'s `priorMax` loop (28468–28474) skips them, and `isPR` requires `r !== 0`.
-     - `maxWeightEver` skips them.
-     - `reconstructAllPRs` follows through `topSetOf`.
-     - Nothing stored changes.
+  1. *(Moved to BL-77, slot 9c, which ships first.)* The steps below assume a 0-rep set is already a miss.
   2. **`OLY_BAND_LIFTS`**, beside `rpeTargetFor` (27527): Snatch → ref Snatch, `comp`; Clean & Jerk → ref Clean & Jerk, `comp`; Power Snatch → ref Snatch, `power`; Power Clean → ref Clean & Jerk, `power`; Snatch Pull → ref Snatch, `pull`; Clean Pull → ref Clean & Jerk, `pull`.
      - Clean pulls are set against the clean & jerk, which most lifters jerk less than they clean, so the band errs light.
      - Snatch Balance, Overhead Squat, Jerk Dip Squat, Push Press and the squats keep today's progression.
@@ -2253,10 +2273,7 @@ Three of the four need the owner: BL-41, BL-42 and BL-45 add stored data or chan
      `renderSetChips` (30973) calls it before `recommendNextSet` when the header has `data-oly-band`, and its result wins.
   9. **The badge adds last session's misses** when there were any, counted the same way: "Last session: 2 misses at 170 lb."
 - **Acceptance criteria** (real invocations; `renderWorkout` call sites are pinned as real-call counts with comments stripped):
-  1. `topSetOf({sets:[{weight:210,reps:0},{weight:200,reps:2}]})` is the 200×2 set, and `topSetOf({sets:[{weight:210,reps:null}]})` is still the 210 set.
-     - Real `reconstructAllPRs` over a corpus whose newer entry is 210×0, after an older 200×2, records no event for the 210.
-     - Real `saveExSet` logging 210×0 over a prior max of 200 returns `isPR:false`; 205×1 returns `isPR:true`.
-     - Real `maxWeightEver` over the same log returns 200.
+  1. *(BL-77's criteria; they must still pass. `test-zero-rep-miss.js` runs unchanged.)*
   2. `olyReferenceMax` over entries 200×2 (80 days ago), 210×0 (10 days ago) and 190×2 (5 days ago) returns 200. With only an entry 85 days old, it returns `null`.
   3. In lb with the default plates:
      - `olyBandFor('Snatch', 2, false, 200)` = 150–160;
@@ -2275,45 +2292,31 @@ Three of the four need the owner: BL-41, BL-42 and BL-45 add stored data or chan
   7. Real-call counts: 1 `readExCorpus(` and 1 `olyBandFor(` in `renderWorkout`, both behind the program check; 1 `olyMissAdvice(` in `renderSetChips`.
   8. No render writes anything (snapshot the storage keys).
 - **Test plan:** new `test-oly-bands-and-misses.js`.
-  - It uses the real `topSetOf`, `maxWeightEver`, `saveExSet` (stubbed storage), `reconstructAllPRs` (stubbed `readExCorpus`), `groupCorpusByExercise`, `olyReferenceMax`, `olyBandFor`, `OLY_BANDS`, `OLY_BAND_LIFTS`, `cycleWeekOf`, `snapToLoadable`, `getEquipment`, `computeSuggestedSet`, `olyMissAdvice`, `parseSetCount`, `parseTopRep` and `parseBottomRep`.
+  - It uses the real `topSetOf` (as BL-77 left it), `groupCorpusByExercise`, `olyReferenceMax`, `olyBandFor`, `OLY_BANDS`, `OLY_BAND_LIFTS`, `cycleWeekOf`, `snapToLoadable`, `getEquipment`, `computeSuggestedSet`, `olyMissAdvice`, `parseSetCount`, `parseTopRep` and `parseBottomRep`.
   - Sabotage:
-    - drop the `reps === 0` skip in `topSetOf`, and criteria 1 and 2 fail;
+    - make `olyReferenceMax` accept `reps >= 0`, and criterion 2 fails (the 210×0 miss becomes the reference);
     - drop the 84-day window, and criterion 2 fails;
     - count misses per session instead of per weight, and criterion 5's second case fails.
 - **Files:**
   - `index.html`:
-    - `topSetOf` 27227, `maxWeightEver` 27557, `saveExSet` 28459 (28468–28474, 28529);
     - the new consts and helpers beside 27527;
     - `computeSuggestedSet` 27983, `buildProgressBadge` 27888;
     - `renderWorkout` 28954 plus the header markup;
     - `renderSetChips` 30973–31000;
     - `APP_VERSION` 7625 and `WHATS_NEW` 7643.
   - `sw.js` and the test.
-  - **Guards (no fixture at v3.528 logs a 0-rep set, checked by grep):**
-    - the five `topSetOf` suites: `test-app-2-0.js`, `test-open-screen-2-0.js`, `test-performance-delta-colours.js`, `test-pr-timeline-class-naming.js`, `test-pr-timeline.js`;
-    - the six `reconstructAllPRs` suites (those, plus `test-audit-fixes.js` and `test-history-2-0.js`);
-    - `maxWeightEver`: `test-app-2-0.js` and `test-performance-delta-colours.js`;
+  - **Guards:**
+    - `test-zero-rep-miss.js` (BL-77);
     - `test-rpe-safety-caps.js`, `test-deload-signal-week-awareness.js` and `test-today-workout-emoji.js`;
     - the four `renderSetChips` suites;
     - the six `readExCorpus` suites;
-    - the nine `saveExSet` suites (most stub it);
     - BL-24's increment test.
 - **Risk:**
-  - **The 0-rep rule changes History, PRs and Analysis** for any 0-rep set already logged. Stored data is untouched; a PR built on a miss disappears. That's correct, but visible, so the What's New line says it.
   - **The reference only rises through made heavy lifts.** That's why week 4 has its singles. A lifter who never takes them keeps their bands.
-  - **Order:** after BL-24 (slot 22), BL-51 (9a) and BL-54 (one name per exercise, so the corpus groups Snatch once).
-- **Tools:** `code-review` at high (PR history and the progression path).
-- **Why needs-owner:**
-  - the 0-rep rule changes what PR history and Analysis show for existing sets;
-  - week 4 adds optional sets beyond the written prescription;
-  - the owner chooses how a miss is recorded.
-- **Owner question:** For Olympic lifts, a miss is logged as fewer reps than prescribed (0 means the first rep was missed), with no new field. From then on, a 0-rep set never counts as a PR or best lift anywhere in the app; today it does. Week 4 also adds up to 3 optional heavy singles at 90–95% after the doubles, stopping at the first miss.
-  - (a) Yes, as written.
-  - (b) A separate "Missed" tap stored on the set (a new field) instead of 0 reps.
-  - (c) Bands only: no miss counter and no week-4 singles. The 0-rep fix still ships, because the bands' reference needs it.
-
-  **Recommended: (a).**
-- **Status:** needs-owner (slot 88b: after Phase 3 once approved; after BL-24, BL-51 and BL-54)
+  - **Order:** after BL-77 (slot 9c), BL-24 (slot 22), BL-51 (9a) and BL-54 (one name per exercise, so the corpus groups Snatch once).
+- **Tools:** `code-review` at high (the progression path).
+- **Owner answer (2026-11-09, PR #99, "42a"):** (a). A miss is logged as fewer reps than prescribed (0 means the first rep was missed), with no new field. The week-4 optional singles are approved. The 0-rep fix is pulled forward as BL-77.
+- **Status:** ready (after Phase 3, after BL-77). Slot 88b.
 
 ### BL-44: Bodyweight progression ladders (H-8, part 2)
 - **Why:**
@@ -2466,14 +2469,8 @@ Three of the four need the owner: BL-41, BL-42 and BL-45 add stored data or chan
   - **Hand timing is noisy.** The label says "hand-timed", and times are only compared with the same person's own hand times.
   - **Order:** after BL-55 (13c), BL-56 (26a), BL-61 (6c) and BL-14/57 (sprint rest).
 - **Tools:** none extra.
-- **Why needs-owner:** two new stored fields on sets, `jump` and `secs`.
-- **Owner question:** Should the app store an optional broad-jump distance (cm) on Broad Jump sets and an optional hand-timed time (seconds) on sprint reps, to show the trend and a "stop for today" cue when quality drops?
-  - (a) Both.
-  - (b) The jump distance only.
-  - (c) Neither: the contact count and the quality cues as text only.
-
-  **Recommended: (a).** Both are optional, and without a number there's nothing to progress.
-- **Status:** needs-owner (slot 88d: after Phase 3 once approved; after BL-55 and BL-61)
+- **Owner answer (2026-11-09, PR #99, "45a"):** (a), both optional fields: `jump` (cm) on Broad Jump sets and `secs` (hand-timed) on sprint reps. They're additive like `distance` and `note`, so no migration is needed.
+- **Status:** ready (after Phase 3; after BL-55 and BL-61). Slot 88d.
 
 ## Parked or later (not yet itemised)
 - **M-8:** `calf` and `isolation-leg` categories. These shift `MUSCLE_GROUP_MAP` history groupings, so they need the owner. They now ship with BL-59 (needs-owner). BL-03 and BL-04 cover the safety half.
