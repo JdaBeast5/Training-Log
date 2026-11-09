@@ -407,7 +407,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:** cue-length rules. Guarded by `test-concise-cues.js` (no cue over 24 words, and its `MUST_KEEP` phrases).
 - **Summit note (summit 2026-11-07):** Ship BL-05 and BL-06 as **one version**: same file, same new `test-safety-cues.js`, both safety cue text. Mark both done together.
 - **Spec refresh (2026-11-08):** the slot count is exact (20, not "about 21"); the renderer is named (`buildDetailsHtml`); `index.html` added to `Files:` for the version bump; the cue-count pin's target computed. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.527, PR #91)
 
 ### BL-06: Release rule on partner submission and clinch drills (SAF-6)
 - **Why:** these cues describe applying a choke or armbar with no release rule:
@@ -425,7 +425,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:** cue-length caps. Guarded by `test-concise-cues.js`.
 - **Summit note (summit 2026-11-07):** Merged into BL-05's version (see BL-05).
 - **Spec refresh (2026-11-08):** slot counts added (walked at v3.518). Scope unchanged.
-- **Status:** merged into BL-05 (summit 2026-11-07): ships in BL-05's version; mark done with it
+- **Status:** done (v3.527, PR #91)
 
 ### BL-05b: The Neck Bridges cue says coach-only, otherwise isometrics (SAF-4, cue part)
 - **Why:** Neck Bridges ("bridge onto the top of your head") are prescribed unsupervised at grappling d6 (`index.html` 11056) and in five grappling day-count variants (21282, 21320, 21363, 21413, 21464; the 2-, 3-, 4-, 6- and 7-day variants, at d3, d4, d5, d6, d6): **6 occurrences**. No trial supports either option for injury prevention [PRAC]. Replacing the slot (BL-35) needs a migration; the cue can change today with no slot or history change (exercise-auditor B1).
