@@ -1873,10 +1873,10 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
   2. BL-01's authored-equals-rendered test (`test-volume-modifier-gate.js`) still passes, using the new authored strings.
   3. No prenatal day's cues contain "Lie down" without a side-lying option (sweep over the prenatal style's exercises).
 - **Test plan:** extend `test-concise-cues.js` with a table test (the cue stays ≤ 24 words, per its existing cap).
-- **Files:** `index.html` (11985, 12017–12047, 11001, 11014, 21110–21225), `content-exercises.js` (79), `sw.js`, the test. **Guards:** `test-concise-day-notes.js`, `test-configurable-training-days.js:807` (Sandbag Lunges by name; unaffected).
+- **Files:** `index.html` (11985, 12017–12047, 11001, 11014, 21110–21225), `content-exercises.js` (79), `sw.js`, the test. **Re-pin (owner 2026-11-09):** `test-rep-parse-qualifiers.js` criterion 3's count of noted weighted slots, 255 → 262 (the 7 Sandbag Lunges gain `(10/leg)`; the 7 still-unparsed carries are unchanged). **Guards:** `test-concise-day-notes.js`, `test-configurable-training-days.js:807` (Sandbag Lunges by name; unaffected).
 - **Risk:** clinical-content wording. BIZ-15's clinician review should see it.
 - **Fold-in (2026-11-08):** line numbers moved to v3.518. The Hyrox variant rows were added. The prenatal fix is a rewrite, not a fourth cue, so the cue count holds.
-- **Status:** ready (after BL-76) (owner 2026-11-09: "BL-62 a": the parser fix ships first, then BL-62 as written). Builder notes for the exercise auditor stand: heel drops `3×15/leg` vs the affected-leg protocol, the two per-leg conventions, and the spec's breathing cue being 27 words (a 21-word version keeps its meaning).
+- **Status:** ready (owner 2026-11-09: "Yes this is my recommendation", option (a): BL-62 also re-pins `test-rep-parse-qualifiers.js`'s 255 → 262; see Files). Use the 24-word breathing cue: "Sit tall or lie down (on your side if pregnant), one hand on chest, one on belly; the belly rises more than the chest." Builder notes for the exercise auditor stand: heel drops `3×15/leg` vs the affected-leg protocol, the two per-leg conventions; Senior's `2×10-12` is out of scope.
 
 ### BL-63: The time shown on Today counts the work, not just the rest (D-10, C-5)
 - **Why:**
