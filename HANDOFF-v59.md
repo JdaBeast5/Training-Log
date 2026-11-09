@@ -1032,3 +1032,42 @@ Owner, after a brainstorm on what the unfolded screen could look like: "let's do
 - **Test:** `test-safety-cues.js` grows to 8 cases, with a shared `findSlots(name)` walker. Sabotage-checked.
 - **Unverified:** not tried on an iPhone.
 - **Next in order:** BL-62, then BL-64 and BL-61.
+
+## Addendum 54: coordination session summary (2026-11-07 to 2026-11-09)
+This covers what the builder's per-version addenda (43–53) don't: how the project is now run, and the owner's decisions.
+
+- **The name.** The app is **Platestep** (v3.517, `APP_NAME`): Chalklog was dropped for a clash, then Liftnext for the live "NextLift" apps. The owner holds platestep.app and platestep.com, and the domains forward only when he asks. The customer email is support@platestep.com. The icon is the "Sash" (v3.516).
+- **The merge flow.** Only the owner merges.
+  - `.claude/settings.json` denies merge, auto-merge, pushes to Branch-1, force pushes, and `gh api`/`curl` PUTs.
+  - Branch-1 has GitHub branch protection (PR required, no force push).
+  - GitHub records Claude's actions under the owner's account, so these rules are the guard. Never route around them.
+- **The build loop.**
+  - A dedicated builder session runs 5 times a day: 7:17, 10:17, 13:17, 16:17 and 20:17 America/New_York (trigger `trig_013jG6YUgaqXCL3toa5xcyfn`).
+  - `planning/automation.md` is its single rulebook. A run with an open `claude/auto-*` PR only does upkeep.
+  - Owner answers reach it through PR comments, the builder session, or a planning PR. Closing an auto-PR without merging only triggers a retry if the closing comment quotes the answer (§7.3).
+- **The plan of record.**
+  - `planning/roadmap.md` holds the Unified build sequence.
+  - `planning/backlog.md` holds the items.
+  - `planning/pitch.md` "Owner's answers" holds every decision round.
+  - `planning/alignment/consensus.md` holds the pre-D1 sign-off.
+  - Spec-refresh passes 1 and 2 (PRs #70 and #93) covered slots 2–30; pass 3 (slots 31–62) is in progress.
+- **Owner decisions worth knowing.**
+  - D1–D16 are all answered.
+  - The audit items BL-51, 52, 56, 59 and 61 are yes; BL-46 and BL-47 (cycling and swimming) are parked.
+  - BL-02: (a), no number on cables and machines. BL-35: (b), nothing moves. BL-68: backups leave out API keys. BL-74: (a). BL-24: (a), 5 lb floors. MKT-03 keeps the name.
+  - Year in Lifting lands around 3 December. Going public waits for the Phase 3 gate, which needs BL-52 after BL-51 has stamped names for about 3 weeks, so mid-December at the earliest.
+  - Money: free forever on the phone, a later Pro only for server-run features, and a coach plan. The LLC is parked: Ironwright LLC is recommended in `planning/llc-naming.md`, in Florida, as a parent with Platestep as a fictitious name.
+- **Launch prep that's ready to use.**
+  - `planning/launch-copy/`: privacy, what's free, AI disclosure, and the clinician's review list of 566 strings.
+  - `planning/store/`: listings, screenshot plan, landing page and launch posts.
+  - `tools/visual/`: the harness, with `--store`. Store images are shot after the redesign ships.
+  - `tools/design/`: the corrected mock-ups.
+- **Open for the owner.**
+  - Forward the domain.
+  - Send a Strong or Hevy export file (for BL-29).
+  - Get the clinician review before launch.
+  - Pick the LLC later.
+  - Decide where the landing page lives (it conflicts with forward-only).
+- **Warnings.**
+  - Several sessions and agents share `/home/user/Training-Log`. Do work in your own `git worktree`, never in the builder's checkout.
+  - Running many agents at once hits the 5-hour usage cap. Resume them with SendMessage after the reset instead of starting new ones.
