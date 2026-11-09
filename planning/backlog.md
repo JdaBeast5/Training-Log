@@ -40,6 +40,12 @@ BL-39 and BL-40 each carry one non-blocking owner option; the default is the app
 - **Re-pins found:** UX-03 (about ten suites pin glass, gradients and the aura), UX-04 (`test-header-refresh.js:98`, `test-nav-pill-visual-weight.js`, `test-tab-bar.js:37–43`), UX-16 (`test-coach-fab-drag.js` retires; seven more), BL-60 (`test-safety-cues.js`'s 321-exercise snapshot as well as `test-concise-cues.js`), BIZ-18a (an exact allowlist: 5 buttons carry the class `usda-key-upgrade-toggle`), UX-07 (names a removed-feature guard forbids).
 - **Tooling:** WebKit isn't installed and the harness has no browser option; the harness also has no finish or recap state (UX-09a and UX-11 add them).
 
+**Program extensions written (2026-11-09, against v3.528, `origin/Branch-1` cf8985b).** The exercise-auditor replaced the BL-41–45 placeholder with four full items, in the section "Program extensions" (before "Parked or later"): BL-41 (the Powerlifting top single and meet peak), BL-42 (Olympic % bands and a miss counter), BL-44 (bodyweight progression ladders) and BL-45 (athletic jump and sprint metrics). The baseline was green: `check.sh` passed and 204/204 suites passed. They sit at roadmap slots 88a–88d. Findings:
+- **BL-44 is `ready (after Phase 3)`.** BL-41, BL-42 and BL-45 are `needs-owner`: each adds stored data or changes what a prescribed set means. There's one plain-words question in each item.
+- **Found in the code:** a set logged with 0 reps counts as a made lift today (`topSetOf`, `saveExSet`'s PR check, `reconstructAllPRs`, `maxWeightEver`), so a missed lift at a new weight shows as a PR. BL-42 fixes it as its first step, because its miss counter depends on it.
+- **Audit correction:** H-8's push-up ladder put the incline before the knee push-up. The measured loads (Ebben et al. 2011) put the knee push-up lower, and BL-44 follows them.
+- **Dependency:** BL-41's top single needs BL-34 (slot 81). Without it, a single at RPE 8 is read as a 1-rep max and the suggested single ratchets down each week.
+
 Owner: project-manager. Written 2026-11-07 against **v3.514**. The baseline was green: `check.sh` passed and 198/198 `test-*.js` suites passed. Line numbers are `index.html` at v3.514 unless a file is named. **Every build run re-greps them before editing:** each shipped item shifts the lines below it.
 
 **Rules for every item** (CLAUDE.md, `planning/toolchain.md` §5–6):
@@ -2030,17 +2036,449 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; criteria 1, 4 and 6 made real invocations (criterion 4 pointed at another suite's expectations). Scope unchanged.
 - **Status:** ready
 
+## Program extensions: BL-41, BL-42, BL-44 and BL-45 (exercise-auditor, 2026-11-09, against v3.528)
+
+Written against `index.html` and `content-exercises.js` at **v3.528** (`origin/Branch-1` cf8985b). The baseline was green: `check.sh` passed and 204/204 `test-*.js` suites passed. Line numbers are v3.528's. These sit at roadmap slot 88 (88a–88d), after Phase 3, so slots 1–87 land first and **every build re-greps**. They replace the slot-88 placeholder.
+
+What these items keep, from decisions already made:
+- **BL-01's program gate.** Nothing here adds sets through goal volume or accumulation. BL-41's taper only removes sets, on Powerlifting only.
+- **BL-02 and BL-69's clinical rules.** `rpeTargetFor` (27527) is untouched: `oly`, `jump` and `throw` stay `null`, and `medical` and `senior` stay capped at RPE 7. BL-44 is off on `medical` and `senior`, as BL-11 is. No item reaches a clinical style.
+- **BL-24's 5 lb floors.** All loads snap through `snapToLoadable` (32937). BL-42's miss drop is never smaller than the smallest loadable step.
+- **The history-key work (BL-51, BL-52, BL-72, BL-74).** No item changes an `ex:` key, a slot index or `__srcIndex`. BL-41 and BL-42 put their rules in code, not in the program data. BL-44's rungs use the existing `:sub:` keys (`exKey` 27067). BL-45's fields are additive on the set, like `distance`, `note` and `rest`.
+- **RPE mode.** BL-41 is RPE mode only. BL-42 works in both modes, because `oly` has no RPE target.
+- **D15 (cards lead with sets, not tonnage).** Taper copy says "sets", never "volume load". Jump and sprint numbers stay off share cards and out of any total.
+
+Three of the four need the owner: BL-41, BL-42 and BL-45 add stored data or change what a prescribed set means. BL-44 is `ready (after Phase 3)`.
+
+**Source keys for this section.** Several hosts couldn't be fetched this session: `www.ncbi.nlm.nih.gov`, `www.mdpi.com` and `www.frontiersin.org` don't resolve here. Figures marked "abstract" or "secondary" were read from search summaries, not full texts. The keys below are new; [ACSM26], [BELL23] and [PRAC] are `program-audit.md`'s.
+
+| Key | Source | Checked |
+|---|---|---|
+| [TRA20] | Travis, Mujika, Gentles, Stone & Bazyler 2020, "Tapering and peaking maximal strength for powerlifting performance: a review", Sports 8(9):125, doi 10.3390/sports8090125. Tapers cut volume and keep intensity; the evidence is mostly observational and qualitative. | abstract only |
+| [TRA21] | Travis et al. 2021, "Characterizing the tapering practices of United States and Canadian raw powerlifters", JSCR (364 lifters). Most often a 7–10-day step taper with volume-load cut by 41–50%; highest intensity about 2 weeks out; highest volume 5–8 weeks out. | abstract plus secondary |
+| [PRI16] | Pritchard, Tod, Barnes, Keogh & McGuigan 2016, "Tapering practices of New Zealand's elite raw powerlifters", JSCR 30(7):1796–1804. Volume cut 58.9 ± 8.4% with intensity kept or slightly lowered (interviews, n = 11). | secondary; taper length not confirmed |
+| [PRI18] | Pritchard et al. 2018, "Short-term training cessation as a method of tapering to improve maximal strength", JSCR 32(2):458–465. After 4 weeks of training, 3.5 or 5.5 days off didn't lower strength; CMJ height and isometric bench force rose versus baseline. | abstract |
+| [ZOU16] | Zourdos et al. 2016, "Novel resistance training-specific RPE scale measuring repetitions in reserve", JSCR 30(1):267–275. | not re-fetched |
+| [HEL18] | Helms et al. 2018, "RPE vs. percentage 1RM loading in periodized programs matched for sets and repetitions", Front Physiol 9:247. | not re-fetched |
+| [LAR21] | Larsen, Kristiansen & van den Tillaar 2021, PeerJ 9:e10663, systematic review (14 studies, 356 participants). RPE/RIR, flexible and velocity-based autoregulation all raised 1RM. | abstract |
+| [PRIL] | Prilepin's table (Soviet weightlifting logs, 1960s–70s): 70–80% → 3–6 reps per set, 12–24 total; 80–90% → 2–4, 10–20; 90%+ → 1–2, 4–10. | secondary only; no primary located |
+| [SUC15] | Suchomel, Comfort & Stone 2015, "Weightlifting pulling derivatives: rationale for implementation and application", Sports Med 45(6):823–839. Pulls without a catch can be loaded above the catch lift's 1RM; related work used up to 120% (floor clean pull) and 140% (mid-thigh pull). | secondary; the review's exact % not confirmed |
+| [MISS] | Missed-lift rules in weightlifting (Catalyst Athletics articles on minimising misses). No published "2 misses → drop 5%" or "3 misses → stop" rule was found. | practice only |
+| [EBB11] | Ebben et al. 2011, "Kinetic analysis of several variations of push-ups", JSCR 25:2891–2894. Peak force as a share of body mass: knee push-up 0.49, hands on a 30 cm box 0.55, standard 0.64, feet on a 30 cm box 0.70, feet on a 61 cm box 0.74. | secondary |
+| [KOT18] | Kotarsky et al. 2018, "Effect of progressive calisthenic push-up training on muscle strength and thickness", JSCR. Push-up variations progressed over 4 weeks raised bench 1RM like bench training did (n = 23). | abstract and thesis |
+| [SCH21] | Schoenfeld, Grgic, Van Every & Plotkin 2021, "Loading recommendations for muscle strength, hypertrophy, and local endurance: a re-examination of the repetition continuum", Sports 9(2):32. Hypertrophy is similar across a wide load range near failure; strength favours heavier loads. | not re-fetched |
+| [CLA17] | Claudino et al. 2017, "The countermovement jump to monitor neuromuscular status: a meta-analysis", J Sci Med Sport 20(4):397–402. The average jump was more sensitive than the best jump for detecting fatigue and supercompensation. | abstract |
+| [SMG11] | Sánchez-Medina & González-Badillo 2011, MSSE 43(9):1725–1734. Velocity loss within a set tracks fatigue; it correlates with CMJ height loss. | not re-fetched; indirect for jumps |
+| [NSCA-PLY] | NSCA plyometric volume guide: about 80–100 ground contacts per session for beginners, 100–120 for intermediates, 120–140 for advanced. | secondary study guides; primary text not located |
+| [MAY10] | Mayhew et al. 2010, JSCR. Hand-timed 40 yd dashes were 0.22 s (about 4%) faster than electronic timing. | abstract via secondary |
+| [HAU19] | Haugen, Seiler, Sandbakk & Tønnessen 2019, "The training and development of elite sprint performance", Sports Med Open 5:44. Sprint work is done near-fresh, with long recoveries. | not re-fetched |
+
+### BL-41: Powerlifting top single at RPE 8 with −10% back-offs, plus an optional meet peak
+- **Why:**
+  - Powerlifting scores **W** for progression in the audit: "no top sets, peaking or %1RM". Its competition lifts (`programs.powerlifting` 10507) are Squat `5×5` (d1), Bench Press `5×5` (d2) and Deadlift `5×3` (d4). They run on the same double progression, or in RPE mode the same weekly ramp (`RPE_BY_CYCLE_WEEK` 27486, 7.5 → 9), as every accessory. Nothing sets the day's load from a heavy single, and nothing tapers for a meet.
+  - **Top single.** A daily top single rated on the RIR-based RPE scale is the standard autoregulated way to set a strength day's load (RTS/Tuchscherer practice [PRAC]). The scale is valid in trained lifters [ZOU16]. RPE loading matched or beat %1RM loading at equal sets and reps [HEL18]. A 14-study review found every autoregulation method raised 1RM [LAR21].
+  - **The −10% back-off** is practice [PRAC]. It fits the app's own maths: a single at RPE 8 is 1/1.1 ≈ 91% of e1RM (`loadForRpeTarget` 27472). Fives at 90% of that (≈ 82% of e1RM) land near RPE 8.3, the same effort zone as the weekly ramp they replace.
+  - **Peaking.** Tapers cut volume and keep intensity [TRA20]. North American lifters most often used a 7–10-day step taper, cutting volume-load by 41–50%, with their heaviest work about 2 weeks out [TRA21]. Elite lifters cut volume by about 59% [PRI16]. 3.5 or 5.5 days off didn't cost strength [PRI18]. The deload consensus also cuts volume rather than intensity [BELL23]. Audit §5 asks for "taper volume about 40–60% over the final 2 weeks".
+  - **Not repeated here:** the audit's stall rule (3 sessions without a gain → change the variation) is BL-26's text option. The per-lift e1RM line is UX-10's.
+- **Change.** Ships as **two versions**: part 1, then part 2, each with its own test, sabotage and What's New line.
+
+  **Part 1: the top single (RPE mode only; no program data changes).**
+  1. **`isTopSingleRow(ex, program)`**, a pure helper beside `rpeTargetFor` (27527). It's true only when all of these hold:
+     - `program === 'powerlifting'` and `loadSuggestionMode === 'rpe'` (32660);
+     - the name is Squat, Bench Press or Deadlift;
+     - the row isn't custom, body-goal focus or a swapped substitute (`__isSubbed`);
+     - `parseSetCount(ex.sets) >= 3` and `parseTopRep(ex.sets) <= 5`.
+
+     At v3.528 that's d1 Squat, d2 Bench Press and d4 Deadlift, plus their twins in `PROGRAM_DAY_COUNT_VARIANTS.powerlifting` (17072). Bench `4×8` (d5) and the 1-day variant's Deadlift `1×5` are excluded. The rule lives in code, so no `ex:` key, slot or `__srcIndex` moves.
+  2. **`singleRpeFor(peakPhase, inDeload)`** returns:
+     - 8 normally;
+     - 9 in part 2's `'peak'` phase and 7 in `'openers'`;
+     - `null` in a deload week or the `'rest'` phase. With `null` there's no single, and set 1 is an ordinary set under the existing rule.
+  3. **`topSingleSuggestion(setIdx, {e1rmLb, exName, bottomRep, singleRpe, lastSingleLb, todaySingleLb})`** returns display units:
+     - **Set index 0:** `snapToLoadable(toDisplayWeight(loadForRpeTarget(e1rmLb, 1, singleRpe)), exName, 'down')`, 1 rep, reason `'top-single'`. When a previous single exists, it's capped at last single × 1.05, snapped down. One mis-rated set can't inflate next week's single by more than 5%.
+     - **Index 1 or more:** base = today's logged single if there is one, else the index-0 suggestion. The weight is base × 0.90 snapped down, at `bottomRep` reps, reason `'backoff'`.
+     - `null` when `e1rmLb` is `null`. The badge then gives words only: "Work up to a single that feels like RPE 8 (about 2 reps left), then the other sets 10% lighter."
+  4. **`renderWorkout` (28713).** For a top-single row:
+     - The set-row loop (29136) and the first-set call (29041) take `topSingleSuggestion` instead of `computeSuggestedSet`. The warm-up ramp then builds to the single, through the existing `chooseRampBasis` (28121).
+     - The badge (28964) reads: "Top single at RPE 8 (about 2 reps left): around 360 lb. Then 4×5 at about 320 lb (10% lighter)."
+     - The `.exercise` header gets `data-top-single="1"`.
+  5. **Set to set.** `recommendNextSet` (30937) gains an optional fifth argument, `topSingle = {backoffPct: 0.9, prevWasSingle}`:
+     - After the single (`prevWasSingle`), it returns `dir:'down'`, a weight of `floor(w × 0.9 / step) × step`, and `bottomRep` reps. The `why` text is "Back-offs: 10% under today's single".
+     - After a back-off, it returns `same`: back-offs don't climb from set to set.
+
+     `renderSetChips` (30973; the call is at 31000) passes it when `presc.dataset.topSingle` is set, with `prevWasSingle = Number(row.dataset.setIdx) === 1`. The other three callers keep four arguments and today's results.
+  6. **Signals stay honest.** A top-single row feeds `analyzeProgressionSignal` from the back-offs: before `buildPastSessions`, each entry drops set index 0 when that set has `reps === 1` and the entry has 2 or more sets. The copy is fresh; nothing stored changes. This applies at all three signal sites: the heads-up (14594), the fit check (27720) and `renderWorkout` (28950).
+     - Without this, the single becomes `topSetOf`'s top set (27227). The first session then reads as a `decrease` (1 rep under the 5-rep floor), and signal 3 never fires again.
+     - `rpeCtx.e1rm` (28954) keeps the unstripped sessions, so the single feeds the e1RM through BL-34's RPE adjustment.
+
+  **Part 2: the meet peak.**
+  7. **A meet date**, stored in `window.storage` as `pl-meet-date` (an ISO date). It's set or cleared from a date field on the Powerlifting card in `renderProgramSelector` (15542), using the existing `expand-wrap` pattern, and shows only while Powerlifting is active. It's exported in backups like any other key; BL-68 only excludes `*-api-key`.
+  8. **`peakPhaseFor(meetIso, dayIso)`.** Days out = the meet date minus `selectedLogDate`, so backdating reads the right day:
+     - 8–14 days → `'peak'`;
+     - 4–7 → `'openers'`;
+     - 0–3 → `'rest'`;
+     - anything else, including after the meet → `null`. Nothing is written when the peak ends.
+  9. **`applyPeakVolume(exercises, phase)`**, beside `applyDeloadVolumeReduction` (26919), using the same `hasNumericSetPrefix`, `parseSetCount` and `replaceSetCount`:
+     - `'peak'`: `max(1, round(n × 0.6))`;
+     - `'openers'`: `max(1, floor(n × 0.5))`;
+     - custom rows are untouched.
+
+     On powerlifting d1, that's 14 sets → 9 in `'peak'` (−36%) and 14 → 5 in `'openers'` (−64%), about −50% across the two weeks [TRA21][PRI16].
+  10. **In `renderWorkout` (28813–28824)**, when `activeProgram === 'powerlifting'` and the phase isn't `null`, `applyPeakVolume` replaces the whole deload/accumulation branch. A deload week inside the window doesn't cut a second time, and accumulation doesn't add sets.
+  11. **Copy:**
+      - `'peak'` single: "Heaviest single of the prep: RPE 9, no grinders."
+      - `'openers'` single: "Your opener should feel like this: RPE 7."
+      - `'rest'`: every lifting row's badge reads "Meet in N days: rest from lifting." with no ghost load (no suggestion is computed).
+      - Counts are always given in sets (D15).
+- **Acceptance criteria** (real invocations of the extracted helpers; `renderWorkout` can't be driven in jsdom, so its call sites are pinned as real-call counts with comments stripped):
+  1. `isTopSingleRow` is true for powerlifting d1 Squat, d2 Bench Press and d4 Deadlift in RPE mode. It's false for:
+     - d5 Bench `4×8`;
+     - any row in progression mode;
+     - `strength` d1 Squat;
+     - a custom row, and a row with `__isSubbed`.
+
+     A sweep over `PROGRAM_DAY_COUNT_VARIANTS.powerlifting` lists every true row; the 1-day Deadlift `1×5` is false.
+  2. In lb with the default plates:
+     - `topSingleSuggestion(0, {e1rmLb:400, exName:'Squat', bottomRep:5, singleRpe:8})` gives `{weight:360, reps:1}`;
+     - index 2 with no single logged today gives `{weight:320, reps:5}`;
+     - with `todaySingleLb:370`, index 1 gives 330.
+  3. With `lastSingleLb:340` and e1RM 400, index 0 gives 355 (340 × 1.05 = 357, snapped down), not 360.
+  4. `recommendNextSet({weight:'360', reps:'1', rpe:'8'}, '5×5', 5, false, {backoffPct:0.9, prevWasSingle:true})` gives weight `'320'`, reps `'5'`. With `prevWasSingle:false` and a back-off of 320×5 at RPE 7, it gives `dir:'same'`. Called with four arguments, both inputs give exactly v3.528's results.
+  5. A Squat log, newest first:
+     - today−7: `[{360,1,rpe 8}, {320,5}, {320,5}, {320,5}, {320,5}]`;
+     - today−14: five sets of `{315,5}`.
+
+     After the strip, `analyzeProgressionSignal(..., 'squat', 'powerlifting')` gives no `decrease`. Without the strip, the same log gives `decrease`, which proves the strip is doing the work.
+  6. `singleRpeFor(null,false)` = 8, `('peak',false)` = 9, `('openers',false)` = 7, `('rest',false)` = `null`, `(null,true)` = `null`.
+  7. `peakPhaseFor('2026-12-20', d)`:
+     - 2026-12-06 (14 days out) and 12-12 (8) → `'peak'`;
+     - 12-13 (7) and 12-16 (4) → `'openers'`;
+     - 12-17 (3) and 12-20 (0) → `'rest'`;
+     - 12-05 (15) and 12-21 → `null`.
+  8. `applyPeakVolume` on the real powerlifting d1, `'peak'`: Squat `5×5` → `3×5`, Pause Squat `3×3` → `2×3`, Leg Press `3×8-10` → `2×8-10`, Weighted Sit-up `3×12` → `2×12`. In `'openers'`: `2×5`, `1×3`, `1×8-10`, `1×12`. A custom row is unchanged.
+  9. Every other program is unaffected. Over every key of `programs` (iterate, and assert the count) and every `PROGRAM_DAY_COUNT_VARIANTS` day, `isTopSingleRow` is true only on Powerlifting rows.
+  10. Real-call counts in `renderWorkout`: 1 `isTopSingleRow(`, 2 `topSingleSuggestion(` (the first-set and set-row sites), 1 `peakPhaseFor(`, 1 `applyPeakVolume(`. In `renderSetChips`: 1 `recommendNextSet(` call, which now passes a fifth argument.
+  11. Part 2 only: `test-import-backup-full-replace.js` round-trips `pl-meet-date`. Snapshot the storage keys before and after calling the pure helpers: they write nothing.
+- **Test plan:** new `test-powerlifting-top-single.js` (part 1) and `test-powerlifting-peak.js` (part 2).
+  - They use the real `isTopSingleRow`, `singleRpeFor`, `topSingleSuggestion`, `loadForRpeTarget`, `rirFromRpe`, `snapToLoadable`, `getEquipment`, `BARBELL_STANDARDS`, `BARBELL_EXERCISES`, `isBarbellExercise`, `toDisplayWeight`, `parseSetCount`, `parseTopRep`, `parseBottomRep`, `recommendNextSet`, `buildPastSessions`, `topSetOf`, `analyzeProgressionSignal`, `peakPhaseFor`, `applyPeakVolume`, `hasNumericSetPrefix`, `replaceSetCount`, `programs` and `PROGRAM_DAY_COUNT_VARIANTS`.
+  - Sabotage:
+    - drop the strip, and criterion 5 fails;
+    - drop the 1.05 cap, and criterion 3 fails;
+    - swap the `'peak'` and `'openers'` factors, and criterion 8 fails.
+- **Files:**
+  - `index.html`:
+    - new helpers beside `rpeTargetFor` 27527;
+    - `applyPeakVolume` beside 26919;
+    - `renderWorkout` 28813–28824, 28950–28964, 29041, 29136, plus the header markup;
+    - `getSessionHeadsUpInsight` 14594 and `computeProgramFitTrend` 27720;
+    - `recommendNextSet` 30937, and `renderSetChips` 30973–31000;
+    - `renderProgramSelector` 15542 (part 2);
+    - `APP_VERSION` 7625 and `WHATS_NEW` 7643.
+  - `sw.js` and the two tests.
+  - **Guards (expected unchanged; re-pin only if one breaks, and name it in the PR):**
+    - `test-next-set-recommendation.js`, `test-set-chips.js` and `test-exercise-logger.js`: four-argument `recommendNextSet`;
+    - `test-gym-set-chips.js` and `test-gym-warmup-chips.js`: `renderSetChips`, whose blocks have no `data-top-single`;
+    - `test-rpe-safety-caps.js`, `test-deload-signal-week-awareness.js` and `test-today-workout-emoji.js`: `buildProgressBadge`;
+    - `test-program-fit-trend.js`, and the four `getSessionHeadsUpInsight` suites (`test-cycle-phase-nutrition-insight.js`, `test-region-override.js`, `test-supplement-condition-cycle-nudge.js`, `test-today-emoji-free.js`);
+    - the seven `wireSetsBlock` suites that stub `buildPastSessions`;
+    - `test-volume-modifier-gate.js` and `test-accumulation-accessory-add.js`: the deload/accumulation branch;
+    - `test-program-overview.js`, `test-cycle-tracking-opt-out.js` and `test-profile-save-zero-value.js`: `renderProgramSelector`, part 2;
+    - `test-import-backup-full-replace.js`: part 2.
+- **Risk:**
+  - **Needs BL-34 (slot 81).** Without BL-34's RPE-adjusted e1RM, a single is read as a 1-rep max (Epley). Then 360×1 gives e1RM 372, and the next single comes out at 335: the single ratchets down every week. Also after BL-08 (slot 10), BL-26 (26) and BL-72/BL-74.
+  - Back-off sets show more weight in set 1 than the 5×5 lifter is used to. The What's New line says so, and it's RPE mode only.
+  - The three signal call sites must agree, or the fit check will call Powerlifting under-progressing.
+- **Tools:** `code-review` at high (progression path).
+- **Why needs-owner:** part 1 changes what set 1 means on three lifts. The program data is untouched, but the prescription isn't. Part 2 stores a new key, the meet date.
+- **Owner question:** In RPE mode, should Powerlifting's main squat, bench and deadlift start with one heavy single at RPE 8, with the other sets 10% lighter? And may the app store a meet date, so that the last two weeks before it taper (fewer sets, still a heavy single, no lifting in the last 3 days)?
+  - (a) Both.
+  - (b) The single only.
+  - (c) Neither.
+
+  **Recommended: (a).**
+- **Status:** needs-owner (slot 88a: after Phase 3 once approved, and after BL-34)
+
+### BL-42: Olympic % bands per lift, with a miss counter
+- **Why:**
+  - Olympic scores **F** for progression in the audit: "+10 lb Epley-based DP on snatch". Since v3.519 (BL-02), `oly` has no RPE target, so Snatch `5×2`, Clean & Jerk `5×2`, the pulls and the power variants (`programs.oly` 9925) run on plain double progression. That's +10 lb today, and +5 lb after BL-24. Nothing ties a weight to the lifter's best lift, and nothing reacts to a missed lift.
+  - Weightlifting is coached by percentage zones of the competition lifts. Prilepin's table pairs 70–80% with 3–6 reps per set, 80–90% with 2–4, and 90%+ with 1–2 [PRIL]. The program's own comment calls its doubles "coaching-school consensus" (9931–9941), and this item stays inside that.
+  - Pulls without a catch can be loaded above the lift's own max [SUC15].
+  - Coaches limit misses, because a missed lift rehearses a failed pattern. The rule thresholds here are practice; no published numbers were found [MISS].
+  - **Found while specifying (v3.528), a precondition.** A set logged with 0 reps counts as a made lift today:
+    - `topSetOf` (27227) takes the heaviest set whatever its reps;
+    - `saveExSet` flags `isPR` on `w > priorMax` (28529);
+    - `reconstructAllPRs` (41853) builds on `topSetOf`;
+    - `maxWeightEver` (27557, read at 41778) counts it too.
+
+    So a missed snatch at a new weight shows as a PR. The set sheet allows 0 reps (`stepSetSheet` 31320). The miss counter can't ship on top of that.
+- **Change:**
+  1. **A 0-rep set isn't a made lift.**
+     - `topSetOf` skips sets with `reps === 0`. Sets with `reps == null` (weight-only logging) keep today's behaviour.
+     - `saveExSet`'s `priorMax` loop (28468–28474) skips them, and `isPR` requires `r !== 0`.
+     - `maxWeightEver` skips them.
+     - `reconstructAllPRs` follows through `topSetOf`.
+     - Nothing stored changes.
+  2. **`OLY_BAND_LIFTS`**, beside `rpeTargetFor` (27527): Snatch → ref Snatch, `comp`; Clean & Jerk → ref Clean & Jerk, `comp`; Power Snatch → ref Snatch, `power`; Power Clean → ref Clean & Jerk, `power`; Snatch Pull → ref Snatch, `pull`; Clean Pull → ref Clean & Jerk, `pull`.
+     - Clean pulls are set against the clean & jerk, which most lifters jerk less than they clean, so the band errs light.
+     - Snatch Balance, Overhead Squat, Jerk Dip Squat, Push Press and the squats keep today's progression.
+  3. **`OLY_BANDS`**, as % of the reference, by kind and cycle week (`cycleWeekOf` 26796; the deload is the existing `isDeloadWeek` flag):
+
+     | kind | wk 1 | wk 2 | wk 3 | wk 4 | deload |
+     |---|---|---|---|---|---|
+     | `comp` | 70–75 | 75–80 | 80–85 | 85–90 | 60–70 |
+     | `power` | 55–60 | 60–65 | 65–70 | 70–75 | 50–60 |
+     | `pull` | 90–95 | 95–100 | 100–105 | 105–110 | 80–90 |
+
+     - `comp` doubles sit inside Prilepin's 70–90% zones [PRIL].
+     - `power` triples are set against the full lift: a power max is commonly about 80–85% of the full lift [PRAC], so this is about 65–90% of a power max.
+     - `pull` follows [SUC15], staying below its 120% figure.
+  4. **`olyReferenceMax(entries, todayIso)`**: the heaviest weight with `reps >= 1` in the 84 days before today. It reads the reference lift by name through `readExCorpus` (41226) and `groupCorpusByExercise` (41699), so Snatch Pull reads the snatch, and through BL-51's `entriesForExercise` where it applies. It's `null` when there's no such set.
+  5. **`olyBandFor(name, week, inDeload, refLb)`** returns `{lo, hi}` in display units. `lo` snaps up and `hi` snaps down (`snapToLoadable`). If they cross, both become the snapped midpoint. It returns `null` when the lift isn't listed or there's no reference.
+  6. **Render.** Only when `activeProgram === 'oly'` (default days and variants, 16810):
+     - `renderWorkout` reads the corpus once and sets `rpeCtx.band` (28954).
+     - `computeSuggestedSet` (27983) returns `{weight: lo, reps: bottomRep, reason: 'band'}` for working sets when `rpeCtx.band` exists, in both load modes. The RPE path stays unreachable, because `rpeTargetFor` is `null` for `oly`.
+     - The badge (`buildProgressBadge` 27888, through its technique-lift branch, which keeps the "Technique lift:" prefix) reads: "Technique lift: week 2, 75–80% of your best snatch (200 lb): 150–160 lb. Every rep fast; a slow or pressed-out rep counts as a miss."
+     - With no reference, today's double progression applies (BL-24's 5 lb `oly` floor), plus "Week 4's heavy singles set your reference."
+     - The header gets `data-oly-band="1"`.
+  7. **Week 4, `comp` lifts only.** After the prescribed doubles, with no miss so far today, the lifter may add up to 3 singles at 90–95%, stopping at the first miss. That's 13 reps in total, 3 of them at 90%+, inside [PRIL]. A set with an index beyond `parseSetCount(ex.sets)` is a single (target 1 rep). The best made single becomes the new reference, which is how the bands rise.
+  8. **`olyMissAdvice(doneSets, setsStr)`**, over today's logged sets for the row, in order (`{weight, reps, setIdx}`):
+     - the target is `parseTopRep` below `parseSetCount`, and 1 beyond it;
+     - misses per set = `max(0, target − reps)`.
+
+     It returns:
+     - 3 or more misses today → `{type:'stop'}`: "Three misses today: finish this lift and move on."
+     - 2 or more misses at the last set's weight → `{type:'drop', weight}`: "Two misses at 170 lb: drop to 160 lb and make clean reps before going back up." The weight is last − max(5% of last, smallest loadable step), snapped down.
+     - otherwise `null`.
+
+     `renderSetChips` (30973) calls it before `recommendNextSet` when the header has `data-oly-band`, and its result wins.
+  9. **The badge adds last session's misses** when there were any, counted the same way: "Last session: 2 misses at 170 lb."
+- **Acceptance criteria** (real invocations; `renderWorkout` call sites are pinned as real-call counts with comments stripped):
+  1. `topSetOf({sets:[{weight:210,reps:0},{weight:200,reps:2}]})` is the 200×2 set, and `topSetOf({sets:[{weight:210,reps:null}]})` is still the 210 set.
+     - Real `reconstructAllPRs` over a corpus whose newer entry is 210×0, after an older 200×2, records no event for the 210.
+     - Real `saveExSet` logging 210×0 over a prior max of 200 returns `isPR:false`; 205×1 returns `isPR:true`.
+     - Real `maxWeightEver` over the same log returns 200.
+  2. `olyReferenceMax` over entries 200×2 (80 days ago), 210×0 (10 days ago) and 190×2 (5 days ago) returns 200. With only an entry 85 days old, it returns `null`.
+  3. In lb with the default plates:
+     - `olyBandFor('Snatch', 2, false, 200)` = 150–160;
+     - `('Snatch Pull', 1, false, 200)` = 180–190;
+     - `('Power Snatch', 4, false, 200)` = 140–150;
+     - `('Snatch', 1, true, 200)` = 120–140.
+
+     In kg, `('Snatch', 1, false, 100)` = 70–75.
+  4. Real `computeSuggestedSet` with `rpeCtx.band = {lo:150, hi:160}` returns weight 150 with reason `'band'`, in both load modes. A counting stub of `loadForRpeTarget` records 0 calls. BL-02's criterion 2 in `test-rpe-safety-caps.js` (no band) passes unchanged.
+  5. `olyMissAdvice` on `5×2`:
+     - [170×2, 170×1, 170×1] → drop to 160;
+     - [170×2, 170×1] → `null`;
+     - [170×1, 165×1, 160×1] → stop (3 misses, no two at one weight);
+     - a set at index 5 with 1 rep → 0 misses (a week-4 single).
+  6. Every other program is unaffected: real `computeSuggestedSet` without `band` returns v3.528's outputs over a fixture snapshot that includes Power Clean on a non-oly row.
+  7. Real-call counts: 1 `readExCorpus(` and 1 `olyBandFor(` in `renderWorkout`, both behind the program check; 1 `olyMissAdvice(` in `renderSetChips`.
+  8. No render writes anything (snapshot the storage keys).
+- **Test plan:** new `test-oly-bands-and-misses.js`.
+  - It uses the real `topSetOf`, `maxWeightEver`, `saveExSet` (stubbed storage), `reconstructAllPRs` (stubbed `readExCorpus`), `groupCorpusByExercise`, `olyReferenceMax`, `olyBandFor`, `OLY_BANDS`, `OLY_BAND_LIFTS`, `cycleWeekOf`, `snapToLoadable`, `getEquipment`, `computeSuggestedSet`, `olyMissAdvice`, `parseSetCount`, `parseTopRep` and `parseBottomRep`.
+  - Sabotage:
+    - drop the `reps === 0` skip in `topSetOf`, and criteria 1 and 2 fail;
+    - drop the 84-day window, and criterion 2 fails;
+    - count misses per session instead of per weight, and criterion 5's second case fails.
+- **Files:**
+  - `index.html`:
+    - `topSetOf` 27227, `maxWeightEver` 27557, `saveExSet` 28459 (28468–28474, 28529);
+    - the new consts and helpers beside 27527;
+    - `computeSuggestedSet` 27983, `buildProgressBadge` 27888;
+    - `renderWorkout` 28954 plus the header markup;
+    - `renderSetChips` 30973–31000;
+    - `APP_VERSION` 7625 and `WHATS_NEW` 7643.
+  - `sw.js` and the test.
+  - **Guards (no fixture at v3.528 logs a 0-rep set, checked by grep):**
+    - the five `topSetOf` suites: `test-app-2-0.js`, `test-open-screen-2-0.js`, `test-performance-delta-colours.js`, `test-pr-timeline-class-naming.js`, `test-pr-timeline.js`;
+    - the six `reconstructAllPRs` suites (those, plus `test-audit-fixes.js` and `test-history-2-0.js`);
+    - `maxWeightEver`: `test-app-2-0.js` and `test-performance-delta-colours.js`;
+    - `test-rpe-safety-caps.js`, `test-deload-signal-week-awareness.js` and `test-today-workout-emoji.js`;
+    - the four `renderSetChips` suites;
+    - the six `readExCorpus` suites;
+    - the nine `saveExSet` suites (most stub it);
+    - BL-24's increment test.
+- **Risk:**
+  - **The 0-rep rule changes History, PRs and Analysis** for any 0-rep set already logged. Stored data is untouched; a PR built on a miss disappears. That's correct, but visible, so the What's New line says it.
+  - **The reference only rises through made heavy lifts.** That's why week 4 has its singles. A lifter who never takes them keeps their bands.
+  - **Order:** after BL-24 (slot 22), BL-51 (9a) and BL-54 (one name per exercise, so the corpus groups Snatch once).
+- **Tools:** `code-review` at high (PR history and the progression path).
+- **Why needs-owner:**
+  - the 0-rep rule changes what PR history and Analysis show for existing sets;
+  - week 4 adds optional sets beyond the written prescription;
+  - the owner chooses how a miss is recorded.
+- **Owner question:** For Olympic lifts, a miss is logged as fewer reps than prescribed (0 means the first rep was missed), with no new field. From then on, a 0-rep set never counts as a PR or best lift anywhere in the app; today it does. Week 4 also adds up to 3 optional heavy singles at 90–95% after the doubles, stopping at the first miss.
+  - (a) Yes, as written.
+  - (b) A separate "Missed" tap stored on the set (a new field) instead of 0 reps.
+  - (c) Bands only: no miss counter and no week-4 singles. The 0-rep fix still ships, because the bands' reference needs it.
+
+  **Recommended: (a).**
+- **Status:** needs-owner (slot 88b: after Phase 3 once approved; after BL-24, BL-51 and BL-54)
+
+### BL-44: Bodyweight progression ladders (H-8, part 2)
+- **Why:**
+  - Calisthenics and Bodyweight score **F** for progression (audit H-8). BL-11 (slot 27) adds +1 rep or +5 s, and above 15 reps or 60 s says "Ready for a harder variation" without naming one. Front Lever Hold `4×10-15s` (calisthenics d2) is the full skill, with no easier rung to train on. Pull-ups `4×AMRAP` (bodyweight d2) offers nothing to someone who can't do one.
+  - Progressive overload is the core recommendation [ACSM26]. Push-up variations progressed by leverage raised bench 1RM like bench training did [KOT18]. The load of each variation is measured [EBB11]: knee 49% of body mass, hands on a 30 cm box 55%, floor 64%, feet on a 30 cm box 70%.
+  - Hypertrophy is similar across a wide rep range near failure, but strength favours heavier loads [SCH21]. Past about 15 reps, a harder variation serves strength better than more reps.
+  - Lever and L-sit progressions are coaching practice [PRAC].
+  - **Audit correction:** H-8 orders the push-up ladder "wall → incline → knee → floor → decline". [EBB11] puts the knee push-up (49%) below a 30 cm incline (55%). This ladder follows the measurements, and the Incline Push-up cue names the 30 cm height.
+- **Change:**
+  1. **`PROGRESSION_LADDERS`**, beside `SUBSTITUTION_MAP` (44169), as audit H-8 placed it. Easiest to hardest; * marks a new library entry:
+     - push-up: Wall Push-up → Knee Push-up* → Incline Push-up* → Push-up → Decline Push-up;
+     - pike: Pike Push-up → Elevated Pike Push-up*;
+     - pull-up: Negative Pull-up* → Pull-ups (or assisted);
+     - front lever: Tuck Front Lever* → Advanced Tuck Front Lever* → Straddle Front Lever* → Front Lever Hold;
+     - L-sit: Tuck L-sit Hold* → L-sit Hold;
+     - pistol: Box Pistol Squat* → Pistol Squat.
+
+     **Deliberately left out:** bench dip → bar dip. A bench dip loads the shoulder at end-range extension, so it isn't a safe regression [PRAC]. Both stay as `EXERCISE_SUBS` alternatives, as today.
+  2. **`listedSubsFor(name)`** is the one list of what a slot may be swapped to: `EXERCISE_SUBS[name]` first, then the rungs of `name`'s ladder not already listed, easiest first. It's used at all three `EXERCISE_SUBS` reads:
+     - `applyExerciseSubs` (27101), including BL-73's "only if listed" check;
+     - `openExerciseSubModal` (27274): options are the default, the existing alternatives, then rungs tagged "Easier" or "Harder";
+     - the swap control's `hasSubs` (29231).
+
+     `EXERCISE_SUBS` itself is unchanged, so its "exactly 2 alternates" invariant (`test-exercise-substitution.js` 133–139) holds.
+  3. **`ladderStep(ex, log, program)`** returns `{dir:'up'|'down', to}` or `null`. It reads the row's own history: the rung's `:sub:` key when the row is swapped.
+     - **Up:** BL-11's `suggestRepProgression` verdict is "harder variation" (every set above 15 reps or 60 s in 2 consecutive sessions). Or, for a hold prescription whose top is 30 s or less (levers, L-sits), every set reached that top in 2 consecutive sessions.
+     - **Down:** every set fell below the prescription's bottom in 2 consecutive sessions. On an AMRAP, the first set was under 5 reps in both.
+     - `to` is the neighbouring rung. At the top of a ladder, "up" gives words only: "Add load or a 3-second lowering", and only if the row has a weight field.
+     - Returns `null` on `medical` and `senior` (as BL-11), on custom and body-goal rows, and on rows with no ladder.
+  4. **Copy.** BL-11's words become "Ready for Decline Push-up: tap Swap and pick it." or "Too hard today? Knee Push-up is one step easier: tap Swap."
+     - Nothing swaps by itself. The picker's existing write (`subSelectionKey`, through BL-72's `slotIdOf`) does it on the user's tap.
+     - Each rung keeps its own `:sub:` history, so no history moves.
+  5. **Library.** Nine `content-exercises.js` entries, each with the category of its ladder's base (so `regionsForExercise` and the resting-region flags match the base, and no `EXERCISE_REGION_OVERRIDE` line is needed), a `videoQuery`, and these 3 cues (each 24 words or fewer):
+     - **Knee Push-up** (`push`): "Knees on a mat; hips in line with shoulders and knees, no bend at the waist." / "Lower your chest to a fist's height off the floor, elbows about 45° from your body." / "Press the floor away; at 15 clean reps, move to the incline push-up."
+     - **Incline Push-up** (`push`): "Hands on a sturdy box or step about 30 cm (12 in) high, shoulder-width apart." / "Body straight from head to heels; lower your chest to the edge, elbows about 45°." / "A lower box is harder; at 15 clean reps, move to floor push-ups."
+     - **Elevated Pike Push-up** (`shoulder`): "Feet on a box, hands on the floor, hips stacked high over your shoulders." / "Lower the top of your head toward a spot just ahead of your hands, elbows tracking back." / "Press back to straight arms; end the set when your hips start to drop."
+     - **Negative Pull-up** (`pull`): "Jump or step up so your chin is over the bar." / "Lower yourself slowly, over 3–5 seconds, to a full hang with straight arms." / "Step back up rather than pulling; once you can do 3 strict pull-ups, switch over."
+     - **Tuck Front Lever** (`pull`): "Hang with straight arms, shoulder blades pulled down and back, knees tucked to your chest." / "Lift until your back is horizontal and your hips are level with your shoulders." / "Hold 10-15 s; stop when your back rounds or your elbows bend."
+     - **Advanced Tuck Front Lever** (`pull`): "From the tuck lever, open your hips until your back is flat; knees stay bent." / "Arms locked straight and shoulders pressed down; hips level with your shoulders." / "Hold 10-15 s; go back to the tuck when your back won't stay flat."
+     - **Straddle Front Lever** (`pull`): "Legs straight and spread wide; the wider the straddle, the easier the hold." / "One horizontal line from shoulders to feet, arms locked straight." / "Hold 10-15 s; narrow the straddle as you get stronger, then close the legs."
+     - **Tuck L-sit Hold** (`core`): "Hands on parallettes or the floor beside your hips, arms locked straight." / "Press your shoulders down hard and lift your hips, knees tucked to your chest." / "Hold 10-20 s; extend one leg at a time when it gets easy."
+     - **Box Pistol Squat** (`lunge`): "Stand on one leg in front of a box, the other leg reaching forward." / "Sit back slowly to touch the box without dropping; heel down, knee over toes." / "Stand without rocking; lower the box as you get stronger."
+- **Acceptance criteria** (real `listedSubsFor`, `applyExerciseSubs`, `EXERCISE_SUBS`, `PROGRESSION_LADDERS`, `exerciseInfo` and `regionsForExercise`; the real `openExerciseSubModal` in jsdom with the real modal markup):
+  1. `listedSubsFor` gives:
+     - `'Push-up'` → `['Bench Press','Decline Push-up','Wall Push-up','Knee Push-up','Incline Push-up']`;
+     - `'Front Lever Hold'` → the three lever rungs;
+     - `'Bench Press'` → exactly `EXERCISE_SUBS['Bench Press']`.
+
+     A sweep: for every name not in a ladder, `listedSubsFor` equals `EXERCISE_SUBS` (or `undefined` when absent).
+  2. Real `applyExerciseSubs`:
+     - a stored 'Knee Push-up' on bodyweight d1 slot 0 applies (`__isSubbed`);
+     - a stored 'Front Squat' there doesn't (BL-73 still holds);
+     - a stored 'Tuck Front Lever' on calisthenics d2 slot 1 applies. At v3.528 this fails at the early return: Front Lever Hold isn't in `EXERCISE_SUBS`.
+  3. `ladderStep`:
+     - Push-up `4×AMRAP`, two sessions with every set at 16 → up to Decline Push-up;
+     - first sets of 4 in both sessions → down to Incline Push-up;
+     - one session → `null`;
+     - a Tuck Front Lever row on `4×10-15s`, two sessions of 15 s on every set → up to Advanced Tuck Front Lever;
+     - Front Lever Hold at its top → `null`;
+     - Pistol Squat `3×5-8/leg`, two sessions of 3 reps on every set → down to Box Pistol Squat (needs BL-76's per-limb parse).
+  4. Medical, Senior, custom and body-goal rows → `null`.
+  5. Real `openExerciseSubModal` for bodyweight d1 Push-up lists 6 options: Default on Push-up, "Easier" on Wall, Knee and Incline, "Harder" on Decline. Tapping Knee Push-up writes the slot's selection key with the value 'Knee Push-up'.
+  6. Each of the 9 new names has an `exerciseInfo` entry, with its base's category and 3 cues of 24 words or fewer. `regionsForExercise` equals the base's.
+  7. Real-call counts: 3 `listedSubsFor(` call sites, and 1 `ladderStep(` in `renderWorkout`. A render writes nothing (snapshot the storage keys).
+- **Test plan:** new `test-bodyweight-ladders.js`. Sabotage:
+  - point `applyExerciseSubs` back at `EXERCISE_SUBS`, and criterion 2's lever case fails;
+  - drop the 2-session rule, and criterion 3's one-session case fails.
+- **Files:**
+  - `index.html`:
+    - `PROGRESSION_LADDERS` and `listedSubsFor` beside 44169;
+    - 27101, 27274, 29231;
+    - `ladderStep` beside BL-11's helper, near `computeSuggestedSet` 27983;
+    - `APP_VERSION` 7625 and `WHATS_NEW` 7643.
+  - `content-exercises.js` (9 entries), `sw.js`, the test.
+  - **Re-pins** (both count exercises):
+    - `test-concise-cues.js` 45–48: +9 exercises and +27 cues on whatever the base commit holds (321/971 at v3.528; BL-60 alone adds 12/36), with a dated note;
+    - `test-safety-cues.js` 99–109: the exercise count, plus the 9 names in its new-key handling.
+  - **Guards:**
+    - `test-exercise-substitution.js` (its 2-alternate invariant; BL-67's no-jump-crossing case);
+    - `test-exercise-swap-tap-target.js` and `test-superset-field-chaining.js` (stub the picker);
+    - `test-region-override.js`;
+    - the search suites that index `exerciseInfo` (`test-search-index-freshness.js`, `test-global-search-techniques.js`, `test-search-2-0.js`);
+    - BL-11's `test-bodyweight-progression.js`.
+- **Risk:**
+  - **The picker gets longer** on six exercises.
+  - **A rung swapped on a calisthenics weighted slot keeps the slot's weight field.** That's intended: weighted calisthenics is normal (BL-56).
+  - **Order:** after BL-11 (27), BL-56 (26a), BL-60 (31a), BL-73 (8b), BL-72 (8a) and BL-76.
+- **Tools:** none extra.
+- **Status:** ready (after Phase 3) (slot 88c). No new stored data and no program-shape change: the rungs use the existing selection key and `:sub:` history.
+
+### BL-45: Athletic jump and sprint metrics
+- **Why:**
+  - Athletic scores **W** for progression: "jumps don't progress; no tracking metric". Audit §5 asks for jump distance and sprint times as performance metrics, and for stopping sets on quality.
+  - Today a Broad Jump set stores only reps. `jump` is a non-distance category (`isDistanceExercise` 32744 is "category is cardio"). Sprint Intervals `6×40yd` (athletic d6) gets a reps field and a distance in metres, but no time.
+  - **Evidence:**
+    - Jump performance is a validated monitoring signal. The **average** of a session's jumps was more sensitive than the **best** jump for detecting fatigue and supercompensation [CLA17].
+    - Loss of velocity, or of jump height, within a session tracks fatigue [SMG11].
+    - Sprint work is done near-fresh, with long rests [HAU19].
+    - Hand timing reads about 0.22 s (about 4%) faster than electronic over 40 yd [MAY10], so a hand time is only ever compared with hand times.
+    - Contact guides: about 80–100 ground contacts per session for beginners, 100–120 for intermediates, 120–140 for advanced [NSCA-PLY].
+- **Change:**
+  1. **Broad Jump distance.** An optional "Best jump" input on Broad Jump rows, wherever it's prescribed (28 slots at v3.528), in cm for km users and in for mi users.
+     - It's stored as `jump` (whole centimetres) on the set, written only when present: the same additive rule as `distance` and `note` (`saveExSet` 28459).
+     - It isn't `distance`: that field is metres, and every cardio reader would count a jump as a run (`distanceOf` 31585, `computeWeeklyCardio`, the chip's `setChipLabel`).
+  2. **Sprint time.** An optional "Time (s, hand-timed)" input on `Sprint Intervals` rows, stored as `secs` (2 decimals), under the same rule.
+  3. **Saving.**
+     - `saveExSet` gains one optional trailing argument, `extra = {jump, secs}`. The row's save (`wireSetRow`, 32160–32174) passes it when either input exists, so a set-sheet edit, which re-saves through the row, keeps both values.
+     - "Same as last" (32075) doesn't copy them: they're measurements of the day.
+     - Every other caller is unchanged.
+  4. **`qualityCutoff(kind, todayValues)`** (text only, never automatic):
+     - **jump:** a set whose best is more than 10% under today's best set → "That jump was 11% short of today's best: stop jumps for today." [PRAC, SMG11 indirect].
+     - **sprint:** a rep more than 5% slower than today's fastest → "Speed has dropped 6%: stop sprints for today." [PRAC]. Both thresholds are practice; no trial sets them.
+  5. **`jumpSessionStats(log)`** gives the badge line "Session average 248 cm (last time 240 cm)", using the mean of each session's logged set bests [CLA17]. Sprints are the same, with mean time.
+     - No PR event and no share-card figure (D15; `reconstructAllPRs` stays weight-only).
+  6. **`countGroundContacts(rows)`**: logged reps on `jump`-category rows, ×2 for `/leg` prescriptions. On Athletic days only (`programs.athletic` 10006 and its variants, 17613), the first jump row's badge adds "Ground contacts so far today: 47 (guide: about 100 per session)". Display only.
+- **Acceptance criteria** (real invocations; the `renderWorkout` call site is pinned as a real-call count):
+  1. Real `saveExSet` with `extra = {jump:245}` on a Broad Jump row stores `{weight:null, reps:5, rpe:null, jump:245}`. Without `extra`, the stored set is byte-identical to v3.528's (no `jump` or `secs` key).
+  2. `qualityCutoff`:
+     - `('jump', [245, 240, 218])` → stop (218 < 220.5);
+     - `('jump', [245, 240, 222])` → `null`;
+     - `('sprint', [5.10, 5.20, 5.40])` → stop (5.40 > 5.355);
+     - `('sprint', [5.10, 5.20, 5.30])` → `null`.
+  3. `jumpSessionStats` over sessions with set bests [240, 236, 244] then [246, 250, 248] reads 248 now and 240 last time.
+  4. `countGroundContacts`:
+     - athletic d1 with reps logged as prescribed (Box Jump 4×5, Broad Jump 3×5, Trap Bar Jump Squat 4×3) → 47;
+     - athletic d4 (Depth Jump 4×5 and Single-Leg Bound 3×6/leg) → 56.
+  5. Real `distanceOf` and `computeWeeklyCardio` give v3.528's values for a corpus that includes Broad Jump sets carrying `jump` (proves no cardio reader picks it up).
+  6. 96 in entered by a mi user stores 244 (cm).
+  7. Real-call count: 1 `countGroundContacts(` in `renderWorkout`, behind the Athletic check.
+  8. `test-import-backup-full-replace.js` round-trips `jump` and `secs`.
+- **Test plan:** new `test-athletic-metrics.js`, with the real `saveExSet` (stubbed storage), `qualityCutoff`, `jumpSessionStats`, `countGroundContacts`, `distanceOf`, `computeWeeklyCardio` (stubbed `readExCorpus`) and the real `wireSetsBlock` for the save path. Sabotage:
+  - read jumps through `distance`, and criterion 5 fails;
+  - drop the `/leg` doubling, and criterion 4's d4 case fails.
+- **Files:**
+  - `index.html`:
+    - `saveExSet` 28459;
+    - the set-row markup in `renderWorkout` (near 29170) and `wireSetRow` 32160–32174;
+    - the new helpers beside `computeSuggestedSet` 27983;
+    - `APP_VERSION` 7625 and `WHATS_NEW` 7643.
+  - `sw.js` and the test.
+  - **Guards:**
+    - the eleven `wireSetsBlock` suites (they stub `saveExSet` and `isDistanceExercise`; a new optional argument is harmless);
+    - `test-partial-set-reactions.js` (what counts as a real set: a jump value alone doesn't make one, reps still do);
+    - `test-open-screen-2-0.js` (`distanceOf`);
+    - `test-import-backup-full-replace.js`;
+    - `test-configurable-training-days.js` 489–527 (the watersports days that must not contain Broad Jump or Sprint Intervals: unaffected, no slot moves);
+    - BL-55's `test-cardio-distance-gate.js`.
+- **Risk:**
+  - **Two new stored fields.** They're additive and optional, so no migration is needed.
+  - **Hand timing is noisy.** The label says "hand-timed", and times are only compared with the same person's own hand times.
+  - **Order:** after BL-55 (13c), BL-56 (26a), BL-61 (6c) and BL-14/57 (sprint rest).
+- **Tools:** none extra.
+- **Why needs-owner:** two new stored fields on sets, `jump` and `secs`.
+- **Owner question:** Should the app store an optional broad-jump distance (cm) on Broad Jump sets and an optional hand-timed time (seconds) on sprint reps, to show the trend and a "stop for today" cue when quality drops?
+  - (a) Both.
+  - (b) The jump distance only.
+  - (c) Neither: the contact count and the quality cues as text only.
+
+  **Recommended: (a).** Both are optional, and without a number there's nothing to progress.
+- **Status:** needs-owner (slot 88d: after Phase 3 once approved; after BL-55 and BL-61)
+
 ## Parked or later (not yet itemised)
 - **M-8:** `calf` and `isolation-leg` categories. These shift `MUSCLE_GROUP_MAP` history groupings, so they need the owner. They now ship with BL-59 (needs-owner). BL-03 and BL-04 cover the safety half.
 - **L-3:** closed into BL-58. At v3.518, "Squat (Speed)", "Bench Press (Speed)" and "Deadlift (Light/Technique)" have no `exerciseInfo` entries.
-- **Program extensions, reserved IDs:**
-  - BL-41 (placeholder): Powerlifting top single at RPE 8 with −10% back-offs, plus a meet-peak block;
-  - BL-42 (placeholder): Olympic % bands and a miss counter;
-  - BL-44 (placeholder): bodyweight progression ladders (H-8, second half);
-  - BL-45 (placeholder): athletic jump and sprint metrics;
-  - BL-49: unassigned.
-
-  None of these is buildable until the auditor writes it in full. **BL-43, BL-46, BL-47 and BL-48 are now written** (running, cycling, swimming and the endurance deload); see the audit section above.
+- **Program extensions:** BL-41, BL-42, BL-44 and BL-45 are now written in full (2026-11-09), in the section "Program extensions" above, at roadmap slots 88a–88d. BL-49 is still unassigned. **BL-43, BL-46, BL-47 and BL-48 are also written** (running, cycling, swimming and the endurance deload); see the audit section above.
 - **Health importer:** keep SDNN and rMSSD apart (found in BL-21's check).
 - **Out of scope:** lock-screen or watch logging, which belongs to the Capacitor track (CLAUDE.md); exercise demos (parked by the owner).
 
