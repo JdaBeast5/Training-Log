@@ -68,4 +68,35 @@ test('ovulation day scales with a longer cycle length (35 days -> ovulation day 
   assert.strictEqual(result.phase.key, 'ovulation', 'day 21 of a 35-day cycle should be the ovulation window, not luteal');
 });
 
+// ---- v3.533 (BL-13, audit SAF-7): the cycle card stops prescribing
+// phase-based training. Every phase's Training line is the same evidence
+// statement; the other four sections are byte-identical to v3.518.
+const { runJsdom } = require('./testHelpers.js');
+const crypto = require('crypto');
+const NEW_TRAINING = 'Research shows no reliable phase effect on strength or muscle gain. Train to your plan and adjust to how you feel on the day.';
+// sha256 of JSON [{key, hormones, physical, mental, nutrition}] for the 4
+// phases, read from the real CYCLE_PHASES at v3.518 (304dea0) and v3.532.
+const KEPT_SHA256_V3518 = '283adacbec4ec53ca9369b3f25538ccf50dbda60ae3ac7a6b0333015e0500863';
+
+test('BL-13 criterion 1: each phase card (real buildPhaseCardHtml) shows the new Training line, and no card says "strong window" or "test a heavy lift"', (assert)=>{
+  const { window } = runJsdom('<div id="host"></div>', '', [extractConst(src, 'CYCLE_PHASES'), extractFunction(src, 'buildPhaseCardHtml')]);
+  const host = window.document.getElementById('host');
+  const keys = JSON.parse(window.eval('JSON.stringify(CYCLE_PHASES.map(p => p.key))'));
+  assert.deepStrictEqual(keys, ['menstrual', 'follicular', 'ovulation', 'luteal']);
+  keys.forEach((k, i) => {
+    host.innerHTML = window.buildPhaseCardHtml(window.eval('CYCLE_PHASES')[i], false);
+    const training = [...host.querySelectorAll('.cycle-phase-section')].find(d => d.querySelector('b') && d.querySelector('b').textContent === 'Training:');
+    assert.ok(training, k + ': has a Training section');
+    // Ovulation keeps one safety line after the evidence line (review fix).
+    assert.strictEqual(training.textContent, 'Training: ' + NEW_TRAINING + (k === 'ovulation' ? ' Warm up thoroughly and keep clean joint mechanics.' : ''), k);
+    assert.doesNotMatch(host.textContent, /strong window|test a heavy lift/i, k);
+    assert.doesNotMatch(training.textContent, /window|max-effort|push intensity|peak|scale back|technique work/i, k + ': no phase prescription in the Training line');
+  });
+});
+
+test('BL-13 criterion 2: hormones, physical, mental and nutrition are byte-identical to v3.518 (snapshot hash)', (assert)=>{
+  const [kept] = runSandbox([extractConst(src, 'CYCLE_PHASES')], '__capture.push(CYCLE_PHASES.map(p=>({key:p.key,hormones:p.hormones,physical:p.physical,mental:p.mental,nutrition:p.nutrition})));');
+  assert.strictEqual(crypto.createHash('sha256').update(JSON.stringify(kept)).digest('hex'), KEPT_SHA256_V3518);
+});
+
 run();

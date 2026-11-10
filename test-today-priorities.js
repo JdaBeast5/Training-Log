@@ -77,7 +77,8 @@ test('REAL invocation (v3.382): the cycle phase is one row carrying both its tra
   `, [extractConst(src, 'CYCLE_PHASES'), extractFunction(src, 'getTodayKey'), extractFunction(src, 'computeCyclePhase'), extractFunction(src, 'getCycleInsight')]);
   const row = await window.getCycleInsight();
   assert.strictEqual((row.match(/Luteal Phase/g) || []).length, 1, 'the phase is named once');
-  assert.match(row, /technique work and moderate intensity/, 'its training advice');
+  // v3.533 (BL-13): the training advice is the evidence line, not phase-based training.
+  assert.ok(row.includes('Research shows no reliable phase effect on strength or muscle gain. Train to your plan and adjust to how you feel on the day.'), 'its training advice');
   assert.match(row, /<b>Food:<\/b> Slightly higher calorie needs/, 'and its food advice');
   assert.match(row, /data-jump-to="nutritionHeader"/);
 });

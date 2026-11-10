@@ -7622,7 +7622,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.532';
+const APP_VERSION = '3.533';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9034,6 +9034,9 @@ const WHATS_NEW = {
   ]},
   '3.532': { headline: 'Safer jump sets', points: [
     'Jump squats in the Bodyweight and Calisthenics plans are now 3 sets of 6-8 instead of 12-15, so each jump stays powerful, with 90 seconds of rest. Single-leg bounds are now hops that land on the same leg, counted per leg.',
+  ]},
+  '3.533': { headline: 'Cycle tracking: train to your plan', points: [
+    'The cycle card no longer suggests training harder or lighter by phase, because research hasn\'t found a reliable phase effect on strength or muscle gain. Each phase now says to train to your plan and adjust to how you feel. The symptom, hormone and food notes are unchanged.',
   ]},
 };
 
@@ -39277,17 +39280,20 @@ document.getElementById('photoInput').addEventListener('change', async (e)=>{
 });
 
 // --- Cycle Tracking (optional, shown when gender is female) ---------------
-// General, population-level patterns from exercise physiology research —
-// primarily Dr. Stacy Sims' work (ROAR) on training around the menstrual
-// cycle — presented as educational context, never as a diagnosis or an
-// automatic workout/nutrition modifier. Individual variation is significant.
+// General, population-level patterns from exercise physiology research,
+// presented as educational context, never as a diagnosis or an automatic
+// workout/nutrition modifier. Individual variation is significant.
+// v3.533 (BL-13, audit SAF-7): the training lines no longer prescribe
+// phase-based training; an umbrella review [MC23] finds no reliable phase
+// effect on strength or muscle gain. Ovulation keeps its warm-up line (the
+// laxity note in its physical text).
 const CYCLE_PHASES = [
   {
     key:'menstrual', name:'Menstrual Phase',
     hormones:'Estrogen and progesterone are both at their lowest point.',
     physical:'Many people notice cramping, fatigue, or lower energy in the first day or two, often easing as the phase goes on. Blood loss means iron-rich foods (red meat, spinach, lentils) are worth prioritizing.',
     mental:'Mood dips are common right at the start for some, often lifting by day 3-4 — but this varies a lot person to person.',
-    training:'Older advice to automatically scale back training here isn\'t well supported — go by how you actually feel that day. Light movement often eases cramping more than rest does.',
+    training:'Research shows no reliable phase effect on strength or muscle gain. Train to your plan and adjust to how you feel on the day.',
     nutrition:'No major macro shift needed — just make sure iron and overall calorie intake stay adequate.',
   },
   {
@@ -39295,7 +39301,7 @@ const CYCLE_PHASES = [
     hormones:'Estrogen rises steadily through this phase while progesterone stays low.',
     physical:'Often the best window for recovery and tissue repair — many report their best strength, endurance, and energy here.',
     mental:'Often elevated mood, motivation, and confidence as estrogen climbs.',
-    training:'A strong window for progressive overload, higher-intensity work, and learning new skills. Dr. Stacy Sims highlights this phase as frequently the most favorable for building strength and adapting to hard training.',
+    training:'Research shows no reliable phase effect on strength or muscle gain. Train to your plan and adjust to how you feel on the day.',
     nutrition:'Standard training nutrition applies well — the body handles carbohydrates efficiently here.',
   },
   {
@@ -39303,7 +39309,7 @@ const CYCLE_PHASES = [
     hormones:'Estrogen peaks and LH surges, with a small testosterone bump — a brief 1-2 day window.',
     physical:'Often peak strength and power output for many — but research also shows a small, real increase in ligament laxity (notably ACL) around this window.',
     mental:'Often peak confidence and sociability for many people.',
-    training:'A good window to test a heavy lift or push intensity — just prioritize a thorough warm-up and clean joint mechanics given the laxity research.',
+    training:'Research shows no reliable phase effect on strength or muscle gain. Train to your plan and adjust to how you feel on the day. Warm up thoroughly and keep clean joint mechanics.',
     nutrition:'No major shift needed — normal fueling and hydration.',
   },
   {
@@ -39311,7 +39317,7 @@ const CYCLE_PHASES = [
     hormones:'Progesterone rises then falls; estrogen has a smaller secondary rise before both drop ahead of the next period.',
     physical:'Resting body temperature rises slightly, which can make heat and endurance work feel harder. Recovery may take a bit longer, and increased appetite is common — driven by progesterone, not a lack of willpower.',
     mental:'PMS-type symptoms (irritability, low mood, anxiety) are common for many in the last several days of this phase, though far from universal.',
-    training:'Sims and others suggest leaning toward technique work and moderate intensity over max-effort testing, especially late in this phase — though plenty of people train hard through it with no issue at all.',
+    training:'Research shows no reliable phase effect on strength or muscle gain. Train to your plan and adjust to how you feel on the day.',
     nutrition:'Slightly higher calorie needs are common here due to a real uptick in metabolic rate — increased hunger is physiological, not a lapse in discipline.',
   },
 ];
