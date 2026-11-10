@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.551';
+const APP_VERSION = '3.552';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9188,6 +9188,9 @@ const WHATS_NEW = {
   ]},
   '3.551': { headline: 'One bad day no longer cuts your weight', points: [
     'The app used to suggest dropping the weight after a single session below your rep range. Now it waits for two sessions in a row below the range at the same weight, or one at RPE 10. The drop is 5% on upper-body lifts and 7.5% on squats, deadlifts and other lifts, and the badge names the same weight the field fills in for your top set. Medical and Senior programs keep their existing rule.',
+  ]},
+  '3.552': { headline: 'Weight jumps that fit your strength', points: [
+    'When the app suggests adding weight, the jump now scales with how strong you are on that lift. Squats and deadlifts go up 5 lb for lighter lifters (it was always 10) and 10 lb or more for strong ones; bench and rows scale the same way from 5 lb. Olympic lifts always step 5 lb. Smaller lifts, and Medical and Senior programs, keep their usual jumps.',
   ]},
 };
 
@@ -28008,13 +28011,25 @@ function maxWeightEver(log, excludeDate){
 // Load-increment sizing follows the standard convention of larger jumps for
 // big compound/multi-joint lifts and smaller jumps for isolation work, since
 // a 10 lb jump that's trivial on a squat can be a huge jump on a lateral raise.
+// v3.552 (BL-24, audit M-3): the table is the FLOOR. A fixed 10 lb was +7.4%
+// on a 135 lb squat and +2.2% on a 455 lb one, so compound steps now scale
+// with strength: max(floor, e1RM x 2.5%) for lower body (squat, hinge,
+// lunge) and x 2% for upper compounds (push, pull), rounded down to a 5 lb
+// two-plate jump. Squat and hinge floors are 5 lb (owner (a), 2026-11-09),
+// so lighter lifters step 5 lb and heavy ones 10-15. Olympic lifts stay at
+// 5 lb whatever the e1RM (Epley isn't valid there); isolation stays at its
+// floor. The clinical plans and Senior never pass an e1RM (BL-02's gate).
 const CATEGORY_LOAD_INCREMENT = {
-  squat:10, hinge:10, oly:10, lunge:5, push:5, pull:5,
+  squat:5, hinge:5, oly:5, lunge:5, push:5, pull:5,
   shoulder:2.5, arms:2.5, core:2.5, throw:5, punch:2.5, kick:2.5, jump:5, cardio:0,
 };
+const LOAD_INCREMENT_SCALE = {squat: 0.025, hinge: 0.025, lunge: 0.025, push: 0.02, pull: 0.02};
 
-function getLoadIncrement(category){
-  return CATEGORY_LOAD_INCREMENT[category] ?? 5;
+function getLoadIncrement(category, e1rm){
+  const floor = CATEGORY_LOAD_INCREMENT[category] ?? 5;
+  const p = LOAD_INCREMENT_SCALE[category];
+  if(!p || !(e1rm > 0)) return floor;
+  return Math.max(floor, Math.floor(e1rm * p / 5) * 5);
 }
 
 // Returns {type:'increase'|'decrease'|'deload', message} or null if there
@@ -28034,6 +28049,10 @@ function analyzeProgressionSignal(pastSessions, ex, category, program){
   // never counts.
   const allAtTop = (s)=> !!s && s.minRepsAtTop != null && s.minRepsAtTop >= topRepTarget;
   const clinicalProgram = program === 'medical' || program === 'senior';
+  // v3.552 (BL-24): the step scales with recent strength, never on the
+  // clinical plans; computeSuggestedSet gets the same e1RM through rpeCtx.
+  // Computed only where a message names a step (Program Fit reads just the type).
+  const stepE1rm = ()=> clinicalProgram ? null : recentBestE1RM(pastSessions);
   // With one session, only the non-clinical one-session increase below applies.
   const twoSessions = !!s1;
 
@@ -28071,7 +28090,7 @@ function analyzeProgressionSignal(pastSessions, ex, category, program){
   if(decrease){
     const upperBody = ['push', 'pull', 'shoulder', 'arms'].includes(category);
     const pct = (!clinicalProgram && upperBody) ? 0.05 : 0.075;
-    const dropAmt = Math.max(getLoadIncrement(category), Math.round(s0.weight*pct/2.5)*2.5);
+    const dropAmt = Math.max(getLoadIncrement(category, stepE1rm()), Math.round(s0.weight*pct/2.5)*2.5);
     const why = clinicalProgram ? `Reps dropped to ${s0.reps} last time`
       : (sameOrHeavier && belowFloor(s1)) ? `Reps fell short two sessions running (${s1.reps}, then ${s0.reps})`
       : `Reps dropped to ${s0.reps} at RPE 10 last time`;
@@ -28126,17 +28145,17 @@ function analyzeProgressionSignal(pastSessions, ex, category, program){
   // logged (BL-02's criterion 10 keeps RPE 8.5 increasing).
   const s0Rpe = s0.topRpe !== undefined ? s0.topRpe : s0.avgRpe; // the top-weight sets' RPE
   if(allAtTop(s0) && s0Rpe != null && s0Rpe <= 8){
-    const bump = getLoadIncrement(category);
+    const bump = getLoadIncrement(category, stepE1rm());
     return {
-      type: 'increase',
+      type: 'increase', stepLb: bump,
       message: `Every set hit ${topRepTarget}+ reps at ${fmtWeight(s0.weight)} with reps to spare — add ${fmtWeight(bump)} next time (double progression: all sets at the top of the range).`
     };
   }
   const rpeRoomToSpare = twoSessions && (s0.avgRpe==null || s0.avgRpe <= 8.5) && (s1.avgRpe==null || s1.avgRpe <= 8.5);
   if(sameWeight && metTopBoth && rpeRoomToSpare){
-    const bump = getLoadIncrement(category);
+    const bump = getLoadIncrement(category, stepE1rm());
     return {
-      type: 'increase',
+      type: 'increase', stepLb: bump,
       message: `Every set hit ${topRepTarget}+ reps at ${fmtWeight(s0.weight)} for 2 sessions straight — add ${fmtWeight(bump)} next time (double progression: you've outgrown this rep range at this weight).`
     };
   }
@@ -28550,7 +28569,9 @@ function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, prior
       return {weight: snapped, reps: repTarget, reason: 'rpe', targetRpe};
     }
   }
-  const increment = getLoadIncrement(category);
+  // v3.552 (BL-24): the same recent e1RM the signal used; none on the clinical plans.
+  const clinicalCtx = rpeCtx && (rpeCtx.program === 'medical' || rpeCtx.program === 'senior');
+  const increment = getLoadIncrement(category, (rpeCtx && !clinicalCtx) ? rpeCtx.e1rm : null);
   const bottomRep = parseBottomRep(ex.sets);
   const topRep = parseTopRep(ex.sets);
   // Rounding target follows the plate reality of the display unit, the same
@@ -28596,7 +28617,8 @@ function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, prior
     if(signal.type === 'increase'){
       // Double progression: the load goes up, so reps restart at the bottom of
       // the prescribed range rather than carrying last session's top-end count.
-      return {weight: snap(bump(priorSet.weight, increment), 'up'), reps: bottomRep, reason:'increase'};
+      // v3.552 (BL-24): the signal's own step, so the field adds what the badge says.
+      return {weight: snap(bump(priorSet.weight, signal.stepLb != null ? signal.stepLb : increment), 'up'), reps: bottomRep, reason:'increase'};
     }
     if(signal.type === 'decrease'){
       // Recomputed the same way analyzeProgressionSignal words it, from the top

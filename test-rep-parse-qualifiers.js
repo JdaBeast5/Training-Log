@@ -69,7 +69,8 @@ test('criterion 3: weighted slots with a per-limb or bracketed note and no rep t
 
 test('criterion 4: Bulgarian Split Squat 3×8/leg, two sessions at 8 reps on the same weight, now signals an increase', (assert)=>{
   const [r] = runSandbox([
-    extractConst(src, 'CATEGORY_LOAD_INCREMENT'), extractFunction(src, 'getLoadIncrement'),
+    extractConst(src, 'CATEGORY_LOAD_INCREMENT'), extractConst(src, 'LOAD_INCREMENT_SCALE'), extractConst(src, 'RPE_E1RM_LOOKBACK_SESSIONS'), extractFunction(src, 'estimated1RM'), extractFunction(src, 'recentBestE1RM'), // v3.552 (BL-24)
+    extractFunction(src, 'getLoadIncrement'),
     ...PARSERS, extractFunction(src, 'analyzeProgressionSignal'),
   ], `var weightUnit = 'lb'; function fmtWeight(v){ return v + ' lb'; }
     const sessions = [{date:'2026-11-05', weight:60, reps:8, avgRpe:8, minRepsAtTop:8}, {date:'2026-11-02', weight:60, reps:8, avgRpe:8, minRepsAtTop:8}]; // v3.538 (BL-08): every set at the top

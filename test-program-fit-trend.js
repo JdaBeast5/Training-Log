@@ -18,7 +18,7 @@ const src = readIndexSource();
 const signalChunks = [
   extractFunction(src, 'parseTopRep'),
   extractFunction(src, 'parseBottomRep'),
-  extractConst(src, 'CATEGORY_LOAD_INCREMENT'),
+  extractConst(src, 'CATEGORY_LOAD_INCREMENT'), extractConst(src, 'LOAD_INCREMENT_SCALE'), extractConst(src, 'RPE_E1RM_LOOKBACK_SESSIONS'), extractFunction(src, 'estimated1RM'), extractFunction(src, 'recentBestE1RM'), // v3.552 (BL-24)
   extractFunction(src, 'getLoadIncrement'),
   `function fmtWeight(lb){ return lb + ' lb'; }`, // display-only formatting, irrelevant to the signal logic under test
   extractFunction(src, 'analyzeProgressionSignal'),
@@ -44,7 +44,8 @@ test('increase: top-of-range hit for 2 sessions straight at the same weight, wit
     __capture.push(analyzeProgressionSignal(sessions, {sets:'3x8-10'}, 'squat'));
   `);
   assert.strictEqual(signal.type, 'increase');
-  assert.ok(signal.message.includes('10 lb'), 'squat category load increment is 10 lb');
+  // v3.552 (BL-24, owner (a)): the squat floor is 5 lb; a ~137 lb e1RM stays at the floor.
+  assert.ok(signal.message.includes('add 5 lb'), 'squat step for a ~137 lb e1RM is the 5 lb floor');
 });
 
 test('increase does NOT fire when RPE is already maxed out, even with reps met', (assert)=>{

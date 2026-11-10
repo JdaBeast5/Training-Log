@@ -1188,3 +1188,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 75: BL-15 (v3.551, PR #126, 2026-11-10)
 - **What:** two short sessions (or top-set RPE 10 at same/heavier load) to decrease; 5% upper, 7.5% otherwise; `dropLb` on the signal; clinical unchanged.
 - **Deploy note:** merging several PRs within seconds makes GitHub Pages cancel or fail the intermediate deploys ("in progress deployment"); the last merge's deploy is what goes live. Not a code problem.
+
+## Addendum 76: BL-24 (v3.552, PR #127, 2026-11-10)
+- **What:** `getLoadIncrement(category, e1rm)` with `LOAD_INCREMENT_SCALE`; floors squat/hinge/oly 5; signals carry `stepLb` (increase) and `dropLb` (decrease).
+- **Warning:** suites extracting `analyzeProgressionSignal` need `recentBestE1RM`, `estimated1RM`, `RPE_E1RM_LOOKBACK_SESSIONS`, `LOAD_INCREMENT_SCALE`.

@@ -101,7 +101,7 @@ test('a later miss never raises the PR bar: after a stored 210×0, logging 205×
 test('review fix: an all-miss session still reads as a failed session, so the progression signal does not flip to increase', (assert)=>{
   const [r] = runSandbox([
     "var selectedLogDate = '2026-11-09'; var weightUnit = 'lb'; function fmtWeight(v){ return v + ' lb'; }",
-    extractConst(src, 'CATEGORY_LOAD_INCREMENT'),
+    extractConst(src, 'CATEGORY_LOAD_INCREMENT'), extractConst(src, 'LOAD_INCREMENT_SCALE'), extractConst(src, 'RPE_E1RM_LOOKBACK_SESSIONS'), extractFunction(src, 'estimated1RM'), extractFunction(src, 'recentBestE1RM'), // v3.552 (BL-24)
     ...['getLoadIncrement', 'parseTopRep', 'parseBottomRep', 'isMissedSet', 'topSetOf', 'sessionTopOf', 'buildPastSessions', 'analyzeProgressionSignal'].map(f => extractFunction(src, f)),
   ], `
     const ex = {name: 'Back Squat', sets: '3×6-8'};

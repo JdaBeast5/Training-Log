@@ -890,7 +890,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Risk:** same guards as BL-08, plus `test-warmup-ramp-and-plates.js` for snapping. Under (a) the What's New line must say squat and deadlift steps drop to 5 lb for lighter lifters.
 - **Alignment note (2026-11-07):** the strength-scaled increment never applies to `medical` or `senior`: they keep BL-02's smallest loadable jump. Add a criterion asserting it (an e1RM of 200 on hypertension Seated Cable Row still gets the smallest jump).
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the e1RM source for each caller named; the two extracting suites found; the floor contradiction between criterion 2 and the kept table found and put to the owner. Scope otherwise unchanged.
-- **Status:** ready (owner 2026-11-09: option **(a)**, the `squat` and `hinge` floors drop to 5 lb; build with (a)'s criteria).
+- **Status:** done (v3.552, PR #127; option (a)). Flagged: the 5 lb floor also makes light-lift decreases 7.5% (clinical too); heavy machine lifts can step 20+ lb; kg badge rounding.
 
 ### BL-25: Exercise cue corrections (L-1, audit §4)
 - **Why:** these cues contradict the evidence:
