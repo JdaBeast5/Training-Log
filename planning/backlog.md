@@ -3441,7 +3441,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Risk:** none visible. The What's New line says so honestly.
 - **Spec refresh (2026-11-08):** lines re-grepped at v3.518; the plate inventory measured; D13 recorded. Scope unchanged.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped. `getDayPlateClass` callers at v3.527: 26353 (day tabs), 28718, 28722, 28727 (`renderWorkout`); none changes here. The 1,904-day count was measured at v3.518; v3.519–v3.527 added no days, but the test asserts ≥ 1,900 rather than the exact figure. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.540, PR #115). Fallback refined in review: active-recovery rest days without a plate are white; unknown days are off; position follows the saved day order over training days.
 
 ### UX-02: Ship the Archivo display face beside index.html
 - **Why:** the cover numeral, the screen headlines and the share cards (MKT-03) are drawn in Archivo, condensed through its width axis. Its width axis is also the "press" move when a set is logged. Geist at 800 is the fallback and works, but it's wider, so the cover numeral would have to shrink to about 120 px.

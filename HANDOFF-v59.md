@@ -1137,3 +1137,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** the v2 token vocabulary in both theme blocks, aliased to today's values, targets in comments; nothing reads them.
 - **Test:** `test-design-tokens-v2.js` (5 cases). Sabotage-checked. 211/211. Harness: only the footer version label differs.
 - **Warning for UX items:** switch spot inks to targets before using on/spot pairs.
+
+## Addendum 65: UX-01b (v3.540, PR #115, 2026-11-10)
+- **What:** `dayInk(dayOrId, program)` (plate code first; rest off/white; CUSTOM_PLATES cycle by place; unknown off). No caller yet.
+- **Test:** `test-day-ink.js` (5 cases). Sabotage-checked. 212/212.
