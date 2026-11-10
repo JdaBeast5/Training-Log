@@ -1141,3 +1141,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 65: UX-01b (v3.540, PR #115, 2026-11-10)
 - **What:** `dayInk(dayOrId, program)` (plate code first; rest off/white; CUSTOM_PLATES cycle by place; unknown off). No caller yet.
 - **Test:** `test-day-ink.js` (5 cases). Sabotage-checked. 212/212.
+
+## Addendum 66: BL-07 (v3.541, PR #116, 2026-11-10)
+- **What:** `applyGoalVolume`'s strength branch skips strength-tier lifts and powerlifting/powerbuilding.
+- **Test:** `test-volume-modifier-gate.js` +4. Sabotage-checked. 212/212.

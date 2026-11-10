@@ -40,6 +40,7 @@ const chunks = [
   extractFunction(src, 'hasNumericSetPrefix'),
   extractFunction(src, 'replaceSetCount'),
   extractFunction(src, 'goalVolumeAdjustment'),
+  extractFunction(src, 'getRepRangeTier'), // v3.541 (BL-07)
   extractFunction(src, 'applyGoalVolume'),
   extractFunction(src, 'cycleWeekOf'),
   extractFunction(src, 'applyAccumulation'),
@@ -186,7 +187,8 @@ test('criterion 4: a custom program gets the same output as before v3.518 (non-j
     ];
     __capture.push({
       gainW3: pipe(exs, 'gain', 3, 'custom:abc', 'd1').map(e => e.sets),
-      perfW1: pipe([{name:'Squat', sets:'5×5'}, {name:'DB Curl', sets:'4×12'}], 'performance', 1, 'custom:abc', 'd1').map(e => e.sets),
+      perfW1: pipe([{name:'Squat', sets:'5×8'}, {name:'DB Curl', sets:'4×12'}], 'performance', 1, 'custom:abc', 'd1').map(e => e.sets),
+      perfStrengthTier: pipe([{name:'Squat', sets:'5×5'}], 'performance', 1, 'custom:abc', 'd1').map(e => e.sets),
       maintainW2: pipe(exs, 'maintain', 2, 'custom:abc', 'd1').map(e => e.sets),
       sameAsStrength: JSON.stringify(pipe(exs, 'gain', 3, 'custom:abc', 'd9')) === JSON.stringify(pipe(exs, 'gain', 3, 'strength', 'd9')),
     });
@@ -194,7 +196,10 @@ test('criterion 4: a custom program gets the same output as before v3.518 (non-j
   // Hand-checked against the v3.517 rules: gain adds 1 set to 2-4 set entries,
   // then week 3 adds 1 more to the first two compounds.
   assert.deepStrictEqual(r.gainW3, ['5×5', '5×8', '3×8', '4×12', '1×45s']);
-  assert.deepStrictEqual(r.perfW1, ['3×5', '4×12'], 'performance caps compounds at 3 sets');
+  // v3.541 (BL-07): the cap now applies to hypertrophy-tier compounds only (5×8);
+  // a strength-tier 5×5 keeps its sets.
+  assert.deepStrictEqual(r.perfW1, ['3×8', '4×12'], 'performance caps hypertrophy-tier compounds at 3 sets');
+  assert.deepStrictEqual(r.perfStrengthTier, ['5×5'], 'performance no longer cuts strength-tier work (BL-07)');
   assert.deepStrictEqual(r.maintainW2, ['4×5', '3×8', '2×8', '3×12', '1×45s'], 'week 2: +1 on the first compound only');
   assert.ok(r.sameAsStrength, 'custom and an allowlisted program behave identically on the same list');
 });
@@ -224,6 +229,50 @@ test('criterion 5: renderWorkout passes activeProgram to all three modifier call
   assert.strictEqual(calls.length, 3, 'exactly one real call of each modifier: ' + JSON.stringify(calls));
   for(const c of calls) assert.ok(c.args.includes('activeProgram'), c.name + ' is called without activeProgram: ' + c.args.join(', '));
   assert.deepStrictEqual(calls.map(c => c.name), ['applyGoalVolume', 'applyAccumulation', 'applyAccumulationAccessory']);
+});
+
+// ---- v3.541 (BL-07, audit H-1): the performance goal no longer cuts
+// strength-tier work, and never trims powerlifting or powerbuilding.
+const goalRun = (body) => runSandbox(chunks, body)[0];
+
+test('BL-07 criterion 1: goal performance, powerlifting d1: Squat stays 5×5', (assert)=>{
+  const r = goalRun(`const d = programs.powerlifting.days.d1.exercises;
+    __capture.push({before: d.map(e => e.name + ' ' + e.sets), after: applyGoalVolume(d, 'performance', 'powerlifting').map(e => e.name + ' ' + e.sets)});`);
+  assert.ok(r.after.some(x => /^(Back )?Squat 5×5$/.test(x)), r.after.join(' | '));
+  assert.deepStrictEqual(r.after, r.before, 'the whole day keeps its written sets');
+});
+
+test('BL-07 criterion 2: goal performance, Strength & Size d1: Bench Press 4×4-6 stays; Barbell Row 4×6-8 still becomes 3×6-8', (assert)=>{
+  const r = goalRun(`__capture.push(applyGoalVolume(programs.strength.days.d1.exercises, 'performance', 'strength').map(e => e.name + ' ' + e.sets));`);
+  assert.ok(r.includes('Bench Press 4×4-6'), r.join(' | '));
+  assert.ok(r.includes('Barbell Row 3×6-8'), r.join(' | '));
+});
+
+test('BL-07 criterion 3: goal performance, every powerbuilding day (base and day-count variants): no set count falls', (assert)=>{
+  const r = goalRun(`
+    const fell = [];
+    const sets = [['base', programs.powerbuilding.days], ...Object.entries(PROGRAM_DAY_COUNT_VARIANTS.powerbuilding || {}).map(([k, v]) => [k + 'd', v.days])];
+    for(const [w, days] of sets) for(const [d, day] of Object.entries(days || {})){
+      const before = day.exercises || []; const after = applyGoalVolume(before, 'performance', 'powerbuilding');
+      after.forEach((e, i) => { if(parseSetCount(e.sets) < parseSetCount(before[i].sets)) fell.push(w + '/' + d + ' ' + e.name); });
+    }
+    __capture.push(fell);`);
+  assert.deepStrictEqual(r, []);
+});
+
+// sha256 of applyGoalVolume(day, 'gain', program) for every day of the four
+// lifting programs and their day-count variants (196 days), taken at v3.540,
+// before this change.
+const GAIN_SHA256_V3540 = '630479d0ad044666e93b35c0028076b7bd89a17a760df81f1239c474cb251940';
+test('BL-07 criterion 4: goal gain is unchanged on all four lifting programs (snapshot of every day)', (assert)=>{
+  const r = goalRun(`
+    const out = {}; for(const p of ['strength', 'bodybuilding', 'powerlifting', 'powerbuilding']){
+      const sets = [[p, programs[p].days]]; for(const [k, v] of Object.entries(PROGRAM_DAY_COUNT_VARIANTS[p] || {})) sets.push([p + k, v.days]);
+      for(const [w, days] of sets) for(const [d, day] of Object.entries(days || {})) out[w + '/' + d] = applyGoalVolume(day.exercises || [], 'gain', p).map(e => e.name + ' ' + e.sets);
+    }
+    __capture.push(out);`);
+  assert.strictEqual(Object.keys(r).length, 196);
+  assert.strictEqual(require('crypto').createHash('sha256').update(JSON.stringify(r)).digest('hex'), GAIN_SHA256_V3540);
 });
 
 run();
