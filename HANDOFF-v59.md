@@ -1092,3 +1092,10 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Unverified:** not tried on an iPhone.
 - **Flagged:** BL-64's Files line omitted `index.html` for the bump; duplicate jsdom render helper across two tests.
 - **Next:** BL-61 (6c).
+
+## Addendum 57: BL-61 (v3.532, PR #106, 2026-11-09)
+- **What:** Jump Squat `3×12-15` → `3×6-8` (9 slots, 90 s rest) with a stop-when-loud cue; Single-Leg Bound `/leg` in all 45 slots, cued as a same-leg hop. Stopped once (PR #105); the owner said yes to the re-pin and to a standing re-pin rule (under BL-76).
+- **Test:** `test-plyo-prescriptions.js` (new, 4 cases). Sabotage-checked. 206/206 suites.
+- **Batch mode (owner, 2026-11-09):** the owner asked for ready items to be built back to back, each its own PR built on the previous one, taking the recommended option on questions and stopping only for owner-only decisions. A planning PR writes this into `automation.md`.
+- **Unverified:** not tried on an iPhone.
+- **Flagged:** BL-56 and BL-57 cover the weight field and plyo rest.
