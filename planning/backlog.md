@@ -640,7 +640,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (39087–39122), `sw.js`, `test-cycle-phase.js`. **Re-pin:** `test-today-priorities.js` line 80 asserts the luteal row contains "technique work and moderate intensity", the text this item removes; change it to the new line and name it in the PR.
 - **Risk:** cycle-phase insights. Guarded by `test-cycle-phase.js`, `test-cycle-phase-nutrition-insight.js`, `test-supplement-condition-cycle-nudge.js` and `test-today-priorities.js`.
 - **Spec refresh (2026-11-08):** lines re-grepped at v3.518; both render paths named; the `test-today-priorities.js` re-pin found. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.533, PR #107). Follow-up recommended (BL-13b, not yet written): reword the ovulation and follicular `physical` lines ("peak strength", "best strength") and the Cycle card disclaimer ("the leading research", ~6578), which now contradict the no-phase-effect line.
 
 ### BL-14: Unit-aware rest times (M-1)
 - **Why:** `getRepRangeTier` (27821) reads the first number after "×" as reps:
