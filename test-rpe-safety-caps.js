@@ -38,8 +38,9 @@ const sbx = (body) => runSandbox(chunks, body)[0];
 
 const CABLE = {name: 'Seated Cable Row', sets: '2×12'};
 const sessions = (w, reps, rpe) => JSON.stringify([
-  {date: '2026-11-05', weight: w, reps, avgRpe: rpe},
-  {date: '2026-11-02', weight: w, reps, avgRpe: rpe},
+  // v3.538 (BL-08): every set at the top weight, as buildPastSessions now records it.
+  {date: '2026-11-05', weight: w, reps, avgRpe: rpe, minRepsAtTop: reps},
+  {date: '2026-11-02', weight: w, reps, avgRpe: rpe, minRepsAtTop: reps},
 ]);
 
 test('criterion 1: hypertension (medical) week 4 in RPE mode: badge shows RPE 7, and the suggested load is the RPE-7 load', (assert)=>{

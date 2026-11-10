@@ -1127,3 +1127,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `isMissedSet`; strict `topSetOf`/`maxWeightEver`/PR check; `sessionTopOf` for last-session readers so an all-miss session still reads as a failure.
 - **Test:** `test-zero-rep-miss.js` (8 cases). Sabotage-checked. 209/209.
 - **Warning for BL-08:** `priorSetForSlot` still copies 0-rep sets as a basis; use `isMissedSet` there. Use `sessionTopOf`, not `topSetOf`, for any 'how did last session go' reader.
+
+## Addendum 63: BL-08 (v3.538, PR #113, 2026-11-10)
+- **What:** `minRepsAtTop`/`topRpe` in `buildPastSessions`; increase needs every top-weight set at the top rep (one session at RPE <= 8, or two at <= 8.5/unlogged); badge, field and Analysis agree.
+- **Test:** `test-all-set-double-progression.js` (9 cases). Sabotage-checked. 210/210.
+- **Flagged:** one-session no-RPE badge; skipped sets vs prescribed count.

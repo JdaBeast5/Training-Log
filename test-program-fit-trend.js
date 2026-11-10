@@ -36,8 +36,10 @@ test('fewer than 2 past sessions -> no signal (not enough data)', (assert)=>{
 test('increase: top-of-range hit for 2 sessions straight at the same weight, with RPE room to spare', (assert)=>{
   const [signal] = runSandbox(signalChunks, `
     var sessions = [
-      {date:'2026-01-15', weight:100, reps:11, avgRpe:8},
-      {date:'2026-01-08', weight:100, reps:10, avgRpe:7.5},
+      // v3.538 (BL-08): sessions carry minRepsAtTop (every set at the top), as
+      // buildPastSessions now writes them; equal to reps here.
+      {date:'2026-01-15', weight:100, reps:11, avgRpe:8, minRepsAtTop:11},
+      {date:'2026-01-08', weight:100, reps:10, avgRpe:7.5, minRepsAtTop:10},
     ];
     __capture.push(analyzeProgressionSignal(sessions, {sets:'3x8-10'}, 'squat'));
   `);
