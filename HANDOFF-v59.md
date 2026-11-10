@@ -1078,3 +1078,10 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Unverified:** not tried on an iPhone.
 - **Flagged:** the Progress view's readiness isn't clinical-aware.
 - **Next:** BL-62, now `ready` since BL-76 is done.
+
+## Addendum 55: BL-62 (v3.530, PR #103, 2026-11-09)
+- **What:** `/leg` on 6 Achilles heel drops and 3 rehab Straight Leg Raises (each keeps its number), `(10/leg)` on 7 Hyrox Sandbag Lunges, and a 24-word sit-or-side-lying breathing cue. First stopped at 16:17 (PR #101) on a pin in BL-76's test; the owner chose (a), re-pin 255 → 262.
+- **Test:** `test-concise-cues.js` +3 cases. Sabotage-checked. 205/205 suites.
+- **Unverified:** not tried on an iPhone.
+- **Flagged:** `/leg` on one-sided rehab (heel drops, SLR) for the exercise auditor; total vs per-leg conventions; `getSetFieldUnit` shows `sec` for heel drops (pre-existing).
+- **Next:** BL-64 (6b).
