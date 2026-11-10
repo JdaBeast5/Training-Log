@@ -142,4 +142,42 @@ test('every EXERCISE_SUBS entry has exactly 2 distinct alternates, and never lis
   }
 });
 
+// ---- v3.534 (BL-73): a stored substitute applies only if it is listed for
+// the slot's current exercise (real applyExerciseSubs, real EXERCISE_SUBS).
+async function subsRun(store, exercises){
+  const [out] = await runSandboxAsync([withMockStorage(store), ...staticChunks, extractFunction(src, 'applyExerciseSubs')], `
+    var exercises = ${JSON.stringify(exercises)};
+    await applyExerciseSubs(exercises, 'strength', 'd1');
+    __capture.push(exercises);`);
+  return out;
+}
+
+test('BL-73 criterion 1: a stored name that is not listed for the slot\'s exercise is not applied (Front Squat on Bench Press)', async (assert)=>{
+  const [ex] = await subsRun({ 'exercise-sub:strength:d1:0': 'Front Squat' }, [{name:'Bench Press', sets:'3×8'}]);
+  assert.strictEqual(ex.name, 'Bench Press');
+  assert.strictEqual(ex.__isSubbed, undefined);
+  assert.strictEqual(ex.__originalName, undefined);
+});
+
+test('BL-73 criterion 2: a listed substitute still applies exactly as before (Incline DB Press for Bench Press)', async (assert)=>{
+  const [ex] = await subsRun({ 'exercise-sub:strength:d1:0': 'Incline DB Press' }, [{name:'Bench Press', sets:'3×8'}]);
+  assert.strictEqual(ex.name, 'Incline DB Press');
+  assert.strictEqual(ex.__originalName, 'Bench Press');
+  assert.strictEqual(ex.__isSubbed, true);
+  assert.strictEqual(ex.sets, '3×8');
+});
+
+test('BL-73: nothing stored is deleted; the unlisted choice is still in storage after the read', async (assert)=>{
+  const [r] = await runSandboxAsync([withMockStorage({ 'exercise-sub:strength:d1:0': 'Front Squat' }), ...staticChunks, extractFunction(src, 'applyExerciseSubs')], `
+    await applyExerciseSubs([{name:'Bench Press'}], 'strength', 'd1');
+    const got = await window.storage.get('exercise-sub:strength:d1:0');
+    __capture.push(got && got.value);`);
+  assert.strictEqual(r, 'Front Squat');
+});
+
+test('BL-73 sabotage anchor: exactly one applyExerciseSubs swap site', (assert)=>{
+  const body = extractFunction(src, 'applyExerciseSubs').split('\n').map(l => l.replace(/\/\/.*$/, '')).join('\n');
+  assert.strictEqual((body.match(/__isSubbed: true/g) || []).length, 1, 'one swap site; criterion 1 carries the behaviour');
+});
+
 run();

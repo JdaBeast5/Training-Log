@@ -7622,7 +7622,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.533';
+const APP_VERSION = '3.534';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9037,6 +9037,9 @@ const WHATS_NEW = {
   ]},
   '3.533': { headline: 'Cycle tracking: train to your plan', points: [
     'The cycle card no longer suggests training harder or lighter by phase, because research hasn\'t found a reliable phase effect on strength or muscle gain. Each phase now says to train to your plan and adjust to how you feel. The symptom, hormone and food notes are unchanged.',
+  ]},
+  '3.534': { headline: 'Exercise swaps stay with their exercise', points: [
+    'If the plan puts a different exercise in a spot, a swap you picked earlier only applies when it\'s also a listed swap for the new exercise. Nothing you chose is deleted.',
   ]},
 };
 
@@ -27129,7 +27132,11 @@ async function applyExerciseSubs(exercises, program, dayId){
       const res = await window.storage.get(subSelectionKey(program, dayId, i));
       if(res && res.value) subName = res.value;
     }catch(e){}
-    if(subName && subName !== ex.name){
+    // v3.534 (BL-73): apply a stored choice only if it is a listed substitute
+    // for the slot's current exercise. Read-time only; nothing is deleted, so
+    // if the exercise returns, the old choice applies again. Known limit: a
+    // choice also listed for the new exercise (a shared alternate) still applies.
+    if(subName && subName !== ex.name && (EXERCISE_SUBS[ex.name] || []).includes(subName)){
       exercises[i] = {...ex, name: subName, __originalName: ex.name, __isSubbed: true};
     }
   }));
