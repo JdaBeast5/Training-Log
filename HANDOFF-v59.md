@@ -1184,3 +1184,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `RIR_TARGETS`, `targetRirLabel(ex, program, inDeload)`, `rirLabelHtml` (role img, aria-label = words) in `.ex-sets` after the prescription span; hidden in RPE mode. No label for unit-word counts, AMRAP, cardio, core, CARs/stretch/mobility/breathing names, unknown exercises.
 - **Test:** `test-rir-target-label.js` (7 cases). Sabotage-checked. 217/217.
 - **For UX-06a / UX-08 / BIZ-05:** read `targetRirLabel(...).words` for the plain-English cue; the speed short differs from the spec (owner may revert).
+
+## Addendum 75: BL-15 (v3.551, PR #126, 2026-11-10)
+- **What:** two short sessions (or top-set RPE 10 at same/heavier load) to decrease; 5% upper, 7.5% otherwise; `dropLb` on the signal; clinical unchanged.
+- **Deploy note:** merging several PRs within seconds makes GitHub Pages cancel or fail the intermediate deploys ("in progress deployment"); the last merge's deploy is what goes live. Not a code problem.

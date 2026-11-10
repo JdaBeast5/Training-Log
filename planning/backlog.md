@@ -690,7 +690,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (27616–27626, 28060–28066), `sw.js`, the test. **Re-pin:** `test-program-fit-trend.js` lines 59–68 ("decrease: reps fell below the rep floor…") feeds one short session (105×6 at RPE 9 after 100×9 at RPE 8, `3x8-10`) and expects `'decrease'`. Under this item that's no longer a decrease. Make the fixture two short sessions (for example s1 `{weight:105, reps:7, avgRpe:9}`), keep the expectation, and name it in the PR.
 - **Risk:** same guards as BL-08, plus `test-rpe-safety-caps.js` (extracts the real `analyzeProgressionSignal`, `computeSuggestedSet` and `buildProgressBadge`).
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; criteria made real invocations; the `test-program-fit-trend.js` re-pin found by running the logic against its fixture. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.551, PR #126). RPE-10 path reads topRpe and needs the same or heavier load; back-off rows drop from their own weight.
 
 ## Ready: first step of each bar-raiser
 
