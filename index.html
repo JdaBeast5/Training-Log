@@ -7689,7 +7689,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.540';
+const APP_VERSION = '3.541';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9125,6 +9125,9 @@ const WHATS_NEW = {
   ]},
   '3.540': { headline: 'More groundwork for the new look', points: [
     'Nothing changes on screen. Each training day now has one colour taken from its own plate, ready for the share cards and the redesign to use.',
+  ]},
+  '3.541': { headline: 'Performance goal keeps your heavy sets', points: [
+    'With the performance goal, heavy low-rep lifts (about 5 reps or fewer, like 5×5 or 4×4-6) now keep all their written sets, and Powerlifting and Powerbuilding are never trimmed. Compound work in higher rep ranges is still capped at 3 sets.',
   ]},
 };
 
@@ -26878,13 +26881,18 @@ function applyGoalVolume(exercises, goal, program){
     }
 
     // Strength: the ACSM prescription is 2-3 working sets per exercise at a
-    // heavy load. Only compounds are capped — those are where strength is
-    // actually expressed, and they are also what the stand means by "key
-    // lifts early in the session". Isolation and accessory work is left
-    // exactly as the program wrote it, since trimming that would quietly
-    // strip a session down rather than sharpen it.
+    // heavy load. Only compounds in the hypertrophy rep range are capped
+    // (v3.541, BL-07: strength-tier lifts and the powerlifting and
+    // powerbuilding programs keep their written sets, below). Isolation and
+    // accessory work is left exactly as the program wrote it, since trimming
+    // that would quietly strip a session down rather than sharpen it.
     const isCompound = info && WARMUP_ELIGIBLE_CATEGORIES.includes(info.category);
     if(!isCompound || current <= 3) return ex;
+    // v3.541 (BL-07): the stand's 2-3 sets is a minimum, not a ceiling for
+    // strength work, and accumulated heavy volume drives strength. So heavy
+    // (strength-tier) lifts keep their written sets, and powerlifting and
+    // powerbuilding, whose whole design is that volume, are never trimmed.
+    if(getRepRangeTier(ex.sets) === 'strength' || program === 'powerlifting' || program === 'powerbuilding') return ex;
     return {...ex, sets: replaceSetCount(ex.sets, 3), volumeNote: adj.label};
   });
 }
