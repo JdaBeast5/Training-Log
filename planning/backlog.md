@@ -1957,7 +1957,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Files:** `content-exercises.js`, `sw.js` (version), the test. **Guards:** `test-concise-cues.js` (`MUST_KEEP` safety phrases), `test-masterclass-technique-render-consolidation.js`.
 - **Risk:** none beyond copy. BL-25 also edits Front Lever Hold (filler cues): whichever ships second re-reads entry 171.
 - **Fold-in (2026-11-08):** kept as its own version, not merged into BL-25 (one item, one version). Slot 6b, with the Phase 0 cue work.
-- **Status:** ready
+- **Status:** done (v3.531, PR #104)
 
 ### BL-43: Running progression from your own logged distance
 - **Why:**
