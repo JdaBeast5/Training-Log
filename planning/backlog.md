@@ -3033,7 +3033,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
   - `reconstructAllPRs` counts an exercise's first logged session as a record (its running max starts empty), so a week that starts a new program can show several "PRs". That's the PR timeline's own definition; the card reuses it rather than inventing a second one. Flag it to MKT-07, which names the record's kind.
 - **Spec refresh (2026-11-08):** lines re-grepped at v3.518; the data sources (`reconstructAllPRs`, `readExCorpus`) named, the `test-weekly-recap.js` constraints found, criterion 3 added. Scope unchanged.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; `test-weekly-recap.js` line 46 still pins "no `reduce(`" in `archiveCurrentWeek`, and `archiveCurrentWeek` still calls `computeWeekStats(todayMonday)` (45715). Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.545, PR #120). Flagged for MKT-07: `reconstructAllPRs` counts a first-ever lift as a PR, so a first week can show a PR count.
 
 ### MKT-03: Story-format share cards with the app's mark
 - **Why:**
