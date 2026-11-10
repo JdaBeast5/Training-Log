@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.553';
+const APP_VERSION = '3.554';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9194,6 +9194,9 @@ const WHATS_NEW = {
   ]},
   '3.553': { headline: 'Readiness knows what this week asked of you', points: [
     'Your program asks for harder sets in some weeks (around RPE 9 in week 4). Readiness used to flag any week averaging RPE 8.5 or more as fatigue, even when that was the plan. Now it flags a week only when your effort runs a full point above that week\'s target, or reaches 9.5. In a deload week, and on Medical and Senior programs, the target is lower, so it speaks up sooner.',
+  ]},
+  '3.554': { headline: 'Take a deload in one tap', points: [
+    'When your logs show effort climbing while your lifts stall, Today\'s Priorities now says so and offers "Take it this week". One tap turns on the same deload switch that\'s in Settings, and your suggested weights and warm-ups lighten right away.',
   ]},
 };
 
@@ -14950,16 +14953,30 @@ async function shareYearRecapCard(year){
   await shareCelebrationCard(yearRecapCard(r), 'yearRecapShareBtn');
 }
 
+// v3.554 (BL-23, audit M-6): deload early when the fit check says so.
+// Consensus supports deloading on fatigue signals rather than only on the
+// calendar [BELL23]. When the trend reads overreaching, this isn't already a
+// deload week and the manual deload is off, one tap turns the manual deload
+// on (setManualDeload, the Settings toggle's own body).
+async function getEarlyDeloadInsight(){
+  if(manualDeloadEnabled) return null;
+  if(await isDeloadWeek()) return null;
+  if(await getCurrentTrendStatus() !== 'overreaching') return null;
+  return `<b>Your logs suggest a deload.</b> Effort has been climbing while your lifts stall.`
+    + `<span class="year-recap-actions"><button type="button" class="year-recap-btn" data-early-deload>Take it this week</button></span>`;
+}
+
 async function renderTodayInsights(){
   const card = document.getElementById('todayInsightsCard');
   const el = document.getElementById('todayInsightsList');
   if(!card || !el) return;
 
-  const [cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge, weeklyRecap, yearRecap] = await Promise.all([
+  const [cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge, weeklyRecap, yearRecap, earlyDeload] = await Promise.all([
     getCycleInsight(),
     getStaleRestingRegionInsight(), getWeighInReminderInsight(), getWaterPaceInsight(), getSessionHeadsUpInsight(),
     getDeficitGuardrailInsight(), getPregnancyHeatInsight(), getBackupReminderInsight(),
     getReadinessInsight(), getFoundationalStackNudgeInsight(), getWeeklyRecapInsight(), getYearRecapInsight(),
+    getEarlyDeloadInsight(),
   ]);
 
   // deficit sits second: under the session heads-up (which is about the next
@@ -14989,8 +15006,10 @@ async function renderTodayInsights(){
   // yearRecap (1 Dec-15 Jan, v3.548) sits under deficit: a look-back like
   // weeklyRecap, kept below the one row about chronic under-eating and above
   // the day-to-day nudges.
-  const rows = {pregnancyHeat, readiness, sessionHeadsUp, weeklyRecap, deficit, yearRecap, cycle, stackNudge, staleRegion, weighIn, waterPace, backup};
-  const order = ['pregnancyHeat', 'readiness', 'sessionHeadsUp', 'weeklyRecap', 'deficit', 'yearRecap', 'cycle', 'stackNudge', 'staleRegion', 'weighIn', 'waterPace', 'backup'];
+  // earlyDeload (v3.554) sits right under readiness: both answer "how hard
+  // today", and it is the one row here that acts on the answer.
+  const rows = {pregnancyHeat, readiness, earlyDeload, sessionHeadsUp, weeklyRecap, deficit, yearRecap, cycle, stackNudge, staleRegion, weighIn, waterPace, backup};
+  const order = ['pregnancyHeat', 'readiness', 'earlyDeload', 'sessionHeadsUp', 'weeklyRecap', 'deficit', 'yearRecap', 'cycle', 'stackNudge', 'staleRegion', 'weighIn', 'waterPace', 'backup'];
   const hidden = await getHiddenPriorities();
   const items = order.filter(id => rows[id] && !hidden.includes(id));
   if(items.length === 0){
@@ -15005,6 +15024,12 @@ async function renderTodayInsights(){
   // workout below the fold; the order above already puts the one that
   // matters most first, and a safety row (pregnancyHeat) always leads.
   renderCollapsibleList(el, items.map(id => buildSwipeItem(`<div class="today-insight-row" data-priority="${id}">${rows[id]}</div>`)), 1, 'priorities');
+  const deloadBtn = el.querySelector('[data-early-deload]');
+  if(deloadBtn) deloadBtn.addEventListener('click', async (e)=>{
+    e.stopPropagation();
+    setManualDeload(true);
+    await renderTodayInsights();
+  });
   // The year recap row's buttons: share the card, or hide it for the year.
   const recapShare = el.querySelector('[data-year-recap-share]');
   if(recapShare) recapShare.addEventListener('click', (e)=>{ e.stopPropagation(); shareYearRecapCard(Number(recapShare.dataset.yearRecapShare)); });
@@ -31125,13 +31150,20 @@ function applyManualDeloadPrefToUI(){
   if(toggle) toggle.checked = manualDeloadEnabled;
 }
 
+// v3.554 (BL-23): the one body both the Settings toggle and the Today's
+// Priorities "Take it this week" button run: flag, storage, the toggle's
+// checked state, and an immediate repaint — the whole point is suggested
+// weights and the warm-up ramp reflecting it right away, not after a tab switch.
+function setManualDeload(on){
+  manualDeloadEnabled = !!on;
+  try{ window.storage.set('manual-deload-pref', manualDeloadEnabled ? '1' : '0'); }catch(e){}
+  applyManualDeloadPrefToUI();
+  renderWorkout();
+}
+
 document.addEventListener('change', (e)=>{
   if(!e.target || e.target.id !== 'manualDeloadToggle') return;
-  manualDeloadEnabled = !!e.target.checked;
-  try{ window.storage.set('manual-deload-pref', manualDeloadEnabled ? '1' : '0'); }catch(e){}
-  // Repaint immediately — the whole point is suggested weights and the
-  // warm-up ramp reflecting it right away, not after a tab switch.
-  renderWorkout();
+  setManualDeload(e.target.checked);
 });
 
 async function loadWakeLockPref(){

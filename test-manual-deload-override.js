@@ -131,4 +131,61 @@ async function assertDoesNotThrow(assert, fn){
   assert.strictEqual(threw, false);
 }
 
+// v3.554 (BL-23, audit M-6): a one-tap early deload in Today's Priorities when
+// the fit check says overreaching. Real invocation: the real
+// getEarlyDeloadInsight, setManualDeload and applyManualDeloadPrefToUI, run
+// through the real renderTodayInsights (other getters stubbed) with the real
+// #manualDeloadToggle mounted. Sabotage: skip the deload-week check and
+// criterion 3 fails.
+const renderSrc = extractFunction(src, 'renderTodayInsights');
+const OTHER_GETTERS = [...renderSrc.matchAll(/\b(get[A-Za-z]+Insight)\(\)/g)].map(m => m[1]).filter(n => n !== 'getEarlyDeloadInsight');
+function mountPriorities({status = 'overreaching', deloadWeek = false, manual = false} = {}){
+  const stubs = OTHER_GETTERS.map(n => `async function ${n}(){ return null; }`).join('\n');
+  return runJsdom(toggleHtml + '<div class="card" id="todayInsightsCard" style="display:none"><div id="todayInsightsList"></div></div>', `
+    window.__store = {}; window.__renders = 0;
+    window.storage = { get: async k => k in window.__store ? {value: window.__store[k]} : null, set: async (k, v) => { window.__store[k] = v; } };
+    function renderWorkout(){ window.__renders++; }
+    async function getCurrentTrendStatus(){ return ${JSON.stringify(status)}; }
+    async function isDeloadWeek(){ return ${deloadWeek} || manualDeloadEnabled; }
+    function showUndoToast(){}`,
+    [`var manualDeloadEnabled = ${manual};`, stubs, extractFunction(src, 'getTodayKey'), extractConst(src, 'COLLAPSIBLE_LIST_BATCH_SIZE'),
+      ...['applyManualDeloadPrefToUI', 'setManualDeload', 'getEarlyDeloadInsight', 'getHiddenPriorities', 'setHiddenPriorities', 'buildSwipeItem', 'makeSwipeable', 'renderCollapsibleList'].map(f => extractFunction(src, f)),
+      renderSrc]).window;
+}
+const rowIds = (w) => [...w.document.querySelectorAll('[data-priority]')].map(e => e.dataset.priority);
+const tick = () => new Promise(r => setTimeout(r, 0));
+
+test('BL-23 criteria 1 and 4: overreaching shows the row; one click turns the manual deload on, stores 1, repaints once, checks the Settings toggle, and the row goes', async (assert)=>{
+  const w = mountPriorities();
+  await w.renderTodayInsights();
+  assert.deepStrictEqual(rowIds(w), ['earlyDeload']);
+  assert.match(w.document.querySelector('[data-priority="earlyDeload"]').textContent, /Your logs suggest a deload\./);
+  w.document.querySelector('[data-early-deload]').click();
+  await new Promise(r => setTimeout(r, 30));
+  assert.strictEqual(w.manualDeloadEnabled, true);
+  assert.strictEqual(w.__store['manual-deload-pref'], '1');
+  assert.strictEqual(w.__renders, 1, 'renderWorkout once');
+  assert.strictEqual(w.document.getElementById('manualDeloadToggle').checked, true, 'via the real applyManualDeloadPrefToUI');
+  // With no other row, the renderer hides the whole card (it leaves the old markup in place).
+  assert.strictEqual(w.document.getElementById('todayInsightsCard').style.display, 'none', 'the row is gone once the deload is on');
+});
+
+test('BL-23 criterion 2: thriving or no status: no row', async (assert)=>{
+  for(const status of ['thriving', 'steady', null]){
+    const w = mountPriorities({status});
+    assert.strictEqual(await w.getEarlyDeloadInsight(), null, String(status));
+  }
+});
+
+test('BL-23 criterion 3: already a deload week, or the manual deload already on: no row', async (assert)=>{
+  assert.strictEqual(await mountPriorities({deloadWeek: true}).getEarlyDeloadInsight(), null);
+  assert.strictEqual(await mountPriorities({manual: true}).getEarlyDeloadInsight(), null);
+});
+
+test('BL-23: the Settings toggle and the button share one body (setManualDeload), not two copies', (assert)=>{
+  const code = src.split('\n').map(l => l.replace(/\/\/.*$/, '')).join('\n');
+  assert.strictEqual((code.match(/window\.storage\.set\('manual-deload-pref'/g) || []).length, 1, 'one writer');
+  assert.strictEqual((code.match(/setManualDeload\(/g) || []).length, 3, 'its declaration, the toggle handler and the button');
+});
+
 run();
