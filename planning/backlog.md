@@ -1875,10 +1875,10 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
   2. No `jump`-category prescription has a top rep above 8.
   3. The rest from BL-57 is 90 s for both (if BL-57 has shipped; otherwise assert BL-57's case is unaffected).
 - **Test plan:** new `test-plyo-prescriptions.js` (the sweeps over `programs` and the variant tables, with real `parseTopRep`). Sabotage: restore one `3×12-15`.
-- **Files:** `index.html` (the slots above), `content-exercises.js` (277; Jump Squat's entry), `sw.js`, the test. **Re-pin:** `test-concise-cues.js` only if the Jump Squat line is added as a fourth cue. Rewrite an existing cue instead, and the 964 count holds. **Guards:** `test-configurable-training-days.js:489–510` (Single-Leg Bound stays off the surfing and skimboarding extra days).
+- **Files:** `index.html` (the slots above), `content-exercises.js` (277; Jump Squat's entry), `sw.js`, the test. **Re-pin (owner 2026-11-09):** `test-rep-parse-qualifiers.js` criterion 3's count, 262 → 265 (the 3 bare `3×6` Single-Leg Bound slots gain `/leg`). **Re-pin:** `test-concise-cues.js` only if the Jump Squat line is added as a fourth cue. Rewrite an existing cue instead, and the 964 count holds. **Guards:** `test-configurable-training-days.js:489–510` (Single-Leg Bound stays off the surfing and skimboarding extra days).
 - **Risk:** prescriptions change in 2 programs plus their variants. That's visible, so the What's New line names it.
 - **Fold-in (2026-11-08):** line numbers moved to v3.518; counted 45 Single-Leg Bound slots and 9 Jump Squat `3×12-15` slots.
-- **Status:** ready (owner yes 2026-11-08: "61 a", as written). Slot 6c.
+- **Status:** ready (owner 2026-11-09: "Yes" to both: re-pin 262 → 265 here, and the standing rule recorded under BL-76). BL-56 (`noWeight`) and BL-57 (rest) not shipped: criterion 3 asserts the real rest (Jump Squat 60 → 90 s). Earlier: ready (owner yes 2026-11-08: "61 a", as written). Slot 6c.
 
 ### BL-76: Rep targets survive a per-limb or bracketed note (parser fix before BL-62)
 - **Why:** `parseTopRep` and `parseBottomRep` (`index.html`, near `getSetFieldUnit`) read a fixed rep count only when it's the last thing in the string. `3×8/leg`, `3×10/side`, `4×20 (10/leg)` and `3×15 (straight-knee, 3s eccentric lower)` all return `null`. At v3.528, **167 weighted slots** in the built-in programs have no rep target for this reason (e.g. Bulgarian Split Squat `3×8/leg`, Pallof Press `3×10/side`, Cable Woodchopper `3×12/side`). With no rep target there are no progression badges, no next-set rep target and no RPE-mode load for them. Found while building BL-62 (blocker PR #98); the owner chose to fix it first on 2026-11-09 ("BL-62 a").
@@ -1892,6 +1892,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Files:** `index.html` (`parseTopRep`, `WHATS_NEW`, `APP_VERSION`), `sw.js`, `test-rep-parse-qualifiers.js` (new).
 - **Risk:** about 167 exercises start showing progression suggestions they never showed. That's intended, and the What's New line says so. Guards: `test-program-fit-trend.js`, `test-rpe-safety-caps.js`, and the suites that read rep targets.
 - **Status:** done (v3.529, PR #100)
+- **Standing rule (owner 2026-11-09, "Yes" on PR #105):** any later item that adds `/leg`, `/side` or a bracketed note to a weighted slot may re-pin `test-rep-parse-qualifiers.js` criterion 3's count of noted weighted slots without a stop, even when that file isn't on its `Files:` line. Only that one count; the still-null set (the 7 carry distances) must not change. Say the old and new count in the PR.
 
 ### BL-62: Clinical dose and position wording (S-4, S-5, C-3)
 - **Why:**
