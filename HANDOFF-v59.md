@@ -1099,3 +1099,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Batch mode (owner, 2026-11-09):** the owner asked for ready items to be built back to back, each its own PR built on the previous one, taking the recommended option on questions and stopping only for owner-only decisions. A planning PR writes this into `automation.md`.
 - **Unverified:** not tried on an iPhone.
 - **Flagged:** BL-56 and BL-57 cover the weight field and plyo rest.
+
+## Addendum 58: BL-13 (v3.533, PR #107, 2026-11-09)
+- **What:** every phase's Training line says research shows no reliable phase effect; ovulation keeps a warm-up line. Other sections byte-identical to v3.518.
+- **Test:** `test-cycle-phase.js` +2 cases; `test-today-priorities.js` re-pinned. Sabotage-checked. 206/206.
+- **Unverified:** not tried on an iPhone.
+- **Flagged:** physical text and the disclaimer still lean on phase-based claims (follow-up BL-13b).
