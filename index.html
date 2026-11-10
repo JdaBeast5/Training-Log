@@ -7689,7 +7689,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.542';
+const APP_VERSION = '3.543';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9131,6 +9131,9 @@ const WHATS_NEW = {
   ]},
   '3.542': { headline: 'The coach knows your real set counts', points: [
     'The AI coach no longer assumes the app adds or caps sets because of your goal on programs where it doesn\'t, and it knows heavy lifts keep their sets under the performance goal.',
+  ]},
+  '3.543': { headline: 'Week labels say what\'s really happening', points: [
+    'The day header says "Accumulation" only on plans that really add sets across the block (Strength & Size, Bodybuilding, Powerlifting, Powerbuilding and your own programs). Other plans show the week number alone. Deload weeks are labelled on every plan, as before.',
   ]},
 };
 
@@ -26981,16 +26984,20 @@ function cycleWeekOf(week){
 // tell what week of the cycle you're in without landing on a day where
 // something actually changed.
 //
-// Only two real phases are named — Accumulation (weeks 1-4) and Deload
-// (week 5) — because those are the only two applyAccumulation/
-// applyDeloadVolumeReduction actually implement. No Intensification/
+// Only two real phases are named — Accumulation (weeks 1-4, and only on the
+// programs whose blocks really add sets: volumeModifiersApply, BL-66) and
+// Deload (week 5, every program) — because those are the only two
+// applyAccumulation/applyDeloadVolumeReduction actually implement. No Intensification/
 // Realization label until real per-week behavior backs one up; labeling a
 // week that isn't functionally different would be a UI claim the code
 // doesn't support.
-function mesocyclePhaseTag(cyclePos, inDeloadWeek){
-  return inDeloadWeek
-    ? {text: `Week ${cyclePos} of ${DELOAD_CYCLE_WEEKS} · Deload`, className: 'mesocycle-phase-tag deload'}
-    : {text: `Week ${cyclePos} of ${DELOAD_CYCLE_WEEKS} · Accumulation`, className: 'mesocycle-phase-tag'};
+function mesocyclePhaseTag(cyclePos, inDeloadWeek, program){
+  if(inDeloadWeek) return {text: `Week ${cyclePos} of ${DELOAD_CYCLE_WEEKS} · Deload`, className: 'mesocycle-phase-tag deload'};
+  // v3.543 (BL-66): name the phase only where applyAccumulation really adds
+  // block sets (since BL-01, the four lifting programs and custom programs).
+  // Elsewhere the week still counts toward the deload, which runs everywhere.
+  if(!volumeModifiersApply(program)) return {text: `Week ${cyclePos} of ${DELOAD_CYCLE_WEEKS}`, className: 'mesocycle-phase-tag'};
+  return {text: `Week ${cyclePos} of ${DELOAD_CYCLE_WEEKS} · Accumulation`, className: 'mesocycle-phase-tag'};
 }
 
 function applyAccumulation(exercises, week, program){
@@ -29134,7 +29141,7 @@ async function renderWorkout(){
     : '';
   durationEl.textContent = `~${Math.round(estimatedMinutes)} min${suffix}`;
 
-  const phaseTag = mesocyclePhaseTag(cyclePos, inDeloadWeek);
+  const phaseTag = mesocyclePhaseTag(cyclePos, inDeloadWeek, activeProgram);
   const phaseTagEl = document.getElementById('mesocyclePhaseTag');
   phaseTagEl.textContent = phaseTag.text;
   phaseTagEl.className = phaseTag.className;

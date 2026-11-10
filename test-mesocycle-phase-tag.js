@@ -12,13 +12,16 @@ const src = readIndexSource();
 
 const chunks = [
   extractConst(src, 'DELOAD_CYCLE_WEEKS'),
+  // v3.543 (BL-66): the tag now reads the program gate.
+  extractConst(src, 'VOLUME_MODIFIER_PROGRAMS'), extractConst(src, 'CUSTOM_PROGRAM_PREFIX'),
+  extractFunction(src, 'isCustomProgramKey'), extractFunction(src, 'volumeModifiersApply'),
   extractFunction(src, 'mesocyclePhaseTag'),
 ];
 
 const { test, run } = makeRunner('test-mesocycle-phase-tag.js');
 
-function tagFor(cyclePos, inDeloadWeek){
-  const [result] = runSandbox(chunks, `__capture.push(mesocyclePhaseTag(${cyclePos}, ${inDeloadWeek}));`);
+function tagFor(cyclePos, inDeloadWeek, program = 'strength'){
+  const [result] = runSandbox(chunks, `__capture.push(mesocyclePhaseTag(${cyclePos}, ${inDeloadWeek}, ${JSON.stringify(program)}));`);
   return result;
 }
 
@@ -73,6 +76,41 @@ test('sabotage-relevant: .mesocycle-phase-tag is hidden in Gym Mode, in the same
   const m = hideListRe.exec(src);
   assert.ok(m, 'the gym-mode #workoutCard hide-list block must exist');
   assert.match(m[0], /body\.gym-mode #workoutCard \.mesocycle-phase-tag/, '.mesocycle-phase-tag must be in the hide list — without it, it renders as an orphaned pill with no surrounding context once .workout-hero and .duration-row are hidden');
+});
+
+// ---- v3.543 (BL-66): the phase tag stops saying "Accumulation" where no
+// block sets are added.
+test('BL-66 criterion 1: (3, false, medical) → "Week 3 of 5", neutral class', (assert)=>{
+  const t = tagFor(3, false, 'medical');
+  assert.strictEqual(t.text, 'Week 3 of 5');
+  assert.strictEqual(t.className, 'mesocycle-phase-tag');
+});
+
+test('BL-66 criterion 2: strength and a custom program keep "Week 3 of 5 · Accumulation"', (assert)=>{
+  assert.strictEqual(tagFor(3, false, 'strength').text, 'Week 3 of 5 · Accumulation');
+  assert.strictEqual(tagFor(3, false, 'custom:abc').text, 'Week 3 of 5 · Accumulation');
+});
+
+test('BL-66 criterion 3: (5, true, medical) keeps "Week 5 of 5 · Deload" and the deload class', (assert)=>{
+  const t = tagFor(5, true, 'medical');
+  assert.strictEqual(t.text, 'Week 5 of 5 · Deload');
+  assert.strictEqual(t.className, 'mesocycle-phase-tag deload');
+});
+
+test('BL-66 criterion 4: every program outside the allowlist (21) gets no "Accumulation" in weeks 1-4', (assert)=>{
+  const [r] = runSandbox([extractConst(src, 'programs'), ...chunks], `
+    const gated = Object.keys(programs).filter(k => !volumeModifiersApply(k));
+    const bad = [];
+    for(const k of gated) for(const w of [1, 2, 3, 4]) if(/Accumulation/.test(mesocyclePhaseTag(w, false, k).text)) bad.push(k + ' w' + w);
+    __capture.push({n: gated.length, bad});`);
+  assert.strictEqual(r.n, 21);
+  assert.deepStrictEqual(r.bad, []);
+});
+
+test('BL-66 criterion 5: renderWorkout makes exactly one mesocyclePhaseTag call, passing activeProgram (comments stripped)', (assert)=>{
+  const body = extractFunction(src, 'renderWorkout').split('\n').map(l => l.replace(/\/\/.*$/, '')).join('\n');
+  assert.strictEqual((body.match(/mesocyclePhaseTag\(/g) || []).length, 1);
+  assert.strictEqual((body.match(/mesocyclePhaseTag\(cyclePos, inDeloadWeek, activeProgram\)/g) || []).length, 1);
 });
 
 run();
