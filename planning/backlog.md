@@ -3416,7 +3416,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Tools:** TOOL-01's harness.
 - **Spec refresh (2026-11-08):** the light block is a `body:not(.gym-mode)` rule (since v3.480), and the alias-inheritance trap is spelled out; mark lines re-grepped at v3.518; TOOL-01 is merged (`tools/visual/`), so the "after TOOL-01" condition is met. Scope unchanged.
 - **Spec refresh 2 (2026-11-09, against v3.527):** the mark lines moved (5724, 5673–5677); `:root` (59), the light rule (309–313) and the `--font-sans` line (68) haven't moved. Guards re-checked: `test-light-mode.js`, `test-css-mechanical-token-dedup.js`, `test-app-icon.js` (reads the same mark hexes). Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.539, PR #114). For later UX items: switch the spot inks to their targets before any screen uses an on/spot pair (four alias pairs are below 4.5:1 today); the light spot-yellow target (#F2C200) fails as text on the light ground.
 
 ### UX-01b: `dayInk(id)`: one day-to-ink rule, with no visible change
 - **Why:**
