@@ -58,4 +58,79 @@ test('REAL data: each rewritten safety cue kept its key phrase', (assert)=>{
   assert.deepStrictEqual(MUST_KEEP.filter(p => !p.test(all)).map(String), []);
 });
 
+// ---- v3.530 (BL-62, audit S-4, S-5, C-3): clinical dose and position wording.
+// Each edited prescription keeps every real parser result it had at v3.529:
+// set count, rep tier, and the rep target BL-76 reads past "/leg" and "(…)".
+const { extractFunction } = require('./testHelpers.js');
+const BL62_TABLE = [
+  ['3×15 (straight-knee, 3s eccentric lower)', '3×15/leg (straight-knee, 3s eccentric lower)'],
+  ['3×15 (bent-knee, 3s eccentric lower)',     '3×15/leg (bent-knee, 3s eccentric lower)'],
+  ['3×10', '3×10/leg'],
+  ['3×12', '3×12/leg'],
+  ['4×20', '4×20 (10/leg)'],
+  ['3×20', '3×20 (10/leg)'],
+];
+// Every slot BL-62 edits, walked over the real programs, every *_STYLES table
+// and every PROGRAM_DAY_COUNT_VARIANTS day (each day object counted once).
+function slotSets(name, programKeys){
+  const [r] = runSandbox([
+    extractConst(src, 'programs'), extractConst(src, 'MEDICAL_STYLES'), extractConst(src, 'COMBAT_STYLES'),
+    extractConst(src, 'CYCLING_STYLES'), extractConst(src, 'WATERSPORTS_STYLES'), extractConst(src, 'YOGA_STYLES'),
+    extractConst(src, 'PROGRAM_DAY_COUNT_VARIANTS'),
+  ], `
+    const T = {medical: MEDICAL_STYLES, combat: COMBAT_STYLES, cycling: CYCLING_STYLES, watersports: WATERSPORTS_STYLES, yoga: YOGA_STYLES};
+    const sets = []; const seen = new Set();
+    for(const key of Object.keys(programs)){
+      const daySets = [[key, programs[key].days]];
+      for(const [sn, st] of Object.entries(T[key] || {})) daySets.push([sn, st.days]);
+      // A style program's variants nest as [key][style][n]: label them by style.
+      for(const [vn, v] of Object.entries(PROGRAM_DAY_COUNT_VARIANTS[key] || {})){
+        if(v && v.days) daySets.push([key, v.days]); else for(const n of Object.values(v || {})) daySets.push([vn, n.days]);
+      }
+      for(const [owner, days] of daySets) for(const d of Object.values(days || {})){
+        if(!d || seen.has(d)) continue; seen.add(d);
+        for(const ex of (d.exercises || [])) if(ex.name === ${JSON.stringify(name)}) sets.push(owner + '|' + ex.sets);
+      }
+    }
+    __capture.push(sets);
+  `);
+  return programKeys ? r.filter(s => programKeys.includes(s.split('|')[0])) : r;
+}
+
+test('BL-62 criterion 1: real parseSetCount, getRepRangeTier, parseTopRep and parseBottomRep are unchanged for each edited string', (assert)=>{
+  const [r] = runSandbox(['parseSetCount', 'getRepRangeTier', 'parseTopRep', 'parseBottomRep'].map(f => extractFunction(src, f)), `
+    const T = ${JSON.stringify(BL62_TABLE)};
+    __capture.push(T.map(([a, b]) => [a, b].map(s => [parseSetCount(s), getRepRangeTier(s), parseTopRep(s), parseBottomRep(s)])));`);
+  r.forEach(([before, after], i) => {
+    assert.deepStrictEqual(after, before, BL62_TABLE[i][1]);
+    assert.ok(after[2] !== null && after[1] !== null, 'a rep target and tier are read: ' + BL62_TABLE[i][1]);
+  });
+});
+
+test('BL-62: every edited slot carries the new wording (6 heel drops, 3 Straight Leg Raises, 7 Sandbag Lunges), and no old string is left', (assert)=>{
+  const heel = slotSets('Eccentric Heel Drop');
+  assert.strictEqual(heel.length, 6, heel.join('; '));
+  for(const s of heel) assert.ok(/^rehabAchilles\|3×15\/leg \((straight|bent)-knee, 3s eccentric lower\)$/.test(s), s);
+  const slr = slotSets('Straight Leg Raise', ['rehabAcl', 'rehabGeneral']).sort();
+  assert.deepStrictEqual(slr, ['rehabAcl|3×10/leg', 'rehabAcl|3×12/leg', 'rehabGeneral|3×10/leg']);
+  // Senior's 2×10-12 is outside BL-62's spec and stays as written.
+  assert.ok(slotSets('Straight Leg Raise', ['senior']).every(s => s === 'senior|2×10-12'));
+  const lunges = slotSets('Sandbag Lunges');
+  assert.strictEqual(lunges.length, 7, lunges.join('; '));
+  for(const s of lunges) assert.ok(/^hyrox\|[34]×20 \(10\/leg\)$/.test(s), s);
+});
+
+test('BL-62 criterion 3: no prenatal exercise cue says "lie down" without a side-lying option; the breathing cue is rewritten, not added', (assert)=>{
+  const [r] = runSandbox([extractConst(src, 'MEDICAL_STYLES'), extractConst(src, 'exerciseInfo')], `
+    const names = new Set(Object.values(MEDICAL_STYLES.prenatal.days).flatMap(d => (d.exercises || []).map(e => e.name)));
+    __capture.push({names: [...names], cues: [...names].flatMap(n => (exerciseInfo[n] ? exerciseInfo[n].cues : [])),
+                    breath: exerciseInfo['Diaphragmatic Breathing'].cues});`);
+  assert.ok(r.names.includes('Diaphragmatic Breathing'), 'the sweep reaches the breathing exercise');
+  const bad = r.cues.filter(c => /lie down/i.test(c) && !/on your side/i.test(c));
+  assert.deepStrictEqual(bad, []);
+  assert.strictEqual(r.breath[0], 'Sit tall or lie down (on your side if pregnant), one hand on chest, one on belly; the belly rises more than the chest.');
+  assert.ok(r.breath[0].split(/\s+/).length <= 24);
+  assert.strictEqual(r.breath.length, 3, 'count unchanged');
+});
+
 run();

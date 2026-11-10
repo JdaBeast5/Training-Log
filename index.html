@@ -7622,7 +7622,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.529';
+const APP_VERSION = '3.530';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9025,6 +9025,9 @@ const WHATS_NEW = {
   ]},
   '3.529': { headline: 'Progress tips for one-side exercises', points: [
     'Exercises written per leg or per side, like Bulgarian split squats (3×8/leg) or Pallof presses (3×10/side), now get the same "add weight" tips, rep targets and RPE weight suggestions as every other lift. Before, the app couldn\'t read their rep count. Log the reps for one side.',
+  ]},
+  '3.530': { headline: 'Clearer per-leg doses and safer breathing', points: [
+    'Achilles heel drops and rehab straight leg raises now say the reps are per leg. Hyrox sandbag lunges show 20 reps as 10 per leg: log the total, 20. Breathing practice can be done sitting up, or lying on your side if you\'re pregnant.',
   ]},
 };
 
@@ -11041,7 +11044,7 @@ const programs = {
         exercises:[
           {name:'Wall Balls', sets:'5×15', noWeight:true},
           {name:'Burpee Broad Jumps', sets:'4×10', noWeight:true},
-          {name:'Sandbag Lunges', sets:'4×20'},
+          {name:'Sandbag Lunges', sets:'4×20 (10/leg)'},
           {name:'SkiErg Intervals', sets:'6×250m', noWeight:true},
         ]},
       d5: { label:'Day 5', sub:'Compromised Running (Brick Intervals)', plate:'p-green', plateNum:'10', duration:'~45 min',
@@ -11054,7 +11057,7 @@ const programs = {
       d6: { label:'Day 6', sub:'Full Simulation Finisher', plate:'p-off', plateNum:'5', duration:'~45 min',
         exercises:[
           {name:'Farmers Carry (Heavy)', sets:'4×40m'},
-          {name:'Sandbag Lunges', sets:'3×20'},
+          {name:'Sandbag Lunges', sets:'3×20 (10/leg)'},
           {name:'Rowing Machine Intervals', sets:'4×500m', noWeight:true},
           {name:'Wall Balls', sets:'3×20', noWeight:true},
         ]},
@@ -11908,7 +11911,7 @@ const MEDICAL_STYLES = {
         label:'Day 4', sub:'Knee Rehab & Stability', plate:'p-yellow', plateNum:'15', duration:'~25 min',
         exercises:[
           {name:'Quad Set', sets:'3×10, 5s hold', noWeight:true},
-          {name:'Straight Leg Raise', sets:'3×10', noWeight:true},
+          {name:'Straight Leg Raise', sets:'3×10/leg', noWeight:true},
           {name:'Terminal Knee Extension', sets:'3×12', noWeight:true},
           {name:'Step-Up (controlled)', sets:'2×8/leg', noWeight:true},
           {name:'Calf Raise', sets:'2×15', noWeight:true},
@@ -12003,7 +12006,7 @@ const MEDICAL_STYLES = {
         note:'Start quad activation right away rather than waiting until it feels ready; doing too little in this early phase is a more common mistake than too much.',
         exercises:[
           {name:'Quad Set', sets:'3×10 (5s hold)', noWeight:true},
-          {name:'Straight Leg Raise', sets:'3×10', noWeight:true},
+          {name:'Straight Leg Raise', sets:'3×10/leg', noWeight:true},
           {name:'Ankle Circles', sets:'2×10/direction', noWeight:true},
         ]
       },
@@ -12025,7 +12028,7 @@ const MEDICAL_STYLES = {
         exercises:[
           {name:'Leg Curl', sets:'3×10 (light)', noWeight:true},
           {name:'Glute Bridge', sets:'3×12', noWeight:true},
-          {name:'Straight Leg Raise', sets:'3×12', noWeight:true},
+          {name:'Straight Leg Raise', sets:'3×12/leg', noWeight:true},
         ]
       },
       d5: {
@@ -12057,8 +12060,8 @@ const MEDICAL_STYLES = {
         label:'Day 1', sub:'Eccentric Loading A', plate:'p-red', plateNum:'25', duration:'~15 min',
         note:'Alfredson protocol: 3×15 straight-knee heel drops, then 3×15 bent-knee. Rise on both legs, shift to the affected side, and lower slowly (about 3 seconds) until the heel dips below the step. Discomfort is expected; stop for sharp or worsening pain.',
         exercises:[
-          {name:'Eccentric Heel Drop', sets:'3×15 (straight-knee, 3s eccentric lower)', noWeight:true},
-          {name:'Eccentric Heel Drop', sets:'3×15 (bent-knee, 3s eccentric lower)', noWeight:true},
+          {name:'Eccentric Heel Drop', sets:'3×15/leg (straight-knee, 3s eccentric lower)', noWeight:true},
+          {name:'Eccentric Heel Drop', sets:'3×15/leg (bent-knee, 3s eccentric lower)', noWeight:true},
         ]
       },
       d2: {
@@ -12077,20 +12080,20 @@ const MEDICAL_STYLES = {
         label:'Day 4', sub:'Eccentric Loading B', plate:'p-yellow', plateNum:'15', duration:'~15 min',
         note:'Same protocol as Day 1. Consistency beats intensity: over 12 weeks, the tendon adapts to patient, repeated loading.',
         exercises:[
-          {name:'Eccentric Heel Drop', sets:'3×15 (straight-knee, 3s eccentric lower)', noWeight:true},
-          {name:'Eccentric Heel Drop', sets:'3×15 (bent-knee, 3s eccentric lower)', noWeight:true},
+          {name:'Eccentric Heel Drop', sets:'3×15/leg (straight-knee, 3s eccentric lower)', noWeight:true},
+          {name:'Eccentric Heel Drop', sets:'3×15/leg (bent-knee, 3s eccentric lower)', noWeight:true},
         ]
       },
       d5: {
         label:'Day 5', sub:'Progressive Loading + Balance', plate:'p-green', plateNum:'10', duration:'~20 min',
         note:'As pain allows, added resistance (a weighted backpack or a plate at the chest) is layered onto the same heel drops — only once your PT confirms you\'re ready.',
         exercises:[
-          {name:'Eccentric Heel Drop', sets:'3×15 (straight-knee, 3s eccentric lower)', noWeight:true},
+          {name:'Eccentric Heel Drop', sets:'3×15/leg (straight-knee, 3s eccentric lower)', noWeight:true},
           // d5 was missing the bent-knee variation that d1 and d4 both carry.
           // The two positions are not interchangeable: straight-knee loads
           // gastrocnemius, bent-knee loads soleus, and Alfredson prescribes
           // both every session precisely because they are different tissue.
-          {name:'Eccentric Heel Drop', sets:'3×15 (bent-knee, 3s eccentric lower)', noWeight:true},
+          {name:'Eccentric Heel Drop', sets:'3×15/leg (bent-knee, 3s eccentric lower)', noWeight:true},
           {name:'Single-Leg Balance', sets:'2×20-30s/side', noWeight:true},
         ]
       },
@@ -21150,7 +21153,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           exercises:[
             {name:'Wall Balls', sets:'5×15', noWeight:true},
             {name:'Burpee Broad Jumps', sets:'4×10', noWeight:true},
-            {name:'Sandbag Lunges', sets:'4×20'},
+            {name:'Sandbag Lunges', sets:'4×20 (10/leg)'},
             {name:'SkiErg Intervals', sets:'6×250m', noWeight:true},
           ]
         },
@@ -21196,7 +21199,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           exercises:[
             {name:'Wall Balls', sets:'5×15', noWeight:true},
             {name:'Burpee Broad Jumps', sets:'4×10', noWeight:true},
-            {name:'Sandbag Lunges', sets:'4×20'},
+            {name:'Sandbag Lunges', sets:'4×20 (10/leg)'},
             {name:'SkiErg Intervals', sets:'6×250m', noWeight:true},
           ]
         },
@@ -21211,7 +21214,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         d6: { label:'Day 6', sub:'Full Simulation Finisher', plate:'p-off', plateNum:'5', duration:'~45 min',
           exercises:[
             {name:'Farmers Carry (Heavy)', sets:'4×40m'},
-            {name:'Sandbag Lunges', sets:'3×20'},
+            {name:'Sandbag Lunges', sets:'3×20 (10/leg)'},
             {name:'Rowing Machine Intervals', sets:'4×500m', noWeight:true},
             {name:'Wall Balls', sets:'3×20', noWeight:true},
           ]
@@ -21250,7 +21253,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
           exercises:[
             {name:'Wall Balls', sets:'5×15', noWeight:true},
             {name:'Burpee Broad Jumps', sets:'4×10', noWeight:true},
-            {name:'Sandbag Lunges', sets:'4×20'},
+            {name:'Sandbag Lunges', sets:'4×20 (10/leg)'},
             {name:'SkiErg Intervals', sets:'6×250m', noWeight:true},
           ]
         },
@@ -21265,7 +21268,7 @@ const PROGRAM_DAY_COUNT_VARIANTS = {
         d6: { label:'Day 6', sub:'Full Simulation Finisher', plate:'p-off', plateNum:'5', duration:'~45 min',
           exercises:[
             {name:'Farmers Carry (Heavy)', sets:'4×40m'},
-            {name:'Sandbag Lunges', sets:'3×20'},
+            {name:'Sandbag Lunges', sets:'3×20 (10/leg)'},
             {name:'Rowing Machine Intervals', sets:'4×500m', noWeight:true},
             {name:'Wall Balls', sets:'3×20', noWeight:true},
           ]

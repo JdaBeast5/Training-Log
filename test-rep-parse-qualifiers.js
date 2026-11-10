@@ -62,7 +62,7 @@ test('criterion 3: weighted slots with a per-limb or bracketed note and no rep t
   const qualified = weighted.filter(s => /\/\s*(leg|side|arm|hand|direction)\b|\(/i.test(s) && /^\s*\d+\s*[×xX]\s*\d+/.test(s));
   const tops = parse(qualified).map(r => r[0]);
   const stillNull = qualified.filter((s, i) => tops[i] == null);
-  assert.strictEqual(qualified.length, 255);
+  assert.strictEqual(qualified.length, 262, 'v3.529: 255; v3.530 (BL-62, owner 2026-11-09): +7 Sandbag Lunges gain (10/leg)');
   assert.strictEqual(stillNull.length, 7, 'v3.528: 185');
   assert.deepStrictEqual([...new Set(stillNull)].sort(), ['3×20yd/side', '4×25yd/side'], 'only distances remain');
 });
