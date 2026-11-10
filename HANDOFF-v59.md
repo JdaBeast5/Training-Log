@@ -1117,3 +1117,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Test:** `test-history-name-stamp.js` (11 cases). Sabotage-checked. 207/207. security-review clean.
 - **Unverified:** not tried on an iPhone.
 - **Flagged:** same-date two-exercise merge; Analysis grouping by position (`parseExKey`).
+
+## Addendum 61: BL-53 (v3.536, PR #111, 2026-11-10)
+- **What:** `parseExKey` parses medical keys (one lazy style table for combat, cycling, watersports, medical); `exKeyForLocation` gains watersports.
+- **Test:** `test-parse-ex-key-styles.js` (5 cases). Sabotage-checked. 208/208.
+- **Flagged:** `subSelectionKey` namespaces only medical, so combat/cycling/watersports swaps are shared across styles (worth an item).
