@@ -101,6 +101,40 @@
     --line-soft:rgba(var(--surface-white-rgb),0.055);
     --text:#F3F4F6;
     --text-muted:#8B929B;
+    /* [TOKENS v2, v3.539, UX-01] The design vocabulary later UX items switch to,
+       introduced as ALIASES of today's values: nothing reads these yet, so
+       nothing looks different. Each comment records the dark target value the
+       switch will use (tools/design/world.css). Declared in the light rule too,
+       so a var() alias re-resolves there instead of inheriting the dark value.
+       --text keeps its own definition; its target is #F2F2F0. */
+    --ground:var(--bg); /* target #0C0C0D */
+    --surface-1:var(--surface); /* target #151516 */
+    --surface-2:var(--surface2); /* target #1E1E20 */
+    --rule:var(--line); /* target #29292C */
+    --rule-strong:var(--line-bright); /* target #3A3A3E */
+    --text-2:var(--text-muted); /* target #A6A6A2 */
+    --text-3:var(--text-muted); /* target #82827E */
+    --spot-red:var(--plate-red); /* target #D42F25 */
+    --spot-blue:var(--plate-blue); /* target #2C5BD8 */
+    --spot-yellow:var(--plate-yellow); /* target #F2C200 */
+    --spot-green:var(--plate-green); /* target #1E9E4A */
+    --spot-white:var(--plate-white); /* target #E6E6E2 */
+    --spot-off:var(--plate-off); /* target #3A3A3D */
+    --on-red:#FFFFFF; /* target #FFFFFF */
+    --on-blue:#FFFFFF; /* target #FFFFFF */
+    --on-yellow:#0C0C0D; /* target #0C0C0D */
+    --on-green:#0C0C0D; /* target #0C0C0D */
+    --on-white:#0C0C0D; /* target #0C0C0D */
+    --on-off:#FFFFFF; /* target #FFFFFF */
+    --deep-red:#6E1712; /* target #6E1712 */
+    --deep-blue:#16306F; /* target #16306F */
+    --deep-yellow:#6B5600; /* target #6B5600 */
+    --deep-green:#0E4D24; /* target #0E4D24 */
+    --fs-caption:12px; --fs-meta:13px; --fs-body:16px; --fs-lead:18px; --fs-title:22px;
+    --fs-head:40px; --fs-figure-m:34px; --fs-figure-l:64px; --fs-figure-xl:176px;
+    --r-control:14px; --r-sheet:var(--radius-card); /* target 28px (equal today) */
+    --dur-press:120ms; --dur-ui:220ms; --dur-sheet:420ms; --dur-moment:700ms;
+    --ease-out:cubic-bezier(.23,1,.32,1); --ease-in-out:cubic-bezier(.77,0,.175,1); --ease-drawer:cubic-bezier(.32,.72,0,1);
     --plate-red:#FF453A;
     --plate-blue:#5B7CFF;
     --plate-yellow:#F5C518;
@@ -331,6 +365,39 @@
       --line-bright:#CDD0D6;
       --text:#111216;
       --text-muted:#62666E;
+      /* [TOKENS v2, v3.539, UX-01] The same vocabulary as the dark :root block,
+         redeclared here so each var() alias re-resolves against the light values
+         instead of inheriting the dark ones. Each comment records the light target
+         value the switch will use (tools/design/world.css).
+         --text keeps its own definition; its target is #111112. */
+      --ground:var(--bg); /* target #F3F3F1 */
+      --surface-1:var(--surface); /* target #FFFFFF */
+      --surface-2:var(--surface2); /* target #E9E9E6 */
+      --rule:var(--line); /* target #DADAD6 */
+      --rule-strong:var(--line-bright); /* target #C4C4BF */
+      --text-2:var(--text-muted); /* target #52524E */
+      --text-3:var(--text-muted); /* target #686863 */
+      --spot-red:var(--plate-red); /* target #D42F25 */
+      --spot-blue:var(--plate-blue); /* target #2C5BD8 */
+      --spot-yellow:var(--plate-yellow); /* target #F2C200 */
+      --spot-green:var(--plate-green); /* target #1E9E4A */
+      --spot-white:var(--plate-white); /* target #E6E6E2 */
+      --spot-off:var(--plate-off); /* target #2E2E31 */
+      --on-red:#FFFFFF; /* target #FFFFFF */
+      --on-blue:#FFFFFF; /* target #FFFFFF */
+      --on-yellow:#0C0C0D; /* target #0C0C0D */
+      --on-green:#0C0C0D; /* target #0C0C0D */
+      --on-white:#0C0C0D; /* target #0C0C0D */
+      --on-off:#FFFFFF; /* target #FFFFFF */
+      --deep-red:#6E1712; /* target #6E1712 */
+      --deep-blue:#16306F; /* target #16306F */
+      --deep-yellow:#6B5600; /* target #6B5600 */
+      --deep-green:#0E4D24; /* target #0E4D24 */
+      --fs-caption:12px; --fs-meta:13px; --fs-body:16px; --fs-lead:18px; --fs-title:22px;
+      --fs-head:40px; --fs-figure-m:34px; --fs-figure-l:64px; --fs-figure-xl:176px;
+      --r-control:14px; --r-sheet:var(--radius-card); /* target 28px (equal today) */
+      --dur-press:120ms; --dur-ui:220ms; --dur-sheet:420ms; --dur-moment:700ms;
+      --ease-out:cubic-bezier(.23,1,.32,1); --ease-in-out:cubic-bezier(.77,0,.175,1); --ease-drawer:cubic-bezier(.32,.72,0,1);
       --sheen:rgba(var(--surface-rgb),.7);
       --sheen-strong:rgba(var(--surface-rgb),.9);
       --elev-1:var(--rim), 0 2px 6px -2px rgba(var(--overlay-black-rgb),0.10);
@@ -7622,7 +7689,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.538';
+const APP_VERSION = '3.539';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9052,6 +9119,9 @@ const WHATS_NEW = {
   ]},
   '3.538': { headline: 'Add weight when every set is there', points: [
     'The app now suggests more weight only when every set you did at your top weight reached the top of the rep range, not just your best set. Sets of 6, 5, 4, 4 on a 4-6 range stay at that weight until all of them hit 6. Logging RPE helps: with all sets at the top at RPE 8 or easier, the progress tip says so after one session.',
+  ]},
+  '3.539': { headline: 'Groundwork for the new look', points: [
+    'Nothing changes on screen in this update. It adds the colour, type and motion names the coming redesign will use, so each screen can switch over on its own.',
   ]},
 };
 
