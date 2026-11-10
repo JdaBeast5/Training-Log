@@ -28,6 +28,7 @@ function buildChunks(){
     };`,
     extractFunction(src, 'normalizeExEntry'),
     extractFunction(src, 'parseExKey'),
+    extractFunction(src, 'isMissedSet'), // v3.537 (BL-77)
     extractFunction(src, 'topSetOf'),
     extractFunction(src, 'estimated1RM'),
     extractFunction(src, 'groupCorpusByExercise'),

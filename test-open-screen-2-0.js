@@ -93,7 +93,7 @@ test('REAL source (v3.498): none of this applies on a phone — every rule lives
 // only): its history (the same builder as the history sheet, latest five
 // sessions), cues and form video. It follows Up next until you open an
 // exercise yourself, then stays on yours until the day changes.
-const HIST_FNS = ['escapeHtml', 'normalizeExEntry', 'subVariantOf', 'topSetOf', 'estimated1RM', 'toDisplayWeight', 'trimUnitNum', 'distanceOf', 'dropVolumeOf', 'volumeOf', 'parseDateKey', 'formatDate', 'formatShortDate', 'toDisplayDistance', 'buildExerciseHistoryHtml'];
+const HIST_FNS = ['escapeHtml', 'normalizeExEntry', 'subVariantOf', 'isMissedSet' /* v3.537 (BL-77) */, 'topSetOf', 'estimated1RM', 'toDisplayWeight', 'trimUnitNum', 'distanceOf', 'dropVolumeOf', 'volumeOf', 'parseDateKey', 'formatDate', 'formatShortDate', 'toDisplayDistance', 'buildExerciseHistoryHtml'];
 function detailWindow(open){
   const sessions = Array.from({length:8}, (_, i) => ({ date:`2026-10-${String(27 - i * 3).padStart(2, '0')}`, sets:[{weight:150 - i * 5, reps:8}, {weight:150 - i * 5, reps:7}] }));
   const html = extractElementById(src, 'exerciseDetailCard');

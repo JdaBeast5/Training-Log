@@ -19,7 +19,7 @@ function progress(firstW, lastW){
     const fmtWeight = lb => lb + ' lb', toDisplayWeight = lb => lb;
     const readExCorpus = async () => [1];
     const groupCorpusByExercise = () => [{name:'Bench Press', exDef:{sets:'3×8'}, log:[{sets:[{weight:${firstW}, reps:5}]}, {sets:[{weight:${lastW}, reps:5}]}]}];
-    const topSetOf = e => e.sets[0], maxWeightEver = () => ${Math.max(firstW, lastW)}, volumeOf = () => 1000, estimated1RM = () => 200;
+    const topSetOf = e => e.sets[0], sessionTopOf = topSetOf /* v3.537 (BL-77) */, maxWeightEver = () => ${Math.max(firstW, lastW)}, volumeOf = () => 1000, estimated1RM = () => 200;
     const describeExercisePlaces = () => 'Day 1', reconstructAllPRs = async () => [];
     const renderCollapsibleList = (el, items) => { el.innerHTML = items.join(''); }, icon = () => '';`,
     [extractFunction(src, 'escapeHtml'), extractFunction(src, 'trimUnitNum'), extractFunction(src, 'parseTopRep'), extractFunction(src, 'renderExerciseProgress'),

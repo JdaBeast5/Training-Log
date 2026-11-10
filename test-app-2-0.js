@@ -198,7 +198,7 @@ test('REAL invocation + CSSOM (v3.314): Exercise Progress rows carry no emoji, a
     const fmtWeight = lb => lb + ' lb', toDisplayWeight = lb => lb;
     const readExCorpus = async () => [1];
     const groupCorpusByExercise = () => [{name:'Bench Press', exDef:{sets:'3×5'}, log:[{sets:[{weight:180, reps:5}]}, {sets:[{weight:185, reps:5}]}]}];
-    const topSetOf = e => e.sets[0], maxWeightEver = () => 185, volumeOf = () => 2775, estimated1RM = () => 216;
+    const topSetOf = e => e.sets[0], sessionTopOf = topSetOf /* v3.537 (BL-77) */, maxWeightEver = () => 185, volumeOf = () => 2775, estimated1RM = () => 216;
     const describeExercisePlaces = () => 'Strength · Day 1', reconstructAllPRs = async () => [];
     const renderCollapsibleList = (el, items) => { el.innerHTML = items.join(''); }, icon = () => '';`,
     [extractFunction(src, 'escapeHtml'), extractFunction(src, 'trimUnitNum'), extractFunction(src, 'parseTopRep'), extractFunction(src, 'renderExerciseProgress'),
