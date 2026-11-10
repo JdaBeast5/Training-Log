@@ -1145,3 +1145,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 66: BL-07 (v3.541, PR #116, 2026-11-10)
 - **What:** `applyGoalVolume`'s strength branch skips strength-tier lifts and powerlifting/powerbuilding.
 - **Test:** `test-volume-modifier-gate.js` +4. Sabotage-checked. 212/212.
+
+## Addendum 67: BL-65 and BL-66 (v3.542 PR #117, v3.543 PR #118, 2026-11-10)
+- **BL-65:** `goalVolumeContextLine(goal, program)` builds the coach's volume line from the gate. Merged before its record commit (worker restart); recorded here.
+- **BL-66:** `mesocyclePhaseTag(cyclePos, inDeloadWeek, program)` drops 'Accumulation' on the 21 gated programs.
+- **Tests:** `test-coach-chat-context.js` +5, `test-mesocycle-phase-tag.js` +5. 212/212.

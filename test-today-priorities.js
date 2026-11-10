@@ -63,7 +63,7 @@ test('REAL source (v3.381): no deload row; the day header carries the deload wee
   assert.match(extractFunction(src, 'mesocyclePhaseTag'), /Week \$\{cyclePos\} of \$\{DELOAD_CYCLE_WEEKS\} · Deload/);
   const render = extractFunction(src, 'renderWorkout');
   assert.match(render, /const inDeloadWeek = await isDeloadWeek\(\);/, 'the header asks isDeloadWeek(), which includes the manual toggle');
-  assert.match(render, /mesocyclePhaseTag\(cyclePos, inDeloadWeek\)/);
+  assert.match(render, /mesocyclePhaseTag\(cyclePos, inDeloadWeek, activeProgram\)/); // v3.543 (BL-66): the program decides the phase word
 });
 
 test('REAL invocation (v3.382): the cycle phase is one row carrying both its training and its food advice', async (assert)=>{
