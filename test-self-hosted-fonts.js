@@ -58,10 +58,11 @@ function srcUrl(rule){
   const m = /url\(\s*['"]?([^'")]+)['"]?\s*\)/.exec(rule.src || '');
   return m ? m[1] : null;
 }
-function weightRange(rule){
-  const parts = (rule['font-weight'] || '').split(/\s+/).map(Number);
+function rangeOf(rule, prop){
+  const parts = (rule[prop] || '').split(/\s+/).map(x => parseFloat(x));
   return { min: parts[0], max: parts[parts.length - 1] };
 }
+function weightRange(rule){ return rangeOf(rule, 'font-weight'); }
 
 test('sabotage anchor: the parsed CSSOM and the descriptor reading see the same @font-face families, in the same order', (assert)=>{
   const fromCssom = cssomFontFaceFamilies();
@@ -135,10 +136,55 @@ test('REAL sw.js: every @font-face file is in PRECACHE_OPTIONAL (offline from fi
 });
 
 test('the OFL licence ships beside the fonts (Geist and Geist Mono share one licence file, byte-identical upstream)', (assert)=>{
-  for(const f of ['fonts/OFL-Geist.txt']){
+  for(const f of ['fonts/OFL-Geist.txt', 'fonts/OFL-Archivo.txt']){
     const text = fs.readFileSync(path.join(ROOT, f), 'utf8');
     assert.ok(/SIL Open Font License/.test(text), `${f} must carry the OFL text`);
   }
+});
+
+// v3.546 (UX-02, owner D2): Archivo, the display face, ships beside Geist.
+// Real invocation: the real CSSOM (family count) and the real rule text, the
+// real file's magic bytes, and the real sw.js install handler run in a vm
+// with stubbed caches and fetch. Criterion 2 (optional, never essential) and
+// the file and licence checks are the per-face tests above, which now cover
+// Archivo too. No preload: the one-preload test above still holds. Sabotage:
+// misspell the file name in the @font-face src and criterion 1 fails (with the
+// per-face file and precache tests).
+test('UX-02 criterion 1: exactly one @font-face for Archivo; weight covers 800, stretch covers 68%-100%, font-display swap (its file, magic bytes and optional precache are the per-face tests above)', (assert)=>{
+  assert.strictEqual(cssomFontFaceFamilies().filter(f => f === 'Archivo').length, 1, 'the parser sees one Archivo face');
+  const faces = fontFaceRules().filter(r => family(r) === 'Archivo');
+  assert.strictEqual(faces.length, 1);
+  assert.strictEqual(srcUrl(faces[0]), './fonts/archivo-latin-wdth-wght-v1.woff2');
+  const w = weightRange(faces[0]), st = rangeOf(faces[0], 'font-stretch');
+  assert.ok(w.min <= 800 && w.max >= 800, `weight ${w.min}-${w.max}`);
+  assert.ok(st.min <= 68 && st.max >= 100, `stretch ${st.min}%-${st.max}%`);
+  assert.strictEqual(faces[0]['font-display'], 'swap');
+});
+
+test('UX-02 criterion 3: the real sw.js install handler fetches the Archivo URL and caches it', async (assert)=>{
+  const vm = require('vm');
+  const url = srcUrl(fontFaceRules().find(r => family(r) === 'Archivo'));
+  const handlers = {}, fetched = [], put = [];
+  const cache = { addAll: async () => {}, put: async (u) => { put.push(u); } };
+  const ctx = {
+    self: { addEventListener: (t, f) => { handlers[t] = f; }, location: { origin: 'https://x.test' } },
+    caches: { open: async () => cache },
+    Request: function(u){ this.url = u; },
+    fetch: async (req) => { fetched.push(req.url); return { ok: true }; },
+    console,
+  };
+  vm.runInNewContext(fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8'), ctx);
+  let done;
+  handlers.install({ waitUntil: (p) => { done = p; } });
+  await done;
+  assert.ok(fetched.includes(url), 'install requested ' + url);
+  assert.ok(put.includes(url), 'and cached it');
+});
+
+test('UX-02 criterion 4: --font-display resolves on :root and names Archivo first, then Geist', (assert)=>{
+  const root = [...document.styleSheets].flatMap(s => [...s.cssRules]).find(r => r.selectorText === ':root');
+  const v = root.style.getPropertyValue('--font-display').trim();
+  assert.match(v, /^['"]Archivo['"],\s*['"]Geist['"],/);
 });
 
 run();
