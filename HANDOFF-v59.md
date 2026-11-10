@@ -1122,3 +1122,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `parseExKey` parses medical keys (one lazy style table for combat, cycling, watersports, medical); `exKeyForLocation` gains watersports.
 - **Test:** `test-parse-ex-key-styles.js` (5 cases). Sabotage-checked. 208/208.
 - **Flagged:** `subSelectionKey` namespaces only medical, so combat/cycling/watersports swaps are shared across styles (worth an item).
+
+## Addendum 62: BL-77 (v3.537, PR #112, 2026-11-10)
+- **What:** `isMissedSet`; strict `topSetOf`/`maxWeightEver`/PR check; `sessionTopOf` for last-session readers so an all-miss session still reads as a failure.
+- **Test:** `test-zero-rep-miss.js` (8 cases). Sabotage-checked. 209/209.
+- **Warning for BL-08:** `priorSetForSlot` still copies 0-rep sets as a basis; use `isMissedSet` there. Use `sessionTopOf`, not `topSetOf`, for any 'how did last session go' reader.

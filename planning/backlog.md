@@ -1671,7 +1671,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
     - the seven `wireSetsBlock` suites that stub `buildPastSessions`.
 - **Risk:** any 0-rep set already logged stops counting in History, PRs and Analysis. A PR built on a miss disappears. Stored data is untouched, and the What's New line says so. Placed at slot 9c, after BL-53, so that BL-08's all-set rule (slot 10) never reads a miss as a top set.
 - **Tools:** `code-review` at high (PR history).
-- **Status:** ready (owner yes 2026-11-09). Slot 9c.
+- **Status:** done (v3.537, PR #112). Beyond the spec (review, high): `sessionTopOf` keeps an all-miss session readable as a failed session for the signal, clinical cap, warm-up ramp and Analysis; `isMissedSet` is the one rule. Earlier: ready (owner yes 2026-11-09). Slot 9c.
 
 ### BL-54: One exercise, one name in History, PRs and the warm-up fallback (D-3)
 - **Why:** the same lift under two names splits grouping:
