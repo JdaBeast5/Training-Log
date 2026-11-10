@@ -1192,3 +1192,6 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 76: BL-24 (v3.552, PR #127, 2026-11-10)
 - **What:** `getLoadIncrement(category, e1rm)` with `LOAD_INCREMENT_SCALE`; floors squat/hinge/oly 5; signals carry `stepLb` (increase) and `dropLb` (decrease).
 - **Warning:** suites extracting `analyzeProgressionSignal` need `recentBestE1RM`, `estimated1RM`, `RPE_E1RM_LOOKBACK_SESSIONS`, `LOAD_INCREMENT_SCALE`.
+
+## Addendum 77: BL-09 (v3.553, PR #128, 2026-11-10)
+- **What:** `computeReadiness({..., rpeTarget})` flags RPE ≥ target + 1 or ≥ 9.5; `getReadinessInsight` passes `rpeTargetFor(week, deload, program)`. Test: `test-readiness-rpe-target.js`. 218/218.

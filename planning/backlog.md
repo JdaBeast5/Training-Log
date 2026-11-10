@@ -557,7 +557,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (47125–47175, 14611–14640), `sw.js`, `test-readiness-rpe-target.js` (new). Guards: `test-today-priorities.js` (48–49 pin `computeReadiness`'s sleep rule and `READINESS_SLEEP_LOW = 6`; keep both), `test-cycle-phase-nutrition-insight.js` (132) and `test-supplement-condition-cycle-nudge.js` (243) stub `getReadinessInsight`, so they're unaffected.
 - **Risk:** Today priorities. Guarded by `test-today-priorities.js`.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the target now comes from BL-02's `rpeTargetFor`; criterion 5 and the test file decided. Scope unchanged: the flag still compares the week's RPE with the week's own target.
-- **Status:** ready
+- **Status:** done (v3.553, PR #128).
 
 ### BL-10: A target RIR on every prescription (H-5)
 - **Why:** in default mode "3×10–12" carries no effort target. Hypertrophy improves closer to failure while strength is flat across RIR [ROB24]; failure isn't required [REF23].
