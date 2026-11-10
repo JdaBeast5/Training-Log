@@ -1164,3 +1164,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `fonts/archivo-latin-wdth-wght-v1.woff2` + `OFL-Archivo.txt`; one Archivo `@font-face` (weight 100-900, stretch 62-125%, swap, latin range); `--font-display`; optional precache. No preload; nothing uses it yet.
 - **Test:** `test-self-hosted-fonts.js` +4. Sabotage-checked. 214/214. Offline Playwright check passed.
 - **Flagged:** every release re-downloads optional precache entries (fonts ~150 KB).
+
+## Addendum 71: MKT-03 (v3.547, PR #122, 2026-11-10)
+- **What:** `buildShareCardBlob(card, format)`, story 1080×1920 by default (flat ground, day spot ink via `dayInk`, Archivo condensed, Sash + name foot); `'square'` keeps the old card with the mark in its footer. `SHARE_CARD_INKS` (target hexes), `shareCardFootRow`, `drawSashMark`, `drawStoryCard`, `appSlug()`, `preloadShareCardFont`. Share objects carry `kind` and `dayId` (captured when the moment happens).
+- **Test:** `test-share-card-format.js` (11 cases). Sabotage-checked. 215/215.
+- **Warnings:** `dayInk` now has one caller (test-day-ink pins 2). Canvas stretch must go in the font shorthand (Safari has no `fontStretch`). Keep `kind` last in the share objects: `test-glyphs.js` matches `{icon:'…', headline:`.

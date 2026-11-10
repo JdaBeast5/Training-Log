@@ -3064,7 +3064,7 @@ Written against **v3.514**. Evidence and the share-moment design for every item 
 - **Alignment note (2026-11-07):** the ring mark is replaced by the Sash mark (MKT-19 shipped as the icon in v3.516). **No wordmark until the public name is confirmed** (market-researcher B1, marketing-manager B1). The wordmark is MKT-03b. Builds the story frame (safe zones, mark tile, sponsor strip) so the bib (MKT-16) reuses it. Ships after UX-01b and, if approved, UX-02. Year in Lifting 2026 carries no address (consensus decision 16).
 - **Summit note (summit 2026-11-07):** Draw it in the Plate & Press world from day one (flat ink ground, the day's spot ink, no gold glow), so cards are never redone (summit §1.4). It's on the Year in Lifting lane (roadmap slot 17).
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped. Found: the footer has drawn `APP_NAME` since v3.517 (the spec still described "TRAINING LOG"), so criterion 5 now breaks `test-app-rename.js`; both of its re-pins named. Criterion 6 says where the day comes from; criterion 7 keeps the `test-glyphs.js` pin. Scope unchanged; the name question is a non-blocking owner option.
-- **Status:** ready (after UX-01b; owner 2026-11-09: keep the name, MKT-03b folded in)
+- **Status:** done (v3.547, PR #122; MKT-03b folded in, the name kept). Flagged: the square format has no button yet; the backup's file stem still uses `APP_NAME.toLowerCase()` (MKT-20).
 
 ### MKT-03b: The wordmark on cards, once the name is confirmed
 - **Why:** MKT-03 ships the mark alone so the Year in Lifting lane never waits on the name (consensus G1). Once the owner confirms the public name (after the USPTO knockout and buying its domain; marketing.md §2.1, §4.3), cards add it.
