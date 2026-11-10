@@ -1516,7 +1516,7 @@ The builder's "Flagged, not fixed" notes on PR #63 (BL-01, v3.518), as small ite
 - **Risk:** the AI path is a CLAUDE.md fragile area; only the prompt string changes. Guarded by `test-ai-cross-metric-effort-fix.js` and `test-coach-chat-context.js`.
 - **Tools:** `Skill: claude-api` (prompt wording only).
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the test's missing extract named. Scope unchanged.
-- **Status:** ready (after BL-07)
+- **Status:** done (v3.542, PR #117). Powerlifting/Powerbuilding with the performance goal get their own no-cap line (review). Recorded in PR #118 (PR #117 merged before its record commit).
 
 ### BL-66: The phase tag stops saying "Accumulation" where no block sets are added (BL-01 follow-up)
 - **Why:** builder flag, PR #63 (v3.518), foreseen in BL-01's Risk line. `mesocyclePhaseTag` (`index.html` 26811) labels weeks 1–4 "Week N of 5 · Accumulation" on every program. Its own comment says it names a phase only when `applyAccumulation` really implements it (26797–26810), and since BL-01 `applyAccumulation` does nothing on the 21 gated programs. The tag now makes the claim the comment forbids.
@@ -1536,7 +1536,7 @@ The builder's "Flagged, not fixed" notes on PR #63 (BL-01, v3.518), as small ite
   - Name both in the PR.
 - **Risk:** the day header. Guarded by `test-mesocycle-phase-tag.js`, `test-session-actions.js`, `test-up-next.js` and `test-today-priorities.js`.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the `test-mesocycle-phase-tag.js` re-pin found (its own fixtures call with two arguments). Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.543, PR #118).
 
 ### BL-67: Guard: no exercise substitute crosses the jump category (BL-01 follow-up)
 - **Why:** builder flag, PR #63 (v3.518). BL-01's jump rule in `applyGoalVolume` (`index.html` 26682–26684) reads `exerciseInfo[ex.name]` for the **authored** name, because goal volume runs (28647) before `applyExerciseSubs` (28720). If a slot's substitute had a different category, a jump substituted into a squat slot could take a goal set, and a squat substituted into a jump slot would lose one. At v3.518 **no `EXERCISE_SUBS` pair crosses the jump boundary** (checked with the real tables: 0 pairs), so nothing is wrong today. This item makes sure it stays that way, rather than moving the modifiers after substitution (a wider change with no current benefit).
