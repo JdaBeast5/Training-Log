@@ -7689,7 +7689,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.544';
+const APP_VERSION = '3.545';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9137,6 +9137,9 @@ const WHATS_NEW = {
   ]},
   '3.544': { headline: 'Cardio sets finish without a distance', points: [
     'Burpees, battle ropes, wall balls and jump-rope drills no longer show a distance box. On any cardio row, logging your reps or minutes now completes the set and starts the rest timer; a distance is still saved when you type one.',
+  ]},
+  '3.545': { headline: 'Week cards keep your body data private', points: [
+    'The card you share when you finish a week no longer shows your average weight, food intake or sleep. It shows your workouts, your program and your PRs this week (or your sets, if there were no PRs). Your saved week still keeps those numbers for you.',
   ]},
 };
 
@@ -45995,14 +45998,35 @@ async function computeWeekStats(weekStartKey){
   return {avgWeight, workoutsCount, daysLogged, avgCal, avgPro, avgFat, avgCarb, avgWater, avgSleep};
 }
 
+// v3.545 (MKT-02): the week card's training numbers, from the existing
+// sources (no second implementation): PRs are reconstructAllPRs() events
+// dated in the week, sets are readExCorpus() sets logged in the week. A set
+// counts once it has reps or a distance (the app's finished-set rule), so a
+// weight typed with no reps doesn't, and bodyweight and cardio sets do.
+async function weekShareTrainingStats(weekStartKey){
+  const endKey = dateKeyMinusDays(weekStartKey, -6);
+  const inWeek = (d) => d >= weekStartKey && d <= endKey;
+  let prs = 0, sets = 0;
+  try{ prs = (await reconstructAllPRs()).filter(ev => inWeek(ev.date)).length; }catch(e){}
+  try{
+    for(const {log} of await readExCorpus()){
+      for(const entry of log || []){
+        if(!inWeek(entry.date)) continue;
+        for(const st of entry.sets || []) if(st && (st.reps != null || st.distance != null)) sets++;
+      }
+    }
+  }catch(e){}
+  return {prs, sets};
+}
+
 async function archiveCurrentWeek(){
   const btn = document.getElementById('archiveWeekBtn');
   const status = document.getElementById('archiveWeekStatus');
   btn.disabled = true;
 
   const todayMonday = mondayOf(getTodayKey());
-  const [{avgWeight, workoutsCount, daysLogged, avgCal, avgPro, avgFat, avgCarb, avgWater, avgSleep}, trendStatus] = await Promise.all([
-    computeWeekStats(todayMonday), getCurrentTrendStatus()
+  const [{avgWeight, workoutsCount, daysLogged, avgCal, avgPro, avgFat, avgCarb, avgWater, avgSleep}, trendStatus, training] = await Promise.all([
+    computeWeekStats(todayMonday), getCurrentTrendStatus(), weekShareTrainingStats(todayMonday)
   ]);
 
   const archive = await getWeekArchive();
@@ -46035,17 +46059,16 @@ async function archiveCurrentWeek(){
     ? `${digestBlocks}Week saved — back to Day 1 for a fresh start`
     : 'Week saved — back to Day 1 for a fresh start';
 
-  // Share card: workouts + program are always known: the third row prefers
-  // sleep (most directly "how was your week"), falling back to weight, then
-  // calorie intake, in order of how commonly each is actually tracked. Any,
-  // all, or none may be missing — the card still reads fine with just two rows.
+  // Share card: workouts + program are always known. v3.545 (MKT-02, owner
+  // D15): the third row is training-only, PRs this week, else sets this week.
+  // Body weight, intake and sleep never reach a public image by default (they
+  // stay in the archived weekStats record above, unchanged).
   const shareStats = [
     {value: String(workoutsCount), label: 'WORKOUTS'},
     {value: programs[activeProgram].label, label: 'PROGRAM'},
   ];
-  if(avgSleep != null) shareStats.push({value: `${avgSleep} hrs`, label: 'AVG SLEEP'});
-  else if(avgWeight != null) shareStats.push({value: fmtWeight(avgWeight), label: 'AVG WEIGHT'});
-  else if(avgCal != null) shareStats.push({value: `${avgCal} cal`, label: 'AVG INTAKE'});
+  if(training.prs > 0) shareStats.push({value: String(training.prs), label: 'PRs THIS WEEK'});
+  else if(training.sets > 0) shareStats.push({value: String(training.sets), label: 'SETS'});
 
   const shareWrap = document.getElementById('weekShareWrap');
   const shareBtn = document.getElementById('weekShareBtn');

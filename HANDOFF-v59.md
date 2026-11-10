@@ -1154,3 +1154,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 68: BL-55 (v3.544, PR #119, 2026-11-10)
 - **What:** `isDistanceExercise(name, sets)`; reps finish a cardio set; `saveExSet` keeps a stored distance when the caller passes undefined; weekly cardio counts every cardio distance.
 - **Test:** `test-cardio-distance-gate.js` (9 cases). Sabotage-checked. 213/213.
+
+## Addendum 69: MKT-02 (v3.545, PR #120, 2026-11-10)
+- **What:** `weekShareTrainingStats(weekStartKey)` counts the week's PRs and logged sets; the week card's third row is PRs THIS WEEK, else SETS, else none. Sleep, weight and intake never reach the card; the archived weekStats is unchanged.
+- **Test:** `test-share-card-privacy.js` (4 cases). Sabotage-checked. 214/214.
+- **Flagged:** a first-ever lift counts as a PR (`reconstructAllPRs`), relevant to MKT-07.
