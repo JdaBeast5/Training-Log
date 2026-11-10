@@ -65,6 +65,7 @@ test('REAL invocation: renderPrTimeline, given one real logged PR, renders a row
     extractFunction(src, 'isMissedSet'), // v3.537 (BL-77)
     extractFunction(src, 'topSetOf'),
     extractFunction(src, 'estimated1RM'),
+    extractConst(src, 'EXERCISE_CANONICAL'), extractFunction(src, 'canonicalExName'), // v3.549 (BL-54)
     extractFunction(src, 'groupCorpusByExercise'),
     `var exCorpusCache = null, exCorpusCacheGen = -1, exCorpusInflight = null, exCorpusGen = 0;`,
     extractFunction(src, 'readExCorpus'),
@@ -85,7 +86,8 @@ test('REAL invocation: renderPrTimeline, given one real logged PR, renders a row
   const html = document.getElementById('prTimeline').innerHTML;
   assert.match(html, /class="prt-ex-name"/, 'a real rendered PR row must carry the disambiguated class');
   assert.doesNotMatch(html, /class="pr-ex-name"/, 'a real rendered PR row must NOT carry the old, colliding class name');
-  assert.match(html, /Back Squat/, 'sanity: this really is the PR row for the logged exercise, not an empty/error state');
+  // v3.549 (BL-54): Back Squat's history is grouped under its canonical name, Squat.
+  assert.match(html, />Squat</, 'sanity: this really is the PR row for the logged exercise (Back Squat, grouped as Squat), not an empty/error state');
 });
 
 run();

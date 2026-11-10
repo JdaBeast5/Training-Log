@@ -359,6 +359,7 @@ test('getExerciseLocationIndex includes watersports styles (excluded from the le
     `var COMBAT_STYLES = {}; var CYCLING_STYLES = {}; var YOGA_STYLES = {};`,
     extractConst(src, 'WATERSPORTS_STYLES'),
     `var exerciseLocationIndex = null;`,
+    extractConst(src, 'EXERCISE_CANONICAL'), extractFunction(src, 'canonicalExName'), // v3.549 (BL-54)
     extractFunction(src, 'getExerciseLocationIndex'),
   ];
   const [locs] = runSandbox(chunks, `__capture.push(getExerciseLocationIndex()['Straight-Arm Lat Pulldown']);`);

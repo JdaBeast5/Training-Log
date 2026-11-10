@@ -79,7 +79,7 @@ test('criterion 4: combat, cycling, watersports, plain, :sub: and unresolvable k
 
 test('round trip: for every style of every styled program, the key exKey writes parses back, and the location index points at that same key', (assert)=>{
   const [r] = runSandbox([...DATA, extractFunction(src, 'parseExKey'), extractFunction(src, 'slugifyExerciseName'), extractFunction(src, 'exKey'),
-    extractFunction(src, 'exKeyForLocation'), extractConst(src, 'YOGA_STYLES'), 'var exerciseLocationIndex = null;', extractFunction(src, 'getExerciseLocationIndex'),
+    extractFunction(src, 'exKeyForLocation'), extractConst(src, 'YOGA_STYLES'), 'var exerciseLocationIndex = null;', extractConst(src, 'EXERCISE_CANONICAL'), extractFunction(src, 'canonicalExName'), /* v3.549 (BL-54) */ extractFunction(src, 'getExerciseLocationIndex'),
     `var activeMartialArt, activeCyclingStyle, activeWatersportsStyle, activeMedicalStyle;`], `
     const bad = []; let checked = 0;
     const T = {combat: COMBAT_STYLES, cycling: CYCLING_STYLES, watersports: WATERSPORTS_STYLES, medical: MEDICAL_STYLES};
@@ -91,7 +91,8 @@ test('round trip: for every style of every styled program, the key exKey writes 
         const key = exKey(prog, dayId, idx);
         const p = parseExKey(key);
         if(!p || p.exDef.name !== ex.name) bad.push('parse ' + key);
-        const l = (loc[ex.name] || []).find(l => l.program === prog && l.style === style && l.dayId === dayId && l.idx === idx);
+        const l = (loc[canonicalExName(ex.name)] || []).find( // v3.549 (BL-54): keyed by canonical name
+          l => l.program === prog && l.style === style && l.dayId === dayId && l.idx === idx);
         if(!l || exKeyForLocation(l) !== key) bad.push('location ' + key);
       });
     }

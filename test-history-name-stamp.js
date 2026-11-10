@@ -195,7 +195,8 @@ test('anchors (real-call counts, comments stripped): renderWorkout, the heads-up
   for(const f of ['saveExSet', 'saveExDropSet', 'saveExWarmupSet', 'saveExWarmupSkipped']) assert.strictEqual(count(f, /todayEntryFor\(/g), 1, f);
   // Same as Last (in wireSetsBlock), the cross-program fallback and the swap modal ignore other exercises' entries.
   assert.strictEqual(count('wireSetsBlock', /entriesForExercise\(/g), 1);
-  assert.strictEqual(count('getFallbackPriorEntry', /e\.n == null \|\| e\.n === exerciseName/g), 1);
+  // v3.549 (BL-54): compared by canonical name (Back Squat's stamp is Squat's).
+  assert.strictEqual(count('getFallbackPriorEntry', /e\.n == null \|\| canonicalExName\(e\.n\) === canonical/g), 1);
   assert.strictEqual(count('openExerciseSubModal', /entriesForExercise\(/g), 1);
 });
 
