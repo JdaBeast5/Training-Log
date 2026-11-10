@@ -539,7 +539,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Summit note (summit 2026-11-07):** UX-06, UX-09, UX-10 and UX-11 print this rule in large type, and the mock-ups already depict it (Barbell Row 8, 8, 7, 7 holds at 135). It must merge before any of them (summit R1).
 - **Alignment note (2026-11-07):** inherits BL-02's clinical load gate (SAF-8); criterion 5.
 - **Spec refresh (2026-11-08):** lines re-grepped at v3.518; the one-session early return, the missing-field rule, the three call sites that need `prior`, and the `test-program-fit-trend.js` re-pin were added. Scope unchanged.
-- **Status:** ready (after BL-02)
+- **Status:** done (v3.538, PR #113). The two-session rule keeps its RPE 8.5 ceiling (BL-02 criterion 10); the one-session rule uses the top-weight sets' RPE. Open for the owner: should the one-session no-RPE "try adding weight" need a second session? Skipped sets aren't checked against the prescribed count. Earlier: ready (after BL-02)
 
 ### BL-09: Readiness compares weekly RPE to the week's own target (H-7)
 - **Why:** `READINESS_RPE_HIGH = 8.5` (47129), but RPE mode prescribes 8.5 in week 3 and 9 in week 4 (`RPE_BY_CYCLE_WEEK`, 27483). Doing exactly what's prescribed gets flagged as fatigue.
