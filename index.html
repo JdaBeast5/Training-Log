@@ -7689,7 +7689,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.539';
+const APP_VERSION = '3.540';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9122,6 +9122,9 @@ const WHATS_NEW = {
   ]},
   '3.539': { headline: 'Groundwork for the new look', points: [
     'Nothing changes on screen in this update. It adds the colour, type and motion names the coming redesign will use, so each screen can switch over on its own.',
+  ]},
+  '3.540': { headline: 'More groundwork for the new look', points: [
+    'Nothing changes on screen. Each training day now has one colour taken from its own plate, ready for the share cards and the redesign to use.',
   ]},
 };
 
@@ -26371,6 +26374,33 @@ function getDayPlateClass(id){
   if(isFullRest) return 'p-off';
   const idx = dayOrder.indexOf(id);
   return VIVID_PLATE_CLASSES[(idx < 0 ? 0 : idx) % VIVID_PLATE_CLASSES.length];
+}
+
+// v3.540 (UX-01b, owner decision D13): ONE day-to-ink rule, for the share
+// cards, the bib and the redesign to use. The day's own plate code decides
+// (every built-in day and every day makeCustomProgram builds has one). A day
+// with no plate (malformed or imported data) falls back: a full rest day is
+// 'off', an active-recovery rest day 'white' (as the built-in data marks
+// them), and a training day takes the CUSTOM_PLATES cycle (red, blue, yellow,
+// green) by its place among the program's training days, in the user's saved
+// order for the active program. A day that can't be found is 'off'. Pure:
+// nothing renders from it yet, and getDayPlateClass above is unchanged.
+const DAY_INKS = ['red', 'blue', 'yellow', 'green', 'white', 'off'];
+function dayInk(dayOrId, program){
+  const prog = program || (typeof activeProgram !== 'undefined' ? activeProgram : null);
+  const days = (prog && programs[prog] && programs[prog].days) || {};
+  const day = (typeof dayOrId === 'string') ? days[dayOrId] : dayOrId;
+  if(!day) return 'off';
+  const plate = typeof day.plate === 'string' ? day.plate.replace(/^p-/, '') : null;
+  if(plate && DAY_INKS.includes(plate)) return plate;
+  if(day.rest) return day.plateNum === 'OFF' ? 'off' : 'white';
+  const order = (prog === (typeof activeProgram !== 'undefined' ? activeProgram : null) && typeof dayOrder !== 'undefined' && Array.isArray(dayOrder))
+    ? dayOrder : Object.keys(days);
+  const training = order.filter(k => days[k] && !days[k].rest);
+  const id = (typeof dayOrId === 'string') ? dayOrId : training.find(k => days[k] === day);
+  const idx = training.indexOf(id);
+  if(idx < 0) return 'off';
+  return CUSTOM_PLATES[idx % CUSTOM_PLATES.length].plate.replace(/^p-/, '');
 }
 
 // A proactive nudge, not a summary — this only ever fires for the one
