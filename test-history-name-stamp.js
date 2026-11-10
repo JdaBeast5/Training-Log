@@ -27,8 +27,8 @@ const FNS = ['exKey', 'slugifyExerciseName', 'normalizeExEntry', 'getExLog', 'en
   'isMissedSet', 'topSetOf', 'sessionTopOf', 'buildPastSessions', 'analyzeProgressionSignal', 'buildProgressBadge', 'computeSuggestedSet',
   'priorSetForSlot', 'getLoadIncrement', 'parseTopRep', 'parseBottomRep', 'roundToIncrement', 'snapToLoadable',
   'getEquipment', 'isBarbellExercise', 'isDumbbellExercise', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight',
-  'smallestLoadStep', 'capClinicalRpeLoad', 'rpeTargetFor', 'targetRpeForWeek', 'cycleWeekOf', 'rirFromRpe', 'loadForRpeTarget'];
-const CONSTS = ['CATEGORY_LOAD_INCREMENT', 'MEDICAL_STYLES', 'BARBELL_STANDARDS', 'DUMBBELL_DEFAULTS',
+  'smallestLoadStep', 'capClinicalRpeLoad', 'rpeTargetFor', 'targetRpeForWeek', 'cycleWeekOf', 'rirFromRpe', 'loadForRpeTarget', 'estimated1RM', 'recentBestE1RM']; // v3.552 (BL-24): the last two
+const CONSTS = ['CATEGORY_LOAD_INCREMENT', 'LOAD_INCREMENT_SCALE', 'RPE_E1RM_LOOKBACK_SESSIONS', 'MEDICAL_STYLES', 'BARBELL_STANDARDS', 'DUMBBELL_DEFAULTS',
   'BARBELL_EXERCISES', 'LB_PER_KG', 'DELOAD_CYCLE_WEEKS', 'RPE_BY_CYCLE_WEEK',
   'DAYS_PER_WEEK_PROGRAMS', 'DAYS_PER_WEEK_STYLE_CONTAINERS', 'PROGRAM_DAY_COUNT_VARIANTS'];
 

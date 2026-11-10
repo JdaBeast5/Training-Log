@@ -25,9 +25,9 @@ const { test, run } = makeRunner('test-all-set-double-progression.js');
 const FNS = ['isMissedSet', 'topSetOf', 'sessionTopOf', 'buildPastSessions', 'cycleWeekOf', 'targetRpeForWeek', 'rpeTargetFor',
   'rirFromRpe', 'loadForRpeTarget', 'getLoadIncrement', 'parseTopRep', 'parseBottomRep', 'analyzeProgressionSignal',
   'buildProgressBadge', 'computeSuggestedSet', 'roundToIncrement', 'snapToLoadable', 'getEquipment', 'isBarbellExercise',
-  'isDumbbellExercise', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'smallestLoadStep', 'capClinicalRpeLoad'];
+  'isDumbbellExercise', 'toDisplayWeight', 'trimUnitNum', 'fmtWeight', 'smallestLoadStep', 'capClinicalRpeLoad', 'estimated1RM', 'recentBestE1RM']; // v3.552 (BL-24): the last two
 const CONSTS = ['DELOAD_CYCLE_WEEKS', 'RPE_BY_CYCLE_WEEK', 'CATEGORY_LOAD_INCREMENT', 'MEDICAL_STYLES',
-  'BARBELL_STANDARDS', 'DUMBBELL_DEFAULTS', 'BARBELL_EXERCISES', 'LB_PER_KG'];
+  'BARBELL_STANDARDS', 'DUMBBELL_DEFAULTS', 'BARBELL_EXERCISES', 'LB_PER_KG', 'LOAD_INCREMENT_SCALE', 'RPE_E1RM_LOOKBACK_SESSIONS'];
 const chunks = [
   "var loadSuggestionMode = 'progression'; var weightUnit = 'lb'; var selectedLogDate = '2026-11-09';",
   ...CONSTS.map(c => extractConst(src, c)),
@@ -43,7 +43,7 @@ function row(log, ex, category, program){
     const prior = [...log].sort((a,b)=> b.date < a.date ? -1 : 1)[0];
     const priorTop = sessionTopOf(prior);
     const signal = analyzeProgressionSignal(past, ex, ${JSON.stringify(category)}, ${JSON.stringify(program)});
-    const rpeCtx = {e1rm: null, week: 2, program: ${JSON.stringify(program)}, category: ${JSON.stringify(category)}};
+    const rpeCtx = {e1rm: recentBestE1RM(past), week: 2, program: ${JSON.stringify(program)}, category: ${JSON.stringify(category)}}; // as renderWorkout builds it (v3.552: was null)
     const sug = computeSuggestedSet(prior.sets[0], signal, false, ${JSON.stringify(category)}, ex, priorTop, rpeCtx, prior);
     const badge = buildProgressBadge({ex, signal, inDeloadWeek: false, priorTop, topRep: parseTopRep(ex.sets), rpeCtx, sourceNote: '', prior});
     __capture.push({past, signal: signal && signal.type, sug, badge: badge.html, priorW: prior.sets[0].weight});`)[0];
@@ -186,6 +186,40 @@ test('BL-15 review fixes: RPE 10 is the top set\'s, back-off rows keep their own
   assert.strictEqual(backoff, 140, 'a 150 back-off row drops to 140, not to the top set\'s 190');
   const stacked = row([sess('2026-11-02', 200, [6, 6, 6], 10), sess('2026-11-05', 190, [7, 7, 7], 10)], BENCH, 'push', 'strength');
   assert.notStrictEqual(stacked.signal, 'decrease', 'already dropped to 190 after a 200 at RPE 10: no second drop');
+});
+
+// v3.552 (BL-24, audit M-3, owner (a)): steps scale with strength. Sabotage:
+// ignore the e1RM and criterion 1 fails.
+const inc = (cat, e1rm) => runSandbox(chunks, `__capture.push(getLoadIncrement(${JSON.stringify(cat)}, ${JSON.stringify(e1rm)}));`)[0];
+test('BL-24 criteria 1-5: squat 455 → 10, squat 135 → 5, oly always 5, Lateral Raise at its floor, no e1RM → the 5 lb floor', (assert)=>{
+  assert.strictEqual(inc('squat', 455), 10, '455 × 2.5% = 11.4, down to 10');
+  assert.strictEqual(inc('squat', 135), 5);
+  assert.strictEqual(inc('squat', 700), 15);
+  for(const e of [null, 100, 300, 600]) assert.strictEqual(inc('oly', e), 5, 'oly ' + e);
+  for(const e of [null, 50, 300]) assert.strictEqual(inc('shoulder', e), 2.5, 'shoulder ' + e);
+  assert.strictEqual(inc('squat'), 5);
+  assert.strictEqual(inc('hinge'), 5);
+  assert.strictEqual(inc('push', 300), 5, 'bench 300 × 2% = 6, down to 5');
+  assert.strictEqual(inc('push', 520), 10);
+});
+
+test('BL-24 criterion 6: a squat with e1RM about 455 names the same step in the badge and the field', (assert)=>{
+  // 390 × 5 at RPE 8 → Epley e1RM 455.
+  const r = row([sess('2026-11-02', 390, [5, 5, 5], 8), sess('2026-11-05', 390, [5, 5, 5], 8)], {name: 'Back Squat', sets: '3×3-5'}, 'squat', 'strength');
+  assert.strictEqual(r.signal, 'increase');
+  assert.match(r.badge, /add 10 lb/);
+  assert.strictEqual(r.sug.weight, 390 + 10, 'the field adds the same 10 lb');
+});
+
+test('BL-24: Medical and Senior never scale: a 300×12 Back Squat at RPE 7 on Medical (e1RM 420, scaled step 10) adds only the smallest step', (assert)=>{
+  const [r] = runSandbox(chunks, `
+    const past = [{weight: 300, reps: 12, avgRpe: 7, minRepsAtTop: 12}, {weight: 300, reps: 12, avgRpe: 7, minRepsAtTop: 12}];
+    const sig = analyzeProgressionSignal(past, {name: 'Back Squat', sets: '2×10-12'}, 'squat', 'medical');
+    __capture.push({clinical: sig && sig.clinical, loadStep: sig && sig.loadStep, scaled: getLoadIncrement('squat', recentBestE1RM(past)), smallest: smallestLoadStep('Back Squat')});`);
+  assert.strictEqual(r.scaled, 10, 'anchor: the scaled step would be 10');
+  assert.strictEqual(r.clinical, true);
+  assert.strictEqual(r.loadStep, r.smallest, 'the clinical gate\'s smallest loadable jump');
+  assert.notStrictEqual(r.loadStep, r.scaled);
 });
 
 run();
