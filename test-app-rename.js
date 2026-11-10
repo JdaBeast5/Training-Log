@@ -77,7 +77,12 @@ function shareCardText(){
     document.createElement = (tag) => tag === 'canvas'
       ? { width: 0, height: 0, getContext: () => fakeCtx, toBlob: (cb) => cb(null) }
       : realCreate(tag);`,
-    [extractConst(src, 'APP_NAME'), extractFunction(src, 'wrapCanvasText'), extractFunction(src, 'celebrationIconPath'), extractFunction(src, 'buildShareCardBlob'),
+    // v3.547 (MKT-03): the card is drawn in the day's ink (dayInk) with the
+    // Sash mark beside the name, so its helpers come along.
+    [extractConst(src, 'APP_NAME'), ...['programs', 'DAY_INKS', 'CUSTOM_PLATES', 'SHARE_CARD_INKS', 'SASH_ORDER'].map(c => extractConst(src, c)),
+     "var activeProgram = 'strength', activeDay = 'd1';",
+     ...['dayInk', 'shareCardFootRow', 'drawSashMark', 'drawShareCardFoot', 'drawStoryCard'].map(f => extractFunction(src, f)),
+     extractFunction(src, 'wrapCanvasText'), extractFunction(src, 'celebrationIconPath'), extractFunction(src, 'buildShareCardBlob'),
      'buildShareCardBlob({headline:"New best", detail:"Bench 160 x 5", icon:"trophy"});']);
   return [...window.__drawn];
 }
@@ -92,7 +97,8 @@ test('REAL invocation: the share card prints the app name in capitals, never the
 test('REAL source: saved files carry the app name — the shared image and the backup', (assert)=>{
   const files = src.split('\n').filter(l => /new File\(\[blob\]|a\.download = /.test(l));
   assert.strictEqual(files.length, 3, 'anchor: the three places the app names a saved file (the third is the symptom summary, which never carried the app name)');
-  assert.ok(files.some(l => l.includes('new File([blob], `${APP_NAME.toLowerCase()}.png`')), 'the shared image is platestep.png');
+  // v3.547 (MKT-03): <slug>-<kind>-<date>.png (platestep-pr-2026-11-30.png).
+  assert.ok(files.some(l => l.includes('new File([blob], `${appSlug()}-${cardData.kind || \'card\'}-${getTodayKey()}.png`')), 'the shared image is platestep-<kind>-<date>.png');
   assert.ok(files.some(l => l.includes('a.download = `${APP_NAME.toLowerCase()}-backup-')), 'the backup is platestep-backup-…');
   assert.ok(!files.some(l => /training-log/.test(l)), 'no old name in either');
   assert.ok(!src.includes("fillText('TRAINING LOG'"), 'the hard-coded card footer is gone');

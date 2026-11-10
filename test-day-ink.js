@@ -83,9 +83,11 @@ test('criterion 4: no rendered change: getDayPlateClass\'s source is byte-identi
   assert.strictEqual(crypto.createHash('sha256').update(extractFunction(src, 'getDayPlateClass')).digest('hex'), GET_DAY_PLATE_CLASS_SHA256);
   const [r] = runSandbox([...DATA, ...FNS], `var dayDefs = programs.strength.days, dayOrder = Object.keys(dayDefs); __capture.push(dayOrder.map(id => id + ':' + getDayPlateClass(id)));`);
   assert.deepStrictEqual(r, ['d1:p-red', 'd2:p-blue', 'd3:p-yellow', 'd4:p-green', 'd5:p-purple', 'd6:p-orange', 'd7:p-off']);
-  // Nothing calls dayInk in the app yet (comments stripped).
+  // The only caller is the share card (v3.547, MKT-03 criterion 6, re-pinned
+  // from 1): nothing on screen reads dayInk yet (comments stripped).
   const code = src.split('\n').map(l => l.replace(/\/\/.*$/, '')).join('\n');
-  assert.strictEqual((code.match(/\bdayInk\(/g) || []).length, 1, 'only its declaration');
+  assert.strictEqual((code.match(/\bdayInk\(/g) || []).length, 2, 'its declaration and drawStoryCard');
+  assert.match(extractFunction(src, 'drawStoryCard'), /dayInk\(cardData\.dayId \?\? activeDay, activeProgram\)/);
 });
 
 run();

@@ -33,6 +33,7 @@ async function archiveAndShare({prs = [], corpus = []} = {}){
     window.escapeHtml = (s) => String(s); window.fmtWeight = (v) => v + ' lb';
     window.renderTabs = () => {}; window.renderWorkout = () => {}; window.renderProgramRec = async () => {};
     window.shareCelebrationCard = (card) => { window.__shared = card; };
+    window.activeDay = 'd4'; window.preloadShareCardFont = () => {}; // v3.547 (MKT-03): the week card reads the day's ink
     window.reconstructAllPRs = async () => ${JSON.stringify(prs)};
     window.readExCorpus = async () => ${JSON.stringify(corpus)};
   `, [extractFunction(src, 'dateKeyMinusDays'), extractFunction(src, 'weekShareTrainingStats'), extractFunction(src, 'archiveCurrentWeek')]);
@@ -45,6 +46,8 @@ const labels = (stats) => stats.map(s => s.label);
 test('criterion 1: with weight, intake and sleep all logged, the shared stats carry no AVG WEIGHT, AVG INTAKE or AVG SLEEP (the archive keeps them)', async (assert)=>{
   const {shared, archived} = await archiveAndShare();
   assert.ok(shared, 'the real share button reached shareCelebrationCard');
+  assert.strictEqual(shared.dayId, 'd4', 'v3.547: the day the week was finished on, read when it was archived');
+  assert.strictEqual(shared.kind, 'week');
   for(const l of ['AVG WEIGHT', 'AVG INTAKE', 'AVG SLEEP']) assert.ok(!labels(shared.stats).includes(l), l);
   assert.doesNotMatch(JSON.stringify(shared), /182\.4|2450|7\.5/, 'no body or sleep number anywhere on the card');
   assert.strictEqual(archived.avgWeight, 182.4, 'the archived weekStats record is unchanged');
