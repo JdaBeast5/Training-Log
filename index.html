@@ -7622,7 +7622,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.534';
+const APP_VERSION = '3.535';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9040,6 +9040,9 @@ const WHATS_NEW = {
   ]},
   '3.534': { headline: 'Exercise swaps stay with their exercise', points: [
     'If the plan puts a different exercise in a spot, a swap you picked earlier only applies when it\'s also a listed swap for the new exercise. Nothing you chose is deleted.',
+  ]},
+  '3.535': { headline: 'Suggestions use the right exercise', points: [
+    'Each set you log now records which exercise it was. Weight suggestions and progress tips only use that exercise\'s own sets, so a different number of training days no longer mixes, say, squat numbers into an incline press. Your full history still shows everything.',
   ]},
 };
 
@@ -14608,7 +14611,7 @@ async function getSessionHeadsUpInsight(){
       if(hits.length && !isReliefForAllHits(ex.name, hits)) flagged = true; // v3.523 (BL-70): relief moves aren't flagged
     }
     if(!flagged){
-      const log = await getExLog(activeDay, idx, subVariantOf(ex));
+      const log = entriesForExercise(await getExLog(activeDay, idx, subVariantOf(ex)), ex.name); // v3.535 (BL-51)
       const pastSessions = buildPastSessions(log);
       const signal = analyzeProgressionSignal(pastSessions, ex, info.category, activeProgram);
       if(signal && (signal.type==='decrease' || signal.type==='deload')) flagged = true;
@@ -27221,7 +27224,8 @@ async function getFallbackPriorEntry(exerciseName, excludeKey){
       const res = await window.storage.get(key);
       if(!res || !res.value) continue;
       const log = JSON.parse(res.value).map(normalizeExEntry);
-      log.filter(e=> e.date !== selectedLogDate).forEach(e=>{
+      // v3.535 (BL-51): never another exercise's stamped entry.
+      log.filter(e=> e.date !== selectedLogDate && (e.n == null || e.n === exerciseName)).forEach(e=>{
         if(!best || new Date(e.date+'T00:00:00') > new Date(best.date+'T00:00:00')){
           best = e; bestProgram = loc.program;
         }
@@ -27253,6 +27257,39 @@ async function getExLog(dayId, idx, subVariant){
     }
   }catch(e){}
   return [];
+}
+
+// v3.535 (BL-51): history keys are positional, so one key can hold another
+// exercise's entries (day-count variants reuse d1-d7, and yoga styles share
+// ex:yoga: keys). New entries carry `n`, the exercise name. Suggestions
+// (last time, badges, suggested load, the PR check) read only entries for
+// this exercise: those stamped with its name, plus unstamped legacy entries
+// only where the key can't be ambiguous (the program's own day count, and
+// for yoga the default 'flow' style). History views still show every entry.
+function entriesForExercise(log, name){
+  const legacyOk = legacyEntriesUnambiguous();
+  return (log || []).filter(e=> e.n != null ? e.n === name : legacyOk);
+}
+// Unstamped entries can be trusted only where today's layout is the authored
+// one the key was written under: no day-count pref, a program without
+// day-count variants (medical), or a pref with no variant for this program
+// (applyDaysPerWeekProgramData falls back to the authored days). Yoga styles
+// share ex:yoga: keys, so only the default 'flow' style qualifies.
+function legacyEntriesUnambiguous(){
+  if(activeProgram === 'yoga' && activeYogaStyle !== 'flow') return false;
+  if(daysPerWeekPref == null || !DAYS_PER_WEEK_PROGRAMS.includes(activeProgram)) return true;
+  const v = PROGRAM_DAY_COUNT_VARIANTS[activeProgram] || {};
+  if(DAYS_PER_WEEK_STYLE_CONTAINERS.includes(activeProgram)){
+    return !(v[getStyleContainerAccessor(activeProgram).activeStyle] || {})[daysPerWeekPref];
+  }
+  return !v[daysPerWeekPref];
+}
+// Today's entry in a slot's log, created (stamped with the exercise name) when
+// missing. The one place every set, drop, warm-up and skip writer gets it.
+function todayEntryFor(log, name){
+  let entry = log.find(e=> e.date === selectedLogDate);
+  if(!entry){ entry = {date: selectedLogDate, sets: []}; if(name) entry.n = name; log.push(entry); }
+  return entry;
 }
 
 // Best (heaviest) set in an entry. Ties broken by higher reps.
@@ -27317,7 +27354,7 @@ async function openExerciseSubModal(idx, ex){
   const rows = await Promise.all(options.map(async (name)=>{
     const variant = (name === baseName) ? undefined : name;
     const log = await getExLog(activeDay, idx, variant);
-    return {name, isDefault: name === baseName, summary: formatLastLoggedSummary(log)};
+    return {name, isDefault: name === baseName, summary: formatLastLoggedSummary(entriesForExercise(log, name))}; // v3.535 (BL-51)
   }));
 
   optionsEl.innerHTML = rows.map(r=>{
@@ -27748,7 +27785,7 @@ async function computeProgramFitTrend(){
       if(ex.noWeight) continue; // no meaningful weight-based progression signal for bodyweight/time-based entries
       const info = exerciseInfo[ex.name];
       if(!info) continue;
-      const log = await getExLog(dayId, idx, subVariantOf(ex));
+      const log = entriesForExercise(await getExLog(dayId, idx, subVariantOf(ex)), ex.name); // v3.535 (BL-51)
       const pastSessions = buildPastSessions(log);
       if(pastSessions.length < 2) continue; // same minimum-data bar the per-exercise signal itself requires
       total++;
@@ -28411,10 +28448,9 @@ function noteRestAchieved(slotKey, setIdx){
 // numbers the app already computes — `entry.warmups` is simply absent on every
 // entry ever written before this, which reads correctly as "no warm-up logged".
 // No migration, no schema bump.
-async function saveExDropSet(dayId, idx, setIdx, dropIdx, weight, reps, subVariant){
+async function saveExDropSet(dayId, idx, setIdx, dropIdx, weight, reps, subVariant, exName){
   const log = await getExLog(dayId, idx, subVariant);
-  let entry = log.find(e=>e.date===selectedLogDate);
-  if(!entry){ entry = {date: selectedLogDate, sets: []}; log.push(entry); }
+  const entry = todayEntryFor(log, subVariant || exName || null); // v3.535 (BL-51)
   // Same padding rule saveExSet uses — a drop can be typed before its parent
   // set is filled in, and the parent must exist for the drop to hang off.
   while(entry.sets.length <= setIdx) entry.sets.push({weight:null, reps:null, rpe:null});
@@ -28441,10 +28477,9 @@ async function saveExDropSet(dayId, idx, setIdx, dropIdx, weight, reps, subVaria
   return entry.sets[setIdx].drops || [];
 }
 
-async function saveExWarmupSet(dayId, idx, stepIdx, weight, reps, done, subVariant){
+async function saveExWarmupSet(dayId, idx, stepIdx, weight, reps, done, subVariant, exName){
   const log = await getExLog(dayId, idx, subVariant);
-  let entry = log.find(e=>e.date===selectedLogDate);
-  if(!entry){ entry = {date: selectedLogDate, sets: []}; log.push(entry); }
+  const entry = todayEntryFor(log, subVariant || exName || null); // v3.535 (BL-51)
   if(!Array.isArray(entry.warmups)) entry.warmups = [];
   while(entry.warmups.length <= stepIdx) entry.warmups.push({});
 
@@ -28473,10 +28508,9 @@ async function saveExWarmupSet(dayId, idx, stepIdx, weight, reps, done, subVaria
 // Per-day and not per-exercise-forever, deliberately. "I'm already warm, the
 // squats did it" is a fact about this session; a single swipe should not quietly
 // remove a rung from every future workout, and tomorrow's ramp comes back whole.
-async function saveExWarmupSkipped(dayId, idx, labels, subVariant){
+async function saveExWarmupSkipped(dayId, idx, labels, subVariant, exName){
   const log = await getExLog(dayId, idx, subVariant);
-  let entry = log.find(e=>e.date===selectedLogDate);
-  if(!entry){ entry = {date: selectedLogDate, sets: []}; log.push(entry); }
+  const entry = todayEntryFor(log, subVariant || exName || null); // v3.535 (BL-51)
 
   const clean = Array.from(new Set((labels || []).map(String)));
   // An empty list is the ABSENCE of the key, not a stored empty array. Restore
@@ -28488,17 +28522,21 @@ async function saveExWarmupSkipped(dayId, idx, labels, subVariant){
   return entry.warmupsSkipped || [];
 }
 
-async function saveExSet(dayId, idx, setIdx, weight, reps, rpe, subVariant, distance, note){
+async function saveExSet(dayId, idx, setIdx, weight, reps, rpe, subVariant, distance, note, exName){
   const log = await getExLog(dayId, idx, subVariant);
-
-  let entry = log.find(e=>e.date===selectedLogDate);
-  if(!entry){ entry = {date: selectedLogDate, sets: []}; log.push(entry); }
+  // v3.535 (BL-51): a new entry records which exercise it belongs to.
+  const stampName = subVariant || exName || null;
+  const entry = todayEntryFor(log, stampName);
   while(entry.sets.length <= setIdx) entry.sets.push({weight:null, reps:null, rpe:null});
 
   // Best weight across every set ever logged EXCEPT the specific set we're about to overwrite,
   // so a later set today can still beat an earlier set from today.
   let priorMax = null;
+  // v3.535 (BL-51): an entry stamped as another exercise never counts.
+  // Unstamped legacy entries still do, as before: leaving them out could
+  // celebrate a false PR against a hidden heavier history.
   log.forEach(e=>{
+    if(e !== entry && stampName && e.n != null && e.n !== stampName) return;
     e.sets.forEach((s,i)=>{
       if(e===entry && i===setIdx) return;
       if(s.weight!=null && (priorMax===null || s.weight>priorMax)) priorMax = s.weight;
@@ -28903,6 +28941,8 @@ async function renderWorkout(){
   await applyExerciseSubs(renderExercises, activeProgram, activeDay);
 
   const logs = await Promise.all(renderExercises.map((ex,i)=> getExLog(activeDay, i, subVariantOf(ex))));
+  // v3.535 (BL-51): what suggestions read; today's sets still come from logs[i].
+  const ownLogs = logs.map((log, i)=> entriesForExercise(log, renderExercises[i] && renderExercises[i].name));
   const restingRegions = await getRestingRegions();
 
   // Warm-up ramps are scoped to the first exercise of the day, plus the
@@ -28923,7 +28963,7 @@ async function renderWorkout(){
   // be computed as a separate, narrower fetch.
   const fallbackPriorEntries = await Promise.all(renderExercises.map(async (ex, i) => {
     if(!ex || !ex.name) return null;
-    const log = logs[i];
+    const log = ownLogs[i];
     const hasOwnPrior = log.some(e=> e.date !== selectedLogDate);
     if(hasOwnPrior) return null; // has its own history at this exact slot — no fallback needed
     return await getFallbackPriorEntry(ex.name, exKey(activeProgram, activeDay, i, subVariantOf(ex)));
@@ -28962,7 +29002,7 @@ async function renderWorkout(){
       // switch from Strength & Size to Powerbuilding, instead of every
       // placeholder, badge, and "Same as Last Time" going blank just
       // because this particular program has never logged this slot before.
-      const ownPrior = [...log].filter(e=>e.date!==selectedLogDate).sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'))[0];
+      const ownPrior = [...ownLogs[i]].filter(e=>e.date!==selectedLogDate).sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'))[0];
       const priorIsCrossProgram = !ownPrior && !!fallbackPriorEntries[i];
       const prior = ownPrior || fallbackPriorEntries[i] || null;
       const priorSourceProgram = priorIsCrossProgram ? fallbackPriorEntries[i].sourceProgram : null;
@@ -28979,7 +29019,7 @@ async function renderWorkout(){
       // misleading trend, not a real one. It simply has nothing to say yet
       // for a slot with no own history, and falls through to the plain
       // "last time" hint below instead, same as always.
-      const pastSessions = buildPastSessions(log);
+      const pastSessions = buildPastSessions(ownLogs[i]);
       // Built once per exercise rather than per set row — recentBestE1RM walks
       // the session list, and doing that inside the row loop would repeat it
       // for every set of every exercise on the day.
@@ -31752,7 +31792,7 @@ async function buildExerciseHistoryHtml(exIdx, ex, opts){
     return `
       <div class="exh-row">
         <div class="exh-row-head">
-          <span class="exh-date">${formatShortDate(e.date)}</span>
+          <span class="exh-date">${formatShortDate(e.date)}${e.n && e.n !== ex.name ? ' · ' + escapeHtml(e.n) : ''}</span>
           ${vol > 0 ? `<span class="exh-vol">Vol ${toDisplayWeight(vol).toLocaleString()}</span>` : ''}
         </div>
         <div class="exh-sets">${setsStr}</div>
@@ -32075,7 +32115,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       let log = [];
       try{
         const item = await window.storage.get(key);
-        if(item && item.value) log = JSON.parse(item.value);
+        if(item && item.value) log = entriesForExercise(JSON.parse(item.value), ex.name); // v3.535 (BL-51)
       }catch(e){ log = []; }
       let prior = [...log].filter(e=>e.date!==selectedLogDate).sort((a,b)=> new Date(b.date+'T00:00:00')-new Date(a.date+'T00:00:00'))[0];
       if(!prior){
@@ -32104,7 +32144,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
         // "is there anything worth copying?" test — otherwise Same as Last
         // would skip every run and swim in the log.
         if(s.weight==null && s.reps==null && s.distance==null) continue;
-        await saveExSet(activeDay, exIdx, setIdx, s.weight ?? '', s.reps ?? '', s.rpe ?? '', subVariant, s.distance ?? '');
+        await saveExSet(activeDay, exIdx, setIdx, s.weight ?? '', s.reps ?? '', s.rpe ?? '', subVariant, s.distance ?? '', undefined, ex.name);
       }
       renderWorkout();
     });
@@ -32173,7 +32213,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
     const log = await getExLog(activeDay, exIdx, subVariant);
     const entry = log.find(e=> e.date === selectedLogDate);
     const already = (entry && Array.isArray(entry.warmupsSkipped)) ? entry.warmupsSkipped : [];
-    await saveExWarmupSkipped(activeDay, exIdx, already.concat([label]), subVariant);
+    await saveExWarmupSkipped(activeDay, exIdx, already.concat([label]), subVariant, ex.name);
     await renderWorkout();
 
     showUndoToast('Warm-up step hidden', async ()=>{
@@ -32203,7 +32243,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       const distValRaw = dInput ? dInput.value : '';
       const distValM = distValRaw === '' ? '' : toCanonicalMetres(distValRaw);
       const noteVal = nInput ? nInput.value : '';
-      const result = await saveExSet(activeDay, exIdx, setIdx, weightValLb, rInput.value, rpeInput.value, subVariant, distValM, noteVal);
+      const result = await saveExSet(activeDay, exIdx, setIdx, weightValLb, rInput.value, rpeInput.value, subVariant, distValM, noteVal, ex.name);
       // An empty row is an empty row whichever of its fields exist — a cardio
       // set with only a distance is still a logged set, so distance joins the
       // "is there anything here?" test rather than being ignored by it.
@@ -32346,7 +32386,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
         const dw = rowEl.querySelector('.drop-weight');
         const dr = rowEl.querySelector('.drop-reps');
         const wLb = (dw && dw.value !== '') ? toCanonicalLb(dw.value) : '';
-        await saveExDropSet(activeDay, exIdx, setIdx, di, wLb, dr ? dr.value : '', subVariant);
+        await saveExDropSet(activeDay, exIdx, setIdx, di, wLb, dr ? dr.value : '', subVariant, ex.name);
         dropBtn.classList.toggle('has-drops', dropWrap.querySelectorAll('.drop-set-row').length > 0);
       };
       const wireDropRow = (rowEl)=>{
@@ -32386,7 +32426,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       const log = await getExLog(activeDay, exIdx, subVariant);
       const entry = log.find(e=> e.date === selectedLogDate);
       const already = (entry && Array.isArray(entry.warmupsSkipped)) ? entry.warmupsSkipped : [];
-      await saveExWarmupSkipped(activeDay, exIdx, already.concat(labels), subVariant);
+      await saveExWarmupSkipped(activeDay, exIdx, already.concat(labels), subVariant, ex.name);
       await renderWorkout();
       showUndoToast('Warm-up skipped', async ()=>{
         if(snapshot != null){ try{ await window.storage.set(key, snapshot); }catch(e){} }
@@ -32398,7 +32438,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
   const warmupRestoreBtn = block.querySelector('.warmup-restore-btn');
   if(warmupRestoreBtn){
     warmupRestoreBtn.addEventListener('click', async ()=>{
-      await saveExWarmupSkipped(activeDay, exIdx, [], subVariant);
+      await saveExWarmupSkipped(activeDay, exIdx, [], subVariant, ex.name);
       await renderWorkout();
     });
   }
@@ -32428,7 +32468,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       const stepIdx = Number(row.dataset.stepIdx);
       const wRaw = wInput ? wInput.value : '';
       const wLb = wRaw === '' ? '' : toCanonicalLb(wRaw);
-      await saveExWarmupSet(activeDay, exIdx, stepIdx, wLb, rInput ? rInput.value : '', doneInput && doneInput.checked, subVariant);
+      await saveExWarmupSet(activeDay, exIdx, stepIdx, wLb, rInput ? rInput.value : '', doneInput && doneInput.checked, subVariant, ex.name);
     };
     [wInput, rInput].forEach(el=>{ if(el) el.addEventListener('change', save); });
     // The ramp is exactly when you are loading and unloading the bar, so this
