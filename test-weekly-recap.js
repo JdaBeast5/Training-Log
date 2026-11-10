@@ -84,7 +84,8 @@ test('REAL invocation (v3.476): a Monday after an empty week says nothing; a wee
 test('REAL source (v3.476): the recap is asked for, and sits under the session heads-up', (assert)=>{
   const render = extractFunction(src, 'renderTodayInsights');
   assert.match(render, /getWeeklyRecapInsight\(\)/);
-  assert.match(render, /const order = \['pregnancyHeat', 'readiness', 'sessionHeadsUp', 'weeklyRecap', 'deficit',/);
+  // v3.554 (BL-23): earlyDeload now sits between readiness and the heads-up.
+  assert.match(render, /const order = \['pregnancyHeat', 'readiness', 'earlyDeload', 'sessionHeadsUp', 'weeklyRecap', 'deficit',/);
 });
 
 run();

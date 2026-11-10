@@ -133,6 +133,7 @@ const OTHER_INSIGHT_STUBS = `
   async function getFoundationalStackNudgeInsight(){ return null; }
   async function getWeeklyRecapInsight(){ return null; } // 2026-10-28 (v3.476): Monday recap (test-weekly-recap.js)
   async function getYearRecapInsight(){ return null; } // 2026-11-10 (v3.548, MKT-06a): Year in Lifting (test-year-recap.js)
+  async function getEarlyDeloadInsight(){ return null; } // 2026-11-10 (v3.554, BL-23): early deload (test-manual-deload-override.js)
 `;
 
 const wiringBodyHtml = `
