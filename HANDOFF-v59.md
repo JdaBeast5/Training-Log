@@ -1085,3 +1085,10 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Unverified:** not tried on an iPhone.
 - **Flagged:** `/leg` on one-sided rehab (heel drops, SLR) for the exercise auditor; total vs per-leg conventions; `getSetFieldUnit` shows `sec` for heel drops (pre-existing).
 - **Next:** BL-64 (6b).
+
+## Addendum 56: BL-64 (v3.531, PR #104, 2026-11-09)
+- **What:** six cues rewritten in place (Chair, Partner Chair, Good Morning, Front Lever Hold, Hammer Curl, Hanging Leg Raise). The Chair cues keep the knee-tracking line and Good Morning keeps "back flat" beyond the spec's text (review).
+- **Test:** `test-concise-cues.js` +2 cases. Sabotage-checked. 205/205 suites.
+- **Unverified:** not tried on an iPhone.
+- **Flagged:** BL-64's Files line omitted `index.html` for the bump; duplicate jsdom render helper across two tests.
+- **Next:** BL-61 (6c).
