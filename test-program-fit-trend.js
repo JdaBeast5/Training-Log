@@ -58,11 +58,13 @@ test('increase does NOT fire when RPE is already maxed out, even with reps met',
   assert.notStrictEqual(signal && signal.type, 'increase', 'RPE 9+ means no room to spare, even though reps hit the top of range');
 });
 
+// v3.551 (BL-15): the decrease now waits for two short sessions, so the
+// fixture's older session is short too (it was 100×9, in range).
 test('decrease: reps fell below the rep floor at the same or heavier weight', (assert)=>{
   const [signal] = runSandbox(signalChunks, `
     var sessions = [
       {date:'2026-01-15', weight:105, reps:6, avgRpe:9},
-      {date:'2026-01-08', weight:100, reps:9, avgRpe:8},
+      {date:'2026-01-08', weight:105, reps:7, avgRpe:9},
     ];
     __capture.push(analyzeProgressionSignal(sessions, {sets:'3x8-10'}, 'squat'));
   `);
