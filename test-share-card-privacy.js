@@ -36,7 +36,7 @@ async function archiveAndShare({prs = [], corpus = []} = {}){
     window.activeDay = 'd4'; window.preloadShareCardFont = () => {}; // v3.547 (MKT-03): the week card reads the day's ink
     window.reconstructAllPRs = async () => ${JSON.stringify(prs)};
     window.readExCorpus = async () => ${JSON.stringify(corpus)};
-  `, [extractFunction(src, 'dateKeyMinusDays'), extractFunction(src, 'weekShareTrainingStats'), extractFunction(src, 'archiveCurrentWeek')]);
+  `, [extractFunction(src, 'dateKeyMinusDays'), extractFunction(src, 'isLoggedSet'), extractFunction(src, 'weekShareTrainingStats'), extractFunction(src, 'archiveCurrentWeek')]);
   await window.archiveCurrentWeek();
   window.document.getElementById('weekShareBtn').click();
   return JSON.parse(JSON.stringify({shared: window.__shared, archived: window.__archive[0]}));
