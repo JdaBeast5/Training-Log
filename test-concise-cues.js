@@ -10,7 +10,7 @@
 //  1. still 321 exercises and 964 cues;
 //  2. cues over 24 words: at most OVER_24_LEFT (0 once every batch lands);
 //  3. each rewritten safety cue keeps its key phrase.
-const { readIndexSource, extractConst, runSandbox, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractConst, extractFunction, runSandbox, runJsdom, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
 const { test, run } = makeRunner('test-concise-cues.js');
@@ -61,7 +61,6 @@ test('REAL data: each rewritten safety cue kept its key phrase', (assert)=>{
 // ---- v3.530 (BL-62, audit S-4, S-5, C-3): clinical dose and position wording.
 // Each edited prescription keeps every real parser result it had at v3.529:
 // set count, rep tier, and the rep target BL-76 reads past "/leg" and "(…)".
-const { extractFunction } = require('./testHelpers.js');
 const BL62_TABLE = [
   ['3×15 (straight-knee, 3s eccentric lower)', '3×15/leg (straight-knee, 3s eccentric lower)'],
   ['3×15 (bent-knee, 3s eccentric lower)',     '3×15/leg (bent-knee, 3s eccentric lower)'],
@@ -131,6 +130,41 @@ test('BL-62 criterion 3: no prenatal exercise cue says "lie down" without a side
   assert.strictEqual(r.breath[0], 'Sit tall or lie down (on your side if pregnant), one hand on chest, one on belly; the belly rises more than the chest.');
   assert.ok(r.breath[0].split(/\s+/).length <= 24);
   assert.strictEqual(r.breath.length, 3, 'count unchanged');
+});
+
+// ---- v3.531 (BL-64, audit C-4): cue contradictions, each a rewrite in place.
+// One jsdom window running the real buildDetailsHtml over the real exerciseInfo.
+let detailsWindow = null;
+function renderedCues(name){
+  if(!detailsWindow) detailsWindow = runJsdom('<div id="host"></div>', `function getExerciseIcon(){ return '<svg></svg>'; }`,
+    [extractFunction(src, 'escapeHtml'), extractConst(src, 'exerciseInfo'), extractFunction(src, 'buildDetailsHtml')]).window;
+  const host = detailsWindow.document.getElementById('host');
+  host.innerHTML = detailsWindow.buildDetailsHtml({ name });
+  return [...host.querySelectorAll('.ex-cues li')].map(li => li.textContent);
+}
+const BL64 = {
+  'Chair Pose': 'Knees track in line with your toes and may travel forward as long as your heels stay down.',
+  'Partner Chair Pose (Back-to-Back)': 'Knees track in line with your toes and may travel forward as long as heels stay down; come up on a shared count.',
+  'Good Morning': 'Keep your back flat; hinge until your torso nears parallel or your back starts to round.',
+  'Front Lever Hold': 'Too hard? Tuck the knees to the chest and extend one leg as you progress.',
+  'Hammer Curl': 'The neutral grip shifts work to the brachioradialis; keep the tempo you use for other curls.',
+  'Hanging Leg Raise': 'Lower under control to a full hang.',
+};
+
+test('BL-64: each rewritten cue renders in the real buildDetailsHtml, with the cue count unchanged', (assert)=>{
+  for(const [name, cue] of Object.entries(BL64)){
+    const items = renderedCues(name);
+    assert.ok(items.includes(cue), name + ': ' + items.join(' | '));
+    assert.strictEqual(items.length, 3, name);
+  }
+});
+
+test('BL-64: no cue anywhere tells you to keep the knees behind the toes, and the contradicted phrases are gone', (assert)=>{
+  const c = cues();
+  const knee = Object.entries(c).flatMap(([n, l]) => l.filter(t => /not past|pass(es)? the toes|past (your |the )?toes|behind (your |the )?toes|beyond (your |the )?toes|in front of (your |the )?toes/i.test(t)).map(t => n + ': ' + t));
+  assert.deepStrictEqual(knee, []);
+  const all = Object.values(c).flat().join('\n');
+  for(const old of [/bar path close to your body/, /hips slightly tucked/, /slower than a standard curl/, /eccentric is where the core works hardest/]) assert.ok(!old.test(all), String(old));
 });
 
 run();
