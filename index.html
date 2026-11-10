@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.552';
+const APP_VERSION = '3.553';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9191,6 +9191,9 @@ const WHATS_NEW = {
   ]},
   '3.552': { headline: 'Weight jumps that fit your strength', points: [
     'When the app suggests adding weight, the jump now scales with how strong you are on that lift. Squats and deadlifts go up 5 lb for lighter lifters (it was always 10) and 10 lb or more for strong ones; bench and rows scale the same way from 5 lb. Olympic lifts always step 5 lb. Smaller lifts, and Medical and Senior programs, keep their usual jumps.',
+  ]},
+  '3.553': { headline: 'Readiness knows what this week asked of you', points: [
+    'Your program asks for harder sets in some weeks (around RPE 9 in week 4). Readiness used to flag any week averaging RPE 8.5 or more as fatigue, even when that was the plan. Now it flags a week only when your effort runs a full point above that week\'s target, or reaches 9.5. In a deload week, and on Medical and Senior programs, the target is lower, so it speaks up sooner.',
   ]},
 };
 
@@ -14819,6 +14822,8 @@ async function getReadinessInsight(){
     painRegions: painRegions || [],
     rhrToday: rhrToday ? rhrToday.value : null,
     rhrBaseline: rhrBaselineFrom(rhrEntries, todayKey),
+    // v3.553 (BL-09): this week's own target, the one place it's decided.
+    rpeTarget: rpeTargetFor(await getMesocycleWeek(), await isDeloadWeek(), activeProgram),
   });
 
   const f = formatReadiness(r);
@@ -47894,13 +47899,24 @@ const READINESS_DAYS_NO_REST = 6;   // consecutive training days before it count
 // it is within normal day-to-day variation and flagging it would be noise.
 const READINESS_RHR_RISE = 5;
 
-function computeReadiness({sleepHours, weeklyRpe, daysSinceRest, painRegions, rhrToday, rhrBaseline}){
+// v3.553 (BL-09, audit H-7): RPE is judged against the week's own target.
+// RPE mode prescribes 8.5 in week 3 and 9 in week 4, so the fixed 8.5 bar
+// flagged doing exactly what was prescribed as fatigue. With rpeTarget (from
+// rpeTargetFor: 6 in a deload week, capped at 7 on the clinical plans and
+// Senior) the flag is a full point over target, or 9.5 whatever the target.
+// Without it, the old 8.5 rule stands.
+const READINESS_RPE_OVER_TARGET = 1.0;
+const READINESS_RPE_CEILING = 9.5;
+function computeReadiness({sleepHours, weeklyRpe, daysSinceRest, painRegions, rhrToday, rhrBaseline, rpeTarget}){
   const flags = [];
+  const rpeFlag = weeklyRpe != null && (rpeTarget != null
+    ? (weeklyRpe >= rpeTarget + READINESS_RPE_OVER_TARGET || weeklyRpe >= READINESS_RPE_CEILING)
+    : weeklyRpe >= READINESS_RPE_HIGH);
 
   if(sleepHours != null && sleepHours < READINESS_SLEEP_LOW){
     flags.push({kind:'sleep', text:`slept ${trimUnitNum(sleepHours)}h`});
   }
-  if(weeklyRpe != null && weeklyRpe >= READINESS_RPE_HIGH){
+  if(rpeFlag){
     flags.push({kind:'rpe', text:`RPE has averaged ${weeklyRpe.toFixed(1)} this week`});
   }
   if(daysSinceRest != null && daysSinceRest >= READINESS_DAYS_NO_REST){
