@@ -34,7 +34,7 @@
   - GitHub branch protection on `Branch-1` requires a PR and blocks force pushes.
 - **Never try to get around either of them, by any route.** GitHub records Claude's actions under the owner's account, so these rules and this instruction are the guard.
 - **When describing a PR to the owner,** say plainly what it changes in the app and give the link. Never say something is live until it's merged and the live `sw.js` serves the new `VERSION`.
-- **The build loop:** a dedicated builder session runs three times a day (7:17, 13:17 and 20:17 America/New_York). It builds one backlog item per run and opens one `claude/auto-<item-id>` PR at a time.
+- **The build loop:** a dedicated builder session runs three times a day (7:17, 13:17 and 20:17 America/New_York). It builds ready backlog items back to back (owner, 2026-11-09): one PR per item, each stacked on the previous one and merged in order, skipping anything that needs the owner (`planning/automation.md` §4a).
   - `planning/automation.md` is its single rulebook, and wins over `.claude/agents/build-automator.md` on loop rules.
   - Don't run work in the builder's checkout, and don't open competing `claude/auto-*` branches.
 - **Planning changes** (`planning/`, `.claude/agents/`, `PRODUCT.md`) go as `claude/planning-*` PRs.
