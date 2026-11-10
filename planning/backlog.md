@@ -1721,7 +1721,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Risk:** the pace and distance display and the cardio Analysis card. The suites above guard it.
 - **Fold-in (2026-11-08):** line numbers moved to v3.518. The third caller (45650) was added.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; the cardio gate made explicit; the auto-tick rule noted as unchanged; criteria 4–5 made real invocations. `test-partial-set-reactions.js` 147–170 re-read: both cases still hold. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.544, PR #119). Beyond the spec (review): saved distances are kept on rows without the box; the weekly trend counts every cardio distance; a distance-only edit does not restart the timer; wider names and units. Open for the owner: should the exercise tick-off stop waiting for a distance?
 
 ### BL-56: `noWeight` on moves that never take load, and load on the ones that do (D-4)
 - **Why:**
