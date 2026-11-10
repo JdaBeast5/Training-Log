@@ -1105,3 +1105,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Test:** `test-cycle-phase.js` +2 cases; `test-today-priorities.js` re-pinned. Sabotage-checked. 206/206.
 - **Unverified:** not tried on an iPhone.
 - **Flagged:** physical text and the disclaimer still lean on phase-based claims (follow-up BL-13b).
+
+## Addendum 59: BL-73 (v3.534, PR #108, 2026-11-10)
+- **What:** `applyExerciseSubs` applies a stored choice only if `EXERCISE_SUBS` lists it for the slot's current exercise. Read-time only.
+- **Test:** `test-exercise-substitution.js` +4 cases. Sabotage-checked. 206/206. security-review clean.
+- **Skipped to the owner:** BL-35 (option (b) can't reach the old sets via the picker) and BL-72 (no BL-52 backup prompt exists). Recommendations are in their Status lines.
+- **Warning:** during this item's sabotage, `git checkout -- index.html` wiped the uncommitted edits; they were re-applied and re-verified before commit. Restore sabotage with targeted edits or a saved patch, never a whole-file checkout of uncommitted work.
