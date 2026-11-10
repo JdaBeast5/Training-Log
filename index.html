@@ -7700,13 +7700,16 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.546';
+const APP_VERSION = '3.547';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
 // storage keys, cache names and backup format keep their training-log names,
 // so nothing stored on a phone changes. Every on-screen name reads this.
 const APP_NAME = 'Platestep';
+// v3.547 (MKT-03): the name as a file-name stem ('platestep'): lower-cased,
+// spaces as hyphens. Share cards use it; MKT-20 reuses it for the backup.
+function appSlug(){ return APP_NAME.toLowerCase().replace(/\s+/g, '-'); }
 const SCHEMA_VERSION = 8; // bump + add a block below whenever a stored SHAPE changes
 
 // [WHAT'S NEW] -------------------------------------------------------------
@@ -9154,6 +9157,10 @@ const WHATS_NEW = {
   ]},
   '3.546': { headline: 'A display typeface for what comes next', points: [
     'The app now carries Archivo, the typeface its big numbers and share cards will use. It downloads once and works offline. Nothing looks different yet.',
+  ]},
+  '3.547': { headline: 'Share cards fit your stories', points: [
+    'The card you share for a PR, a streak or a finished week is now story-sized, so Instagram and WhatsApp stories show it full screen instead of in a box.',
+    'It is printed in the colour of the day you were on, with the Platestep mark beside the name, and the file is named for what it shows and the date.',
   ]},
 };
 
@@ -14212,7 +14219,7 @@ async function checkStreakMilestone(streak){
     badgeEl.classList.add('streak-pulse');
   }
   triggerCelebration('flame', `${streak}-day streak!`, 'Consistency is what actually builds results — nice work.', true,
-    {icon:'flame', headline:`${streak}-DAY STREAK`, detail:'Consistency is what actually builds results.'});
+    {icon:'flame', headline:`${streak}-DAY STREAK`, detail:'Consistency is what actually builds results.', kind:'streak', dayId: activeDay});
 }
 
 // Animates a number counting up/down to its new value instead of snapping
@@ -29950,6 +29957,7 @@ function triggerCelebration(iconName, text, sub, big, shareData){
 
   const shareBtn = document.getElementById('celebrateShareBtn');
   if(shareData){
+    preloadShareCardFont();
     shareBtn.style.display = '';
     // Clone-and-replace, same reason showUndoToast does it: guarantees
     // exactly one listener even if a previous celebration's button was
@@ -29973,13 +29981,17 @@ function triggerCelebration(iconName, text, sub, big, shareData){
 }
 
 // [SHARE CARD] --------------------------------------------------------------
-// Draws a square, brand-matched image for PR and streak-milestone moments —
-// the same gold theme the celebration banner itself already uses, so a
-// shared image looks like it came from this app. cardData: {icon, headline,
-// detail}. Returns a Promise<Blob> (PNG); canvas.toBlob's callback form is
-// used rather than the promise-returning variant, same reason
-// downscaleImage already does — Safari's promise support for it arrived late.
-function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight){
+// Draws the image shared for PR, streak-milestone and week-complete moments.
+// Since v3.547 (MKT-03) the default is a 1080x1920 story card: a flat ground,
+// the day's spot ink as one field, the Archivo headline, and the Sash mark
+// beside the name. format 'square' keeps the 1080x1080 card from before
+// (gradient ground, gold icon), with the mark added to its footer.
+// cardData: {icon, headline, detail | stats, kind ('pr', 'streak', 'week';
+// the file name), dayId (whose ink; the active day when absent)}. Returns a
+// Promise<Blob> (PNG); canvas.toBlob's callback form is used rather than the
+// promise-returning variant, same reason downscaleImage already does —
+// Safari's promise support for it arrived late.
+function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight, fromTop){
   const words = text.split(' ');
   const lines = [];
   let line = '';
@@ -29993,7 +30005,8 @@ function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight){
     }
   }
   if(line) lines.push(line);
-  const startY = y - ((lines.length - 1) * lineHeight) / 2;
+  // Centred on y (the square card), or with the first line at y (fromTop).
+  const startY = fromTop ? y : y - ((lines.length - 1) * lineHeight) / 2;
   lines.forEach((l, i)=> ctx.fillText(l, x, startY + i * lineHeight));
   return lines.length;
 }
@@ -30013,11 +30026,153 @@ function celebrationIconPath(name){
   return parts.join(' ');
 }
 
-function buildShareCardBlob(cardData){
-  const W = 1080, H = 1080;
+// v3.547 (MKT-03): the card's inks are the TARGET values of the UX-01 tokens
+// (design-vision §3.2), as literal hex: a canvas can't read a custom property,
+// and the live tokens still alias today's colours. test-share-card-format.js
+// holds these equal to the targets recorded in the stylesheet.
+const SHARE_CARD_INKS = {
+  ground: '#0C0C0D', text: '#F2F2F0', text2: '#A6A6A2', rule: '#3A3A3E',
+  spot: {red: '#D42F25', blue: '#2C5BD8', yellow: '#F2C200', green: '#1E9E4A', white: '#E6E6E2', off: '#3A3A3D'},
+  on: {red: '#FFFFFF', blue: '#FFFFFF', yellow: '#0C0C0D', green: '#0C0C0D', white: '#0C0C0D', off: '#FFFFFF'},
+};
+const SASH_ORDER = ['red', 'blue', 'yellow', 'green', 'white'];
+const SHARE_CARD_DISPLAY_FONT = '800 150px Archivo';
+function preloadShareCardFont(){
+  try{ if(document.fonts && document.fonts.load) document.fonts.load(SHARE_CARD_DISPLAY_FONT).catch(()=>{}); }catch(e){}
+}
+
+// Where the mark and the name sit: one row, the Sash tile then the name.
+// Story: bottom left, inside the safe zone (key content between y 250 and
+// 1620, the row at 1614-1686, clear of the story UI below 1700). Square: the
+// old footer's place, centred. nameWidth is the measured width of the name.
+function shareCardFootRow(format, W, H, nameWidth){
+  if(format === 'square'){
+    const size = 48, gap = 16, y = H*0.92;
+    const x = W/2 - (size + gap + nameWidth)/2;
+    return {x, y: y - size/2, size, textX: x + size + gap, textY: y};
+  }
+  const size = 72, gap = 22, x = 84, y = 1650;
+  return {x, y: y - size/2, size, textX: x + size + gap, textY: y};
+}
+
+// The Sash (the v3.516 icon, tools/design/icon option B) drawn as canvas
+// rectangles: the five plate inks as one band rotated -30 degrees, clipped to
+// a rounded ground tile. The tile is a path (not a fillRect), so the band's
+// five fillRects are the only rectangles inside the mark.
+function drawSashMark(ctx, x, y, size){
+  const r = 5.4;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(size/24, size/24);
+  ctx.beginPath();
+  ctx.moveTo(r, 0); ctx.arcTo(24, 0, 24, 24, r); ctx.arcTo(24, 24, 0, 24, r);
+  ctx.arcTo(0, 24, 0, 0, r); ctx.arcTo(0, 0, 24, 0, r); ctx.closePath();
+  ctx.fillStyle = SHARE_CARD_INKS.ground;
+  ctx.fill();
+  ctx.strokeStyle = SHARE_CARD_INKS.rule; ctx.lineWidth = 48/size;
+  ctx.stroke();
+  ctx.clip();
+  ctx.translate(12, 12); ctx.rotate(-Math.PI/6); ctx.translate(-12, -12);
+  SASH_ORDER.forEach((ink, i)=>{
+    ctx.fillStyle = SHARE_CARD_INKS.spot[ink];
+    ctx.fillRect(-10, 6 + i*2.5, 44, 2.1);
+  });
+  ctx.restore();
+}
+
+function drawShareCardFoot(ctx, format, W, H, nameFont, nameColor){
+  const name = APP_NAME.toUpperCase();
+  ctx.font = nameFont;
+  const row = shareCardFootRow(format, W, H, ctx.measureText(name).width);
+  drawSashMark(ctx, row.x, row.y, row.size);
+  ctx.fillStyle = nameColor;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(name, row.textX, row.textY);
+}
+
+// Story format (1080x1920, the default since v3.547): printed, not lit
+// (design-vision §3): a flat ground, the session day's spot ink as one field,
+// Archivo condensed for the headline and figures (Geist if it isn't loaded).
+function drawStoryCard(ctx, cardData, W, H){
+  const ink = dayInk(cardData.dayId ?? activeDay, activeProgram);
+  const spot = SHARE_CARD_INKS.spot[ink], on = SHARE_CARD_INKS.on[ink];
+  const hasStats = cardData.stats && cardData.stats.length;
+  const X = 84, maxW = W - 2*X;
+  // The display face, condensed through its width axis. The stretch keyword
+  // goes in the font shorthand (Safari's canvas has no fontStretch property);
+  // every later ctx.font without one is back to normal width.
+  const display = (px)=>{ ctx.font = `800 condensed ${px}px Archivo, Geist, sans-serif`; };
+
+  ctx.fillStyle = SHARE_CARD_INKS.ground;
+  ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = spot;
+  ctx.fillRect(0, 0, W, hasStats ? 980 : 1180);
+
+  const iconPx = 160;
+  const iconPath = celebrationIconPath(cardData.icon);
+  if(iconPath){
+    ctx.save();
+    ctx.translate(X, 300);
+    ctx.scale(iconPx/24, iconPx/24);
+    ctx.strokeStyle = on; ctx.lineWidth = 1.8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.stroke(new Path2D(iconPath));
+    ctx.restore();
+  }
+
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = on;
+  let size = 150;
+  display(size);
+  while(size > 64 && ctx.measureText(cardData.headline).width > maxW){ size -= 4; display(size); }
+  ctx.fillText(cardData.headline, X, 620);
+
+  if(hasStats){
+    const top = 1060, bottom = 1500, n = cardData.stats.length, rowH = (bottom - top)/n;
+    ctx.strokeStyle = SHARE_CARD_INKS.rule; ctx.lineWidth = 2;
+    for(let i = 0; i <= n; i++){ ctx.beginPath(); ctx.moveTo(X, top + rowH*i); ctx.lineTo(W - X, top + rowH*i); ctx.stroke(); }
+    cardData.stats.forEach((s, i)=>{
+      const cy = top + rowH*i + rowH/2;
+      // The value shrinks to fit beside its label, then is cut with an
+      // ellipsis (a long custom program name), so the two never overlap.
+      ctx.font = '500 32px Geist, sans-serif';
+      const valueW = maxW - ctx.measureText(s.label).width - 40;
+      let vs = 84, value = String(s.value);
+      display(vs);
+      while(vs > 40 && ctx.measureText(value).width > valueW){ vs -= 4; display(vs); }
+      while(value.length > 1 && ctx.measureText(value).width > valueW) value = value.slice(0, -2) + '…';
+      ctx.fillStyle = SHARE_CARD_INKS.text; ctx.textAlign = 'left';
+      ctx.fillText(value, X, cy);
+      ctx.font = '500 32px Geist, sans-serif';
+      ctx.fillStyle = SHARE_CARD_INKS.text2; ctx.textAlign = 'right';
+      ctx.fillText(s.label, W - X, cy);
+    });
+    ctx.textAlign = 'left';
+  } else {
+    ctx.fillStyle = on;
+    ctx.font = '500 46px Geist, sans-serif';
+    // Top-anchored under the headline, so a long detail grows down the field.
+    wrapCanvasText(ctx, cardData.detail || '', X, 780, maxW, 60, true);
+  }
+
+  drawShareCardFoot(ctx, 'story', W, H, '600 42px Geist, sans-serif', SHARE_CARD_INKS.text);
+}
+
+// format: 'story' (1080x1920, the default since v3.547, MKT-03: stories are
+// where achievement shares go, and a square gets letterboxed there) or
+// 'square' (the layout before v3.547, for messages; only its footer changed,
+// to the mark and the name).
+function buildShareCardBlob(cardData, format){
+  const story = format !== 'square';
+  const W = 1080, H = story ? 1920 : 1080;
   const canvas = document.createElement('canvas');
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext('2d');
+  if(story){
+    drawStoryCard(ctx, cardData, W, H);
+    return new Promise(resolve=>{ canvas.toBlob(blob=> resolve(blob), 'image/png'); });
+  }
 
   const bg = ctx.createLinearGradient(0, 0, 0, H);
   bg.addColorStop(0, '#17191D');
@@ -30103,9 +30258,8 @@ function buildShareCardBlob(cardData){
     wrapCanvasText(ctx, cardData.detail, W/2, H*0.58, W-160, 46);
   }
 
-  ctx.fillStyle = '#8B929B';
-  ctx.font = '600 26px Geist, sans-serif';
-  ctx.fillText(APP_NAME.toUpperCase(), W/2, H*0.92); // v3.517: was a hard-coded 'TRAINING LOG'
+  // v3.547 (MKT-03): the Sash mark beside the name (it was the name alone).
+  drawShareCardFoot(ctx, 'square', W, H, '600 26px Geist, sans-serif', '#8B929B');
 
   return new Promise(resolve=>{
     canvas.toBlob(blob=> resolve(blob), 'image/png');
@@ -30118,9 +30272,18 @@ async function shareCelebrationCard(cardData, btnId){
   btn.textContent = 'Preparing…';
   btn.disabled = true;
   try{
+    // The story card's headline is Archivo. triggerCelebration and the week
+    // card start loading it when the Share button appears; here it gets at
+    // most 250 ms more, so navigator.share stays inside the tap's activation
+    // window on iOS. If it isn't ready the card falls back to Geist.
+    try{
+      if(document.fonts && document.fonts.check && !document.fonts.check(SHARE_CARD_DISPLAY_FONT)){
+        await Promise.race([document.fonts.load(SHARE_CARD_DISPLAY_FONT), new Promise(r=> setTimeout(r, 250))]);
+      }
+    }catch(e){}
     const blob = await buildShareCardBlob(cardData);
     if(!blob) throw new Error('card generation failed');
-    const file = new File([blob], `${APP_NAME.toLowerCase()}.png`, {type:'image/png'});
+    const file = new File([blob], `${appSlug()}-${cardData.kind || 'card'}-${getTodayKey()}.png`, {type:'image/png'});
     // detail-style cards (PR, streak) vs stats-table cards (weekly summary)
     // need different share text — stats has no .detail to fall back on.
     const detailText = cardData.detail || (cardData.stats ? cardData.stats.map(s=> `${s.label}: ${s.value}`).join(', ') : '');
@@ -32495,7 +32658,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
         statusEl.innerHTML = icon('trophy') + ' PR';
         statusEl.className = 'set-status set-status-pr';
         triggerCelebration('trophy', 'New PR!', `${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`, true,
-          {icon:'trophy', headline:'NEW PR', detail:`${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`});
+          {icon:'trophy', headline:'NEW PR', detail:`${ex.name} — ${fmtWeight(toCanonicalLb(weightValRaw))}`, kind:'pr', dayId: activeDay});
       } else {
         // v3.422: the drawn check (was the ✓ glyph).
         statusEl.innerHTML = icon('check');
@@ -46089,7 +46252,11 @@ async function archiveCurrentWeek(){
   shareWrap.style.display = '';
   const freshShareBtn = shareBtn.cloneNode(true);
   shareBtn.parentNode.replaceChild(freshShareBtn, shareBtn);
-  freshShareBtn.addEventListener('click', ()=> shareCelebrationCard({icon:'flag', headline:'WEEK COMPLETE', stats: shareStats}, 'weekShareBtn'));
+  // The day you finished the week on sets the card's ink, read now: the
+  // reset below moves activeDay back to Day 1 a few seconds later.
+  const shareDay = activeDay;
+  preloadShareCardFont();
+  freshShareBtn.addEventListener('click', ()=> shareCelebrationCard({icon:'flag', headline:'WEEK COMPLETE', stats: shareStats, kind:'week', dayId: shareDay}, 'weekShareBtn'));
 
   setTimeout(async ()=>{
     activeDay = 'd1';
