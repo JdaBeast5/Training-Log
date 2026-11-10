@@ -1150,3 +1150,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **BL-65:** `goalVolumeContextLine(goal, program)` builds the coach's volume line from the gate. Merged before its record commit (worker restart); recorded here.
 - **BL-66:** `mesocyclePhaseTag(cyclePos, inDeloadWeek, program)` drops 'Accumulation' on the 21 gated programs.
 - **Tests:** `test-coach-chat-context.js` +5, `test-mesocycle-phase-tag.js` +5. 212/212.
+
+## Addendum 68: BL-55 (v3.544, PR #119, 2026-11-10)
+- **What:** `isDistanceExercise(name, sets)`; reps finish a cardio set; `saveExSet` keeps a stored distance when the caller passes undefined; weekly cardio counts every cardio distance.
+- **Test:** `test-cardio-distance-gate.js` (9 cases). Sabotage-checked. 213/213.

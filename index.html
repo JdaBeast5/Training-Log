@@ -7689,7 +7689,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.543';
+const APP_VERSION = '3.544';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9134,6 +9134,9 @@ const WHATS_NEW = {
   ]},
   '3.543': { headline: 'Week labels say what\'s really happening', points: [
     'The day header says "Accumulation" only on plans that really add sets across the block (Strength & Size, Bodybuilding, Powerlifting, Powerbuilding and your own programs). Other plans show the week number alone. Deload weeks are labelled on every plan, as before.',
+  ]},
+  '3.544': { headline: 'Cardio sets finish without a distance', points: [
+    'Burpees, battle ropes, wall balls and jump-rope drills no longer show a distance box. On any cardio row, logging your reps or minutes now completes the set and starts the rest timer; a distance is still saved when you type one.',
   ]},
 };
 
@@ -28787,6 +28790,10 @@ async function saveExSet(dayId, idx, setIdx, weight, reps, rpe, subVariant, dist
       if(target != null) set.restTarget = target;
     }
   }
+  // v3.544 (BL-55): a caller with no distance field passes undefined; keep the
+  // distance this set already had instead of dropping it.
+  const prevSet = entry.sets[setIdx];
+  if(distance === undefined && prevSet && prevSet.distance != null && set.distance == null) set.distance = prevSet.distance;
   entry.sets[setIdx] = set;
 
   log.sort((a,b)=> new Date(a.date+'T00:00:00')-new Date(b.date+'T00:00:00'));
@@ -29199,8 +29206,8 @@ async function renderWorkout(){
     const showWeight = !ex.noWeight;
     // Distance sits BEFORE the duration/reps field and reads "3.1 @ 28",
     // matching how the number is actually spoken: a distance covered in a time.
-    // Only for cardio-category exercises — every other row is unchanged.
-    const showDistance = isDistanceExercise(ex.name);
+    // Only for cardio rows where distance is the measure (v3.544, BL-55).
+    const showDistance = isDistanceExercise(ex.name, ex.sets);
     let sameAsLastHtml = '';
     let warmupHtml = '';
     let setRowHtmlArr = [];
@@ -32289,8 +32296,9 @@ function checkAllSetsCompleteAndAutoCheck(row, block, exIdx){
     const reps = r.querySelector('.ex-reps');
     if(requiresWeight && (!w || w.value === '')) return false;
     // Same rule as weight: if the row has the field, it has to be filled
-    // before the exercise auto-checks itself off. A run with a duration but
-    // no distance is a half-logged set, not a finished one.
+    // before the exercise auto-checks itself off. Since v3.544 (BL-55) only
+    // rows where distance is the measure have the field, and a set with no
+    // distance still starts the rest timer; only this tick-off waits for it.
     if(requiresDistance && (!d || d.value === '')) return false;
     if(!reps || reps.value === '') return false;
     // v3.302 (owner): RPE is optional. A set chip logs weight and reps in one
@@ -32313,7 +32321,7 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
   // one and the drop button builds a sub-row. These must match the shape
   // renderWorkout emitted or the two disagree about what a set row is.
   const showWeight = !ex.noWeight;
-  const showDistance = isDistanceExercise(ex.name);
+  const showDistance = isDistanceExercise(ex.name, ex.sets);
 
   // Scoped by data-ex-idx (added to every set-row, and to each member's own
   // .set-actions wrapper) rather than assumed-singular: a superset pair's
@@ -32449,12 +32457,14 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
     // Read the set's index fresh at save time, not once up front — after a
     // delete, remaining rows get renumbered, and this makes sure a save
     // always targets the row's current position, not a stale one.
-    const save = async ()=>{
+    const save = async (evt)=>{
       const setIdx = Number(setRow.dataset.setIdx);
       const weightValRaw = wInput ? wInput.value : '';
       const weightValLb = weightValRaw === '' ? '' : toCanonicalLb(weightValRaw);
       const distValRaw = dInput ? dInput.value : '';
-      const distValM = distValRaw === '' ? '' : toCanonicalMetres(distValRaw);
+      // v3.544 (BL-55): no distance box on this row means "not given", so a
+      // distance saved earlier on this set is kept rather than erased.
+      const distValM = !dInput ? undefined : (distValRaw === '' ? '' : toCanonicalMetres(distValRaw));
       const noteVal = nInput ? nInput.value : '';
       const result = await saveExSet(activeDay, exIdx, setIdx, weightValLb, rInput.value, rpeInput.value, subVariant, distValM, noteVal, ex.name);
       // An empty row is an empty row whichever of its fields exist — a cardio
@@ -32479,15 +32489,16 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       await refreshSessionSummary(row, exIdx, ex);
       // A REAL set — not just "some field now has a value" — requires reps
       // plus whatever this exercise actually asks for (weight unless
-      // ex.noWeight, distance for cardio). Weight typed with reps still
+      // ex.noWeight; never distance, v3.544). Weight typed with reps still
       // blank used to start the rest-timer countdown and pop the gym-mode
       // offer before the entry was even finished. The save above still runs
       // on every change regardless — this only withholds the two reactive,
       // on-screen consequences of a *finished* set, not the persistence.
       const hasReps = rInput.value !== '';
       const hasRequiredWeight = !showWeight || weightValRaw !== '';
-      const hasRequiredDistance = !showDistance || distValRaw !== '';
-      const isRealSet = hasReps && hasRequiredWeight && hasRequiredDistance;
+      // v3.544 (BL-55): distance never blocks a finished set; reps or minutes
+      // alone complete a cardio set (the distance is still saved if typed).
+      const isRealSet = hasReps && hasRequiredWeight;
       // ex.superTag means THIS exercise is the top half of a superset pair
       // (see renderWorkout's isSupersetTop / the .superset-tag's own
       // "straight into the next exercise, no rest between" label) — there is
@@ -32505,12 +32516,15 @@ function wireSetsBlock(row, exIdx, ex, fallbackEntry){
       // makes no sense while retroactively filling in a day that's already
       // over. This was the one reactive consequence of the same isRealSet
       // signal that never got the same guard.
-      if(isRealSet && !isSupersetLeadIn && !isBackdating()){
+      // v3.544 (BL-55): typing the distance after the reps doesn't restart the
+      // countdown that the reps already started.
+      const fromDistance = !!(evt && dInput && evt.target === dInput);
+      if(isRealSet && !fromDistance && !isSupersetLeadIn && !isBackdating()){
         const restTarget = getDefaultRestSeconds(ex);
         restTargetBySlot[exKey(activeProgram, activeDay, exIdx, subVariant)] = restTarget;
         startRestTimer(restTarget, getRestReasonLabel(ex));
       }
-      if(isRealSet){
+      if(isRealSet && !fromDistance){
         // Second consumer of the same signal: the first logged set of the day
         // is also the moment to offer gym mode, or to enter it if that has
         // already been answered yes.
@@ -33026,9 +33040,18 @@ function fmtPace(minPerUnit){
 // own category rather than the program, because a Brisk Walk inside a Senior
 // Strength day is the same trackable thing as one inside Running — and because
 // a program-keyed rule would silently miss every custom exercise.
-function isDistanceExercise(exName){
+// v3.544 (BL-55): a distance field only where distance is the measure. Still
+// cardio-only (the name pattern alone would catch Barbell Row and Farmer's
+// Walk), and then either the prescription names a distance (400m, 2 km, 3 mi,
+// 5k, 1 mile; '25 min' doesn't match) or the exercise is a run, ride, bike,
+// swim, walk, hike, row, erg, paddle, sled or stride drill. Burpees, ropes and
+// jump-rope drills lose the field. A row without the field never erases a
+// distance already saved on that set (saveExSet keeps it).
+const DISTANCE_EXERCISE_NAME_RE = /run|jog|ride|spin|swim|walk|row|skierg|erg\b|sled|strides|repeats|bike|cycl|hike|paddle/i;
+function isDistanceExercise(exName, setsStr){
   const info = exerciseInfo[exName];
-  return !!info && info.category === 'cardio';
+  if(!info || info.category !== 'cardio') return false;
+  return /\d\s*(m|yd|km|mi|k|miles?|yards?|meters?|metres?)\b/i.test(setsStr || '') || DISTANCE_EXERCISE_NAME_RE.test(exName);
 }
 
 // --- Collapsible-card open/closed persistence -----------------------------
@@ -46171,7 +46194,9 @@ async function computeWeeklyCardio(weeks){
 
   const buckets = {}; // monday -> {metres, minuteMetres, metresWithTime}
   for(const {exDef, log} of corpus){
-    if(!isDistanceExercise(exDef.name)) continue;
+    // v3.544 (BL-55): every cardio exercise, as before; the per-row distance
+    // box no longer shows on all of them, but distances already logged count.
+    if((exerciseInfo[exDef.name] || {}).category !== 'cardio') continue;
 
     log.forEach(entry=>{
       const metres = distanceOf(entry);
