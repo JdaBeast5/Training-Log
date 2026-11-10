@@ -1111,3 +1111,9 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **Test:** `test-exercise-substitution.js` +4 cases. Sabotage-checked. 206/206. security-review clean.
 - **Skipped to the owner:** BL-35 (option (b) can't reach the old sets via the picker) and BL-72 (no BL-52 backup prompt exists). Recommendations are in their Status lines.
 - **Warning:** during this item's sabotage, `git checkout -- index.html` wiped the uncommitted edits; they were re-applied and re-verified before commit. Restore sabotage with targeted edits or a saved patch, never a whole-file checkout of uncommitted work.
+
+## Addendum 60: BL-51 (v3.535, PR #110, 2026-11-10)
+- **What:** new entries carry `n`; `entriesForExercise` + `legacyEntriesUnambiguous` filter every suggestion read; `todayEntryFor` is the one creator of today's entry for all four writers; History labels other-exercise entries.
+- **Test:** `test-history-name-stamp.js` (11 cases). Sabotage-checked. 207/207. security-review clean.
+- **Unverified:** not tried on an iPhone.
+- **Flagged:** same-date two-exercise merge; Analysis grouping by position (`parseExKey`).

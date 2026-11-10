@@ -1595,7 +1595,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Risk:** the progression path everywhere. The suites above guard it.
 - **Tools:** `code-review` at high (progression path).
 - **Fold-in (2026-11-08):** line numbers moved to v3.518. Status changed from ready to needs-owner, because a stored data shape changes. The `saveExSet` PR check and the byte-identical set criterion (6) were added.
-- **Status:** ready (owner yes 2026-11-08: "51 a"). Slot 9a, before BL-08.
+- **Status:** done (v3.535, PR #110). Beyond the spec (review): legacy entries also count on any authored layout; the PR check skips only entries stamped as another exercise; Same as Last, the fallback, the swap summary and the drop, warm-up and skip writers are covered. Earlier: ready (owner yes 2026-11-08: "51 a"). Slot 9a, before BL-08.
 
 ### BL-52: Variant- and style-scoped history keys, with a migration (S-1, D-2, part 2)
 - **Why:**

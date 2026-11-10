@@ -103,7 +103,7 @@ test('REAL source: drawn with the set chips, once per block; Skip writes every s
   assert.ok(all.indexOf('renderSetChips(b, glow)') < all.indexOf('renderWarmupChips(b)'), 'after the set chips exist');
   const wire = strip(extractFunction(src, 'wireSetsBlock'));
   assert.strictEqual((wire.match(/warmupStrip\._skipAll = async/g) || []).length, 1);
-  assert.match(wire, /saveExWarmupSkipped\(activeDay, exIdx, already\.concat\(labels\), subVariant\)/);
+  assert.match(wire, /saveExWarmupSkipped\(activeDay, exIdx, already\.concat\(labels\), subVariant, ex\.name\)/); // v3.535 (BL-51): the name stamp rides along
   assert.match(wire, /showUndoToast\('Warm-up skipped'/);
 });
 
