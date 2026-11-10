@@ -183,6 +183,19 @@ Work in the builder's own dedicated checkout (§1.1), never in a checkout anothe
 
 ---
 
+## 4a. Batch mode (owner, 2026-11-09)
+
+The owner asked for ready items to be built back to back instead of one PR at a time: "push any you can without me answering a question … go with the recommendations you and the others have". Where this section and §4 differ, this section wins.
+
+- **Several items per run.** After an item's step 13, the run goes back to step 5 and takes the next item in sequence order. It keeps going until no item is buildable or the run is cut short. Each item is still its own increment with its own branch, test, sabotage check, version, full suite, review and PR.
+- **Stacked PRs.** Each item branches from the previous item's branch, not from `origin/Branch-1`, so versions stay in sequence. Every PR still targets `Branch-1`. Its body starts with "Merge #<previous> first". After the earlier PR merges, a later PR shows only its own change. The baseline for a stacked item is the previous item's green after-bump suite.
+- **Open auto-PRs no longer stop a run.** Step 2's upkeep checks still run on each open auto-PR. A run then continues from the top of the newest open stack. It never opens a second, competing stack.
+- **Questions with a recommendation.** When a build hits a question that the backlog, the PR or an agent already answers with a recommended option, the run takes the recommendation and says so in the PR. Test re-pins outside `Files:` fall here too: a count that moves because of the item's own data change.
+- **Still stops for the owner.** Any of these is skipped, never built: a new stored key or data shape, a migration not already approved as written, a change to which stored key a slot reads, a medical or legal claim beyond the spec, money, or anything outside the app. The item becomes `needs-owner` with a one-line recommendation in its Status, and the run moves on to the next item. These questions are collected in the run report.
+- **Blocker PRs.** A question that stops one item no longer needs its own draft PR. Its `needs-owner` status rides in the next item's record commit. If no item ships in the run, a planning-only blocker PR carries the statuses, as before.
+- **Merge order.** The owner merges oldest first. If a later PR is merged first, it carries the earlier ones with it. That's fine: each has its own commit and can be reverted on its own.
+- **Run report.** One `PR READY:` line per PR, in merge order, then the `needs-owner` questions, each with its recommendation.
+
 ## 5. Stop conditions and the build log
 
 ### 5.1 When a run stops
