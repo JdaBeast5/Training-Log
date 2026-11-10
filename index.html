@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.550';
+const APP_VERSION = '3.551';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9185,6 +9185,9 @@ const WHATS_NEW = {
   '3.550': { headline: 'An effort target on every exercise', points: [
     'Under each exercise\'s sets you now see how hard to push: how many reps to keep in reserve (RIR) before failure. Heavy strength work stops 2\u20133 reps short, with the last set 1\u20132; other big lifts 1\u20133; smaller isolation lifts 0\u20132; jumps, throws, strikes and Olympic lifts stop well short and stay fast. Deload weeks, and Medical and Senior programs, keep 3\u20134 in reserve.',
     'In RPE mode the RPE target on each set does this job instead. Stretches, mobility, core and timed work have no label.',
+  ]},
+  '3.551': { headline: 'One bad day no longer cuts your weight', points: [
+    'The app used to suggest dropping the weight after a single session below your rep range. Now it waits for two sessions in a row below the range at the same weight, or one at RPE 10. The drop is 5% on upper-body lifts and 7.5% on squats, deadlifts and other lifts, and the badge names the same weight the field fills in for your top set. Medical and Senior programs keep their existing rule.',
   ]},
 };
 
@@ -28050,13 +28053,38 @@ function analyzeProgressionSignal(pastSessions, ex, category, program){
 
   // Signal 2: decrease — reps dropped below the bottom of the rep range at
   // the same (or heavier) weight, i.e. the load has outpaced current recovery.
+  // v3.551 (BL-15, audit M-2): one short session is a bad day, not a trend.
+  // Coached rules wait for repeated failure [PRAC], so the load drops only
+  // after TWO sessions below the floor (the newer at the same or heavier
+  // weight), or one below the floor at RPE 10. The drop is 5% for upper-body
+  // lifts and 7.5% for lower. The clinical plans and Senior keep their v3.527
+  // rule (one session, 7.5%; BL-02's gate). The signal carries dropLb so
+  // computeSuggestedSet names the same number the badge does.
   const sameOrHeavier = twoSessions && s0.weight!=null && s1.weight!=null && s0.weight >= s1.weight;
-  const repsFellBelowFloor = twoSessions && s0.reps!=null && bottomRepTarget!=null && s0.reps < bottomRepTarget && s1.reps >= bottomRepTarget;
-  if(sameOrHeavier && repsFellBelowFloor){
-    const dropAmt = Math.max(getLoadIncrement(category), Math.round(s0.weight*0.075/2.5)*2.5);
+  const belowFloor = (s)=> !!s && s.reps!=null && bottomRepTarget!=null && s.reps < bottomRepTarget;
+  const shortNow = s0.weight!=null && belowFloor(s0);
+  // The top-weight sets' RPE (BL-08's topRpe), not an average with easy back-offs.
+  const rpeTop0 = s0.topRpe !== undefined ? s0.topRpe : s0.avgRpe;
+  const decrease = clinicalProgram
+    ? sameOrHeavier && shortNow && s1.reps >= bottomRepTarget
+    : shortNow && ((sameOrHeavier && belowFloor(s1)) || (rpeTop0 != null && rpeTop0 >= 10 && (!s1 || sameOrHeavier)));
+  if(decrease){
+    const upperBody = ['push', 'pull', 'shoulder', 'arms'].includes(category);
+    const pct = (!clinicalProgram && upperBody) ? 0.05 : 0.075;
+    const dropAmt = Math.max(getLoadIncrement(category), Math.round(s0.weight*pct/2.5)*2.5);
+    const why = clinicalProgram ? `Reps dropped to ${s0.reps} last time`
+      : (sameOrHeavier && belowFloor(s1)) ? `Reps fell short two sessions running (${s1.reps}, then ${s0.reps})`
+      : `Reps dropped to ${s0.reps} at RPE 10 last time`;
+    // The figure is the loadable one the field fills in (computeSuggestedSet
+    // snaps the same drop from the same top set), so badge and field agree.
+    // Suites that extract this function without the equipment model get the
+    // plain figure.
+    const dropTo = typeof snapToLoadable === 'function'
+      ? `${trimUnitNum(snapToLoadable(Math.max(0, toDisplayWeight(s0.weight) - toDisplayWeight(dropAmt)), ex.name, 'down'))} ${weightUnit}`
+      : fmtWeight(s0.weight - dropAmt);
     return {
-      type: 'decrease',
-      message: `Reps dropped to ${s0.reps} last time (below your ${bottomRepTarget}-rep floor) at ${fmtWeight(s0.weight)} — drop to ~${fmtWeight(s0.weight-dropAmt)} next session to rebuild clean volume in range.`
+      type: 'decrease', dropLb: dropAmt,
+      message: `${why} (below your ${bottomRepTarget}-rep floor) at ${fmtWeight(s0.weight)} — drop to ${dropTo} next session to rebuild clean volume in range.`
     };
   }
 
@@ -28573,8 +28601,11 @@ function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, prior
     if(signal.type === 'decrease'){
       // Recomputed the same way analyzeProgressionSignal words it, from the top
       // set, so the badge's stated number and this one are the same number.
+      // v3.551 (BL-15): the signal's own drop (5% upper body, 7.5% otherwise),
+      // taken off each row's own prior weight, so back-off sets stay lighter.
+      // On the top set this is the figure the badge names.
       const base = priorTop && priorTop.weight != null ? priorTop.weight : priorSet.weight;
-      const dropLb = Math.max(increment, Math.round(base * 0.075 / 2.5) * 2.5);
+      const dropLb = signal.dropLb != null ? signal.dropLb : Math.max(increment, Math.round(base * 0.075 / 2.5) * 2.5);
       return {weight: snap(bump(priorSet.weight, -dropLb), 'down'), reps: bottomRep, reason:'decrease'};
     }
     if(signal.type === 'deload'){
