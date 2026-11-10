@@ -7622,7 +7622,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.536';
+const APP_VERSION = '3.537';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9046,6 +9046,9 @@ const WHATS_NEW = {
   ]},
   '3.536': { headline: 'Medical plans count in your records', points: [
     'Sets logged on the medical, prenatal, postpartum and rehab plans now show in your PRs, exercise history and weekly volume. Before, they were saved but left out of those views. Lifts logged on a watersports plan now also show as your last session when the same lift comes up on another plan.',
+  ]},
+  '3.537': { headline: 'Missed lifts don\'t count as PRs', points: [
+    'A set logged with 0 reps now counts as a miss: it no longer shows as a PR or your best lift. Your logged sets aren\'t changed.',
   ]},
 };
 
@@ -27297,13 +27300,35 @@ function todayEntryFor(log, name){
 }
 
 // Best (heaviest) set in an entry. Ties broken by higher reps.
+// v3.537 (BL-77): a set logged with a weight and 0 reps is a miss, not a made
+// lift. One rule for every reader that decides PRs and best lifts. A set with
+// reps == null (weight-only logging) is not a miss.
+function isMissedSet(s){
+  return !!s && s.weight != null && s.reps === 0;
+}
+
 function topSetOf(entry){
   let best = null;
   (entry.sets||[]).forEach(s=>{
     if(s.weight==null) return;
+    if(isMissedSet(s)) return; // a miss is never the top set
     if(!best || s.weight>best.weight || (s.weight===best.weight && (s.reps||0)>(best.reps||0))) best = s;
   });
   return best;
+}
+
+// What a session WAS, for readers that ask "how did last time go?" (the
+// progression signal, the badge, the clinical load cap, the warm-up ramp, the
+// Analysis current lift). A session with a made lift reads as its top made
+// set; a session where every weighted set was missed reads as its heaviest
+// miss (weight × 0), as it always did, so a failed session still drives the
+// decrease and deload signals. PRs and best lifts use topSetOf, never this.
+function sessionTopOf(entry){
+  const made = topSetOf(entry);
+  if(made) return made;
+  let miss = null;
+  (entry.sets||[]).forEach(s=>{ if(isMissedSet(s) && (!miss || s.weight > miss.weight)) miss = s; });
+  return miss;
 }
 
 // Drops count. A drop set is work performed at a lower load, not a warm-up —
@@ -27631,7 +27656,7 @@ function maxWeightEver(log, excludeDate){
   let max = null;
   log.forEach(e=>{
     if(e.date===excludeDate) return;
-    (e.sets||[]).forEach(s=>{ if(s.weight!=null && (max===null || s.weight>max)) max = s.weight; });
+    (e.sets||[]).forEach(s=>{ if(s.weight!=null && !isMissedSet(s) && (max===null || s.weight>max)) max = s.weight; }); // v3.537 (BL-77): misses don't count
   });
   return max;
 }
@@ -27752,7 +27777,7 @@ function buildPastSessions(log){
     .sort((a,b)=> new Date(b.date+'T00:00:00') - new Date(a.date+'T00:00:00'))
     .slice(0, 3)
     .map(e=>{
-      const top = topSetOf(e);
+      const top = sessionTopOf(e); // v3.537 (BL-77): an all-miss session still counts as a failed session
       if(!top) return null;
       const rpeSets = (e.sets||[]).filter(s=> s.rpe!=null);
       const avgRpe = rpeSets.length ? rpeSets.reduce((sum,s)=> sum+s.rpe, 0) / rpeSets.length : null;
@@ -28543,6 +28568,7 @@ async function saveExSet(dayId, idx, setIdx, weight, reps, rpe, subVariant, dist
     if(e !== entry && stampName && e.n != null && e.n !== stampName) return;
     e.sets.forEach((s,i)=>{
       if(e===entry && i===setIdx) return;
+      if(isMissedSet(s)) return; // v3.537 (BL-77): a miss never sets the bar
       if(s.weight!=null && (priorMax===null || s.weight>priorMax)) priorMax = s.weight;
     });
   });
@@ -28600,7 +28626,7 @@ async function saveExSet(dayId, idx, setIdx, weight, reps, rpe, subVariant, dist
     if(!isBackdating()) recordWorkoutTime(selectedLogDate);
   }
 
-  const isPR = (w!=null && priorMax!=null && w>priorMax);
+  const isPR = (w!=null && r !== 0 && priorMax!=null && w>priorMax); // v3.537 (BL-77): a missed lift is never a PR
   return {isPR, priorMax, entry};
 }
 
@@ -29010,7 +29036,7 @@ async function renderWorkout(){
       const priorIsCrossProgram = !ownPrior && !!fallbackPriorEntries[i];
       const prior = ownPrior || fallbackPriorEntries[i] || null;
       const priorSourceProgram = priorIsCrossProgram ? fallbackPriorEntries[i].sourceProgram : null;
-      const priorTop = prior ? topSetOf(prior) : null;
+      const priorTop = prior ? sessionTopOf(prior) : null; // v3.537 (BL-77)
       const todayEntry = log.find(e=>e.date===selectedLogDate);
       const topRep = parseTopRep(ex.sets);
       const setCount = Math.max(parseSetCount(ex.sets), todayEntry ? todayEntry.sets.length : 0);
@@ -41832,9 +41858,9 @@ async function renderExerciseProgress(){
     const log = group.log.filter(e=> (e.sets||[]).some(s=> s.weight!=null || s.reps!=null));
     if(log.length === 0) continue;
 
-    const first = topSetOf(log[0]);
+    const first = sessionTopOf(log[0]); // v3.537 (BL-77): what the session was
     const latestEntry = log[log.length-1];
-    const latest = topSetOf(latestEntry);
+    const latest = sessionTopOf(latestEntry);
     const topRep = parseTopRep(exDef.sets);
     const readyToProgress = latest && latest.reps!=null && topRep!=null && latest.reps >= topRep;
     const bestEver = maxWeightEver(log, null);
@@ -45146,11 +45172,11 @@ async function buildDayLog(){
 
     log.forEach((entry, i)=>{
       const day = ensureDay(entry.date);
-      const top = topSetOf(entry);
+      const top = sessionTopOf(entry); // v3.537 (BL-77)
       const vol = volumeOf(entry);
       let deltaWeight = null, deltaReps = null;
       if(i>0){
-        const prevTop = topSetOf(log[i-1]);
+        const prevTop = sessionTopOf(log[i-1]);
         if(top && prevTop && top.weight!=null && prevTop.weight!=null) deltaWeight = +(top.weight - prevTop.weight).toFixed(1);
         if(top && prevTop && top.reps!=null && prevTop.reps!=null) deltaReps = top.reps - prevTop.reps;
       }
