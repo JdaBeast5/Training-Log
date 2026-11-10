@@ -10,7 +10,7 @@
 // 'Squat' genuinely appears in 5 different programs in the live data,
 // including the exact "Strength & Size -> Powerbuilding" pair a past
 // session's bug report was about (per HANDOFF history).
-const { readIndexSource, extractFunction, extractConst, runSandboxAsync, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractFunction, extractConst, runSandbox, runSandboxAsync, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
 
@@ -24,6 +24,7 @@ function buildChunks(){
     `var YOGA_STYLES = {};`,
     extractFunction(src, 'normalizeExEntry'),
     `var exerciseLocationIndex = null;`,
+    extractConst(src, 'EXERCISE_CANONICAL'), extractFunction(src, 'canonicalExName'), // v3.549 (BL-54)
     extractFunction(src, 'getExerciseLocationIndex'),
     extractFunction(src, 'exKeyForLocation'),
     extractFunction(src, 'programLabelFor'),
@@ -143,6 +144,59 @@ test('getFallbackPriorEntry returns null when the exercise genuinely has no hist
     __capture.push(await getFallbackPriorEntry('Squat', 'ex:strength:d2:0'));
   `);
   assert.strictEqual(entry, null);
+});
+
+// v3.549 (BL-54, audit D-3): one lift, one name. The Olympic program's Back
+// Squat (oly d4 and d5, slot 2) and Strength & Size's Squat (d2, slot 0) are
+// the same bar. Sabotage: empty EXERCISE_CANONICAL and criterion 2 and the
+// stamped-entry case below fail.
+test('BL-54 criterion 2: the warm-up fallback for Strength & Size Day 2 Squat finds an Olympic-program Back Squat log, stamped or not', async (assert)=>{
+  const chunks = [
+    storageSetup({
+      'ex:oly:d4:2': [{date:'2026-01-12', sets:[{weight:205, reps:3}], n:'Back Squat'}],
+      'ex:oly:d5:2': [{date:'2026-01-08', sets:[{weight:195, reps:3}]}],
+    }),
+    `var selectedLogDate = '2026-02-01';`,
+    ...buildChunks(),
+    extractFunction(src, 'getFallbackPriorEntry'),
+  ];
+  const [fromSquat, fromBackSquat, index] = await runSandboxAsync(chunks, `
+    __capture.push(await getFallbackPriorEntry('Squat', 'ex:strength:d2:0'));
+    __capture.push(await getFallbackPriorEntry('Back Squat', 'ex:oly:d4:2'));
+    __capture.push({backSquat: getExerciseLocationIndex()['Back Squat'] || null, squat: getExerciseLocationIndex()['Squat'].map(l => l.program + ':' + l.dayId + ':' + l.idx)});
+  `);
+  assert.ok(fromSquat, 'a fallback entry from the Olympic program');
+  assert.strictEqual(fromSquat.sourceProgram, 'oly');
+  assert.strictEqual(fromSquat.date, '2026-01-12', 'the newest, a Back Squat entry stamped with its own name');
+  assert.strictEqual(fromSquat.sets[0].weight, 205);
+  assert.ok(fromBackSquat && fromBackSquat.date === '2026-01-08', 'and the other way: an oly Back Squat slot finds the other oly slot');
+  assert.strictEqual(index.backSquat, null, 'the index is keyed by the canonical name only');
+  assert.ok(['strength:d2:0', 'oly:d4:2', 'oly:d5:2'].every(k => index.squat.includes(k)), index.squat.join(', '));
+});
+
+test('BL-54: a stamped entry of a different lift in the slot is still skipped (BL-51 holds under canonical names)', async (assert)=>{
+  const chunks = [
+    storageSetup({'ex:oly:d4:2': [{date:'2026-01-12', sets:[{weight:135, reps:5}], n:'Front Squat'}, {date:'2026-01-03', sets:[{weight:185, reps:3}]}]}),
+    `var selectedLogDate = '2026-02-01';`,
+    ...buildChunks(),
+    extractFunction(src, 'getFallbackPriorEntry'),
+  ];
+  const [entry] = await runSandboxAsync(chunks, `__capture.push(await getFallbackPriorEntry('Squat', 'ex:strength:d2:0'));`);
+  assert.ok(entry, 'anchor: the oly Back Squat slot is searched');
+  assert.strictEqual(entry.date, '2026-01-03', 'the newer Front Squat entry is skipped; the unstamped Back Squat entry is used');
+});
+
+test('BL-54: canonicalExName passes unknown names through, including Object.prototype names', (assert)=>{
+  const [r] = runSandbox([extractConst(src, 'EXERCISE_CANONICAL'), extractFunction(src, 'canonicalExName')],
+    `__capture.push(['Back Squat', 'Squat', 'constructor', 'toString', '', null, undefined].map(n => canonicalExName(n) === undefined ? 'undef' : canonicalExName(n)));`);
+  assert.deepStrictEqual(r, ['Squat', 'Squat', 'constructor', 'toString', '', null, 'undef']);
+});
+
+test('BL-54: the canonical map names real exercises only: every alias and every canonical name is a slot name in the real programs', (assert)=>{
+  const [r] = runSandbox([extractConst(src, 'programs'), extractConst(src, 'EXERCISE_CANONICAL')], `
+    const names = new Set(); for(const p of Object.values(programs)) for(const d of Object.values(p.days || {})) for(const e of d.exercises || []) names.add(e.name);
+    __capture.push(Object.entries(EXERCISE_CANONICAL).filter(([a, c]) => !names.has(a) || !names.has(c)));`);
+  assert.deepStrictEqual(r, []);
 });
 
 run();

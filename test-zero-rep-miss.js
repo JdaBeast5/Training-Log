@@ -37,7 +37,8 @@ function prRun(newer){
      var COMBAT_STYLES = {}, CYCLING_STYLES = {}, WATERSPORTS_STYLES = {}, MEDICAL_STYLES = {};
      var programs = { strength: { label: 'Strength & Size', days: { d1: { label: 'Day 1', exercises: [ {name: 'Back Squat'} ] } } } };
      var exCorpusCache = null, exCorpusCacheGen = -1, exCorpusInflight = null, exCorpusGen = 0;`,
-    ...['normalizeExEntry', 'parseExKey', 'isMissedSet', 'topSetOf', 'estimated1RM', 'groupCorpusByExercise', 'readExCorpus', 'reconstructAllPRs'].map(f => extractFunction(src, f)),
+    extractConst(src, 'EXERCISE_CANONICAL'), // v3.549 (BL-54)
+    ...['normalizeExEntry', 'parseExKey', 'isMissedSet', 'topSetOf', 'estimated1RM', 'canonicalExName', 'groupCorpusByExercise', 'readExCorpus', 'reconstructAllPRs'].map(f => extractFunction(src, f)),
   ], `__capture.push(await reconstructAllPRs());`);
 }
 

@@ -7706,7 +7706,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.548';
+const APP_VERSION = '3.549';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9171,6 +9171,9 @@ const WHATS_NEW = {
   '3.548': { headline: 'Your year in lifting', points: [
     'From 1 December to 15 January, if you trained on at least 8 days this year, Today\'s Priorities offers your year in lifting: your sessions and sets, with a story card to share. It\'s worked out on your phone, and it never shows your weight, food or sleep.',
     'Tap Hide to put it away for the year.',
+  ]},
+  '3.549': { headline: 'One lift, one history', points: [
+    'A few lifts went by two names in different programs: Back Squat and Squat, Flat Bench Press and Bench Press, Cable Row and Seated Cable Row, Farmers Carry (Heavy) and Farmer\'s Carry, Calf Raise and Standing Calf Raise. Exercise progress, the PR timeline and the "last time" you see in a new program now treat each pair as one lift, so switching programs no longer starts you from scratch.',
   ]},
 };
 
@@ -13892,6 +13895,25 @@ const EXERCISE_MOVE = {
 // Where equipment/loading also matters (e.g. suggesting a barbell alternative
 // for another barbell lift where reasonable) that's reflected too, but
 // muscle group + movement pattern always take priority over equipment match.
+
+// v3.549 (BL-54, audit D-3): one lift, one name where history is pooled. The
+// same bar carries two names across programs (the Olympic program's Back
+// Squat is Strength & Size's Squat), which split History, the PR timeline and
+// the cross-program warm-up fallback. canonicalExName is read ONLY where
+// history pools across slots: groupCorpusByExercise and the location index
+// behind getFallbackPriorEntry. Slot names, cues, EXERCISE_SUBS, keys and logs
+// are unchanged.
+const EXERCISE_CANONICAL = {
+  'Back Squat': 'Squat',
+  'Flat Bench Press': 'Bench Press',
+  'Cable Row': 'Seated Cable Row',
+  'Farmers Carry (Heavy)': "Farmer's Carry",
+  'Calf Raise': 'Standing Calf Raise',
+};
+function canonicalExName(n){
+  return (typeof n === 'string' && Object.prototype.hasOwnProperty.call(EXERCISE_CANONICAL, n)) ? EXERCISE_CANONICAL[n] : n;
+}
+
 // [EXERCISE SUBSTITUTIONS] ------------------------------------------------------
 // 88 weighted lifts -> 2 alternates each, matched on primary mover + joint
 // action + movement pattern. See HANDOFF §6.3.
@@ -27465,8 +27487,9 @@ function getExerciseLocationIndex(){
     Object.entries(days || {}).forEach(([dayId, day]) => {
       (day.exercises || []).forEach((ex, idx) => {
         if(!ex || !ex.name) return;
-        if(!index[ex.name]) index[ex.name] = [];
-        index[ex.name].push({program: progKey, dayId, idx, style});
+        const name = canonicalExName(ex.name); // v3.549 (BL-54): keyed by the canonical name
+        if(!index[name]) index[name] = [];
+        index[name].push({program: progKey, dayId, idx, style});
       });
     });
   };
@@ -27504,15 +27527,18 @@ function exKeyForLocation(loc){
 // used to be two of these" is the kind of thing a later reader wonders about.
 
 // The full most-recent logged entry (every set, not just the top one) for
-// this exact exercise name, searched across every OTHER program/day it
-// appears in. This is what makes the SAME lift trained under a DIFFERENT
+// this exercise, by canonical name since v3.549 (BL-54: Back Squat and Squat
+// are one lift), searched across every OTHER program/day it appears in. This is what makes the SAME lift trained under a DIFFERENT
 // program still show its real history instead of looking brand new the
 // moment you switch programs — the placeholder ghost text for every set,
 // "Same as Last Time", and the "Last top set" hint all fall back to this
 // when the current slot has no history of its own. Returns null if this
 // exercise genuinely has never been logged anywhere.
 async function getFallbackPriorEntry(exerciseName, excludeKey){
-  const locations = getExerciseLocationIndex()[exerciseName] || [];
+  // v3.549 (BL-54): the index is keyed by canonical name, so a Squat slot
+  // finds the Olympic program's Back Squat log and the other way round.
+  const canonical = canonicalExName(exerciseName);
+  const locations = getExerciseLocationIndex()[canonical] || [];
   let best = null, bestProgram = null;
   for(const loc of locations){
     const key = exKeyForLocation(loc);
@@ -27522,7 +27548,7 @@ async function getFallbackPriorEntry(exerciseName, excludeKey){
       if(!res || !res.value) continue;
       const log = JSON.parse(res.value).map(normalizeExEntry);
       // v3.535 (BL-51): never another exercise's stamped entry.
-      log.filter(e=> e.date !== selectedLogDate && (e.n == null || e.n === exerciseName)).forEach(e=>{
+      log.filter(e=> e.date !== selectedLogDate && (e.n == null || canonicalExName(e.n) === canonical)).forEach(e=>{
         if(!best || new Date(e.date+'T00:00:00') > new Date(best.date+'T00:00:00')){
           best = e; bestProgram = loc.program;
         }
@@ -29314,7 +29340,7 @@ async function renderWorkout(){
   // warmed, later exercises (position 2+) never show a ramp.
 
   // For any slot with no history of its own yet, pre-fetch the most recent
-  // full session logged for this same exercise name anywhere else in the
+  // full session logged for this same exercise (canonical name) anywhere else in the
   // app — most commonly a different program (switch from Strength & Size to
   // Powerbuilding, and Back Squat's real history should still show up, not
   // look brand new just because the program changed). Powers the
@@ -42290,7 +42316,8 @@ async function renderStrengthContext(){
 function groupCorpusByExercise(corpus){
   const byName = new Map();
   for(const entry of corpus){
-    const name = entry.exDef && entry.exDef.name;
+    // v3.549 (BL-54): Back Squat and Squat are one group, named Squat.
+    const name = canonicalExName(entry.exDef && entry.exDef.name);
     if(!name) continue;
     const label = (entry.parsed && entry.parsed.dayLabel) || '';
     let g = byName.get(name);

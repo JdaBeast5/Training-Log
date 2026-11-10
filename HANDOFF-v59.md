@@ -1174,3 +1174,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `yearRecapYearFor`, `yearRecapFrom` (pure), `computeYearRecap`, `getYearRecapInsight` (1 Dec–15 Jan, ≥ 8 training dates, `recap-<year>-dismissed`), `yearRecapCard`, `shareYearRecapCard`; `isLoggedSet` shared with the week card. Row between deficit and cycle; Share hidden on medical; Hide has Undo.
 - **Test:** `test-year-recap.js` (9 cases). Sabotage-checked. 216/216.
 - **For 06b:** a training date = in activity-dates AND a logged set that day. Any new Priorities getter must be added to the two all-getter stub suites.
+
+## Addendum 73: BL-54 (v3.549, PR #124, 2026-11-10)
+- **What:** `EXERCISE_CANONICAL` + `canonicalExName` (hasOwnProperty) in `groupCorpusByExercise`, `getExerciseLocationIndex` (keyed by canonical) and `getFallbackPriorEntry` (canonical query and stamp check).
+- **Test:** +4 cross-program-history, +2 pr-timeline. Sabotage-checked. 216/216.
+- **Warning:** any suite extracting those three functions needs `EXERCISE_CANONICAL` and `canonicalExName` in its chunks. Index lookups must use `canonicalExName(name)`.

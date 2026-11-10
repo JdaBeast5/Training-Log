@@ -1698,7 +1698,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Risk:** PR timelines merge. A heavier Back Squat PR from the Olympic program now counts for Squat, which is right for the same bar.
 - **Fold-in (2026-11-08):** line numbers moved to v3.518; the re-pin was found. Placed after MKT-06a (slot 19a), so the Year in Lifting deadline isn't pushed back; MKT-06b gets the merged names.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines and slot counts re-grepped; `test-watersports-program.js` added to the suites to run. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.549, PR #124). Flagged: Farmer's Carry group mixes yd, s and (Hyrox) m; live PR badge stays per slot; EXERCISE_SUBS still offers alias swaps; BALANCE_LIFTS keeps its own aliases; the per-row history sheet is per slot.
 
 ### BL-55: Cardio rows show a distance field only when distance is the measure, and it never blocks a finished set (D-5)
 - **Why:**

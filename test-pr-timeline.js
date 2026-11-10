@@ -11,7 +11,7 @@
 // HANDOFF-v3 §2), so reconstructAllPRs, readExCorpus, parseExKey, and
 // groupCorpusByExercise are all the REAL extracted source, only storage is
 // faked.
-const { readIndexSource, extractFunction, runSandboxAsync, makeRunner } = require('./testHelpers.js');
+const { readIndexSource, extractFunction, extractConst, runSandboxAsync, makeRunner } = require('./testHelpers.js');
 
 const src = readIndexSource();
 
@@ -31,6 +31,7 @@ function buildChunks(){
     extractFunction(src, 'isMissedSet'), // v3.537 (BL-77)
     extractFunction(src, 'topSetOf'),
     extractFunction(src, 'estimated1RM'),
+    extractConst(src, 'EXERCISE_CANONICAL'), extractFunction(src, 'canonicalExName'), // v3.549 (BL-54)
     extractFunction(src, 'groupCorpusByExercise'),
     `var exCorpusCache = null, exCorpusCacheGen = -1, exCorpusInflight = null, exCorpusGen = 0;`,
     extractFunction(src, 'readExCorpus'),
@@ -122,6 +123,38 @@ test('single-program timeline: weight PRs, a standalone strength PR, and a non-P
   assert.strictEqual(jan22.type, 'strength', '190x8 does not beat the 205 weight record, so this must be a strength PR, not a weight PR');
   assert.strictEqual(jan22.weight, 190);
   assert.strictEqual(jan22.e1rm, 241);
+});
+
+// v3.549 (BL-54): the real groupCorpusByExercise over corpus entries shaped
+// like readExCorpus's. Sabotage: empty EXERCISE_CANONICAL and criterion 1 fails.
+function groupWith(corpus, emptyMap){
+  const chunks = [
+    emptyMap ? 'const EXERCISE_CANONICAL = {};' : extractConst(src, 'EXERCISE_CANONICAL'),
+    extractFunction(src, 'canonicalExName'), extractFunction(src, 'groupCorpusByExercise'),
+  ];
+  return runSandboxAsync(chunks, `__capture.push(groupCorpusByExercise(${JSON.stringify(corpus)}));`).then(r => r[0]);
+}
+test('BL-54 criterion 1: one Back Squat entry (oly) and one Squat entry (strength) make one group named Squat, with 2 entries and both day labels', async (assert)=>{
+  const corpus = [
+    {exDef: {name: 'Back Squat'}, parsed: {dayLabel: 'Olympic Weightlifting · Day 4'}, log: [{date: '2026-01-05', sets: [{weight: 205, reps: 3}]}]},
+    {exDef: {name: 'Squat'}, parsed: {dayLabel: 'Strength & Size · Day 2'}, log: [{date: '2026-01-09', sets: [{weight: 225, reps: 5}]}]},
+  ];
+  const groups = await groupWith(corpus);
+  assert.strictEqual(groups.length, 1);
+  assert.strictEqual(groups[0].name, 'Squat');
+  assert.strictEqual(groups[0].log.length, 2);
+  assert.deepStrictEqual([...groups[0].labels].sort(), ['Olympic Weightlifting · Day 4', 'Strength & Size · Day 2']);
+  assert.deepStrictEqual(groups[0].entryLabels, ['Olympic Weightlifting · Day 4', 'Strength & Size · Day 2'], 'each entry keeps where it happened');
+});
+test('BL-54 criterion 3: without aliased names the output is identical to the map being empty (today)', async (assert)=>{
+  const corpus = [
+    {exDef: {name: 'Squat'}, parsed: {dayLabel: 'A'}, log: [{date: '2026-01-05', sets: [{weight: 205, reps: 3}]}]},
+    {exDef: {name: 'Deadlift'}, parsed: {dayLabel: 'B'}, log: [{date: '2026-01-06', sets: [{weight: 315, reps: 3}]}, {date: '2026-01-02', sets: [{weight: 305, reps: 3}]}]},
+    {exDef: {name: 'Squat'}, parsed: {dayLabel: 'C'}, log: [{date: '2026-01-05', sets: [{weight: 205, reps: 3}]}]},
+  ];
+  assert.deepStrictEqual(await groupWith(corpus), await groupWith(corpus, true));
+  const aliased = [{...corpus[0], exDef: {name: 'Back Squat'}}, corpus[2]];
+  assert.notDeepStrictEqual(await groupWith(aliased), await groupWith(aliased, true), 'anchor: the map does change an aliased corpus');
 });
 
 run();
