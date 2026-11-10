@@ -66,4 +66,56 @@ test('REAL invocation (v3.371): a chat that is only a no-key notice and a questi
   assert.deepStrictEqual(msgs.map(m => m.role), ['user', 'user']);
 });
 
+// ---- v3.542 (BL-65): the coach's volume line matches the program gate.
+// Real invocation of goalVolumeContextLine with the real goalVolumeAdjustment,
+// volumeModifiersApply, VOLUME_MODIFIER_PROGRAMS and isCustomProgramKey.
+const { extractConst } = require('./testHelpers.js');
+const lineOf = (goal, program) => runSandbox([extractConst(src, 'VOLUME_MODIFIER_PROGRAMS'), extractConst(src, 'CUSTOM_PROGRAM_PREFIX'),
+  ...['isCustomProgramKey', 'volumeModifiersApply', 'goalVolumeAdjustment', 'goalVolumeContextLine'].map(f => extractFunction(src, f))],
+  `__capture.push(goalVolumeContextLine(${JSON.stringify(goal)}, ${JSON.stringify(program)}));`)[0];
+// v3.518's lines, copied as the snapshot.
+const HYP_V3518 = 'Training volume: the app is adding one set per exercise to their sessions because their goal is muscle gain (ACSM 2026 guidance — hypertrophy is driven mainly by weekly volume, ~10+ sets per muscle group). Factor that in rather than suggesting they add more volume on top without reason.';
+const LOSE_V3518 = "Training volume: deliberately left unchanged despite the deficit. Cutting training volume while eating less is the common instinct and the evidence points the other way — maintaining the stimulus is what protects lean mass. Don't advise reducing volume just because they're cutting.";
+
+test('BL-65 criterion 1: on a gated program (oly, medical, climbing) the line says the program keeps its written sets, never "adding one set"', (assert)=>{
+  for(const [g, p] of [['gain', 'oly'], ['gain', 'medical'], ['performance', 'climbing'], ['leanbulk', 'running']]){
+    const l = lineOf(g, p);
+    assert.match(l, /keeps its written set counts/, g + '/' + p);
+    assert.doesNotMatch(l, /adding one set|capping|caps compound/, g + '/' + p);
+  }
+});
+
+test('BL-65 criterion 2: gain on Strength & Size, and on a custom program, is byte-identical to v3.518', (assert)=>{
+  assert.strictEqual(lineOf('gain', 'strength'), HYP_V3518);
+  assert.strictEqual(lineOf('gain', 'custom:abc'), HYP_V3518);
+});
+
+test('BL-65 criterion 3: performance on Strength & Size names the hypertrophy-range cap and that heavy work keeps its sets', (assert)=>{
+  const l = lineOf('performance', 'strength');
+  assert.match(l, /caps compound lifts prescribed above about 5 reps at 3 working sets/);
+  assert.match(l, /Heavy work \(about 5 reps or fewer\) keeps its written sets/);
+  // Review fix: on Powerlifting and Powerbuilding nothing is capped, so no cap is described.
+  for(const p of ['powerlifting', 'powerbuilding']){
+    const pl = lineOf('performance', p);
+    assert.match(pl, /keeps every written set count/, p);
+    assert.doesNotMatch(pl, /caps compound/, p);
+  }
+});
+
+test('BL-65 criterion 4: lose and recomp equal v3.518 on any program; maintain is empty', (assert)=>{
+  for(const p of ['strength', 'oly', 'medical', 'custom:x']){
+    assert.strictEqual(lineOf('lose', p), LOSE_V3518, p);
+    assert.strictEqual(lineOf('recomp', p), LOSE_V3518, p);
+  }
+  assert.strictEqual(lineOf('maintain', 'strength'), '');
+});
+
+test('BL-65 criterion 5: buildCoachChatContext makes exactly one goalVolumeContextLine call, with activeProgram, and has no volume literal of its own (comments stripped)', (assert)=>{
+  const body = extractFunction(src, 'buildCoachChatContext').split('\n').map(l => l.replace(/\/\/.*$/, '')).join('\n');
+  assert.strictEqual((body.match(/goalVolumeContextLine\(/g) || []).length, 1);
+  assert.strictEqual((body.match(/goalVolumeContextLine\(userProfile\?\.goal, activeProgram\)/g) || []).length, 1);
+  assert.doesNotMatch(body, /adding one set/);
+  assert.doesNotMatch(body, /goalVolumeAdjustment\(/);
+});
+
 run();
