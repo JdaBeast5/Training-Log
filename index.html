@@ -7622,7 +7622,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.535';
+const APP_VERSION = '3.536';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9043,6 +9043,9 @@ const WHATS_NEW = {
   ]},
   '3.535': { headline: 'Suggestions use the right exercise', points: [
     'Each set you log now records which exercise it was. Weight suggestions and progress tips only use that exercise\'s own sets, so a different number of training days no longer mixes, say, squat numbers into an incline press. Your full history still shows everything.',
+  ]},
+  '3.536': { headline: 'Medical plans count in your records', points: [
+    'Sets logged on the medical, prenatal, postpartum and rehab plans now show in your PRs, exercise history and weekly volume. Before, they were saved but left out of those views. Lifts logged on a watersports plan now also show as your last session when the same lift comes up on another plan.',
   ]},
 };
 
@@ -27193,6 +27196,7 @@ function exKeyForLocation(loc){
   if(loc.program === 'combat') return `ex:combat:${loc.style}:${loc.dayId}:${loc.idx}`;
   if(loc.program === 'cycling') return `ex:cycling:${loc.style}:${loc.dayId}:${loc.idx}`;
   if(loc.program === 'medical') return `ex:medical:${loc.style}:${loc.dayId}:${loc.idx}`;
+  if(loc.program === 'watersports') return `ex:watersports:${loc.style}:${loc.dayId}:${loc.idx}`; // v3.536 (BL-53)
   return `ex:${loc.program}:${loc.dayId}:${loc.idx}`;
 }
 
@@ -41228,37 +41232,20 @@ function parseExKey(key){
   const parts = key.split(':');
   if(parts.length < 4) return null;
   const program = parts[1];
-  if(program === 'combat' && parts.length >= 5){
+  // Programs whose keys carry a style segment (exKey): one rule for all of
+  // them. v3.536 (BL-53): medical joins, so medical, prenatal, postpartum and
+  // rehab logs reach PRs, History and volume.
+  // Read lazily, so only the table for the key's own program is touched.
+  const STYLE_TABLES = {combat: ()=> COMBAT_STYLES, cycling: ()=> CYCLING_STYLES, watersports: ()=> WATERSPORTS_STYLES, medical: ()=> MEDICAL_STYLES};
+  if(STYLE_TABLES[program] && parts.length >= 5){
     const style = parts[2], dayId = parts[3], idx = Number(parts[4]);
-    const styleDef = COMBAT_STYLES[style];
+    const styleDef = STYLE_TABLES[program]()[style];
     const dayDef = styleDef && styleDef.days[dayId];
     if(!dayDef || !dayDef.exercises || !dayDef.exercises[idx]) return null;
     return {
       program, dayId, idx,
       exDef: dayDef.exercises[idx],
-      dayLabel: `${programs.combat.label} (${styleDef.label}) · ${dayDef.label}`,
-    };
-  }
-  if(program === 'cycling' && parts.length >= 5){
-    const style = parts[2], dayId = parts[3], idx = Number(parts[4]);
-    const styleDef = CYCLING_STYLES[style];
-    const dayDef = styleDef && styleDef.days[dayId];
-    if(!dayDef || !dayDef.exercises || !dayDef.exercises[idx]) return null;
-    return {
-      program, dayId, idx,
-      exDef: dayDef.exercises[idx],
-      dayLabel: `${programs.cycling.label} (${styleDef.label}) · ${dayDef.label}`,
-    };
-  }
-  if(program === 'watersports' && parts.length >= 5){
-    const style = parts[2], dayId = parts[3], idx = Number(parts[4]);
-    const styleDef = WATERSPORTS_STYLES[style];
-    const dayDef = styleDef && styleDef.days[dayId];
-    if(!dayDef || !dayDef.exercises || !dayDef.exercises[idx]) return null;
-    return {
-      program, dayId, idx,
-      exDef: dayDef.exercises[idx],
-      dayLabel: `${programs.watersports.label} (${styleDef.label}) · ${dayDef.label}`,
+      dayLabel: `${(programs[program] || {}).label || program} (${styleDef.label}) · ${dayDef.label}`,
     };
   }
   const dayId = parts[2], idx = Number(parts[3]);

@@ -1634,7 +1634,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Files:** `index.html` (40977–41050, 27117–27122), `sw.js`, the test. **Guards (no re-pin expected):** `test-pr-timeline.js`, `test-pr-timeline-class-naming.js`, `test-fetch-day-statuses.js`, `test-watersports-program.js` (its line 336 parses a watersports key) and `test-cross-program-history.js` (the only suite that extracts `exKeyForLocation`).
 - **Risk:** medical users will now see their logs in the PR and volume views. That's intended, and the What's New line says so.
 - **Fold-in (2026-11-08):** line numbers moved to v3.518. Both gaps re-confirmed in the source.
-- **Status:** ready
+- **Status:** done (v3.536, PR #111). parseExKey's style branches consolidated into one lazy table. Criterion 1's example key moved: Seated Cable Row is `hypertension:d2:2` at v3.535.
 
 ### BL-77: A set logged with 0 reps is a miss, not a made lift (pulled forward from BL-42)
 - **Why:**
