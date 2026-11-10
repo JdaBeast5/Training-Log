@@ -1938,7 +1938,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Risk:** how much the session-length cap trims changes for every program. Placed with BL-55 early in Phase 1 (slot 13d).
 - **Fold-in (2026-11-08):** line numbers moved to v3.518. Criterion 4 was rewritten, because the suite it named tests layout, not the cap. The calorie re-pin was found.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; still no suite extracts `applySessionLengthLimit`, `unitMinutes` or `totalMinutesForUnits`. Scope unchanged.
-- **Status:** ready
+- **Status:** needs-owner (2026-11-10 batch run): criteria 2 and 3 conflict on the authored data. Counting rest after every set (today's model) plus rep time and the warm-up allowance: swim 17.75 ✓, days under 0.6× 4.9% ✓, Strength d1 69 vs ~55 (+25%) ✗. Counting rest only BETWEEN sets (as the rounds branch does): Strength d1 54 ✓ but 11.3% of days under 0.6× ✗ (short mobility and couples days, whose authored minutes include warm-up/cool-down the exercise list doesn't show). **Recommendation:** rest between sets, and relax criterion 3 to "under 12%" (or measure it on lifting and cardio days only). Built work saved for reuse.
 
 ### BL-64: Cue contradictions (C-4)
 - **Why:** these cues contradict the app's own squat cues, or the evidence:
