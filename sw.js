@@ -192,7 +192,7 @@
 // background/border/gradient rgba() literals (red/green/orange/teal/purple).
 // Purely internal (same computed colors); doesn't touch this file directly,
 // but the version still has to move.
-const VERSION = '3.545';
+const VERSION = '3.546';
 const CACHE = 'training-log-v' + VERSION;
 
 // index.html is the entire app; the rest is shell metadata. Everything else the
@@ -203,6 +203,7 @@ const CACHE = 'training-log-v' + VERSION;
 // they ARE precached now, as optional entries: a missing font file degrades
 // the type to the system face, it must not block an update.
 // v3.276: the faces are now Geist + Geist Mono (variable, one file each).
+// v3.546 (UX-02): plus Archivo, the display face (variable, one file).
 // SPLIT INTO ESSENTIAL AND OPTIONAL, and this distinction is the whole point.
 //
 // cache.addAll() is atomic: one 404 rejects the entire promise, the install
@@ -230,6 +231,7 @@ const PRECACHE_OPTIONAL = [
   './apple-touch-icon-152.png',
   './fonts/geist-latin-wght-normal.woff2',
   './fonts/geist-mono-latin-wght-normal.woff2',
+  './fonts/archivo-latin-wdth-wght-v1.woff2',
 ];
 
 // v3.514: the 3D exercise demos (v3.513) were removed, owner's call. Their

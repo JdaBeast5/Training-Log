@@ -1159,3 +1159,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `weekShareTrainingStats(weekStartKey)` counts the week's PRs and logged sets; the week card's third row is PRs THIS WEEK, else SETS, else none. Sleep, weight and intake never reach the card; the archived weekStats is unchanged.
 - **Test:** `test-share-card-privacy.js` (4 cases). Sabotage-checked. 214/214.
 - **Flagged:** a first-ever lift counts as a PR (`reconstructAllPRs`), relevant to MKT-07.
+
+## Addendum 70: UX-02 (v3.546, PR #121, 2026-11-10)
+- **What:** `fonts/archivo-latin-wdth-wght-v1.woff2` + `OFL-Archivo.txt`; one Archivo `@font-face` (weight 100-900, stretch 62-125%, swap, latin range); `--font-display`; optional precache. No preload; nothing uses it yet.
+- **Test:** `test-self-hosted-fonts.js` +4. Sabotage-checked. 214/214. Offline Playwright check passed.
+- **Flagged:** every release re-downloads optional precache entries (fonts ~150 KB).

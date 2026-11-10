@@ -36,6 +36,16 @@
     src:url(./fonts/geist-mono-latin-wght-normal.woff2) format('woff2');
     unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
   }
+  /* v3.546 (UX-02, owner D2): Archivo, the display face (cover numeral,
+     headlines, share cards), condensed through its width axis. Variable in
+     weight and width; latin subset, OFL (fonts/OFL-Archivo.txt). Precached as
+     an optional entry like Geist; not preloaded, since nothing uses it until
+     UX-03 and MKT-03 (Geist at 800 is the fallback). */
+  @font-face{
+    font-family:'Archivo'; font-style:normal; font-weight:100 900; font-stretch:62% 125%; font-display:swap;
+    src:url(./fonts/archivo-latin-wdth-wght-v1.woff2) format('woff2');
+    unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+  }
   /* [STABILIZATION PHASE E] Checked: the ~384 rgba(...) literals scattered
      through this stylesheet, at first glance scattered hand-written alpha
      variants, are actually all alpha-blends of the SAME already-named base
@@ -66,6 +76,7 @@
        to match everything already around them, same intent as the rest of :root. */
     color-scheme:dark;
     --font-sans:'Geist',-apple-system,BlinkMacSystemFont,sans-serif;
+    --font-display:'Archivo','Geist',-apple-system,BlinkMacSystemFont,sans-serif;
     --font-mono:'Geist Mono',ui-monospace,monospace;
     --bg:#050507;
     /* [GLASS & GLOW, v3.286] The owner-chosen direction (concept A): deep
@@ -7689,7 +7700,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.545';
+const APP_VERSION = '3.546';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9140,6 +9151,9 @@ const WHATS_NEW = {
   ]},
   '3.545': { headline: 'Week cards keep your body data private', points: [
     'The card you share when you finish a week no longer shows your average weight, food intake or sleep. It shows your workouts, your program and your PRs this week (or your sets, if there were no PRs). Your saved week still keeps those numbers for you.',
+  ]},
+  '3.546': { headline: 'A display typeface for what comes next', points: [
+    'The app now carries Archivo, the typeface its big numbers and share cards will use. It downloads once and works offline. Nothing looks different yet.',
   ]},
 };
 

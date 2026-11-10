@@ -3463,7 +3463,7 @@ Ready items are listed in build order, then needs-owner items.
 - **Alignment note (2026-11-07):** sequenced at roadmap slot 16, **before MKT-03**, so the Year in Lifting cards and the app share one typeface from the start (design-engineer).
 - **Spec refresh (2026-11-08):** approved by the owner (D2, 2026-11-07: "Archivo before cards"), and CLAUDE.md's "no new runtime files without the owner's OK" is satisfied by that answer. Caching and test file changed to match the Geist precedent and the existing font test; no change to what ships or what the owner sees.
 - **Spec refresh 2 (2026-11-09, against v3.527):** nothing moved: the preload (27), the `@font-face` rules (29–38), `--font-sans` (68) and `sw.js` `PRECACHE_OPTIONAL` (222–233) are where this item says, and `tools/design/fonts/archivo-latin-wdth-wght.woff2` (90,104 bytes) and `OFL-Archivo.txt` exist. `test-self-hosted-fonts.js` lines 73, 120 and 126 are as cited.
-- **Status:** ready
+- **Status:** done (v3.546, PR #121). Flagged: optional precache entries (fonts) are re-fetched into each release's cache, about 150 KB per update now.
 
 ### UX-03: Flat ground everywhere: retire the halos, glass and gradient buttons
 - **Why:** the most "generated" parts of today's look are the blurred plate halos behind the header, the glass card fills with `backdrop-filter` (37 uses) and the gradient call-to-action buttons (`--cta-gradient-*`, 18 uses; the violet "Generate insights" and "Log set" buttons). Removing them app-wide in one version makes every screen coherent before any screen is rebuilt.
