@@ -1132,3 +1132,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `minRepsAtTop`/`topRpe` in `buildPastSessions`; increase needs every top-weight set at the top rep (one session at RPE <= 8, or two at <= 8.5/unlogged); badge, field and Analysis agree.
 - **Test:** `test-all-set-double-progression.js` (9 cases). Sabotage-checked. 210/210.
 - **Flagged:** one-session no-RPE badge; skipped sets vs prescribed count.
+
+## Addendum 64: UX-01 (v3.539, PR #114, 2026-11-10)
+- **What:** the v2 token vocabulary in both theme blocks, aliased to today's values, targets in comments; nothing reads them.
+- **Test:** `test-design-tokens-v2.js` (5 cases). Sabotage-checked. 211/211. Harness: only the footer version label differs.
+- **Warning for UX items:** switch spot inks to targets before using on/spot pairs.
