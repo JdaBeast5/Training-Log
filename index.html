@@ -7689,7 +7689,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.541';
+const APP_VERSION = '3.542';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9128,6 +9128,9 @@ const WHATS_NEW = {
   ]},
   '3.541': { headline: 'Performance goal keeps your heavy sets', points: [
     'With the performance goal, heavy low-rep lifts (about 5 reps or fewer, like 5×5 or 4×4-6) now keep all their written sets, and Powerlifting and Powerbuilding are never trimmed. Compound work in higher rep ranges is still capped at 3 sets.',
+  ]},
+  '3.542': { headline: 'The coach knows your real set counts', points: [
+    'The AI coach no longer assumes the app adds or caps sets because of your goal on programs where it doesn\'t, and it knows heavy lifts keep their sets under the performance goal.',
   ]},
 };
 
@@ -26853,6 +26856,31 @@ function goalVolumeAdjustment(goal){
   return null;  // lose / recomp / maintain — see the note above
 }
 
+// v3.542 (BL-65): the coach's "Training volume" context line, from the same
+// rules applyGoalVolume uses, so the coach never describes volume the person
+// doesn't see. Since BL-01 only the four lifting programs and custom programs
+// take goal-based sets; since BL-07 the performance cap spares heavy work and
+// powerlifting/powerbuilding. Returns '' when there is nothing to say.
+function goalVolumeContextLine(goal, program){
+  const adj = goalVolumeAdjustment(goal);
+  if(adj && !volumeModifiersApply(program)){
+    return `Training volume: this program keeps its written set counts; the app doesn't add or cap sets by goal here. Don't assume extra goal volume.`;
+  }
+  if(adj && adj.kind === 'hypertrophy'){
+    return `Training volume: the app is adding one set per exercise to their sessions because their goal is muscle gain (ACSM 2026 guidance — hypertrophy is driven mainly by weekly volume, ~10+ sets per muscle group). Factor that in rather than suggesting they add more volume on top without reason.`;
+  }
+  if(adj && adj.kind === 'strength' && (program === 'powerlifting' || program === 'powerbuilding')){
+    return `Training volume: this program keeps every written set count for the performance goal (its heavy volume is the design); the app doesn't cap sets here.`;
+  }
+  if(adj && adj.kind === 'strength'){
+    return `Training volume: because their goal is performance/strength, the app caps compound lifts prescribed above about 5 reps at 3 working sets (ACSM 2026 guidance — strength is the heavier, lower-volume prescription at >=80% 1RM). Heavy work (about 5 reps or fewer) keeps its written sets. Accessory work is untouched.`;
+  }
+  if(goal === 'lose' || goal === 'recomp'){
+    return `Training volume: deliberately left unchanged despite the deficit. Cutting training volume while eating less is the common instinct and the evidence points the other way — maintaining the stimulus is what protects lean mass. Don't advise reducing volume just because they're cutting.`;
+  }
+  return '';
+}
+
 function applyGoalVolume(exercises, goal, program){
   // v3.518 (BL-01): only the four lifting programs, and custom programs,
   // take goal-based sets. See VOLUME_MODIFIER_PROGRAMS.
@@ -43269,16 +43297,7 @@ async function buildCoachChatContext(){
   // own read of them, so it could contradict a warning the person is
   // looking at on the Today tab in the same moment.
   let volumeLine = '';
-  try{
-    const adj = goalVolumeAdjustment(userProfile?.goal);
-    if(adj && adj.kind === 'hypertrophy'){
-      volumeLine = `Training volume: the app is adding one set per exercise to their sessions because their goal is muscle gain (ACSM 2026 guidance — hypertrophy is driven mainly by weekly volume, ~10+ sets per muscle group). Factor that in rather than suggesting they add more volume on top without reason.`;
-    } else if(adj && adj.kind === 'strength'){
-      volumeLine = `Training volume: the app is capping compound lifts at 3 working sets because their goal is performance/strength (ACSM 2026 guidance — strength is the heavier, lower-volume prescription at >=80% 1RM). Accessory work is untouched.`;
-    } else if(userProfile?.goal === 'lose' || userProfile?.goal === 'recomp'){
-      volumeLine = `Training volume: deliberately left unchanged despite the deficit. Cutting training volume while eating less is the common instinct and the evidence points the other way — maintaining the stimulus is what protects lean mass. Don't advise reducing volume just because they're cutting.`;
-    }
-  }catch(e){}
+  try{ volumeLine = goalVolumeContextLine(userProfile?.goal, activeProgram); }catch(e){} // v3.542 (BL-65)
 
   let deficitLine = '';
   try{
