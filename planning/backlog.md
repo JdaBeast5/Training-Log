@@ -501,7 +501,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (26710–26751), `sw.js`, `test-volume-modifier-gate.js`. No other suite extracts `applyGoalVolume` (re-checked at v3.527). `test-lb-per-kg-consolidation.js` extracts `getRepRangeTier` but isn't affected.
 - **Risk:** depends on BL-01 (done, v3.518). Strength & Size users on goal performance keep more sets on their heavy lifts; the What's New line says so.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.541, PR #116).
 
 ### BL-08: Double progression requires every working set at the top of the range (H-2)
 - **Why:**
