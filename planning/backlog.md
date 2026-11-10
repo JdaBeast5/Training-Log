@@ -865,7 +865,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (Today's priorities near 14646–14735; 27733–27782 read only; 30375–30396), `sw.js`, `test-manual-deload-override.js`. **Re-pins if the row is a new getter in `renderTodayInsights` (14672–14676):** `test-cycle-phase-nutrition-insight.js` (its hand-written stubs, 125–140) and `test-supplement-condition-cycle-nudge.js` (230–245) define every other getter by name and run the real renderer, so each needs one `async function get…Insight(){ return null; }` line; name both in the PR. Guards: `test-today-priorities.js` (it builds its stubs from the real renderer's getter calls, line 30, so a new getter is stubbed automatically; the row also needs a place in the `order` list, 14704), `test-mesocycle-phase-tag.js` (reads `manualDeloadEnabled`), `test-today-emoji-free.js` (its getter list, 25–26, is a subset; optional to extend).
 - **Risk:** Today priorities ordering. Guarded by `test-today-priorities.js` and `test-manual-deload-override.js`.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; `getCurrentTrendStatus` named as the source, the shared toggle body asked for (no duplicate), criteria made real invocations, and the priority-getter suites that list every getter found. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.554, PR #129).
 
 ### BL-24: Increments scale with strength (M-3)
 - **Why:** `CATEGORY_LOAD_INCREMENT` (27580) gives a fixed 10 lb on squat, hinge and oly. That's +7.4% on a 135 lb squat and +2.2% on a 455 lb one. Olympic lifts on a 10 lb Epley-based double progression scored **F** (audit scorecard) [PRAC].

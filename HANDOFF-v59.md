@@ -1195,3 +1195,7 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 
 ## Addendum 77: BL-09 (v3.553, PR #128, 2026-11-10)
 - **What:** `computeReadiness({..., rpeTarget})` flags RPE ≥ target + 1 or ≥ 9.5; `getReadinessInsight` passes `rpeTargetFor(week, deload, program)`. Test: `test-readiness-rpe-target.js`. 218/218.
+
+## Addendum 78: BL-23 (v3.554, PR #129, 2026-11-10)
+- **What:** `getEarlyDeloadInsight` (row under readiness), `setManualDeload(on)` shared by the Settings toggle and the button. 218/218.
+- **Note:** `test-weekly-recap.js` pins the Priorities `order` list prefix; new rows near the top need it re-pinned.
