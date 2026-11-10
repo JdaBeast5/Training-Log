@@ -1169,3 +1169,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `buildShareCardBlob(card, format)`, story 1080×1920 by default (flat ground, day spot ink via `dayInk`, Archivo condensed, Sash + name foot); `'square'` keeps the old card with the mark in its footer. `SHARE_CARD_INKS` (target hexes), `shareCardFootRow`, `drawSashMark`, `drawStoryCard`, `appSlug()`, `preloadShareCardFont`. Share objects carry `kind` and `dayId` (captured when the moment happens).
 - **Test:** `test-share-card-format.js` (11 cases). Sabotage-checked. 215/215.
 - **Warnings:** `dayInk` now has one caller (test-day-ink pins 2). Canvas stretch must go in the font shorthand (Safari has no `fontStretch`). Keep `kind` last in the share objects: `test-glyphs.js` matches `{icon:'…', headline:`.
+
+## Addendum 72: MKT-06a (v3.548, PR #123, 2026-11-10)
+- **What:** `yearRecapYearFor`, `yearRecapFrom` (pure), `computeYearRecap`, `getYearRecapInsight` (1 Dec–15 Jan, ≥ 8 training dates, `recap-<year>-dismissed`), `yearRecapCard`, `shareYearRecapCard`; `isLoggedSet` shared with the week card. Row between deficit and cycle; Share hidden on medical; Hide has Undo.
+- **Test:** `test-year-recap.js` (9 cases). Sabotage-checked. 216/216.
+- **For 06b:** a training date = in activity-dates AND a logged set that day. Any new Priorities getter must be added to the two all-getter stub suites.

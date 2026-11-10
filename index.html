@@ -1051,6 +1051,12 @@
     border-radius:var(--radius-md); font-size:12.5px; line-height:1.5; color:var(--text); margin-bottom:8px;
   }
   .today-insight-row:last-child{margin-bottom:0;}
+  /* v3.548 (MKT-06a): the year recap row's two buttons. */
+  .year-recap-actions{display:flex; gap:8px; margin-top:8px;}
+  .year-recap-btn{
+    min-height:40px; padding:0 14px; border-radius:var(--radius-md); border:1px solid var(--line-bright);
+    background:var(--surface2); color:var(--text); font:inherit; font-weight:600; font-size:13px;
+  }
   /* v3.383: each row is a swipe item. Spacing and corners move to the
      wrapper; the row's tint sits on an opaque surface (the swipe content must
      stay fully opaque, or the red layer behind it shows through). */
@@ -7700,7 +7706,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.547';
+const APP_VERSION = '3.548';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9161,6 +9167,10 @@ const WHATS_NEW = {
   '3.547': { headline: 'Share cards fit your stories', points: [
     'The card you share for a PR, a streak or a finished week is now story-sized, so Instagram and WhatsApp stories show it full screen instead of in a box.',
     'It is printed in the colour of the day you were on, with the Platestep mark beside the name, and the file is named for what it shows and the date.',
+  ]},
+  '3.548': { headline: 'Your year in lifting', points: [
+    'From 1 December to 15 January, if you trained on at least 8 days this year, Today\'s Priorities offers your year in lifting: your sessions and sets, with a story card to share. It\'s worked out on your phone, and it never shows your weight, food or sleep.',
+    'Tap Hide to put it away for the year.',
   ]},
 };
 
@@ -14806,16 +14816,106 @@ async function getWeeklyRecapInsight(){
   return `<b>Last week:</b> ${parts.join(' · ')}.`;
 }
 
+// v3.548 (MKT-06a): Year in Lifting, the computation, its Priorities row and
+// one summary card. From 1 December to 15 January, with at least 8 training
+// dates in the year, a row offers the year's card; "Hide" stores
+// recap-<year>-dismissed (window.storage). All on the device: training dates
+// from activity-dates, sets and load from the set history; no body, food or
+// health data. The card leads with sets; total load is computed but never
+// drawn (owner D15: tonnage rewards junk volume). MKT-06b adds the other cards.
+const YEAR_RECAP_MIN_DATES = 8;
+let yearRecapShown = null; // the recap the row last showed (its Share button uses it)
+
+// Which year's recap is in season on a date key: December shows this year's,
+// 1-15 January last year's, any other day none.
+function yearRecapYearFor(todayKey){
+  const [y, m, d] = String(todayKey).split('-').map(Number);
+  if(m === 12) return y;
+  if(m === 1 && d <= 15) return y - 1;
+  return null;
+}
+
+// Pure: sessions are the distinct training dates in the year (not calendar
+// days): a date in activity-dates with at least one logged set that day.
+// activity-dates alone also holds rest days marked done and days with only a
+// weight typed. Sets are logged sets (isLoggedSet); load is weight x reps over
+// sets with both, in stored pounds (computed for MKT-06b; never drawn, D15).
+function yearRecapFrom(year, dates, corpus){
+  const prefix = String(year) + '-';
+  const inYear = (d) => typeof d === 'string' && d.startsWith(prefix);
+  const setDates = new Set();
+  let sets = 0, load = 0;
+  for(const {log} of corpus || []){
+    for(const entry of log || []){
+      if(!entry || !inYear(entry.date)) continue;
+      for(const st of entry.sets || []){
+        if(!isLoggedSet(st)) continue;
+        sets++;
+        setDates.add(entry.date);
+        const w = Number(st.weight), r = Number(st.reps);
+        if(st.weight != null && st.reps != null && w > 0 && r > 0) load += w * r;
+      }
+    }
+  }
+  const sessions = new Set((dates || []).filter(d => inYear(d) && setDates.has(d))).size;
+  return {year: Number(year), sessions, sets, load: Math.round(load)};
+}
+
+async function computeYearRecap(year){
+  let dates = [], corpus = [];
+  try{
+    const res = await window.storage.get('activity-dates');
+    if(res && res.value) dates = JSON.parse(res.value);
+  }catch(e){}
+  try{ corpus = await readExCorpus(); }catch(e){}
+  return yearRecapFrom(year, dates, corpus);
+}
+
+async function getYearRecapInsight(){
+  const year = yearRecapYearFor(getTodayKey());
+  if(year == null) return null;
+  try{
+    const res = await window.storage.get(`recap-${year}-dismissed`);
+    if(res && res.value) return null;
+  }catch(e){}
+  const r = await computeYearRecap(year);
+  if(r.sessions < YEAR_RECAP_MIN_DATES) return null;
+  // Kept for the Share button, so a tap shares at once (iOS allows
+  // navigator.share only shortly after the tap), and the card's font starts
+  // loading now.
+  yearRecapShown = r;
+  if(activeProgram !== 'medical') preloadShareCardFont();
+  // No share button while a medical program is active (summit note).
+  const share = activeProgram === 'medical' ? ''
+    : `<button type="button" class="year-recap-btn" id="yearRecapShareBtn" data-year-recap-share="${year}">Share card</button>`;
+  return `<b>Your ${year} in lifting is ready.</b> ${r.sessions} sessions · ${r.sets.toLocaleString('en-US')} sets.`
+    + `<span class="year-recap-actions">${share}<button type="button" class="year-recap-btn" data-year-recap-hide="${year}">Hide</button></span>`;
+}
+
+// The year's summary story card (MKT-03's format): sets lead, then sessions.
+function yearRecapCard(r){
+  return {icon:'trophy', headline:`${r.year} IN LIFTING`, stats: [
+    {value: r.sets.toLocaleString('en-US'), label: 'SETS'},
+    {value: String(r.sessions), label: 'SESSIONS'},
+  ], kind:'year', dayId: activeDay};
+}
+
+async function shareYearRecapCard(year){
+  if(activeProgram === 'medical') return;
+  const r = (yearRecapShown && yearRecapShown.year === year) ? yearRecapShown : await computeYearRecap(year);
+  await shareCelebrationCard(yearRecapCard(r), 'yearRecapShareBtn');
+}
+
 async function renderTodayInsights(){
   const card = document.getElementById('todayInsightsCard');
   const el = document.getElementById('todayInsightsList');
   if(!card || !el) return;
 
-  const [cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge, weeklyRecap] = await Promise.all([
+  const [cycle, staleRegion, weighIn, waterPace, sessionHeadsUp, deficit, pregnancyHeat, backup, readiness, stackNudge, weeklyRecap, yearRecap] = await Promise.all([
     getCycleInsight(),
     getStaleRestingRegionInsight(), getWeighInReminderInsight(), getWaterPaceInsight(), getSessionHeadsUpInsight(),
     getDeficitGuardrailInsight(), getPregnancyHeatInsight(), getBackupReminderInsight(),
-    getReadinessInsight(), getFoundationalStackNudgeInsight(), getWeeklyRecapInsight(),
+    getReadinessInsight(), getFoundationalStackNudgeInsight(), getWeeklyRecapInsight(), getYearRecapInsight(),
   ]);
 
   // deficit sits second: under the session heads-up (which is about the next
@@ -14842,8 +14942,11 @@ async function renderTodayInsights(){
   // a separate cycleNutrition row naming the same phase a second time).
   // weeklyRecap (Mondays, v3.476) sits under the session heads-up: it looks
   // back where everything above it is about today, and above the nudges.
-  const rows = {pregnancyHeat, readiness, sessionHeadsUp, weeklyRecap, deficit, cycle, stackNudge, staleRegion, weighIn, waterPace, backup};
-  const order = ['pregnancyHeat', 'readiness', 'sessionHeadsUp', 'weeklyRecap', 'deficit', 'cycle', 'stackNudge', 'staleRegion', 'weighIn', 'waterPace', 'backup'];
+  // yearRecap (1 Dec-15 Jan, v3.548) sits under deficit: a look-back like
+  // weeklyRecap, kept below the one row about chronic under-eating and above
+  // the day-to-day nudges.
+  const rows = {pregnancyHeat, readiness, sessionHeadsUp, weeklyRecap, deficit, yearRecap, cycle, stackNudge, staleRegion, weighIn, waterPace, backup};
+  const order = ['pregnancyHeat', 'readiness', 'sessionHeadsUp', 'weeklyRecap', 'deficit', 'yearRecap', 'cycle', 'stackNudge', 'staleRegion', 'weighIn', 'waterPace', 'backup'];
   const hidden = await getHiddenPriorities();
   const items = order.filter(id => rows[id] && !hidden.includes(id));
   if(items.length === 0){
@@ -14858,6 +14961,20 @@ async function renderTodayInsights(){
   // workout below the fold; the order above already puts the one that
   // matters most first, and a safety row (pregnancyHeat) always leads.
   renderCollapsibleList(el, items.map(id => buildSwipeItem(`<div class="today-insight-row" data-priority="${id}">${rows[id]}</div>`)), 1, 'priorities');
+  // The year recap row's buttons: share the card, or hide it for the year.
+  const recapShare = el.querySelector('[data-year-recap-share]');
+  if(recapShare) recapShare.addEventListener('click', (e)=>{ e.stopPropagation(); shareYearRecapCard(Number(recapShare.dataset.yearRecapShare)); });
+  const recapHide = el.querySelector('[data-year-recap-hide]');
+  if(recapHide) recapHide.addEventListener('click', async (e)=>{
+    e.stopPropagation();
+    const key = `recap-${recapHide.dataset.yearRecapHide}-dismissed`;
+    try{ await window.storage.set(key, '1'); }catch(err){}
+    await renderTodayInsights();
+    showUndoToast(`Hidden for ${recapHide.dataset.yearRecapHide}`, async ()=>{
+      try{ await window.storage.delete(key); }catch(err){}
+      await renderTodayInsights();
+    });
+  });
   el.querySelectorAll('.swipe-item').forEach(item => {
     const id = item.querySelector('[data-priority]').dataset.priority;
     item.querySelector('.swipe-delete-bg').setAttribute('aria-label', 'Hide until tomorrow');
@@ -46175,6 +46292,10 @@ async function computeWeekStats(weekStartKey){
   return {avgWeight, workoutsCount, daysLogged, avgCal, avgPro, avgFat, avgCarb, avgWater, avgSleep};
 }
 
+// A set that was done: it has reps or a distance (a weight alone, or an empty
+// row, is not). The week card (MKT-02) and the year recap (MKT-06a) count by it.
+function isLoggedSet(st){ return !!st && (st.reps != null || st.distance != null); }
+
 // v3.545 (MKT-02): the week card's training numbers, from the existing
 // sources (no second implementation): PRs are reconstructAllPRs() events
 // dated in the week, sets are readExCorpus() sets logged in the week. A set
@@ -46189,7 +46310,7 @@ async function weekShareTrainingStats(weekStartKey){
     for(const {log} of await readExCorpus()){
       for(const entry of log || []){
         if(!inWeek(entry.date)) continue;
-        for(const st of entry.sets || []) if(st && (st.reps != null || st.distance != null)) sets++;
+        for(const st of entry.sets || []) if(isLoggedSet(st)) sets++;
       }
     }
   }catch(e){}
