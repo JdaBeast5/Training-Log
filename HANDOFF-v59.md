@@ -1179,3 +1179,8 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 - **What:** `EXERCISE_CANONICAL` + `canonicalExName` (hasOwnProperty) in `groupCorpusByExercise`, `getExerciseLocationIndex` (keyed by canonical) and `getFallbackPriorEntry` (canonical query and stamp check).
 - **Test:** +4 cross-program-history, +2 pr-timeline. Sabotage-checked. 216/216.
 - **Warning:** any suite extracting those three functions needs `EXERCISE_CANONICAL` and `canonicalExName` in its chunks. Index lookups must use `canonicalExName(name)`.
+
+## Addendum 74: BL-10 (v3.550, PR #125, 2026-11-10)
+- **What:** `RIR_TARGETS`, `targetRirLabel(ex, program, inDeload)`, `rirLabelHtml` (role img, aria-label = words) in `.ex-sets` after the prescription span; hidden in RPE mode. No label for unit-word counts, AMRAP, cardio, core, CARs/stretch/mobility/breathing names, unknown exercises.
+- **Test:** `test-rir-target-label.js` (7 cases). Sabotage-checked. 217/217.
+- **For UX-06a / UX-08 / BIZ-05:** read `targetRirLabel(...).words` for the plain-English cue; the speed short differs from the spec (owner may revert).

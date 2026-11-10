@@ -1299,6 +1299,13 @@
     white-space:nowrap;
     text-align:right;
   }
+  /* v3.550 (BL-10): the effort target, a second line under the sets. The
+     prescription stays the first span (.ex-sets > span is read elsewhere). */
+  .ex-rir{
+    display:block; font-family:var(--font-sans); font-size:11px; line-height:1.25; color:var(--text-muted); margin-top:2px;
+    /* Wraps instead of widening the cell, so the exercise name keeps its room. */
+    white-space:normal; max-width:68px; margin-left:auto;
+  }
   .ex-chevron{
     flex:0 0 auto; font-size:13px; color:var(--plate-blue); transition:transform 0.28s var(--ease-smooth); margin-left:6px;
   }
@@ -7706,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.549';
+const APP_VERSION = '3.550';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9174,6 +9181,10 @@ const WHATS_NEW = {
   ]},
   '3.549': { headline: 'One lift, one history', points: [
     'A few lifts went by two names in different programs: Back Squat and Squat, Flat Bench Press and Bench Press, Cable Row and Seated Cable Row, Farmers Carry (Heavy) and Farmer\'s Carry, Calf Raise and Standing Calf Raise. Exercise progress, the PR timeline and the "last time" you see in a new program now treat each pair as one lift, so switching programs no longer starts you from scratch.',
+  ]},
+  '3.550': { headline: 'An effort target on every exercise', points: [
+    'Under each exercise\'s sets you now see how hard to push: how many reps to keep in reserve (RIR) before failure. Heavy strength work stops 2\u20133 reps short, with the last set 1\u20132; other big lifts 1\u20133; smaller isolation lifts 0\u20132; jumps, throws, strikes and Olympic lifts stop well short and stay fast. Deload weeks, and Medical and Senior programs, keep 3\u20134 in reserve.',
+    'In RPE mode the RPE target on each set does this job instead. Stretches, mobility, core and timed work have no label.',
   ]},
 };
 
@@ -28275,6 +28286,58 @@ function getRepRangeTier(setsStr){
   return 'endurance';
 }
 
+// v3.550 (BL-10, audit H-5): the effort target for a prescription, the app's
+// one effort vocabulary (summit R7). {short, words}: short is the row label;
+// words is plain English, the row label's accessible name and what the cover
+// shows (UX-06a). Hypertrophy improves closer to failure while strength is
+// flat across RIR [ROB24]; failure isn't required [REF23]. Classes:
+//   speed work (oly, jump, throw, punch, kick): 3+ in reserve, kept fast;
+//   a deload week: 3-4 in reserve, as rpeTargetFor drops to the deload RPE;
+//   Medical or Senior: 3-4 RIR (the programs rpeTargetFor caps at RPE 7);
+//   strength tier (avg <= 5 reps): 2-3 RIR, the last set 1-2;
+//   other compound work: 1-3 RIR; isolation: 0-2 RIR.
+// No label without a plain rep count: a number followed by any unit word
+// (45s, 1.5min, 30yd, 10 steps, 8 breaths, 6 rounds), AMRAP, and every
+// cardio or core row, or a mobility move. 'core' holds real ab work but also stretches,
+// mobility, rehab, breathing and Pilates, where reps in reserve is the wrong
+// cue; an exercise with no known category gets none either.
+const RIR_TARGETS = {
+  speed: {short: '3+ RIR · fast', words: 'Stop 3+ reps short; speed over grind'},
+  deload: {short: '3–4 RIR · deload', words: 'Deload week: stop 3–4 reps short'},
+  clinical: {short: '3–4 RIR', words: 'Stop 3–4 reps short'},
+  strength: {short: '2–3 RIR (last set 1–2)', words: 'Stop 2–3 reps short; last set 1–2'},
+  compound: {short: '1–3 RIR', words: 'Stop 1–3 reps short'},
+  isolation: {short: '0–2 RIR', words: 'Stop 0–2 reps short'},
+};
+const RIR_SPEED_CATEGORIES = ['oly', 'jump', 'throw', 'punch', 'kick'];
+const RIR_NO_LABEL_CATEGORIES = ['cardio', 'core'];
+// Mobility filed under a lifting category (Shoulder CARs is 'shoulder').
+const RIR_NO_LABEL_NAME = /\bCARs\b|stretch|mobility|breathing/i;
+function targetRirLabel(ex, program, inDeload){
+  const sets = ex && ex.sets;
+  const tier = getRepRangeTier(sets);
+  if(!tier) return null;
+  // A count followed by a unit word is not a rep count ('reps' and 'each' are).
+  const unit = /×\s*\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?\s*([a-z]+)/i.exec(sets);
+  if(unit && !/^(?:reps?|each)$/i.test(unit[1])) return null;
+  const info = typeof exerciseInfo !== 'undefined' ? exerciseInfo[ex.name] : null;
+  const category = info && info.category;
+  if(!category || RIR_NO_LABEL_CATEGORIES.includes(category) || RIR_NO_LABEL_NAME.test(ex.name)) return null;
+  if(RIR_SPEED_CATEGORIES.includes(category)) return RIR_TARGETS.speed;
+  if(inDeload) return RIR_TARGETS.deload;
+  if(program === 'medical' || program === 'senior') return RIR_TARGETS.clinical;
+  if(tier === 'strength') return RIR_TARGETS.strength;
+  return COMPOUND_CATEGORIES.has(category) ? RIR_TARGETS.compound : RIR_TARGETS.isolation;
+}
+// The row's label markup: '' or one span showing short, read as words.
+// role="img" so VoiceOver reads the aria-label (the plain words), not the
+// visible RIR shorthand; a bare span's aria-label is ignored.
+function rirLabelHtml(ex, program, inDeload){
+  const t = targetRirLabel(ex, program, inDeload);
+  if(!t) return '';
+  return `<span class="ex-rir" role="img" aria-label="${escapeHtml(t.words)}">${escapeHtml(t.short)}</span>`;
+}
+
 function getDefaultRestSeconds(ex){
   const info = ex && exerciseInfo[ex.name];
   const isCompound = info && WARMUP_ELIGIBLE_CATEGORIES.includes(info.category);
@@ -29697,7 +29760,7 @@ async function renderWorkout(){
         <div class="ex-name-wrap">
           <div class="ex-name ${completed[i]?'done':''} ${hasSubs ? 'ex-name-swappable' : ''}">${escapeHtml(ex.name)}${swapIconHtml}${focusHtml}${subTagHtml}${ex.isCustom ? '<span class="super-tag custom-tag">Custom</span>' : ''}</div>
         </div>
-        <div class="ex-sets"><span class="${ex.__overridden ? 'ex-sets-overridden' : ''}" ${ex.__overridden ? 'title="You changed this from the program default"' : ''}>${escapeHtml(ex.sets)}</span></div>
+        <div class="ex-sets"><span class="${ex.__overridden ? 'ex-sets-overridden' : ''}" ${ex.__overridden ? 'title="You changed this from the program default"' : ''}>${escapeHtml(ex.sets)}</span>${loadSuggestionMode === 'rpe' ? '' : rirLabelHtml(ex, activeProgram, inDeloadWeek)}</div>
         ${ex.isCustom ? `<button class="ex-delete-custom-btn" aria-label="Remove custom exercise ${escapeHtml(ex.name)}">🗑️</button>` : ''}
         <span class="ex-chevron" aria-hidden="true">${icon('chevron')}</span>
     `;
