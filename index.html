@@ -7622,7 +7622,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.537';
+const APP_VERSION = '3.538';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9049,6 +9049,9 @@ const WHATS_NEW = {
   ]},
   '3.537': { headline: 'Missed lifts don\'t count as PRs', points: [
     'A set logged with 0 reps now counts as a miss: it no longer shows as a PR or your best lift. Your logged sets aren\'t changed.',
+  ]},
+  '3.538': { headline: 'Add weight when every set is there', points: [
+    'The app now suggests more weight only when every set you did at your top weight reached the top of the rep range, not just your best set. Sets of 6, 5, 4, 4 on a 4-6 range stay at that weight until all of them hit 6. Logging RPE helps: with all sets at the top at RPE 8 or easier, the progress tip says so after one session.',
   ]},
 };
 
@@ -27693,12 +27696,19 @@ function getLoadIncrement(category){
 // caller passing a log already filtered/sorted) so it never reacts to a set
 // you're mid-way through logging right now.
 function analyzeProgressionSignal(pastSessions, ex, category, program){
-  if(!pastSessions || pastSessions.length < 2) return null;
+  if(!pastSessions || pastSessions.length < 1) return null;
   const topRepTarget = parseTopRep(ex.sets);
   const bottomRepTarget = parseBottomRep(ex.sets);
   if(topRepTarget==null) return null;
 
   const [s0, s1, s2] = pastSessions; // s0 = most recent
+  // v3.538 (BL-08): every set at the top weight reached the top of the range.
+  // A session without minRepsAtTop (no weighted sets, or a hand-built record)
+  // never counts.
+  const allAtTop = (s)=> !!s && s.minRepsAtTop != null && s.minRepsAtTop >= topRepTarget;
+  const clinicalProgram = program === 'medical' || program === 'senior';
+  // With one session, only the non-clinical one-session increase below applies.
+  const twoSessions = !!s1;
 
   // Signal 1: deload — sustained near-max effort with no payoff, checked first
   // since it should override a plain "increase" reading from noisy data.
@@ -27716,8 +27726,8 @@ function analyzeProgressionSignal(pastSessions, ex, category, program){
 
   // Signal 2: decrease — reps dropped below the bottom of the rep range at
   // the same (or heavier) weight, i.e. the load has outpaced current recovery.
-  const sameOrHeavier = s0.weight!=null && s1.weight!=null && s0.weight >= s1.weight;
-  const repsFellBelowFloor = s0.reps!=null && bottomRepTarget!=null && s0.reps < bottomRepTarget && s1.reps >= bottomRepTarget;
+  const sameOrHeavier = twoSessions && s0.weight!=null && s1.weight!=null && s0.weight >= s1.weight;
+  const repsFellBelowFloor = twoSessions && s0.reps!=null && bottomRepTarget!=null && s0.reps < bottomRepTarget && s1.reps >= bottomRepTarget;
   if(sameOrHeavier && repsFellBelowFloor){
     const dropAmt = Math.max(getLoadIncrement(category), Math.round(s0.weight*0.075/2.5)*2.5);
     return {
@@ -27729,8 +27739,9 @@ function analyzeProgressionSignal(pastSessions, ex, category, program){
   // Signal 3: increase — double progression achieved. Top of the range hit
   // for 2 sessions straight at the same weight, without needing near-max
   // effort to get there.
-  const sameWeight = s0.weight!=null && s1.weight!=null && s0.weight === s1.weight;
-  const metTopBoth = s0.reps!=null && s1.reps!=null && s0.reps >= topRepTarget && s1.reps >= topRepTarget;
+  const sameWeight = twoSessions && s0.weight!=null && s1.weight!=null && s0.weight === s1.weight;
+  // v3.538 (BL-08): every working set, not just the top one, in both sessions.
+  const metTopBoth = allAtTop(s0) && allAtTop(s1);
 
   // v3.519 (BL-02, SAF-8, owner decision D12): the clinical load gate. On the
   // clinical plans and Senior, load rises only after two sessions at RPE 7 or
@@ -27740,8 +27751,8 @@ function analyzeProgressionSignal(pastSessions, ex, category, program){
   // names no number there (owner, 2026-11-08, option (a) on PR #65). With no
   // RPE logged in either session there's nothing to judge "easy" by, so it
   // asks instead of prescribing. Steps are in the display unit.
-  if(program === 'medical' || program === 'senior'){
-    if(!(sameWeight && metTopBoth)) return null;
+  if(clinicalProgram){
+    if(!(sameWeight && metTopBoth)) return null; // two sessions, always
     if(s0.avgRpe == null && s1.avgRpe == null){
       return {type:'increase', clinical:true, clinicalNoRpe:true, loadStep:null,
               message:'If both sessions felt comfortable, try the smallest jump.'};
@@ -27757,12 +27768,24 @@ function analyzeProgressionSignal(pastSessions, ex, category, program){
     };
   }
 
-  const rpeRoomToSpare = (s0.avgRpe==null || s0.avgRpe <= 8.5) && (s1.avgRpe==null || s1.avgRpe <= 8.5);
+  // v3.538 (BL-08): with RPE logged at 8 or easier, the most recent session
+  // alone decides (every set at the top). Otherwise the two-session rule, now
+  // with every set at the top in both: same weight, RPE 8.5 or easier or not
+  // logged (BL-02's criterion 10 keeps RPE 8.5 increasing).
+  const s0Rpe = s0.topRpe !== undefined ? s0.topRpe : s0.avgRpe; // the top-weight sets' RPE
+  if(allAtTop(s0) && s0Rpe != null && s0Rpe <= 8){
+    const bump = getLoadIncrement(category);
+    return {
+      type: 'increase',
+      message: `Every set hit ${topRepTarget}+ reps at ${fmtWeight(s0.weight)} with reps to spare — add ${fmtWeight(bump)} next time (double progression: all sets at the top of the range).`
+    };
+  }
+  const rpeRoomToSpare = twoSessions && (s0.avgRpe==null || s0.avgRpe <= 8.5) && (s1.avgRpe==null || s1.avgRpe <= 8.5);
   if(sameWeight && metTopBoth && rpeRoomToSpare){
     const bump = getLoadIncrement(category);
     return {
       type: 'increase',
-      message: `Hit ${topRepTarget}+ reps at ${fmtWeight(s0.weight)} for 2 sessions straight — add ${fmtWeight(bump)} next time (double-progression: you've outgrown this rep range at this weight).`
+      message: `Every set hit ${topRepTarget}+ reps at ${fmtWeight(s0.weight)} for 2 sessions straight — add ${fmtWeight(bump)} next time (double progression: you've outgrown this rep range at this weight).`
     };
   }
 
@@ -27781,7 +27804,16 @@ function buildPastSessions(log){
       if(!top) return null;
       const rpeSets = (e.sets||[]).filter(s=> s.rpe!=null);
       const avgRpe = rpeSets.length ? rpeSets.reduce((sum,s)=> sum+s.rpe, 0) / rpeSets.length : null;
-      return {date: e.date, weight: top.weight, reps: top.reps, avgRpe};
+      // v3.538 (BL-08): the lowest reps across the sets at the top weight. Double
+      // progression needs EVERY working set at the top of the range, not just the
+      // best one (6, 5, 4, 4 is not "done at this weight"). A miss counts as 0.
+      const atTop = (e.sets||[]).filter(s=> s.weight === top.weight && s.reps != null).map(s=> s.reps);
+      const minRepsAtTop = atTop.length ? Math.min(...atTop) : null;
+      // RPE of the top-weight sets only: easy back-off sets must not hide
+      // grinding top sets from the one-session "reps to spare" rule.
+      const topRpeSets = (e.sets||[]).filter(s=> s.weight === top.weight && s.rpe != null);
+      const topRpe = topRpeSets.length ? topRpeSets.reduce((sum,s)=> sum+s.rpe, 0) / topRpeSets.length : null;
+      return {date: e.date, weight: top.weight, reps: top.reps, avgRpe, minRepsAtTop, topRpe};
     })
     .filter(Boolean);
 }
@@ -27816,7 +27848,7 @@ async function computeProgramFitTrend(){
       if(!info) continue;
       const log = entriesForExercise(await getExLog(dayId, idx, subVariantOf(ex)), ex.name); // v3.535 (BL-51)
       const pastSessions = buildPastSessions(log);
-      if(pastSessions.length < 2) continue; // same minimum-data bar the per-exercise signal itself requires
+      if(pastSessions.length < 2) continue; // a fit judgement needs two sessions per lift (the signal itself can increase from one, BL-08)
       total++;
       const signal = analyzeProgressionSignal(pastSessions, ex, info.category, activeProgram);
       if(signal && signal.type==='increase') increase++;
@@ -27983,7 +28015,7 @@ function getRestReasonLabel(ex){
 // The direction is what makes the invariant checkable: whatever this says must
 // agree with the way computeSuggestedSet moves the number, and a test can now
 // assert that across every combination instead of reading the code.
-function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx, sourceNote}){
+function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx, sourceNote, prior}){
   const note = sourceNote || '';
 
   // RPE mode owns the badge as well as the placeholder — see computeSuggestedSet.
@@ -27996,7 +28028,7 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
   // RPE mode on a technique lift: no RPE target exists, so the badge is the
   // double-progression one plus the rule that replaces the target.
   if(loadSuggestionMode === 'rpe' && rpeCtx && rpeCtx.e1rm != null && rpeTargetRpe == null){
-    const base = buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx: null, sourceNote});
+    const base = buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx: null, sourceNote, prior});
     return {direction: base.direction,
             html: base.html + `<div class="progress-hint">Technique lift: stop each set with 2–3 clean reps left.</div>`};
   }
@@ -28048,7 +28080,11 @@ function buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx,
   // of the range isn't enough; only the clinical load gate (two sessions at
   // RPE 7 or easier, analyzeProgressionSignal) may suggest more weight.
   const clinicalPlan = rpeCtx && (rpeCtx.program === 'medical' || rpeCtx.program === 'senior');
-  if(!clinicalPlan && priorTop && priorTop.reps!=null && topRep!=null && priorTop.reps >= topRep){
+  if(!clinicalPlan && priorTop && priorTop.reps!=null && topRep!=null && priorTop.reps >= topRep
+      // v3.538 (BL-08): every set at that weight reached the top, not just the best
+      // one; inline so suites extracting this one function keep their sandboxes.
+      // With no prior entry (an older caller) the top set alone decides.
+      && (!prior || !Array.isArray(prior.sets) || prior.sets.filter(s=> s.weight === priorTop.weight && s.reps != null).every(s=> s.reps >= topRep))){
     return {direction:'up', html:`<div class="progress-badge">Hit ${priorTop.reps} reps last time at ${priorTop.weight!=null ? fmtWeight(priorTop.weight) : '?'}${note} — try adding weight today</div>`};
   }
   if(priorTop && priorTop.weight!=null){
@@ -28078,7 +28114,7 @@ function priorSetForSlot(prior, setIdx, ex, crossProgram){
   return {weight: basis.weight, reps: bottom != null ? bottom : basis.reps};
 }
 
-function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, priorTop, rpeCtx){
+function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, priorTop, rpeCtx, prior){
   if(!priorSet || priorSet.weight == null) return null;
 
   // RPE-target mode short-circuits the whole double-progression chain below.
@@ -28178,7 +28214,11 @@ function computeSuggestedSet(priorSet, signal, inDeloadWeek, category, ex, prior
   // field agrees with it. v3.519 (BL-02): not on the clinical plans or Senior,
   // where only the clinical load gate may raise the weight (badge agrees).
   const clinicalPlan = rpeCtx && (rpeCtx.program === 'medical' || rpeCtx.program === 'senior');
-  if(!clinicalPlan && priorTop && priorTop.reps != null && topRep != null && priorTop.reps >= topRep){
+  if(!clinicalPlan && priorTop && priorTop.reps != null && topRep != null && priorTop.reps >= topRep
+      // v3.538 (BL-08): every set at that weight reached the top, not just the best
+      // one; inline so suites extracting this one function keep their sandboxes.
+      // With no prior entry (an older caller) the top set alone decides.
+      && (!prior || !Array.isArray(prior.sets) || prior.sets.filter(s=> s.weight === priorTop.weight && s.reps != null).every(s=> s.reps >= topRep))){
     return {weight: snap(bump(priorSet.weight, increment), 'up'), reps: bottomRep, reason:'increase'};
   }
   // 5. Nothing to suggest — the field ghosts last time's number, as before.
@@ -29063,7 +29103,7 @@ async function renderWorkout(){
       // stay null and these sections quietly produce nothing, which is
       // correct: there's no double-progression or 1RM concept for reps-only
       // bodyweight work, but the reps/RPE inputs below are unaffected either way.
-      const badgeInfo = buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx, sourceNote});
+      const badgeInfo = buildProgressBadge({ex, signal, inDeloadWeek, priorTop, topRep, rpeCtx, sourceNote, prior});
       badge = badgeInfo.html;
 
       // THE FIRST TWO EXERCISES OF THE DAY, unconditionally.
@@ -29140,7 +29180,7 @@ async function renderWorkout(){
         // v3.395: from the same slot basis the fields use; from another
         // program, its fallback is that basis too, not that program's top set.
         const firstBasis = priorSetForSlot(prior, 0, ex, priorIsCrossProgram);
-        const suggestedFirst = computeSuggestedSet(firstBasis, signal, inDeloadWeek, exCategory, ex, priorTop, rpeCtx);
+        const suggestedFirst = computeSuggestedSet(firstBasis, signal, inDeloadWeek, exCategory, ex, priorTop, rpeCtx, prior);
         const rampBasis = chooseRampBasis(todayFirstSet, suggestedFirst, priorIsCrossProgram ? (firstBasis || priorTop) : priorTop);
         if(rampBasis && rampBasis.weight >= minWeight){
           // The name goes in so the steps can be snapped to what this person can
@@ -29235,7 +29275,7 @@ async function renderWorkout(){
         // to a set that already has a logged value — a saved set shows what was
         // actually done, and a suggestion has no business overwriting the
         // display of a fact.
-        const suggested = savedSet ? null : computeSuggestedSet(placeholderSet, signal, inDeloadWeek, exCategory, ex, priorTop, rpeCtx);
+        const suggested = savedSet ? null : computeSuggestedSet(placeholderSet, signal, inDeloadWeek, exCategory, ex, priorTop, rpeCtx, prior);
         const weightPlaceholder = suggested
           ? trimUnitNum(suggested.weight)
           : (placeholderSet && placeholderSet.weight!=null ? trimUnitNum(toDisplayWeight(placeholderSet.weight)) : weightUnit);
@@ -41862,7 +41902,9 @@ async function renderExerciseProgress(){
     const latestEntry = log[log.length-1];
     const latest = sessionTopOf(latestEntry);
     const topRep = parseTopRep(exDef.sets);
-    const readyToProgress = latest && latest.reps!=null && topRep!=null && latest.reps >= topRep;
+    // v3.538 (BL-08): every set at the latest top weight, as the workout view.
+    const readyToProgress = latest && latest.reps!=null && topRep!=null && latest.reps >= topRep
+      && (latestEntry.sets||[]).filter(s=> s.weight === latest.weight && s.reps != null).every(s=> s.reps >= topRep);
     const bestEver = maxWeightEver(log, null);
     const latestVolume = volumeOf(latestEntry);
     const latest1RM = latest ? estimated1RM(latest.weight, latest.reps) : null;
