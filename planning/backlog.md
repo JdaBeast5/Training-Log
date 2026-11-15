@@ -605,7 +605,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Note:** `buildPastSessions` (27673) drops any session whose `topSetOf` (27224) finds no set, and `topSetOf` skips every set with `weight == null` (27227). So weightless sessions never reach it: the helper must read the log entries' `sets` directly (most recent two dates other than `selectedLogDate`, the same filter `buildPastSessions` uses), not through `buildPastSessions`. Don't change `buildPastSessions`: seven suites stub it.
 - **Risk:** set chips for bodyweight rows. Guarded by `test-set-chips.js` and `test-gym-set-chips.js`. BL-56 (slot 26a) marks more moves `noWeight` first, so more rows get this.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; criteria split into real invocations of the helper plus one real-call count (the row can't be rendered in jsdom); the `topSetOf` caveat added. Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.560, PR #135).
 
 ### BL-12: Copy that matches the code (H-4 copy, L-2, L-1 for in-app tips)
 - **Why:**
