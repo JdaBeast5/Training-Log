@@ -941,7 +941,7 @@ Audit keys ([ACSM26], [PEL], [ROB24], etc.) link to sources in `planning/program
 - **Files:** `index.html` (27594–27669, 27885–27978, 27980–28085), `sw.js`, the test. Guards: `test-rpe-safety-caps.js`, `test-deload-signal-week-awareness.js` and `test-today-workout-emoji.js` (they extract the real `buildProgressBadge`), `test-program-fit-trend.js`.
 - **Risk:** same as BL-08. Depends on BL-08's `minRepsAtTop`. The stall branch must sit after the clinical gate (27636–27654), so the clinical plans never see it.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; criteria 3–5 added as real invocations (the old two left the suggestion, the fit check and the clinical gate untested). Scope unchanged: still text only, no automatic change.
-- **Status:** ready (after BL-08)
+- **Status:** done (v3.558, PR #133).
 
 ---
 
