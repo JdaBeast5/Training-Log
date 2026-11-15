@@ -7713,7 +7713,7 @@ function bootMark(name){
    ============================================================================ */
 
 // [STORAGE] ------------------------------------------------------------------
-const APP_VERSION = '3.555';
+const APP_VERSION = '3.556';
 // v3.515: the app was renamed Liftnext (Chalklog was picked first and dropped the
 // same day). v3.517: the name is Platestep (owner, 2026-11-07), after "NextLift"
 // turned out to be two live 2026 fitness apps (planning/naming.md). Display name only:
@@ -9200,6 +9200,9 @@ const WHATS_NEW = {
   ]},
   '3.555': { headline: 'Deload weeks shorten your long cardio too', points: [
     'A deload week already cut your sets. Now it also trims long runs and rides by about 30% (a 45-60 min long run becomes 30-40 min), so the lightest week is actually light. Warm-ups, cool-downs and Medical programs keep their usual length.',
+  ]},
+  '3.556': { headline: 'Rest times that fit the work', points: [
+    'The rest timer used to read "6×2min" or "6×40yd" as reps, so a 2-minute bag round got 4 minutes of rest and short sprints got 1. Now rounds rest 60 s (jump rope 45 s), short sprints and max holds 2 minutes, and conditioning intervals 90 s. High-rep compound lifts rest 2 minutes, and high-rep isolation 75 s.',
   ]},
 };
 
@@ -28375,7 +28378,21 @@ const WARMUP_MIN_WORKING_WEIGHT_GENERIC = 30;
 // [PROGRESSION, REST & WARM-UP] -------------------------------------------------
 // Rep-range tiering, rest prescription, warm-up ramps, PR/1RM math,
 // progression signal.
+// v3.556 (BL-14, audit M-1): the count after "×" and the unit word right
+// after it ("6×2min" → {lo: 2, hi: 2, unit: 'min'}); unit is null for plain
+// reps (or 'reps' / 'each'). A count with a time, distance or counted unit is
+// not a rep count, so getRepRangeTier gives it no tier.
+const NON_REP_UNITS = /^(?:s|secs?|seconds?|min|mins|minutes?|m|km|mi|yds?|yards?|rounds?|breaths?|steps?)$/i;
+function prescriptionCount(setsStr){
+  const m = /×\s*(\d+(?:\.\d+)?)(?:\s*-\s*(\d+(?:\.\d+)?))?\s*([a-z]+)?/i.exec(setsStr || '');
+  if(!m) return null;
+  const unit = m[3] && !/^(?:reps?|each)$/i.test(m[3]) ? m[3].toLowerCase() : null;
+  return {lo: Number(m[1]), hi: Number(m[2] != null ? m[2] : m[1]), unit};
+}
 function getRepRangeTier(setsStr){
+  // Inline, so suites that extract this one function keep their sandboxes
+  // (the same unit list as NON_REP_UNITS).
+  if(/×\s*\d+(?:\.\d+)?(?:\s*-\s*\d+(?:\.\d+)?)?\s*(?:s|secs?|seconds?|min|mins|minutes?|m|km|mi|yds?|yards?|rounds?|breaths?|steps?)\b/i.test(setsStr || '')) return null;
   const m = (setsStr||'').match(/×\s*(\d+)\s*(?:-\s*(\d+))?/);
   if(!m) return null;
   const lo = Number(m[1]);
@@ -28438,12 +28455,45 @@ function rirLabelHtml(ex, program, inDeload){
   return `<span class="ex-rir" role="img" aria-label="${escapeHtml(t.words)}">${escapeHtml(t.short)}</span>`;
 }
 
+// v3.556 (BL-14, audit M-1): rest for work that isn't counted in reps.
+// Sprints and max holds need near-full recovery [PRAC] (the plyometrics tip
+// says so too); rounds and conditioning intervals reset shorter. Returns the
+// branch key, or null for rep work. getDefaultRestSeconds and
+// getRestReasonLabel both read it, so the number and its label always match.
+function restUnitKind(ex){
+  const sets = (ex && ex.sets) || '';
+  const name = (ex && ex.name) || '';
+  const c = prescriptionCount(sets);
+  if(!c || !c.unit || !NON_REP_UNITS.test(c.unit)) return null;
+  const cat = ((exerciseInfo[name] || {}).category) || null;
+  const secs = /^s|^sec/.test(c.unit), dist = /^(?:m|yds?|yards?)$/.test(c.unit);
+  if(/jump rope/i.test(name)) return 'jumpRope';
+  if(/\brounds?\b/i.test(sets) || cat === 'punch' || cat === 'kick') return 'rounds';
+  if((dist && c.hi <= 40) || (secs && c.hi <= 20 && (/sprint/i.test(name) || cat === 'cardio' || cat === 'jump'))) return 'sprint';
+  if(secs && (cat === 'pull' || cat === 'push' || cat === 'shoulder')) return 'hold';
+  if(cat === 'cardio' || /sprint|interval|row|erg|run|bike|ski|swim/i.test(name)) return 'interval';
+  return null;
+}
+const REST_BY_UNIT = {
+  jumpRope: {sec: 45, label: 'Jump rope · short reset'},
+  rounds: {sec: 60, label: 'Rounds · short reset'},
+  sprint: {sec: 120, label: 'Sprints · near-full recovery'},
+  hold: {sec: 120, label: 'Max holds · near-full recovery'},
+  interval: {sec: 90, label: 'Intervals · partial recovery'},
+};
+
 function getDefaultRestSeconds(ex){
+  // typeof-guarded (as BL-57), for suites that extract only this function.
+  const unitKind = typeof restUnitKind === 'function' ? restUnitKind(ex) : null;
+  if(unitKind) return REST_BY_UNIT[unitKind].sec;
   const info = ex && exerciseInfo[ex.name];
   const isCompound = info && WARMUP_ELIGIBLE_CATEGORIES.includes(info.category);
   const tier = getRepRangeTier(ex && ex.sets);
   if(tier === 'strength') return 240; // 3-5 min range, using the midpoint
-  if(tier === 'endurance') return 60; // 30-90 sec range, using the midpoint
+  // v3.556 (BL-14): rest above 60 s helps hypertrophy slightly, with no added
+  // benefit beyond about 90 s [SING24]; high-rep compounds need longer.
+  // Shoulder work at high reps is raises, so it rests as isolation here.
+  if(tier === 'endurance') return (isCompound && info.category !== 'shoulder') ? 120 : 75;
   return isCompound ? 150 : 90; // hypertrophy range, or unparseable (AMRAP/time-based) — compound/isolation split applies
 }
 
@@ -28456,8 +28506,10 @@ function getRestReasonLabel(ex){
   const info = ex && exerciseInfo[ex.name];
   const isCompound = info && WARMUP_ELIGIBLE_CATEGORIES.includes(info.category);
   const tier = getRepRangeTier(ex && ex.sets);
+  const unitKind = typeof restUnitKind === 'function' ? restUnitKind(ex) : null;
+  if(unitKind) return REST_BY_UNIT[unitKind].label;
   if(tier === 'strength') return 'Strength range · low reps';
-  if(tier === 'endurance') return 'Endurance range · high reps';
+  if(tier === 'endurance') return (isCompound && info.category !== 'shoulder') ? 'Endurance range · compound' : 'Endurance range · isolation';
   return isCompound ? 'Hypertrophy · compound' : 'Hypertrophy · isolation';
 }
 
