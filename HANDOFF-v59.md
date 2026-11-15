@@ -1199,3 +1199,6 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 ## Addendum 78: BL-23 (v3.554, PR #129, 2026-11-10)
 - **What:** `getEarlyDeloadInsight` (row under readiness), `setManualDeload(on)` shared by the Settings toggle and the button. 218/218.
 - **Note:** `test-weekly-recap.js` pins the Priorities `order` list prefix; new rows near the top need it re-pinned.
+
+## Addendum 79: BL-48 (v3.555, PR #130, 2026-11-15)
+- **What:** `deloadDuration(sets)` and `applyDeloadVolumeReduction(exercises, program)` (cardio durations × 0.7, rounded to 5; warm-up/cool-down and medical excluded). 219/219.

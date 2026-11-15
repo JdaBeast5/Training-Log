@@ -2072,7 +2072,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Fold-in (2026-11-08):** line numbers moved to v3.518. The `deloaded` marker was dropped (the suffix already exists). The medical exclusion became a program argument and criterion 5.
 - **Tools:** none extra.
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped; criteria 1, 4 and 6 made real invocations (criterion 4 pointed at another suite's expectations). Scope unchanged.
-- **Status:** ready
+- **Status:** done (v3.555, PR #130). Flagged: Endurance Ride and Long Swim have no exerciseInfo category, so they aren't trimmed.
 
 ## Program extensions: BL-41, BL-42, BL-44 and BL-45 (exercise-auditor, 2026-11-09, against v3.528)
 
