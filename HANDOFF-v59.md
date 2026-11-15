@@ -1205,3 +1205,6 @@ This covers what the builder's per-version addenda (43–53) don't: how the proj
 
 ## Addendum 80: BL-14 (v3.556, PR #131, 2026-11-15)
 - **What:** `NON_REP_UNITS`, `prescriptionCount`, `restUnitKind`, `REST_BY_UNIT`; `getRepRangeTier` returns null for unit counts (inline regex); endurance rest 120/75. 220/220.
+
+## Addendum 81: BL-57 (v3.557, PR #132, 2026-11-15)
+- **What:** `restUnitKind` kinds flow/multiplier/swimShort/swimLong/jump/jumpHeavy/mobility; `getRepRangeTier` null for trailing multipliers. 221/221.

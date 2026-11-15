@@ -1777,7 +1777,7 @@ The exercise-auditor's 18 items (PR #68), folded in by the project-manager on 20
 - **Risk:** the rest timer for every program, and the time estimate (rest feeds `parseEstimatedMinutes`). The superset and backdating rest-suppression suites guard it.
 - **Fold-in (2026-11-08):** line numbers moved to v3.518. The `EXERCISE_MOVE` dependency and the seven suites were found. Placed straight after BL-14 (slot 25a).
 - **Spec refresh 2 (2026-11-09, against v3.527):** lines re-grepped. The seven suites are unchanged (each still extracts the real `getDefaultRestSeconds` and `getRestReasonLabel`); none extracts `EXERCISE_MOVE`, so the `typeof` guard stays the recommendation. Scope unchanged.
-- **Status:** ready (after BL-14)
+- **Status:** done (v3.557, PR #132).
 
 ### BL-58: Library entries for the Light and Speed variants; prune orphans (D-7, C-1, C-2; closes L-3)
 - **Why:**
